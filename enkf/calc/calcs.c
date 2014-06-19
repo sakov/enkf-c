@@ -103,21 +103,21 @@ static int invm(int m, double** S)
 
     dpotrf_(&uplo, &m, S[0], &m, &lapack_info);
     if (lapack_info != 0)
-	return lapack_info;
+        return lapack_info;
     dpotri_(&uplo, &m, S[0], &m, &lapack_info);
     if (lapack_info != 0)
-	return lapack_info;
+        return lapack_info;
 #if 0
     for (j = 1; j < m; ++j)
-	for (i = 0; i < j; ++i)
-	    S[i][j] = S[j][i];
+        for (i = 0; i < j; ++i)
+            S[i][j] = S[j][i];
 #else
     for (j = 1; j < m; ++j) {
-	double* colj_rowi = S[j];
-	double* rowj_coli = &S[0][j];
+        double* colj_rowi = S[j];
+        double* rowj_coli = &S[0][j];
 
-	for (i = 0; i < j; ++i, colj_rowi++, rowj_coli += m)
-	    *rowj_coli = *colj_rowi;
+        for (i = 0; i < j; ++i, colj_rowi++, rowj_coli += m)
+            *rowj_coli = *colj_rowi;
     }
 #endif
     return 0;
@@ -204,7 +204,7 @@ static int calc_M(int p, int m, int transpose, double** S, double** M)
         /*
          * M = inv(I + S' * S) 
          */
-	lapack_info = invm(m, M);
+        lapack_info = invm(m, M);
     } else {
         /*
          * M = S * S' 
@@ -216,7 +216,7 @@ static int calc_M(int p, int m, int transpose, double** S, double** M)
         for (i = 0; i < p; ++i)
             M[i][i] += 1.0;
 
-	lapack_info = invm(p, M);
+        lapack_info = invm(p, M);
     }
 
     return lapack_info;
@@ -289,11 +289,11 @@ void calc_G_denkf(int m, int p, double** S, int i, int j, double** G)
 
     if (p < m) {
         M = alloc2d(p, p, sizeof(double));
-	/*
-	 * M = inv(I + S * S')
-	 */
-	lapack_info = calc_M(p, m, 1, S, M);
-	if (lapack_info != 0)
+        /*
+         * M = inv(I + S * S')
+         */
+        lapack_info = calc_M(p, m, 1, S, M);
+        if (lapack_info != 0)
             enkf_quit("dpotrf() or dpotri(): lapack_info = %d at (i, j) = (%d, %d)", lapack_info, i, j);
 
         /*
@@ -301,12 +301,12 @@ void calc_G_denkf(int m, int p, double** S, int i, int j, double** G)
          */
         dgemm_(&doT, &noT, &m, &p, &p, &alpha, S[0], &p, M[0], &p, &beta, G[0], &m);
     } else {
-	/*
-	 * M = inv(I + S' * S)
-	 */
+        /*
+         * M = inv(I + S' * S)
+         */
         M = alloc2d(m, m, sizeof(double));
-	lapack_info = calc_M(p, m, 0, S, M);
-	if (lapack_info != 0)
+        lapack_info = calc_M(p, m, 0, S, M);
+        if (lapack_info != 0)
             enkf_quit("dpotrf() or dpotri(): lapack_info = %d at (i, j) = (%d, %d)", lapack_info, i, j);
         /*
          * G = inv(I + S * S') * S'
@@ -316,24 +316,24 @@ void calc_G_denkf(int m, int p, double** S, int i, int j, double** G)
 
 #if defined(CHECK_G)
     {
-	int e, o;
+        int e, o;
 
-	/*
-	 * check that columns of G sum up to 0
-	 */
-	for (o = 1; o < p; ++o) {
-	    double* Go = G[o];
-	    double sumG = 0.0;
-	    double sumS = 0.0;
-	    
-	    for (e = 0; e < m; ++e) {
-		sumG += Go[e];
-		sumS += S[e][o];
-	    }
+        /*
+         * check that columns of G sum up to 0
+         */
+        for (o = 1; o < p; ++o) {
+            double* Go = G[o];
+            double sumG = 0.0;
+            double sumS = 0.0;
 
-	    if (fabs(sumG) > EPS)
-		enkf_quit("inconsistency in G: column %d sums up to %.15f for (i, j) = (%d, %d); sum(S(%d,:) = %.15f)", o, sumG, i, j, o, sumS);
-	}
+            for (e = 0; e < m; ++e) {
+                sumG += Go[e];
+                sumS += S[e][o];
+            }
+
+            if (fabs(sumG) > EPS)
+                enkf_quit("inconsistency in G: column %d sums up to %.15f for (i, j) = (%d, %d); sum(S(%d,:) = %.15f)", o, sumG, i, j, o, sumS);
+        }
     }
 #endif
 
