@@ -379,7 +379,7 @@ void das_calctransforms(dasystem* das)
                 calc_G_denkf(das->nmem, ploc, Sloc, i, j, G);
             else if (das->scheme == SCHEME_ETKF)
                 calc_G_etkf(das->nmem, ploc, Sloc, i, j, G, X5);
- 
+
             if (das->mode == MODE_ENKF) {
                 if (das->scheme == SCHEME_DENKF)
                     calc_X5_denkf(das->nmem, ploc, G, Sloc, sloc, i, j, X5);
@@ -743,7 +743,7 @@ void das_dopointlogs(dasystem* das)
                     calc_X5_denkf(das->nmem, ploc, G, Sloc, sloc, i, j, X5);
                 else if (das->scheme == SCHEME_ETKF)
                     calc_X5_etkf(das->nmem, ploc, G, sloc, i, j, X5);
-		else
+                else
                     enkf_quit("programming error");
             } else if (das->mode == MODE_ENOI)
                 calc_w(das->nmem, ploc, G, sloc, w);

@@ -444,37 +444,37 @@ static void grid_setlontype(grid* g)
     double xmax = -DBL_MAX;
 
     if (g->type == GRIDTYPE_LATLON_REGULAR || g->type == GRIDTYPE_LATLON_IRREGULAR) {
-	double* x = ((gnll*) g)->x;
-	int nx = ((gnll*) g)->nx;
+        double* x = ((gnll*) g)->x;
+        int nx = ((gnll*) g)->nx;
 
-	if (xmin < x[0])
-	    xmin = x[0];
-	if (xmin < x[nx - 1])
-	    xmin = x[nx - 1];
-	if (xmax > x[0])
-	    xmax = x[0];
-	if (xmax > x[nx - 1])
-	    xmax = x[nx - 1];
+        if (xmin < x[0])
+            xmin = x[0];
+        if (xmin < x[nx - 1])
+            xmin = x[nx - 1];
+        if (xmax > x[0])
+            xmax = x[0];
+        if (xmax > x[nx - 1])
+            xmax = x[nx - 1];
     } else if (g->type == GRIDTYPE_CURVILINEAR) {
-	double** x = gridnodes_getx(((gnc*) g)->gn);
-	int nx =  gridnodes_getnce1(((gnc*) g)->gn);
-	int ny =  gridnodes_getnce2(((gnc*) g)->gn);
-	int i, j;
+        double** x = gridnodes_getx(((gnc *) g)->gn);
+        int nx = gridnodes_getnce1(((gnc *) g)->gn);
+        int ny = gridnodes_getnce2(((gnc *) g)->gn);
+        int i, j;
 
-	for (j = 0; j < ny; ++j) {
-	    for (i = 0; i < nx; ++i) {
-		if (xmin < x[j][i])
-		    xmin = x[j][i];
-		if (xmax > x[j][i])
-		    xmax = x[j][i];
-	    }
-	}
+        for (j = 0; j < ny; ++j) {
+            for (i = 0; i < nx; ++i) {
+                if (xmin < x[j][i])
+                    xmin = x[j][i];
+                if (xmax > x[j][i])
+                    xmax = x[j][i];
+            }
+        }
     }
     if (xmin < 0.0 && xmax <= 180.0)
-	g->lontype = LONTYPE_180;
+        g->lontype = LONTYPE_180;
     else if (xmin >= 0 && xmax <= 360.0)
-	g->lontype = LONTYPE_360;
- }
+        g->lontype = LONTYPE_360;
+}
 
 /**
  */

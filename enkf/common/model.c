@@ -276,15 +276,15 @@ int model_z2fk(model* m, double fi, double fj, double z, double* fk)
         *fk = NaN;
         return STATUS_LAND;
     } else if (m->numlevels[j1][i1] <= k2 || m->numlevels[j1][i2] <= k2 || m->numlevels[j2][i1] <= k2 || m->numlevels[j2][i2] <= k2) {
-	float** depth = model_getdepth(m);
-	int** mask = model_getnumlevels(m);
-	int ni, nj, nk;
-	double v;
+        float** depth = model_getdepth(m);
+        int** mask = model_getnumlevels(m);
+        int ni, nj, nk;
+        double v;
 
-	model_getdims(m, &ni, &nj, &nk);
-	v = interpolate2d(fi, fj, ni, nj, depth, mask);
-	if (z > v)
-	    return STATUS_LAND;
+        model_getdims(m, &ni, &nj, &nk);
+        v = interpolate2d(fi, fj, ni, nj, depth, mask);
+        if (z > v)
+            return STATUS_LAND;
     }
 
     return STATUS_OK;

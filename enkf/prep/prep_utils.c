@@ -73,13 +73,13 @@ void obs_add(observations* obs, model* m, obsmeta* meta)
         for (j = 0; j < notdescs; ++j) {
             obstypedesc* otd = &otdescs[j];
 
-	    if (lontype == LONTYPE_180) {
-		if (o->lon > 180.0)
-		    o->lon -= 360.0;
-	    } else if (lontype == LONTYPE_360) {
-		if (o->lon < 0.0)
-		    o->lon += 360.0;
-	    }
+            if (lontype == LONTYPE_180) {
+                if (o->lon > 180.0)
+                    o->lon -= 360.0;
+            } else if (lontype == LONTYPE_360) {
+                if (o->lon < 0.0)
+                    o->lon += 360.0;
+            }
 
             if (strcmp(otd->typename, obs->obstypes[o->type].name) == 0) {
                 if (o->value < otd->minval || o->value > otd->maxval)
