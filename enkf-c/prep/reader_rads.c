@@ -1,0 +1,249 @@
+/******************************************************************************
+ *
+ * File:        reader_rads.c        
+ *
+ * Created:     12/2012
+ *
+ * Author:      Pavel Sakov
+ *              Bureau of Meteorology
+ *
+ * Description:
+ *
+ * Revisions:
+ *
+ *****************************************************************************/
+
+#include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
+#include <math.h>
+#include <assert.h>
+#include "ncw.h"
+#include "nan.h"
+#include "stringtable.h"
+#include "kdtree.h"
+#include "definitions.h"
+#include "utils.h"
+#include "enkfprm.h"
+#include "obsmeta.h"
+#include "model.h"
+#include "observations.h"
+#include "prep.h"
+#include "allreaders.h"
+
+#define MINDEPTH 200.0
+
+/** For files of the form ??_yyyymmdd.nc. They are assumed to have "time" 
+ * variable.
+ */
+void reader_rads_standard(char* fname, obsmeta* meta, model* m, observations* obs)
+{
+    int ncid;
+    int dimid_nobs;
+    size_t nobs_local;
+    int varid_lon, varid_lat, varid_sla, varid_time;
+    double* lon;
+    double* lat;
+    double* sla;
+    double* time;
+    double error_std;
+    size_t tunits_len;
+    char* tunits;
+    double tunits_multiple, tunits_offset;
+    char* basename;
+    char instname[3];
+    float** depth;
+    int i;
+
+    ncw_open(fname, NC_NOWRITE, &ncid);
+
+    ncw_inq_dimid(fname, ncid, "nobs", &dimid_nobs);
+    ncw_inq_dimlen(fname, ncid, dimid_nobs, &nobs_local);
+    enkf_printf("        nobs = %u\n", (unsigned int) nobs_local);
+
+    if (nobs_local == 0)
+        return;
+
+    ncw_inq_varid(fname, ncid, "lon", &varid_lon);
+    lon = malloc(nobs_local * sizeof(double));
+    ncw_get_var_double(fname, ncid, varid_lon, lon);
+
+    ncw_inq_varid(fname, ncid, "lat", &varid_lat);
+    lat = malloc(nobs_local * sizeof(double));
+    ncw_get_var_double(fname, ncid, varid_lat, lat);
+
+    ncw_inq_varid(fname, ncid, "sla", &varid_sla);
+    sla = malloc(nobs_local * sizeof(double));
+    ncw_get_var_double(fname, ncid, varid_sla, sla);
+    ncw_get_att_double(fname, ncid, varid_sla, "error_std", &error_std);
+    enkf_printf("        error_std = %3g\n", error_std);
+
+    ncw_inq_varid(fname, ncid, "time", &varid_time);
+    time = malloc(nobs_local * sizeof(double));
+    ncw_get_var_double(fname, ncid, varid_time, time);
+    ncw_inq_attlen(fname, ncid, varid_time, "units", &tunits_len);
+    tunits = calloc(tunits_len + 1, 1);
+    ncw_get_att_text(fname, ncid, varid_time, "units", tunits);
+
+    ncw_close(fname, ncid);
+
+    tunits_convert(tunits, &tunits_multiple, &tunits_offset);
+
+    basename = strrchr(fname, '/');
+    if (basename == NULL)
+        basename = fname;
+    else
+        basename += 1;
+    strncpy(instname, basename, 2);
+    instname[2] = 0;
+
+    depth = model_getdepth(m);
+    for (i = 0; i < nobs_local; ++i) {
+        measurement* o;
+
+        if (obs->nobs % NOBS_INC == 0) {
+            obs->data = realloc(obs->data, (obs->nobs + NOBS_INC) * sizeof(measurement));
+            if (obs->data == NULL)
+                enkf_quit("not enough memory");
+        }
+
+        o = &obs->data[obs->nobs];
+
+        o->product = st_findindexbystring(obs->products, meta->product);
+        assert(o->product >= 0);
+        o->type = st_findindexbystring(obs->types, meta->type);
+        assert(o->type >= 0);
+        o->instrument = st_add_ifabscent(obs->instruments, instname, -1);
+        o->id = obs->nobs;
+        o->value = sla[i];
+        o->std = error_std;
+        o->lon = lon[i];
+        o->lat = lat[i];
+        o->depth = 0.0;
+        o->status = model_ll2fij(m, o->lon, o->lat, &o->fi, &o->fj);
+        if (!obs->allobs && o->status == STATUS_OUTSIDE)
+            continue;
+        o->fk = 0.0;
+        o->date = time[i] * tunits_multiple + tunits_offset;
+        if (o->status == STATUS_OK && depth[(int) floor(o->fj + 0.5)][(int) floor(o->fi + 0.5)] < MINDEPTH)
+            o->status = STATUS_SHALLOW;
+
+        o->aux = -1;
+
+        obs->nobs++;
+    }
+
+    free(lon);
+    free(lat);
+    free(sla);
+    free(tunits);
+    free(time);
+}
+
+/** For files of the form y<yyyy>/m<mm>/??_d<dd>.nc with no "time" variable.
+ */
+void reader_rads_standard2(char* fname, obsmeta* meta, model* m, observations* obs)
+{
+    int ncid;
+    int dimid_nobs;
+    size_t nobs_local;
+    int varid_lon, varid_lat, varid_sla;
+    double* lon;
+    double* lat;
+    double* sla;
+    double error_std;
+    char buf[MAXSTRLEN];
+    int len;
+    int year, month, day;
+    double tunits_multiple, tunits_offset;
+    char* basename;
+    char instname[3];
+    float** depth;
+    int i;
+
+    ncw_open(fname, NC_NOWRITE, &ncid);
+
+    ncw_inq_dimid(fname, ncid, "nobs", &dimid_nobs);
+    ncw_inq_dimlen(fname, ncid, dimid_nobs, &nobs_local);
+    enkf_printf("        nobs = %u\n", (unsigned int) nobs_local);
+
+    if (nobs_local == 0)
+        return;
+
+    ncw_inq_varid(fname, ncid, "lon", &varid_lon);
+    lon = malloc(nobs_local * sizeof(double));
+    ncw_get_var_double(fname, ncid, varid_lon, lon);
+
+    ncw_inq_varid(fname, ncid, "lat", &varid_lat);
+    lat = malloc(nobs_local * sizeof(double));
+    ncw_get_var_double(fname, ncid, varid_lat, lat);
+
+    ncw_inq_varid(fname, ncid, "sla", &varid_sla);
+    sla = malloc(nobs_local * sizeof(double));
+    ncw_get_var_double(fname, ncid, varid_sla, sla);
+    ncw_get_att_double(fname, ncid, varid_sla, "error_std", &error_std);
+    enkf_printf("        error_std = %3g\n", error_std);
+
+    ncw_close(fname, ncid);
+
+    strcpy(buf, fname);
+    len = strlen(buf);
+    buf[len - 3] = 0;           /* .nc */
+    if (!str2int(&buf[len - 5], &day))
+        enkf_quit("RADS reader: could not convert file name \"%s\" to date", fname);
+    buf[len - 10] = 0;
+    if (!str2int(&buf[len - 12], &month))
+        enkf_quit("RADS reader: could not convert file name \"%s\" to date", fname);
+    buf[len - 14] = 0;
+    if (!str2int(&buf[len - 18], &year))
+        enkf_quit("RADS reader: could not convert file name \"%s\" to date", fname);
+    sprintf(buf, "days since %4d-%02d-%02d", year, month, day);
+
+    tunits_convert(buf, &tunits_multiple, &tunits_offset);
+
+    basename = strrchr(fname, '/');
+    if (basename == NULL)
+        basename = fname;
+    else
+        basename += 1;
+    strncpy(instname, basename, 2);
+    instname[2] = 0;
+
+    depth = model_getdepth(m);
+    for (i = 0; i < nobs_local; ++i) {
+        measurement* o;
+
+        if (obs->nobs % NOBS_INC == 0) {
+            obs->data = realloc(obs->data, (obs->nobs + NOBS_INC) * sizeof(measurement));
+            if (obs->data == NULL)
+                enkf_quit("not enough memory");
+        }
+
+        o = &obs->data[obs->nobs];
+
+        o->product = st_findindexbystring(obs->products, meta->product);
+        assert(o->product >= 0);
+        o->type = st_findindexbystring(obs->types, meta->type);
+        assert(o->type >= 0);
+        o->instrument = st_add_ifabscent(obs->instruments, instname, -1);
+        o->id = obs->nobs;
+        o->value = sla[i];
+        o->std = error_std;
+        o->lon = lon[i];
+        o->lat = lat[i];
+        o->depth = 0.0;
+        o->status = model_ll2fij(m, o->lon, o->lat, &o->fi, &o->fj);
+        o->fk = 0.0;
+        o->date = tunits_offset + 0.5;
+        if (o->status == STATUS_OK && depth[(int) floor(o->fj + 0.5)][(int) floor(o->fi + 0.5)] < MINDEPTH)
+            o->status = STATUS_SHALLOW;
+
+        o->aux = -1;
+
+        obs->nobs++;
+    }
+
+    free(lon);
+    free(lat);
+    free(sla);
+}

@@ -1,0 +1,28 @@
+LICENSE:
+    EnKF-C is a public software. See LICENSE for details.
+
+It has been developed for GNU/Linux platform.
+
+How to compile:
+    Create "make.inc" for your architecture (look at examples in `arch' 
+directory), then run "make".
+
+Dependencies:
+    gcc
+    openmpi
+    libnetcdf
+    liblapack (or libmkl_rt)
+    libgu (svn checkout https://gridutils-c.googlecode.com/svn/gridutils)
+
+Description:
+    See doc/enkf-userguide.pdf.
+
+Starting up:
+    A "small" example (80 MB) can be downloaded from here:
+
+https://drive.google.com/folderview?id=0B-joqvlrlCeRMjBtUFpRRHR1M0E&usp=sharing
+
+See the examples's README file for details.
+
+Good luck,
+Pavel Sakov
