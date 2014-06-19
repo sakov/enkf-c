@@ -3,31 +3,37 @@ LICENSE:
 
 It has been developed for GNU/Linux platform.
 
-How to compile:
-    Create "make.inc" for your architecture (look at examples in `arch' 
-directory), then run "make".
+COMPILING
 
-Dependencies:
-    gcc
-    openmpi
-    libnetcdf
-    liblapack (or libmkl_rt)
-    libgu (svn checkout https://gridutils-c.googlecode.com/svn/gridutils)
+Create "make.inc" for your architecture (look at examples in `arch'  directory),
+then run "make".
 
-Description:
-    See doc/enkf-userguide.pdf.
+DEPENDENCIES
 
-Starting up:
-    A "small" example (80 MB) can be downloaded from here:
+gcc
+openmpi
+libnetcdf
+liblapack (or libmkl_rt)
+libgu (svn checkout https://gridutils-c.googlecode.com/svn/gridutils)
+
+USER MANUAL
+
+See doc/enkf-userguide.pdf.
+
+STARTING UP
+
+A "small" example (80 MB) can be downloaded from here:
 
 https://drive.google.com/folderview?id=0B-joqvlrlCeRMjBtUFpRRHR1M0E&usp=sharing
 
 See the examples's README file for details.
 
-Referring:
-    Please refer to EnKF-C by citing the user reference, e.g.:
+REFERRING
 
-<...> the EnKF-C package (Sakov, 2014) available from https://code.google.com/p/enkf-c <...>
+Please refer to EnKF-C by citing the user reference, e.g.:
+
+<...> the EnKF-C package (Sakov, 2014) available from 
+https://code.google.com/p/enkf-c <...>
 Sakov, P., 2014. EnKF-C user guide. Version 0.45.
 
 Good luck,
