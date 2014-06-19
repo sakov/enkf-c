@@ -1,0 +1,22 @@
+LD_PATH =
+
+INC_NC = 
+LIB_NC = -lnetcdf -lhdf5 -lhdf5_hl
+
+LIB_M = -lm
+
+INC_GU = -I/usr/local/include
+LIB_GU = -lgu
+
+LIB_LAPACK = -llapack -lblas
+LD_PATH += -L/usr/lib64
+
+# which compiler/flags to use with MPI
+#
+CCMPI = mpicc
+CFLAGSMPI = -g -Wall -pedantic -Wall -std=c99 -D_GNU_SOURCE -DMPI # -O2
+
+# which compiler/flags to use without MPI
+#
+CC = clang
+CFLAGS = -g -Wall -pedantic -Wall -std=c99 -D_GNU_SOURCE # -O2

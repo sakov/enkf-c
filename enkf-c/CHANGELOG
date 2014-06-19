@@ -1,0 +1,151 @@
+v. 0.45
+   PS 06062014
+   -- Try to automatically detect whether the model grid's longitudes belong to
+      [-180, 180] or [0, 360] range and adjust observations accordingly.
+   -- Changed model->depth from double** to float**.
+   -- Modified model_z2k(): it now checks that the observation depth is smaller
+      than the model depth.
+v. 0.44
+   PS 19052014
+   -- Added new scheme EnKF-N
+   -- Filtered out (by default) obs outside model grid in obs readers now, not
+      during writing obs to files.
+v. 0.43
+   PS 14052014
+   -- Consolidated tiles for the EnKF in per variable/per layer files. That
+      is, one tile now holds the whole ensemble. Fixed defects in detecting
+      tiles. Removed WRITEBG_BYMASTER pre-processor flag.
+v. 0.42
+   PS 09052014
+   -- Remove tiles by default, add a new command option --leave-tiles to post
+      to leave tiles
+v. 0.41
+   PS 16042014
+   -- Modified writing spread to use tiles by default, and write directly to
+      spread.nc when specified --direct-write.
+v. 0.40
+   PS 01042014
+   -- Introduced new parameter SOBSTRIDE, 1 by default, to define the stride
+      of superobing.
+v. 0.39
+   PS 31032014
+   -- Corrected superobing to weight by the inverse error variance not only
+      the value, but also: lon, lat, depth, fi, fj, fk, date
+   -- Introduced a new option "--no-mean-update" for enkf_calc.
+v. 0.38
+   PS 27022014
+   -- Reshuffle of writing the output by post: now by default it writes analysed
+      2D fields to individual files, and then assemble those into final
+      analysis files. Use --direct-write option to post to force the direct
+      write
+v. 0.37
+   PS 21022014
+   Bug fix: inflation was not applied properly when running with
+   --out-increment in enkf_post.
+v. 0.36
+   PS 15022014
+   -- Introduced a new command line option "--describe-prm-format"
+   -- Eliminated pre-processor flag CONSERVATIVE_Z2K (assumed always false now).
+v. 0.35
+   PS 20122013
+   -- Changed options style from "-x" to "--do-that".
+   -- Removed utility "mkunitobs", introduced two new options for enkf_calc
+      "--single-observation-xyz" and "--single-observation-ijk" instead.
+   -- Replaced pre-processor flag SEPARATE_STORAGE by a new option for
+      enkf_post "separate-output"
+   -- Introduced a new option to enkf_post "output-increment".
+   -- Introduced a new file global.c to store global flags and settings.
+v. 0.34
+   PS 17122013
+   -- Introduced compile flag CONSERVATIVE_Z2K, if defined (default = no) then
+      the z2k transformations in partially watered cell are assumed to be
+      not valid.
+   -- Introduced new type "obstypedesc", at this stage -- to contain
+      information whether observations of this type are surface or subsurface.
+   -- Added a new field "id_orig" to type "measurement".
+   -- Changed MPI send/receive for HE from blocking to asynchronous to avoid a
+      bottleneck for very large models.
+   -- Added compile flag HE_VIAFILE to communicate HE via a NetCDF file.
+v. 0.33
+   PS 27112013
+   -- Introduced ENSOBSTYPE for ensemble observations (was double), to save
+      memory for very big systems.
+v. 0.32
+   PS 15112013
+   -- Added reporting stats for individual instruments by das_printobsstats()
+      and das_printfobsstats().
+   -- Moved update procedures from dasystem.c into update.c to reduce the
+      size of dasystem.c.
+   -- ditto transform.c
+   -- ditto obsstats.c
+   -- ditto ensobs.c
+   -- Conducted a bit of Makefile restructuring, moving stuff from COMMON to
+      CALC and POST
+   -- Added a command-line utility `mkunitobs' that creates observations.nc
+      with a single observation of specified type, innovation and error
+v. 0.31
+   PS 04112013
+   -- Added SCHEME = ETKF (DEnKF remains the default) for MODE = EnKF.
+   -- observations-orig.nc: excluding observations with status = STATUS_OUTSIDE;
+      use "enkf_prep -a ..." to put all obs.
+v. 0.30
+   PS 18102013
+   Added a pre-processor option SEPARATE_STORAGE to split forecast and analysis
+   into diffeent files. The analysis file name is created by appending
+   ".analysis" to the forecast file name.
+v. 0.29
+   PS 14102013
+   Implemented point logs.
+v. 0.28
+   PS 26092013
+   Added option -s to enkf_post to calculate the ensemble spread and write to
+   "spread.nc".
+v. 0.27
+   PS 12092013
+   Added backtrace() in enkf_quit().
+   Added a pre-processor option WRITEBG_BYMASTER to update BG fields by all
+   processes or by master only.
+v. 0.26
+   Paul Sandery 4/9/2013
+   Added reading profiles in BoM's MMT format.
+v. 0.25
+   PS 22/8/2013
+   Added option -s to enkf_calc to calculate forecast observation stats only.
+   This cuts (for EnOI) reading the ensemble and calculating transforms.
+v. 0.24
+   PS 19/8/2013
+   Modified das_writebg() to pass all writing to the master.
+v. 0.23
+   PS 31/7/2013
+   Changed return values for model_getmemberfnameasync_fn and
+   model_getbgfnameasync_fn from void to int. These functions are supposed
+   to return 0 or 1 depending on whether the asynchronous data were found (1)
+   or not (0).
+   Modified writefield() to handle "missing_value" atribute for NC_FLOAT.
+   Modified das_printobsstats() to print stats by day for asynchronous obs.
+v. 0.22
+   PS 11/7/2013
+   Modified writefield() to handle "valid_range" attribute for data of type
+   NC_FLOAT.
+v. 0.21
+   PS 5/7/2013
+   Added curvilinear capability for MOM. Was not able to test.
+v. 0.20
+   PS 15/5/2013
+   Added file headers
+v. 0.18
+   PS 10/5/2013
+   Added `scale_factor' and `add_offset' to readfield().
+v. 0.17
+   PS 10/4/2013
+   Added "indent" target to the Makefile.
+v. 0.16
+   PS 8/4/2013
+   Fixed defect in distribute_iterations().
+v. 0.15
+   PS 5/4/2013
+   Fixed inconsistency between distribute_iterations() and
+   das_calculatetransforms().
+v. 0.14
+   PS 5/4/2013
+   For all readers - handle the case of # obs. = 0.

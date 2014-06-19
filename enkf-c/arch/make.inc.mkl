@@ -1,0 +1,23 @@
+LD_PATH =
+
+INC_NC = -I/home/599/pxs599/local/include
+LIB_NC = -lnetcdf -lhdf5 -lhdf5_hl
+LD_PATH += -L/home/599/pxs599/local/lib
+
+LIB_M = -lm
+
+INC_GU = -I/home/599/pxs599/src/gridutils
+LIB_GU = -lgu
+LD_PATH += -L/home/599/pxs599/local/lib
+
+LIB_LAPACK = -lmkl_rt
+
+# which compiler/flags to use with MPI
+#
+CCMPI = mpicc
+CFLAGSMPI = -g -Wall -pedantic -std=c99 -D_GNU_SOURCE -DMPI # -O2
+
+# which compiler/flags to use without MPI
+#
+CC = gcc
+CFLAGS = -g -Wall -pedantic -std=c99 -D_GNU_SOURCE # -O2
