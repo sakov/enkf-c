@@ -283,17 +283,17 @@ void mom4_setup(model* m, char gridspec[])
         periodic_x = fabs(fmod(2.0 * x[nx - 1] - x[nx - 2], 360.0) - x[0]) < EPSLON;
 
         dx = (x[nx - 1] - x[0]) / (double) (nx - 1);
-        for (i = 1; i < nx; ++i)
+        for (i = 1; i < (int) nx; ++i)
             if (fabs(x[i] - x[i - 1] - dx) / fabs(dx) > EPS)
                 break;
-        if (i != nx)
+        if (i != (int) nx)
             grid_set(model_getgrid(m), GRIDTYPE_LATLON_IRREGULAR, periodic_x, 0, nx, ny, nz, x, y, z);
         else {
             dy = (y[ny - 1] - y[0]) / (double) (ny - 1);
-            for (i = 1; i < ny; ++i)
+            for (i = 1; i < (int) ny; ++i)
                 if (fabs(y[i] - y[i - 1] - dy) / fabs(dy) > EPS)
                     break;
-            if (i != ny)
+            if (i != (int) ny)
                 grid_set(model_getgrid(m), GRIDTYPE_LATLON_IRREGULAR, periodic_x, 0, nx, ny, nz, x, y, z);
             else
                 grid_set(model_getgrid(m), GRIDTYPE_LATLON_REGULAR, periodic_x, 0, nx, ny, nz, x, y, z);

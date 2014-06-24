@@ -155,7 +155,7 @@ void das_readobs(dasystem* das, char fname[])
 
     ncw_close(fname, ncid);
 
-    for (i = 0; i < nobs; ++i) {
+    for (i = 0; i < (int) nobs; ++i) {
         measurement* m = &obs->data[i];
 
         m->type = type[i];
@@ -548,7 +548,7 @@ void das_addforecast(dasystem* das, char fname[])
     if (rank != 0)
         return;
 
-    assert(das->s_mode = S_MODE_HA_f);
+    assert(das->s_mode == S_MODE_HA_f);
 
     ncw_open(fname, NC_WRITE, &ncid);
     if (ncw_var_exists(ncid, "Hx_f")) {
@@ -564,7 +564,7 @@ void das_addforecast(dasystem* das, char fname[])
     ncw_enddef(fname, ncid);
 
     Hx = calloc(nobs, sizeof(double));
-    for (o = 0; o < nobs; ++o)
+    for (o = 0; o < (int) nobs; ++o)
         Hx[o] = das->obs->data[o].value - das->s_f[o];
 
     ncw_put_var_double(fname, ncid, varid_Hx, Hx);
@@ -646,7 +646,7 @@ void das_addmodifiederrors(dasystem* das, char fname[])
 
     std = malloc(nobs * sizeof(double));
 
-    for (i = 0; i < nobs; ++i)
+    for (i = 0; i < (int) nobs; ++i)
         std[i] = das->obs->data[i].std;
     ncw_put_var_double(fname, ncid, varid_std, std);
 
@@ -879,7 +879,7 @@ static void update_HE(dasystem* das)
     int* varids = NULL;
 
     enkf_printf("    updating HE:\n");
-    assert(das->s_mode = S_MODE_HE_f);
+    assert(das->s_mode == S_MODE_HE_f);
 
     /*
      * for each observation type precompute id of the associated variable for
@@ -911,7 +911,7 @@ static void update_HE(dasystem* das)
     ni = dimlens[1];
     nj = dimlens[0];
 
-    assert(dimlens[2] == das->nmem * das->nmem);
+    assert((int) dimlens[2] == das->nmem * das->nmem);
 
     jiter = malloc((nj + 1) * sizeof(int));     /* "+ 1" to handle periodic
                                                  * grids */
@@ -1082,7 +1082,7 @@ static void update_Hx(dasystem* das)
     float* tmp;
 
     enkf_printf("    updating Hx:\n");
-    assert(das->s_mode = S_MODE_HE_f);
+    assert(das->s_mode == S_MODE_HE_f);
 
     /*
      * the following code for interpolation of X5 essentially coincides with
@@ -1099,7 +1099,7 @@ static void update_Hx(dasystem* das)
     ni = dimlens[1];
     nj = dimlens[0];
 
-    assert(dimlens[2] == das->nmem);
+    assert((int) dimlens[2] == das->nmem);
 
     jiter = malloc((nj + 1) * sizeof(int));     /* "+ 1" to handle periodic
                                                  * grids */
@@ -1282,9 +1282,9 @@ void das_addanalysis(dasystem* das, char fname[])
     /*
      * the obs are still sorted by ij 
      */
-    for (i = 0; i < nobs; ++i)
+    for (i = 0; i < (int) nobs; ++i)
         s[data[i].id] = data[i].value;
-    for (i = 0; i < nobs; ++i)
+    for (i = 0; i < (int) nobs; ++i)
         s[i] -= das->s_a[i];
     ncw_put_var_double(fname, ncid, varid_Hx, s);
     free(s);

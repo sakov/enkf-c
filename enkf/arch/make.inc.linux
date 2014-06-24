@@ -14,9 +14,9 @@ LD_PATH += -L/usr/lib64
 # which compiler/flags to use with MPI
 #
 CCMPI = mpicc
-CFLAGSMPI = -g -Wall -pedantic -Wall -std=c99 -D_GNU_SOURCE -DMPI # -O2
+CFLAGSMPI = -g -pedantic -Wall -std=c99 -D_GNU_SOURCE -DMPI # -O2
 
 # which compiler/flags to use without MPI
 #
 CC = clang
-CFLAGS = -g -Wall -pedantic -Wall -std=c99 -D_GNU_SOURCE # -O2
+CFLAGS = -g -pedantic -Wall -std=c99 -D_GNU_SOURCE # -O2

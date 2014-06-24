@@ -526,7 +526,7 @@ void obs_writeaux(observations* obs, char fname[])
     ncw_inq_varid(fname, ncid, "aux", &varid_aux);
     ncw_inq_dimid(fname, ncid, "nobs", &dimid_nobs);
     ncw_inq_dimlen(fname, ncid, dimid_nobs, &n);
-    assert(n == obs->nobs);
+    assert((int) n == obs->nobs);
 
     aux = malloc(n * sizeof(int));
     for (i = 0, ii = 0; i < obs->nobs; ++i) {

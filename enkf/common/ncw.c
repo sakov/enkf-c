@@ -955,7 +955,7 @@ int ncw_inq_nrecords(const char fname[], int ncid)
 
 const char* ncw_nctype2str(nc_type type)
 {
-    int i;
+    size_t i;
 
     for (i = 1; i < sizeof(nctypes2str) / sizeof(struct nctype2str); ++i) {
         if (type == nctypes2str[i].type)
