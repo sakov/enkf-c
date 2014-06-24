@@ -1012,7 +1012,8 @@ void ncw_copy_dims(const char* fname_src, int ncid_src, const char* fname_dst, i
         ncw_inq_dim(fname_src, ncid_src, i, dimname, &size);
         if (i == unlimdimid)
             size = NC_UNLIMITED;
-        ncw_def_dim(fname_dst, ncid_dst, dimname, size, &dimid);
+	if (!ncw_dim_exists(ncid_dst, dimname))
+	    ncw_def_dim(fname_dst, ncid_dst, dimname, size, &dimid);
     }
 }
 
