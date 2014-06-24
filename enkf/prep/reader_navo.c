@@ -100,7 +100,7 @@ void reader_navo_standard(char* fname, obsmeta* meta, model* m, observations* ob
 
     tunits_convert(tunits, &tunits_multiple, &tunits_offset);
 
-    for (i = 0; i < nobs_local; ++i) {
+    for (i = 0; i < (int) nobs_local; ++i) {
         measurement* o;
 
         if (obs->nobs % NOBS_INC == 0) {

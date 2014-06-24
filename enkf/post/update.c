@@ -73,7 +73,7 @@ static void das_updatefields(dasystem* das, int nfields, void** fieldbuffer, int
     ni = dimlens[1];
     nj = dimlens[0];
 
-    assert(dimlens[2] == das->nmem * das->nmem);
+    assert((int) dimlens[2] == das->nmem * das->nmem);
 
     jiter = malloc((nj + 1) * sizeof(int));     /* "+ 1" to handle periodic
                                                  * grids */
@@ -283,7 +283,7 @@ static void das_updatebg(dasystem* das, int nfields, void** fieldbuffer)
     ni = dimlens[1];
     nj = dimlens[0];
 
-    assert(dimlens[2] == das->nmem);
+    assert((int) dimlens[2] == das->nmem);
 
     jiter = malloc((nj + 1) * sizeof(int));     /* "+ 1" to handle periodic
                                                  * grids */

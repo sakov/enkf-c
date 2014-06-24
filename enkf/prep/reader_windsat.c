@@ -100,14 +100,14 @@ void reader_windsat_standard(char* fname, obsmeta* meta, model* m, observations*
 
     tunits_convert(tunits, &tunits_multiple, &tunits_offset);
 
-    for (i = 0; i < nobs_local; ++i)
+    for (i = 0; i < (int) nobs_local; ++i)
         if (time[i] != 0.0)
             break;
-    if (i == nobs_local)
-        for (i = 0; i < nobs_local; ++i)
+    if (i == (int) nobs_local)
+        for (i = 0; i < (int) nobs_local; ++i)
             time[i] = 0.5;
 
-    for (i = 0; i < nobs_local; ++i) {
+    for (i = 0; i < (int) nobs_local; ++i) {
         measurement* o;
 
         if (obs->nobs % NOBS_INC == 0) {

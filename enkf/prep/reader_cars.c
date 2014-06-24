@@ -120,7 +120,7 @@ void reader_cars_standard(char* fname, obsmeta* meta, model* m, observations* ob
 
     tunits_convert(buf, &tunits_multiple, &tunits_offset);
 
-    for (p = 0; p < nprof; ++p) {
+    for (p = 0; p < (int) nprof; ++p) {
         char inststr[MAXSTRLEN];
 
         if (type[p] == 11)
@@ -136,7 +136,7 @@ void reader_cars_standard(char* fname, obsmeta* meta, model* m, observations* ob
         else
             sprintf(inststr, "CARS%02u", type[p]);
 
-        for (i = 0; i < nz; ++i) {
+        for (i = 0; i < (int) nz; ++i) {
             measurement* o;
 
             if (fabs(v[p][i] - missval) < EPS || v[p][i] < validmin || v[p][i] > validmax)

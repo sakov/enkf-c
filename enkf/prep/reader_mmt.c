@@ -125,12 +125,12 @@ void reader_mmt_standard(char* fname, obsmeta* meta, model* m, observations* obs
 
     tunits_convert(buf, &tunits_multiple, &tunits_offset);
 
-    for (p = 0; p < nprof; ++p) {
+    for (p = 0; p < (int) nprof; ++p) {
         char inststr[MAXSTRLEN];
 
         sprintf(inststr, "MMT%02u", type[p]);
 
-        for (i = 0; i < nz; ++i) {
+        for (i = 0; i < (int) nz; ++i) {
             measurement* o;
 
             if (fabs(v[p][i] - missval) < EPS || v[p][i] < validmin || v[p][i] > validmax)

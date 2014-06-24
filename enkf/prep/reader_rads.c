@@ -98,7 +98,7 @@ void reader_rads_standard(char* fname, obsmeta* meta, model* m, observations* ob
     instname[2] = 0;
 
     depth = model_getdepth(m);
-    for (i = 0; i < nobs_local; ++i) {
+    for (i = 0; i < (int) nobs_local; ++i) {
         measurement* o;
 
         if (obs->nobs % NOBS_INC == 0) {
@@ -210,7 +210,7 @@ void reader_rads_standard2(char* fname, obsmeta* meta, model* m, observations* o
     instname[2] = 0;
 
     depth = model_getdepth(m);
-    for (i = 0; i < nobs_local; ++i) {
+    for (i = 0; i < (int) nobs_local; ++i) {
         measurement* o;
 
         if (obs->nobs % NOBS_INC == 0) {
