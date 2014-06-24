@@ -616,13 +616,15 @@ static void das_allocatespread(dasystem* das, char fname[])
     int ncid, ncid_src;
     int vid;
 
+    if (rank != 0)
+	return;
+
     if (file_exists(fname))
         return;
 
     ncw_create(fname, NC_NOCLOBBER, &ncid);
     for (vid = 0; vid < das->nvar; ++vid) {
         int varid_src;
-        char fname[MAXSTRLEN];
 
         model_getmemberfname(das->m, das->ensdir, das->varnames[vid], 1, fname_src);
         ncw_open(fname_src, NC_NOWRITE, &ncid_src);
