@@ -30,7 +30,7 @@ typedef void (*model_writefield_fn) (model* m, char fname[], int time, char varn
 
 model* model_create(enkfprm* prm);
 void model_destroy(model* m);
-void model_describe(model* m, char offset[]);
+void model_print(model* m, char offset[]);
 
 void model_setgetmemberfname_fn(model* m, model_getmemberfname_fn fn);
 void model_setgetmemberfnameasync_fn(model* m, model_getmemberfnameasync_fn fn);
