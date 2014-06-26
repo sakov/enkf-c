@@ -194,6 +194,20 @@ static void gridprm_describe(gridprm* prm, char offset[])
     enkf_printf("%s  numlevelsvarname = \"%s\"\n", offset, prm->numlevelsvarname);
 }
 
+
+/**
+ */
+static void ll2xyz(double in[2], double out[3])
+{
+    double lon = in[0] * DEG2RAD;
+    double lat = in[1] * DEG2RAD;
+    double coslat = cos(lat);
+
+    out[0] = REARTH * sin(lon) * coslat;
+    out[1] = REARTH * cos(lon) * coslat;
+    out[2] = REARTH * sin(lat);
+}
+
 /**
  */
 void mom4_setgrid(model* m, char gfname[])
@@ -283,6 +297,7 @@ void mom4_setgrid(model* m, char gfname[])
         enkf_quit("%s: could not determine the grid type", fname);
 
     model_setgrid(m, g);
+    grid_settocartesian_fn(g, ll2xyz);
 
     ncw_inq_varid(fname, ncid, prm->depthvarname, &varid_depth);
     {

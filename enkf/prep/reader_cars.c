@@ -29,6 +29,7 @@
 #include "utils.h"
 #include "enkfprm.h"
 #include "obsmeta.h"
+#include "grid.h"
 #include "model.h"
 #include "observations.h"
 #include "prep.h"

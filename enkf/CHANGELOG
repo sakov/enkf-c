@@ -1,4 +1,9 @@
-v.0.46
+v. 0.47
+   PS 26062014
+   -- A bit of generalisation on coordinates: added void
+      grid_settocartesian_fn() and grid_tocartesian(); made the associated
+      changes in the rest of the code.
+v. 0.46
    PS 26062014
    Quite a bit of structural change. Some of the parameter files are affected.
    -- Added `name' to `struct model'; renamed `tag' by `type'.

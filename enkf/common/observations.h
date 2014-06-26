@@ -19,6 +19,7 @@
 #include "stringtable.h"
 #include "kdtree.h"
 #include "enkfprm.h"
+#include "grid.h"
 
 typedef struct {
     int type;
@@ -127,8 +128,8 @@ void obs_writeaux(observations* obs, char fname[]);
 void obs_find_bytype(observations* obs, int type, int* nobs, int** obsids, int fstatsonly);
 void obs_find_bytypeandtime(observations* obs, int type, int time, int* nobs, int** obsids, int fstatsonly);
 void obs_printob(observations* obs, int id);
-void obs_createkdtree(observations* obs);
-void obs_findlocal(observations* obs, double lon, double lat, double locrad, int* n, int** ids, double** lcoeffs);
+void obs_createkdtree(observations* obs, grid* g);
+void obs_findlocal(observations* obs, grid* g, double lon, double lat, double locrad, int* n, int** ids, double** lcoeffs);
 
 #define _OBSERVATIONS_H
 #endif

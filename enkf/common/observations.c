@@ -26,6 +26,7 @@
 #include "definitions.h"
 #include "utils.h"
 #include "enkfprm.h"
+#include "grid.h"
 #include "observations.h"
 
 #define NOBSTYPES_INC 10
@@ -44,25 +45,12 @@ int notdescs = sizeof(otdescs) / sizeof(obstypedesc);
 
 /**
  */
-static double distance(double lon1, double lat1, double lon2, double lat2)
+static double distance(double xyz1[3], double xyz2[3])
 {
-    double londiff, costheta;
-
-    londiff = fabs(lon1 - lon2);
-    if (londiff > abs(londiff - TWOPI))
-        londiff -= TWOPI;
-
-    costheta = sin(lat1) * sin(lat2) + cos(lat1) * cos(lat2) * cos(londiff);
-    /*
-     * around for round-off error 
-     */
-    if (fabs(costheta) > 1.0)
-        costheta = (costheta > 0.0) ? 1.0 : -1.0;
-
     if (PLAINDISTANCE)
-        return REARTH * sqrt(2.0 - 2.0 * costheta);
+        return sqrt((xyz1[0] - xyz2[0]) * (xyz1[0] - xyz2[0]) + (xyz1[1] - xyz2[1]) * (xyz1[1] - xyz2[1]));
     else
-        return REARTH * acos(costheta);
+        return sqrt((xyz1[0] - xyz2[0]) * (xyz1[0] - xyz2[0]) + (xyz1[1] - xyz2[1]) * (xyz1[1] - xyz2[1]) + (xyz1[2] - xyz2[2]) * (xyz1[2] - xyz2[2]));
 }
 
 /**
@@ -743,7 +731,7 @@ void obs_printob(observations* obs, int i)
 
 /**
  */
-void obs_createkdtree(observations* obs)
+void obs_createkdtree(observations* obs, grid* g)
 {
     int i;
 
@@ -753,34 +741,26 @@ void obs_createkdtree(observations* obs)
     obs->tree = kd_create(3);
     for (i = 0; i < obs->nobs; ++i) {
         measurement* o = &obs->data[i];
-        double lat = o->lat * DEG2RAD;
-        double lon = o->lon * DEG2RAD;
-        double coslat = cos(lat);
+	double ll[2] = {o->lon, o->lat};
         double point[3];
 
-        point[0] = REARTH * sin(lon) * coslat;
-        point[1] = REARTH * cos(lon) * coslat;
-        point[2] = REARTH * sin(lat);
+	grid_tocartesian(g, ll, point);
         kd_insert(obs->tree, point);
     }
 }
 
 /**
  */
-void obs_findlocal(observations* obs, double lon, double lat, double r, int* n, int** ids, double** lcoeffs)
+void obs_findlocal(observations* obs, grid* g, double lon, double lat, double r, int* n, int** ids, double** lcoeffs)
 {
-    double point[3];
+    double ll[2] = {lon, lat};
+    double xyz[3];
     kdset* set = NULL;
     int i, id;
 
-    lon *= DEG2RAD;
-    lat *= DEG2RAD;
+    grid_tocartesian(g, ll, xyz);
 
-    point[0] = REARTH * sin(lon) * cos(lat);
-    point[1] = REARTH * cos(lon) * cos(lat);
-    point[2] = REARTH * sin(lat);
-
-    set = kd_nearest_range(obs->tree, point, r, 1);
+    set = kd_nearest_range(obs->tree, xyz, r, 1);
     for (i = 0; (id = kd_res_item_getid(set)) >= 0; kd_res_next(set), ++i) {
         if (i % KD_INC == 0) {
             *ids = realloc(*ids, (i + KD_INC) * sizeof(int));
@@ -793,7 +773,10 @@ void obs_findlocal(observations* obs, double lon, double lat, double r, int* n, 
 
     for (i = 0; i < *n; ++i) {
         measurement* o = &obs->data[(*ids)[i]];
+	double ll2[2] = {o->lon, o->lat};
+	double xyz2[3];
 
-        (*lcoeffs)[i] = locfun(distance(lon, lat, o->lon * DEG2RAD, o->lat * DEG2RAD) / r);
+	grid_tocartesian(g, ll2, xyz2);
+        (*lcoeffs)[i] = locfun(distance(xyz, xyz2) / r);
     }
 }
