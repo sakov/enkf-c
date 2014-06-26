@@ -30,22 +30,31 @@ typedef struct {
 H_entry allhentries[] = {
     {"SST", "standard", H_surf_standard},
     {"SLA", "standard", H_sla_standard},
+    {"SLA", "bran", H_sla_bran},
     {"TEM", "standard", H_subsurf_standard},
     {"SAL", "standard", H_subsurf_standard}
 };
 
-/**
+/** List H-functions for all observation types (obstypename = NULL) or for
+ ** observations of particular type specified by `obstypename'.
  */
-void describe_hentries(void)
+void describe_hentries(char* obstypename)
 {
     int nhentries = sizeof(allhentries) / sizeof(H_entry);
     int i;
 
-    enkf_printf("  Available H functions:\n");
-    enkf_printf("    obs. type  function\n");
-    enkf_printf("    -------------------\n");
-    for (i = 0; i < nhentries; ++i)
-        enkf_printf("     %5s     %s\n", allhentries[i].obstypename, allhentries[i].mappingname);
+    if (obstypename == NULL) {
+        enkf_printf("  Available H functions:\n");
+        enkf_printf("    obs. type  function\n");
+        enkf_printf("    -------------------\n");
+        for (i = 0; i < nhentries; ++i)
+            enkf_printf("     %5s     %s\n", allhentries[i].obstypename, allhentries[i].mappingname);
+    } else {
+        enkf_printf("  Available H functions for %s:\n", obstypename);
+        for (i = 0; i < nhentries; ++i)
+            if (strcmp(obstypename, allhentries[i].obstypename) == 0)
+                enkf_printf("    %s\n", allhentries[i].mappingname);
+    }
 }
 
 /**
@@ -60,7 +69,7 @@ H_fn getH(char obstypename[], char mappingname[])
             return allhentries[i].H;
 
     enkf_printf("\n\n  ERROR: no H function \"%s\" for observation type \"%s\"\n\n", mappingname, obstypename);
-    describe_hentries();
+    describe_hentries(obstypename);
     enkf_quit("bailing out");
 
     return NULL;

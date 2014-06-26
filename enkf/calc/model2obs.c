@@ -108,6 +108,24 @@ void H_sla_standard(dasystem* das, int nobs, int obsids[], char fname[], int mem
 
 /**
  */
+void H_sla_bran(dasystem* das, int nobs, int obsids[], char fname[], int mem, int t, char varname[], void* psrc, ENSOBSTYPE dst[])
+{
+    int o;
+    ENSOBSTYPE mean;
+
+    H_sla_standard(das, nobs, obsids, fname, mem, t, varname, psrc, dst);
+    if (mem <= 0) {             /* only for background */
+        mean = 0.0;
+        for (o = 0; o < nobs; ++o)
+            mean += dst[o];
+        mean /= (float) nobs;
+        for (o = 0; o < nobs; ++o)
+            dst[o] -= mean;
+    }
+}
+
+/**
+ */
 void H_subsurf_standard(dasystem* das, int nobs, int obsids[], char fname[], int mem, int t, char varname[], void* psrc, ENSOBSTYPE dst[])
 {
     model* m = das->m;
