@@ -534,7 +534,7 @@ void enkfprm_describe(void)
     enkf_printf("    OBS                 = <obs. prm file>\n");
     enkf_printf("    DATE                = <julian day of analysis>\n");
     enkf_printf("  [ ASYNCHRONOUS        = [<obstype> <period>] ... ]\n");
-    enkf_printf("    MODEL               = <model tag>\n");
+    enkf_printf("    MODEL               = <model prm file>\n");
     enkf_printf("    GRID                = <grid prm file>\n");
     enkf_printf("    ENSDIR              = <ensemble directory>\n");
     enkf_printf("    BGDIR               = <background directory>                 (MODE = ENOI)\n");

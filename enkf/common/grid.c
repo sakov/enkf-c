@@ -194,7 +194,7 @@ void grid_destroy(grid* g)
 
 /**
  */
-void grid_describe(grid* g, char offset[])
+void grid_print(grid* g, char offset[])
 {
     int nx, ny, nz;
 

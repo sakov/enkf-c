@@ -30,7 +30,7 @@ typedef struct grid grid;
 
 grid* grid_create(char name[]);
 void grid_destroy(grid* g);
-void grid_describe(grid* g, char offset[]);
+void grid_print(grid* g, char offset[]);
 void grid_getdims(grid* g, int* ni, int* nj, int* nk);
 void grid_setcoords(grid* g, int type, int periodic_x, int periodic_y, int nx, int ny, int nz, void* x, void* y, double* z);
 void grid_setdepth(grid* g, float** depth);

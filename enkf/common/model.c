@@ -188,7 +188,7 @@ void model_destroy(model* m)
 
 /**
  */
-void model_describe(model* m, char offset[])
+void model_print(model* m, char offset[])
 {
     enkf_printf("%smodel info:\n", offset);
     enkf_printf("%s  name = %s\n", offset, m->name);

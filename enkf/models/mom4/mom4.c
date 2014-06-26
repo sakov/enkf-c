@@ -302,7 +302,7 @@ void mom4_setgrid(model* m, char gfname[])
     ncw_close(fname, ncid);
 
     gridprm_describe(prm, "  ");
-    grid_describe(g, "  ");
+    grid_print(g, "  ");
 
     gridprm_destroy(prm);
 }
@@ -426,7 +426,7 @@ static void mom4prm_destroy(mom4prm* prm)
 
 /**
  */
-static void mom4_describe(mom4prm* prm, char offset[])
+static void mom4_print(mom4prm* prm, char offset[])
 {
     enkf_printf("%s  MSL file = %s\n", offset, prm->mslfname);
     enkf_printf("%s  MSL variable = %s\n", offset, prm->mslvarname);
@@ -457,8 +457,8 @@ void mom4_setup(model* m, char fname[])
     model_setread3dfield_fn(m, mom4_read3dfield);
     model_setwritefield_fn(m, mom4_writefield);
 
-    model_describe(m, "  ");
-    mom4_describe(prm, "  ");
+    model_print(m, "  ");
+    mom4_print(prm, "  ");
 
     mom4prm_destroy(prm);
 }
