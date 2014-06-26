@@ -1,8 +1,11 @@
+v. 0.48
+   PS 27062014
+   -- Added H_sla_bran() that conducts global debiasing of SLA innovation.
 v. 0.47
    PS 26062014
-   -- A bit of generalisation on coordinates: added void
-      grid_settocartesian_fn() and grid_tocartesian(); made the associated
-      changes in the rest of the code.
+   -- A bit of generalisation on coordinates: added grid_settocartesian_fn()
+      and grid_tocartesian(); made the associated changes in the rest of the
+      code.
 v. 0.46
    PS 26062014
    Quite a bit of structural change. Some of the parameter files are affected.

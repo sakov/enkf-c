@@ -741,10 +741,10 @@ void obs_createkdtree(observations* obs, grid* g)
     obs->tree = kd_create(3);
     for (i = 0; i < obs->nobs; ++i) {
         measurement* o = &obs->data[i];
-	double ll[2] = {o->lon, o->lat};
+        double ll[2] = { o->lon, o->lat };
         double point[3];
 
-	grid_tocartesian(g, ll, point);
+        grid_tocartesian(g, ll, point);
         kd_insert(obs->tree, point);
     }
 }
@@ -753,7 +753,7 @@ void obs_createkdtree(observations* obs, grid* g)
  */
 void obs_findlocal(observations* obs, grid* g, double lon, double lat, double r, int* n, int** ids, double** lcoeffs)
 {
-    double ll[2] = {lon, lat};
+    double ll[2] = { lon, lat };
     double xyz[3];
     kdset* set = NULL;
     int i, id;
@@ -773,10 +773,10 @@ void obs_findlocal(observations* obs, grid* g, double lon, double lat, double r,
 
     for (i = 0; i < *n; ++i) {
         measurement* o = &obs->data[(*ids)[i]];
-	double ll2[2] = {o->lon, o->lat};
-	double xyz2[3];
+        double ll2[2] = { o->lon, o->lat };
+        double xyz2[3];
 
-	grid_tocartesian(g, ll2, xyz2);
+        grid_tocartesian(g, ll2, xyz2);
         (*lcoeffs)[i] = locfun(distance(xyz, xyz2) / r);
     }
 }

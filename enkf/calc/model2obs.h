@@ -19,6 +19,7 @@
 
 void H_surf_standard(dasystem* das, int nobs, int obsids[], char fname[], int mem, int t, char varname[], void* psrc, ENSOBSTYPE dst[]);
 void H_sla_standard(dasystem* das, int nobs, int obsids[], char fname[], int mem, int t, char varname[], void* psrc, ENSOBSTYPE dst[]);
+void H_sla_bran(dasystem* das, int nobs, int obsids[], char fname[], int mem, int t, char varname[], void* psrc, ENSOBSTYPE dst[]);
 void H_subsurf_standard(dasystem* das, int nobs, int obsids[], char fname[], int mem, int t, char varname[], void* psrc, ENSOBSTYPE dst[]);
 void H_subsurf_point(dasystem* das, int nobs, int obsids[], char fname[], int mem, int t, char varname[], void* psrc, ENSOBSTYPE dst[]);
 

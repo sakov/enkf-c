@@ -25,7 +25,7 @@
 
 typedef void (*H_fn) (dasystem* das, int nobs, int obsids[], char fname[], int mem, int t, char varname[], void* psrc, ENSOBSTYPE dst[]);
 
-void describe_hentries(void);
+void describe_hentries(char* obstypename);
 H_fn getH(char obstypename[], char mappingname[]);
 
 #define _ALLHS_H
