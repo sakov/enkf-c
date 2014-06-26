@@ -23,11 +23,12 @@
 
 typedef struct {
     char* modeltype;
+    modelsetup_fn setgridfn;
     modelsetup_fn setupfn;
 } model_entry;
 
 model_entry allmodelentries[] = {
-    {"MOM4", mom4_setup}
+    {"MOM4", mom4_setgrid, mom4_setup}
 };
 
 /**
@@ -42,6 +43,24 @@ static void describe_modelentries(void)
     enkf_printf("    ---\n");
     for (i = 0; i < nmodelentries; ++i)
         enkf_printf("    %s\n", allmodelentries[i].modeltype);
+}
+
+/**
+ */
+modelsetup_fn get_modelsetgridfn(char modeltype[])
+{
+    int nmodelentries = sizeof(allmodelentries) / sizeof(model_entry);
+    int i;
+
+    for (i = 0; i < nmodelentries; ++i)
+        if (strcmp(allmodelentries[i].modeltype, modeltype) == 0)
+            return allmodelentries[i].setgridfn;
+
+    enkf_printf("\n\n  ERROR: no model \"%s\"\n\n", modeltype);
+    describe_modelentries();
+    enkf_quit("bailing out");
+
+    return NULL;
 }
 
 /**

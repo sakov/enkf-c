@@ -40,9 +40,9 @@ static void enkfprm_check(enkfprm* prm)
         enkf_quit("%s: OBS not specified", prm->fname);
     if (prm->date == NULL)
         enkf_quit("%s: DATE not specified", prm->fname);
-    if (prm->modeltype == NULL)
+    if (prm->modelprm == NULL)
         enkf_quit("%s: MODEL not specified", prm->fname);
-    if (prm->gridspec == NULL)
+    if (prm->gridprm == NULL)
         enkf_quit("%s: GRID not specified", prm->fname);
     if (prm->ensdir == NULL)
         enkf_quit("%s: ENSDIR not specified", prm->fname);
@@ -89,7 +89,6 @@ enkfprm* enkfprm_read(char fname[])
     prm->sob_stride = 1;
 
     f = enkf_fopen(fname, "r");
-
     line = 0;
     while (fgets(buf, MAXSTRLEN, f) != NULL) {
         char seps[] = " =\t\n";
@@ -170,17 +169,17 @@ enkfprm* enkfprm_read(char fname[])
         } else if (strcasecmp(token, "MODEL") == 0) {
             if ((token = strtok(NULL, seps)) == NULL)
                 enkf_quit("%s, l.%d: MODEL not specified", fname, line);
-            else if (prm->modeltype != NULL)
+            else if (prm->modelprm != NULL)
                 enkf_quit("%s, l.%d: MODEL specified twice", fname, line);
             else
-                prm->modeltype = strdup(token);
+                prm->modelprm = strdup(token);
         } else if (strcasecmp(token, "GRID") == 0) {
             if ((token = strtok(NULL, seps)) == NULL)
                 enkf_quit("%s, l.%d: GRID not specified", fname, line);
-            else if (prm->gridspec != NULL)
+            else if (prm->gridprm !=NULL)
                 enkf_quit("%s, l.%d: GRID specified twice", fname, line);
             else
-                prm->gridspec = strdup(token);
+                prm->gridprm = strdup(token);
         } else if (strcasecmp(token, "ENSDIR") == 0) {
             if ((token = strtok(NULL, seps)) == NULL)
                 enkf_quit("%s, l.%d: ENSDIR not specified", fname, line);
@@ -246,19 +245,6 @@ enkfprm* enkfprm_read(char fname[])
                     enkf_quit("%s, l.%d: HFUNCTIONS for %s not specified", fname, line, prm->types[i]);
                 prm->hfunctions[i] = strdup(token);
             } while ((token = strtok(NULL, seps)) != NULL);
-        } else if (strcasecmp(token, "MSL") == 0) {
-            if ((token = strtok(NULL, seps)) == NULL)
-                enkf_quit("%s, l.%d: MSL file not specified", fname, line);
-            else if (prm->msl_fname != NULL)
-                enkf_quit("%s, l.%d: MSL file specified twice", fname, line);
-            else
-                prm->msl_fname = strdup(token);
-            if ((token = strtok(NULL, seps)) == NULL)
-                enkf_quit("%s, l.%d: MSL variable not specified", fname, line);
-            else if (prm->msl_varname != NULL)
-                enkf_quit("%s, l.%d: MSL variable specified twice", fname, line);
-            else
-                prm->msl_varname = strdup(token);
         } else if (strcasecmp(token, "KFACTOR") == 0) {
             if ((token = strtok(NULL, seps)) == NULL)
                 enkf_quit("%s, l.%d: KFACTOR not specified", fname, line);
@@ -415,8 +401,9 @@ void enkfprm_destroy(enkfprm* prm)
     int i;
 
     free(prm->obsspec);
-    free(prm->modeltype);
-    free(prm->gridspec);
+    free(prm->modelprm);
+    free(prm->gridprm);
+
     free(prm->date);
     free(prm->ensdir);
     if (prm->bgdir != NULL)
@@ -443,10 +430,6 @@ void enkfprm_destroy(enkfprm* prm)
         free(prm->typevars);
         free(prm->hfunctions);
         free(prm->rfactors);
-    }
-    if (prm->msl_fname != NULL) {
-        free(prm->msl_fname);
-        free(prm->msl_varname);
     }
     if (prm->nregions > 0) {
         for (i = 0; i < prm->nregions; ++i)
@@ -487,8 +470,9 @@ void enkfprm_print(enkfprm* prm, char offset[])
             enkf_printf(" %s %f", prm->async_types[i], prm->async_timesteps[i]);
         enkf_printf("\n");
     }
-    enkf_printf("%sMODEL TAG = \"%s\"\n", offset, prm->modeltype);
-    enkf_printf("%sGRID SPEC = \"%s\"\n", offset, prm->gridspec);
+    enkf_printf("%sMODEL PRM = \"%s\"\n", offset, prm->modelprm);
+    enkf_printf("%sGRID PRM = \"%s\"\n", offset, prm->gridprm);
+
     if (prm->mode == MODE_ENOI)
         enkf_printf("%sBGDIR = \"%s\"\n", offset, prm->bgdir);
     enkf_printf("%sENSEMBLE DIR = \"%s\"\n", offset, prm->ensdir);
@@ -512,8 +496,6 @@ void enkfprm_print(enkfprm* prm, char offset[])
             enkf_printf(" { %s %s }", prm->types[i], prm->hfunctions[i]);
         enkf_printf("\n");
     }
-    if (prm->msl_fname != NULL)
-        enkf_printf("%sMSL = %s %s\n", offset, prm->msl_fname, prm->msl_varname);
     if (isfinite(prm->kfactor))
         enkf_printf("%sKFACTOR = %.1f\n", offset, prm->kfactor);
     else
@@ -559,7 +541,6 @@ void enkfprm_describe(void)
     enkf_printf("    VARNAMES            = <varname> ...\n");
     enkf_printf("    OBS2VAR             = {<obstype> <varname>} ... \n");
     enkf_printf("    HFUNCTIONS          = {<obstype> <hfunction tag>} ...\n");
-    enkf_printf("    MSL                 = <MSL file>                             (if assimilating SLA)\n");
     enkf_printf("  [ KFACTOR             = <kfactor> ]                            (1*)\n");
     enkf_printf("  [ RFACTOR BASE        = <rfactor> ]                            (1*)\n");
     enkf_printf("  [ RFACTOR <obstype>   = <rfactor> ]                            (1*)\n");

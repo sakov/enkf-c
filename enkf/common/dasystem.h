@@ -52,13 +52,7 @@ struct dasystem {
 
     observations* obs;
 
-    int nvar;
-    char** varnames;
-    float* inflations;
-
     model* m;
-
-    float** msl;
 
     ENSOBSTYPE** S;             /* HE or HA or S [mem][obs] */
     int s_mode;

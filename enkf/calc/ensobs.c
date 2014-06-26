@@ -265,7 +265,7 @@ void das_getHE(dasystem* das, int fstatsonly)
                     }
                 }
 
-                if (das->mode == MODE_ENOI) {
+                if (das->mode == MODE_ENOI && rank == 0) {
                     if (enkf_obstype == OBSTYPE_VALUE) {
                         int success = model_getbgfname_async(m, das->bgdir, ot->varname, ot->name, t, fname);
 
@@ -853,6 +853,7 @@ static void unsortobs_byij(dasystem* das)
 static void update_HE(dasystem* das)
 {
     model* m = das->m;
+    int nvar = model_getnvar(m);
     observations* obs = das->obs;
     int periodic_i = grid_isperiodic_x(model_getgrid(m));
     int periodic_j = grid_isperiodic_y(model_getgrid(m));
@@ -887,13 +888,13 @@ static void update_HE(dasystem* das)
      */
     varids = malloc(obs->nobstypes * sizeof(int));
     for (i = 0; i < obs->nobstypes; ++i) {
-        for (j = 0; j < das->nvar; ++j) {
-            if (strcmp(obs->obstypes[i].varname, das->varnames[j]) == 0) {
+        for (j = 0; j < nvar; ++j) {
+            if (strcmp(obs->obstypes[i].varname, model_getvarname(m, j)) == 0) {
                 varids[i] = j;
                 break;
             }
         }
-        assert(j < das->nvar);
+        assert(j < nvar);
     }
 
     /*
@@ -1011,7 +1012,7 @@ static void update_HE(dasystem* das)
                 continue;
 
             for (; o < obs->nobs && (int) (obs->data[o].fj) == j; ++o) {
-                float inflation = das->inflations[varids[obs->data[o].type]];
+                float inflation = model_getvarinflation(m, varids[obs->data[o].type]);
 
                 /*
                  * HE(i, :) = HE(i, :) * X5 

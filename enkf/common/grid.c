@@ -18,6 +18,7 @@
 #include <assert.h>
 #include <math.h>
 #include <values.h>
+#include <string.h>
 #include "definitions.h"
 #include "utils.h"
 #include "grid.h"
@@ -26,6 +27,7 @@
 #include "nan.h"
 
 struct grid {
+    char* name;
     int type;
 
     grid_ll2fij_fn ll2fij_fn;
@@ -33,6 +35,9 @@ struct grid {
     grid_fij2ll_fn fij2ll_fn;
     void* gridnodes;
     int lontype;
+
+    int** numlevels;
+    float** depth;
 };
 
 typedef struct {
@@ -154,14 +159,17 @@ void gnc_destroy(gnc * nodes)
 
 /**
  */
-grid* grid_create(void)
+grid* grid_create(char name[])
 {
     grid* g = malloc(sizeof(grid));
 
+    g->name = strdup(name);
     g->type = GRIDTYPE_NONE;
     g->ll2fij_fn = NULL;
     g->gridnodes = NULL;
     g->lontype = LONTYPE_NONE;
+    g->numlevels = NULL;
+    g->depth = NULL;
 
     return g;
 }
@@ -170,18 +178,55 @@ grid* grid_create(void)
  */
 void grid_destroy(grid* g)
 {
+    free(g->name);
     if (g->type == GRIDTYPE_LATLON_REGULAR || g->type == GRIDTYPE_LATLON_IRREGULAR)
         gnll_destroy(g->gridnodes);
     else if (g->type == GRIDTYPE_CURVILINEAR)
         gnc_destroy(g->gridnodes);
     else
         enkf_quit("programming_error");
+    if (g->numlevels != NULL)
+        free2d(g->numlevels);
+    if (g->depth != NULL)
+        free2d(g->depth);
     free(g);
 }
 
 /**
  */
-void grid_getdimensions(grid* g, int* ni, int* nj, int* nk)
+void grid_describe(grid* g, char offset[])
+{
+    int nx, ny, nz;
+
+    enkf_printf("%sgrid info:\n", offset);
+    switch (g->type) {
+    case GRIDTYPE_LATLON_REGULAR:
+        enkf_printf("%s  type = LATLON_REGULAR\n", offset);
+        break;
+    case GRIDTYPE_LATLON_IRREGULAR:
+        enkf_printf("%s  type = LATLON_IRREGULAR\n", offset);
+        break;
+    case GRIDTYPE_CURVILINEAR:
+        enkf_printf("%s  type = CURVILINEAR\n", offset);
+        break;
+    default:
+        enkf_printf("%s  type = NONE\n", offset);
+    }
+    enkf_printf("%s  periodic by X = %s\n", offset, grid_isperiodic_x(g) ? "yes" : "no");
+    enkf_printf("%s  periodic by Y = %s\n", offset, grid_isperiodic_y(g) ? "yes" : "no");
+    grid_getdims(g, &nx, &ny, &nz);
+    enkf_printf("%s  dims = %d x %d x %d\n", offset, nx, ny, nz);
+    if (g->lontype == LONTYPE_180)
+        enkf_printf("%s  longitude range = [-180, 180]\n", offset);
+    else if (g->lontype == LONTYPE_360)
+        enkf_printf("%s  longitude range = [0, 360]\n", offset);
+    else if (g->lontype == LONTYPE_NONE)
+        enkf_printf("%s  longitude range = any\n", offset);
+}
+
+/**
+ */
+void grid_getdims(grid* g, int* ni, int* nj, int* nk)
 {
     if (g->type == GRIDTYPE_LATLON_REGULAR || g->type == GRIDTYPE_LATLON_IRREGULAR) {
         gnll* nodes = (gnll*) g->gridnodes;
@@ -444,8 +489,8 @@ static void grid_setlontype(grid* g)
     double xmax = -DBL_MAX;
 
     if (g->type == GRIDTYPE_LATLON_REGULAR || g->type == GRIDTYPE_LATLON_IRREGULAR) {
-        double* x = ((gnll*) g)->x;
-        int nx = ((gnll*) g)->nx;
+        double* x = ((gnll*) g->gridnodes)->x;
+        int nx = ((gnll*) g->gridnodes)->nx;
 
         if (xmin < x[0])
             xmin = x[0];
@@ -456,9 +501,9 @@ static void grid_setlontype(grid* g)
         if (xmax > x[nx - 1])
             xmax = x[nx - 1];
     } else if (g->type == GRIDTYPE_CURVILINEAR) {
-        double** x = gridnodes_getx(((gnc *) g)->gn);
-        int nx = gridnodes_getnce1(((gnc *) g)->gn);
-        int ny = gridnodes_getnce2(((gnc *) g)->gn);
+        double** x = gridnodes_getx(((gnc *) g->gridnodes)->gn);
+        int nx = gridnodes_getnce1(((gnc *) g->gridnodes)->gn);
+        int ny = gridnodes_getnce2(((gnc *) g->gridnodes)->gn);
         int i, j;
 
         for (j = 0; j < ny; ++j) {
@@ -478,7 +523,7 @@ static void grid_setlontype(grid* g)
 
 /**
  */
-void grid_set(grid* g, int type, int periodic_x, int periodic_y, int nx, int ny, int nz, void* x, void* y, double* z)
+void grid_setcoords(grid* g, int type, int periodic_x, int periodic_y, int nx, int ny, int nz, void* x, void* y, double* z)
 {
     if (type < 1 || type > NGRIDTYPE)
         enkf_quit("grid_set(): unknown type");
@@ -505,9 +550,51 @@ void grid_set(grid* g, int type, int periodic_x, int periodic_y, int nx, int ny,
 
 /**
  */
+void grid_setdepth(grid* g, float** depth)
+{
+    g->depth = depth;
+}
+
+/**
+ */
+void grid_setnumlevels(grid* g, int** numlevels)
+{
+    g->numlevels = numlevels;
+}
+
+/**
+ */
+char* grid_getname(grid* g)
+{
+    return g->name;
+}
+
+/**
+ */
 int grid_gettype(grid* g)
 {
     return g->type;
+}
+
+/**
+ */
+float** grid_getdepth(grid* g)
+{
+    return g->depth;
+}
+
+/**
+ */
+int** grid_getnumlevels(grid* g)
+{
+    return g->numlevels;
+}
+
+/**
+ */
+int grid_getlontype(grid* g)
+{
+    return g->lontype;
 }
 
 /**
@@ -535,23 +622,24 @@ grid_fij2ll_fn grid_getfij2llfn(grid* g)
  */
 int grid_isperiodic_x(grid* g)
 {
-    gnll* nodes = (gnll*) ((grid*) g)->gridnodes;
+    if (g->type == GRIDTYPE_LATLON_REGULAR || g->type == GRIDTYPE_LATLON_IRREGULAR) {
+        gnll* nodes = (gnll*) ((grid*) g)->gridnodes;
 
-    return nodes->periodic_x;
+        return nodes->periodic_x;
+    }
+
+    return 0;
 }
 
 /**
  */
 int grid_isperiodic_y(grid* g)
 {
-    gnll* nodes = (gnll*) ((grid*) g)->gridnodes;
+    if (g->type == GRIDTYPE_LATLON_REGULAR || g->type == GRIDTYPE_LATLON_IRREGULAR) {
+        gnll* nodes = (gnll*) ((grid*) g)->gridnodes;
 
-    return nodes->periodic_y;
-}
+        return nodes->periodic_y;
+    }
 
-/**
- */
-int grid_getlontype(grid* g)
-{
-    return g->lontype;
+    return 0;
 }

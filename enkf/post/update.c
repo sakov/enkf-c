@@ -176,7 +176,7 @@ static void das_updatefields(dasystem* das, int nfields, void** fieldbuffer, int
                 float alpha = 1.0f;
                 int inc = 1;
                 float beta = 0.0f;
-                float inflation = das->inflations[varids[f]];
+                float inflation = model_getvarinflation(m, varids[f]);
 
                 for (i = 0; i < mni; ++i) {
                     float* vv_i = vv[i];        /* vv_i = E(<some index>, :) */
@@ -612,31 +612,34 @@ static void das_writebg(dasystem* das, int nfields, void** fieldbuffer, field fi
  */
 static void das_allocatespread(dasystem* das, char fname[])
 {
+    model* m = das->m;
+    int nvar = model_getnvar(m);
     char fname_src[MAXSTRLEN];
     int ncid, ncid_src;
     int vid;
 
     if (rank != 0)
-	return;
+        return;
 
     if (file_exists(fname))
         return;
 
     ncw_create(fname, NC_NOCLOBBER, &ncid);
-    for (vid = 0; vid < das->nvar; ++vid) {
+    for (vid = 0; vid < nvar; ++vid) {
+        char* varname_src = model_getvarname(m, vid);
         int varid_src;
 
-        model_getmemberfname(das->m, das->ensdir, das->varnames[vid], 1, fname_src);
+        model_getmemberfname(m, das->ensdir, varname_src, 1, fname_src);
         ncw_open(fname_src, NC_NOWRITE, &ncid_src);
         ncw_copy_dims(fname_src, ncid_src, fname, ncid);
-        ncw_inq_varid(fname_src, ncid_src, das->varnames[vid], &varid_src);
+        ncw_inq_varid(fname_src, ncid_src, varname_src, &varid_src);
         ncw_copy_vardef(fname_src, ncid_src, varid_src, fname, ncid);
         if (das->mode == MODE_ENKF) {
-            char varname[NC_MAX_NAME];
+            char varname_dst[NC_MAX_NAME];
 
-            strcpy(varname, das->varnames[vid]);
-            strncat(varname, "_an", NC_MAX_NAME);
-            ncw_def_var_as(fname, ncid, das->varnames[vid], varname);
+            strcpy(varname_dst, varname_src);
+            strncat(varname_dst, "_an", NC_MAX_NAME);
+            ncw_def_var_as(fname, ncid, varname_src, varname_dst);
         }
         ncw_close(fname_src, ncid_src);
     }
@@ -735,6 +738,8 @@ static void das_writespread(dasystem* das, int nfields, void** fieldbuffer, fiel
  */
 static void das_assemblemembers(dasystem* das, int leavetiles)
 {
+    model* m = das->m;
+    int nvar = model_getnvar(m);
     float** v = NULL;
     int ni, nj, nk;
     int i, e;
@@ -743,24 +748,24 @@ static void das_assemblemembers(dasystem* das, int leavetiles)
     MPI_Barrier(MPI_COMM_WORLD);
 #endif
 
-    model_getdims(das->m, &ni, &nj, &nk);
+    model_getdims(m, &ni, &nj, &nk);
     v = alloc2d(ni, nj, sizeof(float));
 
     distribute_iterations(0, das->nmem - 1, nprocesses, rank);
 
-    for (i = 0; i < das->nvar; ++i) {
-        char* varname = das->varnames[i];
+    for (i = 0; i < nvar; ++i) {
+        char* varname = model_getvarname(m, i);
         char varname_dst[NC_MAX_NAME];
         char fname_dst[MAXSTRLEN];
         int nlev, k;
 
         enkf_printf("    %s:", varname);
-        model_getmemberfname(das->m, das->ensdir, varname, 1, fname_dst);
+        model_getmemberfname(m, das->ensdir, varname, 1, fname_dst);
         nlev = getnlevels(fname_dst, varname);
         strncpy(varname_dst, varname, NC_MAX_NAME);
 
         for (e = my_first_iteration; e <= my_last_iteration; ++e) {
-            model_getmemberfname(das->m, das->ensdir, varname, e + 1, fname_dst);
+            model_getmemberfname(m, das->ensdir, varname, e + 1, fname_dst);
             if (enkf_separateout) {
                 if (das->target == TARGET_ANALYSIS)
                     strncat(fname_dst, ".analysis", MAXSTRLEN);
@@ -785,7 +790,7 @@ static void das_assemblemembers(dasystem* das, int leavetiles)
                 ncw_get_vara_float(fname_src, ncid_src, vid_src, start, count, v[0]);
                 ncw_close(fname_src, ncid_src);
 
-                model_writefield(das->m, fname_dst, MAXINT, varname_dst, k, v[0]);
+                model_writefield(m, fname_dst, MAXINT, varname_dst, k, v[0]);
             }
             enkf_printf(".");
         }
@@ -802,12 +807,12 @@ static void das_assemblemembers(dasystem* das, int leavetiles)
      * remove tiles 
      */
     if (!leavetiles && rank == 0) {
-        for (i = 0; i < das->nvar; ++i) {
-            char* varname = das->varnames[i];
+        for (i = 0; i < nvar; ++i) {
+            char* varname = model_getvarname(m, i);
             char fname[MAXSTRLEN];
             int nlev, k;
 
-            model_getmemberfname(das->m, das->ensdir, varname, 1, fname);
+            model_getmemberfname(m, das->ensdir, varname, 1, fname);
             nlev = getnlevels(fname, varname);
             for (k = 0; k < nlev; ++k) {
                 getfieldfname(das->ensdir, "ens", varname, k, fname);
@@ -821,6 +826,8 @@ static void das_assemblemembers(dasystem* das, int leavetiles)
  */
 static void das_assemblebg(dasystem* das, int leavetiles)
 {
+    model* m = das->m;
+    int nvar = model_getnvar(m);
     float** v = NULL;
     int ni, nj, nk;
     int i;
@@ -831,18 +838,18 @@ static void das_assemblebg(dasystem* das, int leavetiles)
     if (rank > 0)
         return;
 
-    model_getdims(das->m, &ni, &nj, &nk);
+    model_getdims(m, &ni, &nj, &nk);
     v = alloc2d(ni, nj, sizeof(float));
 
-    for (i = 0; i < das->nvar; ++i) {
-        char* varname = das->varnames[i];
+    for (i = 0; i < nvar; ++i) {
+        char* varname = model_getvarname(m, i);
         char varname_dst[NC_MAX_NAME];
         char fname_dst[MAXSTRLEN];
         int nlev, k;
 
         enkf_printf("    %s:", varname);
 
-        model_getbgfname(das->m, das->bgdir, varname, fname_dst);
+        model_getbgfname(m, das->bgdir, varname, fname_dst);
         nlev = getnlevels(fname_dst, varname);
         strncpy(varname_dst, varname, NC_MAX_NAME);
         if (enkf_separateout) {
@@ -867,7 +874,7 @@ static void das_assemblebg(dasystem* das, int leavetiles)
             ncw_get_var_float(fname_src, ncid_src, vid_src, v[0]);
             ncw_close(fname_src, ncid_src);
 
-            model_writefield(das->m, fname_dst, MAXINT, varname_dst, k, v[0]);
+            model_writefield(m, fname_dst, MAXINT, varname_dst, k, v[0]);
             if (!leavetiles)
                 file_delete(fname_src);
 
@@ -883,15 +890,17 @@ static void das_assemblebg(dasystem* das, int leavetiles)
  */
 static void das_assemblespread(dasystem* das)
 {
+    model* m = das->m;
+    int nvar = model_getnvar(m);
     float** v = NULL;
     int ni, nj, nk;
     int i;
 
-    model_getdims(das->m, &ni, &nj, &nk);
+    model_getdims(m, &ni, &nj, &nk);
     v = alloc2d(ni, nj, sizeof(float));
 
-    for (i = 0; i < das->nvar; ++i) {
-        char* varname = das->varnames[i];
+    for (i = 0; i < nvar; ++i) {
+        char* varname = model_getvarname(m, i);
         char varname_an[NC_MAX_NAME];
         int nlev, k;
 
@@ -916,7 +925,7 @@ static void das_assemblespread(dasystem* das)
             ncw_close(fname_src, ncid_src);
             file_delete(fname_src);
 
-            model_writefield(das->m, FNAME_SPREAD, MAXINT, varname, k, v[0]);
+            model_writefield(m, FNAME_SPREAD, MAXINT, varname, k, v[0]);
 
             if (das->mode == MODE_ENKF) {
                 getfieldfname(das->ensdir, "spread", varname_an, k, fname_src);
@@ -926,7 +935,7 @@ static void das_assemblespread(dasystem* das)
                 ncw_close(fname_src, ncid_src);
                 file_delete(fname_src);
 
-                model_writefield(das->m, FNAME_SPREAD, MAXINT, varname_an, k, v[0]);
+                model_writefield(m, FNAME_SPREAD, MAXINT, varname_an, k, v[0]);
             }
 
             enkf_printf(".");
@@ -943,6 +952,7 @@ static void das_assemblespread(dasystem* das)
 void das_update(dasystem* das, int calcspread, int leavetiles)
 {
     model* m = das->m;
+    int nvar = model_getnvar(m);
     void** fieldbuffer = NULL;
     int* varids = NULL;
     int mni, mnj, mnk;
@@ -980,23 +990,24 @@ void das_update(dasystem* das, int calcspread, int leavetiles)
         MPI_Barrier(MPI_COMM_WORLD);
 #endif
         if (!enkf_separateout) {
-            for (i = 0; i < das->nvar; ++i) {
+            for (i = 0; i < nvar; ++i) {
                 for (e = my_first_iteration; e <= my_last_iteration; ++e) {
+                    char* varname_src = model_getvarname(m, i);
                     char fname[MAXSTRLEN];
                     int ncid;
-                    char varname[NC_MAX_NAME];
+                    char varname_dst[NC_MAX_NAME];
 
-                    strncpy(varname, das->varnames[i], NC_MAX_NAME);
+                    strncpy(varname_dst, varname_src, NC_MAX_NAME);
                     if (das->target == TARGET_ANALYSIS)
-                        strncat(varname, "_an", NC_MAX_NAME);
+                        strncat(varname_dst, "_an", NC_MAX_NAME);
                     else if (das->target == TARGET_INCREMENT)
-                        strncat(varname, "_inc", NC_MAX_NAME);
+                        strncat(varname_dst, "_inc", NC_MAX_NAME);
 
-                    model_getmemberfname(m, das->ensdir, das->varnames[i], e + 1, fname);
+                    model_getmemberfname(m, das->ensdir, varname_src, e + 1, fname);
                     ncw_open(fname, NC_WRITE, &ncid);
-                    if (!ncw_var_exists(ncid, varname)) {
+                    if (!ncw_var_exists(ncid, varname_dst)) {
                         ncw_redef(fname, ncid);
-                        ncw_def_var_as(fname, ncid, das->varnames[i], varname);
+                        ncw_def_var_as(fname, ncid, varname_src, varname_dst);
                     }
                     ncw_close(fname, ncid);
                     printf(".");
@@ -1004,13 +1015,15 @@ void das_update(dasystem* das, int calcspread, int leavetiles)
                 }
             }
         } else {
-            for (i = 0; i < das->nvar; ++i) {
+            for (i = 0; i < nvar; ++i) {
+                char* varname = model_getvarname(m, i);
+
                 for (e = my_first_iteration; e <= my_last_iteration; ++e) {
                     char fname_f[MAXSTRLEN], fname_a[MAXSTRLEN];
                     int ncid_f, ncid_a;
                     int vid_f;
 
-                    model_getmemberfname(m, das->ensdir, das->varnames[i], e + 1, fname_f);
+                    model_getmemberfname(m, das->ensdir, varname, e + 1, fname_f);
                     ncw_open(fname_f, NC_NOWRITE, &ncid_f);
 
                     strncpy(fname_a, fname_f, MAXSTRLEN);
@@ -1020,7 +1033,7 @@ void das_update(dasystem* das, int calcspread, int leavetiles)
                         strncat(fname_a, ".increment", MAXSTRLEN);
                     if (file_exists(fname_a)) {
                         ncw_open(fname_a, NC_WRITE, &ncid_a);
-                        if (ncw_var_exists(ncid_a, das->varnames[i])) {
+                        if (ncw_var_exists(ncid_a, varname)) {
                             ncw_close(fname_a, ncid_a);
                             ncw_close(fname_f, ncid_f);
                             continue;
@@ -1031,7 +1044,7 @@ void das_update(dasystem* das, int calcspread, int leavetiles)
                         ncw_copy_dims(fname_f, ncid_f, fname_a, ncid_a);
                     }
 
-                    ncw_inq_varid(fname_f, ncid_f, das->varnames[i], &vid_f);
+                    ncw_inq_varid(fname_f, ncid_f, varname, &vid_f);
                     ncw_copy_vardef(fname_f, ncid_f, vid_f, fname_a, ncid_a);
                     ncw_close(fname_a, ncid_a);
                     ncw_close(fname_f, ncid_f);
@@ -1053,33 +1066,35 @@ void das_update(dasystem* das, int calcspread, int leavetiles)
             enkf_flush();
 
             if (!enkf_separateout) {
-                for (i = 0; i < das->nvar; ++i) {
+                for (i = 0; i < nvar; ++i) {
+                    char* varname_src = model_getvarname(m, i);
                     char fname[MAXSTRLEN];
                     int ncid;
-                    char varname[NC_MAX_NAME];
+                    char varname_dst[NC_MAX_NAME];
 
-                    strncpy(varname, das->varnames[i], NC_MAX_NAME);
+                    strncpy(varname_dst, varname_src, NC_MAX_NAME);
                     if (das->target == TARGET_ANALYSIS)
-                        strncat(varname, "_an", NC_MAX_NAME);
+                        strncat(varname_dst, "_an", NC_MAX_NAME);
                     else if (das->target == TARGET_INCREMENT)
-                        strncat(varname, "_inc", NC_MAX_NAME);
-                    model_getbgfname(m, das->bgdir, das->varnames[i], fname);
+                        strncat(varname_dst, "_inc", NC_MAX_NAME);
+                    model_getbgfname(m, das->bgdir, varname_src, fname);
                     ncw_open(fname, NC_WRITE, &ncid);
-                    if (!ncw_var_exists(ncid, varname)) {
+                    if (!ncw_var_exists(ncid, varname_dst)) {
                         ncw_redef(fname, ncid);
-                        ncw_def_var_as(fname, ncid, das->varnames[i], varname);
+                        ncw_def_var_as(fname, ncid, varname_src, varname_dst);
                     }
                     ncw_close(fname, ncid);
                     printf(".");
                     fflush(stdout);
                 }
             } else {
-                for (i = 0; i < das->nvar; ++i) {
+                for (i = 0; i < nvar; ++i) {
+                    char* varname = model_getvarname(m, i);
                     char fname_f[MAXSTRLEN], fname_a[MAXSTRLEN];
                     int ncid_f, ncid_a;
                     int vid_f;
 
-                    model_getbgfname(m, das->bgdir, das->varnames[i], fname_f);
+                    model_getbgfname(m, das->bgdir, varname, fname_f);
                     ncw_open(fname_f, NC_NOWRITE, &ncid_f);
 
                     strncpy(fname_a, fname_f, MAXSTRLEN);
@@ -1090,7 +1105,7 @@ void das_update(dasystem* das, int calcspread, int leavetiles)
 
                     if (file_exists(fname_a)) {
                         ncw_open(fname_a, NC_WRITE, &ncid_a);
-                        if (ncw_var_exists(ncid_a, das->varnames[i])) {
+                        if (ncw_var_exists(ncid_a, varname)) {
                             ncw_close(fname_a, ncid_a);
                             ncw_close(fname_f, ncid_f);
                             continue;
@@ -1101,7 +1116,7 @@ void das_update(dasystem* das, int calcspread, int leavetiles)
                         ncw_copy_dims(fname_f, ncid_f, fname_a, ncid_a);
                     }
 
-                    ncw_inq_varid(fname_f, ncid_f, das->varnames[i], &vid_f);
+                    ncw_inq_varid(fname_f, ncid_f, varname, &vid_f);
                     ncw_copy_vardef(fname_f, ncid_f, vid_f, fname_a, ncid_a);
                     ncw_close(fname_a, ncid_a);
                     ncw_close(fname_f, ncid_f);

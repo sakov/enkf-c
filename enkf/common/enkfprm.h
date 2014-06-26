@@ -34,9 +34,8 @@ typedef struct {
     int nasync;
     char** async_types;
     double* async_timesteps;    /* in days */
-    char* modeltype;
-    char* modeltag;
-    char* gridspec;
+    char* modelprm;
+    char* gridprm;
     char* ensdir;
     int enssize;
     char* bgdir;

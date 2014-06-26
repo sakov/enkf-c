@@ -92,7 +92,7 @@ void H_sla_standard(dasystem* das, int nobs, int obsids[], char fname[], int mem
 {
     model* m = das->m;
     observations* allobs = das->obs;
-    float** msl = das->msl;
+    float** msl = (float**) model_getmodeldata(m, "MSL");
     float** src = (float**) psrc;
     int ni, nj, nk;
     int i, j;

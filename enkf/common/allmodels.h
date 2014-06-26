@@ -17,8 +17,9 @@
 
 #include "model.h"
 
-typedef void (*modelsetup_fn) (model* m, char gridspec[]);
+typedef void (*modelsetup_fn) (model* m, char fname[]);
 
+modelsetup_fn get_modelsetgridfn(char modeltype[]);
 modelsetup_fn get_modelsetupfn(char modeltype[]);
 
 #define _ALLMODELS_H

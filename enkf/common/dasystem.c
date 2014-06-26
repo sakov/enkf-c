@@ -60,25 +60,8 @@ dasystem* das_create(enkfprm* prm)
     das->nmem = prm->enssize;
     das->obs = obs_create_fromprm(prm);
 
-    das->nvar = prm->nvar;
-    if (das->nvar > 0) {
-        das->varnames = malloc(das->nvar * sizeof(char*));
-        das->inflations = malloc(das->nvar * sizeof(float));
-        for (i = 0; i < das->nvar; ++i) {
-            das->varnames[i] = strdup(prm->varnames[i]);
-            das->inflations[i] = prm->inflations[i];
-        }
-    } else
-        das->varnames = NULL;
     das->m = model_create(prm);
-    if (prm->msl_fname != NULL) {
-        int ni, nj, nk;
 
-        model_getdims(das->m, &ni, &nj, &nk);
-        das->msl = alloc2d(nj, ni, sizeof(float));
-        readfield(prm->msl_fname, 0, prm->msl_varname, das->msl[0]);
-    } else
-        das->msl = NULL;
     das->S = NULL;
     das->s_mode = S_MODE_NONE;
     das->Hx = NULL;
@@ -140,14 +123,6 @@ void das_destroy(dasystem* das)
         free(das->bgdir);
     obs_destroy(das->obs);
     model_destroy(das->m);
-    if (das->nvar > 0) {
-        for (i = 0; i < das->nvar; ++i)
-            free(das->varnames[i]);
-        free(das->varnames);
-        free(das->inflations);
-    }
-    if (das->msl != NULL)
-        free2d(das->msl);
     if (das->S != NULL)
         free2d(das->S);
     if (das->Hx != NULL)
@@ -175,17 +150,20 @@ void das_destroy(dasystem* das)
  */
 void das_getnmem(dasystem* das)
 {
+    model* m = das->m;
+    int nvar = model_getnvar(m);
+
     das->nmem = 0;
     while (1) {
         char fname[MAXSTRLEN];
         int i;
 
-        for (i = 0; i < das->nvar; ++i) {
-            model_getmemberfname(das->m, das->ensdir, das->varnames[i], das->nmem + 1, fname);
+        for (i = 0; i < nvar; ++i) {
+            model_getmemberfname(m, das->ensdir, model_getvarname(m, i), das->nmem + 1, fname);
             if (!file_exists(fname))
                 break;
         }
-        if (i == das->nvar)
+        if (i == nvar)
             das->nmem++;
         else
             break;
@@ -196,17 +174,20 @@ void das_getnmem(dasystem* das)
  */
 void das_getfields(dasystem* das)
 {
+    model* m = das->m;
+    int nvar = model_getnvar(m);
     int vid;
 
     assert(das->nfields == 0);
     assert(das->fields == NULL);
 
-    for (vid = 0; vid < das->nvar; ++vid) {
+    for (vid = 0; vid < nvar; ++vid) {
         char fname[MAXSTRLEN];
+        char* varname = model_getvarname(m, vid);
         int nk, k;
 
-        model_getmemberfname(das->m, das->ensdir, das->varnames[vid], 1, fname);
-        nk = getnlevels(fname, das->varnames[vid]);
+        model_getmemberfname(m, das->ensdir, varname, 1, fname);
+        nk = getnlevels(fname, varname);
         for (k = 0; k < nk; ++k) {
             field* f;
 
@@ -215,7 +196,7 @@ void das_getfields(dasystem* das)
             f = &das->fields[das->nfields];
             f->id = das->nfields;
             f->varid = vid;
-            strcpy(f->varname, das->varnames[vid]);
+            strcpy(f->varname, varname);
             f->level = k;
             das->nfields++;
         }
