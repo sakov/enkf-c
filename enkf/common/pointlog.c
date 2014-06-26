@@ -139,10 +139,11 @@ void plog_write(dasystem* das, int i, int j, double lon, double lat, double dept
  */
 void plog_definestatevars(dasystem* das)
 {
+    int nvar = model_getnvar(das->m);
     int vid, p;
 
-    for (vid = 0; vid < das->nvar; ++vid) {
-        char* varname = das->varnames[vid];
+    for (vid = 0; vid < nvar; ++vid) {
+        char* varname = model_getvarname(das->m, vid);
         char fname[MAXSTRLEN];
         int nk;
 

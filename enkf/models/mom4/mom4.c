@@ -25,11 +25,11 @@
 #include "mom4.h"
 #include "ncw.h"
 
-#define EPS 1.0e-6
 #define EPSLON 1.0e-3
 
 typedef struct {
-    char* gridspec;
+    char* name;
+    char* fname;
     char* xdimname;
     char* ydimname;
     char* zdimname;
@@ -45,15 +45,12 @@ typedef struct {
 static gridprm* gridprm_create(char* fname)
 {
     gridprm* prm = NULL;
-
     FILE* f = NULL;
     char buf[MAXSTRLEN];
     int line;
 
     prm = calloc(1, sizeof(gridprm));
-
     f = enkf_fopen(fname, "r");
-
     line = 0;
     while (fgets(buf, MAXSTRLEN, f) != NULL) {
         char seps[] = " =\t\n";
@@ -64,13 +61,20 @@ static gridprm* gridprm_create(char* fname)
             continue;
         if ((token = strtok(buf, seps)) == NULL)
             continue;
-        if (strcasecmp(token, "GRIDSPEC") == 0) {
+        if (strcasecmp(token, "NAME") == 0) {
             if ((token = strtok(NULL, seps)) == NULL)
-                enkf_quit("%s, l.%d: GRIDSPEC not specified", fname, line);
-            else if (prm->gridspec != NULL)
-                enkf_quit("%s, l.%d: GRIDSPEC specified twice", fname, line);
+                enkf_quit("%s, l.%d: NAME not specified", fname, line);
+            else if (prm->name != NULL)
+                enkf_quit("%s, l.%d: NAME specified twice", fname, line);
             else
-                prm->gridspec = strdup(token);
+                prm->name = strdup(token);
+        } else if (strcasecmp(token, "DATA") == 0) {
+            if ((token = strtok(NULL, seps)) == NULL)
+                enkf_quit("%s, l.%d: DATA not specified", fname, line);
+            else if (prm->fname != NULL)
+                enkf_quit("%s, l.%d: DATA specified twice", fname, line);
+            else
+                prm->fname = strdup(token);
         } else if (strcasecmp(token, "XDIMNAME") == 0) {
             if ((token = strtok(NULL, seps)) == NULL)
                 enkf_quit("%s, l.%d: XDIMNAME not specified", fname, line);
@@ -132,8 +136,10 @@ static gridprm* gridprm_create(char* fname)
 
     fclose(f);
 
-    if (prm->gridspec == NULL)
-        enkf_quit("%s: GRIDSPEC not specified", fname);
+    if (prm->name == NULL)
+        enkf_quit("%s: NAME not specified", fname);
+    if (prm->fname == NULL)
+        enkf_quit("%s: DATA not specified", fname);
     if (prm->xdimname == NULL)
         enkf_quit("%s: XDIMNAME not specified", fname);
     if (prm->ydimname == NULL)
@@ -158,7 +164,8 @@ static gridprm* gridprm_create(char* fname)
  */
 static void gridprm_destroy(gridprm* prm)
 {
-    free(prm->gridspec);
+    free(prm->name);
+    free(prm->fname);
     free(prm->xdimname);
     free(prm->ydimname);
     free(prm->zdimname);
@@ -168,6 +175,136 @@ static void gridprm_destroy(gridprm* prm)
     free(prm->depthvarname);
     free(prm->numlevelsvarname);
     free(prm);
+}
+
+/**
+ */
+static void gridprm_describe(gridprm* prm, char offset[])
+{
+    enkf_printf("%sgrid prm info:\n", offset);
+    enkf_printf("%s  name = \"%s\"\n", offset, prm->name);
+    enkf_printf("%s  file = \"%s\"\n", offset, prm->fname);
+    enkf_printf("%s  xdimname = \"%s\"\n", offset, prm->xdimname);
+    enkf_printf("%s  ydimname = \"%s\"\n", offset, prm->ydimname);
+    enkf_printf("%s  zdimname = \"%s\"\n", offset, prm->zdimname);
+    enkf_printf("%s  xvarname = \"%s\"\n", offset, prm->xvarname);
+    enkf_printf("%s  yvarname = \"%s\"\n", offset, prm->yvarname);
+    enkf_printf("%s  zvarname = \"%s\"\n", offset, prm->zvarname);
+    enkf_printf("%s  depthvarname = \"%s\"\n", offset, prm->depthvarname);
+    enkf_printf("%s  numlevelsvarname = \"%s\"\n", offset, prm->numlevelsvarname);
+}
+
+/**
+ */
+void mom4_setgrid(model* m, char gfname[])
+{
+    char* fname;
+    gridprm* prm;
+    int ncid;
+    int dimid_x, dimid_y, dimid_z;
+    int varid_x, varid_y, varid_z;
+    int ndims_x, ndims_y, ndims_z;
+    size_t nx, ny, nz;
+    int varid_depth, varid_numlevels;
+    grid* g = NULL;
+
+    prm = gridprm_create(gfname);
+    fname = prm->fname;
+
+    g = grid_create(prm->name);
+
+    ncw_open(fname, NC_NOWRITE, &ncid);
+    ncw_inq_dimid(fname, ncid, prm->xdimname, &dimid_x);
+    ncw_inq_dimid(fname, ncid, prm->ydimname, &dimid_y);
+    ncw_inq_dimid(fname, ncid, prm->zdimname, &dimid_z);
+    ncw_inq_dimlen(fname, ncid, dimid_x, &nx);
+    ncw_inq_dimlen(fname, ncid, dimid_y, &ny);
+    ncw_inq_dimlen(fname, ncid, dimid_z, &nz);
+
+    enkf_printf("    grid dimensions = %u x %u x %u\n", (unsigned int) nx, (unsigned int) ny, (unsigned int) nz);
+
+    ncw_inq_varid(fname, ncid, prm->xvarname, &varid_x);
+    ncw_inq_varid(fname, ncid, prm->yvarname, &varid_y);
+    ncw_inq_varid(fname, ncid, prm->zvarname, &varid_z);
+
+    ncw_inq_varndims(fname, ncid, varid_x, &ndims_x);
+    ncw_inq_varndims(fname, ncid, varid_y, &ndims_y);
+    ncw_inq_varndims(fname, ncid, varid_z, &ndims_z);
+
+    if (ndims_x == 1 && ndims_y == 1) {
+        double* x;
+        double* y;
+        double* z;
+        int i;
+        double dx, dy;
+        int periodic_x;
+
+        x = malloc(nx * sizeof(double));
+        y = malloc(ny * sizeof(double));
+        z = malloc(nz * sizeof(double));
+
+        ncw_get_var_double(fname, ncid, varid_x, x);
+        ncw_get_var_double(fname, ncid, varid_y, y);
+        ncw_get_var_double(fname, ncid, varid_z, z);
+
+        periodic_x = fabs(fmod(2.0 * x[nx - 1] - x[nx - 2], 360.0) - x[0]) < EPSLON;
+
+        dx = (x[nx - 1] - x[0]) / (double) (nx - 1);
+        for (i = 1; i < (int) nx; ++i)
+            if (fabs(x[i] - x[i - 1] - dx) / fabs(dx) > EPSLON)
+                break;
+        if (i != (int) nx)
+            grid_setcoords(g, GRIDTYPE_LATLON_IRREGULAR, periodic_x, 0, nx, ny, nz, x, y, z);
+        else {
+            dy = (y[ny - 1] - y[0]) / (double) (ny - 1);
+            for (i = 1; i < (int) ny; ++i)
+                if (fabs(y[i] - y[i - 1] - dy) / fabs(dy) > EPSLON)
+                    break;
+            if (i != (int) ny)
+                grid_setcoords(g, GRIDTYPE_LATLON_IRREGULAR, periodic_x, 0, nx, ny, nz, x, y, z);
+            else
+                grid_setcoords(g, GRIDTYPE_LATLON_REGULAR, periodic_x, 0, nx, ny, nz, x, y, z);
+        }
+    } else if (ndims_x == 2 && ndims_y == 2) {
+        double** x;
+        double** y;
+        double* z;
+
+        x = alloc2d(ny, nx, sizeof(double));
+        y = alloc2d(ny, nx, sizeof(double));
+        z = malloc(nz * sizeof(double));
+
+        ncw_get_var_double(fname, ncid, varid_x, x[0]);
+        ncw_get_var_double(fname, ncid, varid_y, y[0]);
+        ncw_get_var_double(fname, ncid, varid_z, z);
+
+        grid_setcoords(g, GRIDTYPE_CURVILINEAR, 0, 0, nx, ny, nz, x, y, z);
+    } else
+        enkf_quit("%s: could not determine the grid type", fname);
+
+    model_setgrid(m, g);
+
+    ncw_inq_varid(fname, ncid, prm->depthvarname, &varid_depth);
+    {
+        float** depth = alloc2d(ny, nx, sizeof(float));
+
+        ncw_get_var_float(fname, ncid, varid_depth, depth[0]);
+        grid_setdepth(g, depth);
+    }
+
+    ncw_inq_varid(fname, ncid, prm->numlevelsvarname, &varid_numlevels);
+    {
+        int** numlevels = alloc2d(ny, nx, sizeof(int));
+
+        ncw_get_var_int(fname, ncid, varid_numlevels, numlevels[0]);
+        grid_setnumlevels(g, numlevels);
+    }
+    ncw_close(fname, ncid);
+
+    gridprm_describe(prm, "  ");
+    grid_describe(g, "  ");
+
+    gridprm_destroy(prm);
 }
 
 /**
@@ -229,110 +366,88 @@ static void mom4_writefield(model* m, char fname[], int time, char varname[], in
     writefield(fname, k, varname, v);
 }
 
+typedef struct {
+    char* mslfname;
+    char* mslvarname;
+} mom4prm;
+
 /**
  */
-void mom4_setup(model* m, char gridspec[])
+static mom4prm* mom4prm_create(char fname[])
 {
-    char* fname;
-    gridprm* prm;
-    int ncid;
-    int dimid_x, dimid_y, dimid_z;
-    int varid_x, varid_y, varid_z;
-    int ndims_x, ndims_y, ndims_z;
-    size_t nx, ny, nz;
-    int varid_depth, varid_numlevels;
+    mom4prm* prm = NULL;
+    FILE* f = NULL;
+    char buf[MAXSTRLEN];
+    int line;
 
-    prm = gridprm_create(gridspec);
-    fname = prm->gridspec;
-    enkf_printf("    grid file = \"%s\"\n", fname);
+    prm = calloc(1, sizeof(mom4prm));
+    f = enkf_fopen(fname, "r");
+    line = 0;
+    while (fgets(buf, MAXSTRLEN, f) != NULL) {
+	char seps[] = " =\t\n";
+	char* token;
 
-    ncw_open(fname, NC_NOWRITE, &ncid);
-    ncw_inq_dimid(fname, ncid, prm->xdimname, &dimid_x);
-    ncw_inq_dimid(fname, ncid, prm->ydimname, &dimid_y);
-    ncw_inq_dimid(fname, ncid, prm->zdimname, &dimid_z);
-    ncw_inq_dimlen(fname, ncid, dimid_x, &nx);
-    ncw_inq_dimlen(fname, ncid, dimid_y, &ny);
-    ncw_inq_dimlen(fname, ncid, dimid_z, &nz);
+	line++;
+	if (buf[0] == '#')
+	    continue;
+	if ((token = strtok(buf, seps)) == NULL)
+	    continue;
 
-    enkf_printf("    grid dimensions = %u x %u x %u\n", (unsigned int) nx, (unsigned int) ny, (unsigned int) nz);
-
-    ncw_inq_varid(fname, ncid, prm->xvarname, &varid_x);
-    ncw_inq_varid(fname, ncid, prm->yvarname, &varid_y);
-    ncw_inq_varid(fname, ncid, prm->zvarname, &varid_z);
-
-    ncw_inq_varndims(fname, ncid, varid_x, &ndims_x);
-    ncw_inq_varndims(fname, ncid, varid_y, &ndims_y);
-    ncw_inq_varndims(fname, ncid, varid_z, &ndims_z);
-
-    if (ndims_x == 1 && ndims_y == 1) {
-        double* x;
-        double* y;
-        double* z;
-        int i;
-        double dx, dy;
-        int periodic_x;
-
-        x = malloc(nx * sizeof(double));
-        y = malloc(ny * sizeof(double));
-        z = malloc(nz * sizeof(double));
-
-        ncw_get_var_double(fname, ncid, varid_x, x);
-        ncw_get_var_double(fname, ncid, varid_y, y);
-        ncw_get_var_double(fname, ncid, varid_z, z);
-
-        periodic_x = fabs(fmod(2.0 * x[nx - 1] - x[nx - 2], 360.0) - x[0]) < EPSLON;
-
-        dx = (x[nx - 1] - x[0]) / (double) (nx - 1);
-        for (i = 1; i < (int) nx; ++i)
-            if (fabs(x[i] - x[i - 1] - dx) / fabs(dx) > EPS)
-                break;
-        if (i != (int) nx)
-            grid_set(model_getgrid(m), GRIDTYPE_LATLON_IRREGULAR, periodic_x, 0, nx, ny, nz, x, y, z);
-        else {
-            dy = (y[ny - 1] - y[0]) / (double) (ny - 1);
-            for (i = 1; i < (int) ny; ++i)
-                if (fabs(y[i] - y[i - 1] - dy) / fabs(dy) > EPS)
-                    break;
-            if (i != (int) ny)
-                grid_set(model_getgrid(m), GRIDTYPE_LATLON_IRREGULAR, periodic_x, 0, nx, ny, nz, x, y, z);
-            else
-                grid_set(model_getgrid(m), GRIDTYPE_LATLON_REGULAR, periodic_x, 0, nx, ny, nz, x, y, z);
-        }
-    } else if (ndims_x == 2 && ndims_y == 2) {
-        double** x;
-        double** y;
-        double* z;
-
-        x = alloc2d(ny, nx, sizeof(double));
-        y = alloc2d(ny, nx, sizeof(double));
-        z = malloc(nz * sizeof(double));
-
-        ncw_get_var_double(fname, ncid, varid_x, x[0]);
-        ncw_get_var_double(fname, ncid, varid_y, y[0]);
-        ncw_get_var_double(fname, ncid, varid_z, z);
-
-        grid_set(model_getgrid(m), GRIDTYPE_CURVILINEAR, 0, 0, nx, ny, nz, x, y, z);
-    } else
-        enkf_quit("%s: could not determine the grid type", fname);
-
-    ncw_inq_varid(fname, ncid, prm->depthvarname, &varid_depth);
-    {
-        float** depth = alloc2d(ny, nx, sizeof(float));
-
-        ncw_get_var_float(fname, ncid, varid_depth, depth[0]);
-        model_setdepth(m, depth);
+	if (strcasecmp(token, "MSL") == 0) {
+	    if ((token = strtok(NULL, seps)) == NULL)
+		enkf_quit("%s, l.%d: MSL file not specified", fname, line);
+	    else if (prm->mslfname != NULL)
+		enkf_quit("%s, l.%d: MSL file specified twice", fname, line);
+	    else
+		prm->mslfname = strdup(token);
+	    if ((token = strtok(NULL, seps)) == NULL)
+		enkf_quit("%s, l.%d: MSL variable not specified", fname, line);
+	    else if (prm->mslvarname != NULL)
+		enkf_quit("%s, l.%d: MSL variable specified twice", fname, line);
+	    else
+		prm->mslvarname = strdup(token);
+	}
     }
+    fclose(f);
 
-    ncw_inq_varid(fname, ncid, prm->numlevelsvarname, &varid_numlevels);
-    {
-        int** numlevels = alloc2d(ny, nx, sizeof(int));
+    return prm;
+}
 
-        ncw_get_var_int(fname, ncid, varid_numlevels, numlevels[0]);
-        model_setnumlevels(m, numlevels);
+/**
+ */
+static void mom4prm_destroy(mom4prm* prm)
+{
+    if (prm->mslfname != NULL) {
+	free(prm->mslfname);
+	free(prm->mslvarname);
     }
+    free(prm);
+}
 
-    ncw_close(fname, ncid);
-    gridprm_destroy(prm);
+/**
+ */
+static void mom4_describe(mom4prm* prm, char offset[])
+{
+    enkf_printf("%s  MSL file = %s\n", offset, prm->mslfname);
+    enkf_printf("%s  MSL variable = %s\n", offset, prm->mslvarname);
+}
+
+/**
+ */
+void mom4_setup(model* m, char fname[])
+{
+    mom4prm* prm = mom4prm_create(fname);
+
+    if (prm->mslfname != NULL) {
+	float** msl = NULL;
+	int nx, ny, nz;
+
+	model_getdims(m, &nx, &ny, &nz);
+	msl = alloc2d(ny, nx, sizeof(float));
+	readfield(prm->mslfname, 0, prm->mslvarname, msl[0]);
+
+	model_addmodeldata(m, "MSL", msl);
+    }
 
     model_setgetmemberfname_fn(m, mom4_getmemberfname);
     model_setgetmemberfnameasync_fn(m, mom4_getmemberfname_async);
@@ -341,4 +456,9 @@ void mom4_setup(model* m, char gridspec[])
     model_setreadfield_fn(m, mom4_readfield);
     model_setread3dfield_fn(m, mom4_read3dfield);
     model_setwritefield_fn(m, mom4_writefield);
+
+    model_describe(m, "  ");
+    mom4_describe(prm, "  ");
+
+    mom4prm_destroy(prm);
 }

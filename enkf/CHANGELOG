@@ -1,3 +1,20 @@
+v.0.46
+   PS 26062014
+   Quite a bit of structural change. Some of the parameter files are affected.
+   -- Added `name' to `struct model'; renamed `tag' by `type'.
+   -- Modified model_create().
+   -- Added `int ndata, modeldata* data' to `struct model'.
+   -- Moved `msl' from `dasystem' to `model', stored in `data'.
+   -- Moved `numlevels' and `depth' from `model' to `grid'.
+   -- Renamed grid_set() to grid_setcoords().
+   -- Added grid_setdepth(), grid_setnumlevels(), grid_getdepth(),
+      grid_getnumlevels(), grid_getname().
+   -- Split model setup  into `setgridfn' and `setupfn'.
+   -- In mom4.c added gridprm_describe, mom4prm_create(), mom4prm_destroy(),
+      mom4prm_describe().
+   -- Added model_describe() and grid_describe().
+   -- Moved `nvar', `varnames' from `dasystem' to `model'; added
+      model_getnvar(), model_getvarname(), model_getvarinflation().
 v. 0.45
    PS 06062014
    -- Try to automatically detect whether the model grid's longitudes belong to

@@ -30,9 +30,8 @@ typedef void (*model_writefield_fn) (model* m, char fname[], int time, char varn
 
 model* model_create(enkfprm* prm);
 void model_destroy(model* m);
+void model_describe(model* m, char offset[]);
 
-void model_setdepth(model* m, float** depth);
-void model_setnumlevels(model* m, int** numlevels);
 void model_setgetmemberfname_fn(model* m, model_getmemberfname_fn fn);
 void model_setgetmemberfnameasync_fn(model* m, model_getmemberfnameasync_fn fn);
 void model_setbgfname_fn(model* m, model_getbgfname_fn fn);
@@ -40,7 +39,14 @@ void model_setbgfnameasync_fn(model* m, model_getbgfnameasync_fn fn);
 void model_setreadfield_fn(model* m, model_readfield_fn fn);
 void model_setread3dfield_fn(model* m, model_read3dfield_fn fn);
 void model_setwritefield_fn(model* m, model_writefield_fn fn);
+void model_setgrid(model* m, void* g);
 
+void model_addmodeldata(model* m, char tag[], void* data);
+void* model_getmodeldata(model* m, char tag[]);
+
+int model_getnvar(model* m);
+char* model_getvarname(model* m, int varid);
+float model_getvarinflation(model* m, int varid);
 void model_getdims(model* m, int* ni, int* nj, int* nk);
 void* model_getgrid(model* m);
 int model_getlontype(model* m);

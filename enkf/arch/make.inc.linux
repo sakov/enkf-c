@@ -17,6 +17,7 @@ CCMPI = mpicc
 CFLAGSMPI = -g -pedantic -Wall -std=c99 -D_GNU_SOURCE -DMPI # -O2
 
 # which compiler/flags to use without MPI
+# choose gcc if you do not have clang
 #
 CC = clang
 CFLAGS = -g -pedantic -Wall -std=c99 -D_GNU_SOURCE # -O2
