@@ -220,7 +220,7 @@ void das_calctransforms(dasystem* das)
     for (i = 0, j = 0; i < ni; ++i, j += das->stride)
         iiter[i] = j;
 
-    obs_createkdtree(obs);
+    obs_createkdtree(obs, model_getgrid(m));
     das_standardise(das);
 
     if (das->mode == MODE_ENKF) {
@@ -321,7 +321,7 @@ void das_calctransforms(dasystem* das)
 
                 model_fij2ll(m, (double) i, (double) j, &lon, &lat);
 
-                obs_findlocal(obs, lon, lat, das->locrad, &ploc, &lobs, &lcoeffs);
+                obs_findlocal(obs, model_getgrid(m), lon, lat, das->locrad, &ploc, &lobs, &lcoeffs);
                 assert(ploc >= 0 && ploc <= obs->nobs);
             }
 
@@ -702,7 +702,7 @@ void das_dopointlogs(dasystem* das)
         model_fij2ll(m, (double) i, (double) j, &lon, &lat);
         assert(!isnan(lon + lat));
 
-        obs_findlocal(obs, lon, lat, das->locrad, &ploc, &lobs, &lcoeffs);
+        obs_findlocal(obs, model_getgrid(m), lon, lat, das->locrad, &ploc, &lobs, &lcoeffs);
         assert(ploc >= 0 && ploc <= obs->nobs);
 
         if (X5 != NULL)

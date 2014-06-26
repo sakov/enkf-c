@@ -33,6 +33,7 @@ struct grid {
     grid_ll2fij_fn ll2fij_fn;
     grid_z2fk_fn z2fk_fn;
     grid_fij2ll_fn fij2ll_fn;
+    grid_tocartesian_fn tocartesian_fn;
     void* gridnodes;
     int lontype;
 
@@ -642,4 +643,18 @@ int grid_isperiodic_y(grid* g)
     }
 
     return 0;
+}
+
+/**
+ */
+void grid_settocartesian_fn(grid* g, grid_tocartesian_fn fn)
+{
+    g->tocartesian_fn = fn;
+}
+
+/**
+ */
+void grid_tocartesian(grid* g, double* in, double* out)
+{
+    g->tocartesian_fn(in, out);
 }

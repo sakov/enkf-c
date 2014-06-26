@@ -26,8 +26,9 @@
 #include "utils.h"
 #include "enkfprm.h"
 #include "obsmeta.h"
-#include "observations.h"
+#include "grid.h"
 #include "model.h"
+#include "observations.h"
 #include "allreaders.h"
 #include "prep.h"
 

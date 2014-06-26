@@ -23,6 +23,7 @@
 #include "enkfprm.h"
 #include "obsmeta.h"
 #include "model.h"
+#include "grid.h"
 #include "observations.h"
 #include "prep.h"
 #include "allreaders.h"
