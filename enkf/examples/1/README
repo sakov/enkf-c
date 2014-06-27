@@ -1,0 +1,49 @@
+To run this example you need to download the data from 
+
+https://drive.google.com/folderview?id=0B-joqvlrlCeRMjBtUFpRRHR1M0E&usp=sharing
+
+and unpack in this directory.
+
+This is an example for the EnKF-C package. It has been put up based on the runs
+of regional EnKF and EnOI reanalysis systems for Tasman Sea developed by Bureau
+of Meterology. It allows one to conduct a single assimilation for 23 December 
+2007 (day 6565 since 1 January 1990) with either EnKF or EnOI.
+
+Note that to reduce the example size 
+(1) the model state vector is stripped to two layers
+(2) the horizontal grid has been reduced to 100 x 100
+(3) global NAVO SST observations has been cut to regional observations only
+
+Pre-requisitive:
+
+Before starting assimilation one needs to compile EnKF-C and copy executables
+enkf_prep, enkf_calc and enkf_post to the directory of the example. 
+
+Testing EnKF:
+
+To assimilate with the EnKF, run "make enkf".
+The analysed ensemble members will be of the form 
+ensemble_6565/mem<num>_<var>.nc.analysis, where <num> is the member id, between
+001 and 096, and <var> is one of the state variables: eta_t, temp, salt, u or v.
+
+To clean up the analysis, run "make clean".
+
+Testing EnOI:
+
+To assimilate with the EnOI, run "make enoi". The analysis will be of the form
+background/bg_<var>.nc.analysis.
+
+Apart from the EnKF/EnOI analyses, a number of auxiliary files are generated:
+
+prep.out - log file from enkf_prep
+calc.out - log file from enkf_calc
+post.out - log file from enkf_post
+observations.nc - pre-processed superobservations
+observations-orig-nc - pre-processed original observations
+enkf_diag.nc - observation impact file
+X5.nc - 2D array of local ensemble tranforms (EnKF)
+w.nc - 2D array of local ensemble linear combination coefficients (EnOI)
+spread.nc - spread of the corresponding ensemble
+
+Have fun,
+Pavel Sakov

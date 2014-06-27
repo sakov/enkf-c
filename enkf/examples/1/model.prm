@@ -1,0 +1,3 @@
+NAME = TASMAN
+TYPE = MOM4
+MSL = conf/eta_mean-bran.nc eta_t
