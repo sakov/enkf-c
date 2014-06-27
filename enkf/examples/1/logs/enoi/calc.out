@@ -1,0 +1,168 @@
+  MPI: initialised 2 processes
+  MPI: rank = 0, PID = 28255
+  MPI: rank = 1, PID = 28256
+  running CALC for EnKF version 0.48:
+  2014-06-27 13:57:00
+  reading system specs from "enoi.prm":
+    MODE = EnOI
+    OBS = "obs.prm"
+    DATE = "6565.5 days since 1990-01-01"
+    MODEL PRM = "model.prm"
+    GRID PRM = "grid.prm"
+    BGDIR = "background_6565"
+    ENSEMBLE DIR = "ensemble_static"
+    ENSEMBLE SIZE = 144
+    VARNAMES = eta_t temp salt u v
+    OBS2VAR = { SST temp } { SLA eta_t } { TEM temp } { SAL salt }
+    HFUNCTIONS = { SST standard } { SLA standard } { TEM standard } { SAL standard }
+    KFACTOR = 999.0
+    RFACTOR SST = 1.0
+    RFACTOR SLA = 1.0
+    RFACTOR TEM = 1.0
+    RFACTOR SAL = 1.0
+    LOCRAD = 200
+    STRIDE = 3
+    FIELDBUFFERSIZE = 4
+    INFLATION eta_t = 1.050
+    INFLATION temp = 1.050
+    INFLATION salt = 1.050
+    INFLATION u = 1.050
+    INFLATION v = 1.050
+    REGION Global: lon = [0.0, 360.0], lat = [-90.0, 90.0]
+    POINTLOG 30 30
+    SOBSTRIDE = 1
+    EnKF flags:
+      enkf_exitaction  = [BACKTRACE]
+      enkf_obstype     = [VALUE]
+      enkf_separateout = [-]
+      enkf_directwrite = [-]
+    compile flags:
+      CHECK_X5         = [-]
+      CHECK_G          = [-]
+      SHUFFLE_ROWS     = [-]
+      HE_VIAFILE       = [-]
+  initialising the system:
+    grid dimensions = 100 x 100 x 2
+  grid prm info:
+    name = "t-grid"
+    file = "conf/grid_spec.nc"
+    xdimname = "grid_x_T"
+    ydimname = "grid_y_T"
+    zdimname = "zt"
+    xvarname = "grid_x_T"
+    yvarname = "grid_y_T"
+    zvarname = "zt"
+    depthvarname = "depth_t"
+    numlevelsvarname = "num_levels"
+  grid info:
+    type = LATLON_REGULAR
+    periodic by X = no
+    periodic by Y = no
+    dims = 100 x 100 x 2
+    longitude range = [0, 360]
+  model info:
+    name = TASMAN
+    type = MOM4
+    MSL file = conf/eta_mean-bran.nc
+    MSL variable = eta_t
+  reading observations from "observations.nc":
+    3927 observations
+    calculating obs stats:
+  calculating ensemble observations:
+  2014-06-27 13:57:00
+    ensemble size = 144
+    distributing iterations:
+      all processes get 72 iterations
+      process 0: 0 - 71
+    SST ........................................................................+
+    SLA ........................................................................+
+    TEM ........................................................................+
+    SAL ........................................................................+
+  adding forecast innovations and spread to "observations.nc":
+  2014-06-27 13:57:00
+  moderating observations:
+    observations substantially modified:
+      SST          0 (0.0%)
+      SLA          0 (0.0%)
+      TEM          0 (0.0%)
+      SAL          0 (0.0%)
+      total        0 (0.0%)
+  writing modified obs errors to "observations.nc":
+  calculating transforms:
+  2014-06-27 13:57:00
+    creating empty file "w.nc":
+    distributing iterations:
+      all processes get 17 iterations
+      process 0: 0 - 16
+    main cycle (34 x 34 local analyses):
+      j = 0 (0: 0: 5.9%)
+      j = 3 (1: 17: 5.9%)
+      j = 9 (1: 18: 11.8%)
+      j = 6 (0: 1: 11.8%)
+      j = 15 (1: 19: 17.6%)
+      j = 12 (0: 2: 17.6%)
+      j = 21 (1: 20: 23.5%)
+      j = 18 (0: 3: 23.5%)
+      j = 27 (1: 21: 29.4%)
+      j = 24 (0: 4: 29.4%)
+      j = 33 (1: 22: 35.3%)
+      j = 30 (0: 5: 35.3%)
+      j = 39 (1: 23: 41.2%)
+      j = 36 (0: 6: 41.2%)
+      j = 45 (1: 24: 47.1%)
+      j = 42 (0: 7: 47.1%)
+      j = 51 (1: 25: 52.9%)
+      j = 48 (0: 8: 52.9%)
+      j = 57 (1: 26: 58.8%)
+      j = 54 (0: 9: 58.8%)
+      j = 63 (1: 27: 64.7%)
+      j = 60 (0: 10: 64.7%)
+      j = 69 (1: 28: 70.6%)
+      j = 66 (0: 11: 70.6%)
+      j = 75 (1: 29: 76.5%)
+      j = 72 (0: 12: 76.5%)
+      j = 81 (1: 30: 82.4%)
+      j = 78 (0: 13: 82.4%)
+      j = 87 (1: 31: 88.2%)
+      j = 84 (0: 14: 88.2%)
+      j = 90 (0: 15: 94.1%)
+      j = 93 (1: 32: 94.1%)
+      j = 99 (1: 33: 100.0%)
+      j = 96 (0: 16: 100.0%)
+  finished calculating transforms
+    writing stats to "enkf_diag.nc":
+  calc stats:
+    # of local analyses = 1156
+    average # of local obs = 380.7
+    # of inversions in obs space = 109
+    # of inversions in ens space = 961
+  writing point logs:
+    calculating transform for log point (30, 30): 730 obs
+    writing the log for point (30, 30):
+  calculating analysed observations:
+  2014-06-27 13:57:13
+    sorting obs by ij:
+    updating Hx:
+  adding analysis innovations and spread to "observations.nc":
+  printing observation statistics:
+    region obs.type   # obs.  |for.inn.| |an.inn.|   for.inn.   an.inn.  for.spread  an.spread
+    ------------------------------------------------------------------------------------------
+    Global
+           SST          3255    0.461      0.179     -0.244     -0.025      0.422      0.422  
+             AVHRR      2087    0.467      0.161     -0.217     -0.014      0.427      0.427  
+             WindSat     847    0.472      0.245     -0.307     -0.057      0.406      0.406  
+             N/A         321    0.393      0.127     -0.252     -0.013      0.427      0.427  
+           SLA           652    0.082      0.033      0.027      0.006      0.027      0.027  
+             j1          250    0.087      0.025      0.041      0.005      0.030      0.030  
+             n1          382    0.077      0.040      0.015      0.007      0.025      0.025  
+             N/A          20    0.095      0.021      0.085      0.011      0.028      0.028  
+           TEM            10    4.322      3.295     -3.283      0.310      0.301      0.301  
+             ARGO         10    4.322      3.295     -3.283      0.310      0.301      0.301  
+             0-50m         0     -nan       -nan       -nan       -nan       -nan       -nan  
+             >500m         4    7.825      3.036     -7.825     -3.036      0.330      0.330  
+           SAL            10    0.371      0.300     -0.241      0.062      0.025      0.025  
+             ARGO         10    0.371      0.300     -0.241      0.062      0.025      0.025  
+             0-50m         0     -nan       -nan       -nan       -nan       -nan       -nan  
+             >500m         4    0.655      0.244     -0.655     -0.244      0.029      0.029  
+  2014-06-27 13:57:13
+  finished
