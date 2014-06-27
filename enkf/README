@@ -22,11 +22,7 @@ See doc/enkf-userguide.pdf.
 
 STARTING UP
 
-See example 1 in examples/1. Note that to run it you need to download data from
-
-https://drive.google.com/folderview?id=0B-joqvlrlCeRMjBtUFpRRHR1M0E&usp=sharing
-
-See examples/1/README for further details.
+Run example 1 - see examples/1/README for further details.
 
 REFERRING
 
