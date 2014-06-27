@@ -4,8 +4,7 @@ of Meterology. It allows one to conduct a single assimilation for 23 December
 2007 (day 6565 since 1 January 1990) with either EnKF or EnOI.
 
 Note that to reduce the example size 
-(1) the model state vector is stripped to two layers
-(2) the horizontal grid has been reduced to 100 x 100
+(1) the grid has been reduced to 100 x 100 x 2
 (3) global NAVO SST observations has been cut to regional observations only
 
 PRE-REQUISITIVES:
