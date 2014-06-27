@@ -1,0 +1,29 @@
+MODE = EnKF
+SCHEME = DEnKF
+
+MODEL = model.prm
+GRID = grid.prm
+
+OBS = obs.prm
+DATE = 6565.5 days since 1990-01-01
+ASYNCHRONOUS = 
+
+ENSDIR = ensemble_6565
+ENSSIZE = 96
+
+VARNAMES = eta_t temp salt u v
+OBS2VAR = SST temp SLA eta_t TEM temp SAL salt
+HFUNCTIONS = SST standard SLA standard TEM standard SAL standard
+INFLATION BASE = 1.0
+
+KFACTOR = 999
+
+LOCRAD = 200
+
+STRIDE = 3
+
+FIELDBUFFERSIZE = 4
+
+REGION Global   0   360   -90     90
+
+POINTLOG 30 30

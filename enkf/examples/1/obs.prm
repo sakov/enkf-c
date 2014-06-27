@@ -1,0 +1,47 @@
+product == RADS
+type = SLA
+reader = standard2
+file=obs/RADS-IB/y2007/m12/??_d19.nc
+file=obs/RADS-IB/y2007/m12/??_d20.nc
+file=obs/RADS-IB/y2007/m12/??_d21.nc
+file=obs/RADS-IB/y2007/m12/??_d22.nc
+file=obs/RADS-IB/y2007/m12/??_d23.nc
+
+product == NAVO
+type = SST
+reader = standard
+file=obs/NAVO/navo_20071219.nc
+file=obs/NAVO/navo_20071220.nc
+file=obs/NAVO/navo_20071221.nc
+file=obs/NAVO/navo_20071222.nc
+file=obs/NAVO/navo_20071223.nc
+
+product == WindSat
+type = SST
+reader = standard
+file=obs/WINDSAT/windsat_20071219.nc
+file=obs/WINDSAT/windsat_20071220.nc
+file=obs/WINDSAT/windsat_20071221.nc
+file=obs/WINDSAT/windsat_20071222.nc
+file=obs/WINDSAT/windsat_20071223.nc
+
+product == CARS
+type = TEM
+reader = standard
+file=obs/TS-SEP-2011/y2007/m12/cars_temp_d19.nc
+file=obs/TS-SEP-2011/y2007/m12/cars_temp_d20.nc
+file=obs/TS-SEP-2011/y2007/m12/cars_temp_d21.nc
+file=obs/TS-SEP-2011/y2007/m12/cars_temp_d22.nc
+file=obs/TS-SEP-2011/y2007/m12/cars_temp_d23.nc
+error_std = 0.5
+
+product == CARS
+type = SAL
+reader = standard
+file=obs/TS-SEP-2011/y2007/m12/cars_salt_d19.nc
+file=obs/TS-SEP-2011/y2007/m12/cars_salt_d20.nc
+file=obs/TS-SEP-2011/y2007/m12/cars_salt_d21.nc
+file=obs/TS-SEP-2011/y2007/m12/cars_salt_d22.nc
+file=obs/TS-SEP-2011/y2007/m12/cars_salt_d23.nc
+error_std = 0.1
+
