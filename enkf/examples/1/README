@@ -29,12 +29,12 @@ The analysed ensemble members will be of the form
 ensemble_6565/mem<num>_<var>.nc.analysis, where <num> is the member id, between
 001 and 096, and <var> is one of the state variables: eta_t, temp, salt, u or v.
 
-To clean up the analysis, run "make clean".
-
 Testing EnOI:
 
 To assimilate with the EnOI, run "make enoi". The analysis will be of the form
 background/bg_<var>.nc.analysis.
+
+To clean up the analysis, run "make clean".
 
 Apart from the EnKF/EnOI analyses, a number of auxiliary files are generated:
 
@@ -47,6 +47,9 @@ enkf_diag.nc - observation impact file
 X5.nc - 2D array of local ensemble tranforms (EnKF)
 w.nc - 2D array of local ensemble linear combination coefficients (EnOI)
 spread.nc - spread of the corresponding ensemble
+
+If you suspect that something went wrong, you may compare your logs with those
+in the "logs" directory.
 
 Have fun,
 Pavel Sakov
