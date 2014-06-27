@@ -1,9 +1,9 @@
 LICENSE:
     EnKF-C is a public software. See LICENSE for details.
 
-It has been developed for GNU/Linux platform.
-
 COMPILING
+
+EnKF-C is developed for GNU/Linux platform.
 
 Create "make.inc" for your architecture (look at examples in `arch'  directory),
 then run "make".
@@ -30,7 +30,7 @@ Please refer to EnKF-C by citing the user reference, e.g.:
 
 <...> the EnKF-C package (Sakov, 2014) available from 
 https://code.google.com/p/enkf-c <...>
-Sakov, P., 2014. EnKF-C user guide. Version 0.45.
+Sakov, P., 2014. EnKF-C user guide. Version XXX.
 
 Good luck,
 Pavel Sakov
