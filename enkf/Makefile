@@ -98,10 +98,10 @@ common/pointlog.h\
 common/dasystem.h
 
 SRC_MODEL =\
-models/mom4/mom4.c
+models/z-model/z-model.c
 
 HDR_MODEL =\
-models/mom4.h
+models/z-model.h
 
 HDR_MKUNITOBS =\
 common/distribute.h\

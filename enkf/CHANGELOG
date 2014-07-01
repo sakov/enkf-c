@@ -1,3 +1,6 @@
+v. 0.49
+   PS 01072014
+   -- Renamed "mom4" to "z-model" (or "zmodel" in the code)
 v. 0.48
    PS 27062014
    -- Added H_sla_bran() that conducts global debiasing of SLA innovation.

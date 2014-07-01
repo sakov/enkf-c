@@ -1,6 +1,6 @@
 /******************************************************************************
  *
- * File:        mom4.h        
+ * File:        z-model.h        
  *
  * Created:     12/2012
  *
@@ -9,14 +9,14 @@
  *
  * Description:
  *
- * Revisions:
+ * Revisions:   PS 1.7.2014 -- renamed from mom4.h
  *
  *****************************************************************************/
 
-#if !defined(_MOM4_H)
+#if !defined(_ZMODEL_H)
 
-void mom4_setgrid(model* m, char gridprm[]);
-void mom4_setup(model* m, char modelprm[]);
+void zmodel_setgrid(model* m, char gridprm[]);
+void zmodel_setup(model* m, char modelprm[]);
 
-#define _MOM4_H
+#define _ZMODEL_H
 #endif

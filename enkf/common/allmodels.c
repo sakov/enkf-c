@@ -19,7 +19,7 @@
 #include "definitions.h"
 #include "utils.h"
 #include "allmodels.h"
-#include "mom4.h"
+#include "z-model.h"
 
 typedef struct {
     char* modeltype;
@@ -28,7 +28,7 @@ typedef struct {
 } model_entry;
 
 model_entry allmodelentries[] = {
-    {"MOM4", mom4_setgrid, mom4_setup}
+    {"Z-MODEL", zmodel_setgrid, zmodel_setup}
 };
 
 /**
@@ -39,8 +39,6 @@ static void describe_modelentries(void)
     int i;
 
     enkf_printf("  Available models:\n");
-    enkf_printf("    tag\n");
-    enkf_printf("    ---\n");
     for (i = 0; i < nmodelentries; ++i)
         enkf_printf("    %s\n", allmodelentries[i].modeltype);
 }
@@ -53,7 +51,7 @@ modelsetup_fn get_modelsetgridfn(char modeltype[])
     int i;
 
     for (i = 0; i < nmodelentries; ++i)
-        if (strcmp(allmodelentries[i].modeltype, modeltype) == 0)
+        if (strcasecmp(allmodelentries[i].modeltype, modeltype) == 0)
             return allmodelentries[i].setgridfn;
 
     enkf_printf("\n\n  ERROR: no model \"%s\"\n\n", modeltype);
@@ -71,7 +69,7 @@ modelsetup_fn get_modelsetupfn(char modeltype[])
     int i;
 
     for (i = 0; i < nmodelentries; ++i)
-        if (strcmp(allmodelentries[i].modeltype, modeltype) == 0)
+        if (strcasecmp(allmodelentries[i].modeltype, modeltype) == 0)
             return allmodelentries[i].setupfn;
 
     enkf_printf("\n\n  ERROR: no model \"%s\"\n\n", modeltype);
