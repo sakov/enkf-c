@@ -1,6 +1,6 @@
 /******************************************************************************
  *
- * File:        mom4.c        
+ * File:        z-model.c        
  *
  * Created:     12/2012
  *
@@ -9,7 +9,7 @@
  *
  * Description:
  *
- * Revisions:
+ * Revisions:   PS 1.7.2014 -- renamed from mom4.c
  *
  *****************************************************************************/
 
@@ -22,7 +22,7 @@
 #include "grid.h"
 #include "enkfprm.h"
 #include "model.h"
-#include "mom4.h"
+#include "z-model.h"
 #include "ncw.h"
 
 #define EPSLON 1.0e-3
@@ -210,7 +210,7 @@ static void ll2xyz(double in[2], double out[3])
 
 /**
  */
-void mom4_setgrid(model* m, char gfname[])
+void zmodel_setgrid(model* m, char gfname[])
 {
     char* fname;
     gridprm* prm;
@@ -324,14 +324,14 @@ void mom4_setgrid(model* m, char gfname[])
 
 /**
  */
-static void mom4_getmemberfname(model* m, char ensdir[], char varname[], int mem, char fname[])
+static void zmodel_getmemberfname(model* m, char ensdir[], char varname[], int mem, char fname[])
 {
     snprintf(fname, MAXSTRLEN, "%s/mem%03d_%s.nc", ensdir, mem, varname);
 }
 
 /**
  */
-static int mom4_getmemberfname_async(model* m, char ensdir[], char varname[], char otname[], int mem, int t, char fname[])
+static int zmodel_getmemberfname_async(model* m, char ensdir[], char varname[], char otname[], int mem, int t, char fname[])
 {
     snprintf(fname, MAXSTRLEN, "%s/mem%03d_%s_%d.nc", ensdir, mem, varname, t);
     if (!file_exists(fname)) {
@@ -343,14 +343,14 @@ static int mom4_getmemberfname_async(model* m, char ensdir[], char varname[], ch
 
 /**
  */
-static void mom4_getbgfname(model* m, char ensdir[], char varname[], char fname[])
+static void zmodel_getbgfname(model* m, char ensdir[], char varname[], char fname[])
 {
     snprintf(fname, MAXSTRLEN, "%s/bg_%s.nc", ensdir, varname);
 }
 
 /**
  */
-static int mom4_getbgfname_async(model* m, char bgdir[], char varname[], char otname[], int t, char fname[])
+static int zmodel_getbgfname_async(model* m, char bgdir[], char varname[], char otname[], int t, char fname[])
 {
     snprintf(fname, MAXSTRLEN, "%s/bg_%s_%d.nc", bgdir, varname, t);
     if (!file_exists(fname)) {
@@ -362,21 +362,21 @@ static int mom4_getbgfname_async(model* m, char bgdir[], char varname[], char ot
 
 /**
  */
-static void mom4_readfield(model* m, char fname[], int mem, int time, char varname[], int k, float* v)
+static void zmodel_readfield(model* m, char fname[], int mem, int time, char varname[], int k, float* v)
 {
     readfield(fname, k, varname, v);
 }
 
 /**
  */
-static void mom4_read3dfield(model* m, char fname[], int mem, int time, char varname[], float* v)
+static void zmodel_read3dfield(model* m, char fname[], int mem, int time, char varname[], float* v)
 {
     read3dfield(fname, varname, v);
 }
 
 /**
  */
-static void mom4_writefield(model* m, char fname[], int time, char varname[], int k, float* v)
+static void zmodel_writefield(model* m, char fname[], int time, char varname[], int k, float* v)
 {
     writefield(fname, k, varname, v);
 }
@@ -384,18 +384,18 @@ static void mom4_writefield(model* m, char fname[], int time, char varname[], in
 typedef struct {
     char* mslfname;
     char* mslvarname;
-} mom4prm;
+} zmodelprm;
 
 /**
  */
-static mom4prm* mom4prm_create(char fname[])
+static zmodelprm* zmodelprm_create(char fname[])
 {
-    mom4prm* prm = NULL;
+    zmodelprm* prm = NULL;
     FILE* f = NULL;
     char buf[MAXSTRLEN];
     int line;
 
-    prm = calloc(1, sizeof(mom4prm));
+    prm = calloc(1, sizeof(zmodelprm));
     f = enkf_fopen(fname, "r");
     line = 0;
     while (fgets(buf, MAXSTRLEN, f) != NULL) {
@@ -430,7 +430,7 @@ static mom4prm* mom4prm_create(char fname[])
 
 /**
  */
-static void mom4prm_destroy(mom4prm* prm)
+static void zmodelprm_destroy(zmodelprm* prm)
 {
     if (prm->mslfname != NULL) {
 	free(prm->mslfname);
@@ -441,7 +441,7 @@ static void mom4prm_destroy(mom4prm* prm)
 
 /**
  */
-static void mom4_print(mom4prm* prm, char offset[])
+static void zmodel_print(zmodelprm* prm, char offset[])
 {
     enkf_printf("%s  MSL file = %s\n", offset, prm->mslfname);
     enkf_printf("%s  MSL variable = %s\n", offset, prm->mslvarname);
@@ -449,9 +449,9 @@ static void mom4_print(mom4prm* prm, char offset[])
 
 /**
  */
-void mom4_setup(model* m, char fname[])
+void zmodel_setup(model* m, char fname[])
 {
-    mom4prm* prm = mom4prm_create(fname);
+    zmodelprm* prm = zmodelprm_create(fname);
 
     if (prm->mslfname != NULL) {
 	float** msl = NULL;
@@ -464,16 +464,16 @@ void mom4_setup(model* m, char fname[])
 	model_addmodeldata(m, "MSL", msl);
     }
 
-    model_setgetmemberfname_fn(m, mom4_getmemberfname);
-    model_setgetmemberfnameasync_fn(m, mom4_getmemberfname_async);
-    model_setbgfname_fn(m, mom4_getbgfname);
-    model_setbgfnameasync_fn(m, mom4_getbgfname_async);
-    model_setreadfield_fn(m, mom4_readfield);
-    model_setread3dfield_fn(m, mom4_read3dfield);
-    model_setwritefield_fn(m, mom4_writefield);
+    model_setgetmemberfname_fn(m, zmodel_getmemberfname);
+    model_setgetmemberfnameasync_fn(m, zmodel_getmemberfname_async);
+    model_setbgfname_fn(m, zmodel_getbgfname);
+    model_setbgfnameasync_fn(m, zmodel_getbgfname_async);
+    model_setreadfield_fn(m, zmodel_readfield);
+    model_setread3dfield_fn(m, zmodel_read3dfield);
+    model_setwritefield_fn(m, zmodel_writefield);
 
     model_print(m, "  ");
-    mom4_print(prm, "  ");
+    zmodel_print(prm, "  ");
 
-    mom4prm_destroy(prm);
+    zmodelprm_destroy(prm);
 }
