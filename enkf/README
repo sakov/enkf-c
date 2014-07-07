@@ -10,7 +10,7 @@ then run "make".
 
 DEPENDENCIES
 
-gcc
+clang or gcc
 openmpi
 libnetcdf
 liblapack (or libmkl_rt)
