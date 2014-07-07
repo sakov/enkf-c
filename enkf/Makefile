@@ -121,12 +121,14 @@ bin/enkf_calc: INCS += $(CALC_INCS)
 bin/enkf_calc: LIBS += $(LIB_LAPACK)
 bin/enkf_calc: $(SRC_COMMON) $(SRC_MODEL) $(SRC_CALC) $(HDR_COMMON) $(HDR_MODEL) $(HDR_CALC)
 	@echo
+	@export OMPI_CC=$(CC)
 	${CC${MPISTATUS}} -o bin/enkf_calc $(ENKF_FLAGS) $(CFLAGS$(MPISTATUS)) $(INCS) $(SRC_CALC) $(SRC_COMMON) $(SRC_MODEL) $(LIBS)
 
 bin/enkf_post: INCS += $(POST_INCS)
 bin/enkf_post: LIBS += $(LIB_LAPACK)
 bin/enkf_post: $(SRC_POST) $(SRC_COMMON) $(SRC_MODEL) $(HDR_POST) $(HDR_COMMON) $(HDR_MODEL)
 	@echo
+	@export OMPI_CC=$(CC)
 	${CC${MPISTATUS}} -o bin/enkf_post $(ENKF_FLAGS) $(CFLAGS$(MPISTATUS)) $(INCS) $(SRC_POST) $(SRC_COMMON) $(SRC_MODEL) $(LIBS)
 
 clean:
