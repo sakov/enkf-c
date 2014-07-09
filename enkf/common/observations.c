@@ -115,6 +115,7 @@ observations* obs_create(void)
     obs->types = NULL;
     obs->products = NULL;
     obs->instruments = NULL;
+    obs->datafiles = NULL;
     obs->nobstypes = 0;
     obs->obstypes = NULL;
     obs->da_date = NaN;
@@ -146,6 +147,7 @@ observations* obs_create_fromprm(enkfprm* prm)
     obs->types = st_create("types");
     obs->products = st_create("products");
     obs->instruments = st_create("instruments");
+    obs->datafiles = st_create("datafiles");
 
     for (i = 0; i < prm->ntypes; ++i) {
         int isasync = 0;
@@ -182,7 +184,7 @@ observations* obs_create_fromprm(enkfprm* prm)
 
 /**
  */
-observations* obs_create_fromdata(observations* parentobs, int nobs, measurement data[])
+observations* obs_create_fromdata(observations* parentobs, int nobs, observation data[])
 {
     observations* obs = obs_create();
     int i;
@@ -190,6 +192,7 @@ observations* obs_create_fromdata(observations* parentobs, int nobs, measurement
     obs->types = st_copy(parentobs->types);
     obs->products = st_copy(parentobs->products);
     obs->instruments = st_copy(parentobs->instruments);
+    obs->datafiles = st_copy(parentobs->datafiles);
 
     for (i = 0; i < parentobs->nobstypes; ++i) {
         obstype* ot = &parentobs->obstypes[i];
@@ -215,6 +218,7 @@ void obs_destroy(observations* obs)
     st_destroy(obs->types);
     st_destroy(obs->products);
     st_destroy(obs->instruments);
+    st_destroy(obs->datafiles);
     if (obs->nobstypes > 0) {
         for (i = 0; i < obs->nobstypes; ++i) {
             obstype* ot = &obs->obstypes[i];
@@ -241,7 +245,7 @@ void obs_checklon(observations* obs)
     int i;
 
     for (i = 0; i < obs->nobs; ++i) {
-        measurement* o = &obs->data[i];
+        observation* o = &obs->data[i];
 
         if (o->lon < 0)
             o->lon += 360.0;
@@ -252,8 +256,8 @@ void obs_checklon(observations* obs)
  */
 static int comp_obsstatus(const void* p1, const void* p2)
 {
-    measurement* m1 = (measurement*) p1;
-    measurement* m2 = (measurement*) p2;
+    observation* m1 = (observation*) p1;
+    observation* m2 = (observation*) p2;
 
     if (m1->status > m2->status)
         return 1;
@@ -271,7 +275,7 @@ void obs_compact(observations* obs)
 
     enkf_printf("    compacting obs:");
     assert(STATUS_OK == 0);
-    qsort(obs->data, obs->nobs, sizeof(measurement), comp_obsstatus);
+    qsort(obs->data, obs->nobs, sizeof(observation), comp_obsstatus);
     enkf_printf("\n");
     obs->compacted = 1;
 }
@@ -306,7 +310,7 @@ void obs_calcstats(observations* obs)
     }
 
     for (i = 0; i < obs->nobs; ++i) {
-        measurement* m = &obs->data[i];
+        observation* m = &obs->data[i];
         obstype* ot = &obs->obstypes[m->type];
 
         ot->nobs++;
@@ -336,6 +340,191 @@ void obs_calcstats(observations* obs)
     enkf_printf("\n");
 }
 
+/** Reads observations from "observations.nc".
+ */
+void obs_read(observations* obs, char fname[])
+{
+    int ncid;
+    int dimid_nobs[1];
+    size_t nobs;
+    int varid_type, varid_product, varid_instrument, varid_id, varid_idorig, varid_fid, varid_batch, varid_value, varid_std, varid_lon, varid_lat, varid_depth, varid_fi, varid_fj, varid_fk, varid_date, varid_status, varid_aux;
+    int* type;
+    int* product;
+    int* instrument;
+    int* id;
+    int* id_orig;
+    int* fid;
+    int* batch;
+    double* value;
+    double* std;
+    double* lon;
+    double* lat;
+    double* depth;
+    double* fi;
+    double* fj;
+    double* fk;
+    double* date;
+    int* status;
+    int* aux;
+    int nobstypes, nproducts, ninstruments, ndatafiles;
+    int i;
+
+    ncw_open(fname, NC_NOWRITE, &ncid);
+    ncw_inq_dimid(fname, ncid, "nobs", dimid_nobs);
+    ncw_inq_dimlen(fname, ncid, dimid_nobs[0], &nobs);
+
+    obs->nobs = nobs;
+    obs->data = malloc(nobs * sizeof(observation));
+    enkf_printf("    %u observations\n", (unsigned int) nobs);
+
+    ncw_inq_varid(fname, ncid, "type", &varid_type);
+    ncw_inq_varid(fname, ncid, "product", &varid_product);
+    ncw_inq_varid(fname, ncid, "instrument", &varid_instrument);
+    ncw_inq_varid(fname, ncid, "id", &varid_id);
+    ncw_inq_varid(fname, ncid, "id_orig", &varid_idorig);
+    ncw_inq_varid(fname, ncid, "fid", &varid_fid);
+    ncw_inq_varid(fname, ncid, "batch", &varid_batch);
+    ncw_inq_varid(fname, ncid, "value", &varid_value);
+    ncw_inq_varid(fname, ncid, "std", &varid_std);
+    ncw_inq_varid(fname, ncid, "lon", &varid_lon);
+    ncw_inq_varid(fname, ncid, "lat", &varid_lat);
+    ncw_inq_varid(fname, ncid, "depth", &varid_depth);
+    ncw_inq_varid(fname, ncid, "fi", &varid_fi);
+    ncw_inq_varid(fname, ncid, "fj", &varid_fj);
+    ncw_inq_varid(fname, ncid, "fk", &varid_fk);
+    ncw_inq_varid(fname, ncid, "date", &varid_date);
+    ncw_inq_varid(fname, ncid, "status", &varid_status);
+    ncw_inq_varid(fname, ncid, "aux", &varid_aux);
+
+    type = malloc(nobs * sizeof(int));
+    product = malloc(nobs * sizeof(int));
+    instrument = malloc(nobs * sizeof(int));
+    id = malloc(nobs * sizeof(int));
+    id_orig = malloc(nobs * sizeof(int));
+    fid = malloc(nobs * sizeof(int));
+    batch = malloc(nobs * sizeof(int));
+    value = malloc(nobs * sizeof(double));
+    std = malloc(nobs * sizeof(double));
+    lon = malloc(nobs * sizeof(double));
+    lat = malloc(nobs * sizeof(double));
+    depth = malloc(nobs * sizeof(double));
+    fi = malloc(nobs * sizeof(double));
+    fj = malloc(nobs * sizeof(double));
+    fk = malloc(nobs * sizeof(double));
+    date = malloc(nobs * sizeof(double));
+    status = malloc(nobs * sizeof(int));
+    aux = malloc(nobs * sizeof(int));
+
+    /*
+     * type 
+     */
+    ncw_inq_varnatts(fname, ncid, varid_type, &nobstypes);
+    for (i = 0; i < nobstypes; ++i) {
+        char attname[NC_MAX_NAME];
+
+        ncw_inq_attname(fname, ncid, varid_type, i, attname);
+        assert(strcmp(attname, st_findstringbyindex(obs->types, i)) == 0);
+    }
+
+    /*
+     * product 
+     */
+    ncw_inq_varnatts(fname, ncid, varid_product, &nproducts);
+    for (i = 0; i < nproducts; ++i) {
+        char attname[NC_MAX_NAME];
+
+        ncw_inq_attname(fname, ncid, varid_product, i, attname);
+        st_add(obs->products, attname, i);
+    }
+
+    /*
+     * instrument 
+     */
+    ncw_inq_varnatts(fname, ncid, varid_instrument, &ninstruments);
+    for (i = 0; i < ninstruments; ++i) {
+        char attname[NC_MAX_NAME];
+
+        ncw_inq_attname(fname, ncid, varid_instrument, i, attname);
+        st_add(obs->instruments, attname, i);
+    }
+
+    /*
+     * datafiles
+     */
+    ncw_inq_varnatts(fname, ncid, varid_fid, &ndatafiles);
+    for (i = 0; i < ndatafiles; ++i) {
+        char attname[NC_MAX_NAME];
+
+        ncw_inq_attname(fname, ncid, varid_fid, i, attname);
+        st_add(obs->datafiles, attname, i);
+    }
+
+    ncw_get_var_int(fname, ncid, varid_type, type);
+    ncw_get_var_int(fname, ncid, varid_product, product);
+    ncw_get_var_int(fname, ncid, varid_instrument, instrument);
+    ncw_get_var_int(fname, ncid, varid_id, id);
+    ncw_get_var_int(fname, ncid, varid_idorig, id_orig);
+    ncw_get_var_int(fname, ncid, varid_fid, fid);
+    ncw_get_var_int(fname, ncid, varid_batch, batch);
+    ncw_get_var_double(fname, ncid, varid_value, value);
+    ncw_get_var_double(fname, ncid, varid_std, std);
+    ncw_get_var_double(fname, ncid, varid_lon, lon);
+    ncw_get_var_double(fname, ncid, varid_lat, lat);
+    ncw_get_var_double(fname, ncid, varid_depth, depth);
+    ncw_get_var_double(fname, ncid, varid_fi, fi);
+    ncw_get_var_double(fname, ncid, varid_fj, fj);
+    ncw_get_var_double(fname, ncid, varid_fk, fk);
+    ncw_get_var_double(fname, ncid, varid_date, date);
+    ncw_get_var_int(fname, ncid, varid_status, status);
+    ncw_get_var_int(fname, ncid, varid_aux, aux);
+
+    ncw_close(fname, ncid);
+
+    for (i = 0; i < (int) nobs; ++i) {
+        observation* m = &obs->data[i];
+
+        m->type = type[i];
+        m->product = product[i];
+        m->instrument = instrument[i];
+        m->id = id[i];
+        m->id_orig = id_orig[i];
+        m->fid = fid[i];
+        m->batch = batch[i];
+        m->value = value[i];
+        m->std = std[i];
+        m->lon = lon[i];
+        m->lat = lat[i];
+        m->depth = depth[i];
+        m->fi = fi[i];
+        m->fj = fj[i];
+        m->fk = fk[i];
+        m->date = date[i];
+        m->status = status[i];
+        m->aux = aux[i];
+    }
+
+    free(type);
+    free(product);
+    free(instrument);
+    free(id);
+    free(id_orig);
+    free(fid);
+    free(batch);
+    free(value);
+    free(std);
+    free(lon);
+    free(lat);
+    free(depth);
+    free(fi);
+    free(fj);
+    free(fk);
+    free(date);
+    free(status);
+    free(aux);
+
+    obs_calcstats(obs);
+}
+
 /**
  */
 void obs_write(observations* obs, char fname[])
@@ -345,13 +534,15 @@ void obs_write(observations* obs, char fname[])
 
     int ncid;
     int dimid_nobs[1];
-    int varid_type, varid_product, varid_instrument, varid_id, varid_idorig, varid_value, varid_std, varid_lon, varid_lat, varid_depth, varid_fi, varid_fj, varid_fk, varid_date, varid_status, varid_aux;
+    int varid_type, varid_product, varid_instrument, varid_id, varid_idorig, varid_fid, varid_batch, varid_value, varid_std, varid_lon, varid_lat, varid_depth, varid_fi, varid_fj, varid_fk, varid_date, varid_status, varid_aux;
 
     int* type;
     int* product;
     int* instrument;
     int* id;
     int* id_orig;
+    short int* fid;
+    short int* batch;
     double* value;
     double* std;
     double* lon;
@@ -379,6 +570,8 @@ void obs_write(observations* obs, char fname[])
     ncw_def_var(fname, ncid, "instrument", NC_SHORT, 1, dimid_nobs, &varid_instrument);
     ncw_def_var(fname, ncid, "id", NC_INT, 1, dimid_nobs, &varid_id);
     ncw_def_var(fname, ncid, "id_orig", NC_INT, 1, dimid_nobs, &varid_idorig);
+    ncw_def_var(fname, ncid, "fid", NC_SHORT, 1, dimid_nobs, &varid_fid);
+    ncw_def_var(fname, ncid, "batch", NC_SHORT, 1, dimid_nobs, &varid_batch);
     ncw_def_var(fname, ncid, "value", NC_FLOAT, 1, dimid_nobs, &varid_value);
     ncw_def_var(fname, ncid, "std", NC_FLOAT, 1, dimid_nobs, &varid_std);
     ncw_def_var(fname, ncid, "lon", NC_FLOAT, 1, dimid_nobs, &varid_lon);
@@ -412,6 +605,14 @@ void obs_write(observations* obs, char fname[])
     for (i = 0; i < obs->instruments->n; ++i)
         ncw_put_att_int(fname, ncid, varid_instrument, st_findstringbyindex(obs->instruments, i), 1, &i);
 
+    for (i = 0; i < obs->datafiles->n; ++i) {
+        char attname[NC_MAX_NAME];
+        char* datafile = st_findstringbyindex(obs->datafiles, i);
+
+        sprintf(attname, "%d", i);
+        ncw_put_att_text(fname, ncid, varid_fid, attname, datafile);
+    }
+
     ncw_enddef(fname, ncid);
 
     type = malloc(nobs * sizeof(int));
@@ -419,6 +620,8 @@ void obs_write(observations* obs, char fname[])
     instrument = malloc(nobs * sizeof(int));
     id = malloc(nobs * sizeof(int));
     id_orig = malloc(nobs * sizeof(int));
+    fid = malloc(nobs * sizeof(short int));
+    batch = malloc(nobs * sizeof(short int));
     value = malloc(nobs * sizeof(double));
     std = malloc(nobs * sizeof(double));
     lon = malloc(nobs * sizeof(double));
@@ -432,7 +635,7 @@ void obs_write(observations* obs, char fname[])
     aux = malloc(nobs * sizeof(int));
 
     for (i = 0, ii = 0; i < obs->nobs; ++i) {
-        measurement* m = &obs->data[i];
+        observation* m = &obs->data[i];
 
         if (!isfinite(m->value) || fabs(m->value) > FLT_MAX || !isfinite((float) m->value))
             enkf_quit("bad value");
@@ -441,6 +644,8 @@ void obs_write(observations* obs, char fname[])
         product[ii] = m->product;
         instrument[ii] = m->instrument;
         id[ii] = i;
+        fid[ii] = m->fid;
+        batch[ii] = m->batch;
         /*
          * id of the first ob contributed to this sob 
          */
@@ -465,6 +670,8 @@ void obs_write(observations* obs, char fname[])
     ncw_put_var_int(fname, ncid, varid_instrument, instrument);
     ncw_put_var_int(fname, ncid, varid_id, id);
     ncw_put_var_int(fname, ncid, varid_idorig, id_orig);
+    ncw_put_var_short(fname, ncid, varid_fid, fid);
+    ncw_put_var_short(fname, ncid, varid_batch, batch);
     ncw_put_var_double(fname, ncid, varid_value, value);
     ncw_put_var_double(fname, ncid, varid_std, std);
     ncw_put_var_double(fname, ncid, varid_lon, lon);
@@ -483,6 +690,8 @@ void obs_write(observations* obs, char fname[])
     free(instrument);
     free(id);
     free(id_orig);
+    free(fid);
+    free(batch);
     free(value);
     free(std);
     free(lon);
@@ -533,17 +742,17 @@ void obs_superob(observations* obs, __compar_d_fn_t cmp_obs, observations** sobs
 {
     int i1 = 0, i2 = 0;
     int nsobs = 0;
-    measurement* data = obs->data;
-    measurement* sdata = NULL;
+    observation* data = obs->data;
+    observation* sdata = NULL;
 
     obs_calcstats(obs);
     obs_compact(obs);
 
-    qsort_r(obs->data, obs->ngood, sizeof(measurement), cmp_obs, obs);
+    qsort_r(obs->data, obs->ngood, sizeof(observation), cmp_obs, obs);
 
     while (i2 < obs->ngood) {
-        measurement* so;
-        measurement* o;
+        observation* so;
+        observation* o;
         double n;
         double lon_min, lon_max;
         int ii;
@@ -554,7 +763,7 @@ void obs_superob(observations* obs, __compar_d_fn_t cmp_obs, observations** sobs
         while (i2 + 1 < obs->nobs && cmp_obs(&data[i1], &data[i2 + 1], obs) == 0)
             i2++;
         if (nsobs % NOBS_INC == 0)
-            sdata = realloc(sdata, (nsobs + NOBS_INC) * sizeof(measurement));
+            sdata = realloc(sdata, (nsobs + NOBS_INC) * sizeof(observation));
 
         if (sobid == nsobs) {
             int i;
@@ -576,6 +785,8 @@ void obs_superob(observations* obs, __compar_d_fn_t cmp_obs, observations** sobs
         so->instrument = o->instrument;
         so->id = nsobs;
         so->id_orig = o->id;
+        so->fid = o->fid;
+        so->batch = o->batch;
         so->value = o->value;
         so->std = 1.0 / (o->std * o->std);
         so->lon = o->lon;
@@ -601,6 +812,10 @@ void obs_superob(observations* obs, __compar_d_fn_t cmp_obs, observations** sobs
                 so->product = -1;
             if (so->instrument != o->instrument)
                 so->instrument = -1;
+            if (so->fid != o->fid)
+                so->fid = -1;
+            if (so->batch != o->batch)
+                so->batch = -1;
 
             so->value = so->value * so->std + o->value / o->std / o->std;
             so->lon = so->lon * so->std + o->lon / o->std / o->std;
@@ -677,7 +892,7 @@ void obs_find_bytype(observations* obs, int type, int* nobs, int** obsids, int f
     }
     *obsids = malloc(obs->obstypes[type].nobs * sizeof(int));
     for (i = 0; i < obs->nobs; ++i) {
-        measurement* o = &obs->data[i];
+        observation* o = &obs->data[i];
 
         if (o->type == type && o->status == STATUS_OK) {
             (*obsids)[*nobs] = i;
@@ -707,7 +922,7 @@ void obs_find_bytypeandtime(observations* obs, int type, int time, int* nobs, in
     }
     *obsids = malloc(obs->obstypes[type].ngood * sizeof(int));
     for (i = 0; i < obs->nobs; ++i) {
-        measurement* o = &obs->data[i];
+        observation* o = &obs->data[i];
 
         if (o->type == type && o->status == STATUS_OK && get_tshift(o->date, tstep) == time) {
             (*obsids)[*nobs] = i;
@@ -724,9 +939,9 @@ void obs_find_bytypeandtime(observations* obs, int type, int time, int* nobs, in
  */
 void obs_printob(observations* obs, int i)
 {
-    measurement* o = &obs->data[i];
+    observation* o = &obs->data[i];
 
-    enkf_printf("type = %s, product = %s, instrument = %s, id = %d, original id = %d, value = %.3g, std = %.3g, lon = %.3f, lat = %.3f, depth = %.1f, fi = %.3f, fj = %.3f, fk = %.3f, date = %.3g, status = %d\n", obs->obstypes[o->type].name, st_findstringbyindex(obs->products, o->product), st_findstringbyindex(obs->instruments, o->instrument), o->id, o->id_orig, o->value, o->std, o->lon, o->lat, o->depth, o->fi, o->fj, o->fk, o->date, o->status);
+    enkf_printf("type = %s, product = %s, instrument = %s, datafile = %s, id = %d, original id = %d, batch = %h, value = %.3g, std = %.3g, lon = %.3f, lat = %.3f, depth = %.1f, fi = %.3f, fj = %.3f, fk = %.3f, date = %.3g, status = %d\n", obs->obstypes[o->type].name, st_findstringbyindex(obs->products, o->product), st_findstringbyindex(obs->instruments, o->instrument), st_findstringbyindex(obs->datafiles, o->fid), o->id, o->id_orig, o->batch, o->value, o->std, o->lon, o->lat, o->depth, o->fi, o->fj, o->fk, o->date, o->status);
 }
 
 /**
@@ -740,7 +955,7 @@ void obs_createkdtree(observations* obs, grid* g)
 
     obs->tree = kd_create(3);
     for (i = 0; i < obs->nobs; ++i) {
-        measurement* o = &obs->data[i];
+        observation* o = &obs->data[i];
         double ll[2] = { o->lon, o->lat };
         double point[3];
 
@@ -772,7 +987,7 @@ void obs_findlocal(observations* obs, grid* g, double lon, double lat, double r,
     *n = i;
 
     for (i = 0; i < *n; ++i) {
-        measurement* o = &obs->data[(*ids)[i]];
+        observation* o = &obs->data[(*ids)[i]];
         double ll2[2] = { o->lon, o->lat };
         double xyz2[3];
 

@@ -66,7 +66,7 @@ void obs_add(observations* obs, model* m, obsmeta* meta)
     reader = get_obsreadfn(meta);
     readobs(meta, m, reader, obs);      /* adds the data */
     for (i = nobs0; i < obs->nobs; ++i) {
-        measurement* o = &obs->data[i];
+        observation* o = &obs->data[i];
         int j;
 
         o->id_orig = i;
@@ -114,7 +114,7 @@ void obs_add(observations* obs, model* m, obsmeta* meta)
                 enkf_printf("      adding error_std = %.3g:\n", v);
                 v = v * v;
                 for (o = nobs0; o < obs->nobs; ++o) {
-                    measurement* oo = &obs->data[o];
+                    observation* oo = &obs->data[o];
 
                     if (oo->status == STATUS_OK)
                         oo->std = sqrt(oo->std * oo->std + v);
@@ -135,7 +135,7 @@ void obs_add(observations* obs, model* m, obsmeta* meta)
                     v = alloc2d(nj, ni, sizeof(float));
                     readfield(fname, 0, meta->varnames[i], v[0]);
                     for (o = nobs0; o < obs->nobs; ++o) {
-                        measurement* oo = &obs->data[o];
+                        observation* oo = &obs->data[o];
                         int i, j;
                         float vv;
 
@@ -174,7 +174,7 @@ void obs_add(observations* obs, model* m, obsmeta* meta)
         int i;
 
         for (i = nobs0; i < obs->nobs; ++i) {
-            measurement* o = &obs->data[i];
+            observation* o = &obs->data[i];
 
             o->date -= obs->da_date;
 

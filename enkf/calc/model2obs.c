@@ -38,7 +38,7 @@ static void interpolate_2d_obs(model* m, observations* allobs, int nobs, int obs
 
     for (i = 0; i < nobs; ++i) {
         int ii = obsids[i];
-        measurement* o = &allobs->data[ii];
+        observation* o = &allobs->data[ii];
 
         assert(out[ii] == 0.0);
         out[ii] = interpolate2d(o->fi, o->fj, ni, nj, v, mask);
@@ -61,7 +61,7 @@ static void interpolate_3d_obs(model* m, observations* allobs, int nobs, int obs
 
     for (i = 0; i < nobs; ++i) {
         int ii = obsids[i];
-        measurement* o = &allobs->data[ii];
+        observation* o = &allobs->data[ii];
 
         assert(out[ii] == 0.0);
         out[ii] = interpolate3d(o->fi, o->fj, o->fk, ni, nj, nk, v, nlevels);

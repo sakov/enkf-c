@@ -984,7 +984,7 @@ void das_update(dasystem* das, int calcspread, int leavetiles)
         MPI_Barrier(MPI_COMM_WORLD);
 #endif
         enkf_printtime("    ");
-        enkf_printf("    allocating disk space for the analysis:");
+        enkf_printf("    allocating disk space for analysis:");
         enkf_flush();
 #if defined(MPI)
         MPI_Barrier(MPI_COMM_WORLD);

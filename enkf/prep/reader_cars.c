@@ -55,7 +55,10 @@ void reader_cars_standard(char* fname, obsmeta* meta, model* m, observations* ob
     int len;
     int year, month, day;
     double tunits_multiple, tunits_offset;
+    int fid;
     int p, i;
+
+    fid = st_add(obs->datafiles, fname, -1);
 
     nobs0 = obs->nobs;
 
@@ -66,14 +69,12 @@ void reader_cars_standard(char* fname, obsmeta* meta, model* m, observations* ob
 
     ncw_inq_dimid(fname, ncid, "nobs", &dimid_nprof);
     ncw_inq_dimlen(fname, ncid, dimid_nprof, &nprof);
-
-    ncw_inq_dimid(fname, ncid, "zt", &dimid_nz);
-    ncw_inq_dimlen(fname, ncid, dimid_nz, &nz);
     enkf_printf("        # profiles = %u\n", (unsigned int) nprof);
-
     if (nprof == 0)
         return;
 
+    ncw_inq_dimid(fname, ncid, "zt", &dimid_nz);
+    ncw_inq_dimlen(fname, ncid, dimid_nz, &nz);
     enkf_printf("        # z levels = %u\n", (unsigned int) nz);
 
     ncw_inq_varid(fname, ncid, "lon", &varid_lon);
@@ -138,13 +139,13 @@ void reader_cars_standard(char* fname, obsmeta* meta, model* m, observations* ob
             sprintf(inststr, "CARS%02u", type[p]);
 
         for (i = 0; i < (int) nz; ++i) {
-            measurement* o;
+            observation* o;
 
             if (fabs(v[p][i] - missval) < EPS || v[p][i] < validmin || v[p][i] > validmax)
                 continue;
 
             if (obs->nobs % NOBS_INC == 0) {
-                obs->data = realloc(obs->data, (obs->nobs + NOBS_INC) * sizeof(measurement));
+                obs->data = realloc(obs->data, (obs->nobs + NOBS_INC) * sizeof(observation));
                 if (obs->data == NULL)
                     enkf_quit("not enough memory");
             }
@@ -157,6 +158,8 @@ void reader_cars_standard(char* fname, obsmeta* meta, model* m, observations* ob
             assert(o->type >= 0);
             o->instrument = st_add_ifabscent(obs->instruments, inststr, -1);
             o->id = obs->nobs;
+            o->fid = fid;
+            o->batch = p;
             o->value = v[p][i];
             o->std = 0.0;
             o->lon = lon[p];

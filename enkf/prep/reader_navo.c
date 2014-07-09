@@ -48,7 +48,10 @@ void reader_navo_standard(char* fname, obsmeta* meta, model* m, observations* ob
     size_t tunits_len;
     double tunits_multiple, tunits_offset;
     char* basename;
+    int fid;
     int i;
+
+    fid = st_add(obs->datafiles, fname, -1);
 
     basename = strrchr(fname, '/');
     if (basename == NULL)
@@ -102,10 +105,10 @@ void reader_navo_standard(char* fname, obsmeta* meta, model* m, observations* ob
     tunits_convert(tunits, &tunits_multiple, &tunits_offset);
 
     for (i = 0; i < (int) nobs_local; ++i) {
-        measurement* o;
+        observation* o;
 
         if (obs->nobs % NOBS_INC == 0) {
-            obs->data = realloc(obs->data, (obs->nobs + NOBS_INC) * sizeof(measurement));
+            obs->data = realloc(obs->data, (obs->nobs + NOBS_INC) * sizeof(observation));
             if (obs->data == NULL)
                 enkf_quit("not enough memory");
         }
@@ -118,6 +121,8 @@ void reader_navo_standard(char* fname, obsmeta* meta, model* m, observations* ob
         assert(o->type >= 0);
         o->instrument = st_add_ifabscent(obs->instruments, "AVHRR", -1);
         o->id = obs->nobs;
+        o->fid = fid;
+        o->batch = -1;
         o->value = sst[i];
         o->std = error_std[i];
         o->lon = lon[i];

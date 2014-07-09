@@ -33,169 +33,6 @@
 
 #define EPSF 1.0e-6f
 
-/** Reads observations from "observations.nc".
- */
-void das_readobs(dasystem* das, char fname[])
-{
-    observations* obs = das->obs;
-    int ncid;
-    int dimid_nobs[1];
-    size_t nobs;
-    int varid_type, varid_product, varid_instrument, varid_id, varid_idorig, varid_value, varid_std, varid_lon, varid_lat, varid_depth, varid_fi, varid_fj, varid_fk, varid_date, varid_status, varid_aux;
-    int* type;
-    int* product;
-    int* instrument;
-    int* id;
-    int* id_orig;
-    double* value;
-    double* std;
-    double* lon;
-    double* lat;
-    double* depth;
-    double* fi;
-    double* fj;
-    double* fk;
-    double* date;
-    int* status;
-    int* aux;
-    int nobstypes, nproducts, ninstruments;
-    int i;
-
-    ncw_open(fname, NC_NOWRITE, &ncid);
-    ncw_inq_dimid(fname, ncid, "nobs", dimid_nobs);
-    ncw_inq_dimlen(fname, ncid, dimid_nobs[0], &nobs);
-
-    obs->nobs = nobs;
-    obs->data = malloc(nobs * sizeof(measurement));
-    enkf_printf("    %u observations\n", (unsigned int) nobs);
-
-    ncw_inq_varid(fname, ncid, "type", &varid_type);
-    ncw_inq_varid(fname, ncid, "product", &varid_product);
-    ncw_inq_varid(fname, ncid, "instrument", &varid_instrument);
-    ncw_inq_varid(fname, ncid, "id", &varid_id);
-    ncw_inq_varid(fname, ncid, "id_orig", &varid_idorig);
-    ncw_inq_varid(fname, ncid, "value", &varid_value);
-    ncw_inq_varid(fname, ncid, "std", &varid_std);
-    ncw_inq_varid(fname, ncid, "lon", &varid_lon);
-    ncw_inq_varid(fname, ncid, "lat", &varid_lat);
-    ncw_inq_varid(fname, ncid, "depth", &varid_depth);
-    ncw_inq_varid(fname, ncid, "fi", &varid_fi);
-    ncw_inq_varid(fname, ncid, "fj", &varid_fj);
-    ncw_inq_varid(fname, ncid, "fk", &varid_fk);
-    ncw_inq_varid(fname, ncid, "date", &varid_date);
-    ncw_inq_varid(fname, ncid, "status", &varid_status);
-    ncw_inq_varid(fname, ncid, "aux", &varid_aux);
-
-    type = malloc(nobs * sizeof(int));
-    product = malloc(nobs * sizeof(int));
-    instrument = malloc(nobs * sizeof(int));
-    id = malloc(nobs * sizeof(int));
-    id_orig = malloc(nobs * sizeof(int));
-    value = malloc(nobs * sizeof(double));
-    std = malloc(nobs * sizeof(double));
-    lon = malloc(nobs * sizeof(double));
-    lat = malloc(nobs * sizeof(double));
-    depth = malloc(nobs * sizeof(double));
-    fi = malloc(nobs * sizeof(double));
-    fj = malloc(nobs * sizeof(double));
-    fk = malloc(nobs * sizeof(double));
-    date = malloc(nobs * sizeof(double));
-    status = malloc(nobs * sizeof(int));
-    aux = malloc(nobs * sizeof(int));
-
-    /*
-     * type 
-     */
-    ncw_inq_varnatts(fname, ncid, varid_type, &nobstypes);
-    for (i = 0; i < nobstypes; ++i) {
-        char attname[NC_MAX_NAME];
-
-        ncw_inq_attname(fname, ncid, varid_type, i, attname);
-        assert(strcmp(attname, st_findstringbyindex(obs->types, i)) == 0);
-    }
-
-    /*
-     * product 
-     */
-    ncw_inq_varnatts(fname, ncid, varid_product, &nproducts);
-    for (i = 0; i < nproducts; ++i) {
-        char attname[NC_MAX_NAME];
-
-        ncw_inq_attname(fname, ncid, varid_product, i, attname);
-        st_add(obs->products, attname, i);
-    }
-
-    /*
-     * instrument 
-     */
-    ncw_inq_varnatts(fname, ncid, varid_instrument, &ninstruments);
-    for (i = 0; i < ninstruments; ++i) {
-        char attname[NC_MAX_NAME];
-
-        ncw_inq_attname(fname, ncid, varid_instrument, i, attname);
-        st_add(obs->instruments, attname, i);
-    }
-
-    ncw_get_var_int(fname, ncid, varid_type, type);
-    ncw_get_var_int(fname, ncid, varid_product, product);
-    ncw_get_var_int(fname, ncid, varid_instrument, instrument);
-    ncw_get_var_int(fname, ncid, varid_id, id);
-    ncw_get_var_int(fname, ncid, varid_idorig, id_orig);
-    ncw_get_var_double(fname, ncid, varid_value, value);
-    ncw_get_var_double(fname, ncid, varid_std, std);
-    ncw_get_var_double(fname, ncid, varid_lon, lon);
-    ncw_get_var_double(fname, ncid, varid_lat, lat);
-    ncw_get_var_double(fname, ncid, varid_depth, depth);
-    ncw_get_var_double(fname, ncid, varid_fi, fi);
-    ncw_get_var_double(fname, ncid, varid_fj, fj);
-    ncw_get_var_double(fname, ncid, varid_fk, fk);
-    ncw_get_var_double(fname, ncid, varid_date, date);
-    ncw_get_var_int(fname, ncid, varid_status, status);
-    ncw_get_var_int(fname, ncid, varid_aux, aux);
-
-    ncw_close(fname, ncid);
-
-    for (i = 0; i < (int) nobs; ++i) {
-        measurement* m = &obs->data[i];
-
-        m->type = type[i];
-        m->product = product[i];
-        m->instrument = instrument[i];
-        m->id = id[i];
-        m->id_orig = id_orig[i];
-        m->value = value[i];
-        m->std = std[i];
-        m->lon = lon[i];
-        m->lat = lat[i];
-        m->depth = depth[i];
-        m->fi = fi[i];
-        m->fj = fj[i];
-        m->fk = fk[i];
-        m->date = date[i];
-        m->status = status[i];
-        m->aux = aux[i];
-    }
-
-    free(type);
-    free(product);
-    free(instrument);
-    free(id);
-    free(id_orig);
-    free(value);
-    free(std);
-    free(lon);
-    free(lat);
-    free(depth);
-    free(fi);
-    free(fj);
-    free(fk);
-    free(date);
-    free(status);
-    free(aux);
-
-    obs_calcstats(obs);
-}
-
 /**
  */
 void das_getHE(dasystem* das, int fstatsonly)
@@ -595,7 +432,7 @@ void das_moderateobs(dasystem* das)
     std_new = malloc(obs->nobs * sizeof(double));
 
     for (i = 0; i < obs->nobs; ++i) {
-        measurement* o = &obs->data[i];
+        observation* o = &obs->data[i];
         double svar = das->std_f[i] * das->std_f[i];
         double ovar = o->std * o->std;
         double inn = das->s_f[i];
@@ -668,13 +505,13 @@ void das_standardise(dasystem* das)
             ENSOBSTYPE* Se = das->S[e];
 
             for (i = 0; i < obs->nobs; ++i) {
-                measurement* o = &obs->data[i];
+                observation* o = &obs->data[i];
 
                 Se[i] /= o->std * sqrt(obs->obstypes[o->type].rfactor) * mult;
             }
         }
         for (i = 0; i < obs->nobs; ++i) {
-            measurement* o = &obs->data[i];
+            observation* o = &obs->data[i];
 
             das->s_f[i] /= o->std * sqrt(obs->obstypes[o->type].rfactor) * mult;
         }
@@ -684,13 +521,13 @@ void das_standardise(dasystem* das)
             ENSOBSTYPE* Se = das->S[e];
 
             for (i = 0; i < obs->nobs; ++i) {
-                measurement* o = &obs->data[i];
+                observation* o = &obs->data[i];
 
                 Se[i] /= o->std * sqrt(obs->obstypes[o->type].rfactor) * mult;
             }
         }
         for (i = 0; i < obs->nobs; ++i) {
-            measurement* o = &obs->data[i];
+            observation* o = &obs->data[i];
 
             das->s_a[i] /= o->std * sqrt(obs->obstypes[o->type].rfactor) * mult;
         }
@@ -703,8 +540,8 @@ void das_standardise(dasystem* das)
  */
 static int cmp_obs_byij(const void* p1, const void* p2)
 {
-    measurement* m1 = (measurement*) p1;
-    measurement* m2 = (measurement*) p2;
+    observation* m1 = (observation*) p1;
+    observation* m2 = (observation*) p2;
     int i1, i2;
 
     i1 = (int) floor(m1->fj);
@@ -739,13 +576,13 @@ static void das_destandardise(dasystem* das)
             ENSOBSTYPE* Se = das->S[e];
 
             for (i = 0; i < obs->nobs; ++i) {
-                measurement* o = &obs->data[i];
+                observation* o = &obs->data[i];
 
                 Se[i] *= o->std * sqrt(obs->obstypes[o->type].rfactor) * mult;
             }
         }
         for (i = 0; i < obs->nobs; ++i) {
-            measurement* o = &obs->data[i];
+            observation* o = &obs->data[i];
 
             das->s_f[i] *= o->std * sqrt(obs->obstypes[o->type].rfactor) * mult;
         }
@@ -755,13 +592,13 @@ static void das_destandardise(dasystem* das)
             ENSOBSTYPE* Se = das->S[e];
 
             for (i = 0; i < obs->nobs; ++i) {
-                measurement* o = &obs->data[i];
+                observation* o = &obs->data[i];
 
                 Se[i] *= o->std * sqrt(obs->obstypes[o->type].rfactor) * mult;
             }
         }
         for (i = 0; i < obs->nobs; ++i) {
-            measurement* o = &obs->data[i];
+            observation* o = &obs->data[i];
 
             das->s_a[i] *= o->std * sqrt(obs->obstypes[o->type].rfactor) * mult;
         }
@@ -782,7 +619,7 @@ static void sortobs_byij(dasystem* das)
     assert(das->s_mode == S_MODE_HA_f);
 
     enkf_printf("    sorting obs by ij:\n");
-    qsort(obs->data, obs->nobs, sizeof(measurement), cmp_obs_byij);
+    qsort(obs->data, obs->nobs, sizeof(observation), cmp_obs_byij);
 
     Snew = alloc2d(das->nmem, obs->nobs, sizeof(ENSOBSTYPE));
 
@@ -1260,7 +1097,7 @@ void das_addanalysis(dasystem* das, char fname[])
     int dimid_nobs[1];
     size_t nobs;
     int varid_Hx, varid_spread;
-    measurement* data = das->obs->data;
+    observation* data = das->obs->data;
     double* s;
     int i;
 

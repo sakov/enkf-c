@@ -42,9 +42,10 @@ void reader_rads_standard(char* fname, obsmeta* meta, model* m, observations* ob
     int ncid;
     int dimid_nobs;
     size_t nobs_local;
-    int varid_lon, varid_lat, varid_sla, varid_time;
+    int varid_lon, varid_lat, varid_pass, varid_sla, varid_time;
     double* lon;
     double* lat;
+    int* pass;
     double* sla;
     double* time;
     double error_std;
@@ -54,7 +55,10 @@ void reader_rads_standard(char* fname, obsmeta* meta, model* m, observations* ob
     char* basename;
     char instname[3];
     float** depth;
+    int fid;
     int i;
+
+    fid = st_add(obs->datafiles, fname, -1);
 
     ncw_open(fname, NC_NOWRITE, &ncid);
 
@@ -72,6 +76,10 @@ void reader_rads_standard(char* fname, obsmeta* meta, model* m, observations* ob
     ncw_inq_varid(fname, ncid, "lat", &varid_lat);
     lat = malloc(nobs_local * sizeof(double));
     ncw_get_var_double(fname, ncid, varid_lat, lat);
+
+    ncw_inq_varid(fname, ncid, "pass", &varid_pass);
+    pass = malloc(nobs_local * sizeof(int));
+    ncw_get_var_int(fname, ncid, varid_pass, pass);
 
     ncw_inq_varid(fname, ncid, "sla", &varid_sla);
     sla = malloc(nobs_local * sizeof(double));
@@ -100,10 +108,10 @@ void reader_rads_standard(char* fname, obsmeta* meta, model* m, observations* ob
 
     depth = model_getdepth(m);
     for (i = 0; i < (int) nobs_local; ++i) {
-        measurement* o;
+        observation* o;
 
         if (obs->nobs % NOBS_INC == 0) {
-            obs->data = realloc(obs->data, (obs->nobs + NOBS_INC) * sizeof(measurement));
+            obs->data = realloc(obs->data, (obs->nobs + NOBS_INC) * sizeof(observation));
             if (obs->data == NULL)
                 enkf_quit("not enough memory");
         }
@@ -116,6 +124,8 @@ void reader_rads_standard(char* fname, obsmeta* meta, model* m, observations* ob
         assert(o->type >= 0);
         o->instrument = st_add_ifabscent(obs->instruments, instname, -1);
         o->id = obs->nobs;
+        o->fid = fid;
+        o->batch = pass[i];
         o->value = sla[i];
         o->std = error_std;
         o->lon = lon[i];
@@ -136,6 +146,7 @@ void reader_rads_standard(char* fname, obsmeta* meta, model* m, observations* ob
 
     free(lon);
     free(lat);
+    free(pass);
     free(sla);
     free(tunits);
     free(time);
@@ -148,9 +159,10 @@ void reader_rads_standard2(char* fname, obsmeta* meta, model* m, observations* o
     int ncid;
     int dimid_nobs;
     size_t nobs_local;
-    int varid_lon, varid_lat, varid_sla;
+    int varid_lon, varid_lat, varid_pass, varid_sla;
     double* lon;
     double* lat;
+    int* pass;
     double* sla;
     double error_std;
     char buf[MAXSTRLEN];
@@ -160,7 +172,10 @@ void reader_rads_standard2(char* fname, obsmeta* meta, model* m, observations* o
     char* basename;
     char instname[3];
     float** depth;
+    int fid;
     int i;
+
+    fid = st_add(obs->datafiles, fname, -1);
 
     ncw_open(fname, NC_NOWRITE, &ncid);
 
@@ -178,6 +193,10 @@ void reader_rads_standard2(char* fname, obsmeta* meta, model* m, observations* o
     ncw_inq_varid(fname, ncid, "lat", &varid_lat);
     lat = malloc(nobs_local * sizeof(double));
     ncw_get_var_double(fname, ncid, varid_lat, lat);
+
+    ncw_inq_varid(fname, ncid, "pass", &varid_pass);
+    pass = malloc(nobs_local * sizeof(int));
+    ncw_get_var_int(fname, ncid, varid_pass, pass);
 
     ncw_inq_varid(fname, ncid, "sla", &varid_sla);
     sla = malloc(nobs_local * sizeof(double));
@@ -212,10 +231,10 @@ void reader_rads_standard2(char* fname, obsmeta* meta, model* m, observations* o
 
     depth = model_getdepth(m);
     for (i = 0; i < (int) nobs_local; ++i) {
-        measurement* o;
+        observation* o;
 
         if (obs->nobs % NOBS_INC == 0) {
-            obs->data = realloc(obs->data, (obs->nobs + NOBS_INC) * sizeof(measurement));
+            obs->data = realloc(obs->data, (obs->nobs + NOBS_INC) * sizeof(observation));
             if (obs->data == NULL)
                 enkf_quit("not enough memory");
         }
@@ -228,12 +247,16 @@ void reader_rads_standard2(char* fname, obsmeta* meta, model* m, observations* o
         assert(o->type >= 0);
         o->instrument = st_add_ifabscent(obs->instruments, instname, -1);
         o->id = obs->nobs;
+        o->fid = fid;
+        o->batch = pass[i];
         o->value = sla[i];
         o->std = error_std;
         o->lon = lon[i];
         o->lat = lat[i];
         o->depth = 0.0;
         o->status = model_ll2fij(m, o->lon, o->lat, &o->fi, &o->fj);
+        if (!obs->allobs && o->status == STATUS_OUTSIDE)
+            continue;
         o->fk = 0.0;
         o->date = tunits_offset + 0.5;
         if (o->status == STATUS_OK && depth[(int) floor(o->fj + 0.5)][(int) floor(o->fi + 0.5)] < MINDEPTH)
@@ -246,5 +269,6 @@ void reader_rads_standard2(char* fname, obsmeta* meta, model* m, observations* o
 
     free(lon);
     free(lat);
+    free(pass);
     free(sla);
 }

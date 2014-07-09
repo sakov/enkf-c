@@ -58,7 +58,10 @@ void reader_mmt_standard(char* fname, obsmeta* meta, model* m, observations* obs
     int len;
     int year, month, day;
     double tunits_multiple, tunits_offset;
+    int fid;
     int p, i;
+
+    fid = st_add(obs->datafiles, fname, -1);
 
     nobs0 = obs->nobs;
 
@@ -126,19 +129,21 @@ void reader_mmt_standard(char* fname, obsmeta* meta, model* m, observations* obs
 
     tunits_convert(buf, &tunits_multiple, &tunits_offset);
 
+    fid = st_add(obs->datafiles, fname, -1);
+
     for (p = 0; p < (int) nprof; ++p) {
         char inststr[MAXSTRLEN];
 
         sprintf(inststr, "MMT%02u", type[p]);
 
         for (i = 0; i < (int) nz; ++i) {
-            measurement* o;
+            observation* o;
 
             if (fabs(v[p][i] - missval) < EPS || v[p][i] < validmin || v[p][i] > validmax)
                 continue;
 
             if (obs->nobs % NOBS_INC == 0) {
-                obs->data = realloc(obs->data, (obs->nobs + NOBS_INC) * sizeof(measurement));
+                obs->data = realloc(obs->data, (obs->nobs + NOBS_INC) * sizeof(observation));
                 if (obs->data == NULL)
                     enkf_quit("not enough memory");
             }
@@ -151,6 +156,8 @@ void reader_mmt_standard(char* fname, obsmeta* meta, model* m, observations* obs
             assert(o->type >= 0);
             o->instrument = st_add_ifabscent(obs->instruments, inststr, -1);
             o->id = obs->nobs;
+            o->fid = fid;
+            o->batch = p;
             o->value = v[p][i];
             o->std = 0.0;
             o->lon = lon[p];

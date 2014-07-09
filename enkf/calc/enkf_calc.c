@@ -25,7 +25,7 @@
 #include "dasystem.h"
 
 int fstatsonly = 0;
-measurement* singleob = NULL;
+observation* singleob = NULL;
 int singleob_ijk = 1;
 char* singleobtype = NULL;
 
@@ -90,7 +90,7 @@ static void parse_commandline(int argc, char* argv[], char** fname_prm, char** f
                 singleob_ijk = 1;
             else
                 enkf_quit("command line: option \"%s\" not recognised", argv[i]);
-            singleob = calloc(1, sizeof(measurement));
+            singleob = calloc(1, sizeof(observation));
             i++;
             if (i >= argc)
                 usage();
@@ -157,7 +157,7 @@ static void parse_commandline(int argc, char* argv[], char** fname_prm, char** f
 static observations* obs_create_fromsingleob(enkfprm* prm, model* m)
 {
     observations* obs = obs_create();
-    measurement* o = singleob;
+    observation* o = singleob;
     int isasync = 0;
     double tstep = NaN;
     int i, j, k;
@@ -268,7 +268,7 @@ int main(int argc, char* argv[])
             fname_obs = strdup(FNAME_SOBS);
 
         enkf_printf("  reading observations from \"%s\":\n", fname_obs);
-        das_readobs(das, fname_obs);
+        obs_read(das->obs, fname_obs);
     } else {
         das->obs = obs_create_fromsingleob(prm, das->m);
         enkf_obstype = OBSTYPE_INNOVATION;
@@ -312,7 +312,7 @@ int main(int argc, char* argv[])
 
         /*
          * the following is an optional bit - updating ensemble observations and
-         * generating the report 
+         * generating report 
          */
         enkf_printf("  calculating analysed observations:\n");
         enkf_printtime("  ");

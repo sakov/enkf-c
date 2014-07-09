@@ -64,9 +64,13 @@ stringtable* st_create(char* name)
  */
 stringtable* st_copy(stringtable* parent)
 {
-    stringtable* st = malloc(sizeof(stringtable));
+    stringtable* st;
     int i;
 
+    if (parent == NULL)
+        return NULL;
+
+    st = malloc(sizeof(stringtable));
     st->name = strdup(parent->name);
     st->unique = parent->unique;
     st->n = parent->n;
