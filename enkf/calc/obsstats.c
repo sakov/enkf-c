@@ -129,7 +129,7 @@ void das_printobsstats(dasystem* das)
             memset(nobs_inst, 0, (ni + 1) * sizeof(int));
 
             for (j = 0; j < obs->nobs; ++j) {
-                measurement* o = &obs->data[indices[j]];
+                observation* o = &obs->data[indices[j]];
 
                 if (o->type == otid && o->lon >= r->lon1 && o->lon <= r->lon2 && o->lat >= r->lat1 && o->lat <= r->lat2) {
                     inn_f += das->s_f[j];
@@ -349,7 +349,7 @@ void das_printfobsstats(dasystem* das)
             memset(nobs_inst, 0, (ni + 1) * sizeof(int));
 
             for (j = 0; j < obs->nobs; ++j) {
-                measurement* o;
+                observation* o;
 
                 if (indices[j] < 0)
                     continue;

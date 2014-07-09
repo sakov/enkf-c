@@ -25,7 +25,9 @@ typedef struct {
     int type;
     int product;
     int instrument;
-    int id;
+    unsigned int id;
+    short unsigned int fid;
+    short unsigned int batch;
     /*
      * for primary observations - the original ID corresponding to the number
      * of the primary observation during the very first read of data files; for
@@ -49,7 +51,7 @@ typedef struct {
      *  - sob id for the original ob
      */
     int aux;
-} measurement;
+} observation;
 
 typedef struct {
     int id;
@@ -77,6 +79,7 @@ typedef struct {
     stringtable* types;
     stringtable* products;
     stringtable* instruments;
+    stringtable* datafiles;
 
     int nobstypes;
     obstype* obstypes;
@@ -88,7 +91,7 @@ typedef struct {
     int allobs;                 /* flag - whether to keep obs outside model
                                  * grid */
     int nobs;
-    measurement* data;
+    observation* data;
     int compacted;
 
     int stride;
@@ -116,12 +119,13 @@ extern int notdescs;
 
 observations* obs_create(void);
 observations* obs_create_fromprm(enkfprm* prm);
-observations* obs_create_fromdata(observations* parentobs, int nobs, measurement data[]);
+observations* obs_create_fromdata(observations* parentobs, int nobs, observation data[]);
 void obs_destroy(observations* obs);
 void obs_addtype(observations* obs, char name[], int issurface, char varname[], char hfunction[], double rfactor, int isasync, double async_tstep);
 void obs_checklon(observations* obs);
 void obs_compact(observations* obs);
 void obs_calcstats(observations* obs);
+void obs_read(observations* obs, char fname[]);
 void obs_write(observations* obs, char fname[]);
 void obs_superob(observations* obs, __compar_d_fn_t cmp_obs, observations** sobs, int sobid);
 void obs_writeaux(observations* obs, char fname[]);

@@ -99,7 +99,7 @@ void plog_write(dasystem* das, int i, int j, double lon, double lat, double dept
         odate = malloc(p * sizeof(float));
 
         for (oid = 0; oid < p; ++oid) {
-            measurement* o = &obs->data[lobs[oid]];
+            observation* o = &obs->data[lobs[oid]];
 
             olon[oid] = o->lon;
             olat[oid] = o->lat;

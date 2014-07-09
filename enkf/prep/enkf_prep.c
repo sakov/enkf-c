@@ -108,8 +108,8 @@ static void parse_commandline(int argc, char* argv[], char** fname)
  */
 static int cmp_obs(const void* p1, const void* p2, void* p)
 {
-    measurement* m1 = (measurement*) p1;
-    measurement* m2 = (measurement*) p2;
+    observation* m1 = (observation*) p1;
+    observation* m2 = (observation*) p2;
     int stride = ((observations*) p)->stride;
     int i1, i2;
 
