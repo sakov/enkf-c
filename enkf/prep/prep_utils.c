@@ -34,7 +34,7 @@
 
 /**
  */
-static void readobs(obsmeta* meta, model* m, obsread_fn fn, observations* obs)
+static void readobs(obsmeta* meta, model* m, obsread_fn reader, observations* obs)
 {
     int nfiles;
     char** fnames = NULL;
@@ -43,8 +43,11 @@ static void readobs(obsmeta* meta, model* m, obsread_fn fn, observations* obs)
     nfiles = 0;
     get_obsfiles(meta, &nfiles, &fnames);
     for (i = 0; i < nfiles; ++i) {
+        int fid;
+
         enkf_printf("      reading %s:\n", fnames[i]);
-        fn(fnames[i], meta, m, obs);
+        fid = st_add(obs->datafiles, fnames[i], -1);
+        reader(fnames[i], fid, meta, m, obs);
         free(fnames[i]);
     }
     free(fnames);

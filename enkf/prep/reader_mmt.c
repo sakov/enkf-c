@@ -38,7 +38,7 @@
 
 #define EPS 1.0e-6
 
-void reader_mmt_standard(char* fname, obsmeta* meta, model* m, observations* obs)
+void reader_mmt_standard(char* fname, int fid, obsmeta* meta, model* m, observations* obs)
 {
     int nobs0;
     int ncid;
@@ -58,10 +58,7 @@ void reader_mmt_standard(char* fname, obsmeta* meta, model* m, observations* obs
     int len;
     int year, month, day;
     double tunits_multiple, tunits_offset;
-    int fid;
     int p, i;
-
-    fid = st_add(obs->datafiles, fname, -1);
 
     nobs0 = obs->nobs;
 
