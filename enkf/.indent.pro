@@ -12,7 +12,7 @@
 --pointers-to-type-definitions 
   // works only with the tweaked version of indent
   // available from:
-  // http://www.marine.csiro.au/~sakov/indent-2.2.8a-mod.tar.gz
+  // https://drive.google.com/folderview?id=0B-joqvlrlCeRMjBtUFpRRHR1M0E&usp=sharing
 --swallow-optional-blank-lines
 --no-tabs
 

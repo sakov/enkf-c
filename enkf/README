@@ -13,7 +13,7 @@ DEPENDENCIES
 clang or gcc
 openmpi
 libnetcdf
-liblapack (or libmkl_rt)
+liblapack (or better libmkl_rt)
 libgu (svn checkout https://gridutils-c.googlecode.com/svn/gridutils)
 
 USER MANUAL
@@ -23,6 +23,14 @@ See doc/enkf-userguide.pdf.
 STARTING UP
 
 Run example 1 - see examples/1/README for further details.
+
+INDENTING
+
+To indent your code according to the EnKF-C style you need (1) get the modified
+version of indent by downloading indent-2.2.8a-mod.tar.gz from 
+https://drive.google.com/folderview?id=0B-joqvlrlCeRMjBtUFpRRHR1M0E&usp=sharing
+and (2) run "make indent" from the base directory (the style is encoded in
+.indent.pro).
 
 REFERRING
 
