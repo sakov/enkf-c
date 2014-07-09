@@ -1,5 +1,5 @@
-  running PREP for EnKF version 0.48:
-  2014-06-27 13:58:18
+  running PREP for EnKF version 0.50:
+  2014-07-09 10:42:19
   reading prep specs from "enkf.prm":
     MODE = EnKF
     SCHEME = DEnKF
@@ -101,8 +101,8 @@
     dims = 100 x 100 x 2
     longitude range = [0, 360]
   model info:
-    name = TASMAN
-    type = MOM4
+    name = Tasman
+    type = z-model
     MSL file = conf/eta_mean-bran.nc
     MSL variable = eta_t
   reading observations:
@@ -113,10 +113,10 @@
       reading obs/RADS-IB/y2007/m12/j1_d19.nc:
         nobs = 50386
         error_std = 0.03
-      reading obs/RADS-IB/y2007/m12/ls: cannot access obs/WINDSAT/windsat_20071221.nc: No such file or directory
+      reading obs/RADS-IB/y2007/mls: cannot access obs/WINDSAT/windsat_20071221.nc: No such file or directory
 ls: cannot access obs/WINDSAT/windsat_20071222.nc: No such file or directory
 ls: cannot access obs/WINDSAT/windsat_20071223.nc: No such file or directory
-n1_d19.nc:
+12/n1_d19.nc:
         nobs = 40491
         error_std = 0.05
       reading obs/RADS-IB/y2007/m12/e2_d20.nc:
@@ -155,11 +155,11 @@ n1_d19.nc:
       reading obs/RADS-IB/y2007/m12/n1_d23.nc:
         nobs = 38946
         error_std = 0.05
-      id = 0 - 481044
-      total 481045 observations
+      id = 0 - 1005
+      total 1006 observations
       998 valid observations
       min date = -4.000
-      max date = 0.000
+      max date = -1.000
     PRODUCT = NAVO, TYPE = SST, reader = standard
       reading obs/NAVO/navo_20071219.nc:
         nobs = 21372
@@ -171,7 +171,7 @@ n1_d19.nc:
         nobs = 20804
       reading obs/NAVO/navo_20071223.nc:
         nobs = 28440
-      id = 481045 - 488260
+      id = 1006 - 8221
       total 7216 observations
       7216 valid observations
       min date = -4.039
@@ -181,7 +181,7 @@ n1_d19.nc:
         nobs = 320738
       reading obs/WINDSAT/windsat_20071220.nc:
         nobs = 29534
-      id = 488261 - 489428
+      id = 8222 - 9389
       total 1168 observations
       1168 valid observations
       min date = -4.000
@@ -207,7 +207,7 @@ n1_d19.nc:
         # profiles = 344
         # z levels = 191
         nobs = 0
-      id = 489429 - 489716
+      id = 9390 - 9677
       total 288 observations
       288 valid observations
       adding error_std = 0.5:
@@ -234,7 +234,7 @@ n1_d19.nc:
         # profiles = 325
         # z levels = 191
         nobs = 0
-      id = 489717 - 490004
+      id = 9678 - 9965
       total 288 observations
       288 valid observations
       adding error_std = 0.1:
@@ -251,9 +251,9 @@ n1_d19.nc:
     type    # used     # dropped  # outside  # land     # shallow  # badvalue # superobs.
     ----------------------------------------------------------------------------------------
     SST     8384       0          0          0          0          0          3255      
-    SLA     998        480047     480035     0          8          4          652       
+    SLA     998        8          0          0          8          0          652       
     TEM     288        0          0          0          0          0          10        
     SAL     288        0          0          0          0          0          10        
-    total   9958       480047     480035     0          8          4          3927      
-  2014-06-27 13:58:19
+    total   9958       8          0          0          8          0          3927      
+  2014-07-09 10:42:19
   finished
