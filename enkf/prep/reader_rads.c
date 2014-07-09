@@ -37,7 +37,7 @@
 /** For files of the form ??_yyyymmdd.nc. They are assumed to have "time" 
  * variable.
  */
-void reader_rads_standard(char* fname, obsmeta* meta, model* m, observations* obs)
+void reader_rads_standard(char* fname, int fid, obsmeta* meta, model* m, observations* obs)
 {
     int ncid;
     int dimid_nobs;
@@ -55,10 +55,7 @@ void reader_rads_standard(char* fname, obsmeta* meta, model* m, observations* ob
     char* basename;
     char instname[3];
     float** depth;
-    int fid;
     int i;
-
-    fid = st_add(obs->datafiles, fname, -1);
 
     ncw_open(fname, NC_NOWRITE, &ncid);
 
@@ -154,7 +151,7 @@ void reader_rads_standard(char* fname, obsmeta* meta, model* m, observations* ob
 
 /** For files of the form y<yyyy>/m<mm>/??_d<dd>.nc with no "time" variable.
  */
-void reader_rads_standard2(char* fname, obsmeta* meta, model* m, observations* obs)
+void reader_rads_standard2(char* fname, int fid, obsmeta* meta, model* m, observations* obs)
 {
     int ncid;
     int dimid_nobs;
@@ -172,10 +169,7 @@ void reader_rads_standard2(char* fname, obsmeta* meta, model* m, observations* o
     char* basename;
     char instname[3];
     float** depth;
-    int fid;
     int i;
-
-    fid = st_add(obs->datafiles, fname, -1);
 
     ncw_open(fname, NC_NOWRITE, &ncid);
 

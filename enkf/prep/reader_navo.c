@@ -32,7 +32,7 @@
 #include "prep.h"
 #include "allreaders.h"
 
-void reader_navo_standard(char* fname, obsmeta* meta, model* m, observations* obs)
+void reader_navo_standard(char* fname, int fid, obsmeta* meta, model* m, observations* obs)
 {
     int ncid;
     int dimid_nobs;
@@ -48,10 +48,7 @@ void reader_navo_standard(char* fname, obsmeta* meta, model* m, observations* ob
     size_t tunits_len;
     double tunits_multiple, tunits_offset;
     char* basename;
-    int fid;
     int i;
-
-    fid = st_add(obs->datafiles, fname, -1);
 
     basename = strrchr(fname, '/');
     if (basename == NULL)
