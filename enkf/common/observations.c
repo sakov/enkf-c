@@ -32,6 +32,7 @@
 #define NOBSTYPES_INC 10
 #define KD_INC 10000
 #define PLAINDISTANCE 1
+#define HT_SIZE 100
 
 /* allowed range for obs of each type */
 obstypedesc otdescs[] = {
@@ -41,36 +42,14 @@ obstypedesc otdescs[] = {
     {"SAL", 0, 2.0, 41.0}
 };
 
+typedef struct {
+    char obstype[MAXSTRLEN];
+    char fname[MAXSTRLEN];
+    int fid;
+    int batch;
+} badbatch;
+
 int notdescs = sizeof(otdescs) / sizeof(obstypedesc);
-
-/**
- */
-static double distance(double xyz1[3], double xyz2[3])
-{
-    if (PLAINDISTANCE)
-        return sqrt((xyz1[0] - xyz2[0]) * (xyz1[0] - xyz2[0]) + (xyz1[1] - xyz2[1]) * (xyz1[1] - xyz2[1]));
-    else
-        return sqrt((xyz1[0] - xyz2[0]) * (xyz1[0] - xyz2[0]) + (xyz1[1] - xyz2[1]) * (xyz1[1] - xyz2[1]) + (xyz1[2] - xyz2[2]) * (xyz1[2] - xyz2[2]));
-}
-
-/**
- */
-static double locfun(double x)
-{
-    double x2, x3;
-
-    assert(x >= 0 && x <= 1.0 + 1.0e-8);
-
-    if (x >= 1.0)               /* handle possible round-up error */
-        return 0.0;
-
-    x *= 2.0;
-    x2 = x * x;
-    x3 = x2 * x;
-    if (x < 1.0)
-        return 1.0 + x2 * (-x3 / 4.0 + x2 / 2.0) + x3 * (5.0 / 8.0) - x2 * (5.0 / 3.0);
-    return x2 * (x3 / 12.0 - x2 / 2.0) + x3 * (5.0 / 8.0) + x2 * (5.0 / 3.0) - x * 5.0 + 4.0 - (2.0 / 3.0) / x;
-}
 
 /**
  */
@@ -94,6 +73,7 @@ void obs_addtype(observations* obs, char name[], int issurface, char varname[], 
     ot->noutside = -1;
     ot->nland = -1;
     ot->nshallow = -1;
+    ot->nbadbatch = -1;
     ot->nrange = -1;
     ot->nmodified = 0;
     ot->date_min = NaN;
@@ -130,9 +110,11 @@ observations* obs_create(void)
     obs->noutside = 0;
     obs->nland = 0;
     obs->nshallow = 0;
+    obs->nbadbatch = 0;
     obs->nrange = 0;
     obs->nmodified = 0;
     obs->tree = NULL;
+    obs->badbatches = NULL;
 
     return obs;
 }
@@ -179,8 +161,63 @@ observations* obs_create_fromprm(enkfprm* prm)
 
     obs->stride = prm->sob_stride;
 
+#if defined(ENKF_PREP)
+    if (file_exists(FNAME_BADBATCHES)) {
+        FILE* f = NULL;
+        char buf[MAXSTRLEN];
+        int line;
+
+        enkf_printf("  reading bad batches:\n");
+
+        obs->badbatches = ht_create_i2(HT_SIZE);
+        f = enkf_fopen(FNAME_BADBATCHES, "r");
+        line = 0;
+        while (fgets(buf, MAXSTRLEN, f) != NULL) {
+            badbatch* bb;
+            int key[2];
+
+            line++;
+            if (buf[0] == '#')
+                continue;
+            bb = malloc(sizeof(badbatch));
+            if (sscanf(buf, "%s %s %d %d", bb->obstype, bb->fname, &bb->fid, &bb->batch) != 4)
+                 enkf_quit("%s, l.%d: wrong bad batch specification (expected \"%s %s %d %d\"\n", FNAME_BADBATCHES, line);
+
+            key[0] = bb->fid;
+            key[1] = bb->batch;
+            ht_insert(obs->badbatches, key, bb);
+            enkf_printf("    %s %s %d %d\n", bb->obstype, bb->fname, bb->fid, bb->batch);
+        }
+        fclose(f);
+    }
+#endif
+
     return obs;
 }
+
+#if defined(ENKF_PREP)
+/**
+ */
+void obs_markbadbatches(observations* obs)
+{
+    int i;
+
+    if (obs->badbatches == NULL || ht_getnentries(obs->badbatches) == 0)
+        return;
+
+    for (i = 0; i < obs->nobs; ++i) {
+        observation* o = &obs->data[i];
+        int key[2] = { o->fid, o->batch };
+        badbatch* bb = ht_find(obs->badbatches, key);
+
+        if (bb != NULL && strcmp(bb->obstype, obs->obstypes[o->type].name) == 0) {
+            if (strcmp(bb->fname, st_findstringbyindex(obs->datafiles, o->fid)) != 0)
+                enkf_quit("bad batch processing: file name for fid = %d in \"%s\" does not match the data file name", o->fid, FNAME_BADBATCHES);
+            o->status = STATUS_BADBATCH;
+        }
+    }
+}
+#endif
 
 /**
  */
@@ -233,8 +270,14 @@ void obs_destroy(observations* obs)
         free(obs->data);
     if (obs->datestr != NULL)
         free(obs->datestr);
+#if defined(ENKF_CALC)
     if (obs->tree != NULL)
         kd_destroy(obs->tree);
+#endif
+    if (obs->badbatches != NULL) {
+        ht_process(obs->badbatches, free);
+        ht_destroy(obs->badbatches);
+    }
     free(obs);
 }
 
@@ -304,6 +347,7 @@ void obs_calcstats(observations* obs)
         ot->noutside = 0;
         ot->nland = 0;
         ot->nshallow = 0;
+        ot->nbadbatch = 0;
         ot->nrange = 0;
         ot->date_min = DBL_MAX;
         ot->date_max = -DBL_MAX;
@@ -326,6 +370,9 @@ void obs_calcstats(observations* obs)
         } else if (m->status == STATUS_SHALLOW) {
             obs->nshallow++;
             ot->nshallow++;
+        } else if (m->status == STATUS_BADBATCH) {
+            obs->nbadbatch++;
+            ot->nbadbatch++;
         } else if (m->status == STATUS_RANGE) {
             obs->nrange++;
             ot->nrange++;
@@ -454,9 +501,15 @@ void obs_read(observations* obs, char fname[])
     ncw_inq_varnatts(fname, ncid, varid_fid, &ndatafiles);
     for (i = 0; i < ndatafiles; ++i) {
         char attname[NC_MAX_NAME];
+        char attstr[MAXSTRLEN];
+        size_t len;
 
         ncw_inq_attname(fname, ncid, varid_fid, i, attname);
-        st_add(obs->datafiles, attname, i);
+        ncw_inq_attlen(fname, ncid, varid_fid, attname, &len);
+        assert(len < MAXSTRLEN);
+        ncw_get_att_text(fname, ncid, varid_fid, attname, attstr);
+        attstr[len] = 0;
+        st_add(obs->datafiles, attstr, i);
     }
 
     ncw_get_var_int(fname, ncid, varid_type, type);
@@ -592,6 +645,8 @@ void obs_write(observations* obs, char fname[])
     ncw_put_att_int(fname, ncid, varid_status, "STATUS_SHALLOW", 1, &i);
     i = STATUS_RANGE;
     ncw_put_att_int(fname, ncid, varid_status, "STATUS_RANGE", 1, &i);
+    i = STATUS_BADBATCH;
+    ncw_put_att_int(fname, ncid, varid_status, "STATUS_BADBATCH", 1, &i);
     ncw_def_var(fname, ncid, "aux", NC_INT, 1, dimid_nobs, &varid_aux);
     sprintf(tunits, "days from %s", obs->datestr);
     ncw_put_att_text(fname, ncid, varid_date, "units", tunits);
@@ -944,6 +999,36 @@ void obs_printob(observations* obs, int i)
     enkf_printf("type = %s, product = %s, instrument = %s, datafile = %s, id = %d, original id = %d, batch = %h, value = %.3g, std = %.3g, lon = %.3f, lat = %.3f, depth = %.1f, fi = %.3f, fj = %.3f, fk = %.3f, date = %.3g, status = %d\n", obs->obstypes[o->type].name, st_findstringbyindex(obs->products, o->product), st_findstringbyindex(obs->instruments, o->instrument), st_findstringbyindex(obs->datafiles, o->fid), o->id, o->id_orig, o->batch, o->value, o->std, o->lon, o->lat, o->depth, o->fi, o->fj, o->fk, o->date, o->status);
 }
 
+#if defined(ENKF_CALC)
+/**
+ */
+static double distance(double xyz1[3], double xyz2[3])
+{
+    if (PLAINDISTANCE)
+        return sqrt((xyz1[0] - xyz2[0]) * (xyz1[0] - xyz2[0]) + (xyz1[1] - xyz2[1]) * (xyz1[1] - xyz2[1]));
+    else
+        return sqrt((xyz1[0] - xyz2[0]) * (xyz1[0] - xyz2[0]) + (xyz1[1] - xyz2[1]) * (xyz1[1] - xyz2[1]) + (xyz1[2] - xyz2[2]) * (xyz1[2] - xyz2[2]));
+}
+
+/**
+ */
+static double locfun(double x)
+{
+    double x2, x3;
+
+    assert(x >= 0 && x <= 1.0 + 1.0e-8);
+
+    if (x >= 1.0)               /* handle possible round-up error */
+        return 0.0;
+
+    x *= 2.0;
+    x2 = x * x;
+    x3 = x2 * x;
+    if (x < 1.0)
+        return 1.0 + x2 * (-x3 / 4.0 + x2 / 2.0) + x3 * (5.0 / 8.0) - x2 * (5.0 / 3.0);
+    return x2 * (x3 / 12.0 - x2 / 2.0) + x3 * (5.0 / 8.0) + x2 * (5.0 / 3.0) - x * 5.0 + 4.0 - (2.0 / 3.0) / x;
+}
+
 /**
  */
 void obs_createkdtree(observations* obs, grid* g)
@@ -995,3 +1080,4 @@ void obs_findlocal(observations* obs, grid* g, double lon, double lat, double r,
         (*lcoeffs)[i] = locfun(distance(xyz, xyz2) / r);
     }
 }
+#endif

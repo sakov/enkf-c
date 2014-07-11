@@ -76,6 +76,9 @@ struct dasystem {
 
     int nplogs;
     pointlog* plogs;
+
+    int nbadbatchspecs;
+    badbatchspec* badbatchspecs;
 };
 
 dasystem* das_create(enkfprm* prm);
@@ -93,6 +96,7 @@ void das_getnmem(dasystem* das);
 void das_interpolate2d(dasystem* das, char fname[], float** v, int nobs, int obsids[], double out[]);
 void das_interpolate3d(dasystem* das, char fname[], float*** v, int nobs, int obsids[], double out[]);
 void das_moderateobs(dasystem* das);
+void das_calcbatchstats(dasystem* das, int doprint);
 void das_printobsstats(dasystem* das);
 void das_printfobsstats(dasystem* das);
 void das_readobs(dasystem* das, char fname[]);

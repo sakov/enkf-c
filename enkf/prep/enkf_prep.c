@@ -187,6 +187,7 @@ int main(int argc, char* argv[])
     enkf_printf("  reading observations:\n");
     for (i = 0; i < nmeta; i++)
         obs_add(obs, m, &meta[i]);
+    obs_markbadbatches(obs);
     clean_obsmeta(nmeta, meta);
     obs_checklon(obs);
     obs_compact(obs);
