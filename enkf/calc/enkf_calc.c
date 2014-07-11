@@ -28,6 +28,7 @@ int fstatsonly = 0;
 observation* singleob = NULL;
 int singleob_ijk = 1;
 char* singleobtype = NULL;
+int printbatchstats = 0;
 
 /**
  */
@@ -41,6 +42,8 @@ static void usage()
     enkf_printf("      calculate and print forecast observation stats only\n");
     enkf_printf("  --no-mean-update\n");
     enkf_printf("      update ensemble anomalies only\n");
+    enkf_printf("  --print-batch-stats\n");
+    enkf_printf("       calculate and print global biases for each batch of observations\n");
     enkf_printf("  --single-observation-xyz <lon> <lat> <depth> <type> <value> <std>\n");
     enkf_printf("      assimilate single observation with these parameters\n");
     enkf_printf("  --single-observation-ijk <fi> <fj> <fk> <type> <value> <std>\n");
@@ -77,6 +80,10 @@ static void parse_commandline(int argc, char* argv[], char** fname_prm, char** f
             exit(0);
         } else if (strcmp(argv[i], "--no-mean-update") == 0) {
             enkf_nomeanupdate = 1;
+            i++;
+            continue;
+        } else if (strcmp(argv[i], "--print-batch-stats") == 0) {
+            printbatchstats = 1;
             i++;
             continue;
         } else if (strncmp(argv[i], "--single-observation", strlen("--single-observation")) == 0) {
@@ -329,6 +336,9 @@ int main(int argc, char* argv[])
         enkf_printf("  printing observation statistics:\n");
         das_printfobsstats(das);
     }
+
+    if (printbatchstats || prm->nbadbatchspecs > 0)
+        das_calcbatchstats(das, printbatchstats);
 
   finish:
     das_destroy(das);

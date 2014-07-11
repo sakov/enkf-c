@@ -23,11 +23,13 @@
 #include <math.h>
 #include "definitions.h"
 #include "utils.h"
+#include "hash.h"
 #include "dasystem.h"
 
 /* for the report */
 #define DEPTH_SHALLOW 50.0
 #define DEPTH_DEEP 500.0
+#define HT_SIZE 5000
 
 /** Prints forecast and analysis observation statistics to stdout.
  */
@@ -478,4 +480,133 @@ void das_printfobsstats(dasystem* das)
     free(inn_f_abs_inst);
     free(std_f_inst);
     free(nobs_inst);
+}
+
+/** Calculate and print global biases for each batch of observations.
+ */
+void das_calcbatchstats(dasystem* das, int doprint)
+{
+    observations* obs = das->obs;
+    hashtable* ht = ht_create_i2(HT_SIZE);
+    int key[2] = { -1, -1 };
+    int* nbatches = calloc(obs->nobstypes, sizeof(int));
+    int* indices;               /* obs are/can be sorted differently than the 
+                                 * original obs */
+    int n, i;
+
+    /*
+     * per batch data
+     */
+    double* inn_f_abs;
+    double* inn_f;
+    observation** oo;
+    int* nobs;
+
+    indices = malloc(obs->nobs * sizeof(int));
+    for (i = 0; i < obs->nobs; ++i)
+        indices[obs->data[i].id] = i;
+
+    /*
+     * calculate the number of batches
+     */
+    n = 0;
+    for (i = 0; i < obs->nobs; ++i) {
+        observation* o = &obs->data[indices[i]];
+
+        if (o->fid < 0 || o->batch < 0) /* this superob is not "clean" */
+            continue;
+
+        if (o->fid == key[0] && o->batch == key[1])     /* same as previous */
+            continue;
+
+        key[0] = o->fid;
+        key[1] = o->batch;
+
+        if (ht_find(ht, key) != NULL)
+            continue;
+
+        ht_insert(ht, key, o);
+        nbatches[o->type]++;
+    }
+
+    n = ht_getnentries(ht);
+    enkf_printf("  number of batches:\n");
+    for (i = 0; i < obs->nobstypes; ++i)
+        enkf_printf("    %6s  %4d\n", obs->obstypes[i].name, nbatches[i]);
+    enkf_printf("    total:  %4d\n", n);
+
+    if (n > 0) {
+        inn_f_abs = calloc(n, sizeof(double));
+        inn_f = calloc(n, sizeof(double));
+        oo = calloc(n, sizeof(observation*));
+        nobs = calloc(n, sizeof(int));
+
+        for (i = 0; i < obs->nobs; ++i) {
+            observation* o = &obs->data[indices[i]];
+            int id;
+
+            if (o->fid < 0 || o->batch < 0)
+                continue;
+
+            key[0] = o->fid;
+            key[1] = o->batch;
+
+            id = ht_findid(ht, key);
+            assert(id >= 0);
+
+            inn_f_abs[id] += fabs(das->s_f[i]);
+            inn_f[id] += das->s_f[i];
+            nobs[id]++;
+
+            if (oo[id] == NULL)
+                oo[id] = ht_find(ht, key);
+        }
+
+	/*
+	 * print batch stats
+	 */
+	if (doprint) {
+	    enkf_printf("  batch statistics:\n");
+	    enkf_printf("     id  obs.type  fid  batch  # obs.  |for.inn.|  for.inn.\n");
+	    for (i = 0; i < n; ++i) {
+		observation* o = oo[i];
+
+		enkf_printf("%7d    %-7s %-4d  %-5d   %-5d %8.3f  %9.3f\n", i, obs->obstypes[o->type].name, o->fid, o->batch, nobs[i], inn_f_abs[i] / (double) nobs[i], inn_f[i] / (double) nobs[i]);
+	    }
+	}
+
+	/*
+	 * identify and report bad batches
+	 */
+        if (das->nbadbatchspecs > 0) {
+            FILE* f = enkf_fopen(FNAME_BADBATCHES, "w");
+
+            enkf_printf("  bad batches:\n");
+            for (i = 0; i < n; ++i) {
+                observation* o = oo[i];
+                int j;
+
+                for (j = 0; j < das->nbadbatchspecs; ++j) {
+                    badbatchspec* bb = &das->badbatchspecs[j];
+
+                    if (strcmp(bb->obstype, obs->obstypes[o->type].name) == 0 && fabs(inn_f[i] / (double) nobs[i]) >= bb->maxbias && nobs[i] >= bb->minnobs) {
+                        char* fname = st_findstringbyindex(obs->datafiles, o->fid);
+
+                        enkf_printf("    %s %s %d %d\n", bb->obstype, fname, o->batch, o->fid);
+                        fprintf(f, "%s %s %d %d %.3f\n", bb->obstype, fname, o->fid, o->batch, inn_f[i] / (double) nobs[i]);
+                    }
+                }
+            }
+            fclose(f);
+        }
+
+        free(inn_f_abs);
+        free(inn_f);
+        free(oo);
+        free(nobs);
+    }
+
+    free(indices);
+    ht_destroy(ht);
+    free(nbatches);
 }

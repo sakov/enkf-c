@@ -17,6 +17,7 @@
 
 #include "definitions.h"
 #include "stringtable.h"
+#include "hash.h"
 #include "kdtree.h"
 #include "enkfprm.h"
 #include "grid.h"
@@ -26,8 +27,8 @@ typedef struct {
     int product;
     int instrument;
     unsigned int id;
-    short unsigned int fid;
-    short unsigned int batch;
+    short int fid;
+    short int batch;
     /*
      * for primary observations - the original ID corresponding to the number
      * of the primary observation during the very first read of data files; for
@@ -68,6 +69,7 @@ typedef struct {
     int noutside;
     int nland;
     int nshallow;
+    int nbadbatch;
     int nrange;
     int nmodified;
     double date_min;
@@ -101,10 +103,12 @@ typedef struct {
     int noutside;
     int nland;
     int nshallow;
+    int nbadbatch;
     int nrange;
     int nmodified;
 
     kdtree* tree;
+    hashtable* badbatches;
 } observations;
 
 typedef struct {
@@ -125,6 +129,7 @@ void obs_addtype(observations* obs, char name[], int issurface, char varname[], 
 void obs_checklon(observations* obs);
 void obs_compact(observations* obs);
 void obs_calcstats(observations* obs);
+void obs_markbadbatches(observations* obs);
 void obs_read(observations* obs, char fname[]);
 void obs_write(observations* obs, char fname[]);
 void obs_superob(observations* obs, __compar_d_fn_t cmp_obs, observations** sobs, int sobid);

@@ -25,6 +25,12 @@ typedef struct {
 } pointlog;
 
 typedef struct {
+    char* obstype;
+    double maxbias;
+    int minnobs;
+} badbatchspec;
+
+typedef struct {
     char* fname;
     int mode;
     int scheme;
@@ -60,6 +66,8 @@ typedef struct {
     int nplogs;
     pointlog* plogs;
     int sob_stride;
+    int nbadbatchspecs;
+    badbatchspec* badbatchspecs;
 } enkfprm;
 
 enkfprm* enkfprm_read(char fname[]);

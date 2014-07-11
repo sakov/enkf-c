@@ -370,6 +370,23 @@ enkfprm* enkfprm_read(char fname[])
                 enkf_exitaction = EXITACTION_SEGFAULT;
             else
                 enkf_quit("%s, l.%d: EXITACTION \"%s\" not known", fname, line, token);
+        } else if (strcasecmp(token, "BADBATCHES") == 0) {
+            if ((token = strtok(NULL, seps)) == NULL)
+                enkf_quit("%s, l.%d: BADBATCHES not specified", fname, line);
+            if (prm->nbadbatchspecs % NTYPES_INC == 0)
+                prm->badbatchspecs = realloc(prm->badbatchspecs, (prm->nbadbatchspecs + NTYPES_INC) * sizeof(badbatchspec));
+            prm->badbatchspecs[prm->nbadbatchspecs].obstype = strdup(token);
+
+            if ((token = strtok(NULL, seps)) == NULL)
+                enkf_quit("%s, l.%d: maximal allowed bias magnitude not defined", fname, line);
+            if (!str2double(token, &prm->badbatchspecs[prm->nbadbatchspecs].maxbias))
+                enkf_quit("%s, l.%d: could not convert \"%s\" to double", fname, line, token);
+            prm->badbatchspecs[prm->nbadbatchspecs].minnobs = 1;
+            if ((token = strtok(NULL, seps)) != NULL) {
+                if (!str2int(token, &prm->badbatchspecs[prm->nbadbatchspecs].minnobs))
+                    enkf_quit("%s, l.%d: could convert \"%s\" to integer", fname, line, token);
+            }
+            prm->nbadbatchspecs++;
         } else
             enkf_quit("%s, l.%d: unknown token \"%s\"", fname, line, token);
     }                           /* while */
@@ -438,6 +455,12 @@ void enkfprm_destroy(enkfprm* prm)
     }
     if (prm->nplogs > 0)
         free(prm->plogs);
+    if (prm->nbadbatchspecs > 0) {
+        for (i = 0; i < prm->nbadbatchspecs; ++i)
+            free(prm->badbatchspecs[i].obstype);
+
+        free(prm->badbatchspecs);
+    }
 
     free(prm);
 }
@@ -518,6 +541,11 @@ void enkfprm_print(enkfprm* prm, char offset[])
         enkf_printf("%sPOINTLOG %d %d\n", offset, plog->i, plog->j);
     }
     enkf_printf("%sSOBSTRIDE = %d\n", offset, prm->sob_stride);
+    for (i = 0; i < prm->nbadbatchspecs; ++i) {
+        badbatchspec* bb = &prm->badbatchspecs[i];
+
+        enkf_printf("%sBADBATCHES = %s %.3f %d\n", offset, bb->obstype, bb->maxbias, bb->minnobs);
+    }
     enkf_printflags(offset);
 }
 
@@ -552,11 +580,13 @@ void enkfprm_describe(void)
     enkf_printf("  [ INFLATION BASE      = <inflation> ]                          (1*)\n");
     enkf_printf("  [ INFLATION <VARNAME> = <inflation> ]                          (1*)\n");
     enkf_printf("    ...\n");
-    enkf_printf("  [ REGION              <NAME> { <lon1> <lon2> <lat1> <lat2> } ]\n");
+    enkf_printf("  [ REGION              <name> { <lon1> <lon2> <lat1> <lat2> } ]\n");
     enkf_printf("    ...\n");
     enkf_printf("  [ POINTLOG            { <i> <j> } ]\n");
     enkf_printf("    ...\n");
     enkf_printf("  [ EXITACTION          = { BACKTRACE* | SEGFAULT } ]\n");
+    enkf_printf("  [ BADBATCHES          = <obstype> <max. bias> [<min # obs.>] ]\n");
+    enkf_printf("    ...\n");
     enkf_printf("\n");
     enkf_printf("  Notes:\n");
     enkf_printf("    1. { ... | ... | ... } denotes the list of possible choices\n");

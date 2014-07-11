@@ -38,9 +38,9 @@
 
 #define NPLOGS_INC 10
 #define NFIELDS_INC 100
-
 #define MPIIDOFFSET 10000
 
+#if defined(ENKF_CALC)
 /**
  */
 dasystem* das_create(enkfprm* prm)
@@ -77,7 +77,10 @@ dasystem* das_create(enkfprm* prm)
     das->fieldbufsize = prm->fieldbufsize;
 
     das->nregions = prm->nregions;
-    das->regions = malloc(das->nregions * sizeof(region));
+    if (das->nregions > 0)
+        das->regions = malloc(das->nregions * sizeof(region));
+    else
+        das->regions = NULL;
     for (i = 0; i < das->nregions; ++i) {
         region* rin = &das->regions[i];
         region* rout = &prm->regions[i];
@@ -108,8 +111,68 @@ dasystem* das_create(enkfprm* prm)
         das->nplogs++;
     }
 
+    das->nbadbatchspecs = prm->nbadbatchspecs;
+    if (das->nbadbatchspecs > 0) {
+        das->badbatchspecs = malloc(das->nbadbatchspecs * sizeof(badbatchspec));
+        for (i = 0; i < das->nbadbatchspecs; ++i) {
+            badbatchspec* src = &prm->badbatchspecs[i];
+            badbatchspec* dst = &das->badbatchspecs[i];
+
+            dst->obstype = strdup(src->obstype);
+
+            dst->maxbias = src->maxbias;
+            dst->minnobs = src->minnobs;
+        }
+    }
+
     return das;
 }
+#endif
+
+#if defined(ENKF_POST)
+/**
+ */
+dasystem* das_create(enkfprm* prm)
+{
+    dasystem* das = malloc(sizeof(dasystem));
+
+    das->prmfname = strdup(prm->fname);
+    das->mode = prm->mode;
+    das->scheme = prm->scheme;
+    das->target = prm->target;
+    das->ensdir = strdup(prm->ensdir);
+    if (prm->bgdir != NULL)
+        das->bgdir = strdup(prm->bgdir);
+    else
+        das->bgdir = NULL;
+    das->nmem = prm->enssize;
+    das->obs = NULL;
+
+    das->m = model_create(prm);
+
+    das->S = NULL;
+    das->s_mode = S_MODE_NONE;
+    das->Hx = NULL;
+    das->s_f = NULL;
+    das->std_f = NULL;
+    das->s_a = NULL;
+    das->std_a = NULL;
+    das->kfactor = NaN;
+    das->locrad = NaN;
+    das->stride = prm->stride;
+    das->nfields = 0;
+    das->fields = NULL;
+    das->fieldbufsize = prm->fieldbufsize;
+
+    das->nregions = 0;
+    das->regions = NULL;
+
+    das->nplogs = 0;
+    das->plogs = NULL;
+
+    return das;
+}
+#endif
 
 /**
  */
@@ -121,7 +184,9 @@ void das_destroy(dasystem* das)
     free(das->ensdir);
     if (das->bgdir != NULL)
         free(das->bgdir);
+#if defined(ENKF_CALC)
     obs_destroy(das->obs);
+#endif
     model_destroy(das->m);
     if (das->S != NULL)
         free2d(das->S);
@@ -141,6 +206,12 @@ void das_destroy(dasystem* das)
         for (i = 0; i < das->nregions; ++i)
             free(das->regions[i].name);
         free(das->regions);
+    }
+    if (das->nbadbatchspecs > 0) {
+        for (i = 0; i < das->nbadbatchspecs; ++i)
+            free(das->badbatchspecs[i].obstype);
+
+        free(das->badbatchspecs);
     }
     free(das);
     distribute_free();
