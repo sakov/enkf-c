@@ -803,7 +803,10 @@ void obs_superob(observations* obs, __compar_d_fn_t cmp_obs, observations** sobs
     obs_calcstats(obs);
     obs_compact(obs);
 
-    qsort_r(obs->data, obs->ngood, sizeof(observation), cmp_obs, obs);
+    if (obs->stride == 0)
+        enkf_printf("    no superobing (SOBSTRIDE = 0)\n");
+    else
+        qsort_r(obs->data, obs->ngood, sizeof(observation), cmp_obs, obs);
 
     while (i2 < obs->ngood) {
         observation* so;
@@ -815,7 +818,7 @@ void obs_superob(observations* obs, __compar_d_fn_t cmp_obs, observations** sobs
         /*
          * identify obs that will be combined into this superob 
          */
-        while (i2 + 1 < obs->nobs && cmp_obs(&data[i1], &data[i2 + 1], obs) == 0)
+        while (obs->stride > 0 && i2 + 1 < obs->nobs && cmp_obs(&data[i1], &data[i2 + 1], obs) == 0)
             i2++;
         if (nsobs % NOBS_INC == 0)
             sdata = realloc(sdata, (nsobs + NOBS_INC) * sizeof(observation));
@@ -925,7 +928,7 @@ void obs_superob(observations* obs, __compar_d_fn_t cmp_obs, observations** sobs
         i1 = i2 + 1;
         i2 = i1;
     }
-    enkf_printf("    %d superoobservations\n", nsobs);
+    enkf_printf("    %d superobservations\n", nsobs);
 
     *sobs = obs_create_fromdata(obs, nsobs, sdata);
     obs_calcstats(*sobs);
