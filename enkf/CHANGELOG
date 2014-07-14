@@ -1,3 +1,7 @@
+v. 0.53
+   PS 15072014
+   -- Adding another parameter for entry BADBATCHES - threshold batch mean
+      absolute innovation.
 v. 0.52
    PS 14072014
    -- Setting SOBSTRODE = 0 now switches superobing off.

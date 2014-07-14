@@ -381,7 +381,14 @@ enkfprm* enkfprm_read(char fname[])
                 enkf_quit("%s, l.%d: maximal allowed bias magnitude not defined", fname, line);
             if (!str2double(token, &prm->badbatchspecs[prm->nbadbatchspecs].maxbias))
                 enkf_quit("%s, l.%d: could not convert \"%s\" to double", fname, line, token);
-            prm->badbatchspecs[prm->nbadbatchspecs].minnobs = 1;
+            if ((token = strtok(NULL, seps)) == NULL)
+                enkf_quit("%s, l.%d: maximal allowed MAD not defined", fname, line);
+            if (!str2double(token, &prm->badbatchspecs[prm->nbadbatchspecs].maxmad))
+                enkf_quit("%s, l.%d: could not convert \"%s\" to double", fname, line, token);
+            if ((token = strtok(NULL, seps)) == NULL)
+                enkf_quit("%s, l.%d: minimal # obs. not defined", fname, line);
+            if (!str2int(token, &prm->badbatchspecs[prm->nbadbatchspecs].minnobs))
+                enkf_quit("%s, l.%d: could not convert \"%s\" to int", fname, line, token);
             if ((token = strtok(NULL, seps)) != NULL) {
                 if (!str2int(token, &prm->badbatchspecs[prm->nbadbatchspecs].minnobs))
                     enkf_quit("%s, l.%d: could convert \"%s\" to integer", fname, line, token);
@@ -544,7 +551,7 @@ void enkfprm_print(enkfprm* prm, char offset[])
     for (i = 0; i < prm->nbadbatchspecs; ++i) {
         badbatchspec* bb = &prm->badbatchspecs[i];
 
-        enkf_printf("%sBADBATCHES = %s %.3f %d\n", offset, bb->obstype, bb->maxbias, bb->minnobs);
+        enkf_printf("%sBADBATCHES = %s %.3f %.3f %d\n", offset, bb->obstype, bb->maxbias, bb->maxmad, bb->minnobs);
     }
     enkf_printflags(offset);
 }
@@ -585,7 +592,7 @@ void enkfprm_describe(void)
     enkf_printf("  [ POINTLOG            { <i> <j> } ]\n");
     enkf_printf("    ...\n");
     enkf_printf("  [ EXITACTION          = { BACKTRACE* | SEGFAULT } ]\n");
-    enkf_printf("  [ BADBATCHES          = <obstype> <max. bias> [<min # obs.>] ]\n");
+    enkf_printf("  [ BADBATCHES          = <obstype> <max. bias> <max. mad> <min # obs.> ]\n");
     enkf_printf("    ...\n");
     enkf_printf("\n");
     enkf_printf("  Notes:\n");

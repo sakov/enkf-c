@@ -27,6 +27,7 @@ typedef struct {
 typedef struct {
     char* obstype;
     double maxbias;
+    double maxmad;
     int minnobs;
 } badbatchspec;
 
