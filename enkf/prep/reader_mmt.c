@@ -126,8 +126,6 @@ void reader_mmt_standard(char* fname, int fid, obsmeta* meta, model* m, observat
 
     tunits_convert(buf, &tunits_multiple, &tunits_offset);
 
-    fid = st_add(obs->datafiles, fname, -1);
-
     for (p = 0; p < (int) nprof; ++p) {
         char inststr[MAXSTRLEN];
 
