@@ -562,6 +562,11 @@ void das_calcbatchstats(dasystem* das, int doprint)
                 oo[id] = ht_find(ht, key);
         }
 
+        for (i = 0; i < n; ++i) {
+            inn_f_abs[i] /= (double) nobs[i];
+            inn_f[i] /= (double) nobs[i];
+        }
+
 	/*
 	 * print batch stats
 	 */
@@ -571,7 +576,7 @@ void das_calcbatchstats(dasystem* das, int doprint)
 	    for (i = 0; i < n; ++i) {
 		observation* o = oo[i];
 
-		enkf_printf("%7d    %-7s %-4d  %-5d   %-5d %8.3f  %9.3f\n", i, obs->obstypes[o->type].name, o->fid, o->batch, nobs[i], inn_f_abs[i] / (double) nobs[i], inn_f[i] / (double) nobs[i]);
+		enkf_printf("%7d    %-7s %-4d  %-5d   %-5d %8.3f  %9.3f\n", i, obs->obstypes[o->type].name, o->fid, o->batch, nobs[i], inn_f_abs[i], inn_f[i]);
 	    }
 	}
 
@@ -589,7 +594,7 @@ void das_calcbatchstats(dasystem* das, int doprint)
                 for (j = 0; j < das->nbadbatchspecs; ++j) {
                     badbatchspec* bb = &das->badbatchspecs[j];
 
-                    if (strcmp(bb->obstype, obs->obstypes[o->type].name) == 0 && fabs(inn_f[i] / (double) nobs[i]) >= bb->maxbias && nobs[i] >= bb->minnobs) {
+                    if (strcmp(bb->obstype, obs->obstypes[o->type].name) == 0 && nobs[i] >= bb->minnobs && (fabs(inn_f[i]) >= bb->maxbias || inn_f_abs[i] >= bb->maxmad)) {
                         char* fname = st_findstringbyindex(obs->datafiles, o->fid);
 
                         enkf_printf("    %s %s %d %d\n", bb->obstype, fname, o->batch, o->fid);
