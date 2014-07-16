@@ -597,8 +597,8 @@ void das_calcbatchstats(dasystem* das, int doprint)
                     if (strcmp(bb->obstype, obs->obstypes[o->type].name) == 0 && nobs[i] >= bb->minnobs && (fabs(inn_f[i]) >= bb->maxbias || inn_f_abs[i] >= bb->maxmad)) {
                         char* fname = st_findstringbyindex(obs->datafiles, o->fid);
 
-                        enkf_printf("    %s %s %d %d\n", bb->obstype, fname, o->batch, o->fid);
-                        fprintf(f, "%s %s %d %d %.3f\n", bb->obstype, fname, o->fid, o->batch, inn_f[i] / (double) nobs[i]);
+                        enkf_printf("    %s %s %d %d %.3f %.3f\n", bb->obstype, fname, o->fid, o->batch, inn_f[i], inn_f_abs[i]);
+                        fprintf(f, "%s %s %d %d %.3f %.3f\n", bb->obstype, fname, o->fid, o->batch, inn_f[i], inn_f_abs[i]);
                     }
                 }
             }
