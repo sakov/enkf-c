@@ -121,6 +121,7 @@ dasystem* das_create(enkfprm* prm)
             dst->obstype = strdup(src->obstype);
 
             dst->maxbias = src->maxbias;
+            dst->maxmad = src->maxmad;
             dst->minnobs = src->minnobs;
         }
     }
