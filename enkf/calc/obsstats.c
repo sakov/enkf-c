@@ -567,22 +567,22 @@ void das_calcbatchstats(dasystem* das, int doprint)
             inn_f[i] /= (double) nobs[i];
         }
 
-	/*
-	 * print batch stats
-	 */
-	if (doprint) {
-	    enkf_printf("  batch statistics:\n");
-	    enkf_printf("     id  obs.type  fid  batch  # obs.  |for.inn.|  for.inn.\n");
-	    for (i = 0; i < n; ++i) {
-		observation* o = oo[i];
+        /*
+         * print batch stats
+         */
+        if (doprint) {
+            enkf_printf("  batch statistics:\n");
+            enkf_printf("     id  obs.type  fid  batch  # obs.  |for.inn.|  for.inn.\n");
+            for (i = 0; i < n; ++i) {
+                observation* o = oo[i];
 
-		enkf_printf("%7d    %-7s %-4d  %-5d   %-5d %8.3f  %9.3f\n", i, obs->obstypes[o->type].name, o->fid, o->batch, nobs[i], inn_f_abs[i], inn_f[i]);
-	    }
-	}
+                enkf_printf("%7d    %-7s %-4d  %-5d   %-5d %8.3f  %9.3f\n", i, obs->obstypes[o->type].name, o->fid, o->batch, nobs[i], inn_f_abs[i], inn_f[i]);
+            }
+        }
 
-	/*
-	 * identify and report bad batches
-	 */
+        /*
+         * identify and report bad batches
+         */
         if (das->nbadbatchspecs > 0) {
             FILE* f = enkf_fopen(FNAME_BADBATCHES, "w");
 

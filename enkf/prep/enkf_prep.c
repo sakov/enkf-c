@@ -111,6 +111,7 @@ static int cmp_obs(const void* p1, const void* p2, void* p)
     observation* m1 = (observation*) p1;
     observation* m2 = (observation*) p2;
     int stride = ((observations*) p)->stride;
+    double offset;
     int i1, i2;
 
     if (m1->type > m2->type)
@@ -127,15 +128,21 @@ static int cmp_obs(const void* p1, const void* p2, void* p)
             return -1;
     }
 
-    i1 = (int) floor(m1->fi) / stride;
-    i2 = (int) floor(m2->fi) / stride;
+    /*
+     * the idea behind offset is to center superobservation domains in the case
+     * of even stride on grid cells rather than on cell corners
+     */
+    offset = (double) ((stride - 1) % 2) / 2.0;
+
+    i1 = (int) floor(m1->fi + offset) / stride;
+    i2 = (int) floor(m2->fi + offset) / stride;
     if (i1 > i2)
         return 1;
     if (i1 < i2)
         return -1;
 
-    i1 = (int) floor(m1->fj) / stride;
-    i2 = (int) floor(m2->fj) / stride;
+    i1 = (int) floor(m1->fj + offset) / stride;
+    i2 = (int) floor(m2->fj + offset) / stride;
     if (i1 > i2)
         return 1;
     if (i1 < i2)
