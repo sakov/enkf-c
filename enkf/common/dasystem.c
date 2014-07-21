@@ -168,6 +168,9 @@ dasystem* das_create(enkfprm* prm)
     das->nregions = 0;
     das->regions = NULL;
 
+    das->nbadbatchspecs = 0;
+    das->badbatchspecs = NULL;
+
     das->nplogs = 0;
     das->plogs = NULL;
 
