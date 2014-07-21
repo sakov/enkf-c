@@ -31,7 +31,6 @@
 
 #define NOBSTYPES_INC 10
 #define KD_INC 10000
-#define PLAINDISTANCE 1
 #define HT_SIZE 100
 
 /* allowed range for obs of each type */
@@ -1007,10 +1006,7 @@ void obs_printob(observations* obs, int i)
  */
 static double distance(double xyz1[3], double xyz2[3])
 {
-    if (PLAINDISTANCE)
-        return sqrt((xyz1[0] - xyz2[0]) * (xyz1[0] - xyz2[0]) + (xyz1[1] - xyz2[1]) * (xyz1[1] - xyz2[1]));
-    else
-        return sqrt((xyz1[0] - xyz2[0]) * (xyz1[0] - xyz2[0]) + (xyz1[1] - xyz2[1]) * (xyz1[1] - xyz2[1]) + (xyz1[2] - xyz2[2]) * (xyz1[2] - xyz2[2]));
+    return sqrt((xyz1[0] - xyz2[0]) * (xyz1[0] - xyz2[0]) + (xyz1[1] - xyz2[1]) * (xyz1[1] - xyz2[1]) + (xyz1[2] - xyz2[2]) * (xyz1[2] - xyz2[2]));
 }
 
 /**
