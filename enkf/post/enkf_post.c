@@ -99,7 +99,7 @@ static void parse_commandline(int argc, char* argv[], char** fname)
     }
 
     if (*fname == NULL)
-        usage();
+        enkf_quit("command line: parameter file not specified");
 }
 
 /**
