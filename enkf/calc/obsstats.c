@@ -61,7 +61,6 @@ void das_printobsstats(dasystem* das)
     std_a_inst = malloc((ni + 1) * sizeof(double));
     nobs_inst = malloc((ni + 1) * sizeof(int));
 
-    assert(obs->nobs = obs->ngood);
     indices = malloc(obs->nobs * sizeof(int));
     for (i = 0; i < obs->nobs; ++i)
         indices[obs->data[i].id] = i;
