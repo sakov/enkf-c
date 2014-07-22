@@ -446,6 +446,37 @@ static int i2eq(void* key1, void* key2)
     return (((int*) key1)[0] == ((int*) key2)[0]) && (((int*) key1)[1] == ((int*) key2)[1]);
 }
 
+/* 
+ * functions for for int[3] keys 
+ */
+
+static unsigned int i3hash(void* key)
+{
+#if BYTE_PER_INT >= 4
+    unsigned int* v = key;
+
+    return v[0] + (v[1] << 10) + (v[1] << 20);
+#else
+#error not implemented
+#endif
+}
+
+static void* i3cp(void* key)
+{
+    int* newkey = malloc(sizeof(int) * 3);
+
+    newkey[0] = ((int*) key)[0];
+    newkey[1] = ((int*) key)[1];
+    newkey[2] = ((int*) key)[2];
+
+    return newkey;
+}
+
+static int i3eq(void* key1, void* key2)
+{
+    return (((int*) key1)[0] == ((int*) key2)[0]) && (((int*) key1)[1] == ((int*) key2)[1]) && (((int*) key1)[2] == ((int*) key2)[2]);
+}
+
 hashtable* ht_create_d1(int size)
 {
     assert(sizeof(double) == INT_PER_DOUBLE * sizeof(int));
@@ -472,6 +503,12 @@ hashtable* ht_create_i2(int size)
 {
     assert(sizeof(int) == BYTE_PER_INT);
     return ht_create(size, i2cp, i2eq, i2hash);
+}
+
+hashtable* ht_create_i3(int size)
+{
+    assert(sizeof(int) == BYTE_PER_INT);
+    return ht_create(size, i3cp, i3eq, i3hash);
 }
 
 int ht_getnentries(hashtable* table)
