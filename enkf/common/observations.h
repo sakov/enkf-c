@@ -70,6 +70,7 @@ typedef struct {
     int nland;
     int nshallow;
     int nbadbatch;
+    int nroundup;
     int nrange;
     int nmodified;
     double date_min;
@@ -104,6 +105,7 @@ typedef struct {
     int nland;
     int nshallow;
     int nbadbatch;
+    int nroundup;
     int nrange;
     int nmodified;
 
