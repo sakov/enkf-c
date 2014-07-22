@@ -282,7 +282,14 @@ void das_getHE(dasystem* das, int fstatsonly)
 void das_calcinnandspread(dasystem* das)
 {
     observations* obs = das->obs;
+    int* indices = NULL;
     int e, o;
+
+    if (obs->nobs > 0) {
+        indices = malloc(obs->nobs * sizeof(int));
+        for (o = 0; o < obs->nobs; ++o)
+            indices[obs->data[o].id] = o;
+    }
 
     if (das->s_mode == S_MODE_HE_f) {
         if (das->s_f == NULL) {
@@ -318,6 +325,10 @@ void das_calcinnandspread(dasystem* das)
             }
         }
         for (o = 0; o < obs->nobs; ++o) {
+            observation* m = &obs->data[indices[o]];
+
+            if (m->status != STATUS_OK)
+                continue;
             das->std_f[o] = sqrt(das->std_f[o] / (double) (das->nmem - 1));
             das->s_f[o] = obs->data[o].value - das->s_f[o];
             if (!isfinite(das->s_f[o]) || fabs(das->s_f[o]) > STATE_BIGNUM)
@@ -359,6 +370,10 @@ void das_calcinnandspread(dasystem* das)
             }
         }
         for (o = 0; o < obs->nobs; ++o) {
+            observation* m = &obs->data[indices[o]];
+
+            if (m->status != STATUS_OK)
+                continue;
             das->std_a[o] = sqrt(das->std_a[o] / (double) (das->nmem - 1));
             das->s_a[o] = obs->data[o].value - das->s_a[o];
             if (!isfinite(das->s_a[o]) || fabs(das->s_a[o]) > STATE_BIGNUM)
@@ -368,6 +383,9 @@ void das_calcinnandspread(dasystem* das)
         das->s_mode = S_MODE_HA_a;
     } else
         enkf_quit("programming error");
+
+    if (obs->nobs > 0)
+        free(indices);
 }
 
 /** Adds forecast observations and forecast ensemble spread to the observation
@@ -436,6 +454,11 @@ void das_moderateobs(dasystem* das)
         double svar = das->std_f[i] * das->std_f[i];
         double ovar = o->std * o->std;
         double inn = das->s_f[i];
+
+        if (o->status != STATUS_OK) {
+            std_new[i] = o->std;
+            continue;
+        }
 
         std_new[i] = sqrt(sqrt((svar + ovar) * (svar + ovar) + svar * inn * inn / kfactor / kfactor) - svar);
         if (svar > 0.0 && std_new[i] * std_new[i] / ovar > 2.0) {

@@ -48,6 +48,8 @@ static void interpolate_2d_obs(model* m, observations* allobs, int nobs, int obs
              * and reading from observations.nc
              */
             o->status = STATUS_ROUNDUP;
+            o->value = 0.0;
+            o->std = STD_BIG;
             continue;
         }
         if (fabs(out[ii]) > STATE_BIGNUM)

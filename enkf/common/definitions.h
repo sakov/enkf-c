@@ -79,6 +79,7 @@ extern int enkf_obstype;
 #define MPIENSOBSTYPE MPI_FLOAT
 
 #define STATE_BIGNUM 1.0e3
+#define STD_BIG 1.0e10
 
 /* it is assumed that if |value| > MAXOBSVAL, then it is filled with the
  * missing value */
