@@ -52,6 +52,8 @@ void das_printobsstats(dasystem* das)
     if (rank != 0)
         return;
 
+    das_destandardise(das);
+
     ni = obs->instruments->n;
     inn_f_inst = malloc((ni + 1) * sizeof(double));
     inn_f_abs_inst = malloc((ni + 1) * sizeof(double));
@@ -288,6 +290,8 @@ void das_printfobsstats(dasystem* das)
     if (rank != 0)
         return;
 
+    das_destandardise(das);
+
     ni = obs->instruments->n;
     inn_f_inst = malloc((ni + 1) * sizeof(double));
     inn_f_abs_inst = malloc((ni + 1) * sizeof(double));
@@ -490,8 +494,9 @@ void das_printfobsstats(dasystem* das)
 void das_calcbatchstats(dasystem* das, int doprint)
 {
     observations* obs = das->obs;
-    hashtable* ht = ht_create_i3(HT_SIZE);
-    int key[3] = { -1, -1, -1 };
+    hashtable* ht = ht_create_i1s2(HT_SIZE);
+    int key[2] = { -1, -1 };
+    short* keys = (short*) key;
     int* nbatches = calloc(obs->nobstypes, sizeof(int));
     int* indices;               /* obs are/can be sorted differently than the 
                                  * original obs */
@@ -504,6 +509,8 @@ void das_calcbatchstats(dasystem* das, int doprint)
     double* inn_f;
     observation** oo;
     int* nobs;
+
+    das_destandardise(das);
 
     indices = malloc(obs->nobs * sizeof(int));
     for (i = 0; i < obs->nobs; ++i)
@@ -525,9 +532,9 @@ void das_calcbatchstats(dasystem* das, int doprint)
         if (o->fid == key[0] && o->batch == key[1])     /* same as previous */
             continue;
 
-        key[0] = o->type;
-        key[1] = o->fid;
-        key[1] = o->batch;
+        key[0] = o->batch;
+        keys[2] = o->type;
+        keys[3] = o->fid;
 
         if (ht_find(ht, key) != NULL)
             continue;
@@ -558,9 +565,9 @@ void das_calcbatchstats(dasystem* das, int doprint)
             if (o->fid < 0 || o->batch < 0)
                 continue;
 
-            key[0] = o->type;
-            key[1] = o->fid;
-            key[1] = o->batch;
+            key[0] = o->batch;
+            keys[2] = o->type;
+            keys[3] = o->fid;
 
             id = ht_findid(ht, key);
             assert(id >= 0);

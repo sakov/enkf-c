@@ -586,7 +586,7 @@ static int cmp_obs_byij(const void* p1, const void* p2)
 
 /**
  */
-static void das_destandardise(dasystem* das)
+void das_destandardise(dasystem* das)
 {
     observations* obs = das->obs;
     double mult = sqrt((double) das->nmem - 1);

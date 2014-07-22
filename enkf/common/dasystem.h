@@ -102,6 +102,7 @@ void das_printfobsstats(dasystem* das);
 void das_readobs(dasystem* das, char fname[]);
 void das_setobstypes(dasystem* das);
 void das_standardise(dasystem* das);
+void das_destandardise(dasystem* das);
 void das_update(dasystem* das, int calcspread, int leavetiles);
 void das_updateHE(dasystem* das);
 
