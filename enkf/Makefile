@@ -107,7 +107,7 @@ SRC_MODEL =\
 models/z-model/z-model.c
 
 HDR_MODEL =\
-models/z-model/z-model.h
+models/z-model.h
 
 HDR_MKUNITOBS =\
 common/distribute.h\
