@@ -73,6 +73,7 @@ void obs_addtype(observations* obs, char name[], int issurface, char varname[], 
     ot->nland = -1;
     ot->nshallow = -1;
     ot->nbadbatch = -1;
+    ot->nroundup = -1;
     ot->nrange = -1;
     ot->nmodified = 0;
     ot->date_min = NaN;
@@ -110,6 +111,7 @@ observations* obs_create(void)
     obs->nland = 0;
     obs->nshallow = 0;
     obs->nbadbatch = 0;
+    obs->nroundup = 0;
     obs->nrange = 0;
     obs->nmodified = 0;
     obs->tree = NULL;
@@ -347,6 +349,7 @@ void obs_calcstats(observations* obs)
         ot->nland = 0;
         ot->nshallow = 0;
         ot->nbadbatch = 0;
+        ot->nroundup = 0;
         ot->nrange = 0;
         ot->date_min = DBL_MAX;
         ot->date_max = -DBL_MAX;
@@ -372,6 +375,9 @@ void obs_calcstats(observations* obs)
         } else if (m->status == STATUS_BADBATCH) {
             obs->nbadbatch++;
             ot->nbadbatch++;
+        } else if (m->status == STATUS_ROUNDUP) {
+            obs->nroundup++;
+            ot->nroundup++;
         } else if (m->status == STATUS_RANGE) {
             obs->nrange++;
             ot->nrange++;
@@ -646,6 +652,8 @@ void obs_write(observations* obs, char fname[])
     ncw_put_att_int(fname, ncid, varid_status, "STATUS_RANGE", 1, &i);
     i = STATUS_BADBATCH;
     ncw_put_att_int(fname, ncid, varid_status, "STATUS_BADBATCH", 1, &i);
+    i = STATUS_ROUNDUP;
+    ncw_put_att_int(fname, ncid, varid_status, "STATUS_ROUNDUP", 1, &i);
     ncw_def_var(fname, ncid, "aux", NC_INT, 1, dimid_nobs, &varid_aux);
     sprintf(tunits, "days from %s", obs->datestr);
     ncw_put_att_text(fname, ncid, varid_date, "units", tunits);
@@ -1055,6 +1063,7 @@ void obs_findlocal(observations* obs, grid* g, double lon, double lat, double r,
     double ll[2] = { lon, lat };
     double xyz[3];
     kdset* set = NULL;
+    int ntot, ngood;
     int i, id;
 
     grid_tocartesian(g, ll, xyz);
@@ -1068,15 +1077,25 @@ void obs_findlocal(observations* obs, grid* g, double lon, double lat, double r,
         (*ids)[i] = id;
     }
     kd_res_free(set);
-    *n = i;
+    ntot = i;
 
-    for (i = 0; i < *n; ++i) {
+    for (i = 0, ngood = 0; i < ntot; ++i) {
         observation* o = &obs->data[(*ids)[i]];
         double ll2[2] = { o->lon, o->lat };
         double xyz2[3];
 
+        if (o->status != STATUS_OK)
+            continue;
+
         grid_tocartesian(g, ll2, xyz2);
-        (*lcoeffs)[i] = locfun(distance(xyz, xyz2) / r);
+        (*ids)[ngood] = (*ids)[i];
+        (*lcoeffs)[ngood] = locfun(distance(xyz, xyz2) / r);
+        ngood++;
+    }
+    *n = ngood;
+    if (ngood == 0 && *ids != NULL) {
+        free(*ids);
+        free(*lcoeffs);
     }
 }
 #endif

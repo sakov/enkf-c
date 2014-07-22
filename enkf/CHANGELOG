@@ -1,3 +1,8 @@
+v. 0.54
+   PS 22072014
+   -- Introduces STATUS_ROUNDUP for the cases when the observation changes
+      grid cell after its fractional indices are written and read from
+      observations.nc
 v. 0.53
    PS 15072014
    -- Adding another parameter for entry BADBATCHES - threshold batch mean

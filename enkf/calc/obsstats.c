@@ -133,6 +133,9 @@ void das_printobsstats(dasystem* das)
             for (j = 0; j < obs->nobs; ++j) {
                 observation* o = &obs->data[indices[j]];
 
+                if (o->status != STATUS_OK)
+                    continue;
+
                 if (o->type == otid && o->lon >= r->lon1 && o->lon <= r->lon2 && o->lat >= r->lat1 && o->lat <= r->lat2) {
                     inn_f += das->s_f[j];
                     inn_f_abs += fabs(das->s_f[j]);
@@ -357,7 +360,8 @@ void das_printfobsstats(dasystem* das)
                     continue;
 
                 o = &obs->data[indices[j]];
-                assert(o->status == STATUS_OK);
+                if (o->status != STATUS_OK)
+                    continue;
 
                 if (o->type == otid && o->lon >= r->lon1 && o->lon <= r->lon2 && o->lat >= r->lat1 && o->lat <= r->lat2) {
                     inn_f += das->s_f[j];
@@ -513,6 +517,9 @@ void das_calcbatchstats(dasystem* das, int doprint)
     for (i = 0; i < obs->nobs; ++i) {
         observation* o = &obs->data[indices[i]];
 
+        if (o->status != STATUS_OK)
+            continue;
+
         if (o->fid < 0 || o->batch < 0) /* this superob is not "clean" */
             continue;
 
@@ -544,6 +551,9 @@ void das_calcbatchstats(dasystem* das, int doprint)
         for (i = 0; i < obs->nobs; ++i) {
             observation* o = &obs->data[indices[i]];
             int id;
+
+            if (o->status != STATUS_OK)
+                continue;
 
             if (o->fid < 0 || o->batch < 0)
                 continue;

@@ -42,8 +42,14 @@ static void interpolate_2d_obs(model* m, observations* allobs, int nobs, int obs
 
         assert(out[ii] == 0.0);
         out[ii] = interpolate2d(o->fi, o->fj, ni, nj, v, mask);
-        if (!isfinite(out[ii]))
-            enkf_quit("obs # %d: mask = 0 (land)", ii);
+        if (!isfinite(out[ii])) {
+            /*
+             * the location is on land due to the round-up error after writing
+             * and reading from observations.nc
+             */
+            o->status = STATUS_ROUNDUP;
+            continue;
+        }
         if (fabs(out[ii]) > STATE_BIGNUM)
             enkf_quit("obs # %d: forecast = %.3g for \"%s\"; no point to continue", ii, out[ii], fname);
     }

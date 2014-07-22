@@ -37,6 +37,12 @@
 #define STATUS_SHALLOW 3
 #define STATUS_RANGE 4
 #define STATUS_BADBATCH 5
+/*
+ * The fractional grid indices can (very rarely) jump to a neighbour cell after
+ * being saved to observations.nc and read back. If they end up on land - mark
+ * them with this status.
+ */
+#define STATUS_ROUNDUP 6
 
 #define LONTYPE_NONE 0
 #define LONTYPE_180 1

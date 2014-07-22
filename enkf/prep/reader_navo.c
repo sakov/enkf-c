@@ -88,13 +88,13 @@ void reader_navo_standard(char* fname, int fid, obsmeta* meta, model* m, observa
     ncw_get_att_text(fname, ncid, varid_time, "units", tunits);
     basename[13] = 0;
     if (!str2int(&basename[11], &day))
-        enkf_quit("WindSat reader: could not convert file name \"%s\" to date", fname);
+        enkf_quit("NAVO reader: could not convert file name \"%s\" to date", fname);
     basename[11] = 0;
     if (!str2int(&basename[9], &month))
-        enkf_quit("WindSat reader: could not convert file name \"%s\" to date", fname);
+        enkf_quit("NAVO reader: could not convert file name \"%s\" to date", fname);
     basename[9] = 0;
     if (!str2int(&basename[5], &year))
-        enkf_quit("WindSat reader: could not convert file name \"%s\" to date", fname);
+        enkf_quit("NAVO reader: could not convert file name \"%s\" to date", fname);
     sprintf(&tunits[tunits_len], " since %4d-%02d-%02d", year, month, day);
 
     ncw_close(fname, ncid);
