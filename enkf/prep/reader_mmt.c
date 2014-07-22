@@ -136,8 +136,8 @@ void reader_mmt_standard(char* fname, int fid, obsmeta* meta, model* m, observat
 
             if (fabs(v[p][i] - missval) < EPS || v[p][i] < validmin || v[p][i] > validmax)
                 continue;
-	    if (z[p][i] < 0.0)
-		continue;
+            if (z[p][i] < 0.0)
+                continue;
 
             if (obs->nobs % NOBS_INC == 0) {
                 obs->data = realloc(obs->data, (obs->nobs + NOBS_INC) * sizeof(observation));

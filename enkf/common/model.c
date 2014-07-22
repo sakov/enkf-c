@@ -366,7 +366,16 @@ int model_getbgfname_async(model* m, char ensdir[], char varname[], char otname[
 int model_ll2fij(model* m, double x, double y, double* fi, double* fj)
 {
     int** numlevels = grid_getnumlevels(m->grid);
+    int lontype = grid_getlontype(m->grid);
     int i1, i2, j1, j2;
+
+    if (lontype == LONTYPE_180) {
+        if (x > 180.0)
+            x -= 360.0;
+    } else if (lontype == LONTYPE_360) {
+        if (x < 0.0)
+            x += 360.0;
+    }
 
     grid_getll2fijfn(m->grid) (m->grid, x, y, fi, fj);
 
