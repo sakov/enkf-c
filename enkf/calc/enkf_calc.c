@@ -337,7 +337,7 @@ int main(int argc, char* argv[])
         das_printfobsstats(das);
     }
 
-    if (printbatchstats || prm->nbadbatchspecs > 0)
+    if (printbatchstats || das->nbadbatchspecs > 0)
         das_calcbatchstats(das, printbatchstats);
 
   finish:
