@@ -490,8 +490,8 @@ void das_printfobsstats(dasystem* das)
 void das_calcbatchstats(dasystem* das, int doprint)
 {
     observations* obs = das->obs;
-    hashtable* ht = ht_create_i2(HT_SIZE);
-    int key[2] = { -1, -1 };
+    hashtable* ht = ht_create_i3(HT_SIZE);
+    int key[3] = { -1, -1, -1 };
     int* nbatches = calloc(obs->nobstypes, sizeof(int));
     int* indices;               /* obs are/can be sorted differently than the 
                                  * original obs */
@@ -525,7 +525,8 @@ void das_calcbatchstats(dasystem* das, int doprint)
         if (o->fid == key[0] && o->batch == key[1])     /* same as previous */
             continue;
 
-        key[0] = o->fid;
+        key[0] = o->type;
+        key[1] = o->fid;
         key[1] = o->batch;
 
         if (ht_find(ht, key) != NULL)
@@ -557,7 +558,8 @@ void das_calcbatchstats(dasystem* das, int doprint)
             if (o->fid < 0 || o->batch < 0)
                 continue;
 
-            key[0] = o->fid;
+            key[0] = o->type;
+            key[1] = o->fid;
             key[1] = o->batch;
 
             id = ht_findid(ht, key);
