@@ -130,6 +130,7 @@ void obs_destroy(observations* obs);
 void obs_addtype(observations* obs, char name[], int issurface, char varname[], char hfunction[], double rfactor, int isasync, double async_tstep);
 void obs_checklon(observations* obs);
 void obs_compact(observations* obs);
+void obs_inorder(observations* obs);
 void obs_calcstats(observations* obs);
 void obs_markbadbatches(observations* obs);
 void obs_read(observations* obs, char fname[]);

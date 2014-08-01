@@ -36,8 +36,6 @@
 void das_printobsstats(dasystem* das)
 {
     observations* obs = das->obs;
-    int* indices;               /* obs are/can be sorted differently than the 
-                                 * original obs */
     int i, j, otid;
 
     int inst, ni;
@@ -62,10 +60,6 @@ void das_printobsstats(dasystem* das)
     inn_a_abs_inst = malloc((ni + 1) * sizeof(double));
     std_a_inst = malloc((ni + 1) * sizeof(double));
     nobs_inst = malloc((ni + 1) * sizeof(int));
-
-    indices = malloc(obs->nobs * sizeof(int));
-    for (i = 0; i < obs->nobs; ++i)
-        indices[obs->data[i].id] = i;
 
     enkf_printf("    region obs.type   # obs.  |for.inn.| |an.inn.|   for.inn.   an.inn.  for.spread  an.spread\n");
     enkf_printf("    ------------------------------------------------------------------------------------------\n");
@@ -132,7 +126,7 @@ void das_printobsstats(dasystem* das)
             memset(nobs_inst, 0, (ni + 1) * sizeof(int));
 
             for (j = 0; j < obs->nobs; ++j) {
-                observation* o = &obs->data[indices[j]];
+                observation* o = &obs->data[j];
 
                 if (o->status != STATUS_OK)
                     continue;
@@ -262,7 +256,6 @@ void das_printobsstats(dasystem* das)
         }
     }
 
-    free(indices);
     free(inn_f_inst);
     free(inn_f_abs_inst);
     free(std_f_inst);
@@ -277,8 +270,6 @@ void das_printobsstats(dasystem* das)
 void das_printfobsstats(dasystem* das)
 {
     observations* obs = das->obs;
-    int* indices;               /* obs are/can be sorted differently than the 
-                                 * original obs */
     int i, j, otid;
 
     int inst, ni;
@@ -297,12 +288,6 @@ void das_printfobsstats(dasystem* das)
     inn_f_abs_inst = malloc((ni + 1) * sizeof(double));
     std_f_inst = malloc((ni + 1) * sizeof(double));
     nobs_inst = malloc((ni + 1) * sizeof(int));
-
-    indices = malloc(obs->nobs * sizeof(int));
-    for (i = 0; i < obs->nobs; ++i)
-        indices[i] = -1;
-    for (i = 0; i < obs->ngood; ++i)
-        indices[obs->data[i].id] = i;
 
     if (das->mode == MODE_ENKF) {
         enkf_printf("    region obs.type   # obs.  |for.inn.| for.inn.   for.spread\n");
@@ -357,12 +342,8 @@ void das_printfobsstats(dasystem* das)
             memset(nobs_inst, 0, (ni + 1) * sizeof(int));
 
             for (j = 0; j < obs->nobs; ++j) {
-                observation* o;
+                observation* o = &obs->data[j];
 
-                if (indices[j] < 0)
-                    continue;
-
-                o = &obs->data[indices[j]];
                 if (o->status != STATUS_OK)
                     continue;
 
@@ -482,7 +463,6 @@ void das_printfobsstats(dasystem* das)
         }
     }
 
-    free(indices);
     free(inn_f_inst);
     free(inn_f_abs_inst);
     free(std_f_inst);
@@ -498,8 +478,6 @@ void das_calcbatchstats(dasystem* das, int doprint)
     int key[2] = { -1, -1 };
     short* keys = (short*) key;
     int* nbatches = calloc(obs->nobstypes, sizeof(int));
-    int* indices;               /* obs are/can be sorted differently than the 
-                                 * original obs */
     int n, i;
 
     /*
@@ -512,16 +490,12 @@ void das_calcbatchstats(dasystem* das, int doprint)
 
     das_destandardise(das);
 
-    indices = malloc(obs->nobs * sizeof(int));
-    for (i = 0; i < obs->nobs; ++i)
-        indices[obs->data[i].id] = i;
-
     /*
      * calculate the number of batches
      */
     n = 0;
     for (i = 0; i < obs->nobs; ++i) {
-        observation* o = &obs->data[indices[i]];
+        observation* o = &obs->data[i];
 
         if (o->status != STATUS_OK)
             continue;
@@ -556,7 +530,7 @@ void das_calcbatchstats(dasystem* das, int doprint)
         nobs = calloc(n, sizeof(int));
 
         for (i = 0; i < obs->nobs; ++i) {
-            observation* o = &obs->data[indices[i]];
+            observation* o = &obs->data[i];
             int id;
 
             if (o->status != STATUS_OK)
@@ -629,7 +603,6 @@ void das_calcbatchstats(dasystem* das, int doprint)
         free(nobs);
     }
 
-    free(indices);
     ht_destroy(ht);
     free(nbatches);
 }

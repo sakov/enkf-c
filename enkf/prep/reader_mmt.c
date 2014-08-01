@@ -158,8 +158,6 @@ void reader_mmt_standard(char* fname, int fid, obsmeta* meta, model* m, observat
             o->value = v[p][i];
             o->std = 0.0;
             o->lon = lon[p];
-            if (o->lon < 0.0)
-                o->lon += 360;
             o->lat = lat[p];
             o->depth = z[p][i];
             o->status = model_ll2fij(m, o->lon, o->lat, &o->fi, &o->fj);

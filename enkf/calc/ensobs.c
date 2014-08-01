@@ -700,12 +700,9 @@ static void unsortobs_byij(dasystem* das)
     das->S = Snew;
 
     /*
-     * Ensemble can collapse to zero spread on the boundary, therefore
-     * commenting out.
-     *
-     * for (o = 0; o < obs->nobs; ++o)
-     *     assert(das->std_a[o] != 0.0);
+     * order obs back by id
      */
+    obs_inorder(obs);
 }
 
 /** Updates ensemble observations by applying X5

@@ -326,6 +326,27 @@ void obs_compact(observations* obs)
 
 /**
  */
+static int comp_obsid(const void* p1, const void* p2)
+{
+    observation* m1 = (observation*) p1;
+    observation* m2 = (observation*) p2;
+
+    if (m1->id > m2->id)
+        return 1;
+    if (m1->id < m2->id)
+        return -1;
+    return 0;
+}
+
+/** Sort observations by id.
+ */
+void obs_inorder(observations* obs)
+{
+    qsort(obs->data, obs->nobs, sizeof(observation), comp_obsid);
+}
+
+/**
+ */
 void obs_calcstats(observations* obs)
 {
     int i;
