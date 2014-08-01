@@ -16,7 +16,11 @@
 #if !defined(_DEFINITIONS_H)
 
 #define MAXSTRLEN 2048
-#define NOBS_INC 200000
+/*
+ * Memory allocation increment for observations. One might increase it for
+ * large systems and possibly reduce for small systems.
+ */
+#define NOBS_INC 500000
 
 #define BASEYEAR 1990
 #define BASEMONTH 1

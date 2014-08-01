@@ -1,3 +1,10 @@
+v. 0.57
+   PS 01082014
+   -- Modified das_destandardise() to include restoring obs order by id.
+      Simplified das_printobsstats(), das_printfobsstats(dasystem* das)
+      and das_calcbatchstats() accordingly.
+   -- Added obs_inorder().
+   -- Minor fixes.
 v. 0.56
    PS 23072014
    -- A defect in enkf_calc.c (using destroyed object)
@@ -15,7 +22,7 @@ v. 0.53
       absolute innovation.
 v. 0.52
    PS 14072014
-   -- Setting SOBSTRODE = 0 now switches superobing off.
+   -- Setting SOBSTRIDE = 0 now switches superobing off.
 v. 0.51
    PS 11072014 Added functionality to detect and remove bad batches of obs:
    -- Makefile: introduced flags -DENKF_PREP, -DENKF_CALC, -DENKF_POST when

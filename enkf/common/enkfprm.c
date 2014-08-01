@@ -412,6 +412,13 @@ enkfprm* enkfprm_read(char fname[])
             prm->inflations[i] *= prm->inflation_base;
     prm->inflation_base = NaN;  /* not to be used */
 
+    for (i = 0; i < prm->nbadbatchspecs; ++i) {
+        badbatchspec* bb = &prm->badbatchspecs[i];
+
+        if (bb->maxmad < fabs(bb->maxbias))
+            bb->maxmad = fabs(bb->maxbias);
+    }
+
     fclose(f);
     enkfprm_check(prm);
 
