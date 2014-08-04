@@ -1,3 +1,7 @@
+v. 0.59
+   PS 04082014
+   -- Replicated using STATUS_ROUNDUP in interpolate_3d_obs() (was only in
+      interpolate_2d_obs() ).
 v. 0.58
    PS 04082014
    -- Rewrote unsortobs_byij() in an economical way, avoiding duplication of S.
