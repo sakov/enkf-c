@@ -669,35 +669,37 @@ static void sortobs_byij(dasystem* das)
 static void unsortobs_byij(dasystem* das)
 {
     observations* obs = das->obs;
-    ENSOBSTYPE** Snew;          /* for consistency only */
-    double* snew;
-    double* stdnew;
     int o, e;
 
     assert(das->s_mode == S_MODE_HA_a);
 
-    snew = calloc(obs->nobs, sizeof(double));
-    stdnew = calloc(obs->nobs, sizeof(double));
-
-    for (o = 0; o < obs->nobs; ++o) {
-        snew[obs->data[o].id] = das->s_a[o];
-        stdnew[obs->data[o].id] = das->std_a[o];
-    }
-    free(das->s_a);
-    das->s_a = snew;
-    free(das->std_a);
-    das->std_a = stdnew;
-
-    Snew = alloc2d(das->nmem, obs->nobs, sizeof(ENSOBSTYPE));
-    for (e = 0; e < das->nmem; ++e) {
-        ENSOBSTYPE* Se = das->S[e];
-        ENSOBSTYPE* Snewe = Snew[e];
+    {
+        double* s = calloc(obs->nobs, sizeof(double));
+ 
+        for (o = 0; o < obs->nobs; ++o)
+            s[obs->data[o].id] = das->s_a[o];
+        memcpy(das->s_a, s, obs->nobs * sizeof(double));
 
         for (o = 0; o < obs->nobs; ++o)
-            Snewe[obs->data[o].id] = Se[o];
+            s[obs->data[o].id] = das->std_a[o];
+        memcpy(das->std_a, s, obs->nobs * sizeof(double));
+
+        free(s);
     }
-    free2d(das->S);
-    das->S = Snew;
+
+    {
+        ENSOBSTYPE* S = calloc(obs->nobs, sizeof(ENSOBSTYPE));
+
+        for (e = 0; e < das->nmem; ++e) {
+            ENSOBSTYPE* Se = das->S[e];
+
+            for (o = 0; o < obs->nobs; ++o)
+                S[obs->data[o].id] = Se[o];
+            memcpy(Se, S, obs->nobs * sizeof(ENSOBSTYPE));
+        }
+
+        free(S);
+    }
 
     /*
      * order obs back by id
