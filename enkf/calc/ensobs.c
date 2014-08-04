@@ -675,7 +675,7 @@ static void unsortobs_byij(dasystem* das)
 
     {
         double* s = calloc(obs->nobs, sizeof(double));
- 
+
         for (o = 0; o < obs->nobs; ++o)
             s[obs->data[o].id] = das->s_a[o];
         memcpy(das->s_a, s, obs->nobs * sizeof(double));

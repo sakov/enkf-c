@@ -73,8 +73,16 @@ static void interpolate_3d_obs(model* m, observations* allobs, int nobs, int obs
 
         assert(out[ii] == 0.0);
         out[ii] = interpolate3d(o->fi, o->fj, o->fk, ni, nj, nk, v, nlevels);
-        if (!isfinite(out[ii]))
-            enkf_quit("obs # %d: k >= nlevels (land or bottom)", ii);
+        if (!isfinite(out[ii])) {
+            /*
+             * the location is on land due to the round-up error after writing
+             * and reading from observations.nc
+             */
+            o->status = STATUS_ROUNDUP;
+            o->value = 0.0;
+            o->std = STD_BIG;
+            continue;
+        }
         if (fabs(out[ii]) > STATE_BIGNUM)
             enkf_quit("obs # %d: forecast = %.3g for \"%s\"; no point to continue", ii, out[ii], fname);
     }
