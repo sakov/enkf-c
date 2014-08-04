@@ -1,3 +1,6 @@
+v. 0.58
+   PS 04082014
+   -- Rewrote unsortobs_byij() in an economical way, avoiding duplication of S.
 v. 0.57
    PS 01082014
    -- Modified das_destandardise() to include restoring obs order by id.
