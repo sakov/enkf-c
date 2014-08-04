@@ -330,7 +330,7 @@ void das_calcinnandspread(dasystem* das)
             if (m->status != STATUS_OK)
                 continue;
             das->std_f[o] = sqrt(das->std_f[o] / (double) (das->nmem - 1));
-            das->s_f[o] = obs->data[o].value - das->s_f[o];
+            das->s_f[o] = m->value - das->s_f[o];
             if (!isfinite(das->s_f[o]) || fabs(das->s_f[o]) > STATE_BIGNUM)
                 enkf_quit("obs # %d: Hx = %d, no point to continue", o);
         }
