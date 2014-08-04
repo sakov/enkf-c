@@ -50,9 +50,9 @@ struct dasystem {
 
     int nmem;
 
-    observations* obs;
-
     model* m;
+
+    observations* obs;
 
     ENSOBSTYPE** S;             /* HE or HA or S [mem][obs] */
     int s_mode;
