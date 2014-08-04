@@ -26,6 +26,8 @@
 #include "model.h"
 #include "model2obs.h"
 
+#define EPSMULT (float) 1.000001
+
 /**
  */
 static void interpolate_2d_obs(model* m, observations* allobs, int nobs, int obsids[], char fname[], float** v, ENSOBSTYPE out[])
@@ -47,10 +49,27 @@ static void interpolate_2d_obs(model* m, observations* allobs, int nobs, int obs
              * the location is on land due to the round-up error after writing
              * and reading from observations.nc
              */
-            o->status = STATUS_ROUNDUP;
-            o->value = 0.0;
-            o->std = STD_BIG;
-            continue;
+            if (floor(o->fi) != floor(o->fi * EPSMULT))
+                o->fi *= EPSMULT;
+            else if (floor(o->fi) != floor(o->fi / EPSMULT))
+                o->fi /= EPSMULT;
+            else if (floor(o->fj) != floor(o->fj * EPSMULT))
+                o->fj *= EPSMULT;
+            else if (floor(o->fj) != floor(o->fj / EPSMULT))
+                o->fj /= EPSMULT;
+            else {
+                o->status = STATUS_ROUNDUP;
+                o->value = 0.0;
+                o->std = STD_BIG;
+                continue;
+            }
+            out[ii] = interpolate2d(o->fi, o->fj, ni, nj, v, mask);
+            if (!isfinite(out[ii])) {
+                o->status = STATUS_ROUNDUP;
+                o->value = 0.0;
+                o->std = STD_BIG;
+                continue;
+            }
         }
         if (fabs(out[ii]) > STATE_BIGNUM)
             enkf_quit("obs # %d: forecast = %.3g for \"%s\"; no point to continue", ii, out[ii], fname);
@@ -78,10 +97,27 @@ static void interpolate_3d_obs(model* m, observations* allobs, int nobs, int obs
              * the location is on land due to the round-up error after writing
              * and reading from observations.nc
              */
-            o->status = STATUS_ROUNDUP;
-            o->value = 0.0;
-            o->std = STD_BIG;
-            continue;
+            if (floor(o->fi) != floor(o->fi * EPSMULT))
+                o->fi *= EPSMULT;
+            else if (floor(o->fi) != floor(o->fi / EPSMULT))
+                o->fi /= EPSMULT;
+            else if (floor(o->fj) != floor(o->fj * EPSMULT))
+                o->fj *= EPSMULT;
+            else if (floor(o->fj) != floor(o->fj / EPSMULT))
+                o->fj /= EPSMULT;
+            else {
+                o->status = STATUS_ROUNDUP;
+                o->value = 0.0;
+                o->std = STD_BIG;
+                continue;
+            }
+            out[ii] = interpolate3d(o->fi, o->fj, o->fk, ni, nj, nk, v, nlevels);
+            if (!isfinite(out[ii])) {
+                o->status = STATUS_ROUNDUP;
+                o->value = 0.0;
+                o->std = STD_BIG;
+                continue;
+            }
         }
         if (fabs(out[ii]) > STATE_BIGNUM)
             enkf_quit("obs # %d: forecast = %.3g for \"%s\"; no point to continue", ii, out[ii], fname);
