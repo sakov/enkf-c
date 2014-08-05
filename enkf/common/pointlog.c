@@ -43,7 +43,7 @@ void plog_write(dasystem* das, int i, int j, double lon, double lat, double dept
     int ot, oid;
 
     sprintf(fname, "pointlog_%d,%d.nc", i, j);
-    ncw_create(fname, NC_CLOBBER, &ncid);
+    ncw_create(fname, NC_CLOBBER | NC_64BIT_OFFSET, &ncid);
     ncw_def_dim(fname, ncid, "p", p, &dimids[0]);
     ncw_def_dim(fname, ncid, "m", das->nmem, &dimids[1]);
     if (p > 0) {

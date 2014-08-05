@@ -1,3 +1,6 @@
+v. 0.62
+   PS 06082014
+   -- Replaced  NC_CLOBBER by NC_CLOBBER | NC_64BIT_OFFSET.
 v. 0.61
    PS 05082014
    -- Added consistency to standardising/destandardising/sorting/unsorting obs.
