@@ -53,6 +53,7 @@ struct dasystem {
     model* m;
 
     observations* obs;
+    int sort_mode;
 
     ENSOBSTYPE** S;             /* HE or HA or S [mem][obs] */
     int s_mode;
