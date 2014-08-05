@@ -282,14 +282,10 @@ void das_getHE(dasystem* das, int fstatsonly)
 void das_calcinnandspread(dasystem* das)
 {
     observations* obs = das->obs;
-    int* indices = NULL;
     int e, o;
 
-    if (obs->nobs > 0) {
-        indices = malloc(obs->nobs * sizeof(int));
-        for (o = 0; o < obs->nobs; ++o)
-            indices[obs->data[o].id] = o;
-    }
+    if (obs->nobs == 0)
+        return;
 
     if (das->s_mode == S_MODE_HE_f) {
         if (das->s_f == NULL) {
@@ -325,7 +321,7 @@ void das_calcinnandspread(dasystem* das)
             }
         }
         for (o = 0; o < obs->nobs; ++o) {
-            observation* m = &obs->data[indices[o]];
+            observation* m = &obs->data[o];
 
             if (m->status != STATUS_OK)
                 continue;
@@ -370,7 +366,7 @@ void das_calcinnandspread(dasystem* das)
             }
         }
         for (o = 0; o < obs->nobs; ++o) {
-            observation* m = &obs->data[indices[o]];
+            observation* m = &obs->data[o];
 
             if (m->status != STATUS_OK)
                 continue;
@@ -383,9 +379,6 @@ void das_calcinnandspread(dasystem* das)
         das->s_mode = S_MODE_HA_a;
     } else
         enkf_quit("programming error");
-
-    if (obs->nobs > 0)
-        free(indices);
 }
 
 /** Adds forecast observations and forecast ensemble spread to the observation
@@ -523,39 +516,38 @@ void das_standardise(dasystem* das)
     double mult = sqrt((double) das->nmem - 1);
     int e, i;
 
-    if (das->s_mode == S_MODE_HA_f) {
-        for (e = 0; e < das->nmem; ++e) {
-            ENSOBSTYPE* Se = das->S[e];
+    if (das->s_mode == S_MODE_S_f || das->s_mode == S_MODE_S_a)
+        return;
 
-            for (i = 0; i < obs->nobs; ++i) {
-                observation* o = &obs->data[i];
+    for (e = 0; e < das->nmem; ++e) {
+        ENSOBSTYPE* Se = das->S[e];
 
-                Se[i] /= o->std * sqrt(obs->obstypes[o->type].rfactor) * mult;
-            }
+        for (i = 0; i < obs->nobs; ++i) {
+            observation* o = &obs->data[i];
+
+            Se[i] /= o->std * sqrt(obs->obstypes[o->type].rfactor) * mult;
         }
+    }
+    if (das->s_f != NULL) {
         for (i = 0; i < obs->nobs; ++i) {
             observation* o = &obs->data[i];
 
             das->s_f[i] /= o->std * sqrt(obs->obstypes[o->type].rfactor) * mult;
         }
-        das->s_mode = S_MODE_S_f;
-    } else if (das->s_mode == S_MODE_HA_a) {
-        for (e = 0; e < das->nmem; ++e) {
-            ENSOBSTYPE* Se = das->S[e];
-
-            for (i = 0; i < obs->nobs; ++i) {
-                observation* o = &obs->data[i];
-
-                Se[i] /= o->std * sqrt(obs->obstypes[o->type].rfactor) * mult;
-            }
-        }
+    }
+    if (das->s_a != NULL) {
         for (i = 0; i < obs->nobs; ++i) {
             observation* o = &obs->data[i];
 
             das->s_a[i] /= o->std * sqrt(obs->obstypes[o->type].rfactor) * mult;
         }
+    }
+
+    if (das->s_mode == S_MODE_HA_f)
+        das->s_mode = S_MODE_S_f;
+    else if (das->s_mode == S_MODE_HA_a)
         das->s_mode = S_MODE_S_a;
-    } else
+    else
         enkf_quit("programming error");
 }
 
@@ -594,86 +586,149 @@ void das_destandardise(dasystem* das)
 
     if (das->s_mode == S_MODE_HA_f || das->s_mode == S_MODE_HA_a)
         return;
-    else if (das->s_mode == S_MODE_S_f) {
-        for (e = 0; e < das->nmem; ++e) {
-            ENSOBSTYPE* Se = das->S[e];
 
-            for (i = 0; i < obs->nobs; ++i) {
-                observation* o = &obs->data[i];
+    for (e = 0; e < das->nmem; ++e) {
+        ENSOBSTYPE* Se = das->S[e];
 
-                Se[i] *= o->std * sqrt(obs->obstypes[o->type].rfactor) * mult;
-            }
+        for (i = 0; i < obs->nobs; ++i) {
+            observation* o = &obs->data[i];
+
+            Se[i] *= o->std * sqrt(obs->obstypes[o->type].rfactor) * mult;
         }
+    }
+    if (das->s_f != NULL) {
         for (i = 0; i < obs->nobs; ++i) {
             observation* o = &obs->data[i];
 
             das->s_f[i] *= o->std * sqrt(obs->obstypes[o->type].rfactor) * mult;
         }
-        das->s_mode = S_MODE_HA_f;
-    } else if (das->s_mode == S_MODE_S_a) {
-        for (e = 0; e < das->nmem; ++e) {
-            ENSOBSTYPE* Se = das->S[e];
-
-            for (i = 0; i < obs->nobs; ++i) {
-                observation* o = &obs->data[i];
-
-                Se[i] *= o->std * sqrt(obs->obstypes[o->type].rfactor) * mult;
-            }
-        }
+    }
+    if (das->s_a != NULL) {
         for (i = 0; i < obs->nobs; ++i) {
             observation* o = &obs->data[i];
 
             das->s_a[i] *= o->std * sqrt(obs->obstypes[o->type].rfactor) * mult;
         }
+    }
+
+    if (das->s_mode == S_MODE_S_f)
+        das->s_mode = S_MODE_HA_f;
+    else if (das->s_mode == S_MODE_S_a)
         das->s_mode = S_MODE_HA_a;
-    } else
+    else
         enkf_quit("programming error");
 }
 
 /** Sorts all observations by j,i so that they can be processed in a single
  * cycle over horizontal grid cells.
  */
-static void sortobs_byij(dasystem* das)
+static void das_sortobs_byij(dasystem* das)
 {
     observations* obs = das->obs;
-    ENSOBSTYPE** Snew;
     int o, e;
 
-    assert(das->s_mode == S_MODE_HA_f);
+    if (das->sort_mode == OBS_SORTMODE_IJ)
+        return;
 
     enkf_printf("    sorting obs by ij:\n");
     qsort(obs->data, obs->nobs, sizeof(observation), cmp_obs_byij);
 
-    Snew = alloc2d(das->nmem, obs->nobs, sizeof(ENSOBSTYPE));
-
-    for (e = 0; e < das->nmem; ++e) {
-        ENSOBSTYPE* Se = das->S[e];
-        ENSOBSTYPE* Snewe = Snew[e];
+    if (das->s_f != NULL) {
+        double* s = calloc(obs->nobs, sizeof(double));
 
         for (o = 0; o < obs->nobs; ++o)
-            /*
-             * das->s_f is innovation = obs - forecast; hence forecast = obs
-             * - innovation 
-             */
-            Snewe[o] = Se[obs->data[o].id] + obs->data[o].value - das->s_f[obs->data[o].id];
-    }
-    free2d(das->S);
-    das->S = Snew;
+            s[o] = das->s_f[obs->data[o].id];
+        memcpy(das->s_f, s, obs->nobs * sizeof(double));
 
-    das->s_mode = S_MODE_HE_f;
+        for (o = 0; o < obs->nobs; ++o)
+            s[o] = das->std_f[obs->data[o].id];
+        memcpy(das->std_f, s, obs->nobs * sizeof(double));
+
+        free(s);
+    }
+
+    if (das->s_a != NULL) {
+        double* s = calloc(obs->nobs, sizeof(double));
+
+        for (o = 0; o < obs->nobs; ++o)
+            s[o] = das->s_a[obs->data[o].id];
+        memcpy(das->s_a, s, obs->nobs * sizeof(double));
+
+        for (o = 0; o < obs->nobs; ++o)
+            s[o] = das->std_a[obs->data[o].id];
+        memcpy(das->std_a, s, obs->nobs * sizeof(double));
+
+        free(s);
+    }
+
+    {
+        ENSOBSTYPE* S = calloc(obs->nobs, sizeof(ENSOBSTYPE));
+
+        for (e = 0; e < das->nmem; ++e) {
+            ENSOBSTYPE* Se = das->S[e];
+
+            for (o = 0; o < obs->nobs; ++o)
+                S[o] = Se[obs->data[o].id];
+            memcpy(Se, S, obs->nobs * sizeof(ENSOBSTYPE));
+        }
+        free(S);
+    }
+
+    das->sort_mode = OBS_SORTMODE_IJ;
+}
+
+/**
+ */
+static void das_changeSmode(dasystem* das, int mode_from, int mode_to)
+{
+    assert(das->s_mode == mode_from);
+
+    if (mode_from == S_MODE_HA_f && mode_to == S_MODE_HE_f) {
+        observations* obs = das->obs;
+        int e, o;
+
+        for (e = 0; e < das->nmem; ++e) {
+            ENSOBSTYPE* Se = das->S[e];
+
+            for (o = 0; o < obs->nobs; ++o)
+                /*
+                 * das->s_f is innovation = obs - forecast; hence forecast = obs
+                 * - innovation 
+                 */
+                Se[o] += obs->data[o].value - das->s_f[o];
+        }
+    } else
+        enkf_quit("das_changesmode(): transition from mode %d to mode %d is not handled yet\n", mode_from, mode_to);
+
+    das->s_mode = mode_to;
 }
 
 /** Rolls back sorting of ensemble observations S by i,j, so that S is again
  * consistent with other variables.
  */
-static void unsortobs_byij(dasystem* das)
+static void das_sortobs_byid(dasystem* das)
 {
     observations* obs = das->obs;
     int o, e;
 
-    assert(das->s_mode == S_MODE_HA_a);
+    if (das->sort_mode == OBS_SORTMODE_ID)
+        return;
 
-    {
+    if (das->s_f != NULL) {
+        double* s = calloc(obs->nobs, sizeof(double));
+
+        for (o = 0; o < obs->nobs; ++o)
+            s[obs->data[o].id] = das->s_f[o];
+        memcpy(das->s_f, s, obs->nobs * sizeof(double));
+
+        for (o = 0; o < obs->nobs; ++o)
+            s[obs->data[o].id] = das->std_f[o];
+        memcpy(das->std_f, s, obs->nobs * sizeof(double));
+
+        free(s);
+    }
+
+    if (das->s_a != NULL) {
         double* s = calloc(obs->nobs, sizeof(double));
 
         for (o = 0; o < obs->nobs; ++o)
@@ -705,6 +760,8 @@ static void unsortobs_byij(dasystem* das)
      * order obs back by id
      */
     obs_inorder(obs);
+
+    das->sort_mode = OBS_SORTMODE_ID;
 }
 
 /** Updates ensemble observations by applying X5
@@ -1102,13 +1159,14 @@ void das_updateHE(dasystem* das)
         return;
 
     das_destandardise(das);
-    sortobs_byij(das);
+    das_sortobs_byij(das);
+    das_changeSmode(das, S_MODE_HA_f, S_MODE_HE_f);
     if (das->mode == MODE_ENKF)
         update_HE(das);
     else
         update_Hx(das);
     das_calcinnandspread(das);
-    unsortobs_byij(das);
+    das_sortobs_byid(das);
 }
 
 /** Modify the observation error in file FNAME_SOBS.

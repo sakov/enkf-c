@@ -79,6 +79,9 @@ extern int enkf_exitaction;
 #define OBSTYPE_INNOVATION 1
 extern int enkf_obstype;
 
+#define OBS_SORTMODE_ID 0
+#define OBS_SORTMODE_IJ 1
+
 #define ENSOBSTYPE float
 #define MPIENSOBSTYPE MPI_FLOAT
 

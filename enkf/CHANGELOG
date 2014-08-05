@@ -1,3 +1,7 @@
+v. 0.61
+   PS 05082014
+   -- Added consistency to standardising/destandardising/sorting/unsorting obs.
+      Fixed inconsistencies introduced in v. 0.60.
 v. 0.60
    PS 05082014
    -- Bug fix in das_calcinnandspread().
