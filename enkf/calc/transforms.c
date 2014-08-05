@@ -37,7 +37,7 @@ static void nc_createX5(char fname[], int nj, int ni, int stride, int nmem, int*
     assert(rank == 0);
 
     enkf_printf("    creating empty file \"%s\":\n", fname);
-    ncw_create(fname, NC_CLOBBER, ncid);
+    ncw_create(fname, NC_CLOBBER | NC_64BIT_OFFSET, ncid);
     ncw_def_dim(fname, *ncid, "nj", nj, &dimids[0]);
     ncw_def_dim(fname, *ncid, "ni", ni, &dimids[1]);
     ncw_def_dim(fname, *ncid, "msq", nmem * nmem, &dimids[2]);
@@ -74,7 +74,7 @@ static void nc_createw(char fname[], int nj, int ni, int stride, int nmem, int* 
     assert(rank == 0);
 
     enkf_printf("    creating empty file \"%s\":\n", fname);
-    ncw_create(fname, NC_CLOBBER, ncid);
+    ncw_create(fname, NC_CLOBBER | NC_64BIT_OFFSET, ncid);
     ncw_def_dim(fname, *ncid, "nj", nj, &dimids[0]);
     ncw_def_dim(fname, *ncid, "ni", ni, &dimids[1]);
     ncw_def_dim(fname, *ncid, "m", nmem, &dimids[2]);
@@ -122,7 +122,7 @@ static void nc_writediag(char fname[], int nobstypes, int nj, int ni, int stride
     assert(rank == 0);
 
     enkf_printf("    writing stats to \"%s\":\n", fname);
-    ncw_create(fname, NC_CLOBBER, &ncid);
+    ncw_create(fname, NC_CLOBBER | NC_64BIT_OFFSET, &ncid);
     ncw_def_dim(fname, ncid, "nobstypes", nobstypes, &dimids[0]);
     ncw_def_dim(fname, ncid, "nj", nj, &dimids[1]);
     ncw_def_dim(fname, ncid, "ni", ni, &dimids[2]);

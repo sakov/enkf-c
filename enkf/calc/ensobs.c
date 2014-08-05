@@ -213,7 +213,7 @@ void das_getHE(dasystem* das, int fstatsonly)
             if (rank == 0) {
                 int dimids[2];
 
-                ncw_create(FNAME_HE, NC_CLOBBER, &ncid);
+                ncw_create(FNAME_HE, NC_CLOBBER | NC_64BIT_OFFSET, &ncid);
                 ncw_def_dim(FNAME_HE, ncid, "m", das->nmem, &dimids[0]);
                 ncw_def_dim(FNAME_HE, ncid, "p", obs->nobs, &dimids[1]);
                 ncw_def_var(FNAME_HE, ncid, "HE", NC_FLOAT, 2, dimids, &varid);
