@@ -53,15 +53,38 @@ struct dasystem {
     model* m;
 
     observations* obs;
+    /*
+     * Currently there are two observation sorting modes used by the code: by ID
+     * and by IJ. Correspondingly, the `sort_mode' flag is set to either
+     * OBS_SORTMODE_ID or OBS_SORTMODE_IJ. Note that at any time the
+     * correspondence between array of observations obs->data and arrays of
+     * ensemble observations/innovations below is assumed and should be
+     * maintained: obs->data[i] corresponds to S[:][i], s_f[i], std_f[i],
+     * s_a[i] and std_a[i].
+     */
     int sort_mode;
 
+    /*
+     * The ensemble observations `S' and innovations `s' can be either in
+     * standardised or not standardised mode. Further, `S' is too big to be
+     * copied, instead it is modified when transferred between states. The
+     * states of `s' and 'S' are described by `s_mode':
+     *
+     *   s_mode      s_f, s_a and S      S contains    S relates to
+     *               are standardised    anomalies     forecast
+     * S_MODE_HE_f         no                no           yes
+     * S_MODE_HA_f         no                yes          yes
+     * S_MODE_S_f          yes               yes          yes
+     * S_MODE_HE_a         no                no           no
+     * S_MODE_HA_a         no                yes          no
+     * S_MODE_S_a          yes               yes          no
+     */
     ENSOBSTYPE** S;             /* HE or HA or S [mem][obs] */
-    int s_mode;
-    ENSOBSTYPE* Hx;             /* for EnOI */
     double* s_f;                /* innovation */
     double* std_f;              /* ensemble spread */
     double* s_a;                /* innovation */
     double* std_a;              /* ensemble spread */
+    int s_mode;
 
     double kfactor;
     double locrad;

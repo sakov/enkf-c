@@ -64,7 +64,6 @@ dasystem* das_create(enkfprm* prm)
 
     das->S = NULL;
     das->s_mode = S_MODE_NONE;
-    das->Hx = NULL;
     das->s_f = NULL;
     das->std_f = NULL;
     das->s_a = NULL;
@@ -153,7 +152,6 @@ dasystem* das_create(enkfprm* prm)
 
     das->S = NULL;
     das->s_mode = S_MODE_NONE;
-    das->Hx = NULL;
     das->s_f = NULL;
     das->std_f = NULL;
     das->s_a = NULL;
@@ -194,8 +192,6 @@ void das_destroy(dasystem* das)
     model_destroy(das->m);
     if (das->S != NULL)
         free2d(das->S);
-    if (das->Hx != NULL)
-        free(das->Hx);
     if (das->s_f != NULL) {
         free(das->s_f);
         free(das->std_f);
