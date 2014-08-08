@@ -73,11 +73,9 @@
 #define EXITACTION_BACKTRACE 0
 #define EXITACTION_SEGFAULT 1
 #define EXITACTION_DEFAULT EXITACTION_BACKTRACE
-extern int enkf_exitaction;
 
 #define OBSTYPE_VALUE 0
 #define OBSTYPE_INNOVATION 1
-extern int enkf_obstype;
 
 #define OBS_SORTMODE_ID 0
 #define OBS_SORTMODE_IJ 1
@@ -102,9 +100,13 @@ extern int enkf_obstype;
 extern int nprocesses;
 extern int rank;
 
+extern int enkf_obstype;
+extern int enkf_exitaction;
+extern int enkf_verbose;
 extern int enkf_separateout;
 extern int enkf_directwrite;
 extern int enkf_nomeanupdate;
+extern int enkf_fstatsonly;
 
 #define _DEFINITIONS_H
 #endif

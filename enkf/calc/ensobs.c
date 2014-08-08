@@ -35,7 +35,7 @@
 
 /**
  */
-void das_getHE(dasystem* das, int fstatsonly)
+void das_getHE(dasystem* das)
 {
     observations* obs = das->obs;
     model* m = das->m;
@@ -43,15 +43,15 @@ void das_getHE(dasystem* das, int fstatsonly)
     int ni, nj, nk;
     int i, e;
 
+    if (obs->nobs == 0)
+        return;
+
     model_getdims(m, &ni, &nj, &nk);
 
     if (das->nmem <= 0)
         das_getnmem(das);
     enkf_printf("    ensemble size = %d\n", das->nmem);
     assert(das->nmem > 0);
-
-    if (obs->nobs == 0)
-        return;
 
     distribute_iterations(0, das->nmem - 1, nprocesses, rank);
 
@@ -92,11 +92,11 @@ void das_getHE(dasystem* das, int fstatsonly)
 
             for (t = t1; t <= t2; ++t) {
                 enkf_printf("|");
-                obs_find_bytypeandtime(obs, i, t, &nobs, &obsids, fstatsonly);
+                obs_find_bytypeandtime(obs, i, t, &nobs, &obsids);
                 if (nobs == 0)
                     continue;
 
-                if (das->mode == MODE_ENKF || !fstatsonly) {
+                if (das->mode == MODE_ENKF || !enkf_fstatsonly) {
                     for (e = my_first_iteration; e <= my_last_iteration; ++e) {
                         int success = model_getmemberfname_async(m, das->ensdir, ot->varname, ot->name, e + 1, t, fname);
 
@@ -123,11 +123,11 @@ void das_getHE(dasystem* das, int fstatsonly)
                 free(obsids);
             }
         } else {
-            obs_find_bytype(obs, i, &nobs, &obsids, fstatsonly);
+            obs_find_bytype(obs, i, &nobs, &obsids);
             if (nobs == 0)
                 goto next;
 
-            if (das->mode == MODE_ENKF || !fstatsonly) {
+            if (das->mode == MODE_ENKF || !enkf_fstatsonly) {
                 for (e = my_first_iteration; e <= my_last_iteration; ++e) {
                     model_getmemberfname(m, das->ensdir, ot->varname, e + 1, fname);
                     H(das, nobs, obsids, fname, e + 1, MAXINT, ot->varname, (ot->issurface) ? (void*) vv : (void*) vvv, das->S[e]);
@@ -162,7 +162,7 @@ void das_getHE(dasystem* das, int fstatsonly)
     }                           /* for i (over obstypes) */
 
 #if defined(MPI)
-    if (das->mode == MODE_ENKF || !fstatsonly) {
+    if (das->mode == MODE_ENKF || !enkf_fstatsonly) {
 #if !defined(HE_VIAFILE)
         /*
          * communicate HE via MPI
@@ -248,7 +248,7 @@ void das_getHE(dasystem* das, int fstatsonly)
         /*
          * subtract ensemble mean; add background
          */
-        if (!fstatsonly) {
+        if (!enkf_fstatsonly) {
             double* ensmean = calloc(obs->nobs, sizeof(double));
 
             for (e = 0; e < das->nmem; ++e) {

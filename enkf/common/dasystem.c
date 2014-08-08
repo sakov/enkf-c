@@ -52,7 +52,8 @@ dasystem* das_create(enkfprm* prm)
     das->mode = prm->mode;
     das->scheme = prm->scheme;
     das->target = prm->target;
-    das->ensdir = strdup(prm->ensdir);
+    if (das->mode == MODE_ENKF || !enkf_fstatsonly)
+        das->ensdir = strdup(prm->ensdir);
     if (prm->bgdir != NULL)
         das->bgdir = strdup(prm->bgdir);
     else
@@ -68,12 +69,15 @@ dasystem* das_create(enkfprm* prm)
     das->std_f = NULL;
     das->s_a = NULL;
     das->std_a = NULL;
-    das->kfactor = prm->kfactor;
-    das->locrad = prm->locrad;
-    das->stride = prm->stride;
+    if (!enkf_fstatsonly) {
+        das->kfactor = prm->kfactor;
+        das->locrad = prm->locrad;
+        das->stride = prm->stride;
+    }
     das->nfields = 0;
     das->fields = NULL;
-    das->fieldbufsize = prm->fieldbufsize;
+    if (!enkf_fstatsonly)
+        das->fieldbufsize = prm->fieldbufsize;
 
     das->nregions = prm->nregions;
     if (das->nregions > 0)
@@ -223,6 +227,17 @@ void das_getnmem(dasystem* das)
 {
     model* m = das->m;
     int nvar = model_getnvar(m);
+
+    if (das->mode == MODE_NONE)
+        enkf_quit("programming error");
+
+    if (das->mode == MODE_ENOI && enkf_fstatsonly) {
+        das->nmem = 1;
+        return;
+    }
+
+    if (das->ensdir == NULL)
+        enkf_quit("programming error");
 
     das->nmem = 0;
     while (1) {

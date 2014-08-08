@@ -24,7 +24,6 @@
 #include "enkfprm.h"
 #include "dasystem.h"
 
-int fstatsonly = 0;
 observation* singleob = NULL;
 int singleob_ijk = 1;
 char* singleobtype = NULL;
@@ -87,7 +86,7 @@ static void parse_commandline(int argc, char* argv[], char** fname_prm, char** f
             i++;
             continue;
         } else if (strncmp(argv[i], "--single-observation", strlen("--single-observation")) == 0) {
-            if (fstatsonly)
+            if (enkf_fstatsonly)
                 enkf_quit("\"--single-observation-xyz\" or \"--single-observation-ijk\" is not compatible with \"forecast-stats-only\"");
             if (*fname_obs != NULL)
                 enkf_quit("\"--single-observation-xyz\" or \"--single-observation-ijk\" is not compatible with \"use-these-obs\"");
@@ -145,7 +144,7 @@ static void parse_commandline(int argc, char* argv[], char** fname_prm, char** f
         } else if (strcmp(argv[i], "--forecast-stats-only") == 0) {
             if (singleob != NULL)
                 enkf_quit("command line: \"--forecast-stats-only\" is not compatible with \"--single-observation-ijk\" or \"--single-observation-xyz\"");
-            fstatsonly = 1;
+            enkf_fstatsonly = 1;
             i++;
             continue;
         } else if (strcmp(argv[i], "--version") == 0) {
@@ -290,7 +289,7 @@ int main(int argc, char* argv[])
 
     enkf_printf("  calculating ensemble observations:\n");
     enkf_printtime("  ");
-    das_getHE(das, fstatsonly);
+    das_getHE(das);
     das_calcinnandspread(das);
 
     if (singleob == NULL) {
@@ -299,7 +298,7 @@ int main(int argc, char* argv[])
         das_addforecast(das, fname_obs);
     }
 
-    if (!fstatsonly) {
+    if (!enkf_fstatsonly) {
         if (singleob == NULL) {
             enkf_printf("  moderating observations:\n");
             das_moderateobs(das);

@@ -964,11 +964,11 @@ void obs_superob(observations* obs, __compar_d_fn_t cmp_obs, observations** sobs
 
 /**
  */
-void obs_find_bytype(observations* obs, int type, int* nobs, int** obsids, int fstatsonly)
+void obs_find_bytype(observations* obs, int type, int* nobs, int** obsids)
 {
     int i;
 
-    if (!fstatsonly)
+    if (!enkf_fstatsonly)
         assert(obs->obstypes[type].nobs == obs->obstypes[type].ngood);
 
     *nobs = 0;
@@ -993,12 +993,12 @@ void obs_find_bytype(observations* obs, int type, int* nobs, int** obsids, int f
 
 /**
  */
-void obs_find_bytypeandtime(observations* obs, int type, int time, int* nobs, int** obsids, int fstatsonly)
+void obs_find_bytypeandtime(observations* obs, int type, int time, int* nobs, int** obsids)
 {
     double tstep = obs->obstypes[type].async_tstep;
     int i;
 
-    if (!fstatsonly)
+    if (!enkf_fstatsonly)
         assert(obs->obstypes[type].nobs == obs->obstypes[type].ngood);
 
     *nobs = 0;

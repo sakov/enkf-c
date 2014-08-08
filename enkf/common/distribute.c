@@ -83,8 +83,7 @@ void distribute_iterations(int i1, int i2, int nproc, int rank)
         for (i = j; i < nproc; ++i)
             number_of_iterations[i] = (int) npp;
         assert(j * ((int) npp + 1) + (nproc - j) * (int) npp == n);
-        if (n < nproc)
-            enkf_quit("distribute_iterations(): number of elements less than number of processors");
+        enkf_printf("      processes get %d or %d iterations\n", number_of_iterations[0], number_of_iterations[nproc - 1]);
     }
 #if defined(MPI)
     fflush(stdout);

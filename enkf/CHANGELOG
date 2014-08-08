@@ -1,3 +1,9 @@
+v. 0.64
+   PS 08082014
+   -- Removed exit by error in distribbute_iterations() in case when the number
+      of iterations is less than the number of CPUs, seems to work fine
+   -- Replaced enkf_calc.c::int fstatsonly by global.c::int enkf_fstatsonly.
+   -- Added a new target "stats" to example/1.
 v. 0.63
    PS 06082014
    -- Removed field `dasystem.Hx'.
