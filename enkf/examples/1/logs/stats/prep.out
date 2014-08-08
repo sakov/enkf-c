@@ -1,32 +1,31 @@
   running PREP for EnKF version 0.64:
-  2014-08-08 15:14:41
-  reading prep specs from "enkf.prm":
-    MODE = EnKF
-    SCHEME = DEnKF
+  2014-08-08 15:16:41
+  reading prep specs from "stats.prm":
+    MODE = EnOI
     OBS = "obs.prm"
     DATE = "6565.5 days since 1990-01-01"
     MODEL PRM = "model.prm"
     GRID PRM = "grid.prm"
-    ENSEMBLE DIR = "ensemble_6565"
-    ENSEMBLE SIZE = 96
+    BGDIR = "background_6565"
+    ENSEMBLE DIR = "(null)"
+    ENSEMBLE SIZE = <FULL>
     VARNAMES = eta_t temp salt u v
     OBS2VAR = { SST temp } { SLA eta_t } { TEM temp } { SAL salt }
     HFUNCTIONS = { SST standard } { SLA standard } { TEM standard } { SAL standard }
-    KFACTOR = 999.0
+    KFACTOR = n/a
     RFACTOR SST = 1.0
     RFACTOR SLA = 1.0
     RFACTOR TEM = 1.0
     RFACTOR SAL = 1.0
-    LOCRAD = 200
-    STRIDE = 3
-    FIELDBUFFERSIZE = 4
+    LOCRAD = nan
+    STRIDE = 1
+    FIELDBUFFERSIZE = 1
     INFLATION eta_t = 1.000
     INFLATION temp = 1.000
     INFLATION salt = 1.000
     INFLATION u = 1.000
     INFLATION v = 1.000
     REGION Global: lon = [0.0, 360.0], lat = [-90.0, 90.0]
-    POINTLOG 30 30
     SOBSTRIDE = 1
     EnKF flags:
       enkf_exitaction  = [BACKTRACE]
@@ -113,10 +112,10 @@
       reading obs/RADS-IB/y2007/m12/j1_d19.nc:
         nobs = 50386
         error_std = 0.03
-      reading obs/RADS-IB/y2007/mls: cannot access obs/WINDSAT/windsat_20071221.nc: No such file or directory
+      reading obs/RADS-IB/y2007/m12/n1_d19.ncls: cannot access obs/WINDSAT/windsat_20071221.nc: No such file or directory
 ls: cannot access obs/WINDSAT/windsat_20071222.nc: No such file or directory
 ls: cannot access obs/WINDSAT/windsat_20071223.nc: No such file or directory
-12/n1_d19.nc:
+:
         nobs = 40491
         error_std = 0.05
       reading obs/RADS-IB/y2007/m12/e2_d20.nc:
@@ -255,5 +254,5 @@ ls: cannot access obs/WINDSAT/windsat_20071223.nc: No such file or directory
     TEM     288        0          0          0          0          0          0          10        
     SAL     288        0          0          0          0          0          0          10        
     total   9958       8          0          0          8          0          0          3927      
-  2014-08-08 15:14:41
+  2014-08-08 15:16:42
   finished

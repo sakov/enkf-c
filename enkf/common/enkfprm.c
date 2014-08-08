@@ -44,20 +44,25 @@ static void enkfprm_check(enkfprm* prm)
         enkf_quit("%s: MODEL not specified", prm->fname);
     if (prm->gridprm == NULL)
         enkf_quit("%s: GRID not specified", prm->fname);
-    if (prm->ensdir == NULL)
+#if defined(ENKF_CALC) || defined(ENKF_POST)
+    if (prm->ensdir == NULL && (prm->mode == MODE_ENKF || !enkf_fstatsonly))
         enkf_quit("%s: ENSDIR not specified", prm->fname);
+#endif
     if (prm->mode == MODE_ENOI && prm->bgdir == NULL)
         enkf_quit("%s: BGDIR must be specified for MODE = ENOI", prm->fname);
     if (prm->ntypes == 0)
         enkf_quit("%s: no observations types specified (check OBS2VAR tag)");
-    if (!isfinite(prm->locrad))
+#if defined(ENKF_CALC)
+    if (!isfinite(prm->locrad) && !enkf_fstatsonly)
         enkf_quit("%s: LOCRAD not specified", prm->fname);
-
+#endif
     for (i = 0; i < prm->ntypes; ++i) {
         if (prm->varnames[i] == NULL)
             enkf_quit("%s: no model variable specified for observation type \"%s\" (tag OBS2VAR)", prm->fname, prm->types[i]);
+#if defined(ENKF_CALC)
         if (prm->hfunctions[i] == NULL)
             enkf_quit("%s: no H functions specified for observation type \"%s\" (tag HFUNCTIONS)", prm->fname, prm->types[i]);
+#endif
     }
 }
 
@@ -512,11 +517,13 @@ void enkfprm_print(enkfprm* prm, char offset[])
 
     if (prm->mode == MODE_ENOI)
         enkf_printf("%sBGDIR = \"%s\"\n", offset, prm->bgdir);
-    enkf_printf("%sENSEMBLE DIR = \"%s\"\n", offset, prm->ensdir);
-    if (prm->enssize > 0)
-        enkf_printf("%sENSEMBLE SIZE = %d\n", offset, prm->enssize);
-    else
-        enkf_printf("%sENSEMBLE SIZE = <FULL>\n", offset);
+    if (prm->mode == MODE_ENKF || !enkf_fstatsonly) {
+        enkf_printf("%sENSEMBLE DIR = \"%s\"\n", offset, prm->ensdir);
+        if (prm->enssize > 0)
+            enkf_printf("%sENSEMBLE SIZE = %d\n", offset, prm->enssize);
+        else
+            enkf_printf("%sENSEMBLE SIZE = <FULL>\n", offset);
+    }
     if (prm->nvar > 0) {
         enkf_printf("%sVARNAMES =", offset);
         for (i = 0; i < prm->nvar; ++i)
@@ -533,26 +540,30 @@ void enkfprm_print(enkfprm* prm, char offset[])
             enkf_printf(" { %s %s }", prm->types[i], prm->hfunctions[i]);
         enkf_printf("\n");
     }
-    if (isfinite(prm->kfactor))
-        enkf_printf("%sKFACTOR = %.1f\n", offset, prm->kfactor);
-    else
-        enkf_printf("%sKFACTOR = n/a\n", offset);
-    for (i = 0; i < prm->ntypes; ++i)
-        enkf_printf("%sRFACTOR %s = %.1f\n", offset, prm->types[i], prm->rfactors[i]);
-    enkf_printf("%sLOCRAD = %.0f\n", offset, prm->locrad);
-    enkf_printf("%sSTRIDE = %d\n", offset, prm->stride);
-    enkf_printf("%sFIELDBUFFERSIZE = %d\n", offset, prm->fieldbufsize);
-    for (i = 0; i < prm->nvar; ++i)
-        enkf_printf("%sINFLATION %s = %.3f\n", offset, prm->varnames[i], prm->inflations[i]);
+    if (!enkf_fstatsonly) {
+        if (isfinite(prm->kfactor))
+            enkf_printf("%sKFACTOR = %.1f\n", offset, prm->kfactor);
+        else
+            enkf_printf("%sKFACTOR = n/a\n", offset);
+        for (i = 0; i < prm->ntypes; ++i)
+            enkf_printf("%sRFACTOR %s = %.1f\n", offset, prm->types[i], prm->rfactors[i]);
+        enkf_printf("%sLOCRAD = %.0f\n", offset, prm->locrad);
+        enkf_printf("%sSTRIDE = %d\n", offset, prm->stride);
+        enkf_printf("%sFIELDBUFFERSIZE = %d\n", offset, prm->fieldbufsize);
+        for (i = 0; i < prm->nvar; ++i)
+            enkf_printf("%sINFLATION %s = %.3f\n", offset, prm->varnames[i], prm->inflations[i]);
+    }
     for (i = 0; i < prm->nregions; ++i) {
         region* r = &prm->regions[i];
 
         enkf_printf("%sREGION %s: lon = [%.1f, %.1f], lat = [%.1f, %.1f]\n", offset, r->name, r->lon1, r->lon2, r->lat1, r->lat2);
     }
-    for (i = 0; i < prm->nplogs; ++i) {
-        pointlog* plog = &prm->plogs[i];
+    if (!enkf_fstatsonly) {
+        for (i = 0; i < prm->nplogs; ++i) {
+            pointlog* plog = &prm->plogs[i];
 
-        enkf_printf("%sPOINTLOG %d %d\n", offset, plog->i, plog->j);
+            enkf_printf("%sPOINTLOG %d %d\n", offset, plog->i, plog->j);
+        }
     }
     enkf_printf("%sSOBSTRIDE = %d\n", offset, prm->sob_stride);
     for (i = 0; i < prm->nbadbatchspecs; ++i) {

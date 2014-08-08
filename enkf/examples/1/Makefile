@@ -5,7 +5,9 @@ enoi: clean enoi-prep enoi-calc enoi-post
 
 enkf: clean enkf-prep enkf-calc enkf-post
 
-enoi-prep: enkf_prep conf obs
+stats: clean stats-prep stats-calc
+
+enoi-prep: enkf_prep conf obs enoi.prm
 	./enkf_prep enoi.prm 2>&1 | tee prep.out
 
 enoi-calc: enkf_calc observations.nc conf background_6565 ensemble_static
@@ -14,7 +16,7 @@ enoi-calc: enkf_calc observations.nc conf background_6565 ensemble_static
 enoi-post: enkf_post w.nc conf background_6565 ensemble_static
 	nice -n +19 mpirun -np $(NP_POST) ./enkf_post --separate-output --calculate-spread enoi.prm 2>&1 | tee post.out
 
-enkf-prep: enkf_prep conf obs
+enkf-prep: enkf_prep conf obs enkf.prm
 	./enkf_prep enkf.prm 2>&1 | tee prep.out
 
 enkf-calc: enkf_calc observations.nc conf ensemble_6565
@@ -23,6 +25,12 @@ enkf-calc: enkf_calc observations.nc conf ensemble_6565
 enkf-post: enkf_post X5.nc conf ensemble_6565
 	nice -n +19 mpirun -np $(NP_POST) ./enkf_post --separate-output --calculate-spread enkf.prm 2>&1 | tee post.out
 	rm -f ensemble_6565/mem*_*-???.nc
+
+stats-prep: enkf_prep conf obs stats.prm
+	./enkf_prep stats.prm 2>&1 | tee prep.out
+
+stats-calc: enkf_calc observations.nc conf background_6565
+	nice -n +19 mpirun -np $(NP_CALC) ./enkf_calc stats.prm --forecast-stats-only 2>&1 | tee calc.out
 
 enkf_prep:
 	cp ../../bin/enkf_prep .

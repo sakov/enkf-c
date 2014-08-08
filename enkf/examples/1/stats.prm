@@ -1,0 +1,14 @@
+MODE = EnOI
+BGDIR = background_6565
+
+MODEL = model.prm
+GRID = grid.prm
+
+OBS = obs.prm
+DATE = 6565.5 days since 1990-01-01
+
+VARNAMES = eta_t temp salt u v
+OBS2VAR = SST temp SLA eta_t TEM temp SAL salt
+HFUNCTIONS = SST standard SLA standard TEM standard SAL standard
+
+REGION Global   0   360   -90     90

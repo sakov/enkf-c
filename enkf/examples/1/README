@@ -7,7 +7,7 @@ Note that to reduce the example size
 (1) the grid has been reduced to 100 x 100 x 2
 (3) global NAVO SST observations has been cut to regional observations only
 
-PRE-REQUISITIVES:
+PRE-REQUISITIVES
 
 1. To run this example you need to download example1-data.tar.gz from 
 
@@ -21,17 +21,23 @@ and unpack in this directory.
 3. You may wish to adjust NP_CALC and NP_POST in Makefile according to the 
 number of cores on your machine.
 
-Testing EnKF:
+TESTING ENKF
 
 To assimilate with the EnKF, run "make enkf".
 The analysed ensemble members will be of the form 
 ensemble_6565/mem<num>_<var>.nc.analysis, where <num> is the member id, between
 001 and 096, and <var> is one of the state variables: eta_t, temp, salt, u or v.
 
-Testing EnOI:
+TESTING ENOI
 
 To assimilate with the EnOI, run "make enoi". The analysis will be of the form
 background/bg_<var>.nc.analysis.
+
+TESTING MODEL VALIDATION
+
+Testing using EnKF-C for for validating a model against observations only, without data assimilation, run "make stats". The innovation statistics will be 
+printed to the log of enkf_calc.
+
 
 To clean up the analysis, run "make clean".
 

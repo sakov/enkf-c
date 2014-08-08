@@ -1,5 +1,5 @@
-  running PREP for EnKF version 0.50:
-  2014-07-09 10:44:16
+  running PREP for EnKF version 0.64:
+  2014-08-08 15:13:54
   reading prep specs from "enoi.prm":
     MODE = EnOI
     OBS = "obs.prm"
@@ -244,16 +244,16 @@ ADS-IB/y2007/m12/n1_d19.nc:
     calculating obs stats:
   writing observations to "observations-orig.nc":
   superobing:
-    3927 superoobservations
+    3927 superobservations
     calculating obs stats:
   writing superobservations to "observations.nc":
   printing observation statistics:
-    type    # used     # dropped  # outside  # land     # shallow  # badvalue # superobs.
+    type    # used     # dropped  # outside  # land     # shallow  # badbatch # badvalue # superobs.
     ----------------------------------------------------------------------------------------
-    SST     8384       0          0          0          0          0          3255      
-    SLA     998        8          0          0          8          0          652       
-    TEM     288        0          0          0          0          0          10        
-    SAL     288        0          0          0          0          0          10        
-    total   9958       8          0          0          8          0          3927      
-  2014-07-09 10:44:16
+    SST     8384       0          0          0          0          0          0          3255      
+    SLA     998        8          0          0          8          0          0          652       
+    TEM     288        0          0          0          0          0          0          10        
+    SAL     288        0          0          0          0          0          0          10        
+    total   9958       8          0          0          8          0          0          3927      
+  2014-08-08 15:13:55
   finished

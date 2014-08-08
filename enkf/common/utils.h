@@ -17,8 +17,6 @@
 
 #include <unistd.h>
 
-extern int enkf_verbose;
-
 void enkf_init(int* argc, char*** argv);
 void enkf_finish(void);
 void enkf_quit(char* format, ...);

@@ -1,0 +1,88 @@
+  MPI: initialised 2 processes
+  MPI: rank = 0, PID = 8318
+  MPI: rank = 1, PID = 8319
+  running CALC for EnKF version 0.64:
+  2014-08-08 15:16:42
+  reading system specs from "stats.prm":
+    MODE = EnOI
+    OBS = "obs.prm"
+    DATE = "6565.5 days since 1990-01-01"
+    MODEL PRM = "model.prm"
+    GRID PRM = "grid.prm"
+    BGDIR = "background_6565"
+    VARNAMES = eta_t temp salt u v
+    OBS2VAR = { SST temp } { SLA eta_t } { TEM temp } { SAL salt }
+    HFUNCTIONS = { SST standard } { SLA standard } { TEM standard } { SAL standard }
+    REGION Global: lon = [0.0, 360.0], lat = [-90.0, 90.0]
+    SOBSTRIDE = 1
+    EnKF flags:
+      enkf_exitaction  = [BACKTRACE]
+      enkf_obstype     = [VALUE]
+      enkf_separateout = [-]
+      enkf_directwrite = [-]
+    compile flags:
+      CHECK_X5         = [-]
+      CHECK_G          = [-]
+      SHUFFLE_ROWS     = [-]
+      HE_VIAFILE       = [-]
+  initialising the system:
+    grid dimensions = 100 x 100 x 2
+  grid prm info:
+    name = "t-grid"
+    file = "conf/grid_spec.nc"
+    xdimname = "grid_x_T"
+    ydimname = "grid_y_T"
+    zdimname = "zt"
+    xvarname = "grid_x_T"
+    yvarname = "grid_y_T"
+    zvarname = "zt"
+    depthvarname = "depth_t"
+    numlevelsvarname = "num_levels"
+  grid info:
+    type = LATLON_REGULAR
+    periodic by X = no
+    periodic by Y = no
+    dims = 100 x 100 x 2
+    longitude range = [0, 360]
+  model info:
+    name = Tasman
+    type = z-model
+    MSL file = conf/eta_mean-bran.nc
+    MSL variable = eta_t
+  reading observations from "observations.nc":
+    3927 observations
+    calculating obs stats:
+  calculating ensemble observations:
+  2014-08-08 15:16:42
+    ensemble size = 1
+    distributing iterations:
+      processes get 1 or 0 iterations
+      process 0: 0 - 0
+    SST +
+    SLA +
+    TEM +
+    SAL +
+  adding forecast innovations and spread to "observations.nc":
+  2014-08-08 15:16:42
+  printing observation statistics:
+    region obs.type   # obs.  |for.inn.| for.inn.
+    ---------------------------------------------
+    Global
+           SST          3255    0.461     -0.244  
+             AVHRR      2087    0.467     -0.217  
+             WindSat     847    0.472     -0.307  
+             N/A         321    0.393     -0.252  
+           SLA           652    0.082      0.027  
+             j1          250    0.087      0.041  
+             n1          382    0.077      0.015  
+             N/A          20    0.095      0.085  
+           TEM            10    4.322     -3.283  
+             ARGO         10    4.322     -3.283  
+             0-50m         0     -nan       -nan  
+             >500m         4    7.825     -7.825  
+           SAL            10    0.371     -0.241  
+             ARGO         10    0.371     -0.241  
+             0-50m         0     -nan       -nan  
+             >500m         4    0.655     -0.655  
+  2014-08-08 15:16:42
+  finished
