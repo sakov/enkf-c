@@ -33,8 +33,7 @@ int* last_iteration = NULL;
 
 void distribute_iterations(int i1, int i2, int nproc, int rank)
 {
-    double nproc_dbl, npp;
-    int n, i, j;
+    int n, npp, i, j;
 
 #if defined(MPI)
     fflush(stdout);
@@ -54,12 +53,10 @@ void distribute_iterations(int i1, int i2, int nproc, int rank)
     MPI_Barrier(MPI_COMM_WORLD);
 #endif
 
-    nproc_dbl = (double) nproc;
     n = i2 - i1 + 1;
-    npp = (double) n / nproc_dbl;
-
+    npp = n / nproc;
     j = -1;
-    if (floor(npp) == npp) {
+    if (n % nproc == 0) {
         my_number_of_iterations = n / nproc;
         for (i = 0; i < nproc; ++i)
             number_of_iterations[i] = my_number_of_iterations;
@@ -67,22 +64,22 @@ void distribute_iterations(int i1, int i2, int nproc, int rank)
         j = nproc;
     } else {
         for (i = 1; i < nproc; ++i) {
-            if (i * ((int) npp + 1) + (nproc - i) * (int) npp == n) {
+            if (i * (npp + 1) + (nproc - i) * npp == n) {
                 j = i;
                 break;
             }
         }
 
         if (rank < j)
-            my_number_of_iterations = (int) npp + 1;
+            my_number_of_iterations = npp + 1;
         else
-            my_number_of_iterations = (int) npp;
+            my_number_of_iterations = npp;
 
         for (i = 0; i < j; ++i)
-            number_of_iterations[i] = (int) npp + 1;
+            number_of_iterations[i] = npp + 1;
         for (i = j; i < nproc; ++i)
-            number_of_iterations[i] = (int) npp;
-        assert(j * ((int) npp + 1) + (nproc - j) * (int) npp == n);
+            number_of_iterations[i] = npp;
+        assert(j * (npp + 1) + (nproc - j) * npp == n);
         enkf_printf("      processes get %d or %d iterations\n", number_of_iterations[0], number_of_iterations[nproc - 1]);
     }
 #if defined(MPI)
@@ -115,6 +112,12 @@ void distribute_free(void)
     if (number_of_iterations == NULL)
         return;
     free(number_of_iterations);
+    number_of_iterations = NULL;
     free(first_iteration);
+    first_iteration = NULL;
     free(last_iteration);
+    last_iteration = NULL;
+    my_number_of_iterations = -1;
+    my_first_iteration = -1;
+    my_last_iteration = -1;
 }
