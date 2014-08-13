@@ -1,3 +1,10 @@
+v. 0.66
+   PS 13082014
+   -- Made a small correction in readers.
+   -- Merged das_create() for calc and post. Added creation of pointlogs for
+      post.
+   -- Swapped dimensions for S in plog_write().
+   -- Introduced field `struct observation.nallocated'.
 v. 0.65
    PS 09082014
    -- Eliminated potentially architechture dependent operations with floating

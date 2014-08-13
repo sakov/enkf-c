@@ -101,6 +101,7 @@ observations* obs_create(void)
     obs->da_date = NaN;
     obs->datestr = NULL;
     obs->allobs = 0;
+    obs->nallocated = 0;
     obs->nobs = 0;
     obs->data = NULL;
     obs->compacted = 0;
@@ -152,7 +153,8 @@ observations* obs_create_fromprm(enkfprm* prm)
                 break;
             }
         }
-        assert(issurface >= 0);
+        if (issurface < 0)
+            enkf_quit("observation type \"%s\" not described in observations.c::otdescs", prm->types[i]);
 
         obs_addtype(obs, prm->types[i], issurface, prm->typevars[i], prm->hfunctions[i], prm->rfactors[i], isasync, tstep);
     }

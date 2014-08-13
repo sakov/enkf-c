@@ -62,8 +62,10 @@ void reader_navo_standard(char* fname, int fid, obsmeta* meta, model* m, observa
     ncw_inq_dimlen(fname, ncid, dimid_nobs, &nobs_local);
     enkf_printf("        nobs = %u\n", (unsigned int) nobs_local);
 
-    if (nobs_local == 0)
+    if (nobs_local == 0) {
+        ncw_close(fname, ncid);
         return;
+    }
 
     ncw_inq_varid(fname, ncid, "lon", &varid_lon);
     lon = malloc(nobs_local * sizeof(double));
@@ -104,10 +106,11 @@ void reader_navo_standard(char* fname, int fid, obsmeta* meta, model* m, observa
     for (i = 0; i < (int) nobs_local; ++i) {
         observation* o;
 
-        if (obs->nobs % NOBS_INC == 0) {
+        if (obs->nobs == obs->nallocated) {
             obs->data = realloc(obs->data, (obs->nobs + NOBS_INC) * sizeof(observation));
             if (obs->data == NULL)
                 enkf_quit("not enough memory");
+            obs->nallocated += NOBS_INC;
         }
 
         o = &obs->data[obs->nobs];
