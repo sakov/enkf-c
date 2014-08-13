@@ -15,11 +15,14 @@
 
 #include <stdlib.h>
 #include <stdio.h>
+#include <assert.h>
 #include "definitions.h"
 #include "utils.h"
 #include "dasystem.h"
 #include "pointlog.h"
 
+/**
+ */
 void plog_write(dasystem* das, int i, int j, double lon, double lat, double depth, int p, int* lobs, double* lcoeffs, double* s, double* S, double* transform)
 {
     observations* obs = das->obs;
@@ -42,24 +45,26 @@ void plog_write(dasystem* das, int i, int j, double lon, double lat, double dept
 
     int ot, oid;
 
+    assert(das->s_mode == S_MODE_S_f);
+
     sprintf(fname, "pointlog_%d,%d.nc", i, j);
     ncw_create(fname, NC_CLOBBER | NC_64BIT_OFFSET, &ncid);
-    ncw_def_dim(fname, ncid, "p", p, &dimids[0]);
-    ncw_def_dim(fname, ncid, "m", das->nmem, &dimids[1]);
+    ncw_def_dim(fname, ncid, "m", das->nmem, &dimids[0]);
+    ncw_def_dim(fname, ncid, "p", p, &dimids[1]);
     if (p > 0) {
-        ncw_def_var(fname, ncid, "obs_ids", NC_INT, 1, &dimids[0], &vid_ids);
-        ncw_def_var(fname, ncid, "lcoeffs", NC_FLOAT, 1, &dimids[0], &vid_lcoeffs);
-        ncw_def_var(fname, ncid, "lon", NC_FLOAT, 1, &dimids[0], &vid_lon);
-        ncw_def_var(fname, ncid, "lat", NC_FLOAT, 1, &dimids[0], &vid_lat);
-        ncw_def_var(fname, ncid, "depth", NC_FLOAT, 1, &dimids[0], &vid_depth);
-        ncw_def_var(fname, ncid, "obs_val", NC_FLOAT, 1, &dimids[0], &vid_val);
-        ncw_def_var(fname, ncid, "obs_std", NC_FLOAT, 1, &dimids[0], &vid_std);
-        ncw_def_var(fname, ncid, "obs_fi", NC_FLOAT, 1, &dimids[0], &vid_fi);
-        ncw_def_var(fname, ncid, "obs_fj", NC_FLOAT, 1, &dimids[0], &vid_fj);
-        ncw_def_var(fname, ncid, "obs_fk", NC_FLOAT, 1, &dimids[0], &vid_fk);
-        ncw_def_var(fname, ncid, "obs_type", NC_INT, 1, &dimids[0], &vid_type);
-        ncw_def_var(fname, ncid, "obs_date", NC_FLOAT, 1, &dimids[0], &vid_date);
-        ncw_def_var(fname, ncid, "s", NC_FLOAT, 1, &dimids[0], &vid_s);
+        ncw_def_var(fname, ncid, "obs_ids", NC_INT, 1, &dimids[1], &vid_ids);
+        ncw_def_var(fname, ncid, "lcoeffs", NC_FLOAT, 1, &dimids[1], &vid_lcoeffs);
+        ncw_def_var(fname, ncid, "lon", NC_FLOAT, 1, &dimids[1], &vid_lon);
+        ncw_def_var(fname, ncid, "lat", NC_FLOAT, 1, &dimids[1], &vid_lat);
+        ncw_def_var(fname, ncid, "depth", NC_FLOAT, 1, &dimids[1], &vid_depth);
+        ncw_def_var(fname, ncid, "obs_val", NC_FLOAT, 1, &dimids[1], &vid_val);
+        ncw_def_var(fname, ncid, "obs_std", NC_FLOAT, 1, &dimids[1], &vid_std);
+        ncw_def_var(fname, ncid, "obs_fi", NC_FLOAT, 1, &dimids[1], &vid_fi);
+        ncw_def_var(fname, ncid, "obs_fj", NC_FLOAT, 1, &dimids[1], &vid_fj);
+        ncw_def_var(fname, ncid, "obs_fk", NC_FLOAT, 1, &dimids[1], &vid_fk);
+        ncw_def_var(fname, ncid, "obs_type", NC_INT, 1, &dimids[1], &vid_type);
+        ncw_def_var(fname, ncid, "obs_date", NC_FLOAT, 1, &dimids[1], &vid_date);
+        ncw_def_var(fname, ncid, "s", NC_FLOAT, 1, &dimids[1], &vid_s);
         ncw_def_var(fname, ncid, "S", NC_FLOAT, 2, dimids, &vid_S);
         sprintf(tunits, "days from %s", obs->datestr);
         ncw_put_att_text(fname, ncid, vid_date, "units", tunits);
@@ -72,10 +77,10 @@ void plog_write(dasystem* das, int i, int j, double lon, double lat, double dept
         }
     }
     if (das->mode == MODE_ENKF) {
-        dimids[0] = dimids[1];
+        dimids[1] = dimids[0];
         ncw_def_var(fname, ncid, "X5", NC_DOUBLE, 2, dimids, &vid_transform);
     } else if (das->mode == MODE_ENOI) {
-        ncw_def_var(fname, ncid, "w", NC_DOUBLE, 1, &dimids[1], &vid_transform);
+        ncw_def_var(fname, ncid, "w", NC_DOUBLE, 1, &dimids[0], &vid_transform);
     }
     ncw_put_att_text(fname, ncid, NC_GLOBAL, "date", obs->datestr);
     ncw_put_att_int(fname, ncid, NC_GLOBAL, "i", 1, &i);

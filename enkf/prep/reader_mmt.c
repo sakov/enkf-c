@@ -74,8 +74,10 @@ void reader_mmt_standard(char* fname, int fid, obsmeta* meta, model* m, observat
     ncw_inq_dimlen(fname, ncid, dimid_nz, &nz);
     enkf_printf("        # profiles = %u\n", (unsigned int) nprof);
 
-    if (nprof == 0)
+    if (nprof == 0) {
+        ncw_close(fname, ncid);
         return;
+    }
 
     enkf_printf("        # z levels = %u\n", (unsigned int) nz);
 
@@ -139,10 +141,11 @@ void reader_mmt_standard(char* fname, int fid, obsmeta* meta, model* m, observat
             if (z[p][i] < 0.0)
                 continue;
 
-            if (obs->nobs % NOBS_INC == 0) {
+            if (obs->nobs == obs->nallocated) {
                 obs->data = realloc(obs->data, (obs->nobs + NOBS_INC) * sizeof(observation));
                 if (obs->data == NULL)
                     enkf_quit("not enough memory");
+                obs->nallocated += NOBS_INC;
             }
 
             o = &obs->data[obs->nobs];

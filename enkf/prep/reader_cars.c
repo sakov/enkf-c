@@ -67,8 +67,10 @@ void reader_cars_standard(char* fname, int fid, obsmeta* meta, model* m, observa
     ncw_inq_dimid(fname, ncid, "nobs", &dimid_nprof);
     ncw_inq_dimlen(fname, ncid, dimid_nprof, &nprof);
     enkf_printf("        # profiles = %u\n", (unsigned int) nprof);
-    if (nprof == 0)
+    if (nprof == 0) {
+        ncw_close(fname, ncid);
         return;
+    }
 
     ncw_inq_dimid(fname, ncid, "zt", &dimid_nz);
     ncw_inq_dimlen(fname, ncid, dimid_nz, &nz);
@@ -141,10 +143,11 @@ void reader_cars_standard(char* fname, int fid, obsmeta* meta, model* m, observa
             if (fabs(v[p][i] - missval) < EPS || v[p][i] < validmin || v[p][i] > validmax)
                 continue;
 
-            if (obs->nobs % NOBS_INC == 0) {
+            if (obs->nobs == obs->nallocated) {
                 obs->data = realloc(obs->data, (obs->nobs + NOBS_INC) * sizeof(observation));
                 if (obs->data == NULL)
                     enkf_quit("not enough memory");
+                obs->nallocated += NOBS_INC;
             }
 
             o = &obs->data[obs->nobs];

@@ -40,12 +40,11 @@
 #define NFIELDS_INC 100
 #define MPIIDOFFSET 10000
 
-#if defined(ENKF_CALC)
 /**
  */
 dasystem* das_create(enkfprm* prm)
 {
-    dasystem* das = malloc(sizeof(dasystem));
+    dasystem* das = calloc(1, sizeof(dasystem));
     int i;
 
     das->prmfname = strdup(prm->fname);
@@ -56,10 +55,10 @@ dasystem* das_create(enkfprm* prm)
         das->ensdir = strdup(prm->ensdir);
     if (prm->bgdir != NULL)
         das->bgdir = strdup(prm->bgdir);
-    else
-        das->bgdir = NULL;
     das->nmem = prm->enssize;
+#if defined(ENKF_CALC)
     das->obs = obs_create_fromprm(prm);
+#endif
 
     das->m = model_create(prm);
 
@@ -69,16 +68,23 @@ dasystem* das_create(enkfprm* prm)
     das->std_f = NULL;
     das->s_a = NULL;
     das->std_a = NULL;
+#if defined(ENKF_CALC)
     if (!enkf_fstatsonly) {
         das->kfactor = prm->kfactor;
         das->locrad = prm->locrad;
-        das->stride = prm->stride;
+    } else {
+        das->kfactor = NaN;
+        das->locrad = NaN;
     }
-    das->nfields = 0;
-    das->fields = NULL;
+#elif defined(ENKF_POST)
+    das->kfactor = NaN;
+    das->locrad = NaN;
+#endif
+    das->stride = prm->stride;
     if (!enkf_fstatsonly)
         das->fieldbufsize = prm->fieldbufsize;
 
+#if defined(ENKF_CALC)
     das->nregions = prm->nregions;
     if (das->nregions > 0)
         das->regions = malloc(das->nregions * sizeof(region));
@@ -94,9 +100,8 @@ dasystem* das_create(enkfprm* prm)
         rin->lat1 = rout->lat1;
         rin->lat2 = rout->lat2;
     }
+#endif
 
-    das->nplogs = 0;
-    das->plogs = NULL;
     for (i = 0; i < prm->nplogs; ++i) {
         double lon, lat;
 
@@ -114,6 +119,7 @@ dasystem* das_create(enkfprm* prm)
         das->nplogs++;
     }
 
+#if defined(ENKF_CALC)
     das->nbadbatchspecs = prm->nbadbatchspecs;
     if (das->nbadbatchspecs > 0) {
         das->badbatchspecs = malloc(das->nbadbatchspecs * sizeof(badbatchspec));
@@ -128,57 +134,10 @@ dasystem* das_create(enkfprm* prm)
             dst->minnobs = src->minnobs;
         }
     }
+#endif
 
     return das;
 }
-#endif
-
-#if defined(ENKF_POST)
-/**
- */
-dasystem* das_create(enkfprm* prm)
-{
-    dasystem* das = malloc(sizeof(dasystem));
-
-    das->prmfname = strdup(prm->fname);
-    das->mode = prm->mode;
-    das->scheme = prm->scheme;
-    das->target = prm->target;
-    das->ensdir = strdup(prm->ensdir);
-    if (prm->bgdir != NULL)
-        das->bgdir = strdup(prm->bgdir);
-    else
-        das->bgdir = NULL;
-    das->nmem = prm->enssize;
-    das->obs = NULL;
-
-    das->m = model_create(prm);
-
-    das->S = NULL;
-    das->s_mode = S_MODE_NONE;
-    das->s_f = NULL;
-    das->std_f = NULL;
-    das->s_a = NULL;
-    das->std_a = NULL;
-    das->kfactor = NaN;
-    das->locrad = NaN;
-    das->stride = prm->stride;
-    das->nfields = 0;
-    das->fields = NULL;
-    das->fieldbufsize = prm->fieldbufsize;
-
-    das->nregions = 0;
-    das->regions = NULL;
-
-    das->nbadbatchspecs = 0;
-    das->badbatchspecs = NULL;
-
-    das->nplogs = 0;
-    das->plogs = NULL;
-
-    return das;
-}
-#endif
 
 /**
  */

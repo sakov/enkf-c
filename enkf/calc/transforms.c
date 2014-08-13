@@ -679,6 +679,8 @@ void das_dopointlogs(dasystem* das)
     double* w = NULL;
     int p, e, o;
 
+    assert(das->s_mode == S_MODE_S_f);
+
     if (das->mode == MODE_ENKF) {
         X5 = alloc2d(das->nmem, das->nmem, sizeof(double));
     } else if (das->mode == MODE_ENOI)
