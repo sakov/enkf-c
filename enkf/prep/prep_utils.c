@@ -115,54 +115,89 @@ void obs_add(observations* obs, model* m, obsmeta* meta)
                 double v = *((double*) meta->stds[i]);
 
                 enkf_printf("      adding error_std = %.3g:\n", v);
-                v = v * v;
                 for (o = nobs0; o < obs->nobs; ++o) {
                     observation* oo = &obs->data[o];
 
-                    if (oo->status == STATUS_OK)
-                        oo->std = sqrt(oo->std * oo->std + v);
+                    if (oo->status != STATUS_OK)
+                        continue;
+                    if (meta->stdops[i] == ARITHMETIC_EQ)
+                        oo->std = v;
+                    else if (meta->stdops[i] == ARITHMETIC_PLUS)
+                        oo->std = sqrt(oo->std * oo->std + v * v);
+                    else if (meta->stdops[i] == ARITHMETIC_MULT)
+                        oo->std *= v;
+                    else if (meta->stdops[i] == ARITHMETIC_MIN)
+                        oo->std = (v < oo->std < v) ? oo->std : v;
+                    else if (meta->stdops[i] == ARITHMETIC_MAX)
+                        oo->std = (v > oo->std) ? oo->std : v;
+                    else
+                        enkf_quit("programming error");
                 }
             } else if (meta->stdtypes[i] == STDTYPE_FILE) {
                 char* fname = (char*) meta->stds[i];
+                int** nlevels = model_getnumlevels(m);
                 int ni, nj, nk;
-                float** v;
+                int ii;
 
                 enkf_printf("      adding error_std from %s %s:\n", fname, meta->varnames[i]);
 
                 model_getdims(m, &ni, &nj, &nk);
 
-                if (strcmp(meta->type, "SLA") == 0 || strcmp(meta->type, "SST") == 0) {
-                    /*
-                     * (2D) 
-                     */
-                    v = alloc2d(nj, ni, sizeof(float));
+                for (ii = 0; ii < notdescs; ++ii)
+                    if (strcmp(otdescs[ii].typename, meta->type))
+                        break;
+
+                if (ii == notdescs)
+                    enkf_quit("observation type \"%s\" not described in observations.c::otdescs", meta->type);
+
+                if (otdescs[ii].issurface) {
+                    float** v = alloc2d(nj, ni, sizeof(float));
+
                     readfield(fname, 0, meta->varnames[i], v[0]);
                     for (o = nobs0; o < obs->nobs; ++o) {
                         observation* oo = &obs->data[o];
-                        int i, j;
-                        float vv;
+                        float vv = (float) interpolate2d(oo->fi, oo->fj, ni, nj, v, nlevels);
 
                         if (oo->status == STATUS_OK) {
-                            i = (int) floor(oo->fi + 0.5);
-                            j = (int) floor(oo->fj + 0.5);
-                            vv = v[j][i];
-                            oo->std = sqrt(oo->std * oo->std + vv * vv);
+                            if (meta->stdops[i] == ARITHMETIC_EQ)
+                                oo->std = vv;
+                            else if (meta->stdops[i] == ARITHMETIC_PLUS)
+                                oo->std = sqrt(oo->std * oo->std + vv * vv);
+                            else if (meta->stdops[i] == ARITHMETIC_MULT)
+                                oo->std *= vv;
+                            else if (meta->stdops[i] == ARITHMETIC_MIN)
+                                oo->std = (vv < oo->std < vv) ? oo->std : vv;
+                            else if (meta->stdops[i] == ARITHMETIC_MAX)
+                                oo->std = (vv > oo->std) ? oo->std : vv;
+                            else
+                                enkf_quit("programming error");
                         }
                     }
                     free2d(v);
                 } else {
-                    /*
-                     * (3D) 
-                     */
-                    int ncid;
-                    int vid;
+                    float*** v = alloc3d(nk, nj, ni, sizeof(float));
 
-                    ncw_open(fname, NC_NOWRITE, &ncid);
-                    ncw_inq_varid(fname, ncid, meta->varnames[i], &vid);
-                    /*
-                     * TODO 
-                     */
-                    ncw_close(fname, ncid);
+                    read3dfield(fname, meta->varnames[i], v[0][0]);
+                    for (o = nobs0; o < obs->nobs; ++o) {
+                        observation* oo = &obs->data[o];
+                        float vv = (float) interpolate3d(oo->fi, oo->fj, oo->fk, ni, nj, nk, v, nlevels);
+
+                        if (oo->status == STATUS_OK) {
+                            if (meta->stdops[i] == ARITHMETIC_EQ)
+                                oo->std = vv;
+                            else if (meta->stdops[i] == ARITHMETIC_PLUS)
+                                oo->std = sqrt(oo->std * oo->std + vv * vv);
+                            else if (meta->stdops[i] == ARITHMETIC_MULT)
+                                oo->std *= vv;
+                            else if (meta->stdops[i] == ARITHMETIC_MIN)
+                                oo->std = (vv < oo->std < vv) ? oo->std : vv;
+                            else if (meta->stdops[i] == ARITHMETIC_MAX)
+                                oo->std = (vv > oo->std) ? oo->std : vv;
+                            else
+                                enkf_quit("programming error");
+                        }
+                    }
+                    free2d(v);
                 }
             }
         }

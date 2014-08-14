@@ -52,10 +52,6 @@
 #define LONTYPE_180 1
 #define LONTYPE_360 2
 
-#define STDTYPE_NONE 0
-#define STDTYPE_VALUE 1
-#define STDTYPE_FILE 2
-
 #define MODE_NONE 0
 #define MODE_ENKF 1
 #define MODE_ENOI 2
