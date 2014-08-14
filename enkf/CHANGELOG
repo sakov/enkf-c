@@ -1,3 +1,9 @@
+v. 0.67
+   PS 14082014
+   -- Made a modification: the entries for standard deviations optionally
+      specified in each section of the observation parameter file can now
+      also specify the associated arithmetic operation: EQUAL (default),
+      PLUS (actually sqrt(std * std + prev * prev)), MULT, MIN, MAX
 v. 0.66
    PS 13082014
    -- Made a small correction in readers.

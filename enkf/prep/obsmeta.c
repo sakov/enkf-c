@@ -100,6 +100,7 @@ void read_obsmeta(enkfprm* prm, int* nmeta, obsmeta** meta)
             else {
                 double std;
                 m->stdtypes = realloc(m->stdtypes, (m->nstds + 1) * sizeof(int));
+                m->stdops = realloc(m->stdops, (m->nstds + 1) * sizeof(int));
                 m->stds = realloc(m->stds, (m->nstds + 1) * sizeof(void*));
                 m->varnames = realloc(m->varnames, (m->nstds + 1) * sizeof(char*));
                 if (str2double(token, &std)) {
@@ -117,6 +118,20 @@ void read_obsmeta(enkfprm* prm, int* nmeta, obsmeta** meta)
                         enkf_quit("%s, l.%d: variable name not specified", fname, line);
                     m->varnames[m->nstds] = strdup(token);
                 }
+                if ((token = strtok(NULL, seps)) == NULL)
+                    m->stdops[m->nstds] = ARITHMETIC_EQ;
+                else if (strncasecmp(token, "EQ", 2) == 0)
+                    m->stdops[m->nstds] = ARITHMETIC_EQ;
+                else if (strncasecmp(token, "PL", 2) == 0)
+                    m->stdops[m->nstds] = ARITHMETIC_PLUS;
+                else if (strncasecmp(token, "MU", 2) == 0)
+                    m->stdops[m->nstds] = ARITHMETIC_MULT;
+                else if (strncasecmp(token, "MI", 2) == 0)
+                    m->stdops[m->nstds] = ARITHMETIC_MIN;
+                else if (strncasecmp(token, "MA", 2) == 0)
+                    m->stdops[m->nstds] = ARITHMETIC_MAX;
+                else
+                    enkf_quit("%s, l.%d:, unknown operation", fname, line);
                 m->nstds++;
             }
         } else
@@ -143,10 +158,23 @@ void read_obsmeta(enkfprm* prm, int* nmeta, obsmeta** meta)
         for (j = 0; j < m->nfiles; ++j)
             enkf_printf("      File:        obsmeta.c = %s\n", m->fnames[j]);
         for (j = 0; j < m->nstds; ++j) {
+            char operstr[MAXSTRLEN] = "";
+
+            if (m->stdops[j] == ARITHMETIC_EQ)
+                strcpy(operstr, "EQUAL");
+            else if (m->stdops[j] == ARITHMETIC_PLUS)
+                strcpy(operstr, "PLUS");
+            else if (m->stdops[j] == ARITHMETIC_MULT)
+                strcpy(operstr, "MULT");
+            else if (m->stdops[j] == ARITHMETIC_MIN)
+                strcpy(operstr, "MIN");
+            else if (m->stdops[j] == ARITHMETIC_MAX)
+                strcpy(operstr, "MAX");
+
             if (m->stdtypes[j] == STDTYPE_VALUE)
-                enkf_printf("      ERROR_STD = %.3g\n", *((double*) m->stds[j]));
+                enkf_printf("      ERROR_STD = %.3g, operation = %s\n", *((double*) m->stds[j]), operstr);
             else if (m->stdtypes[j] == STDTYPE_FILE)
-                enkf_printf("      ERROR_STD = %s %s\n", (char*) m->stds[j], m->varnames[j]);
+                enkf_printf("      ERROR_STD = %s %s, operation = %s\n", (char*) m->stds[j], m->varnames[j], operstr);
         }
     }
 
