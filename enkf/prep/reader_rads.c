@@ -247,6 +247,7 @@ void reader_rads_standard2(char* fname, int fid, obsmeta* meta, model* m, observ
             obs->data = realloc(obs->data, (obs->nobs + NOBS_INC) * sizeof(observation));
             if (obs->data == NULL)
                 enkf_quit("not enough memory");
+            obs->nallocated += NOBS_INC;
         }
 
         o = &obs->data[obs->nobs];
