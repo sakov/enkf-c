@@ -105,6 +105,7 @@ void reader_navo_standard(char* fname, int fid, obsmeta* meta, model* m, observa
 
     for (i = 0; i < (int) nobs_local; ++i) {
         observation* o;
+        obstype* ot;
 
         if (obs->nobs == obs->nallocated) {
             obs->data = realloc(obs->data, (obs->nobs + NOBS_INC) * sizeof(observation));
@@ -119,6 +120,7 @@ void reader_navo_standard(char* fname, int fid, obsmeta* meta, model* m, observa
         assert(o->product >= 0);
         o->type = st_findindexbystring(obs->types, meta->type);
         assert(o->type >= 0);
+        ot = &obs->obstypes[o->type];
         o->instrument = st_add_ifabscent(obs->instruments, "AVHRR", -1);
         o->id = obs->nobs;
         o->fid = fid;
@@ -128,9 +130,11 @@ void reader_navo_standard(char* fname, int fid, obsmeta* meta, model* m, observa
         o->lon = lon[i];
         o->lat = lat[i];
         o->depth = 0.0;
-        o->status = model_ll2fij(m, o->lon, o->lat, &o->fi, &o->fj);
-        if (!obs->allobs && o->status == STATUS_OUTSIDE)
+        o->status = model_xy2fij(m, o->lon, o->lat, &o->fi, &o->fj);
+        if (!obs->allobs && o->status == STATUS_OUTSIDEGRID)
             continue;
+        if ((o->status == STATUS_OK) && (o->lon <= ot->xmin || o->lon >= ot->xmax || o->lat <= ot->ymin || o->lat >= ot->ymax || o->depth <= ot->zmin || o->depth >= ot->zmax))
+            o->status = STATUS_OUTSIDEOBSDOMAIN;
         o->fk = 0.0;
         o->date = time[i] * tunits_multiple + tunits_offset;
         o->aux = -1;

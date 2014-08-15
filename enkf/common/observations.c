@@ -52,7 +52,7 @@ int notdescs = sizeof(otdescs) / sizeof(obstypedesc);
 
 /**
  */
-void obs_addtype(observations* obs, char name[], int issurface, char varname[], char hfunction[], double rfactor, int isasync, double async_tstep)
+void obs_addtype(observations* obs, char name[], int issurface, char varname[], char hfunction[], double rfactor, int isasync, double async_tstep, obsdomain* domain)
 {
     obstype* ot;
 
@@ -78,6 +78,21 @@ void obs_addtype(observations* obs, char name[], int issurface, char varname[], 
     ot->nmodified = 0;
     ot->date_min = NaN;
     ot->date_max = NaN;
+    if (domain != NULL) {
+        ot->xmin = domain->x1;
+        ot->xmax = domain->x2;
+        ot->ymin = domain->y1;
+        ot->ymax = domain->y2;
+        ot->zmin = domain->z1;
+        ot->zmax = domain->z2;
+    } else {
+        ot->xmin = -DBL_MAX;
+        ot->xmax = DBL_MAX;
+        ot->ymin = -DBL_MAX;
+        ot->ymax = DBL_MAX;
+        ot->zmin = -DBL_MAX;
+        ot->zmax = DBL_MAX;
+    }
 
     obs->nobstypes++;
 
@@ -156,7 +171,7 @@ observations* obs_create_fromprm(enkfprm* prm)
         if (issurface < 0)
             enkf_quit("observation type \"%s\" not described in observations.c::otdescs", prm->types[i]);
 
-        obs_addtype(obs, prm->types[i], issurface, prm->typevars[i], prm->hfunctions[i], prm->rfactors[i], isasync, tstep);
+        obs_addtype(obs, prm->types[i], issurface, prm->typevars[i], prm->hfunctions[i], prm->rfactors[i], isasync, tstep, &prm->obsdomains[i]);
     }
 
     obs->da_date = date_str2dbl(prm->date);
@@ -237,7 +252,7 @@ observations* obs_create_fromdata(observations* parentobs, int nobs, observation
     for (i = 0; i < parentobs->nobstypes; ++i) {
         obstype* ot = &parentobs->obstypes[i];
 
-        obs_addtype(obs, ot->name, ot->issurface, ot->varname, ot->hfunction, ot->rfactor, ot->isasync, ot->async_tstep);
+        obs_addtype(obs, ot->name, ot->issurface, ot->varname, ot->hfunction, ot->rfactor, ot->isasync, ot->async_tstep, NULL);
     }
 
     obs->da_date = parentobs->da_date;
@@ -386,7 +401,7 @@ void obs_calcstats(observations* obs)
         if (m->status == STATUS_OK) {
             obs->ngood++;
             ot->ngood++;
-        } else if (m->status == STATUS_OUTSIDE) {
+        } else if (m->status == STATUS_OUTSIDEGRID || m->status == STATUS_OUTSIDEOBSDOMAIN) {
             obs->noutside++;
             ot->noutside++;
         } else if (m->status == STATUS_LAND) {
@@ -665,8 +680,8 @@ void obs_write(observations* obs, char fname[])
     ncw_def_var(fname, ncid, "status", NC_BYTE, 1, dimid_nobs, &varid_status);
     i = STATUS_OK;
     ncw_put_att_int(fname, ncid, varid_status, "STATUS_OK", 1, &i);
-    i = STATUS_OUTSIDE;
-    ncw_put_att_int(fname, ncid, varid_status, "STATUS_OUSIDE", 1, &i);
+    i = STATUS_OUTSIDEGRID;
+    ncw_put_att_int(fname, ncid, varid_status, "STATUS_OUSIDEGRID", 1, &i);
     i = STATUS_LAND;
     ncw_put_att_int(fname, ncid, varid_status, "STATUS_LAND", 1, &i);
     i = STATUS_SHALLOW;
@@ -677,6 +692,8 @@ void obs_write(observations* obs, char fname[])
     ncw_put_att_int(fname, ncid, varid_status, "STATUS_BADBATCH", 1, &i);
     i = STATUS_ROUNDUP;
     ncw_put_att_int(fname, ncid, varid_status, "STATUS_ROUNDUP", 1, &i);
+    i = STATUS_OUTSIDEOBSDOMAIN;
+    ncw_put_att_int(fname, ncid, varid_status, "STATUS_OUSIDEOBSDOMAIN", 1, &i);
     ncw_def_var(fname, ncid, "aux", NC_INT, 1, dimid_nobs, &varid_aux);
     sprintf(tunits, "days from %s", obs->datestr);
     ncw_put_att_text(fname, ncid, varid_date, "units", tunits);

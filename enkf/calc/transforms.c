@@ -319,7 +319,7 @@ void das_calctransforms(dasystem* das)
             {
                 double lon, lat;
 
-                model_fij2ll(m, (double) i, (double) j, &lon, &lat);
+                model_fij2xy(m, (double) i, (double) j, &lon, &lat);
 
                 obs_findlocal(obs, model_getgrid(m), lon, lat, das->locrad, &ploc, &lobs, &lcoeffs);
                 assert(ploc >= 0 && ploc <= obs->nobs);
@@ -701,7 +701,7 @@ void das_dopointlogs(dasystem* das)
 
         printf("    calculating transform for log point (%d, %d):", i, j);
 
-        model_fij2ll(m, (double) i, (double) j, &lon, &lat);
+        model_fij2xy(m, (double) i, (double) j, &lon, &lat);
         assert(!isnan(lon + lat));
 
         obs_findlocal(obs, model_getgrid(m), lon, lat, das->locrad, &ploc, &lobs, &lcoeffs);

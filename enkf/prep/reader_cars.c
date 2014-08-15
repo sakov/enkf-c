@@ -139,6 +139,7 @@ void reader_cars_standard(char* fname, int fid, obsmeta* meta, model* m, observa
 
         for (i = 0; i < (int) nz; ++i) {
             observation* o;
+            obstype* ot;
 
             if (fabs(v[p][i] - missval) < EPS || v[p][i] < validmin || v[p][i] > validmax)
                 continue;
@@ -156,6 +157,7 @@ void reader_cars_standard(char* fname, int fid, obsmeta* meta, model* m, observa
             assert(o->product >= 0);
             o->type = st_findindexbystring(obs->types, meta->type);
             assert(o->type >= 0);
+            ot = &obs->obstypes[o->type];
             o->instrument = st_add_ifabscent(obs->instruments, inststr, -1);
             o->id = obs->nobs;
             o->fid = fid;
@@ -165,13 +167,15 @@ void reader_cars_standard(char* fname, int fid, obsmeta* meta, model* m, observa
             o->lon = lon[p];
             o->lat = lat[p];
             o->depth = z[p][i];
-            o->status = model_ll2fij(m, o->lon, o->lat, &o->fi, &o->fj);
-            if (!obs->allobs && o->status == STATUS_OUTSIDE)
+            o->status = model_xy2fij(m, o->lon, o->lat, &o->fi, &o->fj);
+            if (!obs->allobs && o->status == STATUS_OUTSIDEGRID)
                 break;
             if (o->status == STATUS_OK)
                 o->status = model_z2fk(m, o->fi, o->fj, o->depth, &o->fk);
             else
                 o->fk = NaN;
+            if ((o->status == STATUS_OK) && (o->lon <= ot->xmin || o->lon >= ot->xmax || o->lat <= ot->ymin || o->lat >= ot->ymax || o->depth <= ot->zmin || o->depth >= ot->zmax))
+                o->status = STATUS_OUTSIDEOBSDOMAIN;
             o->date = tunits_offset + 0.5;
             o->aux = -1;
 

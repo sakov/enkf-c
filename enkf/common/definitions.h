@@ -36,11 +36,12 @@
 #define FNAME_BADBATCHES "badbatches.out"
 
 #define STATUS_OK 0             /* do not change */
-#define STATUS_OUTSIDE 1
+#define STATUS_OUTSIDEGRID 1
 #define STATUS_LAND 2
 #define STATUS_SHALLOW 3
 #define STATUS_RANGE 4
 #define STATUS_BADBATCH 5
+#define STATUS_OUTSIDEOBSDOMAIN 6
 /*
  * The fractional grid indices can (very rarely) jump to a neighbour cell after
  * being saved to observations.nc and read back. If they end up on land - mark

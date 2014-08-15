@@ -76,6 +76,12 @@ typedef struct {
     double date_min;
     double date_max;
     double rfactor;
+    double xmin;
+    double xmax;
+    double ymin;
+    double ymax;
+    double zmin;
+    double zmax;
 } obstype;
 
 typedef struct {
@@ -128,7 +134,7 @@ observations* obs_create(void);
 observations* obs_create_fromprm(enkfprm* prm);
 observations* obs_create_fromdata(observations* parentobs, int nobs, observation data[]);
 void obs_destroy(observations* obs);
-void obs_addtype(observations* obs, char name[], int issurface, char varname[], char hfunction[], double rfactor, int isasync, double async_tstep);
+void obs_addtype(observations* obs, char name[], int issurface, char varname[], char hfunction[], double rfactor, int isasync, double async_tstep, obsdomain* domain);
 void obs_checklon(observations* obs);
 void obs_compact(observations* obs);
 void obs_inorder(observations* obs);

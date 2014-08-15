@@ -189,7 +189,7 @@ static observations* obs_create_fromsingleob(enkfprm* prm, model* m)
             break;
         }
 
-    obs_addtype(obs, prm->types[j], otdescs[i].issurface, prm->typevars[j], prm->hfunctions[j], 1.0, isasync, tstep);
+    obs_addtype(obs, prm->types[j], otdescs[i].issurface, prm->typevars[j], prm->hfunctions[j], 1.0, isasync, tstep, NULL);
 
     obs->products = st_create("products");
     st_add_ifabscent(obs->products, "Synthetic", -1);
@@ -199,7 +199,7 @@ static observations* obs_create_fromsingleob(enkfprm* prm, model* m)
     obs->nobs = 1;
     obs->data = o;
     if (!singleob_ijk) {
-        o->status = model_ll2fij(m, o->lon, o->lat, &o->fi, &o->fj);
+        o->status = model_xy2fij(m, o->lon, o->lat, &o->fi, &o->fj);
         if (o->status == STATUS_OK)
             o->status = model_z2fk(m, o->fi, o->fj, o->depth, &o->fk);
         else
@@ -210,7 +210,7 @@ static observations* obs_create_fromsingleob(enkfprm* prm, model* m)
 
         o->fi = o->lon;
         o->fj = o->lat;
-        model_fij2ll(m, o->fi, o->fj, &o->lon, &o->lat);
+        model_fij2xy(m, o->fi, o->fj, &o->lon, &o->lat);
         o->fk = o->depth;
         if (o->depth != 0.0)
             o->depth = NaN;     /* fk2z - TODO */
@@ -218,7 +218,7 @@ static observations* obs_create_fromsingleob(enkfprm* prm, model* m)
         model_getdims(m, &ni, &nj, &nk);
         o->status = STATUS_OK;
         if (o->fi < 0.0 || o->fi > (double) (ni - 1) || o->fj < 0.0 || o->fj > (double) (nj - 1) || o->fk < 0.0 || o->fk > (double) (nk - 1))
-            o->status = STATUS_OUTSIDE;
+            o->status = STATUS_OUTSIDEGRID;
         else {
             int i1 = floor(o->fi);
             int i2 = ceil(o->fi);

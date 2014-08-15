@@ -17,6 +17,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <math.h>
+#include <values.h>
 #include "nan.h"
 #include "definitions.h"
 #include "utils.h"
@@ -86,6 +87,7 @@ enkfprm* enkfprm_read(char fname[])
     prm->inflations = NULL;
     prm->inflation_base = 1.0;
     prm->rfactors = NULL;
+    prm->obsdomains = NULL;
     prm->rfactor_base = 1.0;
     prm->inflation_base = 1.0;
     prm->locrad = NaN;
@@ -230,6 +232,16 @@ enkfprm* enkfprm_read(char fname[])
                     prm->rfactors = realloc(prm->rfactors, (prm->ntypes + NTYPES_INC) * sizeof(double));
                     for (i = prm->ntypes; i < prm->ntypes + NTYPES_INC; ++i)
                         prm->rfactors[i] = NaN;
+                    prm->obsdomains = realloc(prm->obsdomains, (prm->ntypes + NTYPES_INC) * sizeof(obsdomain));
+                    for (i = prm->ntypes; i < prm->ntypes + NTYPES_INC; ++i) {
+                        prm->obsdomains[i].x1 = -DBL_MAX;
+                        prm->obsdomains[i].x2 = DBL_MAX;
+                        prm->obsdomains[i].y1 = -DBL_MAX;
+                        prm->obsdomains[i].y2 = DBL_MAX;
+                        prm->obsdomains[i].z1 = -DBL_MAX;
+                        prm->obsdomains[i].z2 = DBL_MAX;
+                    }
+                    prm->obsdomains = realloc(prm->obsdomains, (prm->ntypes + NTYPES_INC) * sizeof(obsdomain));
                 }
                 prm->types[prm->ntypes] = strdup(token);
                 if ((token = strtok(NULL, seps)) == NULL)
@@ -239,7 +251,7 @@ enkfprm* enkfprm_read(char fname[])
             } while ((token = strtok(NULL, seps)) != NULL);
         } else if (strcasecmp(token, "HFUNCTIONS") == 0) {
             if ((token = strtok(NULL, seps)) == NULL)
-                enkf_quit("%s, l.%d: HFUNCTIONS not specified", fname, line);
+                enkf_quit("%s, l.%d: observation type for HFUNCTIONS not specified", fname, line);
             do {
                 for (i = 0; i < prm->ntypes; ++i)
                     if (strcmp(token, prm->types[i]) == 0)
@@ -259,7 +271,7 @@ enkfprm* enkfprm_read(char fname[])
                 enkf_quit("%s, l.%d: could convert KFACTOR entry", fname, line);
         } else if (strcasecmp(token, "RFACTOR") == 0) {
             if ((token = strtok(NULL, seps)) == NULL)
-                enkf_quit("%s, l.%d: RFACTOR not specified", fname, line);
+                enkf_quit("%s, l.%d: observation type for RFACTOR not specified", fname, line);
             if (strcasecmp(token, "BASE") == 0) {
                 if ((token = strtok(NULL, seps)) == NULL)
                     enkf_quit("%s, l.%d: RFACTOR BASE not specified", fname, line);
@@ -339,21 +351,56 @@ enkfprm* enkfprm_read(char fname[])
             prm->regions[prm->nregions].name = strdup(token);
             if ((token = strtok(NULL, seps)) == NULL)
                 enkf_quit("%s, l.%d: minimal longitude not specified", fname, line);
-            if (!str2double(token, &prm->regions[prm->nregions].lon1))
+            if (!str2double(token, &prm->regions[prm->nregions].x1))
                 enkf_quit("%s, l.%d: could not convert \"%s\" to double", fname, line, token);
             if ((token = strtok(NULL, seps)) == NULL)
                 enkf_quit("%s, l.%d: maximal longitude not specified", fname, line);
-            if (!str2double(token, &prm->regions[prm->nregions].lon2))
+            if (!str2double(token, &prm->regions[prm->nregions].x2))
                 enkf_quit("%s, l.%d: could not convert \"%s\" to double", fname, line, token);
             if ((token = strtok(NULL, seps)) == NULL)
                 enkf_quit("%s, l.%d: minimal latitude not specified", fname, line);
-            if (!str2double(token, &prm->regions[prm->nregions].lat1))
+            if (!str2double(token, &prm->regions[prm->nregions].y1))
                 enkf_quit("%s, l.%d: could not convert \"%s\" to double", fname, line, token);
             if ((token = strtok(NULL, seps)) == NULL)
                 enkf_quit("%s, l.%d: maximal latitude not specified", fname, line);
-            if (!str2double(token, &prm->regions[prm->nregions].lat2))
+            if (!str2double(token, &prm->regions[prm->nregions].y2))
                 enkf_quit("%s, l.%d: could not convert \"%s\" to double", fname, line, token);
             prm->nregions++;
+        } else if (strcasecmp(token, "OBSDOMAIN") == 0) {
+            if ((token = strtok(NULL, seps)) == NULL)
+                enkf_quit("%s, l.%d: observation type for OBSDOMAIN not specified", fname, line);
+            for (i = 0; i < prm->ntypes; ++i)
+                if (strcmp(token, prm->types[i]) == 0)
+                    break;
+            if (i == prm->ntypes)
+                enkf_quit("%s, l.%d: could not identify observation type \"%s\". (Make sure that the entries for OBSDOMAIN appear after OBS2VAR entries.)", fname, line, token);
+            if ((token = strtok(NULL, seps)) == NULL)
+                enkf_quit("%s, l.%d: minimal longitude not specified", fname, line);
+            if (!str2double(token, &prm->obsdomains[i].x1))
+                enkf_quit("%s, l.%d: could not convert \"%s\" to double", fname, line, token);
+            if ((token = strtok(NULL, seps)) == NULL)
+                enkf_quit("%s, l.%d: maximal longitude not specified", fname, line);
+            if (!str2double(token, &prm->obsdomains[i].x2))
+                enkf_quit("%s, l.%d: could not convert \"%s\" to double", fname, line, token);
+            if ((token = strtok(NULL, seps)) == NULL)
+                enkf_quit("%s, l.%d: minimal latitude not specified", fname, line);
+            if (!str2double(token, &prm->obsdomains[i].y1))
+                enkf_quit("%s, l.%d: could not convert \"%s\" to double", fname, line, token);
+            if ((token = strtok(NULL, seps)) == NULL)
+                enkf_quit("%s, l.%d: maximal latitude not specified", fname, line);
+            if (!str2double(token, &prm->obsdomains[i].y2))
+                enkf_quit("%s, l.%d: could not convert \"%s\" to double", fname, line, token);
+            if ((token = strtok(NULL, seps)) == NULL) {
+                prm->obsdomains[i].z1 = -DBL_MAX;
+                prm->obsdomains[i].z2 = DBL_MAX;
+            } else {
+                if (!str2double(token, &prm->obsdomains[i].z1))
+                    enkf_quit("%s, l.%d: could not convert \"%s\" to double", fname, line, token);
+                if ((token = strtok(NULL, seps)) == NULL)
+                    enkf_quit("%s, l.%d: maximal depth not specified", fname, line);
+                if (!str2double(token, &prm->obsdomains[i].z2))
+                    enkf_quit("%s, l.%d: could not convert \"%s\" to double", fname, line, token);
+            }
         } else if (strcasecmp(token, "POINTLOG") == 0) {
             if ((token = strtok(NULL, seps)) == NULL)
                 enkf_quit("%s, l.%d: \"I\" coordinate for POINTLOG not specified", fname, line);
@@ -466,6 +513,7 @@ void enkfprm_destroy(enkfprm* prm)
         free(prm->typevars);
         free(prm->hfunctions);
         free(prm->rfactors);
+        free(prm->obsdomains);
     }
     if (prm->nregions > 0) {
         for (i = 0; i < prm->nregions; ++i)
@@ -539,6 +587,13 @@ void enkfprm_print(enkfprm* prm, char offset[])
         for (i = 0; i < prm->ntypes; ++i)
             enkf_printf(" { %s %s }", prm->types[i], prm->hfunctions[i]);
         enkf_printf("\n");
+        for (i = 0; i < prm->ntypes; ++i) {
+            obsdomain* d = &prm->obsdomains[i];
+
+            enkf_printf("%sOBSDOMAIN =", offset);
+            enkf_printf(" { %s %12.5g %12.5g %12.5g %12.5g %12.5g %12.5g }", prm->types[i], d->x1, d->x2, d->y1, d->y2, d->z1, d->z2);
+            enkf_printf("\n");
+        }
     }
     if (!enkf_fstatsonly) {
         if (isfinite(prm->kfactor))
@@ -556,7 +611,7 @@ void enkfprm_print(enkfprm* prm, char offset[])
     for (i = 0; i < prm->nregions; ++i) {
         region* r = &prm->regions[i];
 
-        enkf_printf("%sREGION %s: lon = [%.1f, %.1f], lat = [%.1f, %.1f]\n", offset, r->name, r->lon1, r->lon2, r->lat1, r->lat2);
+        enkf_printf("%sREGION %s: x = [%.1f, %.1f], y = [%.1f, %.1f]\n", offset, r->name, r->x1, r->x2, r->y1, r->y2);
     }
     if (!enkf_fstatsonly) {
         for (i = 0; i < prm->nplogs; ++i) {
@@ -598,6 +653,7 @@ void enkfprm_describe(void)
     enkf_printf("  [ RFACTOR BASE        = <rfactor> ]                            (1*)\n");
     enkf_printf("  [ RFACTOR <obstype>   = <rfactor> ]                            (1*)\n");
     enkf_printf("    ...\n");
+    enkf_printf("  [ OBSDOMAIN <obstype> <x1> <x2> <y1> <y2> [<z1> <z2>] ]\n");
     enkf_printf("    LOCRAD              = <locrad>\n");
     enkf_printf("  [ STRIDE              = <stride> ]                             (1*)\n");
     enkf_printf("  [ SOBSTRIDE           = <stride> ]                             (1*)\n");

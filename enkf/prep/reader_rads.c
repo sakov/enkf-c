@@ -108,6 +108,7 @@ void reader_rads_standard(char* fname, int fid, obsmeta* meta, model* m, observa
     depth = model_getdepth(m);
     for (i = 0; i < (int) nobs_local; ++i) {
         observation* o;
+        obstype* ot;
 
         if (obs->nobs == obs->nallocated) {
             obs->data = realloc(obs->data, (obs->nobs + NOBS_INC) * sizeof(observation));
@@ -122,6 +123,7 @@ void reader_rads_standard(char* fname, int fid, obsmeta* meta, model* m, observa
         assert(o->product >= 0);
         o->type = st_findindexbystring(obs->types, meta->type);
         assert(o->type >= 0);
+        ot = &obs->obstypes[o->type];
         o->instrument = st_add_ifabscent(obs->instruments, instname, -1);
         o->id = obs->nobs;
         o->fid = fid;
@@ -131,13 +133,15 @@ void reader_rads_standard(char* fname, int fid, obsmeta* meta, model* m, observa
         o->lon = lon[i];
         o->lat = lat[i];
         o->depth = 0.0;
-        o->status = model_ll2fij(m, o->lon, o->lat, &o->fi, &o->fj);
-        if (!obs->allobs && o->status == STATUS_OUTSIDE)
+        o->status = model_xy2fij(m, o->lon, o->lat, &o->fi, &o->fj);
+        if (!obs->allobs && o->status == STATUS_OUTSIDEGRID)
             continue;
         o->fk = 0.0;
         o->date = time[i] * tunits_multiple + tunits_offset;
         if (o->status == STATUS_OK && depth[(int) floor(o->fj + 0.5)][(int) floor(o->fi + 0.5)] < MINDEPTH)
             o->status = STATUS_SHALLOW;
+        if ((o->status == STATUS_OK) && (o->lon <= ot->xmin || o->lon >= ot->xmax || o->lat <= ot->ymin || o->lat >= ot->ymax || o->depth <= ot->zmin || o->depth >= ot->zmax))
+            o->status = STATUS_OUTSIDEOBSDOMAIN;
 
         o->aux = -1;
 
@@ -159,11 +163,12 @@ void reader_rads_standard2(char* fname, int fid, obsmeta* meta, model* m, observ
     int ncid;
     int dimid_nobs;
     size_t nobs_local;
-    int varid_lon, varid_lat, varid_pass, varid_sla;
+    int varid_lon, varid_lat, varid_pass, varid_sla, varid_flag;
     double* lon;
     double* lat;
     int* pass;
     double* sla;
+    int* flag;
     double error_std;
     char buf[MAXSTRLEN];
     int len;
@@ -201,6 +206,10 @@ void reader_rads_standard2(char* fname, int fid, obsmeta* meta, model* m, observ
     ncw_get_att_double(fname, ncid, varid_sla, "error_std", &error_std);
     enkf_printf("        error_std = %3g\n", error_std);
 
+    ncw_inq_varid(fname, ncid, "local_flag", &varid_flag);
+    flag = malloc(nobs_local * sizeof(int));
+    ncw_get_var_int(fname, ncid, varid_flag, flag);
+
     ncw_close(fname, ncid);
 
     strcpy(buf, fname);
@@ -229,6 +238,10 @@ void reader_rads_standard2(char* fname, int fid, obsmeta* meta, model* m, observ
     depth = model_getdepth(m);
     for (i = 0; i < (int) nobs_local; ++i) {
         observation* o;
+        obstype* ot;
+
+        if (flag[i] != 0)
+            continue;
 
         if (obs->nobs % NOBS_INC == 0) {
             obs->data = realloc(obs->data, (obs->nobs + NOBS_INC) * sizeof(observation));
@@ -242,6 +255,7 @@ void reader_rads_standard2(char* fname, int fid, obsmeta* meta, model* m, observ
         assert(o->product >= 0);
         o->type = st_findindexbystring(obs->types, meta->type);
         assert(o->type >= 0);
+        ot = &obs->obstypes[o->type];
         o->instrument = st_add_ifabscent(obs->instruments, instname, -1);
         o->id = obs->nobs;
         o->fid = fid;
@@ -251,13 +265,15 @@ void reader_rads_standard2(char* fname, int fid, obsmeta* meta, model* m, observ
         o->lon = lon[i];
         o->lat = lat[i];
         o->depth = 0.0;
-        o->status = model_ll2fij(m, o->lon, o->lat, &o->fi, &o->fj);
-        if (!obs->allobs && o->status == STATUS_OUTSIDE)
+        o->status = model_xy2fij(m, o->lon, o->lat, &o->fi, &o->fj);
+        if (!obs->allobs && o->status == STATUS_OUTSIDEGRID)
             continue;
         o->fk = 0.0;
         o->date = tunits_offset + 0.5;
         if (o->status == STATUS_OK && depth[(int) floor(o->fj + 0.5)][(int) floor(o->fi + 0.5)] < MINDEPTH)
             o->status = STATUS_SHALLOW;
+        if ((o->status == STATUS_OK) && (o->lon <= ot->xmin || o->lon >= ot->xmax || o->lat <= ot->ymin || o->lat >= ot->ymax || o->depth <= ot->zmin || o->depth >= ot->zmax))
+            o->status = STATUS_OUTSIDEOBSDOMAIN;
 
         o->aux = -1;
 
@@ -268,4 +284,5 @@ void reader_rads_standard2(char* fname, int fid, obsmeta* meta, model* m, observ
     free(lat);
     free(pass);
     free(sla);
+    free(flag);
 }
