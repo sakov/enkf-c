@@ -1,3 +1,6 @@
+v. 0.69
+   PS 15082014
+   -- Introduced obs_checkdatasize() and put it into readers.
 v. 0.68
    PS 15082014
    -- Introduced option to specify domains for each type of observations by

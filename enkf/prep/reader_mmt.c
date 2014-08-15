@@ -142,13 +142,7 @@ void reader_mmt_standard(char* fname, int fid, obsmeta* meta, model* m, observat
             if (z[p][i] < 0.0)
                 continue;
 
-            if (obs->nobs == obs->nallocated) {
-                obs->data = realloc(obs->data, (obs->nobs + NOBS_INC) * sizeof(observation));
-                if (obs->data == NULL)
-                    enkf_quit("not enough memory");
-                obs->nallocated += NOBS_INC;
-            }
-
+            obs_checkdatasize(obs);
             o = &obs->data[obs->nobs];
 
             o->product = st_findindexbystring(obs->products, meta->product);
