@@ -21,9 +21,9 @@
 #define GRIDTYPE_LATLON_IRREGULAR 2
 #define GRIDTYPE_CURVILINEAR 3
 
-typedef void (*grid_ll2fij_fn) (void* grid, double x, double y, double* fi, double* fj);
+typedef void (*grid_xy2fij_fn) (void* grid, double x, double y, double* fi, double* fj);
 typedef void (*grid_z2fk_fn) (void* grid, double fi, double fj, double z, double* fk);
-typedef void (*grid_fij2ll_fn) (void* grid, double fi, double fj, double* lon, double* lat);
+typedef void (*grid_fij2xy_fn) (void* grid, double fi, double fj, double* x, double* y);
 typedef void (*grid_tocartesian_fn) (double* in, double* out);
 
 struct grid;
@@ -44,9 +44,9 @@ int grid_gettype(grid* g);
 float** grid_getdepth(grid* g);
 int** grid_getnumlevels(grid* g);
 int grid_getlontype(grid* g);
-grid_ll2fij_fn grid_getll2fijfn(grid* g);
+grid_xy2fij_fn grid_getxy2fijfn(grid* g);
 grid_z2fk_fn grid_getz2fkfn(grid* g);
-grid_fij2ll_fn grid_getfij2llfn(grid* g);
+grid_fij2xy_fn grid_getfij2xyfn(grid* g);
 int grid_isperiodic_x(grid* g);
 int grid_isperiodic_y(grid* g);
 void grid_tocartesian(grid* g, double* in, double* out);

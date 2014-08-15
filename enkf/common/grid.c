@@ -30,9 +30,9 @@ struct grid {
     char* name;
     int type;
 
-    grid_ll2fij_fn ll2fij_fn;
+    grid_xy2fij_fn xy2fij_fn;
     grid_z2fk_fn z2fk_fn;
-    grid_fij2ll_fn fij2ll_fn;
+    grid_fij2xy_fn fij2xy_fn;
     grid_tocartesian_fn tocartesian_fn;
     void* gridnodes;
     int lontype;
@@ -55,7 +55,7 @@ typedef struct {
     double* xb;
     double* yb;
     double* zb;
-} gnll;                         /* for "Grid Nodes Lat Lon" */
+} gnxy;                         /* for "Grid Nodes X Y" */
 
 typedef struct {
     gridnodes* gn;
@@ -68,9 +68,9 @@ typedef struct {
 
 /**
  */
-static gnll* gnll_create(int nx, int ny, int nz, double* x, double* y, double* z, int periodic_x, int periodic_y, int regular)
+static gnxy* gnxy_create(int nx, int ny, int nz, double* x, double* y, double* z, int periodic_x, int periodic_y, int regular)
 {
-    gnll* nodes = malloc(sizeof(gnll));
+    gnxy* nodes = malloc(sizeof(gnxy));
     int i;
 
     nodes->nx = nx;
@@ -109,7 +109,7 @@ static gnll* gnll_create(int nx, int ny, int nz, double* x, double* y, double* z
 
 /**
  */
-void gnll_destroy(gnll* nodes)
+void gnxy_destroy(gnxy * nodes)
 {
     free(nodes->x);
     free(nodes->y);
@@ -166,7 +166,7 @@ grid* grid_create(char name[])
 
     g->name = strdup(name);
     g->type = GRIDTYPE_NONE;
-    g->ll2fij_fn = NULL;
+    g->xy2fij_fn = NULL;
     g->gridnodes = NULL;
     g->lontype = LONTYPE_NONE;
     g->numlevels = NULL;
@@ -181,7 +181,7 @@ void grid_destroy(grid* g)
 {
     free(g->name);
     if (g->type == GRIDTYPE_LATLON_REGULAR || g->type == GRIDTYPE_LATLON_IRREGULAR)
-        gnll_destroy(g->gridnodes);
+        gnxy_destroy(g->gridnodes);
     else if (g->type == GRIDTYPE_CURVILINEAR)
         gnc_destroy(g->gridnodes);
     else
@@ -230,7 +230,7 @@ void grid_print(grid* g, char offset[])
 void grid_getdims(grid* g, int* ni, int* nj, int* nk)
 {
     if (g->type == GRIDTYPE_LATLON_REGULAR || g->type == GRIDTYPE_LATLON_IRREGULAR) {
-        gnll* nodes = (gnll*) g->gridnodes;
+        gnxy* nodes = (gnxy *) g->gridnodes;
 
         *ni = nodes->nx;
         *nj = nodes->ny;
@@ -427,9 +427,9 @@ static double fi2x(int n, double* v, double fi, int periodic)
 
 /**
  */
-static void g1_ll2fij(void* p, double x, double y, double* fi, double* fj)
+static void g1_xy2fij(void* p, double x, double y, double* fi, double* fj)
 {
-    gnll* nodes = (gnll*) ((grid*) p)->gridnodes;
+    gnxy* nodes = (gnxy *) ((grid*) p)->gridnodes;
 
     *fi = x2fi_reg(nodes->nx, nodes->x, x, nodes->periodic_x);
     *fj = x2fi_reg(nodes->ny, nodes->y, y, nodes->periodic_y);
@@ -437,9 +437,9 @@ static void g1_ll2fij(void* p, double x, double y, double* fi, double* fj)
 
 /**
  */
-static void g12_fij2ll(void* p, double fi, double fj, double* x, double* y)
+static void g12_fij2xy(void* p, double fi, double fj, double* x, double* y)
 {
-    gnll* nodes = (gnll*) ((grid*) p)->gridnodes;
+    gnxy* nodes = (gnxy *) ((grid*) p)->gridnodes;
 
     *x = fi2x(nodes->nx, nodes->x, fi, nodes->periodic_x);
     *y = fi2x(nodes->ny, nodes->y, fj, nodes->periodic_y);
@@ -447,9 +447,9 @@ static void g12_fij2ll(void* p, double fi, double fj, double* x, double* y)
 
 /**
  */
-static void g2_ll2fij(void* p, double x, double y, double* fi, double* fj)
+static void g2_xy2fij(void* p, double x, double y, double* fi, double* fj)
 {
-    gnll* nodes = (gnll*) ((grid*) p)->gridnodes;
+    gnxy* nodes = (gnxy *) ((grid*) p)->gridnodes;
 
     *fi = x2fi_irreg(nodes->nx, nodes->x, nodes->xb, x, nodes->periodic_x);
     *fj = x2fi_irreg(nodes->ny, nodes->y, nodes->yb, y, nodes->periodic_y);
@@ -457,7 +457,7 @@ static void g2_ll2fij(void* p, double x, double y, double* fi, double* fj)
 
 /**
  */
-static void gc_ll2fij(void* p, double x, double y, double* fi, double* fj)
+static void gc_xy2fij(void* p, double x, double y, double* fi, double* fj)
 {
     gnc* nodes = (gnc *) ((grid*) p)->gridnodes;
 
@@ -466,7 +466,7 @@ static void gc_ll2fij(void* p, double x, double y, double* fi, double* fj)
 
 /**
  */
-static void gc_fij2ll(void* p, double fi, double fj, double* x, double* y)
+static void gc_fij2xy(void* p, double fi, double fj, double* x, double* y)
 {
     gnc* nodes = (gnc *) ((grid*) p)->gridnodes;
 
@@ -477,7 +477,7 @@ static void gc_fij2ll(void* p, double fi, double fj, double* x, double* y)
  */
 static void z2fk_1d(void* p, double fi, double fj, double z, double* fk)
 {
-    gnll* nodes = (gnll*) ((grid*) p)->gridnodes;
+    gnxy* nodes = (gnxy *) ((grid*) p)->gridnodes;
 
     *fk = (z == 0.0) ? 0.0 : z2fk(nodes->nz, nodes->z, nodes->zb, z);
 }
@@ -490,8 +490,8 @@ static void grid_setlontype(grid* g)
     double xmax = -DBL_MAX;
 
     if (g->type == GRIDTYPE_LATLON_REGULAR || g->type == GRIDTYPE_LATLON_IRREGULAR) {
-        double* x = ((gnll*) g->gridnodes)->x;
-        int nx = ((gnll*) g->gridnodes)->nx;
+        double* x = ((gnxy *) g->gridnodes)->x;
+        int nx = ((gnxy *) g->gridnodes)->nx;
 
         if (xmin < x[0])
             xmin = x[0];
@@ -531,16 +531,16 @@ void grid_setcoords(grid* g, int type, int periodic_x, int periodic_y, int nx, i
 
     g->type = type;
     if (type == GRIDTYPE_LATLON_REGULAR) {
-        g->ll2fij_fn = g1_ll2fij;
-        g->fij2ll_fn = g12_fij2ll;
-        g->gridnodes = gnll_create(nx, ny, nz, x, y, z, periodic_x, periodic_y, 1);
+        g->xy2fij_fn = g1_xy2fij;
+        g->fij2xy_fn = g12_fij2xy;
+        g->gridnodes = gnxy_create(nx, ny, nz, x, y, z, periodic_x, periodic_y, 1);
     } else if (type == GRIDTYPE_LATLON_IRREGULAR) {
-        g->ll2fij_fn = g2_ll2fij;
-        g->fij2ll_fn = g12_fij2ll;
-        g->gridnodes = gnll_create(nx, ny, nz, x, y, z, periodic_x, periodic_y, 0);
+        g->xy2fij_fn = g2_xy2fij;
+        g->fij2xy_fn = g12_fij2xy;
+        g->gridnodes = gnxy_create(nx, ny, nz, x, y, z, periodic_x, periodic_y, 0);
     } else if (type == GRIDTYPE_CURVILINEAR) {
-        g->ll2fij_fn = gc_ll2fij;
-        g->fij2ll_fn = gc_fij2ll;
+        g->xy2fij_fn = gc_xy2fij;
+        g->fij2xy_fn = gc_fij2xy;
         g->gridnodes = gnc_create(nx, ny, nz, x, y, z);
     } else
         enkf_quit("programming error");
@@ -600,9 +600,9 @@ int grid_getlontype(grid* g)
 
 /**
  */
-grid_ll2fij_fn grid_getll2fijfn(grid* g)
+grid_xy2fij_fn grid_getxy2fijfn(grid* g)
 {
-    return g->ll2fij_fn;
+    return g->xy2fij_fn;
 }
 
 /**
@@ -614,9 +614,9 @@ grid_z2fk_fn grid_getz2fkfn(grid* g)
 
 /**
  */
-grid_fij2ll_fn grid_getfij2llfn(grid* g)
+grid_fij2xy_fn grid_getfij2xyfn(grid* g)
 {
-    return g->fij2ll_fn;
+    return g->fij2xy_fn;
 }
 
 /**
@@ -624,7 +624,7 @@ grid_fij2ll_fn grid_getfij2llfn(grid* g)
 int grid_isperiodic_x(grid* g)
 {
     if (g->type == GRIDTYPE_LATLON_REGULAR || g->type == GRIDTYPE_LATLON_IRREGULAR) {
-        gnll* nodes = (gnll*) ((grid*) g)->gridnodes;
+        gnxy* nodes = (gnxy *) ((grid*) g)->gridnodes;
 
         return nodes->periodic_x;
     }
@@ -637,7 +637,7 @@ int grid_isperiodic_x(grid* g)
 int grid_isperiodic_y(grid* g)
 {
     if (g->type == GRIDTYPE_LATLON_REGULAR || g->type == GRIDTYPE_LATLON_IRREGULAR) {
-        gnll* nodes = (gnll*) ((grid*) g)->gridnodes;
+        gnxy* nodes = (gnxy *) ((grid*) g)->gridnodes;
 
         return nodes->periodic_y;
     }

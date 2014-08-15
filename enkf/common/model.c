@@ -363,7 +363,7 @@ int model_getbgfname_async(model* m, char ensdir[], char varname[], char otname[
 
 /**
  */
-int model_ll2fij(model* m, double x, double y, double* fi, double* fj)
+int model_xy2fij(model* m, double x, double y, double* fi, double* fj)
 {
     int** numlevels = grid_getnumlevels(m->grid);
     int lontype = grid_getlontype(m->grid);
@@ -377,10 +377,10 @@ int model_ll2fij(model* m, double x, double y, double* fi, double* fj)
             x += 360.0;
     }
 
-    grid_getll2fijfn(m->grid) (m->grid, x, y, fi, fj);
+    grid_getxy2fijfn(m->grid) (m->grid, x, y, fi, fj);
 
     if (isnan(*fi + *fj))
-        return STATUS_OUTSIDE;
+        return STATUS_OUTSIDEGRID;
 
     i1 = floor(*fi);
     i2 = ceil(*fi);
@@ -396,12 +396,12 @@ int model_ll2fij(model* m, double x, double y, double* fi, double* fj)
 
 /**
  */
-int model_fij2ll(model* m, double fi, double fj, double* lon, double* lat)
+int model_fij2xy(model* m, double fi, double fj, double* x, double* y)
 {
-    grid_getfij2llfn(m->grid) (m->grid, fi, fj, lon, lat);
+    grid_getfij2xyfn(m->grid) (m->grid, fi, fj, x, y);
 
-    if (isnan(*lon + *lat))
-        return STATUS_OUTSIDE;
+    if (isnan(*x + *y))
+        return STATUS_OUTSIDEGRID;
     return STATUS_OK;
 }
 
@@ -414,13 +414,13 @@ int model_z2fk(model* m, double fi, double fj, double z, double* fk)
 
     if (isnan(fi + fj)) {
         *fk = NaN;
-        return STATUS_OUTSIDE;
+        return STATUS_OUTSIDEGRID;
     }
 
     grid_getz2fkfn(m->grid) (m->grid, fi, fj, z, fk);
 
     if (isnan(*fk))
-        return STATUS_OUTSIDE;
+        return STATUS_OUTSIDEGRID;
 
     i1 = floor(fi);
     i2 = ceil(fi);

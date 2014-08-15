@@ -131,7 +131,7 @@ void das_printobsstats(dasystem* das)
                 if (o->status != STATUS_OK)
                     continue;
 
-                if (o->type == otid && o->lon >= r->lon1 && o->lon <= r->lon2 && o->lat >= r->lat1 && o->lat <= r->lat2) {
+                if (o->type == otid && o->lon >= r->x1 && o->lon <= r->x2 && o->lat >= r->y1 && o->lat <= r->y2) {
                     inn_f += das->s_f[j];
                     inn_f_abs += fabs(das->s_f[j]);
                     inn_a += das->s_a[j];
@@ -347,7 +347,7 @@ void das_printfobsstats(dasystem* das)
                 if (o->status != STATUS_OK)
                     continue;
 
-                if (o->type == otid && o->lon >= r->lon1 && o->lon <= r->lon2 && o->lat >= r->lat1 && o->lat <= r->lat2) {
+                if (o->type == otid && o->lon >= r->x1 && o->lon <= r->x2 && o->lat >= r->y1 && o->lat <= r->y2) {
                     inn_f += das->s_f[j];
                     inn_f_abs += fabs(das->s_f[j]);
                     if (das->mode == MODE_ENKF)

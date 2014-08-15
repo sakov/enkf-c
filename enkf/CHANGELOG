@@ -1,3 +1,9 @@
+v. 0.68
+   PS 15082014
+   -- Introduced option to specify domains for each type of observations by
+      entries "OBSDOMAIN <obs type> <x1> <x2> <y1> <y2> [<z1> <z2>]" in the
+      parameter file.
+   -- For RADS reader in Neil White's format - only use obs with local_flag = 0.
 v. 0.67
    PS 14082014
    -- Made a modification: the entries for standard deviations optionally

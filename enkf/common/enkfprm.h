@@ -17,8 +17,12 @@
 
 typedef struct {
     char* name;
-    double lon1, lon2, lat1, lat2;
+    double x1, x2, y1, y2;
 } region;
+
+typedef struct {
+    double x1, x2, y1, y2, z1, z2;
+} obsdomain;
 
 typedef struct {
     int i, j;
@@ -54,6 +58,7 @@ typedef struct {
     char** typevars;
     char** hfunctions;
     double* rfactors;
+    obsdomain* obsdomains;
     char* msl_fname;
     char* msl_varname;
     double kfactor;

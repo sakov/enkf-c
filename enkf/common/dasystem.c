@@ -95,17 +95,17 @@ dasystem* das_create(enkfprm* prm)
         region* rout = &prm->regions[i];
 
         rin->name = strdup(rout->name);
-        rin->lon1 = rout->lon1;
-        rin->lon2 = rout->lon2;
-        rin->lat1 = rout->lat1;
-        rin->lat2 = rout->lat2;
+        rin->x1 = rout->x1;
+        rin->x2 = rout->x2;
+        rin->y1 = rout->y1;
+        rin->y2 = rout->y2;
     }
 #endif
 
     for (i = 0; i < prm->nplogs; ++i) {
         double lon, lat;
 
-        model_fij2ll(das->m, (double) prm->plogs[i].i, (double) prm->plogs[i].j, &lon, &lat);
+        model_fij2xy(das->m, (double) prm->plogs[i].i, (double) prm->plogs[i].j, &lon, &lat);
         if (isnan(lon + lat)) {
             enkf_printf("  WARNING: %s: POINTLOG %d %d: point outside the grid\n", das->prmfname, prm->plogs[i].i, prm->plogs[i].j);
             continue;
