@@ -301,27 +301,13 @@ void obs_destroy(observations* obs)
 
 /**
  */
-void obs_checkdatasize(observations* obs)
+void obs_checkalloc(observations* obs)
 {
     if (obs->nobs == obs->nallocated) {
         obs->data = realloc(obs->data, (obs->nobs + NOBS_INC) * sizeof(observation));
         if (obs->data == NULL)
             enkf_quit("not enough memory");
         obs->nallocated += NOBS_INC;
-    }
-}
-
-/**
- */
-void obs_checklon(observations* obs)
-{
-    int i;
-
-    for (i = 0; i < obs->nobs; ++i) {
-        observation* o = &obs->data[i];
-
-        if (o->lon < 0)
-            o->lon += 360.0;
     }
 }
 

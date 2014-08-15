@@ -110,7 +110,7 @@ void reader_rads_standard(char* fname, int fid, obsmeta* meta, model* m, observa
         observation* o;
         obstype* ot;
 
-        obs_checkdatasize(obs);
+        obs_checkalloc(obs);
         o = &obs->data[obs->nobs];
 
         o->product = st_findindexbystring(obs->products, meta->product);
@@ -237,7 +237,7 @@ void reader_rads_standard2(char* fname, int fid, obsmeta* meta, model* m, observ
         if (flag[i] != 0)
             continue;
 
-        obs_checkdatasize(obs);
+        obs_checkalloc(obs);
         o = &obs->data[obs->nobs];
 
         o->product = st_findindexbystring(obs->products, meta->product);

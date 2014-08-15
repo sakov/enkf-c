@@ -196,7 +196,6 @@ int main(int argc, char* argv[])
         obs_add(obs, m, &meta[i]);
     obs_markbadbatches(obs);
     clean_obsmeta(nmeta, meta);
-    obs_checklon(obs);
     obs_compact(obs);
     obs_calcstats(obs);
 

@@ -144,7 +144,7 @@ void reader_cars_standard(char* fname, int fid, obsmeta* meta, model* m, observa
             if (fabs(v[p][i] - missval) < EPS || v[p][i] < validmin || v[p][i] > validmax)
                 continue;
 
-            obs_checkdatasize(obs);
+            obs_checkalloc(obs);
             o = &obs->data[obs->nobs];
 
             o->product = st_findindexbystring(obs->products, meta->product);
