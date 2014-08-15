@@ -142,7 +142,7 @@ void reader_mmt_standard(char* fname, int fid, obsmeta* meta, model* m, observat
             if (z[p][i] < 0.0)
                 continue;
 
-            obs_checkdatasize(obs);
+            obs_checkalloc(obs);
             o = &obs->data[obs->nobs];
 
             o->product = st_findindexbystring(obs->products, meta->product);
