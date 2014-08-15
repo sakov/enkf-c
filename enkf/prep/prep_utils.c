@@ -127,9 +127,9 @@ void obs_add(observations* obs, model* m, obsmeta* meta)
                     else if (meta->stdops[i] == ARITHMETIC_MULT)
                         oo->std *= v;
                     else if (meta->stdops[i] == ARITHMETIC_MIN)
-                        oo->std = (v < oo->std < v) ? oo->std : v;
+                        oo->std = (oo->std < v) ? v : oo->std;
                     else if (meta->stdops[i] == ARITHMETIC_MAX)
-                        oo->std = (v > oo->std) ? oo->std : v;
+                        oo->std = (oo->std > v) ? v : oo->std;
                     else
                         enkf_quit("programming error");
                 }
