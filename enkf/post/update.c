@@ -480,38 +480,36 @@ static void das_writefields_toassemble(dasystem* das, int nfields, void** fieldb
 {
     char fname[MAXSTRLEN];
     int ni, nj, nk;
-    int i, e;
+    int i;
 
     model_getdims(das->m, &ni, &nj, &nk);
 
     for (i = 0; i < nfields; ++i) {
         field* f = &fields[i];
 
-        for (e = 0; e < das->nmem; ++e) {
-            getfieldfname(das->ensdir, "ens", f->varname, f->level, fname);
+        getfieldfname(das->ensdir, "ens", f->varname, f->level, fname);
 
-            if (!file_exists(fname)) {
-                int ncid;
-                int dimids[3];
-                int vid;
+        if (!file_exists(fname)) {
+            int ncid;
+            int dimids[3];
+            int vid;
 
-                ncw_create(fname, NC_CLOBBER | NC_64BIT_OFFSET, &ncid);
-                ncw_def_dim(fname, ncid, "m", das->nmem, &dimids[0]);
-                ncw_def_dim(fname, ncid, "nj", nj, &dimids[1]);
-                ncw_def_dim(fname, ncid, "ni", ni, &dimids[2]);
-                ncw_def_var(fname, ncid, f->varname, NC_FLOAT, 3, dimids, &vid);
-                ncw_enddef(fname, ncid);
-                ncw_put_var_float(fname, ncid, vid, ((float***) fieldbuffer[i])[0][0]);
-                ncw_close(fname, ncid);
-            } else {
-                int ncid;
-                int vid;
+            ncw_create(fname, NC_CLOBBER | NC_64BIT_OFFSET, &ncid);
+            ncw_def_dim(fname, ncid, "m", das->nmem, &dimids[0]);
+            ncw_def_dim(fname, ncid, "nj", nj, &dimids[1]);
+            ncw_def_dim(fname, ncid, "ni", ni, &dimids[2]);
+            ncw_def_var(fname, ncid, f->varname, NC_FLOAT, 3, dimids, &vid);
+            ncw_enddef(fname, ncid);
+            ncw_put_var_float(fname, ncid, vid, ((float***) fieldbuffer[i])[0][0]);
+            ncw_close(fname, ncid);
+        } else {
+            int ncid;
+            int vid;
 
-                ncw_open(fname, NC_WRITE, &ncid);
-                ncw_inq_varid(fname, ncid, f->varname, &vid);
-                ncw_put_var_float(fname, ncid, vid, ((float***) fieldbuffer[i])[0][0]);
-                ncw_close(fname, ncid);
-            }
+            ncw_open(fname, NC_WRITE, &ncid);
+            ncw_inq_varid(fname, ncid, f->varname, &vid);
+            ncw_put_var_float(fname, ncid, vid, ((float***) fieldbuffer[i])[0][0]);
+            ncw_close(fname, ncid);
         }
     }
 }
