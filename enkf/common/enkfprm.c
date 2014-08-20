@@ -25,20 +25,20 @@
 
 #define NASYNC_INC 10
 #define NVAR_INC 10
-#define NTYPES_INC 10
 #define NREGIONS_INC 10
 #define NPLOGS_INC 10
+#define NBBSPECS_INC 10
 
 /**
  */
 static void enkfprm_check(enkfprm* prm)
 {
-    int i;
-
     if (prm->mode == MODE_NONE)
         enkf_quit("%s: MODE not specified", prm->fname);
-    if (prm->obsspec == NULL)
+#if defined(ENKF_PREP)
+    if (prm->obsprm == NULL)
         enkf_quit("%s: OBS not specified", prm->fname);
+#endif
     if (prm->date == NULL)
         enkf_quit("%s: DATE not specified", prm->fname);
     if (prm->modelprm == NULL)
@@ -51,20 +51,10 @@ static void enkfprm_check(enkfprm* prm)
 #endif
     if (prm->mode == MODE_ENOI && prm->bgdir == NULL)
         enkf_quit("%s: BGDIR must be specified for MODE = ENOI", prm->fname);
-    if (prm->ntypes == 0)
-        enkf_quit("%s: no observations types specified (check OBS2VAR tag)");
 #if defined(ENKF_CALC)
     if (!isfinite(prm->locrad) && !enkf_fstatsonly)
         enkf_quit("%s: LOCRAD not specified", prm->fname);
 #endif
-    for (i = 0; i < prm->ntypes; ++i) {
-        if (prm->varnames[i] == NULL)
-            enkf_quit("%s: no model variable specified for observation type \"%s\" (tag OBS2VAR)", prm->fname, prm->types[i]);
-#if defined(ENKF_CALC)
-        if (prm->hfunctions[i] == NULL)
-            enkf_quit("%s: no H functions specified for observation type \"%s\" (tag HFUNCTIONS)", prm->fname, prm->types[i]);
-#endif
-    }
 }
 
 /**
@@ -82,12 +72,16 @@ enkfprm* enkfprm_read(char fname[])
     prm->mode = MODE_NONE;
     prm->scheme = SCHEME_DEFAULT;
     prm->target = TARGET_DEFAULT;
+    prm->date = NULL;
+    prm->modelprm = NULL;
+    prm->gridprm = NULL;
+
+    prm->obstypeprm = NULL;
+    prm->obsprm = NULL;
     prm->enssize = -1;
     prm->kfactor = NaN;
     prm->inflations = NULL;
     prm->inflation_base = 1.0;
-    prm->rfactors = NULL;
-    prm->obsdomains = NULL;
     prm->rfactor_base = 1.0;
     prm->inflation_base = 1.0;
     prm->locrad = NaN;
@@ -139,13 +133,6 @@ enkfprm* enkfprm_read(char fname[])
                 else
                     enkf_quit("%s, l.%d: target \"%s\" is not implemented", fname, line, token);
             }
-        } else if (strcasecmp(token, "OBS") == 0) {
-            if ((token = strtok(NULL, seps)) == NULL)
-                enkf_quit("%s, l.%d: OBS not specified", fname, line);
-            else if (prm->obsspec != NULL)
-                enkf_quit("%s, l.%d: OBS specified twice", fname, line);
-            else
-                prm->obsspec = strdup(token);
         } else if (strcasecmp(token, "DATE") == 0) {
             char seps_date[] = "=\n";
 
@@ -158,21 +145,6 @@ enkfprm* enkfprm_read(char fname[])
                     token++;
                 prm->date = strdup(token);
             }
-        } else if (strcasecmp(token, "ASYNCHRONOUS") == 0) {
-            if ((token = strtok(NULL, seps)) == NULL)
-                continue;
-            do {
-                if (prm->nasync % NASYNC_INC == 0) {
-                    prm->async_types = realloc(prm->async_types, (prm->nasync + NASYNC_INC) * sizeof(char*));
-                    prm->async_timesteps = realloc(prm->async_timesteps, (prm->nasync + NASYNC_INC) * sizeof(double));
-                }
-                prm->async_types[prm->nasync] = strdup(token);
-                if ((token = strtok(NULL, seps)) == NULL)
-                    enkf_quit("%s, l.%d: no time interval specified for \"%s\"", fname, line, prm->async_types[prm->nasync]);
-                if (!str2double(token, &prm->async_timesteps[prm->nasync]))
-                    enkf_quit("%s, l.%d: could not convert time interval after \"%s\"", fname, line, prm->async_types[prm->nasync]);
-                prm->nasync++;
-            } while ((token = strtok(NULL, seps)) != NULL);
         } else if (strcasecmp(token, "MODEL") == 0) {
             if ((token = strtok(NULL, seps)) == NULL)
                 enkf_quit("%s, l.%d: MODEL not specified", fname, line);
@@ -187,6 +159,20 @@ enkfprm* enkfprm_read(char fname[])
                 enkf_quit("%s, l.%d: GRID specified twice", fname, line);
             else
                 prm->gridprm = strdup(token);
+        } else if (strcasecmp(token, "OBS") == 0) {
+            if ((token = strtok(NULL, seps)) == NULL)
+                enkf_quit("%s, l.%d: OBS not specified", fname, line);
+            else if (prm->obsprm != NULL)
+                enkf_quit("%s, l.%d: OBS specified twice", fname, line);
+            else
+                prm->obsprm = strdup(token);
+        } else if (strcasecmp(token, "OBSTYPES") == 0) {
+            if ((token = strtok(NULL, seps)) == NULL)
+                enkf_quit("%s, l.%d: OBSTYPES not specified", fname, line);
+            else if (prm->obsprm != NULL)
+                enkf_quit("%s, l.%d: OBSTYPES specified twice", fname, line);
+            else
+                prm->obstypeprm = strdup(token);
         } else if (strcasecmp(token, "ENSDIR") == 0) {
             if ((token = strtok(NULL, seps)) == NULL)
                 enkf_quit("%s, l.%d: ENSDIR not specified", fname, line);
@@ -221,47 +207,6 @@ enkfprm* enkfprm_read(char fname[])
                 prm->varnames[prm->nvar] = strdup(token);
                 prm->nvar++;
             } while ((token = strtok(NULL, seps)) != NULL);
-        } else if (strcasecmp(token, "OBS2VAR") == 0) {
-            if ((token = strtok(NULL, seps)) == NULL)
-                continue;
-            do {
-                if (prm->ntypes % NTYPES_INC == 0) {
-                    prm->types = realloc(prm->types, (prm->ntypes + NTYPES_INC) * sizeof(char*));
-                    prm->typevars = realloc(prm->typevars, (prm->ntypes + NTYPES_INC) * sizeof(char*));
-                    prm->hfunctions = realloc(prm->hfunctions, (prm->ntypes + NTYPES_INC) * sizeof(char*));
-                    prm->rfactors = realloc(prm->rfactors, (prm->ntypes + NTYPES_INC) * sizeof(double));
-                    for (i = prm->ntypes; i < prm->ntypes + NTYPES_INC; ++i)
-                        prm->rfactors[i] = NaN;
-                    prm->obsdomains = realloc(prm->obsdomains, (prm->ntypes + NTYPES_INC) * sizeof(obsdomain));
-                    for (i = prm->ntypes; i < prm->ntypes + NTYPES_INC; ++i) {
-                        prm->obsdomains[i].x1 = -DBL_MAX;
-                        prm->obsdomains[i].x2 = DBL_MAX;
-                        prm->obsdomains[i].y1 = -DBL_MAX;
-                        prm->obsdomains[i].y2 = DBL_MAX;
-                        prm->obsdomains[i].z1 = -DBL_MAX;
-                        prm->obsdomains[i].z2 = DBL_MAX;
-                    }
-                    prm->obsdomains = realloc(prm->obsdomains, (prm->ntypes + NTYPES_INC) * sizeof(obsdomain));
-                }
-                prm->types[prm->ntypes] = strdup(token);
-                if ((token = strtok(NULL, seps)) == NULL)
-                    enkf_quit("%s, l.%d: no variable specified after \"%s\"", fname, line, prm->types[prm->ntypes]);
-                prm->typevars[prm->ntypes] = strdup(token);
-                prm->ntypes++;
-            } while ((token = strtok(NULL, seps)) != NULL);
-        } else if (strcasecmp(token, "HFUNCTIONS") == 0) {
-            if ((token = strtok(NULL, seps)) == NULL)
-                enkf_quit("%s, l.%d: observation type for HFUNCTIONS not specified", fname, line);
-            do {
-                for (i = 0; i < prm->ntypes; ++i)
-                    if (strcmp(token, prm->types[i]) == 0)
-                        break;
-                if (i == prm->ntypes)
-                    enkf_quit("%s, l.%d: could not identify observation type \"%s\". (Make sure that the entries for HFUNCTIONS appear after OBS2VAR entries.)", fname, line, token);
-                if ((token = strtok(NULL, seps)) == NULL)
-                    enkf_quit("%s, l.%d: HFUNCTIONS for %s not specified", fname, line, prm->types[i]);
-                prm->hfunctions[i] = strdup(token);
-            } while ((token = strtok(NULL, seps)) != NULL);
         } else if (strcasecmp(token, "KFACTOR") == 0) {
             if ((token = strtok(NULL, seps)) == NULL)
                 enkf_quit("%s, l.%d: KFACTOR not specified", fname, line);
@@ -272,22 +217,8 @@ enkfprm* enkfprm_read(char fname[])
         } else if (strcasecmp(token, "RFACTOR") == 0) {
             if ((token = strtok(NULL, seps)) == NULL)
                 enkf_quit("%s, l.%d: observation type for RFACTOR not specified", fname, line);
-            if (strcasecmp(token, "BASE") == 0) {
-                if ((token = strtok(NULL, seps)) == NULL)
-                    enkf_quit("%s, l.%d: RFACTOR BASE not specified", fname, line);
-                if (!str2double(token, &prm->rfactor_base))
-                    enkf_quit("%s, l.%d: could not convert RFACTOR BASE value", fname, line);
-            } else {
-                for (i = 0; i < prm->ntypes; ++i)
-                    if (strcmp(token, prm->types[i]) == 0)
-                        break;
-                if (i == prm->ntypes)
-                    enkf_quit("%s, l.%d: could not identify observation type \"%s\". (Make sure that the entries for RFACTOR appear after OBS2VAR entries.)", fname, line, token);
-                if ((token = strtok(NULL, seps)) == NULL)
-                    enkf_quit("%s, l.%d: RFACTOR for %s not specified", fname, line, prm->types[i]);
-                if (!str2double(token, &prm->rfactors[i]))
-                    enkf_quit("%s, l.%d: could not convert RFACTOR %s value", fname, line, prm->types[i]);
-            }
+            if (!str2double(token, &prm->rfactor_base))
+                enkf_quit("%s, l.%d: could not convert RFACTOR value", fname, line);
         } else if (strcasecmp(token, "LOCRAD") == 0) {
             if ((token = strtok(NULL, seps)) == NULL)
                 enkf_quit("%s, l.%d: LOCRAD not specified", fname, line);
@@ -331,7 +262,7 @@ enkfprm* enkfprm_read(char fname[])
                 if (i == prm->nvar)
                     enkf_quit("%s, l.%d: could not identify the variable \"%s\". (Make sure that the entries for INFLATION appear after VARNAMES entry.)", fname, line, token);
                 if ((token = strtok(NULL, seps)) == NULL)
-                    enkf_quit("%s, l.%d: INFLATION %s not specified", fname, line, prm->types[i]);
+                    enkf_quit("%s, l.%d: INFLATION for \"%s\" not specified", fname, line, prm->varnames[i]);
                 if (!str2double(token, &prm->inflations[i]))
                     enkf_quit("%s, l.%d: could not convert \"%s\" to double", fname, line, token);
             }
@@ -366,41 +297,6 @@ enkfprm* enkfprm_read(char fname[])
             if (!str2double(token, &prm->regions[prm->nregions].y2))
                 enkf_quit("%s, l.%d: could not convert \"%s\" to double", fname, line, token);
             prm->nregions++;
-        } else if (strcasecmp(token, "OBSDOMAIN") == 0) {
-            if ((token = strtok(NULL, seps)) == NULL)
-                enkf_quit("%s, l.%d: observation type for OBSDOMAIN not specified", fname, line);
-            for (i = 0; i < prm->ntypes; ++i)
-                if (strcmp(token, prm->types[i]) == 0)
-                    break;
-            if (i == prm->ntypes)
-                enkf_quit("%s, l.%d: could not identify observation type \"%s\". (Make sure that the entries for OBSDOMAIN appear after OBS2VAR entries.)", fname, line, token);
-            if ((token = strtok(NULL, seps)) == NULL)
-                enkf_quit("%s, l.%d: minimal longitude not specified", fname, line);
-            if (!str2double(token, &prm->obsdomains[i].x1))
-                enkf_quit("%s, l.%d: could not convert \"%s\" to double", fname, line, token);
-            if ((token = strtok(NULL, seps)) == NULL)
-                enkf_quit("%s, l.%d: maximal longitude not specified", fname, line);
-            if (!str2double(token, &prm->obsdomains[i].x2))
-                enkf_quit("%s, l.%d: could not convert \"%s\" to double", fname, line, token);
-            if ((token = strtok(NULL, seps)) == NULL)
-                enkf_quit("%s, l.%d: minimal latitude not specified", fname, line);
-            if (!str2double(token, &prm->obsdomains[i].y1))
-                enkf_quit("%s, l.%d: could not convert \"%s\" to double", fname, line, token);
-            if ((token = strtok(NULL, seps)) == NULL)
-                enkf_quit("%s, l.%d: maximal latitude not specified", fname, line);
-            if (!str2double(token, &prm->obsdomains[i].y2))
-                enkf_quit("%s, l.%d: could not convert \"%s\" to double", fname, line, token);
-            if ((token = strtok(NULL, seps)) == NULL) {
-                prm->obsdomains[i].z1 = -DBL_MAX;
-                prm->obsdomains[i].z2 = DBL_MAX;
-            } else {
-                if (!str2double(token, &prm->obsdomains[i].z1))
-                    enkf_quit("%s, l.%d: could not convert \"%s\" to double", fname, line, token);
-                if ((token = strtok(NULL, seps)) == NULL)
-                    enkf_quit("%s, l.%d: maximal depth not specified", fname, line);
-                if (!str2double(token, &prm->obsdomains[i].z2))
-                    enkf_quit("%s, l.%d: could not convert \"%s\" to double", fname, line, token);
-            }
         } else if (strcasecmp(token, "POINTLOG") == 0) {
             if ((token = strtok(NULL, seps)) == NULL)
                 enkf_quit("%s, l.%d: \"I\" coordinate for POINTLOG not specified", fname, line);
@@ -425,8 +321,8 @@ enkfprm* enkfprm_read(char fname[])
         } else if (strcasecmp(token, "BADBATCHES") == 0) {
             if ((token = strtok(NULL, seps)) == NULL)
                 enkf_quit("%s, l.%d: BADBATCHES not specified", fname, line);
-            if (prm->nbadbatchspecs % NTYPES_INC == 0)
-                prm->badbatchspecs = realloc(prm->badbatchspecs, (prm->nbadbatchspecs + NTYPES_INC) * sizeof(badbatchspec));
+            if (prm->nbadbatchspecs % NBBSPECS_INC == 0)
+                prm->badbatchspecs = realloc(prm->badbatchspecs, (prm->nbadbatchspecs + NBBSPECS_INC) * sizeof(badbatchspec));
             prm->badbatchspecs[prm->nbadbatchspecs].obstype = strdup(token);
 
             if ((token = strtok(NULL, seps)) == NULL)
@@ -449,13 +345,6 @@ enkfprm* enkfprm_read(char fname[])
         } else
             enkf_quit("%s, l.%d: unknown token \"%s\"", fname, line, token);
     }                           /* while */
-
-    for (i = 0; i < prm->ntypes; ++i)
-        if (isnan(prm->rfactors[i]))
-            prm->rfactors[i] = prm->rfactor_base;
-        else
-            prm->rfactors[i] = prm->rfactors[i] * prm->rfactor_base;
-    prm->rfactor_base = NaN;    /* not to be used */
 
     for (i = 0; i < prm->nvar; ++i)
         if (isnan(prm->inflations[i]))
@@ -483,37 +372,21 @@ void enkfprm_destroy(enkfprm* prm)
 {
     int i;
 
-    free(prm->obsspec);
+    free(prm->obsprm);
     free(prm->modelprm);
     free(prm->gridprm);
+
+    free(prm->obstypeprm);
 
     free(prm->date);
     free(prm->ensdir);
     if (prm->bgdir != NULL)
         free(prm->bgdir);
-    if (prm->nasync > 0) {
-        for (i = 0; i < prm->nasync; ++i)
-            free(prm->async_types[i]);
-        free(prm->async_types);
-        free(prm->async_timesteps);
-    }
     if (prm->nvar > 0) {
         for (i = 0; i < prm->nvar; ++i)
             free(prm->varnames[i]);
         free(prm->varnames);
         free(prm->inflations);
-    }
-    if (prm->ntypes > 0) {
-        for (i = 0; i < prm->ntypes; ++i) {
-            free(prm->types[i]);
-            free(prm->typevars[i]);
-            free(prm->hfunctions[i]);
-        }
-        free(prm->types);
-        free(prm->typevars);
-        free(prm->hfunctions);
-        free(prm->rfactors);
-        free(prm->obsdomains);
     }
     if (prm->nregions > 0) {
         for (i = 0; i < prm->nregions; ++i)
@@ -552,16 +425,13 @@ void enkfprm_print(enkfprm* prm, char offset[])
         else if (prm->scheme == SCHEME_ETKF)
             enkf_printf("%sSCHEME = ETKF\n", offset);
     }
-    enkf_printf("%sOBS = \"%s\"\n", offset, prm->obsspec);
-    enkf_printf("%sDATE = \"%s\"\n", offset, prm->date);
-    if (prm->nasync > 0) {
-        enkf_printf("%sASYNCHRONOUS =", offset);
-        for (i = 0; i < prm->nasync; ++i)
-            enkf_printf(" %s %f", prm->async_types[i], prm->async_timesteps[i]);
-        enkf_printf("\n");
-    }
     enkf_printf("%sMODEL PRM = \"%s\"\n", offset, prm->modelprm);
     enkf_printf("%sGRID PRM = \"%s\"\n", offset, prm->gridprm);
+
+    enkf_printf("%sOBS TYPES PRM = \"%s\"\n", offset, prm->obsprm);
+
+    enkf_printf("%sDATE = \"%s\"\n", offset, prm->date);
+    enkf_printf("%sOBS PRM = \"%s\"\n", offset, prm->obsprm);
 
     if (prm->mode == MODE_ENOI)
         enkf_printf("%sBGDIR = \"%s\"\n", offset, prm->bgdir);
@@ -578,30 +448,12 @@ void enkfprm_print(enkfprm* prm, char offset[])
             enkf_printf(" %s", prm->varnames[i]);
         enkf_printf("\n");
     }
-    if (prm->ntypes > 0) {
-        enkf_printf("%sOBS2VAR =", offset);
-        for (i = 0; i < prm->ntypes; ++i)
-            enkf_printf(" { %s %s }", prm->types[i], prm->typevars[i]);
-        enkf_printf("\n");
-        enkf_printf("%sHFUNCTIONS =", offset);
-        for (i = 0; i < prm->ntypes; ++i)
-            enkf_printf(" { %s %s }", prm->types[i], prm->hfunctions[i]);
-        enkf_printf("\n");
-        for (i = 0; i < prm->ntypes; ++i) {
-            obsdomain* d = &prm->obsdomains[i];
-
-            enkf_printf("%sOBSDOMAIN =", offset);
-            enkf_printf(" { %s %12.5g %12.5g %12.5g %12.5g %12.5g %12.5g }", prm->types[i], d->x1, d->x2, d->y1, d->y2, d->z1, d->z2);
-            enkf_printf("\n");
-        }
-    }
     if (!enkf_fstatsonly) {
+        enkf_printf("%sRFACTOR BASE = %.1f\n", offset, prm->rfactor_base);
         if (isfinite(prm->kfactor))
             enkf_printf("%sKFACTOR = %.1f\n", offset, prm->kfactor);
         else
             enkf_printf("%sKFACTOR = n/a\n", offset);
-        for (i = 0; i < prm->ntypes; ++i)
-            enkf_printf("%sRFACTOR %s = %.1f\n", offset, prm->types[i], prm->rfactors[i]);
         enkf_printf("%sLOCRAD = %.0f\n", offset, prm->locrad);
         enkf_printf("%sSTRIDE = %d\n", offset, prm->stride);
         enkf_printf("%sFIELDBUFFERSIZE = %d\n", offset, prm->fieldbufsize);
@@ -631,29 +483,24 @@ void enkfprm_print(enkfprm* prm, char offset[])
 
 /**
  */
-void enkfprm_describe(void)
+void enkfprm_describeprm(void)
 {
     enkf_printf("\n");
-    enkf_printf("  Parameter file format:\n");
+    enkf_printf("  Main parameter file format:\n");
     enkf_printf("\n");
     enkf_printf("    MODE                = { ENKF | ENOI }\n");
     enkf_printf("  [ SCHEME              = { DENKF* | ETKF | EnKF-N } ]\n");
     enkf_printf("  [ TARGET              = { ANALYSIS* | INCREMENT } ]\n");
-    enkf_printf("    OBS                 = <obs. prm file>\n");
-    enkf_printf("    DATE                = <julian day of analysis>\n");
-    enkf_printf("  [ ASYNCHRONOUS        = [<obstype> <period>] ... ]\n");
     enkf_printf("    MODEL               = <model prm file>\n");
     enkf_printf("    GRID                = <grid prm file>\n");
+    enkf_printf("    OBSTYPES            = <obs. types prm file>\n");
+    enkf_printf("    OBS                 = <obs. data prm file>\n");
+    enkf_printf("    DATE                = <julian day of analysis>\n");
     enkf_printf("    ENSDIR              = <ensemble directory>\n");
     enkf_printf("    BGDIR               = <background directory>                 (MODE = ENOI)\n");
-    enkf_printf("    VARNAMES            = <varname> ...\n");
-    enkf_printf("    OBS2VAR             = {<obstype> <varname>} ... \n");
-    enkf_printf("    HFUNCTIONS          = {<obstype> <hfunction tag>} ...\n");
     enkf_printf("  [ KFACTOR             = <kfactor> ]                            (1*)\n");
-    enkf_printf("  [ RFACTOR BASE        = <rfactor> ]                            (1*)\n");
-    enkf_printf("  [ RFACTOR <obstype>   = <rfactor> ]                            (1*)\n");
+    enkf_printf("  [ RFACTOR             = <rfactor> ]                            (1*)\n");
     enkf_printf("    ...\n");
-    enkf_printf("  [ OBSDOMAIN <obstype> <x1> <x2> <y1> <y2> [<z1> <z2>] ]\n");
     enkf_printf("    LOCRAD              = <locrad>\n");
     enkf_printf("  [ STRIDE              = <stride> ]                             (1*)\n");
     enkf_printf("  [ SOBSTRIDE           = <stride> ]                             (1*)\n");

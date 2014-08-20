@@ -1,35 +1,31 @@
   MPI: initialised 2 processes
-  MPI: rank = 0, PID = 8249
-  MPI: rank = 1, PID = 8250
-  running POST for EnKF version 0.64:
-  2014-08-08 15:14:51
+  MPI: rank = 0, PID = 6113
+  MPI: rank = 1, PID = 6114
+  running POST for EnKF version 0.71:
+  2014-08-20 09:39:44
   reading system specs from "enkf.prm":
     MODE = EnKF
     SCHEME = DEnKF
-    OBS = "obs.prm"
-    DATE = "6565.5 days since 1990-01-01"
     MODEL PRM = "model.prm"
     GRID PRM = "grid.prm"
+    OBS TYPES PRM = "obs.prm"
+    DATE = "6565.5 days since 1990-01-01"
+    OBS PRM = "obs.prm"
     ENSEMBLE DIR = "ensemble_6565"
     ENSEMBLE SIZE = 96
     VARNAMES = eta_t temp salt u v
-    OBS2VAR = { SST temp } { SLA eta_t } { TEM temp } { SAL salt }
-    HFUNCTIONS = { SST standard } { SLA standard } { TEM standard } { SAL standard }
+    RFACTOR BASE = 2.0
     KFACTOR = 999.0
-    RFACTOR SST = 1.0
-    RFACTOR SLA = 1.0
-    RFACTOR TEM = 1.0
-    RFACTOR SAL = 1.0
     LOCRAD = 200
     STRIDE = 3
     FIELDBUFFERSIZE = 4
-    INFLATION eta_t = 1.000
-    INFLATION temp = 1.000
-    INFLATION salt = 1.000
-    INFLATION u = 1.000
-    INFLATION v = 1.000
-    REGION Global: lon = [0.0, 360.0], lat = [-90.0, 90.0]
-    POINTLOG 30 30
+    INFLATION eta_t = 1.050
+    INFLATION temp = 1.050
+    INFLATION salt = 1.050
+    INFLATION u = 1.050
+    INFLATION v = 1.050
+    REGION Global: x = [0.0, 360.0], y = [-90.0, 90.0]
+    POINTLOG 30 50
     SOBSTRIDE = 1
     EnKF flags:
       enkf_exitaction  = [BACKTRACE]
@@ -70,12 +66,13 @@
     96 members
     9 fields
     allocating disk space for spread:
+    defining state variables in point logs:
     distributing iterations:
       all processes get 48 iterations
       process 0: 0 - 47
-    2014-08-08 15:14:51
-    allocating disk space for analysis:...............................................................................................................................................................................................................................................................................................................................................................................................................................................................................................
-.    2014-08-08 15:14:53
+    2014-08-20 09:39:44
+    allocating disk space for analysis:................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................
+    2014-08-20 09:39:44
     distributing iterations:
       processes get 5 or 4 iterations
       process 0: 0 - 4
@@ -85,12 +82,12 @@
       temp     0   (0: 1: 40.0%)
       u        1   (1: 6: 50.0%)
       temp     1   (0: 2: 60.0%)
-      salt     0   (0: 3: 80.0%)
       v        0   (1: 7: 75.0%)
+      salt     0   (0: 3: 80.0%)
       v        1   (1: 8: 100.0%)
       salt     1   (0: 4: 100.0%)
 
-  2014-08-08 15:14:58
+  2014-08-20 09:39:46
   assembling analysis:
     distributing iterations:
       all processes get 48 iterations
@@ -106,5 +103,5 @@
     salt:..
     u:..
     v:..
-  2014-08-08 15:15:01
+  2014-08-20 09:39:46
   finished

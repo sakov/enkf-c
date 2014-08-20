@@ -48,6 +48,7 @@ SRC_PREP =\
 common/hash.c\
 prep/prep_utils.c\
 prep/obsmeta.c\
+common/obstypes.c\
 common/observations.c\
 prep/allreaders.c\
 prep/reader_navo.c\
@@ -61,12 +62,14 @@ HDR_PREP =\
 prep/prep.h\
 common/hash.h\
 prep/obsmeta.h\
+common/obstypes.h\
 common/observations.h\
 prep/allreaders.h
 
 SRC_CALC =\
 common/distribute.c\
 common/pointlog.c\
+common/obstypes.c\
 common/observations.c\
 common/dasystem.c\
 common/hash.c\
@@ -86,6 +89,7 @@ common/pointlog.h\
 common/dasystem.h\
 common/hash.h\
 common/kdtree.h\
+common/obstypes.h\
 common/observations.h\
 calc/allhs.h\
 calc/model2obs.h\
@@ -141,5 +145,5 @@ clean:
 	rm -f bin/*
 
 indent:
-	indent -T FILE -T field -T dasystem -T grid -T kdtree -T kdnode -T kdset -T model -T modeldata -T gridprm -T mom4prm -T stringtable -T resnode -T tm -T obsmeta -T obsreader_entry -T H_entry -T model_entry -T enkfprm -T gnll -T rangeentry -T observation -T obstype -T observations -T gridprm -T pointlog -T region -T obsdomain -T calcstats -T obstypedesc -T hashtable -T ht_bucket -T badbatchspec -T nc_type -T size_t */*.[ch]
+	indent -T FILE -T field -T dasystem -T grid -T kdtree -T kdnode -T kdset -T model -T modeldata -T gridprm -T mom4prm -T stringtable -T resnode -T tm -T obsmeta -T obsreader_entry -T H_entry -T model_entry -T enkfprm -T gnll -T rangeentry -T observation -T obstype -T observations -T gridprm -T pointlog -T region -T obsdomain -T calcstats -T hashtable -T ht_bucket -T badbatchspec -T nc_type -T size_t */*.[ch]
 	rm -f `find . -name "*.*~"`

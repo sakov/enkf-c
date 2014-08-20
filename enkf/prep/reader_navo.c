@@ -112,7 +112,7 @@ void reader_navo_standard(char* fname, int fid, obsmeta* meta, model* m, observa
 
         o->product = st_findindexbystring(obs->products, meta->product);
         assert(o->product >= 0);
-        o->type = st_findindexbystring(obs->types, meta->type);
+        o->type = obstype_getid(obs->nobstypes, obs->obstypes, meta->type);
         assert(o->type >= 0);
         ot = &obs->obstypes[o->type];
         o->instrument = st_add_ifabscent(obs->instruments, "AVHRR", -1);

@@ -1,3 +1,17 @@
+v. 0.71
+   PS 20082014
+   -- Made structural changes: put observation type related stuff into
+      obstypes.[ch]. Introduced new "observation types" parameter file.
+      Eliminated `struct obstypedesc' and global variable `obstypedesc
+      otdescs[]'. Consolidated all obs type related stuff in
+      observations.obstypes field. Moved all obs types related stuff from
+      enkfprm_read() to obstypes_read().
+   -- Added descriptions of each parameter file used; modified usage to reflect
+      this.
+   -- Modified obs_add() to report the number of good obs read from each data
+      file (along with the total number of obs). Removed this from CARS and
+      MMT readers (no longer needed).
+   -- In example 1 added a new target "singleob".
 v. 0.70
    PS 18082014
    -- Fixed a silly defect in das_writefields_toassemble() (an unecessary cycle

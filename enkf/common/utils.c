@@ -427,6 +427,23 @@ int str2int(char* token, int* value)
     return 1;
 }
 
+/**
+ */
+int read_bool(char* token)
+{
+    int v;
+
+    if (token[0] == 'y' || token[0] == 'Y')
+        return 1;
+    if (token[0] == 'n' || token[0] == 'N')
+        return 0;
+    if (!str2int(token, &v))
+        return -1;
+    if (v == 0 || v == 1)
+        return v;
+    return -1;
+}
+
 /** Allocates nj x ni matrix of something. It will be accessed as [i][j].
  * @param ni Outer dimension
  * @param nj Inner dimension

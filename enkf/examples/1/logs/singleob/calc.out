@@ -1,31 +1,31 @@
   MPI: initialised 2 processes
-  MPI: rank = 0, PID = 6107
-  MPI: rank = 1, PID = 6108
+  MPI: rank = 0, PID = 6206
+  MPI: rank = 1, PID = 6207
   running CALC for EnKF version 0.71:
-  2014-08-20 09:39:35
-  reading system specs from "enkf.prm":
-    MODE = EnKF
-    SCHEME = DEnKF
+  2014-08-20 09:41:04
+  reading system specs from "singleob.prm":
+    MODE = EnOI
     MODEL PRM = "model.prm"
     GRID PRM = "grid.prm"
-    OBS TYPES PRM = "obs.prm"
+    OBS TYPES PRM = "(null)"
     DATE = "6565.5 days since 1990-01-01"
-    OBS PRM = "obs.prm"
+    OBS PRM = "(null)"
+    BGDIR = "background_6565"
     ENSEMBLE DIR = "ensemble_6565"
     ENSEMBLE SIZE = 96
     VARNAMES = eta_t temp salt u v
-    RFACTOR BASE = 2.0
+    RFACTOR BASE = 1.0
     KFACTOR = 999.0
-    LOCRAD = 200
+    LOCRAD = 500
     STRIDE = 3
     FIELDBUFFERSIZE = 4
-    INFLATION eta_t = 1.050
-    INFLATION temp = 1.050
-    INFLATION salt = 1.050
-    INFLATION u = 1.050
-    INFLATION v = 1.050
+    INFLATION eta_t = 1.000
+    INFLATION temp = 1.000
+    INFLATION salt = 1.000
+    INFLATION u = 1.000
+    INFLATION v = 1.000
     REGION Global: x = [0.0, 360.0], y = [-90.0, 90.0]
-    POINTLOG 30 50
+    POINTLOG 30 30
     SOBSTRIDE = 1
     EnKF flags:
       enkf_exitaction  = [BACKTRACE]
@@ -46,7 +46,7 @@
       ALLOWED MIN = -1.8e+308
       ALLOWED MAX = 1.8e+308
       ASYNCHRONOUS = no
-      RFACTOR = 2
+      RFACTOR = 1
     NAME = SST
       ID = 1
       ISSURFACE = yes
@@ -54,7 +54,7 @@
       ALLOWED MIN = -1.8e+308
       ALLOWED MAX = 1.8e+308
       ASYNCHRONOUS = no
-      RFACTOR = 2
+      RFACTOR = 1
     NAME = TEM
       ID = 2
       ISSURFACE = no
@@ -62,7 +62,7 @@
       ALLOWED MIN = -1.8e+308
       ALLOWED MAX = 1.8e+308
       ASYNCHRONOUS = no
-      RFACTOR = 2
+      RFACTOR = 1
     NAME = SAL
       ID = 3
       ISSURFACE = no
@@ -70,7 +70,7 @@
       ALLOWED MIN = -1.8e+308
       ALLOWED MAX = 1.8e+308
       ASYNCHRONOUS = no
-      RFACTOR = 2
+      RFACTOR = 1
     grid dimensions = 100 x 100 x 2
   grid prm info:
     name = "t-grid"
@@ -94,48 +94,77 @@
     type = z-model
     MSL file = conf/eta_mean-bran.nc
     MSL variable = eta_t
-  reading observations from "observations.nc":
-    3927 observations
+  reading observation type specs from "obstypes.prm":
+    NAME = SLA
+      ID = 0
+      ISSURFACE = yes
+      HFUNCTION = standard
+      ALLOWED MIN = -1.8e+308
+      ALLOWED MAX = 1.8e+308
+      ASYNCHRONOUS = no
+      RFACTOR = 1
+    NAME = SST
+      ID = 1
+      ISSURFACE = yes
+      HFUNCTION = standard
+      ALLOWED MIN = -1.8e+308
+      ALLOWED MAX = 1.8e+308
+      ASYNCHRONOUS = no
+      RFACTOR = 1
+    NAME = TEM
+      ID = 2
+      ISSURFACE = no
+      HFUNCTION = standard
+      ALLOWED MIN = -1.8e+308
+      ALLOWED MAX = 1.8e+308
+      ASYNCHRONOUS = no
+      RFACTOR = 1
+    NAME = SAL
+      ID = 3
+      ISSURFACE = no
+      HFUNCTION = standard
+      ALLOWED MIN = -1.8e+308
+      ALLOWED MAX = 1.8e+308
+      ASYNCHRONOUS = no
+      RFACTOR = 1
+  assimilating single observation:
+    type = SST
+    inn  = 0.500
+    std  = 0.500
+    lon  = 154.050
+    lon  = -31.950
+    i    = 30.000
+    j    = 50.000
     calculating obs stats:
   calculating ensemble observations:
-  2014-08-20 09:39:35
+  2014-08-20 09:41:04
     ensemble size = 96
     distributing iterations:
       all processes get 48 iterations
       process 0: 0 - 47
-    SLA ................................................
-    SST ................................................
-    TEM ................................................
-    SAL ................................................
-  adding forecast innovations and spread to "observations.nc":
-  2014-08-20 09:39:35
-  moderating observations:
-    observations substantially modified:
-      SLA          0 (0.0%)
-      SST          0 (0.0%)
-      TEM          0 (0.0%)
-      SAL          0 (0.0%)
-      total        0 (0.0%)
-  writing modified obs errors to "observations.nc":
+    SLA 
+    SST ................................................-
+    TEM 
+    SAL 
   calculating transforms:
-  2014-08-20 09:39:35
-    creating empty file "X5.nc":
+  2014-08-20 09:41:04
+    creating empty file "w.nc":
     distributing iterations:
       all processes get 17 iterations
       process 0: 0 - 16
     main cycle (34 x 34 local analyses):
       j = 0 (0: 0: 5.9%)
       j = 3 (1: 17: 5.9%)
-      j = 9 (1: 18: 11.8%)
       j = 6 (0: 1: 11.8%)
+      j = 9 (1: 18: 11.8%)
       j = 15 (1: 19: 17.6%)
       j = 12 (0: 2: 17.6%)
       j = 21 (1: 20: 23.5%)
       j = 18 (0: 3: 23.5%)
       j = 27 (1: 21: 29.4%)
       j = 24 (0: 4: 29.4%)
-      j = 30 (0: 5: 35.3%)
       j = 33 (1: 22: 35.3%)
+      j = 30 (0: 5: 35.3%)
       j = 39 (1: 23: 41.2%)
       j = 36 (0: 6: 41.2%)
       j = 45 (1: 24: 47.1%)
@@ -150,10 +179,10 @@
       j = 66 (0: 11: 70.6%)
       j = 75 (1: 29: 76.5%)
       j = 72 (0: 12: 76.5%)
-      j = 78 (0: 13: 82.4%)
       j = 81 (1: 30: 82.4%)
-      j = 84 (0: 14: 88.2%)
+      j = 78 (0: 13: 82.4%)
       j = 87 (1: 31: 88.2%)
+      j = 84 (0: 14: 88.2%)
       j = 93 (1: 32: 94.1%)
       j = 90 (0: 15: 94.1%)
       j = 99 (1: 33: 100.0%)
@@ -162,36 +191,21 @@
     writing stats to "enkf_diag.nc":
   calc stats:
     # of local analyses = 1156
-    average # of local obs = 380.7
-    # of inversions in obs space = 87
-    # of inversions in ens space = 983
+    average # of local obs = 0.6
+    # of inversions in obs space = 711
+    # of inversions in ens space = 0
   writing point logs:
-    calculating transform for log point (30, 50): 524 obs
-    writing the log for point (30, 50):
+    calculating transform for log point (30, 30): 1 obs
+    writing the log for point (30, 30):
   calculating analysed observations:
-  2014-08-20 09:39:43
+  2014-08-20 09:41:04
     sorting obs by ij:
-    updating HE:
-  adding analysis innovations and spread to "observations.nc":
+    updating Hx:
   printing observation statistics:
     region obs.type   # obs.  |for.inn.| |an.inn.|   for.inn.   an.inn.  for.spread  an.spread
     ------------------------------------------------------------------------------------------
     Global
-           SLA           652    0.082      0.038      0.027      0.011      0.039      0.024  
-             j1          250    0.087      0.030      0.041      0.010      0.045      0.026  
-             n1          382    0.077      0.043      0.015      0.012      0.034      0.022  
-             N/A          20    0.095      0.025      0.085      0.017      0.049      0.027  
-           SST          3255    0.461      0.221     -0.244     -0.054      0.335      0.213  
-             AVHRR      2087    0.467      0.203     -0.217     -0.032      0.330      0.205  
-             WindSat     847    0.472      0.289     -0.307     -0.106      0.350      0.237  
-             N/A         321    0.393      0.158     -0.252     -0.056      0.323      0.201  
-           TEM            10    4.322      3.409     -3.283      0.096      0.323      0.183  
-             ARGO         10    4.322      3.409     -3.283      0.096      0.323      0.183  
-             0-50m         0     -nan       -nan       -nan       -nan       -nan       -nan  
-             >500m         4    7.825      3.348     -7.825     -3.348      0.379      0.213  
-           SAL            10    0.371      0.315     -0.241      0.075      0.032      0.020  
-             ARGO         10    0.371      0.315     -0.241      0.075      0.032      0.020  
-             0-50m         0     -nan       -nan       -nan       -nan       -nan       -nan  
-             >500m         4    0.655      0.245     -0.655     -0.245      0.037      0.022  
-  2014-08-20 09:39:44
+           SST             1    0.500      0.186      0.500      0.186      0.655      0.655  
+             Virtual       1    0.500      0.186      0.500      0.186      0.655      0.655  
+  2014-08-20 09:41:04
   finished

@@ -50,8 +50,8 @@ static void usage()
     enkf_printf("  Options:\n");
     enkf_printf("  --log-all-obs\n");
     enkf_printf("      put all obs into observations-orig.nc (default: local obs only)\n");
-    enkf_printf("  --describe-prm-format\n");
-    enkf_printf("      describe format of the parameter file and exit\n");
+    enkf_printf("  --describe-prm-format [main|model|grid|obstypes|obsmeta]\n");
+    enkf_printf("      describe format of a parameter file and exit\n");
     enkf_printf("  --describe-superob <sob #>\n");
     enkf_printf("      print composition of this superobservation and exit\n");
     enkf_printf("  --version\n");
@@ -79,7 +79,21 @@ static void parse_commandline(int argc, char* argv[], char** fname)
             } else
                 usage();
         } else if (strcmp(argv[i], "--describe-prm-format") == 0) {
-            enkfprm_describe();
+            if (i < argc - 1) {
+                if (strcmp(argv[i + 1], "main") == 0)
+                    enkfprm_describeprm();
+                else if (strcmp(argv[i + 1], "model") == 0)
+                    model_describeprm();
+                else if (strcmp(argv[i + 1], "grid") == 0)
+                    grid_describeprm();
+                else if (strcmp(argv[i + 1], "obstypes") == 0)
+                    obstypes_describeprm();
+                else if (strcmp(argv[i + 1], "obsmeta") == 0)
+                    obsmeta_describeprm();
+                else
+                    usage();
+            } else
+                enkfprm_describeprm();
             exit(0);
         } else if (strcmp(argv[i], "--describe-superob") == 0) {
             i++;
@@ -181,7 +195,7 @@ int main(int argc, char* argv[])
     prm = enkfprm_read(fname_prm);
     enkfprm_print(prm, "    ");
 
-    enkf_printf("  reading observation specs from \"%s\":\n", prm->obsspec);
+    enkf_printf("  reading observation specs from \"%s\":\n", prm->obsprm);
     read_obsmeta(prm, &nmeta, &meta);
 
     enkf_printf("  setting the model grid:\n");

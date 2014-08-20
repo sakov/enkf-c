@@ -35,17 +35,17 @@ static void usage()
 {
     enkf_printf("  Usage: enkf_calc <prm file> [<options>]\n");
     enkf_printf("  Options:\n");
-    enkf_printf("  --describe-prm-format\n");
-    enkf_printf("      describe format of the parameter file and exit\n");
+    enkf_printf("  --describe-prm-format [main|model|grid|obstypes]\n");
+    enkf_printf("      describe format of a parameter file and exit\n");
     enkf_printf("  --forecast-stats-only\n");
     enkf_printf("      calculate and print forecast observation stats only\n");
     enkf_printf("  --no-mean-update\n");
     enkf_printf("      update ensemble anomalies only\n");
     enkf_printf("  --print-batch-stats\n");
     enkf_printf("       calculate and print global biases for each batch of observations\n");
-    enkf_printf("  --single-observation-xyz <lon> <lat> <depth> <type> <value> <std>\n");
+    enkf_printf("  --single-observation-xyz <lon> <lat> <depth> <type> <inn> <std>\n");
     enkf_printf("      assimilate single observation with these parameters\n");
-    enkf_printf("  --single-observation-ijk <fi> <fj> <fk> <type> <value> <std>\n");
+    enkf_printf("  --single-observation-ijk <fi> <fj> <fk> <type> <inn> <std>\n");
     enkf_printf("      assimilate single observation with these parameters\n");
     enkf_printf("  --use-these-obs <obs file>\n");
     enkf_printf("      assimilate observations from this file; the file format must be compatible\n");
@@ -75,7 +75,19 @@ static void parse_commandline(int argc, char* argv[], char** fname_prm, char** f
             } else
                 usage();
         } else if (strcmp(argv[i], "--describe-prm-format") == 0) {
-            enkfprm_describe();
+            if (i < argc - 1) {
+                if (strcmp(argv[i + 1], "main") == 0)
+                    enkfprm_describeprm();
+                else if (strcmp(argv[i + 1], "model") == 0)
+                    model_describeprm();
+                else if (strcmp(argv[i + 1], "grid") == 0)
+                    grid_describeprm();
+                else if (strcmp(argv[i + 1], "obstypes") == 0)
+                    obstypes_describeprm();
+                else
+                    usage();
+            } else
+                enkfprm_describeprm();
             exit(0);
         } else if (strcmp(argv[i], "--no-mean-update") == 0) {
             enkf_nomeanupdate = 1;
@@ -164,32 +176,16 @@ static observations* obs_create_fromsingleob(enkfprm* prm, model* m)
 {
     observations* obs = obs_create();
     observation* o = singleob;
-    int isasync = 0;
-    double tstep = NaN;
-    int i, j, k;
 
-    obs->types = st_create("types");
+    enkf_printf("  reading observation type specs from \"%s\":\n", prm->obstypeprm);
+    obstypes_read(prm->obstypeprm, &obs->nobstypes, &obs->obstypes, prm->rfactor_base);
 
-    for (i = 0; i < notdescs; ++i)
-        if (strcmp(singleobtype, otdescs[i].typename) == 0)
-            break;
-    if (i == notdescs)
+    obs->da_date = date_str2dbl(prm->date);
+    obs->datestr = strdup(prm->date);
+
+    o->type = obstype_getid(obs->nobstypes, obs->obstypes, singleobtype);
+    if (o->type == obs->nobstypes)
         enkf_quit("command line: type \"%s\" not known");
-
-    for (j = 0; j < prm->ntypes; ++j)
-        if (strcmp(singleobtype, prm->types[j]) == 0)
-            break;
-    if (j == prm->ntypes)
-        enkf_quit("command line: type \"%s\" is not described in the parameter file", singleobtype);
-
-    for (k = 0; k < prm->nasync; ++k)
-        if (strcmp(prm->types[j], prm->async_types[k]) == 0) {
-            isasync = 1;
-            tstep = prm->async_timesteps[k];
-            break;
-        }
-
-    obs_addtype(obs, prm->types[j], otdescs[i].issurface, prm->typevars[j], prm->hfunctions[j], 1.0, isasync, tstep, NULL);
 
     obs->products = st_create("products");
     st_add_ifabscent(obs->products, "Synthetic", -1);
@@ -278,7 +274,6 @@ int main(int argc, char* argv[])
     } else {
         das->obs = obs_create_fromsingleob(prm, das->m);
         enkf_obstype = OBSTYPE_INNOVATION;
-        das->mode = MODE_ENOI;
     }
     enkfprm_destroy(prm);
 

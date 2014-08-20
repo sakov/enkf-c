@@ -40,6 +40,7 @@ typedef struct {
 
 void read_obsmeta(enkfprm* prm, int* nmeta, obsmeta** meta);
 void clean_obsmeta(int n, obsmeta meta[]);
+void obsmeta_describeprm(void);
 
 #define _OBSMETA_H
 #endif
