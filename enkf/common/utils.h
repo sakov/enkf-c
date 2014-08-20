@@ -33,6 +33,7 @@ void file_delete(char* fname);
 int file_exists(char fname[]);
 int str2double(char token[], double* value);
 int str2int(char* token, int* value);
+int read_bool(char* token);
 void* alloc2d(int n2, int n1, size_t unitsize);
 void free2d(void* pp);
 void* alloc3d(int n3, int n2, int n1, size_t unitsize);

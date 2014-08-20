@@ -227,6 +227,29 @@ void grid_print(grid* g, char offset[])
 
 /**
  */
+void grid_describeprm(void)
+{
+    enkf_printf("\n");
+    enkf_printf("  Grid parameter file format for z-model:\n");
+    enkf_printf("\n");
+    enkf_printf("    NAME             = <name>\n");
+    enkf_printf("    DATA             = <data file name>\n");
+    enkf_printf("    XDIMNAME         = <x dimension name>\n");
+    enkf_printf("    YDIMNAME         = <y dimension name>\n");
+    enkf_printf("    ZDIMNAME         = <z dimension name>\n");
+    enkf_printf("    XVARNAME         = <x variable name>\n");
+    enkf_printf("    YVARNAME         = <y variable name>\n");
+    enkf_printf("    ZVARNAME         = <z variable name>\n");
+    enkf_printf("    DEPTHVARNAME     = <depth variable name>\n");
+    enkf_printf("    NUMLEVELSVARNAME = <# of levels variable name>\n");
+    enkf_printf("\n");
+    enkf_printf("  Notes:\n");
+    enkf_printf("    1. < ... > denotes a description of an entry\n");
+    enkf_printf("\n");
+}
+
+/**
+ */
 void grid_getdims(grid* g, int* ni, int* nj, int* nk)
 {
     if (g->type == GRIDTYPE_LATLON_REGULAR || g->type == GRIDTYPE_LATLON_IRREGULAR) {

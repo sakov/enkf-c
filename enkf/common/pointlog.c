@@ -68,7 +68,7 @@ void plog_write(dasystem* das, int i, int j, double lon, double lat, double dept
         ncw_def_var(fname, ncid, "S", NC_FLOAT, 2, dimids, &vid_S);
         sprintf(tunits, "days from %s", obs->datestr);
         ncw_put_att_text(fname, ncid, vid_date, "units", tunits);
-        for (ot = 0; ot < obs->types->n; ++ot) {
+        for (ot = 0; ot < obs->nobstypes; ++ot) {
             char attname[MAXSTRLEN];
 
             ncw_put_att_int(fname, ncid, vid_type, obs->obstypes[ot].name, 1, &ot);

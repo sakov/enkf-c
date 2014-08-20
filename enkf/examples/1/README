@@ -38,6 +38,11 @@ TESTING MODEL VALIDATION
 Testing using EnKF-C for for validating a model against observations only, without data assimilation, run "make stats". The innovation statistics will be 
 printed to the log of enkf_calc.
 
+TESTING SINGLE OBSERVATION EXPERIMENT
+
+Run "make singleob". The results are in background_6565/*.increment.
+
+--
 
 To clean up the analysis, run "make clean".
 

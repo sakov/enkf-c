@@ -40,7 +40,6 @@
 
 void reader_mmt_standard(char* fname, int fid, obsmeta* meta, model* m, observations* obs)
 {
-    int nobs0;
     int ncid;
     int dimid_nprof, dimid_nz;
     size_t nprof, nz;
@@ -59,8 +58,6 @@ void reader_mmt_standard(char* fname, int fid, obsmeta* meta, model* m, observat
     int year, month, day;
     double tunits_multiple, tunits_offset;
     int p, i;
-
-    nobs0 = obs->nobs;
 
     if (meta->nstds == 0)
         enkf_quit("ERROR_STD is necessary but not specified for product \"%s\"", meta->product);
@@ -147,7 +144,7 @@ void reader_mmt_standard(char* fname, int fid, obsmeta* meta, model* m, observat
 
             o->product = st_findindexbystring(obs->products, meta->product);
             assert(o->product >= 0);
-            o->type = st_findindexbystring(obs->types, meta->type);
+            o->type = obstype_getid(obs->nobstypes, obs->obstypes, meta->type);
             assert(o->type >= 0);
             ot = &obs->obstypes[o->type];
             o->instrument = st_add_ifabscent(obs->instruments, inststr, -1);
@@ -174,8 +171,6 @@ void reader_mmt_standard(char* fname, int fid, obsmeta* meta, model* m, observat
             obs->nobs++;
         }
     }
-
-    enkf_printf("        nobs = %d\n", obs->nobs - nobs0);
 
     free(lon);
     free(lat);

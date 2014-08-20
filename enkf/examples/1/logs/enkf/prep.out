@@ -1,32 +1,28 @@
-  running PREP for EnKF version 0.64:
-  2014-08-08 15:14:41
+  running PREP for EnKF version 0.71:
+  2014-08-20 09:39:34
   reading prep specs from "enkf.prm":
     MODE = EnKF
     SCHEME = DEnKF
-    OBS = "obs.prm"
-    DATE = "6565.5 days since 1990-01-01"
     MODEL PRM = "model.prm"
     GRID PRM = "grid.prm"
+    OBS TYPES PRM = "obs.prm"
+    DATE = "6565.5 days since 1990-01-01"
+    OBS PRM = "obs.prm"
     ENSEMBLE DIR = "ensemble_6565"
     ENSEMBLE SIZE = 96
     VARNAMES = eta_t temp salt u v
-    OBS2VAR = { SST temp } { SLA eta_t } { TEM temp } { SAL salt }
-    HFUNCTIONS = { SST standard } { SLA standard } { TEM standard } { SAL standard }
+    RFACTOR BASE = 2.0
     KFACTOR = 999.0
-    RFACTOR SST = 1.0
-    RFACTOR SLA = 1.0
-    RFACTOR TEM = 1.0
-    RFACTOR SAL = 1.0
     LOCRAD = 200
     STRIDE = 3
     FIELDBUFFERSIZE = 4
-    INFLATION eta_t = 1.000
-    INFLATION temp = 1.000
-    INFLATION salt = 1.000
-    INFLATION u = 1.000
-    INFLATION v = 1.000
-    REGION Global: lon = [0.0, 360.0], lat = [-90.0, 90.0]
-    POINTLOG 30 30
+    INFLATION eta_t = 1.050
+    INFLATION temp = 1.050
+    INFLATION salt = 1.050
+    INFLATION u = 1.050
+    INFLATION v = 1.050
+    REGION Global: x = [0.0, 360.0], y = [-90.0, 90.0]
+    POINTLOG 30 50
     SOBSTRIDE = 1
     EnKF flags:
       enkf_exitaction  = [BACKTRACE]
@@ -71,7 +67,7 @@
       File:        obsmeta.c = obs/TS-SEP-2011/y2007/m12/cars_temp_d21.nc
       File:        obsmeta.c = obs/TS-SEP-2011/y2007/m12/cars_temp_d22.nc
       File:        obsmeta.c = obs/TS-SEP-2011/y2007/m12/cars_temp_d23.nc
-      ERROR_STD = 0.5
+      ERROR_STD = 0.5, operation = EQUAL
     PRODUCT = CARS
       READER = standard
       TYPE = SAL
@@ -80,7 +76,7 @@
       File:        obsmeta.c = obs/TS-SEP-2011/y2007/m12/cars_salt_d21.nc
       File:        obsmeta.c = obs/TS-SEP-2011/y2007/m12/cars_salt_d22.nc
       File:        obsmeta.c = obs/TS-SEP-2011/y2007/m12/cars_salt_d23.nc
-      ERROR_STD = 0.1
+      ERROR_STD = 0.1, operation = EQUAL
   setting the model grid:
     grid dimensions = 100 x 100 x 2
   grid prm info:
@@ -105,73 +101,126 @@
     type = z-model
     MSL file = conf/eta_mean-bran.nc
     MSL variable = eta_t
+  reading observation type specs from "obstypes.prm":
+    NAME = SLA
+      ID = 0
+      ISSURFACE = yes
+      HFUNCTION = standard
+      ALLOWED MIN = -1.8e+308
+      ALLOWED MAX = 1.8e+308
+      ASYNCHRONOUS = no
+      RFACTOR = 2
+    NAME = SST
+      ID = 1
+      ISSURFACE = yes
+      HFUNCTION = standard
+      ALLOWED MIN = -1.8e+308
+      ALLOWED MAX = 1.8e+308
+      ASYNCHRONOUS = no
+      RFACTOR = 2
+    NAME = TEM
+      ID = 2
+    ls: cannot access obs/WINDSAT/windsat_20071221.nc: No such file or directory
+ls: cannot access obs/WINDSAT/windsat_20071222.nc: No such file or directory
+ls: cannot access obs/WINDSAT/windsat_20071223.nc: No such file or directory
+  ISSURFACE = no
+      HFUNCTION = standard
+      ALLOWED MIN = -1.8e+308
+      ALLOWED MAX = 1.8e+308
+      ASYNCHRONOUS = no
+      RFACTOR = 2
+    NAME = SAL
+      ID = 3
+      ISSURFACE = no
+      HFUNCTION = standard
+      ALLOWED MIN = -1.8e+308
+      ALLOWED MAX = 1.8e+308
+      ASYNCHRONOUS = no
+      RFACTOR = 2
   reading observations:
     PRODUCT = RADS, TYPE = SLA, reader = standard2
       reading obs/RADS-IB/y2007/m12/e2_d19.nc:
         nobs = 5394
         error_std = 0.05
+        # good obs = 0
       reading obs/RADS-IB/y2007/m12/j1_d19.nc:
         nobs = 50386
         error_std = 0.03
-      reading obs/RADS-IB/y2007/mls: cannot access obs/WINDSAT/windsat_20071221.nc: No such file or directory
-ls: cannot access obs/WINDSAT/windsat_20071222.nc: No such file or directory
-ls: cannot access obs/WINDSAT/windsat_20071223.nc: No such file or directory
-12/n1_d19.nc:
+        # good obs = 20
+      reading obs/RADS-IB/y2007/m12/n1_d19.nc:
         nobs = 40491
         error_std = 0.05
+        # good obs = 238
       reading obs/RADS-IB/y2007/m12/e2_d20.nc:
         nobs = 6177
         error_std = 0.05
+        # good obs = 0
       reading obs/RADS-IB/y2007/m12/j1_d20.nc:
         nobs = 50153
         error_std = 0.03
+        # good obs = 0
       reading obs/RADS-IB/y2007/m12/n1_d20.nc:
         nobs = 39486
         error_std = 0.05
+        # good obs = 0
       reading obs/RADS-IB/y2007/m12/e2_d21.nc:
         nobs = 5364
         error_std = 0.05
+        # good obs = 0
       reading obs/RADS-IB/y2007/m12/j1_d21.nc:
         nobs = 51928
         error_std = 0.03
+        # good obs = 351
       reading obs/RADS-IB/y2007/m12/n1_d21.nc:
         nobs = 39512
         error_std = 0.05
+        # good obs = 25
       reading obs/RADS-IB/y2007/m12/e2_d22.nc:
         nobs = 5200
         error_std = 0.05
+        # good obs = 0
       reading obs/RADS-IB/y2007/m12/j1_d22.nc:
         nobs = 51022
         error_std = 0.03
+        # good obs = 68
       reading obs/RADS-IB/y2007/m12/n1_d22.nc:
         nobs = 41034
         error_std = 0.05
+        # good obs = 298
       reading obs/RADS-IB/y2007/m12/e2_d23.nc:
         nobs = 6030
         error_std = 0.05
+        # good obs = 0
       reading obs/RADS-IB/y2007/m12/j1_d23.nc:
         nobs = 49922
         error_std = 0.03
+        # good obs = 0
       reading obs/RADS-IB/y2007/m12/n1_d23.nc:
         nobs = 38946
         error_std = 0.05
-      id = 0 - 1005
-      total 1006 observations
-      998 valid observations
+        # good obs = 0
+      id = 0 - 999
+      total 1000 observations
+      997 valid observations
       min date = -4.000
       max date = -1.000
     PRODUCT = NAVO, TYPE = SST, reader = standard
       reading obs/NAVO/navo_20071219.nc:
         nobs = 21372
+        # good obs = 740
       reading obs/NAVO/navo_20071220.nc:
         nobs = 18990
+        # good obs = 1700
       reading obs/NAVO/navo_20071221.nc:
         nobs = 31481
+        # good obs = 1782
       reading obs/NAVO/navo_20071222.nc:
         nobs = 20804
+        # good obs = 1621
       reading obs/NAVO/navo_20071223.nc:
         nobs = 28440
-      id = 1006 - 8221
+        # good obs = 1373
+      id = 1000 - 8215
       total 7216 observations
       7216 valid observations
       min date = -4.039
@@ -179,9 +228,11 @@ ls: cannot access obs/WINDSAT/windsat_20071223.nc: No such file or directory
     PRODUCT = WindSat, TYPE = SST, reader = standard
       reading obs/WINDSAT/windsat_20071219.nc:
         nobs = 320738
+        # good obs = 1168
       reading obs/WINDSAT/windsat_20071220.nc:
         nobs = 29534
-      id = 8222 - 9389
+        # good obs = 0
+      id = 8216 - 9383
       total 1168 observations
       1168 valid observations
       min date = -4.000
@@ -190,24 +241,24 @@ ls: cannot access obs/WINDSAT/windsat_20071223.nc: No such file or directory
       reading obs/TS-SEP-2011/y2007/m12/cars_temp_d19.nc:
         # profiles = 384
         # z levels = 191
-        nobs = 176
+        # good obs = 176
       reading obs/TS-SEP-2011/y2007/m12/cars_temp_d20.nc:
         # profiles = 377
         # z levels = 191
-        nobs = 56
+        # good obs = 56
       reading obs/TS-SEP-2011/y2007/m12/cars_temp_d21.nc:
         # profiles = 329
         # z levels = 191
-        nobs = 56
+        # good obs = 56
       reading obs/TS-SEP-2011/y2007/m12/cars_temp_d22.nc:
         # profiles = 350
         # z levels = 191
-        nobs = 0
+        # good obs = 0
       reading obs/TS-SEP-2011/y2007/m12/cars_temp_d23.nc:
         # profiles = 344
         # z levels = 191
-        nobs = 0
-      id = 9390 - 9677
+        # good obs = 0
+      id = 9384 - 9671
       total 288 observations
       288 valid observations
       adding error_std = 0.5:
@@ -217,24 +268,24 @@ ls: cannot access obs/WINDSAT/windsat_20071223.nc: No such file or directory
       reading obs/TS-SEP-2011/y2007/m12/cars_salt_d19.nc:
         # profiles = 366
         # z levels = 191
-        nobs = 176
+        # good obs = 176
       reading obs/TS-SEP-2011/y2007/m12/cars_salt_d20.nc:
         # profiles = 360
         # z levels = 191
-        nobs = 56
+        # good obs = 56
       reading obs/TS-SEP-2011/y2007/m12/cars_salt_d21.nc:
         # profiles = 314
         # z levels = 191
-        nobs = 56
+        # good obs = 56
       reading obs/TS-SEP-2011/y2007/m12/cars_salt_d22.nc:
         # profiles = 323
         # z levels = 191
-        nobs = 0
+        # good obs = 0
       reading obs/TS-SEP-2011/y2007/m12/cars_salt_d23.nc:
         # profiles = 325
         # z levels = 191
-        nobs = 0
-      id = 9678 - 9965
+        # good obs = 0
+      id = 9672 - 9959
       total 288 observations
       288 valid observations
       adding error_std = 0.1:
@@ -250,10 +301,10 @@ ls: cannot access obs/WINDSAT/windsat_20071223.nc: No such file or directory
   printing observation statistics:
     type    # used     # dropped  # outside  # land     # shallow  # badbatch # badvalue # superobs.
     ----------------------------------------------------------------------------------------
+    SLA     997        3          0          0          3          0          0          652       
     SST     8384       0          0          0          0          0          0          3255      
-    SLA     998        8          0          0          8          0          0          652       
     TEM     288        0          0          0          0          0          0          10        
     SAL     288        0          0          0          0          0          0          10        
-    total   9958       8          0          0          8          0          0          3927      
-  2014-08-08 15:14:41
+    total   9957       3          0          0          3          0          0          3927      
+  2014-08-20 09:39:35
   finished

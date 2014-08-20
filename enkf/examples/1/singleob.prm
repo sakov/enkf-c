@@ -1,25 +1,22 @@
-MODE = EnKF
-SCHEME = DEnKF
+MODE = EnOI
 
 MODEL = model.prm
 GRID = grid.prm
 OBSTYPES = obstypes.prm
 
-OBS = obs.prm
 DATE = 6565.5 days since 1990-01-01
 
 ENSDIR = ensemble_6565
+BGDIR = background_6565
 ENSSIZE = 96
 
 VARNAMES = eta_t temp salt u v
-INFLATION BASE = 1.05
-RFACTOR = 2
 KFACTOR = 999
-LOCRAD = 200
+LOCRAD = 500
 
 STRIDE = 3
 FIELDBUFFERSIZE = 4
 
 REGION Global   0   360   -90     90
 
-POINTLOG 30 50
+POINTLOG 30 30

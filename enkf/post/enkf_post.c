@@ -34,8 +34,8 @@ static void usage()
     enkf_printf("  Options:\n");
     enkf_printf("  --calculate-spread\n");
     enkf_printf("      calculate ensemble spread and write to %s\n", FNAME_SPREAD);
-    enkf_printf("  --describe-prm-format\n");
-    enkf_printf("      describe format of the parameter file and exit\n");
+    enkf_printf("  --describe-prm-format [main|model|grid]\n");
+    enkf_printf("      describe format of a parameter file and exit\n");
     enkf_printf("  --direct-write\n");
     enkf_printf("      write fields directly to the output file (default: write to tiles first)\n");
     enkf_printf("  --leave-tiles\n");
@@ -73,7 +73,17 @@ static void parse_commandline(int argc, char* argv[], char** fname)
             i++;
             continue;
         } else if (strcmp(argv[i], "--describe-prm-format") == 0) {
-            enkfprm_describe();
+            if (i < argc - 1) {
+                if (strcmp(argv[i + 1], "main") == 0)
+                    enkfprm_describeprm();
+                else if (strcmp(argv[i + 1], "model") == 0)
+                    model_describeprm();
+                else if (strcmp(argv[i + 1], "grid") == 0)
+                    grid_describeprm();
+                else
+                    usage();
+            } else
+                enkfprm_describeprm();
             exit(0);
         } else if (strcmp(argv[i], "--direct-write") == 0) {
             enkf_directwrite = 1;

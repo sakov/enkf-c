@@ -46,7 +46,7 @@ static void obsmeta_addfname(obsmeta* meta, char fname[])
  */
 void read_obsmeta(enkfprm* prm, int* nmeta, obsmeta** meta)
 {
-    char* fname = prm->obsspec;
+    char* fname = prm->obsprm;
     FILE* f = NULL;
     char buf[MAXSTRLEN];
     int line;
@@ -70,33 +70,28 @@ void read_obsmeta(enkfprm* prm, int* nmeta, obsmeta** meta)
             continue;
         if (strcasecmp(token, "PRODUCT") == 0) {
             if ((token = strtok(NULL, seps)) == NULL)
-                enkf_quit("%s, l.%d: PRODUCT entered but not specified", fname, line);
-            else {
-                *meta = realloc(*meta, (*nmeta + 1) * sizeof(obsmeta));
-                m = &(*meta)[*nmeta];
-                obsmeta_init(m);
-                m->product = strdup(token);
-                (*nmeta)++;
-            }
+                enkf_quit("%s, l.%d: PRODUCT not specified", fname, line);
+
+            *meta = realloc(*meta, (*nmeta + 1) * sizeof(obsmeta));
+            m = &(*meta)[*nmeta];
+            obsmeta_init(m);
+            m->product = strdup(token);
+            (*nmeta)++;
         } else if (strcasecmp(token, "READER") == 0) {
             if ((token = strtok(NULL, seps)) == NULL)
-                enkf_quit("%s, l.%d: READER entered but not specified", fname, line);
-            else
-                m->reader = strdup(token);
+                enkf_quit("%s, l.%d: READER not specified", fname, line);
+            m->reader = strdup(token);
         } else if (strcasecmp(token, "TYPE") == 0) {
             if ((token = strtok(NULL, seps)) == NULL)
-                enkf_quit("%s, l.%d: TYPE entered but not specified", fname, line);
-            else {
-                m->type = strdup(token);
-            }
+                enkf_quit("%s, l.%d: TYPE not specified", fname, line);
+            m->type = strdup(token);
         } else if (strcasecmp(token, "FILE") == 0) {
             if ((token = strtok(NULL, seps)) == NULL)
-                enkf_quit("%s, l.%d: FILE entered but not specified", fname, line);
-            else
-                obsmeta_addfname(m, token);
+                enkf_quit("%s, l.%d: FILE not specified", fname, line);
+            obsmeta_addfname(m, token);
         } else if (strcasecmp(token, "ERROR_STD") == 0) {
             if ((token = strtok(NULL, seps)) == NULL)
-                enkf_quit("%s, l.%d: STD entered but not specified", fname, line);
+                enkf_quit("%s, l.%d: STD not specified", fname, line);
             else {
                 double std;
                 m->stdtypes = realloc(m->stdtypes, (m->nstds + 1) * sizeof(int));
@@ -228,4 +223,30 @@ void clean_obsmeta(int n, obsmeta meta[])
         free(m->varnames);
     }
     free(meta);
+}
+
+/**
+ */
+void obsmeta_describeprm(void)
+{
+    enkf_printf("\n");
+    enkf_printf("  Observation meta data file format:\n");
+    enkf_printf("\n");
+    enkf_printf("    PRODUCT   = <product>\n");
+    enkf_printf("    READER    = <reader>\n");
+    enkf_printf("    TYPE      = <observation type>\n");
+    enkf_printf("    FILE      = <data file wildcard> \n");
+    enkf_printf("    ...\n");
+    enkf_printf("  [ ERROR_STD = { <value> | <data file> } [ EQ* | PL | MU | MI | MA ] ]\n");
+    enkf_printf("    ...\n");
+    enkf_printf("\n");
+    enkf_printf("  [ <more of the above blocks> ]\n");
+    enkf_printf("\n");
+    enkf_printf("  Notes:\n");
+    enkf_printf("    1. { ... | ... | ... } denotes the list of possible choices\n");
+    enkf_printf("    2. [ ... ] denotes an optional input\n");
+    enkf_printf("    3. * denotes the default value\n");
+    enkf_printf("    4. < ... > denotes a description of an entry\n");
+    enkf_printf("    5. ... denotes repeating the previous item an arbitrary number of times\n");
+    enkf_printf("\n");
 }

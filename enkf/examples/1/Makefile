@@ -7,6 +7,8 @@ enkf: clean enkf-prep enkf-calc enkf-post
 
 stats: clean stats-prep stats-calc
 
+singleob: clean singleob-calc singleob-post
+
 enoi-prep: enkf_prep conf obs enoi.prm
 	./enkf_prep enoi.prm 2>&1 | tee prep.out
 
@@ -30,7 +32,13 @@ stats-prep: enkf_prep conf obs stats.prm
 	./enkf_prep stats.prm 2>&1 | tee prep.out
 
 stats-calc: enkf_calc observations.nc conf background_6565
-	nice -n +19 mpirun -np $(NP_CALC) ./enkf_calc stats.prm --forecast-stats-only 2>&1 | tee calc.out
+	nice -n +19 mpirun -np $(NP_CALC) ./enkf_calc --forecast-stats-only stats.prm 2>&1 | tee calc.out
+
+singleob-calc: enkf_calc ensemble_static
+	nice -n +19 mpirun -np $(NP_CALC) ./enkf_calc --single-observation-ijk 30 50 0 SST 0.5 0.5 singleob.prm | tee calc.out
+
+singleob-post: enkf_post ensemble_static
+	nice -n +19 mpirun -np $(NP_POST) ./enkf_post --separate-output --output-increment singleob.prm | tee post.out
 
 enkf_prep:
 	cp ../../bin/enkf_prep .

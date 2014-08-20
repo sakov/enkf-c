@@ -27,19 +27,12 @@
 #include "utils.h"
 #include "enkfprm.h"
 #include "grid.h"
+#include "obstypes.h"
 #include "observations.h"
 
 #define NOBSTYPES_INC 10
 #define KD_INC 10000
 #define HT_SIZE 100
-
-/* allowed range for obs of each type */
-obstypedesc otdescs[] = {
-    {"SST", 1, -2.5, 50.0},
-    {"SLA", 1, -2.0, 2.0},
-    {"TEM", 0, -2.5, 50.0},
-    {"SAL", 0, 2.0, 41.0}
-};
 
 typedef struct {
     char obstype[MAXSTRLEN];
@@ -47,8 +40,6 @@ typedef struct {
     int fid;
     int batch;
 } badbatch;
-
-int notdescs = sizeof(otdescs) / sizeof(obstypedesc);
 
 /**
  */
@@ -95,8 +86,6 @@ void obs_addtype(observations* obs, char name[], int issurface, char varname[], 
     }
 
     obs->nobstypes++;
-
-    st_add_ifabscent(obs->types, name, ot->id);
 }
 
 /**
@@ -105,9 +94,6 @@ observations* obs_create(void)
 {
     observations* obs = malloc(sizeof(observations));
 
-    obs->nobstypes = 0;
-    obs->obstypes = NULL;
-    obs->types = NULL;
     obs->products = NULL;
     obs->instruments = NULL;
     obs->datafiles = NULL;
@@ -141,38 +127,13 @@ observations* obs_create(void)
 observations* obs_create_fromprm(enkfprm* prm)
 {
     observations* obs = obs_create();
-    int i, j;
 
-    obs->types = st_create("types");
     obs->products = st_create("products");
     obs->instruments = st_create("instruments");
     obs->datafiles = st_create("datafiles");
 
-    for (i = 0; i < prm->ntypes; ++i) {
-        int isasync = 0;
-        int issurface = -1;
-        double tstep = NaN;
-
-        for (j = 0; j < prm->nasync; ++j) {
-            if (strcmp(prm->types[i], prm->async_types[j]) == 0) {
-                isasync = 1;
-                tstep = prm->async_timesteps[j];
-
-                break;
-            }
-        }
-
-        for (j = 0; j < notdescs; ++j) {
-            if (strcmp(prm->types[i], otdescs[j].typename) == 0) {
-                issurface = otdescs[j].issurface;
-                break;
-            }
-        }
-        if (issurface < 0)
-            enkf_quit("observation type \"%s\" not described in observations.c::otdescs", prm->types[i]);
-
-        obs_addtype(obs, prm->types[i], issurface, prm->typevars[i], prm->hfunctions[i], prm->rfactors[i], isasync, tstep, &prm->obsdomains[i]);
-    }
+    enkf_printf("  reading observation type specs from \"%s\":\n", prm->obstypeprm);
+    obstypes_read(prm->obstypeprm, &obs->nobstypes, &obs->obstypes, prm->rfactor_base);
 
     obs->da_date = date_str2dbl(prm->date);
     obs->datestr = strdup(prm->date);
@@ -244,7 +205,6 @@ observations* obs_create_fromdata(observations* parentobs, int nobs, observation
     observations* obs = obs_create();
     int i;
 
-    obs->types = st_copy(parentobs->types);
     obs->products = st_copy(parentobs->products);
     obs->instruments = st_copy(parentobs->instruments);
     obs->datafiles = st_copy(parentobs->datafiles);
@@ -270,7 +230,6 @@ void obs_destroy(observations* obs)
 {
     int i;
 
-    st_destroy(obs->types);
     st_destroy(obs->products);
     st_destroy(obs->instruments);
     st_destroy(obs->datafiles);
@@ -511,7 +470,7 @@ void obs_read(observations* obs, char fname[])
         char attname[NC_MAX_NAME];
 
         ncw_inq_attname(fname, ncid, varid_type, i, attname);
-        assert(strcmp(attname, st_findstringbyindex(obs->types, i)) == 0);
+        assert(obstype_getid(obs->nobstypes, obs->obstypes, attname) >= 0);
     }
 
     /*
@@ -696,8 +655,8 @@ void obs_write(observations* obs, char fname[])
     sprintf(tunits, "days from %s", obs->datestr);
     ncw_put_att_text(fname, ncid, varid_date, "units", tunits);
 
-    for (i = 0; i < obs->types->n; ++i)
-        ncw_put_att_int(fname, ncid, varid_type, st_findstringbyindex(obs->types, i), 1, &i);
+    for (i = 0; i < obs->nobstypes; ++i)
+        ncw_put_att_int(fname, ncid, varid_type, obs->obstypes[i].name, 1, &i);
 
     for (i = 0; i < obs->products->n; ++i)
         ncw_put_att_int(fname, ncid, varid_product, st_findstringbyindex(obs->products, i), 1, &i);

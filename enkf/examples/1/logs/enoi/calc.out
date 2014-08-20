@@ -1,34 +1,30 @@
   MPI: initialised 2 processes
-  MPI: rank = 0, PID = 8195
-  MPI: rank = 1, PID = 8196
-  running CALC for EnKF version 0.64:
-  2014-08-08 15:13:55
+  MPI: rank = 0, PID = 6153
+  MPI: rank = 1, PID = 6154
+  running CALC for EnKF version 0.71:
+  2014-08-20 09:40:16
   reading system specs from "enoi.prm":
     MODE = EnOI
-    OBS = "obs.prm"
-    DATE = "6565.5 days since 1990-01-01"
     MODEL PRM = "model.prm"
     GRID PRM = "grid.prm"
+    OBS TYPES PRM = "obs.prm"
+    DATE = "6565.5 days since 1990-01-01"
+    OBS PRM = "obs.prm"
     BGDIR = "background_6565"
     ENSEMBLE DIR = "ensemble_static"
     ENSEMBLE SIZE = 144
     VARNAMES = eta_t temp salt u v
-    OBS2VAR = { SST temp } { SLA eta_t } { TEM temp } { SAL salt }
-    HFUNCTIONS = { SST standard } { SLA standard } { TEM standard } { SAL standard }
+    RFACTOR BASE = 1.0
     KFACTOR = 999.0
-    RFACTOR SST = 1.0
-    RFACTOR SLA = 1.0
-    RFACTOR TEM = 1.0
-    RFACTOR SAL = 1.0
     LOCRAD = 200
     STRIDE = 3
     FIELDBUFFERSIZE = 4
-    INFLATION eta_t = 1.050
-    INFLATION temp = 1.050
-    INFLATION salt = 1.050
-    INFLATION u = 1.050
-    INFLATION v = 1.050
-    REGION Global: lon = [0.0, 360.0], lat = [-90.0, 90.0]
+    INFLATION eta_t = 1.000
+    INFLATION temp = 1.000
+    INFLATION salt = 1.000
+    INFLATION u = 1.000
+    INFLATION v = 1.000
+    REGION Global: x = [0.0, 360.0], y = [-90.0, 90.0]
     POINTLOG 30 30
     SOBSTRIDE = 1
     EnKF flags:
@@ -42,6 +38,39 @@
       SHUFFLE_ROWS     = [-]
       HE_VIAFILE       = [-]
   initialising the system:
+  reading observation type specs from "obstypes.prm":
+    NAME = SLA
+      ID = 0
+      ISSURFACE = yes
+      HFUNCTION = standard
+      ALLOWED MIN = -1.8e+308
+      ALLOWED MAX = 1.8e+308
+      ASYNCHRONOUS = no
+      RFACTOR = 1
+    NAME = SST
+      ID = 1
+      ISSURFACE = yes
+      HFUNCTION = standard
+      ALLOWED MIN = -1.8e+308
+      ALLOWED MAX = 1.8e+308
+      ASYNCHRONOUS = no
+      RFACTOR = 1
+    NAME = TEM
+      ID = 2
+      ISSURFACE = no
+      HFUNCTION = standard
+      ALLOWED MIN = -1.8e+308
+      ALLOWED MAX = 1.8e+308
+      ASYNCHRONOUS = no
+      RFACTOR = 1
+    NAME = SAL
+      ID = 3
+      ISSURFACE = no
+      HFUNCTION = standard
+      ALLOWED MIN = -1.8e+308
+      ALLOWED MAX = 1.8e+308
+      ASYNCHRONOUS = no
+      RFACTOR = 1
     grid dimensions = 100 x 100 x 2
   grid prm info:
     name = "t-grid"
@@ -69,27 +98,27 @@
     3927 observations
     calculating obs stats:
   calculating ensemble observations:
-  2014-08-08 15:13:55
+  2014-08-20 09:40:16
     ensemble size = 144
     distributing iterations:
       all processes get 72 iterations
       process 0: 0 - 71
-    SST ........................................................................+
     SLA ........................................................................+
+    SST ........................................................................+
     TEM ........................................................................+
     SAL ........................................................................+
   adding forecast innovations and spread to "observations.nc":
-  2014-08-08 15:13:55
+  2014-08-20 09:40:21
   moderating observations:
     observations substantially modified:
-      SST          0 (0.0%)
       SLA          0 (0.0%)
+      SST          0 (0.0%)
       TEM          0 (0.0%)
       SAL          0 (0.0%)
       total        0 (0.0%)
   writing modified obs errors to "observations.nc":
   calculating transforms:
-  2014-08-08 15:13:55
+  2014-08-20 09:40:21
     creating empty file "w.nc":
     distributing iterations:
       all processes get 17 iterations
@@ -111,22 +140,22 @@
       j = 36 (0: 6: 41.2%)
       j = 45 (1: 24: 47.1%)
       j = 42 (0: 7: 47.1%)
-      j = 51 (1: 25: 52.9%)
       j = 48 (0: 8: 52.9%)
-      j = 54 (0: 9: 58.8%)
+      j = 51 (1: 25: 52.9%)
       j = 57 (1: 26: 58.8%)
+      j = 54 (0: 9: 58.8%)
       j = 63 (1: 27: 64.7%)
       j = 60 (0: 10: 64.7%)
-      j = 66 (0: 11: 70.6%)
       j = 69 (1: 28: 70.6%)
+      j = 66 (0: 11: 70.6%)
       j = 75 (1: 29: 76.5%)
       j = 72 (0: 12: 76.5%)
-      j = 78 (0: 13: 82.4%)
       j = 81 (1: 30: 82.4%)
+      j = 78 (0: 13: 82.4%)
       j = 87 (1: 31: 88.2%)
       j = 84 (0: 14: 88.2%)
-      j = 90 (0: 15: 94.1%)
       j = 93 (1: 32: 94.1%)
+      j = 90 (0: 15: 94.1%)
       j = 99 (1: 33: 100.0%)
       j = 96 (0: 16: 100.0%)
   finished calculating transforms
@@ -140,7 +169,7 @@
     calculating transform for log point (30, 30): 730 obs
     writing the log for point (30, 30):
   calculating analysed observations:
-  2014-08-08 15:14:07
+  2014-08-20 09:40:34
     sorting obs by ij:
     updating Hx:
   adding analysis innovations and spread to "observations.nc":
@@ -148,21 +177,21 @@
     region obs.type   # obs.  |for.inn.| |an.inn.|   for.inn.   an.inn.  for.spread  an.spread
     ------------------------------------------------------------------------------------------
     Global
-           SST          3255    0.461      0.173     -0.244     -0.027      0.422      0.422  
-             AVHRR      2087    0.467      0.155     -0.217     -0.015      0.427      0.427  
-             WindSat     847    0.472      0.236     -0.307     -0.060      0.406      0.406  
-             N/A         321    0.393      0.121     -0.252     -0.015      0.427      0.427  
            SLA           652    0.082      0.033      0.027      0.007      0.027      0.027  
              j1          250    0.087      0.025      0.041      0.006      0.030      0.030  
              n1          382    0.077      0.039      0.015      0.008      0.025      0.025  
              N/A          20    0.095      0.020      0.085      0.012      0.028      0.028  
-           TEM            10    4.322      3.280     -3.283      0.328      0.301      0.301  
-             ARGO         10    4.322      3.280     -3.283      0.328      0.301      0.301  
+           SST          3255    0.461      0.173     -0.244     -0.027      0.422      0.422  
+             AVHRR      2087    0.467      0.155     -0.217     -0.015      0.427      0.427  
+             WindSat     847    0.472      0.236     -0.307     -0.060      0.406      0.406  
+             N/A         321    0.393      0.121     -0.252     -0.015      0.427      0.427  
+           TEM            10    4.322      3.280     -3.283      0.329      0.301      0.301  
+             ARGO         10    4.322      3.280     -3.283      0.329      0.301      0.301  
              0-50m         0     -nan       -nan       -nan       -nan       -nan       -nan  
              >500m         4    7.825      2.995     -7.825     -2.995      0.330      0.330  
            SAL            10    0.371      0.299     -0.241      0.063      0.025      0.025  
              ARGO         10    0.371      0.299     -0.241      0.063      0.025      0.025  
              0-50m         0     -nan       -nan       -nan       -nan       -nan       -nan  
              >500m         4    0.655      0.242     -0.655     -0.242      0.029      0.029  
-  2014-08-08 15:14:08
+  2014-08-20 09:40:34
   finished

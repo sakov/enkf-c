@@ -40,27 +40,25 @@ typedef struct {
     int mode;
     int scheme;
     int target;
-    char* obsspec;
     char* date;
-    int nasync;
-    char** async_types;
-    double* async_timesteps;    /* in days */
+
     char* modelprm;
     char* gridprm;
+    char* obstypeprm;
+    char* obsprm;
+
     char* ensdir;
     int enssize;
     char* bgdir;
+
     int nvar;
     char** varnames;
     double* inflations;
-    int ntypes;
-    char** types;
-    char** typevars;
-    char** hfunctions;
-    double* rfactors;
-    obsdomain* obsdomains;
-    char* msl_fname;
-    char* msl_varname;
+
+    int nasync;
+    char** async_types;
+    double* async_timesteps;    /* in days */
+
     double kfactor;
     double rfactor_base;
     double inflation_base;
@@ -79,7 +77,7 @@ typedef struct {
 enkfprm* enkfprm_read(char fname[]);
 void enkfprm_destroy(enkfprm* prm);
 void enkfprm_print(enkfprm* prm, char offset[]);
-void enkfprm_describe(void);
+void enkfprm_describeprm(void);
 
 #define _ENKFPRM_H
 #endif

@@ -197,6 +197,25 @@ void model_print(model* m, char offset[])
 
 /**
  */
+void model_describeprm(void)
+{
+    enkf_printf("\n");
+    enkf_printf("  Model parameter file format:\n");
+    enkf_printf("\n");
+    enkf_printf("    NAME                      = <name>\n");
+    enkf_printf("    TYPE                      = <type>\n");
+    enkf_printf("    [<model dependent entry>] = <data>\n");
+    enkf_printf("    ...\n");
+    enkf_printf("\n");
+    enkf_printf("  Notes:\n");
+    enkf_printf("    1. [ ... ] denotes an optional input\n");
+    enkf_printf("    2. < ... > denotes a description of an entry\n");
+    enkf_printf("    3. ... denotes repeating the previous item an arbitrary number of times\n");
+    enkf_printf("\n");
+}
+
+/**
+ */
 void model_setgetmemberfname_fn(model* m, model_getmemberfname_fn fn)
 {
     m->getmemberfname = fn;

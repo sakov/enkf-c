@@ -43,11 +43,13 @@ static void readobs(obsmeta* meta, model* m, obsread_fn reader, observations* ob
     nfiles = 0;
     get_obsfiles(meta, &nfiles, &fnames);
     for (i = 0; i < nfiles; ++i) {
+        int nobs0 = obs->nobs;
         int fid;
 
         enkf_printf("      reading %s:\n", fnames[i]);
         fid = st_add_ifabscent(obs->datafiles, fnames[i], -1);
         reader(fnames[i], fid, meta, m, obs);
+        enkf_printf("        # good obs = %d\n", obs->nobs - nobs0);
         free(fnames[i]);
     }
     free(fnames);
@@ -70,29 +72,14 @@ void obs_add(observations* obs, model* m, obsmeta* meta)
     readobs(meta, m, reader, obs);      /* adds the data */
     for (i = nobs0; i < obs->nobs; ++i) {
         observation* o = &obs->data[i];
-        int j;
 
         o->id_orig = i;
-
-        for (j = 0; j < notdescs; ++j) {
-            obstypedesc* otd = &otdescs[j];
-
-            if (lontype == LONTYPE_180) {
-                if (o->lon > 180.0)
-                    o->lon -= 360.0;
-            } else if (lontype == LONTYPE_360) {
-                if (o->lon < 0.0)
-                    o->lon += 360.0;
-            }
-
-            if (strcmp(otd->typename, obs->obstypes[o->type].name) == 0) {
-                if (o->value < otd->minval || o->value > otd->maxval)
-                    o->status = STATUS_RANGE;
-                break;
-            }
-
-            if (j == notdescs)
-                enkf_quit("min and max allowed values not entered for observation type \"%s\"", obs->obstypes[o->type].name);
+        if (lontype == LONTYPE_180) {
+            if (o->lon > 180.0)
+                o->lon -= 360.0;
+        } else if (lontype == LONTYPE_360) {
+            if (o->lon < 0.0)
+                o->lon += 360.0;
         }
     }
     enkf_printf("      id = %d - %d\n", nobs0, obs->nobs - 1);
@@ -100,7 +87,7 @@ void obs_add(observations* obs, model* m, obsmeta* meta)
     obs->hasstats = 0;
     enkf_printf("      total %d observations\n", obs->nobs - nobs0);
     for (ngood = 0, i = nobs0; i < obs->nobs; ++i)
-        if ((obs->data)[i].status == STATUS_OK)
+        if (obs->data[i].status == STATUS_OK)
             ngood++;
     enkf_printf("      %d valid observations\n", ngood);
 
@@ -143,14 +130,14 @@ void obs_add(observations* obs, model* m, obsmeta* meta)
 
                 model_getdims(m, &ni, &nj, &nk);
 
-                for (ii = 0; ii < notdescs; ++ii)
-                    if (strcmp(otdescs[ii].typename, meta->type))
+                for (ii = 0; ii < obs->nobstypes; ++ii)
+                    if (strcmp(obs->obstypes[ii].name, meta->type))
                         break;
 
-                if (ii == notdescs)
+                if (ii == obs->nobstypes)
                     enkf_quit("observation type \"%s\" not described in observations.c::otdescs", meta->type);
 
-                if (otdescs[ii].issurface) {
+                if (obs->obstypes[ii].issurface) {
                     float** v = alloc2d(nj, ni, sizeof(float));
 
                     readfield(fname, 0, meta->varnames[i], v[0]);

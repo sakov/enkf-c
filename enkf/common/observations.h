@@ -21,6 +21,7 @@
 #include "kdtree.h"
 #include "enkfprm.h"
 #include "grid.h"
+#include "obstypes.h"
 
 typedef struct {
     int type;
@@ -55,37 +56,6 @@ typedef struct {
 } observation;
 
 typedef struct {
-    int id;
-    char* name;
-    int issurface;
-    char* varname;
-    char* hfunction;
-    double allowed_min;
-    double allowed_max;
-    int isasync;
-    double async_tstep;
-    int nobs;
-    int ngood;
-    int noutside;
-    int nland;
-    int nshallow;
-    int nbadbatch;
-    int nroundup;
-    int nrange;
-    int nmodified;
-    double date_min;
-    double date_max;
-    double rfactor;
-    double xmin;
-    double xmax;
-    double ymin;
-    double ymax;
-    double zmin;
-    double zmax;
-} obstype;
-
-typedef struct {
-    stringtable* types;
     stringtable* products;
     stringtable* instruments;
     stringtable* datafiles;
@@ -119,16 +89,6 @@ typedef struct {
     kdtree* tree;
     hashtable* badbatches;
 } observations;
-
-typedef struct {
-    char* typename;
-    int issurface;
-    double minval;
-    double maxval;
-} obstypedesc;
-
-extern obstypedesc otdescs[];
-extern int notdescs;
 
 observations* obs_create(void);
 observations* obs_create_fromprm(enkfprm* prm);
