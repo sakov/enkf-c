@@ -38,8 +38,8 @@ typedef struct {
     char** varnames;
 } obsmeta;
 
-void read_obsmeta(enkfprm* prm, int* nmeta, obsmeta** meta);
-void clean_obsmeta(int n, obsmeta meta[]);
+void obsmeta_read(enkfprm* prm, int* nmeta, obsmeta** meta);
+void obsmeta_destroy(int n, obsmeta meta[]);
 void obsmeta_describeprm(void);
 
 #define _OBSMETA_H

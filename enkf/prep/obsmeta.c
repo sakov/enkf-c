@@ -44,7 +44,7 @@ static void obsmeta_addfname(obsmeta* meta, char fname[])
 
 /**
  */
-void read_obsmeta(enkfprm* prm, int* nmeta, obsmeta** meta)
+void obsmeta_read(enkfprm* prm, int* nmeta, obsmeta** meta)
 {
     char* fname = prm->obsprm;
     FILE* f = NULL;
@@ -201,7 +201,7 @@ void read_obsmeta(enkfprm* prm, int* nmeta, obsmeta** meta)
 
 /**
  */
-void clean_obsmeta(int n, obsmeta meta[])
+void obsmeta_destroy(int n, obsmeta meta[])
 {
     int i, j;
 
