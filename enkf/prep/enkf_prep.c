@@ -196,7 +196,7 @@ int main(int argc, char* argv[])
     enkfprm_print(prm, "    ");
 
     enkf_printf("  reading observation specs from \"%s\":\n", prm->obsprm);
-    read_obsmeta(prm, &nmeta, &meta);
+    obsmeta_read(prm, &nmeta, &meta);
 
     enkf_printf("  setting the model grid:\n");
     m = model_create(prm);
@@ -209,7 +209,7 @@ int main(int argc, char* argv[])
     for (i = 0; i < nmeta; i++)
         obs_add(obs, m, &meta[i]);
     obs_markbadbatches(obs);
-    clean_obsmeta(nmeta, meta);
+    obsmeta_destroy(nmeta, meta);
     obs_compact(obs);
     obs_calcstats(obs);
 
