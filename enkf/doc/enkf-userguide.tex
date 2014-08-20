@@ -1,0 +1,1315 @@
+\documentclass[11pt]{report}
+\usepackage{natbib}
+\usepackage{bibentry}
+\usepackage{filecontents}
+\usepackage[fleqn]{amsmath}
+\usepackage{amssymb}
+\usepackage[a4paper, total={6.5in, 9in}]{geometry}
+\usepackage{fancyvrb}
+\usepackage{spverbatim}
+\usepackage{accents}
+\usepackage{enumitem}
+\usepackage{hyperref}
+
+\hypersetup{ 
+    colorlinks,% 
+    citecolor=black,% 
+    filecolor=black,% 
+    linkcolor=black,% 
+    urlcolor=black 
+} 
+
+\newcommand{\mb} {\mathbf}
+\newcommand{\ms} {\boldsymbol}
+\newcommand{\T}{^{\tiny \mathrm T}}
+\newcommand{\TS}{^{{\mathrm T}/2}}
+\newcommand{\ac}{\accentset}
+
+\nobibliography*
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{10pt}
+\renewcommand{\labelitemi}{-}
+\setcounter{tocdepth}{4}
+\setlist[itemize]{itemsep=1pt, topsep=0pt}
+\renewcommand{\bibname}{References}
+
+\begin{document}
+
+%\renewenvironment{align}{flalign}
+%\renewenvironment{align*}{flalign*}
+
+\title{EnKF-C user guide\\{\normalsize version 0.71}}
+
+\author{Pavel Sakov}
+\date{\today}
+
+\maketitle
+\thispagestyle{empty}
+
+\clearpage
+
+\tableofcontents
+
+\clearpage
+
+\chapter*{License}
+
+EnKF-C
+
+Copyright (C) 2014 Pavel Sakov and Bureau of Meteorology
+
+Redistribution and use of material from the package EnKF-C, with or without
+modification, are permitted provided that the following conditions are 
+met:
+
+   1. Redistributions of material must retain the above copyright notice, this
+      list of conditions and the following disclaimer.
+   2. The names of the authors may not be used to endorse or promote products
+      derived from this software without specific prior written permission.
+
+THIS SOFTWARE IS PROVIDED BY THE AUTHORS ``AS IS'' AND ANY EXPRESS OR IMPLIED 
+WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
+MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO
+EVENT SHALL THE AUTHORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT
+OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING
+IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY
+OF SUCH DAMAGE.
+
+\chapter{Introduction}
+
+EnKF-C aims to provide a light-weight generic framework for off-line data assimilation (DA) into large-scale layered geophysical models with the ensemble Kalman filter (EnKF).
+Here ``light-weight'' has higher priority than ``generic''; that is, the code is not designed to cover every virtual possibility for the sake of it, but rather to be expandable in practical (from the author's point of view) situations.
+Following are its other main features:
+\begin{itemize}
+\item coded in C for GNU/Linux platform;
+\item can conduct DA either in EnKF or ensemble optimal interpolation (EnOI) mode.
+\end{itemize}
+
+To make the code simpler, EnKF-C assumes that the model is layered and its states are stored in NetCDF format.
+EnKF-C is supposed to run with localisation only.
+
+\chapter{Overview}
+
+EnKF-C conducts data assimilation in three stages: \emph{prep}, \emph{calc} and \emph{post}.
+
+\emph{prep} preprocesses observations so that they are ready for DA.
+It has the following work flow:
+\begin{itemize}
+\item read original observations and fill each observation into a uniform structure \emph{measurement};
+\item write observations to file \verb|observations-orig.nc|;
+\item combine observations into superobservations;
+\item write super observations to \verb|observations.nc|.
+\end{itemize}
+
+\emph{calc} calculates ensemble transforms for updating the forecast ensemble of model states (EnKF) or the background model state (EnOI) in the following stages:
+\begin{itemize}
+\item read observations from \verb|observations.nc|;
+\item calculate ensemble of forecast observations $\mb H \mb E^f$ (EnKF) or ensemble of forecast observation anomalies $\mb H \mb A^f$ and background observation estimates $\mb H \mb x^f$ (EnOI);
+\item for each horizontal grid cell calculate local ensemble transforms $\mb X_5$ (EnKF) or background update coefficients $\mb w$ (EnOI);
+\item save these transforms to \verb|X5.nc| (EnKF) or \verb|w.nc| (EnOI);
+\item calculate and report forecast and analysis innovation statistics.
+\end{itemize}
+
+\emph{post} updates the ensemble (EnKF) or the background (EnOI) by using transforms calculated by \emph{calc}.
+
+\chapter{EnKF}
+
+\section{Kalman filter}
+
+The Kalman filter (KF) is the underlying concept behind the EnKF.
+It is a rather simple concept if formulated as the recursive least squares.
+
+Consider a global (in time) nonlinear minimisation problem
+\begin{align}
+  \label{min-nonl}
+  &\{\mb x_i^a\}_{i=1}^k = \arg \underset{\{\mb x_i\}_{i = 1}^k}\min \mathcal L(\mb x_1, \dots, \mb x_k),\\
+  \nonumber
+  &\mathcal L(\mb x_1, \dots, \mb x_k)  = \left \{ \left . (\mb x_1 - \mb x_1^f)\T (\mb P_1^f)^{-1} (\mb x_1 - \mb x_1^f) 
+  \vphantom{\sum_{i = 2}^{k}}
+  \right . \right . \\
+  \nonumber
+  & \qquad \left . + \sum_{i = 1}^k \left [ \mb y_i - \mathcal H_i(\mb x_i) \right ] \T (\mb R_i)^{-1} \left [ \mb y_i - \mathcal H_i(\mb x_i) \right ] \right .\\ 
+  & \qquad \left . + \sum_{i = 2}^{k} \left [ \mb x_i - \mathcal M_i(\mb x_{i-1}) \right ]\T (\mb Q_i)^{-1} \left [ \mb x_i - \mathcal M_i(\mb x_{i-1}) \right ]  \right \}.
+  \label{L-nonl}
+\end{align}
+Here $\{\mb x_i^a\}_{i=1}^k$ is a set of $k$ state vectors that minimise the cost function (\ref{L-nonl}); indices $i = 1,\dots,k$ correspond to a sequence of DA cycles, so that, for example, $\mb x_1$ is the first model state and $\mb x_k$ is the last model state; $\mb y_i$ are observation vectors related to the model state by a nonlinear observation operator $\mathcal H_i(\mb x)$; $\mathcal M_i(\mb x)$ is a nonlinear model operator relating the model states $\mb x_{i - 1}$ and $\mb x_i$; $\mb P_1^f$ is the initial state error covariance; $\mb R_i$ is the observation error covariance for $\mb y_i$; and $\mb Q_i$ is the model error covariance for $\mathcal M_i$; $(\cdot)\T$ denotes matrix transposition.
+
+The minimisation problem (\ref{min-nonl}, \ref{L-nonl}) is, generally, very complicated, but, luckily, has an exact solution in the \emph{linear} case; moreover, this solution is recursive.
+Namely, if we assume that $\mathcal M$ and $\mathcal H$ are affine:
+\begin{subequations}
+  \label{lin}
+  \begin{align}
+    \label{lin-M}
+    &\mathcal M_i(\mb x^{(1)}) - \mathcal M_i(\mb x^{(2)}) = \mb M_i \, (\mb x^{(1)} - \mb x^{(2)}),\\
+    \label{lin-H}
+    &\mathcal H_i(\mb x^{(1)}) - \mathcal H_i(\mb x^{(2)}) = \mb H_i \, (\mb x^{(1)} - \mb x^{(2)}),
+  \end{align}
+\end{subequations}
+where $\mb x^{(1)}, \mb x^{(2)}$ are arbitrary model states, and $\mb M_i,\, \mb H_i = \mathrm{Const}$, then the cost function (\ref{L-nonl}) becomes quadratic, and
+\begin{align*}
+  \underset {\{\mb x_i\}_{i = 1}^{k - 1}}{\min} \mathcal L_k(\mb x_1, \dots, \mb x_k) = (\mb x_k - \mb x_k^f)\T (\mb P_{k}^f)^{-1}(\mb x_k - \mb x_k^f) + \mathrm{Const}.
+\end{align*}
+Then
+\begin{align*}
+    \underset {\{\mb x_i\}_{i = 1}^{k}}{\min} \mathcal L_{k+1}(\mb x_1, \dots, \mb x_k, \mb x_{k+1}) = (\mb x_{k+1} - \mb x_{k+1}^f)\T (\mb P_{k+1}^f)^{-1}(\mb x_{k+1} - \mb x_{k+1}^f) + \mathrm{Const},
+\end{align*}
+where
+\begin{subequations}
+  \label{kf-for}
+  \begin{align}
+    \label{prop-x}
+    & \mb x^f_{k+1} = \mathcal M_k(\mb x_k^a),\\
+    \label{prop-P}
+    & \mb P_{k+1}^f = \mb M_k \mb P_k^a (\mb M_k)\T + \mb Q_k,
+  \end{align}
+\end{subequations}
+\vspace{-5mm}
+\begin{subequations}
+  \label{kf-an}
+  \begin{align}
+    \label{kf-an-x}
+    & \mb x_k^a = \mb x_k^f + \mb K_k \left [\mb y_k - \mathcal H(\mb x_k^f) \right ],\\
+    \label{kf-an-P}
+    & \mb P_k^a = (\mb I - \mb K_k \mb H_k) \mb P_k^f,\\
+    \nonumber
+    & \hspace{-0.5cm} \text{where}\\
+    \label{kf-K}
+    & \mb K_k \equiv \mb P^f_k (\mb H_k)\T \left [\mb H_k \mb P_k^f (\mb H_k)\T + \mb R_k \right ]^{-1}.
+  \end{align}
+\end{subequations}
+This solution is known as the Kalman filter \citep[KF,][]{kal60}.
+Equations (\ref{kf-for}) describe advancing the system in time, which represents the stage commonly called ``forecast'', while equations (\ref{kf-an}) describe assimilation of observations, which is the stage commonly called ``analysis''.
+The superscripts $f$ and $a$ are used hereafter to refer to the forecast and analysis variables, correspondingly.
+The forecast and analysis model state estimates $\mb x^f$ and $\mb x^a$ are commonly called (simply) forecast and analysis.
+Matrix $\mb K$ is called Kalman gain.
+
+There are a few things to be noted about the KF:
+\begin{enumerate}
+\item The state $\mb X$ of the DA system (SDAS) is represented by the estimated model state vector and model state error covariance: 
+\begin{align}
+  \label{sdas}
+  \mb X = \{\mb x, \mb P\}.
+\end{align}
+This means that in any moment of time all previous information about the system is encrypted into the current forecast or analysis SDAS.
+\item The KF provides solution for the last analysis, corresponding to $\mb x_k^a$ in ($\ref{min-nonl}$) (or, with a minor re-formulation, to the last forecast); finding the full (global in time) solution requires application of the Kalman \emph{smoother} (KS).
+Both the KF and KS can be derived by a re-factorisation of the positive definite quadratic form (\ref{L-nonl}).
+\item Because SDAS represents a (part of a) solution of the global least squares problem, it does not depend on the order in which observations are assimilated or on their grouping.
+\item Ditto, the SDAS does not depend on a linear non-singular transform of the model state in the sense that the forward and inverse transforms commute with the evolution of the DA system.
+\item Solution (\ref{kf-for}, \ref{kf-an}) can be \emph{used} in a nonlinear case by approximating
+\begin{align*}
+  &\mb M_{i} \leftarrow \nabla \mathcal M_i(\mb x_{i-1}^f),\\
+  &\mb H_{i} \leftarrow \nabla \mathcal H_i(\mb x_i^f),
+\end{align*}
+in which case it is called the extended Kalman filter (EKF).
+\end{enumerate}
+
+\section{EnKF}
+
+The canonic form of the KF (\ref{kf-for}, \ref{kf-an}) is not necessarily the most convenient one.
+The corresponding algorithms can be prone to loosing the positive definiteness of the state error covariance $\mb P$ due to round-up errors; but more importantly, explicit use of $\mb P$ makes these algorithms non-scalable in regard to the model state dimension.
+
+Both these immediate problems can addressed with the ensemble Kalman filter, or the EnKF.
+In the EnKF the SDAS is carried by an ensemble of model states $\mb E$, which can be broken into ensemble mean and ensemble anomalies:
+\begin{align}
+  \label{sdas-enkf}
+  \mb X = \{\mb E\} = \{\mb x, \mb A\}.
+\end{align}
+It is related to the SDAS of the KF (\ref{sdas}) as follows:
+\begin{subequations}
+  \label{E}
+  \begin{align}
+    \label{x}
+    &\mb x = \frac{1}{m} \mb E \mb 1,\\
+    \label{P}
+    &\mb P = \frac{1}{m - 1} \mb A \mb A\T,\\
+    \label{A}
+    &\mb A \equiv \mb E - \mb x \mb 1\T,
+  \end{align}
+\end{subequations}
+where $\mb 1$ is a vector with all elements equal to 1.
+The above means that the model state estimate is given by the ensemble mean, while the model state error covariance estimate is implicitly represented by the ensemble anomalies $\mb A$ via the factorisation (\ref{P}).
+
+The EnKF is linearly scalable in regard to the state vector dimension and in some regards is a more natural and extendable representation of the KF than the canonic form (\ref{kf-for}, \ref{kf-an}).
+In particular, the forecast stage of the EnKF involves only propagation of each ensemble member:
+\begin{align}
+  \label{enkf-for}
+  \mb E_i^f = \mathcal M_i(\mb E_{i-1}^a).
+\end{align}
+This is a remarkably simple forecast equation, even though the model error still needs to be handled in some way.
+One option is to include stochastic model error into the model operator in (\ref{enkf-for}) (that would make it different from the model operator in KF).
+Another option is to use multiplicative inflation.
+The third option is to mimic the treatment of model error in KF.
+It has to deal somehow with non-scalability in regard to the model state dimension.
+
+At the analysis stage one has to update the ensemble mean and ensemble anomalies to match (\ref{kf-an}).
+This is different to the forecast stage, when each ensemble member is propagated individually.
+
+Note that factorisation (\ref{P}) is not unique: if $\mb A$ satisfies (\ref{P}), then $\tilde {\mb A} = \mb A \mb U$, where $\mb U$ is an arbitrary orthonormal matrix $\mb U \mb U\T = \mb I$, also satisfies (\ref{P}).
+However, $\tilde{\mb A}$ should not only factorise $\mb P$, but also remain an ensemble anomalies matrix, $\tilde{\mb A} \mb 1 = \mb 0$.
+This requires an additional constraint $\mb U \mb 1 = \mb 1$.
+Summarising, if $\mb E = \mb x \mb 1\T + \mb A$ is an ensemble that satisfies (\ref{E}), then ensemble
+\begin{align}
+  \label{redraw}
+  \tilde{\mb E} = \mb x \mb 1\T + \mb A \mb U^p, \quad \mb U^p:\ \mb U^p (\mb U^p)\T = \mb I,\ \mb U^p \mb 1 = \mb 1
+\end{align}
+also satisfies (\ref{E}). 
+If $\mb E$ is full rank (i.e. $\mathrm{rank}(\mb E) = \mathrm{min}(m, n)$, where $n$ is the state dimension), then each unique $\mb U^p$ generates a unique ensemble, and (\ref{redraw}) describes all possible ensembles matching a given SDAS of the KF.
+Such transformation of the ensemble is called ensemble \emph{redrawing}.
+In the linear case (i.e. for affine model and observation operators) redrawing of the ensemble in the EnKF does not affect the evolution of the underlying KF; and conversely, in the nonlinear case the redrawing does indeed affect the evolution of the underlying KF.
+
+\section{EnKF analysis}
+
+In this section we will give a brief overview of solutions for the EnKF analysis, and then describe the particular schemes used in EnKF-C.
+
+\subsection{Overview}
+
+In the EnKF the update of the ensemble mean matches that in the KF (\ref{kf-an-x}), although the use of ensemble anomalies instead of state error covariance can reflect in some algorithmic differences.
+
+The update of ensemble anomalies should implicitly match the update of covariance in the KF (\ref{kf-an-P}).
+Technically it can be done either via a right-multiplied or left-multiplied transform of the ensemble anomalies:
+\begin{align}
+  \label{T-left}
+  \mb A^a = \mb T_L \,\mb A^f,
+\end{align}
+or
+\begin{align}
+  \label{T-right}
+  \mb A^a = \mb A^f \, \mb T_R.
+\end{align}
+$\mb T_L$ and $\mb T_R$ are referred to hereafter as left-multiplied and right-multiplied ensemble transform matrices (ETMs), respectively.
+Note that for a full rank ensemble $\mb T_R$ has to satisfy $\mb T_R \mb 1 = \mb 1$.
+It follows from (\ref{redraw}) that if $\mb T_R$ is a particular solution for the right multiplied ETM, then (for a full rank ensemble) any other solution can be written as
+\begin{align}
+  \tilde{\mb T}_R = \mb T_R \mb U^p, \quad \mb U^p:\ \mb U^p (\mb U^p)\T = \mb I,\ \mb U^p \mb 1 = \mb 1.
+\end{align}
+
+Similarly, the analysis increment can be represented as a linear combination of the forecast ensemble anomalies:
+\begin{align}
+  \label{w}
+  \mb x^a = \mb x^f + \mb A^f \mb w.
+\end{align}
+
+Equations (\ref{T-right}) and (\ref{w}) can be combined into a single transform of the ensemble:
+\begin{align}
+  \label{x5-def}
+  & \mb E^a = \mb E^f \mb X_5,\\
+  & \mb X_5 = \frac{1}{m} \mb 1 \mb 1\T + \left( \mb I - \frac{1}{m} \mb 1 \mb 1\T\right) \left( \mb w \mb 1\T + \mb T_R\right)
+  = \frac{1}{m} \mb 1 \mb 1\T + \mb w \mb 1\T + \left( \mb I - \frac{1}{m} \mb 1 \mb 1\T \right) \mb T_R,
+\end{align}
+as $\mb 1\T \mb w = 0$. 
+For a number of common schemes, including the ETKF and DEnKF, $\mb 1\T \mb T_R = \mb 1\T$, so that
+\begin{align}
+  \label{x5}
+  & \mb X_5 = \mb w \mb 1\T + \mb T_R.
+\end{align}
+The designation $\mb X_5$ is used for historic reasons, following \citet{eve03a}.
+
+\subsection{Some schemes}
+
+As follows from the previous section, there are multiple solutions for the ETM that match the KF covariance update equation (\ref{kf-an-P}); however the particular solutions may have different properties in practice due to the DAS nonlinearity, their algorithmic convenience, or their robustness in suboptimal conditions.
+This section provides some background for the schemes used in EnKF-C:
+\begin{itemize}
+\item ETKF;
+\item DEnKF.
+\end{itemize}
+
+\subsubsection{ETKF}
+
+It is easy to show using the definition of $\mb K$ (\ref{kf-K}) and matrix shift lemma that 
+\begin{align*}
+    (\mb I - \mb K \mb H) \, \mb P^f = (\mb I - \mb K \mb H)^{1/2} \; \mb P^f \; (\mb I - \mb K \mb H)\TS,
+\end{align*}
+which yields the following solution for the left-multiplied ETM:
+\begin{align}
+  \label{T-left1}
+  \mb T_L = (\mb I - \mb K \mb H)^{1/2}
+\end{align}
+\citep{sak08b}, or
+\begin{align*}
+  \mb A^a =  (\mb I - \mb K \mb H)^{1/2} \mb A^f.
+\end{align*}
+Hereafter by $\mb X^{1/2}$ we denote the unique positive definite square root from a positive definite (generally, non-symmetric) matrix $\mb X$, defined as $\mb X^{1/2} = \mb V \mb L^{1/2} \mb V^{-1}$, where $\mb X = \mb V \mb L \mb V^{-1}$ is the eigenvalue decomposition of $\mb X$.
+By ``matrix shift lemma'' we refer to the following identity:
+\begin{align}
+  \label{shift}
+  \mathcal F(\mb A \mb B) \, \mb A = \mb A \, \mathcal F(\mb B \mb A),
+\end{align}
+where $\mathcal F$ is an arbitrary function expandable into Taylor series.
+Rewriting this as
+\begin{align*}
+  \mb A^a = \left[ \mb I - \frac{1}{m-1} \mb A^f (\mb H \mb A^f)\T  (\mb H \mb P^f \mb H\T + \mb R)^{-1} \mb H \right]^{1/2} \mb A^f
+\end{align*}
+and using the matrix shift lemma, we obtain:
+\begin{align*}
+  \mb A^a = \mb A^f \left[ \mb I - \frac{1}{m-1} (\mb H \mb A^f)\T  (\mb H \mb P^f \mb H\T + \mb R)^{-1} \mb H \mb A^f \right]^{1/2}
+\end{align*}
+which yields the corresponding to (\ref{T-left1}) right multiplied ETM:
+\begin{align}
+  \label{T-right1}
+  \mb T_R = \left[ \mb I -  \frac{1}{m-1} (\mb H \mb A^f)\T  (\mb H \mb P^f \mb H\T + \mb R)^{-1} \mb H \mb A^f \right]^{1/2}
+\end{align}
+\citep{eve04a}.
+Applying the matrix inversion lemma
+\begin{align}
+  \label{inv}
+  (\mb A + \mb U \mb L \mb V)^{-1} = \mb A^{-1} - \mb A^{-1} \mb U (\mb L^{-1} + \mb V \mb A^{-1} \mb U)^{-1} \mb V \mb A^{-1},
+\end{align}
+(\ref{T-left1}) can be transformed to:
+\begin{align}
+  \label{T-left2}
+  \mb T_L = (\mb I + \mb P^f \mb H\T \mb R^{-1} \mb H)^{-1/2}
+\end{align}
+\citep{sak11a}; and applying the matrix shift lemma yields the corresponding right multiplied ETM:
+\begin{align}
+  \label{etkf}
+  \mb T_R = \left[\mb I +  \frac{1}{m-1} (\mb H \mb A)\T \mb R^{-1} \mb H \mb A\right]^{-1/2},
+\end{align}
+also known as the ensemble transform Kalman filter, or ETKF \citep{bis01a}.
+
+{
+  \scriptsize
+  {\bf Historic reference.} Another (and probably the first) solution for $\mb T_R$ equivalent to (\ref{T-right1}) and (\ref{etkf}) was found by \citet{and68a}:
+  \setlength{\abovedisplayskip}{1pt}
+  \setlength{\belowdisplayskip}{3pt}
+  \begin{align}
+    \label{andrews}
+    \mb T_R = \mb I - \frac{1}{m-1} (\mb H \mb A)\T \mb M^{-1/2} \left(\mb M^{1/2} + \mb R^{1/2}\right)^{-1} \mb H \mb A,
+  \end{align}
+  where $\mb M \equiv \mb H \mb P \mb H\T + \mb R$.
+}
+
+Equations (\ref{T-right1}, \ref{etkf}, \ref{andrews}) represent algebraically different expressions for the (unique) symmetric right multiplied solution.
+Apart from being the only symmetric solution, it is also a minimum distance solution in the sense that the corresponding ensemble of analysis anomalies is the closest one to the ensemble of forecast anomalies, with the inverse forecast (or analysis) covariance as a metric \citep{ott03a}.
+
+Note that while the left multiplied solutions (\ref{T-left1}, \ref{T-left2}) correspond to symmetric right multiplied solution, they are not symmetric.
+
+In a typical DAS with a large scale model one can expect $m = 100$, $p = 10^3-10^7$, $n = 10^6-10^9$; that is
+\begin{align}
+  m \ll p \ll n.
+\end{align}
+Therefore, considering the size of ETMs ($n \times n$ for the left-multiplied ETMs and $m \times m$ for the right multiplied ETMs), only right multiplied solutions are suitable for use with large scale models.
+The ETKF solution (\ref{etkf}) represents the most popular option due to its simple form and numerical effectiveness: for a diagonal $\mb R$, it only requires to calculate inverse square root of an $m \times m$ matrix.
+
+\subsubsection{DEnKF}
+
+Assuming that $\mb K \mb H$ is small in some sense, one can approximate solution (\ref{T-left1}) by expanding it into Taylor series about $\mb I$ and keeping the first two terms of the expansion:
+\begin{align}
+  \label{denkf}
+  \mb T_L = \mb I - \frac{1}{2} \mb K \mb H.
+\end{align}
+This approximation is known as the deterministic Kalman filter, or DEnKF \citep{sak08a}.
+It has a simple interpretation of using half of the Kalman gain for updating the ensemble anomalies; but apart from that the DEnKF often represents a good practical choice due to its algorithmic convenience and good performance in suboptimal situations.
+DEnKF is the default scheme in EnKF-C.
+
+\subsection{Some numerical considerations}
+\label{sec:numerical}
+
+Instead of using the forecast ensemble observation anomalies $\mb H \mb A^f$ and innovation $\mb y - \mathcal H(\mb x^f)$ it is convenient to use their standardised versions:
+\begin{align}
+  \label{s}
+  &\mb s = \mb R^{-1/2} \left[ \mb y - \mathcal H(\mb x^f) \right] / \sqrt{m - 1},\\
+  \label{S}
+  &\mb S = \mb R^{-1/2} \mb H \mb A^f / \sqrt{m - 1}.
+\end{align}
+Then
+\begin{align}
+  \mb w = \mb G \mb s,
+\end{align}
+for the ETKF
+\begin{align}
+  \label{S-ETKF}
+  \mb T_R = (\mb I + \mb S\T \mb S)^{-1/2},
+\end{align}
+and for the DEnKF
+\begin{align}
+  \label{S-DEnKF}
+  \mb T_R = \mb I - \frac{1}{2} \mb G \mb S,
+\end{align}
+where
+\begin{align}
+  \label{G-m}
+  \mb G &\equiv (\mb I + \mb S\T \mb S)^{-1} \mb S\T,\\
+  \label{G-p}
+  & = \mb S\T ( \mb I + \mb S \mb S\T)^{-1}.
+\end{align}
+Here (\ref{G-m}) involves inversion of a $m \times m$ matrix, while (\ref{G-p}) involves inversion of a $p \times p$ matrix.
+Therefore, in the DEnKF it is possible to calculate $\mb w$ and $\mb T$ using a single inversion of either a $p \times p$ or $m \times m$ matrix, depending on the relation between the number of observations and the ensemble size.
+In contrast, the ETKF (\ref{S-ETKF}) involves calculation of the inverse square root of an $m \times m$ matrix.
+Therefore, one can use expression (\ref{G-m}) for $\mb G$ and calculate both inversion in it and inverse square root in (\ref{S-ETKF}) from the same singular value decomposition (SVD).
+This makes the DEnKF somewhat more numerically effective because, firstly, one can exploit situations when $p < m$ to invert a matrix of lower dimension and, secondly, it requires only matrix inversion, which can be done via Cholesky decomposition instead of SVD.
+
+\subsection{Localisation}
+
+Localisation is a necessary attribute of the EnKF systems with large-scale models, aimed at overcoming the rank deficiency of the ensemble.
+It can also be seen as aimed at removing spurious long range correlations occurring with ensembles of finite size.
+
+There are two common localisation methods for the EnKF -- covariance localisation \citep[CL,][]{ham01b, hou01a}, also known as covariance filtering, and local analysis \citep[LA,][]{eve03a, ott03a}.
+Although CL may have advantages in certain situations (non-local observations, ``strong'' assimilation), in practice the two methods produce similar results \citep{sak11a}.
+For algorithmic reasons EnKF-C uses LA.
+
+Instead of calculating the global ensemble transform $\mb X_5$, LA involves calculating local ensemble transforms $\ac{i}{\mb X}_5$ for each element $i$ of the state vector.
+This is done using local normalised ensemble observation anomalies $\ac{i}{\mb S}$ and local normalised innovation $\ac{i}{\mb s}$, obtained by tapering global $\mb S$ and $\mb s$:
+\begin{subequations}
+  \begin{align}
+    &\ac{i}{\mb s} \equiv \mb s \circ \ac{i}{\mb f},\\
+    &\ac{i}{\mb S} \equiv \mb S \circ (\ac{i}{\mb f} \, \mb 1\T),
+  \end{align}
+\end{subequations}
+where $\mb A \circ \mb B$ denotes by-element, or Hadamard, or Schur product of matrices $\mb A$ and $\mb B$.
+We consider non-adaptive localisation only, when the vector of taper coefficients $\mb f$ does not depend on the SDAS or observations.
+Typically, the taper coefficient for observation $o$ is a function of locations of the state element $i$ (denoted as $\ac{i}{\mb r}$) and observation $o$ (denoted as $\ac{\{o\}}{\mb r}$): $\ac{i}{\mb f}_o = g(\ac{i}{\mb r}, \ac{\{o\}}{\mb r})$, where $g$ is the taper function.
+In layered geophysical models $g$ is often assumed to depend only on horizontal distance between these locations: 
+\begin{align}
+  \label{hor}
+  \ac{i}{\mb f}_o = g(|\ac{i}{\ms \rho} - \ac{\{o\}}{\ms \rho}|),
+\end{align}
+or on combination of horizontal and vertical distances, e.g.: $\ac{i}f_o = g_{xy}(|\ac{i}{\ms \rho} - \ac{\{o\}}{\ms \rho}|)g_z(|\ac{i}z - \ac{\{o\}}z|)$, where $\mb r = (\ms \rho, z)$, and $\ms \rho = (x, y)$.
+In the case (\ref{hor}) for a given set of observations the local ensemble transform $\ac{i}{\mb X}_5$ depends only on horizontal grid coordinates of the state element $\mb x_i$ and can be used for updating all state elements with the same horizontal grid coordinates.
+It is currently the only option in EnKF-C.
+
+Smooth taper functions have advantage over non-smooth functions (such as the boxcar, or step function) because they maintain the spatial continuity of the analysis.
+EnKF-C uses the popular polynomial taper function by \citet{gas99a}, which has a number of nice properties.
+
+\section{Asynchronous DA}
+
+Observations assimilated at each cycle in the KF are assumed to be made simultaneously at the time of assimilation.
+In such cases observations and DA method are referred to as \emph{synchronous}.
+In reality, observations assimilated at a given cycle are made over some period of time called ``data assimilation window'' (DAW).
+If the DA method accounts for the time of observations, observations and DA method are referred to as \emph{asynchronous}.
+
+The EnKF can be naturally extended for asynchronous DA.
+Let us consider the linear case (\ref{lin}) with perfect model ($\mb Q = 0$).
+Solution of the global minimisation problem (\ref{min-nonl}) is then effectively given by the initial state $\mb x_1$, while the rest of the global solution can be obtained by propagating initial state: $\mb x_2 = \mathcal M_2(\mb x_1),\ \mb x_3 = \mathcal M_3 \circ \mathcal M_2(\mb x_1), \dots$.
+The cost function
+\begin{align*}
+  \mathcal L(\mb x_1, \dots, \mb x_k)  = (\mb x_1 - \mb x_1^f)\T (\mb P_1^f)^{-1} (\mb x_1 - \mb x_1^f) + \sum_{i = 1}^k \left [ \mb y_i - \mathcal H_i(\mb x_i) \right ] \T (\mb R_i)^{-1} \left [ \mb y_i - \mathcal H_i(\mb x_i) \right ]
+\end{align*}
+can then be written as:
+\begin{align}
+  \label{cost-async}
+  \mathcal L(\mb x_1, \dots, \mb x_k)  = (\mb x_1 - \mb x_1^f)\T (\mb P^f)^{-1} (\mb x_1 - \mb x_1^f) + \left [ \mb y - \mathcal H \circ \mathcal M(\mb x_1) \right ] \T \mb R^{-1} \left [ \mb y - \mathcal H\circ \mathcal M(\mb x_1) \right ],
+\end{align}
+where observations $\mb y$ represent the augmented observation vector: $\mb y = [\mb y_1\T,\dots,\mb y_k\T]\T$, $\mb R$ is the corresponding observation error covariance, and operator $\mathcal H \circ \mathcal M (\mb x_1)$ is assumed to project the state $\mb x_1$ to observation space.
+
+Apart from operator $\mathcal H \circ \mathcal M (\mb x_1)$, the cost function (\ref{cost-async}) has the same form as that for a single DA cycle with synchronous observations.
+Consequently, one can use the EnKF solutions for $\mb w$ and $\mb T$ from section~\ref{sec:numerical}:
+\begin{align}
+  \label{s-async}
+  &\mb s = \mb R^{-1/2} \left[ \mb y - \mathcal H \circ \mathcal M (\mb x_1^f) \right] / \sqrt{m - 1},\\
+  \label{S-async}
+  &\mb S = \mb R^{-1/2} \, \mb H \circ \mb M \, \mb A_1^f / \sqrt{m - 1},
+\end{align}
+where $\mb H \circ \mb M$ is the tangent linear operator of $\mathcal H \circ \mathcal M$ about $\mb x_1^f$.
+This means that to account for the time of observations in the EnKF one simply needs calculate innovation and forecast ensemble observation anomalies using ensemble at the time of each observation.
+There are no specific restrictions on $\mb R$, so that in theory observation errors can be correlated in time.
+
+{
+  \setlength{\abovedisplayskip}{2pt}
+  \setlength{\belowdisplayskip}{2pt}
+  \scriptsize
+  {\bf Note.} The background term $(\mb x_1 - \mb x_1^f)\T (\mb P^f)^{-1} (\mb x_1 - \mb x_1^f)$ in (\ref{cost-async}) can be seen as accumulating the previous history of the system rather than characterising the initial uncertainty in the global problem.
+  In this case it is natural to anchor it to the previous analysis:
+  \begin{align}
+    \mathcal L(\mb x_0) = (\mb x_0 - \mb x_0^f)\T (\mb P_0^f)^{-1} (\mb x_0 - \mb x_0^f) + \left [ \mb y - \mathcal H \circ \mathcal M(\mb x_0) \right ] \T \mb R^{-1} \left [ \mb y - \mathcal H \circ \mathcal M(\mb x_0) \right ].
+  \end{align}
+  Here $\mb x_0^f$ is the analysed state at the end of the previous cycle, considered as the forecast for the current cycle, and $\mb P_0^f$ is the corresponding state error covariance.
+  Minimising $\mathcal L$ yields the analysed initial model state $\mb x_0^a$, which in turn yields the analysed trajectory; the analysed state error covariance is defined so that the analysed background term absorbs the observation term:
+  \begin{align*}
+    &\mb x_0^a = \arg \min \; \mathcal L(\mb x_0),\\
+    &\mb P_0^a: \ (\mb x_0^a - \mb x_0^f)\T (\mb P_0^a)^{-1} (\mb x_0^a - \mb x_0^f) = \mathcal L(\mb x_0^a) + \mathrm{Const}.
+  \end{align*}
+  This framework is a natural extension of the problem (\ref{min-nonl}) in the linear, perfect-model case to continuous time; and is convenient for iterative minimisation.
+}
+
+Minimising (\ref{cost-async}) yields the updated state estimate at the initial time.
+To obtain the updated state estimate at other time requires propagating this solution to that time.
+The same applies to the state error covariance: obtaining the SDAS at any particular time requires propagating the updated ensemble from the beginning of the cycle to that time.
+In fact, because for a linear model the operations of ensemble propagation and linear transform in ensemble space do commute, $\mathcal M (\mb E) \, \mb X_5 = \mathcal M (\mb E \, \mb X_5)$ and $(\mb M \mb A) \mb T = \mb M (\mb A \mb T)$, the ensemble transform $\mb X_5$ can be applied to the ensemble at \emph{any} particular time \citep{eve00a}.
+
+\section{EnOI}
+
+The EnOI, or ensemble optimal interpolation \citep{eve03a}, can be defined as the EnKF with a static or, more generally, pre-defined, ensemble.
+It can be summarised as follows:
+\begin{align}
+  \label{enoi-for}
+  & \mb x^b_i = \mathcal M_i(\mb x^a_{i-1}),\\
+  & \mb x^a_i = \mb x^f_i + \mb A^b \mb w_i,
+\end{align}
+where $\mb x^b$ is the forecast model state estimate referred to as the background, and $\mb A^b$ is an ensemble of static, or background, anomalies; the corresponding state error covariance $\mb P^b$ is also often referred to as the background covariance.
+
+The main incentive for using the EnOI is its low computational cost due to the integration of only one instance of the model.
+Despite of the similarity with the EnKF, the EnOI is a rather different concept, as there is no global in time cost function associated with it.
+Conceptually the EnOI is closer to 3D-Var, as both methods use static (anisotropic, multivariate) covariance.
+It is an improvement on the optimal interpolation, which typically uses isotropic, homogeneous and univariate covariance.
+
+In contrast to the EnKF, due to the use of a static ensemble the EnOI avoids potential problems related to the ensemble spread; but at the same time it does critically depend on the ensemble, while the EnKF with a stochastic model typically ``forgets'' the initial ensemble over time.
+
+The EnOI can account for the time of observations by calculating innovation using forecast at observation time, as in (\ref{s-async}).
+This approach is commonly known as ``first guess at appropriate time'', or FGAT.
+
+\chapter{Technical description}
+
+\section{Starting up: example 1}
+\label{example1}
+
+It may be a good idea to start getting familiar with the system by running the example in \verb|examples/1|.
+The example has been put up based on the runs of regional EnKF and EnOI reanalysis systems for Tasman Sea developed by Bureau of Meteorology. 
+It allows one to conduct a single assimilation for 23 December 2007 (day 6565 since 1 January 1990) with either EnKF or EnOI.
+To reduce the size of the system, the model state has been stripped down to two vertical levels and $100 \times 100$ horizontal grid.
+Due to its size (almost 80\,MB) the data for this example is available for download separately from the EnKF-C code -- see \verb|examples/1/README| for details.
+
+\section{Parameter files}
+
+EnKF-C requires 5 parameter files to run:
+\begin{itemize} 
+\item main parameter file;
+\item model parameter file;
+\item grid parameter file;
+\item observation types parameter file;
+\item and observation metadata file.
+\end{itemize}
+Examples of these parameter files can be found in \verb|examples/1|.
+Running EnKF-C binaries with \verb|--describe-prm-format| in the command line provides information on the parameter file formats.
+
+\subsection{Main parameter file}
+
+The main parameter file specifies the main parameters of DA and 4 other parameter files.
+Its format is described by running \verb|enkf_prep|, \verb|enlf_calc| or \verb|enk_post| with option \verb|--describe-prm-format|:
+\begin{Verbatim}[frame=single,fontsize=\footnotesize]
+>./bin/enkf_prep --describe-prm-format
+
+  Parameter file format:
+
+    MODE                = { ENKF | ENOI }
+  [ SCHEME              = { DENKF* | ETKF | EnKF-N } ]
+  [ TARGET              = { ANALYSIS* | INCREMENT } ]
+    MODEL               = <model prm file>
+    GRID                = <grid prm file>
+    OBSTYPES            = <obs. types prm file>
+    OBS                 = <obs. metadata file>
+    DATE                = <julian day of analysis>
+    ENSDIR              = <ensemble directory>
+    BGDIR               = <background directory>                 (MODE = ENOI)
+  [ KFACTOR             = <kfactor> ]                            (1*)
+  [ RFACTOR             = <rfactor> ]                            (1*)
+    ...
+    LOCRAD              = <locrad>
+  [ STRIDE              = <stride> ]                             (1*)
+  [ SOBSTRIDE           = <stride> ]                             (1*)
+  [ FIELDBUFFERSIZE     = <fieldbuffersize> ]                    (1*)
+  [ INFLATION BASE      = <inflation> ]                          (1*)
+  [ INFLATION <VARNAME> = <inflation> ]                          (1*)
+    ...
+  [ REGION              <name> { <lon1> <lon2> <lat1> <lat2> } ]
+    ...
+  [ POINTLOG            { <i> <j> } ]
+    ...
+  [ EXITACTION          = { BACKTRACE* | SEGFAULT } ]
+  [ BADBATCHES          = <obstype> <max. bias> <max. mad> <min # obs.> ]
+    ...
+
+  Notes:
+    1. { ... | ... | ... } denotes the list of possible choices
+    2. [ ... ] denotes an optional input
+    3. ( ... ) is a note
+    4. * denotes the default value
+    5. < ... > denotes a description of an entry
+    6. ... denotes repeating the previous item an arbitrary number of times
+\end{Verbatim}
+
+\subsection{Model parameter file}
+
+Currently the model parameter file is not doing much; it exists mainly for the future expandability of the code. 
+It defines the model name, model type, and an arbitrary number of entries for model data:
+\begin{Verbatim}[frame=single,fontsize=\footnotesize]
+>./bin/enkf_prep --describe-prm-format model
+
+  Model parameter file format:
+
+    NAME                      = <name>
+    TYPE                      = <type>
+    [<model dependent entry>] = <data>
+    ...
+\end{Verbatim}
+
+\subsection{Grid parameter file}
+
+The grid parameter file contains the grid name, grid data file, and names of the dimensions and coordinates in the grid data file.
+It also contains entries for model related information, such as the variable names for the depth and number of layers in a vertical column for ocean models running on z grids:
+\begin{Verbatim}[frame=single,fontsize=\footnotesize]
+>./bin/enkf_prep --describe-prm-format grid
+
+  Grid parameter file format for z-model:
+
+    NAME             = <name>
+    DATA             = <data file name>
+    XDIMNAME         = <x dimension name>
+    YDIMNAME         = <y dimension name>
+    ZDIMNAME         = <z dimension name>
+    XVARNAME         = <x variable name>
+    YVARNAME         = <y variable name>
+    ZVARNAME         = <z variable name>
+    DEPTHVARNAME     = <depth variable name>
+    NUMLEVELSVARNAME = <# of levels variable name>
+\end{Verbatim}
+
+At the moment, EnKF-C supports 3 possible types of horizontal grids:
+\begin{itemize}
+\item equidistant rectangular grids aligned with physical coordinates;
+\item non-equidistant rectangular grids aligned with physical coordinates;
+\item quadrilateral simply connected grids (via libgridutils).
+\end{itemize}
+For rectangular grids the code tries to determine and handle periodicity in X or Y directions.
+
+The split between the main, model and grid parameter files is not final and may change in future.
+
+\subsection{Observation types parameter file}
+\label{sec:obstypesprm}
+
+Observation types are the interface that connects model and observations.
+They are specified in a separate parameter file.
+Each observation type is described in a separate section identified by the entry \verb|NAME|.
+Apart from the type name, the section must contain the associated model variable; whether observations of this type are surface or volume; the associated observation operator; the allowed range.
+The optional parameters include the R-factor for the type (sec.~\ref{sec:datuning}) and spatial limits on corresponding observations.
+For example:
+\begin{Verbatim}[frame=single,fontsize=\footnotesize]
+>./bin/enkf_prep --describe-prm-format obstypes
+
+  Observation types parameter file format:
+
+    NAME = <name>
+    VAR  = <model variable name>
+    ISSURFACE = { yes | no }
+    HFUNCTION = <H function name>
+  [ ASYNC     = <time interval> ]                (synchronous*)
+  [ RFACTOR   = <rfactor> ]                      (1*)
+  [ MIN       = <minimal allowed value> ]        (-inf*)
+  [ MAX       = <maximal allowed value> ]        (+inf*)
+  [ XMIN      = <minimal allowed X coordinate> ] (-inf*)
+  [ XMAX      = <maximal allowed X coordinate> ] (+inf*)
+  [ YMIN      = <minimal allowed Y coordinate> ] (-inf*)
+  [ YMAX      = <maximal allowed Y coordinate> ] (+inf*)
+  [ ZMIN      = <minimal allowed Z coordinate> ] (-inf*)
+  [ ZMAX      = <maximal allowed Z coordinate> ] (+inf*)
+
+  [ <more of the above blocks> ]
+\end{Verbatim}
+
+\subsection{Observation metadata file}
+
+Observation metadata file specifies observations to be assimilated.
+EnKF-C has a simple policy in this regard: if a file is listed in the observation data file, then observations from this file are assimilated.
+This allows one using custom observation windows for particular observation types, instruments etc., specifying details on the script level.
+
+The observation parameter file contains an arbitrary number of sections identified by entries \verb|PRODUCT|.
+Each section specifies the observation type, input files, reader and, possibly, observation error:
+\begin{Verbatim}[frame=single,fontsize=\footnotesize]
+./bin/enkf_prep --describe-prm-format obsmeta
+
+  Observation meta data file format:
+
+    PRODUCT   = <product>
+    READER    = <reader>
+    TYPE      = <observation type>
+    FILE      = <data file wildcard> 
+    ...
+  [ ERROR_STD = { <value> | <data file> } [ EQ* | PL | MU | MI | MA ] ]
+    ...
+
+  [ <more of the above blocks> ]
+\end{Verbatim}
+Observation files can be defined using wildcards ``*'' and ``?''.
+Missing a file is reported in the log and is not considered to be a fatal error.
+The available readers are listed by the variable \verb|allreaders| defined in \verb|prep/allreaders.c|.
+
+The last line in the example above specifies the observation error.
+It can contain either a number or a file name.
+In the case of entering the file name there also should be another entry in the same line specifying the name of the variable to be read.
+The variable should have the same dimension (2D or 3D) as the associated observation type as described by the variable \verb|otdescs| in \verb|observations.nc|.
+
+The line with observation error can also have another token specifying the type of operation to be conducted: \verb|EQUAL| ($\sigma_{tot} \leftarrow \sigma_{now}$, default), \verb|SUM| ($\sigma_{tot} \leftarrow \sqrt{\sigma_{tot}^2 + \sigma_{now}^2}$), \verb|MULT| ($\sigma_{tot} \leftarrow \sigma_{tot} \sigma_{now}$), \verb|MIN| ($\sigma_{tot} = \max(\sigma_{tot}, \sigma_{now})$), or \verb|MAX| ($\sigma_{tot} = \min(\sigma_{tot}, \sigma_{now})$).
+There can be several error entries in a section in the observation parameter file.
+
+The observation time only matters if the observation type is specified to be ``asynchronous'' (see sec. \ref{sec:async}).
+In this case the model estimation for the observation is made by using model state at the appropriate time.
+Otherwise, observations are assumed to be made at the time of assimilation, regardless of the actual observation time.
+
+\section{File name conventions}
+
+EnKF-C assumes that the ensemble and background file names have some predefined formats.
+The file name for member \verb|mid| and model variable \verb|varname| assumed to be \spverb|sprintf("mem%03d_%s.nc", mid, varname)|.
+The background file for variable \spverb|varname| is assumed to be \spverb|sprintf("bg_%s.nc", varname)|.
+The above names are used for reading forecast states for synchronous DA and for writing analyses, in the case if the analyses are appended to forecasts (true by default).
+For asynchronous DA the member and background file names for the time slot \verb|t| are assumed to be \spverb|sprintf("mem%03d_%s_%d.nc", mid, varname, t)| and \spverb|sprintf("bg_%s_%d.nc", varname, t)|, correspondingly.
+
+\section{\emph{prep}}
+
+\emph{prep} is the first stage of data assimilation in EnKF-C.
+Its role is to preprocess the observations by bringing them to a common form and superobing (merging close observations).
+
+By design, \emph{prep} is supposed to be light-weight, so that it does not read either the ensemble or background, and the only model information it needs is the model grid. 
+(Note that this may require some additional processing at later stages for models with dynamic grid, such as HYCOM.)
+
+The name of the binary (executable) for \emph{prep} is \verb|enkf_prep|.
+It has the following usage and options:
+\begin{Verbatim}[frame=single,fontsize=\footnotesize]
+>./bin/enkf_prep
+  Usage: enkf_prep <prm file> [<options>]
+  Options:
+  --log-all-obs
+      put all obs into observations-orig.nc (default: local obs only)
+  --describe-prm-format [main|model|grid|obstypes|obsmeta]
+      describe format of the parameter file and exit
+  --describe-superob <sob #>
+      print composition of this superobservation and exit
+  --version
+      print version and exit
+\end{Verbatim}
+
+\verb|enkf_prep| writes the preprocessed observations into file \verb|observatons.nc|.
+It also writes file \verb|observatons-orig.nc|, which contains original (not superobed) observations.
+By default, only observations within the model grid are written to it, but the the option \verb|--log-all-obs| changes this behaviour to writing all observations from the input files.
+
+\subsection{Observation types, products, instruments, batches}
+
+\subsubsection{Types}
+\label{sec:types}
+
+Each observation has a number of attributes defined by the fields of the structure \verb|observation|.
+One of them is observation type, which characterises the observation in a general way and relates it to the model state.
+For example, typical oceanographic observations may have tags SLA (for sea level anomalies), SST (sea surface temperature), TEM (subsurface temperature) and SAL (subsurface salinity).
+Different types can be related to the same model variable, as do SST and TEM in the above example.
+Observation types are described in the corresponding parameter file (sec.~\ref{sec:obstypesprm}).
+
+\subsubsection{Products}
+
+An observation is also characterised by ``product''.
+It can be a tag for an organisation that provides data from certain observational platforms, e.g.:
+\begin{Verbatim}[frame=single,fontsize=\footnotesize]
+PRODUCT == RADS
+TYPE = SLA
+READER = standard2
+FILE = obs/RADS-IB/y2007/m12/??_d19.nc
+FILE = obs/RADS-IB/y2007/m12/??_d20.nc
+FILE = obs/RADS-IB/y2007/m12/??_d21.nc
+FILE = obs/RADS-IB/y2007/m12/??_d22.nc
+FILE = obs/RADS-IB/y2007/m12/??_d23.nc
+
+PRODUCT == NAVO
+TYPE = SST
+READER = standard
+FILE = obs/NAVO/navo_20071219.nc
+FILE = obs/NAVO/navo_20071220.nc
+FILE = obs/NAVO/navo_20071221.nc
+FILE = obs/NAVO/navo_20071222.nc
+FILE = obs/NAVO/navo_20071223.nc
+\end{Verbatim}
+
+\subsubsection{Instruments}
+
+The observational data from a product can be collected by a number of instruments.
+The corresponding field in the \verb|measurement| structure is supposed to be filled by the observation reader.
+
+\subsubsection{Batches}
+
+An observation can be attributed to one of the groups called ``batches'', such as altimeter passes, Argo profiles etc., to enable detection and discarding of bad batches.
+Programmatically, to switch on capabilities associated with observation batches for a particular kind of observations, the observation batch ID needs to be set by the corresponding observation reader.
+
+A batch of observations is considered bad if either the magnitude of its innovation bias or the mean magnitude of innovation exceed specified thresholds.
+Specifications for bad batches can be set in the parameter file as follows:
+\begin{Verbatim}[frame=single,fontsize=\footnotesize]
+BADBATCHES = SLA 0.05 0.12 200
+BADBATCHES = TEM 5 5 1
+\end{Verbatim}
+The above entry means that any batch of observations of type SLA containing more than 200 observations and having either mean innovation greater than 0.05 (meter) in magnitude or mean absolute innovation greater than 0.12 is considered to be bad.
+Similarly, a TEM batch is considered bad if either the mean absolute innovation or mean innovation magnitude in the batch exceed 5 (degrees).
+The parameter file can have arbitrary number of such entries.
+Information about bad batches is written by \verb|enkf_calc| to the file \verb|badbatches.out|.
+When \verb|enkf_prep| detects the presence of such file, it marks the corresponding observations as bad.
+
+Therefore, the workflow for detecting and eliminating bad batches of observations is as follows:
+\begin{enumerate}
+\item specify bad batches in the parameter file;
+\item make a pilot run of \verb|enkf_prep|;
+\item run \verb|enkf_calc| with the flag \verb|--forecast-stats-only|;
+\item remove \verb|observations.nc| and \verb|observations-orig.nc|;
+\item calculate analysis in a ``normal'' way by running \verb|enkf_prep|, \verb|enkf_calc| and \verb|enkf_post|.
+\end{enumerate}
+
+Note that bad batches are identified at stage 2 based on superobservations formed by observations from the same batch only.
+Consequently, detection of bad batches may become unreliable if there are not enough such ``clean'' superobservations.
+It is possible to alleviate this problem by (1) switching off superobing by setting \verb|SOBSTRIDE = 0| and/or (2) by processing observations by parts, one type (or instrument) at a time, and repeating stages 1 and 2 as many times as necessary.
+
+\subsection{Asynchronous DA}
+\label{sec:async}
+
+An observation type can be specified as ``asynchronous'' by specifying entry \verb|ASYNC| entry in the observation types parameter file (sec. \ref{sec:obstypesprm}), e.g.:
+\begin{Verbatim}[frame=single,fontsize=\footnotesize]
+NAME = SLA
+(...)
+ASYNC = 1
+(...)
+\end{Verbatim}
+The above means that SLA and SST observations are considered to be asynchronous, with the time quantification of 1 day.
+If, for example the assimilation time is specified as ``6085.5 days since 1990-01-01'', then the SLA and SST observations will be binned into 1-day time intervals centred at the time of assimilation, i.e. from day 6080.0 to day 6081.0, 6081.0 to 6082.0, and so on, and estimated versus the corresponding model states.
+If the assimilation time were specified as ``6085.5 days since 1990-01-01'', then the bins would be from day 6079.5 to day 6080.5 and so on.
+
+The model states used to calculate forecast observations are matched by file names, which are supposed to be of the form \verb|mem<xxx>_<variable name>_<time shift>.nc| (for the EnKF) or \verb|bg_<variable name>_<time shift>.nc| (for the EnOI).
+Here ``time shift'' is the number of the bin, with ``0'' corresponding to the bin centred at the time of assimilation, ``-1'' to the previous bin, ``1'' to the next bin, and so on.
+If the corresponding members (or the background files, in the case of EnOI) are found, the observations are assimilated asynchronously; if they are not found, then the observations are assimilated synchronously.
+This can be tracked from the \emph{calc} log file, e.g.:
+\begin{Verbatim}[frame=single,fontsize=\footnotesize]
+  calculating ensemble observations:
+  2014-03-22 06:28:28
+    ensemble size = 96
+    distributing iterations:
+      all processes get 6 iterations
+      process 0: 0 - 5
+    SST |aaaaaa|aaaaaa|aaaaaa|aaaaaa|aaaaaa
+    SLA |aaaaaa|aaaaaa|aaaaaa|aaaaaa|aaaaaa
+    TEM ......
+    SAL ......
+\end{Verbatim}
+The entries ``a'' mean that the observations are assimilated asynchronously.
+They would be replaced by ``s'' if assimilated synchronously.
+The vertical lines indicate the time slots for asynchronous DA; in the above example the DAW has 5 time slots.
+The entries ``.'' indicate calculating ensemble observations for synchronous observations.
+Note that only the master process is writing to the log here, which explains why there is only output from 6 members in the log above.
+
+\subsection{Superobing}
+
+``Superobing'' is the process of reduction of the number of observations by merging close observations before their assimilation.
+EnKF-C merges observations if:
+\begin{itemize}
+\item they belong to the same model grid cell;
+\item are of the same type;
+\item for asynchronous observations -- belong to the same time slot.
+\end{itemize}
+The horizontal size of superobing cells can be increased from the default of 1 model grid cell to $N \times N$ cells by setting \verb|SOBSTRIDE = <N>| in the parameter file; the vertical size is always equal to 1 layer.
+Setting \verb|SOBSTRIDE = 0| switches superobing off.
+
+The observations are merged by averaging their values, coordinates and times with weights inversely proportional to the observation error variance.
+The observation error variance of a superobservation is set to the inverse of the sum of inverse observation error variances of the merged observations.
+The product and instrument fields of the superobservation are set either to those of the merged observations or to -1, depending on whether the merged observations have the same values for these fields or not.
+
+\section{\emph{calc}}
+
+\emph{calc} is the second stage of data assimilation in EnKF-C.
+It calculates 2D arrays of local ensemble transforms $\mb X_5$ or coefficients $\mb w$.
+
+The name of the binary for \emph{calc} is \verb|enkf_calc|.
+It has the following usage and options:
+\begin{Verbatim}[frame=single,fontsize=\footnotesize]
+>./bin/enkf_calc 
+  Usage: enkf_calc <prm file> [<options>]
+  Options:
+  --describe-prm-format [main|model|grid|obstypes]
+      describe format of a parameter file and exit
+  --forecast-stats-only
+      calculate and print forecast observation stats only
+  --no-mean-update
+      update ensemble anomalies only
+  --print-batch-stats
+       calculate and print global biases for each batch of observations
+  --single-observation-xyz <lon> <lat> <depth> <type> <inn> <std>
+      assimilate single observation with these parameters
+  --single-observation-ijk <fi> <fj> <fk> <type> <inn> <std>
+      assimilate single observation with these parameters
+  --use-these-obs <obs file>
+      assimilate observations from this file; the file format must be compatible
+      with that of observations.nc produced by `enkf_prep'
+  --version
+      print version and exit
+\end{Verbatim}
+
+The option \verb|--forecast-stats-only| can be used for quick calculation of the innovation statistics for a given background (or ensemble).
+This can be used, for example, for obtaining the persistence statistics, that is, the innovation statistics for the previous analysis.
+
+The options \verb|--single-observation-xyz| and \verb|--single-observation-ijk| provide an easy way to conduct the so called single observation experiments, with the observation coordinates provided either in spatial or grid coordinates, correspondingly.
+Parameter \verb|<value>| defines innovation rather than the observation value.
+Normally, this experiements would be conducted in the EnOI mode, calculating increment (option \verb|--output-increment| of \verb|enkf_post|) rather than analysis.
+When run in the EnKF mode, the increment (or analysis, depending on options) for each member is calculated.
+
+\subsection{Interpolation of ensemble transforms}
+
+Local ensemble transforms $\mb X_5$ (EnKF) have or local ensemble weights $\mb w$ (EnOI) represent a smooth field with the characteristic spatial variability scale of the localisation radius.
+This allows to reduce computational load in \emph{calc} by calculating local transforms or weights on a subgrid with a specified stride only and using linearly interpolated transforms or weights in the intermediate grid cells.
+The value of the stride is defined by the \verb|STRIDE| entry in the parameter file.
+
+\subsection{Observation functions}
+\label{sec:hfunctions}
+
+Model estimations for observations of each type are calculated using observation functions specified for this type by entry \verb|HFUNCTIONS| in the observation types parameter file, e.g.:
+\begin{Verbatim}[frame=single,fontsize=\footnotesize]
+NAME = SLA
+...
+HFUNCTION = standard
+...
+\end{Verbatim}
+The available functions for each observation type are specified by the variable \verb|allhentries| in \verb|calc/allhs.c|.
+The ``standard'' functions do normally perform 2D or 3D linear interpolation from the corner model grid nodes for the cell containing the observation.
+
+\subsection{Innovation statistics}
+
+In its course \emph{calc} calculates some basic innovation statistics: number of observations, mean absolute forecast innovation, mean absolute analysis innovation, mean forecast innovation, mean analysis innovation, mean forecast ensemble spread, and mean analysis ensemble spread.
+This statistics is provided for each region defined in the parameter file, as well as for each time slot defined for asynchronous DA, and for each instrument.
+In addition, for 3D observations \emph{calc} also calculates observation statistics for observations shallower or deeper than depth (height) specified by \verb|DEPTH_SHALLOW| and \verb|DEPTH_DEEP| in \verb|calc/obsstats.c|.
+For example:
+\begin{Verbatim}[frame=single,fontsize=\footnotesize]
+  printing observation statistics:
+    region obs.type   # obs.  |for.inn.| |an.inn.|   for.inn.   an.inn.  for.spread  an.spread
+    ------------------------------------------------------------------------------------------
+    Tasman
+           SST         25928    0.363      0.244     -0.077     -0.048      0.352      0.251  
+            -4          7214    0.303      0.187     -0.077     -0.022      0.297      0.212  
+            -3          4727    0.339      0.205     -0.037      0.006      0.389      0.263  
+            -2          4862    0.370      0.283     -0.105     -0.073      0.378      0.268  
+            -1          4606    0.426      0.306     -0.160     -0.143      0.377      0.275  
+             0          4519    0.413      0.268     -0.007     -0.023      0.348      0.257  
+             AVHRR     10776    0.345      0.174     -0.053     -0.031      0.336      0.227  
+             WindSat   14332    0.381      0.301     -0.100     -0.064      0.362      0.269  
+             N/A         820    0.293      0.160     -0.009      0.009      0.377      0.247  
+           SLA          4637    0.063      0.035      0.014      0.003      0.047      0.029  
+            -4           728    0.049      0.032      0.006     -0.003      0.039      0.025  
+            -3          1417    0.055      0.032      0.008      0.004      0.050      0.031  
+            -2           520    0.063      0.038      0.047      0.025      0.035      0.023  
+            -1           612    0.074      0.043      0.013     -0.001      0.040      0.025  
+             0          1360    0.073      0.036      0.012     -0.000      0.056      0.034  
+             g1         1652    0.058      0.039     -0.031     -0.024      0.044      0.029  
+             j1         1581    0.061      0.028      0.035      0.014      0.043      0.026  
+             n1         1357    0.071      0.040      0.045      0.025      0.054      0.034  
+             N/A          47    0.060      0.021     -0.001      0.001      0.050      0.030  
+           TEM           284    0.421      0.253     -0.119     -0.023      0.410      0.266  
+             ARGO        284    0.421      0.253     -0.119     -0.023      0.410      0.266  
+             0-50m        58    0.409      0.201     -0.013      0.105      0.315      0.215  
+             >500m        70    0.272      0.214      0.093      0.064      0.293      0.201  
+\end{Verbatim}
+This excerpt shows innovation statistics for the region ``Tasman''.
+It contains sections for SST, SLA and TEM observations.
+The summary statistics for each observation type is shown at the top of each section; then statistics for days -4, -3, -2, -1 and 0 of a 5-day DAW are shown for the two asynchronous types, SST and SLA.
+After that, statistics for particular instruments is shown; ``N/A'' corresponds to superobservations resulted from merging observations from two or more instruments.
+For subsurface temperature also statistics for shallow (0--50\,m) and deep (0--500\,m) observations is given.
+
+The analysis innovation statistics is calculated from the updated (analysis) ensemble observations by \emph{calc}, thus avoiding the need to access analysis files produced later by \emph{post}.
+The update of ensemble observations is performed in the same way as that of any other element of the state vector:
+for the EnKF -- by applying the appropriate local ensemble transforms to the forecast ensemble observations,
+\begin{align*}
+  \mathcal H (\mb E^a) \leftarrow \mathcal H (\mb E^f) \, \mb X_5;
+\end{align*}
+and for the EnOI -- by applying the appropriate local linear combination of the ensemble observation anomalies:
+\begin{align*}
+  \mathcal H (\mb E^a) \leftarrow \left[ \mathcal H (\mb x^f) + (\mb H \mb A^f) \mb w\right] \mb 1\T + \mb H \mb A^f.
+\end{align*}
+
+\subsection{Impact of observations}
+
+In the course of its work \emph{calc} routinely calculates two metrics for assessing the impact of observations, degrees of freedom of signal (DFS) and spread reduction factor (SRF):
+\begin{align*}
+  & \mathrm{DFS} = \mathrm{tr}(\mb K \mb H) = \mathrm{tr}(\mb G \mb S), \\
+  & \mathrm{SRF} = \sqrt{\frac{\mathrm{tr}(\mb H \mb P^f \mb H\T \mb R^{-1})}{\mathrm{tr}(\mb H \mb P^a \mb H\T \mb R^{-1})}} - 1 = \sqrt{\frac{\mathrm{tr}(\mb S\T \mb S)}{\mathrm{tr}(\mb G \mb S)}} - 1,
+\end{align*}
+where $\mathrm{tr}(\cdot)$ is the trace function.
+The values of these metrics for each local analysis, calculated both for all observations and for observations of each type only, are written to file \verb|enkf_diagn.nc|.
+Note that the in EnKF-C DFS and SRF are calculated from the above expressions and represent theoretical values for the EnKF analysis; they coincide with the actual DFS and SRF values only for the ETKF, but not for the DEnKF, which is an approximation of the KF (and indeed not for the EnOI, which is not even an approximation).
+
+In the EnKF context DFS is a useful indicator of potential rank problems.
+Normally, it should not exceed a fraction (a half, or better, a quarter) of the ensemble size.
+SRF shows the ``strength'' of DA.
+``Strong'' DA implies a close to optimal system, which indeed never happens in practice.
+Therefore, ideally, SRF should be small (below 1, on average).
+
+\section{\emph{post}}
+
+\emph{post} is the third and final stage of data assimilation in EnKF-C.
+It updates the ensemble (EnKF) or the background (EnOI) by applying the transforms calculated by \emph{calc}.
+
+The name of the binary for \emph{post} is \verb|enkf_post|.
+It has the following usage and options:
+\begin{Verbatim}[frame=single,fontsize=\footnotesize]
+>./bin/enkf_post
+  Usage: enkf_post <prm file> [<options>]
+  Options:
+  --calculate-spread
+      calculate ensemble spread and write to spread.nc
+  --describe-prm-format [main|model|grid]
+      describe format of a parameter file and exit
+  --direct-write
+      write fields directly to the output file (default: write to tiles first)
+  --leave-tiles
+      do not delete tiles
+  --output-increment
+      output analysis increment (default: output analysis)
+  --separate-output
+      write results to new files (default: append to forecast files)
+  --version
+      print version and exit
+\end{Verbatim}
+
+The option \verb|--separate-output| tells \emph{post} to write the updated ensemble (EnKF) or background (EnOI) to separate analysis files, rather than appending them to the forecast files.
+When writing to a separate file, the same variable names are used for the analysis as for the forecast; the new files have an extra suffix \verb|.analysis| or \verb|.increment|, depending on whether the analysis or increment is written.
+By default, \emph{post} writes the results to the forecast files by creating new variable names from the old names with an additional suffix \verb|_an|.
+
+By default, \emph{post} first writes each updated horizontal fields of the model to a separate file (referred to here as a tile), and then concatenates them into analysis files.
+The tiles are removed after writing the analysis files; one may save time for allocating them on disk in the next cycle by leaving them on disk by using option \verb|--leave-tiles|.
+This approach is somewhat less effective than the direct writing to the analysis files, but, unfortunately, the direct writing is generally not reliable due to parallel I/O issues with NetCDF.
+Note that in some cases it proved to be possible to obtain robust performance with direct write using ``classic'' and, possibly, ``64-bit'' NetCDF formats.
+
+\section{DA tuning}
+\label{sec:datuning}
+
+There are the following main factors for tuning a system on the DA side:
+\begin{itemize}
+\item impact of observations, including the relative impact of different types of observations;
+\item inflation;
+\item localisation.
+\end{itemize}
+
+The impact of observations can tuned via the so-called R-factor, which defines the multiple of the observation error variance.
+Increasing R-factor decreases the impact of observations.
+Specifying R-factor equal $k$ is equivalent to reduction of the ensemble spread by $k^{1/2}$ times.
+
+The main parameter file defines the base R-factor common for all observation types.
+It is possible to specify additional R-factors for observations of each type (sec. \ref{sec:obstypesprm}); the resulting R-factor for an observation is then given by multiplication of the common R-factor and the additional R-factor specified for observations of this type.
+
+Multiplicative inflation can be seen as an additional forgetting factor in the KF.
+In EnKF-C one can specify the inflation multiple for analysed ensemble anomalies, e.g.:
+\begin{Verbatim}[frame=single,fontsize=\footnotesize]
+INFLATION BASE = 1.05
+INFLATION temp = 1.02
+\end{Verbatim}
+In this case all model variables except ``temp'' will have inflation of 5\,\%, while ``temp'' will have inflation of $1.05 \cdot 1.02 \approx 1.07$.
+The ability to define different inflation rates for different variables can be useful for non-dynamical variables, such as estimated biases, helping to avoid the ensemble collapse for them.
+In general, to retain dynamical balances one should rather avoid using different inflation magnitudes.
+Note that even small inflation can substantially affect the ensemble spread established in the course of evolution of the system.
+
+Localisation radius is defined by the entry \verb|LOCRAD| in the parameter file.
+Specifically, this entry defines the support localisation radius (in km).
+This is different to the ``effective'' localisation radius, which is defined sometimes as $e^{1/2}\approx 1.65$ - folding distance, and for the Gaspary and Cohn's taper function is approximately 3.5 times smaller than the support radius.
+
+Increasing the localisation radius increases the number of local observations and hence the overall impact of observations.
+To compensate this in a system with horizontal localisation one has to change the R-factor as the square of the localisation radius.
+
+\section{Point logs}
+
+''Point logs'' refer to a capability of EnKF-C to save DA related information for a number of horizontal locations specified in the parameter file, e.g.:
+\begin{Verbatim}[frame=single,fontsize=\footnotesize]
+POINTLOG 94 134
+POINTLOG 78 111
+POINTLOG 57 51
+POINTLOG 86 191
+\end{Verbatim}
+Here the information will be saved at each DA cycle for points with horizontal grid coordinates (94, 134), (78, 111), (67, 51), and (86, 191) in files \verb|pointlog_94,134.nc|, \verb|pointlog_78,111.nc|, and so on.
+The rationale behind this capability is that it is usually too expensive to save the whole ensemble, but is feasible to save the model states in a limited number of points.
+Following is an example of the header of the saved point log file in NetCDF format:
+\begin{Verbatim}[frame=single,fontsize=\footnotesize]
+netcdf pointlog_57\,51 {
+dimensions:
+        p = 2902 ;
+        m = 96 ;
+        nk = 51 ;
+variables:
+        int obs_ids(p) ;
+        float lcoeffs(p) ;
+        float lon(p) ;
+        float lat(p) ;
+        float depth(p) ;
+        float obs_val(p) ;
+        float obs_std(p) ;
+        float obs_fi(p) ;
+        float obs_fj(p) ;
+        float obs_fk(p) ;
+        int obs_type(p) ;
+                obs_type:SST = 0 ;
+                obs_type:RFACTOR_SST = 2. ;
+                obs_type:SLA = 1 ;
+                obs_type:RFACTOR_SLA = 1. ;
+                obs_type:TEM = 2 ;
+                obs_type:RFACTOR_TEM = 1. ;
+                obs_type:SAL = 3 ;
+                obs_type:RFACTOR_SAL = 1. ;
+        float obs_date(p) ;
+                obs_date:units = "days from 8797.5 days since 1990-01-01" ;
+        float s(p) ;
+        float S(p, m) ;
+        double X5(m, m) ;
+        float eta_t(m) ;
+        float temp(nk, m) ;
+        float salt(nk, m) ;
+        float u(nk, m) ;
+        float v(nk, m) ;
+
+// global attributes:
+                :date = "8797.5 days since 1990-01-01" ;
+                :i = 57 ;
+                :j = 51 ;
+                :lon = 95.75 ;
+                :lat = -44.8499984741211 ;
+                :depth = 3072. ;
+\end{Verbatim}
+This information makes it possible to check DA algorithms by reproducing the ensemble transforms calculated by EnKF-C; or to monitor the ensemble spread for each model variable.
+
+\section{Use of innovation statistics for model validation}
+
+EnKF-C can calculate innovation statistics for validating a model against observations only, without data assimilation.
+The pre-requisites are (i) observations and (ii) model dump readable by the code, and possibly (iii) auxiliary files for projecting the model state to observation space (e.g. grid specs and mean SSH).
+To get the innovation statistics one needs to:
+\begin{itemize}
+\item set up the parameter files in a normal way (\verb|MODE = EnOI|), omitting the ensemble directory and assimilation related parameters;
+\item run \verb|enkf_prep|;
+\item run \verb|enkf_calc| with additional parameter \verb|--forecast-stats-only|.
+\end{itemize}
+The results will be written to the log of \verb|enkf_calc|. 
+An example of this functionality is available by running \verb|make stats| in \verb|examples/1| (see sec.~\ref{example1}).
+
+\section{System issues}
+
+\subsection{Memory footprint}
+
+To reduce the memory footprint, most of the potentially big arrays in EnKF-C use \verb|float| data type.
+
+The memory footprint of \emph{prep} is defined by the size of the \verb|measurement| structure and the number of observations.
+It is rarely a problem.
+
+The memory footprint of \emph{calc} is mainly defined by the size of ensemble observation anomalies that require $p \times m \times 4$ bytes for storage using \verb|float| data type.
+For example, with $3 \cdot 10^6$ superobservations and $10^2$ ensemble members the size of this array would be about 1.2\, GB per CPU, which should be manageable on most contemporary systems.
+If the footprint becomes too big, one may consider reducing the number of observations by a coarser superobing (setting the parameter \verb|SOBSTRIDE| to 2 or more) or reducing the number of cores per node used.
+
+The memory footprint of \emph{post} is mainly defined by the size of the array of simultaneously updated horizontal fields.
+For example, for a $1500 \times 3600$ horizontal field, 100 ensemble members and simultaneous update of 2 fields the size of this array would be about 4.3\,GB per CPU.
+It could be reduced to 2.15\,GB by reducing he parameter \verb|FIELDBUFFERSIZE| from 2 to 1.
+Note that reducing the number of simultaneously updated fields defined by \verb|FIELDBUFFERSIZE| increases I/O (the $\mb X_5$ array is read from disk $N_f / N_b$ times, where $N_f$ is the total number of horizontal fields, and $N_b$ is the number of simultaneously updated fields) and reduces computational effectiveness (the $\mb X_5$ array needs to be interpolated horizontally $N_f / N_b$ times).
+
+\subsection{Exit action}
+
+When exiting on an error, EnKF-C by default prints the stack trace, which allows to trace the exit location in the code.
+Another option -- to generate a segmentation fault -- can be activated by setting \verb|EXITACTION = SEGFAULT| in the parameter file.
+Note that when run on multiple processors, this can result in segmentation faults on more than one processor (but not necessarily on every engaged processor, as some processes can also be forced to exit by \verb|MPI_abort()|).
+If the system is set to generate core dumps, they can indeed be used for investigating the final state of the program.
+
+\subsection{Dependencies}
+
+Compiling EnKF-C requires the following external packages:
+
+\begin{itemize}
+\item netcdf;
+\item lapack (or mkl\_rt);
+\item openmpi;
+\item gridutils.
+\end{itemize}
+
+Notes:
+\begin{enumerate}
+\item Using Intel's version of the Lapack library -- Intel Math Kernel Library -- can improve performance over the Lapack library compiled with gfortran.
+\item It should be straightforward to exclude dependence on gridutils if the model does not use curvilinear coordinates.
+\end{enumerate}
+
+\section{Possible problems}
+
+\subsection{\emph{calc} becomes too slow after increasing localisation radius}
+
+This is due to the increased number of local observations.
+
+The local observations are sought by using so called k-d tree.
+Normally it works well, but can become a bottleneck when the number of local observations becomes very large.
+If this happens, one may use a coarser superobing to reduce the number of assimilated observations, by increasing parameter \verb|SOBSTRIDE| from the default value of 1 to 2 or more.
+
+\chapter*{Acknowledgements}
+\addcontentsline{toc}{chapter}{Acknowledgments}
+
+EnKF-C has been developed during author's work with Bureau of Meteorology on Bluelink project.
+The author used his knowledge of TOPAZ \citep{sak12b} and BODAS \citep{oke08b} codes and borrowed from them a number of design solutions and features.
+
+\clearpage
+
+\nocite{eve94a}
+\nocite{eve03a}
+\nocite{hun04a}
+\nocite{hun07a}
+\nocite{sak08a}
+\nocite{sak10a}
+\nocite{sak11a}
+
+\bibliographystyle{ametsoc}
+\bibliography{enkf}
+\addcontentsline{toc}{chapter}{References}
+
+\clearpage
+
+\chapter*{Abbreviations}
+\addcontentsline{toc}{chapter}{Abbreviations}
+
+\begin{tabular}{lll}
+  CL &-& covariance localisation \\
+  DEnKF &-& deterministic EnKF \\
+  DA &-& data assimilation \\
+  DAS &-& data assimilation system \\
+  DAW &-& data assimilation window \\
+  DFS &-& degrees of freedom of signal \\
+  EKF &-& extended Kalman filter \\
+  EnKF &-& ensemble Kalman filter \\
+  EnOI &-& ensemble optimal interpolation \\
+  ETKF &-& ensemble transform Kalman filter \\
+  ETM &-& ensemble transform matrix \\
+  FGAT &-& first guess at appropriate time \\
+  KF &-& Kalman filter \\
+  KS &-& Kalman smoother \\
+  LA &-& local analysis \\
+  SDAS &-& state of data assimilation system \\
+  SRF &-& spread reduction factor \\
+  SVD &-& singular value decomposition \\
+\end{tabular}
+
+\clearpage
+
+\chapter*{Symbols}
+\addcontentsline{toc}{chapter}{Symbols}
+
+\section*{General symbols}
+\begin{tabular}{lll}
+  $\mb x$ (small, bold) &-& a vector \\
+  $\mb 1$ &-& a vector with all elements equal to 1 \\
+  $\mb 0$ &-& a vector with all elements equal to 0 \\
+  $\mb A$ (capital, bold) &-& a matrix \\
+  $\mb I$ &-& identity matrix \\
+  $\mb A\T$ &-& transposed matrix $\mb A$ \\
+  $\mb A^{1/2}$ &-& unique positive definite square root of a positive definite matrix $\mb A$ \\
+  $\mathrm{tr}(\mb A)$ &-& trace of $\mb A$ \\
+  $\mathcal H \circ \mathcal M(\mb x)$ &-& $\mathcal H \left[ \mathcal M (\mb x) \right]$ \\
+  $\mb A \circ \mb B$ &-& by-element, or Hadamard, or Schur product of matrices
+\end{tabular}
+
+\section*{DA related symbols}
+\begin{tabular}{lll}
+  $m$ &-& ensemble size \\
+  $n$ &-& state size \\
+  $p$ &-& number of observations \\
+  $\mb A$ &-& ensemble anomalies, $\mb A = \mb E - \mb x \mb 1\T$ \\
+  $\mb E$ &-& ensemble \\
+  $\mathcal H$ &-& nonlinear observation operator; in linear case -- affine observation operator \\
+  $\mb G$ &-& an intermediate matrix in the EnKF analysis, $\mb G \equiv (\mb I + \mb S\T \mb S)^{-1} \mb S\T = \mb S\T ( \mb I + \mb S \mb S\T)^{-1}$ \\
+  $\mb H$ &-& linearised observation operator, $\mb H = \nabla \mathcal H(\mb x)$ \\
+  $\mathcal M$ &-& nonlinear model operator; in linear case -- affine model operator \\
+  $\mb M$ &-& linearised model operator, $\mb M = \nabla \mathcal M(\mb x)$ \\
+  $\mb P$ &-& state error covariance estimate; also used as abbreviation for $\mb A \mb A\T / (m - 1)$ \\
+  $\mb R$ &-& observation error covariance \\
+  $\mb S$ &-& normalised ensemble observation anomalies, $\mb S = \mb R^{-1/2} \mb {HA} / \sqrt{m - 1}$ \\
+  $\mb T_L$ &-& left-multiplied ensemble transform matrix, $\mb A^a = \mb T_L \mb A^f$ \\
+  $\mb T_R$ &-& right-multiplied ensemble transform matrix, $\mb A^a = \mb A^f \mb T_R$ \\
+  $\mb X_5$ &-& historic symbol for the full ensemble transform matrix, $\mb E^a = \mb E^f \mb X_5$ \\ 
+  $\mb s$ &-& normalised innovation, $\mb s = \mb R^{-1/2} \left[ \mb y - \mathcal H (\mb x^f) \right] / \sqrt{m - 1}$ \\
+  $\mb x$ &-& state estimate \\
+  $\mb y$ &-& observation vector \\
+  $\mb w$ &-& vector of linear coefficients for updating the mean, $\mb x^a = \mb x^f + \mb A^f \mb w$ \\
+  $(\cdot)^f$ &-& forecast expression \\
+  $(\cdot)^a$ &-& analysis expression \\
+  $(\cdot)_i$ &-& either expression at cycle $i$ or $i$th element of a vector \\
+  $\ac{i}{(\cdot)}$ &-& local expression for state element $i$ \\
+  $\ac{\{o\}}{(\cdot)}$ &-& local expression for observation $o$
+\end{tabular}
+
+\end{document}
+
+
