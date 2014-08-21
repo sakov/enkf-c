@@ -727,7 +727,7 @@ It can contain either a number or a file name.
 In the case of entering the file name there also should be another entry in the same line specifying the name of the variable to be read.
 The variable should have the same dimension (2D or 3D) as the associated observation type as described by the variable \verb|otdescs| in \verb|observations.nc|.
 
-The line with observation error can also have another token specifying the type of operation to be conducted: \verb|EQUAL| ($\sigma_{tot} \leftarrow \sigma_{now}$, default), \verb|SUM| ($\sigma_{tot} \leftarrow \sqrt{\sigma_{tot}^2 + \sigma_{now}^2}$), \verb|MULT| ($\sigma_{tot} \leftarrow \sigma_{tot} \sigma_{now}$), \verb|MIN| ($\sigma_{tot} = \max(\sigma_{tot}, \sigma_{now})$), or \verb|MAX| ($\sigma_{tot} = \min(\sigma_{tot}, \sigma_{now})$).
+The line with observation error can also have another token specifying the type of operation to be conducted: \verb|EQUAL| ($\sigma_{tot} \leftarrow \sigma_{now}$, default), \verb|PLUS| ($\sigma_{tot} \leftarrow \sqrt{\sigma_{tot}^2 + \sigma_{now}^2}$), \verb|MULT| ($\sigma_{tot} \leftarrow \sigma_{tot} \sigma_{now}$), \verb|MIN| ($\sigma_{tot} = \max(\sigma_{tot}, \sigma_{now})$), or \verb|MAX| ($\sigma_{tot} = \min(\sigma_{tot}, \sigma_{now})$).
 There can be several error entries in a section in the observation parameter file.
 
 The observation time only matters if the observation type is specified to be ``asynchronous'' (see sec. \ref{sec:async}).
@@ -1066,7 +1066,7 @@ There are the following main factors for tuning a system on the DA side:
 
 The impact of observations can tuned via the so-called R-factor, which defines the multiple of the observation error variance.
 Increasing R-factor decreases the impact of observations.
-Specifying R-factor equal $k$ is equivalent to reduction of the ensemble spread by $k^{1/2}$ times.
+Specifying R-factor equal $k$ produces the same increment as reducing the ensemble spread by $k^{1/2}$ times.
 
 The main parameter file defines the base R-factor common for all observation types.
 It is possible to specify additional R-factors for observations of each type (sec. \ref{sec:obstypesprm}); the resulting R-factor for an observation is then given by multiplication of the common R-factor and the additional R-factor specified for observations of this type.
@@ -1104,8 +1104,8 @@ Following is an example of the header of the saved point log file in NetCDF form
 \begin{Verbatim}[frame=single,fontsize=\footnotesize]
 netcdf pointlog_57\,51 {
 dimensions:
-        p = 2902 ;
         m = 96 ;
+        p = 2902 ;
         nk = 51 ;
 variables:
         int obs_ids(p) ;
@@ -1130,7 +1130,7 @@ variables:
         float obs_date(p) ;
                 obs_date:units = "days from 8797.5 days since 1990-01-01" ;
         float s(p) ;
-        float S(p, m) ;
+        float S(m, p) ;
         double X5(m, m) ;
         float eta_t(m) ;
         float temp(nk, m) ;
