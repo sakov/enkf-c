@@ -467,6 +467,10 @@ static void das_writefields_direct(dasystem* das, int nfields, void** fieldbuffe
             }
         }
     }
+
+    if (das->nplogs > 0)
+        plog_writestatevars_direct(das, nfields, fieldbuffer, fields);
+
 }
 
 static void getfieldfname(char* dir, char* prefix, char* varname, int level, char* fname)
@@ -512,6 +516,9 @@ static void das_writefields_toassemble(dasystem* das, int nfields, void** fieldb
             ncw_close(fname, ncid);
         }
     }
+
+    if (das->nplogs > 0)
+        plog_writestatevars_toassemble(das, nfields, fieldbuffer, fields);
 }
 
 /** Writes `nfields' ensemble fields from `fieldbuffer' to disk.
@@ -561,6 +568,10 @@ static void das_writebg_direct(dasystem* das, int nfields, void** fieldbuffer, f
             model_writefield(m, fname, MAXINT, f->varname, f->level, ((float***) fieldbuffer[i])[das->nmem][0]);
         }
     }
+
+    if (das->nplogs > 0)
+        plog_writestatevars_direct(das, nfields, fieldbuffer, fields);
+
 }
 
 /**
@@ -594,6 +605,9 @@ static void das_writebg_toassemble(dasystem* das, int nfields, void** fieldbuffe
             writefield(fname, 0, f->varname, ((float***) fieldbuffer[i])[das->nmem][0]);
         }
     }
+
+    if (das->nplogs > 0)
+        plog_writestatevars_toassemble(das, nfields, fieldbuffer, fields);
 }
 
 /** Writes `nfield' fields from `fieldbuffer' to disk.
@@ -1170,9 +1184,6 @@ void das_update(dasystem* das, int calcspread, int leavetiles)
             if (calcspread)     /* write forecast spread */
                 das_writespread(das, bufindex + 1, fieldbuffer, &das->fields[i - bufindex], 0);
 
-            if (das->nplogs > 0)
-                plog_writestatevars(das, bufindex + 1, fieldbuffer, &das->fields[i - bufindex]);
-
             if (das->mode == MODE_ENKF) {
                 das_updatefields(das, bufindex + 1, fieldbuffer, varids);
                 das_writefields(das, bufindex + 1, fieldbuffer, &das->fields[i - bufindex]);
@@ -1199,6 +1210,10 @@ void das_update(dasystem* das, int calcspread, int leavetiles)
         if (calcspread && rank == 0) {
             enkf_printf("  assembling spread:\n");
             das_assemblespread(das);
+        }
+        if (das->nplogs > 0) {
+            enkf_printf("  assembling state variables in point logs:\n");
+            plog_assemblestatevars(das);
         }
     }
 
