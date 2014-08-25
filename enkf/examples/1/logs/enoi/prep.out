@@ -1,5 +1,5 @@
-  running PREP for EnKF version 0.71:
-  2014-08-20 09:40:15
+  running PREP for EnKF version 0.72:
+  2014-08-26 08:39:42
   reading prep specs from "enoi.prm":
     MODE = EnOI
     MODEL PRM = "model.prm"
@@ -306,5 +306,5 @@ ls: cannot access obs/WINDSAT/windsat_20071223.nc: No such file or directory
     TEM     288        0          0          0          0          0          0          10        
     SAL     288        0          0          0          0          0          0          10        
     total   9957       3          0          0          3          0          0          3927      
-  2014-08-20 09:40:16
+  2014-08-26 08:39:43
   finished

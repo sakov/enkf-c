@@ -1,3 +1,10 @@
+v. 0.72
+   PS 26082014
+   -- Made writing state variables to the point log files two-stage, similar
+      to other updates: first to tiles, one cpu per tile, and then the final
+      "assembly". Added plog_writestatevars_toassemble() and
+      plog_assemblestatevars(); plog_writestatevars() became
+      plog_writestatevars_direct().
 v. 0.71
    PS 20082014
    -- Made structural changes: put observation type related stuff into

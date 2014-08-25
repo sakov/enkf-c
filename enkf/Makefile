@@ -20,7 +20,7 @@ include ./make.inc
 PREP_INCS = -I./prep
 CALC_INCS = -I./calc
 INCS = -I. -I./common -I./models $(INC_NC) $(INC_GU)
-LIBS = $(LD_PATH) $(LIB_NC) $(LIB_GU) $(LIB_M)
+LIBS = $(LD_PATH) $(LIB_NC) $(LIB_GU) $(LIB_M) -ldmalloc
 
 SRC_COMMON =\
 common/ncw.c\

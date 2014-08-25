@@ -204,7 +204,7 @@ void model_describeprm(void)
     enkf_printf("\n");
     enkf_printf("    NAME                      = <name>\n");
     enkf_printf("    TYPE                      = <type>\n");
-    enkf_printf("    [<model dependent entry>] = <data>\n");
+    enkf_printf("  [ <model dependent entry>  = <data> ]\n");
     enkf_printf("    ...\n");
     enkf_printf("\n");
     enkf_printf("  Notes:\n");
