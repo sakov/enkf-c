@@ -45,6 +45,10 @@ static void enkfprm_check(enkfprm* prm)
         enkf_quit("%s: MODEL not specified", prm->fname);
     if (prm->gridprm == NULL)
         enkf_quit("%s: GRID not specified", prm->fname);
+#if defined(ENKF_PREP) || defined(ENKF_CALC)
+    if (prm->obstypeprm == NULL)
+        enkf_quit("%s: OBSTYPES not specified", prm->fname);
+#endif
 #if defined(ENKF_CALC) || defined(ENKF_POST)
     if (prm->ensdir == NULL && (prm->mode == MODE_ENKF || !enkf_fstatsonly))
         enkf_quit("%s: ENSDIR not specified", prm->fname);
