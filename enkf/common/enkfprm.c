@@ -173,7 +173,7 @@ enkfprm* enkfprm_read(char fname[])
         } else if (strcasecmp(token, "OBSTYPES") == 0) {
             if ((token = strtok(NULL, seps)) == NULL)
                 enkf_quit("%s, l.%d: OBSTYPES not specified", fname, line);
-            else if (prm->obsprm != NULL)
+            else if (prm->obstypeprm != NULL)
                 enkf_quit("%s, l.%d: OBSTYPES specified twice", fname, line);
             else
                 prm->obstypeprm = strdup(token);
