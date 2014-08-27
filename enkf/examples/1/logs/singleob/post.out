@@ -1,8 +1,8 @@
   MPI: initialised 2 processes
-  MPI: rank = 0, PID = 6212
-  MPI: rank = 1, PID = 6213
-  running POST for EnKF version 0.71:
-  2014-08-20 09:41:04
+  MPI: rank = 0, PID = 25966
+  MPI: rank = 1, PID = 25967
+  running POST for EnKF version 0.74:
+  2014-08-28 08:55:38
   reading system specs from "singleob.prm":
     MODE = EnOI
     MODEL PRM = "model.prm"
@@ -13,17 +13,12 @@
     BGDIR = "background_6565"
     ENSEMBLE DIR = "ensemble_6565"
     ENSEMBLE SIZE = 96
-    VARNAMES = eta_t temp salt u v
     RFACTOR BASE = 1.0
+    INFLATION BASE = 1.0000
     KFACTOR = 999.0
     LOCRAD = 500
     STRIDE = 3
     FIELDBUFFERSIZE = 4
-    INFLATION eta_t = 1.000
-    INFLATION temp = 1.000
-    INFLATION salt = 1.000
-    INFLATION u = 1.000
-    INFLATION v = 1.000
     REGION Global: x = [0.0, 360.0], y = [-90.0, 90.0]
     POINTLOG 30 30
     SOBSTRIDE = 1
@@ -59,6 +54,20 @@
   model info:
     name = Tasman
     type = z-model
+    5 variables:
+      eta_t:
+        inflation = 1.000
+      temp:
+        inflation = 1.000
+      salt:
+        inflation = 1.000
+      u:
+        inflation = 1.000
+      v:
+        inflation = 1.000
+    1 modeldata:
+      MSL
+  zmodel info:
     MSL file = conf/eta_mean-bran.nc
     MSL variable = eta_t
   using assembled write
@@ -66,29 +75,36 @@
     96 members
     9 fields
     defining state variables in point logs:
-    allocating disk space for the analysis:    2014-08-20 09:41:04
+    allocating disk space for the analysis:    2014-08-28 08:55:38
 .....
-    2014-08-20 09:41:04
+    2014-08-28 08:55:38
     distributing iterations:
       processes get 5 or 4 iterations
       process 0: 0 - 4
     processing fields:
       eta_t    0   (0: 0: 20.0%)
       u        0   (1: 5: 25.0%)
-      temp     0   (0: 1: 40.0%)
       u        1   (1: 6: 50.0%)
-      temp     1   (0: 2: 60.0%)
+      temp     0   (0: 1: 40.0%)
       v        0   (1: 7: 75.0%)
-      salt     0   (0: 3: 80.0%)
+      temp     1   (0: 2: 60.0%)
       v        1   (1: 8: 100.0%)
+      salt     0   (0: 3: 80.0%)
       salt     1   (0: 4: 100.0%)
 
-  2014-08-20 09:41:05
+  2014-08-28 08:55:38
   assembling analysis:
     eta_t:.
     temp:..
     salt:..
     u:..
     v:..
-  2014-08-20 09:41:05
+  assembling state variables in point logs:
+    distributing iterations:
+      processes get 1 or 0 iterations
+      process 0: 0 - 0
+    distributing iterations:
+      processes get 5 or 4 iterations
+      process 0: 0 - 4
+  2014-08-28 08:55:38
   finished

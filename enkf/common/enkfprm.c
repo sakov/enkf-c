@@ -23,8 +23,6 @@
 #include "utils.h"
 #include "enkfprm.h"
 
-#define NASYNC_INC 10
-#define NVAR_INC 10
 #define NREGIONS_INC 10
 #define NPLOGS_INC 10
 #define NBBSPECS_INC 10
@@ -84,8 +82,6 @@ enkfprm* enkfprm_read(char fname[])
     prm->obsprm = NULL;
     prm->enssize = -1;
     prm->kfactor = NaN;
-    prm->inflations = NULL;
-    prm->inflation_base = 1.0;
     prm->rfactor_base = 1.0;
     prm->inflation_base = 1.0;
     prm->locrad = NaN;
@@ -198,19 +194,6 @@ enkfprm* enkfprm_read(char fname[])
                 enkf_quit("%s, l.%d: BGDIR specified twice", fname, line);
             else
                 prm->bgdir = strdup(token);
-        } else if (strcasecmp(token, "VARNAMES") == 0) {
-            if ((token = strtok(NULL, seps)) == NULL)
-                enkf_quit("%s, l.%d: VARNAMES not specified", fname, line);
-            do {
-                if (prm->nvar % NVAR_INC == 0) {
-                    prm->varnames = realloc(prm->varnames, (prm->nvar + NVAR_INC) * sizeof(char*));
-                    prm->inflations = realloc(prm->inflations, (prm->nvar + NVAR_INC) * sizeof(double));
-                    for (i = prm->nvar; i < prm->nvar + NVAR_INC; ++i)
-                        prm->inflations[i] = NaN;
-                }
-                prm->varnames[prm->nvar] = strdup(token);
-                prm->nvar++;
-            } while ((token = strtok(NULL, seps)) != NULL);
         } else if (strcasecmp(token, "KFACTOR") == 0) {
             if ((token = strtok(NULL, seps)) == NULL)
                 enkf_quit("%s, l.%d: KFACTOR not specified", fname, line);
@@ -254,22 +237,8 @@ enkfprm* enkfprm_read(char fname[])
         } else if (strcasecmp(token, "INFLATION") == 0) {
             if ((token = strtok(NULL, seps)) == NULL)
                 enkf_quit("%s, l.%d: INFLATION not specified", fname, line);
-            if (strcasecmp(token, "BASE") == 0) {
-                if ((token = strtok(NULL, seps)) == NULL)
-                    enkf_quit("%s, l.%d: INFLATION BASE not specified", fname, line);
-                if (!str2double(token, &prm->inflation_base))
-                    enkf_quit("%s, l.%d: could not convert \"%s\" to double", fname, line, token);
-            } else {
-                for (i = 0; i < prm->nvar; ++i)
-                    if (strcmp(token, prm->varnames[i]) == 0)
-                        break;
-                if (i == prm->nvar)
-                    enkf_quit("%s, l.%d: could not identify the variable \"%s\". (Make sure that the entries for INFLATION appear after VARNAMES entry.)", fname, line, token);
-                if ((token = strtok(NULL, seps)) == NULL)
-                    enkf_quit("%s, l.%d: INFLATION for \"%s\" not specified", fname, line, prm->varnames[i]);
-                if (!str2double(token, &prm->inflations[i]))
-                    enkf_quit("%s, l.%d: could not convert \"%s\" to double", fname, line, token);
-            }
+            if (!str2double(token, &prm->inflation_base))
+                enkf_quit("%s, l.%d: could not convert \"%s\" to double", fname, line, token);
         } else if (strcasecmp(token, "REGION") == 0) {
             char* space;
             char* newtoken;
@@ -350,13 +319,6 @@ enkfprm* enkfprm_read(char fname[])
             enkf_quit("%s, l.%d: unknown token \"%s\"", fname, line, token);
     }                           /* while */
 
-    for (i = 0; i < prm->nvar; ++i)
-        if (isnan(prm->inflations[i]))
-            prm->inflations[i] = prm->inflation_base;
-        else
-            prm->inflations[i] *= prm->inflation_base;
-    prm->inflation_base = NaN;  /* not to be used */
-
     for (i = 0; i < prm->nbadbatchspecs; ++i) {
         badbatchspec* bb = &prm->badbatchspecs[i];
 
@@ -386,12 +348,6 @@ void enkfprm_destroy(enkfprm* prm)
     free(prm->ensdir);
     if (prm->bgdir != NULL)
         free(prm->bgdir);
-    if (prm->nvar > 0) {
-        for (i = 0; i < prm->nvar; ++i)
-            free(prm->varnames[i]);
-        free(prm->varnames);
-        free(prm->inflations);
-    }
     if (prm->nregions > 0) {
         for (i = 0; i < prm->nregions; ++i)
             free(prm->regions[i].name);
@@ -446,14 +402,9 @@ void enkfprm_print(enkfprm* prm, char offset[])
         else
             enkf_printf("%sENSEMBLE SIZE = <FULL>\n", offset);
     }
-    if (prm->nvar > 0) {
-        enkf_printf("%sVARNAMES =", offset);
-        for (i = 0; i < prm->nvar; ++i)
-            enkf_printf(" %s", prm->varnames[i]);
-        enkf_printf("\n");
-    }
     if (!enkf_fstatsonly) {
         enkf_printf("%sRFACTOR BASE = %.1f\n", offset, prm->rfactor_base);
+        enkf_printf("%sINFLATION BASE = %.4f\n", offset, prm->inflation_base);
         if (isfinite(prm->kfactor))
             enkf_printf("%sKFACTOR = %.1f\n", offset, prm->kfactor);
         else
@@ -461,8 +412,6 @@ void enkfprm_print(enkfprm* prm, char offset[])
         enkf_printf("%sLOCRAD = %.0f\n", offset, prm->locrad);
         enkf_printf("%sSTRIDE = %d\n", offset, prm->stride);
         enkf_printf("%sFIELDBUFFERSIZE = %d\n", offset, prm->fieldbufsize);
-        for (i = 0; i < prm->nvar; ++i)
-            enkf_printf("%sINFLATION %s = %.3f\n", offset, prm->varnames[i], prm->inflations[i]);
     }
     for (i = 0; i < prm->nregions; ++i) {
         region* r = &prm->regions[i];
@@ -492,32 +441,31 @@ void enkfprm_describeprm(void)
     enkf_printf("\n");
     enkf_printf("  Main parameter file format:\n");
     enkf_printf("\n");
-    enkf_printf("    MODE                = { ENKF | ENOI }\n");
-    enkf_printf("  [ SCHEME              = { DENKF* | ETKF | EnKF-N } ]\n");
-    enkf_printf("  [ TARGET              = { ANALYSIS* | INCREMENT } ]\n");
-    enkf_printf("    MODEL               = <model prm file>\n");
-    enkf_printf("    GRID                = <grid prm file>\n");
-    enkf_printf("    OBSTYPES            = <obs. types prm file>\n");
-    enkf_printf("    OBS                 = <obs. data prm file>\n");
-    enkf_printf("    DATE                = <julian day of analysis>\n");
-    enkf_printf("    ENSDIR              = <ensemble directory>\n");
-    enkf_printf("    BGDIR               = <background directory>                 (MODE = ENOI)\n");
-    enkf_printf("  [ KFACTOR             = <kfactor> ]                            (1*)\n");
-    enkf_printf("  [ RFACTOR             = <rfactor> ]                            (1*)\n");
+    enkf_printf("    MODE            = { ENKF | ENOI }\n");
+    enkf_printf("  [ SCHEME          = { DENKF* | ETKF | EnKF-N } ]\n");
+    enkf_printf("  [ TARGET          = { ANALYSIS* | INCREMENT } ]\n");
+    enkf_printf("    MODEL           = <model prm file>\n");
+    enkf_printf("    GRID            = <grid prm file>\n");
+    enkf_printf("    OBSTYPES        = <obs. types prm file>\n");
+    enkf_printf("    OBS             = <obs. data prm file>\n");
+    enkf_printf("    DATE            = <julian day of analysis>\n");
+    enkf_printf("    ENSDIR          = <ensemble directory>\n");
+    enkf_printf("    BGDIR           = <background directory>                 (MODE = ENOI)\n");
+    enkf_printf("  [ KFACTOR         = <kfactor> ]                            (1*)\n");
+    enkf_printf("  [ RFACTOR         = <rfactor> ]                            (1*)\n");
     enkf_printf("    ...\n");
-    enkf_printf("    LOCRAD              = <locrad>\n");
-    enkf_printf("  [ STRIDE              = <stride> ]                             (1*)\n");
-    enkf_printf("  [ SOBSTRIDE           = <stride> ]                             (1*)\n");
-    enkf_printf("  [ FIELDBUFFERSIZE     = <fieldbuffersize> ]                    (1*)\n");
-    enkf_printf("  [ INFLATION BASE      = <inflation> ]                          (1*)\n");
-    enkf_printf("  [ INFLATION <VARNAME> = <inflation> ]                          (1*)\n");
+    enkf_printf("    LOCRAD          = <locrad>\n");
+    enkf_printf("  [ STRIDE          = <stride> ]                             (1*)\n");
+    enkf_printf("  [ SOBSTRIDE       = <stride> ]                             (1*)\n");
+    enkf_printf("  [ FIELDBUFFERSIZE = <fieldbuffersize> ]                    (1*)\n");
+    enkf_printf("  [ INFLATION       = <inflation> ]                          (1*)\n");
     enkf_printf("    ...\n");
-    enkf_printf("  [ REGION              <name> { <lon1> <lon2> <lat1> <lat2> } ]\n");
+    enkf_printf("  [ REGION          = <name> { <lon1> <lon2> <lat1> <lat2> } ]\n");
     enkf_printf("    ...\n");
-    enkf_printf("  [ POINTLOG            { <i> <j> } ]\n");
+    enkf_printf("  [ POINTLOG        { <i> <j> } ]\n");
     enkf_printf("    ...\n");
-    enkf_printf("  [ EXITACTION          = { BACKTRACE* | SEGFAULT } ]\n");
-    enkf_printf("  [ BADBATCHES          = <obstype> <max. bias> <max. mad> <min # obs.> ]\n");
+    enkf_printf("  [ EXITACTION      = { BACKTRACE* | SEGFAULT } ]\n");
+    enkf_printf("  [ BADBATCHES      = <obstype> <max. bias> <max. mad> <min # obs.> ]\n");
     enkf_printf("    ...\n");
     enkf_printf("\n");
     enkf_printf("  Notes:\n");

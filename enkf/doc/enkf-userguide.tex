@@ -35,10 +35,10 @@
 
 \begin{document}
 
-\title{EnKF-C user guide\\{\normalsize version 0.71}}
+\title{EnKF-C user guide\\{\normalsize version 0.74}}
 
 \author{Pavel Sakov}
-\date{\today}
+\date{June 19, 2014 -- \today}
 
 \maketitle
 \thispagestyle{empty}
@@ -578,34 +578,33 @@ Its format is described by running \verb|enkf_prep|, \verb|enlf_calc| or \verb|e
 \begin{Verbatim}[frame=single,fontsize=\footnotesize]
 >./bin/enkf_prep --describe-prm-format
 
-  Parameter file format:
+  Main parameter file format:
 
-    MODE                = { ENKF | ENOI }
-  [ SCHEME              = { DENKF* | ETKF | EnKF-N } ]
-  [ TARGET              = { ANALYSIS* | INCREMENT } ]
-    MODEL               = <model prm file>
-    GRID                = <grid prm file>
-    OBSTYPES            = <obs. types prm file>
-    OBS                 = <obs. metadata file>
-    DATE                = <julian day of analysis>
-    ENSDIR              = <ensemble directory>
-    BGDIR               = <background directory>                 (MODE = ENOI)
-  [ KFACTOR             = <kfactor> ]                            (1*)
-  [ RFACTOR             = <rfactor> ]                            (1*)
+    MODE            = { ENKF | ENOI }
+  [ SCHEME          = { DENKF* | ETKF | EnKF-N } ]
+  [ TARGET          = { ANALYSIS* | INCREMENT } ]
+    MODEL           = <model prm file>
+    GRID            = <grid prm file>
+    OBSTYPES        = <obs. types prm file>
+    OBS             = <obs. data prm file>
+    DATE            = <julian day of analysis>
+    ENSDIR          = <ensemble directory>
+    BGDIR           = <background directory>                 (MODE = ENOI)
+  [ KFACTOR         = <kfactor> ]                            (1*)
+  [ RFACTOR         = <rfactor> ]                            (1*)
     ...
-    LOCRAD              = <locrad>
-  [ STRIDE              = <stride> ]                             (1*)
-  [ SOBSTRIDE           = <stride> ]                             (1*)
-  [ FIELDBUFFERSIZE     = <fieldbuffersize> ]                    (1*)
-  [ INFLATION BASE      = <inflation> ]                          (1*)
-  [ INFLATION <VARNAME> = <inflation> ]                          (1*)
+    LOCRAD          = <locrad>
+  [ STRIDE          = <stride> ]                             (1*)
+  [ SOBSTRIDE       = <stride> ]                             (1*)
+  [ FIELDBUFFERSIZE = <fieldbuffersize> ]                    (1*)
+  [ INFLATION       = <inflation> ]                          (1*)
     ...
-  [ REGION              <name> { <lon1> <lon2> <lat1> <lat2> } ]
+  [ REGION          = <name> { <lon1> <lon2> <lat1> <lat2> } ]
     ...
-  [ POINTLOG            { <i> <j> } ]
+  [ POINTLOG        { <i> <j> } ]
     ...
-  [ EXITACTION          = { BACKTRACE* | SEGFAULT } ]
-  [ BADBATCHES          = <obstype> <max. bias> <max. mad> <min # obs.> ]
+  [ EXITACTION      = { BACKTRACE* | SEGFAULT } ]
+  [ BADBATCHES      = <obstype> <max. bias> <max. mad> <min # obs.> ]
     ...
 
   Notes:
@@ -626,10 +625,15 @@ It defines the model name, model type, and an arbitrary number of entries for mo
 
   Model parameter file format:
 
-    NAME                      = <name>
-    TYPE                      = <type>
-    [<model dependent entry>] = <data>
+    NAME        = <name>
+    TYPE        = <type>
+  [ DATA <tag>  = <data> ]
     ...
+
+    VAR         = <name>
+  [ INFLATION   = <value> ]
+
+  [ <more of the above blocks> ]
 \end{Verbatim}
 
 \subsection{Grid parameter file}

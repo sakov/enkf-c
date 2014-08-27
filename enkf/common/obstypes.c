@@ -39,7 +39,7 @@ int obstype_getid(int n, obstype types[], char* name)
 
 /**
  */
-static void obstype_new(int i, char* name, obstype* type)
+static void obstype_new(obstype* type, int i, char* name)
 {
     type->id = i;
     type->name = strdup(name);
@@ -134,7 +134,7 @@ void obstypes_read(char fname[], int* n, obstype** types, double rfactor_base)
 
             *types = realloc(*types, (*n + 1) * sizeof(obstype));
             now = &(*types)[*n];
-            obstype_new(*n, token, now);
+            obstype_new(now, *n, token);
             (*n)++;
             continue;
         }

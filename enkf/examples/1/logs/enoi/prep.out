@@ -1,5 +1,5 @@
-  running PREP for EnKF version 0.72:
-  2014-08-26 09:01:45
+  running PREP for EnKF version 0.74:
+  2014-08-28 08:54:58
   reading prep specs from "enoi.prm":
     MODE = EnOI
     MODEL PRM = "model.prm"
@@ -10,17 +10,12 @@
     BGDIR = "background_6565"
     ENSEMBLE DIR = "ensemble_static"
     ENSEMBLE SIZE = 144
-    VARNAMES = eta_t temp salt u v
     RFACTOR BASE = 1.0
+    INFLATION BASE = 1.0000
     KFACTOR = 999.0
     LOCRAD = 200
     STRIDE = 3
     FIELDBUFFERSIZE = 4
-    INFLATION eta_t = 1.000
-    INFLATION temp = 1.000
-    INFLATION salt = 1.000
-    INFLATION u = 1.000
-    INFLATION v = 1.000
     REGION Global: x = [0.0, 360.0], y = [-90.0, 90.0]
     POINTLOG 30 50
     SOBSTRIDE = 1
@@ -99,6 +94,20 @@
   model info:
     name = Tasman
     type = z-model
+    5 variables:
+      eta_t:
+        inflation = 1.000
+      temp:
+        inflation = 1.000
+      salt:
+        inflation = 1.000
+      u:
+        inflation = 1.000
+      v:
+        inflation = 1.000
+    1 modeldata:
+      MSL
+  zmodel info:
     MSL file = conf/eta_mean-bran.nc
     MSL variable = eta_t
   reading observation type specs from "obstypes.prm":
@@ -114,15 +123,15 @@
       ID = 1
       ISSURFACE = yes
       HFUNCTION = standard
-      ALLOWED MIN = -1.8e+308
+      ALLOWEls: cannot access obs/WINDSAT/windsat_20071221.nc: No such file or directory
+ls: cannot access obs/WINDSAT/windsat_20071222.nc: No such file or directory
+ls: cannot access obs/WINDSAT/windsat_20071223.nc: No such file or directory
+D MIN = -1.8e+308
       ALLOWED MAX = 1.8e+308
       ASYNCHRONOUS = no
       RFACTOR = 1
     NAME = TEM
-   ls: cannot access obs/WINDSAT/windsat_20071221.nc: No such file or directory
-ls: cannot access obs/WINDSAT/windsat_20071222.nc: No such file or directory
-ls: cannot access obs/WINDSAT/windsat_20071223.nc: No such file or directory
-   ID = 2
+      ID = 2
       ISSURFACE = no
       HFUNCTION = standard
       ALLOWED MIN = -1.8e+308
@@ -306,5 +315,5 @@ ls: cannot access obs/WINDSAT/windsat_20071223.nc: No such file or directory
     TEM     288        0          0          0          0          0          0          10        
     SAL     288        0          0          0          0          0          0          10        
     total   9957       3          0          0          3          0          0          3927      
-  2014-08-26 09:01:46
+  2014-08-28 08:54:59
   finished

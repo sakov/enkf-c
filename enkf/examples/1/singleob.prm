@@ -10,7 +10,6 @@ ENSDIR = ensemble_6565
 BGDIR = background_6565
 ENSSIZE = 96
 
-VARNAMES = eta_t temp salt u v
 KFACTOR = 999
 LOCRAD = 500
 
