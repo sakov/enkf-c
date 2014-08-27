@@ -242,36 +242,49 @@ void plog_writestatevars_direct(dasystem* das, int nfields, void** fieldbuffer, 
 void plog_writestatevars_toassemble(dasystem* das, int nfields, void** fieldbuffer, field* fields)
 {
     float* v = malloc(das->nmem * sizeof(float));
+    int* vid = malloc(das->nplogs * sizeof(int));
     float*** v_src = NULL;
-    int p;
+    int fid;
 
-    for (p = 0; p < das->nplogs; ++p) {
-        int i = das->plogs[p].i;
-        int j = das->plogs[p].j;
-        int fid, e;
+    for (fid = 0; fid < nfields; ++fid) {
+        field* f = &fields[fid];
+        char fname[MAXSTRLEN];
+        int ncid, dimid;
+        int p;
 
-        for (fid = 0; fid < nfields; ++fid) {
-            field* f = &fields[fid];
-            char fname[MAXSTRLEN];
-            int ncid, dimid, vid;
+        sprintf(fname, "pointlog_%s-%03d.nc", f->varname, f->level);
+        ncw_create(fname, NC_CLOBBER | NC_64BIT_OFFSET, &ncid);
+        ncw_def_dim(fname, ncid, "m", das->nmem, &dimid);
 
-            v_src = (float***) fieldbuffer[fid];
+        for (p = 0; p < das->nplogs; ++p) {
+            int i = das->plogs[p].i;
+            int j = das->plogs[p].j;
+            char varname[MAXSTRLEN];
+
+            sprintf(varname, "%s_%d_%d", f->varname, i, j);
+            ncw_def_var(fname, ncid, varname, NC_FLOAT, 1, &dimid, &vid[p]);
+        }
+        ncw_enddef(fname, ncid);
+
+        v_src = (float***) fieldbuffer[fid];
+
+        for (p = 0; p < das->nplogs; ++p) {
+            int i = das->plogs[p].i;
+            int j = das->plogs[p].j;
+            int e;
+
             for (e = 0; e < das->nmem; ++e)
                 v[e] = v_src[e][j][i];
             if (das->mode == MODE_ENOI)
                 for (e = 0; e < das->nmem; ++e)
                     v[e] += v_src[das->nmem][j][i];
 
-            sprintf(fname, "pointlog_%d,%d_%s-%03d.nc", i, j, f->varname, f->level);
-            ncw_create(fname, NC_CLOBBER | NC_64BIT_OFFSET, &ncid);
-            ncw_def_dim(fname, ncid, "m", das->nmem, &dimid);
-            ncw_def_var(fname, ncid, "v", NC_FLOAT, 1, &dimid, &vid);
-            ncw_enddef(fname, ncid);
-            ncw_put_var_float(fname, ncid, vid, v);
-            ncw_close(fname, ncid);
+            ncw_put_var_float(fname, ncid, vid[p], v);
         }
+        ncw_close(fname, ncid);
     }
 
+    free(vid);
     free(v);
 }
 
@@ -280,7 +293,7 @@ void plog_writestatevars_toassemble(dasystem* das, int nfields, void** fieldbuff
 void plog_assemblestatevars(dasystem* das)
 {
     float* v = malloc(das->nmem * sizeof(float));
-    int p;
+    int p, fid;
 
 #if defined(MPI)
     MPI_Barrier(MPI_COMM_WORLD);
@@ -294,7 +307,6 @@ void plog_assemblestatevars(dasystem* das)
         int ncid_dst;
         size_t start[2] = { 0, 0 };
         size_t count[2] = { 1, das->nmem };
-        int fid;
 
         sprintf(fname_dst, "pointlog_%d,%d.nc", i, j);
         ncw_open(fname_dst, NC_WRITE, &ncid_dst);
@@ -302,11 +314,14 @@ void plog_assemblestatevars(dasystem* das)
         for (fid = 0; fid < das->nfields; ++fid) {
             field* f = &das->fields[fid];
             char fname_src[MAXSTRLEN];
+            char varname_src[MAXSTRLEN];
             int ncid_src, vid_src, vid_dst, ndims_dst;
 
-            sprintf(fname_src, "pointlog_%d,%d_%s-%03d.nc", i, j, f->varname, f->level);
+            sprintf(fname_src, "pointlog_%s-%03d.nc", f->varname, f->level);
+            sprintf(varname_src, "%s_%d_%d", f->varname, i, j);
+
             ncw_open(fname_src, NC_NOWRITE, &ncid_src);
-            ncw_inq_varid(fname_src, ncid_src, "v", &vid_src);
+            ncw_inq_varid(fname_src, ncid_src, varname_src, &vid_src);
             ncw_get_var_float(fname_src, ncid_src, vid_src, v);
             ncw_close(fname_src, ncid_src);
 
@@ -318,10 +333,20 @@ void plog_assemblestatevars(dasystem* das)
                 start[0] = f->level;
                 ncw_put_vara_float(fname_dst, ncid_dst, vid_dst, start, count, v);
             }
-
-            file_delete(fname_src);
         }
         ncw_close(fname_dst, ncid_dst);
+    }
+
+#if defined(MPI)
+    MPI_Barrier(MPI_COMM_WORLD);
+#endif
+    distribute_iterations(0, das->nfields - 1, nprocesses, rank);
+    for (fid = my_first_iteration; fid <= my_last_iteration; ++fid) {
+        field* f = &das->fields[fid];
+        char fname[MAXSTRLEN];
+
+        sprintf(fname, "pointlog_%s-%03d.nc", f->varname, f->level);
+        file_delete(fname);
     }
 
     free(v);
