@@ -1,3 +1,7 @@
+v. 0.73
+   PS 27082014
+   -- Reduced number of tiles for point logs by joining tiles for the same
+      field for all point logs into one.
 v. 0.72
    PS 26082014
    -- Made writing state variables to point log files two-stage, similar
