@@ -1,8 +1,8 @@
   MPI: initialised 2 processes
-  MPI: rank = 0, PID = 6206
-  MPI: rank = 1, PID = 6207
-  running CALC for EnKF version 0.71:
-  2014-08-20 09:41:04
+  MPI: rank = 0, PID = 25960
+  MPI: rank = 1, PID = 25961
+  running CALC for EnKF version 0.74:
+  2014-08-28 08:55:38
   reading system specs from "singleob.prm":
     MODE = EnOI
     MODEL PRM = "model.prm"
@@ -13,17 +13,12 @@
     BGDIR = "background_6565"
     ENSEMBLE DIR = "ensemble_6565"
     ENSEMBLE SIZE = 96
-    VARNAMES = eta_t temp salt u v
     RFACTOR BASE = 1.0
+    INFLATION BASE = 1.0000
     KFACTOR = 999.0
     LOCRAD = 500
     STRIDE = 3
     FIELDBUFFERSIZE = 4
-    INFLATION eta_t = 1.000
-    INFLATION temp = 1.000
-    INFLATION salt = 1.000
-    INFLATION u = 1.000
-    INFLATION v = 1.000
     REGION Global: x = [0.0, 360.0], y = [-90.0, 90.0]
     POINTLOG 30 30
     SOBSTRIDE = 1
@@ -92,6 +87,20 @@
   model info:
     name = Tasman
     type = z-model
+    5 variables:
+      eta_t:
+        inflation = 1.000
+      temp:
+        inflation = 1.000
+      salt:
+        inflation = 1.000
+      u:
+        inflation = 1.000
+      v:
+        inflation = 1.000
+    1 modeldata:
+      MSL
+  zmodel info:
     MSL file = conf/eta_mean-bran.nc
     MSL variable = eta_t
   reading observation type specs from "obstypes.prm":
@@ -137,7 +146,7 @@
     j    = 50.000
     calculating obs stats:
   calculating ensemble observations:
-  2014-08-20 09:41:04
+  2014-08-28 08:55:38
     ensemble size = 96
     distributing iterations:
       all processes get 48 iterations
@@ -147,7 +156,7 @@
     TEM 
     SAL 
   calculating transforms:
-  2014-08-20 09:41:04
+  2014-08-28 08:55:38
     creating empty file "w.nc":
     distributing iterations:
       all processes get 17 iterations
@@ -155,8 +164,8 @@
     main cycle (34 x 34 local analyses):
       j = 0 (0: 0: 5.9%)
       j = 3 (1: 17: 5.9%)
-      j = 6 (0: 1: 11.8%)
       j = 9 (1: 18: 11.8%)
+      j = 6 (0: 1: 11.8%)
       j = 15 (1: 19: 17.6%)
       j = 12 (0: 2: 17.6%)
       j = 21 (1: 20: 23.5%)
@@ -198,7 +207,7 @@
     calculating transform for log point (30, 30): 1 obs
     writing the log for point (30, 30):
   calculating analysed observations:
-  2014-08-20 09:41:04
+  2014-08-28 08:55:38
     sorting obs by ij:
     updating Hx:
   printing observation statistics:
@@ -207,5 +216,5 @@
     Global
            SST             1    0.500      0.186      0.500      0.186      0.655      0.655  
              Virtual       1    0.500      0.186      0.500      0.186      0.655      0.655  
-  2014-08-20 09:41:04
+  2014-08-28 08:55:38
   finished

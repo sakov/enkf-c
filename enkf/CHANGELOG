@@ -1,3 +1,8 @@
+v. 0.74
+   PS 28082014
+   -- Moved specification of variables from main parameter file to model
+      parameter file.
+   -- Modified entry for model data: it now should start with "DATA".
 v. 0.73
    PS 27082014
    -- Reduced number of tiles for point logs by joining tiles for the same

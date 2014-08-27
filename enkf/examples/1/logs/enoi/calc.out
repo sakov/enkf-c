@@ -1,8 +1,8 @@
   MPI: initialised 2 processes
-  MPI: rank = 0, PID = 12260
-  MPI: rank = 1, PID = 12261
-  running CALC for EnKF version 0.72:
-  2014-08-26 09:01:46
+  MPI: rank = 0, PID = 25907
+  MPI: rank = 1, PID = 25908
+  running CALC for EnKF version 0.74:
+  2014-08-28 08:54:59
   reading system specs from "enoi.prm":
     MODE = EnOI
     MODEL PRM = "model.prm"
@@ -13,17 +13,12 @@
     BGDIR = "background_6565"
     ENSEMBLE DIR = "ensemble_static"
     ENSEMBLE SIZE = 144
-    VARNAMES = eta_t temp salt u v
     RFACTOR BASE = 1.0
+    INFLATION BASE = 1.0000
     KFACTOR = 999.0
     LOCRAD = 200
     STRIDE = 3
     FIELDBUFFERSIZE = 4
-    INFLATION eta_t = 1.000
-    INFLATION temp = 1.000
-    INFLATION salt = 1.000
-    INFLATION u = 1.000
-    INFLATION v = 1.000
     REGION Global: x = [0.0, 360.0], y = [-90.0, 90.0]
     POINTLOG 30 50
     SOBSTRIDE = 1
@@ -92,13 +87,27 @@
   model info:
     name = Tasman
     type = z-model
+    5 variables:
+      eta_t:
+        inflation = 1.000
+      temp:
+        inflation = 1.000
+      salt:
+        inflation = 1.000
+      u:
+        inflation = 1.000
+      v:
+        inflation = 1.000
+    1 modeldata:
+      MSL
+  zmodel info:
     MSL file = conf/eta_mean-bran.nc
     MSL variable = eta_t
   reading observations from "observations.nc":
     3927 observations
     calculating obs stats:
   calculating ensemble observations:
-  2014-08-26 09:01:46
+  2014-08-28 08:54:59
     ensemble size = 144
     distributing iterations:
       all processes get 72 iterations
@@ -108,7 +117,7 @@
     TEM ........................................................................+
     SAL ........................................................................+
   adding forecast innovations and spread to "observations.nc":
-  2014-08-26 09:01:46
+  2014-08-28 08:54:59
   moderating observations:
     observations substantially modified:
       SLA          0 (0.0%)
@@ -118,7 +127,7 @@
       total        0 (0.0%)
   writing modified obs errors to "observations.nc":
   calculating transforms:
-  2014-08-26 09:01:46
+  2014-08-28 08:54:59
     creating empty file "w.nc":
     distributing iterations:
       all processes get 17 iterations
@@ -134,8 +143,8 @@
       j = 18 (0: 3: 23.5%)
       j = 27 (1: 21: 29.4%)
       j = 24 (0: 4: 29.4%)
-      j = 33 (1: 22: 35.3%)
       j = 30 (0: 5: 35.3%)
+      j = 33 (1: 22: 35.3%)
       j = 39 (1: 23: 41.2%)
       j = 36 (0: 6: 41.2%)
       j = 45 (1: 24: 47.1%)
@@ -169,7 +178,7 @@
     calculating transform for log point (30, 50): 524 obs
     writing the log for point (30, 50):
   calculating analysed observations:
-  2014-08-26 09:01:59
+  2014-08-28 08:55:11
     sorting obs by ij:
     updating Hx:
   adding analysis innovations and spread to "observations.nc":
@@ -193,5 +202,5 @@
              ARGO         10    0.371      0.299     -0.241      0.063      0.025      0.025  
              0-50m         0     -nan       -nan       -nan       -nan       -nan       -nan  
              >500m         4    0.655      0.242     -0.655     -0.242      0.029      0.029  
-  2014-08-26 09:01:59
+  2014-08-28 08:55:12
   finished

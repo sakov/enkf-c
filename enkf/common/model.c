@@ -27,6 +27,7 @@
 #include "allmodels.h"
 
 #define NMODELDATA_INC 10
+#define NVAR_INC 10
 
 typedef struct {
     char* tag;
@@ -34,9 +35,9 @@ typedef struct {
 } modeldata;
 
 typedef struct {
-    char* name;
     int id;
-    float inflation;
+    char* name;
+    double inflation;
 } variable;
 
 struct model {
@@ -62,6 +63,30 @@ struct model {
 
 /**
  */
+static void variable_new(variable * v, int id, char* name)
+{
+    v->id = id;
+    v->name = strdup(name);
+    v->inflation = 1.0;
+}
+
+/**
+ */
+static void variables_destroy(int n, variable * vars)
+{
+    int i;
+
+    for (i = 0; i < n; ++i) {
+        variable* v = &vars[i];
+
+        free(v->name);
+    }
+
+    free(vars);
+}
+
+/**
+ */
 model* model_create(enkfprm* prm)
 {
     model* m = calloc(1, sizeof(model));
@@ -75,6 +100,7 @@ model* model_create(enkfprm* prm)
         FILE* f = NULL;
         char buf[MAXSTRLEN];
         int line;
+        variable* now = NULL;
 
         /*
          * get model tag and type
@@ -83,7 +109,7 @@ model* model_create(enkfprm* prm)
         line = 0;
         while (fgets(buf, MAXSTRLEN, f) != NULL) {
             char seps[] = " =\t\n";
-            char* token;
+            char* token = NULL;
 
             line++;
             if (buf[0] == '#')
@@ -104,28 +130,43 @@ model* model_create(enkfprm* prm)
                     enkf_quit("%s, l.%d: TYPE specified twice", modelprm, line);
                 else
                     m->type = strdup(token);
-            }
+            } else if (strncasecmp(token, "VAR", 3) == 0) {
+                if ((token = strtok(NULL, seps)) == NULL)
+                    enkf_quit("%s, l.%d: VAR not specified", modelprm, line);
+                if (m->nvar % NVAR_INC == 0)
+                    m->vars = realloc(m->vars, (m->nvar + NVAR_INC) * sizeof(variable));
+                now = &m->vars[m->nvar];
+                variable_new(now, m->nvar, token);
+                m->nvar++;
+            } else if (strcasecmp(token, "INFLATION") == 0) {
+                if (now == NULL)
+                    enkf_quit("%s, l.%d: VAR not specified", modelprm, line);
+                if (now->inflation != 1.0)
+                    enkf_quit("%s, l.%d: INFLATION already specified for \"%s\"", modelprm, line, now->name);
+                if ((token = strtok(NULL, seps)) == NULL)
+                    enkf_quit("%s, l.%d: INFLATION not specified", modelprm, line);
+                if (!str2double(token, &now->inflation))
+                    enkf_quit("%s, l.%d: could not convert \"%s\" to double", modelprm, line, token);
+            } else if (strcasecmp(token, "DATA") == 0)
+                continue;
+            else
+                enkf_quit("%s, l.%d: unknown token \"%s\"", modelprm, line, token);
         }                       /* while reading modelprm */
+        fclose(f);
         assert(m->name != NULL);
         assert(m->type != NULL);
-        fclose(f);
+        assert(m->nvar > 0);
     }
 
     /*
-     * set the variables
+     * set inflations
      */
-    m->nvar = prm->nvar;
-    if (m->nvar > 0) {
+    {
         int i;
 
-        m->vars = calloc(m->nvar, sizeof(variable));
-        for (i = 0; i < m->nvar; ++i) {
-            variable* v = &m->vars[i];
-
-            v->id = i;
-            v->name = strdup(prm->varnames[i]);
-            v->inflation = prm->inflations[i];
-        }
+        for (i = 0; i < m->nvar; ++i)
+            m->vars[i].inflation *= prm->inflation_base;
+        prm->inflation_base = NaN;
     }
 
     /*
@@ -172,16 +213,11 @@ static void model_freemodeldata(model* m)
  */
 void model_destroy(model* m)
 {
-    int i;
-
     free(m->name);
     free(m->type);
     grid_destroy(m->grid);
 
-    for (i = 0; i < m->nvar; ++i)
-        free(m->vars[i].name);
-    if (m->nvar > 0)
-        free(m->vars);
+    variables_destroy(m->nvar, m->vars);
     model_freemodeldata(m);
     free(m);
 }
@@ -190,9 +226,21 @@ void model_destroy(model* m)
  */
 void model_print(model* m, char offset[])
 {
+    int i;
+
     enkf_printf("%smodel info:\n", offset);
     enkf_printf("%s  name = %s\n", offset, m->name);
     enkf_printf("%s  type = %s\n", offset, m->type);
+    enkf_printf("%s  %d variables:\n", offset, m->nvar);
+    for (i = 0; i < m->nvar; ++i) {
+        variable* v = &m->vars[i];
+
+        enkf_printf("%s    %s:\n", offset, v->name);
+        enkf_printf("%s      inflation = %.3f\n", offset, v->inflation);
+    }
+    enkf_printf("%s  %d modeldata:\n", offset, m->ndata);
+    for (i = 0; i < m->ndata; ++i)
+        enkf_printf("%s    %s\n", offset, m->data[i].tag);
 }
 
 /**
@@ -202,10 +250,15 @@ void model_describeprm(void)
     enkf_printf("\n");
     enkf_printf("  Model parameter file format:\n");
     enkf_printf("\n");
-    enkf_printf("    NAME                      = <name>\n");
-    enkf_printf("    TYPE                      = <type>\n");
-    enkf_printf("  [ <model dependent entry>  = <data> ]\n");
+    enkf_printf("    NAME        = <name>\n");
+    enkf_printf("    TYPE        = <type>\n");
+    enkf_printf("  [ DATA <tag>  = <data> ]\n");
     enkf_printf("    ...\n");
+    enkf_printf("\n");
+    enkf_printf("    VAR         = <name>\n");
+    enkf_printf("  [ INFLATION   = <value> ]\n");
+    enkf_printf("\n");
+    enkf_printf("  [ <more of the above blocks> ]\n");
     enkf_printf("\n");
     enkf_printf("  Notes:\n");
     enkf_printf("    1. [ ... ] denotes an optional input\n");

@@ -51,10 +51,6 @@ typedef struct {
     int enssize;
     char* bgdir;
 
-    int nvar;
-    char** varnames;
-    double* inflations;
-
     int nasync;
     char** async_types;
     double* async_timesteps;    /* in days */

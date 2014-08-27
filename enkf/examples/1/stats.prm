@@ -8,6 +8,4 @@ OBSTYPES = obstypes.prm
 OBS = obs.prm
 DATE = 6565.5 days since 1990-01-01
 
-VARNAMES = eta_t temp salt u v
-
 REGION Global   0   360   -90     90

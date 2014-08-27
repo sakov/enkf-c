@@ -408,19 +408,24 @@ static zmodelprm* zmodelprm_create(char fname[])
 	if ((token = strtok(buf, seps)) == NULL)
 	    continue;
 
-	if (strcasecmp(token, "MSL") == 0) {
+	if (strcasecmp(token, "DATA") == 0) {
 	    if ((token = strtok(NULL, seps)) == NULL)
-		enkf_quit("%s, l.%d: MSL file not specified", fname, line);
-	    else if (prm->mslfname != NULL)
-		enkf_quit("%s, l.%d: MSL file specified twice", fname, line);
-	    else
-		prm->mslfname = strdup(token);
-	    if ((token = strtok(NULL, seps)) == NULL)
-		enkf_quit("%s, l.%d: MSL variable not specified", fname, line);
-	    else if (prm->mslvarname != NULL)
-		enkf_quit("%s, l.%d: MSL variable specified twice", fname, line);
-	    else
-		prm->mslvarname = strdup(token);
+		enkf_quit("%s, l.%d: DATA tag not specified", fname, line);
+            if (strcasecmp(token, "MSL") == 0) {
+                if ((token = strtok(NULL, seps)) == NULL)
+                    enkf_quit("%s, l.%d: MSL file not specified", fname, line);
+                else if (prm->mslfname != NULL)
+                    enkf_quit("%s, l.%d: MSL file specified twice", fname, line);
+                else
+                    prm->mslfname = strdup(token);
+                if ((token = strtok(NULL, seps)) == NULL)
+                    enkf_quit("%s, l.%d: MSL variable not specified", fname, line);
+                else if (prm->mslvarname != NULL)
+                    enkf_quit("%s, l.%d: MSL variable specified twice", fname, line);
+                else
+                    prm->mslvarname = strdup(token);
+            } else
+                enkf_quit("%s, l.%d: unknown data tag \"%s\"", fname, line, token);
 	}
     }
     fclose(f);
@@ -443,6 +448,7 @@ static void zmodelprm_destroy(zmodelprm* prm)
  */
 static void zmodel_print(zmodelprm* prm, char offset[])
 {
+    enkf_printf("%szmodel info:\n", offset);
     enkf_printf("%s  MSL file = %s\n", offset, prm->mslfname);
     enkf_printf("%s  MSL variable = %s\n", offset, prm->mslvarname);
 }
