@@ -742,14 +742,14 @@ Otherwise, observations are assumed to be made at the time of assimilation, rega
 
 EnKF-C assumes that the ensemble and background file names have some predefined formats.
 The file name for member \verb|mid| and model variable \verb|varname| assumed to be \spverb|sprintf("mem%03d_%s.nc", mid, varname)|.
-The background file for variable \spverb|varname| is assumed to be \spverb|sprintf("bg_%s.nc", varname)|.
+The background file for variable \verb|varname| is assumed to be \spverb|sprintf("bg_%s.nc", varname)|.
 The above names are used for reading forecast states for synchronous DA and for writing analyses, in the case if the analyses are appended to forecasts (true by default).
 For asynchronous DA the member and background file names for the time slot \verb|t| are assumed to be \spverb|sprintf("mem%03d_%s_%d.nc", mid, varname, t)| and \spverb|sprintf("bg_%s_%d.nc", varname, t)|, correspondingly.
 
 \section{\emph{prep}}
 
 \emph{prep} is the first stage of data assimilation in EnKF-C.
-Its role is to preprocess the observations by bringing them to a common form and superobing (merging close observations).
+Its preprocesses observations by bringing them to a common form and merging close observations into so called superobservations.
 
 By design, \emph{prep} is supposed to be light-weight, so that it does not read either the ensemble or background, and the only model information it needs is the model grid. 
 (Note that this may require some additional processing at later stages for models with dynamic grid, such as HYCOM.)
