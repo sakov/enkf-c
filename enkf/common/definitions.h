@@ -83,6 +83,10 @@
 #define STATE_BIGNUM 1.0e3
 #define STD_BIG 1.0e10
 
+#define ALLOCTYPE_1D 0
+#define ALLOCTYPE_2D 1
+#define ALLOCTYPE_3D 2
+
 /* it is assumed that if |value| > MAXOBSVAL, then it is filled with the
  * missing value */
 #define MAXOBSVAL 900.0

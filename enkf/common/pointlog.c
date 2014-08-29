@@ -191,14 +191,14 @@ void plog_definestatevars(dasystem* das)
  */
 void plog_writestatevars_direct(dasystem* das, int nfields, void** fieldbuffer, field* fields)
 {
-    int ni, nj, nk;
+    int ni, nj;
     int p, fid, e;
     float*** v_src = NULL;
     float* v = NULL;
     size_t start[2] = { 0, 0 };
     size_t count[2] = { 1, das->nmem };
 
-    model_getdims(das->m, &ni, &nj, &nk);
+    model_getdims(das->m, &ni, &nj, NULL);
     v = malloc(das->nmem * sizeof(float));
 
     for (p = 0; p < das->nplogs; ++p) {

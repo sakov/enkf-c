@@ -33,10 +33,10 @@
 static void interpolate_2d_obs(model* m, observations* allobs, int nobs, int obsids[], char fname[], float** v, ENSOBSTYPE out[])
 {
     int** mask = model_getnumlevels(m);
-    int ni, nj, nk;
+    int ni, nj;
     int i;
 
-    model_getdims(m, &ni, &nj, &nk);
+    model_getdims(m, &ni, &nj, NULL);
 
     for (i = 0; i < nobs; ++i) {
         int ii = obsids[i];
@@ -146,10 +146,10 @@ void H_sla_standard(dasystem* das, int nobs, int obsids[], char fname[], int mem
     observations* allobs = das->obs;
     float** msl = (float**) model_getmodeldata(m, "MSL");
     float** src = (float**) psrc;
-    int ni, nj, nk;
+    int ni, nj;
     int i, j;
 
-    model_getdims(m, &ni, &nj, &nk);
+    model_getdims(m, &ni, &nj, NULL);
 
     model_readfield(m, fname, mem, t, varname, 0, src[0]);
     for (j = 0; j < nj; ++j)

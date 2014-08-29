@@ -461,13 +461,13 @@ void zmodel_setup(model* m, char fname[])
 
     if (prm->mslfname != NULL) {
 	float** msl = NULL;
-	int nx, ny, nz;
+	int nx, ny;
 
-	model_getdims(m, &nx, &ny, &nz);
+	model_getdims(m, &nx, &ny, NULL);
 	msl = alloc2d(ny, nx, sizeof(float));
 	readfield(prm->mslfname, 0, prm->mslvarname, msl[0]);
 
-	model_addmodeldata(m, "MSL", msl);
+	model_addmodeldata(m, "MSL", ALLOCTYPE_2D, msl);
     }
 
     model_setgetmemberfname_fn(m, zmodel_getmemberfname);

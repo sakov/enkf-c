@@ -31,6 +31,7 @@
 
 typedef struct {
     char* tag;
+    int alloctype;
     void* data;
 } modeldata;
 
@@ -199,10 +200,14 @@ static void model_freemodeldata(model* m)
     for (i = 0; i < m->ndata; ++i) {
         modeldata* data = &m->data[i];
 
-        if (strcasecmp(data->tag, "MSL") == 0)
-            free2d(data->data);
-        else
+        if (data->alloctype == ALLOCTYPE_1D)
             free(data->data);
+        else if (data->alloctype == ALLOCTYPE_2D)
+            free2d(data->data);
+        else if (data->alloctype == ALLOCTYPE_3D)
+            free3d(data->data);
+        else
+            enkf_quit("programming error");
         free(data->tag);
     }
     free(m->data);
@@ -323,11 +328,12 @@ void model_setgrid(model* m, void* g)
 
 /**
  */
-void model_addmodeldata(model* m, char tag[], void* data)
+void model_addmodeldata(model* m, char tag[], int alloctype, void* data)
 {
     if (m->ndata % NMODELDATA_INC == 0)
         m->data = realloc(m->data, (m->ndata + NMODELDATA_INC) * sizeof(modeldata));
     m->data[m->ndata].tag = strdup(tag);
+    m->data[m->ndata].alloctype = alloctype;
     m->data[m->ndata].data = data;
     m->ndata++;
 }
@@ -504,10 +510,10 @@ int model_z2fk(model* m, double fi, double fj, double z, double* fk)
         return STATUS_LAND;
     } else if (numlevels[j1][i1] <= k2 || numlevels[j1][i2] <= k2 || numlevels[j2][i1] <= k2 || numlevels[j2][i2] <= k2) {
         float** depth = model_getdepth(m);
-        int ni, nj, nk;
+        int ni, nj;
         double v;
 
-        model_getdims(m, &ni, &nj, &nk);
+        model_getdims(m, &ni, &nj, NULL);
         v = interpolate2d(fi, fj, ni, nj, depth, numlevels);
         if (z > v)
             return STATUS_LAND;

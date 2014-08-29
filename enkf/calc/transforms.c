@@ -197,7 +197,7 @@ void das_calctransforms(dasystem* das)
     float** srf = NULL;
     float*** psrf = NULL;
 
-    int mni, mnj, mnk;
+    int mni, mnj;
     int nj, ni;
     int* jiter;
     int* iiter;
@@ -206,7 +206,7 @@ void das_calctransforms(dasystem* das)
 
     assert(das->s_mode == S_MODE_HA_f);
 
-    model_getdims(m, &mni, &mnj, &mnk);
+    model_getdims(m, &mni, &mnj, NULL);
 
     /*
      * work out how to cycle j 

@@ -787,7 +787,7 @@ static void update_HE(dasystem* das)
     float** X5jj1 = NULL;
     float** X5jj2 = NULL;
     float** X5j;
-    int i, j, ni, nj, mni, mnj, mnk;
+    int i, j, ni, nj, mni, mnj;
     int* iiter;
     int* jiter;
     int jj, stepj, ii, stepi;
@@ -824,7 +824,7 @@ static void update_HE(dasystem* das)
      * that in das_updatefields() 
      */
 
-    model_getdims(m, &mni, &mnj, &mnk);
+    model_getdims(m, &mni, &mnj, NULL);
 
     ncw_open(FNAME_X5, NC_NOWRITE, &ncid);
     ncw_inq_varid(FNAME_X5, ncid, "X5", &varid);
@@ -996,7 +996,7 @@ static void update_Hx(dasystem* das)
     float** wjj1 = NULL;
     float** wjj2 = NULL;
     float** wj;
-    int i, j, ni, nj, mni, mnj, mnk;
+    int i, j, ni, nj, mni, mnj;
     int* iiter;
     int* jiter;
     int jj, stepj, ii, stepi;
@@ -1012,7 +1012,7 @@ static void update_Hx(dasystem* das)
      * that in das_updatefields() 
      */
 
-    model_getdims(m, &mni, &mnj, &mnk);
+    model_getdims(m, &mni, &mnj, NULL);
 
     ncw_open(FNAME_W, NC_NOWRITE, &ncid);
     ncw_inq_varid(FNAME_W, ncid, "w", &varid);
