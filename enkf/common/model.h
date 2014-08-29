@@ -42,7 +42,7 @@ void model_setread3dfield_fn(model* m, model_read3dfield_fn fn);
 void model_setwritefield_fn(model* m, model_writefield_fn fn);
 void model_setgrid(model* m, void* g);
 
-void model_addmodeldata(model* m, char tag[], void* data);
+void model_addmodeldata(model* m, char tag[], int alloctype, void* data);
 void* model_getmodeldata(model* m, char tag[]);
 
 int model_getnvar(model* m);

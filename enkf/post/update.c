@@ -50,7 +50,7 @@ static void das_updatefields(dasystem* das, int nfields, void** fieldbuffer, int
     float** X5jj1 = NULL;
     float** X5jj2 = NULL;
     float** X5j;
-    int i, j, ni, nj, mni, mnj, mnk;
+    int i, j, ni, nj, mni, mnj;
     int* iiter;
     int* jiter;
     int jj, stepj, ii, stepi;
@@ -61,7 +61,7 @@ static void das_updatefields(dasystem* das, int nfields, void** fieldbuffer, int
 
     assert(das->mode == MODE_ENKF);
 
-    model_getdims(m, &mni, &mnj, &mnk);
+    model_getdims(m, &mni, &mnj, NULL);
     vv = alloc2d(mni, das->nmem, sizeof(float));
     tmp = malloc(das->nmem * sizeof(float));
 
@@ -258,7 +258,7 @@ static void das_updatebg(dasystem* das, int nfields, void** fieldbuffer)
     float** wjj1 = NULL;
     float** wjj2 = NULL;
     float** wj;
-    int i, j, ni, nj, mni, mnj, mnk;
+    int i, j, ni, nj, mni, mnj;
     int* iiter;
     int* jiter;
     int jj, stepj, ii, stepi;
@@ -273,7 +273,7 @@ static void das_updatebg(dasystem* das, int nfields, void** fieldbuffer)
      * that in das_updatefields() 
      */
 
-    model_getdims(m, &mni, &mnj, &mnk);
+    model_getdims(m, &mni, &mnj, NULL);
 
     ncw_open(FNAME_W, NC_NOWRITE, &ncid);
     ncw_inq_varid(FNAME_W, ncid, "w", &varid);
@@ -483,10 +483,10 @@ static void getfieldfname(char* dir, char* prefix, char* varname, int level, cha
 static void das_writefields_toassemble(dasystem* das, int nfields, void** fieldbuffer, field fields[])
 {
     char fname[MAXSTRLEN];
-    int ni, nj, nk;
+    int ni, nj;
     int i;
 
-    model_getdims(das->m, &ni, &nj, &nk);
+    model_getdims(das->m, &ni, &nj, NULL);
 
     for (i = 0; i < nfields; ++i) {
         field* f = &fields[i];
@@ -534,12 +534,12 @@ static void das_writefields(dasystem* das, int nfields, void** fieldbuffer, fiel
 static void das_writebg_direct(dasystem* das, int nfields, void** fieldbuffer, field fields[])
 {
     model* m = das->m;
-    int ni, nj, nk;
+    int ni, nj;
     int i;
 
     assert(das->mode == MODE_ENOI);
 
-    model_getdims(m, &ni, &nj, &nk);
+    model_getdims(m, &ni, &nj, NULL);
 
     if (!enkf_separateout) {
         for (i = 0; i < nfields; ++i) {
@@ -579,10 +579,10 @@ static void das_writebg_direct(dasystem* das, int nfields, void** fieldbuffer, f
 static void das_writebg_toassemble(dasystem* das, int nfields, void** fieldbuffer, field fields[])
 {
     char fname[MAXSTRLEN];
-    int ni, nj, nk;
+    int ni, nj;
     int i;
 
-    model_getdims(das->m, &ni, &nj, &nk);
+    model_getdims(das->m, &ni, &nj, NULL);
 
     for (i = 0; i < nfields; ++i) {
         field* f = &fields[i];
@@ -664,7 +664,7 @@ static void das_writespread(dasystem* das, int nfields, void** fieldbuffer, fiel
 {
     char fname[MAXSTRLEN];
     model* m = das->m;
-    int ni, nj, nk;
+    int ni, nj;
     int fid, e, i, nv;
     double* v1 = NULL;
     double* v2 = NULL;
@@ -673,7 +673,7 @@ static void das_writespread(dasystem* das, int nfields, void** fieldbuffer, fiel
     if (enkf_directwrite)
         strcpy(fname, FNAME_SPREAD);
 
-    model_getdims(m, &ni, &nj, &nk);
+    model_getdims(m, &ni, &nj, NULL);
     nv = ni * nj;
     v1 = malloc(nv * sizeof(double));
     v2 = malloc(nv * sizeof(double));
@@ -753,14 +753,14 @@ static void das_assemblemembers(dasystem* das, int leavetiles)
     model* m = das->m;
     int nvar = model_getnvar(m);
     float** v = NULL;
-    int ni, nj, nk;
+    int ni, nj;
     int i, e;
 
 #if defined(MPI)
     MPI_Barrier(MPI_COMM_WORLD);
 #endif
 
-    model_getdims(m, &ni, &nj, &nk);
+    model_getdims(m, &ni, &nj, NULL);
     v = alloc2d(ni, nj, sizeof(float));
 
     distribute_iterations(0, das->nmem - 1, nprocesses, rank);
@@ -841,7 +841,7 @@ static void das_assemblebg(dasystem* das, int leavetiles)
     model* m = das->m;
     int nvar = model_getnvar(m);
     float** v = NULL;
-    int ni, nj, nk;
+    int ni, nj;
     int i;
 
 #if defined(MPI)
@@ -850,7 +850,7 @@ static void das_assemblebg(dasystem* das, int leavetiles)
     if (rank > 0)
         return;
 
-    model_getdims(m, &ni, &nj, &nk);
+    model_getdims(m, &ni, &nj, NULL);
     v = alloc2d(ni, nj, sizeof(float));
 
     for (i = 0; i < nvar; ++i) {
@@ -905,10 +905,10 @@ static void das_assemblespread(dasystem* das)
     model* m = das->m;
     int nvar = model_getnvar(m);
     float** v = NULL;
-    int ni, nj, nk;
+    int ni, nj;
     int i;
 
-    model_getdims(m, &ni, &nj, &nk);
+    model_getdims(m, &ni, &nj, NULL);
     v = alloc2d(ni, nj, sizeof(float));
 
     for (i = 0; i < nvar; ++i) {
@@ -967,10 +967,10 @@ void das_update(dasystem* das, int calcspread, int leavetiles)
     int nvar = model_getnvar(m);
     void** fieldbuffer = NULL;
     int* varids = NULL;
-    int mni, mnj, mnk;
+    int mni, mnj;
     int i, e;
 
-    model_getdims(m, &mni, &mnj, &mnk);
+    model_getdims(m, &mni, &mnj, NULL);
 
     if (das->nmem <= 0)
         das_getnmem(das);

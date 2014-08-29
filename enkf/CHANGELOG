@@ -1,3 +1,9 @@
+v. 0.75
+   PS 2014XXXX
+   -- Introduced field `alloctype' in `modeldata' to handle de-allocation.
+   -- Made the parameter `nk' in
+      model_getdims(model* m, int* ni, int* nj, int* nk) optional (can be NULL
+      if not needed).
 v. 0.74
    PS 28082014
    -- Moved specification of variables from main parameter file to model

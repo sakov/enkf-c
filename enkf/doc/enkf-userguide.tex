@@ -413,7 +413,7 @@ Instead of using the forecast ensemble observation anomalies $\mb H \mb A^f$ and
 \end{align}
 Then
 \begin{align}
-  \mb w = \mb G \mb s,
+  \mb w = \mb G \mb s;
 \end{align}
 for the ETKF
 \begin{align}
@@ -432,10 +432,10 @@ where
   \label{G-p}
   & = \mb S\T ( \mb I + \mb S \mb S\T)^{-1}.
 \end{align}
-Here (\ref{G-m}) involves inversion of a $m \times m$ matrix, while (\ref{G-p}) involves inversion of a $p \times p$ matrix.
+Here (\ref{G-m}) involves inversion of an $m \times m$ matrix, while (\ref{G-p}) involves inversion of a $p \times p$ matrix.
 Therefore, in the DEnKF it is possible to calculate $\mb w$ and $\mb T$ using a single inversion of either a $p \times p$ or $m \times m$ matrix, depending on the relation between the number of observations and the ensemble size.
-In contrast, the ETKF (\ref{S-ETKF}) involves calculation of the inverse square root of an $m \times m$ matrix.
-Therefore, one can use expression (\ref{G-m}) for $\mb G$ and calculate both inversion in it and inverse square root in (\ref{S-ETKF}) from the same singular value decomposition (SVD).
+In contrast, the ETKF (\ref{S-ETKF}) requires calculation of the inverse square root of an $m \times m$ matrix.
+Then, one can use expression (\ref{G-m}) for $\mb G$ and calculate both inversion in it and inverse square root in (\ref{S-ETKF}) from the same singular value decomposition (SVD).
 This makes the DEnKF somewhat more numerically effective because, firstly, one can exploit situations when $p < m$ to invert a matrix of lower dimension and, secondly, it requires only matrix inversion, which can be done via Cholesky decomposition instead of SVD.
 
 \subsection{Localisation}
@@ -1051,12 +1051,12 @@ It has the following usage and options:
 
 The option \verb|--separate-output| tells \emph{post} to write the updated ensemble (EnKF) or background (EnOI) to separate analysis files, rather than appending them to the forecast files.
 When writing to a separate file, the same variable names are used for the analysis as for the forecast; the new files have an extra suffix \verb|.analysis| or \verb|.increment|, depending on whether the analysis or increment is written.
-By default, \emph{post} writes the results to the forecast files by creating new variable names from the old names with an additional suffix \verb|_an|.
+By default, \emph{post} writes results to the forecast files by creating new variable names from old names using suffix \verb|_an|.
 
 By default, \emph{post} first writes each updated horizontal fields of the model to a separate file (referred to here as a tile), and then concatenates them into analysis files.
 The tiles are removed after writing the analysis files; one may save time for allocating them on disk in the next cycle by leaving them on disk by using option \verb|--leave-tiles|.
-This approach is somewhat less effective than the direct writing to the analysis files, but, unfortunately, the direct writing is generally not reliable due to parallel I/O issues with NetCDF.
-Note that in some cases it proved to be possible to obtain robust performance with direct write using ``classic'' and, possibly, ``64-bit'' NetCDF formats.
+This approach is somewhat less effective than direct writing to analysis files (without intermediate tiles), but, unfortunately, the direct writing is generally not reliable due to parallel I/O issues with NetCDF.
+Note that in some cases it proved to be possible to obtain robust performance with direct write using ``classic'' or ``64-bit'' NetCDF formats.
 
 \section{DA tuning}
 \label{sec:datuning}

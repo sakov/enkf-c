@@ -257,13 +257,15 @@ void grid_getdims(grid* g, int* ni, int* nj, int* nk)
 
         *ni = nodes->nx;
         *nj = nodes->ny;
-        *nk = nodes->nz;
+        if (nk != NULL)
+            *nk = nodes->nz;
     } else if (g->type == GRIDTYPE_CURVILINEAR) {
         gnc* nodes = (gnc *) g->gridnodes;
 
         *ni = gridnodes_getnx(nodes->gn);
         *nj = gridnodes_getny(nodes->gn);
-        *nk = nodes->nz;
+        if (nk != NULL)
+            *nk = nodes->nz;
     } else
         enkf_quit("programming error");
 }
