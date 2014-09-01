@@ -1,8 +1,8 @@
   MPI: initialised 2 processes
-  MPI: rank = 0, PID = 25868
-  MPI: rank = 1, PID = 25869
-  running POST for EnKF version 0.74:
-  2014-08-28 08:54:27
+  MPI: rank = 0, PID = 12406
+  MPI: rank = 1, PID = 12407
+  running UPDATE for EnKF version 0.76:
+  2014-09-02 08:35:45
   reading system specs from "enkf.prm":
     MODE = EnKF
     SCHEME = DEnKF
@@ -79,24 +79,24 @@
     distributing iterations:
       all processes get 48 iterations
       process 0: 0 - 47
-    2014-08-28 08:54:27
+    2014-09-02 08:35:45
     allocating disk space for analysis:................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................
-    2014-08-28 08:54:27
+    2014-09-02 08:35:47
     distributing iterations:
       processes get 5 or 4 iterations
       process 0: 0 - 4
     processing fields:
-      eta_t    0   (0: 0: 20.0%)
       u        0   (1: 5: 25.0%)
+      eta_t    0   (0: 0: 20.0%)
       u        1   (1: 6: 50.0%)
       temp     0   (0: 1: 40.0%)
-      v        0   (1: 7: 75.0%)
       temp     1   (0: 2: 60.0%)
-      v        1   (1: 8: 100.0%)
       salt     0   (0: 3: 80.0%)
+      v        0   (1: 7: 75.0%)
+      v        1   (1: 8: 100.0%)
       salt     1   (0: 4: 100.0%)
 
-  2014-08-28 08:54:29
+  2014-09-02 08:35:49
   assembling analysis:
     distributing iterations:
       all processes get 48 iterations
@@ -119,5 +119,5 @@
     distributing iterations:
       processes get 5 or 4 iterations
       process 0: 0 - 4
-  2014-08-28 08:54:30
+  2014-09-02 08:35:49
   finished

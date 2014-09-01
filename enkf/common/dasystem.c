@@ -76,7 +76,7 @@ dasystem* das_create(enkfprm* prm)
         das->kfactor = NaN;
         das->locrad = NaN;
     }
-#elif defined(ENKF_POST)
+#elif defined(ENKF_UPDATE)
     das->kfactor = NaN;
     das->locrad = NaN;
 #endif
