@@ -131,13 +131,13 @@ bin/enkf_calc: INCS += $(CALC_INCS)
 bin/enkf_calc: LIBS += $(LIB_LAPACK)
 bin/enkf_calc: $(SRC_COMMON) $(SRC_MODEL) $(SRC_CALC) $(HDR_COMMON) $(HDR_MODEL) $(HDR_CALC)
 	@echo
-	OMPI_MPICC=$(CC) ${CC${MPISTATUS}} -o bin/enkf_calc -DENKF_CALC $(ENKF_FLAGS) $(CFLAGS$(MPISTATUS)) $(INCS) $(SRC_CALC) $(SRC_COMMON) $(SRC_MODEL) $(LIBS)
+	${CC${MPISTATUS}} -o bin/enkf_calc -DENKF_CALC $(ENKF_FLAGS) $(CFLAGS$(MPISTATUS)) $(INCS) $(SRC_CALC) $(SRC_COMMON) $(SRC_MODEL) $(LIBS)
 
 bin/enkf_update: INCS += $(POST_INCS)
 bin/enkf_update: LIBS += $(LIB_LAPACK)
 bin/enkf_update: $(SRC_POST) $(SRC_COMMON) $(SRC_MODEL) $(HDR_POST) $(HDR_COMMON) $(HDR_MODEL)
 	@echo
-	OMPI_MPICC=$(CC) ${CC${MPISTATUS}} -o bin/enkf_update -DENKF_UPDATE $(ENKF_FLAGS) $(CFLAGS$(MPISTATUS)) $(INCS) $(SRC_UPDATE) $(SRC_COMMON) $(SRC_MODEL) $(LIBS)
+	${CC${MPISTATUS}} -o bin/enkf_update -DENKF_UPDATE $(ENKF_FLAGS) $(CFLAGS$(MPISTATUS)) $(INCS) $(SRC_UPDATE) $(SRC_COMMON) $(SRC_MODEL) $(LIBS)
 
 clean:
 	rm -f bin/*
