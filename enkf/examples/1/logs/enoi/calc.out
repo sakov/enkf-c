@@ -1,8 +1,8 @@
   MPI: initialised 2 processes
-  MPI: rank = 0, PID = 25907
-  MPI: rank = 1, PID = 25908
-  running CALC for EnKF version 0.74:
-  2014-08-28 08:54:59
+  MPI: rank = 0, PID = 12448
+  MPI: rank = 1, PID = 12449
+  running CALC for EnKF version 0.76:
+  2014-09-02 08:36:23
   reading system specs from "enoi.prm":
     MODE = EnOI
     MODEL PRM = "model.prm"
@@ -107,7 +107,7 @@
     3927 observations
     calculating obs stats:
   calculating ensemble observations:
-  2014-08-28 08:54:59
+  2014-09-02 08:36:23
     ensemble size = 144
     distributing iterations:
       all processes get 72 iterations
@@ -117,7 +117,7 @@
     TEM ........................................................................+
     SAL ........................................................................+
   adding forecast innovations and spread to "observations.nc":
-  2014-08-28 08:54:59
+  2014-09-02 08:36:28
   moderating observations:
     observations substantially modified:
       SLA          0 (0.0%)
@@ -127,14 +127,14 @@
       total        0 (0.0%)
   writing modified obs errors to "observations.nc":
   calculating transforms:
-  2014-08-28 08:54:59
+  2014-09-02 08:36:28
     creating empty file "w.nc":
     distributing iterations:
       all processes get 17 iterations
       process 0: 0 - 16
     main cycle (34 x 34 local analyses):
-      j = 0 (0: 0: 5.9%)
       j = 3 (1: 17: 5.9%)
+      j = 0 (0: 0: 5.9%)
       j = 9 (1: 18: 11.8%)
       j = 6 (0: 1: 11.8%)
       j = 15 (1: 19: 17.6%)
@@ -143,8 +143,8 @@
       j = 18 (0: 3: 23.5%)
       j = 27 (1: 21: 29.4%)
       j = 24 (0: 4: 29.4%)
-      j = 30 (0: 5: 35.3%)
       j = 33 (1: 22: 35.3%)
+      j = 30 (0: 5: 35.3%)
       j = 39 (1: 23: 41.2%)
       j = 36 (0: 6: 41.2%)
       j = 45 (1: 24: 47.1%)
@@ -157,12 +157,12 @@
       j = 60 (0: 10: 64.7%)
       j = 69 (1: 28: 70.6%)
       j = 66 (0: 11: 70.6%)
-      j = 75 (1: 29: 76.5%)
       j = 72 (0: 12: 76.5%)
+      j = 75 (1: 29: 76.5%)
       j = 81 (1: 30: 82.4%)
       j = 78 (0: 13: 82.4%)
-      j = 87 (1: 31: 88.2%)
       j = 84 (0: 14: 88.2%)
+      j = 87 (1: 31: 88.2%)
       j = 93 (1: 32: 94.1%)
       j = 90 (0: 15: 94.1%)
       j = 96 (0: 16: 100.0%)
@@ -178,7 +178,7 @@
     calculating transform for log point (30, 50): 524 obs
     writing the log for point (30, 50):
   calculating analysed observations:
-  2014-08-28 08:55:11
+  2014-09-02 08:36:41
     sorting obs by ij:
     updating Hx:
   adding analysis innovations and spread to "observations.nc":
@@ -202,5 +202,5 @@
              ARGO         10    0.371      0.299     -0.241      0.063      0.025      0.025  
              0-50m         0     -nan       -nan       -nan       -nan       -nan       -nan  
              >500m         4    0.655      0.242     -0.655     -0.242      0.029      0.029  
-  2014-08-28 08:55:12
+  2014-09-02 08:36:41
   finished

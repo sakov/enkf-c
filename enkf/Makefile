@@ -5,13 +5,13 @@ ENKF_FLAGS = # -DHE_VIAFILE -DCHECK_X5 -DCHECK_G -DSHUFFLE_ROWS
 PROGRAMS =\
 bin/enkf_prep\
 bin/enkf_calc\
-bin/enkf_post
+bin/enkf_update
 
 ALL = $(PROGRAMS)
 
 bin/enkf_prep: MPISTATUS =
 bin/enkf_calc: MPISTATUS = MPI
-bin/enkf_post: MPISTATUS = MPI
+bin/enkf_update: MPISTATUS = MPI
 
 # do not edit below
 
@@ -95,14 +95,14 @@ calc/allhs.h\
 calc/model2obs.h\
 calc/calcs.h
 
-SRC_POST =\
+SRC_UPDATE =\
 common/distribute.c\
 common/pointlog.c\
 common/dasystem.c\
-post/update.c\
-post/enkf_post.c
+update/update.c\
+update/enkf_update.c
 
-HDR_POST =\
+HDR_UPDATE =\
 common/distribute.h\
 common/pointlog.h\
 common/dasystem.h
@@ -133,11 +133,11 @@ bin/enkf_calc: $(SRC_COMMON) $(SRC_MODEL) $(SRC_CALC) $(HDR_COMMON) $(HDR_MODEL)
 	@echo
 	OMPI_MPICC=$(CC) ${CC${MPISTATUS}} -o bin/enkf_calc -DENKF_CALC $(ENKF_FLAGS) $(CFLAGS$(MPISTATUS)) $(INCS) $(SRC_CALC) $(SRC_COMMON) $(SRC_MODEL) $(LIBS)
 
-bin/enkf_post: INCS += $(POST_INCS)
-bin/enkf_post: LIBS += $(LIB_LAPACK)
-bin/enkf_post: $(SRC_POST) $(SRC_COMMON) $(SRC_MODEL) $(HDR_POST) $(HDR_COMMON) $(HDR_MODEL)
+bin/enkf_update: INCS += $(POST_INCS)
+bin/enkf_update: LIBS += $(LIB_LAPACK)
+bin/enkf_update: $(SRC_POST) $(SRC_COMMON) $(SRC_MODEL) $(HDR_POST) $(HDR_COMMON) $(HDR_MODEL)
 	@echo
-	OMPI_MPICC=$(CC) ${CC${MPISTATUS}} -o bin/enkf_post -DENKF_POST $(ENKF_FLAGS) $(CFLAGS$(MPISTATUS)) $(INCS) $(SRC_POST) $(SRC_COMMON) $(SRC_MODEL) $(LIBS)
+	OMPI_MPICC=$(CC) ${CC${MPISTATUS}} -o bin/enkf_update -DENKF_UPDATE $(ENKF_FLAGS) $(CFLAGS$(MPISTATUS)) $(INCS) $(SRC_UPDATE) $(SRC_COMMON) $(SRC_MODEL) $(LIBS)
 
 clean:
 	rm -f bin/*

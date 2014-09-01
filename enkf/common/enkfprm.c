@@ -47,7 +47,7 @@ static void enkfprm_check(enkfprm* prm)
     if (prm->obstypeprm == NULL)
         enkf_quit("%s: OBSTYPES not specified", prm->fname);
 #endif
-#if defined(ENKF_CALC) || defined(ENKF_POST)
+#if defined(ENKF_CALC) || defined(ENKF_UPDATE)
     if (prm->ensdir == NULL && (prm->mode == MODE_ENKF || !enkf_fstatsonly))
         enkf_quit("%s: ENSDIR not specified", prm->fname);
 #endif

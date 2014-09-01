@@ -1,5 +1,5 @@
-  running PREP for EnKF version 0.74:
-  2014-08-28 08:54:18
+  running PREP for EnKF version 0.76:
+  2014-09-02 08:35:31
   reading prep specs from "enkf.prm":
     MODE = EnKF
     SCHEME = DEnKF
@@ -315,5 +315,5 @@ ls: cannot access obs/WINDSAT/windsat_20071223.nc: No such file or directory
     TEM     288        0          0          0          0          0          0          10        
     SAL     288        0          0          0          0          0          0          10        
     total   9957       3          0          0          3          0          0          3927      
-  2014-08-28 08:54:18
+  2014-09-02 08:35:32
   finished

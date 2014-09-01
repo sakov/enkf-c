@@ -1,6 +1,6 @@
 /******************************************************************************
  *
- * File:        enkf_post.c        
+ * File:        enkf_update.c        
  *
  * Created:     12/2012
  *
@@ -30,7 +30,7 @@ int outputinc = 0;
  */
 static void usage()
 {
-    enkf_printf("  Usage: enkf_post <prm file> [<options>]\n");
+    enkf_printf("  Usage: enkf_update <prm file> [<options>]\n");
     enkf_printf("  Options:\n");
     enkf_printf("  --calculate-spread\n");
     enkf_printf("      calculate ensemble spread and write to %s\n", FNAME_SPREAD);
@@ -123,7 +123,7 @@ int main(int argc, char* argv[])
     parse_commandline(argc, argv, &fname_prm);
 
     enkf_init(&argc, &argv);
-    enkf_printf("  running POST for EnKF version %s:\n", ENKF_VERSION);
+    enkf_printf("  running UPDATE for EnKF version %s:\n", ENKF_VERSION);
     enkf_printtime("  ");
 
     enkf_printf("  reading system specs from \"%s\":\n", fname_prm);

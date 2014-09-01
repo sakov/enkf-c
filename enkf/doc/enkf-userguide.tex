@@ -35,7 +35,7 @@
 
 \begin{document}
 
-\title{EnKF-C user guide\\{\normalsize version 0.74}}
+\title{EnKF-C user guide\\{\normalsize version 0.76}}
 
 \author{Pavel Sakov}
 \date{June 19, 2014 -- \today}
@@ -90,7 +90,7 @@ EnKF-C is supposed to run with localisation only.
 
 \chapter{Overview}
 
-EnKF-C conducts data assimilation in three stages: \emph{prep}, \emph{calc} and \emph{post}.
+EnKF-C conducts data assimilation in three stages: \emph{prep}, \emph{calc} and \emph{update}.
 
 \emph{prep} preprocesses observations so that they are ready for DA.
 It has the following work flow:
@@ -110,7 +110,7 @@ It has the following work flow:
 \item calculate and report forecast and analysis innovation statistics.
 \end{itemize}
 
-\emph{post} updates the ensemble (EnKF) or the background (EnOI) by using transforms calculated by \emph{calc}.
+\emph{update} updates the ensemble (EnKF) or the background (EnOI) by using transforms calculated by \emph{calc}.
 
 \chapter{EnKF}
 
@@ -574,7 +574,7 @@ Running EnKF-C binaries with \verb|--describe-prm-format| in the command line pr
 \subsection{Main parameter file}
 
 The main parameter file specifies the main parameters of DA and 4 other parameter files.
-Its format is described by running \verb|enkf_prep|, \verb|enlf_calc| or \verb|enk_post| with option \verb|--describe-prm-format|:
+Its format is described by running \verb|enkf_prep|, \verb|enlf_calc| or \verb|enk_update| with option \verb|--describe-prm-format|:
 \begin{Verbatim}[frame=single,fontsize=\footnotesize]
 >./bin/enkf_prep --describe-prm-format
 
@@ -837,7 +837,7 @@ Therefore, the workflow for detecting and eliminating bad batches of observation
 \item make a pilot run of \verb|enkf_prep|;
 \item run \verb|enkf_calc| with the flag \verb|--forecast-stats-only|;
 \item remove \verb|observations.nc| and \verb|observations-orig.nc|;
-\item calculate analysis in a ``normal'' way by running \verb|enkf_prep|, \verb|enkf_calc| and \verb|enkf_post|.
+\item calculate analysis in a ``normal'' way by running \verb|enkf_prep|, \verb|enkf_calc| and \verb|enkf_update|.
 \end{enumerate}
 
 Note that bad batches are identified at stage 2 based on superobservations formed by observations from the same batch only.
@@ -931,7 +931,7 @@ This can be used, for example, for obtaining the persistence statistics, that is
 
 The options \verb|--single-observation-xyz| and \verb|--single-observation-ijk| provide an easy way to conduct the so called single observation experiments, with the observation coordinates provided either in spatial or grid coordinates, correspondingly.
 Parameter \verb|<value>| defines innovation rather than the observation value.
-Normally, this experiements would be conducted in the EnOI mode, calculating increment (option \verb|--output-increment| of \verb|enkf_post|) rather than analysis.
+Normally, this experiements would be conducted in the EnOI mode, calculating increment (option \verb|--output-increment| of \verb|enkf_update|) rather than analysis.
 When run in the EnKF mode, the increment (or analysis, depending on options) for each member is calculated.
 
 \subsection{Interpolation of ensemble transforms}
@@ -994,7 +994,7 @@ The summary statistics for each observation type is shown at the top of each sec
 After that, statistics for particular instruments is shown; ``N/A'' corresponds to superobservations resulted from merging observations from two or more instruments.
 For subsurface temperature also statistics for shallow (0--50\,m) and deep (0--500\,m) observations is given.
 
-The analysis innovation statistics is calculated from the updated (analysis) ensemble observations by \emph{calc}, thus avoiding the need to access analysis files produced later by \emph{post}.
+The analysis innovation statistics is calculated from the updated (analysis) ensemble observations by \emph{calc}, thus avoiding the need to access analysis files produced later by \emph{update}.
 The update of ensemble observations is performed in the same way as that of any other element of the state vector:
 for the EnKF -- by applying the appropriate local ensemble transforms to the forecast ensemble observations,
 \begin{align*}
@@ -1022,16 +1022,16 @@ SRF shows the ``strength'' of DA.
 ``Strong'' DA implies a close to optimal system, which indeed never happens in practice.
 Therefore, ideally, SRF should be small (below 1, on average).
 
-\section{\emph{post}}
+\section{\emph{update}}
 
-\emph{post} is the third and final stage of data assimilation in EnKF-C.
+\emph{update} is the third and final stage of data assimilation in EnKF-C.
 It updates the ensemble (EnKF) or the background (EnOI) by applying the transforms calculated by \emph{calc}.
 
-The name of the binary for \emph{post} is \verb|enkf_post|.
+The name of the binary for \emph{update} is \verb|enkf_update|.
 It has the following usage and options:
 \begin{Verbatim}[frame=single,fontsize=\footnotesize]
->./bin/enkf_post
-  Usage: enkf_post <prm file> [<options>]
+>./bin/enkf_update
+  Usage: enkf_update <prm file> [<options>]
   Options:
   --calculate-spread
       calculate ensemble spread and write to spread.nc
@@ -1049,11 +1049,11 @@ It has the following usage and options:
       print version and exit
 \end{Verbatim}
 
-The option \verb|--separate-output| tells \emph{post} to write the updated ensemble (EnKF) or background (EnOI) to separate analysis files, rather than appending them to the forecast files.
+The option \verb|--separate-output| tells \emph{update} to write the updated ensemble (EnKF) or background (EnOI) to separate analysis files, rather than appending them to the forecast files.
 When writing to a separate file, the same variable names are used for the analysis as for the forecast; the new files have an extra suffix \verb|.analysis| or \verb|.increment|, depending on whether the analysis or increment is written.
-By default, \emph{post} writes results to the forecast files by creating new variable names from old names using suffix \verb|_an|.
+By default, \emph{update} writes results to the forecast files by creating new variable names from old names using suffix \verb|_an|.
 
-By default, \emph{post} first writes each updated horizontal fields of the model to a separate file (referred to here as a tile), and then concatenates them into analysis files.
+By default, \emph{update} first writes each updated horizontal fields of the model to a separate file (referred to here as a tile), and then concatenates them into analysis files.
 The tiles are removed after writing the analysis files; one may save time for allocating them on disk in the next cycle by leaving them on disk by using option \verb|--leave-tiles|.
 This approach is somewhat less effective than direct writing to analysis files (without intermediate tiles), but, unfortunately, the direct writing is generally not reliable due to parallel I/O issues with NetCDF.
 Note that in some cases it proved to be possible to obtain robust performance with direct write using ``classic'' or ``64-bit'' NetCDF formats.
@@ -1178,7 +1178,7 @@ The memory footprint of \emph{calc} is mainly defined by the size of ensemble ob
 For example, with $3 \cdot 10^6$ superobservations and $10^2$ ensemble members the size of this array would be about 1.2\, GB per CPU, which should be manageable on most contemporary systems.
 If the footprint becomes too big, one may consider reducing the number of observations by a coarser superobing (setting the parameter \verb|SOBSTRIDE| to 2 or more) or reducing the number of cores per node used.
 
-The memory footprint of \emph{post} is mainly defined by the size of the array of simultaneously updated horizontal fields.
+The memory footprint of \emph{update} is mainly defined by the size of the array of simultaneously updated horizontal fields.
 For example, for a $1500 \times 3600$ horizontal field, 100 ensemble members and simultaneous update of 2 fields the size of this array would be about 4.3\,GB per CPU.
 It could be reduced to 2.15\,GB by reducing he parameter \verb|FIELDBUFFERSIZE| from 2 to 1.
 Note that reducing the number of simultaneously updated fields defined by \verb|FIELDBUFFERSIZE| increases I/O (the $\mb X_5$ array is read from disk $N_f / N_b$ times, where $N_f$ is the total number of horizontal fields, and $N_b$ is the number of simultaneously updated fields) and reduces computational effectiveness (the $\mb X_5$ array needs to be interpolated horizontally $N_f / N_b$ times).
