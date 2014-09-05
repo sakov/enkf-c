@@ -133,9 +133,9 @@ bin/enkf_calc: $(SRC_COMMON) $(SRC_MODEL) $(SRC_CALC) $(HDR_COMMON) $(HDR_MODEL)
 	@echo
 	${CC${MPISTATUS}} -o bin/enkf_calc -DENKF_CALC $(ENKF_FLAGS) $(CFLAGS$(MPISTATUS)) $(INCS) $(SRC_CALC) $(SRC_COMMON) $(SRC_MODEL) $(LIBS)
 
-bin/enkf_update: INCS += $(POST_INCS)
+bin/enkf_update: INCS += $(UPDATE_INCS)
 bin/enkf_update: LIBS += $(LIB_LAPACK)
-bin/enkf_update: $(SRC_POST) $(SRC_COMMON) $(SRC_MODEL) $(HDR_POST) $(HDR_COMMON) $(HDR_MODEL)
+bin/enkf_update: $(SRC_UPDATE) $(SRC_COMMON) $(SRC_MODEL) $(HDR_UPDATE) $(HDR_COMMON) $(HDR_MODEL)
 	@echo
 	${CC${MPISTATUS}} -o bin/enkf_update -DENKF_UPDATE $(ENKF_FLAGS) $(CFLAGS$(MPISTATUS)) $(INCS) $(SRC_UPDATE) $(SRC_COMMON) $(SRC_MODEL) $(LIBS)
 
