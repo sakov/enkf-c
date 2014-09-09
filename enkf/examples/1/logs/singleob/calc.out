@@ -1,8 +1,8 @@
   MPI: initialised 2 processes
-  MPI: rank = 0, PID = 12541
-  MPI: rank = 1, PID = 12542
-  running CALC for EnKF version 0.76:
-  2014-09-02 08:37:19
+  MPI: rank = 0, PID = 14374
+  MPI: rank = 1, PID = 14375
+  running CALC for EnKF version 0.77:
+  2014-09-09 10:04:43
   reading system specs from "singleob.prm":
     MODE = EnOI
     MODEL PRM = "model.prm"
@@ -87,22 +87,8 @@
   model info:
     name = Tasman
     type = z-model
-    5 variables:
-      eta_t:
-        inflation = 1.000
-      temp:
-        inflation = 1.000
-      salt:
-        inflation = 1.000
-      u:
-        inflation = 1.000
-      v:
-        inflation = 1.000
-    1 modeldata:
-      MSL
-  zmodel info:
-    MSL file = conf/eta_mean-bran.nc
-    MSL variable = eta_t
+    0 variables:
+    0 modeldata:
   reading observation type specs from "obstypes.prm":
     NAME = SLA
       ID = 0
@@ -146,7 +132,7 @@
     j    = 50.000
     calculating obs stats:
   calculating ensemble observations:
-  2014-09-02 08:37:19
+  2014-09-09 10:04:43
     ensemble size = 96
     distributing iterations:
       all processes get 48 iterations
@@ -156,7 +142,7 @@
     TEM 
     SAL 
   calculating transforms:
-  2014-09-02 08:37:19
+  2014-09-09 10:04:43
     creating empty file "w.nc":
     distributing iterations:
       all processes get 17 iterations
@@ -182,20 +168,20 @@
       j = 48 (0: 8: 52.9%)
       j = 57 (1: 26: 58.8%)
       j = 54 (0: 9: 58.8%)
-      j = 60 (0: 10: 64.7%)
       j = 63 (1: 27: 64.7%)
+      j = 60 (0: 10: 64.7%)
       j = 69 (1: 28: 70.6%)
       j = 66 (0: 11: 70.6%)
       j = 75 (1: 29: 76.5%)
       j = 72 (0: 12: 76.5%)
-      j = 78 (0: 13: 82.4%)
       j = 81 (1: 30: 82.4%)
-      j = 84 (0: 14: 88.2%)
+      j = 78 (0: 13: 82.4%)
       j = 87 (1: 31: 88.2%)
-      j = 90 (0: 15: 94.1%)
+      j = 84 (0: 14: 88.2%)
       j = 93 (1: 32: 94.1%)
-      j = 96 (0: 16: 100.0%)
+      j = 90 (0: 15: 94.1%)
       j = 99 (1: 33: 100.0%)
+      j = 96 (0: 16: 100.0%)
   finished calculating transforms
     writing stats to "enkf_diag.nc":
   calc stats:
@@ -207,7 +193,7 @@
     calculating transform for log point (30, 30): 1 obs
     writing the log for point (30, 30):
   calculating analysed observations:
-  2014-09-02 08:37:19
+  2014-09-09 10:04:43
     sorting obs by ij:
     updating Hx:
   printing observation statistics:
@@ -216,5 +202,5 @@
     Global
            SST             1    0.500      0.186      0.500      0.186      0.655      0.655  
              Virtual       1    0.500      0.186      0.500      0.186      0.655      0.655  
-  2014-09-02 08:37:19
+  2014-09-09 10:04:43
   finished

@@ -248,8 +248,8 @@ void obstypes_describeprm(void)
     enkf_printf("\n");
     enkf_printf("  Observation types parameter file format:\n");
     enkf_printf("\n");
-    enkf_printf("    NAME = <name>\n");
-    enkf_printf("    VAR  = <model variable name>\n");
+    enkf_printf("    NAME      = <name>\n");
+    enkf_printf("    VAR       = <model variable name>\n");
     enkf_printf("    ISSURFACE = { yes | no }\n");
     enkf_printf("    HFUNCTION = <H function name>\n");
     enkf_printf("  [ ASYNC     = <time interval> ]                (synchronous*)\n");

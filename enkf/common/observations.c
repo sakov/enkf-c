@@ -1017,25 +1017,6 @@ static double distance(double xyz1[3], double xyz2[3])
 
 /**
  */
-static double locfun(double x)
-{
-    double x2, x3;
-
-    assert(x >= 0 && x <= 1.0 + 1.0e-8);
-
-    if (x >= 1.0)               /* handle possible round-up error */
-        return 0.0;
-
-    x *= 2.0;
-    x2 = x * x;
-    x3 = x2 * x;
-    if (x < 1.0)
-        return 1.0 + x2 * (-x3 / 4.0 + x2 / 2.0) + x3 * (5.0 / 8.0) - x2 * (5.0 / 3.0);
-    return x2 * (x3 / 12.0 - x2 / 2.0) + x3 * (5.0 / 8.0) + x2 * (5.0 / 3.0) - x * 5.0 + 4.0 - (2.0 / 3.0) / x;
-}
-
-/**
- */
 void obs_createkdtree(observations* obs, grid* g)
 {
     int i;
@@ -1087,7 +1068,7 @@ void obs_findlocal(observations* obs, grid* g, double lon, double lat, double r,
 
         grid_tocartesian(g, ll2, xyz2);
         (*ids)[ngood] = (*ids)[i];
-        (*lcoeffs)[ngood] = locfun(distance(xyz, xyz2) / r);
+        (*lcoeffs)[ngood] = taper_gc(distance(xyz, xyz2) / r);
         ngood++;
     }
     *n = ngood;

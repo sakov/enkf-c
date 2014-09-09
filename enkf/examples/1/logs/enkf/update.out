@@ -1,8 +1,8 @@
   MPI: initialised 2 processes
-  MPI: rank = 0, PID = 12406
-  MPI: rank = 1, PID = 12407
-  running UPDATE for EnKF version 0.76:
-  2014-09-02 08:35:45
+  MPI: rank = 0, PID = 14197
+  MPI: rank = 1, PID = 14198
+  running UPDATE for EnKF version 0.77:
+  2014-09-09 09:21:44
   reading system specs from "enkf.prm":
     MODE = EnKF
     SCHEME = DEnKF
@@ -54,22 +54,8 @@
   model info:
     name = Tasman
     type = z-model
-    5 variables:
-      eta_t:
-        inflation = 1.050
-      temp:
-        inflation = 1.050
-      salt:
-        inflation = 1.050
-      u:
-        inflation = 1.050
-      v:
-        inflation = 1.050
-    1 modeldata:
-      MSL
-  zmodel info:
-    MSL file = conf/eta_mean-bran.nc
-    MSL variable = eta_t
+    0 variables:
+    0 modeldata:
   using assembled write
   updating the ensemble:
     96 members
@@ -79,24 +65,24 @@
     distributing iterations:
       all processes get 48 iterations
       process 0: 0 - 47
-    2014-09-02 08:35:45
+    2014-09-09 09:21:44
     allocating disk space for analysis:................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................
-    2014-09-02 08:35:47
+    2014-09-09 09:21:44
     distributing iterations:
       processes get 5 or 4 iterations
       process 0: 0 - 4
     processing fields:
-      u        0   (1: 5: 25.0%)
       eta_t    0   (0: 0: 20.0%)
-      u        1   (1: 6: 50.0%)
+      u        0   (1: 5: 25.0%)
       temp     0   (0: 1: 40.0%)
+      u        1   (1: 6: 50.0%)
       temp     1   (0: 2: 60.0%)
-      salt     0   (0: 3: 80.0%)
       v        0   (1: 7: 75.0%)
+      salt     0   (0: 3: 80.0%)
       v        1   (1: 8: 100.0%)
       salt     1   (0: 4: 100.0%)
 
-  2014-09-02 08:35:49
+  2014-09-09 09:21:46
   assembling analysis:
     distributing iterations:
       all processes get 48 iterations
@@ -119,5 +105,5 @@
     distributing iterations:
       processes get 5 or 4 iterations
       process 0: 0 - 4
-  2014-09-02 08:35:49
+  2014-09-09 09:21:46
   finished

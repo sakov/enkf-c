@@ -36,7 +36,7 @@
  * variable-dependent inflation to each field.
  * 
  */
-static void das_updatefields(dasystem* das, int nfields, void** fieldbuffer, int varids[])
+static void das_updatefields(dasystem* das, int nfields, void** fieldbuffer, field* fields)
 {
     model* m = das->m;
     int** mask = model_getnumlevels(m);
@@ -55,15 +55,16 @@ static void das_updatefields(dasystem* das, int nfields, void** fieldbuffer, int
     int* jiter;
     int jj, stepj, ii, stepi;
     size_t start[3], count[3];
-    int e, f;
-    float** vv;
+    int e, fid;
+    float* v;                   /* v = E(<some index>, :) */
+
     float* tmp;
 
     assert(das->mode == MODE_ENKF);
 
     model_getdims(m, &mni, &mnj, NULL);
-    vv = alloc2d(mni, das->nmem, sizeof(float));
     tmp = malloc(das->nmem * sizeof(float));
+    v = malloc(das->nmem * sizeof(float));
 
     ncw_open(FNAME_X5, NC_NOWRITE, &ncid);
     ncw_inq_varid(FNAME_X5, ncid, "X5", &varid);
@@ -170,16 +171,16 @@ static void das_updatefields(dasystem* das, int nfields, void** fieldbuffer, int
             /*
              * update the j-th row of the fields 
              */
-            for (f = 0; f < nfields; ++f) {
-                float*** vvv = (float***) fieldbuffer[f];
+            for (fid = 0; fid < nfields; ++fid) {
+                field* f = &fields[fid];
+                float*** vvv = (float***) fieldbuffer[fid];
                 char do_T = 'T';
                 float alpha = 1.0f;
                 int inc = 1;
                 float beta = 0.0f;
-                float inflation = model_getvarinflation(m, varids[f]);
 
                 for (i = 0; i < mni; ++i) {
-                    float* vv_i = vv[i];        /* vv_i = E(<some index>, :) */
+                    float inflation = model_getvarinflation(m, f->varid);
 
                     /*
                      * assume that if |value| > MAXOBSVAL, then it is filled
@@ -197,11 +198,12 @@ static void das_updatefields(dasystem* das, int nfields, void** fieldbuffer, int
                      */
 
                     for (e = 0; e < das->nmem; ++e)
-                        vv_i[e] = vvv[e][j][i];
+                        v[e] = vvv[e][j][i];
+
                     /*
                      * E(i, :) = E(i, :) * X5 
                      */
-                    sgemv_(&do_T, &das->nmem, &das->nmem, &alpha, X5j[i], &das->nmem, vv_i, &inc, &beta, tmp, &inc);
+                    sgemv_(&do_T, &das->nmem, &das->nmem, &alpha, X5j[i], &das->nmem, v, &inc, &beta, tmp, &inc);
 
                     /*
                      * applying inflation explicitely is computationally
@@ -222,7 +224,7 @@ static void das_updatefields(dasystem* das, int nfields, void** fieldbuffer, int
                             vvv[e][j][i] = tmp[e];
                     else if (das->target == TARGET_INCREMENT)
                         for (e = 0; e < das->nmem; ++e)
-                            vvv[e][j][i] = tmp[e] - vv_i[e];
+                            vvv[e][j][i] = tmp[e] - v[e];
                 }
             }
         }                       /* for stepj */
@@ -231,7 +233,7 @@ static void das_updatefields(dasystem* das, int nfields, void** fieldbuffer, int
     ncw_close(FNAME_X5, ncid);
 
     free(tmp);
-    free2d(vv);
+    free(v);
     free(iiter);
     free(jiter);
     free2d(X5j);
@@ -401,7 +403,7 @@ static void das_updatebg(dasystem* das, int nfields, void** fieldbuffer)
 
                     /*
                      * (the case das->target = TARGET_INCREMENT is handled by
-                     * setting vvv to zero in das_update())
+                     * setting vvv[das->nmem][][] to zero in das_update())
                      */
                     for (e = 0; e < das->nmem; ++e)
                         vvv[das->nmem][j][i] += (vvv[e][j][i] - xmean) * wj[i][e];
@@ -966,7 +968,6 @@ void das_update(dasystem* das, int calcspread, int leavetiles)
     model* m = das->m;
     int nvar = model_getnvar(m);
     void** fieldbuffer = NULL;
-    int* varids = NULL;
     int mni, mnj;
     int i, e;
 
@@ -1149,7 +1150,6 @@ void das_update(dasystem* das, int calcspread, int leavetiles)
     if (das->mode == MODE_ENKF) {
         for (i = 0; i < das->fieldbufsize; ++i)
             fieldbuffer[i] = alloc3d(das->nmem, mnj, mni, sizeof(float));
-        varids = malloc(das->fieldbufsize * sizeof(int));
     } else if (das->mode == MODE_ENOI) {
         for (i = 0; i < das->fieldbufsize; ++i)
             fieldbuffer[i] = alloc3d(das->nmem + 1, mnj, mni, sizeof(float));
@@ -1172,20 +1172,20 @@ void das_update(dasystem* das, int calcspread, int leavetiles)
             model_getmemberfname(m, das->ensdir, f->varname, e + 1, fname);
             model_readfield(das->m, fname, e + 1, MAXINT, f->varname, f->level, ((float***) fieldbuffer[bufindex])[e][0]);
         }
-        if (das->mode == MODE_ENKF) {
-            varids[bufindex] = f->varid;
-        } else if (das->target == TARGET_ANALYSIS) {
-            model_getbgfname(m, das->bgdir, f->varname, fname);
-            model_readfield(das->m, fname, MAXINT, MAXINT, f->varname, f->level, ((float***) fieldbuffer[bufindex])[das->nmem][0]);
-        } else if (das->target == TARGET_INCREMENT)
-            memset(((float***) fieldbuffer[bufindex])[das->nmem][0], 0, mni * mnj * sizeof(float));
+        if (das->mode == MODE_ENOI) {
+            if (das->target == TARGET_ANALYSIS) {
+                model_getbgfname(m, das->bgdir, f->varname, fname);
+                model_readfield(das->m, fname, MAXINT, MAXINT, f->varname, f->level, ((float***) fieldbuffer[bufindex])[das->nmem][0]);
+            } else if (das->target == TARGET_INCREMENT)
+                memset(((float***) fieldbuffer[bufindex])[das->nmem][0], 0, mni * mnj * sizeof(float));
+        }
 
         if (bufindex == das->fieldbufsize - 1 || i == my_last_iteration) {
             if (calcspread)     /* write forecast spread */
                 das_writespread(das, bufindex + 1, fieldbuffer, &das->fields[i - bufindex], 0);
 
             if (das->mode == MODE_ENKF) {
-                das_updatefields(das, bufindex + 1, fieldbuffer, varids);
+                das_updatefields(das, bufindex + 1, fieldbuffer, &das->fields[i - bufindex]);
                 das_writefields(das, bufindex + 1, fieldbuffer, &das->fields[i - bufindex]);
             } else if (das->mode == MODE_ENOI) {
                 das_updatebg(das, bufindex + 1, fieldbuffer);
@@ -1220,6 +1220,4 @@ void das_update(dasystem* das, int calcspread, int leavetiles)
     for (i = 0; i < das->fieldbufsize; ++i)
         free3d(fieldbuffer[i]);
     free(fieldbuffer);
-    if (das->mode == MODE_ENKF)
-        free(varids);
 }

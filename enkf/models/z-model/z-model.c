@@ -17,6 +17,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <math.h>
+#include <assert.h>
 #include "definitions.h"
 #include "utils.h"
 #include "grid.h"
@@ -362,6 +363,32 @@ static int zmodel_getbgfname_async(model* m, char bgdir[], char varname[], char 
 
 /**
  */
+static void zmodel_adddata(model* m, char* token, char* fname, int line)
+{
+    char seps[] = " =\t\n";
+
+    if (strcasecmp(token, "MSL") == 0) {
+        char mslfname[MAXSTRLEN];
+	float** msl = NULL;
+	int nx, ny;
+
+        if ((token = strtok(NULL, seps)) == NULL)
+            enkf_quit("%s, l.%d: MSL file not specified", fname, line);
+        strcpy(mslfname, token);
+        if ((token = strtok(NULL, seps)) == NULL)
+            enkf_quit("%s, l.%d: MSL variable not specified", fname, line);
+
+	model_getdims(m, &nx, &ny, NULL);
+	msl = alloc2d(ny, nx, sizeof(float));
+	readfield(mslfname, 0, token, msl[0]);
+
+	model_addmodeldata(m, "MSL", ALLOCTYPE_2D, msl);
+    } else
+        enkf_quit("%s, l.%d: data tag \"%s\" not handled by z-model", fname, line, token);
+}
+
+/**
+ */
 static void zmodel_readfield(model* m, char fname[], int mem, int time, char varname[], int k, float* v)
 {
     readfield(fname, k, varname, v);
@@ -381,95 +408,10 @@ static void zmodel_writefield(model* m, char fname[], int time, char varname[], 
     writefield(fname, k, varname, v);
 }
 
-typedef struct {
-    char* mslfname;
-    char* mslvarname;
-} zmodelprm;
-
-/**
- */
-static zmodelprm* zmodelprm_create(char fname[])
-{
-    zmodelprm* prm = NULL;
-    FILE* f = NULL;
-    char buf[MAXSTRLEN];
-    int line;
-
-    prm = calloc(1, sizeof(zmodelprm));
-    f = enkf_fopen(fname, "r");
-    line = 0;
-    while (fgets(buf, MAXSTRLEN, f) != NULL) {
-	char seps[] = " =\t\n";
-	char* token;
-
-	line++;
-	if (buf[0] == '#')
-	    continue;
-	if ((token = strtok(buf, seps)) == NULL)
-	    continue;
-
-	if (strcasecmp(token, "DATA") == 0) {
-	    if ((token = strtok(NULL, seps)) == NULL)
-		enkf_quit("%s, l.%d: DATA tag not specified", fname, line);
-            if (strcasecmp(token, "MSL") == 0) {
-                if ((token = strtok(NULL, seps)) == NULL)
-                    enkf_quit("%s, l.%d: MSL file not specified", fname, line);
-                else if (prm->mslfname != NULL)
-                    enkf_quit("%s, l.%d: MSL file specified twice", fname, line);
-                else
-                    prm->mslfname = strdup(token);
-                if ((token = strtok(NULL, seps)) == NULL)
-                    enkf_quit("%s, l.%d: MSL variable not specified", fname, line);
-                else if (prm->mslvarname != NULL)
-                    enkf_quit("%s, l.%d: MSL variable specified twice", fname, line);
-                else
-                    prm->mslvarname = strdup(token);
-            } else
-                enkf_quit("%s, l.%d: unknown data tag \"%s\"", fname, line, token);
-	}
-    }
-    fclose(f);
-
-    return prm;
-}
-
-/**
- */
-static void zmodelprm_destroy(zmodelprm* prm)
-{
-    if (prm->mslfname != NULL) {
-	free(prm->mslfname);
-	free(prm->mslvarname);
-    }
-    free(prm);
-}
-
-/**
- */
-static void zmodel_print(zmodelprm* prm, char offset[])
-{
-    enkf_printf("%szmodel info:\n", offset);
-    enkf_printf("%s  MSL file = %s\n", offset, prm->mslfname);
-    enkf_printf("%s  MSL variable = %s\n", offset, prm->mslvarname);
-}
-
 /**
  */
 void zmodel_setup(model* m, char fname[])
 {
-    zmodelprm* prm = zmodelprm_create(fname);
-
-    if (prm->mslfname != NULL) {
-	float** msl = NULL;
-	int nx, ny;
-
-	model_getdims(m, &nx, &ny, NULL);
-	msl = alloc2d(ny, nx, sizeof(float));
-	readfield(prm->mslfname, 0, prm->mslvarname, msl[0]);
-
-	model_addmodeldata(m, "MSL", ALLOCTYPE_2D, msl);
-    }
-
     model_setgetmemberfname_fn(m, zmodel_getmemberfname);
     model_setgetmemberfnameasync_fn(m, zmodel_getmemberfname_async);
     model_setbgfname_fn(m, zmodel_getbgfname);
@@ -477,9 +419,7 @@ void zmodel_setup(model* m, char fname[])
     model_setreadfield_fn(m, zmodel_readfield);
     model_setread3dfield_fn(m, zmodel_read3dfield);
     model_setwritefield_fn(m, zmodel_writefield);
+    model_setadddata_fn(m, zmodel_adddata);
 
     model_print(m, "  ");
-    zmodel_print(prm, "  ");
-
-    zmodelprm_destroy(prm);
 }

@@ -1,3 +1,15 @@
+v. 0.77
+   PS 20140909 (moderate structural changes)
+   -- Introduced `struct variable'.
+   -- Changed the way the custom model initialisation is done: now it is called
+      right after reading the model type; this allows to read other bits in the
+      model parameter file in a custom way.
+   -- Removed now redundant `struct zmodelprm' in zmodel.c. Added
+      zmodel_adddata().
+   -- Now read WM__INST_TYPE in MMT reader as the instrument type.
+   -- Removed redudant variable `vv' in das_updatefields().
+   -- Modified definition of das_updatefields() to make it more general and
+      more consistent with other update procedures.
 v. 0.76
    PS 20140901
    -- Renamed stage 3 from "post" to "update".
