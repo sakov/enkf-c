@@ -35,11 +35,11 @@ typedef struct {
     void* data;
 } modeldata;
 
-typedef struct {
+struct variable {
     int id;
     char* name;
     double inflation;
-} variable;
+};
 
 struct model {
     char* name;
@@ -60,6 +60,7 @@ struct model {
     model_readfield_fn readfield;
     model_read3dfield_fn read3dfield;
     model_writefield_fn writefield;
+    model_adddata_fn adddatafn;
 };
 
 /**
@@ -128,12 +129,25 @@ model* model_create(enkfprm* prm)
                 if ((token = strtok(NULL, seps)) == NULL)
                     enkf_quit("%s, l.%d: TYPE not specified", modelprm, line);
                 else if (m->type != NULL)
-                    enkf_quit("%s, l.%d: TYPE specified twice", modelprm, line);
+                    enkf_quit("%s, l.%d: TYPE already specified", modelprm, line);
                 else
                     m->type = strdup(token);
+                /*
+                 * set the grid
+                 */
+                get_modelsetgridfn(m->type) (m, gridprm);
+                /*
+                 * do custom model setup
+                 */
+                get_modelsetupfn(m->type) (m, modelprm);
             } else if (strncasecmp(token, "VAR", 3) == 0) {
+                int i;
+
                 if ((token = strtok(NULL, seps)) == NULL)
                     enkf_quit("%s, l.%d: VAR not specified", modelprm, line);
+                for (i = 0; i < m->nvar; ++i)
+                    if (strcasecmp(m->vars[i].name, token) == 0)
+                        enkf_quit("%s, l.%d: VAR \"%s\" already specified", modelprm, line, token);
                 if (m->nvar % NVAR_INC == 0)
                     m->vars = realloc(m->vars, (m->nvar + NVAR_INC) * sizeof(variable));
                 now = &m->vars[m->nvar];
@@ -148,9 +162,11 @@ model* model_create(enkfprm* prm)
                     enkf_quit("%s, l.%d: INFLATION not specified", modelprm, line);
                 if (!str2double(token, &now->inflation))
                     enkf_quit("%s, l.%d: could not convert \"%s\" to double", modelprm, line, token);
-            } else if (strcasecmp(token, "DATA") == 0)
-                continue;
-            else
+            } else if (strcasecmp(token, "DATA") == 0) {
+                if ((token = strtok(NULL, seps)) == NULL)
+                    enkf_quit("%s, l.%d: DATA tag not specified", modelprm, line);
+                model_addcustomdata(m, token, modelprm, line);
+            } else
                 enkf_quit("%s, l.%d: unknown token \"%s\"", modelprm, line, token);
         }                       /* while reading modelprm */
         fclose(f);
@@ -170,16 +186,8 @@ model* model_create(enkfprm* prm)
         prm->inflation_base = NaN;
     }
 
-    /*
-     * set the grid
-     */
-    get_modelsetgridfn(m->type) (m, gridprm);
     assert(m->grid !=NULL);
 
-    /*
-     * finish the model setup
-     */
-    get_modelsetupfn(m->type) (m, modelprm);
     assert(m->getmemberfname != NULL);
     assert(m->getmemberfname_async != NULL);
     assert(m->getbgfname != NULL);
@@ -321,6 +329,8 @@ void model_setwritefield_fn(model* m, model_writefield_fn fn)
     m->writefield = fn;
 }
 
+/**
+ */
 void model_setgrid(model* m, void* g)
 {
     m->grid = g;
@@ -328,8 +338,21 @@ void model_setgrid(model* m, void* g)
 
 /**
  */
+void model_setadddata_fn(model* m, model_adddata_fn fn)
+{
+    m->adddatafn = fn;
+}
+
+/**
+ */
 void model_addmodeldata(model* m, char tag[], int alloctype, void* data)
 {
+    int i;
+
+    for (i = 0; i < m->ndata; ++i)
+        if (strcmp(tag, m->data[i].tag) == 0)
+            enkf_quit("model data tag \"%s\" already in use", tag);
+
     if (m->ndata % NMODELDATA_INC == 0)
         m->data = realloc(m->data, (m->ndata + NMODELDATA_INC) * sizeof(modeldata));
     m->data[m->ndata].tag = strdup(tag);
@@ -541,4 +564,11 @@ void model_read3dfield(model* m, char fname[], int mem, int time, char varname[]
 void model_writefield(model* m, char fname[], int time, char varname[], int k, float* v)
 {
     m->writefield(m, fname, time, varname, k, v);
+}
+
+/**
+ */
+void model_addcustomdata(model* m, char* token, char* fname, int line)
+{
+    m->adddatafn(m, token, fname, line);
 }

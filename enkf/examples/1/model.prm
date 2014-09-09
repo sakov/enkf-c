@@ -3,7 +3,7 @@ TYPE = z-model
 DATA MSL = conf/eta_mean-bran.nc eta_t
 
 VAR = eta_t 
-VAR = temp 
+VAR = temp
 VAR = salt 
 VAR = u 
 VAR = v

@@ -37,6 +37,7 @@
 #include "allreaders.h"
 
 #define EPS 1.0e-6
+#define WMO_INSTSIZE 4
 
 void reader_mmt_standard(char* fname, int fid, obsmeta* meta, model* m, observations* obs)
 {
@@ -52,7 +53,7 @@ void reader_mmt_standard(char* fname, int fid, obsmeta* meta, model* m, observat
     double missval;
     double validmin = DBL_MAX;
     double validmax = -DBL_MAX;
-    int* type;
+    char* type;
     char buf[MAXSTRLEN];
     int len;
     int year, month, day;
@@ -104,9 +105,9 @@ void reader_mmt_standard(char* fname, int fid, obsmeta* meta, model* m, observat
     ncw_get_var_double(fname, ncid, varid_v, v[0]);
     ncw_get_att_double(fname, ncid, varid_v, "_FillValue", &missval);
 
-    ncw_inq_varid(fname, ncid, "CLIMATOLOGY_SOURCE", &varid_type);
-    type = malloc(nprof * sizeof(int));
-    ncw_get_var_int(fname, ncid, varid_type, type);
+    ncw_inq_varid(fname, ncid, "WMO_INST_TYPE", &varid_type);
+    type = malloc(nprof * WMO_INSTSIZE);
+    ncw_get_var_text(fname, ncid, varid_type, type);
 
     ncw_close(fname, ncid);
 
@@ -128,7 +129,7 @@ void reader_mmt_standard(char* fname, int fid, obsmeta* meta, model* m, observat
     for (p = 0; p < (int) nprof; ++p) {
         char inststr[MAXSTRLEN];
 
-        sprintf(inststr, "MMT%02u", type[p]);
+        sprintf(inststr, "WMO%04u", type[p * WMO_INSTSIZE]);
 
         for (i = 0; i < (int) nz; ++i) {
             observation* o;
