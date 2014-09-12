@@ -1175,7 +1175,7 @@ void das_updateHE(dasystem* das)
     das_sortobs_byid(das);
 }
 
-/** Modify the observation error in file FNAME_SOBS.
+/** Add analysed observation estimates and ensemble spread to FNAME_SOBS.
  */
 void das_addanalysis(dasystem* das, char fname[])
 {

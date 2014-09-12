@@ -32,7 +32,7 @@
 #define FILE_FIND_INC 10
 #define EPS_DOUBLE 4.0e-15
 #define EPS_FLOAT  1.0e-7
-#define BACKTRACE_SIZE 30
+#define BACKTRACE_SIZE 50
 
 /**
  */
@@ -95,14 +95,14 @@ void enkf_quit(char* format, ...)
     enkf_printtime("  ");
 
     if (enkf_exitaction == EXITACTION_BACKTRACE) {
-        void* array[BACKTRACE_SIZE];
+        void* buffer[BACKTRACE_SIZE];
         size_t size;
         char** strings;
         size_t i;
 
         fprintf(stderr, "\n  I am %d, now printing the backtrace:\n\n", rank);
-        size = backtrace(array, 50);
-        strings = backtrace_symbols(array, size);
+        size = backtrace(buffer, BACKTRACE_SIZE);
+        strings = backtrace_symbols(buffer, size);
         fprintf(stderr, "  obtained %zd stack frames:\n", size);
         for (i = 0; i < size; i++)
             fprintf(stderr, "%s\n", strings[i]);

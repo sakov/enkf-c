@@ -28,7 +28,7 @@
 
 struct grid {
     char* name;
-    int type;
+    int htype;
 
     grid_xy2fij_fn xy2fij_fn;
     grid_z2fk_fn z2fk_fn;
@@ -165,7 +165,7 @@ grid* grid_create(char name[])
     grid* g = malloc(sizeof(grid));
 
     g->name = strdup(name);
-    g->type = GRIDTYPE_NONE;
+    g->htype = GRIDHTYPE_NONE;
     g->xy2fij_fn = NULL;
     g->gridnodes = NULL;
     g->lontype = LONTYPE_NONE;
@@ -180,9 +180,9 @@ grid* grid_create(char name[])
 void grid_destroy(grid* g)
 {
     free(g->name);
-    if (g->type == GRIDTYPE_LATLON_REGULAR || g->type == GRIDTYPE_LATLON_IRREGULAR)
+    if (g->htype == GRIDHTYPE_LATLON_REGULAR || g->htype == GRIDHTYPE_LATLON_IRREGULAR)
         gnxy_destroy(g->gridnodes);
-    else if (g->type == GRIDTYPE_CURVILINEAR)
+    else if (g->htype == GRIDHTYPE_CURVILINEAR)
         gnc_destroy(g->gridnodes);
     else
         enkf_quit("programming_error");
@@ -200,14 +200,14 @@ void grid_print(grid* g, char offset[])
     int nx, ny, nz;
 
     enkf_printf("%sgrid info:\n", offset);
-    switch (g->type) {
-    case GRIDTYPE_LATLON_REGULAR:
+    switch (g->htype) {
+    case GRIDHTYPE_LATLON_REGULAR:
         enkf_printf("%s  type = LATLON_REGULAR\n", offset);
         break;
-    case GRIDTYPE_LATLON_IRREGULAR:
+    case GRIDHTYPE_LATLON_IRREGULAR:
         enkf_printf("%s  type = LATLON_IRREGULAR\n", offset);
         break;
-    case GRIDTYPE_CURVILINEAR:
+    case GRIDHTYPE_CURVILINEAR:
         enkf_printf("%s  type = CURVILINEAR\n", offset);
         break;
     default:
@@ -252,14 +252,14 @@ void grid_describeprm(void)
  */
 void grid_getdims(grid* g, int* ni, int* nj, int* nk)
 {
-    if (g->type == GRIDTYPE_LATLON_REGULAR || g->type == GRIDTYPE_LATLON_IRREGULAR) {
+    if (g->htype == GRIDHTYPE_LATLON_REGULAR || g->htype == GRIDHTYPE_LATLON_IRREGULAR) {
         gnxy* nodes = (gnxy *) g->gridnodes;
 
         *ni = nodes->nx;
         *nj = nodes->ny;
         if (nk != NULL)
             *nk = nodes->nz;
-    } else if (g->type == GRIDTYPE_CURVILINEAR) {
+    } else if (g->htype == GRIDHTYPE_CURVILINEAR) {
         gnc* nodes = (gnc *) g->gridnodes;
 
         *ni = gridnodes_getnx(nodes->gn);
@@ -514,7 +514,7 @@ static void grid_setlontype(grid* g)
     double xmin = DBL_MAX;
     double xmax = -DBL_MAX;
 
-    if (g->type == GRIDTYPE_LATLON_REGULAR || g->type == GRIDTYPE_LATLON_IRREGULAR) {
+    if (g->htype == GRIDHTYPE_LATLON_REGULAR || g->htype == GRIDHTYPE_LATLON_IRREGULAR) {
         double* x = ((gnxy *) g->gridnodes)->x;
         int nx = ((gnxy *) g->gridnodes)->nx;
 
@@ -526,7 +526,7 @@ static void grid_setlontype(grid* g)
             xmax = x[0];
         if (xmax > x[nx - 1])
             xmax = x[nx - 1];
-    } else if (g->type == GRIDTYPE_CURVILINEAR) {
+    } else if (g->htype == GRIDHTYPE_CURVILINEAR) {
         double** x = gridnodes_getx(((gnc *) g->gridnodes)->gn);
         int nx = gridnodes_getnce1(((gnc *) g->gridnodes)->gn);
         int ny = gridnodes_getnce2(((gnc *) g->gridnodes)->gn);
@@ -549,21 +549,18 @@ static void grid_setlontype(grid* g)
 
 /**
  */
-void grid_setcoords(grid* g, int type, int periodic_x, int periodic_y, int nx, int ny, int nz, void* x, void* y, double* z)
+void grid_setcoords(grid* g, int htype, int periodic_x, int periodic_y, int nx, int ny, int nz, void* x, void* y, double* z)
 {
-    if (type < 1 || type > NGRIDTYPE)
-        enkf_quit("grid_set(): unknown type");
-
-    g->type = type;
-    if (type == GRIDTYPE_LATLON_REGULAR) {
+    g->htype = htype;
+    if (htype == GRIDHTYPE_LATLON_REGULAR) {
         g->xy2fij_fn = g1_xy2fij;
         g->fij2xy_fn = g12_fij2xy;
         g->gridnodes = gnxy_create(nx, ny, nz, x, y, z, periodic_x, periodic_y, 1);
-    } else if (type == GRIDTYPE_LATLON_IRREGULAR) {
+    } else if (htype == GRIDHTYPE_LATLON_IRREGULAR) {
         g->xy2fij_fn = g2_xy2fij;
         g->fij2xy_fn = g12_fij2xy;
         g->gridnodes = gnxy_create(nx, ny, nz, x, y, z, periodic_x, periodic_y, 0);
-    } else if (type == GRIDTYPE_CURVILINEAR) {
+    } else if (htype == GRIDHTYPE_CURVILINEAR) {
         g->xy2fij_fn = gc_xy2fij;
         g->fij2xy_fn = gc_fij2xy;
         g->gridnodes = gnc_create(nx, ny, nz, x, y, z);
@@ -597,9 +594,9 @@ char* grid_getname(grid* g)
 
 /**
  */
-int grid_gettype(grid* g)
+int grid_gethtype(grid* g)
 {
-    return g->type;
+    return g->htype;
 }
 
 /**
@@ -648,7 +645,7 @@ grid_fij2xy_fn grid_getfij2xyfn(grid* g)
  */
 int grid_isperiodic_x(grid* g)
 {
-    if (g->type == GRIDTYPE_LATLON_REGULAR || g->type == GRIDTYPE_LATLON_IRREGULAR) {
+    if (g->htype == GRIDHTYPE_LATLON_REGULAR || g->htype == GRIDHTYPE_LATLON_IRREGULAR) {
         gnxy* nodes = (gnxy *) ((grid*) g)->gridnodes;
 
         return nodes->periodic_x;
@@ -661,7 +658,7 @@ int grid_isperiodic_x(grid* g)
  */
 int grid_isperiodic_y(grid* g)
 {
-    if (g->type == GRIDTYPE_LATLON_REGULAR || g->type == GRIDTYPE_LATLON_IRREGULAR) {
+    if (g->htype == GRIDHTYPE_LATLON_REGULAR || g->htype == GRIDHTYPE_LATLON_IRREGULAR) {
         gnxy* nodes = (gnxy *) ((grid*) g)->gridnodes;
 
         return nodes->periodic_y;
