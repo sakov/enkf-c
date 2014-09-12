@@ -15,11 +15,10 @@
 
 #if !defined(_GRID_H)
 
-#define NGRIDTYPE 3
-#define GRIDTYPE_NONE 0
-#define GRIDTYPE_LATLON_REGULAR 1
-#define GRIDTYPE_LATLON_IRREGULAR 2
-#define GRIDTYPE_CURVILINEAR 3
+#define GRIDHTYPE_NONE 0
+#define GRIDHTYPE_LATLON_REGULAR 1
+#define GRIDHTYPE_LATLON_IRREGULAR 2
+#define GRIDHTYPE_CURVILINEAR 3
 
 typedef void (*grid_xy2fij_fn) (void* grid, double x, double y, double* fi, double* fj);
 typedef void (*grid_z2fk_fn) (void* grid, double fi, double fj, double z, double* fk);
@@ -41,7 +40,7 @@ void grid_settocartesian_fn(grid* g, grid_tocartesian_fn fn);
 
 void grid_getdims(grid* g, int* ni, int* nj, int* nk);
 char* grid_getname(grid* g);
-int grid_gettype(grid* g);
+int grid_gethtype(grid* g);
 float** grid_getdepth(grid* g);
 int** grid_getnumlevels(grid* g);
 int grid_getlontype(grid* g);

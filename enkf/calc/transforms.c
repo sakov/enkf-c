@@ -667,9 +667,8 @@ void das_calctransforms(dasystem* das)
     free(jpool);
 }
 
-/** Calculates transform for the points in (i,j) space specified as logpoints.
- * This is done separately from das_calctransfroms() because the interpolation
- * would make it complicated otherwise.
+/** Calculates transform for logpoints. This is done separately from
+ * das_calctransfroms() to avoid interpolation related problems.
  */
 void das_dopointlogs(dasystem* das)
 {

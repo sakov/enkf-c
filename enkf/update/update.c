@@ -475,6 +475,8 @@ static void das_writefields_direct(dasystem* das, int nfields, void** fieldbuffe
 
 }
 
+/**
+ */
 static void getfieldfname(char* dir, char* prefix, char* varname, int level, char* fname)
 {
     snprintf(fname, MAXSTRLEN, "%s/%s_%s-%03d.nc", dir, prefix, varname, level);
