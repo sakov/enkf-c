@@ -5,7 +5,10 @@ of Meterology. It allows one to conduct a single assimilation for 23 December
 
 Note that to reduce the example size 
 (1) the grid has been reduced to 100 x 100 x 2
-(3) global NAVO SST observations has been cut to regional observations only
+(2) global NAVO SST observations has been cut to regional observations only
+
+Because of (1) assimilation of subsurface observations (TEM and SAL observation
+types) is sort of funny, but is OK for testing purposes.
 
 PRE-REQUISITIVES
 
