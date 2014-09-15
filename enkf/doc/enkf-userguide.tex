@@ -35,7 +35,7 @@
 
 \begin{document}
 
-\title{EnKF-C user guide\\{\normalsize version 0.76}}
+\title{EnKF-C user guide\\{\normalsize version 0.77}}
 
 \author{Pavel Sakov}
 \date{June 19, 2014 -- \today}
@@ -263,10 +263,11 @@ In this section we will give a brief overview of solutions for the EnKF analysis
 
 \subsection{Overview}
 
-In the EnKF the update of the ensemble mean matches that in the KF (\ref{kf-an-x}), although the use of ensemble anomalies instead of state error covariance can reflect in some algorithmic differences.
+In the ``baseline'' EnKF (full-rank ensemble, no localisation) the analysed SDAS matches that of the KF, although the algebraic side is indeed different.
+The update of the ensemble mean is generally straightforward, in accordance with that in the KF (\ref{kf-an-x}).
+The details may depend on the chosen algorithm to achieve better numerical efficiency (see sec.~\ref{sec:numerical}).
 
-The update of ensemble anomalies should implicitly match the update of covariance in the KF (\ref{kf-an-P}).
-Technically it can be done either via a right-multiplied or left-multiplied transform of the ensemble anomalies:
+The update of ensemble anomalies can be done either via a right-multiplied or left-multiplied (or post/pre-multiplied) transform of the ensemble anomalies:
 \begin{align}
   \label{T-left}
   \mb A^a = \mb T_L \,\mb A^f,
