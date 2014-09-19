@@ -35,7 +35,7 @@
 
 \begin{document}
 
-\title{EnKF-C user guide\\{\normalsize version 0.77}}
+\title{EnKF-C user guide\\{\normalsize version 0.78}}
 
 \author{Pavel Sakov}
 \date{June 19, 2014 -- \today}
@@ -132,7 +132,7 @@ Consider a global (in time) nonlinear minimisation problem
   & \qquad \left . + \sum_{i = 2}^{k} \left [ \mb x_i - \mathcal M_i(\mb x_{i-1}) \right ]\T (\mb Q_i)^{-1} \left [ \mb x_i - \mathcal M_i(\mb x_{i-1}) \right ]  \right \}.
   \label{L-nonl}
 \end{align}
-Here $\{\mb x_i^a\}_{i=1}^k$ is a set of $k$ state vectors that minimise the cost function (\ref{L-nonl}); indices $i = 1,\dots,k$ correspond to a sequence of DA cycles, so that, for example, $\mb x_1$ is the first model state and $\mb x_k$ is the last model state; $\mb y_i$ are observation vectors related to the model state by a nonlinear observation operator $\mathcal H_i(\mb x)$; $\mathcal M_i(\mb x)$ is a nonlinear model operator relating the model states $\mb x_{i - 1}$ and $\mb x_i$; $\mb P_1^f$ is the initial state error covariance; $\mb R_i$ is the observation error covariance for $\mb y_i$; and $\mb Q_i$ is the model error covariance for $\mathcal M_i$; $(\cdot)\T$ denotes matrix transposition.
+Here $\{\mb x_i^a\}_{i=1}^k$ is a set of $k$ state vectors that minimise the cost function (\ref{L-nonl}); indices $i = 1,\dots,k$ correspond to a sequence of DA cycles, so that $\mb x_1$ is the estimated model state at the first cycle and $\mb x_k$ is the estimated model state at the last cycle; $\mb y_i$ are observation vectors related to the model state by a nonlinear observation operator $\mathcal H_i(\mb x)$; $\mathcal M_i(\mb x)$ is a nonlinear model operator relating the model states $\mb x_{i - 1}$ and $\mb x_i$; $\mb P_1^f$ is the initial state error covariance; $\mb R_i$ is the observation error covariance for $\mb y_i$; and $\mb Q_i$ is the model error covariance for $\mathcal M_i$; $(\cdot)\T$ denotes matrix transposition.
 
 The minimisation problem (\ref{min-nonl}, \ref{L-nonl}) is, generally, very complicated, but, luckily, has an exact solution in the \emph{linear} case; moreover, this solution is recursive.
 Namely, if we assume that $\mathcal M$ and $\mathcal H$ are affine:
@@ -190,8 +190,8 @@ There are a few things to be noted about the KF:
   \label{sdas}
   \mb X = \{\mb x, \mb P\}.
 \end{align}
-This means that in any moment of time all previous information about the system is encrypted into the current forecast or analysis SDAS.
-\item The KF provides solution for the last analysis, corresponding to $\mb x_k^a$ in ($\ref{min-nonl}$) (or, with a minor re-formulation, to the last forecast); finding the full (global in time) solution requires application of the Kalman \emph{smoother} (KS).
+This means that in any moment of time all previous information about the system is encrypted into the current (forecast or analysis) SDAS.
+\item The KF provides solution for the \emph{last} analysis, corresponding to $\mb x_k^a$ in ($\ref{min-nonl}$) (or, with a minor re-formulation, to the last forecast); finding the full (global in time) solution requires application of the Kalman \emph{smoother} (KS).
 Both the KF and KS can be derived by a re-factorisation of the positive definite quadratic form (\ref{L-nonl}).
 \item Because SDAS represents a (part of a) solution of the global least squares problem, it does not depend on the order in which observations are assimilated or on their grouping.
 \item Ditto, the SDAS does not depend on a linear non-singular transform of the model state in the sense that the forward and inverse transforms commute with the evolution of the DA system.
@@ -205,7 +205,7 @@ in which case it is called the extended Kalman filter (EKF).
 
 \section{EnKF}
 
-The canonic form of the KF (\ref{kf-for}, \ref{kf-an}) is not necessarily the most convenient one.
+The canonic form of the KF (\ref{kf-for}, \ref{kf-an}) is not necessarily the most convenient or suitable one.
 The corresponding algorithms can be prone to loosing the positive definiteness of the state error covariance $\mb P$ due to round-up errors; but more importantly, explicit use of $\mb P$ makes these algorithms non-scalable in regard to the model state dimension.
 
 Both these immediate problems can addressed with the ensemble Kalman filter, or the EnKF.
@@ -229,17 +229,18 @@ It is related to the SDAS of the KF (\ref{sdas}) as follows:
 where $\mb 1$ is a vector with all elements equal to 1.
 The above means that the model state estimate is given by the ensemble mean, while the model state error covariance estimate is implicitly represented by the ensemble anomalies $\mb A$ via the factorisation (\ref{P}).
 
-The EnKF is linearly scalable in regard to the state vector dimension and in some regards is a more natural and extendable representation of the KF than the canonic form (\ref{kf-for}, \ref{kf-an}).
+The EnKF is linearly scalable in regard to the state vector dimension and in a number of ways is a more natural and extendable representation of the KF than the canonic form (\ref{kf-for}, \ref{kf-an}).
 In particular, the forecast stage of the EnKF involves only propagation of each ensemble member:
 \begin{align}
   \label{enkf-for}
   \mb E_i^f = \mathcal M_i(\mb E_{i-1}^a).
 \end{align}
 This is a remarkably simple forecast equation, even though the model error still needs to be handled in some way.
-One option is to include stochastic model error into the model operator in (\ref{enkf-for}) (that would make it different from the model operator in KF).
+One option is to include stochastic model error into the model operator in (\ref{enkf-for}).
+(That would make it different from the model operator in KF.)
 Another option is to use multiplicative inflation.
 The third option is to mimic the treatment of model error in KF.
-It has to deal somehow with non-scalability in regard to the model state dimension.
+It has to deal somehow with non-scalability of that approach in regard to the model state dimension.
 
 At the analysis stage one has to update the ensemble mean and ensemble anomalies to match (\ref{kf-an}).
 This is different to the forecast stage, when each ensemble member is propagated individually.
@@ -255,7 +256,7 @@ Summarising, if $\mb E = \mb x \mb 1\T + \mb A$ is an ensemble that satisfies (\
 also satisfies (\ref{E}). 
 If $\mb E$ is full rank (i.e. $\mathrm{rank}(\mb E) = \mathrm{min}(m, n)$, where $n$ is the state dimension), then each unique $\mb U^p$ generates a unique ensemble, and (\ref{redraw}) describes all possible ensembles matching a given SDAS of the KF.
 Such transformation of the ensemble is called ensemble \emph{redrawing}.
-In the linear case (i.e. for affine model and observation operators) redrawing of the ensemble in the EnKF does not affect the evolution of the underlying KF; and conversely, in the nonlinear case the redrawing does indeed affect the evolution of the underlying KF.
+In the linear case (i.e. for affine model and observation operators) redrawing of the ensemble in the EnKF does not affect evolution of the underlying KF; and conversely, in the nonlinear case the redrawing does indeed affect evolution of the underlying KF.
 
 \section{EnKF analysis}
 
@@ -491,9 +492,11 @@ can then be written as:
   \mathcal L(\mb x_1, \dots, \mb x_k)  = (\mb x_1 - \mb x_1^f)\T (\mb P^f)^{-1} (\mb x_1 - \mb x_1^f) + \left [ \mb y - \mathcal H \circ \mathcal M(\mb x_1) \right ] \T \mb R^{-1} \left [ \mb y - \mathcal H\circ \mathcal M(\mb x_1) \right ],
 \end{align}
 where observations $\mb y$ represent the augmented observation vector: $\mb y = [\mb y_1\T,\dots,\mb y_k\T]\T$, $\mb R$ is the corresponding observation error covariance, and operator $\mathcal H \circ \mathcal M (\mb x_1)$ is assumed to project the state $\mb x_1$ to observation space.
+Note that usually only $\mathcal H$ is a function that depends on assimilated observations; now $\mathcal M$ also depends on observations, propagating the initial state to the time of each observation.
+It is also possible to interpret $\mathcal M(\mb x$) as a \emph{trajectory} starting from $\mb x$, while $\mathcal H$ maps it to observations.
 
 Apart from operator $\mathcal H \circ \mathcal M (\mb x_1)$, the cost function (\ref{cost-async}) has the same form as that for a single DA cycle with synchronous observations.
-Consequently, one can use the EnKF solutions for $\mb w$ and $\mb T$ from section~\ref{sec:numerical}:
+Consequently, one can use solutions for $\mb w$ and $\mb T$ from section~\ref{sec:numerical}, subject to extending definitions of $\mb s$ and $\mb S$ as follows:
 \begin{align}
   \label{s-async}
   &\mb s = \mb R^{-1/2} \left[ \mb y - \mathcal H \circ \mathcal M (\mb x_1^f) \right] / \sqrt{m - 1},\\
@@ -511,15 +514,15 @@ There are no specific restrictions on $\mb R$, so that in theory observation err
   {\bf Note.} The background term $(\mb x_1 - \mb x_1^f)\T (\mb P^f)^{-1} (\mb x_1 - \mb x_1^f)$ in (\ref{cost-async}) can be seen as accumulating the previous history of the system rather than characterising the initial uncertainty in the global problem.
   In this case it is natural to anchor it to the previous analysis:
   \begin{align}
-    \mathcal L(\mb x_0) = (\mb x_0 - \mb x_0^f)\T (\mb P_0^f)^{-1} (\mb x_0 - \mb x_0^f) + \left [ \mb y - \mathcal H \circ \mathcal M(\mb x_0) \right ] \T \mb R^{-1} \left [ \mb y - \mathcal H \circ \mathcal M(\mb x_0) \right ].
+    \mathcal L(\mb x) = (\mb x - \mb x^f)\T (\mb P^f)^{-1} (\mb x - \mb x^f) + \left [ \mb y - \mathcal H \circ \mathcal M(\mb x) \right ] \T \mb R^{-1} \left [ \mb y - \mathcal H \circ \mathcal M(\mb x) \right ].
   \end{align}
-  Here $\mb x_0^f$ is the analysed state at the end of the previous cycle, considered as the forecast for the current cycle, and $\mb P_0^f$ is the corresponding state error covariance.
-  Minimising $\mathcal L$ yields the analysed initial model state $\mb x_0^a$, which in turn yields the analysed trajectory; the analysed state error covariance is defined so that the analysed background term absorbs the observation term:
+  Here $\mb x^f$ is the analysed state at the end of the previous cycle, considered as the forecast for the current cycle, and $\mb P^f$ is the corresponding state error covariance.
+  Minimising $\mathcal L$ yields the analysed initial model state $\mb x^a$, which in turn yields the analysed trajectory; the analysed state error covariance is defined so that the analysed background term absorbs the observation term:
   \begin{align*}
-    &\mb x_0^a = \arg \min \; \mathcal L(\mb x_0),\\
-    &\mb P_0^a: \ (\mb x_0^a - \mb x_0^f)\T (\mb P_0^a)^{-1} (\mb x_0^a - \mb x_0^f) = \mathcal L(\mb x_0^a) + \mathrm{Const}.
+    &\mb x^a = \arg \min \; \mathcal L(\mb x),\\
+    &\mb P^a: \ \mathcal L(\mb x^a) = (\mb x^a - \mb x^f)\T (\mb P^a)^{-1} (\mb x^a - \mb x^f) + \mathrm{Const}.
   \end{align*}
-  This framework is a natural extension of the problem (\ref{min-nonl}) in the linear, perfect-model case to continuous time; and is convenient for iterative minimisation.
+  This framework is a natural extension of the problem (\ref{min-nonl}) in the linear, perfect-model case to continuous time; and is convenient for iterative minimisation.\par
 }
 
 Minimising (\ref{cost-async}) yields the updated state estimate at the initial time.
@@ -534,7 +537,7 @@ It can be summarised as follows:
 \begin{align}
   \label{enoi-for}
   & \mb x^b_i = \mathcal M_i(\mb x^a_{i-1}),\\
-  & \mb x^a_i = \mb x^f_i + \mb A^b \mb w_i,
+  & \mb x^a_i = \mb x^f_i + \mb A^b \, \mb w_i,
 \end{align}
 where $\mb x^b$ is the forecast model state estimate referred to as the background, and $\mb A^b$ is an ensemble of static, or background, anomalies; the corresponding state error covariance $\mb P^b$ is also often referred to as the background covariance.
 
@@ -620,7 +623,7 @@ Its format is described by running \verb|enkf_prep|, \verb|enlf_calc| or \verb|e
 \subsection{Model parameter file}
 
 Currently the model parameter file is not doing much; it exists mainly for the future expandability of the code. 
-It defines the model name, model type, and an arbitrary number of entries for model data:
+It defines the model name, model type, an arbitrary number of entries for model data, and model variables to update:
 \begin{Verbatim}[frame=single,fontsize=\footnotesize]
 >./bin/enkf_prep --describe-prm-format model
 
@@ -636,6 +639,8 @@ It defines the model name, model type, and an arbitrary number of entries for mo
 
   [ <more of the above blocks> ]
 \end{Verbatim}
+
+The total inflation for a model variable is defined as a product of the base inflation defined in the main parameter file, and the variable-specific inflation.
 
 \subsection{Grid parameter file}
 
@@ -1079,12 +1084,15 @@ It is possible to specify additional R-factors for observations of each type (se
 Multiplicative inflation can be seen as an additional forgetting factor in the KF.
 In EnKF-C one can specify the inflation multiple for analysed ensemble anomalies, e.g.:
 \begin{Verbatim}[frame=single,fontsize=\footnotesize]
-INFLATION BASE = 1.05
-INFLATION temp = 1.02
+> grep INFLATION main.prm
+INFLATION = 1.05
+> grep temp -A 1 model.prm
+VAR = temp
+INFLATION = 1.02
 \end{Verbatim}
 In this case all model variables except ``temp'' will have inflation of 5\,\%, while ``temp'' will have inflation of $1.05 \cdot 1.02 \approx 1.07$.
 The ability to define different inflation rates for different variables can be useful for non-dynamical variables, such as estimated biases, helping to avoid the ensemble collapse for them.
-In general, to retain dynamical balances one should rather avoid using different inflation magnitudes.
+In general, to retain dynamical balances one should rather avoid using different inflation magnitudes across model variables.
 Note that even small inflation can substantially affect the ensemble spread established in the course of evolution of the system.
 
 Localisation radius is defined by the entry \verb|LOCRAD| in the parameter file.

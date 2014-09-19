@@ -125,7 +125,7 @@ void reader_windsat_standard(char* fname, int fid, obsmeta* meta, model* m, obse
         o->instrument = st_add_ifabscent(obs->instruments, "WindSat", -1);
         o->id = obs->nobs;
         o->fid = fid;
-        o->batch = -1;
+        o->batch = 0;
         o->value = sst[i];
         o->std = error_std[i];
         o->lon = lon[i];
