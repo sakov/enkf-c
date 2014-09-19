@@ -1,3 +1,7 @@
+v. 0.79
+   PS 20140919 (minor changes)
+   -- Made it possible to compile without `gridutils' by defining flag
+      -DNO_GRIDUTILS
 v. 0.78
    PS 20140919 (minor changes)
    -- Set batch ID for NAVO and Windsat SST obs to 0 (was -1). This makes it
