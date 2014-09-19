@@ -6,9 +6,16 @@ LD_PATH += -L/home/599/pxs599/local/lib
 
 LIB_M = -lm
 
+# with gridutils (default) (comment out to change)
+#
 INC_GU = -I/home/599/pxs599/src/gridutils
 LIB_GU = -lgu
 LD_PATH += -L/home/599/pxs599/local/lib
+#
+# without gridutils (uncomment to change)
+#
+#INC_GU = -DNO_GRIDUTILS
+#LIB_GU =
 
 LIB_LAPACK = -lmkl_rt
 

@@ -22,7 +22,9 @@
 #include "definitions.h"
 #include "utils.h"
 #include "grid.h"
+#if !defined(NO_GRIDUTILS)
 #include "gridnodes.h"
+#endif
 #include "gridmap.h"
 #include "nan.h"
 
@@ -57,6 +59,7 @@ typedef struct {
     double* zb;
 } gnxy;                         /* for "Grid Nodes X Y" */
 
+#if !defined(NO_GRIDUTILS)
 typedef struct {
     gridnodes* gn;
     gridmap* gm;
@@ -65,6 +68,7 @@ typedef struct {
     double* z;
     double* zb;
 } gnc;                          /* for "Grid Nodes Curvilinear" */
+#endif
 
 /**
  */
@@ -122,6 +126,7 @@ void gnxy_destroy(gnxy * nodes)
     free(nodes);
 }
 
+#if !defined(NO_GRIDUTILS)
 /**
  */
 static gnc* gnc_create(int nx, int ny, int nz, double** x, double** y, double* z)
@@ -157,6 +162,7 @@ void gnc_destroy(gnc * nodes)
     free(nodes->zb);
     free(nodes);
 }
+#endif
 
 /**
  */
@@ -182,8 +188,10 @@ void grid_destroy(grid* g)
     free(g->name);
     if (g->htype == GRIDHTYPE_LATLON_REGULAR || g->htype == GRIDHTYPE_LATLON_IRREGULAR)
         gnxy_destroy(g->gridnodes);
+#if !defined(NO_GRIDUTILS)
     else if (g->htype == GRIDHTYPE_CURVILINEAR)
         gnc_destroy(g->gridnodes);
+#endif
     else
         enkf_quit("programming_error");
     if (g->numlevels != NULL)
@@ -207,9 +215,11 @@ void grid_print(grid* g, char offset[])
     case GRIDHTYPE_LATLON_IRREGULAR:
         enkf_printf("%s  type = LATLON_IRREGULAR\n", offset);
         break;
+#if !defined(NO_GRIDUTILS)
     case GRIDHTYPE_CURVILINEAR:
         enkf_printf("%s  type = CURVILINEAR\n", offset);
         break;
+#endif
     default:
         enkf_printf("%s  type = NONE\n", offset);
     }
@@ -259,6 +269,7 @@ void grid_getdims(grid* g, int* ni, int* nj, int* nk)
         *nj = nodes->ny;
         if (nk != NULL)
             *nk = nodes->nz;
+#if !defined(NO_GRIDUTILS)
     } else if (g->htype == GRIDHTYPE_CURVILINEAR) {
         gnc* nodes = (gnc *) g->gridnodes;
 
@@ -266,6 +277,7 @@ void grid_getdims(grid* g, int* ni, int* nj, int* nk)
         *nj = gridnodes_getny(nodes->gn);
         if (nk != NULL)
             *nk = nodes->nz;
+#endif
     } else
         enkf_quit("programming error");
 }
@@ -480,6 +492,7 @@ static void g2_xy2fij(void* p, double x, double y, double* fi, double* fj)
     *fj = x2fi_irreg(nodes->ny, nodes->y, nodes->yb, y, nodes->periodic_y);
 }
 
+#if !defined(NO_GRIDUTILS)
 /**
  */
 static void gc_xy2fij(void* p, double x, double y, double* fi, double* fj)
@@ -497,6 +510,7 @@ static void gc_fij2xy(void* p, double fi, double fj, double* x, double* y)
 
     gridmap_fij2xy(nodes->gm, fi, fj, x, y);
 }
+#endif
 
 /**
  */
@@ -526,6 +540,7 @@ static void grid_setlontype(grid* g)
             xmax = x[0];
         if (xmax > x[nx - 1])
             xmax = x[nx - 1];
+#if !defined(NO_GRIDUTILS)
     } else if (g->htype == GRIDHTYPE_CURVILINEAR) {
         double** x = gridnodes_getx(((gnc *) g->gridnodes)->gn);
         int nx = gridnodes_getnce1(((gnc *) g->gridnodes)->gn);
@@ -540,6 +555,7 @@ static void grid_setlontype(grid* g)
                     xmax = x[j][i];
             }
         }
+#endif
     }
     if (xmin < 0.0 && xmax <= 180.0)
         g->lontype = LONTYPE_180;
@@ -560,10 +576,12 @@ void grid_setcoords(grid* g, int htype, int periodic_x, int periodic_y, int nx, 
         g->xy2fij_fn = g2_xy2fij;
         g->fij2xy_fn = g12_fij2xy;
         g->gridnodes = gnxy_create(nx, ny, nz, x, y, z, periodic_x, periodic_y, 0);
+#if !defined(NO_GRIDUTILS)
     } else if (htype == GRIDHTYPE_CURVILINEAR) {
         g->xy2fij_fn = gc_xy2fij;
         g->fij2xy_fn = gc_fij2xy;
         g->gridnodes = gnc_create(nx, ny, nz, x, y, z);
+#endif
     } else
         enkf_quit("programming error");
 

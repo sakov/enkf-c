@@ -35,7 +35,7 @@
 
 \begin{document}
 
-\title{EnKF-C user guide\\{\normalsize version 0.78}}
+\title{EnKF-C user guide\\{\normalsize version 0.79}}
 
 \author{Pavel Sakov}
 \date{June 19, 2014 -- \today}
@@ -667,7 +667,7 @@ At the moment, EnKF-C supports 3 possible types of horizontal grids:
 \begin{itemize}
 \item equidistant rectangular grids aligned with physical coordinates;
 \item non-equidistant rectangular grids aligned with physical coordinates;
-\item quadrilateral simply connected grids (via libgridutils).
+\item quadrilateral simply connected grids (via libgu).
 \end{itemize}
 For rectangular grids the code tries to determine and handle periodicity in X or Y directions.
 
@@ -747,8 +747,8 @@ Otherwise, observations are assumed to be made at the time of assimilation, rega
 \section{File name conventions}
 
 EnKF-C assumes that the ensemble and background file names have some predefined formats.
-The file name for member \verb|mid| and model variable \verb|varname| assumed to be \spverb|sprintf("mem%03d_%s.nc", mid, varname)|.
-The background file for variable \verb|varname| is assumed to be \spverb|sprintf("bg_%s.nc", varname)|.
+The file name for member \verb|mid| and model variable \verb|varname| is assumed to be \spverb|sprintf("mem%03d_%s.nc", mid, varname)|.
+The background file (EnOI only) for variable \verb|varname| is assumed to be \spverb|sprintf("bg_%s.nc", varname)|.
 The above names are used for reading forecast states for synchronous DA and for writing analyses, in the case if the analyses are appended to forecasts (true by default).
 For asynchronous DA the member and background file names for the time slot \verb|t| are assumed to be \spverb|sprintf("mem%03d_%s_%d.nc", mid, varname, t)| and \spverb|sprintf("bg_%s_%d.nc", varname, t)|, correspondingly.
 
@@ -862,7 +862,6 @@ ASYNC = 1
 \end{Verbatim}
 The above means that SLA and SST observations are considered to be asynchronous, with the time quantification of 1 day.
 If, for example the assimilation time is specified as ``6085.5 days since 1990-01-01'', then the SLA and SST observations will be binned into 1-day time intervals centred at the time of assimilation, i.e. from day 6080.0 to day 6081.0, 6081.0 to 6082.0, and so on, and estimated versus the corresponding model states.
-If the assimilation time were specified as ``6085.5 days since 1990-01-01'', then the bins would be from day 6079.5 to day 6080.5 and so on.
 
 The model states used to calculate forecast observations are matched by file names, which are supposed to be of the form \verb|mem<xxx>_<variable name>_<time shift>.nc| (for the EnKF) or \verb|bg_<variable name>_<time shift>.nc| (for the EnOI).
 Here ``time shift'' is the number of the bin, with ``0'' corresponding to the bin centred at the time of assimilation, ``-1'' to the previous bin, ``1'' to the next bin, and so on.
@@ -885,10 +884,11 @@ They would be replaced by ``s'' if assimilated synchronously.
 The vertical lines indicate the time slots for asynchronous DA; in the above example the DAW has 5 time slots.
 The entries ``.'' indicate calculating ensemble observations for synchronous observations.
 Note that only the master process is writing to the log here, which explains why there is only output from 6 members in the log above.
+For EnOI there also will be ``+'' at the end of the line for each observation type indicating reading of the corresponding background field.
 
 \subsection{Superobing}
 
-``Superobing'' is the process of reduction of the number of observations by merging close observations before their assimilation.
+``Superobing'' is the process of reduction of the number of observations by merging spatially close observations before their assimilation.
 EnKF-C merges observations if:
 \begin{itemize}
 \item they belong to the same model grid cell;
@@ -905,7 +905,7 @@ The product and instrument fields of the superobservation are set either to thos
 \section{\emph{calc}}
 
 \emph{calc} is the second stage of data assimilation in EnKF-C.
-It calculates 2D arrays of local ensemble transforms $\mb X_5$ or coefficients $\mb w$.
+It calculates 2D arrays of local ensemble transforms $\mb X_5$ (for EnKF) or coefficients $\mb w$ (for EnOI).
 
 The name of the binary for \emph{calc} is \verb|enkf_calc|.
 It has the following usage and options:
@@ -942,7 +942,7 @@ When run in the EnKF mode, the increment (or analysis, depending on options) for
 
 \subsection{Interpolation of ensemble transforms}
 
-Local ensemble transforms $\mb X_5$ (EnKF) have or local ensemble weights $\mb w$ (EnOI) represent a smooth field with the characteristic spatial variability scale of the localisation radius.
+Local ensemble transforms $\mb X_5$ (EnKF) have or local ensemble weights $\mb w$ (EnOI) represent smooth fields with the characteristic spatial variability scale of the localisation radius.
 This allows to reduce computational load in \emph{calc} by calculating local transforms or weights on a subgrid with a specified stride only and using linearly interpolated transforms or weights in the intermediate grid cells.
 The value of the stride is defined by the \verb|STRIDE| entry in the parameter file.
 
@@ -1055,14 +1055,14 @@ It has the following usage and options:
       print version and exit
 \end{Verbatim}
 
-The option \verb|--separate-output| tells \emph{update} to write the updated ensemble (EnKF) or background (EnOI) to separate analysis files, rather than appending them to the forecast files.
+The option \verb|--separate-output| tells \emph{update} to write the updated ensemble (EnKF) or background (EnOI) to separate analysis files, rather than append them to the forecast files.
 When writing to a separate file, the same variable names are used for the analysis as for the forecast; the new files have an extra suffix \verb|.analysis| or \verb|.increment|, depending on whether the analysis or increment is written.
 By default, \emph{update} writes results to the forecast files by creating new variable names from old names using suffix \verb|_an|.
 
-By default, \emph{update} first writes each updated horizontal fields of the model to a separate file (referred to here as a tile), and then concatenates them into analysis files.
+By default, \emph{update} first writes each updated horizontal field of the model to a separate file (referred to here as a tile), and then concatenates these fields into analysis files.
 The tiles are removed after writing the analysis files; one may save time for allocating them on disk in the next cycle by leaving them on disk by using option \verb|--leave-tiles|.
 This approach is somewhat less effective than direct writing to analysis files (without intermediate tiles), but, unfortunately, the direct writing is generally not reliable due to parallel I/O issues with NetCDF.
-Note that in some cases it proved to be possible to obtain robust performance with direct write using ``classic'' or ``64-bit'' NetCDF formats.
+Note that in some cases it proved to be possible to obtain robust performance with direct write using ``classic'' or ``64-bit-offset'' NetCDF formats.
 
 \section{DA tuning}
 \label{sec:datuning}
@@ -1159,7 +1159,7 @@ variables:
                 :lat = -44.8499984741211 ;
                 :depth = 3072. ;
 \end{Verbatim}
-This information makes it possible to check DA algorithms by reproducing the ensemble transforms calculated by EnKF-C; or to monitor the ensemble spread for each model variable.
+This information makes it possible to check DA algorithms by reproducing the ensemble transforms calculated by EnKF-C from $\mb S$ and $\mb s$ according to section~\ref{sec:numerical}; restore observations from $\mb s$ by using the corresponding R-factors and localisation coefficients; to monitor the ensemble spread for each model variable; and so on.
 
 \section{Use of innovation statistics for model validation}
 
@@ -1172,7 +1172,7 @@ To get the innovation statistics one needs to:
 \item run \verb|enkf_calc| with additional parameter \verb|--forecast-stats-only|.
 \end{itemize}
 The results will be written to the log of \verb|enkf_calc|. 
-An example of this functionality is available by running \verb|make stats| in \verb|examples/1| (see sec.~\ref{example1}).
+An example of using this functionality is available by running \verb|make stats| in \verb|examples/1| (see sec.~\ref{example1}).
 
 \section{System issues}
 
@@ -1212,8 +1212,9 @@ Compiling EnKF-C requires the following external packages:
 
 Notes:
 \begin{enumerate}
-\item Using Intel's version of the Lapack library -- Intel Math Kernel Library -- can improve performance over the Lapack library compiled with gfortran.
-\item It should be straightforward to exclude dependence on gridutils if the model does not use curvilinear coordinates.
+\item Using Intel's version of Lapack library -- Intel Math Kernel Library -- can improve performance over Lapack compiled with gfortran.
+\item Grid  utilities (libgu) is necessary for handling curvilinear grids only.
+Add compile flag \verb|-DNO_GRIDUTILS| to compile without it.
 \end{enumerate}
 
 \section{Possible problems}
