@@ -118,7 +118,7 @@ void reader_navo_standard(char* fname, int fid, obsmeta* meta, model* m, observa
         o->instrument = st_add_ifabscent(obs->instruments, "AVHRR", -1);
         o->id = obs->nobs;
         o->fid = fid;
-        o->batch = -1;
+        o->batch = 0;
         o->value = sst[i];
         o->std = error_std[i];
         o->lon = lon[i];
