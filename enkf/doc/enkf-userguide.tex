@@ -124,12 +124,12 @@ Consider a global (in time) nonlinear minimisation problem
   \label{min-nonl}
   &\{\mb x_i^a\}_{i=1}^k = \arg \underset{\{\mb x_i\}_{i = 1}^k}\min \mathcal L(\mb x_1, \dots, \mb x_k),\\
   \nonumber
-  &\mathcal L(\mb x_1, \dots, \mb x_k)  = \left \{ \left . (\mb x_1 - \mb x_1^f)\T (\mb P_1^f)^{-1} (\mb x_1 - \mb x_1^f) 
+  &\mathcal L(\mb x_1, \dots, \mb x_k)  = \left . (\mb x_1 - \mb x_1^f)\T (\mb P_1^f)^{-1} (\mb x_1 - \mb x_1^f) 
   \vphantom{\sum_{i = 2}^{k}}
-  \right . \right . \\
+  \right . \\
   \nonumber
-  & \qquad \left . + \sum_{i = 1}^k \left [ \mb y_i - \mathcal H_i(\mb x_i) \right ] \T (\mb R_i)^{-1} \left [ \mb y_i - \mathcal H_i(\mb x_i) \right ] \right .\\ 
-  & \qquad \left . + \sum_{i = 2}^{k} \left [ \mb x_i - \mathcal M_i(\mb x_{i-1}) \right ]\T (\mb Q_i)^{-1} \left [ \mb x_i - \mathcal M_i(\mb x_{i-1}) \right ]  \right \}.
+  & \qquad + \sum_{i = 1}^k \left [ \mb y_i - \mathcal H_i(\mb x_i) \right ] \T (\mb R_i)^{-1} \left [ \mb y_i - \mathcal H_i(\mb x_i) \right ] \\ 
+  & \qquad + \sum_{i = 2}^{k} \left [ \mb x_i - \mathcal M_i(\mb x_{i-1}) \right ]\T (\mb Q_i)^{-1} \left [ \mb x_i - \mathcal M_i(\mb x_{i-1}) \right ].
   \label{L-nonl}
 \end{align}
 Here $\{\mb x_i^a\}_{i=1}^k$ is a set of $k$ state vectors that minimise the cost function (\ref{L-nonl}); indices $i = 1,\dots,k$ correspond to a sequence of DA cycles, so that $\mb x_1$ is the estimated model state at the first cycle and $\mb x_k$ is the estimated model state at the last cycle; $\mb y_i$ are observation vectors related to the model state by a nonlinear observation operator $\mathcal H_i(\mb x)$; $\mathcal M_i(\mb x)$ is a nonlinear model operator relating the model states $\mb x_{i - 1}$ and $\mb x_i$; $\mb P_1^f$ is the initial state error covariance; $\mb R_i$ is the observation error covariance for $\mb y_i$; and $\mb Q_i$ is the model error covariance for $\mathcal M_i$; $(\cdot)\T$ denotes matrix transposition.

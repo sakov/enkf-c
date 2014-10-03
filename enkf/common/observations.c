@@ -35,7 +35,7 @@
 #define HT_SIZE 100
 
 typedef struct {
-    char obstype[MAXSTRLEN];
+    int obstypeid;
     char fname[MAXSTRLEN];
     int fid;
     int batch;
@@ -148,24 +148,29 @@ observations* obs_create_fromprm(enkfprm* prm)
 
         enkf_printf("  reading bad batches:\n");
 
-        obs->badbatches = ht_create_i2(HT_SIZE);
+        obs->badbatches = ht_create_i1s2(HT_SIZE);
         f = enkf_fopen(FNAME_BADBATCHES, "r");
         line = 0;
         while (fgets(buf, MAXSTRLEN, f) != NULL) {
+            char obstype[MAXSTRLEN];
             badbatch* bb;
             int key[2];
+            short* keys = (short*) key;
 
             line++;
             if (buf[0] == '#')
                 continue;
             bb = malloc(sizeof(badbatch));
-            if (sscanf(buf, "%s %s %d %d", bb->obstype, bb->fname, &bb->fid, &bb->batch) != 4)
+            if (sscanf(buf, "%s %s %d %d", obstype, bb->fname, &bb->fid, &bb->batch) != 4)
                  enkf_quit("%s, l.%d: wrong bad batch specification (expected \"%s %s %d %d\"\n", FNAME_BADBATCHES, line);
 
-            key[0] = bb->fid;
-            key[1] = bb->batch;
+            bb->obstypeid = obstype_getid(obs->nobstypes, obs->obstypes, obstype);
+
+            key[0] = bb->batch;
+            keys[2] = bb->obstypeid;
+            keys[3] = bb->fid;
             ht_insert(obs->badbatches, key, bb);
-            enkf_printf("    %s %s %d %d\n", bb->obstype, bb->fname, bb->fid, bb->batch);
+            enkf_printf("    %s %s %d %d\n", obstype, bb->fname, bb->fid, bb->batch);
         }
         fclose(f);
     }
@@ -186,10 +191,16 @@ void obs_markbadbatches(observations* obs)
 
     for (i = 0; i < obs->nobs; ++i) {
         observation* o = &obs->data[i];
-        int key[2] = { o->fid, o->batch };
-        badbatch* bb = ht_find(obs->badbatches, key);
+        int key[2];
+        short* keys = (short*) key;
+        badbatch* bb;
 
-        if (bb != NULL && strcmp(bb->obstype, obs->obstypes[o->type].name) == 0) {
+        key[0] = o->batch;
+        keys[2] = o->type;
+        keys[3] = o->fid;
+        bb = ht_find(obs->badbatches, key);
+
+        if (bb != NULL && bb->obstypeid == o->type) {
             if (strcmp(bb->fname, st_findstringbyindex(obs->datafiles, o->fid)) != 0)
                 enkf_quit("bad batch processing: file name for fid = %d in \"%s\" does not match the data file name", o->fid, FNAME_BADBATCHES);
             o->status = STATUS_BADBATCH;
@@ -638,7 +649,7 @@ void obs_write(observations* obs, char fname[])
     i = STATUS_OK;
     ncw_put_att_int(fname, ncid, varid_status, "STATUS_OK", 1, &i);
     i = STATUS_OUTSIDEGRID;
-    ncw_put_att_int(fname, ncid, varid_status, "STATUS_OUSIDEGRID", 1, &i);
+    ncw_put_att_int(fname, ncid, varid_status, "STATUS_OUTSIDEGRID", 1, &i);
     i = STATUS_LAND;
     ncw_put_att_int(fname, ncid, varid_status, "STATUS_LAND", 1, &i);
     i = STATUS_SHALLOW;
@@ -650,7 +661,7 @@ void obs_write(observations* obs, char fname[])
     i = STATUS_ROUNDUP;
     ncw_put_att_int(fname, ncid, varid_status, "STATUS_ROUNDUP", 1, &i);
     i = STATUS_OUTSIDEOBSDOMAIN;
-    ncw_put_att_int(fname, ncid, varid_status, "STATUS_OUSIDEOBSDOMAIN", 1, &i);
+    ncw_put_att_int(fname, ncid, varid_status, "STATUS_OUTSIDEOBSDOMAIN", 1, &i);
     ncw_def_var(fname, ncid, "aux", NC_INT, 1, dimid_nobs, &varid_aux);
     sprintf(tunits, "days from %s", obs->datestr);
     ncw_put_att_text(fname, ncid, varid_date, "units", tunits);
