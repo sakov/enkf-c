@@ -35,11 +35,26 @@ and (2) run "make indent" from the base directory (the style is encoded in
 
 REFERRING
 
-Please refer to EnKF-C by citing the user reference, e.g.:
+* In text:
 
 <...> the EnKF-C package (Sakov, 2014) available from 
 https://code.google.com/p/enkf-c <...>
-Sakov, P., 2014. EnKF-C user guide. Version XXX.
+
+* BibTeX:
+
+@online{enkf-c,
+  author = {Sakov, Pavel},
+  title = {{EnKF-C} user guide},
+  version = {1}, % update
+  year = {2014}, % update
+  eprinttype = {arxiv},
+  eprint = {1410.1233},
+  eprintclass = {cs.CE},
+}
+
+* In references (e.g.):
+
+Sakov, P., 2014. EnKF-C user guide. arXiv:1410.1233.
 
 CONTACT
 
