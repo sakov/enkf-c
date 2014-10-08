@@ -1,3 +1,6 @@
+v. 0.81
+   PS 20141008
+   -- Modified das_calcbatchstats() to run only on master.
 v. 0.80
    PS 20141003
    -- Corrected a defect in obs_markbadbatches() when a batch of wrong type
