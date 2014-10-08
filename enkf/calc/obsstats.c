@@ -505,7 +505,10 @@ void das_calcbatchstats(dasystem* das, int doprint)
         if (o->fid < 0 || o->batch < 0) /* this superob is not "clean" */
             continue;
 
-        if (o->fid == key[0] && o->batch == key[1])     /* same as previous */
+        if (o->batch == key[0] && o->type == keys[2] && o->fid == keys[3])
+            /*
+             * same as previous 
+             */
             continue;
 
         key[0] = o->batch;
