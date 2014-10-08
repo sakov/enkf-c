@@ -489,6 +489,8 @@ void das_calcbatchstats(dasystem* das, int doprint)
     int* nobs;
 
     das_destandardise(das);
+    if (rank != 0)
+        return;
 
     /*
      * calculate the number of batches
