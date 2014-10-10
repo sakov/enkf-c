@@ -863,6 +863,7 @@ static void update_HE(dasystem* das)
     }
     HEi = malloc(das->nmem * sizeof(ENSOBSTYPE));
     tmp = malloc(das->nmem * sizeof(ENSOBSTYPE));
+
     /*
      * jj, ii are the indices of the subsampled grid; i, j are the indices of
      * the actual model grid 
@@ -930,6 +931,8 @@ static void update_HE(dasystem* das)
              * for the j-th row of the grid) 
              */
 
+            if (o >= obs->nobs)
+                break;
             if ((int) (obs->data[o].fj) > j)
                 continue;
 
