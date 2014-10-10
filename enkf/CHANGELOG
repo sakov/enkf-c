@@ -1,3 +1,7 @@
+v. 0.82
+   PS 20141010
+   -- Fixed a defect in update_HE() that might cause accessing observation
+      array element outside the array.
 v. 0.81
    PS 20141008
    -- Modified das_calcbatchstats() to run only on master.
