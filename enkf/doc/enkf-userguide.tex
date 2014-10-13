@@ -35,7 +35,7 @@
 
 \begin{document}
 
-\title{EnKF-C user guide\\{\normalsize version 0.80}}
+\title{EnKF-C user guide\\{\normalsize version 0.83}}
 
 \author{Pavel Sakov}
 \date{June 19, 2014 -- \today}
@@ -770,12 +770,13 @@ It has the following usage and options:
 >./bin/enkf_prep
   Usage: enkf_prep <prm file> [<options>]
   Options:
-  --log-all-obs
-      put all obs into observations-orig.nc (default: local obs only)
   --describe-prm-format [main|model|grid|obstypes|obsmeta]
       describe format of the parameter file and exit
   --describe-superob <sob #>
       print composition of this superobservation and exit
+  --log-all-obs
+      put all obs into observations.nc (default: obs within model domain only)
+  --no-superobing
   --version
       print version and exit
 \end{Verbatim}
@@ -852,7 +853,7 @@ Therefore, the workflow for detecting and eliminating bad batches of observation
 
 Note that bad batches are identified at stage 2 based on superobservations formed by observations from the same batch only.
 Consequently, detection of bad batches may become unreliable if there are not enough such ``clean'' superobservations.
-It is possible to alleviate this problem by (1) switching off superobing by setting \verb|SOBSTRIDE = 0| and/or (2) by processing observations by parts, one type (or instrument) at a time, and repeating stages 1 and 2 as many times as necessary.
+It is possible to alleviate this problem by (1) switching off superobing by setting \verb|SOBSTRIDE = 0| or specifying \verb|--no-superobing| for \verb|enkf_prep| and/or (2) by processing observations by parts, one type (or instrument) at a time, and repeating stages 1 and 2 as many times as necessary.
 
 \subsection{Asynchronous DA}
 \label{sec:async}

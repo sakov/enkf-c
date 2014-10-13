@@ -42,18 +42,21 @@ int describe_superob_id = -1;
  */
 obstype* obstypes_p = NULL;
 
+int do_superob = 1;
+
 /**
  */
 static void usage()
 {
     enkf_printf("  Usage: enkf_prep <prm file> [<options>]\n");
     enkf_printf("  Options:\n");
-    enkf_printf("  --log-all-obs\n");
-    enkf_printf("      put all obs into observations-orig.nc (default: local obs only)\n");
     enkf_printf("  --describe-prm-format [main|model|grid|obstypes|obsmeta]\n");
     enkf_printf("      describe format of a parameter file and exit\n");
     enkf_printf("  --describe-superob <sob #>\n");
     enkf_printf("      print composition of this superobservation and exit\n");
+    enkf_printf("  --log-all-obs\n");
+    enkf_printf("      put all obs into observations.nc (default: obs within model domain only)\n");
+    enkf_printf("  --no-superobing\n");
     enkf_printf("  --version\n");
     enkf_printf("      print version and exit\n");
 
@@ -105,6 +108,10 @@ static void parse_commandline(int argc, char* argv[], char** fname)
             continue;
         } else if (strcmp(argv[i], "--log-all-obs") == 0) {
             log_all_obs = 1;
+            i++;
+            continue;
+        } else if (strcmp(argv[i], "--no-superob") == 0) {
+            do_superob = 0;
             i++;
             continue;
         } else if (strcmp(argv[i], "--version") == 0) {
@@ -194,6 +201,11 @@ int main(int argc, char* argv[])
     enkf_printf("  reading prep specs from \"%s\":\n", fname_prm);
     prm = enkfprm_read(fname_prm);
     enkfprm_print(prm, "    ");
+
+    if (do_superob == 0) {
+        enkf_printf("  switching off superobing:\n");
+        prm->sob_stride = 0;
+    }
 
     enkf_printf("  reading observation specs from \"%s\":\n", prm->obsprm);
     obsmeta_read(prm, &nmeta, &meta);
