@@ -1,3 +1,6 @@
+v. 0.83
+   PS 20141013
+   -- Added a new parameter "--no-superobing" to enkf_prep.
 v. 0.82
    PS 20141010
    -- Fixed a defect in update_HE() that might cause accessing observation
