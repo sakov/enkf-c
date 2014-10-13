@@ -15,7 +15,7 @@ LIB_GU = -lgu
 #INC_GU = -DNO_GRIDUTILS
 #LIB_GU =
 
-LIB_LAPACK = -llapack -lblas
+LIB_LAPACK = -llapack -lblas -lgfortran
 LD_PATH += -L/usr/lib64
 
 # which compiler/flags to use without MPI

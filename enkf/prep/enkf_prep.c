@@ -110,7 +110,7 @@ static void parse_commandline(int argc, char* argv[], char** fname)
             log_all_obs = 1;
             i++;
             continue;
-        } else if (strcmp(argv[i], "--no-superob") == 0) {
+        } else if (strcmp(argv[i], "--no-superobing") == 0) {
             do_superob = 0;
             i++;
             continue;
