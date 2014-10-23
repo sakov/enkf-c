@@ -1,3 +1,6 @@
+v. 0.84
+   PS 20141024
+   -- in das_updatefields() limited inflation by 1 + SRF.
 v. 0.83
    PS 20141013
    -- Added a new parameter "--no-superobing" to enkf_prep.

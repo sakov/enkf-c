@@ -42,6 +42,9 @@ static void das_updatefields(dasystem* das, int nfields, void** fieldbuffer, fie
     int** mask = model_getnumlevels(m);
     int periodic_i = grid_isperiodic_x(model_getgrid(m));
     int periodic_j = grid_isperiodic_y(model_getgrid(m));
+    /*
+     * X5
+     */
     int ncid;
     int varid;
     int dimids[3];
@@ -50,11 +53,24 @@ static void das_updatefields(dasystem* das, int nfields, void** fieldbuffer, fie
     float** X5jj1 = NULL;
     float** X5jj2 = NULL;
     float** X5j;
-    int i, j, ni, nj, mni, mnj;
+    size_t start[3], count[3];
+    /*
+     * SRF
+     */
+    int ncid_srf;
+    int varid_srf;
+    float* SRFjj;
+    float* SRFjj1 = NULL;
+    float* SRFjj2 = NULL;
+    float* SRFj;
+    size_t start_srf[2], count_srf[2];
+
+    int ni, nj;
+
+    int i, j, mni, mnj;
     int* iiter;
     int* jiter;
     int jj, stepj, ii, stepi;
-    size_t start[3], count[3];
     int e, fid;
     float* v;                   /* v = E(<some index>, :) */
 
@@ -73,8 +89,10 @@ static void das_updatefields(dasystem* das, int nfields, void** fieldbuffer, fie
         ncw_inq_dimlen(FNAME_X5, ncid, dimids[i], &dimlens[i]);
     ni = dimlens[1];
     nj = dimlens[0];
-
     assert((int) dimlens[2] == das->nmem * das->nmem);
+
+    ncw_open(FNAME_ENKFSTATS, NC_NOWRITE, &ncid_srf);
+    ncw_inq_varid(FNAME_ENKFSTATS, ncid_srf, "srf", &varid_srf);
 
     jiter = malloc((nj + 1) * sizeof(int));     /* "+ 1" to handle periodic
                                                  * grids */
@@ -101,6 +119,19 @@ static void das_updatefields(dasystem* das, int nfields, void** fieldbuffer, fie
         X5jj2 = alloc2d(ni, das->nmem * das->nmem, sizeof(float));
         ncw_get_vara_float(FNAME_X5, ncid, varid, start, count, X5jj2[0]);
     }
+
+    start_srf[0] = 0;
+    start_srf[1] = 0;
+    count_srf[0] = 1;
+    count_srf[1] = ni;
+    SRFj = calloc(mni, sizeof(float));
+    if (das->stride > 1) {
+        SRFjj = calloc(ni, sizeof(float));
+        SRFjj1 = calloc(ni, sizeof(float));
+        SRFjj2 = calloc(ni, sizeof(float));
+        ncw_get_vara_float(FNAME_ENKFSTATS, ncid_srf, varid_srf, start_srf, count_srf, SRFjj2);
+    }
+
     /*
      * jj, ii are the indices of the subsampled grid; i, j are the indices of
      * the actual model grid 
@@ -114,6 +145,8 @@ static void das_updatefields(dasystem* das, int nfields, void** fieldbuffer, fie
                  */
                 start[0] = j;
                 ncw_get_vara_float(FNAME_X5, ncid, varid, start, count, X5j[0]);
+                start_srf[0] = j;
+                ncw_get_vara_float(FNAME_ENKFSTATS, ncid_srf, varid_srf, start_srf, count_srf, SRFj);
             } else {
                 /*
                  * the following code interpolates the ETM back to the
@@ -122,9 +155,13 @@ static void das_updatefields(dasystem* das, int nfields, void** fieldbuffer, fie
                 if (stepj == 0) {
                     memcpy(X5jj[0], X5jj2[0], ni * das->nmem * das->nmem * sizeof(float));
                     memcpy(X5jj1[0], X5jj2[0], ni * das->nmem * das->nmem * sizeof(float));
+                    memcpy(SRFjj, SRFjj2, ni * sizeof(float));
+                    memcpy(SRFjj1, SRFjj2, ni * sizeof(float));
                     if (jj < nj - 1 || periodic_j) {
                         start[0] = (jj + 1) % nj;
                         ncw_get_vara_float(FNAME_X5, ncid, varid, start, count, X5jj2[0]);
+                        start_srf[0] = (jj + 1) % nj;
+                        ncw_get_vara_float(FNAME_ENKFSTATS, ncid_srf, varid_srf, start_srf, count_srf, SRFjj2);
                     }
                 } else {
                     float weight2 = (float) stepj / das->stride;
@@ -138,6 +175,8 @@ static void das_updatefields(dasystem* das, int nfields, void** fieldbuffer, fie
                         for (e = 0; e < das->nmem * das->nmem; ++e)
                             X5jjii[e] = X5jj1ii[e] * weight1 + X5jj2ii[e] * weight2;
                     }
+                    for (ii = 0; ii < ni; ++ii)
+                        SRFjj[ii] = SRFjj1[ii] * weight1 + SRFjj2[ii] * weight2;
                 }
 
                 for (ii = 0, i = 0; ii < ni; ++ii) {
@@ -150,14 +189,20 @@ static void das_updatefields(dasystem* das, int nfields, void** fieldbuffer, fie
                             float* X5jjii1 = X5jj[ii];
                             float* X5ji = X5j[i];
                             float* X5jjii2;
+                            float SRFjjii2;
 
                             if (ii < ni - 1)
                                 X5jjii2 = X5jj[ii + 1];
                             else
                                 X5jjii2 = X5jj[(periodic_i) ? (ii + 1) % ni : ii];
-
                             for (e = 0; e < das->nmem * das->nmem; ++e)
                                 X5ji[e] = X5jjii1[e] * weight1 + X5jjii2[e] * weight2;
+
+                            if (ii < ni - 1)
+                                SRFjjii2 = SRFjj[ii + 1];
+                            else
+                                SRFjjii2 = SRFjj[(periodic_i) ? (ii + 1) % ni : ii];
+                            SRFj[i] = SRFjj[ii] * weight1 + SRFjjii2 * weight2;
                         }
                     }
                 }
@@ -178,9 +223,15 @@ static void das_updatefields(dasystem* das, int nfields, void** fieldbuffer, fie
                 float alpha = 1.0f;
                 int inc = 1;
                 float beta = 0.0f;
+                float inflation0 = model_getvarinflation(m, f->varid);
 
                 for (i = 0; i < mni; ++i) {
-                    float inflation = model_getvarinflation(m, f->varid);
+                    float inflation;
+
+                    if (inflation0 < 1.0f + SRFj[i])
+                        inflation = inflation0;
+                    else
+                        inflation = 1.0f + SRFj[i];
 
                     /*
                      * assume that if |value| > MAXOBSVAL, then it is filled
@@ -231,16 +282,21 @@ static void das_updatefields(dasystem* das, int nfields, void** fieldbuffer, fie
     }                           /* for jj */
 
     ncw_close(FNAME_X5, ncid);
+    ncw_close(FNAME_ENKFSTATS, ncid_srf);
 
     free(tmp);
     free(v);
     free(iiter);
     free(jiter);
     free2d(X5j);
+    free(SRFj);
     if (das->stride > 1) {
         free2d(X5jj);
         free2d(X5jj1);
         free2d(X5jj2);
+        free(SRFjj);
+        free(SRFjj1);
+        free(SRFjj2);
     }
 }
 
