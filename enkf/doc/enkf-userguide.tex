@@ -35,7 +35,7 @@
 
 \begin{document}
 
-\title{EnKF-C user guide\\{\normalsize version 0.83}}
+\title{EnKF-C user guide\\{\normalsize version 0.84}}
 
 \author{Pavel Sakov}
 \date{June 19, 2014 -- \today}
@@ -747,6 +747,24 @@ There can be several error entries in a section in the observation parameter fil
 The observation time only matters if the observation type is specified to be ``asynchronous'' (see sec. \ref{sec:async}).
 In this case the model estimation for the observation is made by using model state at the appropriate time.
 Otherwise, observations are assumed to be made at the time of assimilation, regardless of the actual observation time.
+
+Note that there can be multiple blocks with the same product.
+This enables custom treatment of some specific data.
+For example, the following entries override observation error for Geosat (files with prefix \verb|g1_|) on 23 May 2006:
+\begin{Verbatim}[frame=single,fontsize=\footnotesize]
+# set observation error for Geosat to 7cm
+product == RADS
+type = SLA
+reader = standard2
+file=/short/p93/pxs599/obs/RADS-IB/y2006/m05/g?_d23.nc
+error_std = 0.07
+
+# use default errors for other altimeters
+product == RADS
+type = SLA
+reader = standard2
+file=/short/p93/pxs599/obs/RADS-IB/y2006/m05/[!g]?_d23.nc
+\end{Verbatim}
 
 \section{File name conventions}
 
