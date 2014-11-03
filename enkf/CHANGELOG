@@ -1,3 +1,11 @@
+v. 0.85
+   PS 20141103
+   -- Added RADS reader "biased" for MDT bias correction with the EnKF.
+   -- Modified format of H_fn: added varname2 to specify for the bias variable
+      when necessary.
+   -- Corrected a minor interpolation bug introduced in previous version in
+      das_updatefields().
+   -- Corrected interpolation bug in fi2x().
 v. 0.84
    PS 20141024
    -- in das_updatefields() limited inflation by 1 + SRF.

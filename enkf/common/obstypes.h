@@ -19,6 +19,7 @@ typedef struct {
     int id;
     char* name;
     char* varname;
+    char* varname2;
     int issurface;
     char* hfunction;
     double allowed_min;

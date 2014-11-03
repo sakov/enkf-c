@@ -45,6 +45,7 @@ static void obstype_new(obstype* type, int i, char* name)
     type->name = strdup(name);
     type->issurface = -1;
     type->varname = NULL;
+    type->varname2 = NULL;
     type->hfunction = NULL;
     type->allowed_min = -DBL_MAX;
     type->allowed_max = DBL_MAX;
@@ -88,6 +89,9 @@ static void obstype_check(obstype* type)
 static void obstype_print(obstype* type)
 {
     enkf_printf("    NAME = %s\n", type->name);
+    enkf_printf("      VAR = %s\n", type->varname);
+    if (type->varname2 != NULL)
+        enkf_printf("      SECONDARY VAR = %s\n", type->varname2);
     enkf_printf("      ID = %d\n", type->id);
     enkf_printf("      ISSURFACE = %s\n", (type->issurface) ? "yes" : "no");
     enkf_printf("      HFUNCTION = %s\n", type->hfunction);
@@ -154,6 +158,12 @@ void obstypes_read(char fname[], int* n, obstype** types, double rfactor_base)
             if (now->varname != NULL)
                 enkf_quit("%s, l.%d: VAR already specified", fname, line);
             now->varname = strdup(token);
+        } else if (strcasecmp(token, "VAR2") == 0) {
+            if ((token = strtok(NULL, seps)) == NULL)
+                enkf_quit("%s, l.%d: VAR2 not specified", fname, line);
+            if (now->varname2 != NULL)
+                enkf_quit("%s, l.%d: VAR2 already specified", fname, line);
+            now->varname2 = strdup(token);
         } else if (strcasecmp(token, "HFUNCTION") == 0) {
             if ((token = strtok(NULL, seps)) == NULL)
                 enkf_quit("%s, l.%d: HFUNCTION not specified", fname, line);
@@ -235,6 +245,8 @@ void obstypes_destroy(int n, obstype* types)
 
         free(type->name);
         free(type->varname);
+        if (type->varname2 != NULL)
+            free(type->varname2);
         free(type->hfunction);
     }
 
@@ -250,6 +262,7 @@ void obstypes_describeprm(void)
     enkf_printf("\n");
     enkf_printf("    NAME      = <name>\n");
     enkf_printf("    VAR       = <model variable name>\n");
+    enkf_printf("  [ VAR2       = <model variable name> ]\n");
     enkf_printf("    ISSURFACE = { yes | no }\n");
     enkf_printf("    HFUNCTION = <H function name>\n");
     enkf_printf("  [ ASYNC     = <time interval> ]                (synchronous*)\n");

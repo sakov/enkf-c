@@ -1,8 +1,8 @@
   MPI: initialised 2 processes
-  MPI: rank = 0, PID = 14242
-  MPI: rank = 1, PID = 14243
-  running UPDATE for EnKF version 0.77:
-  2014-09-09 09:22:17
+  MPI: rank = 0, PID = 14704
+  MPI: rank = 1, PID = 14705
+  running UPDATE for EnKF version 0.85:
+  2014-11-03 16:26:07
   reading system specs from "enoi.prm":
     MODE = EnOI
     MODEL PRM = "model.prm"
@@ -62,9 +62,9 @@
     9 fields
     allocating disk space for spread:
     defining state variables in point logs:
-    allocating disk space for the analysis:    2014-09-09 09:22:17
+    allocating disk space for the analysis:    2014-11-03 16:26:07
 .....
-    2014-09-09 09:22:17
+    2014-11-03 16:26:07
     distributing iterations:
       processes get 5 or 4 iterations
       process 0: 0 - 4
@@ -76,7 +76,7 @@
       salt     0   (0: 3: 80.0%)
       salt     1   (0: 4: 100.0%)
 
-  2014-09-09 09:22:17
+  2014-11-03 16:26:07
   assembling analysis:
       u        1   (1: 6: 50.0%)
       v        0   (1: 7: 75.0%)
@@ -99,5 +99,5 @@
     distributing iterations:
       processes get 5 or 4 iterations
       process 0: 0 - 4
-  2014-09-09 09:22:20
+  2014-11-03 16:26:10
   finished

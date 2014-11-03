@@ -31,6 +31,7 @@ H_entry allhentries[] = {
     {"SST", "standard", H_surf_standard},
     {"SLA", "standard", H_sla_standard},
     {"SLA", "bran", H_sla_bran},
+    {"SLA", "biased", H_sla_biased},
     {"TEM", "standard", H_subsurf_standard},
     {"SAL", "standard", H_subsurf_standard}
 };
