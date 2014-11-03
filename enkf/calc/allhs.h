@@ -23,7 +23,7 @@
  * fields. So `dasystem' is supposed to provide a generic access to the
  * required information. */
 
-typedef void (*H_fn) (dasystem* das, int nobs, int obsids[], char fname[], int mem, int t, char varname[], void* psrc, ENSOBSTYPE dst[]);
+typedef void (*H_fn) (dasystem* das, int nobs, int obsids[], char fname[], int mem, int t, char varname[], char varname2[], void* psrc, ENSOBSTYPE dst[]);
 
 void describe_hentries(char* obstypename);
 H_fn getH(char obstypename[], char mappingname[]);

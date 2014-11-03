@@ -68,8 +68,6 @@ static void das_updatefields(dasystem* das, int nfields, void** fieldbuffer, fie
     int ni, nj;
 
     int i, j, mni, mnj;
-    int* iiter;
-    int* jiter;
     int jj, stepj, ii, stepi;
     int e, fid;
     float* v;                   /* v = E(<some index>, :) */
@@ -87,24 +85,12 @@ static void das_updatefields(dasystem* das, int nfields, void** fieldbuffer, fie
     ncw_inq_vardimid(FNAME_X5, ncid, varid, dimids);
     for (i = 0; i < 3; ++i)
         ncw_inq_dimlen(FNAME_X5, ncid, dimids[i], &dimlens[i]);
-    ni = dimlens[1];
     nj = dimlens[0];
+    ni = dimlens[1];
     assert((int) dimlens[2] == das->nmem * das->nmem);
 
     ncw_open(FNAME_ENKFSTATS, NC_NOWRITE, &ncid_srf);
     ncw_inq_varid(FNAME_ENKFSTATS, ncid_srf, "srf", &varid_srf);
-
-    jiter = malloc((nj + 1) * sizeof(int));     /* "+ 1" to handle periodic
-                                                 * grids */
-    iiter = malloc((ni + 1) * sizeof(int));
-    for (j = 0, i = 0; j < nj; ++j, i += das->stride)
-        jiter[j] = i;
-    if (periodic_j)
-        jiter[nj] = jiter[nj - 1] + das->stride;
-    for (i = 0, j = 0; i < ni; ++i, j += das->stride)
-        iiter[i] = j;
-    if (periodic_i)
-        iiter[ni] = iiter[ni - 1] + das->stride;
 
     start[0] = 0;
     start[1] = 0;
@@ -153,10 +139,10 @@ static void das_updatefields(dasystem* das, int nfields, void** fieldbuffer, fie
                  * original grid, first by j, and then by i 
                  */
                 if (stepj == 0) {
-                    memcpy(X5jj[0], X5jj2[0], ni * das->nmem * das->nmem * sizeof(float));
                     memcpy(X5jj1[0], X5jj2[0], ni * das->nmem * das->nmem * sizeof(float));
-                    memcpy(SRFjj, SRFjj2, ni * sizeof(float));
+                    memcpy(X5jj[0], X5jj2[0], ni * das->nmem * das->nmem * sizeof(float));
                     memcpy(SRFjj1, SRFjj2, ni * sizeof(float));
+                    memcpy(SRFjj, SRFjj2, ni * sizeof(float));
                     if (jj < nj - 1 || periodic_j) {
                         start[0] = (jj + 1) % nj;
                         ncw_get_vara_float(FNAME_X5, ncid, varid, start, count, X5jj2[0]);
@@ -164,8 +150,8 @@ static void das_updatefields(dasystem* das, int nfields, void** fieldbuffer, fie
                         ncw_get_vara_float(FNAME_ENKFSTATS, ncid_srf, varid_srf, start_srf, count_srf, SRFjj2);
                     }
                 } else {
-                    float weight2 = (float) stepj / das->stride;
-                    float weight1 = (float) 1.0f - weight2;
+                    float weight2 = (float) stepj / (float) das->stride;
+                    float weight1 = 1.0f - weight2;
 
                     for (ii = 0; ii < ni; ++ii) {
                         float* X5jjii = X5jj[ii];
@@ -181,11 +167,12 @@ static void das_updatefields(dasystem* das, int nfields, void** fieldbuffer, fie
 
                 for (ii = 0, i = 0; ii < ni; ++ii) {
                     for (stepi = 0; stepi < das->stride && i < mni; ++stepi, ++i) {
-                        if (stepi == 0)
+                        if (stepi == 0) {
                             memcpy(X5j[i], X5jj[ii], das->nmem * das->nmem * sizeof(float));
-                        else {
-                            float weight2 = (float) stepi / das->stride;
-                            float weight1 = (float) 1.0f - weight2;
+                            SRFj[i] = SRFjj[ii];
+                        } else {
+                            float weight2 = (float) stepi / (float) das->stride;
+                            float weight1 = 1.0f - weight2;
                             float* X5jjii1 = X5jj[ii];
                             float* X5ji = X5j[i];
                             float* X5jjii2;
@@ -286,8 +273,6 @@ static void das_updatefields(dasystem* das, int nfields, void** fieldbuffer, fie
 
     free(tmp);
     free(v);
-    free(iiter);
-    free(jiter);
     free2d(X5j);
     free(SRFj);
     if (das->stride > 1) {
@@ -317,8 +302,6 @@ static void das_updatebg(dasystem* das, int nfields, void** fieldbuffer)
     float** wjj2 = NULL;
     float** wj;
     int i, j, ni, nj, mni, mnj;
-    int* iiter;
-    int* jiter;
     int jj, stepj, ii, stepi;
     size_t start[3], count[3];
     int e, f;
@@ -342,18 +325,6 @@ static void das_updatebg(dasystem* das, int nfields, void** fieldbuffer)
     nj = dimlens[0];
 
     assert((int) dimlens[2] == das->nmem);
-
-    jiter = malloc((nj + 1) * sizeof(int));     /* "+ 1" to handle periodic
-                                                 * grids */
-    iiter = malloc((ni + 1) * sizeof(int));
-    for (j = 0, i = 0; j < nj; ++j, i += das->stride)
-        jiter[j] = i;
-    if (periodic_j)
-        jiter[nj] = jiter[nj - 1] + das->stride;
-    for (i = 0, j = 0; i < ni; ++i, j += das->stride)
-        iiter[i] = j;
-    if (periodic_i)
-        iiter[ni] = iiter[ni - 1] + das->stride;
 
     start[0] = 0;
     start[1] = 0;
@@ -388,8 +359,8 @@ static void das_updatebg(dasystem* das, int nfields, void** fieldbuffer)
                  * original grid, first by j, and then by i 
                  */
                 if (stepj == 0) {
-                    memcpy(wjj[0], wjj2[0], ni * das->nmem * sizeof(float));
                     memcpy(wjj1[0], wjj2[0], ni * das->nmem * sizeof(float));
+                    memcpy(wjj[0], wjj2[0], ni * das->nmem * sizeof(float));
                     if (jj < nj - 1 || periodic_j) {
                         start[0] = (jj + 1) % nj;
                         ncw_get_vara_float(FNAME_W, ncid, varid, start, count, wjj2[0]);
@@ -471,8 +442,6 @@ static void das_updatebg(dasystem* das, int nfields, void** fieldbuffer)
     ncw_close(FNAME_W, ncid);
 
     free(tmp);
-    free(iiter);
-    free(jiter);
     free2d(wj);
     if (das->stride > 1) {
         free2d(wjj);

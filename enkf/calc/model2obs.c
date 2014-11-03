@@ -19,6 +19,7 @@
 #include <math.h>
 #include <assert.h>
 #include "ncw.h"
+#include "nan.h"
 #include "definitions.h"
 #include "utils.h"
 #include "enkfprm.h"
@@ -128,19 +129,20 @@ static void interpolate_3d_obs(model* m, observations* allobs, int nobs, int obs
  */
 /**
  */
-void H_surf_standard(dasystem* das, int nobs, int obsids[], char fname[], int mem, int t, char varname[], void* psrc, ENSOBSTYPE dst[])
+void H_surf_standard(dasystem* das, int nobs, int obsids[], char fname[], int mem, int t, char varname[], char varname2[], void* psrc, ENSOBSTYPE dst[])
 {
     model* m = das->m;
     observations* allobs = das->obs;
     float** src = (float**) psrc;
 
+    assert(varname2 == NULL);
     model_readfield(m, fname, mem, t, varname, 0, src[0]);
     interpolate_2d_obs(m, allobs, nobs, obsids, fname, src, dst);
 }
 
 /**
  */
-void H_sla_standard(dasystem* das, int nobs, int obsids[], char fname[], int mem, int t, char varname[], void* psrc, ENSOBSTYPE dst[])
+void H_sla_standard(dasystem* das, int nobs, int obsids[], char fname[], int mem, int t, char varname[], char varname2[], void* psrc, ENSOBSTYPE dst[])
 {
     model* m = das->m;
     observations* allobs = das->obs;
@@ -149,8 +151,9 @@ void H_sla_standard(dasystem* das, int nobs, int obsids[], char fname[], int mem
     int ni, nj;
     int i, j;
 
-    model_getdims(m, &ni, &nj, NULL);
+    assert(varname2 == NULL);
 
+    model_getdims(m, &ni, &nj, NULL);
     model_readfield(m, fname, mem, t, varname, 0, src[0]);
     for (j = 0; j < nj; ++j)
         for (i = 0; i < ni; ++i)
@@ -160,12 +163,13 @@ void H_sla_standard(dasystem* das, int nobs, int obsids[], char fname[], int mem
 
 /**
  */
-void H_sla_bran(dasystem* das, int nobs, int obsids[], char fname[], int mem, int t, char varname[], void* psrc, ENSOBSTYPE dst[])
+void H_sla_bran(dasystem* das, int nobs, int obsids[], char fname[], int mem, int t, char varname[], char varname2[], void* psrc, ENSOBSTYPE dst[])
 {
     int o;
     ENSOBSTYPE mean;
 
-    H_sla_standard(das, nobs, obsids, fname, mem, t, varname, psrc, dst);
+    assert(varname2 == NULL);
+    H_sla_standard(das, nobs, obsids, fname, mem, t, varname, NULL, psrc, dst);
     if (mem <= 0) {             /* only for background */
         mean = 0.0;
         for (o = 0; o < nobs; ++o)
@@ -178,12 +182,41 @@ void H_sla_bran(dasystem* das, int nobs, int obsids[], char fname[], int mem, in
 
 /**
  */
-void H_subsurf_standard(dasystem* das, int nobs, int obsids[], char fname[], int mem, int t, char varname[], void* psrc, ENSOBSTYPE dst[])
+void H_sla_biased(dasystem* das, int nobs, int obsids[], char fname[], int mem, int t, char varname[], char varname2[], void* psrc, ENSOBSTYPE dst[])
+{
+    model* m = das->m;
+    observations* allobs = das->obs;
+    float** msl = (float**) model_getmodeldata(m, "MSL");
+    float** src = (float**) psrc;
+    float** mslb = NULL;
+    char fname2[MAXSTRLEN];
+    int ni, nj;
+    int i, j;
+
+    model_getdims(m, &ni, &nj, NULL);
+
+    model_getmemberfname(m, das->ensdir, varname2, mem, fname2);
+    mslb = alloc2d(nj, ni, sizeof(float));
+    model_readfield(m, fname2, mem, NaN, varname2, 0, mslb[0]);
+
+    model_readfield(m, fname, mem, t, varname, 0, src[0]);
+    for (j = 0; j < nj; ++j)
+        for (i = 0; i < ni; ++i)
+            src[j][i] -= msl[j][i] + mslb[j][i];
+    interpolate_2d_obs(m, allobs, nobs, obsids, fname, src, dst);
+
+    free2d(mslb);
+}
+
+/**
+ */
+void H_subsurf_standard(dasystem* das, int nobs, int obsids[], char fname[], int mem, int t, char varname[], char varname2[], void* psrc, ENSOBSTYPE dst[])
 {
     model* m = das->m;
     observations* allobs = das->obs;
     float*** src = (float***) psrc;
 
+    assert(varname2 == NULL);
     model_read3dfield(m, fname, mem, t, varname, src[0][0]);
     interpolate_3d_obs(m, allobs, nobs, obsids, fname, src, dst);
 }

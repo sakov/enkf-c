@@ -439,9 +439,9 @@ static double fi2x(int n, double* v, double fi, int periodic)
     if (fi < -1.0 || fi > (double) n)
         return NaN;
 
-    ifrac = (int) (fi - floor(fi));
+    ifrac = fi - floor(fi);
 
-    if (fi < 0.0 || fi >= (double) (n - 1)) {
+    if (fi < 0.0 || fi > (double) (n - 1)) {
         double v1, v2, x;
 
         if (!periodic)
@@ -457,9 +457,10 @@ static double fi2x(int n, double* v, double fi, int periodic)
     }
 
     i = (int) fi;
-    assert(i < n - 1);
-
-    return v[i] + ifrac * (v[i + 1] - v[i]);
+    if (ifrac == 0.0)
+        return v[i];
+    else
+        return v[i] + ifrac * (v[i + 1] - v[i]);
 }
 
 /**

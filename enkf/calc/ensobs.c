@@ -81,7 +81,7 @@ void das_getHE(dasystem* das)
             vvv = alloc3d(nk, nj, ni, sizeof(float));
 
         /*
-         * set H 
+         * set H
          */
         H = getH(ot->name, ot->hfunction);
 
@@ -100,7 +100,7 @@ void das_getHE(dasystem* das)
                     for (e = my_first_iteration; e <= my_last_iteration; ++e) {
                         int success = model_getmemberfname_async(m, das->ensdir, ot->varname, ot->name, e + 1, t, fname);
 
-                        H(das, nobs, obsids, fname, e + 1, t, ot->varname, (ot->issurface) ? (void*) vv : (void*) vvv, das->S[e]);
+                        H(das, nobs, obsids, fname, e + 1, t, ot->varname, ot->varname2, (ot->issurface) ? (void*) vv : (void*) vvv, das->S[e]);
                         enkf_printf((success) ? "a" : "s");
                         fflush(stdout);
                     }
@@ -110,7 +110,7 @@ void das_getHE(dasystem* das)
                     if (enkf_obstype == OBSTYPE_VALUE) {
                         int success = model_getbgfname_async(m, das->bgdir, ot->varname, ot->name, t, fname);
 
-                        H(das, nobs, obsids, fname, -1, t, ot->varname, (ot->issurface) ? (void*) vv : (void*) vvv, Hx);
+                        H(das, nobs, obsids, fname, -1, t, ot->varname, ot->varname2, (ot->issurface) ? (void*) vv : (void*) vvv, Hx);
                         enkf_printf((success) ? "A" : "S");
                         fflush(stdout);
                     } else if (enkf_obstype == OBSTYPE_INNOVATION) {
@@ -130,7 +130,7 @@ void das_getHE(dasystem* das)
             if (das->mode == MODE_ENKF || !enkf_fstatsonly) {
                 for (e = my_first_iteration; e <= my_last_iteration; ++e) {
                     model_getmemberfname(m, das->ensdir, ot->varname, e + 1, fname);
-                    H(das, nobs, obsids, fname, e + 1, MAXINT, ot->varname, (ot->issurface) ? (void*) vv : (void*) vvv, das->S[e]);
+                    H(das, nobs, obsids, fname, e + 1, MAXINT, ot->varname, ot->varname2, (ot->issurface) ? (void*) vv : (void*) vvv, das->S[e]);
                     enkf_printf(".");
                     fflush(stdout);
                 }
@@ -139,7 +139,7 @@ void das_getHE(dasystem* das)
             if (das->mode == MODE_ENOI) {
                 if (enkf_obstype == OBSTYPE_VALUE) {
                     model_getbgfname(m, das->bgdir, ot->varname, fname);
-                    H(das, nobs, obsids, fname, -1, MAXINT, ot->varname, (ot->issurface) ? (void*) vv : (void*) vvv, Hx);
+                    H(das, nobs, obsids, fname, -1, MAXINT, ot->varname, ot->varname2, (ot->issurface) ? (void*) vv : (void*) vvv, Hx);
                     enkf_printf("+");
                     fflush(stdout);
                 } else if (enkf_obstype == OBSTYPE_INNOVATION) {
