@@ -195,7 +195,10 @@ void H_sla_biased(dasystem* das, int nobs, int obsids[], char fname[], int mem, 
 
     model_getdims(m, &ni, &nj, NULL);
 
-    model_getmemberfname(m, das->ensdir, varname2, mem, fname2);
+    if (das->mode == MODE_ENKF)
+	model_getmemberfname(m, das->ensdir, varname2, mem, fname2);
+    else if (das->mode == MODE_ENOI)
+	model_getbgfname(m, das->bgdir, varname2, fname2);
     mslb = alloc2d(nj, ni, sizeof(float));
     model_readfield(m, fname2, mem, NaN, varname2, 0, mslb[0]);
 
