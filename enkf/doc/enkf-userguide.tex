@@ -35,7 +35,7 @@
 
 \begin{document}
 
-\title{EnKF-C user guide\\{\normalsize version 0.84}}
+\title{EnKF-C user guide\\{\normalsize version 0.85}}
 
 \author{Pavel Sakov}
 \date{June 19, 2014 -- \today}
@@ -691,8 +691,9 @@ For example:
 
   Observation types parameter file format:
 
-    NAME = <name>
-    VAR  = <model variable name>
+    NAME      = <name>
+    VAR       = <model variable name>
+  [ VAR2      = <model variable name> ]
     ISSURFACE = { yes | no }
     HFUNCTION = <H function name>
   [ ASYNC     = <time interval> ]                (synchronous*)
@@ -960,7 +961,7 @@ This can be used, for example, for obtaining the persistence statistics, that is
 
 The options \verb|--single-observation-xyz| and \verb|--single-observation-ijk| provide an easy way to conduct the so called single observation experiments, with the observation coordinates provided either in spatial or grid coordinates, correspondingly.
 Parameter \verb|<value>| defines innovation rather than the observation value.
-Normally, this experiements would be conducted in the EnOI mode, calculating increment (option \verb|--output-increment| of \verb|enkf_update|) rather than analysis.
+Normally, this experiments would be conducted in the EnOI mode, calculating increment (option \verb|--output-increment| of \verb|enkf_update|) rather than analysis.
 When run in the EnKF mode, the increment (or analysis, depending on options) for each member is calculated.
 
 \subsection{Interpolation of ensemble transforms}
@@ -968,6 +969,16 @@ When run in the EnKF mode, the increment (or analysis, depending on options) for
 Local ensemble transforms $\mb X_5$ (EnKF) have or local ensemble weights $\mb w$ (EnOI) represent smooth fields with the characteristic spatial variability scale of the localisation radius.
 This allows to reduce computational load in \emph{calc} by calculating local transforms or weights on a subgrid with a specified stride only and using linearly interpolated transforms or weights in the intermediate grid cells.
 The value of the stride is defined by the \verb|STRIDE| entry in the parameter file.
+
+\subsection{Capping of inflation}
+
+Applying spatially uniform ensemble inflation involves areas with no local observations where essentially no assimilation is conducted.
+It can therefore gradually increase the model imbalance and deteriorate the performance of DAS over time.
+To avoid this bahaviour EnKF-C currently restricts inflation by the spread reduction factor (SRF, see sec.~\ref{sec:impact}):
+\begin{align*}
+  \mathrm{actual\ inflation} = \min(\mathrm{specified\ inflation}, \mathrm{SRF} + 1).
+\end{align*}
+This means that inflation is applied mainly unchaged in locations with local observations, and not applied in locations without local observations, with a quick transition between these two regimes.
 
 \subsection{Observation functions}
 \label{sec:hfunctions}
@@ -1035,6 +1046,7 @@ and for the EnOI -- by applying the appropriate local linear combination of the 
 \end{align*}
 
 \subsection{Impact of observations}
+\label{sec:impact}
 
 In the course of its work \emph{calc} routinely calculates two metrics for assessing the impact of observations, degrees of freedom of signal (DFS) and spread reduction factor (SRF):
 \begin{align*}
@@ -1196,6 +1208,12 @@ To get the innovation statistics one needs to:
 \end{itemize}
 The results will be written to the log of \verb|enkf_calc|. 
 An example of using this functionality is available by running \verb|make stats| in \verb|examples/1| (see sec.~\ref{example1}).
+
+\section{Bias estimation}
+
+It is possible to estimate model bias for a variable with the EnKF by generating and using an ensemble of bias fields.
+These bias fields need to be subtracted from observation forecasts of the corresponding types.
+This is accomplished by specifying a secondary variable in the observation type specifications by the entry \verb|VAR2| and by passing the name of this variable to the corresponding observation functions, which have to take care for subtracting the model and bias forecasts.
 
 \section{System issues}
 
