@@ -156,7 +156,7 @@ model* model_create(enkfprm* prm)
             } else if (strcasecmp(token, "INFLATION") == 0) {
                 if (now == NULL)
                     enkf_quit("%s, l.%d: VAR not specified", modelprm, line);
-                if (now->inflation != 1.0)
+                if (!isnan(now->inflation))
                     enkf_quit("%s, l.%d: INFLATION already specified for \"%s\"", modelprm, line, now->name);
                 if ((token = strtok(NULL, seps)) == NULL)
                     enkf_quit("%s, l.%d: INFLATION not specified", modelprm, line);
