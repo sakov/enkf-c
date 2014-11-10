@@ -69,7 +69,7 @@ static void variable_new(variable * v, int id, char* name)
 {
     v->id = id;
     v->name = strdup(name);
-    v->inflation = 1.0;
+    v->inflation = NaN;
 }
 
 /**
@@ -182,7 +182,8 @@ model* model_create(enkfprm* prm)
         int i;
 
         for (i = 0; i < m->nvar; ++i)
-            m->vars[i].inflation *= prm->inflation_base;
+            if (isnan(m->vars[i].inflation))
+                m->vars[i].inflation = prm->inflation_base;
         prm->inflation_base = NaN;
     }
 
