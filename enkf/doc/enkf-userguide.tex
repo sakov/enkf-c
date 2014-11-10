@@ -284,7 +284,7 @@ or
 \end{align}
 $\mb T_L$ and $\mb T_R$ are referred to hereafter as left-multiplied and right-multiplied ensemble transform matrices (ETMs), respectively.
 Note that for a full rank ensemble $\mb T_R$ has to satisfy $\mb T_R \mb 1 = \mb 1$.
-It follows from (\ref{redraw}) that if $\mb T_R$ is a particular solution for the right multiplied ETM, then (for a full rank ensemble) any other solution can be written as
+It follows from (\ref{redraw}) that if $\mb T_R$ is a particular solution for the right-multiplied ETM, then (for a full rank ensemble) any other solution can be written as
 \begin{align}
   \tilde{\mb T}_R = \mb T_R \mb U^p, \quad \mb U^p:\ \mb U^p (\mb U^p)\T = \mb I,\ \mb U^p \mb 1 = \mb 1.
 \end{align}
@@ -349,7 +349,7 @@ and using the matrix shift lemma, we obtain:
 \begin{align*}
   \mb A^a = \mb A^f \left[ \mb I - \frac{1}{m-1} (\mb H \mb A^f)\T  (\mb H \mb P^f \mb H\T + \mb R)^{-1} \mb H \mb A^f \right]^{1/2}
 \end{align*}
-which yields the corresponding to (\ref{T-left1}) right multiplied ETM:
+which yields the corresponding to (\ref{T-left1}) right-multiplied ETM:
 \begin{align}
   \label{T-right1}
   \mb T_R = \left[ \mb I -  \frac{1}{m-1} (\mb H \mb A^f)\T  (\mb H \mb P^f \mb H\T + \mb R)^{-1} \mb H \mb A^f \right]^{1/2}
@@ -365,7 +365,7 @@ Applying the matrix inversion lemma
   \label{T-left2}
   \mb T_L = (\mb I + \mb P^f \mb H\T \mb R^{-1} \mb H)^{-1/2}
 \end{align}
-\citep{sak11a}; and applying the matrix shift lemma yields the corresponding right multiplied ETM:
+\citep{sak11a}; and applying the matrix shift lemma yields the corresponding right-multiplied ETM:
 \begin{align}
   \label{etkf}
   \mb T_R = \left[\mb I +  \frac{1}{m-1} (\mb H \mb A)\T \mb R^{-1} \mb H \mb A\right]^{-1/2},
@@ -384,16 +384,16 @@ also known as the ensemble transform Kalman filter, or ETKF \citep{bis01a}.
   where $\mb M \equiv \mb H \mb P \mb H\T + \mb R$.
 }
 
-Equations (\ref{T-right1}, \ref{etkf}, \ref{andrews}) represent algebraically different expressions for the (unique) symmetric right multiplied solution.
+Equations (\ref{T-right1}, \ref{etkf}, \ref{andrews}) represent algebraically different expressions for the (unique) symmetric right-multiplied solution.
 Apart from being the only symmetric solution, it is also a minimum distance solution in the sense that the corresponding ensemble of analysis anomalies is the closest one to the ensemble of forecast anomalies, with the inverse forecast (or analysis) covariance as a metric \citep{ott03a}.
 
-Note that while the left multiplied solutions (\ref{T-left1}, \ref{T-left2}) correspond to symmetric right multiplied solution, they are not symmetric.
+Note that while the left-multiplied solutions (\ref{T-left1}, \ref{T-left2}) correspond to the symmetric right-multiplied solution, they are not symmetric.
 
 In a typical DAS with a large scale model one can expect $m = 100$, $p = 10^3-10^7$, $n = 10^6-10^9$; that is
 \begin{align}
   m \ll p \ll n.
 \end{align}
-Therefore, considering the size of ETMs ($n \times n$ for the left-multiplied ETMs and $m \times m$ for the right multiplied ETMs), only right multiplied solutions are suitable for use with large scale models.
+Therefore, considering the size of ETMs ($n \times n$ for left-multiplied ETMs and $m \times m$ for right-multiplied ETMs), only right-multiplied solutions are suitable for use with large scale models.
 The ETKF solution (\ref{etkf}) represents the most popular option due to its simple form and numerical effectiveness: for a diagonal $\mb R$, it only requires to calculate inverse square root of an $m \times m$ matrix.
 
 \subsubsection{DEnKF}
@@ -485,7 +485,7 @@ If the DA method accounts for the time of observations, observations and DA meth
 
 The EnKF can be naturally extended for asynchronous DA.
 Let us consider the linear case (\ref{lin}) with perfect model ($\mb Q = 0$).
-Solution of the global minimisation problem (\ref{min-nonl}) is then effectively given by the initial state $\mb x_1$, while the rest of the global solution can be obtained by propagating initial state: $\mb x_2 = \mathcal M_2(\mb x_1),\ \mb x_3 = \mathcal M_3 \circ \mathcal M_2(\mb x_1), \dots$.
+Solution of the global minimisation problem (\ref{min-nonl}) is then effectively given by the initial state $\mb x_1$, while the rest of the global solution can be obtained by propagating the initial state: $\mb x_2 = \mathcal M_2(\mb x_1),\ \mb x_3 = \mathcal M_3 \circ \mathcal M_2(\mb x_1), \dots$.
 The cost function
 \begin{align*}
   \mathcal L(\mb x_1, \dots, \mb x_k)  = (\mb x_1 - \mb x_1^f)\T (\mb P_1^f)^{-1} (\mb x_1 - \mb x_1^f) + \sum_{i = 1}^k \left [ \mb y_i - \mathcal H_i(\mb x_i) \right ] \T (\mb R_i)^{-1} \left [ \mb y_i - \mathcal H_i(\mb x_i) \right ]
@@ -644,7 +644,7 @@ It defines the model name, model type, an arbitrary number of entries for model 
   [ <more of the above blocks> ]
 \end{Verbatim}
 
-The total inflation for a model variable is defined as a product of the base inflation defined in the main parameter file, and the variable-specific inflation.
+The inflation magnitude for a variable, if specified, overrides the common value set in the main parameter file.
 
 \subsection{Grid parameter file}
 

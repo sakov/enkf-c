@@ -1,3 +1,8 @@
+v. 0.86
+   PS 20141110
+   -- The variable-specific inflation set in the model parameter file now simply
+      overrides (not multiplies with) the common inflation set in the main
+      parameter file.
 v. 0.85
    PS 20141103
    -- Added RADS reader "biased" for MDT bias correction with the EnKF.
