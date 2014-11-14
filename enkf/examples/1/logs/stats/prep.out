@@ -1,5 +1,5 @@
-  running PREP for EnKF version 0.85:
-  2014-11-03 16:26:34
+  running PREP for EnKF version 0.87:
+  2014-11-14 10:42:32
   reading prep specs from "stats.prm":
     MODE = EnOI
     MODEL PRM = "model.prm"
@@ -12,6 +12,7 @@
     ENSEMBLE SIZE = <FULL>
     RFACTOR BASE = 1.0
     INFLATION BASE = 1.0000
+    INFLATION MODE = SPREADLIMITED
     KFACTOR = n/a
     LOCRAD = nan
     STRIDE = 1
@@ -120,11 +121,11 @@
       ISSURFACE = no
       HFUNCTION = standard
       ALLOWED MIN = -1.8e+308
-      ALLOWED MAX = 1.8e+308
-      ASYNCHRONOUS = nls: cannot access obs/WINDSAT/windsat_20071221.nc: No such file or directory
+      ALLOWED MAls: cannot access obs/WINDSAT/windsat_20071221.nc: No such file or directory
 ls: cannot access obs/WINDSAT/windsat_20071222.nc: No such file or directory
 ls: cannot access obs/WINDSAT/windsat_20071223.nc: No such file or directory
-o
+X = 1.8e+308
+      ASYNCHRONOUS = no
       RFACTOR = 1
     NAME = SAL
       VAR = salt
@@ -304,5 +305,5 @@ o
     TEM     288        0          0          0          0          0          0          10        
     SAL     288        0          0          0          0          0          0          10        
     total   9957       3          0          0          3          0          0          3927      
-  2014-11-03 16:26:35
+  2014-11-14 10:42:32
   finished

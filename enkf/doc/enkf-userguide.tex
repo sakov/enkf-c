@@ -35,7 +35,7 @@
 
 \begin{document}
 
-\title{EnKF-C user guide\\{\normalsize version 0.85}}
+\title{EnKF-C user guide\\{\normalsize version 0.87}}
 
 \author{Pavel Sakov}
 \date{June 19, 2014 -- \today}
@@ -605,7 +605,7 @@ Its format is described by running \verb|enkf_prep|, \verb|enlf_calc| or \verb|e
   [ STRIDE          = <stride> ]                             (1*)
   [ SOBSTRIDE       = <stride> ]                             (1*)
   [ FIELDBUFFERSIZE = <fieldbuffersize> ]                    (1*)
-  [ INFLATION       = <inflation> ]                          (1*)
+  [ INFLATION       = <inflation> [ SPREADLIMITED* | PLAIN ] (1*)
     ...
   [ REGION          = <name> { <lon1> <lon2> <lat1> <lat2> } ]
     ...
@@ -972,13 +972,12 @@ The value of the stride is defined by the \verb|STRIDE| entry in the parameter f
 
 \subsection{Capping of inflation}
 
-Applying spatially uniform ensemble inflation involves areas with no local observations where essentially no assimilation is conducted.
-It can therefore gradually increase the model imbalance and deteriorate the performance of DAS over time.
-To avoid this bahaviour EnKF-C currently restricts inflation by the spread reduction factor (SRF, see sec.~\ref{sec:impact}):
-\begin{align*}
-  \mathrm{actual\ inflation} = \min(\mathrm{specified\ inflation}, \mathrm{SRF} + 1).
-\end{align*}
-This means that inflation is applied mainly unchaged in locations with local observations, and not applied in locations without local observations, with a quick transition between these two regimes.
+Applying spatially uniform ensemble inflation involves areas with no local observations, where no assimilation is conducted.
+It can gradually increase the model imbalance and deteriorate performance of the DAS over time.
+Similar problems may arise due to lack of correlation between some state elements updated with the same transforms.
+For example, the states at different vertical levels can be rather disconnected.
+To avoid this behaviour EnKF-C currently restricts inflation by the spread reduction factor calculated directly for each element of the state vector during the update.
+This is a default mode of application of inflation in EnKF-C; to revert to the uniform inflation add qualifier \verb|PLAIN| to the entry \verb|INFLATION| in the main parameter file.
 
 \subsection{Observation functions}
 \label{sec:hfunctions}
