@@ -1,3 +1,9 @@
+v. 0.87
+   PS 20141114
+   -- Replaced SRF limited inflation by inflation limited by directly calculated
+      spread reduction for each element of the state vector. This is a default
+      inflation mode; add PLAIN to the inflation specification in the paramater
+      file to use uniform inflation.
 v. 0.86
    PS 20141110
    -- The variable-specific inflation set in the model parameter file now simply

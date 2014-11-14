@@ -1,8 +1,8 @@
   MPI: initialised 2 processes
-  MPI: rank = 0, PID = 14656
-  MPI: rank = 1, PID = 14657
-  running UPDATE for EnKF version 0.85:
-  2014-11-03 16:25:19
+  MPI: rank = 0, PID = 3569
+  MPI: rank = 1, PID = 3570
+  running UPDATE for EnKF version 0.87:
+  2014-11-14 10:40:24
   reading system specs from "enkf.prm":
     MODE = EnKF
     SCHEME = DEnKF
@@ -15,6 +15,7 @@
     ENSEMBLE SIZE = 96
     RFACTOR BASE = 2.0
     INFLATION BASE = 1.0500
+    INFLATION MODE = SPREADLIMITED
     KFACTOR = 999.0
     LOCRAD = 200
     STRIDE = 3
@@ -65,24 +66,24 @@
     distributing iterations:
       all processes get 48 iterations
       process 0: 0 - 47
-    2014-11-03 16:25:19
+    2014-11-14 10:40:24
     allocating disk space for analysis:................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................
-    2014-11-03 16:25:19
+    2014-11-14 10:40:24
     distributing iterations:
       processes get 5 or 4 iterations
       process 0: 0 - 4
-    processing fields:
       u        0   (1: 5: 25.0%)
+    processing fields:
       eta_t    0   (0: 0: 20.0%)
-      temp     0   (0: 1: 40.0%)
       u        1   (1: 6: 50.0%)
-      temp     1   (0: 2: 60.0%)
+      temp     0   (0: 1: 40.0%)
       v        0   (1: 7: 75.0%)
-      salt     0   (0: 3: 80.0%)
+      temp     1   (0: 2: 60.0%)
       v        1   (1: 8: 100.0%)
+      salt     0   (0: 3: 80.0%)
       salt     1   (0: 4: 100.0%)
 
-  2014-11-03 16:25:22
+  2014-11-14 10:40:26
   assembling analysis:
     distributing iterations:
       all processes get 48 iterations
@@ -105,5 +106,5 @@
     distributing iterations:
       processes get 5 or 4 iterations
       process 0: 0 - 4
-  2014-11-03 16:25:22
+  2014-11-14 10:40:29
   finished
