@@ -970,15 +970,6 @@ Local ensemble transforms $\mb X_5$ (EnKF) have or local ensemble weights $\mb w
 This allows to reduce computational load in \emph{calc} by calculating local transforms or weights on a subgrid with a specified stride only and using linearly interpolated transforms or weights in the intermediate grid cells.
 The value of the stride is defined by the \verb|STRIDE| entry in the parameter file.
 
-\subsection{Capping of inflation}
-
-Applying spatially uniform ensemble inflation involves areas with no local observations, where no assimilation is conducted.
-It can gradually increase the model imbalance and deteriorate performance of the DAS over time.
-Similar problems may arise due to lack of correlation between some state elements updated with the same transforms.
-For example, the states at different vertical levels can be rather disconnected.
-To avoid this behaviour EnKF-C currently restricts inflation by the spread reduction factor calculated directly for each element of the state vector during the update.
-This is a default mode of application of inflation in EnKF-C; to revert to the uniform inflation add qualifier \verb|PLAIN| to the entry \verb|INFLATION| in the main parameter file.
-
 \subsection{Observation functions}
 \label{sec:hfunctions}
 
@@ -1097,6 +1088,14 @@ By default, \emph{update} first writes each updated horizontal field of the mode
 The tiles are removed after writing the analysis files; one may save time for allocating them on disk in the next cycle by leaving them on disk by using option \verb|--leave-tiles|.
 This approach is somewhat less effective than direct writing to analysis files (without intermediate tiles), but, unfortunately, the direct writing is generally not reliable due to parallel I/O issues with NetCDF.
 Note that in some cases it proved to be possible to obtain robust performance with direct write using ``classic'' or ``64-bit-offset'' NetCDF formats.
+
+\subsection{Capping of inflation}
+
+Applying spatially uniform ensemble inflation involves areas with no local observations, where no assimilation is conducted.
+It can gradually increase the model imbalance and deteriorate performance of the DAS over time.
+Similar problems may arise due to lack of correlation between some state elements updated with the same transforms, so that even in presence of local observations the ensemble spread for some elements may hardly reduce.
+To avoid this behaviour EnKF-C currently restricts inflation by the spread reduction factor calculated directly for each element of the state vector during the update.
+This is a default mode of application of inflation in EnKF-C; to revert to the uniform inflation add qualifier \verb|PLAIN| to the entry \verb|INFLATION| in the main parameter file.
 
 \section{DA tuning}
 \label{sec:datuning}
