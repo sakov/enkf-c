@@ -43,6 +43,7 @@ static void das_updatefields(dasystem* das, int nfields, void** fieldbuffer, fie
     int** mask = model_getnumlevels(m);
     int periodic_i = grid_isperiodic_x(model_getgrid(m));
     int periodic_j = grid_isperiodic_y(model_getgrid(m));
+
     /*
      * X5
      */
@@ -173,10 +174,10 @@ static void das_updatefields(dasystem* das, int nfields, void** fieldbuffer, fie
                 float inflation0 = model_getvarinflation(m, f->varid);
 
                 for (i = 0; i < mni; ++i) {
-                    double inflation;
-                    double v_f, v2_f, v_a, v2_a;
+                    double inflation = inflation0;
+                    double v_a = 0.0;
 
-                   /*
+                    /*
                      * assume that if |value| > MAXOBSVAL, then it is filled
                      * with the missing value 
                      */
@@ -194,9 +195,21 @@ static void das_updatefields(dasystem* das, int nfields, void** fieldbuffer, fie
                     for (e = 0; e < nmem; ++e)
                         v[e] = vvv[e][j][i];
 
+                    /*
+                     * E(i, :) = E(i, :) * X5 
+                     */
+                    sgemv_(&do_T, &nmem, &nmem, &alpha, X5j[i], &nmem, v, &inc, &beta, tmp, &inc);
+
+                    for (e = 0; e < nmem; ++e)
+                        v_a += tmp[e];
+                    v_a /= (double) nmem;
+
                     if (das->inf_mode == INFLATION_SPREADLIMITED) {
-                        v_f = 0.0;
-                        v2_f = 0.0;
+                        double v_f = 0.0;
+                        double v2_f = 0.0;
+                        double v_a = 0.0;
+                        double v2_a = 0.0;
+
                         for (e = 0; e < nmem; ++e) {
                             double ve = (double) v[e];
 
@@ -205,23 +218,12 @@ static void das_updatefields(dasystem* das, int nfields, void** fieldbuffer, fie
                         }
                         v_f /= (double) nmem;
                         v2_f = sqrt(v2_f / (double) nmem - v_f * v_f);
-                    }
 
-                    /*
-                     * E(i, :) = E(i, :) * X5 
-                     */
-                    sgemv_(&do_T, &nmem, &nmem, &alpha, X5j[i], &nmem, v, &inc, &beta, tmp, &inc);
-
-                    if (das->inf_mode == INFLATION_SPREADLIMITED) {
-                        v_a = 0.0;
-                        v2_a = 0.0;
                         for (e = 0; e < nmem; ++e) {
                             double ve = (double) tmp[e];
 
-                            v_a += ve;
                             v2_a += ve * ve;
                         }
-                        v_a /= (double) nmem;
                         v2_a = sqrt(v2_a / (double) nmem - v_a * v_a);
 
                         if (v2_a / (double) nmem - v_a * v_a <= 0)
@@ -240,11 +242,7 @@ static void das_updatefields(dasystem* das, int nfields, void** fieldbuffer, fie
                             if (inflation >= inflation0)
                                 inflation = inflation0;
                         }
-                    } else
-                        /*
-                         * das->inf_mode = INFLATION_PLAIN
-                         */
-                        inflation = inflation0;
+                    }
 
                     /*
                      * (Do not inflate if inflation is about 1 or less than 1.)
