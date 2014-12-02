@@ -30,7 +30,8 @@
 
 struct grid {
     char* name;
-    int htype;
+    int id;
+    int htype;                  /* horizontal type */
 
     grid_xy2fij_fn xy2fij_fn;
     grid_z2fk_fn z2fk_fn;
@@ -166,11 +167,12 @@ void gnc_destroy(gnc * nodes)
 
 /**
  */
-grid* grid_create(char name[])
+grid* grid_create(char name[], int id)
 {
     grid* g = malloc(sizeof(grid));
 
     g->name = strdup(name);
+    g->id = id;
     g->htype = GRIDHTYPE_NONE;
     g->xy2fij_fn = NULL;
     g->gridnodes = NULL;
@@ -198,6 +200,7 @@ void grid_destroy(grid* g)
         free2d(g->numlevels);
     if (g->depth != NULL)
         free2d(g->depth);
+
     free(g);
 }
 
@@ -252,6 +255,8 @@ void grid_describeprm(void)
     enkf_printf("    ZVARNAME         = <z variable name>\n");
     enkf_printf("    DEPTHVARNAME     = <depth variable name>\n");
     enkf_printf("    NUMLEVELSVARNAME = <# of levels variable name>\n");
+    enkf_printf("\n");
+    enkf_printf("  [ <more of the above blocks> ]\n");
     enkf_printf("\n");
     enkf_printf("  Notes:\n");
     enkf_printf("    1. < ... > denotes a description of an entry\n");
@@ -609,6 +614,13 @@ void grid_setnumlevels(grid* g, int** numlevels)
 char* grid_getname(grid* g)
 {
     return g->name;
+}
+
+/**
+ */
+int grid_getid(grid* g)
+{
+    return g->id;
 }
 
 /**

@@ -35,7 +35,7 @@
 
 \begin{document}
 
-\title{EnKF-C user guide\\{\normalsize version 0.87}}
+\title{EnKF-C user guide\\{\normalsize version 0.88}}
 
 \author{Pavel Sakov}
 \date{June 19, 2014 -- \today}
@@ -82,10 +82,11 @@ Here ``light-weight'' has higher priority than ``generic''; that is, the code is
 Following are its other main features:
 \begin{itemize}
 \item coded in C for GNU/Linux platform;
-\item can conduct DA either in EnKF or ensemble optimal interpolation (EnOI) mode.
+\item can conduct DA either in EnKF or ensemble optimal interpolation (EnOI) mode;
+\item permits multiple model grids.
 \end{itemize}
 
-To make the code simpler, EnKF-C assumes that the model is layered and its states are stored in NetCDF format.
+To make the code simpler, EnKF-C assumes that the model is layered and model states are stored in NetCDF format.
 EnKF-C is supposed to run with localisation only.
 
 EnKF-C is available from \url{https://code.google.com/p/enkf-c}.
@@ -121,9 +122,9 @@ It has the following work flow:
 \section{Kalman filter}
 
 The Kalman filter (KF) is the underlying concept behind the EnKF.
-It is a rather simple concept if formulated as the recursive least squares.
+It is rather simple if formulated as the recursive least squares.
 
-Consider a global (in time) nonlinear minimisation problem
+Consider first a global (in time) nonlinear minimisation problem
 \begin{align}
   \label{min-nonl}
   &\{\mb x_i^a\}_{i=1}^k = \arg \underset{\{\mb x_i\}_{i = 1}^k}\min \mathcal L(\mb x_1, \dots, \mb x_k),\\
@@ -139,7 +140,7 @@ Consider a global (in time) nonlinear minimisation problem
 Here $\{\mb x_i^a\}_{i=1}^k$ is a set of $k$ state vectors that minimise the cost function (\ref{L-nonl}); indices $i = 1,\dots,k$ correspond to a sequence of DA cycles, so that $\mb x_1$ is the estimated model state at the first cycle and $\mb x_k$ is the estimated model state at the last cycle; $\mb y_i$ are observation vectors related to the model state by a nonlinear observation operator $\mathcal H_i(\mb x)$; $\mathcal M_i(\mb x)$ is a nonlinear model operator relating the model states $\mb x_{i - 1}$ and $\mb x_i$; $\mb P_1^f$ is the initial state error covariance; $\mb R_i$ is the observation error covariance for $\mb y_i$; and $\mb Q_i$ is the model error covariance for $\mathcal M_i$; $(\cdot)\T$ denotes matrix transposition.
 
 The minimisation problem (\ref{min-nonl}, \ref{L-nonl}) is, generally, very complicated, but, luckily, has an exact solution in the \emph{linear} case; moreover, this solution is recursive.
-Namely, if we assume that $\mathcal M$ and $\mathcal H$ are affine:
+Namely, assume that $\mathcal M$ and $\mathcal H$ are affine:
 \begin{subequations}
   \label{lin}
   \begin{align}
@@ -149,7 +150,8 @@ Namely, if we assume that $\mathcal M$ and $\mathcal H$ are affine:
     &\mathcal H_i(\mb x^{(1)}) - \mathcal H_i(\mb x^{(2)}) = \mb H_i \, (\mb x^{(1)} - \mb x^{(2)}),
   \end{align}
 \end{subequations}
-where $\mb x^{(1)}, \mb x^{(2)}$ are arbitrary model states, and $\mb M_i,\, \mb H_i = \mathrm{Const}$, then the cost function (\ref{L-nonl}) becomes quadratic, and
+where $\mb x^{(1)}, \mb x^{(2)}$ are arbitrary model states, and $\mb M_i,\, \mb H_i = \mathrm{Const}$.
+Then the cost function (\ref{L-nonl}) becomes quadratic, and
 \begin{align*}
   \underset {\{\mb x_i\}_{i = 1}^{k - 1}}{\min} \mathcal L_k(\mb x_1, \dots, \mb x_k) = (\mb x_k - \mb x_k^f)\T (\mb P_{k}^f)^{-1}(\mb x_k - \mb x_k^f) + \mathrm{Const}.
 \end{align*}
@@ -182,7 +184,7 @@ where
   \end{align}
 \end{subequations}
 This solution is known as the Kalman filter \citep[KF,][]{kal60}.
-Equations (\ref{kf-for}) describe advancing the system in time, which represents the stage commonly called ``forecast'', while equations (\ref{kf-an}) describe assimilation of observations, which is the stage commonly called ``analysis''.
+Equations (\ref{kf-for}) describe advancing the system in time and represent the stage commonly called ``forecast'', while equations (\ref{kf-an}) describe assimilation of observations and represent the stage called ``analysis''.
 The superscripts $f$ and $a$ are used hereafter to refer to the forecast and analysis variables, correspondingly.
 The forecast and analysis model state estimates $\mb x^f$ and $\mb x^a$ are commonly called (simply) forecast and analysis.
 Matrix $\mb K$ is called Kalman gain.
@@ -212,8 +214,8 @@ in which case it is called the extended Kalman filter (EKF).
 The canonic form of the KF (\ref{kf-for}, \ref{kf-an}) is not necessarily the most convenient or suitable one.
 The corresponding algorithms can be prone to loosing the positive definiteness of the state error covariance $\mb P$ due to round-up errors; but more importantly, explicit use of $\mb P$ makes these algorithms non-scalable in regard to the model state dimension.
 
-Both these immediate problems can addressed with the ensemble Kalman filter, or the EnKF.
-In the EnKF the SDAS is carried by an ensemble of model states $\mb E$, which can be broken into ensemble mean and ensemble anomalies:
+Both of these immediate problems can addressed with the ensemble Kalman filter, or the EnKF.
+In the EnKF the SDAS is carried by an ensemble of model states $\mb E$, which can be split into ensemble mean and ensemble anomalies:
 \begin{align}
   \label{sdas-enkf}
   \mb X = \{\mb E\} = \{\mb x, \mb A\}.
@@ -233,7 +235,7 @@ It is related to the SDAS of the KF (\ref{sdas}) as follows:
 where $\mb 1$ is a vector with all elements equal to 1.
 The above means that the model state estimate is given by the ensemble mean, while the model state error covariance estimate is implicitly represented by the ensemble anomalies $\mb A$ via the factorisation (\ref{P}).
 
-The EnKF is linearly scalable in regard to the state vector dimension and in a number of ways is a more natural and extendable representation of the KF than the canonic form (\ref{kf-for}, \ref{kf-an}).
+The EnKF is linearly scalable in regard to the state vector dimension, and in a number of ways is a more natural and extendable representation of the KF than the canonic form (\ref{kf-for}, \ref{kf-an}).
 In particular, the forecast stage of the EnKF involves only propagation of each ensemble member:
 \begin{align}
   \label{enkf-for}
@@ -626,8 +628,7 @@ Its format is described by running \verb|enkf_prep|, \verb|enlf_calc| or \verb|e
 
 \subsection{Model parameter file}
 
-Currently the model parameter file is not doing much; it exists mainly for the future expandability of the code. 
-It defines the model name, model type, an arbitrary number of entries for model data, and model variables to update:
+The model parameter file defines the model name, model type, an arbitrary number of entries for model data, and model variables to update:
 \begin{Verbatim}[frame=single,fontsize=\footnotesize]
 >./bin/enkf_prep --describe-prm-format model
 
@@ -639,17 +640,23 @@ It defines the model name, model type, an arbitrary number of entries for model 
     ...
 
     VAR         = <name>
+    GRID        = <name>
   [ INFLATION   = <value> ]
 
   [ <more of the above blocks> ]
 \end{Verbatim}
 
+Each model variable is described in a block started with the entry for the variable name.
 The inflation magnitude for a variable, if specified, overrides the common value set in the main parameter file.
+
+EnKF-C permits using multiple model grids.
+In case of using multiple grids each model variable must be associated with one of the grids defined in the grid parameter file.
 
 \subsection{Grid parameter file}
 
-The grid parameter file contains the grid name, grid data file, and names of the dimensions and coordinates in the grid data file.
-It also contains entries for model related information, such as the variable names for the depth and number of layers in a vertical column for ocean models running on z grids:
+The grid parameter file describes grids used for model variables.
+Each grid is described in a section started by the grid name entry and contains the grid name, grid data file, and names of the dimensions and coordinates in the grid data file.
+At the moment it also contains some entries for model related information, such as the variable names for the depth and number of layers in a vertical column for ocean models running on z grids:
 \begin{Verbatim}[frame=single,fontsize=\footnotesize]
 >./bin/enkf_prep --describe-prm-format grid
 
@@ -665,6 +672,8 @@ It also contains entries for model related information, such as the variable nam
     ZVARNAME         = <z variable name>
     DEPTHVARNAME     = <depth variable name>
     NUMLEVELSVARNAME = <# of levels variable name>
+
+  [ <more of the above blocks> ]
 \end{Verbatim}
 
 At the moment, EnKF-C supports 3 possible types of horizontal grids:
@@ -963,6 +972,11 @@ The options \verb|--single-observation-xyz| and \verb|--single-observation-ijk| 
 Parameter \verb|<value>| defines innovation rather than the observation value.
 Normally, this experiments would be conducted in the EnOI mode, calculating increment (option \verb|--output-increment| of \verb|enkf_update|) rather than analysis.
 When run in the EnKF mode, the increment (or analysis, depending on options) for each member is calculated.
+
+\subsection{Multiple model grids}
+
+EnKF-C permits using multiple model grids, in which case the ensemble transforms are calculated sequentially for each of the grids.
+These transforms are then used for updating of the model variables defined on the corresponding grids.
 
 \subsection{Interpolation of ensemble transforms}
 

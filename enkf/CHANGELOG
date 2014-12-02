@@ -1,8 +1,17 @@
+v. 0.88
+   PS 20141120
+   -- SUBSTANTIAL structural changes. It is now possible to have multiple grids
+      within a model. Each variable is associated with one of the grids. The
+      ensemble transforms are calculated separately for each grid. Analysed
+      ensembles in pointlogs are produced with the transforms on the grid
+      defined first in the grid parameter file, for now.
+   -- A correction for the CARS reader: an obs is considered invalid if its
+      depth is < 0.
 v. 0.87
    PS 20141114
    -- Replaced SRF limited inflation by inflation limited by directly calculated
       spread reduction for each element of the state vector. This is a default
-      inflation mode; add PLAIN to the inflation specification in the paramater
+      inflation mode; add PLAIN to the inflation specification in the parameter
       file to use uniform inflation.
 v. 0.86
    PS 20141110
@@ -125,7 +134,7 @@ v. 0.65
       point in distribute_iterations().
 v. 0.64
    PS 08082014
-   -- Removed exit by error in distribbute_iterations() in the case when the
+   -- Removed exit by error in distribute_iterations() in the case when the
       number of iterations is less than the number of CPUs. Seems to work fine.
    -- Replaced enkf_calc.c::int fstatsonly by global.c::int enkf_fstatsonly.
    -- Added a new target "stats" to example/1.
@@ -316,7 +325,7 @@ v. 0.31
 v. 0.30
    PS 18102013
    Added a pre-processor option SEPARATE_STORAGE to split forecast and analysis
-   into diffeent files. The analysis file name is created by appending
+   into different files. The analysis file name is created by appending
    ".analysis" to the forecast file name.
 v. 0.29
    PS 14102013

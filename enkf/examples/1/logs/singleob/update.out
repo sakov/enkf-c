@@ -1,8 +1,8 @@
   MPI: initialised 2 processes
-  MPI: rank = 0, PID = 3684
-  MPI: rank = 1, PID = 3685
-  running UPDATE for EnKF version 0.87:
-  2014-11-14 10:42:51
+  MPI: rank = 0, PID = 1255
+  MPI: rank = 1, PID = 1256
+  running UPDATE for EnKF version 0.88:
+  2014-12-03 09:57:04
   reading system specs from "singleob.prm":
     MODE = EnOI
     MODEL PRM = "model.prm"
@@ -34,52 +34,65 @@
       SHUFFLE_ROWS     = [-]
       HE_VIAFILE       = [-]
   initialising the system:
-    grid dimensions = 100 x 100 x 2
-  grid prm info:
-    name = "t-grid"
-    file = "conf/grid_spec.nc"
-    xdimname = "grid_x_T"
-    ydimname = "grid_y_T"
-    zdimname = "zt"
-    xvarname = "grid_x_T"
-    yvarname = "grid_y_T"
-    zvarname = "zt"
-    depthvarname = "depth_t"
-    numlevelsvarname = "num_levels"
-  grid info:
-    type = LATLON_REGULAR
-    periodic by X = no
-    periodic by Y = no
-    dims = 100 x 100 x 2
-    longitude range = [0, 360]
-  model info:
-    name = Tasman
-    type = z-model
-    0 variables:
-    0 modeldata:
+    grid prm info:
+      name = "t-grid"
+      file = "conf/grid_spec.nc"
+      xdimname = "grid_x_T"
+      ydimname = "grid_y_T"
+      zdimname = "zt"
+      xvarname = "grid_x_T"
+      yvarname = "grid_y_T"
+      zvarname = "zt"
+      depthvarname = "depth_t"
+      numlevelsvarname = "num_levels"
+    grid info:
+      type = LATLON_REGULAR
+      periodic by X = no
+      periodic by Y = no
+      dims = 100 x 100 x 2
+      longitude range = [0, 360]
+    adding custom data "MSL":
+      file = conf/eta_mean-bran.nc
+      variable = eta_t
+    model info:
+      name = Tasman
+      type = z-model
+      5 variables:
+        eta_t:
+          inflation = 1.000
+        temp:
+          inflation = 1.000
+        salt:
+          inflation = 1.000
+        u:
+          inflation = 1.000
+        v:
+          inflation = 1.000
+      1 modeldata:
+        MSL:
+          type = 2D
   using assembled write
   updating the model state:
     96 members
-    9 fields
     defining state variables in point logs:
-    allocating disk space for the analysis:    2014-11-14 10:42:51
+    allocating disk space for the analysis:    2014-12-03 09:57:04
 .....
-    2014-11-14 10:42:51
-    distributing iterations:
-      processes get 5 or 4 iterations
-      process 0: 0 - 4
-    processing fields:
+    2014-12-03 09:57:04
+    updating fields for t-grid:
+      9 fields
+      distributing iterations:
+        processes get 5 or 4 iterations
       u        0   (1: 5: 25.0%)
       eta_t    0   (0: 0: 20.0%)
-      temp     0   (0: 1: 40.0%)
       u        1   (1: 6: 50.0%)
-      temp     1   (0: 2: 60.0%)
+      temp     0   (0: 1: 40.0%)
       v        0   (1: 7: 75.0%)
-      salt     0   (0: 3: 80.0%)
+      temp     1   (0: 2: 60.0%)
       v        1   (1: 8: 100.0%)
+      salt     0   (0: 3: 80.0%)
       salt     1   (0: 4: 100.0%)
 
-  2014-11-14 10:42:51
+  2014-12-03 09:57:04
   assembling analysis:
     eta_t:.
     temp:..
@@ -89,9 +102,8 @@
   assembling state variables in point logs:
     distributing iterations:
       processes get 1 or 0 iterations
-      process 0: 0 - 0
-    distributing iterations:
-      processes get 5 or 4 iterations
-      process 0: 0 - 4
-  2014-11-14 10:42:51
+    deleting tiles:
+      distributing iterations:
+        processes get 5 or 4 iterations
+  2014-12-03 09:57:04
   finished

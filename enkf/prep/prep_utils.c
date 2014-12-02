@@ -63,25 +63,33 @@ void obs_add(observations* obs, model* m, obsmeta* meta)
 {
     obsread_fn reader;
     int nobs0 = obs->nobs;
-    int lontype = model_getlontype(m);
+    int vid;
+    int lontype;
     int i, ngood;
 
     enkf_printf("    PRODUCT = %s, TYPE = %s, reader = %s\n", meta->product, meta->type, meta->reader);
     st_add_ifabscent(obs->products, meta->product, -1);
     reader = get_obsreadfn(meta);
     readobs(meta, m, reader, obs);      /* adds the data */
-    for (i = nobs0; i < obs->nobs; ++i) {
-        observation* o = &obs->data[i];
 
-        o->id_orig = i;
-        if (lontype == LONTYPE_180) {
-            if (o->lon > 180.0)
-                o->lon -= 360.0;
-        } else if (lontype == LONTYPE_360) {
-            if (o->lon < 0.0)
-                o->lon += 360.0;
+    vid = model_getvarid(m, obs->obstypes[obstype_getid(obs->nobstypes, obs->obstypes, meta->type)].varname);
+
+    lontype = model_getlontype(m, vid);
+    if (lontype != LONTYPE_NONE) {
+        for (i = nobs0; i < obs->nobs; ++i) {
+            observation* o = &obs->data[i];
+
+            o->id_orig = i;
+            if (lontype == LONTYPE_180) {
+                if (o->lon > 180.0)
+                    o->lon -= 360.0;
+            } else if (lontype == LONTYPE_360) {
+                if (o->lon < 0.0)
+                    o->lon += 360.0;
+            }
         }
     }
+
     enkf_printf("      id = %d - %d\n", nobs0, obs->nobs - 1);
     obs->compacted = 0;
     obs->hasstats = 0;
@@ -122,13 +130,13 @@ void obs_add(observations* obs, model* m, obsmeta* meta)
                 }
             } else if (meta->stdtypes[i] == STDTYPE_FILE) {
                 char* fname = (char*) meta->stds[i];
-                int** nlevels = model_getnumlevels(m);
+                int** nlevels = model_getnumlevels(m, vid);
                 int ni, nj, nk;
                 int ii;
 
                 enkf_printf("      adding error_std from %s %s:\n", fname, meta->varnames[i]);
 
-                model_getdims(m, &ni, &nj, &nk);
+                model_getvardims(m, vid, &ni, &nj, &nk);
 
                 for (ii = 0; ii < obs->nobstypes; ++ii)
                     if (strcmp(obs->obstypes[ii].name, meta->type))

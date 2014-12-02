@@ -54,6 +54,7 @@ void reader_rads_standard(char* fname, int fid, obsmeta* meta, model* m, observa
     double tunits_multiple, tunits_offset;
     char* basename;
     char instname[3];
+    int mvid;
     float** depth;
     int i;
 
@@ -105,7 +106,9 @@ void reader_rads_standard(char* fname, int fid, obsmeta* meta, model* m, observa
     strncpy(instname, basename, 2);
     instname[2] = 0;
 
-    depth = model_getdepth(m);
+    mvid = model_getvarid(m, obs->obstypes[obstype_getid(obs->nobstypes, obs->obstypes, meta->type)].varname);
+    depth = model_getdepth(m, mvid);
+
     for (i = 0; i < (int) nobs_local; ++i) {
         observation* o;
         obstype* ot;
@@ -127,7 +130,7 @@ void reader_rads_standard(char* fname, int fid, obsmeta* meta, model* m, observa
         o->lon = lon[i];
         o->lat = lat[i];
         o->depth = 0.0;
-        o->status = model_xy2fij(m, o->lon, o->lat, &o->fi, &o->fj);
+        o->status = model_xy2fij(m, mvid, o->lon, o->lat, &o->fi, &o->fj);
         if (!obs->allobs && o->status == STATUS_OUTSIDEGRID)
             continue;
         o->fk = 0.0;
@@ -170,6 +173,7 @@ void reader_rads_standard2(char* fname, int fid, obsmeta* meta, model* m, observ
     double tunits_multiple, tunits_offset;
     char* basename;
     char instname[3];
+    int mvid;
     float** depth;
     int i;
 
@@ -229,7 +233,9 @@ void reader_rads_standard2(char* fname, int fid, obsmeta* meta, model* m, observ
     strncpy(instname, basename, 2);
     instname[2] = 0;
 
-    depth = model_getdepth(m);
+    mvid = model_getvarid(m, obs->obstypes[obstype_getid(obs->nobstypes, obs->obstypes, meta->type)].varname);
+    depth = model_getdepth(m, mvid);
+
     for (i = 0; i < (int) nobs_local; ++i) {
         observation* o;
         obstype* ot;
@@ -254,7 +260,7 @@ void reader_rads_standard2(char* fname, int fid, obsmeta* meta, model* m, observ
         o->lon = lon[i];
         o->lat = lat[i];
         o->depth = 0.0;
-        o->status = model_xy2fij(m, o->lon, o->lat, &o->fi, &o->fj);
+        o->status = model_xy2fij(m, mvid, o->lon, o->lat, &o->fi, &o->fj);
         if (!obs->allobs && o->status == STATUS_OUTSIDEGRID)
             continue;
         o->fk = 0.0;

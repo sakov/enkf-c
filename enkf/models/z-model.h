@@ -15,7 +15,7 @@
 
 #if !defined(_ZMODEL_H)
 
-void zmodel_setgrid(model* m, char gridprm[]);
+void zmodel_setgrids(model* m, char gridprm[]);
 void zmodel_setup(model* m, char modelprm[]);
 
 #define _ZMODEL_H

@@ -52,6 +52,8 @@ static void obstype_new(obstype* type, int i, char* name)
     type->isasync = 0;
     type->async_tstep = NaN;
     type->rfactor = 1.0;
+    type->vid = -1;
+    type->gridid = -1;
     type->xmin = -DBL_MAX;
     type->xmax = DBL_MAX;
     type->ymin = -DBL_MAX;

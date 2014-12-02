@@ -143,6 +143,16 @@ void plog_write(dasystem* das, int i, int j, double lon, double lat, double dept
 
 /**
  */
+static void get_nkname(dasystem* das, void* grid, char name[])
+{
+    if (model_getngrid(das->m) == 1)
+        sprintf(name, "nk");
+    else
+        sprintf(name, "nk-%d.nc", grid_getid(grid));
+}
+
+/**
+ */
 void plog_definestatevars(dasystem* das)
 {
     int nvar = model_getnvar(das->m);
@@ -151,10 +161,12 @@ void plog_definestatevars(dasystem* das)
     for (vid = 0; vid < nvar; ++vid) {
         char* varname = model_getvarname(das->m, vid);
         char fname[MAXSTRLEN];
+        char nkname[NC_MAX_NAME];
         int nk;
 
         model_getmemberfname(das->m, das->ensdir, varname, 1, fname);
         nk = getnlevels(fname, varname);
+        get_nkname(das, model_getvargrid(das->m, vid), nkname);
 
         for (p = 0; p < das->nplogs; ++p) {
             int i = das->plogs[p].i;
@@ -170,10 +182,10 @@ void plog_definestatevars(dasystem* das)
                 ncw_redef(fname, ncid);
                 ncw_inq_dimid(fname, ncid, "m", &dimid_m);
                 if (nk > 1) {
-                    if (!ncw_dim_exists(ncid, "nk"))
-                        ncw_def_dim(fname, ncid, "nk", nk, &dimid_nk);
+                    if (!ncw_dim_exists(ncid, nkname))
+                        ncw_def_dim(fname, ncid, nkname, nk, &dimid_nk);
                     else
-                        ncw_inq_dimid(fname, ncid, "nk", &dimid_nk);
+                        ncw_inq_dimid(fname, ncid, nkname, &dimid_nk);
                     dimids[0] = dimid_nk;
                     dimids[1] = dimid_m;
                     ncw_def_var(fname, ncid, varname, NC_FLOAT, 2, dimids, &vid);
@@ -191,14 +203,12 @@ void plog_definestatevars(dasystem* das)
  */
 void plog_writestatevars_direct(dasystem* das, int nfields, void** fieldbuffer, field* fields)
 {
-    int ni, nj;
     int p, fid, e;
     float*** v_src = NULL;
     float* v = NULL;
     size_t start[2] = { 0, 0 };
     size_t count[2] = { 1, das->nmem };
 
-    model_getdims(das->m, &ni, &nj, NULL);
     v = malloc(das->nmem * sizeof(float));
 
     for (p = 0; p < das->nplogs; ++p) {
@@ -293,13 +303,17 @@ void plog_writestatevars_toassemble(dasystem* das, int nfields, void** fieldbuff
 void plog_assemblestatevars(dasystem* das)
 {
     float* v = malloc(das->nmem * sizeof(float));
+    int nfields = 0;
+    field* fields = NULL;
     int p, fid;
+
+    das_getfields(das, -1, &nfields, &fields);
 
 #if defined(MPI)
     MPI_Barrier(MPI_COMM_WORLD);
 #endif
 
-    distribute_iterations(0, das->nplogs - 1, nprocesses, rank);
+    distribute_iterations(0, das->nplogs - 1, nprocesses, rank, "    ");
     for (p = my_first_iteration; p <= my_last_iteration; ++p) {
         int i = das->plogs[p].i;
         int j = das->plogs[p].j;
@@ -311,8 +325,8 @@ void plog_assemblestatevars(dasystem* das)
         sprintf(fname_dst, "pointlog_%d,%d.nc", i, j);
         ncw_open(fname_dst, NC_WRITE, &ncid_dst);
 
-        for (fid = 0; fid < das->nfields; ++fid) {
-            field* f = &das->fields[fid];
+        for (fid = 0; fid < nfields; ++fid) {
+            field* f = &fields[fid];
             char fname_src[MAXSTRLEN];
             char varname_src[MAXSTRLEN];
             int ncid_src, vid_src, vid_dst, ndims_dst;
@@ -340,9 +354,10 @@ void plog_assemblestatevars(dasystem* das)
 #if defined(MPI)
     MPI_Barrier(MPI_COMM_WORLD);
 #endif
-    distribute_iterations(0, das->nfields - 1, nprocesses, rank);
+    enkf_printf("    deleting tiles:\n");
+    distribute_iterations(0, nfields - 1, nprocesses, rank, "      ");
     for (fid = my_first_iteration; fid <= my_last_iteration; ++fid) {
-        field* f = &das->fields[fid];
+        field* f = &fields[fid];
         char fname[MAXSTRLEN];
 
         sprintf(fname, "pointlog_%s-%03d.nc", f->varname, f->level);
@@ -350,4 +365,5 @@ void plog_assemblestatevars(dasystem* das)
     }
 
     free(v);
+    free(fields);
 }
