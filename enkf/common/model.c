@@ -28,6 +28,7 @@
 
 #define NMODELDATA_INC 10
 #define NVAR_INC 10
+#define GRID_INC 10
 
 typedef struct {
     char* tag;
@@ -38,6 +39,7 @@ typedef struct {
 struct variable {
     int id;
     char* name;
+    int gridid;
     double inflation;
 };
 
@@ -48,7 +50,8 @@ struct model {
     int nvar;
     variable* vars;
 
-    void* grid;
+    int ngrid;
+    void** grids;
 
     int ndata;
     modeldata* data;
@@ -69,22 +72,19 @@ static void variable_new(variable * v, int id, char* name)
 {
     v->id = id;
     v->name = strdup(name);
+    v->gridid = -1;
     v->inflation = NaN;
 }
 
 /**
  */
-static void variables_destroy(int n, variable * vars)
+static void model_destroyvars(model* m)
 {
     int i;
 
-    for (i = 0; i < n; ++i) {
-        variable* v = &vars[i];
-
-        free(v->name);
-    }
-
-    free(vars);
+    for (i = 0; i < m->nvar; ++i)
+        free(m->vars[i].name);
+    free(m->vars);
 }
 
 /**
@@ -105,7 +105,7 @@ model* model_create(enkfprm* prm)
         variable* now = NULL;
 
         /*
-         * get model tag and type
+         * get model tag, type and variables
          */
         f = enkf_fopen(modelprm, "r");
         line = 0;
@@ -153,6 +153,22 @@ model* model_create(enkfprm* prm)
                 now = &m->vars[m->nvar];
                 variable_new(now, m->nvar, token);
                 m->nvar++;
+            } else if (strcasecmp(token, "GRID") == 0) {
+                int i;
+
+                if (now == NULL)
+                    enkf_quit("%s, l.%d: VAR not specified", modelprm, line);
+                if (now->gridid >= 0)
+                    enkf_quit("%s, l.%d: GRID already specified for \"%s\"", modelprm, line, now->name);
+                if ((token = strtok(NULL, seps)) == NULL)
+                    enkf_quit("%s, l.%d: GRID not specified", modelprm, line);
+                for (i = 0; i < m->ngrid; ++i)
+                    if (strcasecmp(token, grid_getname(m->grids[i])) == 0) {
+                        now->gridid = i;
+                        break;
+                    }
+                if (i == m->ngrid)
+                    enkf_quit("%s, l.%d: grid \"%s\" not specified", modelprm, line, token);
             } else if (strcasecmp(token, "INFLATION") == 0) {
                 if (now == NULL)
                     enkf_quit("%s, l.%d: VAR not specified", modelprm, line);
@@ -163,9 +179,7 @@ model* model_create(enkfprm* prm)
                 if (!str2double(token, &now->inflation))
                     enkf_quit("%s, l.%d: could not convert \"%s\" to double", modelprm, line, token);
             } else if (strcasecmp(token, "DATA") == 0) {
-                if ((token = strtok(NULL, seps)) == NULL)
-                    enkf_quit("%s, l.%d: DATA tag not specified", modelprm, line);
-                model_addcustomdata(m, token, modelprm, line);
+                ;
             } else
                 enkf_quit("%s, l.%d: unknown token \"%s\"", modelprm, line, token);
         }                       /* while reading modelprm */
@@ -173,6 +187,37 @@ model* model_create(enkfprm* prm)
         assert(m->name != NULL);
         assert(m->type != NULL);
         assert(m->nvar > 0);
+        {
+            int i;
+
+            for (i = 0; i < m->nvar; ++i)
+                if (m->vars[i].gridid == -1) {
+                    if (m->ngrid == 1)
+                        m->vars[i].gridid = 0;
+                    else
+                        enkf_quit("%s: grid not specified for variable \"%s\"\n", modelprm, m->vars[i].name);
+                }
+        }
+        /*
+         * get model data (this needs variables to be already set)
+         */
+        f = enkf_fopen(modelprm, "r");
+        line = 0;
+        while (fgets(buf, MAXSTRLEN, f) != NULL) {
+            char seps[] = " =\t\n";
+            char* token = NULL;
+
+            line++;
+            if (buf[0] == '#')
+                continue;
+            if ((token = strtok(buf, seps)) == NULL)
+                continue;
+            else if (strcasecmp(token, "DATA") == 0) {
+                if ((token = strtok(NULL, seps)) == NULL)
+                    enkf_quit("%s, l.%d: DATA tag not specified", modelprm, line);
+                model_addcustomdata(m, token, modelprm, line);
+            }
+        }
     }
 
     /*
@@ -187,7 +232,9 @@ model* model_create(enkfprm* prm)
         prm->inflation_base = NaN;
     }
 
-    assert(m->grid !=NULL);
+    model_print(m, "    ");
+
+    assert(m->ngrid > 0);
 
     assert(m->getmemberfname != NULL);
     assert(m->getmemberfname_async != NULL);
@@ -225,13 +272,24 @@ static void model_freemodeldata(model* m)
 
 /**
  */
+static void model_destroygrids(model* m)
+{
+    int i;
+
+    for (i = 0; i < m->ngrid; ++i)
+        grid_destroy(m->grids[i]);
+
+    free(m->grids);
+}
+
+/**
+ */
 void model_destroy(model* m)
 {
     free(m->name);
     free(m->type);
-    grid_destroy(m->grid);
-
-    variables_destroy(m->nvar, m->vars);
+    model_destroygrids(m);
+    model_destroyvars(m);
     model_freemodeldata(m);
     free(m);
 }
@@ -253,8 +311,15 @@ void model_print(model* m, char offset[])
         enkf_printf("%s      inflation = %.3f\n", offset, v->inflation);
     }
     enkf_printf("%s  %d modeldata:\n", offset, m->ndata);
-    for (i = 0; i < m->ndata; ++i)
-        enkf_printf("%s    %s\n", offset, m->data[i].tag);
+    for (i = 0; i < m->ndata; ++i) {
+        enkf_printf("%s    %s:\n", offset, m->data[i].tag);
+        if (m->data[i].alloctype == ALLOCTYPE_1D)
+            enkf_printf("%s      type = 1D\n", offset);
+        else if (m->data[i].alloctype == ALLOCTYPE_2D)
+            enkf_printf("%s      type = 2D\n", offset);
+        else if (m->data[i].alloctype == ALLOCTYPE_3D)
+            enkf_printf("%s      type = 3D\n", offset);
+    }
 }
 
 /**
@@ -270,6 +335,7 @@ void model_describeprm(void)
     enkf_printf("    ...\n");
     enkf_printf("\n");
     enkf_printf("    VAR         = <name>\n");
+    enkf_printf("    GRID        = <name>\n");
     enkf_printf("  [ INFLATION   = <value> ]\n");
     enkf_printf("\n");
     enkf_printf("  [ <more of the above blocks> ]\n");
@@ -334,7 +400,10 @@ void model_setwritefield_fn(model* m, model_writefield_fn fn)
  */
 void model_setgrid(model* m, void* g)
 {
-    m->grid = g;
+    if (m->ngrid % GRID_INC == 0)
+        m->grids = realloc(m->grids, (m->ngrid + GRID_INC) * sizeof(void*));
+    m->grids[m->ngrid] = g;
+    m->ngrid++;
 }
 
 /**
@@ -395,6 +464,19 @@ char* model_getvarname(model* m, int varid)
 
 /**
  */
+int model_getvarid(model* m, char* varname)
+{
+    int i;
+
+    for (i = 0; i < m->nvar; ++i)
+        if (strcmp(m->vars[i].name, varname) == 0)
+            return i;
+
+    return -1;
+}
+
+/**
+ */
 float model_getvarinflation(model* m, int varid)
 {
     return m->vars[varid].inflation;
@@ -402,37 +484,70 @@ float model_getvarinflation(model* m, int varid)
 
 /**
  */
-void model_getdims(model* m, int* ni, int* nj, int* nk)
+void model_getvardims(model* m, int vid, int* ni, int* nj, int* nk)
 {
-    grid_getdims(m->grid, ni, nj, nk);
+    grid_getdims(m->grids[m->vars[vid].gridid], ni, nj, nk);
 }
 
 /**
  */
-void* model_getgrid(model* m)
+void* model_getvargrid(model* m, int vid)
 {
-    return m->grid;
+    return m->grids[m->vars[vid].gridid];
 }
 
 /**
  */
-int model_getlontype(model* m)
+int model_getvargridid(model* m, int vid)
 {
-    return grid_getlontype(m->grid);
+    return m->vars[vid].gridid;
 }
 
 /**
  */
-float** model_getdepth(model* m)
+int model_getngrid(model* m)
 {
-    return grid_getdepth(m->grid);
+    return m->ngrid;
 }
 
 /**
  */
-int** model_getnumlevels(model* m)
+void* model_getgridbyid(model* m, int gridid)
 {
-    return grid_getnumlevels(m->grid);
+    return m->grids[gridid];
+}
+
+/**
+ */
+void* model_getgridbyname(model* m, char name[])
+{
+    int i;
+
+    for (i = 0; i < m->ngrid; ++i)
+        if (strcmp(grid_getname(m->grids[i]), name) == 0)
+            return m->grids[i];
+    return NULL;
+}
+
+/**
+ */
+int model_getlontype(model* m, int vid)
+{
+    return grid_getlontype(m->grids[m->vars[vid].gridid]);
+}
+
+/**
+ */
+float** model_getdepth(model* m, int vid)
+{
+    return grid_getdepth(m->grids[m->vars[vid].gridid]);
+}
+
+/**
+ */
+int** model_getnumlevels(model* m, int vid)
+{
+    return grid_getnumlevels(m->grids[m->vars[vid].gridid]);
 }
 
 /**
@@ -465,10 +580,11 @@ int model_getbgfname_async(model* m, char ensdir[], char varname[], char otname[
 
 /**
  */
-int model_xy2fij(model* m, double x, double y, double* fi, double* fj)
+int model_xy2fij(model* m, int vid, double x, double y, double* fi, double* fj)
 {
-    int** numlevels = grid_getnumlevels(m->grid);
-    int lontype = grid_getlontype(m->grid);
+    void* grid = m->grids[m->vars[vid].gridid];
+    int** numlevels = grid_getnumlevels(grid);
+    int lontype = grid_getlontype(grid);
     int i1, i2, j1, j2;
 
     if (lontype == LONTYPE_180) {
@@ -479,7 +595,7 @@ int model_xy2fij(model* m, double x, double y, double* fi, double* fj)
             x += 360.0;
     }
 
-    grid_getxy2fijfn(m->grid) (m->grid, x, y, fi, fj);
+    grid_getxy2fijfn(grid) (grid, x, y, fi, fj);
 
     if (isnan(*fi + *fj))
         return STATUS_OUTSIDEGRID;
@@ -498,9 +614,11 @@ int model_xy2fij(model* m, double x, double y, double* fi, double* fj)
 
 /**
  */
-int model_fij2xy(model* m, double fi, double fj, double* x, double* y)
+int model_fij2xy(model* m, int vid, double fi, double fj, double* x, double* y)
 {
-    grid_getfij2xyfn(m->grid) (m->grid, fi, fj, x, y);
+    void* grid = m->grids[m->vars[vid].gridid];
+
+    grid_getfij2xyfn(grid) (grid, fi, fj, x, y);
 
     if (isnan(*x + *y))
         return STATUS_OUTSIDEGRID;
@@ -509,9 +627,10 @@ int model_fij2xy(model* m, double fi, double fj, double* x, double* y)
 
 /**
  */
-int model_z2fk(model* m, double fi, double fj, double z, double* fk)
+int model_z2fk(model* m, int vid, double fi, double fj, double z, double* fk)
 {
-    int** numlevels = grid_getnumlevels(m->grid);
+    void* grid = m->grids[m->vars[vid].gridid];
+    int** numlevels = grid_getnumlevels(grid);
     int i1, i2, j1, j2, k2;
 
     if (isnan(fi + fj)) {
@@ -519,7 +638,7 @@ int model_z2fk(model* m, double fi, double fj, double z, double* fk)
         return STATUS_OUTSIDEGRID;
     }
 
-    grid_getz2fkfn(m->grid) (m->grid, fi, fj, z, fk);
+    grid_getz2fkfn(grid) (grid, fi, fj, z, fk);
 
     if (isnan(*fk))
         return STATUS_OUTSIDEGRID;
@@ -533,11 +652,12 @@ int model_z2fk(model* m, double fi, double fj, double z, double* fk)
         *fk = NaN;
         return STATUS_LAND;
     } else if (numlevels[j1][i1] <= k2 || numlevels[j1][i2] <= k2 || numlevels[j2][i1] <= k2 || numlevels[j2][i2] <= k2) {
-        float** depth = model_getdepth(m);
+        float** depth = grid_getdepth(grid);
         int ni, nj;
         double v;
 
-        model_getdims(m, &ni, &nj, NULL);
+        grid_getdims(grid, &ni, &nj, NULL);
+
         v = interpolate2d(fi, fj, ni, nj, depth, numlevels);
         if (z > v)
             return STATUS_LAND;

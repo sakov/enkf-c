@@ -28,9 +28,9 @@
 
 #define FNAME_OBS "observations-orig.nc"
 #define FNAME_SOBS "observations.nc"
-#define FNAME_X5 "X5.nc"
-#define FNAME_W "w.nc"
-#define FNAME_ENKFSTATS "enkf_diag.nc"
+#define FNAMEPREFIX_X5 "X5"
+#define FNAMEPREFIX_W "w"
+#define FNAMEPREFIX_STATS "enkf_diag"
 #define FNAME_SPREAD "spread.nc"
 #define FNAME_HE "HE.nc"
 #define FNAME_BADBATCHES "badbatches.out"
@@ -47,7 +47,7 @@
  * being saved to observations.nc and read back. If they end up on land - mark
  * them with this status.
  */
-#define STATUS_ROUNDUP 6
+#define STATUS_ROUNDUP 7
 
 #define LONTYPE_NONE 0
 #define LONTYPE_180 1

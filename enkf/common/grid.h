@@ -28,7 +28,7 @@ typedef void (*grid_tocartesian_fn) (double* in, double* out);
 struct grid;
 typedef struct grid grid;
 
-grid* grid_create(char name[]);
+grid* grid_create(char name[], int id);
 void grid_destroy(grid* g);
 void grid_print(grid* g, char offset[]);
 void grid_describeprm(void);
@@ -40,6 +40,7 @@ void grid_settocartesian_fn(grid* g, grid_tocartesian_fn fn);
 
 void grid_getdims(grid* g, int* ni, int* nj, int* nk);
 char* grid_getname(grid* g);
+int grid_getid(grid* g);
 int grid_gethtype(grid* g);
 float** grid_getdepth(grid* g);
 int** grid_getnumlevels(grid* g);

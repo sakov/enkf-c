@@ -98,9 +98,6 @@ struct dasystem {
     double locrad;
     int stride;
 
-    int nfields;
-    field* fields;
-
     int fieldbufsize;
 
     int nregions;
@@ -123,7 +120,7 @@ void das_addmodifiederrors(dasystem* das, char fname[]);
 void das_calcinnandspread(dasystem* das);
 void das_calctransforms(dasystem* das);
 void das_dopointlogs(dasystem* das);
-void das_getfields(dasystem* das);
+void das_getfields(dasystem* das, int gridid, int* nfield, field** fields);
 void das_getnmem(dasystem* das);
 void das_interpolate2d(dasystem* das, char fname[], float** v, int nobs, int obsids[], double out[]);
 void das_interpolate3d(dasystem* das, char fname[], float*** v, int nobs, int obsids[], double out[]);
@@ -132,11 +129,14 @@ void das_calcbatchstats(dasystem* das, int doprint);
 void das_printobsstats(dasystem* das);
 void das_printfobsstats(dasystem* das);
 void das_readobs(dasystem* das, char fname[]);
-void das_setobstypes(dasystem* das);
 void das_standardise(dasystem* das);
 void das_destandardise(dasystem* das);
 void das_update(dasystem* das, int calcspread, int leavetiles);
 void das_updateHE(dasystem* das);
+void das_getfname_X5(dasystem* das, void* grid, char fname[]);
+void das_getfname_w(dasystem* das, void* grid, char fname[]);
+void das_getfname_stats(dasystem* das, void* grid, char fname[]);
+void das_setobstypesindices(dasystem* das);
 
 #define _DASYSTEM_H
 #endif

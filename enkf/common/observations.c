@@ -1048,6 +1048,14 @@ void obs_createkdtree(observations* obs, grid* g)
 
 /**
  */
+void obs_destroykdtree(observations* obs)
+{
+    kd_destroy(obs->tree);
+    obs->tree = NULL;
+}
+
+/**
+ */
 void obs_findlocal(observations* obs, grid* g, double lon, double lat, double r, int* n, int** ids, double** lcoeffs)
 {
     double ll[2] = { lon, lat };

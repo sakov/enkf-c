@@ -210,7 +210,7 @@ int main(int argc, char* argv[])
     enkf_printf("  reading observation specs from \"%s\":\n", prm->obsprm);
     obsmeta_read(prm, &nmeta, &meta);
 
-    enkf_printf("  setting the model grid:\n");
+    enkf_printf("  setting the model:\n");
     m = model_create(prm);
 
     obs = obs_create_fromprm(prm);

@@ -31,7 +31,7 @@ int* number_of_iterations = NULL;
 int* first_iteration = NULL;
 int* last_iteration = NULL;
 
-void distribute_iterations(int i1, int i2, int nproc, int rank)
+void distribute_iterations(int i1, int i2, int nproc, int rank, char prefix[])
 {
     int n, npp, i, j;
 
@@ -46,8 +46,8 @@ void distribute_iterations(int i1, int i2, int nproc, int rank)
         first_iteration = malloc(nproc * sizeof(int));
         last_iteration = malloc(nproc * sizeof(int));
     }
-    if (rank == 0)
-        enkf_printf("    distributing iterations:\n");
+    if (prefix != NULL)
+        enkf_printf("%sdistributing iterations:\n", prefix);
 #if defined(MPI)
     fflush(stdout);
     MPI_Barrier(MPI_COMM_WORLD);
@@ -60,7 +60,8 @@ void distribute_iterations(int i1, int i2, int nproc, int rank)
         my_number_of_iterations = n / nproc;
         for (i = 0; i < nproc; ++i)
             number_of_iterations[i] = my_number_of_iterations;
-        enkf_printf("      all processes get %d iterations\n", my_number_of_iterations);
+        if (prefix != NULL)
+            enkf_printf("%s  all processes get %d iterations\n", prefix, my_number_of_iterations);
         j = nproc;
     } else {
         for (i = 1; i < nproc; ++i) {
@@ -80,7 +81,8 @@ void distribute_iterations(int i1, int i2, int nproc, int rank)
         for (i = j; i < nproc; ++i)
             number_of_iterations[i] = npp;
         assert(j * (npp + 1) + (nproc - j) * npp == n);
-        enkf_printf("      processes get %d or %d iterations\n", number_of_iterations[0], number_of_iterations[nproc - 1]);
+        if (prefix != NULL)
+            enkf_printf("%s  processes get %d or %d iterations\n", prefix, number_of_iterations[0], number_of_iterations[nproc - 1]);
     }
 #if defined(MPI)
     fflush(stdout);
@@ -96,8 +98,6 @@ void distribute_iterations(int i1, int i2, int nproc, int rank)
 
     my_first_iteration = first_iteration[rank];
     my_last_iteration = last_iteration[rank];
-
-    enkf_printf("      process %d: %d - %d\n", rank, my_first_iteration, my_last_iteration);
 
 #if defined(MPI)
     fflush(stdout);

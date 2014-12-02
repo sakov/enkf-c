@@ -40,6 +40,25 @@
 #define NFIELDS_INC 100
 #define MPIIDOFFSET 10000
 
+#if defined(ENKF_CALC)
+/**
+ */
+void das_setobstypesindices(dasystem* das)
+{
+    int n = das->obs->nobstypes;
+    obstype* types = das->obs->obstypes;
+    model* m = das->m;
+    int i;
+
+    for (i = 0; i < n; ++i) {
+        int vid = model_getvarid(m, types[i].varname);
+
+        types[i].vid = vid;
+        types[i].gridid = model_getvargridid(m, vid);
+    }
+}
+#endif
+
 /**
  */
 dasystem* das_create(enkfprm* prm)
@@ -61,6 +80,9 @@ dasystem* das_create(enkfprm* prm)
 #endif
 
     das->m = model_create(prm);
+#if defined(ENKF_CALC)
+    das_setobstypesindices(das);
+#endif
 
     das->S = NULL;
     das->s_f = NULL;
@@ -106,7 +128,10 @@ dasystem* das_create(enkfprm* prm)
     for (i = 0; i < prm->nplogs; ++i) {
         double lon, lat;
 
-        model_fij2xy(das->m, (double) prm->plogs[i].i, (double) prm->plogs[i].j, &lon, &lat);
+        /*
+         * FLAKY: do the inside grid check with the variable of id = 0
+         */
+        model_fij2xy(das->m, 0, (double) prm->plogs[i].i, (double) prm->plogs[i].j, &lon, &lat);
         if (isnan(lon + lat)) {
             enkf_printf("  WARNING: %s: POINTLOG %d %d: point outside the grid\n", das->prmfname, prm->plogs[i].i, prm->plogs[i].j);
             continue;
@@ -164,8 +189,6 @@ void das_destroy(dasystem* das)
         free(das->s_a);
         free(das->std_a);
     }
-    if (das->fields != NULL)
-        free(das->fields);
     if (das->nregions > 0) {
         for (i = 0; i < das->nregions; ++i)
             free(das->regions[i].name);
@@ -218,33 +241,66 @@ void das_getnmem(dasystem* das)
 
 /** Looks for all horizontal fields of the model to be updated.
  */
-void das_getfields(dasystem* das)
+void das_getfields(dasystem* das, int gridid, int* nfields, field** fields)
 {
     model* m = das->m;
     int nvar = model_getnvar(m);
     int vid;
 
-    assert(das->nfields == 0);
-    assert(das->fields == NULL);
+    assert(*nfields == 0);
+    assert(*fields == NULL);
 
     for (vid = 0; vid < nvar; ++vid) {
         char fname[MAXSTRLEN];
         char* varname = model_getvarname(m, vid);
         int nk, k;
 
+        if (gridid >= 0 && model_getvargridid(m, vid) != gridid)
+            continue;
+
         model_getmemberfname(m, das->ensdir, varname, 1, fname);
         nk = getnlevels(fname, varname);
         for (k = 0; k < nk; ++k) {
             field* f;
 
-            if (das->nfields % NFIELDS_INC == 0)
-                das->fields = realloc(das->fields, (das->nfields + NFIELDS_INC) * sizeof(field));
-            f = &das->fields[das->nfields];
-            f->id = das->nfields;
+            if (*nfields % NFIELDS_INC == 0)
+                *fields = realloc(*fields, (*nfields + NFIELDS_INC) * sizeof(field));
+            f = &(*fields)[*nfields];
+            f->id = *nfields;
             f->varid = vid;
             strcpy(f->varname, varname);
             f->level = k;
-            das->nfields++;
+            (*nfields)++;
         }
     }
+}
+
+/**
+ */
+void das_getfname_X5(dasystem* das, void* grid, char fname[])
+{
+    if (model_getngrid(das->m) == 1)
+        sprintf(fname, "%s.nc", FNAMEPREFIX_X5);
+    else
+        sprintf(fname, "%s-%d.nc", FNAMEPREFIX_X5, grid_getid(grid));
+}
+
+/**
+ */
+void das_getfname_w(dasystem* das, void* grid, char fname[])
+{
+    if (model_getngrid(das->m) == 1)
+        sprintf(fname, "%s.nc", FNAMEPREFIX_W);
+    else
+        sprintf(fname, "%s-%d.nc", FNAMEPREFIX_W, grid_getid(grid));
+}
+
+/**
+ */
+void das_getfname_stats(dasystem* das, void* grid, char fname[])
+{
+    if (model_getngrid(das->m) == 1)
+        sprintf(fname, "%s.nc", FNAMEPREFIX_STATS);
+    else
+        sprintf(fname, "%s-%d.nc", FNAMEPREFIX_STATS, grid_getid(grid));
 }

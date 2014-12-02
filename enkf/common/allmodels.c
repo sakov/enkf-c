@@ -28,7 +28,7 @@ typedef struct {
 } model_entry;
 
 model_entry allmodelentries[] = {
-    {"Z-MODEL", zmodel_setgrid, zmodel_setup}
+    {"Z-MODEL", zmodel_setgrids, zmodel_setup}
 };
 
 /**

@@ -33,15 +33,22 @@
  */
 static void interpolate_2d_obs(model* m, observations* allobs, int nobs, int obsids[], char fname[], float** v, ENSOBSTYPE out[])
 {
-    int** mask = model_getnumlevels(m);
+    int type_prev = -1;
+    int** mask = NULL;
     int ni, nj;
     int i;
-
-    model_getdims(m, &ni, &nj, NULL);
 
     for (i = 0; i < nobs; ++i) {
         int ii = obsids[i];
         observation* o = &allobs->data[ii];
+
+        if (o->type != type_prev) {
+            int mvid = model_getvarid(m, allobs->obstypes[o->type].varname);
+
+            assert(mvid >= 0);
+            model_getvardims(m, mvid, &ni, &nj, NULL);
+            mask = model_getnumlevels(m, mvid);
+        }
 
         assert(out[ii] == 0.0);
         out[ii] = interpolate2d(o->fi, o->fj, ni, nj, v, mask);
@@ -81,15 +88,22 @@ static void interpolate_2d_obs(model* m, observations* allobs, int nobs, int obs
  */
 static void interpolate_3d_obs(model* m, observations* allobs, int nobs, int obsids[], char fname[], float*** v, ENSOBSTYPE out[])
 {
-    int** nlevels = model_getnumlevels(m);
+    int** nlevels = NULL;
+    int type_prev = -1;
     int ni, nj, nk;
     int i;
-
-    model_getdims(m, &ni, &nj, &nk);
 
     for (i = 0; i < nobs; ++i) {
         int ii = obsids[i];
         observation* o = &allobs->data[ii];
+
+        if (o->type != type_prev) {
+            int mvid = model_getvarid(m, allobs->obstypes[o->type].varname);
+
+            assert(mvid >= 0);
+            model_getvardims(m, mvid, &ni, &nj, &nk);
+            nlevels = model_getnumlevels(m, mvid);
+        }
 
         assert(out[ii] == 0.0);
         out[ii] = interpolate3d(o->fi, o->fj, o->fk, ni, nj, nk, v, nlevels);
@@ -148,12 +162,14 @@ void H_sla_standard(dasystem* das, int nobs, int obsids[], char fname[], int mem
     observations* allobs = das->obs;
     float** msl = (float**) model_getmodeldata(m, "MSL");
     float** src = (float**) psrc;
+    int mvid = model_getvarid(m, varname);
     int ni, nj;
     int i, j;
 
+    assert(mvid >= 0);
     assert(varname2 == NULL);
 
-    model_getdims(m, &ni, &nj, NULL);
+    model_getvardims(m, mvid, &ni, &nj, NULL);
     model_readfield(m, fname, mem, t, varname, 0, src[0]);
     for (j = 0; j < nj; ++j)
         for (i = 0; i < ni; ++i)
@@ -189,11 +205,13 @@ void H_sla_biased(dasystem* das, int nobs, int obsids[], char fname[], int mem, 
     float** msl = (float**) model_getmodeldata(m, "MSL");
     float** src = (float**) psrc;
     float** mslb = NULL;
+    int mvid = model_getvarid(m, varname);
     char fname2[MAXSTRLEN];
     int ni, nj;
     int i, j;
 
-    model_getdims(m, &ni, &nj, NULL);
+    assert(mvid >= 0);
+    model_getvardims(m, mvid, &ni, &nj, NULL);
 
     if (das->mode == MODE_ENKF)
         model_getmemberfname(m, das->ensdir, varname2, mem, fname2);

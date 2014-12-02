@@ -172,10 +172,13 @@ static void parse_commandline(int argc, char* argv[], char** fname_prm, char** f
 
 /**
  */
-static observations* obs_create_fromsingleob(enkfprm* prm, model* m)
+static observations* obs_create_fromsingleob(enkfprm* prm, dasystem* das)
 {
+    model* m = das->m;
     observations* obs = obs_create();
     observation* o = singleob;
+    int vid = -1;
+    void* grid = NULL;
 
     enkf_printf("  reading observation type specs from \"%s\":\n", prm->obstypeprm);
     obstypes_read(prm->obstypeprm, &obs->nobstypes, &obs->obstypes, prm->rfactor_base);
@@ -187,6 +190,9 @@ static observations* obs_create_fromsingleob(enkfprm* prm, model* m)
     if (o->type == obs->nobstypes)
         enkf_quit("command line: type \"%s\" not known");
 
+    vid = model_getvarid(m, obs->obstypes[o->type].varname);
+    grid = model_getvargrid(m, vid);
+
     obs->products = st_create("products");
     st_add_ifabscent(obs->products, "Synthetic", -1);
     obs->instruments = st_create("instruments");
@@ -195,23 +201,24 @@ static observations* obs_create_fromsingleob(enkfprm* prm, model* m)
     obs->nobs = 1;
     obs->data = o;
     if (!singleob_ijk) {
-        o->status = model_xy2fij(m, o->lon, o->lat, &o->fi, &o->fj);
+        o->status = model_xy2fij(m, vid, o->lon, o->lat, &o->fi, &o->fj);
         if (o->status == STATUS_OK)
-            o->status = model_z2fk(m, o->fi, o->fj, o->depth, &o->fk);
+            o->status = model_z2fk(m, vid, o->fi, o->fj, o->depth, &o->fk);
         else
             o->fk = NaN;
     } else {
         int ni, nj, nk;
-        int** nlevels = model_getnumlevels(m);
+        int** nlevels = model_getnumlevels(m, vid);
 
         o->fi = o->lon;
         o->fj = o->lat;
-        model_fij2xy(m, o->fi, o->fj, &o->lon, &o->lat);
+        model_fij2xy(m, vid, o->fi, o->fj, &o->lon, &o->lat);
         o->fk = o->depth;
         if (o->depth != 0.0)
             o->depth = NaN;     /* fk2z - TODO */
 
-        model_getdims(m, &ni, &nj, &nk);
+        grid_getdims(grid, &ni, &nj, &nk);
+
         o->status = STATUS_OK;
         if (o->fi < 0.0 || o->fi > (double) (ni - 1) || o->fj < 0.0 || o->fj > (double) (nj - 1) || o->fk < 0.0 || o->fk > (double) (nk - 1))
             o->status = STATUS_OUTSIDEGRID;
@@ -272,7 +279,8 @@ int main(int argc, char* argv[])
         enkf_printf("  reading observations from \"%s\":\n", fname_obs);
         obs_read(das->obs, fname_obs);
     } else {
-        das->obs = obs_create_fromsingleob(prm, das->m);
+        das->obs = obs_create_fromsingleob(prm, das);
+        das_setobstypesindices(das);
         enkf_obstype = OBSTYPE_INNOVATION;
     }
     enkfprm_destroy(prm);
