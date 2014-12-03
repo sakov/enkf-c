@@ -75,7 +75,8 @@ CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING
 IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY
 OF SUCH DAMAGE.
 
-\chapter{Introduction}
+\chapter*{Introduction}
+\addcontentsline{toc}{chapter}{Introduction}
 
 EnKF-C aims to provide a light-weight generic framework for off-line data assimilation (DA) into large-scale layered geophysical models with the ensemble Kalman filter (EnKF).
 Here ``light-weight'' has higher priority than ``generic''; that is, the code is not designed to cover every virtual possibility for the sake of it, but rather to be expandable in practical (from the author's point of view) situations.
@@ -93,31 +94,11 @@ EnKF-C is available from \url{https://code.google.com/p/enkf-c}.
 This user guide is a part of the EnKF-C package. 
 It is also available from \url{http://arxiv.org/abs/1410.1233}.
 
-\chapter{Overview}
-
-EnKF-C conducts data assimilation in three stages: \emph{prep}, \emph{calc} and \emph{update}.
-
-\emph{prep} preprocesses observations so that they are ready for DA.
-It has the following work flow:
-\begin{itemize}
-\item read original observations and fill each observation into a uniform structure \emph{measurement};
-\item write observations to file \verb|observations-orig.nc|;
-\item combine observations into superobservations;
-\item write super observations to \verb|observations.nc|.
-\end{itemize}
-
-\emph{calc} calculates ensemble transforms for updating the forecast ensemble of model states (EnKF) or the background model state (EnOI) in the following stages:
-\begin{itemize}
-\item read observations from \verb|observations.nc|;
-\item calculate ensemble of forecast observations $\mb H \mb E^f$ (EnKF) or ensemble of forecast observation anomalies $\mb H \mb A^f$ and background observation estimates $\mb H \mb x^f$ (EnOI);
-\item for each horizontal grid cell calculate local ensemble transforms $\mb X_5$ (EnKF) or background update coefficients $\mb w$ (EnOI);
-\item save these transforms to \verb|X5.nc| (EnKF) or \verb|w.nc| (EnOI);
-\item calculate and report forecast and analysis innovation statistics.
-\end{itemize}
-
-\emph{update} updates the ensemble (EnKF) or the background (EnOI) by using transforms calculated by \emph{calc}.
+This user guide contains two main sections.
+Section~\ref{sec:enkf} overviews basics of the EnKF; section~\ref{sec:enkf-c} provides a techical description of EnKF-C.
 
 \chapter{EnKF}
+\label{sec:enkf}
 
 \section{Kalman filter}
 
@@ -557,7 +538,32 @@ In contrast to the EnKF, due to the use of a static ensemble the EnOI avoids pot
 The EnOI can account for the time of observations by calculating innovation using forecast at observation time, as in (\ref{s-async}).
 This approach is commonly known as ``first guess at appropriate time'', or FGAT.
 
-\chapter{Technical description}
+\chapter{EnKF-C}
+\label{sec:enkf-c}
+
+\section{Overview}
+
+EnKF-C conducts data assimilation in three stages: \emph{prep}, \emph{calc} and \emph{update}.
+
+\emph{prep} preprocesses observations so that they are ready for DA.
+It has the following work flow:
+\begin{itemize}
+\item read original observations and fill each observation into a uniform structure \emph{measurement};
+\item write observations to file \verb|observations-orig.nc|;
+\item combine observations into superobservations;
+\item write super observations to \verb|observations.nc|.
+\end{itemize}
+
+\emph{calc} calculates ensemble transforms for updating the forecast ensemble of model states (EnKF) or the background model state (EnOI) in the following stages:
+\begin{itemize}
+\item read observations from \verb|observations.nc|;
+\item calculate ensemble of forecast observations $\mb H \mb E^f$ (EnKF) or ensemble of forecast observation anomalies $\mb H \mb A^f$ and background observation estimates $\mb H \mb x^f$ (EnOI);
+\item for each horizontal grid cell calculate local ensemble transforms $\mb X_5$ (EnKF) or background update coefficients $\mb w$ (EnOI);
+\item save these transforms to \verb|X5.nc| (EnKF) or \verb|w.nc| (EnOI);
+\item calculate and report forecast and analysis innovation statistics.
+\end{itemize}
+
+\emph{update} updates the ensemble (EnKF) or the background (EnOI) by using transforms calculated by \emph{calc}.
 
 \section{Starting up: example 1}
 \label{example1}
