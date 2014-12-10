@@ -450,6 +450,13 @@ void* model_getmodeldata(model* m, char tag[])
 
 /**
  */
+char* model_gettype(model* m)
+{
+    return m->type;
+}
+
+/**
+ */
 int model_getnvar(model* m)
 {
     return m->nvar;
@@ -595,7 +602,7 @@ int model_xy2fij(model* m, int vid, double x, double y, double* fi, double* fj)
             x += 360.0;
     }
 
-    grid_getxy2fijfn(grid) (grid, x, y, fi, fj);
+    grid_xy2fij(grid, x, y, fi, fj);
 
     if (isnan(*fi + *fj))
         return STATUS_OUTSIDEGRID;
@@ -618,7 +625,7 @@ int model_fij2xy(model* m, int vid, double fi, double fj, double* x, double* y)
 {
     void* grid = m->grids[m->vars[vid].gridid];
 
-    grid_getfij2xyfn(grid) (grid, fi, fj, x, y);
+    grid_fij2xy(grid, fi, fj, x, y);
 
     if (isnan(*x + *y))
         return STATUS_OUTSIDEGRID;
@@ -638,11 +645,17 @@ int model_z2fk(model* m, int vid, double fi, double fj, double z, double* fk)
         return STATUS_OUTSIDEGRID;
     }
 
-    grid_getz2fkfn(grid) (grid, fi, fj, z, fk);
+    grid_z2fk(grid, fi, fj, z, fk);
 
     if (isnan(*fk))
         return STATUS_OUTSIDEGRID;
 
+    if (grid_getvtype(grid) == GRIDVTYPE_SIGMA)
+         return STATUS_OK;
+
+    /*
+     * a depth check for z-grid:
+     */
     i1 = floor(fi);
     i2 = ceil(fi);
     j1 = floor(fj);

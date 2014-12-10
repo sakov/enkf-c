@@ -52,6 +52,7 @@ void print_vector_float(int n, float* a, char offset[]);
 ENSOBSTYPE interpolate2d(double fi, double fj, int ni, int nj, float** v, int** mask);
 ENSOBSTYPE interpolate3d(double fi, double fj, double fk, int ni, int nj, int nk, float*** v, int** nlevels);
 double taper_gc(double x);
+void ll2xyz(double in[2], double out[3]);
 
 #define _UTILS_H
 #endif

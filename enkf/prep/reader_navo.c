@@ -49,7 +49,7 @@ void reader_navo_standard(char* fname, int fid, obsmeta* meta, model* m, observa
     double tunits_multiple, tunits_offset;
     char* basename;
     int model_vid;
-    int i;
+    int k, i;
 
     basename = strrchr(fname, '/');
     if (basename == NULL)
@@ -105,6 +105,7 @@ void reader_navo_standard(char* fname, int fid, obsmeta* meta, model* m, observa
     tunits_convert(tunits, &tunits_multiple, &tunits_offset);
 
     model_vid = model_getvarid(m, obs->obstypes[obstype_getid(obs->nobstypes, obs->obstypes, meta->type)].varname);
+    k = grid_gettoplayerid(model_getvargrid(m, model_vid));
 
     for (i = 0; i < (int) nobs_local; ++i) {
         observation* o;
@@ -132,7 +133,7 @@ void reader_navo_standard(char* fname, int fid, obsmeta* meta, model* m, observa
             continue;
         if ((o->status == STATUS_OK) && (o->lon <= ot->xmin || o->lon >= ot->xmax || o->lat <= ot->ymin || o->lat >= ot->ymax || o->depth <= ot->zmin || o->depth >= ot->zmax))
             o->status = STATUS_OUTSIDEOBSDOMAIN;
-        o->fk = 0.0;
+        o->fk = (double) k;
         o->date = time[i] * tunits_multiple + tunits_offset;
         o->aux = -1;
 

@@ -1,5 +1,5 @@
   running PREP for EnKF version 0.88:
-  2014-12-03 09:55:33
+  2014-12-10 09:48:22
   reading prep specs from "enoi.prm":
     MODE = EnOI
     MODEL PRM = "model.prm"
@@ -30,6 +30,7 @@
       CHECK_G          = [-]
       SHUFFLE_ROWS     = [-]
       HE_VIAFILE       = [-]
+      GRIDNODES_WRITE  = [+]
   reading observation specs from "obs.prm":
     PRODUCT = RADS
       READER = standard2
@@ -75,22 +76,23 @@
       ERROR_STD = 0.1, operation = EQUAL
   setting the model:
     grid prm info:
-      name = "t-grid"
-      file = "conf/grid_spec.nc"
-      xdimname = "grid_x_T"
-      ydimname = "grid_y_T"
-      zdimname = "zt"
-      xvarname = "grid_x_T"
-      yvarname = "grid_y_T"
-      zvarname = "zt"
-      depthvarname = "depth_t"
-      numlevelsvarname = "num_levels"
+      NAME = "t-grid"
+      FILE = "conf/grid_spec.nc"
+      XDIMNAME = "grid_x_T"
+      YDIMNAME = "grid_y_T"
+      ZDIMNAME = "zt"
+      XVARNAME = "grid_x_T"
+      YVARNAME = "grid_y_T"
+      ZVARNAME = "zt"
+      DEPTHVARNAME = "depth_t"
+      NUMLEVELSVARNAME = "num_levels"
     grid info:
-      type = LATLON_REGULAR
+      hor type = LATLON_REGULAR
       periodic by X = no
       periodic by Y = no
       dims = 100 x 100 x 2
       longitude range = [0, 360]
+      vert type = Z
     adding custom data "MSL":
       file = conf/eta_mean-bran.nc
       variable = eta_t
@@ -117,12 +119,12 @@
       ID = 0
       ISSURFACE = yes
       HFUNCTION = standard
-      ALLOWED MIN = -1.8e+308
-      ALLOWED MAX = 1.8e+308
-      ASYNCHRONOUS = ls: cannot access obs/WINDSAT/windsat_20071221.nc: No such file or directory
+      ALLOWED MIN = -1.8e+3ls: cannot access obs/WINDSAT/windsat_20071221.nc: No such file or directory
 ls: cannot access obs/WINDSAT/windsat_20071222.nc: No such file or directory
 ls: cannot access obs/WINDSAT/windsat_20071223.nc: No such file or directory
-no
+08
+      ALLOWED MAX = 1.8e+308
+      ASYNCHRONOUS = no
       RFACTOR = 1
     NAME = SST
       VAR = temp
@@ -320,5 +322,5 @@ no
     TEM     288        0          0          0          0          0          0          10        
     SAL     288        0          0          0          0          0          0          10        
     total   9957       3          0          0          3          0          0          3927      
-  2014-12-03 09:55:33
+  2014-12-10 09:48:23
   finished

@@ -198,6 +198,11 @@ void enkf_printcompileflags(const char offset[])
 #else
     enkf_printf("%s  HE_VIAFILE       = [-]\n", offset);
 #endif
+#if defined(GRIDNODES_WRITE)
+    enkf_printf("%s  GRIDNODES_WRITE  = [+]\n", offset);
+#else
+    enkf_printf("%s  GRIDNODES_WRITE  = [-]\n", offset);
+#endif
 }
 
 /**
@@ -1117,4 +1122,19 @@ double taper_gc(double x)
     if (x < 1.0)
         return 1.0 + x2 * (-x3 / 4.0 + x2 / 2.0) + x3 * (5.0 / 8.0) - x2 * (5.0 / 3.0);
     return x2 * (x3 / 12.0 - x2 / 2.0) + x3 * (5.0 / 8.0) + x2 * (5.0 / 3.0) - x * 5.0 + 4.0 - (2.0 / 3.0) / x;
+}
+
+/** Converts from geographic to cartesian coordinates.
+ * @param in Input: {lon, lat}
+ * @param out Output: {x, y, z}
+ */
+void ll2xyz(double in[2], double out[3])
+{
+    double lon = in[0] * DEG2RAD;
+    double lat = in[1] * DEG2RAD;
+    double coslat = cos(lat);
+
+    out[0] = REARTH * sin(lon) * coslat;
+    out[1] = REARTH * cos(lon) * coslat;
+    out[2] = REARTH * sin(lat);
 }

@@ -20,6 +20,7 @@
 #include "utils.h"
 #include "allmodels.h"
 #include "z-model.h"
+#include "sigma-model.h"
 
 typedef struct {
     char* modeltype;
@@ -28,7 +29,8 @@ typedef struct {
 } model_entry;
 
 model_entry allmodelentries[] = {
-    {"Z-MODEL", zmodel_setgrids, zmodel_setup}
+    {"Z-MODEL", zmodel_setgrids, zmodel_setup},
+    {"SIGMA-MODEL", smodel_setgrids, smodel_setup}
 };
 
 /**

@@ -9,7 +9,8 @@
  *
  * Description:
  *
- * Revisions:
+ * Revisions:   10/12/2014 PS: moved here gridprm stuff from z-model and 
+ *                sigma-model.c; some reshuffling of mapping functions.
  *
  *****************************************************************************/
 
@@ -20,37 +21,55 @@
 #define GRIDHTYPE_LATLON_IRREGULAR 2
 #define GRIDHTYPE_CURVILINEAR 3
 
-typedef void (*grid_xy2fij_fn) (void* grid, double x, double y, double* fi, double* fj);
-typedef void (*grid_z2fk_fn) (void* grid, double fi, double fj, double z, double* fk);
-typedef void (*grid_fij2xy_fn) (void* grid, double fi, double fj, double* x, double* y);
-typedef void (*grid_tocartesian_fn) (double* in, double* out);
+#define GRIDVTYPE_NONE 0
+#define GRIDVTYPE_Z 1
+#define GRIDVTYPE_SIGMA 2
 
 struct grid;
 typedef struct grid grid;
 
-grid* grid_create(char name[], int id);
+typedef struct {
+    char* name;
+    char* fname;
+    char* xdimname;
+    char* ydimname;
+    char* zdimname;
+    char* xvarname;
+    char* yvarname;
+    char* zvarname;
+    char* depthvarname;
+    char* levelvarnameentry;
+    char* levelvarname;
+} gridprm;
+
+typedef void (*grid_tocartesian_fn) (double in[2], double out[3]);
+
+void gridprm_create(char* fname, int* ngrid, gridprm** prm, char* levelvarnameentry);
+void gridprm_destroy(int ngrid, gridprm prm[]);
+
+grid* grid_create(gridprm* prm, int id, int vtype);
 void grid_destroy(grid* g);
 void grid_print(grid* g, char offset[]);
 void grid_describeprm(void);
-
-void grid_setcoords(grid* g, int type, int periodic_x, int periodic_y, int nx, int ny, int nz, void* x, void* y, double* z);
-void grid_setdepth(grid* g, float** depth);
-void grid_setnumlevels(grid* g, int** numlevels);
 void grid_settocartesian_fn(grid* g, grid_tocartesian_fn fn);
 
 void grid_getdims(grid* g, int* ni, int* nj, int* nk);
+int grid_gettoplayerid(grid* g);
 char* grid_getname(grid* g);
 int grid_getid(grid* g);
 int grid_gethtype(grid* g);
+int grid_getvtype(grid* g);
 float** grid_getdepth(grid* g);
 int** grid_getnumlevels(grid* g);
 int grid_getlontype(grid* g);
-grid_xy2fij_fn grid_getxy2fijfn(grid* g);
-grid_z2fk_fn grid_getz2fkfn(grid* g);
-grid_fij2xy_fn grid_getfij2xyfn(grid* g);
+
+void grid_xy2fij(grid* g, double x, double y, double* fi, double* fj);
+void grid_z2fk(grid* g, double fi, double fj, double z, double* fk);
+void grid_fij2xy(grid* g, double fi, double fj, double* x, double* y);
+void grid_tocartesian(grid* g, double in[2], double out[3]);
+
 int grid_isperiodic_x(grid* g);
 int grid_isperiodic_y(grid* g);
-void grid_tocartesian(grid* g, double* in, double* out);
 
 #define _GRID_H
 #endif

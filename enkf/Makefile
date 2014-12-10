@@ -108,10 +108,14 @@ common/pointlog.h\
 common/dasystem.h
 
 SRC_MODEL =\
-models/z-model/z-model.c
+models/standard-model.c\
+models/z-model.c\
+models/sigma-model.c
 
 HDR_MODEL =\
-models/z-model.h
+models/standard-model.h\
+models/z-model.h\
+models/sigma-model.h
 
 HDR_MKUNITOBS =\
 common/distribute.h\
@@ -143,5 +147,5 @@ clean:
 	rm -f bin/*
 
 indent:
-	indent -T FILE -T field -T dasystem -T grid -T kdtree -T kdnode -T kdset -T model -T modeldata -T gridprm -T mom4prm -T stringtable -T resnode -T tm -T obsmeta -T obsreader_entry -T H_entry -T model_entry -T enkfprm -T gnll -T rangeentry -T observation -T obstype -T observations -T gridprm -T pointlog -T region -T obsdomain -T calcstats -T hashtable -T ht_bucket -T badbatchspec -T nc_type -T size_t */*.[ch]
+	indent -T FILE -T field -T dasystem -T grid -T kdtree -T kdnode -T kdset -T model -T modeldata -T gridprm -T gnxy_simple -T gnxy_curv -T gnz -T gridnodes -T gridmap -T mom4prm -T stringtable -T resnode -T tm -T obsmeta -T obsreader_entry -T H_entry -T model_entry -T enkfprm -T gnll -T rangeentry -T observation -T obstype -T observations -T pointlog -T region -T obsdomain -T calcstats -T hashtable -T ht_bucket -T badbatchspec -T nc_type -T size_t */*.[ch]
 	rm -f `find . -name "*.*~"`
