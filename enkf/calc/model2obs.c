@@ -148,9 +148,10 @@ void H_surf_standard(dasystem* das, int nobs, int obsids[], char fname[], int me
     model* m = das->m;
     observations* allobs = das->obs;
     float** src = (float**) psrc;
+    int k = grid_gettoplayerid(model_getvargrid(m, model_getvarid(m, varname)));
 
     assert(varname2 == NULL);
-    model_readfield(m, fname, mem, t, varname, 0, src[0]);
+    model_readfield(m, fname, mem, t, varname, k, src[0]);
     interpolate_2d_obs(m, allobs, nobs, obsids, fname, src, dst);
 }
 

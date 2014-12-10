@@ -1,3 +1,7 @@
+v. 0.89
+   PS 10122014
+   -- Added sigma model to enable assimilating with ROMS. Quite substantial
+      secondary changes overall.
 v. 0.88
    PS 20141120
    -- SUBSTANTIAL structural changes. It is now possible to have multiple grids

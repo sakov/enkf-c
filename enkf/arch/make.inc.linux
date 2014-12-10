@@ -7,8 +7,8 @@ LIB_M = -lm
 
 # with gridutils (default) (comment out to change)
 #
-INC_GU = -I/usr/local/include
-LIB_GU = -lgu
+INC_GU = -I/home/pavel/src/gridutils
+LIB_GU = /home/pavel/src/gridutils/libgu.so
 #
 # without gridutils (uncomment to change)
 #
@@ -22,7 +22,7 @@ LD_PATH += -L/usr/lib64
 # choose gcc if you do not have clang
 #
 CC = clang
-CFLAGS = -g -pedantic -Wall -ferror-limit=2 -std=c99 -D_GNU_SOURCE # -O2
+CFLAGS = -g -pedantic -Wall -ferror-limit=2 -std=c99 -D_GNU_SOURCE -DGRIDNODES_WRITE # -O2
 
 # which compiler/flags to use with MPI
 #

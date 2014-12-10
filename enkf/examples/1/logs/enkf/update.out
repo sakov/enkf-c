@@ -1,8 +1,8 @@
   MPI: initialised 2 processes
-  MPI: rank = 0, PID = 1084
-  MPI: rank = 1, PID = 1085
+  MPI: rank = 0, PID = 5381
+  MPI: rank = 1, PID = 5382
   running UPDATE for EnKF version 0.88:
-  2014-12-03 09:51:01
+  2014-12-10 09:12:31
   reading system specs from "enkf.prm":
     MODE = EnKF
     SCHEME = DEnKF
@@ -33,24 +33,26 @@
       CHECK_G          = [-]
       SHUFFLE_ROWS     = [-]
       HE_VIAFILE       = [-]
+      GRIDNODES_WRITE  = [-]
   initialising the system:
     grid prm info:
-      name = "t-grid"
-      file = "conf/grid_spec.nc"
-      xdimname = "grid_x_T"
-      ydimname = "grid_y_T"
-      zdimname = "zt"
-      xvarname = "grid_x_T"
-      yvarname = "grid_y_T"
-      zvarname = "zt"
-      depthvarname = "depth_t"
-      numlevelsvarname = "num_levels"
+      NAME = "t-grid"
+      FILE = "conf/grid_spec.nc"
+      XDIMNAME = "grid_x_T"
+      YDIMNAME = "grid_y_T"
+      ZDIMNAME = "zt"
+      XVARNAME = "grid_x_T"
+      YVARNAME = "grid_y_T"
+      ZVARNAME = "zt"
+      DEPTHVARNAME = "depth_t"
+      NUMLEVELSVARNAME = "num_levels"
     grid info:
-      type = LATLON_REGULAR
+      hor type = LATLON_REGULAR
       periodic by X = no
       periodic by Y = no
       dims = 100 x 100 x 2
       longitude range = [0, 360]
+      vert type = Z
     adding custom data "MSL":
       file = conf/eta_mean-bran.nc
       variable = eta_t
@@ -78,24 +80,24 @@
     defining state variables in point logs:
     distributing iterations:
       all processes get 48 iterations
-    2014-12-03 09:51:01
+    2014-12-10 09:12:31
     allocating disk space for analysis:................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................
-    2014-12-03 09:51:04
+    2014-12-10 09:12:31
     updating fields for t-grid:
       9 fields
       distributing iterations:
         processes get 5 or 4 iterations
-      u        0   (1: 5: 25.0%)
       eta_t    0   (0: 0: 20.0%)
-      u        1   (1: 6: 50.0%)
+      u        0   (1: 5: 25.0%)
       temp     0   (0: 1: 40.0%)
+      u        1   (1: 6: 50.0%)
       temp     1   (0: 2: 60.0%)
-      salt     0   (0: 3: 80.0%)
       v        0   (1: 7: 75.0%)
+      salt     0   (0: 3: 80.0%)
       v        1   (1: 8: 100.0%)
       salt     1   (0: 4: 100.0%)
 
-  2014-12-03 09:51:06
+  2014-12-10 09:12:33
   assembling analysis:
     distributing iterations:
       all processes get 48 iterations
@@ -116,5 +118,5 @@
     deleting tiles:
       distributing iterations:
         processes get 5 or 4 iterations
-  2014-12-03 09:51:07
+  2014-12-10 09:12:34
   finished
