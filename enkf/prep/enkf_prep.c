@@ -169,8 +169,8 @@ static int cmp_obs(const void* p1, const void* p2, void* p)
     if (i1 < i2)
         return -1;
 
-    i1 = (int) floor(m1->fk);
-    i2 = (int) floor(m2->fk);
+    i1 = (int) floor(m1->fk + 0.5);
+    i2 = (int) floor(m2->fk + 0.5);
     if (i1 > i2)
         return 1;
     if (i1 < i2)

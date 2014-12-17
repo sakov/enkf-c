@@ -660,7 +660,7 @@ int model_z2fk(model* m, int vid, double fi, double fj, double z, double* fk)
     i2 = ceil(fi);
     j1 = floor(fj);
     j2 = ceil(fj);
-    k2 = ceil(*fk);
+    k2 = floor(*fk);
     if (numlevels[j1][i1] <= k2 && numlevels[j1][i2] <= k2 && numlevels[j2][i1] <= k2 && numlevels[j2][i2] <= k2) {
         *fk = NaN;
         return STATUS_LAND;

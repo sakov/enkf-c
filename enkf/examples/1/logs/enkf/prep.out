@@ -1,5 +1,5 @@
-  running PREP for EnKF version 0.88:
-  2014-12-10 09:12:21
+  running PREP for EnKF version 0.90:
+  2014-12-17 13:03:51
   reading prep specs from "enkf.prm":
     MODE = EnKF
     SCHEME = DEnKF
@@ -276,7 +276,7 @@ ED MAX = 1.8e+308
         # good obs = 0
       id = 9384 - 9671
       total 288 observations
-      288 valid observations
+      184 valid observations
       adding error_std = 0.5:
       min date = -4.000
       max date = -2.000
@@ -303,7 +303,7 @@ ED MAX = 1.8e+308
         # good obs = 0
       id = 9672 - 9959
       total 288 observations
-      288 valid observations
+      184 valid observations
       adding error_std = 0.1:
       min date = -4.000
       max date = -2.000
@@ -311,7 +311,7 @@ ED MAX = 1.8e+308
     calculating obs stats:
   writing observations to "observations-orig.nc":
   superobing:
-    3927 superobservations
+    3921 superobservations
     calculating obs stats:
   writing superobservations to "observations.nc":
   printing observation statistics:
@@ -319,8 +319,8 @@ ED MAX = 1.8e+308
     ----------------------------------------------------------------------------------------
     SLA     997        3          0          0          3          0          0          652       
     SST     8384       0          0          0          0          0          0          3255      
-    TEM     288        0          0          0          0          0          0          10        
-    SAL     288        0          0          0          0          0          0          10        
-    total   9957       3          0          0          3          0          0          3927      
-  2014-12-10 09:12:22
+    TEM     184        104        104        0          0          0          0          7         
+    SAL     184        104        104        0          0          0          0          7         
+    total   9749       211        208        0          3          0          0          3921      
+  2014-12-17 13:03:52
   finished

@@ -56,10 +56,10 @@ void zmodel_setgrids(model* m, char gfname[])
  */
 static void zmodel_adddata(model* m, char* token, char* fname, int line)
 {
-    if (strcasecmp(token, "MSL") == 0)
-        standardmodel_adddata_2D(m, token, fname, line);
-    else
+    if (strcasecmp(token, "MSL") != 0)
         enkf_quit("%s, l.%d: data tag \"%s\" not handled by z-model", fname, line, token);
+
+    standardmodel_adddata_2D(m, "MSL", fname, line);
 }
 
 /**
