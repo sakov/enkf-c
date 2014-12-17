@@ -1,3 +1,8 @@
+v. 0.90
+   PS 17122014
+   -- Corrected defect in verticall mapping -- thanks to Russ Fiedler for the
+      bug report.
+   -- Moved `gridprm' stuff to gridprm.[ch].
 v. 0.89
    PS 10122014
    -- Added sigma model to enable assimilating with ROMS. Quite substantial

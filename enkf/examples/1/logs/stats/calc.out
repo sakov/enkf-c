@@ -1,8 +1,8 @@
   MPI: initialised 2 processes
-  MPI: rank = 0, PID = 6066
-  MPI: rank = 1, PID = 6067
-  running CALC for EnKF version 0.88:
-  2014-12-10 09:49:04
+  MPI: rank = 0, PID = 21648
+  MPI: rank = 1, PID = 21649
+  running CALC for EnKF version 0.90:
+  2014-12-17 13:05:08
   reading system specs from "stats.prm":
     MODE = EnOI
     MODEL PRM = "model.prm"
@@ -101,10 +101,10 @@
         MSL:
           type = 2D
   reading observations from "observations.nc":
-    3927 observations
+    3921 observations
     calculating obs stats:
   calculating ensemble observations:
-  2014-12-10 09:49:04
+  2014-12-17 13:05:08
     ensemble size = 1
     distributing iterations:
       processes get 1 or 0 iterations
@@ -113,7 +113,7 @@
     TEM +
     SAL +
   adding forecast innovations and spread to "observations.nc":
-  2014-12-10 09:49:04
+  2014-12-17 13:05:08
   printing observation statistics:
     region obs.type   # obs.  |for.inn.| for.inn.
     ---------------------------------------------
@@ -126,13 +126,13 @@
              AVHRR      2087    0.467     -0.217  
              WindSat     847    0.472     -0.307  
              N/A         321    0.393     -0.252  
-           TEM            10    4.322     -3.283  
-             ARGO         10    4.322     -3.283  
-             0-50m         0     -nan       -nan  
-             >500m         4    7.825     -7.825  
-           SAL            10    0.371     -0.241  
-             ARGO         10    0.371     -0.241  
-             0-50m         0     -nan       -nan  
-             >500m         4    0.655     -0.655  
-  2014-12-10 09:49:04
+           TEM             7    1.015      0.495  
+             ARGO          7    1.015      0.495  
+             0-50m         2    1.471      1.471  
+             >500m         0     -nan       -nan  
+           SAL             7    0.077      0.054  
+             ARGO          7    0.077      0.054  
+             0-50m         2    0.088      0.074  
+             >500m         0     -nan       -nan  
+  2014-12-17 13:05:08
   finished

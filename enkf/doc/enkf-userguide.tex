@@ -35,7 +35,7 @@
 
 \begin{document}
 
-\title{EnKF-C user guide\\{\normalsize version 0.88}}
+\title{EnKF-C user guide\\{\normalsize version 0.89}}
 
 \author{Pavel Sakov}
 \date{June 19, 2014 -- \today}
@@ -651,6 +651,8 @@ The model parameter file defines the model name, model type, an arbitrary number
 
   [ <more of the above blocks> ]
 \end{Verbatim}
+The available model types are listed by the variable \verb|allmodelentries| defined in \verb|common/allmodels.c|.
+Currently the code recognises ``z-model'' and ``sigma-model'' model types, targeted for being used with MOM and ROMS, correspondingly.
 
 Each model variable is described in a block started with the entry for the variable name.
 The inflation magnitude for a variable, if specified, overrides the common value set in the main parameter file.
@@ -1261,7 +1263,6 @@ If the system is set to generate core dumps, they can indeed be used for investi
 \subsection{Dependencies}
 
 Compiling EnKF-C requires the following external packages:
-
 \begin{itemize}
 \item netcdf;
 \item lapack (or mkl\_rt);
@@ -1270,6 +1271,7 @@ Compiling EnKF-C requires the following external packages:
 \end{itemize}
 
 Notes:
+\vspace{-3mm}
 \begin{enumerate}
 \item Using Intel's version of Lapack library -- Intel Math Kernel Library -- can improve performance over Lapack compiled with gfortran.
 \item Grid  utilities (libgu) is necessary for handling curvilinear grids only.

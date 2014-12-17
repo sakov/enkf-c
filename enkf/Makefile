@@ -30,6 +30,7 @@ common/global.c\
 common/utils.c\
 common/enkfprm.c\
 common/grid.c\
+common/gridprm.c\
 common/model.c\
 common/allmodels.c
 
@@ -42,6 +43,7 @@ common/definitions.h\
 common/utils.h\
 common/enkfprm.h\
 common/grid.h\
+common/gridprm.h\
 common/model.h
 
 SRC_PREP =\
