@@ -1036,13 +1036,17 @@ ENSOBSTYPE interpolate3d(double fi, double fj, double fk, int ni, int nj, int nk
     double wj1 = ceil(fj) - fj;
     int j2 = (int) ceil(fj);
     double wj2 = fj - floor(fj);
-    int k1 = (int) floor(fk);
-    double wk1 = ceil(fk) - fk;
-    int k2 = (int) ceil(fk);
-    double wk2 = fk - floor(fk);
+    int k1, k2;
+    double wk1, wk2;
     double sum = 0.0;
     double w = 0.0;
     double ww;
+
+    fk += 0.5;
+    k1 = (int) floor(fk);
+    wk1 = ceil(fk) - fk;
+    k2 = (int) ceil(fk);
+    wk2 = fk - floor(fk);
 
     if (i1 == i2)
         wi1 = 1.0;
