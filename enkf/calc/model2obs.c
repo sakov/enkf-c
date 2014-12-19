@@ -141,40 +141,31 @@ static void interpolate_3d_obs(model* m, observations* allobs, int nobs, int obs
 
 /**
  */
-/**
- */
 void H_surf_standard(dasystem* das, int nobs, int obsids[], char fname[], int mem, int t, char varname[], char varname2[], void* psrc, ENSOBSTYPE dst[])
 {
     model* m = das->m;
     observations* allobs = das->obs;
     float** src = (float**) psrc;
-    int k = grid_gettoplayerid(model_getvargrid(m, model_getvarid(m, varname)));
+    float** offset = NULL;
 
     assert(varname2 == NULL);
-    model_readfield(m, fname, mem, t, varname, k, src[0]);
-    interpolate_2d_obs(m, allobs, nobs, obsids, fname, src, dst);
-}
 
-/**
- */
-void H_sla_standard(dasystem* das, int nobs, int obsids[], char fname[], int mem, int t, char varname[], char varname2[], void* psrc, ENSOBSTYPE dst[])
-{
-    model* m = das->m;
-    observations* allobs = das->obs;
-    float** msl = (float**) model_getmodeldata(m, "MSL");
-    float** src = (float**) psrc;
-    int mvid = model_getvarid(m, varname);
-    int ni, nj;
-    int i, j;
-
-    assert(mvid >= 0);
-    assert(varname2 == NULL);
-
-    model_getvardims(m, mvid, &ni, &nj, NULL);
     model_readfield(m, fname, mem, t, varname, 0, src[0]);
-    for (j = 0; j < nj; ++j)
-        for (i = 0; i < ni; ++i)
-            src[j][i] -= msl[j][i];
+
+    offset = model_getmodeldata(m, allobs->obstypes[allobs->data[obsids[0]].type].name);
+    if (offset != NULL) {
+        int mvid = model_getvarid(m, varname);
+        int ni, nj;
+        float* src0 = src[0];
+        float* offset0 = offset[0];
+        int i;
+
+        assert(mvid >= 0);
+        model_getvardims(m, mvid, &ni, &nj, NULL);
+        for (i = 0; i < ni * nj; ++i)
+            src0[i] -= offset0[i];
+    }
+
     interpolate_2d_obs(m, allobs, nobs, obsids, fname, src, dst);
 }
 
@@ -186,7 +177,7 @@ void H_sla_bran(dasystem* das, int nobs, int obsids[], char fname[], int mem, in
     ENSOBSTYPE mean;
 
     assert(varname2 == NULL);
-    H_sla_standard(das, nobs, obsids, fname, mem, t, varname, NULL, psrc, dst);
+    H_surf_standard(das, nobs, obsids, fname, mem, t, varname, NULL, psrc, dst);
     if (mem <= 0) {             /* only for background */
         mean = 0.0;
         for (o = 0; o < nobs; ++o)
@@ -199,35 +190,44 @@ void H_sla_bran(dasystem* das, int nobs, int obsids[], char fname[], int mem, in
 
 /**
  */
-void H_sla_biased(dasystem* das, int nobs, int obsids[], char fname[], int mem, int t, char varname[], char varname2[], void* psrc, ENSOBSTYPE dst[])
+void H_surf_biased(dasystem* das, int nobs, int obsids[], char fname[], int mem, int t, char varname[], char varname2[], void* psrc, ENSOBSTYPE dst[])
 {
     model* m = das->m;
     observations* allobs = das->obs;
-    float** msl = (float**) model_getmodeldata(m, "MSL");
     float** src = (float**) psrc;
-    float** mslb = NULL;
+    float** offset = NULL;
+    float** bias = NULL;
     int mvid = model_getvarid(m, varname);
     char fname2[MAXSTRLEN];
     int ni, nj;
     int i, j;
 
     assert(mvid >= 0);
-    model_getvardims(m, mvid, &ni, &nj, NULL);
 
+    model_getvardims(m, mvid, &ni, &nj, NULL);
+    bias = alloc2d(nj, ni, sizeof(float));
     if (das->mode == MODE_ENKF)
         model_getmemberfname(m, das->ensdir, varname2, mem, fname2);
     else if (das->mode == MODE_ENOI)
         model_getbgfname(m, das->bgdir, varname2, fname2);
-    mslb = alloc2d(nj, ni, sizeof(float));
-    model_readfield(m, fname2, mem, NaN, varname2, 0, mslb[0]);
+    model_readfield(m, fname2, mem, NaN, varname2, 0, bias[0]);
 
     model_readfield(m, fname, mem, t, varname, 0, src[0]);
-    for (j = 0; j < nj; ++j)
-        for (i = 0; i < ni; ++i)
-            src[j][i] -= msl[j][i] + mslb[j][i];
+
+    offset = model_getmodeldata(m, allobs->obstypes[allobs->data[obsids[0]].type].name);
+    if (offset != NULL) {
+        for (j = 0; j < nj; ++j)
+            for (i = 0; i < ni; ++i)
+                src[j][i] -= offset[j][i] + bias[j][i];
+    } else {
+        for (j = 0; j < nj; ++j)
+            for (i = 0; i < ni; ++i)
+                src[j][i] -= bias[j][i];
+    }
+
     interpolate_2d_obs(m, allobs, nobs, obsids, fname, src, dst);
 
-    free2d(mslb);
+    free2d(bias);
 }
 
 /**
@@ -237,8 +237,24 @@ void H_subsurf_standard(dasystem* das, int nobs, int obsids[], char fname[], int
     model* m = das->m;
     observations* allobs = das->obs;
     float*** src = (float***) psrc;
+    float*** offset = NULL;
 
     assert(varname2 == NULL);
     model_read3dfield(m, fname, mem, t, varname, src[0][0]);
+
+    offset = model_getmodeldata(m, allobs->obstypes[allobs->data[obsids[0]].type].name);
+    if (offset != NULL) {
+        int mvid = model_getvarid(m, varname);
+        int ni, nj, nk;
+        float* src0 = src[0][0];
+        float* offset0 = offset[0][0];
+        int i;
+
+        assert(mvid >= 0);
+        model_getvardims(m, mvid, &ni, &nj, &nk);
+        for (i = 0; i < ni * nj * nk; ++i)
+            src0[i] -= offset0[i];
+    }
+
     interpolate_3d_obs(m, allobs, nobs, obsids, fname, src, dst);
 }

@@ -110,7 +110,6 @@ typedef struct {
     int ncell;
 } calcstats;
 
-#if defined(MPI)
 /**
  */
 static void nc_writediag(char fname[], int nobstypes, int nj, int ni, int stride, int** nlobs, float** dfs, float** srf, int*** pnlobs, float*** pdfs, float*** psrf)
@@ -144,7 +143,6 @@ static void nc_writediag(char fname[], int nobstypes, int nj, int ni, int stride
 
     ncw_close(fname, ncid);
 }
-#endif
 
 #if !defined(SHUFFLE_ROWS)
 /** Distributes iterations in such a way that for any given i iterations # i 
@@ -521,7 +519,7 @@ void das_calctransforms(dasystem* das)
             else if (das->mode == MODE_ENKF)
                 nc_writew(fname_XW, ncid_w, jpool[jj], ni, das->nmem, varid_w, wj[0]);
 #endif                          /* MPI */
-        }                       /* for j */
+        }                       /* for jj */
 
         if (rank == 0) {
             if (das->mode == MODE_ENKF)
@@ -531,10 +529,10 @@ void das_calctransforms(dasystem* das)
         }
 #if defined(MPI)
         MPI_Barrier(MPI_COMM_WORLD);
+#endif
         enkf_printf("    finished calculating transforms for %s\n", grid_getname(grid));
 
         enkf_flush();
-#endif
 
 #if defined(MPI)
         /*
@@ -620,15 +618,14 @@ void das_calctransforms(dasystem* das)
                 }
                 free3d(buffer_pdfs);
             }
+        }                       /* rank == 0 */
 #endif                          /* MPI */
+        if (rank == 0) {
+            char fname_stats[MAXSTRLEN];
 
-            {
-                char fname_stats[MAXSTRLEN];
+            das_getfname_stats(das, grid, fname_stats);
 
-                das_getfname_stats(das, grid, fname_stats);
-
-                nc_writediag(fname_stats, obs->nobstypes, nj, ni, das->stride, nlobs, dfs, srf, pnlobs, pdfs, psrf);
-            }
+            nc_writediag(fname_stats, obs->nobstypes, nj, ni, das->stride, nlobs, dfs, srf, pnlobs, pdfs, psrf);
         }
 
         if (das->mode == MODE_ENKF) {

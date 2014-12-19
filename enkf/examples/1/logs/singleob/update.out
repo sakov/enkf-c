@@ -1,8 +1,8 @@
   MPI: initialised 2 processes
-  MPI: rank = 0, PID = 21663
-  MPI: rank = 1, PID = 21664
-  running UPDATE for EnKF version 0.90:
-  2014-12-17 13:05:21
+  MPI: rank = 0, PID = 18133
+  MPI: rank = 1, PID = 18134
+  running UPDATE for EnKF version 0.91:
+  2014-12-19 10:57:10
   reading system specs from "singleob.prm":
     MODE = EnOI
     MODEL PRM = "model.prm"
@@ -53,12 +53,8 @@
       dims = 100 x 100 x 2
       longitude range = [0, 360]
       vert type = Z
-    adding custom data "MSL":
-      file = conf/eta_mean-bran.nc
-      variable = eta_t
     model info:
       name = Tasman
-      type = z-model
       5 variables:
         eta_t:
           inflation = 1.000
@@ -70,42 +66,8 @@
           inflation = 1.000
         v:
           inflation = 1.000
-      1 modeldata:
-        MSL:
-          type = 2D
+      0 modeldata:
   using assembled write
   updating the model state:
     96 members
-    defining state variables in point logs:
-    allocating disk space for the analysis:    2014-12-17 13:05:21
-.....
-    2014-12-17 13:05:21
-    updating fields for t-grid:
-      9 fields
-      distributing iterations:
-        processes get 5 or 4 iterations
-      u        0   (1: 5: 25.0%)
-      eta_t    0   (0: 0: 20.0%)
-      u        1   (1: 6: 50.0%)
-      temp     0   (0: 1: 40.0%)
-      v        0   (1: 7: 75.0%)
-      temp     1   (0: 2: 60.0%)
-      v        1   (1: 8: 100.0%)
-      salt     0   (0: 3: 80.0%)
-      salt     1   (0: 4: 100.0%)
-
-  2014-12-17 13:05:21
-  assembling analysis:
-    eta_t:.
-    temp:..
-    salt:..
-    u:..
-    v:..
-  assembling state variables in point logs:
-    distributing iterations:
-      processes get 1 or 0 iterations
-    deleting tiles:
-      distributing iterations:
-        processes get 5 or 4 iterations
-  2014-12-17 13:05:21
-  finished
+    defining state variables in point logs:  2014-12-19 10:57:10

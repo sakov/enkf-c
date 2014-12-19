@@ -1,5 +1,5 @@
-  running PREP for EnKF version 0.90:
-  2014-12-17 13:03:51
+  running PREP for EnKF version 0.91:
+  2014-12-19 10:55:23
   reading prep specs from "enkf.prm":
     MODE = EnKF
     SCHEME = DEnKF
@@ -93,12 +93,8 @@
       dims = 100 x 100 x 2
       longitude range = [0, 360]
       vert type = Z
-    adding custom data "MSL":
-      file = conf/eta_mean-bran.nc
-      variable = eta_t
     model info:
       name = Tasman
-      type = z-model
       5 variables:
         eta_t:
           inflation = 1.050
@@ -110,25 +106,24 @@
           inflation = 1.050
         v:
           inflation = 1.050
-      1 modeldata:
-        MSL:
-          type = 2D
+      0 modeldata:
   reading observation type specs from "obstypes.prm":
     NAME = SLA
       VAR = eta_t
       ID = 0
       ISSURFACE = yes
+      OFFSET = conf/eta_mean-bran.nc eta_t
       HFUNCTION = standard
       ALLOWED MIN = -1.8e+308
-      ALLOWls: cannot access obs/WINDSAT/windsat_20071221.nc: No such file or directory
-ls: cannot access obs/WINDSAT/windsat_20071222.nc: No such file or directory
-ls: cannot access obs/WINDSAT/windsat_20071223.nc: No such file or directory
-ED MAX = 1.8e+308
+      ALLOWED MAX = 1.8e+308
       ASYNCHRONOUS = no
       RFACTOR = 2
     NAME = SST
       VAR = temp
-      ID = 1
+      Ils: cannot access obs/WINDSAT/windsat_20071221.nc: No such file or directory
+ls: cannot access obs/WINDSAT/windsat_20071222.nc: No such file or directory
+ls: cannot access obs/WINDSAT/windsat_20071223.nc: No such file or directory
+D = 1
       ISSURFACE = yes
       HFUNCTION = standard
       ALLOWED MIN = -1.8e+308
@@ -322,5 +317,5 @@ ED MAX = 1.8e+308
     TEM     184        104        104        0          0          0          0          7         
     SAL     184        104        104        0          0          0          0          7         
     total   9749       211        208        0          3          0          0          3921      
-  2014-12-17 13:03:52
+  2014-12-19 10:55:24
   finished

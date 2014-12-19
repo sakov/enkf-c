@@ -17,6 +17,7 @@
 
 typedef struct {
     char* name;
+    char* vtype;
     char* fname;
     char* xdimname;
     char* ydimname;
@@ -29,7 +30,7 @@ typedef struct {
     char* levelvarname;
 } gridprm;
 
-void gridprm_create(char* fname, int* ngrid, gridprm** prm, char* levelvarnameentry);
+void gridprm_create(char* fname, int* ngrid, gridprm** prm);
 void gridprm_destroy(int ngrid, gridprm prm[]);
 void gridprm_print(gridprm* prm, char offset[]);
 

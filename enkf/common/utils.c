@@ -1024,7 +1024,9 @@ ENSOBSTYPE interpolate2d(double fi, double fj, int ni, int nj, float** v, int** 
     return (ENSOBSTYPE) sum;
 }
 
-/**
+/** Linearly interpolates a 3D field to fractional coordinates in index space.
+ *  Assumes that integer k indices correspond to layer centres. E.g. for 
+ *  fk = 1.2 the vertical weights are 0.8 of layer 1 and 0.2 of layer 2.
  */
 ENSOBSTYPE interpolate3d(double fi, double fj, double fk, int ni, int nj, int nk, float*** v, int** nlevels)
 {
@@ -1043,9 +1045,9 @@ ENSOBSTYPE interpolate3d(double fi, double fj, double fk, int ni, int nj, int nk
     double ww;
 
     if (fk < 0.0)
-	fk = 0.0;
+        fk = 0.0;
     if (fk >= nk)
-	fk = nk - 1;
+        fk = nk - 1;
     k1 = (int) floor(fk);
     wk1 = ceil(fk) - fk;
     k2 = (int) ceil(fk);

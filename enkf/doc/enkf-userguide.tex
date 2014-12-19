@@ -35,7 +35,7 @@
 
 \begin{document}
 
-\title{EnKF-C user guide\\{\normalsize version 0.89}}
+\title{EnKF-C user guide\\{\normalsize version 0.91}}
 
 \author{Pavel Sakov}
 \date{June 19, 2014 -- \today}
@@ -634,16 +634,14 @@ Its format is described by running \verb|enkf_prep|, \verb|enlf_calc| or \verb|e
 
 \subsection{Model parameter file}
 
-The model parameter file defines the model name, model type, an arbitrary number of entries for model data, and model variables to update:
+The model parameter file mainly describes the composition of the state vector by listing the model variables and specifying the associated grids.
+
 \begin{Verbatim}[frame=single,fontsize=\footnotesize]
 >./bin/enkf_prep --describe-prm-format model
 
   Model parameter file format:
 
     NAME        = <name>
-    TYPE        = <type>
-  [ DATA <tag>  = <data> ]
-    ...
 
     VAR         = <name>
     GRID        = <name>
@@ -651,8 +649,6 @@ The model parameter file defines the model name, model type, an arbitrary number
 
   [ <more of the above blocks> ]
 \end{Verbatim}
-The available model types are listed by the variable \verb|allmodelentries| defined in \verb|common/allmodels.c|.
-Currently the code recognises ``z-model'' and ``sigma-model'' model types, targeted for being used with MOM and ROMS, correspondingly.
 
 Each model variable is described in a block started with the entry for the variable name.
 The inflation magnitude for a variable, if specified, overrides the common value set in the main parameter file.
@@ -671,6 +667,7 @@ At the moment it also contains some entries for model related information, such 
   Grid parameter file format for z-model:
 
     NAME             = <name>
+    VTYPE            = { z | sigma }
     DATA             = <data file name>
     XDIMNAME         = <x dimension name>
     YDIMNAME         = <y dimension name>
@@ -679,7 +676,8 @@ At the moment it also contains some entries for model related information, such 
     YVARNAME         = <y variable name>
     ZVARNAME         = <z variable name>
     DEPTHVARNAME     = <depth variable name>
-    NUMLEVELSVARNAME = <# of levels variable name>
+    NUMLEVELSVARNAME = <# of levels variable name> (z)
+    MASKVARNAME      = <land mask variable name> (sigma)
 
   [ <more of the above blocks> ]
 \end{Verbatim}
@@ -712,6 +710,7 @@ For example:
     VAR       = <model variable name>
   [ VAR2      = <model variable name> ]
     ISSURFACE = { yes | no }
+  [ OFFSET    = <file name> <variable name> ]    (none*)
     HFUNCTION = <H function name>
   [ ASYNC     = <time interval> ]                (synchronous*)
   [ RFACTOR   = <rfactor> ]                      (1*)
@@ -726,6 +725,8 @@ For example:
 
   [ <more of the above blocks> ]
 \end{Verbatim}
+
+The \verb|OFFSET| entry may be used for adding the known model bias to observations, for example, to specify the mean dymanic topography (MDT) when assimilating sea level anomaly (SLA) observations.
 
 \subsection{Observation metadata file}
 

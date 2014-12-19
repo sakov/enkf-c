@@ -1,6 +1,7 @@
 NAME = SLA
 VAR = eta_t
 ISSURFACE = yes
+OFFSET = conf/eta_mean-bran.nc eta_t
 HFUNCTION = standard
 MIN = -1.0
 MAX = 1.0
