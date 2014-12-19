@@ -280,7 +280,7 @@ int main(int argc, char* argv[])
         obs_read(das->obs, fname_obs);
     } else {
         das->obs = obs_create_fromsingleob(prm, das);
-        das_setobstypesindices(das);
+        das_setobstypes(das);
         enkf_obstype = OBSTYPE_INNOVATION;
     }
     enkfprm_destroy(prm);

@@ -16,8 +16,6 @@
 
 #if !defined(_GRID_H)
 
-#include "gridprm.h"
-
 #define GRIDHTYPE_NONE 0
 #define GRIDHTYPE_LATLON_REGULAR 1
 #define GRIDHTYPE_LATLON_IRREGULAR 2
@@ -32,7 +30,7 @@ typedef struct grid grid;
 
 typedef void (*grid_tocartesian_fn) (double in[2], double out[3]);
 
-grid* grid_create(gridprm* prm, int id, int vtype);
+grid* grid_create(void* prm, int id, int vtype);
 void grid_destroy(grid* g);
 void grid_print(grid* g, char offset[]);
 void grid_describeprm(void);

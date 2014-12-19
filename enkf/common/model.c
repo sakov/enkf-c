@@ -22,9 +22,9 @@
 #include "definitions.h"
 #include "utils.h"
 #include "grid.h"
+#include "gridprm.h"
 #include "enkfprm.h"
 #include "model.h"
-#include "allmodels.h"
 
 #define NMODELDATA_INC 10
 #define NVAR_INC 10
@@ -45,7 +45,6 @@ struct variable {
 
 struct model {
     char* name;
-    char* type;
 
     int nvar;
     variable* vars;
@@ -55,15 +54,6 @@ struct model {
 
     int ndata;
     modeldata* data;
-
-    model_getmemberfname_fn getmemberfname;
-    model_getmemberfnameasync_fn getmemberfname_async;
-    model_getbgfname_fn getbgfname;
-    model_getbgfnameasync_fn getbgfname_async;
-    model_readfield_fn readfield;
-    model_read3dfield_fn read3dfield;
-    model_writefield_fn writefield;
-    model_adddata_fn adddatafn;
 };
 
 /**
@@ -89,11 +79,35 @@ static void model_destroyvars(model* m)
 
 /**
  */
+static void model_setgrids(model* m, char gfname[])
+{
+    int ngrid = 0;
+    gridprm* prm = NULL;
+    int i;
+
+    gridprm_create(gfname, &ngrid, &prm);
+    assert(ngrid > 0);
+
+    for (i = 0; i < ngrid; ++i) {
+        grid* g = NULL;
+
+        g = grid_create(&prm[i], i, GRIDVTYPE_Z);
+        grid_settocartesian_fn(g, ll2xyz);
+        model_setgrid(m, g);
+    }
+
+    gridprm_destroy(ngrid, prm);
+}
+
+/**
+ */
 model* model_create(enkfprm* prm)
 {
     model* m = calloc(1, sizeof(model));
     char* modelprm = prm->modelprm;
     char* gridprm = prm->gridprm;
+
+    model_setgrids(m, gridprm);
 
     /*
      * read model parameter file
@@ -125,21 +139,6 @@ model* model_create(enkfprm* prm)
                     enkf_quit("%s, l.%d: NAME specified twice", modelprm, line);
                 else
                     m->name = strdup(token);
-            } else if (strcasecmp(token, "TYPE") == 0) {
-                if ((token = strtok(NULL, seps)) == NULL)
-                    enkf_quit("%s, l.%d: TYPE not specified", modelprm, line);
-                else if (m->type != NULL)
-                    enkf_quit("%s, l.%d: TYPE already specified", modelprm, line);
-                else
-                    m->type = strdup(token);
-                /*
-                 * set the grid
-                 */
-                get_modelsetgridfn(m->type) (m, gridprm);
-                /*
-                 * do custom model setup
-                 */
-                get_modelsetupfn(m->type) (m, modelprm);
             } else if (strncasecmp(token, "VAR", 3) == 0) {
                 int i;
 
@@ -178,14 +177,11 @@ model* model_create(enkfprm* prm)
                     enkf_quit("%s, l.%d: INFLATION not specified", modelprm, line);
                 if (!str2double(token, &now->inflation))
                     enkf_quit("%s, l.%d: could not convert \"%s\" to double", modelprm, line, token);
-            } else if (strcasecmp(token, "DATA") == 0) {
-                ;
             } else
                 enkf_quit("%s, l.%d: unknown token \"%s\"", modelprm, line, token);
         }                       /* while reading modelprm */
         fclose(f);
         assert(m->name != NULL);
-        assert(m->type != NULL);
         assert(m->nvar > 0);
         {
             int i;
@@ -197,26 +193,6 @@ model* model_create(enkfprm* prm)
                     else
                         enkf_quit("%s: grid not specified for variable \"%s\"\n", modelprm, m->vars[i].name);
                 }
-        }
-        /*
-         * get model data (this needs variables to be already set)
-         */
-        f = enkf_fopen(modelprm, "r");
-        line = 0;
-        while (fgets(buf, MAXSTRLEN, f) != NULL) {
-            char seps[] = " =\t\n";
-            char* token = NULL;
-
-            line++;
-            if (buf[0] == '#')
-                continue;
-            if ((token = strtok(buf, seps)) == NULL)
-                continue;
-            else if (strcasecmp(token, "DATA") == 0) {
-                if ((token = strtok(NULL, seps)) == NULL)
-                    enkf_quit("%s, l.%d: DATA tag not specified", modelprm, line);
-                model_addcustomdata(m, token, modelprm, line);
-            }
         }
     }
 
@@ -235,14 +211,6 @@ model* model_create(enkfprm* prm)
     model_print(m, "    ");
 
     assert(m->ngrid > 0);
-
-    assert(m->getmemberfname != NULL);
-    assert(m->getmemberfname_async != NULL);
-    assert(m->getbgfname != NULL);
-    assert(m->getbgfname_async != NULL);
-    assert(m->readfield != NULL);
-    assert(m->read3dfield != NULL);
-    assert(m->writefield != NULL);
 
     return m;
 }
@@ -287,7 +255,6 @@ static void model_destroygrids(model* m)
 void model_destroy(model* m)
 {
     free(m->name);
-    free(m->type);
     model_destroygrids(m);
     model_destroyvars(m);
     model_freemodeldata(m);
@@ -302,7 +269,6 @@ void model_print(model* m, char offset[])
 
     enkf_printf("%smodel info:\n", offset);
     enkf_printf("%s  name = %s\n", offset, m->name);
-    enkf_printf("%s  type = %s\n", offset, m->type);
     enkf_printf("%s  %d variables:\n", offset, m->nvar);
     for (i = 0; i < m->nvar; ++i) {
         variable* v = &m->vars[i];
@@ -330,9 +296,6 @@ void model_describeprm(void)
     enkf_printf("  Model parameter file format:\n");
     enkf_printf("\n");
     enkf_printf("    NAME        = <name>\n");
-    enkf_printf("    TYPE        = <type>\n");
-    enkf_printf("  [ DATA <tag>  = <data> ]\n");
-    enkf_printf("    ...\n");
     enkf_printf("\n");
     enkf_printf("    VAR         = <name>\n");
     enkf_printf("    GRID        = <name>\n");
@@ -349,68 +312,12 @@ void model_describeprm(void)
 
 /**
  */
-void model_setgetmemberfname_fn(model* m, model_getmemberfname_fn fn)
-{
-    m->getmemberfname = fn;
-}
-
-/**
- */
-void model_setgetmemberfnameasync_fn(model* m, model_getmemberfnameasync_fn fn)
-{
-    m->getmemberfname_async = fn;
-}
-
-/**
- */
-void model_setbgfname_fn(model* m, model_getbgfname_fn fn)
-{
-    m->getbgfname = fn;
-}
-
-/**
- */
-void model_setbgfnameasync_fn(model* m, model_getbgfnameasync_fn fn)
-{
-    m->getbgfname_async = fn;
-}
-
-/**
- */
-void model_setreadfield_fn(model* m, model_readfield_fn fn)
-{
-    m->readfield = fn;
-}
-
-/**
- */
-void model_setread3dfield_fn(model* m, model_read3dfield_fn fn)
-{
-    m->read3dfield = fn;
-}
-
-/**
- */
-void model_setwritefield_fn(model* m, model_writefield_fn fn)
-{
-    m->writefield = fn;
-}
-
-/**
- */
 void model_setgrid(model* m, void* g)
 {
     if (m->ngrid % GRID_INC == 0)
         m->grids = realloc(m->grids, (m->ngrid + GRID_INC) * sizeof(void*));
     m->grids[m->ngrid] = g;
     m->ngrid++;
-}
-
-/**
- */
-void model_setadddata_fn(model* m, model_adddata_fn fn)
-{
-    m->adddatafn = fn;
 }
 
 /**
@@ -444,15 +351,7 @@ void* model_getmodeldata(model* m, char tag[])
             return data->data;
     }
 
-    enkf_quit("  getmodeldata(): could not find data \"%s\" for model \"%s\"", tag, m->name);
     return NULL;
-}
-
-/**
- */
-char* model_gettype(model* m)
-{
-    return m->type;
 }
 
 /**
@@ -561,28 +460,38 @@ int** model_getnumlevels(model* m, int vid)
  */
 void model_getmemberfname(model* m, char ensdir[], char varname[], int mem, char fname[])
 {
-    m->getmemberfname(m, ensdir, varname, mem, fname);
+    snprintf(fname, MAXSTRLEN, "%s/mem%03d_%s.nc", ensdir, mem, varname);
 }
 
 /**
  */
-int model_getmemberfname_async(model* m, char ensdir[], char varname[], char otname[], int mem, int time, char fname[])
+int model_getmemberfname_async(model* m, char ensdir[], char varname[], char otname[], int mem, int t, char fname[])
 {
-    return m->getmemberfname_async(m, ensdir, varname, otname, mem, time, fname);
+    snprintf(fname, MAXSTRLEN, "%s/mem%03d_%s_%d.nc", ensdir, mem, varname, t);
+    if (!file_exists(fname)) {
+        snprintf(fname, MAXSTRLEN, "%s/mem%03d_%s.nc", ensdir, mem, varname);
+        return 0;
+    }
+    return 1;
 }
 
 /**
  */
 void model_getbgfname(model* m, char ensdir[], char varname[], char fname[])
 {
-    m->getbgfname(m, ensdir, varname, fname);
+    snprintf(fname, MAXSTRLEN, "%s/bg_%s.nc", ensdir, varname);
 }
 
 /**
  */
-int model_getbgfname_async(model* m, char ensdir[], char varname[], char otname[], int time, char fname[])
+int model_getbgfname_async(model* m, char bgdir[], char varname[], char otname[], int t, char fname[])
 {
-    return m->getbgfname_async(m, ensdir, varname, otname, time, fname);
+    snprintf(fname, MAXSTRLEN, "%s/bg_%s_%d.nc", bgdir, varname, t);
+    if (!file_exists(fname)) {
+        snprintf(fname, MAXSTRLEN, "%s/bg_%s.nc", bgdir, varname);
+        return 0;
+    }
+    return 1;
 }
 
 /**
@@ -683,26 +592,19 @@ int model_z2fk(model* m, int vid, double fi, double fj, double z, double* fk)
  */
 void model_readfield(model* m, char fname[], int mem, int time, char varname[], int k, float* v)
 {
-    m->readfield(m, fname, mem, time, varname, k, v);
+    readfield(fname, k, varname, v);
 }
 
 /**
  */
 void model_read3dfield(model* m, char fname[], int mem, int time, char varname[], float* v)
 {
-    m->read3dfield(m, fname, mem, time, varname, v);
+    read3dfield(fname, varname, v);
 }
 
 /**
  */
 void model_writefield(model* m, char fname[], int time, char varname[], int k, float* v)
 {
-    m->writefield(m, fname, time, varname, k, v);
-}
-
-/**
- */
-void model_addcustomdata(model* m, char* token, char* fname, int line)
-{
-    m->adddatafn(m, token, fname, line);
+    writefield(fname, k, varname, v);
 }

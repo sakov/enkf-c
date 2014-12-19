@@ -32,7 +32,6 @@ common/enkfprm.c\
 common/grid.c\
 common/gridprm.c\
 common/model.c\
-common/allmodels.c
 
 HDR_COMMON =\
 common/nan.h\
@@ -86,7 +85,6 @@ calc/enkf_calc.c
 
 HDR_CALC =\
 common/distribute.h\
-common/allmodels.h\
 common/pointlog.h\
 common/dasystem.h\
 common/hash.h\
@@ -109,16 +107,6 @@ common/distribute.h\
 common/pointlog.h\
 common/dasystem.h
 
-SRC_MODEL =\
-models/standard-model.c\
-models/z-model.c\
-models/sigma-model.c
-
-HDR_MODEL =\
-models/standard-model.h\
-models/z-model.h\
-models/sigma-model.h
-
 HDR_MKUNITOBS =\
 common/distribute.h\
 common/dasystem.h\
@@ -129,19 +117,19 @@ default: $(PROGRAMS)
 all: $(ALL)
 
 bin/enkf_prep: INCS += $(PREP_INCS)
-bin/enkf_prep: $(SRC_PREP) $(SRC_COMMON) $(SRC_MODEL) $(HDR_PREP) $(HDR_COMMON) $(HDR_MODEL)
+bin/enkf_prep: $(SRC_PREP) $(SRC_COMMON) $(HDR_PREP) $(HDR_COMMON)
 	@echo
-	${CC${MPISTATUS}} -o bin/enkf_prep -DENKF_PREP $(ENKF_FLAGS) $(CFLAGS$(MPISTATUS)) $(INCS) $(SRC_PREP) $(SRC_COMMON) $(SRC_MODEL) $(LIBS)
+	${CC${MPISTATUS}} -o bin/enkf_prep -DENKF_PREP $(ENKF_FLAGS) $(CFLAGS$(MPISTATUS)) $(INCS) $(SRC_PREP) $(SRC_COMMON) $(LIBS)
 
 bin/enkf_calc: INCS += $(CALC_INCS)
 bin/enkf_calc: LIBS += $(LIB_LAPACK)
-bin/enkf_calc: $(SRC_COMMON) $(SRC_MODEL) $(SRC_CALC) $(HDR_COMMON) $(HDR_MODEL) $(HDR_CALC)
+bin/enkf_calc: $(SRC_COMMON) $(SRC_CALC) $(HDR_COMMON) $(HDR_CALC)
 	@echo
-	${CC${MPISTATUS}} -o bin/enkf_calc -DENKF_CALC $(ENKF_FLAGS) $(CFLAGS$(MPISTATUS)) $(INCS) $(SRC_CALC) $(SRC_COMMON) $(SRC_MODEL) $(LIBS)
+	${CC${MPISTATUS}} -o bin/enkf_calc -DENKF_CALC $(ENKF_FLAGS) $(CFLAGS$(MPISTATUS)) $(INCS) $(SRC_CALC) $(SRC_COMMON) $(LIBS)
 
 bin/enkf_update: INCS += $(UPDATE_INCS)
 bin/enkf_update: LIBS += $(LIB_LAPACK)
-bin/enkf_update: $(SRC_UPDATE) $(SRC_COMMON) $(SRC_MODEL) $(HDR_UPDATE) $(HDR_COMMON) $(HDR_MODEL)
+bin/enkf_update: $(SRC_UPDATE) $(SRC_COMMON) $(HDR_UPDATE) $(HDR_COMMON)
 	@echo
 	${CC${MPISTATUS}} -o bin/enkf_update -DENKF_UPDATE $(ENKF_FLAGS) $(CFLAGS$(MPISTATUS)) $(INCS) $(SRC_UPDATE) $(SRC_COMMON) $(SRC_MODEL) $(LIBS)
 
@@ -149,5 +137,5 @@ clean:
 	rm -f bin/*
 
 indent:
-	indent -T FILE -T field -T dasystem -T grid -T kdtree -T kdnode -T kdset -T model -T modeldata -T gridprm -T gnxy_simple -T gnxy_curv -T gnz -T gridnodes -T gridmap -T mom4prm -T stringtable -T resnode -T tm -T obsmeta -T obsreader_entry -T H_entry -T model_entry -T enkfprm -T gnll -T rangeentry -T observation -T obstype -T observations -T pointlog -T region -T obsdomain -T calcstats -T hashtable -T ht_bucket -T badbatchspec -T nc_type -T size_t */*.[ch]
+	indent -T FILE -T field -T dasystem -T grid -T kdtree -T kdnode -T kdset -T model -T modeldata -T gridprm -T gnxy_simple -T gnxy_curv -T gnz -T gridnodes -T gridmap -T stringtable -T resnode -T tm -T obsmeta -T obsreader_entry -T H_entry -T model_entry -T enkfprm -T gnll -T rangeentry -T observation -T obstype -T observations -T pointlog -T region -T obsdomain -T calcstats -T hashtable -T ht_bucket -T badbatchspec -T nc_type -T size_t */*.[ch]
 	rm -f `find . -name "*.*~"`

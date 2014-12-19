@@ -43,9 +43,11 @@ static void obstype_new(obstype* type, int i, char* name)
 {
     type->id = i;
     type->name = strdup(name);
-    type->issurface = -1;
     type->varname = NULL;
     type->varname2 = NULL;
+    type->issurface = -1;
+    type->offset_fname = NULL;
+    type->offset_varname = NULL;
     type->hfunction = NULL;
     type->allowed_min = -DBL_MAX;
     type->allowed_max = DBL_MAX;
@@ -96,6 +98,8 @@ static void obstype_print(obstype* type)
         enkf_printf("      SECONDARY VAR = %s\n", type->varname2);
     enkf_printf("      ID = %d\n", type->id);
     enkf_printf("      ISSURFACE = %s\n", (type->issurface) ? "yes" : "no");
+    if (type->offset_fname != NULL)
+        enkf_printf("      OFFSET = %s %s\n", type->offset_fname, type->offset_varname);
     enkf_printf("      HFUNCTION = %s\n", type->hfunction);
     enkf_printf("      ALLOWED MIN = %.3g\n", type->allowed_min);
     enkf_printf("      ALLOWED MAX = %.3g\n", type->allowed_max);
@@ -166,6 +170,15 @@ void obstypes_read(char fname[], int* n, obstype** types, double rfactor_base)
             if (now->varname2 != NULL)
                 enkf_quit("%s, l.%d: VAR2 already specified", fname, line);
             now->varname2 = strdup(token);
+        } else if (strcasecmp(token, "OFFSET") == 0) {
+            if ((token = strtok(NULL, seps)) == NULL)
+                enkf_quit("%s, l.%d: OFFSET file name not specified", fname, line);
+            if (now->offset_fname != NULL)
+                enkf_quit("%s, l.%d: OFFSET entry already specified", fname, line);
+            now->offset_fname = strdup(token);
+            if ((token = strtok(NULL, seps)) == NULL)
+                enkf_quit("%s, l.%d: OFFSET variable name not specified", fname, line);
+            now->offset_varname = strdup(token);
         } else if (strcasecmp(token, "HFUNCTION") == 0) {
             if ((token = strtok(NULL, seps)) == NULL)
                 enkf_quit("%s, l.%d: HFUNCTION not specified", fname, line);
@@ -250,6 +263,10 @@ void obstypes_destroy(int n, obstype* types)
         if (type->varname2 != NULL)
             free(type->varname2);
         free(type->hfunction);
+        if (type->offset_fname != NULL) {
+            free(type->offset_fname);
+            free(type->offset_varname);
+        }
     }
 
     free(types);
@@ -266,6 +283,7 @@ void obstypes_describeprm(void)
     enkf_printf("    VAR       = <model variable name>\n");
     enkf_printf("  [ VAR2       = <model variable name> ]\n");
     enkf_printf("    ISSURFACE = { yes | no }\n");
+    enkf_printf("  [ OFFSET    = <file name> <variable name> ]    (none*)\n");
     enkf_printf("    HFUNCTION = <H function name>\n");
     enkf_printf("  [ ASYNC     = <time interval> ]                (synchronous*)\n");
     enkf_printf("  [ RFACTOR   = <rfactor> ]                      (1*)\n");

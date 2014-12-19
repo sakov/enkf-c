@@ -43,7 +43,7 @@
 #if defined(ENKF_CALC)
 /**
  */
-void das_setobstypesindices(dasystem* das)
+void das_setobstypes(dasystem* das)
 {
     int n = das->obs->nobstypes;
     obstype* types = das->obs->obstypes;
@@ -51,10 +51,31 @@ void das_setobstypesindices(dasystem* das)
     int i;
 
     for (i = 0; i < n; ++i) {
+        obstype* type = &types[i];
         int vid = model_getvarid(m, types[i].varname);
 
-        types[i].vid = vid;
-        types[i].gridid = model_getvargridid(m, vid);
+        type->vid = vid;
+        type->gridid = model_getvargridid(m, vid);
+
+        if (type->offset_fname != NULL) {
+            if (type->issurface) {
+                float** v = NULL;
+                int nx, ny;
+
+                model_getvardims(m, vid, &nx, &ny, NULL);
+                v = alloc2d(ny, nx, sizeof(float));
+                readfield(type->offset_fname, 0, type->offset_varname, v[0]);
+                model_addmodeldata(m, type->name, ALLOCTYPE_2D, v);
+            } else {
+                float*** v = NULL;
+                int nx, ny, nz;
+
+                model_getvardims(m, vid, &nx, &ny, &nz);
+                v = alloc3d(nz, ny, nx, sizeof(float));
+                readfield(type->offset_fname, 0, type->offset_varname, v[0][0]);
+                model_addmodeldata(m, type->name, ALLOCTYPE_3D, v);
+            }
+        }
     }
 }
 #endif
@@ -81,7 +102,7 @@ dasystem* das_create(enkfprm* prm)
 
     das->m = model_create(prm);
 #if defined(ENKF_CALC)
-    das_setobstypesindices(das);
+    das_setobstypes(das);
 #endif
 
     das->S = NULL;

@@ -18,12 +18,25 @@
 #include <string.h>
 #include <assert.h>
 #include "definitions.h"
+#include "grid.h"
 #include "gridprm.h"
 #include "utils.h"
 
+typedef struct {
+    char* vtype_tag;
+    int vtype;
+    char* levelvarnameentry;
+} gridvtype_entry;
+
+gridvtype_entry allgridvtypeentries[] = {
+    {"Z", GRIDVTYPE_Z, "NUMLEVELSVARNAME"},
+    {"SIGMA", GRIDVTYPE_SIGMA, "MASKVARNAME"}
+};
+int ngridvtypeentries = sizeof(allgridvtypeentries) / sizeof(gridvtype_entry);
+
 /**
  */
-void gridprm_create(char* fname, int* ngrid, gridprm** prm, char* levelvarnameentry)
+void gridprm_create(char* fname, int* ngrid, gridprm** prm)
 {
     gridprm* now = NULL;
     FILE* f = NULL;
@@ -49,11 +62,25 @@ void gridprm_create(char* fname, int* ngrid, gridprm** prm, char* levelvarnameen
             *prm = realloc(*prm, sizeof(gridprm) * (*ngrid));
             now = &(*prm)[*ngrid - 1];
             memset(now, 0, sizeof(gridprm));
-            now->levelvarnameentry = strdup(levelvarnameentry);
             if ((token = strtok(NULL, seps)) == NULL)
                 enkf_quit("%s, l.%d: NAME not specified", fname, line);
             else
                 now->name = strdup(token);
+        } else if (strcasecmp(token, "VTYPE") == 0) {
+            if ((token = strtok(NULL, seps)) == NULL)
+                enkf_quit("%s, l.%d: VTYPE not specified", fname, line);
+            else if (now->fname != NULL)
+                enkf_quit("%s, l.%d: VTYPE specified twice", fname, line);
+            else
+                now->vtype = strdup(token);
+
+            for (i = 0; i < ngridvtypeentries; ++i)
+                if (strcasecmp(allgridvtypeentries[i].vtype_tag, token) == 0)
+                    break;
+            if (i == ngridvtypeentries)
+                enkf_quit("%s, l %d: VTYPE \"%s\" is unknown", fname, line);
+            if (allgridvtypeentries[i].levelvarnameentry != NULL)
+                now->levelvarnameentry = strdup(allgridvtypeentries[i].levelvarnameentry);
         } else if (strcasecmp(token, "DATA") == 0) {
             if ((token = strtok(NULL, seps)) == NULL)
                 enkf_quit("%s, l.%d: DATA not specified", fname, line);
@@ -110,11 +137,11 @@ void gridprm_create(char* fname, int* ngrid, gridprm** prm, char* levelvarnameen
                 enkf_quit("%s, l.%d: DEPTHVARNAME specified twice", fname, line);
             else
                 now->depthvarname = strdup(token);
-        } else if (strcasecmp(token, levelvarnameentry) == 0) {
+        } else if (now->levelvarnameentry != NULL && strcasecmp(token, now->levelvarnameentry) == 0) {
             if ((token = strtok(NULL, seps)) == NULL)
-                enkf_quit("%s, l.%d: \"%s\" not specified", fname, line, levelvarnameentry);
+                enkf_quit("%s, l.%d: \"%s\" not specified", fname, line, now->levelvarnameentry);
             else if (now->levelvarname != NULL)
-                enkf_quit("%s, l.%d: \"%s\" specified twice", fname, line, levelvarnameentry);
+                enkf_quit("%s, l.%d: \"%s\" specified twice", fname, line, now->levelvarnameentry);
             else
                 now->levelvarname = strdup(token);
         }
@@ -125,6 +152,8 @@ void gridprm_create(char* fname, int* ngrid, gridprm** prm, char* levelvarnameen
     for (i = 0; i < *ngrid; ++i) {
         gridprm* now = &(*prm)[i];
 
+        if (now->vtype == NULL)
+            enkf_quit("%s: VTYPE not specified for grid \"%s\"", fname, now->name);
         if (now->fname == NULL)
             enkf_quit("%s: DATA not specified for grid \"%s\"", fname, now->name);
         if (now->xdimname == NULL)
@@ -140,8 +169,9 @@ void gridprm_create(char* fname, int* ngrid, gridprm** prm, char* levelvarnameen
         if (now->zvarname == NULL)
             enkf_quit("%s: ZVARNAME not specified for grid \"%s\"", fname, now->name);
         if (now->depthvarname == NULL)
-            if (now->levelvarname == NULL)
-                enkf_quit("%s: \"%s\" not specified for grid \"%s\"", fname, now->levelvarnameentry, now->name);
+            enkf_quit("%s: DEPTHVARNAME not specified for grid \"%s\"", fname, now->name);
+        if (now->levelvarnameentry != NULL && now->levelvarname == NULL)
+            enkf_quit("%s: \"%s\" not specified for grid \"%s\"", fname, now->levelvarnameentry, now->name);
     }
 }
 
@@ -163,8 +193,10 @@ void gridprm_destroy(int ngrid, gridprm prm[])
         free(now->yvarname);
         free(now->zvarname);
         free(now->depthvarname);
-        free(now->levelvarname);
-        free(now->levelvarnameentry);
+        if (now->levelvarnameentry != NULL) {
+            free(now->levelvarname);
+            free(now->levelvarnameentry);
+        }
     }
     free(prm);
 }
@@ -183,5 +215,6 @@ void gridprm_print(gridprm* prm, char offset[])
     enkf_printf("%s  YVARNAME = \"%s\"\n", offset, prm->yvarname);
     enkf_printf("%s  ZVARNAME = \"%s\"\n", offset, prm->zvarname);
     enkf_printf("%s  DEPTHVARNAME = \"%s\"\n", offset, prm->depthvarname);
-    enkf_printf("%s  %s = \"%s\"\n", offset, prm->levelvarnameentry, prm->levelvarname);
+    if (prm->levelvarnameentry != NULL)
+        enkf_printf("%s  %s = \"%s\"\n", offset, prm->levelvarnameentry, prm->levelvarname);
 }

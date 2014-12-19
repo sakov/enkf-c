@@ -1,4 +1,5 @@
 NAME = t-grid
+VTYPE = z
 DATA = conf/grid_spec.nc
 XDIMNAME = grid_x_T
 YDIMNAME = grid_y_T

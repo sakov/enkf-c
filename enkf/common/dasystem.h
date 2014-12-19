@@ -136,7 +136,7 @@ void das_updateHE(dasystem* das);
 void das_getfname_X5(dasystem* das, void* grid, char fname[]);
 void das_getfname_w(dasystem* das, void* grid, char fname[]);
 void das_getfname_stats(dasystem* das, void* grid, char fname[]);
-void das_setobstypesindices(dasystem* das);
+void das_setobstypes(dasystem* das);
 
 #define _DASYSTEM_H
 #endif

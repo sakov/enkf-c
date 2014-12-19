@@ -23,6 +23,7 @@
 #include "definitions.h"
 #include "utils.h"
 #include "grid.h"
+#include "gridprm.h"
 #if !defined(NO_GRIDUTILS)
 #include <gridnodes.h>
 #endif
@@ -571,8 +572,9 @@ static void grid_setcoords(grid* g, int htype, int hnodetype, int vtype, int per
 
 /**
  */
-grid* grid_create(gridprm* prm, int id, int vtype)
+grid* grid_create(void* p, int id, int vtype)
 {
+    gridprm* prm = (gridprm*) p;
     grid* g = calloc(1, sizeof(grid));
     char* fname = prm->fname;
     int ncid;
@@ -750,6 +752,7 @@ void grid_describeprm(void)
     enkf_printf("  Grid parameter file format for z-model:\n");
     enkf_printf("\n");
     enkf_printf("    NAME             = <name>\n");
+    enkf_printf("    VTYPE            = { z | sigma }\n");
     enkf_printf("    DATA             = <data file name>\n");
     enkf_printf("    XDIMNAME         = <x dimension name>\n");
     enkf_printf("    YDIMNAME         = <y dimension name>\n");
@@ -758,7 +761,8 @@ void grid_describeprm(void)
     enkf_printf("    YVARNAME         = <y variable name>\n");
     enkf_printf("    ZVARNAME         = <z variable name>\n");
     enkf_printf("    DEPTHVARNAME     = <depth variable name>\n");
-    enkf_printf("    NUMLEVELSVARNAME = <# of levels variable name>\n");
+    enkf_printf("    NUMLEVELSVARNAME = <# of levels variable name> (z)\n");
+    enkf_printf("    MASKVARNAME      = <land mask variable name> (sigma)\n");
     enkf_printf("\n");
     enkf_printf("  [ <more of the above blocks> ]\n");
     enkf_printf("\n");

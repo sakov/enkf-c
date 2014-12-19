@@ -64,5 +64,14 @@ spread.nc - spread of the corresponding ensemble
 If you suspect that something went wrong, you may compare your logs with those
 in the "logs" directory.
 
+NOTE: for the 2-layer setting used has middle layer depths of 2.5 m and 
+255.8842 m. EnKF-C assumes the toplayer thickness of 5 m and botom layer 
+thickness of (255.8842 - 5) * 2 = 501.7684 m. The actual layer used for the 
+bottom layer has depth from 242.6595 to 269.109 m. For this reason and because
+of the vertical interpolation between layers to the depth of super observations
+the results of assimilating in-situ T and S can not be expected to be physically
+sensible.
+
+
 Have fun,
 Pavel Sakov

@@ -1,8 +1,8 @@
   MPI: initialised 2 processes
-  MPI: rank = 0, PID = 21602
-  MPI: rank = 1, PID = 21603
-  running CALC for EnKF version 0.90:
-  2014-12-17 13:04:23
+  MPI: rank = 0, PID = 18070
+  MPI: rank = 1, PID = 18071
+  running CALC for EnKF version 0.91:
+  2014-12-19 10:55:59
   reading system specs from "enoi.prm":
     MODE = EnOI
     MODEL PRM = "model.prm"
@@ -40,6 +40,7 @@
       VAR = eta_t
       ID = 0
       ISSURFACE = yes
+      OFFSET = conf/eta_mean-bran.nc eta_t
       HFUNCTION = standard
       ALLOWED MIN = -1.8e+308
       ALLOWED MAX = 1.8e+308
@@ -90,12 +91,8 @@
       dims = 100 x 100 x 2
       longitude range = [0, 360]
       vert type = Z
-    adding custom data "MSL":
-      file = conf/eta_mean-bran.nc
-      variable = eta_t
     model info:
       name = Tasman
-      type = z-model
       5 variables:
         eta_t:
           inflation = 1.000
@@ -107,14 +104,12 @@
           inflation = 1.000
         v:
           inflation = 1.000
-      1 modeldata:
-        MSL:
-          type = 2D
+      0 modeldata:
   reading observations from "observations.nc":
     3921 observations
     calculating obs stats:
   calculating ensemble observations:
-  2014-12-17 13:04:23
+  2014-12-19 10:55:59
     ensemble size = 144
     distributing iterations:
       all processes get 72 iterations
@@ -123,7 +118,7 @@
     TEM ........................................................................+
     SAL ........................................................................+
   adding forecast innovations and spread to "observations.nc":
-  2014-12-17 13:04:29
+  2014-12-19 10:56:05
   moderating observations:
     observations substantially modified:
       SLA          0 (0.0%)
@@ -133,7 +128,7 @@
       total        0 (0.0%)
   writing modified obs errors to "observations.nc":
   calculating transforms:
-  2014-12-17 13:04:29
+  2014-12-19 10:56:05
     calculating transforms for t-grid:
     creating empty file "w.nc":
       distributing iterations:
@@ -143,10 +138,10 @@
         j = 3 (1: 17: 5.9%)
         j = 9 (1: 18: 11.8%)
         j = 6 (0: 1: 11.8%)
-        j = 15 (1: 19: 17.6%)
         j = 12 (0: 2: 17.6%)
-        j = 21 (1: 20: 23.5%)
+        j = 15 (1: 19: 17.6%)
         j = 18 (0: 3: 23.5%)
+        j = 21 (1: 20: 23.5%)
         j = 27 (1: 21: 29.4%)
         j = 24 (0: 4: 29.4%)
         j = 33 (1: 22: 35.3%)
@@ -155,22 +150,22 @@
         j = 36 (0: 6: 41.2%)
         j = 42 (0: 7: 47.1%)
         j = 45 (1: 24: 47.1%)
-        j = 51 (1: 25: 52.9%)
         j = 48 (0: 8: 52.9%)
+        j = 51 (1: 25: 52.9%)
         j = 57 (1: 26: 58.8%)
         j = 54 (0: 9: 58.8%)
-        j = 63 (1: 27: 64.7%)
         j = 60 (0: 10: 64.7%)
+        j = 63 (1: 27: 64.7%)
         j = 66 (0: 11: 70.6%)
         j = 69 (1: 28: 70.6%)
-        j = 75 (1: 29: 76.5%)
         j = 72 (0: 12: 76.5%)
-        j = 81 (1: 30: 82.4%)
+        j = 75 (1: 29: 76.5%)
         j = 78 (0: 13: 82.4%)
-        j = 87 (1: 31: 88.2%)
+        j = 81 (1: 30: 82.4%)
         j = 84 (0: 14: 88.2%)
-        j = 93 (1: 32: 94.1%)
+        j = 87 (1: 31: 88.2%)
         j = 90 (0: 15: 94.1%)
+        j = 93 (1: 32: 94.1%)
         j = 96 (0: 16: 100.0%)
         j = 99 (1: 33: 100.0%)
     finished calculating transforms for t-grid
@@ -184,7 +179,7 @@
     calculating transform for log point (30, 50): 524 obs
     writing the log for point (30, 50):
   calculating analysed observations:
-  2014-12-17 13:04:41
+  2014-12-19 10:56:18
     sorting obs by ij:
     updating Hx:
   adding analysis innovations and spread to "observations.nc":
@@ -208,5 +203,5 @@
              ARGO          7    0.077      0.061      0.054      0.037      0.023      0.023  
              0-50m         2    0.088      0.098      0.074      0.063      0.019      0.019  
              >500m         0     -nan       -nan       -nan       -nan       -nan       -nan  
-  2014-12-17 13:04:42
+  2014-12-19 10:56:18
   finished
