@@ -1046,8 +1046,8 @@ ENSOBSTYPE interpolate3d(double fi, double fj, double fk, int ni, int nj, int nk
 
     if (fk < 0.0)
         fk = 0.0;
-    if (fk >= nk)
-        fk = nk - 1;
+    if (fk > (double) (nk - 1))
+        fk = (double) (nk - 1);
     k1 = (int) floor(fk);
     wk1 = ceil(fk) - fk;
     k2 = (int) ceil(fk);
