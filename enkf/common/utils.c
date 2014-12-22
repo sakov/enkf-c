@@ -1044,6 +1044,10 @@ ENSOBSTYPE interpolate3d(double fi, double fj, double fk, int ni, int nj, int nk
     double w = 0.0;
     double ww;
 
+    /*
+     * It is assumed that -0.5 <= fk <= nk - 0.5; so, when -0.5 <= fk <= 0 or
+     * nk - 1 <= fk <= nk - 0.5 -- do not interpolate, take the layer value.
+     */
     if (fk < 0.0)
         fk = 0.0;
     if (fk > (double) (nk - 1))
