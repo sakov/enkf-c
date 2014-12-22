@@ -1065,7 +1065,7 @@ ENSOBSTYPE interpolate3d(double fi, double fj, double fk, int ni, int nj, int nk
     if (i2 == ni)
         i2 = 0;
 
-    assert(i1 >= 0 && i2 <= ni - 1 && j1 >= 0 && j2 <= nj - 1 && k1 >= 0 && k2 < nk);
+    assert(i1 >= 0 && i2 < ni && j1 >= 0 && j2 < nj && k1 >= 0 && k2 < nk);
 
     if (nlevels[j1][i1] > k1) {
         ww = wj1 * wi1 * wk1;
