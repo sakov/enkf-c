@@ -1175,6 +1175,9 @@ void das_update(dasystem* das, int calcspread, int leavetiles)
         das_getfields(das, gid, &nfields, &fields);
         enkf_printf("      %d fields\n", nfields);
 
+        if (nfields == 0)
+            continue;
+
         distribute_iterations(0, nfields - 1, nprocesses, rank, "      ");
 
         fieldbuffer = malloc(das->fieldbufsize * sizeof(void*));
