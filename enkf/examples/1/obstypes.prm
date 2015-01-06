@@ -3,26 +3,26 @@ VAR = eta_t
 ISSURFACE = yes
 OFFSET = conf/eta_mean-bran.nc eta_t
 HFUNCTION = standard
-MIN = -1.0
-MAX = 1.0
+MINVALUE = -1.0
+MAXVALUE = 1.0
 
 NAME = SST
 VAR = temp
 ISSURFACE = yes
 HFUNCTION = standard
-MIN = -2.0
-MAX = 42.0
+MINVALUE = -2.0
+MAXVALUE = 42.0
 
 NAME = TEM
 VAR = temp
 ISSURFACE = no
 HFUNCTION = standard
-MIN = -2.0
-MAX = 42.0
+MINVALUE = -2.0
+MAXVALUE = 42.0
 
 NAME = SAL
 VAR = salt
 ISSURFACE = no
 HFUNCTION = standard
-MIN = 28.0
-MAX = 39.0
+MINVALUE = 28.0
+MAXVALUE = 39.0

@@ -1,5 +1,5 @@
   running PREP for EnKF version 0.91:
-  2014-12-19 10:55:23
+  2015-01-06 10:18:11
   reading prep specs from "enkf.prm":
     MODE = EnKF
     SCHEME = DEnKF
@@ -30,7 +30,7 @@
       CHECK_G          = [-]
       SHUFFLE_ROWS     = [-]
       HE_VIAFILE       = [-]
-      GRIDNODES_WRITE  = [+]
+      GRIDNODES_WRITE  = [-]
   reading observation specs from "obs.prm":
     PRODUCT = RADS
       READER = standard2
@@ -114,20 +114,20 @@
       ISSURFACE = yes
       OFFSET = conf/eta_mean-bran.nc eta_t
       HFUNCTION = standard
-      ALLOWED MIN = -1.8e+308
-      ALLOWED MAX = 1.8e+308
+      ALLOWED MIN = -1
+      ALLOWED MAX = 1
       ASYNCHRONOUS = no
       RFACTOR = 2
     NAME = SST
       VAR = temp
-      Ils: cannot access obs/WINDSAT/windsat_20071221.nc: No such file or directory
+      ID = 1
+      ISls: cannot access obs/WINDSAT/windsat_20071221.nc: No such file or directory
 ls: cannot access obs/WINDSAT/windsat_20071222.nc: No such file or directory
 ls: cannot access obs/WINDSAT/windsat_20071223.nc: No such file or directory
-D = 1
-      ISSURFACE = yes
+SURFACE = yes
       HFUNCTION = standard
-      ALLOWED MIN = -1.8e+308
-      ALLOWED MAX = 1.8e+308
+      ALLOWED MIN = -2
+      ALLOWED MAX = 42
       ASYNCHRONOUS = no
       RFACTOR = 2
     NAME = TEM
@@ -135,8 +135,8 @@ D = 1
       ID = 2
       ISSURFACE = no
       HFUNCTION = standard
-      ALLOWED MIN = -1.8e+308
-      ALLOWED MAX = 1.8e+308
+      ALLOWED MIN = -2
+      ALLOWED MAX = 42
       ASYNCHRONOUS = no
       RFACTOR = 2
     NAME = SAL
@@ -144,8 +144,8 @@ D = 1
       ID = 3
       ISSURFACE = no
       HFUNCTION = standard
-      ALLOWED MIN = -1.8e+308
-      ALLOWED MAX = 1.8e+308
+      ALLOWED MIN = 28
+      ALLOWED MAX = 39
       ASYNCHRONOUS = no
       RFACTOR = 2
   reading observations:
@@ -317,5 +317,5 @@ D = 1
     TEM     184        104        104        0          0          0          0          7         
     SAL     184        104        104        0          0          0          0          7         
     total   9749       211        208        0          3          0          0          3921      
-  2014-12-19 10:55:24
+  2015-01-06 10:18:12
   finished

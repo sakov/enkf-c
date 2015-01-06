@@ -236,7 +236,8 @@ void obstypes_read(char fname[], int* n, obstype** types, double rfactor_base)
                 enkf_quit("%s, l.%d: ZMAX not specified", fname, line);
             if (!str2double(token, &now->zmax))
                 enkf_quit("%s, l.%d: could not convert \"%s\" to double", fname, line, token);
-        }
+        } else
+            enkf_quit("%s, l.%d: unknown token \"%s\"", fname, line, token);
     }
     fclose(f);
 
@@ -287,8 +288,8 @@ void obstypes_describeprm(void)
     enkf_printf("    HFUNCTION = <H function name>\n");
     enkf_printf("  [ ASYNC     = <time interval> ]                (synchronous*)\n");
     enkf_printf("  [ RFACTOR   = <rfactor> ]                      (1*)\n");
-    enkf_printf("  [ MIN       = <minimal allowed value> ]        (-inf*)\n");
-    enkf_printf("  [ MAX       = <maximal allowed value> ]        (+inf*)\n");
+    enkf_printf("  [ MINVALUE  = <minimal allowed value> ]        (-inf*)\n");
+    enkf_printf("  [ MAXVALUE  = <maximal allowed value> ]        (+inf*)\n");
     enkf_printf("  [ XMIN      = <minimal allowed X coordinate> ] (-inf*)\n");
     enkf_printf("  [ XMAX      = <maximal allowed X coordinate> ] (+inf*)\n");
     enkf_printf("  [ YMIN      = <minimal allowed Y coordinate> ] (-inf*)\n");
