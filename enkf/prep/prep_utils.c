@@ -151,22 +151,24 @@ void obs_add(observations* obs, model* m, obsmeta* meta)
                     readfield(fname, 0, meta->varnames[i], v[0]);
                     for (o = nobs0; o < obs->nobs; ++o) {
                         observation* oo = &obs->data[o];
-                        float vv = (float) interpolate2d(oo->fi, oo->fj, ni, nj, v, nlevels);
+                        float vv;
 
-                        if (oo->status == STATUS_OK) {
-                            if (meta->stdops[i] == ARITHMETIC_EQ)
-                                oo->std = vv;
-                            else if (meta->stdops[i] == ARITHMETIC_PLUS)
-                                oo->std = sqrt(oo->std * oo->std + vv * vv);
-                            else if (meta->stdops[i] == ARITHMETIC_MULT)
-                                oo->std *= vv;
-                            else if (meta->stdops[i] == ARITHMETIC_MIN)
-                                oo->std = (oo->std < vv) ? vv : oo->std;
-                            else if (meta->stdops[i] == ARITHMETIC_MAX)
-                                oo->std = (oo->std > vv) ? vv : oo->std;
-                            else
-                                enkf_quit("programming error");
-                        }
+                        if (oo->status != STATUS_OK)
+                            continue;
+
+                        vv = (float) interpolate2d(oo->fi, oo->fj, ni, nj, v, nlevels);
+                        if (meta->stdops[i] == ARITHMETIC_EQ)
+                            oo->std = vv;
+                        else if (meta->stdops[i] == ARITHMETIC_PLUS)
+                            oo->std = sqrt(oo->std * oo->std + vv * vv);
+                        else if (meta->stdops[i] == ARITHMETIC_MULT)
+                            oo->std *= vv;
+                        else if (meta->stdops[i] == ARITHMETIC_MIN)
+                            oo->std = (oo->std < vv) ? vv : oo->std;
+                        else if (meta->stdops[i] == ARITHMETIC_MAX)
+                            oo->std = (oo->std > vv) ? vv : oo->std;
+                        else
+                            enkf_quit("programming error");
                     }
                     free2d(v);
                 } else {
@@ -175,24 +177,26 @@ void obs_add(observations* obs, model* m, obsmeta* meta)
                     read3dfield(fname, meta->varnames[i], v[0][0]);
                     for (o = nobs0; o < obs->nobs; ++o) {
                         observation* oo = &obs->data[o];
-                        float vv = (float) interpolate3d(oo->fi, oo->fj, oo->fk, ni, nj, nk, v, nlevels);
+                        float vv;
 
-                        if (oo->status == STATUS_OK) {
-                            if (meta->stdops[i] == ARITHMETIC_EQ)
-                                oo->std = vv;
-                            else if (meta->stdops[i] == ARITHMETIC_PLUS)
-                                oo->std = sqrt(oo->std * oo->std + vv * vv);
-                            else if (meta->stdops[i] == ARITHMETIC_MULT)
-                                oo->std *= vv;
-                            else if (meta->stdops[i] == ARITHMETIC_MIN)
-                                oo->std = (oo->std < vv) ? vv : oo->std;
-                            else if (meta->stdops[i] == ARITHMETIC_MAX)
-                                oo->std = (oo->std > vv) ? vv : oo->std;
-                            else
-                                enkf_quit("programming error");
-                        }
+                        if (oo->status != STATUS_OK)
+                            continue;
+
+                        vv = (float) interpolate3d(oo->fi, oo->fj, oo->fk, ni, nj, nk, v, nlevels);
+                        if (meta->stdops[i] == ARITHMETIC_EQ)
+                            oo->std = vv;
+                        else if (meta->stdops[i] == ARITHMETIC_PLUS)
+                            oo->std = sqrt(oo->std * oo->std + vv * vv);
+                        else if (meta->stdops[i] == ARITHMETIC_MULT)
+                            oo->std *= vv;
+                        else if (meta->stdops[i] == ARITHMETIC_MIN)
+                            oo->std = (oo->std < vv) ? vv : oo->std;
+                        else if (meta->stdops[i] == ARITHMETIC_MAX)
+                            oo->std = (oo->std > vv) ? vv : oo->std;
+                        else
+                            enkf_quit("programming error");
                     }
-                    free2d(v);
+                    free3d(v);
                 }
             }
         }
