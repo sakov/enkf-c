@@ -35,7 +35,7 @@
 
 \begin{document}
 
-\title{EnKF-C user guide\\{\normalsize version 0.91}}
+\title{EnKF-C user guide\\{\normalsize version 0.92}}
 
 \author{Pavel Sakov}
 \date{June 19, 2014 -- \today}
@@ -658,9 +658,9 @@ In case of using multiple grids each model variable must be associated with one 
 
 \subsection{Grid parameter file}
 
-The grid parameter file describes grids used for model variables.
+Grid parameter file describes grids used for model variables.
 Each grid is described in a section started by the grid name entry and contains the grid name, grid data file, and names of the dimensions and coordinates in the grid data file.
-At the moment it also contains some entries for model related information, such as the variable names for the depth and number of layers in a vertical column for ocean models running on z grids:
+It also contains variable names for the depth and for number of layers in a vertical column (z grids) or land mask (sigma grids):
 \begin{Verbatim}[frame=single,fontsize=\footnotesize]
 >./bin/enkf_prep --describe-prm-format grid
 
@@ -681,6 +681,8 @@ At the moment it also contains some entries for model related information, such 
 
   [ <more of the above blocks> ]
 \end{Verbatim}
+
+The code is supposed to identify the type of the horizontal grid used, while the type of the vertical grid has to be specified explicitly.
 
 At the moment, EnKF-C supports 3 possible types of horizontal grids:
 \begin{itemize}
@@ -714,8 +716,8 @@ For example:
     HFUNCTION = <H function name>
   [ ASYNC     = <time interval> ]                (synchronous*)
   [ RFACTOR   = <rfactor> ]                      (1*)
-  [ MIN       = <minimal allowed value> ]        (-inf*)
-  [ MAX       = <maximal allowed value> ]        (+inf*)
+  [ MINVALUE  = <minimal allowed value> ]        (-inf*)
+  [ MAXVALUE  = <maximal allowed value> ]        (+inf*)
   [ XMIN      = <minimal allowed X coordinate> ] (-inf*)
   [ XMAX      = <maximal allowed X coordinate> ] (+inf*)
   [ YMIN      = <minimal allowed Y coordinate> ] (-inf*)

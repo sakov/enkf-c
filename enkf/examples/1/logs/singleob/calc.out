@@ -1,8 +1,8 @@
   MPI: initialised 2 processes
-  MPI: rank = 0, PID = 18127
-  MPI: rank = 1, PID = 18128
+  MPI: rank = 0, PID = 24257
+  MPI: rank = 1, PID = 24258
   running CALC for EnKF version 0.91:
-  2014-12-19 10:57:10
+  2015-01-06 10:56:22
   reading system specs from "singleob.prm":
     MODE = EnOI
     MODEL PRM = "model.prm"
@@ -42,8 +42,8 @@
       ISSURFACE = yes
       OFFSET = conf/eta_mean-bran.nc eta_t
       HFUNCTION = standard
-      ALLOWED MIN = -1.8e+308
-      ALLOWED MAX = 1.8e+308
+      ALLOWED MIN = -1
+      ALLOWED MAX = 1
       ASYNCHRONOUS = no
       RFACTOR = 1
     NAME = SST
@@ -51,8 +51,8 @@
       ID = 1
       ISSURFACE = yes
       HFUNCTION = standard
-      ALLOWED MIN = -1.8e+308
-      ALLOWED MAX = 1.8e+308
+      ALLOWED MIN = -2
+      ALLOWED MAX = 42
       ASYNCHRONOUS = no
       RFACTOR = 1
     NAME = TEM
@@ -60,8 +60,8 @@
       ID = 2
       ISSURFACE = no
       HFUNCTION = standard
-      ALLOWED MIN = -1.8e+308
-      ALLOWED MAX = 1.8e+308
+      ALLOWED MIN = -2
+      ALLOWED MAX = 42
       ASYNCHRONOUS = no
       RFACTOR = 1
     NAME = SAL
@@ -69,8 +69,8 @@
       ID = 3
       ISSURFACE = no
       HFUNCTION = standard
-      ALLOWED MIN = -1.8e+308
-      ALLOWED MAX = 1.8e+308
+      ALLOWED MIN = 28
+      ALLOWED MAX = 39
       ASYNCHRONOUS = no
       RFACTOR = 1
     grid prm info:
@@ -112,8 +112,8 @@
       ISSURFACE = yes
       OFFSET = conf/eta_mean-bran.nc eta_t
       HFUNCTION = standard
-      ALLOWED MIN = -1.8e+308
-      ALLOWED MAX = 1.8e+308
+      ALLOWED MIN = -1
+      ALLOWED MAX = 1
       ASYNCHRONOUS = no
       RFACTOR = 1
     NAME = SST
@@ -121,8 +121,8 @@
       ID = 1
       ISSURFACE = yes
       HFUNCTION = standard
-      ALLOWED MIN = -1.8e+308
-      ALLOWED MAX = 1.8e+308
+      ALLOWED MIN = -2
+      ALLOWED MAX = 42
       ASYNCHRONOUS = no
       RFACTOR = 1
     NAME = TEM
@@ -130,8 +130,8 @@
       ID = 2
       ISSURFACE = no
       HFUNCTION = standard
-      ALLOWED MIN = -1.8e+308
-      ALLOWED MAX = 1.8e+308
+      ALLOWED MIN = -2
+      ALLOWED MAX = 42
       ASYNCHRONOUS = no
       RFACTOR = 1
     NAME = SAL
@@ -139,8 +139,8 @@
       ID = 3
       ISSURFACE = no
       HFUNCTION = standard
-      ALLOWED MIN = -1.8e+308
-      ALLOWED MAX = 1.8e+308
+      ALLOWED MIN = 28
+      ALLOWED MAX = 39
       ASYNCHRONOUS = no
       RFACTOR = 1
   assimilating single observation:
@@ -152,4 +152,67 @@
     i    = 30.000
     j    = 50.000
     calculating obs stats:
-  2014-12-19 10:57:10
+  calculating ensemble observations:
+  2015-01-06 10:56:22
+    ensemble size = 96
+    distributing iterations:
+      all processes get 48 iterations
+    SLA 
+    SST ...............................................        j = 3 (1: 17: 5.9%)
+.-
+    TEM 
+    SAL 
+  calculating transforms:
+  2015-01-06 10:56:24
+    calculating transforms for t-grid:
+    creating empty file "w.nc":
+      distributing iterations:
+        all processes get 17 iterations
+      main cycle for t-grid (34 x 34 local analyses):
+        j = 0 (0: 0: 5.9%)
+        j = 9 (1: 18: 11.8%)
+        j = 6 (0: 1: 11.8%)
+        j = 15 (1: 19: 17.6%)
+        j = 12 (0: 2: 17.6%)
+        j = 21 (1: 20: 23.5%)
+        j = 18 (0: 3: 23.5%)
+        j = 27 (1: 21: 29.4%)
+        j = 24 (0: 4: 29.4%)
+        j = 30 (0: 5: 35.3%)
+        j = 33 (1: 22: 35.3%)
+        j = 39 (1: 23: 41.2%)
+        j = 36 (0: 6: 41.2%)
+        j = 42 (0: 7: 47.1%)
+        j = 45 (1: 24: 47.1%)
+        j = 48 (0: 8: 52.9%)
+        j = 51 (1: 25: 52.9%)
+        j = 57 (1: 26: 58.8%)
+        j = 54 (0: 9: 58.8%)
+        j = 63 (1: 27: 64.7%)
+        j = 60 (0: 10: 64.7%)
+        j = 69 (1: 28: 70.6%)
+        j = 66 (0: 11: 70.6%)
+        j = 72 (0: 12: 76.5%)
+        j = 75 (1: 29: 76.5%)
+        j = 81 (1: 30: 82.4%)
+        j = 78 (0: 13: 82.4%)
+        j = 87 (1: 31: 88.2%)
+        j = 84 (0: 14: 88.2%)
+        j = 93 (1: 32: 94.1%)
+        j = 90 (0: 15: 94.1%)
+        j = 99 (1: 33: 100.0%)
+        j = 96 (0: 16: 100.0%)
+    finished calculating transforms for t-grid
+    writing stats to "enkf_diag.nc":
+    summary stats on t-grid:
+      # of local analyses = 1156
+      average # of local obs = 0.6
+      # of inversions in obs space = 711
+      # of inversions in ens space = 0
+  writing point logs:
+    calculating transform for log point (30, 30): 1 obs
+    writing the log for point (30, 30):
+  calculating analysed observations:
+  2015-01-06 10:56:24
+    sorting obs by ij:
+    updating Hx:
