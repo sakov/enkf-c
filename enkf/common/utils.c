@@ -975,7 +975,7 @@ void print_vector_float(int n, float* a, char offset[])
 
 /**
  */
-ENSOBSTYPE interpolate2d(double fi, double fj, int ni, int nj, float** v, int** mask)
+ENSOBSTYPE interpolate2d(double fi, double fj, int ni, int nj, float** v, int** mask, int periodic_x, int periodic_y)
 {
     int i1 = (int) floor(fi);
     double wi1 = ceil(fi) - fi;
@@ -995,9 +995,13 @@ ENSOBSTYPE interpolate2d(double fi, double fj, int ni, int nj, float** v, int** 
         wj1 = 1.0;
 
     if (i1 == -1)
-        i1 = ni - 1;
+        i1 = (periodic_x) ? ni - 1 : i2;
     if (i2 == ni)
-        i2 = 0;
+        i2 = (periodic_x) ? 0 : i1;
+    if (j1 == -1)
+        j1 = (periodic_y) ? nj - 1 : j2;
+    if (i2 == nj)
+        j2 = (periodic_y) ? 0 : j1;
 
     assert(i1 >= 0 && i2 < ni && j1 >= 0 && j2 < nj);
 
@@ -1030,7 +1034,7 @@ ENSOBSTYPE interpolate2d(double fi, double fj, int ni, int nj, float** v, int** 
  *  Assumes that integer k indices correspond to layer centres. E.g. for 
  *  fk = 1.2 the vertical weights are 0.8 of layer 1 and 0.2 of layer 2.
  */
-ENSOBSTYPE interpolate3d(double fi, double fj, double fk, int ni, int nj, int nk, float*** v, int** nlevels)
+ENSOBSTYPE interpolate3d(double fi, double fj, double fk, int ni, int nj, int nk, float*** v, int** nlevels, int periodic_x, int periodic_y)
 {
     int i1 = (int) floor(fi);
     double wi1 = ceil(fi) - fi;
@@ -1067,9 +1071,13 @@ ENSOBSTYPE interpolate3d(double fi, double fj, double fk, int ni, int nj, int nk
         wk1 = 1.0;
 
     if (i1 == -1)
-        i1 = ni - 1;
+        i1 = (periodic_x) ? ni - 1 : i2;
     if (i2 == ni)
-        i2 = 0;
+        i2 = (periodic_x) ? 0 : i1;
+    if (j1 == -1)
+        j1 = (periodic_y) ? nj - 1 : j2;
+    if (i2 == nj)
+        j2 = (periodic_y) ? 0 : j1;
 
     assert(i1 >= 0 && i2 < ni && j1 >= 0 && j2 < nj && k1 >= 0 && k2 < nk);
 

@@ -483,7 +483,7 @@ static void z2fk(void* p, double fi, double fj, double z, double* fk)
         } else
             enkf_quit("programming error");
 
-        depth = (double) interpolate2d(fi, fj, ni, nj, g->depth, g->numlevels);
+        depth = (double) interpolate2d(fi, fj, ni, nj, g->depth, g->numlevels, grid_isperiodic_x(g), grid_isperiodic_y(g));
         z /= depth;
     }
 
