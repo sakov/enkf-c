@@ -36,6 +36,7 @@ static void interpolate_2d_obs(model* m, observations* allobs, int nobs, int obs
     int type_prev = -1;
     int** mask = NULL;
     int ni, nj;
+    int periodic_x = -1, periodic_y = -1;
     int i;
 
     for (i = 0; i < nobs; ++i) {
@@ -48,10 +49,12 @@ static void interpolate_2d_obs(model* m, observations* allobs, int nobs, int obs
             assert(mvid >= 0);
             model_getvardims(m, mvid, &ni, &nj, NULL);
             mask = model_getnumlevels(m, mvid);
+            periodic_x = grid_isperiodic_x(model_getvargrid(m, mvid));
+            periodic_y = grid_isperiodic_y(model_getvargrid(m, mvid));
         }
 
         assert(out[ii] == 0.0);
-        out[ii] = interpolate2d(o->fi, o->fj, ni, nj, v, mask);
+        out[ii] = interpolate2d(o->fi, o->fj, ni, nj, v, mask, periodic_x, periodic_y);
         if (!isfinite(out[ii])) {
             /*
              * the location is on land due to the round-up error after writing
@@ -71,7 +74,7 @@ static void interpolate_2d_obs(model* m, observations* allobs, int nobs, int obs
                 o->std = STD_BIG;
                 continue;
             }
-            out[ii] = interpolate2d(o->fi, o->fj, ni, nj, v, mask);
+            out[ii] = interpolate2d(o->fi, o->fj, ni, nj, v, mask, periodic_x, periodic_y);
             if (!isfinite(out[ii])) {
                 o->status = STATUS_ROUNDUP;
                 o->value = 0.0;
@@ -91,6 +94,7 @@ static void interpolate_3d_obs(model* m, observations* allobs, int nobs, int obs
     int** nlevels = NULL;
     int type_prev = -1;
     int ni, nj, nk;
+    int periodic_x = -1, periodic_y = -1;
     int i;
 
     for (i = 0; i < nobs; ++i) {
@@ -103,10 +107,12 @@ static void interpolate_3d_obs(model* m, observations* allobs, int nobs, int obs
             assert(mvid >= 0);
             model_getvardims(m, mvid, &ni, &nj, &nk);
             nlevels = model_getnumlevels(m, mvid);
+            periodic_x = grid_isperiodic_x(model_getvargrid(m, mvid));
+            periodic_y = grid_isperiodic_y(model_getvargrid(m, mvid));
         }
 
         assert(out[ii] == 0.0);
-        out[ii] = interpolate3d(o->fi, o->fj, o->fk, ni, nj, nk, v, nlevels);
+        out[ii] = interpolate3d(o->fi, o->fj, o->fk, ni, nj, nk, v, nlevels, periodic_x, periodic_y);
         if (!isfinite(out[ii])) {
             /*
              * the location is on land due to the round-up error after writing
@@ -126,7 +132,7 @@ static void interpolate_3d_obs(model* m, observations* allobs, int nobs, int obs
                 o->std = STD_BIG;
                 continue;
             }
-            out[ii] = interpolate3d(o->fi, o->fj, o->fk, ni, nj, nk, v, nlevels);
+            out[ii] = interpolate3d(o->fi, o->fj, o->fk, ni, nj, nk, v, nlevels, periodic_x, periodic_y);
             if (!isfinite(out[ii])) {
                 o->status = STATUS_ROUNDUP;
                 o->value = 0.0;
