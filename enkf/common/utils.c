@@ -113,6 +113,8 @@ void enkf_quit(char* format, ...)
     }
 #if defined(MPI)
     MPI_Abort(MPI_COMM_WORLD, 1);       /* kill all MPI jobs */
+#else
+    abort();
 #endif
 
     exit(1);
