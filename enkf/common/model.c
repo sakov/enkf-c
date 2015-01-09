@@ -517,6 +517,10 @@ int model_xy2fij(model* m, int vid, double x, double y, double* fi, double* fj)
     if (isnan(*fi + *fj))
         return STATUS_OUTSIDEGRID;
 
+    /*
+     * Note that this section should be consistent with similar sections in
+     * interpolate2d() and interpolate3d().
+     */
     i1 = floor(*fi);
     i2 = ceil(*fi);
     j1 = floor(*fj);

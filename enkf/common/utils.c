@@ -114,7 +114,7 @@ void enkf_quit(char* format, ...)
 #if defined(MPI)
     MPI_Abort(MPI_COMM_WORLD, 1);       /* kill all MPI jobs */
 #else
-    abort();
+    abort();                    /* raise SIGABRT for debugging */
 #endif
 
     exit(1);
@@ -994,6 +994,10 @@ ENSOBSTYPE interpolate2d(double fi, double fj, int ni, int nj, float** v, int** 
     if (j1 == j2)
         wj1 = 1.0;
 
+    /*
+     * Note that this section should be consistent with the similar section in 
+     * model_xy2fij().
+     */
     if (i1 == -1)
         i1 = (periodic_x) ? ni - 1 : i2;
     if (i2 == ni)
@@ -1070,6 +1074,10 @@ ENSOBSTYPE interpolate3d(double fi, double fj, double fk, int ni, int nj, int nk
     if (k1 == k2)
         wk1 = 1.0;
 
+    /*
+     * Note that this section should be consistent with the similar section in 
+     * model_xy2fij().
+     */
     if (i1 == -1)
         i1 = (periodic_x) ? ni - 1 : i2;
     if (i2 == ni)
