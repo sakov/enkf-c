@@ -166,6 +166,8 @@ void gnxy_curv_destroy(gnxy_curv* nodes)
 }
 #endif
 
+#define EPSZ 0.001
+
 /**
  */
 static gnz* gnz_create(int vtype, int nz, double* z)
@@ -173,32 +175,41 @@ static gnz* gnz_create(int vtype, int nz, double* z)
     gnz* nodes = malloc(sizeof(gnz));
     int i;
 
+    /*
+     * reverse z if it is negative
+     */
+    for (i = 0; i < nz; ++i)
+        if (z[i] < -EPSZ)
+            break;
+    if (i < nz)
+        for (i = 0; i < nz; ++i)
+            z[i] = -z[i];
+    for (i = 0; i < nz; ++i)
+        if (z[i] < -EPSZ)
+            enkf_quit("layer centre coordinates should be either positive or negative only");
+
     nodes->zt = z;
     nodes->nz = nz;
 
-    if (vtype == GRIDVTYPE_Z) {
+    /*
+     * this code is supposed to work both for z and sigma grids
+     */
+    nodes->zc = malloc((nz + 1) * sizeof(double));
+    if (z[nz - 1] >= z[0]) {
         /*
-         * for now assume that levels go from surface down, from 0 to
-         * <depth> (as in MOM)
+         * layer 0 at surface
          */
-        nodes->zc = malloc((nz + 1) * sizeof(double));
-        assert(fabs(z[nz - 1]) > fabs(z[0]));
         nodes->zc[0] = 0;
-        for (i = 1; i < nz + 1; ++i)
+        for (i = 1; i <= nz; ++i)
             nodes->zc[i] = 2.0 * z[i - 1] - nodes->zc[i - 1];
-    } else if (vtype == GRIDVTYPE_SIGMA) {
+    } else {
         /*
-         * for now assume that levels go from bottom up, from -1 to 0,
-         * (as in ROMS); storing them as 1 to 0.
+         * layer 0 the deepest
          */
-        for (i = 0; i < nz; ++i)
-            z[i] = -z[i];
-        nodes->zc = malloc((nz + 1) * sizeof(double));
-        nodes->zc[0] = 1;
-        for (i = 1; i < nz + 1; ++i)
-            nodes->zc[i] = 2.0 * z[i - 1] - nodes->zc[i - 1];
-    } else
-        enkf_quit("vertical type of the grid not defined");
+        nodes->zc[nz] = 0;
+        for (i = nz - 1; i >= 0; --i)
+            nodes->zc[i] = 2.0 * z[i + 1] - nodes->zc[i + 1];
+    }
 
     return nodes;
 }

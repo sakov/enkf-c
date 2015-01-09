@@ -4,6 +4,11 @@ v. 0.92
       obstypes parameter file in example 1 (replaced MIN and MAX by MINVALUE and
       MAXVALUE). Removed redundant explicit call to das_setobstypes() in
       enkf_calc.c made in the case of singleob.
+   -- Corrected handling of obs error from file in obs_add().
+   -- Made a few changes towards achieving consistency in handling grid
+      periodicity. Affected interpolate2d(), interpolate3d(), grid_xy2fij().
+   -- Do not calculate transforms for a grid in das_calctransforms() if there
+      are no model variable associated with it.
 v. 0.91
    PS 12122014
    -- Structural changes: no more `models' directory. Instead, grid

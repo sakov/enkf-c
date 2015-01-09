@@ -212,6 +212,15 @@ void das_calctransforms(dasystem* das)
         int* jpool;
         int i, j, ii, jj, ot, jjj;
 
+        /*
+         * skip this grid if there are no model variables associated with it
+         */
+        for (i = 0; i < model_getnvar(m); ++i)
+            if (model_getvargridid(m, i) == gid)
+                break;
+        if (i == model_getnvar(m))
+            continue;
+
         enkf_printf("    calculating transforms for %s:\n", grid_getname(grid));
         obs_createkdtree(obs, grid);
         grid_getdims(grid, &mni, &mnj, NULL);
