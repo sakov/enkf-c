@@ -9,6 +9,7 @@ v. 0.92
       periodicity. Affected interpolate2d(), interpolate3d(), grid_xy2fij().
    -- Do not calculate transforms for a grid in das_calctransforms() if there
       are no model variable associated with it.
+   -- Corrected das_updatefields() to work in the case STRIDE = 1. 
 v. 0.91
    PS 12122014
    -- Structural changes: no more `models' directory. Instead, grid

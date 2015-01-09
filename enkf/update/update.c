@@ -84,18 +84,19 @@ static void das_updatefields(dasystem* das, int nfields, void** fieldbuffer, fie
     ni = dimlens[1];
     assert((int) dimlens[2] == nmem * nmem);
 
+    start[0] = 0;
+    start[1] = 0;
+    start[2] = 0;
+    count[0] = 1;
+    count[1] = ni;
+    count[2] = nmem * nmem;
+
     X5j = alloc2d(mni, nmem * nmem, sizeof(float));
     if (das->stride > 1) {
         X5jj = alloc2d(ni, nmem * nmem, sizeof(float));
         X5jj1 = alloc2d(ni, nmem * nmem, sizeof(float));
         X5jj2 = alloc2d(ni, nmem * nmem, sizeof(float));
 
-        start[0] = 0;
-        start[1] = 0;
-        start[2] = 0;
-        count[0] = 1;
-        count[1] = ni;
-        count[2] = nmem * nmem;
         ncw_get_vara_float(fname_X5, ncid, varid, start, count, X5jj2[0]);
     }
 
