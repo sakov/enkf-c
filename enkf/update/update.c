@@ -236,16 +236,16 @@ static void das_updatefields(dasystem* das, int nfields, void** fieldbuffer, fie
                         if (v2_a / (double) nmem - v1_a * v1_a <= 0)
                             /*
                              * (Exception.) There is possible a significant
-                             * loss of precision due round-up errors, at
+                             * loss of precision due to round-up errors, at
                              * least with single precision.
                              */
                             inflation = inflation0;
                         else {
                             /*
-                             * (Normal case.) Limit inflation by the
+                             * (Normal case.) Limit inflation by half of the
                              * magnitude of spread reduction.
                              */
-                            inflation = (float) (v2_f / v2_a);
+                            inflation = (float) (v2_f / v2_a * 0.5 + 0.5);
                             if (inflation >= inflation0)
                                 inflation = inflation0;
                         }

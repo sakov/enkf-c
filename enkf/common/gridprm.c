@@ -168,8 +168,6 @@ void gridprm_create(char* fname, int* ngrid, gridprm** prm)
             enkf_quit("%s: YVARNAME not specified for grid \"%s\"", fname, now->name);
         if (now->zvarname == NULL)
             enkf_quit("%s: ZVARNAME not specified for grid \"%s\"", fname, now->name);
-        if (now->depthvarname == NULL)
-            enkf_quit("%s: DEPTHVARNAME not specified for grid \"%s\"", fname, now->name);
         if (now->levelvarnameentry != NULL && now->levelvarname == NULL)
             enkf_quit("%s: \"%s\" not specified for grid \"%s\"", fname, now->levelvarnameentry, now->name);
     }

@@ -1,1 +1,1 @@
-arch/make.inc.mkl
+arch/make.inc.linux
