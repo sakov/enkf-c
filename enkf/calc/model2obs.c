@@ -153,14 +153,15 @@ void H_surf_standard(dasystem* das, int nobs, int obsids[], char fname[], int me
     observations* allobs = das->obs;
     float** src = (float**) psrc;
     float** offset = NULL;
+    int mvid = model_getvarid(m, varname);
+    int k = grid_gettoplayerid(model_getvargrid(m, mvid));
 
     assert(varname2 == NULL);
 
-    model_readfield(m, fname, mem, t, varname, 0, src[0]);
+    model_readfield(m, fname, mem, t, varname, k, src[0]);
 
     offset = model_getmodeldata(m, allobs->obstypes[allobs->data[obsids[0]].type].name);
     if (offset != NULL) {
-        int mvid = model_getvarid(m, varname);
         int ni, nj;
         float* src0 = src[0];
         float* offset0 = offset[0];
@@ -204,11 +205,13 @@ void H_surf_biased(dasystem* das, int nobs, int obsids[], char fname[], int mem,
     float** offset = NULL;
     float** bias = NULL;
     int mvid = model_getvarid(m, varname);
+    int k;
     char fname2[MAXSTRLEN];
     int ni, nj;
     int i, j;
 
     assert(mvid >= 0);
+    k = grid_gettoplayerid(model_getvargrid(m, mvid));
 
     model_getvardims(m, mvid, &ni, &nj, NULL);
     bias = alloc2d(nj, ni, sizeof(float));
@@ -216,9 +219,9 @@ void H_surf_biased(dasystem* das, int nobs, int obsids[], char fname[], int mem,
         model_getmemberfname(m, das->ensdir, varname2, mem, fname2);
     else if (das->mode == MODE_ENOI)
         model_getbgfname(m, das->bgdir, varname2, fname2);
-    model_readfield(m, fname2, mem, NaN, varname2, 0, bias[0]);
+    model_readfield(m, fname2, mem, NaN, varname2, k, bias[0]);
 
-    model_readfield(m, fname, mem, t, varname, 0, src[0]);
+    model_readfield(m, fname, mem, t, varname, k, src[0]);
 
     offset = model_getmodeldata(m, allobs->obstypes[allobs->data[obsids[0]].type].name);
     if (offset != NULL) {

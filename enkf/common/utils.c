@@ -649,7 +649,6 @@ void readfield(char fname[], int k, char varname[], float* v)
             count[1] = dimlen[1];
             count[2] = dimlen[2];
         } else {
-            assert(k <= 0);
             start[0] = 0;
             start[1] = 0;
             start[2] = 0;
