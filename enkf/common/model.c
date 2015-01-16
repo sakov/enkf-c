@@ -446,7 +446,13 @@ int model_getlontype(model* m, int vid)
  */
 float** model_getdepth(model* m, int vid)
 {
-    return grid_getdepth(m->grids[m->vars[vid].gridid]);
+    void* grid = m->grids[m->vars[vid].gridid];
+    float** depth = grid_getdepth(grid);
+
+    if (depth == NULL)
+        enkf_quit("DEPTHVARNAME not specified for grid \"%s\"", grid_getname(grid));
+
+    return depth;
 }
 
 /**
