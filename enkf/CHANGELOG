@@ -1,3 +1,7 @@
+v. 0.92.2
+   PS 1601205
+   -- Modified H_surf_standard() and H_surf_biased() to read the actual level
+      of the surface variable.
 v. 0.92.1
    PS 1601205
    -- Made DEPTHVARNAME optional for a grid; an error is generated in
