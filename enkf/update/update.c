@@ -328,18 +328,19 @@ static void das_updatebg(dasystem* das, int nfields, void** fieldbuffer, field f
     nj = dimlens[0];
     assert((int) dimlens[2] == nmem);
 
+    start[0] = 0;
+    start[1] = 0;
+    start[2] = 0;
+    count[0] = 1;
+    count[1] = ni;
+    count[2] = nmem;
+
     wj = alloc2d(mni, nmem, sizeof(float));
     if (das->stride > 1) {
         wjj = alloc2d(ni, nmem, sizeof(float));
         wjj1 = alloc2d(ni, nmem, sizeof(float));
         wjj2 = alloc2d(ni, nmem, sizeof(float));
 
-        start[0] = 0;
-        start[1] = 0;
-        start[2] = 0;
-        count[0] = 1;
-        count[1] = ni;
-        count[2] = nmem;
         ncw_get_vara_float(fname_w, ncid, varid, start, count, wjj2[0]);
     }
     /*
@@ -648,7 +649,7 @@ static void das_writebg(dasystem* das, int nfields, void** fieldbuffer, field fi
         das_writebg_toassemble(das, nfields, fieldbuffer, fields);
 }
 
-/**
+/** Allocates disk space for ensemble spread.
  */
 static void das_allocatespread(dasystem* das, char fname[])
 {

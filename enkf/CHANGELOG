@@ -1,3 +1,7 @@
+v. 0.92.3
+   PS 30012015
+   -- Corrected das_updatebg() to work in the case STRIDE = 1 (thanks to Paul
+      Sandery for the bug report).
 v. 0.92.2
    PS 1601205
    -- Modified H_surf_standard() and H_surf_biased() to read the actual level
