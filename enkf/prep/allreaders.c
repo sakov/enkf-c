@@ -40,7 +40,8 @@ obsreader_entry allreaders[] = {
     {"NAVO", "standard", reader_navo_standard},
     {"WINDSAT", "standard", reader_windsat_standard},
     {"CARS", "standard", reader_cars_standard},
-    {"MMT", "standard", reader_mmt_standard}
+    {"MMT", "standard", reader_mmt_standard},
+    {"AMSR2", "standard", reader_amsr2_standard}
 };
 
 /**

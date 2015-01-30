@@ -1,13 +1,16 @@
+v. 0.93
+   Paul Sandery 30012015
+   -- Added a reader for AMSR-2.
 v. 0.92.3
    PS 30012015
    -- Corrected das_updatebg() to work in the case STRIDE = 1 (thanks to Paul
       Sandery for the bug report).
 v. 0.92.2
-   PS 1601205
+   PS 16012015
    -- Modified H_surf_standard() and H_surf_biased() to read the actual level
       of the surface variable.
 v. 0.92.1
-   PS 1601205
+   PS 16012015
    -- Made DEPTHVARNAME optional for a grid; an error is generated in
       model_getdepth() if it is not set for the grid the variable is defined on.
    -- Made the inflation limited by half of the magnitude of the spread
