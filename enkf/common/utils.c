@@ -419,7 +419,7 @@ int str2int(char* token, int* value)
     char* end = NULL;
 
     if (token == NULL) {
-        *value = NaN;
+        *value = MAXINT;
         return 0;
     }
 
