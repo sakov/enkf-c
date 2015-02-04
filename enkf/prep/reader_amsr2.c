@@ -7,7 +7,7 @@
  * Author:      Paul Sandery
  *              Bureau of Meteorology
  *
- * Description: Created from reader_navo.c.
+ * Description: AMSR-2 reader, created from reader_navo.c.
  *
  * Revisions:  
  *
