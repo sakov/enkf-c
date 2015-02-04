@@ -18,6 +18,7 @@
 #include <string.h>
 #include <math.h>
 #include <assert.h>
+#include <values.h>
 #include "ncw.h"
 #include "nan.h"
 #include "definitions.h"
@@ -219,7 +220,7 @@ void H_surf_biased(dasystem* das, int nobs, int obsids[], char fname[], int mem,
         model_getmemberfname(m, das->ensdir, varname2, mem, fname2);
     else if (das->mode == MODE_ENOI)
         model_getbgfname(m, das->bgdir, varname2, fname2);
-    model_readfield(m, fname2, mem, NaN, varname2, k, bias[0]);
+    model_readfield(m, fname2, mem, MAXINT, varname2, k, bias[0]);
 
     model_readfield(m, fname, mem, t, varname, k, src[0]);
 
