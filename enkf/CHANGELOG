@@ -1,3 +1,7 @@
+v. 0.94
+   PS 05022015
+   -- Added code for qsort_r() activated by compiler flag -DNO_QSORT_R. (For
+      systems with old glibc; based on public code sort_r.h by Isaac Turner.)
 v. 0.93
    Paul Sandery 30012015
    -- Added a reader for AMSR-2.
