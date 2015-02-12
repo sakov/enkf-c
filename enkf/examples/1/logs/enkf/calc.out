@@ -1,8 +1,8 @@
   MPI: initialised 2 processes
-  MPI: rank = 0, PID = 23534
-  MPI: rank = 1, PID = 23535
-  running CALC for EnKF version 0.91:
-  2015-01-06 10:18:13
+  MPI: rank = 0, PID = 24710
+  MPI: rank = 1, PID = 24711
+  running CALC for EnKF version 0.94:
+  2015-02-12 16:12:08
   reading system specs from "enkf.prm":
     MODE = EnKF
     SCHEME = DEnKF
@@ -34,6 +34,7 @@
       SHUFFLE_ROWS     = [-]
       HE_VIAFILE       = [-]
       GRIDNODES_WRITE  = [-]
+      NO_QSORT_R       = [-]
   initialising the system:
   reading observation type specs from "obstypes.prm":
     NAME = SLA
@@ -109,7 +110,7 @@
     3921 observations
     calculating obs stats:
   calculating ensemble observations:
-  2015-01-06 10:18:13
+  2015-02-12 16:12:08
     ensemble size = 96
     distributing iterations:
       all processes get 48 iterations
@@ -118,7 +119,7 @@
     TEM ................................................
     SAL ................................................
   adding forecast innovations and spread to "observations.nc":
-  2015-01-06 10:18:17
+  2015-02-12 16:12:08
   moderating observations:
     observations substantially modified:
       SLA          0 (0.0%)
@@ -128,7 +129,7 @@
       total        0 (0.0%)
   writing modified obs errors to "observations.nc":
   calculating transforms:
-  2015-01-06 10:18:17
+  2015-02-12 16:12:08
     calculating transforms for t-grid:
       creating empty file "X5.nc":
       distributing iterations:
@@ -140,12 +141,12 @@
         j = 6 (0: 1: 11.8%)
         j = 12 (0: 2: 17.6%)
         j = 15 (1: 19: 17.6%)
-        j = 21 (1: 20: 23.5%)
         j = 18 (0: 3: 23.5%)
-        j = 27 (1: 21: 29.4%)
+        j = 21 (1: 20: 23.5%)
         j = 24 (0: 4: 29.4%)
-        j = 33 (1: 22: 35.3%)
+        j = 27 (1: 21: 29.4%)
         j = 30 (0: 5: 35.3%)
+        j = 33 (1: 22: 35.3%)
         j = 39 (1: 23: 41.2%)
         j = 36 (0: 6: 41.2%)
         j = 45 (1: 24: 47.1%)
@@ -156,14 +157,14 @@
         j = 54 (0: 9: 58.8%)
         j = 63 (1: 27: 64.7%)
         j = 60 (0: 10: 64.7%)
-        j = 66 (0: 11: 70.6%)
         j = 69 (1: 28: 70.6%)
+        j = 66 (0: 11: 70.6%)
         j = 75 (1: 29: 76.5%)
         j = 72 (0: 12: 76.5%)
         j = 81 (1: 30: 82.4%)
         j = 78 (0: 13: 82.4%)
-        j = 87 (1: 31: 88.2%)
         j = 84 (0: 14: 88.2%)
+        j = 87 (1: 31: 88.2%)
         j = 93 (1: 32: 94.1%)
         j = 90 (0: 15: 94.1%)
         j = 99 (1: 33: 100.0%)
@@ -179,7 +180,7 @@
     calculating transform for log point (30, 50): 524 obs
     writing the log for point (30, 50):
   calculating analysed observations:
-  2015-01-06 10:18:28
+  2015-02-12 16:12:16
     sorting obs by ij:
     updating HE:
   adding analysis innovations and spread to "observations.nc":
@@ -203,5 +204,5 @@
              ARGO          7    0.077      0.073      0.054      0.039      0.029      0.019  
              0-50m         2    0.088      0.120      0.074      0.079      0.023      0.016  
              >500m         0     -nan       -nan       -nan       -nan       -nan       -nan  
-  2015-01-06 10:18:29
+  2015-02-12 16:12:17
   finished

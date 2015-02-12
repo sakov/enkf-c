@@ -1,5 +1,5 @@
-  running PREP for EnKF version 0.91:
-  2015-01-06 10:19:48
+  running PREP for EnKF version 0.94:
+  2015-02-12 16:12:36
   reading prep specs from "enoi.prm":
     MODE = EnOI
     MODEL PRM = "model.prm"
@@ -31,6 +31,7 @@
       SHUFFLE_ROWS     = [-]
       HE_VIAFILE       = [-]
       GRIDNODES_WRITE  = [-]
+      NO_QSORT_R       = [-]
   reading observation specs from "obs.prm":
     PRODUCT = RADS
       READER = standard2
@@ -118,12 +119,12 @@
       ALLOWED MAX = 1
       ASYNCHRONOUS = no
       RFACTOR = 1
-    NAME = SST
-      VAR = temp
-      Ils: cannot access obs/WINDSAT/windsat_20071221.nc: No such file or directory
+    NAME =ls: cannot access obs/WINDSAT/windsat_20071221.nc: No such file or directory
 ls: cannot access obs/WINDSAT/windsat_20071222.nc: No such file or directory
 ls: cannot access obs/WINDSAT/windsat_20071223.nc: No such file or directory
-D = 1
+ SST
+      VAR = temp
+      ID = 1
       ISSURFACE = yes
       HFUNCTION = standard
       ALLOWED MIN = -2
@@ -317,5 +318,5 @@ D = 1
     TEM     184        104        104        0          0          0          0          7         
     SAL     184        104        104        0          0          0          0          7         
     total   9749       211        208        0          3          0          0          3921      
-  2015-01-06 10:19:49
+  2015-02-12 16:12:37
   finished

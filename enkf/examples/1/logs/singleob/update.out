@@ -1,8 +1,8 @@
   MPI: initialised 2 processes
-  MPI: rank = 0, PID = 24263
-  MPI: rank = 1, PID = 24264
-  running UPDATE for EnKF version 0.91:
-  2015-01-06 10:56:24
+  MPI: rank = 0, PID = 24815
+  MPI: rank = 1, PID = 24816
+  running UPDATE for EnKF version 0.94:
+  2015-02-12 16:13:25
   reading system specs from "singleob.prm":
     MODE = EnOI
     MODEL PRM = "model.prm"
@@ -34,6 +34,7 @@
       SHUFFLE_ROWS     = [-]
       HE_VIAFILE       = [-]
       GRIDNODES_WRITE  = [-]
+      NO_QSORT_R       = [-]
   initialising the system:
     grid prm info:
       NAME = "t-grid"
@@ -71,25 +72,25 @@
   updating the model state:
     96 members
     defining state variables in point logs:
-    allocating disk space for the analysis:    2015-01-06 10:56:24
+    allocating disk space for the analysis:    2015-02-12 16:13:25
 .....
-    2015-01-06 10:56:24
+    2015-02-12 16:13:25
     updating fields for t-grid:
       9 fields
       distributing iterations:
         processes get 5 or 4 iterations
       u        0   (1: 5: 25.0%)
       eta_t    0   (0: 0: 20.0%)
+      u        1   (1: 6: 50.0%)
       temp     0   (0: 1: 40.0%)
+      v        0   (1: 7: 75.0%)
       temp     1   (0: 2: 60.0%)
+      v        1   (1: 8: 100.0%)
       salt     0   (0: 3: 80.0%)
       salt     1   (0: 4: 100.0%)
-      u        1   (1: 6: 50.0%)
-      v        0   (1: 7: 75.0%)
 
-  2015-01-06 10:56:26
+  2015-02-12 16:13:25
   assembling analysis:
-      v        1   (1: 8: 100.0%)
     eta_t:.
     temp:..
     salt:..
@@ -101,5 +102,5 @@
     deleting tiles:
       distributing iterations:
         processes get 5 or 4 iterations
-  2015-01-06 10:56:27
+  2015-02-12 16:13:25
   finished
