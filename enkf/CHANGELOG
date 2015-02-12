@@ -1,3 +1,7 @@
+v. 0.95
+   PS 12022015
+   -- Modified code to be able to proceed with nobs = 0; introduced a new option
+      for enkf_calc "--ignore-no-obs".
 v. 0.94
    PS 05022015
    -- Added code for qsort_r() activated by compiler flag -DNO_QSORT_R. (For

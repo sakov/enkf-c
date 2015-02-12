@@ -35,7 +35,7 @@
 
 \begin{document}
 
-\title{EnKF-C user guide\\{\normalsize version 0.92}}
+\title{EnKF-C user guide\\{\normalsize version 0.95}}
 
 \author{Pavel Sakov}
 \date{June 19, 2014 -- \today}
@@ -94,8 +94,8 @@ EnKF-C is available from \url{https://code.google.com/p/enkf-c}.
 This user guide is a part of the EnKF-C package. 
 It is also available from \url{http://arxiv.org/abs/1410.1233}.
 
-This user guide contains two main sections.
-Section~\ref{ch:enkf} overviews basics of the EnKF; section~\ref{ch:enkf-c} provides a techical description of EnKF-C.
+The user guide has two main sections.
+Section~\ref{ch:enkf} overviews basics of the EnKF; technical description of EnKF-C is given in  section~\ref{ch:enkf-c}.
 
 \chapter{EnKF}
 \label{ch:enkf}
@@ -961,6 +961,8 @@ It has the following usage and options:
       describe format of a parameter file and exit
   --forecast-stats-only
       calculate and print forecast observation stats only
+  --ignore-no-obs
+      proceed even if there are no observations
   --no-mean-update
       update ensemble anomalies only
   --print-batch-stats

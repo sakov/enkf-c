@@ -1,8 +1,8 @@
   MPI: initialised 2 processes
-  MPI: rank = 0, PID = 23540
-  MPI: rank = 1, PID = 23541
-  running UPDATE for EnKF version 0.91:
-  2015-01-06 10:18:29
+  MPI: rank = 0, PID = 24716
+  MPI: rank = 1, PID = 24717
+  running UPDATE for EnKF version 0.94:
+  2015-02-12 16:12:17
   reading system specs from "enkf.prm":
     MODE = EnKF
     SCHEME = DEnKF
@@ -34,6 +34,7 @@
       SHUFFLE_ROWS     = [-]
       HE_VIAFILE       = [-]
       GRIDNODES_WRITE  = [-]
+      NO_QSORT_R       = [-]
   initialising the system:
     grid prm info:
       NAME = "t-grid"
@@ -74,24 +75,24 @@
     defining state variables in point logs:
     distributing iterations:
       all processes get 48 iterations
-    2015-01-06 10:18:29
+    2015-02-12 16:12:17
     allocating disk space for analysis:................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................
-    2015-01-06 10:18:32
+    2015-02-12 16:12:17
     updating fields for t-grid:
       9 fields
       distributing iterations:
         processes get 5 or 4 iterations
-      eta_t    0   (0: 0: 20.0%)
       u        0   (1: 5: 25.0%)
-      temp     0   (0: 1: 40.0%)
-      temp     1   (0: 2: 60.0%)
+      eta_t    0   (0: 0: 20.0%)
       u        1   (1: 6: 50.0%)
-      salt     0   (0: 3: 80.0%)
+      temp     0   (0: 1: 40.0%)
       v        0   (1: 7: 75.0%)
+      temp     1   (0: 2: 60.0%)
       v        1   (1: 8: 100.0%)
+      salt     0   (0: 3: 80.0%)
       salt     1   (0: 4: 100.0%)
 
-  2015-01-06 10:18:34
+  2015-02-12 16:12:19
   assembling analysis:
     distributing iterations:
       all processes get 48 iterations
@@ -112,5 +113,5 @@
     deleting tiles:
       distributing iterations:
         processes get 5 or 4 iterations
-  2015-01-06 10:18:38
+  2015-02-12 16:12:19
   finished

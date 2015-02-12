@@ -432,6 +432,11 @@ void obs_read(observations* obs, char fname[])
     ncw_inq_dimlen(fname, ncid, dimid_nobs[0], &nobs);
 
     obs->nobs = nobs;
+    if (nobs == 0) {
+        obs->data = NULL;
+        goto finish;
+    }
+
     obs->data = malloc(nobs * sizeof(observation));
     enkf_printf("    %u observations\n", (unsigned int) nobs);
 
@@ -585,6 +590,8 @@ void obs_read(observations* obs, char fname[])
     free(date);
     free(status);
     free(aux);
+
+ finish:
 
     obs_calcstats(obs);
 }

@@ -28,6 +28,7 @@ observation* singleob = NULL;
 int singleob_ijk = 1;
 char* singleobtype = NULL;
 int printbatchstats = 0;
+int ignorenoobs = 0;
 
 /**
  */
@@ -39,6 +40,8 @@ static void usage()
     enkf_printf("      describe format of a parameter file and exit\n");
     enkf_printf("  --forecast-stats-only\n");
     enkf_printf("      calculate and print forecast observation stats only\n");
+    enkf_printf("  --ignore-no-obs\n");
+    enkf_printf("      proceed even if there are no observations\n");
     enkf_printf("  --no-mean-update\n");
     enkf_printf("      update ensemble anomalies only\n");
     enkf_printf("  --print-batch-stats\n");
@@ -89,6 +92,10 @@ static void parse_commandline(int argc, char* argv[], char** fname_prm, char** f
             } else
                 enkfprm_describeprm();
             exit(0);
+        } else if (strcmp(argv[i], "--ignore-no-obs") == 0) {
+            ignorenoobs = 1;
+            i++;
+            continue;
         } else if (strcmp(argv[i], "--no-mean-update") == 0) {
             enkf_nomeanupdate = 1;
             i++;
@@ -284,7 +291,7 @@ int main(int argc, char* argv[])
     }
     enkfprm_destroy(prm);
 
-    if (das->obs->nobs == 0) {
+    if (das->obs->nobs == 0 && !ignorenoobs) {
         enkf_printf("  nothing to do! (nobs = 0)\n");
         goto finish;
     }
