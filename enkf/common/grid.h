@@ -30,7 +30,7 @@ typedef struct grid grid;
 
 typedef void (*grid_tocartesian_fn) (double in[2], double out[3]);
 
-grid* grid_create(void* prm, int id, int vtype);
+grid* grid_create(void* prm, int id);
 void grid_destroy(grid* g);
 void grid_print(grid* g, char offset[]);
 void grid_describeprm(void);

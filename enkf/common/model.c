@@ -91,7 +91,7 @@ static void model_setgrids(model* m, char gfname[])
     for (i = 0; i < ngrid; ++i) {
         grid* g = NULL;
 
-        g = grid_create(&prm[i], i, GRIDVTYPE_Z);
+        g = grid_create(&prm[i], i);
         grid_settocartesian_fn(g, ll2xyz);
         model_setgrid(m, g);
     }

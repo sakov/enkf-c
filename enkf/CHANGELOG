@@ -1,3 +1,8 @@
+v. 0.96
+   PS 17022015
+   -- Fixed the call to grid_create() in model.c to pass correctly the grid type
+      to the grid structure (was defaulted to GRIDVTYPE_Z). (Thanks to Paul
+      Sandery for the bug report.)
 v. 0.95
    PS 12022015
    -- Modified code to be able to proceed with nobs = 0; introduced a new option
