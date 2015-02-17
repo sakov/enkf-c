@@ -216,3 +216,17 @@ void gridprm_print(gridprm* prm, char offset[])
     if (prm->levelvarnameentry != NULL)
         enkf_printf("%s  %s = \"%s\"\n", offset, prm->levelvarnameentry, prm->levelvarname);
 }
+
+/**
+ */
+int gridprm_getvtype(gridprm* prm)
+{
+    int i;
+
+    for (i = 0; i < ngridvtypeentries; ++i) {
+	if (strcasecmp(prm->vtype, allgridvtypeentries[i].vtype_tag) == 0)
+	    return  allgridvtypeentries[i].vtype;
+    }
+
+    return GRIDVTYPE_NONE;
+}

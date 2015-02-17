@@ -545,7 +545,7 @@ static void grid_setlontype(grid* g)
 
 /**
  */
-static void grid_setcoords(grid* g, int htype, int hnodetype, int vtype, int periodic_x, int periodic_y, int nx, int ny, int nz, void* x, void* y, double* z)
+static void grid_setcoords(grid* g, int htype, int hnodetype, int periodic_x, int periodic_y, int nx, int ny, int nz, void* x, void* y, double* z)
 {
     g->htype = htype;
     if (htype == GRIDHTYPE_LATLON_REGULAR) {
@@ -577,13 +577,12 @@ static void grid_setcoords(grid* g, int htype, int hnodetype, int vtype, int per
     grid_setlontype(g);
     g->z2fk_fn = z2fk;
 
-    g->vtype = vtype;
-    g->gridnodes_z = gnz_create(vtype, nz, z);
+    g->gridnodes_z = gnz_create(g->vtype, nz, z);
 }
 
 /**
  */
-grid* grid_create(void* p, int id, int vtype)
+grid* grid_create(void* p, int id)
 {
     gridprm* prm = (gridprm*) p;
     grid* g = calloc(1, sizeof(grid));
@@ -597,6 +596,7 @@ grid* grid_create(void* p, int id, int vtype)
 
     g->name = strdup(prm->name);
     g->id = id;
+    g->vtype = gridprm_getvtype(prm);
 
     ncw_open(fname, NC_NOWRITE, &ncid);
     ncw_inq_dimid(fname, ncid, prm->xdimname, &dimid_x);
@@ -637,16 +637,16 @@ grid* grid_create(void* p, int id, int vtype)
             if (fabs(x[i] - x[i - 1] - dx) / fabs(dx) > EPSLON)
                 break;
         if (i != (int) nx)
-            grid_setcoords(g, GRIDHTYPE_LATLON_IRREGULAR, NT_NONE, vtype, periodic_x, 0, nx, ny, nz, x, y, z);
+            grid_setcoords(g, GRIDHTYPE_LATLON_IRREGULAR, NT_NONE, periodic_x, 0, nx, ny, nz, x, y, z);
         else {
             dy = (y[ny - 1] - y[0]) / (double) (ny - 1);
             for (i = 1; i < (int) ny; ++i)
                 if (fabs(y[i] - y[i - 1] - dy) / fabs(dy) > EPSLON)
                     break;
             if (i != (int) ny)
-                grid_setcoords(g, GRIDHTYPE_LATLON_IRREGULAR, NT_NONE, vtype, periodic_x, 0, nx, ny, nz, x, y, z);
+                grid_setcoords(g, GRIDHTYPE_LATLON_IRREGULAR, NT_NONE, periodic_x, 0, nx, ny, nz, x, y, z);
             else
-                grid_setcoords(g, GRIDHTYPE_LATLON_REGULAR, NT_NONE, vtype, periodic_x, 0, nx, ny, nz, x, y, z);
+                grid_setcoords(g, GRIDHTYPE_LATLON_REGULAR, NT_NONE, periodic_x, 0, nx, ny, nz, x, y, z);
         }
     } else if (ndims_x == 2 && ndims_y == 2) {
         double** x;
@@ -661,7 +661,7 @@ grid* grid_create(void* p, int id, int vtype)
         ncw_get_var_double(fname, ncid, varid_y, y[0]);
         ncw_get_var_double(fname, ncid, varid_z, z);
 
-        grid_setcoords(g, GRIDHTYPE_CURVILINEAR, NT_COR, vtype, 0, 0, nx, ny, nz, x, y, z);
+        grid_setcoords(g, GRIDHTYPE_CURVILINEAR, NT_COR, 0, 0, nx, ny, nz, x, y, z);
     } else
         enkf_quit("%s: could not determine the grid type", fname);
 

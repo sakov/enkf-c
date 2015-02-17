@@ -33,6 +33,7 @@ typedef struct {
 void gridprm_create(char* fname, int* ngrid, gridprm** prm);
 void gridprm_destroy(int ngrid, gridprm prm[]);
 void gridprm_print(gridprm* prm, char offset[]);
+int gridprm_getvtype(gridprm* prm);
 
 #define _GRIDPRM_H
 #endif
