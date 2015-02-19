@@ -148,7 +148,7 @@ static void get_nkname(dasystem* das, void* grid, char name[])
     if (model_getngrid(das->m) == 1)
         sprintf(name, "nk");
     else
-        sprintf(name, "nk-%d.nc", grid_getid(grid));
+        sprintf(name, "nk-%d", grid_getid(grid));
 }
 
 /**

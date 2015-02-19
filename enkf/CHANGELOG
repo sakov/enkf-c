@@ -1,3 +1,6 @@
+v. 0.96.1
+   PS 19022015
+   -- Fixed name of the "nk" dimension in pointlog files, get_nkname().
 v. 0.96
    PS 17022015
    -- Fixed the call to grid_create() in model.c to pass correctly the grid type
