@@ -1,0 +1,217 @@
+% +--------------------------------------------------+
+% | Typeset this file to get the documentation.      |
+% +--------------------------------------------------+
+%
+%% Copyright (C) 1998, 1999, 2000, 2006 Javier Bezos
+%% All Rights Reserved
+%% http://www.tex-tipografia.com
+%%
+%% This work may be distributed and/or modified under the conditions
+%% of the LaTeX Project Public License, either version 1.3 of this
+%% license or (at your option) any later version.  The latest version
+%% of this license is in
+%%     http://www.latex-project.org/lppl.txt
+%% and version 1.3 or later is part of all distributions of LaTeX
+%% version 2003/12/01 or later.
+%%
+%% This work has the LPPL maintenance status "maintained".
+%%
+%% This Current Maintainer of this work is Javier Bezos.
+%%
+%% This work consists of the files accents.tex and accents.sty.
+
+\def\fileversion{1.3}
+\def\docdate{May 12, 2006}
+
+\documentclass{ltxguide}
+\usepackage{accents}
+
+\title{The \textsf{accents} Package\footnote{This 
+package is currently at version \fileversion.}}
+
+\author{Javier Bezos\footnote{For bug reports, comments and
+suggestions go to
+\texttt{http://www.tex-tipografia.com}.
+English is not my strong point, so contact me when you find mistakes
+in the manual.  Other packages by the same author: \textsf{tensind}
+(tensorial indexes), \textsf{spanish} (for babel), \textsf{titlesec}
+(to redefine sectioning macros), \textsf{dotlessi} (dotless i in any
+math group).}}
+
+\date{\docdate}
+
+\newenvironment{sample}{\begin{quote}\small\begin{tabbing}%
+  \hskip14pc\=\hskip6pc\\}
+  {\end{tabbing}\end{quote}}
+
+\DeclareMathAccent{\wtilde}{\mathord}{largesymbols}{"65}
+
+\raggedright
+\advance\textheight24pt
+
+\begin{document}
+
+\maketitle
+
+This package provides some miscellaneous tools for mathematical 
+accents, with the following goals in mind:
+\begin{itemize}
+\item Creating faked accents from non-accent symbols, like
+$\accentset{\star}{s}$.
+\item Grouping them, perhaps including actual accents, like 
+$\hat{\accentset{\star}{\hat h}}$. That
+has the side effect that multiple actual accents can be built
+as well.
+\item Putting them below the main symbol instead of above.
+\end{itemize}
+
+That is done so that the faked accents behave in quite similar fashion 
+to actual accents do; i.e., the skew of the letter is taken into 
+account (compare $\accentset{\ast}{d}$ with 
+$\accentset{\ast}{h}$) and the sub and superscripts attached to 
+it aren't misplaced (look carefully at $\accentset{\star}{f}_1^1$).
+
+Release 1.1 included a few new features, some of them following 
+suggestions by Donald Arseneau.  In particular, the |\underaccent| 
+command has been fully reimplemented for the slant to be taken into 
+account and the ``accent'' to be placed below the symbol can be 
+anyone, not only real accents. This release just makes it compatible
+with \textsf{amsmath} 2 with a quick fix.
+
+\begin{decl}
+|\DeclareMathAccent|
+\end{decl}
+
+This \LaTeXe{} command is reimplemented so that newly defined accents 
+will incorporate the features of this package.  The standard accents 
+are automatically redefined, including |\mathring| if you are using 
+one of the latest \LaTeX{} releases.  However, both |\widetilde| and
+|\widehat| remains untouched.  If you are using a non standard 
+math encoding, the accents following the standard encoding names are 
+rightly redefined, but new accents are not converted because 
+\textsf{accents} is not aware of its existence.
+
+See |fntguide.tex| in the \LaTeX{} standard distribution for a discussion on
+ |\DeclareMathAccent|.
+
+\begin{decl}
+|\ring{<symbol>}|
+\end{decl}
+
+The accent in $\ring{x}$, which was available in this package (and
+in fact in many others) before
+the |\mathring| command was added to the \LaTeX{} kernel.
+
+\begin{decl}
+|\accentset{<accent>}{<symbol>}|
+\end{decl}
+
+Builds a faked accent, as for instance
+\begin{sample}
+|\accentset{\star}{d}|    \> $\accentset{\star}{d}$\\
+|\accentset{\diamond}{h}| \> $\accentset{\diamond}{h}$\\
+|\tilde{\accentset{\circ}{\phi}}| \>
+    $\tilde{\accentset{\circ}{\phi}}$
+\end{sample}
+The |<accent>| is always in |\scriptscriptmode|; hence, using
+|\accentset| in scripts won't give the desired  result. Of course,
+if you use some faked accent many times, you can define:
+\begin{verbatim}
+\newcommand\starred[1]{\accentset{\star}{#1}}
+\end{verbatim}
+and |\starred| will become an accent, like |\hat|, |\tilde|, etc.
+
+\begin{decl}
+|\dddot  \ddddot|
+\end{decl}
+
+Two prefabricated faked accents: $\dddot{f}$ and $\ddddot{f}$.
+
+\begin{decl}
+|\underaccent{<accent>}{<symbol>}|
+\end{decl}
+
+This command puts the |<accent>| under the |<symbol>|. Both real
+and faked accents are allowed. For instance,
+\begin{sample}
+|\underaccent{\hat}{x}|      \> $\underaccent{\hat}{x}$\\
+|\underaccent{\bar}{\gamma}| \> $\underaccent{\bar}{\gamma}$\\
+|\underaccent{\triangleright}{q}|  \>
+   $\underaccent{\triangleright}{q}$\\
+|\underaccent{\tilde}{\mathcal{A}}| \>
+    $\underaccent{\tilde}{\mathcal{A}}$
+\end{sample}
+
+Many people likes using the wider version of the tilde accent as 
+printed by the |\widetilde| command, i.e., $\widetilde{A}$ instead of 
+$\tilde{A}$.  I find that aesthetically questionable, but anyway it
+can be used under the symbol as well. Since |\widetilde| remains
+untouched, you should define:
+\begin{verbatim}
+\DeclareMathAccent{\wtilde}{\mathord}{largesymbols}{"65}
+\end{verbatim}
+and write |\underaccent{\wtilde}{V}|, say (giving 
+$\underaccent{\wtilde}{V}$). You may build an accent with
+|\sim|, too. (The value for a wide hat is |"62|)
+
+Sadly, \TeX{} lacks of a mechanism to place underaccents similar to 
+that used in accents.  Letters have a large variety of shapes and 
+finding an automatic adjusting is practically impossible.  Compare for 
+instance the following letters:
+\begingroup
+\def\\{\underaccent{\bar}}%
+$\\V$, $\\Q$, $\\p$, $\\q$, $\\f$,
+$\\\beta$, $\\\gamma$, $\\{\mathcal{F}}$, $\\{\mathcal{A}}$
+\endgroup
+and you wil understand the difficulties.
+
+\begin{decl}
+|\undertilde{<symbols>}|
+\end{decl}
+
+This is the ``under'' version of |\widetilde| and like the latter is intended for constructions
+involving several symbols. For instance:
+\begin{sample}
+|\undertilde{CV}| \> $\undertilde{CV}$
+\end{sample}
+Note that in this case no correction is made in the placement of the tilde.
+
+\begin{decl}
+|nonscript single|
+\end{decl}
+
+These package options are intended mainly for speeding up the 
+typesetting of document.  The algorithm used here is recursive and 
+very slow; although in fast processors that is not felt, in slow 
+system that could be very annoying.
+
+\begin{description}
+\item[single] If you are interested only in |\accentset|.
+ Accents are not reimplemented.
+\item[nonscript] If you intend to use multiple accents in
+ text and display modes only.
+\end{description}
+
+Macros are speeded up dramaticaly with both options; if your system is slow,
+I commend using them in drafts and removing them for the final print.
+
+Finally, some remarks:
+\begin{itemize}
+\item The package does not provides alternative accents for fonts
+  lacking them. If you want an accented  |\mathcal| letter you had to
+  write |\hat{\hat{\mathcal{A}}}| ($\hat{\hat{\mathcal{A}}}$).
+\item |\mathbf{\hat{\hat h}}| gets the bold accent;
+ |\hat{\hat{\mathbf{h}}}| not.
+\item The symbol in |\accentset| must be a single symbol.
+\item If you use \textsf{accents} with \textsf{amsmath} 2, you must
+load \textsf{accents} after. Note that \textsf{amsmath} could redefine
+some accents; in particular, if you experience problems with |\vec|
+and you are using the standard math encodings, define:
+\begin{verbatim}
+\let\vec\relax
+\DeclareMathAccent{\vec}{\mathord}{letters}{"7E}
+\end{verbatim}
+\end{itemize}
+
+\end{document}
+
