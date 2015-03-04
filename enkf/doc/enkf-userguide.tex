@@ -35,7 +35,7 @@
 
 \begin{document}
 
-\title{EnKF-C user guide\\{\normalsize version 0.95}}
+\title{EnKF-C user guide\\{\normalsize version 0.96}}
 
 \author{Pavel Sakov}
 \date{June 19, 2014 -- \today}
@@ -180,7 +180,7 @@ There are a few things to be noted about the KF:
 This means that in any moment of time all previous information about the system is encrypted into the current (forecast or analysis) SDAS.
 \item The KF provides solution for the \emph{last} analysis, corresponding to $\mb x_k^a$ in ($\ref{min-nonl}$) (or, with a minor re-formulation, to the last forecast); finding the full (global in time) solution requires application of the Kalman \emph{smoother} (KS).
 Both the KF and KS can be derived by a re-factorisation of the positive definite quadratic form (\ref{L-nonl}).
-\item Because SDAS represents a (part of a) solution of the global least squares problem, it does not depend on the order in which observations are assimilated or on their grouping.
+\item Because the SDAS represents a (part of a) solution of the global least squares problem, it does not depend on the order in which observations are assimilated or on their grouping.
 \item Ditto, the SDAS does not depend on a linear non-singular transform of the model state in the sense that the forward and inverse transforms commute with the evolution of the DA system.
 \item Solution (\ref{kf-for}, \ref{kf-an}) can be \emph{used} in a nonlinear case by approximating
 \begin{align*}
@@ -193,9 +193,9 @@ in which case it is called the extended Kalman filter (EKF).
 \section{EnKF}
 
 The canonic form of the KF (\ref{kf-for}, \ref{kf-an}) is not necessarily the most convenient or suitable one.
-The corresponding algorithms can be prone to loosing the positive definiteness of the state error covariance $\mb P$ due to round-up errors; but more importantly, explicit use of $\mb P$ makes these algorithms non-scalable in regard to the model state dimension.
+The corresponding algorithms can be prone to loosing the positive definiteness of the state error covariance $\mb P$ due to round-up errors; and more importantly, explicit use of $\mb P$ makes these algorithms non-scalable in regard to the model state dimension.
 
-Both of these immediate problems can addressed with the ensemble Kalman filter, or the EnKF.
+Both these immediate problems can be addressed with the ensemble Kalman filter, or the EnKF.
 In the EnKF the SDAS is carried by an ensemble of model states $\mb E$, which can be split into ensemble mean and ensemble anomalies:
 \begin{align}
   \label{sdas-enkf}
@@ -222,15 +222,15 @@ In particular, the forecast stage of the EnKF involves only propagation of each 
   \label{enkf-for}
   \mb E_i^f = \mathcal M_i(\mb E_{i-1}^a).
 \end{align}
-This is a remarkably simple forecast equation, even though the model error still needs to be handled in some way.
+This is a remarkably simple equation compared to the KF forecast equations (\ref{kf-for}), even though the model error still needs to be handled in some way.
 One option is to include stochastic model error into the model operator in (\ref{enkf-for}).
-(That would make it different from the model operator in KF.)
+(That would make it different from the model operator in the KF.)
 Another option is to use multiplicative inflation.
-The third option is to mimic the treatment of model error in KF.
+The third option is to mimic the treatment of model error in the KF.
 It has to deal somehow with non-scalability of that approach in regard to the model state dimension.
 
 At the analysis stage one has to update the ensemble mean and ensemble anomalies to match (\ref{kf-an}).
-This is different to the forecast stage, when each ensemble member is propagated individually.
+This involves handling ensemble as a whole, which is different to the forecast stage, when each ensemble member is propagated individually.
 
 Note that factorisation (\ref{P}) is not unique: if $\mb A$ satisfies (\ref{P}), then $\tilde {\mb A} = \mb A \mb U$, where $\mb U$ is an arbitrary orthonormal matrix $\mb U \mb U\T = \mb I$, also satisfies (\ref{P}).
 However, $\tilde{\mb A}$ should not only factorise $\mb P$, but also remain an ensemble anomalies matrix, $\tilde{\mb A} \mb 1 = \mb 0$.
@@ -304,7 +304,7 @@ This section provides some background for the schemes used in EnKF-C:
 
 \subsubsection{ETKF}
 
-It is easy to show using the definition of $\mb K$ (\ref{kf-K}) and matrix shift lemma that 
+It is easy to show using the definition of $\mb K$ (\ref{kf-K}) and matrix shift lemma (\ref{shift}) that 
 \begin{align*}
     (\mb I - \mb K \mb H) \, \mb P^f = (\mb I - \mb K \mb H)^{1/2} \; \mb P^f \; (\mb I - \mb K \mb H)\TS,
 \end{align*}
@@ -377,7 +377,7 @@ In a typical DAS with a large scale model one can expect $m = 100$, $p = 10^3-10
   m \ll p \ll n.
 \end{align}
 Therefore, considering the size of ETMs ($n \times n$ for left-multiplied ETMs and $m \times m$ for right-multiplied ETMs), only right-multiplied solutions are suitable for use with large scale models.
-The ETKF solution (\ref{etkf}) represents the most popular option due to its simple form and numerical effectiveness: for a diagonal $\mb R$, it only requires to calculate inverse square root of an $m \times m$ matrix.
+The ETKF solution (\ref{etkf}) represents the most popular option due to its simple form and numerical effectiveness: for a diagonal $\mb R$, it only requires to calculate inverse square root of a symmetric $m \times m$ matrix.
 
 \subsubsection{DEnKF}
 
@@ -515,7 +515,7 @@ There are no specific restrictions on $\mb R$, so that in theory observation err
 Minimising (\ref{cost-async}) yields the updated state estimate at the initial time.
 To obtain the updated state estimate at other time requires propagating this solution to that time.
 The same applies to the state error covariance: obtaining the SDAS at any particular time requires propagating the updated ensemble from the beginning of the cycle to that time.
-In fact, because for a linear model the operations of ensemble propagation and linear transform in ensemble space do commute, $\mathcal M (\mb E) \, \mb X_5 = \mathcal M (\mb E \, \mb X_5)$ and $(\mb M \mb A) \mb T = \mb M (\mb A \mb T)$, the ensemble transform $\mb X_5$ can be applied to the ensemble at \emph{any} particular time \citep{eve00a}.
+In fact, because for a linear model the operations of ensemble propagation and linear transform in ensemble space do commute, $\mathcal M (\mb E) \, \mb X_5 = \mathcal M (\mb E \, \mb X_5)$, the ensemble transform $\mb X_5$ can be applied to the ensemble at \emph{any} particular time \citep{eve00a}.
 
 \section{EnOI}
 
@@ -524,9 +524,9 @@ It can be summarised as follows:
 \begin{align}
   \label{enoi-for}
   & \mb x^b_i = \mathcal M_i(\mb x^a_{i-1}),\\
-  & \mb x^a_i = \mb x^f_i + \mb A^b \, \mb w_i,
+  & \mb x^a_i = \mb x^b_i + \mb A^b \, \mb w_i,
 \end{align}
-where $\mb x^b$ is the forecast model state estimate referred to as the background, and $\mb A^b$ is an ensemble of static, or background, anomalies; the corresponding state error covariance $\mb P^b$ is also often referred to as the background covariance.
+where $\mb x^b$ is the forecast model state estimate referred to as background, and $\mb A^b$ is an ensemble of static, or background, anomalies; the corresponding state error covariance $\mb P^b$ is also often referred to as the background covariance.
 
 The main incentive for using the EnOI is its low computational cost due to the integration of only one instance of the model.
 Despite of the similarity with the EnKF, the EnOI is a rather different concept, as there is no global in time cost function associated with it.
@@ -1121,7 +1121,7 @@ Note that in some cases it proved to be possible to obtain robust performance wi
 Applying spatially uniform ensemble inflation involves areas with no local observations, where no assimilation is conducted.
 It can gradually increase the model imbalance and deteriorate performance of the DAS over time.
 Similar problems may arise due to lack of correlation between some state elements updated with the same transforms, so that even in presence of local observations the ensemble spread for some elements may hardly reduce.
-To avoid this behaviour EnKF-C currently restricts inflation by the spread reduction factor calculated directly for each element of the state vector during the update.
+To avoid this behaviour EnKF-C currently restricts inflation by half of the the spread reduction factor calculated directly for each element of the state vector during the update.
 This is a default mode of application of inflation in EnKF-C; to revert to the uniform inflation add qualifier \verb|PLAIN| to the entry \verb|INFLATION| in the main parameter file.
 
 \section{DA tuning}
@@ -1274,6 +1274,9 @@ Compiling EnKF-C requires the following external packages:
 \item openmpi;
 \item gridutils.
 \end{itemize}
+
+EnKF-C also relies on \verb|qsort_r()|, which may be lacking in older systems.
+In such cases use compile flag \verb|-DINTERNAL_QSORT_R| to activate the internal version of this procedure.
 
 Notes:
 \vspace{-3mm}
