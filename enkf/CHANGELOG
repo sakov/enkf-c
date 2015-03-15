@@ -1,3 +1,5 @@
+v. 0.96.2
+   -- Cosmetic changes.
 v. 0.96.1
    PS 19022015
    -- Fixed name of the "nk" dimension in pointlog files, get_nkname().

@@ -54,7 +54,7 @@ ENSOBSTYPE interpolate3d(double fi, double fj, double fk, int ni, int nj, int nk
 double taper_gc(double x);
 void ll2xyz(double in[2], double out[3]);
 
-#if defined(NO_QSORT_R)
+#if defined(INTERNAL_QSORT_R)
 typedef int (*__compar_d_fn_t) (const void*, const void*, void*);
 static inline void sort_r(void* base, size_t n, size_t width, __compar_d_fn_t cmp, void* p)
 {

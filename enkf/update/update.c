@@ -182,7 +182,7 @@ static void das_updatefields(dasystem* das, int nfields, void** fieldbuffer, fie
                 float inflation0 = model_getvarinflation(m, f->varid);
 
                 for (i = 0; i < mni; ++i) {
-                    double inflation = inflation0;
+                    float inflation = inflation0;
                     double v1_a = 0.0;
 
                     /*
