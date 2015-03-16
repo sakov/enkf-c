@@ -132,7 +132,11 @@ Namely, assume that $\mathcal M$ and $\mathcal H$ are affine:
   \end{align}
 \end{subequations}
 where $\mb x^{(1)}, \mb x^{(2)}$ are arbitrary model states, and $\mb M_i,\, \mb H_i = \mathrm{Const}$.
-Then the cost function (\ref{L-nonl}) becomes quadratic, and
+Then the cost function (\ref{L-nonl}) becomes quadratic and can be factorised as follows:
+\begin{align*}
+   \mathcal L_k(\mb x_1, \dots, \mb x_k) = (\mb x_k - \mb x_k^f)\T (\mb P_{k}^f)^{-1}(\mb x_k - \mb x_k^f) + \tilde{{\mathcal L}}_{k-1}(\mb x_1,\dots,\mb x_{k-1}),
+\end{align*}
+so that
 \begin{align*}
   \underset {\{\mb x_i\}_{i = 1}^{k - 1}}{\min} \mathcal L_k(\mb x_1, \dots, \mb x_k) = (\mb x_k - \mb x_k^f)\T (\mb P_{k}^f)^{-1}(\mb x_k - \mb x_k^f) + \mathrm{Const}.
 \end{align*}
