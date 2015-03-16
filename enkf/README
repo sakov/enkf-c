@@ -5,8 +5,8 @@ COMPILING
 
 EnKF-C is developed for GNU/Linux platform.
 
-Create "make.inc" for your architecture (look at examples in `arch'  directory),
-then run "make".
+Create "make.inc" for your architecture (have a look at examples in `arch'
+directory), then run "make".
 
 DEPENDENCIES
 
@@ -35,11 +35,6 @@ and (2) run "make indent" from the base directory (the style is encoded in
 
 REFERRING
 
-* In text:
-
-<...> the EnKF-C package (Sakov, 2014) available from 
-https://code.google.com/p/enkf-c <...>
-
 * BibTeX:
 
 @online{enkf-c,
@@ -52,7 +47,7 @@ https://code.google.com/p/enkf-c <...>
   eprintclass = {cs.CE},
 }
 
-* In references (e.g.):
+* Reference:
 
 Sakov, P., 2014. EnKF-C user guide. arXiv:1410.1233.
 
