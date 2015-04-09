@@ -95,7 +95,7 @@ This user guide is a part of the EnKF-C package.
 It is also available from \url{http://arxiv.org/abs/1410.1233}.
 
 The user guide has two main sections.
-Section~\ref{ch:enkf} overviews basics of the EnKF; technical description of EnKF-C is given in  section~\ref{ch:enkf-c}.
+Section~\ref{ch:enkf} overviews the basics of the EnKF; section~\ref{ch:enkf-c} provides technical description of EnKF-C.
 
 \chapter{EnKF}
 \label{ch:enkf}
@@ -140,7 +140,7 @@ so that
 \begin{align*}
   \underset {\{\mb x_i\}_{i = 1}^{k - 1}}{\min} \mathcal L_k(\mb x_1, \dots, \mb x_k) = (\mb x_k - \mb x_k^f)\T (\mb P_{k}^f)^{-1}(\mb x_k - \mb x_k^f) + \mathrm{Const}.
 \end{align*}
-Then
+(\emph{Proposition}) Then
 \begin{align*}
     \underset {\{\mb x_i\}_{i = 1}^{k}}{\min} \mathcal L_{k+1}(\mb x_1, \dots, \mb x_k, \mb x_{k+1}) = (\mb x_{k+1} - \mb x_{k+1}^f)\T (\mb P_{k+1}^f)^{-1}(\mb x_{k+1} - \mb x_{k+1}^f) + \mathrm{Const},
 \end{align*}
@@ -228,10 +228,9 @@ In particular, the forecast stage of the EnKF involves only propagation of each 
 \end{align}
 This is a remarkably simple equation compared to the KF forecast equations (\ref{kf-for}), even though the model error still needs to be handled in some way.
 One option is to include stochastic model error into the model operator in (\ref{enkf-for}).
-(That would make it different from the model operator in the KF.)
-Another option is to use multiplicative inflation.
-The third option is to mimic the treatment of model error in the KF.
-It has to deal somehow with non-scalability of that approach in regard to the model state dimension.
+(This would make it different to the model operator in the KF.)
+Another option is to use the multiplicative inflation.
+The third option is to mimic the treatment of model error in the KF, although this brings back problems with scalability in regard to the state size.
 
 At the analysis stage one has to update the ensemble mean and ensemble anomalies to match (\ref{kf-an}).
 This involves handling ensemble as a whole, which is different to the forecast stage, when each ensemble member is propagated individually.
@@ -273,6 +272,7 @@ $\mb T_L$ and $\mb T_R$ are referred to hereafter as left-multiplied and right-m
 Note that for a full rank ensemble $\mb T_R$ has to satisfy $\mb T_R \mb 1 = \mb 1$.
 It follows from (\ref{redraw}) that if $\mb T_R$ is a particular solution for the right-multiplied ETM, then (for a full rank ensemble) any other solution can be written as
 \begin{align}
+  \label{TR-all}
   \tilde{\mb T}_R = \mb T_R \mb U^p, \quad \mb U^p:\ \mb U^p (\mb U^p)\T = \mb I,\ \mb U^p \mb 1 = \mb 1.
 \end{align}
 
@@ -317,10 +317,12 @@ which yields the following solution for the left-multiplied ETM:
   \label{T-left1}
   \mb T_L = (\mb I - \mb K \mb H)^{1/2}
 \end{align}
-\citep{sak08b}, or
-\begin{align*}
+\citep{sak08b}, that is
+\begin{align}
+  \tag{\ref{T-left1}a}
+  \label{T-left1a}
   \mb A^a =  (\mb I - \mb K \mb H)^{1/2} \mb A^f.
-\end{align*}
+\end{align}
 Hereafter by $\mb X^{1/2}$ we denote the unique positive definite square root from a positive definite (generally, non-symmetric) matrix $\mb X$, defined as $\mb X^{1/2} = \mb V \mb L^{1/2} \mb V^{-1}$, where $\mb X = \mb V \mb L \mb V^{-1}$ is the eigenvalue decomposition of $\mb X$.
 By ``matrix shift lemma'' we refer to the following identity:
 \begin{align}
@@ -328,7 +330,7 @@ By ``matrix shift lemma'' we refer to the following identity:
   \mathcal F(\mb A \mb B) \, \mb A = \mb A \, \mathcal F(\mb B \mb A),
 \end{align}
 where $\mathcal F$ is an arbitrary function expandable into Taylor series.
-Rewriting this as
+Rewriting (\ref{T-left1a}) as
 \begin{align*}
   \mb A^a = \left[ \mb I - \frac{1}{m-1} \mb A^f (\mb H \mb A^f)\T  (\mb H \mb P^f \mb H\T + \mb R)^{-1} \mb H \right]^{1/2} \mb A^f
 \end{align*}
@@ -355,7 +357,7 @@ Applying the matrix inversion lemma
 \citep{sak11a}; and applying the matrix shift lemma yields the corresponding right-multiplied ETM:
 \begin{align}
   \label{etkf}
-  \mb T_R = \left[\mb I +  \frac{1}{m-1} (\mb H \mb A)\T \mb R^{-1} \mb H \mb A\right]^{-1/2},
+  \mb T_R = \left[\mb I +  \frac{1}{m-1} (\mb H \mb A^f)\T \mb R^{-1} \mb H \mb A^f \right]^{-1/2},
 \end{align}
 also known as the ensemble transform Kalman filter, or ETKF \citep{bis01a}.
 
@@ -366,13 +368,14 @@ also known as the ensemble transform Kalman filter, or ETKF \citep{bis01a}.
   \setlength{\belowdisplayskip}{3pt}
   \begin{align}
     \label{andrews}
-    \mb T_R = \mb I - \frac{1}{m-1} (\mb H \mb A)\T \mb M^{-1/2} \left(\mb M^{1/2} + \mb R^{1/2}\right)^{-1} \mb H \mb A,
+    \mb T_R = \mb I - \frac{1}{m-1} (\mb H \mb A^f)\T \mb M^{-1/2} \left(\mb M^{1/2} + \mb R^{1/2}\right)^{-1} \mb H \mb A^f,
   \end{align}
-  where $\mb M \equiv \mb H \mb P \mb H\T + \mb R$.
+  where $\mb M \equiv \mb H \mb P^f \mb H\T + \mb R$.
 }
 
-Equations (\ref{T-right1}, \ref{etkf}, \ref{andrews}) represent algebraically different expressions for the (unique) symmetric right-multiplied solution.
-Apart from being the only symmetric solution, it is also a minimum distance solution in the sense that the corresponding ensemble of analysis anomalies is the closest one to the ensemble of forecast anomalies, with the inverse forecast (or analysis) covariance as a metric \citep{ott03a}.
+Equations (\ref{T-right1}, \ref{etkf}, \ref{andrews}) yield algebraically different expressions for the (unique) symmetric right-multiplied solution.
+Apart from being the only symmetric solution, it also represents the minimum distance solution for the ensemble anomalies: its ensemble of analysed anomalies is closer to the ensemble of forecast anomalies with the inverse forecast (or analysis) covariance as the metric than any other ensemble of analysed anomalies given by (\ref{TR-all}) \citep{ott03a}.
+This means that in the above sense the symmetric right-multiplied solution preserves the identities of ensemble members during analysis in the best possible way.
 
 Note that while the left-multiplied solutions (\ref{T-left1}, \ref{T-left2}) correspond to the symmetric right-multiplied solution, they are not symmetric.
 
@@ -382,6 +385,7 @@ In a typical DAS with a large scale model one can expect $m = 100$, $p = 10^3-10
 \end{align}
 Therefore, considering the size of ETMs ($n \times n$ for left-multiplied ETMs and $m \times m$ for right-multiplied ETMs), only right-multiplied solutions are suitable for use with large scale models.
 The ETKF solution (\ref{etkf}) represents the most popular option due to its simple form and numerical effectiveness: for a diagonal $\mb R$, it only requires to calculate inverse square root of a symmetric $m \times m$ matrix.
+Also, along with the left-multiplied solution (\ref{T-left2}), it generally has better numerical properties than solutions (\ref{T-left1}) and (\ref{T-right1}) due to the fact that the inverse square in it is calculated from the sum of a positive definite and a positive semi-definite matrices.
 
 \subsubsection{DEnKF}
 
@@ -392,7 +396,7 @@ Assuming that $\mb K \mb H$ is small in some sense, one can approximate solution
 \end{align}
 This approximation is known as the deterministic Kalman filter, or DEnKF \citep{sak08a}.
 It has a simple interpretation of using half of the Kalman gain for updating the ensemble anomalies; but apart from that the DEnKF often represents a good practical choice due to its algorithmic convenience and good performance in suboptimal situations.
-DEnKF is the default scheme in EnKF-C.
+The DEnKF is the default scheme in EnKF-C.
 
 \subsection{Some numerical considerations}
 \label{sec:numerical}
@@ -434,7 +438,7 @@ This makes the DEnKF somewhat more numerically effective because, firstly, one c
 \subsection{Localisation}
 
 Localisation is a necessary attribute of the EnKF systems with large-scale models, aimed at overcoming the rank deficiency of the ensemble.
-It can also be seen as aimed at removing spurious long range correlations occurring with ensembles of finite size.
+It can also be seen as aimed at reducing spurious long range correlations occurring due to the finite size of the ensemble; or at limiting the impact of distant observations because of the unreliability of the corresponding covariances.
 
 There are two common localisation methods for the EnKF -- covariance localisation \citep[CL,][]{ham01b, hou01a}, also known as covariance filtering, and local analysis \citep[LA,][]{eve03a, ott03a}.
 Although CL may have advantages in certain situations (non-local observations, ``strong'' assimilation), in practice the two methods produce similar results \citep{sak11a}.
@@ -471,23 +475,28 @@ In reality, observations assimilated at a given cycle are made over some period 
 If the DA method accounts for the time of observations, observations and DA method are referred to as \emph{asynchronous}.
 
 The EnKF can be naturally extended for asynchronous DA.
-Let us consider the linear case (\ref{lin}) with perfect model ($\mb Q = 0$).
-Solution of the global minimisation problem (\ref{min-nonl}) is then effectively given by the initial state $\mb x_1$, while the rest of the global solution can be obtained by propagating the initial state: $\mb x_2 = \mathcal M_2(\mb x_1),\ \mb x_3 = \mathcal M_3 \circ \mathcal M_2(\mb x_1), \dots$.
-The cost function
-\begin{align*}
-  \mathcal L(\mb x_1, \dots, \mb x_k)  = (\mb x_1 - \mb x_1^f)\T (\mb P_1^f)^{-1} (\mb x_1 - \mb x_1^f) + \sum_{i = 1}^k \left [ \mb y_i - \mathcal H_i(\mb x_i) \right ] \T (\mb R_i)^{-1} \left [ \mb y_i - \mathcal H_i(\mb x_i) \right ]
-\end{align*}
-can then be written as:
+Let us consider the minimisation problem (\ref{min-nonl}, \ref{min-nonl}) in the case of perfect model $\mb Q = 0$.
+It becomes
+\begin{align}
+  \label{min-perf}
+  &{\mb x_1^a} = \arg \min \; \mathcal L(\mb x_1),\\
+  \label{cost-perf}
+  &\mathcal L(\mb x_1)  = (\mb x_1 - \mb x_1^f)\T (\mb P_1^f)^{-1} (\mb x_1 - \mb x_1^f) + \sum_{i = 1}^k \left [ \mb y_i - \mathcal H_i(\mb x_i) \right ] \T (\mb R_i)^{-1} \left [ \mb y_i - \mathcal H_i(\mb x_i) \right ],\\
+  \label{model-perf}
+  &\mb x_{i+1} = \mathcal M(\mb x_i),\quad i = 1,\dots,k-1.
+\end{align}
+Compared to the original problem, the dimensionality of the solution is much reduced due to relations (\ref{model-perf}), which mean the model state at any time can be found by propagating the initial state: $\mb x_2 = \mathcal M_2(\mb x_1),\ \mb x_3 = \mathcal M_3 \circ \mathcal M_2(\mb x_1), \dots$.
+The cost function (\ref{cost-perf}) can then be written as:
 \begin{align}
   \label{cost-async}
-  \mathcal L(\mb x_1, \dots, \mb x_k)  = (\mb x_1 - \mb x_1^f)\T (\mb P^f)^{-1} (\mb x_1 - \mb x_1^f) + \left [ \mb y - \mathcal H \circ \mathcal M(\mb x_1) \right ] \T \mb R^{-1} \left [ \mb y - \mathcal H\circ \mathcal M(\mb x_1) \right ],
+  \mathcal L(\mb x_1)  = (\mb x_1 - \mb x_1^f)\T (\mb P^f)^{-1} (\mb x_1 - \mb x_1^f) + \left [ \mb y - \mathcal H \circ \mathcal M(\mb x_1) \right ] \T \mb R^{-1} \left [ \mb y - \mathcal H\circ \mathcal M(\mb x_1) \right ],
 \end{align}
 where observations $\mb y$ represent the augmented observation vector: $\mb y = [\mb y_1\T,\dots,\mb y_k\T]\T$, $\mb R$ is the corresponding observation error covariance, and operator $\mathcal H \circ \mathcal M (\mb x_1)$ is assumed to project the state $\mb x_1$ to observation space.
 Note that usually only $\mathcal H$ is a function that depends on assimilated observations; now $\mathcal M$ also depends on observations, propagating the initial state to the time of each observation.
-It is also possible to interpret $\mathcal M(\mb x$) as a \emph{trajectory} starting from $\mb x$, while $\mathcal H$ maps it to observations.
+It is also possible to interpret $\mathcal M(\mb x$) as the \emph{trajectory} starting from $\mb x$, while $\mathcal H$ maps it to observations.
 
-Apart from operator $\mathcal H \circ \mathcal M (\mb x_1)$, the cost function (\ref{cost-async}) has the same form as that for a single DA cycle with synchronous observations.
-Consequently, one can use solutions for $\mb w$ and $\mb T$ from section~\ref{sec:numerical}, subject to extending definitions of $\mb s$ and $\mb S$ as follows:
+Apart from the operator $\mathcal H \circ \mathcal M (\mb x_1)$, the cost function (\ref{cost-async}) has the same form as that for a single DA cycle with synchronous observations.
+Consequently, \underline{in the linear case} (\ref{lin}), one can use solutions for $\mb w$ and $\mb T$ from section~\ref{sec:numerical}, subject to extending definitions of $\mb s$ and $\mb S$ as follows:
 \begin{align}
   \label{s-async}
   &\mb s = \mb R^{-1/2} \left[ \mb y - \mathcal H \circ \mathcal M (\mb x_1^f) \right] / \sqrt{m - 1},\\
@@ -732,7 +741,7 @@ For example:
   [ <more of the above blocks> ]
 \end{Verbatim}
 
-The \verb|OFFSET| entry may be used for adding the known model bias to observations, for example, to specify the mean dymanic topography (MDT) when assimilating sea level anomaly (SLA) observations.
+The \verb|OFFSET| entry may be used for adding the known model bias to observations, for example, to specify the mean dynamic topography (MDT) when assimilating sea level anomaly (SLA) observations.
 
 \subsection{Observation metadata file}
 
@@ -764,7 +773,7 @@ The available readers are listed by the variable \verb|allreaders| defined in \v
 The last line in the example above specifies the observation error.
 It can contain either a number or a file name.
 In the case of entering the file name there also should be another entry in the same line specifying the name of the variable to be read.
-The variable should have the same dimension (2D or 3D) as the associated observation type as described by the variable \verb|otdescs| in \verb|observations.nc|.
+The variable should have the same dimension (2D or 3D) as the associated observation type as described by the variable \verb|ISSURFACE| in the observation types parameter file (sec.~\ref{sec:obstypesprm}).
 
 The line with observation error can also have another token specifying the type of operation to be conducted: \verb|EQUAL| ($\sigma_{tot} \leftarrow \sigma_{now}$, default), \verb|PLUS| ($\sigma_{tot} \leftarrow \sqrt{\sigma_{tot}^2 + \sigma_{now}^2}$), \verb|MULT| ($\sigma_{tot} \leftarrow \sigma_{tot} \sigma_{now}$), \verb|MIN| ($\sigma_{tot} = \max(\sigma_{tot}, \sigma_{now})$), or \verb|MAX| ($\sigma_{tot} = \min(\sigma_{tot}, \sigma_{now})$).
 There can be several error entries in a section in the observation parameter file.
@@ -997,8 +1006,8 @@ These transforms are then used for updating of the model variables defined on th
 
 \subsection{Interpolation of ensemble transforms}
 
-Local ensemble transforms $\mb X_5$ (EnKF) have or local ensemble weights $\mb w$ (EnOI) represent smooth fields with the characteristic spatial variability scale of the localisation radius.
-This allows to reduce computational load in \emph{calc} by calculating local transforms or weights on a subgrid with a specified stride only and using linearly interpolated transforms or weights in the intermediate grid cells.
+Local ensemble transforms $\mb X_5$ (EnKF) or local ensemble weights $\mb w$ (EnOI) represent smooth fields with the characteristic spatial variability scale of the localisation radius.
+This smoothness allows one to reduce the computational load in \emph{calc} by calculating local transforms or weights on a subgrid with a specified stride only, and using linearly interpolated transforms or weights in the intermediate grid cells.
 The value of the stride is defined by the \verb|STRIDE| entry in the parameter file.
 
 \subsection{Observation functions}
@@ -1359,6 +1368,7 @@ Paul Sandery was the first user of this code (apart from the author), and his en
   $\mb 0$ &-& a vector with all elements equal to 0 \\
   $\mb A$ (capital, bold) &-& a matrix \\
   $\mb I$ &-& identity matrix \\
+  $\mb U$ &-& a unitary matrix, $\mb U \mb U\T = \mb I$ \\
   $\mb A\T$ &-& transposed matrix $\mb A$ \\
   $\mb A^{1/2}$ &-& unique positive definite square root of a positive definite matrix $\mb A$ \\
   $\mathrm{tr}(\mb A)$ &-& trace of $\mb A$ \\
@@ -1383,6 +1393,7 @@ Paul Sandery was the first user of this code (apart from the author), and his en
   $\mb S$ &-& normalised ensemble observation anomalies, $\mb S = \mb R^{-1/2} \mb {HA} / \sqrt{m - 1}$ \\
   $\mb T_L$ &-& left-multiplied ensemble transform matrix, $\mb A^a = \mb T_L \mb A^f$ \\
   $\mb T_R$ &-& right-multiplied ensemble transform matrix, $\mb A^a = \mb A^f \mb T_R$ \\
+  $\mb U^p$ &-& a unitary mean-preserving matrix, $\mb U^p (\mb U^p) \T = \mb I$, $\mb U^p \mb 1 = \mb 1$ \\
   $\mb X_5$ &-& historic symbol for the full ensemble transform matrix, $\mb E^a = \mb E^f \mb X_5$ \\ 
   $\mb s$ &-& normalised innovation, $\mb s = \mb R^{-1/2} \left[ \mb y - \mathcal H (\mb x^f) \right] / \sqrt{m - 1}$ \\
   $\mb x$ &-& state estimate \\
