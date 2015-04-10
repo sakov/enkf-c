@@ -385,7 +385,7 @@ In a typical DAS with a large scale model one can expect $m = 100$, $p = 10^3-10
 \end{align}
 Therefore, considering the size of ETMs ($n \times n$ for left-multiplied ETMs and $m \times m$ for right-multiplied ETMs), only right-multiplied solutions are suitable for use with large scale models.
 The ETKF solution (\ref{etkf}) represents the most popular option due to its simple form and numerical effectiveness: for a diagonal $\mb R$, it only requires to calculate inverse square root of a symmetric $m \times m$ matrix.
-Also, along with the left-multiplied solution (\ref{T-left2}), it generally has better numerical properties than solutions (\ref{T-left1}) and (\ref{T-right1}) due to the fact that the inverse square in it is calculated from the sum of a positive definite and a positive semi-definite matrices.
+Also, along with the left-multiplied solution (\ref{T-left2}), it generally has better numerical properties than solutions (\ref{T-left1}) and (\ref{T-right1}) due to the fact that the inverse square root in it is calculated from the sum of a positive definite and a positive semi-definite matrices.
 
 \subsubsection{DEnKF}
 
@@ -475,7 +475,7 @@ In reality, observations assimilated at a given cycle are made over some period 
 If the DA method accounts for the time of observations, observations and DA method are referred to as \emph{asynchronous}.
 
 The EnKF can be naturally extended for asynchronous DA.
-Let us consider the minimisation problem (\ref{min-nonl}, \ref{min-nonl}) in the case of perfect model $\mb Q = 0$.
+Let us consider the minimisation problem (\ref{min-nonl}, \ref{L-nonl}) in the case of perfect model $\mb Q = 0$.
 It becomes
 \begin{align}
   \label{min-perf}
@@ -485,7 +485,7 @@ It becomes
   \label{model-perf}
   &\mb x_{i+1} = \mathcal M(\mb x_i),\quad i = 1,\dots,k-1.
 \end{align}
-Compared to the original problem, the dimensionality of the solution is much reduced due to relations (\ref{model-perf}), which mean the model state at any time can be found by propagating the initial state: $\mb x_2 = \mathcal M_2(\mb x_1),\ \mb x_3 = \mathcal M_3 \circ \mathcal M_2(\mb x_1), \dots$.
+Compared to the original problem, the dimensionality of the solution is much reduced due to relations (\ref{model-perf}), which mean that the model state at any time can be found by propagating the initial state: $\mb x_2 = \mathcal M_2(\mb x_1),\ \mb x_3 = \mathcal M_3 \circ \mathcal M_2(\mb x_1), \dots$.
 The cost function (\ref{cost-perf}) can then be written as:
 \begin{align}
   \label{cost-async}
@@ -496,7 +496,7 @@ Note that usually only $\mathcal H$ is a function that depends on assimilated ob
 It is also possible to interpret $\mathcal M(\mb x$) as the \emph{trajectory} starting from $\mb x$, while $\mathcal H$ maps it to observations.
 
 Apart from the operator $\mathcal H \circ \mathcal M (\mb x_1)$, the cost function (\ref{cost-async}) has the same form as that for a single DA cycle with synchronous observations.
-Consequently, \underline{in the linear case} (\ref{lin}), one can use solutions for $\mb w$ and $\mb T$ from section~\ref{sec:numerical}, subject to extending definitions of $\mb s$ and $\mb S$ as follows:
+Consequently, \underline{in the linear case} (\ref{lin}) one can use solutions for $\mb w$ and $\mb T$ from section~\ref{sec:numerical}, subject to extending definitions of $\mb s$ and $\mb S$ as follows:
 \begin{align}
   \label{s-async}
   &\mb s = \mb R^{-1/2} \left[ \mb y - \mathcal H \circ \mathcal M (\mb x_1^f) \right] / \sqrt{m - 1},\\
