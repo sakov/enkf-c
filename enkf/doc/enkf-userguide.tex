@@ -196,7 +196,7 @@ in which case it is called the extended Kalman filter (EKF).
 
 \section{EnKF}
 
-The canonic form of the KF (\ref{kf-for}, \ref{kf-an}) is not necessarily the most convenient or suitable one.
+The canonic form of the KF (\ref{kf-for}, \ref{kf-an}) is not necessarily the most convenient or suitable one in practice.
 The corresponding algorithms can be prone to loosing the positive definiteness of the state error covariance $\mb P$ due to round-up errors; and more importantly, explicit use of $\mb P$ makes these algorithms non-scalable in regard to the model state dimension.
 
 Both these immediate problems can be addressed with the ensemble Kalman filter, or the EnKF.
@@ -414,12 +414,12 @@ Then
 \end{align}
 for the ETKF
 \begin{align}
-  \label{S-ETKF}
+  \label{TR-ETKF}
   \mb T_R = (\mb I + \mb S\T \mb S)^{-1/2},
 \end{align}
 and for the DEnKF
 \begin{align}
-  \label{S-DEnKF}
+  \label{TR-DEnKF}
   \mb T_R = \mb I - \frac{1}{2} \mb G \mb S,
 \end{align}
 where
@@ -431,8 +431,8 @@ where
 \end{align}
 Here (\ref{G-m}) involves inversion of an $m \times m$ matrix, while (\ref{G-p}) involves inversion of a $p \times p$ matrix.
 Therefore, in the DEnKF it is possible to calculate $\mb w$ and $\mb T$ using a single inversion of either a $p \times p$ or $m \times m$ matrix, depending on the relation between the number of observations and the ensemble size.
-In contrast, the ETKF (\ref{S-ETKF}) requires calculation of the inverse square root of an $m \times m$ matrix.
-Then, one can use expression (\ref{G-m}) for $\mb G$ and calculate both inversion in it and inverse square root in (\ref{S-ETKF}) from the same singular value decomposition (SVD).
+In contrast, the ETKF (\ref{TR-ETKF}) requires calculation of the inverse square root of an $m \times m$ matrix.
+Then, one can use expression (\ref{G-m}) for $\mb G$ and calculate both inversion in it and inverse square root in (\ref{TR-ETKF}) from the same singular value decomposition (SVD).
 This makes the DEnKF somewhat more numerically effective because, firstly, one can exploit situations when $p < m$ to invert a matrix of lower dimension and, secondly, it requires only matrix inversion, which can be done via Cholesky decomposition instead of SVD.
 
 \subsection{Localisation}
@@ -475,7 +475,7 @@ In reality, observations assimilated at a given cycle are made over some period 
 If the DA method accounts for the time of observations, observations and DA method are referred to as \emph{asynchronous}.
 
 The EnKF can be naturally extended for asynchronous DA.
-Let us consider the minimisation problem (\ref{min-nonl}, \ref{L-nonl}) in the case of perfect model $\mb Q = 0$.
+Let us consider the minimisation problem (\ref{min-nonl}, \ref{L-nonl}) in the case of \underline{perfect model} $\mb Q = 0$.
 It becomes
 \begin{align}
   \label{min-perf}
@@ -491,12 +491,12 @@ The cost function (\ref{cost-perf}) can then be written as:
   \label{cost-async}
   \mathcal L(\mb x_1)  = (\mb x_1 - \mb x_1^f)\T (\mb P^f)^{-1} (\mb x_1 - \mb x_1^f) + \left [ \mb y - \mathcal H \circ \mathcal M(\mb x_1) \right ] \T \mb R^{-1} \left [ \mb y - \mathcal H\circ \mathcal M(\mb x_1) \right ],
 \end{align}
-where observations $\mb y$ represent the augmented observation vector: $\mb y = [\mb y_1\T,\dots,\mb y_k\T]\T$, $\mb R$ is the corresponding observation error covariance, and operator $\mathcal H \circ \mathcal M (\mb x_1)$ is assumed to project the state $\mb x_1$ to observation space.
+where observations $\mb y$ represent the augmented observation vector: $\mb y = [\mb y_1\T,\dots,\mb y_k\T]\T$, $\mb R$ is the corresponding observation error covariance, and operator $\mathcal H \circ \mathcal M (\mb x_1)$ is assumed to project the initial state $\mb x_1$ to observation space.
 Note that usually only $\mathcal H$ is a function that depends on assimilated observations; now $\mathcal M$ also depends on observations, propagating the initial state to the time of each observation.
 It is also possible to interpret $\mathcal M(\mb x$) as the \emph{trajectory} starting from $\mb x$, while $\mathcal H$ maps it to observations.
 
 Apart from the operator $\mathcal H \circ \mathcal M (\mb x_1)$, the cost function (\ref{cost-async}) has the same form as that for a single DA cycle with synchronous observations.
-Consequently, \underline{in the linear case} (\ref{lin}) one can use solutions for $\mb w$ and $\mb T$ from section~\ref{sec:numerical}, subject to extending definitions of $\mb s$ and $\mb S$ as follows:
+Consequently, in the \underline{linear case} (\ref{lin}) one can use solutions for $\mb w$ and $\mb T$ from section~\ref{sec:numerical}, subject to extending definitions of $\mb s$ and $\mb S$ as follows:
 \begin{align}
   \label{s-async}
   &\mb s = \mb R^{-1/2} \left[ \mb y - \mathcal H \circ \mathcal M (\mb x_1^f) \right] / \sqrt{m - 1},\\
@@ -525,10 +525,10 @@ There are no specific restrictions on $\mb R$, so that in theory observation err
   This framework is a natural extension of the problem (\ref{min-nonl}) in the linear, perfect-model case to continuous time; and is convenient for iterative minimisation.\par
 }
 
-Minimising (\ref{cost-async}) yields the updated state estimate at the initial time.
-To obtain the updated state estimate at other time requires propagating this solution to that time.
-The same applies to the state error covariance: obtaining the SDAS at any particular time requires propagating the updated ensemble from the beginning of the cycle to that time.
-In fact, because for a linear model the operations of ensemble propagation and linear transform in ensemble space do commute, $\mathcal M (\mb E) \, \mb X_5 = \mathcal M (\mb E \, \mb X_5)$, the ensemble transform $\mb X_5$ can be applied to the ensemble at \emph{any} particular time \citep{eve00a}.
+The standardised innovation and ensemble observation anomalies in form (\ref{s-async},\ref{S-async}) do not depend the time of assimilation.
+Consequently, the corresponding transforms (e.g. (\ref{TR-ETKF}) or (\ref{TR-DEnKF})) can be applied to ensemble at any particular time to yield (the same) analysed trajectories for the ensemble members.
+This time invariance of ensemble transforms is a consequence of commutativity of ensemble propagation by a linear model and a linear transform in ensemble space, $\mathcal M (\mb E) \, \mb X_5 = \mathcal M (\mb E \, \mb X_5)$.
+It can be used to update ensemble back in time using observations from future cycles without the need in backward model \citep{eve00a}.
 
 \section{EnOI}
 
