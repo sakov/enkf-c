@@ -35,21 +35,21 @@ and (2) run "make indent" from the base directory (the style is encoded in
 
 REFERRING
 
-* BibTeX:
+Reference:
 
-@online{enkf-c,
-  author = {Sakov, Pavel},
-  title = {{EnKF-C} user guide},
-  version = {1}, % update
-  year = {2014}, % update
-  eprinttype = {arxiv},
-  eprint = {1410.1233},
-  eprintclass = {cs.CE},
-}
+  Sakov, P., 2015. EnKF-C user guide. arXiv:1410.1233.
 
-* Reference:
+BibTeX entry:
 
-Sakov, P., 2014. EnKF-C user guide. arXiv:1410.1233.
+  @online{enkf-c,
+    author = {Sakov, Pavel},
+    title = {{EnKF-C} user guide},
+    version = {3}, % update
+    year = {2015}, % update
+    eprinttype = {arxiv},
+    eprint = {1410.1233},
+    eprintclass = {cs.CE},
+  }
 
 CONTACT
 
