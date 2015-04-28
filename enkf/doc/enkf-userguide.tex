@@ -496,7 +496,7 @@ Note that usually only $\mathcal H$ is a function that depends on assimilated ob
 It is also possible to interpret $\mathcal M(\mb x$) as the \emph{trajectory} starting from $\mb x$, while $\mathcal H$ maps it to observations.
 
 Apart from the operator $\mathcal H \circ \mathcal M (\mb x_1)$, the cost function (\ref{cost-async}) has the same form as that for a single DA cycle with synchronous observations.
-Consequently, in the \underline{linear case} (\ref{lin}) one can use solutions for $\mb w$ and $\mb T$ from section~\ref{sec:numerical}, subject to extending definitions of $\mb s$ and $\mb S$ as follows:
+Consequently, \underline{in the linear case} (\ref{lin}) one can use solutions for $\mb w$ and $\mb T$ from section~\ref{sec:numerical}, subject to extending definitions of $\mb s$ and $\mb S$ as follows:
 \begin{align}
   \label{s-async}
   &\mb s = \mb R^{-1/2} \left[ \mb y - \mathcal H \circ \mathcal M (\mb x_1^f) \right] / \sqrt{m - 1},\\
@@ -507,8 +507,8 @@ where $\mb H \circ \mb M$ is the tangent linear operator of $\mathcal H \circ \m
 This means that to account for the time of observations in the EnKF one simply needs calculate innovation and forecast ensemble observation anomalies using ensemble at the time of each observation.
 There are no specific restrictions on $\mb R$, so that in theory observation errors can be correlated in time.
 
-The minimisation problem (\ref{min-perf}),(\ref{cost-async}) implies assimilation time $t = t_1$; however, in the linear case the standardised innovation and ensemble observation anomalies in form (\ref{s-async},\ref{S-async}) represent objects invariant to assimilation time.
-Consequently, the corresponding transforms $\mb X_5$ can be applied to ensemble at any particular time to yield (the same) analysed trajectories for the ensemble members: $\mathcal M (\mb E) \, \mb X_5 = \mathcal M (\mb E \, \mb X_5)$.
+The minimisation problem (\ref{min-perf}),(\ref{cost-async}) implies assimilation time $t = t_1$; however, in the linear case the standardised innovation and ensemble observation anomalies in form (\ref{s-async},\ref{S-async}) represent objects invariant to assimilation time: the reference to $\mb x_1$ is only present to define the operator $\mathcal H \circ \mathcal M$.
+Consequently, the ensemble transform $\mb X_5$ calculated from $\mb s$ and $\mb S$ can be applied to ensemble at any particular time to yield (the same) analysed trajectories for the ensemble members: $\mathcal M (\mb E) \, \mb X_5 = \mathcal M (\mb E \, \mb X_5)$.
 This time invariance of ensemble transforms can be used to update ensemble back in time using observations from future cycles without the need in backward model \citep{eve00a}.
 
 {
