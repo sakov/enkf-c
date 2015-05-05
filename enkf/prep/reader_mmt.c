@@ -127,7 +127,7 @@ void reader_mmt_standard(char* fname, int fid, obsmeta* meta, model* m, observat
 
     tunits_convert(buf, &tunits_multiple, &tunits_offset);
 
-    mvid = model_getvarid(m, obs->obstypes[obstype_getid(obs->nobstypes, obs->obstypes, meta->type)].varname);
+    mvid = model_getvarid(m, obs->obstypes[obstype_getid(obs->nobstypes, obs->obstypes, meta->type)].varname, 1);
 
     for (p = 0; p < (int) nprof; ++p) {
         char inststr[MAXSTRLEN];

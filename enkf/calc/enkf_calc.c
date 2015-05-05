@@ -197,7 +197,7 @@ static observations* obs_create_fromsingleob(enkfprm* prm, dasystem* das)
     if (o->type == obs->nobstypes)
         enkf_quit("command line: type \"%s\" not known");
 
-    vid = model_getvarid(m, obs->obstypes[o->type].varname);
+    vid = model_getvarid(m, obs->obstypes[o->type].varname, 1);
     grid = model_getvargrid(m, vid);
 
     obs->products = st_create("products");

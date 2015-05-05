@@ -52,7 +52,7 @@ void das_setobstypes(dasystem* das)
 
     for (i = 0; i < n; ++i) {
         obstype* type = &types[i];
-        int vid = model_getvarid(m, types[i].varname);
+        int vid = model_getvarid(m, types[i].varname, 1);
 
         type->vid = vid;
         type->gridid = model_getvargridid(m, vid);

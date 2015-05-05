@@ -1,3 +1,6 @@
+v. 0.97.1
+   PS 06052015
+   -- Added parameter `hastosucceed' to model_getvarid().
 v. 0.97
    PS 05052015
    -- Set quit function for gridutils to enkf_quit. This change requires

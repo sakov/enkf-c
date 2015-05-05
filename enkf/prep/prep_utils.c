@@ -72,7 +72,7 @@ void obs_add(observations* obs, model* m, obsmeta* meta)
     reader = get_obsreadfn(meta);
     readobs(meta, m, reader, obs);      /* adds the data */
 
-    vid = model_getvarid(m, obs->obstypes[obstype_getid(obs->nobstypes, obs->obstypes, meta->type)].varname);
+    vid = model_getvarid(m, obs->obstypes[obstype_getid(obs->nobstypes, obs->obstypes, meta->type)].varname, 1);
 
     lontype = model_getlontype(m, vid);
     if (lontype != LONTYPE_NONE) {
