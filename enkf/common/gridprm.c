@@ -224,8 +224,8 @@ int gridprm_getvtype(gridprm* prm)
     int i;
 
     for (i = 0; i < ngridvtypeentries; ++i) {
-	if (strcasecmp(prm->vtype, allgridvtypeentries[i].vtype_tag) == 0)
-	    return  allgridvtypeentries[i].vtype;
+        if (strcasecmp(prm->vtype, allgridvtypeentries[i].vtype_tag) == 0)
+            return allgridvtypeentries[i].vtype;
     }
 
     return GRIDVTYPE_NONE;

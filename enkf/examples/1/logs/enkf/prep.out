@@ -1,5 +1,5 @@
   running PREP for EnKF version 0.96.3:
-  2015-05-05 13:07:18
+  2015-05-05 15:22:24
   reading prep specs from "enkf.prm":
     MODE = EnKF
     SCHEME = DEnKF
@@ -318,5 +318,5 @@ AR = temp
     TEM     184        104        104        0          0          0          0          7         
     SAL     184        104        104        0          0          0          0          7         
     total   9749       211        208        0          3          0          0          3921      
-  2015-05-05 13:07:19
+  2015-05-05 15:22:24
   finished

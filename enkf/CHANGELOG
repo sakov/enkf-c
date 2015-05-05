@@ -1,3 +1,7 @@
+v. 0.97
+   PS 05052015
+   -- Set quit function for gridutils to enkf_quit. This change requires
+      upgrade to the latest version of libgu (v. 0.54).
 v. 0.96.3
    PS 05052015
    -- Fixed a defect in gridprm.c that sometimes caused exiting with error
