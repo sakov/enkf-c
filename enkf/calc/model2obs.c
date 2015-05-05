@@ -45,9 +45,8 @@ static void interpolate_2d_obs(model* m, observations* allobs, int nobs, int obs
         observation* o = &allobs->data[ii];
 
         if (o->type != type_prev) {
-            int mvid = model_getvarid(m, allobs->obstypes[o->type].varname);
+            int mvid = model_getvarid(m, allobs->obstypes[o->type].varname, 1);
 
-            assert(mvid >= 0);
             model_getvardims(m, mvid, &ni, &nj, NULL);
             mask = model_getnumlevels(m, mvid);
             periodic_x = grid_isperiodic_x(model_getvargrid(m, mvid));
@@ -103,9 +102,8 @@ static void interpolate_3d_obs(model* m, observations* allobs, int nobs, int obs
         observation* o = &allobs->data[ii];
 
         if (o->type != type_prev) {
-            int mvid = model_getvarid(m, allobs->obstypes[o->type].varname);
+            int mvid = model_getvarid(m, allobs->obstypes[o->type].varname, 1);
 
-            assert(mvid >= 0);
             model_getvardims(m, mvid, &ni, &nj, &nk);
             nlevels = model_getnumlevels(m, mvid);
             periodic_x = grid_isperiodic_x(model_getvargrid(m, mvid));
@@ -154,7 +152,7 @@ void H_surf_standard(dasystem* das, int nobs, int obsids[], char fname[], int me
     observations* allobs = das->obs;
     float** src = (float**) psrc;
     float** offset = NULL;
-    int mvid = model_getvarid(m, varname);
+    int mvid = model_getvarid(m, varname, 1);
     int k = grid_gettoplayerid(model_getvargrid(m, mvid));
 
     assert(varname2 == NULL);
@@ -205,13 +203,12 @@ void H_surf_biased(dasystem* das, int nobs, int obsids[], char fname[], int mem,
     float** src = (float**) psrc;
     float** offset = NULL;
     float** bias = NULL;
-    int mvid = model_getvarid(m, varname);
+    int mvid = model_getvarid(m, varname, 1);
     int k;
     char fname2[MAXSTRLEN];
     int ni, nj;
     int i, j;
 
-    assert(mvid >= 0);
     k = grid_gettoplayerid(model_getvargrid(m, mvid));
 
     model_getvardims(m, mvid, &ni, &nj, NULL);
@@ -254,13 +251,12 @@ void H_subsurf_standard(dasystem* das, int nobs, int obsids[], char fname[], int
 
     offset = model_getmodeldata(m, allobs->obstypes[allobs->data[obsids[0]].type].name);
     if (offset != NULL) {
-        int mvid = model_getvarid(m, varname);
+        int mvid = model_getvarid(m, varname, 1);
         int ni, nj, nk;
         float* src0 = src[0][0];
         float* offset0 = offset[0][0];
         int i;
 
-        assert(mvid >= 0);
         model_getvardims(m, mvid, &ni, &nj, &nk);
         for (i = 0; i < ni * nj * nk; ++i)
             src0[i] -= offset0[i];

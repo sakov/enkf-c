@@ -75,9 +75,7 @@ void das_getHE(dasystem* das)
         enkf_printf("    %s ", ot->name);
         fflush(stdout);
 
-        mvid = model_getvarid(m, obs->obstypes[i].varname);
-        if (mvid < 0)
-            enkf_quit("variable \"%s\" required for observation type \"%s\" is not defined", obs->obstypes[i].varname, ot->name);
+        mvid = model_getvarid(m, obs->obstypes[i].varname, 1);
         if (ot->issurface) {
             model_getvardims(m, mvid, &ni, &nj, NULL);
             vv = alloc2d(nj, ni, sizeof(float));

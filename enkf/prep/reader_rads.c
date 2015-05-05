@@ -106,7 +106,7 @@ void reader_rads_standard(char* fname, int fid, obsmeta* meta, model* m, observa
     strncpy(instname, basename, 2);
     instname[2] = 0;
 
-    mvid = model_getvarid(m, obs->obstypes[obstype_getid(obs->nobstypes, obs->obstypes, meta->type)].varname);
+    mvid = model_getvarid(m, obs->obstypes[obstype_getid(obs->nobstypes, obs->obstypes, meta->type)].varname, 1);
     depth = model_getdepth(m, mvid);
 
     for (i = 0; i < (int) nobs_local; ++i) {
@@ -233,7 +233,7 @@ void reader_rads_standard2(char* fname, int fid, obsmeta* meta, model* m, observ
     strncpy(instname, basename, 2);
     instname[2] = 0;
 
-    mvid = model_getvarid(m, obs->obstypes[obstype_getid(obs->nobstypes, obs->obstypes, meta->type)].varname);
+    mvid = model_getvarid(m, obs->obstypes[obstype_getid(obs->nobstypes, obs->obstypes, meta->type)].varname, 1);
     depth = model_getdepth(m, mvid);
 
     for (i = 0; i < (int) nobs_local; ++i) {

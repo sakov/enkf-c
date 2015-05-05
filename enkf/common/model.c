@@ -370,13 +370,16 @@ char* model_getvarname(model* m, int varid)
 
 /**
  */
-int model_getvarid(model* m, char* varname)
+int model_getvarid(model* m, char* varname, int hastosucceed)
 {
     int i;
 
     for (i = 0; i < m->nvar; ++i)
         if (strcmp(m->vars[i].name, varname) == 0)
             return i;
+
+    if (hastosucceed)
+        enkf_quit("model_getvarid(): can not find variable \"%s\" in the model", varname);
 
     return -1;
 }
