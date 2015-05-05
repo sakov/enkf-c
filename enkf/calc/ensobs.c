@@ -391,11 +391,11 @@ void das_calcinnandspread(dasystem* das)
     } else
         enkf_quit("programming error");
 
- finish:
-        if (das->s_mode == S_MODE_HE_f)
-            das->s_mode = S_MODE_HA_f;
-        else if (das->s_mode == S_MODE_HE_a)
-            das->s_mode = S_MODE_HA_a;
+  finish:
+    if (das->s_mode == S_MODE_HE_f)
+        das->s_mode = S_MODE_HA_f;
+    else if (das->s_mode == S_MODE_HE_a)
+        das->s_mode = S_MODE_HA_a;
 }
 
 /** Adds forecast observations and forecast ensemble spread to the observation
@@ -567,7 +567,7 @@ void das_standardise(dasystem* das)
         }
     }
 
- finish:
+  finish:
     if (das->s_mode == S_MODE_HA_f)
         das->s_mode = S_MODE_S_f;
     else if (das->s_mode == S_MODE_HA_a)
@@ -649,7 +649,7 @@ void das_destandardise(dasystem* das)
         }
     }
 
- finish:
+  finish:
     if (das->s_mode == S_MODE_S_f)
         das->s_mode = S_MODE_HA_f;
     else if (das->s_mode == S_MODE_S_a)
@@ -745,7 +745,7 @@ static void das_changeSmode(dasystem* das, int mode_from, int mode_to)
     } else
         enkf_quit("das_changesmode(): transition from mode %d to mode %d is not handled yet\n", mode_from, mode_to);
 
- finish:
+  finish:
     das->s_mode = mode_to;
 }
 

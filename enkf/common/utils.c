@@ -23,6 +23,9 @@
 #include <time.h>
 #include <values.h>
 #include <execinfo.h>
+#if !defined(NO_GRIDUTILS)
+#include <guquit.h>
+#endif
 #include "ncw.h"
 #include "definitions.h"
 #include "version.h"
@@ -62,6 +65,9 @@ void enkf_init(int* argc, char*** argv)
 #endif
 
     ncw_set_quitfn(enkf_quit);
+#if !defined(NO_GRIDUTILS)
+    gu_setquitfn(enkf_quit);
+#endif
 }
 
 /**

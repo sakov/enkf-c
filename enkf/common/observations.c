@@ -591,7 +591,7 @@ void obs_read(observations* obs, char fname[])
     free(status);
     free(aux);
 
- finish:
+  finish:
 
     obs_calcstats(obs);
 }
