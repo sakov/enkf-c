@@ -1,8 +1,8 @@
   MPI: initialised 2 processes
-  MPI: rank = 0, PID = 24809
-  MPI: rank = 1, PID = 24810
-  running CALC for EnKF version 0.94:
-  2015-02-12 16:13:25
+  MPI: rank = 0, PID = 16673
+  MPI: rank = 1, PID = 16674
+  running CALC for EnKF version 0.96.3:
+  2015-05-05 13:10:58
   reading system specs from "singleob.prm":
     MODE = EnOI
     MODEL PRM = "model.prm"
@@ -34,7 +34,7 @@
       SHUFFLE_ROWS     = [-]
       HE_VIAFILE       = [-]
       GRIDNODES_WRITE  = [-]
-      NO_QSORT_R       = [-]
+      INTERNAL_QSORT_R = [-]
   initialising the system:
   reading observation type specs from "obstypes.prm":
     NAME = SLA
@@ -154,7 +154,7 @@
     j    = 50.000
     calculating obs stats:
   calculating ensemble observations:
-  2015-02-12 16:13:25
+  2015-05-05 13:10:58
     ensemble size = 96
     distributing iterations:
       all processes get 48 iterations
@@ -163,7 +163,7 @@
     TEM 
     SAL 
   calculating transforms:
-  2015-02-12 16:13:25
+  2015-05-05 13:10:58
     calculating transforms for t-grid:
     creating empty file "w.nc":
       distributing iterations:
@@ -171,18 +171,18 @@
       main cycle for t-grid (34 x 34 local analyses):
         j = 0 (0: 0: 5.9%)
         j = 3 (1: 17: 5.9%)
-        j = 6 (0: 1: 11.8%)
         j = 9 (1: 18: 11.8%)
-        j = 12 (0: 2: 17.6%)
+        j = 6 (0: 1: 11.8%)
         j = 15 (1: 19: 17.6%)
-        j = 18 (0: 3: 23.5%)
+        j = 12 (0: 2: 17.6%)
         j = 21 (1: 20: 23.5%)
-        j = 24 (0: 4: 29.4%)
+        j = 18 (0: 3: 23.5%)
         j = 27 (1: 21: 29.4%)
-        j = 30 (0: 5: 35.3%)
+        j = 24 (0: 4: 29.4%)
         j = 33 (1: 22: 35.3%)
-        j = 36 (0: 6: 41.2%)
+        j = 30 (0: 5: 35.3%)
         j = 39 (1: 23: 41.2%)
+        j = 36 (0: 6: 41.2%)
         j = 45 (1: 24: 47.1%)
         j = 42 (0: 7: 47.1%)
         j = 51 (1: 25: 52.9%)
@@ -199,10 +199,10 @@
         j = 78 (0: 13: 82.4%)
         j = 87 (1: 31: 88.2%)
         j = 84 (0: 14: 88.2%)
-        j = 90 (0: 15: 94.1%)
         j = 93 (1: 32: 94.1%)
-        j = 96 (0: 16: 100.0%)
+        j = 90 (0: 15: 94.1%)
         j = 99 (1: 33: 100.0%)
+        j = 96 (0: 16: 100.0%)
     finished calculating transforms for t-grid
     writing stats to "enkf_diag.nc":
     summary stats on t-grid:
@@ -214,6 +214,6 @@
     calculating transform for log point (30, 30): 1 obs
     writing the log for point (30, 30):
   calculating analysed observations:
-  2015-02-12 16:13:25
+  2015-05-05 13:10:58
     sorting obs by ij:
     updating Hx:

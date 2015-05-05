@@ -69,7 +69,7 @@ void gridprm_create(char* fname, int* ngrid, gridprm** prm)
         } else if (strcasecmp(token, "VTYPE") == 0) {
             if ((token = strtok(NULL, seps)) == NULL)
                 enkf_quit("%s, l.%d: VTYPE not specified", fname, line);
-            else if (now->fname != NULL)
+            else if (now->vtype != NULL)
                 enkf_quit("%s, l.%d: VTYPE specified twice", fname, line);
             else
                 now->vtype = strdup(token);

@@ -1,3 +1,7 @@
+v. 0.96.3
+   PS 05052015
+   -- Fixed a defect in gridprm.c that sometimes caused exiting with error
+      "VTYPE specified twice".
 v. 0.96.2
    -- Cosmetic changes.
 v. 0.96.1
