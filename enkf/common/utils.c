@@ -903,6 +903,40 @@ void read3dfield(char* fname, char* varname, float* v)
 
 /**
  */
+int getnumlevels(char fname[], char varname[])
+{
+    int ncid;
+    int varid;
+    int ndims;
+    int dimids[4];
+    size_t dimlen[4];
+    int containsrecorddim;
+    int i;
+
+    ncw_open(fname, NC_NOWRITE, &ncid);
+    ncw_inq_varid(fname, ncid, varname, &varid);
+    ncw_inq_varndims(fname, ncid, varid, &ndims);
+    ncw_inq_vardimid(fname, ncid, varid, dimids);
+    for (i = 0; i < ndims; ++i)
+        ncw_inq_dimlen(fname, ncid, dimids[i], &dimlen[i]);
+
+    containsrecorddim = nc_isunlimdimid(ncid, dimids[0]);
+    ncw_close(fname, ncid);
+
+    if (ndims == 4) {
+	assert(containsrecorddim);
+	return dimlen[1];
+    }
+    if (ndims == 3)
+	return dimlen[0];
+    if (ndims == 2)
+	return 1;
+    enkf_quit("%s: nk = %d for \"%s\" (must be 2 <= nk <= 4)", fname, ndims, varname);
+    return 0;
+}
+
+/**
+ */
 double date_str2dbl(char strdate[])
 {
     char buf[MAXSTRLEN];
