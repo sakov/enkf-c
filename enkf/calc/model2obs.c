@@ -157,6 +157,8 @@ void H_surf_standard(dasystem* das, int nobs, int obsids[], char fname[], int me
 
     assert(varname2 == NULL);
 
+    if (getnumlevels(fname, varname) == 1)
+	k = 0;
     model_readfield(m, fname, mem, t, varname, k, src[0]);
 
     offset = model_getmodeldata(m, allobs->obstypes[allobs->data[obsids[0]].type].name);

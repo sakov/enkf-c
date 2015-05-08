@@ -43,6 +43,7 @@ int getnlevels(char fname[], char varname[]);
 void readfield(char fname[], int k, char varname[], float* v);
 void writefield(char fname[], int k, char varname[], float* v);
 void read3dfield(char fname[], char varname[], float* v);
+int getnumlevels(char fname[], char varname[]);
 double date_str2dbl(char strdate[]);
 int get_tshift(double date, double tstep);
 void print_matrix_double(int n, int m, double** A, char offset[]);
