@@ -643,6 +643,7 @@ void readfield(char fname[], int k, char varname[], float* v)
 
     if (ndims == 4) {
         assert(containsrecorddim);
+        assert(k < dimlen[1]);
         start[0] = 0;
         start[1] = k;
         start[2] = 0;
@@ -653,6 +654,7 @@ void readfield(char fname[], int k, char varname[], float* v)
         count[3] = dimlen[3];
     } else if (ndims == 3) {
         if (!containsrecorddim) {
+            assert(k < dimlen[0]);
             start[0] = k;
             start[1] = 0;
             start[2] = 0;
@@ -660,6 +662,7 @@ void readfield(char fname[], int k, char varname[], float* v)
             count[1] = dimlen[1];
             count[2] = dimlen[2];
         } else {
+            assert(k <= 0);
             start[0] = 0;
             start[1] = 0;
             start[2] = 0;
@@ -729,6 +732,7 @@ void writefield(char fname[], int k, char varname[], float* v)
 
     if (ndims == 4) {
         assert(containsrecorddim);
+        assert(k < dimlen[1]);
         start[0] = 0;
         start[1] = k;
         start[2] = 0;
@@ -739,6 +743,7 @@ void writefield(char fname[], int k, char varname[], float* v)
         count[3] = dimlen[3];
     } else if (ndims == 3) {
         if (!containsrecorddim) {
+            assert(k < dimlen[0]);
             start[0] = k;
             start[1] = 0;
             start[2] = 0;

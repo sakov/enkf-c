@@ -4,6 +4,7 @@ v. 0.97.2
       varname[]) and use it in H_surf_standard() to test whether the model file
       has been stripped to contain the surface layer only or not. (This is
       necessary when the top layer is not k = 0.)
+   -- Added a few assertions to readfield() and writefield().
 v. 0.97.1
    PS 06052015
    -- Added parameter `hastosucceed' to model_getvarid().
