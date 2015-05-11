@@ -435,7 +435,7 @@ In contrast, the ETKF (\ref{TR-ETKF}) requires calculation of the inverse square
 Then, one can use expression (\ref{G-m}) for $\mb G$ and calculate both inversion in it and inverse square root in (\ref{TR-ETKF}) from the same singular value decomposition (SVD).
 This makes the DEnKF somewhat more numerically effective because, firstly, one can exploit situations when $p < m$ to invert a matrix of lower dimension and, secondly, it requires only matrix inversion, which can be done via Cholesky decomposition instead of SVD.
 
-\subsection{Localisation}
+\section{Localisation}
 
 Localisation is a necessary attribute of the EnKF systems with large-scale models, aimed at overcoming the rank deficiency of the ensemble.
 It can also be seen as aimed at reducing spurious long range correlations occurring due to the finite size of the ensemble; or at limiting the impact of distant observations because of the unreliability of the corresponding covariances.

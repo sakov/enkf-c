@@ -57,7 +57,7 @@ void ll2xyz(double in[2], double out[3]);
 
 #if defined(INTERNAL_QSORT_R)
 typedef int (*__compar_d_fn_t) (const void*, const void*, void*);
-static inline void sort_r(void* base, size_t n, size_t width, __compar_d_fn_t cmp, void* p)
+static inline void qsort_r(void* base, size_t n, size_t width, __compar_d_fn_t cmp, void* p)
 {
     int nested_cmp(const void* a, const void* b) {
         return cmp(a, b, p);
