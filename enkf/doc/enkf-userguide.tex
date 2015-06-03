@@ -462,7 +462,7 @@ In layered geophysical models $g$ is often assumed to depend only on horizontal 
 \end{align}
 or on combination of horizontal and vertical distances, e.g.: $\ac{i}f_o = g_{xy}(|\ac{i}{\ms \rho} - \ac{\{o\}}{\ms \rho}|)g_z(|\ac{i}z - \ac{\{o\}}z|)$, where $\mb r = (\ms \rho, z)$, and $\ms \rho = (x, y)$.
 In the case (\ref{hor}) for a given set of observations the local ensemble transform $\ac{i}{\mb X}_5$ depends only on horizontal grid coordinates of the state element $\mb x_i$ and can be used for updating all state elements with the same horizontal grid coordinates.
-It is currently the only option in EnKF-C.
+This is currently the only option in EnKF-C.
 
 Smooth taper functions have advantage over non-smooth functions (such as the boxcar, or step function) because they maintain the spatial continuity of the analysis.
 EnKF-C uses the popular polynomial taper function by \citet{gas99a}, which has a number of nice properties.
@@ -504,7 +504,7 @@ Consequently, \underline{in the linear case} (\ref{lin}) one can use solutions f
   &\mb S = \mb R^{-1/2} \, \mb H \circ \mb M \, \mb A_1^f / \sqrt{m - 1},
 \end{align}
 where $\mb H \circ \mb M$ is the tangent linear operator of $\mathcal H \circ \mathcal M$ about $\mb x_1^f$.
-This means that to account for the time of observations in the EnKF one simply needs calculate innovation and forecast ensemble observation anomalies using ensemble at the time of each observation.
+This means that to account for the time of observations in the EnKF one simply needs to calculate innovation and forecast ensemble observation anomalies using ensemble at the time of each observation.
 There are no specific restrictions on $\mb R$, so that in theory observation errors can be correlated in time.
 
 The minimisation problem (\ref{min-perf}),(\ref{cost-async}) implies assimilation time $t = t_1$; however, in the linear case the standardised innovation and ensemble observation anomalies in form (\ref{s-async},\ref{S-async}) represent objects invariant to assimilation time: the reference to $\mb x_1$ is only present to define the operator $\mathcal H \circ \mathcal M$.
@@ -1277,9 +1277,9 @@ Another option -- to generate a segmentation fault -- can be activated by settin
 Note that when run on multiple processors, this can result in segmentation faults on more than one processor (but not necessarily on every engaged processor, as some processes can also be forced to exit by \verb|MPI_abort()|).
 If the system is set to generate core dumps, they can indeed be used for investigating the final state of the program.
 
-\subsection{Dependencies}
+\subsection{Dependencies and compilation issues}
 
-Compiling EnKF-C requires the following external packages:
+Compiling EnKF-C requires the following external libraries:
 \begin{itemize}
 \item netcdf;
 \item lapack (or mkl\_rt);

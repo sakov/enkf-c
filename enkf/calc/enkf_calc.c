@@ -200,6 +200,8 @@ static observations* obs_create_fromsingleob(enkfprm* prm, dasystem* das)
     vid = model_getvarid(m, obs->obstypes[o->type].varname, 1);
     grid = model_getvargrid(m, vid);
 
+    obs->obstypes[o->type].gridid = model_getvargridid(das->m, vid);
+
     obs->products = st_create("products");
     st_add_ifabscent(obs->products, "Synthetic", -1);
     obs->instruments = st_create("instruments");
