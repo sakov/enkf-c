@@ -929,13 +929,13 @@ int getnumlevels(char fname[], char varname[])
     ncw_close(fname, ncid);
 
     if (ndims == 4) {
-	assert(containsrecorddim);
-	return dimlen[1];
+        assert(containsrecorddim);
+        return dimlen[1];
     }
     if (ndims == 3)
-	return dimlen[0];
+        return dimlen[0];
     if (ndims == 2)
-	return 1;
+        return 1;
     enkf_quit("%s: nk = %d for \"%s\" (must be 2 <= nk <= 4)", fname, ndims, varname);
     return 0;
 }

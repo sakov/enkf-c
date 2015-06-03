@@ -1,3 +1,7 @@
+v. 0.98
+   PS 03062015
+   -- Fixed (minor) inconsistency that led to assertion failure in some
+      single observation experiments.
 v. 0.97.3
    PS 11052015
    -- Corrected a defect in utils.c: replaced "sort_r()" by "qsort_r()" to
