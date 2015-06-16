@@ -123,7 +123,7 @@ void reader_mmt_standard(char* fname, int fid, obsmeta* meta, model* m, observat
     buf[len - 14] = 0;
     if (!str2int(&buf[len - 18], &year))
         enkf_quit("MMT reader: could not convert file name \"%s\" to date", fname);
-    sprintf(buf, "days since %4d-%02d-%02d", year, month, day);
+    snprintf(buf, MAXSTRLEN, "days since %4d-%02d-%02d", year, month, day);
 
     tunits_convert(buf, &tunits_multiple, &tunits_offset);
 
@@ -132,7 +132,7 @@ void reader_mmt_standard(char* fname, int fid, obsmeta* meta, model* m, observat
     for (p = 0; p < (int) nprof; ++p) {
         char inststr[MAXSTRLEN];
 
-        sprintf(inststr, "WMO%04u", type[p * WMO_INSTSIZE]);
+        snprintf(inststr, MAXSTRLEN, "WMO%04u", type[p * WMO_INSTSIZE]);
 
         for (i = 0; i < (int) nz; ++i) {
             observation* o;

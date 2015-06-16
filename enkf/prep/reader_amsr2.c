@@ -98,7 +98,7 @@ void reader_amsr2_standard(char* fname, int fid, obsmeta* meta, model* m, observ
     basename[10] = 0;
     if (!str2int(&basename[6], &year))
         enkf_quit("AMSR2 reader: could not convert file name \"%s\" to date", fname);
-    sprintf(&tunits[tunits_len], " since %4d-%02d-%02d", year, month, day);
+    snprintf(&tunits[tunits_len], MAXSTRLEN - tunits_len, " since %4d-%02d-%02d", year, month, day);
 
     ncw_close(fname, ncid);
 

@@ -221,7 +221,7 @@ void reader_rads_standard2(char* fname, int fid, obsmeta* meta, model* m, observ
     buf[len - 14] = 0;
     if (!str2int(&buf[len - 18], &year))
         enkf_quit("RADS reader: could not convert file name \"%s\" to date", fname);
-    sprintf(buf, "days since %4d-%02d-%02d", year, month, day);
+    snprintf(buf, MAXSTRLEN, "days since %4d-%02d-%02d", year, month, day);
 
     tunits_convert(buf, &tunits_multiple, &tunits_offset);
 

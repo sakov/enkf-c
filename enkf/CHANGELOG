@@ -1,6 +1,12 @@
+v. 0.99
+   PS 16062015
+   -- Modified pointlog code to write both analysis and forecast variables (was
+      analysis only).
+   -- Corrrected spread calculation (replaced /(m-1) by /m).
+   -- Changed sprintf() to snprintf() throughout the code.
 v. 0.98
    PS 03062015
-   -- Fixed (minor) inconsistency that led to assertion failure in some
+   -- Fixed a (minor) inconsistency that led to assertion failure in some
       single observation experiments.
 v. 0.97.3
    PS 11052015

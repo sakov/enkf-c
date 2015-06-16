@@ -255,7 +255,7 @@ void find_files(char* template, int* nfiles, char*** fnames)
     char buf[MAXSTRLEN];
     char* eol;
 
-    sprintf(command, "ls -1 %s", template);
+    snprintf(command, MAXSTRLEN, "ls -1 %s", template);
     in = popen(command, "r");
     if (in == NULL)
         return;

@@ -1,8 +1,8 @@
   MPI: initialised 2 processes
-  MPI: rank = 0, PID = 22964
-  MPI: rank = 1, PID = 22965
-  running CALC for EnKF version 0.96.3:
-  2015-05-05 15:23:47
+  MPI: rank = 0, PID = 27389
+  MPI: rank = 1, PID = 27390
+  running CALC for EnKF version 0.99:
+  2015-06-16 15:44:54
   reading system specs from "singleob.prm":
     MODE = EnOI
     MODEL PRM = "model.prm"
@@ -21,7 +21,7 @@
     STRIDE = 3
     FIELDBUFFERSIZE = 4
     REGION Global: x = [0.0, 360.0], y = [-90.0, 90.0]
-    POINTLOG 30 30
+    POINTLOG 30 50
     SOBSTRIDE = 1
     EnKF flags:
       enkf_exitaction  = [BACKTRACE]
@@ -154,7 +154,7 @@
     j    = 50.000
     calculating obs stats:
   calculating ensemble observations:
-  2015-05-05 15:23:47
+  2015-06-16 15:44:54
     ensemble size = 96
     distributing iterations:
       all processes get 48 iterations
@@ -163,7 +163,7 @@
     TEM 
     SAL 
   calculating transforms:
-  2015-05-05 15:23:47
+  2015-06-16 15:44:54
     calculating transforms for t-grid:
     creating empty file "w.nc":
       distributing iterations:
@@ -189,18 +189,18 @@
         j = 48 (0: 8: 52.9%)
         j = 57 (1: 26: 58.8%)
         j = 54 (0: 9: 58.8%)
-        j = 63 (1: 27: 64.7%)
         j = 60 (0: 10: 64.7%)
-        j = 69 (1: 28: 70.6%)
+        j = 63 (1: 27: 64.7%)
         j = 66 (0: 11: 70.6%)
-        j = 75 (1: 29: 76.5%)
+        j = 69 (1: 28: 70.6%)
         j = 72 (0: 12: 76.5%)
+        j = 75 (1: 29: 76.5%)
         j = 81 (1: 30: 82.4%)
         j = 78 (0: 13: 82.4%)
-        j = 87 (1: 31: 88.2%)
         j = 84 (0: 14: 88.2%)
-        j = 93 (1: 32: 94.1%)
+        j = 87 (1: 31: 88.2%)
         j = 90 (0: 15: 94.1%)
+        j = 93 (1: 32: 94.1%)
         j = 99 (1: 33: 100.0%)
         j = 96 (0: 16: 100.0%)
     finished calculating transforms for t-grid
@@ -211,9 +211,17 @@
       # of inversions in obs space = 711
       # of inversions in ens space = 0
   writing point logs:
-    calculating transform for log point (30, 30): 1 obs
-    writing the log for point (30, 30):
+    calculating transform for log point (30, 50): 1 obs
+    writing the log for point (30, 50):
   calculating analysed observations:
-  2015-05-05 15:23:47
+  2015-06-16 15:44:54
     sorting obs by ij:
     updating Hx:
+  printing observation statistics:
+    region obs.type   # obs.  |for.inn.| |an.inn.|   for.inn.   an.inn.  for.spread  an.spread
+    ------------------------------------------------------------------------------------------
+    Global
+           SST             1    0.500      0.186      0.500      0.186      0.655      0.655  
+             Virtual       1    0.500      0.186      0.500      0.186      0.655      0.655  
+  2015-06-16 15:44:54
+  finished

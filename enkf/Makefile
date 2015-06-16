@@ -1,19 +1,23 @@
-# set MPI status either to "" or "MPI"
+# Select ENKF_FLAGS from the following list:
+#
+# -DHE_VIAFILE
+# -DCHECK_X5
+# -DCHECK_G
+# -DSHUFFLE_ROWS
+# -DGRIDNODES_WRITE
+# -DINTERNAL_QSORT_R
+# -DNO_GRIDUTILS
+#
+ENKF_FLAGS =
 
-ENKF_FLAGS = # -DHE_VIAFILE -DCHECK_X5 -DCHECK_G -DSHUFFLE_ROWS -DGRIDNODES_WRITE -DINTERNAL_QSORT_R -DNO_GRIDUTILS
+# Set MPI status of EnKF-C programs either to "" or "MPI".
+# Note: prep is single-threaded only.
+#
+PREP_MPISTATUS =
+CALC_MPISTATUS = MPI
+UPDATE_MPISTATUS = MPI
 
-PROGRAMS =\
-bin/enkf_prep\
-bin/enkf_calc\
-bin/enkf_update
-
-ALL = $(PROGRAMS)
-
-bin/enkf_prep: MPISTATUS =
-bin/enkf_calc: MPISTATUS = MPI
-bin/enkf_update: MPISTATUS = MPI
-
-# do not edit below
+### do not edit below ###
 
 include ./make.inc
 
@@ -113,21 +117,31 @@ common/distribute.h\
 common/dasystem.h\
 calc/model2obs.h
 
+PROGRAMS =\
+bin/enkf_prep\
+bin/enkf_calc\
+bin/enkf_update
+
+ALL = $(PROGRAMS)
+
 default: $(PROGRAMS)
 
 all: $(ALL)
 
+bin/enkf_prep: MPISTATUS = $(PREP_MPISTATUS)
 bin/enkf_prep: INCS += $(PREP_INCS)
 bin/enkf_prep: $(SRC_PREP) $(SRC_COMMON) $(HDR_PREP) $(HDR_COMMON)
 	@echo
 	${CC${MPISTATUS}} -o bin/enkf_prep -DENKF_PREP $(ENKF_FLAGS) $(CFLAGS$(MPISTATUS)) $(INCS) $(SRC_PREP) $(SRC_COMMON) $(LIBS)
 
+bin/enkf_calc: MPISTATUS = $(CALC_MPISTATUS)
 bin/enkf_calc: INCS += $(CALC_INCS)
 bin/enkf_calc: LIBS += $(LIB_LAPACK)
 bin/enkf_calc: $(SRC_COMMON) $(SRC_CALC) $(HDR_COMMON) $(HDR_CALC)
 	@echo
 	${CC${MPISTATUS}} -o bin/enkf_calc -DENKF_CALC $(ENKF_FLAGS) $(CFLAGS$(MPISTATUS)) $(INCS) $(SRC_CALC) $(SRC_COMMON) $(LIBS)
 
+bin/enkf_update: MPISTATUS = $(UPDATE_MPISTATUS)
 bin/enkf_update: INCS += $(UPDATE_INCS)
 bin/enkf_update: LIBS += $(LIB_LAPACK)
 bin/enkf_update: $(SRC_UPDATE) $(SRC_COMMON) $(HDR_UPDATE) $(HDR_COMMON)

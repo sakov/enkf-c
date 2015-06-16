@@ -670,7 +670,7 @@ void obs_write(observations* obs, char fname[])
     i = STATUS_OUTSIDEOBSDOMAIN;
     ncw_put_att_int(fname, ncid, varid_status, "STATUS_OUTSIDEOBSDOMAIN", 1, &i);
     ncw_def_var(fname, ncid, "aux", NC_INT, 1, dimid_nobs, &varid_aux);
-    sprintf(tunits, "days from %s", obs->datestr);
+    snprintf(tunits, MAXSTRLEN, "days from %s", obs->datestr);
     ncw_put_att_text(fname, ncid, varid_date, "units", tunits);
 
     for (i = 0; i < obs->nobstypes; ++i)
@@ -686,7 +686,7 @@ void obs_write(observations* obs, char fname[])
         char attname[NC_MAX_NAME];
         char* datafile = st_findstringbyindex(obs->datafiles, i);
 
-        sprintf(attname, "%d", i);
+        snprintf(attname, NC_MAX_NAME, "%d", i);
         ncw_put_att_text(fname, ncid, varid_fid, attname, datafile);
     }
 

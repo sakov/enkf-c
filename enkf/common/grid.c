@@ -565,7 +565,7 @@ static void grid_setcoords(grid* g, int htype, int hnodetype, int periodic_x, in
         {
             char fname[MAXSTRLEN];
 
-            sprintf(fname, "gridnodes-%d.txt", grid_getid(g));
+            snprintf(fname, MAXSTRLEN, "gridnodes-%d.txt", grid_getid(g));
             if (!file_exists(fname))
                 gridnodes_write(((gnxy_curv*) g->gridnodes_xy)->gn, fname, CT_XY);
         }

@@ -1,5 +1,5 @@
-  running PREP for EnKF version 0.96.3:
-  2015-05-05 15:22:24
+  running PREP for EnKF version 0.99:
+  2015-06-16 15:43:33
   reading prep specs from "enkf.prm":
     MODE = EnKF
     SCHEME = DEnKF
@@ -120,10 +120,10 @@
       ASYNCHRONOUS = no
       RFACTOR = 2
     NAME = SST
-      Vls: cannot access obs/WINDSAT/windsat_20071221.nc: No such file or directory
+      VARls: cannot access obs/WINDSAT/windsat_20071221.nc: No such file or directory
 ls: cannot access obs/WINDSAT/windsat_20071222.nc: No such file or directory
 ls: cannot access obs/WINDSAT/windsat_20071223.nc: No such file or directory
-AR = temp
+ = temp
       ID = 1
       ISSURFACE = yes
       HFUNCTION = standard
@@ -318,5 +318,5 @@ AR = temp
     TEM     184        104        104        0          0          0          0          7         
     SAL     184        104        104        0          0          0          0          7         
     total   9749       211        208        0          3          0          0          3921      
-  2015-05-05 15:22:24
+  2015-06-16 15:43:33
   finished

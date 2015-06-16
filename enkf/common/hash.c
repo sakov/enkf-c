@@ -751,8 +751,8 @@ int main()
         char str[BUFSIZE];
         char* data;
 
-        sprintf(key, "%d-th key", i);
-        sprintf(str, "%d-th data", i);
+        snprintf(key, BUFSIZE, "%d-th key", i);
+        snprintf(str, BUFSIZE, "%d-th data", i);
         data = strdup(str);
         ht_insert(ht, key, data);
     }
@@ -767,7 +767,7 @@ int main()
         char key[BUFSIZE];
         char* data;
 
-        sprintf(key, "%d-th key", i);
+        snprintf(key, BUFSIZE, "%d-th key", i);
         data = ht_find(ht, key);
         if (data != NULL)
             printf("    i = %d; data = \"%s\"\n", i, data);
@@ -779,7 +779,7 @@ int main()
     for (i = 0; i < size; i += 3) {
         char key[BUFSIZE];
 
-        sprintf(key, "%d-th key", i);
+        snprintf(key, BUFSIZE, "%d-th key", i);
         free(ht_delete(ht, key));
     }
     printf("done\n");
@@ -793,7 +793,7 @@ int main()
         char key[BUFSIZE];
         char* data;
 
-        sprintf(key, "%d-th key", i);
+        snprintf(key, BUFSIZE, "%d-th key", i);
         data = ht_find(ht, key);
         if (data != NULL)
             printf("    i = %d; data = \"%s\"\n", i, data);
