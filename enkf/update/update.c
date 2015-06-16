@@ -216,6 +216,7 @@ static void das_updatefields(dasystem* das, int nfields, void** fieldbuffer, fie
                         double v1_f = 0.0;
                         double v2_f = 0.0;
                         double v2_a = 0.0;
+                        double var_a, var_f;
 
                         for (e = 0; e < nmem; ++e) {
                             double ve = (double) v_f[e];
@@ -224,20 +225,18 @@ static void das_updatefields(dasystem* das, int nfields, void** fieldbuffer, fie
                             v2_f += ve * ve;
                         }
                         v1_f /= (double) nmem;
-                        v2_f = sqrt(v2_f / (double) nmem - v1_f * v1_f);
+                        var_f = v2_f / (double) nmem - v1_f * v1_f;
 
                         for (e = 0; e < nmem; ++e) {
                             double ve = (double) v_a[e];
 
                             v2_a += ve * ve;
                         }
-                        v2_a = sqrt(v2_a / (double) nmem - v1_a * v1_a);
-
-                        if (v2_a / (double) nmem - v1_a * v1_a <= 0)
+                        var_a = v2_a / (double) nmem - v1_a * v1_a;
+                        
+                        if (var_a <= 0)
                             /*
-                             * (Exception.) There is possible a significant
-                             * loss of precision due to round-up errors, at
-                             * least with single precision.
+                             * (exception)
                              */
                             inflation = inflation0;
                         else {
@@ -245,7 +244,7 @@ static void das_updatefields(dasystem* das, int nfields, void** fieldbuffer, fie
                              * (Normal case.) Limit inflation by half of the
                              * magnitude of spread reduction.
                              */
-                            inflation = (float) (v2_f / v2_a * 0.5 + 0.5);
+                            inflation = (float) (sqrt(var_f / var_a) * 0.5 + 0.5);
                             if (inflation >= inflation0)
                                 inflation = inflation0;
                         }
@@ -406,7 +405,7 @@ static void das_updatebg(dasystem* das, int nfields, void** fieldbuffer, field f
             }                   /* stride != 1 */
 
             /*
-             * (at this stage wj should contain the array of b vectors for
+             * (at this stage wj should contain the array of w vectors for
              * the j-th row of the grid) 
              */
 
@@ -494,10 +493,6 @@ static void das_writefields_direct(dasystem* das, int nfields, void** fieldbuffe
             }
         }
     }
-
-    if (das->nplogs > 0)
-        plog_writestatevars_direct(das, nfields, fieldbuffer, fields);
-
 }
 
 /**
@@ -545,9 +540,6 @@ static void das_writefields_toassemble(dasystem* das, int nfields, void** fieldb
             ncw_close(fname, ncid);
         }
     }
-
-    if (das->nplogs > 0)
-        plog_writestatevars_toassemble(das, nfields, fieldbuffer, fields);
 }
 
 /** Writes `nfields' ensemble fields from `fieldbuffer' to disk.
@@ -597,10 +589,6 @@ static void das_writebg_direct(dasystem* das, int nfields, void** fieldbuffer, f
             model_writefield(m, fname, MAXINT, f->varname, f->level, ((float***) fieldbuffer[i])[das->nmem][0]);
         }
     }
-
-    if (das->nplogs > 0)
-        plog_writestatevars_direct(das, nfields, fieldbuffer, fields);
-
 }
 
 /**
@@ -634,9 +622,6 @@ static void das_writebg_toassemble(dasystem* das, int nfields, void** fieldbuffe
             writefield(fname, 0, f->varname, ((float***) fieldbuffer[i])[das->nmem][0]);
         }
     }
-
-    if (das->nplogs > 0)
-        plog_writestatevars_toassemble(das, nfields, fieldbuffer, fields);
 }
 
 /** Writes `nfield' fields from `fieldbuffer' to disk.
@@ -725,7 +710,8 @@ static void das_writespread(dasystem* das, int nfields, void** fieldbuffer, fiel
         }
 
         for (i = 0; i < nv; ++i) {
-            v2[i] = (v2[i] - (v1[i] * v1[i]) / (double) das->nmem) / (double) (das->nmem - 1);
+            v1[i] /= (double) das->nmem;
+            v2[i] = v2[i] / (double) das->nmem - v1[i] * v1[i];
             v2[i] = (v2[i] < 0.0) ? 0.0 : sqrt(v2[i]);
             if (fabs(v2[i]) > (double) MAXOBSVAL)
                 v2[i] = NaN;
@@ -1221,6 +1207,11 @@ void das_update(dasystem* das, int calcspread, int leavetiles)
                  */
                 if (calcspread)
                     das_writespread(das, bufindex + 1, fieldbuffer, &fields[i - bufindex], 0);
+                /*
+                 * write forecast variables to point logs
+                 */
+                if (das->nplogs > 0)
+                    plog_writestatevars(das, bufindex + 1, fieldbuffer, &fields[i - bufindex], 0);
 
                 if (das->mode == MODE_ENKF) {
                     das_updatefields(das, bufindex + 1, fieldbuffer, &fields[i - bufindex]);
@@ -1235,6 +1226,11 @@ void das_update(dasystem* das, int calcspread, int leavetiles)
                  */
                 if (calcspread && das->mode == MODE_ENKF)
                     das_writespread(das, bufindex + 1, fieldbuffer, &fields[i - bufindex], 1);
+                /*
+                 * write analysis variables to point logs
+                 */
+                if (das->nplogs > 0)
+                    plog_writestatevars(das, bufindex + 1, fieldbuffer, &fields[i - bufindex], 1);
             }
         }
 

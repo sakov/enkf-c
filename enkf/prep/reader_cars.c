@@ -115,7 +115,7 @@ void reader_cars_standard(char* fname, int fid, obsmeta* meta, model* m, observa
     buf[len - 21] = 0;
     if (!str2int(&buf[len - 25], &year))
         enkf_quit("CARS reader: could not convert file name \"%s\" to date", fname);
-    sprintf(buf, "days since %4d-%02d-%02d", year, month, day);
+    snprintf(buf, MAXSTRLEN, "days since %4d-%02d-%02d", year, month, day);
 
     tunits_convert(buf, &tunits_multiple, &tunits_offset);
 
@@ -135,7 +135,7 @@ void reader_cars_standard(char* fname, int fid, obsmeta* meta, model* m, observa
         else if (type[p] == 8 || type[p] == 17)
             strcpy(inststr, "XBT");
         else
-            sprintf(inststr, "CARS%02u", type[p]);
+            snprintf(inststr, MAXSTRLEN, "CARS%02u", type[p]);
 
         for (i = 0; i < (int) nz; ++i) {
             observation* o;

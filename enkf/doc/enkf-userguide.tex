@@ -35,7 +35,7 @@
 
 \begin{document}
 
-\title{EnKF-C user guide\\{\normalsize version 0.97}}
+\title{EnKF-C user guide\\{\normalsize version 0.99}}
 
 \author{Pavel Sakov}
 \date{June 19, 2014 -- \today}
@@ -560,7 +560,7 @@ EnKF-C conducts data assimilation in three stages: \emph{prep}, \emph{calc} and 
 \emph{prep} preprocesses observations so that they are ready for DA.
 It has the following work flow:
 \begin{itemize}
-\item read original observations and fill each observation into a uniform structure \emph{measurement};
+\item read original observations and fill each observation into a uniform structure \verb|measurement|;
 \item write observations to file \verb|observations-orig.nc|;
 \item combine observations into superobservations;
 \item write super observations to \verb|observations.nc|.
@@ -569,7 +569,7 @@ It has the following work flow:
 \emph{calc} calculates ensemble transforms for updating the forecast ensemble of model states (EnKF) or the background model state (EnOI) in the following stages:
 \begin{itemize}
 \item read observations from \verb|observations.nc|;
-\item calculate ensemble of forecast observations $\mb H \mb E^f$ (EnKF) or ensemble of forecast observation anomalies $\mb H \mb A^f$ and background observation estimates $\mb H \mb x^f$ (EnOI);
+\item calculate ensemble of forecast observations $\mb H \mb E^f$ (EnKF) or ensemble of background observation anomalies $\mb H \mb A^f$ and background observations $\mb H \mb x^f$ (EnOI);
 \item for each horizontal grid cell calculate local ensemble transforms $\mb X_5$ (EnKF) or background update coefficients $\mb w$ (EnOI);
 \item save these transforms to \verb|X5.nc| (EnKF) or \verb|w.nc| (EnOI);
 \item calculate and report forecast and analysis innovation statistics.

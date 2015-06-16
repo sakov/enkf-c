@@ -301,9 +301,9 @@ void das_getfields(dasystem* das, int gridid, int* nfields, field** fields)
 void das_getfname_X5(dasystem* das, void* grid, char fname[])
 {
     if (model_getngrid(das->m) == 1)
-        sprintf(fname, "%s.nc", FNAMEPREFIX_X5);
+        snprintf(fname, MAXSTRLEN, "%s.nc", FNAMEPREFIX_X5);
     else
-        sprintf(fname, "%s-%d.nc", FNAMEPREFIX_X5, grid_getid(grid));
+        snprintf(fname, MAXSTRLEN, "%s-%d.nc", FNAMEPREFIX_X5, grid_getid(grid));
 }
 
 /**
@@ -311,9 +311,9 @@ void das_getfname_X5(dasystem* das, void* grid, char fname[])
 void das_getfname_w(dasystem* das, void* grid, char fname[])
 {
     if (model_getngrid(das->m) == 1)
-        sprintf(fname, "%s.nc", FNAMEPREFIX_W);
+        snprintf(fname, MAXSTRLEN, "%s.nc", FNAMEPREFIX_W);
     else
-        sprintf(fname, "%s-%d.nc", FNAMEPREFIX_W, grid_getid(grid));
+        snprintf(fname, MAXSTRLEN, "%s-%d.nc", FNAMEPREFIX_W, grid_getid(grid));
 }
 
 /**
@@ -321,7 +321,7 @@ void das_getfname_w(dasystem* das, void* grid, char fname[])
 void das_getfname_stats(dasystem* das, void* grid, char fname[])
 {
     if (model_getngrid(das->m) == 1)
-        sprintf(fname, "%s.nc", FNAMEPREFIX_STATS);
+        snprintf(fname, MAXSTRLEN, "%s.nc", FNAMEPREFIX_STATS);
     else
-        sprintf(fname, "%s-%d.nc", FNAMEPREFIX_STATS, grid_getid(grid));
+        snprintf(fname, MAXSTRLEN, "%s-%d.nc", FNAMEPREFIX_STATS, grid_getid(grid));
 }

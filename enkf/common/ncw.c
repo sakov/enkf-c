@@ -26,7 +26,7 @@
 #include <errno.h>
 #include "ncw.h"
 
-const char ncw_version[] = "0.23";
+const char ncw_version[] = "0.25";
 
 /* This macro is substituted in error messages instead of the name of a
  * variable in cases when the name could not be found by the variable id.
@@ -86,9 +86,9 @@ static char* int2str(int n, const int v[])
 
     for (i = 0; i < n; ++i) {
         if (i < n - 1)
-            sprintf(next, "%d,", v[i]);
+            snprintf(next, STRBUFSIZE, "%d,", v[i]);
         else
-            sprintf(next, "%d", v[i]);
+            snprintf(next, STRBUFSIZE, "%d", v[i]);
         assert(strlen(all) + strlen(next) + 2 < STRBUFSIZE);
         strcat(all, next);
     }
@@ -106,9 +106,9 @@ static char* uint2str(int n, const unsigned int v[])
 
     for (i = 0; i < n; ++i) {
         if (i < n - 1)
-            sprintf(next, "%d,", v[i]);
+            snprintf(next, STRBUFSIZE, "%d,", v[i]);
         else
-            sprintf(next, "%d", v[i]);
+            snprintf(next, STRBUFSIZE, "%d", v[i]);
         assert(strlen(all) + strlen(next) + 2 < STRBUFSIZE);
         strcat(all, next);
     }
@@ -126,9 +126,9 @@ static char* double2str(int n, const double v[])
 
     for (i = 0; i < n && i < 3; ++i) {
         if (i < n - 1)
-            sprintf(next, "%.4g,", v[i]);
+            snprintf(next, STRBUFSIZE, "%.4g,", v[i]);
         else
-            sprintf(next, "%.4g", v[i]);
+            snprintf(next, STRBUFSIZE, "%.4g", v[i]);
         assert(strlen(all) + strlen(next) + 2 < STRBUFSIZE);
         strcat(all, next);
     }
@@ -150,9 +150,9 @@ static char* float2str(int n, const float v[])
 
     for (i = 0; i < n && i < 3; ++i) {
         if (i < n - 1)
-            sprintf(next, "%.4g,", v[i]);
+            snprintf(next, STRBUFSIZE, "%.4g,", v[i]);
         else
-            sprintf(next, "%.4g", v[i]);
+            snprintf(next, STRBUFSIZE, "%.4g", v[i]);
         assert(strlen(all) + strlen(next) + 2 < STRBUFSIZE);
         strcat(all, next);
     }
