@@ -30,7 +30,7 @@ void plog_write(dasystem* das, int i, int j, double lon, double lat, double dept
     char fname[MAXSTRLEN];
     int ncid;
     int dimids[2];
-    int vid_ids, vid_S, vid_s, vid_lcoeffs, vid_transform, vid_lon, vid_lat, vid_depth, vid_val, vid_std, vid_fi, vid_fj, vid_fk, vid_type, vid_date;
+    int vid_ids, vid_S, vid_s, vid_lcoeffs, vid_transform, vid_transform_actual, vid_lon, vid_lat, vid_depth, vid_val, vid_std, vid_fi, vid_fj, vid_fk, vid_type, vid_date;
     char tunits[MAXSTRLEN];
 
     float* olon;
@@ -80,8 +80,10 @@ void plog_write(dasystem* das, int i, int j, double lon, double lat, double dept
     if (das->mode == MODE_ENKF) {
         dimids[1] = dimids[0];
         ncw_def_var(fname, ncid, "X5", NC_DOUBLE, 2, dimids, &vid_transform);
+        ncw_def_var(fname, ncid, "X5_actual", NC_FLOAT, 2, dimids, &vid_transform_actual);
     } else if (das->mode == MODE_ENOI) {
         ncw_def_var(fname, ncid, "w", NC_DOUBLE, 1, &dimids[0], &vid_transform);
+        ncw_def_var(fname, ncid, "w_actual", NC_FLOAT, 1, &dimids[0], &vid_transform_actual);
     }
     ncw_put_att_text(fname, ncid, NC_GLOBAL, "date", obs->datestr);
     ncw_put_att_int(fname, ncid, NC_GLOBAL, "i", 1, &i);
@@ -138,6 +140,24 @@ void plog_write(dasystem* das, int i, int j, double lon, double lat, double dept
 
     ncw_put_var_double(fname, ncid, vid_transform, transform);
 
+    ncw_close(fname, ncid);
+}
+
+void plog_writeactual(dasystem* das, int i, int j, float* transform)
+{
+    char fname[MAXSTRLEN];
+    int ncid;
+    int vid = -1;
+
+    snprintf(fname, MAXSTRLEN, "pointlog_%d,%d.nc", i, j);
+    ncw_open(fname, NC_WRITE, &ncid);
+    if (das->mode == MODE_ENKF)
+        ncw_inq_varid(fname, ncid, "X5_actual", &vid);
+    else if (das->mode == MODE_ENOI)
+        ncw_inq_varid(fname, ncid, "w_actual", &vid);
+    else
+        enkf_quit("programming error");
+    ncw_put_var_float(fname, ncid, vid, transform);
     ncw_close(fname, ncid);
 }
 

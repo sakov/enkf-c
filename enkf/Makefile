@@ -73,12 +73,12 @@ common/observations.h\
 prep/allreaders.h
 
 SRC_CALC =\
+common/hash.c\
 common/distribute.c\
 common/pointlog.c\
 common/obstypes.c\
 common/observations.c\
 common/dasystem.c\
-common/hash.c\
 common/kdtree.c\
 calc/obsstats.c\
 calc/allhs.c\
@@ -89,10 +89,10 @@ calc/transforms.c\
 calc/enkf_calc.c
 
 HDR_CALC =\
+common/hash.h\
 common/distribute.h\
 common/pointlog.h\
 common/dasystem.h\
-common/hash.h\
 common/kdtree.h\
 common/obstypes.h\
 common/observations.h\
@@ -101,6 +101,7 @@ calc/model2obs.h\
 calc/calcs.h
 
 SRC_UPDATE =\
+common/hash.c\
 common/distribute.c\
 common/pointlog.c\
 common/dasystem.c\
@@ -108,14 +109,10 @@ update/update.c\
 update/enkf_update.c
 
 HDR_UPDATE =\
+common/hash.h\
 common/distribute.h\
 common/pointlog.h\
 common/dasystem.h
-
-HDR_MKUNITOBS =\
-common/distribute.h\
-common/dasystem.h\
-calc/model2obs.h
 
 PROGRAMS =\
 bin/enkf_prep\
