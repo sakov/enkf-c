@@ -1,3 +1,7 @@
+v. 1.00
+   PS 17062015
+   -- Modified code to make the actual (interpolated) transforms/weights also
+      written to the pointlog files (as "X5_actual" or "w_actual").
 v. 0.99
    PS 16062015
    -- Modified pointlog code to write both analysis and forecast variables (was

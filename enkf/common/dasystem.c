@@ -28,6 +28,7 @@
 #include <unistd.h>
 #include "nan.h"
 #include "ncw.h"
+#include "hash.h"
 #include "version.h"
 #include "definitions.h"
 #include "utils.h"
@@ -146,8 +147,11 @@ dasystem* das_create(enkfprm* prm)
     }
 #endif
 
+    if (prm->nplogs > 0)
+        das->ht_plogs = ht_create_i2(prm->nplogs);
     for (i = 0; i < prm->nplogs; ++i) {
         double lon, lat;
+        int key[2];
 
         /*
          * FLAKY: do the inside grid check with the variable of id = 0
@@ -163,6 +167,9 @@ dasystem* das_create(enkfprm* prm)
 
         das->plogs[das->nplogs].i = prm->plogs[i].i;
         das->plogs[das->nplogs].j = prm->plogs[i].j;
+        key[0] = das->plogs[das->nplogs].i;
+        key[1] = das->plogs[das->nplogs].j;
+        ht_insert(das->ht_plogs, key, NULL);
         das->nplogs++;
     }
 
@@ -214,6 +221,10 @@ void das_destroy(dasystem* das)
         for (i = 0; i < das->nregions; ++i)
             free(das->regions[i].name);
         free(das->regions);
+    }
+    if (das->nplogs > 0) {
+        ht_destroy(das->ht_plogs);
+        free(das->plogs);
     }
     if (das->nbadbatchspecs > 0) {
         for (i = 0; i < das->nbadbatchspecs; ++i)

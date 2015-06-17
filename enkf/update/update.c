@@ -200,6 +200,17 @@ static void das_updatefields(dasystem* das, int nfields, void** fieldbuffer, fie
                      * variations) 
                      */
 
+                    /*
+                     * for fid = 0 write the actual (interpolated) transform 
+                     * matrix to the pointlog for this (i,j) pair (if it exists)
+                     */
+                    if (f->id == 0) {
+                        int key[2] = {i, j};
+
+                        if (ht_findid(das->ht_plogs, key) >= 0)
+                            plog_writeactual(das, i, j, X5j[i]);
+                    }
+
                     for (e = 0; e < nmem; ++e)
                         v_f[e] = vvv[e][j][i];
 
@@ -425,6 +436,17 @@ static void das_updatebg(dasystem* das, int nfields, void** fieldbuffer, field f
                         continue;
                     if (fabsf(vvv[0][j][i]) > (float) MAXOBSVAL)
                         continue;
+
+                    /*
+                     * for fid = 0 write the actual (interpolated) weight
+                     * vector to the pointlog for this (i,j) pair (if it exists)
+                     */
+                    if (fields[f].id == 0) {
+                        int key[2] = {i, j};
+
+                        if (ht_findid(das->ht_plogs, key) >= 0)
+                            plog_writeactual(das, i, j, wj[i]);
+                    }
 
                     for (e = 0; e < nmem; ++e)
                         xmean += vvv[e][j][i];

@@ -105,6 +105,7 @@ struct dasystem {
 
     int nplogs;
     pointlog* plogs;
+    hashtable* ht_plogs;
 
     int nbadbatchspecs;
     badbatchspec* badbatchspecs;
