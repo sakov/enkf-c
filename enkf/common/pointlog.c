@@ -78,9 +78,15 @@ void plog_write(dasystem* das, int i, int j, double lon, double lat, double dept
         }
     }
     if (das->mode == MODE_ENKF) {
+        char attstr[MAXSTRLEN];
+
         dimids[1] = dimids[0];
         ncw_def_var(fname, ncid, "X5", NC_DOUBLE, 2, dimids, &vid_transform);
+        snprintf(attstr, MAXSTRLEN, "ensemble transform calculated for this (i,j) location in grid %s", grid_getname(model_getgridbyid(das->m, 0)));
+        ncw_put_att_text(fname, ncid, vid_transform, "long_name", attstr);
         ncw_def_var(fname, ncid, "X5_actual", NC_FLOAT, 2, dimids, &vid_transform_actual);
+        snprintf(attstr, MAXSTRLEN, "the actual (interpolated) ensemble transform used at this (i,j) location in grid %s", grid_getname(model_getvargrid(das->m, 0)));
+        ncw_put_att_text(fname, ncid, vid_transform_actual, "long_name", attstr);
     } else if (das->mode == MODE_ENOI) {
         ncw_def_var(fname, ncid, "w", NC_DOUBLE, 1, &dimids[0], &vid_transform);
         ncw_def_var(fname, ncid, "w_actual", NC_FLOAT, 1, &dimids[0], &vid_transform_actual);
@@ -335,9 +341,9 @@ static void plog_writestatevars_toassemble(dasystem* das, int nfields, void** fi
 void plog_writestatevars(dasystem* das, int nfields, void** fieldbuffer, field* fields, int isanalysis)
 {
     if (enkf_directwrite)
-         plog_writestatevars_direct(das, nfields, fieldbuffer, fields, isanalysis);
+        plog_writestatevars_direct(das, nfields, fieldbuffer, fields, isanalysis);
     else
-         plog_writestatevars_toassemble(das, nfields, fieldbuffer, fields, isanalysis);
+        plog_writestatevars_toassemble(das, nfields, fieldbuffer, fields, isanalysis);
 }
 
 /**

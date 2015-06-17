@@ -205,7 +205,7 @@ static void das_updatefields(dasystem* das, int nfields, void** fieldbuffer, fie
                      * matrix to the pointlog for this (i,j) pair (if it exists)
                      */
                     if (f->id == 0) {
-                        int key[2] = {i, j};
+                        int key[2] = { i, j };
 
                         if (ht_findid(das->ht_plogs, key) >= 0)
                             plog_writeactual(das, i, j, X5j[i]);
@@ -244,7 +244,7 @@ static void das_updatefields(dasystem* das, int nfields, void** fieldbuffer, fie
                             v2_a += ve * ve;
                         }
                         var_a = v2_a / (double) nmem - v1_a * v1_a;
-                        
+
                         if (var_a <= 0)
                             /*
                              * (exception)
@@ -442,7 +442,7 @@ static void das_updatebg(dasystem* das, int nfields, void** fieldbuffer, field f
                      * vector to the pointlog for this (i,j) pair (if it exists)
                      */
                     if (fields[f].id == 0) {
-                        int key[2] = {i, j};
+                        int key[2] = { i, j };
 
                         if (ht_findid(das->ht_plogs, key) >= 0)
                             plog_writeactual(das, i, j, wj[i]);
