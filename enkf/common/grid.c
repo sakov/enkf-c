@@ -50,6 +50,8 @@ typedef struct {
     gridnodes* gn;
     gridmap* gm;
 } gnxy_curv;
+#else
+#define NT_NONE 0
 #endif
 
 typedef struct {
@@ -648,7 +650,9 @@ grid* grid_create(void* p, int id)
             else
                 grid_setcoords(g, GRIDHTYPE_LATLON_REGULAR, NT_NONE, periodic_x, 0, nx, ny, nz, x, y, z);
         }
-    } else if (ndims_x == 2 && ndims_y == 2) {
+    }
+#if !defined(NO_GRIDUTILS)
+    else if (ndims_x == 2 && ndims_y == 2) {
         double** x;
         double** y;
         double* z;
@@ -662,7 +666,9 @@ grid* grid_create(void* p, int id)
         ncw_get_var_double(fname, ncid, varid_z, z);
 
         grid_setcoords(g, GRIDHTYPE_CURVILINEAR, NT_COR, 0, 0, nx, ny, nz, x, y, z);
-    } else
+    }
+#endif
+    else
         enkf_quit("%s: could not determine the grid type", fname);
 
     if (prm->depthvarname != NULL) {
