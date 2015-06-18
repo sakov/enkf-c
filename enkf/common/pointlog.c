@@ -15,6 +15,7 @@
 
 #include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
 #include <assert.h>
 #include "definitions.h"
 #include "distribute.h"
@@ -149,7 +150,9 @@ void plog_write(dasystem* das, int i, int j, double lon, double lat, double dept
     ncw_close(fname, ncid);
 }
 
-void plog_writeactual(dasystem* das, int i, int j, float* transform)
+/** Writes the "actual" (interpolated) ensemble transform to a pointlog file.
+ */
+void plog_writeactualtransform(dasystem* das, int i, int j, float* transform)
 {
     char fname[MAXSTRLEN];
     int ncid;
@@ -172,7 +175,7 @@ void plog_writeactual(dasystem* das, int i, int j, float* transform)
 static void get_nkname(dasystem* das, void* grid, char name[])
 {
     if (model_getngrid(das->m) == 1)
-        sprintf(name, "nk");
+        strcpy(name, "nk");
     else
         sprintf(name, "nk-%d", grid_getid(grid));
 }
@@ -229,7 +232,7 @@ void plog_definestatevars(dasystem* das)
     }
 }
 
-/**
+/** Writes state variables directly to the pointlogs (without tiles).
  */
 static void plog_writestatevars_direct(dasystem* das, int nfields, void** fieldbuffer, field* fields, int isanalysis)
 {
@@ -279,7 +282,8 @@ static void plog_writestatevars_direct(dasystem* das, int nfields, void** fieldb
     free(v);
 }
 
-/**
+/** Writes state variables to tiles that are to be assembled into the pointlogs
+ *  later.
  */
 static void plog_writestatevars_toassemble(dasystem* das, int nfields, void** fieldbuffer, field* fields, int isanalysis)
 {
