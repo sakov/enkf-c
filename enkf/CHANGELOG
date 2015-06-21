@@ -1,3 +1,8 @@
+v. 1.02
+   PS 22062015
+   -- Made land test in das_updatefields() and das_updatebg() depth dependent.
+      For now assume that the layeres are counted down from the surface (for Z
+      models).
 v. 1.01
    PS 18062015
    -- Fixed inconsistency with -DNO_GRIDUTILS (thanks to Russ Fiedler for the
