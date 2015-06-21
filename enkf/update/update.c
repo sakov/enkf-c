@@ -42,7 +42,7 @@ static void das_updatefields(dasystem* das, int nfields, void** fieldbuffer, fie
     int nmem = das->nmem;
 
     void* grid = model_getvargrid(m, fields[0].varid);
-    int** mask = grid_getnumlevels(grid);
+    int** nlevels = grid_getnumlevels(grid);
     int periodic_i = grid_isperiodic_x(grid);
     int periodic_j = grid_isperiodic_y(grid);
 
@@ -186,11 +186,18 @@ static void das_updatefields(dasystem* das, int nfields, void** fieldbuffer, fie
                     double v1_a = 0.0;
 
                     /*
+                     * For now we assume that layers are counted down from the
+                     * surface. (This is not so in ROMS, but there the number
+                     * of layers is always the same.) This will be easy to
+                     * modify as soon as we encounter a Z model with layers
+                     * counted up from the bottom.
+                     */
+                    if (f->level >= nlevels[j][i])
+                        continue;
+                    /*
                      * assume that if |value| > MAXOBSVAL, then it is filled
                      * with the missing value 
                      */
-                    if (!mask[j][i])
-                        continue;
                     if (fabsf(vvv[0][j][i]) > (float) MAXOBSVAL)
                         continue;
                     /*
@@ -298,7 +305,7 @@ static void das_updatebg(dasystem* das, int nfields, void** fieldbuffer, field f
     int nmem = das->nmem;
 
     void* grid = model_getvargrid(m, fields[0].varid);
-    int** mask = grid_getnumlevels(grid);
+    int** nlevels = grid_getnumlevels(grid);
     int periodic_i = grid_isperiodic_x(grid);
     int periodic_j = grid_isperiodic_y(grid);
 
@@ -316,7 +323,7 @@ static void das_updatebg(dasystem* das, int nfields, void** fieldbuffer, field f
     int mni, mnj;
     int i, j, ni, nj;
     int jj, stepj, ii, stepi;
-    int e, f;
+    int e, fid;
 
     /*
      * the following code for interpolation of w essentially coincides with
@@ -420,18 +427,26 @@ static void das_updatebg(dasystem* das, int nfields, void** fieldbuffer, field f
              * the j-th row of the grid) 
              */
 
-            for (f = 0; f < nfields; ++f) {
-                float*** vvv = (float***) fieldbuffer[f];
+            for (fid = 0; fid < nfields; ++fid) {
+                field* f = &fields[fid];
+                float*** vvv = (float***) fieldbuffer[fid];
 
                 for (i = 0; i < mni; ++i) {
                     float xmean = 0.0f;
 
                     /*
+                     * For now we assume that layers are counted down from the
+                     * surface. (This is not so in ROMS, but there the number
+                     * of layers is always the same.) This will be easy to
+                     * modify as soon as we encounter a Z model with layers
+                     * counted up from the bottom.
+                     */
+                    if (f->level >= nlevels[j][i])
+                        continue;
+                    /*
                      * assume that if |value| > MAXOBSVAL, then it is filled
                      * with the missing value 
                      */
-                    if (!mask[j][i])
-                        continue;
                     if (fabsf(vvv[nmem][j][i]) > (float) MAXOBSVAL)
                         continue;
                     if (fabsf(vvv[0][j][i]) > (float) MAXOBSVAL)
@@ -441,7 +456,7 @@ static void das_updatebg(dasystem* das, int nfields, void** fieldbuffer, field f
                      * for fid = 0 write the actual (interpolated) weight
                      * vector to the pointlog for this (i,j) pair (if it exists)
                      */
-                    if (fields[f].id == 0) {
+                    if (f->id == 0) {
                         int key[2] = { i, j };
 
                         if (ht_findid(das->ht_plogs, key) >= 0)
