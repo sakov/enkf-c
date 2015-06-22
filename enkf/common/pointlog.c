@@ -83,10 +83,10 @@ void plog_write(dasystem* das, int i, int j, double lon, double lat, double dept
 
         dimids[1] = dimids[0];
         ncw_def_var(fname, ncid, "X5", NC_DOUBLE, 2, dimids, &vid_transform);
-        snprintf(attstr, MAXSTRLEN, "ensemble transform calculated for this (i,j) location in grid %s", grid_getname(model_getgridbyid(das->m, 0)));
+        snprintf(attstr, MAXSTRLEN, "ensemble transform calculated for this (i,j) location in grid-0 (%s)", grid_getname(model_getgridbyid(das->m, 0)));
         ncw_put_att_text(fname, ncid, vid_transform, "long_name", attstr);
         ncw_def_var(fname, ncid, "X5_actual", NC_FLOAT, 2, dimids, &vid_transform_actual);
-        snprintf(attstr, MAXSTRLEN, "the actual (interpolated) ensemble transform used at this (i,j) location in grid %s", grid_getname(model_getvargrid(das->m, 0)));
+        snprintf(attstr, MAXSTRLEN, "the actual (interpolated) ensemble transform used at this (i,j) location in grid-0 (%s)", grid_getname(model_getvargrid(das->m, 0)));
         ncw_put_att_text(fname, ncid, vid_transform_actual, "long_name", attstr);
     } else if (das->mode == MODE_ENOI) {
         ncw_def_var(fname, ncid, "w", NC_DOUBLE, 1, &dimids[0], &vid_transform);
