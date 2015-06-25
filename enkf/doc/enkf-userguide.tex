@@ -35,7 +35,7 @@
 
 \begin{document}
 
-\title{EnKF-C user guide\\{\normalsize version 0.99}}
+\title{EnKF-C user guide\\{\normalsize version 1.02}}
 
 \author{Pavel Sakov}
 \date{June 19, 2014 -- \today}
@@ -1185,53 +1185,70 @@ POINTLOG 86 191
 \end{Verbatim}
 Here the information will be saved at each DA cycle for points with horizontal grid coordinates (94, 134), (78, 111), (67, 51), and (86, 191) in files \verb|pointlog_94,134.nc|, \verb|pointlog_78,111.nc|, and so on.
 The rationale behind this capability is that it is usually too expensive to save the whole ensemble, but is feasible to save the model states in a limited number of points.
+
 Following is an example of the header of the saved point log file in NetCDF format:
 \begin{Verbatim}[frame=single,fontsize=\footnotesize]
 netcdf pointlog_57\,51 {
 dimensions:
         m = 96 ;
-        p = 2902 ;
-        nk = 51 ;
+	p = 515 ;
+	nk-0 = 25 ;
+	nk-1 = 25 ;
+	nk-2 = 25 ;
 variables:
-        int obs_ids(p) ;
-        float lcoeffs(p) ;
-        float lon(p) ;
-        float lat(p) ;
-        float depth(p) ;
-        float obs_val(p) ;
-        float obs_std(p) ;
-        float obs_fi(p) ;
-        float obs_fj(p) ;
-        float obs_fk(p) ;
-        int obs_type(p) ;
-                obs_type:SST = 0 ;
-                obs_type:RFACTOR_SST = 2. ;
-                obs_type:SLA = 1 ;
-                obs_type:RFACTOR_SLA = 1. ;
-                obs_type:TEM = 2 ;
-                obs_type:RFACTOR_TEM = 1. ;
-                obs_type:SAL = 3 ;
-                obs_type:RFACTOR_SAL = 1. ;
-        float obs_date(p) ;
-                obs_date:units = "days from 8797.5 days since 1990-01-01" ;
-        float s(p) ;
-        float S(m, p) ;
-        double X5(m, m) ;
-        float eta_t(m) ;
-        float temp(nk, m) ;
-        float salt(nk, m) ;
-        float u(nk, m) ;
-        float v(nk, m) ;
+	int obs_ids(p) ;
+	float lcoeffs(p) ;
+	float lon(p) ;
+	float lat(p) ;
+	float depth(p) ;
+	float obs_val(p) ;
+	float obs_std(p) ;
+	float obs_fi(p) ;
+	float obs_fj(p) ;
+	float obs_fk(p) ;
+	int obs_type(p) ;
+		obs_type:SLA = 0 ;
+		obs_type:RFACTOR_SLA = 2. ;
+		obs_type:SST = 1 ;
+		obs_type:RFACTOR_SST = 4. ;
+		obs_type:TEM = 2 ;
+		obs_type:RFACTOR_TEM = 2. ;
+		obs_type:SAL = 3 ;
+		obs_type:RFACTOR_SAL = 2. ;
+	float obs_date(p) ;
+		obs_date:units = "days from 5875.5 days since 1990-01-01" ;
+	float s(p) ;
+	float S(m, p) ;
+	double X5(m, m) ;
+		X5:long_name = "ensemble transform calculated for this (i,j) location in grid-0 
+                   (rho-grid)" ;
+	float X5_actual(m, m) ;
+		X5_actual:long_name = "the actual (interpolated) ensemble transform used at this 
+                          (i,j) location in grid-0 (rho-grid)" ;
+	float zeta(m) ;
+	float zeta_an(m) ;
+	float temp(nk-0, m) ;
+	float temp_an(nk-0, m) ;
+	float salt(nk-0, m) ;
+	float salt_an(nk-0, m) ;
+	float u(nk-1, m) ;
+	float u_an(nk-1, m) ;
+	float v(nk-2, m) ;
+	float v_an(nk-2, m) ;
+	float ubar(m) ;
+	float ubar_an(m) ;
+	float vbar(m) ;
+	float vbar_an(m) ;
 
 // global attributes:
-                :date = "8797.5 days since 1990-01-01" ;
-                :i = 57 ;
-                :j = 51 ;
-                :lon = 95.75 ;
-                :lat = -44.8499984741211 ;
-                :depth = 3072. ;
+		:date = "5875.5 days since 1990-01-01" ;
+		:i = 57 ;
+		:j = 51 ;
+		:lon = 151.75 ;
+		:lat = -39.849998 ;
+		:depth = 4632.623046875 ;
 \end{Verbatim}
-This information makes it possible to check DA algorithms by reproducing the ensemble transforms calculated by EnKF-C from $\mb S$ and $\mb s$ according to section~\ref{sec:numerical}; restore observations from $\mb s$ by using the corresponding R-factors and localisation coefficients; to monitor the ensemble spread for each model variable; and so on.
+This information makes it possible to check DA algorithms by reproducing the ensemble transforms (for EnKF) or weights (for EnOI) calculated by EnKF-C from $\mb S$ and $\mb s$ according to section~\ref{sec:numerical}; restore observations from $\mb s$ by using the corresponding R-factors and localisation coefficients; to monitor the ensemble spread for each model variable; calculate the inflation applied to the analysis; calculate impacts of particular observations; and so on.
 
 \section{Use of innovation statistics for model validation}
 
