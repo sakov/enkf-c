@@ -1,8 +1,8 @@
   MPI: initialised 2 processes
-  MPI: rank = 0, PID = 27339
-  MPI: rank = 1, PID = 27340
-  running UPDATE for EnKF version 0.99:
-  2015-06-16 15:44:18
+  MPI: rank = 0, PID = 22569
+  MPI: rank = 1, PID = 22570
+  running UPDATE for EnKF version 1.03:
+  2015-07-08 15:18:35
   reading system specs from "enoi.prm":
     MODE = EnOI
     MODEL PRM = "model.prm"
@@ -26,8 +26,6 @@
     EnKF flags:
       enkf_exitaction  = [BACKTRACE]
       enkf_obstype     = [VALUE]
-      enkf_separateout = [+]
-      enkf_directwrite = [-]
     compile flags:
       CHECK_X5         = [-]
       CHECK_G          = [-]
@@ -35,6 +33,11 @@
       HE_VIAFILE       = [-]
       GRIDNODES_WRITE  = [-]
       INTERNAL_QSORT_R = [-]
+  update specs:
+    do model fields  = [+]
+    do spread        = [+]
+    do pointlogs     = [+]
+    separate output  = [+]
   initialising the system:
     grid prm info:
       NAME = "t-grid"
@@ -73,24 +76,24 @@
     144 members
     allocating disk space for spread:
     defining state variables in point logs:
-    allocating disk space for the analysis:    2015-06-16 15:44:18
+    allocating disk space for the analysis:    2015-07-08 15:18:35
 .....
-    2015-06-16 15:44:18
+    2015-07-08 15:18:35
     updating fields for t-grid:
       9 fields
       distributing iterations:
         processes get 5 or 4 iterations
-      eta_t    0   (0: 0: 20.0%)
       u        0   (1: 5: 25.0%)
+      eta_t    0   (0: 0: 20.0%)
       temp     0   (0: 1: 40.0%)
-      u        1   (1: 6: 50.0%)
       temp     1   (0: 2: 60.0%)
-      v        0   (1: 7: 75.0%)
+      u        1   (1: 6: 50.0%)
       salt     0   (0: 3: 80.0%)
+      v        0   (1: 7: 75.0%)
       v        1   (1: 8: 100.0%)
       salt     1   (0: 4: 100.0%)
 
-  2015-06-16 15:44:18
+  2015-07-08 15:18:35
   assembling analysis:
     eta_t:.
     temp:..
@@ -109,5 +112,5 @@
     deleting tiles:
       distributing iterations:
         processes get 5 or 4 iterations
-  2015-06-16 15:44:18
+  2015-07-08 15:18:35
   finished
