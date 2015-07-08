@@ -1,8 +1,8 @@
   MPI: initialised 2 processes
-  MPI: rank = 0, PID = 27377
-  MPI: rank = 1, PID = 27378
-  running CALC for EnKF version 0.99:
-  2015-06-16 15:44:36
+  MPI: rank = 0, PID = 22611
+  MPI: rank = 1, PID = 22612
+  running CALC for EnKF version 1.03:
+  2015-07-08 15:19:56
   reading system specs from "stats.prm":
     MODE = EnOI
     MODEL PRM = "model.prm"
@@ -16,8 +16,6 @@
     EnKF flags:
       enkf_exitaction  = [BACKTRACE]
       enkf_obstype     = [VALUE]
-      enkf_separateout = [-]
-      enkf_directwrite = [-]
     compile flags:
       CHECK_X5         = [-]
       CHECK_G          = [-]
@@ -100,7 +98,7 @@
     3921 observations
     calculating obs stats:
   calculating ensemble observations:
-  2015-06-16 15:44:36
+  2015-07-08 15:19:56
     ensemble size = 1
     distributing iterations:
       processes get 1 or 0 iterations
@@ -109,7 +107,7 @@
     TEM +
     SAL +
   adding forecast innovations and spread to "observations.nc":
-  2015-06-16 15:44:36
+  2015-07-08 15:19:56
   printing observation statistics:
     region obs.type   # obs.  |for.inn.| for.inn.
     ---------------------------------------------
@@ -130,5 +128,5 @@
              ARGO          7    0.077      0.054  
              0-50m         2    0.088      0.074  
              >500m         0     -nan       -nan  
-  2015-06-16 15:44:36
+  2015-07-08 15:19:56
   finished

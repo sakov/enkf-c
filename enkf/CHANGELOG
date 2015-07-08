@@ -1,3 +1,8 @@
+v. 1.03
+   PS 08072015
+   -- Unified specifications for enkf_update -- they are now all in the variable
+      `updatespec'.
+   -- Introduced a new option in enkf_update "-no-fields-update".
 v. 1.02
    PS 22062015
    -- Made land test in das_updatefields() and das_updatebg() depth dependent.

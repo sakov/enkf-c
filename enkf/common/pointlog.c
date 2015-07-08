@@ -342,9 +342,9 @@ static void plog_writestatevars_toassemble(dasystem* das, int nfields, void** fi
 
 /**
  */
-void plog_writestatevars(dasystem* das, int nfields, void** fieldbuffer, field* fields, int isanalysis)
+void plog_writestatevars(dasystem* das, int nfields, void** fieldbuffer, field* fields, int isanalysis, int updatespec)
 {
-    if (enkf_directwrite)
+    if (updatespec & UPDATE_DIRECTWRITE)
         plog_writestatevars_direct(das, nfields, fieldbuffer, fields, isanalysis);
     else
         plog_writestatevars_toassemble(das, nfields, fieldbuffer, fields, isanalysis);

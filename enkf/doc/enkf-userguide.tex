@@ -35,7 +35,7 @@
 
 \begin{document}
 
-\title{EnKF-C user guide\\{\normalsize version 1.02}}
+\title{EnKF-C user guide\\{\normalsize version 1.03}}
 
 \author{Pavel Sakov}
 \date{June 19, 2014 -- \today}
@@ -594,7 +594,7 @@ EnKF-C requires 5 parameter files to run:
 \item model parameter file;
 \item grid parameter file;
 \item observation types parameter file;
-\item and observation metadata file.
+\item and observation parameter file.
 \end{itemize}
 Examples of these parameter files can be found in \verb|examples/1|.
 Running EnKF-C binaries with \verb|--describe-prm-format| in the command line provides information on the parameter file formats.
@@ -742,10 +742,10 @@ For example:
 
 The \verb|OFFSET| entry may be used for adding the known model bias to observations, for example, to specify the mean dynamic topography (MDT) when assimilating sea level anomaly (SLA) observations.
 
-\subsection{Observation metadata file}
+\subsection{Observation parameter file}
 
-Observation metadata file specifies observations to be assimilated.
-EnKF-C has a simple policy in this regard: if a file is listed in the observation data file, then observations from this file are assimilated.
+Observation parameter file specifies observations to be assimilated.
+EnKF-C has a simple policy in this regard: if a data file is listed in the observation parameter file, then observations from this file are assimilated.
 This allows one using custom observation windows for particular observation types, instruments etc., specifying details on the script level.
 
 The observation parameter file contains an arbitrary number of sections identified by entries \verb|PRODUCT|.
@@ -769,7 +769,7 @@ Observation files can be defined using wildcards ``*'' and ``?''.
 Missing a file is reported in the log and is not considered to be a fatal error.
 The available readers are listed by the variable \verb|allreaders| defined in \verb|prep/allreaders.c|.
 
-The last line in the example above specifies the observation error.
+The last line in the above example specifies the observation error.
 It can contain either a number or a file name.
 In the case of entering the file name there also should be another entry in the same line specifying the name of the variable to be read.
 The variable should have the same dimension (2D or 3D) as the associated observation type as described by the variable \verb|ISSURFACE| in the observation types parameter file (sec.~\ref{sec:obstypesprm}).
@@ -1111,6 +1111,8 @@ It has the following usage and options:
       write fields directly to the output file (default: write to tiles first)
   --leave-tiles
       do not delete tiles
+  --no-fields-write
+      do not write analysis fields
   --output-increment
       output analysis increment (default: output analysis)
   --separate-output

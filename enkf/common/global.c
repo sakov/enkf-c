@@ -20,7 +20,5 @@ int rank = 0;
 int enkf_obstype = OBSTYPE_VALUE;
 int enkf_exitaction = EXITACTION_DEFAULT;
 int enkf_verbose = 1;
-int enkf_separateout = 0;
-int enkf_directwrite = 0;
 int enkf_nomeanupdate = 0;
 int enkf_fstatsonly = 0;

@@ -22,10 +22,6 @@
 #include "enkfprm.h"
 #include "dasystem.h"
 
-int calcspread = 0;
-int leavetiles = 0;
-int outputinc = 0;
-
 /**
  */
 static void usage()
@@ -40,6 +36,8 @@ static void usage()
     enkf_printf("      write fields directly to the output file (default: write to tiles first)\n");
     enkf_printf("  --leave-tiles\n");
     enkf_printf("      do not delete tiles\n");
+    enkf_printf("  --no-fields-write\n");
+    enkf_printf("      do not write analysis fields\n");
     enkf_printf("  --output-increment\n");
     enkf_printf("      output analysis increment (default: output analysis)\n");
     enkf_printf("  --separate-output\n");
@@ -52,7 +50,7 @@ static void usage()
 
 /**
  */
-static void parse_commandline(int argc, char* argv[], char** fname)
+static void parse_commandline(int argc, char* argv[], char** fname, int* updatespec)
 {
     int i;
 
@@ -69,7 +67,7 @@ static void parse_commandline(int argc, char* argv[], char** fname)
             } else
                 usage();
         } else if (strcmp(argv[i], "--calculate-spread") == 0) {
-            calcspread = 1;
+            *updatespec |= UPDATE_DOSPREAD;
             i++;
             continue;
         } else if (strcmp(argv[i], "--describe-prm-format") == 0) {
@@ -86,19 +84,23 @@ static void parse_commandline(int argc, char* argv[], char** fname)
                 enkfprm_describeprm();
             exit(0);
         } else if (strcmp(argv[i], "--direct-write") == 0) {
-            enkf_directwrite = 1;
+            *updatespec |= UPDATE_DIRECTWRITE;
             i++;
             continue;
         } else if (strcmp(argv[i], "--leave-tiles") == 0) {
-            leavetiles = 1;
+            *updatespec |= UPDATE_LEAVETILES;
+            i++;
+            continue;
+        } else if (strcmp(argv[i], "--no-fields-write") == 0) {
+            *updatespec &= ~UPDATE_DOFIELDS;
             i++;
             continue;
         } else if (strcmp(argv[i], "--output-increment") == 0) {
-            outputinc = 1;
+            *updatespec |= UPDATE_OUTPUTINC;
             i++;
             continue;
         } else if (strcmp(argv[i], "--separate-output") == 0) {
-            enkf_separateout = 1;
+            *updatespec |= UPDATE_SEPARATEOUTPUT;
             i++;
             continue;
         } else if (strcmp(argv[i], "--version") == 0) {
@@ -114,13 +116,33 @@ static void parse_commandline(int argc, char* argv[], char** fname)
 
 /**
  */
+static void describe_updatespec(int updatespec)
+{
+    enkf_printf("  update specs:\n");
+    enkf_printf("    do model fields  = %s\n", (updatespec & UPDATE_DOFIELDS) ? "[+]" : "[-]");
+    enkf_printf("    do spread        = %s\n", (updatespec & UPDATE_DOSPREAD) ? "[+]" : "[-]");
+    enkf_printf("    do pointlogs     = %s\n", (updatespec & UPDATE_DOSPREAD) ? "[+]" : "[-]");
+    if (updatespec & UPDATE_DIRECTWRITE)
+        enkf_printf("    direct write     = [+]\n");
+    if (!(updatespec & UPDATE_DIRECTWRITE) && updatespec & UPDATE_LEAVETILES)
+        enkf_printf("    leave tiles      = [+]\n");
+    if (updatespec & UPDATE_DOFIELDS) {
+        if (updatespec & UPDATE_OUTPUTINC)
+            enkf_printf("    output increment = [+]\n");
+        enkf_printf("    separate output  = %s\n", (updatespec & UPDATE_SEPARATEOUTPUT) ? "[+]" : "[-]");
+    }
+}
+
+/**
+ */
 int main(int argc, char* argv[])
 {
     char* fname_prm = NULL;
+    int updatespec = UPDATE_DEFAULT;
     enkfprm* prm = NULL;
     dasystem* das = NULL;
 
-    parse_commandline(argc, argv, &fname_prm);
+    parse_commandline(argc, argv, &fname_prm, &updatespec);
 
     enkf_init(&argc, &argv);
     enkf_printf("  running UPDATE for EnKF version %s:\n", ENKF_VERSION);
@@ -130,17 +152,21 @@ int main(int argc, char* argv[])
     prm = enkfprm_read(fname_prm);
     enkfprm_print(prm, "    ");
 
+    describe_updatespec(updatespec);
+    if ((updatespec & (UPDATE_DOFIELDS | UPDATE_DOSPREAD | UPDATE_DOPLOGS)) == 0)
+        enkf_quit("nothing to do");
+
     enkf_printf("  initialising the system:\n");
     das = das_create(prm);
     enkfprm_destroy(prm);
 
-    if (outputinc)
+    if (updatespec & UPDATE_OUTPUTINC)
         das->target = TARGET_INCREMENT;
 
-    if (nprocesses == 1 && !enkf_directwrite) {
+    if (nprocesses == 1 && !(updatespec & UPDATE_DIRECTWRITE)) {
         enkf_printf("  nproc = 1 -> using direct write\n");
-        enkf_directwrite = 1;
-    } else if (!enkf_directwrite)
+        updatespec |= UPDATE_DIRECTWRITE;
+    } else if (!(updatespec & UPDATE_DIRECTWRITE))
         enkf_printf("  using assembled write\n");
     else
         enkf_printf("  using direct write\n");
@@ -149,7 +175,7 @@ int main(int argc, char* argv[])
         enkf_printf("  updating the ensemble:\n");
     else if (das->mode == MODE_ENOI)
         enkf_printf("  updating the model state:\n");
-    das_update(das, calcspread, leavetiles);
+    das_update(das, updatespec);
 
     das_destroy(das);
 

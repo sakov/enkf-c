@@ -1,5 +1,5 @@
-  running PREP for EnKF version 0.99:
-  2015-06-16 15:44:35
+  running PREP for EnKF version 1.03:
+  2015-07-08 15:19:55
   reading prep specs from "stats.prm":
     MODE = EnOI
     MODEL PRM = "model.prm"
@@ -22,8 +22,6 @@
     EnKF flags:
       enkf_exitaction  = [BACKTRACE]
       enkf_obstype     = [VALUE]
-      enkf_separateout = [-]
-      enkf_directwrite = [-]
     compile flags:
       CHECK_X5         = [-]
       CHECK_G          = [-]
@@ -120,12 +118,12 @@
       RFACTOR = 1
     NAME = SST
       VAR = temp
-    ls: cannot access obs/WINDSAT/windsat_20071221.nc: No such file or directory
-ls: cannot access obs/WINDSAT/windsat_20071222.nc: No such file or directory
-ls: cannot access obs/WINDSAT/windsat_20071223.nc: No such file or directory
-  ID = 1
+      ID = 1
       ISSURFACE = yes
       HFUNCTION = standard
+ls: cannot access obs/WINDSAT/windsat_20071221.nc: No such file or directory
+ls: cannot access obs/WINDSAT/windsat_20071222.nc: No such file or directory
+ls: cannot access obs/WINDSAT/windsat_20071223.nc: No such file or directory
       ALLOWED MIN = -2
       ALLOWED MAX = 42
       ASYNCHRONOUS = no
@@ -317,5 +315,5 @@ ls: cannot access obs/WINDSAT/windsat_20071223.nc: No such file or directory
     TEM     184        104        104        0          0          0          0          7         
     SAL     184        104        104        0          0          0          0          7         
     total   9749       211        208        0          3          0          0          3921      
-  2015-06-16 15:44:36
+  2015-07-08 15:19:56
   finished

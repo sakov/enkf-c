@@ -45,7 +45,7 @@ static void usage()
     enkf_printf("  --no-mean-update\n");
     enkf_printf("      update ensemble anomalies only\n");
     enkf_printf("  --print-batch-stats\n");
-    enkf_printf("       calculate and print global biases for each batch of observations\n");
+    enkf_printf("      calculate and print global biases for each batch of observations\n");
     enkf_printf("  --single-observation-xyz <lon> <lat> <depth> <type> <inn> <std>\n");
     enkf_printf("      assimilate single observation with these parameters\n");
     enkf_printf("  --single-observation-ijk <fi> <fj> <fk> <type> <inn> <std>\n");

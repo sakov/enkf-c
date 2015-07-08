@@ -132,7 +132,7 @@ void das_printfobsstats(dasystem* das);
 void das_readobs(dasystem* das, char fname[]);
 void das_standardise(dasystem* das);
 void das_destandardise(dasystem* das);
-void das_update(dasystem* das, int calcspread, int leavetiles);
+void das_update(dasystem* das, int updatespec);
 void das_updateHE(dasystem* das);
 void das_getfname_X5(dasystem* das, void* grid, char fname[]);
 void das_getfname_w(dasystem* das, void* grid, char fname[]);

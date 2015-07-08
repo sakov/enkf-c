@@ -231,8 +231,6 @@ void enkf_printflags(const char offset[])
         enkf_printf("%s  enkf_obstype     = [VALUE]\n", offset);
     else if (enkf_obstype == OBSTYPE_INNOVATION)
         enkf_printf("%s  enkf_obstype     = [INNOVATION]\n", offset);
-    enkf_printf("%s  enkf_separateout = [%c]\n", offset, (enkf_separateout) ? '+' : '-');
-    enkf_printf("%s  enkf_directwrite = [%c]\n", offset, (enkf_directwrite) ? '+' : '-');
     enkf_printcompileflags(offset);
 }
 
