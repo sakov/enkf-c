@@ -275,10 +275,10 @@ static void das_updatefields(dasystem* das, int nfields, void** fieldbuffer, fie
                         for (e = 0; e < nmem; ++e)
                             v_a[e] = (v_a[e] - (float) v1_a) * inflation + (float) v1_a;
 
-                    if (das->target == TARGET_ANALYSIS)
+                    if (!(das->updatespec & UPDATE_OUTPUTINC))
                         for (e = 0; e < nmem; ++e)
                             vvv[e][j][i] = v_a[e];
-                    else if (das->target == TARGET_INCREMENT)
+                    else
                         for (e = 0; e < nmem; ++e)
                             vvv[e][j][i] = v_a[e] - v_f[e];
                 }
@@ -490,21 +490,21 @@ static void das_updatebg(dasystem* das, int nfields, void** fieldbuffer, field f
 
 /**
  */
-static void das_writefields_direct(dasystem* das, int nfields, void** fieldbuffer, field fields[], int updatespec)
+static void das_writefields_direct(dasystem* das, int nfields, void** fieldbuffer, field fields[])
 {
     int i, e;
 
     assert(das->mode == MODE_ENKF);
 
-    if (!(updatespec & UPDATE_SEPARATEOUTPUT)) {
+    if (!(das->updatespec & UPDATE_SEPARATEOUTPUT)) {
         for (i = 0; i < nfields; ++i) {
             field* f = &fields[i];
             char varname[NC_MAX_NAME];
 
             strncpy(varname, f->varname, NC_MAX_NAME);
-            if (das->target == TARGET_ANALYSIS)
+            if (!(das->updatespec & UPDATE_OUTPUTINC))
                 strncat(varname, "_an", NC_MAX_NAME);
-            else if (das->target == TARGET_INCREMENT)
+            else
                 strncat(varname, "_inc", NC_MAX_NAME);
 
             for (e = 0; e < das->nmem; ++e) {
@@ -522,9 +522,9 @@ static void das_writefields_direct(dasystem* das, int nfields, void** fieldbuffe
                 char fname[MAXSTRLEN];
 
                 model_getmemberfname(das->m, das->ensdir, f->varname, e + 1, fname);
-                if (das->target == TARGET_ANALYSIS)
+                if (!(das->updatespec & UPDATE_OUTPUTINC))
                     strncat(fname, ".analysis", MAXSTRLEN);
-                else if (das->target == TARGET_INCREMENT)
+                else
                     strncat(fname, ".increment", MAXSTRLEN);
                 model_writefield(das->m, fname, MAXINT, f->varname, f->level, ((float***) fieldbuffer[i])[e][0]);
             }
@@ -581,15 +581,15 @@ static void das_writefields_toassemble(dasystem* das, int nfields, void** fieldb
 
 /** Writes `nfields' ensemble fields from `fieldbuffer' to disk.
  */
-static void das_writefields(dasystem* das, int nfields, void** fieldbuffer, field fields[], int updatespec)
+static void das_writefields(dasystem* das, int nfields, void** fieldbuffer, field fields[])
 {
-    if (updatespec & UPDATE_DIRECTWRITE)
-        das_writefields_direct(das, nfields, fieldbuffer, fields, updatespec);
+    if (das->updatespec & UPDATE_DIRECTWRITE)
+        das_writefields_direct(das, nfields, fieldbuffer, fields);
     else
         das_writefields_toassemble(das, nfields, fieldbuffer, fields);
 }
 
-static void das_writebg_direct(dasystem* das, int nfields, void** fieldbuffer, field fields[], int updatespec)
+static void das_writebg_direct(dasystem* das, int nfields, void** fieldbuffer, field fields[])
 {
     model* m = das->m;
     int ni, nj;
@@ -599,7 +599,7 @@ static void das_writebg_direct(dasystem* das, int nfields, void** fieldbuffer, f
 
     model_getvardims(m, fields[0].varid, &ni, &nj, NULL);
 
-    if (!(updatespec & UPDATE_SEPARATEOUTPUT)) {
+    if (!(das->updatespec & UPDATE_SEPARATEOUTPUT)) {
         for (i = 0; i < nfields; ++i) {
             field* f = &fields[i];
             char varname[NC_MAX_NAME];
@@ -607,9 +607,9 @@ static void das_writebg_direct(dasystem* das, int nfields, void** fieldbuffer, f
 
             model_getbgfname(m, das->bgdir, f->varname, fname);
             strncpy(varname, f->varname, NC_MAX_NAME);
-            if (das->target == TARGET_ANALYSIS)
+            if (!(das->updatespec & UPDATE_OUTPUTINC))
                 strncat(varname, "_an", NC_MAX_NAME);
-            else if (das->target == TARGET_INCREMENT)
+            else
                 strncat(varname, "_inc", NC_MAX_NAME);
             model_writefield(m, fname, MAXINT, varname, f->level, ((float***) fieldbuffer[i])[das->nmem][0]);
         }
@@ -619,9 +619,9 @@ static void das_writebg_direct(dasystem* das, int nfields, void** fieldbuffer, f
             char fname[MAXSTRLEN];
 
             model_getbgfname(m, das->bgdir, f->varname, fname);
-            if (das->target == TARGET_ANALYSIS)
+            if (!(das->updatespec & UPDATE_OUTPUTINC))
                 strncat(fname, ".analysis", MAXSTRLEN);
-            else if (das->target == TARGET_INCREMENT)
+            else
                 strncat(fname, ".increment", MAXSTRLEN);
             model_writefield(m, fname, MAXINT, f->varname, f->level, ((float***) fieldbuffer[i])[das->nmem][0]);
         }
@@ -663,10 +663,10 @@ static void das_writebg_toassemble(dasystem* das, int nfields, void** fieldbuffe
 
 /** Writes `nfield' fields from `fieldbuffer' to disk.
  */
-static void das_writebg(dasystem* das, int nfields, void** fieldbuffer, field fields[], int updatespec)
+static void das_writebg(dasystem* das, int nfields, void** fieldbuffer, field fields[])
 {
-    if (updatespec & UPDATE_DIRECTWRITE)
-        das_writebg_direct(das, nfields, fieldbuffer, fields, updatespec);
+    if (das->updatespec & UPDATE_DIRECTWRITE)
+        das_writebg_direct(das, nfields, fieldbuffer, fields);
     else
         das_writebg_toassemble(das, nfields, fieldbuffer, fields);
 }
@@ -711,7 +711,7 @@ static void das_allocatespread(dasystem* das, char fname[])
 
 /**
  */
-static void das_writespread(dasystem* das, int nfields, void** fieldbuffer, field fields[], int isanalysis, int updatespec)
+static void das_writespread(dasystem* das, int nfields, void** fieldbuffer, field fields[], int isanalysis)
 {
     char fname[MAXSTRLEN];
     model* m = das->m;
@@ -721,7 +721,7 @@ static void das_writespread(dasystem* das, int nfields, void** fieldbuffer, fiel
     double* v2 = NULL;
     float*** v_src = NULL;
 
-    if (updatespec & UPDATE_DIRECTWRITE)
+    if (das->updatespec & UPDATE_DIRECTWRITE)
         strcpy(fname, FNAME_SPREAD);
 
     model_getvardims(m, fields[0].varid, &ni, &nj, NULL);
@@ -758,7 +758,7 @@ static void das_writespread(dasystem* das, int nfields, void** fieldbuffer, fiel
         if (isanalysis)
             strncat(varname, "_an", MAXSTRLEN);
 
-        if (!(updatespec & UPDATE_DIRECTWRITE)) {       /* create file for
+        if (!(das->updatespec & UPDATE_DIRECTWRITE)) {       /* create file for
                                                          * this field */
             int ncid, vid;
             int dimids[2];
@@ -801,7 +801,7 @@ static void das_writespread(dasystem* das, int nfields, void** fieldbuffer, fiel
 
 /**
  */
-static void das_assemblemembers(dasystem* das, int updatespec)
+static void das_assemblemembers(dasystem* das)
 {
     model* m = das->m;
     int nvar = model_getnvar(m);
@@ -831,15 +831,15 @@ static void das_assemblemembers(dasystem* das, int updatespec)
 
         for (e = my_first_iteration; e <= my_last_iteration; ++e) {
             model_getmemberfname(m, das->ensdir, varname, e + 1, fname_dst);
-            if (updatespec & UPDATE_SEPARATEOUTPUT) {
-                if (das->target == TARGET_ANALYSIS)
+            if (das->updatespec & UPDATE_SEPARATEOUTPUT) {
+                if (!(das->updatespec & UPDATE_OUTPUTINC))
                     strncat(fname_dst, ".analysis", MAXSTRLEN);
-                else if (das->target == TARGET_INCREMENT)
+                else
                     strncat(fname_dst, ".increment", MAXSTRLEN);
             } else {
-                if (das->target == TARGET_ANALYSIS)
+                if (!(das->updatespec & UPDATE_OUTPUTINC))
                     strncat(varname_dst, "_an", NC_MAX_NAME);
-                else if (das->target == TARGET_INCREMENT)
+                else
                     strncat(varname_dst, "_inc", NC_MAX_NAME);
             }
 
@@ -870,7 +870,7 @@ static void das_assemblemembers(dasystem* das, int updatespec)
     /*
      * remove tiles 
      */
-    if (!(updatespec & UPDATE_LEAVETILES) && rank == 0) {
+    if (!(das->updatespec & UPDATE_LEAVETILES) && rank == 0) {
         for (i = 0; i < nvar; ++i) {
             char* varname = model_getvarname(m, i);
             char fname[MAXSTRLEN];
@@ -888,7 +888,7 @@ static void das_assemblemembers(dasystem* das, int updatespec)
 
 /**
  */
-static void das_assemblebg(dasystem* das, int updatespec)
+static void das_assemblebg(dasystem* das)
 {
     model* m = das->m;
     int nvar = model_getnvar(m);
@@ -916,15 +916,15 @@ static void das_assemblebg(dasystem* das, int updatespec)
         model_getvardims(m, i, &ni, &nj, NULL);
         v = malloc(ni * nj * sizeof(float));
 
-        if (updatespec & UPDATE_SEPARATEOUTPUT) {
-            if (das->target == TARGET_ANALYSIS)
+        if (das->updatespec & UPDATE_SEPARATEOUTPUT) {
+            if (!(das->updatespec & UPDATE_OUTPUTINC))
                 strncat(fname_dst, ".analysis", MAXSTRLEN);
-            else if (das->target == TARGET_INCREMENT)
+            else
                 strncat(fname_dst, ".increment", MAXSTRLEN);
         } else {
-            if (das->target == TARGET_ANALYSIS)
+            if (!(das->updatespec & UPDATE_OUTPUTINC))
                 strncat(varname_dst, "_an", NC_MAX_NAME);
-            else if (das->target == TARGET_INCREMENT)
+            else
                 strncat(varname_dst, "_inc", NC_MAX_NAME);
         }
 
@@ -939,7 +939,7 @@ static void das_assemblebg(dasystem* das, int updatespec)
             ncw_close(fname_src, ncid_src);
 
             model_writefield(m, fname_dst, MAXINT, varname_dst, k, v);
-            if (!(updatespec & UPDATE_LEAVETILES))
+            if (!(das->updatespec & UPDATE_LEAVETILES))
                 file_delete(fname_src);
 
             enkf_printf(".");
@@ -1009,12 +1009,11 @@ static void das_assemblespread(dasystem* das)
 /** Updates ensemble/background by using calculated transform 
  * matrices/coefficients.
  */
-void das_update(dasystem* das, int updatespec)
+void das_update(dasystem* das)
 {
     model* m = das->m;
     int ngrid = model_getngrid(m);
     int nvar = model_getnvar(m);
-    int calcspread = updatespec & UPDATE_DOSPREAD;
     int gid;
     int i, e;
 
@@ -1022,19 +1021,19 @@ void das_update(dasystem* das, int updatespec)
         das_getnmem(das);
     enkf_printf("    %d members\n", das->nmem);
 
-    if (calcspread && rank == 0) {
+    if (das->updatespec & UPDATE_DOSPREAD && rank == 0) {
         enkf_printf("    allocating disk space for spread:");
         das_allocatespread(das, FNAME_SPREAD);
         enkf_printf("\n");
     }
 
-    if (updatespec & UPDATE_DOPLOGS && rank == 0) {
+    if (das->updatespec & UPDATE_DOPLOGS && rank == 0) {
         enkf_printf("    defining state variables in point logs:");
         plog_definestatevars(das);
         enkf_printf("\n");
     }
 
-    if (updatespec & UPDATE_DOFIELDS) {
+    if (das->updatespec & UPDATE_DOFIELDS) {
         if (das->mode == MODE_ENKF) {
             distribute_iterations(0, das->nmem - 1, nprocesses, rank, "    ");
 #if defined(MPI)
@@ -1046,7 +1045,7 @@ void das_update(dasystem* das, int updatespec)
 #if defined(MPI)
             MPI_Barrier(MPI_COMM_WORLD);
 #endif
-            if (!(updatespec & UPDATE_SEPARATEOUTPUT)) {
+            if (!(das->updatespec & UPDATE_SEPARATEOUTPUT)) {
                 for (i = 0; i < nvar; ++i) {
                     for (e = my_first_iteration; e <= my_last_iteration; ++e) {
                         char* varname_src = model_getvarname(m, i);
@@ -1055,9 +1054,9 @@ void das_update(dasystem* das, int updatespec)
                         char varname_dst[NC_MAX_NAME];
 
                         strncpy(varname_dst, varname_src, NC_MAX_NAME);
-                        if (das->target == TARGET_ANALYSIS)
+                        if (!(das->updatespec & UPDATE_OUTPUTINC))
                             strncat(varname_dst, "_an", NC_MAX_NAME);
-                        else if (das->target == TARGET_INCREMENT)
+                        else
                             strncat(varname_dst, "_inc", NC_MAX_NAME);
 
                         model_getmemberfname(m, das->ensdir, varname_src, e + 1, fname);
@@ -1084,9 +1083,9 @@ void das_update(dasystem* das, int updatespec)
                         ncw_open(fname_f, NC_NOWRITE, &ncid_f);
 
                         strncpy(fname_a, fname_f, MAXSTRLEN);
-                        if (das->target == TARGET_ANALYSIS)
+                        if (!(das->updatespec & UPDATE_OUTPUTINC))
                             strncat(fname_a, ".analysis", MAXSTRLEN);
-                        else if (das->target == TARGET_INCREMENT)
+                        else
                             strncat(fname_a, ".increment", MAXSTRLEN);
                         if (file_exists(fname_a)) {
                             ncw_open(fname_a, NC_WRITE, &ncid_a);
@@ -1122,7 +1121,7 @@ void das_update(dasystem* das, int updatespec)
                 enkf_printtime("    ");
                 enkf_flush();
 
-                if (!(updatespec & UPDATE_SEPARATEOUTPUT)) {
+                if (!(das->updatespec & UPDATE_SEPARATEOUTPUT)) {
                     for (i = 0; i < nvar; ++i) {
                         char* varname_src = model_getvarname(m, i);
                         char fname[MAXSTRLEN];
@@ -1130,9 +1129,9 @@ void das_update(dasystem* das, int updatespec)
                         char varname_dst[NC_MAX_NAME];
 
                         strncpy(varname_dst, varname_src, NC_MAX_NAME);
-                        if (das->target == TARGET_ANALYSIS)
+                        if (!(das->updatespec & UPDATE_OUTPUTINC))
                             strncat(varname_dst, "_an", NC_MAX_NAME);
-                        else if (das->target == TARGET_INCREMENT)
+                        else
                             strncat(varname_dst, "_inc", NC_MAX_NAME);
                         model_getbgfname(m, das->bgdir, varname_src, fname);
                         ncw_open(fname, NC_WRITE, &ncid);
@@ -1155,9 +1154,9 @@ void das_update(dasystem* das, int updatespec)
                         ncw_open(fname_f, NC_NOWRITE, &ncid_f);
 
                         strncpy(fname_a, fname_f, MAXSTRLEN);
-                        if (das->target == TARGET_ANALYSIS)
+                        if (!(das->updatespec & UPDATE_OUTPUTINC))
                             strncat(fname_a, ".analysis", MAXSTRLEN);
-                        else if (das->target == TARGET_INCREMENT)
+                        else
                             strncat(fname_a, ".increment", MAXSTRLEN);
 
                         if (file_exists(fname_a)) {
@@ -1235,10 +1234,10 @@ void das_update(dasystem* das, int updatespec)
                 model_readfield(das->m, fname, e + 1, MAXINT, f->varname, f->level, ((float***) fieldbuffer[bufindex])[e][0]);
             }
             if (das->mode == MODE_ENOI) {
-                if (das->target == TARGET_ANALYSIS) {
+                if (!(das->updatespec & UPDATE_OUTPUTINC)) {
                     model_getbgfname(m, das->bgdir, f->varname, fname);
                     model_readfield(das->m, fname, MAXINT, MAXINT, f->varname, f->level, ((float***) fieldbuffer[bufindex])[das->nmem][0]);
-                } else if (das->target == TARGET_INCREMENT)
+                } else
                     memset(((float***) fieldbuffer[bufindex])[das->nmem][0], 0, mni * mnj * sizeof(float));
             }
 
@@ -1246,34 +1245,34 @@ void das_update(dasystem* das, int updatespec)
                 /*
                  * write forecast spread
                  */
-                if (calcspread)
-                    das_writespread(das, bufindex + 1, fieldbuffer, &fields[i - bufindex], 0, updatespec);
+                if (das->updatespec & UPDATE_DOSPREAD)
+                    das_writespread(das, bufindex + 1, fieldbuffer, &fields[i - bufindex], 0);
                 /*
                  * write forecast variables to point logs
                  */
-                if (updatespec & UPDATE_DOPLOGS)
-                    plog_writestatevars(das, bufindex + 1, fieldbuffer, &fields[i - bufindex], 0, updatespec);
+                if (das->updatespec & UPDATE_DOPLOGS)
+                    plog_writestatevars(das, bufindex + 1, fieldbuffer, &fields[i - bufindex], 0);
 
                 if (das->mode == MODE_ENKF) {
                     das_updatefields(das, bufindex + 1, fieldbuffer, &fields[i - bufindex]);
-                    if (updatespec & UPDATE_DOFIELDS)
-                        das_writefields(das, bufindex + 1, fieldbuffer, &fields[i - bufindex], updatespec);
+                    if (das->updatespec & UPDATE_DOFIELDS)
+                        das_writefields(das, bufindex + 1, fieldbuffer, &fields[i - bufindex]);
                 } else if (das->mode == MODE_ENOI) {
                     das_updatebg(das, bufindex + 1, fieldbuffer, &fields[i - bufindex]);
-                    if (updatespec & UPDATE_DOFIELDS)
-                        das_writebg(das, bufindex + 1, fieldbuffer, &fields[i - bufindex], updatespec);
+                    if (das->updatespec & UPDATE_DOFIELDS)
+                        das_writebg(das, bufindex + 1, fieldbuffer, &fields[i - bufindex]);
                 }
 
                 /*
                  * write analysis spread
                  */
-                if (calcspread && das->mode == MODE_ENKF)
-                    das_writespread(das, bufindex + 1, fieldbuffer, &fields[i - bufindex], 1, updatespec);
+                if (das->updatespec & UPDATE_DOSPREAD && das->mode == MODE_ENKF)
+                    das_writespread(das, bufindex + 1, fieldbuffer, &fields[i - bufindex], 1);
                 /*
                  * write analysis variables to point logs
                  */
-                if (updatespec & UPDATE_DOPLOGS)
-                    plog_writestatevars(das, bufindex + 1, fieldbuffer, &fields[i - bufindex], 1, updatespec);
+                if (das->updatespec & UPDATE_DOPLOGS)
+                    plog_writestatevars(das, bufindex + 1, fieldbuffer, &fields[i - bufindex], 1);
             }
         }
 
@@ -1286,20 +1285,20 @@ void das_update(dasystem* das, int updatespec)
         enkf_flush();
     }                           /* for gid */
 
-    if (!(updatespec & UPDATE_DIRECTWRITE)) {
+    if (!(das->updatespec & UPDATE_DIRECTWRITE)) {
         enkf_printtime("  ");
-        if (updatespec & UPDATE_DOFIELDS) {
+        if (das->updatespec & UPDATE_DOFIELDS) {
             enkf_printf("  assembling analysis:\n");
             if (das->mode == MODE_ENKF)
-                das_assemblemembers(das, updatespec);
+                das_assemblemembers(das);
             else if (das->mode == MODE_ENOI)
-                das_assemblebg(das, updatespec);
+                das_assemblebg(das);
         }
-        if (calcspread && rank == 0) {
+        if (das->updatespec & UPDATE_DOSPREAD && rank == 0) {
             enkf_printf("  assembling spread:\n");
             das_assemblespread(das);
         }
-        if (updatespec & UPDATE_DOPLOGS) {
+        if (das->updatespec & UPDATE_DOPLOGS) {
             enkf_printf("  assembling state variables in point logs:\n");
             plog_assemblestatevars(das);
         }

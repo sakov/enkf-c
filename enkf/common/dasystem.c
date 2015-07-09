@@ -91,7 +91,6 @@ dasystem* das_create(enkfprm* prm)
     das->prmfname = strdup(prm->fname);
     das->mode = prm->mode;
     das->scheme = prm->scheme;
-    das->target = prm->target;
     if (das->mode == MODE_ENKF || !enkf_fstatsonly)
         das->ensdir = strdup(prm->ensdir);
     if (prm->bgdir != NULL)
@@ -188,6 +187,10 @@ dasystem* das_create(enkfprm* prm)
             dst->minnobs = src->minnobs;
         }
     }
+#endif
+
+#if defined(ENKF_UPDATE)
+    das->updatespec = UPDATE_DEFAULT;
 #endif
 
     return das;

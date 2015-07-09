@@ -159,23 +159,18 @@ int main(int argc, char* argv[])
     enkf_printf("  initialising the system:\n");
     das = das_create(prm);
     enkfprm_destroy(prm);
-
-    if (updatespec & UPDATE_OUTPUTINC)
-        das->target = TARGET_INCREMENT;
+    das->updatespec = updatespec;
 
     if (nprocesses == 1 && !(updatespec & UPDATE_DIRECTWRITE)) {
         enkf_printf("  nproc = 1 -> using direct write\n");
-        updatespec |= UPDATE_DIRECTWRITE;
-    } else if (!(updatespec & UPDATE_DIRECTWRITE))
-        enkf_printf("  using assembled write\n");
-    else
-        enkf_printf("  using direct write\n");
+        das->updatespec |= UPDATE_DIRECTWRITE;
+    }
 
     if (das->mode == MODE_ENKF)
         enkf_printf("  updating the ensemble:\n");
     else if (das->mode == MODE_ENOI)
         enkf_printf("  updating the model state:\n");
-    das_update(das, updatespec);
+    das_update(das);
 
     das_destroy(das);
 
