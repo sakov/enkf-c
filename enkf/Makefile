@@ -62,6 +62,7 @@ prep/reader_rads.c\
 prep/reader_cars.c\
 prep/reader_mmt.c\
 prep/reader_amsr2.c\
+prep/reader_amsre.c\
 prep/enkf_prep.c
 
 HDR_PREP =\

@@ -1,3 +1,6 @@
+v. 1.05
+   PS 09072015
+   -- Added AMSRE reader.
 v. 1.04
    PS 09072015
    -- Eliminated the field `dasystem.target'; it is replaced by the flag
