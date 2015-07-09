@@ -25,6 +25,11 @@ FILE = obs/WINDSAT/windsat_20071221.nc
 FILE = obs/WINDSAT/windsat_20071222.nc
 FILE = obs/WINDSAT/windsat_20071223.nc
 
+PRODUCT = AMSRE
+TYPE = SST
+READER = standard
+FILE = /home/pavel/tmp/amsre_20091226.nc
+
 PRODUCT == CARS
 TYPE = TEM
 READER = standard
