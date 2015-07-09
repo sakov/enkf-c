@@ -44,7 +44,6 @@ struct dasystem {
     char* prmfname;
     int mode;
     int scheme;
-    int target;
     char* ensdir;
     char* bgdir;
 
@@ -109,6 +108,8 @@ struct dasystem {
 
     int nbadbatchspecs;
     badbatchspec* badbatchspecs;
+
+    int updatespec;
 };
 
 dasystem* das_create(enkfprm* prm);
@@ -132,7 +133,7 @@ void das_printfobsstats(dasystem* das);
 void das_readobs(dasystem* das, char fname[]);
 void das_standardise(dasystem* das);
 void das_destandardise(dasystem* das);
-void das_update(dasystem* das, int updatespec);
+void das_update(dasystem* das);
 void das_updateHE(dasystem* das);
 void das_getfname_X5(dasystem* das, void* grid, char fname[]);
 void das_getfname_w(dasystem* das, void* grid, char fname[]);

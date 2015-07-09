@@ -1,3 +1,7 @@
+v. 1.04
+   PS 09072015
+   -- Eliminated the field das.target; it is replaced by the flag
+      `das->updatespec & UPDATE_OUTPUTINC'.
 v. 1.03
    PS 08072015
    -- Unified specifications for enkf_update -- they are now all in the variable

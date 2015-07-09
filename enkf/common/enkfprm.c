@@ -73,7 +73,6 @@ enkfprm* enkfprm_read(char fname[])
     prm->fname = fname;
     prm->mode = MODE_NONE;
     prm->scheme = SCHEME_DEFAULT;
-    prm->target = TARGET_DEFAULT;
     prm->date = NULL;
     prm->modelprm = NULL;
     prm->gridprm = NULL;
@@ -122,17 +121,6 @@ enkfprm* enkfprm_read(char fname[])
                     prm->scheme = SCHEME_ETKF;
                 else
                     enkf_quit("%s, l.%d: scheme \"%s\" is not implemented", fname, line, token);
-            }
-        } else if (strcasecmp(token, "TARGET") == 0) {
-            if ((token = strtok(NULL, seps)) == NULL)
-                enkf_quit("%s, l.%d: TARGET not specified", fname, line);
-            else {
-                if (strcasecmp(token, "ANALYSIS") == 0)
-                    prm->target = TARGET_ANALYSIS;
-                else if (strcasecmp(token, "INCREMENT") == 0)
-                    prm->target = TARGET_INCREMENT;
-                else
-                    enkf_quit("%s, l.%d: target \"%s\" is not implemented", fname, line, token);
             }
         } else if (strcasecmp(token, "DATE") == 0) {
             char seps_date[] = "=\n";
@@ -456,7 +444,6 @@ void enkfprm_describeprm(void)
     enkf_printf("\n");
     enkf_printf("    MODE            = { ENKF | ENOI }\n");
     enkf_printf("  [ SCHEME          = { DENKF* | ETKF | EnKF-N } ]\n");
-    enkf_printf("  [ TARGET          = { ANALYSIS* | INCREMENT } ]\n");
     enkf_printf("    MODEL           = <model prm file>\n");
     enkf_printf("    GRID            = <grid prm file>\n");
     enkf_printf("    OBSTYPES        = <obs. types prm file>\n");
