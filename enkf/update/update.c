@@ -468,8 +468,8 @@ static void das_updatebg(dasystem* das, int nfields, void** fieldbuffer, field f
                     xmean /= (float) nmem;
 
                     /*
-                     * (the case das->target = TARGET_INCREMENT is handled by
-                     * setting vvv[nmem][][] to zero in das_update())
+                     * (the case das->updatespec & UPDATE_OUTPUTINC > 0 is
+                     * handled by setting vvv[nmem][][] to zero in das_update())
                      */
                     for (e = 0; e < nmem; ++e)
                         vvv[nmem][j][i] += (vvv[e][j][i] - xmean) * wj[i][e];
@@ -758,7 +758,7 @@ static void das_writespread(dasystem* das, int nfields, void** fieldbuffer, fiel
         if (isanalysis)
             strncat(varname, "_an", MAXSTRLEN);
 
-        if (!(das->updatespec & UPDATE_DIRECTWRITE)) {       /* create file for
+        if (!(das->updatespec & UPDATE_DIRECTWRITE)) {  /* create file for *
                                                          * this field */
             int ncid, vid;
             int dimids[2];
