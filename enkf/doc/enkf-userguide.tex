@@ -741,18 +741,18 @@ For example:
 
 The \verb|OFFSET| entry may be used for adding the known model bias to observations, for example, to specify the mean dynamic topography (MDT) when assimilating sea level anomaly (SLA) observations.
 
-\subsection{Observation parameter file}
+\subsection{Observation data parameter file}
 
-Observation parameter file specifies observations to be assimilated.
-EnKF-C has a simple policy in this regard: if a data file is listed in the observation parameter file, then observations from this file are assimilated.
-This allows one using custom observation windows for particular observation types, instruments etc., specifying details on the script level.
+Observation data parameter file specifies observations to be assimilated.
+EnKF-C has a simple policy in this regard: if a data file is listed in the observation data parameter file, then observations from this file are assimilated.
+This allows one using custom observation windows for particular observation types, instruments etc., specifying details on the script level during the parameter file generation.
 
 The observation parameter file contains an arbitrary number of sections identified by entries \verb|PRODUCT|.
 Each section specifies the observation type, input files, reader and, possibly, observation error:
 \begin{Verbatim}[frame=single,fontsize=\footnotesize]
-./bin/enkf_prep --describe-prm-format obsmeta
+./bin/enkf_prep --describe-prm-format obsdata
 
-  Observation meta data file format:
+  Observation data parameter file format:
 
     PRODUCT   = <product>
     READER    = <reader>
@@ -820,7 +820,7 @@ It has the following usage and options:
 >./bin/enkf_prep
   Usage: enkf_prep <prm file> [<options>]
   Options:
-  --describe-prm-format [main|model|grid|obstypes|obsmeta]
+  --describe-prm-format [main|model|grid|obstypes|obsdata]
       describe format of the parameter file and exit
   --describe-superob <sob #>
       print composition of this superobservation and exit
@@ -1269,6 +1269,19 @@ An example of using this functionality is available by running \verb|make stats|
 It is possible to estimate model bias for a variable with the EnKF by generating and using an ensemble of bias fields.
 These bias fields need to be subtracted from observation forecasts of the corresponding types.
 This is accomplished by specifying a secondary variable in the observation type specifications by the entry \verb|VAR2| and by passing the name of this variable to the corresponding observation functions, which have to take care for subtracting the model and bias forecasts.
+
+\section{Grid issues}
+
+Currently there are two assumptions about grids in the EnKF-C:
+\begin{itemize}
+\item The grid coordinates are assumed to correspond to cell centres.
+  This applies to both horizontal and vertical coordinates.
+  Accordingly, the cell boundaries for cell with index \verb|i| are assumed to be at \verb|floor(i + 0.5)| and \verb|ceil(i + 0.5)|.
+\item The horizontal coordinates are assumed to be geographic (longitude, latitude).
+\end{itemize}
+
+If the model grid does not meet the above assumptions, one needs to generate the corresponding auxiliary grids and use them instead.
+Note that one can transfer curvilinear grids with cell corner coordinates into ones with the cell centre coordinates by using utility \verb|getnodes| from \verb|griditils| package.
 
 \section{System issues}
 

@@ -50,7 +50,7 @@ static void usage()
 {
     enkf_printf("  Usage: enkf_prep <prm file> [<options>]\n");
     enkf_printf("  Options:\n");
-    enkf_printf("  --describe-prm-format [main|model|grid|obstypes|obsmeta]\n");
+    enkf_printf("  --describe-prm-format [main|model|grid|obstypes|obsdata]\n");
     enkf_printf("      describe format of a parameter file and exit\n");
     enkf_printf("  --describe-superob <sob #>\n");
     enkf_printf("      print composition of this superobservation and exit\n");
@@ -91,7 +91,7 @@ static void parse_commandline(int argc, char* argv[], char** fname)
                     grid_describeprm();
                 else if (strcmp(argv[i + 1], "obstypes") == 0)
                     obstypes_describeprm();
-                else if (strcmp(argv[i + 1], "obsmeta") == 0)
+                else if (strcmp(argv[i + 1], "obsdata") == 0)
                     obsmeta_describeprm();
                 else
                     usage();
