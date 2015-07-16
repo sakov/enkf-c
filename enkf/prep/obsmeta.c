@@ -230,7 +230,7 @@ void obsmeta_destroy(int n, obsmeta meta[])
 void obsmeta_describeprm(void)
 {
     enkf_printf("\n");
-    enkf_printf("  Observation meta data file format:\n");
+    enkf_printf("  Observation data parameter file format:\n");
     enkf_printf("\n");
     enkf_printf("    PRODUCT   = <product>\n");
     enkf_printf("    READER    = <reader>\n");
