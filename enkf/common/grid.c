@@ -766,7 +766,7 @@ void grid_print(grid* g, char offset[])
 void grid_describeprm(void)
 {
     enkf_printf("\n");
-    enkf_printf("  Grid parameter file format for z-model:\n");
+    enkf_printf("  Grid parameter file format:\n");
     enkf_printf("\n");
     enkf_printf("    NAME             = <name>\n");
     enkf_printf("    VTYPE            = { z | sigma }\n");
