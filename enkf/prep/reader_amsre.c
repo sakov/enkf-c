@@ -7,7 +7,8 @@
  * Author:      Pavel Sakov
  *              Bureau of Meteorology
  *
- * Description: AMSRE reader
+ * Description: AMSRE reader. Note that (at the moment) this is the only
+ *              reader for grided data in EnKF-C.
  *
  * Revisions:  
  *
@@ -137,7 +138,7 @@ void reader_amsre_standard(char* fname, int fid, obsmeta* meta, model* m, observ
                 if (fabs(data[j][i]) > MAXOBSVAL)
                     continue;
                 if (wind[j][i] > MAXOBSVAL || wind[j][i] < WIND_MIN)
-                    continue;
+                    continue;   /* (do not need fabs, as wind non-negative) */
 
                 obs_checkalloc(obs);
                 o = &obs->data[obs->nobs];
