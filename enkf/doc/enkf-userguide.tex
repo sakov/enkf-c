@@ -1274,12 +1274,11 @@ This is accomplished by specifying a secondary variable in the observation type 
 
 Currently EnKF-C makes two assumptions about grids:
 \begin{itemize}
-\item The grid coordinates correspond to model cell centres, both for horizontal and vertical grids.
-\item The horizontal coordinates are geographic (longitude, latitude).
+\item the vertical grid coordinates correspond to layer centres, both for Z and sigma layers;
+\item the horizontal coordinates are geographic (longitude, latitude).
 \end{itemize}
 
 If available model grids do not meet the above assumptions, one needs to generate the corresponding auxiliary grids and use them instead.
-Note that one can transfer curvilinear grids with cell corner coordinates into ones with the cell centre coordinates by using utility \verb|getnodes| from \verb|griditils| package.
 
 \section{System issues}
 
