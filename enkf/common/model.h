@@ -54,7 +54,7 @@ void* model_getmodeldata(model* m, char tag[]);
 int model_getnvar(model* m);
 char* model_getvarname(model* m, int varid);
 int model_getvarid(model* m, char* varname, int hastosucceed);
-float model_getvarinflation(model* m, int varid);
+void model_getvarinflation(model* m, int varid, float* inflation, double* inf_ratio);
 void model_getvardims(model* m, int vid, int* ni, int* nj, int* nk);
 void* model_getvargrid(model* m, int vid);
 int model_getvargridid(model* m, int vid);

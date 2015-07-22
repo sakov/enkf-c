@@ -85,14 +85,6 @@ struct dasystem {
     double* std_a;              /* ensemble spread */
     int s_mode;
 
-    /*
-     * Inflation mode. Relevant for EnKF only. The options are:
-     *   INFLATION_PLAIN -- uniform inflation applied to all anomalies
-     *   INFLATION_SPREADLIMITED -- 1 <= inflation <= spread reduction for each
-     *                              element of the state vector (default)
-     */
-    int inf_mode;
-
     double kfactor;
     double locrad;
     int stride;
@@ -109,7 +101,7 @@ struct dasystem {
     int nbadbatchspecs;
     badbatchspec* badbatchspecs;
 
-    int updatespec;
+    int updatespec;             /* binary flags */
 };
 
 dasystem* das_create(enkfprm* prm);

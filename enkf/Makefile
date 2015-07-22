@@ -66,7 +66,7 @@ prep/reader_amsre.c\
 prep/enkf_prep.c
 
 HDR_PREP =\
-prep/prep.h\
+prep/prep_utils.h\
 common/hash.h\
 prep/obsmeta.h\
 common/obstypes.h\

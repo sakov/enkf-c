@@ -83,7 +83,7 @@ enkfprm* enkfprm_read(char fname[])
     prm->kfactor = NaN;
     prm->rfactor_base = 1.0;
     prm->inflation_base = 1.0;
-    prm->inf_mode = INFLATION_DEFAULT;
+    prm->inf_ratio = INFRATIO_DEFAULT;
     prm->locrad = NaN;
     prm->stride = 1;
     prm->fieldbufsize = 1;
@@ -230,11 +230,9 @@ enkfprm* enkfprm_read(char fname[])
                 enkf_quit("%s, l.%d: could not convert \"%s\" to double", fname, line, token);
             if ((token = strtok(NULL, seps)) != NULL) {
                 if (strcasecmp(token, "PLAIN") == 0)
-                    prm->inf_mode = INFLATION_PLAIN;
-                else if (strcasecmp(token, "SPREADLIMITED") == 0)
-                    prm->inf_mode = INFLATION_SPREADLIMITED;
-                else
-                    enkf_quit("%s, l.%d: INFLATION mode \"%s\" not known\n", fname, line, token);
+                    prm->inf_ratio = NaN;
+                else if (!str2double(token, &prm->inf_ratio))
+                    enkf_quit("%s, l.%d: could not convert \"%s\" to double", fname, line, token);
             }
         } else if (strcasecmp(token, "REGION") == 0) {
             char* space;
@@ -402,9 +400,9 @@ void enkfprm_print(enkfprm* prm, char offset[])
     if (!enkf_fstatsonly) {
         enkf_printf("%sRFACTOR BASE = %.1f\n", offset, prm->rfactor_base);
         enkf_printf("%sINFLATION BASE = %.4f\n", offset, prm->inflation_base);
-        if (prm->inf_mode == INFLATION_SPREADLIMITED)
-            enkf_printf("%sINFLATION MODE = SPREADLIMITED\n", offset);
-        else if (prm->inf_mode == INFLATION_PLAIN)
+        if (!isnan(prm->inf_ratio))
+            enkf_printf("%sINFLATION MODE = SPREAD LIMITED, MAX RATIO = %.2f\n", offset, prm->inf_ratio);
+        else
             enkf_printf("%sINFLATION MODE = PLAIN\n", offset);
         if (isfinite(prm->kfactor))
             enkf_printf("%sKFACTOR = %.1f\n", offset, prm->kfactor);
@@ -458,7 +456,7 @@ void enkfprm_describeprm(void)
     enkf_printf("  [ STRIDE          = <stride> ]                             (1*)\n");
     enkf_printf("  [ SOBSTRIDE       = <stride> ]                             (1*)\n");
     enkf_printf("  [ FIELDBUFFERSIZE = <fieldbuffersize> ]                    (1*)\n");
-    enkf_printf("  [ INFLATION       = <inflation> [ SPREADLIMITED* | PLAIN ] (1*)\n");
+    enkf_printf("  [ INFLATION       = <inflation> [ <VALUE>* | PLAIN ]       (0.5*)\n");
     enkf_printf("    ...\n");
     enkf_printf("  [ REGION          = <name> { <lon1> <lon2> <lat1> <lat2> } ]\n");
     enkf_printf("    ...\n");

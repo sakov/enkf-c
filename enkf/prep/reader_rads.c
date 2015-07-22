@@ -29,7 +29,7 @@
 #include "grid.h"
 #include "model.h"
 #include "observations.h"
-#include "prep.h"
+#include "prep_utils.h"
 #include "allreaders.h"
 
 #define MINDEPTH 200.0

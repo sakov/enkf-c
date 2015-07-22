@@ -1,5 +1,5 @@
-  running PREP for EnKF version 1.03:
-  2015-07-08 15:19:55
+  running PREP for EnKF version 1.06:
+  2015-07-22 15:19:43
   reading prep specs from "stats.prm":
     MODE = EnOI
     MODEL PRM = "model.prm"
@@ -12,7 +12,7 @@
     ENSEMBLE SIZE = <FULL>
     RFACTOR BASE = 1.0
     INFLATION BASE = 1.0000
-    INFLATION MODE = SPREADLIMITED
+    INFLATION MODE = SPREAD LIMITED, MAX RATIO = 0.50
     KFACTOR = n/a
     LOCRAD = nan
     STRIDE = 1
@@ -95,15 +95,15 @@
       name = Tasman
       5 variables:
         eta_t:
-          inflation = 1.000
+          inflation = 1.000 0.50
         temp:
-          inflation = 1.000
+          inflation = 1.000 0.50
         salt:
-          inflation = 1.000
+          inflation = 1.000 0.50
         u:
-          inflation = 1.000
+          inflation = 1.000 0.50
         v:
-          inflation = 1.000
+          inflation = 1.000 0.50
       0 modeldata:
   reading observation type specs from "obstypes.prm":
     NAME = SLA
@@ -119,11 +119,11 @@
     NAME = SST
       VAR = temp
       ID = 1
-      ISSURFACE = yes
-      HFUNCTION = standard
-ls: cannot access obs/WINDSAT/windsat_20071221.nc: No such file or directory
+     ls: cannot access obs/WINDSAT/windsat_20071221.nc: No such file or directory
 ls: cannot access obs/WINDSAT/windsat_20071222.nc: No such file or directory
 ls: cannot access obs/WINDSAT/windsat_20071223.nc: No such file or directory
+ ISSURFACE = yes
+      HFUNCTION = standard
       ALLOWED MIN = -2
       ALLOWED MAX = 42
       ASYNCHRONOUS = no
@@ -315,5 +315,5 @@ ls: cannot access obs/WINDSAT/windsat_20071223.nc: No such file or directory
     TEM     184        104        104        0          0          0          0          7         
     SAL     184        104        104        0          0          0          0          7         
     total   9749       211        208        0          3          0          0          3921      
-  2015-07-08 15:19:56
+  2015-07-22 15:19:43
   finished

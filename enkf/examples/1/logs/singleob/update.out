@@ -1,8 +1,8 @@
   MPI: initialised 2 processes
-  MPI: rank = 0, PID = 22626
-  MPI: rank = 1, PID = 22627
-  running UPDATE for EnKF version 1.03:
-  2015-07-08 15:20:11
+  MPI: rank = 0, PID = 23942
+  MPI: rank = 1, PID = 23943
+  running UPDATE for EnKF version 1.06:
+  2015-07-22 15:20:29
   reading system specs from "singleob.prm":
     MODE = EnOI
     MODEL PRM = "model.prm"
@@ -15,7 +15,7 @@
     ENSEMBLE SIZE = 96
     RFACTOR BASE = 1.0
     INFLATION BASE = 1.0000
-    INFLATION MODE = SPREADLIMITED
+    INFLATION MODE = SPREAD LIMITED, MAX RATIO = 0.50
     KFACTOR = 999.0
     LOCRAD = 500
     STRIDE = 3
@@ -62,23 +62,22 @@
       name = Tasman
       5 variables:
         eta_t:
-          inflation = 1.000
+          inflation = 1.000 0.50
         temp:
-          inflation = 1.000
+          inflation = 1.000 0.50
         salt:
-          inflation = 1.000
+          inflation = 1.000 0.50
         u:
-          inflation = 1.000
+          inflation = 1.000 0.50
         v:
-          inflation = 1.000
+          inflation = 1.000 0.50
       0 modeldata:
-  using assembled write
   updating the model state:
     96 members
     defining state variables in point logs:
-    allocating disk space for the analysis:    2015-07-08 15:20:11
+    allocating disk space for the analysis:    2015-07-22 15:20:29
 .....
-    2015-07-08 15:20:11
+    2015-07-22 15:20:29
     updating fields for t-grid:
       9 fields
       distributing iterations:
@@ -93,7 +92,7 @@
       v        1   (1: 8: 100.0%)
       salt     1   (0: 4: 100.0%)
 
-  2015-07-08 15:20:12
+  2015-07-22 15:20:29
   assembling analysis:
     eta_t:.
     temp:..
@@ -106,5 +105,5 @@
     deleting tiles:
       distributing iterations:
         processes get 5 or 4 iterations
-  2015-07-08 15:20:12
+  2015-07-22 15:20:29
   finished

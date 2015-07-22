@@ -58,7 +58,7 @@ typedef struct {
     double kfactor;
     double rfactor_base;
     double inflation_base;
-    int inf_mode;
+    double inf_ratio;
     double locrad;
     int stride;
     int fieldbufsize;

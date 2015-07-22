@@ -30,7 +30,7 @@
 #include "model.h"
 #include "grid.h"
 #include "observations.h"
-#include "prep.h"
+#include "prep_utils.h"
 #include "allreaders.h"
 
 double ERRORSTD_DEF = 0.25;

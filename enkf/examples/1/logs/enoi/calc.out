@@ -1,8 +1,8 @@
   MPI: initialised 2 processes
-  MPI: rank = 0, PID = 22563
-  MPI: rank = 1, PID = 22564
-  running CALC for EnKF version 1.03:
-  2015-07-08 15:18:22
+  MPI: rank = 0, PID = 23883
+  MPI: rank = 1, PID = 23884
+  running CALC for EnKF version 1.06:
+  2015-07-22 15:19:06
   reading system specs from "enoi.prm":
     MODE = EnOI
     MODEL PRM = "model.prm"
@@ -15,7 +15,7 @@
     ENSEMBLE SIZE = 144
     RFACTOR BASE = 1.0
     INFLATION BASE = 1.0000
-    INFLATION MODE = SPREADLIMITED
+    INFLATION MODE = SPREAD LIMITED, MAX RATIO = 0.50
     KFACTOR = 999.0
     LOCRAD = 200
     STRIDE = 3
@@ -94,21 +94,21 @@
       name = Tasman
       5 variables:
         eta_t:
-          inflation = 1.000
+          inflation = 1.000 0.50
         temp:
-          inflation = 1.000
+          inflation = 1.000 0.50
         salt:
-          inflation = 1.000
+          inflation = 1.000 0.50
         u:
-          inflation = 1.000
+          inflation = 1.000 0.50
         v:
-          inflation = 1.000
+          inflation = 1.000 0.50
       0 modeldata:
   reading observations from "observations.nc":
     3921 observations
     calculating obs stats:
   calculating ensemble observations:
-  2015-07-08 15:18:22
+  2015-07-22 15:19:06
     ensemble size = 144
     distributing iterations:
       all processes get 72 iterations
@@ -117,7 +117,7 @@
     TEM ........................................................................+
     SAL ........................................................................+
   adding forecast innovations and spread to "observations.nc":
-  2015-07-08 15:18:22
+  2015-07-22 15:19:12
   moderating observations:
     observations substantially modified:
       SLA          0 (0.0%)
@@ -127,7 +127,7 @@
       total        0 (0.0%)
   writing modified obs errors to "observations.nc":
   calculating transforms:
-  2015-07-08 15:18:22
+  2015-07-22 15:19:12
     calculating transforms for t-grid:
     creating empty file "w.nc":
       distributing iterations:
@@ -147,22 +147,22 @@
         j = 30 (0: 5: 35.3%)
         j = 39 (1: 23: 41.2%)
         j = 36 (0: 6: 41.2%)
-        j = 42 (0: 7: 47.1%)
         j = 45 (1: 24: 47.1%)
+        j = 42 (0: 7: 47.1%)
         j = 51 (1: 25: 52.9%)
         j = 48 (0: 8: 52.9%)
         j = 57 (1: 26: 58.8%)
         j = 54 (0: 9: 58.8%)
-        j = 60 (0: 10: 64.7%)
         j = 63 (1: 27: 64.7%)
+        j = 60 (0: 10: 64.7%)
         j = 69 (1: 28: 70.6%)
         j = 66 (0: 11: 70.6%)
-        j = 75 (1: 29: 76.5%)
         j = 72 (0: 12: 76.5%)
-        j = 81 (1: 30: 82.4%)
+        j = 75 (1: 29: 76.5%)
         j = 78 (0: 13: 82.4%)
-        j = 87 (1: 31: 88.2%)
+        j = 81 (1: 30: 82.4%)
         j = 84 (0: 14: 88.2%)
+        j = 87 (1: 31: 88.2%)
         j = 93 (1: 32: 94.1%)
         j = 90 (0: 15: 94.1%)
         j = 99 (1: 33: 100.0%)
@@ -178,7 +178,7 @@
     calculating transform for log point (30, 50): 524 obs
     writing the log for point (30, 50):
   calculating analysed observations:
-  2015-07-08 15:18:35
+  2015-07-22 15:19:25
     sorting obs by ij:
     updating Hx:
   adding analysis innovations and spread to "observations.nc":
@@ -202,5 +202,5 @@
              ARGO          7    0.077      0.061      0.054      0.037      0.023      0.023  
              0-50m         2    0.088      0.098      0.074      0.063      0.019      0.019  
              >500m         0     -nan       -nan       -nan       -nan       -nan       -nan  
-  2015-07-08 15:18:35
+  2015-07-22 15:19:26
   finished
