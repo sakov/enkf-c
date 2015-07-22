@@ -72,6 +72,11 @@
 #define INFLATION_PLAIN 0
 #define INFLATION_SPREADLIMITED 1
 #define INFLATION_DEFAULT INFLATION_SPREADLIMITED
+/*
+ * Maximal allowed default ratio of (inflation - 1) / (spread_f / spread_a - 1).
+ * Use of this limiter can be overriden by using qualifier PLAIN for inflation.
+ */
+#define INFRATIO_DEFAULT 0.5
 
 #define OBS_SORTMODE_ID 0
 #define OBS_SORTMODE_IJ 1
@@ -99,8 +104,8 @@
  * missing value */
 #define MAXOBSVAL 900.0
 
-#define DEG2RAD (M_PI / 180.0)
 #define REARTH 6371.0
+#define DEG2RAD (M_PI / 180.0)
 #define TWOPI (M_PI * 2.0)
 
 #if defined(MPI)

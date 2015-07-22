@@ -179,7 +179,10 @@ static void das_updatefields(dasystem* das, int nfields, void** fieldbuffer, fie
                 float alpha = 1.0f;
                 int inc = 1;
                 float beta = 0.0f;
-                float inflation0 = model_getvarinflation(m, f->varid);
+                float inflation0 = NaN;
+                double inf_ratio = NaN;
+
+                model_getvarinflation(m, f->varid, &inflation0, &inf_ratio);
 
                 for (i = 0; i < mni; ++i) {
                     float inflation = inflation0;
@@ -230,7 +233,7 @@ static void das_updatefields(dasystem* das, int nfields, void** fieldbuffer, fie
                         v1_a += v_a[e];
                     v1_a /= (double) nmem;
 
-                    if (das->inf_mode == INFLATION_SPREADLIMITED) {
+                    if (!isnan(inf_ratio)) {
                         double v1_f = 0.0;
                         double v2_f = 0.0;
                         double v2_a = 0.0;
@@ -252,17 +255,12 @@ static void das_updatefields(dasystem* das, int nfields, void** fieldbuffer, fie
                         }
                         var_a = v2_a / (double) nmem - v1_a * v1_a;
 
-                        if (var_a <= 0)
+                        if (var_a > 0) {
                             /*
-                             * (exception)
+                             * (Normal case.) Limit inflation by inf_ratio of
+                             * the magnitude of spread reduction.
                              */
-                            inflation = inflation0;
-                        else {
-                            /*
-                             * (Normal case.) Limit inflation by half of the
-                             * magnitude of spread reduction.
-                             */
-                            inflation = (float) (sqrt(var_f / var_a) * 0.5 + 0.5);
+                            inflation = (float) (sqrt(var_f / var_a) * inf_ratio + 1.0 - inf_ratio);
                             if (inflation >= inflation0)
                                 inflation = inflation0;
                         }

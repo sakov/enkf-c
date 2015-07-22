@@ -111,7 +111,6 @@ dasystem* das_create(enkfprm* prm)
     das->s_a = NULL;
     das->std_a = NULL;
     das->s_mode = S_MODE_NONE;
-    das->inf_mode = prm->inf_mode;
 #if defined(ENKF_CALC)
     if (!enkf_fstatsonly) {
         das->kfactor = prm->kfactor;

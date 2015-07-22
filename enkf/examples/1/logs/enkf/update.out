@@ -1,8 +1,8 @@
   MPI: initialised 2 processes
-  MPI: rank = 0, PID = 22523
-  MPI: rank = 1, PID = 22524
-  running UPDATE for EnKF version 1.03:
-  2015-07-08 15:18:00
+  MPI: rank = 0, PID = 23844
+  MPI: rank = 1, PID = 23845
+  running UPDATE for EnKF version 1.06:
+  2015-07-22 15:17:55
   reading system specs from "enkf.prm":
     MODE = EnKF
     SCHEME = DEnKF
@@ -14,8 +14,8 @@
     ENSEMBLE DIR = "ensemble_6565"
     ENSEMBLE SIZE = 96
     RFACTOR BASE = 2.0
-    INFLATION BASE = 1.0500
-    INFLATION MODE = SPREADLIMITED
+    INFLATION BASE = 1.1000
+    INFLATION MODE = SPREAD LIMITED, MAX RATIO = 0.50
     KFACTOR = 999.0
     LOCRAD = 200
     STRIDE = 3
@@ -61,41 +61,40 @@
       name = Tasman
       5 variables:
         eta_t:
-          inflation = 1.050
+          inflation = 1.100 0.50
         temp:
-          inflation = 1.050
+          inflation = 1.100 0.50
         salt:
-          inflation = 1.050
+          inflation = 1.100 0.50
         u:
-          inflation = 1.050
+          inflation = 1.100 0.50
         v:
-          inflation = 1.050
+          inflation = 1.100 0.50
       0 modeldata:
-  using assembled write
   updating the ensemble:
     96 members
     allocating disk space for spread:
     defining state variables in point logs:
     distributing iterations:
       all processes get 48 iterations
-    2015-07-08 15:18:00
+    2015-07-22 15:17:55
     allocating disk space for analysis:................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................
-    2015-07-08 15:18:00
+    2015-07-22 15:17:55
     updating fields for t-grid:
       9 fields
       distributing iterations:
         processes get 5 or 4 iterations
-      eta_t    0   (0: 0: 20.0%)
       u        0   (1: 5: 25.0%)
-      temp     0   (0: 1: 40.0%)
+      eta_t    0   (0: 0: 20.0%)
       u        1   (1: 6: 50.0%)
-      temp     1   (0: 2: 60.0%)
+      temp     0   (0: 1: 40.0%)
       v        0   (1: 7: 75.0%)
-      salt     0   (0: 3: 80.0%)
+      temp     1   (0: 2: 60.0%)
       v        1   (1: 8: 100.0%)
+      salt     0   (0: 3: 80.0%)
       salt     1   (0: 4: 100.0%)
 
-  2015-07-08 15:18:02
+  2015-07-22 15:17:57
   assembling analysis:
     distributing iterations:
       all processes get 48 iterations
@@ -116,5 +115,5 @@
     deleting tiles:
       distributing iterations:
         processes get 5 or 4 iterations
-  2015-07-08 15:18:02
+  2015-07-22 15:17:58
   finished

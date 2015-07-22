@@ -41,6 +41,7 @@ struct variable {
     char* name;
     int gridid;
     double inflation;
+    double inf_ratio;
 };
 
 struct model {
@@ -64,6 +65,7 @@ static void variable_new(variable * v, int id, char* name)
     v->name = strdup(name);
     v->gridid = -1;
     v->inflation = NaN;
+    v->inf_ratio = NaN;
 }
 
 /**
@@ -177,6 +179,10 @@ model* model_create(enkfprm* prm)
                     enkf_quit("%s, l.%d: INFLATION not specified", modelprm, line);
                 if (!str2double(token, &now->inflation))
                     enkf_quit("%s, l.%d: could not convert \"%s\" to double", modelprm, line, token);
+                if ((token = strtok(NULL, seps)) != NULL) {
+                    if (!str2double(token, &now->inf_ratio))
+                        enkf_quit("%s, l.%d: could not convert \"%s\" to double", modelprm, line, token);
+                }
             } else
                 enkf_quit("%s, l.%d: unknown token \"%s\"", modelprm, line, token);
         }                       /* while reading modelprm */
@@ -203,9 +209,12 @@ model* model_create(enkfprm* prm)
         int i;
 
         for (i = 0; i < m->nvar; ++i)
-            if (isnan(m->vars[i].inflation))
+            if (isnan(m->vars[i].inflation)) {
                 m->vars[i].inflation = prm->inflation_base;
+                m->vars[i].inf_ratio = prm->inf_ratio;
+            }
         prm->inflation_base = NaN;
+        prm->inf_ratio = NaN;
     }
 
     model_print(m, "    ");
@@ -274,7 +283,10 @@ void model_print(model* m, char offset[])
         variable* v = &m->vars[i];
 
         enkf_printf("%s    %s:\n", offset, v->name);
-        enkf_printf("%s      inflation = %.3f\n", offset, v->inflation);
+        if (isnan(v->inf_ratio))
+            enkf_printf("%s      inflation = %.3f PLAIN\n", offset, v->inflation);
+        else
+            enkf_printf("%s      inflation = %.3f %.2f\n", offset, v->inflation, v->inf_ratio);
     }
     enkf_printf("%s  %d modeldata:\n", offset, m->ndata);
     for (i = 0; i < m->ndata; ++i) {
@@ -299,7 +311,7 @@ void model_describeprm(void)
     enkf_printf("\n");
     enkf_printf("    VAR         = <name>\n");
     enkf_printf("    GRID        = <name>\n");
-    enkf_printf("  [ INFLATION   = <value> ]\n");
+    enkf_printf("  [ INFLATION   = <value> [<value> | PLAIN]]\n");
     enkf_printf("\n");
     enkf_printf("  [ <more of the above blocks> ]\n");
     enkf_printf("\n");
@@ -386,9 +398,10 @@ int model_getvarid(model* m, char* varname, int hastosucceed)
 
 /**
  */
-float model_getvarinflation(model* m, int varid)
+void model_getvarinflation(model* m, int varid, float* inflation, double* inf_ratio)
 {
-    return m->vars[varid].inflation;
+    *inflation = (float) m->vars[varid].inflation;
+    *inf_ratio = m->vars[varid].inf_ratio;
 }
 
 /**

@@ -1,8 +1,8 @@
   MPI: initialised 2 processes
-  MPI: rank = 0, PID = 22611
-  MPI: rank = 1, PID = 22612
-  running CALC for EnKF version 1.03:
-  2015-07-08 15:19:56
+  MPI: rank = 1, PID = 23928
+  MPI: rank = 0, PID = 23927
+  running CALC for EnKF version 1.06:
+  2015-07-22 15:19:43
   reading system specs from "stats.prm":
     MODE = EnOI
     MODEL PRM = "model.prm"
@@ -84,21 +84,21 @@
       name = Tasman
       5 variables:
         eta_t:
-          inflation = 1.000
+          inflation = 1.000 0.50
         temp:
-          inflation = 1.000
+          inflation = 1.000 0.50
         salt:
-          inflation = 1.000
+          inflation = 1.000 0.50
         u:
-          inflation = 1.000
+          inflation = 1.000 0.50
         v:
-          inflation = 1.000
+          inflation = 1.000 0.50
       0 modeldata:
   reading observations from "observations.nc":
     3921 observations
     calculating obs stats:
   calculating ensemble observations:
-  2015-07-08 15:19:56
+  2015-07-22 15:19:43
     ensemble size = 1
     distributing iterations:
       processes get 1 or 0 iterations
@@ -107,7 +107,7 @@
     TEM +
     SAL +
   adding forecast innovations and spread to "observations.nc":
-  2015-07-08 15:19:56
+  2015-07-22 15:19:43
   printing observation statistics:
     region obs.type   # obs.  |for.inn.| for.inn.
     ---------------------------------------------
@@ -128,5 +128,5 @@
              ARGO          7    0.077      0.054  
              0-50m         2    0.088      0.074  
              >500m         0     -nan       -nan  
-  2015-07-08 15:19:56
+  2015-07-22 15:19:43
   finished
