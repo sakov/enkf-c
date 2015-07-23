@@ -47,6 +47,9 @@ void plog_write(dasystem* das, int i, int j, double lon, double lat, double dept
 
     int ot, oid;
 
+    if (das->nplogs == 0)
+        return;
+
     assert(das->s_mode == S_MODE_S_f);
 
     snprintf(fname, MAXSTRLEN, "pointlog_%d,%d.nc", i, j);
@@ -158,6 +161,9 @@ void plog_writeactualtransform(dasystem* das, int i, int j, float* transform)
     int ncid;
     int vid = -1;
 
+    if (das->nplogs == 0)
+        return;
+
     snprintf(fname, MAXSTRLEN, "pointlog_%d,%d.nc", i, j);
     ncw_open(fname, NC_WRITE, &ncid);
     if (das->mode == MODE_ENKF)
@@ -186,6 +192,9 @@ void plog_definestatevars(dasystem* das)
 {
     int nvar = model_getnvar(das->m);
     int vid, p;
+
+    if (das->nplogs == 0)
+        return;
 
     for (vid = 0; vid < nvar; ++vid) {
         char* varname = model_getvarname(das->m, vid);
@@ -344,6 +353,9 @@ static void plog_writestatevars_toassemble(dasystem* das, int nfields, void** fi
  */
 void plog_writestatevars(dasystem* das, int nfields, void** fieldbuffer, field* fields, int isanalysis)
 {
+    if (das->nplogs == 0)
+        return;
+
     if (das->updatespec & UPDATE_DIRECTWRITE)
         plog_writestatevars_direct(das, nfields, fieldbuffer, fields, isanalysis);
     else
@@ -354,10 +366,15 @@ void plog_writestatevars(dasystem* das, int nfields, void** fieldbuffer, field* 
  */
 void plog_assemblestatevars(dasystem* das)
 {
-    float* v = malloc(das->nmem * sizeof(float));
+    float* v = NULL;
     int nfields = 0;
     field* fields = NULL;
     int p, fid;
+
+    if (das->nplogs == 0)
+        return;
+
+    v = malloc(das->nmem * sizeof(float));
 
     das_getfields(das, -1, &nfields, &fields);
 

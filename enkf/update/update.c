@@ -217,7 +217,7 @@ static void das_updatefields(dasystem* das, int nfields, void** fieldbuffer, fie
                     if (f->id == 0) {
                         int key[2] = { i, j };
 
-                        if (ht_findid(das->ht_plogs, key) >= 0)
+                        if (das->nplogs > 0 && ht_findid(das->ht_plogs, key) >= 0)
                             plog_writeactualtransform(das, i, j, X5j[i]);
                     }
 
@@ -457,7 +457,7 @@ static void das_updatebg(dasystem* das, int nfields, void** fieldbuffer, field f
                     if (f->id == 0) {
                         int key[2] = { i, j };
 
-                        if (ht_findid(das->ht_plogs, key) >= 0)
+                        if (das->nplogs > 0 && ht_findid(das->ht_plogs, key) >= 0)
                             plog_writeactualtransform(das, i, j, wj[i]);
                     }
 
@@ -1025,7 +1025,7 @@ void das_update(dasystem* das)
         enkf_printf("\n");
     }
 
-    if (das->updatespec & UPDATE_DOPLOGS && rank == 0) {
+    if (das->updatespec & UPDATE_DOPLOGS && rank == 0 && das->nplogs > 0) {
         enkf_printf("    defining state variables in point logs:");
         plog_definestatevars(das);
         enkf_printf("\n");
@@ -1248,7 +1248,7 @@ void das_update(dasystem* das)
                 /*
                  * write forecast variables to point logs
                  */
-                if (das->updatespec & UPDATE_DOPLOGS)
+                if (das->updatespec & UPDATE_DOPLOGS && das->nplogs > 0)
                     plog_writestatevars(das, bufindex + 1, fieldbuffer, &fields[i - bufindex], 0);
 
                 if (das->mode == MODE_ENKF) {
@@ -1269,7 +1269,7 @@ void das_update(dasystem* das)
                 /*
                  * write analysis variables to point logs
                  */
-                if (das->updatespec & UPDATE_DOPLOGS)
+                if (das->updatespec & UPDATE_DOPLOGS && das->nplogs > 0)
                     plog_writestatevars(das, bufindex + 1, fieldbuffer, &fields[i - bufindex], 1);
             }
         }
@@ -1296,7 +1296,7 @@ void das_update(dasystem* das)
             enkf_printf("  assembling spread:\n");
             das_assemblespread(das);
         }
-        if (das->updatespec & UPDATE_DOPLOGS) {
+        if (das->updatespec & UPDATE_DOPLOGS && das->nplogs > 0) {
             enkf_printf("  assembling state variables in point logs:\n");
             plog_assemblestatevars(das);
         }
