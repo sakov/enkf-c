@@ -1,3 +1,11 @@
+v. 1.06.1
+   PS 23072015
+   -- Fixed a defect -- checking that plogs do actually exist before working
+      on them. Thanks to Paul Sandery for reporting.
+v. 1.06
+   PS 22072015
+   -- Added capability to define the limiting multiple for inflation (remains
+      0.5 by default).
 v. 1.05
    PS 09072015
    -- Added AMSRE reader.
