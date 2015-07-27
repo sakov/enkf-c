@@ -553,7 +553,17 @@ This approach is commonly known as ``first guess at appropriate time'', or FGAT.
 \chapter{EnKF-C}
 \label{ch:enkf-c}
 
-\section{Overview}
+\section{Design considerations}
+
+EnKF-C is designed to use horizontal localisation only.
+While some may argue that using vertical localisation might help to decrease the ensemble size, we believe that, for example, in the ocean the vertical structure is too complicated and non-uniform to allow simple and robust solutions in this regard.
+Generally, dynamical processes include a variety of barotropic and baroclinic components, and introducing vertical localisation in one form or another can be detrimental for the model's balances.
+On another hand, with an ensemble size of about 100, normally one can ignore the problem of spurious vertical correlations and leave the system to deal with the vertical covariances on its own.
+
+With the system using horizontal localisation only the model state is effectively considered to be a collection of independent horizontal fields updated based on their correlations with local observations.
+The assimilation is conducted by calculating a common horizontal field of local ensemble transforms and applying them to each horizontal field of the model.
+
+\section{The workflow}
 
 EnKF-C conducts data assimilation in three stages: \emph{prep}, \emph{calc} and \emph{update}.
 
@@ -572,10 +582,14 @@ It has the following work flow:
 \item calculate ensemble of forecast observations $\mb H \mb E^f$ (EnKF) or ensemble of background observation anomalies $\mb H \mb A^f$ and background observations $\mb H \mb x^f$ (EnOI);
 \item for each horizontal grid cell calculate local ensemble transforms $\mb X_5$ (EnKF) or background update coefficients $\mb w$ (EnOI);
 \item save these transforms to \verb|X5.nc| (EnKF) or \verb|w.nc| (EnOI);
-\item calculate and report forecast and analysis innovation statistics.
+\item calculate and report forecast and analysis innovation statistics;
+\item calculate observation impact metrics DFS and SRF (sec.~\ref{sec:impact}) and save them to \verb|enkf_diag.nc|;
+\item save ensemble, observations and transforms/weights for specified horizontal locations to pointlog files (sec.~\ref{sec:pointlogs}).
 \end{itemize}
+Apart from this main mode of operation, \emph{calc} can also calculate forecast  innovations only or operate in a single observation experiment mode.
 
-\emph{update} updates the ensemble (EnKF) or the background (EnOI) by using transforms calculated by \emph{calc}.
+\emph{update} updates the ensemble (EnKF) or the background (EnOI) using transforms calculated by \emph{calc}, and saves the analysis according to specifications.
+It also adds analysis information to the pointlog files, and can calculate and save the ensemble spread.
 
 \section{Starting up: example 1}
 \label{example1}
@@ -884,11 +898,13 @@ Programmatically, to switch on capabilities associated with observation batches 
 A batch of observations is considered bad if either the magnitude of its innovation bias or the mean magnitude of innovation exceed specified thresholds.
 Specifications for bad batches can be set in the parameter file as follows:
 \begin{Verbatim}[frame=single,fontsize=\footnotesize]
-BADBATCHES = SLA 0.05 0.12 200
-BADBATCHES = TEM 5 5 1
+BADBATCHES = SLA 0.06 0.10 500
+BBADBATCHES = TEM 4 5 0
+BADBATCHES = SST 0.5 2 10000
+BADBATCHES = SAL 1.5 2 0
 \end{Verbatim}
-The above entry means that any batch of observations of type SLA containing more than 200 observations and having either mean innovation greater than 0.05 (meter) in magnitude or mean absolute innovation greater than 0.12 is considered to be bad.
-Similarly, a TEM batch is considered bad if either the mean absolute innovation or mean innovation magnitude in the batch exceed 5 (degrees).
+The above entry means that any batch of observations of type SLA (typically, an orbit) containing more than 500 observations and having either mean innovation greater than 0.06 (meter) in magnitude or mean absolute innovation greater than 0.10 is considered to be bad.
+Similarly, a TEM batch (typically, a profile) is considered bad if the mean innovation exceds 4 (degrees) or the mean absolute innovation exceeds 5 (degrees).
 The parameter file can have arbitrary number of such entries.
 Information about bad batches is written by \verb|enkf_calc| to the file \verb|badbatches.out|.
 When \verb|enkf_prep| detects the presence of such file, it marks the corresponding observations as bad.
@@ -996,7 +1012,10 @@ This can be used, for example, for obtaining the persistence statistics, that is
 The options \verb|--single-observation-xyz| and \verb|--single-observation-ijk| provide an easy way to conduct the so called single observation experiments, with the observation coordinates provided either in spatial or grid coordinates, correspondingly.
 Parameter \verb|<value>| defines innovation rather than the observation value.
 Normally, this experiments would be conducted in the EnOI mode, calculating increment (option \verb|--output-increment| of \verb|enkf_update|) rather than analysis.
-When run in the EnKF mode, the increment (or analysis, depending on options) for each member is calculated.
+When run in the EnKF mode, the increment (or analysis, depending on specifications) for each member is calculated.
+
+Note that the calculated transforms \emph{do not} incorporate inflation.
+Inflation is applied during \emph{update} according to specifications (sec.~\ref{sec:capping}).
 
 \subsection{Multiple model grids}
 
@@ -1195,6 +1214,7 @@ Increasing the localisation radius increases the number of local observations an
 To compensate this in a system with horizontal localisation one has to change the R-factor as the square of the localisation radius.
 
 \section{Point logs}
+\label{sec:pointlogs}
 
 ''Point logs'' refer to a capability of EnKF-C to save DA related information for a number of horizontal locations specified in the parameter file, e.g.:
 \begin{Verbatim}[frame=single,fontsize=\footnotesize]
@@ -1303,19 +1323,19 @@ If available model grids do not meet the above assumptions, one needs to generat
 
 \subsection{Memory footprint}
 
-To reduce the memory footprint, most of the potentially big arrays in EnKF-C use \verb|float| data type.
+To reduce the memory usage, most of the potentially big arrays in EnKF-C use \verb|float| data type.
 
 The memory footprint of \emph{prep} is defined by the size of the \verb|measurement| structure and the number of observations.
 It is rarely a problem.
 
-The memory footprint of \emph{calc} is mainly defined by the size of ensemble observation anomalies that require $p \times m \times 4$ bytes for storage using \verb|float| data type.
+For \emph{calc} it is mainly defined by the size of ensemble observation anomalies, which require $p \times m \times 4$ bytes for storage.
 For example, with $3 \cdot 10^6$ superobservations and $10^2$ ensemble members the size of this array would be about 1.2\, GB per CPU, which should be manageable on most contemporary systems.
 If the footprint becomes too big, one may consider reducing the number of observations by a coarser superobing (setting the parameter \verb|SOBSTRIDE| to 2 or more) or reducing the number of cores per node used.
 
-The memory footprint of \emph{update} is mainly defined by the size of the array of simultaneously updated horizontal fields.
+The footprint of \emph{update} is mainly defined by the size of the array of simultaneously updated horizontal fields.
 For example, for a $1500 \times 3600$ horizontal field, 100 ensemble members and simultaneous update of 2 fields the size of this array would be about 4.3\,GB per CPU.
-It could be reduced to 2.15\,GB by reducing he parameter \verb|FIELDBUFFERSIZE| from 2 to 1.
-Note that reducing the number of simultaneously updated fields defined by \verb|FIELDBUFFERSIZE| increases I/O (the $\mb X_5$ array is read from disk $N_f / N_b$ times, where $N_f$ is the total number of horizontal fields, and $N_b$ is the number of simultaneously updated fields) and reduces computational effectiveness (the $\mb X_5$ array needs to be interpolated horizontally $N_f / N_b$ times).
+It can be reduced to 2.15\,GB by setting the parameter \verb|FIELDBUFFERSIZE| to 1.
+Note that reducing the number of simultaneously updated fields specified by parameter \verb|FIELDBUFFERSIZE| increases I/O (the $\mb X_5$ array is read from disk $N_f / N_b$ times, where $N_f$ is the total number of horizontal fields, and $N_b$ is the number of simultaneously updated fields) and reduces computational effectiveness (the $\mb X_5$ array needs to be interpolated horizontally $N_f / N_b$ times).
 
 \subsection{Exit action}
 
