@@ -619,7 +619,7 @@ int getnlevels(char fname[], char varname[])
 
 /** Reads one horizontal field (layer) for a variable from a NetCDF file.
  */
-void readfield(char fname[], int k, char varname[], float* v)
+void readfield(char fname[], char varname[], int k, float* v)
 {
     int ncid;
     int varid;
@@ -708,7 +708,7 @@ void readfield(char fname[], int k, char varname[], float* v)
 
 /** Writes one horizontal field (layer) for a variable to a NetCDF file.
  */
-void writefield(char fname[], int k, char varname[], float* v)
+void writefield(char fname[], char varname[], int k, float* v)
 {
     int ncid;
     int varid;
@@ -772,6 +772,133 @@ void writefield(char fname[], int k, char varname[], float* v)
     n = 1;
     for (i = 0; i < ndims; ++i)
         n *= count[i];
+
+    if (ncw_att_exists(ncid, varid, "add_offset")) {
+        float add_offset;
+
+        ncw_get_att_float(fname, ncid, varid, "add_offset", &add_offset);
+
+        for (i = 0; i < n; ++i)
+            v[i] -= add_offset;
+    }
+
+    if (ncw_att_exists(ncid, varid, "scale_factor")) {
+        float scale_factor;
+
+        ncw_get_att_float(fname, ncid, varid, "scale_factor", &scale_factor);
+        for (i = 0; i < n; ++i)
+            v[i] /= scale_factor;
+    }
+
+    if (ncw_att_exists(ncid, varid, "valid_range")) {
+        nc_type xtype;
+        size_t len;
+
+        ncw_inq_att(fname, ncid, varid, "valid_range", &xtype, &len);
+        if (xtype == NC_SHORT) {
+            int valid_range[2];
+            int missing_value = MINSHORT;
+
+            if (ncw_att_exists(ncid, varid, "missing_value"))
+                ncw_get_att_int(fname, ncid, varid, "missing_value", &missing_value);
+
+            ncw_get_att_int(fname, ncid, varid, "valid_range", valid_range);
+            for (i = 0; i < n; ++i) {
+                if (v[i] == missing_value)
+                    continue;
+                if ((int) v[i] < valid_range[0])
+                    v[i] = (float) valid_range[0];
+                else if ((int) v[i] > valid_range[1])
+                    v[i] = (float) valid_range[1];
+            }
+        } else if (xtype == NC_FLOAT) {
+            float valid_range[2];
+            float missing_value = -MAXFLOAT;
+
+            if (ncw_att_exists(ncid, varid, "missing_value"))
+                ncw_get_att_float(fname, ncid, varid, "missing_value", &missing_value);
+
+            ncw_get_att_float(fname, ncid, varid, "valid_range", valid_range);
+            for (i = 0; i < n; ++i) {
+                if (v[i] == missing_value)
+                    continue;
+                if (v[i] < valid_range[0])
+                    v[i] = valid_range[0];
+                else if (v[i] > valid_range[1])
+                    v[i] = valid_range[1];
+            }
+        } else
+            enkf_quit("%s: %s: output for types other than NC_SHORT and NC_FLOAT are not handled yet", fname, varname);
+    }
+
+    ncw_put_vara_float(fname, ncid, varid, start, count, v);
+    ncw_close(fname, ncid);
+}
+
+/** Writes one horizontal field (layer) for a variable to a NetCDF file.
+ */
+void writerow(char fname[], char varname[], int k, int j, float* v)
+{
+    int ncid;
+    int varid;
+    int ndims;
+    int dimids[4];
+    size_t dimlen[4];
+    size_t start[4], count[4];
+    int i, n;
+    int containsrecorddim;
+
+    ncw_open(fname, NC_WRITE, &ncid);
+    ncw_inq_varid(fname, ncid, varname, &varid);
+    ncw_inq_varndims(fname, ncid, varid, &ndims);
+    ncw_inq_vardimid(fname, ncid, varid, dimids);
+    for (i = 0; i < ndims; ++i)
+        ncw_inq_dimlen(fname, ncid, dimids[i], &dimlen[i]);
+
+    containsrecorddim = nc_isunlimdimid(ncid, dimids[0]);
+
+    if (ndims == 4) {
+        assert(containsrecorddim);
+        assert(k < dimlen[1]);
+        start[0] = 0;
+        start[1] = k;
+        start[2] = j;
+        start[3] = 0;
+        count[0] = 1;
+        count[1] = 1;
+        count[2] = 1;
+        count[3] = dimlen[3];
+    } else if (ndims == 3) {
+        if (!containsrecorddim) {
+            assert(k < dimlen[0]);
+            start[0] = k;
+            start[1] = j;
+            start[2] = 0;
+            count[0] = 1;
+            count[1] = 1;
+            count[2] = dimlen[2];
+        } else {
+            assert(k <= 0);
+            start[0] = 0;
+            start[1] = j;
+            start[2] = 0;
+            count[0] = 1;
+            count[1] = 1;
+            count[2] = dimlen[2];
+        }
+    } else if (ndims == 2) {
+        if (containsrecorddim)
+            enkf_quit("%s: can not write a row %d to a 1D variable \"%s\"", fname, j, varname);
+        if (k > 0)
+            enkf_quit("%s: can not write layer %d row %d to a 2D variable \"%s\"", fname, k, j, varname);
+        start[0] = j;
+        start[1] = 0;
+        count[0] = 1;
+        count[1] = dimlen[1];
+    } else
+        enkf_quit("%s: can not write a row to 2D field for \"%s\": # of dimensions = %d", fname, varname, ndims);
+
+    n = count[ndims - 1];
 
     if (ncw_att_exists(ncid, varid, "add_offset")) {
         float add_offset;

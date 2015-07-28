@@ -150,7 +150,7 @@ void obs_add(observations* obs, model* m, obsmeta* meta)
                 if (obs->obstypes[ii].issurface) {
                     float** v = alloc2d(nj, ni, sizeof(float));
 
-                    readfield(fname, 0, meta->varnames[i], v[0]);
+                    readfield(fname, meta->varnames[i], 0, v[0]);
                     for (o = nobs0; o < obs->nobs; ++o) {
                         observation* oo = &obs->data[o];
                         float vv;

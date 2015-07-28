@@ -16,6 +16,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include <math.h>
 #include "version.h"
 #include "definitions.h"
 #include "utils.h"
@@ -42,6 +43,8 @@ static void usage()
     enkf_printf("      output analysis increment (default: output analysis)\n");
     enkf_printf("  --separate-output\n");
     enkf_printf("      write results to new files (default: append to forecast files)\n");
+    enkf_printf("  --write-inflation\n");
+    enkf_printf("      write adaptive inflation magnitudes to %s\n", FNAME_INFLATION);
     enkf_printf("  --version\n");
     enkf_printf("      print version and exit\n");
 
@@ -103,6 +106,10 @@ static void parse_commandline(int argc, char* argv[], char** fname, int* updates
             *updatespec |= UPDATE_SEPARATEOUTPUT;
             i++;
             continue;
+        } else if (strcmp(argv[i], "--write-inflation") == 0) {
+            *updatespec |= UPDATE_DOINFLATION;
+            i++;
+            continue;
         } else if (strcmp(argv[i], "--version") == 0) {
             enkf_printversion();
             exit(0);
@@ -152,6 +159,20 @@ int main(int argc, char* argv[])
     prm = enkfprm_read(fname_prm);
     enkfprm_print(prm, "    ");
 
+    if (nprocesses == 1 && !(updatespec & UPDATE_DIRECTWRITE)) {
+        enkf_printf("  nproc = 1 -> using direct write\n");
+        updatespec |= UPDATE_DIRECTWRITE;
+    }
+    if (updatespec & UPDATE_DOINFLATION) {
+        if (prm->mode != MODE_ENKF) {
+            enkf_printf("  prm: mode = EnOI -> cancelling writing of inflation\n");
+            updatespec &= ~UPDATE_DOINFLATION;
+        } else if (isnan(prm->inf_ratio)) {
+            enkf_printf("  prm: inflation mode = plain -> cancelling writing of inflation\n");
+            updatespec &= ~UPDATE_DOINFLATION;
+        }
+    }
+
     describe_updatespec(updatespec);
     if ((updatespec & (UPDATE_DOFIELDS | UPDATE_DOSPREAD | UPDATE_DOPLOGS)) == 0)
         enkf_quit("nothing to do");
@@ -160,11 +181,6 @@ int main(int argc, char* argv[])
     das = das_create(prm);
     enkfprm_destroy(prm);
     das->updatespec = updatespec;
-
-    if (nprocesses == 1 && !(updatespec & UPDATE_DIRECTWRITE)) {
-        enkf_printf("  nproc = 1 -> using direct write\n");
-        das->updatespec |= UPDATE_DIRECTWRITE;
-    }
 
     if (das->mode == MODE_ENKF)
         enkf_printf("  updating the ensemble:\n");

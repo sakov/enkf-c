@@ -32,6 +32,47 @@
 
 #define EPSF 1.0e-6f
 
+/**
+ */
+static void getfieldfname(char* dir, char* prefix, char* varname, int level, char* fname)
+{
+    snprintf(fname, MAXSTRLEN, "%s/%s_%s-%03d.nc", dir, prefix, varname, level);
+}
+
+/**
+ */
+static void das_writeinflation(dasystem* das, field* f, int j, float* v)
+{
+    assert(das->mode == MODE_ENKF);
+
+    if (das->updatespec & UPDATE_DIRECTWRITE)
+        writerow(FNAME_INFLATION, f->varname, f->level, j, v);
+    else {
+        char fname[MAXSTRLEN];
+        int ncid, varid;
+
+        getfieldfname(das->ensdir, "inflation", f->varname, f->level, fname);
+
+        if (j == 0) {
+            int ni, nj;
+            int dimids[2];
+
+            model_getvardims(das->m, f->varid, &ni, &nj, NULL);
+
+            ncw_create(fname, NC_CLOBBER | NC_64BIT_OFFSET, &ncid);
+            ncw_def_dim(fname, ncid, "nj", nj, &dimids[0]);
+            ncw_def_dim(fname, ncid, "ni", ni, &dimids[1]);
+            ncw_def_var(fname, ncid, f->varname, NC_FLOAT, 2, dimids, NULL);
+            ncw_enddef(fname, ncid);
+        } else {
+            ncw_open(fname, NC_WRITE, &ncid);
+            ncw_inq_varid(fname, ncid, f->varname, &varid);
+        }
+        writerow(fname, f->varname, 0, j, v);
+        ncw_close(fname, ncid);
+    }
+}
+
 /** Updates `nfield' fields read into `fieldbuffer' with `X5'. Applies
  * variable-dependent inflation to each field.
  * 
@@ -45,6 +86,7 @@ static void das_updatefields(dasystem* das, int nfields, void** fieldbuffer, fie
     int** nlevels = grid_getnumlevels(grid);
     int periodic_i = grid_isperiodic_x(grid);
     int periodic_j = grid_isperiodic_y(grid);
+    int writeinflation = das->updatespec | UPDATE_DOINFLATION;
 
     /*
      * X5
@@ -60,8 +102,9 @@ static void das_updatefields(dasystem* das, int nfields, void** fieldbuffer, fie
     float** X5jj2 = NULL;
     float** X5j = NULL;
 
-    float* v_f;                 /* v_f = E_f(i, :) */
-    float* v_a;                 /* v_a = E_a(i, :) */
+    float* v_f = NULL;          /* v_f = E_f(i, :) */
+    float* v_a = NULL;          /* v_a = E_a(i, :) */
+    float* infl = NULL;
 
     int mni, mnj;
     int ni, nj;
@@ -102,6 +145,8 @@ static void das_updatefields(dasystem* das, int nfields, void** fieldbuffer, fie
 
     v_f = malloc(nmem * sizeof(float));
     v_a = malloc(nmem * sizeof(float));
+    if (writeinflation)
+        infl = malloc(mni * sizeof(float));
 
     /*
      * jj, ii are the indices of the subsampled grid; i, j are the indices
@@ -183,6 +228,7 @@ static void das_updatefields(dasystem* das, int nfields, void** fieldbuffer, fie
                 double inf_ratio = NaN;
 
                 model_getvarinflation(m, f->varid, &inflation0, &inf_ratio);
+                memset(infl, 0, mni * sizeof(float));
 
                 for (i = 0; i < mni; ++i) {
                     float inflation = inflation0;
@@ -279,8 +325,12 @@ static void das_updatefields(dasystem* das, int nfields, void** fieldbuffer, fie
                     else
                         for (e = 0; e < nmem; ++e)
                             vvv[e][j][i] = v_a[e] - v_f[e];
-                }
-            }
+
+                    if (writeinflation)
+                        infl[i] = inflation;
+                }               /* for i */
+                das_writeinflation(das, f, j, infl);
+            }                   /* for fid */
         }                       /* for stepj */
     }                           /* for jj */
 
@@ -291,6 +341,8 @@ static void das_updatefields(dasystem* das, int nfields, void** fieldbuffer, fie
         free2d(X5jj1);
         free2d(X5jj2);
     }
+    if (writeinflation)
+        free(infl);
     free(v_a);
     free(v_f);
 }
@@ -532,13 +584,6 @@ static void das_writefields_direct(dasystem* das, int nfields, void** fieldbuffe
 
 /**
  */
-static void getfieldfname(char* dir, char* prefix, char* varname, int level, char* fname)
-{
-    snprintf(fname, MAXSTRLEN, "%s/%s_%s-%03d.nc", dir, prefix, varname, level);
-}
-
-/**
- */
 static void das_writefields_toassemble(dasystem* das, int nfields, void** fieldbuffer, field fields[])
 {
     char fname[MAXSTRLEN];
@@ -654,7 +699,7 @@ static void das_writebg_toassemble(dasystem* das, int nfields, void** fieldbuffe
             ncw_put_var_float(fname, ncid, vid, ((float***) fieldbuffer[i])[das->nmem][0]);
             ncw_close(fname, ncid);
         } else {
-            writefield(fname, 0, f->varname, ((float***) fieldbuffer[i])[das->nmem][0]);
+            writefield(fname, f->varname, 0, ((float***) fieldbuffer[i])[das->nmem][0]);
         }
     }
 }
@@ -702,6 +747,37 @@ static void das_allocatespread(dasystem* das, char fname[])
             strncat(varname_dst, "_an", NC_MAX_NAME);
             ncw_def_var_as(fname, ncid, varname_src, varname_dst);
         }
+        ncw_close(fname_src, ncid_src);
+    }
+    ncw_close(fname, ncid);
+}
+
+/** Allocates disk space for inflation magnitudes.
+ */
+static void das_allocateinflation(dasystem* das, char fname[])
+{
+    model* m = das->m;
+    int nvar = model_getnvar(m);
+    char fname_src[MAXSTRLEN];
+    int ncid, ncid_src;
+    int vid;
+
+    if (rank != 0)
+        return;
+
+    if (file_exists(fname))
+        return;
+
+    ncw_create(fname, NC_CLOBBER | NC_64BIT_OFFSET, &ncid);
+    for (vid = 0; vid < nvar; ++vid) {
+        char* varname_src = model_getvarname(m, vid);
+        int varid_src;
+
+        model_getmemberfname(m, das->ensdir, varname_src, 1, fname_src);
+        ncw_open(fname_src, NC_NOWRITE, &ncid_src);
+        ncw_copy_dims(fname_src, ncid_src, fname, ncid);
+        ncw_inq_varid(fname_src, ncid_src, varname_src, &varid_src);
+        ncw_copy_vardef(fname_src, ncid_src, varid_src, fname, ncid);
         ncw_close(fname_src, ncid_src);
     }
     ncw_close(fname, ncid);
@@ -775,7 +851,7 @@ static void das_writespread(dasystem* das, int nfields, void** fieldbuffer, fiel
                     ncw_redef(fname, ncid);
                     ncw_inq_dimid(fname, ncid, "nj", &dimids[0]);
                     ncw_inq_dimid(fname, ncid, "ni", &dimids[1]);
-                    ncw_def_var(fname, ncid, varname, NC_FLOAT, 2, dimids, &vid);
+                    ncw_def_var(fname, ncid, varname, NC_FLOAT, 2, dimids, NULL);
                     ncw_enddef(fname, ncid);
                 }
                 ncw_inq_varid(fname, ncid, varname, &vid);
@@ -1004,6 +1080,48 @@ static void das_assemblespread(dasystem* das)
     }
 }
 
+/**
+ */
+static void das_assembleinflation(dasystem* das)
+{
+    model* m = das->m;
+    int nvar = model_getnvar(m);
+    int i;
+
+    assert(das->mode == MODE_ENKF);
+
+    for (i = 0; i < nvar; ++i) {
+        char* varname = model_getvarname(m, i);
+        int nlev, k;
+        int ni, nj;
+        float* v = NULL;
+
+        enkf_printf("    %s:", varname);
+        nlev = getnlevels(FNAME_INFLATION, varname);
+
+        model_getvardims(m, i, &ni, &nj, NULL);
+        v = malloc(ni * nj * sizeof(float));
+
+        for (k = 0; k < nlev; ++k) {
+            char fname_src[MAXSTRLEN];
+            int ncid_src, vid;
+
+            getfieldfname(das->ensdir, "inflation", varname, k, fname_src);
+            ncw_open(fname_src, NC_NOWRITE, &ncid_src);
+
+            ncw_inq_varid(fname_src, ncid_src, varname, &vid);
+            ncw_get_var_float(fname_src, ncid_src, vid, v);
+            ncw_close(fname_src, ncid_src);
+            model_writefield(m, FNAME_INFLATION, MAXINT, varname, k, v);
+            file_delete(fname_src);
+
+            enkf_printf(".");
+        }
+        free(v);
+        enkf_printf("\n");
+    }
+}
+
 /** Updates ensemble/background by using calculated transform 
  * matrices/coefficients.
  */
@@ -1022,6 +1140,12 @@ void das_update(dasystem* das)
     if (das->updatespec & UPDATE_DOSPREAD && rank == 0) {
         enkf_printf("    allocating disk space for spread:");
         das_allocatespread(das, FNAME_SPREAD);
+        enkf_printf("\n");
+    }
+
+    if (das->updatespec & UPDATE_DOINFLATION && rank == 0) {
+        enkf_printf("    allocating disk space for inflation:");
+        das_allocateinflation(das, FNAME_INFLATION);
         enkf_printf("\n");
     }
 
@@ -1295,6 +1419,10 @@ void das_update(dasystem* das)
         if (das->updatespec & UPDATE_DOSPREAD && rank == 0) {
             enkf_printf("  assembling spread:\n");
             das_assemblespread(das);
+        }
+        if (das->updatespec & UPDATE_DOINFLATION && rank == 0) {
+            enkf_printf("  assembling inflation:\n");
+            das_assembleinflation(das);
         }
         if (das->updatespec & UPDATE_DOPLOGS && das->nplogs > 0) {
             enkf_printf("  assembling state variables in point logs:\n");
