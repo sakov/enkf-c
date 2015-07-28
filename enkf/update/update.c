@@ -86,7 +86,7 @@ static void das_updatefields(dasystem* das, int nfields, void** fieldbuffer, fie
     int** nlevels = grid_getnumlevels(grid);
     int periodic_i = grid_isperiodic_x(grid);
     int periodic_j = grid_isperiodic_y(grid);
-    int writeinflation = das->updatespec | UPDATE_DOINFLATION;
+    int writeinflation = das->updatespec & UPDATE_DOINFLATION;
 
     /*
      * X5
