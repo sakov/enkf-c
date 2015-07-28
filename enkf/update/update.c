@@ -228,7 +228,8 @@ static void das_updatefields(dasystem* das, int nfields, void** fieldbuffer, fie
                 double inf_ratio = NaN;
 
                 model_getvarinflation(m, f->varid, &inflation0, &inf_ratio);
-                memset(infl, 0, mni * sizeof(float));
+		if (writeinflation)
+		    memset(infl, 0, mni * sizeof(float));
 
                 for (i = 0; i < mni; ++i) {
                     float inflation = inflation0;
