@@ -631,7 +631,7 @@ int model_z2fk(model* m, int vid, double fi, double fj, double z, double* fk)
  */
 void model_readfield(model* m, char fname[], int mem, int time, char varname[], int k, float* v)
 {
-    readfield(fname, k, varname, v);
+    readfield(fname, varname, k, v);
 }
 
 /**
@@ -645,5 +645,5 @@ void model_read3dfield(model* m, char fname[], int mem, int time, char varname[]
  */
 void model_writefield(model* m, char fname[], int time, char varname[], int k, float* v)
 {
-    writefield(fname, k, varname, v);
+    writefield(fname, varname, k, v);
 }

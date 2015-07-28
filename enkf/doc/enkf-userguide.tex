@@ -35,7 +35,7 @@
 
 \begin{document}
 
-\title{EnKF-C user guide\\{\normalsize version 1.06}}
+\title{EnKF-C user guide\\{\normalsize version 1.07}}
 
 \author{Pavel Sakov}
 \date{June 19, 2014 -- \today}
@@ -560,7 +560,7 @@ While some may argue that using vertical localisation might help to decrease the
 Generally, dynamical processes include a variety of barotropic and baroclinic components, and introducing vertical localisation in one form or another can be detrimental for the model's balances.
 On another hand, with an ensemble size of about 100, normally one can ignore the problem of spurious vertical correlations and leave the system to deal with the vertical covariances on its own.
 
-With the system using horizontal localisation only the model state is effectively considered to be a collection of independent horizontal fields updated based on their correlations with local observations.
+With the system using horizontal localisation only the model state effectively becomes a collection of independent horizontal fields updated based on their correlations with local observations.
 The assimilation is conducted by calculating a common horizontal field of local ensemble transforms and applying them to each horizontal field of the model.
 
 \section{The workflow}
@@ -1136,6 +1136,8 @@ It has the following usage and options:
       output analysis increment (default: output analysis)
   --separate-output
       write results to new files (default: append to forecast files)
+  --write-inflation
+      write adaptive inflation magnitudes to inflation.nc
   --version
       print version and exit
 \end{Verbatim}

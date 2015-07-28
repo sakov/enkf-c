@@ -34,6 +34,7 @@
 #define FNAME_SPREAD "spread.nc"
 #define FNAME_HE "HE.nc"
 #define FNAME_BADBATCHES "badbatches.out"
+#define FNAME_INFLATION "inflation.nc"
 
 #define STATUS_OK 0             /* do not change */
 #define STATUS_OUTSIDEGRID 1
@@ -93,11 +94,12 @@
 
 #define UPDATE_DOFIELDS       (1 << 0)
 #define UPDATE_DOSPREAD       (1 << 1)
-#define UPDATE_DOPLOGS        (1 << 2)
-#define UPDATE_LEAVETILES     (1 << 3)
-#define UPDATE_OUTPUTINC      (1 << 4)
-#define UPDATE_SEPARATEOUTPUT (1 << 5)
-#define UPDATE_DIRECTWRITE    (1 << 6)
+#define UPDATE_DOINFLATION    (1 << 2)
+#define UPDATE_DOPLOGS        (1 << 3)
+#define UPDATE_LEAVETILES     (1 << 4)
+#define UPDATE_OUTPUTINC      (1 << 5)
+#define UPDATE_SEPARATEOUTPUT (1 << 6)
+#define UPDATE_DIRECTWRITE    (1 << 7)
 #define UPDATE_DEFAULT        (UPDATE_DOFIELDS | UPDATE_DOPLOGS)
 
 /* it is assumed that if |value| > MAXOBSVAL, then it is filled with the
