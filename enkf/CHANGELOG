@@ -1,3 +1,7 @@
+v. 1.07
+   PS 29072015
+   -- Added a new option to enkf_update: --write-inflation. (It only takes
+      effect when using adaptive inflation.)
 v. 1.06.1
    PS 23072015
    -- Fixed a defect -- checking that plogs do actually exist before working

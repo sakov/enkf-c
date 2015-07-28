@@ -1201,9 +1201,9 @@ In EnKF-C one can specify the inflation multiple for analysed ensemble anomalies
 INFLATION = 1.05
 > grep temp -A 1 model.prm
 VAR = temp
-INFLATION = 1.02
+INFLATION = 1.07
 \end{Verbatim}
-In this case all model variables except ``temp'' will have inflation of 5\,\%, while ``temp'' will have inflation of $1.05 \cdot 1.02 \approx 1.07$.
+In this case all model variables except ``temp'' will have inflation of 5\,\%, while ``temp'' will have inflation of 7\,\%.
 The ability to define different inflation rates for different variables can be useful for non-dynamical variables, such as estimated biases, helping to avoid the ensemble collapse for them.
 In general, to retain dynamical balances one should rather avoid using different inflation magnitudes across model variables.
 Note that even small inflation can substantially affect the ensemble spread established in the course of evolution of the system.
