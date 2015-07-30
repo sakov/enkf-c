@@ -1156,7 +1156,8 @@ Note that in some cases it proved to be possible to obtain robust performance wi
 
 Applying spatially uniform ensemble inflation involves areas with no local observations, where no assimilation is conducted.
 It can gradually inject energy into the model and deteriorate performance of the DAS over time.
-Similar problems may arise due to lack of correlation between some state elements updated with the same transforms, so that even in presence of local observations the ensemble spread for some elements may hardly reduce.
+Similar problems may arise due to lack of correlation between some state elements updated with the same transforms, so that even in presence of local observations the ensemble spread for some elements may hardly reduce during after assimilation, yet the ensemble anomalies are inflated.
+
 To avoid this behaviour EnKF-C currently restricts inflation by specified fraction (half by default) of the the spread reduction factor calculated directly for each element of the state vector during the update.
 For example, if inflation is specified as
 \begin{Verbatim}
@@ -1180,15 +1181,15 @@ The common inflation settings in the main parmater file can be overwritten by se
 \section{DA tuning}
 \label{sec:datuning}
 
-There are the following main factors for tuning a system on the DA side:
+Following are the main parameters for tuning the DAS in EnKF-C:
 \begin{itemize}
-\item impact of observations, including the relative impact of different types of observations;
-\item inflation;
-\item localisation.
+\item R-factors;
+\item inflation magnitudes;
+\item localisation radius.
 \end{itemize}
 
-The impact of observations can tuned via the so-called R-factor, which defines the multiple of the observation error variance.
-Increasing R-factor decreases the impact of observations.
+The R-factors can be defined for each observation type.
+They represent scaling coefficients for the corresponding observation error variances and affect the impact of these observations: increasing R-factor decreases the impact of observations and vice versa.
 Specifying R-factor equal $k$ produces the same increment as reducing the ensemble spread by $k^{1/2}$ times.
 
 The main parameter file defines the base R-factor common for all observation types.
@@ -1198,19 +1199,21 @@ Multiplicative inflation can be seen as an additional forgetting factor in the K
 In EnKF-C one can specify the inflation multiple for analysed ensemble anomalies, e.g.:
 \begin{Verbatim}[frame=single,fontsize=\footnotesize]
 > grep INFLATION main.prm
-INFLATION = 1.05
+INFLATION = 1.05 PLAIN
 > grep temp -A 1 model.prm
 VAR = temp
-INFLATION = 1.07
+INFLATION = 1.07 PLAIN
 \end{Verbatim}
 In this case all model variables except ``temp'' will have inflation of 5\,\%, while ``temp'' will have inflation of 7\,\%.
 The ability to define different inflation rates for different variables can be useful for non-dynamical variables, such as estimated biases, helping to avoid the ensemble collapse for them.
 In general, to retain dynamical balances one should rather avoid using different inflation magnitudes across model variables.
 Note that even small inflation can substantially affect the ensemble spread established in the course of evolution of the system.
+By default EnKF-C applies adaptive capping of inflation (sec.~\ref{sec:capping}).
 
 Localisation radius is defined by the entry \verb|LOCRAD| in the parameter file.
 Specifically, this entry defines the support localisation radius (in km).
-This is different to the ``effective'' localisation radius, which is defined sometimes as $e^{1/2}\approx 1.65$ - folding distance, and for the Gaspary and Cohn's taper function is approximately 3.5 times smaller than the support radius.
+This is different to the ``effective'' localisation radius, which is defined sometimes as $e^{1/2}\approx 1.65$ - folding distance.
+For the Gaspary and Cohn's taper function used in EnKF-C the effective radius is approximately 3.5 times smaller than the support radius.
 
 Increasing the localisation radius increases the number of local observations and hence the overall impact of observations.
 To compensate this in a system with horizontal localisation one has to change the R-factor as the square of the localisation radius.
