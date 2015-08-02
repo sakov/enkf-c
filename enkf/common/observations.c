@@ -20,14 +20,9 @@
 #include <values.h>
 #include <assert.h>
 #include "nan.h"
-#include "stringtable.h"
 #include "ncw.h"
-#include "kdtree.h"
 #include "definitions.h"
 #include "utils.h"
-#include "enkfprm.h"
-#include "grid.h"
-#include "obstypes.h"
 #include "observations.h"
 
 #define NOBSTYPES_INC 10
@@ -43,7 +38,7 @@ typedef struct {
 
 /**
  */
-void obs_addtype(observations* obs, char name[], int issurface, char varname[], char hfunction[], double rfactor, int isasync, double async_tstep, obsdomain* domain)
+void obs_addtype(observations* obs, char name[], int issurface, char varname[], char hfunction[], double locrad, double rfactor, int isasync, double async_tstep, obsdomain* domain)
 {
     obstype* ot;
 
@@ -55,6 +50,7 @@ void obs_addtype(observations* obs, char name[], int issurface, char varname[], 
     ot->issurface = issurface;
     ot->varname = strdup(varname);
     ot->hfunction = strdup(hfunction);
+    ot->locrad = locrad;
     ot->rfactor = rfactor;
     ot->isasync = isasync;
     ot->async_tstep = async_tstep;
@@ -99,6 +95,7 @@ observations* obs_create(void)
     obs->datafiles = NULL;
     obs->nobstypes = 0;
     obs->obstypes = NULL;
+    obs->loctrees = NULL;
     obs->da_date = NaN;
     obs->datestr = NULL;
     obs->allobs = 0;
@@ -116,7 +113,6 @@ observations* obs_create(void)
     obs->nroundup = 0;
     obs->nrange = 0;
     obs->nmodified = 0;
-    obs->tree = NULL;
     obs->badbatches = NULL;
 
     return obs;
@@ -133,7 +129,7 @@ observations* obs_create_fromprm(enkfprm* prm)
     obs->datafiles = st_create("datafiles");
 
     enkf_printf("  reading observation type specs from \"%s\":\n", prm->obstypeprm);
-    obstypes_read(prm->obstypeprm, &obs->nobstypes, &obs->obstypes, prm->rfactor_base);
+    obstypes_read(prm->obstypeprm, &obs->nobstypes, &obs->obstypes, prm->locrad, prm->rfactor_base);
 
     obs->da_date = date_str2dbl(prm->date);
     obs->datestr = strdup(prm->date);
@@ -223,7 +219,7 @@ observations* obs_create_fromdata(observations* parentobs, int nobs, observation
     for (i = 0; i < parentobs->nobstypes; ++i) {
         obstype* ot = &parentobs->obstypes[i];
 
-        obs_addtype(obs, ot->name, ot->issurface, ot->varname, ot->hfunction, ot->rfactor, ot->isasync, ot->async_tstep, NULL);
+        obs_addtype(obs, ot->name, ot->issurface, ot->varname, ot->hfunction, ot->locrad, ot->rfactor, ot->isasync, ot->async_tstep, NULL);
     }
 
     obs->da_date = parentobs->da_date;
@@ -239,29 +235,24 @@ observations* obs_create_fromdata(observations* parentobs, int nobs, observation
  */
 void obs_destroy(observations* obs)
 {
-    int i;
-
     st_destroy(obs->products);
     st_destroy(obs->instruments);
     st_destroy(obs->datafiles);
-    if (obs->nobstypes > 0) {
-        for (i = 0; i < obs->nobstypes; ++i) {
-            obstype* ot = &obs->obstypes[i];
+    obstypes_destroy(obs->nobstypes, obs->obstypes);
+#if defined(ENKF_CALC)
+    if (obs->loctrees != NULL) {
+        int i;
 
-            free(ot->name);
-            free(ot->varname);
-            free(ot->hfunction);
-        }
-        free(obs->obstypes);
+        for (i = 0; i < obs->nobstypes; ++i)
+            if (obs->loctrees[i] != NULL)
+                kd_destroy(obs->loctrees[i]);
+        free(obs->loctrees);
     }
+#endif
     if (obs->nobs > 0)
         free(obs->data);
     if (obs->datestr != NULL)
         free(obs->datestr);
-#if defined(ENKF_CALC)
-    if (obs->tree != NULL)
-        kd_destroy(obs->tree);
-#endif
     if (obs->badbatches != NULL) {
         ht_process(obs->badbatches, free);
         ht_destroy(obs->badbatches);
@@ -1035,55 +1026,105 @@ static double distance(double xyz1[3], double xyz2[3])
 
 /**
  */
-void obs_createkdtree(observations* obs, grid* g)
+void obs_createkdtrees(observations* obs, model* m)
 {
-    int i;
+    int otid;
 
-    if (obs->tree != NULL)
-        kd_destroy(obs->tree);
+    if (obs->loctrees == NULL)
+        obs->loctrees = calloc(obs->nobstypes, sizeof(kdtree*));
 
-    obs->tree = kd_create(3);
-    for (i = 0; i < obs->nobs; ++i) {
-        observation* o = &obs->data[i];
-        double ll[2] = { o->lon, o->lat };
-        double point[3];
+    for (otid = 0; otid < obs->nobstypes; ++otid) {
+        obstype* ot = &obs->obstypes[otid];
+        grid* g = model_getgridbyid(m, ot->gridid);
+        kdtree** tree = &obs->loctrees[otid];
+        int nobs = 0;
+        int* obsids = NULL;
+        int i;
 
-        grid_tocartesian(g, ll, point);
-        kd_insert(obs->tree, point);
+        obs_find_bytype(obs, otid, &nobs, &obsids);
+        if (nobs == 0)
+            continue;
+
+        if (*tree != NULL)
+            kd_destroy(*tree);
+
+        *tree = kd_create(3);
+        for (i = 0; i < nobs; ++i) {
+            observation* o = &obs->data[obsids[i]];
+            double ll[2] = { o->lon, o->lat };
+            double xyz[3];
+
+            grid_tocartesian(g, ll, xyz);
+            kd_insert(*tree, xyz);
+        }
+        free(obsids);
     }
 }
 
 /**
  */
-void obs_destroykdtree(observations* obs)
+void obs_destroykdtrees(observations* obs)
 {
-    kd_destroy(obs->tree);
-    obs->tree = NULL;
+    int otid;
+
+    for (otid = 0; otid < obs->nobstypes; ++otid) {
+        kdtree** tree = &obs->loctrees[otid];
+
+        if (*tree != NULL)
+            kd_destroy(*tree);
+        *tree = NULL;
+    }
 }
 
 /**
  */
-void obs_findlocal(observations* obs, grid* g, double lon, double lat, double r, int* n, int** ids, double** lcoeffs)
+void obs_findlocal(observations* obs, model* m, grid* g, int icoord, int jcoord, int* n, int** ids, double** lcoeffs)
 {
-    double ll[2] = { lon, lat };
+    double ll[2];
     double xyz[3];
-    kdset* set = NULL;
-    int ntot, ngood;
-    int i, id;
+    int otid;
+    int i, ntot, ngood;
 
+    grid_fij2xy(g, (double) icoord, (double) jcoord, &ll[0], &ll[1]);
     grid_tocartesian(g, ll, xyz);
 
-    set = kd_nearest_range(obs->tree, xyz, r, 1);
-    for (i = 0; (id = kd_res_item_getid(set)) >= 0; kd_res_next(set), ++i) {
-        if (i % KD_INC == 0) {
-            *ids = realloc(*ids, (i + KD_INC) * sizeof(int));
-            *lcoeffs = realloc(*lcoeffs, (i + KD_INC) * sizeof(double));
-        }
-        (*ids)[i] = id;
-    }
-    kd_res_free(set);
-    ntot = i;
+    if (obs->nobstypes == 0)
+        return;
+    if (obs->loctrees == NULL)
+        obs_createkdtrees(obs, m);
 
+    for (otid = 0, i = 0; otid < obs->nobstypes; ++otid) {
+        obstype* ot = &obs->obstypes[otid];
+        kdtree* tree = obs->loctrees[otid];
+        int nobs = 0;
+        int* obsids = NULL;
+        kdset* set = NULL;
+        int id;
+
+        obs_find_bytype(obs, otid, &nobs, &obsids);
+        if (nobs == 0)
+            continue;
+
+        set = kd_nearest_range(tree, xyz, ot->locrad, 1);
+        for (; (id = kd_res_item_getid(set)) >= 0; kd_res_next(set), ++i) {
+            if (i % KD_INC == 0) {
+                *ids = realloc(*ids, (i + KD_INC) * sizeof(int));
+                *lcoeffs = realloc(*lcoeffs, (i + KD_INC) * sizeof(double));
+            }
+            (*ids)[i] = obsids[id];
+            /*
+             * use lcoeffs for storing the localisation radius
+             */
+            (*lcoeffs)[i] = ot->locrad;
+        }
+        kd_res_free(set);
+        free(obsids);
+    }
+
+    /*
+     * compact the result, calculate taper coefficients
+     */
+    ntot = i;
     for (i = 0, ngood = 0; i < ntot; ++i) {
         observation* o = &obs->data[(*ids)[i]];
         double ll2[2] = { o->lon, o->lat };
@@ -1094,7 +1135,7 @@ void obs_findlocal(observations* obs, grid* g, double lon, double lat, double r,
 
         grid_tocartesian(g, ll2, xyz2);
         (*ids)[ngood] = (*ids)[i];
-        (*lcoeffs)[ngood] = taper_gc(distance(xyz, xyz2) / r);
+        (*lcoeffs)[ngood] = taper_gc(distance(xyz, xyz2) / (*lcoeffs)[ngood]);
         ngood++;
     }
     *n = ngood;

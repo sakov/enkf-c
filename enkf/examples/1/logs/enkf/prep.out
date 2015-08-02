@@ -1,5 +1,5 @@
-  running PREP for EnKF version 1.06:
-  2015-07-22 15:17:45
+  running PREP for EnKF version 1.08:
+  2015-08-03 09:07:05
   reading prep specs from "enkf.prm":
     MODE = EnKF
     SCHEME = DEnKF
@@ -116,19 +116,21 @@
       ALLOWED MIN = -1
       ALLOWED MAX = 1
       ASYNCHRONOUS = no
+      LOCRAD  = 200
       RFACTOR = 2
     NAME = SST
-      VAR = temp
-      ls: cannot access obs/WINDSAT/windsat_20071221.nc: No such file or directory
+   ls: cannot access obs/WINDSAT/windsat_20071221.nc: No such file or directory
 ls: cannot access obs/WINDSAT/windsat_20071222.nc: No such file or directory
 ls: cannot access obs/WINDSAT/windsat_20071223.nc: No such file or directory
-ID = 1
+   VAR = temp
+      ID = 1
       ISSURFACE = yes
       HFUNCTION = standard
       ALLOWED MIN = -2
       ALLOWED MAX = 42
       ASYNCHRONOUS = no
-      RFACTOR = 2
+      LOCRAD  = 200
+      RFACTOR = 4
     NAME = TEM
       VAR = temp
       ID = 2
@@ -137,7 +139,8 @@ ID = 1
       ALLOWED MIN = -2
       ALLOWED MAX = 42
       ASYNCHRONOUS = no
-      RFACTOR = 2
+      LOCRAD  = 800
+      RFACTOR = 8
     NAME = SAL
       VAR = salt
       ID = 3
@@ -146,7 +149,8 @@ ID = 1
       ALLOWED MIN = 28
       ALLOWED MAX = 39
       ASYNCHRONOUS = no
-      RFACTOR = 2
+      LOCRAD  = 800
+      RFACTOR = 8
   reading observations:
     PRODUCT = RADS, TYPE = SLA, reader = standard2
       reading obs/RADS-IB/y2007/m12/e2_d19.nc:
@@ -316,5 +320,5 @@ ID = 1
     TEM     184        104        104        0          0          0          0          7         
     SAL     184        104        104        0          0          0          0          7         
     total   9749       211        208        0          3          0          0          3921      
-  2015-07-22 15:17:46
+  2015-08-03 09:07:06
   finished

@@ -188,7 +188,7 @@ static observations* obs_create_fromsingleob(enkfprm* prm, dasystem* das)
     void* grid = NULL;
 
     enkf_printf("  reading observation type specs from \"%s\":\n", prm->obstypeprm);
-    obstypes_read(prm->obstypeprm, &obs->nobstypes, &obs->obstypes, prm->rfactor_base);
+    obstypes_read(prm->obstypeprm, &obs->nobstypes, &obs->obstypes, prm->locrad, prm->rfactor_base);
 
     obs->da_date = date_str2dbl(prm->date);
     obs->datestr = strdup(prm->date);

@@ -28,6 +28,7 @@ typedef struct {
     double allowed_max;
     int isasync;
     double async_tstep;
+    double locrad;
     double rfactor;
 
     int vid;
@@ -54,7 +55,7 @@ typedef struct {
     double date_max;
 } obstype;
 
-void obstypes_read(char fname[], int* n, obstype** types, double rfactor_base);
+void obstypes_read(char fname[], int* n, obstype** types, double locrad_base, double rfactor_base);
 void obstypes_destroy(int n, obstype* types);
 int obstype_getid(int n, obstype types[], char* name);
 void obstypes_describeprm(void);

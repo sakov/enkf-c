@@ -222,7 +222,8 @@ void das_calctransforms(dasystem* das)
             continue;
 
         enkf_printf("    calculating transforms for %s:\n", grid_getname(grid));
-        obs_createkdtree(obs, grid);
+
+        obs_createkdtrees(obs, m);
         grid_getdims(grid, &mni, &mnj, NULL);
 
         /*
@@ -331,15 +332,9 @@ void das_calctransforms(dasystem* das)
 
                 i = iiter[ii];
 
-                {
-                    double lon, lat;
+                obs_findlocal(obs, m, grid, i, j, &ploc, &lobs, &lcoeffs);
 
-                    grid_fij2xy(grid, (double) i, (double) j, &lon, &lat);
-
-                    obs_findlocal(obs, grid, lon, lat, das->locrad, &ploc, &lobs, &lcoeffs);
-
-                    assert(ploc >= 0 && ploc <= obs->nobs);
-                }
+                assert(ploc >= 0 && ploc <= obs->nobs);
 
                 if (ploc > stats.nlobs_max)
                     stats.nlobs_max = ploc;
@@ -394,6 +389,9 @@ void das_calctransforms(dasystem* das)
                 if (das->mode == MODE_ENOI || das->scheme == SCHEME_DENKF)
                     calc_G_denkf(das->nmem, ploc, Sloc, i, j, G);
                 else if (das->scheme == SCHEME_ETKF)
+                    /*
+                     * (X5 is used for storing T)
+                     */
                     calc_G_etkf(das->nmem, ploc, Sloc, i, j, G, X5);
 
                 if (das->mode == MODE_ENKF) {
@@ -688,8 +686,6 @@ void das_calctransforms(dasystem* das)
         free(jiter);
         free(iiter);
         free(jpool);
-
-        obs_destroykdtree(obs);
     }                           /* for gid */
 }
 
@@ -712,10 +708,6 @@ void das_dopointlogs(dasystem* das)
     } else if (das->mode == MODE_ENOI)
         w = malloc(das->nmem * sizeof(double));
 
-    if (obs->tree != NULL)
-        obs_destroykdtree(obs);
-    obs_createkdtree(obs, grid);
-
     for (p = 0; p < das->nplogs; ++p) {
         int i = das->plogs[p].i;
         int j = das->plogs[p].j;
@@ -730,12 +722,7 @@ void das_dopointlogs(dasystem* das)
         double** T = NULL;
 
         printf("    calculating transform for log point (%d, %d):", i, j);
-
-        grid_fij2xy(grid, (double) i, (double) j, &lon, &lat);
-
-        assert(!isnan(lon + lat));
-
-        obs_findlocal(obs, grid, lon, lat, das->locrad, &ploc, &lobs, &lcoeffs);
+        obs_findlocal(obs, m, grid, i, j, &ploc, &lobs, &lcoeffs);
 
         assert(ploc >= 0 && ploc <= obs->nobs);
 
@@ -785,6 +772,7 @@ void das_dopointlogs(dasystem* das)
         printf(" %d obs\n", ploc);
 
         printf("    writing the log for point (%d, %d):", i, j);
+        grid_fij2xy(grid, (double) i, (double) j, &lon, &lat);
         plog_write(das, i, j, lon, lat, (grid_getdepth(grid))[j][i], ploc, lobs, lcoeffs, sloc, (ploc == 0) ? NULL : Sloc[0], (das->mode == MODE_ENKF) ? X5[0] : w);
 
         printf("\n");

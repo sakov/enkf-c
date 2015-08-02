@@ -1,3 +1,8 @@
+v. 1.08
+   PS 03082015
+   -- Modified code to make localisation radius dependent on the observation
+      type. The common value can now be overriden for  particular obs. type
+      in the observation types parameter file.
 v. 1.07
    PS 29072015
    -- Added a new option to enkf_update: --write-inflation. (It only takes

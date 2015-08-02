@@ -35,7 +35,7 @@
 
 \begin{document}
 
-\title{EnKF-C user guide\\{\normalsize version 1.07}}
+\title{EnKF-C user guide\\{\normalsize version 1.08}}
 
 \author{Pavel Sakov}
 \date{June 19, 2014 -- \today}
@@ -741,6 +741,7 @@ For example:
   [ OFFSET    = <file name> <variable name> ]    (none*)
     HFUNCTION = <H function name>
   [ ASYNC     = <time interval> ]                (synchronous*)
+  [ LOCRAD    = <locrad> ]                       (global*)
   [ RFACTOR   = <rfactor> ]                      (1*)
   [ MINVALUE  = <minimal allowed value> ]        (-inf*)
   [ MAXVALUE  = <maximal allowed value> ]        (+inf*)
@@ -755,6 +756,12 @@ For example:
 \end{Verbatim}
 
 The \verb|OFFSET| entry may be used for adding the known model bias to observations, for example, to specify the mean dynamic topography (MDT) when assimilating sea level anomaly (SLA) observations.
+
+The localisation radius for an observation type, if specified, overrides the
+comon value from the main parameter file.
+The R-factors for each observation type are obtained by multiplying the common
+value by the observation type value.
+(More on localisation radius and R-factor in sec.~\ref{sec:datuning}.)
 
 \subsection{Observation data parameter file}
 
@@ -1156,7 +1163,7 @@ Note that in some cases it proved to be possible to obtain robust performance wi
 
 Applying spatially uniform ensemble inflation involves areas with no local observations, where no assimilation is conducted.
 It can gradually inject energy into the model and deteriorate performance of the DAS over time.
-Similar problems may arise due to lack of correlation between some state elements updated with the same transforms, so that even in presence of local observations the ensemble spread for some elements may hardly reduce during after assimilation, yet the ensemble anomalies are inflated.
+Similar problems may arise due to lack of correlation between some state elements updated with the same transforms, so that even in presence of local observations the ensemble spread for some elements may hardly reduce after assimilation, yet the ensemble anomalies are inflated.
 
 To avoid this behaviour EnKF-C currently restricts inflation by specified fraction (half by default) of the the spread reduction factor calculated directly for each element of the state vector during the update.
 For example, if inflation is specified as
@@ -1181,7 +1188,7 @@ The common inflation settings in the main parmater file can be overwritten by se
 \section{DA tuning}
 \label{sec:datuning}
 
-Following are the main parameters for tuning the DAS in EnKF-C:
+Following are the main parameters for DAS tuning in EnKF-C:
 \begin{itemize}
 \item R-factors;
 \item inflation magnitudes;
