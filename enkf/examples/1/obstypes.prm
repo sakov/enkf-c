@@ -12,6 +12,8 @@ ISSURFACE = yes
 HFUNCTION = standard
 MINVALUE = -2.0
 MAXVALUE = 42.0
+# Increase rfactor for SST to avoid overfitting.
+RFACTOR = 2
 
 NAME = TEM
 VAR = temp
@@ -19,6 +21,12 @@ ISSURFACE = no
 HFUNCTION = standard
 MINVALUE = -2.0
 MAXVALUE = 42.0
+# Here we increase the localisation radius for subsurface obs
+# to increase their impact (as they are sparse in the ocean)
+# At the same time we increase the error. The overall impact
+# changes as (800 / 200)^2 / 4, that is increases by  factor of 4.
+LOCRAD = 800
+RFACTOR = 4
 
 NAME = SAL
 VAR = salt
@@ -26,3 +34,6 @@ ISSURFACE = no
 HFUNCTION = standard
 MINVALUE = 28.0
 MAXVALUE = 39.0
+# (see comments above)
+LOCRAD = 800
+RFACTOR = 4

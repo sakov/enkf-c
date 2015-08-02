@@ -1,8 +1,8 @@
   MPI: initialised 2 processes
-  MPI: rank = 1, PID = 23928
-  MPI: rank = 0, PID = 23927
-  running CALC for EnKF version 1.06:
-  2015-07-22 15:19:43
+  MPI: rank = 0, PID = 8861
+  MPI: rank = 1, PID = 8862
+  running CALC for EnKF version 1.08:
+  2015-08-03 09:09:41
   reading system specs from "stats.prm":
     MODE = EnOI
     MODEL PRM = "model.prm"
@@ -34,6 +34,7 @@
       ALLOWED MIN = -1
       ALLOWED MAX = 1
       ASYNCHRONOUS = no
+      LOCRAD  = nan
       RFACTOR = 1
     NAME = SST
       VAR = temp
@@ -43,7 +44,8 @@
       ALLOWED MIN = -2
       ALLOWED MAX = 42
       ASYNCHRONOUS = no
-      RFACTOR = 1
+      LOCRAD  = nan
+      RFACTOR = 2
     NAME = TEM
       VAR = temp
       ID = 2
@@ -52,7 +54,8 @@
       ALLOWED MIN = -2
       ALLOWED MAX = 42
       ASYNCHRONOUS = no
-      RFACTOR = 1
+      LOCRAD  = 800
+      RFACTOR = 4
     NAME = SAL
       VAR = salt
       ID = 3
@@ -61,7 +64,8 @@
       ALLOWED MIN = 28
       ALLOWED MAX = 39
       ASYNCHRONOUS = no
-      RFACTOR = 1
+      LOCRAD  = 800
+      RFACTOR = 4
     grid prm info:
       NAME = "t-grid"
       FILE = "conf/grid_spec.nc"
@@ -98,7 +102,7 @@
     3921 observations
     calculating obs stats:
   calculating ensemble observations:
-  2015-07-22 15:19:43
+  2015-08-03 09:09:41
     ensemble size = 1
     distributing iterations:
       processes get 1 or 0 iterations
@@ -107,7 +111,7 @@
     TEM +
     SAL +
   adding forecast innovations and spread to "observations.nc":
-  2015-07-22 15:19:43
+  2015-08-03 09:09:41
   printing observation statistics:
     region obs.type   # obs.  |for.inn.| for.inn.
     ---------------------------------------------
@@ -128,5 +132,5 @@
              ARGO          7    0.077      0.054  
              0-50m         2    0.088      0.074  
              >500m         0     -nan       -nan  
-  2015-07-22 15:19:43
+  2015-08-03 09:09:41
   finished

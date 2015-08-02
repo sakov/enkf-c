@@ -15,13 +15,13 @@
 
 #if !defined(_OBSERVATIONS_H)
 
-#include "definitions.h"
 #include "stringtable.h"
 #include "hash.h"
 #include "kdtree.h"
 #include "enkfprm.h"
 #include "grid.h"
 #include "obstypes.h"
+#include "model.h"
 
 typedef struct {
     int type;
@@ -62,6 +62,7 @@ typedef struct {
 
     int nobstypes;
     obstype* obstypes;
+    kdtree** loctrees;
 
     double da_date;             /* days since 00:00:00
                                  * BASEDAY-BASEMONTH-BASEYEAR */
@@ -86,7 +87,6 @@ typedef struct {
     int nrange;
     int nmodified;
 
-    kdtree* tree;
     hashtable* badbatches;
 } observations;
 
@@ -95,7 +95,7 @@ observations* obs_create_fromprm(enkfprm* prm);
 observations* obs_create_fromdata(observations* parentobs, int nobs, observation data[]);
 void obs_destroy(observations* obs);
 void obs_checkalloc(observations* obs);
-void obs_addtype(observations* obs, char name[], int issurface, char varname[], char hfunction[], double rfactor, int isasync, double async_tstep, obsdomain* domain);
+void obs_addtype(observations* obs, char name[], int issurface, char varname[], char hfunction[], double locrad, double rfactor, int isasync, double async_tstep, obsdomain* domain);
 void obs_compact(observations* obs);
 void obs_inorder(observations* obs);
 void obs_calcstats(observations* obs);
@@ -107,9 +107,9 @@ void obs_writeaux(observations* obs, char fname[]);
 void obs_find_bytype(observations* obs, int type, int* nobs, int** obsids);
 void obs_find_bytypeandtime(observations* obs, int type, int time, int* nobs, int** obsids);
 void obs_printob(observations* obs, int id);
-void obs_createkdtree(observations* obs, grid* g);
-void obs_destroykdtree(observations* obs);
-void obs_findlocal(observations* obs, grid* g, double lon, double lat, double locrad, int* n, int** ids, double** lcoeffs);
+void obs_createkdtrees(observations* obs, model* m);
+void obs_destroykdtrees(observations* obs);
+void obs_findlocal(observations* obs, model* m, grid* g, int i, int j, int* n, int** ids, double** lcoeffs);
 
 #define _OBSERVATIONS_H
 #endif

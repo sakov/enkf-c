@@ -1,8 +1,8 @@
   MPI: initialised 2 processes
-  MPI: rank = 0, PID = 23883
-  MPI: rank = 1, PID = 23884
-  running CALC for EnKF version 1.06:
-  2015-07-22 15:19:06
+  MPI: rank = 0, PID = 8768
+  MPI: rank = 1, PID = 8769
+  running CALC for EnKF version 1.08:
+  2015-08-03 09:08:26
   reading system specs from "enoi.prm":
     MODE = EnOI
     MODEL PRM = "model.prm"
@@ -44,6 +44,7 @@
       ALLOWED MIN = -1
       ALLOWED MAX = 1
       ASYNCHRONOUS = no
+      LOCRAD  = 200
       RFACTOR = 1
     NAME = SST
       VAR = temp
@@ -53,7 +54,8 @@
       ALLOWED MIN = -2
       ALLOWED MAX = 42
       ASYNCHRONOUS = no
-      RFACTOR = 1
+      LOCRAD  = 200
+      RFACTOR = 2
     NAME = TEM
       VAR = temp
       ID = 2
@@ -62,7 +64,8 @@
       ALLOWED MIN = -2
       ALLOWED MAX = 42
       ASYNCHRONOUS = no
-      RFACTOR = 1
+      LOCRAD  = 800
+      RFACTOR = 4
     NAME = SAL
       VAR = salt
       ID = 3
@@ -71,7 +74,8 @@
       ALLOWED MIN = 28
       ALLOWED MAX = 39
       ASYNCHRONOUS = no
-      RFACTOR = 1
+      LOCRAD  = 800
+      RFACTOR = 4
     grid prm info:
       NAME = "t-grid"
       FILE = "conf/grid_spec.nc"
@@ -108,7 +112,7 @@
     3921 observations
     calculating obs stats:
   calculating ensemble observations:
-  2015-07-22 15:19:06
+  2015-08-03 09:08:26
     ensemble size = 144
     distributing iterations:
       all processes get 72 iterations
@@ -117,7 +121,7 @@
     TEM ........................................................................+
     SAL ........................................................................+
   adding forecast innovations and spread to "observations.nc":
-  2015-07-22 15:19:12
+  2015-08-03 09:08:31
   moderating observations:
     observations substantially modified:
       SLA          0 (0.0%)
@@ -127,7 +131,7 @@
       total        0 (0.0%)
   writing modified obs errors to "observations.nc":
   calculating transforms:
-  2015-07-22 15:19:12
+  2015-08-03 09:08:31
     calculating transforms for t-grid:
     creating empty file "w.nc":
       distributing iterations:
@@ -137,32 +141,32 @@
         j = 3 (1: 17: 5.9%)
         j = 9 (1: 18: 11.8%)
         j = 6 (0: 1: 11.8%)
-        j = 15 (1: 19: 17.6%)
         j = 12 (0: 2: 17.6%)
+        j = 15 (1: 19: 17.6%)
         j = 21 (1: 20: 23.5%)
         j = 18 (0: 3: 23.5%)
-        j = 27 (1: 21: 29.4%)
         j = 24 (0: 4: 29.4%)
+        j = 27 (1: 21: 29.4%)
         j = 33 (1: 22: 35.3%)
         j = 30 (0: 5: 35.3%)
-        j = 39 (1: 23: 41.2%)
         j = 36 (0: 6: 41.2%)
+        j = 39 (1: 23: 41.2%)
         j = 45 (1: 24: 47.1%)
         j = 42 (0: 7: 47.1%)
-        j = 51 (1: 25: 52.9%)
         j = 48 (0: 8: 52.9%)
-        j = 57 (1: 26: 58.8%)
+        j = 51 (1: 25: 52.9%)
         j = 54 (0: 9: 58.8%)
+        j = 57 (1: 26: 58.8%)
         j = 63 (1: 27: 64.7%)
         j = 60 (0: 10: 64.7%)
-        j = 69 (1: 28: 70.6%)
         j = 66 (0: 11: 70.6%)
+        j = 69 (1: 28: 70.6%)
         j = 72 (0: 12: 76.5%)
         j = 75 (1: 29: 76.5%)
         j = 78 (0: 13: 82.4%)
         j = 81 (1: 30: 82.4%)
-        j = 84 (0: 14: 88.2%)
         j = 87 (1: 31: 88.2%)
+        j = 84 (0: 14: 88.2%)
         j = 93 (1: 32: 94.1%)
         j = 90 (0: 15: 94.1%)
         j = 99 (1: 33: 100.0%)
@@ -171,14 +175,14 @@
     writing stats to "enkf_diag.nc":
     summary stats on t-grid:
       # of local analyses = 1156
-      average # of local obs = 394.7
-      # of inversions in obs space = 120
-      # of inversions in ens space = 1016
+      average # of local obs = 404.7
+      # of inversions in obs space = 136
+      # of inversions in ens space = 1020
   writing point logs:
-    calculating transform for log point (30, 50): 524 obs
+    calculating transform for log point (30, 50): 538 obs
     writing the log for point (30, 50):
   calculating analysed observations:
-  2015-07-22 15:19:25
+  2015-08-03 09:08:45
     sorting obs by ij:
     updating Hx:
   adding analysis innovations and spread to "observations.nc":
@@ -186,21 +190,21 @@
     region obs.type   # obs.  |for.inn.| |an.inn.|   for.inn.   an.inn.  for.spread  an.spread
     ------------------------------------------------------------------------------------------
     Global
-           SLA           652    0.082      0.029      0.027      0.001      0.027      0.027  
+           SLA           652    0.082      0.029      0.027      0.000      0.027      0.027  
              j1          250    0.087      0.021      0.041      0.004      0.030      0.030  
-             n1          382    0.077      0.035      0.015     -0.002      0.025      0.025  
-             N/A          20    0.095      0.020      0.085      0.012      0.028      0.028  
-           SST          3255    0.461      0.157     -0.244     -0.013      0.422      0.422  
-             AVHRR      2087    0.467      0.138     -0.217     -0.000      0.427      0.427  
-             WindSat     847    0.472      0.225     -0.307     -0.046      0.406      0.406  
-             N/A         321    0.393      0.106     -0.252     -0.006      0.427      0.427  
-           TEM             7    1.015      0.861      0.495      0.793      0.296      0.296  
-             ARGO          7    1.015      0.861      0.495      0.793      0.296      0.296  
-             0-50m         2    1.471      2.568      1.471      2.568      0.305      0.305  
+             n1          382    0.077      0.034      0.015     -0.003      0.025      0.025  
+             N/A          20    0.095      0.019      0.085      0.012      0.028      0.028  
+           SST          3255    0.461      0.179     -0.244     -0.020      0.422      0.422  
+             AVHRR      2087    0.467      0.158     -0.217     -0.003      0.427      0.427  
+             WindSat     847    0.472      0.250     -0.307     -0.066      0.406      0.406  
+             N/A         321    0.393      0.124     -0.252     -0.012      0.427      0.427  
+           TEM             7    1.015      0.956      0.495      0.872      0.296      0.296  
+             ARGO          7    1.015      0.956      0.495      0.872      0.296      0.296  
+             0-50m         2    1.471      2.560      1.471      2.560      0.305      0.305  
              >500m         0     -nan       -nan       -nan       -nan       -nan       -nan  
-           SAL             7    0.077      0.061      0.054      0.037      0.023      0.023  
-             ARGO          7    0.077      0.061      0.054      0.037      0.023      0.023  
-             0-50m         2    0.088      0.098      0.074      0.063      0.019      0.019  
+           SAL             7    0.077      0.077      0.054      0.049      0.023      0.023  
+             ARGO          7    0.077      0.077      0.054      0.049      0.023      0.023  
+             0-50m         2    0.088      0.102      0.074      0.073      0.019      0.019  
              >500m         0     -nan       -nan       -nan       -nan       -nan       -nan  
-  2015-07-22 15:19:26
+  2015-08-03 09:08:45
   finished

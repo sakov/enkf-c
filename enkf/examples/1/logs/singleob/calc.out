@@ -1,8 +1,8 @@
   MPI: initialised 2 processes
-  MPI: rank = 0, PID = 23936
-  MPI: rank = 1, PID = 23937
-  running CALC for EnKF version 1.06:
-  2015-07-22 15:20:29
+  MPI: rank = 0, PID = 8870
+  MPI: rank = 1, PID = 8871
+  running CALC for EnKF version 1.08:
+  2015-08-03 09:09:53
   reading system specs from "singleob.prm":
     MODE = EnOI
     MODEL PRM = "model.prm"
@@ -44,6 +44,7 @@
       ALLOWED MIN = -1
       ALLOWED MAX = 1
       ASYNCHRONOUS = no
+      LOCRAD  = 500
       RFACTOR = 1
     NAME = SST
       VAR = temp
@@ -53,7 +54,8 @@
       ALLOWED MIN = -2
       ALLOWED MAX = 42
       ASYNCHRONOUS = no
-      RFACTOR = 1
+      LOCRAD  = 500
+      RFACTOR = 2
     NAME = TEM
       VAR = temp
       ID = 2
@@ -62,7 +64,8 @@
       ALLOWED MIN = -2
       ALLOWED MAX = 42
       ASYNCHRONOUS = no
-      RFACTOR = 1
+      LOCRAD  = 800
+      RFACTOR = 4
     NAME = SAL
       VAR = salt
       ID = 3
@@ -71,7 +74,8 @@
       ALLOWED MIN = 28
       ALLOWED MAX = 39
       ASYNCHRONOUS = no
-      RFACTOR = 1
+      LOCRAD  = 800
+      RFACTOR = 4
     grid prm info:
       NAME = "t-grid"
       FILE = "conf/grid_spec.nc"
@@ -114,6 +118,7 @@
       ALLOWED MIN = -1
       ALLOWED MAX = 1
       ASYNCHRONOUS = no
+      LOCRAD  = 500
       RFACTOR = 1
     NAME = SST
       VAR = temp
@@ -123,7 +128,8 @@
       ALLOWED MIN = -2
       ALLOWED MAX = 42
       ASYNCHRONOUS = no
-      RFACTOR = 1
+      LOCRAD  = 500
+      RFACTOR = 2
     NAME = TEM
       VAR = temp
       ID = 2
@@ -132,7 +138,8 @@
       ALLOWED MIN = -2
       ALLOWED MAX = 42
       ASYNCHRONOUS = no
-      RFACTOR = 1
+      LOCRAD  = 800
+      RFACTOR = 4
     NAME = SAL
       VAR = salt
       ID = 3
@@ -141,7 +148,8 @@
       ALLOWED MIN = 28
       ALLOWED MAX = 39
       ASYNCHRONOUS = no
-      RFACTOR = 1
+      LOCRAD  = 800
+      RFACTOR = 4
   assimilating single observation:
     type = SST
     inn  = 0.500
@@ -152,7 +160,7 @@
     j    = 50.000
     calculating obs stats:
   calculating ensemble observations:
-  2015-07-22 15:20:29
+  2015-08-03 09:09:53
     ensemble size = 96
     distributing iterations:
       all processes get 48 iterations
@@ -161,14 +169,14 @@
     TEM 
     SAL 
   calculating transforms:
-  2015-07-22 15:20:29
+  2015-08-03 09:09:53
     calculating transforms for t-grid:
     creating empty file "w.nc":
       distributing iterations:
         all processes get 17 iterations
       main cycle for t-grid (34 x 34 local analyses):
-        j = 0 (0: 0: 5.9%)
         j = 3 (1: 17: 5.9%)
+        j = 0 (0: 0: 5.9%)
         j = 9 (1: 18: 11.8%)
         j = 6 (0: 1: 11.8%)
         j = 15 (1: 19: 17.6%)
@@ -181,24 +189,24 @@
         j = 30 (0: 5: 35.3%)
         j = 39 (1: 23: 41.2%)
         j = 36 (0: 6: 41.2%)
-        j = 45 (1: 24: 47.1%)
         j = 42 (0: 7: 47.1%)
-        j = 51 (1: 25: 52.9%)
+        j = 45 (1: 24: 47.1%)
         j = 48 (0: 8: 52.9%)
+        j = 51 (1: 25: 52.9%)
         j = 57 (1: 26: 58.8%)
         j = 54 (0: 9: 58.8%)
-        j = 63 (1: 27: 64.7%)
         j = 60 (0: 10: 64.7%)
-        j = 69 (1: 28: 70.6%)
+        j = 63 (1: 27: 64.7%)
         j = 66 (0: 11: 70.6%)
-        j = 75 (1: 29: 76.5%)
+        j = 69 (1: 28: 70.6%)
         j = 72 (0: 12: 76.5%)
-        j = 81 (1: 30: 82.4%)
+        j = 75 (1: 29: 76.5%)
         j = 78 (0: 13: 82.4%)
-        j = 87 (1: 31: 88.2%)
+        j = 81 (1: 30: 82.4%)
         j = 84 (0: 14: 88.2%)
-        j = 93 (1: 32: 94.1%)
+        j = 87 (1: 31: 88.2%)
         j = 90 (0: 15: 94.1%)
+        j = 93 (1: 32: 94.1%)
         j = 99 (1: 33: 100.0%)
         j = 96 (0: 16: 100.0%)
     finished calculating transforms for t-grid
@@ -212,14 +220,14 @@
     calculating transform for log point (30, 50): 1 obs
     writing the log for point (30, 50):
   calculating analysed observations:
-  2015-07-22 15:20:29
+  2015-08-03 09:09:53
     sorting obs by ij:
     updating Hx:
   printing observation statistics:
     region obs.type   # obs.  |for.inn.| |an.inn.|   for.inn.   an.inn.  for.spread  an.spread
     ------------------------------------------------------------------------------------------
     Global
-           SST             1    0.500      0.186      0.500      0.186      0.655      0.655  
-             Virtual       1    0.500      0.186      0.500      0.186      0.655      0.655  
-  2015-07-22 15:20:29
+           SST             1    0.500      0.271      0.500      0.271      0.655      0.655  
+             Virtual       1    0.500      0.271      0.500      0.271      0.655      0.655  
+  2015-08-03 09:09:53
   finished

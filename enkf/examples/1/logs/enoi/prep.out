@@ -1,5 +1,5 @@
-  running PREP for EnKF version 1.06:
-  2015-07-22 15:19:06
+  running PREP for EnKF version 1.08:
+  2015-08-03 09:08:26
   reading prep specs from "enoi.prm":
     MODE = EnOI
     MODEL PRM = "model.prm"
@@ -116,19 +116,21 @@
       ALLOWED MIN = -1
       ALLOWED MAX = 1
       ASYNCHRONOUS = no
+      LOCRAD  = 200
       RFACTOR = 1
-    NAME = SST
-      VARls: cannot access obs/WINDSAT/windsat_20071221.nc: No such file or directory
+    ls: cannot access obs/WINDSAT/windsat_20071221.nc: No such file or directory
 ls: cannot access obs/WINDSAT/windsat_20071222.nc: No such file or directory
 ls: cannot access obs/WINDSAT/windsat_20071223.nc: No such file or directory
- = temp
+NAME = SST
+      VAR = temp
       ID = 1
       ISSURFACE = yes
       HFUNCTION = standard
       ALLOWED MIN = -2
       ALLOWED MAX = 42
       ASYNCHRONOUS = no
-      RFACTOR = 1
+      LOCRAD  = 200
+      RFACTOR = 2
     NAME = TEM
       VAR = temp
       ID = 2
@@ -137,7 +139,8 @@ ls: cannot access obs/WINDSAT/windsat_20071223.nc: No such file or directory
       ALLOWED MIN = -2
       ALLOWED MAX = 42
       ASYNCHRONOUS = no
-      RFACTOR = 1
+      LOCRAD  = 800
+      RFACTOR = 4
     NAME = SAL
       VAR = salt
       ID = 3
@@ -146,7 +149,8 @@ ls: cannot access obs/WINDSAT/windsat_20071223.nc: No such file or directory
       ALLOWED MIN = 28
       ALLOWED MAX = 39
       ASYNCHRONOUS = no
-      RFACTOR = 1
+      LOCRAD  = 800
+      RFACTOR = 4
   reading observations:
     PRODUCT = RADS, TYPE = SLA, reader = standard2
       reading obs/RADS-IB/y2007/m12/e2_d19.nc:
@@ -316,5 +320,5 @@ ls: cannot access obs/WINDSAT/windsat_20071223.nc: No such file or directory
     TEM     184        104        104        0          0          0          0          7         
     SAL     184        104        104        0          0          0          0          7         
     total   9749       211        208        0          3          0          0          3921      
-  2015-07-22 15:19:06
+  2015-08-03 09:08:26
   finished

@@ -18,8 +18,10 @@
 #include <string.h>
 #include <values.h>
 #include <assert.h>
-#include "string.h"
+#include <string.h>
+#include <math.h>
 #include "nan.h"
+#include "kdtree.h"
 #include "definitions.h"
 #include "utils.h"
 #include "obstypes.h"
@@ -53,6 +55,7 @@ static void obstype_new(obstype* type, int i, char* name)
     type->allowed_max = DBL_MAX;
     type->isasync = 0;
     type->async_tstep = NaN;
+    type->locrad = NaN;
     type->rfactor = 1.0;
     type->vid = -1;
     type->gridid = -1;
@@ -108,6 +111,7 @@ static void obstype_print(obstype* type)
         enkf_printf(", DT = %.3f\n", type->async_tstep);
     else
         enkf_printf("\n");
+    enkf_printf("      LOCRAD  = %.3g\n", type->locrad);
     enkf_printf("      RFACTOR = %.3g\n", type->rfactor);
     if (type->xmin > -DBL_MAX || type->xmax < DBL_MAX || type->ymin > -DBL_MAX || type->ymax < DBL_MAX || type->zmin > -DBL_MAX || type->zmax < DBL_MAX)
         enkf_printf("      DOMAIN = %.3g %.3g %.3g %.3g %.3g %.3g\n", type->xmin, type->xmax, type->ymin, type->ymax, type->zmin, type->zmax);
@@ -115,7 +119,7 @@ static void obstype_print(obstype* type)
 
 /**
  */
-void obstypes_read(char fname[], int* n, obstype** types, double rfactor_base)
+void obstypes_read(char fname[], int* n, obstype** types, double locrad_base, double rfactor_base)
 {
     FILE* f = NULL;
     char buf[MAXSTRLEN];
@@ -201,6 +205,11 @@ void obstypes_read(char fname[], int* n, obstype** types, double rfactor_base)
                 enkf_quit("%s, l.%d: ASYNC time interval not specified", fname, line);
             if (!str2double(token, &now->async_tstep))
                 enkf_quit("%s, l.%d: could not convert \"%s\" to double", fname, line, token);
+        } else if (strcasecmp(token, "LOCRAD") == 0) {
+            if ((token = strtok(NULL, seps)) == NULL)
+                enkf_quit("%s, l.%d: LOCRAD not specified", fname, line);
+            if (!str2double(token, &now->locrad))
+                enkf_quit("%s, l.%d: could not convert \"%s\" to double", fname, line, token);
         } else if (strcasecmp(token, "RFACTOR") == 0) {
             if ((token = strtok(NULL, seps)) == NULL)
                 enkf_quit("%s, l.%d: RFACTOR not specified", fname, line);
@@ -242,6 +251,10 @@ void obstypes_read(char fname[], int* n, obstype** types, double rfactor_base)
     fclose(f);
 
     for (i = 0; i < *n; ++i)
+        if (isnan((*types)[i].locrad))
+            (*types)[i].locrad = locrad_base;
+
+    for (i = 0; i < *n; ++i)
         (*types)[i].rfactor *= rfactor_base;
 
     for (i = 0; i < *n; ++i) {
@@ -255,6 +268,9 @@ void obstypes_read(char fname[], int* n, obstype** types, double rfactor_base)
 void obstypes_destroy(int n, obstype* types)
 {
     int i;
+
+    if (n == 0)
+        return;
 
     for (i = 0; i < n; ++i) {
         obstype* type = &types[i];
@@ -287,6 +303,7 @@ void obstypes_describeprm(void)
     enkf_printf("  [ OFFSET    = <file name> <variable name> ]    (none*)\n");
     enkf_printf("    HFUNCTION = <H function name>\n");
     enkf_printf("  [ ASYNC     = <time interval> ]                (synchronous*)\n");
+    enkf_printf("  [ LOCRAD    = <locrad> ]                       (global*)\n");
     enkf_printf("  [ RFACTOR   = <rfactor> ]                      (1*)\n");
     enkf_printf("  [ MINVALUE  = <minimal allowed value> ]        (-inf*)\n");
     enkf_printf("  [ MAXVALUE  = <maximal allowed value> ]        (+inf*)\n");
