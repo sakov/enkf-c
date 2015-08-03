@@ -49,8 +49,7 @@ void obs_addtype(observations* obs, char name[], int issurface, char varname[], 
     ot->name = strdup(name);
     ot->issurface = issurface;
     ot->varname = strdup(varname);
-    if (varname2 != NULL)
-        ot->varname2 = strdup(varname2);
+    ot->varname2 = (varname2 != NULL) ? strdup(varname2) : NULL;
     ot->hfunction = strdup(hfunction);
     ot->locrad = locrad;
     ot->rfactor = rfactor;
