@@ -38,7 +38,7 @@ typedef struct {
 
 /**
  */
-void obs_addtype(observations* obs, char name[], int issurface, char varname[], char varname2[], char hfunction[], double locrad, double rfactor, int isasync, double async_tstep, obsdomain* domain)
+void obs_addtype(observations* obs, obstype* src, obsdomain* domain)
 {
     obstype* ot;
 
@@ -46,15 +46,19 @@ void obs_addtype(observations* obs, char name[], int issurface, char varname[], 
         obs->obstypes = realloc(obs->obstypes, (obs->nobstypes + NOBSTYPES_INC) * sizeof(obstype));
     ot = &obs->obstypes[obs->nobstypes];
     ot->id = obs->nobstypes;
-    ot->name = strdup(name);
-    ot->issurface = issurface;
-    ot->varname = strdup(varname);
-    ot->varname2 = (varname2 != NULL) ? strdup(varname2) : NULL;
-    ot->hfunction = strdup(hfunction);
-    ot->locrad = locrad;
-    ot->rfactor = rfactor;
-    ot->isasync = isasync;
-    ot->async_tstep = async_tstep;
+    ot->name = strdup(src->name);
+    ot->varname = strdup(src->varname);
+    ot->varname2 = (src->varname2 != NULL) ? strdup(src->varname2) : NULL;
+    ot->offset_fname = (src->offset_fname != NULL) ? strdup(src->offset_fname) : NULL;
+    ot->offset_varname = (src->offset_varname != NULL) ? strdup(src->offset_varname) : NULL;
+    ot->hfunction = strdup(src->hfunction);
+    ot->issurface = src->issurface;
+    ot->allowed_min = src->allowed_min;
+    ot->allowed_max = src->allowed_max;
+    ot->isasync = src->isasync;
+    ot->async_tstep = src->async_tstep;
+    ot->locrad = src->locrad;
+    ot->rfactor = src->rfactor;
     ot->nobs = -1;
     ot->ngood = -1;
     ot->noutside = -1;
@@ -217,11 +221,8 @@ observations* obs_create_fromdata(observations* parentobs, int nobs, observation
     obs->instruments = st_copy(parentobs->instruments);
     obs->datafiles = st_copy(parentobs->datafiles);
 
-    for (i = 0; i < parentobs->nobstypes; ++i) {
-        obstype* ot = &parentobs->obstypes[i];
-
-        obs_addtype(obs, ot->name, ot->issurface, ot->varname, ot->varname2, ot->hfunction, ot->locrad, ot->rfactor, ot->isasync, ot->async_tstep, NULL);
-    }
+    for (i = 0; i < parentobs->nobstypes; ++i)
+        obs_addtype(obs, &parentobs->obstypes[i], NULL);
 
     obs->da_date = parentobs->da_date;
     obs->datestr = strdup(parentobs->datestr);
