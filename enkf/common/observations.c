@@ -1137,7 +1137,7 @@ void obs_findlocal(observations* obs, model* m, grid* g, int icoord, int jcoord,
 
         grid_tocartesian(g, ll2, xyz2);
         (*ids)[ngood] = (*ids)[i];
-        (*lcoeffs)[ngood] = taper_gc(distance(xyz, xyz2) / (*lcoeffs)[ngood]);
+        (*lcoeffs)[ngood] = taper_gc(distance(xyz, xyz2) / (*lcoeffs)[i]);
         ngood++;
     }
     *n = ngood;
