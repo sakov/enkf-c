@@ -667,6 +667,7 @@ void das_calctransforms(dasystem* das)
                 stats.ncell += morestats.ncell;
             }
         }
+        MPI_Barrier(MPI_COMM_WORLD);
 #endif
 
         enkf_printf("    summary stats on %s:\n", grid_getname(grid));
