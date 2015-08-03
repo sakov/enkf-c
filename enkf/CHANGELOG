@@ -1,3 +1,5 @@
+v. 1.08.1
+   PS 03082015 A bug corrected in das_writefields().
 v. 1.08
    PS 03082015
    -- Modified code to make localisation radius dependent on the observation
