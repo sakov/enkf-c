@@ -38,7 +38,7 @@ typedef struct {
 
 /**
  */
-void obs_addtype(observations* obs, char name[], int issurface, char varname[], char hfunction[], double locrad, double rfactor, int isasync, double async_tstep, obsdomain* domain)
+void obs_addtype(observations* obs, char name[], int issurface, char varname[], char varname2[], char hfunction[], double locrad, double rfactor, int isasync, double async_tstep, obsdomain* domain)
 {
     obstype* ot;
 
@@ -49,6 +49,7 @@ void obs_addtype(observations* obs, char name[], int issurface, char varname[], 
     ot->name = strdup(name);
     ot->issurface = issurface;
     ot->varname = strdup(varname);
+    ot->varname2 = strdup(varname2);
     ot->hfunction = strdup(hfunction);
     ot->locrad = locrad;
     ot->rfactor = rfactor;
@@ -219,7 +220,7 @@ observations* obs_create_fromdata(observations* parentobs, int nobs, observation
     for (i = 0; i < parentobs->nobstypes; ++i) {
         obstype* ot = &parentobs->obstypes[i];
 
-        obs_addtype(obs, ot->name, ot->issurface, ot->varname, ot->hfunction, ot->locrad, ot->rfactor, ot->isasync, ot->async_tstep, NULL);
+        obs_addtype(obs, ot->name, ot->issurface, ot->varname, ot->varname2, ot->hfunction, ot->locrad, ot->rfactor, ot->isasync, ot->async_tstep, NULL);
     }
 
     obs->da_date = parentobs->da_date;
