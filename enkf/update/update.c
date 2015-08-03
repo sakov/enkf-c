@@ -330,7 +330,8 @@ static void das_updatefields(dasystem* das, int nfields, void** fieldbuffer, fie
                     if (writeinflation)
                         infl[i] = inflation;
                 }               /* for i */
-                das_writeinflation(das, f, j, infl);
+                if (writeinflation)
+                    das_writeinflation(das, f, j, infl);
             }                   /* for fid */
         }                       /* for stepj */
     }                           /* for jj */
