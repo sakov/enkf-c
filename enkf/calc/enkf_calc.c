@@ -29,6 +29,7 @@ int singleob_ijk = 1;
 char* singleobtype = NULL;
 int printbatchstats = 0;
 int ignorenoobs = 0;
+int use_rmsd = 0;
 
 /**
  */
@@ -50,6 +51,8 @@ static void usage()
     enkf_printf("      assimilate single observation with these parameters\n");
     enkf_printf("  --single-observation-ijk <fi> <fj> <fk> <type> <inn> <std>\n");
     enkf_printf("      assimilate single observation with these parameters\n");
+    enkf_printf("  --use-rmsd-for-obsstats\n");
+    enkf_printf("      use RMSD rather than MAD when printing observation stats\n");
     enkf_printf("  --use-these-obs <obs file>\n");
     enkf_printf("      assimilate observations from this file; the file format must be compatible\n");
     enkf_printf("      with that of observations.nc produced by `enkf_prep'\n");
@@ -160,6 +163,10 @@ static void parse_commandline(int argc, char* argv[], char** fname_prm, char** f
                 continue;
             } else
                 usage();
+        } else if (strcmp(argv[i], "--use-rmsd-for-obsstats") == 0) {
+            use_rmsd = 1;
+            i++;
+            continue;
         } else if (strcmp(argv[i], "--forecast-stats-only") == 0) {
             if (singleob != NULL)
                 enkf_quit("command line: \"--forecast-stats-only\" is not compatible with \"--single-observation-ijk\" or \"--single-observation-xyz\"");
@@ -272,6 +279,7 @@ int main(int argc, char* argv[])
 
     enkf_init(&argc, &argv);
     enkf_printf("  running CALC for EnKF version %s:\n", ENKF_VERSION);
+    print_commandinfo(argc, argv);
     enkf_printtime("  ");
 
     enkf_printf("  reading system specs from \"%s\":\n", fname_prm);
@@ -341,10 +349,10 @@ int main(int argc, char* argv[])
         }
 
         enkf_printf("  printing observation statistics:\n");
-        das_printobsstats(das);
+        das_printobsstats(das, use_rmsd);
     } else {
         enkf_printf("  printing observation statistics:\n");
-        das_printfobsstats(das);
+        das_printfobsstats(das, use_rmsd);
     }
 
     if (printbatchstats || das->nbadbatchspecs > 0)

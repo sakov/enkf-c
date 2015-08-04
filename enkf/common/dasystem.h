@@ -120,8 +120,8 @@ void das_interpolate2d(dasystem* das, char fname[], float** v, int nobs, int obs
 void das_interpolate3d(dasystem* das, char fname[], float*** v, int nobs, int obsids[], double out[]);
 void das_moderateobs(dasystem* das);
 void das_calcbatchstats(dasystem* das, int doprint);
-void das_printobsstats(dasystem* das);
-void das_printfobsstats(dasystem* das);
+void das_printobsstats(dasystem* das, int use_rmsd);
+void das_printfobsstats(dasystem* das, int use_rmsd);
 void das_readobs(dasystem* das, char fname[]);
 void das_standardise(dasystem* das);
 void das_destandardise(dasystem* das);

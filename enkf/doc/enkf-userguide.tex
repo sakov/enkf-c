@@ -35,7 +35,7 @@
 
 \begin{document}
 
-\title{EnKF-C user guide\\{\normalsize version 1.08}}
+\title{EnKF-C user guide\\{\normalsize version 1.09}}
 
 \author{Pavel Sakov}
 \date{June 19, 2014 -- \today}
@@ -1006,6 +1006,8 @@ It has the following usage and options:
       assimilate single observation with these parameters
   --single-observation-ijk <fi> <fj> <fk> <type> <inn> <std>
       assimilate single observation with these parameters
+  --use-rmsd-for-obsstats
+      use RMSD rather than MAD when printing observation stats
   --use-these-obs <obs file>
       assimilate observations from this file; the file format must be compatible
       with that of observations.nc produced by `enkf_prep'
