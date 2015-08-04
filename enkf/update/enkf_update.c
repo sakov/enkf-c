@@ -153,6 +153,7 @@ int main(int argc, char* argv[])
 
     enkf_init(&argc, &argv);
     enkf_printf("  running UPDATE for EnKF version %s:\n", ENKF_VERSION);
+    print_commandinfo(argc, argv);
     enkf_printtime("  ");
 
     enkf_printf("  reading system specs from \"%s\":\n", fname_prm);

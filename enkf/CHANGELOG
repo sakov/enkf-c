@@ -1,7 +1,15 @@
+v. 1.09
+   PS 04082015
+   -- Added a new flag "--use-rmsd-for-obsstats" to enkf_calc. When RMSD is
+      printed to the log, "[.]" is shown instead of "|.|" used for printing
+      MAD. Also, added printing of the command line and working directory to the
+      log for all binaries.
 v. 1.08.2
-   PS 03082015 Corrected bug in obs_findlocal().
+   PS 03082015
+   -- Corrected bug in obs_findlocal().
 v. 1.08.1
-   PS 03082015 Bugs corrected in das_writefields() and obs_addtype().
+   PS 03082015
+   -- Bugs corrected in das_writefields() and obs_addtype().
 v. 1.08
    PS 03082015
    -- Modified code to make localisation radius dependent on the observation

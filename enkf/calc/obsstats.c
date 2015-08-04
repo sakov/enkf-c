@@ -31,9 +31,14 @@
 #define DEPTH_DEEP 500.0
 #define HT_SIZE 5000
 
+static inline double square_f(double x)
+{
+    return x * x;
+}
+
 /** Prints forecast and analysis observation statistics to stdout.
  */
-void das_printobsstats(dasystem* das)
+void das_printobsstats(dasystem* das, int use_rmsd)
 {
     observations* obs = das->obs;
     int i, j, otid;
@@ -46,6 +51,7 @@ void das_printobsstats(dasystem* das)
     double* inn_a_abs_inst;
     double* std_a_inst;
     int* nobs_inst;
+    double (*func) (double) = (use_rmsd) ? square_f : fabs;
 
     if (rank != 0)
         return;
@@ -61,7 +67,7 @@ void das_printobsstats(dasystem* das)
     std_a_inst = malloc((ni + 1) * sizeof(double));
     nobs_inst = malloc((ni + 1) * sizeof(int));
 
-    enkf_printf("    region obs.type   # obs.  |for.inn.| |an.inn.|   for.inn.   an.inn.  for.spread  an.spread\n");
+    enkf_printf("    region obs.type   # obs.  %cfor.inn.%c %can.inn.%c   for.inn.   an.inn.  for.spread  an.spread\n", (use_rmsd) ? '[' : '|', (use_rmsd) ? ']' : '|', (use_rmsd) ? '[' : '|', (use_rmsd) ? ']' : '|');
     enkf_printf("    ------------------------------------------------------------------------------------------\n");
 
     for (i = 0; i < das->nregions; ++i) {
@@ -133,26 +139,26 @@ void das_printobsstats(dasystem* das)
 
                 if (o->type == otid && o->lon >= r->x1 && o->lon <= r->x2 && o->lat >= r->y1 && o->lat <= r->y2) {
                     inn_f += das->s_f[j];
-                    inn_f_abs += fabs(das->s_f[j]);
+                    inn_f_abs += func(das->s_f[j]);
                     inn_a += das->s_a[j];
-                    inn_a_abs += fabs(das->s_a[j]);
+                    inn_a_abs += func(das->s_a[j]);
                     std_f += das->std_f[j];
                     std_a += das->std_a[j];
                     nobs++;
                     if (!ot->issurface) {
                         if (o->depth < DEPTH_SHALLOW) {
                             inn_f_surf += das->s_f[j];
-                            inn_f_abs_surf += fabs(das->s_f[j]);
+                            inn_f_abs_surf += func(das->s_f[j]);
                             inn_a_surf += das->s_a[j];
-                            inn_a_abs_surf += fabs(das->s_a[j]);
+                            inn_a_abs_surf += func(das->s_a[j]);
                             std_f_surf += das->std_f[j];
                             std_a_surf += das->std_a[j];
                             nobs_surf++;
                         } else if (o->depth > DEPTH_DEEP) {
                             inn_f_deep += das->s_f[j];
-                            inn_f_abs_deep += fabs(das->s_f[j]);
+                            inn_f_abs_deep += func(das->s_f[j]);
                             inn_a_deep += das->s_a[j];
-                            inn_a_abs_deep += fabs(das->s_a[j]);
+                            inn_a_abs_deep += func(das->s_a[j]);
                             std_f_deep += das->std_f[j];
                             std_a_deep += das->std_a[j];
                             nobs_deep++;
@@ -163,9 +169,9 @@ void das_printobsstats(dasystem* das)
                         t = get_tshift(o->date, ot->async_tstep) - t1;
                         assert(t >= 0 && t < nt);
                         inn_f_as[t] += das->s_f[j];
-                        inn_f_abs_as[t] += fabs(das->s_f[j]);
+                        inn_f_abs_as[t] += func(das->s_f[j]);
                         inn_a_as[t] += das->s_a[j];
-                        inn_a_abs_as[t] += fabs(das->s_a[j]);
+                        inn_a_abs_as[t] += func(das->s_a[j]);
                         std_f_as[t] += das->std_f[j];
                         std_a_as[t] += das->std_a[j];
                         nobs_as[t]++;
@@ -173,18 +179,18 @@ void das_printobsstats(dasystem* das)
 
                     if (o->instrument >= 0) {
                         inn_f_inst[o->instrument] += das->s_f[j];
-                        inn_f_abs_inst[o->instrument] += fabs(das->s_f[j]);
+                        inn_f_abs_inst[o->instrument] += func(das->s_f[j]);
                         std_f_inst[o->instrument] += das->std_f[j];
                         inn_a_inst[o->instrument] += das->s_a[j];
-                        inn_a_abs_inst[o->instrument] += fabs(das->s_a[j]);
+                        inn_a_abs_inst[o->instrument] += func(das->s_a[j]);
                         std_a_inst[o->instrument] += das->std_a[j];
                         nobs_inst[o->instrument]++;
                     } else {
                         inn_f_inst[ni] += das->s_f[j];
-                        inn_f_abs_inst[ni] += fabs(das->s_f[j]);
+                        inn_f_abs_inst[ni] += func(das->s_f[j]);
                         std_f_inst[ni] += das->std_f[j];
                         inn_a_inst[ni] += das->s_a[j];
-                        inn_a_abs_inst[ni] += fabs(das->s_a[j]);
+                        inn_a_abs_inst[ni] += func(das->s_a[j]);
                         std_a_inst[ni] += das->std_a[j];
                         nobs_inst[ni]++;
                     }
@@ -196,6 +202,10 @@ void das_printobsstats(dasystem* das)
             inn_a_abs /= (double) nobs;
             std_f /= (double) nobs;
             std_a /= (double) nobs;
+            if (use_rmsd) {
+                inn_f_abs = sqrt(inn_f_abs);
+                inn_a_abs = sqrt(inn_a_abs);
+            }
 
             if (nobs > 0)
                 enkf_printf("           %s      %8d%9.3f  %9.3f  %9.3f  %9.3f  %9.3f  %9.3f  \n", ot->name, nobs, inn_f_abs, inn_a_abs, inn_f, inn_a, std_f, std_a);
@@ -208,6 +218,10 @@ void das_printobsstats(dasystem* das)
                     inn_a_abs_as[t] /= (double) nobs_as[t];
                     std_f_as[t] /= (double) nobs_as[t];
                     std_a_as[t] /= (double) nobs_as[t];
+                    if (use_rmsd) {
+                        inn_f_abs_as[t] = sqrt(inn_f_abs_as[t]);
+                        inn_a_abs_as[t] = sqrt(inn_a_abs_as[t]);
+                    }
                     enkf_printf("           %3d      %8d%9.3f  %9.3f  %9.3f  %9.3f  %9.3f  %9.3f  \n", t1 + t, nobs_as[t], inn_f_abs_as[t], inn_a_abs_as[t], inn_f_as[t], inn_a_as[t], std_f_as[t], std_a_as[t]);
                 }
             }
@@ -223,6 +237,10 @@ void das_printobsstats(dasystem* das)
                 inn_a_inst[inst] /= (double) nobs_inst[inst];
                 inn_a_abs_inst[inst] /= (double) nobs_inst[inst];
                 std_a_inst[inst] /= (double) nobs_inst[inst];
+                if (use_rmsd) {
+                    inn_f_abs_inst[inst] = sqrt(inn_f_abs_inst[inst]);
+                    inn_a_abs_inst[inst] = sqrt(inn_a_abs_inst[inst]);
+                }
                 enkf_printf("             %-7s%8d%9.3f  %9.3f  %9.3f  %9.3f  %9.3f  %9.3f  \n", (inst < ni) ? st_findstringbyindex(obs->instruments, inst) : "N/A", nobs_inst[inst], inn_f_abs_inst[inst], inn_a_abs_inst[inst], inn_f_inst[inst], inn_a_inst[inst], std_f_inst[inst], std_a_inst[inst]);
             }
 
@@ -239,6 +257,12 @@ void das_printobsstats(dasystem* das)
                 inn_a_abs_deep /= (double) nobs_deep;
                 std_f_deep /= (double) nobs_deep;
                 std_a_deep /= (double) nobs_deep;
+                if (use_rmsd) {
+                    inn_f_abs_surf = sqrt(inn_f_abs_surf);
+                    inn_a_abs_surf = sqrt(inn_a_abs_surf);
+                    inn_f_abs_deep = sqrt(inn_f_abs_deep);
+                    inn_a_abs_deep = sqrt(inn_a_abs_deep);
+                }
 
                 enkf_printf("             0-%.0fm  %8d%9.3f  %9.3f  %9.3f  %9.3f  %9.3f  %9.3f  \n", DEPTH_SHALLOW, nobs_surf, inn_f_abs_surf, inn_a_abs_surf, inn_f_surf, inn_a_surf, std_f_surf, std_a_surf);
                 enkf_printf("             >%.0fm  %8d%9.3f  %9.3f  %9.3f  %9.3f  %9.3f  %9.3f  \n", DEPTH_DEEP, nobs_deep, inn_f_abs_deep, inn_a_abs_deep, inn_f_deep, inn_a_deep, std_f_deep, std_a_deep);
@@ -267,7 +291,7 @@ void das_printobsstats(dasystem* das)
 
 /** Prints forecast observation statistics to the stdout.
  */
-void das_printfobsstats(dasystem* das)
+void das_printfobsstats(dasystem* das, int use_rmsd)
 {
     observations* obs = das->obs;
     int i, j, otid;
@@ -277,6 +301,7 @@ void das_printfobsstats(dasystem* das)
     double* inn_f_abs_inst;
     double* std_f_inst;
     int* nobs_inst;
+    double (*func) (double) = (use_rmsd) ? square_f : fabs;
 
     if (rank != 0)
         return;
@@ -290,10 +315,10 @@ void das_printfobsstats(dasystem* das)
     nobs_inst = malloc((ni + 1) * sizeof(int));
 
     if (das->mode == MODE_ENKF) {
-        enkf_printf("    region obs.type   # obs.  |for.inn.| for.inn.   for.spread\n");
+        enkf_printf("    region obs.type   # obs.  %cfor.inn.%c for.inn.   for.spread\n", (use_rmsd) ? '[' : '|', (use_rmsd) ? ']' : '|');
         enkf_printf("    ----------------------------------------------------------\n");
     } else {
-        enkf_printf("    region obs.type   # obs.  |for.inn.| for.inn.\n");
+        enkf_printf("    region obs.type   # obs.  %cfor.inn.%c for.inn.\n", (use_rmsd) ? '[' : '|', (use_rmsd) ? ']' : '|');
         enkf_printf("    ---------------------------------------------\n");
     }
 
@@ -349,20 +374,20 @@ void das_printfobsstats(dasystem* das)
 
                 if (o->type == otid && o->lon >= r->x1 && o->lon <= r->x2 && o->lat >= r->y1 && o->lat <= r->y2) {
                     inn_f += das->s_f[j];
-                    inn_f_abs += fabs(das->s_f[j]);
+                    inn_f_abs += func(das->s_f[j]);
                     if (das->mode == MODE_ENKF)
                         std_f += das->std_f[j];
                     nobs++;
                     if (!ot->issurface) {
                         if (o->depth < DEPTH_SHALLOW) {
                             inn_f_surf += das->s_f[j];
-                            inn_f_abs_surf += fabs(das->s_f[j]);
+                            inn_f_abs_surf += func(das->s_f[j]);
                             if (das->mode == MODE_ENKF)
                                 std_f_surf += das->std_f[j];
                             nobs_surf++;
                         } else if (o->depth > DEPTH_DEEP) {
                             inn_f_deep += das->s_f[j];
-                            inn_f_abs_deep += fabs(das->s_f[j]);
+                            inn_f_abs_deep += func(das->s_f[j]);
                             if (das->mode == MODE_ENKF)
                                 std_f_deep += das->std_f[j];
                             nobs_deep++;
@@ -373,7 +398,7 @@ void das_printfobsstats(dasystem* das)
                         t = get_tshift(o->date, ot->async_tstep) - t1;
                         assert(t >= 0 && t < nt);
                         inn_f_as[t] += das->s_f[j];
-                        inn_f_abs_as[t] += fabs(das->s_f[j]);
+                        inn_f_abs_as[t] += func(das->s_f[j]);
                         if (das->mode == MODE_ENKF)
                             std_f_as[t] += das->std_f[j];
                         nobs_as[t]++;
@@ -381,13 +406,13 @@ void das_printfobsstats(dasystem* das)
 
                     if (o->instrument >= 0) {
                         inn_f_inst[o->instrument] += das->s_f[j];
-                        inn_f_abs_inst[o->instrument] += fabs(das->s_f[j]);
+                        inn_f_abs_inst[o->instrument] += func(das->s_f[j]);
                         if (das->mode == MODE_ENKF)
                             std_f_inst[o->instrument] += das->std_f[j];
                         nobs_inst[o->instrument]++;
                     } else {
                         inn_f_inst[ni] += das->s_f[j];
-                        inn_f_abs_inst[ni] += fabs(das->s_f[j]);
+                        inn_f_abs_inst[ni] += func(das->s_f[j]);
                         if (das->mode == MODE_ENKF)
                             std_f_inst[ni] += das->std_f[j];
                         nobs_inst[ni]++;
@@ -396,6 +421,8 @@ void das_printfobsstats(dasystem* das)
             }
             inn_f /= (double) nobs;
             inn_f_abs /= (double) nobs;
+            if (use_rmsd)
+                inn_f_abs = sqrt(inn_f_abs);
             if (das->mode == MODE_ENKF)
                 std_f /= (double) nobs;
 
@@ -410,6 +437,8 @@ void das_printfobsstats(dasystem* das)
                 for (t = 0; t < nt; ++t) {
                     inn_f_as[t] /= (double) nobs_as[t];
                     inn_f_abs_as[t] /= (double) nobs_as[t];
+                    if (use_rmsd)
+                        inn_f_abs_as[t] = sqrt(inn_f_abs_as[t]);
                     if (das->mode == MODE_ENKF)
                         std_f_as[t] /= (double) nobs_as[t];
                     if (das->mode == MODE_ENKF)
@@ -426,6 +455,8 @@ void das_printfobsstats(dasystem* das)
                     continue;
                 inn_f_inst[inst] /= (double) nobs_inst[inst];
                 inn_f_abs_inst[inst] /= (double) nobs_inst[inst];
+                if (use_rmsd)
+                    inn_f_abs_inst[inst] = sqrt(inn_f_abs_inst[inst]);
                 if (das->mode == MODE_ENKF)
                     std_f_inst[inst] /= (double) nobs_inst[inst];
                 if (das->mode == MODE_ENKF)
@@ -437,10 +468,14 @@ void das_printfobsstats(dasystem* das)
             if (!ot->issurface && nobs > 0) {
                 inn_f_surf /= (double) nobs_surf;
                 inn_f_abs_surf /= (double) nobs_surf;
+                if (use_rmsd)
+                    inn_f_abs_surf = sqrt(inn_f_abs_surf);
                 if (das->mode == MODE_ENKF)
                     std_f_surf /= (double) nobs_surf;
                 inn_f_deep /= (double) nobs_deep;
                 inn_f_abs_deep /= (double) nobs_deep;
+                if (use_rmsd)
+                    inn_f_abs_deep = sqrt(inn_f_abs_deep);
                 if (das->mode == MODE_ENKF)
                     std_f_deep /= (double) nobs_deep;
 

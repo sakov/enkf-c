@@ -20,10 +20,10 @@ typedef struct {
     char* name;
     char* varname;
     char* varname2;
-    int issurface;
     char* offset_fname;
     char* offset_varname;
     char* hfunction;
+    int issurface;
     double allowed_min;
     double allowed_max;
     int isasync;

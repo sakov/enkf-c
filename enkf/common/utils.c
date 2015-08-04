@@ -1343,3 +1343,18 @@ void ll2xyz(double in[2], double out[3])
     out[1] = REARTH * cos(lon) * coslat;
     out[2] = REARTH * sin(lat);
 }
+
+/**
+ */
+void print_commandinfo(int argc, char* argv[])
+{
+    int i;
+    char cwd[MAXSTRLEN];
+
+    enkf_printf("    command = \"%s", argv[0]);
+    for (i = 1; i < argc; ++i)
+        enkf_printf(" %s", argv[i]);
+    enkf_printf("\"\n");
+    if (getcwd(cwd, sizeof(cwd)) != NULL)
+        enkf_printf("    dir = \"%s\"\n", cwd);
+}

@@ -1114,10 +1114,6 @@ void obs_findlocal(observations* obs, model* m, grid* g, int icoord, int jcoord,
                 *lcoeffs = realloc(*lcoeffs, (i + KD_INC) * sizeof(double));
             }
             (*ids)[i] = obsids[id];
-            /*
-             * use lcoeffs for storing the localisation radius
-             */
-            (*lcoeffs)[i] = ot->locrad;
         }
         kd_res_free(set);
         free(obsids);
@@ -1128,7 +1124,8 @@ void obs_findlocal(observations* obs, model* m, grid* g, int icoord, int jcoord,
      */
     ntot = i;
     for (i = 0, ngood = 0; i < ntot; ++i) {
-        observation* o = &obs->data[(*ids)[i]];
+        int id = (*ids)[i];
+        observation* o = &obs->data[id];
         double ll2[2] = { o->lon, o->lat };
         double xyz2[3];
 
@@ -1136,8 +1133,8 @@ void obs_findlocal(observations* obs, model* m, grid* g, int icoord, int jcoord,
             continue;
 
         grid_tocartesian(g, ll2, xyz2);
-        (*ids)[ngood] = (*ids)[i];
-        (*lcoeffs)[ngood] = taper_gc(distance(xyz, xyz2) / (*lcoeffs)[i]);
+        (*ids)[ngood] = id;
+        (*lcoeffs)[ngood] = taper_gc(distance(xyz, xyz2) / obs->obstypes[o->type].locrad);
         ngood++;
     }
     *n = ngood;
