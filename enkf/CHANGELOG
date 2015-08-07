@@ -1,3 +1,7 @@
+v. 1.09.1
+   PS 07082015
+   -- Fixed bug in invsqrtm2() that resulted in wrong X5 for the ETKF. Thanks
+      to Yonghong Yin for the report.
 v. 1.09
    PS 04082015
    -- Added a new flag "--use-rmsd-for-obsstats" to enkf_calc. When RMSD is
