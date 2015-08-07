@@ -35,7 +35,7 @@
 
 \begin{document}
 
-\title{EnKF-C user guide\\{\normalsize version 1.09}}
+\title{EnKF-C user guide\\{\normalsize version 1.09.1}}
 
 \author{Pavel Sakov}
 \date{June 19, 2014 -- \today}
@@ -616,14 +616,14 @@ Running EnKF-C binaries with \verb|--describe-prm-format| in the command line pr
 \subsection{Main parameter file}
 
 The main parameter file specifies the main parameters of DA and 4 other parameter files.
-Its format is described by running \verb|enkf_prep|, \verb|enlf_calc| or \verb|enk_update| with option \verb|--describe-prm-format|:
+Its format is described by running \verb|enkf_prep|, \verb|enkf_calc| or \verb|enkf_update| with option \verb|--describe-prm-format|:
 \begin{Verbatim}[frame=single,fontsize=\footnotesize]
 >./bin/enkf_prep --describe-prm-format
 
   Main parameter file format:
 
     MODE            = { ENKF | ENOI }
-  [ SCHEME          = { DENKF* | ETKF | EnKF-N } ]
+  [ SCHEME          = { DENKF* | ETKF } ]
     MODEL           = <model prm file>
     GRID            = <grid prm file>
     OBSTYPES        = <obs. types prm file>
