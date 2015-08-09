@@ -1,5 +1,7 @@
-  running PREP for EnKF version 1.08:
-  2015-08-03 09:09:41
+  running PREP for EnKF version 1.09:
+    command = "./enkf_prep stats.prm"
+    dir = "/home/pavel/src/enkf/examples/1"
+  2015-08-10 08:42:46
   reading prep specs from "stats.prm":
     MODE = EnOI
     MODEL PRM = "model.prm"
@@ -114,14 +116,14 @@
       HFUNCTION = standard
       ALLOWED MIN = -1
       ALLOWED MAX = 1
-      ASYNCHRONOUS = no
+      ASYNls: cannot access obs/WINDSAT/windsat_20071221.nc: No such file or directory
+ls: cannot access obs/WINDSAT/windsat_20071222.nc: No such file or directory
+ls: cannot access obs/WINDSAT/windsat_20071223.nc: No such file or directory
+CHRONOUS = no
       LOCRAD  = nan
       RFACTOR = 1
     NAME = SST
-      VAR = temls: cannot access obs/WINDSAT/windsat_20071221.nc: No such file or directory
-ls: cannot access obs/WINDSAT/windsat_20071222.nc: No such file or directory
-ls: cannot access obs/WINDSAT/windsat_20071223.nc: No such file or directory
-p
+      VAR = temp
       ID = 1
       ISSURFACE = yes
       HFUNCTION = standard
@@ -319,5 +321,5 @@ p
     TEM     184        104        104        0          0          0          0          7         
     SAL     184        104        104        0          0          0          0          7         
     total   9749       211        208        0          3          0          0          3921      
-  2015-08-03 09:09:41
+  2015-08-10 08:42:46
   finished

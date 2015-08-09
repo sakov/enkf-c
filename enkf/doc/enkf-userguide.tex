@@ -683,6 +683,7 @@ EnKF-C permits using multiple model grids.
 In case of using multiple grids each model variable must be associated with one of the grids defined in the grid parameter file.
 
 \subsection{Grid parameter file}
+\label{sec:gridprm}
 
 Grid parameter file describes grids used for model variables.
 Each grid is described in a section started by the grid name entry and contains the grid name, grid data file, and names of the dimensions and coordinates in the grid data file.
@@ -1007,7 +1008,7 @@ It has the following usage and options:
   --single-observation-ijk <fi> <fj> <fk> <type> <inn> <std>
       assimilate single observation with these parameters
   --use-rmsd-for-obsstats
-      use RMSD rather than MAD when printing observation stats
+      use RMSD instead of MAD when printing observation stats
   --use-these-obs <obs file>
       assimilate observations from this file; the file format must be compatible
       with that of observations.nc produced by `enkf_prep'
@@ -1238,6 +1239,7 @@ POINTLOG 57 51
 POINTLOG 86 191
 \end{Verbatim}
 Here the information will be saved at each DA cycle for points with horizontal grid coordinates (94, 134), (78, 111), (67, 51), and (86, 191) in files \verb|pointlog_94,134.nc|, \verb|pointlog_78,111.nc|, and so on.
+The coordinates are defined on the first grid in the grid parameter file (sec.~\ref{sec:gridprm}).
 The rationale behind this capability is that it is usually too expensive to save the whole ensemble, but is feasible to save the model states in a limited number of points.
 
 Following is an example of the header of the saved point log file in NetCDF format:

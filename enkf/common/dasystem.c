@@ -148,13 +148,15 @@ dasystem* das_create(enkfprm* prm)
     if (prm->nplogs > 0)
         das->ht_plogs = ht_create_i2(prm->nplogs);
     for (i = 0; i < prm->nplogs; ++i) {
+        /*
+         * ( the grid coordinates of pointlogs are defined on grid #0 )
+         */
+        void* grid = model_getgridbyid(das->m, 0);
         double lon, lat;
         int key[2];
 
-        /*
-         * FLAKY: do the inside grid check with the variable of id = 0
-         */
-        model_fij2xy(das->m, 0, (double) prm->plogs[i].i, (double) prm->plogs[i].j, &lon, &lat);
+        grid_fij2xy(grid, (double) prm->plogs[i].i, (double) prm->plogs[i].j, &lon, &lat);
+
         if (isnan(lon + lat)) {
             enkf_printf("  WARNING: %s: POINTLOG %d %d: point outside the grid\n", das->prmfname, prm->plogs[i].i, prm->plogs[i].j);
             continue;

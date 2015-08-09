@@ -264,8 +264,8 @@ static int invsqrtm2(int m, double** S, double** D)
 
         for (j = 0; j < m; ++j) {
             Us1i[j] = Ui[j] / si;
-	    Us2i[j] = Ui[j] / si_sqrt;
-	}
+            Us2i[j] = Ui[j] / si_sqrt;
+        }
     }
     dgemm_(&noT, &doT, &m, &m, &m, &alpha, Us1[0], &m, U[0], &m, &beta, S[0], &m);
     dgemm_(&noT, &doT, &m, &m, &m, &alpha, Us2[0], &m, U[0], &m, &beta, D[0], &m);
