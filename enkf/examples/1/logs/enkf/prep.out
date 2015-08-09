@@ -1,5 +1,7 @@
-  running PREP for EnKF version 1.08:
-  2015-08-03 09:07:05
+  running PREP for EnKF version 1.09:
+    command = "./enkf_prep enkf.prm"
+    dir = "/home/pavel/src/enkf/examples/1"
+  2015-08-10 08:41:47
   reading prep specs from "enkf.prm":
     MODE = EnKF
     SCHEME = DEnKF
@@ -114,15 +116,15 @@
       OFFSET = conf/eta_mean-bran.nc eta_t
       HFUNCTION = standard
       ALLOWED MIN = -1
-      ALLOWED MAX = 1
+      ALLOWED MAX = 1ls: cannot access obs/WINDSAT/windsat_20071221.nc: No such file or directory
+ls: cannot access obs/WINDSAT/windsat_20071222.nc: No such file or directory
+ls: cannot access obs/WINDSAT/windsat_20071223.nc: No such file or directory
+
       ASYNCHRONOUS = no
       LOCRAD  = 200
       RFACTOR = 2
     NAME = SST
-   ls: cannot access obs/WINDSAT/windsat_20071221.nc: No such file or directory
-ls: cannot access obs/WINDSAT/windsat_20071222.nc: No such file or directory
-ls: cannot access obs/WINDSAT/windsat_20071223.nc: No such file or directory
-   VAR = temp
+      VAR = temp
       ID = 1
       ISSURFACE = yes
       HFUNCTION = standard
@@ -320,5 +322,5 @@ ls: cannot access obs/WINDSAT/windsat_20071223.nc: No such file or directory
     TEM     184        104        104        0          0          0          0          7         
     SAL     184        104        104        0          0          0          0          7         
     total   9749       211        208        0          3          0          0          3921      
-  2015-08-03 09:07:06
+  2015-08-10 08:41:48
   finished

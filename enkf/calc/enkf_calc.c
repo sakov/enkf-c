@@ -52,7 +52,7 @@ static void usage()
     enkf_printf("  --single-observation-ijk <fi> <fj> <fk> <type> <inn> <std>\n");
     enkf_printf("      assimilate single observation with these parameters\n");
     enkf_printf("  --use-rmsd-for-obsstats\n");
-    enkf_printf("      use RMSD rather than MAD when printing observation stats\n");
+    enkf_printf("      use RMSD instead of MAD when printing observation stats\n");
     enkf_printf("  --use-these-obs <obs file>\n");
     enkf_printf("      assimilate observations from this file; the file format must be compatible\n");
     enkf_printf("      with that of observations.nc produced by `enkf_prep'\n");

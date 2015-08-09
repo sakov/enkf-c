@@ -4,7 +4,7 @@ v. 1.09.1
       to Yonghong Yin for the report.
 v. 1.09
    PS 04082015
-   -- Added a new flag "--use-rmsd-for-obsstats" to enkf_calc. When RMSD is
+   -- Added a new flag "--use-rmsd-for-obsstats" for enkf_calc. When RMSD is
       printed to the log, "[.]" is shown instead of "|.|" used for printing
       MAD. Also, added printing of the command line and working directory to the
       log for all binaries.
