@@ -62,7 +62,9 @@ typedef struct {
 
     int nobstypes;
     obstype* obstypes;
+#if defined(ENKF_CALC)
     kdtree** loctrees;
+#endif
     int** obsids;
 
     double da_date;             /* days since 00:00:00
