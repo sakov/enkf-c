@@ -100,7 +100,9 @@ observations* obs_create(void)
     obs->datafiles = NULL;
     obs->nobstypes = 0;
     obs->obstypes = NULL;
+#if defined(ENKF_CALC)
     obs->loctrees = NULL;
+#endif
     obs->obsids = NULL;
     obs->da_date = NaN;
     obs->datestr = NULL;
@@ -251,6 +253,7 @@ void obs_destroy(observations* obs)
                 kd_destroy(obs->loctrees[i]);
         free(obs->loctrees);
     }
+#endif
     if (obs->obsids != NULL) {
         int i;
 
@@ -259,7 +262,6 @@ void obs_destroy(observations* obs)
                 free(obs->obsids[i]);
         free(obs->obsids);
     }
-#endif
     if (obs->nobs > 0)
         free(obs->data);
     if (obs->datestr != NULL)
@@ -1043,6 +1045,8 @@ void obs_createkdtrees(observations* obs, model* m)
 
     if (obs->loctrees == NULL)
         obs->loctrees = calloc(obs->nobstypes, sizeof(kdtree*));
+    if (obs->obsids == NULL)
+        obs->obsids = calloc(obs->nobstypes, sizeof(int*));
 
     for (otid = 0; otid < obs->nobstypes; ++otid) {
         obstype* ot = &obs->obstypes[otid];
@@ -1056,10 +1060,9 @@ void obs_createkdtrees(observations* obs, model* m)
         if (nobs == 0)
             continue;
         ot->nobs = nobs;
-        if (obs->obsids == NULL)
-            obs->obsids = calloc(obs->nobstypes, sizeof(int*));
-        if (obs->obsids[otid] == NULL)
-            obs->obsids[otid] = obsids;
+        if (obs->obsids[otid] != NULL)
+            free(obs->obsids[otid]);
+        obs->obsids[otid] = obsids;
 
         if (*tree != NULL)
             kd_destroy(*tree);
@@ -1111,13 +1114,12 @@ void obs_findlocal(observations* obs, model* m, grid* g, int icoord, int jcoord,
     for (otid = 0, i = 0; otid < obs->nobstypes; ++otid) {
         obstype* ot = &obs->obstypes[otid];
         kdtree* tree = obs->loctrees[otid];
-        int* obsids = NULL;
+        int* obsids = obs->obsids[otid];
         kdset* set = NULL;
         int id;
 
         if (ot->nobs == 0)
             continue;
-        obsids = obs->obsids[otid];
 
         set = kd_nearest_range(tree, xyz, ot->locrad, 1);
         for (; (id = kd_res_item_getid(set)) >= 0; kd_res_next(set), ++i) {
