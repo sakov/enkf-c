@@ -1,10 +1,10 @@
   MPI: initialised 2 processes
-  MPI: rank = 0, PID = 8140
-  MPI: rank = 1, PID = 8141
-  running UPDATE for EnKF version 1.09:
+  MPI: rank = 0, PID = 9190
+  MPI: rank = 1, PID = 9191
+  running UPDATE for EnKF version 1.10:
     command = "./enkf_update --separate-output --calculate-spread --write-inflation enkf.prm"
     dir = "/home/pavel/src/enkf/examples/1"
-  2015-08-10 08:41:57
+  2015-08-12 13:10:04
   reading system specs from "enkf.prm":
     MODE = EnKF
     SCHEME = DEnKF
@@ -80,9 +80,9 @@
     defining state variables in point logs:
     distributing iterations:
       all processes get 48 iterations
-    2015-08-10 08:41:57
+    2015-08-12 13:10:04
     allocating disk space for analysis:................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................
-    2015-08-10 08:41:57
+    2015-08-12 13:10:04
     updating fields for t-grid:
       9 fields
       distributing iterations:
@@ -97,7 +97,7 @@
       salt     0   (0: 3: 80.0%)
       salt     1   (0: 4: 100.0%)
 
-  2015-08-10 08:41:59
+  2015-08-12 13:10:06
   assembling analysis:
     distributing iterations:
       all processes get 48 iterations
@@ -124,5 +124,5 @@
     deleting tiles:
       distributing iterations:
         processes get 5 or 4 iterations
-  2015-08-10 08:41:59
+  2015-08-12 13:10:07
   finished

@@ -35,7 +35,7 @@
 
 \begin{document}
 
-\title{EnKF-C user guide\\{\normalsize version 1.09.1}}
+\title{EnKF-C user guide\\{\normalsize version 1.10}}
 
 \author{Pavel Sakov}
 \date{June 19, 2014 -- \today}
@@ -1319,11 +1319,18 @@ To get the innovation statistics one needs to:
 The results will be written to the log of \verb|enkf_calc|. 
 An example of using this functionality is available by running \verb|make stats| in \verb|examples/1| (see sec.~\ref{example1}).
 
-\section{Bias estimation}
+\section{Bias correction}
 
-It is possible to estimate model bias for a variable with the EnKF by generating and using an ensemble of bias fields.
-These bias fields need to be subtracted from observation forecasts of the corresponding types.
-This is accomplished by specifying a secondary variable in the observation type specifications by the entry \verb|VAR2| and by passing the name of this variable to the corresponding observation functions, which have to take care for subtracting the model and bias forecasts.
+It is possible to estimate and correct bias for a model variable with the EnKF by generating and using an ensemble of bias fields.
+These bias fields need to be subtracted from the corresponding observation forecasts.
+This is accomplished by specifying a secondary variable in the observation type specifications by the entry \verb|VAR2| and by passing the name of this variable to the corresponding observation functions, which need to take care for subtracting the bias from the model forecasts.
+
+Because bias fields are usually assumed to persist (not change) during propagation, one may need to make specific settings for inflation for them to avoid their collapse (loss of spread) over time.
+Another possibility is to introduce a ``forgetting'' stochastic model for bias fields, for example:
+\begin{align*}
+  \mb x_{i+1} = \alpha \, \mb x_i + (1 - \alpha^2)^{1/2} \ms \sigma,
+\end{align*}
+where $\alpha$ is the forgetting factor, $0 < \alpha < 1, \; 1 - \alpha \ll 1$, and $\ms \sigma \sim N(0, \ms \Sigma_0)$ is a random variable with the suggested distribution for $\mb x$.
 
 \section{Grids}
 
