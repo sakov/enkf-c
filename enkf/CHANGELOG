@@ -1,3 +1,7 @@
+v. 1.10
+   PS 12082015
+   -- Fixed a major slowdown in obs_findlocal() introduced in v. 1.08: moved
+      obs_find_bytype() outside. Thanks to Paul Sandery for the report.
 v. 1.09.1
    PS 07082015
    -- Fixed bug in invsqrtm2() that resulted in wrong X5 for the ETKF. Thanks

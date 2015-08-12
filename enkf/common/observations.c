@@ -101,6 +101,7 @@ observations* obs_create(void)
     obs->nobstypes = 0;
     obs->obstypes = NULL;
     obs->loctrees = NULL;
+    obs->obsids = NULL;
     obs->da_date = NaN;
     obs->datestr = NULL;
     obs->allobs = 0;
@@ -249,6 +250,14 @@ void obs_destroy(observations* obs)
             if (obs->loctrees[i] != NULL)
                 kd_destroy(obs->loctrees[i]);
         free(obs->loctrees);
+    }
+    if (obs->obsids != NULL) {
+        int i;
+
+        for (i = 0; i < obs->nobstypes; ++i)
+            if (obs->obsids[i] != NULL)
+                free(obs->obsids[i]);
+        free(obs->obsids);
     }
 #endif
     if (obs->nobs > 0)
@@ -1046,6 +1055,11 @@ void obs_createkdtrees(observations* obs, model* m)
         obs_find_bytype(obs, otid, &nobs, &obsids);
         if (nobs == 0)
             continue;
+        ot->nobs = nobs;
+        if (obs->obsids == NULL)
+            obs->obsids = calloc(obs->nobstypes, sizeof(int*));
+        if (obs->obsids[otid] == NULL)
+            obs->obsids[otid] = obsids;
 
         if (*tree != NULL)
             kd_destroy(*tree);
@@ -1059,7 +1073,6 @@ void obs_createkdtrees(observations* obs, model* m)
             grid_tocartesian(g, ll, xyz);
             kd_insert(*tree, xyz);
         }
-        free(obsids);
     }
 }
 
@@ -1098,14 +1111,13 @@ void obs_findlocal(observations* obs, model* m, grid* g, int icoord, int jcoord,
     for (otid = 0, i = 0; otid < obs->nobstypes; ++otid) {
         obstype* ot = &obs->obstypes[otid];
         kdtree* tree = obs->loctrees[otid];
-        int nobs = 0;
         int* obsids = NULL;
         kdset* set = NULL;
         int id;
 
-        obs_find_bytype(obs, otid, &nobs, &obsids);
-        if (nobs == 0)
+        if (ot->nobs == 0)
             continue;
+        obsids = obs->obsids[otid];
 
         set = kd_nearest_range(tree, xyz, ot->locrad, 1);
         for (; (id = kd_res_item_getid(set)) >= 0; kd_res_next(set), ++i) {
@@ -1116,7 +1128,6 @@ void obs_findlocal(observations* obs, model* m, grid* g, int icoord, int jcoord,
             (*ids)[i] = obsids[id];
         }
         kd_res_free(set);
-        free(obsids);
     }
 
     /*

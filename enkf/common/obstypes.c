@@ -323,5 +323,4 @@ void obstypes_describeprm(void)
     enkf_printf("    4. * denotes the default value\n");
     enkf_printf("    5. < ... > denotes a description of an entry\n");
     enkf_printf("\n");
-
 }
