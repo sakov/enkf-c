@@ -536,7 +536,7 @@ void das_printfobsstats(dasystem* das, int use_rmsd)
                     enkf_printf("             %-9s%6d%9.3f  %9.3f  \n", tag, nobs_med, inn_f_abs_med, inn_f_med);
                 snprintf(tag, MAXSTRLEN, ">%.0fm", r->z2);
                 if (das->mode == MODE_ENKF)
-                    enkf_printf("             %-8s%7d%9.3f  %9.3f  %9.3f  \n", r->z2, nobs_deep, inn_f_abs_deep, inn_f_deep, std_f_deep);
+                    enkf_printf("             %-8s%7d%9.3f  %9.3f  %9.3f  \n", tag, nobs_deep, inn_f_abs_deep, inn_f_deep, std_f_deep);
                 else
                     enkf_printf("             %-8s%7d%9.3f  %9.3f  \n", tag, nobs_deep, inn_f_abs_deep, inn_f_deep);
             }
