@@ -264,6 +264,17 @@ enkfprm* enkfprm_read(char fname[])
                 enkf_quit("%s, l.%d: maximal latitude not specified", fname, line);
             if (!str2double(token, &prm->regions[prm->nregions].y2))
                 enkf_quit("%s, l.%d: could not convert \"%s\" to double", fname, line, token);
+            if ((token = strtok(NULL, seps)) != NULL) {
+                if (!str2double(token, &prm->regions[prm->nregions].z1))
+                    enkf_quit("%s, l.%d: could not convert \"%s\" to double", fname, line, token);
+                if ((token = strtok(NULL, seps)) == NULL)
+                    enkf_quit("%s, l.%d: maximal depth/height not specified", fname, line);
+                if (!str2double(token, &prm->regions[prm->nregions].z2))
+                    enkf_quit("%s, l.%d: could not convert \"%s\" to double", fname, line, token);
+            } else {
+                prm->regions[prm->nregions].z1 = DEPTH_SHALLOW;
+                prm->regions[prm->nregions].z2 = DEPTH_DEEP;
+            }
             prm->nregions++;
         } else if (strcasecmp(token, "POINTLOG") == 0) {
             if ((token = strtok(NULL, seps)) == NULL)
@@ -415,7 +426,7 @@ void enkfprm_print(enkfprm* prm, char offset[])
     for (i = 0; i < prm->nregions; ++i) {
         region* r = &prm->regions[i];
 
-        enkf_printf("%sREGION %s: x = [%.1f, %.1f], y = [%.1f, %.1f]\n", offset, r->name, r->x1, r->x2, r->y1, r->y2);
+        enkf_printf("%sREGION %s: x = [%.1f, %.1f], y = [%.1f, %.1f], z split = {%.0f, %.0f}\n", offset, r->name, r->x1, r->x2, r->y1, r->y2, r->z1, r->z2);
     }
     if (!enkf_fstatsonly) {
         for (i = 0; i < prm->nplogs; ++i) {
@@ -458,7 +469,8 @@ void enkfprm_describeprm(void)
     enkf_printf("  [ FIELDBUFFERSIZE = <fieldbuffersize> ]                    (1*)\n");
     enkf_printf("  [ INFLATION       = <inflation> [ <VALUE>* | PLAIN ]       (0.5*)\n");
     enkf_printf("    ...\n");
-    enkf_printf("  [ REGION          = <name> { <lon1> <lon2> <lat1> <lat2> } ]\n");
+    enkf_printf("  [ REGION          = <name> { <lon1> <lon2> <lat1> <lat2> } [<z1> <z2>] ]\n");
+    enkf_printf("    (z1 and z2 specify vertical split for obs stats, default = 50 500)\n");
     enkf_printf("    ...\n");
     enkf_printf("  [ POINTLOG        { <i> <j> } ]\n");
     enkf_printf("    ...\n");

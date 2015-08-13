@@ -142,6 +142,8 @@ dasystem* das_create(enkfprm* prm)
         rin->x2 = rout->x2;
         rin->y1 = rout->y1;
         rin->y2 = rout->y2;
+        rin->z1 = rout->z1;
+        rin->z2 = rout->z2;
     }
 #endif
 

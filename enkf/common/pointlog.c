@@ -79,6 +79,8 @@ void plog_write(dasystem* das, int i, int j, double lon, double lat, double dept
             ncw_put_att_int(fname, ncid, vid_type, obs->obstypes[ot].name, 1, &ot);
             snprintf(attname, NC_MAX_NAME, "RFACTOR_%s", obs->obstypes[ot].name);
             ncw_put_att_double(fname, ncid, vid_type, attname, 1, &obs->obstypes[ot].rfactor);
+            snprintf(attname, NC_MAX_NAME, "LOCRAD_%s", obs->obstypes[ot].name);
+            ncw_put_att_double(fname, ncid, vid_type, attname, 1, &obs->obstypes[ot].locrad);
         }
     }
     if (das->mode == MODE_ENKF) {
@@ -213,7 +215,7 @@ void plog_definestatevars(dasystem* das)
             int ncid;
             int dimid_nk, dimid_m;
             int dimids[2];
-            int vid;
+            int varid;
 
             snprintf(fname, MAXSTRLEN, "pointlog_%d,%d.nc", i, j);
             ncw_open(fname, NC_WRITE, &ncid);
@@ -228,12 +230,21 @@ void plog_definestatevars(dasystem* das)
                         ncw_inq_dimid(fname, ncid, nkname, &dimid_nk);
                     dimids[0] = dimid_nk;
                     dimids[1] = dimid_m;
-                    ncw_def_var(fname, ncid, varname, NC_FLOAT, 2, dimids, &vid);
-                    ncw_def_var(fname, ncid, varname_an, NC_FLOAT, 2, dimids, &vid);
+                    ncw_def_var(fname, ncid, varname, NC_FLOAT, 2, dimids, &varid);
+                    ncw_def_var(fname, ncid, varname_an, NC_FLOAT, 2, dimids, &varid);
                 } else {
                     dimids[0] = dimid_m;
-                    ncw_def_var(fname, ncid, varname, NC_FLOAT, 1, dimids, &vid);
-                    ncw_def_var(fname, ncid, varname_an, NC_FLOAT, 1, dimids, &vid);
+                    ncw_def_var(fname, ncid, varname, NC_FLOAT, 1, dimids, &varid);
+                    ncw_def_var(fname, ncid, varname_an, NC_FLOAT, 1, dimids, &varid);
+                }
+
+                {
+                    float inflation[2];
+                    double tmp;
+
+                    model_getvarinflation(das->m, vid, &inflation[0], &tmp);
+                    inflation[1] = (float) tmp;
+                    ncw_put_att_float(fname, ncid, varid, "INFLATION", 2, inflation);
                 }
             }
             ncw_close(fname, ncid);

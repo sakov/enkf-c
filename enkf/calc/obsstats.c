@@ -27,8 +27,6 @@
 #include "dasystem.h"
 
 /* for the report */
-#define DEPTH_SHALLOW 50.0
-#define DEPTH_DEEP 500.0
 #define HT_SIZE 5000
 
 static inline double square_f(double x)
@@ -90,6 +88,13 @@ void das_printobsstats(dasystem* das, int use_rmsd)
             double std_f_surf = 0.0;
             double std_a_surf = 0.0;
             int nobs_surf = 0;
+            double inn_f_med = 0.0;
+            double inn_f_abs_med = 0.0;
+            double inn_a_med = 0.0;
+            double inn_a_abs_med = 0.0;
+            double std_f_med = 0.0;
+            double std_a_med = 0.0;
+            int nobs_med = 0;
             double inn_f_deep = 0.0;
             double inn_f_abs_deep = 0.0;
             double inn_a_deep = 0.0;
@@ -146,7 +151,7 @@ void das_printobsstats(dasystem* das, int use_rmsd)
                     std_a += das->std_a[j];
                     nobs++;
                     if (!ot->issurface) {
-                        if (o->depth < DEPTH_SHALLOW) {
+                        if (o->depth < r->z1) {
                             inn_f_surf += das->s_f[j];
                             inn_f_abs_surf += func(das->s_f[j]);
                             inn_a_surf += das->s_a[j];
@@ -154,7 +159,7 @@ void das_printobsstats(dasystem* das, int use_rmsd)
                             std_f_surf += das->std_f[j];
                             std_a_surf += das->std_a[j];
                             nobs_surf++;
-                        } else if (o->depth > DEPTH_DEEP) {
+                        } else if (o->depth > r->z2) {
                             inn_f_deep += das->s_f[j];
                             inn_f_abs_deep += func(das->s_f[j]);
                             inn_a_deep += das->s_a[j];
@@ -162,6 +167,14 @@ void das_printobsstats(dasystem* das, int use_rmsd)
                             std_f_deep += das->std_f[j];
                             std_a_deep += das->std_a[j];
                             nobs_deep++;
+                        } else {
+                            inn_f_med += das->s_f[j];
+                            inn_f_abs_med += func(das->s_f[j]);
+                            inn_a_med += das->s_a[j];
+                            inn_a_abs_med += func(das->s_a[j]);
+                            std_f_med += das->std_f[j];
+                            std_a_med += das->std_a[j];
+                            nobs_med++;
                         }
                     }
 
@@ -245,12 +258,20 @@ void das_printobsstats(dasystem* das, int use_rmsd)
             }
 
             if (!ot->issurface && nobs > 0) {
+                char tag[MAXSTRLEN];
+
                 inn_f_surf /= (double) nobs_surf;
                 inn_f_abs_surf /= (double) nobs_surf;
                 inn_a_surf /= (double) nobs_surf;
                 inn_a_abs_surf /= (double) nobs_surf;
                 std_f_surf /= (double) nobs_surf;
                 std_a_surf /= (double) nobs_surf;
+                inn_f_med /= (double) nobs_med;
+                inn_f_abs_med /= (double) nobs_med;
+                inn_a_med /= (double) nobs_med;
+                inn_a_abs_med /= (double) nobs_med;
+                std_f_med /= (double) nobs_med;
+                std_a_med /= (double) nobs_med;
                 inn_f_deep /= (double) nobs_deep;
                 inn_f_abs_deep /= (double) nobs_deep;
                 inn_a_deep /= (double) nobs_deep;
@@ -260,12 +281,18 @@ void das_printobsstats(dasystem* das, int use_rmsd)
                 if (use_rmsd) {
                     inn_f_abs_surf = sqrt(inn_f_abs_surf);
                     inn_a_abs_surf = sqrt(inn_a_abs_surf);
+                    inn_f_abs_med = sqrt(inn_f_abs_med);
+                    inn_a_abs_med = sqrt(inn_a_abs_med);
                     inn_f_abs_deep = sqrt(inn_f_abs_deep);
                     inn_a_abs_deep = sqrt(inn_a_abs_deep);
                 }
 
-                enkf_printf("             0-%.0fm  %8d%9.3f  %9.3f  %9.3f  %9.3f  %9.3f  %9.3f  \n", DEPTH_SHALLOW, nobs_surf, inn_f_abs_surf, inn_a_abs_surf, inn_f_surf, inn_a_surf, std_f_surf, std_a_surf);
-                enkf_printf("             >%.0fm  %8d%9.3f  %9.3f  %9.3f  %9.3f  %9.3f  %9.3f  \n", DEPTH_DEEP, nobs_deep, inn_f_abs_deep, inn_a_abs_deep, inn_f_deep, inn_a_deep, std_f_deep, std_a_deep);
+                snprintf(tag, MAXSTRLEN, "0-%.0fm", r->z1);
+                enkf_printf("             %-8s%7d%9.3f  %9.3f  %9.3f  %9.3f  %9.3f  %9.3f  \n", tag, nobs_surf, inn_f_abs_surf, inn_a_abs_surf, inn_f_surf, inn_a_surf, std_f_surf, std_a_surf);
+                snprintf(tag, MAXSTRLEN, "%.0f-%.0fm", r->z1, r->z2);
+                enkf_printf("             %-9s%6d%9.3f  %9.3f  %9.3f  %9.3f  %9.3f  %9.3f  \n", tag, nobs_med, inn_f_abs_med, inn_a_abs_med, inn_f_med, inn_a_med, std_f_med, std_a_med);
+                snprintf(tag, MAXSTRLEN, ">%.0fm", r->z2);
+                enkf_printf("             %-8s%7d%9.3f  %9.3f  %9.3f  %9.3f  %9.3f  %9.3f  \n", tag, nobs_deep, inn_f_abs_deep, inn_a_abs_deep, inn_f_deep, inn_a_deep, std_f_deep, std_a_deep);
             }
 
             if (ot->isasync) {
@@ -336,6 +363,10 @@ void das_printfobsstats(dasystem* das, int use_rmsd)
             double inn_f_abs_surf = 0.0;
             double std_f_surf = 0.0;
             int nobs_surf = 0;
+            double inn_f_med = 0.0;
+            double inn_f_abs_med = 0.0;
+            double std_f_med = 0.0;
+            int nobs_med = 0;
             double inn_f_deep = 0.0;
             double inn_f_abs_deep = 0.0;
             double std_f_deep = 0.0;
@@ -379,18 +410,24 @@ void das_printfobsstats(dasystem* das, int use_rmsd)
                         std_f += das->std_f[j];
                     nobs++;
                     if (!ot->issurface) {
-                        if (o->depth < DEPTH_SHALLOW) {
+                        if (o->depth < r->z1) {
                             inn_f_surf += das->s_f[j];
                             inn_f_abs_surf += func(das->s_f[j]);
                             if (das->mode == MODE_ENKF)
                                 std_f_surf += das->std_f[j];
                             nobs_surf++;
-                        } else if (o->depth > DEPTH_DEEP) {
+                        } else if (o->depth > r->z2) {
                             inn_f_deep += das->s_f[j];
                             inn_f_abs_deep += func(das->s_f[j]);
                             if (das->mode == MODE_ENKF)
                                 std_f_deep += das->std_f[j];
                             nobs_deep++;
+                        } else {
+                            inn_f_med += das->s_f[j];
+                            inn_f_abs_med += func(das->s_f[j]);
+                            if (das->mode == MODE_ENKF)
+                                std_f_med += das->std_f[j];
+                            nobs_med++;
                         }
                     }
 
@@ -466,12 +503,20 @@ void das_printfobsstats(dasystem* das, int use_rmsd)
             }
 
             if (!ot->issurface && nobs > 0) {
+                char tag[MAXSTRLEN];
+
                 inn_f_surf /= (double) nobs_surf;
                 inn_f_abs_surf /= (double) nobs_surf;
                 if (use_rmsd)
                     inn_f_abs_surf = sqrt(inn_f_abs_surf);
                 if (das->mode == MODE_ENKF)
                     std_f_surf /= (double) nobs_surf;
+                inn_f_med /= (double) nobs_med;
+                inn_f_abs_med /= (double) nobs_med;
+                if (use_rmsd)
+                    inn_f_abs_med = sqrt(inn_f_abs_med);
+                if (das->mode == MODE_ENKF)
+                    std_f_med /= (double) nobs_med;
                 inn_f_deep /= (double) nobs_deep;
                 inn_f_abs_deep /= (double) nobs_deep;
                 if (use_rmsd)
@@ -479,13 +524,21 @@ void das_printfobsstats(dasystem* das, int use_rmsd)
                 if (das->mode == MODE_ENKF)
                     std_f_deep /= (double) nobs_deep;
 
-                if (das->mode == MODE_ENKF) {
-                    enkf_printf("             0-%.0fm  %8d%9.3f  %9.3f  %9.3f  \n", DEPTH_SHALLOW, nobs_surf, inn_f_abs_surf, inn_f_surf, std_f_surf);
-                    enkf_printf("             >%.0fm  %8d%9.3f  %9.3f  %9.3f  \n", DEPTH_DEEP, nobs_deep, inn_f_abs_deep, inn_f_deep, std_f_deep);
-                } else {
-                    enkf_printf("             0-%.0fm  %8d%9.3f  %9.3f  \n", DEPTH_SHALLOW, nobs_surf, inn_f_abs_surf, inn_f_surf);
-                    enkf_printf("             >%.0fm  %8d%9.3f  %9.3f  \n", DEPTH_DEEP, nobs_deep, inn_f_abs_deep, inn_f_deep);
-                }
+                snprintf(tag, MAXSTRLEN, "0-%.0fm", r->z1);
+                if (das->mode == MODE_ENKF)
+                    enkf_printf("             %-8s%7d%9.3f  %9.3f  %9.3f  \n", tag, nobs_surf, inn_f_abs_surf, inn_f_surf, std_f_surf);
+                else
+                    enkf_printf("             %-8s%7d%9.3f  %9.3f  \n", tag, nobs_surf, inn_f_abs_surf, inn_f_surf);
+                snprintf(tag, MAXSTRLEN, "%.0f-%.0fm", r->z1, r->z2);
+                if (das->mode == MODE_ENKF)
+                    enkf_printf("             %-9s%6d%9.3f  %9.3f  %9.3f  \n", tag, nobs_med, inn_f_abs_med, inn_f_med, std_f_med);
+                else
+                    enkf_printf("             %-9s%6d%9.3f  %9.3f  \n", tag, nobs_med, inn_f_abs_med, inn_f_med);
+                snprintf(tag, MAXSTRLEN, ">%.0fm", r->z2);
+                if (das->mode == MODE_ENKF)
+                    enkf_printf("             %-8s%7d%9.3f  %9.3f  %9.3f  \n", r->z2, nobs_deep, inn_f_abs_deep, inn_f_deep, std_f_deep);
+                else
+                    enkf_printf("             %-8s%7d%9.3f  %9.3f  \n", tag, nobs_deep, inn_f_abs_deep, inn_f_deep);
             }
 
             if (ot->isasync) {
