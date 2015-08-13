@@ -18,6 +18,7 @@
 typedef struct {
     char* name;
     double x1, x2, y1, y2;
+    double z1, z2;              /* vertical split for obs stats */
 } region;
 
 typedef struct {

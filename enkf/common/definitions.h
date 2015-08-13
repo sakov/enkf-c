@@ -102,8 +102,16 @@
 #define UPDATE_DIRECTWRITE    (1 << 7)
 #define UPDATE_DEFAULT        (UPDATE_DOFIELDS | UPDATE_DOPLOGS)
 
-/* it is assumed that if |value| > MAXOBSVAL, then it is filled with the
- * missing value */
+/*
+ * the default vertical split for 3D fields in obs stats
+ */
+#define DEPTH_SHALLOW 50.0
+#define DEPTH_DEEP 500.0
+
+/* 
+ *it is assumed that if |value| > MAXOBSVAL, then it is filled with the
+ * missing value
+ */
 #define MAXOBSVAL 900.0
 
 #define REARTH 6371.0

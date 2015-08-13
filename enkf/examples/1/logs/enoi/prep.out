@@ -1,7 +1,7 @@
-  running PREP for EnKF version 1.10:
+  running PREP for EnKF version 1.11:
     command = "./enkf_prep enoi.prm"
     dir = "/home/pavel/src/enkf/examples/1"
-  2015-08-12 13:10:23
+  2015-08-13 14:58:09
   reading prep specs from "enoi.prm":
     MODE = EnOI
     MODEL PRM = "model.prm"
@@ -19,7 +19,7 @@
     LOCRAD = 200
     STRIDE = 3
     FIELDBUFFERSIZE = 4
-    REGION Global: x = [0.0, 360.0], y = [-90.0, 90.0]
+    REGION Global: x = [0.0, 360.0], y = [-90.0, 90.0], z split = {50, 500}
     POINTLOG 30 50
     SOBSTRIDE = 1
     EnKF flags:
@@ -115,11 +115,11 @@
       ISSURFACE = yes
       OFFSET = conf/eta_mean-bran.nc eta_t
       HFUNCTION = standard
-      ALLOWED MIN = -1
-      Als: cannot access obs/WINDSAT/windsat_20071221.nc: No such file or directory
+      ALLls: cannot access obs/WINDSAT/windsat_20071221.nc: No such file or directory
 ls: cannot access obs/WINDSAT/windsat_20071222.nc: No such file or directory
 ls: cannot access obs/WINDSAT/windsat_20071223.nc: No such file or directory
-LLOWED MAX = 1
+OWED MIN = -1
+      ALLOWED MAX = 1
       ASYNCHRONOUS = no
       LOCRAD  = 200
       RFACTOR = 1
@@ -322,5 +322,5 @@ LLOWED MAX = 1
     TEM     184        104        104        0          0          0          0          7         
     SAL     184        104        104        0          0          0          0          7         
     total   9749       211        208        0          3          0          0          3921      
-  2015-08-12 13:10:23
+  2015-08-13 14:58:09
   finished

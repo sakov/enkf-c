@@ -1,3 +1,8 @@
+v. 1.11
+   PS 13082015
+   -- Added ability to specify vertical split in observation stats for 3D fields
+      for each region (in the region specs in the main parameter file); also
+      added stats for the intermediate interval.
 v. 1.10
    PS 12082015
    -- Fixed a major slowdown in obs_findlocal() introduced in v. 1.08: moved

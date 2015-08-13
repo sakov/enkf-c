@@ -1,10 +1,10 @@
   MPI: initialised 2 processes
-  MPI: rank = 0, PID = 9190
-  MPI: rank = 1, PID = 9191
-  running UPDATE for EnKF version 1.10:
+  MPI: rank = 0, PID = 25872
+  MPI: rank = 1, PID = 25873
+  running UPDATE for EnKF version 1.11:
     command = "./enkf_update --separate-output --calculate-spread --write-inflation enkf.prm"
     dir = "/home/pavel/src/enkf/examples/1"
-  2015-08-12 13:10:04
+  2015-08-13 14:57:34
   reading system specs from "enkf.prm":
     MODE = EnKF
     SCHEME = DEnKF
@@ -22,7 +22,7 @@
     LOCRAD = 200
     STRIDE = 3
     FIELDBUFFERSIZE = 4
-    REGION Global: x = [0.0, 360.0], y = [-90.0, 90.0]
+    REGION Global: x = [0.0, 360.0], y = [-90.0, 90.0], z split = {50, 500}
     POINTLOG 30 50
     SOBSTRIDE = 1
     EnKF flags:
@@ -80,15 +80,15 @@
     defining state variables in point logs:
     distributing iterations:
       all processes get 48 iterations
-    2015-08-12 13:10:04
+    2015-08-13 14:57:34
     allocating disk space for analysis:................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................
-    2015-08-12 13:10:04
+    2015-08-13 14:57:34
     updating fields for t-grid:
       9 fields
       distributing iterations:
         processes get 5 or 4 iterations
-      u        0   (1: 5: 25.0%)
       eta_t    0   (0: 0: 20.0%)
+      u        0   (1: 5: 25.0%)
       u        1   (1: 6: 50.0%)
       temp     0   (0: 1: 40.0%)
       v        0   (1: 7: 75.0%)
@@ -97,7 +97,7 @@
       salt     0   (0: 3: 80.0%)
       salt     1   (0: 4: 100.0%)
 
-  2015-08-12 13:10:06
+  2015-08-13 14:57:36
   assembling analysis:
     distributing iterations:
       all processes get 48 iterations
@@ -124,5 +124,5 @@
     deleting tiles:
       distributing iterations:
         processes get 5 or 4 iterations
-  2015-08-12 13:10:07
+  2015-08-13 14:57:36
   finished

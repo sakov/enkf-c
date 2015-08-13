@@ -35,7 +35,7 @@
 
 \begin{document}
 
-\title{EnKF-C user guide\\{\normalsize version 1.10}}
+\title{EnKF-C user guide\\{\normalsize version 1.11}}
 
 \author{Pavel Sakov}
 \date{June 19, 2014 -- \today}
@@ -640,7 +640,8 @@ Its format is described by running \verb|enkf_prep|, \verb|enkf_calc| or \verb|e
   [ FIELDBUFFERSIZE = <fieldbuffersize> ]                    (1*)
   [ INFLATION       = <inflation> [ <VALUE>* | PLAIN ]       (0.5*)
     ...
-  [ REGION          = <name> { <lon1> <lon2> <lat1> <lat2> } ]
+  [ REGION          = <name> { <lon1> <lon2> <lat1> <lat2> } [<z1> <z2>] ]
+    (z1 and z2 specify vertical split for obs stats, default = 50 500)
     ...
   [ POINTLOG        { <i> <j> } ]
     ...
@@ -1055,7 +1056,7 @@ The ``standard'' functions do normally perform 2D or 3D linear interpolation fro
 
 In its course \emph{calc} calculates some basic innovation statistics: number of observations, mean absolute forecast innovation, mean absolute analysis innovation, mean forecast innovation, mean analysis innovation, mean forecast ensemble spread, and mean analysis ensemble spread.
 This statistics is provided for each region defined in the parameter file, as well as for each time slot defined for asynchronous DA, and for each instrument.
-In addition, for 3D observations \emph{calc} also calculates observation statistics for observations shallower or deeper than depth (height) specified by \verb|DEPTH_SHALLOW| and \verb|DEPTH_DEEP| in \verb|calc/obsstats.c|.
+In addition, for 3D observations \emph{calc} also calculates observation statistics for observations shallower, deeper, and between two specified depths/heights for the region (the default depths are specified by macros \verb|DEPTH_SHALLOW| and \verb|DEPTH_DEEP| in \verb|common/definitions.h| and are set to 50 and 500, correspondingly).
 For example:
 \begin{Verbatim}[frame=single,fontsize=\footnotesize]
   printing observation statistics:
@@ -1090,7 +1091,7 @@ This excerpt shows innovation statistics for the region ``Tasman''.
 It contains sections for SST, SLA and TEM observations.
 The summary statistics for each observation type is shown at the top of each section; then statistics for days -4, -3, -2, -1 and 0 of a 5-day DAW are shown for the two asynchronous types, SST and SLA.
 After that, statistics for particular instruments is shown; ``N/A'' corresponds to superobservations resulted from merging observations from two or more instruments.
-For subsurface temperature also statistics for shallow (0--50\,m) and deep (0--500\,m) observations is given.
+For subsurface temperature also statistics for shallow (0--50\,m), deep ($>$500\,m), and intermediate (50--500\,m) observations is given.
 
 The analysis innovation statistics is calculated from the updated (analysis) ensemble observations by \emph{calc}, thus avoiding the need to access analysis files produced later by \emph{update}.
 The update of ensemble observations is performed in the same way as that of any other element of the state vector:
@@ -1231,16 +1232,20 @@ To compensate this in a system with horizontal localisation one has to change th
 \section{Point logs}
 \label{sec:pointlogs}
 
-''Point logs'' refer to a capability of EnKF-C to save DA related information for a number of horizontal locations specified in the parameter file, e.g.:
+It is often desirable to investigate sensitivity of model variables to observations or, more generally,  analyse certain features of the DAS and their behaviour over time.
+In practice such analysis can be logistically complicated due to limitations on storage and/or access to it.
+Yet, it is usually feasible to save this information in a number of specified locations.
+
+EnKF-C provides capability of saving complete DA related information for specified horizontal locations in so called ``point logs''.
+The locations are specified in the main parameter file, e.g.:
 \begin{Verbatim}[frame=single,fontsize=\footnotesize]
 POINTLOG 94 134
 POINTLOG 78 111
 POINTLOG 57 51
 POINTLOG 86 191
 \end{Verbatim}
-Here the information will be saved at each DA cycle for points with horizontal grid coordinates (94, 134), (78, 111), (67, 51), and (86, 191) in files \verb|pointlog_94,134.nc|, \verb|pointlog_78,111.nc|, and so on.
+Here the information will be saved for points with horizontal grid coordinates (94, 134), (78, 111), (67, 51), and (86, 191) in files \verb|pointlog_94,134.nc|, \verb|pointlog_78,111.nc|, and so on.
 The coordinates are defined on the first grid in the grid parameter file (sec.~\ref{sec:gridprm}).
-The rationale behind this capability is that it is usually too expensive to save the whole ensemble, but is feasible to save the model states in a limited number of points.
 
 Following is an example of the header of the saved point log file in NetCDF format:
 \begin{Verbatim}[frame=single,fontsize=\footnotesize]
@@ -1265,12 +1270,16 @@ variables:
 	int obs_type(p) ;
 		obs_type:SLA = 0 ;
 		obs_type:RFACTOR_SLA = 2. ;
+		obs_type:LOCRAD_SLA = 200. ;
 		obs_type:SST = 1 ;
 		obs_type:RFACTOR_SST = 4. ;
+		obs_type:LOCRAD_SST = 200. ;
 		obs_type:TEM = 2 ;
-		obs_type:RFACTOR_TEM = 2. ;
+		obs_type:RFACTOR_TEM = 8. ;
+		obs_type:LOCRAD_TEM = 800. ;
 		obs_type:SAL = 3 ;
-		obs_type:RFACTOR_SAL = 2. ;
+		obs_type:RFACTOR_SAL = 8. ;
+		obs_type:LOCRAD_TEM = 800. ;
 	float obs_date(p) ;
 		obs_date:units = "days from 5875.5 days since 1990-01-01" ;
 	float s(p) ;
@@ -1283,18 +1292,25 @@ variables:
                           (i,j) location in grid-0 (rho-grid)" ;
 	float zeta(m) ;
 	float zeta_an(m) ;
+                zeta_an:INFLATION = 1.1f, 0.5f ;
 	float temp(nk-0, m) ;
 	float temp_an(nk-0, m) ;
+                temp_an:INFLATION = 1.1f, 0.5f ;
 	float salt(nk-0, m) ;
 	float salt_an(nk-0, m) ;
+                salt_an:INFLATION = 1.1f, 0.5f ;
 	float u(nk-1, m) ;
 	float u_an(nk-1, m) ;
+                u_an:INFLATION = 1.1f, 0.5f ;
 	float v(nk-2, m) ;
 	float v_an(nk-2, m) ;
+                v_an:INFLATION = 1.1f, 0.5f ;
 	float ubar(m) ;
 	float ubar_an(m) ;
+                ubar_an:INFLATION = 1.1f, 0.5f ;
 	float vbar(m) ;
 	float vbar_an(m) ;
+                vbar_an:INFLATION = 1.1f, 0.5f ;
 
 // global attributes:
 		:date = "5875.5 days since 1990-01-01" ;
@@ -1304,7 +1320,7 @@ variables:
 		:lat = -39.849998 ;
 		:depth = 4632.623046875 ;
 \end{Verbatim}
-This information makes it possible to check DA algorithms by reproducing the ensemble transforms (for EnKF) or weights (for EnOI) calculated by EnKF-C from $\mb S$ and $\mb s$ according to section~\ref{sec:numerical}; restore observations from $\mb s$ by using the corresponding R-factors and localisation coefficients; to monitor the ensemble spread for each model variable; calculate the inflation applied to the analysis; calculate impacts of particular observations; and so on.
+This data makes it possible to check DA algorithms by reproducing the ensemble transforms (for EnKF) or weights (for EnOI) calculated by EnKF-C from $\mb S$ and $\mb s$ according to section~\ref{sec:numerical}; restore observations from $\mb s$ by using the corresponding R-factors and localisation coefficients; to monitor the ensemble spread for each model variable; calculate inflation applied to the analysed anomalies; calculate impacts of particular observations; and so on.
 
 \section{Use of innovation statistics for model validation}
 

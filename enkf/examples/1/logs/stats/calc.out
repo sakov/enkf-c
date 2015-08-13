@@ -1,10 +1,10 @@
   MPI: initialised 2 processes
-  MPI: rank = 0, PID = 9273
-  MPI: rank = 1, PID = 9274
-  running CALC for EnKF version 1.10:
+  MPI: rank = 0, PID = 25961
+  MPI: rank = 1, PID = 25962
+  running CALC for EnKF version 1.11:
     command = "./enkf_calc --forecast-stats-only stats.prm"
     dir = "/home/pavel/src/enkf/examples/1"
-  2015-08-12 13:10:55
+  2015-08-13 14:59:01
   reading system specs from "stats.prm":
     MODE = EnOI
     MODEL PRM = "model.prm"
@@ -13,7 +13,7 @@
     DATE = "6565.5 days since 1990-01-01"
     OBS PRM = "obs.prm"
     BGDIR = "background_6565"
-    REGION Global: x = [0.0, 360.0], y = [-90.0, 90.0]
+    REGION Global: x = [0.0, 360.0], y = [-90.0, 90.0], z split = {50, 500}
     SOBSTRIDE = 1
     EnKF flags:
       enkf_exitaction  = [BACKTRACE]
@@ -104,7 +104,7 @@
     3921 observations
     calculating obs stats:
   calculating ensemble observations:
-  2015-08-12 13:10:55
+  2015-08-13 14:59:01
     ensemble size = 1
     distributing iterations:
       processes get 1 or 0 iterations
@@ -113,7 +113,7 @@
     TEM +
     SAL +
   adding forecast innovations and spread to "observations.nc":
-  2015-08-12 13:10:55
+  2015-08-13 14:59:01
   printing observation statistics:
     region obs.type   # obs.  |for.inn.| for.inn.
     ---------------------------------------------
@@ -129,10 +129,12 @@
            TEM             7    1.015      0.495  
              ARGO          7    1.015      0.495  
              0-50m         2    1.471      1.471  
+             50-500m       5    0.833      0.104  
              >500m         0     -nan       -nan  
            SAL             7    0.077      0.054  
              ARGO          7    0.077      0.054  
              0-50m         2    0.088      0.074  
+             50-500m       5    0.072      0.046  
              >500m         0     -nan       -nan  
-  2015-08-12 13:10:55
+  2015-08-13 14:59:01
   finished
