@@ -16,9 +16,14 @@
 #if !defined(_ENKFPRM_H)
 
 typedef struct {
+    double z1, z2;
+} zint;
+
+typedef struct {
     char* name;
     double x1, x2, y1, y2;
-    double z1, z2;              /* vertical split for obs stats */
+    int nzints;
+    zint* zints;
 } region;
 
 typedef struct {

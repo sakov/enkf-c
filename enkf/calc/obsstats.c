@@ -34,6 +34,16 @@ static inline double square_f(double x)
     return x * x;
 }
 
+typedef struct {
+    int nobs;
+    double inn_f;
+    double inn_f_abs;
+    double inn_a;
+    double inn_a_abs;
+    double std_f;
+    double std_a;
+} stats;
+
 /** Prints forecast and analysis observation statistics to stdout.
  */
 void das_printobsstats(dasystem* das, int use_rmsd)
@@ -74,34 +84,8 @@ void das_printobsstats(dasystem* das, int use_rmsd)
         enkf_printf("    %s\n", r->name);
         for (otid = 0; otid < obs->nobstypes; ++otid) {
             obstype* ot = &obs->obstypes[otid];
-            double inn_f = 0.0;
-            double inn_f_abs = 0.0;
-            double inn_a = 0.0;
-            double inn_a_abs = 0.0;
-            double std_f = 0.0;
-            double std_a = 0.0;
-            int nobs = 0;
-            double inn_f_surf = 0.0;
-            double inn_f_abs_surf = 0.0;
-            double inn_a_surf = 0.0;
-            double inn_a_abs_surf = 0.0;
-            double std_f_surf = 0.0;
-            double std_a_surf = 0.0;
-            int nobs_surf = 0;
-            double inn_f_med = 0.0;
-            double inn_f_abs_med = 0.0;
-            double inn_a_med = 0.0;
-            double inn_a_abs_med = 0.0;
-            double std_f_med = 0.0;
-            double std_a_med = 0.0;
-            int nobs_med = 0;
-            double inn_f_deep = 0.0;
-            double inn_f_abs_deep = 0.0;
-            double inn_a_deep = 0.0;
-            double inn_a_abs_deep = 0.0;
-            double std_f_deep = 0.0;
-            double std_a_deep = 0.0;
-            int nobs_deep = 0;
+            stats rstats;
+            stats* rzstats = NULL;
 
             int t1 = -MAXINT;
             int t2 = -MAXINT;
@@ -114,6 +98,8 @@ void das_printobsstats(dasystem* das, int use_rmsd)
             double* std_f_as = NULL;
             double* std_a_as = NULL;
             int* nobs_as = NULL;
+
+            rzstats = calloc(r->nzints, sizeof(stats));
 
             if (ot->isasync) {
                 t1 = get_tshift(ot->date_min, ot->async_tstep);
@@ -128,6 +114,7 @@ void das_printobsstats(dasystem* das, int use_rmsd)
                 nobs_as = calloc(nt, sizeof(int));
             }
 
+            memset(&rstats, 0, sizeof(stats));
             memset(inn_f_inst, 0, (ni + 1) * sizeof(double));
             memset(inn_f_abs_inst, 0, (ni + 1) * sizeof(double));
             memset(std_f_inst, 0, (ni + 1) * sizeof(double));
@@ -143,38 +130,26 @@ void das_printobsstats(dasystem* das, int use_rmsd)
                     continue;
 
                 if (o->type == otid && o->lon >= r->x1 && o->lon <= r->x2 && o->lat >= r->y1 && o->lat <= r->y2) {
-                    inn_f += das->s_f[j];
-                    inn_f_abs += func(das->s_f[j]);
-                    inn_a += das->s_a[j];
-                    inn_a_abs += func(das->s_a[j]);
-                    std_f += das->std_f[j];
-                    std_a += das->std_a[j];
-                    nobs++;
+                    rstats.inn_f += das->s_f[j];
+                    rstats.inn_f_abs += func(das->s_f[j]);
+                    rstats.inn_a += das->s_a[j];
+                    rstats.inn_a_abs += func(das->s_a[j]);
+                    rstats.std_f += das->std_f[j];
+                    rstats.std_a += das->std_a[j];
+                    rstats.nobs++;
                     if (!ot->issurface) {
-                        if (o->depth < r->z1) {
-                            inn_f_surf += das->s_f[j];
-                            inn_f_abs_surf += func(das->s_f[j]);
-                            inn_a_surf += das->s_a[j];
-                            inn_a_abs_surf += func(das->s_a[j]);
-                            std_f_surf += das->std_f[j];
-                            std_a_surf += das->std_a[j];
-                            nobs_surf++;
-                        } else if (o->depth > r->z2) {
-                            inn_f_deep += das->s_f[j];
-                            inn_f_abs_deep += func(das->s_f[j]);
-                            inn_a_deep += das->s_a[j];
-                            inn_a_abs_deep += func(das->s_a[j]);
-                            std_f_deep += das->std_f[j];
-                            std_a_deep += das->std_a[j];
-                            nobs_deep++;
-                        } else {
-                            inn_f_med += das->s_f[j];
-                            inn_f_abs_med += func(das->s_f[j]);
-                            inn_a_med += das->s_a[j];
-                            inn_a_abs_med += func(das->s_a[j]);
-                            std_f_med += das->std_f[j];
-                            std_a_med += das->std_a[j];
-                            nobs_med++;
+                        int ii;
+
+                        for (ii = 0; ii < r->nzints; ++ii) {
+                            if (o->depth > r->zints[ii].z1 && o->depth <= r->zints[ii].z2) {
+                                rzstats[ii].inn_f += das->s_f[j];
+                                rzstats[ii].inn_f_abs += func(das->s_f[j]);
+                                rzstats[ii].inn_a += das->s_a[j];
+                                rzstats[ii].inn_a_abs += func(das->s_a[j]);
+                                rzstats[ii].std_f += das->std_f[j];
+                                rzstats[ii].std_a += das->std_a[j];
+                                rzstats[ii].nobs++;
+                            }
                         }
                     }
 
@@ -209,21 +184,21 @@ void das_printobsstats(dasystem* das, int use_rmsd)
                     }
                 }
             }
-            inn_f /= (double) nobs;
-            inn_f_abs /= (double) nobs;
-            inn_a /= (double) nobs;
-            inn_a_abs /= (double) nobs;
-            std_f /= (double) nobs;
-            std_a /= (double) nobs;
+            rstats.inn_f /= (double) rstats.nobs;
+            rstats.inn_f_abs /= (double) rstats.nobs;
+            rstats.inn_a /= (double) rstats.nobs;
+            rstats.inn_a_abs /= (double) rstats.nobs;
+            rstats.std_f /= (double) rstats.nobs;
+            rstats.std_a /= (double) rstats.nobs;
             if (use_rmsd) {
-                inn_f_abs = sqrt(inn_f_abs);
-                inn_a_abs = sqrt(inn_a_abs);
+                rstats.inn_f_abs = sqrt(rstats.inn_f_abs);
+                rstats.inn_a_abs = sqrt(rstats.inn_a_abs);
             }
 
-            if (nobs > 0)
-                enkf_printf("           %s      %8d%9.3f  %9.3f  %9.3f  %9.3f  %9.3f  %9.3f  \n", ot->name, nobs, inn_f_abs, inn_a_abs, inn_f, inn_a, std_f, std_a);
+            if (rstats.nobs > 0)
+                enkf_printf("           %s      %8d%9.3f  %9.3f  %9.3f  %9.3f  %9.3f  %9.3f  \n", ot->name, rstats.nobs, rstats.inn_f_abs, rstats.inn_a_abs, rstats.inn_f, rstats.inn_a, rstats.std_f, rstats.std_a);
 
-            if (ot->isasync && nobs > 0) {
+            if (ot->isasync && rstats.nobs > 0) {
                 for (t = 0; t < nt; ++t) {
                     inn_f_as[t] /= (double) nobs_as[t];
                     inn_f_abs_as[t] /= (double) nobs_as[t];
@@ -242,7 +217,7 @@ void das_printobsstats(dasystem* das, int use_rmsd)
             for (inst = 0; inst <= ni; ++inst) {
                 if (nobs_inst[inst] == 0)
                     continue;
-                if (inst == ni && nobs_inst[inst] == nobs)
+                if (inst == ni && nobs_inst[inst] == rstats.nobs)
                     continue;
                 inn_f_inst[inst] /= (double) nobs_inst[inst];
                 inn_f_abs_inst[inst] /= (double) nobs_inst[inst];
@@ -257,42 +232,26 @@ void das_printobsstats(dasystem* das, int use_rmsd)
                 enkf_printf("             %-7s%8d%9.3f  %9.3f  %9.3f  %9.3f  %9.3f  %9.3f  \n", (inst < ni) ? st_findstringbyindex(obs->instruments, inst) : "N/A", nobs_inst[inst], inn_f_abs_inst[inst], inn_a_abs_inst[inst], inn_f_inst[inst], inn_a_inst[inst], std_f_inst[inst], std_a_inst[inst]);
             }
 
-            if (!ot->issurface && nobs > 0) {
+            if (!ot->issurface && rstats.nobs > 0) {
                 char tag[MAXSTRLEN];
+                int ii;
 
-                inn_f_surf /= (double) nobs_surf;
-                inn_f_abs_surf /= (double) nobs_surf;
-                inn_a_surf /= (double) nobs_surf;
-                inn_a_abs_surf /= (double) nobs_surf;
-                std_f_surf /= (double) nobs_surf;
-                std_a_surf /= (double) nobs_surf;
-                inn_f_med /= (double) nobs_med;
-                inn_f_abs_med /= (double) nobs_med;
-                inn_a_med /= (double) nobs_med;
-                inn_a_abs_med /= (double) nobs_med;
-                std_f_med /= (double) nobs_med;
-                std_a_med /= (double) nobs_med;
-                inn_f_deep /= (double) nobs_deep;
-                inn_f_abs_deep /= (double) nobs_deep;
-                inn_a_deep /= (double) nobs_deep;
-                inn_a_abs_deep /= (double) nobs_deep;
-                std_f_deep /= (double) nobs_deep;
-                std_a_deep /= (double) nobs_deep;
-                if (use_rmsd) {
-                    inn_f_abs_surf = sqrt(inn_f_abs_surf);
-                    inn_a_abs_surf = sqrt(inn_a_abs_surf);
-                    inn_f_abs_med = sqrt(inn_f_abs_med);
-                    inn_a_abs_med = sqrt(inn_a_abs_med);
-                    inn_f_abs_deep = sqrt(inn_f_abs_deep);
-                    inn_a_abs_deep = sqrt(inn_a_abs_deep);
+                for (ii = 0; ii < r->nzints; ++ii) {
+                    stats* s = &rzstats[ii];
+
+                    s->inn_f /= (double) s->nobs;
+                    s->inn_f_abs /= (double) s->nobs;
+                    s->inn_a /= (double) s->nobs;
+                    s->inn_a_abs /= (double) s->nobs;
+                    s->std_f /= (double) s->nobs;
+                    s->std_a /= (double) s->nobs;
+                    if (use_rmsd) {
+                        s->inn_f_abs = sqrt(s->inn_f_abs);
+                        s->inn_a_abs = sqrt(s->inn_a_abs);
+                    }
+                    snprintf(tag, MAXSTRLEN, "%.0f-%.0fm", r->zints[ii].z1, r->zints[ii].z2);
+                    enkf_printf("             %-9s%6d%9.3f  %9.3f  %9.3f  %9.3f  %9.3f  %9.3f  \n", tag, s->nobs, s->inn_f_abs, s->inn_a_abs, s->inn_f, s->inn_a, s->std_f, s->std_a);
                 }
-
-                snprintf(tag, MAXSTRLEN, "0-%.0fm", r->z1);
-                enkf_printf("             %-8s%7d%9.3f  %9.3f  %9.3f  %9.3f  %9.3f  %9.3f  \n", tag, nobs_surf, inn_f_abs_surf, inn_a_abs_surf, inn_f_surf, inn_a_surf, std_f_surf, std_a_surf);
-                snprintf(tag, MAXSTRLEN, "%.0f-%.0fm", r->z1, r->z2);
-                enkf_printf("             %-9s%6d%9.3f  %9.3f  %9.3f  %9.3f  %9.3f  %9.3f  \n", tag, nobs_med, inn_f_abs_med, inn_a_abs_med, inn_f_med, inn_a_med, std_f_med, std_a_med);
-                snprintf(tag, MAXSTRLEN, ">%.0fm", r->z2);
-                enkf_printf("             %-8s%7d%9.3f  %9.3f  %9.3f  %9.3f  %9.3f  %9.3f  \n", tag, nobs_deep, inn_f_abs_deep, inn_a_abs_deep, inn_f_deep, inn_a_deep, std_f_deep, std_a_deep);
             }
 
             if (ot->isasync) {
@@ -304,6 +263,7 @@ void das_printobsstats(dasystem* das, int use_rmsd)
                 free(std_a_as);
                 free(nobs_as);
             }
+            free(rzstats);
         }
     }
 
@@ -315,6 +275,13 @@ void das_printobsstats(dasystem* das, int use_rmsd)
     free(std_a_inst);
     free(nobs_inst);
 }
+
+typedef struct {
+    int nobs;
+    double inn_f;
+    double inn_f_abs;
+    double std_f;
+} fstats;
 
 /** Prints forecast observation statistics to the stdout.
  */
@@ -355,22 +322,8 @@ void das_printfobsstats(dasystem* das, int use_rmsd)
         enkf_printf("    %s\n", r->name);
         for (otid = 0; otid < obs->nobstypes; ++otid) {
             obstype* ot = &obs->obstypes[otid];
-            double inn_f = 0.0;
-            double inn_f_abs = 0.0;
-            double std_f = 0.0;
-            int nobs = 0;
-            double inn_f_surf = 0.0;
-            double inn_f_abs_surf = 0.0;
-            double std_f_surf = 0.0;
-            int nobs_surf = 0;
-            double inn_f_med = 0.0;
-            double inn_f_abs_med = 0.0;
-            double std_f_med = 0.0;
-            int nobs_med = 0;
-            double inn_f_deep = 0.0;
-            double inn_f_abs_deep = 0.0;
-            double std_f_deep = 0.0;
-            int nobs_deep = 0;
+            fstats rstats;
+            fstats* rzstats = NULL;
 
             int t1 = -MAXINT;
             int t2 = -MAXINT;
@@ -380,6 +333,8 @@ void das_printfobsstats(dasystem* das, int use_rmsd)
             double* inn_f_abs_as = NULL;
             double* std_f_as = NULL;
             int* nobs_as = NULL;
+
+            rzstats = calloc(r->nzints, sizeof(fstats));
 
             if (ot->isasync) {
                 t1 = get_tshift(ot->date_min, ot->async_tstep);
@@ -392,6 +347,7 @@ void das_printfobsstats(dasystem* das, int use_rmsd)
                 nobs_as = calloc(nt, sizeof(int));
             }
 
+            memset(&rstats, 0, sizeof(fstats));
             memset(inn_f_inst, 0, (ni + 1) * sizeof(double));
             memset(inn_f_abs_inst, 0, (ni + 1) * sizeof(double));
             memset(std_f_inst, 0, (ni + 1) * sizeof(double));
@@ -404,30 +360,21 @@ void das_printfobsstats(dasystem* das, int use_rmsd)
                     continue;
 
                 if (o->type == otid && o->lon >= r->x1 && o->lon <= r->x2 && o->lat >= r->y1 && o->lat <= r->y2) {
-                    inn_f += das->s_f[j];
-                    inn_f_abs += func(das->s_f[j]);
+                    rstats.inn_f += das->s_f[j];
+                    rstats.inn_f_abs += func(das->s_f[j]);
                     if (das->mode == MODE_ENKF)
-                        std_f += das->std_f[j];
-                    nobs++;
+                        rstats.std_f += das->std_f[j];
+                    rstats.nobs++;
                     if (!ot->issurface) {
-                        if (o->depth < r->z1) {
-                            inn_f_surf += das->s_f[j];
-                            inn_f_abs_surf += func(das->s_f[j]);
-                            if (das->mode == MODE_ENKF)
-                                std_f_surf += das->std_f[j];
-                            nobs_surf++;
-                        } else if (o->depth > r->z2) {
-                            inn_f_deep += das->s_f[j];
-                            inn_f_abs_deep += func(das->s_f[j]);
-                            if (das->mode == MODE_ENKF)
-                                std_f_deep += das->std_f[j];
-                            nobs_deep++;
-                        } else {
-                            inn_f_med += das->s_f[j];
-                            inn_f_abs_med += func(das->s_f[j]);
-                            if (das->mode == MODE_ENKF)
-                                std_f_med += das->std_f[j];
-                            nobs_med++;
+                        int ii;
+
+                        for (ii = 0; ii < r->nzints; ++ii) {
+                            if (o->depth > r->zints[ii].z1 && o->depth <= r->zints[ii].z2) {
+                                rzstats[ii].inn_f += das->s_f[j];
+                                rzstats[ii].inn_f_abs += func(das->s_f[j]);
+                                rzstats[ii].std_f += das->std_f[j];
+                                rzstats[ii].nobs++;
+                            }
                         }
                     }
 
@@ -456,21 +403,21 @@ void das_printfobsstats(dasystem* das, int use_rmsd)
                     }
                 }
             }
-            inn_f /= (double) nobs;
-            inn_f_abs /= (double) nobs;
+            rstats.inn_f /= (double) rstats.nobs;
+            rstats.inn_f_abs /= (double) rstats.nobs;
             if (use_rmsd)
-                inn_f_abs = sqrt(inn_f_abs);
+                rstats.inn_f_abs = sqrt(rstats.inn_f_abs);
             if (das->mode == MODE_ENKF)
-                std_f /= (double) nobs;
+                rstats.std_f /= (double) rstats.nobs;
 
-            if (nobs > 0) {
+            if (rstats.nobs > 0) {
                 if (das->mode == MODE_ENKF)
-                    enkf_printf("           %s      %8d%9.3f  %9.3f  %9.3f  \n", ot->name, nobs, inn_f_abs, inn_f, std_f);
+                    enkf_printf("           %s      %8d%9.3f  %9.3f  %9.3f  \n", ot->name, rstats.nobs, rstats.inn_f_abs, rstats.inn_f, rstats.std_f);
                 else
-                    enkf_printf("           %s      %8d%9.3f  %9.3f  \n", ot->name, nobs, inn_f_abs, inn_f);
+                    enkf_printf("           %s      %8d%9.3f  %9.3f  \n", ot->name, rstats.nobs, rstats.inn_f_abs, rstats.inn_f);
             }
 
-            if (ot->isasync && nobs > 0) {
+            if (ot->isasync && rstats.nobs > 0) {
                 for (t = 0; t < nt; ++t) {
                     inn_f_as[t] /= (double) nobs_as[t];
                     inn_f_abs_as[t] /= (double) nobs_as[t];
@@ -488,7 +435,7 @@ void das_printfobsstats(dasystem* das, int use_rmsd)
             for (inst = 0; inst <= ni; ++inst) {
                 if (nobs_inst[inst] == 0)
                     continue;
-                if (inst == ni && nobs_inst[inst] == nobs)
+                if (inst == ni && nobs_inst[inst] == rstats.nobs)
                     continue;
                 inn_f_inst[inst] /= (double) nobs_inst[inst];
                 inn_f_abs_inst[inst] /= (double) nobs_inst[inst];
@@ -502,43 +449,26 @@ void das_printfobsstats(dasystem* das, int use_rmsd)
                     enkf_printf("             %-7s%8d%9.3f  %9.3f  \n", (inst < ni) ? st_findstringbyindex(obs->instruments, inst) : "N/A", nobs_inst[inst], inn_f_abs_inst[inst], inn_f_inst[inst]);
             }
 
-            if (!ot->issurface && nobs > 0) {
+            if (!ot->issurface && rstats.nobs > 0) {
                 char tag[MAXSTRLEN];
+                int ii;
 
-                inn_f_surf /= (double) nobs_surf;
-                inn_f_abs_surf /= (double) nobs_surf;
-                if (use_rmsd)
-                    inn_f_abs_surf = sqrt(inn_f_abs_surf);
-                if (das->mode == MODE_ENKF)
-                    std_f_surf /= (double) nobs_surf;
-                inn_f_med /= (double) nobs_med;
-                inn_f_abs_med /= (double) nobs_med;
-                if (use_rmsd)
-                    inn_f_abs_med = sqrt(inn_f_abs_med);
-                if (das->mode == MODE_ENKF)
-                    std_f_med /= (double) nobs_med;
-                inn_f_deep /= (double) nobs_deep;
-                inn_f_abs_deep /= (double) nobs_deep;
-                if (use_rmsd)
-                    inn_f_abs_deep = sqrt(inn_f_abs_deep);
-                if (das->mode == MODE_ENKF)
-                    std_f_deep /= (double) nobs_deep;
+                for (ii = 0; ii < r->nzints; ++ii) {
+                    fstats* s = &rzstats[ii];
 
-                snprintf(tag, MAXSTRLEN, "0-%.0fm", r->z1);
-                if (das->mode == MODE_ENKF)
-                    enkf_printf("             %-8s%7d%9.3f  %9.3f  %9.3f  \n", tag, nobs_surf, inn_f_abs_surf, inn_f_surf, std_f_surf);
-                else
-                    enkf_printf("             %-8s%7d%9.3f  %9.3f  \n", tag, nobs_surf, inn_f_abs_surf, inn_f_surf);
-                snprintf(tag, MAXSTRLEN, "%.0f-%.0fm", r->z1, r->z2);
-                if (das->mode == MODE_ENKF)
-                    enkf_printf("             %-9s%6d%9.3f  %9.3f  %9.3f  \n", tag, nobs_med, inn_f_abs_med, inn_f_med, std_f_med);
-                else
-                    enkf_printf("             %-9s%6d%9.3f  %9.3f  \n", tag, nobs_med, inn_f_abs_med, inn_f_med);
-                snprintf(tag, MAXSTRLEN, ">%.0fm", r->z2);
-                if (das->mode == MODE_ENKF)
-                    enkf_printf("             %-8s%7d%9.3f  %9.3f  %9.3f  \n", tag, nobs_deep, inn_f_abs_deep, inn_f_deep, std_f_deep);
-                else
-                    enkf_printf("             %-8s%7d%9.3f  %9.3f  \n", tag, nobs_deep, inn_f_abs_deep, inn_f_deep);
+                    s->inn_f /= (double) s->nobs;
+                    s->inn_f_abs /= (double) s->nobs;
+                    if (use_rmsd)
+                        s->inn_f_abs = sqrt(s->inn_f_abs);
+                    if (das->mode == MODE_ENKF)
+                        s->std_f /= (double) s->nobs;
+
+                    snprintf(tag, MAXSTRLEN, "%.0f-%.0fm", r->zints[ii].z1, r->zints[ii].z2);
+                    if (das->mode == MODE_ENKF)
+                        enkf_printf("             %-9s%6d%9.3f  %9.3f  %9.3f  \n", tag, s->nobs, s->inn_f_abs, s->inn_f, s->std_f);
+                    else
+                        enkf_printf("             %-9s%6d%9.3f  %9.3f  \n", tag, s->nobs, s->inn_f_abs, s->inn_f);
+                }
             }
 
             if (ot->isasync) {
@@ -548,6 +478,7 @@ void das_printfobsstats(dasystem* das, int use_rmsd)
                     free(std_f_as);
                 free(nobs_as);
             }
+            free(rzstats);
         }
     }
 

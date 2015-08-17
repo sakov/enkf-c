@@ -206,7 +206,7 @@ void obs_markbadbatches(observations* obs)
 
         if (bb != NULL && bb->obstypeid == o->type) {
             if (strcmp(bb->fname, st_findstringbyindex(obs->datafiles, o->fid)) != 0)
-                enkf_quit("bad batch processing: file name for fid = %d in \"%s\" does not match the data file name", o->fid, FNAME_BADBATCHES);
+                enkf_quit("bad batch processing: file name for fid = %d in \"%s\" does not match the data file name. Check that \"%s\" is the right file.", o->fid, FNAME_BADBATCHES, FNAME_BADBATCHES);
             o->status = STATUS_BADBATCH;
         }
     }

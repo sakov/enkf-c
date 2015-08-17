@@ -23,9 +23,7 @@
 #include "utils.h"
 #include "enkfprm.h"
 
-#define NREGIONS_INC 10
-#define NPLOGS_INC 10
-#define NBBSPECS_INC 10
+#define NINC 10
 
 /**
  */
@@ -235,52 +233,69 @@ enkfprm* enkfprm_read(char fname[])
                     enkf_quit("%s, l.%d: could not convert \"%s\" to double", fname, line, token);
             }
         } else if (strcasecmp(token, "REGION") == 0) {
+            char zseps[] = " =\t\n[](){}";
             char* space;
             char* newtoken;
+            region* r = NULL;
 
             if ((token = strtok(NULL, seps)) == NULL)
                 enkf_quit("%s, l.%d: REGION name not specified", fname, line);
-            if (prm->nregions % NREGIONS_INC == 0)
-                prm->regions = realloc(prm->regions, (prm->nregions + NREGIONS_INC) * sizeof(region));
+            if (prm->nregions % NINC == 0)
+                prm->regions = realloc(prm->regions, (prm->nregions + NINC) * sizeof(region));
+
+            r = &prm->regions[prm->nregions];
+            r->nzints = 0;
+            r->zints = NULL;
+
             newtoken = token;
             while ((space = strchr(newtoken, '_')) != NULL) {
                 *space = ' ';
                 newtoken = space + 1;
             }
-            prm->regions[prm->nregions].name = strdup(token);
+            r->name = strdup(token);
             if ((token = strtok(NULL, seps)) == NULL)
                 enkf_quit("%s, l.%d: minimal longitude not specified", fname, line);
-            if (!str2double(token, &prm->regions[prm->nregions].x1))
+            if (!str2double(token, &r->x1))
                 enkf_quit("%s, l.%d: could not convert \"%s\" to double", fname, line, token);
             if ((token = strtok(NULL, seps)) == NULL)
                 enkf_quit("%s, l.%d: maximal longitude not specified", fname, line);
-            if (!str2double(token, &prm->regions[prm->nregions].x2))
+            if (!str2double(token, &r->x2))
                 enkf_quit("%s, l.%d: could not convert \"%s\" to double", fname, line, token);
             if ((token = strtok(NULL, seps)) == NULL)
                 enkf_quit("%s, l.%d: minimal latitude not specified", fname, line);
-            if (!str2double(token, &prm->regions[prm->nregions].y1))
+            if (!str2double(token, &r->y1))
                 enkf_quit("%s, l.%d: could not convert \"%s\" to double", fname, line, token);
             if ((token = strtok(NULL, seps)) == NULL)
                 enkf_quit("%s, l.%d: maximal latitude not specified", fname, line);
-            if (!str2double(token, &prm->regions[prm->nregions].y2))
+            if (!str2double(token, &r->y2))
                 enkf_quit("%s, l.%d: could not convert \"%s\" to double", fname, line, token);
-            if ((token = strtok(NULL, seps)) != NULL) {
-                if (!str2double(token, &prm->regions[prm->nregions].z1))
+            while ((token = strtok(NULL, zseps)) != NULL) {
+                if (r->nzints % NINC == 0)
+                    r->zints = realloc(r->zints, (r->nzints + NINC) * sizeof(zint));
+                if (!str2double(token, &r->zints[r->nzints].z1))
                     enkf_quit("%s, l.%d: could not convert \"%s\" to double", fname, line, token);
-                if ((token = strtok(NULL, seps)) == NULL)
-                    enkf_quit("%s, l.%d: maximal depth/height not specified", fname, line);
-                if (!str2double(token, &prm->regions[prm->nregions].z2))
+                if ((token = strtok(NULL, zseps)) == NULL)
+                    enkf_quit("%s, l.%d: maximal depth/height for an interval not specified", fname, line);
+                if (!str2double(token, &r->zints[r->nzints].z2))
                     enkf_quit("%s, l.%d: could not convert \"%s\" to double", fname, line, token);
-            } else {
-                prm->regions[prm->nregions].z1 = DEPTH_SHALLOW;
-                prm->regions[prm->nregions].z2 = DEPTH_DEEP;
+                r->nzints++;
+            }
+            if (r->nzints == 0) {
+                r->nzints = 3;
+                r->zints = malloc(3 * sizeof(zint));
+                r->zints[0].z1 = 0.0;
+                r->zints[0].z2 = DEPTH_SHALLOW;
+                r->zints[1].z1 = DEPTH_SHALLOW;
+                r->zints[1].z2 = DEPTH_DEEP;
+                r->zints[2].z1 = DEPTH_DEEP;
+                r->zints[2].z2 = DEPTH_MAX;
             }
             prm->nregions++;
         } else if (strcasecmp(token, "POINTLOG") == 0) {
             if ((token = strtok(NULL, seps)) == NULL)
                 enkf_quit("%s, l.%d: \"I\" coordinate for POINTLOG not specified", fname, line);
-            if (prm->nplogs % NPLOGS_INC == 0)
-                prm->plogs = realloc(prm->plogs, (prm->nplogs + NPLOGS_INC) * sizeof(pointlog));
+            if (prm->nplogs % NINC == 0)
+                prm->plogs = realloc(prm->plogs, (prm->nplogs + NINC) * sizeof(pointlog));
             if (!str2int(token, &prm->plogs[prm->nplogs].i))
                 enkf_quit("%s, l.%d: could convert \"I\" entry", fname, line);
             if ((token = strtok(NULL, seps)) == NULL)
@@ -300,8 +315,8 @@ enkfprm* enkfprm_read(char fname[])
         } else if (strcasecmp(token, "BADBATCHES") == 0) {
             if ((token = strtok(NULL, seps)) == NULL)
                 enkf_quit("%s, l.%d: BADBATCHES not specified", fname, line);
-            if (prm->nbadbatchspecs % NBBSPECS_INC == 0)
-                prm->badbatchspecs = realloc(prm->badbatchspecs, (prm->nbadbatchspecs + NBBSPECS_INC) * sizeof(badbatchspec));
+            if (prm->nbadbatchspecs % NINC == 0)
+                prm->badbatchspecs = realloc(prm->badbatchspecs, (prm->nbadbatchspecs + NINC) * sizeof(badbatchspec));
             prm->badbatchspecs[prm->nbadbatchspecs].obstype = strdup(token);
 
             if ((token = strtok(NULL, seps)) == NULL)
@@ -355,8 +370,10 @@ void enkfprm_destroy(enkfprm* prm)
     if (prm->bgdir != NULL)
         free(prm->bgdir);
     if (prm->nregions > 0) {
-        for (i = 0; i < prm->nregions; ++i)
+        for (i = 0; i < prm->nregions; ++i) {
             free(prm->regions[i].name);
+            free(prm->regions[i].zints);
+        }
         free(prm->regions);
     }
     if (prm->nplogs > 0)
@@ -425,8 +442,12 @@ void enkfprm_print(enkfprm* prm, char offset[])
     }
     for (i = 0; i < prm->nregions; ++i) {
         region* r = &prm->regions[i];
+        int j;
 
-        enkf_printf("%sREGION %s: x = [%.1f, %.1f], y = [%.1f, %.1f], z split = {%.0f, %.0f}\n", offset, r->name, r->x1, r->x2, r->y1, r->y2, r->z1, r->z2);
+        enkf_printf("%sREGION %s: x = [%.1f, %.1f], y = [%.1f, %.1f], z intervals = ", offset, r->name, r->x1, r->x2, r->y1, r->y2);
+        for (j = 0; j < r->nzints; ++j)
+            enkf_printf("[%.0f %.0f] ", r->zints[j].z1, r->zints[j].z2);
+        enkf_printf("\n");
     }
     if (!enkf_fstatsonly) {
         for (i = 0; i < prm->nplogs; ++i) {
@@ -469,10 +490,9 @@ void enkfprm_describeprm(void)
     enkf_printf("  [ FIELDBUFFERSIZE = <fieldbuffersize> ]                    (1*)\n");
     enkf_printf("  [ INFLATION       = <inflation> [ <VALUE>* | PLAIN ]       (0.5*)\n");
     enkf_printf("    ...\n");
-    enkf_printf("  [ REGION          = <name> { <lon1> <lon2> <lat1> <lat2> } [<z1> <z2>] ]\n");
-    enkf_printf("    (z1 and z2 specify vertical split for obs stats, default = 50 500)\n");
+    enkf_printf("  [ REGION          = <name> <lon1> <lon2> <lat1> <lat2> [[<z1> <z2>] ...] ]\n");
     enkf_printf("    ...\n");
-    enkf_printf("  [ POINTLOG        { <i> <j> } ]\n");
+    enkf_printf("  [ POINTLOG        <i> <j> ]\n");
     enkf_printf("    ...\n");
     enkf_printf("  [ EXITACTION      = { BACKTRACE* | SEGFAULT } ]\n");
     enkf_printf("  [ BADBATCHES      = <obstype> <max. bias> <max. mad> <min # obs.> ]\n");

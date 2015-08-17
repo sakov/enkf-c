@@ -1,3 +1,7 @@
+v. 1.12
+   PS 17082015
+   -- Can now specify arbitrary number of z intervals for obs stats of 3D
+      fields for each region. The default is [0 50] [50 500] [500 9999].
 v. 1.11
    PS 13082015
    -- Added ability to specify vertical split in observation stats for 3D fields
