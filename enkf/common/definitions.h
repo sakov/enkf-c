@@ -107,6 +107,7 @@
  */
 #define DEPTH_SHALLOW 50.0
 #define DEPTH_DEEP 500.0
+#define DEPTH_MAX 9999.0
 
 /* 
  *it is assumed that if |value| > MAXOBSVAL, then it is filled with the

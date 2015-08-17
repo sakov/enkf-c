@@ -134,16 +134,21 @@ dasystem* das_create(enkfprm* prm)
     else
         das->regions = NULL;
     for (i = 0; i < das->nregions; ++i) {
-        region* rin = &das->regions[i];
-        region* rout = &prm->regions[i];
+        region* dst = &das->regions[i];
+        region* src = &prm->regions[i];
+        int j;
 
-        rin->name = strdup(rout->name);
-        rin->x1 = rout->x1;
-        rin->x2 = rout->x2;
-        rin->y1 = rout->y1;
-        rin->y2 = rout->y2;
-        rin->z1 = rout->z1;
-        rin->z2 = rout->z2;
+        dst->name = strdup(src->name);
+        dst->x1 = src->x1;
+        dst->x2 = src->x2;
+        dst->y1 = src->y1;
+        dst->y2 = src->y2;
+        dst->nzints = src->nzints;
+        dst->zints = malloc(dst->nzints * sizeof(zint));
+        for (j = 0; j < src->nzints; ++j) {
+            dst->zints[j].z1 = src->zints[j].z1;
+            dst->zints[j].z2 = src->zints[j].z2;
+        }
     }
 #endif
 
@@ -224,8 +229,10 @@ void das_destroy(dasystem* das)
         free(das->std_a);
     }
     if (das->nregions > 0) {
-        for (i = 0; i < das->nregions; ++i)
+        for (i = 0; i < das->nregions; ++i) {
             free(das->regions[i].name);
+            free(das->regions[i].zints);
+        }
         free(das->regions);
     }
     if (das->nplogs > 0) {
