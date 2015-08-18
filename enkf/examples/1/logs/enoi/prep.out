@@ -1,7 +1,7 @@
-  running PREP for EnKF version 1.12:
+  running PREP for EnKF version 1.13:
     command = "./enkf_prep enoi.prm"
     dir = "/home/pavel/src/enkf/examples/1"
-  2015-08-17 12:37:12
+  2015-08-18 14:21:21
   reading prep specs from "enoi.prm":
     MODE = EnOI
     MODEL PRM = "model.prm"
@@ -322,5 +322,5 @@ N = standard
     TEM     184        104        104        0          0          0          0          7         
     SAL     184        104        104        0          0          0          0          7         
     total   9749       211        208        0          3          0          0          3921      
-  2015-08-17 12:37:13
+  2015-08-18 14:21:21
   finished

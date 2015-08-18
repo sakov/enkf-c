@@ -68,6 +68,8 @@ typedef struct {
     double locrad;
     int stride;
     int fieldbufsize;
+    int nzints;
+    zint* zints;
     int nregions;
     region* regions;
     int nplogs;
