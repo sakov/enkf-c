@@ -280,17 +280,21 @@ enkfprm* enkfprm_read(char fname[])
                     enkf_quit("%s, l.%d: could not convert \"%s\" to double", fname, line, token);
                 r->nzints++;
             }
-            if (r->nzints == 0) {
-                r->nzints = 3;
-                r->zints = malloc(3 * sizeof(zint));
-                r->zints[0].z1 = 0.0;
-                r->zints[0].z2 = DEPTH_SHALLOW;
-                r->zints[1].z1 = DEPTH_SHALLOW;
-                r->zints[1].z2 = DEPTH_DEEP;
-                r->zints[2].z1 = DEPTH_DEEP;
-                r->zints[2].z2 = DEPTH_MAX;
-            }
             prm->nregions++;
+        } else if (strcasecmp(token, "ZSTATINTS") == 0) {
+            char zseps[] = " =\t\n[](){}";
+
+            while ((token = strtok(NULL, zseps)) != NULL) {
+                if (prm->nzints % NINC == 0)
+                    prm->zints = realloc(prm->zints, (prm->nzints + NINC) * sizeof(zint));
+                if (!str2double(token, &prm->zints[prm->nzints].z1))
+                    enkf_quit("%s, l.%d: could not convert \"%s\" to double", fname, line, token);
+                if ((token = strtok(NULL, zseps)) == NULL)
+                    enkf_quit("%s, l.%d: maximal depth/height for an interval not specified", fname, line);
+                if (!str2double(token, &prm->zints[prm->nzints].z2))
+                    enkf_quit("%s, l.%d: could not convert \"%s\" to double", fname, line, token);
+                prm->nzints++;
+            }
         } else if (strcasecmp(token, "POINTLOG") == 0) {
             if ((token = strtok(NULL, seps)) == NULL)
                 enkf_quit("%s, l.%d: \"I\" coordinate for POINTLOG not specified", fname, line);
@@ -340,6 +344,46 @@ enkfprm* enkfprm_read(char fname[])
             enkf_quit("%s, l.%d: unknown token \"%s\"", fname, line, token);
     }                           /* while */
 
+    if (prm->nregions == 0) {
+        region* r = malloc(sizeof(region));
+
+        prm->nregions = 1;
+        prm->regions = r;
+        r->name = strdup("Global");
+        r->x1 = -999;
+        r->x2 = 999;
+        r->y1 = -999;
+        r->y2 = 999;
+        r->nzints = 0;
+        r->zints = NULL;
+    }
+
+    if (prm->nzints == 0) {
+        prm->nzints = 3;
+        prm->zints = malloc(3 * sizeof(zint));
+        prm->zints[0].z1 = 0.0;
+        prm->zints[0].z2 = DEPTH_SHALLOW;
+        prm->zints[1].z1 = DEPTH_SHALLOW;
+        prm->zints[1].z2 = DEPTH_DEEP;
+        prm->zints[2].z1 = DEPTH_DEEP;
+        prm->zints[2].z2 = DEPTH_MAX;
+    }
+
+    for (i = 0; i < prm->nregions; ++i) {
+        region* r = &prm->regions[i];
+
+        if (r->nzints == 0) {
+            int j;
+
+            r->nzints = prm->nzints;
+            r->zints = malloc(r->nzints * sizeof(zint));
+            for (j = 0; j < r->nzints; ++j) {
+                r->zints[j].z1 = prm->zints[j].z1;
+                r->zints[j].z2 = prm->zints[j].z2;
+            }
+        }
+    }
+
     for (i = 0; i < prm->nbadbatchspecs; ++i) {
         badbatchspec* bb = &prm->badbatchspecs[i];
 
@@ -376,6 +420,8 @@ void enkfprm_destroy(enkfprm* prm)
         }
         free(prm->regions);
     }
+    if (prm->nzints != 0)
+        free(prm->zints);
     if (prm->nplogs > 0)
         free(prm->plogs);
     if (prm->nbadbatchspecs > 0) {
@@ -490,7 +536,8 @@ void enkfprm_describeprm(void)
     enkf_printf("  [ FIELDBUFFERSIZE = <fieldbuffersize> ]                    (1*)\n");
     enkf_printf("  [ INFLATION       = <inflation> [ <VALUE>* | PLAIN ]       (0.5*)\n");
     enkf_printf("    ...\n");
-    enkf_printf("  [ REGION          = <name> <lon1> <lon2> <lat1> <lat2> [[<z1> <z2>] ...] ]\n");
+    enkf_printf("  [ ZSTATINTS       = [<z1> <z2>] ... ]\n");
+    enkf_printf("  [ REGION          = <name> <lon1> <lon2> <lat1> <lat2> [[<z1> <z2>] ... ]\n");
     enkf_printf("    ...\n");
     enkf_printf("  [ POINTLOG        <i> <j> ]\n");
     enkf_printf("    ...\n");

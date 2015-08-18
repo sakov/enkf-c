@@ -1,3 +1,8 @@
+v. 1.13
+   PS 18082015
+   -- Introduced global z intervals used for each region (unless overriden
+      by local settings). Also, if no regions defined introduced a default
+      region "Global" with domain [x1,x2] = [-999,999], [y1,y2] = [-999,999].
 v. 1.12
    PS 17082015
    -- Can now specify arbitrary number of z intervals for obs stats of 3D

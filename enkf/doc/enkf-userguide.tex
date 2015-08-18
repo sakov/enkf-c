@@ -35,7 +35,7 @@
 
 \begin{document}
 
-\title{EnKF-C user guide\\{\normalsize version 1.12}}
+\title{EnKF-C user guide\\{\normalsize version 1.13}}
 
 \author{Pavel Sakov}
 \date{June 19, 2014 -- \today}
@@ -614,6 +614,7 @@ Examples of these parameter files can be found in \verb|examples/1|.
 Running EnKF-C binaries with \verb|--describe-prm-format| in the command line provides information on the parameter file formats.
 
 \subsection{Main parameter file}
+\label{sec:mainprm}
 
 The main parameter file specifies the main parameters of DA and 4 other parameter files.
 Its format is described by running \verb|enkf_prep|, \verb|enkf_calc| or \verb|enkf_update| with option \verb|--describe-prm-format|:
@@ -640,7 +641,8 @@ Its format is described by running \verb|enkf_prep|, \verb|enkf_calc| or \verb|e
   [ FIELDBUFFERSIZE = <fieldbuffersize> ]                    (1*)
   [ INFLATION       = <inflation> [ <VALUE>* | PLAIN ]       (0.5*)
     ...
-  [ REGION          = <name> <lon1> <lon2> <lat1> <lat2> [[<z1> <z2>] ...] ]
+  [ ZSTATINTS       = [<z1> <z2>] ... ]
+  [ REGION          = <name> <lon1> <lon2> <lat1> <lat2> [[<z1> <z2>] ... ]
     ...
   [ POINTLOG        <i> <j> ]
     ...
@@ -1054,9 +1056,14 @@ The ``standard'' functions do normally perform 2D or 3D linear interpolation fro
 \subsection{Innovation statistics}
 
 In its course \emph{calc} calculates some basic innovation statistics: number of observations, mean absolute forecast innovation, mean absolute analysis innovation, mean forecast innovation, mean analysis innovation, mean forecast ensemble spread, and mean analysis ensemble spread.
-This statistics is provided for each region defined in the parameter file, as well as for each time slot defined for asynchronous DA, and for each instrument.
-In addition, for 3D observations \emph{calc} also calculates observation statistics for observations shallower, deeper, and between two specified depths/heights for the region (the default depths are specified by macros \verb|DEPTH_SHALLOW| and \verb|DEPTH_DEEP| in \verb|common/definitions.h| and are set to 50 and 500, correspondingly).
-For example:
+This statistics is provided for each region defined in the main parameter file (sec.~\ref{sec:mainprm}), as well as for each time slot defined for asynchronous DA, and for each instrument.
+By default, EnKF-C defines one statistical region ``Global'' with domain $[x_1,x_2] = [-999,999], [y_1,y_2] = [-999,999]$.
+
+In addition, for 3D observations \emph{calc} also calculates observation statistics in specified depth intervals.
+The global (common for all regions) intervals can be set by the entry \verb|ZSTATINTS| in the main parameter file; by default, three intervals are defined: \verb|[0 DEPTH_SHALLOW]|, \verb|[DEPTH_SHALLOW DEPTH_DEEP]|, and \verb|[DEPTH_DEEP DEPTH_MAX]|, where \verb|DEPTH_SHALLOW|, \verb|DEPTH_DEEP| and \verb|DEPTH_MAX| are the macros defined in \verb|common/definitions.h|.
+These common intervals can be overriden by settings for particular statistical regions.
+
+Following is an example of innovation statistics written to the log (standard output) of \verb|enkf_calc|:
 \begin{Verbatim}[frame=single,fontsize=\footnotesize]
   printing observation statistics:
     region obs.type   # obs.  |for.inn.| |an.inn.|   for.inn.   an.inn.  for.spread  an.spread
