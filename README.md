@@ -11,6 +11,6 @@ Following are its other main features:
 
 - can handle rectangular or curvilinear horizontal grids, z or sigma vertical layers.
 
-For more information see README and doc/enkf-userguide.pdf. (An older version of the user guide is also available from arXiv.) Have a feel for how the code works by running the included example.
+For more information see README and doc/enkf-userguide.pdf. (An older version of the user guide is also available from [arXiv](http://arxiv.org/abs/1410.1233).) Have a feel for how the code works by running the included example.
 
 Checkout EnKF-C by running "git clone https://github.com/sakov/enkf-c".
