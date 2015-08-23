@@ -130,6 +130,7 @@ bin/enkf_prep: MPISTATUS = $(PREP_MPISTATUS)
 bin/enkf_prep: INCS += $(PREP_INCS)
 bin/enkf_prep: $(SRC_PREP) $(SRC_COMMON) $(HDR_PREP) $(HDR_COMMON)
 	@echo
+	@mkdir -p bin
 	${CC${MPISTATUS}} -o bin/enkf_prep -DENKF_PREP $(ENKF_FLAGS) $(CFLAGS$(MPISTATUS)) $(INCS) $(SRC_PREP) $(SRC_COMMON) $(LIBS)
 
 bin/enkf_calc: MPISTATUS = $(CALC_MPISTATUS)
@@ -137,6 +138,7 @@ bin/enkf_calc: INCS += $(CALC_INCS)
 bin/enkf_calc: LIBS += $(LIB_LAPACK)
 bin/enkf_calc: $(SRC_COMMON) $(SRC_CALC) $(HDR_COMMON) $(HDR_CALC)
 	@echo
+	@mkdir -p bin
 	${CC${MPISTATUS}} -o bin/enkf_calc -DENKF_CALC $(ENKF_FLAGS) $(CFLAGS$(MPISTATUS)) $(INCS) $(SRC_CALC) $(SRC_COMMON) $(LIBS)
 
 bin/enkf_update: MPISTATUS = $(UPDATE_MPISTATUS)
@@ -144,6 +146,7 @@ bin/enkf_update: INCS += $(UPDATE_INCS)
 bin/enkf_update: LIBS += $(LIB_LAPACK)
 bin/enkf_update: $(SRC_UPDATE) $(SRC_COMMON) $(HDR_UPDATE) $(HDR_COMMON)
 	@echo
+	@mkdir -p bin
 	${CC${MPISTATUS}} -o bin/enkf_update -DENKF_UPDATE $(ENKF_FLAGS) $(CFLAGS$(MPISTATUS)) $(INCS) $(SRC_UPDATE) $(SRC_COMMON) $(SRC_MODEL) $(LIBS)
 
 clean:
