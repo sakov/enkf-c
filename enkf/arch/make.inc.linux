@@ -7,8 +7,8 @@ LIB_M = -lm
 
 # with gridutils (default) (comment out to change)
 #
-INC_GU = -I/home/pavel/src/gridutils
-LIB_GU = /home/pavel/src/gridutils/libgu.so
+INC_GU = -I/usr/local/include
+LIB_GU = /usr/local/lib64/libgu.so
 #
 # without gridutils (uncomment to change)
 #
