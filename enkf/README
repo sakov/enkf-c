@@ -6,7 +6,8 @@ COMPILING
 EnKF-C is developed for GNU/Linux platform.
 
 Create "make.inc" for your architecture (have a look at examples in `arch'
-directory), then run "make".
+directory), then run "make". This should create executables bin/enkf_prep,
+bin/enkf_calc and bin/enkf_update.
 
 DEPENDENCIES
 
