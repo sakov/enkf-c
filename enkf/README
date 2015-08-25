@@ -16,7 +16,7 @@ openmpi
 libnetcdf
 liblapack (or better the Intel's version -- libmkl_rt)
 libgu (default, optional, necessary for handling curvilinear grids only; 
-       svn checkout https://gridutils-c.googlecode.com/svn/gridutils)
+       available from https://github.com/sakov/gridutils-c)
 
 USER MANUAL
 
