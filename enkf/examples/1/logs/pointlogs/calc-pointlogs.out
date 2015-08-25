@@ -1,19 +1,31 @@
   MPI: initialised 2 processes
-  MPI: rank = 0, PID = 24581
-  MPI: rank = 1, PID = 24582
+  MPI: rank = 0, PID = 24656
+  MPI: rank = 1, PID = 24657
   running CALC for EnKF version 1.14:
-    command = "./enkf_calc --forecast-stats-only stats.prm"
+    command = "./enkf_calc --point-logs-only pointlogs.prm"
     dir = "/home/pavel/src/enkf-c/trunk/enkf/examples/1"
-  2015-08-25 13:57:13
-  reading system specs from "stats.prm":
-    MODE = EnOI
+  2015-08-25 13:57:55
+  reading system specs from "pointlogs.prm":
+    MODE = EnKF
+    SCHEME = DEnKF
     MODEL PRM = "model.prm"
     GRID PRM = "grid.prm"
     OBS TYPES PRM = "obs.prm"
     DATE = "6565.5 days since 1990-01-01"
     OBS PRM = "obs.prm"
-    BGDIR = "background_6565"
+    ENSEMBLE DIR = "ensemble_6565"
+    ENSEMBLE SIZE = 96
+    RFACTOR BASE = 2.0
+    INFLATION BASE = 1.1000
+    INFLATION MODE = SPREAD LIMITED, MAX RATIO = 0.50
+    KFACTOR = 999.0
+    LOCRAD = 200
+    STRIDE = 3
+    FIELDBUFFERSIZE = 4
     REGION Global: x = [0.0, 360.0], y = [-90.0, 90.0], z intervals = [0 50] [50 500] [500 9999] 
+    POINTLOG 30 50
+    POINTLOG 50 50
+    POINTLOG 70 50
     SOBSTRIDE = 1
     EnKF flags:
       enkf_exitaction  = [BACKTRACE]
@@ -36,8 +48,8 @@
       ALLOWED MIN = -1
       ALLOWED MAX = 1
       ASYNCHRONOUS = no
-      LOCRAD  = nan
-      RFACTOR = 1
+      LOCRAD  = 200
+      RFACTOR = 2
     NAME = SST
       VAR = temp
       ID = 1
@@ -46,8 +58,8 @@
       ALLOWED MIN = -2
       ALLOWED MAX = 42
       ASYNCHRONOUS = no
-      LOCRAD  = nan
-      RFACTOR = 2
+      LOCRAD  = 200
+      RFACTOR = 4
     NAME = TEM
       VAR = temp
       ID = 2
@@ -57,7 +69,7 @@
       ALLOWED MAX = 42
       ASYNCHRONOUS = no
       LOCRAD  = 800
-      RFACTOR = 4
+      RFACTOR = 8
     NAME = SAL
       VAR = salt
       ID = 3
@@ -67,7 +79,7 @@
       ALLOWED MAX = 39
       ASYNCHRONOUS = no
       LOCRAD  = 800
-      RFACTOR = 4
+      RFACTOR = 8
     grid prm info:
       NAME = "t-grid"
       FILE = "conf/grid_spec.nc"
@@ -90,51 +102,46 @@
       name = Tasman
       5 variables:
         eta_t:
-          inflation = 1.000 0.50
+          inflation = 1.100 0.50
         temp:
-          inflation = 1.000 0.50
+          inflation = 1.100 0.50
         salt:
-          inflation = 1.000 0.50
+          inflation = 1.100 0.50
         u:
-          inflation = 1.000 0.50
+          inflation = 1.100 0.50
         v:
-          inflation = 1.000 0.50
+          inflation = 1.100 0.50
       0 modeldata:
   reading observations from "observations.nc":
     3921 observations
     calculating obs stats:
   calculating ensemble observations:
-  2015-08-25 13:57:13
-    ensemble size = 1
+  2015-08-25 13:57:55
+    ensemble size = 96
     distributing iterations:
-      processes get 1 or 0 iterations
-    SLA +
-    SST +
-    TEM +
-    SAL +
+      all processes get 48 iterations
+    SLA ................................................
+    SST ................................................
+    TEM ................................................
+    SAL ................................................
   adding forecast innovations and spread to "observations.nc":
-  2015-08-25 13:57:13
-  printing observation statistics:
-    region obs.type   # obs.  |for.inn.| for.inn.
-    ---------------------------------------------
-    Global
-           SLA           652    0.082      0.027  
-             j1          250    0.087      0.041  
-             n1          382    0.077      0.015  
-             N/A          20    0.095      0.085  
-           SST          3255    0.461     -0.244  
-             AVHRR      2087    0.467     -0.217  
-             WindSat     847    0.472     -0.307  
-             N/A         321    0.393     -0.252  
-           TEM             7    1.015      0.495  
-             ARGO          7    1.015      0.495  
-             0-50m         2    1.471      1.471  
-             50-500m       5    0.833      0.104  
-             500-9999m     0     -nan       -nan  
-           SAL             7    0.077      0.054  
-             ARGO          7    0.077      0.054  
-             0-50m         2    0.088      0.074  
-             50-500m       5    0.072      0.046  
-             500-9999m     0     -nan       -nan  
-  2015-08-25 13:57:13
+  2015-08-25 13:57:55
+  Hx already added to "observations.nc" (skipping)
+  moderating observations:
+    observations substantially modified:
+      SLA          0 (0.0%)
+      SST          0 (0.0%)
+      TEM          0 (0.0%)
+      SAL          0 (0.0%)
+      total        0 (0.0%)
+  writing modified obs errors to "observations.nc":
+    nothing to do
+  writing point logs:
+    calculating transform for log point (30, 50): 538 obs
+    writing the log for point (30, 50):
+    calculating transform for log point (50, 50): 544 obs
+    writing the log for point (50, 50):
+    calculating transform for log point (70, 50): 466 obs
+    writing the log for point (70, 50):
+  2015-08-25 13:57:55
   finished

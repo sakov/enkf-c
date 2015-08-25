@@ -1,7 +1,7 @@
-  running PREP for EnKF version 1.13:
+  running PREP for EnKF version 1.14:
     command = "./enkf_prep stats.prm"
-    dir = "/home/pavel/src/enkf/examples/1"
-  2015-08-18 14:21:53
+    dir = "/home/pavel/src/enkf-c/trunk/enkf/examples/1"
+  2015-08-25 13:57:13
   reading prep specs from "stats.prm":
     MODE = EnOI
     MODEL PRM = "model.prm"
@@ -113,11 +113,11 @@
       ID = 0
       ISSURFACE = yes
       OFFSET = conf/eta_mean-bran.nc eta_t
-      HFUNCTION = standard
-      ALLOWEls: cannot access obs/WINDSAT/windsat_20071221.nc: No such file or directory
+      HFUNCTION = standardls: cannot access obs/WINDSAT/windsat_20071221.nc: No such file or directory
 ls: cannot access obs/WINDSAT/windsat_20071222.nc: No such file or directory
 ls: cannot access obs/WINDSAT/windsat_20071223.nc: No such file or directory
-D MIN = -1
+
+      ALLOWED MIN = -1
       ALLOWED MAX = 1
       ASYNCHRONOUS = no
       LOCRAD  = nan
@@ -321,5 +321,5 @@ D MIN = -1
     TEM     184        104        104        0          0          0          0          7         
     SAL     184        104        104        0          0          0          0          7         
     total   9749       211        208        0          3          0          0          3921      
-  2015-08-18 14:21:54
+  2015-08-25 13:57:13
   finished

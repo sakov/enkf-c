@@ -9,6 +9,8 @@ stats: clean stats-prep stats-calc
 
 singleob: clean singleob-calc singleob-update
 
+pointlogs: pointlogs-calc pointlogs-update
+
 enkf-prep: enkf_prep conf obs enkf.prm
 	./enkf_prep enkf.prm 2>&1 | tee prep.out
 
@@ -40,6 +42,15 @@ singleob-calc: enkf_calc ensemble_static
 singleob-update: enkf_update ensemble_static
 	nice -n +19 mpirun -np $(NP_UPDATE) ./enkf_update --separate-output --output-increment singleob.prm | tee update.out
 
+pointlogs-calc: enkf_calc observations.nc conf ensemble_6565 X5.nc
+	cp enkf.prm pointlogs.prm
+	echo "POINTLOG 50 50" >> pointlogs.prm
+	echo "POINTLOG 70 50" >> pointlogs.prm
+	nice -n +19 mpirun -np $(NP_CALC) ./enkf_calc --point-logs-only pointlogs.prm 2>&1 | tee calc-pointlogs.out
+
+pointlogs-update: enkf_update X5.nc conf ensemble_6565
+	nice -n +19 mpirun -np $(NP_UPDATE) ./enkf_update --no-fields-write pointlogs.prm 2>&1 | tee update-pointlogs.out
+
 enkf_prep:
 	cp ../../bin/enkf_prep .
 
@@ -50,4 +61,4 @@ enkf_update:
 	cp ../../bin/enkf_update .
 
 clean:
-	@rm -f X5*.nc w*.nc enkf_diag*.nc badbatches.txt observations*.nc *.out ensemble_6565/*.analysis* ensemble_6565/*.increment* background_6565/*.analysis* background_6565/*.increment* ensemble_6565/ens_*-???.nc background_6565/bg_*-???.nc spread.nc ensemble*/spread*.nc pointlog_*.nc enkf_???? enkf_update
+	@rm -f X5*.nc w*.nc enkf_diag*.nc badbatches.txt observations*.nc *.out ensemble_6565/*.analysis* ensemble_6565/*.increment* background_6565/*.analysis* background_6565/*.increment* ensemble_6565/ens_*-???.nc background_6565/bg_*-???.nc *.nc enkf_* pointlogs.prm

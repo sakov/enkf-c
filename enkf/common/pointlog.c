@@ -23,7 +23,8 @@
 #include "dasystem.h"
 #include "pointlog.h"
 
-/**
+/** Creates a point log file and writes ensemble observations, transforms, and
+ * accompanying information.
  */
 void plog_write(dasystem* das, int i, int j, double lon, double lat, double depth, int p, int* lobs, double* lcoeffs, double* s, double* S, double* transform)
 {

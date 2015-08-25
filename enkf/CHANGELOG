@@ -1,3 +1,7 @@
+v. 1.14
+   PS 25082015
+   -- Added option "--point-logs-only" to enkf_calc to complement
+      "-no-fields-write" in enkf_update.
 v. 1.13
    PS 18082015
    -- Introduced global z intervals used for each region (unless overriden

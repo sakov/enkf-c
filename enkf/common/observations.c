@@ -639,6 +639,8 @@ void obs_write(observations* obs, char fname[])
         enkf_quit("file \"%s\" already exists", fname);
     ncw_create(fname, NC_NOCLOBBER, &ncid);
 
+    ncw_put_att_double(fname, ncid, NC_GLOBAL, "DA_JULDAY", 1, &obs->da_date);
+
     ncw_def_dim(fname, ncid, "nobs", nobs, dimid_nobs);
     ncw_def_var(fname, ncid, "type", NC_SHORT, 1, dimid_nobs, &varid_type);
     ncw_def_var(fname, ncid, "product", NC_SHORT, 1, dimid_nobs, &varid_product);

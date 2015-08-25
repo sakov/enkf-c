@@ -1381,6 +1381,8 @@ void das_update(dasystem* das)
                     das_updatefields(das, bufindex + 1, fieldbuffer, &fields[i - bufindex]);
                     if (das->updatespec & UPDATE_DOFIELDS)
                         das_writefields(das, bufindex + 1, fieldbuffer, &fields[i - bufindex]);
+                    else if (i == my_last_iteration)
+                        enkf_printf("      (skip writing the fields)\n");
                 } else if (das->mode == MODE_ENOI) {
                     das_updatebg(das, bufindex + 1, fieldbuffer, &fields[i - bufindex]);
                     if (das->updatespec & UPDATE_DOFIELDS)
@@ -1405,7 +1407,6 @@ void das_update(dasystem* das)
             free3d(fieldbuffer[i]);
         free(fieldbuffer);
 
-        enkf_printf("\n");
         enkf_flush();
     }                           /* for gid */
 

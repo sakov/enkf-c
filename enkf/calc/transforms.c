@@ -701,6 +701,8 @@ void das_dopointlogs(dasystem* das)
     double* w = NULL;
     int p, e, o;
 
+    if (das->s_mode == S_MODE_HA_f)
+        das_standardise(das);
     assert(das->s_mode == S_MODE_S_f);
 
     if (das->mode == MODE_ENKF) {

@@ -1,29 +1,31 @@
   MPI: initialised 2 processes
-  MPI: rank = 0, PID = 24596
-  MPI: rank = 1, PID = 24597
+  MPI: rank = 0, PID = 24661
+  MPI: rank = 1, PID = 24662
   running UPDATE for EnKF version 1.14:
-    command = "./enkf_update --separate-output --output-increment singleob.prm"
+    command = "./enkf_update --no-fields-write pointlogs.prm"
     dir = "/home/pavel/src/enkf-c/trunk/enkf/examples/1"
-  2015-08-25 13:57:22
-  reading system specs from "singleob.prm":
-    MODE = EnOI
+  2015-08-25 13:57:55
+  reading system specs from "pointlogs.prm":
+    MODE = EnKF
+    SCHEME = DEnKF
     MODEL PRM = "model.prm"
     GRID PRM = "grid.prm"
-    OBS TYPES PRM = "(null)"
+    OBS TYPES PRM = "obs.prm"
     DATE = "6565.5 days since 1990-01-01"
-    OBS PRM = "(null)"
-    BGDIR = "background_6565"
+    OBS PRM = "obs.prm"
     ENSEMBLE DIR = "ensemble_6565"
     ENSEMBLE SIZE = 96
-    RFACTOR BASE = 1.0
-    INFLATION BASE = 1.0000
+    RFACTOR BASE = 2.0
+    INFLATION BASE = 1.1000
     INFLATION MODE = SPREAD LIMITED, MAX RATIO = 0.50
     KFACTOR = 999.0
-    LOCRAD = 500
+    LOCRAD = 200
     STRIDE = 3
     FIELDBUFFERSIZE = 4
     REGION Global: x = [0.0, 360.0], y = [-90.0, 90.0], z intervals = [0 50] [50 500] [500 9999] 
     POINTLOG 30 50
+    POINTLOG 50 50
+    POINTLOG 70 50
     SOBSTRIDE = 1
     EnKF flags:
       enkf_exitaction  = [BACKTRACE]
@@ -36,11 +38,9 @@
       GRIDNODES_WRITE  = [-]
       INTERNAL_QSORT_R = [-]
   update specs:
-    do model fields  = [+]
+    do model fields  = [-]
     do spread        = [-]
     do pointlogs     = [-]
-    output increment = [+]
-    separate output  = [+]
   initialising the system:
     grid prm info:
       NAME = "t-grid"
@@ -64,28 +64,25 @@
       name = Tasman
       5 variables:
         eta_t:
-          inflation = 1.000 0.50
+          inflation = 1.100 0.50
         temp:
-          inflation = 1.000 0.50
+          inflation = 1.100 0.50
         salt:
-          inflation = 1.000 0.50
+          inflation = 1.100 0.50
         u:
-          inflation = 1.000 0.50
+          inflation = 1.100 0.50
         v:
-          inflation = 1.000 0.50
+          inflation = 1.100 0.50
       0 modeldata:
-  updating the model state:
+  updating the ensemble:
     96 members
     defining state variables in point logs:
-    allocating disk space for the analysis:    2015-08-25 13:57:22
-.....
-    2015-08-25 13:57:22
     updating fields for t-grid:
       9 fields
       distributing iterations:
         processes get 5 or 4 iterations
-      eta_t    0   (0: 0: 20.0%)
       u        0   (1: 5: 25.0%)
+      eta_t    0   (0: 0: 20.0%)
       u        1   (1: 6: 50.0%)
       temp     0   (0: 1: 40.0%)
       v        0   (1: 7: 75.0%)
@@ -93,18 +90,13 @@
       v        1   (1: 8: 100.0%)
       salt     0   (0: 3: 80.0%)
       salt     1   (0: 4: 100.0%)
-  2015-08-25 13:57:22
-  assembling analysis:
-    eta_t:.
-    temp:..
-    salt:..
-    u:..
-    v:..
+      (skip writing the fields)
+  2015-08-25 13:57:57
   assembling state variables in point logs:
     distributing iterations:
-      processes get 1 or 0 iterations
+      processes get 2 or 1 iterations
     deleting tiles:
       distributing iterations:
         processes get 5 or 4 iterations
-  2015-08-25 13:57:22
+  2015-08-25 13:57:57
   finished

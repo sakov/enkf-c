@@ -501,6 +501,7 @@ void das_addmodifiederrors(dasystem* das, char fname[])
     int varid_std;
     double* std;
     int i;
+    double da_julday;
 
     if (rank != 0)
         return;
@@ -509,9 +510,17 @@ void das_addmodifiederrors(dasystem* das, char fname[])
     ncw_inq_dimid(fname, ncid, "nobs", dimid_nobs);
     ncw_inq_dimlen(fname, ncid, dimid_nobs[0], &nobs);
 
+    ncw_get_att_double(fname, ncid, NC_GLOBAL, "DA_JULDAY", &da_julday);
+    if (fabs(das->obs->da_date - da_julday) > 1e-6)
+        enkf_quit("\"observations.nc\" from a different cycle");
+
+    if (ncw_var_exists(ncid, "std_orig")) {
+        enkf_printf("    nothing to do\n");
+        ncw_close(fname, ncid);
+        return;
+    }
+
     ncw_redef(fname, ncid);
-    if (ncw_var_exists(ncid, "std_orig"))
-        enkf_quit("\"observations.nc\" has already been modified by `enkf_calc\'. To proceed please remove observations*.nc and rerun `enkf_prep\'.");
     ncw_rename_var(fname, ncid, "std", "std_orig");
     ncw_def_var(fname, ncid, "std", NC_FLOAT, 1, dimid_nobs, &varid_std);
     ncw_enddef(fname, ncid);

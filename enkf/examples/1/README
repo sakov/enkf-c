@@ -1,6 +1,6 @@
 This is an example for the EnKF-C package. It has been put up based on the runs
 of regional EnKF and EnOI reanalysis systems for Tasman Sea developed by Bureau
-of Meterology. It allows one to conduct a single assimilation for 23 December 
+of Meteorology. It allows one to conduct a single assimilation for 23 December 
 2007 (day 6565 since 1 January 1990) with either EnKF or EnOI.
 
 Note that to reduce the example size 
@@ -45,6 +45,16 @@ TESTING SINGLE OBSERVATION EXPERIMENT
 
 Run "make singleob". The results are in background_6565/*.increment.
 
+TESTING GENERATION OF ADDITIONAL POINTLOG FILES
+
+The idea is that if something goes wrong with DA at particular locations, one
+can add point logs at these locations in the main parameter file and re-run
+enkf_calc and enkf_post "cheaply" (without re-calculating transforms for the
+whole grid and re-updating the analysis) and investigate what happened.
+
+Run "make enkf", then "make pointlogs". "make pointlogs" quickly adds a couple
+of additional point logs in locations (50, 50) and (70, 50).
+
 --
 
 To clean up the analysis, run "make clean".
@@ -57,15 +67,20 @@ post.out - log file from enkf_post
 observations.nc - pre-processed superobservations
 observations-orig-nc - pre-processed original observations
 enkf_diag.nc - observation impact file
-X5.nc - 2D array of local ensemble tranforms (EnKF)
+X5.nc - 2D array of local ensemble transforms (EnKF)
 w.nc - 2D array of local ensemble linear combination coefficients (EnOI)
 spread.nc - spread of the corresponding ensemble
+pointlog_30,50.nc -- point log with exaustive DA information for location (i,j)
+  = (30,50)
+inflation.nc -- inflation used for each state element
+pointlog_50,50.nc, pointlog_70,50.nc -- two additional point logs generated
+  when running "make pointlogs"
 
 If you suspect that something went wrong, you may compare your logs with those
 in the "logs" directory.
 
 NOTE: for the 2-layer setting used has middle layer depths of 2.5 m and 
-255.8842 m. EnKF-C assumes the toplayer thickness of 5 m and botom layer 
+255.8842 m. EnKF-C assumes the top layer thickness of 5 m and bottom layer 
 thickness of (255.8842 - 5) * 2 = 501.7684 m. The actual layer used for the 
 bottom layer has depth from 242.6595 to 269.109 m. For this reason and because
 of the vertical interpolation between layers to the depth of super observations

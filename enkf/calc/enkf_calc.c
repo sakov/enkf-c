@@ -30,6 +30,7 @@ char* singleobtype = NULL;
 int printbatchstats = 0;
 int ignorenoobs = 0;
 int use_rmsd = 0;
+int plogs_only = 0;
 
 /**
  */
@@ -45,6 +46,8 @@ static void usage()
     enkf_printf("      proceed even if there are no observations\n");
     enkf_printf("  --no-mean-update\n");
     enkf_printf("      update ensemble anomalies only\n");
+    enkf_printf("  --point-logs-only\n");
+    enkf_printf("      skip calculating transforms for the whole grid or observation stats\n");
     enkf_printf("  --print-batch-stats\n");
     enkf_printf("      calculate and print global biases for each batch of observations\n");
     enkf_printf("  --single-observation-xyz <lon> <lat> <depth> <type> <inn> <std>\n");
@@ -107,11 +110,11 @@ static void parse_commandline(int argc, char* argv[], char** fname_prm, char** f
             printbatchstats = 1;
             i++;
             continue;
+        } else if (strcmp(argv[i], "--point-logs-only") == 0) {
+            plogs_only = 1;
+            i++;
+            continue;
         } else if (strncmp(argv[i], "--single-observation", strlen("--single-observation")) == 0) {
-            if (enkf_fstatsonly)
-                enkf_quit("\"--single-observation-xyz\" or \"--single-observation-ijk\" is not compatible with \"forecast-stats-only\"");
-            if (*fname_obs != NULL)
-                enkf_quit("\"--single-observation-xyz\" or \"--single-observation-ijk\" is not compatible with \"use-these-obs\"");
             if (strcmp(argv[i], "--single-observation-xyz") == 0)
                 singleob_ijk = 0;
             else if (strcmp(argv[i], "--single-observation-ijk") == 0)
@@ -152,8 +155,6 @@ static void parse_commandline(int argc, char* argv[], char** fname_prm, char** f
             continue;
 
         } else if (strcmp(argv[i], "--use-these-obs") == 0) {
-            if (singleob != NULL)
-                enkf_quit("command line: \"--use-these-obs\" is not compatible with \"--single-observation-ijk\" or \"--single-observation-xyz\"");
             i++;
             if (i >= argc)
                 usage();
@@ -168,8 +169,6 @@ static void parse_commandline(int argc, char* argv[], char** fname_prm, char** f
             i++;
             continue;
         } else if (strcmp(argv[i], "--forecast-stats-only") == 0) {
-            if (singleob != NULL)
-                enkf_quit("command line: \"--forecast-stats-only\" is not compatible with \"--single-observation-ijk\" or \"--single-observation-xyz\"");
             enkf_fstatsonly = 1;
             i++;
             continue;
@@ -179,6 +178,15 @@ static void parse_commandline(int argc, char* argv[], char** fname_prm, char** f
         } else
             usage();
     }
+
+    if (singleob != NULL && enkf_fstatsonly != 0)
+        enkf_quit("command line: \"--forecast-stats-only\" is not compatible with \"--single-observation-ijk\" or \"--single-observation-xyz\"");
+    if (*fname_obs != NULL && singleob != NULL)
+        enkf_quit("command line: \"--use-these-obs\" is not compatible with \"--single-observation-ijk\" or \"--single-observation-xyz\"");
+    if (plogs_only != 0 && enkf_fstatsonly != 0)
+        enkf_quit("command line: \"--point-logs-only\" is not compatible with \"--forecast-stats-only\"");
+    if (plogs_only != 0 && singleob != NULL)
+        enkf_quit("command line: \"--point-logs-only\" is not compatible with \"--single-observation-ijk\" or \"--single-observation-xyz\"");
 
     if (*fname_prm == NULL)
         enkf_quit("command line: parameter file not specified");
@@ -326,30 +334,34 @@ int main(int argc, char* argv[])
             das_addmodifiederrors(das, fname_obs);
         }
 
-        enkf_printf("  calculating transforms:\n");
-        enkf_printtime("  ");
-        das_calctransforms(das);
+        if (!plogs_only) {
+            enkf_printf("  calculating transforms:\n");
+            enkf_printtime("  ");
+            das_calctransforms(das);
+        }
 
         if (rank == 0) {
             enkf_printf("  writing point logs:\n");
             das_dopointlogs(das);
         }
 
-        /*
-         * the following is an optional bit - updating ensemble observations and
-         * generating report 
-         */
-        enkf_printf("  calculating analysed observations:\n");
-        enkf_printtime("  ");
-        das_updateHE(das);
+        if (!plogs_only) {
+            /*
+             * the following is an optional bit - updating ensemble observations
+             * and generating report 
+             */
+            enkf_printf("  calculating analysed observations:\n");
+            enkf_printtime("  ");
+            das_updateHE(das);
 
-        if (singleob == NULL) {
-            enkf_printf("  adding analysis innovations and spread to \"%s\":\n", fname_obs);
-            das_addanalysis(das, fname_obs);
+            if (singleob == NULL) {
+                enkf_printf("  adding analysis innovations and spread to \"%s\":\n", fname_obs);
+                das_addanalysis(das, fname_obs);
+            }
+
+            enkf_printf("  printing observation statistics:\n");
+            das_printobsstats(das, use_rmsd);
         }
-
-        enkf_printf("  printing observation statistics:\n");
-        das_printobsstats(das, use_rmsd);
     } else {
         enkf_printf("  printing observation statistics:\n");
         das_printfobsstats(das, use_rmsd);
