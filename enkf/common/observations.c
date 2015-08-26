@@ -407,6 +407,7 @@ void obs_calcstats(observations* obs)
 void obs_read(observations* obs, char fname[])
 {
     int ncid;
+    double da_julday = NaN;
     int dimid_nobs[1];
     size_t nobs;
     int varid_type, varid_product, varid_instrument, varid_id, varid_idorig, varid_fid, varid_batch, varid_value, varid_std, varid_lon, varid_lat, varid_depth, varid_fi, varid_fj, varid_fk, varid_date, varid_status, varid_aux;
@@ -432,6 +433,11 @@ void obs_read(observations* obs, char fname[])
     int i;
 
     ncw_open(fname, NC_NOWRITE, &ncid);
+
+    ncw_get_att_double(fname, ncid, NC_GLOBAL, "DA_JULDAY", &da_julday);
+    if (!enkf_noobsdatecheck && (isnan(da_julday) || fabs(obs->da_date - da_julday) > 1e-6))
+        enkf_quit("\"observations.nc\" from a different cycle");
+
     ncw_inq_dimid(fname, ncid, "nobs", dimid_nobs);
     ncw_inq_dimlen(fname, ncid, dimid_nobs[0], &nobs);
 

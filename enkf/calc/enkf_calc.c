@@ -47,7 +47,7 @@ static void usage()
     enkf_printf("  --no-mean-update\n");
     enkf_printf("      update ensemble anomalies only\n");
     enkf_printf("  --point-logs-only\n");
-    enkf_printf("      skip calculating transforms for the whole grid or observation stats\n");
+    enkf_printf("      skip calculating transforms for the whole grid and observation stats\n");
     enkf_printf("  --print-batch-stats\n");
     enkf_printf("      calculate and print global biases for each batch of observations\n");
     enkf_printf("  --single-observation-xyz <lon> <lat> <depth> <type> <inn> <std>\n");
@@ -160,6 +160,7 @@ static void parse_commandline(int argc, char* argv[], char** fname_prm, char** f
                 usage();
             if (*fname_obs == NULL) {
                 *fname_obs = strdup(argv[i]);
+                enkf_noobsdatecheck = 1;
                 i++;
                 continue;
             } else

@@ -35,7 +35,7 @@
 
 \begin{document}
 
-\title{EnKF-C user guide\\{\normalsize version 1.13}}
+\title{EnKF-C user guide\\{\normalsize version 1.15}}
 
 \author{Pavel Sakov}
 \date{June 19, 2014 -- \today}
@@ -1003,6 +1003,8 @@ It has the following usage and options:
       proceed even if there are no observations
   --no-mean-update
       update ensemble anomalies only
+  --point-logs-only
+      skip calculating transforms for the whole grid and observation stats
   --print-batch-stats
        calculate and print global biases for each batch of observations
   --single-observation-xyz <lon> <lat> <depth> <type> <inn> <std>

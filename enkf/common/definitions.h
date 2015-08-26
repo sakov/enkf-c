@@ -132,6 +132,7 @@ extern int enkf_separateout;
 extern int enkf_directwrite;
 extern int enkf_nomeanupdate;
 extern int enkf_fstatsonly;
+extern int enkf_noobsdatecheck;
 
 #define _DEFINITIONS_H
 #endif

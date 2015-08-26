@@ -10,6 +10,11 @@ Note that to reduce the example size
 Because of (1) assimilation of subsurface observations (TEM and SAL observation
 types) is sort of funny, but is OK for testing purposes.
 
+enkf_calc and enkf_post are run on NP_CALC and NP_UPDATE CPUs (2 by default) --
+edit Makefile to change these settings.
+
+Examine Makefile to understand what happens and how for each particular target.
+
 PRE-REQUISITIVES
 
 1. To run this example you need to download example1-data.tar.gz from 

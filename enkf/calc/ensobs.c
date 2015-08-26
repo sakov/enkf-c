@@ -501,7 +501,7 @@ void das_addmodifiederrors(dasystem* das, char fname[])
     int varid_std;
     double* std;
     int i;
-    double da_julday;
+    double da_julday = NaN;
 
     if (rank != 0)
         return;
@@ -511,7 +511,7 @@ void das_addmodifiederrors(dasystem* das, char fname[])
     ncw_inq_dimlen(fname, ncid, dimid_nobs[0], &nobs);
 
     ncw_get_att_double(fname, ncid, NC_GLOBAL, "DA_JULDAY", &da_julday);
-    if (fabs(das->obs->da_date - da_julday) > 1e-6)
+    if (!enkf_noobsdatecheck && (isnan(da_julday) || fabs(das->obs->da_date - da_julday) > 1e-6))
         enkf_quit("\"observations.nc\" from a different cycle");
 
     if (ncw_var_exists(ncid, "std_orig")) {

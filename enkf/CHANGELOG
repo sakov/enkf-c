@@ -1,3 +1,7 @@
+v. 1.15
+   PS 26082015
+   -- Added a check on analysis julian day when opening observations.nc (to
+      exclude using data from another cycle).
 v. 1.14
    PS 25082015
    -- Added option "--point-logs-only" to enkf_calc to complement
