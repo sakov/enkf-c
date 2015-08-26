@@ -680,11 +680,16 @@ grid* grid_create(void* p, int id)
     }
 
     if (prm->levelvarname != NULL) {
-        int** numlevels = alloc2d(ny, nx, sizeof(int));
-
+        g->numlevels = alloc2d(ny, nx, sizeof(int));
         ncw_inq_varid(fname, ncid, prm->levelvarname, &varid_numlevels);
-        ncw_get_var_int(fname, ncid, varid_numlevels, numlevels[0]);
-        g->numlevels = numlevels;
+        ncw_get_var_int(fname, ncid, varid_numlevels, g->numlevels[0]);
+        if (g->vtype == GRIDVTYPE_SIGMA) {
+            int i, j;
+
+            for (j = 0; j < ny; ++j)
+                for (i = 0; i < nx; ++i)
+                    g->numlevels[j][i] *= nz;
+        }
     }
     ncw_close(fname, ncid);
 

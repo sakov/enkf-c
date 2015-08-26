@@ -1,3 +1,7 @@
+v. 1.16
+   PS 26082015
+   -- Fixed a defect for sigma models resulted only in the first (with zero id)
+      layer being updated (not sure when it was introduced).
 v. 1.15
    PS 26082015
    -- Added a check on analysis julian day when opening observations.nc (to
