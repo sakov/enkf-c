@@ -1,3 +1,9 @@
+v. 1.17
+   PS 27082015
+   -- Made writing analyses to separate files (rather than appending to forecast
+      files) the default action. The former option "--separate-output" became
+      redundant, a new option "--joint-analysis" appends analysis to forecast
+      files.
 v. 1.16
    PS 26082015
    -- Fixed a defect for sigma models resulted only in the first (with zero id)

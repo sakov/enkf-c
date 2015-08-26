@@ -1,10 +1,10 @@
   MPI: initialised 2 processes
-  MPI: rank = 0, PID = 24661
-  MPI: rank = 1, PID = 24662
-  running UPDATE for EnKF version 1.14:
+  MPI: rank = 0, PID = 18570
+  MPI: rank = 1, PID = 18571
+  running UPDATE for EnKF version 1.17:
     command = "./enkf_update --no-fields-write pointlogs.prm"
     dir = "/home/pavel/src/enkf-c/trunk/enkf/examples/1"
-  2015-08-25 13:57:55
+  2015-08-27 08:49:20
   reading system specs from "pointlogs.prm":
     MODE = EnKF
     SCHEME = DEnKF
@@ -91,12 +91,12 @@
       salt     0   (0: 3: 80.0%)
       salt     1   (0: 4: 100.0%)
       (skip writing the fields)
-  2015-08-25 13:57:57
+  2015-08-27 08:49:22
   assembling state variables in point logs:
     distributing iterations:
       processes get 2 or 1 iterations
     deleting tiles:
       distributing iterations:
         processes get 5 or 4 iterations
-  2015-08-25 13:57:57
+  2015-08-27 08:49:22
   finished

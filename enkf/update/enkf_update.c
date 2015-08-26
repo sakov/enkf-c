@@ -35,14 +35,14 @@ static void usage()
     enkf_printf("      describe format of a parameter file and exit\n");
     enkf_printf("  --direct-write\n");
     enkf_printf("      write fields directly to the output file (default: write to tiles first)\n");
+    enkf_printf("  --joint-output\n");
+    enkf_printf("      append analyses to forecast files (default: write to separate files)\n");
     enkf_printf("  --leave-tiles\n");
     enkf_printf("      do not delete tiles\n");
     enkf_printf("  --no-fields-write\n");
     enkf_printf("      do not write analysis fields (only point logs and/or spread)\n");
     enkf_printf("  --output-increment\n");
     enkf_printf("      output analysis increment (default: output analysis)\n");
-    enkf_printf("  --separate-output\n");
-    enkf_printf("      write results to new files (default: append to forecast files)\n");
     enkf_printf("  --write-inflation\n");
     enkf_printf("      write adaptive inflation magnitudes to %s\n", FNAME_INFLATION);
     enkf_printf("  --version\n");
@@ -90,6 +90,10 @@ static void parse_commandline(int argc, char* argv[], char** fname, int* updates
             *updatespec |= UPDATE_DIRECTWRITE;
             i++;
             continue;
+        } else if (strcmp(argv[i], "--joint-output") == 0) {
+            *updatespec &= ~UPDATE_SEPARATEOUTPUT;
+            i++;
+            continue;
         } else if (strcmp(argv[i], "--leave-tiles") == 0) {
             *updatespec |= UPDATE_LEAVETILES;
             i++;
@@ -103,7 +107,9 @@ static void parse_commandline(int argc, char* argv[], char** fname, int* updates
             i++;
             continue;
         } else if (strcmp(argv[i], "--separate-output") == 0) {
-            *updatespec |= UPDATE_SEPARATEOUTPUT;
+            /*
+             * (historic option, became default, do nothing)
+             */
             i++;
             continue;
         } else if (strcmp(argv[i], "--write-inflation") == 0) {

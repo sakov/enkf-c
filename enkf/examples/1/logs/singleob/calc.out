@@ -1,10 +1,10 @@
   MPI: initialised 2 processes
-  MPI: rank = 0, PID = 24590
-  MPI: rank = 1, PID = 24591
-  running CALC for EnKF version 1.14:
+  MPI: rank = 0, PID = 18502
+  MPI: rank = 1, PID = 18503
+  running CALC for EnKF version 1.17:
     command = "./enkf_calc --single-observation-ijk 30 50 0 SST 0.5 0.5 singleob.prm"
     dir = "/home/pavel/src/enkf-c/trunk/enkf/examples/1"
-  2015-08-25 13:57:22
+  2015-08-27 08:48:38
   reading system specs from "singleob.prm":
     MODE = EnOI
     MODEL PRM = "model.prm"
@@ -162,7 +162,7 @@
     j    = 50.000
     calculating obs stats:
   calculating ensemble observations:
-  2015-08-25 13:57:22
+  2015-08-27 08:48:38
     ensemble size = 96
     distributing iterations:
       all processes get 48 iterations
@@ -171,14 +171,14 @@
     TEM 
     SAL 
   calculating transforms:
-  2015-08-25 13:57:22
+  2015-08-27 08:48:38
     calculating transforms for t-grid:
     creating empty file "w.nc":
       distributing iterations:
         all processes get 17 iterations
       main cycle for t-grid (34 x 34 local analyses):
-        j = 0 (0: 0: 5.9%)
         j = 3 (1: 17: 5.9%)
+        j = 0 (0: 0: 5.9%)
         j = 9 (1: 18: 11.8%)
         j = 6 (0: 1: 11.8%)
         j = 15 (1: 19: 17.6%)
@@ -222,7 +222,7 @@
     calculating transform for log point (30, 50): 1 obs
     writing the log for point (30, 50):
   calculating analysed observations:
-  2015-08-25 13:57:22
+  2015-08-27 08:48:38
     sorting obs by ij:
     updating Hx:
   printing observation statistics:
@@ -231,5 +231,5 @@
     Global
            SST             1    0.500      0.271      0.500      0.271      0.655      0.655  
              Virtual       1    0.500      0.271      0.500      0.271      0.655      0.655  
-  2015-08-25 13:57:22
+  2015-08-27 08:48:38
   finished

@@ -35,7 +35,7 @@
 
 \begin{document}
 
-\title{EnKF-C user guide\\{\normalsize version 1.15}}
+\title{EnKF-C user guide\\{\normalsize version 1.17}}
 
 \author{Pavel Sakov}
 \date{June 19, 2014 -- \today}
@@ -1151,23 +1151,22 @@ It has the following usage and options:
       describe format of a parameter file and exit
   --direct-write
       write fields directly to the output file (default: write to tiles first)
+  --joint-output
+      append analyses to forecast files (default: write to separate files)
   --leave-tiles
       do not delete tiles
   --no-fields-write
       do not write analysis fields
   --output-increment
       output analysis increment (default: output analysis)
-  --separate-output
-      write results to new files (default: append to forecast files)
   --write-inflation
       write adaptive inflation magnitudes to inflation.nc
   --version
       print version and exit
 \end{Verbatim}
 
-The option \verb|--separate-output| tells \emph{update} to write the updated ensemble (EnKF) or background (EnOI) to separate analysis files, rather than append them to the forecast files.
-When writing to a separate file, the same variable names are used for the analysis as for the forecast; the new files have an extra suffix \verb|.analysis| or \verb|.increment|, depending on whether the analysis or increment is written.
-By default, \emph{update} writes results to the forecast files by creating new variable names from old names using suffix \verb|_an|.
+The option \verb|--joint-output| tells \emph{update} to append analyses to the corresponding forecast files, using new variable names constructed by concatenating the forecast variable names and suffix \verb|_an|.
+By default the analyses are written to separate files, using the same variable names as the forecast files, but with an extra suffix \verb|.analysis| or \verb|.increment| added to the file name, depending on whether the analysis or increment is written.
 
 By default, \emph{update} first writes each updated horizontal field of the model to a separate file (referred to here as a tile), and then concatenates these fields into analysis files.
 The tiles are removed after writing the analysis files; one may save time for allocating them on disk in the next cycle by leaving them on disk by using option \verb|--leave-tiles|.

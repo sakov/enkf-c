@@ -100,7 +100,7 @@
 #define UPDATE_OUTPUTINC      (1 << 5)
 #define UPDATE_SEPARATEOUTPUT (1 << 6)
 #define UPDATE_DIRECTWRITE    (1 << 7)
-#define UPDATE_DEFAULT        (UPDATE_DOFIELDS | UPDATE_DOPLOGS)
+#define UPDATE_DEFAULT        (UPDATE_DOFIELDS | UPDATE_DOPLOGS | UPDATE_SEPARATEOUTPUT)
 
 /*
  * the default vertical split for 3D fields in obs stats
