@@ -491,11 +491,12 @@ The cost function (\ref{cost-perf}) can then be written as:
   \label{cost-async}
   \mathcal L(\mb x_1)  = (\mb x_1 - \mb x_1^f)\T (\mb P^f)^{-1} (\mb x_1 - \mb x_1^f) + \left [ \mb y - \mathcal H \circ \mathcal M(\mb x_1) \right ] \T \mb R^{-1} \left [ \mb y - \mathcal H\circ \mathcal M(\mb x_1) \right ],
 \end{align}
-where observations $\mb y$ represent the augmented observation vector: $\mb y = [\mb y_1\T,\dots,\mb y_k\T]\T$, $\mb R$ is the corresponding observation error covariance, and operator $\mathcal H \circ \mathcal M (\mb x_1)$ is assumed to project the initial state $\mb x_1$ to observation space.
-Note that usually only $\mathcal H$ is a function that depends on assimilated observations; now $\mathcal M$ also depends on observations, propagating the initial state to the time of each observation.
+where observations $\mb y$ represent the augmented observation vector: $\mb y = [\mb y_1\T,\dots,\mb y_k\T]\T$, $\mb R$ is the corresponding observation error covariance, and forward operator $\mathcal H \circ \mathcal M (\mb x_1)$ relates the initial state $\mb x_1$ to observations.
+
+Note that usually only $\mathcal H$ is a function that depends on assimilated observations; now, if we interpret $\mathcal H \circ \mathcal M (\mb x) = \mathcal H[\mathcal M(\mb x)]$, we have to assume that $\mathcal M$ also depends on observations, propagating the initial state to the time of each observation.
 It is also possible to interpret $\mathcal M(\mb x$) as the \emph{trajectory} starting from $\mb x$, while $\mathcal H$ maps it to observations.
 
-Apart from the operator $\mathcal H \circ \mathcal M (\mb x_1)$, the cost function (\ref{cost-async}) has the same form as that for a single DA cycle with synchronous observations.
+Apart from the operator $\mathcal H \circ \mathcal M$, the cost function (\ref{cost-async}) has the same form as that for a single DA cycle with synchronous observations.
 Consequently, \underline{in the linear case} (\ref{lin}) one can use solutions for $\mb w$ and $\mb T$ from section~\ref{sec:numerical}, subject to extending definitions of $\mb s$ and $\mb S$ as follows:
 \begin{align}
   \label{s-async}
@@ -504,10 +505,10 @@ Consequently, \underline{in the linear case} (\ref{lin}) one can use solutions f
   &\mb S = \mb R^{-1/2} \, \mb H \circ \mb M \, \mb A_1^f / \sqrt{m - 1},
 \end{align}
 where $\mb H \circ \mb M$ is the tangent linear operator of $\mathcal H \circ \mathcal M$ about $\mb x_1^f$.
-This means that to account for the time of observations in the EnKF one simply needs to calculate innovation and forecast ensemble observation anomalies using ensemble at the time of each observation.
+This means that to account for the time of observations in the EnKF one simply needs calculate innovation and forecast ensemble observation anomalies using ensemble at the time of each observation.
 There are no specific restrictions on $\mb R$, so that in theory observation errors can be correlated in time.
 
-The minimisation problem (\ref{min-perf}),(\ref{cost-async}) implies assimilation time $t = t_1$; however, in the linear case the standardised innovation and ensemble observation anomalies in form (\ref{s-async},\ref{S-async}) represent objects invariant to assimilation time: the reference to $\mb x_1$ is only present to define the operator $\mathcal H \circ \mathcal M$.
+The minimisation problem (\ref{min-perf}),(\ref{cost-async}) implies assimilation time $t = t_1$; however, in the linear case the standardised innovation and ensemble observation anomalies in form (\ref{s-async},\ref{S-async}) represent objects invariant to assimilation time: the reference to $\mb x_1$ is only needed to define forward operator $\mathcal H \circ \mathcal M$.
 Consequently, the ensemble transform $\mb X_5$ calculated from $\mb s$ and $\mb S$ can be applied to ensemble at any particular time to yield (the same) analysed trajectories for the ensemble members: $\mathcal M (\mb E) \, \mb X_5 = \mathcal M (\mb E \, \mb X_5)$.
 This time invariance of ensemble transforms can be used to update ensemble back in time using observations from future cycles without the need in backward model \citep{eve00a}.
 
