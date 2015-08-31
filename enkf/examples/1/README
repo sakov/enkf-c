@@ -58,8 +58,8 @@ can add point logs at these locations in the main parameter file and re-run
 enkf_calc and enkf_post "cheaply" (without re-calculating transforms for the
 whole grid and re-updating the analysis) and investigate what happened.
 
-Run "make enkf", then "make pointlogs". "make pointlogs" quickly adds a couple
-of additional point logs in locations (50, 50) and (70, 50).
+Run "make enkf", then "make pointlogs" to add a couple of additional point logs
+in locations (50, 50) and (70, 50).
 
 TESTING GLOBAL ENKF ANALYSIS
 

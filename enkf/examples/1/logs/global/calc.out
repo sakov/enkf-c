@@ -1,10 +1,9 @@
-  MPI: initialised 2 processes
-  MPI: rank = 0, PID = 10843
-  MPI: rank = 1, PID = 10844
-  running CALC for EnKF version 1.17:
+  MPI: initialised 1 processes
+  MPI: rank = 0, PID = 11569
+  running CALC for EnKF version 1.18:
     command = "./enkf_calc enkf-global.prm"
     dir = "/home/pavel/src/enkf-c/trunk/enkf/examples/1"
-  2015-08-31 10:40:24
+  2015-08-31 11:16:16
   reading system specs from "enkf-global.prm":
     MODE = EnKF
     SCHEME = DEnKF
@@ -114,16 +113,16 @@
     3921 observations
     calculating obs stats:
   calculating ensemble observations:
-  2015-08-31 10:40:24
+  2015-08-31 11:16:16
     ensemble size = 96
     distributing iterations:
-      all processes get 48 iterations
-    SLA ................................................
-    SST ................................................
-    TEM ................................................
-    SAL ................................................
+      all processes get 96 iterations
+    SLA ................................................................................................
+    SST ................................................................................................
+    TEM ................................................................................................
+    SAL ................................................................................................
   adding forecast innovations and spread to "observations.nc":
-  2015-08-31 10:40:24
+  2015-08-31 11:16:16
   moderating observations:
     observations substantially modified:
       SLA          0 (0.0%)
@@ -133,11 +132,11 @@
       total        0 (0.0%)
   writing modified obs errors to "observations.nc":
   calculating transforms:
-  2015-08-31 10:40:24
+  2015-08-31 11:16:16
     calculating transforms for t-grid:
       creating empty file "X5.nc":
       distributing iterations:
-        processes get 1 or 0 iterations
+        all processes get 1 iterations
       main cycle for t-grid (1 x 1 local analyses):
         j = 0 (0: 0: 100.0%)
     finished calculating transforms for t-grid
@@ -151,7 +150,7 @@
     calculating transform for log point (30, 50): 3921 obs
     writing the log for point (30, 50):
   calculating analysed observations:
-  2015-08-31 10:40:24
+  2015-08-31 11:16:16
     sorting obs by ij:
     updating HE:
   adding analysis innovations and spread to "observations.nc":
@@ -177,5 +176,5 @@
              0-50m         2    0.088      0.101      0.074      0.097      0.023      0.013  
              50-500m       5    0.072      0.096      0.046      0.054      0.032      0.019  
              500-9999m     0     -nan       -nan       -nan       -nan       -nan       -nan  
-  2015-08-31 10:40:25
+  2015-08-31 11:16:17
   finished

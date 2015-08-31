@@ -1,7 +1,7 @@
-  running PREP for EnKF version 1.17:
+  running PREP for EnKF version 1.18:
     command = "./enkf_prep enkf.prm"
     dir = "/home/pavel/src/enkf-c/trunk/enkf/examples/1"
-  2015-08-31 10:40:23
+  2015-08-31 11:16:15
   reading prep specs from "enkf.prm":
     MODE = EnKF
     SCHEME = DEnKF
@@ -322,5 +322,5 @@ ls: cannot access obs/WINDSAT/windsat_20071223.nc: No such file or directory
     TEM     184        104        104        0          0          0          0          7         
     SAL     184        104        104        0          0          0          0          7         
     total   9749       211        208        0          3          0          0          3921      
-  2015-08-31 10:40:24
+  2015-08-31 11:16:15
   finished
