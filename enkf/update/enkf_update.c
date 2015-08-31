@@ -181,7 +181,7 @@ int main(int argc, char* argv[])
     }
 
     describe_updatespec(updatespec);
-    if ((updatespec & (UPDATE_DOFIELDS | UPDATE_DOSPREAD | UPDATE_DOPLOGS)) == 0)
+    if ((updatespec & (UPDATE_DOFIELDS | UPDATE_DOSPREAD | UPDATE_DOPLOGS | UPDATE_DOINFLATION)) == 0)
         enkf_quit("nothing to do");
 
     enkf_printf("  initialising the system:\n");

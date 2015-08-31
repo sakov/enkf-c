@@ -1,3 +1,9 @@
+v. 1.18
+   PS 31082015
+   -- Verified that setting LOCRAD and STRIDE to big numbers results in
+      calculating a global analysis. Made some changes to the code to ensure
+      that it runs with such setings, even when using more than one CPU in calc.
+      Added target "global" to example 1.
 v. 1.17
    PS 27082015
    -- Made writing analyses to separate files (rather than appending to forecast

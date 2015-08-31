@@ -11,6 +11,8 @@ singleob: clean singleob-calc singleob-update
 
 pointlogs: pointlogs-calc pointlogs-update
 
+global: clean enkf-prep enkf-calc-global enkf-update-global
+
 enkf-prep: enkf_prep conf obs enkf.prm
 	./enkf_prep enkf.prm 2>&1 | tee prep.out
 
@@ -50,6 +52,13 @@ pointlogs-calc: enkf_calc observations.nc conf ensemble_6565 X5.nc
 
 pointlogs-update: enkf_update X5.nc conf ensemble_6565
 	nice -n +19 mpirun -np $(NP_UPDATE) ./enkf_update --no-fields-write pointlogs.prm 2>&1 | tee update-pointlogs.out
+
+enkf-calc-global: enkf_calc observations.nc conf ensemble_6565
+	nice -n +19 mpirun -np $(NP_CALC) ./enkf_calc enkf-global.prm 2>&1 | tee calc.out
+
+enkf-update-global: enkf_update X5.nc conf ensemble_6565
+	nice -n +19 mpirun -np $(NP_UPDATE) ./enkf_update --calculate-spread --write-inflation enkf-global.prm 2>&1 | tee update.out
+	rm -f ensemble_6565/mem*_*-???.nc
 
 enkf_prep:
 	cp ../../bin/enkf_prep .

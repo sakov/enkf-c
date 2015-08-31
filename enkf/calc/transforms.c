@@ -265,7 +265,7 @@ void das_calctransforms(dasystem* das)
             pnlobs = alloc3d(obs->nobstypes, nj, ni, sizeof(int));
             pdfs = alloc3d(obs->nobstypes, nj, ni, sizeof(float));
             psrf = alloc3d(obs->nobstypes, nj, ni, sizeof(float));
-        } else {
+        } else if (my_number_of_iterations > 0) {
             nlobs = alloc2d(my_last_iteration - my_first_iteration + 1, ni, sizeof(int));
             dfs = alloc2d(my_last_iteration - my_first_iteration + 1, ni, sizeof(float));
             srf = alloc2d(my_last_iteration - my_first_iteration + 1, ni, sizeof(float));
@@ -520,12 +520,12 @@ void das_calctransforms(dasystem* das)
                     }
                 }
             }
-#else
+#else                           /* no MPI */
             if (das->mode == MODE_ENKF)
                 nc_writeX5(fname_XW, ncid_X5, jpool[jj], ni, das->nmem, varid_X5, X5j[0]);
             else if (das->mode == MODE_ENKF)
                 nc_writew(fname_XW, ncid_w, jpool[jj], ni, das->nmem, varid_w, wj[0]);
-#endif                          /* MPI */
+#endif                          /* if defined(MPI) */
         }                       /* for jj */
 
         if (rank == 0) {
@@ -545,7 +545,7 @@ void das_calctransforms(dasystem* das)
         /*
          * collect stats on master 
          */
-        if (rank > 0) {
+        if (rank > 0 && my_number_of_iterations > 0) {
             int ierror;
 
             ierror = MPI_Send(nlobs[0], (my_last_iteration - my_first_iteration + 1) * ni, MPI_INT, 0, 1, MPI_COMM_WORLD);
@@ -569,6 +569,9 @@ void das_calctransforms(dasystem* das)
             int r;
 
             for (r = 1; r < nprocesses; ++r) {
+                if (number_of_iterations[r] == 0)
+                    continue;
+
                 buffer_nlobs = alloc2d(last_iteration[r] - first_iteration[r] + 1, ni, sizeof(int));
                 ierror = MPI_Recv(buffer_nlobs[0], (last_iteration[r] - first_iteration[r] + 1) * ni, MPI_INT, r, 1, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
                 assert(ierror == MPI_SUCCESS);
@@ -646,7 +649,7 @@ void das_calctransforms(dasystem* das)
         /*
          * merge the stats for the log report
          */
-        if (rank != 0) {
+        if (rank != 0 && my_number_of_iterations > 0) {
             int ierror = MPI_Send(&stats, sizeof(stats) / sizeof(int), MPI_INT, 0, 99, MPI_COMM_WORLD);
 
             assert(ierror == MPI_SUCCESS);
@@ -655,8 +658,12 @@ void das_calctransforms(dasystem* das)
 
             for (r = 1; r < nprocesses; ++r) {
                 calcstats morestats;
-                int ierror = MPI_Recv(&morestats, sizeof(stats) / sizeof(int), MPI_INT, r, 99, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+                int ierror;
 
+                if (number_of_iterations[r] == 0)
+                    continue;
+
+                ierror = MPI_Recv(&morestats, sizeof(stats) / sizeof(int), MPI_INT, r, 99, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
                 assert(ierror == MPI_SUCCESS);
 
                 stats.nlobs_sum += morestats.nlobs_sum;
@@ -677,15 +684,17 @@ void das_calctransforms(dasystem* das)
         enkf_printf("      # of inversions in ens space = %d\n", stats.n_inv_ens);
         enkf_printf("");
 
-        free2d(nlobs);
-        free2d(dfs);
-        free2d(srf);
-        free3d(pnlobs);
-        free3d(pdfs);
-        free3d(psrf);
-        free(jiter);
-        free(iiter);
-        free(jpool);
+        if (my_number_of_iterations > 0) {
+            free2d(nlobs);
+            free2d(dfs);
+            free2d(srf);
+            free3d(pnlobs);
+            free3d(pdfs);
+            free3d(psrf);
+            free(jiter);
+            free(iiter);
+            free(jpool);
+        }
     }                           /* for gid */
 }
 

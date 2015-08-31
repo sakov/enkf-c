@@ -43,7 +43,8 @@ background/bg_<var>.nc.analysis.
 
 TESTING MODEL VALIDATION
 
-Testing using EnKF-C for for validating a model against observations only, without data assimilation, run "make stats". The innovation statistics will be 
+Testing using EnKF-C for for validating a model against observations only, 
+without data assimilation, run "make stats". The innovation statistics will be
 printed to the log of enkf_calc.
 
 TESTING SINGLE OBSERVATION EXPERIMENT
@@ -59,6 +60,11 @@ whole grid and re-updating the analysis) and investigate what happened.
 
 Run "make enkf", then "make pointlogs". "make pointlogs" quickly adds a couple
 of additional point logs in locations (50, 50) and (70, 50).
+
+TESTING GLOBAL ENKF ANALYSIS
+
+Setting "LOCRAD 1e6" and "STRIDE 999999" effectively results in conducting a
+global analysis. Run "make global" to test.
 
 --
 

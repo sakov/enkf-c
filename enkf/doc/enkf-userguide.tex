@@ -35,7 +35,7 @@
 
 \begin{document}
 
-\title{EnKF-C user guide\\{\normalsize version 1.17}}
+\title{EnKF-C user guide\\{\normalsize version 1.18}}
 
 \author{Pavel Sakov}
 \date{June 19, 2014 -- \today}
@@ -84,13 +84,11 @@ Following are its other main features:
 \begin{itemize}
 \item coded in C for GNU/Linux platform;
 \item can conduct DA either in EnKF or ensemble optimal interpolation (EnOI) mode;
-\item permits multiple model grids.
+\item permits multiple model grids;
+\item can handle rectangular or curvilinear horizontal grids, z or sigma vertical layers.
 \end{itemize}
 
-To make the code simpler, EnKF-C assumes that the model is layered and model states are stored in NetCDF format.
-EnKF-C is supposed to run with localisation only.
-
-EnKF-C is available from \url{https://code.google.com/p/enkf-c}.
+EnKF-C is available from \url{https://github.com/sakov/enkf-c}.
 This user guide is a part of the EnKF-C package. 
 It is also available from \url{http://arxiv.org/abs/1410.1233}.
 
@@ -452,9 +450,8 @@ This is done using local normalised ensemble observation anomalies $\ac{i}{\mb S
     &\ac{i}{\mb S} \equiv \mb S \circ (\ac{i}{\mb f} \, \mb 1\T),
   \end{align}
 \end{subequations}
-where $\mb A \circ \mb B$ denotes by-element, or Hadamard, or Schur product of matrices $\mb A$ and $\mb B$.
-We consider non-adaptive localisation only, when the vector of taper coefficients $\mb f$ does not depend on the SDAS or observations.
-Typically, the taper coefficient for observation $o$ is a function of locations of the state element $i$ (denoted as $\ac{i}{\mb r}$) and observation $o$ (denoted as $\ac{\{o\}}{\mb r}$): $\ac{i}{\mb f}_o = g(\ac{i}{\mb r}, \ac{\{o\}}{\mb r})$, where $g$ is the taper function.
+where $\ac{i}{\mb f}$ is the vector of taper coefficients for element $i$, and $\mb A \circ \mb B$ denotes by-element, or Hadamard, or Schur product of matrices $\mb A$ and $\mb B$.
+We consider non-adaptive localisation only, when a taper coefficient is a function of locations of the state element $i$ (denoted as $\ac{i}{\mb r}$) and observation $o$ (denoted as $\ac{\{o\}}{\mb r}$): $\ac{i}{\mb f}_o = g(\ac{i}{\mb r}, \ac{\{o\}}{\mb r})$, where $g$ is the taper function.
 In layered geophysical models $g$ is often assumed to depend only on horizontal distance between these locations: 
 \begin{align}
   \label{hor}
@@ -510,7 +507,7 @@ There are no specific restrictions on $\mb R$, so that in theory observation err
 
 The minimisation problem (\ref{min-perf}),(\ref{cost-async}) implies assimilation time $t = t_1$; however, in the linear case the standardised innovation and ensemble observation anomalies in form (\ref{s-async},\ref{S-async}) represent objects invariant to assimilation time: the reference to $\mb x_1$ is only needed to define forward operator $\mathcal H \circ \mathcal M$.
 Consequently, the ensemble transform $\mb X_5$ calculated from $\mb s$ and $\mb S$ can be applied to ensemble at any particular time to yield (the same) analysed trajectories for the ensemble members: $\mathcal M (\mb E) \, \mb X_5 = \mathcal M (\mb E \, \mb X_5)$.
-This time invariance of ensemble transforms can be used to update ensemble back in time using observations from future cycles without the need in backward model \citep{eve00a}.
+This time invariance of ensemble transforms can be used to update ensemble back in time using observations from future cycles without the need in backward model (\citealt[][sec.~6]{eve00a}, \citealt[][app.~D]{eve03a}).
 
 {
   \setlength{\abovedisplayskip}{2pt}
@@ -659,6 +656,11 @@ Its format is described by running \verb|enkf_prep|, \verb|enkf_calc| or \verb|e
     5. < ... > denotes a description of an entry
     6. ... denotes repeating the previous item an arbitrary number of times
 \end{Verbatim}
+
+\subsubsection{Global analysis}
+
+It is possible to conduct a global analysis by setting \verb|LOCRAD| and \verb|STRIDE| to large numbers.
+This is demonstrated by target ``global'' in example 1.
 
 \subsection{Model parameter file}
 \label{sec:modelprm}

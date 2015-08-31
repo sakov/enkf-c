@@ -1,0 +1,24 @@
+MODE = EnKF
+SCHEME = DEnKF
+
+MODEL = model.prm
+GRID = grid.prm
+OBSTYPES = obstypes.prm
+
+OBS = obs.prm
+DATE = 6565.5 days since 1990-01-01
+
+ENSDIR = ensemble_6565
+ENSSIZE = 96
+
+INFLATION = 1.1
+RFACTOR = 2
+KFACTOR = 999
+LOCRAD = 1e6
+
+STRIDE = 999999
+FIELDBUFFERSIZE = 4
+
+REGION Global   0   360   -90     90
+
+POINTLOG 30 50
