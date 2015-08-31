@@ -519,7 +519,7 @@ void enkfprm_describeprm(void)
     enkf_printf("  Main parameter file format:\n");
     enkf_printf("\n");
     enkf_printf("    MODE            = { ENKF | ENOI }\n");
-    enkf_printf("  [ SCHEME          = { DENKF* | ETKF | EnKF-N } ]\n");
+    enkf_printf("  [ SCHEME          = { DENKF* | ETKF } ]\n");
     enkf_printf("    MODEL           = <model prm file>\n");
     enkf_printf("    GRID            = <grid prm file>\n");
     enkf_printf("    OBSTYPES        = <obs. types prm file>\n");
@@ -527,10 +527,10 @@ void enkfprm_describeprm(void)
     enkf_printf("    DATE            = <julian day of analysis>\n");
     enkf_printf("    ENSDIR          = <ensemble directory>\n");
     enkf_printf("    BGDIR           = <background directory>                 (MODE = ENOI)\n");
-    enkf_printf("  [ KFACTOR         = <kfactor> ]                            (1*)\n");
+    enkf_printf("  [ KFACTOR         = <kfactor> ]                            (NaN*)\n");
     enkf_printf("  [ RFACTOR         = <rfactor> ]                            (1*)\n");
     enkf_printf("    ...\n");
-    enkf_printf("    LOCRAD          = <locrad>\n");
+    enkf_printf("    LOCRAD          = <loc. radius in km>\n");
     enkf_printf("  [ STRIDE          = <stride> ]                             (1*)\n");
     enkf_printf("  [ SOBSTRIDE       = <stride> ]                             (1*)\n");
     enkf_printf("  [ FIELDBUFFERSIZE = <fieldbuffersize> ]                    (1*)\n");
