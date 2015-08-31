@@ -32,6 +32,9 @@ typedef struct {
 
 typedef struct {
     int i, j;
+    double lon, lat;
+    char* gridname;
+    int gridid;
 } pointlog;
 
 typedef struct {

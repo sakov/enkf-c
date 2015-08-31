@@ -1,3 +1,8 @@
+v. 1.19
+   PS 31082015
+   -- Modified code to allow point logs to be specified on any grid by entering
+      the grid name as an additional parameter in the pointlog entry. Grid 0
+      will still be used as default.
 v. 1.18
    PS 31082015
    -- Verified that setting LOCRAD and STRIDE to big numbers results in

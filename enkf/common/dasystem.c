@@ -154,30 +154,36 @@ dasystem* das_create(enkfprm* prm)
 
     if (prm->nplogs > 0)
         das->ht_plogs = ht_create_i2(prm->nplogs);
+    das->plogs = malloc(sizeof(pointlog) * prm->nplogs);
+    das->nplogs = prm->nplogs;
     for (i = 0; i < prm->nplogs; ++i) {
-        /*
-         * ( the grid coordinates of pointlogs are defined on grid #0 )
-         */
-        void* grid = model_getgridbyid(das->m, 0);
-        double lon, lat;
+        pointlog* src = &prm->plogs[i];
+        pointlog* dst = &das->plogs[i];
+        void* grid = NULL;
         int key[2];
 
-        grid_fij2xy(grid, (double) prm->plogs[i].i, (double) prm->plogs[i].j, &lon, &lat);
+        dst->i = src->i;
+        dst->j = src->j;
+        if (src->gridname == NULL) {
+            dst->gridid = 0;
+            grid = model_getgridbyid(das->m, 0);
+            dst->gridname = strdup(grid_getname(grid));
+        } else {
+            dst->gridname = strdup(src->gridname);
+            grid = model_getgridbyname(das->m, src->gridname);
+            dst->gridid = grid_getid(grid);
+        }
 
-        if (isnan(lon + lat)) {
-            enkf_printf("  WARNING: %s: POINTLOG %d %d: point outside the grid\n", das->prmfname, prm->plogs[i].i, prm->plogs[i].j);
+        grid_fij2xy(grid, (double) dst->i, (double) dst->j, &dst->lon, &dst->lat);
+
+        if (isnan(dst->lon + dst->lat)) {
+            enkf_printf("  WARNING: %s: POINTLOG %d %d: point outside the grid \"%s\"\n", das->prmfname, dst->i, dst->j, dst->gridname);
             continue;
         }
 
-        if (das->nplogs % NPLOGS_INC == 0)
-            das->plogs = realloc(das->plogs, (das->nplogs + NPLOGS_INC) * sizeof(pointlog));
-
-        das->plogs[das->nplogs].i = prm->plogs[i].i;
-        das->plogs[das->nplogs].j = prm->plogs[i].j;
-        key[0] = das->plogs[das->nplogs].i;
-        key[1] = das->plogs[das->nplogs].j;
+        key[0] = dst->i;
+        key[1] = dst->j;
         ht_insert(das->ht_plogs, key, NULL);
-        das->nplogs++;
     }
 
 #if defined(ENKF_CALC)
@@ -237,6 +243,8 @@ void das_destroy(dasystem* das)
     }
     if (das->nplogs > 0) {
         ht_destroy(das->ht_plogs);
+        for (i = 0; i < das->nplogs; ++i)
+            free(das->plogs[i].gridname);
         free(das->plogs);
     }
     if (das->nbadbatchspecs > 0) {

@@ -705,7 +705,6 @@ void das_dopointlogs(dasystem* das)
 {
     model* m = das->m;
     observations* obs = das->obs;
-    void* grid = model_getgridbyid(m, 0);
     double** X5 = NULL;
     double* w = NULL;
     int p, e, o;
@@ -720,10 +719,8 @@ void das_dopointlogs(dasystem* das)
         w = malloc(das->nmem * sizeof(double));
 
     for (p = 0; p < das->nplogs; ++p) {
-        int i = das->plogs[p].i;
-        int j = das->plogs[p].j;
-        double lon = NaN;
-        double lat = NaN;
+        pointlog* plog = &das->plogs[p];
+        void* grid = model_getgridbyid(m, plog->gridid);
         int* lobs = NULL;
         double* lcoeffs = NULL;
         int ploc = 0;
@@ -732,8 +729,8 @@ void das_dopointlogs(dasystem* das)
         double** G = NULL;
         double** T = NULL;
 
-        printf("    calculating transform for log point (%d, %d):", i, j);
-        obs_findlocal(obs, m, grid, i, j, &ploc, &lobs, &lcoeffs);
+        printf("    calculating transform for log point (%d, %d):", plog->i, plog->j);
+        obs_findlocal(obs, m, grid, plog->i, plog->j, &ploc, &lobs, &lcoeffs);
 
         assert(ploc >= 0 && ploc <= obs->nobs);
 
@@ -765,16 +762,16 @@ void das_dopointlogs(dasystem* das)
                 sloc[o] = das->s_f[lobs[o]] * lcoeffs[o];
 
             if (das->mode == MODE_ENOI || das->scheme == SCHEME_DENKF)
-                calc_G_denkf(das->nmem, ploc, Sloc, i, j, G);
+                calc_G_denkf(das->nmem, ploc, Sloc, plog->i, plog->j, G);
             else if (das->scheme == SCHEME_ETKF)
-                calc_G_etkf(das->nmem, ploc, Sloc, i, j, G, T);
+                calc_G_etkf(das->nmem, ploc, Sloc, plog->i, plog->j, G, T);
             else
                 enkf_quit("programming error");
             if (das->mode == MODE_ENKF) {
                 if (das->scheme == SCHEME_DENKF)
-                    calc_X5_denkf(das->nmem, ploc, G, Sloc, sloc, i, j, X5);
+                    calc_X5_denkf(das->nmem, ploc, G, Sloc, sloc, plog->i, plog->j, X5);
                 else if (das->scheme == SCHEME_ETKF)
-                    calc_X5_etkf(das->nmem, ploc, G, sloc, i, j, X5);
+                    calc_X5_etkf(das->nmem, ploc, G, sloc, plog->i, plog->j, X5);
                 else
                     enkf_quit("programming error");
             } else if (das->mode == MODE_ENOI)
@@ -782,9 +779,8 @@ void das_dopointlogs(dasystem* das)
         }
         printf(" %d obs\n", ploc);
 
-        printf("    writing the log for point (%d, %d):", i, j);
-        grid_fij2xy(grid, (double) i, (double) j, &lon, &lat);
-        plog_write(das, i, j, lon, lat, (grid_getdepth(grid))[j][i], ploc, lobs, lcoeffs, sloc, (ploc == 0) ? NULL : Sloc[0], (das->mode == MODE_ENKF) ? X5[0] : w);
+        printf("    writing the log for point (%d, %d) on grid \"%s\":", plog->i, plog->j, plog->gridname);
+        plog_write(das, p, (grid_getdepth(grid))[plog->j][plog->i], ploc, lobs, lcoeffs, sloc, (ploc == 0) ? NULL : Sloc[0], (das->mode == MODE_ENKF) ? X5[0] : w);
 
         printf("\n");
 

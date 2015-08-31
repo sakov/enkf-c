@@ -23,12 +23,24 @@
 #include "dasystem.h"
 #include "pointlog.h"
 
+/**
+ */
+static void pointlog_getfname(pointlog* plog, char fname[])
+{
+    if (plog->gridid == 0)
+        snprintf(fname, MAXSTRLEN, "pointlog_%d,%d.nc", plog->i, plog->j);
+    else
+        snprintf(fname, MAXSTRLEN, "pointlog_%d,%d_%s.nc", plog->i, plog->j, plog->gridname);
+}
+
 /** Creates a point log file and writes ensemble observations, transforms, and
  * accompanying information.
  */
-void plog_write(dasystem* das, int i, int j, double lon, double lat, double depth, int p, int* lobs, double* lcoeffs, double* s, double* S, double* transform)
+void plog_write(dasystem* das, int id, double depth, int p, int* lobs, double* lcoeffs, double* s, double* S, double* transform)
 {
+    pointlog* plog = &das->plogs[id];
     observations* obs = das->obs;
+
     char fname[MAXSTRLEN];
     int ncid;
     int dimids[2];
@@ -53,7 +65,7 @@ void plog_write(dasystem* das, int i, int j, double lon, double lat, double dept
 
     assert(das->s_mode == S_MODE_S_f);
 
-    snprintf(fname, MAXSTRLEN, "pointlog_%d,%d.nc", i, j);
+    pointlog_getfname(plog, fname);
     ncw_create(fname, NC_CLOBBER | NC_64BIT_OFFSET, &ncid);
     ncw_def_dim(fname, ncid, "m", das->nmem, &dimids[0]);
     ncw_def_dim(fname, ncid, "p", p, &dimids[1]);
@@ -99,10 +111,11 @@ void plog_write(dasystem* das, int i, int j, double lon, double lat, double dept
         ncw_def_var(fname, ncid, "w_actual", NC_FLOAT, 1, &dimids[0], &vid_transform_actual);
     }
     ncw_put_att_text(fname, ncid, NC_GLOBAL, "date", obs->datestr);
-    ncw_put_att_int(fname, ncid, NC_GLOBAL, "i", 1, &i);
-    ncw_put_att_int(fname, ncid, NC_GLOBAL, "j", 1, &j);
-    ncw_put_att_double(fname, ncid, NC_GLOBAL, "lon", 1, &lon);
-    ncw_put_att_double(fname, ncid, NC_GLOBAL, "lat", 1, &lat);
+    ncw_put_att_text(fname, ncid, NC_GLOBAL, "grid_name", plog->gridname);
+    ncw_put_att_int(fname, ncid, NC_GLOBAL, "i", 1, &plog->i);
+    ncw_put_att_int(fname, ncid, NC_GLOBAL, "j", 1, &plog->j);
+    ncw_put_att_double(fname, ncid, NC_GLOBAL, "lon", 1, &plog->lon);
+    ncw_put_att_double(fname, ncid, NC_GLOBAL, "lat", 1, &plog->lat);
     ncw_put_att_double(fname, ncid, NC_GLOBAL, "depth", 1, &depth);
 
     ncw_enddef(fname, ncid);
@@ -158,16 +171,14 @@ void plog_write(dasystem* das, int i, int j, double lon, double lat, double dept
 
 /** Writes the "actual" (interpolated) ensemble transform to a pointlog file.
  */
-void plog_writeactualtransform(dasystem* das, int i, int j, float* transform)
+void plog_writeactualtransform(dasystem* das, int id, float* transform)
 {
+    pointlog* plog = &das->plogs[id];
     char fname[MAXSTRLEN];
     int ncid;
     int vid = -1;
 
-    if (das->nplogs == 0)
-        return;
-
-    snprintf(fname, MAXSTRLEN, "pointlog_%d,%d.nc", i, j);
+    pointlog_getfname(plog, fname);
     ncw_open(fname, NC_WRITE, &ncid);
     if (das->mode == MODE_ENKF)
         ncw_inq_varid(fname, ncid, "X5_actual", &vid);
@@ -211,14 +222,13 @@ void plog_definestatevars(dasystem* das)
         get_nkname(das, model_getvargrid(das->m, vid), nkname);
 
         for (p = 0; p < das->nplogs; ++p) {
-            int i = das->plogs[p].i;
-            int j = das->plogs[p].j;
+            pointlog* plog = &das->plogs[p];
             int ncid;
             int dimid_nk, dimid_m;
             int dimids[2];
             int varid;
 
-            snprintf(fname, MAXSTRLEN, "pointlog_%d,%d.nc", i, j);
+            snprintf(fname, MAXSTRLEN, "pointlog_%d,%d.nc", plog->i, plog->j);
             ncw_open(fname, NC_WRITE, &ncid);
             if (!ncw_var_exists(ncid, varname)) {
                 ncw_redef(fname, ncid);
@@ -266,12 +276,11 @@ static void plog_writestatevars_direct(dasystem* das, int nfields, void** fieldb
     v = malloc(das->nmem * sizeof(float));
 
     for (p = 0; p < das->nplogs; ++p) {
-        int i = das->plogs[p].i;
-        int j = das->plogs[p].j;
+        pointlog* plog = &das->plogs[p];
         char fname[MAXSTRLEN];
         int ncid;
 
-        snprintf(fname, MAXSTRLEN, "pointlog_%d,%d.nc", i, j);
+        pointlog_getfname(plog, fname);
         ncw_open(fname, NC_WRITE, &ncid);
 
         for (fid = 0; fid < nfields; ++fid) {
@@ -281,10 +290,10 @@ static void plog_writestatevars_direct(dasystem* das, int nfields, void** fieldb
 
             v_src = (float***) fieldbuffer[fid];
             for (e = 0; e < das->nmem; ++e)
-                v[e] = v_src[e][j][i];
+                v[e] = v_src[e][plog->j][plog->i];
             if (das->mode == MODE_ENOI)
                 for (e = 0; e < das->nmem; ++e)
-                    v[e] += v_src[das->nmem][j][i];
+                    v[e] += v_src[das->nmem][plog->j][plog->i];
 
             snprintf(varname, NC_MAX_NAME, "%s%s", f->varname, (isanalysis) ? "_an" : "");
             ncw_inq_varid(fname, ncid, varname, &vid);
@@ -330,11 +339,10 @@ static void plog_writestatevars_toassemble(dasystem* das, int nfields, void** fi
         }
 
         for (p = 0; p < das->nplogs; ++p) {
-            int i = das->plogs[p].i;
-            int j = das->plogs[p].j;
+            pointlog* plog = &das->plogs[p];
             char varname[NC_MAX_NAME];
 
-            snprintf(varname, NC_MAX_NAME, "%s%s_%d_%d", f->varname, (isanalysis) ? "_an" : "", i, j);
+            snprintf(varname, NC_MAX_NAME, "%s%s_%d_%d", f->varname, (isanalysis) ? "_an" : "", plog->i, plog->j);
             ncw_def_var(fname, ncid, varname, NC_FLOAT, 1, &dimid, &vid[p]);
         }
         ncw_enddef(fname, ncid);
@@ -342,15 +350,14 @@ static void plog_writestatevars_toassemble(dasystem* das, int nfields, void** fi
         v_src = (float***) fieldbuffer[fid];
 
         for (p = 0; p < das->nplogs; ++p) {
-            int i = das->plogs[p].i;
-            int j = das->plogs[p].j;
+            pointlog* plog = &das->plogs[p];
             int e;
 
             for (e = 0; e < das->nmem; ++e)
-                v[e] = v_src[e][j][i];
+                v[e] = v_src[e][plog->j][plog->i];
             if (das->mode == MODE_ENOI)
                 for (e = 0; e < das->nmem; ++e)
-                    v[e] += v_src[das->nmem][j][i];
+                    v[e] += v_src[das->nmem][plog->j][plog->i];
 
             ncw_put_var_float(fname, ncid, vid[p], v);
         }
@@ -396,14 +403,13 @@ void plog_assemblestatevars(dasystem* das)
 
     distribute_iterations(0, das->nplogs - 1, nprocesses, rank, "    ");
     for (p = my_first_iteration; p <= my_last_iteration; ++p) {
-        int i = das->plogs[p].i;
-        int j = das->plogs[p].j;
+        pointlog* plog = &das->plogs[p];
         char fname_dst[MAXSTRLEN];
         int ncid_dst;
         size_t start[2] = { 0, 0 };
         size_t count[2] = { 1, das->nmem };
 
-        snprintf(fname_dst, MAXSTRLEN, "pointlog_%d,%d.nc", i, j);
+        pointlog_getfname(plog, fname_dst);
         ncw_open(fname_dst, NC_WRITE, &ncid_dst);
 
         for (fid = 0; fid < nfields; ++fid) {
@@ -417,7 +423,7 @@ void plog_assemblestatevars(dasystem* das)
                 char varname[NC_MAX_NAME];
                 int ncid_src, vid_src, vid_dst, ndims_dst;
 
-                snprintf(varname, NC_MAX_NAME, "%s%s_%d_%d", f->varname, (ii == 0) ? "_an" : "", i, j);
+                snprintf(varname, NC_MAX_NAME, "%s%s_%d_%d", f->varname, (ii == 0) ? "_an" : "", plog->i, plog->j);
                 ncw_open(fname_src, NC_NOWRITE, &ncid_src);
                 ncw_inq_varid(fname_src, ncid_src, varname, &vid_src);
                 ncw_get_var_float(fname_src, ncid_src, vid_src, v);

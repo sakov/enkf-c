@@ -35,7 +35,7 @@
 
 \begin{document}
 
-\title{EnKF-C user guide\\{\normalsize version 1.18}}
+\title{EnKF-C user guide\\{\normalsize version 1.19}}
 
 \author{Pavel Sakov}
 \date{June 19, 2014 -- \today}
@@ -633,7 +633,7 @@ Its format is described by running \verb|enkf_prep|, \verb|enkf_calc| or \verb|e
   [ KFACTOR         = <kfactor> ]                            (1*)
   [ RFACTOR         = <rfactor> ]                            (1*)
     ...
-    LOCRAD          = <locrad>
+    LOCRAD          = <loc. radius in km>
   [ STRIDE          = <stride> ]                             (1*)
   [ SOBSTRIDE       = <stride> ]                             (1*)
   [ FIELDBUFFERSIZE = <fieldbuffersize> ]                    (1*)
@@ -642,7 +642,7 @@ Its format is described by running \verb|enkf_prep|, \verb|enkf_calc| or \verb|e
   [ ZSTATINTS       = [<z1> <z2>] ... ]
   [ REGION          = <name> <lon1> <lon2> <lat1> <lat2> [[<z1> <z2>] ... ]
     ...
-  [ POINTLOG        <i> <j> ]
+  [ POINTLOG        <i> <j> [grid name]]
     ...
   [ EXITACTION      = { BACKTRACE* | SEGFAULT } ]
   [ BADBATCHES      = <obstype> <max. bias> <max. mad> <min # obs.> ]
@@ -659,7 +659,7 @@ Its format is described by running \verb|enkf_prep|, \verb|enkf_calc| or \verb|e
 
 \subsubsection{Global analysis}
 
-It is possible to conduct a global analysis by setting \verb|LOCRAD| and \verb|STRIDE| to large numbers.
+It is possible to conduct global analysis by setting \verb|LOCRAD| and \verb|STRIDE| to large numbers.
 This is demonstrated by target ``global'' in example 1.
 
 \subsection{Model parameter file}
@@ -1252,14 +1252,17 @@ Yet, it is usually feasible to save this information in a number of specified lo
 
 EnKF-C provides capability of saving complete DA related information for specified horizontal locations in so called ``point logs''.
 The locations are specified in the main parameter file, e.g.:
-\begin{Verbatim}[frame=single,fontsize=\footnotesize]
+\begin{Verbatim}
 POINTLOG 94 134
 POINTLOG 78 111
 POINTLOG 57 51
 POINTLOG 86 191
 \end{Verbatim}
 Here the information will be saved for points with horizontal grid coordinates (94, 134), (78, 111), (67, 51), and (86, 191) in files \verb|pointlog_94,134.nc|, \verb|pointlog_78,111.nc|, and so on.
-The coordinates are defined on the first grid in the grid parameter file (sec.~\ref{sec:gridprm}).
+By default the coordinates are defined on the first grid in the grid parameter file (sec.~\ref{sec:gridprm}); otherwhile the grid can be specified by entering the grid name as an additional parameter, .e.g:
+\begin{Verbatim}
+POINTLOG 86 191 t-grid
+\end{Verbatim}
 
 Following is an example of the header of the saved point log file in NetCDF format:
 \begin{Verbatim}[frame=single,fontsize=\footnotesize]

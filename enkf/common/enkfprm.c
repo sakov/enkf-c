@@ -296,16 +296,25 @@ enkfprm* enkfprm_read(char fname[])
                 prm->nzints++;
             }
         } else if (strcasecmp(token, "POINTLOG") == 0) {
+            pointlog* plog = NULL;
+
             if ((token = strtok(NULL, seps)) == NULL)
                 enkf_quit("%s, l.%d: \"I\" coordinate for POINTLOG not specified", fname, line);
             if (prm->nplogs % NINC == 0)
                 prm->plogs = realloc(prm->plogs, (prm->nplogs + NINC) * sizeof(pointlog));
-            if (!str2int(token, &prm->plogs[prm->nplogs].i))
+            plog = &prm->plogs[prm->nplogs];
+            if (!str2int(token, &plog->i))
                 enkf_quit("%s, l.%d: could convert \"I\" entry", fname, line);
             if ((token = strtok(NULL, seps)) == NULL)
                 enkf_quit("%s, l.%d: \"J\" coordinate for POINTLOG not specified", fname, line);
-            if (!str2int(token, &prm->plogs[prm->nplogs].j))
+            if (!str2int(token, &plog->j))
                 enkf_quit("%s, l.%d: could convert \"J\" entry", fname, line);
+            if ((token = strtok(NULL, seps)) != NULL)
+                plog->gridname = strdup(token);
+            else
+                plog->gridname = NULL;
+            plog->lon = NaN;
+            plog->lat = NaN;
             prm->nplogs++;
         } else if (strcasecmp(token, "EXITACTION") == 0) {
             if ((token = strtok(NULL, seps)) == NULL)
@@ -422,8 +431,12 @@ void enkfprm_destroy(enkfprm* prm)
     }
     if (prm->nzints != 0)
         free(prm->zints);
-    if (prm->nplogs > 0)
+    if (prm->nplogs > 0) {
+        for (i = 0; i < prm->nplogs; ++i)
+            if (prm->plogs[i].gridname != NULL)
+                free(prm->plogs[i].gridname);
         free(prm->plogs);
+    }
     if (prm->nbadbatchspecs > 0) {
         for (i = 0; i < prm->nbadbatchspecs; ++i)
             free(prm->badbatchspecs[i].obstype);
@@ -499,7 +512,10 @@ void enkfprm_print(enkfprm* prm, char offset[])
         for (i = 0; i < prm->nplogs; ++i) {
             pointlog* plog = &prm->plogs[i];
 
-            enkf_printf("%sPOINTLOG %d %d\n", offset, plog->i, plog->j);
+            if (plog->gridname == NULL)
+                enkf_printf("%sPOINTLOG %d %d\n", offset, plog->i, plog->j);
+            else
+                enkf_printf("%sPOINTLOG %d %d %s\n", offset, plog->i, plog->j, plog->gridname);
         }
     }
     enkf_printf("%sSOBSTRIDE = %d\n", offset, prm->sob_stride);
@@ -539,7 +555,7 @@ void enkfprm_describeprm(void)
     enkf_printf("  [ ZSTATINTS       = [<z1> <z2>] ... ]\n");
     enkf_printf("  [ REGION          = <name> <lon1> <lon2> <lat1> <lat2> [[<z1> <z2>] ... ]\n");
     enkf_printf("    ...\n");
-    enkf_printf("  [ POINTLOG        <i> <j> ]\n");
+    enkf_printf("  [ POINTLOG        <i> <j> [grid name]]\n");
     enkf_printf("    ...\n");
     enkf_printf("  [ EXITACTION      = { BACKTRACE* | SEGFAULT } ]\n");
     enkf_printf("  [ BADBATCHES      = <obstype> <max. bias> <max. mad> <min # obs.> ]\n");

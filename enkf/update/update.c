@@ -263,9 +263,10 @@ static void das_updatefields(dasystem* das, int nfields, void** fieldbuffer, fie
                      */
                     if (f->id == 0) {
                         int key[2] = { i, j };
+                        int id;
 
-                        if (das->nplogs > 0 && ht_findid(das->ht_plogs, key) >= 0)
-                            plog_writeactualtransform(das, i, j, X5j[i]);
+                        if (das->nplogs > 0 && (id = ht_findid(das->ht_plogs, key)) >= 0)
+                            plog_writeactualtransform(das, id, X5j[i]);
                     }
 
                     for (e = 0; e < nmem; ++e)
@@ -510,9 +511,10 @@ static void das_updatebg(dasystem* das, int nfields, void** fieldbuffer, field f
                      */
                     if (f->id == 0) {
                         int key[2] = { i, j };
+                        int id;
 
-                        if (das->nplogs > 0 && ht_findid(das->ht_plogs, key) >= 0)
-                            plog_writeactualtransform(das, i, j, wj[i]);
+                        if (das->nplogs > 0 && (id = ht_findid(das->ht_plogs, key)) >= 0)
+                            plog_writeactualtransform(das, id, wj[i]);
                     }
 
                     for (e = 0; e < nmem; ++e)
