@@ -27,7 +27,7 @@
 #include "dasystem.h"
 
 /* for the report */
-#define HT_SIZE 5000
+#define HT_SIZE 10000
 
 static inline double square_f(double x)
 {

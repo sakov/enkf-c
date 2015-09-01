@@ -8,7 +8,7 @@
  *              Bureau of Meteorology
  *
  * Description: code for the `das' (Data Assimilation System) structure. Some
- *              relevant chunks of code has been moved to
+ *              relevant chunks of code have been moved to
  *                ensobs.c
  *                obsstats.c
  *                transforms.c
@@ -153,7 +153,7 @@ dasystem* das_create(enkfprm* prm)
 #endif
 
     if (prm->nplogs > 0)
-        das->ht_plogs = ht_create_s4(prm->nplogs);
+        das->ht_plogs = ht_create_s4(prm->nplogs * 2);
     das->plogs = malloc(sizeof(pointlog) * prm->nplogs);
     das->nplogs = prm->nplogs;
     for (i = 0; i < prm->nplogs; ++i) {

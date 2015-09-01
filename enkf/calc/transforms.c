@@ -176,7 +176,7 @@ void das_calctransforms(dasystem* das)
 
     for (gid = 0; gid < ngrid; ++gid) {
         void* grid = model_getgridbyid(m, gid);
-        char* gridname = grid_getname(grid); 
+        char* gridname = grid_getname(grid);
         char fname_XW[MAXSTRLEN];
 
         int mni, mnj;

@@ -27,7 +27,7 @@
 
 #define NOBSTYPES_INC 10
 #define KD_INC 10000
-#define HT_SIZE 100
+#define HT_SIZE 500
 
 typedef struct {
     int obstypeid;

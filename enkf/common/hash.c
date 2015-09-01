@@ -508,7 +508,7 @@ static void* s4cp(void* key)
 
 static int s4eq(void* key1, void* key2)
 {
-    return ((((unsigned short*) key1)[0] == ((unsigned short*) key2)[0]) && (((unsigned short*) key1)[1] == ((unsigned short*) key2)[1])&& (((unsigned short*) key1)[2] == ((unsigned short*) key2)[2])&& (((unsigned short*) key1)[3] == ((unsigned short*) key2)[3]));
+    return ((((unsigned short*) key1)[0] == ((unsigned short*) key2)[0]) && (((unsigned short*) key1)[1] == ((unsigned short*) key2)[1]) && (((unsigned short*) key1)[2] == ((unsigned short*) key2)[2]) && (((unsigned short*) key1)[3] == ((unsigned short*) key2)[3]));
 }
 
 hashtable* ht_create_d1(int size)
