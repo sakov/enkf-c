@@ -153,15 +153,16 @@ dasystem* das_create(enkfprm* prm)
 #endif
 
     if (prm->nplogs > 0)
-        das->ht_plogs = ht_create_i2(prm->nplogs);
+        das->ht_plogs = ht_create_s4(prm->nplogs);
     das->plogs = malloc(sizeof(pointlog) * prm->nplogs);
     das->nplogs = prm->nplogs;
     for (i = 0; i < prm->nplogs; ++i) {
         pointlog* src = &prm->plogs[i];
         pointlog* dst = &das->plogs[i];
         void* grid = NULL;
-        int key[2];
+        unsigned short key[4] = { src->i, src->j, src->id, 0 };
 
+        dst->id = src->id;
         dst->i = src->i;
         dst->j = src->j;
         if (src->gridname == NULL) {
@@ -181,9 +182,7 @@ dasystem* das_create(enkfprm* prm)
             continue;
         }
 
-        key[0] = dst->i;
-        key[1] = dst->j;
-        ht_insert(das->ht_plogs, key, NULL);
+        ht_insert(das->ht_plogs, key, dst);
     }
 
 #if defined(ENKF_CALC)
@@ -363,7 +362,7 @@ void das_getfname_stats(dasystem* das, void* grid, char fname[])
 void das_getfname_plog(dasystem* das, pointlog* plog, char fname[])
 {
     if (model_getngrid(das->m) == 1)
-        snprintf(fname, MAXSTRLEN, "pointlog_%d,%d.nc", plog->i, plog->j);
+        snprintf(fname, MAXSTRLEN, "%s_%d,%d.nc", FNAMEPREFIX_PLOG, plog->i, plog->j);
     else
-        snprintf(fname, MAXSTRLEN, "pointlog_%d,%d-%d.nc", plog->i, plog->j, plog->gridid);
+        snprintf(fname, MAXSTRLEN, "%s_%d,%d-%d.nc", FNAMEPREFIX_PLOG, plog->i, plog->j, plog->gridid);
 }

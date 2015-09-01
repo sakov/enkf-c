@@ -447,7 +447,7 @@ static int i2eq(void* key1, void* key2)
 }
 
 /* 
- * functions for for int[3] keys 
+ * functions for for int[1]short[2] keys 
  */
 
 static unsigned int i1s2hash(void* key)
@@ -477,6 +477,38 @@ static void* i1s2cp(void* key)
 static int i1s2eq(void* key1, void* key2)
 {
     return (((int*) key1)[0] == ((int*) key2)[0]) && (((short*) key1)[2] == ((short*) key2)[2]) && (((short*) key1)[3] == ((short*) key2)[3]);
+}
+
+/* 
+ * functions for for short[4] keys 
+ */
+
+static unsigned int s4hash(void* key)
+{
+#if BYTE_PER_INT >= 4
+    unsigned short* v = key;
+
+    return v[0] + (v[1] << 8) + (v[2] << 16) + (v[3] << 24);
+#else
+#error not implemented
+#endif
+}
+
+static void* s4cp(void* key)
+{
+    unsigned short* newkey = malloc(sizeof(short) * 4);
+
+    newkey[0] = ((unsigned short*) key)[0];
+    newkey[1] = ((unsigned short*) key)[1];
+    newkey[2] = ((unsigned short*) key)[2];
+    newkey[3] = ((unsigned short*) key)[3];
+
+    return newkey;
+}
+
+static int s4eq(void* key1, void* key2)
+{
+    return ((((unsigned short*) key1)[0] == ((unsigned short*) key2)[0]) && (((unsigned short*) key1)[1] == ((unsigned short*) key2)[1])&& (((unsigned short*) key1)[2] == ((unsigned short*) key2)[2])&& (((unsigned short*) key1)[3] == ((unsigned short*) key2)[3]));
 }
 
 hashtable* ht_create_d1(int size)
@@ -511,6 +543,12 @@ hashtable* ht_create_i1s2(int size)
 {
     assert(sizeof(int) == BYTE_PER_INT);
     return ht_create(size, i1s2cp, i1s2eq, i1s2hash);
+}
+
+hashtable* ht_create_s4(int size)
+{
+    assert(sizeof(int) == BYTE_PER_INT);
+    return ht_create(size, s4cp, s4eq, s4hash);
 }
 
 int ht_getnentries(hashtable* table)

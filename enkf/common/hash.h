@@ -48,7 +48,8 @@ hashtable* ht_create_d2(int size);      /* double[2] */
 hashtable* ht_create_str(int size);     /* char* */
 hashtable* ht_create_i1(int size);      /* int[1] */
 hashtable* ht_create_i2(int size);      /* int[2] */
-hashtable* ht_create_i1s2(int size);    /* int[3] */
+hashtable* ht_create_i1s2(int size);    /* int[1]short[2] */
+hashtable* ht_create_s4(int size);      /* short[4] */
 
 /** Destroys a hash table.
  * (Take care of deallocating data by ht_process() prior to destroying the

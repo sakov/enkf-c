@@ -258,15 +258,15 @@ static void das_updatefields(dasystem* das, int nfields, void** fieldbuffer, fie
                      */
 
                     /*
-                     * for fid = 0 write the actual (interpolated) transform 
-                     * matrix to the pointlog for this (i,j) pair (if it exists)
+                     * write the actual (interpolated) transform  matrix to the
+                     * pointlog for this (i,j) pair (if it exists)
                      */
-                    if (f->id == 0) {
-                        int key[2] = { i, j };
-                        int id;
+                    {
+                        unsigned short key[4] = { i, j, grid_getid(grid), 0 };
+                        pointlog* plog = NULL;
 
-                        if (das->nplogs > 0 && (id = ht_findid(das->ht_plogs, key)) >= 0)
-                            plog_writeactualtransform(das, id, X5j[i]);
+                        if (das->nplogs > 0 && (plog = ht_find(das->ht_plogs, key)) != NULL)
+                            plog_writeactualtransform(das, plog->id, X5j[i]);
                     }
 
                     for (e = 0; e < nmem; ++e)

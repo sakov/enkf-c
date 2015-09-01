@@ -31,6 +31,7 @@ typedef struct {
 } obsdomain;
 
 typedef struct {
+    int id;
     int i, j;
     double lon, lat;
     char* gridname;

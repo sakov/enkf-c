@@ -303,6 +303,7 @@ enkfprm* enkfprm_read(char fname[])
             if (prm->nplogs % NINC == 0)
                 prm->plogs = realloc(prm->plogs, (prm->nplogs + NINC) * sizeof(pointlog));
             plog = &prm->plogs[prm->nplogs];
+            plog->id = prm->nplogs;
             if (!str2int(token, &plog->i))
                 enkf_quit("%s, l.%d: could convert \"I\" entry", fname, line);
             if ((token = strtok(NULL, seps)) == NULL)
