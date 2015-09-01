@@ -107,6 +107,7 @@ struct dasystem {
 dasystem* das_create(enkfprm* prm);
 void das_destroy(dasystem* das);
 
+void das_setobstypes(dasystem* das);
 void das_getHE(dasystem* das);
 void das_addanalysis(dasystem* das, char fname[]);
 void das_addforecast(dasystem* das, char fname[]);
@@ -127,10 +128,11 @@ void das_standardise(dasystem* das);
 void das_destandardise(dasystem* das);
 void das_update(dasystem* das);
 void das_updateHE(dasystem* das);
+
 void das_getfname_X5(dasystem* das, void* grid, char fname[]);
 void das_getfname_w(dasystem* das, void* grid, char fname[]);
 void das_getfname_stats(dasystem* das, void* grid, char fname[]);
-void das_setobstypes(dasystem* das);
+void das_getfname_plog(dasystem* das, pointlog* plog, char fname[]);
 
 #define _DASYSTEM_H
 #endif

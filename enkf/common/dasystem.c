@@ -353,7 +353,17 @@ void das_getfname_w(dasystem* das, void* grid, char fname[])
 void das_getfname_stats(dasystem* das, void* grid, char fname[])
 {
     if (model_getngrid(das->m) == 1)
-        snprintf(fname, MAXSTRLEN, "%s.nc", FNAMEPREFIX_STATS);
+        snprintf(fname, MAXSTRLEN, "%s.nc", FNAMEPREFIX_DIAG);
     else
-        snprintf(fname, MAXSTRLEN, "%s-%d.nc", FNAMEPREFIX_STATS, grid_getid(grid));
+        snprintf(fname, MAXSTRLEN, "%s-%d.nc", FNAMEPREFIX_DIAG, grid_getid(grid));
+}
+
+/**
+ */
+void das_getfname_plog(dasystem* das, pointlog* plog, char fname[])
+{
+    if (model_getngrid(das->m) == 1)
+        snprintf(fname, MAXSTRLEN, "pointlog_%d,%d.nc", plog->i, plog->j);
+    else
+        snprintf(fname, MAXSTRLEN, "pointlog_%d,%d-%d.nc", plog->i, plog->j, plog->gridid);
 }

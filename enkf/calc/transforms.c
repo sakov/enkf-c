@@ -30,7 +30,7 @@
 
 /**
  */
-static void nc_createX5(char fname[], int nj, int ni, int stride, int nmem, int* ncid, int* varid_X5)
+static void nc_createX5(char fname[], char gridname[], int nj, int ni, int stride, int nmem, int* ncid, int* varid_X5)
 {
     int dimids[3];
 
@@ -43,6 +43,7 @@ static void nc_createX5(char fname[], int nj, int ni, int stride, int nmem, int*
     ncw_def_dim(fname, *ncid, "msq", nmem * nmem, &dimids[2]);
     ncw_put_att_int(fname, *ncid, NC_GLOBAL, "stride", 1, &stride);
     ncw_def_var(fname, *ncid, "X5", NC_FLOAT, 3, dimids, varid_X5);
+    ncw_put_att_text(fname, *ncid, NC_GLOBAL, "grid_name", gridname);
     ncw_enddef(fname, *ncid);
 }
 
@@ -67,7 +68,7 @@ static void nc_writeX5(char fname[], int ncid, int j, int ni, int nmem, int vari
 
 /**
  */
-static void nc_createw(char fname[], int nj, int ni, int stride, int nmem, int* ncid, int* varid_w)
+static void nc_createw(char fname[], char gridname[], int nj, int ni, int stride, int nmem, int* ncid, int* varid_w)
 {
     int dimids[3];
 
@@ -80,6 +81,7 @@ static void nc_createw(char fname[], int nj, int ni, int stride, int nmem, int* 
     ncw_def_dim(fname, *ncid, "m", nmem, &dimids[2]);
     ncw_put_att_int(fname, *ncid, NC_GLOBAL, "stride", 1, &stride);
     ncw_def_var(fname, *ncid, "w", NC_FLOAT, 3, dimids, varid_w);
+    ncw_put_att_text(fname, *ncid, NC_GLOBAL, "grid_name", gridname);
     ncw_enddef(fname, *ncid);
 }
 
@@ -174,6 +176,7 @@ void das_calctransforms(dasystem* das)
 
     for (gid = 0; gid < ngrid; ++gid) {
         void* grid = model_getgridbyid(m, gid);
+        char* gridname = grid_getname(grid); 
         char fname_XW[MAXSTRLEN];
 
         int mni, mnj;
@@ -242,14 +245,14 @@ void das_calctransforms(dasystem* das)
             das_getfname_X5(das, grid, fname_XW);
 
             if (rank == 0)
-                nc_createX5(fname_XW, nj, ni, das->stride, das->nmem, &ncid_X5, &varid_X5);
+                nc_createX5(fname_XW, gridname, nj, ni, das->stride, das->nmem, &ncid_X5, &varid_X5);
             X5j = alloc2d(ni, das->nmem * das->nmem, sizeof(float));
             X5 = alloc2d(das->nmem, das->nmem, sizeof(double));
         } else if (das->mode == MODE_ENOI) {
             das_getfname_w(das, grid, fname_XW);
 
             if (rank == 0)
-                nc_createw(fname_XW, nj, ni, das->stride, das->nmem, &ncid_w, &varid_w);
+                nc_createw(fname_XW, gridname, nj, ni, das->stride, das->nmem, &ncid_w, &varid_w);
             wj = alloc2d(ni, das->nmem, sizeof(float));
             w = malloc(das->nmem * sizeof(double));
         } else
