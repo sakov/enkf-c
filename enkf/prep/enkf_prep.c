@@ -55,7 +55,7 @@ static void usage()
     enkf_printf("  --describe-superob <sob #>\n");
     enkf_printf("      print composition of this superobservation and exit\n");
     enkf_printf("  --log-all-obs\n");
-    enkf_printf("      put all obs into observations.nc (default: obs within model domain only)\n");
+    enkf_printf("      put all obs into %s (default: obs within model domain only)\n", FNAME_OBS);
     enkf_printf("  --no-superobing\n");
     enkf_printf("  --version\n");
     enkf_printf("      print version and exit\n");
@@ -195,7 +195,7 @@ int main(int argc, char* argv[])
     parse_commandline(argc, argv, &fname_prm);
 
     enkf_init(&argc, &argv);
-    enkf_printf("  running PREP for EnKF version %s:\n", ENKF_VERSION);
+    enkf_printf("  running PREP for EnKF-C version %s:\n", ENKF_VERSION);
     print_commandinfo(argc, argv);
     enkf_printtime("  ");
 
@@ -226,7 +226,7 @@ int main(int argc, char* argv[])
     obs_compact(obs);
     obs_calcstats(obs);
 
-    if (describe_superob_id < 0) {
+    if (describe_superob_id < 0 && prm->sob_stride > 0) {
         enkf_printf("  writing observations to \"%s\":\n", FNAME_OBS);
         obs_write(obs, FNAME_OBS);
     }

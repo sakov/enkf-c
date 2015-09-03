@@ -15,3 +15,5 @@ For more information see [README](https://github.com/sakov/enkf-c/blob/master/en
 
 Checkout **EnKF-C** by running `git clone https://github.com/sakov/enkf-c`
 or `svn checkout https://github.com/sakov/enkf-c`.
+
+![](sss-spread.png)

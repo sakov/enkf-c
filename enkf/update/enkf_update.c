@@ -158,7 +158,7 @@ int main(int argc, char* argv[])
     parse_commandline(argc, argv, &fname_prm, &updatespec);
 
     enkf_init(&argc, &argv);
-    enkf_printf("  running UPDATE for EnKF version %s:\n", ENKF_VERSION);
+    enkf_printf("  running UPDATE for EnKF-C version %s:\n", ENKF_VERSION);
     print_commandinfo(argc, argv);
     enkf_printtime("  ");
 

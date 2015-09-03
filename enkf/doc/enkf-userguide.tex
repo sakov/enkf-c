@@ -35,7 +35,7 @@
 
 \begin{document}
 
-\title{EnKF-C user guide\\{\normalsize version 1.19}}
+\title{EnKF-C user guide\\{\normalsize version 1.20}}
 
 \author{Pavel Sakov}
 \date{June 19, 2014 -- \today}
@@ -859,8 +859,8 @@ It has the following usage and options:
       print version and exit
 \end{Verbatim}
 
-\verb|enkf_prep| writes the preprocessed observations into file \verb|observatons.nc|.
-It also writes file \verb|observatons-orig.nc|, which contains original (not superobed) observations.
+\verb|enkf_prep| writes the preprocessed observations to file \verb|observatons.nc|.
+It also writes original (not superobed) observations to \verb|observatons-orig.nc| (provided that superobing has not been switched off by flag \verb|--no-superobing|).
 By default, only observations within the model grid are written to it, but the the option \verb|--log-all-obs| changes this behaviour to writing all observations from the input files.
 
 \subsection{Observation types, products, instruments, batches}

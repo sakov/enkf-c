@@ -1,3 +1,7 @@
+v. 1.20
+   PS 03092015
+   -- Switched off writing obs to observations-orig.nc when enkf_prep is run
+      with --no-superobing.
 v. 1.19.2
    PS 01092015
    -- Fixed inconsistency in handling pointlog hash table.

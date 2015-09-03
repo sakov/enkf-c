@@ -287,7 +287,7 @@ int main(int argc, char* argv[])
     parse_commandline(argc, argv, &fname_prm, &fname_obs);
 
     enkf_init(&argc, &argv);
-    enkf_printf("  running CALC for EnKF version %s:\n", ENKF_VERSION);
+    enkf_printf("  running CALC for EnKF-C version %s:\n", ENKF_VERSION);
     print_commandinfo(argc, argv);
     enkf_printtime("  ");
 

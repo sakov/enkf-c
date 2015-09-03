@@ -650,7 +650,7 @@ void das_calctransforms(dasystem* das)
         }
 #if defined(MPI)
         /*
-         * merge the stats for the log report
+         * merge stats for the report
          */
         if (rank != 0 && my_number_of_iterations > 0) {
             int ierror = MPI_Send(&stats, sizeof(stats) / sizeof(int), MPI_INT, 0, 99, MPI_COMM_WORLD);
