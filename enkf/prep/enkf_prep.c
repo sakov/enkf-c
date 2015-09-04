@@ -54,6 +54,8 @@ static void usage()
     enkf_printf("      describe format of a parameter file and exit\n");
     enkf_printf("  --describe-superob <sob #>\n");
     enkf_printf("      print composition of this superobservation and exit\n");
+    enkf_printf("  --ignore-subgrid-variability\n");
+    enkf_printf("      during superobing - do not try to account for subrid variability\n");
     enkf_printf("  --log-all-obs\n");
     enkf_printf("      put all obs into %s (default: obs within model domain only)\n", FNAME_OBS);
     enkf_printf("  --no-superobing\n");
@@ -104,6 +106,10 @@ static void parse_commandline(int argc, char* argv[], char** fname)
                 usage();
             if (!str2int(argv[i], &describe_superob_id))
                 enkf_quit("usage: could not convert \"%s\" to integer", argv[i]);
+            i++;
+            continue;
+        } else if (strcmp(argv[i], "--ignore-subgrid-variability") == 0) {
+            enkf_ignoresubgridvar = 1;
             i++;
             continue;
         } else if (strcmp(argv[i], "--log-all-obs") == 0) {

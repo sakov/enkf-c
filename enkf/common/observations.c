@@ -619,7 +619,7 @@ void obs_write(observations* obs, char fname[])
 
     int ncid;
     int dimid_nobs[1];
-    int varid_type, varid_product, varid_instrument, varid_id, varid_idorig, varid_fid, varid_batch, varid_value, varid_std, varid_lon, varid_lat, varid_depth, varid_fi, varid_fj, varid_fk, varid_date, varid_status, varid_aux;
+    int varid_type, varid_product, varid_instrument, varid_id, varid_idorig, varid_fid, varid_batch, varid_value, varid_std, varid_lon, varid_lat, varid_depth, varid_fi, varid_fj, varid_fk, varid_date, varid_status, varid_aux, varid_intstd;
 
     int* type;
     int* product;
@@ -639,6 +639,7 @@ void obs_write(observations* obs, char fname[])
     double* date;
     int* status;
     int* aux;
+    double* intstd;
 
     int i, ii;
 
@@ -686,6 +687,7 @@ void obs_write(observations* obs, char fname[])
     i = STATUS_OUTSIDEOBSDOMAIN;
     ncw_put_att_int(fname, ncid, varid_status, "STATUS_OUTSIDEOBSDOMAIN", 1, &i);
     ncw_def_var(fname, ncid, "aux", NC_INT, 1, dimid_nobs, &varid_aux);
+    ncw_def_var(fname, ncid, "intstd", NC_FLOAT, 1, dimid_nobs, &varid_intstd);
     snprintf(tunits, MAXSTRLEN, "days from %s", obs->datestr);
     ncw_put_att_text(fname, ncid, varid_date, "units", tunits);
 
@@ -726,6 +728,7 @@ void obs_write(observations* obs, char fname[])
     date = malloc(nobs * sizeof(double));
     status = malloc(nobs * sizeof(int));
     aux = malloc(nobs * sizeof(int));
+    intstd = malloc(nobs * sizeof(double));
 
     for (i = 0, ii = 0; i < obs->nobs; ++i) {
         observation* m = &obs->data[i];
@@ -754,6 +757,7 @@ void obs_write(observations* obs, char fname[])
         date[ii] = m->date;
         status[ii] = m->status;
         aux[ii] = m->aux;
+        intstd[ii] = m->intstd;
         ii++;
     }
     assert(ii == nobs);
@@ -776,6 +780,7 @@ void obs_write(observations* obs, char fname[])
     ncw_put_var_double(fname, ncid, varid_date, date);
     ncw_put_var_int(fname, ncid, varid_status, status);
     ncw_put_var_int(fname, ncid, varid_aux, aux);
+    ncw_put_var_double(fname, ncid, varid_intstd, intstd);
 
     ncw_close(fname, ncid);
     free(type);
@@ -796,6 +801,7 @@ void obs_write(observations* obs, char fname[])
     free(date);
     free(status);
     free(aux);
+    free(intstd);
 }
 
 /**
@@ -849,6 +855,8 @@ void obs_superob(observations* obs, __compar_d_fn_t cmp_obs, observations** sobs
         double n;
         double lon_min, lon_max;
         int ii;
+        double sum, sumsq, subvar;
+        double var;
 
         /*
          * identify obs that will be combined into this superob 
@@ -873,6 +881,28 @@ void obs_superob(observations* obs, __compar_d_fn_t cmp_obs, observations** sobs
 
         assert(o->status == STATUS_OK);
 
+        if (enkf_ignoresubgridvar)
+            subvar = 0.0;
+        else {
+            /*
+             * Calculate subgrid variance. For now assume equal weights.
+             */
+            sum = 0.0;
+            sumsq = 0.0;
+            for (ii = i1; ii <= i2; ++ii) {
+                sum += data[ii].value;
+                sumsq += data[ii].value * data[ii].value;
+            }
+            subvar = (i2 - i1 > 0) ? (sumsq - sum * sum / (double) (i2 - i1 + 1)) / (double) (i2 - i1) : 0.0;
+        }
+
+        /*
+         * set the "aux" field in the original obs to the id of the superob
+         * they are merged into
+         */
+        for (ii = i1; ii <= i2; ++ii)
+            data[ii].aux = nsobs;
+
         so->type = o->type;
         so->product = o->product;
         so->instrument = o->instrument;
@@ -880,8 +910,11 @@ void obs_superob(observations* obs, __compar_d_fn_t cmp_obs, observations** sobs
         so->id_orig = o->id;
         so->fid = o->fid;
         so->batch = o->batch;
+
+        var = o->std * o->std;
+        var = (subvar > var) ? subvar : var;
+        so->std = 1.0 / var;
         so->value = o->value;
-        so->std = 1.0 / (o->std * o->std);
         so->lon = o->lon;
         so->lat = o->lat;
         so->depth = o->depth;
@@ -895,10 +928,6 @@ void obs_superob(observations* obs, __compar_d_fn_t cmp_obs, observations** sobs
 
         lon_min = o->lon;
         lon_max = o->lon;
-
-        for (ii = i1; ii <= i2; ++ii)
-            data[ii].aux = nsobs;
-
         for (ii = i1 + 1; ii <= i2; ++ii) {
             o = &data[ii];
             if (so->product != o->product)
@@ -910,16 +939,18 @@ void obs_superob(observations* obs, __compar_d_fn_t cmp_obs, observations** sobs
             if (so->batch != o->batch)
                 so->batch = -1;
 
-            so->value = so->value * so->std + o->value / o->std / o->std;
-            so->lon = so->lon * so->std + o->lon / o->std / o->std;
-            so->lat = so->lat * so->std + o->lat / o->std / o->std;
-            so->depth = so->depth * so->std + o->depth / o->std / o->std;
-            so->fi = so->fi * so->std + o->fi / o->std / o->std;
-            so->fj = so->fj * so->std + o->fj / o->std / o->std;
-            so->fk = so->fk * so->std + o->fk / o->std / o->std;
-            so->date = so->date * so->std + o->date / o->std / o->std;
+            var = o->std * o->std;
+            var = (subvar > var) ? subvar : var;
+            so->value = so->value * so->std + o->value / var;
+            so->lon = so->lon * so->std + o->lon / var;
+            so->lat = so->lat * so->std + o->lat / var;
+            so->depth = so->depth * so->std + o->depth / var;
+            so->fi = so->fi * so->std + o->fi / var;
+            so->fj = so->fj * so->std + o->fj / var;
+            so->fk = so->fk * so->std + o->fk / var;
+            so->date = so->date * so->std + o->date / var;
 
-            so->std += 1.0 / (o->std * o->std);
+            so->std += 1.0 / var;
 
             so->value /= so->std;
             so->lon /= so->std;
@@ -929,6 +960,7 @@ void obs_superob(observations* obs, __compar_d_fn_t cmp_obs, observations** sobs
             so->fj /= so->std;
             so->fk /= so->std;
             so->date /= so->std;
+            so->aux++;
             n++;
 
             if (o->lon < lon_min)
@@ -939,7 +971,6 @@ void obs_superob(observations* obs, __compar_d_fn_t cmp_obs, observations** sobs
             assert(o->status == STATUS_OK);
         }
 
-        so->std = sqrt(1.0 / so->std);
         if (lon_max - lon_min > 180.0) {
             /*
              * (there is a possibility of merging observations separated by
@@ -950,13 +981,15 @@ void obs_superob(observations* obs, __compar_d_fn_t cmp_obs, observations** sobs
                 o = &data[ii];
                 if (o->lon - lon_min > 180.0)
                     o->lon -= 360.0;
-                so->lon += o->lon / o->std / o->std;
+                var = o->std * o->std;
+                var = (subvar > var) ? subvar : var;
+                so->lon += o->lon / var;
             }
-            so->lon *= so->std * so->std;
+            so->lon *= so->std;
             if (so->lon < 0.0)
                 so->lon += 360.0;
         }
-        so->aux = n;
+        so->std = sqrt(1.0 / so->std);
 
         nsobs += 1;
 

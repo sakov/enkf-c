@@ -1,3 +1,7 @@
+v. 1.21
+   PS 04092015
+   -- Durig superobing - calculate std of the subgrid variability (in a rather
+      crude way) and use <obs error std> = max(<obs error std>, <subgrid std>).
 v. 1.20
    PS 03092015
    -- Switched off writing obs to observations-orig.nc when enkf_prep is run

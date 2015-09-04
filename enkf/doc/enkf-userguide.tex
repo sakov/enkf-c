@@ -35,7 +35,7 @@
 
 \begin{document}
 
-\title{EnKF-C user guide\\{\normalsize version 1.20}}
+\title{EnKF-C user guide\\{\normalsize version 1.21}}
 
 \author{Pavel Sakov}
 \date{June 19, 2014 -- \today}
@@ -852,6 +852,8 @@ It has the following usage and options:
       describe format of the parameter file and exit
   --describe-superob <sob #>
       print composition of this superobservation and exit
+  --ignore-subgrid-variability
+      during superobing - do not try to account for subrid variability
   --log-all-obs
       put all obs into observations.nc (default: obs within model domain only)
   --no-superobing
@@ -986,6 +988,11 @@ Setting \verb|SOBSTRIDE = 0| switches superobing off.
 The observations are merged by averaging their values, coordinates and times with weights inversely proportional to the observation error variance.
 The observation error variance of a superobservation is set to the inverse of the sum of inverse observation error variances of the merged observations.
 The product and instrument fields of the superobservation are set either to those of the merged observations or to -1, depending on whether the merged observations have the same values for these fields or not.
+
+By default \verb|prep| tries to account for subgrid variability. 
+It calculates standard deviation of the merged observations $\sigma\!_{sub}$ and uses $\sigma\!_{obs} = \max(\sigma\!_{obs}, \sigma\!_{sub})$.
+The calculation of $\sigma\!_{sub}$ is currently done in a rather crude way, assuming equal weights for all merged observations.
+This procedure can be switched off by using command line parameter \verb|--ignore-subgrid-variability|.
 
 \section{\emph{calc}}
 

@@ -23,3 +23,4 @@ int enkf_verbose = 1;
 int enkf_nomeanupdate = 0;
 int enkf_fstatsonly = 0;
 int enkf_noobsdatecheck = 0;
+int enkf_ignoresubgridvar = 0;

@@ -1,7 +1,7 @@
-  running PREP for EnKF-C version 1.20:
+  running PREP for EnKF-C version 1.21:
     command = "./enkf_prep enkf.prm"
     dir = "/home/pavel/src/enkf-c/trunk/enkf/examples/1"
-  2015-09-04 10:35:12
+  2015-09-04 15:46:23
   reading prep specs from "enkf.prm":
     MODE = EnKF
     SCHEME = DEnKF
@@ -322,5 +322,5 @@ ON = standard
     TEM     184        104        104        0          0          0          0          7         
     SAL     184        104        104        0          0          0          0          7         
     total   9749       211        208        0          3          0          0          3921      
-  2015-09-04 10:35:13
+  2015-09-04 15:46:23
   finished
