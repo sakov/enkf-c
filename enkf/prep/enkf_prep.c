@@ -251,6 +251,15 @@ int main(int argc, char* argv[])
         obs_write(sobs, FNAME_SOBS);
     }
 
+    if (!enkf_ignoresubgridvar) {
+        enkf_printf("  number of obs with increased error due to subgrid variability:\n");
+        for (i = 0; i < obs->nobstypes; ++i) {
+            obstype* ot = &obs->obstypes[i];
+
+            enkf_printf("    %s %d (%.2f%%)\n", ot->name, ot->nsubgrid, (double) ot->nsubgrid / (double) ot->ngood * 100.0);
+        }
+    }
+
     enkf_printf("  printing observation statistics:\n");
     print_obsstats(obs, sobs);
 

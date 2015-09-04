@@ -73,6 +73,7 @@ static void obstype_new(obstype* type, int i, char* name)
     type->nbadbatch = 0;
     type->nroundup = 0;
     type->nrange = 0;
+    type->nsubgrid = 0;
     type->nmodified = 0;
     type->date_min = DBL_MAX;
     type->date_max = -DBL_MAX;

@@ -1,7 +1,7 @@
   running PREP for EnKF-C version 1.21:
     command = "./enkf_prep stats.prm"
     dir = "/home/pavel/src/enkf-c/trunk/enkf/examples/1"
-  2015-09-04 15:48:08
+  2015-09-04 16:12:18
   reading prep specs from "stats.prm":
     MODE = EnOI
     MODEL PRM = "model.prm"
@@ -313,6 +313,11 @@ rd
     3921 superobservations
     calculating obs stats:
   writing superobservations to "observations.nc":
+  number of obs with increased error due to subgrid variability:
+    SLA 69 (6.92%)
+    SST 504 (6.01%)
+    TEM 177 (96.20%)
+    SAL 177 (96.20%)
   printing observation statistics:
     type    # used     # dropped  # outside  # land     # shallow  # badbatch # badvalue # superobs.
     ----------------------------------------------------------------------------------------
@@ -321,5 +326,5 @@ rd
     TEM     184        104        104        0          0          0          0          7         
     SAL     184        104        104        0          0          0          0          7         
     total   9749       211        208        0          3          0          0          3921      
-  2015-09-04 15:48:09
+  2015-09-04 16:12:19
   finished

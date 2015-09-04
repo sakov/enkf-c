@@ -49,6 +49,7 @@ typedef struct {
     int nbadbatch;
     int nroundup;
     int nrange;
+    int nsubgrid;
     int nmodified;
 
     double date_min;

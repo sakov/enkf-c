@@ -1,10 +1,10 @@
   MPI: initialised 2 processes
-  MPI: rank = 0, PID = 11201
-  MPI: rank = 1, PID = 11202
+  MPI: rank = 0, PID = 11665
+  MPI: rank = 1, PID = 11666
   running UPDATE for EnKF-C version 1.21:
     command = "./enkf_update --output-increment singleob.prm"
     dir = "/home/pavel/src/enkf-c/trunk/enkf/examples/1"
-  2015-09-04 15:48:19
+  2015-09-04 16:12:00
   reading system specs from "singleob.prm":
     MODE = EnOI
     MODEL PRM = "model.prm"
@@ -77,9 +77,9 @@
   updating the model state:
     96 members
     defining state variables in point logs:
-    allocating disk space for the analysis:    2015-09-04 15:48:19
+    allocating disk space for the analysis:    2015-09-04 16:12:00
 .....
-    2015-09-04 15:48:19
+    2015-09-04 16:12:00
     updating fields for t-grid:
       9 fields
       distributing iterations:
@@ -88,12 +88,12 @@
       u        0   (1: 5: 25.0%)
       u        1   (1: 6: 50.0%)
       temp     0   (0: 1: 40.0%)
-      temp     1   (0: 2: 60.0%)
       v        0   (1: 7: 75.0%)
-      salt     0   (0: 3: 80.0%)
+      temp     1   (0: 2: 60.0%)
       v        1   (1: 8: 100.0%)
+      salt     0   (0: 3: 80.0%)
       salt     1   (0: 4: 100.0%)
-  2015-09-04 15:48:19
+  2015-09-04 16:12:00
   assembling analysis:
     eta_t:.
     temp:..
@@ -106,5 +106,5 @@
     deleting tiles:
       distributing iterations:
         processes get 5 or 4 iterations
-  2015-09-04 15:48:19
+  2015-09-04 16:12:00
   finished

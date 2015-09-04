@@ -940,7 +940,10 @@ void obs_superob(observations* obs, __compar_d_fn_t cmp_obs, observations** sobs
                 so->batch = -1;
 
             var = o->std * o->std;
-            var = (subvar > var) ? subvar : var;
+            if (subvar > var) {
+                var = subvar;
+                obs->obstypes[o->type].nsubgrid++;
+            }
             so->value = so->value * so->std + o->value / var;
             so->lon = so->lon * so->std + o->lon / var;
             so->lat = so->lat * so->std + o->lat / var;
