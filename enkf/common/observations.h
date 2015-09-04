@@ -53,10 +53,6 @@ typedef struct {
      *  - sob id for the original ob
      */
     int aux;
-    /*
-     * internal variablity of superobs
-     */
-    double intstd;
 } observation;
 
 typedef struct {

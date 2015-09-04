@@ -757,7 +757,6 @@ void obs_write(observations* obs, char fname[])
         date[ii] = m->date;
         status[ii] = m->status;
         aux[ii] = m->aux;
-        intstd[ii] = m->intstd;
         ii++;
     }
     assert(ii == nobs);
@@ -881,7 +880,7 @@ void obs_superob(observations* obs, __compar_d_fn_t cmp_obs, observations** sobs
 
         assert(o->status == STATUS_OK);
 
-        if (enkf_ignoresubgridvar)
+        if (!enkf_considersubgridvar)
             subvar = 0.0;
         else {
             /*

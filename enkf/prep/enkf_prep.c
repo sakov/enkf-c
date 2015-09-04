@@ -233,7 +233,7 @@ int main(int argc, char* argv[])
     obs_compact(obs);
     obs_calcstats(obs);
 
-    if (describe_superob_id < 0 && prm->sob_stride > 0) {
+    if (describe_superob_id < 0 && obs->stride > 0) {
         enkf_printf("  writing observations to \"%s\":\n", FNAME_OBS);
         obs_write(obs, FNAME_OBS);
     }
