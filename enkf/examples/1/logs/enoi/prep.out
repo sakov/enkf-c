@@ -1,7 +1,7 @@
-  running PREP for EnKF-C version 1.21:
+  running PREP for EnKF version 1.17:
     command = "./enkf_prep enoi.prm"
     dir = "/home/pavel/src/enkf-c/trunk/enkf/examples/1"
-  2015-09-04 16:11:31
+  2015-09-04 18:49:52
   reading prep specs from "enoi.prm":
     MODE = EnOI
     MODEL PRM = "model.prm"
@@ -113,11 +113,11 @@
       VAR = eta_t
       ID = 0
       ISSURFACE = yes
-      OFFSET = conf/eta_mean-bran.nc eta_tls: cannot access obs/WINDSAT/windsat_20071221.nc: No such file or directory
+      OFFSET = conf/eta_mean-bran.nc eta_t
+ ls: cannot access obs/WINDSAT/windsat_20071221.nc: No such file or directory
 ls: cannot access obs/WINDSAT/windsat_20071222.nc: No such file or directory
 ls: cannot access obs/WINDSAT/windsat_20071223.nc: No such file or directory
-
-      HFUNCTION = standard
+     HFUNCTION = standard
       ALLOWED MIN = -1
       ALLOWED MAX = 1
       ASYNCHRONOUS = no
@@ -314,11 +314,6 @@ ls: cannot access obs/WINDSAT/windsat_20071223.nc: No such file or directory
     3921 superobservations
     calculating obs stats:
   writing superobservations to "observations.nc":
-  number of obs with increased error due to subgrid variability:
-    SLA 69 (6.92%)
-    SST 504 (6.01%)
-    TEM 177 (96.20%)
-    SAL 177 (96.20%)
   printing observation statistics:
     type    # used     # dropped  # outside  # land     # shallow  # badbatch # badvalue # superobs.
     ----------------------------------------------------------------------------------------
@@ -327,5 +322,5 @@ ls: cannot access obs/WINDSAT/windsat_20071223.nc: No such file or directory
     TEM     184        104        104        0          0          0          0          7         
     SAL     184        104        104        0          0          0          0          7         
     total   9749       211        208        0          3          0          0          3921      
-  2015-09-04 16:11:31
+  2015-09-04 18:49:53
   finished

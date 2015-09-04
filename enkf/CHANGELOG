@@ -1,3 +1,6 @@
+v. 1.21.1
+   PS 04092015
+   -- Changed default to ignore subgrid variability
 v. 1.21
    PS 04092015
    -- Durig superobing - calculate std of the subgrid variability (in a rather

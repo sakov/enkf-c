@@ -1,10 +1,10 @@
   MPI: initialised 2 processes
-  MPI: rank = 0, PID = 11582
-  MPI: rank = 1, PID = 11583
-  running CALC for EnKF-C version 1.21:
+  MPI: rank = 0, PID = 5275
+  MPI: rank = 1, PID = 5276
+  running CALC for EnKF version 1.17:
     command = "./enkf_calc enkf.prm"
     dir = "/home/pavel/src/enkf-c/trunk/enkf/examples/1"
-  2015-09-04 16:09:13
+  2015-09-04 18:48:59
   reading system specs from "enkf.prm":
     MODE = EnKF
     SCHEME = DEnKF
@@ -114,7 +114,7 @@
     3921 observations
     calculating obs stats:
   calculating ensemble observations:
-  2015-09-04 16:09:13
+  2015-09-04 18:48:59
     ensemble size = 96
     distributing iterations:
       all processes get 48 iterations
@@ -123,7 +123,7 @@
     TEM ................................................
     SAL ................................................
   adding forecast innovations and spread to "observations.nc":
-  2015-09-04 16:09:13
+  2015-09-04 18:49:01
   moderating observations:
     observations substantially modified:
       SLA          0 (0.0%)
@@ -133,7 +133,7 @@
       total        0 (0.0%)
   writing modified obs errors to "observations.nc":
   calculating transforms:
-  2015-09-04 16:09:13
+  2015-09-04 18:49:01
     calculating transforms for t-grid:
       creating empty file "X5.nc":
       distributing iterations:
@@ -143,36 +143,36 @@
         j = 3 (1: 17: 5.9%)
         j = 9 (1: 18: 11.8%)
         j = 6 (0: 1: 11.8%)
-        j = 15 (1: 19: 17.6%)
         j = 12 (0: 2: 17.6%)
+        j = 15 (1: 19: 17.6%)
         j = 21 (1: 20: 23.5%)
         j = 18 (0: 3: 23.5%)
-        j = 24 (0: 4: 29.4%)
         j = 27 (1: 21: 29.4%)
+        j = 24 (0: 4: 29.4%)
         j = 33 (1: 22: 35.3%)
         j = 30 (0: 5: 35.3%)
         j = 39 (1: 23: 41.2%)
         j = 36 (0: 6: 41.2%)
-        j = 42 (0: 7: 47.1%)
         j = 45 (1: 24: 47.1%)
+        j = 42 (0: 7: 47.1%)
         j = 51 (1: 25: 52.9%)
         j = 48 (0: 8: 52.9%)
         j = 57 (1: 26: 58.8%)
         j = 54 (0: 9: 58.8%)
-        j = 60 (0: 10: 64.7%)
         j = 63 (1: 27: 64.7%)
+        j = 60 (0: 10: 64.7%)
         j = 69 (1: 28: 70.6%)
         j = 66 (0: 11: 70.6%)
         j = 75 (1: 29: 76.5%)
         j = 72 (0: 12: 76.5%)
         j = 81 (1: 30: 82.4%)
         j = 78 (0: 13: 82.4%)
-        j = 84 (0: 14: 88.2%)
         j = 87 (1: 31: 88.2%)
+        j = 84 (0: 14: 88.2%)
         j = 93 (1: 32: 94.1%)
         j = 90 (0: 15: 94.1%)
-        j = 96 (0: 16: 100.0%)
         j = 99 (1: 33: 100.0%)
+        j = 96 (0: 16: 100.0%)
     finished calculating transforms for t-grid
     writing stats to "enkf_diag.nc":
     summary stats on t-grid:
@@ -182,9 +182,9 @@
       # of inversions in ens space = 1043
   writing point logs:
     calculating transform for log point (30, 50): 538 obs
-    writing the log for point (30, 50) on grid "t-grid":
+    writing the log for point (30, 50):
   calculating analysed observations:
-  2015-09-04 16:09:22
+  2015-09-04 18:49:13
     sorting obs by ij:
     updating HE:
   adding analysis innovations and spread to "observations.nc":
@@ -192,23 +192,23 @@
     region obs.type   # obs.  |for.inn.| |an.inn.|   for.inn.   an.inn.  for.spread  an.spread
     ------------------------------------------------------------------------------------------
     Global
-           SLA           652    0.081      0.032      0.027      0.003      0.038      0.025  
-             j1          250    0.087      0.025      0.041      0.005      0.045      0.027  
-             n1          382    0.077      0.038      0.015      0.001      0.034      0.023  
-             N/A          20    0.092      0.026      0.081      0.014      0.049      0.029  
-           SST          3255    0.461      0.232     -0.244     -0.070      0.335      0.233  
-             AVHRR      2087    0.467      0.213     -0.217     -0.040      0.330      0.223  
-             WindSat     847    0.472      0.303     -0.307     -0.147      0.350      0.262  
-             N/A         321    0.391      0.171     -0.250     -0.067      0.323      0.219  
-           TEM             7    1.015      1.092      0.495      0.823      0.317      0.241  
-             ARGO          7    1.015      1.092      0.495      0.823      0.317      0.241  
-             0-50m         2    1.471      2.388      1.471      2.388      0.321      0.219  
-             50-500m       5    0.833      0.573      0.104      0.198      0.315      0.250  
+           SLA           652    0.082      0.032      0.027      0.003      0.039      0.025  
+             j1          250    0.087      0.024      0.041      0.005      0.045      0.027  
+             n1          382    0.077      0.037      0.015      0.000      0.034      0.023  
+             N/A          20    0.095      0.024      0.085      0.017      0.049      0.028  
+           SST          3255    0.461      0.234     -0.244     -0.069      0.335      0.232  
+             AVHRR      2087    0.467      0.214     -0.217     -0.039      0.330      0.222  
+             WindSat     847    0.472      0.308     -0.307     -0.145      0.350      0.261  
+             N/A         321    0.393      0.172     -0.252     -0.069      0.323      0.218  
+           TEM             7    1.015      0.923      0.495      0.760      0.317      0.214  
+             ARGO          7    1.015      0.923      0.495      0.760      0.317      0.214  
+             0-50m         2    1.471      2.406      1.471      2.406      0.321      0.210  
+             50-500m       5    0.833      0.330      0.104      0.102      0.315      0.215  
              500-9999m     0     -nan       -nan       -nan       -nan       -nan       -nan  
-           SAL             7    0.077      0.107      0.054      0.057      0.029      0.024  
-             ARGO          7    0.077      0.107      0.054      0.057      0.029      0.024  
-             0-50m         2    0.088      0.129      0.074      0.086      0.023      0.019  
-             50-500m       5    0.072      0.098      0.046      0.046      0.032      0.027  
+           SAL             7    0.077      0.089      0.054      0.050      0.029      0.022  
+             ARGO          7    0.077      0.089      0.054      0.050      0.029      0.022  
+             0-50m         2    0.088      0.121      0.074      0.085      0.023      0.018  
+             50-500m       5    0.072      0.076      0.046      0.036      0.032      0.024  
              500-9999m     0     -nan       -nan       -nan       -nan       -nan       -nan  
-  2015-09-04 16:09:22
+  2015-09-04 18:49:14
   finished
