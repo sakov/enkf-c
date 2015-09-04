@@ -303,12 +303,16 @@ static int comp_obsstatus(const void* p1, const void* p2)
  */
 void obs_compact(observations* obs)
 {
+    int i;
+
     if (obs->compacted)
         return;
 
     enkf_printf("    compacting obs:");
     assert(STATUS_OK == 0);
     qsort(obs->data, obs->nobs, sizeof(observation), comp_obsstatus);
+    for (i = 0; i < obs->nobs; ++i)
+        obs->data[i].id = i;
     enkf_printf("\n");
     obs->compacted = 1;
 }
@@ -732,7 +736,7 @@ void obs_write(observations* obs, char fname[])
         type[ii] = m->type;
         product[ii] = m->product;
         instrument[ii] = m->instrument;
-        id[ii] = i;
+        id[ii] = m->id;
         fid[ii] = m->fid;
         batch[ii] = m->batch;
         /*
@@ -833,9 +837,6 @@ void obs_superob(observations* obs, __compar_d_fn_t cmp_obs, observations** sobs
     int nsobs = 0;
     observation* data = obs->data;
     observation* sdata = NULL;
-
-    obs_calcstats(obs);
-    obs_compact(obs);
 
     if (obs->stride == 0)
         enkf_printf("    no superobing (SOBSTRIDE = 0)\n");

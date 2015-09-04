@@ -93,7 +93,7 @@ void enkf_quit(char* format, ...)
 
     fflush(stdout);
 
-    fprintf(stderr, "\n\n  ERROR: enkf: ");
+    fprintf(stderr, "\n\n  ERROR: enkf: CPU #%d: ", rank);
     va_start(args, format);
     vfprintf(stderr, format, args);
     va_end(args);
@@ -106,7 +106,7 @@ void enkf_quit(char* format, ...)
         char** strings;
         size_t i;
 
-        fprintf(stderr, "\n  I am %d, now printing the backtrace:\n\n", rank);
+        fprintf(stderr, "\n  I am CPU #%d, now printing the backtrace:\n\n", rank);
         size = backtrace(buffer, BACKTRACE_SIZE);
         strings = backtrace_symbols(buffer, size);
         fprintf(stderr, "  obtained %zd stack frames:\n", size);
@@ -114,7 +114,7 @@ void enkf_quit(char* format, ...)
             fprintf(stderr, "%s\n", strings[i]);
         free(strings);
     } else if (enkf_exitaction == EXITACTION_SEGFAULT) {
-        fprintf(stderr, "\n  now generating a segfault:\n\n");
+        fprintf(stderr, "\n  I am CPU #%d, now generating a segfault:\n\n", rank);
         fflush(NULL);           /* flush all streams */
     }
 #if defined(MPI)
