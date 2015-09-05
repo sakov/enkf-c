@@ -48,10 +48,12 @@ void enkf_init(int* argc, char*** argv)
     MPI_Init(argc, argv);
     MPI_Comm_size(MPI_COMM_WORLD, &nprocesses);
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-    enkf_printf("  MPI: initialised %d processes\n", nprocesses);
-    fflush(stdout);
-    MPI_Barrier(MPI_COMM_WORLD);
-    printf("  MPI: rank = %d, PID = %d\n", rank, getpid());
+    if (*argc > 1) {
+	enkf_printf("  MPI: initialised %d processes\n", nprocesses);
+	fflush(stdout);
+	MPI_Barrier(MPI_COMM_WORLD);
+	printf("  MPI: rank = %d, PID = %d\n", rank, getpid());
+    }
     {
         int flag = 0;
 
