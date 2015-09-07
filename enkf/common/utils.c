@@ -49,10 +49,10 @@ void enkf_init(int* argc, char*** argv)
     MPI_Comm_size(MPI_COMM_WORLD, &nprocesses);
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
     if (*argc > 1) {
-	enkf_printf("  MPI: initialised %d processes\n", nprocesses);
-	fflush(stdout);
-	MPI_Barrier(MPI_COMM_WORLD);
-	printf("  MPI: rank = %d, PID = %d\n", rank, getpid());
+        enkf_printf("  MPI: initialised %d processes\n", nprocesses);
+        fflush(stdout);
+        MPI_Barrier(MPI_COMM_WORLD);
+        printf("  MPI: rank = %d, PID = %d\n", rank, getpid());
     }
     {
         int flag = 0;
@@ -256,6 +256,7 @@ void find_files(char* template, int* nfiles, char*** fnames)
     char* eol;
 
     snprintf(command, MAXSTRLEN, "ls -1 %s", template);
+    fflush(stdout);
     in = popen(command, "r");
     if (in == NULL)
         return;

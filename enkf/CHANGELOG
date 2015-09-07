@@ -1,3 +1,9 @@
+v. 1.22
+   PS 07092015
+   -- in find_files() added fflush(stdout) before calling popen() to avoid
+      "intermingling" of outputs of the original and fork processes.
+   -- Added a section on adaptive moderation of observations ("K-factor") to
+      user manual.
 v. 1.21.1
    PS 04092015
    -- Changed default to ignore subgrid variability

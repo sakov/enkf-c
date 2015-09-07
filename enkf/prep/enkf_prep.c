@@ -55,7 +55,7 @@ static void usage()
     enkf_printf("  --describe-superob <sob #>\n");
     enkf_printf("      print composition of this superobservation and exit\n");
     enkf_printf("  --consider-subgrid-variability\n");
-    enkf_printf("      during superobing - consider subrid variability\n");
+    enkf_printf("      increase error for a superobservation when there is large subgrid variability\n");
     enkf_printf("  --log-all-obs\n");
     enkf_printf("      put all obs into %s (default: obs within model domain only)\n", FNAME_OBS);
     enkf_printf("  --no-superobing\n");

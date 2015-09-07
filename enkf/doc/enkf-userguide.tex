@@ -35,7 +35,7 @@
 
 \begin{document}
 
-\title{EnKF-C user guide\\{\normalsize version 1.21.1}}
+\title{EnKF-C user guide\\{\normalsize version 1.22}}
 
 \author{Pavel Sakov}
 \date{June 19, 2014 -- \today}
@@ -483,7 +483,7 @@ It becomes
   &\mb x_{i+1} = \mathcal M(\mb x_i),\quad i = 1,\dots,k-1.
 \end{align}
 Compared to the original problem, the dimensionality of the solution is much reduced due to relations (\ref{model-perf}), which mean that the model state at any time can be found by propagating the initial state: $\mb x_2 = \mathcal M_2(\mb x_1),\ \mb x_3 = \mathcal M_3 \circ \mathcal M_2(\mb x_1), \dots$.
-The cost function (\ref{cost-perf}) can then be written as:
+The cost function (\ref{cost-perf}) can then be written as
 \begin{align}
   \label{cost-async}
   \mathcal L(\mb x_1)  = (\mb x_1 - \mb x_1^f)\T (\mb P^f)^{-1} (\mb x_1 - \mb x_1^f) + \left [ \mb y - \mathcal H \circ \mathcal M(\mb x_1) \right ] \T \mb R^{-1} \left [ \mb y - \mathcal H\circ \mathcal M(\mb x_1) \right ],
@@ -556,7 +556,7 @@ This approach is commonly known as ``first guess at appropriate time'', or FGAT.
 EnKF-C is designed to use horizontal localisation only.
 While some may argue that using vertical localisation might help to decrease the ensemble size, we believe that, for example, in the ocean the vertical structure is too complicated and non-uniform to allow simple and robust solutions in this regard.
 Generally, dynamical processes include a variety of barotropic and baroclinic components, and introducing vertical localisation in one form or another can be detrimental for the model's balances.
-On another hand, with an ensemble size of about 100, normally one can ignore the problem of spurious vertical correlations and leave the system to deal with the vertical covariances on its own.
+On the other hand, with an ensemble size of about 100, normally one can ignore the problem of spurious vertical correlations and leave the system to deal with the vertical covariances on its own.
 
 With the system using horizontal localisation only the model state effectively becomes a collection of independent horizontal fields updated based on their correlations with local observations.
 The assimilation is conducted by calculating a common horizontal field of local ensemble transforms and applying them to each horizontal field of the model.
@@ -630,7 +630,7 @@ Its format is described by running \verb|enkf_prep|, \verb|enkf_calc| or \verb|e
     DATE            = <julian day of analysis>
     ENSDIR          = <ensemble directory>
     BGDIR           = <background directory>                 (MODE = ENOI)
-  [ KFACTOR         = <kfactor> ]                            (1*)
+  [ KFACTOR         = <kfactor> ]                            (NaN*)
   [ RFACTOR         = <rfactor> ]                            (1*)
     ...
     LOCRAD          = <loc. radius in km>
@@ -853,7 +853,7 @@ It has the following usage and options:
   --describe-superob <sob #>
       print composition of this superobservation and exit
   --consider-subgrid-variability
-      during superobing - consider subrid variability
+      increase error for a superobservation when there is large subgrid variability
   --log-all-obs
       put all obs into observations.nc (default: obs within model domain only)
   --no-superobing
@@ -1062,6 +1062,20 @@ HFUNCTION = standard
 \end{Verbatim}
 The available functions for each observation type are specified by the variable \verb|allhentries| in \verb|calc/allhs.c|.
 The ``standard'' functions do normally perform 2D or 3D linear interpolation from the corner model grid nodes for the cell containing the observation.
+
+\subsection{Adaptive moderation of observations}
+
+One of standard quality control (QC) procedures in DA is the so called background check, when an observation is compared with the forecast and discarded if the innovation magnitude exceeds some specified threshold.
+The downside of this approach is that it can not distinguish between situations of an outlier, big model error (e.g. because of an error in forcing), or model divergence.
+While one probably would like to discard an outlier, it is usually desirable to make use of valid observations, although, perhaps, with a reduced impact, to avoid ``over-stressing'' the model.
+In EnKF-C this is achieved by adaptive moderation of the observation impact by restricting the magnitude of the increment from a given observation in observation space by $K$ times magnitude of the spread of the forecast ensemble.
+
+Specifically, the adaptive moderation of the observation impact is conducted by smoothly increasing the observation error depending on the magnitude of innovation as follows:
+\begin{align*}
+  \sigma^2_{obs} \leftarrow \left[(\sigma_{f}^2 + \sigma_{obs}^2)^2 + \sigma_f^2 \, d^2 / K^2\right]^{1/2} - \sigma_f^2,
+\end{align*}
+where $\sigma_{obs}$ is the observation error standard deviation, $\sigma_f$ -- forecast ensemble spread, $d$ -- innovation, and $K$ -- the so called K-factor defined in the main parameter file (sec. \ref{sec:mainprm}).
+Tests with small models show that setting the K-factor to say 2-3 or above makes a marginal impact (if any) on performance of weakly suboptimal systems in ``normal'' cases, while still can be quite beneficial in stressful situations.
 
 \subsection{Innovation statistics}
 
