@@ -1,3 +1,6 @@
+v. 1.23.2
+   PS 09092015
+   -- Cosmetic changes in distribute.c
 v. 1.23.1
    PS 09092015
    -- A minor clean-up of a previous development
@@ -18,7 +21,7 @@ v. 1.21.1
    -- Changed default to ignore subgrid variability
 v. 1.21
    PS 04092015
-   -- Durig superobing - calculate std of the subgrid variability (in a rather
+   -- During superobing - calculate std of the subgrid variability (in a rather
       crude way) and use <obs error std> = max(<obs error std>, <subgrid std>).
 v. 1.20
    PS 03092015

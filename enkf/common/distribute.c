@@ -7,7 +7,16 @@
  * Author:      Pavel Sakov
  *              Bureau of Meteorology
  *
- * Description:
+ * Description: Distributes indices in the interval [i1, i2] between `nproc'
+ *              processes. Process IDs are assumed to be in the interval
+ *              [0, nproc-1]. The "native" process has ID `rank'. The results
+ *              are stored in 6 global variables, with the following relations
+ *              between them:
+ *                my_number_of_iterations = my_last_iteration 
+ *                                                      - my_first_iteration + 1
+ *                my_number_of_iterations = number_of_iterations[rank]
+ *                my_first_iteration = first_iteratin[rank]
+ *                my_last_iteration = last_iteration[rank]
  *
  * Revisions:
  *
@@ -31,9 +40,16 @@ int* number_of_iterations = NULL;
 int* first_iteration = NULL;
 int* last_iteration = NULL;
 
+/** Distributes indices in the interval [i1, i2] between `nproc' processes.
+ * @param i1 Start of the interval
+ * @param i2 End of the interval
+ * @param nproc Number of processes (CPUs)
+ * @param rank ID of the "native" process
+ * @param prefix Prefix for log printing; NULL to print no log.
+ */
 void distribute_iterations(int i1, int i2, int nproc, int rank, char prefix[])
 {
-    int n, npp, i, j;
+    int n, npp, i;
 
 #if defined(MPI)
     fflush(stdout);
@@ -49,32 +65,25 @@ void distribute_iterations(int i1, int i2, int nproc, int rank, char prefix[])
     if (prefix != NULL)
         enkf_printf("%sdistributing iterations:\n", prefix);
 #if defined(MPI)
-    fflush(stdout);
+    if (prefix != NULL)
+        fflush(stdout);
     MPI_Barrier(MPI_COMM_WORLD);
 #endif
 
     n = i2 - i1 + 1;
     npp = n / nproc;
-    j = -1;
     if (n % nproc == 0) {
         my_number_of_iterations = n / nproc;
         for (i = 0; i < nproc; ++i)
             number_of_iterations[i] = my_number_of_iterations;
         if (prefix != NULL)
             enkf_printf("%s  all processes get %d iterations\n", prefix, my_number_of_iterations);
-        j = nproc;
     } else {
-        for (i = 1; i < nproc; ++i) {
-            if (i * (npp + 1) + (nproc - i) * npp == n) {
-                j = i;
-                break;
-            }
-        }
+        int j;
 
-        if (rank < j)
-            my_number_of_iterations = npp + 1;
-        else
-            my_number_of_iterations = npp;
+        for (j = 1; j < nproc; ++j)
+            if (j * (npp + 1) + (nproc - j) * npp == n)
+                break;
 
         for (i = 0; i < j; ++i)
             number_of_iterations[i] = npp + 1;
@@ -85,7 +94,8 @@ void distribute_iterations(int i1, int i2, int nproc, int rank, char prefix[])
             enkf_printf("%s  processes get %d or %d iterations\n", prefix, number_of_iterations[0], number_of_iterations[nproc - 1]);
     }
 #if defined(MPI)
-    fflush(stdout);
+    if (prefix != NULL)
+        fflush(stdout);
     MPI_Barrier(MPI_COMM_WORLD);
 #endif
 
@@ -98,11 +108,7 @@ void distribute_iterations(int i1, int i2, int nproc, int rank, char prefix[])
 
     my_first_iteration = first_iteration[rank];
     my_last_iteration = last_iteration[rank];
-
-#if defined(MPI)
-    fflush(stdout);
-    MPI_Barrier(MPI_COMM_WORLD);
-#endif
+    my_number_of_iterations = number_of_iterations[rank];
 }
 
 /**
