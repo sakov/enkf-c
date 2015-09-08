@@ -1,3 +1,9 @@
+v. 1.23
+   PS 08092015
+   -- Added a new optional entry PARAMETER to the parameter data file.
+      This allows to specify an arbitrary number of parameters for the reader.
+      Modified reader_rads_standard() and reader_rads_standard2() to handle
+      parameter MINDEPTH.
 v. 1.22
    PS 07092015
    -- in find_files() added fflush(stdout) before calling popen() to avoid

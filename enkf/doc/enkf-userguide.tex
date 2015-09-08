@@ -35,7 +35,7 @@
 
 \begin{document}
 
-\title{EnKF-C user guide\\{\normalsize version 1.22}}
+\title{EnKF-C user guide\\{\normalsize version 1.23}}
 
 \author{Pavel Sakov}
 \date{June 19, 2014 -- \today}
@@ -789,6 +789,8 @@ Each section specifies the observation type, input files, reader and, possibly, 
     ...
   [ ERROR_STD = { <value> | <data file> } [ EQ* | PL | MU | MI | MA ] ]
     ...
+  [ PARAMETER <name> = <value> ]
+    ...
 
   [ <more of the above blocks> ]
 \end{Verbatim}
@@ -825,6 +827,13 @@ type = SLA
 reader = standard2
 file=/short/p93/pxs599/obs/RADS-IB/y2006/m05/[!g]?_d23.nc
 \end{Verbatim}
+
+Each section can specify an arbitrary number of parameters to be used by observation readers.
+For example, to change the default minimal depth for altimeter data one could add
+\begin{Verbatim}
+PARAMETER MINDEPTH = 150
+\end{Verbatim}
+to the corresponding section (provided that the reader is able to handle it properly).
 
 \section{File name conventions}
 
@@ -1075,7 +1084,7 @@ Specifically, the adaptive moderation of the observation impact is conducted by 
   \sigma^2_{obs} \leftarrow \left[(\sigma_{f}^2 + \sigma_{obs}^2)^2 + \sigma_f^2 \, d^2 / K^2\right]^{1/2} - \sigma_f^2,
 \end{align*}
 where $\sigma_{obs}$ is the observation error standard deviation, $\sigma_f$ -- forecast ensemble spread, $d$ -- innovation, and $K$ -- the so called K-factor defined in the main parameter file (sec. \ref{sec:mainprm}).
-Tests with small models show that setting the K-factor to say 2-3 or above makes a marginal impact (if any) on performance of weakly suboptimal systems in ``normal'' cases, while still can be quite beneficial in stressful situations.
+Tests with small models show that setting the K-factor to say 2-3 or above makes a marginal impact (if any) on performance of weakly suboptimal systems, while still can be quite beneficial in stressful situations.
 
 \subsection{Innovation statistics}
 

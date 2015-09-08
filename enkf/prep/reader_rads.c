@@ -42,6 +42,7 @@ void reader_rads_standard(char* fname, int fid, obsmeta* meta, model* m, observa
     int ncid;
     int dimid_nobs;
     size_t nobs_local;
+    double mindepth = MINDEPTH;
     int varid_lon, varid_lat, varid_pass, varid_sla, varid_time;
     double* lon;
     double* lat;
@@ -109,6 +110,14 @@ void reader_rads_standard(char* fname, int fid, obsmeta* meta, model* m, observa
     mvid = model_getvarid(m, obs->obstypes[obstype_getid(obs->nobstypes, obs->obstypes, meta->type)].varname, 1);
     depth = model_getdepth(m, mvid);
 
+    for (i = 0; i < meta->npars; ++i) {
+        if (strncasecmp(meta->pars[i].name, "MINDEPTH", strlen("MINDEPTH")) == 0) {
+            if (!str2double(meta->pars[i].value, &mindepth))
+                enkf_quit("observation prm file: can not convert MINDEPTH = \"%s\" to double\n", meta->pars[i].value);
+        }
+    }
+    enkf_printf("        MINDEPTH = %.0f\n", mindepth);
+
     for (i = 0; i < (int) nobs_local; ++i) {
         observation* o;
         obstype* ot;
@@ -135,7 +144,7 @@ void reader_rads_standard(char* fname, int fid, obsmeta* meta, model* m, observa
             continue;
         o->fk = 0.0;
         o->date = time[i] * tunits_multiple + tunits_offset;
-        if (o->status == STATUS_OK && depth[(int) floor(o->fj + 0.5)][(int) floor(o->fi + 0.5)] < MINDEPTH)
+        if (o->status == STATUS_OK && depth[(int) floor(o->fj + 0.5)][(int) floor(o->fi + 0.5)] < mindepth)
             o->status = STATUS_SHALLOW;
         if ((o->status == STATUS_OK) && (o->lon <= ot->xmin || o->lon >= ot->xmax || o->lat <= ot->ymin || o->lat >= ot->ymax || o->depth <= ot->zmin || o->depth >= ot->zmax))
             o->status = STATUS_OUTSIDEOBSDOMAIN;
@@ -160,6 +169,7 @@ void reader_rads_standard2(char* fname, int fid, obsmeta* meta, model* m, observ
     int ncid;
     int dimid_nobs;
     size_t nobs_local;
+    double mindepth = MINDEPTH;
     int varid_lon, varid_lat, varid_pass, varid_sla, varid_flag;
     double* lon;
     double* lat;
@@ -236,6 +246,14 @@ void reader_rads_standard2(char* fname, int fid, obsmeta* meta, model* m, observ
     mvid = model_getvarid(m, obs->obstypes[obstype_getid(obs->nobstypes, obs->obstypes, meta->type)].varname, 1);
     depth = model_getdepth(m, mvid);
 
+    for (i = 0; i < meta->npars; ++i) {
+        if (strncasecmp(meta->pars[i].name, "MINDEPTH", strlen("MINDEPTH")) == 0) {
+            if (!str2double(meta->pars[i].value, &mindepth))
+                enkf_quit("observation prm file: can not convert MINDEPTH = \"%s\" to double\n", meta->pars[i].value);
+        }
+    }
+    enkf_printf("        MINDEPTH = %.0f\n", mindepth);
+
     for (i = 0; i < (int) nobs_local; ++i) {
         observation* o;
         obstype* ot;
@@ -265,7 +283,7 @@ void reader_rads_standard2(char* fname, int fid, obsmeta* meta, model* m, observ
             continue;
         o->fk = 0.0;
         o->date = tunits_offset + 0.5;
-        if (o->status == STATUS_OK && depth[(int) floor(o->fj + 0.5)][(int) floor(o->fi + 0.5)] < MINDEPTH)
+        if (o->status == STATUS_OK && depth[(int) floor(o->fj + 0.5)][(int) floor(o->fi + 0.5)] < mindepth)
             o->status = STATUS_SHALLOW;
         if ((o->status == STATUS_OK) && (o->lon <= ot->xmin || o->lon >= ot->xmax || o->lat <= ot->ymin || o->lat >= ot->ymax || o->depth <= ot->zmin || o->depth >= ot->zmax))
             o->status = STATUS_OUTSIDEOBSDOMAIN;

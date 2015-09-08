@@ -106,8 +106,10 @@ void obs_add(observations* obs, model* m, obsmeta* meta)
         int i, o;
 
         for (i = 0; i < meta->nstds; ++i) {
-            if (meta->stdtypes[i] == STDTYPE_VALUE) {
-                double v = *((double*) meta->stds[i]);
+            metastd* std = &meta->stds[i];
+
+            if (std->type == STDTYPE_VALUE) {
+                double v = ((double*) std->data)[0];
 
                 enkf_printf("      adding error_std = %.3g:\n", v);
                 for (o = nobs0; o < obs->nobs; ++o) {
@@ -115,28 +117,28 @@ void obs_add(observations* obs, model* m, obsmeta* meta)
 
                     if (oo->status != STATUS_OK)
                         continue;
-                    if (meta->stdops[i] == ARITHMETIC_EQ)
+                    if (std->op == ARITHMETIC_EQ)
                         oo->std = v;
-                    else if (meta->stdops[i] == ARITHMETIC_PLUS)
+                    else if (std->op == ARITHMETIC_PLUS)
                         oo->std = sqrt(oo->std * oo->std + v * v);
-                    else if (meta->stdops[i] == ARITHMETIC_MULT)
+                    else if (std->op == ARITHMETIC_MULT)
                         oo->std *= v;
-                    else if (meta->stdops[i] == ARITHMETIC_MIN)
+                    else if (std->op == ARITHMETIC_MIN)
                         oo->std = (oo->std < v) ? v : oo->std;
-                    else if (meta->stdops[i] == ARITHMETIC_MAX)
+                    else if (std->op == ARITHMETIC_MAX)
                         oo->std = (oo->std > v) ? v : oo->std;
                     else
                         enkf_quit("programming error");
                 }
-            } else if (meta->stdtypes[i] == STDTYPE_FILE) {
-                char* fname = (char*) meta->stds[i];
+            } else if (std->type == STDTYPE_FILE) {
+                char* fname = (char*) std->data;
                 int** nlevels = model_getnumlevels(m, vid);
                 int ni, nj, nk;
                 int periodic_x = grid_isperiodic_x(model_getvargrid(m, vid));
                 int periodic_y = grid_isperiodic_y(model_getvargrid(m, vid));
                 int ii;
 
-                enkf_printf("      adding error_std from %s %s:\n", fname, meta->varnames[i]);
+                enkf_printf("      adding error_std from %s %s:\n", fname, std->varname);
 
                 model_getvardims(m, vid, &ni, &nj, &nk);
 
@@ -150,7 +152,7 @@ void obs_add(observations* obs, model* m, obsmeta* meta)
                 if (obs->obstypes[ii].issurface) {
                     float** v = alloc2d(nj, ni, sizeof(float));
 
-                    readfield(fname, meta->varnames[i], 0, v[0]);
+                    readfield(fname, std->varname, 0, v[0]);
                     for (o = nobs0; o < obs->nobs; ++o) {
                         observation* oo = &obs->data[o];
                         float vv;
@@ -159,15 +161,15 @@ void obs_add(observations* obs, model* m, obsmeta* meta)
                             continue;
 
                         vv = (float) interpolate2d(oo->fi, oo->fj, ni, nj, v, nlevels, periodic_x, periodic_y);
-                        if (meta->stdops[i] == ARITHMETIC_EQ)
+                        if (std->op == ARITHMETIC_EQ)
                             oo->std = vv;
-                        else if (meta->stdops[i] == ARITHMETIC_PLUS)
+                        else if (std->op == ARITHMETIC_PLUS)
                             oo->std = sqrt(oo->std * oo->std + vv * vv);
-                        else if (meta->stdops[i] == ARITHMETIC_MULT)
+                        else if (std->op == ARITHMETIC_MULT)
                             oo->std *= vv;
-                        else if (meta->stdops[i] == ARITHMETIC_MIN)
+                        else if (std->op == ARITHMETIC_MIN)
                             oo->std = (oo->std < vv) ? vv : oo->std;
-                        else if (meta->stdops[i] == ARITHMETIC_MAX)
+                        else if (std->op == ARITHMETIC_MAX)
                             oo->std = (oo->std > vv) ? vv : oo->std;
                         else
                             enkf_quit("programming error");
@@ -176,7 +178,7 @@ void obs_add(observations* obs, model* m, obsmeta* meta)
                 } else {
                     float*** v = alloc3d(nk, nj, ni, sizeof(float));
 
-                    read3dfield(fname, meta->varnames[i], v[0][0]);
+                    read3dfield(fname, std->varname, v[0][0]);
                     for (o = nobs0; o < obs->nobs; ++o) {
                         observation* oo = &obs->data[o];
                         float vv;
@@ -185,15 +187,15 @@ void obs_add(observations* obs, model* m, obsmeta* meta)
                             continue;
 
                         vv = (float) interpolate3d(oo->fi, oo->fj, oo->fk, ni, nj, nk, v, nlevels, periodic_x, periodic_y);
-                        if (meta->stdops[i] == ARITHMETIC_EQ)
+                        if (std->op == ARITHMETIC_EQ)
                             oo->std = vv;
-                        else if (meta->stdops[i] == ARITHMETIC_PLUS)
+                        else if (std->op == ARITHMETIC_PLUS)
                             oo->std = sqrt(oo->std * oo->std + vv * vv);
-                        else if (meta->stdops[i] == ARITHMETIC_MULT)
+                        else if (std->op == ARITHMETIC_MULT)
                             oo->std *= vv;
-                        else if (meta->stdops[i] == ARITHMETIC_MIN)
+                        else if (std->op == ARITHMETIC_MIN)
                             oo->std = (oo->std < vv) ? vv : oo->std;
-                        else if (meta->stdops[i] == ARITHMETIC_MAX)
+                        else if (std->op == ARITHMETIC_MAX)
                             oo->std = (oo->std > vv) ? vv : oo->std;
                         else
                             enkf_quit("programming error");

@@ -90,45 +90,57 @@ void obsmeta_read(enkfprm* prm, int* nmeta, obsmeta** meta)
                 enkf_quit("%s, l.%d: FILE not specified", fname, line);
             obsmeta_addfname(m, token);
         } else if (strcasecmp(token, "ERROR_STD") == 0) {
+            metastd* now = NULL;
+            double std;
+
+            m->stds = realloc(m->stds, (m->nstds + 1) * sizeof(metastd));
+            now = &m->stds[m->nstds];
+
             if ((token = strtok(NULL, seps)) == NULL)
                 enkf_quit("%s, l.%d: STD not specified", fname, line);
-            else {
-                double std;
-                m->stdtypes = realloc(m->stdtypes, (m->nstds + 1) * sizeof(int));
-                m->stdops = realloc(m->stdops, (m->nstds + 1) * sizeof(int));
-                m->stds = realloc(m->stds, (m->nstds + 1) * sizeof(void*));
-                m->varnames = realloc(m->varnames, (m->nstds + 1) * sizeof(char*));
-                if (str2double(token, &std)) {
-                    if (!isfinite(std) || std < 0.0)
-                        enkf_quit("%s, l.%d: invalid STD value", fname, line);
-                    m->stdtypes[m->nstds] = STDTYPE_VALUE;
-                    m->stds[m->nstds] = malloc(sizeof(double));
-                    *((double*) m->stds[m->nstds]) = std;
-                    m->varnames[m->nstds] = NULL;
-                } else {
-                    m->stdtypes[m->nstds] = STDTYPE_FILE;
 
-                    m->stds[m->nstds] = strdup(token);
-                    if ((token = strtok(NULL, seps)) == NULL)
-                        enkf_quit("%s, l.%d: variable name not specified", fname, line);
-                    m->varnames[m->nstds] = strdup(token);
-                }
+            if (str2double(token, &std)) {
+                if (!isfinite(std) || std < 0.0)
+                    enkf_quit("%s, l.%d: invalid STD value", fname, line);
+                now->type = STDTYPE_VALUE;
+                now->data = malloc(sizeof(double));
+                ((double*) now->data)[0] = std;
+                now->varname = NULL;
+            } else {
+                now->type = STDTYPE_FILE;
+                now->data = strdup(token);
                 if ((token = strtok(NULL, seps)) == NULL)
-                    m->stdops[m->nstds] = ARITHMETIC_EQ;
-                else if (strncasecmp(token, "EQ", 2) == 0)
-                    m->stdops[m->nstds] = ARITHMETIC_EQ;
-                else if (strncasecmp(token, "PL", 2) == 0)
-                    m->stdops[m->nstds] = ARITHMETIC_PLUS;
-                else if (strncasecmp(token, "MU", 2) == 0)
-                    m->stdops[m->nstds] = ARITHMETIC_MULT;
-                else if (strncasecmp(token, "MI", 2) == 0)
-                    m->stdops[m->nstds] = ARITHMETIC_MIN;
-                else if (strncasecmp(token, "MA", 2) == 0)
-                    m->stdops[m->nstds] = ARITHMETIC_MAX;
-                else
-                    enkf_quit("%s, l.%d:, unknown operation", fname, line);
-                m->nstds++;
+                    enkf_quit("%s, l.%d: variable name not specified", fname, line);
+                now->varname = strdup(token);
             }
+            if ((token = strtok(NULL, seps)) == NULL)
+                now->op = ARITHMETIC_EQ;
+            else if (strncasecmp(token, "EQ", 2) == 0)
+                now->op = ARITHMETIC_EQ;
+            else if (strncasecmp(token, "PL", 2) == 0)
+                now->op = ARITHMETIC_PLUS;
+            else if (strncasecmp(token, "MU", 2) == 0)
+                now->op = ARITHMETIC_MULT;
+            else if (strncasecmp(token, "MI", 2) == 0)
+                now->op = ARITHMETIC_MIN;
+            else if (strncasecmp(token, "MA", 2) == 0)
+                now->op = ARITHMETIC_MAX;
+            else
+                enkf_quit("%s, l.%d:, unknown operation", fname, line);
+            m->nstds++;
+        } else if (strcasecmp(token, "PARAMETER") == 0) {
+            metapar* now = NULL;
+
+            m->pars = realloc(m->pars, (m->npars + 1) * sizeof(metapar));
+            now = &m->pars[m->npars];
+
+            if ((token = strtok(NULL, seps)) == NULL)
+                enkf_quit("%s, l.%d: parameter name not specified (expected: PARAMETER <name> = <value>)", fname, line);
+            now->name = strdup(token);
+            if ((token = strtok(NULL, seps)) == NULL)
+                enkf_quit("%s, l.%d: parameter value not specified (expected: PARAMETER <name> = <value>)", fname, line);
+            now->value = strdup(token);
+            m->npars++;
         } else
             enkf_quit("%s, l.%d: unknown token \"%s\"", fname, line, token);
     }
@@ -154,23 +166,26 @@ void obsmeta_read(enkfprm* prm, int* nmeta, obsmeta** meta)
             enkf_printf("      File:        obsmeta.c = %s\n", m->fnames[j]);
         for (j = 0; j < m->nstds; ++j) {
             char operstr[MAXSTRLEN] = "";
+            metastd* std = &m->stds[j];
 
-            if (m->stdops[j] == ARITHMETIC_EQ)
+            if (std->op == ARITHMETIC_EQ)
                 strcpy(operstr, "EQUAL");
-            else if (m->stdops[j] == ARITHMETIC_PLUS)
+            else if (std->op == ARITHMETIC_PLUS)
                 strcpy(operstr, "PLUS");
-            else if (m->stdops[j] == ARITHMETIC_MULT)
+            else if (std->op == ARITHMETIC_MULT)
                 strcpy(operstr, "MULT");
-            else if (m->stdops[j] == ARITHMETIC_MIN)
+            else if (std->op == ARITHMETIC_MIN)
                 strcpy(operstr, "MIN");
-            else if (m->stdops[j] == ARITHMETIC_MAX)
+            else if (std->op == ARITHMETIC_MAX)
                 strcpy(operstr, "MAX");
 
-            if (m->stdtypes[j] == STDTYPE_VALUE)
-                enkf_printf("      ERROR_STD = %.3g, operation = %s\n", *((double*) m->stds[j]), operstr);
-            else if (m->stdtypes[j] == STDTYPE_FILE)
-                enkf_printf("      ERROR_STD = %s %s, operation = %s\n", (char*) m->stds[j], m->varnames[j], operstr);
+            if (std->type == STDTYPE_VALUE)
+                enkf_printf("      ERROR_STD = %.3g, operation = %s\n", ((double*) std->data)[0], operstr);
+            else if (std->type == STDTYPE_FILE)
+                enkf_printf("      ERROR_STD = %s %s, operation = %s\n", (char*) std->data, std->varname, operstr);
         }
+        for (j = 0; j < m->npars; ++j)
+            enkf_printf("      PARAMETER %s = %s\n", m->pars[j].name, m->pars[j].value);
     }
 
     /*
@@ -210,17 +225,29 @@ void obsmeta_destroy(int n, obsmeta meta[])
 
         free(m->product);
         free(m->type);
-        for (j = 0; j < m->nfiles; ++j)
-            free(m->fnames[j]);
-        free(m->fnames);
-        for (j = 0; j < m->nstds; ++j) {
-            free(m->stds[j]);
-            if (m->varnames[j] != NULL)
-                free(m->varnames[j]);
+        if (m->nfiles > 0) {
+            for (j = 0; j < m->nfiles; ++j)
+                free(m->fnames[j]);
+            free(m->fnames);
         }
-        free(m->stdtypes);
-        free(m->stds);
-        free(m->varnames);
+        if (m->nstds > 0) {
+            for (j = 0; j < m->nstds; ++j) {
+                metastd* std = &m->stds[j];
+
+                if (std->data != NULL)
+                    free(std->data);
+                if (std->varname != NULL)
+                    free(std->varname);
+            }
+            free(m->stds);
+        }
+        if (m->npars > 0) {
+            for (j = 0; j < m->npars; ++j) {
+                free(m->pars[j].name);
+                free(m->pars[j].value);
+            }
+            free(m->pars);
+        }
     }
     free(meta);
 }
@@ -238,6 +265,8 @@ void obsmeta_describeprm(void)
     enkf_printf("    FILE      = <data file wildcard> \n");
     enkf_printf("    ...\n");
     enkf_printf("  [ ERROR_STD = { <value> | <data file> } [ EQ* | PL | MU | MI | MA ] ]\n");
+    enkf_printf("    ...\n");
+    enkf_printf("  [ PARAMETER <name> = <value> ]\n");
     enkf_printf("    ...\n");
     enkf_printf("\n");
     enkf_printf("  [ <more of the above blocks> ]\n");

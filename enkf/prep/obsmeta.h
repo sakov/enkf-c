@@ -26,16 +26,33 @@
 #define ARITHMETIC_MAX 4
 
 typedef struct {
+    int type;
+    int op;
+    void* data;                 /* double[1] or char* */
+    char* varname;              /* only needed if data = char* */
+} metastd;
+
+typedef struct {
+    char* name;
+    char* value;
+} metapar;
+
+typedef struct {
     char* product;
     char* reader;
     char* type;
     int nfiles;
     char** fnames;
+    /*
+     * variables for specifying observation error
+     */
     int nstds;
-    int* stdtypes;
-    int* stdops;
-    void** stds;
-    char** varnames;
+    metastd* stds;
+    /*
+     * extra parameters
+     */
+    int npars;
+    metapar* pars;
 } obsmeta;
 
 void obsmeta_read(enkfprm* prm, int* nmeta, obsmeta** meta);
