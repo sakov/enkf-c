@@ -619,7 +619,7 @@ void obs_write(observations* obs, char fname[])
 
     int ncid;
     int dimid_nobs[1];
-    int varid_type, varid_product, varid_instrument, varid_id, varid_idorig, varid_fid, varid_batch, varid_value, varid_std, varid_lon, varid_lat, varid_depth, varid_fi, varid_fj, varid_fk, varid_date, varid_status, varid_aux, varid_intstd;
+    int varid_type, varid_product, varid_instrument, varid_id, varid_idorig, varid_fid, varid_batch, varid_value, varid_std, varid_lon, varid_lat, varid_depth, varid_fi, varid_fj, varid_fk, varid_date, varid_status, varid_aux;
 
     int* type;
     int* product;
@@ -639,7 +639,6 @@ void obs_write(observations* obs, char fname[])
     double* date;
     int* status;
     int* aux;
-    double* intstd;
 
     int i, ii;
 
@@ -687,7 +686,6 @@ void obs_write(observations* obs, char fname[])
     i = STATUS_OUTSIDEOBSDOMAIN;
     ncw_put_att_int(fname, ncid, varid_status, "STATUS_OUTSIDEOBSDOMAIN", 1, &i);
     ncw_def_var(fname, ncid, "aux", NC_INT, 1, dimid_nobs, &varid_aux);
-    ncw_def_var(fname, ncid, "intstd", NC_FLOAT, 1, dimid_nobs, &varid_intstd);
     snprintf(tunits, MAXSTRLEN, "days from %s", obs->datestr);
     ncw_put_att_text(fname, ncid, varid_date, "units", tunits);
 
@@ -728,7 +726,6 @@ void obs_write(observations* obs, char fname[])
     date = malloc(nobs * sizeof(double));
     status = malloc(nobs * sizeof(int));
     aux = malloc(nobs * sizeof(int));
-    intstd = malloc(nobs * sizeof(double));
 
     for (i = 0, ii = 0; i < obs->nobs; ++i) {
         observation* m = &obs->data[i];
@@ -779,7 +776,6 @@ void obs_write(observations* obs, char fname[])
     ncw_put_var_double(fname, ncid, varid_date, date);
     ncw_put_var_int(fname, ncid, varid_status, status);
     ncw_put_var_int(fname, ncid, varid_aux, aux);
-    ncw_put_var_double(fname, ncid, varid_intstd, intstd);
 
     ncw_close(fname, ncid);
     free(type);
@@ -800,7 +796,6 @@ void obs_write(observations* obs, char fname[])
     free(date);
     free(status);
     free(aux);
-    free(intstd);
 }
 
 /**

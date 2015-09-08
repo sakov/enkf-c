@@ -39,10 +39,10 @@
  */
 void reader_rads_standard(char* fname, int fid, obsmeta* meta, model* m, observations* obs)
 {
+    double mindepth = MINDEPTH;
     int ncid;
     int dimid_nobs;
     size_t nobs_local;
-    double mindepth = MINDEPTH;
     int varid_lon, varid_lat, varid_pass, varid_sla, varid_time;
     double* lon;
     double* lat;
@@ -111,7 +111,7 @@ void reader_rads_standard(char* fname, int fid, obsmeta* meta, model* m, observa
     depth = model_getdepth(m, mvid);
 
     for (i = 0; i < meta->npars; ++i) {
-        if (strncasecmp(meta->pars[i].name, "MINDEPTH", strlen("MINDEPTH")) == 0) {
+        if (strcasecmp(meta->pars[i].name, "MINDEPTH") == 0) {
             if (!str2double(meta->pars[i].value, &mindepth))
                 enkf_quit("observation prm file: can not convert MINDEPTH = \"%s\" to double\n", meta->pars[i].value);
         }
@@ -166,10 +166,10 @@ void reader_rads_standard(char* fname, int fid, obsmeta* meta, model* m, observa
  */
 void reader_rads_standard2(char* fname, int fid, obsmeta* meta, model* m, observations* obs)
 {
+    double mindepth = MINDEPTH;
     int ncid;
     int dimid_nobs;
     size_t nobs_local;
-    double mindepth = MINDEPTH;
     int varid_lon, varid_lat, varid_pass, varid_sla, varid_flag;
     double* lon;
     double* lat;
@@ -247,7 +247,7 @@ void reader_rads_standard2(char* fname, int fid, obsmeta* meta, model* m, observ
     depth = model_getdepth(m, mvid);
 
     for (i = 0; i < meta->npars; ++i) {
-        if (strncasecmp(meta->pars[i].name, "MINDEPTH", strlen("MINDEPTH")) == 0) {
+        if (strcasecmp(meta->pars[i].name, "MINDEPTH") == 0) {
             if (!str2double(meta->pars[i].value, &mindepth))
                 enkf_quit("observation prm file: can not convert MINDEPTH = \"%s\" to double\n", meta->pars[i].value);
         }
