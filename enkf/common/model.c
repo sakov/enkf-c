@@ -230,6 +230,9 @@ static void model_freemodeldata(model* m)
 {
     int i;
 
+    if (m->ndata == 0)
+        return;
+
     for (i = 0; i < m->ndata; ++i) {
         modeldata* data = &m->data[i];
 

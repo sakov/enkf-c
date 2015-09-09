@@ -152,6 +152,17 @@ void plog_write(dasystem* das, int id, double depth, int p, int* lobs, double* l
         ncw_put_var_double(fname, ncid, vid_lcoeffs, lcoeffs);
         ncw_put_var_double(fname, ncid, vid_s, s);
         ncw_put_var_double(fname, ncid, vid_S, S);
+
+        free(olon);
+        free(olat);
+        free(odepth);
+        free(val);
+        free(std);
+        free(fi);
+        free(fj);
+        free(fk);
+        free(otype);
+        free(odate);
     }
 
     ncw_put_var_double(fname, ncid, vid_transform, transform);

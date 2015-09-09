@@ -1,9 +1,12 @@
+v. 1.23.3
+   -- Fixed deallocation of null pointer in model.c and added missed
+      deallocations in pointlog.c.
 v. 1.23.2
    PS 09092015
-   -- Cosmetic changes in distribute.c
+   -- Cosmetic changes in distribute.c.
 v. 1.23.1
    PS 09092015
-   -- A minor clean-up of a previous development
+   -- A minor clean-up of a previous development.
 v. 1.23
    PS 08092015
    -- Added a new optional entry PARAMETER to the parameter data file.
@@ -18,7 +21,7 @@ v. 1.22
       user manual.
 v. 1.21.1
    PS 04092015
-   -- Changed default to ignore subgrid variability
+   -- Changed default to ignore subgrid variability.
 v. 1.21
    PS 04092015
    -- During superobing - calculate std of the subgrid variability (in a rather

@@ -15,6 +15,10 @@
 
 #if !defined(_DEFINITIONS_H)
 
+#ifdef DMALLOC
+#include "dmalloc.h"
+#endif
+
 #define MAXSTRLEN 2048
 /*
  * Memory allocation increment for observations. One might increase it for
