@@ -244,7 +244,8 @@ int main(int argc, char* argv[])
     /*
      * write superob indices to the file with original observations 
      */
-    obs_writeaux(obs, FNAME_OBS);
+    if (describe_superob_id < 0 && obs->stride > 0)
+        obs_writeaux(obs, FNAME_OBS);
 
     if (describe_superob_id < 0) {
         enkf_printf("  writing superobservations to \"%s\":\n", FNAME_SOBS);

@@ -1,3 +1,6 @@
+v. 1.24.4
+   -- Fixed an inconsistency in enkf_prep.c when it sometimes tried to write
+      to non-existent observation-orig.nc.
 v. 1.23.3
    -- Fixed deallocation of null pointer in model.c and added missed
       deallocations in pointlog.c.
