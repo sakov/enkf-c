@@ -34,10 +34,11 @@
 #include "allreaders.h"
 
 double ERRORSTD_DEF = 0.25;
-double WIND_MIN = 1.0;
+double MINWIND = 5.0;
 
 void reader_amsre_standard(char* fname, int fid, obsmeta* meta, model* m, observations* obs)
 {
+    double minwind = MINWIND;
     int ncid;
     int dimid_ni, dimid_nj;
     size_t ni, nj;
@@ -125,6 +126,14 @@ void reader_amsre_standard(char* fname, int fid, obsmeta* meta, model* m, observ
     model_vid = model_getvarid(m, obs->obstypes[obstype_getid(obs->nobstypes, obs->obstypes, meta->type)].varname, 1);
     k = grid_gettoplayerid(model_getvargrid(m, model_vid));
 
+    for (i = 0; i < meta->npars; ++i) {
+        if (strcasecmp(meta->pars[i].name, "MINWIND") == 0) {
+            if (!str2double(meta->pars[i].value, &minwind))
+                enkf_quit("observation prm file: can not convert MINWIND = \"%s\" to double\n", meta->pars[i].value);
+        }
+    }
+    enkf_printf("        MINWIND = %.0f\n", minwind);
+
     for (channel = 0; channel < 2; ++channel) {
         double** data = (channel == 0) ? sst_a : sst_d;
         double** wind = (channel == 0) ? wind_a : wind_d;
@@ -137,7 +146,7 @@ void reader_amsre_standard(char* fname, int fid, obsmeta* meta, model* m, observ
 
                 if (fabs(data[j][i]) > MAXOBSVAL)
                     continue;
-                if (wind[j][i] > MAXOBSVAL || wind[j][i] < WIND_MIN)
+                if (wind[j][i] > MAXOBSVAL || wind[j][i] < minwind)
                     continue;   /* (do not need fabs, as wind non-negative) */
 
                 obs_checkalloc(obs);

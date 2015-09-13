@@ -1,4 +1,7 @@
-v. 1.24.4
+v. 1.23.5
+   -- Modified reader_amsre_standard() to handle parameter MINWIND. Inreased
+      default value of MINWIND from 1 to 5 (m/s).
+v. 1.23.4
    -- Fixed an inconsistency in enkf_prep.c when it sometimes tried to write
       to non-existent observation-orig.nc.
 v. 1.23.3
