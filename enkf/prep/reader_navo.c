@@ -20,17 +20,13 @@
 #include <assert.h>
 #include "ncw.h"
 #include "nan.h"
-#include "kdtree.h"
-#include "stringtable.h"
 #include "definitions.h"
 #include "utils.h"
-#include "enkfprm.h"
 #include "obsmeta.h"
 #include "model.h"
 #include "grid.h"
 #include "observations.h"
 #include "prep_utils.h"
-#include "allreaders.h"
 
 void reader_navo_standard(char* fname, int fid, obsmeta* meta, model* m, observations* obs)
 {

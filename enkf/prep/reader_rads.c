@@ -20,19 +20,15 @@
 #include <assert.h>
 #include "ncw.h"
 #include "nan.h"
-#include "stringtable.h"
-#include "kdtree.h"
 #include "definitions.h"
 #include "utils.h"
-#include "enkfprm.h"
 #include "obsmeta.h"
 #include "grid.h"
 #include "model.h"
 #include "observations.h"
 #include "prep_utils.h"
-#include "allreaders.h"
 
-#define MINDEPTH 200.0
+double MINDEPTH = 200.0;
 
 /** For files of the form ??_yyyymmdd.nc. They are assumed to have "time" 
  * variable.

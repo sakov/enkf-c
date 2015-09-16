@@ -63,6 +63,8 @@
 #define MODE_ENKF 1
 #define MODE_ENOI 2
 
+#define ALPHA_DEFAULT 1.0
+
 #define SCHEME_NONE 0
 #define SCHEME_DENKF 1
 #define SCHEME_ETKF 2

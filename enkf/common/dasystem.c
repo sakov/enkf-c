@@ -95,6 +95,7 @@ dasystem* das_create(enkfprm* prm)
         das->ensdir = strdup(prm->ensdir);
     if (prm->bgdir != NULL)
         das->bgdir = strdup(prm->bgdir);
+    das->alpha = prm->alpha;
     das->nmem = prm->enssize;
 #if defined(ENKF_CALC)
     das->obs = obs_create_fromprm(prm);

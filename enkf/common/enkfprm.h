@@ -49,6 +49,7 @@ typedef struct {
     char* fname;
     int mode;
     int scheme;
+    double alpha;
     int target;
     char* date;
 

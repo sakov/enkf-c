@@ -44,6 +44,7 @@ struct dasystem {
     char* prmfname;
     int mode;
     int scheme;
+    double alpha;               /* moderating multiple */
     char* ensdir;
     char* bgdir;
 

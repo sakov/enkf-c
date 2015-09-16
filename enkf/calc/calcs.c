@@ -139,8 +139,8 @@ int invsqrtm(int m, double** S)
                                  * * U" */
     char specV = 'N';           /* "no rows of V**T are computed" */
     int lapack_info;
-    double alpha = 1.0;
-    double beta = 0.0;
+    double a = 1.0;
+    double b = 0.0;
     int i, j;
 
     dgesvd_(&specU, &specV, &m, &m, S[0], &m, sigmas, U[0], &m, NULL, &m, work, &lwork, &lapack_info);
@@ -161,7 +161,7 @@ int invsqrtm(int m, double** S)
         for (j = 0; j < m; ++j)
             Usi[j] = Ui[j] / si_sqrt;
     }
-    dgemm_(&noT, &doT, &m, &m, &m, &alpha, Us[0], &m, U[0], &m, &beta, S[0], &m);
+    dgemm_(&noT, &doT, &m, &m, &m, &a, Us[0], &m, U[0], &m, &b, S[0], &m);
 
     free2d(U);
     free2d(Us);
@@ -183,8 +183,8 @@ int invsqrtm(int m, double** S)
 static int calc_M(int p, int m, int transpose, double** S, double** M)
 {
     int i;
-    double alpha = 1.0;
-    double beta = 0.0;
+    double a = 1.0;
+    double b = 0.0;
     int lapack_info;
 
     assert(p > 0);
@@ -193,7 +193,7 @@ static int calc_M(int p, int m, int transpose, double** S, double** M)
         /*
          * M = S' * S 
          */
-        dgemm_(&doT, &noT, &m, &m, &p, &alpha, S[0], &p, S[0], &p, &beta, M[0], &m);
+        dgemm_(&doT, &noT, &m, &m, &p, &a, S[0], &p, S[0], &p, &b, M[0], &m);
 
         /*
          * M = I + S' * S
@@ -209,7 +209,7 @@ static int calc_M(int p, int m, int transpose, double** S, double** M)
         /*
          * M = S * S' 
          */
-        dgemm_(&noT, &doT, &p, &p, &m, &alpha, S[0], &p, S[0], &p, &beta, M[0], &p);
+        dgemm_(&noT, &doT, &p, &p, &m, &a, S[0], &p, S[0], &p, &b, M[0], &p);
         /*
          * M = I + S * S'
          */
@@ -228,7 +228,7 @@ static int calc_M(int p, int m, int transpose, double** S, double** M)
  * @param D - output: S^-1/2
  * @return lapack_info from dgesvd_() (0 = success)
  */
-static int invsqrtm2(int m, double** S, double** D)
+static int invsqrtm2(int m, double alpha, double** S, double** D)
 {
     double** U = alloc2d(m, m, sizeof(double));
     double** Us1 = alloc2d(m, m, sizeof(double));
@@ -240,8 +240,8 @@ static int invsqrtm2(int m, double** S, double** D)
                                  * * U" */
     char specV = 'N';           /* "no rows of V**T are computed" */
     int lapack_info;
-    double alpha = 1.0;
-    double beta = 0.0;
+    double a = 1.0;
+    double b = 0.0;
     int i, j;
 
     dgesvd_(&specU, &specV, &m, &m, S[0], &m, sigmas, U[0], &m, NULL, &m, work, &lwork, &lapack_info);
@@ -260,15 +260,15 @@ static int invsqrtm2(int m, double** S, double** D)
         double* Us1i = Us1[i];
         double* Us2i = Us2[i];
         double si = sigmas[i];
-        double si_sqrt = sqrt(sigmas[i]);
+        double si_sqrt = sqrt(1.0 - alpha + alpha * sigmas[i]);
 
         for (j = 0; j < m; ++j) {
             Us1i[j] = Ui[j] / si;
             Us2i[j] = Ui[j] / si_sqrt;
         }
     }
-    dgemm_(&noT, &doT, &m, &m, &m, &alpha, Us1[0], &m, U[0], &m, &beta, S[0], &m);
-    dgemm_(&noT, &doT, &m, &m, &m, &alpha, Us2[0], &m, U[0], &m, &beta, D[0], &m);
+    dgemm_(&noT, &doT, &m, &m, &m, &a, Us1[0], &m, U[0], &m, &b, S[0], &m);
+    dgemm_(&noT, &doT, &m, &m, &m, &a, Us2[0], &m, U[0], &m, &b, D[0], &m);
 
     free2d(U);
     free2d(Us1);
@@ -284,8 +284,8 @@ static int invsqrtm2(int m, double** S, double** D)
 void calc_G_denkf(int m, int p, double** S, int i, int j, double** G)
 {
     double** M;
-    double alpha = 1.0;
-    double beta = 0.0;
+    double a = 1.0;
+    double b = 0.0;
     int lapack_info;
 
     if (p < m) {
@@ -300,7 +300,7 @@ void calc_G_denkf(int m, int p, double** S, int i, int j, double** G)
         /*
          * G = S' * inv(I + S * S') 
          */
-        dgemm_(&doT, &noT, &m, &p, &p, &alpha, S[0], &p, M[0], &p, &beta, G[0], &m);
+        dgemm_(&doT, &noT, &m, &p, &p, &a, S[0], &p, M[0], &p, &b, G[0], &m);
     } else {
         /*
          * M = inv(I + S' * S)
@@ -312,7 +312,7 @@ void calc_G_denkf(int m, int p, double** S, int i, int j, double** G)
         /*
          * G = inv(I + S * S') * S'
          */
-        dgemm_(&noT, &doT, &m, &p, &m, &alpha, M[0], &m, S[0], &p, &beta, G[0], &m);
+        dgemm_(&noT, &doT, &m, &p, &m, &a, M[0], &m, S[0], &p, &b, G[0], &m);
     }
 
 #if defined(CHECK_G)
@@ -343,7 +343,7 @@ void calc_G_denkf(int m, int p, double** S, int i, int j, double** G)
 
 /** Calculates G = inv(I + S' * S) * S' and T = (I + S' * S)^-1/2.
  */
-void calc_G_etkf(int m, int p, double** S, int ii, int jj, double** G, double** T)
+void calc_G_etkf(int m, int p, double** S, double alpha, int ii, int jj, double** G, double** T)
 {
     double** M = alloc2d(m, m, sizeof(double));
     int lapack_info;
@@ -352,13 +352,13 @@ void calc_G_etkf(int m, int p, double** S, int ii, int jj, double** G, double** 
     /*
      * dgemm stuff 
      */
-    double alpha = 1.0;
-    double beta = 0.0;
+    double a = 1.0;
+    double b = 0.0;
 
     /*
      * M = S' * S 
      */
-    dgemm_(&doT, &noT, &m, &m, &p, &alpha, S[0], &p, S[0], &p, &beta, M[0], &m);
+    dgemm_(&doT, &noT, &m, &m, &p, &a, S[0], &p, S[0], &p, &b, M[0], &m);
 
     /*
      * M = I + S' * S
@@ -366,14 +366,14 @@ void calc_G_etkf(int m, int p, double** S, int ii, int jj, double** G, double** 
     for (i = 0; i < m; ++i)
         M[i][i] += 1.0;
 
-    lapack_info = invsqrtm2(m, M, T);   /* M = M^-1, T = M^-1/2 */
+    lapack_info = invsqrtm2(m, alpha, M, T);    /* M = M^-1, T = M^-1/2 */
     if (lapack_info != 0)
         enkf_quit("dgesvd(): lapack_info = %d at (i, j) = (%d, %d)", lapack_info, ii, jj);
 
     /*
      * G = inv(I + S * S') * S'
      */
-    dgemm_(&noT, &doT, &m, &p, &m, &alpha, M[0], &m, S[0], &p, &beta, G[0], &m);
+    dgemm_(&noT, &doT, &m, &p, &m, &a, M[0], &m, S[0], &p, &b, G[0], &m);
 
 #if defined(CHECK_G)
     /*
@@ -408,10 +408,10 @@ void calc_G_etkf(int m, int p, double** S, int ii, int jj, double** G, double** 
  * s is [p]
  * X5 is [m x m]
  */
-void calc_X5_denkf(int m, int p, double** G, double** S, double* s, int ii, int jj, double** X5)
+void calc_X5_denkf(int m, int p, double** G, double** S, double* s, double alpha, int ii, int jj, double** X5)
 {
     double* w = calloc(m, sizeof(double));
-    double alpha, beta;
+    double a, b;
     int i, j;
 
     /*
@@ -427,14 +427,14 @@ void calc_X5_denkf(int m, int p, double** G, double** S, double* s, int ii, int 
         memcpy(X5[j], w, m * sizeof(double));
 
     /*
-     * X5 = G * s * 1^T - 1/2 G * S 
+     * X5 = G * s * 1^T - 1/2 * alpha * G * S 
      */
-    alpha = -0.5;
-    beta = 1.0;
-    dgemm_(&noT, &noT, &m, &m, &p, &alpha, G[0], &m, S[0], &p, &beta, X5[0], &m);
+    a = -0.5 * alpha;
+    b = 1.0;
+    dgemm_(&noT, &noT, &m, &m, &p, &a, G[0], &m, S[0], &p, &b, X5[0], &m);
 
     /*
-     * X5 = G * s * 1^T - 1/2 G * S + I 
+     * X5 = G * s * 1^T - 1/2 * alpha * G * S + I 
      */
     for (i = 0; i < m; ++i)
         X5[i][i] += 1.0;
@@ -505,9 +505,9 @@ void calc_X5_etkf(int m, int p, double** G, double* s, int ii, int jj, double** 
  */
 void calc_w(int m, int p, double** G, double* s, double* w)
 {
-    double alpha = 1.0;
+    double a = 1.0;
     int inc = 1;
-    double beta = 0.0;
+    double b = 0.0;
 
-    dgemv_(&noT, &m, &p, &alpha, G[0], &m, s, &inc, &beta, w, &inc);
+    dgemv_(&noT, &m, &p, &a, G[0], &m, s, &inc, &b, w, &inc);
 }

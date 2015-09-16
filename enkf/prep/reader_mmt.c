@@ -24,17 +24,13 @@
 #include <values.h>
 #include "ncw.h"
 #include "nan.h"
-#include "stringtable.h"
-#include "kdtree.h"
 #include "definitions.h"
 #include "utils.h"
-#include "enkfprm.h"
 #include "obsmeta.h"
 #include "grid.h"
 #include "model.h"
 #include "observations.h"
 #include "prep_utils.h"
-#include "allreaders.h"
 
 #define EPS 1.0e-6
 #define WMO_INSTSIZE 4

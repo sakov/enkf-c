@@ -395,11 +395,11 @@ void das_calctransforms(dasystem* das)
                     /*
                      * (X5 is used for storing T)
                      */
-                    calc_G_etkf(das->nmem, ploc, Sloc, i, j, G, X5);
+                    calc_G_etkf(das->nmem, ploc, Sloc, das->alpha, i, j, G, X5);
 
                 if (das->mode == MODE_ENKF) {
                     if (das->scheme == SCHEME_DENKF)
-                        calc_X5_denkf(das->nmem, ploc, G, Sloc, sloc, i, j, X5);
+                        calc_X5_denkf(das->nmem, ploc, G, Sloc, sloc, das->alpha, i, j, X5);
                     else if (das->scheme == SCHEME_ETKF)
                         calc_X5_etkf(das->nmem, ploc, G, sloc, i, j, X5);
                     else
@@ -767,12 +767,12 @@ void das_dopointlogs(dasystem* das)
             if (das->mode == MODE_ENOI || das->scheme == SCHEME_DENKF)
                 calc_G_denkf(das->nmem, ploc, Sloc, plog->i, plog->j, G);
             else if (das->scheme == SCHEME_ETKF)
-                calc_G_etkf(das->nmem, ploc, Sloc, plog->i, plog->j, G, T);
+                calc_G_etkf(das->nmem, ploc, Sloc, das->alpha, plog->i, plog->j, G, T);
             else
                 enkf_quit("programming error");
             if (das->mode == MODE_ENKF) {
                 if (das->scheme == SCHEME_DENKF)
-                    calc_X5_denkf(das->nmem, ploc, G, Sloc, sloc, plog->i, plog->j, X5);
+                    calc_X5_denkf(das->nmem, ploc, G, Sloc, sloc, das->alpha, plog->i, plog->j, X5);
                 else if (das->scheme == SCHEME_ETKF)
                     calc_X5_etkf(das->nmem, ploc, G, sloc, plog->i, plog->j, X5);
                 else

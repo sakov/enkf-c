@@ -71,6 +71,7 @@ enkfprm* enkfprm_read(char fname[])
     prm->fname = fname;
     prm->mode = MODE_NONE;
     prm->scheme = SCHEME_DEFAULT;
+    prm->alpha = ALPHA_DEFAULT;
     prm->date = NULL;
     prm->modelprm = NULL;
     prm->gridprm = NULL;
@@ -120,6 +121,11 @@ enkfprm* enkfprm_read(char fname[])
                 else
                     enkf_quit("%s, l.%d: scheme \"%s\" is not implemented", fname, line, token);
             }
+        } else if (strcasecmp(token, "ALPHA") == 0) {
+            if ((token = strtok(NULL, seps)) == NULL)
+                enkf_quit("%s, l.%d: ALPHA not specified", fname, line);
+            else if (!str2double(token, &prm->alpha))
+                enkf_quit("%s, l.%d: could not convert \"%s\" to double", fname, line, token);
         } else if (strcasecmp(token, "DATE") == 0) {
             char seps_date[] = "=\n";
 
@@ -354,6 +360,9 @@ enkfprm* enkfprm_read(char fname[])
             enkf_quit("%s, l.%d: unknown token \"%s\"", fname, line, token);
     }                           /* while */
 
+    if (prm->alpha < 0.0 || prm->alpha > 1.0)
+        enkf_quit("ALPHA = %.3g outside [0,1] interval", prm->alpha);
+
     if (prm->nregions == 0) {
         region* r = malloc(sizeof(region));
 
@@ -467,6 +476,8 @@ void enkfprm_print(enkfprm* prm, char offset[])
             enkf_printf("%sSCHEME = DEnKF\n", offset);
         else if (prm->scheme == SCHEME_ETKF)
             enkf_printf("%sSCHEME = ETKF\n", offset);
+        if (1.0 - prm->alpha > 1.0e-6)
+            enkf_printf("%s  ALPHA = %.3g\n", offset, prm->alpha);
     }
     enkf_printf("%sMODEL PRM = \"%s\"\n", offset, prm->modelprm);
     enkf_printf("%sGRID PRM = \"%s\"\n", offset, prm->gridprm);
@@ -537,6 +548,7 @@ void enkfprm_describeprm(void)
     enkf_printf("\n");
     enkf_printf("    MODE            = { ENKF | ENOI }\n");
     enkf_printf("  [ SCHEME          = { DENKF* | ETKF } ]\n");
+    enkf_printf("  [ ALPHA           = <alpha> ]                              (1*)\n");
     enkf_printf("    MODEL           = <model prm file>\n");
     enkf_printf("    GRID            = <grid prm file>\n");
     enkf_printf("    OBSTYPES        = <obs. types prm file>\n");

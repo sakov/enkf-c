@@ -21,17 +21,13 @@
 #include <assert.h>
 #include "ncw.h"
 #include "nan.h"
-#include "kdtree.h"
-#include "stringtable.h"
 #include "definitions.h"
 #include "utils.h"
-#include "enkfprm.h"
 #include "obsmeta.h"
 #include "model.h"
 #include "grid.h"
 #include "observations.h"
 #include "prep_utils.h"
-#include "allreaders.h"
 
 double ERRORSTD_DEF = 0.25;
 double MINWIND = 5.0;

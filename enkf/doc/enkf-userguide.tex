@@ -35,7 +35,7 @@
 
 \begin{document}
 
-\title{EnKF-C user guide\\{\normalsize version 1.23}}
+\title{EnKF-C user guide\\{\normalsize version 1.24}}
 
 \author{Pavel Sakov}
 \date{June 19, 2014 -- \today}
@@ -623,6 +623,7 @@ Its format is described by running \verb|enkf_prep|, \verb|enkf_calc| or \verb|e
 
     MODE            = { ENKF | ENOI }
   [ SCHEME          = { DENKF* | ETKF } ]
+  [ ALPHA           = <alpha> ]                              (1*)
     MODEL           = <model prm file>
     GRID            = <grid prm file>
     OBSTYPES        = <obs. types prm file>
@@ -1085,6 +1086,18 @@ Specifically, the adaptive moderation of the observation impact is conducted by 
 \end{align*}
 where $\sigma_{obs}$ is the observation error standard deviation, $\sigma_f$ -- forecast ensemble spread, $d$ -- innovation, and $K$ -- the so called K-factor defined in the main parameter file (sec. \ref{sec:mainprm}).
 Tests with small models show that setting the K-factor to say 2-3 or above makes a marginal impact (if any) on performance of weakly suboptimal systems, while still can be quite beneficial in stressful situations.
+
+\subsection{Moderation of spread reduction}
+
+The moderating parameter $\alpha \in [0, 1]$ specified in the main parameter file via the entry \verb|ALPHA| allows one to reduce the contraction of ensemble during assimilation, while leaving the increment unchanged.
+It modifies the DEnKF expression (\ref{TR-DEnKF}) for $\mb T_R$ as
+\begin{align*}
+  \mb T_R = \mb I - \frac{\alpha}{2} \, \mb G \mb S,
+\end{align*}
+and the ETKF expression (\ref{TR-ETKF}) as
+\begin{align*}
+  \mb T_R = (\mb I + \alpha \, \mb S\T \mb S)^{-1/2}.
+\end{align*}
 
 \subsection{Innovation statistics}
 

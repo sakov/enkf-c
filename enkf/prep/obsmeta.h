@@ -15,6 +15,8 @@
 
 #if !defined(_OBSMETA_H)
 
+#include "enkfprm.h"
+
 #define STDTYPE_NONE 0
 #define STDTYPE_VALUE 1
 #define STDTYPE_FILE 2
