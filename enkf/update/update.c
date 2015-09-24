@@ -348,6 +348,21 @@ static void das_updatefields(dasystem* das, int nfields, void** fieldbuffer, fie
         free(infl);
     free(v_a);
     free(v_f);
+
+    /*
+     * "randomise" ("propagate") fields if required
+     */
+    for (fid = 0; fid < nfields; ++fid) {
+        field* f = &fields[fid];
+        float*** vvv = (float***) fieldbuffer[fid];
+
+        if (!isnan(model_getvardeflation(m, f->varid))) {
+            int e;
+
+            for (e = 0; e < das->nmem; ++e)
+                model_randomisefield(m, f->varid, vvv[e]);
+        }
+    }
 }
 
 /** Updates `nfield' fields read into `fieldbuffer' with `w'. 
@@ -380,7 +395,7 @@ static void das_updatebg(dasystem* das, int nfields, void** fieldbuffer, field f
 
     /*
      * the following code for interpolation of w essentially coincides with
-     * that in das_updatefields() 
+     * that in das_updatefields()
      */
 
     assert(das->mode == MODE_ENOI);

@@ -42,6 +42,14 @@ struct variable {
     int gridid;
     double inflation;
     double inf_ratio;
+    /*
+     * if not NaN then the code will "propagate" the variable as follows:
+     *   v <- alpha * v + (1 - alpha^2)^1/2 * s, 
+     * where s ~ N(0, sigma) is a field-wide value (different across the
+     * ensemble)
+     */
+    double deflation;
+    double sigma;
 };
 
 struct model {
@@ -66,6 +74,8 @@ static void variable_new(variable * v, int id, char* name)
     v->gridid = -1;
     v->inflation = NaN;
     v->inf_ratio = NaN;
+    v->deflation = NaN;
+    v->sigma = NaN;
 }
 
 /**
@@ -183,6 +193,17 @@ model* model_create(enkfprm* prm)
                     if (!str2double(token, &now->inf_ratio))
                         enkf_quit("%s, l.%d: could not convert \"%s\" to double", modelprm, line, token);
                 }
+            } else if (strcasecmp(token, "RANDOMISE") == 0 || strcasecmp(token, "RANDOMIZE") == 0) {
+                if (!isnan(now->inflation))
+                    enkf_quit("%s, l.%d: randomisation multiple already specified for \"%s\"", modelprm, line, now->name);
+                if ((token = strtok(NULL, seps)) == NULL)
+                    enkf_quit("%s, l.%d: RANDOMISE parameters not specified", modelprm, line);
+                if (!str2double(token, &now->deflation))
+                    enkf_quit("%s, l.%d: could not convert \"%s\" to double", modelprm, line, token);
+                if ((token = strtok(NULL, seps)) == NULL)
+                    enkf_quit("%s, l.%d: RANDOMISE STD not specified", modelprm, line);
+                if (!str2double(token, &now->sigma))
+                    enkf_quit("%s, l.%d: could not convert \"%s\" to double", modelprm, line, token);
             } else
                 enkf_quit("%s, l.%d: unknown token \"%s\"", modelprm, line, token);
         }                       /* while reading modelprm */
@@ -216,7 +237,19 @@ model* model_create(enkfprm* prm)
         prm->inflation_base = NaN;
         prm->inf_ratio = NaN;
     }
+    /*
+     * check randomisation parameters
+     */
+    {
+        int i;
 
+        for (i = 0; i < m->nvar; ++i) {
+            if (isnan(m->vars[i].deflation))
+                continue;
+            if (m->vars[i].deflation < 0.0 || m->vars[i].deflation > 1.0)
+                enkf_quit("deflation = %.3g for variable \"%s\" (should be between 0 and 1)", m->vars[i].deflation, m->vars[i].name);
+        }
+    }
     model_print(m, "    ");
 
     assert(m->ngrid > 0);
@@ -290,6 +323,8 @@ void model_print(model* m, char offset[])
             enkf_printf("%s      inflation = %.3f PLAIN\n", offset, v->inflation);
         else
             enkf_printf("%s      inflation = %.3f %.2f\n", offset, v->inflation, v->inf_ratio);
+        if (~isnan(v->deflation))
+            enkf_printf("%s      randomise: deflation = %.3f, sigma = %.3f\n", v->deflation, v->sigma);
     }
     enkf_printf("%s  %d modeldata:\n", offset, m->ndata);
     for (i = 0; i < m->ndata; ++i) {
@@ -310,18 +345,20 @@ void model_describeprm(void)
     enkf_printf("\n");
     enkf_printf("  Model parameter file format:\n");
     enkf_printf("\n");
-    enkf_printf("    NAME        = <name>\n");
+    enkf_printf("    NAME      = <name>\n");
     enkf_printf("\n");
-    enkf_printf("    VAR         = <name>\n");
-    enkf_printf("    GRID        = <name>\n");
-    enkf_printf("  [ INFLATION   = <value> [<value> | PLAIN]]\n");
+    enkf_printf("    VAR       = <name>\n");
+    enkf_printf("  [ GRID      = <name> ]                    (# grids > 1)\n");
+    enkf_printf("  [ INFLATION = <value> [<value> | PLAIN] ]\n");
+    enkf_printf("  [ RANDOMISE <deflation> <sigma> ]\n");
     enkf_printf("\n");
     enkf_printf("  [ <more of the above blocks> ]\n");
     enkf_printf("\n");
     enkf_printf("  Notes:\n");
     enkf_printf("    1. [ ... ] denotes an optional input\n");
     enkf_printf("    2. < ... > denotes a description of an entry\n");
-    enkf_printf("    3. ... denotes repeating the previous item an arbitrary number of times\n");
+    enkf_printf("    3. ( ... ) is a note\n");
+    enkf_printf("    4. ... denotes repeating the previous item an arbitrary number of times\n");
     enkf_printf("\n");
 }
 
@@ -405,6 +442,13 @@ void model_getvarinflation(model* m, int varid, float* inflation, double* inf_ra
 {
     *inflation = (float) m->vars[varid].inflation;
     *inf_ratio = m->vars[varid].inf_ratio;
+}
+
+/**
+ */
+double model_getvardeflation(model* m, int varid)
+{
+    return m->vars[varid].deflation;
 }
 
 /**
@@ -649,4 +693,24 @@ void model_read3dfield(model* m, char fname[], int mem, int time, char varname[]
 void model_writefield(model* m, char fname[], int time, char varname[], int k, float* v)
 {
     writefield(fname, varname, k, v);
+}
+
+/**
+ */
+void model_randomisefield(model* m, int varid, float** v)
+{
+    float deflation = (float) m->vars[varid].deflation;
+    float sigma = (float) m->vars[varid].sigma;
+    float s;
+    int ni, nj;
+    int i, j;
+    double tmp[2];
+
+    get_normalpair(tmp);
+    s = (float) (sqrt(1.0 - deflation * deflation) * tmp[0]) * sigma;
+
+    model_getvardims(m, varid, &ni, &nj, NULL);
+    for (j = 0; j < nj; ++j)
+        for (i = 0; i < ni; ++i)
+            v[j][i] = deflation * v[j][i] + s;
 }

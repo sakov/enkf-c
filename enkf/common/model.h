@@ -55,6 +55,7 @@ int model_getnvar(model* m);
 char* model_getvarname(model* m, int varid);
 int model_getvarid(model* m, char* varname, int hastosucceed);
 void model_getvarinflation(model* m, int varid, float* inflation, double* inf_ratio);
+double model_getvardeflation(model* m, int varid);
 void model_getvardims(model* m, int vid, int* ni, int* nj, int* nk);
 void* model_getvargrid(model* m, int vid);
 int model_getvargridid(model* m, int vid);
@@ -78,6 +79,7 @@ void model_read3dfield(model* m, char fname[], int mem, int time, char varname[]
 void model_writefield(model* m, char fname[], int time, char varname[], int k, float* v);
 void model_addcustomdata(model* m, char* token, char* fname, int line);
 void model_addcustomtaper(model* m, variable * var, char* token, char* fname, int line);
+void model_randomisefield(model* m, int varid, float** v);
 
 #define _MODEL_H
 #endif

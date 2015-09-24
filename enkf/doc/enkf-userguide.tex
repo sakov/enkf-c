@@ -35,7 +35,7 @@
 
 \begin{document}
 
-\title{EnKF-C user guide\\{\normalsize version 1.24}}
+\title{EnKF-C user guide\\{\normalsize version 1.25}}
 
 \author{Pavel Sakov}
 \date{June 19, 2014 -- \today}
@@ -676,14 +676,16 @@ The model parameter file mainly describes the composition of the state vector by
     NAME        = <name>
 
     VAR         = <name>
-    GRID        = <name>
-  [ INFLATION   = <value>  [<value> | PLAIN]]
+  [ GRID      = <name> ]                    (# grids > 1)
+  [ INFLATION = <value> [<value> | PLAIN] ]
+  [ RANDOMISE <deflation> <sigma> ]
 
   [ <more of the above blocks> ]
 \end{Verbatim}
 
 Each model variable is described in a block started by the entry for the variable name.
 The inflation parameters for a variable, if specified, override the common values set in the main parameter file (sec.~\ref{sec:capping}).
+Entry RANDOMISE makes it possible to specify a ``forgetting'' model for a variable (sec.~\ref{sec:bias}).
 
 EnKF-C permits using multiple model grids.
 In case of using multiple grids each model variable must be associated with one of the grids defined in the grid parameter file.
@@ -1394,6 +1396,7 @@ The results will be written to the log of \verb|enkf_calc|.
 An example of using this functionality is available by running \verb|make stats| in \verb|examples/1| (see sec.~\ref{example1}).
 
 \section{Bias correction}
+\label{sec:bias}
 
 It is possible to estimate and correct bias for a model variable with the EnKF by generating and using an ensemble of bias fields.
 These bias fields need to be subtracted from the corresponding observation forecasts.
@@ -1405,6 +1408,7 @@ Another possibility is to introduce a ``forgetting'' stochastic model for bias f
   \mb x_{i+1} = \alpha \, \mb x_i + (1 - \alpha^2)^{1/2} \ms \sigma,
 \end{align*}
 where $\alpha$ is the forgetting factor, $0 < \alpha < 1, \; 1 - \alpha \ll 1$, and $\ms \sigma \sim N(0, \ms \Sigma_0)$ is a random variable with the suggested distribution for $\mb x$.
+This can be specified for a model variable via entry \verb|RANDOMISE| in the corresponding section of the model parameter file (sec.~\ref{sec:modelprm});
 
 \section{Grids}
 

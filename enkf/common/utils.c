@@ -70,6 +70,8 @@ void enkf_init(int* argc, char*** argv)
 #if !defined(NO_GRIDUTILS)
     gu_setquitfn(enkf_quit);
 #endif
+
+    srand48(time(NULL));
 }
 
 /**
@@ -1360,4 +1362,15 @@ void print_commandinfo(int argc, char* argv[])
     enkf_printf("\"\n");
     if (getcwd(cwd, sizeof(cwd)) != NULL)
         enkf_printf("    dir = \"%s\"\n", cwd);
+}
+
+/**
+ */
+void get_normalpair(double x[])
+{
+    double u = sqrt(-2.0 * log(1.0 - drand48()));
+    double v = TWOPI * drand48();
+
+    x[0] = u * cos(v);
+    x[1] = u * sin(v);
 }
