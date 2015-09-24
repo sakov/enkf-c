@@ -194,7 +194,7 @@ model* model_create(enkfprm* prm)
                         enkf_quit("%s, l.%d: could not convert \"%s\" to double", modelprm, line, token);
                 }
             } else if (strcasecmp(token, "RANDOMISE") == 0 || strcasecmp(token, "RANDOMIZE") == 0) {
-                if (!isnan(now->inflation))
+                if (!isnan(now->deflation))
                     enkf_quit("%s, l.%d: randomisation multiple already specified for \"%s\"", modelprm, line, now->name);
                 if ((token = strtok(NULL, seps)) == NULL)
                     enkf_quit("%s, l.%d: RANDOMISE parameters not specified", modelprm, line);
