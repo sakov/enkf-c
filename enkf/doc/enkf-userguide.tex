@@ -1405,9 +1405,9 @@ This is accomplished by specifying a secondary variable in the observation type 
 Because bias fields are usually assumed to persist (not change) during propagation, one may need to make specific settings for inflation for them to avoid their collapse (loss of spread) over time.
 Another possibility is to introduce a ``forgetting'' stochastic model for bias fields, for example:
 \begin{align*}
-  \mb x_{i+1} = \alpha \, \mb x_i + (1 - \alpha^2)^{1/2} \ms \sigma,
+  \mb x_{i+1} = \lambda \, \mb x_i + (1 - \lambda^2)^{1/2} \ms \sigma,
 \end{align*}
-where $\alpha$ is the forgetting factor, $0 < \alpha < 1, \; 1 - \alpha \ll 1$, and $\ms \sigma \sim N(0, \ms \Sigma_0)$ is a random variable with the suggested distribution for $\mb x$.
+where $\alpha$ is the forgetting factor, $0 < \lambda < 1, \; 1 - \lambda \ll 1$, and $\ms \sigma \sim \sigma_0 N(0, 1)$, where $\sigma_0$ is the standard deviation of the error of $\mb x$.
 This can be specified for a model variable via entry \verb|RANDOMISE| in the corresponding section of the model parameter file (sec.~\ref{sec:modelprm});
 
 \section{Grids}

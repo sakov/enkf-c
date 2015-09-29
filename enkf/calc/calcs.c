@@ -222,7 +222,7 @@ static int calc_M(int p, int m, int transpose, double** S, double** M)
     return lapack_info;
 }
 
-/** Calculates inverse _and_ invserse square root of a square matrix via SVD.
+/** Calculates inverse _and_ inverse square root of a square matrix via SVD.
  * @param m - matrix size
  * @param S - input: matrix; output: S^-1
  * @param D - output: S^-1/2

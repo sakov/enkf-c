@@ -206,10 +206,14 @@ void H_surf_biased(dasystem* das, int nobs, int obsids[], char fname[], int mem,
     float** offset = NULL;
     float** bias = NULL;
     int mvid = model_getvarid(m, varname, 1);
+    int mvid2 = model_getvarid(m, varname2, 1);
     int k;
     char fname2[MAXSTRLEN];
     int ni, nj;
     int i, j;
+
+    if (model_getvargridid(m, mvid) != model_getvargridid(m, mvid2))
+        enkf_quit("H_surf_biased(): variables \"%s\" and \"%s\" are defined on different grids", varname, varname2);
 
     k = grid_gettoplayerid(model_getvargrid(m, mvid));
 

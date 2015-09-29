@@ -118,6 +118,7 @@ model* model_create(enkfprm* prm)
     model* m = calloc(1, sizeof(model));
     char* modelprm = prm->modelprm;
     char* gridprm = prm->gridprm;
+    int i;
 
     model_setgrids(m, gridprm);
 
@@ -152,8 +153,6 @@ model* model_create(enkfprm* prm)
                 else
                     m->name = strdup(token);
             } else if (strncasecmp(token, "VAR", 3) == 0) {
-                int i;
-
                 if ((token = strtok(NULL, seps)) == NULL)
                     enkf_quit("%s, l.%d: VAR not specified", modelprm, line);
                 for (i = 0; i < m->nvar; ++i)
@@ -165,8 +164,6 @@ model* model_create(enkfprm* prm)
                 variable_new(now, m->nvar, token);
                 m->nvar++;
             } else if (strcasecmp(token, "GRID") == 0) {
-                int i;
-
                 if (now == NULL)
                     enkf_quit("%s, l.%d: VAR not specified", modelprm, line);
                 if (now->gridid >= 0)
@@ -211,8 +208,6 @@ model* model_create(enkfprm* prm)
         assert(m->name != NULL);
         assert(m->nvar > 0);
         {
-            int i;
-
             for (i = 0; i < m->nvar; ++i)
                 if (m->vars[i].gridid == -1) {
                     if (m->ngrid == 1)
@@ -227,8 +222,6 @@ model* model_create(enkfprm* prm)
      * set inflations
      */
     {
-        int i;
-
         for (i = 0; i < m->nvar; ++i)
             if (isnan(m->vars[i].inflation)) {
                 m->vars[i].inflation = prm->inflation_base;
@@ -241,8 +234,6 @@ model* model_create(enkfprm* prm)
      * check randomisation parameters
      */
     {
-        int i;
-
         for (i = 0; i < m->nvar; ++i) {
             if (isnan(m->vars[i].deflation))
                 continue;
@@ -323,7 +314,7 @@ void model_print(model* m, char offset[])
             enkf_printf("%s      inflation = %.3f PLAIN\n", offset, v->inflation);
         else
             enkf_printf("%s      inflation = %.3f %.2f\n", offset, v->inflation, v->inf_ratio);
-        if (~isnan(v->deflation))
+        if (!isnan(v->deflation))
             enkf_printf("%s      randomise: deflation = %.3f, sigma = %.3f\n", v->deflation, v->sigma);
     }
     enkf_printf("%s  %d modeldata:\n", offset, m->ndata);
