@@ -563,7 +563,7 @@ void enkfprm_describeprm(void)
     enkf_printf("  [ STRIDE          = <stride> ]                             (1*)\n");
     enkf_printf("  [ SOBSTRIDE       = <stride> ]                             (1*)\n");
     enkf_printf("  [ FIELDBUFFERSIZE = <fieldbuffersize> ]                    (1*)\n");
-    enkf_printf("  [ INFLATION       = <inflation> [ <VALUE>* | PLAIN ]       (0.5*)\n");
+    enkf_printf("  [ INFLATION       = <inflation> [ <VALUE>* | PLAIN ]       (1*)\n");
     enkf_printf("    ...\n");
     enkf_printf("  [ ZSTATINTS       = [<z1> <z2>] ... ]\n");
     enkf_printf("  [ REGION          = <name> <lon1> <lon2> <lat1> <lat2> [[<z1> <z2>] ... ]\n");

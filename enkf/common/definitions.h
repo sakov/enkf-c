@@ -84,7 +84,7 @@
  * Maximal allowed default ratio of (inflation - 1) / (spread_f / spread_a - 1).
  * Use of this limiter can be overriden by using qualifier PLAIN for inflation.
  */
-#define INFRATIO_DEFAULT 0.5
+#define INFRATIO_DEFAULT 1.0
 
 #define OBS_SORTMODE_ID 0
 #define OBS_SORTMODE_IJ 1

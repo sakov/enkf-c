@@ -1,10 +1,10 @@
   MPI: initialised 2 processes
-  MPI: rank = 0, PID = 13815
-  MPI: rank = 1, PID = 13816
-  running CALC for EnKF-C version 1.22:
+  MPI: rank = 0, PID = 14791
+  MPI: rank = 1, PID = 14792
+  running CALC for EnKF-C version 1.25.2:
     command = "./enkf_calc --forecast-stats-only stats.prm"
     dir = "/home/pavel/src/enkf-c/trunk/enkf/examples/1"
-  2015-09-07 12:26:22
+  2015-10-05 12:19:14
   reading system specs from "stats.prm":
     MODE = EnOI
     MODEL PRM = "model.prm"
@@ -90,21 +90,21 @@
       name = Tasman
       5 variables:
         eta_t:
-          inflation = 1.000 0.50
+          inflation = 1.000 1.00
         temp:
-          inflation = 1.000 0.50
+          inflation = 1.000 1.00
         salt:
-          inflation = 1.000 0.50
+          inflation = 1.000 1.00
         u:
-          inflation = 1.000 0.50
+          inflation = 1.000 1.00
         v:
-          inflation = 1.000 0.50
+          inflation = 1.000 1.00
       0 modeldata:
   reading observations from "observations.nc":
     3921 observations
     calculating obs stats:
   calculating ensemble observations:
-  2015-09-07 12:26:22
+  2015-10-05 12:19:14
     ensemble size = 1
     distributing iterations:
       processes get 1 or 0 iterations
@@ -113,7 +113,7 @@
     TEM +
     SAL +
   adding forecast innovations and spread to "observations.nc":
-  2015-09-07 12:26:22
+  2015-10-05 12:19:14
   printing observation statistics:
     region obs.type   # obs.  |for.inn.| for.inn.
     ---------------------------------------------
@@ -136,5 +136,5 @@
              0-50m         2    0.088      0.074  
              50-500m       5    0.072      0.046  
              500-9999m     0     -nan       -nan  
-  2015-09-07 12:26:22
+  2015-10-05 12:19:14
   finished

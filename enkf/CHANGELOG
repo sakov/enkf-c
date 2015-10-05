@@ -1,8 +1,10 @@
+v. 1.25.2
+   -- Changed INFRATIO_DEFAULT from 0.5 to 1.0.
 v. 1.25.1
    -- Semi-cosmetic changes.
 v. 1.25
    -- Added option of additive noise, which could be useful to keep spread
-      in bias estimation.
+      during bias estimation.
 v. 1.24
    -- Introduced alpha -- moderating parameter in DEnKF and ETKF.
 v. 1.23.5

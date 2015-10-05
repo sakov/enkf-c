@@ -1,10 +1,10 @@
   MPI: initialised 2 processes
-  MPI: rank = 0, PID = 13733
-  MPI: rank = 1, PID = 13734
-  running UPDATE for EnKF-C version 1.22:
+  MPI: rank = 0, PID = 14866
+  MPI: rank = 1, PID = 14867
+  running UPDATE for EnKF-C version 1.25.2:
     command = "./enkf_update --no-fields-write pointlogs.prm"
     dir = "/home/pavel/src/enkf-c/trunk/enkf/examples/1"
-  2015-09-07 12:25:25
+  2015-10-05 12:20:11
   reading system specs from "pointlogs.prm":
     MODE = EnKF
     SCHEME = DEnKF
@@ -17,7 +17,7 @@
     ENSEMBLE SIZE = 96
     RFACTOR BASE = 2.0
     INFLATION BASE = 1.1000
-    INFLATION MODE = SPREAD LIMITED, MAX RATIO = 0.50
+    INFLATION MODE = SPREAD LIMITED, MAX RATIO = 1.00
     KFACTOR = 999.0
     LOCRAD = 200
     STRIDE = 3
@@ -64,15 +64,15 @@
       name = Tasman
       5 variables:
         eta_t:
-          inflation = 1.100 0.50
+          inflation = 1.100 1.00
         temp:
-          inflation = 1.100 0.50
+          inflation = 1.100 1.00
         salt:
-          inflation = 1.100 0.50
+          inflation = 1.100 1.00
         u:
-          inflation = 1.100 0.50
+          inflation = 1.100 1.00
         v:
-          inflation = 1.100 0.50
+          inflation = 1.100 1.00
       0 modeldata:
   updating the ensemble:
     96 members
@@ -81,22 +81,22 @@
       9 fields
       distributing iterations:
         processes get 5 or 4 iterations
-      u        0   (1: 5: 25.0%)
       eta_t    0   (0: 0: 20.0%)
+      u        0   (1: 5: 25.0%)
       temp     0   (0: 1: 40.0%)
       u        1   (1: 6: 50.0%)
       temp     1   (0: 2: 60.0%)
-      v        0   (1: 7: 75.0%)
       salt     0   (0: 3: 80.0%)
+      v        0   (1: 7: 75.0%)
       v        1   (1: 8: 100.0%)
       salt     1   (0: 4: 100.0%)
       (skip writing the fields)
-  2015-09-07 12:25:27
+  2015-10-05 12:20:13
   assembling state variables in point logs:
     distributing iterations:
       processes get 2 or 1 iterations
     deleting tiles:
       distributing iterations:
         processes get 5 or 4 iterations
-  2015-09-07 12:25:27
+  2015-10-05 12:20:13
   finished

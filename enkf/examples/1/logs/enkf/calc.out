@@ -1,10 +1,10 @@
   MPI: initialised 2 processes
-  MPI: rank = 0, PID = 13710
-  MPI: rank = 1, PID = 13711
-  running CALC for EnKF-C version 1.22:
+  MPI: rank = 0, PID = 13701
+  MPI: rank = 1, PID = 13702
+  running CALC for EnKF-C version 1.25.2:
     command = "./enkf_calc enkf.prm"
     dir = "/home/pavel/src/enkf-c/trunk/enkf/examples/1"
-  2015-09-07 12:24:22
+  2015-10-05 11:42:55
   reading system specs from "enkf.prm":
     MODE = EnKF
     SCHEME = DEnKF
@@ -17,7 +17,7 @@
     ENSEMBLE SIZE = 96
     RFACTOR BASE = 2.0
     INFLATION BASE = 1.1000
-    INFLATION MODE = SPREAD LIMITED, MAX RATIO = 0.50
+    INFLATION MODE = SPREAD LIMITED, MAX RATIO = 1.00
     KFACTOR = 999.0
     LOCRAD = 200
     STRIDE = 3
@@ -100,21 +100,21 @@
       name = Tasman
       5 variables:
         eta_t:
-          inflation = 1.100 0.50
+          inflation = 1.100 1.00
         temp:
-          inflation = 1.100 0.50
+          inflation = 1.100 1.00
         salt:
-          inflation = 1.100 0.50
+          inflation = 1.100 1.00
         u:
-          inflation = 1.100 0.50
+          inflation = 1.100 1.00
         v:
-          inflation = 1.100 0.50
+          inflation = 1.100 1.00
       0 modeldata:
   reading observations from "observations.nc":
     3921 observations
     calculating obs stats:
   calculating ensemble observations:
-  2015-09-07 12:24:22
+  2015-10-05 11:42:55
     ensemble size = 96
     distributing iterations:
       all processes get 48 iterations
@@ -123,7 +123,7 @@
     TEM ................................................
     SAL ................................................
   adding forecast innovations and spread to "observations.nc":
-  2015-09-07 12:24:22
+  2015-10-05 11:42:59
   moderating observations:
     observations substantially modified:
       SLA          0 (0.0%)
@@ -133,7 +133,7 @@
       total        0 (0.0%)
   writing modified obs errors to "observations.nc":
   calculating transforms:
-  2015-09-07 12:24:22
+  2015-10-05 11:42:59
     calculating transforms for t-grid:
       creating empty file "X5.nc":
       distributing iterations:
@@ -151,28 +151,28 @@
         j = 24 (0: 4: 29.4%)
         j = 33 (1: 22: 35.3%)
         j = 30 (0: 5: 35.3%)
-        j = 39 (1: 23: 41.2%)
         j = 36 (0: 6: 41.2%)
-        j = 45 (1: 24: 47.1%)
+        j = 39 (1: 23: 41.2%)
         j = 42 (0: 7: 47.1%)
-        j = 51 (1: 25: 52.9%)
+        j = 45 (1: 24: 47.1%)
         j = 48 (0: 8: 52.9%)
-        j = 57 (1: 26: 58.8%)
+        j = 51 (1: 25: 52.9%)
         j = 54 (0: 9: 58.8%)
-        j = 63 (1: 27: 64.7%)
+        j = 57 (1: 26: 58.8%)
         j = 60 (0: 10: 64.7%)
-        j = 66 (0: 11: 70.6%)
+        j = 63 (1: 27: 64.7%)
         j = 69 (1: 28: 70.6%)
+        j = 66 (0: 11: 70.6%)
         j = 75 (1: 29: 76.5%)
         j = 72 (0: 12: 76.5%)
         j = 81 (1: 30: 82.4%)
         j = 78 (0: 13: 82.4%)
-        j = 84 (0: 14: 88.2%)
         j = 87 (1: 31: 88.2%)
-        j = 90 (0: 15: 94.1%)
+        j = 84 (0: 14: 88.2%)
         j = 93 (1: 32: 94.1%)
-        j = 96 (0: 16: 100.0%)
+        j = 90 (0: 15: 94.1%)
         j = 99 (1: 33: 100.0%)
+        j = 96 (0: 16: 100.0%)
     finished calculating transforms for t-grid
     writing stats to "enkf_diag.nc":
     summary stats on t-grid:
@@ -184,7 +184,7 @@
     calculating transform for log point (30, 50): 538 obs
     writing the log for point (30, 50) on grid "t-grid":
   calculating analysed observations:
-  2015-09-07 12:24:31
+  2015-10-05 11:43:08
     sorting obs by ij:
     updating HE:
   adding analysis innovations and spread to "observations.nc":
@@ -197,8 +197,8 @@
              n1          382    0.077      0.037      0.015      0.000      0.034      0.023  
              N/A          20    0.095      0.024      0.085      0.017      0.049      0.028  
            SST          3255    0.461      0.234     -0.244     -0.069      0.335      0.232  
-             AVHRR      2087    0.467      0.214     -0.217     -0.039      0.330      0.222  
-             WindSat     847    0.472      0.308     -0.307     -0.145      0.350      0.261  
+             AVHRR      2087    0.467      0.214     -0.217     -0.039      0.330      0.223  
+             WindSat     847    0.472      0.308     -0.307     -0.145      0.350      0.262  
              N/A         321    0.393      0.172     -0.252     -0.069      0.323      0.218  
            TEM             7    1.015      0.923      0.495      0.760      0.317      0.214  
              ARGO          7    1.015      0.923      0.495      0.760      0.317      0.214  
@@ -210,5 +210,5 @@
              0-50m         2    0.088      0.121      0.074      0.085      0.023      0.018  
              50-500m       5    0.072      0.076      0.046      0.036      0.032      0.024  
              500-9999m     0     -nan       -nan       -nan       -nan       -nan       -nan  
-  2015-09-07 12:24:31
+  2015-10-05 11:43:09
   finished

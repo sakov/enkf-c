@@ -1,7 +1,7 @@
-  running PREP for EnKF-C version 1.22:
+  running PREP for EnKF-C version 1.25.2:
     command = "./enkf_prep stats.prm"
     dir = "/home/pavel/src/enkf-c/trunk/enkf/examples/1"
-  2015-09-07 12:26:22
+  2015-10-05 12:19:13
   reading prep specs from "stats.prm":
     MODE = EnOI
     MODEL PRM = "model.prm"
@@ -14,7 +14,7 @@
     ENSEMBLE SIZE = <FULL>
     RFACTOR BASE = 1.0
     INFLATION BASE = 1.0000
-    INFLATION MODE = SPREAD LIMITED, MAX RATIO = 0.50
+    INFLATION MODE = SPREAD LIMITED, MAX RATIO = 1.00
     KFACTOR = n/a
     LOCRAD = nan
     STRIDE = 1
@@ -97,15 +97,15 @@
       name = Tasman
       5 variables:
         eta_t:
-          inflation = 1.000 0.50
+          inflation = 1.000 1.00
         temp:
-          inflation = 1.000 0.50
+          inflation = 1.000 1.00
         salt:
-          inflation = 1.000 0.50
+          inflation = 1.000 1.00
         u:
-          inflation = 1.000 0.50
+          inflation = 1.000 1.00
         v:
-          inflation = 1.000 0.50
+          inflation = 1.000 1.00
       0 modeldata:
   reading observation type specs from "obstypes.prm":
     NAME = SLA
@@ -154,62 +154,77 @@
       reading obs/RADS-IB/y2007/m12/e2_d19.nc:
         nobs = 5394
         error_std = 0.05
+        MINDEPTH = 200
         # good obs = 0
       reading obs/RADS-IB/y2007/m12/j1_d19.nc:
         nobs = 50386
         error_std = 0.03
+        MINDEPTH = 200
         # good obs = 20
       reading obs/RADS-IB/y2007/m12/n1_d19.nc:
         nobs = 40491
         error_std = 0.05
+        MINDEPTH = 200
         # good obs = 238
       reading obs/RADS-IB/y2007/m12/e2_d20.nc:
         nobs = 6177
         error_std = 0.05
+        MINDEPTH = 200
         # good obs = 0
       reading obs/RADS-IB/y2007/m12/j1_d20.nc:
         nobs = 50153
         error_std = 0.03
+        MINDEPTH = 200
         # good obs = 0
       reading obs/RADS-IB/y2007/m12/n1_d20.nc:
         nobs = 39486
         error_std = 0.05
+        MINDEPTH = 200
         # good obs = 0
       reading obs/RADS-IB/y2007/m12/e2_d21.nc:
         nobs = 5364
         error_std = 0.05
+        MINDEPTH = 200
         # good obs = 0
       reading obs/RADS-IB/y2007/m12/j1_d21.nc:
         nobs = 51928
         error_std = 0.03
+        MINDEPTH = 200
         # good obs = 351
       reading obs/RADS-IB/y2007/m12/n1_d21.nc:
         nobs = 39512
         error_std = 0.05
+        MINDEPTH = 200
         # good obs = 25
       reading obs/RADS-IB/y2007/m12/e2_d22.nc:
         nobs = 5200
         error_std = 0.05
+        MINDEPTH = 200
         # good obs = 0
       reading obs/RADS-IB/y2007/m12/j1_d22.nc:
         nobs = 51022
         error_std = 0.03
+        MINDEPTH = 200
         # good obs = 68
       reading obs/RADS-IB/y2007/m12/n1_d22.nc:
         nobs = 41034
         error_std = 0.05
+        MINDEPTH = 200
         # good obs = 298
       reading obs/RADS-IB/y2007/m12/e2_d23.nc:
         nobs = 6030
         error_std = 0.05
+        MINDEPTH = 200
         # good obs = 0
       reading obs/RADS-IB/y2007/m12/j1_d23.nc:
         nobs = 49922
         error_std = 0.03
+        MINDEPTH = 200
         # good obs = 0
       reading obs/RADS-IB/y2007/m12/n1_d23.nc:
         nobs = 38946
         error_std = 0.05
+        MINDEPTH = 200
         # good obs = 0
       id = 0 - 999
       total 1000 observations
@@ -321,5 +336,5 @@ ls: cannot access obs/WINDSAT/windsat_20071223.nc: No such file or directory
     TEM     184        104        104        0          0          0          0          7         
     SAL     184        104        104        0          0          0          0          7         
     total   9749       211        208        0          3          0          0          3921      
-  2015-09-07 12:26:22
+  2015-10-05 12:19:14
   finished

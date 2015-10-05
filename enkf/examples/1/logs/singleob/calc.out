@@ -1,10 +1,10 @@
   MPI: initialised 2 processes
-  MPI: rank = 0, PID = 13828
-  MPI: rank = 1, PID = 13829
-  running CALC for EnKF-C version 1.22:
+  MPI: rank = 0, PID = 14800
+  MPI: rank = 1, PID = 14801
+  running CALC for EnKF-C version 1.25.2:
     command = "./enkf_calc --single-observation-ijk 30 50 0 SST 0.5 0.5 singleob.prm"
     dir = "/home/pavel/src/enkf-c/trunk/enkf/examples/1"
-  2015-09-07 12:26:43
+  2015-10-05 12:19:33
   reading system specs from "singleob.prm":
     MODE = EnOI
     MODEL PRM = "model.prm"
@@ -17,7 +17,7 @@
     ENSEMBLE SIZE = 96
     RFACTOR BASE = 1.0
     INFLATION BASE = 1.0000
-    INFLATION MODE = SPREAD LIMITED, MAX RATIO = 0.50
+    INFLATION MODE = SPREAD LIMITED, MAX RATIO = 1.00
     KFACTOR = 999.0
     LOCRAD = 500
     STRIDE = 3
@@ -100,15 +100,15 @@
       name = Tasman
       5 variables:
         eta_t:
-          inflation = 1.000 0.50
+          inflation = 1.000 1.00
         temp:
-          inflation = 1.000 0.50
+          inflation = 1.000 1.00
         salt:
-          inflation = 1.000 0.50
+          inflation = 1.000 1.00
         u:
-          inflation = 1.000 0.50
+          inflation = 1.000 1.00
         v:
-          inflation = 1.000 0.50
+          inflation = 1.000 1.00
       0 modeldata:
   reading observation type specs from "obstypes.prm":
     NAME = SLA
@@ -162,7 +162,7 @@
     j    = 50.000
     calculating obs stats:
   calculating ensemble observations:
-  2015-09-07 12:26:43
+  2015-10-05 12:19:33
     ensemble size = 96
     distributing iterations:
       all processes get 48 iterations
@@ -171,7 +171,7 @@
     TEM 
     SAL 
   calculating transforms:
-  2015-09-07 12:26:43
+  2015-10-05 12:19:33
     calculating transforms for t-grid:
     creating empty file "w.nc":
       distributing iterations:
@@ -195,22 +195,22 @@
         j = 42 (0: 7: 47.1%)
         j = 51 (1: 25: 52.9%)
         j = 48 (0: 8: 52.9%)
-        j = 54 (0: 9: 58.8%)
         j = 57 (1: 26: 58.8%)
-        j = 60 (0: 10: 64.7%)
+        j = 54 (0: 9: 58.8%)
         j = 63 (1: 27: 64.7%)
-        j = 66 (0: 11: 70.6%)
+        j = 60 (0: 10: 64.7%)
         j = 69 (1: 28: 70.6%)
-        j = 72 (0: 12: 76.5%)
+        j = 66 (0: 11: 70.6%)
         j = 75 (1: 29: 76.5%)
-        j = 78 (0: 13: 82.4%)
+        j = 72 (0: 12: 76.5%)
         j = 81 (1: 30: 82.4%)
-        j = 84 (0: 14: 88.2%)
+        j = 78 (0: 13: 82.4%)
         j = 87 (1: 31: 88.2%)
+        j = 84 (0: 14: 88.2%)
         j = 93 (1: 32: 94.1%)
         j = 90 (0: 15: 94.1%)
-        j = 96 (0: 16: 100.0%)
         j = 99 (1: 33: 100.0%)
+        j = 96 (0: 16: 100.0%)
     finished calculating transforms for t-grid
     writing stats to "enkf_diag.nc":
     summary stats on t-grid:
@@ -222,7 +222,7 @@
     calculating transform for log point (30, 50): 1 obs
     writing the log for point (30, 50) on grid "t-grid":
   calculating analysed observations:
-  2015-09-07 12:26:43
+  2015-10-05 12:19:33
     sorting obs by ij:
     updating Hx:
   printing observation statistics:
@@ -231,5 +231,5 @@
     Global
            SST             1    0.500      0.271      0.500      0.271      0.655      0.655  
              Virtual       1    0.500      0.271      0.500      0.271      0.655      0.655  
-  2015-09-07 12:26:43
+  2015-10-05 12:19:33
   finished

@@ -35,7 +35,7 @@
 
 \begin{document}
 
-\title{EnKF-C user guide\\{\normalsize version 1.25}}
+\title{EnKF-C user guide\\{\normalsize version 1.25.2}}
 
 \author{Pavel Sakov}
 \date{June 19, 2014 -- \today}
@@ -1229,16 +1229,16 @@ Similar problems may arise due to lack of correlation between some state element
 To avoid this behaviour EnKF-C currently restricts inflation by specified fraction (half by default) of the the spread reduction factor calculated directly for each element of the state vector during the update.
 For example, if inflation is specified as
 \begin{Verbatim}
-INFLATION = 1.06 0.25
+INFLATION = 1.06 0.5
 \end{Verbatim}
-then the ensemble anomalies for any model state element will be inflated by 6\,\%, but no more than $1 + 0.25 (\sigma_f / \sigma_a - 1)$, where $\sigma_f$ and $\sigma_a$ represent the forecast and analysis ensemble spreads for this element.
+then the ensemble anomalies for any model state element will be inflated by 6\,\%, but no more than $1 + 0.5 (\sigma_f / \sigma_a - 1)$, where $\sigma_f$ and $\sigma_a$ represent the forecast and analysis ensemble spreads for this element.
 Specification
 \begin{Verbatim}
 INFLATION = 1.06
 \end{Verbatim}
 is equivalent to
 \begin{Verbatim}
-INFLATION = 1.06 0.5
+INFLATION = 1.06 1
 \end{Verbatim}
 Capping inflation by the magnitude of reduction of the ensemble spread is a default mode of application of inflation in EnKF-C; to revert to the uniform inflation add qualifier \verb|PLAIN| to the entry \verb|INFLATION| in the main parameter file, e.g.:
 \begin{Verbatim}
