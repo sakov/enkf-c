@@ -210,7 +210,7 @@ static gnz* gnz_create(int vtype, int nz, double* z)
          */
         nodes->zc[nz] = 0;
         for (i = nz - 1; i >= 0; --i)
-            nodes->zc[i] = 2.0 * z[i + 1] - nodes->zc[i + 1];
+            nodes->zc[i] = 2.0 * z[i] - nodes->zc[i + 1];
     }
 
     return nodes;
