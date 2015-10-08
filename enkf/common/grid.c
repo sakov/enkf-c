@@ -172,7 +172,7 @@ void gnxy_curv_destroy(gnxy_curv* nodes)
 
 /**
  */
-static gnz* gnz_create(int vtype, int nz, double* z)
+static gnz* gnz_create(int nz, double* z)
 {
     gnz* nodes = malloc(sizeof(gnz));
     int i;
@@ -201,16 +201,28 @@ static gnz* gnz_create(int vtype, int nz, double* z)
         /*
          * layer 0 at surface
          */
-        nodes->zc[0] = 0;
-        for (i = 1; i <= nz; ++i)
+        nodes->zc[0] = 0.0;
+        for (i = 1; i <= nz; ++i) {
             nodes->zc[i] = 2.0 * z[i - 1] - nodes->zc[i - 1];
+            /*
+             * layer boundary should be above the next layer centre
+             */
+            if (i < nz)
+                assert(nodes->zc[i] < z[i]);
+        }
     } else {
         /*
          * layer 0 the deepest
          */
-        nodes->zc[nz] = 0;
-        for (i = nz - 1; i >= 0; --i)
+        nodes->zc[nz] = 0.0;
+        for (i = nz - 1; i >= 0; --i) {
             nodes->zc[i] = 2.0 * z[i] - nodes->zc[i + 1];
+            /*
+             * layer boundary should be above the next layer centre
+             */
+            if (i > 0)
+                assert(nodes->zc[i] < z[i - 1]);
+        }
     }
 
     return nodes;
@@ -313,16 +325,28 @@ static void g12_fij2xy(void* p, double fi, double fj, double* x, double* y)
     *y = fi2x(nodes->ny, nodes->y, fj, nodes->periodic_y);
 }
 
-/**
+/** Gets fractional index of a coordinate for a 1D irregular grid.
+ * @param n Number of grid nodes (vertical layers)
+ * @param v Coordinates of the nodes (layer centres)
+ * @param vb Coordinates of the cell/layer boundaries [n + 1]
+ * @param x Input coordinate
+ * @param periodic Flag for grid periodicity
+ * @param lontype Range for longitude: 0 - any, 1 - [-180, 180), 2 - [0, 360)
+ * @return Fractional index for `x'
  */
-static double x2fi_irreg(int n, double* v, double* vb, double x, int periodic)
+static double x2fi_irreg(int n, double v[], double vb[], double x, int periodic, int lontype)
 {
     int ascending, i1, i2, imid;
 
     if (n < 2)
         return NaN;
 
-    if (periodic) {
+    if (lontype == LONTYPE_180) {
+        if (x < -180)
+            x = x + 360.0;
+        else if (x >= 180.0)
+            x = x - 360.0;
+    } else if (lontype == LONTYPE_360) {
         if (x < 0.0)
             x = x + 360.0;
         else if (x >= 360.0)
@@ -365,7 +389,7 @@ static double x2fi_irreg(int n, double* v, double* vb, double x, int periodic)
         if (x < vb[i1 + 1])
             return (double) i1 + (x - v[i1]) / (vb[i1 + 1] - vb[i1]);
         else
-            return (double) i1 + 0.5 + (x - vb[i1 + 1]) / (vb[i1 + 2] - vb[i1]);
+            return (double) i1 + 0.5 + (x - vb[i1 + 1]) / (vb[i1 + 2] - vb[i1 + 1]);
     } else {
         while (1) {
             imid = (i1 + i2) / 2;
@@ -379,7 +403,7 @@ static double x2fi_irreg(int n, double* v, double* vb, double x, int periodic)
         if (x > vb[i1 + 1])
             return (double) i1 + (x - v[i1]) / (vb[i1 + 1] - vb[i1]);
         else
-            return (double) i1 + 0.5 + (x - vb[i1 + 1]) / (vb[i1 + 2] - vb[i1]);
+            return (double) i1 + 0.5 + (x - vb[i1 + 1]) / (vb[i1 + 2] - vb[i1 + 1]);
     }
 }
 
@@ -388,9 +412,10 @@ static double x2fi_irreg(int n, double* v, double* vb, double x, int periodic)
 static void g2_xy2fij(void* p, double x, double y, double* fi, double* fj)
 {
     gnxy_simple* nodes = (gnxy_simple*) ((grid*) p)->gridnodes_xy;
+    int lontype = ((grid*) p)->lontype;
 
-    *fi = x2fi_irreg(nodes->nx, nodes->x, nodes->xc, x, nodes->periodic_x);
-    *fj = x2fi_irreg(nodes->ny, nodes->y, nodes->yc, y, nodes->periodic_y);
+    *fi = x2fi_irreg(nodes->nx, nodes->x, nodes->xc, x, nodes->periodic_x, lontype);
+    *fj = x2fi_irreg(nodes->ny, nodes->y, nodes->yc, y, nodes->periodic_y, lontype);
 }
 
 #if !defined(NO_GRIDUTILS)
@@ -579,7 +604,7 @@ static void grid_setcoords(grid* g, int htype, int hnodetype, int periodic_x, in
     grid_setlontype(g);
     g->z2fk_fn = z2fk;
 
-    g->gridnodes_z = gnz_create(g->vtype, nz, z);
+    g->gridnodes_z = gnz_create(nz, z);
 }
 
 /**
