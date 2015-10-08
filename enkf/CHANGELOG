@@ -1,5 +1,5 @@
 v. 1.25.4
-   -- Fixed defects in vertical mapping of points in the last layer.
+   -- Fixed defects in x2fi_irreg() during mapping of points in the last cell.
 v. 1.25.3
    -- Fixed a potentially major defect in vertical mapping for sigma grids in
       the case of grids going from bottom up. (Somehow it has not show up in
