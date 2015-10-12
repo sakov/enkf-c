@@ -76,9 +76,9 @@ struct grid {
     grid_tocartesian_fn tocartesian_fn;
 
     void* gridnodes_xy;         /* (the structure is defined by `htype') */
-    int lontype;                /* (-180 to 180 or 0 to 360) */
+    int lontype;                /* (range: any, [-180,180) or [0,360)) */
 
-    gnz* gridnodes_z;           /* (the structure is defined by `vtype') */
+    gnz* gridnodes_z;
 
     /*
      * `numlevels' can hold either the number of levels (z-model) or the

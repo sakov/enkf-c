@@ -29,12 +29,18 @@
 #include "observations.h"
 #include "prep_utils.h"
 
+#define ORBITS_ALL        0
+#define ORBITS_DESCENDING 1
+#define ORBITS_ASCENDING  2
+#define ORBITS_DEF        ORBITS_ALL
+
 double ERRORSTD_DEF = 0.25;
 double MINWIND = 5.0;
 
 void reader_amsre_standard(char* fname, int fid, obsmeta* meta, model* m, observations* obs)
 {
     double minwind = MINWIND;
+    int orbits = ORBITS_DEF;
     int ncid;
     int dimid_ni, dimid_nj;
     size_t ni, nj;
@@ -126,6 +132,15 @@ void reader_amsre_standard(char* fname, int fid, obsmeta* meta, model* m, observ
         if (strcasecmp(meta->pars[i].name, "MINWIND") == 0) {
             if (!str2double(meta->pars[i].value, &minwind))
                 enkf_quit("observation prm file: can not convert MINWIND = \"%s\" to double\n", meta->pars[i].value);
+        } else if (strcasecmp(meta->pars[i].name, "ORBITS") == 0) {
+            if (strcasecmp(meta->pars[i].value, "ALL") == 0)
+                orbits = ORBITS_ALL;
+            else if (strcasecmp(meta->pars[i].value, "DESCENDING") == 0)
+                orbits = ORBITS_DESCENDING;
+            else if (strcasecmp(meta->pars[i].value, "ASCENDING") == 0)
+                orbits = ORBITS_ASCENDING;
+            else
+                enkf_quit("observation prm file: parameter \"ORBITS\": value \"%s\" not understood: expected either \"ALL\", \"DESCENDING\", or \"ASCENDING\"\n", meta->pars[i].value);
         }
     }
     enkf_printf("        MINWIND = %.0f\n", minwind);
@@ -134,6 +149,9 @@ void reader_amsre_standard(char* fname, int fid, obsmeta* meta, model* m, observ
         double** data = (channel == 0) ? sst_a : sst_d;
         double** wind = (channel == 0) ? wind_a : wind_d;
         double** time = (channel == 0) ? time_a : time_d;
+
+        if ((orbits == ORBITS_DESCENDING && channel == 0) || (orbits == ORBITS_ASCENDING && channel == 1))
+            continue;
 
         for (j = 0; j < (int) nj; ++j) {
             for (i = 0; i < (int) ni; ++i) {

@@ -1,27 +1,41 @@
+v. 1.26.0
+   PS 12102015
+   -- Added parameter ORBITS to reader_amsre_standard(). Can be either "ALL",
+      "DESCENDING", or "ASCENDING".
 v. 1.25.5
+   PS 08102015
    -- A similar change in z2fk_basic().
 v. 1.25.4
+   PS 08102015
    -- Fixed defects in x2fi_irreg() during mapping of points in the last cell.
 v. 1.25.3
+   PS 06102015
    -- Fixed a potentially major defect in vertical mapping for sigma grids in
       the case of grids going from bottom up. (Somehow it has not show up in
       practice.)
 v. 1.25.2
+   PS 06102015
    -- Changed INFRATIO_DEFAULT from 0.5 to 1.0.
 v. 1.25.1
+   PS 29092015
    -- Semi-cosmetic changes.
 v. 1.25
+   PS 24092015
    -- Added option of additive noise, which could be useful to keep spread
       during bias estimation.
 v. 1.24
+   PS 16092015
    -- Introduced alpha -- moderating parameter in DEnKF and ETKF.
 v. 1.23.5
+   PS 14092015
    -- Modified reader_amsre_standard() to handle parameter MINWIND. Inreased
       default value of MINWIND from 1 to 5 (m/s).
 v. 1.23.4
+   PS 10092015
    -- Fixed an inconsistency in enkf_prep.c when it sometimes tried to write
       to non-existent observation-orig.nc.
 v. 1.23.3
+   PS 09092015
    -- Fixed deallocation of null pointer in model.c and added missed
       deallocations in pointlog.c.
 v. 1.23.2
