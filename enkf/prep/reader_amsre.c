@@ -141,7 +141,8 @@ void reader_amsre_standard(char* fname, int fid, obsmeta* meta, model* m, observ
                 orbits = ORBITS_ASCENDING;
             else
                 enkf_quit("observation prm file: parameter \"ORBITS\": value \"%s\" not understood: expected either \"ALL\", \"DESCENDING\", or \"ASCENDING\"\n", meta->pars[i].value);
-        }
+        } else
+            enkf_quit("unknown PARAMETER \"%s\"\n", meta->pars[i].name);
     }
     enkf_printf("        MINWIND = %.0f\n", minwind);
     enkf_printf("        ORBITS = ");

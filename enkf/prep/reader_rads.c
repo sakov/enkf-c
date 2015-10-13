@@ -110,7 +110,8 @@ void reader_rads_standard(char* fname, int fid, obsmeta* meta, model* m, observa
         if (strcasecmp(meta->pars[i].name, "MINDEPTH") == 0) {
             if (!str2double(meta->pars[i].value, &mindepth))
                 enkf_quit("observation prm file: can not convert MINDEPTH = \"%s\" to double\n", meta->pars[i].value);
-        }
+        } else
+            enkf_quit("unknown PARAMETER \"%s\"\n", meta->pars[i].name);
     }
     enkf_printf("        MINDEPTH = %.0f\n", mindepth);
 
@@ -246,7 +247,8 @@ void reader_rads_standard2(char* fname, int fid, obsmeta* meta, model* m, observ
         if (strcasecmp(meta->pars[i].name, "MINDEPTH") == 0) {
             if (!str2double(meta->pars[i].value, &mindepth))
                 enkf_quit("observation prm file: can not convert MINDEPTH = \"%s\" to double\n", meta->pars[i].value);
-        }
+        } else
+            enkf_quit("unknown PARAMETER \"%s\"\n", meta->pars[i].name);
     }
     enkf_printf("        MINDEPTH = %.0f\n", mindepth);
 
