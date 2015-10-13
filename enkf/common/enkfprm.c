@@ -482,7 +482,7 @@ void enkfprm_print(enkfprm* prm, char offset[])
     enkf_printf("%sMODEL PRM = \"%s\"\n", offset, prm->modelprm);
     enkf_printf("%sGRID PRM = \"%s\"\n", offset, prm->gridprm);
 
-    enkf_printf("%sOBS TYPES PRM = \"%s\"\n", offset, prm->obsprm);
+    enkf_printf("%sOBS TYPES PRM = \"%s\"\n", offset, prm->obstypeprm);
 
     enkf_printf("%sDATE = \"%s\"\n", offset, prm->date);
     enkf_printf("%sOBS PRM = \"%s\"\n", offset, prm->obsprm);

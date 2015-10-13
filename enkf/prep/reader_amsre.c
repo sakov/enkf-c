@@ -144,6 +144,15 @@ void reader_amsre_standard(char* fname, int fid, obsmeta* meta, model* m, observ
         }
     }
     enkf_printf("        MINWIND = %.0f\n", minwind);
+    enkf_printf("        ORBITS = ");
+    if (orbits == ORBITS_ALL)
+        enkf_printf("ALL\n");
+    else if (orbits == ORBITS_DESCENDING)
+        enkf_printf("DESCENDING\n");
+    else if (orbits == ORBITS_ASCENDING)
+        enkf_printf("ASCENDING\n");
+    else
+        enkf_quit("programming error");
 
     for (channel = 0; channel < 2; ++channel) {
         double** data = (channel == 0) ? sst_a : sst_d;

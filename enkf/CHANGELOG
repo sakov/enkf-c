@@ -1,3 +1,7 @@
+v. 1.26.1
+   PS 13102015
+   -- Fixed log when reporting obstypes parameter file (observation parameter
+      file was reported instead).
 v. 1.26.0
    PS 12102015
    -- Added parameter ORBITS to reader_amsre_standard(). Can be either "ALL",
