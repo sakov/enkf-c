@@ -36,6 +36,7 @@ typedef struct {
     double lon, lat;
     char* gridname;
     int gridid;
+    int transform_written;
 } pointlog;
 
 typedef struct {

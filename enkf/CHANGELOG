@@ -1,3 +1,7 @@
+v. 1.26.3
+   PS 14102015
+   -- Introduced field pointlog.transform_written to avoid multiple writes of
+      the "actual" (interpolated) transforms to pointlog files.
 v. 1.26.2
    PS 13102015
    -- Generate error on unknown parameter in observation parameter file.

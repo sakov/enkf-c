@@ -179,6 +179,9 @@ void plog_writeactualtransform(dasystem* das, int id, float* transform)
     int ncid;
     int vid = -1;
 
+    if (plog->transform_written)
+        return;
+
     das_getfname_plog(das, plog, fname);
     ncw_open(fname, NC_WRITE, &ncid);
     if (das->mode == MODE_ENKF)
@@ -189,6 +192,8 @@ void plog_writeactualtransform(dasystem* das, int id, float* transform)
         enkf_quit("programming error");
     ncw_put_var_float(fname, ncid, vid, transform);
     ncw_close(fname, ncid);
+
+    plog->transform_written = 1;
 }
 
 /**
