@@ -31,10 +31,10 @@ typedef struct {
     short int fid;
     short int batch;
     /*
-     * for primary observations - the original ID corresponding to the number
+     * for primary observations - the original ID corresponds to the number
      * of the primary observation during the very first read of data files; for
-     * superobs - the original ID of the very first observation of those
-     * combined
+     * superobs - to the original ID of the very first observation merged into
+     * this superob
      */
     int id_orig;
     double value;

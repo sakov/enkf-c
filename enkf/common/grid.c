@@ -415,7 +415,7 @@ static void g2_xy2fij(void* p, double x, double y, double* fi, double* fj)
     int lontype = ((grid*) p)->lontype;
 
     *fi = x2fi_irreg(nodes->nx, nodes->x, nodes->xc, x, nodes->periodic_x, lontype);
-    *fj = x2fi_irreg(nodes->ny, nodes->y, nodes->yc, y, nodes->periodic_y, lontype);
+    *fj = x2fi_irreg(nodes->ny, nodes->y, nodes->yc, y, nodes->periodic_y, LONTYPE_NONE);
 }
 
 #if !defined(NO_GRIDUTILS)

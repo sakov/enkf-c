@@ -1,3 +1,7 @@
+v. 1.26.5
+   PS 15102015
+   -- Corrected a (recently introduced) defect in g2_xy2fij() that filtered
+      latitude according to the longitude range (-180 to 180 or 0 to 360).
 v. 1.26.4
    PS 15102015
    -- Corrected log printing in model_print().
