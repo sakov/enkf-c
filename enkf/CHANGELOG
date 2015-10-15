@@ -1,3 +1,7 @@
+v. 1.26.6
+   PS 15102015
+   -- Reversed 1.26.3; instead write the "actual" transform to the point log
+      only for if field.id == 0.
 v. 1.26.5
    PS 15102015
    -- Corrected a (recently introduced) defect in g2_xy2fij() that filtered

@@ -183,8 +183,6 @@ dasystem* das_create(enkfprm* prm)
             continue;
         }
 
-        dst->transform_written = 0;
-
         ht_insert(das->ht_plogs, key, dst);
     }
 

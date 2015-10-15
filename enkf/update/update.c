@@ -265,7 +265,7 @@ static void das_updatefields(dasystem* das, int nfields, void** fieldbuffer, fie
                         unsigned short key[4] = { i, j, grid_getid(grid), 0 };
                         pointlog* plog = NULL;
 
-                        if (das->nplogs > 0 && (plog = ht_find(das->ht_plogs, key)) != NULL && !plog->transform_written)
+                        if (f->id == 0 && das->nplogs > 0 && (plog = ht_find(das->ht_plogs, key)) != NULL)
                             plog_writeactualtransform(das, plog->id, X5j[i]);
                     }
 
@@ -528,7 +528,7 @@ static void das_updatebg(dasystem* das, int nfields, void** fieldbuffer, field f
                         int key[2] = { i, j };
                         int id;
 
-                        if (das->nplogs > 0 && (id = ht_findid(das->ht_plogs, key)) >= 0)
+                        if (f->id == 0 && das->nplogs > 0 && (id = ht_findid(das->ht_plogs, key)) >= 0)
                             plog_writeactualtransform(das, id, wj[i]);
                     }
 
