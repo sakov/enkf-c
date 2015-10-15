@@ -1,3 +1,6 @@
+v. 1.26.7
+   PS 15102015
+   -- Fixed inconsistency between insert and search keys in ht_plogs.
 v. 1.26.6
    PS 15102015
    -- Reversed 1.26.3; instead write the "actual" transform to the point log

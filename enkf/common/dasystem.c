@@ -161,7 +161,7 @@ dasystem* das_create(enkfprm* prm)
         pointlog* src = &prm->plogs[i];
         pointlog* dst = &das->plogs[i];
         void* grid = NULL;
-        unsigned short key[4] = { src->i, src->j, src->id, 0 };
+        unsigned short key[4] = { src->i, src->j, 0, 0 };
 
         dst->id = src->id;
         dst->i = src->i;
@@ -175,6 +175,7 @@ dasystem* das_create(enkfprm* prm)
             grid = model_getgridbyname(das->m, src->gridname);
             dst->gridid = grid_getid(grid);
         }
+        key[3] = dst->gridid;
 
         grid_fij2xy(grid, (double) dst->i, (double) dst->j, &dst->lon, &dst->lat);
 
