@@ -1,12 +1,12 @@
-  running PREP for EnKF-C version 1.25.2:
+  running PREP for EnKF-C version 1.26.8:
     command = "./enkf_prep enoi.prm"
     dir = "/home/pavel/src/enkf-c/trunk/enkf/examples/1"
-  2015-10-05 12:18:33
+  2015-10-16 11:57:24
   reading prep specs from "enoi.prm":
     MODE = EnOI
     MODEL PRM = "model.prm"
     GRID PRM = "grid.prm"
-    OBS TYPES PRM = "obs.prm"
+    OBS TYPES PRM = "obstypes.prm"
     DATE = "6565.5 days since 1990-01-01"
     OBS PRM = "obs.prm"
     BGDIR = "background_6565"
@@ -337,5 +337,5 @@ ls: cannot access obs/WINDSAT/windsat_20071223.nc: No such file or directory
     TEM     184        104        104        0          0          0          0          7         
     SAL     184        104        104        0          0          0          0          7         
     total   9749       211        208        0          3          0          0          3921      
-  2015-10-05 12:18:34
+  2015-10-16 11:57:25
   finished

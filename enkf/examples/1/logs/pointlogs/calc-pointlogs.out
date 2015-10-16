@@ -1,16 +1,16 @@
-  MPI: initialised 2 processes
-  MPI: rank = 0, PID = 14861
-  MPI: rank = 1, PID = 14862
-  running CALC for EnKF-C version 1.25.2:
+  MPI: initialised 2 process(es)
+  MPI: rank = 0, PID = 739
+  MPI: rank = 1, PID = 740
+  running CALC for EnKF-C version 1.26.8:
     command = "./enkf_calc --point-logs-only pointlogs.prm"
     dir = "/home/pavel/src/enkf-c/trunk/enkf/examples/1"
-  2015-10-05 12:20:11
+  2015-10-16 11:56:56
   reading system specs from "pointlogs.prm":
     MODE = EnKF
     SCHEME = DEnKF
     MODEL PRM = "model.prm"
     GRID PRM = "grid.prm"
-    OBS TYPES PRM = "obs.prm"
+    OBS TYPES PRM = "obstypes.prm"
     DATE = "6565.5 days since 1990-01-01"
     OBS PRM = "obs.prm"
     ENSEMBLE DIR = "ensemble_6565"
@@ -116,7 +116,7 @@
     3921 observations
     calculating obs stats:
   calculating ensemble observations:
-  2015-10-05 12:20:11
+  2015-10-16 11:56:56
     ensemble size = 96
     distributing iterations:
       all processes get 48 iterations
@@ -125,7 +125,7 @@
     TEM ................................................
     SAL ................................................
   adding forecast innovations and spread to "observations.nc":
-  2015-10-05 12:20:11
+  2015-10-16 11:56:56
   Hx already added to "observations.nc" (skipping)
   moderating observations:
     observations substantially modified:
@@ -143,5 +143,5 @@
     writing the log for point (50, 50) on grid "t-grid":
     calculating transform for log point (70, 50): 466 obs
     writing the log for point (70, 50) on grid "t-grid":
-  2015-10-05 12:20:11
+  2015-10-16 11:56:56
   finished

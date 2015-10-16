@@ -1,15 +1,15 @@
-  MPI: initialised 2 processes
-  MPI: rank = 0, PID = 14746
-  MPI: rank = 1, PID = 14747
-  running CALC for EnKF-C version 1.25.2:
+  MPI: initialised 2 process(es)
+  MPI: rank = 0, PID = 784
+  MPI: rank = 1, PID = 785
+  running CALC for EnKF-C version 1.26.8:
     command = "./enkf_calc enoi.prm"
     dir = "/home/pavel/src/enkf-c/trunk/enkf/examples/1"
-  2015-10-05 12:18:35
+  2015-10-16 11:57:25
   reading system specs from "enoi.prm":
     MODE = EnOI
     MODEL PRM = "model.prm"
     GRID PRM = "grid.prm"
-    OBS TYPES PRM = "obs.prm"
+    OBS TYPES PRM = "obstypes.prm"
     DATE = "6565.5 days since 1990-01-01"
     OBS PRM = "obs.prm"
     BGDIR = "background_6565"
@@ -114,7 +114,7 @@
     3921 observations
     calculating obs stats:
   calculating ensemble observations:
-  2015-10-05 12:18:35
+  2015-10-16 11:57:25
     ensemble size = 144
     distributing iterations:
       all processes get 72 iterations
@@ -123,7 +123,7 @@
     TEM ........................................................................+
     SAL ........................................................................+
   adding forecast innovations and spread to "observations.nc":
-  2015-10-05 12:18:40
+  2015-10-16 11:57:30
   moderating observations:
     observations substantially modified:
       SLA          0 (0.0%)
@@ -133,14 +133,14 @@
       total        0 (0.0%)
   writing modified obs errors to "observations.nc":
   calculating transforms:
-  2015-10-05 12:18:40
+  2015-10-16 11:57:30
     calculating transforms for t-grid:
     creating empty file "w.nc":
       distributing iterations:
         all processes get 17 iterations
       main cycle for t-grid (34 x 34 local analyses):
-        j = 3 (1: 17: 5.9%)
         j = 0 (0: 0: 5.9%)
+        j = 3 (1: 17: 5.9%)
         j = 9 (1: 18: 11.8%)
         j = 6 (0: 1: 11.8%)
         j = 15 (1: 19: 17.6%)
@@ -149,28 +149,28 @@
         j = 18 (0: 3: 23.5%)
         j = 27 (1: 21: 29.4%)
         j = 24 (0: 4: 29.4%)
-        j = 30 (0: 5: 35.3%)
         j = 33 (1: 22: 35.3%)
+        j = 30 (0: 5: 35.3%)
         j = 39 (1: 23: 41.2%)
         j = 36 (0: 6: 41.2%)
-        j = 42 (0: 7: 47.1%)
         j = 45 (1: 24: 47.1%)
+        j = 42 (0: 7: 47.1%)
         j = 51 (1: 25: 52.9%)
         j = 48 (0: 8: 52.9%)
         j = 57 (1: 26: 58.8%)
         j = 54 (0: 9: 58.8%)
         j = 63 (1: 27: 64.7%)
         j = 60 (0: 10: 64.7%)
-        j = 66 (0: 11: 70.6%)
         j = 69 (1: 28: 70.6%)
+        j = 66 (0: 11: 70.6%)
         j = 75 (1: 29: 76.5%)
         j = 72 (0: 12: 76.5%)
         j = 81 (1: 30: 82.4%)
         j = 78 (0: 13: 82.4%)
         j = 87 (1: 31: 88.2%)
         j = 84 (0: 14: 88.2%)
-        j = 90 (0: 15: 94.1%)
         j = 93 (1: 32: 94.1%)
+        j = 90 (0: 15: 94.1%)
         j = 99 (1: 33: 100.0%)
         j = 96 (0: 16: 100.0%)
     finished calculating transforms for t-grid
@@ -184,7 +184,7 @@
     calculating transform for log point (30, 50): 538 obs
     writing the log for point (30, 50) on grid "t-grid":
   calculating analysed observations:
-  2015-10-05 12:18:53
+  2015-10-16 11:57:44
     sorting obs by ij:
     updating Hx:
   adding analysis innovations and spread to "observations.nc":
@@ -197,18 +197,18 @@
              n1          382    0.077      0.034      0.015     -0.003      0.025      0.025  
              N/A          20    0.095      0.019      0.085      0.012      0.028      0.028  
            SST          3255    0.461      0.179     -0.244     -0.020      0.422      0.422  
-             AVHRR      2087    0.467      0.158     -0.217     -0.003      0.427      0.427  
+             AVHRR      2087    0.467      0.158     -0.217     -0.004      0.427      0.427  
              WindSat     847    0.472      0.250     -0.307     -0.066      0.406      0.406  
              N/A         321    0.393      0.124     -0.252     -0.012      0.427      0.427  
-           TEM             7    1.015      0.956      0.495      0.872      0.296      0.296  
-             ARGO          7    1.015      0.956      0.495      0.872      0.296      0.296  
-             0-50m         2    1.471      2.560      1.471      2.560      0.305      0.305  
-             50-500m       5    0.833      0.315      0.104      0.197      0.292      0.292  
+           TEM             7    1.015      0.953      0.512      0.876      0.296      0.296  
+             ARGO          7    1.015      0.953      0.512      0.876      0.296      0.296  
+             0-50m         2    1.471      2.550      1.471      2.550      0.305      0.305  
+             50-500m       5    0.832      0.315      0.129      0.207      0.293      0.293  
              500-9999m     0     -nan       -nan       -nan       -nan       -nan       -nan  
-           SAL             7    0.077      0.077      0.054      0.049      0.023      0.023  
-             ARGO          7    0.077      0.077      0.054      0.049      0.023      0.023  
-             0-50m         2    0.088      0.102      0.074      0.073      0.019      0.019  
-             50-500m       5    0.072      0.067      0.046      0.040      0.025      0.025  
+           SAL             7    0.077      0.077      0.055      0.049      0.023      0.023  
+             ARGO          7    0.077      0.077      0.055      0.049      0.023      0.023  
+             0-50m         2    0.088      0.101      0.074      0.072      0.019      0.019  
+             50-500m       5    0.072      0.067      0.047      0.040      0.025      0.025  
              500-9999m     0     -nan       -nan       -nan       -nan       -nan       -nan  
-  2015-10-05 12:18:53
+  2015-10-16 11:57:44
   finished

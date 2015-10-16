@@ -1427,6 +1427,9 @@ void das_update(dasystem* das)
         enkf_flush();
     }                           /* for gid */
 
+#if defined(MPI)
+    MPI_Barrier(MPI_COMM_WORLD);
+#endif
     if (!(das->updatespec & UPDATE_DIRECTWRITE)) {
         enkf_printtime("  ");
         if (das->updatespec & UPDATE_DOFIELDS) {
