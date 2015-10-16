@@ -1,6 +1,10 @@
+v. 1.26.9
+   PS 15102016
+   -- Cosmetic changes: definitions.h::NETCDF_FORMAT now defines the NetCDF
+      format used.
 v. 1.26.8
    PS 15102016
-   -- Cosmetic changes.
+   -- Cosmetic changes (initialisation log).
 v. 1.26.7
    PS 15102015
    -- Fixed inconsistency between insert and search keys in ht_plogs.

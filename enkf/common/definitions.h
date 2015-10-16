@@ -30,6 +30,8 @@
 #define BASEMONTH 1
 #define BASEDAY 1
 
+#define NETCDF_FORMAT NC_64BIT_OFFSET
+
 #define FNAME_OBS "observations-orig.nc"
 #define FNAME_SOBS "observations.nc"
 #define FNAMEPREFIX_X5 "X5"

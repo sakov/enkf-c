@@ -59,7 +59,7 @@ static void das_writeinflation(dasystem* das, field* f, int j, float* v)
 
             model_getvardims(das->m, f->varid, &ni, &nj, NULL);
 
-            ncw_create(fname, NC_CLOBBER | NC_64BIT_OFFSET, &ncid);
+            ncw_create(fname, NC_CLOBBER | NETCDF_FORMAT, &ncid);
             ncw_def_dim(fname, ncid, "nj", nj, &dimids[0]);
             ncw_def_dim(fname, ncid, "ni", ni, &dimids[1]);
             ncw_def_var(fname, ncid, f->varname, NC_FLOAT, 2, dimids, NULL);
@@ -621,7 +621,7 @@ static void das_writefields_toassemble(dasystem* das, int nfields, void** fieldb
             int dimids[3];
             int vid;
 
-            ncw_create(fname, NC_CLOBBER | NC_64BIT_OFFSET, &ncid);
+            ncw_create(fname, NC_CLOBBER | NETCDF_FORMAT, &ncid);
             ncw_def_dim(fname, ncid, "m", das->nmem, &dimids[0]);
             ncw_def_dim(fname, ncid, "nj", nj, &dimids[1]);
             ncw_def_dim(fname, ncid, "ni", ni, &dimids[2]);
@@ -710,7 +710,7 @@ static void das_writebg_toassemble(dasystem* das, int nfields, void** fieldbuffe
             int dimids[2];
             int vid;
 
-            ncw_create(fname, NC_CLOBBER | NC_64BIT_OFFSET, &ncid);
+            ncw_create(fname, NC_CLOBBER | NETCDF_FORMAT, &ncid);
             ncw_def_dim(fname, ncid, "nj", nj, &dimids[0]);
             ncw_def_dim(fname, ncid, "ni", ni, &dimids[1]);
             ncw_def_var(fname, ncid, f->varname, NC_FLOAT, 2, dimids, &vid);
@@ -749,7 +749,7 @@ static void das_allocatespread(dasystem* das, char fname[])
     if (file_exists(fname))
         return;
 
-    ncw_create(fname, NC_CLOBBER | NC_64BIT_OFFSET, &ncid);
+    ncw_create(fname, NC_CLOBBER | NETCDF_FORMAT, &ncid);
     for (vid = 0; vid < nvar; ++vid) {
         char* varname_src = model_getvarname(m, vid);
         int varid_src;
@@ -787,7 +787,7 @@ static void das_allocateinflation(dasystem* das, char fname[])
     if (file_exists(fname))
         return;
 
-    ncw_create(fname, NC_CLOBBER | NC_64BIT_OFFSET, &ncid);
+    ncw_create(fname, NC_CLOBBER | NETCDF_FORMAT, &ncid);
     for (vid = 0; vid < nvar; ++vid) {
         char* varname_src = model_getvarname(m, vid);
         int varid_src;
@@ -859,7 +859,7 @@ static void das_writespread(dasystem* das, int nfields, void** fieldbuffer, fiel
             getfieldfname(das->mode == MODE_ENKF ? das->ensdir : das->bgdir, "spread", varname, f->level, fname);
 
             if (!file_exists(fname)) {
-                ncw_create(fname, NC_CLOBBER | NC_64BIT_OFFSET, &ncid);
+                ncw_create(fname, NC_CLOBBER | NETCDF_FORMAT, &ncid);
                 ncw_def_dim(fname, ncid, "nj", nj, &dimids[0]);
                 ncw_def_dim(fname, ncid, "ni", ni, &dimids[1]);
                 ncw_def_var(fname, ncid, varname, NC_FLOAT, 2, dimids, &vid);
@@ -1237,7 +1237,7 @@ void das_update(dasystem* das)
                             }
                             ncw_redef(fname_a, ncid_a);
                         } else {
-                            ncw_create(fname_a, NC_CLOBBER | NC_64BIT_OFFSET, &ncid_a);
+                            ncw_create(fname_a, NC_CLOBBER | NETCDF_FORMAT, &ncid_a);
                             ncw_copy_dims(fname_f, ncid_f, fname_a, ncid_a);
                         }
 
@@ -1309,7 +1309,7 @@ void das_update(dasystem* das)
                             }
                             ncw_redef(fname_a, ncid_a);
                         } else {
-                            ncw_create(fname_a, NC_CLOBBER | NC_64BIT_OFFSET, &ncid_a);
+                            ncw_create(fname_a, NC_CLOBBER | NETCDF_FORMAT, &ncid_a);
                             ncw_copy_dims(fname_f, ncid_f, fname_a, ncid_a);
                         }
 
