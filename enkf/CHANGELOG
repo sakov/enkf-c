@@ -1,3 +1,6 @@
+v. 1.26.10
+   PS 20102015
+   -- Moved obs_createkdtrees() from the cycle over grids.
 v. 1.26.9
    PS 15102016
    -- Cosmetic changes: definitions.h::NETCDF_FORMAT now defines the NetCDF
