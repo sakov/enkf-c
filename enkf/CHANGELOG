@@ -1,3 +1,9 @@
+v. 1.26.11
+   PS 26102015
+   -- Allowed comments (starting with "#") after definition of pointlog in the
+      main parameter file.
+   -- Made model_getgridbyname() exit with error rather than return NULL when
+      no grid with specified name is found.
 v. 1.26.10
    PS 20102015
    -- Moved obs_createkdtrees() from the cycle over grids.

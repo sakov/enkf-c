@@ -486,6 +486,8 @@ void* model_getgridbyname(model* m, char name[])
     for (i = 0; i < m->ngrid; ++i)
         if (strcmp(grid_getname(m->grids[i]), name) == 0)
             return m->grids[i];
+
+    enkf_quit("model_getgridbyname(): found no grid named \"%s\"", name);
     return NULL;
 }
 

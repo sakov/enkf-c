@@ -316,7 +316,7 @@ enkfprm* enkfprm_read(char fname[])
                 enkf_quit("%s, l.%d: \"J\" coordinate for POINTLOG not specified", fname, line);
             if (!str2int(token, &plog->j))
                 enkf_quit("%s, l.%d: could convert \"J\" entry", fname, line);
-            if ((token = strtok(NULL, seps)) != NULL)
+            if ((token = strtok(NULL, seps)) != NULL && token[0] != '#')
                 plog->gridname = strdup(token);
             else
                 plog->gridname = NULL;
