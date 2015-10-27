@@ -1,3 +1,6 @@
+v. 1.27.1
+   PS 28102015
+   -- Fixed a few glitches in reader_pathfinder_standard().
 v. 1.27.0
    PS 28102015
    -- Added reader_pathfinder.c.

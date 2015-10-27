@@ -53,7 +53,6 @@ void reader_pathfinder_standard(char* fname, int fid, obsmeta* meta, model* m, o
     char* basename;
     char instname[5];
     int mvid;
-    float** depth;
     int i;
 
     for (i = 0; i < meta->npars; ++i)
@@ -111,7 +110,6 @@ void reader_pathfinder_standard(char* fname, int fid, obsmeta* meta, model* m, o
     instname[4] = 0;
 
     mvid = model_getvarid(m, obs->obstypes[obstype_getid(obs->nobstypes, obs->obstypes, meta->type)].varname, 1);
-    depth = model_getdepth(m, mvid);
 
     for (i = 0; i < (int) nobs_local; ++i) {
         observation* o;
@@ -138,8 +136,9 @@ void reader_pathfinder_standard(char* fname, int fid, obsmeta* meta, model* m, o
         if (!obs->allobs && o->status == STATUS_OUTSIDEGRID)
             continue;
         o->fk = 0.0;
+        if ((o->status == STATUS_OK) && (o->lon <= ot->xmin || o->lon >= ot->xmax || o->lat <= ot->ymin || o->lat >= ot->ymax || o->depth <= ot->zmin || o->depth >= ot->zmax))
+            o->status = STATUS_OUTSIDEOBSDOMAIN;
         o->date = tunits_offset + 0.5;
-        o->status = STATUS_OUTSIDEOBSDOMAIN;
 
         o->aux = -1;
 
