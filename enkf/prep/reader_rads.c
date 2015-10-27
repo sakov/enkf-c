@@ -63,6 +63,15 @@ void reader_rads_standard(char* fname, int fid, obsmeta* meta, model* m, observa
     float** depth;
     int i;
 
+    for (i = 0; i < meta->npars; ++i) {
+        if (strcasecmp(meta->pars[i].name, "MINDEPTH") == 0) {
+            if (!str2double(meta->pars[i].value, &mindepth))
+                enkf_quit("observation prm file: can not convert MINDEPTH = \"%s\" to double\n", meta->pars[i].value);
+        } else
+            enkf_quit("unknown PARAMETER \"%s\"\n", meta->pars[i].name);
+    }
+    enkf_printf("        MINDEPTH = %.0f\n", mindepth);
+
     ncw_open(fname, NC_NOWRITE, &ncid);
 
     ncw_inq_dimid(fname, ncid, "nobs", &dimid_nobs);
@@ -113,15 +122,6 @@ void reader_rads_standard(char* fname, int fid, obsmeta* meta, model* m, observa
 
     mvid = model_getvarid(m, obs->obstypes[obstype_getid(obs->nobstypes, obs->obstypes, meta->type)].varname, 1);
     depth = model_getdepth(m, mvid);
-
-    for (i = 0; i < meta->npars; ++i) {
-        if (strcasecmp(meta->pars[i].name, "MINDEPTH") == 0) {
-            if (!str2double(meta->pars[i].value, &mindepth))
-                enkf_quit("observation prm file: can not convert MINDEPTH = \"%s\" to double\n", meta->pars[i].value);
-        } else
-            enkf_quit("unknown PARAMETER \"%s\"\n", meta->pars[i].name);
-    }
-    enkf_printf("        MINDEPTH = %.0f\n", mindepth);
 
     for (i = 0; i < (int) nobs_local; ++i) {
         observation* o;

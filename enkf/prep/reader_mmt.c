@@ -57,6 +57,9 @@ void reader_mmt_standard(char* fname, int fid, obsmeta* meta, model* m, observat
     int mvid;
     int p, i;
 
+    for (i = 0; i < meta->npars; ++i)
+        enkf_quit("unknown PARAMETER \"%s\"\n", meta->pars[i].name);
+
     if (meta->nstds == 0)
         enkf_quit("ERROR_STD is necessary but not specified for product \"%s\"", meta->product);
 

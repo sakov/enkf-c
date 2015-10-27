@@ -1,3 +1,6 @@
+v. 1.27.2
+   PS 28102015
+   -- Modified all readers to generate an error on unknown parameter.
 v. 1.27.1
    PS 28102015
    -- Fixed a few glitches in reader_pathfinder_standard().

@@ -47,6 +47,9 @@ void reader_windsat_standard(char* fname, int fid, obsmeta* meta, model* m, obse
     int mvid;
     int k, i;
 
+    for (i = 0; i < meta->npars; ++i)
+        enkf_quit("unknown PARAMETER \"%s\"\n", meta->pars[i].name);
+
     basename = strrchr(fname, '/');
     if (basename == NULL)
         basename = fname;
