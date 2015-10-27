@@ -28,6 +28,7 @@ void reader_cars_standard(char* fname, int fid, obsmeta* meta, model* m, observa
 void reader_mmt_standard(char* fname, int fid, obsmeta* meta, model* m, observations* obs);
 void reader_amsr2_standard(char* fname, int fid, obsmeta* meta, model* m, observations* obs);
 void reader_amsre_standard(char* fname, int fid, obsmeta* meta, model* m, observations* obs);
+void reader_pathfinder_standard(char* fname, int fid, obsmeta* meta, model* m, observations* obs);
 
 #define _ALLREADERS_H
 #endif

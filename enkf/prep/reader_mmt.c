@@ -68,12 +68,10 @@ void reader_mmt_standard(char* fname, int fid, obsmeta* meta, model* m, observat
     ncw_inq_dimid(fname, ncid, "N_LEVELS", &dimid_nz);
     ncw_inq_dimlen(fname, ncid, dimid_nz, &nz);
     enkf_printf("        # profiles = %u\n", (unsigned int) nprof);
-
     if (nprof == 0) {
         ncw_close(fname, ncid);
         return;
     }
-
     enkf_printf("        # z levels = %u\n", (unsigned int) nz);
 
     ncw_inq_varid(fname, ncid, "LONGITUDE", &varid_lon);

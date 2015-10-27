@@ -1,3 +1,8 @@
+v. 1.27.0
+   PS 28102015
+   -- Added reader_pathfinder.c.
+   -- Added PARAMETER ADDBIAS to reader_navo_standard(); default = no.
+   -- Cosmetic changes in readers.
 v. 1.26.11
    PS 26102015
    -- Allowed comments (starting with "#") after definition of pointlog in the

@@ -7,8 +7,16 @@
  * Author:      Pavel Sakov
  *              Bureau of Meteorology
  *
- * Description:
- *
+ * Description: Contains 2 readers.
+ *              - reader_rads_standard() -- for files of the form
+ *                ??_yyyymmdd.nc. These files are assumed to have variable
+ *                "time".
+ *                Parameters:
+ *                  MINDEPTH -- minimal allowed depth in metres.
+ *              - reader_rads_standard2() -- for files of the form
+ *                y<yyyy>/m<mm>/??_d<dd>.nc with no "time" variable.
+ *                Parameters:
+ *                  MINDEPTH -- minimal allowed depth in metres.
  * Revisions:
  *
  *****************************************************************************/
@@ -28,14 +36,14 @@
 #include "observations.h"
 #include "prep_utils.h"
 
-double MINDEPTH = 200.0;
+#define MINDEPTH_DEF 200.0
 
 /** For files of the form ??_yyyymmdd.nc. They are assumed to have "time" 
  * variable.
  */
 void reader_rads_standard(char* fname, int fid, obsmeta* meta, model* m, observations* obs)
 {
-    double mindepth = MINDEPTH;
+    double mindepth = MINDEPTH_DEF;
     int ncid;
     int dimid_nobs;
     size_t nobs_local;
@@ -163,7 +171,7 @@ void reader_rads_standard(char* fname, int fid, obsmeta* meta, model* m, observa
  */
 void reader_rads_standard2(char* fname, int fid, obsmeta* meta, model* m, observations* obs)
 {
-    double mindepth = MINDEPTH;
+    double mindepth = MINDEPTH_DEF;
     int ncid;
     int dimid_nobs;
     size_t nobs_local;
@@ -184,14 +192,24 @@ void reader_rads_standard2(char* fname, int fid, obsmeta* meta, model* m, observ
     float** depth;
     int i;
 
-    ncw_open(fname, NC_NOWRITE, &ncid);
+    for (i = 0; i < meta->npars; ++i) {
+        if (strcasecmp(meta->pars[i].name, "MINDEPTH") == 0) {
+            if (!str2double(meta->pars[i].value, &mindepth))
+                enkf_quit("observation prm file: can not convert MINDEPTH = \"%s\" to double\n", meta->pars[i].value);
+        } else
+            enkf_quit("unknown PARAMETER \"%s\"\n", meta->pars[i].name);
+    }
+    enkf_printf("        MINDEPTH = %.0f\n", mindepth);
 
+    ncw_open(fname, NC_NOWRITE, &ncid);
     ncw_inq_dimid(fname, ncid, "nobs", &dimid_nobs);
     ncw_inq_dimlen(fname, ncid, dimid_nobs, &nobs_local);
     enkf_printf("        nobs = %u\n", (unsigned int) nobs_local);
 
-    if (nobs_local == 0)
+    if (nobs_local == 0) {
+        ncw_close(fname, ncid);
         return;
+    }
 
     ncw_inq_varid(fname, ncid, "lon", &varid_lon);
     lon = malloc(nobs_local * sizeof(double));
@@ -242,15 +260,6 @@ void reader_rads_standard2(char* fname, int fid, obsmeta* meta, model* m, observ
 
     mvid = model_getvarid(m, obs->obstypes[obstype_getid(obs->nobstypes, obs->obstypes, meta->type)].varname, 1);
     depth = model_getdepth(m, mvid);
-
-    for (i = 0; i < meta->npars; ++i) {
-        if (strcasecmp(meta->pars[i].name, "MINDEPTH") == 0) {
-            if (!str2double(meta->pars[i].value, &mindepth))
-                enkf_quit("observation prm file: can not convert MINDEPTH = \"%s\" to double\n", meta->pars[i].value);
-        } else
-            enkf_quit("unknown PARAMETER \"%s\"\n", meta->pars[i].name);
-    }
-    enkf_printf("        MINDEPTH = %.0f\n", mindepth);
 
     for (i = 0; i < (int) nobs_local; ++i) {
         observation* o;

@@ -1368,3 +1368,22 @@ void get_normalpair(double x[])
     x[0] = u * cos(v);
     x[1] = u * sin(v);
 }
+
+/**
+ */
+int istrue(char str[])
+{
+    if (str == NULL)
+        return 0;
+    if (strcmp(str, "1") == 0)
+        return 1;
+    if (strcasecmp(str, "y") == 0)
+        return 1;
+    if (strcasecmp(str, "yes") == 0)
+        return 1;
+    if (strcasecmp(str, "t") == 0)
+        return 1;
+    if (strcasecmp(str, "true") == 0)
+        return 1;
+    return 0;
+}

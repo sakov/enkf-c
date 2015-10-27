@@ -57,7 +57,6 @@ void reader_cars_standard(char* fname, int fid, obsmeta* meta, model* m, observa
         enkf_quit("ERROR_STD is necessary but not specified for product \"%s\"", meta->product);
 
     ncw_open(fname, NC_NOWRITE, &ncid);
-
     ncw_inq_dimid(fname, ncid, "nobs", &dimid_nprof);
     ncw_inq_dimlen(fname, ncid, dimid_nprof, &nprof);
     enkf_printf("        # profiles = %u\n", (unsigned int) nprof);

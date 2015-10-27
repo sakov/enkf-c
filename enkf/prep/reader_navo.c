@@ -7,7 +7,11 @@
  * Author:      Pavel Sakov
  *              Bureau of Meteorology
  *
- * Description:
+ * Description: Contains 1 reader reader_navo_standard() for preprocessed
+ *              data from NAVO.
+ *              Parameters:
+ *                ADDBIAS -- flag to whether add bias or not (default = no).
+ *               
  *
  * Revisions:
  *
@@ -28,17 +32,21 @@
 #include "observations.h"
 #include "prep_utils.h"
 
+#define ADDBIAS_DEF 0
+
 void reader_navo_standard(char* fname, int fid, obsmeta* meta, model* m, observations* obs)
 {
+    int addbias = ADDBIAS_DEF;
     int ncid;
     int dimid_nobs;
     size_t nobs_local;
-    int varid_lon, varid_lat, varid_sst, varid_error, varid_time;
-    double* lon;
-    double* lat;
-    double* sst;
-    double* error_std;
-    double* time;
+    int varid_lon, varid_lat, varid_sst, varid_sstb, varid_error, varid_time;
+    double* lon = NULL;
+    double* lat = NULL;
+    double* sst = NULL;
+    double* sstb = NULL;
+    double* error_std = NULL;
+    double* time = NULL;
     int year, month, day;
     char tunits[MAXSTRLEN];
     size_t tunits_len;
@@ -47,6 +55,14 @@ void reader_navo_standard(char* fname, int fid, obsmeta* meta, model* m, observa
     int model_vid;
     int k, i;
 
+    for (i = 0; i < meta->npars; ++i) {
+        if (strcasecmp(meta->pars[i].name, "ADDBIAS") == 0)
+            addbias = (istrue(meta->pars[i].value)) ? 1 : 0;
+        else
+            enkf_quit("unknown PARAMETER \"%s\"\n", meta->pars[i].name);
+    }
+    enkf_printf("        ADDBIAS = %s\n", (addbias) ? "Y" : "N");
+
     basename = strrchr(fname, '/');
     if (basename == NULL)
         basename = fname;
@@ -54,7 +70,6 @@ void reader_navo_standard(char* fname, int fid, obsmeta* meta, model* m, observa
         basename += 1;
 
     ncw_open(fname, NC_NOWRITE, &ncid);
-
     ncw_inq_dimid(fname, ncid, "nobs", &dimid_nobs);
     ncw_inq_dimlen(fname, ncid, dimid_nobs, &nobs_local);
     enkf_printf("        nobs = %u\n", (unsigned int) nobs_local);
@@ -75,6 +90,12 @@ void reader_navo_standard(char* fname, int fid, obsmeta* meta, model* m, observa
     ncw_inq_varid(fname, ncid, "sst", &varid_sst);
     sst = malloc(nobs_local * sizeof(double));
     ncw_get_var_double(fname, ncid, varid_sst, sst);
+
+    if (addbias) {
+        ncw_inq_varid(fname, ncid, "SST_bias", &varid_sstb);
+        sstb = malloc(nobs_local * sizeof(double));
+        ncw_get_var_double(fname, ncid, varid_sstb, sstb);
+    }
 
     ncw_inq_varid(fname, ncid, "error", &varid_error);
     error_std = malloc(nobs_local * sizeof(double));
@@ -119,7 +140,7 @@ void reader_navo_standard(char* fname, int fid, obsmeta* meta, model* m, observa
         o->id = obs->nobs;
         o->fid = fid;
         o->batch = 0;
-        o->value = sst[i];
+        o->value = (addbias) ? sst[i] + sstb[i] : sst[i];
         o->std = error_std[i];
         o->lon = lon[i];
         o->lat = lat[i];
@@ -139,6 +160,8 @@ void reader_navo_standard(char* fname, int fid, obsmeta* meta, model* m, observa
     free(lon);
     free(lat);
     free(sst);
+    if (addbias)
+        free(sstb);
     free(error_std);
     free(time);
 }

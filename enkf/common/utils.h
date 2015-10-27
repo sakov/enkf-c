@@ -57,6 +57,7 @@ double taper_gc(double x);
 void ll2xyz(double in[2], double out[3]);
 void print_commandinfo(int argc, char* argv[]);
 void get_normalpair(double x[]);
+int istrue(char str[]);
 
 #if defined(INTERNAL_QSORT_R)
 typedef int (*__compar_d_fn_t) (const void*, const void*, void*);
