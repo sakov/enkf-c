@@ -1,3 +1,6 @@
+v. 1.27.4
+   PS 28102015
+   -- A change in an error message in enkfprm.c.
 v. 1.27.3
    PS 28102015
    -- Moved #include "gridmap.h" in grid.c inside "#if !defined(NO_GRIDUTILS)".

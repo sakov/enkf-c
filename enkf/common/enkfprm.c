@@ -198,7 +198,7 @@ enkfprm* enkfprm_read(char fname[])
             if ((token = strtok(NULL, seps)) == NULL)
                 enkf_quit("%s, l.%d: observation type for RFACTOR not specified", fname, line);
             if (!str2double(token, &prm->rfactor_base))
-                enkf_quit("%s, l.%d: could not convert RFACTOR value", fname, line);
+                enkf_quit("%s, l.%d: could not convert RFACTOR \"%s\" to double", fname, line, token);
         } else if (strcasecmp(token, "LOCRAD") == 0) {
             if ((token = strtok(NULL, seps)) == NULL)
                 enkf_quit("%s, l.%d: LOCRAD not specified", fname, line);
