@@ -26,8 +26,8 @@
 #include "gridprm.h"
 #if !defined(NO_GRIDUTILS)
 #include <gridnodes.h>
-#endif
 #include "gridmap.h"
+#endif
 #include "nan.h"
 
 #define EPSLON 1.0e-3

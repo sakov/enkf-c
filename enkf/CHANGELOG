@@ -1,3 +1,7 @@
+v. 1.27.3
+   PS 28102015
+   -- Moved #include "gridmap.h" in grid.c inside "#if !defined(NO_GRIDUTILS)".
+      Thanks to Justin Freeman for reporting this defect.
 v. 1.27.2
    PS 28102015
    -- Modified all readers to generate an error on unknown parameter.
