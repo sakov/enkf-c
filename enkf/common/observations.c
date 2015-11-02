@@ -41,6 +41,7 @@ typedef struct {
 void obs_addtype(observations* obs, obstype* src, obsdomain* domain)
 {
     obstype* ot;
+    int i;
 
     if (obs->nobstypes % NOBSTYPES_INC == 0)
         obs->obstypes = realloc(obs->obstypes, (obs->nobstypes + NOBSTYPES_INC) * sizeof(obstype));
@@ -57,7 +58,13 @@ void obs_addtype(observations* obs, obstype* src, obsdomain* domain)
     ot->allowed_max = src->allowed_max;
     ot->isasync = src->isasync;
     ot->async_tstep = src->async_tstep;
-    ot->locrad = src->locrad;
+    ot->nscale = src->nscale;
+    ot->locrad = malloc(sizeof(double) * ot->nscale);
+    ot->weight = malloc(sizeof(double) * ot->nscale);
+    for (i = 0; i < ot->nscale; ++i) {
+        ot->locrad[i] = src->locrad[i];
+        ot->weight[i] = src->weight[i];
+    }
     ot->rfactor = src->rfactor;
     ot->nobs = -1;
     ot->ngood = -1;
@@ -1160,7 +1167,7 @@ void obs_findlocal(observations* obs, model* m, grid* g, int icoord, int jcoord,
         if (ot->nobs == 0)
             continue;
 
-        set = kd_nearest_range(tree, xyz, ot->locrad, 1);
+        set = kd_nearest_range(tree, xyz, obstype_getmaxlocrad(ot), 1);
         for (; (id = kd_res_item_getid(set)) >= 0; kd_res_next(set), ++i) {
             if (i % KD_INC == 0) {
                 *ids = realloc(*ids, (i + KD_INC) * sizeof(int));
@@ -1186,7 +1193,7 @@ void obs_findlocal(observations* obs, model* m, grid* g, int icoord, int jcoord,
 
         grid_tocartesian(g, ll2, xyz2);
         (*ids)[ngood] = id;
-        (*lcoeffs)[ngood] = taper_gc(distance(xyz, xyz2) / obs->obstypes[o->type].locrad);
+        (*lcoeffs)[ngood] = obstype_calclcoeff(&obs->obstypes[o->type], distance(xyz, xyz2));
         ngood++;
     }
     *n = ngood;

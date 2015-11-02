@@ -55,7 +55,9 @@ static void obstype_new(obstype* type, int i, char* name)
     type->allowed_max = DBL_MAX;
     type->isasync = 0;
     type->async_tstep = NaN;
-    type->locrad = NaN;
+    type->nscale = 0;
+    type->locrad = NULL;
+    type->weight = NULL;
     type->rfactor = 1.0;
     type->vid = -1;
     type->gridid = -1;
@@ -96,6 +98,8 @@ static void obstype_check(obstype* type)
  */
 static void obstype_print(obstype* type)
 {
+    int i;
+
     enkf_printf("    NAME = %s\n", type->name);
     enkf_printf("      VAR = %s\n", type->varname);
     if (type->varname2 != NULL)
@@ -112,7 +116,14 @@ static void obstype_print(obstype* type)
         enkf_printf(", DT = %.3f\n", type->async_tstep);
     else
         enkf_printf("\n");
-    enkf_printf("      LOCRAD  = %.3g\n", type->locrad);
+    enkf_printf("      LOCRAD  =");
+    for (i = 0; i < type->nscale; ++i)
+        enkf_printf(" %.3g", type->locrad[i]);
+    enkf_printf("\n");
+    enkf_printf("      WEIGHT = ");
+    for (i = 0; i < type->nscale; ++i)
+        enkf_printf(" %.3g", type->weight[i]);
+    enkf_printf("\n");
     enkf_printf("      RFACTOR = %.3g\n", type->rfactor);
     if (type->xmin > -DBL_MAX || type->xmax < DBL_MAX || type->ymin > -DBL_MAX || type->ymax < DBL_MAX || type->zmin > -DBL_MAX || type->zmax < DBL_MAX)
         enkf_printf("      DOMAIN = %.3g %.3g %.3g %.3g %.3g %.3g\n", type->xmin, type->xmax, type->ymin, type->ymax, type->zmin, type->zmax);
@@ -207,10 +218,37 @@ void obstypes_read(char fname[], int* n, obstype** types, double locrad_base, do
             if (!str2double(token, &now->async_tstep))
                 enkf_quit("%s, l.%d: could not convert \"%s\" to double", fname, line, token);
         } else if (strcasecmp(token, "LOCRAD") == 0) {
-            if ((token = strtok(NULL, seps)) == NULL)
-                enkf_quit("%s, l.%d: LOCRAD not specified", fname, line);
-            if (!str2double(token, &now->locrad))
-                enkf_quit("%s, l.%d: could not convert \"%s\" to double", fname, line, token);
+            int sid = 0;
+
+            while ((token = strtok(NULL, seps)) != NULL) {
+                if (now->nscale > sid)
+                    now->locrad = malloc(sizeof(double) * now->nscale);
+                else if (now->nscale == sid) {
+                    now->locrad = realloc(now->locrad, sizeof(double) * (now->nscale + 1));
+                    now->nscale++;
+                }
+                if (!str2double(token, &now->locrad[sid]))
+                    enkf_quit("%s, l.%d: could not convert \"%s\" to double", fname, line, token);
+                sid++;
+            }
+            if (now->nscale > sid)
+                enkf_quit("%s, l.%d: LOCRAD not specified or its dimension does not match that of RFACTOR", fname, line);
+        } else if (strcasecmp(token, "WEIGHT") == 0) {
+            int sid = 0;
+
+            while ((token = strtok(NULL, seps)) != NULL) {
+                if (now->nscale > sid)
+                    now->weight = malloc(sizeof(double) * now->nscale);
+                else if (now->nscale == sid) {
+                    now->weight = realloc(now->weight, sizeof(double) * (now->nscale + 1));
+                    now->nscale++;
+                }
+                if (!str2double(token, &now->weight[sid]))
+                    enkf_quit("%s, l.%d: could not convert \"%s\" to double", fname, line, token);
+                sid++;
+            }
+            if (now->nscale > sid)
+                enkf_quit("%s, l.%d: WEIGHT entered but not specified or its dimension does not match that of LOCRAD", fname, line);
         } else if (strcasecmp(token, "RFACTOR") == 0) {
             if ((token = strtok(NULL, seps)) == NULL)
                 enkf_quit("%s, l.%d: RFACTOR not specified", fname, line);
@@ -251,12 +289,33 @@ void obstypes_read(char fname[], int* n, obstype** types, double locrad_base, do
     }
     fclose(f);
 
-    for (i = 0; i < *n; ++i)
-        if (isnan((*types)[i].locrad))
-            (*types)[i].locrad = locrad_base;
+    for (i = 0; i < *n; ++i) {
+        obstype* type = &(*types)[i];
 
-    for (i = 0; i < *n; ++i)
-        (*types)[i].rfactor *= rfactor_base;
+        if (type->nscale == 0) {
+            type->locrad = malloc(sizeof(double));
+            type->weight = malloc(sizeof(double));
+            type->locrad[0] = locrad_base;
+            type->weight[0] = 1.0;
+            type->nscale = 1;
+        } else if (type->weight == NULL) {
+            if (type->nscale == 1) {
+                type->weight = malloc(sizeof(double));
+                type->weight[0] = 1.0;
+            } else
+                enkf_quit("%s: WEIGHT not specified for multi-scale type \"%s\"", fname, type->name);
+        } else {
+            double sum = 0.0;
+            int j;
+
+            for (j = 0; j < type->nscale; ++j)
+                sum += type->weight[j];
+            assert(sum > 0.0);
+            for (j = 0; j < type->nscale; ++j)
+                type->weight[j] /= sum;
+        }
+        type->rfactor *= rfactor_base;
+    }
 
     for (i = 0; i < *n; ++i) {
         obstype_check(&(*types)[i]);
@@ -285,6 +344,8 @@ void obstypes_destroy(int n, obstype* types)
             free(type->offset_fname);
             free(type->offset_varname);
         }
+        free(type->locrad);
+        free(type->weight);
     }
 
     free(types);
@@ -304,7 +365,8 @@ void obstypes_describeprm(void)
     enkf_printf("  [ OFFSET    = <file name> <variable name> ]    (none*)\n");
     enkf_printf("    HFUNCTION = <H function name>\n");
     enkf_printf("  [ ASYNC     = <time interval> ]                (synchronous*)\n");
-    enkf_printf("  [ LOCRAD    = <locrad> ]                       (global*)\n");
+    enkf_printf("  [ LOCRAD    = <locrad> ... ]                   (global*)\n");
+    enkf_printf("  [ WEIGHT    = <weight> ... ]                   (1*)\n");
     enkf_printf("  [ RFACTOR   = <rfactor> ]                      (1*)\n");
     enkf_printf("  [ MINVALUE  = <minimal allowed value> ]        (-inf*)\n");
     enkf_printf("  [ MAXVALUE  = <maximal allowed value> ]        (+inf*)\n");
@@ -324,4 +386,29 @@ void obstypes_describeprm(void)
     enkf_printf("    4. * denotes the default value\n");
     enkf_printf("    5. < ... > denotes a description of an entry\n");
     enkf_printf("\n");
+}
+
+/**
+ */
+double obstype_calclcoeff(obstype* type, double dist)
+{
+    double sum = 0.0;
+    int i;
+
+    for (i = 0; i < type->nscale; ++i)
+        sum += type->weight[i] * taper_gc(dist / type->locrad[i]);
+    return sum;
+}
+
+/**
+ */
+double obstype_getmaxlocrad(obstype* type)
+{
+    double max = 0.0;
+    int i;
+
+    for (i = 0; i < type->nscale; ++i)
+        if (type->locrad[i] > max)
+            max = type->locrad[i];
+    return max;
 }

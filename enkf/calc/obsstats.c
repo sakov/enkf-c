@@ -7,9 +7,7 @@
  * Author:      Pavel Sakov
  *              Bureau of Meteorology
  *
- * Description: The code in this file structurally belongs to dasystem.c,
- *              and is put in a separate file just to break dasystem.c in
- *              smaller parts.
+ * Description: Calculates observation statistics for regions.
  *
  * Revisions:
  *

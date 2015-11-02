@@ -12,12 +12,18 @@
  * Description:    Should cover machines with 64 bit doubles or other machines
  *                 with GCC
  *
- * Revisions:      None
+ * Revisions:      PS 20102015 Set equal to NAN if the latter is defined.
  *
  *****************************************************************************/
 
 #if !defined(_NAN_H)
 #define _NAN_H
+
+#if defined(NAN)                /* GNU extension */
+
+#define NaN NAN
+
+#else
 
 #if defined(__GNUC__) && !defined(__INTEL_COMPILER)
 
@@ -34,6 +40,8 @@ static unsigned _int64 lNaN = ((unsigned _int64) 1 << 63) - 1;
 static const long long lNaN = ((unsigned long long) 1 << 63) - 1;
 
 #define NaN (*(double*)&lNaN)
+
+#endif
 
 #endif
 

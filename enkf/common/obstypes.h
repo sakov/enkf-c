@@ -28,7 +28,9 @@ typedef struct {
     double allowed_max;
     int isasync;
     double async_tstep;
-    double locrad;
+    int nscale;
+    double* locrad;
+    double* weight;
     double rfactor;
 
     int vid;
@@ -60,6 +62,8 @@ void obstypes_read(char fname[], int* n, obstype** types, double locrad_base, do
 void obstypes_destroy(int n, obstype* types);
 int obstype_getid(int n, obstype types[], char* name);
 void obstypes_describeprm(void);
+double obstype_calclcoeff(obstype* type, double dist);
+double obstype_getmaxlocrad(obstype* type);
 
 #define _OBSTYPES_H
 #endif
