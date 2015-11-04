@@ -220,10 +220,10 @@ void obstypes_read(char fname[], int* n, obstype** types, double locrad_base, do
         } else if (strcasecmp(token, "LOCRAD") == 0) {
             int sid = 0;
 
+	    if (now->nscale > 0)
+		now->locrad = malloc(sizeof(double) * now->nscale);
             while ((token = strtok(NULL, seps)) != NULL) {
-                if (now->nscale > sid)
-                    now->locrad = malloc(sizeof(double) * now->nscale);
-                else if (now->nscale == sid) {
+                if (now->nscale == sid) {
                     now->locrad = realloc(now->locrad, sizeof(double) * (now->nscale + 1));
                     now->nscale++;
                 }
@@ -236,10 +236,10 @@ void obstypes_read(char fname[], int* n, obstype** types, double locrad_base, do
         } else if (strcasecmp(token, "WEIGHT") == 0) {
             int sid = 0;
 
+	    if (now->nscale > 0)
+		now->weight = malloc(sizeof(double) * now->nscale);
             while ((token = strtok(NULL, seps)) != NULL) {
-                if (now->nscale > sid)
-                    now->weight = malloc(sizeof(double) * now->nscale);
-                else if (now->nscale == sid) {
+                if (now->nscale == sid) {
                     now->weight = realloc(now->weight, sizeof(double) * (now->nscale + 1));
                     now->nscale++;
                 }

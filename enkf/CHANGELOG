@@ -1,3 +1,7 @@
+v. 1.28.2
+   PS 04112015
+   -- Corrected a defect in reading multiple LOCRAD nd WEIGHT entries in
+      obstypes parameter file.
 v. 1.28.1
    PS 04112015
    -- Added a check on distance in obstype_calclcoeff(), necessary in
