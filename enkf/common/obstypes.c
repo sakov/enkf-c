@@ -396,7 +396,8 @@ double obstype_calclcoeff(obstype* type, double dist)
     int i;
 
     for (i = 0; i < type->nscale; ++i)
-        sum += type->weight[i] * taper_gc(dist / type->locrad[i]);
+	if (dist <= type->locrad[i])
+	    sum += type->weight[i] * taper_gc(dist / type->locrad[i]);
     return sum;
 }
 

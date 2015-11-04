@@ -1,3 +1,7 @@
+v. 1.28.1
+   PS 04112015
+   -- Added a check on distance in obstype_calclcoeff(), necessary in
+      multi-scale case.
 v. 1.28.0
    PS 02112015
    -- Made changes tht suppose to make it possible multi-scale localisation. For
