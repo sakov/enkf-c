@@ -66,7 +66,11 @@ void gridprm_create(char* fname, int* ngrid, gridprm** prm)
                 enkf_quit("%s, l.%d: NAME not specified", fname, line);
             else
                 now->name = strdup(token);
-        } else if (strcasecmp(token, "VTYPE") == 0) {
+            continue;
+        } else if (now == NULL)
+            enkf_quit("%s, l.%d: entry NAME is required to start grid initialisation", fname, line);
+
+        if (strcasecmp(token, "VTYPE") == 0) {
             if ((token = strtok(NULL, seps)) == NULL)
                 enkf_quit("%s, l.%d: VTYPE not specified", fname, line);
             else if (now->vtype != NULL)

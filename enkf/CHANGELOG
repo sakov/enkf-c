@@ -1,3 +1,7 @@
+v. 1.28.3
+   PS 17112015
+   -- Modified gridprm_create() to make sure that the entry NAME is entered
+      first when initialising a new grid.
 v. 1.28.2
    PS 04112015
    -- Corrected a defect in reading multiple LOCRAD nd WEIGHT entries in
@@ -8,8 +12,8 @@ v. 1.28.1
       multi-scale case.
 v. 1.28.0
    PS 02112015
-   -- Made changes tht suppose to make it possible multi-scale localisation. For
-      now made it sure the code works with (single scale) example 1.
+   -- Made changes that suppose to make it possible multi-scale localisation.
+      For now made it sure the code works with (single scale) example 1.
 v. 1.27.4
    PS 28102015
    -- A change in an error message in enkfprm.c.
