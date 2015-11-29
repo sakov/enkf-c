@@ -493,9 +493,9 @@ void* model_getgridbyname(model* m, char name[])
 
 /**
  */
-int model_getlontype(model* m, int vid)
+double model_getlonbase(model* m, int vid)
 {
-    return grid_getlontype(m->grids[m->vars[vid].gridid]);
+    return grid_getlonbase(m->grids[m->vars[vid].gridid]);
 }
 
 /**
@@ -562,16 +562,15 @@ int model_xy2fij(model* m, int vid, double x, double y, double* fi, double* fj)
 {
     void* grid = m->grids[m->vars[vid].gridid];
     int** numlevels = grid_getnumlevels(grid);
-    int lontype = grid_getlontype(grid);
+    double lonbase = grid_getlonbase(grid);
     int ni, nj;
     int i1, i2, j1, j2;
 
-    if (lontype == LONTYPE_180) {
-        if (x > 180.0)
-            x -= 360.0;
-    } else if (lontype == LONTYPE_360) {
-        if (x < 0.0)
+    if (!isnan(lonbase)) {
+        if (x < lonbase)
             x += 360.0;
+        else if (x >= lonbase + 360.0)
+            x -= 360.0;
     }
 
     grid_xy2fij(grid, x, y, fi, fj);

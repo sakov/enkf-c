@@ -64,7 +64,7 @@ void obs_add(observations* obs, model* m, obsmeta* meta)
     obsread_fn reader;
     int nobs0 = obs->nobs;
     int vid;
-    int lontype;
+    double lonbase;
     int i, ngood;
 
     enkf_printf("    PRODUCT = %s, TYPE = %s, reader = %s\n", meta->product, meta->type, meta->reader);
@@ -74,19 +74,16 @@ void obs_add(observations* obs, model* m, obsmeta* meta)
 
     vid = model_getvarid(m, obs->obstypes[obstype_getid(obs->nobstypes, obs->obstypes, meta->type)].varname, 1);
 
-    lontype = model_getlontype(m, vid);
-    if (lontype != LONTYPE_NONE) {
+    lonbase = model_getlonbase(m, vid);
+    if (!isnan(lonbase)) {
         for (i = nobs0; i < obs->nobs; ++i) {
             observation* o = &obs->data[i];
 
             o->id_orig = i;
-            if (lontype == LONTYPE_180) {
-                if (o->lon > 180.0)
-                    o->lon -= 360.0;
-            } else if (lontype == LONTYPE_360) {
-                if (o->lon < 0.0)
-                    o->lon += 360.0;
-            }
+            if (o->lon < lonbase)
+                o->lon += 360.0;
+            else if (o->lon >= lonbase + 360.0)
+                o->lon -= 360.0;
         }
     }
 

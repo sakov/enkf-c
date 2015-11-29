@@ -76,7 +76,7 @@ struct grid {
     grid_tocartesian_fn tocartesian_fn;
 
     void* gridnodes_xy;         /* (the structure is defined by `htype') */
-    int lontype;                /* (range: any, [-180,180) or [0,360)) */
+    double lonbase;             /* (lon range = [lonbase, lonbase + 360)] */
 
     gnz* gridnodes_z;
 
@@ -331,25 +331,20 @@ static void g12_fij2xy(void* p, double fi, double fj, double* x, double* y)
  * @param vb Coordinates of the cell/layer boundaries [n + 1]
  * @param x Input coordinate
  * @param periodic Flag for grid periodicity
- * @param lontype Range for longitude: 0 - any, 1 - [-180, 180), 2 - [0, 360)
+ * @param lonbase lon range = [lonbase, lonbase + 360)
  * @return Fractional index for `x'
  */
-static double x2fi_irreg(int n, double v[], double vb[], double x, int periodic, int lontype)
+static double x2fi_irreg(int n, double v[], double vb[], double x, int periodic, double lonbase)
 {
     int ascending, i1, i2, imid;
 
     if (n < 2)
         return NaN;
 
-    if (lontype == LONTYPE_180) {
-        if (x < -180)
+    if (!isnan(lonbase)) {
+        if (x < lonbase)
             x = x + 360.0;
-        else if (x >= 180.0)
-            x = x - 360.0;
-    } else if (lontype == LONTYPE_360) {
-        if (x < 0.0)
-            x = x + 360.0;
-        else if (x >= 360.0)
+        else if (x >= lonbase + 360.0)
             x = x - 360.0;
     }
 
@@ -412,10 +407,10 @@ static double x2fi_irreg(int n, double v[], double vb[], double x, int periodic,
 static void g2_xy2fij(void* p, double x, double y, double* fi, double* fj)
 {
     gnxy_simple* nodes = (gnxy_simple*) ((grid*) p)->gridnodes_xy;
-    int lontype = ((grid*) p)->lontype;
+    double lonbase = ((grid*) p)->lonbase;
 
-    *fi = x2fi_irreg(nodes->nx, nodes->x, nodes->xc, x, nodes->periodic_x, lontype);
-    *fj = x2fi_irreg(nodes->ny, nodes->y, nodes->yc, y, nodes->periodic_y, LONTYPE_NONE);
+    *fi = x2fi_irreg(nodes->nx, nodes->x, nodes->xc, x, nodes->periodic_x, lonbase);
+    *fj = x2fi_irreg(nodes->ny, nodes->y, nodes->yc, y, nodes->periodic_y, NaN);
 }
 
 #if !defined(NO_GRIDUTILS)
@@ -530,23 +525,18 @@ static void z2fk(void* p, double fi, double fj, double z, double* fk)
 
 /**
  */
-static void grid_setlontype(grid* g)
+static void grid_setlonbase(grid* g)
 {
     double xmin = DBL_MAX;
-    double xmax = -DBL_MAX;
 
     if (g->htype == GRIDHTYPE_LATLON_REGULAR || g->htype == GRIDHTYPE_LATLON_IRREGULAR) {
         double* x = ((gnxy_simple*) g->gridnodes_xy)->x;
         int nx = ((gnxy_simple*) g->gridnodes_xy)->nx;
 
-        if (xmin < x[0])
+        if (xmin > x[0])
             xmin = x[0];
-        if (xmin < x[nx - 1])
+        if (xmin > x[nx - 1])
             xmin = x[nx - 1];
-        if (xmax > x[0])
-            xmax = x[0];
-        if (xmax > x[nx - 1])
-            xmax = x[nx - 1];
 #if !defined(NO_GRIDUTILS)
     } else if (g->htype == GRIDHTYPE_CURVILINEAR) {
         double** x = gridnodes_getx(((gnxy_curv*) g->gridnodes_xy)->gn);
@@ -556,18 +546,13 @@ static void grid_setlontype(grid* g)
 
         for (j = 0; j < ny; ++j) {
             for (i = 0; i < nx; ++i) {
-                if (xmin < x[j][i])
+                if (xmin > x[j][i])
                     xmin = x[j][i];
-                if (xmax > x[j][i])
-                    xmax = x[j][i];
             }
         }
 #endif
     }
-    if (xmin < 0.0 && xmax <= 180.0)
-        g->lontype = LONTYPE_180;
-    else if (xmin >= 0 && xmax <= 360.0)
-        g->lontype = LONTYPE_360;
+    g->lonbase = xmin;
 }
 
 /**
@@ -601,7 +586,7 @@ static void grid_setcoords(grid* g, int htype, int hnodetype, int periodic_x, in
     } else
         enkf_quit("programming error");
 
-    grid_setlontype(g);
+    grid_setlonbase(g);
     g->z2fk_fn = z2fk;
 
     g->gridnodes_z = gnz_create(nz, z);
@@ -773,11 +758,9 @@ void grid_print(grid* g, char offset[])
     enkf_printf("%s  periodic by Y = %s\n", offset, grid_isperiodic_y(g) ? "yes" : "no");
     grid_getdims(g, &nx, &ny, &nz);
     enkf_printf("%s  dims = %d x %d x %d\n", offset, nx, ny, nz);
-    if (g->lontype == LONTYPE_180)
-        enkf_printf("%s  longitude range = [-180, 180]\n", offset);
-    else if (g->lontype == LONTYPE_360)
-        enkf_printf("%s  longitude range = [0, 360]\n", offset);
-    else if (g->lontype == LONTYPE_NONE)
+    if (!isnan(g->lonbase))
+        enkf_printf("%s  longitude range = [%.3g, %.3g]\n", offset, g->lonbase, g->lonbase + 360.0);
+    else
         enkf_printf("%s  longitude range = any\n", offset);
     switch (g->vtype) {
     case GRIDVTYPE_Z:
@@ -897,9 +880,9 @@ int** grid_getnumlevels(grid* g)
 
 /**
  */
-int grid_getlontype(grid* g)
+double grid_getlonbase(grid* g)
 {
-    return g->lontype;
+    return g->lonbase;
 }
 
 /**

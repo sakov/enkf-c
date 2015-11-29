@@ -57,10 +57,6 @@
  */
 #define STATUS_ROUNDUP 7
 
-#define LONTYPE_NONE 0
-#define LONTYPE_180 1
-#define LONTYPE_360 2
-
 #define MODE_NONE 0
 #define MODE_ENKF 1
 #define MODE_ENOI 2
