@@ -528,6 +528,7 @@ static void z2fk(void* p, double fi, double fj, double z, double* fk)
 static void grid_setlonbase(grid* g)
 {
     double xmin = DBL_MAX;
+    double xmax = -DBL_MAX;
 
     if (g->htype == GRIDHTYPE_LATLON_REGULAR || g->htype == GRIDHTYPE_LATLON_IRREGULAR) {
         double* x = ((gnxy_simple*) g->gridnodes_xy)->x;
@@ -537,6 +538,10 @@ static void grid_setlonbase(grid* g)
             xmin = x[0];
         if (xmin > x[nx - 1])
             xmin = x[nx - 1];
+        if (xmax < x[0])
+            xmax = x[0];
+        if (xmax < x[nx - 1])
+            xmax = x[nx - 1];
 #if !defined(NO_GRIDUTILS)
     } else if (g->htype == GRIDHTYPE_CURVILINEAR) {
         double** x = gridnodes_getx(((gnxy_curv*) g->gridnodes_xy)->gn);
@@ -548,11 +553,20 @@ static void grid_setlonbase(grid* g)
             for (i = 0; i < nx; ++i) {
                 if (xmin > x[j][i])
                     xmin = x[j][i];
+                if (xmax < x[j][i])
+                    xmax = x[j][i];
             }
         }
 #endif
     }
-    g->lonbase = xmin;
+    if (xmax - xmin >= 360.0)
+        g->lonbase = xmin;
+    else if (xmin < 0.0 && xmax < 180.0)
+        g->lonbase = -180.0;
+    else if (xmin >= 0.0 && xmax < 360.0)
+        g->lonbase = 0.0;
+    else
+        g->lonbase = xmin;
 }
 
 /**
@@ -759,7 +773,7 @@ void grid_print(grid* g, char offset[])
     grid_getdims(g, &nx, &ny, &nz);
     enkf_printf("%s  dims = %d x %d x %d\n", offset, nx, ny, nz);
     if (!isnan(g->lonbase))
-        enkf_printf("%s  longitude range = [%.3g, %.3g]\n", offset, g->lonbase, g->lonbase + 360.0);
+        enkf_printf("%s  longitude range = [%.3f, %.3f]\n", offset, g->lonbase, g->lonbase + 360.0);
     else
         enkf_printf("%s  longitude range = any\n", offset);
     switch (g->vtype) {
