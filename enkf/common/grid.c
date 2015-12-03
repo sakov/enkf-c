@@ -717,6 +717,32 @@ grid* grid_create(void* p, int id)
     }
     ncw_close(fname, ncid);
 
+    if (g->numlevels == NULL && g->depth != NULL) {
+        g->numlevels = alloc2d(ny, nx, sizeof(int));
+        if (g->vtype == GRIDVTYPE_SIGMA) {
+            int i, j;
+
+            for (j = 0; j < ny; ++j)
+                for (i = 0; i < nx; ++i)
+                    if (g->depth[j][i] > 0.0)
+                        g->numlevels[j][i] = nz;
+        } else {
+            int i, j;
+
+            for (j = 0; j < ny; ++j) {
+                for (i = 0; i < nx; ++i) {
+                    double depth = g->depth[j][i];
+                    double fk = NaN;
+
+                    if (depth > 0.0) {
+                        z2fk(g, j, i, depth, &fk);
+                        g->numlevels[j][i] = ceil(fk + 0.5);
+                    }
+                }
+            }
+        }
+    }
+
     gridprm_print(prm, "    ");
     grid_print(g, "    ");
 
@@ -805,8 +831,8 @@ void grid_describeprm(void)
     enkf_printf("    YVARNAME         = <y variable name>\n");
     enkf_printf("    ZVARNAME         = <z variable name>\n");
     enkf_printf("    DEPTHVARNAME     = <depth variable name>\n");
-    enkf_printf("    NUMLEVELSVARNAME = <# of levels variable name> (z)\n");
-    enkf_printf("    MASKVARNAME      = <land mask variable name> (sigma)\n");
+    enkf_printf("    [ NUMLEVELSVARNAME = <# of levels variable name> (z) ]\n");
+    enkf_printf("    [ MASKVARNAME      = <land mask variable name> (sigma) ]\n");
     enkf_printf("\n");
     enkf_printf("  [ <more of the above blocks> ]\n");
     enkf_printf("\n");

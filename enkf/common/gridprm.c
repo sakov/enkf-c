@@ -143,7 +143,7 @@ void gridprm_create(char* fname, int* ngrid, gridprm** prm)
                 now->depthvarname = strdup(token);
         } else if (now->levelvarnameentry != NULL && strcasecmp(token, now->levelvarnameentry) == 0) {
             if ((token = strtok(NULL, seps)) == NULL)
-                enkf_quit("%s, l.%d: \"%s\" not specified", fname, line, now->levelvarnameentry);
+                enkf_printf("%s, l.%d: \"%s\" not specified", fname, line, now->levelvarnameentry);
             else if (now->levelvarname != NULL)
                 enkf_quit("%s, l.%d: \"%s\" specified twice", fname, line, now->levelvarnameentry);
             else
@@ -172,8 +172,6 @@ void gridprm_create(char* fname, int* ngrid, gridprm** prm)
             enkf_quit("%s: YVARNAME not specified for grid \"%s\"", fname, now->name);
         if (now->zvarname == NULL)
             enkf_quit("%s: ZVARNAME not specified for grid \"%s\"", fname, now->name);
-        if (now->levelvarnameentry != NULL && now->levelvarname == NULL)
-            enkf_quit("%s: \"%s\" not specified for grid \"%s\"", fname, now->levelvarnameentry, now->name);
     }
 }
 
@@ -217,7 +215,7 @@ void gridprm_print(gridprm* prm, char offset[])
     enkf_printf("%s  YVARNAME = \"%s\"\n", offset, prm->yvarname);
     enkf_printf("%s  ZVARNAME = \"%s\"\n", offset, prm->zvarname);
     enkf_printf("%s  DEPTHVARNAME = \"%s\"\n", offset, prm->depthvarname);
-    if (prm->levelvarnameentry != NULL)
+    if (prm->levelvarnameentry != NULL && prm->levelvarname != NULL)
         enkf_printf("%s  %s = \"%s\"\n", offset, prm->levelvarnameentry, prm->levelvarname);
 }
 

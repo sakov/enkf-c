@@ -61,7 +61,7 @@ void reader_navo_standard(char* fname, int fid, obsmeta* meta, model* m, observa
         else
             enkf_quit("unknown PARAMETER \"%s\"\n", meta->pars[i].name);
     }
-    enkf_printf("        ADDBIAS = %s\n", (addbias) ? "Y" : "N");
+    enkf_printf("        ADDBIAS = %s\n", (addbias) ? "YES" : "NO");
 
     basename = strrchr(fname, '/');
     if (basename == NULL)

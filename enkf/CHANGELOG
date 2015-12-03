@@ -16,6 +16,10 @@ v. 1.28.1
    PS 04112015
    -- Added a check on distance in obstype_calclcoeff(), necessary in
       multi-scale case.
+v. 1.29.0
+   PS 03122015
+   Made entries "NUMLEVELSVARNAME" for Z grids or "MASKVARNAME" for sigma grids
+   optional. The code builds these arrays now if necessary.
 v. 1.28.1
    PS 03122015
    -- Cosmetic changes.
