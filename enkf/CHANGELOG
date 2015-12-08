@@ -1,8 +1,11 @@
+v. 1.29.1
+   PS 09122015
+   -- Cosmetic changes.
 v. 1.29.0
    PS 30112015
    -- Modified code to allow arbitrary range for the grid longitude.
       The range is now defined by the grid.lonbase field:
-      lon range = [lonbase, lonbase + 360). (Used to be allowed either 
+      lon range = [lonbase, lonbase + 360). (Used to be allowed either
       [-180, 180) or [0, 360) only.)
 v. 1.28.3
    PS 17112015

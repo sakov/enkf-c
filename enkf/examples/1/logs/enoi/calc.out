@@ -1,10 +1,10 @@
   MPI: initialised 2 process(es)
-  MPI: rank = 0, PID = 784
-  MPI: rank = 1, PID = 785
-  running CALC for EnKF-C version 1.26.8:
+  MPI: rank = 0, PID = 31744
+  MPI: rank = 1, PID = 31745
+  running CALC for EnKF-C version 1.29.1:
     command = "./enkf_calc enoi.prm"
     dir = "/home/pavel/src/enkf-c/trunk/enkf/examples/1"
-  2015-10-16 11:57:25
+  2015-12-09 10:06:06
   reading system specs from "enoi.prm":
     MODE = EnOI
     MODEL PRM = "model.prm"
@@ -47,6 +47,7 @@
       ALLOWED MAX = 1
       ASYNCHRONOUS = no
       LOCRAD  = 200
+      WEIGHT =  1
       RFACTOR = 1
     NAME = SST
       VAR = temp
@@ -57,6 +58,7 @@
       ALLOWED MAX = 42
       ASYNCHRONOUS = no
       LOCRAD  = 200
+      WEIGHT =  1
       RFACTOR = 2
     NAME = TEM
       VAR = temp
@@ -67,6 +69,7 @@
       ALLOWED MAX = 42
       ASYNCHRONOUS = no
       LOCRAD  = 800
+      WEIGHT =  1
       RFACTOR = 4
     NAME = SAL
       VAR = salt
@@ -77,6 +80,7 @@
       ALLOWED MAX = 39
       ASYNCHRONOUS = no
       LOCRAD  = 800
+      WEIGHT =  1
       RFACTOR = 4
     grid prm info:
       NAME = "t-grid"
@@ -94,7 +98,7 @@
       periodic by X = no
       periodic by Y = no
       dims = 100 x 100 x 2
-      longitude range = [0, 360]
+      longitude range = [0.000, 360.000]
       vert type = Z
     model info:
       name = Tasman
@@ -114,7 +118,7 @@
     3921 observations
     calculating obs stats:
   calculating ensemble observations:
-  2015-10-16 11:57:25
+  2015-12-09 10:06:06
     ensemble size = 144
     distributing iterations:
       all processes get 72 iterations
@@ -123,7 +127,7 @@
     TEM ........................................................................+
     SAL ........................................................................+
   adding forecast innovations and spread to "observations.nc":
-  2015-10-16 11:57:30
+  2015-12-09 10:06:12
   moderating observations:
     observations substantially modified:
       SLA          0 (0.0%)
@@ -133,7 +137,8 @@
       total        0 (0.0%)
   writing modified obs errors to "observations.nc":
   calculating transforms:
-  2015-10-16 11:57:30
+  2015-12-09 10:06:12
+    creating kd-trees for observations:
     calculating transforms for t-grid:
     creating empty file "w.nc":
       distributing iterations:
@@ -141,38 +146,38 @@
       main cycle for t-grid (34 x 34 local analyses):
         j = 0 (0: 0: 5.9%)
         j = 3 (1: 17: 5.9%)
-        j = 9 (1: 18: 11.8%)
         j = 6 (0: 1: 11.8%)
-        j = 15 (1: 19: 17.6%)
+        j = 9 (1: 18: 11.8%)
         j = 12 (0: 2: 17.6%)
-        j = 21 (1: 20: 23.5%)
+        j = 15 (1: 19: 17.6%)
         j = 18 (0: 3: 23.5%)
-        j = 27 (1: 21: 29.4%)
+        j = 21 (1: 20: 23.5%)
         j = 24 (0: 4: 29.4%)
-        j = 33 (1: 22: 35.3%)
+        j = 27 (1: 21: 29.4%)
         j = 30 (0: 5: 35.3%)
-        j = 39 (1: 23: 41.2%)
+        j = 33 (1: 22: 35.3%)
         j = 36 (0: 6: 41.2%)
-        j = 45 (1: 24: 47.1%)
+        j = 39 (1: 23: 41.2%)
         j = 42 (0: 7: 47.1%)
-        j = 51 (1: 25: 52.9%)
+        j = 45 (1: 24: 47.1%)
         j = 48 (0: 8: 52.9%)
-        j = 57 (1: 26: 58.8%)
+        j = 51 (1: 25: 52.9%)
         j = 54 (0: 9: 58.8%)
-        j = 63 (1: 27: 64.7%)
+        j = 57 (1: 26: 58.8%)
         j = 60 (0: 10: 64.7%)
-        j = 69 (1: 28: 70.6%)
+        j = 63 (1: 27: 64.7%)
         j = 66 (0: 11: 70.6%)
-        j = 75 (1: 29: 76.5%)
+        j = 69 (1: 28: 70.6%)
         j = 72 (0: 12: 76.5%)
-        j = 81 (1: 30: 82.4%)
+        j = 75 (1: 29: 76.5%)
         j = 78 (0: 13: 82.4%)
-        j = 87 (1: 31: 88.2%)
+        j = 81 (1: 30: 82.4%)
         j = 84 (0: 14: 88.2%)
-        j = 93 (1: 32: 94.1%)
+        j = 87 (1: 31: 88.2%)
         j = 90 (0: 15: 94.1%)
-        j = 99 (1: 33: 100.0%)
+        j = 93 (1: 32: 94.1%)
         j = 96 (0: 16: 100.0%)
+        j = 99 (1: 33: 100.0%)
     finished calculating transforms for t-grid
     writing stats to "enkf_diag.nc":
     summary stats on t-grid:
@@ -184,7 +189,7 @@
     calculating transform for log point (30, 50): 538 obs
     writing the log for point (30, 50) on grid "t-grid":
   calculating analysed observations:
-  2015-10-16 11:57:44
+  2015-12-09 10:06:39
     sorting obs by ij:
     updating Hx:
   adding analysis innovations and spread to "observations.nc":
@@ -210,5 +215,5 @@
              0-50m         2    0.088      0.101      0.074      0.072      0.019      0.019  
              50-500m       5    0.072      0.067      0.047      0.040      0.025      0.025  
              500-9999m     0     -nan       -nan       -nan       -nan       -nan       -nan  
-  2015-10-16 11:57:44
+  2015-12-09 10:06:39
   finished

@@ -1,7 +1,7 @@
-  running PREP for EnKF-C version 1.26.8:
+  running PREP for EnKF-C version 1.29.1:
     command = "./enkf_prep stats.prm"
     dir = "/home/pavel/src/enkf-c/trunk/enkf/examples/1"
-  2015-10-16 11:58:12
+  2015-12-09 10:06:58
   reading prep specs from "stats.prm":
     MODE = EnOI
     MODEL PRM = "model.prm"
@@ -91,7 +91,7 @@
       periodic by X = no
       periodic by Y = no
       dims = 100 x 100 x 2
-      longitude range = [0, 360]
+      longitude range = [0.000, 360.000]
       vert type = Z
     model info:
       name = Tasman
@@ -118,6 +118,7 @@
       ALLOWED MAX = 1
       ASYNCHRONOUS = no
       LOCRAD  = nan
+      WEIGHT =  1
       RFACTOR = 1
     NAME = SST
       VAR = temp
@@ -128,6 +129,7 @@
       ALLOWED MAX = 42
       ASYNCHRONOUS = no
       LOCRAD  = nan
+      WEIGHT =  1
       RFACTOR = 2
     NAME = TEM
       VAR = temp
@@ -138,6 +140,7 @@
       ALLOWED MAX = 42
       ASYNCHRONOUS = no
       LOCRAD  = 800
+      WEIGHT =  1
       RFACTOR = 4
     NAME = SAL
       VAR = salt
@@ -148,83 +151,84 @@
       ALLOWED MAX = 39
       ASYNCHRONOUS = no
       LOCRAD  = 800
+      WEIGHT =  1
       RFACTOR = 4
   reading observations:
     PRODUCT = RADS, TYPE = SLA, reader = standard2
       reading obs/RADS-IB/y2007/m12/e2_d19.nc:
+        MINDEPTH = 200
         nobs = 5394
         error_std = 0.05
-        MINDEPTH = 200
         # good obs = 0
       reading obs/RADS-IB/y2007/m12/j1_d19.nc:
+        MINDEPTH = 200
         nobs = 50386
         error_std = 0.03
-        MINDEPTH = 200
         # good obs = 20
       reading obs/RADS-IB/y2007/m12/n1_d19.nc:
+        MINDEPTH = 200
         nobs = 40491
         error_std = 0.05
-        MINDEPTH = 200
         # good obs = 238
       reading obs/RADS-IB/y2007/m12/e2_d20.nc:
+        MINDEPTH = 200
         nobs = 6177
         error_std = 0.05
-        MINDEPTH = 200
         # good obs = 0
       reading obs/RADS-IB/y2007/m12/j1_d20.nc:
+        MINDEPTH = 200
         nobs = 50153
         error_std = 0.03
-        MINDEPTH = 200
         # good obs = 0
       reading obs/RADS-IB/y2007/m12/n1_d20.nc:
+        MINDEPTH = 200
         nobs = 39486
         error_std = 0.05
-        MINDEPTH = 200
         # good obs = 0
       reading obs/RADS-IB/y2007/m12/e2_d21.nc:
+        MINDEPTH = 200
         nobs = 5364
         error_std = 0.05
-        MINDEPTH = 200
         # good obs = 0
       reading obs/RADS-IB/y2007/m12/j1_d21.nc:
+        MINDEPTH = 200
         nobs = 51928
         error_std = 0.03
-        MINDEPTH = 200
         # good obs = 351
       reading obs/RADS-IB/y2007/m12/n1_d21.nc:
+        MINDEPTH = 200
         nobs = 39512
         error_std = 0.05
-        MINDEPTH = 200
         # good obs = 25
       reading obs/RADS-IB/y2007/m12/e2_d22.nc:
+        MINDEPTH = 200
         nobs = 5200
         error_std = 0.05
-        MINDEPTH = 200
         # good obs = 0
       reading obs/RADS-IB/y2007/m12/j1_d22.nc:
+        MINDEPTH = 200
         nobs = 51022
         error_std = 0.03
-        MINDEPTH = 200
         # good obs = 68
       reading obs/RADS-IB/y2007/m12/n1_d22.nc:
+        MINDEPTH = 200
         nobs = 41034
         error_std = 0.05
-        MINDEPTH = 200
         # good obs = 298
       reading obs/RADS-IB/y2007/m12/e2_d23.nc:
+        MINDEPTH = 200
         nobs = 6030
         error_std = 0.05
-        MINDEPTH = 200
         # good obs = 0
       reading obs/RADS-IB/y2007/m12/j1_d23.nc:
+        MINDEPTH = 200
         nobs = 49922
         error_std = 0.03
-        MINDEPTH = 200
         # good obs = 0
       reading obs/RADS-IB/y2007/m12/n1_d23.nc:
+        MINDEPTH = 200
         nobs = 38946
         error_std = 0.05
-        MINDEPTH = 200
         # good obs = 0
       id = 0 - 999
       total 1000 observations
@@ -233,18 +237,23 @@
       max date = -1.000
     PRODUCT = NAVO, TYPE = SST, reader = standard
       reading obs/NAVO/navo_20071219.nc:
+        ADDBIAS = NO
         nobs = 21372
         # good obs = 740
       reading obs/NAVO/navo_20071220.nc:
+        ADDBIAS = NO
         nobs = 18990
         # good obs = 1700
       reading obs/NAVO/navo_20071221.nc:
+        ADDBIAS = NO
         nobs = 31481
         # good obs = 1782
       reading obs/NAVO/navo_20071222.nc:
+        ADDBIAS = NO
         nobs = 20804
         # good obs = 1621
       reading obs/NAVO/navo_20071223.nc:
+        ADDBIAS = NO
         nobs = 28440
         # good obs = 1373
       id = 1000 - 8215
@@ -336,5 +345,5 @@ ls: cannot access obs/WINDSAT/windsat_20071223.nc: No such file or directory
     TEM     184        104        104        0          0          0          0          7         
     SAL     184        104        104        0          0          0          0          7         
     total   9749       211        208        0          3          0          0          3921      
-  2015-10-16 11:58:12
+  2015-12-09 10:06:58
   finished

@@ -1,10 +1,10 @@
   MPI: initialised 2 process(es)
-  MPI: rank = 0, PID = 790
-  MPI: rank = 1, PID = 791
-  running UPDATE for EnKF-C version 1.26.8:
+  MPI: rank = 0, PID = 31750
+  MPI: rank = 1, PID = 31751
+  running UPDATE for EnKF-C version 1.29.1:
     command = "./enkf_update --calculate-spread enoi.prm"
     dir = "/home/pavel/src/enkf-c/trunk/enkf/examples/1"
-  2015-10-16 11:57:44
+  2015-12-09 10:06:39
   reading system specs from "enoi.prm":
     MODE = EnOI
     MODEL PRM = "model.prm"
@@ -57,7 +57,7 @@
       periodic by X = no
       periodic by Y = no
       dims = 100 x 100 x 2
-      longitude range = [0, 360]
+      longitude range = [0.000, 360.000]
       vert type = Z
     model info:
       name = Tasman
@@ -77,9 +77,9 @@
     144 members
     allocating disk space for spread:
     defining state variables in point logs:
-    allocating disk space for the analysis:    2015-10-16 11:57:44
+    allocating disk space for the analysis:    2015-12-09 10:06:39
 .....
-    2015-10-16 11:57:44
+    2015-12-09 10:06:39
     updating fields for t-grid:
       9 fields
       distributing iterations:
@@ -93,7 +93,7 @@
       u        1   (1: 6: 50.0%)
       v        0   (1: 7: 75.0%)
       v        1   (1: 8: 100.0%)
-  2015-10-16 11:57:46
+  2015-12-09 10:06:42
   assembling analysis:
     eta_t:.
     temp:..
@@ -112,5 +112,5 @@
     deleting tiles:
       distributing iterations:
         processes get 5 or 4 iterations
-  2015-10-16 11:57:46
+  2015-12-09 10:06:42
   finished

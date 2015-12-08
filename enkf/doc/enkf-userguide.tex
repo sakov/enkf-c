@@ -35,7 +35,7 @@
 
 \begin{document}
 
-\title{EnKF-C user guide\\{\normalsize version 1.25.2}}
+\title{EnKF-C user guide\\{\normalsize version 1.29.1}}
 
 \author{Pavel Sakov}
 \date{June 19, 2014 -- \today}
@@ -1051,17 +1051,6 @@ When run in the EnKF mode, the increment (or analysis, depending on specificatio
 Note that the calculated transforms \emph{do not} incorporate inflation.
 Inflation is applied during \emph{update} according to specifications (sec.~\ref{sec:capping}).
 
-\subsection{Multiple model grids}
-
-EnKF-C permits using multiple model grids, in which case the ensemble transforms are calculated sequentially for each of the grids.
-These transforms are then used for updating of the model variables defined on the corresponding grids.
-
-\subsection{Interpolation of ensemble transforms}
-
-Local ensemble transforms $\mb X_5$ (EnKF) or local ensemble weights $\mb w$ (EnOI) represent smooth fields with the characteristic spatial variability scale of the localisation radius.
-This smoothness allows one to reduce the computational load in \emph{calc} by calculating local transforms or weights on a subgrid with a specified stride only, and using linearly interpolated transforms or weights in the intermediate grid cells.
-The value of the stride is defined by the \verb|STRIDE| entry in the parameter file.
-
 \subsection{Observation functions}
 \label{sec:hfunctions}
 
@@ -1074,6 +1063,12 @@ HFUNCTION = standard
 \end{Verbatim}
 The available functions for each observation type are specified by the variable \verb|allhentries| in \verb|calc/allhs.c|.
 The ``standard'' functions do normally perform 2D or 3D linear interpolation from the corner model grid nodes for the cell containing the observation.
+
+\subsection{Interpolation of ensemble transforms}
+
+Local ensemble transforms $\mb X_5$ (EnKF) or local ensemble weights $\mb w$ (EnOI) represent smooth fields with the characteristic spatial variability scale of the localisation radius.
+This smoothness allows one to reduce the computational load in \emph{calc} by calculating local transforms or weights on a subgrid with a specified stride only, and using linearly interpolated transforms or weights in the intermediate grid cells.
+The value of the stride is defined by the \verb|STRIDE| entry in the parameter file.
 
 \subsection{Adaptive moderation of observations}
 
@@ -1179,6 +1174,35 @@ Normally, it should not exceed a fraction (a half, or better, a quarter) of the 
 SRF shows the ``strength'' of DA.
 ``Strong'' DA implies a close to optimal system, which indeed never happens in practice.
 Therefore, ideally, SRF should be small (below 1, on average).
+
+\subsection{Multiple model grids}
+
+EnKF-C permits using multiple model grids, in which case the ensemble transforms are calculated sequentially for each of the grids.
+These transforms are then used for updating of the model variables defined on the corresponding grids.
+
+\subsection {``Multi-scale'' localisation}
+
+It is possible to specify the localisation taper function as a linear combination of the Gaspari and Cohn's taper functions with different support radii:
+\begin{align*}
+  f(r) = \sum_{i=1}^N w_i f_0(\frac{r}{R_i}),
+\end{align*}
+where $w_i$ is the weight, $r$ is the distance, $R_i$ is the support radius, and
+\begin{align*}
+  f_0(\frac{x}{2}) = \left\{
+  \begin{array}{ll}
+    1 - \frac{5}{3} x^2 + \frac{5}{8} x^3 + \frac{1}{2} x^4 -\frac{1}{4} x^5, \quad & 0 \le x \le 1,\\
+    -\frac{2}{3} x^{-1} + 4 - 5x + \frac{5}{3}x^2 + \frac{5}{8}x^3 - \frac{1}{2} x^4 + \frac{1}{12}x^5, \quad & 1 < x \le 2,\\
+    0, \quad & 2 < x.
+  \end{array}
+  \right.
+\end{align*}
+This can be set by entries \verb|LOCRAD| and \verb|WEIGHT| either in the main parameter file or in the observation types parameter file, e.g.:
+\begin{Verbatim}
+  LOCRAD 150 500
+  WEIGHT 0.9 0.1
+\end{Verbatim}
+(recall that entries in the observation types parameter file for particular observation types override the common settings in the main parameter file).
+Note that the weights are normalised so that their sum is equal to 1.
 
 \section{\emph{update}}
 

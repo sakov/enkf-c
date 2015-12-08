@@ -1,10 +1,10 @@
   MPI: initialised 2 process(es)
-  MPI: rank = 0, PID = 829
-  MPI: rank = 1, PID = 830
-  running CALC for EnKF-C version 1.26.8:
+  MPI: rank = 1, PID = 31789
+  MPI: rank = 0, PID = 31788
+  running CALC for EnKF-C version 1.29.1:
     command = "./enkf_calc --forecast-stats-only stats.prm"
     dir = "/home/pavel/src/enkf-c/trunk/enkf/examples/1"
-  2015-10-16 11:58:12
+  2015-12-09 10:06:58
   reading system specs from "stats.prm":
     MODE = EnOI
     MODEL PRM = "model.prm"
@@ -37,6 +37,7 @@
       ALLOWED MAX = 1
       ASYNCHRONOUS = no
       LOCRAD  = nan
+      WEIGHT =  1
       RFACTOR = 1
     NAME = SST
       VAR = temp
@@ -47,6 +48,7 @@
       ALLOWED MAX = 42
       ASYNCHRONOUS = no
       LOCRAD  = nan
+      WEIGHT =  1
       RFACTOR = 2
     NAME = TEM
       VAR = temp
@@ -57,6 +59,7 @@
       ALLOWED MAX = 42
       ASYNCHRONOUS = no
       LOCRAD  = 800
+      WEIGHT =  1
       RFACTOR = 4
     NAME = SAL
       VAR = salt
@@ -67,6 +70,7 @@
       ALLOWED MAX = 39
       ASYNCHRONOUS = no
       LOCRAD  = 800
+      WEIGHT =  1
       RFACTOR = 4
     grid prm info:
       NAME = "t-grid"
@@ -84,7 +88,7 @@
       periodic by X = no
       periodic by Y = no
       dims = 100 x 100 x 2
-      longitude range = [0, 360]
+      longitude range = [0.000, 360.000]
       vert type = Z
     model info:
       name = Tasman
@@ -104,7 +108,7 @@
     3921 observations
     calculating obs stats:
   calculating ensemble observations:
-  2015-10-16 11:58:12
+  2015-12-09 10:06:58
     ensemble size = 1
     distributing iterations:
       processes get 1 or 0 iterations
@@ -113,7 +117,7 @@
     TEM +
     SAL +
   adding forecast innovations and spread to "observations.nc":
-  2015-10-16 11:58:12
+  2015-12-09 10:06:59
   printing observation statistics:
     region obs.type   # obs.  |for.inn.| for.inn.
     ---------------------------------------------
@@ -136,5 +140,5 @@
              0-50m         2    0.088      0.074  
              50-500m       5    0.072      0.047  
              500-9999m     0     -nan       -nan  
-  2015-10-16 11:58:12
+  2015-12-09 10:06:59
   finished
