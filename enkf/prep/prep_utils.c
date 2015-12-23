@@ -34,6 +34,19 @@
 
 /**
  */
+static int obs_badob(observations* obs, int i)
+{
+    observation* o = &obs->data[i];
+
+    if (o->status != STATUS_OK)
+        return 0;
+    if (o->type < 0 || o->product < 0 || o->instrument < 0 || o->fid < 0 || o->batch < 0 || !isfinite(o->value) || fabs(o->value) > MAXOBSVAL || isnan(o->std) || o->std <= 0.0 || !isfinite(o->fi) || !isfinite(o->fj) || !isfinite(o->fk) || !isfinite(o->lon) || !isfinite(o->lat) || !isfinite(o->depth))
+        return 1;
+    return 0;
+}
+
+/**
+ */
 static void readobs(obsmeta* meta, model* m, obsread_fn reader, observations* obs)
 {
     int nfiles;
@@ -49,6 +62,7 @@ static void readobs(obsmeta* meta, model* m, obsread_fn reader, observations* ob
         enkf_printf("      reading %s:\n", fnames[i]);
         fid = st_add_ifabscent(obs->datafiles, fnames[i], -1);
         reader(fnames[i], fid, meta, m, obs);
+            
         enkf_printf("        # good obs = %d\n", obs->nobs - nobs0);
         free(fnames[i]);
     }
@@ -223,6 +237,14 @@ void obs_add(observations* obs, model* m, obsmeta* meta)
         }
         enkf_printf("      min date = %.3f\n", date_min);
         enkf_printf("      max date = %.3f\n", date_max);
+    }
+
+    for (i = nobs0; i < obs->nobs; ++i) {
+        if (obs_badob(obs, i)) {
+            enkf_printf("        bad observation detected: ");
+            obs_printob(obs, i);
+            enkf_quit("bad observation");
+        }
     }
 }
 

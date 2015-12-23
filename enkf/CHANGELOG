@@ -1,3 +1,7 @@
+v. 1.30.0
+   PS 23122015
+   -- Added a crude check on individual observations after reading and initial
+      processing to avoid situations with zero error or likewise.
 v. 1.29.1
    PS 09122015
    -- Cosmetic changes.
