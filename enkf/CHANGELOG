@@ -1,3 +1,7 @@
+v. 1.31.0
+   PS 03012016
+   -- Modified reader_navo.c to allow dimension name "length" along with the
+      old name "nobs".
 v. 1.30.0
    PS 23122015
    -- Added a crude check on individual observations after reading and initial

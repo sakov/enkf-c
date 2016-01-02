@@ -70,7 +70,7 @@ void reader_navo_standard(char* fname, int fid, obsmeta* meta, model* m, observa
         basename += 1;
 
     ncw_open(fname, NC_NOWRITE, &ncid);
-    ncw_inq_dimid(fname, ncid, "nobs", &dimid_nobs);
+    ncw_inq_dimid(fname, ncid, (ncw_dim_exists(ncid, "nobs")) ? "nobs" : "length", &dimid_nobs);
     ncw_inq_dimlen(fname, ncid, dimid_nobs, &nobs_local);
     enkf_printf("        nobs = %u\n", (unsigned int) nobs_local);
 
