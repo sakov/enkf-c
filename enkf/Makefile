@@ -8,7 +8,7 @@
 # -DINTERNAL_QSORT_R
 # -DNO_GRIDUTILS
 #
-ENKF_FLAGS =
+ENKF_FLAGS = -DGRIDNODES_WRITE
 
 # Set MPI status of EnKF-C programs either to "" or "MPI".
 # Note: prep is single-threaded only.

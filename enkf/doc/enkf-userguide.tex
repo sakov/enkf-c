@@ -35,7 +35,7 @@
 
 \begin{document}
 
-\title{EnKF-C user guide\\{\normalsize version 1.29.1}}
+\title{EnKF-C user guide\\{\normalsize version 1.31.1}}
 
 \author{Pavel Sakov}
 \date{June 19, 2014 -- \today}
@@ -130,14 +130,15 @@ Namely, assume that $\mathcal M$ and $\mathcal H$ are affine:
   \end{align}
 \end{subequations}
 where $\mb x^{(1)}, \mb x^{(2)}$ are arbitrary model states, and $\mb M_i,\, \mb H_i = \mathrm{Const}$.
-Then the cost function (\ref{L-nonl}) becomes quadratic and can be factorised as follows:
+Then the cost function (\ref{L-nonl}) becomes quadratic and can be written in canonical form in regard to $\mb x_k$ as follows:
 \begin{align*}
    \mathcal L_k(\mb x_1, \dots, \mb x_k) = (\mb x_k - \mb x_k^f)\T (\mb P_{k}^f)^{-1}(\mb x_k - \mb x_k^f) + \tilde{{\mathcal L}}_{k-1}(\mb x_1,\dots,\mb x_{k-1}),
 \end{align*}
 so that
-\begin{align*}
+\begin{align}
+  \label{min-xk}
   \underset {\{\mb x_i\}_{i = 1}^{k - 1}}{\min} \mathcal L_k(\mb x_1, \dots, \mb x_k) = (\mb x_k - \mb x_k^f)\T (\mb P_{k}^f)^{-1}(\mb x_k - \mb x_k^f) + \mathrm{Const}.
-\end{align*}
+\end{align}
 (\emph{Proposition}) Then
 \begin{align*}
     \underset {\{\mb x_i\}_{i = 1}^{k}}{\min} \mathcal L_{k+1}(\mb x_1, \dots, \mb x_k, \mb x_{k+1}) = (\mb x_{k+1} - \mb x_{k+1}^f)\T (\mb P_{k+1}^f)^{-1}(\mb x_{k+1} - \mb x_{k+1}^f) + \mathrm{Const},
@@ -174,7 +175,7 @@ Matrix $\mb K$ is called Kalman gain.
 
 There are a few things to be noted about the KF:
 \begin{enumerate}
-\item The state $\mb X$ of the DA system (SDAS) is represented by the estimated model state vector and model state error covariance: 
+\item (\ref{min-xk}) means that the state $\mb X$ of the DA system (SDAS) is carried by the estimated model state vector and model state error covariance: 
 \begin{align}
   \label{sdas}
   \mb X = \{\mb x, \mb P\}.
@@ -194,7 +195,7 @@ in which case it is called the extended Kalman filter (EKF).
 
 \section{EnKF}
 
-The canonic form of the KF (\ref{kf-for}, \ref{kf-an}) is not necessarily the most convenient or suitable one in practice.
+The standard form of the KF (\ref{kf-for}, \ref{kf-an}) is not necessarily the most convenient or suitable one in practice.
 The corresponding algorithms can be prone to loosing the positive definiteness of the state error covariance $\mb P$ due to round-up errors; and more importantly, explicit use of $\mb P$ makes these algorithms non-scalable in regard to the model state dimension.
 
 Both these immediate problems can be addressed with the ensemble Kalman filter, or the EnKF.
@@ -216,10 +217,42 @@ It is related to the SDAS of the KF (\ref{sdas}) as follows:
   \end{align}
 \end{subequations}
 where $\mb 1$ is a vector with all elements equal to 1.
-The above means that the model state estimate is given by the ensemble mean, while the model state error covariance estimate is implicitly represented by the ensemble anomalies $\mb A$ via the factorisation (\ref{P}).
+The above means that the model state estimate is given by the ensemble mean, while the model state error covariance $\mb P$ is implicitly represented by the ensemble anomalies $\mb A$ via the factorisation (\ref{P}).
 
-The EnKF is linearly scalable in regard to the state vector dimension, and in a number of ways is a more natural and extendable representation of the KF than the canonic form (\ref{kf-for}, \ref{kf-an}).
-In particular, the forecast stage of the EnKF involves only propagation of each ensemble member:
+Representing the state error covariance via ensemble anomalies yields a number of numerical benefits.
+In large-scale geophysical systems the ensemble size ($\sim 10^2$)is always much less than the state dimension ($\sim 10^5-10^9$); therefore it is typically impossible to store and manipulate the covariance $\mb P$ directly, but it is possible via operations with $\mb A$.
+Also, using $\mb A$ ensures that $\mb P$ is positive semidefinite, which due to round-up errors is not always the case when using (\ref{kf-an-P}).
+However, storing the SDAS via ensemble of model states is only one essential feature of the EnKF.
+The second important feature is the derivative-less formulation of the KF.
+
+It is possible to use the ensemble form (\ref{sdas-enkf}) of the SDAS along with the explicitly calculated Jacobians $\mb M$ and $\mb H$ in the KF equations (\ref{kf-for}) and (\ref{kf-an}) just by replacing $\mb P \rightarrow \mb A \mb A\T / (m - 1)$.
+The EnKF goes further and uses the derivative-less formulation of the KF as follows:
+\begin{subequations}
+  \label{der-less-enkf}
+  \begin{align}
+    &\mb H \mb x \quad &\to& \quad \mathcal H (\mb E) \, \mb 1 / m \hspace{10cm}\\
+    &\mb H \mb A \quad &\to& \quad \mathcal H(\mb E)\left(\mb I - \mb 1 \mb 1\T / m\right)\\
+    &\mb M \mb x \quad &\to& \quad \mathcal M (\mb E) \, \mb 1 / m\\
+    &\mb M \mb A \quad &\to& \quad \mathcal M(\mb E)\left(\mb I - \mb 1 \mb 1\T / m\right)\\
+    &\mb H \mb M \mb A &\to& \quad \mathcal H \circ \mathcal M(\mb E) \left(\mb I - \mb 1 \mb 1\T /m \right).
+  \end{align}
+\end{subequations}
+This formulation is not the only possible.
+It approximates derivatives using ensemble of finite spread that characterises the estimated uncertainty in the state; but one might use the finite difference approximations:
+\begin{subequations}
+  \label{der-less-ekf}
+  \begin{align}
+    &\mb H \mb x \quad &\to& \quad \mathcal H (\mb x \mb 1\T + \varepsilon \mb A) \, 1/m \hspace{8cm}\\
+    &\mb H \mb A \quad &\to& \quad \mathcal H(\mb x \mb 1\T + \varepsilon \mb A)\left(\mb I - \mb 1 \mb 1\T / m\right) \frac{1}{\varepsilon}\\
+    &\mb M \mb x \quad &\to& \quad \mathcal M (\mb x \mb 1\T + \varepsilon \mb A) \, 1/m\\
+    &\mb M \mb A \quad &\to& \quad \mathcal M(\mb x \mb 1\T + \varepsilon \mb A)\left(\mb I - \mb 1 \mb 1\T / m\right) \frac{1}{\varepsilon}\\
+    &\mb H \mb M \mb A \quad &\to& \quad \mathcal H \circ \mathcal M(\mb x \mb 1\T + \varepsilon \mb A)\left(\mb I - \mb 1 \mb 1\T / m\right) \frac{1}{\varepsilon}.
+  \end{align}
+\end{subequations}
+In this form the filter will represent a derivative-less EKF.
+In practice the difference between the EnKF formulation (\ref{der-less-enkf}) and the EKF formulation (\ref{der-less-ekf}) is that the latter is more sensitive to small-scale variability and therefore more prone to instability, similar to the difference in behaviour of Newton and secant methods.
+
+The forecast stage of the EnKF involves only propagation of each ensemble member:
 \begin{align}
   \label{enkf-for}
   \mb E_i^f = \mathcal M_i(\mb E_{i-1}^a).

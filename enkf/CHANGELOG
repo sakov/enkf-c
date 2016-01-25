@@ -1,3 +1,6 @@
+v. 1.31.1
+   PS 25012016
+   -- Modified section 1.2 of the user guide.
 v. 1.31.0
    PS 03012016
    -- Modified reader_navo.c to allow dimension name "length" along with the
