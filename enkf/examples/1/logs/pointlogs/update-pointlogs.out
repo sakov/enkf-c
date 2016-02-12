@@ -1,10 +1,10 @@
   MPI: initialised 2 process(es)
-  MPI: rank = 0, PID = 31874
-  MPI: rank = 1, PID = 31875
-  running UPDATE for EnKF-C version 1.29.1:
+  MPI: rank = 0, PID = 2994
+  MPI: rank = 1, PID = 2995
+  running UPDATE for EnKF-C version 1.32.0:
     command = "./enkf_update --no-fields-write pointlogs.prm"
     dir = "/home/pavel/src/enkf-c/trunk/enkf/examples/1"
-  2015-12-09 10:08:00
+  2016-02-12 12:38:29
   reading system specs from "pointlogs.prm":
     MODE = EnKF
     SCHEME = DEnKF
@@ -35,7 +35,7 @@
       CHECK_G          = [-]
       SHUFFLE_ROWS     = [-]
       HE_VIAFILE       = [-]
-      GRIDNODES_WRITE  = [-]
+      GRIDNODES_WRITE  = [+]
       INTERNAL_QSORT_R = [-]
   update specs:
     do model fields  = [-]
@@ -64,14 +64,19 @@
       name = Tasman
       5 variables:
         eta_t:
+          grid = "t-grid"
           inflation = 1.100 1.00
         temp:
+          grid = "t-grid"
           inflation = 1.100 1.00
         salt:
+          grid = "t-grid"
           inflation = 1.100 1.00
         u:
+          grid = "t-grid"
           inflation = 1.100 1.00
         v:
+          grid = "t-grid"
           inflation = 1.100 1.00
       0 modeldata:
   updating the ensemble:
@@ -83,20 +88,20 @@
         processes get 5 or 4 iterations
       eta_t    0   (0: 0: 20.0%)
       u        0   (1: 5: 25.0%)
-      u        1   (1: 6: 50.0%)
       temp     0   (0: 1: 40.0%)
-      v        0   (1: 7: 75.0%)
+      u        1   (1: 6: 50.0%)
       temp     1   (0: 2: 60.0%)
-      v        1   (1: 8: 100.0%)
+      v        0   (1: 7: 75.0%)
       salt     0   (0: 3: 80.0%)
+      v        1   (1: 8: 100.0%)
       salt     1   (0: 4: 100.0%)
       (skip writing the fields)
-  2015-12-09 10:08:04
+  2016-02-12 12:38:31
   assembling state variables in point logs:
     distributing iterations:
       processes get 2 or 1 iterations
     deleting tiles:
       distributing iterations:
         processes get 5 or 4 iterations
-  2015-12-09 10:08:04
+  2016-02-12 12:38:31
   finished

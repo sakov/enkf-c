@@ -314,8 +314,10 @@ void das_calctransforms(dasystem* das)
             assert(ierror == MPI_SUCCESS);
         }
 #endif
+        /*
+         * main cycle
+         */
         for (jj = my_first_iteration; jj <= my_last_iteration; ++jj) {
-
             j = jiter[jpool[jj]];
             printf("        j = %d (%d: %d: %.1f%%)\n", j, rank, jj, 100.0 * (double) (jj - my_first_iteration + 1) / (double) (my_last_iteration - my_first_iteration + 1));
             fflush(stdout);

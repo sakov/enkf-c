@@ -1,7 +1,7 @@
-  running CALC for EnKF-C version 1.29.1:
+  running CALC for EnKF-C version 1.32.0:
     command = "./enkf_calc enkf-global.prm"
     dir = "/home/pavel/src/enkf-c/trunk/enkf/examples/1"
-  2015-12-09 10:09:16
+  2016-02-12 12:40:07
   reading system specs from "enkf-global.prm":
     MODE = EnKF
     SCHEME = DEnKF
@@ -30,7 +30,7 @@
       CHECK_G          = [-]
       SHUFFLE_ROWS     = [-]
       HE_VIAFILE       = [-]
-      GRIDNODES_WRITE  = [-]
+      GRIDNODES_WRITE  = [+]
       INTERNAL_QSORT_R = [-]
   initialising the system:
   reading observation type specs from "obstypes.prm":
@@ -101,21 +101,26 @@
       name = Tasman
       5 variables:
         eta_t:
+          grid = "t-grid"
           inflation = 1.100 1.00
         temp:
+          grid = "t-grid"
           inflation = 1.100 1.00
         salt:
+          grid = "t-grid"
           inflation = 1.100 1.00
         u:
+          grid = "t-grid"
           inflation = 1.100 1.00
         v:
+          grid = "t-grid"
           inflation = 1.100 1.00
       0 modeldata:
   reading observations from "observations.nc":
     3921 observations
     calculating obs stats:
   calculating ensemble observations:
-  2015-12-09 10:09:16
+  2016-02-12 12:40:07
     ensemble size = 96
     distributing iterations:
       all processes get 96 iterations
@@ -124,7 +129,7 @@
     TEM ................................................................................................
     SAL ................................................................................................
   adding forecast innovations and spread to "observations.nc":
-  2015-12-09 10:09:16
+  2016-02-12 12:40:08
   moderating observations:
     observations substantially modified:
       SLA          0 (0.0%)
@@ -134,7 +139,7 @@
       total        0 (0.0%)
   writing modified obs errors to "observations.nc":
   calculating transforms:
-  2015-12-09 10:09:16
+  2016-02-12 12:40:08
     creating kd-trees for observations:
     calculating transforms for t-grid:
       creating empty file "X5.nc":
@@ -153,7 +158,7 @@
     calculating transform for log point (30, 50): 3921 obs
     writing the log for point (30, 50) on grid "t-grid":
   calculating analysed observations:
-  2015-12-09 10:09:16
+  2016-02-12 12:40:08
     sorting obs by ij:
     updating HE:
   adding analysis innovations and spread to "observations.nc":
@@ -179,5 +184,5 @@
              0-50m         2    0.088      0.101      0.074      0.097      0.023      0.013  
              50-500m       5    0.072      0.097      0.047      0.055      0.032      0.019  
              500-9999m     0     -nan       -nan       -nan       -nan       -nan       -nan  
-  2015-12-09 10:09:17
+  2016-02-12 12:40:08
   finished

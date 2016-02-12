@@ -35,7 +35,7 @@
 
 \begin{document}
 
-\title{EnKF-C user guide\\{\normalsize version 1.31.1}}
+\title{EnKF-C user guide\\{\normalsize version 1.32.0}}
 
 \author{Pavel Sakov}
 \date{June 19, 2014 -- \today}
@@ -734,7 +734,7 @@ It also contains variable names for the depth and for number of layers in a vert
 
   Grid parameter file format:
 
-    NAME             = <name>
+    NAME             = <name> [ PREP | CALC ]
     VTYPE            = { z | sigma }
     DATA             = <data file name>
     XDIMNAME         = <x dimension name>
@@ -752,7 +752,7 @@ It also contains variable names for the depth and for number of layers in a vert
 
 The code is supposed to identify the type of the horizontal grid used, while the type of the vertical grid has to be specified explicitly.
 
-At the moment, EnKF-C supports 3 possible types of horizontal grids:
+At the moment, EnKF-C supports 3 main types of horizontal grids:
 \begin{itemize}
 \item equidistant rectangular grids aligned with physical coordinates;
 \item non-equidistant rectangular grids aligned with physical coordinates;
@@ -760,7 +760,10 @@ At the moment, EnKF-C supports 3 possible types of horizontal grids:
 \end{itemize}
 For rectangular grids the code tries to determine and handle periodicity in X or Y directions.
 
-The split between the main, model and grid parameter files is not final and may change in future.
+With some effort EnKF-C can also handle topologically screwed grids (like tri-polar ORCA grids).
+This is achieved by creating an auxiliary grid that is simply connected in grid index space by masking some nodes (replacing thir coordinates with NaNs) in the original grid.
+Because only \emph{prep} requires mapping from physical to grid space, this auxiliary grid is then used in \emph{prep} only, while the original grid is used in \emph{calc} and \emph{update}.
+To specify that a grid entry is to be used in \emph{prep} only one needs to add qualifier ``PREP'' after its name; and to specify that it us to be used in \emph{calc} and \emph{update} one needs to add qualifier ``CALC''.
 
 \subsection{Observation types parameter file}
 \label{sec:obstypesprm}

@@ -1,10 +1,10 @@
   MPI: initialised 2 process(es)
-  MPI: rank = 1, PID = 31789
-  MPI: rank = 0, PID = 31788
-  running CALC for EnKF-C version 1.29.1:
+  MPI: rank = 0, PID = 3084
+  MPI: rank = 1, PID = 3085
+  running CALC for EnKF-C version 1.32.0:
     command = "./enkf_calc --forecast-stats-only stats.prm"
     dir = "/home/pavel/src/enkf-c/trunk/enkf/examples/1"
-  2015-12-09 10:06:58
+  2016-02-12 12:39:39
   reading system specs from "stats.prm":
     MODE = EnOI
     MODEL PRM = "model.prm"
@@ -23,7 +23,7 @@
       CHECK_G          = [-]
       SHUFFLE_ROWS     = [-]
       HE_VIAFILE       = [-]
-      GRIDNODES_WRITE  = [-]
+      GRIDNODES_WRITE  = [+]
       INTERNAL_QSORT_R = [-]
   initialising the system:
   reading observation type specs from "obstypes.prm":
@@ -94,21 +94,26 @@
       name = Tasman
       5 variables:
         eta_t:
+          grid = "t-grid"
           inflation = 1.000 1.00
         temp:
+          grid = "t-grid"
           inflation = 1.000 1.00
         salt:
+          grid = "t-grid"
           inflation = 1.000 1.00
         u:
+          grid = "t-grid"
           inflation = 1.000 1.00
         v:
+          grid = "t-grid"
           inflation = 1.000 1.00
       0 modeldata:
   reading observations from "observations.nc":
     3921 observations
     calculating obs stats:
   calculating ensemble observations:
-  2015-12-09 10:06:58
+  2016-02-12 12:39:39
     ensemble size = 1
     distributing iterations:
       processes get 1 or 0 iterations
@@ -117,7 +122,7 @@
     TEM +
     SAL +
   adding forecast innovations and spread to "observations.nc":
-  2015-12-09 10:06:59
+  2016-02-12 12:39:39
   printing observation statistics:
     region obs.type   # obs.  |for.inn.| for.inn.
     ---------------------------------------------
@@ -140,5 +145,5 @@
              0-50m         2    0.088      0.074  
              50-500m       5    0.072      0.047  
              500-9999m     0     -nan       -nan  
-  2015-12-09 10:06:59
+  2016-02-12 12:39:39
   finished

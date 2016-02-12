@@ -1149,7 +1149,7 @@ void obs_findlocal(observations* obs, model* m, grid* g, int icoord, int jcoord,
     int otid;
     int i, ntot, ngood;
 
-    grid_fij2xy(g, (double) icoord, (double) jcoord, &ll[0], &ll[1]);
+    grid_ij2xy(g, icoord, jcoord, &ll[0], &ll[1]);
     grid_tocartesian(g, ll, xyz);
 
     if (obs->nobstypes == 0)

@@ -310,6 +310,7 @@ void model_print(model* m, char offset[])
         variable* v = &m->vars[i];
 
         enkf_printf("%s    %s:\n", offset, v->name);
+        enkf_printf("%s      grid = \"%s\"\n", offset, grid_getname(model_getgridbyid(m, v->gridid)));
         if (isnan(v->inf_ratio))
             enkf_printf("%s      inflation = %.3f PLAIN\n", offset, v->inflation);
         else
@@ -612,6 +613,19 @@ int model_fij2xy(model* m, int vid, double fi, double fj, double* x, double* y)
     void* grid = m->grids[m->vars[vid].gridid];
 
     grid_fij2xy(grid, fi, fj, x, y);
+
+    if (isnan(*x + *y))
+        return STATUS_OUTSIDEGRID;
+    return STATUS_OK;
+}
+
+/**
+ */
+int model_ij2xy(model* m, int vid, int i, int j, double* x, double* y)
+{
+    void* grid = m->grids[m->vars[vid].gridid];
+
+    grid_ij2xy(grid, i, j, x, y);
 
     if (isnan(*x + *y))
         return STATUS_OUTSIDEGRID;

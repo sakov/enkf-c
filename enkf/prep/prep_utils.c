@@ -62,7 +62,7 @@ static void readobs(obsmeta* meta, model* m, obsread_fn reader, observations* ob
         enkf_printf("      reading %s:\n", fnames[i]);
         fid = st_add_ifabscent(obs->datafiles, fnames[i], -1);
         reader(fnames[i], fid, meta, m, obs);
-            
+
         enkf_printf("        # good obs = %d\n", obs->nobs - nobs0);
         free(fnames[i]);
     }

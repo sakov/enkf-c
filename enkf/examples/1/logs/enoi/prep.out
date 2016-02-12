@@ -1,7 +1,7 @@
-  running PREP for EnKF-C version 1.29.1:
+  running PREP for EnKF-C version 1.32.0:
     command = "./enkf_prep enoi.prm"
     dir = "/home/pavel/src/enkf-c/trunk/enkf/examples/1"
-  2015-12-09 10:06:05
+  2016-02-12 12:38:59
   reading prep specs from "enoi.prm":
     MODE = EnOI
     MODEL PRM = "model.prm"
@@ -30,7 +30,7 @@
       CHECK_G          = [-]
       SHUFFLE_ROWS     = [-]
       HE_VIAFILE       = [-]
-      GRIDNODES_WRITE  = [-]
+      GRIDNODES_WRITE  = [+]
       INTERNAL_QSORT_R = [-]
   reading observation specs from "obs.prm":
     PRODUCT = RADS
@@ -98,14 +98,19 @@
       name = Tasman
       5 variables:
         eta_t:
+          grid = "t-grid"
           inflation = 1.000 1.00
         temp:
+          grid = "t-grid"
           inflation = 1.000 1.00
         salt:
+          grid = "t-grid"
           inflation = 1.000 1.00
         u:
+          grid = "t-grid"
           inflation = 1.000 1.00
         v:
+          grid = "t-grid"
           inflation = 1.000 1.00
       0 modeldata:
   reading observation type specs from "obstypes.prm":
@@ -346,5 +351,5 @@ ls: cannot access obs/WINDSAT/windsat_20071223.nc: No such file or directory
     TEM     184        104        104        0          0          0          0          7         
     SAL     184        104        104        0          0          0          0          7         
     total   9749       211        208        0          3          0          0          3921      
-  2015-12-09 10:06:06
+  2016-02-12 12:39:00
   finished

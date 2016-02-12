@@ -1,10 +1,10 @@
   MPI: initialised 2 process(es)
-  MPI: rank = 0, PID = 31869
-  MPI: rank = 1, PID = 31870
-  running CALC for EnKF-C version 1.29.1:
+  MPI: rank = 0, PID = 2989
+  MPI: rank = 1, PID = 2990
+  running CALC for EnKF-C version 1.32.0:
     command = "./enkf_calc --point-logs-only pointlogs.prm"
     dir = "/home/pavel/src/enkf-c/trunk/enkf/examples/1"
-  2015-12-09 10:08:00
+  2016-02-12 12:38:29
   reading system specs from "pointlogs.prm":
     MODE = EnKF
     SCHEME = DEnKF
@@ -35,7 +35,7 @@
       CHECK_G          = [-]
       SHUFFLE_ROWS     = [-]
       HE_VIAFILE       = [-]
-      GRIDNODES_WRITE  = [-]
+      GRIDNODES_WRITE  = [+]
       INTERNAL_QSORT_R = [-]
   initialising the system:
   reading observation type specs from "obstypes.prm":
@@ -106,21 +106,26 @@
       name = Tasman
       5 variables:
         eta_t:
+          grid = "t-grid"
           inflation = 1.100 1.00
         temp:
+          grid = "t-grid"
           inflation = 1.100 1.00
         salt:
+          grid = "t-grid"
           inflation = 1.100 1.00
         u:
+          grid = "t-grid"
           inflation = 1.100 1.00
         v:
+          grid = "t-grid"
           inflation = 1.100 1.00
       0 modeldata:
   reading observations from "observations.nc":
     3921 observations
     calculating obs stats:
   calculating ensemble observations:
-  2015-12-09 10:08:00
+  2016-02-12 12:38:29
     ensemble size = 96
     distributing iterations:
       all processes get 48 iterations
@@ -129,7 +134,7 @@
     TEM ................................................
     SAL ................................................
   adding forecast innovations and spread to "observations.nc":
-  2015-12-09 10:08:00
+  2016-02-12 12:38:29
   Hx already added to "observations.nc" (skipping)
   moderating observations:
     observations substantially modified:
@@ -147,5 +152,5 @@
     writing the log for point (50, 50) on grid "t-grid":
     calculating transform for log point (70, 50): 466 obs
     writing the log for point (70, 50) on grid "t-grid":
-  2015-12-09 10:08:00
+  2016-02-12 12:38:29
   finished

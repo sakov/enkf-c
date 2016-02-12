@@ -40,6 +40,7 @@ void gridprm_create(char* fname, int* ngrid, gridprm** prm)
 {
     gridprm* now = NULL;
     FILE* f = NULL;
+    int ignore = 0;
     char buf[MAXSTRLEN];
     int line;
     int i;
@@ -66,9 +67,31 @@ void gridprm_create(char* fname, int* ngrid, gridprm** prm)
                 enkf_quit("%s, l.%d: NAME not specified", fname, line);
             else
                 now->name = strdup(token);
+            ignore = 0;
+            if ((token = strtok(NULL, seps)) != NULL) {
+                if (strcasecmp("PREP", token) != 0 && strcasecmp("CALC", token) != 0)
+                    enkf_quit("%s, l.%d: grid qualifier = \"%s\"; must be either \"PREP\" or \"CALC\"\n", fname, line, token);
+#if defined(ENKF_PREP)
+                if (strcasecmp("PREP", token) != 0) {
+                    (*ngrid)--;
+                    now = NULL;
+                    ignore = 1;
+                }
+#elif defined(ENKF_CALC) || defined(ENKF_UPDATE)
+                if (strcasecmp("CALC", token) != 0) {
+                    (*ngrid)--;
+                    now = NULL;
+                    ignore = 1;
+                }
+#endif
+            }
             continue;
-        } else if (now == NULL)
-            enkf_quit("%s, l.%d: entry NAME is required to start grid initialisation", fname, line);
+        } else if (now == NULL) {
+            if (ignore)
+                continue;
+            else
+                enkf_quit("%s, l.%d: entry NAME is required to start grid initialisation", fname, line);
+        }
 
         if (strcasecmp(token, "VTYPE") == 0) {
             if ((token = strtok(NULL, seps)) == NULL)

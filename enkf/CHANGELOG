@@ -1,3 +1,17 @@
+v. 1.32.0
+   PS 12022016
+   Made changes in the grid code to enable handling of ORCA grids. Also
+   simplified the structure of the grid code -- got rid of dynamic functions,
+   now using simple "if" cycles instead. Added grid_ij2xy() to make it possible
+   to get cell's coordinates when necessary without parsing the whole grid into
+   a spatial binary tree.
+
+   In regard ORCA grids the workflow is as follows.
+   1. Make a complementary grid with masked nodes around two poles in the
+      northern hemisphere and along the line connecting these nodes. Run PREP
+      with this grid. It will be fully mapped at a cost that a very small
+      percent of obs along the line connecting the two poles will be ignored.
+   2. Run CALC and POST with the normal grid.
 v. 1.31.1
    PS 25012016
    -- Modified section 1.2 of the user guide.

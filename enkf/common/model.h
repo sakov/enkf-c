@@ -73,6 +73,7 @@ int model_getbgfname_async(model* m, char dir[], char varname[], char otname[], 
 
 int model_xy2fij(model* m, int vid, double x, double y, double* fi, double* fj);
 int model_fij2xy(model* m, int vid, double fi, double fj, double* x, double* y);
+int model_ij2xy(model* m, int vid, int i, int j, double* x, double* y);
 int model_z2fk(model* m, int vid, double fi, double fj, double z, double* fk);
 void model_readfield(model* m, char fname[], int mem, int time, char varname[], int k, float* v);
 void model_read3dfield(model* m, char fname[], int mem, int time, char varname[], float* v);

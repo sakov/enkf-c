@@ -24,6 +24,8 @@
 #include "enkfprm.h"
 #include "dasystem.h"
 
+#define EPS_IJ 1.0e-6
+
 observation* singleob = NULL;
 int singleob_ijk = 1;
 char* singleobtype = NULL;
@@ -237,7 +239,7 @@ static observations* obs_create_fromsingleob(enkfprm* prm, dasystem* das)
 
         o->fi = o->lon;
         o->fj = o->lat;
-        model_fij2xy(m, vid, o->fi, o->fj, &o->lon, &o->lat);
+        model_ij2xy(m, vid, (int) (o->fi + EPS_IJ), (int) (o->fj + EPS_IJ), &o->lon, &o->lat);
         o->fk = o->depth;
         if (o->depth != 0.0)
             o->depth = NaN;     /* fk2z - TODO */

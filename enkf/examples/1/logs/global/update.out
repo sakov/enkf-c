@@ -1,10 +1,10 @@
   MPI: initialised 2 process(es)
-  MPI: rank = 0, PID = 31926
-  MPI: rank = 1, PID = 31927
-  running UPDATE for EnKF-C version 1.29.1:
+  MPI: rank = 0, PID = 3156
+  MPI: rank = 1, PID = 3157
+  running UPDATE for EnKF-C version 1.32.0:
     command = "./enkf_update --calculate-spread --write-inflation enkf-global.prm"
     dir = "/home/pavel/src/enkf-c/trunk/enkf/examples/1"
-  2015-12-09 10:09:17
+  2016-02-12 12:40:08
   reading system specs from "enkf-global.prm":
     MODE = EnKF
     SCHEME = DEnKF
@@ -33,7 +33,7 @@
       CHECK_G          = [-]
       SHUFFLE_ROWS     = [-]
       HE_VIAFILE       = [-]
-      GRIDNODES_WRITE  = [-]
+      GRIDNODES_WRITE  = [+]
       INTERNAL_QSORT_R = [-]
   update specs:
     do model fields  = [+]
@@ -63,14 +63,19 @@
       name = Tasman
       5 variables:
         eta_t:
+          grid = "t-grid"
           inflation = 1.100 1.00
         temp:
+          grid = "t-grid"
           inflation = 1.100 1.00
         salt:
+          grid = "t-grid"
           inflation = 1.100 1.00
         u:
+          grid = "t-grid"
           inflation = 1.100 1.00
         v:
+          grid = "t-grid"
           inflation = 1.100 1.00
       0 modeldata:
   updating the ensemble:
@@ -80,23 +85,23 @@
     defining state variables in point logs:
     distributing iterations:
       all processes get 48 iterations
-    2015-12-09 10:09:17
+    2016-02-12 12:40:08
     allocating disk space for analysis:................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................
-    2015-12-09 10:09:17
+    2016-02-12 12:40:09
     updating fields for t-grid:
       9 fields
       distributing iterations:
         processes get 5 or 4 iterations
-      u        0   (1: 5: 25.0%)
       eta_t    0   (0: 0: 20.0%)
-      u        1   (1: 6: 50.0%)
+      u        0   (1: 5: 25.0%)
       temp     0   (0: 1: 40.0%)
-      v        0   (1: 7: 75.0%)
+      u        1   (1: 6: 50.0%)
       temp     1   (0: 2: 60.0%)
-      v        1   (1: 8: 100.0%)
+      v        0   (1: 7: 75.0%)
       salt     0   (0: 3: 80.0%)
+      v        1   (1: 8: 100.0%)
       salt     1   (0: 4: 100.0%)
-  2015-12-09 10:09:21
+  2016-02-12 12:40:10
   assembling analysis:
     distributing iterations:
       all processes get 48 iterations
@@ -123,5 +128,5 @@
     deleting tiles:
       distributing iterations:
         processes get 5 or 4 iterations
-  2015-12-09 10:09:21
+  2016-02-12 12:40:11
   finished
