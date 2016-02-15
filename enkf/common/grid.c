@@ -9,7 +9,11 @@
  *
  * Description:
  *
- * Revisions:
+ * Revisions:   15/02/2016 PS x2fi_reg() now returns NaN if estimated fi either
+ *              < 0.0 or > (double) (n - 1). (In the previous version indices
+ *              -0.5 < fi <= 0.0 were mapped to 0.0, and indices
+ *              (double) (n - 1) < fi < (double) n - 0.5 were mapped to
+ *              (double) (n - 1).)
  *
  *****************************************************************************/
 
@@ -30,7 +34,9 @@
 #endif
 #include "nan.h"
 
-#define EPSLON 1.0e-3
+#define EPS_LON 1.0e-3
+#define EPS_IJ 1.0e-3
+#define CELL_CHANGE_FACTOR_MAX 0.5
 
 typedef struct {
     int nx;
@@ -86,15 +92,56 @@ struct grid {
 static gnxy_simple* gnxy_simple_create(int nx, int ny, double* x, double* y, int periodic_x, int periodic_y, int regular)
 {
     gnxy_simple* nodes = malloc(sizeof(gnxy_simple));
-    int i;
+    int i, ascending;
+
+    assert(nx >= 2 && ny >= 2);
 
     nodes->nx = nx;
     nodes->ny = ny;
-    nodes->x = x;
     nodes->y = y;
     nodes->periodic_x = periodic_x;
     nodes->periodic_y = periodic_y;
     nodes->regular = regular;
+
+    ascending = (x[nx - 1] > x[0]) ? 1 : 0;
+    if (ascending) {
+        for (i = 0; i < nx - 1; ++i)
+            if ((x[i + 1] - x[i]) < 0.0)
+                enkf_quit("non-monotonous X coordinate for a simple grid\n");
+    } else {
+        for (i = 0; i < nx - 1; ++i)
+            if ((x[i + 1] - x[i]) > 0.0)
+                enkf_quit("non-monotonous X coordinate for a simple grid\n");
+    }
+
+    if (periodic_x) {
+        if (abs(abs((x[nx - 1] - x[0]) / 360.0) - 1.0) > EPS_IJ) {
+            x = realloc(x, sizeof(double) * (nx + 1));
+            x[nx] = (ascending) ? x[0] + 360.0 : x[0] - 360.0;
+            assert(abs((x[nx] - x[nx - 1]) / (x[nx - 1] / x[nx - 2]) - 1.0) < CELL_CHANGE_FACTOR_MAX);
+        }
+    }
+    nodes->x = x;
+
+    ascending = (y[ny - 1] > y[0]) ? 1 : 0;
+    if (ascending) {
+        for (i = 0; i < ny - 1; ++i)
+            if ((y[i + 1] - y[i]) < 0.0)
+                enkf_quit("non-monotonous Y coordinate for a simple grid\n");
+    } else {
+        for (i = 0; i < ny - 1; ++i)
+            if ((y[i + 1] - y[i]) > 0.0)
+                enkf_quit("non-monotonous Y coordinate for a simple grid\n");
+    }
+
+    if (periodic_y) {
+        if (abs(abs((y[ny - 1] - y[0]) / 360.0) - 1.0) > EPS_IJ) {
+            y = realloc(y, sizeof(double) * (ny + 1));
+            y[ny] = (ascending) ? y[0] + 360.0 : y[0] - 360.0;
+            assert(abs((y[ny] - y[ny - 1]) / (y[ny - 1] / y[ny - 2]) - 1.0) < CELL_CHANGE_FACTOR_MAX);
+        }
+    }
+    nodes->y = y;
 
     if (regular) {
         nodes->xc = NULL;
@@ -159,7 +206,8 @@ static gnxy_curv* gnxy_curv_create(int nodetype, int nx, int ny, double** x, dou
 void gnxy_curv_destroy(gnxy_curv* nodes)
 {
     gridnodes_destroy(nodes->gn);
-    gridmap_destroy(nodes->gm);
+    if (nodes->gm != NULL)
+        gridmap_destroy(nodes->gm);
     free(nodes);
 }
 #endif
@@ -242,24 +290,10 @@ static double x2fi_reg(int n, double* v, double x, int periodic)
     if (n < 2)
         return NaN;
 
-    if (periodic) {
-        if (x < 0.0)
-            x = x + 360.0;
-        else if (x >= 360.0)
-            x = x - 360.0;
-    }
-
     fi = (x - v[0]) / (v[n - 1] - v[0]) * (double) (n - 1);
 
-    if (fi < -0.5 || fi > (double) n - 0.5)
+    if (fi < 0.0 || fi > (double) (n - 1))
         return NaN;
-
-    if (!periodic) {
-        if (fi < 0.0)
-            fi = 0.0;
-        else if (fi > (double) (n - 1))
-            fi = (double) (n - 1);
-    }
 
     return fi;
 }
@@ -346,23 +380,12 @@ static double x2fi_irreg(int n, double v[], double vb[], double x, int periodic,
 
     ascending = (v[n - 1] > v[0]) ? 1 : 0;
 
-    if ((ascending && x < v[0]) || (!ascending && x > v[0])) {
-        double fi = (x - v[0]) / (v[1] - v[0]);
-
-        if (periodic) {
-            assert(fi >= -0.5);
-            return fi;
-        }
-        return (fi >= -0.5) ? 0.0 : NaN;
-    }
-    if ((ascending && x > v[n - 1]) || (!ascending && x < v[n - 1])) {
-        double fi = (double) (n - 1) + (x - v[n - 1]) / (v[n - 1] - v[n - 2]);
-
-        if (periodic) {
-            assert(fi < (double) n - 0.5);
-            return fi;
-        }
-        return (fi <= (double) n - 0.5) ? (double) (n - 1) : NaN;
+    if (ascending) {
+        if ((x < v[0]) || x > v[n - 1])
+            return NaN;
+    } else {
+        if ((x > v[0]) || x < v[n - 1])
+            return NaN;
     }
 
     i1 = 0;
@@ -585,8 +608,8 @@ static void grid_setcoords(grid* g, int htype, int hnodetype, int periodic_x, in
             if (!file_exists(fname))
                 gridnodes_write(((gnxy_curv*) g->gridnodes_xy)->gn, fname, CT_XY);
         }
-    }
 #endif
+    }
 #endif
     else
         enkf_quit("programming error");
@@ -645,18 +668,18 @@ grid* grid_create(void* p, int id)
         ncw_get_var_double(fname, ncid, varid_y, y);
         ncw_get_var_double(fname, ncid, varid_z, z);
 
-        periodic_x = fabs(fmod(2.0 * x[nx - 1] - x[nx - 2], 360.0) - x[0]) < EPSLON;
+        periodic_x = fabs(fmod(2.0 * x[nx - 1] - x[nx - 2], 360.0) - x[0]) < EPS_LON;
 
         dx = (x[nx - 1] - x[0]) / (double) (nx - 1);
         for (i = 1; i < (int) nx; ++i)
-            if (fabs(x[i] - x[i - 1] - dx) / fabs(dx) > EPSLON)
+            if (fabs(x[i] - x[i - 1] - dx) / fabs(dx) > EPS_LON)
                 break;
         if (i != (int) nx)
             grid_setcoords(g, GRIDHTYPE_LATLON_IRREGULAR, NT_NONE, periodic_x, 0, nx, ny, nz, x, y, z);
         else {
             dy = (y[ny - 1] - y[0]) / (double) (ny - 1);
             for (i = 1; i < (int) ny; ++i)
-                if (fabs(y[i] - y[i - 1] - dy) / fabs(dy) > EPSLON)
+                if (fabs(y[i] - y[i - 1] - dy) / fabs(dy) > EPS_LON)
                     break;
             if (i != (int) ny)
                 grid_setcoords(g, GRIDHTYPE_LATLON_IRREGULAR, NT_NONE, periodic_x, 0, nx, ny, nz, x, y, z);

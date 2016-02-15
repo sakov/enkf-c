@@ -177,7 +177,7 @@ dasystem* das_create(enkfprm* prm)
         }
         key[3] = dst->gridid;
 
-        grid_fij2xy(grid, (double) dst->i, (double) dst->j, &dst->lon, &dst->lat);
+        grid_ij2xy(grid, dst->i, dst->j, &dst->lon, &dst->lat);
 
         if (isnan(dst->lon + dst->lat)) {
             enkf_printf("  WARNING: %s: POINTLOG %d %d: point outside the grid \"%s\"\n", das->prmfname, dst->i, dst->j, dst->gridname);

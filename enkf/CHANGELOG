@@ -1,3 +1,8 @@
+v. 1.32.1
+   PS 16022016
+   1. Bug fix for the previous version.
+   2. Put in examples/2. It is exactly as example 1 except that the grid is
+      set aas curvilinear (although in fact it is rectangular in lon/lat).
 v. 1.32.0
    PS 12022016
    Made changes in the grid code to enable handling of ORCA grids. Also

@@ -1,7 +1,7 @@
-  running PREP for EnKF-C version 1.32.0:
+  running PREP for EnKF-C version 1.32.1:
     command = "./enkf_prep stats.prm"
     dir = "/home/pavel/src/enkf-c/trunk/enkf/examples/1"
-  2016-02-12 12:39:38
+  2016-02-16 08:55:28
   reading prep specs from "stats.prm":
     MODE = EnOI
     MODEL PRM = "model.prm"
@@ -29,7 +29,7 @@
       CHECK_G          = [-]
       SHUFFLE_ROWS     = [-]
       HE_VIAFILE       = [-]
-      GRIDNODES_WRITE  = [+]
+      GRIDNODES_WRITE  = [-]
       INTERNAL_QSORT_R = [-]
   reading observation specs from "obs.prm":
     PRODUCT = RADS
@@ -169,12 +169,12 @@
         MINDEPTH = 200
         nobs = 50386
         error_std = 0.03
-        # good obs = 20
+        # good obs = 18
       reading obs/RADS-IB/y2007/m12/n1_d19.nc:
         MINDEPTH = 200
         nobs = 40491
         error_std = 0.05
-        # good obs = 238
+        # good obs = 233
       reading obs/RADS-IB/y2007/m12/e2_d20.nc:
         MINDEPTH = 200
         nobs = 6177
@@ -199,12 +199,12 @@
         MINDEPTH = 200
         nobs = 51928
         error_std = 0.03
-        # good obs = 351
+        # good obs = 345
       reading obs/RADS-IB/y2007/m12/n1_d21.nc:
         MINDEPTH = 200
         nobs = 39512
         error_std = 0.05
-        # good obs = 25
+        # good obs = 22
       reading obs/RADS-IB/y2007/m12/e2_d22.nc:
         MINDEPTH = 200
         nobs = 5200
@@ -219,7 +219,7 @@
         MINDEPTH = 200
         nobs = 41034
         error_std = 0.05
-        # good obs = 298
+        # good obs = 295
       reading obs/RADS-IB/y2007/m12/e2_d23.nc:
         MINDEPTH = 200
         nobs = 6030
@@ -235,35 +235,35 @@
         nobs = 38946
         error_std = 0.05
         # good obs = 0
-      id = 0 - 999
-      total 1000 observations
-      997 valid observations
+      id = 0 - 980
+      total 981 observations
+      978 valid observations
       min date = -4.000
       max date = -1.000
     PRODUCT = NAVO, TYPE = SST, reader = standard
       reading obs/NAVO/navo_20071219.nc:
         ADDBIAS = NO
         nobs = 21372
-        # good obs = 740
+        # good obs = 738
       reading obs/NAVO/navo_20071220.nc:
         ADDBIAS = NO
         nobs = 18990
-        # good obs = 1700
+        # good obs = 1682
       reading obs/NAVO/navo_20071221.nc:
         ADDBIAS = NO
         nobs = 31481
-        # good obs = 1782
+        # good obs = 1718
       reading obs/NAVO/navo_20071222.nc:
         ADDBIAS = NO
         nobs = 20804
-        # good obs = 1621
+        # good obs = 1598
       reading obs/NAVO/navo_20071223.nc:
         ADDBIAS = NO
         nobs = 28440
-        # good obs = 1373
-      id = 1000 - 8215
-      total 7216 observations
-      7216 valid observations
+        # good obs = 1345
+      id = 981 - 8061
+      total 7081 observations
+      7081 valid observations
       min date = -4.039
       max date = 0.453
     PRODUCT = WindSat, TYPE = SST, reader = standard
@@ -276,7 +276,7 @@ ls: cannot access obs/WINDSAT/windsat_20071223.nc: No such file or directory
       reading obs/WINDSAT/windsat_20071220.nc:
         nobs = 29534
         # good obs = 0
-      id = 8216 - 9383
+      id = 8062 - 9229
       total 1168 observations
       1168 valid observations
       min date = -4.000
@@ -302,7 +302,7 @@ ls: cannot access obs/WINDSAT/windsat_20071223.nc: No such file or directory
         # profiles = 344
         # z levels = 191
         # good obs = 0
-      id = 9384 - 9671
+      id = 9230 - 9517
       total 288 observations
       184 valid observations
       adding error_std = 0.5:
@@ -329,7 +329,7 @@ ls: cannot access obs/WINDSAT/windsat_20071223.nc: No such file or directory
         # profiles = 325
         # z levels = 191
         # good obs = 0
-      id = 9672 - 9959
+      id = 9518 - 9805
       total 288 observations
       184 valid observations
       adding error_std = 0.1:
@@ -339,16 +339,16 @@ ls: cannot access obs/WINDSAT/windsat_20071223.nc: No such file or directory
     calculating obs stats:
   writing observations to "observations-orig.nc":
   superobing:
-    3921 superobservations
+    3864 superobservations
     calculating obs stats:
   writing superobservations to "observations.nc":
   printing observation statistics:
     type    # used     # dropped  # outside  # land     # shallow  # badbatch # badvalue # superobs.
     ----------------------------------------------------------------------------------------
-    SLA     997        3          0          0          3          0          0          652       
-    SST     8384       0          0          0          0          0          0          3255      
+    SLA     978        3          0          0          3          0          0          643       
+    SST     8249       0          0          0          0          0          0          3207      
     TEM     184        104        104        0          0          0          0          7         
     SAL     184        104        104        0          0          0          0          7         
-    total   9749       211        208        0          3          0          0          3921      
-  2016-02-12 12:39:39
+    total   9595       211        208        0          3          0          0          3864      
+  2016-02-16 08:55:29
   finished

@@ -1,0 +1,11 @@
+NAME = t-grid
+VTYPE = z
+DATA = conf2/grid_spec.nc
+XDIMNAME = grid_x_T
+YDIMNAME = grid_y_T
+ZDIMNAME = zt
+XVARNAME = grid_x_T
+YVARNAME = grid_y_T
+ZVARNAME = zt
+DEPTHVARNAME = depth_t
+NUMLEVELSVARNAME = num_levels
