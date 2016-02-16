@@ -1,0 +1,355 @@
+  running PREP for EnKF-C version 1.32.2:
+    command = "./enkf_prep enkf.prm"
+    dir = "/home/pavel/src/enkf-c/trunk/enkf/examples/3"
+  2016-02-16 15:56:01
+  reading prep specs from "enkf.prm":
+    MODE = EnKF
+    SCHEME = DEnKF
+    MODEL PRM = "model.prm"
+    GRID PRM = "grid.prm"
+    OBS TYPES PRM = "obstypes.prm"
+    DATE = "6565.5 days since 1990-01-01"
+    OBS PRM = "obs.prm"
+    ENSEMBLE DIR = "ensemble_6565"
+    ENSEMBLE SIZE = 96
+    RFACTOR BASE = 2.0
+    INFLATION BASE = 1.1000
+    INFLATION MODE = SPREAD LIMITED, MAX RATIO = 1.00
+    KFACTOR = 999.0
+    LOCRAD = 200
+    STRIDE = 3
+    FIELDBUFFERSIZE = 4
+    REGION Global: x = [0.0, 360.0], y = [-90.0, 90.0], z intervals = [0 50] [50 500] [500 9999] 
+    POINTLOG 30 50
+    SOBSTRIDE = 1
+    EnKF flags:
+      enkf_exitaction  = [BACKTRACE]
+      enkf_obstype     = [VALUE]
+    compile flags:
+      CHECK_X5         = [-]
+      CHECK_G          = [-]
+      SHUFFLE_ROWS     = [-]
+      HE_VIAFILE       = [-]
+      GRIDNODES_WRITE  = [-]
+      INTERNAL_QSORT_R = [-]
+  reading observation specs from "obs.prm":
+    PRODUCT = RADS
+      READER = standard2
+      TYPE = SLA
+      File:        obsmeta.c = obs/RADS-IB/y2007/m12/??_d19.nc
+      File:        obsmeta.c = obs/RADS-IB/y2007/m12/??_d20.nc
+      File:        obsmeta.c = obs/RADS-IB/y2007/m12/??_d21.nc
+      File:        obsmeta.c = obs/RADS-IB/y2007/m12/??_d22.nc
+      File:        obsmeta.c = obs/RADS-IB/y2007/m12/??_d23.nc
+    PRODUCT = NAVO
+      READER = standard
+      TYPE = SST
+      File:        obsmeta.c = obs/NAVO/navo_20071219.nc
+      File:        obsmeta.c = obs/NAVO/navo_20071220.nc
+      File:        obsmeta.c = obs/NAVO/navo_20071221.nc
+      File:        obsmeta.c = obs/NAVO/navo_20071222.nc
+      File:        obsmeta.c = obs/NAVO/navo_20071223.nc
+    PRODUCT = WindSat
+      READER = standard
+      TYPE = SST
+      File:        obsmeta.c = obs/WINDSAT/windsat_20071219.nc
+      File:        obsmeta.c = obs/WINDSAT/windsat_20071220.nc
+      File:        obsmeta.c = obs/WINDSAT/windsat_20071221.nc
+      File:        obsmeta.c = obs/WINDSAT/windsat_20071222.nc
+      File:        obsmeta.c = obs/WINDSAT/windsat_20071223.nc
+    PRODUCT = CARS
+      READER = standard
+      TYPE = TEM
+      File:        obsmeta.c = obs/TS-SEP-2011/y2007/m12/cars_temp_d19.nc
+      File:        obsmeta.c = obs/TS-SEP-2011/y2007/m12/cars_temp_d20.nc
+      File:        obsmeta.c = obs/TS-SEP-2011/y2007/m12/cars_temp_d21.nc
+      File:        obsmeta.c = obs/TS-SEP-2011/y2007/m12/cars_temp_d22.nc
+      File:        obsmeta.c = obs/TS-SEP-2011/y2007/m12/cars_temp_d23.nc
+      ERROR_STD = 0.5, operation = EQUAL
+    PRODUCT = CARS
+      READER = standard
+      TYPE = SAL
+      File:        obsmeta.c = obs/TS-SEP-2011/y2007/m12/cars_salt_d19.nc
+      File:        obsmeta.c = obs/TS-SEP-2011/y2007/m12/cars_salt_d20.nc
+      File:        obsmeta.c = obs/TS-SEP-2011/y2007/m12/cars_salt_d21.nc
+      File:        obsmeta.c = obs/TS-SEP-2011/y2007/m12/cars_salt_d22.nc
+      File:        obsmeta.c = obs/TS-SEP-2011/y2007/m12/cars_salt_d23.nc
+      ERROR_STD = 0.1, operation = EQUAL
+  setting the model:
+    grid prm info:
+      NAME = "t-grid-masked"
+      FILE = "conf3/grid_spec-masked.nc"
+      XDIMNAME = "i"
+      YDIMNAME = "j"
+      ZDIMNAME = "k"
+      XVARNAME = "lon"
+      YVARNAME = "lat"
+      ZVARNAME = "zt"
+      DEPTHVARNAME = "depth_t"
+      NUMLEVELSVARNAME = "num_levels"
+    grid info:
+      hor type = CURVILINEAR
+      periodic by X = no
+      periodic by Y = no
+      dims = 100 x 100 x 2
+      longitude range = [0.000, 360.000]
+      vert type = Z
+    model info:
+      name = Tasman
+      5 variables:
+        eta_t:
+          grid = "t-grid-masked"
+          inflation = 1.100 1.00
+        temp:
+          grid = "t-grid-masked"
+          inflation = 1.100 1.00
+        salt:
+          grid = "t-grid-masked"
+          inflation = 1.100 1.00
+        u:
+          grid = "t-grid-masked"
+          inflation = 1.100 1.00
+        v:
+          grid = "t-grid-masked"
+          inflation = 1.100 1.00
+      0 modeldata:
+  reading observation type specs from "obstypes.prm":
+    NAME = SLA
+      VAR = eta_t
+      ID = 0
+      ISSURFACE = yes
+      OFFSET = conf/eta_mean-bran.nc eta_t
+      HFUNCTION = standard
+      ALLOWED MIN = -1
+      ALLOWED MAX = 1
+      ASYNCHRONOUS = no
+      LOCRAD  = 200
+      WEIGHT =  1
+      RFACTOR = 2
+    NAME = SST
+      VAR = temp
+      ID = 1
+      ISSURFACE = yes
+      HFUNCTION = standard
+      ALLOWED MIN = -2
+      ALLOWED MAX = 42
+      ASYNCHRONOUS = no
+      LOCRAD  = 200
+      WEIGHT =  1
+      RFACTOR = 4
+    NAME = TEM
+      VAR = temp
+      ID = 2
+      ISSURFACE = no
+      HFUNCTION = standard
+      ALLOWED MIN = -2
+      ALLOWED MAX = 42
+      ASYNCHRONOUS = no
+      LOCRAD  = 800
+      WEIGHT =  1
+      RFACTOR = 8
+    NAME = SAL
+      VAR = salt
+      ID = 3
+      ISSURFACE = no
+      HFUNCTION = standard
+      ALLOWED MIN = 28
+      ALLOWED MAX = 39
+      ASYNCHRONOUS = no
+      LOCRAD  = 800
+      WEIGHT =  1
+      RFACTOR = 8
+  reading observations:
+    PRODUCT = RADS, TYPE = SLA, reader = standard2
+      reading obs/RADS-IB/y2007/m12/e2_d19.nc:
+        MINDEPTH = 200
+        nobs = 5394
+        error_std = 0.05
+        # good obs = 0
+      reading obs/RADS-IB/y2007/m12/j1_d19.nc:
+        MINDEPTH = 200
+        nobs = 50386
+        error_std = 0.03
+        # good obs = 18
+      reading obs/RADS-IB/y2007/m12/n1_d19.nc:
+        MINDEPTH = 200
+        nobs = 40491
+        error_std = 0.05
+        # good obs = 130
+      reading obs/RADS-IB/y2007/m12/e2_d20.nc:
+        MINDEPTH = 200
+        nobs = 6177
+        error_std = 0.05
+        # good obs = 0
+      reading obs/RADS-IB/y2007/m12/j1_d20.nc:
+        MINDEPTH = 200
+        nobs = 50153
+        error_std = 0.03
+        # good obs = 0
+      reading obs/RADS-IB/y2007/m12/n1_d20.nc:
+        MINDEPTH = 200
+        nobs = 39486
+        error_std = 0.05
+        # good obs = 0
+      reading obs/RADS-IB/y2007/m12/e2_d21.nc:
+        MINDEPTH = 200
+        nobs = 5364
+        error_std = 0.05
+        # good obs = 0
+      reading obs/RADS-IB/y2007/m12/j1_d21.nc:
+        MINDEPTH = 200
+        nobs = 51928
+        error_std = 0.03
+        # good obs = 178
+      reading obs/RADS-IB/y2007/m12/n1_d21.nc:
+        MINDEPTH = 200
+        nobs = 39512
+        error_std = 0.05
+        # good obs = 22
+      reading obs/RADS-IB/y2007/m12/e2_d22.nc:
+        MINDEPTH = 200
+        nobs = 5200
+        error_std = 0.05
+        # good obs = 0
+      reading obs/RADS-IB/y2007/m12/j1_d22.nc:
+        MINDEPTH = 200
+        nobs = 51022
+        error_std = 0.03
+        # good obs = 68
+      reading obs/RADS-IB/y2007/m12/n1_d22.nc:
+        MINDEPTH = 200
+        nobs = 41034
+        error_std = 0.05
+        # good obs = 174
+      reading obs/RADS-IB/y2007/m12/e2_d23.nc:
+        MINDEPTH = 200
+        nobs = 6030
+        error_std = 0.05
+        # good obs = 0
+      reading obs/RADS-IB/y2007/m12/j1_d23.nc:
+        MINDEPTH = 200
+        nobs = 49922
+        error_std = 0.03
+        # good obs = 0
+      reading obs/RADS-IB/y2007/m12/n1_d23.nc:
+        MINDEPTH = 200
+        nobs = 38946
+        error_std = 0.05
+        # good obs = 0
+      id = 0 - 589
+      total 590 observations
+      587 valid observations
+      min date = -4.000
+      max date = -1.000
+    PRODUCT = NAVO, TYPE = SST, reader = standard
+      reading obs/NAVO/navo_20071219.nc:
+        ADDBIAS = NO
+        nobs = 21372
+        # good obs = 594
+      reading obs/NAVO/navo_20071220.nc:
+        ADDBIAS = NO
+        nobs = 18990
+        # good obs = 1505
+      reading obs/NAVO/navo_20071221.nc:
+        ADDBIAS = NO
+        nobs = 31481
+        # good obs = 1295
+      reading obs/NAVO/navo_20071222.nc:
+        ADDBIAS = NO
+        nobs = 20804
+        # good obs = 1549
+      reading obs/NAVO/navo_20071223.nc:
+        ADDBIAS = NO
+        nobs = 28440
+        # good obs = 1249
+      id = 590 - 6781
+      total 6192 observations
+      6192 valid observations
+      min date = -4.039
+      max date = 0.453
+    PRODUCT = WindSat, TYPE = SST, reader = standard
+ls: cannot access obs/WINDSAT/windsat_20071221.nc: No such file or directory
+ls: cannot access obs/WINDSAT/windsat_20071222.nc: No such file or directory
+ls: cannot access obs/WINDSAT/windsat_20071223.nc: No such file or directory
+      reading obs/WINDSAT/windsat_20071219.nc:
+        nobs = 320738
+        # good obs = 837
+      reading obs/WINDSAT/windsat_20071220.nc:
+        nobs = 29534
+        # good obs = 0
+      id = 6782 - 7618
+      total 837 observations
+      837 valid observations
+      min date = -4.000
+      max date = -4.000
+    PRODUCT = CARS, TYPE = TEM, reader = standard
+      reading obs/TS-SEP-2011/y2007/m12/cars_temp_d19.nc:
+        # profiles = 384
+        # z levels = 191
+        # good obs = 56
+      reading obs/TS-SEP-2011/y2007/m12/cars_temp_d20.nc:
+        # profiles = 377
+        # z levels = 191
+        # good obs = 56
+      reading obs/TS-SEP-2011/y2007/m12/cars_temp_d21.nc:
+        # profiles = 329
+        # z levels = 191
+        # good obs = 56
+      reading obs/TS-SEP-2011/y2007/m12/cars_temp_d22.nc:
+        # profiles = 350
+        # z levels = 191
+        # good obs = 0
+      reading obs/TS-SEP-2011/y2007/m12/cars_temp_d23.nc:
+        # profiles = 344
+        # z levels = 191
+        # good obs = 0
+      id = 7619 - 7786
+      total 168 observations
+      101 valid observations
+      adding error_std = 0.5:
+      min date = -4.000
+      max date = -2.000
+    PRODUCT = CARS, TYPE = SAL, reader = standard
+      reading obs/TS-SEP-2011/y2007/m12/cars_salt_d19.nc:
+        # profiles = 366
+        # z levels = 191
+        # good obs = 56
+      reading obs/TS-SEP-2011/y2007/m12/cars_salt_d20.nc:
+        # profiles = 360
+        # z levels = 191
+        # good obs = 56
+      reading obs/TS-SEP-2011/y2007/m12/cars_salt_d21.nc:
+        # profiles = 314
+        # z levels = 191
+        # good obs = 56
+      reading obs/TS-SEP-2011/y2007/m12/cars_salt_d22.nc:
+        # profiles = 323
+        # z levels = 191
+        # good obs = 0
+      reading obs/TS-SEP-2011/y2007/m12/cars_salt_d23.nc:
+        # profiles = 325
+        # z levels = 191
+        # good obs = 0
+      id = 7787 - 7954
+      total 168 observations
+      101 valid observations
+      adding error_std = 0.1:
+      min date = -4.000
+      max date = -2.000
+    compacting obs:
+    calculating obs stats:
+  writing observations to "observations-orig.nc":
+  superobing:
+    2942 superobservations
+    calculating obs stats:
+  writing superobservations to "observations.nc":
+  printing observation statistics:
+    type    # used     # dropped  # outside  # land     # shallow  # badbatch # badvalue # superobs.
+    ----------------------------------------------------------------------------------------
+    SLA     587        3          0          0          3          0          0          386       
+    SST     7029       0          0          0          0          0          0          2550      
+    TEM     101        67         67         0          0          0          0          3         
+    SAL     101        67         67         0          0          0          0          3         
+    total   7818       137        134        0          3          0          0          2942      
+  2016-02-16 15:56:01
+  finished

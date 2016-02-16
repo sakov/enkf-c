@@ -1,0 +1,12 @@
+This is example 3 for the EnKF-C package. It is based on example 1. It
+demonstrates the framework for using partially masked curvilinear grid in PREP,
+while using full grid in CALC and UPDATE. This may be needed for handling
+topologically screwed grids, e.g. tri-polar ORCA grids.
+
+PRE-REQUISITIVES
+
+Set up example 1 as described in ../1/README.
+
+TESTING
+
+Run "make enkf" or "make enoi".
