@@ -1,7 +1,7 @@
-  running CALC for EnKF-C version 1.32.1:
+  running CALC for EnKF-C version 1.32.3:
     command = "./enkf_calc enkf-global.prm"
     dir = "/home/pavel/src/enkf-c/trunk/enkf/examples/1"
-  2016-02-16 08:55:56
+  2016-02-17 13:50:35
   reading system specs from "enkf-global.prm":
     MODE = EnKF
     SCHEME = DEnKF
@@ -82,11 +82,11 @@
     grid prm info:
       NAME = "t-grid"
       FILE = "conf/grid_spec.nc"
-      XDIMNAME = "grid_x_T"
-      YDIMNAME = "grid_y_T"
-      ZDIMNAME = "zt"
-      XVARNAME = "grid_x_T"
-      YVARNAME = "grid_y_T"
+      XDIMNAME = "i"
+      YDIMNAME = "j"
+      ZDIMNAME = "k"
+      XVARNAME = "lon"
+      YVARNAME = "lat"
       ZVARNAME = "zt"
       DEPTHVARNAME = "depth_t"
       NUMLEVELSVARNAME = "num_levels"
@@ -120,7 +120,7 @@
     3864 observations
     calculating obs stats:
   calculating ensemble observations:
-  2016-02-16 08:55:56
+  2016-02-17 13:50:35
     ensemble size = 96
     distributing iterations:
       all processes get 96 iterations
@@ -129,7 +129,7 @@
     TEM ................................................................................................
     SAL ................................................................................................
   adding forecast innovations and spread to "observations.nc":
-  2016-02-16 08:55:57
+  2016-02-17 13:50:35
   moderating observations:
     observations substantially modified:
       SLA          0 (0.0%)
@@ -139,7 +139,7 @@
       total        0 (0.0%)
   writing modified obs errors to "observations.nc":
   calculating transforms:
-  2016-02-16 08:55:57
+  2016-02-17 13:50:35
     creating kd-trees for observations:
     calculating transforms for t-grid:
       creating empty file "X5.nc":
@@ -158,7 +158,7 @@
     calculating transform for log point (30, 50): 3864 obs
     writing the log for point (30, 50) on grid "t-grid":
   calculating analysed observations:
-  2016-02-16 08:55:57
+  2016-02-17 13:50:36
     sorting obs by ij:
     updating HE:
   adding analysis innovations and spread to "observations.nc":
@@ -184,5 +184,5 @@
              0-50m         2    0.088      0.102      0.074      0.098      0.023      0.013  
              50-500m       5    0.072      0.099      0.047      0.058      0.032      0.019  
              500-9999m     0     -nan       -nan       -nan       -nan       -nan       -nan  
-  2016-02-16 08:55:57
+  2016-02-17 13:50:36
   finished

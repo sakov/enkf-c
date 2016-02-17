@@ -1,10 +1,10 @@
   MPI: initialised 2 process(es)
-  MPI: rank = 0, PID = 22804
-  MPI: rank = 1, PID = 22805
-  running UPDATE for EnKF-C version 1.32.1:
+  MPI: rank = 0, PID = 6812
+  MPI: rank = 1, PID = 6813
+  running UPDATE for EnKF-C version 1.32.3:
     command = "./enkf_update --calculate-spread enoi.prm"
     dir = "/home/pavel/src/enkf-c/trunk/enkf/examples/1"
-  2016-02-16 08:55:16
+  2016-02-17 13:49:52
   reading system specs from "enoi.prm":
     MODE = EnOI
     MODEL PRM = "model.prm"
@@ -44,11 +44,11 @@
     grid prm info:
       NAME = "t-grid"
       FILE = "conf/grid_spec.nc"
-      XDIMNAME = "grid_x_T"
-      YDIMNAME = "grid_y_T"
-      ZDIMNAME = "zt"
-      XVARNAME = "grid_x_T"
-      YVARNAME = "grid_y_T"
+      XDIMNAME = "i"
+      YDIMNAME = "j"
+      ZDIMNAME = "k"
+      XVARNAME = "lon"
+      YVARNAME = "lat"
       ZVARNAME = "zt"
       DEPTHVARNAME = "depth_t"
       NUMLEVELSVARNAME = "num_levels"
@@ -82,9 +82,9 @@
     144 members
     allocating disk space for spread:
     defining state variables in point logs:
-    allocating disk space for the analysis:    2016-02-16 08:55:16
+    allocating disk space for the analysis:    2016-02-17 13:49:52
 .....
-    2016-02-16 08:55:16
+    2016-02-17 13:49:52
     updating fields for t-grid:
       9 fields
       distributing iterations:
@@ -98,7 +98,7 @@
       salt     0   (0: 3: 80.0%)
       v        1   (1: 8: 100.0%)
       salt     1   (0: 4: 100.0%)
-  2016-02-16 08:55:16
+  2016-02-17 13:49:52
   assembling analysis:
     eta_t:.
     temp:..
@@ -117,5 +117,5 @@
     deleting tiles:
       distributing iterations:
         processes get 5 or 4 iterations
-  2016-02-16 08:55:16
+  2016-02-17 13:49:52
   finished

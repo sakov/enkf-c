@@ -1,7 +1,7 @@
-  running PREP for EnKF-C version 1.32.1:
+  running PREP for EnKF-C version 1.32.3:
     command = "./enkf_prep enkf.prm"
     dir = "/home/pavel/src/enkf-c/trunk/enkf/examples/1"
-  2016-02-16 08:38:27
+  2016-02-17 13:47:21
   reading prep specs from "enkf.prm":
     MODE = EnKF
     SCHEME = DEnKF
@@ -79,11 +79,11 @@
     grid prm info:
       NAME = "t-grid"
       FILE = "conf/grid_spec.nc"
-      XDIMNAME = "grid_x_T"
-      YDIMNAME = "grid_y_T"
-      ZDIMNAME = "zt"
-      XVARNAME = "grid_x_T"
-      YVARNAME = "grid_y_T"
+      XDIMNAME = "i"
+      YDIMNAME = "j"
+      ZDIMNAME = "k"
+      XVARNAME = "lon"
+      YVARNAME = "lat"
       ZVARNAME = "zt"
       DEPTHVARNAME = "depth_t"
       NUMLEVELSVARNAME = "num_levels"
@@ -351,5 +351,5 @@ ls: cannot access obs/WINDSAT/windsat_20071223.nc: No such file or directory
     TEM     184        104        104        0          0          0          0          7         
     SAL     184        104        104        0          0          0          0          7         
     total   9595       211        208        0          3          0          0          3864      
-  2016-02-16 08:38:28
+  2016-02-17 13:47:22
   finished

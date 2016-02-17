@@ -1,10 +1,10 @@
   MPI: initialised 2 process(es)
-  MPI: rank = 0, PID = 6806
-  MPI: rank = 1, PID = 6807
+  MPI: rank = 0, PID = 7272
+  MPI: rank = 1, PID = 7273
   running CALC for EnKF-C version 1.32.3:
     command = "./enkf_calc enoi.prm"
-    dir = "/home/pavel/src/enkf-c/trunk/enkf/examples/1"
-  2016-02-17 13:49:38
+    dir = "/home/pavel/src/enkf-c/trunk/enkf/examples/4"
+  2016-02-17 13:55:35
   reading system specs from "enoi.prm":
     MODE = EnOI
     MODEL PRM = "model.prm"
@@ -84,14 +84,32 @@
       RFACTOR = 4
     grid prm info:
       NAME = "t-grid"
-      FILE = "conf/grid_spec.nc"
-      XDIMNAME = "i"
-      YDIMNAME = "j"
+      FILE = "conf4/grid_spec.nc"
+      XDIMNAME = "it"
+      YDIMNAME = "jt"
       ZDIMNAME = "k"
-      XVARNAME = "lon"
-      YVARNAME = "lat"
+      XVARNAME = "lont"
+      YVARNAME = "latt"
       ZVARNAME = "zt"
       DEPTHVARNAME = "depth_t"
+      NUMLEVELSVARNAME = "num_levels"
+    grid info:
+      hor type = LATLON_REGULAR
+      periodic by X = no
+      periodic by Y = no
+      dims = 100 x 100 x 2
+      longitude range = [0.000, 360.000]
+      vert type = Z
+    grid prm info:
+      NAME = "c-grid"
+      FILE = "conf4/grid_spec.nc"
+      XDIMNAME = "ic"
+      YDIMNAME = "jc"
+      ZDIMNAME = "k"
+      XVARNAME = "lonc"
+      YVARNAME = "latc"
+      ZVARNAME = "zt"
+      DEPTHVARNAME = "(null)"
       NUMLEVELSVARNAME = "num_levels"
     grid info:
       hor type = LATLON_REGULAR
@@ -113,17 +131,17 @@
           grid = "t-grid"
           inflation = 1.000 1.00
         u:
-          grid = "t-grid"
+          grid = "c-grid"
           inflation = 1.000 1.00
         v:
-          grid = "t-grid"
+          grid = "c-grid"
           inflation = 1.000 1.00
       0 modeldata:
   reading observations from "observations.nc":
     3864 observations
     calculating obs stats:
   calculating ensemble observations:
-  2016-02-17 13:49:38
+  2016-02-17 13:55:35
     ensemble size = 144
     distributing iterations:
       all processes get 72 iterations
@@ -132,7 +150,7 @@
     TEM ........................................................................+
     SAL ........................................................................+
   adding forecast innovations and spread to "observations.nc":
-  2016-02-17 13:49:39
+  2016-02-17 13:55:35
   moderating observations:
     observations substantially modified:
       SLA          0 (0.0%)
@@ -142,10 +160,10 @@
       total        0 (0.0%)
   writing modified obs errors to "observations.nc":
   calculating transforms:
-  2016-02-17 13:49:39
+  2016-02-17 13:55:35
     creating kd-trees for observations:
     calculating transforms for t-grid:
-    creating empty file "w.nc":
+    creating empty file "w-0.nc":
       distributing iterations:
         all processes get 17 iterations
       main cycle for t-grid (34 x 34 local analyses):
@@ -163,38 +181,84 @@
         j = 30 (0: 5: 35.3%)
         j = 39 (1: 23: 41.2%)
         j = 36 (0: 6: 41.2%)
-        j = 42 (0: 7: 47.1%)
         j = 45 (1: 24: 47.1%)
+        j = 42 (0: 7: 47.1%)
         j = 51 (1: 25: 52.9%)
         j = 48 (0: 8: 52.9%)
         j = 57 (1: 26: 58.8%)
         j = 54 (0: 9: 58.8%)
-        j = 60 (0: 10: 64.7%)
         j = 63 (1: 27: 64.7%)
+        j = 60 (0: 10: 64.7%)
         j = 69 (1: 28: 70.6%)
         j = 66 (0: 11: 70.6%)
-        j = 75 (1: 29: 76.5%)
         j = 72 (0: 12: 76.5%)
+        j = 75 (1: 29: 76.5%)
         j = 81 (1: 30: 82.4%)
         j = 78 (0: 13: 82.4%)
         j = 87 (1: 31: 88.2%)
         j = 84 (0: 14: 88.2%)
-        j = 93 (1: 32: 94.1%)
         j = 90 (0: 15: 94.1%)
+        j = 93 (1: 32: 94.1%)
         j = 99 (1: 33: 100.0%)
         j = 96 (0: 16: 100.0%)
     finished calculating transforms for t-grid
-    writing stats to "enkf_diag.nc":
+    writing stats to "enkf_diag-0.nc":
     summary stats on t-grid:
       # of local analyses = 1156
       average # of local obs = 401.5
       # of inversions in obs space = 138
       # of inversions in ens space = 1018
+    calculating transforms for c-grid:
+    creating empty file "w-1.nc":
+      distributing iterations:
+        all processes get 17 iterations
+      main cycle for c-grid (34 x 34 local analyses):
+        j = 0 (0: 0: 5.9%)
+        j = 3 (1: 17: 5.9%)
+        j = 6 (0: 1: 11.8%)
+        j = 9 (1: 18: 11.8%)
+        j = 15 (1: 19: 17.6%)
+        j = 12 (0: 2: 17.6%)
+        j = 21 (1: 20: 23.5%)
+        j = 18 (0: 3: 23.5%)
+        j = 27 (1: 21: 29.4%)
+        j = 24 (0: 4: 29.4%)
+        j = 30 (0: 5: 35.3%)
+        j = 33 (1: 22: 35.3%)
+        j = 39 (1: 23: 41.2%)
+        j = 36 (0: 6: 41.2%)
+        j = 42 (0: 7: 47.1%)
+        j = 45 (1: 24: 47.1%)
+        j = 48 (0: 8: 52.9%)
+        j = 51 (1: 25: 52.9%)
+        j = 57 (1: 26: 58.8%)
+        j = 54 (0: 9: 58.8%)
+        j = 63 (1: 27: 64.7%)
+        j = 60 (0: 10: 64.7%)
+        j = 69 (1: 28: 70.6%)
+        j = 66 (0: 11: 70.6%)
+        j = 72 (0: 12: 76.5%)
+        j = 75 (1: 29: 76.5%)
+        j = 78 (0: 13: 82.4%)
+        j = 81 (1: 30: 82.4%)
+        j = 84 (0: 14: 88.2%)
+        j = 87 (1: 31: 88.2%)
+        j = 93 (1: 32: 94.1%)
+        j = 90 (0: 15: 94.1%)
+        j = 99 (1: 33: 100.0%)
+        j = 96 (0: 16: 100.0%)
+    finished calculating transforms for c-grid
+    writing stats to "enkf_diag-1.nc":
+    summary stats on c-grid:
+      # of local analyses = 1156
+      average # of local obs = 401.8
+      # of inversions in obs space = 137
+      # of inversions in ens space = 1019
   writing point logs:
     calculating transform for log point (30, 50): 538 obs
     writing the log for point (30, 50) on grid "t-grid":
   calculating analysed observations:
-  2016-02-17 13:49:52
+  2016-02-17 13:56:01
     sorting obs by ij:
     updating Hx:
   adding analysis innovations and spread to "observations.nc":
@@ -220,5 +284,5 @@
              0-50m         2    0.088      0.101      0.074      0.072      0.019      0.019  
              50-500m       5    0.072      0.067      0.047      0.040      0.025      0.025  
              500-9999m     0     -nan       -nan       -nan       -nan       -nan       -nan  
-  2016-02-17 13:49:52
+  2016-02-17 13:56:01
   finished

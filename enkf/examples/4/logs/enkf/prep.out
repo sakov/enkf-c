@@ -1,19 +1,19 @@
   running PREP for EnKF-C version 1.32.3:
-    command = "./enkf_prep enoi.prm"
-    dir = "/home/pavel/src/enkf-c/trunk/enkf/examples/2"
-  2016-02-17 13:51:34
-  reading prep specs from "enoi.prm":
-    MODE = EnOI
+    command = "./enkf_prep enkf.prm"
+    dir = "/home/pavel/src/enkf-c/trunk/enkf/examples/4"
+  2016-02-17 13:53:06
+  reading prep specs from "enkf.prm":
+    MODE = EnKF
+    SCHEME = DEnKF
     MODEL PRM = "model.prm"
     GRID PRM = "grid.prm"
     OBS TYPES PRM = "obstypes.prm"
     DATE = "6565.5 days since 1990-01-01"
     OBS PRM = "obs.prm"
-    BGDIR = "background_6565"
-    ENSEMBLE DIR = "ensemble_static"
-    ENSEMBLE SIZE = 144
-    RFACTOR BASE = 1.0
-    INFLATION BASE = 1.0000
+    ENSEMBLE DIR = "ensemble_6565"
+    ENSEMBLE SIZE = 96
+    RFACTOR BASE = 2.0
+    INFLATION BASE = 1.1000
     INFLATION MODE = SPREAD LIMITED, MAX RATIO = 1.00
     KFACTOR = 999.0
     LOCRAD = 200
@@ -78,14 +78,32 @@
   setting the model:
     grid prm info:
       NAME = "t-grid"
-      FILE = "conf2/grid_spec.nc"
-      XDIMNAME = "i"
-      YDIMNAME = "j"
+      FILE = "conf4/grid_spec.nc"
+      XDIMNAME = "it"
+      YDIMNAME = "jt"
       ZDIMNAME = "k"
-      XVARNAME = "lon"
-      YVARNAME = "lat"
+      XVARNAME = "lont"
+      YVARNAME = "latt"
       ZVARNAME = "zt"
       DEPTHVARNAME = "depth_t"
+      NUMLEVELSVARNAME = "num_levels"
+    grid info:
+      hor type = LATLON_REGULAR
+      periodic by X = no
+      periodic by Y = no
+      dims = 100 x 100 x 2
+      longitude range = [0.000, 360.000]
+      vert type = Z
+    grid prm info:
+      NAME = "c-grid"
+      FILE = "conf4/grid_spec.nc"
+      XDIMNAME = "ic"
+      YDIMNAME = "jc"
+      ZDIMNAME = "k"
+      XVARNAME = "lonc"
+      YVARNAME = "latc"
+      ZVARNAME = "zt"
+      DEPTHVARNAME = "(null)"
       NUMLEVELSVARNAME = "num_levels"
     grid info:
       hor type = LATLON_REGULAR
@@ -99,19 +117,19 @@
       5 variables:
         eta_t:
           grid = "t-grid"
-          inflation = 1.000 1.00
+          inflation = 1.100 1.00
         temp:
           grid = "t-grid"
-          inflation = 1.000 1.00
+          inflation = 1.100 1.00
         salt:
           grid = "t-grid"
-          inflation = 1.000 1.00
+          inflation = 1.100 1.00
         u:
-          grid = "t-grid"
-          inflation = 1.000 1.00
+          grid = "c-grid"
+          inflation = 1.100 1.00
         v:
-          grid = "t-grid"
-          inflation = 1.000 1.00
+          grid = "c-grid"
+          inflation = 1.100 1.00
       0 modeldata:
   reading observation type specs from "obstypes.prm":
     NAME = SLA
@@ -125,7 +143,7 @@
       ASYNCHRONOUS = no
       LOCRAD  = 200
       WEIGHT =  1
-      RFACTOR = 1
+      RFACTOR = 2
     NAME = SST
       VAR = temp
       ID = 1
@@ -136,7 +154,7 @@
       ASYNCHRONOUS = no
       LOCRAD  = 200
       WEIGHT =  1
-      RFACTOR = 2
+      RFACTOR = 4
     NAME = TEM
       VAR = temp
       ID = 2
@@ -147,7 +165,7 @@
       ASYNCHRONOUS = no
       LOCRAD  = 800
       WEIGHT =  1
-      RFACTOR = 4
+      RFACTOR = 8
     NAME = SAL
       VAR = salt
       ID = 3
@@ -158,7 +176,7 @@
       ASYNCHRONOUS = no
       LOCRAD  = 800
       WEIGHT =  1
-      RFACTOR = 4
+      RFACTOR = 8
   reading observations:
     PRODUCT = RADS, TYPE = SLA, reader = standard2
       reading obs/RADS-IB/y2007/m12/e2_d19.nc:
@@ -351,5 +369,5 @@ ls: cannot access obs/WINDSAT/windsat_20071223.nc: No such file or directory
     TEM     184        104        104        0          0          0          0          7         
     SAL     184        104        104        0          0          0          0          7         
     total   9595       211        208        0          3          0          0          3864      
-  2016-02-17 13:51:34
+  2016-02-17 13:53:06
   finished

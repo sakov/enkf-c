@@ -1,7 +1,7 @@
-  running PREP for EnKF-C version 1.32.2:
+  running PREP for EnKF-C version 1.32.3:
     command = "./enkf_prep enoi.prm"
     dir = "/home/pavel/src/enkf-c/trunk/enkf/examples/3"
-  2016-02-16 15:56:30
+  2016-02-17 13:52:40
   reading prep specs from "enoi.prm":
     MODE = EnOI
     MODEL PRM = "model.prm"
@@ -351,5 +351,5 @@ ls: cannot access obs/WINDSAT/windsat_20071223.nc: No such file or directory
     TEM     101        67         67         0          0          0          0          3         
     SAL     101        67         67         0          0          0          0          3         
     total   7818       137        134        0          3          0          0          2942      
-  2016-02-16 15:56:31
+  2016-02-17 13:52:41
   finished

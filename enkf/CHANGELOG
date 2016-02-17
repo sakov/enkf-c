@@ -1,7 +1,14 @@
+v. 1.32.3
+   PS 17022016
+   -- Added examples/4 to demonstrate a multi-grid setting.
+   -- Added examples/1/conf directory to the source. Excluded it from the
+      example data download.
+   -- Changed some dimension and variable names and deleted global attributes
+      in grid_spec.nc files.
 v. 1.32.2
    PS 16022016
    -- Beautified examples/2/Makefile
-   -- Added examples/3 for an example of using masked curvilinear grid in PREP
+   -- Added examples/3 to demonstrate using masked curvilinear grid in PREP
 v. 1.32.1
    PS 16022016
    -- Bug fix for the previous version.

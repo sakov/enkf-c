@@ -1,0 +1,16 @@
+NAME = Tasman
+
+VAR = eta_t
+GRID = t-grid
+
+VAR = temp
+GRID = t-grid
+
+VAR = salt
+GRID = t-grid
+
+VAR = u
+GRID = c-grid
+
+VAR = v
+GRID = c-grid
