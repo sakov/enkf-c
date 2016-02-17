@@ -1,19 +1,26 @@
-example 1: 
+Example 1: 
 
-A basic example set up based on a real system for the Tasman Sea. Setting
-example 1 is prerequisite for running examples 2-4. See 1/README for more
-detail.
+  A basic example created from snapshots of EnKF and EnOI systems for Tasman
+  Sea. The targets demonstrate different capabilities of EnKF-C:
+    enkf -- assimilation with the EnKF
+    enoi -- assimilation with the EnOI
+    stats -- calculation of innovation statistics without assimilation
+    singleob -- single observation experiment
+    global -- global analysis with the EnKF
+    pointlogs -- investigation of assimilation results for a particular location
+  Setting example 1 is prerequisite for running examples 2-4. See 1/README for
+  more details.
 
-example 2:
+Example 2:
 
-As example 1, but demonstrates using curvilinear rather than a rectangular grid
-in lon/lat. (Although the actual grid is the same as in example 1.)
+  As example 1, but demonstrates using curvilinear rather than a rectangular
+  grid in lon/lat. (Although the actual grid is the same as in example 1.)
 
-example 3:
+Example 3:
 
-Demonstrates using partially masked curvilinear grid in PREP. This may be
-necessary to handle topologically screwed grids, e.g. tri-polar ORCA grids.
+  Demonstrates using partially masked curvilinear grid in PREP. This may be
+  necessary to handle topologically screwed grids, e.g. tri-polar ORCA grids.
 
-example 4:
+Example 4:
 
-Demonstrates a multi-grid setting.
+  Demonstrates a multi-grid setting.
