@@ -6,7 +6,7 @@ detail.
 
 example 2:
 
-As example 1, demonstrates using curvilinear rather than a rectangular grid
+As example 1, but demonstrates using curvilinear rather than a rectangular grid
 in lon/lat. (Although the actual grid is the same as in example 1.)
 
 example 3:
