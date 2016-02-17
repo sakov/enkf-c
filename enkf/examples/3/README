@@ -1,7 +1,7 @@
 This is example 3 for the EnKF-C package. It is based on example 1 and has been
-put up to demonstrate the framework for using partially masked curvilinear
-grid in PREP, while using full grid in CALC and UPDATE. This may be needed for
-handling topologically screwed grids, e.g. tri-polar ORCA grids.
+put up to demonstrate using partially masked curvilinear grid in PREP, while
+using full grid in CALC and UPDATE. This may be needed for handling
+topologically screwed grids, e.g. tri-polar ORCA grids.
 
 PREREQUISITES
 

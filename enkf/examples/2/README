@@ -1,9 +1,8 @@
 This is example 2 for the EnKF-C package. It is equivalent to example 1 except
 that the grid has been set as curvilinear rather than rectangular in
 longitude-latitude (although in fact it is the same rectangular grid).
-That is, the only differences with example 1 are in files grid.prm and
-grid_spec.nc. This example should yield the same results as example 1. See
-README and Makefile from example 1 for more details.
+This example should yield the same results as example 1. See README and
+Makefile from example 1 for more details.
 
 PREREQUISITES
 

@@ -1,7 +1,7 @@
-This is example 4 for the EnKF-C package. It is based on example 1 to
-demonstrate a multi-grid setting. Note that the actual difference between
-t-grid and c-grid is quite small to produce much different results compared to
-a single grid setting.
+This is example 4 for the EnKF-C package. It is based on example 1 and has been
+put up to demonstrate a multi-grid setting. Note that the actual difference
+between t-grid and c-grid here is quite small to produce much different results
+compared to a single grid setting.
 
 PREREQUISITES
 
