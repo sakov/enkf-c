@@ -27,7 +27,7 @@
 /* for the report */
 #define HT_SIZE 10000
 
-static inline double square_f(double x)
+static inline double fsquare(double x)
 {
     return x * x;
 }
@@ -57,7 +57,7 @@ void das_printobsstats(dasystem* das, int use_rmsd)
     double* inn_a_abs_inst;
     double* std_a_inst;
     int* nobs_inst;
-    double (*func) (double) = (use_rmsd) ? square_f : fabs;
+    double (*func) (double) = (use_rmsd) ? fsquare : fabs;
 
     if (rank != 0)
         return;
@@ -293,7 +293,7 @@ void das_printfobsstats(dasystem* das, int use_rmsd)
     double* inn_f_abs_inst;
     double* std_f_inst;
     int* nobs_inst;
-    double (*func) (double) = (use_rmsd) ? square_f : fabs;
+    double (*func) (double) = (use_rmsd) ? fsquare : fabs;
 
     if (rank != 0)
         return;

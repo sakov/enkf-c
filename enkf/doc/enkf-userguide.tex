@@ -35,7 +35,7 @@
 
 \begin{document}
 
-\title{EnKF-C user guide\\{\normalsize version 1.32.2}}
+\title{EnKF-C user guide\\{\normalsize version 1.32.3}}
 
 \author{Pavel Sakov}
 \date{June 19, 2014 -- \today}
@@ -706,9 +706,9 @@ The model parameter file mainly describes the composition of the state vector by
 
   Model parameter file format:
 
-    NAME        = <name>
+    NAME      = <name>
 
-    VAR         = <name>
+    VAR       = <name>
   [ GRID      = <name> ]                    (# grids > 1)
   [ INFLATION = <value> [<value> | PLAIN] ]
   [ RANDOMISE <deflation> <sigma> ]
@@ -722,6 +722,7 @@ Entry RANDOMISE makes it possible to specify a ``forgetting'' model for a variab
 
 EnKF-C permits using multiple model grids.
 In case of using multiple grids each model variable must be associated with one of the grids defined in the grid parameter file.
+See \verb|examples/4| for an example.
 
 \subsection{Grid parameter file}
 \label{sec:gridprm}
