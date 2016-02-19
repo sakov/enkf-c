@@ -7,9 +7,11 @@ Example 1:
     stats -- calculation of innovation statistics without assimilation
     singleob -- single observation experiment
     global -- global analysis with the EnKF
-    pointlogs -- investigation of assimilation results for a particular location
-  Setting example 1 is prerequisite for running examples 2-4. See 1/README for
-  more details.
+    pointlogs -- obtaining full information about assimilation at a specific
+      location (without re-calculating the analysis)
+  See 1/README for more details.
+
+  Downloading data for example 1 is prerequisite for running examples 2-4.
 
 Example 2:
 
