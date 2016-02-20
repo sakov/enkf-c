@@ -115,10 +115,10 @@ static gnxy_simple* gnxy_simple_create(int nx, int ny, double* x, double* y, int
     }
 
     if (periodic_x) {
-        if (abs(abs((x[nx - 1] - x[0]) / 360.0) - 1.0) > EPS_IJ) {
+        if (fabs(fabs((x[nx - 1] - x[0]) / 360.0) - 1.0) > EPS_IJ) {
             x = realloc(x, sizeof(double) * (nx + 1));
             x[nx] = (ascending) ? x[0] + 360.0 : x[0] - 360.0;
-            assert(abs((x[nx] - x[nx - 1]) / (x[nx - 1] / x[nx - 2]) - 1.0) < CELL_CHANGE_FACTOR_MAX);
+            assert(fabs((x[nx] - x[nx - 1]) / (x[nx - 1] / x[nx - 2]) - 1.0) < CELL_CHANGE_FACTOR_MAX);
         }
     }
     nodes->x = x;
@@ -135,10 +135,10 @@ static gnxy_simple* gnxy_simple_create(int nx, int ny, double* x, double* y, int
     }
 
     if (periodic_y) {
-        if (abs(abs((y[ny - 1] - y[0]) / 360.0) - 1.0) > EPS_IJ) {
+        if (fabs(fabs((y[ny - 1] - y[0]) / 360.0) - 1.0) > EPS_IJ) {
             y = realloc(y, sizeof(double) * (ny + 1));
             y[ny] = (ascending) ? y[0] + 360.0 : y[0] - 360.0;
-            assert(abs((y[ny] - y[ny - 1]) / (y[ny - 1] / y[ny - 2]) - 1.0) < CELL_CHANGE_FACTOR_MAX);
+            assert(fabs((y[ny] - y[ny - 1]) / (y[ny - 1] / y[ny - 2]) - 1.0) < CELL_CHANGE_FACTOR_MAX);
         }
     }
     nodes->y = y;

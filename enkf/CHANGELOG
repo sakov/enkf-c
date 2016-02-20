@@ -1,3 +1,6 @@
+v. 1.32.4
+   PS 20022016
+   -- A minor fix: replaced a number ofcalls to abs() by fabs() in grid.c 
 v. 1.32.3
    PS 17022016
    -- Added examples/4 to demonstrate a multi-grid setting.
