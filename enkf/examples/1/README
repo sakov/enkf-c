@@ -44,18 +44,20 @@ Also the following auxiliary files will be created:
      superobservations)
   -- obervations-orig.nc - records of original observations prior to
      superobing
-  -- X5.nc 2D array of ensemble transforms
+  -- X5.nc - 2D array of ensemble transforms
   -- enkf_diag.nc - data on observation impact
   -- prep.out, calc.out, update.out - log files
   -- pointlog_30,50.nc - full information about state and analysis in point
      (i,j) = (30,50)
   -- inflation.nc - actual inflation for each state element
-  -- spfread.nc - ensemble spread
+  -- spread.nc - ensemble spread
 
 TESTING ENOI
 
 To assimilate with the EnOI, run "make enoi". The analysis will be of the form
-background/bg_<var>.nc.analysis.
+background/bg_<var>.nc.analysis. Also auxiliary files similar those for the
+EnKF will be created except X5.nc, which is preplaced by w.nc - 2D array of
+update coefficients.
 
 TESTING MODEL VALIDATION
 
