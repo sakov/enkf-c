@@ -39,6 +39,18 @@ To assimilate with the EnKF, run "make enkf".
 The analysed ensemble members will be of the form 
 ensemble_6565/mem<num>_<var>.nc.analysis, where <num> is the member id, between
 001 and 096, and <var> is one of the state variables: eta_t, temp, salt, u or v.
+Also the following auxiliary files will be created:
+  -- observation.nc - full information in observation space (for
+     superobservations)
+  -- obervations-orig.nc - records of original observations prior to
+     superobing
+  -- X5.nc 2D array of ensemble transforms
+  -- enkf_diag.nc - data on observation impact
+  -- prep.out, calc.out, update.out - log files
+  -- pointlog_30,50.nc - full information about state and analysis in point
+     (i,j) = (30,50)
+  -- inflation.nc - actual inflation for each state element
+  -- spfread.nc - ensemble spread
 
 TESTING ENOI
 
