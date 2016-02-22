@@ -37,7 +37,7 @@ static void interpolate_2d_obs(model* m, observations* allobs, int nobs, int obs
     int type_prev = -1;
     int** mask = NULL;
     int ni, nj;
-    int periodic_x = -1, periodic_y = -1;
+    int periodic_x = 0, periodic_y = 0;
     int i;
 
     for (i = 0; i < nobs; ++i) {

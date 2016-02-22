@@ -35,7 +35,7 @@
 
 \begin{document}
 
-\title{EnKF-C user guide\\{\normalsize version 1.32.3}}
+\title{EnKF-C user guide\\{\normalsize version 1.32.4}}
 
 \author{Pavel Sakov}
 \date{June 19, 2014 -- \today}
@@ -220,13 +220,14 @@ where $\mb 1$ is a vector with all elements equal to 1.
 The above means that the model state estimate is given by the ensemble mean, while the model state error covariance $\mb P$ is implicitly represented by the ensemble anomalies $\mb A$ via the factorisation (\ref{P}).
 
 Representing the state error covariance via ensemble anomalies yields a number of numerical benefits.
-In large-scale geophysical systems the ensemble size ($\sim 10^2$)is always much less than the state dimension ($\sim 10^5-10^9$); therefore it is typically impossible to store and manipulate the covariance $\mb P$ directly, but it is possible via operations with $\mb A$.
-Also, using $\mb A$ ensures that $\mb P$ is positive semidefinite, which due to round-up errors is not always the case when using (\ref{kf-an-P}).
-However, storing the SDAS via ensemble of model states is only one essential feature of the EnKF.
-The second important feature is the derivative-less formulation of the KF.
+In large-scale geophysical systems the ensemble size ($\sim 10^2$) is always much smaller than the state size ($\sim 10^5-10^9$).
+Therefore, while it is typically impossible to store and manipulate the covariance $\mb P$ directly, it is possible via operations with $\mb A$.
+Further, using $\mb A$ ensures positive semidefiniteness of $\mb P$.
 
-It is possible to use the ensemble form (\ref{sdas-enkf}) of the SDAS along with the explicitly calculated Jacobians $\mb M$ and $\mb H$ in the KF equations (\ref{kf-for}) and (\ref{kf-an}) just by replacing $\mb P \rightarrow \mb A \mb A\T / (m - 1)$.
-The EnKF goes further and uses the derivative-less formulation of the KF as follows:
+Storing the SDAS via an ensemble of model states is the first essential feature of the EnKF.
+In theory, one could use it in an implementation of the KF along with explicitly calculated Jacobians $\mb M$ and $\mb H$ in equations (\ref{kf-for}) and (\ref{kf-an}).
+The EnKF makes a further step and uses the ensemble form of the SDAS for a derivative-less formulation of the KF.
+Moreover, it approximates derivatives using ensemble of finite spread that characterises the estimated uncertainty in the state:
 \begin{subequations}
   \label{der-less-enkf}
   \begin{align}
@@ -237,20 +238,20 @@ The EnKF goes further and uses the derivative-less formulation of the KF as foll
     &\mb H \mb M \mb A &\to& \quad \mathcal H \circ \mathcal M(\mb E) \left(\mb I - \mb 1 \mb 1\T /m \right).
   \end{align}
 \end{subequations}
-This formulation is not the only possible.
-It approximates derivatives using ensemble of finite spread that characterises the estimated uncertainty in the state; but one might use the finite difference approximations:
+
+This formulation is not the only possible; one might also use finite difference approximations:
 \begin{subequations}
   \label{der-less-ekf}
   \begin{align}
     &\mb H \mb x \quad &\to& \quad \mathcal H (\mb x \mb 1\T + \varepsilon \mb A) \, 1/m \hspace{8cm}\\
-    &\mb H \mb A \quad &\to& \quad \mathcal H(\mb x \mb 1\T + \varepsilon \mb A)\left(\mb I - \mb 1 \mb 1\T / m\right) \frac{1}{\varepsilon}\\
+    &\mb H \mb A \quad &\to& \quad \mathcal H(\mb x \mb 1\T + \varepsilon \mb A)\left(\mb I - \mb 1 \mb 1\T / m\right) / \varepsilon\\
     &\mb M \mb x \quad &\to& \quad \mathcal M (\mb x \mb 1\T + \varepsilon \mb A) \, 1/m\\
-    &\mb M \mb A \quad &\to& \quad \mathcal M(\mb x \mb 1\T + \varepsilon \mb A)\left(\mb I - \mb 1 \mb 1\T / m\right) \frac{1}{\varepsilon}\\
-    &\mb H \mb M \mb A \quad &\to& \quad \mathcal H \circ \mathcal M(\mb x \mb 1\T + \varepsilon \mb A)\left(\mb I - \mb 1 \mb 1\T / m\right) \frac{1}{\varepsilon}.
+    &\mb M \mb A \quad &\to& \quad \mathcal M(\mb x \mb 1\T + \varepsilon \mb A)\left(\mb I - \mb 1 \mb 1\T / m\right) / \varepsilon\\
+    &\mb H \mb M \mb A \quad &\to& \quad \mathcal H \circ \mathcal M(\mb x \mb 1\T + \varepsilon \mb A)\left(\mb I - \mb 1 \mb 1\T / m\right) / \varepsilon.
   \end{align}
 \end{subequations}
-In this form the filter will represent a derivative-less EKF.
-In practice the difference between the EnKF formulation (\ref{der-less-enkf}) and the EKF formulation (\ref{der-less-ekf}) is that the latter is more sensitive to small-scale variability and therefore more prone to instability, similar to the difference in behaviour of Newton and secant methods.
+In this form the filter represents a derivative-less ensemble formulation of the EKF.
+In practice the difference between the EnKF formulation (\ref{der-less-enkf}) and the EKF formulation (\ref{der-less-ekf}) is that the latter is more sensitive to small-scale variability and therefore more prone to instability, similar to the difference in behaviour of the Newton and secant methods.
 
 The forecast stage of the EnKF involves only propagation of each ensemble member:
 \begin{align}
