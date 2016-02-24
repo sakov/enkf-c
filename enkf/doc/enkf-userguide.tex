@@ -806,7 +806,7 @@ For example:
 The \verb|OFFSET| entry may be used for adding the known model bias to observations, for example, to specify the mean dynamic topography (MDT) when assimilating sea level anomaly (SLA) observations.
 
 The localisation radius for an observation type, if specified, overrides the
-comon value from the main parameter file.
+common value from the main parameter file.
 The R-factors for each observation type are obtained by multiplying the common
 value by the observation type value.
 (More on localisation radius and R-factor in sec.~\ref{sec:datuning}.)
@@ -970,7 +970,7 @@ BADBATCHES = SST 0.5 2 10000
 BADBATCHES = SAL 1.5 2 0
 \end{Verbatim}
 The above entry means that any batch of observations of type SLA (typically, an orbit) containing more than 500 observations and having either mean innovation greater than 0.06 (meter) in magnitude or mean absolute innovation greater than 0.10 is considered to be bad.
-Similarly, a TEM batch (typically, a profile) is considered bad if the mean innovation exceds 4 (degrees) or the mean absolute innovation exceeds 5 (degrees).
+Similarly, a TEM batch (typically, a profile) is considered bad if the mean innovation exceeds 4 (degrees) or the mean absolute innovation exceeds 5 (degrees).
 The parameter file can have arbitrary number of such entries.
 Information about bad batches is written by \verb|enkf_calc| to the file \verb|badbatches.out|.
 When \verb|enkf_prep| detects the presence of such file, it marks the corresponding observations as bad.
@@ -1316,7 +1316,7 @@ Following are the main parameters for DAS tuning in EnKF-C:
 \begin{itemize}
 \item R-factors;
 \item inflation magnitudes;
-\item localisation radius.
+\item localisation radii.
 \end{itemize}
 
 The R-factors can be defined for each observation type.
