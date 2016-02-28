@@ -17,7 +17,8 @@ Examine Makefile to understand what happens and how for each particular target.
 
 PREREQUISITES
 
-1. To run this example you need to download example1-data.tar.gz by either
+1. To run this example you need to download example1-data.tar.gz (79 MB) by
+either
 
 wget --no-check-certificate 'https://googledrive.com/host/0B-joqvlrlCeRUmFyR1J4TloxYUE' -O example1-data.tar.gz
 
