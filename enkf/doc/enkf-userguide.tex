@@ -988,7 +988,7 @@ Note that bad batches are identified at stage 2 based on superobservations forme
 Consequently, detection of bad batches may become unreliable if there are not enough such ``clean'' superobservations.
 It is possible to alleviate this problem by (1) switching off superobing by setting \verb|SOBSTRIDE = 0| or specifying \verb|--no-superobing| for \verb|enkf_prep| and/or (2) by processing observations by parts, one type (or instrument) at a time, and repeating stages 1 and 2 as many times as necessary.
 
-\subsection{Asynchronous DA}
+\subsection{Asynchronous DA / FGAT}
 \label{sec:async}
 
 An observation type can be specified as ``asynchronous'' by specifying entry \verb|ASYNC| entry in the observation types parameter file (sec. \ref{sec:obstypesprm}), e.g.:

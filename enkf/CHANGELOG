@@ -1,3 +1,7 @@
+v. 1.33.0
+   PS 03032016
+   -- Adding parameter "ADD" to the RADS reader to make it possible to revert
+      a correction to SLA
 v. 1.32.4
    PS 20022016
    -- A minor fix: replaced a number ofcalls to abs() by fabs() in grid.c 

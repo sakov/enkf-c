@@ -44,16 +44,18 @@
 void reader_rads_standard(char* fname, int fid, obsmeta* meta, model* m, observations* obs)
 {
     double mindepth = MINDEPTH_DEF;
+    char* addname = NULL;
     int ncid;
     int dimid_nobs;
     size_t nobs_local;
-    int varid_lon, varid_lat, varid_pass, varid_sla, varid_time;
+    int varid_lon, varid_lat, varid_pass, varid_sla, varid_time, varid_add;
     double* lon;
     double* lat;
     int* pass;
     double* sla;
     double* time;
     double error_std;
+    double* add = NULL;
     size_t tunits_len;
     char* tunits;
     double tunits_multiple, tunits_offset;
@@ -67,6 +69,9 @@ void reader_rads_standard(char* fname, int fid, obsmeta* meta, model* m, observa
         if (strcasecmp(meta->pars[i].name, "MINDEPTH") == 0) {
             if (!str2double(meta->pars[i].value, &mindepth))
                 enkf_quit("observation prm file: can not convert MINDEPTH = \"%s\" to double\n", meta->pars[i].value);
+        } else if (strcasecmp(meta->pars[i].name, "ADD") == 0) {
+            addname = meta->pars[i].value;
+            enkf_printf("        ADD \"%s\"\n", addname);
         } else
             enkf_quit("unknown PARAMETER \"%s\"\n", meta->pars[i].name);
     }
@@ -100,6 +105,12 @@ void reader_rads_standard(char* fname, int fid, obsmeta* meta, model* m, observa
     ncw_get_var_double(fname, ncid, varid_sla, sla);
     ncw_get_att_double(fname, ncid, varid_sla, "error_std", &error_std);
     enkf_printf("        error_std = %3g\n", error_std);
+
+    if (addname != NULL) {
+        ncw_inq_varid(fname, ncid, addname, &varid_add);
+        add = malloc(nobs_local * sizeof(double));
+        ncw_get_var_double(fname, ncid, varid_add, add);
+    }
 
     ncw_inq_varid(fname, ncid, "time", &varid_time);
     time = malloc(nobs_local * sizeof(double));
@@ -140,6 +151,8 @@ void reader_rads_standard(char* fname, int fid, obsmeta* meta, model* m, observa
         o->fid = fid;
         o->batch = pass[i];
         o->value = sla[i];
+        if (add != NULL)
+            o->value += add[i];
         o->std = error_std;
         o->lon = lon[i];
         o->lat = lat[i];
@@ -159,6 +172,8 @@ void reader_rads_standard(char* fname, int fid, obsmeta* meta, model* m, observa
         obs->nobs++;
     }
 
+    if (add != NULL)
+        free(add);
     free(lon);
     free(lat);
     free(pass);
@@ -172,16 +187,18 @@ void reader_rads_standard(char* fname, int fid, obsmeta* meta, model* m, observa
 void reader_rads_standard2(char* fname, int fid, obsmeta* meta, model* m, observations* obs)
 {
     double mindepth = MINDEPTH_DEF;
+    char* addname = NULL;
     int ncid;
     int dimid_nobs;
     size_t nobs_local;
-    int varid_lon, varid_lat, varid_pass, varid_sla, varid_flag;
+    int varid_lon, varid_lat, varid_pass, varid_sla, varid_flag, varid_add;
     double* lon;
     double* lat;
     int* pass;
     double* sla;
     int* flag;
     double error_std;
+    double* add = NULL;
     char buf[MAXSTRLEN];
     int len;
     int year, month, day;
@@ -196,6 +213,9 @@ void reader_rads_standard2(char* fname, int fid, obsmeta* meta, model* m, observ
         if (strcasecmp(meta->pars[i].name, "MINDEPTH") == 0) {
             if (!str2double(meta->pars[i].value, &mindepth))
                 enkf_quit("observation prm file: can not convert MINDEPTH = \"%s\" to double\n", meta->pars[i].value);
+        } else if (strcasecmp(meta->pars[i].name, "ADD") == 0) {
+            addname = meta->pars[i].value;
+            enkf_printf("        ADD \"%s\"\n", addname);
         } else
             enkf_quit("unknown PARAMETER \"%s\"\n", meta->pars[i].name);
     }
@@ -228,6 +248,12 @@ void reader_rads_standard2(char* fname, int fid, obsmeta* meta, model* m, observ
     ncw_get_var_double(fname, ncid, varid_sla, sla);
     ncw_get_att_double(fname, ncid, varid_sla, "error_std", &error_std);
     enkf_printf("        error_std = %3g\n", error_std);
+
+    if (addname != NULL) {
+        ncw_inq_varid(fname, ncid, addname, &varid_add);
+        add = malloc(nobs_local * sizeof(double));
+        ncw_get_var_double(fname, ncid, varid_add, add);
+    }
 
     ncw_inq_varid(fname, ncid, "local_flag", &varid_flag);
     flag = malloc(nobs_local * sizeof(int));
@@ -281,6 +307,8 @@ void reader_rads_standard2(char* fname, int fid, obsmeta* meta, model* m, observ
         o->fid = fid;
         o->batch = pass[i];
         o->value = sla[i];
+        if (add != NULL)
+            o->value += add[i];
         o->std = error_std;
         o->lon = lon[i];
         o->lat = lat[i];
@@ -300,6 +328,8 @@ void reader_rads_standard2(char* fname, int fid, obsmeta* meta, model* m, observ
         obs->nobs++;
     }
 
+    if (add != NULL)
+        free(add);
     free(lon);
     free(lat);
     free(pass);

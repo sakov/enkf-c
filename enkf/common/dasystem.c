@@ -29,7 +29,6 @@
 #include "nan.h"
 #include "ncw.h"
 #include "hash.h"
-#include "version.h"
 #include "definitions.h"
 #include "utils.h"
 #include "distribute.h"
