@@ -171,44 +171,24 @@ void das_getHE(dasystem* das)
         /*
          * communicate HE via MPI
          */
-        int ierror, count;
+        int ierror, sendcount, *recvcounts, *displs;
 
-        /*
-         * Blocking communications can create a bottleneck in instances with
-         * large number of observations (e.g., 2e6 obs., 144 members, 48
-         * processes), but asynchronous send/receive seem to work well
-         */
-        if (rank > 0) {
-            MPI_Request request;
+        recvcounts = malloc(nprocesses * sizeof(int));
+        displs = malloc(nprocesses * sizeof(int));
 
-            /*
-             * send ensemble observations to master
-             */
-            count = (my_last_iteration - my_first_iteration + 1) * obs->nobs;
-            ierror = MPI_Isend(das->S[my_first_iteration], count, MPIENSOBSTYPE, 0, rank, MPI_COMM_WORLD, &request);
-            assert(ierror == MPI_SUCCESS);
-        } else {
-            int r;
-            MPI_Request* requests = malloc((nprocesses - 1) * sizeof(MPI_Request));
-
-            /*
-             * collect ensemble observations from slaves
-             */
-            for (r = 1; r < nprocesses; ++r) {
-                count = (last_iteration[r] - first_iteration[r] + 1) * obs->nobs;
-                ierror = MPI_Irecv(das->S[first_iteration[r]], count, MPIENSOBSTYPE, r, r, MPI_COMM_WORLD, &requests[r - 1]);
-                assert(ierror == MPI_SUCCESS);
-            }
-            ierror = MPI_Waitall(nprocesses - 1, requests, MPI_STATUS_IGNORE);
-            assert(ierror == MPI_SUCCESS);
-            free(requests);
+        sendcount = my_number_of_iterations * obs->nobs;
+        for (i = 0; i < nprocesses; ++i) {
+            recvcounts[i] = number_of_iterations[i] * obs->nobs;
+            displs[i] = first_iteration[i] * obs->nobs;
         }
-        /*
-         * now send the full set of ensemble observations to slaves
-         */
-        count = das->nmem * obs->nobs;
-        ierror = MPI_Bcast(das->S[0], count, MPIENSOBSTYPE, 0, MPI_COMM_WORLD);
+
+        ierror = MPI_Allgatherv(das->S[my_first_iteration], sendcount, MPIENSOBSTYPE,
+                                das->S[0], recvcounts, displs, MPIENSOBSTYPE,
+                                MPI_COMM_WORLD);
         assert(ierror == MPI_SUCCESS);
+
+        free(recvcounts);
+        free(displs);
 #else
         /*
          * communicate HE via file
