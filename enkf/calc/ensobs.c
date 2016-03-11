@@ -182,9 +182,7 @@ void das_getHE(dasystem* das)
             displs[i] = first_iteration[i] * obs->nobs;
         }
 
-        ierror = MPI_Allgatherv(das->S[my_first_iteration], sendcount, MPIENSOBSTYPE,
-                                das->S[0], recvcounts, displs, MPIENSOBSTYPE,
-                                MPI_COMM_WORLD);
+        ierror = MPI_Allgatherv(das->S[my_first_iteration], sendcount, MPIENSOBSTYPE, das->S[0], recvcounts, displs, MPIENSOBSTYPE, MPI_COMM_WORLD);
         assert(ierror == MPI_SUCCESS);
 
         free(recvcounts);

@@ -229,10 +229,10 @@ static observations* obs_create_fromsingleob(enkfprm* prm, dasystem* das)
     obs->data = o;
 
     if (obs->obstypes[o->type].issurface) {
-	 if (!singleob_ijk)
-	     o->depth = 0.0;
-	 else
-	     o->depth = grid_gettoplayerid(grid);
+        if (!singleob_ijk)
+            o->depth = 0.0;
+        else
+            o->depth = grid_gettoplayerid(grid);
     }
 
     if (!singleob_ijk) {
@@ -254,6 +254,7 @@ static observations* obs_create_fromsingleob(enkfprm* prm, dasystem* das)
 
         o->status = STATUS_OK;
         grid_getdims(grid, &ni, &nj, &nk);
+
         if (o->fi < 0.0 || o->fi > (double) (ni - 1) || o->fj < 0.0 || o->fj > (double) (nj - 1) || o->fk < 0.0 || o->fk > (double) (nk - 1))
             o->status = STATUS_OUTSIDEGRID;
         else {

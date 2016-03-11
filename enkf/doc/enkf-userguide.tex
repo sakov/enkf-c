@@ -35,7 +35,7 @@
 
 \begin{document}
 
-\title{EnKF-C user guide\\{\normalsize version 1.32.4}}
+\title{EnKF-C user guide\\{\normalsize version 1.34.0}}
 
 \author{Pavel Sakov}
 \date{June 19, 2014 -- \today}
@@ -182,7 +182,7 @@ There are a few things to be noted about the KF:
 \end{align}
 This means that in any moment of time all previous information about the system is encrypted into the current (forecast or analysis) SDAS.
 \item The KF provides solution for the \emph{last} analysis, corresponding to $\mb x_k^a$ in ($\ref{min-nonl}$) (or, with a minor re-formulation, to the last forecast); finding the full (global in time) solution requires application of the Kalman \emph{smoother} (KS).
-Both the KF and KS can be derived by a re-factorisation of the positive definite quadratic form (\ref{L-nonl}).
+Both the KF and KS can be derived by a re-factorisation of the positive (semi)definite quadratic form (\ref{L-nonl}).
 \item Because the SDAS represents a (part of a) solution of the global least squares problem, it does not depend on the order in which observations are assimilated or on their grouping.
 \item Ditto, the SDAS does not depend on a linear non-singular transform of the model state in the sense that the forward and inverse transforms commute with the evolution of the DA system.
 \item Solution (\ref{kf-for}, \ref{kf-an}) can be \emph{used} in a nonlinear case by approximating
@@ -563,7 +563,7 @@ This time invariance of ensemble transforms can be used to update ensemble back 
 
 \section{EnOI}
 
-The EnOI, or ensemble optimal interpolation \citep{eve03a}, can be defined as the EnKF with a static or, more generally, pre-defined, ensemble.
+The EnOI, or ensemble optimal interpolation \citep{eve03a}, can be defined as the EnKF with a static or, more generally, pre-defined, ensemble anomalies.
 It can be summarised as follows:
 \begin{align}
   \label{enoi-for}
@@ -763,9 +763,9 @@ At the moment, EnKF-C supports 3 main types of horizontal grids:
 For rectangular grids the code tries to determine and handle periodicity in X or Y directions.
 
 With some effort EnKF-C can also handle topologically screwed grids (like tri-polar ORCA grids).
-This is achieved by creating an auxiliary grid that is simply connected in grid index space by masking some nodes (replacing thir coordinates with NaNs) in the original grid.
+This is achieved by creating an auxiliary grid that is simply connected in grid index space by masking some nodes (replacing their coordinates with NaNs) in the original grid.
 Because only \emph{prep} requires mapping from physical to grid space, this auxiliary grid is then used in \emph{prep} only, while the original grid is used in \emph{calc} and \emph{update}.
-To specify that a grid entry is to be used in \emph{prep} only one needs to add qualifier ``PREP'' after its name; and to specify that it us to be used in \emph{calc} and \emph{update} one needs to add qualifier ``CALC''.
+To specify that a grid entry is to be used in \emph{prep} only one needs to add qualifier ``PREP'' after its name; and to specify that it is to be used in \emph{calc} and \emph{update} one needs to add qualifier ``CALC''.
 See \verb|examples/3| for an example.
 
 \subsection{Observation types parameter file}
@@ -1600,7 +1600,7 @@ Paul Sandery was the first user of this code (apart from the author), and his en
   $\mb I$ &-& identity matrix \\
   $\mb U$ &-& a unitary matrix, $\mb U \mb U\T = \mb I$ \\
   $\mb A\T$ &-& transposed matrix $\mb A$ \\
-  $\mb A^{1/2}$ &-& unique positive definite square root of a positive definite matrix $\mb A$ \\
+  $\mb A^{1/2}$ &-& the unique positive definite square root of a positive definite matrix $\mb A$ \\
   $\mathrm{tr}(\mb A)$ &-& trace of $\mb A$ \\
   $\mathcal H \circ \mathcal M(\mb x)$ &-& $\mathcal H \left[ \mathcal M (\mb x) \right]$ \\
   $\mb A \circ \mb B$ &-& by-element, or Hadamard, or Schur product of matrices
