@@ -1,10 +1,16 @@
+v. 1.34.0
+   PS 11032016
+   -- Made sure that for single observation experiements (options
+      --single-observation-xyz or --single-observation-ijk of enkf_calc) for
+      surface obs types the observation layer/depth is set to surface
+      regardless of the entered value
 v. 1.33.0
    PS 03032016
    -- Adding parameter "ADD" to the RADS reader to make it possible to revert
       a correction to SLA
 v. 1.32.4
    PS 20022016
-   -- A minor fix: replaced a number ofcalls to abs() by fabs() in grid.c 
+   -- A minor fix: replaced a number ofcalls to abs() by fabs() in grid.c
 v. 1.32.3
    PS 17022016
    -- Added examples/4 to demonstrate a multi-grid setting.

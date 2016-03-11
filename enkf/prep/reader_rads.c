@@ -71,7 +71,7 @@ void reader_rads_standard(char* fname, int fid, obsmeta* meta, model* m, observa
                 enkf_quit("observation prm file: can not convert MINDEPTH = \"%s\" to double\n", meta->pars[i].value);
         } else if (strcasecmp(meta->pars[i].name, "ADD") == 0) {
             addname = meta->pars[i].value;
-            enkf_printf("        ADD \"%s\"\n", addname);
+            enkf_printf("        ADDING \"%s\"\n", addname);
         } else
             enkf_quit("unknown PARAMETER \"%s\"\n", meta->pars[i].name);
     }
@@ -215,7 +215,7 @@ void reader_rads_standard2(char* fname, int fid, obsmeta* meta, model* m, observ
                 enkf_quit("observation prm file: can not convert MINDEPTH = \"%s\" to double\n", meta->pars[i].value);
         } else if (strcasecmp(meta->pars[i].name, "ADD") == 0) {
             addname = meta->pars[i].value;
-            enkf_printf("        ADD \"%s\"\n", addname);
+            enkf_printf("        ADDING \"%s\"\n", addname);
         } else
             enkf_quit("unknown PARAMETER \"%s\"\n", meta->pars[i].name);
     }

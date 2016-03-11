@@ -227,6 +227,14 @@ static observations* obs_create_fromsingleob(enkfprm* prm, dasystem* das)
 
     obs->nobs = 1;
     obs->data = o;
+
+    if (obs->obstypes[o->type].issurface) {
+	 if (!singleob_ijk)
+	     o->depth = 0.0;
+	 else
+	     o->depth = grid_gettoplayerid(grid);
+    }
+
     if (!singleob_ijk) {
         o->status = model_xy2fij(m, vid, o->lon, o->lat, &o->fi, &o->fj);
         if (o->status == STATUS_OK)
@@ -241,12 +249,11 @@ static observations* obs_create_fromsingleob(enkfprm* prm, dasystem* das)
         o->fj = o->lat;
         model_ij2xy(m, vid, (int) (o->fi + EPS_IJ), (int) (o->fj + EPS_IJ), &o->lon, &o->lat);
         o->fk = o->depth;
-        if (o->depth != 0.0)
+        if (o->fk != 0.0)
             o->depth = NaN;     /* fk2z - TODO */
 
-        grid_getdims(grid, &ni, &nj, &nk);
-
         o->status = STATUS_OK;
+        grid_getdims(grid, &ni, &nj, &nk);
         if (o->fi < 0.0 || o->fi > (double) (ni - 1) || o->fj < 0.0 || o->fj > (double) (nj - 1) || o->fk < 0.0 || o->fk > (double) (nk - 1))
             o->status = STATUS_OUTSIDEGRID;
         else {
@@ -256,7 +263,7 @@ static observations* obs_create_fromsingleob(enkfprm* prm, dasystem* das)
             int j2 = ceil(o->fj);
             int k1p1 = floor(o->fk) + 1;
 
-            if (nlevels[j1][i1] <= k1p1 && nlevels[j1][i2] <= k1p1 && nlevels[j2][i1] <= k1p1 && nlevels[j2][i2] <= k1p1)
+            if (nlevels[j1][i1] < k1p1 && nlevels[j1][i2] < k1p1 && nlevels[j2][i1] < k1p1 && nlevels[j2][i2] < k1p1)
                 o->status = STATUS_LAND;
         }
     }
@@ -272,6 +279,8 @@ static observations* obs_create_fromsingleob(enkfprm* prm, dasystem* das)
     enkf_printf("    lon  = %.3f\n", o->lat);
     enkf_printf("    i    = %.3f\n", o->fi);
     enkf_printf("    j    = %.3f\n", o->fj);
+    if (!obs->obstypes[o->type].issurface)
+        enkf_printf("    k    = %.3f\n", o->fk);
 
     obs_calcstats(obs);
     return obs;
