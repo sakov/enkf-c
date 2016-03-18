@@ -1,3 +1,7 @@
+v. 1.36.1
+   PS 18032016
+   -- Removed redundant dependency on the latest version of gridutils (not
+      yet...)
 v. 1.36.0
    PS 18032016
    -- Refurbished the kdtree code (for no particular reason)
