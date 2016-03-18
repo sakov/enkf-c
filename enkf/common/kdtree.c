@@ -73,8 +73,9 @@ struct resnode {
 };
 
 struct kdset {
-    struct kdtree* tree;
-    resnode* first, *now;
+    kdtree* tree;
+    resnode* first;
+    resnode* now;
     int size;
 };
 
@@ -185,7 +186,7 @@ static int _kd_nearest_range(kdtree* tree, int id, const double* pos, double ran
     node = &tree->nodes[id];
     nodepos = &tree->positions[node->id * ndim];
 
-    dist_sq = 0;
+    dist_sq = 0.0;
     for (i = 0; i < ndim; i++) {
         double tmp = nodepos[i] - pos[i];
 
@@ -230,7 +231,7 @@ kdset* kd_nearest_range(kdtree* tree, const double* pos, double range, int order
         return 0;
     }
     rset->size = ret;
-    rset->now = rset->first->next;    /* rewind */
+    rset->now = rset->first->next;      /* rewind */
 
     return rset;
 }
@@ -239,7 +240,8 @@ kdset* kd_nearest_range(kdtree* tree, const double* pos, double range, int order
  */
 static void _clear_results(kdset* rset)
 {
-    resnode* tmp, *node = rset->first->next;
+    resnode* node = rset->first->next;
+    resnode* tmp;
 
     while (node != NULL) {
         tmp = node;
