@@ -8,7 +8,7 @@
  *
  * Description:
  *
- * Revisions:   April 2012 - modified by Pavel Sakov
+ * Revisions:   April 2012; March 2016 -- modified by Pavel Sakov
  *
  *****************************************************************************/
 
@@ -74,7 +74,7 @@ struct resnode {
 
 struct kdset {
     struct kdtree* tree;
-    resnode* rlist, *riter;
+    resnode* first, *now;
     int size;
 };
 
@@ -85,9 +85,6 @@ kdtree* kd_create(int ndim)
     kdtree* tree;
 
     tree = malloc(sizeof(kdtree));
-    if (tree == NULL)
-        return NULL;
-
     tree->ndim = ndim;
     tree->nnodes = 0;
     tree->nodes = NULL;
@@ -100,9 +97,6 @@ kdtree* kd_create(int ndim)
  */
 void kd_destroy(kdtree* tree)
 {
-    if (tree == NULL)
-        return;
-
     free(tree->nodes);
     free(tree->positions);
     free(tree);
@@ -160,10 +154,8 @@ int kd_insert(kdtree* tree, const double* pos)
  */
 static int _rlist_insert(resnode* list, kdnode* item, double dist_sq)
 {
-    resnode* rnode = NULL;
+    resnode* rnode = malloc(sizeof(resnode));
 
-    if ((rnode = malloc(sizeof(resnode))) == NULL)
-        return -1;
     rnode->id = item->id;
     rnode->dist_sq = dist_sq;
 
@@ -227,23 +219,17 @@ kdset* kd_nearest_range(kdtree* tree, const double* pos, double range, int order
     kdset* rset;
 
     rset = malloc(sizeof(kdset));
-    if (rset == NULL)
-        return NULL;
-    rset->rlist = malloc(sizeof(resnode));
-    if (rset->rlist == NULL) {
-        free(rset);
-        return NULL;
-    }
-    rset->rlist->next = NULL;
+    rset->first = malloc(sizeof(resnode));
+    rset->first->next = NULL;
     rset->tree = tree;
 
-    ret = _kd_nearest_range(tree, 0, pos, range, rset->rlist, ordered);
+    ret = _kd_nearest_range(tree, 0, pos, range, rset->first, ordered);
     if (ret == -1) {
         kd_res_free(rset);
         return 0;
     }
     rset->size = ret;
-    rset->riter = rset->rlist->next;    /* rewind */
+    rset->now = rset->first->next;    /* rewind */
     return rset;
 }
 
@@ -251,7 +237,7 @@ kdset* kd_nearest_range(kdtree* tree, const double* pos, double range, int order
  */
 static void _clear_results(kdset* rset)
 {
-    resnode* tmp, *node = rset->rlist->next;
+    resnode* tmp, *node = rset->first->next;
 
     while (node != NULL) {
         tmp = node;
@@ -259,7 +245,7 @@ static void _clear_results(kdset* rset)
         free(tmp);
     }
 
-    rset->rlist->next = NULL;
+    rset->first->next = NULL;
 }
 
 /**
@@ -269,7 +255,7 @@ void kd_res_free(kdset* set)
     if (set == NULL)
         return;
     _clear_results(set);
-    free(set->rlist);
+    free(set->first);
     free(set);
 }
 
@@ -277,18 +263,18 @@ void kd_res_free(kdset* set)
  */
 int kd_res_next(kdset* set)
 {
-    if (set == NULL || set->riter == NULL)
+    if (set == NULL || set->now == NULL)
         return 0;
-    set->riter = set->riter->next;
-    return set->riter != NULL;
+    set->now = set->now->next;
+    return set->now != NULL;
 }
 
 /**
  */
 int kd_res_getid(kdset* set)
 {
-    if (set->riter != NULL)
-        return set->riter->id;
+    if (set->now != NULL)
+        return set->now->id;
     return -1;
 }
 
@@ -546,7 +532,7 @@ int main(int argc, char* argv[])
 
     set = kd_nearest_range(tree, pos, range, dosort);
 
-    for (; (id = kd_res_getitemid(set)) >= 0; kd_res_next(set)) {
+    for (; (id = kd_res_getid(set)) >= 0; kd_res_next(set)) {
         double* respos;
         double dist;
 
