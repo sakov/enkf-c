@@ -74,6 +74,9 @@ struct grid {
 
     grid_tocartesian_fn tocartesian_fn;
 
+#if !defined(NO_GRIDUTILS)
+    int hmaptype;
+#endif
     void* gridnodes_xy;         /* (the structure is defined by `htype') */
     double lonbase;             /* (lon range = [lonbase, lonbase + 360)] */
 
@@ -635,6 +638,9 @@ grid* grid_create(void* p, int id)
     g->name = strdup(prm->name);
     g->id = id;
     g->vtype = gridprm_getvtype(prm);
+#if !defined(NO_GRIDUTILS)
+    g->hmaptype = GRIDMAP_TYPE_DEF;
+#endif
 
     ncw_open(fname, NC_NOWRITE, &ncid);
     ncw_inq_dimid(fname, ncid, prm->xdimname, &dimid_x);

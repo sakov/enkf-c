@@ -75,17 +75,13 @@ kdset* kd_nearest_range(kdtree* tree, const double* pos, double range, int order
 /* frees a result set returned by kd_nearest_range() */
 void kd_res_free(kdset* set);
 
-/* gets id for the current item from the result set */
-int kd_res_item_getid(kdset* set);
-
 /* advances the result set iterator, returns non-zero on success, zero if
  * there are no more elements in the result set.
  */
 int kd_res_next(kdset* set);
 
-double* kd_res_getpos(kdset* set);
-
-int kd_getid(kdnode* node);
+int kd_res_getitemid(kdset* set);
+double* kd_getpos(kdtree* tree, int id);
 
 #define _KDTREE_H_
 #endif                          /* _KDTREE_H_ */

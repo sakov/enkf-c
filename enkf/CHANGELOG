@@ -3,7 +3,7 @@ v. 1.35.0
    -- Replaced isend/bcast calls in das_getHE() with allgatherv
 v. 1.34.0
    PS 11032016
-   -- Made sure that for single observation experiements (options
+   -- Made sure that in single observation experiements (options
       --single-observation-xyz or --single-observation-ijk of enkf_calc) for
       surface obs types the observation layer/depth is set to surface
       regardless of the entered value
