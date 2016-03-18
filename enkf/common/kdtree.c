@@ -79,10 +79,6 @@ struct kdset {
     int size;
 };
 
-static int insert_rec(kdtree* tree, int* id, const double* pos, int dir);
-static int rlist_insert(resnode* list, kdnode* item, double dist_sq);
-static void clear_results(kdset* tree);
-
 kdtree* kd_create(int k)
 {
     kdtree* tree;
@@ -114,7 +110,7 @@ void kd_destroy(kdtree* tree)
     free(tree);
 }
 
-static int insert_rec(kdtree* tree, int* id, const double* pos, int dir)
+static int _kd_insert(kdtree* tree, int* id, const double* pos, int dir)
 {
     int dim = tree->dim;
     int new_dir;
@@ -134,8 +130,8 @@ static int insert_rec(kdtree* tree, int* id, const double* pos, int dir)
     node = &tree->nodes[*id];
     new_dir = (node->dir + 1) % dim;
     if (pos[node->dir] < tree->positions[node->id * dim + node->dir])
-        return insert_rec(tree, &node->left, pos, new_dir);
-    return insert_rec(tree, &node->right, pos, new_dir);
+        return _kd_insert(tree, &node->left, pos, new_dir);
+    return _kd_insert(tree, &node->right, pos, new_dir);
 }
 
 int kd_insert(kdtree* tree, const double* pos)
@@ -152,13 +148,32 @@ int kd_insert(kdtree* tree, const double* pos)
         if (tree->nallocated == NALLOCSTART)
             tree->nodes[0].id = -1;
     }
-    status = insert_rec(tree, &tree->nodes[0].id, pos, 0);
+    status = _kd_insert(tree, &tree->nodes[0].id, pos, 0);
     if (status == 0)
         tree->nnodes++;
     return status;
 }
 
-static int find_nearest(kdtree* tree, int id, const double* pos, double range, resnode* list, int ordered)
+/* inserts the item. if dist_sq is >= 0, then do an ordered insert */
+static int _rlist_insert(resnode* list, kdnode* item, double dist_sq)
+{
+    resnode* rnode = NULL;
+
+    if ((rnode = malloc(sizeof(resnode))) == NULL)
+        return -1;
+    rnode->id = item->id;
+    rnode->dist_sq = dist_sq;
+
+    if (dist_sq >= 0.0)
+        while (list->next && list->next->dist_sq < dist_sq)
+            list = list->next;
+
+    rnode->next = list->next;
+    list->next = rnode;
+    return 0;
+}
+
+static int _kd_nearest_range(kdtree* tree, int id, const double* pos, double range, resnode* list, int ordered)
 {
     int dim = tree->dim;
     kdnode* node;
@@ -181,31 +196,22 @@ static int find_nearest(kdtree* tree, int id, const double* pos, double range, r
 
     added_res = 0;
     if (dist_sq <= range * range) {
-        if (rlist_insert(list, node, ordered ? dist_sq : -1.0) == -1)
+        if (_rlist_insert(list, node, ordered ? dist_sq : -1.0) == -1)
             return -1;
         added_res = 1;
     }
 
     dx = pos[node->dir] - nodepos[node->dir];
-    ret = find_nearest(tree, dx <= 0.0 ? node->left : node->right, pos, range, list, ordered);
+    ret = _kd_nearest_range(tree, dx <= 0.0 ? node->left : node->right, pos, range, list, ordered);
     if (ret >= 0 && fabs(dx) < range) {
         added_res += ret;
-        ret = find_nearest(tree, dx <= 0.0 ? node->right : node->left, pos, range, list, ordered);
+        ret = _kd_nearest_range(tree, dx <= 0.0 ? node->right : node->left, pos, range, list, ordered);
     }
     if (ret == -1)
         return -1;
     added_res += ret;
 
     return added_res;
-}
-
-void kd_res_free(kdset* set)
-{
-    if (set == NULL)
-        return;
-    clear_results(set);
-    free(set->rlist);
-    free(set);
 }
 
 kdset* kd_nearest_range(kdtree* tree, const double* pos, double range, int ordered)
@@ -224,7 +230,7 @@ kdset* kd_nearest_range(kdtree* tree, const double* pos, double range, int order
     rset->rlist->next = NULL;
     rset->tree = tree;
 
-    ret = find_nearest(tree, 0, pos, range, rset->rlist, ordered);
+    ret = _kd_nearest_range(tree, 0, pos, range, rset->rlist, ordered);
     if (ret == -1) {
         kd_res_free(rset);
         return 0;
@@ -234,41 +240,7 @@ kdset* kd_nearest_range(kdtree* tree, const double* pos, double range, int order
     return rset;
 }
 
-int kd_res_next(kdset* set)
-{
-    if (set == NULL || set->riter == NULL)
-        return 0;
-    set->riter = set->riter->next;
-    return set->riter != NULL;
-}
-
-int kd_res_getitemid(kdset* set)
-{
-    if (set->riter != NULL)
-        return set->riter->id;
-    return -1;
-}
-
-/* inserts the item. if dist_sq is >= 0, then do an ordered insert */
-static int rlist_insert(resnode* list, kdnode* item, double dist_sq)
-{
-    resnode* rnode = NULL;
-
-    if ((rnode = malloc(sizeof(resnode))) == NULL)
-        return -1;
-    rnode->id = item->id;
-    rnode->dist_sq = dist_sq;
-
-    if (dist_sq >= 0.0)
-        while (list->next && list->next->dist_sq < dist_sq)
-            list = list->next;
-
-    rnode->next = list->next;
-    list->next = rnode;
-    return 0;
-}
-
-static void clear_results(kdset* rset)
+static void _clear_results(kdset* rset)
 {
     resnode* tmp, *node = rset->rlist->next;
 
@@ -279,6 +251,30 @@ static void clear_results(kdset* rset)
     }
 
     rset->rlist->next = NULL;
+}
+
+void kd_res_free(kdset* set)
+{
+    if (set == NULL)
+        return;
+    _clear_results(set);
+    free(set->rlist);
+    free(set);
+}
+
+int kd_res_next(kdset* set)
+{
+    if (set == NULL || set->riter == NULL)
+        return 0;
+    set->riter = set->riter->next;
+    return set->riter != NULL;
+}
+
+int kd_res_getid(kdset* set)
+{
+    if (set->riter != NULL)
+        return set->riter->id;
+    return -1;
 }
 
 int kd_getid(kdnode* node)

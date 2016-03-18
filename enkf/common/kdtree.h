@@ -62,7 +62,7 @@ void kd_clear(kdtree* tree);
 /* insert a node, specifying its position, and optional data */
 int kd_insert(kdtree* tree, const double* pos);
 
-/* Find any nearest nodes from the specified point within a range.
+/* find any nearest nodes from the specified point within a range.
  *
  * This function returns a pointer to a result set, which can be manipulated
  * by the kd_res_* functions.
@@ -72,6 +72,10 @@ int kd_insert(kdtree* tree, const double* pos);
  */
 kdset* kd_nearest_range(kdtree* tree, const double* pos, double range, int ordered);
 
+/* get position of a node
+ */
+double* kd_getpos(kdtree* tree, int id);
+
 /* frees a result set returned by kd_nearest_range() */
 void kd_res_free(kdset* set);
 
@@ -80,8 +84,9 @@ void kd_res_free(kdset* set);
  */
 int kd_res_next(kdset* set);
 
-int kd_res_getitemid(kdset* set);
-double* kd_getpos(kdtree* tree, int id);
+/* get the current node ID in the result set
+ */
+int kd_res_getid(kdset* set);
 
 #define _KDTREE_H_
 #endif                          /* _KDTREE_H_ */

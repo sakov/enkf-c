@@ -1168,7 +1168,7 @@ void obs_findlocal(observations* obs, model* m, grid* g, int icoord, int jcoord,
             continue;
 
         set = kd_nearest_range(tree, xyz, obstype_getmaxlocrad(ot), 1);
-        for (; (id = kd_res_getitemid(set)) >= 0; kd_res_next(set), ++i) {
+        for (; (id = kd_res_getid(set)) >= 0; kd_res_next(set), ++i) {
             if (i % KD_INC == 0) {
                 *ids = realloc(*ids, (i + KD_INC) * sizeof(int));
                 *lcoeffs = realloc(*lcoeffs, (i + KD_INC) * sizeof(double));
