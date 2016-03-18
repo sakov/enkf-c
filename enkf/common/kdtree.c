@@ -90,6 +90,7 @@ kdtree* kd_create(int ndim)
     tree->nodes = NULL;
     tree->positions = NULL;
     tree->nallocated = 0;
+
     return tree;
 }
 
@@ -120,12 +121,10 @@ static int _kd_insert(kdtree* tree, int* id, const double* pos, int dir)
         *id = node->id;
         return 0;
     }
-
     node = &tree->nodes[*id];
     new_dir = (node->dir + 1) % ndim;
-    if (pos[node->dir] < tree->positions[node->id * ndim + node->dir])
-        return _kd_insert(tree, &node->left, pos, new_dir);
-    return _kd_insert(tree, &node->right, pos, new_dir);
+
+    return _kd_insert(tree, (pos[node->dir] < tree->positions[node->id * ndim + node->dir]) ? &node->left : &node->right, pos, new_dir);
 }
 
 /**
@@ -147,6 +146,7 @@ int kd_insert(kdtree* tree, const double* pos)
     status = _kd_insert(tree, &tree->nodes[0].id, pos, 0);
     if (status == 0)
         tree->nnodes++;
+
     return status;
 }
 
@@ -165,6 +165,7 @@ static int _rlist_insert(resnode* list, kdnode* item, double dist_sq)
 
     rnode->next = list->next;
     list->next = rnode;
+
     return 0;
 }
 
@@ -230,6 +231,7 @@ kdset* kd_nearest_range(kdtree* tree, const double* pos, double range, int order
     }
     rset->size = ret;
     rset->now = rset->first->next;    /* rewind */
+
     return rset;
 }
 
@@ -244,7 +246,6 @@ static void _clear_results(kdset* rset)
         node = node->next;
         free(tmp);
     }
-
     rset->first->next = NULL;
 }
 
@@ -266,6 +267,7 @@ int kd_res_next(kdset* set)
     if (set == NULL || set->now == NULL)
         return 0;
     set->now = set->now->next;
+
     return set->now != NULL;
 }
 
@@ -273,9 +275,7 @@ int kd_res_next(kdset* set)
  */
 int kd_res_getid(kdset* set)
 {
-    if (set->now != NULL)
-        return set->now->id;
-    return -1;
+    return (set->now != NULL) ? set->now->id : -1;
 }
 
 /**
