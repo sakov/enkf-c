@@ -50,25 +50,19 @@ typedef struct kdnode kdnode;
 struct kdset;
 typedef struct kdset kdset;
 
-/* create a kd-tree for "k"-dimensional data */
-kdtree* kd_create(int k);
+/* create a kd-tree for "k"-dimensional data
+ */
+kdtree* kd_create(int ndim);
 
-/* free the kdtree */
+/* free the kdtree
+ */
 void kd_destroy(kdtree* tree);
 
-/* remove all the elements from the tree */
-void kd_clear(kdtree* tree);
-
-/* insert a node, specifying its position, and optional data */
+/* insert a node, specifying its position, and optional data
+ */
 int kd_insert(kdtree* tree, const double* pos);
 
-/* find any nearest nodes from the specified point within a range.
- *
- * This function returns a pointer to a result set, which can be manipulated
- * by the kd_res_* functions.
- * The returned pointer can be null as an indication of an error. Otherwise
- * a valid result set is always returned which may contain 0 or more elements.
- * The result set must be deallocated with kd_res_free, after use.
+/* find any nearest nodes from the specified point within a range
  */
 kdset* kd_nearest_range(kdtree* tree, const double* pos, double range, int ordered);
 
@@ -76,11 +70,11 @@ kdset* kd_nearest_range(kdtree* tree, const double* pos, double range, int order
  */
 double* kd_getpos(kdtree* tree, int id);
 
-/* frees a result set returned by kd_nearest_range() */
+/* free a result set
+ */
 void kd_res_free(kdset* set);
 
-/* advances the result set iterator, returns non-zero on success, zero if
- * there are no more elements in the result set.
+/* advance the result set iterator
  */
 int kd_res_next(kdset* set);
 

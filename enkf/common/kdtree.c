@@ -54,13 +54,12 @@ typedef struct resnode resnode;
 struct kdnode {
     int id;
     int dir;
-
     int left;
     int right;
 };
 
 struct kdtree {
-    int dim;
+    int ndim;
     int nnodes;
     kdnode* nodes;
     double* positions;
@@ -79,7 +78,9 @@ struct kdset {
     int size;
 };
 
-kdtree* kd_create(int k)
+/**
+ */
+kdtree* kd_create(int ndim)
 {
     kdtree* tree;
 
@@ -87,7 +88,7 @@ kdtree* kd_create(int k)
     if (tree == NULL)
         return NULL;
 
-    tree->dim = k;
+    tree->ndim = ndim;
     tree->nnodes = 0;
     tree->nodes = NULL;
     tree->positions = NULL;
@@ -95,11 +96,8 @@ kdtree* kd_create(int k)
     return tree;
 }
 
-void kd_clear(kdtree* tree)
-{
-    tree->nnodes = 0;
-}
-
+/**
+ */
 void kd_destroy(kdtree* tree)
 {
     if (tree == NULL)
@@ -110,15 +108,17 @@ void kd_destroy(kdtree* tree)
     free(tree);
 }
 
+/**
+ */
 static int _kd_insert(kdtree* tree, int* id, const double* pos, int dir)
 {
-    int dim = tree->dim;
+    int ndim = tree->ndim;
     int new_dir;
     kdnode* node;
 
     if (*id == -1) {
         node = &tree->nodes[tree->nnodes];
-        memcpy(&tree->positions[tree->nnodes * dim], pos, dim * sizeof(double));
+        memcpy(&tree->positions[tree->nnodes * ndim], pos, ndim * sizeof(double));
         node->id = tree->nnodes;
         node->dir = dir;
         node->left = -1;
@@ -128,12 +128,14 @@ static int _kd_insert(kdtree* tree, int* id, const double* pos, int dir)
     }
 
     node = &tree->nodes[*id];
-    new_dir = (node->dir + 1) % dim;
-    if (pos[node->dir] < tree->positions[node->id * dim + node->dir])
+    new_dir = (node->dir + 1) % ndim;
+    if (pos[node->dir] < tree->positions[node->id * ndim + node->dir])
         return _kd_insert(tree, &node->left, pos, new_dir);
     return _kd_insert(tree, &node->right, pos, new_dir);
 }
 
+/**
+ */
 int kd_insert(kdtree* tree, const double* pos)
 {
     int status;
@@ -144,7 +146,7 @@ int kd_insert(kdtree* tree, const double* pos)
         else
             tree->nallocated = NALLOCSTART;
         tree->nodes = realloc(tree->nodes, tree->nallocated * sizeof(kdnode));
-        tree->positions = realloc(tree->positions, tree->nallocated * tree->dim * sizeof(double));
+        tree->positions = realloc(tree->positions, tree->nallocated * tree->ndim * sizeof(double));
         if (tree->nallocated == NALLOCSTART)
             tree->nodes[0].id = -1;
     }
@@ -154,7 +156,8 @@ int kd_insert(kdtree* tree, const double* pos)
     return status;
 }
 
-/* inserts the item. if dist_sq is >= 0, then do an ordered insert */
+/** insert the item. if dist_sq is >= 0, then do an ordered insert
+ */
 static int _rlist_insert(resnode* list, kdnode* item, double dist_sq)
 {
     resnode* rnode = NULL;
@@ -173,9 +176,11 @@ static int _rlist_insert(resnode* list, kdnode* item, double dist_sq)
     return 0;
 }
 
+/**
+ */
 static int _kd_nearest_range(kdtree* tree, int id, const double* pos, double range, resnode* list, int ordered)
 {
-    int dim = tree->dim;
+    int ndim = tree->ndim;
     kdnode* node;
     double* nodepos;
     double dist_sq, dx;
@@ -185,10 +190,10 @@ static int _kd_nearest_range(kdtree* tree, int id, const double* pos, double ran
         return 0;
 
     node = &tree->nodes[id];
-    nodepos = &tree->positions[node->id * dim];
+    nodepos = &tree->positions[node->id * ndim];
 
     dist_sq = 0;
-    for (i = 0; i < dim; i++) {
+    for (i = 0; i < ndim; i++) {
         double tmp = nodepos[i] - pos[i];
 
         dist_sq += tmp * tmp;
@@ -214,6 +219,8 @@ static int _kd_nearest_range(kdtree* tree, int id, const double* pos, double ran
     return added_res;
 }
 
+/**
+ */
 kdset* kd_nearest_range(kdtree* tree, const double* pos, double range, int ordered)
 {
     int ret;
@@ -240,6 +247,8 @@ kdset* kd_nearest_range(kdtree* tree, const double* pos, double range, int order
     return rset;
 }
 
+/**
+ */
 static void _clear_results(kdset* rset)
 {
     resnode* tmp, *node = rset->rlist->next;
@@ -253,6 +262,8 @@ static void _clear_results(kdset* rset)
     rset->rlist->next = NULL;
 }
 
+/**
+ */
 void kd_res_free(kdset* set)
 {
     if (set == NULL)
@@ -262,6 +273,8 @@ void kd_res_free(kdset* set)
     free(set);
 }
 
+/**
+ */
 int kd_res_next(kdset* set)
 {
     if (set == NULL || set->riter == NULL)
@@ -270,6 +283,8 @@ int kd_res_next(kdset* set)
     return set->riter != NULL;
 }
 
+/**
+ */
 int kd_res_getid(kdset* set)
 {
     if (set->riter != NULL)
@@ -277,14 +292,18 @@ int kd_res_getid(kdset* set)
     return -1;
 }
 
+/**
+ */
 int kd_getid(kdnode* node)
 {
     return node->id;
 }
 
+/**
+ */
 double* kd_getpos(kdtree* tree, int id)
 {
-    return &tree->positions[id * tree->dim];
+    return &tree->positions[id * tree->ndim];
 }
 
 #if defined(STANDALONE)
@@ -302,6 +321,8 @@ double* kd_getpos(kdtree* tree, int id)
 
 static int isll = 0;
 
+/**
+ */
 static void quit(char* format, ...)
 {
     va_list args;
@@ -316,6 +337,8 @@ static void quit(char* format, ...)
     exit(1);
 }
 
+/**
+ */
 static int str2double(char* token, double* value)
 {
     char* end = NULL;
@@ -335,6 +358,8 @@ static int str2double(char* token, double* value)
     return 1;
 }
 
+/**
+ */
 static void* kd_readfile(char* fname, int ndim)
 {
     FILE* f = NULL;
@@ -393,6 +418,8 @@ static void* kd_readfile(char* fname, int ndim)
     return tree;
 }
 
+/**
+ */
 static void description(void)
 {
     printf("  kd: reads coordinates from a text file; searches for points\n");
@@ -400,6 +427,8 @@ static void description(void)
     printf("      (point coordinates and id) to the standard output\n");
 }
 
+/**
+ */
 static void usage(void)
 {
     printf("  Usage: kd -i <file> -n <ndim> -p <coords> -r <range> [-s] [-g]\n");
@@ -418,6 +447,8 @@ static void usage(void)
     exit(0);
 }
 
+/**
+ */
 static void parse_commandline(int argc, char* argv[], char** fname, int* ndim, double* pos, double* range, int* dosort)
 {
     int i, ii;
@@ -487,6 +518,8 @@ static void parse_commandline(int argc, char* argv[], char** fname, int* ndim, d
         quit("range invalid or not defined");
 }
 
+/**
+ */
 int main(int argc, char* argv[])
 {
     char* fname = NULL;
@@ -546,5 +579,4 @@ int main(int argc, char* argv[])
 
     return 0;
 }
-
 #endif                          /* STANDALONE */
