@@ -118,7 +118,7 @@ static gnxy_simple* gnxy_simple_create(int nx, int ny, double* x, double* y, int
         if (fabs(fabs((x[nx - 1] - x[0]) / 360.0) - 1.0) > EPS_IJ) {
             x = realloc(x, sizeof(double) * (nx + 1));
             x[nx] = (ascending) ? x[0] + 360.0 : x[0] - 360.0;
-            assert(fabs((x[nx] - x[nx - 1]) / (x[nx - 1] / x[nx - 2]) - 1.0) < CELL_CHANGE_FACTOR_MAX);
+            assert(fabs((x[nx] - x[nx - 1]) / (x[nx - 1] - x[nx - 2]) - 1.0) < CELL_CHANGE_FACTOR_MAX);
         }
     }
     nodes->x = x;

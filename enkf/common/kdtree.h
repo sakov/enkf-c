@@ -2,18 +2,82 @@
  *
  * File:        kdtree.h        
  *
- * Created:     12/2012
+ * Created:     23/03/2016
  *
- * Author:      John Tsiombikas <nuclear@siggraph.org>
+ * Author:      Pavel Sakov
+ *              Derived from the code by John Tsiombikas (see the tail of the
+ *              file)
  *
- * Description:
+ * Description: KD-tree code
  *
- * Revisions:   April 2012 - modified by Pavel Sakov
+ * Revisions:   
  *
  *****************************************************************************/
 
+#if !defined(_KDTREE_H_)
+
+struct kdtree;
+typedef struct kdtree kdtree;
+
+struct kdnode;
+typedef struct kdnode kdnode;
+
+struct kdset;
+typedef struct kdset kdset;
+
+/* create a kd-tree for "k"-dimensional data
+ */
+kdtree* kd_create(int ndim);
+
+/* free the kdtree
+ */
+void kd_destroy(kdtree* tree);
+
+/* insert a node, specifying its position, and optional data
+ */
+void kd_insertnode(kdtree* tree, const double* coords, size_t id_orig);
+
+/* insert an array of nodes
+ */
+void kd_insertnodes(kdtree* tree, size_t n, double** src, int randomise);
+
+/* get the number of tree nodes
+ */
+size_t kd_getsize(kdtree* tree);
+
+/* find any nearest nodes from the specified point within a range
+ */
+kdset* kd_findnodeswithinrange(const kdtree* tree, const double* coords, double range, int ordered);
+
+/* find the nearest node
+ */
+size_t kd_findnearestnode(const kdtree* tree, const double* coords);
+
+/* get position of a node
+ */
+double* kd_getnodecoords(const kdtree* tree, size_t id);
+
+/* get the original ID of the node (it is different to the current ID if the
+ * input was shuffled)
+ */
+size_t kd_getnodeorigid(const kdtree* tree, size_t id);
+
+/* read node id of the current result; advance the result set iterator
+ */
+size_t kdset_read(kdset* set, double* dist);
+
+/* get the size of the result set
+ */
+size_t kdset_getsize(const kdset* set);
+
+/* free a result set
+ */
+void kdset_free(kdset* set);
+
+#define _KDTREE_H_
+#endif                          /* _KDTREE_H_ */
+
 /*
-This file is part of ``kdtree'', a library for working with kd-trees.
 Copyright (C) 2007-2009 John Tsiombikas <nuclear@siggraph.org>
 
 Redistribution and use in source and binary forms, with or without
@@ -38,49 +102,3 @@ CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING
 IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY
 OF SUCH DAMAGE.
 */
-
-#if !defined(_KDTREE_H_)
-
-struct kdtree;
-typedef struct kdtree kdtree;
-
-struct kdnode;
-typedef struct kdnode kdnode;
-
-struct kdset;
-typedef struct kdset kdset;
-
-/* create a kd-tree for "k"-dimensional data
- */
-kdtree* kd_create(int ndim);
-
-/* free the kdtree
- */
-void kd_destroy(kdtree* tree);
-
-/* insert a node, specifying its position, and optional data
- */
-int kd_insert(kdtree* tree, const double* pos);
-
-/* find any nearest nodes from the specified point within a range
- */
-kdset* kd_nearest_range(kdtree* tree, const double* pos, double range, int ordered);
-
-/* get position of a node
- */
-double* kd_getpos(kdtree* tree, int id);
-
-/* free a result set
- */
-void kd_res_free(kdset* set);
-
-/* advance the result set iterator
- */
-int kd_res_next(kdset* set);
-
-/* get the current node ID in the result set
- */
-int kd_res_getid(kdset* set);
-
-#define _KDTREE_H_
-#endif                          /* _KDTREE_H_ */

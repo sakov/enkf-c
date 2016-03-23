@@ -1120,7 +1120,7 @@ void obs_createkdtrees(observations* obs, model* m)
             double xyz[3];
 
             grid_tocartesian(g, ll, xyz);
-            kd_insert(*tree, xyz);
+            kd_insertnode(*tree, xyz, i);
         }
     }
 }
@@ -1162,20 +1162,21 @@ void obs_findlocal(observations* obs, model* m, grid* g, int icoord, int jcoord,
         kdtree* tree = obs->loctrees[otid];
         int* obsids = obs->obsids[otid];
         kdset* set = NULL;
+        double dist;
         int id;
 
         if (ot->nobs == 0)
             continue;
 
-        set = kd_nearest_range(tree, xyz, obstype_getmaxlocrad(ot), 1);
-        for (; (id = kd_res_getid(set)) >= 0; kd_res_next(set), ++i) {
+        set = kd_findnodeswithinrange(tree, xyz, obstype_getmaxlocrad(ot), 1);
+        for (; (id = kdset_read(set, &dist)) >= 0; ++i) {
             if (i % KD_INC == 0) {
                 *ids = realloc(*ids, (i + KD_INC) * sizeof(int));
                 *lcoeffs = realloc(*lcoeffs, (i + KD_INC) * sizeof(double));
             }
             (*ids)[i] = obsids[id];
         }
-        kd_res_free(set);
+        kdset_free(set);
     }
 
     /*
