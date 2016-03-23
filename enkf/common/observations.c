@@ -19,6 +19,7 @@
 #include <math.h>
 #include <values.h>
 #include <assert.h>
+#include <stdint.h>
 #include "nan.h"
 #include "ncw.h"
 #include "definitions.h"
@@ -1163,13 +1164,13 @@ void obs_findlocal(observations* obs, model* m, grid* g, int icoord, int jcoord,
         int* obsids = obs->obsids[otid];
         kdset* set = NULL;
         double dist;
-        int id;
+        size_t id;
 
         if (ot->nobs == 0)
             continue;
 
         set = kd_findnodeswithinrange(tree, xyz, obstype_getmaxlocrad(ot), 1);
-        for (; (id = kdset_read(set, &dist)) >= 0; ++i) {
+        for (; (id = kdset_read(set, &dist)) != SIZE_MAX; ++i) {
             if (i % KD_INC == 0) {
                 *ids = realloc(*ids, (i + KD_INC) * sizeof(int));
                 *lcoeffs = realloc(*lcoeffs, (i + KD_INC) * sizeof(double));

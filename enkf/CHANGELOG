@@ -1,3 +1,6 @@
+v. 1.36.3
+   PS 24032016
+   -- Minor changes in kd-tree code
 v. 1.36.2
    PS 23032016
    -- Re-wrote the kdtree code

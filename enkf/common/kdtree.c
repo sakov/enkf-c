@@ -123,6 +123,9 @@ void kd_insertnode(kdtree* tree, const double* coords, size_t id_orig)
 {
     int i;
 
+    if (!isfinite(coords[0]))
+        return;
+
     if (tree->nallocated == tree->nnodes) {
         if (tree->nallocated != 0)
             tree->nallocated *= 2;
@@ -195,6 +198,8 @@ void kd_insertnodes(kdtree* tree, size_t n, double** src, int randomise)
 
         for (j = 0; j < tree->ndim; ++j)
             coords[j] = src[j][id];
+        if (!isfinite(coords[0]))
+            continue;
         (void) _kd_insertnode(tree, &tree->nodes[0].id, coords, id + nnodes0, 0);
         tree->nnodes++;
         for (j = 0; j < tree->ndim; ++j) {

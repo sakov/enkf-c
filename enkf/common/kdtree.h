@@ -62,7 +62,8 @@ double* kd_getnodecoords(const kdtree* tree, size_t id);
  */
 size_t kd_getnodeorigid(const kdtree* tree, size_t id);
 
-/* read node id of the current result; advance the result set iterator
+/* read node id of the current result (SIZE_MAX if no more results are
+ * available; advance the result set iterator)
  */
 size_t kdset_read(kdset* set, double* dist);
 
