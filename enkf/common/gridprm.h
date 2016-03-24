@@ -18,6 +18,9 @@
 typedef struct {
     char* name;
     char* vtype;
+#if !defined(NO_GRIDUTILS)
+    char maptype;
+#endif
     char* fname;
     char* xdimname;
     char* ydimname;

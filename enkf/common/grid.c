@@ -71,6 +71,10 @@ struct grid {
     int id;
     int htype;                  /* horizontal type */
     int vtype;                  /* vertical type */
+#if !defined(NO_GRIDUTILS)
+    int maptype;                /* grid map type; effective for curvilinear
+                                 * grids only */
+#endif
 
     grid_tocartesian_fn tocartesian_fn;
 
@@ -177,7 +181,7 @@ void gnxy_simple_destroy(gnxy_simple* nodes)
 #if !defined(NO_GRIDUTILS)
 /**
  */
-static gnxy_curv* gnxy_curv_create(int nodetype, int nx, int ny, double** x, double** y)
+static gnxy_curv* gnxy_curv_create(int nodetype, int nx, int ny, double** x, double** y, int maptype)
 {
     gnxy_curv* nodes = malloc(sizeof(gnxy_curv));
 
@@ -194,7 +198,8 @@ static gnxy_curv* gnxy_curv_create(int nodetype, int nx, int ny, double** x, dou
         enkf_quit("unknown node type for horizontal curvilinear grid");
 #if defined(ENKF_PREP)
     gridnodes_validate(nodes->gn);
-    nodes->gm = gridmap_build(gridnodes_getnce1(nodes->gn), gridnodes_getnce2(nodes->gn), gridnodes_getx(nodes->gn), gridnodes_gety(nodes->gn));
+    gridnodes_setmaptype(nodes->gn, maptype);
+    nodes->gm = gridmap_build2(nodes->gn);
 #else
     nodes->gm = NULL;
 #endif
@@ -599,7 +604,7 @@ static void grid_setcoords(grid* g, int htype, int hnodetype, int periodic_x, in
         g->gridnodes_xy = gnxy_simple_create(nx, ny, x, y, periodic_x, periodic_y, 0);
 #if !defined(NO_GRIDUTILS)
     else if (htype == GRIDHTYPE_CURVILINEAR) {
-        g->gridnodes_xy = gnxy_curv_create(hnodetype, nx, ny, x, y);
+        g->gridnodes_xy = gnxy_curv_create(hnodetype, nx, ny, x, y, g->maptype);
 #if defined(GRIDNODES_WRITE)
         {
             char fname[MAXSTRLEN];
@@ -635,6 +640,17 @@ grid* grid_create(void* p, int id)
     g->name = strdup(prm->name);
     g->id = id;
     g->vtype = gridprm_getvtype(prm);
+#if !defined(NO_GRIDUTILS)
+#if !defined(GRIDMAP_TYPE_DEF)
+#error("GRIDMAP_TYPE_DEF not defined; please update gridutils-c");
+#endif
+    if (prm->maptype == 'b' || prm->maptype == 'B')
+        g->maptype = GRIDMAP_TYPE_BINARY;
+    else if (prm->maptype == 'k' || prm->maptype == 'K')
+        g->maptype = GRIDMAP_TYPE_KDTREE;
+    else
+        enkf_quit("unknown grid map type \"%c\"", prm->maptype);
+#endif
 
     ncw_open(fname, NC_NOWRITE, &ncid);
     ncw_inq_dimid(fname, ncid, prm->xdimname, &dimid_x);
@@ -801,6 +817,12 @@ void grid_print(grid* g, char offset[])
 #if !defined(NO_GRIDUTILS)
     case GRIDHTYPE_CURVILINEAR:
         enkf_printf("%s  hor type = CURVILINEAR\n", offset);
+        if (g->maptype == GRIDMAP_TYPE_BINARY)
+            enkf_printf("%s  map type = BINARY TREE\n", offset);
+        else if (g->maptype == GRIDMAP_TYPE_KDTREE)
+            enkf_printf("%s  map type = KD-TREE\n", offset);
+        else
+            enkf_quit("unknown grid map type");
         break;
 #endif
     default:
@@ -835,6 +857,9 @@ void grid_describeprm(void)
     enkf_printf("\n");
     enkf_printf("    NAME             = <name> [ PREP | CALC ]\n");
     enkf_printf("    VTYPE            = { z | sigma }\n");
+#if !defined(NO_GRIDUTILS)
+    enkf_printf("  [ MAPTYPE          = { binary* | kdtree } (curvilinear grids) ]\n");
+#endif
     enkf_printf("    DATA             = <data file name>\n");
     enkf_printf("    XDIMNAME         = <x dimension name>\n");
     enkf_printf("    YDIMNAME         = <y dimension name>\n");

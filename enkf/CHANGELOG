@@ -1,3 +1,8 @@
+v. 1.37.0
+   PS 24032016
+   -- Added a new optional grid parameter "MAPTYPE" that can be set either to
+      "b" (binary tree) or "k" (kd-tree)
+   -- Fixed examples/2/grid2/grid_spec.nc
 v. 1.36.3
    PS 24032016
    -- Minor changes in kd-tree code

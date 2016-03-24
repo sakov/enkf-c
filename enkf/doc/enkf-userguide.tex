@@ -35,7 +35,7 @@
 
 \begin{document}
 
-\title{EnKF-C user guide\\{\normalsize version 1.34.0}}
+\title{EnKF-C user guide\\{\normalsize version 1.37.0}}
 
 \author{Pavel Sakov}
 \date{June 19, 2014 -- \today}
@@ -738,6 +738,7 @@ It also contains variable names for the depth and for number of layers in a vert
 
     NAME             = <name> [ PREP | CALC ]
     VTYPE            = { z | sigma }
+    [ MAPTYPE        = { binary* | kdtree } (curvilinear grids) ]
     DATA             = <data file name>
     XDIMNAME         = <x dimension name>
     YDIMNAME         = <y dimension name>
@@ -746,8 +747,8 @@ It also contains variable names for the depth and for number of layers in a vert
     YVARNAME         = <y variable name>
     ZVARNAME         = <z variable name>
     DEPTHVARNAME     = <depth variable name>
-    NUMLEVELSVARNAME = <# of levels variable name> (z)
-    MASKVARNAME      = <land mask variable name> (sigma)
+    [ NUMLEVELSVARNAME = <# of levels variable name> (z) ]
+    [ MASKVARNAME      = <land mask variable name> (sigma) ]
 
   [ <more of the above blocks> ]
 \end{Verbatim}
@@ -767,6 +768,9 @@ This is achieved by creating an auxiliary grid that is simply connected in grid 
 Because only \emph{prep} requires mapping from physical to grid space, this auxiliary grid is then used in \emph{prep} only, while the original grid is used in \emph{calc} and \emph{update}.
 To specify that a grid entry is to be used in \emph{prep} only one needs to add qualifier ``PREP'' after its name; and to specify that it is to be used in \emph{calc} and \emph{update} one needs to add qualifier ``CALC''.
 See \verb|examples/3| for an example.
+
+From version 1.37.0 such grids can also be handled by using grid mapping via kd-tree instead of the default mapping via spatial binary tree, which is now available from package gridutils-c.
+This is done by setting parameter \verb|MAPTYPE| to ``k''.
 
 \subsection{Observation types parameter file}
 \label{sec:obstypesprm}
@@ -1484,7 +1488,7 @@ If available model grids do not meet the above assumptions, one needs to generat
 
 Further, the horizontal grid must be either rectangular in longitude-latitude, with constant or irregular step; or represent a structured simply connected quadrilateral grid, referred to elsewhere as ``curvilinear''.
 In the first case mapping from physical to grid space is done independently by X and Y coordinates; in the second case the grid is rendered into spatial binary tree to achieve logarithmic search time.
-Note that some curvilinear grids used in practice (e.g. tri-polar ORCA grids) are not simply connected in grid space, but can be converted into simply connected by masking a small number of cells.
+Note that some curvilinear grids used in practice (e.g. tri-polar ORCA grids) are not simply connected in grid space.
 Such grids can be used in EnKF-C as described in section~\ref{sec:gridprm}.
 
 \section{System issues}

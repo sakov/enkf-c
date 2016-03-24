@@ -22,6 +22,8 @@
 #include "gridprm.h"
 #include "utils.h"
 
+#define MAPTYPE_DEF 'B'
+
 typedef struct {
     char* vtype_tag;
     int vtype;
@@ -105,9 +107,18 @@ void gridprm_create(char* fname, int* ngrid, gridprm** prm)
                 if (strcasecmp(allgridvtypeentries[i].vtype_tag, token) == 0)
                     break;
             if (i == ngridvtypeentries)
-                enkf_quit("%s, l %d: VTYPE \"%s\" is unknown", fname, line);
+                enkf_quit("%s, l %d: VTYPE \"%s\" is unknown", fname, line, token);
             if (allgridvtypeentries[i].levelvarnameentry != NULL)
                 now->levelvarnameentry = strdup(allgridvtypeentries[i].levelvarnameentry);
+#if !defined(NO_GRIDUTILS)
+        } else if (strcasecmp(token, "MAPTYPE") == 0) {
+            if ((token = strtok(NULL, seps)) == NULL)
+                enkf_quit("%s, l.%d: MAPTYPE not specified", fname, line);
+            if (token[0] == 'b' || token[0] == 'B' || token[0] == 'k' || token[0] == 'K')
+                now->maptype = token[0];
+            else
+                enkf_quit("%s, l %d: MAPTYPE \"%s\" is unknown", fname, line, token);
+#endif
         } else if (strcasecmp(token, "DATA") == 0) {
             if ((token = strtok(NULL, seps)) == NULL)
                 enkf_quit("%s, l.%d: DATA not specified", fname, line);
@@ -183,6 +194,10 @@ void gridprm_create(char* fname, int* ngrid, gridprm** prm)
             enkf_quit("%s: VTYPE not specified for grid \"%s\"", fname, now->name);
         if (now->fname == NULL)
             enkf_quit("%s: DATA not specified for grid \"%s\"", fname, now->name);
+#if !defined(NO_GRIDUTILS)
+        if (now->maptype == 0)
+            now->maptype = MAPTYPE_DEF;
+#endif
         if (now->xdimname == NULL)
             enkf_quit("%s: XDIMNAME not specified for grid \"%s\"", fname, now->name);
         if (now->ydimname == NULL)
@@ -230,7 +245,11 @@ void gridprm_print(gridprm* prm, char offset[])
 {
     enkf_printf("%sgrid prm info:\n", offset);
     enkf_printf("%s  NAME = \"%s\"\n", offset, prm->name);
-    enkf_printf("%s  FILE = \"%s\"\n", offset, prm->fname);
+    enkf_printf("%s  DATA = \"%s\"\n", offset, prm->fname);
+#if !defined(NO_GRIDUTILS)
+    enkf_printf("%s  MAPTYPE = \"%c\"\n", offset, prm->maptype);
+#endif
+    enkf_printf("%s  VTYPE = \"%s\"\n", offset, prm->vtype);
     enkf_printf("%s  XDIMNAME = \"%s\"\n", offset, prm->xdimname);
     enkf_printf("%s  YDIMNAME = \"%s\"\n", offset, prm->ydimname);
     enkf_printf("%s  ZDIMNAME = \"%s\"\n", offset, prm->zdimname);
