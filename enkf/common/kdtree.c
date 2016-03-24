@@ -156,8 +156,8 @@ static void shuffle(size_t n, size_t ids[])
     srand48(SEED);
 
     for (i = 0; i < n; ++i) {
-        int ii = (int) ((double) n * drand48());
-        int tmp = ids[i];
+        size_t ii = (size_t) ((double) n * drand48());
+        size_t tmp = ids[i];
 
         ids[i] = ids[ii];
         ids[ii] = tmp;
