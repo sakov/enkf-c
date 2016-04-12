@@ -301,7 +301,14 @@ static void plog_writestatevars_direct(dasystem* das, int nfields, void** fieldb
                 for (e = 0; e < das->nmem; ++e)
                     v[e] += v_src[das->nmem][plog->j][plog->i];
 
-            snprintf(varname, NC_MAX_NAME, "%s%s", f->varname, (isanalysis) ? "_an" : "");
+            if (!isanalysis)
+                strncpy(varname, f->varname, NC_MAX_NAME);
+            else {
+                if (!(das->updatespec & UPDATE_OUTPUTINC))
+                    snprintf(varname, NC_MAX_NAME, "%s%s", f->varname, "_an");
+                else
+                    snprintf(varname, NC_MAX_NAME, "%s%s", f->varname, "_inc");
+            }
             ncw_inq_varid(fname, ncid, varname, &vid);
             ncw_inq_varndims(fname, ncid, vid, &ndims);
             if (ndims == 1)
