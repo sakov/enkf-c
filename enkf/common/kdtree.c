@@ -169,7 +169,7 @@ static void shuffle(size_t n, size_t ids[])
 void kd_insertnodes(kdtree* tree, size_t n, double** src, int randomise)
 {
     int nnodes0 = tree->nnodes;
-    size_t* ids;
+    size_t* ids = NULL;
     double* coords;
     size_t i, j;
 
