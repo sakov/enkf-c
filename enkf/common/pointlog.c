@@ -355,7 +355,15 @@ static void plog_writestatevars_toassemble(dasystem* das, int nfields, void** fi
             pointlog* plog = &das->plogs[p];
             char varname[NC_MAX_NAME];
 
-            snprintf(varname, NC_MAX_NAME, "%s%s_%d_%d-%d", f->varname, (isanalysis) ? "_an" : "", plog->i, plog->j, plog->gridid);
+            if (!isanalysis)
+                snprintf(varname, NC_MAX_NAME, "%s_%d_%d-%d", f->varname, plog->i, plog->j, plog->gridid);
+            else {
+                if (!(das->updatespec & UPDATE_OUTPUTINC))
+                    snprintf(varname, NC_MAX_NAME, "%s%s_%d_%d-%d", f->varname, "_an", plog->i, plog->j, plog->gridid);
+                else
+                    snprintf(varname, NC_MAX_NAME, "%s%s_%d_%d-%d", f->varname, "_inc", plog->i, plog->j, plog->gridid);
+            }
+                    
             ncw_def_var(fname, ncid, varname, NC_FLOAT, 1, &dimid, &vid[p]);
         }
         ncw_enddef(fname, ncid);
