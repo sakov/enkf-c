@@ -434,15 +434,23 @@ void plog_assemblestatevars(dasystem* das)
 
             for (ii = 0; ii < 2; ++ii) {
                 char varname[NC_MAX_NAME];
+                char suffix[5] = "";
                 int ncid_src, vid_src, vid_dst, ndims_dst;
 
-                snprintf(varname, NC_MAX_NAME, "%s%s_%d_%d-%d", f->varname, (ii == 0) ? "_an" : "", plog->i, plog->j, plog->gridid);
+                if (ii > 0) {
+                    if (!(das->updatespec & UPDATE_OUTPUTINC))
+                        strcpy(suffix, "_an");
+                    else
+                        strcpy(suffix, "_inc");
+                }
+
+                snprintf(varname, NC_MAX_NAME, "%s%s_%d_%d-%d", f->varname, suffix, plog->i, plog->j, plog->gridid);
                 ncw_open(fname_src, NC_NOWRITE, &ncid_src);
                 ncw_inq_varid(fname_src, ncid_src, varname, &vid_src);
                 ncw_get_var_float(fname_src, ncid_src, vid_src, v);
                 ncw_close(fname_src, ncid_src);
 
-                snprintf(varname, NC_MAX_NAME, "%s%s", f->varname, (ii == 0) ? "_an" : "");
+                snprintf(varname, NC_MAX_NAME, "%s%s", f->varname, suffix);
                 ncw_inq_varid(fname_dst, ncid_dst, varname, &vid_dst);
                 ncw_inq_varndims(fname_dst, ncid_dst, vid_dst, &ndims_dst);
                 if (ndims_dst == 1)
