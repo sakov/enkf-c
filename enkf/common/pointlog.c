@@ -236,7 +236,10 @@ void plog_definestatevars(dasystem* das)
             if (!ncw_var_exists(ncid, varname)) {
                 ncw_redef(fname, ncid);
                 ncw_inq_dimid(fname, ncid, "m", &dimid_m);
-                snprintf(varname_an, NC_MAX_NAME, "%s_an", varname);
+                if (!(das->updatespec & UPDATE_OUTPUTINC))
+                    snprintf(varname_an, NC_MAX_NAME, "%s_an", varname);
+                else
+                    snprintf(varname_an, NC_MAX_NAME, "%s_inc", varname);
                 if (nk > 1) {
                     if (!ncw_dim_exists(ncid, nkname))
                         ncw_def_dim(fname, ncid, nkname, nk, &dimid_nk);

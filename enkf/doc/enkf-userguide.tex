@@ -239,7 +239,7 @@ Moreover, it approximates derivatives using ensemble of finite spread that chara
   \end{align}
 \end{subequations}
 
-This formulation is not the only possible; one might also use finite difference approximations:
+This formulation is not the only one possible; one might also use the finite difference approximations:
 \begin{subequations}
   \label{der-less-ekf}
   \begin{align}
@@ -259,7 +259,9 @@ The forecast stage of the EnKF involves only propagation of each ensemble member
   \mb E_i^f = \mathcal M_i(\mb E_{i-1}^a).
 \end{align}
 This is a remarkably simple equation compared to the KF forecast equations (\ref{kf-for}), even though the model error still needs to be handled in some way.
-One option is to include stochastic model error into the model operator in (\ref{enkf-for}).
+Because propagation of each ensemble member is independent from other members, the forecast stage in the EnKF is naturally parallelisable.
+
+One way to handle model error in the EnKF is to include stochastic model error into the model operator in (\ref{enkf-for}).
 (This would make it different to the model operator in the KF.)
 Another option is to use the multiplicative inflation.
 The third option is to mimic the treatment of model error in the KF, although this brings back problems with scalability in regard to the state size.
@@ -1475,7 +1477,7 @@ Another possibility is to introduce a ``forgetting'' stochastic model for bias f
   \mb x_{i+1} = \lambda \, \mb x_i + (1 - \lambda^2)^{1/2} \ms \sigma,
 \end{align*}
 where $\alpha$ is the forgetting factor, $0 < \lambda < 1, \; 1 - \lambda \ll 1$, and $\ms \sigma \sim \sigma_0 N(0, 1)$, where $\sigma_0$ is the standard deviation of the error of $\mb x$.
-This can be specified for a model variable via entry \verb|RANDOMISE| in the corresponding section of the model parameter file (sec.~\ref{sec:modelprm});
+This can be specified for a model variable via entry \verb|RANDOMISE| in the corresponding section of the model parameter file (sec.~\ref{sec:modelprm}).
 
 \section{Grids}
 

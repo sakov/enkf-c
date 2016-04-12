@@ -1,3 +1,8 @@
+v. 1.37.1
+   PS 12042016
+   -- Fixed analysis variable names in pointlog files: they now have suffix
+      suffix "_an" if ehkf_update outputs analyses, and "inc" if it outputs
+      increments (before it was "_an" regardless).
 v. 1.37.0
    PS 24032016
    -- Added a new optional grid parameter "MAPTYPE" that can be set either to
