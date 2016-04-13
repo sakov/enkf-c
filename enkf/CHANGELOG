@@ -1,3 +1,6 @@
+v. 1.37.2
+   PS 13042016
+   -- Addded "biased" H-finction for observation type "SST".
 v. 1.37.1
    PS 12042016
    -- Fixed analysis variable names in pointlog files: they now have suffix

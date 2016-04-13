@@ -29,6 +29,7 @@ typedef struct {
 
 H_entry allhentries[] = {
     {"SST", "standard", H_surf_standard},
+    {"SST", "biased", H_surf_biased},
     {"SLA", "standard", H_surf_standard},
     {"SLA", "bran", H_sla_bran},
     {"SLA", "biased", H_surf_biased},
@@ -71,7 +72,7 @@ H_fn getH(char obstypename[], char mappingname[])
 
     enkf_printf("\n\n  ERROR: no H function \"%s\" for observation type \"%s\"\n\n", mappingname, obstypename);
     describe_hentries(obstypename);
-    enkf_quit("bailing out");
+    enkf_quit("getH(): bailing out");
 
     return NULL;
 }
