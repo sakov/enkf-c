@@ -1,6 +1,10 @@
+v. 1.37.3
+   PS 14042016
+   -- Modified readfield() to ignore "k" index if the number of dimensions is 4
+      and the size of the corresponding dimension is 1
 v. 1.37.2
    PS 13042016
-   -- Addded "biased" H-finction for observation type "SST".
+   -- Added "biased" H-finction for observation type "SST".
 v. 1.37.1
    PS 12042016
    -- Fixed analysis variable names in pointlog files: they now have suffix

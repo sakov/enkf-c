@@ -640,9 +640,13 @@ void readfield(char fname[], char varname[], int k, float* v)
 
     if (ndims == 4) {
         assert(containsrecorddim);
-        assert(k < dimlen[1]);
         start[0] = 0;
-        start[1] = k;
+	if (dimlen[1] == 1)
+	    start[1] = 0;
+	else {
+	    assert(k < dimlen[1]);
+	    start[1] = k;
+	}
         start[2] = 0;
         start[3] = 0;
         count[0] = 1;
