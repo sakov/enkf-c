@@ -136,23 +136,25 @@ static void interpolate_3d_obs(model* m, observations* allobs, int nobs, int obs
 
 /**
  */
-void H_surf_standard(dasystem* das, int nobs, int obsids[], char fname[], int mem, int t, char varname[], char varname2[], void* psrc, ENSOBSTYPE dst[])
+void H_surf_standard(dasystem* das, int nobs, int obsids[], char fname[], int mem, int t, void* psrc, ENSOBSTYPE dst[])
 {
     model* m = das->m;
     observations* allobs = das->obs;
+    int otid = allobs->data[obsids[0]].type;
+    obstype* ot = &allobs->obstypes[otid];
     float** src = (float**) psrc;
     char tag_offset[MAXSTRLEN];
     float** offset = NULL;
-    int mvid = model_getvarid(m, varname, 1);
+    int mvid = model_getvarid(m, ot->varname, 1);
     int k = grid_gettoplayerid(model_getvargrid(m, mvid));
 
-    assert(varname2 == NULL);
+    assert(ot->varname2 == NULL);
 
-    if (getnumlevels(fname, varname) == 1)
+    if (getnumlevels(fname, ot->varname) == 1)
         k = 0;
-    model_readfield(m, fname, t, varname, k, src[0]);
+    model_readfield(m, fname, t, ot->varname, k, src[0]);
 
-    snprintf(tag_offset, MAXSTRLEN, "%s:OFFSET", allobs->obstypes[allobs->data[obsids[0]].type].name);
+    snprintf(tag_offset, MAXSTRLEN, "%s:OFFSET", ot->name);
     offset = model_getdata(m, tag_offset);
     if (offset != NULL) {
         int ni, nj;
@@ -172,13 +174,16 @@ void H_surf_standard(dasystem* das, int nobs, int obsids[], char fname[], int me
 
 /**
  */
-void H_sla_bran(dasystem* das, int nobs, int obsids[], char fname[], int mem, int t, char varname[], char varname2[], void* psrc, ENSOBSTYPE dst[])
+void H_sla_bran(dasystem* das, int nobs, int obsids[], char fname[], int mem, int t, void* psrc, ENSOBSTYPE dst[])
 {
+    observations* allobs = das->obs;
+    int otid = allobs->data[obsids[0]].type;
+    obstype* ot = &allobs->obstypes[otid];
     int o;
     ENSOBSTYPE mean;
 
-    assert(varname2 == NULL);
-    H_surf_standard(das, nobs, obsids, fname, mem, t, varname, NULL, psrc, dst);
+    assert(ot->varname2 == NULL);
+    H_surf_standard(das, nobs, obsids, fname, mem, t, psrc, dst);
     if (mem <= 0) {             /* only for background */
         mean = 0.0;
         for (o = 0; o < nobs; ++o)
@@ -191,25 +196,28 @@ void H_sla_bran(dasystem* das, int nobs, int obsids[], char fname[], int mem, in
 
 /**
  */
-void H_surf_biased(dasystem* das, int nobs, int obsids[], char fname[], int mem, int t, char varname[], char varname2[], void* psrc, ENSOBSTYPE dst[])
+void H_surf_biased(dasystem* das, int nobs, int obsids[], char fname[], int mem, int t, void* psrc, ENSOBSTYPE dst[])
 {
     model* m = das->m;
     observations* allobs = das->obs;
+    int otid = allobs->data[obsids[0]].type;
+    obstype* ot = &allobs->obstypes[otid];
     float** src = (float**) psrc;
     float* src0 = src[0];
     char tag_offset[MAXSTRLEN];
     float** offset = NULL;
     float* bias = NULL;
-    int mvid = model_getvarid(m, varname, 1);
-    int mvid2 = model_getvarid(m, varname2, 1);
+    int mvid = model_getvarid(m, ot->varname, 1);
+    int mvid2;
     char fname2[MAXSTRLEN];
     int ni, nj, ktop;
     int i, nv;
 
-    if (varname2 == NULL)
-        enkf_quit("%s: var2 has to be defined for an observation type when using H-function \"biased\"", varname);
+    if (ot->varname2 == NULL)
+        enkf_quit("%s: var2 has to be defined for an observation type when using H-function \"biased\"", ot->varname);
+    mvid2 = model_getvarid(m, ot->varname2, 1);
     if (model_getvargridid(m, mvid) != model_getvargridid(m, mvid2))
-        enkf_quit("H_surf_biased(): variables \"%s\" and \"%s\" are defined on different grids", varname, varname2);
+        enkf_quit("H_surf_biased(): variables \"%s\" and \"%s\" are defined on different grids", ot->varname, ot->varname2);
 
     ktop = grid_gettoplayerid(model_getvargrid(m, mvid));
     model_getvardims(m, mvid, &ni, &nj, NULL);
@@ -217,12 +225,12 @@ void H_surf_biased(dasystem* das, int nobs, int obsids[], char fname[], int mem,
 
     bias = malloc(nv * sizeof(float));
     if (das->mode == MODE_ENKF)
-        model_getmemberfname(m, das->ensdir, varname2, mem, fname2);
+        model_getmemberfname(m, das->ensdir, ot->varname2, mem, fname2);
     else if (das->mode == MODE_ENOI)
-        model_getbgfname(m, das->bgdir, varname2, fname2);
-    model_readfield(m, fname2, MAXINT, varname2, ktop, bias);
+        model_getbgfname(m, das->bgdir, ot->varname2, fname2);
+    model_readfield(m, fname2, MAXINT, ot->varname2, ktop, bias);
 
-    model_readfield(m, fname, t, varname, ktop, src0);
+    model_readfield(m, fname, t, ot->varname, ktop, src0);
 
     snprintf(tag_offset, MAXSTRLEN, "%s:OFFSET", allobs->obstypes[allobs->data[obsids[0]].type].name);
     offset = model_getdata(m, tag_offset);
@@ -244,21 +252,23 @@ void H_surf_biased(dasystem* das, int nobs, int obsids[], char fname[], int mem,
 
 /**
  */
-void H_subsurf_standard(dasystem* das, int nobs, int obsids[], char fname[], int mem, int t, char varname[], char varname2[], void* psrc, ENSOBSTYPE dst[])
+void H_subsurf_standard(dasystem* das, int nobs, int obsids[], char fname[], int mem, int t, void* psrc, ENSOBSTYPE dst[])
 {
     model* m = das->m;
     observations* allobs = das->obs;
+    int otid = allobs->data[obsids[0]].type;
+    obstype* ot = &allobs->obstypes[otid];
     float*** src = (float***) psrc;
     char tag_offset[MAXSTRLEN];
     float*** offset = NULL;
 
-    assert(varname2 == NULL);
-    model_read3dfield(m, fname, t, varname, src[0][0]);
+    assert(ot->varname2 == NULL);
+    model_read3dfield(m, fname, t, ot->varname, src[0][0]);
 
     snprintf(tag_offset, MAXSTRLEN, "%s:OFFSET", allobs->obstypes[allobs->data[obsids[0]].type].name);
     offset = model_getdata(m, tag_offset);
     if (offset != NULL) {
-        int mvid = model_getvarid(m, varname, 1);
+        int mvid = model_getvarid(m, ot->varname, 1);
         int ni, nj, nk;
         float* src0 = src[0][0];
         float* offset0 = offset[0][0];
@@ -289,17 +299,16 @@ static double mldtaper(double mld, double z)
     return cos((v + 1) * M_PI / 2.0) * 0.5 + 0.5;
 }
 
-/** Projects surface bias into subsurface based on the pre-calculated
- * correlations between surface and subsurface anomalies.
+/** Projects surface bias into subsurface based on the mixed layer depth.
  */
-void H_subsurf_wsurfbias(dasystem* das, int nobs, int obsids[], char fname[], int mem, int t, char varname[], char varname2[], void* psrc, ENSOBSTYPE dst[])
+void H_subsurf_wsurfbias(dasystem* das, int nobs, int obsids[], char fname[], int mem, int t, void* psrc, ENSOBSTYPE dst[])
 {
     model* m = das->m;
     observations* allobs = das->obs;
     int otid = allobs->data[obsids[0]].type;
     obstype* ot = &allobs->obstypes[otid];
-    int mvid = model_getvarid(m, varname, 1);
-    int mvid2 = model_getvarid(m, varname2, 1);
+    int mvid = model_getvarid(m, ot->varname, 1);
+    int mvid2 = model_getvarid(m, ot->varname2, 1);
     int periodic_x = grid_isperiodic_x(model_getvargrid(m, mvid));
     int periodic_y = grid_isperiodic_y(model_getvargrid(m, mvid));
     int** mask = model_getnumlevels(m, mvid);
@@ -313,18 +322,16 @@ void H_subsurf_wsurfbias(dasystem* das, int nobs, int obsids[], char fname[], in
     int ni, nj, nk;
     int i;
 
-    assert(strcmp(allobs->obstypes[otid].varname, varname) == 0);
-
-    if (varname2 == NULL)
-        enkf_quit("%s: var2 has to be defined for an observation type when using H-function \"wsurfbias\"", varname);
+    if (ot->varname2 == NULL)
+        enkf_quit("%s: var2 has to be defined for an observation type when using H-function \"wsurfbias\"", ot->varname);
     if (model_getvargridid(m, mvid) != model_getvargridid(m, mvid2))
-        enkf_quit("H_surf_biased(): variables \"%s\" and \"%s\" are defined on different grids", varname, varname2);
+        enkf_quit("H_surf_biased(): variables \"%s\" and \"%s\" are defined on different grids", ot->varname, ot->varname2);
     model_getvardims(m, mvid, &ni, &nj, &nk);
 
     /*
      * this part is similar to H_subsurf_standard()
      */
-    model_read3dfield(m, fname, t, varname, src[0][0]);
+    model_read3dfield(m, fname, t, ot->varname, src[0][0]);
 
     snprintf(tag_offset, MAXSTRLEN, "%s:OFFSET", ot->name);
     offset = model_getdata(m, tag_offset);
@@ -344,11 +351,11 @@ void H_subsurf_wsurfbias(dasystem* das, int nobs, int obsids[], char fname[], in
      */
     bias = alloc2d(nj, ni, sizeof(float));
     if (das->mode == MODE_ENKF)
-        model_getmemberfname(m, das->ensdir, varname2, mem, fname2);
+        model_getmemberfname(m, das->ensdir, ot->varname2, mem, fname2);
     else if (das->mode == MODE_ENOI)
-        model_getbgfname(m, das->bgdir, varname2, fname2);
-    assert(!is3d(fname2, varname2));
-    model_readfield(m, fname2, MAXINT, varname2, 0, bias[0]);
+        model_getbgfname(m, das->bgdir, ot->varname2, fname2);
+    assert(!is3d(fname2, ot->varname2));
+    model_readfield(m, fname2, MAXINT, ot->varname2, 0, bias[0]);
 
     if (isnan(ot->mld_threshold) && ot->mld_varname == NULL)
         enkf_quit("\"MLD_THRESH\" or \"MLD_VARNAME\" must be specified for observation type \"%s\" to use H function \"wsurfbias\"", ot->name);

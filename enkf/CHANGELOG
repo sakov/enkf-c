@@ -1,3 +1,6 @@
+v. 1.38.1
+   PS 03052016
+   -- Removed redundant arguments in H_fn().
 v. 1.38.0
    PS 02052016
    -- Added H_subsurf_wsurfbias(). As a consequence, also added das_calcmld(),
