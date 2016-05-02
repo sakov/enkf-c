@@ -1020,6 +1020,29 @@ void grid_ij2xy(grid* g, int i, int j, double* x, double* y)
 
 /**
  */
+void grid_fk2z(grid* g, int i, int j, double fk, double* z)
+{
+    gnz* nodes = g->gridnodes_z;
+    double* zc = nodes->zc;
+    int nt = nodes->nz;
+
+    fk += 0.5;
+
+    if (fk <= 0.0)
+        *z = zc[0];
+    else if (fk >= nt)
+        *z = zc[nt];
+    else {
+        int k = (int) floor(fk);
+
+        *z = zc[k] + (fk - (double) k) * (zc[k + 1] - zc[k]);
+    }
+    if (g->vtype == GRIDVTYPE_SIGMA)
+        *z *= g->depth[j][i];
+}
+
+/**
+ */
 int grid_isperiodic_x(grid* g)
 {
     if (g->htype == GRIDHTYPE_LATLON_REGULAR || g->htype == GRIDHTYPE_LATLON_IRREGULAR) {

@@ -740,6 +740,29 @@ int model_z2fk(model* m, int vid, double fi, double fj, double z, double* fk)
 
 /**
  */
+int model_fk2z(model* m, int vid, int i, int j, double fk, double* z)
+{
+    grid* g = m->grids[m->vars[vid].gridid];
+    float** depth;
+    int ni, nj;
+
+    grid_getdims(g, &ni, &nj, NULL);
+    if (i < 0 || j < 0 || i >= ni || j >= nj) {
+        *z = NaN;
+        return STATUS_OUTSIDEGRID;
+    }
+    grid_fk2z(g, i, j, fk, z);
+    depth = grid_getdepth(g);
+    if (*z > depth[j][i]) {
+        *z = NaN;
+        return STATUS_OUTSIDEGRID;
+    }
+
+    return STATUS_OK;
+}
+
+/**
+ */
 void model_readfield(model* m, char fname[], int time, char varname[], int k, float* v)
 {
     readfield(fname, varname, k, v);

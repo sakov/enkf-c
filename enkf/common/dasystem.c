@@ -387,6 +387,7 @@ void das_calcmld(dasystem* das, obstype* ot, float*** src, float** dst)
         for (i = 0; i < ni; ++i) {
             double vtop, vprev, vnow;
             int kprev;
+            double fk = NaN, z;
 
             if (nlevels[j][i] == 0) {
                 dst[j][i] = NaN;
@@ -396,18 +397,21 @@ void das_calcmld(dasystem* das, obstype* ot, float*** src, float** dst)
             vtop = src[ktop][j][i];
             vprev = vtop;
             kprev = ktop;
+            k = ktop;
             for (kk = 1; kk < nlevels[j][i]; ++kk) {
                 k = (ktop == 0) ? kk : ktop - kk;
                 vnow = src[k][j][i];
                 if (fabs(vnow - vtop) >= threshold) {
-                    dst[j][i] = (double) kprev + (threshold - fabs(vprev - vtop)) / fabs(vnow - vprev);
+                    fk = (double) kprev + (threshold - fabs(vprev - vtop)) / fabs(vnow - vprev);
                     break;
                 }
                 kprev = k;
                 vprev = vnow;
             }
             if (kk == nlevels[j][i])
-                dst[j][i] = (double) k;
+                fk = (double) k;
+            (void) model_fk2z(m, mvid, i, j, fk, &z);
+            dst[j][i] = (float) z;
         }
     }
 }
