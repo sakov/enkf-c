@@ -34,25 +34,20 @@
  */
 static void interpolate_2d_obs(model* m, observations* allobs, int nobs, int obsids[], char fname[], float** v, ENSOBSTYPE out[])
 {
-    int type_prev = -1;
-    int** mask = NULL;
+    int otid = allobs->data[obsids[0]].type;
+    int mvid = model_getvarid(m, allobs->obstypes[otid].varname, 1);
+    int periodic_x = grid_isperiodic_x(model_getvargrid(m, mvid));
+    int periodic_y = grid_isperiodic_y(model_getvargrid(m, mvid));
+    int** mask = model_getnumlevels(m, mvid);
     int ni, nj;
-    int periodic_x = 0, periodic_y = 0;
     int i;
 
+    model_getvardims(m, mvid, &ni, &nj, NULL);
     for (i = 0; i < nobs; ++i) {
         int ii = obsids[i];
         observation* o = &allobs->data[ii];
 
-        if (o->type != type_prev) {
-            int mvid = model_getvarid(m, allobs->obstypes[o->type].varname, 1);
-
-            model_getvardims(m, mvid, &ni, &nj, NULL);
-            mask = model_getnumlevels(m, mvid);
-            periodic_x = grid_isperiodic_x(model_getvargrid(m, mvid));
-            periodic_y = grid_isperiodic_y(model_getvargrid(m, mvid));
-        }
-
+        assert(o->type == otid);
         assert(out[ii] == 0.0);
         out[ii] = interpolate2d(o->fi, o->fj, ni, nj, v, mask, periodic_x, periodic_y);
         if (!isfinite(out[ii])) {
@@ -91,25 +86,20 @@ static void interpolate_2d_obs(model* m, observations* allobs, int nobs, int obs
  */
 static void interpolate_3d_obs(model* m, observations* allobs, int nobs, int obsids[], char fname[], float*** v, ENSOBSTYPE out[])
 {
-    int** nlevels = NULL;
-    int type_prev = -1;
+    int otid = allobs->data[obsids[0]].type;
+    int mvid = model_getvarid(m, allobs->obstypes[otid].varname, 1);
+    int periodic_x = grid_isperiodic_x(model_getvargrid(m, mvid));
+    int periodic_y = grid_isperiodic_y(model_getvargrid(m, mvid));
+    int** nlevels = model_getnumlevels(m, mvid);
     int ni, nj, nk;
-    int periodic_x = -1, periodic_y = -1;
     int i;
 
+    model_getvardims(m, mvid, &ni, &nj, &nk);
     for (i = 0; i < nobs; ++i) {
         int ii = obsids[i];
         observation* o = &allobs->data[ii];
 
-        if (o->type != type_prev) {
-            int mvid = model_getvarid(m, allobs->obstypes[o->type].varname, 1);
-
-            model_getvardims(m, mvid, &ni, &nj, &nk);
-            nlevels = model_getnumlevels(m, mvid);
-            periodic_x = grid_isperiodic_x(model_getvargrid(m, mvid));
-            periodic_y = grid_isperiodic_y(model_getvargrid(m, mvid));
-        }
-
+        assert(o->type == otid);
         assert(out[ii] == 0.0);
         out[ii] = interpolate3d(o->fi, o->fj, o->fk, ni, nj, nk, v, nlevels, periodic_x, periodic_y);
         if (!isfinite(out[ii])) {
@@ -151,6 +141,7 @@ void H_surf_standard(dasystem* das, int nobs, int obsids[], char fname[], int me
     model* m = das->m;
     observations* allobs = das->obs;
     float** src = (float**) psrc;
+    char tag_offset[MAXSTRLEN];
     float** offset = NULL;
     int mvid = model_getvarid(m, varname, 1);
     int k = grid_gettoplayerid(model_getvargrid(m, mvid));
@@ -159,15 +150,17 @@ void H_surf_standard(dasystem* das, int nobs, int obsids[], char fname[], int me
 
     if (getnumlevels(fname, varname) == 1)
         k = 0;
-    model_readfield(m, fname, mem, t, varname, k, src[0]);
+    model_readfield(m, fname, t, varname, k, src[0]);
 
-    offset = model_getmodeldata(m, allobs->obstypes[allobs->data[obsids[0]].type].name);
+    snprintf(tag_offset, MAXSTRLEN, "%s:OFFSET", allobs->obstypes[allobs->data[obsids[0]].type].name);
+    offset = model_getdata(m, tag_offset);
     if (offset != NULL) {
         int ni, nj;
         float* src0 = src[0];
         float* offset0 = offset[0];
         int i;
 
+        assert(model_getdataalloctype(m, tag_offset) == ALLOCTYPE_2D);
         assert(mvid >= 0);
         model_getvardims(m, mvid, &ni, &nj, NULL);
         for (i = 0; i < ni * nj; ++i)
@@ -203,44 +196,50 @@ void H_surf_biased(dasystem* das, int nobs, int obsids[], char fname[], int mem,
     model* m = das->m;
     observations* allobs = das->obs;
     float** src = (float**) psrc;
+    float* src0 = src[0];
+    char tag_offset[MAXSTRLEN];
     float** offset = NULL;
-    float** bias = NULL;
+    float* bias = NULL;
     int mvid = model_getvarid(m, varname, 1);
     int mvid2 = model_getvarid(m, varname2, 1);
-    int k;
     char fname2[MAXSTRLEN];
-    int ni, nj;
-    int i, j;
+    int ni, nj, ktop;
+    int i, nv;
 
+    if (varname2 == NULL)
+        enkf_quit("%s: var2 has to be defined for an observation type when using H-function \"biased\"", varname);
     if (model_getvargridid(m, mvid) != model_getvargridid(m, mvid2))
         enkf_quit("H_surf_biased(): variables \"%s\" and \"%s\" are defined on different grids", varname, varname2);
 
-    k = grid_gettoplayerid(model_getvargrid(m, mvid));
-
+    ktop = grid_gettoplayerid(model_getvargrid(m, mvid));
     model_getvardims(m, mvid, &ni, &nj, NULL);
-    bias = alloc2d(nj, ni, sizeof(float));
+    nv = ni * nj;
+
+    bias = malloc(nv * sizeof(float));
     if (das->mode == MODE_ENKF)
         model_getmemberfname(m, das->ensdir, varname2, mem, fname2);
     else if (das->mode == MODE_ENOI)
         model_getbgfname(m, das->bgdir, varname2, fname2);
-    model_readfield(m, fname2, mem, MAXINT, varname2, k, bias[0]);
+    model_readfield(m, fname2, MAXINT, varname2, ktop, bias);
 
-    model_readfield(m, fname, mem, t, varname, k, src[0]);
+    model_readfield(m, fname, t, varname, ktop, src0);
 
-    offset = model_getmodeldata(m, allobs->obstypes[allobs->data[obsids[0]].type].name);
+    snprintf(tag_offset, MAXSTRLEN, "%s:OFFSET", allobs->obstypes[allobs->data[obsids[0]].type].name);
+    offset = model_getdata(m, tag_offset);
+
     if (offset != NULL) {
-        for (j = 0; j < nj; ++j)
-            for (i = 0; i < ni; ++i)
-                src[j][i] -= offset[j][i] + bias[j][i];
-    } else {
-        for (j = 0; j < nj; ++j)
-            for (i = 0; i < ni; ++i)
-                src[j][i] -= bias[j][i];
-    }
+        float* offset0 = offset[0];
+
+        assert(model_getdataalloctype(m, tag_offset) == ALLOCTYPE_2D);
+        for (i = 0; i < nv; ++i)
+            src0[i] -= offset0[i] + bias[i];
+    } else
+        for (i = 0; i < nv; ++i)
+            src0[i] -= bias[i];
 
     interpolate_2d_obs(m, allobs, nobs, obsids, fname, src, dst);
 
-    free2d(bias);
+    free(bias);
 }
 
 /**
@@ -250,12 +249,14 @@ void H_subsurf_standard(dasystem* das, int nobs, int obsids[], char fname[], int
     model* m = das->m;
     observations* allobs = das->obs;
     float*** src = (float***) psrc;
+    char tag_offset[MAXSTRLEN];
     float*** offset = NULL;
 
     assert(varname2 == NULL);
-    model_read3dfield(m, fname, mem, t, varname, src[0][0]);
+    model_read3dfield(m, fname, t, varname, src[0][0]);
 
-    offset = model_getmodeldata(m, allobs->obstypes[allobs->data[obsids[0]].type].name);
+    snprintf(tag_offset, MAXSTRLEN, "%s:OFFSET", allobs->obstypes[allobs->data[obsids[0]].type].name);
+    offset = model_getdata(m, tag_offset);
     if (offset != NULL) {
         int mvid = model_getvarid(m, varname, 1);
         int ni, nj, nk;
@@ -263,10 +264,139 @@ void H_subsurf_standard(dasystem* das, int nobs, int obsids[], char fname[], int
         float* offset0 = offset[0][0];
         int i;
 
+        assert(model_getdataalloctype(m, tag_offset) == ALLOCTYPE_3D);
         model_getvardims(m, mvid, &ni, &nj, &nk);
         for (i = 0; i < ni * nj * nk; ++i)
             src0[i] -= offset0[i];
     }
 
     interpolate_3d_obs(m, allobs, nobs, obsids, fname, src, dst);
+}
+
+#define MLD_TRANSITION 0.1
+
+static double mldtaper(double mld, double z)
+{
+    double v;
+
+    assert(z >= 0.0);
+    v = (z / mld - 1) / MLD_TRANSITION;
+    if (v < -1.0)
+        return 1.0;
+    else if (v > 1.0)
+        return 0.0;
+
+    return cos((v + 1) * M_PI / 2.0) * 0.5 + 0.5;
+}
+
+/** Projects surface bias into subsurface based on the pre-calculated
+ * correlations between surface and subsurface anomalies.
+ */
+void H_subsurf_wsurfbias(dasystem* das, int nobs, int obsids[], char fname[], int mem, int t, char varname[], char varname2[], void* psrc, ENSOBSTYPE dst[])
+{
+    model* m = das->m;
+    observations* allobs = das->obs;
+    int otid = allobs->data[obsids[0]].type;
+    obstype* ot = &allobs->obstypes[otid];
+    int mvid = model_getvarid(m, varname, 1);
+    int mvid2 = model_getvarid(m, varname2, 1);
+    int periodic_x = grid_isperiodic_x(model_getvargrid(m, mvid));
+    int periodic_y = grid_isperiodic_y(model_getvargrid(m, mvid));
+    int** mask = model_getnumlevels(m, mvid);
+
+    float*** src = (float***) psrc;
+    float** mld = NULL;
+    char tag_offset[MAXSTRLEN];
+    float*** offset = NULL;
+    float** bias = NULL;
+    char fname2[MAXSTRLEN];
+    int ni, nj, nk;
+    int i;
+
+    assert(strcmp(allobs->obstypes[otid].varname, varname) == 0);
+
+    if (varname2 == NULL)
+        enkf_quit("%s: var2 has to be defined for an observation type when using H-function \"wsurfbias\"", varname);
+    if (model_getvargridid(m, mvid) != model_getvargridid(m, mvid2))
+        enkf_quit("H_surf_biased(): variables \"%s\" and \"%s\" are defined on different grids", varname, varname2);
+    model_getvardims(m, mvid, &ni, &nj, &nk);
+
+    /*
+     * this part is similar to H_subsurf_standard()
+     */
+    model_read3dfield(m, fname, t, varname, src[0][0]);
+
+    snprintf(tag_offset, MAXSTRLEN, "%s:OFFSET", ot->name);
+    offset = model_getdata(m, tag_offset);
+    if (offset != NULL) {
+        float* src0 = src[0][0];
+        float* offset0 = offset[0][0];
+
+        assert(model_getdataalloctype(m, tag_offset) == ALLOCTYPE_3D);
+        for (i = 0; i < ni * nj * nk; ++i)
+            src0[i] -= offset0[i];
+    }
+
+    interpolate_3d_obs(m, allobs, nobs, obsids, fname, src, dst);
+
+    /*
+     * now correct for the surface bias
+     */
+    bias = alloc2d(nj, ni, sizeof(float));
+    if (das->mode == MODE_ENKF)
+        model_getmemberfname(m, das->ensdir, varname2, mem, fname2);
+    else if (das->mode == MODE_ENOI)
+        model_getbgfname(m, das->bgdir, varname2, fname2);
+    assert(!is3d(fname2, varname2));
+    model_readfield(m, fname2, MAXINT, varname2, 0, bias[0]);
+
+    if (isnan(ot->mld_threshold) && ot->mld_varname == NULL)
+        enkf_quit("\"MLD_THRESH\" or \"MLD_VARNAME\" must be specified for observation type \"%s\" to use H function \"wsurfbias\"", ot->name);
+    if (!isnan(ot->mld_threshold) && ot->mld_varname != NULL)
+        enkf_quit("both \"MLD_THRESH\" and \"MLD_VARNAME\" are specified for observation type \"%s\"", ot->name);
+    mld = alloc2d(nj, ni, sizeof(float));
+    if (ot->mld_varname != NULL) {
+        char fname_mld[MAXSTRLEN];
+
+        if (model_getvarid(m, ot->mld_varname, 0) < 0)
+            enkf_quit("\"MLD_VARNAME = %s\" for observation type \"%s\" does not exist among model variables", ot->mld_varname, ot->name);
+        if (das->mode == MODE_ENKF) {
+            model_getmemberfname(m, das->ensdir, ot->mld_varname, mem, fname_mld);
+            model_readfield(m, fname_mld, 0, ot->mld_varname, 0, mld[0]);
+        } else if (das->mode == MODE_ENOI) {
+            model_getbgfname(m, das->bgdir, ot->mld_varname, fname_mld);
+            model_readfield(m, fname_mld, 0, ot->mld_varname, 0, mld[0]);
+        }
+    } else {
+        if (das->mode == MODE_ENKF)
+            das_calcmld(das, ot, src, mld);
+        else if (das->mode == MODE_ENOI) {
+            char tag[MAXSTRLEN];
+
+            snprintf(tag, MAXSTRLEN, "%s:MLD", ot->name);
+            if (mem <= 0) {     /* background */
+                das_calcmld(das, ot, src, mld);
+                model_addorreplacedata(m, tag, mvid, ALLOCTYPE_2D, mld);
+            } else              /* members */
+                mld = model_getdata(m, tag);
+        } else
+            enkf_quit("programming error");
+    }
+
+    for (i = 0; i < nobs; ++i) {
+        int ii = obsids[i];
+        observation* o = &allobs->data[ii];
+        double vmld = interpolate2d(o->fi, o->fj, ni, nj, mld, mask, periodic_x, periodic_y);
+        double vbias = interpolate2d(o->fi, o->fj, ni, nj, bias, mask, periodic_x, periodic_y);
+
+        if (!isfinite(vmld))
+            continue;
+
+        assert(isfinite(vbias));
+        dst[ii] += mldtaper(vmld, o->depth) * vbias;
+    }
+
+    if (das->mode == MODE_ENKF)
+        free2d(mld);
+    free2d(bias);
 }

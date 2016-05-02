@@ -93,9 +93,10 @@
 #define STATE_BIGNUM 1.0e3
 #define STD_BIG 1.0e10
 
-#define ALLOCTYPE_1D 0
-#define ALLOCTYPE_2D 1
-#define ALLOCTYPE_3D 2
+#define ALLOCTYPE_NONE -1
+#define ALLOCTYPE_1D    0
+#define ALLOCTYPE_2D    1
+#define ALLOCTYPE_3D    2
 
 #define UPDATE_DOFIELDS       (1 << 0)
 #define UPDATE_DOSPREAD       (1 << 1)

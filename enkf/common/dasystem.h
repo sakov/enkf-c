@@ -113,6 +113,7 @@ void das_getHE(dasystem* das);
 void das_addanalysis(dasystem* das, char fname[]);
 void das_addforecast(dasystem* das, char fname[]);
 void das_addmodifiederrors(dasystem* das, char fname[]);
+void das_calccorr(dasystem* das, int mvid);
 void das_calcinnandspread(dasystem* das);
 void das_calctransforms(dasystem* das);
 void das_dopointlogs(dasystem* das);
@@ -134,6 +135,8 @@ void das_getfname_X5(dasystem* das, void* grid, char fname[]);
 void das_getfname_w(dasystem* das, void* grid, char fname[]);
 void das_getfname_stats(dasystem* das, void* grid, char fname[]);
 void das_getfname_plog(dasystem* das, pointlog* plog, char fname[]);
+
+void das_calcmld(dasystem* das, obstype* ot, float*** src, float** dst);
 
 #define _DASYSTEM_H
 #endif

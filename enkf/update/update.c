@@ -1372,12 +1372,12 @@ void das_update(dasystem* das)
 
             for (e = 0; e < das->nmem; ++e) {
                 model_getmemberfname(m, das->ensdir, f->varname, e + 1, fname);
-                model_readfield(das->m, fname, e + 1, MAXINT, f->varname, f->level, ((float***) fieldbuffer[bufindex])[e][0]);
+                model_readfield(das->m, fname, MAXINT, f->varname, f->level, ((float***) fieldbuffer[bufindex])[e][0]);
             }
             if (das->mode == MODE_ENOI) {
                 if (!(das->updatespec & UPDATE_OUTPUTINC)) {
                     model_getbgfname(m, das->bgdir, f->varname, fname);
-                    model_readfield(das->m, fname, MAXINT, MAXINT, f->varname, f->level, ((float***) fieldbuffer[bufindex])[das->nmem][0]);
+                    model_readfield(das->m, fname, MAXINT, f->varname, f->level, ((float***) fieldbuffer[bufindex])[das->nmem][0]);
                 } else
                     memset(((float***) fieldbuffer[bufindex])[das->nmem][0], 0, mni * mnj * sizeof(float));
             }
@@ -1452,4 +1452,149 @@ void das_update(dasystem* das)
             plog_assemblestatevars(das);
         }
     }
+}
+
+/** Calculates and writes to disk 3D field of correlation coefficients between
+ * surface and other layers of a 3D variable. This function is not used at the
+ * moment.
+ */
+void das_calccorr(dasystem* das, int mvid)
+{
+    model* m = das->m;
+    char* varname = model_getvarname(m, mvid);
+    int ncid, vid;
+    int dimids[2];
+    float*** v = NULL;
+    float*** v0 = NULL;
+    double* cor = NULL;
+    double* std0 = NULL;
+    double* std = NULL;
+    int ni, nj, nk;
+    int ktop, nv;
+    int e, k, i;
+
+    model_getvardims(m, mvid, &ni, &nj, &nk);
+    nv = ni * nj;
+    ktop = grid_gettoplayerid(model_getvargrid(m, mvid));
+
+    v = alloc3d(das->nmem, nj, ni, sizeof(float));
+    v0 = alloc3d(das->nmem, nj, ni, sizeof(float));
+    cor = calloc(nv, sizeof(double));
+    std = calloc(nv, sizeof(double));
+    std0 = calloc(nv, sizeof(double));
+
+    for (e = 0; e < das->nmem; ++e) {
+        char fname[MAXSTRLEN];
+
+        model_getmemberfname(m, das->ensdir, varname, e + 1, fname);
+        model_readfield(das->m, fname, MAXINT, varname, ktop, v0[e][0]);
+    }
+    for (i = 0; i < nv; ++i) {
+        double vmean = 0.0;
+
+        for (e = 0; e < das->nmem; ++e)
+            vmean += (double) v0[e][0][i];
+        vmean /= (double) das->nmem;
+        for (e = 0; e < das->nmem; ++e)
+            v0[e][0][i] -= (float) vmean;
+        std0[i] = 0.0;
+        for (e = 0; e < das->nmem; ++e)
+            std0[i] += (double) (v0[e][0][i] * v0[e][0][i]);
+        std0[i] = sqrt(std0[i] / (double) (das->nmem - 1));
+    }
+
+    distribute_iterations(0, nk - 1, nprocesses, rank, "    ");
+#if defined(MPI)
+    MPI_Barrier(MPI_COMM_WORLD);
+#endif
+    for (k = my_first_iteration; k <= my_last_iteration; ++k) {
+        char fname_src[MAXSTRLEN];
+        char fname_dst[MAXSTRLEN];
+
+        for (e = 0; e < das->nmem; ++e) {
+            model_getmemberfname(m, das->ensdir, varname, e + 1, fname_src);
+            model_readfield(das->m, fname_src, MAXINT, varname, k, v[e][0]);
+        }
+        for (i = 0; i < nv; ++i) {
+            double vmean = 0.0;
+
+            for (e = 0; e < das->nmem; ++e)
+                vmean += (double) v[e][0][i];
+            vmean /= (double) das->nmem;
+            for (e = 0; e < das->nmem; ++e)
+                v[e][0][i] -= (float) vmean;
+            std[i] = 0.0;
+            for (e = 0; e < das->nmem; ++e)
+                std[i] += (double) (v[e][0][i] * v[e][0][i]);
+            std[i] /= sqrt(std[i] / (double) (das->nmem - 1));
+            cor[i] = 0.0;
+            for (e = 0; e < das->nmem; ++e)
+                cor[i] += (double) (v[e][0][i] * v0[e][0][i]);
+            cor[i] /= (std[i] * std0[i]);
+        }
+
+        snprintf(fname_dst, MAXSTRLEN, "corr_%s-%03d.nc", varname, k);
+        if (!file_exists(fname_dst)) {
+            ncw_create(fname_dst, NC_CLOBBER | NETCDF_FORMAT, &ncid);
+            ncw_def_dim(fname_dst, ncid, "nj", nj, &dimids[0]);
+            ncw_def_dim(fname_dst, ncid, "ni", ni, &dimids[1]);
+            ncw_def_var(fname_dst, ncid, varname, NC_FLOAT, 2, dimids, &vid);
+            ncw_enddef(fname_dst, ncid);
+        } else {
+            ncw_open(fname_dst, NC_WRITE, &ncid);
+            if (!ncw_var_exists(ncid, varname)) {
+                ncw_redef(fname_dst, ncid);
+                ncw_inq_dimid(fname_dst, ncid, "nj", &dimids[0]);
+                ncw_inq_dimid(fname_dst, ncid, "ni", &dimids[1]);
+                ncw_def_var(fname_dst, ncid, varname, NC_FLOAT, 2, dimids, NULL);
+                ncw_enddef(fname_dst, ncid);
+            }
+            ncw_inq_varid(fname_dst, ncid, varname, &vid);
+        }
+        ncw_put_var_double(fname_dst, ncid, vid, cor);
+        ncw_close(fname_dst, ncid);
+    }
+
+    free3d(v);
+    free3d(v0);
+    free(std);
+    free(std0);
+    free(cor);
+
+#if defined(MPI)
+    MPI_Barrier(MPI_COMM_WORLD);
+#endif
+    if (rank == 0) {
+        float* v = malloc(nv * sizeof(float));
+        char fname_dst[MAXSTRLEN];
+        char fname_src[MAXSTRLEN];
+        int ncid_dst, ncid_src;
+
+        snprintf(fname_dst, MAXSTRLEN, "corr_%s.nc", varname);
+        if (!file_exists(fname_dst)) {
+            ncw_create(fname_dst, NC_CLOBBER | NETCDF_FORMAT, &ncid_dst);
+
+            model_getmemberfname(m, das->ensdir, varname, 1, fname_src);
+            ncw_open(fname_src, NC_NOWRITE, &ncid_src);
+            ncw_copy_var(fname_src, ncid_src, varname, fname_dst, ncid_dst);
+            ncw_close(fname_dst, ncid_dst);
+        }
+
+        for (k = 0; k < nk; ++k) {
+            snprintf(fname_src, MAXSTRLEN, "corr_%s-%03d.nc", varname, k);
+
+            ncw_open(fname_src, NC_NOWRITE, &ncid_src);
+            ncw_inq_varid(fname_src, ncid_src, varname, &vid);
+            ncw_get_var_float(fname_src, ncid_src, vid, v);
+            ncw_close(fname_src, ncid_src);
+            file_delete(fname_src);
+
+            model_writefield(m, fname_dst, MAXINT, varname, k, v);
+        }
+
+        free(v);
+    }
+#if defined(MPI)
+    MPI_Barrier(MPI_COMM_WORLD);
+#endif
 }

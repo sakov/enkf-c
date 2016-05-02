@@ -26,7 +26,7 @@
 #include <errno.h>
 #include "ncw.h"
 
-const char ncw_version[] = "0.25";
+const char ncw_version[] = "1.01";
 
 /* This macro is substituted in error messages instead of the name of a
  * variable in cases when the name could not be found by the variable id.
@@ -1047,7 +1047,13 @@ int ncw_copy_vardef(const char* fname_src, int ncid_src, int vid_src, const char
         size_t len;
 
         ncw_inq_dim(fname_src, ncid_src, dimids_src[i], dimname, &len);
-        ncw_inq_dimid(fname_dst, ncid_dst, dimname, &dimids_dst[i]);
+        if (!ncw_dim_exists(ncid_dst, dimname)) {
+            int unlimdimid = -1;
+
+            ncw_inq_unlimdimid(fname_src, ncid_src, &unlimdimid);
+            ncw_def_dim(fname_dst, ncid_dst, dimname, (dimids_src[i] == unlimdimid) ? NC_UNLIMITED : len, &dimids_dst[i]);
+        } else
+            ncw_inq_dimid(fname_dst, ncid_dst, dimname, &dimids_dst[i]);
     }
 
     ncw_def_var(fname_dst, ncid_dst, varname, type, ndims, dimids_dst, &vid_dst);

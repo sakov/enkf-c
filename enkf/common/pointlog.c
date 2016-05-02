@@ -363,7 +363,7 @@ static void plog_writestatevars_toassemble(dasystem* das, int nfields, void** fi
                 else
                     snprintf(varname, NC_MAX_NAME, "%s%s_%d_%d-%d", f->varname, "_inc", plog->i, plog->j, plog->gridid);
             }
-                    
+
             ncw_def_var(fname, ncid, varname, NC_FLOAT, 1, &dimid, &vid[p]);
         }
         ncw_enddef(fname, ncid);

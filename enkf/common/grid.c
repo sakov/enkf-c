@@ -911,7 +911,7 @@ int grid_gettoplayerid(grid* g)
     int kmax = nodes->nz - 1;
     double* z = nodes->zt;
 
-    return (z[0] < z[kmax]) ? 0 : kmax;
+    return (fabs(z[0]) < fabs(z[kmax])) ? 0 : kmax;
 }
 
 /**

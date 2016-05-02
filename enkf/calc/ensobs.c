@@ -100,16 +100,10 @@ void das_getHE(dasystem* das)
                 if (nobs == 0)
                     continue;
 
-                if (das->mode == MODE_ENKF || !enkf_fstatsonly) {
-                    for (e = my_first_iteration; e <= my_last_iteration; ++e) {
-                        int success = model_getmemberfname_async(m, das->ensdir, ot->varname, ot->name, e + 1, t, fname);
-
-                        H(das, nobs, obsids, fname, e + 1, t, ot->varname, ot->varname2, (ot->issurface) ? (void*) vv : (void*) vvv, das->S[e]);
-                        enkf_printf((success) ? "a" : "s");
-                        fflush(stdout);
-                    }
-                }
-
+                /*
+                 * for EnOI it is essential sometimes (e.g. in some bias
+                 * correction cases) that the background is interpolated first
+                 */
                 if (das->mode == MODE_ENOI) {
                     if (enkf_obstype == OBSTYPE_VALUE) {
                         int success = model_getbgfname_async(m, das->bgdir, ot->varname, ot->name, t, fname);
@@ -124,6 +118,16 @@ void das_getHE(dasystem* das)
                     }
                 }
 
+                if (das->mode == MODE_ENKF || !enkf_fstatsonly) {
+                    for (e = my_first_iteration; e <= my_last_iteration; ++e) {
+                        int success = model_getmemberfname_async(m, das->ensdir, ot->varname, ot->name, e + 1, t, fname);
+
+                        H(das, nobs, obsids, fname, e + 1, t, ot->varname, ot->varname2, (ot->issurface) ? (void*) vv : (void*) vvv, das->S[e]);
+                        enkf_printf((success) ? "a" : "s");
+                        fflush(stdout);
+                    }
+                }
+
                 free(obsids);
             }
         } else {
@@ -131,15 +135,10 @@ void das_getHE(dasystem* das)
             if (nobs == 0)
                 goto next;
 
-            if (das->mode == MODE_ENKF || !enkf_fstatsonly) {
-                for (e = my_first_iteration; e <= my_last_iteration; ++e) {
-                    model_getmemberfname(m, das->ensdir, ot->varname, e + 1, fname);
-                    H(das, nobs, obsids, fname, e + 1, MAXINT, ot->varname, ot->varname2, (ot->issurface) ? (void*) vv : (void*) vvv, das->S[e]);
-                    enkf_printf(".");
-                    fflush(stdout);
-                }
-            }
-
+            /*
+             * for EnOI it is essential sometimes (e.g. in some bias correction
+             * cases) that the background is interpolated first
+             */
             if (das->mode == MODE_ENOI) {
                 if (enkf_obstype == OBSTYPE_VALUE) {
                     model_getbgfname(m, das->bgdir, ot->varname, fname);
@@ -149,6 +148,15 @@ void das_getHE(dasystem* das)
                 } else if (enkf_obstype == OBSTYPE_INNOVATION) {
                     Hx[0] = 0;
                     enkf_printf("-");
+                    fflush(stdout);
+                }
+            }
+
+            if (das->mode == MODE_ENKF || !enkf_fstatsonly) {
+                for (e = my_first_iteration; e <= my_last_iteration; ++e) {
+                    model_getmemberfname(m, das->ensdir, ot->varname, e + 1, fname);
+                    H(das, nobs, obsids, fname, e + 1, MAXINT, ot->varname, ot->varname2, (ot->issurface) ? (void*) vv : (void*) vvv, das->S[e]);
+                    enkf_printf(".");
                     fflush(stdout);
                 }
             }

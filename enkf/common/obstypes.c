@@ -50,6 +50,8 @@ static void obstype_new(obstype* type, int i, char* name)
     type->issurface = -1;
     type->offset_fname = NULL;
     type->offset_varname = NULL;
+    type->mld_varname = NULL;
+    type->mld_threshold = NaN;
     type->hfunction = NULL;
     type->allowed_min = -DBL_MAX;
     type->allowed_max = DBL_MAX;
@@ -195,6 +197,19 @@ void obstypes_read(char fname[], int* n, obstype** types, double locrad_base, do
             if ((token = strtok(NULL, seps)) == NULL)
                 enkf_quit("%s, l.%d: OFFSET variable name not specified", fname, line);
             now->offset_varname = strdup(token);
+        } else if (strcasecmp(token, "MLD_VARNAME") == 0) {
+            if ((token = strtok(NULL, seps)) == NULL)
+                enkf_quit("%s, l.%d: MLD_VARNAME not specified", fname, line);
+            if (now->mld_varname != NULL)
+                enkf_quit("%s, l.%d: MLD_VARNAME entry already specified", fname, line);
+            now->mld_varname = strdup(token);
+        } else if (strcasecmp(token, "MLD_THRESH") == 0) {
+            if ((token = strtok(NULL, seps)) == NULL)
+                enkf_quit("%s, l.%d: MLD_THRESH not specified", fname, line);
+            if (!isnan(now->mld_threshold))
+                enkf_quit("%s, l.%d: MLD_THRESH already specified", fname, line);
+            if (!str2double(token, &now->mld_threshold))
+                enkf_quit("%s, l.%d: could not convert \"%s\" to double", fname, line, token);
         } else if (strcasecmp(token, "HFUNCTION") == 0) {
             if ((token = strtok(NULL, seps)) == NULL)
                 enkf_quit("%s, l.%d: HFUNCTION not specified", fname, line);
@@ -344,6 +359,8 @@ void obstypes_destroy(int n, obstype* types)
             free(type->offset_fname);
             free(type->offset_varname);
         }
+        if (type->mld_varname != NULL)
+            free(type->mld_varname);
         free(type->locrad);
         free(type->weight);
     }
@@ -358,24 +375,26 @@ void obstypes_describeprm(void)
     enkf_printf("\n");
     enkf_printf("  Observation types parameter file format:\n");
     enkf_printf("\n");
-    enkf_printf("    NAME      = <name>\n");
-    enkf_printf("    VAR       = <model variable name>\n");
-    enkf_printf("  [ VAR2       = <model variable name> ]\n");
-    enkf_printf("    ISSURFACE = { yes | no }\n");
-    enkf_printf("  [ OFFSET    = <file name> <variable name> ]    (none*)\n");
-    enkf_printf("    HFUNCTION = <H function name>\n");
-    enkf_printf("  [ ASYNC     = <time interval> ]                (synchronous*)\n");
-    enkf_printf("  [ LOCRAD    = <locrad> ... ]                   (global*)\n");
-    enkf_printf("  [ WEIGHT    = <weight> ... ]                   (1*)\n");
-    enkf_printf("  [ RFACTOR   = <rfactor> ]                      (1*)\n");
-    enkf_printf("  [ MINVALUE  = <minimal allowed value> ]        (-inf*)\n");
-    enkf_printf("  [ MAXVALUE  = <maximal allowed value> ]        (+inf*)\n");
-    enkf_printf("  [ XMIN      = <minimal allowed X coordinate> ] (-inf*)\n");
-    enkf_printf("  [ XMAX      = <maximal allowed X coordinate> ] (+inf*)\n");
-    enkf_printf("  [ YMIN      = <minimal allowed Y coordinate> ] (-inf*)\n");
-    enkf_printf("  [ YMAX      = <maximal allowed Y coordinate> ] (+inf*)\n");
-    enkf_printf("  [ ZMIN      = <minimal allowed Z coordinate> ] (-inf*)\n");
-    enkf_printf("  [ ZMAX      = <maximal allowed Z coordinate> ] (+inf*)\n");
+    enkf_printf("    NAME        = <name>\n");
+    enkf_printf("    VAR         = <model variable name>\n");
+    enkf_printf("  [ VAR2        = <model variable name> ]\n");
+    enkf_printf("    ISSURFACE   = { yes | no }\n");
+    enkf_printf("  [ OFFSET      = <file name> <variable name> ]    (none*)\n");
+    enkf_printf("  [ MLD_VARNAME = <model varname> ]                (none*)\n");
+    enkf_printf("  [ MLD_THRESH  = <threshold> ]                    (NaN*)\n");
+    enkf_printf("    HFUNCTION   = <H function name>\n");
+    enkf_printf("  [ ASYNC       = <time interval> ]                (synchronous*)\n");
+    enkf_printf("  [ LOCRAD      = <locrad> ... ]                   (global*)\n");
+    enkf_printf("  [ WEIGHT      = <weight> ... ]                   (1*)\n");
+    enkf_printf("  [ RFACTOR     = <rfactor> ]                      (1*)\n");
+    enkf_printf("  [ MINVALUE    = <minimal allowed value> ]        (-inf*)\n");
+    enkf_printf("  [ MAXVALUE    = <maximal allowed value> ]        (+inf*)\n");
+    enkf_printf("  [ XMIN        = <minimal allowed X coordinate> ] (-inf*)\n");
+    enkf_printf("  [ XMAX        = <maximal allowed X coordinate> ] (+inf*)\n");
+    enkf_printf("  [ YMIN        = <minimal allowed Y coordinate> ] (-inf*)\n");
+    enkf_printf("  [ YMAX        = <maximal allowed Y coordinate> ] (+inf*)\n");
+    enkf_printf("  [ ZMIN        = <minimal allowed Z coordinate> ] (-inf*)\n");
+    enkf_printf("  [ ZMAX        = <maximal allowed Z coordinate> ] (+inf*)\n");
     enkf_printf("\n");
     enkf_printf("  [ <more of the above blocks> ]\n");
     enkf_printf("\n");

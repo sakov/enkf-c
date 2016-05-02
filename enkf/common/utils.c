@@ -465,7 +465,7 @@ int read_bool(char* token)
  * @param unitsize Size of one matrix element in bytes
  * @return Matrix
  */
-void* alloc2d(int ni, int nj, size_t unitsize)
+void* alloc2d_old(int ni, int nj, size_t unitsize)
 {
     size_t size;
     char* p;
@@ -496,7 +496,7 @@ void* alloc2d(int ni, int nj, size_t unitsize)
 /** Destroys a matrix.
  * @param pp Matrix
  */
-void free2d(void* pp)
+void free2d_old(void* pp)
 {
     void* p;
 
@@ -512,7 +512,7 @@ void free2d(void* pp)
  * @param unitsize Size of one matrix element in bytes
  * @return Matrix
  */
-void* alloc3d(int ni, int nj, int nk, size_t unitsize)
+void* alloc3d_old(int ni, int nj, int nk, size_t unitsize)
 {
     size_t size;
     char* p;
@@ -554,7 +554,7 @@ void* alloc3d(int ni, int nj, int nk, size_t unitsize)
 /** Destroys a 3D array.
  * @param ppp 3D array
  */
-void free3d(void* ppp)
+void free3d_old(void* ppp)
 {
     void** pp;
     void* p;
@@ -566,6 +566,158 @@ void free3d(void* ppp)
     free(pp);
     assert(p != NULL);
     free(p);
+}
+
+/** Allocates nj x ni matrix of something. It will be accessed as [i][j].
+ * @param ni Outer dimension
+ * @param nj Inner dimension
+ * @param unitsize Size of one matrix element in bytes
+ * @return Matrix
+ */
+void* alloc2d(int ni, int nj, size_t unitsize)
+{
+    size_t size;
+    char* p;
+    void** pp;
+    int i;
+
+    if (ni <= 0 || nj <= 0)
+        enkf_quit("alloc2d(): invalid size (ni = %d, nj = %d)", ni, nj);
+
+    size = ni * nj * unitsize + ni * sizeof(void*);
+    if ((p = malloc(size)) == NULL) {
+        int errno_saved = errno;
+
+        enkf_quit("alloc2d(): %s", strerror(errno_saved));
+    }
+    memset(p, 0, size);
+    pp = (void**) p;
+    p = &p[ni * sizeof(void*)];
+    for (i = 0; i < ni; i++)
+        pp[i] = &p[i * nj * unitsize];
+
+    return pp;
+}
+
+/** Destroys a matrix.
+ * @param pp Matrix
+ */
+void free2d(void* p)
+{
+    free(p);
+}
+
+/** Copies nj x ni matrix of something.
+ * @param ni Outer dimension
+ * @param nj Inner dimension
+ * @param unitsize Size of one matrix element in bytes
+ * @return Matrix
+ */
+void* copy2d(void** src, int ni, int nj, size_t unitsize)
+{
+    size_t size;
+    char* p;
+    void** pp;
+    int i;
+
+    if (ni <= 0 || nj <= 0)
+        enkf_quit("alloc2d(): invalid size (ni = %d, nj = %d)", ni, nj);
+
+    size = ni * nj * unitsize + ni * sizeof(void*);
+    if ((p = malloc(size)) == NULL) {
+        int errno_saved = errno;
+
+        enkf_quit("alloc2d(): %s", strerror(errno_saved));
+    }
+    pp = (void**) p;
+    p = &p[ni * sizeof(void*)];
+    memcpy(p, src[0], ni * nj * unitsize);
+    for (i = 0; i < ni; i++)
+        pp[i] = &p[i * nj * unitsize];
+
+    return pp;
+}
+
+/** Allocates nk x nj x ni array of something. It will be accessed as [i][j][k].
+ * @param ni Outer dimension
+ * @param nj Middle dimension
+ * @param nj Inner dimension
+ * @param unitsize Size of one matrix element in bytes
+ * @return Matrix
+ */
+void* alloc3d(int ni, int nj, int nk, size_t unitsize)
+{
+    size_t size;
+    char* p;
+    void** pp;
+    void*** ppp;
+    int i;
+
+    if (ni <= 0 || nj <= 0 || nk <= 0)
+        enkf_quit("alloc3d(): invalid size (ni = %d, nj = %d, nk = %d)", ni, nj, nk);
+
+    size = ni * nj * nk * unitsize + ni * nj * sizeof(void*) + ni * sizeof(void*);
+    if ((p = malloc(size)) == NULL) {
+        int errno_saved = errno;
+
+        enkf_quit("alloc3d(): %s", strerror(errno_saved));
+    }
+    memset(p, 0, size);
+    ppp = (void***) p;
+    pp = (void**) &p[ni * sizeof(void*)];
+    p = &p[(ni + ni * nj) * sizeof(void*)];
+
+    for (i = 0; i < ni; i++)
+        ppp[i] = &pp[i * nj];
+    for (i = 0; i < ni * nj; i++)
+        pp[i] = &p[i * nk * unitsize];
+
+    return ppp;
+}
+
+/** Destroys a 3D array.
+ * @param ppp 3D array
+ */
+void free3d(void* p)
+{
+    assert(p != NULL);
+    free(p);
+}
+
+/** Copies nk x nj x ni matrix of something.
+ * @param ni Outer dimension
+ * @param nj Inner dimension
+ * @param unitsize Size of one matrix element in bytes
+ * @return Matrix
+ */
+void* copy3d(void*** src, int ni, int nj, int nk, size_t unitsize)
+{
+    size_t size;
+    char* p;
+    void** pp;
+    void*** ppp;
+    int i;
+
+    if (ni <= 0 || nj <= 0 || nk <= 0)
+        enkf_quit("alloc3d(): invalid size (ni = %d, nj = %d, nk = %d)", ni, nj, nk);
+
+    size = ni * nj * nk * unitsize + ni * nj * sizeof(void*) + ni * sizeof(void*);
+    if ((p = malloc(size)) == NULL) {
+        int errno_saved = errno;
+
+        enkf_quit("alloc3d(): %s", strerror(errno_saved));
+    }
+
+    ppp = (void***) p;
+    pp = (void**) &p[ni * sizeof(void*)];
+    p = &p[(ni + ni * nj) * sizeof(void*)];
+    memcpy(p, src[0][0], ni * nj * unitsize);
+    for (i = 0; i < ni; i++)
+        ppp[i] = &pp[i * nj];
+    for (i = 0; i < ni * nj; i++)
+        pp[i] = &p[i * nk * unitsize];
+
+    return pp;
 }
 
 /**
@@ -632,6 +784,7 @@ void readfield(char fname[], char varname[], int k, float* v)
     ncw_open(fname, NC_NOWRITE, &ncid);
     ncw_inq_varid(fname, ncid, varname, &varid);
     ncw_inq_varndims(fname, ncid, varid, &ndims);
+    assert(ndims <= 4);
     ncw_inq_vardimid(fname, ncid, varid, dimids);
     for (i = 0; i < ndims; ++i)
         ncw_inq_dimlen(fname, ncid, dimids[i], &dimlen[i]);
@@ -641,12 +794,12 @@ void readfield(char fname[], char varname[], int k, float* v)
     if (ndims == 4) {
         assert(containsrecorddim);
         start[0] = 0;
-	if (dimlen[1] == 1)
-	    start[1] = 0;
-	else {
-	    assert(k < dimlen[1]);
-	    start[1] = k;
-	}
+        if (dimlen[1] == 1)
+            start[1] = 0;
+        else {
+            assert(k < dimlen[1]);
+            start[1] = k;
+        }
         start[2] = 0;
         start[3] = 0;
         count[0] = 1;
@@ -727,6 +880,7 @@ void writefield(char fname[], char varname[], int k, float* v)
     ncw_open(fname, NC_WRITE, &ncid);
     ncw_inq_varid(fname, ncid, varname, &varid);
     ncw_inq_varndims(fname, ncid, varid, &ndims);
+    assert(ndims <= 4);
     ncw_inq_vardimid(fname, ncid, varid, dimids);
     for (i = 0; i < ndims; ++i)
         ncw_inq_dimlen(fname, ncid, dimids[i], &dimlen[i]);
@@ -856,6 +1010,7 @@ void writerow(char fname[], char varname[], int k, int j, float* v)
     ncw_open(fname, NC_WRITE, &ncid);
     ncw_inq_varid(fname, ncid, varname, &varid);
     ncw_inq_varndims(fname, ncid, varid, &ndims);
+    assert(ndims <= 4);
     ncw_inq_vardimid(fname, ncid, varid, dimids);
     for (i = 0; i < ndims; ++i)
         ncw_inq_dimlen(fname, ncid, dimids[i], &dimlen[i]);
@@ -983,6 +1138,7 @@ void read3dfield(char* fname, char* varname, float* v)
     ncw_open(fname, NC_NOWRITE, &ncid);
     ncw_inq_varid(fname, ncid, varname, &varid);
     ncw_inq_varndims(fname, ncid, varid, &ndims);
+    assert(ndims <= 4);
     ncw_inq_vardimid(fname, ncid, varid, dimids);
     for (i = 0; i < ndims; ++i)
         ncw_inq_dimlen(fname, ncid, dimids[i], &dimlen[i]);
@@ -1034,6 +1190,30 @@ void read3dfield(char* fname, char* varname, float* v)
     }
 
     ncw_close(fname, ncid);
+}
+
+/** Tries to determine whether the variable is 3D or 2D.
+ */
+int is3d(char fname[], char varname[])
+{
+    int ncid;
+    int varid;
+    int ndims;
+    int dimids[4];
+    int containsrecorddim;
+
+    ncw_open(fname, NC_NOWRITE, &ncid);
+    ncw_inq_varid(fname, ncid, varname, &varid);
+    ncw_inq_varndims(fname, ncid, varid, &ndims);
+    assert(ndims <= 4);
+    ncw_inq_vardimid(fname, ncid, varid, dimids);
+    containsrecorddim = nc_isunlimdimid(ncid, dimids[0]);
+    ncw_close(fname, ncid);
+
+    ndims -= containsrecorddim;
+    assert(ndims >= 2 && ndims <= 3);
+
+    return ndims == 3;
 }
 
 /**

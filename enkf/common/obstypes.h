@@ -22,6 +22,8 @@ typedef struct {
     char* varname2;
     char* offset_fname;
     char* offset_varname;
+    char* mld_varname;
+    double mld_threshold;
     char* hfunction;
     int issurface;
     double allowed_min;

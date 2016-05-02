@@ -35,7 +35,7 @@
 
 \begin{document}
 
-\title{EnKF-C user guide\\{\normalsize version 1.37.0}}
+\title{EnKF-C user guide\\{\normalsize version 1.38.0}}
 
 \author{Pavel Sakov}
 \date{June 19, 2014 -- \today}
@@ -788,23 +788,26 @@ For example:
 
   Observation types parameter file format:
 
-    NAME      = <name>
-    VAR       = <model variable name>
-  [ VAR2      = <model variable name> ]
-    ISSURFACE = { yes | no }
-  [ OFFSET    = <file name> <variable name> ]    (none*)
-    HFUNCTION = <H function name>
-  [ ASYNC     = <time interval> ]                (synchronous*)
-  [ LOCRAD    = <locrad> ]                       (global*)
-  [ RFACTOR   = <rfactor> ]                      (1*)
-  [ MINVALUE  = <minimal allowed value> ]        (-inf*)
-  [ MAXVALUE  = <maximal allowed value> ]        (+inf*)
-  [ XMIN      = <minimal allowed X coordinate> ] (-inf*)
-  [ XMAX      = <maximal allowed X coordinate> ] (+inf*)
-  [ YMIN      = <minimal allowed Y coordinate> ] (-inf*)
-  [ YMAX      = <maximal allowed Y coordinate> ] (+inf*)
-  [ ZMIN      = <minimal allowed Z coordinate> ] (-inf*)
-  [ ZMAX      = <maximal allowed Z coordinate> ] (+inf*)
+    NAME        = <name>
+    VAR         = <model variable name>
+  [ VAR2        = <model variable name> ]
+    ISSURFACE   = { yes | no }
+  [ OFFSET      = <file name> <variable name> ]    (none*)
+  [ MLD_VARNAME = <model varname> ]                (none*)
+  [ MLD_THRESH  = <threshold> ]                    (NaN*)
+    HFUNCTION   = <H function name>
+  [ ASYNC       = <time interval> ]                (synchronous*)
+  [ LOCRAD      = <locrad> ... ]                   (global*)
+  [ WEIGHT      = <weight> ... ]                   (1*)
+  [ RFACTOR     = <rfactor> ]                      (1*)
+  [ MINVALUE    = <minimal allowed value> ]        (-inf*)
+  [ MAXVALUE    = <maximal allowed value> ]        (+inf*)
+  [ XMIN        = <minimal allowed X coordinate> ] (-inf*)
+  [ XMAX        = <maximal allowed X coordinate> ] (+inf*)
+  [ YMIN        = <minimal allowed Y coordinate> ] (-inf*)
+  [ YMAX        = <maximal allowed Y coordinate> ] (+inf*)
+  [ ZMIN        = <minimal allowed Z coordinate> ] (-inf*)
+  [ ZMAX        = <maximal allowed Z coordinate> ] (+inf*)
 
   [ <more of the above blocks> ]
 \end{Verbatim}

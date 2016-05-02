@@ -32,6 +32,7 @@
 
 typedef struct {
     char* tag;
+    int vid;                    /* (to access grid dimensions) */
     int alloctype;
     void* data;
 } modeldata;
@@ -366,8 +367,9 @@ void model_setgrid(model* m, void* g)
 
 /**
  */
-void model_addmodeldata(model* m, char tag[], int alloctype, void* data)
+void model_adddata(model* m, char tag[], int vid, int alloctype, void* data)
 {
+    modeldata* mdata;
     int i;
 
     for (i = 0; i < m->ndata; ++i)
@@ -376,15 +378,52 @@ void model_addmodeldata(model* m, char tag[], int alloctype, void* data)
 
     if (m->ndata % NMODELDATA_INC == 0)
         m->data = realloc(m->data, (m->ndata + NMODELDATA_INC) * sizeof(modeldata));
-    m->data[m->ndata].tag = strdup(tag);
-    m->data[m->ndata].alloctype = alloctype;
-    m->data[m->ndata].data = data;
+
+    mdata = &m->data[m->ndata];
+    mdata->tag = strdup(tag);
+    mdata->vid = vid;
+    mdata->alloctype = alloctype;
+    mdata->data = data;
     m->ndata++;
 }
 
 /**
  */
-void* model_getmodeldata(model* m, char tag[])
+void model_addorreplacedata(model* m, char tag[], int vid, int alloctype, void* data)
+{
+    modeldata* mdata;
+    int i;
+    int ni, nj, nk;
+
+    for (i = 0; i < m->ndata; ++i)
+        if (strcmp(tag, m->data[i].tag) == 0)
+            break;
+
+    mdata = &m->data[i];
+    if (i == m->ndata) {
+        if (m->ndata % NMODELDATA_INC == 0)
+            m->data = realloc(m->data, (m->ndata + NMODELDATA_INC) * sizeof(modeldata));
+        mdata->tag = strdup(tag);
+        mdata->vid = vid;
+        mdata->alloctype = alloctype;
+        m->ndata++;
+    } else
+        assert(mdata->alloctype == alloctype);
+
+    model_getvardims(m, mdata->vid, &ni, &nj, &nk);
+    if (mdata->alloctype == ALLOCTYPE_1D)
+        memcpy(mdata->data, data, nk * sizeof(float));
+    else if (mdata->alloctype == ALLOCTYPE_2D)
+        mdata->data = copy2d(data, nj, ni, sizeof(float));
+    else if (mdata->alloctype == ALLOCTYPE_3D)
+        mdata->data = copy3d(data, nk, nj, ni, sizeof(float));
+    else
+        enkf_quit("programming error");
+}
+
+/**
+ */
+void* model_getdata(model* m, char tag[])
 {
     int i;
 
@@ -396,6 +435,22 @@ void* model_getmodeldata(model* m, char tag[])
     }
 
     return NULL;
+}
+
+/**
+ */
+int model_getdataalloctype(model* m, char tag[])
+{
+    int i;
+
+    for (i = 0; i < m->ndata; ++i) {
+        modeldata* data = &m->data[i];
+
+        if (strcasecmp(data->tag, tag) == 0)
+            return data->alloctype;
+    }
+
+    return ALLOCTYPE_NONE;
 }
 
 /**
@@ -417,6 +472,9 @@ char* model_getvarname(model* m, int varid)
 int model_getvarid(model* m, char* varname, int hastosucceed)
 {
     int i;
+
+    if (varname == NULL)
+        return -1;
 
     for (i = 0; i < m->nvar; ++i)
         if (strcmp(m->vars[i].name, varname) == 0)
@@ -682,14 +740,14 @@ int model_z2fk(model* m, int vid, double fi, double fj, double z, double* fk)
 
 /**
  */
-void model_readfield(model* m, char fname[], int mem, int time, char varname[], int k, float* v)
+void model_readfield(model* m, char fname[], int time, char varname[], int k, float* v)
 {
     readfield(fname, varname, k, v);
 }
 
 /**
  */
-void model_read3dfield(model* m, char fname[], int mem, int time, char varname[], float* v)
+void model_read3dfield(model* m, char fname[], int time, char varname[], float* v)
 {
     read3dfield(fname, varname, v);
 }

@@ -1,3 +1,9 @@
+v. 1.38.0
+   PS 02052016
+   -- Added H_subsurf_wsurfbias(). As a consequence, also added das_calcmld(),
+      copy2d(), copy3d(). Modified alloc2d(), free2d(), alloc3d(), free3d().
+      Added model_addorreplacedata(). Modified model_adddata(). A lot of minor
+      changes.
 v. 1.37.3
    PS 14042016
    -- Modified readfield() to ignore "k" index if the number of dimensions is 4

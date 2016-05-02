@@ -34,6 +34,7 @@ H_entry allhentries[] = {
     {"SLA", "bran", H_sla_bran},
     {"SLA", "biased", H_surf_biased},
     {"TEM", "standard", H_subsurf_standard},
+    {"TEM", "wsurfbias", H_subsurf_wsurfbias},
     {"SAL", "standard", H_subsurf_standard}
 };
 
@@ -73,6 +74,5 @@ H_fn getH(char obstypename[], char mappingname[])
     enkf_printf("\n\n  ERROR: no H function \"%s\" for observation type \"%s\"\n\n", mappingname, obstypename);
     describe_hentries(obstypename);
     enkf_quit("getH(): bailing out");
-
     return NULL;
 }
