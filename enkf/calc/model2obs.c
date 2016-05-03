@@ -394,7 +394,7 @@ void H_subsurf_wsurfbias(dasystem* das, int nobs, int obsids[], char fname[], in
     {
         double fi_prev = DBL_MAX;
         double fj_prev = DBL_MAX;
-        double vmld, vbias;
+        double vmld = NaN, vbias = NaN;
 
         for (i = 0; i < nobs; ++i) {
             int ii = obsids[i];
