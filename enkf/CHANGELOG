@@ -1,3 +1,10 @@
+v. 1.38.3
+   PS 03052016
+   -- Modified internally alloc2d(), free2d(), copy2d(), alloc3d(), free3d(),
+      copy3d().
+v. 1.38.2
+   PS 03052016
+   -- Removed redundant interpolations in H_subsurf_wsurfbias().
 v. 1.38.1
    PS 03052016
    -- Removed redundant arguments in H_fn().

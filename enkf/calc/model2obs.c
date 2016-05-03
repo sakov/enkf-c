@@ -29,6 +29,7 @@
 #include "model2obs.h"
 
 #define EPSMULT (float) 1.000001
+#define EPS_IJ 0.01
 
 /**
  */
@@ -390,17 +391,29 @@ void H_subsurf_wsurfbias(dasystem* das, int nobs, int obsids[], char fname[], in
             enkf_quit("programming error");
     }
 
-    for (i = 0; i < nobs; ++i) {
-        int ii = obsids[i];
-        observation* o = &allobs->data[ii];
-        double vmld = interpolate2d(o->fi, o->fj, ni, nj, mld, mask, periodic_x, periodic_y);
-        double vbias = interpolate2d(o->fi, o->fj, ni, nj, bias, mask, periodic_x, periodic_y);
+    {
+        double fi_prev = DBL_MAX;
+        double fj_prev = DBL_MAX;
+        double vmld, vbias;
 
-        if (!isfinite(vmld))
-            continue;
+        for (i = 0; i < nobs; ++i) {
+            int ii = obsids[i];
+            observation* o = &allobs->data[ii];
 
-        assert(isfinite(vbias));
-        dst[ii] += mldtaper(vmld, o->depth) * vbias;
+            if (fabs(fi_prev - o->fi) > EPS_IJ || fabs(fj_prev - o->fj) > EPS_IJ) {
+
+                vmld = interpolate2d(o->fi, o->fj, ni, nj, mld, mask, periodic_x, periodic_y);
+                vbias = interpolate2d(o->fi, o->fj, ni, nj, bias, mask, periodic_x, periodic_y);
+                fi_prev = o->fi;
+                fj_prev = o->fj;
+            }
+
+            if (!isfinite(vmld))
+                continue;
+
+            assert(isfinite(vbias));
+            dst[ii] += mldtaper(vmld, o->depth) * vbias;
+        }
     }
 
     if (das->mode == MODE_ENKF)

@@ -414,9 +414,9 @@ void model_addorreplacedata(model* m, char tag[], int vid, int alloctype, void* 
     if (mdata->alloctype == ALLOCTYPE_1D)
         memcpy(mdata->data, data, nk * sizeof(float));
     else if (mdata->alloctype == ALLOCTYPE_2D)
-        mdata->data = copy2d(data, nj, ni, sizeof(float));
+        mdata->data = copy2d(data);
     else if (mdata->alloctype == ALLOCTYPE_3D)
-        mdata->data = copy3d(data, nk, nj, ni, sizeof(float));
+        mdata->data = copy3d(data);
     else
         enkf_quit("programming error");
 }
