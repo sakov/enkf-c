@@ -1,3 +1,6 @@
+v. 1.38.5
+   PS 03052016
+   -- Replaced alloc2d() to gu_alloc2d() for curvilinear nodes.
 v. 1.38.4
    PS 03052016
    -- Corrected obs_addtype() for a change in struct obstype.

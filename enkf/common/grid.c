@@ -30,7 +30,8 @@
 #include "gridprm.h"
 #if !defined(NO_GRIDUTILS)
 #include <gridnodes.h>
-#include "gridmap.h"
+#include <gridmap.h>
+#include <gucommon.h>
 #endif
 #include "nan.h"
 
@@ -709,8 +710,8 @@ grid* grid_create(void* p, int id)
         double** y;
         double* z;
 
-        x = alloc2d(ny, nx, sizeof(double));
-        y = alloc2d(ny, nx, sizeof(double));
+        x = gu_alloc2d(ny, nx, sizeof(double));
+        y = gu_alloc2d(ny, nx, sizeof(double));
         z = malloc(nz * sizeof(double));
 
         ncw_get_var_double(fname, ncid, varid_x, x[0]);
