@@ -1,3 +1,6 @@
+v. 1.38.4
+   PS 03052016
+   -- Corrected obs_addtype() for a change in struct obstype.
 v. 1.38.3
    PS 03052016
    -- Modified internally alloc2d(), free2d(), copy2d(), alloc3d(), free3d(),

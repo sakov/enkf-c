@@ -53,6 +53,8 @@ void obs_addtype(observations* obs, obstype* src, obsdomain* domain)
     ot->varname2 = (src->varname2 != NULL) ? strdup(src->varname2) : NULL;
     ot->offset_fname = (src->offset_fname != NULL) ? strdup(src->offset_fname) : NULL;
     ot->offset_varname = (src->offset_varname != NULL) ? strdup(src->offset_varname) : NULL;
+    ot->mld_varname = (src->mld_varname != NULL) ? strdup(src->mld_varname) : NULL;
+    ot->mld_threshold = src->mld_threshold;
     ot->hfunction = strdup(src->hfunction);
     ot->issurface = src->issurface;
     ot->allowed_min = src->allowed_min;
