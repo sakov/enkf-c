@@ -397,12 +397,11 @@ void das_calcmld(dasystem* das, obstype* ot, float*** src, float** dst)
             vtop = src[ktop][j][i];
             vprev = vtop;
             kprev = ktop;
-            k = ktop;
             for (kk = 1; kk < nlevels[j][i]; ++kk) {
                 k = (ktop == 0) ? kk : ktop - kk;
                 vnow = src[k][j][i];
                 if (fabs(vnow - vtop) >= threshold) {
-                    fk = (double) kprev + (threshold - fabs(vprev - vtop)) / fabs(vnow - vprev);
+                    fk = (ktop == 0) ? (double) kprev + (threshold - fabs(vprev - vtop)) / fabs(vnow - vprev) : (double) kprev - (threshold - fabs(vprev - vtop)) / fabs(vnow - vprev);
                     break;
                 }
                 kprev = k;
