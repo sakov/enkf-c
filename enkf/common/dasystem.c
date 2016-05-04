@@ -397,6 +397,7 @@ void das_calcmld(dasystem* das, obstype* ot, float*** src, float** dst)
             vtop = src[ktop][j][i];
             vprev = vtop;
             kprev = ktop;
+            k = ktop;
             for (kk = 1; kk < nlevels[j][i]; ++kk) {
                 k = (ktop == 0) ? kk : ktop - kk;
                 vnow = src[k][j][i];
