@@ -476,7 +476,7 @@ void* alloc2d(size_t nj, size_t ni, size_t unitsize)
     if (ni <= 0 || nj <= 0)
         enkf_quit("alloc2d(): invalid size (nj = %d, ni = %d)", nj, ni);
 
-    size =  nj * sizeof(void*) + nj * ni * unitsize;
+    size = nj * sizeof(void*) + nj * ni * unitsize;
     if ((p = malloc(size)) == NULL) {
         int errno_saved = errno;
 
