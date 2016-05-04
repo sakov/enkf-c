@@ -417,6 +417,6 @@ void H_subsurf_wsurfbias(dasystem* das, int nobs, int obsids[], char fname[], in
     }
 
     if (das->mode == MODE_ENKF)
-        free2d(mld);
-    free2d(bias);
+        free(mld);
+    free(bias);
 }

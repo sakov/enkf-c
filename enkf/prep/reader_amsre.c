@@ -205,10 +205,10 @@ void reader_amsre_standard(char* fname, int fid, obsmeta* meta, model* m, observ
 
     free(lon);
     free(lat);
-    free2d(sst_a);
-    free2d(sst_d);
-    free2d(wind_a);
-    free2d(wind_d);
-    free2d(time_a);
-    free2d(time_d);
+    free(sst_a);
+    free(sst_d);
+    free(wind_a);
+    free(wind_d);
+    free(time_a);
+    free(time_d);
 }

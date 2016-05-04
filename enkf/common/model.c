@@ -264,9 +264,9 @@ static void model_freemodeldata(model* m)
         if (data->alloctype == ALLOCTYPE_1D)
             free(data->data);
         else if (data->alloctype == ALLOCTYPE_2D)
-            free2d(data->data);
+            free(data->data);
         else if (data->alloctype == ALLOCTYPE_3D)
-            free3d(data->data);
+            free(data->data);
         else
             enkf_quit("programming error");
         free(data->tag);
@@ -414,9 +414,9 @@ void model_addorreplacedata(model* m, char tag[], int vid, int alloctype, void* 
     if (mdata->alloctype == ALLOCTYPE_1D)
         memcpy(mdata->data, data, nk * sizeof(float));
     else if (mdata->alloctype == ALLOCTYPE_2D)
-        mdata->data = copy2d(data);
+        mdata->data = copy2d(data, nj, ni, sizeof(float));
     else if (mdata->alloctype == ALLOCTYPE_3D)
-        mdata->data = copy3d(data);
+        mdata->data = copy3d(data, nk, nj, ni, sizeof(float));
     else
         enkf_quit("programming error");
 }

@@ -476,71 +476,48 @@ void* alloc2d(size_t nj, size_t ni, size_t unitsize)
     if (ni <= 0 || nj <= 0)
         enkf_quit("alloc2d(): invalid size (nj = %d, ni = %d)", nj, ni);
 
-    size = sizeof(size_t) * 3 + nj * ni * unitsize + nj * sizeof(void*);
+    size =  nj * sizeof(void*) + nj * ni * unitsize;
     if ((p = malloc(size)) == NULL) {
         int errno_saved = errno;
 
         enkf_quit("alloc2d(): %s", strerror(errno_saved));
     }
     memset(p, 0, size);
-    ((size_t*) p)[0] = nj;
-    ((size_t*) p)[1] = ni;
-    ((size_t*) p)[2] = unitsize;
-    p = &((size_t*) p)[3];
 
     pp = (void**) p;
-    p = &((char*) p)[nj * sizeof(void*)];
+    p = &((size_t*) p)[nj];
     for (i = 0; i < nj; i++)
         pp[i] = &((char*) p)[i * ni * unitsize];
 
     return pp;
 }
 
-/** Destroys a matrix.
- * @param pp Matrix
- */
-void free2d(void* p)
-{
-    size_t* s = (size_t*) p;
-
-    assert(p != NULL);
-    s -= 3;
-    free(s);
-}
-
 /** Copies 2D matrix.
  * @param src Source matrix
  * @return Copy matrix
  */
-void* copy2d(void** src)
+void* copy2d(void** src, size_t nj, size_t ni, size_t unitsize)
 {
-    size_t* header = (size_t*) src;
-    size_t ni, nj, unitsize, size;
+    size_t size;
     void* p;
     void** pp;
     int i;
 
-    header -= 3;
-    nj = header[0];
-    ni = header[1];
-    unitsize = header[2];
+    if (ni <= 0 || nj <= 0)
+        enkf_quit("copy2d(): invalid size (nj = %d, ni = %d)", nj, ni);
 
-    size = sizeof(size_t) * 3 + nj * ni * unitsize + nj * sizeof(void*);
+    size = nj * ni * unitsize + nj * sizeof(void*);
     if ((p = malloc(size)) == NULL) {
         int errno_saved = errno;
 
         enkf_quit("copy2d(): %s", strerror(errno_saved));
     }
-    ((size_t*) p)[0] = nj;
-    ((size_t*) p)[1] = ni;
-    ((size_t*) p)[2] = unitsize;
-    p = &((size_t*) p)[3];
 
     pp = (void**) p;
-    p = &((char*) p)[nj * sizeof(void*)];
-    memcpy(p, src[0], nj * ni * unitsize);
+    p = &((size_t*) p)[nj];
     for (i = 0; i < nj; i++)
         pp[i] = &((char*) p)[i * ni * unitsize];
+    memcpy(p, src[0], nj * ni * unitsize);
 
     return pp;
 }
@@ -564,22 +541,17 @@ void* alloc3d(size_t nk, size_t nj, size_t ni, size_t unitsize)
     if (nk <= 0 || nj <= 0 || ni <= 0)
         enkf_quit("alloc3d(): invalid size (nk = %d, nj = %d, ni = %d)", nk, nj, ni);
 
-    size = sizeof(size_t) * 4 + nk * nj * ni * unitsize + nk * nj * sizeof(void*) + nk * sizeof(void*);
+    size = nk * sizeof(void*) + nk * nj * sizeof(void*) + nk * nj * ni * unitsize;
     if ((p = malloc(size)) == NULL) {
         int errno_saved = errno;
 
         enkf_quit("alloc3d(): %s", strerror(errno_saved));
     }
     memset(p, 0, size);
-    ((size_t*) p)[0] = nk;
-    ((size_t*) p)[1] = nj;
-    ((size_t*) p)[2] = ni;
-    ((size_t*) p)[3] = unitsize;
-    p = &((size_t*) p)[4];
 
     ppp = (void***) p;
     pp = &((void**) p)[nk];
-    p = &((char*) p)[(nk + nk * nj) * sizeof(void*)];
+    p = &((size_t*) p)[nk + nk * nj];
     for (i = 0; i < nk; i++)
         ppp[i] = &pp[i * nj];
     for (i = 0; i < nk * nj; i++)
@@ -588,59 +560,38 @@ void* alloc3d(size_t nk, size_t nj, size_t ni, size_t unitsize)
     return ppp;
 }
 
-/** Destroys a 3D array.
- * @param ppp 3D array
- */
-void free3d(void* p)
-{
-    size_t* s = (size_t*) p;
-
-    assert(p != NULL);
-    s -= 4;
-    free(s);
-}
-
 /** Copies nk x nj x ni matrix of something.
  * @param ni Outer dimension
  * @param nj Inner dimension
  * @param unitsize Size of one matrix element in bytes
  * @return Matrix
  */
-void* copy3d(void*** src)
+void* copy3d(void*** src, size_t nk, size_t nj, size_t ni, size_t unitsize)
 {
-    size_t* header = (size_t*) src;
-    size_t ni, nj, nk, unitsize, size;
+    size_t size;
     void* p;
     void** pp;
     void*** ppp;
     int i;
 
-    header -= 4;
-    nk = header[0];
-    nj = header[1];
-    ni = header[2];
-    unitsize = header[3];
+    if (nk <= 0 || nj <= 0 || ni <= 0)
+        enkf_quit("copy3d(): invalid size (nk = %d, nj = %d, ni = %d)", nk, nj, ni);
 
-    size = sizeof(size_t) * 4 + nk * nj * ni * unitsize + nk * nj * sizeof(void*) + nk * sizeof(void*);
+    size = nk * sizeof(void*) + nk * nj * sizeof(void*) + nk * nj * ni * unitsize;
     if ((p = malloc(size)) == NULL) {
         int errno_saved = errno;
 
         enkf_quit("copy3d(): %s", strerror(errno_saved));
     }
-    ((size_t*) p)[0] = nk;
-    ((size_t*) p)[1] = nj;
-    ((size_t*) p)[2] = ni;
-    ((size_t*) p)[3] = unitsize;
-    p = &((size_t*) p)[4];
 
     ppp = (void***) p;
     pp = &((void**) p)[nk];
-    p = &((char*) p)[(nk + nk * nj) * sizeof(void*)];
-    memcpy(p, src[0][0], nk * nj * unitsize);
+    p = &((size_t*) p)[nk + nk * nj];
     for (i = 0; i < nk; i++)
         ppp[i] = &pp[i * nj];
     for (i = 0; i < nk * nj; i++)
         pp[i] = &((char*) p)[i * ni * unitsize];
+    memcpy(p, src[0][0], nk * nj * unitsize);
 
     return pp;
 }

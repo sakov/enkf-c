@@ -455,7 +455,7 @@ void das_calctransforms(dasystem* das)
                             psrf[ot][jjj][ii] = 0.0;
 
                         free(pG);
-                        free2d(pS);
+                        free(pS);
                     }
                 }
 
@@ -464,9 +464,9 @@ void das_calctransforms(dasystem* das)
                 else
                     stats.n_inv_obs++;
 
-                free2d(G);
+                free(G);
                 free(sloc);
-                free2d(Sloc);
+                free(Sloc);
                 free(lobs);
                 free(plobs);
                 free(lcoeffs);
@@ -587,7 +587,7 @@ void das_calctransforms(dasystem* das)
                     j = jpool[jj];
                     memcpy(nlobs[j], buffer_nlobs[jjj], ni * sizeof(int));
                 }
-                free2d(buffer_nlobs);
+                free(buffer_nlobs);
 
                 buffer_dfs = alloc2d(last_iteration[r] - first_iteration[r] + 1, ni, sizeof(int));
                 ierror = MPI_Recv(buffer_dfs[0], (last_iteration[r] - first_iteration[r] + 1) * ni, MPI_FLOAT, r, 2, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
@@ -603,7 +603,7 @@ void das_calctransforms(dasystem* das)
                     j = jpool[jj];
                     memcpy(srf[j], buffer_dfs[jjj], ni * sizeof(float));
                 }
-                free2d(buffer_dfs);
+                free(buffer_dfs);
 
                 buffer_pnlobs = alloc3d(obs->nobstypes, last_iteration[r] - first_iteration[r] + 1, ni, sizeof(int));
                 ierror = MPI_Recv(buffer_pnlobs[0][0], obs->nobstypes * (last_iteration[r] - first_iteration[r] + 1) * ni, MPI_INT, r, 4, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
@@ -614,7 +614,7 @@ void das_calctransforms(dasystem* das)
                         memcpy(pnlobs[ot][j], buffer_pnlobs[ot][jjj], ni * sizeof(int));
                     }
                 }
-                free3d(buffer_pnlobs);
+                free(buffer_pnlobs);
 
                 buffer_pdfs = alloc3d(obs->nobstypes, last_iteration[r] - first_iteration[r] + 1, ni, sizeof(float));
                 ierror = MPI_Recv(buffer_pdfs[0][0], obs->nobstypes * (last_iteration[r] - first_iteration[r] + 1) * ni, MPI_FLOAT, r, 5, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
@@ -634,7 +634,7 @@ void das_calctransforms(dasystem* das)
                         memcpy(psrf[ot][j], buffer_pdfs[ot][jjj], ni * sizeof(float));
                     }
                 }
-                free3d(buffer_pdfs);
+                free(buffer_pdfs);
             }
         }                       /* rank == 0 */
 #endif                          /* MPI */
@@ -647,10 +647,10 @@ void das_calctransforms(dasystem* das)
         }
 
         if (das->mode == MODE_ENKF) {
-            free2d(X5j);
-            free2d(X5);
+            free(X5j);
+            free(X5);
         } else if (das->mode == MODE_ENOI) {
-            free2d(wj);
+            free(wj);
             free(w);
         }
 #if defined(MPI)
@@ -693,12 +693,12 @@ void das_calctransforms(dasystem* das)
         enkf_printf("");
 
         if (my_number_of_iterations > 0) {
-            free2d(nlobs);
-            free2d(dfs);
-            free2d(srf);
-            free3d(pnlobs);
-            free3d(pdfs);
-            free3d(psrf);
+            free(nlobs);
+            free(dfs);
+            free(srf);
+            free(pnlobs);
+            free(pdfs);
+            free(psrf);
             free(jiter);
             free(iiter);
             free(jpool);
@@ -793,18 +793,18 @@ void das_dopointlogs(dasystem* das)
         printf("\n");
 
         if (ploc > 0) {
-            free2d(G);
+            free(G);
             free(sloc);
-            free2d(Sloc);
+            free(Sloc);
             free(lobs);
             free(lcoeffs);
             if (T != NULL)
-                free2d(T);
+                free(T);
         }
     }
 
     if (das->mode == MODE_ENKF)
-        free2d(X5);
+        free(X5);
     else if (das->mode == MODE_ENOI)
         free(w);
 }

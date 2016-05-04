@@ -338,11 +338,11 @@ static void das_updatefields(dasystem* das, int nfields, void** fieldbuffer, fie
     }                           /* for jj */
 
     ncw_close(fname_X5, ncid);
-    free2d(X5j);
+    free(X5j);
     if (das->stride > 1) {
-        free2d(X5jj);
-        free2d(X5jj1);
-        free2d(X5jj2);
+        free(X5jj);
+        free(X5jj1);
+        free(X5jj2);
     }
     if (writeinflation)
         free(infl);
@@ -548,11 +548,11 @@ static void das_updatebg(dasystem* das, int nfields, void** fieldbuffer, field f
     }                           /* for jj */
 
     ncw_close(fname_w, ncid);
-    free2d(wj);
+    free(wj);
     if (das->stride > 1) {
-        free2d(wjj);
-        free2d(wjj1);
-        free2d(wjj2);
+        free(wjj);
+        free(wjj1);
+        free(wjj2);
     }
     das->s_mode = S_MODE_HE_a;
 }
@@ -1421,7 +1421,7 @@ void das_update(dasystem* das)
 
         free(fields);
         for (i = 0; i < das->fieldbufsize; ++i)
-            free3d(fieldbuffer[i]);
+            free(fieldbuffer[i]);
         free(fieldbuffer);
 
         enkf_flush();
@@ -1555,8 +1555,8 @@ void das_calccorr(dasystem* das, int mvid)
         ncw_close(fname_dst, ncid);
     }
 
-    free3d(v);
-    free3d(v0);
+    free(v);
+    free(v0);
     free(std);
     free(std0);
     free(cor);

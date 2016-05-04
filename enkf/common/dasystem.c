@@ -226,7 +226,7 @@ void das_destroy(dasystem* das)
 #endif
     model_destroy(das->m);
     if (das->S != NULL)
-        free2d(das->S);
+        free(das->S);
     if (das->s_f != NULL) {
         free(das->s_f);
         free(das->std_f);

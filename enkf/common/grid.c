@@ -794,9 +794,9 @@ void grid_destroy(grid* g)
     if (g->gridnodes_z != NULL)
         gnz_destroy(g->gridnodes_z);
     if (g->numlevels != NULL)
-        free2d(g->numlevels);
+        free(g->numlevels);
     if (g->depth != NULL)
-        free2d(g->depth);
+        free(g->depth);
 
     free(g);
 }

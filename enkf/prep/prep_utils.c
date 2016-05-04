@@ -185,7 +185,7 @@ void obs_add(observations* obs, model* m, obsmeta* meta)
                         else
                             enkf_quit("programming error");
                     }
-                    free2d(v);
+                    free(v);
                 } else {
                     float*** v = alloc3d(nk, nj, ni, sizeof(float));
 
@@ -211,7 +211,7 @@ void obs_add(observations* obs, model* m, obsmeta* meta)
                         else
                             enkf_quit("programming error");
                     }
-                    free3d(v);
+                    free(v);
                 }
             }
         }

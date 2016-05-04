@@ -1,3 +1,7 @@
+v. 1.39.0
+   PS 04052016
+   -- Modified internally alloc2d(), alloc3d(). Changed interface in copy2d()
+      copy3d(). Eliminated free2d() and free3d() -- now just free().
 v. 1.38.6
    PS 04052016
    -- Corrected MLD calculation.

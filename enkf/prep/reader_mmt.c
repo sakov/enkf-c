@@ -175,7 +175,7 @@ void reader_mmt_standard(char* fname, int fid, obsmeta* meta, model* m, observat
 
     free(lon);
     free(lat);
-    free2d(v);
-    free2d(z);
+    free(v);
+    free(z);
     free(type);
 }

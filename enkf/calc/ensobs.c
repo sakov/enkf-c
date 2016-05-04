@@ -167,9 +167,9 @@ void das_getHE(dasystem* das)
       next:
 
         if (ot->issurface)
-            free2d(vv);
+            free(vv);
         else
-            free3d(vvv);
+            free(vvv);
         enkf_printf("\n");
     }                           /* for i (over obstypes) */
 
@@ -1039,11 +1039,11 @@ static void update_HE(dasystem* das)
 
         free(iiter);
         free(jiter);
-        free2d(X5j);
+        free(X5j);
         if (das->stride > 1) {
-            free2d(X5jj);
-            free2d(X5jj1);
-            free2d(X5jj2);
+            free(X5jj);
+            free(X5jj1);
+            free(X5jj2);
         }
     }                           /* for gid */
 
@@ -1231,11 +1231,11 @@ static void update_Hx(dasystem* das)
 
         free(iiter);
         free(jiter);
-        free2d(wj);
+        free(wj);
         if (das->stride > 1) {
-            free2d(wjj);
-            free2d(wjj1);
-            free2d(wjj2);
+            free(wjj);
+            free(wjj1);
+            free(wjj2);
         }
     }                           /* for gid */
 

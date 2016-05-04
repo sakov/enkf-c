@@ -145,8 +145,8 @@ int invsqrtm(int m, double** S)
 
     dgesvd_(&specU, &specV, &m, &m, S[0], &m, sigmas, U[0], &m, NULL, &m, work, &lwork, &lapack_info);
     if (lapack_info != 0) {
-        free2d(U);
-        free2d(Us);
+        free(U);
+        free(Us);
         free(sigmas);
         free(work);
 
@@ -163,8 +163,8 @@ int invsqrtm(int m, double** S)
     }
     dgemm_(&noT, &doT, &m, &m, &m, &a, Us[0], &m, U[0], &m, &b, S[0], &m);
 
-    free2d(U);
-    free2d(Us);
+    free(U);
+    free(Us);
     free(sigmas);
     free(work);
 
@@ -246,9 +246,9 @@ static int invsqrtm2(int m, double alpha, double** S, double** D)
 
     dgesvd_(&specU, &specV, &m, &m, S[0], &m, sigmas, U[0], &m, NULL, &m, work, &lwork, &lapack_info);
     if (lapack_info != 0) {
-        free2d(U);
-        free2d(Us1);
-        free2d(Us2);
+        free(U);
+        free(Us1);
+        free(Us2);
         free(sigmas);
         free(work);
 
@@ -270,9 +270,9 @@ static int invsqrtm2(int m, double alpha, double** S, double** D)
     dgemm_(&noT, &doT, &m, &m, &m, &a, Us1[0], &m, U[0], &m, &b, S[0], &m);
     dgemm_(&noT, &doT, &m, &m, &m, &a, Us2[0], &m, U[0], &m, &b, D[0], &m);
 
-    free2d(U);
-    free2d(Us1);
-    free2d(Us2);
+    free(U);
+    free(Us1);
+    free(Us2);
     free(sigmas);
     free(work);
 
@@ -338,7 +338,7 @@ void calc_G_denkf(int m, int p, double** S, int i, int j, double** G)
     }
 #endif
 
-    free2d(M);
+    free(M);
 }
 
 /** Calculates G = inv(I + S' * S) * S' and T = (I + S' * S)^-1/2.
@@ -398,7 +398,7 @@ void calc_G_etkf(int m, int p, double** S, double alpha, int ii, int jj, double*
     }
 #endif
 
-    free2d(M);
+    free(M);
 }
 
 /** Calculates X5 = G * s * 1' + T.
