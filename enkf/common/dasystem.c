@@ -258,9 +258,10 @@ void das_destroy(dasystem* das)
     distribute_free();
 }
 
-/**
+/** Determines ensemble size based on existence of forecast files for each
+ * variable.
  */
-void das_getnmem(dasystem* das)
+void das_setnmem(dasystem* das)
 {
     model* m = das->m;
     int nvar = model_getnvar(m);

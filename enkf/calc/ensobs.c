@@ -47,7 +47,7 @@ void das_getHE(dasystem* das)
         return;
 
     if (das->nmem <= 0)
-        das_getnmem(das);
+        das_setnmem(das);
     enkf_printf("    ensemble size = %d\n", das->nmem);
     assert(das->nmem > 0);
 

@@ -528,8 +528,8 @@ void* copy2d(void** src, size_t nj, size_t ni, size_t unitsize)
     return pp;
 }
 
-/** Allocates ni x nj nk matrix of something and fills it with zeros. An element
- * (i,j,k) will be accessed as [k][j][i]. For deallocation use free().
+/** Allocates ni x nj x nk matrix of something and fills it with zeros. An
+ * element (i,j,k) will be accessed as [k][j][i]. For deallocation use free().
  *
  * @param nk Dimension 3
  * @param nj Dimension 2
@@ -567,7 +567,7 @@ void* alloc3d(size_t nk, size_t nj, size_t ni, size_t unitsize)
     return ppp;
 }
 
-/** Copies nk x nj x ni matrix of something.
+/** Copies nk x nj x ni array of something.
  * @param src Source matrix
  * @param nk Dimension 3
  * @param nj Dimension 2

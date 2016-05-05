@@ -1153,7 +1153,7 @@ void das_update(dasystem* das)
     int i, e;
 
     if (das->nmem <= 0)
-        das_getnmem(das);
+        das_setnmem(das);
     enkf_printf("    %d members\n", das->nmem);
 
     if (das->updatespec & UPDATE_DOSPREAD && rank == 0) {
