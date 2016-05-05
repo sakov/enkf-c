@@ -460,7 +460,7 @@ int read_bool(char* token)
 }
 
 /** Allocates ni x nj matrix of something. It will be accessed as [j][i].
- * In maths it would be A(i,j).
+ * In maths it would be A(i,j). For deallocation use free().
  * @param nj Dimension 2
  * @param ni Dimension 1
  * @param unitsize Size of one matrix element in bytes
@@ -494,6 +494,9 @@ void* alloc2d(size_t nj, size_t ni, size_t unitsize)
 
 /** Copies 2D matrix.
  * @param src Source matrix
+ * @param nj Dimension 2
+ * @param ni Dimension 1
+ * @param unitsize Size of one matrix element in bytes
  * @return Copy matrix
  */
 void* copy2d(void** src, size_t nj, size_t ni, size_t unitsize)
@@ -523,7 +526,7 @@ void* copy2d(void** src, size_t nj, size_t ni, size_t unitsize)
 }
 
 /** Allocates ni x nj x nk array of something. It will be accessed as [k][j][i].
- * In maths it would be A(i,j,k).
+ * In maths it would be A(i,j,k). For deallocation use free().
  * @param nk Dimension 3
  * @param nj Dimension 2
  * @param ni Dimension 1
@@ -561,10 +564,12 @@ void* alloc3d(size_t nk, size_t nj, size_t ni, size_t unitsize)
 }
 
 /** Copies nk x nj x ni matrix of something.
- * @param ni Outer dimension
- * @param nj Inner dimension
+ * @param src Source matrix
+ * @param nk Dimension 3
+ * @param nj Dimension 2
+ * @param ni Dimension 1
  * @param unitsize Size of one matrix element in bytes
- * @return Matrix
+ * @return Copy matrix
  */
 void* copy3d(void*** src, size_t nk, size_t nj, size_t ni, size_t unitsize)
 {
@@ -593,7 +598,7 @@ void* copy3d(void*** src, size_t nk, size_t nj, size_t ni, size_t unitsize)
         pp[i] = &((char*) p)[i * ni * unitsize];
     memcpy(p, src[0][0], nk * nj * unitsize);
 
-    return pp;
+    return ppp;
 }
 
 /**

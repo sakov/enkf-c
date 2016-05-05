@@ -1,3 +1,6 @@
+v. 1.39.1
+   PS 05052016
+   -- Corrected defect in copy3d().
 v. 1.39.0
    PS 04052016
    -- Modified internally alloc2d(), alloc3d(). Changed interface in copy2d()
