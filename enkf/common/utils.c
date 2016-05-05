@@ -461,8 +461,9 @@ int read_bool(char* token)
     return -1;
 }
 
-/** Allocates ni x nj matrix of something. It will be accessed as [j][i].
- * In maths it would be A(i,j). For deallocation use free().
+/** Allocates ni x nj matrix of something and fills it with zeros. An element
+ * (i,j) will be accessed as [j][i]. For deallocation use free().
+ *
  * @param nj Dimension 2
  * @param ni Dimension 1
  * @param unitsize Size of one matrix element in bytes
@@ -527,8 +528,9 @@ void* copy2d(void** src, size_t nj, size_t ni, size_t unitsize)
     return pp;
 }
 
-/** Allocates ni x nj x nk array of something. It will be accessed as [k][j][i].
- * In maths it would be A(i,j,k). For deallocation use free().
+/** Allocates ni x nj nk matrix of something and fills it with zeros. An element
+ * (i,j,k) will be accessed as [k][j][i]. For deallocation use free().
+ *
  * @param nk Dimension 3
  * @param nj Dimension 2
  * @param ni Dimension 1
@@ -546,7 +548,7 @@ void* alloc3d(size_t nk, size_t nj, size_t ni, size_t unitsize)
     if (nk <= 0 || nj <= 0 || ni <= 0)
         enkf_quit("alloc3d(): invalid size (nk = %d, nj = %d, ni = %d)", nk, nj, ni);
 
-    size = nk * sizeof(void*) + nk * nj * sizeof(void*) + nk * nj * ni * unitsize;
+    size = nk * (nj + 1) * sizeof(void*) + nk * nj * ni * unitsize;
     if ((p = malloc(size)) == NULL) {
         int errno_saved = errno;
 
@@ -584,7 +586,7 @@ void* copy3d(void*** src, size_t nk, size_t nj, size_t ni, size_t unitsize)
     if (nk <= 0 || nj <= 0 || ni <= 0)
         enkf_quit("copy3d(): invalid size (nk = %d, nj = %d, ni = %d)", nk, nj, ni);
 
-    size = nk * sizeof(void*) + nk * nj * sizeof(void*) + nk * nj * ni * unitsize;
+    size = nk * (nj + 1) * sizeof(void*) + nk * nj * ni * unitsize;
     if ((p = malloc(size)) == NULL) {
         int errno_saved = errno;
 
