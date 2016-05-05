@@ -7,9 +7,11 @@
  * Author:      Pavel Sakov
  *              Bureau of Meteorology
  *
- * Description:
+ * Description: Miscellaneous utilities for EnKF-C package.
  *
- * Revisions:
+ * Revisions:   5/2016 PS - modified alloc2d() and alloc3d(). They now work
+ *                with only one internal allocation, and no longer require
+ *                special dellocation 
  *
  *****************************************************************************/
 
@@ -484,7 +486,7 @@ void* alloc2d(size_t nj, size_t ni, size_t unitsize)
     }
     memset(p, 0, size);
 
-    pp = (void**) p;
+    pp = p;
     p = &((size_t*) p)[nj];
     for (i = 0; i < nj; i++)
         pp[i] = &((char*) p)[i * ni * unitsize];
@@ -516,7 +518,7 @@ void* copy2d(void** src, size_t nj, size_t ni, size_t unitsize)
         enkf_quit("copy2d(): %s", strerror(errno_saved));
     }
 
-    pp = (void**) p;
+    pp = p;
     p = &((size_t*) p)[nj];
     for (i = 0; i < nj; i++)
         pp[i] = &((char*) p)[i * ni * unitsize];
@@ -552,7 +554,7 @@ void* alloc3d(size_t nk, size_t nj, size_t ni, size_t unitsize)
     }
     memset(p, 0, size);
 
-    ppp = (void***) p;
+    ppp = p;
     pp = &((void**) p)[nk];
     p = &((size_t*) p)[nk + nk * nj];
     for (i = 0; i < nk; i++)
@@ -589,7 +591,7 @@ void* copy3d(void*** src, size_t nk, size_t nj, size_t ni, size_t unitsize)
         enkf_quit("copy3d(): %s", strerror(errno_saved));
     }
 
-    ppp = (void***) p;
+    ppp = p;
     pp = &((void**) p)[nk];
     p = &((size_t*) p)[nk + nk * nj];
     for (i = 0; i < nk; i++)

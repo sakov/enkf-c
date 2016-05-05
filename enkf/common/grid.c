@@ -710,8 +710,8 @@ grid* grid_create(void* p, int id)
         double** y;
         double* z;
 
-        x = gu_alloc2d(nx, ny, sizeof(double));
-        y = gu_alloc2d(nx, ny, sizeof(double));
+        x = gu_alloc2d(ny, nx, sizeof(double));
+        y = gu_alloc2d(ny, nx, sizeof(double));
         z = malloc(nz * sizeof(double));
 
         ncw_get_var_double(fname, ncid, varid_x, x[0]);

@@ -1,3 +1,6 @@
+v. 1.39.2
+   PS 05052016
+   -- Changed calls to gu_alloc2d() to reflect changes in the gridutils library.
 v. 1.39.1
    PS 05052016
    -- Corrected defect in copy3d().
