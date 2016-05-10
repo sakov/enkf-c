@@ -724,7 +724,7 @@ The inflation parameters for a variable, if specified, override the common value
 Entry RANDOMISE makes it possible to specify a ``forgetting'' model for a variable (sec.~\ref{sec:bias}).
 
 EnKF-C permits using multiple model grids.
-In case of using multiple grids each model variable must be associated with one of the grids defined in the grid parameter file.
+In this case each model variable must be associated with one of the grids defined in the grid parameter file.
 See \verb|examples/4| for an example.
 
 \subsection{Grid parameter file}
@@ -755,7 +755,7 @@ It also contains variable names for the depth and for number of layers in a vert
   [ <more of the above blocks> ]
 \end{Verbatim}
 
-The code is supposed to identify the type of the horizontal grid used, while the type of the vertical grid has to be specified explicitly.
+The code is supposed to automatically identify the type of horizontal grid used, while the type of the vertical grid has to be specified explicitly.
 
 At the moment, EnKF-C supports 3 main types of horizontal grids:
 \begin{itemize}
@@ -780,7 +780,7 @@ This is done by setting parameter \verb|MAPTYPE| to ``k''.
 Observation types are the interface that connects model and observations.
 They are specified in a separate parameter file.
 Each observation type is described in a separate section identified by the entry \verb|NAME|.
-Apart from the type name, the section must contain the associated model variable; whether observations of this type are surface or volume; the associated observation operator; the allowed range.
+Apart from the type name, the section must contain the associated model variable; whether observations of this type are surface or volume; the associated observation operator; and the allowed range.
 The optional parameters include the R-factor for the type (sec.~\ref{sec:datuning}) and spatial limits on corresponding observations.
 For example:
 \begin{Verbatim}[frame=single,fontsize=\footnotesize]

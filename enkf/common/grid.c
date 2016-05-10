@@ -1006,13 +1006,27 @@ void grid_fij2xy(grid* g, double fi, double fj, double* x, double* y)
 void grid_ij2xy(grid* g, int i, int j, double* x, double* y)
 {
     if (g->htype == GRIDHTYPE_LATLON_REGULAR || g->htype == GRIDHTYPE_LATLON_IRREGULAR) {
-        *x = ((gnxy_simple*) g->gridnodes_xy)->x[i];
-        *y = ((gnxy_simple*) g->gridnodes_xy)->y[j];
+        gnxy_simple* gs = (gnxy_simple*) g->gridnodes_xy;
+
+        if (i < 0 || j < 0 || i >= gs->nx || j >= gs->ny) {
+            *x = NaN;
+            *y = NaN;
+        } else {
+            *x = gs->x[i];
+            *y = gs->y[j];
+        }
     }
 #if !defined(NO_GRIDUTILS)
     else if (g->htype == GRIDHTYPE_CURVILINEAR) {
-        *x = gridnodes_getx(((gnxy_curv*) g->gridnodes_xy)->gn)[j][i];
-        *y = gridnodes_gety(((gnxy_curv*) g->gridnodes_xy)->gn)[j][i];
+        gridnodes* gn = ((gnxy_curv*) g->gridnodes_xy)->gn;
+
+        if (i < 0 || j < 0 || i >= gridnodes_getnce1(gn) || j >= gridnodes_getnce2(gn)) {
+            *x = NaN;
+            *y = NaN;
+        } else {
+            *x = gridnodes_getx(gn)[j][i];
+            *y = gridnodes_gety(gn)[j][i];
+        }
     }
 #endif
     else
