@@ -65,7 +65,7 @@ typedef struct {
     int nz;
     double* zt;
     double* zc;
-} gnz;
+} gnz_simple;
 
 struct grid {
     char* name;
@@ -82,7 +82,7 @@ struct grid {
     void* gridnodes_xy;         /* (the structure is defined by `htype') */
     double lonbase;             /* (lon range = [lonbase, lonbase + 360)] */
 
-    gnz* gridnodes_z;
+    void* gridnodes_z;
 
     /*
      * `numlevels' can hold either the number of levels (z-model) or the
@@ -222,9 +222,9 @@ void gnxy_curv_destroy(gnxy_curv* nodes)
 
 /**
  */
-static gnz* gnz_create(int nz, double* z)
+static gnz_simple* gnz_simple_create(int nz, double* z)
 {
-    gnz* nodes = malloc(sizeof(gnz));
+    gnz_simple* nodes = malloc(sizeof(gnz_simple));
     int i;
 
     /*
@@ -280,7 +280,7 @@ static gnz* gnz_create(int nz, double* z)
 
 /**
  */
-static void gnz_destroy(gnz* nodes)
+static void gnz_simple_destroy(gnz_simple* nodes)
 {
     free(nodes->zt);
     free(nodes->zc);
@@ -517,7 +517,7 @@ static double z2fk_basic(int n, double* zt, double* zc, double z)
 static void z2fk(void* p, double fi, double fj, double z, double* fk)
 {
     grid* g = (grid*) p;
-    gnz* nodes = g->gridnodes_z;
+    gnz_simple* nodes = g->gridnodes_z;
 
     /*
      * for sigma coordinates convert `z' to sigma
@@ -621,7 +621,10 @@ static void grid_setcoords(grid* g, int htype, int hnodetype, int periodic_x, in
         enkf_quit("programming error");
 
     grid_setlonbase(g);
-    g->gridnodes_z = gnz_create(nz, z);
+    if (g->vtype == GRIDVTYPE_Z || g->vtype == GRIDVTYPE_SIGMA)
+        g->gridnodes_z = gnz_simple_create(nz, z);
+    else
+        enkf_quit("not implemented");
 }
 
 /**
@@ -791,8 +794,12 @@ void grid_destroy(grid* g)
 #endif
     else
         enkf_quit("programming_error");
-    if (g->gridnodes_z != NULL)
-        gnz_destroy(g->gridnodes_z);
+    if (g->gridnodes_z != NULL) {
+        if (g->vtype == GRIDVTYPE_Z || g->vtype == GRIDVTYPE_SIGMA)
+            gnz_simple_destroy(g->gridnodes_z);
+        else
+            enkf_quit("not implemented");
+    }
     if (g->numlevels != NULL)
         free(g->numlevels);
     if (g->depth != NULL)
@@ -900,19 +907,28 @@ void grid_getdims(grid* g, int* ni, int* nj, int* nk)
         } else
             enkf_quit("programming error");
     }
-    if (nk != NULL)
-        *nk = g->gridnodes_z->nz;
+    if (nk != NULL) {
+        if (g->vtype == GRIDVTYPE_Z || g->vtype == GRIDVTYPE_SIGMA)
+            *nk = ((gnz_simple*) g->gridnodes_z)->nz;
+        else
+            enkf_quit("not implemented");
+    }
 }
 
 /**
  */
 int grid_gettoplayerid(grid* g)
 {
-    gnz* nodes = g->gridnodes_z;
-    int kmax = nodes->nz - 1;
-    double* z = nodes->zt;
+    if (g->vtype == GRIDVTYPE_Z || g->vtype == GRIDVTYPE_SIGMA) {
+        gnz_simple* nodes = g->gridnodes_z;
+        int kmax = nodes->nz - 1;
+        double* z = nodes->zt;
 
-    return (fabs(z[0]) < fabs(z[kmax])) ? 0 : kmax;
+        return (fabs(z[0]) < fabs(z[kmax])) ? 0 : kmax;
+    } else
+        enkf_quit("not implemented");
+
+    return -1;
 }
 
 /**
@@ -984,7 +1000,10 @@ void grid_xy2fij(grid* g, double x, double y, double* fi, double* fj)
  */
 void grid_z2fk(grid* g, double fi, double fj, double z, double* fk)
 {
-    z2fk(g, fi, fj, z, fk);
+    if (g->vtype == GRIDVTYPE_Z || g->vtype == GRIDVTYPE_SIGMA)
+        z2fk(g, fi, fj, z, fk);
+    else
+        enkf_quit("not implemented");
 }
 
 /**
@@ -1037,23 +1056,26 @@ void grid_ij2xy(grid* g, int i, int j, double* x, double* y)
  */
 void grid_fk2z(grid* g, int i, int j, double fk, double* z)
 {
-    gnz* nodes = g->gridnodes_z;
-    double* zc = nodes->zc;
-    int nt = nodes->nz;
+    if (g->vtype == GRIDVTYPE_Z || g->vtype == GRIDVTYPE_SIGMA) {
+        gnz_simple* nodes = g->gridnodes_z;
+        double* zc = nodes->zc;
+        int nt = nodes->nz;
 
-    fk += 0.5;
+        fk += 0.5;
 
-    if (fk <= 0.0)
-        *z = zc[0];
-    else if (fk >= nt)
-        *z = zc[nt];
-    else {
-        int k = (int) floor(fk);
+        if (fk <= 0.0)
+            *z = zc[0];
+        else if (fk >= nt)
+            *z = zc[nt];
+        else {
+            int k = (int) floor(fk);
 
-        *z = zc[k] + (fk - (double) k) * (zc[k + 1] - zc[k]);
-    }
-    if (g->vtype == GRIDVTYPE_SIGMA)
-        *z *= g->depth[j][i];
+            *z = zc[k] + (fk - (double) k) * (zc[k + 1] - zc[k]);
+        }
+        if (g->vtype == GRIDVTYPE_SIGMA)
+            *z *= g->depth[j][i];
+    } else
+        enkf_quit("not implemented");
 }
 
 /**
