@@ -197,7 +197,7 @@ static gnxy_curv* gnxy_curv_create(int nodetype, int nx, int ny, double** x, dou
         nodes->gn = gridnodes_create2(nx, ny, NT_COR, x, y);
     else
         enkf_quit("unknown node type for horizontal curvilinear grid");
-#if defined(ENKF_PREP)
+#if defined(ENKF_PREP) || defined(ENKF_CALC)
     gridnodes_validate(nodes->gn);
     gridnodes_setmaptype(nodes->gn, maptype);
     nodes->gm = gridmap_build2(nodes->gn);

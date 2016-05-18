@@ -35,7 +35,7 @@
 
 \begin{document}
 
-\title{EnKF-C user guide\\{\normalsize version 1.38.0}}
+\title{EnKF-C user guide\\{\normalsize version 1.39.4}}
 
 \author{Pavel Sakov}
 \date{June 19, 2014 -- \today}
@@ -1484,12 +1484,13 @@ This can be specified for a model variable via entry \verb|RANDOMISE| in the cor
 
 \section{Grids}
 
-Currently EnKF-C makes two main assumptions about grids:
+Currently EnKF-C makes three main general assumptions about grids:
 \begin{itemize}
 \item the vertical grid coordinates correspond to layer centres, either for Z or sigma layers;
-\item the horizontal coordinates are geographic (longitude, latitude).
+\item the horizontal coordinates are geographic (longitude, latitude);
+\item the order of vertical coordinate (top to bottom or bottom to top) corresponds to that of 3D model fields.
 \end{itemize}
-If available model grids do not meet the above assumptions, one needs to generate the corresponding auxiliary grids and use them instead.
+If the available model grids do not meet the above assumptions, one needs to generate the corresponding auxiliary grids and use them instead.
 
 Further, the horizontal grid must be either rectangular in longitude-latitude, with constant or irregular step; or represent a structured simply connected quadrilateral grid, referred to elsewhere as ``curvilinear''.
 In the first case mapping from physical to grid space is done independently by X and Y coordinates; in the second case the grid is rendered into spatial binary tree to achieve logarithmic search time.
