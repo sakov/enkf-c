@@ -239,6 +239,7 @@ void obs_add(observations* obs, model* m, obsmeta* meta)
         enkf_printf("      min date = %.3f\n", date_min);
         enkf_printf("      max date = %.3f\n", date_max);
     }
+    fflush(stdout);
 
     for (i = nobs0; i < obs->nobs; ++i) {
         if (obs_badob(obs, i)) {
