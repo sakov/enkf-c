@@ -280,7 +280,7 @@ static gnz_simple* gnz_simple_create(int nz, double* z)
 
 /**
  */
-static void gnz_simple_destroy(gnz_simple* nodes)
+static void gnz_simple_destroy(gnz_simple * nodes)
 {
     free(nodes->zt);
     free(nodes->zc);
@@ -909,7 +909,7 @@ void grid_getdims(grid* g, int* ni, int* nj, int* nk)
     }
     if (nk != NULL) {
         if (g->vtype == GRIDVTYPE_Z || g->vtype == GRIDVTYPE_SIGMA)
-            *nk = ((gnz_simple*) g->gridnodes_z)->nz;
+            *nk = ((gnz_simple *) g->gridnodes_z)->nz;
         else
             enkf_quit("not implemented");
     }

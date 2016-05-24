@@ -1,3 +1,10 @@
+v. 1.39.7
+   PS 24052016
+   -- Cosmetic change in obs_add(): range of the obs IDs read from a file
+      not printed if it is empty.
+v. 1.39.6
+   PS 24052016
+   -- Fixed a defect (I believe) in _kd_findnearestnode().
 v. 1.39.5
    PS 18052016
    -- Minor fix: allowed creating gridmap in CALC -- necessary for single

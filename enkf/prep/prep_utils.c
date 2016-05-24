@@ -101,7 +101,8 @@ void obs_add(observations* obs, model* m, obsmeta* meta)
         }
     }
 
-    enkf_printf("      id = %d - %d\n", nobs0, obs->nobs - 1);
+    if (obs->nobs - nobs0 > 0)
+        enkf_printf("      id = %d - %d\n", nobs0, obs->nobs - 1);
     obs->compacted = 0;
     obs->hasstats = 0;
     enkf_printf("      total %d observations\n", obs->nobs - nobs0);

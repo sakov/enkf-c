@@ -86,8 +86,10 @@ kdtree* kd_create(int ndim)
  */
 void kd_destroy(kdtree* tree)
 {
-    free(tree->nodes);
-    free(tree->coords);
+    if (tree->nallocated > 0) {
+        free(tree->nodes);
+        free(tree->coords);
+    }
     free(tree->min);
     free(tree);
 }
@@ -373,7 +375,7 @@ static void _kd_findnearestnode(const kdtree* tree, const size_t nodeid, const d
      */
     for (i = 0, dist = 0.0; i < ndim; ++i)
         dist += (nodecoords[i] - coords[i]) * (nodecoords[i] - coords[i]);
-    if (dist < *resdist) {
+    if (dist <= *resdist) {
         *result = nodeid;
         *resdist = dist;
     }
