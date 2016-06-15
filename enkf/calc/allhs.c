@@ -35,7 +35,8 @@ H_entry allhentries[] = {
     {"SLA", "biased", H_surf_biased},
     {"TEM", "standard", H_subsurf_standard},
     {"TEM", "wsurfbias", H_subsurf_wsurfbias},
-    {"SAL", "standard", H_subsurf_standard}
+    {"SAL", "standard", H_subsurf_standard},
+    {"SSH", "standard", H_surf_standard}
 };
 
 /** List H-functions for all observation types (obstypename = NULL) or for
