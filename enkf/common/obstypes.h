@@ -53,6 +53,7 @@ typedef struct {
     int nbadbatch;
     int nroundup;
     int nrange;
+    int nmissed;
     int nsubgrid;
     int nmodified;
 

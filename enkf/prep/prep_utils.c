@@ -293,7 +293,7 @@ void print_obsstats(observations* obs, observations* sobs)
     for (i = 0; i < obs->nobstypes; ++i) {
         obstype* ot = &obs->obstypes[i];
 
-        enkf_printf("    %s     %-10d %-10d %-10d %-10d %-10d %-10d %-10d %-10d\n", ot->name, ot->ngood, ot->nobs - ot->ngood, ot->noutside, ot->nland, ot->nshallow, ot->nbadbatch, ot->nrange, sobs->obstypes[i].nobs);
+        enkf_printf("    %s     %-10d %-10d %-10d %-10d %-10d %-10d %-10d %-10d\n", ot->name, ot->ngood, ot->nobs - ot->ngood - ot->nmissed, ot->noutside, ot->nland, ot->nshallow, ot->nbadbatch, ot->nrange, sobs->obstypes[i].nobs);
     }
-    enkf_printf("    total   %-10d %-10d %-10d %-10d %-10d %-10d %-10d %-10d\n", obs->ngood, obs->nobs - obs->ngood, obs->noutside, obs->nland, obs->nshallow, obs->nbadbatch, obs->nrange, sobs->nobs);
+    enkf_printf("    total   %-10d %-10d %-10d %-10d %-10d %-10d %-10d %-10d\n", obs->ngood, obs->nobs - obs->ngood - obs->nmissed, obs->noutside, obs->nland, obs->nshallow, obs->nbadbatch, obs->nrange, sobs->nobs);
 }

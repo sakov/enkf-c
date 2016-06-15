@@ -77,6 +77,7 @@ void obs_addtype(observations* obs, obstype* src, obsdomain* domain)
     ot->nbadbatch = -1;
     ot->nroundup = -1;
     ot->nrange = -1;
+    ot->nmissed = -1;
     ot->nmodified = 0;
     ot->date_min = NaN;
     ot->date_max = NaN;
@@ -130,6 +131,7 @@ observations* obs_create(void)
     obs->nbadbatch = 0;
     obs->nroundup = 0;
     obs->nrange = 0;
+    obs->nmissed = 0;
     obs->nmodified = 0;
     obs->badbatches = NULL;
 
@@ -364,6 +366,7 @@ void obs_calcstats(observations* obs)
     obs->nland = 0;
     obs->nshallow = 0;
     obs->nrange = 0;
+    obs->nmissed = 0;
     for (i = 0; i < obs->nobstypes; ++i) {
         obstype* ot = &obs->obstypes[i];
 
@@ -375,6 +378,7 @@ void obs_calcstats(observations* obs)
         ot->nbadbatch = 0;
         ot->nroundup = 0;
         ot->nrange = 0;
+        ot->nmissed = 0;
         ot->date_min = DBL_MAX;
         ot->date_max = -DBL_MAX;
     }
@@ -405,6 +409,9 @@ void obs_calcstats(observations* obs)
         } else if (m->status == STATUS_RANGE) {
             obs->nrange++;
             ot->nrange++;
+        } else if (m->status == STATUS_MISSING) {
+            obs->nmissed++;
+            ot->nmissed++;
         }
 
         if (m->date < ot->date_min)

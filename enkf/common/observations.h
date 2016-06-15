@@ -88,6 +88,7 @@ typedef struct {
     int nbadbatch;
     int nroundup;
     int nrange;
+    int nmissed;
     int nmodified;
 
     hashtable* badbatches;
