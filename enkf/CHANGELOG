@@ -1,8 +1,11 @@
+v. 1.40.0
+   PS 15062016
+   -- Added SSS reader reader_aquarius.c.
 v. 1.39.8
    PS 15062016
    -- Added the actual code that discards observation outside the allowed range
-      (thanks to Paul Sandery for the report)
-   -- Added exit with error in the case of asynchronous time interval <= 0
+      (thanks to Paul Sandery for the report).
+   -- Added exit with error in the case of asynchronous time interval <= 0.
 v. 1.39.7
    PS 24052016
    -- Cosmetic change in obs_add(): range of the obs IDs read from a file
