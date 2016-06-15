@@ -77,7 +77,8 @@ void obs_add(observations* obs, model* m, obsmeta* meta)
 {
     obsread_fn reader;
     int nobs0 = obs->nobs;
-    int vid;
+    int vid, otid;
+    obstype* ot;
     double lonbase;
     int i, ngood;
 
@@ -86,7 +87,9 @@ void obs_add(observations* obs, model* m, obsmeta* meta)
     reader = get_obsreadfn(meta);
     readobs(meta, m, reader, obs);      /* adds the data */
 
-    vid = model_getvarid(m, obs->obstypes[obstype_getid(obs->nobstypes, obs->obstypes, meta->type)].varname, 1);
+    otid = obstype_getid(obs->nobstypes, obs->obstypes, meta->type);
+    ot = &obs->obstypes[otid];
+    vid = model_getvarid(m, obs->obstypes[otid].varname, 1);
 
     lonbase = model_getlonbase(m, vid);
     if (!isnan(lonbase)) {
@@ -101,8 +104,32 @@ void obs_add(observations* obs, model* m, obsmeta* meta)
         }
     }
 
-    if (obs->nobs - nobs0 > 0)
+    if (obs->nobs - nobs0 > 0) {
+        int nmin = 0;
+        int nmax = 0;
+
         enkf_printf("      id = %d - %d\n", nobs0, obs->nobs - 1);
+
+        /*
+         * check range
+         */
+        for (i = nobs0; i < obs->nobs; ++i) {
+            observation* o = &obs->data[i];
+
+            if (o->value < ot->allowed_min) {
+                o->status = STATUS_RANGE;
+                nmin++;
+            }
+            if (o->value > ot->allowed_max) {
+                o->status = STATUS_RANGE;
+                nmax++;
+            }
+        }
+        if (nmin > 0)
+            enkf_printf("      %d observations below allowed minimum of %.4g\n", nmin, ot->allowed_min);
+        if (nmax > 0)
+            enkf_printf("      %d observations above allowed maximum of %.4g\n", nmax, ot->allowed_max);
+    }
     obs->compacted = 0;
     obs->hasstats = 0;
     enkf_printf("      total %d observations\n", obs->nobs - nobs0);
@@ -148,20 +175,12 @@ void obs_add(observations* obs, model* m, obsmeta* meta)
                 int ni, nj, nk;
                 int periodic_x = grid_isperiodic_x(model_getvargrid(m, vid));
                 int periodic_y = grid_isperiodic_y(model_getvargrid(m, vid));
-                int ii;
 
                 enkf_printf("      adding error_std from %s %s:\n", fname, std->varname);
 
                 model_getvardims(m, vid, &ni, &nj, &nk);
 
-                for (ii = 0; ii < obs->nobstypes; ++ii)
-                    if (strcmp(obs->obstypes[ii].name, meta->type))
-                        break;
-
-                if (ii == obs->nobstypes)
-                    enkf_quit("observation type \"%s\" not described in observations.c::otdescs", meta->type);
-
-                if (obs->obstypes[ii].issurface) {
+                if (ot->issurface) {
                     float** v = alloc2d(nj, ni, sizeof(float));
 
                     readfield(fname, std->varname, 0, v[0]);

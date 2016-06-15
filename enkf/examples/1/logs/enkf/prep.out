@@ -1,7 +1,7 @@
-  running PREP for EnKF-C version 1.37.3:
+  running PREP for EnKF-C version 1.39.8:
     command = "./enkf_prep enkf.prm"
     dir = "/home/pavel/src/enkf-c/trunk/enkf/examples/1"
-  2016-05-02 15:05:02
+  2016-06-15 10:03:14
   reading prep specs from "enkf.prm":
     MODE = EnKF
     SCHEME = DEnKF
@@ -312,3 +312,46 @@ ls: cannot access obs/WINDSAT/windsat_20071223.nc: No such file or directory
       min date = -4.000
       max date = -2.000
     PRODUCT = CARS, TYPE = SAL, reader = standard
+      reading obs/TS-SEP-2011/y2007/m12/cars_salt_d19.nc:
+        # profiles = 366
+        # z levels = 191
+        # good obs = 176
+      reading obs/TS-SEP-2011/y2007/m12/cars_salt_d20.nc:
+        # profiles = 360
+        # z levels = 191
+        # good obs = 56
+      reading obs/TS-SEP-2011/y2007/m12/cars_salt_d21.nc:
+        # profiles = 314
+        # z levels = 191
+        # good obs = 56
+      reading obs/TS-SEP-2011/y2007/m12/cars_salt_d22.nc:
+        # profiles = 323
+        # z levels = 191
+        # good obs = 0
+      reading obs/TS-SEP-2011/y2007/m12/cars_salt_d23.nc:
+        # profiles = 325
+        # z levels = 191
+        # good obs = 0
+      id = 9518 - 9805
+      total 288 observations
+      184 valid observations
+      adding error_std = 0.1:
+      min date = -4.000
+      max date = -2.000
+    compacting obs:
+    calculating obs stats:
+  writing observations to "observations-orig.nc":
+  superobing:
+    3864 superobservations
+    calculating obs stats:
+  writing superobservations to "observations.nc":
+  printing observation statistics:
+    type    # used     # dropped  # outside  # land     # shallow  # badbatch # badvalue # superobs.
+    ----------------------------------------------------------------------------------------
+    SLA     978        3          0          0          3          0          0          643       
+    SST     8249       0          0          0          0          0          0          3207      
+    TEM     184        104        104        0          0          0          0          7         
+    SAL     184        104        104        0          0          0          0          7         
+    total   9595       211        208        0          3          0          0          3864      
+  2016-06-15 10:03:15
+  finished
