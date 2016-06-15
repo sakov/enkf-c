@@ -1,3 +1,6 @@
+v. 1.40.1
+   PS 15062016
+   -- Added STATUS_MISSED for missing gridded obs.
 v. 1.40.0
    PS 15062016
    -- Added SSS reader reader_aquarius.c.

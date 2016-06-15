@@ -140,8 +140,8 @@ void reader_aquarius_standard(char* fname, int fid, obsmeta* meta, model* m, obs
                 o->status = STATUS_SHALLOW;
             if ((o->status == STATUS_OK) && (o->lon <= ot->xmin || o->lon >= ot->xmax || o->lat <= ot->ymin || o->lat >= ot->ymax || o->depth <= ot->zmin || o->depth >= ot->zmax))
                 o->status = STATUS_OUTSIDEOBSDOMAIN;
-            if ((o->status == STATUS_OK) && (o->value == missval))
-                o->status = STATUS_OUTSIDEOBSDOMAIN;
+            if (o->status == STATUS_OK && o->value == missval)
+                o->status = STATUS_MISSING;
 
             o->fk = (double) topk;
             o->date = tunits_offset + 0.5;

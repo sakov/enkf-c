@@ -116,6 +116,9 @@ void obs_add(observations* obs, model* m, obsmeta* meta)
         for (i = nobs0; i < obs->nobs; ++i) {
             observation* o = &obs->data[i];
 
+            if (o->status != STATUS_OK)
+                continue;
+
             if (o->value < ot->allowed_min) {
                 o->status = STATUS_RANGE;
                 nmin++;
