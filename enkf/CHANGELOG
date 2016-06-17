@@ -1,3 +1,7 @@
+v. 1.40.2
+   PS 17062016
+   -- Added "|NETCDF_FORMAT" when creating observations*.nc files to allow
+      bigger size.
 v. 1.40.1
    PS 15062016
    -- Added STATUS_MISSED for missing gridded obs.

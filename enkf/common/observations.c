@@ -664,7 +664,7 @@ void obs_write(observations* obs, char fname[])
 
     if (file_exists(fname))
         enkf_quit("file \"%s\" already exists", fname);
-    ncw_create(fname, NC_NOCLOBBER, &ncid);
+    ncw_create(fname, NC_NOCLOBBER | NETCDF_FORMAT, &ncid);
 
     ncw_put_att_double(fname, ncid, NC_GLOBAL, "DA_JULDAY", 1, &obs->da_date);
 

@@ -64,6 +64,7 @@ static void readobs(obsmeta* meta, model* m, obsread_fn reader, observations* ob
         reader(fnames[i], fid, meta, m, obs);
 
         enkf_printf("        # good obs = %d\n", obs->nobs - nobs0);
+        enkf_flush();
         free(fnames[i]);
     }
     free(fnames);
