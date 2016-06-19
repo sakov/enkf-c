@@ -321,11 +321,13 @@ void obs_compact(observations* obs)
         return;
 
     enkf_printf("    compacting obs:");
+    enkf_flush();
     assert(STATUS_OK == 0);
     qsort(obs->data, obs->nobs, sizeof(observation), comp_obsstatus);
     for (i = 0; i < obs->nobs; ++i)
         obs->data[i].id = i;
     enkf_printf("\n");
+    enkf_flush();
     obs->compacted = 1;
 }
 

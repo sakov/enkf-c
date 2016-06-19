@@ -103,7 +103,6 @@ static gnxy_simple* gnxy_simple_create(int nx, int ny, double* x, double* y, int
 
     nodes->nx = nx;
     nodes->ny = ny;
-    nodes->y = y;
     nodes->periodic_x = periodic_x;
     nodes->periodic_y = periodic_y;
     nodes->regular = regular;
@@ -556,17 +555,17 @@ static void grid_setlonbase(grid* g)
     double xmax = -DBL_MAX;
 
     if (g->htype == GRIDHTYPE_LATLON_REGULAR || g->htype == GRIDHTYPE_LATLON_IRREGULAR) {
-        double* x = ((gnxy_simple*) g->gridnodes_xy)->x;
+        double* xc = ((gnxy_simple*) g->gridnodes_xy)->xc;
         int nx = ((gnxy_simple*) g->gridnodes_xy)->nx;
 
-        if (xmin > x[0])
-            xmin = x[0];
-        if (xmin > x[nx - 1])
-            xmin = x[nx - 1];
-        if (xmax < x[0])
-            xmax = x[0];
-        if (xmax < x[nx - 1])
-            xmax = x[nx - 1];
+        if (xmin > xc[0])
+            xmin = xc[0];
+        if (xmin > xc[nx])
+            xmin = xc[nx];
+        if (xmax < xc[0])
+            xmax = xc[0];
+        if (xmax < xc[nx])
+            xmax = xc[nx];
 #if !defined(NO_GRIDUTILS)
     } else if (g->htype == GRIDHTYPE_CURVILINEAR) {
         double** x = gridnodes_getx(((gnxy_curv*) g->gridnodes_xy)->gn);
@@ -584,12 +583,10 @@ static void grid_setlonbase(grid* g)
         }
 #endif
     }
-    if (xmax - xmin >= 360.0)
-        g->lonbase = xmin;
-    else if (xmin < 0.0 && xmax < 180.0)
-        g->lonbase = -180.0;
-    else if (xmin >= 0.0 && xmax < 360.0)
-        g->lonbase = 0.0;
+    if (xmin >= 0.0 && xmax <= 360.0)
+	g->lonbase = 0.0;
+    else if (xmin >= -180.0 && xmax <= 180.0)
+	g->lonbase = -180.0;
     else
         g->lonbase = xmin;
 }
@@ -688,7 +685,7 @@ grid* grid_create(void* p, int id)
         ncw_get_var_double(fname, ncid, varid_y, y);
         ncw_get_var_double(fname, ncid, varid_z, z);
 
-        periodic_x = fabs(fmod(2.0 * x[nx - 1] - x[nx - 2], 360.0) - x[0]) < EPS_LON;
+        periodic_x = fabs(fmod(2.0 * x[nx - 1] - x[nx - 2] - x[0], 360.0)) < EPS_LON;
 
         dx = (x[nx - 1] - x[0]) / (double) (nx - 1);
         for (i = 1; i < (int) nx; ++i)
