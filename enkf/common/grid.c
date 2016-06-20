@@ -686,8 +686,6 @@ grid* grid_create(void* p, int id)
         double* x;
         double* y;
         double* z;
-        int i;
-        double dx, dy;
 
         x = malloc(nx * sizeof(double));
         y = malloc(ny * sizeof(double));
@@ -697,22 +695,7 @@ grid* grid_create(void* p, int id)
         ncw_get_var_double(fname, ncid, varid_y, y);
         ncw_get_var_double(fname, ncid, varid_z, z);
 
-        dx = (x[nx - 1] - x[0]) / (double) (nx - 1);
-        for (i = 1; i < (int) nx; ++i)
-            if (fabs(x[i] - x[i - 1] - dx) / fabs(dx) > EPS_LON)
-                break;
-        if (i != (int) nx)
-            grid_setcoords(g, GRIDHTYPE_LATLON, NT_NONE, nx, ny, nz, x, y, z);
-        else {
-            dy = (y[ny - 1] - y[0]) / (double) (ny - 1);
-            for (i = 1; i < (int) ny; ++i)
-                if (fabs(y[i] - y[i - 1] - dy) / fabs(dy) > EPS_LON)
-                    break;
-            if (i != (int) ny)
-                grid_setcoords(g, GRIDHTYPE_LATLON, NT_NONE, nx, ny, nz, x, y, z);
-            else
-                grid_setcoords(g, GRIDHTYPE_LATLON, NT_NONE, nx, ny, nz, x, y, z);
-        }
+        grid_setcoords(g, GRIDHTYPE_LATLON, NT_NONE, nx, ny, nz, x, y, z);
     }
 #if !defined(NO_GRIDUTILS)
     else if (ndims_x == 2 && ndims_y == 2) {
