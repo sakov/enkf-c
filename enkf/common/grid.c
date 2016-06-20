@@ -129,7 +129,7 @@ static gnxy_simple* gnxy_simple_create(int nx, int ny, double* x, double* y)
             break;
     nodes->regular_x = (i == nx);
 
-    ascending = (x[nx - 1] > x[0]) ? 1 : 0;
+    ascending = (x[nx - 1] > x[0]);
     if (ascending) {
         for (i = 0; i < nx - 1; ++i)
             if ((x[i + 1] - x[i]) < 0.0)
@@ -156,7 +156,7 @@ static gnxy_simple* gnxy_simple_create(int nx, int ny, double* x, double* y)
             break;
     nodes->regular_y = (i == ny);
 
-    ascending = (y[ny - 1] > y[0]) ? 1 : 0;
+    ascending = (y[ny - 1] > y[0]);
     if (ascending) {
         for (i = 0; i < ny - 1; ++i)
             if ((y[i + 1] - y[i]) < 0.0)
@@ -351,7 +351,7 @@ static double fi2x(int n, double* v, double fi, int periodic)
 
 /**
  */
-static void g12_fij2xy(void* p, double fi, double fj, double* x, double* y)
+static void gs_fij2xy(void* p, double fi, double fj, double* x, double* y)
 {
     gnxy_simple* nodes = (gnxy_simple*) ((grid*) p)->gridnodes_xy;
 
@@ -385,7 +385,7 @@ static double x2fi_irreg(int n, double v[], double vb[], double x, int periodic,
             x -= 360.0;
     }
 
-    ascending = (v[n - 1] > v[0]) ? 1 : 0;
+    ascending = (v[n - 1] > v[0]);
 
     if (ascending) {
         if ((x < v[0]) || x > v[n - 1]) {
@@ -995,7 +995,7 @@ void grid_z2fk(grid* g, double fi, double fj, double z, double* fk)
 void grid_fij2xy(grid* g, double fi, double fj, double* x, double* y)
 {
     if (g->htype == GRIDHTYPE_LATLON)
-        g12_fij2xy(g, fi, fj, x, y);
+        gs_fij2xy(g, fi, fj, x, y);
 #if !defined(NO_GRIDUTILS)
     else if (g->htype == GRIDHTYPE_CURVILINEAR)
         gc_fij2xy(g, fi, fj, x, y);
