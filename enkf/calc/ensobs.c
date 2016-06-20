@@ -834,7 +834,6 @@ static void update_HE(dasystem* das)
     for (gid = 0, o = 0; gid < ngrid && o < obs->nobs; ++gid) {
         void* grid = model_getgridbyid(m, gid);
         int periodic_i = grid_isperiodic_x(grid);
-        int periodic_j = grid_isperiodic_y(grid);
 
         char fname_X5[MAXSTRLEN];
         int ncid;
@@ -872,8 +871,6 @@ static void update_HE(dasystem* das)
         iiter = malloc((ni + 1) * sizeof(int));
         for (j = 0, i = 0; j < nj; ++j, i += das->stride)
             jiter[j] = i;
-        if (periodic_j)
-            jiter[nj] = jiter[nj - 1] + das->stride;
         for (i = 0, j = 0; i < ni; ++i, j += das->stride)
             iiter[i] = j;
         if (periodic_i)
@@ -916,7 +913,7 @@ static void update_HE(dasystem* das)
                     if (stepj == 0) {
                         memcpy(X5jj[0], X5jj2[0], ni * nmem * nmem * sizeof(float));
                         memcpy(X5jj1[0], X5jj2[0], ni * nmem * nmem * sizeof(float));
-                        if (jj < nj - 1 || periodic_j) {
+                        if (jj < nj - 1) {
                             start[0] = (jj + 1) % nj;
                             ncw_get_vara_float(fname_X5, ncid, varid, start, count, X5jj2[0]);
                         }
@@ -1074,7 +1071,6 @@ static void update_Hx(dasystem* das)
     for (gid = 0, o = 0; gid < ngrid && o < obs->nobs; ++gid) {
         void* grid = model_getgridbyid(m, gid);
         int periodic_i = grid_isperiodic_x(grid);
-        int periodic_j = grid_isperiodic_y(grid);
 
         char fname_w[MAXSTRLEN];
         int ncid;
@@ -1112,8 +1108,6 @@ static void update_Hx(dasystem* das)
         iiter = malloc((ni + 1) * sizeof(int));
         for (j = 0, i = 0; j < nj; ++j, i += das->stride)
             jiter[j] = i;
-        if (periodic_j)
-            jiter[nj] = jiter[nj - 1] + das->stride;
         for (i = 0, j = 0; i < ni; ++i, j += das->stride)
             iiter[i] = j;
         if (periodic_i)
@@ -1156,7 +1150,7 @@ static void update_Hx(dasystem* das)
                     if (stepj == 0) {
                         memcpy(wjj[0], wjj2[0], ni * nmem * sizeof(float));
                         memcpy(wjj1[0], wjj2[0], ni * nmem * sizeof(float));
-                        if (jj < nj - 1 || periodic_j) {
+                        if (jj < nj - 1) {
                             start[0] = (jj + 1) % nj;
                             ncw_get_vara_float(fname_w, ncid, varid, start, count, wjj2[0]);
                         }

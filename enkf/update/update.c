@@ -85,7 +85,6 @@ static void das_updatefields(dasystem* das, int nfields, void** fieldbuffer, fie
     void* grid = model_getvargrid(m, fields[0].varid);
     int** nlevels = grid_getnumlevels(grid);
     int periodic_i = grid_isperiodic_x(grid);
-    int periodic_j = grid_isperiodic_y(grid);
     int writeinflation = das->updatespec & UPDATE_DOINFLATION;
 
     /*
@@ -169,7 +168,7 @@ static void das_updatefields(dasystem* das, int nfields, void** fieldbuffer, fie
                 if (stepj == 0) {
                     memcpy(X5jj1[0], X5jj2[0], ni * nmem * nmem * sizeof(float));
                     memcpy(X5jj[0], X5jj2[0], ni * nmem * nmem * sizeof(float));
-                    if (jj < nj - 1 || periodic_j) {
+                    if (jj < nj - 1) {
                         start[0] = (jj + 1) % nj;
                         ncw_get_vara_float(fname_X5, ncid, varid, start, count, X5jj2[0]);
                     }
@@ -375,7 +374,6 @@ static void das_updatebg(dasystem* das, int nfields, void** fieldbuffer, field f
     void* grid = model_getvargrid(m, fields[0].varid);
     int** nlevels = grid_getnumlevels(grid);
     int periodic_i = grid_isperiodic_x(grid);
-    int periodic_j = grid_isperiodic_y(grid);
 
     char fname_w[MAXSTRLEN];
     int ncid;
@@ -449,7 +447,7 @@ static void das_updatebg(dasystem* das, int nfields, void** fieldbuffer, field f
                 if (stepj == 0) {
                     memcpy(wjj1[0], wjj2[0], ni * nmem * sizeof(float));
                     memcpy(wjj[0], wjj2[0], ni * nmem * sizeof(float));
-                    if (jj < nj - 1 || periodic_j) {
+                    if (jj < nj - 1) {
                         start[0] = (jj + 1) % nj;
                         ncw_get_vara_float(fname_w, ncid, varid, start, count, wjj2[0]);
                     }

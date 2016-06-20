@@ -178,7 +178,6 @@ void obs_add(observations* obs, model* m, obsmeta* meta)
                 int** nlevels = model_getnumlevels(m, vid);
                 int ni, nj, nk;
                 int periodic_x = grid_isperiodic_x(model_getvargrid(m, vid));
-                int periodic_y = grid_isperiodic_y(model_getvargrid(m, vid));
 
                 enkf_printf("      adding error_std from %s %s:\n", fname, std->varname);
 
@@ -195,7 +194,7 @@ void obs_add(observations* obs, model* m, obsmeta* meta)
                         if (oo->status != STATUS_OK)
                             continue;
 
-                        vv = (float) interpolate2d(oo->fi, oo->fj, ni, nj, v, nlevels, periodic_x, periodic_y);
+                        vv = (float) interpolate2d(oo->fi, oo->fj, ni, nj, v, nlevels, periodic_x);
                         if (std->op == ARITHMETIC_EQ)
                             oo->std = vv;
                         else if (std->op == ARITHMETIC_PLUS)
@@ -221,7 +220,7 @@ void obs_add(observations* obs, model* m, obsmeta* meta)
                         if (oo->status != STATUS_OK)
                             continue;
 
-                        vv = (float) interpolate3d(oo->fi, oo->fj, oo->fk, ni, nj, nk, v, nlevels, periodic_x, periodic_y);
+                        vv = (float) interpolate3d(oo->fi, oo->fj, oo->fk, ni, nj, nk, v, nlevels, periodic_x);
                         if (std->op == ARITHMETIC_EQ)
                             oo->std = vv;
                         else if (std->op == ARITHMETIC_PLUS)

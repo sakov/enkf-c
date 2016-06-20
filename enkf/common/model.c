@@ -652,9 +652,9 @@ int model_xy2fij(model* m, int vid, double x, double y, double* fi, double* fj)
     if (i2 == ni)
         i2 = (grid_isperiodic_x(model_getvargrid(m, vid))) ? 0 : i1;
     if (j1 == -1)
-        j1 = (grid_isperiodic_y(model_getvargrid(m, vid))) ? nj - 1 : j2;
+        j1 = j2;
     if (i2 == nj)
-        j2 = (grid_isperiodic_y(model_getvargrid(m, vid))) ? 0 : j1;
+        j2 = j1;
 
     if (numlevels[j1][i1] == 0 && numlevels[j1][i2] == 0 && numlevels[j2][i1] == 0 && numlevels[j2][i2] == 0) {
         *fi = NaN;
@@ -729,7 +729,7 @@ int model_z2fk(model* m, int vid, double fi, double fj, double z, double* fk)
 
         grid_getdims(grid, &ni, &nj, NULL);
 
-        v = interpolate2d(fi, fj, ni, nj, depth, numlevels, grid_isperiodic_x(grid), grid_isperiodic_y(grid));
+        v = interpolate2d(fi, fj, ni, nj, depth, numlevels, grid_isperiodic_x(grid));
 
         if (z > v)
             return STATUS_LAND;

@@ -43,8 +43,8 @@ typedef struct {
     int nx;
     int ny;
     int periodic_x;
-    int periodic_y;
-    int regular;
+    int regular_x;
+    int regular_y;
 
     double* x;
     double* y;
@@ -94,18 +94,40 @@ struct grid {
 
 /**
  */
-static gnxy_simple* gnxy_simple_create(int nx, int ny, double* x, double* y, int periodic_x, int periodic_y, int regular)
+static gnxy_simple* gnxy_simple_create(int nx, int ny, double* x, double* y)
 {
     gnxy_simple* nodes = malloc(sizeof(gnxy_simple));
     int i, ascending;
+    double dx, dy;
 
     assert(nx >= 2 && ny >= 2);
 
+    /*
+     * x
+     */
     nodes->nx = nx;
-    nodes->ny = ny;
-    nodes->periodic_x = periodic_x;
-    nodes->periodic_y = periodic_y;
-    nodes->regular = regular;
+    nodes->x = x;
+    nodes->xc = malloc((nx + 1) * sizeof(double));
+    nodes->xc[0] = x[0] * 1.5 - x[1] * 0.5;
+    for (i = 1; i < nx + 1; ++i)
+        nodes->xc[i] = 2 * x[i - 1] - nodes->xc[i - 1];
+
+    if (fabs(fmod(nodes->xc[nx] - nodes->xc[0], 360.0)) < EPS_LON)
+        nodes->periodic_x = 1;
+    else if (fabs(fmod(2.0 * nodes->xc[nx - 1] - nodes->xc[nx - 2] - nodes->xc[0], 360.0)) < EPS_LON) {
+        nodes->periodic_x = 2;  /* MOM case */
+        nodes->x = realloc(nodes->x, (nx + 1) * sizeof(double));
+        nodes->x[nx] = 2.0 * nodes->x[nx - 1] - nodes->x[nx - 2];
+        nodes->xc = realloc(nodes->xc, (nx + 2) * sizeof(double));
+        nodes->xc[nx + 1] = 2.0 * nodes->xc[nx] - nodes->xc[nx - 1];
+    } else
+        nodes->periodic_x = 0;
+
+    dx = (x[nx - 1] - x[0]) / (double) (nx - 1);
+    for (i = 1; i < (int) nx; ++i)
+        if (fabs(x[i] - x[i - 1] - dx) / fabs(dx) > EPS_LON)
+            break;
+    nodes->regular_x = (i == nx);
 
     ascending = (x[nx - 1] > x[0]) ? 1 : 0;
     if (ascending) {
@@ -118,14 +140,21 @@ static gnxy_simple* gnxy_simple_create(int nx, int ny, double* x, double* y, int
                 enkf_quit("non-monotonous X coordinate for a simple grid\n");
     }
 
-    if (periodic_x) {
-        if (fabs(fabs((x[nx - 1] - x[0]) / 360.0) - 1.0) > EPS_IJ) {
-            x = realloc(x, sizeof(double) * (nx + 1));
-            x[nx] = (ascending) ? x[0] + 360.0 : x[0] - 360.0;
-            assert(fabs((x[nx] - x[nx - 1]) / (x[nx - 1] - x[nx - 2]) - 1.0) < CELL_CHANGE_FACTOR_MAX);
-        }
-    }
-    nodes->x = x;
+    /*
+     * y
+     */
+    nodes->ny = ny;
+    nodes->y = y;
+    nodes->yc = malloc((ny + 1) * sizeof(double));
+    nodes->yc[0] = y[0] * 1.5 - y[1] * 0.5;
+    for (i = 1; i < ny + 1; ++i)
+        nodes->yc[i] = 2 * y[i - 1] - nodes->yc[i - 1];
+
+    dy = (y[ny - 1] - y[0]) / (double) (ny - 1);
+    for (i = 1; i < (int) ny; ++i)
+        if (fabs(y[i] - y[i - 1] - dy) / fabs(dy) > EPS_LON)
+            break;
+    nodes->regular_y = (i == ny);
 
     ascending = (y[ny - 1] > y[0]) ? 1 : 0;
     if (ascending) {
@@ -138,30 +167,6 @@ static gnxy_simple* gnxy_simple_create(int nx, int ny, double* x, double* y, int
                 enkf_quit("non-monotonous Y coordinate for a simple grid\n");
     }
 
-    if (periodic_y) {
-        if (fabs(fabs((y[ny - 1] - y[0]) / 360.0) - 1.0) > EPS_IJ) {
-            y = realloc(y, sizeof(double) * (ny + 1));
-            y[ny] = (ascending) ? y[0] + 360.0 : y[0] - 360.0;
-            assert(fabs((y[ny] - y[ny - 1]) / (y[ny - 1] / y[ny - 2]) - 1.0) < CELL_CHANGE_FACTOR_MAX);
-        }
-    }
-    nodes->y = y;
-
-    if (regular) {
-        nodes->xc = NULL;
-        nodes->yc = NULL;
-    } else {
-        nodes->xc = malloc((nx + 1) * sizeof(double));
-        nodes->xc[0] = x[0] * 1.5 - x[1] * 0.5;
-        for (i = 1; i < nx + 1; ++i)
-            nodes->xc[i] = 2 * x[i - 1] - nodes->xc[i - 1];
-
-        nodes->yc = malloc((ny + 1) * sizeof(double));
-        nodes->yc[0] = y[0] * 1.5 - y[1] * 0.5;
-        for (i = 1; i < ny + 1; ++i)
-            nodes->yc[i] = 2 * y[i - 1] - nodes->yc[i - 1];
-    }
-
     return nodes;
 }
 
@@ -171,10 +176,8 @@ void gnxy_simple_destroy(gnxy_simple* nodes)
 {
     free(nodes->x);
     free(nodes->y);
-    if (!nodes->regular) {
-        free(nodes->xc);
-        free(nodes->yc);
-    }
+    free(nodes->xc);
+    free(nodes->yc);
     free(nodes);
 }
 
@@ -295,22 +298,24 @@ static double x2fi_reg(int n, double* v, double x, int periodic)
     if (n < 2)
         return NaN;
 
+    if (periodic == 2)
+        n += 1;
+
     fi = (x - v[0]) / (v[n - 1] - v[0]) * (double) (n - 1);
 
-    if (fi < 0.0 || fi > (double) (n - 1))
-        return NaN;
+    if (fi < 0.0) {
+        if (!periodic)
+            return NaN;
+        else
+            fi += (double) (n - 1);
+    } else if (fi >= (double) (n - 1)) {
+        if (!periodic)
+            return NaN;
+        else
+            fi -= (double) (n - 1);
+    }
 
     return fi;
-}
-
-/**
- */
-static void g1_xy2fij(void* p, double x, double y, double* fi, double* fj)
-{
-    gnxy_simple* nodes = (gnxy_simple*) ((grid*) p)->gridnodes_xy;
-
-    *fi = x2fi_reg(nodes->nx, nodes->x, x, nodes->periodic_x);
-    *fj = x2fi_reg(nodes->ny, nodes->y, y, nodes->periodic_y);
 }
 
 /**
@@ -323,28 +328,22 @@ static double fi2x(int n, double* v, double fi, int periodic)
     if (n < 2)
         return NaN;
 
-    if (fi < -1.0 || fi > (double) n)
-        return NaN;
+    if (periodic == 2)
+        n += 1;
 
-    ifrac = fi - floor(fi);
-
-    if (fi < 0.0 || fi > (double) (n - 1)) {
-        double v1, v2, x;
-
-        if (!periodic)
+    if (periodic) {
+        if (fi < 0.0)
+            fi += (double) (n - 1);
+        else if (fi >= (double) (n - 1))
+            fi -= (double) (n - 1);
+    } else {
+        if (fi < 0.0 || fi > (double) (n - 1))
             return NaN;
-
-        v1 = v[n - 1];
-        v2 = v[0];
-        if (v1 - v2 > 180.0)
-            v2 += 360.0;
-        x = v1 + ifrac * (v2 - v1);
-
-        return (x < 360.0) ? x : x - 360.0;
     }
 
+    ifrac = fi - floor(fi);
     i = (int) fi;
-    if (ifrac == 0.0)
+    if (ifrac == 0.0)           /* (also covers i = n - 1) */
         return v[i];
     else
         return v[i] + ifrac * (v[i + 1] - v[i]);
@@ -357,7 +356,7 @@ static void g12_fij2xy(void* p, double fi, double fj, double* x, double* y)
     gnxy_simple* nodes = (gnxy_simple*) ((grid*) p)->gridnodes_xy;
 
     *x = fi2x(nodes->nx, nodes->x, fi, nodes->periodic_x);
-    *y = fi2x(nodes->ny, nodes->y, fj, nodes->periodic_y);
+    *y = fi2x(nodes->ny, nodes->y, fj, 0);
 }
 
 /** Gets fractional index of a coordinate for a 1D irregular grid.
@@ -376,21 +375,28 @@ static double x2fi_irreg(int n, double v[], double vb[], double x, int periodic,
     if (n < 2)
         return NaN;
 
+    if (periodic == 2)
+        n += 1;
+
     if (!isnan(lonbase)) {
         if (x < lonbase)
-            x = x + 360.0;
+            x += 360.0;
         else if (x >= lonbase + 360.0)
-            x = x - 360.0;
+            x -= 360.0;
     }
 
     ascending = (v[n - 1] > v[0]) ? 1 : 0;
 
     if (ascending) {
-        if ((x < v[0]) || x > v[n - 1])
+        if ((x < v[0]) || x > v[n - 1]) {
+            assert(!periodic);
             return NaN;
+        }
     } else {
-        if ((x > v[0]) || x < v[n - 1])
+        if ((x > v[0]) || x < v[n - 1]) {
+            assert(!periodic);
             return NaN;
+        }
     }
 
     i1 = 0;
@@ -428,13 +434,19 @@ static double x2fi_irreg(int n, double v[], double vb[], double x, int periodic,
 
 /**
  */
-static void g2_xy2fij(void* p, double x, double y, double* fi, double* fj)
+static void gs_xy2fij(void* p, double x, double y, double* fi, double* fj)
 {
     gnxy_simple* nodes = (gnxy_simple*) ((grid*) p)->gridnodes_xy;
     double lonbase = ((grid*) p)->lonbase;
 
-    *fi = x2fi_irreg(nodes->nx, nodes->x, nodes->xc, x, nodes->periodic_x, lonbase);
-    *fj = x2fi_irreg(nodes->ny, nodes->y, nodes->yc, y, nodes->periodic_y, NaN);
+    if (nodes->regular_x)
+        *fi = x2fi_reg(nodes->nx, nodes->x, x, nodes->periodic_x);
+    else
+        *fi = x2fi_irreg(nodes->nx, nodes->x, nodes->xc, x, nodes->periodic_x, lonbase);
+    if (nodes->regular_y)
+        *fj = x2fi_reg(nodes->ny, nodes->y, y, 0);
+    else
+        *fj = x2fi_irreg(nodes->ny, nodes->y, nodes->yc, y, 0, NaN);
 }
 
 #if !defined(NO_GRIDUTILS)
@@ -525,7 +537,7 @@ static void z2fk(void* p, double fi, double fj, double z, double* fk)
         int ni = 0, nj = 0;
         double depth;
 
-        if (g->htype == GRIDHTYPE_LATLON_REGULAR || g->htype == GRIDHTYPE_LATLON_IRREGULAR) {
+        if (g->htype == GRIDHTYPE_LATLON) {
             gnxy_simple* nodes = (gnxy_simple*) g->gridnodes_xy;
 
             ni = nodes->nx;
@@ -540,7 +552,7 @@ static void z2fk(void* p, double fi, double fj, double z, double* fk)
         } else
             enkf_quit("programming error");
 
-        depth = (double) interpolate2d(fi, fj, ni, nj, g->depth, g->numlevels, grid_isperiodic_x(g), grid_isperiodic_y(g));
+        depth = (double) interpolate2d(fi, fj, ni, nj, g->depth, g->numlevels, grid_isperiodic_x(g));
         z /= depth;
     }
 
@@ -554,7 +566,7 @@ static void grid_setlonbase(grid* g)
     double xmin = DBL_MAX;
     double xmax = -DBL_MAX;
 
-    if (g->htype == GRIDHTYPE_LATLON_REGULAR || g->htype == GRIDHTYPE_LATLON_IRREGULAR) {
+    if (g->htype == GRIDHTYPE_LATLON) {
         double* xc = ((gnxy_simple*) g->gridnodes_xy)->xc;
         int nx = ((gnxy_simple*) g->gridnodes_xy)->nx;
 
@@ -584,22 +596,20 @@ static void grid_setlonbase(grid* g)
 #endif
     }
     if (xmin >= 0.0 && xmax <= 360.0)
-	g->lonbase = 0.0;
+        g->lonbase = 0.0;
     else if (xmin >= -180.0 && xmax <= 180.0)
-	g->lonbase = -180.0;
+        g->lonbase = -180.0;
     else
         g->lonbase = xmin;
 }
 
 /**
  */
-static void grid_setcoords(grid* g, int htype, int hnodetype, int periodic_x, int periodic_y, int nx, int ny, int nz, void* x, void* y, double* z)
+static void grid_setcoords(grid* g, int htype, int hnodetype, int nx, int ny, int nz, void* x, void* y, double* z)
 {
     g->htype = htype;
-    if (htype == GRIDHTYPE_LATLON_REGULAR)
-        g->gridnodes_xy = gnxy_simple_create(nx, ny, x, y, periodic_x, periodic_y, 1);
-    else if (htype == GRIDHTYPE_LATLON_IRREGULAR)
-        g->gridnodes_xy = gnxy_simple_create(nx, ny, x, y, periodic_x, periodic_y, 0);
+    if (htype == GRIDHTYPE_LATLON)
+        g->gridnodes_xy = gnxy_simple_create(nx, ny, x, y);
 #if !defined(NO_GRIDUTILS)
     else if (htype == GRIDHTYPE_CURVILINEAR) {
         g->gridnodes_xy = gnxy_curv_create(hnodetype, nx, ny, x, y, g->maptype);
@@ -675,7 +685,6 @@ grid* grid_create(void* p, int id)
         double* z;
         int i;
         double dx, dy;
-        int periodic_x;
 
         x = malloc(nx * sizeof(double));
         y = malloc(ny * sizeof(double));
@@ -685,23 +694,21 @@ grid* grid_create(void* p, int id)
         ncw_get_var_double(fname, ncid, varid_y, y);
         ncw_get_var_double(fname, ncid, varid_z, z);
 
-        periodic_x = fabs(fmod(2.0 * x[nx - 1] - x[nx - 2] - x[0], 360.0)) < EPS_LON;
-
         dx = (x[nx - 1] - x[0]) / (double) (nx - 1);
         for (i = 1; i < (int) nx; ++i)
             if (fabs(x[i] - x[i - 1] - dx) / fabs(dx) > EPS_LON)
                 break;
         if (i != (int) nx)
-            grid_setcoords(g, GRIDHTYPE_LATLON_IRREGULAR, NT_NONE, periodic_x, 0, nx, ny, nz, x, y, z);
+            grid_setcoords(g, GRIDHTYPE_LATLON, NT_NONE, nx, ny, nz, x, y, z);
         else {
             dy = (y[ny - 1] - y[0]) / (double) (ny - 1);
             for (i = 1; i < (int) ny; ++i)
                 if (fabs(y[i] - y[i - 1] - dy) / fabs(dy) > EPS_LON)
                     break;
             if (i != (int) ny)
-                grid_setcoords(g, GRIDHTYPE_LATLON_IRREGULAR, NT_NONE, periodic_x, 0, nx, ny, nz, x, y, z);
+                grid_setcoords(g, GRIDHTYPE_LATLON, NT_NONE, nx, ny, nz, x, y, z);
             else
-                grid_setcoords(g, GRIDHTYPE_LATLON_REGULAR, NT_NONE, periodic_x, 0, nx, ny, nz, x, y, z);
+                grid_setcoords(g, GRIDHTYPE_LATLON, NT_NONE, nx, ny, nz, x, y, z);
         }
     }
 #if !defined(NO_GRIDUTILS)
@@ -718,7 +725,7 @@ grid* grid_create(void* p, int id)
         ncw_get_var_double(fname, ncid, varid_y, y[0]);
         ncw_get_var_double(fname, ncid, varid_z, z);
 
-        grid_setcoords(g, GRIDHTYPE_CURVILINEAR, NT_COR, 0, 0, nx, ny, nz, x, y, z);
+        grid_setcoords(g, GRIDHTYPE_CURVILINEAR, NT_COR, nx, ny, nz, x, y, z);
     }
 #endif
     else
@@ -783,7 +790,7 @@ grid* grid_create(void* p, int id)
 void grid_destroy(grid* g)
 {
     free(g->name);
-    if (g->htype == GRIDHTYPE_LATLON_REGULAR || g->htype == GRIDHTYPE_LATLON_IRREGULAR)
+    if (g->htype == GRIDHTYPE_LATLON)
         gnxy_simple_destroy(g->gridnodes_xy);
 #if !defined(NO_GRIDUTILS)
     else if (g->htype == GRIDHTYPE_CURVILINEAR)
@@ -813,11 +820,9 @@ void grid_print(grid* g, char offset[])
 
     enkf_printf("%sgrid info:\n", offset);
     switch (g->htype) {
-    case GRIDHTYPE_LATLON_REGULAR:
-        enkf_printf("%s  hor type = LATLON_REGULAR\n", offset);
-        break;
-    case GRIDHTYPE_LATLON_IRREGULAR:
-        enkf_printf("%s  hor type = LATLON_IRREGULAR\n", offset);
+    case GRIDHTYPE_LATLON:
+        enkf_printf("%s  hor type = LATLON\n", offset);
+        enkf_printf("%s  periodic by X = %s\n", offset, grid_isperiodic_x(g) ? "yes" : "no");
         break;
 #if !defined(NO_GRIDUTILS)
     case GRIDHTYPE_CURVILINEAR:
@@ -833,8 +838,6 @@ void grid_print(grid* g, char offset[])
     default:
         enkf_printf("%s  h type = NONE\n", offset);
     }
-    enkf_printf("%s  periodic by X = %s\n", offset, grid_isperiodic_x(g) ? "yes" : "no");
-    enkf_printf("%s  periodic by Y = %s\n", offset, grid_isperiodic_y(g) ? "yes" : "no");
     grid_getdims(g, &nx, &ny, &nz);
     enkf_printf("%s  dims = %d x %d x %d\n", offset, nx, ny, nz);
     if (!isnan(g->lonbase))
@@ -889,7 +892,7 @@ void grid_describeprm(void)
 void grid_getdims(grid* g, int* ni, int* nj, int* nk)
 {
     if (ni != NULL) {
-        if (g->htype == GRIDHTYPE_LATLON_REGULAR || g->htype == GRIDHTYPE_LATLON_IRREGULAR) {
+        if (g->htype == GRIDHTYPE_LATLON) {
             gnxy_simple* nodes = (gnxy_simple*) g->gridnodes_xy;
 
             *ni = nodes->nx;
@@ -981,10 +984,8 @@ double grid_getlonbase(grid* g)
  */
 void grid_xy2fij(grid* g, double x, double y, double* fi, double* fj)
 {
-    if (g->htype == GRIDHTYPE_LATLON_REGULAR)
-        g1_xy2fij(g, x, y, fi, fj);
-    else if (g->htype == GRIDHTYPE_LATLON_IRREGULAR)
-        g2_xy2fij(g, x, y, fi, fj);
+    if (g->htype == GRIDHTYPE_LATLON)
+        gs_xy2fij(g, x, y, fi, fj);
 #if !defined(NO_GRIDUTILS)
     else if (g->htype == GRIDHTYPE_CURVILINEAR)
         gc_xy2fij(g, x, y, fi, fj);
@@ -1007,7 +1008,7 @@ void grid_z2fk(grid* g, double fi, double fj, double z, double* fk)
  */
 void grid_fij2xy(grid* g, double fi, double fj, double* x, double* y)
 {
-    if (g->htype == GRIDHTYPE_LATLON_REGULAR || g->htype == GRIDHTYPE_LATLON_IRREGULAR)
+    if (g->htype == GRIDHTYPE_LATLON)
         g12_fij2xy(g, fi, fj, x, y);
 #if !defined(NO_GRIDUTILS)
     else if (g->htype == GRIDHTYPE_CURVILINEAR)
@@ -1021,7 +1022,7 @@ void grid_fij2xy(grid* g, double fi, double fj, double* x, double* y)
  */
 void grid_ij2xy(grid* g, int i, int j, double* x, double* y)
 {
-    if (g->htype == GRIDHTYPE_LATLON_REGULAR || g->htype == GRIDHTYPE_LATLON_IRREGULAR) {
+    if (g->htype == GRIDHTYPE_LATLON) {
         gnxy_simple* gs = (gnxy_simple*) g->gridnodes_xy;
 
         if (i < 0 || j < 0 || i >= gs->nx || j >= gs->ny) {
@@ -1079,24 +1080,8 @@ void grid_fk2z(grid* g, int i, int j, double fk, double* z)
  */
 int grid_isperiodic_x(grid* g)
 {
-    if (g->htype == GRIDHTYPE_LATLON_REGULAR || g->htype == GRIDHTYPE_LATLON_IRREGULAR) {
-        gnxy_simple* nodes = (gnxy_simple*) ((grid*) g)->gridnodes_xy;
-
-        return nodes->periodic_x;
-    }
-
-    return 0;
-}
-
-/**
- */
-int grid_isperiodic_y(grid* g)
-{
-    if (g->htype == GRIDHTYPE_LATLON_REGULAR || g->htype == GRIDHTYPE_LATLON_IRREGULAR) {
-        gnxy_simple* nodes = (gnxy_simple*) ((grid*) g)->gridnodes_xy;
-
-        return nodes->periodic_y;
-    }
+    if (g->htype == GRIDHTYPE_LATLON)
+        return ((gnxy_simple*) ((grid*) g)->gridnodes_xy)->periodic_x;
 
     return 0;
 }

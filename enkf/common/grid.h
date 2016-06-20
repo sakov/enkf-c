@@ -17,10 +17,9 @@
 #if !defined(_GRID_H)
 
 #define GRIDHTYPE_NONE 0
-#define GRIDHTYPE_LATLON_REGULAR 1
-#define GRIDHTYPE_LATLON_IRREGULAR 2
+#define GRIDHTYPE_LATLON 1
 #if !defined(NO_GRIDUTILS)
-#define GRIDHTYPE_CURVILINEAR 3
+#define GRIDHTYPE_CURVILINEAR 2
 #endif
 
 #define GRIDVTYPE_NONE 0
@@ -57,7 +56,6 @@ void grid_fk2z(grid* g, int i, int j, double fk, double* z);
 void grid_tocartesian(grid* g, double in[2], double out[3]);
 
 int grid_isperiodic_x(grid* g);
-int grid_isperiodic_y(grid* g);
 
 #define _GRID_H
 #endif
