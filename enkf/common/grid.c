@@ -242,6 +242,10 @@ static gnz_simple* gnz_simple_create(int nz, double* z)
     for (i = 0; i < nz; ++i)
         if (z[i] < -EPSZ)
             enkf_quit("layer centre coordinates should be either positive or negative only");
+#else
+    if ((fabs(z[0]) > fabs(z[nz - 1]) && z[0] < 0.0) || (fabs(z[0]) < fabs(z[nz - 1]) && z[nz - 1] < 0.0))
+        for (i = 0; i < nz; ++i)
+            z[i] = -z[i];
 #endif
 
     nodes->zt = z;
@@ -256,7 +260,8 @@ static gnz_simple* gnz_simple_create(int nz, double* z)
          * layer 0 at surface
          */
 #if defined(ZSIGN_NOCHECK)
-        nodes->zc[0] = z[0] * 2;        /* SHOC */
+        assert(nz > 2 && fabs(2 * z[1] - z[0] - z[2]) < EPSZ);
+        nodes->zc[0] = 1.5 * z[0] - 0.5 * z[1];
 #else
         nodes->zc[0] = 0.0;
 #endif
@@ -273,7 +278,8 @@ static gnz_simple* gnz_simple_create(int nz, double* z)
          * layer 0 the deepest
          */
 #if defined(ZSIGN_NOCHECK)
-        nodes->zc[nz] = z[nz - 1] * 2;  /* SHOC */
+        assert(nz > 2 && fabs(2 * z[nz - 2] - z[nz - 1] - z[nz - 3]) < EPSZ);
+        nodes->zc[nz] = 1.5 * z[nz - 1] - 0.5 * z[nz - 2];
 #else
         nodes->zc[nz] = 0.0;
 #endif
