@@ -217,6 +217,16 @@ void enkf_printcompileflags(const char offset[])
 #else
     enkf_printf("%s  INTERNAL_QSORT_R = [-]\n", offset);
 #endif
+#if defined(NO_GRIDUTILS)
+    enkf_printf("%s  NO_GRIDUTILS = [+]\n", offset);
+#else
+    enkf_printf("%s  NO_GRIDUTILS = [-]\n", offset);
+#endif
+#if defined(ZSIGN_NOCHECK)
+    enkf_printf("%s  ZSIGN_NOCHECK = [+]\n", offset);
+#else
+    enkf_printf("%s  ZSIGN_NOCHECK = [-]\n", offset);
+#endif
 }
 
 /**

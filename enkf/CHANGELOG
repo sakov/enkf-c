@@ -1,16 +1,20 @@
+v. 1.42.0
+   PS 22062016
+   -- Introduced compile flag ZSIGN_NOCHECK to make it work with SHOC models
+      that might have both positive and negative values for z coordinate.
 v. 1.41.2
-   PS 17062022
+   PS 22062016
    -- Replaced <values.h> with <limits.h> and/or <float.h>
 v. 1.41.1
-   PS 17062020
+   PS 20062016
    -- A rather minor change in z2fk_basic() in how the last layer is handled in
       the descending case.
 v. 1.41.0
-   PS 17062020
+   PS 20062016
    -- Some structural and numerical changes in handling of horizontal grids
       aligned with lat/lon.
 v. 1.40.3
-   PS 17062020
+   PS 20062016
    -- Corrected grid code to ensure that grids with odd lonbase (eg. -80) are
       handled correctly.
 v. 1.40.2

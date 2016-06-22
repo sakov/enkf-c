@@ -229,6 +229,7 @@ static gnz_simple* gnz_simple_create(int nz, double* z)
     gnz_simple* nodes = malloc(sizeof(gnz_simple));
     int i;
 
+#if !defined(ZSIGN_NOCHECK)
     /*
      * reverse z if it is negative
      */
@@ -241,6 +242,7 @@ static gnz_simple* gnz_simple_create(int nz, double* z)
     for (i = 0; i < nz; ++i)
         if (z[i] < -EPSZ)
             enkf_quit("layer centre coordinates should be either positive or negative only");
+#endif
 
     nodes->zt = z;
     nodes->nz = nz;
