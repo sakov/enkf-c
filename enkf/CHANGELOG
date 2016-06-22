@@ -1,3 +1,6 @@
+v. 1.41.2
+   PS 17062022
+   -- Replaced <values.h> with <limits.h> and/or <float.h>
 v. 1.41.1
    PS 17062020
    -- A rather minor change in z2fk_basic() in how the last layer is handled in

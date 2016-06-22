@@ -1133,7 +1133,7 @@ void ncw_copy_vardata(const char* fname_src, int ncid_src, int vid_src, const ch
         nc_redef(ncid_dst);
 }
 
-/** Copies definitiona and data for a given variable from one file to another.
+/** Copies definition and data for a given variable from one file to another.
  *
  * @param fname_src Source file name
  * @param ncid_src Source file id

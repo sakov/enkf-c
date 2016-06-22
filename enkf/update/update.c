@@ -19,7 +19,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <assert.h>
-#include <values.h>
+#include <limits.h>
 #include <math.h>
 #include "definitions.h"
 #include "nan.h"
@@ -578,7 +578,7 @@ static void das_writefields_direct(dasystem* das, int nfields, void** fieldbuffe
                 char fname[MAXSTRLEN];
 
                 model_getmemberfname(das->m, das->ensdir, f->varname, e + 1, fname);
-                model_writefield(das->m, fname, MAXINT, varname, f->level, ((float***) fieldbuffer[i])[e][0]);
+                model_writefield(das->m, fname, INT_MAX, varname, f->level, ((float***) fieldbuffer[i])[e][0]);
             }
         }
     } else {
@@ -593,7 +593,7 @@ static void das_writefields_direct(dasystem* das, int nfields, void** fieldbuffe
                     strncat(fname, ".analysis", MAXSTRLEN);
                 else
                     strncat(fname, ".increment", MAXSTRLEN);
-                model_writefield(das->m, fname, MAXINT, f->varname, f->level, ((float***) fieldbuffer[i])[e][0]);
+                model_writefield(das->m, fname, INT_MAX, f->varname, f->level, ((float***) fieldbuffer[i])[e][0]);
             }
         }
     }
@@ -671,7 +671,7 @@ static void das_writebg_direct(dasystem* das, int nfields, void** fieldbuffer, f
                 strncat(varname, "_an", NC_MAX_NAME);
             else
                 strncat(varname, "_inc", NC_MAX_NAME);
-            model_writefield(m, fname, MAXINT, varname, f->level, ((float***) fieldbuffer[i])[das->nmem][0]);
+            model_writefield(m, fname, INT_MAX, varname, f->level, ((float***) fieldbuffer[i])[das->nmem][0]);
         }
     } else {
         for (i = 0; i < nfields; ++i) {
@@ -683,7 +683,7 @@ static void das_writebg_direct(dasystem* das, int nfields, void** fieldbuffer, f
                 strncat(fname, ".analysis", MAXSTRLEN);
             else
                 strncat(fname, ".increment", MAXSTRLEN);
-            model_writefield(m, fname, MAXINT, f->varname, f->level, ((float***) fieldbuffer[i])[das->nmem][0]);
+            model_writefield(m, fname, INT_MAX, f->varname, f->level, ((float***) fieldbuffer[i])[das->nmem][0]);
         }
     }
 }
@@ -881,7 +881,7 @@ static void das_writespread(dasystem* das, int nfields, void** fieldbuffer, fiel
             for (i = 0; i < nv; ++i)
                 v[i] = (float) v2[i];
 
-            model_writefield(m, fname, MAXINT, varname, f->level, v);
+            model_writefield(m, fname, INT_MAX, varname, f->level, v);
             free(v);
         }
     }
@@ -946,7 +946,7 @@ static void das_assemblemembers(dasystem* das)
                 ncw_get_vara_float(fname_src, ncid_src, vid_src, start, count, v);
                 ncw_close(fname_src, ncid_src);
 
-                model_writefield(m, fname_dst, MAXINT, varname_dst, k, v);
+                model_writefield(m, fname_dst, INT_MAX, varname_dst, k, v);
             }
             enkf_printf(".");
         }
@@ -1029,7 +1029,7 @@ static void das_assemblebg(dasystem* das)
             ncw_get_var_float(fname_src, ncid_src, vid_src, v);
             ncw_close(fname_src, ncid_src);
 
-            model_writefield(m, fname_dst, MAXINT, varname_dst, k, v);
+            model_writefield(m, fname_dst, INT_MAX, varname_dst, k, v);
             if (!(das->updatespec & UPDATE_LEAVETILES))
                 file_delete(fname_src);
 
@@ -1077,7 +1077,7 @@ static void das_assemblespread(dasystem* das)
             ncw_close(fname_src, ncid_src);
             file_delete(fname_src);
 
-            model_writefield(m, FNAME_SPREAD, MAXINT, varname, k, v);
+            model_writefield(m, FNAME_SPREAD, INT_MAX, varname, k, v);
 
             if (das->mode == MODE_ENKF) {
                 getfieldfname(das->ensdir, "spread", varname_an, k, fname_src);
@@ -1087,7 +1087,7 @@ static void das_assemblespread(dasystem* das)
                 ncw_close(fname_src, ncid_src);
                 file_delete(fname_src);
 
-                model_writefield(m, FNAME_SPREAD, MAXINT, varname_an, k, v);
+                model_writefield(m, FNAME_SPREAD, INT_MAX, varname_an, k, v);
             }
 
             enkf_printf(".");
@@ -1129,7 +1129,7 @@ static void das_assembleinflation(dasystem* das)
             ncw_inq_varid(fname_src, ncid_src, varname, &vid);
             ncw_get_var_float(fname_src, ncid_src, vid, v);
             ncw_close(fname_src, ncid_src);
-            model_writefield(m, FNAME_INFLATION, MAXINT, varname, k, v);
+            model_writefield(m, FNAME_INFLATION, INT_MAX, varname, k, v);
             file_delete(fname_src);
 
             enkf_printf(".");
@@ -1370,12 +1370,12 @@ void das_update(dasystem* das)
 
             for (e = 0; e < das->nmem; ++e) {
                 model_getmemberfname(m, das->ensdir, f->varname, e + 1, fname);
-                model_readfield(das->m, fname, MAXINT, f->varname, f->level, ((float***) fieldbuffer[bufindex])[e][0]);
+                model_readfield(das->m, fname, INT_MAX, f->varname, f->level, ((float***) fieldbuffer[bufindex])[e][0]);
             }
             if (das->mode == MODE_ENOI) {
                 if (!(das->updatespec & UPDATE_OUTPUTINC)) {
                     model_getbgfname(m, das->bgdir, f->varname, fname);
-                    model_readfield(das->m, fname, MAXINT, f->varname, f->level, ((float***) fieldbuffer[bufindex])[das->nmem][0]);
+                    model_readfield(das->m, fname, INT_MAX, f->varname, f->level, ((float***) fieldbuffer[bufindex])[das->nmem][0]);
                 } else
                     memset(((float***) fieldbuffer[bufindex])[das->nmem][0], 0, mni * mnj * sizeof(float));
             }
@@ -1485,7 +1485,7 @@ void das_calccorr(dasystem* das, int mvid)
         char fname[MAXSTRLEN];
 
         model_getmemberfname(m, das->ensdir, varname, e + 1, fname);
-        model_readfield(das->m, fname, MAXINT, varname, ktop, v0[e][0]);
+        model_readfield(das->m, fname, INT_MAX, varname, ktop, v0[e][0]);
     }
     for (i = 0; i < nv; ++i) {
         double vmean = 0.0;
@@ -1511,7 +1511,7 @@ void das_calccorr(dasystem* das, int mvid)
 
         for (e = 0; e < das->nmem; ++e) {
             model_getmemberfname(m, das->ensdir, varname, e + 1, fname_src);
-            model_readfield(das->m, fname_src, MAXINT, varname, k, v[e][0]);
+            model_readfield(das->m, fname_src, INT_MAX, varname, k, v[e][0]);
         }
         for (i = 0; i < nv; ++i) {
             double vmean = 0.0;
@@ -1587,7 +1587,7 @@ void das_calccorr(dasystem* das, int mvid)
             ncw_close(fname_src, ncid_src);
             file_delete(fname_src);
 
-            model_writefield(m, fname_dst, MAXINT, varname, k, v);
+            model_writefield(m, fname_dst, INT_MAX, varname, k, v);
         }
 
         free(v);

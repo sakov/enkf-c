@@ -17,7 +17,6 @@
 #include <stdio.h>
 #include <string.h>
 #include <math.h>
-#include <values.h>
 #include "nan.h"
 #include "definitions.h"
 #include "utils.h"

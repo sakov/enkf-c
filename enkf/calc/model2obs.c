@@ -18,7 +18,8 @@
 #include <string.h>
 #include <math.h>
 #include <assert.h>
-#include <values.h>
+#include <float.h>
+#include <limits.h>
 #include "ncw.h"
 #include "nan.h"
 #include "definitions.h"
@@ -227,7 +228,7 @@ void H_surf_biased(dasystem* das, int nobs, int obsids[], char fname[], int mem,
         model_getmemberfname(m, das->ensdir, ot->varname2, mem, fname2);
     else if (das->mode == MODE_ENOI)
         model_getbgfname(m, das->bgdir, ot->varname2, fname2);
-    model_readfield(m, fname2, MAXINT, ot->varname2, ktop, bias);
+    model_readfield(m, fname2, INT_MAX, ot->varname2, ktop, bias);
 
     model_readfield(m, fname, t, ot->varname, ktop, src0);
 
@@ -353,7 +354,7 @@ void H_subsurf_wsurfbias(dasystem* das, int nobs, int obsids[], char fname[], in
     else if (das->mode == MODE_ENOI)
         model_getbgfname(m, das->bgdir, ot->varname2, fname2);
     assert(!is3d(fname2, ot->varname2));
-    model_readfield(m, fname2, MAXINT, ot->varname2, 0, bias[0]);
+    model_readfield(m, fname2, INT_MAX, ot->varname2, 0, bias[0]);
 
     if (isnan(ot->mld_threshold) && ot->mld_varname == NULL)
         enkf_quit("\"MLD_THRESH\" or \"MLD_VARNAME\" must be specified for observation type \"%s\" to use H function \"wsurfbias\"", ot->name);

@@ -19,7 +19,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <assert.h>
-#include <values.h>
+#include <limits.h>
 #include <math.h>
 #include "nan.h"
 #include "distribute.h"
@@ -142,7 +142,7 @@ void das_getHE(dasystem* das)
             if (das->mode == MODE_ENOI) {
                 if (enkf_obstype == OBSTYPE_VALUE) {
                     model_getbgfname(m, das->bgdir, ot->varname, fname);
-                    H(das, nobs, obsids, fname, -1, MAXINT, (ot->issurface) ? (void*) vv : (void*) vvv, Hx);
+                    H(das, nobs, obsids, fname, -1, INT_MAX, (ot->issurface) ? (void*) vv : (void*) vvv, Hx);
                     enkf_printf("+");
                     fflush(stdout);
                 } else if (enkf_obstype == OBSTYPE_INNOVATION) {
@@ -155,7 +155,7 @@ void das_getHE(dasystem* das)
             if (das->mode == MODE_ENKF || !enkf_fstatsonly) {
                 for (e = my_first_iteration; e <= my_last_iteration; ++e) {
                     model_getmemberfname(m, das->ensdir, ot->varname, e + 1, fname);
-                    H(das, nobs, obsids, fname, e + 1, MAXINT, (ot->issurface) ? (void*) vv : (void*) vvv, das->S[e]);
+                    H(das, nobs, obsids, fname, e + 1, INT_MAX, (ot->issurface) ? (void*) vv : (void*) vvv, das->S[e]);
                     enkf_printf(".");
                     fflush(stdout);
                 }

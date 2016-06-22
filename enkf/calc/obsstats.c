@@ -17,7 +17,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <assert.h>
-#include <values.h>
+#include <limits.h>
 #include <math.h>
 #include "definitions.h"
 #include "utils.h"
@@ -85,8 +85,8 @@ void das_printobsstats(dasystem* das, int use_rmsd)
             stats rstats;
             stats* rzstats = NULL;
 
-            int t1 = -MAXINT;
-            int t2 = -MAXINT;
+            int t1 = -INT_MAX;
+            int t2 = -INT_MAX;
             int nt = 0;
             int t;
             double* inn_f_as = NULL;
@@ -323,8 +323,8 @@ void das_printfobsstats(dasystem* das, int use_rmsd)
             fstats rstats;
             fstats* rzstats = NULL;
 
-            int t1 = -MAXINT;
-            int t2 = -MAXINT;
+            int t1 = -INT_MAX;
+            int t2 = -INT_MAX;
             int nt = 0;
             int t;
             double* inn_f_as = NULL;

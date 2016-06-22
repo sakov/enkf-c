@@ -23,7 +23,8 @@
 #include <assert.h>
 #include <math.h>
 #include <time.h>
-#include <values.h>
+#include <limits.h>
+#include <float.h>
 #include <execinfo.h>
 #if !defined(NO_GRIDUTILS)
 #include <guquit.h>
@@ -429,14 +430,14 @@ int str2int(char* token, int* value)
     char* end = NULL;
 
     if (token == NULL) {
-        *value = MAXINT;
+        *value = INT_MAX;
         return 0;
     }
 
     tmp = strtol(token, &end, 10);
 
-    if (end == token || tmp > MAXINT || tmp < MININT) {
-        *value = MAXINT;
+    if (end == token || tmp > INT_MAX || tmp < INT_MIN) {
+        *value = INT_MAX;
         return 0;
     }
 
@@ -841,7 +842,7 @@ void writefield(char fname[], char varname[], int k, float* v)
         ncw_inq_att(fname, ncid, varid, "valid_range", &xtype, &len);
         if (xtype == NC_SHORT) {
             int valid_range[2];
-            int missing_value = MINSHORT;
+            int missing_value = SHRT_MIN;
 
             if (ncw_att_exists(ncid, varid, "missing_value"))
                 ncw_get_att_int(fname, ncid, varid, "missing_value", &missing_value);
@@ -857,7 +858,7 @@ void writefield(char fname[], char varname[], int k, float* v)
             }
         } else if (xtype == NC_FLOAT) {
             float valid_range[2];
-            float missing_value = -MAXFLOAT;
+            float missing_value = -FLT_MAX;
 
             if (ncw_att_exists(ncid, varid, "missing_value"))
                 ncw_get_att_float(fname, ncid, varid, "missing_value", &missing_value);
@@ -969,7 +970,7 @@ void writerow(char fname[], char varname[], int k, int j, float* v)
         ncw_inq_att(fname, ncid, varid, "valid_range", &xtype, &len);
         if (xtype == NC_SHORT) {
             int valid_range[2];
-            int missing_value = MINSHORT;
+            int missing_value = SHRT_MIN;
 
             if (ncw_att_exists(ncid, varid, "missing_value"))
                 ncw_get_att_int(fname, ncid, varid, "missing_value", &missing_value);
@@ -985,7 +986,7 @@ void writerow(char fname[], char varname[], int k, int j, float* v)
             }
         } else if (xtype == NC_FLOAT) {
             float valid_range[2];
-            float missing_value = -MAXFLOAT;
+            float missing_value = -FLT_MAX;
 
             if (ncw_att_exists(ncid, varid, "missing_value"))
                 ncw_get_att_float(fname, ncid, varid, "missing_value", &missing_value);

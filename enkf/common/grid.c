@@ -21,7 +21,7 @@
 #include <stdio.h>
 #include <assert.h>
 #include <math.h>
-#include <values.h>
+#include <float.h>
 #include <string.h>
 #include "ncw.h"
 #include "definitions.h"
@@ -113,9 +113,9 @@ static gnxy_simple* gnxy_simple_create(int nx, int ny, double* x, double* y)
         nodes->xc[i] = 2 * x[i - 1] - nodes->xc[i - 1];
 
     if (fabs(fmod(nodes->xc[nx] - nodes->xc[0], 360.0)) < EPS_LON)
-        nodes->periodic_x = 1;
+        nodes->periodic_x = 1;  /* closed grid */
     else if (fabs(fmod(2.0 * nodes->xc[nx - 1] - nodes->xc[nx - 2] - nodes->xc[0], 360.0)) < EPS_LON) {
-        nodes->periodic_x = 2;  /* MOM case */
+        nodes->periodic_x = 2;  /* non-closed grid (used e.g. by MOM) */
         nodes->x = realloc(nodes->x, (nx + 1) * sizeof(double));
         nodes->x[nx] = 2.0 * nodes->x[nx - 1] - nodes->x[nx - 2];
         nodes->xc = realloc(nodes->xc, (nx + 2) * sizeof(double));

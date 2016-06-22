@@ -21,7 +21,7 @@
 #include <string.h>
 #include <math.h>
 #include <assert.h>
-#include <values.h>
+#include <float.h>
 #include "ncw.h"
 #include "nan.h"
 #include "definitions.h"

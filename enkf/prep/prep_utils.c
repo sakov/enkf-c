@@ -16,7 +16,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
-#include <values.h>
+#include <float.h>
 #include <math.h>
 #include <assert.h>
 #include "stringtable.h"
