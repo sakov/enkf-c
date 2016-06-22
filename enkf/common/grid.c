@@ -255,7 +255,11 @@ static gnz_simple* gnz_simple_create(int nz, double* z)
         /*
          * layer 0 at surface
          */
+#if defined(ZSIGN_NOCHECK)
+        nodes->zc[0] = z[0] * 2;        /* SHOC */
+#else
         nodes->zc[0] = 0.0;
+#endif
         for (i = 1; i <= nz; ++i) {
             nodes->zc[i] = 2.0 * z[i - 1] - nodes->zc[i - 1];
             /*
@@ -268,7 +272,11 @@ static gnz_simple* gnz_simple_create(int nz, double* z)
         /*
          * layer 0 the deepest
          */
+#if defined(ZSIGN_NOCHECK)
+        nodes->zc[nz] = z[nz - 1] * 2;  /* SHOC */
+#else
         nodes->zc[nz] = 0.0;
+#endif
         for (i = nz - 1; i >= 0; --i) {
             nodes->zc[i] = 2.0 * z[i] - nodes->zc[i + 1];
             /*
