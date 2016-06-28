@@ -52,7 +52,7 @@ void das_setobstypes(dasystem* das)
 
     for (i = 0; i < n; ++i) {
         obstype* type = &types[i];
-        int vid = model_getvarid(m, types[i].varname, 1);
+        int vid = model_getvarid(m, types[i].varnames[0], 1);
 
         type->vid = vid;
         type->gridid = model_getvargridid(m, vid);
@@ -374,7 +374,7 @@ void das_getfname_plog(dasystem* das, pointlog* plog, char fname[])
 void das_calcmld(dasystem* das, obstype* ot, float*** src, float** dst)
 {
     model* m = das->m;
-    int mvid = model_getvarid(m, ot->varname, 1);
+    int mvid = model_getvarid(m, ot->varnames[0], 1);
     int** nlevels = model_getnumlevels(m, mvid);
     double threshold = ot->mld_threshold;
     int ni, nj, nk, ktop;

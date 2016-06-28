@@ -49,8 +49,9 @@ void obs_addtype(observations* obs, obstype* src, obsdomain* domain)
     ot = &obs->obstypes[obs->nobstypes];
     ot->id = obs->nobstypes;
     ot->name = strdup(src->name);
-    ot->varname = strdup(src->varname);
-    ot->varname2 = (src->varname2 != NULL) ? strdup(src->varname2) : NULL;
+    ot->varnames = malloc(src->nvar * sizeof(char*));
+    for (i = 0; i < src->nvar; ++i)
+        ot->varnames[i] = strdup(src->varnames[i]);
     ot->offset_fname = (src->offset_fname != NULL) ? strdup(src->offset_fname) : NULL;
     ot->offset_varname = (src->offset_varname != NULL) ? strdup(src->offset_varname) : NULL;
     ot->mld_varname = (src->mld_varname != NULL) ? strdup(src->mld_varname) : NULL;

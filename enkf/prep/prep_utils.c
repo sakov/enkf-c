@@ -90,7 +90,7 @@ void obs_add(observations* obs, model* m, obsmeta* meta)
 
     otid = obstype_getid(obs->nobstypes, obs->obstypes, meta->type);
     ot = &obs->obstypes[otid];
-    vid = model_getvarid(m, obs->obstypes[otid].varname, 1);
+    vid = model_getvarid(m, obs->obstypes[otid].varnames[0], 1);
 
     lonbase = model_getlonbase(m, vid);
     if (!isnan(lonbase)) {

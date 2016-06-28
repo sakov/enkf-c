@@ -103,7 +103,7 @@ void reader_windsat_standard(char* fname, int fid, obsmeta* meta, model* m, obse
 
     tunits_convert(tunits, &tunits_multiple, &tunits_offset);
 
-    mvid = model_getvarid(m, obs->obstypes[obstype_getid(obs->nobstypes, obs->obstypes, meta->type)].varname, 1);
+    mvid = model_getvarid(m, obs->obstypes[obstype_getid(obs->nobstypes, obs->obstypes, meta->type)].varnames[0], 1);
     k = grid_gettoplayerid(model_getvargrid(m, mvid));
 
     for (i = 0; i < (int) nobs_local; ++i)

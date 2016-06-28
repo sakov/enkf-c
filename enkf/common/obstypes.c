@@ -26,6 +26,8 @@
 #include "utils.h"
 #include "obstypes.h"
 
+#define NVAR_INC 10
+
 /**
  */
 int obstype_getid(int n, obstype types[], char* name)
@@ -45,8 +47,8 @@ static void obstype_new(obstype* type, int i, char* name)
 {
     type->id = i;
     type->name = strdup(name);
-    type->varname = NULL;
-    type->varname2 = NULL;
+    type->nvar = 0;
+    type->varnames = NULL;
     type->issurface = -1;
     type->offset_fname = NULL;
     type->offset_varname = NULL;
@@ -91,7 +93,7 @@ static void obstype_check(obstype* type)
     assert(type->name != NULL);
     if (type->issurface < 0)
         enkf_quit("\"%s\": ISSURFACE not specified\n");
-    if (type->varname == NULL)
+    if (type->nvar == 0)
         enkf_quit("\"%s\": VAR not specified\n");
     if (type->hfunction == NULL)
         enkf_quit("\"%s\": HFUNCTION not specified\n");
@@ -104,9 +106,10 @@ static void obstype_print(obstype* type)
     int i;
 
     enkf_printf("    NAME = %s\n", type->name);
-    enkf_printf("      VAR = %s\n", type->varname);
-    if (type->varname2 != NULL)
-        enkf_printf("      SECONDARY VAR = %s\n", type->varname2);
+    enkf_printf("      VAR =");
+    for (i = 0; i < type->nvar; ++i)
+        enkf_printf(" %s", type->varnames[i]);
+    enkf_printf("\n");
     enkf_printf("      ID = %d\n", type->id);
     enkf_printf("      ISSURFACE = %s\n", (type->issurface) ? "yes" : "no");
     if (type->offset_fname != NULL)
@@ -180,15 +183,15 @@ void obstypes_read(char fname[], int* n, obstype** types, double locrad_base, do
         } else if (strcasecmp(token, "VAR") == 0) {
             if ((token = strtok(NULL, seps)) == NULL)
                 enkf_quit("%s, l.%d: VAR not specified", fname, line);
-            if (now->varname != NULL)
+            if (now->varnames != NULL)
                 enkf_quit("%s, l.%d: VAR already specified", fname, line);
-            now->varname = strdup(token);
-        } else if (strcasecmp(token, "VAR2") == 0) {
-            if ((token = strtok(NULL, seps)) == NULL)
-                enkf_quit("%s, l.%d: VAR2 not specified", fname, line);
-            if (now->varname2 != NULL)
-                enkf_quit("%s, l.%d: VAR2 already specified", fname, line);
-            now->varname2 = strdup(token);
+            while (token != NULL) {
+                if (now->nvar % NVAR_INC == 0)
+                    now->varnames = realloc(now->varnames, (now->nvar + NVAR_INC) * sizeof(char*));
+                now->varnames[now->nvar] = strdup(token);
+                now->nvar++;
+                token = strtok(NULL, seps);
+            }
         } else if (strcasecmp(token, "OFFSET") == 0) {
             if ((token = strtok(NULL, seps)) == NULL)
                 enkf_quit("%s, l.%d: OFFSET file name not specified", fname, line);
@@ -345,7 +348,7 @@ void obstypes_read(char fname[], int* n, obstype** types, double locrad_base, do
  */
 void obstypes_destroy(int n, obstype* types)
 {
-    int i;
+    int i, j;
 
     if (n == 0)
         return;
@@ -354,9 +357,9 @@ void obstypes_destroy(int n, obstype* types)
         obstype* type = &types[i];
 
         free(type->name);
-        free(type->varname);
-        if (type->varname2 != NULL)
-            free(type->varname2);
+        for (j = 0; j < type->nvar; ++j)
+            free(type->varnames[j]);
+        free(type->varnames);
         free(type->hfunction);
         if (type->offset_fname != NULL) {
             free(type->offset_fname);
@@ -379,8 +382,7 @@ void obstypes_describeprm(void)
     enkf_printf("  Observation types parameter file format:\n");
     enkf_printf("\n");
     enkf_printf("    NAME        = <name>\n");
-    enkf_printf("    VAR         = <model variable name>\n");
-    enkf_printf("  [ VAR2        = <model variable name> ]\n");
+    enkf_printf("    VAR         = <model variable name> [...]\n");
     enkf_printf("    ISSURFACE   = { yes | no }\n");
     enkf_printf("  [ OFFSET      = <file name> <variable name> ]    (none*)\n");
     enkf_printf("  [ MLD_VARNAME = <model varname> ]                (none*)\n");

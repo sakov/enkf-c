@@ -103,7 +103,7 @@ void reader_amsr2_standard(char* fname, int fid, obsmeta* meta, model* m, observ
 
     tunits_convert(tunits, &tunits_multiple, &tunits_offset);
 
-    model_vid = model_getvarid(m, obs->obstypes[obstype_getid(obs->nobstypes, obs->obstypes, meta->type)].varname, 1);
+    model_vid = model_getvarid(m, obs->obstypes[obstype_getid(obs->nobstypes, obs->obstypes, meta->type)].varnames[0], 1);
     k = grid_gettoplayerid(model_getvargrid(m, model_vid));
 
     for (i = 0; i < (int) nobs_local; ++i) {

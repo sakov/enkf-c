@@ -35,7 +35,7 @@
 
 \begin{document}
 
-\title{EnKF-C user guide\\{\normalsize version 1.39.9}}
+\title{EnKF-C user guide\\{\normalsize version 1.43.0}}
 
 \author{Pavel Sakov}
 \date{June 19, 2014 -- \today}
@@ -789,8 +789,7 @@ For example:
   Observation types parameter file format:
 
     NAME        = <name>
-    VAR         = <model variable name>
-  [ VAR2        = <model variable name> ]
+    VAR         = <model variable name> [...]
     ISSURFACE   = { yes | no }
   [ OFFSET      = <file name> <variable name> ]    (none*)
   [ MLD_VARNAME = <model varname> ]                (none*)
@@ -1472,7 +1471,7 @@ An example of using this functionality is available by running \verb|make stats|
 
 It is possible to estimate and correct bias for a model variable with the EnKF by generating and using an ensemble of bias fields.
 These bias fields need to be subtracted from the corresponding observation forecasts.
-This is accomplished by specifying a secondary variable in the observation type specifications by the entry \verb|VAR2| and by passing the name of this variable to the corresponding observation functions, which need to take care for subtracting the bias from the model forecasts.
+This is accomplished by specifying a secondary variable in the observation type entry \verb|VAR| and by passing the name of this variable to the corresponding observation functions, which need to take care for subtracting the bias from the model forecasts.
 
 Because bias fields are usually assumed to persist (not change) during propagation, one may need to make specific settings for inflation for them to avoid their collapse (loss of spread) over time.
 Another possibility is to introduce a ``forgetting'' stochastic model for bias fields, for example:

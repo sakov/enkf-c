@@ -37,7 +37,7 @@
 static void interpolate_2d_obs(model* m, observations* allobs, int nobs, int obsids[], char fname[], float** v, ENSOBSTYPE out[])
 {
     int otid = allobs->data[obsids[0]].type;
-    int mvid = model_getvarid(m, allobs->obstypes[otid].varname, 1);
+    int mvid = model_getvarid(m, allobs->obstypes[otid].varnames[0], 1);
     int periodic_x = grid_isperiodic_x(model_getvargrid(m, mvid));
     int** mask = model_getnumlevels(m, mvid);
     int ni, nj;
@@ -88,7 +88,7 @@ static void interpolate_2d_obs(model* m, observations* allobs, int nobs, int obs
 static void interpolate_3d_obs(model* m, observations* allobs, int nobs, int obsids[], char fname[], float*** v, ENSOBSTYPE out[])
 {
     int otid = allobs->data[obsids[0]].type;
-    int mvid = model_getvarid(m, allobs->obstypes[otid].varname, 1);
+    int mvid = model_getvarid(m, allobs->obstypes[otid].varnames[0], 1);
     int periodic_x = grid_isperiodic_x(model_getvargrid(m, mvid));
     int** nlevels = model_getnumlevels(m, mvid);
     int ni, nj, nk;
@@ -145,14 +145,14 @@ void H_surf_standard(dasystem* das, int nobs, int obsids[], char fname[], int me
     float** src = (float**) psrc;
     char tag_offset[MAXSTRLEN];
     float** offset = NULL;
-    int mvid = model_getvarid(m, ot->varname, 1);
+    int mvid = model_getvarid(m, ot->varnames[0], 1);
     int k = grid_gettoplayerid(model_getvargrid(m, mvid));
 
-    assert(ot->varname2 == NULL);
+    assert(ot->nvar == 1);      /* should we care? */
 
-    if (getnumlevels(fname, ot->varname) == 1)
+    if (getnumlevels(fname, ot->varnames[0]) == 1)
         k = 0;
-    model_readfield(m, fname, t, ot->varname, k, src[0]);
+    model_readfield(m, fname, t, ot->varnames[0], k, src[0]);
 
     snprintf(tag_offset, MAXSTRLEN, "%s:OFFSET", ot->name);
     offset = model_getdata(m, tag_offset);
@@ -182,7 +182,7 @@ void H_sla_bran(dasystem* das, int nobs, int obsids[], char fname[], int mem, in
     int o;
     ENSOBSTYPE mean;
 
-    assert(ot->varname2 == NULL);
+    assert(ot->nvar == 1);      /* should we care? */
     H_surf_standard(das, nobs, obsids, fname, mem, t, psrc, dst);
     if (mem <= 0) {             /* only for background */
         mean = 0.0;
@@ -207,17 +207,17 @@ void H_surf_biased(dasystem* das, int nobs, int obsids[], char fname[], int mem,
     char tag_offset[MAXSTRLEN];
     float** offset = NULL;
     float* bias = NULL;
-    int mvid = model_getvarid(m, ot->varname, 1);
+    int mvid = model_getvarid(m, ot->varnames[0], 1);
     int mvid2;
     char fname2[MAXSTRLEN];
     int ni, nj, ktop;
     int i, nv;
 
-    if (ot->varname2 == NULL)
-        enkf_quit("%s: var2 has to be defined for an observation type when using H-function \"biased\"", ot->varname);
-    mvid2 = model_getvarid(m, ot->varname2, 1);
+    if (ot->nvar < 2)
+        enkf_quit("%s: second variable has to be defined for an observation type when using H-function \"biased\"", ot->name);
+    mvid2 = model_getvarid(m, ot->varnames[1], 1);
     if (model_getvargridid(m, mvid) != model_getvargridid(m, mvid2))
-        enkf_quit("H_surf_biased(): variables \"%s\" and \"%s\" are defined on different grids", ot->varname, ot->varname2);
+        enkf_quit("H_surf_biased(): variables \"%s\" and \"%s\" are defined on different grids", ot->varnames[0], ot->varnames[1]);
 
     ktop = grid_gettoplayerid(model_getvargrid(m, mvid));
     model_getvardims(m, mvid, &ni, &nj, NULL);
@@ -225,12 +225,12 @@ void H_surf_biased(dasystem* das, int nobs, int obsids[], char fname[], int mem,
 
     bias = malloc(nv * sizeof(float));
     if (das->mode == MODE_ENKF)
-        model_getmemberfname(m, das->ensdir, ot->varname2, mem, fname2);
+        model_getmemberfname(m, das->ensdir, ot->varnames[1], mem, fname2);
     else if (das->mode == MODE_ENOI)
-        model_getbgfname(m, das->bgdir, ot->varname2, fname2);
-    model_readfield(m, fname2, INT_MAX, ot->varname2, ktop, bias);
+        model_getbgfname(m, das->bgdir, ot->varnames[1], fname2);
+    model_readfield(m, fname2, INT_MAX, ot->varnames[1], ktop, bias);
 
-    model_readfield(m, fname, t, ot->varname, ktop, src0);
+    model_readfield(m, fname, t, ot->varnames[0], ktop, src0);
 
     snprintf(tag_offset, MAXSTRLEN, "%s:OFFSET", allobs->obstypes[allobs->data[obsids[0]].type].name);
     offset = model_getdata(m, tag_offset);
@@ -262,13 +262,13 @@ void H_subsurf_standard(dasystem* das, int nobs, int obsids[], char fname[], int
     char tag_offset[MAXSTRLEN];
     float*** offset = NULL;
 
-    assert(ot->varname2 == NULL);
-    model_read3dfield(m, fname, t, ot->varname, src[0][0]);
+    assert(ot->nvar == 1);      /* should we care? */
+    model_read3dfield(m, fname, t, ot->varnames[0], src[0][0]);
 
     snprintf(tag_offset, MAXSTRLEN, "%s:OFFSET", allobs->obstypes[allobs->data[obsids[0]].type].name);
     offset = model_getdata(m, tag_offset);
     if (offset != NULL) {
-        int mvid = model_getvarid(m, ot->varname, 1);
+        int mvid = model_getvarid(m, ot->varnames[0], 1);
         int ni, nj, nk;
         float* src0 = src[0][0];
         float* offset0 = offset[0][0];
@@ -307,8 +307,8 @@ void H_subsurf_wsurfbias(dasystem* das, int nobs, int obsids[], char fname[], in
     observations* allobs = das->obs;
     int otid = allobs->data[obsids[0]].type;
     obstype* ot = &allobs->obstypes[otid];
-    int mvid = model_getvarid(m, ot->varname, 1);
-    int mvid2 = model_getvarid(m, ot->varname2, 1);
+    int mvid = model_getvarid(m, ot->varnames[0], 1);
+    int mvid2;
     int periodic_x = grid_isperiodic_x(model_getvargrid(m, mvid));
     int** mask = model_getnumlevels(m, mvid);
 
@@ -321,16 +321,17 @@ void H_subsurf_wsurfbias(dasystem* das, int nobs, int obsids[], char fname[], in
     int ni, nj, nk;
     int i;
 
-    if (ot->varname2 == NULL)
-        enkf_quit("%s: var2 has to be defined for an observation type when using H-function \"wsurfbias\"", ot->varname);
+    if (ot->nvar < 2)
+        enkf_quit("%s: second variable has to be defined for an observation type when using H-function \"wsurfbias\"", ot->name);
+    mvid2 = model_getvarid(m, ot->varnames[1], 1);
     if (model_getvargridid(m, mvid) != model_getvargridid(m, mvid2))
-        enkf_quit("H_surf_biased(): variables \"%s\" and \"%s\" are defined on different grids", ot->varname, ot->varname2);
+        enkf_quit("H_surf_biased(): variables \"%s\" and \"%s\" are defined on different grids", ot->varnames[0], ot->varnames[1]);
     model_getvardims(m, mvid, &ni, &nj, &nk);
 
     /*
      * this part is similar to H_subsurf_standard()
      */
-    model_read3dfield(m, fname, t, ot->varname, src[0][0]);
+    model_read3dfield(m, fname, t, ot->varnames[0], src[0][0]);
 
     snprintf(tag_offset, MAXSTRLEN, "%s:OFFSET", ot->name);
     offset = model_getdata(m, tag_offset);
@@ -350,11 +351,11 @@ void H_subsurf_wsurfbias(dasystem* das, int nobs, int obsids[], char fname[], in
      */
     bias = alloc2d(nj, ni, sizeof(float));
     if (das->mode == MODE_ENKF)
-        model_getmemberfname(m, das->ensdir, ot->varname2, mem, fname2);
+        model_getmemberfname(m, das->ensdir, ot->varnames[1], mem, fname2);
     else if (das->mode == MODE_ENOI)
-        model_getbgfname(m, das->bgdir, ot->varname2, fname2);
-    assert(!is3d(fname2, ot->varname2));
-    model_readfield(m, fname2, INT_MAX, ot->varname2, 0, bias[0]);
+        model_getbgfname(m, das->bgdir, ot->varnames[1], fname2);
+    assert(!is3d(fname2, ot->varnames[1]));
+    model_readfield(m, fname2, INT_MAX, ot->varnames[1], 0, bias[0]);
 
     if (isnan(ot->mld_threshold) && ot->mld_varname == NULL)
         enkf_quit("\"MLD_THRESH\" or \"MLD_VARNAME\" must be specified for observation type \"%s\" to use H function \"wsurfbias\"", ot->name);

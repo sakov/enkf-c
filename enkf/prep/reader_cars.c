@@ -117,7 +117,7 @@ void reader_cars_standard(char* fname, int fid, obsmeta* meta, model* m, observa
 
     tunits_convert(buf, &tunits_multiple, &tunits_offset);
 
-    mvid = model_getvarid(m, obs->obstypes[obstype_getid(obs->nobstypes, obs->obstypes, meta->type)].varname, 1);
+    mvid = model_getvarid(m, obs->obstypes[obstype_getid(obs->nobstypes, obs->obstypes, meta->type)].varnames[0], 1);
 
     for (p = 0; p < (int) nprof; ++p) {
         char inststr[MAXSTRLEN];

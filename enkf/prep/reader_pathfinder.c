@@ -109,7 +109,7 @@ void reader_pathfinder_standard(char* fname, int fid, obsmeta* meta, model* m, o
     strncpy(instname, basename, 4);
     instname[4] = 0;
 
-    mvid = model_getvarid(m, obs->obstypes[obstype_getid(obs->nobstypes, obs->obstypes, meta->type)].varname, 1);
+    mvid = model_getvarid(m, obs->obstypes[obstype_getid(obs->nobstypes, obs->obstypes, meta->type)].varnames[0], 1);
 
     for (i = 0; i < (int) nobs_local; ++i) {
         observation* o;
