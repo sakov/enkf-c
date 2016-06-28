@@ -52,8 +52,10 @@ void reader_navo_standard(char* fname, int fid, obsmeta* meta, model* m, observa
     size_t tunits_len;
     double tunits_multiple, tunits_offset;
     char* basename;
-    int model_vid;
-    int k, i;
+    int mvid;
+    float** depth;
+    int ktop;
+    int i;
 
     for (i = 0; i < meta->npars; ++i) {
         if (strcasecmp(meta->pars[i].name, "ADDBIAS") == 0)
@@ -121,8 +123,9 @@ void reader_navo_standard(char* fname, int fid, obsmeta* meta, model* m, observa
 
     tunits_convert(tunits, &tunits_multiple, &tunits_offset);
 
-    model_vid = model_getvarid(m, obs->obstypes[obstype_getid(obs->nobstypes, obs->obstypes, meta->type)].varnames[0], 1);
-    k = grid_gettoplayerid(model_getvargrid(m, model_vid));
+    mvid = model_getvarid(m, obs->obstypes[obstype_getid(obs->nobstypes, obs->obstypes, meta->type)].varnames[0], 1);
+    ktop = grid_gettoplayerid(model_getvargrid(m, mvid));
+    depth = model_getdepth(m, mvid, 0);
 
     for (i = 0; i < (int) nobs_local; ++i) {
         observation* o;
@@ -145,12 +148,13 @@ void reader_navo_standard(char* fname, int fid, obsmeta* meta, model* m, observa
         o->lon = lon[i];
         o->lat = lat[i];
         o->depth = 0.0;
-        o->status = model_xy2fij(m, model_vid, o->lon, o->lat, &o->fi, &o->fj);
+                o->fk = (double) ktop;
+        o->status = model_xy2fij(m, mvid, o->lon, o->lat, &o->fi, &o->fj);
         if (!obs->allobs && o->status == STATUS_OUTSIDEGRID)
             continue;
-        if ((o->status == STATUS_OK) && (o->lon <= ot->xmin || o->lon >= ot->xmax || o->lat <= ot->ymin || o->lat >= ot->ymax || o->depth <= ot->zmin || o->depth >= ot->zmax))
+        if ((o->status == STATUS_OK) && (o->lon <= ot->xmin || o->lon >= ot->xmax || o->lat <= ot->ymin || o->lat >= ot->ymax))
             o->status = STATUS_OUTSIDEOBSDOMAIN;
-        o->fk = (double) k;
+        o->model_depth = (depth == NULL) ? NaN : depth[(int) (o->fj + 0.5)][(int) (o->fi + 0.5)];
         o->date = time[i] * tunits_multiple + tunits_offset;
         o->aux = -1;
 

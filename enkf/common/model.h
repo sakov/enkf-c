@@ -63,7 +63,7 @@ int model_getngrid(model* m);
 void* model_getgridbyid(model* m, int gridid);
 void* model_getgridbyname(model* m, char name[]);
 double model_getlonbase(model* m, int vid);
-float** model_getdepth(model* m, int vid);
+float** model_getdepth(model* m, int vid, int musthave);
 int** model_getnumlevels(model* m, int vid);
 void model_getmemberfname(model* m, char dir[], char varname[], int mem, char fname[]);
 int model_getmemberfname_async(model* m, char dir[], char varname[], char otname[], int mem, int time, char fname[]);

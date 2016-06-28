@@ -36,6 +36,8 @@
 
 void reader_aquarius_standard(char* fname, int fid, obsmeta* meta, model* m, observations* obs)
 {
+    double mindepth = MINDEPTH_DEF;
+    char* addname = NULL;
     int ncid;
     int dimid_ni, dimid_nj;
     size_t ni, nj;
@@ -48,11 +50,10 @@ void reader_aquarius_standard(char* fname, int fid, obsmeta* meta, model* m, obs
     double tunits_multiple, tunits_offset;
     char* basename;
     int model_vid;
-    int i, j, topk;
-    double mindepth = MINDEPTH_DEF;
+    int i, j;
+    int ktop;
     float** depth;
     double missval;
-    char* addname = NULL;
 
     for (i = 0; i < meta->npars; ++i) {
         if (strcasecmp(meta->pars[i].name, "MINDEPTH") == 0) {
@@ -107,12 +108,11 @@ void reader_aquarius_standard(char* fname, int fid, obsmeta* meta, model* m, obs
     tunits_convert(tunits, &tunits_multiple, &tunits_offset);
 
     model_vid = model_getvarid(m, obs->obstypes[obstype_getid(obs->nobstypes, obs->obstypes, meta->type)].varnames[0], 1);
-    depth = model_getdepth(m, model_vid);
-    topk = grid_gettoplayerid(model_getvargrid(m, model_vid));
+    depth = model_getdepth(m, model_vid, 1);
+    ktop = grid_gettoplayerid(model_getvargrid(m, model_vid));
 
     for (j = 0; j < (int) nj; ++j) {
         for (i = 0; i < (int) ni; ++i) {
-
             observation* o;
             obstype* ot;
 
@@ -139,12 +139,14 @@ void reader_aquarius_standard(char* fname, int fid, obsmeta* meta, model* m, obs
                 o->status = model_xy2fij(m, model_vid, o->lon, o->lat, &o->fi, &o->fj);
             if (!obs->allobs && o->status == STATUS_OUTSIDEGRID)
                 continue;
-            if (o->status == STATUS_OK && depth[(int) floor(o->fj + 0.5)][(int) floor(o->fi + 0.5)] < mindepth)
+            o->model_depth = depth[(int) (o->fj + 0.5)][(int) (o->fi + 0.5)];
+            o->fk = 0.0;
+            if (o->status == STATUS_OK && o->model_depth < mindepth)
                 o->status = STATUS_SHALLOW;
-            if ((o->status == STATUS_OK) && (o->lon <= ot->xmin || o->lon >= ot->xmax || o->lat <= ot->ymin || o->lat >= ot->ymax || o->depth <= ot->zmin || o->depth >= ot->zmax))
+            if ((o->status == STATUS_OK) && (o->lon <= ot->xmin || o->lon >= ot->xmax || o->lat <= ot->ymin || o->lat >= ot->ymax))
                 o->status = STATUS_OUTSIDEOBSDOMAIN;
 
-            o->fk = (double) topk;
+            o->fk = (double) ktop;
             o->date = tunits_offset + 0.5;
             o->aux = -1;
 

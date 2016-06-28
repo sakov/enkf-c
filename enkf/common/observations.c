@@ -293,8 +293,9 @@ void obs_checkalloc(observations* obs)
     if (obs->nobs == obs->nallocated) {
         obs->data = realloc(obs->data, (obs->nobs + NOBS_INC) * sizeof(observation));
         if (obs->data == NULL)
-            enkf_quit("not enough memory");
+            enkf_quit("obs_checkalloc(): not enough memory");
         obs->nallocated += NOBS_INC;
+        memset(&obs->data[obs->nobs], 0, NOBS_INC * sizeof(observation));
     }
 }
 
@@ -434,7 +435,7 @@ void obs_read(observations* obs, char fname[])
     double da_julday = NaN;
     int dimid_nobs[1];
     size_t nobs;
-    int varid_type, varid_product, varid_instrument, varid_id, varid_idorig, varid_fid, varid_batch, varid_value, varid_std, varid_lon, varid_lat, varid_depth, varid_fi, varid_fj, varid_fk, varid_date, varid_status, varid_aux;
+    int varid_type, varid_product, varid_instrument, varid_id, varid_idorig, varid_fid, varid_batch, varid_value, varid_std, varid_lon, varid_lat, varid_depth, varid_mdepth, varid_fi, varid_fj, varid_fk, varid_date, varid_status, varid_aux;
     int* type;
     int* product;
     int* instrument;
@@ -447,6 +448,7 @@ void obs_read(observations* obs, char fname[])
     double* lon;
     double* lat;
     double* depth;
+    double* model_depth;
     double* fi;
     double* fj;
     double* fk;
@@ -486,6 +488,7 @@ void obs_read(observations* obs, char fname[])
     ncw_inq_varid(fname, ncid, "lon", &varid_lon);
     ncw_inq_varid(fname, ncid, "lat", &varid_lat);
     ncw_inq_varid(fname, ncid, "depth", &varid_depth);
+    ncw_inq_varid(fname, ncid, "model_depth", &varid_mdepth);
     ncw_inq_varid(fname, ncid, "fi", &varid_fi);
     ncw_inq_varid(fname, ncid, "fj", &varid_fj);
     ncw_inq_varid(fname, ncid, "fk", &varid_fk);
@@ -505,6 +508,7 @@ void obs_read(observations* obs, char fname[])
     lon = malloc(nobs * sizeof(double));
     lat = malloc(nobs * sizeof(double));
     depth = malloc(nobs * sizeof(double));
+    model_depth = malloc(nobs * sizeof(double));
     fi = malloc(nobs * sizeof(double));
     fj = malloc(nobs * sizeof(double));
     fk = malloc(nobs * sizeof(double));
@@ -574,6 +578,7 @@ void obs_read(observations* obs, char fname[])
     ncw_get_var_double(fname, ncid, varid_lon, lon);
     ncw_get_var_double(fname, ncid, varid_lat, lat);
     ncw_get_var_double(fname, ncid, varid_depth, depth);
+    ncw_get_var_double(fname, ncid, varid_mdepth, model_depth);
     ncw_get_var_double(fname, ncid, varid_fi, fi);
     ncw_get_var_double(fname, ncid, varid_fj, fj);
     ncw_get_var_double(fname, ncid, varid_fk, fk);
@@ -598,6 +603,7 @@ void obs_read(observations* obs, char fname[])
         m->lon = lon[i];
         m->lat = lat[i];
         m->depth = depth[i];
+        m->model_depth = model_depth[i];
         m->fi = fi[i];
         m->fj = fj[i];
         m->fk = fk[i];
@@ -618,6 +624,7 @@ void obs_read(observations* obs, char fname[])
     free(lon);
     free(lat);
     free(depth);
+    free(model_depth);
     free(fi);
     free(fj);
     free(fk);
@@ -639,7 +646,7 @@ void obs_write(observations* obs, char fname[])
 
     int ncid;
     int dimid_nobs[1];
-    int varid_type, varid_product, varid_instrument, varid_id, varid_idorig, varid_fid, varid_batch, varid_value, varid_std, varid_lon, varid_lat, varid_depth, varid_fi, varid_fj, varid_fk, varid_date, varid_status, varid_aux;
+    int varid_type, varid_product, varid_instrument, varid_id, varid_idorig, varid_fid, varid_batch, varid_value, varid_std, varid_lon, varid_lat, varid_depth, varid_mdepth, varid_fi, varid_fj, varid_fk, varid_date, varid_status, varid_aux;
 
     int* type;
     int* product;
@@ -653,6 +660,7 @@ void obs_write(observations* obs, char fname[])
     double* lon;
     double* lat;
     double* depth;
+    double* model_depth;
     double* fi;
     double* fj;
     double* fk;
@@ -684,6 +692,7 @@ void obs_write(observations* obs, char fname[])
     ncw_def_var(fname, ncid, "lon", NC_FLOAT, 1, dimid_nobs, &varid_lon);
     ncw_def_var(fname, ncid, "lat", NC_FLOAT, 1, dimid_nobs, &varid_lat);
     ncw_def_var(fname, ncid, "depth", NC_FLOAT, 1, dimid_nobs, &varid_depth);
+    ncw_def_var(fname, ncid, "model_depth", NC_FLOAT, 1, dimid_nobs, &varid_mdepth);
     ncw_def_var(fname, ncid, "fi", NC_FLOAT, 1, dimid_nobs, &varid_fi);
     ncw_def_var(fname, ncid, "fj", NC_FLOAT, 1, dimid_nobs, &varid_fj);
     ncw_def_var(fname, ncid, "fk", NC_FLOAT, 1, dimid_nobs, &varid_fk);
@@ -740,6 +749,7 @@ void obs_write(observations* obs, char fname[])
     lon = malloc(nobs * sizeof(double));
     lat = malloc(nobs * sizeof(double));
     depth = malloc(nobs * sizeof(double));
+    model_depth = malloc(nobs * sizeof(double));
     fi = malloc(nobs * sizeof(double));
     fj = malloc(nobs * sizeof(double));
     fk = malloc(nobs * sizeof(double));
@@ -768,6 +778,7 @@ void obs_write(observations* obs, char fname[])
         lon[ii] = m->lon;
         lat[ii] = m->lat;
         depth[ii] = m->depth;
+        model_depth[ii] = m->model_depth;
         fi[ii] = m->fi;
         fj[ii] = m->fj;
         fk[ii] = m->fk;
@@ -790,6 +801,7 @@ void obs_write(observations* obs, char fname[])
     ncw_put_var_double(fname, ncid, varid_lon, lon);
     ncw_put_var_double(fname, ncid, varid_lat, lat);
     ncw_put_var_double(fname, ncid, varid_depth, depth);
+    ncw_put_var_double(fname, ncid, varid_mdepth, model_depth);
     ncw_put_var_double(fname, ncid, varid_fi, fi);
     ncw_put_var_double(fname, ncid, varid_fj, fj);
     ncw_put_var_double(fname, ncid, varid_fk, fk);
@@ -810,6 +822,7 @@ void obs_write(observations* obs, char fname[])
     free(lon);
     free(lat);
     free(depth);
+    free(model_depth);
     free(fi);
     free(fj);
     free(fk);
@@ -932,6 +945,7 @@ void obs_superob(observations* obs, __compar_d_fn_t cmp_obs, observations** sobs
         so->lon = o->lon;
         so->lat = o->lat;
         so->depth = o->depth;
+        so->model_depth = o->model_depth;
         so->fi = o->fi;
         so->fj = o->fj;
         so->fk = o->fk;
@@ -962,6 +976,7 @@ void obs_superob(observations* obs, __compar_d_fn_t cmp_obs, observations** sobs
             so->lon = so->lon * so->std + o->lon / var;
             so->lat = so->lat * so->std + o->lat / var;
             so->depth = so->depth * so->std + o->depth / var;
+            so->model_depth = so->model_depth * so->std + o->model_depth / var;
             so->fi = so->fi * so->std + o->fi / var;
             so->fj = so->fj * so->std + o->fj / var;
             so->fk = so->fk * so->std + o->fk / var;
@@ -973,6 +988,7 @@ void obs_superob(observations* obs, __compar_d_fn_t cmp_obs, observations** sobs
             so->lon /= so->std;
             so->lat /= so->std;
             so->depth /= so->std;
+            so->model_depth /= so->std;
             so->fi /= so->std;
             so->fj /= so->std;
             so->fk /= so->std;
@@ -1085,7 +1101,7 @@ void obs_printob(observations* obs, int i)
     observation* o = &obs->data[i];
 
     enkf_printf("type = %s, product = %s, instrument = %s, datafile = %s, id = %d, original id = %d, batch = %h, value = %.3g, std = %.3g, ", obs->obstypes[o->type].name, st_findstringbyindex(obs->products, o->product), st_findstringbyindex(obs->instruments, o->instrument), st_findstringbyindex(obs->datafiles, o->fid), o->id, o->id_orig, o->batch, o->value, o->std);
-    enkf_printf("lon = %.3f, lat = %.3f, depth = %.1f, fi = %.3f, fj = %.3f, fk = %.3f, date = %.3g, status = %d\n", o->lon, o->lat, o->depth, o->fi, o->fj, o->fk, o->date, o->status);
+    enkf_printf("lon = %.3f, lat = %.3f, depth = %.1f, model_depth = %.1f, fi = %.3f, fj = %.3f, fk = %.3f, date = %.3g, status = %d\n", o->lon, o->lat, o->depth, o->model_depth, o->fi, o->fj, o->fk, o->date, o->status);
 }
 
 #if defined(ENKF_CALC)

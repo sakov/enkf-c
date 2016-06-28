@@ -53,6 +53,8 @@ void reader_pathfinder_standard(char* fname, int fid, obsmeta* meta, model* m, o
     char* basename;
     char instname[5];
     int mvid;
+    float** depth;
+    int ktop;
     int i;
 
     for (i = 0; i < meta->npars; ++i)
@@ -110,6 +112,8 @@ void reader_pathfinder_standard(char* fname, int fid, obsmeta* meta, model* m, o
     instname[4] = 0;
 
     mvid = model_getvarid(m, obs->obstypes[obstype_getid(obs->nobstypes, obs->obstypes, meta->type)].varnames[0], 1);
+    depth = model_getdepth(m, mvid, 1);
+    ktop = grid_gettoplayerid(model_getvargrid(m, mvid));
 
     for (i = 0; i < (int) nobs_local; ++i) {
         observation* o;
@@ -132,14 +136,14 @@ void reader_pathfinder_standard(char* fname, int fid, obsmeta* meta, model* m, o
         o->lon = lon[i];
         o->lat = lat[i];
         o->depth = 0.0;
+        o->fk = (double) ktop;
         o->status = model_xy2fij(m, mvid, o->lon, o->lat, &o->fi, &o->fj);
         if (!obs->allobs && o->status == STATUS_OUTSIDEGRID)
             continue;
-        o->fk = 0.0;
-        if ((o->status == STATUS_OK) && (o->lon <= ot->xmin || o->lon >= ot->xmax || o->lat <= ot->ymin || o->lat >= ot->ymax || o->depth <= ot->zmin || o->depth >= ot->zmax))
+        o->model_depth = depth[(int) (o->fj + 0.5)][(int) (o->fi + 0.5)];
+        if ((o->status == STATUS_OK) && (o->lon <= ot->xmin || o->lon >= ot->xmax || o->lat <= ot->ymin || o->lat >= ot->ymax))
             o->status = STATUS_OUTSIDEOBSDOMAIN;
         o->date = tunits_offset + 0.5;
-
         o->aux = -1;
 
         obs->nobs++;

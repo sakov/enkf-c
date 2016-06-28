@@ -42,6 +42,7 @@ typedef struct {
     double lon;
     double lat;
     double depth;
+    double model_depth;
     double fi;
     double fj;
     double fk;

@@ -45,7 +45,9 @@ void reader_amsr2_standard(char* fname, int fid, obsmeta* meta, model* m, observ
     double tunits_multiple, tunits_offset;
     char* basename;
     int model_vid;
-    int k, i;
+    float** depth;
+    int ktop;
+    int i;
 
     for (i = 0; i < meta->npars; ++i)
         enkf_quit("unknown PARAMETER \"%s\"\n", meta->pars[i].name);
@@ -104,7 +106,8 @@ void reader_amsr2_standard(char* fname, int fid, obsmeta* meta, model* m, observ
     tunits_convert(tunits, &tunits_multiple, &tunits_offset);
 
     model_vid = model_getvarid(m, obs->obstypes[obstype_getid(obs->nobstypes, obs->obstypes, meta->type)].varnames[0], 1);
-    k = grid_gettoplayerid(model_getvargrid(m, model_vid));
+    depth = model_getdepth(m, model_vid, 0);
+    ktop = grid_gettoplayerid(model_getvargrid(m, model_vid));
 
     for (i = 0; i < (int) nobs_local; ++i) {
         observation* o;
@@ -127,12 +130,13 @@ void reader_amsr2_standard(char* fname, int fid, obsmeta* meta, model* m, observ
         o->lon = lon[i];
         o->lat = lat[i];
         o->depth = 0.0;
+        o->fk = (double) ktop;
         o->status = model_xy2fij(m, model_vid, o->lon, o->lat, &o->fi, &o->fj);
         if (!obs->allobs && o->status == STATUS_OUTSIDEGRID)
             continue;
-        if ((o->status == STATUS_OK) && (o->lon <= ot->xmin || o->lon >= ot->xmax || o->lat <= ot->ymin || o->lat >= ot->ymax || o->depth <= ot->zmin || o->depth >= ot->zmax))
+        o->model_depth = (depth == NULL) ? NaN : depth[(int) (o->fj + 0.5)][(int) (o->fi + 0.5)];
+        if ((o->status == STATUS_OK) && (o->lon <= ot->xmin || o->lon >= ot->xmax || o->lat <= ot->ymin || o->lat >= ot->ymax))
             o->status = STATUS_OUTSIDEOBSDOMAIN;
-        o->fk = (double) k;
         o->date = time[i] * tunits_multiple + tunits_offset;
         o->aux = -1;
 

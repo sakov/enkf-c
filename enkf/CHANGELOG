@@ -1,5 +1,8 @@
 v. 1.43.0
    PS 28062016
+   -- Added `model_depth' to `struct observation'.
+v. 1.43.0
+   PS 28062016
    -- Minor structural changes for struct obstype -- now can depend on an
       arbitrary number of model variables specified after the entry VAR in
       the observation types parameter file. The entry VAR2 is now redundant.

@@ -63,7 +63,7 @@ void reader_rads_standard(char* fname, int fid, obsmeta* meta, model* m, observa
     char instname[3];
     int mvid;
     float** depth;
-    int i;
+    int i, ktop;
 
     for (i = 0; i < meta->npars; ++i) {
         if (strcasecmp(meta->pars[i].name, "MINDEPTH") == 0) {
@@ -132,7 +132,8 @@ void reader_rads_standard(char* fname, int fid, obsmeta* meta, model* m, observa
     instname[2] = 0;
 
     mvid = model_getvarid(m, obs->obstypes[obstype_getid(obs->nobstypes, obs->obstypes, meta->type)].varnames[0], 1);
-    depth = model_getdepth(m, mvid);
+    ktop = grid_gettoplayerid(model_getvargrid(m, mvid));
+    depth = model_getdepth(m, mvid, 1);
 
     for (i = 0; i < (int) nobs_local; ++i) {
         observation* o;
@@ -160,11 +161,12 @@ void reader_rads_standard(char* fname, int fid, obsmeta* meta, model* m, observa
         o->status = model_xy2fij(m, mvid, o->lon, o->lat, &o->fi, &o->fj);
         if (!obs->allobs && o->status == STATUS_OUTSIDEGRID)
             continue;
-        o->fk = 0.0;
+        o->fk = (double) ktop;
+        o->model_depth = depth[(int) (o->fj + 0.5)][(int) (o->fi + 0.5)];
         o->date = time[i] * tunits_multiple + tunits_offset;
-        if (o->status == STATUS_OK && depth[(int) floor(o->fj + 0.5)][(int) floor(o->fi + 0.5)] < mindepth)
+        if (o->status == STATUS_OK && o->model_depth < mindepth)
             o->status = STATUS_SHALLOW;
-        if ((o->status == STATUS_OK) && (o->lon <= ot->xmin || o->lon >= ot->xmax || o->lat <= ot->ymin || o->lat >= ot->ymax || o->depth <= ot->zmin || o->depth >= ot->zmax))
+        if ((o->status == STATUS_OK) && (o->lon <= ot->xmin || o->lon >= ot->xmax || o->lat <= ot->ymin || o->lat >= ot->ymax))
             o->status = STATUS_OUTSIDEOBSDOMAIN;
 
         o->aux = -1;
@@ -207,7 +209,7 @@ void reader_rads_standard2(char* fname, int fid, obsmeta* meta, model* m, observ
     char instname[3];
     int mvid;
     float** depth;
-    int i;
+    int i, ktop;
 
     for (i = 0; i < meta->npars; ++i) {
         if (strcasecmp(meta->pars[i].name, "MINDEPTH") == 0) {
@@ -285,7 +287,8 @@ void reader_rads_standard2(char* fname, int fid, obsmeta* meta, model* m, observ
     instname[2] = 0;
 
     mvid = model_getvarid(m, obs->obstypes[obstype_getid(obs->nobstypes, obs->obstypes, meta->type)].varnames[0], 1);
-    depth = model_getdepth(m, mvid);
+    ktop = grid_gettoplayerid(model_getvargrid(m, mvid));
+    depth = model_getdepth(m, mvid, 1);
 
     for (i = 0; i < (int) nobs_local; ++i) {
         observation* o;
@@ -316,11 +319,12 @@ void reader_rads_standard2(char* fname, int fid, obsmeta* meta, model* m, observ
         o->status = model_xy2fij(m, mvid, o->lon, o->lat, &o->fi, &o->fj);
         if (!obs->allobs && o->status == STATUS_OUTSIDEGRID)
             continue;
-        o->fk = 0.0;
+        o->model_depth = depth[(int) (o->fj + 0.5)][(int) (o->fi + 0.5)];
+        o->fk = (double) ktop;
         o->date = tunits_offset + 0.5;
-        if (o->status == STATUS_OK && depth[(int) floor(o->fj + 0.5)][(int) floor(o->fi + 0.5)] < mindepth)
+        if (o->status == STATUS_OK && o->model_depth < mindepth)
             o->status = STATUS_SHALLOW;
-        if ((o->status == STATUS_OK) && (o->lon <= ot->xmin || o->lon >= ot->xmax || o->lat <= ot->ymin || o->lat >= ot->ymax || o->depth <= ot->zmin || o->depth >= ot->zmax))
+        if ((o->status == STATUS_OK) && (o->lon <= ot->xmin || o->lon >= ot->xmax || o->lat <= ot->ymin || o->lat >= ot->ymax))
             o->status = STATUS_OUTSIDEOBSDOMAIN;
 
         o->aux = -1;

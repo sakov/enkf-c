@@ -559,12 +559,12 @@ double model_getlonbase(model* m, int vid)
 
 /**
  */
-float** model_getdepth(model* m, int vid)
+float** model_getdepth(model* m, int vid, int musthave)
 {
     void* grid = m->grids[m->vars[vid].gridid];
     float** depth = grid_getdepth(grid);
 
-    if (depth == NULL)
+    if (musthave && depth == NULL)
         enkf_quit("DEPTHVARNAME not specified for grid \"%s\"", grid_getname(grid));
 
     return depth;
