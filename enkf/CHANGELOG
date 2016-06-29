@@ -1,3 +1,7 @@
+v. 1.44.2
+   PS 29062016
+   -- Fixed a defect introduced in v. 1.43.0 in copying obstypes in
+      obs_addtype().
 v. 1.44.1
    PS 29062016
    -- Fixed obs readers in regard to setting model depth in case when an ob is
