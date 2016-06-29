@@ -168,7 +168,7 @@ void reader_mmt_standard(char* fname, int fid, obsmeta* meta, model* m, observat
                 o->fk = NaN;
             if ((o->status == STATUS_OK) && (o->lon <= ot->xmin || o->lon >= ot->xmax || o->lat <= ot->ymin || o->lat >= ot->ymax || o->depth <= ot->zmin || o->depth >= ot->zmax))
                 o->status = STATUS_OUTSIDEOBSDOMAIN;
-            o->model_depth = (depth == NULL || o->status == STATUS_OUTSIDEGRID) ? NaN : depth[(int) (o->fj + 0.5)][(int) (o->fi + 0.5)];
+            o->model_depth = (depth == NULL || isnan(o->fi)) ? NaN : depth[(int) (o->fj + 0.5)][(int) (o->fi + 0.5)];
             o->date = tunits_offset + 0.5;
             o->aux = -1;
 
