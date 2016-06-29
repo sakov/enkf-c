@@ -1,3 +1,7 @@
+v. 1.43.1
+   PS 29062016
+   -- Fixed obs readers in regard to setting model depth in case when an ob is
+      outside the grid.
 v. 1.43.0
    PS 28062016
    -- Added `model_depth' to `struct observation'.

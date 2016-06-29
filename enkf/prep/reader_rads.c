@@ -162,7 +162,7 @@ void reader_rads_standard(char* fname, int fid, obsmeta* meta, model* m, observa
         if (!obs->allobs && o->status == STATUS_OUTSIDEGRID)
             continue;
         o->fk = (double) ktop;
-        o->model_depth = depth[(int) (o->fj + 0.5)][(int) (o->fi + 0.5)];
+        o->model_depth = (o->status == STATUS_OUTSIDEGRID) ? NaN : depth[(int) (o->fj + 0.5)][(int) (o->fi + 0.5)];
         o->date = time[i] * tunits_multiple + tunits_offset;
         if (o->status == STATUS_OK && o->model_depth < mindepth)
             o->status = STATUS_SHALLOW;
@@ -319,7 +319,7 @@ void reader_rads_standard2(char* fname, int fid, obsmeta* meta, model* m, observ
         o->status = model_xy2fij(m, mvid, o->lon, o->lat, &o->fi, &o->fj);
         if (!obs->allobs && o->status == STATUS_OUTSIDEGRID)
             continue;
-        o->model_depth = depth[(int) (o->fj + 0.5)][(int) (o->fi + 0.5)];
+        o->model_depth = (o->status == STATUS_OUTSIDEGRID) ? NaN : depth[(int) (o->fj + 0.5)][(int) (o->fi + 0.5)];
         o->fk = (double) ktop;
         o->date = tunits_offset + 0.5;
         if (o->status == STATUS_OK && o->model_depth < mindepth)

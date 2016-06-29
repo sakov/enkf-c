@@ -1436,7 +1436,7 @@ void print_commandinfo(int argc, char* argv[])
     for (i = 1; i < argc; ++i)
         enkf_printf(" %s", argv[i]);
     enkf_printf("\"\n");
-    if (getcwd(cwd, sizeof(cwd)) != NULL)
+    if (getcwd(cwd, MAXSTRLEN) != NULL)
         enkf_printf("    dir = \"%s\"\n", cwd);
 }
 

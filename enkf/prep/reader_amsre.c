@@ -198,7 +198,7 @@ void reader_amsre_standard(char* fname, int fid, obsmeta* meta, model* m, observ
                     continue;
                 if ((o->status == STATUS_OK) && (o->lon <= ot->xmin || o->lon >= ot->xmax || o->lat <= ot->ymin || o->lat >= ot->ymax))
                     o->status = STATUS_OUTSIDEOBSDOMAIN;
-                o->model_depth = (depth == NULL) ? NaN : depth[(int) (o->fj + 0.5)][(int) (o->fi + 0.5)];
+                o->model_depth = (depth == NULL || o->status == STATUS_OUTSIDEGRID) ? NaN : depth[(int) (o->fj + 0.5)][(int) (o->fi + 0.5)];
                 o->date = time[j][i] * tunits_multiple + tunits_offset;
                 o->aux = -1;
 
