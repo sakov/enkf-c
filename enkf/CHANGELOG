@@ -1,3 +1,6 @@
+v. 1.44.3
+   PS 12072016
+   -- Fixed a defect in detecting periodic grid in gnxy_simple_create().
 v. 1.44.2
    PS 29062016
    -- Fixed a defect introduced in v. 1.43.0 in copying obstypes in

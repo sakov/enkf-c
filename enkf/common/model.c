@@ -339,7 +339,6 @@ void model_describeprm(void)
     enkf_printf("  Model parameter file format:\n");
     enkf_printf("\n");
     enkf_printf("    NAME      = <name>\n");
-    enkf_printf("\n");
     enkf_printf("    VAR       = <name>\n");
     enkf_printf("  [ GRID      = <name> ]                    (# grids > 1)\n");
     enkf_printf("  [ INFLATION = <value> [<value> | PLAIN] ]\n");

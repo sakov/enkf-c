@@ -112,9 +112,9 @@ static gnxy_simple* gnxy_simple_create(int nx, int ny, double* x, double* y)
     for (i = 1; i < nx + 1; ++i)
         nodes->xc[i] = 2 * x[i - 1] - nodes->xc[i - 1];
 
-    if (fabs(fmod(nodes->xc[nx] - nodes->xc[0], 360.0)) < EPS_LON)
+    if (fabs(fmod(nodes->xc[nx] - nodes->xc[0] + EPS_LON / 2.0, 360.0)) < EPS_LON)
         nodes->periodic_x = 1;  /* closed grid */
-    else if (fabs(fmod(2.0 * nodes->xc[nx - 1] - nodes->xc[nx - 2] - nodes->xc[0], 360.0)) < EPS_LON) {
+    else if (fabs(fmod(2.0 * nodes->xc[nx - 1] - nodes->xc[nx - 2] - nodes->xc[0] + EPS_LON / 2.0, 360.0)) < EPS_LON) {
         nodes->periodic_x = 2;  /* non-closed grid (used e.g. by MOM) */
         nodes->x = realloc(nodes->x, (nx + 1) * sizeof(double));
         nodes->x[nx] = 2.0 * nodes->x[nx - 1] - nodes->x[nx - 2];
