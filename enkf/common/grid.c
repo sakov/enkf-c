@@ -133,11 +133,11 @@ static gnxy_simple* gnxy_simple_create(int nx, int ny, double* x, double* y)
     if (ascending) {
         for (i = 0; i < nx - 1; ++i)
             if ((x[i + 1] - x[i]) < 0.0)
-                enkf_quit("non-monotonous X coordinate for a simple grid\n");
+                enkf_quit("non-monotonic X coordinate for a simple grid\n");
     } else {
         for (i = 0; i < nx - 1; ++i)
             if ((x[i + 1] - x[i]) > 0.0)
-                enkf_quit("non-monotonous X coordinate for a simple grid\n");
+                enkf_quit("non-monotonic X coordinate for a simple grid\n");
     }
 
     /*
@@ -160,11 +160,11 @@ static gnxy_simple* gnxy_simple_create(int nx, int ny, double* x, double* y)
     if (ascending) {
         for (i = 0; i < ny - 1; ++i)
             if ((y[i + 1] - y[i]) < 0.0)
-                enkf_quit("non-monotonous Y coordinate for a simple grid\n");
+                enkf_quit("non-monotonic Y coordinate for a simple grid\n");
     } else {
         for (i = 0; i < ny - 1; ++i)
             if ((y[i + 1] - y[i]) > 0.0)
-                enkf_quit("non-monotonous Y coordinate for a simple grid\n");
+                enkf_quit("non-monotonic Y coordinate for a simple grid\n");
     }
 
     return nodes;
