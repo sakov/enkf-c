@@ -112,9 +112,9 @@ static gnxy_simple* gnxy_simple_create(int nx, int ny, double* x, double* y)
     for (i = 1; i < nx + 1; ++i)
         nodes->xc[i] = 2 * x[i - 1] - nodes->xc[i - 1];
 
-    if (fabs(fmod(nodes->xc[nx] - nodes->xc[0] + EPS_LON / 2.0, 360.0)) < EPS_LON)
+    if (fabs(fmod(nodes->x[nx - 1] - nodes->x[0] + EPS_LON / 2.0, 360.0)) < EPS_LON)
         nodes->periodic_x = 1;  /* closed grid */
-    else if (fabs(fmod(2.0 * nodes->xc[nx - 1] - nodes->xc[nx - 2] - nodes->xc[0] + EPS_LON / 2.0, 360.0)) < EPS_LON) {
+    else if (fabs(fmod(2.0 * nodes->x[nx - 1] - nodes->x[nx - 2] - nodes->x[0] + EPS_LON / 2.0, 360.0)) < EPS_LON) {
         nodes->periodic_x = 2;  /* non-closed grid (used e.g. by MOM) */
         nodes->x = realloc(nodes->x, (nx + 1) * sizeof(double));
         nodes->x[nx] = 2.0 * nodes->x[nx - 1] - nodes->x[nx - 2];
@@ -123,20 +123,20 @@ static gnxy_simple* gnxy_simple_create(int nx, int ny, double* x, double* y)
     } else
         nodes->periodic_x = 0;
 
-    dx = (x[nx - 1] - x[0]) / (double) (nx - 1);
+    dx = (nodes->x[nx - 1] - nodes->x[0]) / (double) (nx - 1);
     for (i = 1; i < (int) nx; ++i)
-        if (fabs(x[i] - x[i - 1] - dx) / fabs(dx) > EPS_LON)
+        if (fabs(nodes->x[i] - nodes->x[i - 1] - dx) / fabs(dx) > EPS_LON)
             break;
     nodes->regular_x = (i == nx);
 
-    ascending = (x[nx - 1] > x[0]);
+    ascending = (nodes->x[nx - 1] > nodes->x[0]);
     if (ascending) {
         for (i = 0; i < nx - 1; ++i)
-            if ((x[i + 1] - x[i]) < 0.0)
+            if ((nodes->x[i + 1] - nodes->x[i]) < 0.0)
                 enkf_quit("non-monotonic X coordinate for a simple grid\n");
     } else {
         for (i = 0; i < nx - 1; ++i)
-            if ((x[i + 1] - x[i]) > 0.0)
+            if ((nodes->x[i + 1] - nodes->x[i]) > 0.0)
                 enkf_quit("non-monotonic X coordinate for a simple grid\n");
     }
 
@@ -404,15 +404,11 @@ static double x2fi_irreg(int n, double v[], double vb[], double x, int periodic,
     ascending = (v[n - 1] > v[0]);
 
     if (ascending) {
-        if ((x < v[0]) || x > v[n - 1]) {
-            assert(!periodic);
+        if ((x < vb[0]) || x > vb[n])
             return NaN;
-        }
     } else {
-        if ((x > v[0]) || x < v[n - 1]) {
-            assert(!periodic);
+        if ((x > vb[0]) || x < vb[n])
             return NaN;
-        }
     }
 
     i1 = 0;

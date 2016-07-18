@@ -1,3 +1,6 @@
+v. 1.44.4
+   PS 18072016
+   -- Fixed (hopefully) handling of periodic grids. (Need another look.)
 v. 1.44.3
    PS 12072016
    -- Fixed a defect in detecting periodic grid in gnxy_simple_create().

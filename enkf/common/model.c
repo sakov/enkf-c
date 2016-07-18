@@ -619,6 +619,7 @@ int model_getbgfname_async(model* m, char bgdir[], char varname[], char otname[]
 int model_xy2fij(model* m, int vid, double x, double y, double* fi, double* fj)
 {
     void* grid = m->grids[m->vars[vid].gridid];
+    int isperiodic_x = grid_isperiodic_x(grid);
     int** numlevels = grid_getnumlevels(grid);
     double lonbase = grid_getlonbase(grid);
     int ni, nj;
@@ -647,12 +648,12 @@ int model_xy2fij(model* m, int vid, double x, double y, double* fi, double* fj)
 
     model_getvardims(m, vid, &ni, &nj, NULL);
     if (i1 == -1)
-        i1 = (grid_isperiodic_x(model_getvargrid(m, vid))) ? ni - 1 : i2;
+        i1 = (isperiodic_x) ? ni - 1 : i2;
     if (i2 == ni)
-        i2 = (grid_isperiodic_x(model_getvargrid(m, vid))) ? 0 : i1;
+        i2 = (isperiodic_x) ? 0 : i1;
     if (j1 == -1)
         j1 = j2;
-    if (i2 == nj)
+    if (j2 == nj)
         j2 = j1;
 
     if (numlevels[j1][i1] == 0 && numlevels[j1][i2] == 0 && numlevels[j2][i1] == 0 && numlevels[j2][i2] == 0) {
@@ -694,7 +695,9 @@ int model_ij2xy(model* m, int vid, int i, int j, double* x, double* y)
 int model_z2fk(model* m, int vid, double fi, double fj, double z, double* fk)
 {
     void* grid = m->grids[m->vars[vid].gridid];
+    int isperiodic_x = grid_isperiodic_x(grid);
     int** numlevels = grid_getnumlevels(grid);
+    int ni, nj;
     int i1, i2, j1, j2, k2;
 
     if (isnan(fi + fj)) {
@@ -713,10 +716,19 @@ int model_z2fk(model* m, int vid, double fi, double fj, double z, double* fk)
     /*
      * a depth check for z-grid:
      */
+    model_getvardims(m, vid, &ni, &nj, NULL);
     i1 = floor(fi);
     i2 = ceil(fi);
+    if (i1 == -1)
+        i1 = (isperiodic_x) ? ni - 1 : i2;
+    if (i2 == ni)
+        i2 = (isperiodic_x) ? 0 : i1;
     j1 = floor(fj);
     j2 = ceil(fj);
+    if (j1 == -1)
+        j1 = j2;
+    if (j2 == nj)
+        j2 = j1;
     k2 = floor(*fk);
     if (numlevels[j1][i1] <= k2 && numlevels[j1][i2] <= k2 && numlevels[j2][i1] <= k2 && numlevels[j2][i2] <= k2) {
         *fk = NaN;
