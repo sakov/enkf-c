@@ -1339,7 +1339,7 @@ ENSOBSTYPE interpolate3d(double fi, double fj, double fk, int ni, int nj, int nk
         i2 = (periodic_x) ? 0 : i1;
     if (j1 == -1)
         j1 = j2;
-    if (i2 == nj)
+    if (j2 == nj)
         j2 = j1;
 
     assert(i1 >= 0 && i2 < ni && j1 >= 0 && j2 < nj && k1 >= 0 && k2 < nk);
