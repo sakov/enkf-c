@@ -1,6 +1,9 @@
+v. 1.44.6
+   PS 22072016
+   -- Updated ncw.[ch] to ncw-c v1.02.
 v. 1.44.5
    PS 22072016
-   -- A typo fixed in interpolate2d().
+   -- A typo fixed in interpolate2d() and interpolate3d().
 v. 1.44.4
    PS 18072016
    -- Fixed (hopefully) handling of periodic grids. (Need another look.)
