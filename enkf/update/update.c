@@ -1373,7 +1373,7 @@ void das_update(dasystem* das)
                 model_readfield(das->m, fname, INT_MAX, f->varname, f->level, ((float***) fieldbuffer[bufindex])[e][0]);
             }
             if (das->mode == MODE_ENOI) {
-                if (!(das->updatespec & UPDATE_OUTPUTINC)) {
+                if (!(das->updatespec & UPDATE_OUTPUTINC) && das->updatespec & (UPDATE_DOFIELDS | UPDATE_DOPLOGS)) {
                     model_getbgfname(m, das->bgdir, f->varname, fname);
                     model_readfield(das->m, fname, INT_MAX, f->varname, f->level, ((float***) fieldbuffer[bufindex])[das->nmem][0]);
                 } else
@@ -1399,7 +1399,8 @@ void das_update(dasystem* das)
                     else if (i == my_last_iteration)
                         enkf_printf("      (skip writing the fields)\n");
                 } else if (das->mode == MODE_ENOI) {
-                    das_updatebg(das, bufindex + 1, fieldbuffer, &fields[i - bufindex]);
+                    if (das->updatespec & (UPDATE_DOFIELDS | UPDATE_DOPLOGS))
+                        das_updatebg(das, bufindex + 1, fieldbuffer, &fields[i - bufindex]);
                     if (das->updatespec & UPDATE_DOFIELDS)
                         das_writebg(das, bufindex + 1, fieldbuffer, &fields[i - bufindex]);
                 }

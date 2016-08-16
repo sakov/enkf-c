@@ -180,6 +180,8 @@ int main(int argc, char* argv[])
             updatespec &= ~UPDATE_DOINFLATION;
         }
     }
+    if (prm->nplogs == 0)
+        updatespec &= ~UPDATE_DOPLOGS;
 
     describe_updatespec(updatespec);
     if ((updatespec & (UPDATE_DOFIELDS | UPDATE_DOSPREAD | UPDATE_DOPLOGS | UPDATE_DOINFLATION)) == 0)

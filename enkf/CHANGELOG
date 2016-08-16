@@ -1,3 +1,7 @@
+v. 1.45.0
+   PS 16082016
+   -- Minor changes to permit calculating ensemble spread only for EnOI (without
+      running PREP and CALC).
 v. 1.44.6
    PS 22072016
    -- Updated ncw.[ch] to ncw-c v1.02.

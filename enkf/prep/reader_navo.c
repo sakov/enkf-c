@@ -148,7 +148,7 @@ void reader_navo_standard(char* fname, int fid, obsmeta* meta, model* m, observa
         o->lon = lon[i];
         o->lat = lat[i];
         o->depth = 0.0;
-                o->fk = (double) ktop;
+        o->fk = (double) ktop;
         o->status = model_xy2fij(m, mvid, o->lon, o->lat, &o->fi, &o->fj);
         if (!obs->allobs && o->status == STATUS_OUTSIDEGRID)
             continue;
