@@ -1,3 +1,7 @@
+v. 1.46.1
+   PS 17082016
+   -- Changed enkfprm_check() so that no unnecessary parameters are demanded
+      when calculating ensemble spread only.
 v. 1.45.0
    PS 16082016
    -- Minor changes to permit calculating ensemble spread only for EnOI (without

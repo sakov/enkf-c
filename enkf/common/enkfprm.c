@@ -33,9 +33,9 @@ static void enkfprm_check(enkfprm* prm)
 #if defined(ENKF_PREP)
     if (prm->obsprm == NULL)
         enkf_quit("%s: OBS not specified", prm->fname);
-#endif
     if (prm->date == NULL)
         enkf_quit("%s: DATE not specified", prm->fname);
+#endif
     if (prm->modelprm == NULL)
         enkf_quit("%s: MODEL not specified", prm->fname);
     if (prm->gridprm == NULL)
@@ -48,8 +48,15 @@ static void enkfprm_check(enkfprm* prm)
     if (prm->ensdir == NULL && (prm->mode == MODE_ENKF || !enkf_fstatsonly))
         enkf_quit("%s: ENSDIR not specified", prm->fname);
 #endif
+#if defined(ENKF_CALC)
     if (prm->mode == MODE_ENOI && prm->bgdir == NULL)
         enkf_quit("%s: BGDIR must be specified for MODE = ENOI", prm->fname);
+    /*
+     * (we skip the test for ENKF_UPDATE because (1) there are cases when BGDIR
+     * is not requiredt, and (2) normally the same parameter file is used for
+     * ENKF_CALC and ENKF_UPDATE)
+     */
+#endif
 #if defined(ENKF_CALC)
     if (!isfinite(prm->locrad) && !enkf_fstatsonly)
         enkf_quit("%s: LOCRAD not specified", prm->fname);
