@@ -17,14 +17,9 @@ Examine Makefile to understand what happens and how for each particular target.
 
 PREREQUISITES
 
-1. To run this example you need to download example1-data.tar.gz (79 MB) by
-either
+1. To run this example you need to download example1-data.tar.gz (79 MB) from
 
-wget --no-check-certificate 'https://googledrive.com/host/0B-joqvlrlCeRUmFyR1J4TloxYUE' -O example1-data.tar.gz
-
-or from
-
-https://drive.google.com/file/d/0B-joqvlrlCeRUmFyR1J4TloxYUE/view?usp=sharing
+https://github.com/sakov/enkf-c/releases/download/data/example1-data.tar.gz
 
 and unpack in this directory.
 

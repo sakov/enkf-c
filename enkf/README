@@ -29,13 +29,7 @@ Run example 1 - see examples/1/README for details.
 INDENTING
 
 To indent your code according to the EnKF-C style you need to (1) get modified
-version of indent by downloading indent-2.2.8a-mod.tar.gz:
-
-wget --no-check-certificate 'https://googledrive.com/host/0B-joqvlrlCeRNDk0VWJheEJ5MzA' -O indent-2.2.8a-mod.tar.gz
-
-(or from https://drive.google.com/open?id=0B-joqvlrlCeRNDk0VWJheEJ5MzA), compile
-it and (2) run "make indent" from the base directory (the style is encoded in
-.indent.pro).
+version of indent by downloading https://github.com/sakov/enkf-c/releases/download/data/indent-2.2.8a-mod.tar.gz and (2) run "make indent" in this (enkf-c/trunk/enkf) directory (the style is encoded in .indent.pro).
 
 REFERRING
 
