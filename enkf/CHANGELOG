@@ -1,4 +1,14 @@
-v. 1.46.1
+v. 1.45.2
+   PS 18082016
+   -- Slightly modified update_HE() and update_Hx() to fix a once-in-a-lifetime
+      round-off error occuring after writing and reading `fi' to observations.nc
+      as a float.
+   -- Changed `id_orig' in observations.nc to correspond to the observation
+      number as read from data files rather than to the id in
+      observations-orig.nc (that is, after compacting).
+   -- Changed the type of fields `type', `product' and `instrument' of struct
+      observation from int to short int.
+v. 1.45.1
    PS 17082016
    -- Changed enkfprm_check() so that no unnecessary parameters are demanded
       when calculating ensemble spread only.

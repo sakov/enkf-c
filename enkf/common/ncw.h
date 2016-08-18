@@ -5,7 +5,7 @@
  * Created         19/10/2000
  *  
  * Author:         Pavel Sakov
- *                 CSIRO Marine Research
+ *                 Bureau of Meteorology
  *  
  * Purpose:        Simple wrappers to netcdf library procedures for
  *                 better error messaging.
@@ -52,19 +52,26 @@ void ncw_inq_varndims(const char fname[], int ncid, int varid, int* ndims);
 void ncw_inq_vardimid(const char fname[], int ncid, int varid, int dimids[]);
 void ncw_inq_varnatts(const char fname[], int ncid, int varid, int* natts);
 void ncw_rename_var(const char fname[], int ncid, const char oldname[], const char newname[]);
+void ncw_def_var_deflate(const char fname[], int ncid, int varid, int shuffle, int deflate, int deflate_level);
 void ncw_put_var_text(const char fname[], int ncid, int varid, const char v[]);
 void ncw_put_var_short(const char fname[], int ncid, int varid, const short int v[]);
+void ncw_put_var_ushort(const char fname[], int ncid, int varid, const unsigned short int v[]);
 void ncw_put_var_int(const char fname[], int ncid, int varid, const int v[]);
+void ncw_put_var_uint(const char fname[], int ncid, int varid, const unsigned int v[]);
 void ncw_put_var_float(const char fname[], int ncid, int varid, const float v[]);
 void ncw_put_var_double(const char fname[], int ncid, int varid, const double v[]);
 void ncw_get_var_text(const char fname[], int ncid, int varid, char v[]);
+void ncw_get_var_schar(const char fname[], int ncid, int varid, signed char v[]);
 void ncw_get_var_short(const char fname[], int ncid, int varid, short int v[]);
+void ncw_get_var_ushort(const char fname[], int ncid, int varid, unsigned short int v[]);
 void ncw_get_var_int(const char fname[], int ncid, int varid, int v[]);
+void ncw_get_var_uint(const char fname[], int ncid, int varid, unsigned int v[]);
 void ncw_get_var_float(const char fname[], int ncid, int varid, float v[]);
 void ncw_get_var_double(const char fname[], int ncid, int varid, double v[]);
 void ncw_get_var1_double(const char fname[], int ncid, int varid, const size_t len[], double* in);
 void ncw_put_vara_text(const char fname[], int ncid, int varid, const size_t start[], const size_t count[], const char v[]);
 void ncw_put_vara_short(const char fname[], int ncid, int varid, const size_t start[], const size_t count[], const short int v[]);
+void ncw_put_vara_ushort(const char fname[], int ncid, int varid, const size_t start[], const size_t count[], const unsigned short int v[]);
 void ncw_put_vara_int(const char fname[], int ncid, int varid, const size_t start[], const size_t count[], const int v[]);
 void ncw_put_vara_float(const char fname[], int ncid, int varid, const size_t start[], const size_t count[], const float v[]);
 void ncw_put_vara_double(const char fname[], int ncid, int varid, const size_t start[], const size_t count[], const double v[]);
@@ -84,6 +91,7 @@ void ncw_copy_att(const char fname_src[], int ncid_src, int varid_src, const cha
 void ncw_rename_att(const char fname[], int ncid, const char varname[], const char oldname[], const char newname[]);
 void ncw_del_att(const char fname[], int ncid, int varid, const char name[]);
 void ncw_get_att_text(const char fname[], int ncid, int varid, const char attname[], char v[]);
+void ncw_get_att_short(const char fname[], int ncid, int varid, const char attname[], short int v[]);
 void ncw_get_att_int(const char fname[], int ncid, int varid, const char attname[], int v[]);
 void ncw_get_att_float(const char fname[], int ncid, int varid, const char attname[], float v[]);
 void ncw_get_att_double(const char fname[], int ncid, int varid, const char attname[], double v[]);
@@ -94,9 +102,11 @@ int ncw_inq_nrecords(const char fname[], int ncid);
 const char* ncw_nctype2str(nc_type type);
 size_t ncw_sizeof(nc_type type);
 void ncw_copy_dims(const char* fname_src, int ncid_src, const char* fname_dst, int ncid_dst);
+void ncw_copy_dim(const char* fname_src, int ncid_src, const char dimname[], const char* fname_dst, int ncid_dst);
 int ncw_copy_vardef(const char* fname_src, int ncid_src, int varid_src, const char* fname_dst, int ncid_dst);
 void ncw_copy_vardata(const char* fname_src, int ncid_src, int varid_src, const char* fname_dst, int ncid_dst);
 void ncw_copy_var(const char* fname_src, int ncid_src, const char varname[], const char* fname_dst, int ncid_dst);
+void ncw_def_deflate(const char fname[], int ncid, int shuffle, int deflate, int deflate_level);
 void ncw_inq_dimid2(const char fname[], int ncid, const char dimname1[], const char dimname2[], int* dimid);
 void ncw_get_att_int2(const char fname[], int ncid, int varid, const char attname1[], const char attname2[], int v[]);
 void ncw_find_vars(const char fname[], int ncid, int ndims, const int dims[], const char attr[], const void* attval, int* nvars, int** vids);
@@ -110,6 +120,9 @@ void ncw_get_var_double_record(const char fname[], int ncid, int varid, int r, d
 void ncw_get_var_float_record(const char fname[], int ncid, int varid, int r, float v[]);
 void ncw_put_var_double_record(const char fname[], int ncid, int varid, int r, double v[]);
 void ncw_put_var_float_record(const char fname[], int ncid, int varid, int r, float v[]);
+
+void ncw_check_att(const char fname[], int ncid, int varid, const char attname[], nc_type xtype, size_t len);
+void ncw_check_dimlen(const char fname[], int ncid, const char dimname[], size_t len);
 
 typedef void (*ncw_quit_fn) (char* format, ...);
 void ncw_set_quitfn(ncw_quit_fn quit_fn);

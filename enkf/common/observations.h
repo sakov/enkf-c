@@ -23,20 +23,28 @@
 #include "obstypes.h"
 #include "model.h"
 
+/*
+ * (we keep the integer types signed for compatibility with netcdf 3)
+ */
 typedef struct {
-    int type;
-    int product;
-    int instrument;
-    unsigned int id;
-    short int fid;
-    short int batch;
+    /*
+     * for primary observations - the ordered number of the (compacted)
+     * primary observations;
+     * for super observations - the ordered number of superobservations
+     */
+    int id;
     /*
      * for primary observations - the original ID corresponds to the number
      * of the primary observation during the very first read of data files; for
      * superobs - to the original ID of the very first observation merged into
      * this superob
      */
-    int id_orig;
+    short int id_orig;
+    short int type;
+    short int product;
+    short int instrument;
+    short int fid;
+    short int batch;
     double value;
     double std;
     double lon;

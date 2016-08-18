@@ -327,8 +327,10 @@ void obs_compact(observations* obs)
     enkf_flush();
     assert(STATUS_OK == 0);
     qsort(obs->data, obs->nobs, sizeof(observation), comp_obsstatus);
-    for (i = 0; i < obs->nobs; ++i)
+    for (i = 0; i < obs->nobs; ++i) {
+        obs->data[i].id_orig = obs->data[i].id;
         obs->data[i].id = i;
+    }
     enkf_printf("\n");
     enkf_flush();
     obs->compacted = 1;
@@ -437,13 +439,13 @@ void obs_read(observations* obs, char fname[])
     int dimid_nobs[1];
     size_t nobs;
     int varid_type, varid_product, varid_instrument, varid_id, varid_idorig, varid_fid, varid_batch, varid_value, varid_std, varid_lon, varid_lat, varid_depth, varid_mdepth, varid_fi, varid_fj, varid_fk, varid_date, varid_status, varid_aux;
-    int* type;
-    int* product;
-    int* instrument;
     int* id;
     int* id_orig;
-    int* fid;
-    int* batch;
+    short int* type;
+    short int* product;
+    short int* instrument;
+    short int* fid;
+    short int* batch;
     double* value;
     double* std;
     double* lon;
@@ -497,13 +499,13 @@ void obs_read(observations* obs, char fname[])
     ncw_inq_varid(fname, ncid, "status", &varid_status);
     ncw_inq_varid(fname, ncid, "aux", &varid_aux);
 
-    type = malloc(nobs * sizeof(int));
-    product = malloc(nobs * sizeof(int));
-    instrument = malloc(nobs * sizeof(int));
     id = malloc(nobs * sizeof(int));
     id_orig = malloc(nobs * sizeof(int));
-    fid = malloc(nobs * sizeof(int));
-    batch = malloc(nobs * sizeof(int));
+    type = malloc(nobs * sizeof(short int));
+    product = malloc(nobs * sizeof(short int));
+    instrument = malloc(nobs * sizeof(short int));
+    fid = malloc(nobs * sizeof(short int));
+    batch = malloc(nobs * sizeof(short int));
     value = malloc(nobs * sizeof(double));
     std = malloc(nobs * sizeof(double));
     lon = malloc(nobs * sizeof(double));
@@ -567,13 +569,13 @@ void obs_read(observations* obs, char fname[])
         st_add_ifabscent(obs->datafiles, attstr, i);
     }
 
-    ncw_get_var_int(fname, ncid, varid_type, type);
-    ncw_get_var_int(fname, ncid, varid_product, product);
-    ncw_get_var_int(fname, ncid, varid_instrument, instrument);
     ncw_get_var_int(fname, ncid, varid_id, id);
     ncw_get_var_int(fname, ncid, varid_idorig, id_orig);
-    ncw_get_var_int(fname, ncid, varid_fid, fid);
-    ncw_get_var_int(fname, ncid, varid_batch, batch);
+    ncw_get_var_short(fname, ncid, varid_type, type);
+    ncw_get_var_short(fname, ncid, varid_product, product);
+    ncw_get_var_short(fname, ncid, varid_instrument, instrument);
+    ncw_get_var_short(fname, ncid, varid_fid, fid);
+    ncw_get_var_short(fname, ncid, varid_batch, batch);
     ncw_get_var_double(fname, ncid, varid_value, value);
     ncw_get_var_double(fname, ncid, varid_std, std);
     ncw_get_var_double(fname, ncid, varid_lon, lon);
@@ -649,11 +651,11 @@ void obs_write(observations* obs, char fname[])
     int dimid_nobs[1];
     int varid_type, varid_product, varid_instrument, varid_id, varid_idorig, varid_fid, varid_batch, varid_value, varid_std, varid_lon, varid_lat, varid_depth, varid_mdepth, varid_fi, varid_fj, varid_fk, varid_date, varid_status, varid_aux;
 
-    int* type;
-    int* product;
-    int* instrument;
     int* id;
     int* id_orig;
+    short int* type;
+    short int* product;
+    short int* instrument;
     short int* fid;
     short int* batch;
     double* value;
@@ -681,11 +683,11 @@ void obs_write(observations* obs, char fname[])
     ncw_put_att_double(fname, ncid, NC_GLOBAL, "DA_JULDAY", 1, &obs->da_date);
 
     ncw_def_dim(fname, ncid, "nobs", nobs, dimid_nobs);
+    ncw_def_var(fname, ncid, "id", NC_INT, 1, dimid_nobs, &varid_id);
+    ncw_def_var(fname, ncid, "id_orig", NC_INT, 1, dimid_nobs, &varid_idorig);
     ncw_def_var(fname, ncid, "type", NC_SHORT, 1, dimid_nobs, &varid_type);
     ncw_def_var(fname, ncid, "product", NC_SHORT, 1, dimid_nobs, &varid_product);
     ncw_def_var(fname, ncid, "instrument", NC_SHORT, 1, dimid_nobs, &varid_instrument);
-    ncw_def_var(fname, ncid, "id", NC_INT, 1, dimid_nobs, &varid_id);
-    ncw_def_var(fname, ncid, "id_orig", NC_INT, 1, dimid_nobs, &varid_idorig);
     ncw_def_var(fname, ncid, "fid", NC_SHORT, 1, dimid_nobs, &varid_fid);
     ncw_def_var(fname, ncid, "batch", NC_SHORT, 1, dimid_nobs, &varid_batch);
     ncw_def_var(fname, ncid, "value", NC_FLOAT, 1, dimid_nobs, &varid_value);
@@ -738,11 +740,11 @@ void obs_write(observations* obs, char fname[])
 
     ncw_enddef(fname, ncid);
 
-    type = malloc(nobs * sizeof(int));
-    product = malloc(nobs * sizeof(int));
-    instrument = malloc(nobs * sizeof(int));
     id = malloc(nobs * sizeof(int));
     id_orig = malloc(nobs * sizeof(int));
+    type = malloc(nobs * sizeof(short int));
+    product = malloc(nobs * sizeof(short int));
+    instrument = malloc(nobs * sizeof(short int));
     fid = malloc(nobs * sizeof(short int));
     batch = malloc(nobs * sizeof(short int));
     value = malloc(nobs * sizeof(double));
@@ -790,11 +792,11 @@ void obs_write(observations* obs, char fname[])
     }
     assert(ii == nobs);
 
-    ncw_put_var_int(fname, ncid, varid_type, type);
-    ncw_put_var_int(fname, ncid, varid_product, product);
-    ncw_put_var_int(fname, ncid, varid_instrument, instrument);
     ncw_put_var_int(fname, ncid, varid_id, id);
     ncw_put_var_int(fname, ncid, varid_idorig, id_orig);
+    ncw_put_var_short(fname, ncid, varid_type, type);
+    ncw_put_var_short(fname, ncid, varid_product, product);
+    ncw_put_var_short(fname, ncid, varid_instrument, instrument);
     ncw_put_var_short(fname, ncid, varid_fid, fid);
     ncw_put_var_short(fname, ncid, varid_batch, batch);
     ncw_put_var_double(fname, ncid, varid_value, value);
@@ -935,7 +937,7 @@ void obs_superob(observations* obs, __compar_d_fn_t cmp_obs, observations** sobs
         so->product = o->product;
         so->instrument = o->instrument;
         so->id = nsobs;
-        so->id_orig = o->id;
+        so->id_orig = o->id_orig;
         so->fid = o->fid;
         so->batch = o->batch;
 

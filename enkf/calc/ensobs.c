@@ -803,7 +803,11 @@ static void das_sortobs_byid(dasystem* das)
     das->sort_mode = OBS_SORTMODE_ID;
 }
 
-/** Updates ensemble observations by applying X5
+/** Updates ensemble observations by applying X5.
+ *
+ * Both update_HE() and update_Hx() only use the transforms calculated for the
+ * (int) fj, (int) fi node of the grid. This might be improved in the future to
+ * yield probably a bit more precise (and better) analysis stats.
  */
 static void update_HE(dasystem* das)
 {
@@ -976,6 +980,12 @@ static void update_HE(dasystem* das)
                      * HE(i, :) = HE(i, :) * X5 
                      */
                     i = (int) (obs->data[o].fi);
+                    if (i == mni)
+                        /*
+                         * (this can happen once in a lifetime because of the
+                         * round-off due to writing and reading fi as a float)
+                         */
+                        i--;
                     for (e = 0; e < nmem; ++e)
                         HEi_f[e] = das->S[e][o];
                     sgemv_(&do_T, &nmem, &nmem, &alpha, X5j[i], &nmem, HEi_f, &inc, &beta, HEi_a, &inc);
@@ -1210,6 +1220,12 @@ static void update_Hx(dasystem* das)
                     Hx /= (double) nmem;
 
                     i = (int) (obs->data[o].fi);
+                    if (i == mni)
+                        /*
+                         * (this can happen once in a lifetime because of the
+                         * round-off due to writing and reading fi as a float)
+                         */
+                        i--;
                     /*
                      * HE(i, :) += HA(i, :) * b * 1' 
                      */
