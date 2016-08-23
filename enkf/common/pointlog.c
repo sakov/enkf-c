@@ -57,60 +57,60 @@ void plog_write(dasystem* das, int id, double depth, int p, int* lobs, double* l
 
     das_getfname_plog(das, plog, fname);
     ncw_create(fname, NC_CLOBBER | NETCDF_FORMAT, &ncid);
-    ncw_def_dim(fname, ncid, "m", das->nmem, &dimids[0]);
-    ncw_def_dim(fname, ncid, "p", p, &dimids[1]);
+    ncw_def_dim(ncid, "m", das->nmem, &dimids[0]);
+    ncw_def_dim(ncid, "p", p, &dimids[1]);
     if (p > 0) {
-        ncw_def_var(fname, ncid, "obs_ids", NC_INT, 1, &dimids[1], &vid_ids);
-        ncw_def_var(fname, ncid, "lcoeffs", NC_FLOAT, 1, &dimids[1], &vid_lcoeffs);
-        ncw_def_var(fname, ncid, "lon", NC_FLOAT, 1, &dimids[1], &vid_lon);
-        ncw_def_var(fname, ncid, "lat", NC_FLOAT, 1, &dimids[1], &vid_lat);
-        ncw_def_var(fname, ncid, "depth", NC_FLOAT, 1, &dimids[1], &vid_depth);
-        ncw_def_var(fname, ncid, "obs_val", NC_FLOAT, 1, &dimids[1], &vid_val);
-        ncw_def_var(fname, ncid, "obs_std", NC_FLOAT, 1, &dimids[1], &vid_std);
-        ncw_def_var(fname, ncid, "obs_fi", NC_FLOAT, 1, &dimids[1], &vid_fi);
-        ncw_def_var(fname, ncid, "obs_fj", NC_FLOAT, 1, &dimids[1], &vid_fj);
-        ncw_def_var(fname, ncid, "obs_fk", NC_FLOAT, 1, &dimids[1], &vid_fk);
-        ncw_def_var(fname, ncid, "obs_type", NC_INT, 1, &dimids[1], &vid_type);
-        ncw_def_var(fname, ncid, "obs_date", NC_FLOAT, 1, &dimids[1], &vid_date);
-        ncw_def_var(fname, ncid, "s", NC_FLOAT, 1, &dimids[1], &vid_s);
-        ncw_def_var(fname, ncid, "S", NC_FLOAT, 2, dimids, &vid_S);
+        ncw_def_var(ncid, "obs_ids", NC_INT, 1, &dimids[1], &vid_ids);
+        ncw_def_var(ncid, "lcoeffs", NC_FLOAT, 1, &dimids[1], &vid_lcoeffs);
+        ncw_def_var(ncid, "lon", NC_FLOAT, 1, &dimids[1], &vid_lon);
+        ncw_def_var(ncid, "lat", NC_FLOAT, 1, &dimids[1], &vid_lat);
+        ncw_def_var(ncid, "depth", NC_FLOAT, 1, &dimids[1], &vid_depth);
+        ncw_def_var(ncid, "obs_val", NC_FLOAT, 1, &dimids[1], &vid_val);
+        ncw_def_var(ncid, "obs_std", NC_FLOAT, 1, &dimids[1], &vid_std);
+        ncw_def_var(ncid, "obs_fi", NC_FLOAT, 1, &dimids[1], &vid_fi);
+        ncw_def_var(ncid, "obs_fj", NC_FLOAT, 1, &dimids[1], &vid_fj);
+        ncw_def_var(ncid, "obs_fk", NC_FLOAT, 1, &dimids[1], &vid_fk);
+        ncw_def_var(ncid, "obs_type", NC_INT, 1, &dimids[1], &vid_type);
+        ncw_def_var(ncid, "obs_date", NC_FLOAT, 1, &dimids[1], &vid_date);
+        ncw_def_var(ncid, "s", NC_FLOAT, 1, &dimids[1], &vid_s);
+        ncw_def_var(ncid, "S", NC_FLOAT, 2, dimids, &vid_S);
         snprintf(tunits, MAXSTRLEN, "days from %s", obs->datestr);
-        ncw_put_att_text(fname, ncid, vid_date, "units", tunits);
+        ncw_put_att_text(ncid, vid_date, "units", tunits);
         for (ot = 0; ot < obs->nobstypes; ++ot) {
             char attname[NC_MAX_NAME];
 
-            ncw_put_att_int(fname, ncid, vid_type, obs->obstypes[ot].name, 1, &ot);
+            ncw_put_att_int(ncid, vid_type, obs->obstypes[ot].name, 1, &ot);
             snprintf(attname, NC_MAX_NAME, "RFACTOR_%s", obs->obstypes[ot].name);
-            ncw_put_att_double(fname, ncid, vid_type, attname, 1, &obs->obstypes[ot].rfactor);
+            ncw_put_att_double(ncid, vid_type, attname, 1, &obs->obstypes[ot].rfactor);
             snprintf(attname, NC_MAX_NAME, "LOCRAD_%s", obs->obstypes[ot].name);
-            ncw_put_att_double(fname, ncid, vid_type, attname, obs->obstypes[ot].nscale, obs->obstypes[ot].locrad);
+            ncw_put_att_double(ncid, vid_type, attname, obs->obstypes[ot].nscale, obs->obstypes[ot].locrad);
             snprintf(attname, NC_MAX_NAME, "WEIGHT_%s", obs->obstypes[ot].name);
-            ncw_put_att_double(fname, ncid, vid_type, attname, obs->obstypes[ot].nscale, obs->obstypes[ot].weight);
+            ncw_put_att_double(ncid, vid_type, attname, obs->obstypes[ot].nscale, obs->obstypes[ot].weight);
         }
     }
     if (das->mode == MODE_ENKF) {
         char attstr[MAXSTRLEN];
 
         dimids[1] = dimids[0];
-        ncw_def_var(fname, ncid, "X5", NC_DOUBLE, 2, dimids, &vid_transform);
+        ncw_def_var(ncid, "X5", NC_DOUBLE, 2, dimids, &vid_transform);
         snprintf(attstr, MAXSTRLEN, "ensemble transform calculated for this (i,j) location in grid-0 (%s)", grid_getname(model_getgridbyid(das->m, 0)));
-        ncw_put_att_text(fname, ncid, vid_transform, "long_name", attstr);
-        ncw_def_var(fname, ncid, "X5_actual", NC_FLOAT, 2, dimids, &vid_transform_actual);
+        ncw_put_att_text(ncid, vid_transform, "long_name", attstr);
+        ncw_def_var(ncid, "X5_actual", NC_FLOAT, 2, dimids, &vid_transform_actual);
         snprintf(attstr, MAXSTRLEN, "the actual (interpolated) ensemble transform used at this (i,j) location in grid-0 (%s)", grid_getname(model_getvargrid(das->m, 0)));
-        ncw_put_att_text(fname, ncid, vid_transform_actual, "long_name", attstr);
+        ncw_put_att_text(ncid, vid_transform_actual, "long_name", attstr);
     } else if (das->mode == MODE_ENOI) {
-        ncw_def_var(fname, ncid, "w", NC_DOUBLE, 1, &dimids[0], &vid_transform);
-        ncw_def_var(fname, ncid, "w_actual", NC_FLOAT, 1, &dimids[0], &vid_transform_actual);
+        ncw_def_var(ncid, "w", NC_DOUBLE, 1, &dimids[0], &vid_transform);
+        ncw_def_var(ncid, "w_actual", NC_FLOAT, 1, &dimids[0], &vid_transform_actual);
     }
-    ncw_put_att_text(fname, ncid, NC_GLOBAL, "date", obs->datestr);
-    ncw_put_att_text(fname, ncid, NC_GLOBAL, "grid_name", plog->gridname);
-    ncw_put_att_int(fname, ncid, NC_GLOBAL, "i", 1, &plog->i);
-    ncw_put_att_int(fname, ncid, NC_GLOBAL, "j", 1, &plog->j);
-    ncw_put_att_double(fname, ncid, NC_GLOBAL, "lon", 1, &plog->lon);
-    ncw_put_att_double(fname, ncid, NC_GLOBAL, "lat", 1, &plog->lat);
-    ncw_put_att_double(fname, ncid, NC_GLOBAL, "depth", 1, &depth);
+    ncw_put_att_text(ncid, NC_GLOBAL, "date", obs->datestr);
+    ncw_put_att_text(ncid, NC_GLOBAL, "grid_name", plog->gridname);
+    ncw_put_att_int(ncid, NC_GLOBAL, "i", 1, &plog->i);
+    ncw_put_att_int(ncid, NC_GLOBAL, "j", 1, &plog->j);
+    ncw_put_att_double(ncid, NC_GLOBAL, "lon", 1, &plog->lon);
+    ncw_put_att_double(ncid, NC_GLOBAL, "lat", 1, &plog->lat);
+    ncw_put_att_double(ncid, NC_GLOBAL, "depth", 1, &depth);
 
-    ncw_enddef(fname, ncid);
+    ncw_enddef(ncid);
 
     if (p > 0) {
         olon = malloc(p * sizeof(float));
@@ -139,21 +139,21 @@ void plog_write(dasystem* das, int id, double depth, int p, int* lobs, double* l
             odate[oid] = o->date;
         }
 
-        ncw_put_var_float(fname, ncid, vid_lon, olon);
-        ncw_put_var_float(fname, ncid, vid_lat, olat);
-        ncw_put_var_float(fname, ncid, vid_depth, odepth);
-        ncw_put_var_float(fname, ncid, vid_val, val);
-        ncw_put_var_float(fname, ncid, vid_std, std);
-        ncw_put_var_float(fname, ncid, vid_fi, fi);
-        ncw_put_var_float(fname, ncid, vid_fj, fj);
-        ncw_put_var_float(fname, ncid, vid_fk, fk);
-        ncw_put_var_int(fname, ncid, vid_type, otype);
-        ncw_put_var_float(fname, ncid, vid_date, odate);
+        ncw_put_var_float(ncid, vid_lon, olon);
+        ncw_put_var_float(ncid, vid_lat, olat);
+        ncw_put_var_float(ncid, vid_depth, odepth);
+        ncw_put_var_float(ncid, vid_val, val);
+        ncw_put_var_float(ncid, vid_std, std);
+        ncw_put_var_float(ncid, vid_fi, fi);
+        ncw_put_var_float(ncid, vid_fj, fj);
+        ncw_put_var_float(ncid, vid_fk, fk);
+        ncw_put_var_int(ncid, vid_type, otype);
+        ncw_put_var_float(ncid, vid_date, odate);
 
-        ncw_put_var_int(fname, ncid, vid_ids, lobs);
-        ncw_put_var_double(fname, ncid, vid_lcoeffs, lcoeffs);
-        ncw_put_var_double(fname, ncid, vid_s, s);
-        ncw_put_var_double(fname, ncid, vid_S, S);
+        ncw_put_var_int(ncid, vid_ids, lobs);
+        ncw_put_var_double(ncid, vid_lcoeffs, lcoeffs);
+        ncw_put_var_double(ncid, vid_s, s);
+        ncw_put_var_double(ncid, vid_S, S);
 
         free(olon);
         free(olat);
@@ -167,9 +167,9 @@ void plog_write(dasystem* das, int id, double depth, int p, int* lobs, double* l
         free(odate);
     }
 
-    ncw_put_var_double(fname, ncid, vid_transform, transform);
+    ncw_put_var_double(ncid, vid_transform, transform);
 
-    ncw_close(fname, ncid);
+    ncw_close(ncid);
 }
 
 /** Writes the "actual" (interpolated) ensemble transform to a pointlog file.
@@ -184,13 +184,13 @@ void plog_writeactualtransform(dasystem* das, int id, float* transform)
     das_getfname_plog(das, plog, fname);
     ncw_open(fname, NC_WRITE, &ncid);
     if (das->mode == MODE_ENKF)
-        ncw_inq_varid(fname, ncid, "X5_actual", &vid);
+        ncw_inq_varid(ncid, "X5_actual", &vid);
     else if (das->mode == MODE_ENOI)
-        ncw_inq_varid(fname, ncid, "w_actual", &vid);
+        ncw_inq_varid(ncid, "w_actual", &vid);
     else
         enkf_quit("programming error");
-    ncw_put_var_float(fname, ncid, vid, transform);
-    ncw_close(fname, ncid);
+    ncw_put_var_float(ncid, vid, transform);
+    ncw_close(ncid);
 }
 
 /**
@@ -234,25 +234,25 @@ void plog_definestatevars(dasystem* das)
             das_getfname_plog(das, plog, fname);
             ncw_open(fname, NC_WRITE, &ncid);
             if (!ncw_var_exists(ncid, varname)) {
-                ncw_redef(fname, ncid);
-                ncw_inq_dimid(fname, ncid, "m", &dimid_m);
+                ncw_redef(ncid);
+                ncw_inq_dimid(ncid, "m", &dimid_m);
                 if (!(das->updatespec & UPDATE_OUTPUTINC))
                     snprintf(varname_an, NC_MAX_NAME, "%s_an", varname);
                 else
                     snprintf(varname_an, NC_MAX_NAME, "%s_inc", varname);
                 if (nk > 1) {
                     if (!ncw_dim_exists(ncid, nkname))
-                        ncw_def_dim(fname, ncid, nkname, nk, &dimid_nk);
+                        ncw_def_dim(ncid, nkname, nk, &dimid_nk);
                     else
-                        ncw_inq_dimid(fname, ncid, nkname, &dimid_nk);
+                        ncw_inq_dimid(ncid, nkname, &dimid_nk);
                     dimids[0] = dimid_nk;
                     dimids[1] = dimid_m;
-                    ncw_def_var(fname, ncid, varname, NC_FLOAT, 2, dimids, &varid);
-                    ncw_def_var(fname, ncid, varname_an, NC_FLOAT, 2, dimids, &varid);
+                    ncw_def_var(ncid, varname, NC_FLOAT, 2, dimids, &varid);
+                    ncw_def_var(ncid, varname_an, NC_FLOAT, 2, dimids, &varid);
                 } else {
                     dimids[0] = dimid_m;
-                    ncw_def_var(fname, ncid, varname, NC_FLOAT, 1, dimids, &varid);
-                    ncw_def_var(fname, ncid, varname_an, NC_FLOAT, 1, dimids, &varid);
+                    ncw_def_var(ncid, varname, NC_FLOAT, 1, dimids, &varid);
+                    ncw_def_var(ncid, varname_an, NC_FLOAT, 1, dimids, &varid);
                 }
 
                 {
@@ -261,10 +261,10 @@ void plog_definestatevars(dasystem* das)
 
                     model_getvarinflation(das->m, vid, &inflation[0], &tmp);
                     inflation[1] = (float) tmp;
-                    ncw_put_att_float(fname, ncid, varid, "INFLATION", 2, inflation);
+                    ncw_put_att_float(ncid, varid, "INFLATION", 2, inflation);
                 }
             }
-            ncw_close(fname, ncid);
+            ncw_close(ncid);
         }
     }
 }
@@ -309,17 +309,17 @@ static void plog_writestatevars_direct(dasystem* das, int nfields, void** fieldb
                 else
                     snprintf(varname, NC_MAX_NAME, "%s%s", f->varname, "_inc");
             }
-            ncw_inq_varid(fname, ncid, varname, &vid);
-            ncw_inq_varndims(fname, ncid, vid, &ndims);
+            ncw_inq_varid(ncid, varname, &vid);
+            ncw_inq_varndims(ncid, vid, &ndims);
             if (ndims == 1)
-                ncw_put_var_float(fname, ncid, vid, v);
+                ncw_put_var_float(ncid, vid, v);
             else if (ndims == 2) {
                 start[0] = f->level;
-                ncw_put_vara_float(fname, ncid, vid, start, count, v);
+                ncw_put_vara_float(ncid, vid, start, count, v);
             }
         }
 
-        ncw_close(fname, ncid);
+        ncw_close(ncid);
     }
 
     free(v);
@@ -344,11 +344,11 @@ static void plog_writestatevars_toassemble(dasystem* das, int nfields, void** fi
         snprintf(fname, MAXSTRLEN, "pointlog_%s-%03d.nc", f->varname, f->level);
         if (!isanalysis) {
             ncw_create(fname, NC_CLOBBER | NETCDF_FORMAT, &ncid);
-            ncw_def_dim(fname, ncid, "m", das->nmem, &dimid);
+            ncw_def_dim(ncid, "m", das->nmem, &dimid);
         } else {
             ncw_open(fname, NC_WRITE, &ncid);
-            ncw_inq_dimid(fname, ncid, "m", &dimid);
-            ncw_redef(fname, ncid);
+            ncw_inq_dimid(ncid, "m", &dimid);
+            ncw_redef(ncid);
         }
 
         for (p = 0; p < das->nplogs; ++p) {
@@ -364,9 +364,9 @@ static void plog_writestatevars_toassemble(dasystem* das, int nfields, void** fi
                     snprintf(varname, NC_MAX_NAME, "%s%s_%d_%d-%d", f->varname, "_inc", plog->i, plog->j, plog->gridid);
             }
 
-            ncw_def_var(fname, ncid, varname, NC_FLOAT, 1, &dimid, &vid[p]);
+            ncw_def_var(ncid, varname, NC_FLOAT, 1, &dimid, &vid[p]);
         }
-        ncw_enddef(fname, ncid);
+        ncw_enddef(ncid);
 
         v_src = (float***) fieldbuffer[fid];
 
@@ -380,9 +380,9 @@ static void plog_writestatevars_toassemble(dasystem* das, int nfields, void** fi
                 for (e = 0; e < das->nmem; ++e)
                     v[e] += v_src[das->nmem][plog->j][plog->i];
 
-            ncw_put_var_float(fname, ncid, vid[p], v);
+            ncw_put_var_float(ncid, vid[p], v);
         }
-        ncw_close(fname, ncid);
+        ncw_close(ncid);
     }
 
     free(vid);
@@ -454,22 +454,22 @@ void plog_assemblestatevars(dasystem* das)
 
                 snprintf(varname, NC_MAX_NAME, "%s%s_%d_%d-%d", f->varname, suffix, plog->i, plog->j, plog->gridid);
                 ncw_open(fname_src, NC_NOWRITE, &ncid_src);
-                ncw_inq_varid(fname_src, ncid_src, varname, &vid_src);
-                ncw_get_var_float(fname_src, ncid_src, vid_src, v);
-                ncw_close(fname_src, ncid_src);
+                ncw_inq_varid(ncid_src, varname, &vid_src);
+                ncw_get_var_float(ncid_src, vid_src, v);
+                ncw_close(ncid_src);
 
                 snprintf(varname, NC_MAX_NAME, "%s%s", f->varname, suffix);
-                ncw_inq_varid(fname_dst, ncid_dst, varname, &vid_dst);
-                ncw_inq_varndims(fname_dst, ncid_dst, vid_dst, &ndims_dst);
+                ncw_inq_varid(ncid_dst, varname, &vid_dst);
+                ncw_inq_varndims(ncid_dst, vid_dst, &ndims_dst);
                 if (ndims_dst == 1)
-                    ncw_put_var_float(fname_dst, ncid_dst, vid_dst, v);
+                    ncw_put_var_float(ncid_dst, vid_dst, v);
                 else if (ndims_dst == 2) {
                     start[0] = f->level;
-                    ncw_put_vara_float(fname_dst, ncid_dst, vid_dst, start, count, v);
+                    ncw_put_vara_float(ncid_dst, vid_dst, start, count, v);
                 }
             }
         }
-        ncw_close(fname_dst, ncid_dst);
+        ncw_close(ncid_dst);
     }
 
 #if defined(MPI)

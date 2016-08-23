@@ -38,13 +38,13 @@ static void nc_createX5(char fname[], char gridname[], int nj, int ni, int strid
 
     enkf_printf("      creating empty file \"%s\":\n", fname);
     ncw_create(fname, NC_CLOBBER | NETCDF_FORMAT, ncid);
-    ncw_def_dim(fname, *ncid, "nj", nj, &dimids[0]);
-    ncw_def_dim(fname, *ncid, "ni", ni, &dimids[1]);
-    ncw_def_dim(fname, *ncid, "msq", nmem * nmem, &dimids[2]);
-    ncw_put_att_int(fname, *ncid, NC_GLOBAL, "stride", 1, &stride);
-    ncw_def_var(fname, *ncid, "X5", NC_FLOAT, 3, dimids, varid_X5);
-    ncw_put_att_text(fname, *ncid, NC_GLOBAL, "grid_name", gridname);
-    ncw_enddef(fname, *ncid);
+    ncw_def_dim(*ncid, "nj", nj, &dimids[0]);
+    ncw_def_dim(*ncid, "ni", ni, &dimids[1]);
+    ncw_def_dim(*ncid, "msq", nmem * nmem, &dimids[2]);
+    ncw_put_att_int(*ncid, NC_GLOBAL, "stride", 1, &stride);
+    ncw_def_var(*ncid, "X5", NC_FLOAT, 3, dimids, varid_X5);
+    ncw_put_att_text(*ncid, NC_GLOBAL, "grid_name", gridname);
+    ncw_enddef(*ncid);
 }
 
 /**
@@ -63,7 +63,7 @@ static void nc_writeX5(char fname[], int ncid, int j, int ni, int nmem, int vari
     count[1] = ni;
     count[2] = nmem * nmem;
 
-    ncw_put_vara_float(fname, ncid, varid_X5, start, count, X5j);
+    ncw_put_vara_float(ncid, varid_X5, start, count, X5j);
 }
 
 /**
@@ -76,13 +76,13 @@ static void nc_createw(char fname[], char gridname[], int nj, int ni, int stride
 
     enkf_printf("    creating empty file \"%s\":\n", fname);
     ncw_create(fname, NC_CLOBBER | NETCDF_FORMAT, ncid);
-    ncw_def_dim(fname, *ncid, "nj", nj, &dimids[0]);
-    ncw_def_dim(fname, *ncid, "ni", ni, &dimids[1]);
-    ncw_def_dim(fname, *ncid, "m", nmem, &dimids[2]);
-    ncw_put_att_int(fname, *ncid, NC_GLOBAL, "stride", 1, &stride);
-    ncw_def_var(fname, *ncid, "w", NC_FLOAT, 3, dimids, varid_w);
-    ncw_put_att_text(fname, *ncid, NC_GLOBAL, "grid_name", gridname);
-    ncw_enddef(fname, *ncid);
+    ncw_def_dim(*ncid, "nj", nj, &dimids[0]);
+    ncw_def_dim(*ncid, "ni", ni, &dimids[1]);
+    ncw_def_dim(*ncid, "m", nmem, &dimids[2]);
+    ncw_put_att_int(*ncid, NC_GLOBAL, "stride", 1, &stride);
+    ncw_def_var(*ncid, "w", NC_FLOAT, 3, dimids, varid_w);
+    ncw_put_att_text(*ncid, NC_GLOBAL, "grid_name", gridname);
+    ncw_enddef(*ncid);
 }
 
 /**
@@ -101,7 +101,7 @@ static void nc_writew(char fname[], int ncid, int j, int ni, int nmem, int varid
     count[1] = ni;
     count[2] = nmem;
 
-    ncw_put_vara_float(fname, ncid, varid_w, start, count, wj);
+    ncw_put_vara_float(ncid, varid_w, start, count, wj);
 }
 
 typedef struct {
@@ -124,26 +124,26 @@ static void nc_writediag(char fname[], int nobstypes, int nj, int ni, int stride
 
     enkf_printf("    writing stats to \"%s\":\n", fname);
     ncw_create(fname, NC_CLOBBER | NETCDF_FORMAT, &ncid);
-    ncw_def_dim(fname, ncid, "nobstypes", nobstypes, &dimids[0]);
-    ncw_def_dim(fname, ncid, "nj", nj, &dimids[1]);
-    ncw_def_dim(fname, ncid, "ni", ni, &dimids[2]);
-    ncw_put_att_int(fname, ncid, NC_GLOBAL, "stride", 1, &stride);
-    ncw_def_var(fname, ncid, "nlobs", NC_INT, 2, &dimids[1], &varid_nlobs);
-    ncw_def_var(fname, ncid, "dfs", NC_FLOAT, 2, &dimids[1], &varid_dfs);
-    ncw_def_var(fname, ncid, "srf", NC_FLOAT, 2, &dimids[1], &varid_srf);
-    ncw_def_var(fname, ncid, "pnlobs", NC_INT, 3, dimids, &varid_pnlobs);
-    ncw_def_var(fname, ncid, "pdfs", NC_FLOAT, 3, dimids, &varid_pdfs);
-    ncw_def_var(fname, ncid, "psrf", NC_FLOAT, 3, dimids, &varid_psrf);
-    ncw_enddef(fname, ncid);
+    ncw_def_dim(ncid, "nobstypes", nobstypes, &dimids[0]);
+    ncw_def_dim(ncid, "nj", nj, &dimids[1]);
+    ncw_def_dim(ncid, "ni", ni, &dimids[2]);
+    ncw_put_att_int(ncid, NC_GLOBAL, "stride", 1, &stride);
+    ncw_def_var(ncid, "nlobs", NC_INT, 2, &dimids[1], &varid_nlobs);
+    ncw_def_var(ncid, "dfs", NC_FLOAT, 2, &dimids[1], &varid_dfs);
+    ncw_def_var(ncid, "srf", NC_FLOAT, 2, &dimids[1], &varid_srf);
+    ncw_def_var(ncid, "pnlobs", NC_INT, 3, dimids, &varid_pnlobs);
+    ncw_def_var(ncid, "pdfs", NC_FLOAT, 3, dimids, &varid_pdfs);
+    ncw_def_var(ncid, "psrf", NC_FLOAT, 3, dimids, &varid_psrf);
+    ncw_enddef(ncid);
 
-    ncw_put_var_int(fname, ncid, varid_nlobs, nlobs[0]);
-    ncw_put_var_float(fname, ncid, varid_dfs, dfs[0]);
-    ncw_put_var_float(fname, ncid, varid_srf, srf[0]);
-    ncw_put_var_int(fname, ncid, varid_pnlobs, pnlobs[0][0]);
-    ncw_put_var_float(fname, ncid, varid_pdfs, pdfs[0][0]);
-    ncw_put_var_float(fname, ncid, varid_psrf, psrf[0][0]);
+    ncw_put_var_int(ncid, varid_nlobs, nlobs[0]);
+    ncw_put_var_float(ncid, varid_dfs, dfs[0]);
+    ncw_put_var_float(ncid, varid_srf, srf[0]);
+    ncw_put_var_int(ncid, varid_pnlobs, pnlobs[0][0]);
+    ncw_put_var_float(ncid, varid_pdfs, pdfs[0][0]);
+    ncw_put_var_float(ncid, varid_psrf, psrf[0][0]);
 
-    ncw_close(fname, ncid);
+    ncw_close(ncid);
 }
 
 #if !defined(SHUFFLE_ROWS)
@@ -538,9 +538,9 @@ void das_calctransforms(dasystem* das)
 
         if (rank == 0) {
             if (das->mode == MODE_ENKF)
-                ncw_close(fname_XW, ncid_X5);
+                ncw_close(ncid_X5);
             else if (das->mode == MODE_ENOI)
-                ncw_close(fname_XW, ncid_w);
+                ncw_close(ncid_w);
         }
 #if defined(MPI)
         MPI_Barrier(MPI_COMM_WORLD);

@@ -98,46 +98,46 @@ void reader_amsre_standard(char* fname, int fid, obsmeta* meta, model* m, observ
         basename += 1;
 
     ncw_open(fname, NC_NOWRITE, &ncid);
-    ncw_inq_dimid(fname, ncid, "lon", &dimid_ni);
-    ncw_inq_dimlen(fname, ncid, dimid_ni, &ni);
-    ncw_inq_dimid(fname, ncid, "lat", &dimid_nj);
-    ncw_inq_dimlen(fname, ncid, dimid_nj, &nj);
+    ncw_inq_dimid(ncid, "lon", &dimid_ni);
+    ncw_inq_dimlen(ncid, dimid_ni, &ni);
+    ncw_inq_dimid(ncid, "lat", &dimid_nj);
+    ncw_inq_dimlen(ncid, dimid_nj, &nj);
     enkf_printf("        (ni, nj) = (%u, %u)\n", ni, nj);
 
-    ncw_inq_varid(fname, ncid, "lon", &varid_lon);
+    ncw_inq_varid(ncid, "lon", &varid_lon);
     lon = malloc(ni * sizeof(double));
-    ncw_get_var_double(fname, ncid, varid_lon, lon);
+    ncw_get_var_double(ncid, varid_lon, lon);
 
-    ncw_inq_varid(fname, ncid, "lat", &varid_lat);
+    ncw_inq_varid(ncid, "lat", &varid_lat);
     lat = malloc(nj * sizeof(double));
-    ncw_get_var_double(fname, ncid, varid_lat, lat);
+    ncw_get_var_double(ncid, varid_lat, lat);
 
-    ncw_inq_varid(fname, ncid, "a_sst", &varid_sst_a);
+    ncw_inq_varid(ncid, "a_sst", &varid_sst_a);
     sst_a = alloc2d(nj, ni, sizeof(double));
-    ncw_get_var_double(fname, ncid, varid_sst_a, sst_a[0]);
+    ncw_get_var_double(ncid, varid_sst_a, sst_a[0]);
 
-    ncw_inq_varid(fname, ncid, "d_sst", &varid_sst_d);
+    ncw_inq_varid(ncid, "d_sst", &varid_sst_d);
     sst_d = alloc2d(nj, ni, sizeof(double));
-    ncw_get_var_double(fname, ncid, varid_sst_d, sst_d[0]);
+    ncw_get_var_double(ncid, varid_sst_d, sst_d[0]);
 
-    ncw_inq_varid(fname, ncid, "a_wind", &varid_wind_a);
+    ncw_inq_varid(ncid, "a_wind", &varid_wind_a);
     wind_a = alloc2d(nj, ni, sizeof(double));
-    ncw_get_var_double(fname, ncid, varid_wind_a, wind_a[0]);
+    ncw_get_var_double(ncid, varid_wind_a, wind_a[0]);
 
-    ncw_inq_varid(fname, ncid, "d_wind", &varid_wind_d);
+    ncw_inq_varid(ncid, "d_wind", &varid_wind_d);
     wind_d = alloc2d(nj, ni, sizeof(double));
-    ncw_get_var_double(fname, ncid, varid_wind_d, wind_d[0]);
+    ncw_get_var_double(ncid, varid_wind_d, wind_d[0]);
 
-    ncw_inq_varid(fname, ncid, "a_time", &varid_time_a);
+    ncw_inq_varid(ncid, "a_time", &varid_time_a);
     time_a = alloc2d(nj, ni, sizeof(double));
-    ncw_get_var_double(fname, ncid, varid_time_a, time_a[0]);
+    ncw_get_var_double(ncid, varid_time_a, time_a[0]);
 
-    ncw_inq_varid(fname, ncid, "d_time", &varid_time_d);
+    ncw_inq_varid(ncid, "d_time", &varid_time_d);
     time_d = alloc2d(nj, ni, sizeof(double));
-    ncw_get_var_double(fname, ncid, varid_time_d, time_d[0]);
+    ncw_get_var_double(ncid, varid_time_d, time_d[0]);
 
-    ncw_inq_attlen(fname, ncid, varid_time_a, "units", &tunits_len);
-    ncw_get_att_text(fname, ncid, varid_time_a, "units", tunits);
+    ncw_inq_attlen(ncid, varid_time_a, "units", &tunits_len);
+    ncw_get_att_text(ncid, varid_time_a, "units", tunits);
     basename[14] = 0;
     if (!str2int(&basename[12], &day))
         enkf_quit("AMSRE reader: could not convert file name \"%s\" to date", fname);
@@ -149,7 +149,7 @@ void reader_amsre_standard(char* fname, int fid, obsmeta* meta, model* m, observ
         enkf_quit("AMSRE reader: could not convert file name \"%s\" to date", fname);
     snprintf(&tunits[tunits_len], MAXSTRLEN - tunits_len, " since %4d-%02d-%02d", year, month, day);
 
-    ncw_close(fname, ncid);
+    ncw_close(ncid);
 
     tunits_convert(tunits, &tunits_multiple, &tunits_offset);
 

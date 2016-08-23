@@ -74,25 +74,25 @@ void reader_aquarius_standard(char* fname, int fid, obsmeta* meta, model* m, obs
         basename += 1;
 
     ncw_open(fname, NC_NOWRITE, &ncid);
-    ncw_inq_dimid(fname, ncid, "longitude", &dimid_ni);
-    ncw_inq_dimlen(fname, ncid, dimid_ni, &ni);
-    ncw_inq_dimid(fname, ncid, "latitude", &dimid_nj);
-    ncw_inq_dimlen(fname, ncid, dimid_nj, &nj);
+    ncw_inq_dimid(ncid, "longitude", &dimid_ni);
+    ncw_inq_dimlen(ncid, dimid_ni, &ni);
+    ncw_inq_dimid(ncid, "latitude", &dimid_nj);
+    ncw_inq_dimlen(ncid, dimid_nj, &nj);
     enkf_printf("        (ni, nj) = (%u, %u)\n", ni, nj);
 
-    ncw_inq_varid(fname, ncid, "longitude", &varid_lon);
+    ncw_inq_varid(ncid, "longitude", &varid_lon);
     lon = malloc(ni * sizeof(double));
-    ncw_get_var_double(fname, ncid, varid_lon, lon);
+    ncw_get_var_double(ncid, varid_lon, lon);
 
-    ncw_inq_varid(fname, ncid, "latitude", &varid_lat);
+    ncw_inq_varid(ncid, "latitude", &varid_lat);
     lat = malloc(nj * sizeof(double));
-    ncw_get_var_double(fname, ncid, varid_lat, lat);
+    ncw_get_var_double(ncid, varid_lat, lat);
 
-    ncw_inq_varid(fname, ncid, "SSS", &varid_sss);
+    ncw_inq_varid(ncid, "SSS", &varid_sss);
     sss = alloc2d(nj, ni, sizeof(double));
-    ncw_get_var_double(fname, ncid, varid_sss, sss[0]);
-    ncw_get_att_double(fname, ncid, varid_sss, "_FillValue", &missval);
-    ncw_close(fname, ncid);
+    ncw_get_var_double(ncid, varid_sss, sss[0]);
+    ncw_get_att_double(ncid, varid_sss, "_FillValue", &missval);
+    ncw_close(ncid);
 
     basename[9] = 0;
     if (!str2int(&basename[7], &day))

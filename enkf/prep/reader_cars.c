@@ -61,47 +61,47 @@ void reader_cars_standard(char* fname, int fid, obsmeta* meta, model* m, observa
         enkf_quit("ERROR_STD is necessary but not specified for product \"%s\"", meta->product);
 
     ncw_open(fname, NC_NOWRITE, &ncid);
-    ncw_inq_dimid(fname, ncid, "nobs", &dimid_nprof);
-    ncw_inq_dimlen(fname, ncid, dimid_nprof, &nprof);
+    ncw_inq_dimid(ncid, "nobs", &dimid_nprof);
+    ncw_inq_dimlen(ncid, dimid_nprof, &nprof);
     enkf_printf("        # profiles = %u\n", (unsigned int) nprof);
     if (nprof == 0) {
-        ncw_close(fname, ncid);
+        ncw_close(ncid);
         return;
     }
 
-    ncw_inq_dimid(fname, ncid, "zt", &dimid_nz);
-    ncw_inq_dimlen(fname, ncid, dimid_nz, &nz);
+    ncw_inq_dimid(ncid, "zt", &dimid_nz);
+    ncw_inq_dimlen(ncid, dimid_nz, &nz);
     enkf_printf("        # z levels = %u\n", (unsigned int) nz);
 
-    ncw_inq_varid(fname, ncid, "lon", &varid_lon);
+    ncw_inq_varid(ncid, "lon", &varid_lon);
     lon = malloc(nprof * sizeof(double));
-    ncw_get_var_double(fname, ncid, varid_lon, lon);
+    ncw_get_var_double(ncid, varid_lon, lon);
 
-    ncw_inq_varid(fname, ncid, "lat", &varid_lat);
+    ncw_inq_varid(ncid, "lat", &varid_lat);
     lat = malloc(nprof * sizeof(double));
-    ncw_get_var_double(fname, ncid, varid_lat, lat);
+    ncw_get_var_double(ncid, varid_lat, lat);
 
-    ncw_inq_varid(fname, ncid, "zt", &varid_z);
+    ncw_inq_varid(ncid, "zt", &varid_z);
     z = alloc2d(nprof, nz, sizeof(double));
-    ncw_get_var_double(fname, ncid, varid_z, z[0]);
+    ncw_get_var_double(ncid, varid_z, z[0]);
 
     if (strncmp(meta->type, "TEM", 3) == 0)
-        ncw_inq_varid(fname, ncid, "temp", &varid_v);
+        ncw_inq_varid(ncid, "temp", &varid_v);
     else if (strncmp(meta->type, "SAL", 3) == 0)
-        ncw_inq_varid(fname, ncid, "salt", &varid_v);
+        ncw_inq_varid(ncid, "salt", &varid_v);
     else
         enkf_quit("observation type \"%s\" not handled for CARS product", meta->type);
     v = alloc2d(nprof, nz, sizeof(double));
-    ncw_get_var_double(fname, ncid, varid_v, v[0]);
-    ncw_get_att_double(fname, ncid, varid_v, "missing_value", &missval);
-    ncw_get_att_double(fname, ncid, varid_v, "valid_min", &validmin);
-    ncw_get_att_double(fname, ncid, varid_v, "valid_max", &validmax);
+    ncw_get_var_double(ncid, varid_v, v[0]);
+    ncw_get_att_double(ncid, varid_v, "missing_value", &missval);
+    ncw_get_att_double(ncid, varid_v, "valid_min", &validmin);
+    ncw_get_att_double(ncid, varid_v, "valid_max", &validmax);
 
-    ncw_inq_varid(fname, ncid, "type", &varid_type);
+    ncw_inq_varid(ncid, "type", &varid_type);
     type = malloc(nprof * sizeof(int));
-    ncw_get_var_int(fname, ncid, varid_type, type);
+    ncw_get_var_int(ncid, varid_type, type);
 
-    ncw_close(fname, ncid);
+    ncw_close(ncid);
 
     strcpy(buf, fname);
     len = strlen(buf);

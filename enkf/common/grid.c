@@ -679,20 +679,20 @@ grid* grid_create(void* p, int id)
 #endif
 
     ncw_open(fname, NC_NOWRITE, &ncid);
-    ncw_inq_dimid(fname, ncid, prm->xdimname, &dimid_x);
-    ncw_inq_dimid(fname, ncid, prm->ydimname, &dimid_y);
-    ncw_inq_dimid(fname, ncid, prm->zdimname, &dimid_z);
-    ncw_inq_dimlen(fname, ncid, dimid_x, &nx);
-    ncw_inq_dimlen(fname, ncid, dimid_y, &ny);
-    ncw_inq_dimlen(fname, ncid, dimid_z, &nz);
+    ncw_inq_dimid(ncid, prm->xdimname, &dimid_x);
+    ncw_inq_dimid(ncid, prm->ydimname, &dimid_y);
+    ncw_inq_dimid(ncid, prm->zdimname, &dimid_z);
+    ncw_inq_dimlen(ncid, dimid_x, &nx);
+    ncw_inq_dimlen(ncid, dimid_y, &ny);
+    ncw_inq_dimlen(ncid, dimid_z, &nz);
 
-    ncw_inq_varid(fname, ncid, prm->xvarname, &varid_x);
-    ncw_inq_varid(fname, ncid, prm->yvarname, &varid_y);
-    ncw_inq_varid(fname, ncid, prm->zvarname, &varid_z);
+    ncw_inq_varid(ncid, prm->xvarname, &varid_x);
+    ncw_inq_varid(ncid, prm->yvarname, &varid_y);
+    ncw_inq_varid(ncid, prm->zvarname, &varid_z);
 
-    ncw_inq_varndims(fname, ncid, varid_x, &ndims_x);
-    ncw_inq_varndims(fname, ncid, varid_y, &ndims_y);
-    ncw_inq_varndims(fname, ncid, varid_z, &ndims_z);
+    ncw_inq_varndims(ncid, varid_x, &ndims_x);
+    ncw_inq_varndims(ncid, varid_y, &ndims_y);
+    ncw_inq_varndims(ncid, varid_z, &ndims_z);
 
     if (ndims_x == 1 && ndims_y == 1) {
         double* x;
@@ -703,9 +703,9 @@ grid* grid_create(void* p, int id)
         y = malloc(ny * sizeof(double));
         z = malloc(nz * sizeof(double));
 
-        ncw_get_var_double(fname, ncid, varid_x, x);
-        ncw_get_var_double(fname, ncid, varid_y, y);
-        ncw_get_var_double(fname, ncid, varid_z, z);
+        ncw_get_var_double(ncid, varid_x, x);
+        ncw_get_var_double(ncid, varid_y, y);
+        ncw_get_var_double(ncid, varid_z, z);
 
         grid_setcoords(g, GRIDHTYPE_LATLON, NT_NONE, nx, ny, nz, x, y, z);
     }
@@ -719,9 +719,9 @@ grid* grid_create(void* p, int id)
         y = gu_alloc2d(ny, nx, sizeof(double));
         z = malloc(nz * sizeof(double));
 
-        ncw_get_var_double(fname, ncid, varid_x, x[0]);
-        ncw_get_var_double(fname, ncid, varid_y, y[0]);
-        ncw_get_var_double(fname, ncid, varid_z, z);
+        ncw_get_var_double(ncid, varid_x, x[0]);
+        ncw_get_var_double(ncid, varid_y, y[0]);
+        ncw_get_var_double(ncid, varid_z, z);
 
         grid_setcoords(g, GRIDHTYPE_CURVILINEAR, NT_COR, nx, ny, nz, x, y, z);
     }
@@ -732,15 +732,15 @@ grid* grid_create(void* p, int id)
     if (prm->depthvarname != NULL) {
         float** depth = alloc2d(ny, nx, sizeof(float));
 
-        ncw_inq_varid(fname, ncid, prm->depthvarname, &varid_depth);
-        ncw_get_var_float(fname, ncid, varid_depth, depth[0]);
+        ncw_inq_varid(ncid, prm->depthvarname, &varid_depth);
+        ncw_get_var_float(ncid, varid_depth, depth[0]);
         g->depth = depth;
     }
 
     if (prm->levelvarname != NULL) {
         g->numlevels = alloc2d(ny, nx, sizeof(int));
-        ncw_inq_varid(fname, ncid, prm->levelvarname, &varid_numlevels);
-        ncw_get_var_int(fname, ncid, varid_numlevels, g->numlevels[0]);
+        ncw_inq_varid(ncid, prm->levelvarname, &varid_numlevels);
+        ncw_get_var_int(ncid, varid_numlevels, g->numlevels[0]);
         if (g->vtype == GRIDVTYPE_SIGMA) {
             int i, j;
 
@@ -749,7 +749,7 @@ grid* grid_create(void* p, int id)
                     g->numlevels[j][i] *= nz;
         }
     }
-    ncw_close(fname, ncid);
+    ncw_close(ncid);
 
     if (g->numlevels == NULL && g->depth != NULL) {
         g->numlevels = alloc2d(ny, nx, sizeof(int));

@@ -644,13 +644,13 @@ int getnlevels(char fname[], char varname[])
     int containsrecorddim;
 
     ncw_open(fname, NC_NOWRITE, &ncid);
-    ncw_inq_varid(fname, ncid, varname, &varid);
-    ncw_inq_varndims(fname, ncid, varid, &ndims);
-    ncw_inq_vardimid(fname, ncid, varid, dimids);
+    ncw_inq_varid(ncid, varname, &varid);
+    ncw_inq_varndims(ncid, varid, &ndims);
+    ncw_inq_vardimid(ncid, varid, dimids);
     for (i = 0; i < ndims; ++i)
-        ncw_inq_dimlen(fname, ncid, dimids[i], &dimlen[i]);
+        ncw_inq_dimlen(ncid, dimids[i], &dimlen[i]);
     containsrecorddim = nc_isunlimdimid(ncid, dimids[0]);
-    ncw_close(fname, ncid);
+    ncw_close(ncid);
 
     if (ndims == 4) {
         assert(containsrecorddim);
@@ -678,12 +678,12 @@ void readfield(char fname[], char varname[], int k, float* v)
     int containsrecorddim;
 
     ncw_open(fname, NC_NOWRITE, &ncid);
-    ncw_inq_varid(fname, ncid, varname, &varid);
-    ncw_inq_varndims(fname, ncid, varid, &ndims);
+    ncw_inq_varid(ncid, varname, &varid);
+    ncw_inq_varndims(ncid, varid, &ndims);
     assert(ndims <= 4);
-    ncw_inq_vardimid(fname, ncid, varid, dimids);
+    ncw_inq_vardimid(ncid, varid, dimids);
     for (i = 0; i < ndims; ++i)
-        ncw_inq_dimlen(fname, ncid, dimids[i], &dimlen[i]);
+        ncw_inq_dimlen(ncid, dimids[i], &dimlen[i]);
 
     containsrecorddim = nc_isunlimdimid(ncid, dimids[0]);
 
@@ -734,7 +734,7 @@ void readfield(char fname[], char varname[], int k, float* v)
     } else
         enkf_quit("%s: can not read 2D field for \"%s\": # of dimensions = %d", fname, varname, ndims);
 
-    ncw_get_vara_float(fname, ncid, varid, start, count, v);
+    ncw_get_vara_float(ncid, varid, start, count, v);
 
     n = 1;
     for (i = 0; i < ndims; ++i)
@@ -743,7 +743,7 @@ void readfield(char fname[], char varname[], int k, float* v)
     if (ncw_att_exists(ncid, varid, "scale_factor")) {
         float scale_factor;
 
-        ncw_get_att_float(fname, ncid, varid, "scale_factor", &scale_factor);
+        ncw_get_att_float(ncid, varid, "scale_factor", &scale_factor);
         for (i = 0; i < n; ++i)
             v[i] *= scale_factor;
     }
@@ -751,13 +751,13 @@ void readfield(char fname[], char varname[], int k, float* v)
     if (ncw_att_exists(ncid, varid, "add_offset")) {
         float add_offset;
 
-        ncw_get_att_float(fname, ncid, varid, "add_offset", &add_offset);
+        ncw_get_att_float(ncid, varid, "add_offset", &add_offset);
 
         for (i = 0; i < n; ++i)
             v[i] += add_offset;
     }
 
-    ncw_close(fname, ncid);
+    ncw_close(ncid);
 }
 
 /** Writes one horizontal field (layer) for a variable to a NetCDF file.
@@ -774,12 +774,12 @@ void writefield(char fname[], char varname[], int k, float* v)
     int containsrecorddim;
 
     ncw_open(fname, NC_WRITE, &ncid);
-    ncw_inq_varid(fname, ncid, varname, &varid);
-    ncw_inq_varndims(fname, ncid, varid, &ndims);
+    ncw_inq_varid(ncid, varname, &varid);
+    ncw_inq_varndims(ncid, varid, &ndims);
     assert(ndims <= 4);
-    ncw_inq_vardimid(fname, ncid, varid, dimids);
+    ncw_inq_vardimid(ncid, varid, dimids);
     for (i = 0; i < ndims; ++i)
-        ncw_inq_dimlen(fname, ncid, dimids[i], &dimlen[i]);
+        ncw_inq_dimlen(ncid, dimids[i], &dimlen[i]);
 
     containsrecorddim = nc_isunlimdimid(ncid, dimids[0]);
 
@@ -831,7 +831,7 @@ void writefield(char fname[], char varname[], int k, float* v)
     if (ncw_att_exists(ncid, varid, "add_offset")) {
         float add_offset;
 
-        ncw_get_att_float(fname, ncid, varid, "add_offset", &add_offset);
+        ncw_get_att_float(ncid, varid, "add_offset", &add_offset);
 
         for (i = 0; i < n; ++i)
             v[i] -= add_offset;
@@ -840,7 +840,7 @@ void writefield(char fname[], char varname[], int k, float* v)
     if (ncw_att_exists(ncid, varid, "scale_factor")) {
         float scale_factor;
 
-        ncw_get_att_float(fname, ncid, varid, "scale_factor", &scale_factor);
+        ncw_get_att_float(ncid, varid, "scale_factor", &scale_factor);
         for (i = 0; i < n; ++i)
             v[i] /= scale_factor;
     }
@@ -849,15 +849,15 @@ void writefield(char fname[], char varname[], int k, float* v)
         nc_type xtype;
         size_t len;
 
-        ncw_inq_att(fname, ncid, varid, "valid_range", &xtype, &len);
+        ncw_inq_att(ncid, varid, "valid_range", &xtype, &len);
         if (xtype == NC_SHORT) {
             int valid_range[2];
             int missing_value = SHRT_MIN;
 
             if (ncw_att_exists(ncid, varid, "missing_value"))
-                ncw_get_att_int(fname, ncid, varid, "missing_value", &missing_value);
+                ncw_get_att_int(ncid, varid, "missing_value", &missing_value);
 
-            ncw_get_att_int(fname, ncid, varid, "valid_range", valid_range);
+            ncw_get_att_int(ncid, varid, "valid_range", valid_range);
             for (i = 0; i < n; ++i) {
                 if (v[i] == missing_value)
                     continue;
@@ -871,9 +871,9 @@ void writefield(char fname[], char varname[], int k, float* v)
             float missing_value = -FLT_MAX;
 
             if (ncw_att_exists(ncid, varid, "missing_value"))
-                ncw_get_att_float(fname, ncid, varid, "missing_value", &missing_value);
+                ncw_get_att_float(ncid, varid, "missing_value", &missing_value);
 
-            ncw_get_att_float(fname, ncid, varid, "valid_range", valid_range);
+            ncw_get_att_float(ncid, varid, "valid_range", valid_range);
             for (i = 0; i < n; ++i) {
                 if (v[i] == missing_value)
                     continue;
@@ -886,8 +886,8 @@ void writefield(char fname[], char varname[], int k, float* v)
             enkf_quit("%s: %s: output for types other than NC_SHORT and NC_FLOAT are not handled yet", fname, varname);
     }
 
-    ncw_put_vara_float(fname, ncid, varid, start, count, v);
-    ncw_close(fname, ncid);
+    ncw_put_vara_float(ncid, varid, start, count, v);
+    ncw_close(ncid);
 }
 
 /** Writes one horizontal field (layer) for a variable to a NetCDF file.
@@ -904,12 +904,12 @@ void writerow(char fname[], char varname[], int k, int j, float* v)
     int containsrecorddim;
 
     ncw_open(fname, NC_WRITE, &ncid);
-    ncw_inq_varid(fname, ncid, varname, &varid);
-    ncw_inq_varndims(fname, ncid, varid, &ndims);
+    ncw_inq_varid(ncid, varname, &varid);
+    ncw_inq_varndims(ncid, varid, &ndims);
     assert(ndims <= 4);
-    ncw_inq_vardimid(fname, ncid, varid, dimids);
+    ncw_inq_vardimid(ncid, varid, dimids);
     for (i = 0; i < ndims; ++i)
-        ncw_inq_dimlen(fname, ncid, dimids[i], &dimlen[i]);
+        ncw_inq_dimlen(ncid, dimids[i], &dimlen[i]);
 
     containsrecorddim = nc_isunlimdimid(ncid, dimids[0]);
 
@@ -959,7 +959,7 @@ void writerow(char fname[], char varname[], int k, int j, float* v)
     if (ncw_att_exists(ncid, varid, "add_offset")) {
         float add_offset;
 
-        ncw_get_att_float(fname, ncid, varid, "add_offset", &add_offset);
+        ncw_get_att_float(ncid, varid, "add_offset", &add_offset);
 
         for (i = 0; i < n; ++i)
             v[i] -= add_offset;
@@ -968,7 +968,7 @@ void writerow(char fname[], char varname[], int k, int j, float* v)
     if (ncw_att_exists(ncid, varid, "scale_factor")) {
         float scale_factor;
 
-        ncw_get_att_float(fname, ncid, varid, "scale_factor", &scale_factor);
+        ncw_get_att_float(ncid, varid, "scale_factor", &scale_factor);
         for (i = 0; i < n; ++i)
             v[i] /= scale_factor;
     }
@@ -977,15 +977,15 @@ void writerow(char fname[], char varname[], int k, int j, float* v)
         nc_type xtype;
         size_t len;
 
-        ncw_inq_att(fname, ncid, varid, "valid_range", &xtype, &len);
+        ncw_inq_att(ncid, varid, "valid_range", &xtype, &len);
         if (xtype == NC_SHORT) {
             int valid_range[2];
             int missing_value = SHRT_MIN;
 
             if (ncw_att_exists(ncid, varid, "missing_value"))
-                ncw_get_att_int(fname, ncid, varid, "missing_value", &missing_value);
+                ncw_get_att_int(ncid, varid, "missing_value", &missing_value);
 
-            ncw_get_att_int(fname, ncid, varid, "valid_range", valid_range);
+            ncw_get_att_int(ncid, varid, "valid_range", valid_range);
             for (i = 0; i < n; ++i) {
                 if (v[i] == missing_value)
                     continue;
@@ -999,9 +999,9 @@ void writerow(char fname[], char varname[], int k, int j, float* v)
             float missing_value = -FLT_MAX;
 
             if (ncw_att_exists(ncid, varid, "missing_value"))
-                ncw_get_att_float(fname, ncid, varid, "missing_value", &missing_value);
+                ncw_get_att_float(ncid, varid, "missing_value", &missing_value);
 
-            ncw_get_att_float(fname, ncid, varid, "valid_range", valid_range);
+            ncw_get_att_float(ncid, varid, "valid_range", valid_range);
             for (i = 0; i < n; ++i) {
                 if (v[i] == missing_value)
                     continue;
@@ -1014,8 +1014,8 @@ void writerow(char fname[], char varname[], int k, int j, float* v)
             enkf_quit("%s: %s: output for types other than NC_SHORT and NC_FLOAT are not handled yet", fname, varname);
     }
 
-    ncw_put_vara_float(fname, ncid, varid, start, count, v);
-    ncw_close(fname, ncid);
+    ncw_put_vara_float(ncid, varid, start, count, v);
+    ncw_close(ncid);
 }
 
 /**
@@ -1032,12 +1032,12 @@ void read3dfield(char* fname, char* varname, float* v)
     int containsrecorddim;
 
     ncw_open(fname, NC_NOWRITE, &ncid);
-    ncw_inq_varid(fname, ncid, varname, &varid);
-    ncw_inq_varndims(fname, ncid, varid, &ndims);
+    ncw_inq_varid(ncid, varname, &varid);
+    ncw_inq_varndims(ncid, varid, &ndims);
     assert(ndims <= 4);
-    ncw_inq_vardimid(fname, ncid, varid, dimids);
+    ncw_inq_vardimid(ncid, varid, dimids);
     for (i = 0; i < ndims; ++i)
-        ncw_inq_dimlen(fname, ncid, dimids[i], &dimlen[i]);
+        ncw_inq_dimlen(ncid, dimids[i], &dimlen[i]);
 
     containsrecorddim = nc_isunlimdimid(ncid, dimids[0]);
 
@@ -1062,7 +1062,7 @@ void read3dfield(char* fname, char* varname, float* v)
     } else
         enkf_quit("%s: can not read 3D field for \"%s\": # of dimensions = %d", fname, varname, ndims);
 
-    ncw_get_vara_float(fname, ncid, varid, start, count, v);
+    ncw_get_vara_float(ncid, varid, start, count, v);
 
     n = 1;
     for (i = 0; i < ndims; ++i)
@@ -1071,7 +1071,7 @@ void read3dfield(char* fname, char* varname, float* v)
     if (ncw_att_exists(ncid, varid, "scale_factor")) {
         float scale_factor;
 
-        ncw_get_att_float(fname, ncid, varid, "scale_factor", &scale_factor);
+        ncw_get_att_float(ncid, varid, "scale_factor", &scale_factor);
         for (i = 0; i < n; ++i)
             v[i] *= scale_factor;
     }
@@ -1079,13 +1079,13 @@ void read3dfield(char* fname, char* varname, float* v)
     if (ncw_att_exists(ncid, varid, "add_offset")) {
         float add_offset;
 
-        ncw_get_att_float(fname, ncid, varid, "add_offset", &add_offset);
+        ncw_get_att_float(ncid, varid, "add_offset", &add_offset);
 
         for (i = 0; i < n; ++i)
             v[i] += add_offset;
     }
 
-    ncw_close(fname, ncid);
+    ncw_close(ncid);
 }
 
 /** Tries to determine whether the variable is 3D or 2D.
@@ -1099,12 +1099,12 @@ int is3d(char fname[], char varname[])
     int containsrecorddim;
 
     ncw_open(fname, NC_NOWRITE, &ncid);
-    ncw_inq_varid(fname, ncid, varname, &varid);
-    ncw_inq_varndims(fname, ncid, varid, &ndims);
+    ncw_inq_varid(ncid, varname, &varid);
+    ncw_inq_varndims(ncid, varid, &ndims);
     assert(ndims <= 4);
-    ncw_inq_vardimid(fname, ncid, varid, dimids);
+    ncw_inq_vardimid(ncid, varid, dimids);
     containsrecorddim = nc_isunlimdimid(ncid, dimids[0]);
-    ncw_close(fname, ncid);
+    ncw_close(ncid);
 
     ndims -= containsrecorddim;
     assert(ndims >= 2 && ndims <= 3);
@@ -1125,14 +1125,14 @@ int getnumlevels(char fname[], char varname[])
     int i;
 
     ncw_open(fname, NC_NOWRITE, &ncid);
-    ncw_inq_varid(fname, ncid, varname, &varid);
-    ncw_inq_varndims(fname, ncid, varid, &ndims);
-    ncw_inq_vardimid(fname, ncid, varid, dimids);
+    ncw_inq_varid(ncid, varname, &varid);
+    ncw_inq_varndims(ncid, varid, &ndims);
+    ncw_inq_vardimid(ncid, varid, dimids);
     for (i = 0; i < ndims; ++i)
-        ncw_inq_dimlen(fname, ncid, dimids[i], &dimlen[i]);
+        ncw_inq_dimlen(ncid, dimids[i], &dimlen[i]);
 
     containsrecorddim = nc_isunlimdimid(ncid, dimids[0]);
-    ncw_close(fname, ncid);
+    ncw_close(ncid);
 
     if (ndims == 4) {
         assert(containsrecorddim);

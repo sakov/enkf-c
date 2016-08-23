@@ -60,36 +60,36 @@ void reader_amsr2_standard(char* fname, int fid, obsmeta* meta, model* m, observ
 
     ncw_open(fname, NC_NOWRITE, &ncid);
 
-    ncw_inq_dimid(fname, ncid, "nobs", &dimid_nobs);
-    ncw_inq_dimlen(fname, ncid, dimid_nobs, &nobs_local);
+    ncw_inq_dimid(ncid, "nobs", &dimid_nobs);
+    ncw_inq_dimlen(ncid, dimid_nobs, &nobs_local);
     enkf_printf("        nobs = %u\n", (unsigned int) nobs_local);
 
     if (nobs_local == 0) {
-        ncw_close(fname, ncid);
+        ncw_close(ncid);
         return;
     }
 
-    ncw_inq_varid(fname, ncid, "lon", &varid_lon);
+    ncw_inq_varid(ncid, "lon", &varid_lon);
     lon = malloc(nobs_local * sizeof(double));
-    ncw_get_var_double(fname, ncid, varid_lon, lon);
+    ncw_get_var_double(ncid, varid_lon, lon);
 
-    ncw_inq_varid(fname, ncid, "lat", &varid_lat);
+    ncw_inq_varid(ncid, "lat", &varid_lat);
     lat = malloc(nobs_local * sizeof(double));
-    ncw_get_var_double(fname, ncid, varid_lat, lat);
+    ncw_get_var_double(ncid, varid_lat, lat);
 
-    ncw_inq_varid(fname, ncid, "sst", &varid_sst);
+    ncw_inq_varid(ncid, "sst", &varid_sst);
     sst = malloc(nobs_local * sizeof(double));
-    ncw_get_var_double(fname, ncid, varid_sst, sst);
+    ncw_get_var_double(ncid, varid_sst, sst);
 
-    ncw_inq_varid(fname, ncid, "error", &varid_error);
+    ncw_inq_varid(ncid, "error", &varid_error);
     error_std = malloc(nobs_local * sizeof(double));
-    ncw_get_var_double(fname, ncid, varid_error, error_std);
+    ncw_get_var_double(ncid, varid_error, error_std);
 
-    ncw_inq_varid(fname, ncid, "age", &varid_time);
+    ncw_inq_varid(ncid, "age", &varid_time);
     time = malloc(nobs_local * sizeof(double));
-    ncw_get_var_double(fname, ncid, varid_time, time);
-    ncw_inq_attlen(fname, ncid, varid_time, "units", &tunits_len);
-    ncw_get_att_text(fname, ncid, varid_time, "units", tunits);
+    ncw_get_var_double(ncid, varid_time, time);
+    ncw_inq_attlen(ncid, varid_time, "units", &tunits_len);
+    ncw_get_att_text(ncid, varid_time, "units", tunits);
     basename[14] = 0;
     if (!str2int(&basename[12], &day))
         enkf_quit("AMSR2 reader: could not convert file name \"%s\" to date", fname);
@@ -101,7 +101,7 @@ void reader_amsr2_standard(char* fname, int fid, obsmeta* meta, model* m, observ
         enkf_quit("AMSR2 reader: could not convert file name \"%s\" to date", fname);
     snprintf(&tunits[tunits_len], MAXSTRLEN - tunits_len, " since %4d-%02d-%02d", year, month, day);
 
-    ncw_close(fname, ncid);
+    ncw_close(ncid);
 
     tunits_convert(tunits, &tunits_multiple, &tunits_offset);
 

@@ -1,3 +1,7 @@
+v. 1.46.0
+   PS 24082016
+   -- Updated common/ncw.[ch] to ncw-c v2.00. Updated the calls to ncw_*()
+      functions to match the new interfaces.
 v. 1.45.2
    PS 18082016
    -- Slightly modified update_HE() and update_Hx() to fix a once-in-a-lifetime

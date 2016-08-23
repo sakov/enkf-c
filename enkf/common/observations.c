@@ -463,12 +463,12 @@ void obs_read(observations* obs, char fname[])
 
     ncw_open(fname, NC_NOWRITE, &ncid);
 
-    ncw_get_att_double(fname, ncid, NC_GLOBAL, "DA_JULDAY", &da_julday);
+    ncw_get_att_double(ncid, NC_GLOBAL, "DA_JULDAY", &da_julday);
     if (!enkf_noobsdatecheck && (isnan(da_julday) || fabs(obs->da_date - da_julday) > 1e-6))
         enkf_quit("\"observations.nc\" from a different cycle");
 
-    ncw_inq_dimid(fname, ncid, "nobs", dimid_nobs);
-    ncw_inq_dimlen(fname, ncid, dimid_nobs[0], &nobs);
+    ncw_inq_dimid(ncid, "nobs", dimid_nobs);
+    ncw_inq_dimlen(ncid, dimid_nobs[0], &nobs);
 
     obs->nobs = nobs;
     if (nobs == 0) {
@@ -479,25 +479,25 @@ void obs_read(observations* obs, char fname[])
     obs->data = malloc(nobs * sizeof(observation));
     enkf_printf("    %u observations\n", (unsigned int) nobs);
 
-    ncw_inq_varid(fname, ncid, "type", &varid_type);
-    ncw_inq_varid(fname, ncid, "product", &varid_product);
-    ncw_inq_varid(fname, ncid, "instrument", &varid_instrument);
-    ncw_inq_varid(fname, ncid, "id", &varid_id);
-    ncw_inq_varid(fname, ncid, "id_orig", &varid_idorig);
-    ncw_inq_varid(fname, ncid, "fid", &varid_fid);
-    ncw_inq_varid(fname, ncid, "batch", &varid_batch);
-    ncw_inq_varid(fname, ncid, "value", &varid_value);
-    ncw_inq_varid(fname, ncid, "std", &varid_std);
-    ncw_inq_varid(fname, ncid, "lon", &varid_lon);
-    ncw_inq_varid(fname, ncid, "lat", &varid_lat);
-    ncw_inq_varid(fname, ncid, "depth", &varid_depth);
-    ncw_inq_varid(fname, ncid, "model_depth", &varid_mdepth);
-    ncw_inq_varid(fname, ncid, "fi", &varid_fi);
-    ncw_inq_varid(fname, ncid, "fj", &varid_fj);
-    ncw_inq_varid(fname, ncid, "fk", &varid_fk);
-    ncw_inq_varid(fname, ncid, "date", &varid_date);
-    ncw_inq_varid(fname, ncid, "status", &varid_status);
-    ncw_inq_varid(fname, ncid, "aux", &varid_aux);
+    ncw_inq_varid(ncid, "type", &varid_type);
+    ncw_inq_varid(ncid, "product", &varid_product);
+    ncw_inq_varid(ncid, "instrument", &varid_instrument);
+    ncw_inq_varid(ncid, "id", &varid_id);
+    ncw_inq_varid(ncid, "id_orig", &varid_idorig);
+    ncw_inq_varid(ncid, "fid", &varid_fid);
+    ncw_inq_varid(ncid, "batch", &varid_batch);
+    ncw_inq_varid(ncid, "value", &varid_value);
+    ncw_inq_varid(ncid, "std", &varid_std);
+    ncw_inq_varid(ncid, "lon", &varid_lon);
+    ncw_inq_varid(ncid, "lat", &varid_lat);
+    ncw_inq_varid(ncid, "depth", &varid_depth);
+    ncw_inq_varid(ncid, "model_depth", &varid_mdepth);
+    ncw_inq_varid(ncid, "fi", &varid_fi);
+    ncw_inq_varid(ncid, "fj", &varid_fj);
+    ncw_inq_varid(ncid, "fk", &varid_fk);
+    ncw_inq_varid(ncid, "date", &varid_date);
+    ncw_inq_varid(ncid, "status", &varid_status);
+    ncw_inq_varid(ncid, "aux", &varid_aux);
 
     id = malloc(nobs * sizeof(int));
     id_orig = malloc(nobs * sizeof(int));
@@ -522,74 +522,74 @@ void obs_read(observations* obs, char fname[])
     /*
      * type 
      */
-    ncw_inq_varnatts(fname, ncid, varid_type, &nobstypes);
+    ncw_inq_varnatts(ncid, varid_type, &nobstypes);
     for (i = 0; i < nobstypes; ++i) {
         char attname[NC_MAX_NAME];
 
-        ncw_inq_attname(fname, ncid, varid_type, i, attname);
+        ncw_inq_attname(ncid, varid_type, i, attname);
         assert(obstype_getid(obs->nobstypes, obs->obstypes, attname) >= 0);
     }
 
     /*
      * product 
      */
-    ncw_inq_varnatts(fname, ncid, varid_product, &nproducts);
+    ncw_inq_varnatts(ncid, varid_product, &nproducts);
     for (i = 0; i < nproducts; ++i) {
         char attname[NC_MAX_NAME];
 
-        ncw_inq_attname(fname, ncid, varid_product, i, attname);
+        ncw_inq_attname(ncid, varid_product, i, attname);
         st_add(obs->products, attname, i);
     }
 
     /*
      * instrument 
      */
-    ncw_inq_varnatts(fname, ncid, varid_instrument, &ninstruments);
+    ncw_inq_varnatts(ncid, varid_instrument, &ninstruments);
     for (i = 0; i < ninstruments; ++i) {
         char attname[NC_MAX_NAME];
 
-        ncw_inq_attname(fname, ncid, varid_instrument, i, attname);
+        ncw_inq_attname(ncid, varid_instrument, i, attname);
         st_add(obs->instruments, attname, i);
     }
 
     /*
      * datafiles
      */
-    ncw_inq_varnatts(fname, ncid, varid_fid, &ndatafiles);
+    ncw_inq_varnatts(ncid, varid_fid, &ndatafiles);
     for (i = 0; i < ndatafiles; ++i) {
         char attname[NC_MAX_NAME];
         char attstr[MAXSTRLEN];
         size_t len;
 
-        ncw_inq_attname(fname, ncid, varid_fid, i, attname);
-        ncw_inq_attlen(fname, ncid, varid_fid, attname, &len);
+        ncw_inq_attname(ncid, varid_fid, i, attname);
+        ncw_inq_attlen(ncid, varid_fid, attname, &len);
         assert(len < MAXSTRLEN);
-        ncw_get_att_text(fname, ncid, varid_fid, attname, attstr);
+        ncw_get_att_text(ncid, varid_fid, attname, attstr);
         attstr[len] = 0;
         st_add_ifabscent(obs->datafiles, attstr, i);
     }
 
-    ncw_get_var_int(fname, ncid, varid_id, id);
-    ncw_get_var_int(fname, ncid, varid_idorig, id_orig);
-    ncw_get_var_short(fname, ncid, varid_type, type);
-    ncw_get_var_short(fname, ncid, varid_product, product);
-    ncw_get_var_short(fname, ncid, varid_instrument, instrument);
-    ncw_get_var_short(fname, ncid, varid_fid, fid);
-    ncw_get_var_short(fname, ncid, varid_batch, batch);
-    ncw_get_var_double(fname, ncid, varid_value, value);
-    ncw_get_var_double(fname, ncid, varid_std, std);
-    ncw_get_var_double(fname, ncid, varid_lon, lon);
-    ncw_get_var_double(fname, ncid, varid_lat, lat);
-    ncw_get_var_double(fname, ncid, varid_depth, depth);
-    ncw_get_var_double(fname, ncid, varid_mdepth, model_depth);
-    ncw_get_var_double(fname, ncid, varid_fi, fi);
-    ncw_get_var_double(fname, ncid, varid_fj, fj);
-    ncw_get_var_double(fname, ncid, varid_fk, fk);
-    ncw_get_var_double(fname, ncid, varid_date, date);
-    ncw_get_var_int(fname, ncid, varid_status, status);
-    ncw_get_var_int(fname, ncid, varid_aux, aux);
+    ncw_get_var_int(ncid, varid_id, id);
+    ncw_get_var_int(ncid, varid_idorig, id_orig);
+    ncw_get_var_short(ncid, varid_type, type);
+    ncw_get_var_short(ncid, varid_product, product);
+    ncw_get_var_short(ncid, varid_instrument, instrument);
+    ncw_get_var_short(ncid, varid_fid, fid);
+    ncw_get_var_short(ncid, varid_batch, batch);
+    ncw_get_var_double(ncid, varid_value, value);
+    ncw_get_var_double(ncid, varid_std, std);
+    ncw_get_var_double(ncid, varid_lon, lon);
+    ncw_get_var_double(ncid, varid_lat, lat);
+    ncw_get_var_double(ncid, varid_depth, depth);
+    ncw_get_var_double(ncid, varid_mdepth, model_depth);
+    ncw_get_var_double(ncid, varid_fi, fi);
+    ncw_get_var_double(ncid, varid_fj, fj);
+    ncw_get_var_double(ncid, varid_fk, fk);
+    ncw_get_var_double(ncid, varid_date, date);
+    ncw_get_var_int(ncid, varid_status, status);
+    ncw_get_var_int(ncid, varid_aux, aux);
 
-    ncw_close(fname, ncid);
+    ncw_close(ncid);
 
     for (i = 0; i < (int) nobs; ++i) {
         observation* m = &obs->data[i];
@@ -680,65 +680,65 @@ void obs_write(observations* obs, char fname[])
         enkf_quit("file \"%s\" already exists", fname);
     ncw_create(fname, NC_NOCLOBBER | NETCDF_FORMAT, &ncid);
 
-    ncw_put_att_double(fname, ncid, NC_GLOBAL, "DA_JULDAY", 1, &obs->da_date);
+    ncw_put_att_double(ncid, NC_GLOBAL, "DA_JULDAY", 1, &obs->da_date);
 
-    ncw_def_dim(fname, ncid, "nobs", nobs, dimid_nobs);
-    ncw_def_var(fname, ncid, "id", NC_INT, 1, dimid_nobs, &varid_id);
-    ncw_def_var(fname, ncid, "id_orig", NC_INT, 1, dimid_nobs, &varid_idorig);
-    ncw_def_var(fname, ncid, "type", NC_SHORT, 1, dimid_nobs, &varid_type);
-    ncw_def_var(fname, ncid, "product", NC_SHORT, 1, dimid_nobs, &varid_product);
-    ncw_def_var(fname, ncid, "instrument", NC_SHORT, 1, dimid_nobs, &varid_instrument);
-    ncw_def_var(fname, ncid, "fid", NC_SHORT, 1, dimid_nobs, &varid_fid);
-    ncw_def_var(fname, ncid, "batch", NC_SHORT, 1, dimid_nobs, &varid_batch);
-    ncw_def_var(fname, ncid, "value", NC_FLOAT, 1, dimid_nobs, &varid_value);
-    ncw_def_var(fname, ncid, "std", NC_FLOAT, 1, dimid_nobs, &varid_std);
-    ncw_def_var(fname, ncid, "lon", NC_FLOAT, 1, dimid_nobs, &varid_lon);
-    ncw_def_var(fname, ncid, "lat", NC_FLOAT, 1, dimid_nobs, &varid_lat);
-    ncw_def_var(fname, ncid, "depth", NC_FLOAT, 1, dimid_nobs, &varid_depth);
-    ncw_def_var(fname, ncid, "model_depth", NC_FLOAT, 1, dimid_nobs, &varid_mdepth);
-    ncw_def_var(fname, ncid, "fi", NC_FLOAT, 1, dimid_nobs, &varid_fi);
-    ncw_def_var(fname, ncid, "fj", NC_FLOAT, 1, dimid_nobs, &varid_fj);
-    ncw_def_var(fname, ncid, "fk", NC_FLOAT, 1, dimid_nobs, &varid_fk);
-    ncw_def_var(fname, ncid, "date", NC_FLOAT, 1, dimid_nobs, &varid_date);
-    ncw_def_var(fname, ncid, "status", NC_BYTE, 1, dimid_nobs, &varid_status);
+    ncw_def_dim(ncid, "nobs", nobs, dimid_nobs);
+    ncw_def_var(ncid, "id", NC_INT, 1, dimid_nobs, &varid_id);
+    ncw_def_var(ncid, "id_orig", NC_INT, 1, dimid_nobs, &varid_idorig);
+    ncw_def_var(ncid, "type", NC_SHORT, 1, dimid_nobs, &varid_type);
+    ncw_def_var(ncid, "product", NC_SHORT, 1, dimid_nobs, &varid_product);
+    ncw_def_var(ncid, "instrument", NC_SHORT, 1, dimid_nobs, &varid_instrument);
+    ncw_def_var(ncid, "fid", NC_SHORT, 1, dimid_nobs, &varid_fid);
+    ncw_def_var(ncid, "batch", NC_SHORT, 1, dimid_nobs, &varid_batch);
+    ncw_def_var(ncid, "value", NC_FLOAT, 1, dimid_nobs, &varid_value);
+    ncw_def_var(ncid, "std", NC_FLOAT, 1, dimid_nobs, &varid_std);
+    ncw_def_var(ncid, "lon", NC_FLOAT, 1, dimid_nobs, &varid_lon);
+    ncw_def_var(ncid, "lat", NC_FLOAT, 1, dimid_nobs, &varid_lat);
+    ncw_def_var(ncid, "depth", NC_FLOAT, 1, dimid_nobs, &varid_depth);
+    ncw_def_var(ncid, "model_depth", NC_FLOAT, 1, dimid_nobs, &varid_mdepth);
+    ncw_def_var(ncid, "fi", NC_FLOAT, 1, dimid_nobs, &varid_fi);
+    ncw_def_var(ncid, "fj", NC_FLOAT, 1, dimid_nobs, &varid_fj);
+    ncw_def_var(ncid, "fk", NC_FLOAT, 1, dimid_nobs, &varid_fk);
+    ncw_def_var(ncid, "date", NC_FLOAT, 1, dimid_nobs, &varid_date);
+    ncw_def_var(ncid, "status", NC_BYTE, 1, dimid_nobs, &varid_status);
     i = STATUS_OK;
-    ncw_put_att_int(fname, ncid, varid_status, "STATUS_OK", 1, &i);
+    ncw_put_att_int(ncid, varid_status, "STATUS_OK", 1, &i);
     i = STATUS_OUTSIDEGRID;
-    ncw_put_att_int(fname, ncid, varid_status, "STATUS_OUTSIDEGRID", 1, &i);
+    ncw_put_att_int(ncid, varid_status, "STATUS_OUTSIDEGRID", 1, &i);
     i = STATUS_LAND;
-    ncw_put_att_int(fname, ncid, varid_status, "STATUS_LAND", 1, &i);
+    ncw_put_att_int(ncid, varid_status, "STATUS_LAND", 1, &i);
     i = STATUS_SHALLOW;
-    ncw_put_att_int(fname, ncid, varid_status, "STATUS_SHALLOW", 1, &i);
+    ncw_put_att_int(ncid, varid_status, "STATUS_SHALLOW", 1, &i);
     i = STATUS_RANGE;
-    ncw_put_att_int(fname, ncid, varid_status, "STATUS_RANGE", 1, &i);
+    ncw_put_att_int(ncid, varid_status, "STATUS_RANGE", 1, &i);
     i = STATUS_BADBATCH;
-    ncw_put_att_int(fname, ncid, varid_status, "STATUS_BADBATCH", 1, &i);
+    ncw_put_att_int(ncid, varid_status, "STATUS_BADBATCH", 1, &i);
     i = STATUS_ROUNDUP;
-    ncw_put_att_int(fname, ncid, varid_status, "STATUS_ROUNDUP", 1, &i);
+    ncw_put_att_int(ncid, varid_status, "STATUS_ROUNDUP", 1, &i);
     i = STATUS_OUTSIDEOBSDOMAIN;
-    ncw_put_att_int(fname, ncid, varid_status, "STATUS_OUTSIDEOBSDOMAIN", 1, &i);
-    ncw_def_var(fname, ncid, "aux", NC_INT, 1, dimid_nobs, &varid_aux);
+    ncw_put_att_int(ncid, varid_status, "STATUS_OUTSIDEOBSDOMAIN", 1, &i);
+    ncw_def_var(ncid, "aux", NC_INT, 1, dimid_nobs, &varid_aux);
     snprintf(tunits, MAXSTRLEN, "days from %s", obs->datestr);
-    ncw_put_att_text(fname, ncid, varid_date, "units", tunits);
+    ncw_put_att_text(ncid, varid_date, "units", tunits);
 
     for (i = 0; i < obs->nobstypes; ++i)
-        ncw_put_att_int(fname, ncid, varid_type, obs->obstypes[i].name, 1, &i);
+        ncw_put_att_int(ncid, varid_type, obs->obstypes[i].name, 1, &i);
 
     for (i = 0; i < obs->products->n; ++i)
-        ncw_put_att_int(fname, ncid, varid_product, st_findstringbyindex(obs->products, i), 1, &i);
+        ncw_put_att_int(ncid, varid_product, st_findstringbyindex(obs->products, i), 1, &i);
 
     for (i = 0; i < obs->instruments->n; ++i)
-        ncw_put_att_int(fname, ncid, varid_instrument, st_findstringbyindex(obs->instruments, i), 1, &i);
+        ncw_put_att_int(ncid, varid_instrument, st_findstringbyindex(obs->instruments, i), 1, &i);
 
     for (i = 0; i < obs->datafiles->n; ++i) {
         char attname[NC_MAX_NAME];
         char* datafile = st_findstringbyindex(obs->datafiles, i);
 
         snprintf(attname, NC_MAX_NAME, "%d", i);
-        ncw_put_att_text(fname, ncid, varid_fid, attname, datafile);
+        ncw_put_att_text(ncid, varid_fid, attname, datafile);
     }
 
-    ncw_enddef(fname, ncid);
+    ncw_enddef(ncid);
 
     id = malloc(nobs * sizeof(int));
     id_orig = malloc(nobs * sizeof(int));
@@ -792,27 +792,27 @@ void obs_write(observations* obs, char fname[])
     }
     assert(ii == nobs);
 
-    ncw_put_var_int(fname, ncid, varid_id, id);
-    ncw_put_var_int(fname, ncid, varid_idorig, id_orig);
-    ncw_put_var_short(fname, ncid, varid_type, type);
-    ncw_put_var_short(fname, ncid, varid_product, product);
-    ncw_put_var_short(fname, ncid, varid_instrument, instrument);
-    ncw_put_var_short(fname, ncid, varid_fid, fid);
-    ncw_put_var_short(fname, ncid, varid_batch, batch);
-    ncw_put_var_double(fname, ncid, varid_value, value);
-    ncw_put_var_double(fname, ncid, varid_std, std);
-    ncw_put_var_double(fname, ncid, varid_lon, lon);
-    ncw_put_var_double(fname, ncid, varid_lat, lat);
-    ncw_put_var_double(fname, ncid, varid_depth, depth);
-    ncw_put_var_double(fname, ncid, varid_mdepth, model_depth);
-    ncw_put_var_double(fname, ncid, varid_fi, fi);
-    ncw_put_var_double(fname, ncid, varid_fj, fj);
-    ncw_put_var_double(fname, ncid, varid_fk, fk);
-    ncw_put_var_double(fname, ncid, varid_date, date);
-    ncw_put_var_int(fname, ncid, varid_status, status);
-    ncw_put_var_int(fname, ncid, varid_aux, aux);
+    ncw_put_var_int(ncid, varid_id, id);
+    ncw_put_var_int(ncid, varid_idorig, id_orig);
+    ncw_put_var_short(ncid, varid_type, type);
+    ncw_put_var_short(ncid, varid_product, product);
+    ncw_put_var_short(ncid, varid_instrument, instrument);
+    ncw_put_var_short(ncid, varid_fid, fid);
+    ncw_put_var_short(ncid, varid_batch, batch);
+    ncw_put_var_double(ncid, varid_value, value);
+    ncw_put_var_double(ncid, varid_std, std);
+    ncw_put_var_double(ncid, varid_lon, lon);
+    ncw_put_var_double(ncid, varid_lat, lat);
+    ncw_put_var_double(ncid, varid_depth, depth);
+    ncw_put_var_double(ncid, varid_mdepth, model_depth);
+    ncw_put_var_double(ncid, varid_fi, fi);
+    ncw_put_var_double(ncid, varid_fj, fj);
+    ncw_put_var_double(ncid, varid_fk, fk);
+    ncw_put_var_double(ncid, varid_date, date);
+    ncw_put_var_int(ncid, varid_status, status);
+    ncw_put_var_int(ncid, varid_aux, aux);
 
-    ncw_close(fname, ncid);
+    ncw_close(ncid);
     free(type);
     free(product);
     free(instrument);
@@ -849,9 +849,9 @@ void obs_writeaux(observations* obs, char fname[])
         return;
 
     ncw_open(fname, NC_WRITE, &ncid);
-    ncw_inq_varid(fname, ncid, "aux", &varid_aux);
-    ncw_inq_dimid(fname, ncid, "nobs", &dimid_nobs);
-    ncw_inq_dimlen(fname, ncid, dimid_nobs, &n);
+    ncw_inq_varid(ncid, "aux", &varid_aux);
+    ncw_inq_dimid(ncid, "nobs", &dimid_nobs);
+    ncw_inq_dimlen(ncid, dimid_nobs, &n);
     assert((int) n == obs->nobs);
 
     aux = malloc(n * sizeof(int));
@@ -860,8 +860,8 @@ void obs_writeaux(observations* obs, char fname[])
         ii++;
     }
 
-    ncw_put_var_int(fname, ncid, varid_aux, aux);
-    ncw_close(fname, ncid);
+    ncw_put_var_int(ncid, varid_aux, aux);
+    ncw_close(ncid);
     free(aux);
 }
 

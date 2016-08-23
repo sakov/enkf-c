@@ -66,49 +66,49 @@ void reader_mmt_standard(char* fname, int fid, obsmeta* meta, model* m, observat
 
     ncw_open(fname, NC_NOWRITE, &ncid);
 
-    ncw_inq_dimid(fname, ncid, "N_PROF", &dimid_nprof);
-    ncw_inq_dimlen(fname, ncid, dimid_nprof, &nprof);
+    ncw_inq_dimid(ncid, "N_PROF", &dimid_nprof);
+    ncw_inq_dimlen(ncid, dimid_nprof, &nprof);
 
-    ncw_inq_dimid(fname, ncid, "N_LEVELS", &dimid_nz);
-    ncw_inq_dimlen(fname, ncid, dimid_nz, &nz);
+    ncw_inq_dimid(ncid, "N_LEVELS", &dimid_nz);
+    ncw_inq_dimlen(ncid, dimid_nz, &nz);
     enkf_printf("        # profiles = %u\n", (unsigned int) nprof);
     if (nprof == 0) {
-        ncw_close(fname, ncid);
+        ncw_close(ncid);
         return;
     }
     enkf_printf("        # z levels = %u\n", (unsigned int) nz);
 
-    ncw_inq_varid(fname, ncid, "LONGITUDE", &varid_lon);
+    ncw_inq_varid(ncid, "LONGITUDE", &varid_lon);
     lon = malloc(nprof * sizeof(double));
-    ncw_get_var_double(fname, ncid, varid_lon, lon);
+    ncw_get_var_double(ncid, varid_lon, lon);
 
-    ncw_inq_varid(fname, ncid, "LATITUDE", &varid_lat);
+    ncw_inq_varid(ncid, "LATITUDE", &varid_lat);
     lat = malloc(nprof * sizeof(double));
-    ncw_get_var_double(fname, ncid, varid_lat, lat);
+    ncw_get_var_double(ncid, varid_lat, lat);
 
-    ncw_inq_varid(fname, ncid, "PRES_BLUELINK", &varid_z);
+    ncw_inq_varid(ncid, "PRES_BLUELINK", &varid_z);
     z = alloc2d(nprof, nz, sizeof(double));
-    ncw_get_var_double(fname, ncid, varid_z, z[0]);
+    ncw_get_var_double(ncid, varid_z, z[0]);
 
     if (strncmp(meta->type, "TEM", 3) == 0) {
         validmin = -2.0;
         validmax = 40.0;
-        ncw_inq_varid(fname, ncid, "TEMP_BLUELINK", &varid_v);
+        ncw_inq_varid(ncid, "TEMP_BLUELINK", &varid_v);
     } else if (strncmp(meta->type, "SAL", 3) == 0) {
         validmin = 0;
         validmax = 50.0;
-        ncw_inq_varid(fname, ncid, "PSAL_BLUELINK", &varid_v);
+        ncw_inq_varid(ncid, "PSAL_BLUELINK", &varid_v);
     } else
         enkf_quit("observation type \"%s\" not handled for MMT product", meta->type);
     v = alloc2d(nprof, nz, sizeof(double));
-    ncw_get_var_double(fname, ncid, varid_v, v[0]);
-    ncw_get_att_double(fname, ncid, varid_v, "_FillValue", &missval);
+    ncw_get_var_double(ncid, varid_v, v[0]);
+    ncw_get_att_double(ncid, varid_v, "_FillValue", &missval);
 
-    ncw_inq_varid(fname, ncid, "WMO_INST_TYPE", &varid_type);
+    ncw_inq_varid(ncid, "WMO_INST_TYPE", &varid_type);
     type = malloc(nprof * WMO_INSTSIZE);
-    ncw_get_var_text(fname, ncid, varid_type, type);
+    ncw_get_var_text(ncid, varid_type, type);
 
-    ncw_close(fname, ncid);
+    ncw_close(ncid);
 
     strcpy(buf, fname);
     len = strlen(buf);

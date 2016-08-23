@@ -407,24 +407,24 @@ void das_addforecast(dasystem* das, char fname[])
         goto finish;
     }
 
-    ncw_inq_dimid(fname, ncid, "nobs", dimid_nobs);
-    ncw_inq_dimlen(fname, ncid, dimid_nobs[0], &nobs);
-    ncw_redef(fname, ncid);
-    ncw_def_var(fname, ncid, "Hx_f", NC_FLOAT, 1, dimid_nobs, &varid_Hx);
-    ncw_def_var(fname, ncid, "std_f", NC_FLOAT, 1, dimid_nobs, &varid_spread);
-    ncw_enddef(fname, ncid);
+    ncw_inq_dimid(ncid, "nobs", dimid_nobs);
+    ncw_inq_dimlen(ncid, dimid_nobs[0], &nobs);
+    ncw_redef(ncid);
+    ncw_def_var(ncid, "Hx_f", NC_FLOAT, 1, dimid_nobs, &varid_Hx);
+    ncw_def_var(ncid, "std_f", NC_FLOAT, 1, dimid_nobs, &varid_spread);
+    ncw_enddef(ncid);
 
     Hx = calloc(nobs, sizeof(double));
     for (o = 0; o < (int) nobs; ++o)
         Hx[o] = das->obs->data[o].value - das->s_f[o];
 
-    ncw_put_var_double(fname, ncid, varid_Hx, Hx);
-    ncw_put_var_double(fname, ncid, varid_spread, das->std_f);
+    ncw_put_var_double(ncid, varid_Hx, Hx);
+    ncw_put_var_double(ncid, varid_spread, das->std_f);
 
     free(Hx);
 
   finish:
-    ncw_close(fname, ncid);
+    ncw_close(ncid);
 }
 
 /** Modifies observation error so that the increment for this observation would
@@ -493,33 +493,33 @@ void das_addmodifiederrors(dasystem* das, char fname[])
         return;
 
     ncw_open(fname, NC_WRITE, &ncid);
-    ncw_inq_dimid(fname, ncid, "nobs", dimid_nobs);
-    ncw_inq_dimlen(fname, ncid, dimid_nobs[0], &nobs);
+    ncw_inq_dimid(ncid, "nobs", dimid_nobs);
+    ncw_inq_dimlen(ncid, dimid_nobs[0], &nobs);
 
-    ncw_get_att_double(fname, ncid, NC_GLOBAL, "DA_JULDAY", &da_julday);
+    ncw_get_att_double(ncid, NC_GLOBAL, "DA_JULDAY", &da_julday);
     if (!enkf_noobsdatecheck && (isnan(da_julday) || fabs(das->obs->da_date - da_julday) > 1e-6))
         enkf_quit("\"observations.nc\" from a different cycle");
 
     if (ncw_var_exists(ncid, "std_orig")) {
         enkf_printf("    nothing to do\n");
-        ncw_close(fname, ncid);
+        ncw_close(ncid);
         return;
     }
 
-    ncw_redef(fname, ncid);
-    ncw_rename_var(fname, ncid, "std", "std_orig");
-    ncw_def_var(fname, ncid, "std", NC_FLOAT, 1, dimid_nobs, &varid_std);
-    ncw_enddef(fname, ncid);
+    ncw_redef(ncid);
+    ncw_rename_var(ncid, "std", "std_orig");
+    ncw_def_var(ncid, "std", NC_FLOAT, 1, dimid_nobs, &varid_std);
+    ncw_enddef(ncid);
 
     std = malloc(nobs * sizeof(double));
 
     for (i = 0; i < (int) nobs; ++i)
         std[i] = das->obs->data[i].std;
-    ncw_put_var_double(fname, ncid, varid_std, std);
+    ncw_put_var_double(ncid, varid_std, std);
 
     free(std);
 
-    ncw_close(fname, ncid);
+    ncw_close(ncid);
 }
 
 /**
@@ -861,10 +861,10 @@ static void update_HE(dasystem* das)
         das_getfname_X5(das, grid, fname_X5);
 
         ncw_open(fname_X5, NC_NOWRITE, &ncid);
-        ncw_inq_varid(fname_X5, ncid, "X5", &varid);
-        ncw_inq_vardimid(fname_X5, ncid, varid, dimids);
+        ncw_inq_varid(ncid, "X5", &varid);
+        ncw_inq_vardimid(ncid, varid, dimids);
         for (i = 0; i < 3; ++i)
-            ncw_inq_dimlen(fname_X5, ncid, dimids[i], &dimlens[i]);
+            ncw_inq_dimlen(ncid, dimids[i], &dimlens[i]);
         ni = dimlens[1];
         nj = dimlens[0];
 
@@ -893,7 +893,7 @@ static void update_HE(dasystem* das)
             X5jj = alloc2d(ni, nmem * nmem, sizeof(float));
             X5jj1 = alloc2d(ni, nmem * nmem, sizeof(float));
             X5jj2 = alloc2d(ni, nmem * nmem, sizeof(float));
-            ncw_get_vara_float(fname_X5, ncid, varid, start, count, X5jj2[0]);
+            ncw_get_vara_float(ncid, varid, start, count, X5jj2[0]);
         }
 
         /*
@@ -908,7 +908,7 @@ static void update_HE(dasystem* das)
                      * j-th row from disk 
                      */
                     start[0] = j;
-                    ncw_get_vara_float(fname_X5, ncid, varid, start, count, X5j[0]);
+                    ncw_get_vara_float(ncid, varid, start, count, X5j[0]);
                 } else {
                     /*
                      * the following code interpolates the ETM back to the
@@ -919,7 +919,7 @@ static void update_HE(dasystem* das)
                         memcpy(X5jj1[0], X5jj2[0], ni * nmem * nmem * sizeof(float));
                         if (jj < nj - 1) {
                             start[0] = (jj + 1) % nj;
-                            ncw_get_vara_float(fname_X5, ncid, varid, start, count, X5jj2[0]);
+                            ncw_get_vara_float(ncid, varid, start, count, X5jj2[0]);
                         }
                     } else {
                         float weight2 = (float) stepj / das->stride;
@@ -1042,7 +1042,7 @@ static void update_HE(dasystem* das)
             }                   /* for stepj */
         }                       /* for jj */
 
-        ncw_close(fname_X5, ncid);
+        ncw_close(ncid);
 
         free(iiter);
         free(jiter);
@@ -1104,10 +1104,10 @@ static void update_Hx(dasystem* das)
         das_getfname_w(das, grid, fname_w);
 
         ncw_open(fname_w, NC_NOWRITE, &ncid);
-        ncw_inq_varid(fname_w, ncid, "w", &varid);
-        ncw_inq_vardimid(fname_w, ncid, varid, dimids);
+        ncw_inq_varid(ncid, "w", &varid);
+        ncw_inq_vardimid(ncid, varid, dimids);
         for (i = 0; i < 3; ++i)
-            ncw_inq_dimlen(fname_w, ncid, dimids[i], &dimlens[i]);
+            ncw_inq_dimlen(ncid, dimids[i], &dimlens[i]);
         ni = dimlens[1];
         nj = dimlens[0];
 
@@ -1136,7 +1136,7 @@ static void update_Hx(dasystem* das)
             wjj = alloc2d(ni, nmem, sizeof(float));
             wjj1 = alloc2d(ni, nmem, sizeof(float));
             wjj2 = alloc2d(ni, nmem, sizeof(float));
-            ncw_get_vara_float(fname_w, ncid, varid, start, count, wjj2[0]);
+            ncw_get_vara_float(ncid, varid, start, count, wjj2[0]);
         }
 
         /*
@@ -1151,7 +1151,7 @@ static void update_Hx(dasystem* das)
                      * j-th row from disk 
                      */
                     start[0] = j;
-                    ncw_get_vara_float(fname_w, ncid, varid, start, count, wj[0]);
+                    ncw_get_vara_float(ncid, varid, start, count, wj[0]);
                 } else {
                     /*
                      * the following code interpolates the ETM back to the
@@ -1162,7 +1162,7 @@ static void update_Hx(dasystem* das)
                         memcpy(wjj1[0], wjj2[0], ni * nmem * sizeof(float));
                         if (jj < nj - 1) {
                             start[0] = (jj + 1) % nj;
-                            ncw_get_vara_float(fname_w, ncid, varid, start, count, wjj2[0]);
+                            ncw_get_vara_float(ncid, varid, start, count, wjj2[0]);
                         }
                     } else {
                         float weight2 = (float) stepj / das->stride;
@@ -1237,7 +1237,7 @@ static void update_Hx(dasystem* das)
             }                   /* for stepj */
         }                       /* for jj */
 
-        ncw_close(fname_w, ncid);
+        ncw_close(ncid);
 
         free(iiter);
         free(jiter);
@@ -1288,15 +1288,15 @@ void das_addanalysis(dasystem* das, char fname[])
     assert(das->s_mode == S_MODE_HA_a);
 
     ncw_open(fname, NC_WRITE, &ncid);
-    ncw_inq_dimid(fname, ncid, "nobs", dimid_nobs);
-    ncw_inq_dimlen(fname, ncid, dimid_nobs[0], &nobs);
+    ncw_inq_dimid(ncid, "nobs", dimid_nobs);
+    ncw_inq_dimlen(ncid, dimid_nobs[0], &nobs);
 
-    ncw_redef(fname, ncid);
-    ncw_def_var(fname, ncid, "Hx_a", NC_FLOAT, 1, dimid_nobs, &varid_Hx);
-    ncw_def_var(fname, ncid, "std_a", NC_FLOAT, 1, dimid_nobs, &varid_spread);
-    ncw_enddef(fname, ncid);
+    ncw_redef(ncid);
+    ncw_def_var(ncid, "Hx_a", NC_FLOAT, 1, dimid_nobs, &varid_Hx);
+    ncw_def_var(ncid, "std_a", NC_FLOAT, 1, dimid_nobs, &varid_spread);
+    ncw_enddef(ncid);
 
-    ncw_put_var_double(fname, ncid, varid_spread, das->std_a);
+    ncw_put_var_double(ncid, varid_spread, das->std_a);
     s = malloc(nobs * sizeof(double));
     /*
      * the obs are still sorted by ij 
@@ -1305,8 +1305,8 @@ void das_addanalysis(dasystem* das, char fname[])
         s[data[i].id] = data[i].value;
     for (i = 0; i < (int) nobs; ++i)
         s[i] -= das->s_a[i];
-    ncw_put_var_double(fname, ncid, varid_Hx, s);
+    ncw_put_var_double(ncid, varid_Hx, s);
     free(s);
 
-    ncw_close(fname, ncid);
+    ncw_close(ncid);
 }

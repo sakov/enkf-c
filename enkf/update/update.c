@@ -60,16 +60,16 @@ static void das_writeinflation(dasystem* das, field* f, int j, float* v)
             model_getvardims(das->m, f->varid, &ni, &nj, NULL);
 
             ncw_create(fname, NC_CLOBBER | NETCDF_FORMAT, &ncid);
-            ncw_def_dim(fname, ncid, "nj", nj, &dimids[0]);
-            ncw_def_dim(fname, ncid, "ni", ni, &dimids[1]);
-            ncw_def_var(fname, ncid, f->varname, NC_FLOAT, 2, dimids, NULL);
-            ncw_enddef(fname, ncid);
+            ncw_def_dim(ncid, "nj", nj, &dimids[0]);
+            ncw_def_dim(ncid, "ni", ni, &dimids[1]);
+            ncw_def_var(ncid, f->varname, NC_FLOAT, 2, dimids, NULL);
+            ncw_enddef(ncid);
         } else {
             ncw_open(fname, NC_WRITE, &ncid);
-            ncw_inq_varid(fname, ncid, f->varname, &varid);
+            ncw_inq_varid(ncid, f->varname, &varid);
         }
         writerow(fname, f->varname, 0, j, v);
-        ncw_close(fname, ncid);
+        ncw_close(ncid);
     }
 }
 
@@ -118,10 +118,10 @@ static void das_updatefields(dasystem* das, int nfields, void** fieldbuffer, fie
     das_getfname_X5(das, grid, fname_X5);
 
     ncw_open(fname_X5, NC_NOWRITE, &ncid);
-    ncw_inq_varid(fname_X5, ncid, "X5", &varid);
-    ncw_inq_vardimid(fname_X5, ncid, varid, dimids);
+    ncw_inq_varid(ncid, "X5", &varid);
+    ncw_inq_vardimid(ncid, varid, dimids);
     for (i = 0; i < 3; ++i)
-        ncw_inq_dimlen(fname_X5, ncid, dimids[i], &dimlens[i]);
+        ncw_inq_dimlen(ncid, dimids[i], &dimlens[i]);
     nj = dimlens[0];
     ni = dimlens[1];
     assert((int) dimlens[2] == nmem * nmem);
@@ -139,7 +139,7 @@ static void das_updatefields(dasystem* das, int nfields, void** fieldbuffer, fie
         X5jj1 = alloc2d(ni, nmem * nmem, sizeof(float));
         X5jj2 = alloc2d(ni, nmem * nmem, sizeof(float));
 
-        ncw_get_vara_float(fname_X5, ncid, varid, start, count, X5jj2[0]);
+        ncw_get_vara_float(ncid, varid, start, count, X5jj2[0]);
     }
 
     v_f = malloc(nmem * sizeof(float));
@@ -159,7 +159,7 @@ static void das_updatefields(dasystem* das, int nfields, void** fieldbuffer, fie
                  * j-th row from disk 
                  */
                 start[0] = j;
-                ncw_get_vara_float(fname_X5, ncid, varid, start, count, X5j[0]);
+                ncw_get_vara_float(ncid, varid, start, count, X5j[0]);
             } else {
                 /*
                  * the following code interpolates the ETM back to the
@@ -170,7 +170,7 @@ static void das_updatefields(dasystem* das, int nfields, void** fieldbuffer, fie
                     memcpy(X5jj[0], X5jj2[0], ni * nmem * nmem * sizeof(float));
                     if (jj < nj - 1) {
                         start[0] = (jj + 1) % nj;
-                        ncw_get_vara_float(fname_X5, ncid, varid, start, count, X5jj2[0]);
+                        ncw_get_vara_float(ncid, varid, start, count, X5jj2[0]);
                     }
                 } else {
                     float weight2 = (float) stepj / (float) das->stride;
@@ -336,7 +336,7 @@ static void das_updatefields(dasystem* das, int nfields, void** fieldbuffer, fie
         }                       /* for stepj */
     }                           /* for jj */
 
-    ncw_close(fname_X5, ncid);
+    ncw_close(ncid);
     free(X5j);
     if (das->stride > 1) {
         free(X5jj);
@@ -403,10 +403,10 @@ static void das_updatebg(dasystem* das, int nfields, void** fieldbuffer, field f
     das_getfname_w(das, grid, fname_w);
 
     ncw_open(fname_w, NC_NOWRITE, &ncid);
-    ncw_inq_varid(fname_w, ncid, "w", &varid);
-    ncw_inq_vardimid(fname_w, ncid, varid, dimids);
+    ncw_inq_varid(ncid, "w", &varid);
+    ncw_inq_vardimid(ncid, varid, dimids);
     for (i = 0; i < 3; ++i)
-        ncw_inq_dimlen(fname_w, ncid, dimids[i], &dimlens[i]);
+        ncw_inq_dimlen(ncid, dimids[i], &dimlens[i]);
     ni = dimlens[1];
     nj = dimlens[0];
     assert((int) dimlens[2] == nmem);
@@ -424,7 +424,7 @@ static void das_updatebg(dasystem* das, int nfields, void** fieldbuffer, field f
         wjj1 = alloc2d(ni, nmem, sizeof(float));
         wjj2 = alloc2d(ni, nmem, sizeof(float));
 
-        ncw_get_vara_float(fname_w, ncid, varid, start, count, wjj2[0]);
+        ncw_get_vara_float(ncid, varid, start, count, wjj2[0]);
     }
     /*
      * jj, ii are the indices of the subsampled grid; i, j are the indices
@@ -438,7 +438,7 @@ static void das_updatebg(dasystem* das, int nfields, void** fieldbuffer, field f
                  * j-th row from disk 
                  */
                 start[0] = j;
-                ncw_get_vara_float(fname_w, ncid, varid, start, count, wj[0]);
+                ncw_get_vara_float(ncid, varid, start, count, wj[0]);
             } else {
                 /*
                  * the following code interpolates the ETM back to the
@@ -449,7 +449,7 @@ static void das_updatebg(dasystem* das, int nfields, void** fieldbuffer, field f
                     memcpy(wjj[0], wjj2[0], ni * nmem * sizeof(float));
                     if (jj < nj - 1) {
                         start[0] = (jj + 1) % nj;
-                        ncw_get_vara_float(fname_w, ncid, varid, start, count, wjj2[0]);
+                        ncw_get_vara_float(ncid, varid, start, count, wjj2[0]);
                     }
                 } else {
                     float weight2 = (float) stepj / das->stride;
@@ -545,7 +545,7 @@ static void das_updatebg(dasystem* das, int nfields, void** fieldbuffer, field f
         }                       /* for stepj */
     }                           /* for jj */
 
-    ncw_close(fname_w, ncid);
+    ncw_close(ncid);
     free(wj);
     if (das->stride > 1) {
         free(wjj);
@@ -620,21 +620,21 @@ static void das_writefields_toassemble(dasystem* das, int nfields, void** fieldb
             int vid;
 
             ncw_create(fname, NC_CLOBBER | NETCDF_FORMAT, &ncid);
-            ncw_def_dim(fname, ncid, "m", das->nmem, &dimids[0]);
-            ncw_def_dim(fname, ncid, "nj", nj, &dimids[1]);
-            ncw_def_dim(fname, ncid, "ni", ni, &dimids[2]);
-            ncw_def_var(fname, ncid, f->varname, NC_FLOAT, 3, dimids, &vid);
-            ncw_enddef(fname, ncid);
-            ncw_put_var_float(fname, ncid, vid, ((float***) fieldbuffer[i])[0][0]);
-            ncw_close(fname, ncid);
+            ncw_def_dim(ncid, "m", das->nmem, &dimids[0]);
+            ncw_def_dim(ncid, "nj", nj, &dimids[1]);
+            ncw_def_dim(ncid, "ni", ni, &dimids[2]);
+            ncw_def_var(ncid, f->varname, NC_FLOAT, 3, dimids, &vid);
+            ncw_enddef(ncid);
+            ncw_put_var_float(ncid, vid, ((float***) fieldbuffer[i])[0][0]);
+            ncw_close(ncid);
         } else {
             int ncid;
             int vid;
 
             ncw_open(fname, NC_WRITE, &ncid);
-            ncw_inq_varid(fname, ncid, f->varname, &vid);
-            ncw_put_var_float(fname, ncid, vid, ((float***) fieldbuffer[i])[0][0]);
-            ncw_close(fname, ncid);
+            ncw_inq_varid(ncid, f->varname, &vid);
+            ncw_put_var_float(ncid, vid, ((float***) fieldbuffer[i])[0][0]);
+            ncw_close(ncid);
         }
     }
 }
@@ -709,12 +709,12 @@ static void das_writebg_toassemble(dasystem* das, int nfields, void** fieldbuffe
             int vid;
 
             ncw_create(fname, NC_CLOBBER | NETCDF_FORMAT, &ncid);
-            ncw_def_dim(fname, ncid, "nj", nj, &dimids[0]);
-            ncw_def_dim(fname, ncid, "ni", ni, &dimids[1]);
-            ncw_def_var(fname, ncid, f->varname, NC_FLOAT, 2, dimids, &vid);
-            ncw_enddef(fname, ncid);
-            ncw_put_var_float(fname, ncid, vid, ((float***) fieldbuffer[i])[das->nmem][0]);
-            ncw_close(fname, ncid);
+            ncw_def_dim(ncid, "nj", nj, &dimids[0]);
+            ncw_def_dim(ncid, "ni", ni, &dimids[1]);
+            ncw_def_var(ncid, f->varname, NC_FLOAT, 2, dimids, &vid);
+            ncw_enddef(ncid);
+            ncw_put_var_float(ncid, vid, ((float***) fieldbuffer[i])[das->nmem][0]);
+            ncw_close(ncid);
         } else {
             writefield(fname, f->varname, 0, ((float***) fieldbuffer[i])[das->nmem][0]);
         }
@@ -754,19 +754,19 @@ static void das_allocatespread(dasystem* das, char fname[])
 
         model_getmemberfname(m, das->ensdir, varname_src, 1, fname_src);
         ncw_open(fname_src, NC_NOWRITE, &ncid_src);
-        ncw_copy_dims(fname_src, ncid_src, fname, ncid);
-        ncw_inq_varid(fname_src, ncid_src, varname_src, &varid_src);
-        ncw_copy_vardef(fname_src, ncid_src, varid_src, fname, ncid);
+        ncw_copy_dims(ncid_src, ncid);
+        ncw_inq_varid(ncid_src, varname_src, &varid_src);
+        ncw_copy_vardef(ncid_src, varid_src, ncid);
         if (das->mode == MODE_ENKF) {
             char varname_dst[NC_MAX_NAME];
 
             strcpy(varname_dst, varname_src);
             strncat(varname_dst, "_an", NC_MAX_NAME);
-            ncw_def_var_as(fname, ncid, varname_src, varname_dst);
+            ncw_def_var_as(ncid, varname_src, varname_dst);
         }
-        ncw_close(fname_src, ncid_src);
+        ncw_close(ncid_src);
     }
-    ncw_close(fname, ncid);
+    ncw_close(ncid);
 }
 
 /** Allocates disk space for inflation magnitudes.
@@ -792,12 +792,12 @@ static void das_allocateinflation(dasystem* das, char fname[])
 
         model_getmemberfname(m, das->ensdir, varname_src, 1, fname_src);
         ncw_open(fname_src, NC_NOWRITE, &ncid_src);
-        ncw_copy_dims(fname_src, ncid_src, fname, ncid);
-        ncw_inq_varid(fname_src, ncid_src, varname_src, &varid_src);
-        ncw_copy_vardef(fname_src, ncid_src, varid_src, fname, ncid);
-        ncw_close(fname_src, ncid_src);
+        ncw_copy_dims(ncid_src, ncid);
+        ncw_inq_varid(ncid_src, varname_src, &varid_src);
+        ncw_copy_vardef(ncid_src, varid_src, ncid);
+        ncw_close(ncid_src);
     }
-    ncw_close(fname, ncid);
+    ncw_close(ncid);
 }
 
 /**
@@ -858,23 +858,23 @@ static void das_writespread(dasystem* das, int nfields, void** fieldbuffer, fiel
 
             if (!file_exists(fname)) {
                 ncw_create(fname, NC_CLOBBER | NETCDF_FORMAT, &ncid);
-                ncw_def_dim(fname, ncid, "nj", nj, &dimids[0]);
-                ncw_def_dim(fname, ncid, "ni", ni, &dimids[1]);
-                ncw_def_var(fname, ncid, varname, NC_FLOAT, 2, dimids, &vid);
-                ncw_enddef(fname, ncid);
+                ncw_def_dim(ncid, "nj", nj, &dimids[0]);
+                ncw_def_dim(ncid, "ni", ni, &dimids[1]);
+                ncw_def_var(ncid, varname, NC_FLOAT, 2, dimids, &vid);
+                ncw_enddef(ncid);
             } else {
                 ncw_open(fname, NC_WRITE, &ncid);
                 if (!ncw_var_exists(ncid, varname)) {
-                    ncw_redef(fname, ncid);
-                    ncw_inq_dimid(fname, ncid, "nj", &dimids[0]);
-                    ncw_inq_dimid(fname, ncid, "ni", &dimids[1]);
-                    ncw_def_var(fname, ncid, varname, NC_FLOAT, 2, dimids, NULL);
-                    ncw_enddef(fname, ncid);
+                    ncw_redef(ncid);
+                    ncw_inq_dimid(ncid, "nj", &dimids[0]);
+                    ncw_inq_dimid(ncid, "ni", &dimids[1]);
+                    ncw_def_var(ncid, varname, NC_FLOAT, 2, dimids, NULL);
+                    ncw_enddef(ncid);
                 }
-                ncw_inq_varid(fname, ncid, varname, &vid);
+                ncw_inq_varid(ncid, varname, &vid);
             }
-            ncw_put_var_double(fname, ncid, vid, v2);
-            ncw_close(fname, ncid);
+            ncw_put_var_double(ncid, vid, v2);
+            ncw_close(ncid);
         } else {
             float* v = calloc(nv, sizeof(float));
 
@@ -942,9 +942,9 @@ static void das_assemblemembers(dasystem* das)
 
                 getfieldfname(das->ensdir, "ens", varname, k, fname_src);
                 ncw_open(fname_src, NC_NOWRITE, &ncid_src);
-                ncw_inq_varid(fname_src, ncid_src, varname, &vid_src);
-                ncw_get_vara_float(fname_src, ncid_src, vid_src, start, count, v);
-                ncw_close(fname_src, ncid_src);
+                ncw_inq_varid(ncid_src, varname, &vid_src);
+                ncw_get_vara_float(ncid_src, vid_src, start, count, v);
+                ncw_close(ncid_src);
 
                 model_writefield(m, fname_dst, INT_MAX, varname_dst, k, v);
             }
@@ -1025,9 +1025,9 @@ static void das_assemblebg(dasystem* das)
 
             getfieldfname(das->bgdir, "bg", varname, k, fname_src);
             ncw_open(fname_src, NC_NOWRITE, &ncid_src);
-            ncw_inq_varid(fname_src, ncid_src, varname, &vid_src);
-            ncw_get_var_float(fname_src, ncid_src, vid_src, v);
-            ncw_close(fname_src, ncid_src);
+            ncw_inq_varid(ncid_src, varname, &vid_src);
+            ncw_get_var_float(ncid_src, vid_src, v);
+            ncw_close(ncid_src);
 
             model_writefield(m, fname_dst, INT_MAX, varname_dst, k, v);
             if (!(das->updatespec & UPDATE_LEAVETILES))
@@ -1072,9 +1072,9 @@ static void das_assemblespread(dasystem* das)
             getfieldfname(das->mode == MODE_ENKF ? das->ensdir : das->bgdir, "spread", varname, k, fname_src);
             ncw_open(fname_src, NC_NOWRITE, &ncid_src);
 
-            ncw_inq_varid(fname_src, ncid_src, varname, &vid);
-            ncw_get_var_float(fname_src, ncid_src, vid, v);
-            ncw_close(fname_src, ncid_src);
+            ncw_inq_varid(ncid_src, varname, &vid);
+            ncw_get_var_float(ncid_src, vid, v);
+            ncw_close(ncid_src);
             file_delete(fname_src);
 
             model_writefield(m, FNAME_SPREAD, INT_MAX, varname, k, v);
@@ -1082,9 +1082,9 @@ static void das_assemblespread(dasystem* das)
             if (das->mode == MODE_ENKF) {
                 getfieldfname(das->ensdir, "spread", varname_an, k, fname_src);
                 ncw_open(fname_src, NC_NOWRITE, &ncid_src);
-                ncw_inq_varid(fname_src, ncid_src, varname_an, &vid);
-                ncw_get_var_float(fname_src, ncid_src, vid, v);
-                ncw_close(fname_src, ncid_src);
+                ncw_inq_varid(ncid_src, varname_an, &vid);
+                ncw_get_var_float(ncid_src, vid, v);
+                ncw_close(ncid_src);
                 file_delete(fname_src);
 
                 model_writefield(m, FNAME_SPREAD, INT_MAX, varname_an, k, v);
@@ -1126,9 +1126,9 @@ static void das_assembleinflation(dasystem* das)
             getfieldfname(das->ensdir, "inflation", varname, k, fname_src);
             ncw_open(fname_src, NC_NOWRITE, &ncid_src);
 
-            ncw_inq_varid(fname_src, ncid_src, varname, &vid);
-            ncw_get_var_float(fname_src, ncid_src, vid, v);
-            ncw_close(fname_src, ncid_src);
+            ncw_inq_varid(ncid_src, varname, &vid);
+            ncw_get_var_float(ncid_src, vid, v);
+            ncw_close(ncid_src);
             model_writefield(m, FNAME_INFLATION, INT_MAX, varname, k, v);
             file_delete(fname_src);
 
@@ -1201,10 +1201,10 @@ void das_update(dasystem* das)
                         model_getmemberfname(m, das->ensdir, varname_src, e + 1, fname);
                         ncw_open(fname, NC_WRITE, &ncid);
                         if (!ncw_var_exists(ncid, varname_dst)) {
-                            ncw_redef(fname, ncid);
-                            ncw_def_var_as(fname, ncid, varname_src, varname_dst);
+                            ncw_redef(ncid);
+                            ncw_def_var_as(ncid, varname_src, varname_dst);
                         }
-                        ncw_close(fname, ncid);
+                        ncw_close(ncid);
                         printf(".");
                         fflush(stdout);
                     }
@@ -1229,20 +1229,20 @@ void das_update(dasystem* das)
                         if (file_exists(fname_a)) {
                             ncw_open(fname_a, NC_WRITE, &ncid_a);
                             if (ncw_var_exists(ncid_a, varname)) {
-                                ncw_close(fname_a, ncid_a);
-                                ncw_close(fname_f, ncid_f);
+                                ncw_close(ncid_a);
+                                ncw_close(ncid_f);
                                 continue;
                             }
-                            ncw_redef(fname_a, ncid_a);
+                            ncw_redef(ncid_a);
                         } else {
                             ncw_create(fname_a, NC_CLOBBER | NETCDF_FORMAT, &ncid_a);
-                            ncw_copy_dims(fname_f, ncid_f, fname_a, ncid_a);
+                            ncw_copy_dims(ncid_f, ncid_a);
                         }
 
-                        ncw_inq_varid(fname_f, ncid_f, varname, &vid_f);
-                        ncw_copy_vardef(fname_f, ncid_f, vid_f, fname_a, ncid_a);
-                        ncw_close(fname_a, ncid_a);
-                        ncw_close(fname_f, ncid_f);
+                        ncw_inq_varid(ncid_f, varname, &vid_f);
+                        ncw_copy_vardef(ncid_f, vid_f, ncid_a);
+                        ncw_close(ncid_a);
+                        ncw_close(ncid_f);
                         printf(".");
                         fflush(stdout);
                     }
@@ -1275,10 +1275,10 @@ void das_update(dasystem* das)
                         model_getbgfname(m, das->bgdir, varname_src, fname);
                         ncw_open(fname, NC_WRITE, &ncid);
                         if (!ncw_var_exists(ncid, varname_dst)) {
-                            ncw_redef(fname, ncid);
-                            ncw_def_var_as(fname, ncid, varname_src, varname_dst);
+                            ncw_redef(ncid);
+                            ncw_def_var_as(ncid, varname_src, varname_dst);
                         }
-                        ncw_close(fname, ncid);
+                        ncw_close(ncid);
                         printf(".");
                         fflush(stdout);
                     }
@@ -1301,20 +1301,20 @@ void das_update(dasystem* das)
                         if (file_exists(fname_a)) {
                             ncw_open(fname_a, NC_WRITE, &ncid_a);
                             if (ncw_var_exists(ncid_a, varname)) {
-                                ncw_close(fname_a, ncid_a);
-                                ncw_close(fname_f, ncid_f);
+                                ncw_close(ncid_a);
+                                ncw_close(ncid_f);
                                 continue;
                             }
-                            ncw_redef(fname_a, ncid_a);
+                            ncw_redef(ncid_a);
                         } else {
                             ncw_create(fname_a, NC_CLOBBER | NETCDF_FORMAT, &ncid_a);
-                            ncw_copy_dims(fname_f, ncid_f, fname_a, ncid_a);
+                            ncw_copy_dims(ncid_f, ncid_a);
                         }
 
-                        ncw_inq_varid(fname_f, ncid_f, varname, &vid_f);
-                        ncw_copy_vardef(fname_f, ncid_f, vid_f, fname_a, ncid_a);
-                        ncw_close(fname_a, ncid_a);
-                        ncw_close(fname_f, ncid_f);
+                        ncw_inq_varid(ncid_f, varname, &vid_f);
+                        ncw_copy_vardef(ncid_f, vid_f, ncid_a);
+                        ncw_close(ncid_a);
+                        ncw_close(ncid_f);
                         printf(".");
                         fflush(stdout);
                     }
@@ -1535,23 +1535,23 @@ void das_calccorr(dasystem* das, int mvid)
         snprintf(fname_dst, MAXSTRLEN, "corr_%s-%03d.nc", varname, k);
         if (!file_exists(fname_dst)) {
             ncw_create(fname_dst, NC_CLOBBER | NETCDF_FORMAT, &ncid);
-            ncw_def_dim(fname_dst, ncid, "nj", nj, &dimids[0]);
-            ncw_def_dim(fname_dst, ncid, "ni", ni, &dimids[1]);
-            ncw_def_var(fname_dst, ncid, varname, NC_FLOAT, 2, dimids, &vid);
-            ncw_enddef(fname_dst, ncid);
+            ncw_def_dim(ncid, "nj", nj, &dimids[0]);
+            ncw_def_dim(ncid, "ni", ni, &dimids[1]);
+            ncw_def_var(ncid, varname, NC_FLOAT, 2, dimids, &vid);
+            ncw_enddef(ncid);
         } else {
             ncw_open(fname_dst, NC_WRITE, &ncid);
             if (!ncw_var_exists(ncid, varname)) {
-                ncw_redef(fname_dst, ncid);
-                ncw_inq_dimid(fname_dst, ncid, "nj", &dimids[0]);
-                ncw_inq_dimid(fname_dst, ncid, "ni", &dimids[1]);
-                ncw_def_var(fname_dst, ncid, varname, NC_FLOAT, 2, dimids, NULL);
-                ncw_enddef(fname_dst, ncid);
+                ncw_redef(ncid);
+                ncw_inq_dimid(ncid, "nj", &dimids[0]);
+                ncw_inq_dimid(ncid, "ni", &dimids[1]);
+                ncw_def_var(ncid, varname, NC_FLOAT, 2, dimids, NULL);
+                ncw_enddef(ncid);
             }
-            ncw_inq_varid(fname_dst, ncid, varname, &vid);
+            ncw_inq_varid(ncid, varname, &vid);
         }
-        ncw_put_var_double(fname_dst, ncid, vid, cor);
-        ncw_close(fname_dst, ncid);
+        ncw_put_var_double(ncid, vid, cor);
+        ncw_close(ncid);
     }
 
     free(v);
@@ -1575,17 +1575,17 @@ void das_calccorr(dasystem* das, int mvid)
 
             model_getmemberfname(m, das->ensdir, varname, 1, fname_src);
             ncw_open(fname_src, NC_NOWRITE, &ncid_src);
-            ncw_copy_var(fname_src, ncid_src, varname, fname_dst, ncid_dst);
-            ncw_close(fname_dst, ncid_dst);
+            ncw_copy_var(ncid_src, varname, ncid_dst);
+            ncw_close(ncid_dst);
         }
 
         for (k = 0; k < nk; ++k) {
             snprintf(fname_src, MAXSTRLEN, "corr_%s-%03d.nc", varname, k);
 
             ncw_open(fname_src, NC_NOWRITE, &ncid_src);
-            ncw_inq_varid(fname_src, ncid_src, varname, &vid);
-            ncw_get_var_float(fname_src, ncid_src, vid, v);
-            ncw_close(fname_src, ncid_src);
+            ncw_inq_varid(ncid_src, varname, &vid);
+            ncw_get_var_float(ncid_src, vid, v);
+            ncw_close(ncid_src);
             file_delete(fname_src);
 
             model_writefield(m, fname_dst, INT_MAX, varname, k, v);
