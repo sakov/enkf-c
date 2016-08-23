@@ -1,3 +1,6 @@
+v. 1.46.1
+   PS 24082016
+   -- Fixed a defect in reader_aquarius.c.
 v. 1.46.0
    PS 24082016
    -- Updated common/ncw.[ch] to ncw-c v2.00. Updated the calls to ncw_*()

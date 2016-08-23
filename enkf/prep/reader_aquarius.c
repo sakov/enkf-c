@@ -129,14 +129,13 @@ void reader_aquarius_standard(char* fname, int fid, obsmeta* meta, model* m, obs
             o->fid = fid;
             o->batch = 0;
             o->value = sss[j][i];
-            if (o->value == missval)
-                o->status = STATUS_MISSING;
+            if (isnan(o->value) || o->value == missval)
+                continue;
             o->lon = lon[i];
             o->lat = lat[j];
             o->std = ERRORSTD_DEF;
             o->depth = 0.0;
-            if (o->status == STATUS_OK)
-                o->status = model_xy2fij(m, model_vid, o->lon, o->lat, &o->fi, &o->fj);
+            o->status = model_xy2fij(m, model_vid, o->lon, o->lat, &o->fi, &o->fj);
             if (!obs->allobs && o->status == STATUS_OUTSIDEGRID)
                 continue;
             o->model_depth = (isnan(o->fi + o->fj)) ? NaN : depth[(int) (o->fj + 0.5)][(int) (o->fi + 0.5)];
