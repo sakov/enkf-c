@@ -1,3 +1,6 @@
+v. 1.46.3
+   PS 01092016
+   -- Fixed a defect that prevented writing w_actual to pointlogs.
 v. 1.46.2
    PS 01092016
    -- Added an option to PREP "--no-writing-orig-obs".

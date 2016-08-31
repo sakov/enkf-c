@@ -523,7 +523,7 @@ static void das_updatebg(dasystem* das, int nfields, void** fieldbuffer, field f
                      * vector to the pointlog for this (i,j) pair (if it exists)
                      */
                     if (f->id == 0) {
-                        int key[2] = { i, j };
+                        unsigned short key[4] = { i, j, grid_getid(grid), 0 };
                         int id;
 
                         if (f->id == 0 && das->nplogs > 0 && (id = ht_findid(das->ht_plogs, key)) >= 0)
