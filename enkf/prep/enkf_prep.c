@@ -254,7 +254,7 @@ int main(int argc, char* argv[])
     /*
      * write superob indices to the file with original observations 
      */
-    if (describe_superob_id < 0 && obs->stride > 0)
+    if (write_orig_obs && describe_superob_id < 0 && obs->stride > 0)
         obs_writeaux(obs, FNAME_OBS);
 
     if (describe_superob_id < 0) {
