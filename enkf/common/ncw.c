@@ -947,7 +947,7 @@ void ncw_rename_att(int ncid, const char varname[], const char oldname[], const 
     status = nc_rename_att(ncid, varid, oldname, newname);
 
     if (status != NC_NOERR)
-        quit("\"%s\": nc_rename_att(): failed for varid = %d, oldname = \"%s\", newname = \"%s\": %s\n",  _ncw_get_path(ncid), varid, oldname, newname, nc_strerror(status));
+        quit("\"%s\": nc_rename_att(): failed for varid = %d, oldname = \"%s\", newname = \"%s\": %s\n", _ncw_get_path(ncid), varid, oldname, newname, nc_strerror(status));
 }
 
 void ncw_del_att(int ncid, int varid, const char attname[])

@@ -44,22 +44,28 @@ obstype* obstypes_p = NULL;
 
 int do_superob = 1;
 
+/*
+ *
+ */
+int write_orig_obs = 1;
+
 /**
  */
 static void usage()
 {
     enkf_printf("  Usage: enkf_prep <prm file> [<options>]\n");
     enkf_printf("  Options:\n");
+    enkf_printf("  --consider-subgrid-variability\n");
+    enkf_printf("      increase error of superobservations according to subgrid variability\n");
     enkf_printf("  --describe-prm-format [main|model|grid|obstypes|obsdata]\n");
     enkf_printf("      describe format of a parameter file and exit\n");
     enkf_printf("  --describe-superob <sob #>\n");
     enkf_printf("      print composition of this superobservation and exit\n");
-    enkf_printf("  --consider-subgrid-variability\n");
-    enkf_printf("      increase error for a superobservation when there is large subgrid variability\n");
     enkf_printf("  --log-all-obs\n");
     enkf_printf("      put all obs into %s (default: obs within model domain only)\n", FNAME_OBS);
     enkf_printf("  --no-superobing\n");
-    enkf_printf("  --version\n");
+    enkf_printf("  --no-writing-orig-obs\n");
+        enkf_printf("  --version\n");
     enkf_printf("      print version and exit\n");
 
     exit(0);
@@ -118,6 +124,10 @@ static void parse_commandline(int argc, char* argv[], char** fname)
             continue;
         } else if (strcmp(argv[i], "--no-superobing") == 0) {
             do_superob = 0;
+            i++;
+            continue;
+        } else if (strcmp(argv[i], "--no-writing-orig-obs") == 0) {
+            write_orig_obs = 0;
             i++;
             continue;
         } else if (strcmp(argv[i], "--version") == 0) {
@@ -233,7 +243,7 @@ int main(int argc, char* argv[])
     obs_compact(obs);
     obs_calcstats(obs);
 
-    if (describe_superob_id < 0 && obs->stride > 0) {
+    if (write_orig_obs && describe_superob_id < 0 && obs->stride > 0) {
         enkf_printf("  writing observations to \"%s\":\n", FNAME_OBS);
         obs_write(obs, FNAME_OBS);
     }
