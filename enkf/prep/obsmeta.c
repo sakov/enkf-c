@@ -163,7 +163,7 @@ void obsmeta_read(enkfprm* prm, int* nmeta, obsmeta** meta)
             enkf_quit("%s: obsservation type not specified for product \"%s\"", fname, m->product);
         enkf_printf("      TYPE = %s\n", m->type);
         for (j = 0; j < m->nfiles; ++j)
-            enkf_printf("      File:        obsmeta.c = %s\n", m->fnames[j]);
+            enkf_printf("        File: %s\n", m->fnames[j]);
         for (j = 0; j < m->nstds; ++j) {
             char operstr[MAXSTRLEN] = "";
             metastd* std = &m->stds[j];

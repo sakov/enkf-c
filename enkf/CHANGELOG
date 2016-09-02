@@ -1,3 +1,6 @@
+v. 1.46.4
+   PS 02092016
+   -- Added reporting unique profile locations for MMT data
 v. 1.46.3
    PS 01092016
    -- Fixed a defect that prevented writing w_actual to pointlogs.

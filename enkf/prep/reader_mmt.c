@@ -35,6 +35,22 @@
 #define EPS 1.0e-6
 #define WMO_INSTSIZE 4
 
+static int cmp_lonlat(const void* p1, const void* p2)
+{
+    double* ll1 = (double*) p1;
+    double* ll2 = (double*) p2;
+
+    if (ll1[0] > ll2[0])
+        return 1;
+    else if (ll1[0] < ll2[0])
+        return -1;
+    else if (ll1[1] > ll2[1])
+        return 1;
+    else if (ll1[1] < ll2[1])
+        return -1;
+    return 0;
+}
+
 void reader_mmt_standard(char* fname, int fid, obsmeta* meta, model* m, observations* obs)
 {
     int ncid;
@@ -174,6 +190,29 @@ void reader_mmt_standard(char* fname, int fid, obsmeta* meta, model* m, observat
 
             obs->nobs++;
         }
+    }
+
+    /*
+     * get the number of unique profile locations
+     */
+    {
+        double* lonlat = malloc(nprof * sizeof(double) * 2);
+        int nunique = (nprof > 0) ? 1 : 0;
+        int ii = 0;
+
+        for (i = 0; i < nprof; ++i) {
+            lonlat[i * 2] = lon[i];
+            lonlat[i + 2 + 1] = lat[i];
+        }
+        qsort(lonlat, nprof, sizeof(double) * 2, cmp_lonlat);
+        for (i = 1; i < nprof; ++i) {
+            if (lonlat[i * 2] == lonlat[ii * 2] && lonlat[i * 2 + 1] == lonlat[ii * 2 + 1])
+                continue;
+            ii = i;
+            nunique++;
+        }
+        enkf_printf("        # unique locations = %d\n", nunique);
+        free(lonlat);
     }
 
     free(lon);

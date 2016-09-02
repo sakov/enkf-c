@@ -65,7 +65,7 @@ static void usage()
     enkf_printf("      put all obs into %s (default: obs within model domain only)\n", FNAME_OBS);
     enkf_printf("  --no-superobing\n");
     enkf_printf("  --no-writing-orig-obs\n");
-        enkf_printf("  --version\n");
+    enkf_printf("  --version\n");
     enkf_printf("      print version and exit\n");
 
     exit(0);
