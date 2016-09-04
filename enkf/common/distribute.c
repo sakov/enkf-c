@@ -9,7 +9,7 @@
  *
  * Description: Distributes indices in the interval [i1, i2] between `nproc'
  *              processes. Process IDs are assumed to be in the interval
- *              [0, nproc-1]. The "native" process has ID `rank'. The results
+ *              [0, nproc-1]. The calling process has ID `rank'. The results
  *              are stored in 6 global variables, with the following relations
  *              between them:
  *                my_number_of_iterations = my_last_iteration 
@@ -75,9 +75,9 @@ void distribute_iterations(int i1, int i2, int nproc, int rank, char prefix[])
     if (n % nproc == 0) {
         my_number_of_iterations = npp;
         for (i = 0; i < nproc; ++i)
-            number_of_iterations[i] = my_number_of_iterations;
+            number_of_iterations[i] = npp;
         if (prefix != NULL)
-            enkf_printf("%s  all processes get %d iterations\n", prefix, my_number_of_iterations);
+            enkf_printf("%s  all processes get %d iterations\n", prefix, npp);
     } else {
         int j = n - nproc * npp;
 
@@ -86,7 +86,7 @@ void distribute_iterations(int i1, int i2, int nproc, int rank, char prefix[])
         for (i = j; i < nproc; ++i)
             number_of_iterations[i] = npp;
         if (prefix != NULL)
-            enkf_printf("%s  processes get %d or %d iterations\n", prefix, number_of_iterations[0], number_of_iterations[nproc - 1]);
+            enkf_printf("%s  processes get %d or %d iterations\n", prefix, npp + 1, npp);
     }
 #if defined(MPI)
     if (prefix != NULL)
