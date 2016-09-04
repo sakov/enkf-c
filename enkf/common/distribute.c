@@ -73,23 +73,18 @@ void distribute_iterations(int i1, int i2, int nproc, int rank, char prefix[])
     n = i2 - i1 + 1;
     npp = n / nproc;
     if (n % nproc == 0) {
-        my_number_of_iterations = n / nproc;
+        my_number_of_iterations = npp;
         for (i = 0; i < nproc; ++i)
             number_of_iterations[i] = my_number_of_iterations;
         if (prefix != NULL)
             enkf_printf("%s  all processes get %d iterations\n", prefix, my_number_of_iterations);
     } else {
-        int j;
-
-        for (j = 1; j < nproc; ++j)
-            if (j * (npp + 1) + (nproc - j) * npp == n)
-                break;
+        int j = n - nproc * npp;
 
         for (i = 0; i < j; ++i)
             number_of_iterations[i] = npp + 1;
         for (i = j; i < nproc; ++i)
             number_of_iterations[i] = npp;
-        assert(j * (npp + 1) + (nproc - j) * npp == n);
         if (prefix != NULL)
             enkf_printf("%s  processes get %d or %d iterations\n", prefix, number_of_iterations[0], number_of_iterations[nproc - 1]);
     }
