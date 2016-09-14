@@ -291,8 +291,12 @@ static void plog_writestatevars_direct(dasystem* das, int nfields, void** fieldb
 
         for (fid = 0; fid < nfields; ++fid) {
             field* f = &fields[fid];
+            int gridid = model_getvargridid(das->m, f->varid);
             char varname[NC_MAX_NAME];
             int vid, ndims;
+
+            if (gridid != plog->gridid)
+                continue;
 
             v_src = (float***) fieldbuffer[fid];
             for (e = 0; e < das->nmem; ++e)
@@ -337,6 +341,7 @@ static void plog_writestatevars_toassemble(dasystem* das, int nfields, void** fi
 
     for (fid = 0; fid < nfields; ++fid) {
         field* f = &fields[fid];
+        int gridid = model_getvargridid(das->m, f->varid);
         char fname[MAXSTRLEN];
         int ncid, dimid;
         int p;
@@ -354,6 +359,9 @@ static void plog_writestatevars_toassemble(dasystem* das, int nfields, void** fi
         for (p = 0; p < das->nplogs; ++p) {
             pointlog* plog = &das->plogs[p];
             char varname[NC_MAX_NAME];
+
+            if (plog->gridid != gridid)
+                continue;
 
             if (!isanalysis)
                 snprintf(varname, NC_MAX_NAME, "%s_%d_%d-%d", f->varname, plog->i, plog->j, plog->gridid);

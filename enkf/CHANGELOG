@@ -1,3 +1,9 @@
+v. 1.46.6
+   PS 14092016
+   - On multi-grid model - modified plog_writestatevars_direct() and
+     plog_writestatevars_toassemble() to skip writing variables from grids
+     other than the native one for a given pointlog (this could try to access
+     nodes outside grid and generate segfaults).
 v. 1.46.5
    PS 05092016
    - Cosmetic simplifications in distribute.c.

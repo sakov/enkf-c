@@ -750,7 +750,7 @@ void das_dopointlogs(dasystem* das)
         if (ploc == 0) {
             if (das->mode == MODE_ENKF)
                 for (e = 0; e < das->nmem; ++e)
-                    X5[e][e] = (float) 1.0;
+                    X5[e][e] = 1.0;
         } else {
             Sloc = alloc2d(das->nmem, ploc, sizeof(double));
             sloc = malloc(ploc * sizeof(double));
