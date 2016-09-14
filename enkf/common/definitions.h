@@ -120,7 +120,7 @@
  *it is assumed that if |value| > MAXOBSVAL, then it is filled with the
  * missing value
  */
-#define MAXOBSVAL 900.0
+#define MAXOBSVAL 9000.0
 
 #define REARTH 6371.0
 #define DEG2RAD (M_PI / 180.0)

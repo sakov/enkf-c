@@ -1,6 +1,10 @@
+v. 1.46.7
+   PS 14092016
+   -- Changed MAXOBSVAL from 900.0 to 9000.0 to handle atmospheric pressure
+      (which can exceed 1000.0)
 v. 1.46.6
    PS 14092016
-   - On multi-grid model - modified plog_writestatevars_direct() and
+   -- On multi-grid model - modified plog_writestatevars_direct() and
      plog_writestatevars_toassemble() to skip writing variables from grids
      other than the native one for a given pointlog (this could try to access
      nodes outside grid and generate segfaults).
