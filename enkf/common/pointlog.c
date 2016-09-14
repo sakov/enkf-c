@@ -446,8 +446,12 @@ void plog_assemblestatevars(dasystem* das)
 
         for (fid = 0; fid < nfields; ++fid) {
             field* f = &fields[fid];
+            int gridid = model_getvargridid(das->m, f->varid);
             char fname_src[MAXSTRLEN];
             int ii;
+
+            if (plog->gridid != gridid)
+                continue;
 
             snprintf(fname_src, MAXSTRLEN, "pointlog_%s-%03d.nc", f->varname, f->level);
 
