@@ -751,18 +751,19 @@ grid* grid_create(void* p, int id)
     }
     ncw_close(ncid);
 
-    if (g->numlevels == NULL && g->depth != NULL) {
+    if (g->numlevels == NULL) {
         g->numlevels = alloc2d(ny, nx, sizeof(int));
         if (g->vtype == GRIDVTYPE_SIGMA) {
             int i, j;
 
             for (j = 0; j < ny; ++j)
                 for (i = 0; i < nx; ++i)
-                    if (g->depth[j][i] > 0.0)
+                    if (g->depth == NULL || g->depth[j][i] > 0.0)
                         g->numlevels[j][i] = nz;
         } else {
             int i, j;
 
+            assert(g->depth != NULL);
             for (j = 0; j < ny; ++j) {
                 for (i = 0; i < nx; ++i) {
                     double depth = g->depth[j][i];

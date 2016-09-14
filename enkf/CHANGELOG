@@ -1,3 +1,7 @@
+v. 1.46.8
+   PS 15092016
+   -- Grid mask is assumed 1 everywhere for sigma model now by default (i.e.
+      if no depth variable is specified for the grid)
 v. 1.46.7
    PS 14092016
    -- Changed MAXOBSVAL from 900.0 to 9000.0 to handle atmospheric pressure
