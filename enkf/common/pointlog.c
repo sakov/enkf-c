@@ -382,6 +382,9 @@ static void plog_writestatevars_toassemble(dasystem* das, int nfields, void** fi
             pointlog* plog = &das->plogs[p];
             int e;
 
+            if (plog->gridid != gridid)
+                continue;
+
             for (e = 0; e < das->nmem; ++e)
                 v[e] = v_src[e][plog->j][plog->i];
             if (das->mode == MODE_ENOI)
