@@ -216,7 +216,7 @@ void das_calctransforms(dasystem* das)
         float** srf = NULL;
         float*** psrf = NULL;
 
-        int* jpool;
+        int* jpool = NULL;
         int i, j, ii, jj, ot, jjj;
 
         /*
@@ -262,7 +262,6 @@ void das_calctransforms(dasystem* das)
             enkf_quit("programming error");
 
         distribute_iterations(0, nj - 1, nprocesses, rank, "      ");
-        assert(my_number_of_iterations <= number_of_iterations[0]);
 
         if (rank == 0) {
             nlobs = alloc2d(nj, ni, sizeof(int));
@@ -272,12 +271,12 @@ void das_calctransforms(dasystem* das)
             pdfs = alloc3d(obs->nobstypes, nj, ni, sizeof(float));
             psrf = alloc3d(obs->nobstypes, nj, ni, sizeof(float));
         } else if (my_number_of_iterations > 0) {
-            nlobs = alloc2d(my_last_iteration - my_first_iteration + 1, ni, sizeof(int));
-            dfs = alloc2d(my_last_iteration - my_first_iteration + 1, ni, sizeof(float));
-            srf = alloc2d(my_last_iteration - my_first_iteration + 1, ni, sizeof(float));
-            pnlobs = alloc3d(obs->nobstypes, my_last_iteration - my_first_iteration + 1, ni, sizeof(int));
-            pdfs = alloc3d(obs->nobstypes, my_last_iteration - my_first_iteration + 1, ni, sizeof(float));
-            psrf = alloc3d(obs->nobstypes, my_last_iteration - my_first_iteration + 1, ni, sizeof(float));
+            nlobs = alloc2d(my_number_of_iterations, ni, sizeof(int));
+            dfs = alloc2d(my_number_of_iterations, ni, sizeof(float));
+            srf = alloc2d(my_number_of_iterations, ni, sizeof(float));
+            pnlobs = alloc3d(obs->nobstypes, my_number_of_iterations, ni, sizeof(int));
+            pdfs = alloc3d(obs->nobstypes, my_number_of_iterations, ni, sizeof(float));
+            psrf = alloc3d(obs->nobstypes, my_number_of_iterations, ni, sizeof(float));
         }
 
         /*
@@ -699,10 +698,10 @@ void das_calctransforms(dasystem* das)
             free(pnlobs);
             free(pdfs);
             free(psrf);
-            free(jiter);
-            free(iiter);
-            free(jpool);
         }
+        free(jiter);
+        free(iiter);
+        free(jpool);
     }                           /* for gid */
 }
 
