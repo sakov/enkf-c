@@ -49,7 +49,7 @@ static void nc_createX5(char fname[], char gridname[], int nj, int ni, int strid
 
 /**
  */
-static void nc_writeX5(char fname[], int ncid, int j, int ni, int nmem, int varid_X5, float* X5j)
+static void nc_writeX5(int ncid, int j, int ni, int nmem, int varid_X5, float* X5j)
 {
     size_t start[3], count[3];
 
@@ -87,7 +87,7 @@ static void nc_createw(char fname[], char gridname[], int nj, int ni, int stride
 
 /**
  */
-static void nc_writew(char fname[], int ncid, int j, int ni, int nmem, int varid_w, float* wj)
+static void nc_writew(int ncid, int j, int ni, int nmem, int varid_w, float* wj)
 {
     size_t start[3], count[3];
 
@@ -483,7 +483,7 @@ void das_calctransforms(dasystem* das)
                     /*
                      * write own results 
                      */
-                    nc_writeX5(fname_XW, ncid_X5, jpool[jj], ni, das->nmem, varid_X5, X5j[0]);
+                    nc_writeX5(ncid_X5, jpool[jj], ni, das->nmem, varid_X5, X5j[0]);
                     /*
                      * collect and write results from slaves 
                      */
@@ -496,7 +496,7 @@ void das_calctransforms(dasystem* das)
                          */
                         ierror = MPI_Recv(X5j[0], ni * das->nmem * das->nmem, MPI_FLOAT, r, first_iteration[r] + jj, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
                         assert(ierror == MPI_SUCCESS);
-                        nc_writeX5(fname_XW, ncid_X5, jpool[first_iteration[r] + jj], ni, das->nmem, varid_X5, X5j[0]);
+                        nc_writeX5(ncid_X5, jpool[first_iteration[r] + jj], ni, das->nmem, varid_X5, X5j[0]);
                     }
                 }
             } else if (das->mode == MODE_ENOI) {
@@ -510,7 +510,7 @@ void das_calctransforms(dasystem* das)
                     /*
                      * write own results 
                      */
-                    nc_writew(fname_XW, ncid_w, jpool[jj], ni, das->nmem, varid_w, wj[0]);
+                    nc_writew(ncid_w, jpool[jj], ni, das->nmem, varid_w, wj[0]);
                     /*
                      * collect and write results from slaves 
                      */
@@ -523,15 +523,15 @@ void das_calctransforms(dasystem* das)
                          */
                         ierror = MPI_Recv(wj[0], ni * das->nmem, MPI_FLOAT, r, first_iteration[r] + jj, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
                         assert(ierror == MPI_SUCCESS);
-                        nc_writew(fname_XW, ncid_w, jpool[first_iteration[r] + jj], ni, das->nmem, varid_w, wj[0]);
+                        nc_writew(ncid_w, jpool[first_iteration[r] + jj], ni, das->nmem, varid_w, wj[0]);
                     }
                 }
             }
 #else                           /* no MPI */
             if (das->mode == MODE_ENKF)
-                nc_writeX5(fname_XW, ncid_X5, jpool[jj], ni, das->nmem, varid_X5, X5j[0]);
+                nc_writeX5(ncid_X5, jpool[jj], ni, das->nmem, varid_X5, X5j[0]);
             else if (das->mode == MODE_ENKF)
-                nc_writew(fname_XW, ncid_w, jpool[jj], ni, das->nmem, varid_w, wj[0]);
+                nc_writew(ncid_w, jpool[jj], ni, das->nmem, varid_w, wj[0]);
 #endif                          /* if defined(MPI) */
         }                       /* for jj */
 
