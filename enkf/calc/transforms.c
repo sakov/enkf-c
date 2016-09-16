@@ -181,17 +181,18 @@ void das_calctransforms(dasystem* das)
     for (gid = 0; gid < ngrid; ++gid) {
         void* grid = model_getgridbyid(m, gid);
         char* gridname = grid_getname(grid);
-        char fname_XW[MAXSTRLEN];
 
         int mni, mnj;
         int nj, ni;
         int* jiter = NULL;
         int* iiter = NULL;
 
-        int ncid_X5 = -1;
-        int varid_X5 = -1;
-        int ncid_w = -1;
-        int varid_w = -1;
+        /*
+         * X5 (EnKF) or w (EnOI) files
+         */
+        char fname[MAXSTRLEN];
+        int ncid = -1;
+        int varid = -1;
 
         /*
          * transforms 
@@ -245,17 +246,17 @@ void das_calctransforms(dasystem* das)
             iiter[i] = j;
 
         if (das->mode == MODE_ENKF) {
-            das_getfname_X5(das, grid, fname_XW);
+            das_getfname_X5(das, grid, fname);
 
             if (rank == 0)
-                nc_createX5(fname_XW, gridname, nj, ni, das->stride, das->nmem, &ncid_X5, &varid_X5);
+                nc_createX5(fname, gridname, nj, ni, das->stride, das->nmem, &ncid, &varid);
             X5j = alloc2d(ni, das->nmem * das->nmem, sizeof(float));
             X5 = alloc2d(das->nmem, das->nmem, sizeof(double));
         } else if (das->mode == MODE_ENOI) {
-            das_getfname_w(das, grid, fname_XW);
+            das_getfname_w(das, grid, fname);
 
             if (rank == 0)
-                nc_createw(fname_XW, gridname, nj, ni, das->stride, das->nmem, &ncid_w, &varid_w);
+                nc_createw(fname, gridname, nj, ni, das->stride, das->nmem, &ncid, &varid);
             wj = alloc2d(ni, das->nmem, sizeof(float));
             w = malloc(das->nmem * sizeof(double));
         } else
@@ -483,7 +484,7 @@ void das_calctransforms(dasystem* das)
                     /*
                      * write own results 
                      */
-                    nc_writeX5(ncid_X5, jpool[jj], ni, das->nmem, varid_X5, X5j[0]);
+                    nc_writeX5(ncid, jpool[jj], ni, das->nmem, varid, X5j[0]);
                     /*
                      * collect and write results from slaves 
                      */
@@ -496,7 +497,7 @@ void das_calctransforms(dasystem* das)
                          */
                         ierror = MPI_Recv(X5j[0], ni * das->nmem * das->nmem, MPI_FLOAT, r, first_iteration[r] + jj, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
                         assert(ierror == MPI_SUCCESS);
-                        nc_writeX5(ncid_X5, jpool[first_iteration[r] + jj], ni, das->nmem, varid_X5, X5j[0]);
+                        nc_writeX5(ncid, jpool[first_iteration[r] + jj], ni, das->nmem, varid, X5j[0]);
                     }
                 }
             } else if (das->mode == MODE_ENOI) {
@@ -510,7 +511,7 @@ void das_calctransforms(dasystem* das)
                     /*
                      * write own results 
                      */
-                    nc_writew(ncid_w, jpool[jj], ni, das->nmem, varid_w, wj[0]);
+                    nc_writew(ncid, jpool[jj], ni, das->nmem, varid, wj[0]);
                     /*
                      * collect and write results from slaves 
                      */
@@ -523,29 +524,24 @@ void das_calctransforms(dasystem* das)
                          */
                         ierror = MPI_Recv(wj[0], ni * das->nmem, MPI_FLOAT, r, first_iteration[r] + jj, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
                         assert(ierror == MPI_SUCCESS);
-                        nc_writew(ncid_w, jpool[first_iteration[r] + jj], ni, das->nmem, varid_w, wj[0]);
+                        nc_writew(ncid, jpool[first_iteration[r] + jj], ni, das->nmem, varid, wj[0]);
                     }
                 }
             }
 #else                           /* no MPI */
             if (das->mode == MODE_ENKF)
-                nc_writeX5(ncid_X5, jpool[jj], ni, das->nmem, varid_X5, X5j[0]);
+                nc_writeX5(ncid, jpool[jj], ni, das->nmem, varid, X5j[0]);
             else if (das->mode == MODE_ENKF)
-                nc_writew(ncid_w, jpool[jj], ni, das->nmem, varid_w, wj[0]);
+                nc_writew(ncid, jpool[jj], ni, das->nmem, varid, wj[0]);
 #endif                          /* if defined(MPI) */
         }                       /* for jj */
 
-        if (rank == 0) {
-            if (das->mode == MODE_ENKF)
-                ncw_close(ncid_X5);
-            else if (das->mode == MODE_ENOI)
-                ncw_close(ncid_w);
-        }
+        if (rank == 0)
+            ncw_close(ncid);
 #if defined(MPI)
         MPI_Barrier(MPI_COMM_WORLD);
 #endif
         enkf_printf("    finished calculating transforms for %s\n", grid_getname(grid));
-
         enkf_flush();
 
 #if defined(MPI)
@@ -641,7 +637,6 @@ void das_calctransforms(dasystem* das)
             char fname_stats[MAXSTRLEN];
 
             das_getfname_stats(das, grid, fname_stats);
-
             nc_writediag(fname_stats, obs->nobstypes, nj, ni, das->stride, nlobs, dfs, srf, pnlobs, pdfs, psrf);
         }
 
