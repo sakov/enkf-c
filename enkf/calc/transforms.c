@@ -318,7 +318,7 @@ void das_calctransforms(dasystem* das)
          */
         for (jj = my_first_iteration; jj <= my_last_iteration; ++jj) {
             j = jiter[jpool[jj]];
-            printf("        j = %d (%d: %d: %.1f%%)\n", j, rank, jj, 100.0 * (double) (jj - my_first_iteration + 1) / (double) (my_last_iteration - my_first_iteration + 1));
+            printf("        j = %d (%d: %d: %.1f%%)\n", j, rank, jj, 100.0 * (double) (jj - my_first_iteration + 1) / (double) my_number_of_iterations);
             fflush(stdout);
 
             if (rank == 0)
@@ -555,17 +555,17 @@ void das_calctransforms(dasystem* das)
         if (rank > 0 && my_number_of_iterations > 0) {
             int ierror;
 
-            ierror = MPI_Send(nlobs[0], (my_last_iteration - my_first_iteration + 1) * ni, MPI_INT, 0, 1, MPI_COMM_WORLD);
+            ierror = MPI_Send(nlobs[0], my_number_of_iterations * ni, MPI_INT, 0, 1, MPI_COMM_WORLD);
             assert(ierror == MPI_SUCCESS);
-            ierror = MPI_Send(dfs[0], (my_last_iteration - my_first_iteration + 1) * ni, MPI_FLOAT, 0, 2, MPI_COMM_WORLD);
+            ierror = MPI_Send(dfs[0], my_number_of_iterations * ni, MPI_FLOAT, 0, 2, MPI_COMM_WORLD);
             assert(ierror == MPI_SUCCESS);
-            ierror = MPI_Send(srf[0], (my_last_iteration - my_first_iteration + 1) * ni, MPI_FLOAT, 0, 3, MPI_COMM_WORLD);
+            ierror = MPI_Send(srf[0], my_number_of_iterations * ni, MPI_FLOAT, 0, 3, MPI_COMM_WORLD);
             assert(ierror == MPI_SUCCESS);
-            ierror = MPI_Send(pnlobs[0][0], obs->nobstypes * (my_last_iteration - my_first_iteration + 1) * ni, MPI_INT, 0, 4, MPI_COMM_WORLD);
+            ierror = MPI_Send(pnlobs[0][0], obs->nobstypes * my_number_of_iterations * ni, MPI_INT, 0, 4, MPI_COMM_WORLD);
             assert(ierror == MPI_SUCCESS);
-            ierror = MPI_Send(pdfs[0][0], obs->nobstypes * (my_last_iteration - my_first_iteration + 1) * ni, MPI_FLOAT, 0, 5, MPI_COMM_WORLD);
+            ierror = MPI_Send(pdfs[0][0], obs->nobstypes * my_number_of_iterations * ni, MPI_FLOAT, 0, 5, MPI_COMM_WORLD);
             assert(ierror == MPI_SUCCESS);
-            ierror = MPI_Send(psrf[0][0], obs->nobstypes * (my_last_iteration - my_first_iteration + 1) * ni, MPI_FLOAT, 0, 6, MPI_COMM_WORLD);
+            ierror = MPI_Send(psrf[0][0], obs->nobstypes * my_number_of_iterations * ni, MPI_FLOAT, 0, 6, MPI_COMM_WORLD);
             assert(ierror == MPI_SUCCESS);
         } else {
             int ierror;
@@ -579,8 +579,8 @@ void das_calctransforms(dasystem* das)
                 if (number_of_iterations[r] == 0)
                     continue;
 
-                buffer_nlobs = alloc2d(last_iteration[r] - first_iteration[r] + 1, ni, sizeof(int));
-                ierror = MPI_Recv(buffer_nlobs[0], (last_iteration[r] - first_iteration[r] + 1) * ni, MPI_INT, r, 1, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+                buffer_nlobs = alloc2d(number_of_iterations[r], ni, sizeof(int));
+                ierror = MPI_Recv(buffer_nlobs[0], number_of_iterations[r] * ni, MPI_INT, r, 1, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
                 assert(ierror == MPI_SUCCESS);
                 for (jj = first_iteration[r], jjj = 0; jj <= last_iteration[r]; ++jj, ++jjj) {
                     j = jpool[jj];
@@ -588,15 +588,15 @@ void das_calctransforms(dasystem* das)
                 }
                 free(buffer_nlobs);
 
-                buffer_dfs = alloc2d(last_iteration[r] - first_iteration[r] + 1, ni, sizeof(int));
-                ierror = MPI_Recv(buffer_dfs[0], (last_iteration[r] - first_iteration[r] + 1) * ni, MPI_FLOAT, r, 2, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+                buffer_dfs = alloc2d(number_of_iterations[r], ni, sizeof(int));
+                ierror = MPI_Recv(buffer_dfs[0], number_of_iterations[r] * ni, MPI_FLOAT, r, 2, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
                 assert(ierror == MPI_SUCCESS);
                 for (jj = first_iteration[r], jjj = 0; jj <= last_iteration[r]; ++jj, ++jjj) {
                     j = jpool[jj];
                     memcpy(dfs[j], buffer_dfs[jjj], ni * sizeof(float));
                 }
 
-                ierror = MPI_Recv(buffer_dfs[0], (last_iteration[r] - first_iteration[r] + 1) * ni, MPI_FLOAT, r, 3, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+                ierror = MPI_Recv(buffer_dfs[0], number_of_iterations[r] * ni, MPI_FLOAT, r, 3, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
                 assert(ierror == MPI_SUCCESS);
                 for (jj = first_iteration[r], jjj = 0; jj <= last_iteration[r]; ++jj, ++jjj) {
                     j = jpool[jj];
@@ -604,8 +604,8 @@ void das_calctransforms(dasystem* das)
                 }
                 free(buffer_dfs);
 
-                buffer_pnlobs = alloc3d(obs->nobstypes, last_iteration[r] - first_iteration[r] + 1, ni, sizeof(int));
-                ierror = MPI_Recv(buffer_pnlobs[0][0], obs->nobstypes * (last_iteration[r] - first_iteration[r] + 1) * ni, MPI_INT, r, 4, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+                buffer_pnlobs = alloc3d(obs->nobstypes, number_of_iterations[r], ni, sizeof(int));
+                ierror = MPI_Recv(buffer_pnlobs[0][0], obs->nobstypes * number_of_iterations[r] * ni, MPI_INT, r, 4, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
                 assert(ierror == MPI_SUCCESS);
                 for (ot = 0; ot < obs->nobstypes; ot++) {
                     for (jj = first_iteration[r], jjj = 0; jj <= last_iteration[r]; ++jj, ++jjj) {
@@ -615,8 +615,8 @@ void das_calctransforms(dasystem* das)
                 }
                 free(buffer_pnlobs);
 
-                buffer_pdfs = alloc3d(obs->nobstypes, last_iteration[r] - first_iteration[r] + 1, ni, sizeof(float));
-                ierror = MPI_Recv(buffer_pdfs[0][0], obs->nobstypes * (last_iteration[r] - first_iteration[r] + 1) * ni, MPI_FLOAT, r, 5, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+                buffer_pdfs = alloc3d(obs->nobstypes, number_of_iterations[r], ni, sizeof(float));
+                ierror = MPI_Recv(buffer_pdfs[0][0], obs->nobstypes * number_of_iterations[r] * ni, MPI_FLOAT, r, 5, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
                 assert(ierror == MPI_SUCCESS);
                 for (ot = 0; ot < obs->nobstypes; ot++) {
                     for (jj = first_iteration[r], jjj = 0; jj <= last_iteration[r]; ++jj, ++jjj) {
@@ -625,7 +625,7 @@ void das_calctransforms(dasystem* das)
                     }
                 }
 
-                ierror = MPI_Recv(buffer_pdfs[0][0], obs->nobstypes * (last_iteration[r] - first_iteration[r] + 1) * ni, MPI_FLOAT, r, 6, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+                ierror = MPI_Recv(buffer_pdfs[0][0], obs->nobstypes * number_of_iterations[r] * ni, MPI_FLOAT, r, 6, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
                 assert(ierror == MPI_SUCCESS);
                 for (ot = 0; ot < obs->nobstypes; ot++) {
                     for (jj = first_iteration[r], jjj = 0; jj <= last_iteration[r]; ++jj, ++jjj) {
