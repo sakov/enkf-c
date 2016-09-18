@@ -1,7 +1,7 @@
 v. 1.46.10
    PS 18092016
-   -- Fixed defect in das_calctransforms()that led to a hang in the case
-      nprocesses > nj.
+   -- Fixed defect in das_calctransforms() that led to a hang in the case
+      nprocesses > nj / stride.
 v. 1.46.9
    PS 16092016
    -- Cosmetic changes.
