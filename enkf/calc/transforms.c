@@ -475,9 +475,11 @@ void das_calctransforms(dasystem* das)
 #if defined(MPI)
             if (das->mode == MODE_ENKF) {
                 if (rank > 0) {
-                    int ierror = MPI_Send(X5j[0], ni * das->nmem * das->nmem, MPI_FLOAT, 0, jj, MPI_COMM_WORLD);
+                    if (my_number_of_iterations > 0) {
+                        int ierror = MPI_Send(X5j[0], ni * das->nmem * das->nmem, MPI_FLOAT, 0, jj, MPI_COMM_WORLD);
 
-                    assert(ierror == MPI_SUCCESS);
+                        assert(ierror == MPI_SUCCESS);
+                    }
                 } else {
                     int r, ierror;
 
@@ -502,9 +504,11 @@ void das_calctransforms(dasystem* das)
                 }
             } else if (das->mode == MODE_ENOI) {
                 if (rank > 0) {
-                    int ierror = MPI_Send(wj[0], ni * das->nmem, MPI_FLOAT, 0, jj, MPI_COMM_WORLD);
+                    if (my_number_of_iterations > 0) {
+                        int ierror = MPI_Send(wj[0], ni * das->nmem, MPI_FLOAT, 0, jj, MPI_COMM_WORLD);
 
-                    assert(ierror == MPI_SUCCESS);
+                        assert(ierror == MPI_SUCCESS);
+                    }
                 } else {
                     int r, ierror;
 
@@ -542,27 +546,30 @@ void das_calctransforms(dasystem* das)
         MPI_Barrier(MPI_COMM_WORLD);
 #endif
         enkf_printf("    finished calculating transforms for %s\n", grid_getname(grid));
+
         enkf_flush();
 
 #if defined(MPI)
         /*
          * collect stats on master 
          */
-        if (rank > 0 && my_number_of_iterations > 0) {
-            int ierror;
+        if (rank > 0) {
+            if (my_number_of_iterations > 0) {
+                int ierror;
 
-            ierror = MPI_Send(nlobs[0], my_number_of_iterations * ni, MPI_INT, 0, 1, MPI_COMM_WORLD);
-            assert(ierror == MPI_SUCCESS);
-            ierror = MPI_Send(dfs[0], my_number_of_iterations * ni, MPI_FLOAT, 0, 2, MPI_COMM_WORLD);
-            assert(ierror == MPI_SUCCESS);
-            ierror = MPI_Send(srf[0], my_number_of_iterations * ni, MPI_FLOAT, 0, 3, MPI_COMM_WORLD);
-            assert(ierror == MPI_SUCCESS);
-            ierror = MPI_Send(pnlobs[0][0], obs->nobstypes * my_number_of_iterations * ni, MPI_INT, 0, 4, MPI_COMM_WORLD);
-            assert(ierror == MPI_SUCCESS);
-            ierror = MPI_Send(pdfs[0][0], obs->nobstypes * my_number_of_iterations * ni, MPI_FLOAT, 0, 5, MPI_COMM_WORLD);
-            assert(ierror == MPI_SUCCESS);
-            ierror = MPI_Send(psrf[0][0], obs->nobstypes * my_number_of_iterations * ni, MPI_FLOAT, 0, 6, MPI_COMM_WORLD);
-            assert(ierror == MPI_SUCCESS);
+                ierror = MPI_Send(nlobs[0], my_number_of_iterations * ni, MPI_INT, 0, 1, MPI_COMM_WORLD);
+                assert(ierror == MPI_SUCCESS);
+                ierror = MPI_Send(dfs[0], my_number_of_iterations * ni, MPI_FLOAT, 0, 2, MPI_COMM_WORLD);
+                assert(ierror == MPI_SUCCESS);
+                ierror = MPI_Send(srf[0], my_number_of_iterations * ni, MPI_FLOAT, 0, 3, MPI_COMM_WORLD);
+                assert(ierror == MPI_SUCCESS);
+                ierror = MPI_Send(pnlobs[0][0], obs->nobstypes * my_number_of_iterations * ni, MPI_INT, 0, 4, MPI_COMM_WORLD);
+                assert(ierror == MPI_SUCCESS);
+                ierror = MPI_Send(pdfs[0][0], obs->nobstypes * my_number_of_iterations * ni, MPI_FLOAT, 0, 5, MPI_COMM_WORLD);
+                assert(ierror == MPI_SUCCESS);
+                ierror = MPI_Send(psrf[0][0], obs->nobstypes * my_number_of_iterations * ni, MPI_FLOAT, 0, 6, MPI_COMM_WORLD);
+                assert(ierror == MPI_SUCCESS);
+            }
         } else {
             int ierror;
             int** buffer_nlobs;
@@ -651,10 +658,12 @@ void das_calctransforms(dasystem* das)
         /*
          * merge stats for the report
          */
-        if (rank != 0 && my_number_of_iterations > 0) {
-            int ierror = MPI_Send(&stats, sizeof(stats) / sizeof(int), MPI_INT, 0, 99, MPI_COMM_WORLD);
+        if (rank > 0) {
+            if (my_number_of_iterations > 0) {
+                int ierror = MPI_Send(&stats, sizeof(stats) / sizeof(int), MPI_INT, 0, 99, MPI_COMM_WORLD);
 
-            assert(ierror == MPI_SUCCESS);
+                assert(ierror == MPI_SUCCESS);
+            }
         } else {
             int r;
 
