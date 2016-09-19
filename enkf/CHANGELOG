@@ -1,3 +1,6 @@
+v. 1.46.11
+   PS 19092016
+   -- Corrected obstype_check().
 v. 1.46.10
    PS 18092016
    -- Fixed defect in das_calctransforms() that led to a hang in the case

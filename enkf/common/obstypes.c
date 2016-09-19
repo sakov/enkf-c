@@ -91,12 +91,14 @@ static void obstype_new(obstype* type, int i, char* name)
 static void obstype_check(obstype* type)
 {
     assert(type->name != NULL);
+    if (type->rfactor <= 0)
+        enkf_quit("\"%s\": RFACTOR = %f\n", type->name);
     if (type->issurface < 0)
-        enkf_quit("\"%s\": ISSURFACE not specified\n");
+        enkf_quit("\"%s\": ISSURFACE not specified\n", type->name);
     if (type->nvar == 0)
-        enkf_quit("\"%s\": VAR not specified\n");
+        enkf_quit("\"%s\": VAR not specified\n", type->name);
     if (type->hfunction == NULL)
-        enkf_quit("\"%s\": HFUNCTION not specified\n");
+        enkf_quit("\"%s\": HFUNCTION not specified\n", type->name);
 }
 
 /**
