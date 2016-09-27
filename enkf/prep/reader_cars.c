@@ -36,7 +36,7 @@
 void reader_cars_standard(char* fname, int fid, obsmeta* meta, model* m, observations* obs)
 {
     int ncid;
-    int dimid_nprof, dimid_nz;
+    int dimid_nprof, dimid_nz = -1;
     size_t nprof, nz;
     int varid_lon, varid_lat, varid_z, varid_type;
     int varid_v = -1;
@@ -69,7 +69,12 @@ void reader_cars_standard(char* fname, int fid, obsmeta* meta, model* m, observa
         return;
     }
 
-    ncw_inq_dimid(ncid, "zt", &dimid_nz);
+    if (ncw_dim_exists(ncid, "zt"))
+        ncw_inq_dimid(ncid, "zt", &dimid_nz);
+    else if (ncw_dim_exists(ncid, "ztd"))
+        ncw_inq_dimid(ncid, "ztd", &dimid_nz);
+    else
+        enkf_quit("reader_cars_standard(): neither dimension \"zt\" ot \"ztd\" exist");
     ncw_inq_dimlen(ncid, dimid_nz, &nz);
     enkf_printf("        # z levels = %u\n", (unsigned int) nz);
 

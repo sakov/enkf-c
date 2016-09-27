@@ -1,3 +1,7 @@
+v. 1.46.14
+   PS 28092016
+   -- Modified reader_cars_standard() to look for either dimension "zt" or
+      "ztd".
 v. 1.46.13
    PS 28092016
    Added argument "hastosucceed" to obstype_getid().
