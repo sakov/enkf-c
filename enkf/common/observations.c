@@ -63,10 +63,10 @@ void obs_addtype(observations* obs, obstype* src, obsdomain* domain)
     ot->allowed_max = src->allowed_max;
     ot->isasync = src->isasync;
     ot->async_tstep = src->async_tstep;
-    ot->nscale = src->nscale;
-    ot->locrad = malloc(sizeof(double) * ot->nscale);
-    ot->weight = malloc(sizeof(double) * ot->nscale);
-    for (i = 0; i < ot->nscale; ++i) {
+    ot->nlocrad = src->nlocrad;
+    ot->locrad = malloc(sizeof(double) * ot->nlocrad);
+    ot->weight = malloc(sizeof(double) * ot->nlocrad);
+    for (i = 0; i < ot->nlocrad; ++i) {
         ot->locrad[i] = src->locrad[i];
         ot->weight[i] = src->weight[i];
     }

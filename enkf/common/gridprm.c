@@ -17,6 +17,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <assert.h>
+#include <math.h>
 #include "definitions.h"
 #include "grid.h"
 #include "gridprm.h"
@@ -65,6 +66,7 @@ void gridprm_create(char* fname, int* ngrid, gridprm** prm)
             *prm = realloc(*prm, sizeof(gridprm) * (*ngrid));
             now = &(*prm)[*ngrid - 1];
             memset(now, 0, sizeof(gridprm));
+            now->sfactor = 1.0;
             if ((token = strtok(NULL, seps)) == NULL)
                 enkf_quit("%s, l.%d: NAME not specified", fname, line);
             else
@@ -175,6 +177,13 @@ void gridprm_create(char* fname, int* ngrid, gridprm** prm)
                 enkf_quit("%s, l.%d: DEPTHVARNAME specified twice", fname, line);
             else
                 now->depthvarname = strdup(token);
+        } else if (strcasecmp(token, "SFACTOR") == 0) {
+            if ((token = strtok(NULL, seps)) == NULL)
+                enkf_quit("%s, l.%d: SFACTOR not specified", fname, line);
+            if (now->sfactor != 1.0)
+                enkf_quit("%s, l.%d: SFACTOR specified twice", fname, line);
+            if (!str2double(token, &now->sfactor))
+                enkf_quit("%s, l.%d: could not convert \"%s\" to double", fname, line, now->sfactor);
         } else if (now->levelvarnameentry != NULL && strcasecmp(token, now->levelvarnameentry) == 0) {
             if ((token = strtok(NULL, seps)) == NULL)
                 enkf_printf("%s, l.%d: \"%s\" not specified", fname, line, now->levelvarnameentry);
@@ -210,6 +219,8 @@ void gridprm_create(char* fname, int* ngrid, gridprm** prm)
             enkf_quit("%s: YVARNAME not specified for grid \"%s\"", fname, now->name);
         if (now->zvarname == NULL)
             enkf_quit("%s: ZVARNAME not specified for grid \"%s\"", fname, now->name);
+        if (!isfinite(now->sfactor) || now->sfactor <= 0.0)
+            enkf_quit("%s: SFACTOR = %.3g\n", now->sfactor);
     }
 }
 
@@ -259,6 +270,8 @@ void gridprm_print(gridprm* prm, char offset[])
     enkf_printf("%s  DEPTHVARNAME = \"%s\"\n", offset, prm->depthvarname);
     if (prm->levelvarnameentry != NULL && prm->levelvarname != NULL)
         enkf_printf("%s  %s = \"%s\"\n", offset, prm->levelvarnameentry, prm->levelvarname);
+    if (prm->sfactor != 1.0)
+        enkf_printf("%s  SFACTOR = \"%.f\"\n", offset, prm->sfactor);
 }
 
 /**

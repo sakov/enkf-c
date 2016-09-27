@@ -31,6 +31,7 @@ typedef struct {
     char* depthvarname;
     char* levelvarnameentry;
     char* levelvarname;
+    double sfactor;
 } gridprm;
 
 void gridprm_create(char* fname, int* ngrid, gridprm** prm);

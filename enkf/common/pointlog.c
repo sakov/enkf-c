@@ -83,9 +83,9 @@ void plog_write(dasystem* das, int id, double depth, int p, int* lobs, double* l
             snprintf(attname, NC_MAX_NAME, "RFACTOR_%s", obs->obstypes[ot].name);
             ncw_put_att_double(ncid, vid_type, attname, 1, &obs->obstypes[ot].rfactor);
             snprintf(attname, NC_MAX_NAME, "LOCRAD_%s", obs->obstypes[ot].name);
-            ncw_put_att_double(ncid, vid_type, attname, obs->obstypes[ot].nscale, obs->obstypes[ot].locrad);
+            ncw_put_att_double(ncid, vid_type, attname, obs->obstypes[ot].nlocrad, obs->obstypes[ot].locrad);
             snprintf(attname, NC_MAX_NAME, "WEIGHT_%s", obs->obstypes[ot].name);
-            ncw_put_att_double(ncid, vid_type, attname, obs->obstypes[ot].nscale, obs->obstypes[ot].weight);
+            ncw_put_att_double(ncid, vid_type, attname, obs->obstypes[ot].nlocrad, obs->obstypes[ot].weight);
         }
     }
     if (das->mode == MODE_ENKF) {

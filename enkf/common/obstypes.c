@@ -38,6 +38,8 @@ int obstype_getid(int n, obstype types[], char* name)
         if (strcmp(types[i].name, name) == 0)
             return i;
 
+    enkf_quit("failed to identify observation type \"%s\"", name);
+
     return -1;
 }
 
@@ -59,7 +61,7 @@ static void obstype_new(obstype* type, int i, char* name)
     type->allowed_max = DBL_MAX;
     type->isasync = 0;
     type->async_tstep = NaN;
-    type->nscale = 0;
+    type->nlocrad = 0;
     type->locrad = NULL;
     type->weight = NULL;
     type->rfactor = 1.0;
@@ -125,11 +127,11 @@ static void obstype_print(obstype* type)
     else
         enkf_printf("\n");
     enkf_printf("      LOCRAD  =");
-    for (i = 0; i < type->nscale; ++i)
+    for (i = 0; i < type->nlocrad; ++i)
         enkf_printf(" %.3g", type->locrad[i]);
     enkf_printf("\n");
     enkf_printf("      WEIGHT = ");
-    for (i = 0; i < type->nscale; ++i)
+    for (i = 0; i < type->nlocrad; ++i)
         enkf_printf(" %.3g", type->weight[i]);
     enkf_printf("\n");
     enkf_printf("      RFACTOR = %.3g\n", type->rfactor);
@@ -243,34 +245,34 @@ void obstypes_read(char fname[], int* n, obstype** types, double locrad_base, do
         } else if (strcasecmp(token, "LOCRAD") == 0) {
             int sid = 0;
 
-            if (now->nscale > 0)
-                now->locrad = malloc(sizeof(double) * now->nscale);
+            if (now->nlocrad > 0)
+                now->locrad = malloc(sizeof(double) * now->nlocrad);
             while ((token = strtok(NULL, seps)) != NULL) {
-                if (now->nscale == sid) {
-                    now->locrad = realloc(now->locrad, sizeof(double) * (now->nscale + 1));
-                    now->nscale++;
+                if (now->nlocrad == sid) {
+                    now->locrad = realloc(now->locrad, sizeof(double) * (now->nlocrad + 1));
+                    now->nlocrad++;
                 }
                 if (!str2double(token, &now->locrad[sid]))
                     enkf_quit("%s, l.%d: could not convert \"%s\" to double", fname, line, token);
                 sid++;
             }
-            if (now->nscale > sid)
+            if (now->nlocrad > sid)
                 enkf_quit("%s, l.%d: LOCRAD not specified or its dimension does not match that of RFACTOR", fname, line);
         } else if (strcasecmp(token, "WEIGHT") == 0) {
             int sid = 0;
 
-            if (now->nscale > 0)
-                now->weight = malloc(sizeof(double) * now->nscale);
+            if (now->nlocrad > 0)
+                now->weight = malloc(sizeof(double) * now->nlocrad);
             while ((token = strtok(NULL, seps)) != NULL) {
-                if (now->nscale == sid) {
-                    now->weight = realloc(now->weight, sizeof(double) * (now->nscale + 1));
-                    now->nscale++;
+                if (now->nlocrad == sid) {
+                    now->weight = realloc(now->weight, sizeof(double) * (now->nlocrad + 1));
+                    now->nlocrad++;
                 }
                 if (!str2double(token, &now->weight[sid]))
                     enkf_quit("%s, l.%d: could not convert \"%s\" to double", fname, line, token);
                 sid++;
             }
-            if (now->nscale > sid)
+            if (now->nlocrad > sid)
                 enkf_quit("%s, l.%d: WEIGHT entered but not specified or its dimension does not match that of LOCRAD", fname, line);
         } else if (strcasecmp(token, "RFACTOR") == 0) {
             if ((token = strtok(NULL, seps)) == NULL)
@@ -315,14 +317,14 @@ void obstypes_read(char fname[], int* n, obstype** types, double locrad_base, do
     for (i = 0; i < *n; ++i) {
         obstype* type = &(*types)[i];
 
-        if (type->nscale == 0) {
+        if (type->nlocrad == 0) {
             type->locrad = malloc(sizeof(double));
             type->weight = malloc(sizeof(double));
             type->locrad[0] = locrad_base;
             type->weight[0] = 1.0;
-            type->nscale = 1;
+            type->nlocrad = 1;
         } else if (type->weight == NULL) {
-            if (type->nscale == 1) {
+            if (type->nlocrad == 1) {
                 type->weight = malloc(sizeof(double));
                 type->weight[0] = 1.0;
             } else
@@ -331,10 +333,10 @@ void obstypes_read(char fname[], int* n, obstype** types, double locrad_base, do
             double sum = 0.0;
             int j;
 
-            for (j = 0; j < type->nscale; ++j)
+            for (j = 0; j < type->nlocrad; ++j)
                 sum += type->weight[j];
             assert(sum > 0.0);
-            for (j = 0; j < type->nscale; ++j)
+            for (j = 0; j < type->nlocrad; ++j)
                 type->weight[j] /= sum;
         }
         type->rfactor *= rfactor_base;
@@ -421,7 +423,7 @@ double obstype_calclcoeff(obstype* type, double dist)
     double sum = 0.0;
     int i;
 
-    for (i = 0; i < type->nscale; ++i)
+    for (i = 0; i < type->nlocrad; ++i)
         if (dist <= type->locrad[i])
             sum += type->weight[i] * taper_gc(dist / type->locrad[i]);
     return sum;
@@ -434,7 +436,7 @@ double obstype_getmaxlocrad(obstype* type)
     double max = 0.0;
     int i;
 
-    for (i = 0; i < type->nscale; ++i)
+    for (i = 0; i < type->nlocrad; ++i)
         if (type->locrad[i] > max)
             max = type->locrad[i];
     return max;

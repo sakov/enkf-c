@@ -181,6 +181,7 @@ void das_calctransforms(dasystem* das)
     for (gid = 0; gid < ngrid; ++gid) {
         void* grid = model_getgridbyid(m, gid);
         char* gridname = grid_getname(grid);
+        double sfactor = grid_getsfactor(grid);
 
         int mni, mnj;
         int nj, ni;
@@ -389,7 +390,7 @@ void das_calctransforms(dasystem* das)
                     double* Sloce = Sloc[e];
 
                     for (o = 0; o < ploc; ++o)
-                        Sloce[o] = (double) Se[lobs[o]] * lcoeffs[o];
+                        Sloce[o] = (double) Se[lobs[o]] * lcoeffs[o] * sfactor;
                 }
                 for (o = 0; o < ploc; ++o)
                     sloc[o] = das->s_f[lobs[o]] * lcoeffs[o];
@@ -732,6 +733,7 @@ void das_dopointlogs(dasystem* das)
     for (p = 0; p < das->nplogs; ++p) {
         pointlog* plog = &das->plogs[p];
         void* grid = model_getgridbyid(m, plog->gridid);
+        double sfactor = grid_getsfactor(grid);
         int* lobs = NULL;
         double* lcoeffs = NULL;
         int ploc = 0;
@@ -767,7 +769,7 @@ void das_dopointlogs(dasystem* das)
                 double* Sloce = Sloc[e];
 
                 for (o = 0; o < ploc; ++o)
-                    Sloce[o] = (double) Se[lobs[o]] * lcoeffs[o];
+                    Sloce[o] = (double) Se[lobs[o]] * lcoeffs[o] * sfactor;
             }
             for (o = 0; o < ploc; ++o)
                 sloc[o] = das->s_f[lobs[o]] * lcoeffs[o];

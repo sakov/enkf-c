@@ -1,3 +1,8 @@
+v. 1.46.12
+   PS 28092016
+   -- Modified obstype_getid() to exit with error if an observation type is not
+      found.
+   -- Cosmetic change: in struct obstype replaced field "nscale" by "nlocrad".
 v. 1.46.11
    PS 19092016
    -- Corrected obstype_check().

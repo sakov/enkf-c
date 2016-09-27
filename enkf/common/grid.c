@@ -90,6 +90,13 @@ struct grid {
      */
     int** numlevels;
     float** depth;
+
+    /*
+     * "Spread factor", normally set to 1. Introduced to adjust relative spread
+     * of the ocean and atmospheric parts in climate models. Applies to all
+     * variables of the grid.
+     */
+    double sfactor;
 };
 
 /**
@@ -666,6 +673,7 @@ grid* grid_create(void* p, int id)
     g->name = strdup(prm->name);
     g->id = id;
     g->vtype = gridprm_getvtype(prm);
+    g->sfactor = prm->sfactor;
 #if !defined(NO_GRIDUTILS)
 #if !defined(GRIDMAP_TYPE_DEF)
 #error("GRIDMAP_TYPE_DEF not defined; please update gridutils-c");
@@ -853,6 +861,8 @@ void grid_print(grid* g, char offset[])
     default:
         enkf_printf("%s  vert type = NONE\n", offset);
     }
+    if (g->sfactor != 1.0)
+        enkf_printf("%s  SFACTOR = \"%.f\"\n", offset, g->sfactor);
 }
 
 /**
@@ -876,13 +886,16 @@ void grid_describeprm(void)
     enkf_printf("    ZVARNAME         = <z variable name>\n");
     enkf_printf("    DEPTHVARNAME     = <depth variable name>\n");
     enkf_printf("    [ NUMLEVELSVARNAME = <# of levels variable name> (z) ]\n");
-    enkf_printf("    [ MASKVARNAME      = <land mask variable name> (sigma) ]\n");
+    enkf_printf("    [ MASKVARNAME    = <land mask variable name> (sigma) ]\n");
+    enkf_printf("    [ SFACTOR        = <spread factor> (1.0*) ]\n");
     enkf_printf("\n");
     enkf_printf("  [ <more of the above blocks> ]\n");
     enkf_printf("\n");
     enkf_printf("  Notes:\n");
     enkf_printf("    1. < ... > denotes a description of an entry\n");
     enkf_printf("    2. [ ... ] denotes an optional input\n");
+    enkf_printf("    3. (...) is a note\n");
+    enkf_printf("    4. * denotes the default value\n");
     enkf_printf("\n");
 }
 
@@ -977,6 +990,13 @@ int** grid_getnumlevels(grid* g)
 double grid_getlonbase(grid* g)
 {
     return g->lonbase;
+}
+
+/**
+ */
+double grid_getsfactor(grid* g)
+{
+    return g->sfactor;
 }
 
 /**

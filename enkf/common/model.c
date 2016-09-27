@@ -45,7 +45,7 @@ struct variable {
     double inf_ratio;
     /*
      * if not NaN then the code will "propagate" the variable as follows:
-     *   v <- alpha * v + (1 - alpha^2)^1/2 * s, 
+     *   v <- deflation * v + (1 - deflation^2)^1/2 * s, 
      * where s ~ N(0, sigma) is a field-wide value (different across the
      * ensemble)
      */
@@ -110,6 +110,20 @@ static void model_setgrids(model* m, char gfname[])
     }
 
     gridprm_destroy(ngrid, prm);
+}
+
+static void model_checkvars(model* m, char* modelprm)
+{
+    int i;
+
+    for (i = 0; i < m->nvar; ++i) {
+        variable* v = &m->vars[i];
+
+        if (!isfinite(v->inflation) || v->inflation <= 0)
+            enkf_quit("\"%s\": \"%s\": inflation = %.3g\n", modelprm, v->name, v->inflation);
+        if (v->deflation <= 0)
+            enkf_quit("\"%s\": \"%s\": deflation = %.3g\n", modelprm, v->name, v->deflation);
+    }
 }
 
 /**
@@ -243,6 +257,8 @@ model* model_create(enkfprm* prm)
         }
     }
     model_print(m, "    ");
+
+    model_checkvars(m, modelprm);
 
     assert(m->ngrid > 0);
 
