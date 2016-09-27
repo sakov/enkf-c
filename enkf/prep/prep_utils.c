@@ -88,7 +88,7 @@ void obs_add(observations* obs, model* m, obsmeta* meta)
     reader = get_obsreadfn(meta);
     readobs(meta, m, reader, obs);      /* adds the data */
 
-    otid = obstype_getid(obs->nobstypes, obs->obstypes, meta->type);
+    otid = obstype_getid(obs->nobstypes, obs->obstypes, meta->type, 1);
     ot = &obs->obstypes[otid];
     vid = model_getvarid(m, obs->obstypes[otid].varnames[0], 1);
 

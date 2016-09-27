@@ -153,7 +153,7 @@ void reader_amsre_standard(char* fname, int fid, obsmeta* meta, model* m, observ
 
     tunits_convert(tunits, &tunits_multiple, &tunits_offset);
 
-    mvid = model_getvarid(m, obs->obstypes[obstype_getid(obs->nobstypes, obs->obstypes, meta->type)].varnames[0], 1);
+    mvid = model_getvarid(m, obs->obstypes[obstype_getid(obs->nobstypes, obs->obstypes, meta->type, 1)].varnames[0], 1);
     ktop = grid_gettoplayerid(model_getvargrid(m, mvid));
     depth = model_getdepth(m, mvid, 0);
 
@@ -180,8 +180,7 @@ void reader_amsre_standard(char* fname, int fid, obsmeta* meta, model* m, observ
 
                 o->product = st_findindexbystring(obs->products, meta->product);
                 assert(o->product >= 0);
-                o->type = obstype_getid(obs->nobstypes, obs->obstypes, meta->type);
-                assert(o->type >= 0);
+                o->type = obstype_getid(obs->nobstypes, obs->obstypes, meta->type, 1);
                 ot = &obs->obstypes[o->type];
                 o->instrument = st_add_ifabscent(obs->instruments, "AMSRE", -1);
                 o->id = obs->nobs;

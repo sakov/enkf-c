@@ -211,9 +211,7 @@ static observations* obs_create_fromsingleob(enkfprm* prm, dasystem* das)
     obs->da_date = date_str2dbl(prm->date);
     obs->datestr = strdup(prm->date);
 
-    o->type = obstype_getid(obs->nobstypes, obs->obstypes, singleobtype);
-    if (o->type == obs->nobstypes)
-        enkf_quit("command line: type \"%s\" not known");
+    o->type = obstype_getid(obs->nobstypes, obs->obstypes, singleobtype, 1);
 
     vid = model_getvarid(m, obs->obstypes[o->type].varnames[0], 1);
     grid = model_getvargrid(m, vid);

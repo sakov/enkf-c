@@ -30,7 +30,7 @@
 
 /**
  */
-int obstype_getid(int n, obstype types[], char* name)
+int obstype_getid(int n, obstype types[], char* name, int hastosucceed)
 {
     int i;
 
@@ -38,7 +38,8 @@ int obstype_getid(int n, obstype types[], char* name)
         if (strcmp(types[i].name, name) == 0)
             return i;
 
-    enkf_quit("failed to identify observation type \"%s\"", name);
+    if (hastosucceed)
+        enkf_quit("failed to identify observation type \"%s\"", name);
 
     return -1;
 }
@@ -165,7 +166,7 @@ void obstypes_read(char fname[], int* n, obstype** types, double locrad_base, do
         if (strcasecmp(token, "NAME") == 0) {
             if ((token = strtok(NULL, seps)) == NULL)
                 enkf_quit("%s, l.%d: NAME not specified", fname, line);
-            if (obstype_getid(*n, *types, token) >= 0)
+            if (obstype_getid(*n, *types, token, 0) >= 0)
                 enkf_quit("%s: l.%d: type \"%s\" already specified", fname, line, token);
 
             *types = realloc(*types, (*n + 1) * sizeof(obstype));

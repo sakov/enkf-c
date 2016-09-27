@@ -182,7 +182,7 @@ observations* obs_create_fromprm(enkfprm* prm)
             if (sscanf(buf, "%s %s %d %d", obstype, bb->fname, &bb->fid, &bb->batch) != 4)
                  enkf_quit("%s, l.%d: wrong bad batch specification (expected \"%s %s %d %d\"\n", FNAME_BADBATCHES, line);
 
-            bb->obstypeid = obstype_getid(obs->nobstypes, obs->obstypes, obstype);
+            bb->obstypeid = obstype_getid(obs->nobstypes, obs->obstypes, obstype, 1);
 
             key[0] = bb->batch;
             keys[2] = bb->obstypeid;
@@ -527,7 +527,7 @@ void obs_read(observations* obs, char fname[])
         char attname[NC_MAX_NAME];
 
         ncw_inq_attname(ncid, varid_type, i, attname);
-        assert(obstype_getid(obs->nobstypes, obs->obstypes, attname) >= 0);
+        assert(obstype_getid(obs->nobstypes, obs->obstypes, attname, 1) >= 0);
     }
 
     /*

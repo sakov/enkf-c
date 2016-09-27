@@ -63,7 +63,7 @@ typedef struct {
 
 void obstypes_read(char fname[], int* n, obstype** types, double locrad_base, double rfactor_base);
 void obstypes_destroy(int n, obstype* types);
-int obstype_getid(int n, obstype types[], char* name);
+int obstype_getid(int n, obstype types[], char* name, int hastosucceed);
 void obstypes_describeprm(void);
 double obstype_calclcoeff(obstype* type, double dist);
 double obstype_getmaxlocrad(obstype* type);

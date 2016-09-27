@@ -105,7 +105,7 @@ void reader_amsr2_standard(char* fname, int fid, obsmeta* meta, model* m, observ
 
     tunits_convert(tunits, &tunits_multiple, &tunits_offset);
 
-    model_vid = model_getvarid(m, obs->obstypes[obstype_getid(obs->nobstypes, obs->obstypes, meta->type)].varnames[0], 1);
+    model_vid = model_getvarid(m, obs->obstypes[obstype_getid(obs->nobstypes, obs->obstypes, meta->type, 1)].varnames[0], 1);
     depth = model_getdepth(m, model_vid, 0);
     ktop = grid_gettoplayerid(model_getvargrid(m, model_vid));
 
@@ -118,8 +118,7 @@ void reader_amsr2_standard(char* fname, int fid, obsmeta* meta, model* m, observ
 
         o->product = st_findindexbystring(obs->products, meta->product);
         assert(o->product >= 0);
-        o->type = obstype_getid(obs->nobstypes, obs->obstypes, meta->type);
-        assert(o->type >= 0);
+        o->type = obstype_getid(obs->nobstypes, obs->obstypes, meta->type, 1);
         ot = &obs->obstypes[o->type];
         o->instrument = st_add_ifabscent(obs->instruments, "AMSR-2", -1);
         o->id = obs->nobs;

@@ -111,7 +111,7 @@ void reader_pathfinder_standard(char* fname, int fid, obsmeta* meta, model* m, o
     strncpy(instname, basename, 4);
     instname[4] = 0;
 
-    mvid = model_getvarid(m, obs->obstypes[obstype_getid(obs->nobstypes, obs->obstypes, meta->type)].varnames[0], 1);
+    mvid = model_getvarid(m, obs->obstypes[obstype_getid(obs->nobstypes, obs->obstypes, meta->type, 1)].varnames[0], 1);
     depth = model_getdepth(m, mvid, 1);
     ktop = grid_gettoplayerid(model_getvargrid(m, mvid));
 
@@ -124,8 +124,7 @@ void reader_pathfinder_standard(char* fname, int fid, obsmeta* meta, model* m, o
 
         o->product = st_findindexbystring(obs->products, meta->product);
         assert(o->product >= 0);
-        o->type = obstype_getid(obs->nobstypes, obs->obstypes, meta->type);
-        assert(o->type >= 0);
+        o->type = obstype_getid(obs->nobstypes, obs->obstypes, meta->type, 1);
         ot = &obs->obstypes[o->type];
         o->instrument = st_add_ifabscent(obs->instruments, instname, -1);
         o->id = obs->nobs;

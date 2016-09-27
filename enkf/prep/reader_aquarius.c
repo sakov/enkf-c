@@ -107,7 +107,7 @@ void reader_aquarius_standard(char* fname, int fid, obsmeta* meta, model* m, obs
 
     tunits_convert(tunits, &tunits_multiple, &tunits_offset);
 
-    model_vid = model_getvarid(m, obs->obstypes[obstype_getid(obs->nobstypes, obs->obstypes, meta->type)].varnames[0], 1);
+    model_vid = model_getvarid(m, obs->obstypes[obstype_getid(obs->nobstypes, obs->obstypes, meta->type, 1)].varnames[0], 1);
     depth = model_getdepth(m, model_vid, 1);
     ktop = grid_gettoplayerid(model_getvargrid(m, model_vid));
 
@@ -121,7 +121,7 @@ void reader_aquarius_standard(char* fname, int fid, obsmeta* meta, model* m, obs
 
             o->product = st_findindexbystring(obs->products, meta->product);
             assert(o->product >= 0);
-            o->type = obstype_getid(obs->nobstypes, obs->obstypes, meta->type);
+            o->type = obstype_getid(obs->nobstypes, obs->obstypes, meta->type, 1);
             assert(o->type >= 0);
             ot = &obs->obstypes[o->type];
             o->instrument = st_add_ifabscent(obs->instruments, "Aquarius", -1);
