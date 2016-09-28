@@ -53,7 +53,7 @@ void print_matrix_float(int n, int m, float** A, char offset[]);
 void print_vector_double(int n, double* a, char offset[]);
 void print_vector_float(int n, float* a, char offset[]);
 ENSOBSTYPE interpolate2d(double fi, double fj, int ni, int nj, float** v, int** mask, int periodic_x);
-ENSOBSTYPE interpolate3d(double fi, double fj, double fk, int ni, int nj, int nk, float*** v, int** nlevels, int periodic_x);
+ENSOBSTYPE interpolate3d(double fi, double fj, double fk, int ni, int nj, int nk, int ktop, float*** v, int** nlevels, int periodic_x);
 double taper_gc(double x);
 void ll2xyz(double in[2], double out[3]);
 void print_commandinfo(int argc, char* argv[]);

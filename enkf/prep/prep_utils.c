@@ -177,7 +177,8 @@ void obs_add(observations* obs, model* m, obsmeta* meta)
                 char* fname = (char*) std->data;
                 int** nlevels = model_getnumlevels(m, vid);
                 int ni, nj, nk;
-                int periodic_x = grid_isperiodic_x(model_getvargrid(m, vid));
+                void* grid = model_getvargrid(m, vid);
+                int periodic_x = grid_isperiodic_x(grid);
 
                 enkf_printf("      adding error_std from %s %s:\n", fname, std->varname);
 
@@ -211,6 +212,7 @@ void obs_add(observations* obs, model* m, obsmeta* meta)
                     free(v);
                 } else {
                     float*** v = alloc3d(nk, nj, ni, sizeof(float));
+                    int ktop = grid_gettoplayerid(grid);
 
                     read3dfield(fname, std->varname, v[0][0]);
                     for (o = nobs0; o < obs->nobs; ++o) {
@@ -220,7 +222,7 @@ void obs_add(observations* obs, model* m, obsmeta* meta)
                         if (oo->status != STATUS_OK)
                             continue;
 
-                        vv = (float) interpolate3d(oo->fi, oo->fj, oo->fk, ni, nj, nk, v, nlevels, periodic_x);
+                        vv = (float) interpolate3d(oo->fi, oo->fj, oo->fk, ni, nj, nk, ktop, v, nlevels, periodic_x);
                         if (std->op == ARITHMETIC_EQ)
                             oo->std = vv;
                         else if (std->op == ARITHMETIC_PLUS)

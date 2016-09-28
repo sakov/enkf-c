@@ -1293,7 +1293,7 @@ ENSOBSTYPE interpolate2d(double fi, double fj, int ni, int nj, float** v, int** 
  *  Assumes that integer k indices correspond to layer centres. E.g. for 
  *  fk = 1.2 the vertical weights are 0.8 of layer 1 and 0.2 of layer 2.
  */
-ENSOBSTYPE interpolate3d(double fi, double fj, double fk, int ni, int nj, int nk, float*** v, int** nlevels, int periodic_x)
+ENSOBSTYPE interpolate3d(double fi, double fj, double fk, int ni, int nj, int nk, int ktop, float*** v, int** nlevels, int periodic_x)
 {
     int i1 = (int) floor(fi);
     double wi1 = ceil(fi) - fi;
@@ -1304,10 +1304,13 @@ ENSOBSTYPE interpolate3d(double fi, double fj, double fk, int ni, int nj, int nk
     int j2 = (int) ceil(fj);
     double wj2 = fj - floor(fj);
     int k1, k2;
+    int k1top, k2top; /* layer number from the top */
     double wk1, wk2;
     double sum = 0.0;
     double w = 0.0;
     double ww;
+
+    assert(ktop == 0 || ktop == nk - 1);
 
     /*
      * It is assumed that -0.5 <= fk <= nk - 0.5; so, when -0.5 <= fk <= 0 or
@@ -1318,8 +1321,10 @@ ENSOBSTYPE interpolate3d(double fi, double fj, double fk, int ni, int nj, int nk
     if (fk > (double) (nk - 1))
         fk = (double) (nk - 1);
     k1 = (int) floor(fk);
+    k1top = abs(ktop - k1);
     wk1 = ceil(fk) - fk;
     k2 = (int) ceil(fk);
+    k2top = abs(ktop - k2);
     wk2 = fk - floor(fk);
 
     if (i1 == i2)
@@ -1344,42 +1349,42 @@ ENSOBSTYPE interpolate3d(double fi, double fj, double fk, int ni, int nj, int nk
 
     assert(i1 >= 0 && i2 < ni && j1 >= 0 && j2 < nj && k1 >= 0 && k2 < nk);
 
-    if (nlevels[j1][i1] > k1) {
+    if (nlevels[j1][i1] > k1top) {
         ww = wj1 * wi1 * wk1;
         sum += v[k1][j1][i1] * ww;
         w += ww;
     }
-    if (nlevels[j1][i2] > k1) {
+    if (nlevels[j1][i2] > k1top) {
         ww = wj1 * wi2 * wk1;
         sum += v[k1][j1][i2] * ww;
         w += ww;
     }
-    if (nlevels[j2][i1] > k1) {
+    if (nlevels[j2][i1] > k1top) {
         ww = wj2 * wi1 * wk1;
         sum += v[k1][j2][i1] * ww;
         w += ww;
     }
-    if (nlevels[j2][i2] > k1) {
+    if (nlevels[j2][i2] > k1top) {
         ww = wj2 * wi2 * wk1;
         sum += v[k1][j2][i2] * ww;
         w += ww;
     }
-    if (nlevels[j1][i1] > k2) {
+    if (nlevels[j1][i1] > k2top) {
         ww = wj1 * wi1 * wk2;
         sum += v[k2][j1][i1] * ww;
         w += ww;
     }
-    if (nlevels[j1][i2] > k2) {
+    if (nlevels[j1][i2] > k2top) {
         ww = wj1 * wi2 * wk2;
         sum += v[k2][j1][i2] * ww;
         w += ww;
     }
-    if (nlevels[j2][i1] > k2) {
+    if (nlevels[j2][i1] > k2top) {
         ww = wj2 * wi1 * wk2;
         sum += v[k2][j2][i1] * ww;
         w += ww;
     }
-    if (nlevels[j2][i2] > k2) {
+    if (nlevels[j2][i2] > k2top) {
         ww = wj2 * wi2 * wk2;
         sum += v[k2][j2][i2] * ww;
         w += ww;
