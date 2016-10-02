@@ -1,3 +1,7 @@
+v. 1.47.1
+   PS 03102016
+   -- Corrected data type for struct observation.id_orig from "short int" to
+      "int".
 v. 1.47.0
    PS 28092016
    -- Added argument "ktop" to interpolate3d() to take care of the case when

@@ -39,7 +39,7 @@ typedef struct {
      * superobs - to the original ID of the very first observation merged into
      * this superob
      */
-    short int id_orig;
+    int id_orig;
     short int type;
     short int product;
     short int instrument;
