@@ -189,7 +189,7 @@ Both the KF and KS can be derived by a re-factorisation of the positive (semi)de
 \item Ditto, the SDAS does not depend on a linear non-singular transform of the model state in the sense that the forward and inverse transforms commute with the evolution of the DA system.
 \item Solution (\ref{kf-for}, \ref{kf-an}) can be \emph{used} in a nonlinear case by approximating
 \begin{align*}
-  &\mb M_{i} \leftarrow \nabla \mathcal M_i(\mb x_{i-1}^f),\\
+  &\mb M_{i} \leftarrow \nabla \mathcal M_i(\mb x_{i-1}^a),\\
   &\mb H_{i} \leftarrow \nabla \mathcal H_i(\mb x_i^f),
 \end{align*}
 in which case it is called the extended Kalman filter (EKF).
