@@ -106,14 +106,14 @@ It is rather simple if formulated as the recursive least squares.
 Consider first a global (in time) nonlinear minimisation problem
 \begin{align}
   \label{min-nonl}
-  &\{\mb x_i^a\}_{i=1}^k = \arg \underset{\{\mb x_i\}_{i = 1}^k}\min \mathcal L(\mb x_1, \dots, \mb x_k),\\
+  &\{\mb x_i^a\}_{i=1}^k = \arg \underset{\{\mb x_i\}_{i = 1}^k}\min \mathcal L_k(\mb x_1, \dots, \mb x_k),\\
   \nonumber
-  &\mathcal L(\mb x_1, \dots, \mb x_k)  = \left . (\mb x_1 - \mb x_1^f)\T (\mb P_1^f)^{-1} (\mb x_1 - \mb x_1^f) 
+  &\mathcal L_k(\mb x_1, \dots, \mb x_k)  = \left . (\mb x_1 - \mb x_1^f)\T (\mb P_1^f)^{-1} (\mb x_1 - \mb x_1^f) 
   \vphantom{\sum_{i = 2}^{k}}
   \right . \\
   \nonumber
   & \qquad + \sum_{i = 1}^k \left [ \mb y_i - \mathcal H_i(\mb x_i) \right ] \T (\mb R_i)^{-1} \left [ \mb y_i - \mathcal H_i(\mb x_i) \right ] \\ 
-  & \qquad + \sum_{i = 2}^{k} \left [ \mb x_i - \mathcal M_i(\mb x_{i-1}) \right ]\T (\mb Q_i)^{-1} \left [ \mb x_i - \mathcal M_i(\mb x_{i-1}) \right ].
+  & \qquad + \sum_{i = 2}^k \left [ \mb x_i - \mathcal M_i(\mb x_{i-1}) \right ]\T (\mb Q_i)^{-1} \left [ \mb x_i - \mathcal M_i(\mb x_{i-1}) \right ].
   \label{L-nonl}
 \end{align}
 Here $\{\mb x_i^a\}_{i=1}^k$ is a set of $k$ state vectors that minimise the cost function (\ref{L-nonl}); indices $i = 1,\dots,k$ correspond to a sequence of DA cycles, so that $\mb x_1$ is the estimated model state at the first cycle and $\mb x_k$ is the estimated model state at the last cycle; $\mb y_i$ are observation vectors related to the model state by a nonlinear observation operator $\mathcal H_i(\mb x)$; $\mathcal M_i(\mb x)$ is a nonlinear model operator relating the model states $\mb x_{i - 1}$ and $\mb x_i$; $\mb P_1^f$ is the initial state error covariance; $\mb R_i$ is the observation error covariance for $\mb y_i$; and $\mb Q_i$ is the model error covariance for $\mathcal M_i$; $(\cdot)\T$ denotes matrix transposition.
@@ -132,39 +132,41 @@ Namely, assume that $\mathcal M$ and $\mathcal H$ are affine:
 where $\mb x^{(1)}, \mb x^{(2)}$ are arbitrary model states, and $\mb M_i,\, \mb H_i = \mathrm{Const}$.
 Then the cost function (\ref{L-nonl}) becomes quadratic and can be written in canonical form in regard to $\mb x_k$ as follows:
 \begin{align*}
-   \mathcal L_k(\mb x_1, \dots, \mb x_k) = (\mb x_k - \mb x_k^f)\T (\mb P_{k}^f)^{-1}(\mb x_k - \mb x_k^f) + \tilde{{\mathcal L}}_{k-1}(\mb x_1,\dots,\mb x_{k-1}),
+   \mathcal L_k(\mb x_1, \dots, \mb x_k) = (\mb x_k - \mb x_k^a)\T (\mb P_{k}^a)^{-1}(\mb x_k - \mb x_k^a) + \tilde{{\mathcal L}}_{k-1}(\mb x_1,\dots,\mb x_{k-1}),
 \end{align*}
 so that
 \begin{align}
   \label{min-xk}
-  \underset {\{\mb x_i\}_{i = 1}^{k - 1}}{\min} \mathcal L_k(\mb x_1, \dots, \mb x_k) = (\mb x_k - \mb x_k^f)\T (\mb P_{k}^f)^{-1}(\mb x_k - \mb x_k^f) + \mathrm{Const}.
+  \underset {\{\mb x_i\}_{i = 1}^{k - 1}}{\min} \mathcal L_k(\mb x_1, \dots, \mb x_k) = (\mb x_k - \mb x_k^a)\T (\mb P_{k}^a)^{-1}(\mb x_k - \mb x_k^a) + \mathrm{Const}.
 \end{align}
 (\emph{Proposition}) Then
 \begin{align*}
-    \underset {\{\mb x_i\}_{i = 1}^{k}}{\min} \mathcal L_{k+1}(\mb x_1, \dots, \mb x_k, \mb x_{k+1}) = (\mb x_{k+1} - \mb x_{k+1}^f)\T (\mb P_{k+1}^f)^{-1}(\mb x_{k+1} - \mb x_{k+1}^f) + \mathrm{Const},
+    \underset {\{\mb x_i\}_{i = 1}^{k}}{\min} \mathcal L_{k+1}(\mb x_1, \dots, \mb x_k, \mb x_{k+1}) = (\mb x_{k+1} - \mb x_{k+1}^a)\T (\mb P_{k+1}^a)^{-1}(\mb x_{k+1} - \mb x_{k+1}^a) + \mathrm{Const},
 \end{align*}
 where
-\begin{subequations}
-  \label{kf-for}
-  \begin{align}
-    \label{prop-x}
-    & \mb x^f_{k+1} = \mathcal M_k(\mb x_k^a),\\
-    \label{prop-P}
-    & \mb P_{k+1}^f = \mb M_k \mb P_k^a (\mb M_k)\T + \mb Q_k,
-  \end{align}
-\end{subequations}
-\vspace{-5mm}
 \begin{subequations}
   \label{kf-an}
   \begin{align}
     \label{kf-an-x}
-    & \mb x_k^a = \mb x_k^f + \mb K_k \left [\mb y_k - \mathcal H(\mb x_k^f) \right ],\\
+    & \mb x_{k+1}^a = \mb x_{k+1}^f + \mb K_{k+1} \left [\mb y_{k+1} - \mathcal H_{k+1}(\mb x_{k+1}^f) \right ],\\
     \label{kf-an-P}
-    & \mb P_k^a = (\mb I - \mb K_k \mb H_k) \mb P_k^f,\\
+    & \mb P_{k+1}^a = (\mb I - \mb K_{k+1} \mb H_{k+1}) \mb P_{k+1}^f,\\
     \nonumber
     & \hspace{-0.5cm} \text{where}\\
     \label{kf-K}
-    & \mb K_k \equiv \mb P^f_k (\mb H_k)\T \left [\mb H_k \mb P_k^f (\mb H_k)\T + \mb R_k \right ]^{-1}.
+    & \mb K_{k+1} \equiv \mb P^f_{k+1} (\mb H_{k+1})\T \left [\mb H_{k+1} \mb P_{k+1}^f (\mb H_{k+1})\T + \mb R_{k+1} \right ]^{-1}
+  \end{align}
+\end{subequations}
+\vspace{-10mm}
+\begin{subequations}
+  \label{kf-for}
+  \begin{align}
+    \label{prop-x}
+    \nonumber
+    & \hspace{-0.5cm} \text{and}\\
+    & \mb x^f_{k+1} = \mathcal M_{k+1}(\mb x_k^a),\\
+    \label{prop-P}
+    & \mb P_{k+1}^f = \mb M_{k+1} \mb P_k^a (\mb M_{k+1})\T + \mb Q_{k+1}.
   \end{align}
 \end{subequations}
 This solution is known as the Kalman filter \citep[KF,][]{kal60}.
@@ -180,7 +182,7 @@ There are a few things to be noted about the KF:
   \label{sdas}
   \mb X = \{\mb x, \mb P\}.
 \end{align}
-This means that in any moment of time all previous information about the system is encrypted into the current (forecast or analysis) SDAS.
+This means that at any moment of time all previous information about the system is encrypted into the current (forecast or analysis) SDAS, and no knowledge about the SDAS at previous cycles is required for evolving the system.
 \item The KF provides solution for the \emph{last} analysis, corresponding to $\mb x_k^a$ in ($\ref{min-nonl}$) (or, with a minor re-formulation, to the last forecast); finding the full (global in time) solution requires application of the Kalman \emph{smoother} (KS).
 Both the KF and KS can be derived by a re-factorisation of the positive (semi)definite quadratic form (\ref{L-nonl}).
 \item Because the SDAS represents a (part of a) solution of the global least squares problem, it does not depend on the order in which observations are assimilated or on their grouping.
