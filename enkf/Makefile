@@ -65,6 +65,7 @@ prep/reader_amsr2.c\
 prep/reader_amsre.c\
 prep/reader_pathfinder.c\
 prep/reader_aquarius.c\
+prep/reader_smos.c\
 prep/enkf_prep.c
 
 HDR_PREP =\

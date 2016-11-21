@@ -1,3 +1,6 @@
+v. 1.48.0
+   PS 22112016
+   -- Added reader_smos.c.
 v. 1.47.1
    PS 03102016
    -- Corrected data type for struct observation.id_orig from "short int" to
