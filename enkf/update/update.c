@@ -84,6 +84,7 @@ static void das_updatefields(dasystem* das, int nfields, void** fieldbuffer, fie
 
     void* grid = model_getvargrid(m, fields[0].varid);
     int** nlevels = grid_getnumlevels(grid);
+    int topk = grid_gettoplayerid(grid);
     int periodic_i = grid_isperiodic_x(grid);
     int writeinflation = das->updatespec & UPDATE_DOINFLATION;
 
@@ -241,12 +242,21 @@ static void das_updatefields(dasystem* das, int nfields, void** fieldbuffer, fie
                      * modify as soon as we encounter a Z model with layers
                      * counted up from the bottom.
                      */
-                    if (f->level >= nlevels[j][i]) {
-			if (das->updatespec & UPDATE_OUTPUTINC)
-			    for (e = 0; e < nmem; ++e)
-				vvv[e][j][i] = 0.0f;
-                        continue;
-		    }
+                    if (topk == 0) {
+                        if (nlevels[j][i] <= f->level) {
+                            if (das->updatespec & UPDATE_OUTPUTINC)
+                                for (e = 0; e < nmem; ++e)
+                                    vvv[e][j][i] = 0.0f;
+                            continue;
+                        }
+		    } else {
+                        if (nlevels[j][i] <= topk - f->level) {
+                            if (das->updatespec & UPDATE_OUTPUTINC)
+                                for (e = 0; e < nmem; ++e)
+                                    vvv[e][j][i] = 0.0f;
+                            continue;
+                        }
+                    }
                     /*
                      * assume that if |value| > MAXOBSVAL, then it is filled
                      * with the missing value 
@@ -384,6 +394,7 @@ static void das_updatebg(dasystem* das, int nfields, void** fieldbuffer, field f
 
     void* grid = model_getvargrid(m, fields[0].varid);
     int** nlevels = grid_getnumlevels(grid);
+    int topk = grid_gettoplayerid(grid);
     int periodic_i = grid_isperiodic_x(grid);
 
     char fname_w[MAXSTRLEN];
@@ -518,16 +529,34 @@ static void das_updatebg(dasystem* das, int nfields, void** fieldbuffer, field f
                      * modify as soon as we encounter a Z model with layers
                      * counted up from the bottom.
                      */
-                    if (f->level >= nlevels[j][i])
+                    if (topk == 0) {
+                        if (nlevels[j][i] <= f->level)
+                            if (das->updatespec & UPDATE_OUTPUTINC)
+                                vvv[nmem][j][i] = 0.0f;
                         continue;
+                    } else {
+                        if (nlevels[j][i] <= topk - f->level)
+                            if (das->updatespec & UPDATE_OUTPUTINC)
+                                vvv[nmem][j][i] = 0.0f;
+                        continue;
+                    }
                     /*
                      * assume that if |value| > MAXOBSVAL, then it is filled
                      * with the missing value 
                      */
-                    if (fabsf(vvv[nmem][j][i]) > (float) MAXOBSVAL)
+                    if (fabsf(vvv[nmem][j][i]) > (float) MAXOBSVAL) {
+                        if (das->updatespec & UPDATE_OUTPUTINC)
+                            vvv[nmem][j][i] = 0.0f;
                         continue;
-                    if (fabsf(vvv[0][j][i]) > (float) MAXOBSVAL)
+                    }
+		    for (e = 0; e < nmem; ++e)
+			if (fabsf(vvv[e][j][i]) > (float) MAXOBSVAL)
+			    break;
+		    if (e < nmem) {
+			if (das->updatespec & UPDATE_OUTPUTINC)
+                            vvv[nmem][j][i] = 0.0f;
                         continue;
+		    }
 
                     /*
                      * for fid = 0 write the actual (interpolated) weight

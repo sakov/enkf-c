@@ -1,3 +1,8 @@
+v. 1.48.2
+   PS 24112016
+   -- Corrected das_updatefields() and das_updatebg() to handle situation when
+      (1) the number of watered layers is less than the number of layers and (2)
+      the layers are indexed from bottom up.
 v. 1.48.1
    PS 23112016
    -- Modified updatefields() to skip updating in cells with partial
