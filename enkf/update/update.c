@@ -241,14 +241,25 @@ static void das_updatefields(dasystem* das, int nfields, void** fieldbuffer, fie
                      * modify as soon as we encounter a Z model with layers
                      * counted up from the bottom.
                      */
-                    if (f->level >= nlevels[j][i])
+                    if (f->level >= nlevels[j][i]) {
+			if (das->updatespec & UPDATE_OUTPUTINC)
+			    for (e = 0; e < nmem; ++e)
+				vvv[e][j][i] = 0.0f;
                         continue;
+		    }
                     /*
                      * assume that if |value| > MAXOBSVAL, then it is filled
                      * with the missing value 
                      */
-                    if (fabsf(vvv[0][j][i]) > (float) MAXOBSVAL)
+		    for (e = 0; e < nmem; ++e)
+			if (fabsf(vvv[e][j][i]) > (float) MAXOBSVAL)
+			    break;
+		    if (e < nmem) {
+			if (das->updatespec & UPDATE_OUTPUTINC)
+			    for (e = 0; e < nmem; ++e)
+				vvv[e][j][i] = 0.0f;
                         continue;
+		    }
                     /*
                      * (it would be straightforward to compare with the
                      * actual missing value, provided that it is NC_FLOAT;
