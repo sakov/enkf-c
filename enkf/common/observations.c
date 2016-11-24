@@ -37,6 +37,11 @@ typedef struct {
     int batch;
 } badbatch;
 
+typedef union {
+    int key_int[2];
+    short int key_short[4];
+} keydata;
+
 /**
  */
 void obs_addtype(observations* obs, obstype* src, obsdomain* domain)
@@ -172,8 +177,7 @@ observations* obs_create_fromprm(enkfprm* prm)
         while (fgets(buf, MAXSTRLEN, f) != NULL) {
             char obstype[MAXSTRLEN];
             badbatch* bb;
-            int key[2];
-            short* keys = (short*) key;
+            keydata key;
 
             line++;
             if (buf[0] == '#')
@@ -184,10 +188,10 @@ observations* obs_create_fromprm(enkfprm* prm)
 
             bb->obstypeid = obstype_getid(obs->nobstypes, obs->obstypes, obstype, 1);
 
-            key[0] = bb->batch;
-            keys[2] = bb->obstypeid;
-            keys[3] = bb->fid;
-            ht_insert(obs->badbatches, key, bb);
+            key.key_int[0] = bb->batch;
+            key.key_short[2] = bb->obstypeid;
+            key.key_short[3] = bb->fid;
+            ht_insert(obs->badbatches, &key, bb);
             enkf_printf("    %s %s %d %d\n", obstype, bb->fname, bb->fid, bb->batch);
         }
         fclose(f);
@@ -200,23 +204,27 @@ observations* obs_create_fromprm(enkfprm* prm)
 #if defined(ENKF_PREP)
 /**
  */
+#define BYTE_PER_SHORT 2
+#define BYTE_PER_INT 4
 void obs_markbadbatches(observations* obs)
 {
     int i;
+
+    assert(BYTE_PER_SHORT == sizeof(short));
+    assert(BYTE_PER_INT == sizeof(int));
 
     if (obs->badbatches == NULL || ht_getnentries(obs->badbatches) == 0)
         return;
 
     for (i = 0; i < obs->nobs; ++i) {
         observation* o = &obs->data[i];
-        int key[2];
-        short* keys = (short*) key;
+        keydata key;
         badbatch* bb;
 
-        key[0] = o->batch;
-        keys[2] = o->type;
-        keys[3] = o->fid;
-        bb = ht_find(obs->badbatches, key);
+        key.key_int[0] = o->batch;
+        key.key_short[2] = o->type;
+        key.key_short[3] = o->fid;
+        bb = ht_find(obs->badbatches, &key);
 
         if (bb != NULL && bb->obstypeid == o->type) {
             if (strcmp(bb->fname, st_findstringbyindex(obs->datafiles, o->fid)) != 0)

@@ -1,3 +1,7 @@
+v. 1.48.3
+   PS 24112016
+   -- Tighten up aliasing of the hash table key in observations.c by
+      introducing union keydata.
 v. 1.48.2
    PS 24112016
    -- Corrected das_updatefields() and das_updatebg() to handle situation when
