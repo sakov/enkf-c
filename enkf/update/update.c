@@ -249,7 +249,7 @@ static void das_updatefields(dasystem* das, int nfields, void** fieldbuffer, fie
                                     vvv[e][j][i] = 0.0f;
                             continue;
                         }
-		    } else {
+                    } else {
                         if (nlevels[j][i] <= topk - f->level) {
                             if (das->updatespec & UPDATE_OUTPUTINC)
                                 for (e = 0; e < nmem; ++e)
@@ -261,15 +261,15 @@ static void das_updatefields(dasystem* das, int nfields, void** fieldbuffer, fie
                      * assume that if |value| > MAXOBSVAL, then it is filled
                      * with the missing value 
                      */
-		    for (e = 0; e < nmem; ++e)
-			if (fabsf(vvv[e][j][i]) > (float) MAXOBSVAL)
-			    break;
-		    if (e < nmem) {
-			if (das->updatespec & UPDATE_OUTPUTINC)
-			    for (e = 0; e < nmem; ++e)
-				vvv[e][j][i] = 0.0f;
+                    for (e = 0; e < nmem; ++e)
+                        if (fabsf(vvv[e][j][i]) > (float) MAXOBSVAL)
+                            break;
+                    if (e < nmem) {
+                        if (das->updatespec & UPDATE_OUTPUTINC)
+                            for (e = 0; e < nmem; ++e)
+                                vvv[e][j][i] = 0.0f;
                         continue;
-		    }
+                    }
                     /*
                      * (it would be straightforward to compare with the
                      * actual missing value, provided that it is NC_FLOAT;
@@ -549,14 +549,14 @@ static void das_updatebg(dasystem* das, int nfields, void** fieldbuffer, field f
                             vvv[nmem][j][i] = 0.0f;
                         continue;
                     }
-		    for (e = 0; e < nmem; ++e)
-			if (fabsf(vvv[e][j][i]) > (float) MAXOBSVAL)
-			    break;
-		    if (e < nmem) {
-			if (das->updatespec & UPDATE_OUTPUTINC)
+                    for (e = 0; e < nmem; ++e)
+                        if (fabsf(vvv[e][j][i]) > (float) MAXOBSVAL)
+                            break;
+                    if (e < nmem) {
+                        if (das->updatespec & UPDATE_OUTPUTINC)
                             vvv[nmem][j][i] = 0.0f;
                         continue;
-		    }
+                    }
 
                     /*
                      * for fid = 0 write the actual (interpolated) weight

@@ -1304,7 +1304,7 @@ ENSOBSTYPE interpolate3d(double fi, double fj, double fk, int ni, int nj, int nk
     int j2 = (int) ceil(fj);
     double wj2 = fj - floor(fj);
     int k1, k2;
-    int k1top, k2top; /* layer number from the top */
+    int k1top, k2top;           /* layer number from the top */
     double wk1, wk2;
     double sum = 0.0;
     double w = 0.0;

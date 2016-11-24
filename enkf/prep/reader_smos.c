@@ -42,10 +42,14 @@ void reader_smos_standard(char* fname, int fid, obsmeta* meta, model* m, observa
     int dimid_ni, dimid_nj;
     size_t ni, nj;
     int varid_lon, varid_lat, varid_sss;
- /*   int varid_RFI_stat; */
+
+    /*
+     * int varid_RFI_stat; 
+     */
     double* lon;
     double* lat;
     double** sss;
+
 /*    double** RFI_stat; */
     int year, month, day;
     char tunits[MAXSTRLEN];
@@ -138,12 +142,12 @@ void reader_smos_standard(char* fname, int fid, obsmeta* meta, model* m, observa
             o->batch = 0;
             o->value = sss[j][i];
             if (isnan(o->value) || fabs(o->value) > 999.0)
-	      continue;
+                continue;
             o->lon = lon[i];
             o->lat = lat[j];
             o->std = ERRORSTD_DEF;
             o->depth = 0.0;
-	    o->status = model_xy2fij(m, model_vid, o->lon, o->lat, &o->fi, &o->fj);
+            o->status = model_xy2fij(m, model_vid, o->lon, o->lat, &o->fi, &o->fj);
             if (!obs->allobs && o->status == STATUS_OUTSIDEGRID)
                 continue;
             o->model_depth = (isnan(o->fi + o->fj)) ? NaN : depth[(int) (o->fj + 0.5)][(int) (o->fi + 0.5)];
@@ -164,5 +168,7 @@ void reader_smos_standard(char* fname, int fid, obsmeta* meta, model* m, observa
     free(lon);
     free(lat);
     free(sss);
-   /* free(RFI_stat); */
+    /*
+     * free(RFI_stat); 
+     */
 }

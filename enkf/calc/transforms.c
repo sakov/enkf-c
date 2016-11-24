@@ -645,6 +645,7 @@ void das_calctransforms(dasystem* das)
             char fname_stats[MAXSTRLEN];
 
             das_getfname_stats(das, grid, fname_stats);
+
             nc_writediag(fname_stats, obs->nobstypes, nj, ni, das->stride, nlobs, dfs, srf, pnlobs, pdfs, psrf);
         }
 
