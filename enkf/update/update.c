@@ -980,7 +980,10 @@ static void das_assemblemembers(dasystem* das)
                 size_t start[3] = { e, 0, 0 };
                 size_t count[3] = { 1, nj, ni };
 
-                getfieldfname(das->ensdir, "ens", varname, k, fname_src);
+		if (nlev > 1)
+		    getfieldfname(das->ensdir, "ens", varname, k, fname_src);
+		else
+		    getfieldfname(das->ensdir, "ens", varname, grid_gettoplayerid(model_getvargrid(m, i)), fname_src);
                 ncw_open(fname_src, NC_NOWRITE, &ncid_src);
                 ncw_inq_varid(ncid_src, varname, &vid_src);
                 ncw_get_vara_float(ncid_src, vid_src, start, count, v);
@@ -1010,7 +1013,10 @@ static void das_assemblemembers(dasystem* das)
             model_getmemberfname(m, das->ensdir, varname, 1, fname);
             nlev = getnlevels(fname, varname);
             for (k = 0; k < nlev; ++k) {
-                getfieldfname(das->ensdir, "ens", varname, k, fname);
+		if (nlev > 1)
+		    getfieldfname(das->ensdir, "ens", varname, k, fname);
+		else
+		    getfieldfname(das->ensdir, "ens", varname, grid_gettoplayerid(model_getvargrid(m, i)), fname);
                 file_delete(fname);
             }
         }
@@ -1063,7 +1069,10 @@ static void das_assemblebg(dasystem* das)
             char fname_src[MAXSTRLEN];
             int ncid_src, vid_src;
 
-            getfieldfname(das->bgdir, "bg", varname, k, fname_src);
+	    if (nlev > 1)
+		getfieldfname(das->bgdir, "bg", varname, k, fname_src);
+	    else
+		getfieldfname(das->bgdir, "bg", varname, grid_gettoplayerid(model_getvargrid(m, i)), fname_src);
             ncw_open(fname_src, NC_NOWRITE, &ncid_src);
             ncw_inq_varid(ncid_src, varname, &vid_src);
             ncw_get_var_float(ncid_src, vid_src, v);
