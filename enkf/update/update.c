@@ -1119,9 +1119,9 @@ static void das_assemblespread(dasystem* das)
             int ncid_src, vid;
 
 	    if (nlev > 1)
-		getfieldfname(das->mode == MODE_ENKF ? das->ensdir : das->bgdir, "spread", varname, grid_gettoplayerid(model_getvargrid(m, i)), fname_src);
-	    else
 		getfieldfname(das->mode == MODE_ENKF ? das->ensdir : das->bgdir, "spread", varname, k, fname_src);
+	    else
+		getfieldfname(das->mode == MODE_ENKF ? das->ensdir : das->bgdir, "spread", varname, grid_gettoplayerid(model_getvargrid(m, i)), fname_src);
             ncw_open(fname_src, NC_NOWRITE, &ncid_src);
 
             ncw_inq_varid(ncid_src, varname, &vid);
