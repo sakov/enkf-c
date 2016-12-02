@@ -1132,8 +1132,11 @@ static void das_assemblespread(dasystem* das)
             model_writefield(m, FNAME_SPREAD, INT_MAX, varname, k, v);
 
             if (das->mode == MODE_ENKF) {
-                getfieldfname(das->ensdir, "spread", varname_an, k, fname_src);
-                ncw_open(fname_src, NC_NOWRITE, &ncid_src);
+		if (nlev > 1)
+		    getfieldfname(das->ensdir, "spread", varname_an, k, fname_src);
+		else
+		    getfieldfname(das->ensdir, "spread", varname_an, grid_gettoplayerid(model_getvargrid(m, i)), fname_src);
+		ncw_open(fname_src, NC_NOWRITE, &ncid_src);
                 ncw_inq_varid(ncid_src, varname_an, &vid);
                 ncw_get_var_float(ncid_src, vid, v);
                 ncw_close(ncid_src);
