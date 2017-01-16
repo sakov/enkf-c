@@ -530,15 +530,17 @@ static void das_updatebg(dasystem* das, int nfields, void** fieldbuffer, field f
                      * counted up from the bottom.
                      */
                     if (topk == 0) {
-                        if (nlevels[j][i] <= f->level)
+                        if (nlevels[j][i] <= f->level) {
                             if (das->updatespec & UPDATE_OUTPUTINC)
                                 vvv[nmem][j][i] = 0.0f;
-                        continue;
+                            continue;
+                        }
                     } else {
-                        if (nlevels[j][i] <= topk - f->level)
+                        if (nlevels[j][i] <= topk - f->level) {
                             if (das->updatespec & UPDATE_OUTPUTINC)
                                 vvv[nmem][j][i] = 0.0f;
-                        continue;
+                            continue;
+                        }
                     }
                     /*
                      * assume that if |value| > MAXOBSVAL, then it is filled

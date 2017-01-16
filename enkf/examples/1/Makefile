@@ -29,7 +29,7 @@ enoi-calc: enkf_calc observations.nc conf background_6565 ensemble_static
 	nice -n +19 mpirun -np $(NP_CALC) ./enkf_calc enoi.prm 2>&1 | tee calc.out
 
 enoi-update: enkf_update w.nc conf background_6565 ensemble_static
-	nice -n +19 mpirun -np $(NP_UPDATE) ./enkf_update --calculate-spread enoi.prm 2>&1 | tee update.out
+	nice -n +19 mpirun -np $(NP_UPDATE) ./enkf_update --calculate-spread --output-increment enoi.prm 2>&1 | tee update.out
 
 stats-prep: enkf_prep conf obs stats.prm
 	./enkf_prep stats.prm 2>&1 | tee prep.out

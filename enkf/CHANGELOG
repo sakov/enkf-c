@@ -1,3 +1,7 @@
+v. 1.48.9
+   PS 17012017
+   -- Fixed a recent bug in das_updatebg() resulted in zero increments in EnOI
+      systems.
 v. 1.48.8
    PS 02122016
    -- Further to 1.48.5
