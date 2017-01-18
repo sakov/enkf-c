@@ -1,3 +1,7 @@
+v. 1.49.0
+   PS 18012017
+   -- added reader_h8.c for SST observatiopns from Himawari-8 pre-procesed by
+      BOM.
 v. 1.48.9
    PS 17012017
    -- Fixed a recent bug in das_updatebg() resulted in zero increments in EnOI

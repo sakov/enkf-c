@@ -31,6 +31,7 @@ void reader_amsre_standard(char* fname, int fid, obsmeta* meta, model* m, observ
 void reader_pathfinder_standard(char* fname, int fid, obsmeta* meta, model* m, observations* obs);
 void reader_aquarius_standard(char* fname, int fid, obsmeta* meta, model* m, observations* obs);
 void reader_smos_standard(char* fname, int fid, obsmeta* meta, model* m, observations* obs);
+void reader_h8_standard(char* fname, int fid, obsmeta* meta, model* m, observations* obs);
 
 #define _ALLREADERS_H
 #endif

@@ -45,7 +45,8 @@ obsreader_entry allreaders[] = {
     {"AMSR2", "standard", reader_amsr2_standard},
     {"AMSRE", "standard", reader_amsre_standard},
     {"AQUARIUS", "standard", reader_aquarius_standard},
-    {"SMOS", "standard", reader_smos_standard}
+    {"SMOS", "standard", reader_smos_standard},
+    {"HIMAWARI8", "standard", reader_h8_standard}
 };
 
 /**
