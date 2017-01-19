@@ -32,8 +32,9 @@
 
 void reader_h8_standard(char* fname, int fid, obsmeta* meta, model* m, observations* obs)
 {
-    char llfname[MAXSTRLEN] = "";
     int ncid;
+    int is1d;
+    char llfname[MAXSTRLEN] = "";
     int dimid_ni, dimid_nj;
     size_t ni, nj;
     int varid_lon, varid_lat, varid_sst, varid_timemin, varid_timemax;
@@ -49,39 +50,69 @@ void reader_h8_standard(char* fname, int fid, obsmeta* meta, model* m, observati
     int ktop;
     int i, nobs;
 
+    ncw_open(fname, NC_NOWRITE, &ncid);
+    if (ncw_dim_exists(ncid, "x") && ncw_dim_exists(ncid, "y")) {
+        is1d = 0;
+        enkf_printf("        structure = 2D\n");
+    } else if (ncw_var_exists(ncid, "index")) {
+        is1d = 1;
+        enkf_printf("        structure = 1D\n");
+    } else
+        enkf_quit("%s: structure not recognised (1d or 2d)", fname);
+    ncw_close(ncid);
+
     for (i = 0; i < meta->npars; ++i)
         if (strcasecmp(meta->pars[i].name, "LLFNAME") == 0)
             strncpy(llfname, meta->pars[i].value, MAXSTRLEN);
         else
             enkf_quit("unknown PARAMETER \"%s\"\n", meta->pars[i].name);
-    if (strlen(llfname) == 0)
-        enkf_quit("observation prm file: reader_h8: mandatory parameter \"LLFNAME\" not specified\n");
+    if (!is1d) {
+        if (strlen(llfname) == 0)
+            enkf_quit("observation prm file: reader_h8: mandatory parameter \"LLFNAME\" not specified for a 2d input file\n");
+    }
+
     ncw_open(llfname, NC_NOWRITE, &ncid);
-    ncw_inq_dimid(ncid, "x", &dimid_ni);
-    ncw_inq_dimlen(ncid, dimid_ni, &ni);
-    ncw_inq_dimid(ncid, "y", &dimid_nj);
-    ncw_inq_dimlen(ncid, dimid_nj, &nj);
-    enkf_printf("        (ni, nj) = (%u, %u)\n", ni, nj);
-    lon = malloc(nj * ni * sizeof(double));
-    lat = malloc(nj * ni * sizeof(double));
-    ncw_inq_varid(ncid, "lon", &varid_lon);
-    ncw_inq_varid(ncid, "lat", &varid_lat);
-    ncw_get_var_double(ncid, varid_lon, lon);
-    ncw_get_var_double(ncid, varid_lat, lat);
-    ncw_close(ncid);
+    if (!is1d) {
+        ncw_inq_dimid(ncid, "x", &dimid_ni);
+        ncw_inq_dimlen(ncid, dimid_ni, &ni);
+        ncw_inq_dimid(ncid, "y", &dimid_nj);
+        ncw_inq_dimlen(ncid, dimid_nj, &nj);
+        enkf_printf("        (ni, nj) = (%u, %u)\n", ni, nj);
+        ni *= nj;
+
+        lon = malloc(ni * sizeof(double));
+        lat = malloc(ni * sizeof(double));
+        ncw_inq_varid(ncid, "lon", &varid_lon);
+        ncw_inq_varid(ncid, "lat", &varid_lat);
+        ncw_get_var_double(ncid, varid_lon, lon);
+        ncw_get_var_double(ncid, varid_lat, lat);
+        ncw_close(ncid);
+    }
 
     ncw_open(fname, NC_NOWRITE, &ncid);
 
+    if (is1d) {
+        ncw_inq_dimid(ncid, "nobs", &dimid_ni);
+        ncw_inq_dimlen(ncid, dimid_ni, &ni);
+        enkf_printf("        nobs total = %u\n", ni);
+        lon = malloc(ni * sizeof(double));
+        lat = malloc(ni * sizeof(double));
+        ncw_inq_varid(ncid, "lon", &varid_lon);
+        ncw_inq_varid(ncid, "lat", &varid_lat);
+        ncw_get_var_double(ncid, varid_lon, lon);
+        ncw_get_var_double(ncid, varid_lat, lat);
+    }
+
     ncw_inq_varid(ncid, "sst", &varid_sst);
-    sst = malloc(nj * ni * sizeof(double));
+    sst = malloc(ni * sizeof(double));
     ncw_get_var_double(ncid, varid_sst, sst);
 
     ncw_inq_varid(ncid, "time_min", &varid_timemin);
-    time = malloc(nj * ni * sizeof(double));
+    time = malloc(ni * sizeof(double));
     ncw_get_var_double(ncid, varid_timemin, time);
 
     ncw_inq_varid(ncid, "time_max", &varid_timemax);
-    time2 = malloc(nj * ni * sizeof(double));
+    time2 = malloc(ni * sizeof(double));
     ncw_get_var_double(ncid, varid_timemax, time2);
 
     ncw_get_att_text(ncid, varid_timemin, "units", tunits);
@@ -93,7 +124,7 @@ void reader_h8_standard(char* fname, int fid, obsmeta* meta, model* m, observati
     depth = model_getdepth(m, mvid, 0);
 
     nobs = 0;
-    for (i = 0; i < (int) (ni * nj); ++i) {
+    for (i = 0; i < (int) ni; ++i) {
         observation* o;
         obstype* ot;
 

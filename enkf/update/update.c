@@ -982,10 +982,10 @@ static void das_assemblemembers(dasystem* das)
                 size_t start[3] = { e, 0, 0 };
                 size_t count[3] = { 1, nj, ni };
 
-		if (nlev > 1)
-		    getfieldfname(das->ensdir, "ens", varname, k, fname_src);
-		else
-		    getfieldfname(das->ensdir, "ens", varname, grid_gettoplayerid(model_getvargrid(m, i)), fname_src);
+                if (nlev > 1)
+                    getfieldfname(das->ensdir, "ens", varname, k, fname_src);
+                else
+                    getfieldfname(das->ensdir, "ens", varname, grid_gettoplayerid(model_getvargrid(m, i)), fname_src);
                 ncw_open(fname_src, NC_NOWRITE, &ncid_src);
                 ncw_inq_varid(ncid_src, varname, &vid_src);
                 ncw_get_vara_float(ncid_src, vid_src, start, count, v);
@@ -1015,10 +1015,10 @@ static void das_assemblemembers(dasystem* das)
             model_getmemberfname(m, das->ensdir, varname, 1, fname);
             nlev = getnlevels(fname, varname);
             for (k = 0; k < nlev; ++k) {
-		if (nlev > 1)
-		    getfieldfname(das->ensdir, "ens", varname, k, fname);
-		else
-		    getfieldfname(das->ensdir, "ens", varname, grid_gettoplayerid(model_getvargrid(m, i)), fname);
+                if (nlev > 1)
+                    getfieldfname(das->ensdir, "ens", varname, k, fname);
+                else
+                    getfieldfname(das->ensdir, "ens", varname, grid_gettoplayerid(model_getvargrid(m, i)), fname);
                 file_delete(fname);
             }
         }
@@ -1071,10 +1071,10 @@ static void das_assemblebg(dasystem* das)
             char fname_src[MAXSTRLEN];
             int ncid_src, vid_src;
 
-	    if (nlev > 1)
-		getfieldfname(das->bgdir, "bg", varname, k, fname_src);
-	    else
-		getfieldfname(das->bgdir, "bg", varname, grid_gettoplayerid(model_getvargrid(m, i)), fname_src);
+            if (nlev > 1)
+                getfieldfname(das->bgdir, "bg", varname, k, fname_src);
+            else
+                getfieldfname(das->bgdir, "bg", varname, grid_gettoplayerid(model_getvargrid(m, i)), fname_src);
             ncw_open(fname_src, NC_NOWRITE, &ncid_src);
             ncw_inq_varid(ncid_src, varname, &vid_src);
             ncw_get_var_float(ncid_src, vid_src, v);
@@ -1120,10 +1120,10 @@ static void das_assemblespread(dasystem* das)
             char fname_src[MAXSTRLEN];
             int ncid_src, vid;
 
-	    if (nlev > 1)
-		getfieldfname(das->mode == MODE_ENKF ? das->ensdir : das->bgdir, "spread", varname, k, fname_src);
-	    else
-		getfieldfname(das->mode == MODE_ENKF ? das->ensdir : das->bgdir, "spread", varname, grid_gettoplayerid(model_getvargrid(m, i)), fname_src);
+            if (nlev > 1)
+                getfieldfname(das->mode == MODE_ENKF ? das->ensdir : das->bgdir, "spread", varname, k, fname_src);
+            else
+                getfieldfname(das->mode == MODE_ENKF ? das->ensdir : das->bgdir, "spread", varname, grid_gettoplayerid(model_getvargrid(m, i)), fname_src);
             ncw_open(fname_src, NC_NOWRITE, &ncid_src);
 
             ncw_inq_varid(ncid_src, varname, &vid);
@@ -1134,11 +1134,11 @@ static void das_assemblespread(dasystem* das)
             model_writefield(m, FNAME_SPREAD, INT_MAX, varname, k, v);
 
             if (das->mode == MODE_ENKF) {
-		if (nlev > 1)
-		    getfieldfname(das->ensdir, "spread", varname_an, k, fname_src);
-		else
-		    getfieldfname(das->ensdir, "spread", varname_an, grid_gettoplayerid(model_getvargrid(m, i)), fname_src);
-		ncw_open(fname_src, NC_NOWRITE, &ncid_src);
+                if (nlev > 1)
+                    getfieldfname(das->ensdir, "spread", varname_an, k, fname_src);
+                else
+                    getfieldfname(das->ensdir, "spread", varname_an, grid_gettoplayerid(model_getvargrid(m, i)), fname_src);
+                ncw_open(fname_src, NC_NOWRITE, &ncid_src);
                 ncw_inq_varid(ncid_src, varname_an, &vid);
                 ncw_get_var_float(ncid_src, vid, v);
                 ncw_close(ncid_src);
@@ -1180,10 +1180,10 @@ static void das_assembleinflation(dasystem* das)
             char fname_src[MAXSTRLEN];
             int ncid_src, vid;
 
-	    if (nlev > 1)
-		getfieldfname(das->ensdir, "inflation", varname, k, fname_src);
-	    else
-		getfieldfname(das->ensdir, "inflation", varname, grid_gettoplayerid(model_getvargrid(m, i)), fname_src);
+            if (nlev > 1)
+                getfieldfname(das->ensdir, "inflation", varname, k, fname_src);
+            else
+                getfieldfname(das->ensdir, "inflation", varname, grid_gettoplayerid(model_getvargrid(m, i)), fname_src);
             ncw_open(fname_src, NC_NOWRITE, &ncid_src);
 
             ncw_inq_varid(ncid_src, varname, &vid);

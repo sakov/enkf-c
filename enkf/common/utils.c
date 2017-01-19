@@ -804,9 +804,9 @@ void writefield(char fname[], char varname[], int k, float* v)
             count[1] = dimlen[1];
             count[2] = dimlen[2];
         } else {
-	    /*
-	     * 2D variable, ignore k
-	     */
+            /*
+             * 2D variable, ignore k
+             */
             start[0] = 0;
             start[1] = 0;
             start[2] = 0;

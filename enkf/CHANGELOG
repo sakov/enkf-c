@@ -1,6 +1,9 @@
+v. 1.49.1
+   PS 19012017
+   -- Modified reader_h8.c to handle both 1D and 2D file structure.
 v. 1.49.0
    PS 18012017
-   -- added reader_h8.c for SST observatiopns from Himawari-8 pre-procesed by
+   -- Added reader_h8.c for SST observatiopns from Himawari-8 pre-procesed by
       BOM.
 v. 1.48.9
    PS 17012017
