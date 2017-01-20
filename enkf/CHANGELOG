@@ -1,3 +1,6 @@
+v. 1.49.2
+   PS 20012017
+   -- Fixed a defect in reader_h8.c.
 v. 1.49.1
    PS 19012017
    -- Modified reader_h8.c to handle both 1D and 2D file structure.

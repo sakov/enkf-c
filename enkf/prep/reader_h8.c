@@ -71,8 +71,8 @@ void reader_h8_standard(char* fname, int fid, obsmeta* meta, model* m, observati
             enkf_quit("observation prm file: reader_h8: mandatory parameter \"LLFNAME\" not specified for a 2d input file\n");
     }
 
-    ncw_open(llfname, NC_NOWRITE, &ncid);
     if (!is1d) {
+        ncw_open(llfname, NC_NOWRITE, &ncid);
         ncw_inq_dimid(ncid, "x", &dimid_ni);
         ncw_inq_dimlen(ncid, dimid_ni, &ni);
         ncw_inq_dimid(ncid, "y", &dimid_nj);
