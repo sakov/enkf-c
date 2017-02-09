@@ -1,3 +1,6 @@
+v. 1.50.0
+   PS 10022017
+   -- Added randomising observation order before inserting into kd-tree.
 v. 1.49.2
    PS 20012017
    -- Fixed a defect in reader_h8.c.
@@ -276,7 +279,7 @@ v. 1.35.0
    -- Replaced isend/bcast calls in das_getHE() with allgatherv
 v. 1.34.0
    PS 11032016
-   -- Made sure that in single observation experiements (options
+   -- Made sure that in single observation experiments (options
       --single-observation-xyz or --single-observation-ijk of enkf_calc) for
       surface obs types the observation layer/depth is set to surface
       regardless of the entered value

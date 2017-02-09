@@ -15,7 +15,6 @@
 
 #if !defined(_CALCS_H)
 
-void shuffle(int n, int ids[]);
 double traceprod(int transposeA, int transposeB, int m, int n, double** A, double** B);
 void calc_G_denkf(int m, int p, double** S, int i, int j, double** G);
 void calc_X5_denkf(int m, int p, double** G, double** S, double* s, double alpha, int ii, int jj, double** X5);

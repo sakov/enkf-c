@@ -33,7 +33,7 @@
 void reader_h8_standard(char* fname, int fid, obsmeta* meta, model* m, observations* obs)
 {
     int ncid;
-    int is1d;
+    int is1d = -1;
     char llfname[MAXSTRLEN] = "";
     int dimid_ni, dimid_nj;
     size_t ni, nj;

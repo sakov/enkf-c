@@ -39,6 +39,7 @@
 #define EPS_DOUBLE 4.0e-15
 #define EPS_FLOAT  1.0e-7
 #define BACKTRACE_SIZE 50
+#define SEED 5555
 
 /**
  */
@@ -1476,3 +1477,21 @@ int istrue(char str[])
         return 1;
     return 0;
 }
+
+/**
+ */
+void shuffle(int n, int ids[])
+{
+    int i;
+
+    srand48(SEED);
+
+    for (i = 0; i < n; ++i) {
+        int ii = (int) ((double) n * drand48());
+        int tmp = ids[i];
+
+        ids[i] = ids[ii];
+        ids[ii] = tmp;
+    }
+}
+

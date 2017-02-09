@@ -24,27 +24,9 @@
 #include "calcs.h"
 
 #define EPS 1.0e-8
-#define SEED 5555
 
 static char doT = 'T';
 static char noT = 'N';
-
-/**
- */
-void shuffle(int n, int ids[])
-{
-    int i;
-
-    srand48(SEED);
-
-    for (i = 0; i < n; ++i) {
-        int ii = (int) ((double) n * drand48());
-        int tmp = ids[i];
-
-        ids[i] = ids[ii];
-        ids[ii] = tmp;
-    }
-}
 
 /** Calculates trace of the product of two matrices.
  * A - n x m  (A[m][n])
