@@ -119,6 +119,10 @@ void obs_add(observations* obs, model* m, obsmeta* meta)
 
             if (o->status != STATUS_OK)
                 continue;
+            if (o->date - obs->da_date < obs->windowmin)
+                o->status = STATUS_OUTSIDEOBSWINDOW;
+            if (o->date - obs->da_date >= obs->windowmax)
+                o->status = STATUS_OUTSIDEOBSWINDOW;
 
             if (o->value < ot->allowed_min) {
                 o->status = STATUS_RANGE;
@@ -254,14 +258,17 @@ void obs_add(observations* obs, model* m, obsmeta* meta)
             observation* o = &obs->data[i];
 
             o->date -= obs->da_date;
-
+            if (o->status != STATUS_OK)
+                continue;
             if (o->date < date_min)
                 date_min = o->date;
             if (o->date > date_max)
                 date_max = o->date;
         }
-        enkf_printf("      min date = %.3f\n", date_min);
-        enkf_printf("      max date = %.3f\n", date_max);
+        if (date_min <= date_max) {
+            enkf_printf("      min date = %.3f\n", date_min);
+            enkf_printf("      max date = %.3f\n", date_max);
+        }
     }
     fflush(stdout);
 

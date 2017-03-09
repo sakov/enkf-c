@@ -1,10 +1,10 @@
   MPI: initialised 2 process(es)
-  MPI: rank = 0, PID = 12221
-  MPI: rank = 1, PID = 12222
-  running CALC for EnKF-C version 1.39.8:
+  MPI: rank = 0, PID = 12755
+  MPI: rank = 1, PID = 12756
+  running CALC for EnKF-C version 1.50.0:
     command = "./enkf_calc --point-logs-only pointlogs.prm"
     dir = "/home/pavel/src/enkf-c/trunk/enkf/examples/1"
-  2016-06-15 10:04:01
+  2017-03-10 09:25:36
   reading system specs from "pointlogs.prm":
     MODE = EnKF
     SCHEME = DEnKF
@@ -37,6 +37,8 @@
       HE_VIAFILE       = [-]
       GRIDNODES_WRITE  = [-]
       INTERNAL_QSORT_R = [-]
+      NO_GRIDUTILS     = [-]
+      ZSIGN_NOCHECK    = [-]
   initialising the system:
   reading observation type specs from "obstypes.prm":
     NAME = SLA
@@ -98,9 +100,8 @@
       DEPTHVARNAME = "depth_t"
       NUMLEVELSVARNAME = "num_levels"
     grid info:
-      hor type = LATLON_REGULAR
+      hor type = LATLON
       periodic by X = no
-      periodic by Y = no
       dims = 100 x 100 x 2
       longitude range = [0.000, 360.000]
       vert type = Z
@@ -127,7 +128,7 @@
     3864 observations
     calculating obs stats:
   calculating ensemble observations:
-  2016-06-15 10:04:01
+  2017-03-10 09:25:36
     ensemble size = 96
     distributing iterations:
       all processes get 48 iterations
@@ -136,7 +137,7 @@
     TEM ................................................
     SAL ................................................
   adding forecast innovations and spread to "observations.nc":
-  2016-06-15 10:04:01
+  2017-03-10 09:25:36
   Hx already added to "observations.nc" (skipping)
   moderating observations:
     observations substantially modified:
@@ -154,5 +155,5 @@
     writing the log for point (50, 50) on grid "t-grid":
     calculating transform for log point (70, 50): 466 obs
     writing the log for point (70, 50) on grid "t-grid":
-  2016-06-15 10:04:01
+  2017-03-10 09:25:36
   finished

@@ -1,10 +1,10 @@
   MPI: initialised 2 process(es)
-  MPI: rank = 0, PID = 12330
-  MPI: rank = 1, PID = 12331
-  running UPDATE for EnKF-C version 1.39.8:
+  MPI: rank = 0, PID = 13258
+  MPI: rank = 1, PID = 13259
+  running UPDATE for EnKF-C version 1.50.0:
     command = "./enkf_update --calculate-spread --write-inflation enkf-global.prm"
     dir = "/home/pavel/src/enkf-c/trunk/enkf/examples/1"
-  2016-06-15 10:05:23
+  2017-03-10 09:27:07
   reading system specs from "enkf-global.prm":
     MODE = EnKF
     SCHEME = DEnKF
@@ -35,6 +35,8 @@
       HE_VIAFILE       = [-]
       GRIDNODES_WRITE  = [-]
       INTERNAL_QSORT_R = [-]
+      NO_GRIDUTILS     = [-]
+      ZSIGN_NOCHECK    = [-]
   update specs:
     do model fields  = [+]
     do spread        = [+]
@@ -55,9 +57,8 @@
       DEPTHVARNAME = "depth_t"
       NUMLEVELSVARNAME = "num_levels"
     grid info:
-      hor type = LATLON_REGULAR
+      hor type = LATLON
       periodic by X = no
-      periodic by Y = no
       dims = 100 x 100 x 2
       longitude range = [0.000, 360.000]
       vert type = Z
@@ -87,23 +88,23 @@
     defining state variables in point logs:
     distributing iterations:
       all processes get 48 iterations
-    2016-06-15 10:05:23
+    2017-03-10 09:27:07
     allocating disk space for analysis:................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................
-    2016-06-15 10:05:23
+    2017-03-10 09:27:07
     updating fields for t-grid:
       9 fields
       distributing iterations:
         processes get 5 or 4 iterations
-      u        0   (1: 5: 25.0%)
       eta_t    0   (0: 0: 20.0%)
-      temp     0   (0: 1: 40.0%)
+      u        0   (1: 5: 25.0%)
       u        1   (1: 6: 50.0%)
-      temp     1   (0: 2: 60.0%)
+      temp     0   (0: 1: 40.0%)
       v        0   (1: 7: 75.0%)
-      salt     0   (0: 3: 80.0%)
+      temp     1   (0: 2: 60.0%)
       v        1   (1: 8: 100.0%)
+      salt     0   (0: 3: 80.0%)
       salt     1   (0: 4: 100.0%)
-  2016-06-15 10:05:25
+  2017-03-10 09:27:09
   assembling analysis:
     distributing iterations:
       all processes get 48 iterations
@@ -130,5 +131,5 @@
     deleting tiles:
       distributing iterations:
         processes get 5 or 4 iterations
-  2016-06-15 10:05:25
+  2017-03-10 09:27:09
   finished

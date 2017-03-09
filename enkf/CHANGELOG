@@ -1,3 +1,9 @@
+v. 1.51.0
+   PS 10032017
+   -- Added new optional entries WINDOWMIN and WINDOWMAX in the main parameter
+      file to specify exact boundaries of the observation time window.
+   -- Added new reader for pre-processed L3C SST observations from VIIRS.
+   -- Synced ncw.[ch] with ncw-c v2.07.
 v. 1.50.0
    PS 10022017
    -- Added randomising observation order before inserting into kd-tree.

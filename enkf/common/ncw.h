@@ -64,15 +64,20 @@ void ncw_inq_vardimid(int ncid, int varid, int dimids[]);
 void ncw_inq_varnatts(int ncid, int varid, int* natts);
 void ncw_rename_var(int ncid, const char oldname[], const char newname[]);
 void ncw_def_var_deflate(int ncid, int varid, int shuffle, int deflate, int deflate_level);
+void ncw_put_var(int ncid, int varid, const void* v);
 void ncw_put_var_text(int ncid, int varid, const char v[]);
+void ncw_put_var_uchar(int ncid, int varid, const unsigned char v[]);
 void ncw_put_var_short(int ncid, int varid, const short int v[]);
 void ncw_put_var_ushort(int ncid, int varid, const unsigned short int v[]);
 void ncw_put_var_int(int ncid, int varid, const int v[]);
 void ncw_put_var_uint(int ncid, int varid, const unsigned int v[]);
+void ncw_put_var_long(int ncid, int varid, const long v[]);
 void ncw_put_var_float(int ncid, int varid, const float v[]);
 void ncw_put_var_double(int ncid, int varid, const double v[]);
+void ncw_get_var(int ncid, int varid, void* v);
 void ncw_get_var_text(int ncid, int varid, char v[]);
 void ncw_get_var_schar(int ncid, int varid, signed char v[]);
+void ncw_get_var_uchar(int ncid, int varid, unsigned char v[]);
 void ncw_get_var_short(int ncid, int varid, short int v[]);
 void ncw_get_var_ushort(int ncid, int varid, unsigned short int v[]);
 void ncw_get_var_int(int ncid, int varid, int v[]);
@@ -92,7 +97,10 @@ void ncw_get_vara_int(int ncid, int varid, const size_t start[], const size_t co
 void ncw_get_vara_float(int ncid, int varid, const size_t start[], const size_t count[], float v[]);
 void ncw_get_vara_double(int ncid, int varid, const size_t start[], const size_t count[], double v[]);
 void ncw_put_att_text(int ncid, int varid, const char attname[], const char v[]);
+void ncw_put_att_uchar(int ncid, int varid, const char attname[], size_t len, const unsigned char v[]);
+void ncw_put_att_short(int ncid, int varid, const char attname[], size_t len, const short int v[]);
 void ncw_put_att_int(int ncid, int varid, const char attname[], size_t len, const int v[]);
+void ncw_put_att_long(int ncid, int varid, const char attname[], size_t len, const long int v[]);
 void ncw_put_att_float(int ncid, int varid, const char attname[], size_t len, const float v[]);
 void ncw_put_att_double(int ncid, int varid, const char attname[], size_t len, const double v[]);
 void ncw_inq_attname(int ncid, int varid, int attrid, char attname[]);
@@ -102,6 +110,7 @@ void ncw_copy_att(int ncid_src, int varid_src, const char attname[], int ncid_ds
 void ncw_rename_att(int ncid, const char varname[], const char oldname[], const char newname[]);
 void ncw_del_att(int ncid, int varid, const char name[]);
 void ncw_get_att_text(int ncid, int varid, const char attname[], char v[]);
+void ncw_get_att_schar(int ncid, int varid, const char attname[], signed char v[]);
 void ncw_get_att_short(int ncid, int varid, const char attname[], short int v[]);
 void ncw_get_att_int(int ncid, int varid, const char attname[], int v[]);
 void ncw_get_att_float(int ncid, int varid, const char attname[], float v[]);
@@ -131,8 +140,9 @@ void ncw_get_var_double_record(int ncid, int varid, int r, double v[]);
 void ncw_get_var_float_record(int ncid, int varid, int r, float v[]);
 void ncw_put_var_double_record(int ncid, int varid, int r, double v[]);
 void ncw_put_var_float_record(int ncid, int varid, int r, float v[]);
+int ncw_file_opens(const char fname[], int mode);
 
-void ncw_check_att(int ncid, int varid, const char attname[], size_t len);
+void ncw_check_attlen(int ncid, int varid, const char attname[], size_t len);
 void ncw_check_dimlen(int ncid, const char dimname[], size_t len);
 
 #define _NCW_H

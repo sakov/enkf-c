@@ -50,6 +50,7 @@
 #define STATUS_RANGE 4
 #define STATUS_BADBATCH 5
 #define STATUS_OUTSIDEOBSDOMAIN 6
+#define STATUS_OUTSIDEOBSWINDOW 7
 #define STATUS_MISSING 8
 /*
  * The fractional grid indices can (very rarely) jump to a neighbour cell after

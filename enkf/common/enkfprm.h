@@ -50,8 +50,9 @@ typedef struct {
     int mode;
     int scheme;
     double alpha;
-    int target;
     char* date;
+    double windowmin;
+    double windowmax;
 
     char* modelprm;
     char* gridprm;

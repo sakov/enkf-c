@@ -124,6 +124,8 @@ observations* obs_create(void)
     obs->obsids = NULL;
     obs->da_date = NaN;
     obs->datestr = NULL;
+    obs->windowmin = NaN;
+    obs->windowmax = NaN;
     obs->allobs = 0;
     obs->nallocated = 0;
     obs->nobs = 0;
@@ -160,6 +162,8 @@ observations* obs_create_fromprm(enkfprm* prm)
 
     obs->da_date = date_str2dbl(prm->date);
     obs->datestr = strdup(prm->date);
+    obs->windowmin = prm->windowmin;
+    obs->windowmax = prm->windowmax;
 
     obs->stride = prm->sob_stride;
 

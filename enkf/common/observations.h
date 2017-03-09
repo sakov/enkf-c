@@ -79,6 +79,8 @@ typedef struct {
     double da_date;             /* days since 00:00:00
                                  * BASEDAY-BASEMONTH-BASEYEAR */
     char* datestr;
+    double windowmin;
+    double windowmax;
 
     int allobs;                 /* flag - whether to keep obs outside model
                                  * grid */

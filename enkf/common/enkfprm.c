@@ -16,6 +16,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include <float.h>
 #include <math.h>
 #include "nan.h"
 #include "definitions.h"
@@ -79,6 +80,8 @@ enkfprm* enkfprm_read(char fname[])
     prm->scheme = SCHEME_DEFAULT;
     prm->alpha = ALPHA_DEFAULT;
     prm->date = NULL;
+    prm->windowmin = NaN;
+    prm->windowmax = NaN;
     prm->modelprm = NULL;
     prm->gridprm = NULL;
 
@@ -144,6 +147,16 @@ enkfprm* enkfprm_read(char fname[])
                     token++;
                 prm->date = strdup(token);
             }
+        } else if (strcasecmp(token, "WINDOWMIN") == 0) {
+            if ((token = strtok(NULL, seps)) == NULL)
+                enkf_quit("%s, l.%d: WINDOWMIN not specified", fname, line);
+            else if (!str2double(token, &prm->windowmin))
+                enkf_quit("%s, l.%d: could convert WINDOWMIN entry", fname, line);
+        } else if (strcasecmp(token, "WINDOWMAX") == 0) {
+            if ((token = strtok(NULL, seps)) == NULL)
+                enkf_quit("%s, l.%d: WINDOWMAX not specified", fname, line);
+            else if (!str2double(token, &prm->windowmax))
+                enkf_quit("%s, l.%d: could convert WINDOWMAX entry", fname, line);
         } else if (strcasecmp(token, "MODEL") == 0) {
             if ((token = strtok(NULL, seps)) == NULL)
                 enkf_quit("%s, l.%d: MODEL not specified", fname, line);
@@ -560,6 +573,8 @@ void enkfprm_describeprm(void)
     enkf_printf("    OBSTYPES        = <obs. types prm file>\n");
     enkf_printf("    OBS             = <obs. data prm file>\n");
     enkf_printf("    DATE            = <julian day of analysis>\n");
+    enkf_printf("  [ WINDOWMIN       = <start of obs window in days from analysis> ] (-inf*)\n");
+    enkf_printf("  [ WINDOWMAX       = <end of obs window in days from analysis> ]   (+inf*)\n");
     enkf_printf("    ENSDIR          = <ensemble directory>\n");
     enkf_printf("    BGDIR           = <background directory>                 (MODE = ENOI)\n");
     enkf_printf("  [ KFACTOR         = <kfactor> ]                            (NaN*)\n");

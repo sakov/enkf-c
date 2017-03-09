@@ -1,7 +1,7 @@
-  running PREP for EnKF-C version 1.39.8:
+  running PREP for EnKF-C version 1.50.0:
     command = "./enkf_prep stats.prm"
     dir = "/home/pavel/src/enkf-c/trunk/enkf/examples/1"
-  2016-06-15 10:09:55
+  2017-03-10 09:28:01
   reading prep specs from "stats.prm":
     MODE = EnOI
     MODEL PRM = "model.prm"
@@ -31,48 +31,50 @@
       HE_VIAFILE       = [-]
       GRIDNODES_WRITE  = [-]
       INTERNAL_QSORT_R = [-]
+      NO_GRIDUTILS     = [-]
+      ZSIGN_NOCHECK    = [-]
   reading observation specs from "obs.prm":
     PRODUCT = RADS
       READER = standard2
       TYPE = SLA
-      File:        obsmeta.c = obs/RADS-IB/y2007/m12/??_d19.nc
-      File:        obsmeta.c = obs/RADS-IB/y2007/m12/??_d20.nc
-      File:        obsmeta.c = obs/RADS-IB/y2007/m12/??_d21.nc
-      File:        obsmeta.c = obs/RADS-IB/y2007/m12/??_d22.nc
-      File:        obsmeta.c = obs/RADS-IB/y2007/m12/??_d23.nc
+        File: obs/RADS-IB/y2007/m12/??_d19.nc
+        File: obs/RADS-IB/y2007/m12/??_d20.nc
+        File: obs/RADS-IB/y2007/m12/??_d21.nc
+        File: obs/RADS-IB/y2007/m12/??_d22.nc
+        File: obs/RADS-IB/y2007/m12/??_d23.nc
     PRODUCT = NAVO
       READER = standard
       TYPE = SST
-      File:        obsmeta.c = obs/NAVO/navo_20071219.nc
-      File:        obsmeta.c = obs/NAVO/navo_20071220.nc
-      File:        obsmeta.c = obs/NAVO/navo_20071221.nc
-      File:        obsmeta.c = obs/NAVO/navo_20071222.nc
-      File:        obsmeta.c = obs/NAVO/navo_20071223.nc
+        File: obs/NAVO/navo_20071219.nc
+        File: obs/NAVO/navo_20071220.nc
+        File: obs/NAVO/navo_20071221.nc
+        File: obs/NAVO/navo_20071222.nc
+        File: obs/NAVO/navo_20071223.nc
     PRODUCT = WindSat
       READER = standard
       TYPE = SST
-      File:        obsmeta.c = obs/WINDSAT/windsat_20071219.nc
-      File:        obsmeta.c = obs/WINDSAT/windsat_20071220.nc
-      File:        obsmeta.c = obs/WINDSAT/windsat_20071221.nc
-      File:        obsmeta.c = obs/WINDSAT/windsat_20071222.nc
-      File:        obsmeta.c = obs/WINDSAT/windsat_20071223.nc
+        File: obs/WINDSAT/windsat_20071219.nc
+        File: obs/WINDSAT/windsat_20071220.nc
+        File: obs/WINDSAT/windsat_20071221.nc
+        File: obs/WINDSAT/windsat_20071222.nc
+        File: obs/WINDSAT/windsat_20071223.nc
     PRODUCT = CARS
       READER = standard
       TYPE = TEM
-      File:        obsmeta.c = obs/TS-SEP-2011/y2007/m12/cars_temp_d19.nc
-      File:        obsmeta.c = obs/TS-SEP-2011/y2007/m12/cars_temp_d20.nc
-      File:        obsmeta.c = obs/TS-SEP-2011/y2007/m12/cars_temp_d21.nc
-      File:        obsmeta.c = obs/TS-SEP-2011/y2007/m12/cars_temp_d22.nc
-      File:        obsmeta.c = obs/TS-SEP-2011/y2007/m12/cars_temp_d23.nc
+        File: obs/TS-SEP-2011/y2007/m12/cars_temp_d19.nc
+        File: obs/TS-SEP-2011/y2007/m12/cars_temp_d20.nc
+        File: obs/TS-SEP-2011/y2007/m12/cars_temp_d21.nc
+        File: obs/TS-SEP-2011/y2007/m12/cars_temp_d22.nc
+        File: obs/TS-SEP-2011/y2007/m12/cars_temp_d23.nc
       ERROR_STD = 0.5, operation = EQUAL
     PRODUCT = CARS
       READER = standard
       TYPE = SAL
-      File:        obsmeta.c = obs/TS-SEP-2011/y2007/m12/cars_salt_d19.nc
-      File:        obsmeta.c = obs/TS-SEP-2011/y2007/m12/cars_salt_d20.nc
-      File:        obsmeta.c = obs/TS-SEP-2011/y2007/m12/cars_salt_d21.nc
-      File:        obsmeta.c = obs/TS-SEP-2011/y2007/m12/cars_salt_d22.nc
-      File:        obsmeta.c = obs/TS-SEP-2011/y2007/m12/cars_salt_d23.nc
+        File: obs/TS-SEP-2011/y2007/m12/cars_salt_d19.nc
+        File: obs/TS-SEP-2011/y2007/m12/cars_salt_d20.nc
+        File: obs/TS-SEP-2011/y2007/m12/cars_salt_d21.nc
+        File: obs/TS-SEP-2011/y2007/m12/cars_salt_d22.nc
+        File: obs/TS-SEP-2011/y2007/m12/cars_salt_d23.nc
       ERROR_STD = 0.1, operation = EQUAL
   setting the model:
     grid prm info:
@@ -89,9 +91,8 @@
       DEPTHVARNAME = "depth_t"
       NUMLEVELSVARNAME = "num_levels"
     grid info:
-      hor type = LATLON_REGULAR
+      hor type = LATLON
       periodic by X = no
-      periodic by Y = no
       dims = 100 x 100 x 2
       longitude range = [0.000, 360.000]
       vert type = Z
@@ -352,5 +353,5 @@ ls: cannot access obs/WINDSAT/windsat_20071223.nc: No such file or directory
     TEM     184        104        104        0          0          0          0          7         
     SAL     184        104        104        0          0          0          0          7         
     total   9595       211        208        0          3          0          0          3864      
-  2016-06-15 10:09:55
+  2017-03-10 09:28:01
   finished

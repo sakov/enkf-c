@@ -35,7 +35,7 @@
 
 \begin{document}
 
-\title{EnKF-C user guide\\{\normalsize version 1.43.0}}
+\title{EnKF-C user guide\\{\normalsize version 1.51.0}}
 
 \author{Pavel Sakov}
 \date{June 19, 2014 -- \today}
@@ -667,6 +667,8 @@ Its format is described by running \verb|enkf_prep|, \verb|enkf_calc| or \verb|e
     OBSTYPES        = <obs. types prm file>
     OBS             = <obs. data prm file>
     DATE            = <julian day of analysis>
+  [ WINDOWMIN       = <start of obs window in days from analysis> ] (-inf*)
+  [ WINDOWMAX       = <end of obs window in days from analysis> ]   (+inf*)
     ENSDIR          = <ensemble directory>
     BGDIR           = <background directory>                 (MODE = ENOI)
   [ KFACTOR         = <kfactor> ]                            (NaN*)
@@ -826,6 +828,10 @@ value by the observation type value.
 Observation data parameter file specifies observations to be assimilated.
 EnKF-C has a simple policy in this regard: if a data file is listed in the observation data parameter file, then observations from this file are assimilated.
 This allows one using custom observation windows for particular observation types, instruments etc., specifying details on the script level during the parameter file generation.
+
+In practice some of observations specified in the observation data parameter file can be outside the observation time window for the cycle.
+In this case the exact boundaries of the observation window can be specified by entries \verb|WINDOWMIN| and \verb|WINDOWMAX| in the main parameter file;
+observations with time outside interval \verb|[DATE-WINDOWMIN, DATE+WINDOWMAX)| will be discarded.
 
 The observation parameter file contains an arbitrary number of sections identified by entries \verb|PRODUCT|.
 Each section specifies the observation type, input files, reader and, possibly, observation error:
