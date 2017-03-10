@@ -1144,7 +1144,6 @@ void obs_createkdtrees(observations* obs, model* m)
         kdtree** tree = &obs->loctrees[otid];
         int nobs = 0;
         int* obsids = NULL;
-        int* ids = NULL;
         int i;
 
         obs_find_bytype(obs, otid, &nobs, &obsids);
@@ -1158,22 +1157,15 @@ void obs_createkdtrees(observations* obs, model* m)
         if (*tree != NULL)
             kd_destroy(*tree);
 
-        ids = malloc(nobs * sizeof(int));
-        for (i = 0; i < nobs; ++i)
-            ids[i] = i;
-        shuffle(nobs, ids);
-
         *tree = kd_create(3);
         for (i = 0; i < nobs; ++i) {
-            observation* o = &obs->data[obsids[ids[i]]];
+            observation* o = &obs->data[obsids[i]];
             double ll[2] = { o->lon, o->lat };
             double xyz[3];
 
             grid_tocartesian(g, ll, xyz);
             kd_insertnode(*tree, xyz, i);
         }
-
-        free(ids);
     }
 }
 

@@ -1,3 +1,6 @@
+v. 1.51.1
+   PS 10032017
+   -- reverted change in v.1.50.0 until some issues resolved
 v. 1.51.0
    PS 10032017
    -- Added new optional entries WINDOWMIN and WINDOWMAX in the main parameter
