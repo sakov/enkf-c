@@ -82,7 +82,7 @@ void reader_viirs_standard(char* fname, int fid, obsmeta* meta, model* m, observ
     ncw_get_att_double(ncid, varid_std, "add_offset", &std_add_offset);
     ncw_get_att_double(ncid, varid_std, "scale_factor", &std_scale_factor);
 
-    ncw_inq_varid(ncid, "estd", &varid_estd);
+    ncw_inq_varid(ncid, "error_std", &varid_estd);
     estd = malloc(ni * nj * sizeof(short));
     ncw_get_var_short(ncid, varid_estd, estd);
     ncw_get_att_double(ncid, varid_estd, "add_offset", &estd_add_offset);
