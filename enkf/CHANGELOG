@@ -1,3 +1,6 @@
+v. 1.52.0
+   PS 16032017
+   -- Incorporated optional shuffling of obs (flag -DOBS_SHUFFLE).
 v. 1.51.1
    PS 10032017
    -- reverted change in v.1.50.0 until some issues resolved

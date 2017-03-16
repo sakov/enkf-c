@@ -1,7 +1,7 @@
-  running CALC for EnKF-C version 1.50.0:
+  running CALC for EnKF-C version 1.52.0:
     command = "./enkf_calc enkf-global.prm"
     dir = "/home/pavel/src/enkf-c/trunk/enkf/examples/1"
-  2017-03-10 09:27:06
+  2017-03-16 12:20:26
   reading system specs from "enkf-global.prm":
     MODE = EnKF
     SCHEME = DEnKF
@@ -34,6 +34,7 @@
       INTERNAL_QSORT_R = [-]
       NO_GRIDUTILS     = [-]
       ZSIGN_NOCHECK    = [-]
+      OBS_SHUFFLE      = [-]
   initialising the system:
   reading observation type specs from "obstypes.prm":
     NAME = SLA
@@ -123,7 +124,7 @@
     3864 observations
     calculating obs stats:
   calculating ensemble observations:
-  2017-03-10 09:27:06
+  2017-03-16 12:20:26
     ensemble size = 96
     distributing iterations:
       all processes get 96 iterations
@@ -132,7 +133,7 @@
     TEM ................................................................................................
     SAL ................................................................................................
   adding forecast innovations and spread to "observations.nc":
-  2017-03-10 09:27:06
+  2017-03-16 12:20:26
   moderating observations:
     observations substantially modified:
       SLA          0 (0.0%)
@@ -142,7 +143,7 @@
       total        0 (0.0%)
   writing modified obs errors to "observations.nc":
   calculating transforms:
-  2017-03-10 09:27:06
+  2017-03-16 12:20:26
     creating kd-trees for observations:
     calculating transforms for t-grid:
       creating empty file "X5.nc":
@@ -161,7 +162,7 @@
     calculating transform for log point (30, 50): 3864 obs
     writing the log for point (30, 50) on grid "t-grid":
   calculating analysed observations:
-  2017-03-10 09:27:07
+  2017-03-16 12:20:26
     sorting obs by ij:
     updating HE:
   adding analysis innovations and spread to "observations.nc":
@@ -177,15 +178,15 @@
              AVHRR      2039    0.469      0.408     -0.220     -0.170      0.332      0.191  
              WindSat     848    0.471      0.509     -0.307     -0.312      0.350      0.203  
              N/A         320    0.392      0.373     -0.255     -0.212      0.323      0.186  
-           TEM             7    1.015      1.080      0.512      0.906      0.318      0.183  
-             ARGO          7    1.015      1.080      0.512      0.906      0.318      0.183  
+           TEM             7    1.015      1.080      0.512      0.907      0.318      0.183  
+             ARGO          7    1.015      1.080      0.512      0.907      0.318      0.183  
              0-50m         2    1.471      2.159      1.471      2.159      0.321      0.185  
-             50-500m       5    0.832      0.649      0.129      0.405      0.316      0.183  
+             50-500m       5    0.832      0.649      0.129      0.406      0.316      0.183  
              500-9999m     0     -nan       -nan       -nan       -nan       -nan       -nan  
            SAL             7    0.077      0.100      0.055      0.070      0.029      0.017  
              ARGO          7    0.077      0.100      0.055      0.070      0.029      0.017  
              0-50m         2    0.088      0.102      0.074      0.098      0.023      0.013  
              50-500m       5    0.072      0.099      0.047      0.058      0.032      0.019  
              500-9999m     0     -nan       -nan       -nan       -nan       -nan       -nan  
-  2017-03-10 09:27:07
+  2017-03-16 12:20:27
   finished

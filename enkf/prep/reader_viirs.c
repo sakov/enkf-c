@@ -40,7 +40,7 @@ void reader_viirs_standard(char* fname, int fid, obsmeta* meta, model* m, observ
     double* lat;
     short* sst;
     double sst_add_offset, sst_scale_factor;
-    short *std;
+    short* std;
     double std_add_offset, std_scale_factor;
     short* estd;
     double estd_add_offset, estd_scale_factor;
@@ -131,7 +131,7 @@ void reader_viirs_standard(char* fname, int fid, obsmeta* meta, model* m, observ
         {
             double std1 = (double) std[i] * std_scale_factor + std_add_offset;
             double std2 = (double) estd[i] * estd_scale_factor + estd_add_offset;
-            
+
             o->std = (std1 > std2) ? std1 : std2;
         }
         o->lon = lon[i % ni];

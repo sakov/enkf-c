@@ -1144,6 +1144,10 @@ void obs_createkdtrees(observations* obs, model* m)
         kdtree** tree = &obs->loctrees[otid];
         int nobs = 0;
         int* obsids = NULL;
+
+#if defined(OBS_SHUFFLE)
+        int* ids = NULL;
+#endif
         int i;
 
         obs_find_bytype(obs, otid, &nobs, &obsids);
@@ -1157,15 +1161,35 @@ void obs_createkdtrees(observations* obs, model* m)
         if (*tree != NULL)
             kd_destroy(*tree);
 
+#if defined(OBS_SHUFFLE)
+        ids = malloc(nobs * sizeof(int));
+        for (i = 0; i < nobs; ++i)
+            ids[i] = i;
+        shuffle(nobs, ids);
+#endif
+
         *tree = kd_create(3);
         for (i = 0; i < nobs; ++i) {
+#if defined(OBS_SHUFFLE)
+            int id = ids[i];
+            observation* o = &obs->data[obsids[id]];
+#else
             observation* o = &obs->data[obsids[i]];
+#endif
             double ll[2] = { o->lon, o->lat };
             double xyz[3];
 
             grid_tocartesian(g, ll, xyz);
+#if defined(OBS_SHUFFLE)
+            kd_insertnode(*tree, xyz, id);
+#else
             kd_insertnode(*tree, xyz, i);
+#endif
         }
+
+#if defined(OBS_SHUFFLE)
+        free(ids);
+#endif
     }
 }
 
@@ -1214,11 +1238,13 @@ void obs_findlocal(observations* obs, model* m, grid* g, int icoord, int jcoord,
 
         set = kd_findnodeswithinrange(tree, xyz, obstype_getmaxlocrad(ot), 1);
         for (; (id = kdset_read(set, &dist)) != SIZE_MAX; ++i) {
+            int id_orig = kd_getnodeorigid(tree, id);
+
             if (i % KD_INC == 0) {
                 *ids = realloc(*ids, (i + KD_INC) * sizeof(int));
                 *lcoeffs = realloc(*lcoeffs, (i + KD_INC) * sizeof(double));
             }
-            (*ids)[i] = obsids[id];
+            (*ids)[i] = obsids[id_orig];
         }
         kdset_free(set);
     }

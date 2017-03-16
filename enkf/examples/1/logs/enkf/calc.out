@@ -1,10 +1,10 @@
   MPI: initialised 2 process(es)
-  MPI: rank = 0, PID = 12685
-  MPI: rank = 1, PID = 12686
-  running CALC for EnKF-C version 1.50.0:
+  MPI: rank = 0, PID = 17497
+  MPI: rank = 1, PID = 17498
+  running CALC for EnKF-C version 1.52.0:
     command = "./enkf_calc enkf.prm"
     dir = "/home/pavel/src/enkf-c/trunk/enkf/examples/1"
-  2017-03-10 09:24:40
+  2017-03-16 12:18:23
   reading system specs from "enkf.prm":
     MODE = EnKF
     SCHEME = DEnKF
@@ -37,6 +37,7 @@
       INTERNAL_QSORT_R = [-]
       NO_GRIDUTILS     = [-]
       ZSIGN_NOCHECK    = [-]
+      OBS_SHUFFLE      = [-]
   initialising the system:
   reading observation type specs from "obstypes.prm":
     NAME = SLA
@@ -126,7 +127,7 @@
     3864 observations
     calculating obs stats:
   calculating ensemble observations:
-  2017-03-10 09:24:41
+  2017-03-16 12:18:23
     ensemble size = 96
     distributing iterations:
       all processes get 48 iterations
@@ -135,7 +136,7 @@
     TEM ................................................
     SAL ................................................
   adding forecast innovations and spread to "observations.nc":
-  2017-03-10 09:24:41
+  2017-03-16 12:18:23
   moderating observations:
     observations substantially modified:
       SLA          0 (0.0%)
@@ -145,7 +146,7 @@
       total        0 (0.0%)
   writing modified obs errors to "observations.nc":
   calculating transforms:
-  2017-03-10 09:24:41
+  2017-03-16 12:18:23
     creating kd-trees for observations:
     calculating transforms for t-grid:
       creating empty file "X5.nc":
@@ -180,8 +181,8 @@
         j = 72 (0: 12: 76.5%)
         j = 81 (1: 30: 82.4%)
         j = 78 (0: 13: 82.4%)
-        j = 87 (1: 31: 88.2%)
         j = 84 (0: 14: 88.2%)
+        j = 87 (1: 31: 88.2%)
         j = 93 (1: 32: 94.1%)
         j = 90 (0: 15: 94.1%)
         j = 99 (1: 33: 100.0%)
@@ -197,7 +198,7 @@
     calculating transform for log point (30, 50): 538 obs
     writing the log for point (30, 50) on grid "t-grid":
   calculating analysed observations:
-  2017-03-10 09:24:46
+  2017-03-16 12:18:32
     sorting obs by ij:
     updating HE:
   adding analysis innovations and spread to "observations.nc":
@@ -205,23 +206,23 @@
     region obs.type   # obs.  |for.inn.| |an.inn.|   for.inn.   an.inn.  for.spread  an.spread
     ------------------------------------------------------------------------------------------
     Global
-           SLA           643    0.081      0.054      0.027      0.009      0.039      0.031  
-             j1          246    0.086      0.057      0.040      0.019      0.046      0.035  
-             n1          377    0.077      0.052      0.015      0.002      0.034      0.028  
-             N/A          20    0.096      0.042      0.086      0.035      0.049      0.033  
-           SST          3207    0.462      0.349     -0.247     -0.150      0.336      0.291  
-             AVHRR      2039    0.469      0.336     -0.220     -0.106      0.332      0.281  
-             WindSat     848    0.471      0.406     -0.307     -0.256      0.350      0.321  
-             N/A         320    0.392      0.288     -0.255     -0.153      0.323      0.278  
-           TEM             7    1.015      0.774      0.512      0.648      0.318      0.229  
-             ARGO          7    1.015      0.774      0.512      0.648      0.318      0.229  
-             0-50m         2    1.471      1.969      1.471      1.969      0.321      0.244  
-             50-500m       5    0.832      0.297      0.129      0.120      0.316      0.224  
+           SLA           643    0.081      0.031      0.027      0.002      0.039      0.025  
+             j1          246    0.086      0.024      0.040      0.005      0.046      0.027  
+             n1          377    0.077      0.037      0.015     -0.000      0.034      0.023  
+             N/A          20    0.096      0.024      0.086      0.017      0.049      0.028  
+           SST          3207    0.462      0.235     -0.247     -0.069      0.336      0.233  
+             AVHRR      2039    0.469      0.215     -0.220     -0.038      0.332      0.223  
+             WindSat     848    0.471      0.307     -0.307     -0.145      0.350      0.262  
+             N/A         320    0.392      0.173     -0.255     -0.069      0.323      0.219  
+           TEM             7    1.015      0.919      0.512      0.765      0.318      0.214  
+             ARGO          7    1.015      0.919      0.512      0.765      0.318      0.214  
+             0-50m         2    1.471      2.395      1.471      2.395      0.321      0.210  
+             50-500m       5    0.832      0.329      0.129      0.113      0.316      0.216  
              500-9999m     0     -nan       -nan       -nan       -nan       -nan       -nan  
-           SAL             7    0.077      0.078      0.055      0.056      0.029      0.023  
-             ARGO          7    0.077      0.078      0.055      0.056      0.029      0.023  
-             0-50m         2    0.088      0.111      0.074      0.097      0.023      0.019  
-             50-500m       5    0.072      0.065      0.047      0.040      0.032      0.024  
+           SAL             7    0.077      0.087      0.055      0.049      0.029      0.022  
+             ARGO          7    0.077      0.087      0.055      0.049      0.029      0.022  
+             0-50m         2    0.088      0.119      0.074      0.082      0.023      0.018  
+             50-500m       5    0.072      0.075      0.047      0.036      0.032      0.024  
              500-9999m     0     -nan       -nan       -nan       -nan       -nan       -nan  
-  2017-03-10 09:24:46
+  2017-03-16 12:18:32
   finished

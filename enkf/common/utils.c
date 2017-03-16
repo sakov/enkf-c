@@ -228,6 +228,11 @@ void enkf_printcompileflags(const char offset[])
 #else
     enkf_printf("%s  ZSIGN_NOCHECK    = [-]\n", offset);
 #endif
+#if defined(OBS_SHUFFLE)
+    enkf_printf("%s  OBS_SHUFFLE      = [+]\n", offset);
+#else
+    enkf_printf("%s  OBS_SHUFFLE      = [-]\n", offset);
+#endif
 }
 
 /**
@@ -1494,4 +1499,3 @@ void shuffle(int n, int ids[])
         ids[ii] = tmp;
     }
 }
-

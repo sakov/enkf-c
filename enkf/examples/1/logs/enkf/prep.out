@@ -1,7 +1,7 @@
-  running PREP for EnKF-C version 1.50.0:
+  running PREP for EnKF-C version 1.52.0:
     command = "./enkf_prep enkf.prm"
     dir = "/home/pavel/src/enkf-c/trunk/enkf/examples/1"
-  2017-03-10 09:24:40
+  2017-03-16 12:18:22
   reading prep specs from "enkf.prm":
     MODE = EnKF
     SCHEME = DEnKF
@@ -34,6 +34,7 @@
       INTERNAL_QSORT_R = [-]
       NO_GRIDUTILS     = [-]
       ZSIGN_NOCHECK    = [-]
+      OBS_SHUFFLE      = [-]
   reading observation specs from "obs.prm":
     PRODUCT = RADS
       READER = standard2
@@ -354,5 +355,5 @@ ls: cannot access obs/WINDSAT/windsat_20071223.nc: No such file or directory
     TEM     184        104        104        0          0          0          0          7         
     SAL     184        104        104        0          0          0          0          7         
     total   9595       211        208        0          3          0          0          3864      
-  2017-03-10 09:24:40
+  2017-03-16 12:18:22
   finished
