@@ -196,7 +196,6 @@ void reader_xy_scattered(char* fname, int fid, obsmeta* meta, model* m, observat
         ncw_inq_varid(ncid, "time", &varid_time);
     else
         enkf_quit("reader_xy_scattered(): %s: could not find TIME variable", fname);
-    ncw_inq_varid(ncid, timename, &varid_time);
     time = malloc(nobs * sizeof(double));
     ncw_get_var_double(ncid, varid_time, time);
     if (ncw_att_exists(ncid, varid_time, "_FillValue"))
