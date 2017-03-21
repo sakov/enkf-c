@@ -1,3 +1,6 @@
+v. 1.53.0
+   PS 22032017
+   -- Started work on generic obs readers. Added reader_xy_scattered().
 v. 1.52.0
    PS 16032017
    -- Incorporated optional shuffling of obs (flag -DOBS_SHUFFLE).

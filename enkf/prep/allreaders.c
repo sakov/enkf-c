@@ -47,7 +47,8 @@ obsreader_entry allreaders[] = {
     {"AQUARIUS", "standard", reader_aquarius_standard},
     {"SMOS", "standard", reader_smos_standard},
     {"HIMAWARI8", "standard", reader_h8_standard},
-    {"VIIRS", "standard", reader_viirs_standard}
+    {"VIIRS", "standard", reader_viirs_standard},
+    {"ALL", "xy_scattered", reader_xy_scattered}
 };
 
 /**
@@ -72,7 +73,7 @@ obsread_fn get_obsreadfn(obsmeta* m)
     int i;
 
     for (i = 0; i < nreaders; ++i)
-        if (strcasecmp(m->product, allreaders[i].product) == 0 && strcmp(m->reader, allreaders[i].reader) == 0)
+        if ((strcmp(allreaders[i].product, "ALL") == 0 || strcasecmp(m->product, allreaders[i].product) == 0) && strcmp(m->reader, allreaders[i].reader) == 0)
             return allreaders[i].readfn;
 
     enkf_printf("\n\n  ERROR: no observation reader \"%s\" for product \"%s\"\n\n", m->reader, m->product);

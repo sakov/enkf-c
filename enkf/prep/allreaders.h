@@ -20,6 +20,13 @@ typedef void (*obsread_fn) (char* fname, int fid, obsmeta* meta, model* m, obser
 void describe_readers(void);
 obsread_fn get_obsreadfn(obsmeta* m);
 
+/*
+ * generic readers
+ */
+void reader_xy_scattered(char* fname, int fid, obsmeta* meta, model* m, observations* obs);
+/*
+ * readers for particular products
+ */
 void reader_rads_standard(char* fname, int fid, obsmeta* meta, model* m, observations* obs);
 void reader_rads_standard2(char* fname, int fid, obsmeta* meta, model* m, observations* obs);
 void reader_navo_standard(char* fname, int fid, obsmeta* meta, model* m, observations* obs);
