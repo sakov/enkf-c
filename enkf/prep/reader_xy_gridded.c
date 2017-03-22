@@ -168,10 +168,9 @@ void reader_xy_gridded(char* fname, int fid, obsmeta* meta, model* m, observatio
     else if (ncw_var_exists(ncid, "error_std"))
         ncw_inq_varid(ncid, "error_std", &varid_estd);
     ncw_inq_varid(ncid, "error_std", &varid_estd);
-    estd = malloc(n * sizeof(float));
-    ncw_get_var_float(ncid, varid_estd, estd);
     if (varid_estd >= 0) {
         estd = malloc(n * sizeof(float));
+        ncw_get_var_float(ncid, varid_estd, estd);
         if (ncw_att_exists(ncid, varid_estd, "_FillValue"))
             ncw_get_att_float(ncid, varid_estd, "_FillValue", &estd_fill_value);
         if (ncw_att_exists(ncid, varid_estd, "add_offset")) {
@@ -249,19 +248,23 @@ void reader_xy_gridded(char* fname, int fid, obsmeta* meta, model* m, observatio
             o->value = (double) (var[i] + var_shift);
         else
             o->value = (double) (var[i] * var_scale_factor + var_add_offset + var_shift);
-        if (std == NULL)
-            o->std = 0.0;
+        if (estd == NULL)
+            o->std = NaN;
         else {
-            if (isnan(std_add_offset))
-                o->std = (double) (std[i] * std_scale_factor + std_add_offset);
-            else
-                o->std = (double) std[i];
+            if (std == NULL)
+                o->std = 0.0;
+            else {
+                if (isnan(std_add_offset))
+                    o->std = (double) (std[i] * std_scale_factor + std_add_offset);
+                else
+                    o->std = (double) std[i];
+            }
+            if (isnan(estd_add_offset)) {
+                double std2 = (double) (estd[i] * estd_scale_factor + estd_add_offset);
+                o->std = (o->std > std2) ? o->std : std2;
+            } else
+                o->std = (o->std > estd[i]) ? o->std : estd[i];
         }
-        if (isnan(estd_add_offset)) {
-            double std2 = (double) (estd[i] * estd_scale_factor + estd_add_offset);
-            o->std = (o->std > std2) ? o->std : std2;
-        } else
-            o->std = (o->std > estd[i]) ? o->std : estd[i];
         o->lon = lon[i % ni];
         o->lat = lat[i / ni];
         o->depth = 0.0;
@@ -292,7 +295,8 @@ void reader_xy_gridded(char* fname, int fid, obsmeta* meta, model* m, observatio
     free(var);
     if (std != NULL)
         free(std);
-    free(estd);
+    if (estd != NULL)
+        free(estd);
     if (npoints != NULL)
         free(npoints);
     free(time);

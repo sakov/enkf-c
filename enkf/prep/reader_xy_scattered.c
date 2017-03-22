@@ -176,19 +176,19 @@ void reader_xy_scattered(char* fname, int fid, obsmeta* meta, model* m, observat
         ncw_inq_varid(ncid, estdname, &varid_estd);
     else if (ncw_var_exists(ncid, "error_std"))
         ncw_inq_varid(ncid, "error_std", &varid_estd);
-    else
-        enkf_quit("reader_xy_scattered(): %s: could not find ERROR_STD variable", fname);
-    estd = malloc(nobs * sizeof(double));
-    ncw_get_var_double(ncid, varid_estd, estd);
-    if (ncw_att_exists(ncid, varid_estd, "_FillValue"))
-        ncw_get_att_double(ncid, varid_estd, "_FillValue", &estd_fill_value);
-    if (ncw_att_exists(ncid, varid_estd, "add_offset")) {
-        ncw_get_att_double(ncid, varid_estd, "add_offset", &estd_add_offset);
-        ncw_get_att_double(ncid, varid_estd, "scale_factor", &estd_scale_factor);
+    if (varid_estd >= 0) {
+        estd = malloc(nobs * sizeof(double));
+        ncw_get_var_double(ncid, varid_estd, estd);
+        if (ncw_att_exists(ncid, varid_estd, "_FillValue"))
+            ncw_get_att_double(ncid, varid_estd, "_FillValue", &estd_fill_value);
+        if (ncw_att_exists(ncid, varid_estd, "add_offset")) {
+            ncw_get_att_double(ncid, varid_estd, "add_offset", &estd_add_offset);
+            ncw_get_att_double(ncid, varid_estd, "scale_factor", &estd_scale_factor);
 
-        for (i = 0; i < nobs; ++i)
-            if (estd[i] != estd_fill_value)
-                estd[i] = estd[i] * estd_scale_factor + estd_add_offset;
+            for (i = 0; i < nobs; ++i)
+                if (estd[i] != estd_fill_value)
+                    estd[i] = estd[i] * estd_scale_factor + estd_add_offset;
+        }
     }
 
     if (timename != NULL)
@@ -261,10 +261,14 @@ void reader_xy_scattered(char* fname, int fid, obsmeta* meta, model* m, observat
         o->fid = fid;
         o->batch = 0;
         o->value = var[i] + var_shift;
-        if (std == NULL)
-            o->std = estd[i];
-        else
-            o->std = (std[i] > estd[i]) ? std[i] : estd[i];
+        if (estd == NULL)
+            o->std = NaN;
+        else {
+            if (std == NULL)
+                o->std = estd[i];
+            else
+                o->std = (std[i] > estd[i]) ? std[i] : estd[i];
+        }
         o->lon = lon[i];
         o->lat = lat[i];
         o->depth = 0.0;
@@ -294,6 +298,7 @@ void reader_xy_scattered(char* fname, int fid, obsmeta* meta, model* m, observat
     free(var);
     if (std != NULL)
         free(std);
-    free(estd);
+    if (estd != NULL)
+        free(estd);
     free(time);
 }
