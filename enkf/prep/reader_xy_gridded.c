@@ -214,10 +214,10 @@ void reader_xy_gridded(char* fname, int fid, obsmeta* meta, model* m, observatio
         ncw_get_att_float(ncid, varid_time, "add_offset", &time_add_offset);
         ncw_get_att_float(ncid, varid_time, "scale_factor", &time_scale_factor);
     }
+    ncw_get_att_text(ncid, varid_time, "units", tunits);
+    tunits_convert(tunits, &tunits_multiple, &tunits_offset);
 
     ncw_close(ncid);
-
-    tunits_convert(tunits, &tunits_multiple, &tunits_offset);
 
     mvid = model_getvarid(m, obs->obstypes[obstype_getid(obs->nobstypes, obs->obstypes, meta->type, 1)].varnames[0], 1);
     ktop = grid_gettoplayerid(model_getvargrid(m, mvid));
