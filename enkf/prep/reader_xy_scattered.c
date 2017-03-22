@@ -213,11 +213,11 @@ void reader_xy_scattered(char* fname, int fid, obsmeta* meta, model* m, observat
 
         if (timelen == 1) {
             singletime = 1;
-            time = malloc(sizeof(float));
+            time = malloc(sizeof(double));
         } else {
             singletime = 0;
             assert(timelen == nobs);
-            time = malloc(nobs * sizeof(float));
+            time = malloc(nobs * sizeof(double));
         }
     }
     ncw_get_var_double(ncid, varid_time, time);
