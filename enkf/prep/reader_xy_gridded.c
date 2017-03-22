@@ -154,6 +154,7 @@ void reader_xy_gridded(char* fname, int fid, obsmeta* meta, model* m, observatio
         ncw_inq_varid(ncid, "std", &varid_std);
     if (varid_std >= 0) {
         std = malloc(n * sizeof(float));
+        ncw_get_var_float(ncid, varid_std, std);
         if (ncw_att_exists(ncid, varid_std, "_FillValue"))
             ncw_get_att_float(ncid, varid_std, "_FillValue", &std_fill_value);
         if (ncw_att_exists(ncid, varid_std, "add_offset")) {
@@ -168,6 +169,7 @@ void reader_xy_gridded(char* fname, int fid, obsmeta* meta, model* m, observatio
         ncw_inq_varid(ncid, "error_std", &varid_estd);
     ncw_inq_varid(ncid, "error_std", &varid_estd);
     estd = malloc(n * sizeof(float));
+    ncw_get_var_float(ncid, varid_estd, estd);
     if (varid_estd >= 0) {
         estd = malloc(n * sizeof(float));
         if (ncw_att_exists(ncid, varid_estd, "_FillValue"))
