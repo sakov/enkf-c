@@ -167,7 +167,6 @@ void reader_xy_gridded(char* fname, int fid, obsmeta* meta, model* m, observatio
         ncw_inq_varid(ncid, estdname, &varid_estd);
     else if (ncw_var_exists(ncid, "error_std"))
         ncw_inq_varid(ncid, "error_std", &varid_estd);
-    ncw_inq_varid(ncid, "error_std", &varid_estd);
     if (varid_estd >= 0) {
         estd = malloc(n * sizeof(float));
         ncw_get_var_float(ncid, varid_estd, estd);
@@ -244,22 +243,22 @@ void reader_xy_gridded(char* fname, int fid, obsmeta* meta, model* m, observatio
         o->id = obs->nobs;
         o->fid = fid;
         o->batch = 0;
-        if (isnan(var_add_offset))
-            o->value = (double) (var[i] + var_shift);
-        else
+        if (!isnan(var_add_offset))
             o->value = (double) (var[i] * var_scale_factor + var_add_offset + var_shift);
+        else
+            o->value = (double) (var[i] + var_shift);
         if (estd == NULL)
             o->std = NaN;
         else {
             if (std == NULL)
                 o->std = 0.0;
             else {
-                if (isnan(std_add_offset))
+                if (!isnan(std_add_offset))
                     o->std = (double) (std[i] * std_scale_factor + std_add_offset);
                 else
                     o->std = (double) std[i];
             }
-            if (isnan(estd_add_offset)) {
+            if (!isnan(estd_add_offset)) {
                 double std2 = (double) (estd[i] * estd_scale_factor + estd_add_offset);
                 o->std = (o->std > std2) ? o->std : std2;
             } else
