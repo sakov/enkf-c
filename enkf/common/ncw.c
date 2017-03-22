@@ -31,7 +31,7 @@
 #include <errno.h>
 #include "ncw.h"
 
-const char ncw_version[] = "2.07";
+const char ncw_version[] = "2.08";
 
 /* This macro is substituted in error messages instead of the name of a
  * variable in cases when the name could not be found by the variable id.
@@ -178,6 +178,26 @@ static char* uchar2str(int n, const unsigned char v[])
 }
 
 static char* short2str(int n, const short int v[])
+{
+    int i;
+    char all[STRBUFSIZE] = "(";
+    char next[STRBUFSIZE];
+
+    for (i = 0; i < n; ++i) {
+        if (i < n - 1)
+            snprintf(next, STRBUFSIZE, "%d,", v[i]);
+        else
+            snprintf(next, STRBUFSIZE, "%d", v[i]);
+        assert(strlen(all) + strlen(next) + 2 < STRBUFSIZE);
+        strcat(all, next);
+    }
+    assert(strlen(all) + 2 < STRBUFSIZE);
+    strcat(all, ")");
+
+    return strdup(all);
+}
+
+static char* ushort2str(int n, const unsigned short int v[])
 {
     int i;
     char all[STRBUFSIZE] = "(";
@@ -971,6 +991,18 @@ void ncw_put_att_short(int ncid, int varid, const char attname[], size_t len, co
 
         _ncw_inq_varname(ncid, varid, varname);
         quit("\"%s\": nc_put_att_short(): failed for varid = %d (varname = \"%s\"), attname = \"%s\", attvalue(s) = \"%s\": %s\n", _ncw_get_path(ncid), varid, varname, attname, short2str(len, v), nc_strerror(status));
+    }
+}
+
+void ncw_put_att_ushort(int ncid, int varid, const char attname[], size_t len, const unsigned short int v[])
+{
+    int status = nc_put_att_ushort(ncid, varid, attname, NC_USHORT, len, v);
+
+    if (status != NC_NOERR) {
+        char varname[NC_MAX_NAME] = STR_UNKNOWN;
+
+        _ncw_inq_varname(ncid, varid, varname);
+        quit("\"%s\": nc_put_att_ushort(): failed for varid = %d (varname = \"%s\"), attname = \"%s\", attvalue(s) = \"%s\": %s\n", _ncw_get_path(ncid), varid, varname, attname, ushort2str(len, v), nc_strerror(status));
     }
 }
 
@@ -1927,6 +1959,23 @@ void ncw_check_dimlen(int ncid, const char dimname[], size_t dimlen)
         quit("\"%s\": nc_inq_dimlen(): failed for dimid = %d (dimname = \"%s\"): %s\n", _ncw_get_path(ncid), dimid, dimname, nc_strerror(status));
     if (len != dimlen)
         quit("\"%s\": ncw_check_dimlen(): dimension \"%s\" is supposed to have length %zu; the actual length is %zu\n", _ncw_get_path(ncid), dimname, dimlen, len);
+}
+
+/** Check that the variable has certain number of dimensions
+ */
+void ncw_check_varndims(int ncid, const char varname[], int ndims)
+{
+    int ndims_actual;
+    int varid;
+    int status;
+
+    ncw_inq_varid(ncid, varname, &varid);
+    status = nc_inq_varndims(ncid, varid, &ndims_actual);
+
+    if (status != NC_NOERR)
+        quit("\"%s\": nc_inq_varndims(): failed for varid = %d (varname = \"%s\"): %s\n", _ncw_get_path(ncid), varid, varname, nc_strerror(status));
+    if (ndims_actual != ndims)
+        quit("\"%s\": ncw_check_varndims(): variable \"%s\" is supposed to have %d dimensions; it actually has %d dimensions\n", _ncw_get_path(ncid), varname, ndims, ndims_actual);
 }
 
 /** Check if the file opens

@@ -440,6 +440,27 @@ int str2double(char* token, double* value)
 
 /**
  */
+int str2float(char* token, float* value)
+{
+    char* end = NULL;
+
+    if (token == NULL) {
+        *value = NAN;
+        return 0;
+    }
+
+    *value = strtod(token, &end);
+
+    if (end == token) {
+        *value = NAN;
+        return 0;
+    }
+
+    return 1;
+}
+
+/**
+ */
 int str2int(char* token, int* value)
 {
     long int tmp;

@@ -99,6 +99,7 @@ void ncw_get_vara_double(int ncid, int varid, const size_t start[], const size_t
 void ncw_put_att_text(int ncid, int varid, const char attname[], const char v[]);
 void ncw_put_att_uchar(int ncid, int varid, const char attname[], size_t len, const unsigned char v[]);
 void ncw_put_att_short(int ncid, int varid, const char attname[], size_t len, const short int v[]);
+void ncw_put_att_ushort(int ncid, int varid, const char attname[], size_t len, const unsigned short int v[]);
 void ncw_put_att_int(int ncid, int varid, const char attname[], size_t len, const int v[]);
 void ncw_put_att_long(int ncid, int varid, const char attname[], size_t len, const long int v[]);
 void ncw_put_att_float(int ncid, int varid, const char attname[], size_t len, const float v[]);
@@ -144,6 +145,7 @@ int ncw_file_opens(const char fname[], int mode);
 
 void ncw_check_attlen(int ncid, int varid, const char attname[], size_t len);
 void ncw_check_dimlen(int ncid, const char dimname[], size_t len);
+void ncw_check_varndims(int ncid,  const char varname[], int ndims);
 
 #define _NCW_H
 #endif

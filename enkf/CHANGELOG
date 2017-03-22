@@ -1,3 +1,6 @@
+v. 1.54.0
+   PS 22032017
+   -- Added reader_xy_gridded().
 v. 1.53.0
    PS 22032017
    -- Started work on generic obs readers. Added reader_xy_scattered().

@@ -1,13 +1,13 @@
 /******************************************************************************
  *
- * File:        reader_viirs.c        
+ * File:        reader_xy_scattered.c        
  *
- * Created:     08/03/2017
+ * Created:     21/03/2017
  *
  * Author:      Pavel Sakov
  *              Bureau of Meteorology
  *
- * Description: Reader for pre-preprocessed (L3C) SST from VIIRS.
+ * Description: Generic reader for scattered surface observations.
  *
  * Revisions:  
  *
@@ -51,18 +51,19 @@ void reader_xy_scattered(char* fname, int fid, obsmeta* meta, model* m, observat
     double* var = NULL;
     double var_shift = 0.0;
     double var_fill_value = NaN;
-    double var_add_offset, var_scale_factor;
+    double var_add_offset = NaN, var_scale_factor = NaN;
     double* std = NULL;
-    double std_add_offset, std_scale_factor;
+    double std_add_offset = NaN, std_scale_factor = NaN;
     double std_fill_value = NaN;
     double* estd = NULL;
-    double estd_add_offset, estd_scale_factor;
+    double estd_add_offset = NaN, estd_scale_factor = NaN;
     double estd_fill_value = NaN;
+    int singletime;
     double* time = NULL;
-    double time_add_offset, time_scale_factor;
+    double time_add_offset = NaN, time_scale_factor = NaN;
     double time_fill_value = NaN;
     char tunits[MAXSTRLEN];
-    double tunits_multiple, tunits_offset;
+    double tunits_multiple = NaN, tunits_offset = NaN;
     int mvid;
     float** depth;
     int ktop;
@@ -156,19 +157,19 @@ void reader_xy_scattered(char* fname, int fid, obsmeta* meta, model* m, observat
         ncw_inq_varid(ncid, stdname, &varid_std);
     else if (ncw_var_exists(ncid, "std"))
         ncw_inq_varid(ncid, "std", &varid_std);
-    else
-        enkf_quit("reader_xy_scattered(): %s: could not find STD variable", fname);
-    std = malloc(nobs * sizeof(double));
-    ncw_get_var_double(ncid, varid_std, std);
-    if (ncw_att_exists(ncid, varid_std, "_FillValue"))
-        ncw_get_att_double(ncid, varid_std, "_FillValue", &std_fill_value);
-    if (ncw_att_exists(ncid, varid_std, "add_offset")) {
-        ncw_get_att_double(ncid, varid_std, "add_offset", &std_add_offset);
-        ncw_get_att_double(ncid, varid_std, "scale_factor", &std_scale_factor);
+    if (varid_std >= 0) {
+        std = malloc(nobs * sizeof(double));
+        ncw_get_var_double(ncid, varid_std, std);
+        if (ncw_att_exists(ncid, varid_std, "_FillValue"))
+            ncw_get_att_double(ncid, varid_std, "_FillValue", &std_fill_value);
+        if (ncw_att_exists(ncid, varid_std, "add_offset")) {
+            ncw_get_att_double(ncid, varid_std, "add_offset", &std_add_offset);
+            ncw_get_att_double(ncid, varid_std, "scale_factor", &std_scale_factor);
 
-        for (i = 0; i < nobs; ++i)
-            if (std[i] != std_fill_value)
-                std[i] = std[i] * std_scale_factor + std_add_offset;
+            for (i = 0; i < nobs; ++i)
+                if (std[i] != std_fill_value)
+                    std[i] = std[i] * std_scale_factor + std_add_offset;
+        }
     }
 
     if (estdname != NULL)
@@ -196,7 +197,29 @@ void reader_xy_scattered(char* fname, int fid, obsmeta* meta, model* m, observat
         ncw_inq_varid(ncid, "time", &varid_time);
     else
         enkf_quit("reader_xy_scattered(): %s: could not find TIME variable", fname);
-    time = malloc(nobs * sizeof(double));
+    {
+        int timendims;
+        int timedimids[NC_MAX_DIMS];
+        size_t timelen = 1;
+
+        ncw_inq_varndims(ncid, varid_time, &timendims);
+        ncw_inq_vardimid(ncid, varid_time, timedimids);
+        for (i = 0; i < timendims; ++i) {
+            size_t dimlen;
+
+            ncw_inq_dimlen(ncid, timedimids[i], &dimlen);
+            timelen *= dimlen;
+        }
+
+        if (timelen == 1) {
+            singletime = 1;
+            time = malloc(sizeof(float));
+        } else {
+            singletime = 0;
+            assert(timelen == nobs);
+            time = malloc(nobs * sizeof(float));
+        }
+    }
     ncw_get_var_double(ncid, varid_time, time);
     if (ncw_att_exists(ncid, varid_time, "_FillValue"))
         ncw_get_att_double(ncid, varid_time, "_FillValue", &time_fill_value);
@@ -222,7 +245,7 @@ void reader_xy_scattered(char* fname, int fid, obsmeta* meta, model* m, observat
         observation* o;
         obstype* ot;
 
-        if (lon[i] == lon_fill_value || lat[i] == lat_fill_value || var[i] == var_fill_value || std[i] == std_fill_value || estd[i] == estd_fill_value || time[i] == time_fill_value)
+        if (lon[i] == lon_fill_value || lat[i] == lat_fill_value || var[i] == var_fill_value || (std != NULL && std[i] == std_fill_value) || estd[i] == estd_fill_value || (!singletime && time[i] == time_fill_value))
             continue;
 
         nobs_read++;
@@ -238,7 +261,10 @@ void reader_xy_scattered(char* fname, int fid, obsmeta* meta, model* m, observat
         o->fid = fid;
         o->batch = 0;
         o->value = var[i] + var_shift;
-        o->std = (std[i] > estd[i]) ? std[i] : estd[i];
+        if (std == NULL)
+            o->std = estd[i];
+        else
+            o->std = (std[i] > estd[i]) ? std[i] : estd[i];
         o->lon = lon[i];
         o->lat = lat[i];
         o->depth = 0.0;
@@ -249,7 +275,14 @@ void reader_xy_scattered(char* fname, int fid, obsmeta* meta, model* m, observat
         if ((o->status == STATUS_OK) && (o->lon <= ot->xmin || o->lon >= ot->xmax || o->lat <= ot->ymin || o->lat >= ot->ymax))
             o->status = STATUS_OUTSIDEOBSDOMAIN;
         o->model_depth = (depth == NULL || isnan(o->fi + o->fj)) ? NaN : depth[(int) (o->fj + 0.5)][(int) (o->fi + 0.5)];
-        o->date = time[i] * tunits_multiple + tunits_offset;
+        {
+            float t = (singletime) ? time[0] : time[i];
+
+            if (!isnan(time_add_offset))
+                o->date = (double) (t * time_scale_factor + time_add_offset) * tunits_multiple + tunits_offset;
+            else
+                o->date = (double) t * tunits_multiple + tunits_offset;
+        }
         o->aux = -1;
 
         obs->nobs++;
@@ -259,7 +292,8 @@ void reader_xy_scattered(char* fname, int fid, obsmeta* meta, model* m, observat
     free(lon);
     free(lat);
     free(var);
-    free(std);
+    if (std != NULL)
+        free(std);
     free(estd);
     free(time);
 }

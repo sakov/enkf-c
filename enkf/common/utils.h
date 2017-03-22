@@ -32,6 +32,7 @@ void tunits_convert(char tunits[], double* tunits_multiple, double* tunits_offse
 void file_delete(char* fname);
 int file_exists(char fname[]);
 int str2double(char token[], double* value);
+int str2float(char* token, float* value);
 int str2int(char* token, int* value);
 int read_bool(char* token);
 void* alloc2d(size_t nj, size_t ni, size_t unitsize);
