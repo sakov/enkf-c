@@ -1,3 +1,6 @@
+v. 1.54.1
+   PS 23032017
+   -- Corrected time calculation in reader_xy_scattered().
 v. 1.54.0
    PS 22032017
    -- Added reader_xy_gridded().
