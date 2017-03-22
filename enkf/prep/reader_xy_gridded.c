@@ -45,7 +45,7 @@ void reader_xy_gridded(char* fname, int fid, obsmeta* meta, model* m, observatio
 
     int dimid_i, dimid_j;
     size_t ni, nj, n;
-    int varid_lon, varid_lat;
+    int varid_lon = -1, varid_lat = -1;
     double* lon = NULL;
     double* lat = NULL;
 
@@ -109,7 +109,7 @@ void reader_xy_gridded(char* fname, int fid, obsmeta* meta, model* m, observatio
         ncw_inq_varid(ncid, "longitude", &varid_lon);
     else
         enkf_quit("reader_xy_gridded(): %s: could not find longitude variable", fname);
-    ncw_check_varndims(ncid, lonname, 1);
+    ncw_check_varndims(ncid, varid_lon, 1);
     
     if (latname != NULL)
         ncw_inq_varid(ncid, latname, &varid_lat);
@@ -119,7 +119,7 @@ void reader_xy_gridded(char* fname, int fid, obsmeta* meta, model* m, observatio
         ncw_inq_varid(ncid, "latitude", &varid_lat);
     else
         enkf_quit("reader_xy_gridded(): %s: could not find latitude variable", fname);
-    ncw_check_varndims(ncid, latname, 1);
+    ncw_check_varndims(ncid, varid_lat, 1);
 
     ncw_inq_varid(ncid, lonname, &varid_lon);
     ncw_inq_vardimid(ncid, varid_lon, &dimid_i);

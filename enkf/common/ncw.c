@@ -31,7 +31,7 @@
 #include <errno.h>
 #include "ncw.h"
 
-const char ncw_version[] = "2.08";
+const char ncw_version[] = "2.09";
 
 /* This macro is substituted in error messages instead of the name of a
  * variable in cases when the name could not be found by the variable id.
@@ -1963,19 +1963,25 @@ void ncw_check_dimlen(int ncid, const char dimname[], size_t dimlen)
 
 /** Check that the variable has certain number of dimensions
  */
-void ncw_check_varndims(int ncid, const char varname[], int ndims)
+void ncw_check_varndims(int ncid, int varid, int ndims)
 {
     int ndims_actual;
-    int varid;
     int status;
 
-    ncw_inq_varid(ncid, varname, &varid);
     status = nc_inq_varndims(ncid, varid, &ndims_actual);
 
-    if (status != NC_NOERR)
+    if (status != NC_NOERR) {
+        char varname[NC_MAX_NAME] = "STR_UNKNOWN";
+
+        ncw_inq_varname(ncid, varid, varname);
         quit("\"%s\": nc_inq_varndims(): failed for varid = %d (varname = \"%s\"): %s\n", _ncw_get_path(ncid), varid, varname, nc_strerror(status));
-    if (ndims_actual != ndims)
+    }
+    if (ndims_actual != ndims) {
+        char varname[NC_MAX_NAME] = "STR_UNKNOWN";
+
+        ncw_inq_varname(ncid, varid, varname);
         quit("\"%s\": ncw_check_varndims(): variable \"%s\" is supposed to have %d dimensions; it actually has %d dimensions\n", _ncw_get_path(ncid), varname, ndims, ndims_actual);
+    }
 }
 
 /** Check if the file opens

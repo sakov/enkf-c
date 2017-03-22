@@ -145,7 +145,7 @@ int ncw_file_opens(const char fname[], int mode);
 
 void ncw_check_attlen(int ncid, int varid, const char attname[], size_t len);
 void ncw_check_dimlen(int ncid, const char dimname[], size_t len);
-void ncw_check_varndims(int ncid,  const char varname[], int ndims);
+void ncw_check_varndims(int ncid,  int varid, int ndims);
 
 #define _NCW_H
 #endif
