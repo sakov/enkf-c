@@ -100,7 +100,25 @@ void reader_xy_gridded(char* fname, int fid, obsmeta* meta, model* m, observatio
     ncw_inq_varndims(ncid, varid_var, &ndim);
     if (ndim != 2)
         enkf_quit("reader_xy_gridded(): %s: # dimensions = %d (must be 2)", fname, ndim);
+
+    if (lonname != NULL)
+        ncw_inq_varid(ncid, lonname, &varid_lon);
+    else if (ncw_var_exists(ncid, "lon"))
+        ncw_inq_varid(ncid, "lon", &varid_lon);
+    else if (ncw_var_exists(ncid, "longitude"))
+        ncw_inq_varid(ncid, "longitude", &varid_lon);
+    else
+        enkf_quit("reader_xy_gridded(): %s: could not find longitude variable", fname);
     ncw_check_varndims(ncid, lonname, 1);
+    
+    if (latname != NULL)
+        ncw_inq_varid(ncid, latname, &varid_lat);
+    else if (ncw_var_exists(ncid, "lat"))
+        ncw_inq_varid(ncid, "lat", &varid_lat);
+    else if (ncw_var_exists(ncid, "latitude"))
+        ncw_inq_varid(ncid, "latitude", &varid_lat);
+    else
+        enkf_quit("reader_xy_gridded(): %s: could not find latitude variable", fname);
     ncw_check_varndims(ncid, latname, 1);
 
     ncw_inq_varid(ncid, lonname, &varid_lon);
@@ -167,7 +185,7 @@ void reader_xy_gridded(char* fname, int fid, obsmeta* meta, model* m, observatio
     else if (ncw_var_exists(ncid, "time"))
         ncw_inq_varid(ncid, "time", &varid_time);
     else
-        enkf_quit("reader_xy_scattered(): %s: could not find TIME variable", fname);
+        enkf_quit("reader_xy_gridded(): %s: could not find TIME variable", fname);
     {
         int timendims;
         int timedimids[NC_MAX_DIMS];
