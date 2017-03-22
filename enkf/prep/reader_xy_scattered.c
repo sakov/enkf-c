@@ -83,7 +83,7 @@ void reader_xy_scattered(char* fname, int fid, obsmeta* meta, model* m, observat
         else if (strcasecmp(meta->pars[i].name, "VARSHIFT") == 0) {
             if (!str2double(meta->pars[i].value, &var_shift))
                 enkf_quit("observation prm file: can not convert VARSHIFT = \"%s\" to double\n", meta->pars[i].value);
-            enkf_printf("        VARSHIFT = %.0f\n", var_shift);
+            enkf_printf("        VARSHIFT = %s\n", meta->pars[i].value);
         } else
             enkf_quit("unknown PARAMETER \"%s\"\n", meta->pars[i].name);
     }
