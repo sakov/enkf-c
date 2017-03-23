@@ -56,6 +56,7 @@ void reader_xy_gridded(char* fname, int fid, obsmeta* meta, model* m, observatio
 
     float var_fill_value = NAN;
     float var_add_offset = NAN, var_scale_factor = NAN;
+    double var_estd = NAN;
     short* npoints = NULL;
     float* std = NULL;
     float std_add_offset = NAN, std_scale_factor = NAN;
@@ -184,6 +185,12 @@ void reader_xy_gridded(char* fname, int fid, obsmeta* meta, model* m, observatio
         }
     }
 
+    if (std == NULL && estd == NULL)
+        if (ncw_att_exists(ncid, varid_var, "error_std")) {
+            ncw_check_attlen(ncid, varid_var, "error_std", 1);
+            ncw_get_att_double(ncid, varid_var, "error_std", &var_estd);
+        }
+
     if (timename != NULL)
         ncw_inq_varid(ncid, timename, &varid_time);
     else if (ncw_var_exists(ncid, "time"))
@@ -254,7 +261,7 @@ void reader_xy_gridded(char* fname, int fid, obsmeta* meta, model* m, observatio
         else
             o->value = (double) (var[i] + varshift);
         if (estd == NULL)
-            o->std = NAN;
+            o->std = var_estd;
         else {
             if (std == NULL)
                 o->std = 0.0;

@@ -54,6 +54,7 @@ void reader_xy_scattered(char* fname, int fid, obsmeta* meta, model* m, observat
 
     double var_fill_value = NAN;
     double var_add_offset = NAN, var_scale_factor = NAN;
+    double var_estd = NAN;
     double* std = NULL;
     double std_add_offset = NAN, std_scale_factor = NAN;
     double std_fill_value = NAN;
@@ -200,6 +201,12 @@ void reader_xy_scattered(char* fname, int fid, obsmeta* meta, model* m, observat
         }
     }
 
+    if (std == NULL && estd == NULL)
+        if (ncw_att_exists(ncid, varid_var, "error_std")) {
+            ncw_check_attlen(ncid, varid_var, "error_std", 1);
+            ncw_get_att_double(ncid, varid_var, "error_std", &var_estd);
+        }
+
     if (timename != NULL)
         ncw_inq_varid(ncid, timename, &varid_time);
     else if (ncw_var_exists(ncid, "time"))
@@ -271,7 +278,7 @@ void reader_xy_scattered(char* fname, int fid, obsmeta* meta, model* m, observat
         o->batch = 0;
         o->value = var[i] + varshift;
         if (estd == NULL)
-            o->std = NAN;
+            o->std = var_estd;
         else {
             if (std == NULL)
                 o->std = estd[i];
