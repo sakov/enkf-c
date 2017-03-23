@@ -48,7 +48,10 @@ void reader_xy_scattered(char* fname, int fid, obsmeta* meta, model* m, observat
     double lat_add_offset, lat_scale_factor;
     double lat_fill_value = NAN;
     double* var = NULL;
-    double var_shift = 0.0;
+
+    double varshift = 0.0;
+    double mindepth = 0.0;
+
     double var_fill_value = NAN;
     double var_add_offset = NAN, var_scale_factor = NAN;
     double* std = NULL;
@@ -80,9 +83,16 @@ void reader_xy_scattered(char* fname, int fid, obsmeta* meta, model* m, observat
         else if (strcasecmp(meta->pars[i].name, "ESTDNAME") == 0)
             estdname = meta->pars[i].value;
         else if (strcasecmp(meta->pars[i].name, "VARSHIFT") == 0) {
-            if (!str2double(meta->pars[i].value, &var_shift))
+            if (!str2double(meta->pars[i].value, &varshift))
                 enkf_quit("observation prm file: can not convert VARSHIFT = \"%s\" to double\n", meta->pars[i].value);
-            enkf_printf("        VARSHIFT = %s\n", meta->pars[i].value);
+            enkf_printf("        VARSHIFT = %f\n", varshift);
+        } else if (strcasecmp(meta->pars[i].name, "MINDEPTH") == 0) {
+            if (!str2double(meta->pars[i].value, &mindepth))
+                enkf_quit("observation prm file: can not convert MINDEPTH = \"%s\" to double\n", meta->pars[i].value);
+        } else if (strcasecmp(meta->pars[i].name, "MINDEPTH") == 0) {
+            if (!str2double(meta->pars[i].value, &mindepth))
+                enkf_quit("observation prm file: can not convert MINDEPTH = \"%s\" to double\n", meta->pars[i].value);
+            enkf_printf("        MINDEPTH = %f\n", mindepth);
         } else
             enkf_quit("unknown PARAMETER \"%s\"\n", meta->pars[i].name);
     }
@@ -259,7 +269,7 @@ void reader_xy_scattered(char* fname, int fid, obsmeta* meta, model* m, observat
         o->id = obs->nobs;
         o->fid = fid;
         o->batch = 0;
-        o->value = var[i] + var_shift;
+        o->value = var[i] + varshift;
         if (estd == NULL)
             o->std = NAN;
         else {
@@ -278,6 +288,8 @@ void reader_xy_scattered(char* fname, int fid, obsmeta* meta, model* m, observat
         if ((o->status == STATUS_OK) && (o->lon <= ot->xmin || o->lon >= ot->xmax || o->lat <= ot->ymin || o->lat >= ot->ymax))
             o->status = STATUS_OUTSIDEOBSDOMAIN;
         o->model_depth = (depth == NULL || isnan(o->fi + o->fj)) ? NAN : depth[(int) (o->fj + 0.5)][(int) (o->fi + 0.5)];
+        if (o->status == STATUS_OK && o->model_depth < mindepth)
+            o->status = STATUS_SHALLOW;
         o->date = ((singletime) ? time[0] : time[i]) * tunits_multiple + tunits_offset;
         o->aux = -1;
 

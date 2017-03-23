@@ -50,7 +50,10 @@ void reader_xy_gridded(char* fname, int fid, obsmeta* meta, model* m, observatio
 
     int varid_var = -1, varid_npoints = -1, varid_std = -1, varid_estd = -1, varid_time = -1;
     float* var = NULL;
-    float var_shift = 0.0;
+
+    float varshift = 0.0;
+    double mindepth = 0.0;
+
     float var_fill_value = NAN;
     float var_add_offset = NAN, var_scale_factor = NAN;
     short* npoints = NULL;
@@ -85,9 +88,13 @@ void reader_xy_gridded(char* fname, int fid, obsmeta* meta, model* m, observatio
         else if (strcasecmp(meta->pars[i].name, "ESTDNAME") == 0)
             estdname = meta->pars[i].value;
         else if (strcasecmp(meta->pars[i].name, "VARSHIFT") == 0) {
-            if (!str2float(meta->pars[i].value, &var_shift))
+            if (!str2float(meta->pars[i].value, &varshift))
                 enkf_quit("observation prm file: can not convert VARSHIFT = \"%s\" to double\n", meta->pars[i].value);
             enkf_printf("        VARSHIFT = %s\n", meta->pars[i].value);
+        } else if (strcasecmp(meta->pars[i].name, "MINDEPTH") == 0) {
+            if (!str2double(meta->pars[i].value, &mindepth))
+                enkf_quit("observation prm file: can not convert MINDEPTH = \"%s\" to double\n", meta->pars[i].value);
+            enkf_printf("        MINDEPTH = %f\n", mindepth);
         } else
             enkf_quit("unknown PARAMETER \"%s\"\n", meta->pars[i].name);
     }
@@ -243,9 +250,9 @@ void reader_xy_gridded(char* fname, int fid, obsmeta* meta, model* m, observatio
         o->fid = fid;
         o->batch = 0;
         if (!isnan(var_add_offset))
-            o->value = (double) (var[i] * var_scale_factor + var_add_offset + var_shift);
+            o->value = (double) (var[i] * var_scale_factor + var_add_offset + varshift);
         else
-            o->value = (double) (var[i] + var_shift);
+            o->value = (double) (var[i] + varshift);
         if (estd == NULL)
             o->std = NAN;
         else {
@@ -273,6 +280,8 @@ void reader_xy_gridded(char* fname, int fid, obsmeta* meta, model* m, observatio
         if ((o->status == STATUS_OK) && (o->lon <= ot->xmin || o->lon >= ot->xmax || o->lat <= ot->ymin || o->lat >= ot->ymax))
             o->status = STATUS_OUTSIDEOBSDOMAIN;
         o->model_depth = (depth == NULL || isnan(o->fi + o->fj)) ? NAN : depth[(int) (o->fj + 0.5)][(int) (o->fi + 0.5)];
+        if (o->status == STATUS_OK && o->model_depth < mindepth)
+            o->status = STATUS_SHALLOW;
         {
             float t = (singletime) ? time[0] : time[i];
 
