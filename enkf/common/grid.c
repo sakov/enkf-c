@@ -33,7 +33,6 @@
 #include <gridmap.h>
 #include <gucommon.h>
 #endif
-#include "nan.h"
 
 #define EPS_LON 1.0e-3
 #define EPS_IJ 1.0e-3
@@ -319,7 +318,7 @@ static double x2fi_reg(int n, double* v, double x, int periodic)
     double fi;
 
     if (n < 2)
-        return NaN;
+        return NAN;
 
     if (periodic == 2)
         n += 1;
@@ -328,12 +327,12 @@ static double x2fi_reg(int n, double* v, double x, int periodic)
 
     if (fi < 0.0) {
         if (!periodic)
-            return NaN;
+            return NAN;
         else
             fi += (double) (n - 1);
     } else if (fi >= (double) (n - 1)) {
         if (!periodic)
-            return NaN;
+            return NAN;
         else
             fi -= (double) (n - 1);
     }
@@ -349,7 +348,7 @@ static double fi2x(int n, double* v, double fi, int periodic)
     int i;
 
     if (n < 2)
-        return NaN;
+        return NAN;
 
     if (periodic == 2)
         n += 1;
@@ -361,7 +360,7 @@ static double fi2x(int n, double* v, double fi, int periodic)
             fi -= (double) (n - 1);
     } else {
         if (fi < 0.0 || fi > (double) (n - 1))
-            return NaN;
+            return NAN;
     }
 
     ifrac = fi - floor(fi);
@@ -396,7 +395,7 @@ static double x2fi_irreg(int n, double v[], double vb[], double x, int periodic,
     int ascending, i1, i2, imid;
 
     if (n < 2)
-        return NaN;
+        return NAN;
 
     if (periodic == 2)
         n += 1;
@@ -412,10 +411,10 @@ static double x2fi_irreg(int n, double v[], double vb[], double x, int periodic,
 
     if (ascending) {
         if ((x < vb[0]) || x > vb[n])
-            return NaN;
+            return NAN;
     } else {
         if ((x > vb[0]) || x < vb[n])
-            return NaN;
+            return NAN;
     }
 
     i1 = 0;
@@ -465,7 +464,7 @@ static void gs_xy2fij(void* p, double x, double y, double* fi, double* fj)
     if (nodes->regular_y)
         *fj = x2fi_reg(nodes->ny, nodes->y, y, 0);
     else
-        *fj = x2fi_irreg(nodes->ny, nodes->y, nodes->yc, y, 0, NaN);
+        *fj = x2fi_irreg(nodes->ny, nodes->y, nodes->yc, y, 0, NAN);
 }
 
 #if !defined(NO_GRIDUTILS)
@@ -478,8 +477,8 @@ static void gc_xy2fij(void* p, double x, double y, double* fi, double* fj)
     if (gridmap_xy2fij(nodes->gm, x, y, fi, fj) == 1)
         return;                 /* success */
 
-    *fi = NaN;
-    *fj = NaN;
+    *fi = NAN;
+    *fj = NAN;
 }
 
 /**
@@ -504,12 +503,12 @@ static double z2fk_basic(int n, double* zt, double* zc, double z)
         if (z < zc[0])
             return 0.0;
         if (z > zc[n])
-            return NaN;
+            return NAN;
     } else {
         if (z < zc[n])
             return 0.0;
         if (z > zc[0])
-            return NaN;
+            return NAN;
     }
 
     i1 = 0;
@@ -775,7 +774,7 @@ grid* grid_create(void* p, int id)
             for (j = 0; j < ny; ++j) {
                 for (i = 0; i < nx; ++i) {
                     double depth = g->depth[j][i];
-                    double fk = NaN;
+                    double fk = NAN;
 
                     if (depth > 0.0) {
                         z2fk(g, j, i, depth, &fk);
@@ -1045,8 +1044,8 @@ void grid_ij2xy(grid* g, int i, int j, double* x, double* y)
         gnxy_simple* gs = (gnxy_simple*) g->gridnodes_xy;
 
         if (i < 0 || j < 0 || i >= gs->nx || j >= gs->ny) {
-            *x = NaN;
-            *y = NaN;
+            *x = NAN;
+            *y = NAN;
         } else {
             *x = gs->x[i];
             *y = gs->y[j];
@@ -1057,8 +1056,8 @@ void grid_ij2xy(grid* g, int i, int j, double* x, double* y)
         gridnodes* gn = ((gnxy_curv*) g->gridnodes_xy)->gn;
 
         if (i < 0 || j < 0 || i >= gridnodes_getnce1(gn) || j >= gridnodes_getnce2(gn)) {
-            *x = NaN;
-            *y = NaN;
+            *x = NAN;
+            *y = NAN;
         } else {
             *x = gridnodes_getx(gn)[j][i];
             *y = gridnodes_gety(gn)[j][i];

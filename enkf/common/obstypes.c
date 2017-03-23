@@ -20,7 +20,6 @@
 #include <assert.h>
 #include <string.h>
 #include <math.h>
-#include "nan.h"
 #include "kdtree.h"
 #include "definitions.h"
 #include "utils.h"
@@ -56,12 +55,12 @@ static void obstype_new(obstype* type, int i, char* name)
     type->offset_fname = NULL;
     type->offset_varname = NULL;
     type->mld_varname = NULL;
-    type->mld_threshold = NaN;
+    type->mld_threshold = NAN;
     type->hfunction = NULL;
     type->allowed_min = -DBL_MAX;
     type->allowed_max = DBL_MAX;
     type->isasync = 0;
-    type->async_tstep = NaN;
+    type->async_tstep = NAN;
     type->nlocrad = 0;
     type->locrad = NULL;
     type->weight = NULL;

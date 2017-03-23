@@ -20,7 +20,6 @@
 #include <float.h>
 #include <assert.h>
 #include <stdint.h>
-#include "nan.h"
 #include "ncw.h"
 #include "definitions.h"
 #include "utils.h"
@@ -86,8 +85,8 @@ void obs_addtype(observations* obs, obstype* src, obsdomain* domain)
     ot->nrange = -1;
     ot->nmissed = -1;
     ot->nmodified = 0;
-    ot->date_min = NaN;
-    ot->date_max = NaN;
+    ot->date_min = NAN;
+    ot->date_max = NAN;
     if (domain != NULL) {
         ot->xmin = domain->x1;
         ot->xmax = domain->x2;
@@ -122,10 +121,10 @@ observations* obs_create(void)
     obs->loctrees = NULL;
 #endif
     obs->obsids = NULL;
-    obs->da_date = NaN;
+    obs->da_date = NAN;
     obs->datestr = NULL;
-    obs->windowmin = NaN;
-    obs->windowmax = NaN;
+    obs->windowmin = NAN;
+    obs->windowmax = NAN;
     obs->allobs = 0;
     obs->nallocated = 0;
     obs->nobs = 0;
@@ -447,7 +446,7 @@ void obs_calcstats(observations* obs)
 void obs_read(observations* obs, char fname[])
 {
     int ncid;
-    double da_julday = NaN;
+    double da_julday = NAN;
     int dimid_nobs[1];
     size_t nobs;
     int varid_type, varid_product, varid_instrument, varid_id, varid_idorig, varid_fid, varid_batch, varid_value, varid_std, varid_lon, varid_lat, varid_depth, varid_mdepth, varid_fi, varid_fj, varid_fk, varid_date, varid_status, varid_aux;

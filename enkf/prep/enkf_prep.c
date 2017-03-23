@@ -16,7 +16,6 @@
 #include <stdio.h>
 #include <string.h>
 #include <math.h>
-#include "nan.h"
 #include "version.h"
 #include "definitions.h"
 #include "utils.h"

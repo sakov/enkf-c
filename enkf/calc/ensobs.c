@@ -21,7 +21,6 @@
 #include <assert.h>
 #include <limits.h>
 #include <math.h>
-#include "nan.h"
 #include "distribute.h"
 #include "lapack.h"
 #include "definitions.h"
@@ -487,7 +486,7 @@ void das_addmodifiederrors(dasystem* das, char fname[])
     int varid_std;
     double* std;
     int i;
-    double da_julday = NaN;
+    double da_julday = NAN;
 
     if (rank != 0)
         return;
@@ -969,9 +968,9 @@ static void update_HE(dasystem* das)
                     continue;
 
                 for (; o < obs->nobs && (int) (obs->data[o].fj) == j; ++o) {
-                    float inflation0 = NaN;
-                    double inf_ratio = NaN;
-                    float inflation = NaN;
+                    float inflation0 = NAN;
+                    double inf_ratio = NAN;
+                    float inflation = NAN;
                     double v1_a = 0.0;
 
                     model_getvarinflation(m, obs->obstypes[obs->data[o].type].vid, &inflation0, &inf_ratio);

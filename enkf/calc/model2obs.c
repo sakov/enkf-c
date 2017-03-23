@@ -21,7 +21,6 @@
 #include <float.h>
 #include <limits.h>
 #include "ncw.h"
-#include "nan.h"
 #include "definitions.h"
 #include "utils.h"
 #include "enkfprm.h"
@@ -395,7 +394,7 @@ void H_subsurf_wsurfbias(dasystem* das, int nobs, int obsids[], char fname[], in
     {
         double fi_prev = DBL_MAX;
         double fj_prev = DBL_MAX;
-        double vmld = NaN, vbias = NaN;
+        double vmld = NAN, vbias = NAN;
 
         for (i = 0; i < nobs; ++i) {
             int ii = obsids[i];

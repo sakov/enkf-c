@@ -18,7 +18,6 @@
 #include <string.h>
 #include <math.h>
 #include <assert.h>
-#include "nan.h"
 #include "definitions.h"
 #include "utils.h"
 #include "grid.h"
@@ -73,10 +72,10 @@ static void variable_new(variable * v, int id, char* name)
     v->id = id;
     v->name = strdup(name);
     v->gridid = -1;
-    v->inflation = NaN;
-    v->inf_ratio = NaN;
-    v->deflation = NaN;
-    v->sigma = NaN;
+    v->inflation = NAN;
+    v->inf_ratio = NAN;
+    v->deflation = NAN;
+    v->sigma = NAN;
 }
 
 /**
@@ -242,8 +241,8 @@ model* model_create(enkfprm* prm)
                 m->vars[i].inflation = prm->inflation_base;
                 m->vars[i].inf_ratio = prm->inf_ratio;
             }
-        prm->inflation_base = NaN;
-        prm->inf_ratio = NaN;
+        prm->inflation_base = NAN;
+        prm->inf_ratio = NAN;
     }
     /*
      * check randomisation parameters
@@ -673,8 +672,8 @@ int model_xy2fij(model* m, int vid, double x, double y, double* fi, double* fj)
         j2 = j1;
 
     if (numlevels[j1][i1] == 0 && numlevels[j1][i2] == 0 && numlevels[j2][i1] == 0 && numlevels[j2][i2] == 0) {
-        *fi = NaN;
-        *fj = NaN;
+        *fi = NAN;
+        *fj = NAN;
         return STATUS_LAND;
     }
     return STATUS_OK;
@@ -717,7 +716,7 @@ int model_z2fk(model* m, int vid, double fi, double fj, double z, double* fk)
     int i1, i2, j1, j2, k2;
 
     if (isnan(fi + fj)) {
-        *fk = NaN;
+        *fk = NAN;
         return STATUS_OUTSIDEGRID;
     }
 
@@ -747,7 +746,7 @@ int model_z2fk(model* m, int vid, double fi, double fj, double z, double* fk)
         j2 = j1;
     k2 = floor(*fk);
     if (numlevels[j1][i1] <= k2 && numlevels[j1][i2] <= k2 && numlevels[j2][i1] <= k2 && numlevels[j2][i2] <= k2) {
-        *fk = NaN;
+        *fk = NAN;
         return STATUS_LAND;
     } else if (numlevels[j1][i1] <= k2 || numlevels[j1][i2] <= k2 || numlevels[j2][i1] <= k2 || numlevels[j2][i2] <= k2) {
         float** depth = grid_getdepth(grid);
@@ -775,13 +774,13 @@ int model_fk2z(model* m, int vid, int i, int j, double fk, double* z)
 
     grid_getdims(g, &ni, &nj, NULL);
     if (i < 0 || j < 0 || i >= ni || j >= nj) {
-        *z = NaN;
+        *z = NAN;
         return STATUS_OUTSIDEGRID;
     }
     grid_fk2z(g, i, j, fk, z);
     depth = grid_getdepth(g);
     if (*z > depth[j][i]) {
-        *z = NaN;
+        *z = NAN;
         return STATUS_OUTSIDEGRID;
     }
 

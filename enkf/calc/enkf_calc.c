@@ -17,7 +17,6 @@
 #include <stdio.h>
 #include <string.h>
 #include <math.h>
-#include "nan.h"
 #include "version.h"
 #include "definitions.h"
 #include "utils.h"
@@ -238,7 +237,7 @@ static observations* obs_create_fromsingleob(enkfprm* prm, dasystem* das)
         if (o->status == STATUS_OK)
             o->status = model_z2fk(m, vid, o->fi, o->fj, o->depth, &o->fk);
         else
-            o->fk = NaN;
+            o->fk = NAN;
     } else {
         int ni, nj, nk;
         int** nlevels = model_getnumlevels(m, vid);
@@ -248,7 +247,7 @@ static observations* obs_create_fromsingleob(enkfprm* prm, dasystem* das)
         model_ij2xy(m, vid, (int) (o->fi + EPS_IJ), (int) (o->fj + EPS_IJ), &o->lon, &o->lat);
         o->fk = o->depth;
         if (o->fk != 0.0)
-            o->depth = NaN;     /* fk2z - TODO */
+            o->depth = NAN;     /* fk2z - TODO */
 
         o->status = STATUS_OK;
         grid_getdims(grid, &ni, &nj, &nk);

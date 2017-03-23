@@ -21,7 +21,6 @@
 #include <string.h>
 #include <math.h>
 #include "definitions.h"
-#include "nan.h"
 #include "utils.h"
 #include "distribute.h"
 #include "calcs.h"

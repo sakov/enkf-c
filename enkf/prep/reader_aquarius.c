@@ -22,7 +22,6 @@
 #include <math.h>
 #include <assert.h>
 #include "ncw.h"
-#include "nan.h"
 #include "definitions.h"
 #include "utils.h"
 #include "obsmeta.h"
@@ -138,7 +137,7 @@ void reader_aquarius_standard(char* fname, int fid, obsmeta* meta, model* m, obs
             o->status = model_xy2fij(m, model_vid, o->lon, o->lat, &o->fi, &o->fj);
             if (!obs->allobs && o->status == STATUS_OUTSIDEGRID)
                 continue;
-            o->model_depth = (isnan(o->fi + o->fj)) ? NaN : depth[(int) (o->fj + 0.5)][(int) (o->fi + 0.5)];
+            o->model_depth = (isnan(o->fi + o->fj)) ? NAN : depth[(int) (o->fj + 0.5)][(int) (o->fi + 0.5)];
             o->fk = 0.0;
             if (o->status == STATUS_OK && o->model_depth < mindepth)
                 o->status = STATUS_SHALLOW;

@@ -19,7 +19,6 @@
 #include <math.h>
 #include <assert.h>
 #include "ncw.h"
-#include "nan.h"
 #include "definitions.h"
 #include "utils.h"
 #include "obsmeta.h"
@@ -66,7 +65,7 @@ void reader_xy_gridded(char* fname, int fid, obsmeta* meta, model* m, observatio
     float time_add_offset = NAN, time_scale_factor = NAN;
     float time_fill_value = NAN;
     char tunits[MAXSTRLEN];
-    double tunits_multiple = NaN, tunits_offset = NaN;
+    double tunits_multiple = NAN, tunits_offset = NAN;
     int mvid;
     float** depth;
     int ktop;
@@ -248,7 +247,7 @@ void reader_xy_gridded(char* fname, int fid, obsmeta* meta, model* m, observatio
         else
             o->value = (double) (var[i] + var_shift);
         if (estd == NULL)
-            o->std = NaN;
+            o->std = NAN;
         else {
             if (std == NULL)
                 o->std = 0.0;
@@ -273,7 +272,7 @@ void reader_xy_gridded(char* fname, int fid, obsmeta* meta, model* m, observatio
             continue;
         if ((o->status == STATUS_OK) && (o->lon <= ot->xmin || o->lon >= ot->xmax || o->lat <= ot->ymin || o->lat >= ot->ymax))
             o->status = STATUS_OUTSIDEOBSDOMAIN;
-        o->model_depth = (depth == NULL || isnan(o->fi + o->fj)) ? NaN : depth[(int) (o->fj + 0.5)][(int) (o->fi + 0.5)];
+        o->model_depth = (depth == NULL || isnan(o->fi + o->fj)) ? NAN : depth[(int) (o->fj + 0.5)][(int) (o->fi + 0.5)];
         {
             float t = (singletime) ? time[0] : time[i];
 

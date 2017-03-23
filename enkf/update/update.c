@@ -22,7 +22,6 @@
 #include <limits.h>
 #include <math.h>
 #include "definitions.h"
-#include "nan.h"
 #include "utils.h"
 #include "distribute.h"
 #include "grid.h"
@@ -224,8 +223,8 @@ static void das_updatefields(dasystem* das, int nfields, void** fieldbuffer, fie
                 float alpha = 1.0f;
                 int inc = 1;
                 float beta = 0.0f;
-                float inflation0 = NaN;
-                double inf_ratio = NaN;
+                float inflation0 = NAN;
+                double inf_ratio = NAN;
 
                 model_getvarinflation(m, f->varid, &inflation0, &inf_ratio);
                 if (writeinflation)
@@ -884,7 +883,7 @@ static void das_writespread(dasystem* das, int nfields, void** fieldbuffer, fiel
             v2[i] = v2[i] / (double) das->nmem - v1[i] * v1[i];
             v2[i] = (v2[i] < 0.0) ? 0.0 : sqrt(v2[i]);
             if (fabs(v2[i]) > (double) MAXOBSVAL)
-                v2[i] = NaN;
+                v2[i] = NAN;
         }
 
         strncpy(varname, f->varname, NC_MAX_NAME);

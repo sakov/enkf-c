@@ -18,7 +18,6 @@
 #include <string.h>
 #include <float.h>
 #include <math.h>
-#include "nan.h"
 #include "definitions.h"
 #include "utils.h"
 #include "enkfprm.h"
@@ -80,19 +79,19 @@ enkfprm* enkfprm_read(char fname[])
     prm->scheme = SCHEME_DEFAULT;
     prm->alpha = ALPHA_DEFAULT;
     prm->date = NULL;
-    prm->windowmin = NaN;
-    prm->windowmax = NaN;
+    prm->windowmin = NAN;
+    prm->windowmax = NAN;
     prm->modelprm = NULL;
     prm->gridprm = NULL;
 
     prm->obstypeprm = NULL;
     prm->obsprm = NULL;
     prm->enssize = -1;
-    prm->kfactor = NaN;
+    prm->kfactor = NAN;
     prm->rfactor_base = 1.0;
     prm->inflation_base = 1.0;
     prm->inf_ratio = INFRATIO_DEFAULT;
-    prm->locrad = NaN;
+    prm->locrad = NAN;
     prm->stride = 1;
     prm->fieldbufsize = 1;
     prm->sob_stride = 1;
@@ -253,7 +252,7 @@ enkfprm* enkfprm_read(char fname[])
                 enkf_quit("%s, l.%d: could not convert \"%s\" to double", fname, line, token);
             if ((token = strtok(NULL, seps)) != NULL) {
                 if (strcasecmp(token, "PLAIN") == 0)
-                    prm->inf_ratio = NaN;
+                    prm->inf_ratio = NAN;
                 else if (!str2double(token, &prm->inf_ratio))
                     enkf_quit("%s, l.%d: could not convert \"%s\" to double", fname, line, token);
             }
@@ -339,8 +338,8 @@ enkfprm* enkfprm_read(char fname[])
                 plog->gridname = strdup(token);
             else
                 plog->gridname = NULL;
-            plog->lon = NaN;
-            plog->lat = NaN;
+            plog->lon = NAN;
+            plog->lat = NAN;
             prm->nplogs++;
         } else if (strcasecmp(token, "EXITACTION") == 0) {
             if ((token = strtok(NULL, seps)) == NULL)

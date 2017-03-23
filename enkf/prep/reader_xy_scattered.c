@@ -19,7 +19,6 @@
 #include <math.h>
 #include <assert.h>
 #include "ncw.h"
-#include "nan.h"
 #include "definitions.h"
 #include "utils.h"
 #include "obsmeta.h"
@@ -44,26 +43,26 @@ void reader_xy_scattered(char* fname, int fid, obsmeta* meta, model* m, observat
     int varid_var = -1, varid_lon = -1, varid_lat = -1, varid_std = -1, varid_estd = -1, varid_time = -1;
     double* lon = NULL;
     double lon_add_offset, lon_scale_factor;
-    double lon_fill_value = NaN;
+    double lon_fill_value = NAN;
     double* lat = NULL;
     double lat_add_offset, lat_scale_factor;
-    double lat_fill_value = NaN;
+    double lat_fill_value = NAN;
     double* var = NULL;
     double var_shift = 0.0;
-    double var_fill_value = NaN;
-    double var_add_offset = NaN, var_scale_factor = NaN;
+    double var_fill_value = NAN;
+    double var_add_offset = NAN, var_scale_factor = NAN;
     double* std = NULL;
-    double std_add_offset = NaN, std_scale_factor = NaN;
-    double std_fill_value = NaN;
+    double std_add_offset = NAN, std_scale_factor = NAN;
+    double std_fill_value = NAN;
     double* estd = NULL;
-    double estd_add_offset = NaN, estd_scale_factor = NaN;
-    double estd_fill_value = NaN;
+    double estd_add_offset = NAN, estd_scale_factor = NAN;
+    double estd_fill_value = NAN;
     int singletime;
     double* time = NULL;
-    double time_add_offset = NaN, time_scale_factor = NaN;
-    double time_fill_value = NaN;
+    double time_add_offset = NAN, time_scale_factor = NAN;
+    double time_fill_value = NAN;
     char tunits[MAXSTRLEN];
-    double tunits_multiple = NaN, tunits_offset = NaN;
+    double tunits_multiple = NAN, tunits_offset = NAN;
     int mvid;
     float** depth;
     int ktop;
@@ -262,7 +261,7 @@ void reader_xy_scattered(char* fname, int fid, obsmeta* meta, model* m, observat
         o->batch = 0;
         o->value = var[i] + var_shift;
         if (estd == NULL)
-            o->std = NaN;
+            o->std = NAN;
         else {
             if (std == NULL)
                 o->std = estd[i];
@@ -278,7 +277,7 @@ void reader_xy_scattered(char* fname, int fid, obsmeta* meta, model* m, observat
             continue;
         if ((o->status == STATUS_OK) && (o->lon <= ot->xmin || o->lon >= ot->xmax || o->lat <= ot->ymin || o->lat >= ot->ymax))
             o->status = STATUS_OUTSIDEOBSDOMAIN;
-        o->model_depth = (depth == NULL || isnan(o->fi + o->fj)) ? NaN : depth[(int) (o->fj + 0.5)][(int) (o->fi + 0.5)];
+        o->model_depth = (depth == NULL || isnan(o->fi + o->fj)) ? NAN : depth[(int) (o->fj + 0.5)][(int) (o->fi + 0.5)];
         o->date = ((singletime) ? time[0] : time[i]) * tunits_multiple + tunits_offset;
         o->aux = -1;
 

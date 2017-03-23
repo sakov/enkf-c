@@ -25,7 +25,6 @@
 #include <assert.h>
 #include <math.h>
 #include <unistd.h>
-#include "nan.h"
 #include "ncw.h"
 #include "hash.h"
 #include "definitions.h"
@@ -116,12 +115,12 @@ dasystem* das_create(enkfprm* prm)
         das->kfactor = prm->kfactor;
         das->locrad = prm->locrad;
     } else {
-        das->kfactor = NaN;
-        das->locrad = NaN;
+        das->kfactor = NAN;
+        das->locrad = NAN;
     }
 #elif defined(ENKF_UPDATE)
-    das->kfactor = NaN;
-    das->locrad = NaN;
+    das->kfactor = NAN;
+    das->locrad = NAN;
 #endif
     das->stride = prm->stride;
     if (!enkf_fstatsonly)
@@ -390,10 +389,10 @@ void das_calcmld(dasystem* das, obstype* ot, float*** src, float** dst)
         for (i = 0; i < ni; ++i) {
             double vtop, vprev, vnow;
             int kprev;
-            double fk = NaN, z;
+            double fk = NAN, z;
 
             if (nlevels[j][i] == 0) {
-                dst[j][i] = NaN;
+                dst[j][i] = NAN;
                 continue;
             }
 

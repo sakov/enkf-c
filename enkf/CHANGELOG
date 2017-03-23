@@ -1,3 +1,6 @@
+v. 1.55.0
+   PS 23032017
+   -- Eliminated nan.h.
 v. 1.54.1
    PS 23032017
    -- Corrected time calculation in reader_xy_scattered().

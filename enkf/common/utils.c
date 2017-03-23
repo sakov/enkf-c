@@ -32,7 +32,6 @@
 #include "ncw.h"
 #include "definitions.h"
 #include "version.h"
-#include "nan.h"
 #include "utils.h"
 
 #define FILE_FIND_INC 10
@@ -424,14 +423,14 @@ int str2double(char* token, double* value)
     char* end = NULL;
 
     if (token == NULL) {
-        *value = NaN;
+        *value = NAN;
         return 0;
     }
 
     *value = strtod(token, &end);
 
     if (end == token) {
-        *value = NaN;
+        *value = NAN;
         return 0;
     }
 

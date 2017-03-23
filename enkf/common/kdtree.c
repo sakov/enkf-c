@@ -515,7 +515,6 @@ double* kd_getminmax(const kdtree* tree)
 
 #include <stdarg.h>
 #include <errno.h>
-#include "nan.h"
 
 #define BUFSIZE 1024
 #define NDIMMAX 256
@@ -550,14 +549,14 @@ static int str2double(char* token, double* value)
     char* end = NULL;
 
     if (token == NULL) {
-        *value = NaN;
+        *value = NAN;
         return 0;
     }
 
     *value = strtod(token, &end);
 
     if (end == token) {
-        *value = NaN;
+        *value = NAN;
         return 0;
     }
 
@@ -757,7 +756,7 @@ int main(int argc, char* argv[])
     char* fname = NULL;
     int ndim = -1;
     double coords[NDIMMAX];
-    double range = NaN;
+    double range = NAN;
     int dosort = 0;
     int dorandomise = 1;
     kdtree* tree = NULL;

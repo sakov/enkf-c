@@ -38,7 +38,6 @@ common/gridprm.c\
 common/model.c\
 
 HDR_COMMON =\
-common/nan.h\
 common/ncw.h\
 common/stringtable.h\
 common/version.h\
