@@ -254,7 +254,7 @@ void reader_xy_scattered(char* fname, int fid, obsmeta* meta, model* m, observat
         observation* o;
         obstype* ot;
 
-        if (lon[i] == lon_fill_value || lat[i] == lat_fill_value || var[i] == var_fill_value || (std != NULL && std[i] == std_fill_value) || estd[i] == estd_fill_value || (!singletime && time[i] == time_fill_value))
+        if (lon[i] == lon_fill_value || lat[i] == lat_fill_value || var[i] == var_fill_value || (std != NULL && std[i] == std_fill_value) || (estd != NULL && estd[i] == estd_fill_value) || (!singletime && time[i] == time_fill_value))
             continue;
 
         nobs_read++;

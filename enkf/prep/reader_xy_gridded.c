@@ -234,7 +234,7 @@ void reader_xy_gridded(char* fname, int fid, obsmeta* meta, model* m, observatio
         observation* o;
         obstype* ot;
 
-        if ((npoints != NULL && npoints[i] == 0) || var[i] == var_fill_value || (std != NULL && std[i] == std_fill_value) || estd[i] == estd_fill_value || (!singletime && time[i] == time_fill_value))
+        if ((npoints != NULL && npoints[i] == 0) || var[i] == var_fill_value || (std != NULL && std[i] == std_fill_value) || (estd != NULL && estd[i] == estd_fill_value) || (!singletime && time[i] == time_fill_value))
             continue;
 
         nobs_read++;
