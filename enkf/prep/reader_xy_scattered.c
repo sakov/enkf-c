@@ -51,6 +51,7 @@ void reader_xy_scattered(char* fname, int fid, obsmeta* meta, model* m, observat
 
     double varshift = 0.0;
     double mindepth = 0.0;
+    char instrument[MAXSTRLEN];
 
     double var_fill_value = NAN;
     double var_add_offset = NAN, var_scale_factor = NAN;
@@ -72,6 +73,7 @@ void reader_xy_scattered(char* fname, int fid, obsmeta* meta, model* m, observat
     int ktop;
     int i, nobs_read;
 
+    strcpy(instrument, meta->product);
     for (i = 0; i < meta->npars; ++i) {
         if (strcasecmp(meta->pars[i].name, "VARNAME") == 0)
             varname = meta->pars[i].value;
@@ -94,6 +96,8 @@ void reader_xy_scattered(char* fname, int fid, obsmeta* meta, model* m, observat
             if (!str2double(meta->pars[i].value, &mindepth))
                 enkf_quit("observation prm file: can not convert MINDEPTH = \"%s\" to double\n", meta->pars[i].value);
             enkf_printf("        MINDEPTH = %f\n", mindepth);
+        } else if (strcasecmp(meta->pars[i].name, "INSTRUMENT") == 0) {
+            strncpy(instrument, meta->pars[i].name, MAXSTRLEN);
         } else
             enkf_quit("unknown PARAMETER \"%s\"\n", meta->pars[i].name);
     }
@@ -272,7 +276,7 @@ void reader_xy_scattered(char* fname, int fid, obsmeta* meta, model* m, observat
         assert(o->product >= 0);
         o->type = obstype_getid(obs->nobstypes, obs->obstypes, meta->type, 1);
         ot = &obs->obstypes[o->type];
-        o->instrument = st_add_ifabscent(obs->instruments, "VIIRS", -1);
+        o->instrument = st_add_ifabscent(obs->instruments, instrument, -1);
         o->id = obs->nobs;
         o->fid = fid;
         o->batch = 0;

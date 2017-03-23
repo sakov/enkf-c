@@ -1,3 +1,7 @@
+v. 1.55.3
+   PS 23032017
+   -- Added parameter INSTRUMENT to reader_xy_gridded() and
+      reader_xy_scattered().
 v. 1.55.2
    PS 23032017
    -- In reader_xy_gridded() and reader_xy_scattered() added check for attribute
