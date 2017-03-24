@@ -142,7 +142,11 @@ void reader_h8_standard(char* fname, int fid, obsmeta* meta, model* m, observati
         o->id = obs->nobs;
         o->fid = fid;
         o->batch = 0;
-        o->value = sst[i] - 273.15;
+        /*
+         * add 0.17 for for the difference between skin and foundation
+         * temperature
+         */
+        o->value = sst[i] - 273.15 + 0.17;
         o->std = ERRORSTD_DEF;
         o->lon = lon[i];
         o->lat = lat[i];

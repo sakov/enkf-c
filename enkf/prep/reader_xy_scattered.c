@@ -121,7 +121,7 @@ void reader_xy_scattered(char* fname, int fid, obsmeta* meta, model* m, observat
         ncw_inq_varid(ncid, "longitude", &varid_lon);
     else
         enkf_quit("reader_xy_scattered(): %s: could not find longitude variable", fname);
-    
+
     if (latname != NULL)
         ncw_inq_varid(ncid, latname, &varid_lat);
     else if (ncw_var_exists(ncid, "lat"))
@@ -130,7 +130,7 @@ void reader_xy_scattered(char* fname, int fid, obsmeta* meta, model* m, observat
         ncw_inq_varid(ncid, "latitude", &varid_lat);
     else
         enkf_quit("reader_xy_scattered(): %s: could not find latitude variable", fname);
-    
+
     lon = malloc(nobs * sizeof(double));
     lat = malloc(nobs * sizeof(double));
     ncw_get_var_double(ncid, varid_lon, lon);
@@ -152,7 +152,6 @@ void reader_xy_scattered(char* fname, int fid, obsmeta* meta, model* m, observat
             if (lat[i] != lat_fill_value)
                 lat[i] = lat[i] * lat_scale_factor + lat_add_offset;
     }
-
 
     var = malloc(nobs * sizeof(double));
     ncw_get_var_double(ncid, varid_var, var);

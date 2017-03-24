@@ -25,6 +25,7 @@ obsread_fn get_obsreadfn(obsmeta* m);
  */
 void reader_xy_scattered(char* fname, int fid, obsmeta* meta, model* m, observations* obs);
 void reader_xy_gridded(char* fname, int fid, obsmeta* meta, model* m, observations* obs);
+
 /*
  * readers for particular products
  */

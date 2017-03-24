@@ -80,7 +80,7 @@ void reader_viirs_standard(char* fname, int fid, obsmeta* meta, model* m, observ
         enkf_printf("        (ni, nj) = (%u, %u)\n", ni, nj);
         lon = malloc(ni * sizeof(double));
         lat = malloc(nj * sizeof(double));
-        
+
         n = ni * nj;
     } else {
         int dimid_nobs;

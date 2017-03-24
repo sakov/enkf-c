@@ -1,3 +1,6 @@
+v. 1.55.4
+   PS 24032017
+   -- Added 0.17 to H8 SST to get the foundation temperature.
 v. 1.55.3
    PS 23032017
    -- Added parameter INSTRUMENT to reader_xy_gridded() and

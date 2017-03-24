@@ -123,7 +123,7 @@ void reader_xy_gridded(char* fname, int fid, obsmeta* meta, model* m, observatio
     ncw_check_varndims(ncid, varid_lon, 1);
     ncw_inq_vardimid(ncid, varid_lon, &dimid_i);
     ncw_inq_dimlen(ncid, dimid_i, &ni);
-    
+
     if (latname != NULL)
         ncw_inq_varid(ncid, latname, &varid_lat);
     else if (ncw_var_exists(ncid, "lat"))
@@ -277,6 +277,7 @@ void reader_xy_gridded(char* fname, int fid, obsmeta* meta, model* m, observatio
             }
             if (!isnan(estd_add_offset)) {
                 double std2 = (double) (estd[i] * estd_scale_factor + estd_add_offset);
+
                 o->std = (o->std > std2) ? o->std : std2;
             } else
                 o->std = (o->std > estd[i]) ? o->std : estd[i];
@@ -299,9 +300,9 @@ void reader_xy_gridded(char* fname, int fid, obsmeta* meta, model* m, observatio
             if (!isnan(time_add_offset))
                 o->date = (double) (t * time_scale_factor + time_add_offset) * tunits_multiple + tunits_offset;
             else
-                o->date = (double) t * tunits_multiple + tunits_offset;
+                o->date = (double) t* tunits_multiple + tunits_offset;
         }
-            
+
         o->aux = -1;
 
         obs->nobs++;
