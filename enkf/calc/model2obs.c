@@ -175,28 +175,6 @@ void H_surf_standard(dasystem* das, int nobs, int obsids[], char fname[], int me
 
 /**
  */
-void H_sla_bran(dasystem* das, int nobs, int obsids[], char fname[], int mem, int t, void* psrc, ENSOBSTYPE dst[])
-{
-    observations* allobs = das->obs;
-    int otid = allobs->data[obsids[0]].type;
-    obstype* ot = &allobs->obstypes[otid];
-    int o;
-    ENSOBSTYPE mean;
-
-    assert(ot->nvar == 1);      /* should we care? */
-    H_surf_standard(das, nobs, obsids, fname, mem, t, psrc, dst);
-    if (mem <= 0) {             /* only for background */
-        mean = 0.0;
-        for (o = 0; o < nobs; ++o)
-            mean += dst[o];
-        mean /= (float) nobs;
-        for (o = 0; o < nobs; ++o)
-            dst[o] -= mean;
-    }
-}
-
-/**
- */
 void H_surf_biased(dasystem* das, int nobs, int obsids[], char fname[], int mem, int t, void* psrc, ENSOBSTYPE dst[])
 {
     model* m = das->m;
@@ -401,7 +379,6 @@ void H_subsurf_wsurfbias(dasystem* das, int nobs, int obsids[], char fname[], in
             observation* o = &allobs->data[ii];
 
             if (fabs(fi_prev - o->fi) > EPS_IJ || fabs(fj_prev - o->fj) > EPS_IJ) {
-
                 vmld = interpolate2d(o->fi, o->fj, ni, nj, mld, mask, periodic_x);
                 vbias = interpolate2d(o->fi, o->fj, ni, nj, bias, mask, periodic_x);
                 fi_prev = o->fi;

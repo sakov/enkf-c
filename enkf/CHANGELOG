@@ -1,3 +1,9 @@
+v. 1.56.2
+   PS 28032017
+   -- Eliminated H_sla_bran().
+v. 1.56.1
+   PS 27032017
+   -- Added examples/5.
 v. 1.56.0
    PS 27032017
    -- Introduced a new optional field "ALIAS" for observation types. This
