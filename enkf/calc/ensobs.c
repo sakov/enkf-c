@@ -86,7 +86,7 @@ void das_getHE(dasystem* das)
         /*
          * set H
          */
-        H = getH(ot->name, ot->hfunction);
+        H = getH(ot, ot->hfunction);
 
         if (ot->isasync) {
             int t1 = get_tshift(ot->date_min, ot->async_tstep);

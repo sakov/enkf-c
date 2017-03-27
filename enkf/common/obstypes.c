@@ -49,6 +49,7 @@ static void obstype_new(obstype* type, int i, char* name)
 {
     type->id = i;
     type->name = strdup(name);
+    type->aliasname = NULL;
     type->nvar = 0;
     type->varnames = NULL;
     type->issurface = -1;
@@ -110,6 +111,8 @@ static void obstype_print(obstype* type)
     int i;
 
     enkf_printf("    NAME = %s\n", type->name);
+    if (type->aliasname != NULL)
+    enkf_printf("    ALIAS = %s\n", type->aliasname);
     enkf_printf("      VAR =");
     for (i = 0; i < type->nvar; ++i)
         enkf_printf(" %s", type->varnames[i]);
@@ -178,7 +181,11 @@ void obstypes_read(char fname[], int* n, obstype** types, double locrad_base, do
         if (now == NULL)
             enkf_quit("%s, l.%d: NAME not specified", fname, line);
 
-        if (strcasecmp(token, "ISSURFACE") == 0) {
+        if (strcasecmp(token, "ALIAS") == 0) {
+            if ((token = strtok(NULL, seps)) == NULL)
+                enkf_quit("%s, l.%d: ALIAS not specified", fname, line);
+            now->aliasname = strdup(token);
+        } else if (strcasecmp(token, "ISSURFACE") == 0) {
             if ((token = strtok(NULL, seps)) == NULL)
                 enkf_quit("%s, l.%d: ISSURFACE not specified", fname, line);
             now->issurface = read_bool(token);
@@ -361,6 +368,8 @@ void obstypes_destroy(int n, obstype* types)
         obstype* type = &types[i];
 
         free(type->name);
+        if (type->aliasname != NULL)
+            free(type->aliasname);
         for (j = 0; j < type->nvar; ++j)
             free(type->varnames[j]);
         free(type->varnames);
@@ -386,6 +395,7 @@ void obstypes_describeprm(void)
     enkf_printf("  Observation types parameter file format:\n");
     enkf_printf("\n");
     enkf_printf("    NAME        = <name>\n");
+    enkf_printf("  [ ALIAS       = <name> ]                         (none*)\n");
     enkf_printf("    VAR         = <model variable name> [...]\n");
     enkf_printf("    ISSURFACE   = { yes | no }\n");
     enkf_printf("  [ OFFSET      = <file name> <variable name> ]    (none*)\n");

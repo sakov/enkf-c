@@ -63,17 +63,19 @@ void describe_hentries(char* obstypename)
 
 /**
  */
-H_fn getH(char obstypename[], char mappingname[])
+H_fn getH(obstype* ot, char mappingname[])
 {
     int nhentries = sizeof(allhentries) / sizeof(H_entry);
     int i;
 
     for (i = 0; i < nhentries; ++i)
-        if (strcmp(allhentries[i].obstypename, obstypename) == 0 && strcmp(allhentries[i].mappingname, mappingname) == 0)
+        if ((strcmp(allhentries[i].obstypename, ot->name) == 0 && strcmp(allhentries[i].mappingname, mappingname) == 0) || (ot->aliasname != NULL && strcmp(allhentries[i].obstypename, ot->aliasname) == 0 && strcmp(allhentries[i].mappingname, mappingname) == 0))
             return allhentries[i].H;
 
-    enkf_printf("\n\n  ERROR: no H function \"%s\" for observation type \"%s\"\n\n", mappingname, obstypename);
-    describe_hentries(obstypename);
+    enkf_printf("\n\n  ERROR: no H function \"%s\" for observation type \"%s\"\n\n", mappingname, ot->name);
+    if (ot->aliasname != NULL)
+        enkf_printf("    or for the aliased observation type \"%s\"\n", ot->aliasname);
+    describe_hentries(ot->name);
     enkf_quit("getH(): bailing out");
     return NULL;
 }

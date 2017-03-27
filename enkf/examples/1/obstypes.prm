@@ -15,6 +15,16 @@ MAXVALUE = 42.0
 # Increase rfactor for SST to avoid overfitting.
 RFACTOR = 2
 
+NAME = SST2
+ALIAS = SST
+VAR = temp
+ISSURFACE = yes
+HFUNCTION = standard
+MINVALUE = -2.0
+MAXVALUE = 42.0
+# Increase rfactor for SST to avoid overfitting.
+RFACTOR = 2
+
 NAME = TEM
 VAR = temp
 ISSURFACE = no

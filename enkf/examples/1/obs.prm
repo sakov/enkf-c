@@ -17,7 +17,7 @@ FILE = obs/NAVO/navo_20071222.nc
 FILE = obs/NAVO/navo_20071223.nc
 
 PRODUCT = WindSat
-TYPE = SST
+TYPE = SST2
 READER = standard
 FILE = obs/WINDSAT/windsat_20071219.nc
 FILE = obs/WINDSAT/windsat_20071220.nc

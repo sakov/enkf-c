@@ -1,3 +1,10 @@
+v. 1.56.0
+   PS 27032017
+   -- Introduced a new optional field "ALIAS" for observation types. This
+      allows one to add a new observation type without re-compiling the code.
+      This can be useful e.g. for evaluating a new instrument (by getting an
+      independent statistics for the new instrument and seeing the change in
+      statistics for the old instruments).
 v. 1.55.4
    PS 24032017
    -- Added 0.17 to H8 SST to get the foundation temperature.

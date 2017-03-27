@@ -18,6 +18,7 @@
 typedef struct {
     int id;
     char* name;
+    char* aliasname;
     int nvar;
     char** varnames;
     char* offset_fname;

@@ -20,7 +20,7 @@
 typedef void (*H_fn) (dasystem* das, int nobs, int obsids[], char fname[], int mem, int t, void* psrc, ENSOBSTYPE dst[]);
 
 void describe_hentries(char* obstypename);
-H_fn getH(char obstypename[], char mappingname[]);
+H_fn getH(obstype* ot, char mappingname[]);
 
 #define _ALLHS_H
 #endif

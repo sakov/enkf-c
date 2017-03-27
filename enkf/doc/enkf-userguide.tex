@@ -35,7 +35,7 @@
 
 \begin{document}
 
-\title{EnKF-C user guide\\{\normalsize version 1.51.0}}
+\title{EnKF-C user guide\\{\normalsize version 1.56.0}}
 
 \author{Pavel Sakov}
 \date{June 19, 2014 -- \today}
@@ -793,6 +793,7 @@ For example:
   Observation types parameter file format:
 
     NAME        = <name>
+  [ ALIAS       = <name> ]                         (none*)
     VAR         = <model variable name> [...]
     ISSURFACE   = { yes | no }
   [ OFFSET      = <file name> <variable name> ]    (none*)
@@ -822,6 +823,11 @@ common value from the main parameter file.
 The R-factors for each observation type are obtained by multiplying the common
 value by the observation type value.
 (More on localisation radius and R-factor in sec.~\ref{sec:datuning}.)
+
+The entry \verb|OFFSET| allows one to add a new observation type without re-compiling the code.
+This can be useful e.g. for evaluating a new instrument (by getting an independent statistics for the new instrument and seeing the change in statistics for the old instruments).
+
+The entries \verb|MLD_VARNAME| and \verb|MLD_THRESH| are used to calculate the model mixed layer depth for projecting the surface bias.
 
 \subsection{Observation data parameter file}
 
