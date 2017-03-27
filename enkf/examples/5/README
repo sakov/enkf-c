@@ -1,0 +1,18 @@
+This is example 5 for the EnKF-C package. It is equivalent to example 1 except
+that the SST observations are split into SST and SST2 observation types.
+
+PREREQUISITES
+
+Set up example 1 as described in ../1/README.
+
+TESTING ENKF
+
+To assimilate with the EnKF, run "make enkf".
+The analysed ensemble members will be of the form 
+ensemble_6565/mem<num>_<var>.nc.analysis, where <num> is the member id, between
+001 and 096, and <var> is one of the state variables: eta_t, temp, salt, u or v.
+
+TESTING ENOI
+
+To assimilate with the EnOI, run "make enoi". The analysis will be of the form
+background/bg_<var>.nc.analysis.

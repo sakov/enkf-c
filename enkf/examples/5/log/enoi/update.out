@@ -1,0 +1,125 @@
+  MPI: initialised 2 process(es)
+  MPI: rank = 0, PID = 26417
+  MPI: rank = 1, PID = 26418
+  running UPDATE for EnKF-C version 1.56.0:
+    command = "./enkf_update --calculate-spread enoi.prm"
+    dir = "/home/pavel/src/enkf-c/trunk/enkf/examples/5"
+  2017-03-27 15:38:27
+  reading system specs from "enoi.prm":
+    MODE = EnOI
+    MODEL PRM = "model.prm"
+    GRID PRM = "grid.prm"
+    OBS TYPES PRM = "obstypes.prm"
+    DATE = "6565.5 days since 1990-01-01"
+    OBS PRM = "obs.prm"
+    BGDIR = "background_6565"
+    ENSEMBLE DIR = "ensemble_static"
+    ENSEMBLE SIZE = 144
+    RFACTOR BASE = 1.0
+    INFLATION BASE = 1.0000
+    INFLATION MODE = SPREAD LIMITED, MAX RATIO = 1.00
+    KFACTOR = 999.0
+    LOCRAD = 200
+    STRIDE = 3
+    FIELDBUFFERSIZE = 4
+    REGION Global: x = [0.0, 360.0], y = [-90.0, 90.0], z intervals = [0 50] [50 500] [500 9999] 
+    POINTLOG 30 50
+    SOBSTRIDE = 1
+    EnKF flags:
+      enkf_exitaction  = [BACKTRACE]
+      enkf_obstype     = [VALUE]
+    compile flags:
+      CHECK_X5         = [-]
+      CHECK_G          = [-]
+      SHUFFLE_ROWS     = [-]
+      HE_VIAFILE       = [-]
+      GRIDNODES_WRITE  = [-]
+      INTERNAL_QSORT_R = [-]
+      NO_GRIDUTILS     = [-]
+      ZSIGN_NOCHECK    = [-]
+      OBS_SHUFFLE      = [-]
+  update specs:
+    do model fields  = [+]
+    do spread        = [+]
+    do pointlogs     = [+]
+    separate output  = [+]
+  initialising the system:
+    grid prm info:
+      NAME = "t-grid"
+      DATA = "conf/grid_spec.nc"
+      MAPTYPE = "B"
+      VTYPE = "z"
+      XDIMNAME = "i"
+      YDIMNAME = "j"
+      ZDIMNAME = "k"
+      XVARNAME = "lon"
+      YVARNAME = "lat"
+      ZVARNAME = "zt"
+      DEPTHVARNAME = "depth_t"
+      NUMLEVELSVARNAME = "num_levels"
+    grid info:
+      hor type = LATLON
+      periodic by X = no
+      dims = 100 x 100 x 2
+      longitude range = [0.000, 360.000]
+      vert type = Z
+    model info:
+      name = Tasman
+      5 variables:
+        eta_t:
+          grid = "t-grid"
+          inflation = 1.000 1.00
+        temp:
+          grid = "t-grid"
+          inflation = 1.000 1.00
+        salt:
+          grid = "t-grid"
+          inflation = 1.000 1.00
+        u:
+          grid = "t-grid"
+          inflation = 1.000 1.00
+        v:
+          grid = "t-grid"
+          inflation = 1.000 1.00
+      0 modeldata:
+  updating the model state:
+    144 members
+    allocating disk space for spread:
+    defining state variables in point logs:
+    allocating disk space for the analysis:    2017-03-27 15:38:27
+.....
+    2017-03-27 15:38:27
+    updating fields for t-grid:
+      9 fields
+      distributing iterations:
+        processes get 5 or 4 iterations
+      u        0   (1: 5: 25.0%)
+      eta_t    0   (0: 0: 20.0%)
+      temp     0   (0: 1: 40.0%)
+      u        1   (1: 6: 50.0%)
+      temp     1   (0: 2: 60.0%)
+      v        0   (1: 7: 75.0%)
+      salt     0   (0: 3: 80.0%)
+      v        1   (1: 8: 100.0%)
+      salt     1   (0: 4: 100.0%)
+  2017-03-27 15:38:28
+  assembling analysis:
+    eta_t:.
+    temp:..
+    salt:..
+    u:..
+    v:..
+  assembling spread:
+    eta_t:.
+    temp:..
+    salt:..
+    u:..
+    v:..
+  assembling state variables in point logs:
+    distributing iterations:
+      processes get 1 or 0 iterations
+    deleting tiles:
+      distributing iterations:
+        processes get 5 or 4 iterations
+  2017-03-27 15:38:28
+  finished
