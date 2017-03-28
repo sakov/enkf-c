@@ -1,3 +1,6 @@
+v. 1.56.3
+   PS 28032017
+   -- Corrected obs_addtype() to initialise the new field `aliasname'.
 v. 1.56.2
    PS 28032017
    -- Eliminated H_sla_bran().

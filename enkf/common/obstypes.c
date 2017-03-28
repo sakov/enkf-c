@@ -112,7 +112,7 @@ static void obstype_print(obstype* type)
 
     enkf_printf("    NAME = %s\n", type->name);
     if (type->aliasname != NULL)
-    enkf_printf("    ALIAS = %s\n", type->aliasname);
+        enkf_printf("    ALIAS = %s\n", type->aliasname);
     enkf_printf("      VAR =");
     for (i = 0; i < type->nvar; ++i)
         enkf_printf(" %s", type->varnames[i]);
