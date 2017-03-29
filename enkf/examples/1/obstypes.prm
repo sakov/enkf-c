@@ -2,7 +2,7 @@ NAME = SLA
 KIND = SURFACE
 VAR = eta_t
 OFFSET = conf/eta_mean-bran.nc eta_t
-HFUNCTION = standard+
+HFUNCTION = standard
 MINVALUE = -1.0
 MAXVALUE = 1.0
 
