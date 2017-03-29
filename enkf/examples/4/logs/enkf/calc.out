@@ -1,10 +1,10 @@
   MPI: initialised 2 process(es)
-  MPI: rank = 0, PID = 17370
-  MPI: rank = 1, PID = 17371
-  running CALC for EnKF-C version 1.57.0:
+  MPI: rank = 0, PID = 19409
+  MPI: rank = 1, PID = 19410
+  running CALC for EnKF-C version 1.59.0:
     command = "./enkf_calc enkf.prm"
     dir = "/home/pavel/src/enkf-c/trunk/enkf/examples/4"
-  2017-03-29 11:50:21
+  2017-03-30 09:44:02
   reading system specs from "enkf.prm":
     MODE = EnKF
     SCHEME = DEnKF
@@ -25,6 +25,9 @@
     REGION Global: x = [0.0, 360.0], y = [-90.0, 90.0], z intervals = [0 50] [50 500] [500 9999] 
     POINTLOG 30 50
     SOBSTRIDE = 1
+    NCFORMAT = 64BIT
+    NCCOMPRESSION = 0
+, prm->nccompression
     EnKF flags:
       enkf_exitaction  = [BACKTRACE]
       enkf_obstype     = [VALUE]
@@ -41,7 +44,7 @@
   initialising the system:
   reading observation type specs from "obstypes.prm":
     NAME = SLA
-    KIND = SURFACE
+    ISSURFACE = 1
       VAR = eta_t
       ID = 0
       OFFSET = conf/eta_mean-bran.nc eta_t
@@ -53,7 +56,7 @@
       WEIGHT =  1
       RFACTOR = 2
     NAME = SST
-    KIND = SURFACE
+    ISSURFACE = 1
       VAR = temp
       ID = 1
       HFUNCTION = standard
@@ -64,7 +67,7 @@
       WEIGHT =  1
       RFACTOR = 4
     NAME = TEM
-    KIND = SUBSURFACE
+    ISSURFACE = 0
       VAR = temp
       ID = 2
       HFUNCTION = standard
@@ -75,7 +78,7 @@
       WEIGHT =  1
       RFACTOR = 8
     NAME = SAL
-    KIND = SUBSURFACE
+    ISSURFACE = 0
       VAR = salt
       ID = 3
       HFUNCTION = standard
@@ -146,7 +149,7 @@
     3864 observations
     calculating obs stats:
   calculating ensemble observations:
-  2017-03-29 11:50:21
+  2017-03-30 09:44:02
     ensemble size = 96
     distributing iterations:
       all processes get 48 iterations
@@ -155,7 +158,7 @@
     TEM ................................................
     SAL ................................................
   adding forecast innovations and spread to "observations.nc":
-  2017-03-29 11:50:21
+  2017-03-30 09:44:02
   moderating observations:
     observations substantially modified:
       SLA          0 (0.0%)
@@ -165,7 +168,7 @@
       total        0 (0.0%)
   writing modified obs errors to "observations.nc":
   calculating transforms:
-  2017-03-29 11:50:21
+  2017-03-30 09:44:02
     creating kd-trees for observations:
     calculating transforms for t-grid:
       creating empty file "X5-0.nc":
@@ -186,26 +189,26 @@
         j = 30 (0: 5: 35.3%)
         j = 39 (1: 23: 41.2%)
         j = 36 (0: 6: 41.2%)
-        j = 45 (1: 24: 47.1%)
         j = 42 (0: 7: 47.1%)
+        j = 45 (1: 24: 47.1%)
         j = 51 (1: 25: 52.9%)
         j = 48 (0: 8: 52.9%)
         j = 57 (1: 26: 58.8%)
         j = 54 (0: 9: 58.8%)
-        j = 63 (1: 27: 64.7%)
         j = 60 (0: 10: 64.7%)
-        j = 69 (1: 28: 70.6%)
+        j = 63 (1: 27: 64.7%)
         j = 66 (0: 11: 70.6%)
-        j = 75 (1: 29: 76.5%)
+        j = 69 (1: 28: 70.6%)
         j = 72 (0: 12: 76.5%)
-        j = 81 (1: 30: 82.4%)
+        j = 75 (1: 29: 76.5%)
         j = 78 (0: 13: 82.4%)
+        j = 81 (1: 30: 82.4%)
         j = 87 (1: 31: 88.2%)
         j = 84 (0: 14: 88.2%)
-        j = 93 (1: 32: 94.1%)
         j = 90 (0: 15: 94.1%)
-        j = 99 (1: 33: 100.0%)
+        j = 93 (1: 32: 94.1%)
         j = 96 (0: 16: 100.0%)
+        j = 99 (1: 33: 100.0%)
     finished calculating transforms for t-grid
     writing stats to "enkf_diag-0.nc":
     summary stats on t-grid:
@@ -222,12 +225,12 @@
         j = 3 (1: 17: 5.9%)
         j = 9 (1: 18: 11.8%)
         j = 6 (0: 1: 11.8%)
-        j = 15 (1: 19: 17.6%)
         j = 12 (0: 2: 17.6%)
-        j = 21 (1: 20: 23.5%)
+        j = 15 (1: 19: 17.6%)
         j = 18 (0: 3: 23.5%)
-        j = 27 (1: 21: 29.4%)
+        j = 21 (1: 20: 23.5%)
         j = 24 (0: 4: 29.4%)
+        j = 27 (1: 21: 29.4%)
         j = 33 (1: 22: 35.3%)
         j = 30 (0: 5: 35.3%)
         j = 39 (1: 23: 41.2%)
@@ -238,8 +241,8 @@
         j = 48 (0: 8: 52.9%)
         j = 57 (1: 26: 58.8%)
         j = 54 (0: 9: 58.8%)
-        j = 63 (1: 27: 64.7%)
         j = 60 (0: 10: 64.7%)
+        j = 63 (1: 27: 64.7%)
         j = 69 (1: 28: 70.6%)
         j = 66 (0: 11: 70.6%)
         j = 75 (1: 29: 76.5%)
@@ -263,7 +266,7 @@
     calculating transform for log point (30, 50): 538 obs
     writing the log for point (30, 50) on grid "t-grid":
   calculating analysed observations:
-  2017-03-29 11:50:39
+  2017-03-30 09:44:21
     sorting obs by ij:
     updating HE:
   adding analysis innovations and spread to "observations.nc":
@@ -289,5 +292,5 @@
              0-50m         2    0.088      0.119      0.074      0.082      0.023      0.018  
              50-500m       5    0.072      0.075      0.047      0.036      0.032      0.024  
              500-9999m     0     -nan       -nan       -nan       -nan       -nan       -nan  
-  2017-03-29 11:50:40
+  2017-03-30 09:44:21
   finished

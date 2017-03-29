@@ -22,53 +22,53 @@
 #include "allhs.h"
 
 typedef struct {
-    char* obstypekind;
-    char* mappingname;
+    int issurface;
+    char* H_tag;
     H_fn H;
 } H_entry;
 
 H_entry allhentries[] = {
-    {"SURFACE", "standard", H_surf_standard},
-    {"SURFACE", "biased", H_surf_biased},
-    {"SUBSURFACE", "standard", H_subsurf_standard},
-    {"SUBSURFACE", "wsurfbias", H_subsurf_wsurfbias}
+    {1, "standard", H_surf_standard},
+    {1, "biased", H_surf_biased},
+    {0, "standard", H_subsurf_standard},
+    {0, "wsurfbias", H_subsurf_wsurfbias}
 };
 
 /** List H-functions for all observation types (obstypename = NULL) or for
  ** observations of particular type specified by `obstypename'.
  */
-void describe_hentries(char* obstypekind)
+void describe_hentries(int issurface)
 {
     int nhentries = sizeof(allhentries) / sizeof(H_entry);
     int i;
 
-    if (obstypekind == NULL) {
+    if (issurface == -1) {
         enkf_printf("  Available H functions:\n");
-        enkf_printf("    obs. type kind    H function\n");
+        enkf_printf("    surface flag    H function\n");
         enkf_printf("    ----------------------------\n");
         for (i = 0; i < nhentries; ++i)
-            enkf_printf("     %10s     %s\n", allhentries[i].obstypekind, allhentries[i].mappingname);
+            enkf_printf("     %5d     %s\n", allhentries[i].issurface, allhentries[i].H_tag);
     } else {
-        enkf_printf("  Available H functions for observation kind \"%s\":\n", obstypekind);
+        enkf_printf("  Available H functions for %s observations:\n", (issurface) ? "surface" : "subsurface");
         for (i = 0; i < nhentries; ++i)
-            if (strcmp(obstypekind, allhentries[i].obstypekind) == 0)
-                enkf_printf("    %s\n", allhentries[i].mappingname);
+            if (issurface == allhentries[i].issurface)
+                enkf_printf("    %s\n", allhentries[i].H_tag);
     }
 }
 
 /**
  */
-H_fn getH(obstype* ot, char mappingname[])
+H_fn getH(obstype* ot, char H_tag[])
 {
     int nhentries = sizeof(allhentries) / sizeof(H_entry);
     int i;
 
     for (i = 0; i < nhentries; ++i)
-        if (strcmp(allhentries[i].obstypekind, ot->kind) == 0 && strcmp(allhentries[i].mappingname, mappingname) == 0)
+        if (allhentries[i].issurface == ot->issurface && strcmp(allhentries[i].H_tag, H_tag) == 0)
             return allhentries[i].H;
 
-    enkf_printf("\n\n  ERROR: no H function \"%s\" for observation kind \"%s\"\n\n", mappingname, ot->kind);
-    describe_hentries(ot->kind);
+    enkf_printf("\n\n  ERROR: no H function \"%s\" for %s observations\n\n", H_tag, (ot->issurface) ? "surface" : "subsurface");
+    describe_hentries(ot->issurface);
     enkf_quit("getH(): bailing out");
     return NULL;
 }

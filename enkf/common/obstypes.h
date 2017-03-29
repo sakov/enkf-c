@@ -17,8 +17,8 @@
 
 typedef struct {
     int id;
-    char* kind;
     char* name;
+    int issurface;
     int nvar;
     char** varnames;
     char* offset_fname;
@@ -26,7 +26,6 @@ typedef struct {
     char* mld_varname;
     double mld_threshold;
     char* hfunction;
-    int issurface;
     double allowed_min;
     double allowed_max;
     int isasync;

@@ -35,7 +35,7 @@
 
 \begin{document}
 
-\title{EnKF-C user guide\\{\normalsize version 1.57.0}}
+\title{EnKF-C user guide\\{\normalsize version 1.59.0}}
 
 \author{Pavel Sakov}
 \date{June 19, 2014 -- \today}
@@ -793,12 +793,12 @@ For example:
   Observation types parameter file format:
 
     NAME        = <name>
-    KIND        = <kind tag>
+    ISSURFACE   = {0 | 1}
     VAR         = <model variable name> [...]
   [ OFFSET      = <file name> <variable name> ]    (none*)
   [ MLD_VARNAME = <model varname> ]                (none*)
   [ MLD_THRESH  = <threshold> ]                    (NaN*)
-    HFUNCTION   = <H function name>
+    HFUNCTION   = <H function tag>
   [ ASYNC       = <time interval> ]                (synchronous*)
   [ LOCRAD      = <locrad> ... ]                   (global*)
   [ WEIGHT      = <weight> ... ]                   (1*)
@@ -815,7 +815,7 @@ For example:
   [ <more of the above blocks> ]
 \end{Verbatim}
 
-The tags for available observation kinds are listed in array \verb|allkinds| in file \verb|common/obstypes.c|, and the tags for available observation operators are listed in array \verb|allhentries| in file \verb|calc/allhs.c|.
+The tags for available observation operators are listed in array \verb|allhentries| in file \verb|calc/allhs.c|.
 
 The \verb|OFFSET| entry may be used for adding the known model bias to observations, for example, to specify the mean dynamic topography (MDT) when assimilating sea level anomaly (SLA) observations.
 

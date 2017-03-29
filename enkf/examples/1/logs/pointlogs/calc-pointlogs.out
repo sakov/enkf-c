@@ -1,10 +1,10 @@
   MPI: initialised 2 process(es)
-  MPI: rank = 0, PID = 16907
-  MPI: rank = 1, PID = 16908
-  running CALC for EnKF-C version 1.57.0:
+  MPI: rank = 0, PID = 18741
+  MPI: rank = 1, PID = 18742
+  running CALC for EnKF-C version 1.59.0:
     command = "./enkf_calc --point-logs-only pointlogs.prm"
     dir = "/home/pavel/src/enkf-c/trunk/enkf/examples/1"
-  2017-03-29 11:46:24
+  2017-03-30 09:34:14
   reading system specs from "pointlogs.prm":
     MODE = EnKF
     SCHEME = DEnKF
@@ -27,6 +27,9 @@
     POINTLOG 50 50
     POINTLOG 70 50
     SOBSTRIDE = 1
+    NCFORMAT = 64BIT
+    NCCOMPRESSION = 0
+, prm->nccompression
     EnKF flags:
       enkf_exitaction  = [BACKTRACE]
       enkf_obstype     = [VALUE]
@@ -43,7 +46,7 @@
   initialising the system:
   reading observation type specs from "obstypes.prm":
     NAME = SLA
-    KIND = SURFACE
+    ISSURFACE = 1
       VAR = eta_t
       ID = 0
       OFFSET = conf/eta_mean-bran.nc eta_t
@@ -55,7 +58,7 @@
       WEIGHT =  1
       RFACTOR = 2
     NAME = SST
-    KIND = SURFACE
+    ISSURFACE = 1
       VAR = temp
       ID = 1
       HFUNCTION = standard
@@ -66,7 +69,7 @@
       WEIGHT =  1
       RFACTOR = 4
     NAME = TEM
-    KIND = SUBSURFACE
+    ISSURFACE = 0
       VAR = temp
       ID = 2
       HFUNCTION = standard
@@ -77,7 +80,7 @@
       WEIGHT =  1
       RFACTOR = 8
     NAME = SAL
-    KIND = SUBSURFACE
+    ISSURFACE = 0
       VAR = salt
       ID = 3
       HFUNCTION = standard
@@ -129,7 +132,7 @@
     3864 observations
     calculating obs stats:
   calculating ensemble observations:
-  2017-03-29 11:46:24
+  2017-03-30 09:34:14
     ensemble size = 96
     distributing iterations:
       all processes get 48 iterations
@@ -138,7 +141,7 @@
     TEM ................................................
     SAL ................................................
   adding forecast innovations and spread to "observations.nc":
-  2017-03-29 11:46:24
+  2017-03-30 09:34:14
   Hx already added to "observations.nc" (skipping)
   moderating observations:
     observations substantially modified:
@@ -156,5 +159,5 @@
     writing the log for point (50, 50) on grid "t-grid":
     calculating transform for log point (70, 50): 466 obs
     writing the log for point (70, 50) on grid "t-grid":
-  2017-03-29 11:46:25
+  2017-03-30 09:34:14
   finished

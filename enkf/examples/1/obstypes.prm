@@ -1,5 +1,5 @@
 NAME = SLA
-KIND = SURFACE
+ISSURFACE = 1
 VAR = eta_t
 OFFSET = conf/eta_mean-bran.nc eta_t
 HFUNCTION = standard
@@ -7,7 +7,7 @@ MINVALUE = -1.0
 MAXVALUE = 1.0
 
 NAME = SST
-KIND = SURFACE
+ISSURFACE = 1
 VAR = temp
 HFUNCTION = standard
 MINVALUE = -2.0
@@ -16,7 +16,7 @@ MAXVALUE = 42.0
 RFACTOR = 2
 
 NAME = TEM
-KIND = SUBSURFACE
+ISSURFACE = 0
 VAR = temp
 HFUNCTION = standard
 MINVALUE = -2.0
@@ -29,7 +29,7 @@ LOCRAD = 800
 RFACTOR = 4
 
 NAME = SAL
-KIND = SUBSURFACE
+ISSURFACE = 0
 VAR = salt
 HFUNCTION = standard
 MINVALUE = 28.0

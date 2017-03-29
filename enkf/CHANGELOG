@@ -1,3 +1,6 @@
+v. 1.59.0
+   PS 30032017
+   -- Replaced KIND entry in observation types parameter file by ISSURFACE.
 v. 1.58.0
    PS 29032017
    -- Added two new entries NCFORMAT and NCCOMPRESSION to the main parameter

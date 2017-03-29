@@ -1,7 +1,7 @@
-  running PREP for EnKF-C version 1.57.0:
+  running PREP for EnKF-C version 1.59.0:
     command = "./enkf_prep enoi.prm"
     dir = "/home/pavel/src/enkf-c/trunk/enkf/examples/5"
-  2017-03-29 11:53:16
+  2017-03-30 09:47:12
   reading prep specs from "enoi.prm":
     MODE = EnOI
     MODEL PRM = "model.prm"
@@ -22,6 +22,9 @@
     REGION Global: x = [0.0, 360.0], y = [-90.0, 90.0], z intervals = [0 50] [50 500] [500 9999] 
     POINTLOG 30 50
     SOBSTRIDE = 1
+    NCFORMAT = 64BIT
+    NCCOMPRESSION = 0
+, prm->nccompression
     EnKF flags:
       enkf_exitaction  = [BACKTRACE]
       enkf_obstype     = [VALUE]
@@ -119,7 +122,7 @@
       0 modeldata:
   reading observation type specs from "obstypes.prm":
     NAME = SLA
-    KIND = SURFACE
+    ISSURFACE = 1
       VAR = eta_t
       ID = 0
       OFFSET = conf/eta_mean-bran.nc eta_t
@@ -131,7 +134,7 @@
       WEIGHT =  1
       RFACTOR = 1
     NAME = SST
-    KIND = SURFACE
+    ISSURFACE = 1
       VAR = temp
       ID = 1
       HFUNCTION = standard
@@ -142,7 +145,7 @@
       WEIGHT =  1
       RFACTOR = 2
     NAME = SST2
-    KIND = SURFACE
+    ISSURFACE = 1
       VAR = temp
       ID = 2
       HFUNCTION = standard
@@ -153,7 +156,7 @@
       WEIGHT =  1
       RFACTOR = 2
     NAME = TEM
-    KIND = SUBSURFACE
+    ISSURFACE = 0
       VAR = temp
       ID = 3
       HFUNCTION = standard
@@ -164,7 +167,7 @@
       WEIGHT =  1
       RFACTOR = 4
     NAME = SAL
-    KIND = SUBSURFACE
+    ISSURFACE = 0
       VAR = salt
       ID = 4
       HFUNCTION = standard
@@ -367,5 +370,5 @@ ls: cannot access obs/WINDSAT/windsat_20071223.nc: No such file or directory
     TEM     184        104        104        0          0          0          0          7         
     SAL     184        104        104        0          0          0          0          7         
     total   9595       211        208        0          3          0          0          4184      
-  2017-03-29 11:53:17
+  2017-03-30 09:47:12
   finished

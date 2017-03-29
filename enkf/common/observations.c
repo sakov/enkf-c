@@ -53,7 +53,7 @@ void obs_addtype(observations* obs, obstype* src, obsdomain* domain)
     ot = &obs->obstypes[obs->nobstypes];
     ot->id = obs->nobstypes;
     ot->name = strdup(src->name);
-    ot->kind = strdup(src->kind);
+    ot->issurface = src->issurface;
     ot->nvar = src->nvar;
     ot->varnames = malloc(src->nvar * sizeof(char*));
     for (i = 0; i < src->nvar; ++i)
@@ -63,7 +63,6 @@ void obs_addtype(observations* obs, obstype* src, obsdomain* domain)
     ot->mld_varname = (src->mld_varname != NULL) ? strdup(src->mld_varname) : NULL;
     ot->mld_threshold = src->mld_threshold;
     ot->hfunction = strdup(src->hfunction);
-    ot->issurface = src->issurface;
     ot->allowed_min = src->allowed_min;
     ot->allowed_max = src->allowed_max;
     ot->isasync = src->isasync;

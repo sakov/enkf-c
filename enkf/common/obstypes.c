@@ -25,16 +25,6 @@
 #include "utils.h"
 #include "obstypes.h"
 
-typedef struct {
-    char* kind;
-    int issurface;
-} otdesc;
-
-otdesc allkinds[] = {
-    {"SURFACE", 1},
-    {"SUBSURFACE", 0}
-};
-
 #define NVAR_INC 10
 
 /**
@@ -58,7 +48,7 @@ int obstype_getid(int n, obstype types[], char* name, int hastosucceed)
 static void obstype_new(obstype* type, int i, char* name)
 {
     type->id = i;
-    type->kind = NULL;
+    type->issurface = -1;
     type->name = strdup(name);
     type->nvar = 0;
     type->varnames = NULL;
@@ -104,8 +94,8 @@ static void obstype_new(obstype* type, int i, char* name)
 static void obstype_check(obstype* type)
 {
     assert(type->name != NULL);
-    if (type->kind == NULL)
-        enkf_quit("\"%s\": KIND not specified\n", type->name);
+    if (type->issurface == -1)
+        enkf_quit("\"%s\": ISSURFACE not specified\n", type->name);
     if (type->rfactor <= 0)
         enkf_quit("\"%s\": RFACTOR = %f\n", type->name);
     if (type->nvar == 0)
@@ -121,7 +111,7 @@ static void obstype_print(obstype* type)
     int i;
 
     enkf_printf("    NAME = %s\n", type->name);
-    enkf_printf("    KIND = %s\n", type->kind);
+    enkf_printf("    ISSURFACE = %d\n", (type->issurface) ? 1 : 0);
     enkf_printf("      VAR =");
     for (i = 0; i < type->nvar; ++i)
         enkf_printf(" %s", type->varnames[i]);
@@ -189,10 +179,13 @@ void obstypes_read(char fname[], int* n, obstype** types, double locrad_base, do
         if (now == NULL)
             enkf_quit("%s, l.%d: NAME not specified", fname, line);
 
-        if (strcasecmp(token, "KIND") == 0) {
+        if (strcasecmp(token, "ISSURFACE") == 0) {
             if ((token = strtok(NULL, seps)) == NULL)
-                enkf_quit("%s, l.%d: KIND not specified", fname, line);
-            now->kind = strdup(token);
+                enkf_quit("%s, l.%d: ISSURFACE not specified", fname, line);
+            if (now->issurface >= 0)
+                enkf_quit("%s, l.%d: ISSURFACE already specified", fname, line);
+            if (!str2int(token, &now->issurface))
+                enkf_quit("%s, l.%d: could not convert \"%s\" to integer", fname, line, token);
         } else if (strcasecmp(token, "VAR") == 0) {
             if ((token = strtok(NULL, seps)) == NULL)
                 enkf_quit("%s, l.%d: VAR not specified", fname, line);
@@ -325,21 +318,6 @@ void obstypes_read(char fname[], int* n, obstype** types, double locrad_base, do
 
     for (i = 0; i < *n; ++i) {
         obstype* type = &(*types)[i];
-        int nkinds = sizeof(allkinds) / sizeof(otdesc);
-        int ii;
-
-        for (ii = 0; ii < nkinds; ++ii)
-            if (strncasecmp(type->kind, allkinds[ii].kind, MAXSTRLEN) == 0) {
-                type->issurface = allkinds[ii].issurface;
-                break;
-            }
-        if (ii == nkinds) {
-            enkf_printf("\n\n  ERROR: %s: unknown observation kind \"%s\"\n\n", fname, type->kind);
-            enkf_printf("  available observation kinds:\n");
-            for (ii = 0; ii < nkinds; ++ii)
-                enkf_printf("    %s\n", allkinds[ii].kind);
-            enkf_quit("bailing out");
-        }
 
         if (type->nlocrad == 0) {
             type->locrad = malloc(sizeof(double));
@@ -385,7 +363,6 @@ void obstypes_destroy(int n, obstype* types)
         obstype* type = &types[i];
 
         free(type->name);
-        free(type->kind);
         for (j = 0; j < type->nvar; ++j)
             free(type->varnames[j]);
         free(type->varnames);
@@ -411,7 +388,7 @@ void obstypes_describeprm(void)
     enkf_printf("  Observation types parameter file format:\n");
     enkf_printf("\n");
     enkf_printf("    NAME        = <name>\n");
-    enkf_printf("    KIND        = <kind tag>\n");
+    enkf_printf("    ISSURFACE   = {0 | 1}\n");
     enkf_printf("    VAR         = <model variable name> [...]\n");
     enkf_printf("  [ OFFSET      = <file name> <variable name> ]    (none*)\n");
     enkf_printf("  [ MLD_VARNAME = <model varname> ]                (none*)\n");
