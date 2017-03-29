@@ -143,6 +143,8 @@ observations* obs_create(void)
     obs->nmissed = 0;
     obs->nmodified = 0;
     obs->badbatches = NULL;
+    obs->ncformat = NETCDF_FORMAT;
+    obs->nccompression = 0;
 
     return obs;
 }
@@ -202,6 +204,9 @@ observations* obs_create_fromprm(enkfprm* prm)
     }
 #endif
 
+    obs->ncformat = prm->ncformat;
+    obs->nccompression = prm->nccompression;
+
     return obs;
 }
 
@@ -258,6 +263,9 @@ observations* obs_create_fromdata(observations* parentobs, int nobs, observation
 
     obs->nobs = nobs;
     obs->data = data;
+
+    obs->ncformat = parentobs->ncformat;
+    obs->nccompression = parentobs->nccompression;
 
     return obs;
 }
@@ -690,7 +698,7 @@ void obs_write(observations* obs, char fname[])
 
     if (file_exists(fname))
         enkf_quit("file \"%s\" already exists", fname);
-    ncw_create(fname, NC_NOCLOBBER | NETCDF_FORMAT, &ncid);
+    ncw_create(fname, NC_NOCLOBBER | obs->ncformat, &ncid);
 
     ncw_put_att_double(ncid, NC_GLOBAL, "DA_JULDAY", 1, &obs->da_date);
 
@@ -750,6 +758,8 @@ void obs_write(observations* obs, char fname[])
         ncw_put_att_text(ncid, varid_fid, attname, datafile);
     }
 
+    if (obs->nccompression > 0)
+        ncw_def_deflate(ncid, 0, 1, obs->nccompression);
     ncw_enddef(ncid);
 
     id = malloc(nobs * sizeof(int));

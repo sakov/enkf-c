@@ -18,6 +18,7 @@
 #include <string.h>
 #include <float.h>
 #include <math.h>
+#include "ncw.h"
 #include "definitions.h"
 #include "utils.h"
 #include "enkfprm.h"
@@ -61,6 +62,12 @@ static void enkfprm_check(enkfprm* prm)
     if (!isfinite(prm->locrad) && !enkf_fstatsonly)
         enkf_quit("%s: LOCRAD not specified", prm->fname);
 #endif
+    if (prm->ncformat != NC_CLASSIC_MODEL && prm->ncformat != NC_64BIT_OFFSET && prm->ncformat != NC_NETCDF4)
+        enkf_quit("programming error");
+    if (prm->nccompression > 0 && prm->ncformat != NC_NETCDF4)
+        enkf_quit("%s: NCFORMAT must be set to NETCDF4 when NCCOMPRESSION > 0\n", prm->fname);
+    if (prm->nccompression < 0 || prm->nccompression > 9)
+        enkf_quit("%s: NCCOMPRESSION must be in the interval between 0 and 9\n", prm->fname);
 }
 
 /**
@@ -95,6 +102,8 @@ enkfprm* enkfprm_read(char fname[])
     prm->stride = 1;
     prm->fieldbufsize = 1;
     prm->sob_stride = 1;
+    prm->ncformat = NC_64BIT_OFFSET;
+    prm->nccompression = 0;
 
     f = enkf_fopen(fname, "r");
     line = 0;
@@ -374,6 +383,22 @@ enkfprm* enkfprm_read(char fname[])
                     enkf_quit("%s, l.%d: could convert \"%s\" to integer", fname, line, token);
             }
             prm->nbadbatchspecs++;
+        } else if (strcasecmp(token, "NCFORMAT") == 0) {
+            if ((token = strtok(NULL, seps)) == NULL)
+                enkf_quit("%s, l.%d: NCFORMAT not specified", fname, line);
+            if (strcasecmp(token, "CLASSIC") == 0)
+                prm->ncformat = NC_CLASSIC_MODEL;
+            else if (strcasecmp(token, "64BIT") == 0)
+                prm->ncformat = NC_64BIT_OFFSET;
+            else if (strcasecmp(token, "NETCDF4") == 0)
+                prm->ncformat = NC_NETCDF4;
+            else
+                enkf_quit("%s, l.%d: could not recognise specified NetCDF format\"%s\"", fname, line, token);
+        } else if (strcasecmp(token, "NCCOMPRESSION") == 0) {
+            if ((token = strtok(NULL, seps)) == NULL)
+                enkf_quit("%s, l.%d: NCCOMPRESSION not specified", fname, line);
+            if (!str2int(token, &prm->nccompression))
+                enkf_quit("%s, l.%d: could not convert NCCOMPRESSION value", fname, line);
         } else
             enkf_quit("%s, l.%d: unknown token \"%s\"", fname, line, token);
     }                           /* while */
@@ -554,6 +579,15 @@ void enkfprm_print(enkfprm* prm, char offset[])
 
         enkf_printf("%sBADBATCHES = %s %.3f %.3f %d\n", offset, bb->obstype, bb->maxbias, bb->maxmad, bb->minnobs);
     }
+    if (prm->ncformat == NC_CLASSIC_MODEL)
+        enkf_printf("%sNCFORMAT = CLASSIC\n", offset);
+    else if (prm->ncformat == NC_64BIT_OFFSET)
+        enkf_printf("%sNCFORMAT = 64BIT\n", offset);
+    else if (prm->ncformat == NC_NETCDF4)
+        enkf_printf("%sNCFORMAT = NETCDF4\n", offset);
+    else
+        enkf_quit("programming error");
+    enkf_printf("%sNCCOMPRESSION = %d\n, prm->nccompression\n", offset, prm->nccompression);
     enkf_printflags(offset);
 }
 
@@ -592,6 +626,8 @@ void enkfprm_describeprm(void)
     enkf_printf("    ...\n");
     enkf_printf("  [ EXITACTION      = { BACKTRACE* | SEGFAULT } ]\n");
     enkf_printf("  [ BADBATCHES      = <obstype> <max. bias> <max. mad> <min # obs.> ]\n");
+    enkf_printf("  [ NCFORMAT        = { CLASSIC | 64BIT | NETCDF4 } ]        (64BIT*)\n");
+    enkf_printf("  [ NCCOMPRESSION   = <compression level>                    (0*) ]\n");
     enkf_printf("    ...\n");
     enkf_printf("\n");
     enkf_printf("  Notes:\n");

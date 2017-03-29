@@ -29,20 +29,22 @@
 
 /**
  */
-static void nc_createX5(char fname[], char gridname[], int nj, int ni, int stride, int nmem, int* ncid, int* varid_X5)
+static void nc_createX5(dasystem* das, char fname[], char gridname[], int nj, int ni, int stride, int nmem, int* ncid, int* varid_X5)
 {
     int dimids[3];
 
     assert(rank == 0);
 
     enkf_printf("      creating empty file \"%s\":\n", fname);
-    ncw_create(fname, NC_CLOBBER | NETCDF_FORMAT, ncid);
+    ncw_create(fname, NC_CLOBBER | das->ncformat, ncid);
     ncw_def_dim(*ncid, "nj", nj, &dimids[0]);
     ncw_def_dim(*ncid, "ni", ni, &dimids[1]);
     ncw_def_dim(*ncid, "msq", nmem * nmem, &dimids[2]);
     ncw_put_att_int(*ncid, NC_GLOBAL, "stride", 1, &stride);
     ncw_def_var(*ncid, "X5", NC_FLOAT, 3, dimids, varid_X5);
     ncw_put_att_text(*ncid, NC_GLOBAL, "grid_name", gridname);
+    if (das->nccompression > 0)
+        ncw_def_deflate(*ncid, 0, 1, das->nccompression);
     ncw_enddef(*ncid);
 }
 
@@ -67,20 +69,22 @@ static void nc_writeX5(int ncid, int j, int ni, int nmem, int varid_X5, float* X
 
 /**
  */
-static void nc_createw(char fname[], char gridname[], int nj, int ni, int stride, int nmem, int* ncid, int* varid_w)
+static void nc_createw(dasystem* das, char fname[], char gridname[], int nj, int ni, int stride, int nmem, int* ncid, int* varid_w)
 {
     int dimids[3];
 
     assert(rank == 0);
 
     enkf_printf("    creating empty file \"%s\":\n", fname);
-    ncw_create(fname, NC_CLOBBER | NETCDF_FORMAT, ncid);
+    ncw_create(fname, NC_CLOBBER | das->ncformat, ncid);
     ncw_def_dim(*ncid, "nj", nj, &dimids[0]);
     ncw_def_dim(*ncid, "ni", ni, &dimids[1]);
     ncw_def_dim(*ncid, "m", nmem, &dimids[2]);
     ncw_put_att_int(*ncid, NC_GLOBAL, "stride", 1, &stride);
     ncw_def_var(*ncid, "w", NC_FLOAT, 3, dimids, varid_w);
     ncw_put_att_text(*ncid, NC_GLOBAL, "grid_name", gridname);
+    if (das->nccompression > 0)
+        ncw_def_deflate(*ncid, 0, 1, das->nccompression);
     ncw_enddef(*ncid);
 }
 
@@ -113,7 +117,7 @@ typedef struct {
 
 /**
  */
-static void nc_writediag(char fname[], int nobstypes, int nj, int ni, int stride, int** nlobs, float** dfs, float** srf, int*** pnlobs, float*** pdfs, float*** psrf)
+static void nc_writediag(dasystem* das, char fname[], int nobstypes, int nj, int ni, int stride, int** nlobs, float** dfs, float** srf, int*** pnlobs, float*** pdfs, float*** psrf)
 {
     int ncid;
     int dimids[3];
@@ -122,7 +126,7 @@ static void nc_writediag(char fname[], int nobstypes, int nj, int ni, int stride
     assert(rank == 0);
 
     enkf_printf("    writing stats to \"%s\":\n", fname);
-    ncw_create(fname, NC_CLOBBER | NETCDF_FORMAT, &ncid);
+    ncw_create(fname, NC_CLOBBER | das->ncformat, &ncid);
     ncw_def_dim(ncid, "nobstypes", nobstypes, &dimids[0]);
     ncw_def_dim(ncid, "nj", nj, &dimids[1]);
     ncw_def_dim(ncid, "ni", ni, &dimids[2]);
@@ -133,6 +137,8 @@ static void nc_writediag(char fname[], int nobstypes, int nj, int ni, int stride
     ncw_def_var(ncid, "pnlobs", NC_INT, 3, dimids, &varid_pnlobs);
     ncw_def_var(ncid, "pdfs", NC_FLOAT, 3, dimids, &varid_pdfs);
     ncw_def_var(ncid, "psrf", NC_FLOAT, 3, dimids, &varid_psrf);
+    if (das->nccompression > 0)
+        ncw_def_deflate(ncid, 0, 1, das->nccompression);
     ncw_enddef(ncid);
 
     ncw_put_var_int(ncid, varid_nlobs, nlobs[0]);
@@ -249,14 +255,14 @@ void das_calctransforms(dasystem* das)
             das_getfname_X5(das, grid, fname);
 
             if (rank == 0)
-                nc_createX5(fname, gridname, nj, ni, das->stride, das->nmem, &ncid, &varid);
+                nc_createX5(das, fname, gridname, nj, ni, das->stride, das->nmem, &ncid, &varid);
             X5j = alloc2d(ni, das->nmem * das->nmem, sizeof(float));
             X5 = alloc2d(das->nmem, das->nmem, sizeof(double));
         } else if (das->mode == MODE_ENOI) {
             das_getfname_w(das, grid, fname);
 
             if (rank == 0)
-                nc_createw(fname, gridname, nj, ni, das->stride, das->nmem, &ncid, &varid);
+                nc_createw(das, fname, gridname, nj, ni, das->stride, das->nmem, &ncid, &varid);
             wj = alloc2d(ni, das->nmem, sizeof(float));
             w = malloc(das->nmem * sizeof(double));
         } else
@@ -645,7 +651,7 @@ void das_calctransforms(dasystem* das)
 
             das_getfname_stats(das, grid, fname_stats);
 
-            nc_writediag(fname_stats, obs->nobstypes, nj, ni, das->stride, nlobs, dfs, srf, pnlobs, pdfs, psrf);
+            nc_writediag(das, fname_stats, obs->nobstypes, nj, ni, das->stride, nlobs, dfs, srf, pnlobs, pdfs, psrf);
         }
 
         if (das->mode == MODE_ENKF) {

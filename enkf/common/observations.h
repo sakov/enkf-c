@@ -103,6 +103,9 @@ typedef struct {
     int nmodified;
 
     hashtable* badbatches;
+
+    int ncformat;
+    int nccompression;
 } observations;
 
 observations* obs_create(void);

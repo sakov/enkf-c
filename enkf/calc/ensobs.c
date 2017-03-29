@@ -206,10 +206,12 @@ void das_getHE(dasystem* das)
             if (rank == 0) {
                 int dimids[2];
 
-                ncw_create(FNAME_HE, NC_CLOBBER | NETCDF_FORMAT, &ncid);
+                ncw_create(FNAME_HE, NC_CLOBBER | das->ncformat, &ncid);
                 ncw_def_dim(FNAME_HE, ncid, "m", das->nmem, &dimids[0]);
                 ncw_def_dim(FNAME_HE, ncid, "p", obs->nobs, &dimids[1]);
                 ncw_def_var(FNAME_HE, ncid, "HE", NC_FLOAT, 2, dimids, &varid);
+                if (das->nccompression > 0)
+                    ncw_def_deflate(ncid, 0, 1, das->nccompression);
                 ncw_close(FNAME_HE, ncid);
             }
             MPI_Barrier(MPI_COMM_WORLD);

@@ -1,3 +1,8 @@
+v. 1.58.0
+   PS 29032017
+   -- Added two new entries NCFORMAT and NCCOMPRESSION to the main parameter
+      file. Consider it experimental at this stage! The defaults remain
+      NC-64BIT_OFFSET and no compression.
 v. 1.57.0
    PS 29032017
    -- Changed identification of observation types. Each type now is

@@ -83,6 +83,9 @@ typedef struct {
     int sob_stride;
     int nbadbatchspecs;
     badbatchspec* badbatchspecs;
+
+    int ncformat;
+    int nccompression;
 } enkfprm;
 
 enkfprm* enkfprm_read(char fname[]);

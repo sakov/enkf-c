@@ -103,6 +103,9 @@ struct dasystem {
     badbatchspec* badbatchspecs;
 
     int updatespec;             /* binary flags */
+
+    int ncformat;
+    int nccompression;
 };
 
 dasystem* das_create(enkfprm* prm);

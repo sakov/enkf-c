@@ -206,6 +206,9 @@ dasystem* das_create(enkfprm* prm)
     das->updatespec = UPDATE_DEFAULT;
 #endif
 
+    das->ncformat = prm->ncformat;
+    das->nccompression = prm->nccompression;
+
     return das;
 }
 

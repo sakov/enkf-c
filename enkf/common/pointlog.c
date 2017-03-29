@@ -56,7 +56,7 @@ void plog_write(dasystem* das, int id, double depth, int p, int* lobs, double* l
     assert(das->s_mode == S_MODE_S_f);
 
     das_getfname_plog(das, plog, fname);
-    ncw_create(fname, NC_CLOBBER | NETCDF_FORMAT, &ncid);
+    ncw_create(fname, NC_CLOBBER | das->ncformat, &ncid);
     ncw_def_dim(ncid, "m", das->nmem, &dimids[0]);
     ncw_def_dim(ncid, "p", p, &dimids[1]);
     if (p > 0) {
@@ -110,6 +110,8 @@ void plog_write(dasystem* das, int id, double depth, int p, int* lobs, double* l
     ncw_put_att_double(ncid, NC_GLOBAL, "lat", 1, &plog->lat);
     ncw_put_att_double(ncid, NC_GLOBAL, "depth", 1, &depth);
 
+    if (das->nccompression > 0)
+        ncw_def_deflate(ncid, 0, 1, das->nccompression);
     ncw_enddef(ncid);
 
     if (p > 0) {
@@ -348,7 +350,9 @@ static void plog_writestatevars_toassemble(dasystem* das, int nfields, void** fi
 
         snprintf(fname, MAXSTRLEN, "pointlog_%s-%03d.nc", f->varname, f->level);
         if (!isanalysis) {
-            ncw_create(fname, NC_CLOBBER | NETCDF_FORMAT, &ncid);
+            ncw_create(fname, NC_CLOBBER | das->ncformat, &ncid);
+            if (das->nccompression > 0)
+                ncw_def_deflate(ncid, 0, 1, das->nccompression);
             ncw_def_dim(ncid, "m", das->nmem, &dimid);
         } else {
             ncw_open(fname, NC_WRITE, &ncid);
