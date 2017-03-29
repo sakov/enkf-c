@@ -1,10 +1,10 @@
   MPI: initialised 2 process(es)
-  MPI: rank = 0, PID = 17663
-  MPI: rank = 1, PID = 17664
-  running UPDATE for EnKF-C version 1.52.0:
+  MPI: rank = 0, PID = 17086
+  MPI: rank = 1, PID = 17087
+  running UPDATE for EnKF-C version 1.57.0:
     command = "./enkf_update --calculate-spread --write-inflation enkf-global.prm"
     dir = "/home/pavel/src/enkf-c/trunk/enkf/examples/1"
-  2017-03-16 12:20:27
+  2017-03-29 11:48:24
   reading system specs from "enkf-global.prm":
     MODE = EnKF
     SCHEME = DEnKF
@@ -89,23 +89,23 @@
     defining state variables in point logs:
     distributing iterations:
       all processes get 48 iterations
-    2017-03-16 12:20:27
+    2017-03-29 11:48:24
     allocating disk space for analysis:................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................
-    2017-03-16 12:20:27
+    2017-03-29 11:48:24
     updating fields for t-grid:
       9 fields
       distributing iterations:
         processes get 5 or 4 iterations
       u        0   (1: 5: 25.0%)
       eta_t    0   (0: 0: 20.0%)
-      temp     0   (0: 1: 40.0%)
       u        1   (1: 6: 50.0%)
-      temp     1   (0: 2: 60.0%)
+      temp     0   (0: 1: 40.0%)
       v        0   (1: 7: 75.0%)
-      salt     0   (0: 3: 80.0%)
+      temp     1   (0: 2: 60.0%)
       v        1   (1: 8: 100.0%)
+      salt     0   (0: 3: 80.0%)
       salt     1   (0: 4: 100.0%)
-  2017-03-16 12:20:29
+  2017-03-29 11:48:26
   assembling analysis:
     distributing iterations:
       all processes get 48 iterations
@@ -132,5 +132,5 @@
     deleting tiles:
       distributing iterations:
         processes get 5 or 4 iterations
-  2017-03-16 12:20:29
+  2017-03-29 11:48:26
   finished

@@ -1,10 +1,10 @@
   MPI: initialised 2 process(es)
-  MPI: rank = 0, PID = 7103
-  MPI: rank = 1, PID = 7104
-  running UPDATE for EnKF-C version 1.32.3:
+  MPI: rank = 0, PID = 17264
+  MPI: rank = 1, PID = 17265
+  running UPDATE for EnKF-C version 1.57.0:
     command = "./enkf_update --calculate-spread --write-inflation enkf.prm"
     dir = "/home/pavel/src/enkf-c/trunk/enkf/examples/3"
-  2016-02-17 13:52:17
+  2017-03-29 11:49:44
   reading system specs from "enkf.prm":
     MODE = EnKF
     SCHEME = DEnKF
@@ -35,6 +35,9 @@
       HE_VIAFILE       = [-]
       GRIDNODES_WRITE  = [-]
       INTERNAL_QSORT_R = [-]
+      NO_GRIDUTILS     = [-]
+      ZSIGN_NOCHECK    = [-]
+      OBS_SHUFFLE      = [-]
   update specs:
     do model fields  = [+]
     do spread        = [+]
@@ -43,7 +46,9 @@
   initialising the system:
     grid prm info:
       NAME = "t-grid-full"
-      FILE = "conf3/grid_spec.nc"
+      DATA = "conf3/grid_spec.nc"
+      MAPTYPE = "B"
+      VTYPE = "z"
       XDIMNAME = "i"
       YDIMNAME = "j"
       ZDIMNAME = "k"
@@ -53,9 +58,8 @@
       DEPTHVARNAME = "depth_t"
       NUMLEVELSVARNAME = "num_levels"
     grid info:
-      hor type = LATLON_REGULAR
-      periodic by X = no
-      periodic by Y = no
+      hor type = CURVILINEAR
+      map type = BINARY TREE
       dims = 100 x 100 x 2
       longitude range = [0.000, 360.000]
       vert type = Z
@@ -85,9 +89,9 @@
     defining state variables in point logs:
     distributing iterations:
       all processes get 48 iterations
-    2016-02-17 13:52:17
+    2017-03-29 11:49:44
     allocating disk space for analysis:................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................
-    2016-02-17 13:52:17
+    2017-03-29 11:49:44
     updating fields for t-grid-full:
       9 fields
       distributing iterations:
@@ -101,7 +105,7 @@
       salt     0   (0: 3: 80.0%)
       v        1   (1: 8: 100.0%)
       salt     1   (0: 4: 100.0%)
-  2016-02-17 13:52:19
+  2017-03-29 11:49:46
   assembling analysis:
     distributing iterations:
       all processes get 48 iterations
@@ -128,5 +132,5 @@
     deleting tiles:
       distributing iterations:
         processes get 5 or 4 iterations
-  2016-02-17 13:52:19
+  2017-03-29 11:49:50
   finished

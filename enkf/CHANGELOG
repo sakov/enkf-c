@@ -1,3 +1,12 @@
+v. 1.57.0
+   PS 29032017
+   -- Changed identification of observation types. Each type now is
+      characterised by its "observation kind". Currently there are two kinds
+      available: "SURFACE" and "SUBSURFACE". There is no longer "ALIAS" and
+      "ISSURFACE" entries for observation types.
+
+      ONE MUST MAKE (RATHER MINOR) CHANGES TO OBSTYPES.PRM FILES WHEN UPDATING
+      TO THIS VERSION.
 v. 1.56.3
    PS 28032017
    -- Corrected obs_addtype() to initialise the new field `aliasname'.

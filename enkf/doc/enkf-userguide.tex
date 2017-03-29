@@ -35,7 +35,7 @@
 
 \begin{document}
 
-\title{EnKF-C user guide\\{\normalsize version 1.56.0}}
+\title{EnKF-C user guide\\{\normalsize version 1.57.0}}
 
 \author{Pavel Sakov}
 \date{June 19, 2014 -- \today}
@@ -784,7 +784,7 @@ This is done by setting parameter \verb|MAPTYPE| to ``k''.
 Observation types are the interface that connects model and observations.
 They are specified in a separate parameter file.
 Each observation type is described in a separate section identified by the entry \verb|NAME|.
-Apart from the type name, the section must contain the associated model variable; whether observations of this type are surface or volume; the associated observation operator; and the allowed range.
+Apart from the type name, the section must contain the tag for the observation kind; associated model variable; the tag for the associated observation operator; and the allowed range.
 The optional parameters include the R-factor for the type (sec.~\ref{sec:datuning}) and spatial limits on corresponding observations.
 For example:
 \begin{Verbatim}[frame=single,fontsize=\footnotesize]
@@ -793,9 +793,8 @@ For example:
   Observation types parameter file format:
 
     NAME        = <name>
-  [ ALIAS       = <name> ]                         (none*)
+    KIND        = <kind tag>
     VAR         = <model variable name> [...]
-    ISSURFACE   = { yes | no }
   [ OFFSET      = <file name> <variable name> ]    (none*)
   [ MLD_VARNAME = <model varname> ]                (none*)
   [ MLD_THRESH  = <threshold> ]                    (NaN*)
@@ -815,6 +814,8 @@ For example:
 
   [ <more of the above blocks> ]
 \end{Verbatim}
+
+The tags for available observation kinds are listed in array \verb|allkinds| in file \verb|common/obstypes.c|, and the tags for available observation operators are listed in array \verb|allhentries| in file \verb|calc/allhs.c|.
 
 The \verb|OFFSET| entry may be used for adding the known model bias to observations, for example, to specify the mean dynamic topography (MDT) when assimilating sea level anomaly (SLA) observations.
 
@@ -865,7 +866,7 @@ The available readers are listed by the variable \verb|allreaders| defined in \v
 The last line in the above example specifies the observation error.
 It can contain either a number or a file name.
 In the case of entering the file name there also should be another entry in the same line specifying the name of the variable to be read.
-The variable should have the same dimension (2D or 3D) as the associated observation type as described by the variable \verb|ISSURFACE| in the observation types parameter file (sec.~\ref{sec:obstypesprm}).
+The variable should have the same dimension (2D or 3D) as the associated observation kind as described by the field \verb|issurface| in the array \verb|allkinds| in file \verb|common/obstypes.c| (sec.~\ref{sec:obstypesprm}).
 
 The line with observation error can also have another token specifying the type of operation to be conducted: \verb|EQUAL| ($\sigma_{tot} \leftarrow \sigma_{now}$, default), \verb|PLUS| ($\sigma_{tot} \leftarrow \sqrt{\sigma_{tot}^2 + \sigma_{now}^2}$), \verb|MULT| ($\sigma_{tot} \leftarrow \sigma_{tot} \sigma_{now}$), \verb|MIN| ($\sigma_{tot} = \max(\sigma_{tot}, \sigma_{now})$), or \verb|MAX| ($\sigma_{tot} = \min(\sigma_{tot}, \sigma_{now})$).
 There can be several error entries in a section in the observation parameter file.

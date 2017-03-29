@@ -193,7 +193,7 @@ void H_surf_biased(dasystem* das, int nobs, int obsids[], char fname[], int mem,
     int i, nv;
 
     if (ot->nvar < 2)
-        enkf_quit("%s: second variable has to be defined for an observation type when using H-function \"biased\"", ot->name);
+        enkf_quit("%s: second variable has to be defined for the observation type when using H-function \"biased\"", ot->name);
     mvid2 = model_getvarid(m, ot->varnames[1], 1);
     if (model_getvargridid(m, mvid) != model_getvargridid(m, mvid2))
         enkf_quit("H_surf_biased(): variables \"%s\" and \"%s\" are defined on different grids", ot->varnames[0], ot->varnames[1]);
@@ -301,7 +301,7 @@ void H_subsurf_wsurfbias(dasystem* das, int nobs, int obsids[], char fname[], in
     int i;
 
     if (ot->nvar < 2)
-        enkf_quit("%s: second variable has to be defined for an observation type when using H-function \"wsurfbias\"", ot->name);
+        enkf_quit("%s: second variable has to be defined for the observation type when using H-function \"wsurfbias\"", ot->name);
     mvid2 = model_getvarid(m, ot->varnames[1], 1);
     if (model_getvargridid(m, mvid) != model_getvargridid(m, mvid2))
         enkf_quit("H_surf_biased(): variables \"%s\" and \"%s\" are defined on different grids", ot->varnames[0], ot->varnames[1]);

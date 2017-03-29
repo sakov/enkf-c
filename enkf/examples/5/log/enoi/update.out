@@ -1,10 +1,10 @@
   MPI: initialised 2 process(es)
-  MPI: rank = 0, PID = 26417
-  MPI: rank = 1, PID = 26418
-  running UPDATE for EnKF-C version 1.56.0:
+  MPI: rank = 0, PID = 18023
+  MPI: rank = 1, PID = 18024
+  running UPDATE for EnKF-C version 1.57.0:
     command = "./enkf_update --calculate-spread enoi.prm"
     dir = "/home/pavel/src/enkf-c/trunk/enkf/examples/5"
-  2017-03-27 15:38:27
+  2017-03-29 11:53:32
   reading system specs from "enoi.prm":
     MODE = EnOI
     MODEL PRM = "model.prm"
@@ -86,15 +86,15 @@
     144 members
     allocating disk space for spread:
     defining state variables in point logs:
-    allocating disk space for the analysis:    2017-03-27 15:38:27
-.....
-    2017-03-27 15:38:27
+    allocating disk space for the analysis:    2017-03-29 11:53:32
+
+    2017-03-29 11:53:32
     updating fields for t-grid:
       9 fields
       distributing iterations:
         processes get 5 or 4 iterations
-      u        0   (1: 5: 25.0%)
       eta_t    0   (0: 0: 20.0%)
+      u        0   (1: 5: 25.0%)
       temp     0   (0: 1: 40.0%)
       u        1   (1: 6: 50.0%)
       temp     1   (0: 2: 60.0%)
@@ -102,7 +102,7 @@
       salt     0   (0: 3: 80.0%)
       v        1   (1: 8: 100.0%)
       salt     1   (0: 4: 100.0%)
-  2017-03-27 15:38:28
+  2017-03-29 11:53:32
   assembling analysis:
     eta_t:.
     temp:..
@@ -121,5 +121,5 @@
     deleting tiles:
       distributing iterations:
         processes get 5 or 4 iterations
-  2017-03-27 15:38:28
+  2017-03-29 11:53:32
   finished

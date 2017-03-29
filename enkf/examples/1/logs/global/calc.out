@@ -1,7 +1,7 @@
-  running CALC for EnKF-C version 1.52.0:
+  running CALC for EnKF-C version 1.57.0:
     command = "./enkf_calc enkf-global.prm"
     dir = "/home/pavel/src/enkf-c/trunk/enkf/examples/1"
-  2017-03-16 12:20:26
+  2017-03-29 11:48:23
   reading system specs from "enkf-global.prm":
     MODE = EnKF
     SCHEME = DEnKF
@@ -38,9 +38,9 @@
   initialising the system:
   reading observation type specs from "obstypes.prm":
     NAME = SLA
+    KIND = SURFACE
       VAR = eta_t
       ID = 0
-      ISSURFACE = yes
       OFFSET = conf/eta_mean-bran.nc eta_t
       HFUNCTION = standard
       ALLOWED MIN = -1
@@ -50,9 +50,9 @@
       WEIGHT =  1
       RFACTOR = 2
     NAME = SST
+    KIND = SURFACE
       VAR = temp
       ID = 1
-      ISSURFACE = yes
       HFUNCTION = standard
       ALLOWED MIN = -2
       ALLOWED MAX = 42
@@ -61,9 +61,9 @@
       WEIGHT =  1
       RFACTOR = 4
     NAME = TEM
+    KIND = SUBSURFACE
       VAR = temp
       ID = 2
-      ISSURFACE = no
       HFUNCTION = standard
       ALLOWED MIN = -2
       ALLOWED MAX = 42
@@ -72,9 +72,9 @@
       WEIGHT =  1
       RFACTOR = 8
     NAME = SAL
+    KIND = SUBSURFACE
       VAR = salt
       ID = 3
-      ISSURFACE = no
       HFUNCTION = standard
       ALLOWED MIN = 28
       ALLOWED MAX = 39
@@ -124,7 +124,7 @@
     3864 observations
     calculating obs stats:
   calculating ensemble observations:
-  2017-03-16 12:20:26
+  2017-03-29 11:48:23
     ensemble size = 96
     distributing iterations:
       all processes get 96 iterations
@@ -133,7 +133,7 @@
     TEM ................................................................................................
     SAL ................................................................................................
   adding forecast innovations and spread to "observations.nc":
-  2017-03-16 12:20:26
+  2017-03-29 11:48:23
   moderating observations:
     observations substantially modified:
       SLA          0 (0.0%)
@@ -143,7 +143,7 @@
       total        0 (0.0%)
   writing modified obs errors to "observations.nc":
   calculating transforms:
-  2017-03-16 12:20:26
+  2017-03-29 11:48:23
     creating kd-trees for observations:
     calculating transforms for t-grid:
       creating empty file "X5.nc":
@@ -162,7 +162,7 @@
     calculating transform for log point (30, 50): 3864 obs
     writing the log for point (30, 50) on grid "t-grid":
   calculating analysed observations:
-  2017-03-16 12:20:26
+  2017-03-29 11:48:23
     sorting obs by ij:
     updating HE:
   adding analysis innovations and spread to "observations.nc":
@@ -188,5 +188,5 @@
              0-50m         2    0.088      0.102      0.074      0.098      0.023      0.013  
              50-500m       5    0.072      0.099      0.047      0.058      0.032      0.019  
              500-9999m     0     -nan       -nan       -nan       -nan       -nan       -nan  
-  2017-03-16 12:20:27
+  2017-03-29 11:48:24
   finished

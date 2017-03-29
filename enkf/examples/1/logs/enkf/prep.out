@@ -1,7 +1,7 @@
-  running PREP for EnKF-C version 1.52.0:
+  running PREP for EnKF-C version 1.57.0:
     command = "./enkf_prep enkf.prm"
     dir = "/home/pavel/src/enkf-c/trunk/enkf/examples/1"
-  2017-03-16 12:18:22
+  2017-03-29 11:45:36
   reading prep specs from "enkf.prm":
     MODE = EnKF
     SCHEME = DEnKF
@@ -119,9 +119,9 @@
       0 modeldata:
   reading observation type specs from "obstypes.prm":
     NAME = SLA
+    KIND = SURFACE
       VAR = eta_t
       ID = 0
-      ISSURFACE = yes
       OFFSET = conf/eta_mean-bran.nc eta_t
       HFUNCTION = standard
       ALLOWED MIN = -1
@@ -131,9 +131,9 @@
       WEIGHT =  1
       RFACTOR = 2
     NAME = SST
+    KIND = SURFACE
       VAR = temp
       ID = 1
-      ISSURFACE = yes
       HFUNCTION = standard
       ALLOWED MIN = -2
       ALLOWED MAX = 42
@@ -142,9 +142,9 @@
       WEIGHT =  1
       RFACTOR = 4
     NAME = TEM
+    KIND = SUBSURFACE
       VAR = temp
       ID = 2
-      ISSURFACE = no
       HFUNCTION = standard
       ALLOWED MIN = -2
       ALLOWED MAX = 42
@@ -153,9 +153,9 @@
       WEIGHT =  1
       RFACTOR = 8
     NAME = SAL
+    KIND = SUBSURFACE
       VAR = salt
       ID = 3
-      ISSURFACE = no
       HFUNCTION = standard
       ALLOWED MIN = 28
       ALLOWED MAX = 39
@@ -355,5 +355,5 @@ ls: cannot access obs/WINDSAT/windsat_20071223.nc: No such file or directory
     TEM     184        104        104        0          0          0          0          7         
     SAL     184        104        104        0          0          0          0          7         
     total   9595       211        208        0          3          0          0          3864      
-  2017-03-16 12:18:22
+  2017-03-29 11:45:36
   finished
