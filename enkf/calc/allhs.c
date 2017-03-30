@@ -58,17 +58,17 @@ void describe_hentries(int issurface)
 
 /**
  */
-H_fn getH(obstype* ot, char H_tag[])
+H_fn getH(int issurface, char H_tag[])
 {
     int nhentries = sizeof(allhentries) / sizeof(H_entry);
     int i;
 
     for (i = 0; i < nhentries; ++i)
-        if (allhentries[i].issurface == ot->issurface && strcmp(allhentries[i].H_tag, H_tag) == 0)
+        if (allhentries[i].issurface == issurface && strcmp(allhentries[i].H_tag, H_tag) == 0)
             return allhentries[i].H;
 
-    enkf_printf("\n\n  ERROR: no H function \"%s\" for %s observations\n\n", H_tag, (ot->issurface) ? "surface" : "subsurface");
-    describe_hentries(ot->issurface);
+    enkf_printf("\n\n  ERROR: no H function \"%s\" for %s observations\n\n", H_tag, (issurface) ? "surface" : "subsurface");
+    describe_hentries(issurface);
     enkf_quit("getH(): bailing out");
     return NULL;
 }

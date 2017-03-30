@@ -15,12 +15,9 @@
 
 #if !defined(_ALLHS_H)
 
-#include "dasystem.h"
-
 typedef void (*H_fn) (dasystem* das, int nobs, int obsids[], char fname[], int mem, int t, void* psrc, ENSOBSTYPE dst[]);
 
-void describe_hentries(int issurface);
-H_fn getH(obstype* ot, char mappingname[]);
+H_fn getH(int issurface, char H_tag[]);
 
 #define _ALLHS_H
 #endif
