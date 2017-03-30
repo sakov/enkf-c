@@ -184,8 +184,8 @@ void obstypes_read(char fname[], int* n, obstype** types, double locrad_base, do
                 enkf_quit("%s, l.%d: ISSURFACE not specified", fname, line);
             if (now->issurface >= 0)
                 enkf_quit("%s, l.%d: ISSURFACE already specified", fname, line);
-            if (!str2int(token, &now->issurface))
-                enkf_quit("%s, l.%d: could not convert \"%s\" to integer", fname, line, token);
+            if (!str2bool(token, &now->issurface))
+                enkf_quit("%s, l.%d: could not convert \"%s\" to boolean", fname, line, token);
         } else if (strcasecmp(token, "VAR") == 0) {
             if ((token = strtok(NULL, seps)) == NULL)
                 enkf_quit("%s, l.%d: VAR not specified", fname, line);

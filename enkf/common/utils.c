@@ -483,19 +483,17 @@ int str2int(char* token, int* value)
 
 /**
  */
-int read_bool(char* token)
+int str2bool(char* token, int* value)
 {
-    int v;
-
     if (token[0] == 'y' || token[0] == 'Y')
-        return 1;
-    if (token[0] == 'n' || token[0] == 'N')
+        *value = 1;
+    else if (token[0] == 'n' || token[0] == 'N')
+        *value = 0;
+    else if (!str2int(token, value))
         return 0;
-    if (!str2int(token, &v))
-        return -1;
-    if (v == 0 || v == 1)
-        return v;
-    return -1;
+    if (*value == 0 || *value == 1)
+        return 1;
+    return 0;
 }
 
 /** Allocates ni x nj matrix of something and fills it with zeros. An element

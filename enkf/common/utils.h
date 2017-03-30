@@ -34,7 +34,7 @@ int file_exists(char fname[]);
 int str2double(char token[], double* value);
 int str2float(char* token, float* value);
 int str2int(char* token, int* value);
-int read_bool(char* token);
+int str2bool(char* token, int* value);
 void* alloc2d(size_t nj, size_t ni, size_t unitsize);
 void* copy2d(void** src, size_t nj, size_t ni, size_t unitsize);
 void* alloc3d(size_t n3, size_t nj, size_t ni, size_t unitsize);
