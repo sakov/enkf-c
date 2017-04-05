@@ -26,7 +26,7 @@
 #include "observations.h"
 
 #define NOBSTYPES_INC 10
-#define KD_INC 10000
+#define KD_INC 50000
 #define HT_SIZE 500
 
 typedef struct {

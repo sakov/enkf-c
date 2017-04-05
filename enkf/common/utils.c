@@ -491,6 +491,7 @@ int str2bool(char* token, int* value)
         *value = 0;
     else if (!str2int(token, value))
         return 0;
+
     if (*value == 0 || *value == 1)
         return 1;
     return 0;
@@ -916,7 +917,8 @@ void writefield(char fname[], char varname[], int k, float* v)
     ncw_close(ncid);
 }
 
-/** Writes one horizontal field (layer) for a variable to a NetCDF file.
+/** Writes one row of a horizontal field (layer) for a variable to a NetCDF
+ *  file.
  */
 void writerow(char fname[], char varname[], int k, int j, float* v)
 {
