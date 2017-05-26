@@ -389,7 +389,7 @@ void H_subsurf_wsurfbias(dasystem* das, int nobs, int obsids[], char fname[], in
                 continue;
 
             assert(isfinite(vbias));
-            dst[ii] += mldtaper(vmld, o->depth) * vbias;
+            dst[ii] -= mldtaper(vmld, o->depth) * vbias;
         }
     }
 

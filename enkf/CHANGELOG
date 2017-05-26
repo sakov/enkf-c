@@ -1,3 +1,7 @@
+v. 1.60.0
+   -- Corrected (I hope) the sign of the bias correction in the mixed layer in
+      subsurface fields. (It should be the same in H_subsurf_wsurfbias() and
+      in H_surf_biased().)
 v. 1.59.2
    PS 30032017
    -- Introduced and using now str2bool() for reading ISSURFACE entry.
