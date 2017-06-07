@@ -1,4 +1,8 @@
+v. 1.60.1
+   PS 07062017
+   -- Some minor portability related changes in hash.[ch].
 v. 1.60.0
+   PS 26052017
    -- Corrected (I hope) the sign of the bias correction in the mixed layer in
       subsurface fields. (It should be the same in H_subsurf_wsurfbias() and
       in H_surf_biased().)

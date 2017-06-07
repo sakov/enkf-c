@@ -392,21 +392,21 @@ static int d2eq(void* key1, void* key2)
 
 static uint32_t i1hash(void* key)
 {
-    return ((int32_t *) key)[0];
+    return (uint32_t) ((uint32_t*) key)[0];
 }
 
 static void* i1cp(void* key)
 {
-    int32_t* newkey = malloc(sizeof(int32_t));
+    uint32_t* newkey = malloc(sizeof(int));
 
-    newkey[0] = ((int32_t *) key)[0];
+    newkey[0] = ((uint32_t*) key)[0];
 
     return newkey;
 }
 
 static int i1eq(void* key1, void* key2)
 {
-    return (((int*) key1)[0] == ((int*) key2)[0]);
+    return (((uint32_t*) key1)[0] == ((uint32_t*) key2)[0]);
 }
 
 /* 
@@ -424,15 +424,15 @@ static void* i2cp(void* key)
 {
     uint32_t* newkey = malloc(sizeof(uint32_t) * 2);
 
-    newkey[0] = ((uint32_t *) key)[0];
-    newkey[1] = ((uint32_t *) key)[1];
+    newkey[0] = ((uint32_t*) key)[0];
+    newkey[1] = ((uint32_t*) key)[1];
 
     return newkey;
 }
 
 static int i2eq(void* key1, void* key2)
 {
-    return (((uint32_t *) key1)[0] == ((uint32_t *) key2)[0]) && (((uint32_t *) key1)[1] == ((uint32_t *) key2)[1]);
+    return (((uint32_t*) key1)[0] == ((uint32_t*) key2)[0]) && (((uint32_t*) key1)[1] == ((uint32_t*) key2)[1]);
 }
 
 /* 
@@ -450,18 +450,18 @@ static uint32_t i1s2hash(void* key)
 static void* i1s2cp(void* key)
 {
     uint32_t* newkey = malloc(sizeof(uint32_t) * 2);
-    uint16_t* s = (uint16_t *) newkey;
+    uint16_t* s = (uint16_t*) newkey;
 
-    newkey[0] = ((uint32_t *) key)[0];
-    s[2] = ((uint16_t *) key)[2];
-    s[3] = ((uint16_t *) key)[3];
+    newkey[0] = ((uint32_t*) key)[0];
+    s[2] = ((uint16_t*) key)[2];
+    s[3] = ((uint16_t*) key)[3];
 
     return newkey;
 }
 
 static int i1s2eq(void* key1, void* key2)
 {
-    return (((uint32_t *) key1)[0] == ((uint32_t *) key2)[0]) && (((uint16_t *) key1)[2] == ((uint16_t *) key2)[2]) && (((uint16_t *) key1)[3] == ((uint16_t *) key2)[3]);
+    return (((uint32_t*) key1)[0] == ((uint32_t*) key2)[0]) && (((uint16_t*) key1)[2] == ((uint16_t*) key2)[2]) && (((uint16_t*) key1)[3] == ((uint16_t*) key2)[3]);
 }
 
 /* 
@@ -479,17 +479,20 @@ static void* s4cp(void* key)
 {
     uint16_t* newkey = malloc(sizeof(short) * 4);
 
-    newkey[0] = ((uint16_t *) key)[0];
-    newkey[1] = ((uint16_t *) key)[1];
-    newkey[2] = ((uint16_t *) key)[2];
-    newkey[3] = ((uint16_t *) key)[3];
+    newkey[0] = ((uint16_t*) key)[0];
+    newkey[1] = ((uint16_t*) key)[1];
+    newkey[2] = ((uint16_t*) key)[2];
+    newkey[3] = ((uint16_t*) key)[3];
 
     return newkey;
 }
 
-static int s4eq(void* key1, void* key2)
+static int s4eq(void* p1, void* p2)
 {
-    return ((((uint16_t *) key1)[0] == ((uint16_t *) key2)[0]) && (((uint16_t *) key1)[1] == ((uint16_t *) key2)[1]) && (((uint16_t *) key1)[2] == ((uint16_t *) key2)[2]) && (((uint16_t *) key1)[3] == ((uint16_t *) key2)[3]));
+    uint16_t* key1 = (uint16_t*) p1;
+    uint16_t* key2 = (uint16_t*) p2;
+
+    return (key1[0] == key2[0] && key1[1] == key2[1] && key1[2] == key2[2] && key1[3] == key2[3]);
 }
 
 hashtable* ht_create_d1(int size)

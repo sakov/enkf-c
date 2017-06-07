@@ -19,6 +19,8 @@
 #ifndef _HASH_H
 #define _HASH_H
 
+#include <inttypes.h>
+
 struct hashtable;
 typedef struct hashtable hashtable;
 
@@ -32,7 +34,7 @@ typedef int (*ht_keyeq) (void*, void*);
 
 /** Converts key to an unsigned 32-bit integer (not necessarily unique).
  */
-typedef uint32_t(*ht_key2hash) (void*);
+typedef uint32_t (*ht_key2hash) (void*);
 
 /** Creates a hash table of specified size.
  *
@@ -48,8 +50,10 @@ hashtable* ht_create(int size, ht_keycp cp, ht_keyeq eq, ht_key2hash hash);
 hashtable* ht_create_d1(int size);      /* double[1] */
 hashtable* ht_create_d2(int size);      /* double[2] */
 hashtable* ht_create_str(int size);     /* char* */
-hashtable* ht_create_i1(int size);      /* int[1] */
-hashtable* ht_create_i2(int size);      /* int[2] */
+hashtable* ht_create_i1(int size);      /* uint32_t[1] */
+hashtable* ht_create_i2(int size);      /* uint32_t[2] */
+hashtable* ht_create_i1s2(int size);    /* uint32_t[1]uint16_t[2] */
+hashtable* ht_create_s4(int size);      /* uint16_t[4] */
 
 /** Destroys a hash table.
  * (Take care of deallocating data by ht_process() prior to destroying the
