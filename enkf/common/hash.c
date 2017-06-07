@@ -8,9 +8,10 @@
  *
  * Description:    Public domain code by Jerry Coffin, with improvements by
  *                 HenkJan Wolthuis.
- *                 Date last modified: 05-Jul-1997
  *
- * Revisions:      18-09-2002 -- modified by Pavel Sakov
+ * Revisions:      18-09-2002 -- Pavel Sakov: modified
+ *                 07-06-2017 -- Pavel Sakov: changed the hash type from
+ *                               unsigned int to uint32_t
  *
  *****************************************************************************/
 
@@ -123,7 +124,7 @@ void ht_destroy(hashtable* table)
  */
 void* ht_insert(hashtable* table, void* key, void* data)
 {
-    unsigned int val = table->hash(key) % table->size;
+    uint32_t val = table->hash(key) % table->size;
     ht_bucket* bucket;
 
     /*
@@ -194,7 +195,7 @@ void* ht_insert(hashtable* table, void* key, void* data)
  */
 void* ht_find(hashtable* table, void* key)
 {
-    unsigned int val = table->hash(key) % table->size;
+    uint32_t val = table->hash(key) % table->size;
     ht_bucket* bucket;
 
     if ((table->table)[val] == NULL)
@@ -216,7 +217,7 @@ void* ht_find(hashtable* table, void* key)
  */
 int ht_findid(hashtable* table, void* key)
 {
-    unsigned int val = table->hash(key) % table->size;
+    uint32_t val = table->hash(key) % table->size;
     ht_bucket* bucket;
 
     if ((table->table)[val] == NULL)
@@ -239,7 +240,7 @@ int ht_findid(hashtable* table, void* key)
  */
 void* ht_delete(hashtable* table, void* key)
 {
-    unsigned int val = table->hash(key) % table->size;
+    uint32_t val = table->hash(key) % table->size;
     ht_bucket* prev;
     ht_bucket* bucket;
     void* data;
@@ -308,13 +309,13 @@ void ht_process(hashtable* table, void (*func) (void*))
  * functions for for string keys 
  */
 
-static unsigned int strhash(void* key)
+static uint32_t strhash(void* key)
 {
     char* str = key;
-    unsigned int hashvalue = 0;
+    uint32_t hashvalue = 0;
 
     while (*str != 0) {
-        hashvalue ^= (unsigned int) str[0];
+        hashvalue ^= (uint32_t) str[0];
         hashvalue <<= 1;
         str++;
     }
@@ -334,7 +335,7 @@ static int streq(void* key1, void* key2)
 
 /* functions for for double keys */
 
-static unsigned int d1hash(void* key)
+static uint32_t d1hash(void* key)
 {
     uint32_t* v = key;
 
@@ -359,7 +360,7 @@ static int d1eq(void* key1, void* key2)
  * functions for for double[2] keys 
  */
 
-static unsigned int d2hash(void* key)
+static uint32_t d2hash(void* key)
 {
     uint32_t* v = key;
 
@@ -389,7 +390,7 @@ static int d2eq(void* key1, void* key2)
  * functions for for int[1] keys 
  */
 
-static unsigned int i1hash(void* key)
+static uint32_t i1hash(void* key)
 {
     return ((int32_t *) key)[0];
 }
@@ -412,7 +413,7 @@ static int i1eq(void* key1, void* key2)
  * functions for for int[2] keys 
  */
 
-static unsigned int i2hash(void* key)
+static uint32_t i2hash(void* key)
 {
     uint32_t* v = key;
 
@@ -438,12 +439,12 @@ static int i2eq(void* key1, void* key2)
  * functions for for int[1]short[2] keys 
  */
 
-static unsigned int i1s2hash(void* key)
+static uint32_t i1s2hash(void* key)
 {
     uint32_t* vi = key;
     uint16_t* vs = key;
 
-    return (int) vi[0] + ((int) vs[2] << 16) + ((int) vs[3] << 24);
+    return vi[0] + ((uint32_t) vs[2] << 16) + ((uint32_t) vs[3] << 24);
 }
 
 static void* i1s2cp(void* key)
@@ -467,11 +468,11 @@ static int i1s2eq(void* key1, void* key2)
  * functions for for short[4] keys 
  */
 
-static unsigned int s4hash(void* key)
+static uint32_t s4hash(void* key)
 {
     uint16_t* v = key;
 
-    return v[0] + (v[1] << 8) + (v[2] << 16) + (v[3] << 24);
+    return (uint32_t) v[0] + ((uint32_t) v[1] << 8) + ((uint32_t) v[2] << 16) + ((uint32_t) v[3] << 24);
 }
 
 static void* s4cp(void* key)

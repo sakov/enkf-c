@@ -10,7 +10,9 @@
  *                 HenkJan Wolthuis.
  *                 Date last modified: 05-Jul-1997
  *
- * Revisions:      18-09-2002 -- modified by Pavel Sakov
+ * Revisions:      18-09-2002 -- Pavel Sakov: modified
+ *                 07-06-2017 -- Pavel Sakov: changed the hash type from
+ *                               unsigned int to uint32_t
  *
  *****************************************************************************/
 
@@ -28,9 +30,9 @@ typedef void* (*ht_keycp) (void*);
  */
 typedef int (*ht_keyeq) (void*, void*);
 
-/** Converts key to an unsigned integer (not necessarily unique).
+/** Converts key to an unsigned 32-bit integer (not necessarily unique).
  */
-typedef unsigned int (*ht_key2hash) (void*);
+typedef uint32_t(*ht_key2hash) (void*);
 
 /** Creates a hash table of specified size.
  *
@@ -48,8 +50,6 @@ hashtable* ht_create_d2(int size);      /* double[2] */
 hashtable* ht_create_str(int size);     /* char* */
 hashtable* ht_create_i1(int size);      /* int[1] */
 hashtable* ht_create_i2(int size);      /* int[2] */
-hashtable* ht_create_i1s2(int size);    /* int[1]short[2] */
-hashtable* ht_create_s4(int size);      /* short[4] */
 
 /** Destroys a hash table.
  * (Take care of deallocating data by ht_process() prior to destroying the
