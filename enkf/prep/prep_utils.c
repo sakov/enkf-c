@@ -257,7 +257,10 @@ void obs_add(observations* obs, model* m, obsmeta* meta)
         for (i = nobs0; i < obs->nobs; ++i) {
             observation* o = &obs->data[i];
 
-            o->date -= obs->da_date;
+            if (!isnan(o->date))
+                o->date -= obs->da_date;
+            else
+                o->date = 0.0;
             if (o->status != STATUS_OK)
                 continue;
             if (o->date < date_min)

@@ -62,6 +62,7 @@ void reader_xy_scattered(char* fname, int fid, obsmeta* meta, model* m, observat
     double* estd = NULL;
     double estd_add_offset = NAN, estd_scale_factor = NAN;
     double estd_fill_value = NAN;
+    int have_time = 1;
     int singletime;
     double* time = NULL;
     double time_add_offset = NAN, time_scale_factor = NAN;
@@ -77,6 +78,8 @@ void reader_xy_scattered(char* fname, int fid, obsmeta* meta, model* m, observat
     for (i = 0; i < meta->npars; ++i) {
         if (strcasecmp(meta->pars[i].name, "VARNAME") == 0)
             varname = meta->pars[i].value;
+        else if (strcasecmp(meta->pars[i].name, "TIMENAME") == 0)
+            timename = meta->pars[i].value;
         else if (strcasecmp(meta->pars[i].name, "LONNAME") == 0)
             lonname = meta->pars[i].value;
         else if (strcasecmp(meta->pars[i].name, "LATNAME") == 0)
@@ -214,9 +217,12 @@ void reader_xy_scattered(char* fname, int fid, obsmeta* meta, model* m, observat
         ncw_inq_varid(ncid, timename, &varid_time);
     else if (ncw_var_exists(ncid, "time"))
         ncw_inq_varid(ncid, "time", &varid_time);
-    else
-        enkf_quit("reader_xy_scattered(): %s: could not find TIME variable", fname);
-    {
+    else {
+        enkf_printf("        reader_xy_scattered(): %s: could not find TIME variable", fname);
+        have_time = 0;
+    }
+
+    if (have_time) {
         int timendims;
         int timedimids[NC_MAX_DIMS];
         size_t timelen = 1;
@@ -238,20 +244,21 @@ void reader_xy_scattered(char* fname, int fid, obsmeta* meta, model* m, observat
             assert(timelen == nobs);
             time = malloc(nobs * sizeof(double));
         }
-    }
-    ncw_get_var_double(ncid, varid_time, time);
-    if (ncw_att_exists(ncid, varid_time, "_FillValue"))
-        ncw_get_att_double(ncid, varid_time, "_FillValue", &time_fill_value);
-    if (ncw_att_exists(ncid, varid_time, "add_offset")) {
-        ncw_get_att_double(ncid, varid_time, "add_offset", &time_add_offset);
-        ncw_get_att_double(ncid, varid_time, "scale_factor", &time_scale_factor);
 
-        for (i = 0; i < nobs; ++i)
-            if (time[i] != time_fill_value)
-                time[i] = time[i] * time_scale_factor + time_add_offset;
+        ncw_get_var_double(ncid, varid_time, time);
+        if (ncw_att_exists(ncid, varid_time, "_FillValue"))
+            ncw_get_att_double(ncid, varid_time, "_FillValue", &time_fill_value);
+        if (ncw_att_exists(ncid, varid_time, "add_offset")) {
+            ncw_get_att_double(ncid, varid_time, "add_offset", &time_add_offset);
+            ncw_get_att_double(ncid, varid_time, "scale_factor", &time_scale_factor);
+
+            for (i = 0; i < nobs; ++i)
+                if (time[i] != time_fill_value)
+                    time[i] = time[i] * time_scale_factor + time_add_offset;
+        }
+        ncw_get_att_text(ncid, varid_time, "units", tunits);
+        tunits_convert(tunits, &tunits_multiple, &tunits_offset);
     }
-    ncw_get_att_text(ncid, varid_time, "units", tunits);
-    tunits_convert(tunits, &tunits_multiple, &tunits_offset);
 
     ncw_close(ncid);
 
@@ -264,7 +271,7 @@ void reader_xy_scattered(char* fname, int fid, obsmeta* meta, model* m, observat
         observation* o;
         obstype* ot;
 
-        if (lon[i] == lon_fill_value || lat[i] == lat_fill_value || var[i] == var_fill_value || (std != NULL && std[i] == std_fill_value) || (estd != NULL && estd[i] == estd_fill_value) || (!singletime && time[i] == time_fill_value))
+        if (lon[i] == lon_fill_value || lat[i] == lat_fill_value || var[i] == var_fill_value || (std != NULL && std[i] == std_fill_value) || (estd != NULL && estd[i] == estd_fill_value) || (have_time && !singletime && time[i] == time_fill_value))
             continue;
 
         nobs_read++;
@@ -300,7 +307,10 @@ void reader_xy_scattered(char* fname, int fid, obsmeta* meta, model* m, observat
         o->model_depth = (depth == NULL || isnan(o->fi + o->fj)) ? NAN : depth[(int) (o->fj + 0.5)][(int) (o->fi + 0.5)];
         if (o->status == STATUS_OK && o->model_depth < mindepth)
             o->status = STATUS_SHALLOW;
-        o->date = ((singletime) ? time[0] : time[i]) * tunits_multiple + tunits_offset;
+        if (have_time)
+            o->date = ((singletime) ? time[0] : time[i]) * tunits_multiple + tunits_offset;
+        else
+            o->date = NAN;
         o->aux = -1;
 
         obs->nobs++;
@@ -314,5 +324,6 @@ void reader_xy_scattered(char* fname, int fid, obsmeta* meta, model* m, observat
         free(std);
     if (estd != NULL)
         free(estd);
-    free(time);
+    if (time != NULL)
+        free(time);
 }
