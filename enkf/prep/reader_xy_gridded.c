@@ -42,8 +42,8 @@ void reader_xy_gridded(char* fname, int fid, obsmeta* meta, model* m, observatio
     int ncid;
     int ndim;
 
-    int dimid_i, dimid_j;
-    size_t ni, nj, n;
+    int iscurv = -1;
+    size_t ni = 0, nj = 0, n = 0;
     int varid_lon = -1, varid_lat = -1;
     double* lon = NULL;
     double* lat = NULL;
@@ -120,9 +120,23 @@ void reader_xy_gridded(char* fname, int fid, obsmeta* meta, model* m, observatio
         ncw_inq_varid(ncid, "longitude", &varid_lon);
     else
         enkf_quit("reader_xy_gridded(): %s: could not find longitude variable", fname);
-    ncw_check_varndims(ncid, varid_lon, 1);
-    ncw_inq_vardimid(ncid, varid_lon, &dimid_i);
-    ncw_inq_dimlen(ncid, dimid_i, &ni);
+
+    ncw_inq_varndims(ncid, varid_lon, &ndim);
+    if (ndim == 1) {
+	int dimid;
+
+	iscurv = 0;
+	ncw_inq_vardimid(ncid, varid_lon, &dimid);
+	ncw_inq_dimlen(ncid, dimid, &ni);
+    } else if (ndim == 2) {
+	int dimid[2];
+
+	iscurv = 1;
+	ncw_inq_vardimid(ncid, varid_lon, dimid);
+	ncw_inq_dimlen(ncid, dimid[0], &ni);
+	ncw_inq_dimlen(ncid, dimid[1], &nj);
+    } else
+	enkf_quit("reader_xy_gridded(): %s: variable \"%s\" has neither 1 or 2 dimensions", fname, lonname);
 
     if (latname != NULL)
         ncw_inq_varid(ncid, latname, &varid_lat);
@@ -132,23 +146,36 @@ void reader_xy_gridded(char* fname, int fid, obsmeta* meta, model* m, observatio
         ncw_inq_varid(ncid, "latitude", &varid_lat);
     else
         enkf_quit("reader_xy_gridded(): %s: could not find latitude variable", fname);
-    ncw_check_varndims(ncid, varid_lat, 1);
-    ncw_inq_vardimid(ncid, varid_lat, &dimid_j);
-    ncw_inq_dimlen(ncid, dimid_j, &nj);
+    if (iscurv == 0) {
+	int dimid;
+
+	ncw_check_varndims(ncid, varid_lat, 1);
+	ncw_inq_vardimid(ncid, varid_lat, &dimid);
+	ncw_inq_dimlen(ncid, dimid, &nj);
+    } else
+	ncw_check_varndims(ncid, varid_lat, 2);
 
     enkf_printf("        (ni, nj) = (%u, %u)\n", ni, nj);
     n = ni * nj;
 
-    lon = malloc(ni * sizeof(double));
-    lat = malloc(nj * sizeof(double));
+    if (iscurv == 0) {
+	lon = malloc(ni * sizeof(double));
+	lat = malloc(nj * sizeof(double));
+    } else {
+	lon = malloc(n * sizeof(double));
+	lat = malloc(n * sizeof(double));
+    }
     ncw_get_var_double(ncid, varid_lon, lon);
     ncw_get_var_double(ncid, varid_lat, lat);
 
     var = malloc(n * sizeof(float));
     ncw_get_var_float(ncid, varid_var, var);
-    ncw_get_att_float(ncid, varid_var, "add_offset", &var_add_offset);
-    ncw_get_att_float(ncid, varid_var, "scale_factor", &var_scale_factor);
-    ncw_get_att_float(ncid, varid_var, "_FillValue", &var_fill_value);
+    if (ncw_att_exists(ncid, varid_var, "add_offset")) {
+	ncw_get_att_float(ncid, varid_var, "add_offset", &var_add_offset);
+	ncw_get_att_float(ncid, varid_var, "scale_factor", &var_scale_factor);
+    }
+    if (ncw_att_exists(ncid, varid_var, "_FillValue"))
+	ncw_get_att_float(ncid, varid_var, "_FillValue", &var_fill_value);
 
     if (npointsname != NULL)
         ncw_inq_varid(ncid, npointsname, &varid_npoints);
@@ -282,8 +309,13 @@ void reader_xy_gridded(char* fname, int fid, obsmeta* meta, model* m, observatio
             } else
                 o->std = (o->std > estd[i]) ? o->std : estd[i];
         }
-        o->lon = lon[i % ni];
-        o->lat = lat[i / ni];
+	if (iscurv == 0) {
+	    o->lon = lon[i % ni];
+	    o->lat = lat[i / ni];
+	} else {
+	    o->lon = lon[i];
+	    o->lat = lat[i];
+	}
         o->depth = 0.0;
         o->fk = (double) ktop;
         o->status = model_xy2fij(m, mvid, o->lon, o->lat, &o->fi, &o->fj);

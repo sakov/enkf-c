@@ -1,3 +1,6 @@
+v. 1.60.2
+   PS 02082017
+   -- Modified reader_xy_gridded.c to handle curvilinear grids.
 v. 1.60.1
    PS 07062017
    -- Some minor portability related changes in hash.[ch].
