@@ -35,7 +35,7 @@
 
 \begin{document}
 
-\title{EnKF-C user guide\\{\normalsize version 1.59.0}}
+\title{EnKF-C user guide\\{\normalsize version 1.60.3}}
 
 \author{Pavel Sakov}
 \date{June 19, 2014 -- \today}
@@ -103,12 +103,12 @@ Section~\ref{ch:enkf} overviews the basics of the EnKF; section~\ref{ch:enkf-c} 
 The Kalman filter (KF) is the underlying concept behind the EnKF.
 It is rather simple if formulated as the recursive least squares.
 
-Consider first a global (in time) nonlinear minimisation problem
+Consider the global (in time) nonlinear minimisation problem
 \begin{align}
   \label{min-nonl}
-  &\{\mb x_i^a\}_{i=1}^k = \arg \underset{\{\mb x_i\}_{i = 1}^k}\min \mathcal L_k(\mb x_1, \dots, \mb x_k),\\
+  &\{\mb x_i^a\}_{i=1}^k = \arg \underset{\{\mb x_i\}_{i = 1}^k}\min J_k(\mb x_1, \dots, \mb x_k),\\
   \nonumber
-  &\mathcal L_k(\mb x_1, \dots, \mb x_k)  = \left . (\mb x_1 - \mb x_1^f)\T (\mb P_1^f)^{-1} (\mb x_1 - \mb x_1^f) 
+  &J_k(\mb x_1, \dots, \mb x_k)  = \left . (\mb x_1 - \mb x_1^f)\T (\mb P_1^f)^{-1} (\mb x_1 - \mb x_1^f) 
   \vphantom{\sum_{i = 2}^{k}}
   \right . \\
   \nonumber
@@ -116,7 +116,7 @@ Consider first a global (in time) nonlinear minimisation problem
   & \qquad + \sum_{i = 2}^k \left [ \mb x_i - \mathcal M_i(\mb x_{i-1}) \right ]\T (\mb Q_i)^{-1} \left [ \mb x_i - \mathcal M_i(\mb x_{i-1}) \right ].
   \label{L-nonl}
 \end{align}
-Here $\{\mb x_i^a\}_{i=1}^k$ is a set of $k$ state vectors that minimise the cost function (\ref{L-nonl}); indices $i = 1,\dots,k$ correspond to a sequence of DA cycles, so that $\mb x_1$ is the estimated model state at the first cycle and $\mb x_k$ is the estimated model state at the last cycle; $\mb y_i$ are observation vectors related to the model state by a nonlinear observation operator $\mathcal H_i(\mb x)$; $\mathcal M_i(\mb x)$ is a nonlinear model operator relating the model states $\mb x_{i - 1}$ and $\mb x_i$; $\mb P_1^f$ is the initial state error covariance; $\mb R_i$ is the observation error covariance for $\mb y_i$; and $\mb Q_i$ is the model error covariance for $\mathcal M_i$; $(\cdot)\T$ denotes matrix transposition.
+Here $\{\mb x_i^a\}_{i=1}^k$ is a set of $k$ state vectors that minimise the cost function (\ref{L-nonl}); indices $i = 1,\dots,k$ correspond to a sequence of DA cycles, so that $\mb x_1$ is the estimated model state at the first cycle and $\mb x_k$ is the estimated model state at the last cycle; $\mb y_i$ are observation vectors related to the model state by nonlinear observation operators $\mathcal H_i(\mb x)$; $\mathcal M_i(\mb x)$ are nonlinear model functions that map the model states $\mb x_{i - 1}$ to $\mb x_i$; $\mb P_1^f$ is the initial state error covariance; $\mb R_i$ are observation error covariances; and $\mb Q_i$ are model error covariances; and $(\cdot)\T$ denotes matrix transposition.
 
 The minimisation problem (\ref{min-nonl}, \ref{L-nonl}) is, generally, very complicated, but, luckily, has an exact solution in the \emph{linear} case; moreover, this solution is recursive.
 Namely, assume that $\mathcal M$ and $\mathcal H$ are affine:
@@ -132,17 +132,18 @@ Namely, assume that $\mathcal M$ and $\mathcal H$ are affine:
 where $\mb x^{(1)}, \mb x^{(2)}$ are arbitrary model states, and $\mb M_i,\, \mb H_i = \mathrm{Const}$.
 Then the cost function (\ref{L-nonl}) becomes quadratic and can be written in canonical form in regard to $\mb x_k$ as follows:
 \begin{align*}
-   \mathcal L_k(\mb x_1, \dots, \mb x_k) = (\mb x_k - \mb x_k^a)\T (\mb P_{k}^a)^{-1}(\mb x_k - \mb x_k^a) + \tilde{{\mathcal L}}_{k-1}(\mb x_1,\dots,\mb x_{k-1}),
+   J_k(\mb x_1, \dots, \mb x_k) = (\mb x_k - \mb x_k^a)\T (\mb P_{k}^a)^{-1}(\mb x_k - \mb x_k^a) + \tilde{{J}}_{k-1}(\mb x_1,\dots,\mb x_{k-1}),
 \end{align*}
 so that
 \begin{align}
   \label{min-xk}
-  \underset {\{\mb x_i\}_{i = 1}^{k - 1}}{\min} \mathcal L_k(\mb x_1, \dots, \mb x_k) = (\mb x_k - \mb x_k^a)\T (\mb P_{k}^a)^{-1}(\mb x_k - \mb x_k^a) + \mathrm{Const}.
+  \underset {\{\mb x_i\}_{i = 1}^{k - 1}}{\min} J_k(\mb x_1, \dots, \mb x_k) = (\mb x_k - \mb x_k^a)\T (\mb P_{k}^a)^{-1}(\mb x_k - \mb x_k^a) + \mathrm{Const}.
 \end{align}
 (\emph{Proposition}) Then
-\begin{align*}
-    \underset {\{\mb x_i\}_{i = 1}^{k}}{\min} \mathcal L_{k+1}(\mb x_1, \dots, \mb x_k, \mb x_{k+1}) = (\mb x_{k+1} - \mb x_{k+1}^a)\T (\mb P_{k+1}^a)^{-1}(\mb x_{k+1} - \mb x_{k+1}^a) + \mathrm{Const},
-\end{align*}
+\begin{align}
+  \label{min-xkp1}
+    \underset {\{\mb x_i\}_{i = 1}^{k}}{\min} J_{k+1}(\mb x_1, \dots, \mb x_k, \mb x_{k+1}) = (\mb x_{k+1} - \mb x_{k+1}^a)\T (\mb P_{k+1}^a)^{-1}(\mb x_{k+1} - \mb x_{k+1}^a) + \mathrm{Const},
+\end{align}
 where
 \begin{subequations}
   \label{kf-an}
@@ -177,14 +178,13 @@ Matrix $\mb K$ is called Kalman gain.
 
 There are a few things to be noted about the KF:
 \begin{enumerate}
-\item (\ref{min-xk}) means that the state $\mb X$ of the DA system (SDAS) is carried by the estimated model state vector and model state error covariance: 
+\item It follows from the Kalman filter (equations \ref{min-xk}-\ref{kf-for}) that the state of the DA system (SDAS) $\mb X$ is carried by the estimated model state vector and model state error covariance:
 \begin{align}
   \label{sdas}
-  \mb X = \{\mb x, \mb P\}.
+  \mb X_k = \{\mb x_k, \mb P_k\}.
 \end{align}
-This means that at any moment of time all previous information about the system is encrypted into the current (forecast or analysis) SDAS, and no knowledge about the SDAS at previous cycles is required for evolving the system.
 \item The KF provides solution for the \emph{last} analysis, corresponding to $\mb x_k^a$ in ($\ref{min-nonl}$) (or, with a minor re-formulation, to the last forecast); finding the full (global in time) solution requires application of the Kalman \emph{smoother} (KS).
-Both the KF and KS can be derived by a re-factorisation of the positive (semi)definite quadratic form (\ref{L-nonl}).
+Both the KF and KS can be derived by decomposition of the positive (semi)definite quadratic function (\ref{L-nonl}).
 \item Because the SDAS represents a (part of a) solution of the global least squares problem, it does not depend on the order in which observations are assimilated or on their grouping.
 \item Ditto, the SDAS does not depend on a linear non-singular transform of the model state in the sense that the forward and inverse transforms commute with the evolution of the DA system.
 \item Solution (\ref{kf-for}, \ref{kf-an}) can be \emph{used} in a nonlinear case by approximating
@@ -223,7 +223,7 @@ The above means that the model state estimate is given by the ensemble mean, whi
 
 Representing the state error covariance via ensemble anomalies yields a number of numerical benefits.
 In large-scale geophysical systems the state size ($\sim 10^5-10^9$) makes it impossible to store and manipulate the state error covariance $\mb P$ directly.
-At the same time it is often/typically possible to represent essential variability via an ensemble of much smaller size ($\sim 10^2$) and manimulate $\mb P$ implicitly via operations with $\mb A$.
+At the same time it is often/typically possible to represent essential variability via an ensemble of much smaller size ($\sim 10^2$) and manipulate $\mb P$ implicitly via operations with $\mb A$.
 Further, using $\mb A$ ensures positive semidefiniteness of $\mb P$.
 
 Storing the SDAS via an ensemble of model states is the first essential feature of the EnKF.
@@ -264,9 +264,9 @@ This is a remarkably simple equation compared to the KF forecast equations (\ref
 Because propagation of each ensemble member is independent from other members, the forecast stage in the EnKF is naturally parallelisable.
 
 One way to handle model error in the EnKF is to include stochastic model error into the model operator in (\ref{enkf-for}).
-(This would make it different to the model operator in the KF.)
+(This would make it different to the model operator in the KF, which is deterministic.)
 Another option is to use the multiplicative inflation.
-The third option is to mimic the treatment of model error in the KF, although this brings back problems with scalability in regard to the state size.
+The third option is to mimic the treatment of model error in the KF, although this may require the ``rank reduction'' step \citep[eq. 28]{ver97a}.
 
 At the analysis stage one has to update the ensemble mean and ensemble anomalies to match (\ref{kf-an}).
 This involves handling ensemble as a whole, which is different to the forecast stage, when each ensemble member is propagated individually.
@@ -514,9 +514,9 @@ Let us consider the minimisation problem (\ref{min-nonl}, \ref{L-nonl}) in the c
 It becomes
 \begin{align}
   \label{min-perf}
-  &{\mb x_1^a} = \arg \min \; \mathcal L(\mb x_1),\\
+  &{\mb x_1^a} = \arg \min \; J(\mb x_1),\\
   \label{cost-perf}
-  &\mathcal L(\mb x_1)  = (\mb x_1 - \mb x_1^f)\T (\mb P_1^f)^{-1} (\mb x_1 - \mb x_1^f) + \sum_{i = 1}^k \left [ \mb y_i - \mathcal H_i(\mb x_i) \right ] \T (\mb R_i)^{-1} \left [ \mb y_i - \mathcal H_i(\mb x_i) \right ],\\
+  &J(\mb x_1)  = (\mb x_1 - \mb x_1^f)\T (\mb P_1^f)^{-1} (\mb x_1 - \mb x_1^f) + \sum_{i = 1}^k \left [ \mb y_i - \mathcal H_i(\mb x_i) \right ] \T (\mb R_i)^{-1} \left [ \mb y_i - \mathcal H_i(\mb x_i) \right ],\\
   \label{model-perf}
   &\mb x_{i+1} = \mathcal M(\mb x_i),\quad i = 1,\dots,k-1.
 \end{align}
@@ -524,7 +524,7 @@ Compared to the original problem, the dimensionality of the solution is much red
 The cost function (\ref{cost-perf}) can then be written as
 \begin{align}
   \label{cost-async}
-  \mathcal L(\mb x_1)  = (\mb x_1 - \mb x_1^f)\T (\mb P^f)^{-1} (\mb x_1 - \mb x_1^f) + \left [ \mb y - \mathcal H \circ \mathcal M(\mb x_1) \right ] \T \mb R^{-1} \left [ \mb y - \mathcal H\circ \mathcal M(\mb x_1) \right ],
+  J(\mb x_1)  = (\mb x_1 - \mb x_1^f)\T (\mb P^f)^{-1} (\mb x_1 - \mb x_1^f) + \left [ \mb y - \mathcal H \circ \mathcal M(\mb x_1) \right ] \T \mb R^{-1} \left [ \mb y - \mathcal H\circ \mathcal M(\mb x_1) \right ],
 \end{align}
 where observations $\mb y$ represent the augmented observation vector: $\mb y = [\mb y_1\T,\dots,\mb y_k\T]\T$, $\mb R$ is the corresponding observation error covariance, and forward operator $\mathcal H \circ \mathcal M (\mb x_1)$ relates the initial state $\mb x_1$ to observations.
 
@@ -554,13 +554,13 @@ This time invariance of ensemble transforms can be used to update ensemble back 
   {\bf Note.} The background term $(\mb x_1 - \mb x_1^f)\T (\mb P^f)^{-1} (\mb x_1 - \mb x_1^f)$ in (\ref{cost-async}) can be seen as accumulating the previous history of the system rather than characterising the initial uncertainty in the global problem.
   In this case it is natural to anchor it to the previous analysis:
   \begin{align}
-    \mathcal L(\mb x) = (\mb x - \mb x^f)\T (\mb P^f)^{-1} (\mb x - \mb x^f) + \left [ \mb y - \mathcal H \circ \mathcal M(\mb x) \right ] \T \mb R^{-1} \left [ \mb y - \mathcal H \circ \mathcal M(\mb x) \right ].
+    J(\mb x) = (\mb x - \mb x^f)\T (\mb P^f)^{-1} (\mb x - \mb x^f) + \left [ \mb y - \mathcal H \circ \mathcal M(\mb x) \right ] \T \mb R^{-1} \left [ \mb y - \mathcal H \circ \mathcal M(\mb x) \right ].
   \end{align}
   Here $\mb x^f$ is the analysed state at the end of the previous cycle, considered as the forecast for the current cycle, and $\mb P^f$ is the corresponding state error covariance.
-  Minimising $\mathcal L$ yields the analysed initial model state $\mb x^a$, which in turn yields the analysed trajectory; the analysed state error covariance is defined so that the analysed background term absorbs the observation term:
+  Minimising $J$ yields the analysed initial model state $\mb x^a$, which in turn yields the analysed trajectory; the analysed state error covariance is defined so that the analysed background term absorbs the observation term:
   \begin{align*}
-    &\mb x^a = \arg \min \; \mathcal L(\mb x),\\
-    &\mb P^a: \ \mathcal L(\mb x^a) = (\mb x^a - \mb x^f)\T (\mb P^a)^{-1} (\mb x^a - \mb x^f) + \mathrm{Const}.
+    &\mb x^a = \arg \min \; J(\mb x),\\
+    &\mb P^a: \ J(\mb x^a) = (\mb x^a - \mb x^f)\T (\mb P^a)^{-1} (\mb x^a - \mb x^f) + \mathrm{Const}.
   \end{align*}
   This framework is a natural extension of the problem (\ref{min-nonl}) in the linear, perfect-model case to continuous time; and is convenient for iterative minimisation.\par
 }
