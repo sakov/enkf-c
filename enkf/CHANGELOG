@@ -1,4 +1,7 @@
-v. 1.60.2
+v. 1.60.4
+   PS 11082017
+   -- Cosmetic changes
+v. 1.60.3
    PS 02082017
    -- Modified reader_xy_gridded.c and reader_xy_scattered.c to allow lack of
       the time variable. Time is assumed then to be at the anaysis time.

@@ -322,11 +322,12 @@ Equations (\ref{T-right}) and (\ref{w}) can be combined into a single transform 
 \begin{align}
   \label{x5-def}
   & \mb E^a = \mb E^f \mb X_5,\\
+  \label{x5-raw}
   & \mb X_5 = \frac{1}{m} \mb 1 \mb 1\T + \left( \mb I - \frac{1}{m} \mb 1 \mb 1\T\right) \left( \mb w \mb 1\T + \mb T_R\right)
   = \frac{1}{m} \mb 1 \mb 1\T + \mb w \mb 1\T + \left( \mb I - \frac{1}{m} \mb 1 \mb 1\T \right) \mb T_R,
 \end{align}
 as $\mb 1\T \mb w = 0$. 
-For a number of common schemes, including the ETKF and DEnKF, $\mb 1\T \mb T_R = \mb 1\T$, so that
+Because $\mb T_R \mb 1 = \mb 1$, for symmetric transforms (including ETKF and DEnKF) $\mb 1\T \mb T_R = \mb 1\T$, and (\ref{x5-raw}) becomes
 \begin{align}
   \label{x5}
   & \mb X_5 = \mb w \mb 1\T + \mb T_R.
@@ -849,21 +850,20 @@ Each section specifies the observation type, input files, reader and, possibly, 
 
     PRODUCT   = <product>
     READER    = <reader>
+  [ PARAMETER <name> = <value> ]
+    ...
     TYPE      = <observation type>
     FILE      = <data file wildcard> 
     ...
   [ ERROR_STD = { <value> | <data file> } [ EQ* | PL | MU | MI | MA ] ]
-    ...
-  [ PARAMETER <name> = <value> ]
     ...
 
   [ <more of the above blocks> ]
 \end{Verbatim}
 Observation files can be defined using wildcards ``*'' and ``?''.
 Missing a file is reported in the log and is not considered to be a fatal error.
-The available readers are listed by the variable \verb|allreaders| defined in \verb|prep/allreaders.c|.
 
-The last line in the above example specifies the observation error.
+The line in the above example starting with \verb|ERROR_STD| specifies the observation error.
 It can contain either a number or a file name.
 In the case of entering the file name there also should be another entry in the same line specifying the name of the variable to be read.
 The variable should have the same dimension (2D or 3D) as the associated observation kind as described by the field \verb|issurface| in the array \verb|allkinds| in file \verb|common/obstypes.c| (sec.~\ref{sec:obstypesprm}).
@@ -892,13 +892,6 @@ type = SLA
 reader = standard2
 file=/short/p93/pxs599/obs/RADS-IB/y2006/m05/[!g]?_d23.nc
 \end{Verbatim}
-
-Each section can specify an arbitrary number of parameters to be used by observation readers.
-For example, to change the default minimal depth for altimeter data one could add
-\begin{Verbatim}
-PARAMETER MINDEPTH = 150
-\end{Verbatim}
-to the corresponding section (provided that the reader is able to handle it properly).
 
 \section{File name conventions}
 
@@ -939,7 +932,7 @@ It has the following usage and options:
 It also writes original (not superobed) observations to \verb|observatons-orig.nc| (provided that superobing has not been switched off by flag \verb|--no-superobing|).
 By default, only observations within the model grid are written to it, but the the option \verb|--log-all-obs| changes this behaviour to writing all observations from the input files.
 
-\subsection{Observation types, products, instruments, batches}
+\subsection{Observation types, products, instruments, batches, readers}
 
 \subsubsection{Types}
 \label{sec:types}
@@ -1010,6 +1003,31 @@ Therefore, the workflow for detecting and eliminating bad batches of observation
 Note that bad batches are identified at stage 2 based on superobservations formed by observations from the same batch only.
 Consequently, detection of bad batches may become unreliable if there are not enough such ``clean'' superobservations.
 It is possible to alleviate this problem by (1) switching off superobing by setting \verb|SOBSTRIDE = 0| or specifying \verb|--no-superobing| for \verb|enkf_prep| and/or (2) by processing observations by parts, one type (or instrument) at a time, and repeating stages 1 and 2 as many times as necessary.
+
+\subsubsection{Readers}
+
+The function of data readers is to read observations in specified files and parse them sequentially into \verb|struct observation| defined in \verb|common/observations.h|.
+
+At the moment there are few agreed standards for observational data.
+Even data of similar nature may have specific features that require creating a new or modify an existing observation data reader.
+It is therefore likely that developing a completely new system will require add new data readers.
+
+The new readers can be created based on existing ones, or developed from scratch.
+The available readers are listed by the variable \verb|allreaders| defined in \verb|prep/allreaders.c|.
+Each reader can be specified in the observation data parameter file with an arbitrary number of parameters.
+For example, the following section changes the default minimal depth for using altimetry observations to 150\,m:
+\begin{Verbatim}
+(...)
+product == RADS
+type = SLA
+reader = standard2
+parameter MINDEPTH = 150
+(...)
+\end{Verbatim}
+
+There are also several generic readers, e.g. \verb|xy_scattered| and \verb|xy_gridded|.
+In absence of common standards these probably are of rather limited use only.
+These readers may require to define names for a number of variables, although at the moment the only obligatory parameter is \verb|VARNAME|.
 
 \subsection{Asynchronous DA / FGAT}
 \label{sec:async}

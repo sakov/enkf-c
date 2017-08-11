@@ -261,12 +261,12 @@ void obsmeta_describeprm(void)
     enkf_printf("\n");
     enkf_printf("    PRODUCT   = <product>\n");
     enkf_printf("    READER    = <reader>\n");
+    enkf_printf("  [ PARAMETER <name> = <value> ]\n");
+    enkf_printf("    ...\n");
     enkf_printf("    TYPE      = <observation type>\n");
     enkf_printf("    FILE      = <data file wildcard> \n");
     enkf_printf("    ...\n");
     enkf_printf("  [ ERROR_STD = { <value> | <data file> } [ EQ* | PL | MU | MI | MA ] ]\n");
-    enkf_printf("    ...\n");
-    enkf_printf("  [ PARAMETER <name> = <value> ]\n");
     enkf_printf("    ...\n");
     enkf_printf("\n");
     enkf_printf("  [ <more of the above blocks> ]\n");
