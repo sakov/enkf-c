@@ -88,7 +88,6 @@ struct dasystem {
 
     double kfactor;
     double locrad;
-    int stride;
 
     int fieldbufsize;
 

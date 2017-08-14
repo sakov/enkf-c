@@ -90,6 +90,11 @@ struct grid {
     int** numlevels;
     float** depth;
 
+    /* `stride' for calculating ensemble transforms. "0" means to use the common
+     * value defined in the top prm file.
+     */
+    int stride;
+
     /*
      * "Spread factor", normally set to 1. Introduced to adjust relative spread
      * of the ocean and atmospheric parts in climate models. Applies to all
@@ -672,6 +677,8 @@ grid* grid_create(void* p, int id)
     g->name = strdup(prm->name);
     g->id = id;
     g->vtype = gridprm_getvtype(prm);
+    if (prm->stride != 0)
+        g->stride = prm->stride;
     g->sfactor = prm->sfactor;
 #if !defined(NO_GRIDUTILS)
 #if !defined(GRIDMAP_TYPE_DEF)
@@ -860,8 +867,10 @@ void grid_print(grid* g, char offset[])
     default:
         enkf_printf("%s  vert type = NONE\n", offset);
     }
+    if (g->stride != 0)
+        enkf_printf("%s  STRIDE = \"%d\"\n", offset, g->stride);
     if (g->sfactor != 1.0)
-        enkf_printf("%s  SFACTOR = \"%.f\"\n", offset, g->sfactor);
+        enkf_printf("%s  SFACTOR = \"%f\"\n", offset, g->sfactor);
 }
 
 /**
@@ -886,6 +895,7 @@ void grid_describeprm(void)
     enkf_printf("    DEPTHVARNAME     = <depth variable name>\n");
     enkf_printf("    [ NUMLEVELSVARNAME = <# of levels variable name> (z) ]\n");
     enkf_printf("    [ MASKVARNAME    = <land mask variable name> (sigma) ]\n");
+    enkf_printf("    [ STRIDE         = <stride> (common*) ]\n");
     enkf_printf("    [ SFACTOR        = <spread factor> (1.0*) ]\n");
     enkf_printf("\n");
     enkf_printf("  [ <more of the above blocks> ]\n");
@@ -989,6 +999,20 @@ int** grid_getnumlevels(grid* g)
 double grid_getlonbase(grid* g)
 {
     return g->lonbase;
+}
+
+/**
+ */
+int grid_getstride(grid* g)
+{
+    return g->stride;
+}
+
+/**
+ */
+void grid_setstride(grid* g, int stride)
+{
+    g->stride = stride;
 }
 
 /**

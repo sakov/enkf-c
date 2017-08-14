@@ -122,7 +122,6 @@ dasystem* das_create(enkfprm* prm)
     das->kfactor = NAN;
     das->locrad = NAN;
 #endif
-    das->stride = prm->stride;
     if (!enkf_fstatsonly)
         das->fieldbufsize = prm->fieldbufsize;
 

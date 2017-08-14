@@ -187,6 +187,7 @@ void das_calctransforms(dasystem* das)
         void* grid = model_getgridbyid(m, gid);
         char* gridname = grid_getname(grid);
         double sfactor = grid_getsfactor(grid);
+        int stride = grid_getstride(grid);
 
         int mni, mnj;
         int nj, ni;
@@ -242,27 +243,27 @@ void das_calctransforms(dasystem* das)
         /*
          * work out how to cycle j 
          */
-        nj = (mnj - 1) / das->stride + 1;
+        nj = (mnj - 1) / stride + 1;
         jiter = malloc(nj * sizeof(int));
-        for (j = 0, i = 0; j < nj; ++j, i += das->stride)
+        for (j = 0, i = 0; j < nj; ++j, i += stride)
             jiter[j] = i;
-        ni = (mni - 1) / das->stride + 1;
+        ni = (mni - 1) / stride + 1;
         iiter = malloc(ni * sizeof(int));
-        for (i = 0, j = 0; i < ni; ++i, j += das->stride)
+        for (i = 0, j = 0; i < ni; ++i, j += stride)
             iiter[i] = j;
 
         if (das->mode == MODE_ENKF) {
             das_getfname_X5(das, grid, fname);
 
             if (rank == 0)
-                nc_createX5(das, fname, gridname, nj, ni, das->stride, das->nmem, &ncid, &varid);
+                nc_createX5(das, fname, gridname, nj, ni, stride, das->nmem, &ncid, &varid);
             X5j = alloc2d(ni, das->nmem * das->nmem, sizeof(float));
             X5 = alloc2d(das->nmem, das->nmem, sizeof(double));
         } else if (das->mode == MODE_ENOI) {
             das_getfname_w(das, grid, fname);
 
             if (rank == 0)
-                nc_createw(das, fname, gridname, nj, ni, das->stride, das->nmem, &ncid, &varid);
+                nc_createw(das, fname, gridname, nj, ni, stride, das->nmem, &ncid, &varid);
             wj = alloc2d(ni, das->nmem, sizeof(float));
             w = malloc(das->nmem * sizeof(double));
         } else
@@ -651,7 +652,7 @@ void das_calctransforms(dasystem* das)
 
             das_getfname_stats(das, grid, fname_stats);
 
-            nc_writediag(das, fname_stats, obs->nobstypes, nj, ni, das->stride, nlobs, dfs, srf, pnlobs, pdfs, psrf);
+            nc_writediag(das, fname_stats, obs->nobstypes, nj, ni, stride, nlobs, dfs, srf, pnlobs, pdfs, psrf);
         }
 
         if (das->mode == MODE_ENKF) {

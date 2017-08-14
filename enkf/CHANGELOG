@@ -1,6 +1,9 @@
+v. 1.61.0
+   PS 15082017
+   -- Made STRIDE grid dependent.
 v. 1.60.4
    PS 11082017
-   -- Cosmetic changes
+   -- Cosmetic changes.
 v. 1.60.3
    PS 02082017
    -- Modified reader_xy_gridded.c and reader_xy_scattered.c to allow lack of

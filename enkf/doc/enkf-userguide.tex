@@ -35,7 +35,7 @@
 
 \begin{document}
 
-\title{EnKF-C user guide\\{\normalsize version 1.60.3}}
+\title{EnKF-C user guide\\{\normalsize version 1.61.0}}
 
 \author{Pavel Sakov}
 \date{June 19, 2014 -- \today}
@@ -756,6 +756,8 @@ It also contains variable names for the depth and for number of layers in a vert
     DEPTHVARNAME     = <depth variable name>
     [ NUMLEVELSVARNAME = <# of levels variable name> (z) ]
     [ MASKVARNAME      = <land mask variable name> (sigma) ]
+    [ STRIDE         = <stride> (common*) ]
+    [ SFACTOR        = <spread factor> (1.0*) ]
 
   [ <more of the above blocks> ]
 \end{Verbatim}
@@ -1148,7 +1150,7 @@ The ``standard'' functions do normally perform 2D or 3D linear interpolation fro
 
 Local ensemble transforms $\mb X_5$ (EnKF) or local ensemble weights $\mb w$ (EnOI) represent smooth fields with the characteristic spatial variability scale of the localisation radius.
 This smoothness allows one to reduce the computational load in \emph{calc} by calculating local transforms or weights on a subgrid with a specified stride only, and using linearly interpolated transforms or weights in the intermediate grid cells.
-The value of the stride is defined by the \verb|STRIDE| entry in the parameter file.
+The value of the stride is defined by the \verb|STRIDE| entry in the parameter file and can be overwritten for a particular grid in the grid parameter file.
 
 \subsection{Adaptive moderation of observations}
 

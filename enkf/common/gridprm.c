@@ -183,7 +183,14 @@ void gridprm_create(char* fname, int* ngrid, gridprm** prm)
             if (now->sfactor != 1.0)
                 enkf_quit("%s, l.%d: SFACTOR specified twice", fname, line);
             if (!str2double(token, &now->sfactor))
-                enkf_quit("%s, l.%d: could not convert \"%s\" to double", fname, line, now->sfactor);
+                enkf_quit("%s, l.%d: could not convert \"%s\" to double", fname, line, token);
+        } else if (strcasecmp(token, "STRIDE") == 0) {
+            if ((token = strtok(NULL, seps)) == NULL)
+                enkf_quit("%s, l.%d: STRIDE not specified", fname, line);
+            if (now->stride != 0)
+                enkf_quit("%s, l.%d: STRIDE specified twice", fname, line);
+            if (!str2int(token, &now->stride))
+                enkf_quit("%s, l.%d: could not convert \"%s\" to int", fname, line, token);
         } else if (now->levelvarnameentry != NULL && strcasecmp(token, now->levelvarnameentry) == 0) {
             if ((token = strtok(NULL, seps)) == NULL)
                 enkf_printf("%s, l.%d: \"%s\" not specified", fname, line, now->levelvarnameentry);
@@ -270,6 +277,8 @@ void gridprm_print(gridprm* prm, char offset[])
     enkf_printf("%s  DEPTHVARNAME = \"%s\"\n", offset, prm->depthvarname);
     if (prm->levelvarnameentry != NULL && prm->levelvarname != NULL)
         enkf_printf("%s  %s = \"%s\"\n", offset, prm->levelvarnameentry, prm->levelvarname);
+    if (prm->stride != 0)
+        enkf_printf("%s  STRIDE = %d\n", offset, prm->stride);
     if (prm->sfactor != 1.0)
         enkf_printf("%s  SFACTOR = \"%.f\"\n", offset, prm->sfactor);
 }

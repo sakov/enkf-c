@@ -31,6 +31,7 @@ typedef struct {
     char* depthvarname;
     char* levelvarnameentry;
     char* levelvarname;
+    int stride;
     double sfactor;
 } gridprm;
 

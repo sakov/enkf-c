@@ -135,6 +135,12 @@ model* model_create(enkfprm* prm)
     int i;
 
     model_setgrids(m, gridprm);
+    for (i = 0; i < m->ngrid; ++i) {
+        grid* g = m->grids[i];
+
+        if (grid_getstride(g) == 0)
+            grid_setstride(g, prm->stride);
+    }
 
     /*
      * read model parameter file

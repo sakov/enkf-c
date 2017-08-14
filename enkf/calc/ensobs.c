@@ -839,6 +839,7 @@ static void update_HE(dasystem* das)
     for (gid = 0, o = 0; gid < ngrid && o < obs->nobs; ++gid) {
         void* grid = model_getgridbyid(m, gid);
         int periodic_i = grid_isperiodic_x(grid);
+        int stride = grid_getstride(grid);
 
         char fname_X5[MAXSTRLEN];
         int ncid;
@@ -874,12 +875,12 @@ static void update_HE(dasystem* das)
         jiter = malloc((nj + 1) * sizeof(int)); /* "+ 1" to handle periodic
                                                  * grids */
         iiter = malloc((ni + 1) * sizeof(int));
-        for (j = 0, i = 0; j < nj; ++j, i += das->stride)
+        for (j = 0, i = 0; j < nj; ++j, i += stride)
             jiter[j] = i;
-        for (i = 0, j = 0; i < ni; ++i, j += das->stride)
+        for (i = 0, j = 0; i < ni; ++i, j += stride)
             iiter[i] = j;
         if (periodic_i)
-            iiter[ni] = iiter[ni - 1] + das->stride;
+            iiter[ni] = iiter[ni - 1] + stride;
 
         grid_getdims(grid, &mni, &mnj, NULL);
 
@@ -890,7 +891,7 @@ static void update_HE(dasystem* das)
         count[1] = ni;
         count[2] = nmem * nmem;
         X5j = alloc2d(mni, nmem * nmem, sizeof(float));
-        if (das->stride > 1) {
+        if (stride > 1) {
             X5jj = alloc2d(ni, nmem * nmem, sizeof(float));
             X5jj1 = alloc2d(ni, nmem * nmem, sizeof(float));
             X5jj2 = alloc2d(ni, nmem * nmem, sizeof(float));
@@ -902,8 +903,8 @@ static void update_HE(dasystem* das)
          * of the model grid 
          */
         for (jj = 0, j = 0; jj < nj; ++jj) {
-            for (stepj = 0; stepj < das->stride && j < mnj; ++stepj, ++j) {
-                if (das->stride == 1) {
+            for (stepj = 0; stepj < stride && j < mnj; ++stepj, ++j) {
+                if (stride == 1) {
                     /*
                      * no interpolation necessary; simply read the ETMs for the
                      * j-th row from disk 
@@ -923,7 +924,7 @@ static void update_HE(dasystem* das)
                             ncw_get_vara_float(ncid, varid, start, count, X5jj2[0]);
                         }
                     } else {
-                        float weight2 = (float) stepj / das->stride;
+                        float weight2 = (float) stepj / stride;
                         float weight1 = (float) 1.0 - weight2;
 
                         for (ii = 0; ii < ni; ++ii) {
@@ -937,11 +938,11 @@ static void update_HE(dasystem* das)
                     }
 
                     for (ii = 0, i = 0; ii < ni; ++ii) {
-                        for (stepi = 0; stepi < das->stride && i < mni; ++stepi, ++i) {
+                        for (stepi = 0; stepi < stride && i < mni; ++stepi, ++i) {
                             if (stepi == 0)
                                 memcpy(X5j[i], X5jj[ii], nmem * nmem * sizeof(float));
                             else {
-                                float weight2 = (float) stepi / das->stride;
+                                float weight2 = (float) stepi / stride;
                                 float weight1 = (float) 1.0 - weight2;
                                 float* X5jjii1 = X5jj[ii];
                                 float* X5ji = X5j[i];
@@ -1048,7 +1049,7 @@ static void update_HE(dasystem* das)
         free(iiter);
         free(jiter);
         free(X5j);
-        if (das->stride > 1) {
+        if (stride > 1) {
             free(X5jj);
             free(X5jj1);
             free(X5jj2);
@@ -1082,6 +1083,7 @@ static void update_Hx(dasystem* das)
     for (gid = 0, o = 0; gid < ngrid && o < obs->nobs; ++gid) {
         void* grid = model_getgridbyid(m, gid);
         int periodic_i = grid_isperiodic_x(grid);
+        int stride = grid_getstride(grid);
 
         char fname_w[MAXSTRLEN];
         int ncid;
@@ -1117,12 +1119,12 @@ static void update_Hx(dasystem* das)
         jiter = malloc((nj + 1) * sizeof(int)); /* "+ 1" to handle periodic
                                                  * grids */
         iiter = malloc((ni + 1) * sizeof(int));
-        for (j = 0, i = 0; j < nj; ++j, i += das->stride)
+        for (j = 0, i = 0; j < nj; ++j, i += stride)
             jiter[j] = i;
-        for (i = 0, j = 0; i < ni; ++i, j += das->stride)
+        for (i = 0, j = 0; i < ni; ++i, j += stride)
             iiter[i] = j;
         if (periodic_i)
-            iiter[ni] = iiter[ni - 1] + das->stride;
+            iiter[ni] = iiter[ni - 1] + stride;
 
         grid_getdims(grid, &mni, &mnj, NULL);
 
@@ -1133,7 +1135,7 @@ static void update_Hx(dasystem* das)
         count[1] = ni;
         count[2] = nmem;
         wj = alloc2d(mni, nmem, sizeof(float));
-        if (das->stride > 1) {
+        if (stride > 1) {
             wjj = alloc2d(ni, nmem, sizeof(float));
             wjj1 = alloc2d(ni, nmem, sizeof(float));
             wjj2 = alloc2d(ni, nmem, sizeof(float));
@@ -1145,8 +1147,8 @@ static void update_Hx(dasystem* das)
          * of the model grid 
          */
         for (jj = 0, j = 0; jj < nj; ++jj) {
-            for (stepj = 0; stepj < das->stride && j < mnj; ++stepj, ++j) {
-                if (das->stride == 1) {
+            for (stepj = 0; stepj < stride && j < mnj; ++stepj, ++j) {
+                if (stride == 1) {
                     /*
                      * no interpolation necessary; simply read the ETMs for the
                      * j-th row from disk 
@@ -1166,7 +1168,7 @@ static void update_Hx(dasystem* das)
                             ncw_get_vara_float(ncid, varid, start, count, wjj2[0]);
                         }
                     } else {
-                        float weight2 = (float) stepj / das->stride;
+                        float weight2 = (float) stepj / stride;
                         float weight1 = (float) 1.0 - weight2;
 
                         for (ii = 0; ii < ni; ++ii) {
@@ -1180,11 +1182,11 @@ static void update_Hx(dasystem* das)
                     }
 
                     for (ii = 0, i = 0; ii < ni; ++ii) {
-                        for (stepi = 0; stepi < das->stride && i < mni; ++stepi, ++i) {
+                        for (stepi = 0; stepi < stride && i < mni; ++stepi, ++i) {
                             if (stepi == 0)
                                 memcpy(wj[i], wjj[ii], nmem * sizeof(float));
                             else {
-                                float weight2 = (float) stepi / das->stride;
+                                float weight2 = (float) stepi / stride;
                                 float weight1 = (float) 1.0 - weight2;
                                 float* wjjii1 = wjj[ii];
                                 float* wji = wj[i];
@@ -1243,7 +1245,7 @@ static void update_Hx(dasystem* das)
         free(iiter);
         free(jiter);
         free(wj);
-        if (das->stride > 1) {
+        if (stride > 1) {
             free(wjj);
             free(wjj1);
             free(wjj2);

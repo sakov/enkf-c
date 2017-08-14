@@ -84,6 +84,7 @@ static void das_updatefields(dasystem* das, int nfields, void** fieldbuffer, fie
     int nmem = das->nmem;
 
     void* grid = model_getvargrid(m, fields[0].varid);
+    int stride = grid_getstride(grid);
     int** nlevels = grid_getnumlevels(grid);
     int topk = grid_gettoplayerid(grid);
     int periodic_i = grid_isperiodic_x(grid);
@@ -136,7 +137,7 @@ static void das_updatefields(dasystem* das, int nfields, void** fieldbuffer, fie
     count[2] = nmem * nmem;
 
     X5j = alloc2d(mni, nmem * nmem, sizeof(float));
-    if (das->stride > 1) {
+    if (stride > 1) {
         X5jj = alloc2d(ni, nmem * nmem, sizeof(float));
         X5jj1 = alloc2d(ni, nmem * nmem, sizeof(float));
         X5jj2 = alloc2d(ni, nmem * nmem, sizeof(float));
@@ -154,8 +155,8 @@ static void das_updatefields(dasystem* das, int nfields, void** fieldbuffer, fie
      * of the model grid 
      */
     for (jj = 0, j = 0; jj < nj; ++jj) {
-        for (stepj = 0; stepj < das->stride && j < mnj; ++stepj, ++j) {
-            if (das->stride == 1) {
+        for (stepj = 0; stepj < stride && j < mnj; ++stepj, ++j) {
+            if (stride == 1) {
                 /*
                  * no interpolation necessary; simply read the ETMs for the
                  * j-th row from disk 
@@ -175,7 +176,7 @@ static void das_updatefields(dasystem* das, int nfields, void** fieldbuffer, fie
                         ncw_get_vara_float(ncid, varid, start, count, X5jj2[0]);
                     }
                 } else {
-                    float weight2 = (float) stepj / (float) das->stride;
+                    float weight2 = (float) stepj / (float) stride;
                     float weight1 = 1.0f - weight2;
 
                     for (ii = 0; ii < ni; ++ii) {
@@ -189,11 +190,11 @@ static void das_updatefields(dasystem* das, int nfields, void** fieldbuffer, fie
                 }
 
                 for (ii = 0, i = 0; ii < ni; ++ii) {
-                    for (stepi = 0; stepi < das->stride && i < mni; ++stepi, ++i) {
+                    for (stepi = 0; stepi < stride && i < mni; ++stepi, ++i) {
                         if (stepi == 0) {
                             memcpy(X5j[i], X5jj[ii], nmem * nmem * sizeof(float));
                         } else {
-                            float weight2 = (float) stepi / (float) das->stride;
+                            float weight2 = (float) stepi / (float) stride;
                             float weight1 = 1.0f - weight2;
                             float* X5jjii1 = X5jj[ii];
                             float* X5ji = X5j[i];
@@ -360,7 +361,7 @@ static void das_updatefields(dasystem* das, int nfields, void** fieldbuffer, fie
 
     ncw_close(ncid);
     free(X5j);
-    if (das->stride > 1) {
+    if (stride > 1) {
         free(X5jj);
         free(X5jj1);
         free(X5jj2);
@@ -394,6 +395,7 @@ static void das_updatebg(dasystem* das, int nfields, void** fieldbuffer, field f
     int nmem = das->nmem;
 
     void* grid = model_getvargrid(m, fields[0].varid);
+    int stride = grid_getstride(grid);
     int** nlevels = grid_getnumlevels(grid);
     int topk = grid_gettoplayerid(grid);
     int periodic_i = grid_isperiodic_x(grid);
@@ -442,7 +444,7 @@ static void das_updatebg(dasystem* das, int nfields, void** fieldbuffer, field f
     count[2] = nmem;
 
     wj = alloc2d(mni, nmem, sizeof(float));
-    if (das->stride > 1) {
+    if (stride > 1) {
         wjj = alloc2d(ni, nmem, sizeof(float));
         wjj1 = alloc2d(ni, nmem, sizeof(float));
         wjj2 = alloc2d(ni, nmem, sizeof(float));
@@ -454,8 +456,8 @@ static void das_updatebg(dasystem* das, int nfields, void** fieldbuffer, field f
      * of the model grid 
      */
     for (jj = 0, j = 0; jj < nj; ++jj) {
-        for (stepj = 0; stepj < das->stride && j < mnj; ++stepj, ++j) {
-            if (das->stride == 1) {
+        for (stepj = 0; stepj < stride && j < mnj; ++stepj, ++j) {
+            if (stride == 1) {
                 /*
                  * no interpolation necessary; simply read the ETMs for the
                  * j-th row from disk 
@@ -475,7 +477,7 @@ static void das_updatebg(dasystem* das, int nfields, void** fieldbuffer, field f
                         ncw_get_vara_float(ncid, varid, start, count, wjj2[0]);
                     }
                 } else {
-                    float weight2 = (float) stepj / das->stride;
+                    float weight2 = (float) stepj / stride;
                     float weight1 = (float) 1.0f - weight2;
 
                     for (ii = 0; ii < ni; ++ii) {
@@ -489,11 +491,11 @@ static void das_updatebg(dasystem* das, int nfields, void** fieldbuffer, field f
                 }
 
                 for (ii = 0, i = 0; ii < ni; ++ii) {
-                    for (stepi = 0; stepi < das->stride && i < mni; ++stepi, ++i) {
+                    for (stepi = 0; stepi < stride && i < mni; ++stepi, ++i) {
                         if (stepi == 0)
                             memcpy(wj[i], wjj[ii], nmem * sizeof(float));
                         else {
-                            float weight2 = (float) stepi / das->stride;
+                            float weight2 = (float) stepi / stride;
                             float weight1 = (float) 1.0f - weight2;
                             float* wjjii1 = wjj[ii];
                             float* wji = wj[i];
@@ -590,7 +592,7 @@ static void das_updatebg(dasystem* das, int nfields, void** fieldbuffer, field f
 
     ncw_close(ncid);
     free(wj);
-    if (das->stride > 1) {
+    if (stride > 1) {
         free(wjj);
         free(wjj1);
         free(wjj2);
