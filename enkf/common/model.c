@@ -176,7 +176,7 @@ model* model_create(enkfprm* prm)
                 if ((token = strtok(NULL, seps)) == NULL)
                     enkf_quit("%s, l.%d: VAR not specified", modelprm, line);
                 for (i = 0; i < m->nvar; ++i)
-                    if (strcasecmp(m->vars[i].name, token) == 0)
+                    if (strcmp(m->vars[i].name, token) == 0)
                         enkf_quit("%s, l.%d: VAR \"%s\" already specified", modelprm, line, token);
                 if (m->nvar % NVAR_INC == 0)
                     m->vars = realloc(m->vars, (m->nvar + NVAR_INC) * sizeof(variable));

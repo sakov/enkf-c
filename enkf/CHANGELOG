@@ -1,3 +1,7 @@
+v. 1.61.1
+   PS 15082017
+   -- A change to permit variable names in the state vector (defined in the
+      model prm file) different by case only, e.g.: t and T, u and U etc.
 v. 1.61.0
    PS 15082017
    -- Made STRIDE grid dependent.
