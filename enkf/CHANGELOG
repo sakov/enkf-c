@@ -1,3 +1,6 @@
+v. 1.61.2
+   PS 15082017
+   -- A minor modification in the observation constructor in CALC.
 v. 1.61.1
    PS 15082017
    -- A change to permit variable names in the state vector (defined in the

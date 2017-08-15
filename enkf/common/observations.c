@@ -161,6 +161,7 @@ observations* obs_create_fromprm(enkfprm* prm)
     enkf_printf("  reading observation type specs from \"%s\":\n", prm->obstypeprm);
     obstypes_read(prm->obstypeprm, &obs->nobstypes, &obs->obstypes, prm->locrad, prm->rfactor_base);
 
+#if defined(ENKF_PREP)
     obs->da_date = date_str2dbl(prm->date);
     obs->datestr = strdup(prm->date);
     obs->windowmin = prm->windowmin;
@@ -168,7 +169,6 @@ observations* obs_create_fromprm(enkfprm* prm)
 
     obs->stride = prm->sob_stride;
 
-#if defined(ENKF_PREP)
     if (file_exists(FNAME_BADBATCHES)) {
         FILE* f = NULL;
         char buf[MAXSTRLEN];
