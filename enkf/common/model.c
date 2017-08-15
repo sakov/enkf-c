@@ -135,6 +135,7 @@ model* model_create(enkfprm* prm)
     int i;
 
     model_setgrids(m, gridprm);
+
     for (i = 0; i < m->ngrid; ++i) {
         grid* g = m->grids[i];
 

@@ -63,7 +63,7 @@ void reader_xy_scattered(char* fname, int fid, obsmeta* meta, model* m, observat
     double estd_add_offset = NAN, estd_scale_factor = NAN;
     double estd_fill_value = NAN;
     int have_time = 1;
-    int singletime;
+    int singletime = -1;
     double* time = NULL;
     double time_add_offset = NAN, time_scale_factor = NAN;
     double time_fill_value = NAN;

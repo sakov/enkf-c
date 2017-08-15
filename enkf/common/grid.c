@@ -90,8 +90,9 @@ struct grid {
     int** numlevels;
     float** depth;
 
-    /* `stride' for calculating ensemble transforms. "0" means to use the common
-     * value defined in the top prm file.
+    /*
+     * `stride' for calculating ensemble transforms. "0" means to use the
+     * common value defined in the top prm file. 
      */
     int stride;
 

@@ -66,7 +66,7 @@ void reader_xy_gridded(char* fname, int fid, obsmeta* meta, model* m, observatio
     float estd_add_offset = NAN, estd_scale_factor = NAN;
     float estd_fill_value = NAN;
     int have_time = 1;
-    int singletime;
+    int singletime = -1;
     float* time = NULL;
     float time_add_offset = NAN, time_scale_factor = NAN;
     float time_fill_value = NAN;
