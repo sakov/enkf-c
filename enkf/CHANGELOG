@@ -1,3 +1,8 @@
+v. 1.61.3
+   PS 13092017
+   -- Modification in reader_xy_gridded() and reader_xy_scattered() to allow
+      NaNs as fill values. Necessary to make it possible to use for reading
+      SMOS data.
 v. 1.61.2
    PS 15082017
    -- A minor modification in the observation constructor in CALC.

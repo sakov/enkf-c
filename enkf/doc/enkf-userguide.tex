@@ -1645,7 +1645,7 @@ Paul Sandery was the first user of this code (apart from the author), and his en
   $\mb 1$ &-& a vector with all elements equal to 1 \\
   $\mb 0$ &-& a vector with all elements equal to 0 \\
   $\mb A$ (capital, bold) &-& a matrix \\
-  $\mb I$ &-& identity matrix \\
+  $\mb I$ &-& an identity matrix \\
   $\mb U$ &-& a unitary matrix, $\mb U \mb U\T = \mb I$ \\
   $\mb A\T$ &-& transposed matrix $\mb A$ \\
   $\mb A^{1/2}$ &-& the unique positive definite square root of a positive definite matrix $\mb A$ \\
@@ -1661,12 +1661,14 @@ Paul Sandery was the first user of this code (apart from the author), and his en
   $p$ &-& number of observations \\
   $\mb A$ &-& ensemble anomalies, $\mb A = \mb E - \mb x \mb 1\T$ \\
   $\mb E$ &-& ensemble \\
-  $\mathcal H$ &-& nonlinear observation operator; in linear case -- affine observation operator \\
   $\mb G$ &-& an intermediate matrix in the EnKF analysis, $\mb G \equiv (\mb I + \mb S\T \mb S)^{-1} \mb S\T = \mb S\T ( \mb I + \mb S \mb S\T)^{-1}$ \\
+  $\mathcal H$ &-& nonlinear observation operator; in linear case -- affine observation operator \\
   $\mb H$ &-& linearised observation operator, $\mb H = \nabla \mathcal H(\mb x)$ \\
+  $J$ &-& cost function \\
   $\mathcal M$ &-& nonlinear model operator; in linear case -- affine model operator \\
   $\mb M$ &-& linearised model operator, $\mb M = \nabla \mathcal M(\mb x)$ \\
   $\mb P$ &-& state error covariance estimate; also used as abbreviation for $\mb A \mb A\T / (m - 1)$ \\
+  $\mb Q$ &-& model error covariance \\
   $\mb R$ &-& observation error covariance \\
   $\mb S$ &-& normalised ensemble observation anomalies, $\mb S = \mb R^{-1/2} \mb {HA} / \sqrt{m - 1}$ \\
   $\mb T_L$ &-& left-multiplied ensemble transform matrix, $\mb A^a = \mb T_L \mb A^f$ \\

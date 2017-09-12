@@ -373,7 +373,8 @@ void das_getfname_plog(dasystem* das, pointlog* plog, char fname[])
         snprintf(fname, MAXSTRLEN, "%s_%d,%d-%d.nc", FNAMEPREFIX_PLOG, plog->i, plog->j, plog->gridid);
 }
 
-/**
+/** Calculates the mixed layer depth for consistent application of the SST bias
+ ** correction.
  */
 void das_calcmld(dasystem* das, obstype* ot, float*** src, float** dst)
 {
