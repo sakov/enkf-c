@@ -139,7 +139,7 @@ void reader_xy_gridded(char* fname, int fid, obsmeta* meta, model* m, observatio
 
         ncw_inq_vardimid(ncid, varid_var, dimid);
         ncw_inq_dimlen(ncid, dimid[0], &nr);
-        if (nr != 0)
+        if (nr != 1)
             enkf_quit("reader_xy_gridded(): %d records (currently only one is allowed)", nr);
     } else if (ndim != 2)
         enkf_quit("reader_xy_gridded(): %s: # dimensions = %d (must be 2 or 3 with only one record)", fname, ndim);
