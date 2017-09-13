@@ -8,6 +8,27 @@
  *              Bureau of Meteorology
  *
  * Description: Generic reader for gridded surface observations.
+ *                It currently assumes that there is only one data record
+ *              (2D field).
+ *                There are a number of parameters that must (++) or can be
+ *              specified if they differ from the default value (+). Some
+ *              parameters are optional (-):
+ *              - VARNAME (++)
+ *              - TIMENAME ("time") (+)
+ *              - NPOINTSNAME ("npoints") (-)
+ *                  number of collated points for each datum; used basically as
+ *                  a data mask n = 0
+ *              - LONNAME ("lon" | "longitude") (+)
+ *              - LATNAME ("lat" | "latitude") (+)
+ *              - STDNAME ("std") (-)
+ *                  internal variability of the collated data
+ *              - ESTDNAME ("error_std") -
+ *                  error STD; if abcent then needs to be specified externally
+ *                  in the oobservation data parameter file
+ *              - VARSHIFT -
+ *                  data offset to be added
+ *              - MINDEPTH -
+ *                  minimal allowed depth
  *
  * Revisions:  
  *
@@ -112,8 +133,16 @@ void reader_xy_gridded(char* fname, int fid, obsmeta* meta, model* m, observatio
     ncw_open(fname, NC_NOWRITE, &ncid);
     ncw_inq_varid(ncid, varname, &varid_var);
     ncw_inq_varndims(ncid, varid_var, &ndim);
-    if (ndim != 2)
-        enkf_quit("reader_xy_gridded(): %s: # dimensions = %d (must be 2)", fname, ndim);
+    if (ndim == 3) {
+        int dimid[3];
+        size_t nr;
+
+        ncw_inq_vardimid(ncid, varid_var, dimid);
+        ncw_inq_dimlen(ncid, dimid[0], &nr);
+        if (nr != 0)
+            enkf_quit("reader_xy_gridded(): %d records (currently only one is allowed)", nr);
+    } else if (ndim != 2)
+        enkf_quit("reader_xy_gridded(): %s: # dimensions = %d (must be 2 or 3 with only one record)", fname, ndim);
 
     if (lonname != NULL)
         ncw_inq_varid(ncid, lonname, &varid_lon);
@@ -123,7 +152,6 @@ void reader_xy_gridded(char* fname, int fid, obsmeta* meta, model* m, observatio
         ncw_inq_varid(ncid, "longitude", &varid_lon);
     else
         enkf_quit("reader_xy_gridded(): %s: could not find longitude variable", fname);
-
     ncw_inq_varndims(ncid, varid_lon, &ndim);
     if (ndim == 1) {
         int dimid;
