@@ -1,3 +1,7 @@
+v. 1.61.5
+   PS 14092017
+   -- Removed redundant reader_aquarius.c and reader_smos.c (these data are now
+      handled by reader_xy_gridded.c).
 v. 1.61.4
    PS 13092017
    -- Modified reader_xy_gridded() to allow a record dimension with a single

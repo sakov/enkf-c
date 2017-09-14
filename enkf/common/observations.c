@@ -539,6 +539,18 @@ void obs_read(observations* obs, char fname[])
     aux = malloc(nobs * sizeof(int));
 
     /*
+     * date
+     */
+    {
+        size_t len = 0;
+
+        ncw_inq_attlen(ncid, varid_date, "units", &len);
+        obs->datestr = malloc(len + 1);
+        ncw_get_att_text(ncid, varid_date, "units", obs->datestr);
+        obs->datestr[len] = 0;
+    }
+
+    /*
      * type 
      */
     ncw_inq_varnatts(ncid, varid_type, &nobstypes);
