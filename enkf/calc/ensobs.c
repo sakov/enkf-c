@@ -200,7 +200,7 @@ void das_getHE(dasystem* das)
         }
 
         /*
-         * (the second and third argumants below are ignored -- see
+         * (the second and third arguments below are ignored -- see
          * http://hpc.uni-due.de/teaching/wt2013/hpc/programs
          * /allgatherv-example.c)
          */
