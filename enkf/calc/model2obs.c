@@ -7,7 +7,8 @@
  * Author:      Pavel Sakov
  *              Bureau of Meteorology
  *
- * Description:
+ * Description: H functions to calculate forecast observations from the model
+ *              state, basically -- 2D and 3D linear interpolators.
  *
  * Revisions:
  *

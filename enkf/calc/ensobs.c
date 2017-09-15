@@ -7,9 +7,20 @@
  * Author:      Pavel Sakov
  *              Bureau of Meteorology
  *
- * Description: The code in this file structurally belongs to dasystem.c,
- *              and is put in a separate file just to break dasystem.c in
- *              smaller parts.
+ * Description: This file contains code for calculating forecast and analysis
+ *              ensemble observations HE. The forecast ensemble observations are
+ *              calculated using observation functions H from model2obs.c.
+ *              They are then used for calculating ensemble transforms X5.
+ *              The analysis ensemble observations are calculated by applying
+ *              the ensemble transforms X5 to the forecast HE. Both forecast and
+ *              analysis ensemble observations are used for calculating
+ *              observation statistics in obsstats.c.
+ *
+ *              For the EnOI the ensemble observations are calculated as
+ *              H(E) = H(x) 1' + H(A). This implies that the observation
+ *              functions H are linear. For nonlinear H one needs to use
+ *              H(E) = H(x 1' + A) instead, but this has little sense as the
+ *              EnOI itself implies linearity
  *
  * Revisions:
  *
@@ -189,7 +200,7 @@ void das_getHE(dasystem* das)
             displs[i] = first_iteration[i] * obs->nobs;
         }
 
-        ierror = MPI_Allgatherv(das->S[my_first_iteration], sendcount, MPIENSOBSTYPE, das->S[0], recvcounts, displs, MPIENSOBSTYPE, MPI_COMM_WORLD);
+        ierror = MPI_Allgatherv(MPI_IN_PLACE, sendcount, MPIENSOBSTYPE, das->S[0], recvcounts, displs, MPIENSOBSTYPE, MPI_COMM_WORLD);
         assert(ierror == MPI_SUCCESS);
 
         free(recvcounts);
