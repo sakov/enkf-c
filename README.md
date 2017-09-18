@@ -1,6 +1,6 @@
 ## EnKF-C ##
 
-**EnKF-C** provides a light-weight generic framework for off-line data assimilation (DA) into large-scale layered geophysical models with the ensemble Kalman filter (EnKF).
+**EnKF-C** provides a compact generic framework for off-line data assimilation (DA) into large-scale layered geophysical models with the ensemble Kalman filter (EnKF).
 Following are its other main features:
 
 - coded in C for GNU/Linux platform;
