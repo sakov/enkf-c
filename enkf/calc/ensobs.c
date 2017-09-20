@@ -204,7 +204,7 @@ void das_getHE(dasystem* das)
          * http://hpc.uni-due.de/teaching/wt2013/hpc/programs
          * /allgatherv-example.c)
          */
-        ierror = MPI_Allgatherv(MPI_IN_PLACE, 0 , MPI_DATATYPE_NULL , das->S[0], recvcounts, displs, MPIENSOBSTYPE, MPI_COMM_WORLD);
+        ierror = MPI_Allgatherv(MPI_IN_PLACE, 0, MPI_DATATYPE_NULL, das->S[0], recvcounts, displs, MPIENSOBSTYPE, MPI_COMM_WORLD);
         assert(ierror == MPI_SUCCESS);
 
         free(recvcounts);

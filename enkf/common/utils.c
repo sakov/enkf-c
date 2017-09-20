@@ -116,8 +116,8 @@ void enkf_quit(char* format, ...)
         free(strings);
     } else if (enkf_exitaction == EXITACTION_SEGFAULT) {
         fprintf(stderr, "\n  I am CPU #%d, now generating a segfault:\n\n", rank);
-        fflush(NULL);           /* flush all streams */
     }
+    fflush(NULL);               /* flush all streams */
 #if defined(MPI)
     MPI_Abort(MPI_COMM_WORLD, 1);       /* kill all MPI jobs */
 #else
