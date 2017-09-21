@@ -33,6 +33,8 @@
 
 #define ADDBIAS_DEF 0
 
+/**
+ */
 void reader_navo_standard(char* fname, int fid, obsmeta* meta, model* m, observations* obs)
 {
     int addbias = ADDBIAS_DEF;

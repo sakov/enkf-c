@@ -29,6 +29,8 @@
 
 #define ERRORSTD_DEF 0.5
 
+/**
+ */
 void reader_h8_standard(char* fname, int fid, obsmeta* meta, model* m, observations* obs)
 {
     int ncid;

@@ -34,6 +34,8 @@
 #define EPS 1.0e-6
 #define WMO_INSTSIZE 4
 
+/**
+ */
 static int cmp_lonlat(const void* p1, const void* p2)
 {
     double* ll1 = (double*) p1;
@@ -50,6 +52,8 @@ static int cmp_lonlat(const void* p1, const void* p2)
     return 0;
 }
 
+/**
+ */
 void reader_mmt_standard(char* fname, int fid, obsmeta* meta, model* m, observations* obs)
 {
     int ncid;

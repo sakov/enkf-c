@@ -47,7 +47,8 @@ obsreader_entry allreaders[] = {
     {"HIMAWARI8", "standard", reader_h8_standard},
     {"VIIRS", "standard", reader_viirs_standard},
     {"ALL", "xy_scattered", reader_xy_scattered},
-    {"ALL", "xy_gridded", reader_xy_gridded}
+    {"ALL", "xy_gridded", reader_xy_gridded},
+    {"ALL", "xyz_gridded", reader_xyz_gridded},
 };
 
 /**

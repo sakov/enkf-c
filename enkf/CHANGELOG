@@ -1,3 +1,7 @@
+v. 1.62.0
+   PS 21092017
+   -- Added reader_xyz_gridded(). It mainly targets assimilating re-analysis
+      fields.
 v. 1.61.6
    PS 15092017 (actually Russ Fiedler)
    -- Corrected the call to MPI_Allgatherv() in ensobs.c:

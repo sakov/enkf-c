@@ -27,6 +27,8 @@
 #include "observations.h"
 #include "prep_utils.h"
 
+/**
+ */
 void reader_xy_scattered(char* fname, int fid, obsmeta* meta, model* m, observations* obs)
 {
     char* varname = NULL;

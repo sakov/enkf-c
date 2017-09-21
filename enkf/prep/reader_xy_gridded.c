@@ -23,7 +23,7 @@
  *              - STDNAME ("std") (-)
  *                  internal variability of the collated data
  *              - ESTDNAME ("error_std") -
- *                  error STD; if abcent then needs to be specified externally
+ *                  error STD; if absent then needs to be specified externally
  *                  in the oobservation data parameter file
  *              - VARSHIFT -
  *                  data offset to be added
@@ -51,6 +51,8 @@
 #define TYPE_DOUBLE 0
 #define TYPE_SHORT 1
 
+/**
+ */
 void reader_xy_gridded(char* fname, int fid, obsmeta* meta, model* m, observations* obs)
 {
     char* varname = NULL;

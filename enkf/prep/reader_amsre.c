@@ -36,6 +36,8 @@
 #define ERRORSTD_DEF 0.25
 #define MINWIND_DEF 5.0
 
+/**
+ */
 void reader_amsre_standard(char* fname, int fid, obsmeta* meta, model* m, observations* obs)
 {
     double minwind = MINWIND_DEF;
