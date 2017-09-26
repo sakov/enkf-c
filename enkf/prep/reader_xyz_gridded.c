@@ -103,7 +103,6 @@ void reader_xyz_gridded(char* fname, int fid, obsmeta* meta, model* m, observati
     double tunits_multiple = NAN, tunits_offset = NAN;
     int mvid;
     float** depth;
-    int ktop;
     int i, nobs_read;
 
     strcpy(instrument, meta->product);
@@ -337,7 +336,6 @@ void reader_xyz_gridded(char* fname, int fid, obsmeta* meta, model* m, observati
     ncw_close(ncid);
 
     mvid = model_getvarid(m, obs->obstypes[obstype_getid(obs->nobstypes, obs->obstypes, meta->type, 1)].varnames[0], 1);
-    ktop = grid_gettoplayerid(model_getvargrid(m, mvid));
     depth = model_getdepth(m, mvid, 0);
 
     nobs_read = 0;
