@@ -8,6 +8,28 @@
  *              Bureau of Meteorology
  *
  * Description: Generic reader for scattered surface observations.
+ *                There are a number of parameters that must (++) or can be
+ *              specified if they differ from the default value (+). Some
+ *              parameters are optional (-):
+ *              - VARNAME (++)
+ *              - TIMENAME ("time") (+)
+ *              - NPOINTSNAME ("npoints") (-)
+ *                  number of collated points for each datum; used basically as
+ *                  a data mask n = 0
+ *              - LONNAME ("lon" | "longitude") (+)
+ *              - LATNAME ("lat" | "latitude") (+)
+ *              - STDNAME ("std") (-)
+ *                  internal variability of the collated data
+ *              - ESTDNAME ("error_std") (-)
+ *                  error STD; if absent then needs to be specified externally
+ *                  in the oobservation data parameter file
+ *              - VARSHIFT (-)
+ *                  data offset to be added
+ *              - MINDEPTH (-)
+ *                  minimal allowed depth
+ *              - INSTRUMENT (-)
+ *                  instrument string that will be used for getting instrument
+ *                  stats
  *
  * Revisions:  
  *

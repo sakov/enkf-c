@@ -8,6 +8,14 @@
  *              Bureau of Meteorology
  *
  * Description: Reader for pre-preprocessed (L3C) SST from VIIRS.
+ *                There are a number of parameters that can be specified:
+ *              - VARSHIFT (-)
+ *                  data offset to be added. Note that by default the data is
+ *                shifted by -273.15. Because VIIRS data by NOAA represent
+ *                skin temperature, we suggest set PARAMETER VARSHIFT = 0.16
+ *              - MINDEPTH (-)
+ *                  minimal allowed depth
+ *              
  *
  * Revisions:  
  *
@@ -56,6 +64,8 @@ void reader_viirs_standard(char* fname, int fid, obsmeta* meta, model* m, observ
     char tunits[MAXSTRLEN];
     double tunits_multiple, tunits_offset;
     int mvid;
+    double varshift = 0.0;
+    double mindepth = 0.0;
     float** depth;
     int ktop;
     int i, nobs;
@@ -65,8 +75,18 @@ void reader_viirs_standard(char* fname, int fid, obsmeta* meta, model* m, observ
     int* id;
 #endif
 
-    for (i = 0; i < meta->npars; ++i)
-        enkf_quit("unknown PARAMETER \"%s\"\n", meta->pars[i].name);
+    for (i = 0; i < meta->npars; ++i) {
+        if (strcasecmp(meta->pars[i].name, "VARSHIFT") == 0) {
+            if (!str2double(meta->pars[i].value, &varshift))
+                enkf_quit("observation prm file: can not convert VARSHIFT = \"%s\" to double\n", meta->pars[i].value);
+            enkf_printf("        VARSHIFT = %s\n", meta->pars[i].value);
+        } else if (strcasecmp(meta->pars[i].name, "MINDEPTH") == 0) {
+            if (!str2double(meta->pars[i].value, &mindepth))
+                enkf_quit("observation prm file: can not convert MINDEPTH = \"%s\" to double\n", meta->pars[i].value);
+            enkf_printf("        MINDEPTH = %f\n", mindepth);
+        } else
+            enkf_quit("unknown PARAMETER \"%s\"\n", meta->pars[i].name);
+    }
 
     ncw_open(fname, NC_NOWRITE, &ncid);
     ncw_inq_varid(ncid, "sst", &varid_sst);
@@ -170,7 +190,7 @@ void reader_viirs_standard(char* fname, int fid, obsmeta* meta, model* m, observ
         o->id = obs->nobs;
         o->fid = fid;
         o->batch = 0;
-        o->value = (double) sst[i] * sst_scale_factor + sst_add_offset - 273.15;
+        o->value = (double) sst[i] * sst_scale_factor + sst_add_offset + varshift - 273.15;
         {
             double std1 = (double) std[i] * std_scale_factor + std_add_offset;
             double std2 = (double) estd[i] * estd_scale_factor + estd_add_offset;
@@ -192,6 +212,8 @@ void reader_viirs_standard(char* fname, int fid, obsmeta* meta, model* m, observ
         if ((o->status == STATUS_OK) && (o->lon <= ot->xmin || o->lon >= ot->xmax || o->lat <= ot->ymin || o->lat >= ot->ymax))
             o->status = STATUS_OUTSIDEOBSDOMAIN;
         o->model_depth = (depth == NULL || isnan(o->fi + o->fj)) ? NAN : depth[(int) (o->fj + 0.5)][(int) (o->fi + 0.5)];
+        if (o->status == STATUS_OK && o->model_depth < mindepth)
+            o->status = STATUS_SHALLOW;
         o->date = ((double) time[i] * time_scale_factor + time_add_offset) * tunits_multiple + tunits_offset;
         o->aux = -1;
 

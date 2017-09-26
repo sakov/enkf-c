@@ -22,13 +22,16 @@
  *              - LATNAME ("lat" | "latitude") (+)
  *              - STDNAME ("std") (-)
  *                  internal variability of the collated data
- *              - ESTDNAME ("error_std") -
+ *              - ESTDNAME ("error_std") (-)
  *                  error STD; if absent then needs to be specified externally
  *                  in the oobservation data parameter file
- *              - VARSHIFT -
+ *              - VARSHIFT (-)
  *                  data offset to be added
- *              - MINDEPTH -
+ *              - MINDEPTH (-)
  *                  minimal allowed depth
+ *              - INSTRUMENT (-)
+ *                  instrument string that will be used for getting instrument
+ *                  stats
  *
  * Revisions:  
  *
@@ -118,7 +121,7 @@ void reader_xy_gridded(char* fname, int fid, obsmeta* meta, model* m, observatio
             estdname = meta->pars[i].value;
         else if (strcasecmp(meta->pars[i].name, "VARSHIFT") == 0) {
             if (!str2float(meta->pars[i].value, &varshift))
-                enkf_quit("observation prm file: can not convert VARSHIFT = \"%s\" to double\n", meta->pars[i].value);
+                enkf_quit("observation prm file: can not convert VARSHIFT = \"%s\" to \n", meta->pars[i].value);
             enkf_printf("        VARSHIFT = %s\n", meta->pars[i].value);
         } else if (strcasecmp(meta->pars[i].name, "MINDEPTH") == 0) {
             if (!str2double(meta->pars[i].value, &mindepth))

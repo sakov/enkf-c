@@ -23,13 +23,16 @@
  *              - ZNAME ("z") (+)
  *              - STDNAME ("std") (-)
  *                  internal variability of the collated data
- *              - ESTDNAME ("error_std") -
+ *              - ESTDNAME ("error_std") (-)
  *                  error STD; if absent then needs to be specified externally
  *                  in the oobservation data parameter file
- *              - VARSHIFT -
+ *              - VARSHIFT (-)
  *                  data offset to be added
- *              - MINDEPTH -
+ *              - MINDEPTH (-)
  *                  minimal allowed depth
+ *              - INSTRUMENT (-)
+ *                  instrument string that will be used for getting instrument
+ *                  stats
  *
  * Revisions:  
  *

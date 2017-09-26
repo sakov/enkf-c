@@ -1,3 +1,7 @@
+v. 1.62.1
+   PS 26092017
+   -- Added optional parameters VARSHIFT and MINDEPTH to
+      reader_viirs_standard().
 v. 1.62.0
    PS 21092017
    -- Added reader_xyz_gridded(). It mainly targets assimilating re-analysis
