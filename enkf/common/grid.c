@@ -594,17 +594,17 @@ static void grid_setlonbase(grid* g)
     double xmax = -DBL_MAX;
 
     if (g->htype == GRIDHTYPE_LATLON) {
-        double* xc = ((gnxy_simple*) g->gridnodes_xy)->xc;
+        double* x = ((gnxy_simple*) g->gridnodes_xy)->x;
         int nx = ((gnxy_simple*) g->gridnodes_xy)->nx;
 
-        if (xmin > xc[0])
-            xmin = xc[0];
-        if (xmin > xc[nx])
-            xmin = xc[nx];
-        if (xmax < xc[0])
-            xmax = xc[0];
-        if (xmax < xc[nx])
-            xmax = xc[nx];
+        if (xmin > x[0])
+            xmin = x[0];
+        if (xmin > x[nx])
+            xmin = x[nx];
+        if (xmax < x[0])
+            xmax = x[0];
+        if (xmax < x[nx])
+            xmax = x[nx];
 #if !defined(NO_GRIDUTILS)
     } else if (g->htype == GRIDHTYPE_CURVILINEAR) {
         double** x = gridnodes_getx(((gnxy_curv*) g->gridnodes_xy)->gn);
