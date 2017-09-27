@@ -1,9 +1,10 @@
 v. 1.62.2
    PS 27092017
-   -- Fixed (hopefully) a difficult defect in handling periodic grids. It
+   -- Fixed (hopefully) a subtle defect in handling periodic grids. It
       manifested in getting weird longitude values for super-observations when
-      the collated obs had both ni - 1 <= fi < ni - 0.5 and ni - 0.5 <= fi < ni.
-      Thanks to Matt Chamberlain and Russ Fiedler for the bug report.
+      the collated obs had fi (fractional i indices) both in [ni - 1, ni - 0.5)
+      and [ni - 0.5, ni) intervals. Thanks to Matt Chamberlain and Russ Fiedler
+      for the bug report.
 v. 1.62.1
    PS 26092017
    -- Added optional parameters VARSHIFT and MINDEPTH to
