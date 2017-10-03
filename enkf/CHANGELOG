@@ -1,3 +1,6 @@
+v. 1.63.0
+   PS 03102017
+   -- Added reader_xyz_scattered.c.
 v. 1.62.2
    PS 27092017
    -- Fixed (hopefully) a subtle defect in handling periodic grids. It

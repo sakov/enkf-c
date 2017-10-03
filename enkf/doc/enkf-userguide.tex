@@ -35,7 +35,7 @@
 
 \begin{document}
 
-\title{EnKF-C user guide\\{\normalsize version 1.61.0}}
+\title{EnKF-C user guide\\{\normalsize version 1.63.0}}
 
 \author{Pavel Sakov}
 \date{June 19, 2014 -- \today}
@@ -1027,9 +1027,15 @@ parameter MINDEPTH = 150
 (...)
 \end{Verbatim}
 
-There are also several generic readers, e.g. \verb|xy_scattered| and \verb|xy_gridded|.
-In absence of common standards these probably are of rather limited use only.
-These readers may require to define names for a number of variables, although at the moment the only obligatory parameter is \verb|VARNAME|.
+There are also several generic readers:
+\begin{Verbatim}
+reader_xy_scattered
+reader_xy_gridded
+reader_xyz_scattered
+reader_xyz_gridded
+\end{Verbatim}
+These readers allow one to specify a number of parameters by means of the entry \verb|PARAMETER| of the observation data parameter file.
+At the moment the only obligatory parameter for these readers is \verb|VARNAME|; a number of other obligatory parameters (e.g. \verb|LONNAME|, \verb|LATNAME|) can be specified either via the entry \verb|PARAMETER| or by using default variable names in data files.
 
 \subsection{Asynchronous DA / FGAT}
 \label{sec:async}

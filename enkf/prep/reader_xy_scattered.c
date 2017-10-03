@@ -28,8 +28,8 @@
  *              - MINDEPTH (-)
  *                  minimal allowed depth
  *              - INSTRUMENT (-)
- *                  instrument string that will be used for getting instrument
- *                  stats
+ *                  instrument string that will be used for calculating
+ *                  instrument stats
  *
  * Revisions:  
  *
@@ -64,6 +64,10 @@ void reader_xy_scattered(char* fname, int fid, obsmeta* meta, model* m, observat
     int dimid_nobs;
     size_t nobs;
 
+    double varshift = 0.0;
+    double mindepth = 0.0;
+    char instrument[MAXSTRLEN];
+
     int varid_var = -1, varid_lon = -1, varid_lat = -1, varid_std = -1, varid_estd = -1, varid_time = -1;
     double* lon = NULL;
     double lon_add_offset, lon_scale_factor;
@@ -72,11 +76,6 @@ void reader_xy_scattered(char* fname, int fid, obsmeta* meta, model* m, observat
     double lat_add_offset, lat_scale_factor;
     double lat_fill_value = NAN;
     double* var = NULL;
-
-    double varshift = 0.0;
-    double mindepth = 0.0;
-    char instrument[MAXSTRLEN];
-
     double var_fill_value = NAN;
     double var_add_offset = NAN, var_scale_factor = NAN;
     double var_estd = NAN;
@@ -295,8 +294,8 @@ void reader_xy_scattered(char* fname, int fid, obsmeta* meta, model* m, observat
         observation* o;
         obstype* ot;
 
-        if (lon[i] == lon_fill_value || lat[i] == lat_fill_value || var[i] == var_fill_value || isnan(var[i]) || (std != NULL && (std[i] == std_fill_value || isnan(std[i]))) || (estd != NULL && (estd[i] == estd_fill_value || isnan(estd[i]))) || (have_time && !singletime && (time[i] == time_fill_value || isnan(time[i]))))
-            continue;
+        if (lon[i] == lon_fill_value || isnan(lon[i]) || lat[i] == lat_fill_value || isnan(lat[i]) || var[i] == var_fill_value || isnan(var[i]) || (std != NULL && (std[i] == std_fill_value || isnan(std[i]))) || (estd != NULL && (estd[i] == estd_fill_value || isnan(estd[i]))) || (have_time && !singletime && (time[i] == time_fill_value || isnan(time[i]))))
+                continue;
 
         nobs_read++;
         obs_checkalloc(obs);

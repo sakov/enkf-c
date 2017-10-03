@@ -48,6 +48,7 @@ obsreader_entry allreaders[] = {
     {"VIIRS", "standard", reader_viirs_standard},
     {"ALL", "xy_scattered", reader_xy_scattered},
     {"ALL", "xy_gridded", reader_xy_gridded},
+    {"ALL", "xyz_scattered", reader_xyz_scattered},
     {"ALL", "xyz_gridded", reader_xyz_gridded},
 };
 

@@ -31,8 +31,8 @@
  *              - MINDEPTH (-)
  *                  minimal allowed depth
  *              - INSTRUMENT (-)
- *                  instrument string that will be used for getting instrument
- *                  stats
+ *                  instrument string that will be used for calculating
+ *                  instrument stats
  *
  * Revisions:  
  *
@@ -70,6 +70,10 @@ void reader_xyz_gridded(char* fname, int fid, obsmeta* meta, model* m, observati
     int ncid;
     int ndim;
 
+    float varshift = 0.0;
+    double mindepth = 0.0;
+    char instrument[MAXSTRLEN];
+
     int iscurv = -1, zndim = -1;
     size_t ni = 0, nj = 0, nk = 0, nij = 0, nijk = 0;
     int varid_lon = -1, varid_lat = -1, varid_z = -1;
@@ -79,11 +83,6 @@ void reader_xyz_gridded(char* fname, int fid, obsmeta* meta, model* m, observati
 
     int varid_var = -1, varid_npoints = -1, varid_std = -1, varid_estd = -1, varid_time = -1;
     float* var = NULL;
-
-    float varshift = 0.0;
-    double mindepth = 0.0;
-    char instrument[MAXSTRLEN];
-
     float var_fill_value = NAN;
     float var_add_offset = NAN, var_scale_factor = NAN;
     double var_estd = NAN;
@@ -125,7 +124,7 @@ void reader_xyz_gridded(char* fname, int fid, obsmeta* meta, model* m, observati
             estdname = meta->pars[i].value;
         else if (strcasecmp(meta->pars[i].name, "VARSHIFT") == 0) {
             if (!str2float(meta->pars[i].value, &varshift))
-                enkf_quit("observation prm file: can not convert VARSHIFT = \"%s\" to double\n", meta->pars[i].value);
+                enkf_quit("observation prm file: can not convert VARSHIFT = \"%s\" to float\n", meta->pars[i].value);
             enkf_printf("        VARSHIFT = %s\n", meta->pars[i].value);
         } else if (strcasecmp(meta->pars[i].name, "MINDEPTH") == 0) {
             if (!str2double(meta->pars[i].value, &mindepth))
@@ -344,7 +343,7 @@ void reader_xyz_gridded(char* fname, int fid, obsmeta* meta, model* m, observati
         observation* o;
         obstype* ot;
 
-        if ((npoints != NULL && npoints[i] == 0) || var[i] == var_fill_value || (std != NULL && std[i] == std_fill_value) || (estd != NULL && estd[i] == estd_fill_value) || (have_time && !singletime && time[i] == time_fill_value))
+        if ((npoints != NULL && npoints[i] == 0) || var[i] == var_fill_value || (std != NULL && (std[i] == std_fill_value || isnan(std[i]))) || (estd != NULL && (estd[i] == estd_fill_value || isnan(estd[i]))) || (have_time && !singletime && (time[i] == time_fill_value || isnan(time[i]))))
             continue;
 
         nobs_read++;
