@@ -168,7 +168,7 @@ void reader_mmt_standard(char* fname, int fid, obsmeta* meta, model* m, observat
             assert(o->product >= 0);
             o->type = obstype_getid(obs->nobstypes, obs->obstypes, meta->type, 1);
             ot = &obs->obstypes[o->type];
-            o->instrument = st_add_ifabscent(obs->instruments, inststr, -1);
+            o->instrument = st_add_ifabsent(obs->instruments, inststr, -1);
             o->id = obs->nobs;
             o->fid = fid;
             o->batch = p;

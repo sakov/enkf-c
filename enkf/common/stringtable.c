@@ -159,7 +159,7 @@ int st_add(stringtable* st, char* s, int index)
  * @param index External index of the added string to be stored
  * @return String index
  */
-int st_add_ifabscent(stringtable* st, char* s, int index)
+int st_add_ifabsent(stringtable* st, char* s, int index)
 {
     stringentry* se;
     int index2;

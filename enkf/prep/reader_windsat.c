@@ -128,7 +128,7 @@ void reader_windsat_standard(char* fname, int fid, obsmeta* meta, model* m, obse
         assert(o->product >= 0);
         o->type = obstype_getid(obs->nobstypes, obs->obstypes, meta->type, 1);
         ot = &obs->obstypes[o->type];
-        o->instrument = st_add_ifabscent(obs->instruments, "WindSat", -1);
+        o->instrument = st_add_ifabsent(obs->instruments, "WindSat", -1);
         o->id = obs->nobs;
         o->fid = fid;
         o->batch = 0;

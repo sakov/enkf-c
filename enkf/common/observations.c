@@ -597,7 +597,7 @@ void obs_read(observations* obs, char fname[])
         assert(len < MAXSTRLEN);
         ncw_get_att_text(ncid, varid_fid, attname, attstr);
         attstr[len] = 0;
-        st_add_ifabscent(obs->datafiles, attstr, i);
+        st_add_ifabsent(obs->datafiles, attstr, i);
     }
 
     ncw_get_var_int(ncid, varid_id, id);

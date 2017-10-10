@@ -60,7 +60,7 @@ static void readobs(obsmeta* meta, model* m, obsread_fn reader, observations* ob
         int fid;
 
         enkf_printf("      reading %s:\n", fnames[i]);
-        fid = st_add_ifabscent(obs->datafiles, fnames[i], -1);
+        fid = st_add_ifabsent(obs->datafiles, fnames[i], -1);
         reader(fnames[i], fid, meta, m, obs);
 
         enkf_printf("        # good obs = %d\n", obs->nobs - nobs0);
@@ -84,7 +84,7 @@ void obs_add(observations* obs, model* m, obsmeta* meta)
     int i, ngood;
 
     enkf_printf("    PRODUCT = %s, TYPE = %s, reader = %s\n", meta->product, meta->type, meta->reader);
-    st_add_ifabscent(obs->products, meta->product, -1);
+    st_add_ifabsent(obs->products, meta->product, -1);
     reader = get_obsreadfn(meta);
     readobs(meta, m, reader, obs);      /* adds the data */
 

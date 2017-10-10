@@ -321,7 +321,7 @@ void reader_xy_gridded(char* fname, int fid, obsmeta* meta, model* m, observatio
         assert(o->product >= 0);
         o->type = obstype_getid(obs->nobstypes, obs->obstypes, meta->type, 1);
         ot = &obs->obstypes[o->type];
-        o->instrument = st_add_ifabscent(obs->instruments, instrument, -1);
+        o->instrument = st_add_ifabsent(obs->instruments, instrument, -1);
         o->id = obs->nobs;
         o->fid = fid;
         o->batch = 0;

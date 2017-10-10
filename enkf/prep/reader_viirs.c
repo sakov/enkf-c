@@ -186,7 +186,7 @@ void reader_viirs_standard(char* fname, int fid, obsmeta* meta, model* m, observ
         assert(o->product >= 0);
         o->type = obstype_getid(obs->nobstypes, obs->obstypes, meta->type, 1);
         ot = &obs->obstypes[o->type];
-        o->instrument = st_add_ifabscent(obs->instruments, "VIIRS", -1);
+        o->instrument = st_add_ifabsent(obs->instruments, "VIIRS", -1);
         o->id = obs->nobs;
         o->fid = fid;
         o->batch = 0;

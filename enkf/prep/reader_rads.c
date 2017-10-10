@@ -145,7 +145,7 @@ void reader_rads_standard(char* fname, int fid, obsmeta* meta, model* m, observa
         assert(o->product >= 0);
         o->type = obstype_getid(obs->nobstypes, obs->obstypes, meta->type, 1);
         ot = &obs->obstypes[o->type];
-        o->instrument = st_add_ifabscent(obs->instruments, instname, -1);
+        o->instrument = st_add_ifabsent(obs->instruments, instname, -1);
         o->id = obs->nobs;
         o->fid = fid;
         o->batch = pass[i];
@@ -302,7 +302,7 @@ void reader_rads_standard2(char* fname, int fid, obsmeta* meta, model* m, observ
         assert(o->product >= 0);
         o->type = obstype_getid(obs->nobstypes, obs->obstypes, meta->type, 1);
         ot = &obs->obstypes[o->type];
-        o->instrument = st_add_ifabscent(obs->instruments, instname, -1);
+        o->instrument = st_add_ifabsent(obs->instruments, instname, -1);
         o->id = obs->nobs;
         o->fid = fid;
         o->batch = pass[i];
