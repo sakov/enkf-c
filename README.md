@@ -5,6 +5,8 @@ Following are its other main features:
 
 - coded in C for GNU/Linux platform;
 
+- model-agnostic;
+
 - can conduct DA either in EnKF or ensemble optimal interpolation (EnOI) mode;
 
 - permits multiple model grids;
