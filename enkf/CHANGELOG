@@ -1,3 +1,6 @@
+v. 1.63.1
+   PS 19102017
+   -- Added optional PARAMETER KIND to reader_viirs_standard().
 v. 1.63.0
    PS 03102017
    -- Added reader_xyz_scattered.c.

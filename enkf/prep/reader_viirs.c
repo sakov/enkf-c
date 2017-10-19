@@ -35,6 +35,10 @@
 #include "observations.h"
 #include "prep_utils.h"
 
+#define KIND_NIGHTTIME (1 << 0)
+#define KIND_WINDY     (1 << 1)
+#define KIND_ALL       (KIND_NIGHTTIME | KIND_WINDY)
+
 /**
  */
 void reader_viirs_standard(char* fname, int fid, obsmeta* meta, model* m, observations* obs)
@@ -43,7 +47,7 @@ void reader_viirs_standard(char* fname, int fid, obsmeta* meta, model* m, observ
     int ndim;
     int dimid_ni, dimid_nj;
     size_t ni, nj, n;
-    int varid_sst, varid_lon, varid_lat, varid_npoints, varid_std, varid_estd, varid_time;
+    int varid_sst, varid_lon, varid_lat, varid_npoints, varid_std, varid_estd, varid_kind, varid_time;
     double* lon;
     double lon_add_offset, lon_scale_factor;
     double* lat;
@@ -61,6 +65,9 @@ void reader_viirs_standard(char* fname, int fid, obsmeta* meta, model* m, observ
     short* time;
     double time_add_offset, time_scale_factor;
     short time_fill_value;
+    unsigned char* kind;
+    unsigned char kind_mask = KIND_ALL;
+
     char tunits[MAXSTRLEN];
     double tunits_multiple, tunits_offset;
     int mvid;
@@ -84,6 +91,19 @@ void reader_viirs_standard(char* fname, int fid, obsmeta* meta, model* m, observ
             if (!str2double(meta->pars[i].value, &mindepth))
                 enkf_quit("observation prm file: can not convert MINDEPTH = \"%s\" to double\n", meta->pars[i].value);
             enkf_printf("        MINDEPTH = %f\n", mindepth);
+        } else if (strcasecmp(meta->pars[i].name, "KIND") == 0) {
+            int kind_value;
+
+            if (strcasecmp(meta->pars[i].value, "nighttime"))
+                kind_value = KIND_NIGHTTIME;
+            else if (strcasecmp(meta->pars[i].value, "windy"))
+                kind_value = KIND_WINDY;
+            else if (!str2int(meta->pars[i].value, &kind_value))
+                enkf_quit("observation prm file: can not convert KIND = \"%s\" to int\n", meta->pars[i].value);
+            if (kind_value < 0 || kind_value > KIND_ALL)
+                enkf_printf("KIND: value = %d is outside allowed range [0,%d]\n", kind_value, KIND_ALL);
+            kind_mask = (unsigned char) kind_value;
+            enkf_printf("        KIND = %d\n", kind_value);
         } else
             enkf_quit("unknown PARAMETER \"%s\"\n", meta->pars[i].name);
     }
@@ -154,6 +174,13 @@ void reader_viirs_standard(char* fname, int fid, obsmeta* meta, model* m, observ
     npoints = malloc(n * sizeof(short));
     ncw_get_var_short(ncid, varid_npoints, npoints);
 
+    kind = malloc(n);
+    if (kind_mask != KIND_ALL) {
+        ncw_inq_varid(ncid, "kind", &varid_kind);
+        ncw_get_var_uchar(ncid, varid_kind, kind);
+    } else
+        memset(kind, KIND_ALL, n);
+
     ncw_inq_varid(ncid, "time", &varid_time);
     time = malloc(n * sizeof(short));
     ncw_get_var_short(ncid, varid_time, time);
@@ -175,7 +202,7 @@ void reader_viirs_standard(char* fname, int fid, obsmeta* meta, model* m, observ
         observation* o;
         obstype* ot;
 
-        if (npoints[i] == 0 || sst[i] == sst_fill_value || std[i] == std_fill_value || estd[i] == estd_fill_value || time[i] == time_fill_value)
+        if (npoints[i] == 0 || sst[i] == sst_fill_value || std[i] == std_fill_value || estd[i] == estd_fill_value || time[i] == time_fill_value || !(kind[i] & kind_mask))
             continue;
 
         nobs++;
