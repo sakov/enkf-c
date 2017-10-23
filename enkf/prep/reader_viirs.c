@@ -65,7 +65,7 @@ void reader_viirs_standard(char* fname, int fid, obsmeta* meta, model* m, observ
     short* time;
     double time_add_offset, time_scale_factor;
     short time_fill_value;
-    unsigned char* kind;
+    unsigned char* kind = NULL;
     unsigned char kind_mask = KIND_ALL;
 
     char tunits[MAXSTRLEN];
@@ -174,12 +174,11 @@ void reader_viirs_standard(char* fname, int fid, obsmeta* meta, model* m, observ
     npoints = malloc(n * sizeof(short));
     ncw_get_var_short(ncid, varid_npoints, npoints);
 
-    kind = malloc(n);
     if (kind_mask != KIND_ALL) {
+        kind = malloc(n);
         ncw_inq_varid(ncid, "kind", &varid_kind);
         ncw_get_var_uchar(ncid, varid_kind, kind);
-    } else
-        memset(kind, KIND_ALL, n);
+    }
 
     ncw_inq_varid(ncid, "time", &varid_time);
     time = malloc(n * sizeof(short));
@@ -202,7 +201,7 @@ void reader_viirs_standard(char* fname, int fid, obsmeta* meta, model* m, observ
         observation* o;
         obstype* ot;
 
-        if (npoints[i] == 0 || sst[i] == sst_fill_value || std[i] == std_fill_value || estd[i] == estd_fill_value || time[i] == time_fill_value || !(kind[i] & kind_mask))
+        if (npoints[i] == 0 || sst[i] == sst_fill_value || std[i] == std_fill_value || estd[i] == estd_fill_value || time[i] == time_fill_value || (kind != NULL && kind[i] != kind_mask))
             continue;
 
         nobs++;
@@ -254,6 +253,8 @@ void reader_viirs_standard(char* fname, int fid, obsmeta* meta, model* m, observ
 #endif
     free(lon);
     free(lat);
+    if (kind != NULL)
+        free(kind);
     free(sst);
     free(std);
     free(estd);

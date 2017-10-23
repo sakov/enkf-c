@@ -1,3 +1,8 @@
+v. 1.63.2
+   PS 23102017
+   -- Corrected VIIRS reader. Now PARAMETER KIND = 1 or PARAMETER KIND = 2 will
+      use the nighttime or dayghlight obs only, and PARAMETER KIND = 3 will use
+      all observations.
 v. 1.63.1
    PS 19102017
    -- Added optional PARAMETER KIND to reader_viirs_standard().
