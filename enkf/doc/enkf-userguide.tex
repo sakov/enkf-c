@@ -78,11 +78,12 @@ OF SUCH DAMAGE.
 \chapter*{Introduction}
 \addcontentsline{toc}{chapter}{Introduction}
 
-EnKF-C aims to provide a light-weight generic framework for off-line data assimilation (DA) into large-scale layered geophysical models with the ensemble Kalman filter (EnKF).
+EnKF-C aims to provide a compact generic framework for off-line data assimilation (DA) into large-scale layered geophysical models with the ensemble Kalman filter (EnKF).
 Here ``light-weight'' has higher priority than ``generic''; that is, the code is not designed to cover every virtual possibility for the sake of it, but rather to be expandable in practical (from the author's point of view) situations.
 Following are its other main features:
 \begin{itemize}
 \item coded in C for GNU/Linux platform;
+\item model-agnostic;
 \item can conduct DA either in EnKF or ensemble optimal interpolation (EnOI) mode;
 \item permits multiple model grids;
 \item can handle rectangular or curvilinear horizontal grids, z or sigma vertical layers.
@@ -1514,12 +1515,12 @@ It is possible to estimate and correct bias for a model variable with the EnKF b
 These bias fields need to be subtracted from the corresponding observation forecasts.
 This is accomplished by specifying a secondary variable in the observation type entry \verb|VAR| and by passing the name of this variable to the corresponding observation functions, which need to take care for subtracting the bias from the model forecasts.
 
-Because bias fields are usually assumed to persist (not change) during propagation, one may need to make specific settings for inflation for them to avoid their collapse (loss of spread) over time.
+Because bias fields are usually assumed to persist (not change) during propagation, one may need to make specific settings for their inflation to avoid their collapse (loss of spread) over time.
 Another possibility is to introduce a ``forgetting'' stochastic model for bias fields, for example:
 \begin{align*}
   \mb x_{i+1} = \lambda \, \mb x_i + (1 - \lambda^2)^{1/2} \ms \sigma,
 \end{align*}
-where $\alpha$ is the forgetting factor, $0 < \lambda < 1, \; 1 - \lambda \ll 1$, and $\ms \sigma \sim \sigma_0 N(0, 1)$, where $\sigma_0$ is the standard deviation of the error of $\mb x$.
+where $\lambda$ is the forgetting factor, $0 < \lambda < 1, \; 1 - \lambda \ll 1$, and $\ms \sigma \sim \sigma_0 N(0, 1)$, where $\sigma_0$ is the error standard deviation of $\mb x$.
 This can be specified for a model variable via entry \verb|RANDOMISE| in the corresponding section of the model parameter file (sec.~\ref{sec:modelprm}).
 
 \section{Grids}
