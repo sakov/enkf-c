@@ -1245,6 +1245,8 @@ void das_update(dasystem* das)
         enkf_printf("\n");
     }
 
+    if (rank == 0)
+        dir_createifabsent(DIRNAME_TMP);
     if (das->updatespec & UPDATE_DOFIELDS) {
         if (das->mode == MODE_ENKF) {
             distribute_iterations(0, das->nmem - 1, nprocesses, rank, "    ");
@@ -1528,6 +1530,8 @@ void das_update(dasystem* das)
             plog_assemblestatevars(das);
         }
     }
+    if (rank == 0)
+        dir_rmifexists(DIRNAME_TMP);
 }
 
 /** Calculates and writes to disk 3D field of correlation coefficients between

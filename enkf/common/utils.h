@@ -31,6 +31,8 @@ void find_files(char template[], int* nfiles, char*** fnames);
 void tunits_convert(char tunits[], double* tunits_multiple, double* tunits_offset);
 void file_delete(char* fname);
 int file_exists(char fname[]);
+int dir_createifabsent(char dirname[]);
+void dir_rmifexists(char dirname[]);
 int str2double(char token[], double* value);
 int str2float(char* token, float* value);
 int str2int(char* token, int* value);

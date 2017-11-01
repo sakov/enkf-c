@@ -43,6 +43,8 @@
 #define FNAME_BADBATCHES "badbatches.out"
 #define FNAME_INFLATION "inflation.nc"
 
+#define DIRNAME_TMP ".enkftmp"
+
 #define STATUS_OK 0             /* do not change */
 #define STATUS_OUTSIDEGRID 1
 #define STATUS_LAND 2

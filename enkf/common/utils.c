@@ -26,6 +26,9 @@
 #include <limits.h>
 #include <float.h>
 #include <execinfo.h>
+#include <dirent.h>
+#include <sys/stat.h>
+#include <sys/types.h>
 #if !defined(NO_GRIDUTILS)
 #include <guquit.h>
 #endif
@@ -413,6 +416,54 @@ void file_delete(char* fname)
         int errno_saved = errno;
 
         enkf_quit("could not delete file \"%s\": %s", fname, strerror(errno_saved));
+    }
+}
+
+/**
+ */
+static int dir_exists(char dirname[])
+{
+    DIR* d;
+
+    d = opendir(dirname);
+    if (d == NULL)
+        return 0;
+    closedir(d);
+    return 1;
+}
+
+/**
+ */
+int dir_createifabsent(char dirname[])
+{
+    int status;
+
+    if (dir_exists(dirname))
+        return 1;
+    status = mkdir(dirname, S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
+    if (status == 0)
+        return 1;
+    else {
+        int errno_saved = errno;
+
+        enkf_quit("could not create directory \"%s\": %s", dirname, strerror(errno_saved));
+    }
+    return 0;
+}
+
+/**
+ */
+void dir_rmifexists(char dirname[])
+{
+    int status;
+
+    if (!dir_exists(dirname))
+        return;
+    status = rmdir(dirname);
+    if (status != 0) {
+        int errno_saved = errno;
+
+        enkf_quit("could not remove directory \"%s\": %s", dirname, strerror(errno_saved));
     }
 }
 

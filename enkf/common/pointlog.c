@@ -348,7 +348,7 @@ static void plog_writestatevars_toassemble(dasystem* das, int nfields, void** fi
         int ncid, dimid;
         int p;
 
-        snprintf(fname, MAXSTRLEN, "pointlog_%s-%03d.nc", f->varname, f->level);
+        snprintf(fname, MAXSTRLEN, "%s/pointlog_%s-%03d.nc", DIRNAME_TMP, f->varname, f->level);
         if (!isanalysis) {
             ncw_create(fname, NC_CLOBBER | das->ncformat, &ncid);
             if (das->nccompression > 0)
@@ -457,7 +457,7 @@ void plog_assemblestatevars(dasystem* das)
             if (plog->gridid != gridid)
                 continue;
 
-            snprintf(fname_src, MAXSTRLEN, "pointlog_%s-%03d.nc", f->varname, f->level);
+            snprintf(fname_src, MAXSTRLEN, "%s/pointlog_%s-%03d.nc", DIRNAME_TMP, f->varname, f->level);
 
             for (ii = 0; ii < 2; ++ii) {
                 char varname[NC_MAX_NAME];
@@ -500,7 +500,7 @@ void plog_assemblestatevars(dasystem* das)
         field* f = &fields[fid];
         char fname[MAXSTRLEN];
 
-        snprintf(fname, MAXSTRLEN, "pointlog_%s-%03d.nc", f->varname, f->level);
+        snprintf(fname, MAXSTRLEN, "%s/pointlog_%s-%03d.nc", DIRNAME_TMP, f->varname, f->level);
         file_delete(fname);
     }
 
