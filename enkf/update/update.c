@@ -1530,6 +1530,9 @@ void das_update(dasystem* das)
             plog_assemblestatevars(das);
         }
     }
+#if defined(MPI)
+    MPI_Barrier(MPI_COMM_WORLD);
+#endif
     if (rank == 0)
         dir_rmifexists(DIRNAME_TMP);
 }

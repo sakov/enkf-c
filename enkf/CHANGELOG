@@ -1,3 +1,6 @@
+v. 1.63.4
+   PS 01112017
+   -- Added a barrier before removing ".enkftmp".
 v. 1.63.3
    PS 01112017
    -- Write tiles for pointlog files in directory ".enkftmp" (used to be written
