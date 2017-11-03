@@ -306,11 +306,11 @@ or
   \mb A^a = \mb A^f \, \mb T_R.
 \end{align}
 $\mb T_L$ and $\mb T_R$ are referred to hereafter as left-multiplied and right-multiplied ensemble transform matrices (ETMs), respectively.
-Note that for a full rank ensemble $\mb T_R$ has to satisfy $\mb T_R \mb 1 = \mb 1$.
+Note that to preserve the ensemble mean $\mb T_R$ has to satisfy $\mb T_R \mb 1 = \alpha \mb 1$, where $\alpha$ is an arbitrary constant.
 It follows from (\ref{redraw}) that if $\mb T_R$ is a particular solution for the right-multiplied ETM, then (for a full rank ensemble) any other solution can be written as
 \begin{align}
   \label{TR-all}
-  \tilde{\mb T}_R = \mb T_R \mb U^p, \quad \mb U^p:\ \mb U^p (\mb U^p)\T = \mb I,\ \mb U^p \mb 1 = \mb 1.
+  \tilde{\mb T}_R = \mb T_R (\mb U^p + \alpha \mb 1 \mb 1\T), \quad \mb U^p:\ \mb U^p (\mb U^p)\T = \mb I,\ \mb U^p \mb 1 = \mb 1.
 \end{align}
 
 Similarly, the analysis increment can be represented as a linear combination of the forecast ensemble anomalies:
@@ -328,7 +328,7 @@ Equations (\ref{T-right}) and (\ref{w}) can be combined into a single transform 
   = \frac{1}{m} \mb 1 \mb 1\T + \mb w \mb 1\T + \left( \mb I - \frac{1}{m} \mb 1 \mb 1\T \right) \mb T_R,
 \end{align}
 as $\mb 1\T \mb w = 0$. 
-Because $\mb T_R \mb 1 = \mb 1$, for symmetric transforms (including ETKF and DEnKF) $\mb 1\T \mb T_R = \mb 1\T$, and (\ref{x5-raw}) becomes
+When $\mb T_R:\ \mb T_r\T = \mb T_R,\ \mb T_R \mb 1 = \mb 1$ (which is the case for e.g. the ETKF and DEnKF), (\ref{x5-raw}) simplifies to
 \begin{align}
   \label{x5}
   & \mb X_5 = \mb w \mb 1\T + \mb T_R.
