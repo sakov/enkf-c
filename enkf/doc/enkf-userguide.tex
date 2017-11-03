@@ -328,7 +328,7 @@ Equations (\ref{T-right}) and (\ref{w}) can be combined into a single transform 
   = \frac{1}{m} \mb 1 \mb 1\T + \mb w \mb 1\T + \left( \mb I - \frac{1}{m} \mb 1 \mb 1\T \right) \mb T_R,
 \end{align}
 as $\mb 1\T \mb w = 0$. 
-When $\mb T_R:\ \mb T_r\T = \mb T_R,\ \mb T_R \mb 1 = \mb 1$ (which is the case for e.g. the ETKF and DEnKF), (\ref{x5-raw}) simplifies to
+When $\mb T_R:\ \mb T_R\T = \mb T_R,\ \mb T_R \mb 1 = \mb 1$ (which is the case for e.g. the ETKF and DEnKF), $\mb 1\T \mb T_R = \mb 1\T$, and (\ref{x5-raw}) simplifies to
 \begin{align}
   \label{x5}
   & \mb X_5 = \mb w \mb 1\T + \mb T_R.
