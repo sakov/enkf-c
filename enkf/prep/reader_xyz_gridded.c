@@ -213,7 +213,7 @@ void reader_xyz_gridded(char* fname, int fid, obsmeta* meta, model* m, observati
         ncw_inq_vardimid(ncid, varid_z, dimid);
         ncw_inq_dimlen(ncid, dimid[0], &nk);
     } else
-        enkf_quit("reader_xyz_gridded(): %s: %d-dimensional; supposed to be either 1- or 3-dimensional only");
+        enkf_quit("reader_xyz_gridded(): %s: %d-dimensional; supposed to be either 1- or 3-dimensional only", fname, zndim);
 
     enkf_printf("        (ni, nj, nk) = (%u, %u, %u)\n", ni, nj, nk);
     nijk = ni * nj * nk;
