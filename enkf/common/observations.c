@@ -123,8 +123,6 @@ observations* obs_create(void)
     obs->obsids = NULL;
     obs->da_date = NAN;
     obs->datestr = NULL;
-    obs->windowmin = NAN;
-    obs->windowmax = NAN;
     obs->allobs = 0;
     obs->nallocated = 0;
     obs->nobs = 0;
@@ -164,8 +162,6 @@ observations* obs_create_fromprm(enkfprm* prm)
 #if defined(ENKF_PREP)
     obs->da_date = date_str2dbl(prm->date);
     obs->datestr = strdup(prm->date);
-    obs->windowmin = prm->windowmin;
-    obs->windowmax = prm->windowmax;
 
     obs->stride = prm->sob_stride;
 
@@ -200,6 +196,19 @@ observations* obs_create_fromprm(enkfprm* prm)
             enkf_printf("    %s %s %d %d\n", obstype, bb->fname, bb->fid, bb->batch);
         }
         fclose(f);
+    }
+
+    {
+        int otid;
+
+        for (otid = 0; otid <= obs->nobstypes; ++otid) {
+            obstype* ot = &obs->obstypes[otid];
+
+            if (isnan(ot->windowmin))
+                ot->windowmin = prm->windowmin;
+            if (isnan(ot->windowmax))
+                ot->windowmax = prm->windowmax;
+        }
     }
 #endif
 

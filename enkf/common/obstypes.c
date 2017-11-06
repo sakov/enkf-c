@@ -85,6 +85,8 @@ static void obstype_new(obstype* type, int i, char* name)
     type->nmissed = 0;
     type->nsubgrid = 0;
     type->nmodified = 0;
+    type->windowmin = NAN;
+    type->windowmax = NAN;
     type->date_min = DBL_MAX;
     type->date_max = -DBL_MAX;
 }
@@ -138,6 +140,10 @@ static void obstype_print(obstype* type)
     enkf_printf("      RFACTOR = %.3g\n", type->rfactor);
     if (type->xmin > -DBL_MAX || type->xmax < DBL_MAX || type->ymin > -DBL_MAX || type->ymax < DBL_MAX || type->zmin > -DBL_MAX || type->zmax < DBL_MAX)
         enkf_printf("      DOMAIN = %.3g %.3g %.3g %.3g %.3g %.3g\n", type->xmin, type->xmax, type->ymin, type->ymax, type->zmin, type->zmax);
+    if (isfinite(type->windowmin)) {
+        enkf_printf("      WINDOWMIN = %.3f", type->windowmin);
+        enkf_printf("      WINDOWMAX = %.3f", type->windowmax);
+    }
 }
 
 /**
@@ -311,6 +317,16 @@ void obstypes_read(char fname[], int* n, obstype** types, double locrad_base, do
                 enkf_quit("%s, l.%d: ZMAX not specified", fname, line);
             if (!str2double(token, &now->zmax))
                 enkf_quit("%s, l.%d: could not convert \"%s\" to double", fname, line, token);
+        } else if (strcasecmp(token, "WINDOWMIN") == 0) {
+            if ((token = strtok(NULL, seps)) == NULL)
+                enkf_quit("%s, l.%d: WINDOWMIN not specified", fname, line);
+            else if (!str2double(token, &now->windowmin))
+                enkf_quit("%s, l.%d: could convert WINDOWMIN entry", fname, line);
+        } else if (strcasecmp(token, "WINDOWMAX") == 0) {
+            if ((token = strtok(NULL, seps)) == NULL)
+                enkf_quit("%s, l.%d: WINDOWMAX not specified", fname, line);
+            else if (!str2double(token, &now->windowmax))
+                enkf_quit("%s, l.%d: could convert WINDOWMAX entry", fname, line);
         } else
             enkf_quit("%s, l.%d: unknown token \"%s\"", fname, line, token);
     }
@@ -406,6 +422,8 @@ void obstypes_describeprm(void)
     enkf_printf("  [ YMAX        = <maximal allowed Y coordinate> ] (+inf*)\n");
     enkf_printf("  [ ZMIN        = <minimal allowed Z coordinate> ] (-inf*)\n");
     enkf_printf("  [ ZMAX        = <maximal allowed Z coordinate> ] (+inf*)\n");
+    enkf_printf("  [ WINDOWMIN   = <start of obs window in days from analysis> ] (-inf*)\n");
+    enkf_printf("  [ WINDOWMAX   = <end of obs window in days from analysis> ]   (+inf*)\n");
     enkf_printf("\n");
     enkf_printf("  [ <more of the above blocks> ]\n");
     enkf_printf("\n");

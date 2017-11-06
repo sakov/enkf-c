@@ -526,10 +526,12 @@ void enkfprm_print(enkfprm* prm, char offset[])
     enkf_printf("%sGRID PRM = \"%s\"\n", offset, prm->gridprm);
 
     enkf_printf("%sOBS TYPES PRM = \"%s\"\n", offset, prm->obstypeprm);
-
-    enkf_printf("%sDATE = \"%s\"\n", offset, prm->date);
     enkf_printf("%sOBS PRM = \"%s\"\n", offset, prm->obsprm);
-
+    enkf_printf("%sDATE = \"%s\"\n", offset, prm->date);
+    if (isfinite(prm->windowmin)) {
+        enkf_printf("%sWINDOWMIN = %.3f\n", prm->windowmin);
+        enkf_printf("%sWINDOWMAX = %.3f\n", prm->windowmax);
+    }
     if (prm->mode == MODE_ENOI)
         enkf_printf("%sBGDIR = \"%s\"\n", offset, prm->bgdir);
     if (prm->mode == MODE_ENKF || !enkf_fstatsonly) {

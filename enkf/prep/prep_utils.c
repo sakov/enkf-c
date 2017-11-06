@@ -116,12 +116,13 @@ void obs_add(observations* obs, model* m, obsmeta* meta)
          */
         for (i = nobs0; i < obs->nobs; ++i) {
             observation* o = &obs->data[i];
+            obstype* ot = &obs->obstypes[o->type];
 
             if (o->status != STATUS_OK)
                 continue;
-            if (o->date - obs->da_date < obs->windowmin)
+            if (o->date - obs->da_date < ot->windowmin)
                 o->status = STATUS_OUTSIDEOBSWINDOW;
-            if (o->date - obs->da_date >= obs->windowmax)
+            if (o->date - obs->da_date >= ot->windowmax)
                 o->status = STATUS_OUTSIDEOBSWINDOW;
 
             if (o->value < ot->allowed_min) {

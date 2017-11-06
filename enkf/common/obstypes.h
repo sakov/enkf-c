@@ -57,6 +57,15 @@ typedef struct {
     int nsubgrid;
     int nmodified;
 
+    /*
+     * allowed time range of observations 
+     */
+    double windowmin;
+    double windowmax;
+
+    /*
+     * actual time range of observations 
+     */
     double date_min;
     double date_max;
 } obstype;

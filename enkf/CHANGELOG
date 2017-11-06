@@ -1,3 +1,9 @@
+v. 1.64.0
+   PS 07112017
+   -- Made observation window observation type dependent. The common observation
+      main window still can be set from the main parameter file. For a
+      particular observation type it can be overwritten in the obstypes
+      parameter file.
 v. 1.63.4
    PS 01112017
    -- Added a barrier before removing ".enkftmp".
