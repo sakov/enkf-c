@@ -778,17 +778,22 @@ grid* grid_create(void* p, int id)
         } else {
             int i, j;
 
-            assert(g->depth != NULL);
-            for (j = 0; j < ny; ++j) {
-                for (i = 0; i < nx; ++i) {
-                    double depth = g->depth[j][i];
-                    double fk = NAN;
+            if (g->depth != NULL) {
+                for (j = 0; j < ny; ++j) {
+                    for (i = 0; i < nx; ++i) {
+                        double depth = g->depth[j][i];
+                        double fk = NAN;
 
-                    if (depth > 0.0) {
-                        z2fk(g, j, i, depth, &fk);
-                        g->numlevels[j][i] = ceil(fk + 0.5);
+                        if (depth > 0.0) {
+                            z2fk(g, j, i, depth, &fk);
+                            g->numlevels[j][i] = ceil(fk + 0.5);
+                        }
                     }
                 }
+            } else {
+                for (j = 0; j < ny; ++j)
+                    for (i = 0; i < nx; ++i)
+                        g->numlevels[j][i] = nz;
             }
         }
     }

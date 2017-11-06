@@ -1,3 +1,8 @@
+v. 1.64.1
+   PS 07112017
+   -- Modified grid_create() to allow z-grids with no depth specified (e.g. for
+      atmosphere). `numlevels' is then simply set to the number of layers
+      everywhere.
 v. 1.64.0
    PS 07112017
    -- Made observation window observation type dependent. The common observation
