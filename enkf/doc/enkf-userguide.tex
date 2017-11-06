@@ -35,7 +35,7 @@
 
 \begin{document}
 
-\title{EnKF-C user guide\\{\normalsize version 1.63.0}}
+\title{EnKF-C user guide\\{\normalsize version 1.64.2}}
 
 \author{Pavel Sakov}
 \date{June 19, 2014 -- \today}
@@ -815,6 +815,8 @@ For example:
   [ YMAX        = <maximal allowed Y coordinate> ] (+inf*)
   [ ZMIN        = <minimal allowed Z coordinate> ] (-inf*)
   [ ZMAX        = <maximal allowed Z coordinate> ] (+inf*)
+  [ WINDOWMIN   = <start of obs window in days from analysis> ] (-inf*)
+  [ WINDOWMAX   = <end of obs window in days from analysis> ]   (+inf*)
 
   [ <more of the above blocks> ]
 \end{Verbatim}
@@ -833,6 +835,8 @@ The entry \verb|OFFSET| allows one to add a new observation type without re-comp
 This can be useful e.g. for evaluating a new instrument (by getting an independent statistics for the new instrument and seeing the change in statistics for the old instruments).
 
 The entries \verb|MLD_VARNAME| and \verb|MLD_THRESH| are used to calculate the model mixed layer depth for projecting the surface bias.
+
+\verb|WINDOWMIN| and \verb|WINDOWMAX| override the corresponding common settings in the main parameter file for this observation type.
 
 \subsection{Observation data parameter file}
 

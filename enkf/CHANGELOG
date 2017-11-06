@@ -1,3 +1,7 @@
+v. 1.64.2
+   PS 07112017
+   -- "ASYNC 0" is now considered as specifying synchronous DA (i.e. is
+      equivalent to the absense of this entry).
 v. 1.64.1
    PS 07112017
    -- Modified grid_create() to allow z-grids with no depth specified (e.g. for

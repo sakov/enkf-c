@@ -248,8 +248,10 @@ void obstypes_read(char fname[], int* n, obstype** types, double locrad_base, do
                 enkf_quit("%s, l.%d: ASYNC time interval not specified", fname, line);
             if (!str2double(token, &now->async_tstep))
                 enkf_quit("%s, l.%d: could not convert \"%s\" to double", fname, line, token);
-            if (now->async_tstep <= 0.0)
-                enkf_quit("%s, l.%d: non-positive length of asynchronous time interval", fname, line);
+            if (now->async_tstep == 0.0)
+                now->isasync = 0;
+            else if (now->async_tstep < 0.0)
+                enkf_quit("%s, l.%d: negative length of asynchronous time interval", fname, line);
         } else if (strcasecmp(token, "LOCRAD") == 0) {
             int sid = 0;
 
