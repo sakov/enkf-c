@@ -33,7 +33,8 @@ typedef struct {
 
 gridvtype_entry allgridvtypeentries[] = {
     {"Z", GRIDVTYPE_Z, "NUMLEVELSVARNAME"},
-    {"SIGMA", GRIDVTYPE_SIGMA, "MASKVARNAME"}
+    {"SIGMA", GRIDVTYPE_SIGMA, "MASKVARNAME"},
+    {"GENERAL", GRIDVTYPE_GEN, "NUMLEVELSVARNAME"}
 };
 int ngridvtypeentries = sizeof(allgridvtypeentries) / sizeof(gridvtype_entry);
 

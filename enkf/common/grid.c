@@ -870,6 +870,9 @@ void grid_print(grid* g, char offset[])
     case GRIDVTYPE_SIGMA:
         enkf_printf("%s  vert type = SIGMA\n", offset);
         break;
+    case GRIDVTYPE_GEN:
+        enkf_printf("%s  vert type = GENERAL\n", offset);
+        break;
     default:
         enkf_printf("%s  vert type = NONE\n", offset);
     }
@@ -899,10 +902,10 @@ void grid_describeprm(void)
     enkf_printf("    YVARNAME         = <y variable name>\n");
     enkf_printf("    ZVARNAME         = <z variable name>\n");
     enkf_printf("    DEPTHVARNAME     = <depth variable name>\n");
-    enkf_printf("    [ NUMLEVELSVARNAME = <# of levels variable name> (z) ]\n");
-    enkf_printf("    [ MASKVARNAME    = <land mask variable name> (sigma) ]\n");
-    enkf_printf("    [ STRIDE         = <stride> (common*) ]\n");
-    enkf_printf("    [ SFACTOR        = <spread factor> (1.0*) ]\n");
+    enkf_printf("  [ NUMLEVELSVARNAME = <# of levels variable name> (z) ]\n");
+    enkf_printf("  [ MASKVARNAME      = <land mask variable name> (sigma) ]\n");
+    enkf_printf("  [ STRIDE           = <stride> (common*) ]\n");
+    enkf_printf("  [ SFACTOR          = <spread factor> (1.0*) ]\n");
     enkf_printf("\n");
     enkf_printf("  [ <more of the above blocks> ]\n");
     enkf_printf("\n");

@@ -732,7 +732,7 @@ int model_z2fk(model* m, int vid, double fi, double fj, double z, double* fk)
     if (isnan(*fk))
         return STATUS_OUTSIDEGRID;
 
-    if (grid_getvtype(grid) == GRIDVTYPE_SIGMA)
+    if (grid_getvtype(grid) == GRIDVTYPE_SIGMA || grid_getdepth(grid) == NULL)
          return STATUS_OK;
 
     /*
