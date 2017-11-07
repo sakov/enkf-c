@@ -1,3 +1,7 @@
+v. 1.64.3
+   PS 07112017
+   -- Included observations outside strictly defined observation window into
+      slot "outside" in observation statistics reported by PREP.
 v. 1.64.2
    PS 07112017
    -- "ASYNC 0" is now considered as specifying synchronous DA (i.e. is

@@ -426,7 +426,7 @@ void obs_calcstats(observations* obs)
         if (m->status == STATUS_OK) {
             obs->ngood++;
             ot->ngood++;
-        } else if (m->status == STATUS_OUTSIDEGRID || m->status == STATUS_OUTSIDEOBSDOMAIN) {
+        } else if (m->status == STATUS_OUTSIDEGRID || m->status == STATUS_OUTSIDEOBSDOMAIN || m->status == STATUS_OUTSIDEOBSWINDOW) {
             obs->noutside++;
             ot->noutside++;
         } else if (m->status == STATUS_LAND) {
