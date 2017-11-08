@@ -836,6 +836,109 @@ void readfield(char fname[], char varname[], int k, float* v)
     ncw_close(ncid);
 }
 
+/** Reads one horizontal field (layer) for a variable from a NetCDF file.
+ ** Verifies that the field dimensions are ni x nj.
+ */
+void readfield2(char fname[], char varname[], int k, int ni, int nj, float* v)
+{
+    int ncid;
+    int varid;
+    int ndims;
+    int dimids[4];
+    size_t dimlen[4];
+    size_t start[4], count[4];
+    int i, n;
+    int containsrecorddim;
+
+    ncw_open(fname, NC_NOWRITE, &ncid);
+    ncw_inq_varid(ncid, varname, &varid);
+    ncw_inq_varndims(ncid, varid, &ndims);
+    assert(ndims <= 4);
+    ncw_inq_vardimid(ncid, varid, dimids);
+    for (i = 0; i < ndims; ++i)
+        ncw_inq_dimlen(ncid, dimids[i], &dimlen[i]);
+
+    containsrecorddim = nc_isunlimdimid(ncid, dimids[0]);
+
+    if (ndims == 4) {
+        assert(containsrecorddim);
+        start[0] = 0;
+        if (dimlen[1] == 1)
+            start[1] = 0;
+        else {
+            assert(k < dimlen[1]);
+            start[1] = k;
+        }
+        start[2] = 0;
+        start[3] = 0;
+        count[0] = 1;
+        count[1] = 1;
+        count[2] = dimlen[2];
+        count[3] = dimlen[3];
+        if (dimlen[3] != ni || dimlen[2] != nj)
+            enkf_quit("\"%s\": horizontal dimensions of variable \"%s\" (ni = %d, nj = %d) do not match model dimensions (ni = %d, nj = %d)", fname, varname, dimlen[3], dimlen[2], ni, nj);
+    } else if (ndims == 3) {
+        if (!containsrecorddim) {
+            assert(k < dimlen[0]);
+            start[0] = k;
+            start[1] = 0;
+            start[2] = 0;
+            count[0] = 1;
+            count[1] = dimlen[1];
+            count[2] = dimlen[2];
+        } else {
+            /*
+             * ignore k in this case
+             */
+            start[0] = 0;
+            start[1] = 0;
+            start[2] = 0;
+            count[0] = 1;
+            count[1] = dimlen[1];
+            count[2] = dimlen[2];
+        }
+        if (dimlen[2] != ni || dimlen[1] != nj)
+            enkf_quit("\"%s\": horizontal dimensions of variable \"%s\" (ni = %d, nj = %d) do not match model dimensions (ni = %d, nj = %d)", fname, varname, dimlen[2], dimlen[1], ni, nj);
+    } else if (ndims == 2) {
+        if (containsrecorddim)
+            enkf_quit("%s: can not read a layer from a 1D variable \"%s\"", fname, varname);
+        if (k > 0)
+            enkf_quit("%s: can not read layer %d from a 2D variable \"%s\"", fname, k, varname);
+        start[0] = 0;
+        start[1] = 0;
+        count[0] = dimlen[0];
+        count[1] = dimlen[1];
+        if (dimlen[1] != ni || dimlen[0] != nj)
+            enkf_quit("\"%s\": horizontal dimensions of variable \"%s\" (ni = %d, nj = %d) do not match model dimensions (ni = %d, nj = %d)", fname, varname, dimlen[1], dimlen[0], ni, nj);
+    } else
+        enkf_quit("%s: can not read 2D field for \"%s\": # of dimensions = %d", fname, varname, ndims);
+
+    ncw_get_vara_float(ncid, varid, start, count, v);
+
+    n = 1;
+    for (i = 0; i < ndims; ++i)
+        n *= count[i];
+
+    if (ncw_att_exists(ncid, varid, "scale_factor")) {
+        float scale_factor;
+
+        ncw_get_att_float(ncid, varid, "scale_factor", &scale_factor);
+        for (i = 0; i < n; ++i)
+            v[i] *= scale_factor;
+    }
+
+    if (ncw_att_exists(ncid, varid, "add_offset")) {
+        float add_offset;
+
+        ncw_get_att_float(ncid, varid, "add_offset", &add_offset);
+
+        for (i = 0; i < n; ++i)
+            v[i] += add_offset;
+    }
+
+    ncw_close(ncid);
+}
+
 /** Writes one horizontal field (layer) for a variable to a NetCDF file.
  */
 void writefield(char fname[], char varname[], int k, float* v)
@@ -1138,6 +1241,80 @@ void read3dfield(char* fname, char* varname, float* v)
         count[0] = dimlen[0];
         count[1] = dimlen[1];
         count[2] = dimlen[2];
+    } else
+        enkf_quit("%s: can not read 3D field for \"%s\": # of dimensions = %d", fname, varname, ndims);
+
+    ncw_get_vara_float(ncid, varid, start, count, v);
+
+    n = 1;
+    for (i = 0; i < ndims; ++i)
+        n *= count[i];
+
+    if (ncw_att_exists(ncid, varid, "scale_factor")) {
+        float scale_factor;
+
+        ncw_get_att_float(ncid, varid, "scale_factor", &scale_factor);
+        for (i = 0; i < n; ++i)
+            v[i] *= scale_factor;
+    }
+
+    if (ncw_att_exists(ncid, varid, "add_offset")) {
+        float add_offset;
+
+        ncw_get_att_float(ncid, varid, "add_offset", &add_offset);
+
+        for (i = 0; i < n; ++i)
+            v[i] += add_offset;
+    }
+
+    ncw_close(ncid);
+}
+
+/**
+ */
+void read3dfield2(char* fname, char* varname, int ni, int nj, int nk, float* v)
+{
+    int ncid;
+    int varid;
+    int ndims;
+    int dimids[4];
+    size_t dimlen[4];
+    size_t start[4], count[4];
+    int i, n;
+    int containsrecorddim;
+
+    ncw_open(fname, NC_NOWRITE, &ncid);
+    ncw_inq_varid(ncid, varname, &varid);
+    ncw_inq_varndims(ncid, varid, &ndims);
+    assert(ndims <= 4);
+    ncw_inq_vardimid(ncid, varid, dimids);
+    for (i = 0; i < ndims; ++i)
+        ncw_inq_dimlen(ncid, dimids[i], &dimlen[i]);
+
+    containsrecorddim = nc_isunlimdimid(ncid, dimids[0]);
+
+    if (ndims == 4) {
+        assert(containsrecorddim);
+        start[0] = 0;
+        start[1] = 0;
+        start[2] = 0;
+        start[3] = 0;
+        count[0] = 1;
+        count[1] = dimlen[1];
+        count[2] = dimlen[2];
+        count[3] = dimlen[3];
+        if (dimlen[3] != ni || dimlen[2] != nj || dimlen[1] != nk)
+            enkf_quit("\"%s\": horizontal dimensions of variable \"%s\" (ni = %d, nj = %d, nk = %d) do not match model dimensions (ni = %d, nj = %d, nk = %d)", fname, varname, dimlen[3], dimlen[2], dimlen[1], ni, nj, nk);
+    } else if (ndims == 3) {
+        assert(!containsrecorddim);
+        start[0] = 0;
+        start[1] = 0;
+        start[2] = 0;
+        count[0] = dimlen[0];
+        count[1] = dimlen[1];
+        count[2] = dimlen[2];
+        if (dimlen[2] != ni || dimlen[1] != nj || dimlen[0] != nk)
+            enkf_quit("\"%s\": horizontal dimensions of variable \"%s\" (ni = %d, nj = %d, nk = %d) do not match model dimensions (ni = %d, nj = %d, nk = %d)", fname, varname, dimlen[2], dimlen[1], dimlen[0], ni, nj, nk);
     } else
         enkf_quit("%s: can not read 3D field for \"%s\": # of dimensions = %d", fname, varname, ndims);
 
