@@ -35,7 +35,7 @@
 
 \begin{document}
 
-\title{EnKF-C user guide\\{\normalsize version 1.64.2}}
+\title{EnKF-C user guide\\{\normalsize version 1.65.0}}
 
 \author{Pavel Sakov}
 \date{June 19, 2014 -- \today}
@@ -922,15 +922,17 @@ It has the following usage and options:
 >./bin/enkf_prep
   Usage: enkf_prep <prm file> [<options>]
   Options:
+  --consider-subgrid-variability
+      increase error of superobservations according to subgrid variability
   --describe-prm-format [main|model|grid|obstypes|obsdata]
       describe format of the parameter file and exit
   --describe-superob <sob #>
       print composition of this superobservation and exit
-  --consider-subgrid-variability
-      increase error for a superobservation when there is large subgrid variability
   --log-all-obs
       put all obs into observations.nc (default: obs within model domain only)
   --no-superobing
+  --no-superobing-across-instruments
+  --no-writing-orig-obs
   --version
       print version and exit
 \end{Verbatim}
@@ -1237,6 +1239,7 @@ This excerpt shows innovation statistics for the region ``Tasman''.
 It contains sections for SST, SLA and TEM observations.
 The summary statistics for each observation type is shown at the top of each section; then statistics for days -4, -3, -2, -1 and 0 of a 5-day DAW are shown for the two asynchronous types, SST and SLA.
 After that, statistics for particular instruments is shown; ``N/A'' corresponds to superobservations resulted from merging observations from two or more instruments.
+(One can avoid superobing across different instruments by using option \verb|--no-superobing-across-instruments| in \verb|enkf_prep|.)
 For subsurface temperature also statistics for shallow (0--50\,m), deep ($>$500\,m), and intermediate (50--500\,m) observations is given.
 
 The analysis innovation statistics is calculated from the updated (analysis) ensemble observations by \emph{calc}, thus avoiding the need to access analysis files produced later by \emph{update}.

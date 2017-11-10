@@ -43,6 +43,8 @@ obstype* obstypes_p = NULL;
 
 int do_superob = 1;
 
+int do_superob_acrossinst = 1;
+
 /*
  *
  */
@@ -63,6 +65,7 @@ static void usage()
     enkf_printf("  --log-all-obs\n");
     enkf_printf("      put all obs into %s (default: obs within model domain only)\n", FNAME_OBS);
     enkf_printf("  --no-superobing\n");
+    enkf_printf("  --no-superobing-across-instruments\n");
     enkf_printf("  --no-writing-orig-obs\n");
     enkf_printf("  --version\n");
     enkf_printf("      print version and exit\n");
@@ -125,6 +128,10 @@ static void parse_commandline(int argc, char* argv[], char** fname)
             do_superob = 0;
             i++;
             continue;
+        } else if (strcmp(argv[i], "--no-superobing-across-instruments") == 0) {
+            do_superob_acrossinst = 0;
+            i++;
+            continue;
         } else if (strcmp(argv[i], "--no-writing-orig-obs") == 0) {
             write_orig_obs = 0;
             i++;
@@ -154,6 +161,13 @@ static int cmp_obs(const void* p1, const void* p2, void* p)
         return 1;
     if (m1->type < m2->type)
         return -1;
+
+    if (!do_superob_acrossinst) {
+        if (m1->instrument > m2->instrument)
+            return 1;
+        if (m1->instrument < m2->instrument)
+            return -1;
+    }
 
     if (obstypes_p[m1->type].isasync) {
         i1 = get_tshift(m1->date, obstypes_p[m1->type].async_tstep);

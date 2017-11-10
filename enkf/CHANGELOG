@@ -1,3 +1,7 @@
+v. 1.65.0
+   PS 10112017
+   -- Added a new option to enkf_prep: "--no-superobing-across-instruments" to
+      make it possible to obtain clean stats on each instrument type.
 v. 1.64.4
    PS 09112017
    -- In model_adddata() added a check that the field dimension matches the
