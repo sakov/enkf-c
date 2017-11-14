@@ -1181,7 +1181,7 @@ Tests with small models show that setting the K-factor to say 2-3 or above makes
 
 \subsection{Moderation of spread reduction}
 
-The moderating parameter $\alpha \in [0, 1]$ specified in the main parameter file via the entry \verb|ALPHA| allows one to reduce the contraction of ensemble during assimilation, while leaving the increment unchanged.
+The moderating parameter $\alpha \in (0, 1]$ specified in the main parameter file via the entry \verb|ALPHA| allows one to reduce the contraction of ensemble during assimilation, while leaving the increment unchanged.
 It modifies the DEnKF expression (\ref{TR-DEnKF}) for $\mb T_R$ as
 \begin{align*}
   \mb T_R = \mb I - \frac{\alpha}{2} \, \mb G \mb S,

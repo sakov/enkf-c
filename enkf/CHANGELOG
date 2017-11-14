@@ -1,3 +1,6 @@
+v. 1.65.1
+   PS 14112017
+   -- A minor correction in obstypes_read().
 v. 1.65.0
    PS 10112017
    -- Added a new option to enkf_prep: "--no-superobing-across-instruments" to

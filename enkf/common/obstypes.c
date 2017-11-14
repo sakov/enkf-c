@@ -271,8 +271,11 @@ void obstypes_read(char fname[], int* n, obstype** types, double locrad_base, do
         } else if (strcasecmp(token, "WEIGHT") == 0) {
             int sid = 0;
 
-            if (now->nlocrad > 0)
-                now->weight = malloc(sizeof(double) * now->nlocrad);
+            if (now->nlocrad > 0) {
+                if (now->weight == NULL)
+                    now->weight = malloc(sizeof(double) * now->nlocrad);
+            } else
+                enkf_quit("%s, l.%d: LOCRAD must be entered before WEIGHT", fname, line);
             while ((token = strtok(NULL, seps)) != NULL) {
                 if (now->nlocrad == sid) {
                     now->weight = realloc(now->weight, sizeof(double) * (now->nlocrad + 1));
