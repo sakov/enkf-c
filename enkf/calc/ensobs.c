@@ -821,9 +821,10 @@ static void das_sortobs_byid(dasystem* das)
 
 /** Updates ensemble observations by applying X5.
  *
- * Both update_HE() and update_Hx() only use the transforms calculated for the
- * (int) fj, (int) fi node of the grid. This might be improved in the future to
- * yield probably a bit more precise (and better) analysis stats.
+ * Both update_HE() and update_Hx() use transforms calculated for (int) fj,
+ * (int) fi node of the grid. This might be improved in future to yield
+ * probably a bit more precise (and better) analysis stats. Also, it would be
+ * good to parallelise this code one day.
  */
 static void update_HE(dasystem* das)
 {
