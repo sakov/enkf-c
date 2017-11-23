@@ -530,7 +530,7 @@ The cost function (\ref{cost-perf}) can then be written as
 \end{align}
 where observations $\mb y$ represent the augmented observation vector: $\mb y = [\mb y_1\T,\dots,\mb y_k\T]\T$, $\mb R$ is the corresponding observation error covariance, and forward operator $\mathcal H \circ \mathcal M (\mb x_1)$ relates the initial state $\mb x_1$ to observations.
 
-Note that usually only $\mathcal H$ is a function that depends on assimilated observations; now, if we interpret $\mathcal H \circ \mathcal M (\mb x) = \mathcal H[\mathcal M(\mb x)]$, we have to assume that $\mathcal M$ also depends on observations, propagating the initial state to the time of each observation.
+Note that usually only $\mathcal H$ is a function that depends on assimilated observations; now by introducing $\mathcal H \circ \mathcal M (\mb x) = \mathcal H[\mathcal M(\mb x)]$ we have to assume that $\mathcal M$ also depends on observations, propagating the initial state to the time of each observation.
 It is also possible to interpret $\mathcal M(\mb x$) as the \emph{trajectory} starting from $\mb x$, while $\mathcal H$ maps it to observations.
 
 Apart from the operator $\mathcal H \circ \mathcal M$, the cost function (\ref{cost-async}) has the same form as that for a single DA cycle with synchronous observations.
