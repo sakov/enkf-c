@@ -35,7 +35,7 @@
 
 \begin{document}
 
-\title{EnKF-C user guide\\{\normalsize version 1.65.0}}
+\title{EnKF-C user guide\\{\normalsize version 1.65.1}}
 
 \author{Pavel Sakov}
 \date{June 19, 2014 -- \today}
@@ -1170,7 +1170,7 @@ The value of the stride is defined by the \verb|STRIDE| entry in the parameter f
 One of standard quality control (QC) procedures in DA is the so called background check, when an observation is compared with the forecast and discarded if the innovation magnitude exceeds some specified threshold.
 The downside of this approach is that it can not distinguish between situations of an outlier, big model error (e.g. because of an error in forcing), or model divergence.
 While one probably would like to discard an outlier, it is usually desirable to make use of valid observations, although, perhaps, with a reduced impact, to avoid ``over-stressing'' the model.
-In EnKF-C this is achieved by adaptive moderation of the observation impact by restricting the magnitude of the increment from a given observation in observation space by $K$ times magnitude of the spread of the forecast ensemble.
+In EnKF-C this is achieved by adaptive moderation of the observation impact by restricting the magnitude of the increment from a given observation in observation space by $K$ times magnitude of the spread of the forecast ensemble \citep{sak17a}.
 
 Specifically, the adaptive moderation of the observation impact is conducted by smoothly increasing the observation error depending on the magnitude of innovation as follows:
 \begin{align*}
@@ -1605,7 +1605,7 @@ If this happens, one may use a coarser superobing to reduce the number of assimi
 \addcontentsline{toc}{chapter}{Acknowledgments}
 
 EnKF-C has been developed during author's work with Bureau of Meteorology on Bluelink project.
-The author used his knowledge of TOPAZ \citep{sak12b} and BODAS \citep{oke08b} codes and borrowed from them a number of design solutions and features.
+The author has used his knowledge of TOPAZ \citep{sak12b} and BODAS \citep{oke08b} systems and borrowed from them a number of design solutions and features.
 Paul Sandery was the first user of this code (apart from the author), and his enthusiastic support is cheerfully acknowledged.
 
 \clearpage
