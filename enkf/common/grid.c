@@ -745,16 +745,20 @@ grid* grid_create(void* p, int id)
         enkf_quit("%s: could not determine the grid type", fname);
 
     if (prm->depthvarname != NULL) {
-        float** depth = alloc2d(ny, nx, sizeof(float));
+        size_t dimlen[2] = { ny, nx };
 
+        g->depth = alloc2d(ny, nx, sizeof(float));
         ncw_inq_varid(ncid, prm->depthvarname, &varid_depth);
-        ncw_get_var_float(ncid, varid_depth, depth[0]);
-        g->depth = depth;
+        ncw_check_vardims(ncid, varid_depth, 2, dimlen);
+        ncw_get_var_float(ncid, varid_depth, g->depth[0]);
     }
-
     if (prm->levelvarname != NULL) {
+        size_t dimlen[2] = { ny, nx };
+
         g->numlevels = alloc2d(ny, nx, sizeof(int));
         ncw_inq_varid(ncid, prm->levelvarname, &varid_numlevels);
+        ncw_check_varndims(ncid, varid_numlevels, 2);
+        ncw_check_vardims(ncid, varid_numlevels, 2, dimlen);
         ncw_get_var_int(ncid, varid_numlevels, g->numlevels[0]);
         if (g->vtype == GRIDVTYPE_SIGMA) {
             int i, j;

@@ -37,6 +37,7 @@ void ncw_set_quitfn(ncw_quit_fn quit_fn);
 /* These procedures are the straightforward wrappers of the corresponding
  * procedures in netcdf library.
  */
+char* ncw_get_path(int ncid);
 void ncw_create(const char fname[], int mode, int* ncid);
 void ncw_open(const char fname[], int mode, int* ncid);
 void ncw_redef(int ncid);
@@ -146,6 +147,7 @@ int ncw_file_opens(const char fname[], int mode);
 void ncw_check_attlen(int ncid, int varid, const char attname[], size_t len);
 void ncw_check_dimlen(int ncid, const char dimname[], size_t len);
 void ncw_check_varndims(int ncid, int varid, int ndims);
+void ncw_check_vardims(int ncid, int varid, int ndims, size_t dimlen[]);
 
 #define _NCW_H
 #endif
