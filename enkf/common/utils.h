@@ -52,7 +52,7 @@ void read3dfield2(char fname[], char varname[], int ni, int nj, int nk, float* v
 int is3d(char fname[], char varname[]);
 int getnumlevels(char fname[], char varname[]);
 double date_str2dbl(char strdate[]);
-int get_tshift(double date, double tstep);
+int get_tshift(double date, double tstep, int centred);
 void print_matrix_double(int n, int m, double** A, char offset[]);
 void print_matrix_float(int n, int m, float** A, char offset[]);
 void print_vector_double(int n, double* a, char offset[]);

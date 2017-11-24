@@ -1,3 +1,9 @@
+v. 1.65.2
+   PS 24112017
+   -- Introduced option "non-centred" for the asynchronous time binning
+      intervals. By default the interval 0 is centred about the assimilation
+      time. When specified as "non-centred" its start considdes with the
+      assimilation time.
 v. 1.65.1
    PS 14112017
    -- A minor correction in obstypes_read().

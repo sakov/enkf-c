@@ -1113,14 +1113,14 @@ void obs_find_bytype(observations* obs, int type, int* nobs, int** obsids)
  */
 void obs_find_bytypeandtime(observations* obs, int type, int time, int* nobs, int** obsids)
 {
-    double tstep = obs->obstypes[type].async_tstep;
+    obstype* ot = &obs->obstypes[type];
     int i;
 
     if (!enkf_fstatsonly)
-        assert(obs->obstypes[type].nobs == obs->obstypes[type].ngood);
+        assert(ot->nobs == ot->ngood);
 
     *nobs = 0;
-    if (obs->obstypes[type].ngood == 0) {
+    if (ot->ngood == 0) {
         *obsids = NULL;
         return;
     }
@@ -1128,7 +1128,7 @@ void obs_find_bytypeandtime(observations* obs, int type, int time, int* nobs, in
     for (i = 0; i < obs->nobs; ++i) {
         observation* o = &obs->data[i];
 
-        if (o->type == type && o->status == STATUS_OK && get_tshift(o->date, tstep) == time) {
+        if (o->type == type && o->status == STATUS_OK && get_tshift(o->date, ot->async_tstep, ot->async_centred) == time) {
             (*obsids)[*nobs] = i;
             (*nobs)++;
         }

@@ -100,8 +100,8 @@ void das_getHE(dasystem* das)
         H = getH(ot->issurface, ot->hfunction);
 
         if (ot->isasync) {
-            int t1 = get_tshift(ot->date_min, ot->async_tstep);
-            int t2 = get_tshift(ot->date_max, ot->async_tstep);
+            int t1 = get_tshift(ot->date_min, ot->async_tstep, ot->async_centred);
+            int t2 = get_tshift(ot->date_max, ot->async_tstep, ot->async_centred);
             int t;
 
             for (t = t1; t <= t2; ++t) {

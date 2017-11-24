@@ -170,8 +170,8 @@ static int cmp_obs(const void* p1, const void* p2, void* p)
     }
 
     if (obstypes_p[m1->type].isasync) {
-        i1 = get_tshift(m1->date, obstypes_p[m1->type].async_tstep);
-        i2 = get_tshift(m2->date, obstypes_p[m2->type].async_tstep);
+        i1 = get_tshift(m1->date, obstypes_p[m1->type].async_tstep, obstypes_p[m1->type].async_centred);
+        i2 = get_tshift(m2->date, obstypes_p[m2->type].async_tstep, obstypes_p[m1->type].async_centred);
         if (i1 > i2)
             return 1;
         if (i2 > i1)

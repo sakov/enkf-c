@@ -30,6 +30,7 @@ typedef struct {
     double allowed_max;
     int isasync;
     double async_tstep;
+    int async_centred;
     int nlocrad;
     double* locrad;
     double* weight;
