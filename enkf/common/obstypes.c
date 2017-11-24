@@ -257,7 +257,7 @@ void obstypes_read(char fname[], int* n, obstype** types, double locrad_base, do
             if ((token = strtok(NULL, seps)) != NULL) {
                 if (token[0] == 'c' || token[0] == 'C')
                     now->async_centred = 1;
-                else if (token[0] == 'u' || token[0] == 'U')
+                else if (token[0] == 'n' || token[0] == 'N')
                     now->async_centred = 0;
                 else
                     enkf_quit("%s, l.%d: the asynchronous intervals can be either \"c\" (centred) or \"n\" (non-centred)", fname, line);
