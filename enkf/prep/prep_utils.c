@@ -32,6 +32,8 @@
 #include "allreaders.h"
 #include "prep_utils.h"
 
+#define DT_EPS 1.0e-6
+
 /**
  */
 static int obs_badob(observations* obs, int i)
@@ -120,9 +122,9 @@ void obs_add(observations* obs, model* m, obsmeta* meta)
 
             if (o->status != STATUS_OK)
                 continue;
-            if (o->date - obs->da_date < ot->windowmin)
+            if (o->date - obs->da_date < ot->windowmin + DT_EPS)
                 o->status = STATUS_OUTSIDEOBSWINDOW;
-            if (o->date - obs->da_date >= ot->windowmax)
+            if (o->date - obs->da_date > ot->windowmax - DT_EPS)
                 o->status = STATUS_OUTSIDEOBSWINDOW;
 
             if (o->value < ot->allowed_min) {
