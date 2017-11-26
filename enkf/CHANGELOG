@@ -1,3 +1,7 @@
+v. 1.65.4
+   PS 27112017
+   -- Changed specification for edge-aligned asynchronous intervals from "n"
+      (for non-centred) to "e" (for edge-aligned).
 v. 1.65.3
    PS 24112017
    -- Added checks on dimensions of DEPTH and NLEVELS fields in grid.c.

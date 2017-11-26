@@ -35,7 +35,7 @@
 
 \begin{document}
 
-\title{EnKF-C user guide\\{\normalsize version 1.65.1}}
+\title{EnKF-C user guide\\{\normalsize version 1.65.4}}
 
 \author{Pavel Sakov}
 \date{June 19, 2014 -- \today}
@@ -803,7 +803,7 @@ For example:
   [ MLD_VARNAME = <model varname> ]                (none*)
   [ MLD_THRESH  = <threshold> ]                    (NaN*)
     HFUNCTION   = <H function tag>
-  [ ASYNC       = <time interval> ]                (synchronous*)
+  [ ASYNC       = <time interval> [c*|e]]          (synchronous*)
   [ LOCRAD      = <locrad> ... ]                   (global*)
   [ WEIGHT      = <weight> ... ]                   (1*)
   [ RFACTOR     = <rfactor> ]                      (1*)
@@ -1047,18 +1047,27 @@ At the moment the only obligatory parameter for these readers is \verb|VARNAME|;
 \subsection{Asynchronous DA / FGAT}
 \label{sec:async}
 
-An observation type can be specified as ``asynchronous'' by specifying entry \verb|ASYNC| entry in the observation types parameter file (sec. \ref{sec:obstypesprm}), e.g.:
+An observation type can be specified as ``asynchronous'' by specifying entry \verb|ASYNC| in the observation types parameter file (sec. \ref{sec:obstypesprm}), e.g.:
 \begin{Verbatim}[frame=single,fontsize=\footnotesize]
-NAME = SLA
+NAME = SST
 (...)
 ASYNC = 1
 (...)
 \end{Verbatim}
-The above means that SLA and SST observations are considered to be asynchronous, with the time quantification of 1 day.
-If, for example the assimilation time is specified as ``6085.5 days since 1990-01-01'', then the SLA and SST observations will be binned into 1-day time intervals centred at the time of assimilation, i.e. from day 6080.0 to day 6081.0, 6081.0 to 6082.0, and so on, and estimated versus the corresponding model states.
+The above means that SST observations are considered to be asynchronous with time bins of 1 day.
+If, for example, the assimilation time is specified as ``6085.5 days since 1990-01-01'', then the interval 0 is centred (by default) at the time of assimilation, i.e. will be from day 6080.0 to day 6081.0; interval -1 -- from day 6079.0 to day 6080.0, interval 1 -- from day 6081.0 to day 6082.0, and so on.
+It is possible to shift the asynchronous intervals so that not the centre but the start of interval 0 is located at the time of assimilation.
+In this case one needs to add qualifier ``e'' after the length of the interval, i.e.
+\begin{Verbatim}[frame=single,fontsize=\footnotesize]
+NAME = SST
+(...)
+ASYNC = 1 e
+(...)
+\end{Verbatim}
+The interval 0 will then be from day 6085.5 to day 6086.5.
 
-The model states used to calculate forecast observations are matched by file names, which are supposed to be of the form \verb|mem<xxx>_<variable name>_<time shift>.nc| (for the EnKF) or \verb|bg_<variable name>_<time shift>.nc| (for the EnOI).
-Here ``time shift'' is the number of the bin, with ``0'' corresponding to the bin centred at the time of assimilation, ``-1'' to the previous bin, ``1'' to the next bin, and so on.
+The model states for each asynchronous interval are read from files with names \spverb|mem<xxx>_<variable name>_<time shift>.nc| in the ensemble directory (for the EnKF) or \spverb|bg_<variable name>_<time shift>.nc| in the background directory (for the EnOI).
+Here ``time shift'' is the interval ID (with the interval 0 being centred/starting at the observation time).
 If the corresponding members (or the background files, in the case of EnOI) are found, the observations are assimilated asynchronously; if they are not found, then the observations are assimilated synchronously.
 This can be tracked from the \emph{calc} log file, e.g.:
 \begin{Verbatim}[frame=single,fontsize=\footnotesize]
@@ -1073,8 +1082,8 @@ This can be tracked from the \emph{calc} log file, e.g.:
     TEM ......
     SAL ......
 \end{Verbatim}
-The entries ``a'' mean that the observations are assimilated asynchronously.
-They would be replaced by ``s'' if assimilated synchronously.
+The entries ``a'' mean that the observations are assimilated asynchronously and the files and the corresponding (by name) files have been found.
+These entris would be replaced by ``s'' if the observations were assimilated synchronously because of lacking the corresponding files.
 The vertical lines indicate the time slots for asynchronous DA; in the above example the DAW has 5 time slots.
 The entries ``.'' indicate calculating ensemble observations for synchronous observations.
 Note that only the master process is writing to the log here, which explains why there is only output from 6 members in the log above.

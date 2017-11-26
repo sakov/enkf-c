@@ -128,7 +128,7 @@ static void obstype_print(obstype* type)
     enkf_printf("      ALLOWED MAX = %.3g\n", type->allowed_max);
     enkf_printf("      ASYNCHRONOUS = %s", (type->isasync) ? "yes" : "no");
     if (type->isasync)
-        enkf_printf(", DT = %.3f (%s)\n", type->async_tstep, (type->async_centred) ? "c" : "n");
+        enkf_printf(", DT = %.3f (%s)\n", type->async_tstep, (type->async_centred) ? "centre-aligned" : "endpoint-aligned");
     else
         enkf_printf("\n");
     enkf_printf("      LOCRAD  =");
@@ -257,10 +257,10 @@ void obstypes_read(char fname[], int* n, obstype** types, double locrad_base, do
             if ((token = strtok(NULL, seps)) != NULL) {
                 if (token[0] == 'c' || token[0] == 'C')
                     now->async_centred = 1;
-                else if (token[0] == 'n' || token[0] == 'N')
+                else if (token[0] == 'e' || token[0] == 'E')
                     now->async_centred = 0;
                 else
-                    enkf_quit("%s, l.%d: the asynchronous intervals can be either \"c\" (centred) or \"n\" (non-centred)", fname, line);
+                    enkf_quit("%s, l.%d: the asynchronous intervals can be either \"c\" (centre-aligned) or \"e\" (endpoint-aligned)", fname, line);
             }
         } else if (strcasecmp(token, "LOCRAD") == 0) {
             int sid = 0;
@@ -425,7 +425,7 @@ void obstypes_describeprm(void)
     enkf_printf("  [ MLD_VARNAME = <model varname> ]                (none*)\n");
     enkf_printf("  [ MLD_THRESH  = <threshold> ]                    (NaN*)\n");
     enkf_printf("    HFUNCTION   = <H function name>\n");
-    enkf_printf("  [ ASYNC       = <time interval> [c*|n]]          (synchronous*)\n");
+    enkf_printf("  [ ASYNC       = <time interval> [c*|e]]          (synchronous*)\n");
     enkf_printf("  [ LOCRAD      = <locrad> ... ]                   (global*)\n");
     enkf_printf("  [ WEIGHT      = <weight> ... ]                   (1*)\n");
     enkf_printf("  [ RFACTOR     = <rfactor> ]                      (1*)\n");
