@@ -36,6 +36,7 @@ static void nc_createX5(dasystem* das, char fname[], char gridname[], int nj, in
     assert(rank == 0);
 
     enkf_printf("      creating empty file \"%s\":\n", fname);
+    enkf_flush();
     ncw_create(fname, NC_CLOBBER | das->ncformat, ncid);
     ncw_def_dim(*ncid, "nj", nj, &dimids[0]);
     ncw_def_dim(*ncid, "ni", ni, &dimids[1]);
