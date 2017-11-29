@@ -7,9 +7,10 @@
  * Author:      Pavel Sakov
  *              Bureau of Meteorology
  *
- * Description: The code in this file structurally belongs to dasystem.c,
- *              and is put in a separate file just to break dasystem.c in
- *              smaller parts.
+ * Description: The code here update model fields using ensmeble transforms
+ *              calculated by CALC. It also does a number of auxiliary tasks
+ *              such as calculating and writing ensemble spread, inflation,
+ *              point logs etc.
  *
  * Revisions:
  *

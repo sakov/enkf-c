@@ -1429,7 +1429,9 @@ double date_str2dbl(char strdate[])
  */
 int get_tshift(double date, double tstep, int centred)
 {
-    return (int) floor(date / tstep + (centred) ? 0.5 : 0.0);
+    double offset = (centred) ? 0.5 : 0.0;
+
+    return (int) floor(date / tstep + offset);
 }
 
 /** For debugging purposes - to be called from GDB.
