@@ -1,3 +1,6 @@
+v. 1.65.6
+   PS 04122017
+   -- Cosmetic updates of arch/make.inc.linux and arch/make.inc.mkl.
 v. 1.65.5
    PS 27112017
    -- Fixed a defect in get_shift() associated with v1.65.4.

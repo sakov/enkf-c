@@ -1,3 +1,20 @@
+# This is an example of the system-dependent part of the Makefile for a Linux
+# desktop. You need to install the following packages (components):
+#
+#   openmpi 
+#   gcc (or clang)
+#   hdf5
+#   netcdf
+#   lapack
+#   blas -- if not bundled with lapack
+#
+# On libgu -- see ../README.
+# From my experience, on OpenSUSE desktops one may also need to make a few
+# softlinks, e.g.
+#   >ln -s /usr/lib64/lapack/liblapack.so.3.5.0 /usr/lib64/liblapack.so
+#   >ln -s /usr/lib64/blas/libblas.so.3.5.0 /usr/lib64/libblas.so
+# and add /usr/lib64/mpi/gcc/openmpi/bin to $PATH.
+
 LD_PATH =
 
 INC_NC = 
