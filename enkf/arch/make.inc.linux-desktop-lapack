@@ -1,25 +1,25 @@
 # This is an example of the system-dependent part of the Makefile for a Linux
 # desktop. You need to install the following packages (components):
 #
-#   openmpi 
 #   gcc (or clang)
-#   hdf5
+#   openmpi 
 #   netcdf
+#   hdf5
 #   lapack
 #   blas -- if not bundled with lapack
 #
 # On libgu -- see ../README.
-# From my experience, on OpenSUSE desktops one may also need to make a few
-# softlinks, e.g.
+#
+# It may also be necessary to add a few minor tweaks. For example, on OpenSUSE
+# desktops one may need to make a couple softlinks, e.g.
 #   >ln -s /usr/lib64/lapack/liblapack.so.3.5.0 /usr/lib64/liblapack.so
 #   >ln -s /usr/lib64/blas/libblas.so.3.5.0 /usr/lib64/libblas.so
 # and add /usr/lib64/mpi/gcc/openmpi/bin to $PATH.
 
 LD_PATH =
 
-INC_NC = 
 LIB_NC = -lnetcdf -lhdf5 -lhdf5_hl
-
+LIB_LAPACK = -llapack -lblas -lgfortran
 LIB_M = -lm
 
 # with gridutils (default) (comment out below to compile without):
@@ -34,16 +34,13 @@ LIB_GU = /usr/local/lib64/libgu.so
 #INC_GU = -DNO_GRIDUTILS
 #LIB_GU =
 
-LIB_LAPACK = -llapack -lblas -lgfortran
-LD_PATH += -L/usr/lib64
-
 # which compiler/flags to use without MPI
 # choose gcc if you do not have clang
 #
 CC = clang
-CFLAGS = -g -pedantic -Wall -std=c99 -D_GNU_SOURCE # -O2
+CFLAGS = -g -pedantic -Wall -std=c99 -D_GNU_SOURCE -O2
 
 # which compiler/flags to use with MPI
 #
 CCMPI = OMPI_MPICC=$(CC) mpicc
-CFLAGSMPI = -g -pedantic -Wall -std=c99 -D_GNU_SOURCE -DMPI # -O2
+CFLAGSMPI = -g -pedantic -Wall -std=c99 -D_GNU_SOURCE -DMPI -O2

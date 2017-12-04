@@ -1,3 +1,7 @@
+v. 1.65.7
+   PS 05122017
+   -- Renamed arch/make.inc.linux to arch/make.inc.linux-desktop-lapack, and
+      arch/make.inc.mkl to arch/make.inc.linux-server-mkl
 v. 1.65.6
    PS 04122017
    -- Cosmetic updates of arch/make.inc.linux and arch/make.inc.mkl.

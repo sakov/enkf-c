@@ -13,8 +13,8 @@
 LD_PATH =
 
 LIB_NC = -lnetcdf -lhdf5 -lhdf5_hl
-LIB_M = -lm
 LIB_LAPACK = -lmkl_rt
+LIB_M = -lm
 
 # with gridutils (default) (comment out below to compile without):
 #
