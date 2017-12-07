@@ -149,8 +149,13 @@ void reader_mmt_standard(char* fname, int fid, obsmeta* meta, model* m, observat
 
     for (p = 0; p < (int) nprof; ++p) {
         char inststr[MAXSTRLEN];
+	int instnum;
 
-        snprintf(inststr, MAXSTRLEN, "WMO%04u", type[p * WMO_INSTSIZE]);
+	strncpy(inststr, &type[p * WMO_INSTSIZE], 4);
+	inststr[4] = 0;
+	if (!str2int(inststr, &instnum))
+	    instnum = 999;
+	snprintf(inststr, MAXSTRLEN, "WMO%03d", instnum);
 
         for (i = 0; i < (int) nz; ++i) {
             observation* o;

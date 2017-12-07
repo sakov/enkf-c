@@ -1,3 +1,6 @@
+v. 1.65.8
+   PS 07122017
+   -- Corrected instrument string in reader_mmt_standard().
 v. 1.65.7
    PS 05122017
    -- Renamed arch/make.inc.linux to arch/make.inc.linux-desktop-lapack, and
