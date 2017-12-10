@@ -49,13 +49,13 @@ typedef struct {
     double* y;
     double* xc;
     double* yc;
-} gnxy_simple;
+} gxy_simple;
 
 #if !defined(NO_GRIDUTILS)
 typedef struct {
     gridnodes* gn;
     gridmap* gm;
-} gnxy_curv;
+} gxy_curv;
 #else
 #define NT_NONE 0
 #endif
@@ -64,7 +64,22 @@ typedef struct {
     int nz;
     double* zt;
     double* zc;
-} gnz_simple;
+} gz_simple;
+
+typedef struct {
+    int nx;
+    int ny;
+    int nz;
+    double* a;
+    double* b;
+    float** p1;
+    float** p2;
+
+    double fi_prev;
+    double fj_prev;
+    double* pt;
+    double* pc;
+} gz_hybrid;
 
 struct grid {
     char* name;
@@ -106,9 +121,9 @@ struct grid {
 
 /**
  */
-static gnxy_simple* gnxy_simple_create(int nx, int ny, double* x, double* y)
+static gxy_simple* gxy_simple_create(int nx, int ny, double* x, double* y)
 {
-    gnxy_simple* nodes = malloc(sizeof(gnxy_simple));
+    gxy_simple* nodes = malloc(sizeof(gxy_simple));
     int i, ascending;
     double dx, dy;
 
@@ -184,7 +199,7 @@ static gnxy_simple* gnxy_simple_create(int nx, int ny, double* x, double* y)
 
 /**
  */
-void gnxy_simple_destroy(gnxy_simple* nodes)
+void gxy_simple_destroy(gxy_simple* nodes)
 {
     free(nodes->x);
     free(nodes->y);
@@ -196,9 +211,9 @@ void gnxy_simple_destroy(gnxy_simple* nodes)
 #if !defined(NO_GRIDUTILS)
 /**
  */
-static gnxy_curv* gnxy_curv_create(int nodetype, int nx, int ny, double** x, double** y, int maptype)
+static gxy_curv* gxy_curv_create(int nodetype, int nx, int ny, double** x, double** y, int maptype)
 {
-    gnxy_curv* nodes = malloc(sizeof(gnxy_curv));
+    gxy_curv* nodes = malloc(sizeof(gxy_curv));
 
     if (nodetype == NT_CEN) {
         gridnodes* gn_new;
@@ -223,7 +238,7 @@ static gnxy_curv* gnxy_curv_create(int nodetype, int nx, int ny, double** x, dou
 
 /**
  */
-void gnxy_curv_destroy(gnxy_curv* nodes)
+void gxy_curv_destroy(gxy_curv* nodes)
 {
     gridnodes_destroy(nodes->gn);
     if (nodes->gm != NULL)
@@ -236,9 +251,9 @@ void gnxy_curv_destroy(gnxy_curv* nodes)
 
 /**
  */
-static gnz_simple* gnz_simple_create(int nz, double* z)
+static gz_simple* gz_simple_create(int nz, double* z)
 {
-    gnz_simple* nodes = malloc(sizeof(gnz_simple));
+    gz_simple* gz = malloc(sizeof(gz_simple));
     int i;
 
 #if !defined(ZSIGN_NOCHECK)
@@ -260,30 +275,30 @@ static gnz_simple* gnz_simple_create(int nz, double* z)
             z[i] = -z[i];
 #endif
 
-    nodes->zt = z;
-    nodes->nz = nz;
+    gz->zt = z;
+    gz->nz = nz;
 
     /*
      * this code is supposed to work both for z and sigma grids
      */
-    nodes->zc = malloc((nz + 1) * sizeof(double));
+    gz->zc = malloc((nz + 1) * sizeof(double));
     if (z[nz - 1] >= z[0]) {
         /*
          * layer 0 at surface
          */
 #if defined(ZSIGN_NOCHECK)
         assert(nz > 2 && fabs(2 * z[1] - z[0] - z[2]) < EPSZ);
-        nodes->zc[0] = 1.5 * z[0] - 0.5 * z[1];
+        gz->zc[0] = 1.5 * z[0] - 0.5 * z[1];
 #else
-        nodes->zc[0] = 0.0;
+        gz->zc[0] = 0.0;
 #endif
         for (i = 1; i <= nz; ++i) {
-            nodes->zc[i] = 2.0 * z[i - 1] - nodes->zc[i - 1];
+            gz->zc[i] = 2.0 * z[i - 1] - gz->zc[i - 1];
             /*
              * layer boundary should be above the next layer centre
              */
             if (i < nz)
-                assert(nodes->zc[i] < z[i]);
+                assert(gz->zc[i] < z[i]);
         }
     } else {
         /*
@@ -291,30 +306,64 @@ static gnz_simple* gnz_simple_create(int nz, double* z)
          */
 #if defined(ZSIGN_NOCHECK)
         assert(nz > 2 && fabs(2 * z[nz - 2] - z[nz - 1] - z[nz - 3]) < EPSZ);
-        nodes->zc[nz] = 1.5 * z[nz - 1] - 0.5 * z[nz - 2];
+        gz->zc[nz] = 1.5 * z[nz - 1] - 0.5 * z[nz - 2];
 #else
-        nodes->zc[nz] = 0.0;
+        gz->zc[nz] = 0.0;
 #endif
         for (i = nz - 1; i >= 0; --i) {
-            nodes->zc[i] = 2.0 * z[i] - nodes->zc[i + 1];
+            gz->zc[i] = 2.0 * z[i] - gz->zc[i + 1];
             /*
              * layer boundary should be above the next layer centre
              */
             if (i > 0)
-                assert(nodes->zc[i] < z[i - 1]);
+                assert(gz->zc[i] < z[i - 1]);
         }
     }
 
-    return nodes;
+    return gz;
 }
 
 /**
  */
-static void gnz_simple_destroy(gnz_simple * nodes)
+static gz_hybrid* gz_hybrid_create(int nx, int ny, int nz, double* a, double* b, float** p1, float** p2)
 {
-    free(nodes->zt);
-    free(nodes->zc);
-    free(nodes);
+    gz_hybrid* gz = malloc(sizeof(gz_hybrid));
+
+    gz->nx = nx;
+    gz->ny = ny;
+    gz->nz = nz;
+    gz->a = a;
+    gz->b = b;
+    gz->p1 = p1;
+    gz->p2 = p2;
+
+    gz->fi_prev = NAN;
+    gz->fj_prev = NAN;
+    gz->pt = malloc(nz * sizeof(double));
+    gz->pc = malloc((nz + 1) * sizeof(double));
+
+    return gz;
+}
+
+/**
+ */
+static void gz_simple_destroy(gz_simple* gz)
+{
+    free(gz->zt);
+    free(gz->zc);
+    free(gz);
+}
+
+/**
+ */
+static void gz_hybrid_destroy(gz_hybrid* gz)
+{
+    free(gz->a);
+    free(gz->b);
+    free(gz->p1);
+    free(gz->p2);
+    free(gz->pt);
+    free(gz->pc);
 }
 
 /**
@@ -381,7 +430,7 @@ static double fi2x(int n, double* v, double fi, int periodic)
  */
 static void gs_fij2xy(void* p, double fi, double fj, double* x, double* y)
 {
-    gnxy_simple* nodes = (gnxy_simple*) ((grid*) p)->gridnodes_xy;
+    gxy_simple* nodes = (gxy_simple*) ((grid*) p)->gridnodes_xy;
 
     *x = fi2x(nodes->nx, nodes->x, fi, nodes->periodic_x);
     *y = fi2x(nodes->ny, nodes->y, fj, 0);
@@ -460,7 +509,7 @@ static double x2fi_irreg(int n, double v[], double vb[], double x, int periodic,
  */
 static void gs_xy2fij(void* p, double x, double y, double* fi, double* fj)
 {
-    gnxy_simple* nodes = (gnxy_simple*) ((grid*) p)->gridnodes_xy;
+    gxy_simple* nodes = (gxy_simple*) ((grid*) p)->gridnodes_xy;
     double lonbase = ((grid*) p)->lonbase;
 
     if (nodes->regular_x)
@@ -478,7 +527,7 @@ static void gs_xy2fij(void* p, double x, double y, double* fi, double* fj)
  */
 static void gc_xy2fij(void* p, double x, double y, double* fi, double* fj)
 {
-    gnxy_curv* nodes = (gnxy_curv*) ((grid*) p)->gridnodes_xy;
+    gxy_curv* nodes = (gxy_curv*) ((grid*) p)->gridnodes_xy;
 
     if (gridmap_xy2fij(nodes->gm, x, y, fi, fj) == 1)
         return;                 /* success */
@@ -491,7 +540,7 @@ static void gc_xy2fij(void* p, double x, double y, double* fi, double* fj)
  */
 static void gc_fij2xy(void* p, double fi, double fj, double* x, double* y)
 {
-    gnxy_curv* nodes = (gnxy_curv*) ((grid*) p)->gridnodes_xy;
+    gxy_curv* nodes = (gxy_curv*) ((grid*) p)->gridnodes_xy;
 
     gridmap_fij2xy(nodes->gm, fi, fj, x, y);
 }
@@ -552,10 +601,10 @@ static double z2fk_basic(int n, double* zt, double* zc, double z)
 
 /**
  */
-static void z2fk(void* p, double fi, double fj, double z, double* fk)
+static void gz_simple_z2fk(void* p, double fi, double fj, double z, double* fk)
 {
     grid* g = (grid*) p;
-    gnz_simple* nodes = g->gridnodes_z;
+    gz_simple* nodes = g->gridnodes_z;
 
     /*
      * for sigma coordinates convert `z' to sigma
@@ -565,13 +614,13 @@ static void z2fk(void* p, double fi, double fj, double z, double* fk)
         double depth;
 
         if (g->htype == GRIDHTYPE_LATLON) {
-            gnxy_simple* nodes = (gnxy_simple*) g->gridnodes_xy;
+            gxy_simple* nodes = (gxy_simple*) g->gridnodes_xy;
 
             ni = nodes->nx;
             nj = nodes->ny;
 #if !defined(NO_GRIDUTILS)
         } else if (g->htype == GRIDHTYPE_CURVILINEAR) {
-            gnxy_curv* nodes = (gnxy_curv*) g->gridnodes_xy;
+            gxy_curv* nodes = (gxy_curv*) g->gridnodes_xy;
 
             ni = gridnodes_getnx(nodes->gn);
             nj = gridnodes_getny(nodes->gn);
@@ -588,14 +637,43 @@ static void z2fk(void* p, double fi, double fj, double z, double* fk)
 
 /**
  */
+static void gz_hybrid_z2fk(void* p, double fi, double fj, double z, double* fk)
+{
+    grid* g = (grid*) p;
+    gz_hybrid* gz = (gz_hybrid*) g->gridnodes_z;
+
+    if (fabs(fi - gz->fi_prev) > EPS_IJ || fabs(fj - gz->fj_prev) > EPS_IJ) {
+        double p1 = interpolate2d(fi, fj, gz->nx, gz->ny, gz->p1, g->numlevels, grid_isperiodic_x(g));
+        double p2 = interpolate2d(fi, fj, gz->nx, gz->ny, gz->p2, g->numlevels, grid_isperiodic_x(g));
+
+        int i;
+
+        for (i = 0; i < gz->nz; ++i)
+            gz->pt[i] = gz->a[i] + gz->b[i] * (p1 - p2);        /* for now
+                                                                 * assume p1
+                                                                 * > p2 */
+        gz->pc[0] = 1.5 * gz->pt[0] - 0.5 * gz->pt[1];
+        /*
+         * (some implicit assumptions about directions here)
+         */
+        for (i = 1; i <= gz->nz; ++i)
+            gz->pc[i] = 2.0 * gz->pt[i - 1] - gz->pc[i - 1];
+        gz->fi_prev = fi;
+        gz->fj_prev = fj;
+    }
+    *fk = z2fk_basic(gz->nz, gz->pt, gz->pc, z);
+}
+
+/**
+ */
 static void grid_setlonbase(grid* g)
 {
     double xmin = DBL_MAX;
     double xmax = -DBL_MAX;
 
     if (g->htype == GRIDHTYPE_LATLON) {
-        double* x = ((gnxy_simple*) g->gridnodes_xy)->x;
-        int nx = ((gnxy_simple*) g->gridnodes_xy)->nx;
+        double* x = ((gxy_simple*) g->gridnodes_xy)->x;
+        int nx = ((gxy_simple*) g->gridnodes_xy)->nx;
 
         if (xmin > x[0])
             xmin = x[0];
@@ -607,9 +685,9 @@ static void grid_setlonbase(grid* g)
             xmax = x[nx];
 #if !defined(NO_GRIDUTILS)
     } else if (g->htype == GRIDHTYPE_CURVILINEAR) {
-        double** x = gridnodes_getx(((gnxy_curv*) g->gridnodes_xy)->gn);
-        int nx = gridnodes_getnce1(((gnxy_curv*) g->gridnodes_xy)->gn);
-        int ny = gridnodes_getnce2(((gnxy_curv*) g->gridnodes_xy)->gn);
+        double** x = gridnodes_getx(((gxy_curv*) g->gridnodes_xy)->gn);
+        int nx = gridnodes_getnce1(((gxy_curv*) g->gridnodes_xy)->gn);
+        int ny = gridnodes_getnce2(((gxy_curv*) g->gridnodes_xy)->gn);
         int i, j;
 
         for (j = 0; j < ny; ++j) {
@@ -632,33 +710,28 @@ static void grid_setlonbase(grid* g)
 
 /**
  */
-static void grid_setcoords(grid* g, int htype, int hnodetype, int nx, int ny, int nz, void* x, void* y, double* z)
+static void grid_sethgrid(grid* g, int htype, int hnodetype, int nx, int ny, void* x, void* y)
 {
     g->htype = htype;
     if (htype == GRIDHTYPE_LATLON)
-        g->gridnodes_xy = gnxy_simple_create(nx, ny, x, y);
+        g->gridnodes_xy = gxy_simple_create(nx, ny, x, y);
 #if !defined(NO_GRIDUTILS)
     else if (htype == GRIDHTYPE_CURVILINEAR) {
-        g->gridnodes_xy = gnxy_curv_create(hnodetype, nx, ny, x, y, g->maptype);
+        g->gridnodes_xy = gxy_curv_create(hnodetype, nx, ny, x, y, g->maptype);
 #if defined(GRIDNODES_WRITE)
         {
             char fname[MAXSTRLEN];
 
             snprintf(fname, MAXSTRLEN, "gridnodes-%d.txt", grid_getid(g));
             if (!file_exists(fname))
-                gridnodes_write(((gnxy_curv*) g->gridnodes_xy)->gn, fname, CT_XY);
+                gridnodes_write(((gxy_curv*) g->gridnodes_xy)->gn, fname, CT_XY);
         }
 #endif
     }
 #endif
     else
         enkf_quit("programming error");
-
     grid_setlonbase(g);
-    if (g->vtype == GRIDVTYPE_Z || g->vtype == GRIDVTYPE_SIGMA)
-        g->gridnodes_z = gnz_simple_create(nz, z);
-    else
-        enkf_quit("not implemented");
 }
 
 /**
@@ -670,8 +743,8 @@ grid* grid_create(void* p, int id)
     char* fname = prm->fname;
     int ncid;
     int dimid_x, dimid_y, dimid_z;
-    int varid_x, varid_y, varid_z;
-    int ndims_x, ndims_y, ndims_z;
+    int varid_x, varid_y;
+    int ndims_x, ndims_y;
     size_t nx, ny, nz;
     int varid_depth, varid_numlevels;
 
@@ -696,53 +769,96 @@ grid* grid_create(void* p, int id)
     ncw_open(fname, NC_NOWRITE, &ncid);
     ncw_inq_dimid(ncid, prm->xdimname, &dimid_x);
     ncw_inq_dimid(ncid, prm->ydimname, &dimid_y);
-    ncw_inq_dimid(ncid, prm->zdimname, &dimid_z);
     ncw_inq_dimlen(ncid, dimid_x, &nx);
     ncw_inq_dimlen(ncid, dimid_y, &ny);
-    ncw_inq_dimlen(ncid, dimid_z, &nz);
 
     ncw_inq_varid(ncid, prm->xvarname, &varid_x);
     ncw_inq_varid(ncid, prm->yvarname, &varid_y);
-    ncw_inq_varid(ncid, prm->zvarname, &varid_z);
 
     ncw_inq_varndims(ncid, varid_x, &ndims_x);
     ncw_inq_varndims(ncid, varid_y, &ndims_y);
-    ncw_inq_varndims(ncid, varid_z, &ndims_z);
 
+    /*
+     * set horizontal grid
+     */
     if (ndims_x == 1 && ndims_y == 1) {
         double* x;
         double* y;
-        double* z;
 
         x = malloc(nx * sizeof(double));
         y = malloc(ny * sizeof(double));
-        z = malloc(nz * sizeof(double));
 
         ncw_get_var_double(ncid, varid_x, x);
         ncw_get_var_double(ncid, varid_y, y);
-        ncw_get_var_double(ncid, varid_z, z);
 
-        grid_setcoords(g, GRIDHTYPE_LATLON, NT_NONE, nx, ny, nz, x, y, z);
-    }
-#if !defined(NO_GRIDUTILS)
-    else if (ndims_x == 2 && ndims_y == 2) {
+        grid_sethgrid(g, GRIDHTYPE_LATLON, NT_NONE, nx, ny, x, y);
+    } else if (ndims_x == 2 && ndims_y == 2) {
+#if defined(NO_GRIDUTILS)
+        enkf_quit("%s: grid \"%s\" seems to be of curvilinear type; can not handle it due to flag NO_GRIDUTILS", fname, g->name);
+#else
         double** x;
         double** y;
-        double* z;
 
-        x = gu_alloc2d(ny, nx, sizeof(double));
-        y = gu_alloc2d(ny, nx, sizeof(double));
-        z = malloc(nz * sizeof(double));
+        x = alloc2d(ny, nx, sizeof(double));
+        y = alloc2d(ny, nx, sizeof(double));
 
         ncw_get_var_double(ncid, varid_x, x[0]);
         ncw_get_var_double(ncid, varid_y, y[0]);
-        ncw_get_var_double(ncid, varid_z, z);
 
-        grid_setcoords(g, GRIDHTYPE_CURVILINEAR, NT_COR, nx, ny, nz, x, y, z);
+        grid_sethgrid(g, GRIDHTYPE_CURVILINEAR, NT_COR, nx, ny, x, y);
     }
 #endif
     else
-        enkf_quit("%s: could not determine the grid type", fname);
+        enkf_quit("%s: could not determine the horizontal grid type", fname);
+
+    /*
+     * set vertical grid
+     */
+    if (g->vtype == GRIDVTYPE_Z || g->vtype == GRIDVTYPE_SIGMA) {
+        int varid_z;
+        double* z;
+
+        ncw_inq_dimid(ncid, prm->zdimname, &dimid_z);
+        ncw_inq_dimlen(ncid, dimid_z, &nz);
+        z = malloc(nz * sizeof(double));
+        ncw_inq_varid(ncid, prm->zvarname, &varid_z);
+        ncw_check_vardims(ncid, varid_z, 1, &nz);
+        ncw_get_var_double(ncid, varid_z, z);
+        g->gridnodes_z = gz_simple_create(nz, z);
+    } else if (g->vtype == GRIDVTYPE_HYBRID) {
+        int ndims;
+        double* a;
+        double* b;
+        float** p1 = alloc2d(ny, nx, sizeof(float));
+        float** p2 = alloc2d(ny, nx, sizeof(float));
+        int varid_a, varid_b, varid_p1, varid_p2;
+        size_t dimlen[2];
+
+        ncw_inq_varid(ncid, prm->avarname, &varid_a);
+        ncw_inq_varndims(ncid, varid_a, &ndims);
+        assert(ndims == 1);
+        ncw_inq_vardimid(ncid, varid_a, &dimid_z);
+        ncw_inq_dimlen(ncid, dimid_z, &nz);
+        a = malloc(nz * sizeof(double));
+        ncw_get_var_double(ncid, varid_a, a);
+
+        ncw_inq_varid(ncid, prm->bvarname, &varid_b);
+        b = malloc(nz * sizeof(double));
+        ncw_get_var_double(ncid, varid_b, b);
+
+        ncw_inq_varid(ncid, prm->p1varname, &varid_p1);
+        dimlen[0] = ny;
+        dimlen[1] = nx;
+        ncw_check_vardims(ncid, varid_p1, 2, dimlen);
+        ncw_get_var_float(ncid, varid_p1, p1[0]);
+
+        ncw_inq_varid(ncid, prm->p1varname, &varid_p2);
+        ncw_check_vardims(ncid, varid_p2, 2, dimlen);
+        ncw_get_var_float(ncid, varid_p2, p2[0]);
+
+        g->gridnodes_z = gz_hybrid_create(nx, ny, nz, a, b, p1, p2);
+    } else
+        enkf_quit("not implemented");
 
     if (prm->depthvarname != NULL) {
         size_t dimlen[2] = { ny, nx };
@@ -760,7 +876,7 @@ grid* grid_create(void* p, int id)
         ncw_check_varndims(ncid, varid_numlevels, 2);
         ncw_check_vardims(ncid, varid_numlevels, 2, dimlen);
         ncw_get_var_int(ncid, varid_numlevels, g->numlevels[0]);
-        if (g->vtype == GRIDVTYPE_SIGMA) {
+        if (g->vtype == GRIDVTYPE_SIGMA || g->vtype == GRIDVTYPE_HYBRID) {
             int i, j;
 
             for (j = 0; j < ny; ++j)
@@ -772,7 +888,7 @@ grid* grid_create(void* p, int id)
 
     if (g->numlevels == NULL) {
         g->numlevels = alloc2d(ny, nx, sizeof(int));
-        if (g->vtype == GRIDVTYPE_SIGMA) {
+        if (g->vtype == GRIDVTYPE_SIGMA || g->vtype == GRIDVTYPE_HYBRID) {
             int i, j;
 
             for (j = 0; j < ny; ++j)
@@ -789,7 +905,7 @@ grid* grid_create(void* p, int id)
                         double fk = NAN;
 
                         if (depth > 0.0) {
-                            z2fk(g, j, i, depth, &fk);
+                            gz_simple_z2fk(g, j, i, depth, &fk);
                             g->numlevels[j][i] = ceil(fk + 0.5);
                         }
                     }
@@ -814,16 +930,18 @@ void grid_destroy(grid* g)
 {
     free(g->name);
     if (g->htype == GRIDHTYPE_LATLON)
-        gnxy_simple_destroy(g->gridnodes_xy);
+        gxy_simple_destroy(g->gridnodes_xy);
 #if !defined(NO_GRIDUTILS)
     else if (g->htype == GRIDHTYPE_CURVILINEAR)
-        gnxy_curv_destroy(g->gridnodes_xy);
+        gxy_curv_destroy(g->gridnodes_xy);
 #endif
     else
         enkf_quit("programming_error");
     if (g->gridnodes_z != NULL) {
         if (g->vtype == GRIDVTYPE_Z || g->vtype == GRIDVTYPE_SIGMA)
-            gnz_simple_destroy(g->gridnodes_z);
+            gz_simple_destroy(g->gridnodes_z);
+        else if (g->vtype == GRIDVTYPE_HYBRID)
+            gz_hybrid_destroy(g->gridnodes_z);
         else
             enkf_quit("not implemented");
     }
@@ -874,8 +992,8 @@ void grid_print(grid* g, char offset[])
     case GRIDVTYPE_SIGMA:
         enkf_printf("%s  vert type = SIGMA\n", offset);
         break;
-    case GRIDVTYPE_GEN:
-        enkf_printf("%s  vert type = GENERAL\n", offset);
+    case GRIDVTYPE_HYBRID:
+        enkf_printf("%s  vert type = HYBRID\n", offset);
         break;
     default:
         enkf_printf("%s  vert type = NONE\n", offset);
@@ -927,13 +1045,13 @@ void grid_getdims(grid* g, int* ni, int* nj, int* nk)
 {
     if (ni != NULL) {
         if (g->htype == GRIDHTYPE_LATLON) {
-            gnxy_simple* nodes = (gnxy_simple*) g->gridnodes_xy;
+            gxy_simple* nodes = (gxy_simple*) g->gridnodes_xy;
 
             *ni = nodes->nx;
             *nj = nodes->ny;
 #if !defined(NO_GRIDUTILS)
         } else if (g->htype == GRIDHTYPE_CURVILINEAR) {
-            gnxy_curv* nodes = (gnxy_curv*) g->gridnodes_xy;
+            gxy_curv* nodes = (gxy_curv*) g->gridnodes_xy;
 
             *ni = gridnodes_getnx(nodes->gn);
             *nj = gridnodes_getny(nodes->gn);
@@ -943,7 +1061,7 @@ void grid_getdims(grid* g, int* ni, int* nj, int* nk)
     }
     if (nk != NULL) {
         if (g->vtype == GRIDVTYPE_Z || g->vtype == GRIDVTYPE_SIGMA)
-            *nk = ((gnz_simple *) g->gridnodes_z)->nz;
+            *nk = ((gz_simple*) g->gridnodes_z)->nz;
         else
             enkf_quit("not implemented");
     }
@@ -954,7 +1072,7 @@ void grid_getdims(grid* g, int* ni, int* nj, int* nk)
 int grid_gettoplayerid(grid* g)
 {
     if (g->vtype == GRIDVTYPE_Z || g->vtype == GRIDVTYPE_SIGMA) {
-        gnz_simple* nodes = g->gridnodes_z;
+        gz_simple* nodes = g->gridnodes_z;
         int kmax = nodes->nz - 1;
         double* z = nodes->zt;
 
@@ -1054,7 +1172,9 @@ void grid_xy2fij(grid* g, double x, double y, double* fi, double* fj)
 void grid_z2fk(grid* g, double fi, double fj, double z, double* fk)
 {
     if (g->vtype == GRIDVTYPE_Z || g->vtype == GRIDVTYPE_SIGMA)
-        z2fk(g, fi, fj, z, fk);
+        gz_simple_z2fk(g, fi, fj, z, fk);
+    else if (g->vtype == GRIDVTYPE_HYBRID)
+        gz_hybrid_z2fk(g, fi, fj, z, fk);
     else
         enkf_quit("not implemented");
 }
@@ -1078,7 +1198,7 @@ void grid_fij2xy(grid* g, double fi, double fj, double* x, double* y)
 void grid_ij2xy(grid* g, int i, int j, double* x, double* y)
 {
     if (g->htype == GRIDHTYPE_LATLON) {
-        gnxy_simple* gs = (gnxy_simple*) g->gridnodes_xy;
+        gxy_simple* gs = (gxy_simple*) g->gridnodes_xy;
 
         if (i < 0 || j < 0 || i >= gs->nx || j >= gs->ny) {
             *x = NAN;
@@ -1090,7 +1210,7 @@ void grid_ij2xy(grid* g, int i, int j, double* x, double* y)
     }
 #if !defined(NO_GRIDUTILS)
     else if (g->htype == GRIDHTYPE_CURVILINEAR) {
-        gridnodes* gn = ((gnxy_curv*) g->gridnodes_xy)->gn;
+        gridnodes* gn = ((gxy_curv*) g->gridnodes_xy)->gn;
 
         if (i < 0 || j < 0 || i >= gridnodes_getnce1(gn) || j >= gridnodes_getnce2(gn)) {
             *x = NAN;
@@ -1110,7 +1230,7 @@ void grid_ij2xy(grid* g, int i, int j, double* x, double* y)
 void grid_fk2z(grid* g, int i, int j, double fk, double* z)
 {
     if (g->vtype == GRIDVTYPE_Z || g->vtype == GRIDVTYPE_SIGMA) {
-        gnz_simple* nodes = g->gridnodes_z;
+        gz_simple* nodes = g->gridnodes_z;
         double* zc = nodes->zc;
         int nt = nodes->nz;
 
@@ -1136,7 +1256,7 @@ void grid_fk2z(grid* g, int i, int j, double fk, double* z)
 int grid_isperiodic_x(grid* g)
 {
     if (g->htype == GRIDHTYPE_LATLON)
-        return ((gnxy_simple*) ((grid*) g)->gridnodes_xy)->periodic_x;
+        return ((gxy_simple*) ((grid*) g)->gridnodes_xy)->periodic_x;
 
     return 0;
 }

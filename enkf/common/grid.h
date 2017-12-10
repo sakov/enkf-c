@@ -25,7 +25,7 @@
 #define GRIDVTYPE_NONE 0
 #define GRIDVTYPE_Z 1
 #define GRIDVTYPE_SIGMA 2
-#define GRIDVTYPE_GEN 3
+#define GRIDVTYPE_HYBRID 3
 
 struct grid;
 typedef struct grid grid;

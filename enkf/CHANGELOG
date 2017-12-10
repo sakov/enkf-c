@@ -1,3 +1,6 @@
+v. 1.66.0-dev
+   PS 11122017
+   -- Started implementing hybrid vertical grid.
 v. 1.65.8
    PS 07122017
    -- Corrected instrument string in reader_mmt_standard().

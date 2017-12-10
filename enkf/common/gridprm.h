@@ -31,6 +31,17 @@ typedef struct {
     char* depthvarname;
     char* levelvarnameentry;
     char* levelvarname;
+    /*
+     * Hybrid stuff: p(k) = A(k) + B(k) * (p1 - p2)
+     * See e.g. Eckerman (2008), eq. 6.
+     */
+    char* avarname;
+    char* bvarname;
+    char* p1varname;            /* in atmosphere -- P of the surface layer */
+    char* p2varname;            /* in atmosphere - P of the top layer */
+    /*
+     * hybrid stuff end 
+     */
     int stride;
     double sfactor;
 } gridprm;
