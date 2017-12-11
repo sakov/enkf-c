@@ -653,6 +653,8 @@ static void gz_hybrid_z2fk(void* p, double fi, double fj, double z, double* fk)
                                                                  * assume p1
                                                                  * > p2 */
         gz->pc[0] = 1.5 * gz->pt[0] - 0.5 * gz->pt[1];
+	if (gz->pc[0] < 0.0)
+	    gz->pc[0] = 0.0;
         /*
          * (some implicit assumptions about directions here)
          */
