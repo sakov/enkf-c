@@ -1,3 +1,7 @@
+v. 1.66.1-dev
+   PS 11122017
+   -- Continuing: fixed a lot of silly bugs. This version should work with
+      historic settings as long as one does not try using "VTYPE = HYBRID".
 v. 1.66.0-dev
    PS 11122017
    -- Started implementing hybrid vertical grid.

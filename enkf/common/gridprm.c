@@ -253,9 +253,9 @@ void gridprm_create(char* fname, int* ngrid, gridprm** prm)
             enkf_quit("%s: XVARNAME not specified for grid \"%s\"", fname, now->name);
         if (now->yvarname == NULL)
             enkf_quit("%s: YVARNAME not specified for grid \"%s\"", fname, now->name);
-        if (now->zvarname == NULL)
+        if (strcasecmp(now->vtype, "HYBRID") != 0 && now->zvarname == NULL)
             enkf_quit("%s: ZVARNAME not specified for grid \"%s\"", fname, now->name);
-        if (strcasecmp(now->vtype, "SIGMA") == 0) {
+        if (strcasecmp(now->vtype, "HYBRID") == 0) {
             if (now->avarname == NULL)
                 enkf_quit("\"AVARNAME\" not defined for grid \"%s\" with HYBRID vertical coordinate", now->name);
             if (now->bvarname == NULL)
@@ -316,17 +316,20 @@ void gridprm_print(gridprm* prm, char offset[])
 #endif
     enkf_printf("%s  VTYPE = \"%s\"\n", offset, prm->vtype);
     if (strcasecmp(prm->vtype, "HYBRID") == 0) {
-        enkf_printf("%s    AVARNAME = \"%s\"\n", prm->avarname);
-        enkf_printf("%s    BVARNAME = \"%s\"\n", prm->bvarname);
-        enkf_printf("%s    P1VARNAME = \"%s\"\n", prm->p1varname);
-        enkf_printf("%s    P2VARNAME = \"%s\"\n", prm->p2varname);
+        enkf_printf("%s    AVARNAME = \"%s\"\n", offset, prm->avarname);
+        enkf_printf("%s    BVARNAME = \"%s\"\n", offset, prm->bvarname);
+        enkf_printf("%s    P1VARNAME = \"%s\"\n", offset, prm->p1varname);
+        enkf_printf("%s    P2VARNAME = \"%s\"\n", offset, prm->p2varname);
     }
     enkf_printf("%s  XDIMNAME = \"%s\"\n", offset, prm->xdimname);
     enkf_printf("%s  YDIMNAME = \"%s\"\n", offset, prm->ydimname);
     enkf_printf("%s  ZDIMNAME = \"%s\"\n", offset, prm->zdimname);
     enkf_printf("%s  XVARNAME = \"%s\"\n", offset, prm->xvarname);
     enkf_printf("%s  YVARNAME = \"%s\"\n", offset, prm->yvarname);
-    enkf_printf("%s  ZVARNAME = \"%s\"\n", offset, prm->zvarname);
+    if (prm->zvarname != NULL)
+	enkf_printf("%s  ZVARNAME = \"%s\"\n", offset, prm->zvarname);
+    else
+	enkf_printf("%s  ZVARNAME = <none>\n", offset);
     enkf_printf("%s  DEPTHVARNAME = \"%s\"\n", offset, prm->depthvarname);
     if (prm->levelvarnameentry != NULL && prm->levelvarname != NULL)
         enkf_printf("%s  %s = \"%s\"\n", offset, prm->levelvarnameentry, prm->levelvarname);

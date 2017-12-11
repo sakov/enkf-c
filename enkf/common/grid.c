@@ -642,7 +642,7 @@ static void gz_hybrid_z2fk(void* p, double fi, double fj, double z, double* fk)
     grid* g = (grid*) p;
     gz_hybrid* gz = (gz_hybrid*) g->gridnodes_z;
 
-    if (fabs(fi - gz->fi_prev) > EPS_IJ || fabs(fj - gz->fj_prev) > EPS_IJ) {
+    if (isnan(gz->fi_prev) || fabs(fi - gz->fi_prev) > EPS_IJ || fabs(fj - gz->fj_prev) > EPS_IJ) {
         double p1 = interpolate2d(fi, fj, gz->nx, gz->ny, gz->p1, g->numlevels, grid_isperiodic_x(g));
         double p2 = interpolate2d(fi, fj, gz->nx, gz->ny, gz->p2, g->numlevels, grid_isperiodic_x(g));
 
@@ -852,7 +852,7 @@ grid* grid_create(void* p, int id)
         ncw_check_vardims(ncid, varid_p1, 2, dimlen);
         ncw_get_var_float(ncid, varid_p1, p1[0]);
 
-        ncw_inq_varid(ncid, prm->p1varname, &varid_p2);
+        ncw_inq_varid(ncid, prm->p2varname, &varid_p2);
         ncw_check_vardims(ncid, varid_p2, 2, dimlen);
         ncw_get_var_float(ncid, varid_p2, p2[0]);
 
@@ -1062,8 +1062,10 @@ void grid_getdims(grid* g, int* ni, int* nj, int* nk)
     if (nk != NULL) {
         if (g->vtype == GRIDVTYPE_Z || g->vtype == GRIDVTYPE_SIGMA)
             *nk = ((gz_simple*) g->gridnodes_z)->nz;
-        else
-            enkf_quit("not implemented");
+        else if (g->vtype == GRIDVTYPE_HYBRID)
+	    *nk = ((gz_hybrid*) g->gridnodes_z)->nz;
+	else
+	    enkf_quit("programming error");
     }
 }
 

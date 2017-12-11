@@ -32,9 +32,9 @@ LD_PATH += -L$(HOME)/local/lib
 # which compiler/flags to use without MPI
 #
 CC = gcc
-CFLAGS = -g -Wall -pedantic -std=c99 -D_GNU_SOURCE -O2
+CFLAGS = -g -Wall -pedantic -std=c99 -D_GNU_SOURCE #-O2
 
 # which compiler/flags to use with MPI
 #
 CCMPI = OMPI_MPICC=$(CC) mpicc
-CFLAGSMPI = -g -Wall -pedantic -std=c99 -D_GNU_SOURCE -DMPI -O2
+CFLAGSMPI = -g -Wall -pedantic -std=c99 -D_GNU_SOURCE -DMPI #-O2
