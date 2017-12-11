@@ -546,7 +546,8 @@ static void gc_fij2xy(void* p, double fi, double fj, double* x, double* y)
 }
 #endif
 
-/**
+/** Maps vertical coordinate to fractional cell index. Note that by convention
+ ** adopted in EnKF-C an integer k corresponds to the middle of k-th layer.
  */
 static double z2fk_basic(int n, double* zt, double* zc, double z)
 {
