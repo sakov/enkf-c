@@ -327,9 +327,9 @@ void gridprm_print(gridprm* prm, char offset[])
     enkf_printf("%s  XVARNAME = \"%s\"\n", offset, prm->xvarname);
     enkf_printf("%s  YVARNAME = \"%s\"\n", offset, prm->yvarname);
     if (prm->zvarname != NULL)
-	enkf_printf("%s  ZVARNAME = \"%s\"\n", offset, prm->zvarname);
+        enkf_printf("%s  ZVARNAME = \"%s\"\n", offset, prm->zvarname);
     else
-	enkf_printf("%s  ZVARNAME = <none>\n", offset);
+        enkf_printf("%s  ZVARNAME = <none>\n", offset);
     enkf_printf("%s  DEPTHVARNAME = \"%s\"\n", offset, prm->depthvarname);
     if (prm->levelvarnameentry != NULL && prm->levelvarname != NULL)
         enkf_printf("%s  %s = \"%s\"\n", offset, prm->levelvarnameentry, prm->levelvarname);
