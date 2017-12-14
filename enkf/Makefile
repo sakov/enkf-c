@@ -1,29 +1,29 @@
 # Select ENKF_FLAGS from the following list:
 #
-# -DHE_VIAFILE
 # -DCHECK_X5
 # -DCHECK_G
 # -DSHUFFLE_ROWS
+# -DHE_VIAFILE
 # -DGRIDNODES_WRITE
 # -DINTERNAL_QSORT_R
 # -DNO_GRIDUTILS
+# -DZSIGN_NOCHECK
+# -DOBS_SHUFFLE
 #
 ENKF_FLAGS =
 
 # Set MPI status of EnKF-C programs either to "" or "MPI".
 # Note: prep is single-threaded only.
 #
-PREP_MPISTATUS =
-CALC_MPISTATUS = MPI
-UPDATE_MPISTATUS = MPI
+MPISTATUS_PREP =
+MPISTATUS_CALC = MPI
+MPISTATUS_UPDATE = MPI
 
 ### do not edit below ###
 
 include ./make.inc
 
-PREP_INCS = -I./prep
-CALC_INCS = -I./calc
-INCS = -I. -I./common -I./models $(INC_NC) $(INC_GU)
+INCS = -I. -I./common $(INC_NC) $(INC_GU)
 LIBS = $(LD_PATH) $(LIB_NC) $(LIB_GU) $(LIB_M)
 
 SRC_COMMON =\
@@ -132,28 +132,22 @@ default: $(PROGRAMS)
 
 all: $(ALL)
 
-bin/enkf_prep: MPISTATUS = $(PREP_MPISTATUS)
-bin/enkf_prep: INCS += $(PREP_INCS)
 bin/enkf_prep: $(SRC_PREP) $(SRC_COMMON) $(HDR_PREP) $(HDR_COMMON)
 	@echo
 	@mkdir -p bin
-	${CC${MPISTATUS}} -o bin/enkf_prep -DENKF_PREP $(ENKF_FLAGS) $(CFLAGS$(MPISTATUS)) $(INCS) $(SRC_PREP) $(SRC_COMMON) $(LIBS)
+	${CC${MPISTATUS_PREP}} -o bin/enkf_prep -DENKF_PREP $(ENKF_FLAGS) $(CFLAGS$(MPISTATUS)) $(INCS) $(SRC_PREP) $(SRC_COMMON) $(LIBS)
 
-bin/enkf_calc: MPISTATUS = $(CALC_MPISTATUS)
-bin/enkf_calc: INCS += $(CALC_INCS)
 bin/enkf_calc: LIBS += $(LIB_LAPACK)
 bin/enkf_calc: $(SRC_COMMON) $(SRC_CALC) $(HDR_COMMON) $(HDR_CALC)
 	@echo
 	@mkdir -p bin
-	${CC${MPISTATUS}} -o bin/enkf_calc -DENKF_CALC $(ENKF_FLAGS) $(CFLAGS$(MPISTATUS)) $(INCS) $(SRC_CALC) $(SRC_COMMON) $(LIBS)
+	${CC${MPISTATUS_CALC}} -o bin/enkf_calc -DENKF_CALC $(ENKF_FLAGS) $(CFLAGS$(MPISTATUS)) $(INCS) $(SRC_CALC) $(SRC_COMMON) $(LIBS)
 
-bin/enkf_update: MPISTATUS = $(UPDATE_MPISTATUS)
-bin/enkf_update: INCS += $(UPDATE_INCS)
 bin/enkf_update: LIBS += $(LIB_LAPACK)
 bin/enkf_update: $(SRC_UPDATE) $(SRC_COMMON) $(HDR_UPDATE) $(HDR_COMMON)
 	@echo
 	@mkdir -p bin
-	${CC${MPISTATUS}} -o bin/enkf_update -DENKF_UPDATE $(ENKF_FLAGS) $(CFLAGS$(MPISTATUS)) $(INCS) $(SRC_UPDATE) $(SRC_COMMON) $(SRC_MODEL) $(LIBS)
+	${CC${MPISTATUS_UPDATE}} -o bin/enkf_update -DENKF_UPDATE $(ENKF_FLAGS) $(CFLAGS$(MPISTATUS)) $(INCS) $(SRC_UPDATE) $(SRC_COMMON) $(LIBS)
 
 clean:
 	rm -f bin/*
