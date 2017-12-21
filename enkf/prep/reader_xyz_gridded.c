@@ -136,7 +136,7 @@ void reader_xyz_gridded(char* fname, int fid, obsmeta* meta, model* m, observati
             enkf_quit("unknown PARAMETER \"%s\"\n", meta->pars[i].name);
     }
     if (varname == NULL)
-        enkf_quit("reader_xyz_gridded(): %s variable name not specified", fname);
+        enkf_quit("reader_xyz_gridded(): %s: VARNAME not specified", fname);
 
     ncw_open(fname, NC_NOWRITE, &ncid);
     ncw_inq_varid(ncid, varname, &varid_var);

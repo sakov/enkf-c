@@ -1,4 +1,4 @@
-# Select ENKF_FLAGS from the following list:
+# Select ENKF_FLAGS from the following list (default = none):
 #
 # -DCHECK_X5
 # -DCHECK_G

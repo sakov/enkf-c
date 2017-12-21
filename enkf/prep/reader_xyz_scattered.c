@@ -7,7 +7,7 @@
  * Author:      Pavel Sakov
  *              Bureau of Meteorology
  *
- * Description: Generic reader for scattered surface observations.
+ * Description: Generic reader for scattered 3D observations.
  *                There are a number of parameters that must (++) or can be
  *              specified if they differ from the default value (+). Some
  *              parameters are optional (-):
