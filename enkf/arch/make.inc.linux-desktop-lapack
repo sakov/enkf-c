@@ -38,9 +38,9 @@ LIB_GU = /usr/local/lib64/libgu.so
 # choose gcc if you do not have clang
 #
 CC = clang
-CFLAGS = -g -pedantic -Wall -std=c99 -D_GNU_SOURCE -O2
+CFLAGS = -g -pedantic -Wall -std=c99 -D_GNU_SOURCE #-O2
 
 # which compiler/flags to use with MPI
 #
 CCMPI = OMPI_MPICC=$(CC) mpicc
-CFLAGSMPI = -g -pedantic -Wall -std=c99 -D_GNU_SOURCE -DMPI -O2
+CFLAGSMPI = -g -pedantic -Wall -std=c99 -D_GNU_SOURCE -DMPI #-O2

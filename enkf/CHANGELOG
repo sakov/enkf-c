@@ -1,3 +1,6 @@
+v. 1.66.2-dev
+   PS 11122017
+   -- Fixed a defect in Makefile introduced in r556.
 v. 1.66.1-dev
    PS 11122017
    -- Continuing: fixed a lot of silly bugs. This version should work with
