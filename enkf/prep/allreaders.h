@@ -27,6 +27,7 @@ void reader_xy_scattered(char* fname, int fid, obsmeta* meta, model* m, observat
 void reader_xy_gridded(char* fname, int fid, obsmeta* meta, model* m, observations* obs);
 void reader_xyz_scattered(char* fname, int fid, obsmeta* meta, model* m, observations* obs);
 void reader_xyz_gridded(char* fname, int fid, obsmeta* meta, model* m, observations* obs);
+void reader_xyh_gridded(char* fname, int fid, obsmeta* meta, model* m, observations* obs);
 
 /*
  * readers for particular products

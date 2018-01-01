@@ -1,3 +1,6 @@
+v. 1.66.3-dev
+   -- Added reader_xyh_gridded() for 3D data with hybrid vertical coordinate.
+      (Not tested yet.)
 v. 1.66.2-dev
    PS 11122017
    -- Fixed a defect in Makefile introduced in r556.

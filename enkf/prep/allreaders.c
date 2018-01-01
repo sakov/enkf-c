@@ -50,6 +50,7 @@ obsreader_entry allreaders[] = {
     {"ALL", "xy_gridded", reader_xy_gridded},
     {"ALL", "xyz_scattered", reader_xyz_scattered},
     {"ALL", "xyz_gridded", reader_xyz_gridded},
+    {"ALL", "xyh_gridded", reader_xyh_gridded},
 };
 
 /**
