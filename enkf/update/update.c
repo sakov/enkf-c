@@ -1245,6 +1245,7 @@ void das_update(dasystem* das)
         plog_definestatevars(das);
         enkf_printf("\n");
     }
+    enkf_flush();
 
     if (rank == 0)
         dir_createifabsent(DIRNAME_TMP);
