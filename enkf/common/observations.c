@@ -77,7 +77,9 @@ void obs_addtype(observations* obs, obstype* src, obsdomain* domain)
     ot->rfactor = src->rfactor;
     ot->nobs = -1;
     ot->ngood = -1;
-    ot->noutside = -1;
+    ot->noutside_grid = -1;
+    ot->noutside_obsdomain = -1;
+    ot->noutside_obswindow = -1;
     ot->nland = -1;
     ot->nshallow = -1;
     ot->nbadbatch = -1;
@@ -131,7 +133,9 @@ observations* obs_create(void)
     obs->stride = 1;
     obs->hasstats = 0;
     obs->ngood = 0;
-    obs->noutside = 0;
+    obs->noutside_grid = 0;
+    obs->noutside_obsdomain = 0;
+    obs->noutside_obswindow = 0;
     obs->nland = 0;
     obs->nshallow = 0;
     obs->nbadbatch = 0;
@@ -397,7 +401,9 @@ void obs_calcstats(observations* obs)
     enkf_printf("    calculating obs stats:");
 
     obs->ngood = 0;
-    obs->noutside = 0;
+    obs->noutside_grid = 0;
+    obs->noutside_obsdomain = 0;
+    obs->noutside_obswindow = 0;
     obs->nland = 0;
     obs->nshallow = 0;
     obs->nrange = 0;
@@ -407,7 +413,9 @@ void obs_calcstats(observations* obs)
 
         ot->nobs = 0;
         ot->ngood = 0;
-        ot->noutside = 0;
+        ot->noutside_grid = 0;
+        ot->noutside_obsdomain = 0;
+        ot->noutside_obswindow = 0;
         ot->nland = 0;
         ot->nshallow = 0;
         ot->nbadbatch = 0;
@@ -426,9 +434,15 @@ void obs_calcstats(observations* obs)
         if (m->status == STATUS_OK) {
             obs->ngood++;
             ot->ngood++;
-        } else if (m->status == STATUS_OUTSIDEGRID || m->status == STATUS_OUTSIDEOBSDOMAIN || m->status == STATUS_OUTSIDEOBSWINDOW) {
-            obs->noutside++;
-            ot->noutside++;
+        } else if (m->status == STATUS_OUTSIDEGRID) {
+            obs->noutside_grid++;
+            ot->noutside_grid++;
+        } else if (m->status == STATUS_OUTSIDEOBSDOMAIN) {
+            obs->noutside_obsdomain++;
+            ot->noutside_obsdomain++;
+        } else if (m->status == STATUS_OUTSIDEOBSWINDOW) {
+            obs->noutside_obswindow++;
+            ot->noutside_obswindow++;
         } else if (m->status == STATUS_LAND) {
             obs->nland++;
             ot->nland++;

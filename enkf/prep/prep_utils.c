@@ -303,12 +303,12 @@ void print_obsstats(observations* obs, observations* sobs)
 {
     int i;
 
-    enkf_printf("    type    # used     # dropped  # outside  # land     # shallow  # badbatch # badvalue # superobs.\n");
-    enkf_printf("    ----------------------------------------------------------------------------------------\n");
+    enkf_printf("    type    # used     # dropped  # out_grd  # out_obs  # out_wnd  # land     # shallow  # badbatch # badvalue # superobs\n");
+    enkf_printf("    ---------------------------------------------------------------------------------------------------------------------\n");
     for (i = 0; i < obs->nobstypes; ++i) {
         obstype* ot = &obs->obstypes[i];
 
-        enkf_printf("    %s     %-10d %-10d %-10d %-10d %-10d %-10d %-10d %-10d\n", ot->name, ot->ngood, ot->nobs - ot->ngood - ot->nmissed, ot->noutside, ot->nland, ot->nshallow, ot->nbadbatch, ot->nrange, sobs->obstypes[i].nobs);
+        enkf_printf("    %-7s %-10d %-10d %-10d %-10d %-10d %-10d %-10d %-10d %-10d %-10d\n", ot->name, ot->ngood, ot->nobs - ot->ngood - ot->nmissed, ot->noutside_grid, ot->noutside_obsdomain, ot->noutside_obswindow, ot->nland, ot->nshallow, ot->nbadbatch, ot->nrange, sobs->obstypes[i].nobs);
     }
-    enkf_printf("    total   %-10d %-10d %-10d %-10d %-10d %-10d %-10d %-10d\n", obs->ngood, obs->nobs - obs->ngood - obs->nmissed, obs->noutside, obs->nland, obs->nshallow, obs->nbadbatch, obs->nrange, sobs->nobs);
+    enkf_printf("    total   %-10d %-10d %-10d %-10d %-10d %-10d %-10d %-10d %-10d %-10d %-10d %-10d\n", obs->ngood, obs->nobs - obs->ngood - obs->nmissed, obs->noutside_grid, obs->noutside_obsdomain, obs->noutside_obswindow, obs->nland, obs->nshallow, obs->nbadbatch, obs->nrange, sobs->nobs);
 }

@@ -91,7 +91,9 @@ typedef struct {
 
     int hasstats;
     int ngood;
-    int noutside;
+    int noutside_grid;
+    int noutside_obsdomain;
+    int noutside_obswindow;
     int nland;
     int nshallow;
     int nbadbatch;

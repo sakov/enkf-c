@@ -78,7 +78,9 @@ static void obstype_new(obstype* type, int i, char* name)
     type->zmax = DBL_MAX;
     type->nobs = 0;
     type->ngood = 0;
-    type->noutside = 0;
+    type->noutside_grid = 0;
+    type->noutside_obsdomain = 0;
+    type->noutside_obswindow = 0;
     type->nland = 0;
     type->nshallow = 0;
     type->nbadbatch = 0;

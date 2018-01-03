@@ -1,3 +1,7 @@
+v. 1.67.2
+   PS 04012018
+   -- Elaborated observation stats: split "noutside" into "noutside_grid",
+      "noutside_obsdomain" and "noutside_obswindow".
 v. 1.67.1
    PS 03012018
    -- Changed cycling in reader_xyh_gridded() to make k the fastest index (this
