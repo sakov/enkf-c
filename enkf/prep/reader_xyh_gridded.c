@@ -132,9 +132,9 @@ void reader_xyh_gridded(char* fname, int fid, obsmeta* meta, model* m, observati
             enkf_quit("unknown PARAMETER \"%s\"\n", meta->pars[i].name);
     }
     if (varname == NULL)
-        enkf_quit("reader_xys_gridded(): %s: VARNAME not specified", fname);
+        enkf_quit("reader_xyh_gridded(): %s: VARNAME not specified", fname);
     if (gridname == NULL)
-        enkf_quit("reader_xys_gridded(): %s: GRIDNAME not specified", fname);
+        enkf_quit("reader_xyh_gridded(): %s: GRIDNAME not specified", fname);
 
     ncw_open(fname, NC_NOWRITE, &ncid);
     ncw_inq_varid(ncid, varname, &varid_var);
@@ -146,9 +146,9 @@ void reader_xyh_gridded(char* fname, int fid, obsmeta* meta, model* m, observati
         ncw_inq_vardimid(ncid, varid_var, dimid);
         ncw_inq_dimlen(ncid, dimid[0], &nr);
         if (nr != 1)
-            enkf_quit("reader_xys_gridded(): %d records (currently only one record is allowed)", nr);
+            enkf_quit("reader_xyh_gridded(): %d records (currently only one record is allowed)", nr);
     } else if (ndim != 3)
-        enkf_quit("reader_xys_gridded(): %s: # dimensions = %d (must be 3 or 4 with a single record)", fname, ndim);
+        enkf_quit("reader_xyh_gridded(): %s: # dimensions = %d (must be 3 or 4 with a single record)", fname, ndim);
 
     g = model_getgridbyname(m, gridname);
     grid_getdims(g, &ni, &nj, &nk);
@@ -215,7 +215,7 @@ void reader_xyh_gridded(char* fname, int fid, obsmeta* meta, model* m, observati
     else if (ncw_var_exists(ncid, "time"))
         ncw_inq_varid(ncid, "time", &varid_time);
     else {
-        enkf_printf("        reader_xys_gridded(): %s: no TIME variable\n", fname);
+        enkf_printf("        reader_xyh_gridded(): %s: no TIME variable\n", fname);
         have_time = 0;
     }
 
