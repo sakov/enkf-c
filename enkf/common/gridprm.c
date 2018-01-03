@@ -247,14 +247,21 @@ void gridprm_create(char* fname, int* ngrid, gridprm** prm)
             enkf_quit("%s: XDIMNAME not specified for grid \"%s\"", fname, now->name);
         if (now->ydimname == NULL)
             enkf_quit("%s: YDIMNAME not specified for grid \"%s\"", fname, now->name);
-        if (now->zdimname == NULL)
-            enkf_quit("%s: ZDIMNAME not specified for grid \"%s\"", fname, now->name);
+        if (strcasecmp(now->vtype, "HYBRID") != 0) {
+            if (now->zdimname == NULL)
+                enkf_quit("%s: ZDIMNAME not specified for grid \"%s\"", fname, now->name);
+            if (now->zvarname == NULL)
+                enkf_quit("%s: ZVARNAME not specified for grid \"%s\"", fname, now->name);
+        } else {
+            if (now->zdimname != NULL)
+                enkf_quit("%s: ZDIMNAME specified for grid \"%s\" of vertical type HYBRID", fname, now->name);
+            if (now->zvarname != NULL)
+                enkf_quit("%s: ZVARNAME specified for grid \"%s\" of vertical type HYBRID", fname, now->name);
+        }
         if (now->xvarname == NULL)
             enkf_quit("%s: XVARNAME not specified for grid \"%s\"", fname, now->name);
         if (now->yvarname == NULL)
             enkf_quit("%s: YVARNAME not specified for grid \"%s\"", fname, now->name);
-        if (strcasecmp(now->vtype, "HYBRID") != 0 && now->zvarname == NULL)
-            enkf_quit("%s: ZVARNAME not specified for grid \"%s\"", fname, now->name);
         if (strcasecmp(now->vtype, "HYBRID") == 0) {
             if (now->avarname == NULL)
                 enkf_quit("\"AVARNAME\" not defined for grid \"%s\" with HYBRID vertical coordinate", now->name);

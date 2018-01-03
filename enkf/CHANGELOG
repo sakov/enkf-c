@@ -1,3 +1,7 @@
+v. 1.66.4-dev
+   -- Added a few lacking pieces for hybrid vertical grids.
+   -- Modified update_HE() to handle observations on multiple grids.
+   -- Updated ncw.c to v2.12 to fix defect in ncw_check_vardims().
 v. 1.66.3-dev
    -- Added reader_xyh_gridded() for 3D data with hybrid vertical coordinate.
       (Not tested yet.)

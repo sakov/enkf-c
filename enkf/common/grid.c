@@ -1082,7 +1082,9 @@ int grid_gettoplayerid(grid* g)
         double* z = nodes->zt;
 
         return (fabs(z[0]) < fabs(z[kmax])) ? 0 : kmax;
-    } else
+    } else if (g->vtype == GRIDVTYPE_HYBRID)
+	return 0;
+    else
         enkf_quit("not implemented");
 
     return -1;

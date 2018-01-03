@@ -31,7 +31,7 @@
 #include <errno.h>
 #include "ncw.h"
 
-const char ncw_version[] = "2.11";
+const char ncw_version[] = "2.12";
 
 /* This macro is substituted in error messages instead of the name of a
  * variable in cases when the name could not be found by the variable id.
@@ -2006,9 +2006,11 @@ void ncw_check_vardims(int ncid, int varid, int ndims, size_t dimlen[])
         ncw_inq_dimlen(ncid, dimids[i], &dimlen_actual);
         if (dimlen[i] != dimlen_actual) {
             char varname[NC_MAX_NAME] = "STR_UNKNOWN";
+            char dimname[NC_MAX_NAME] = "STR_UNKNOWN";
 
             ncw_inq_varname(ncid, varid, varname);
-            quit("\"%s\": ncw_check_vardims(): dimension %d of variable \"%s\" is supposed to have length %d; its actual length is %d\n", ncw_get_path(ncid), varname, dimlen[i], dimlen_actual);
+	    ncw_inq_dimname(ncid, dimids[i], dimname);
+            quit("\"%s\": ncw_check_vardims(): dimension %d of variable \"%s\" is supposed to have length %d; its actual length is %d\n", ncw_get_path(ncid), dimname, varname, dimlen[i], dimlen_actual);
         }
     }
 }
