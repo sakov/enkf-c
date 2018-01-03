@@ -2009,7 +2009,7 @@ void ncw_check_vardims(int ncid, int varid, int ndims, size_t dimlen[])
             char dimname[NC_MAX_NAME] = "STR_UNKNOWN";
 
             ncw_inq_varname(ncid, varid, varname);
-	    ncw_inq_dimname(ncid, dimids[i], dimname);
+            ncw_inq_dimname(ncid, dimids[i], dimname);
             quit("\"%s\": ncw_check_vardims(): dimension %d of variable \"%s\" is supposed to have length %d; its actual length is %d\n", ncw_get_path(ncid), dimname, varname, dimlen[i], dimlen_actual);
         }
     }

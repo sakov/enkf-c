@@ -875,7 +875,7 @@ static void update_HE(dasystem* das)
         int jj, stepj, ii, stepi;
 
         if (gid < obs->obstypes[obs->data[o].type].gridid)
-	    continue;
+            continue;
 
         das_getfname_X5(das, grid, fname_X5);
 

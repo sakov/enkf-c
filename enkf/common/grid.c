@@ -1083,7 +1083,7 @@ int grid_gettoplayerid(grid* g)
 
         return (fabs(z[0]) < fabs(z[kmax])) ? 0 : kmax;
     } else if (g->vtype == GRIDVTYPE_HYBRID)
-	return 0;
+        return 0;
     else
         enkf_quit("not implemented");
 
@@ -1254,6 +1254,44 @@ void grid_fk2z(grid* g, int i, int j, double fk, double* z)
         }
         if (g->vtype == GRIDVTYPE_SIGMA)
             *z *= g->depth[j][i];
+    } else if (g->vtype == GRIDVTYPE_HYBRID) {
+        gz_hybrid* gz = (gz_hybrid *) g->gridnodes_z;
+        double fi = (double) i;
+        double fj = (double) j;
+
+        /*
+         * (this block the same as in gz_hybrid_z2fk())
+         */
+        if (isnan(gz->fi_prev) || fabs(fi - gz->fi_prev) > EPS_IJ || fabs(fj - gz->fj_prev) > EPS_IJ) {
+            double p1 = interpolate2d(fi, fj, gz->nx, gz->ny, gz->p1, g->numlevels, grid_isperiodic_x(g));
+            double p2 = interpolate2d(fi, fj, gz->nx, gz->ny, gz->p2, g->numlevels, grid_isperiodic_x(g));
+
+            int i;
+
+            for (i = 0; i < gz->nz; ++i)
+                gz->pt[i] = gz->a[i] + gz->b[i] * (p1 - p2);    /* for now
+                                                                 * assume p1
+                                                                 * > p2 */
+            gz->pc[0] = 1.5 * gz->pt[0] - 0.5 * gz->pt[1];
+            if (gz->pc[0] < 0.0)
+                gz->pc[0] = 0.0;
+            /*
+             * (some implicit assumptions about directions here)
+             */
+            for (i = 1; i <= gz->nz; ++i)
+                gz->pc[i] = 2.0 * gz->pt[i - 1] - gz->pc[i - 1];
+            gz->fi_prev = fi;
+            gz->fj_prev = fj;
+        }
+        if (fk <= 0.0)
+            *z = gz->pc[0];
+        else if (fk >= gz->nz)
+            *z = gz->pc[gz->nz];
+        else {
+            int k = (int) floor(fk);
+
+            *z = gz->pc[k] + (fk - (double) k) * (gz->pc[k + 1] - gz->pc[k]);
+        }
     } else
         enkf_quit("not implemented");
 }
