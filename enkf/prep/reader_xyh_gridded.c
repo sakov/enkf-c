@@ -102,7 +102,7 @@ void reader_xyh_gridded(char* fname, int fid, obsmeta* meta, model* m, observati
     double tunits_multiple = NAN, tunits_offset = NAN;
     int mvid;
     float** depth;
-    int i, nobs_read;
+    int i, j, k, nobs_read;
 
     strcpy(instrument, meta->product);
     for (i = 0; i < meta->npars; ++i) {
@@ -259,76 +259,80 @@ void reader_xyh_gridded(char* fname, int fid, obsmeta* meta, model* m, observati
     depth = model_getdepth(m, mvid, 0);
 
     nobs_read = 0;
-    for (i = 0; i < (int) nijk; ++i) {
-        int ij = i % nij;
-        observation* o;
-        obstype* ot;
+    for (i = 0; i < ni; ++i) {
+        for (j = 0; j < nj; ++j) {
+            for (k = 0; k < nk; ++k) {
+                int ii = k * nij + j * ni + i;
+                observation* o;
+                obstype* ot;
 
-        if ((npoints != NULL && npoints[i] == 0) || var[i] == var_fill_value || (std != NULL && (std[i] == std_fill_value || isnan(std[i]))) || (estd != NULL && (estd[i] == estd_fill_value || isnan(estd[i]))) || (have_time && !singletime && (time[i] == time_fill_value || isnan(time[i]))))
-            continue;
+                if ((npoints != NULL && npoints[ii] == 0) || var[ii] == var_fill_value || (std != NULL && (std[ii] == std_fill_value || isnan(std[ii]))) || (estd != NULL && (estd[ii] == estd_fill_value || isnan(estd[ii]))) || (have_time && !singletime && (time[ii] == time_fill_value || isnan(time[ii]))))
+                    continue;
 
-        nobs_read++;
-        obs_checkalloc(obs);
-        o = &obs->data[obs->nobs];
+                nobs_read++;
+                obs_checkalloc(obs);
+                o = &obs->data[obs->nobs];
 
-        o->product = st_findindexbystring(obs->products, meta->product);
-        assert(o->product >= 0);
-        o->type = obstype_getid(obs->nobstypes, obs->obstypes, meta->type, 1);
-        ot = &obs->obstypes[o->type];
-        o->instrument = st_add_ifabsent(obs->instruments, instrument, -1);
-        o->id = obs->nobs;
-        o->fid = fid;
-        o->batch = 0;
-        if (!isnan(var_add_offset))
-            o->value = (double) (var[i] * var_scale_factor + var_add_offset + varshift);
-        else
-            o->value = (double) (var[i] + varshift);
-        if (estd == NULL)
-            o->std = var_estd;
-        else {
-            if (std == NULL)
-                o->std = 0.0;
-            else {
-                if (!isnan(std_add_offset))
-                    o->std = (double) (std[i] * std_scale_factor + std_add_offset);
+                o->product = st_findindexbystring(obs->products, meta->product);
+                assert(o->product >= 0);
+                o->type = obstype_getid(obs->nobstypes, obs->obstypes, meta->type, 1);
+                ot = &obs->obstypes[o->type];
+                o->instrument = st_add_ifabsent(obs->instruments, instrument, -1);
+                o->id = obs->nobs;
+                o->fid = fid;
+                o->batch = 0;
+                if (!isnan(var_add_offset))
+                    o->value = (double) (var[ii] * var_scale_factor + var_add_offset + varshift);
                 else
-                    o->std = (double) std[i];
+                    o->value = (double) (var[ii] + varshift);
+                if (estd == NULL)
+                    o->std = var_estd;
+                else {
+                    if (std == NULL)
+                        o->std = 0.0;
+                    else {
+                        if (!isnan(std_add_offset))
+                            o->std = (double) (std[ii] * std_scale_factor + std_add_offset);
+                        else
+                            o->std = (double) std[ii];
+                    }
+                    if (!isnan(estd_add_offset)) {
+                        double std2 = (double) (estd[ii] * estd_scale_factor + estd_add_offset);
+
+                        o->std = (o->std > std2) ? o->std : std2;
+                    } else
+                        o->std = (o->std > estd[ii]) ? o->std : estd[ii];
+                }
+                grid_ij2xy(g, i, j, &o->lon, &o->lat);
+                assert(isfinite(o->lon + o->lat));
+                o->status = model_xy2fij(m, mvid, o->lon, o->lat, &o->fi, &o->fj);
+                if (!obs->allobs && o->status == STATUS_OUTSIDEGRID)
+                    continue;
+                if ((o->status == STATUS_OK) && (o->lon <= ot->xmin || o->lon >= ot->xmax || o->lat <= ot->ymin || o->lat >= ot->ymax))
+                    o->status = STATUS_OUTSIDEOBSDOMAIN;
+                grid_fk2z(g, i, j, (double) k, &o->depth);
+                if (o->status == STATUS_OK)
+                    o->status = model_z2fk(m, mvid, o->fi, o->fj, o->depth, &o->fk);
+                else
+                    o->fk = NAN;
+                o->model_depth = (depth == NULL || isnan(o->fi + o->fj)) ? NAN : depth[(int) (o->fj + 0.5)][(int) (o->fi + 0.5)];
+                if (o->status == STATUS_OK && o->model_depth < mindepth)
+                    o->status = STATUS_SHALLOW;
+                if (have_time) {
+                    float t = (singletime) ? time[0] : time[ii];
+
+                    if (!isnan(time_add_offset))
+                        o->date = (double) (t * time_scale_factor + time_add_offset) * tunits_multiple + tunits_offset;
+                    else
+                        o->date = (double) t* tunits_multiple + tunits_offset;
+                } else
+                    o->date = NAN;
+
+                o->aux = -1;
+
+                obs->nobs++;
             }
-            if (!isnan(estd_add_offset)) {
-                double std2 = (double) (estd[i] * estd_scale_factor + estd_add_offset);
-
-                o->std = (o->std > std2) ? o->std : std2;
-            } else
-                o->std = (o->std > estd[i]) ? o->std : estd[i];
         }
-        grid_ij2xy(g, ij % ni, ij / ni, &o->lon, &o->lat);
-        assert(isfinite(o->lon + o->lat));
-        o->status = model_xy2fij(m, mvid, o->lon, o->lat, &o->fi, &o->fj);
-        if (!obs->allobs && o->status == STATUS_OUTSIDEGRID)
-            continue;
-        if ((o->status == STATUS_OK) && (o->lon <= ot->xmin || o->lon >= ot->xmax || o->lat <= ot->ymin || o->lat >= ot->ymax))
-            o->status = STATUS_OUTSIDEOBSDOMAIN;
-        grid_fk2z(g, ij % ni, ij / ni, (double) (i / nij), &o->depth);
-        if (o->status == STATUS_OK)
-            o->status = model_z2fk(m, mvid, o->fi, o->fj, o->depth, &o->fk);
-        else
-            o->fk = NAN;
-        o->model_depth = (depth == NULL || isnan(o->fi + o->fj)) ? NAN : depth[(int) (o->fj + 0.5)][(int) (o->fi + 0.5)];
-        if (o->status == STATUS_OK && o->model_depth < mindepth)
-            o->status = STATUS_SHALLOW;
-        if (have_time) {
-            float t = (singletime) ? time[0] : time[i];
-
-            if (!isnan(time_add_offset))
-                o->date = (double) (t * time_scale_factor + time_add_offset) * tunits_multiple + tunits_offset;
-            else
-                o->date = (double) t* tunits_multiple + tunits_offset;
-        } else
-            o->date = NAN;
-
-        o->aux = -1;
-
-        obs->nobs++;
     }
     enkf_printf("        nobs = %d\n", nobs_read);
 

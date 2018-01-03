@@ -1,3 +1,7 @@
+v. 1.67.1
+   PS 03012018
+   -- Changed cycling in reader_xyh_gridded() to make k the fastest index (this
+      is supoposed to accelerate fk2z and z2fk conversions).
 v. 1.67.0
    PS 03012018
    -- Replaced TODO in obs_create_fromsingleob() by a call to model_fk2z().
