@@ -247,7 +247,7 @@ static observations* obs_create_fromsingleob(enkfprm* prm, dasystem* das)
         model_ij2xy(m, vid, (int) (o->fi + EPS_IJ), (int) (o->fj + EPS_IJ), &o->lon, &o->lat);
         o->fk = o->depth;
         if (o->fk != 0.0)
-            o->depth = NAN;     /* fk2z - TODO */
+            model_fk2z(m, vid, (int) (o->fi + EPS_IJ), (int) (o->fj + EPS_IJ), o->fk, &o->depth);
 
         o->status = STATUS_OK;
         grid_getdims(grid, &ni, &nj, &nk);
