@@ -127,7 +127,7 @@ void reader_xyh_gridded(char* fname, int fid, obsmeta* meta, model* m, observati
                 enkf_quit("observation prm file: can not convert MINDEPTH = \"%s\" to double\n", meta->pars[i].value);
             enkf_printf("        MINDEPTH = %f\n", mindepth);
         } else if (strcasecmp(meta->pars[i].name, "INSTRUMENT") == 0) {
-            strncpy(instrument, meta->pars[i].name, MAXSTRLEN);
+            strncpy(instrument, meta->pars[i].value, MAXSTRLEN);
         } else
             enkf_quit("unknown PARAMETER \"%s\"\n", meta->pars[i].name);
     }

@@ -1,3 +1,7 @@
+v. 1.67.3
+   PS 05012018
+   -- Corrected a defect in reading INSTRUMENT parameter in reader_xy*()
+      procedures.
 v. 1.67.2
    PS 04012018
    -- Elaborated observation stats: split "noutside" into "noutside_grid",
