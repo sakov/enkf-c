@@ -1,3 +1,8 @@
+v. 1.67.4
+   PS 11012018
+   -- Updated ncw.c to v2.13 (adds trailing zero to extracted text attribute).
+   -- Modified tunits_convert() to understand "hours".
+   -- Changed data type of calcstats.nlobs_sum from int to long long int.
 v. 1.67.3
    PS 05012018
    -- Corrected a defect in reading INSTRUMENT parameter in reader_xy*()

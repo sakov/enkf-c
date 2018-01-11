@@ -31,7 +31,7 @@
 #include <errno.h>
 #include "ncw.h"
 
-const char ncw_version[] = "2.12";
+const char ncw_version[] = "2.13";
 
 /* This macro is substituted in error messages instead of the name of a
  * variable in cases when the name could not be found by the variable id.
@@ -1157,7 +1157,11 @@ void ncw_del_att(int ncid, int varid, const char attname[])
 
 void ncw_get_att_text(int ncid, int varid, const char attname[], char v[])
 {
-    int status = nc_get_att_text(ncid, varid, attname, v);
+    size_t attlen = 0;
+    int status = -1;
+
+    ncw_inq_attlen(ncid, varid, attname, &attlen);
+    status = nc_get_att_text(ncid, varid, attname, v);
 
     if (status != NC_NOERR) {
         char varname[NC_MAX_NAME] = STR_UNKNOWN;
@@ -1165,6 +1169,7 @@ void ncw_get_att_text(int ncid, int varid, const char attname[], char v[])
         _ncw_inq_varname(ncid, varid, varname);
         quit("\"%s\": nc_get_att_text(): failed for varid = %d (varname = \"%s\"), attname = \"%s\": %s\n", ncw_get_path(ncid), varid, varname, attname, nc_strerror(status));
     }
+    v[attlen] = 0;
 }
 
 void ncw_get_att_schar(int ncid, int varid, const char attname[], signed char v[])

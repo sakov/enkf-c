@@ -109,7 +109,7 @@ static void nc_writew(int ncid, int j, int ni, int nmem, int varid_w, float* wj)
 }
 
 typedef struct {
-    int nlobs_sum;
+    long long int nlobs_sum;
     int nlobs_max;
     int n_inv_obs;
     int n_inv_ens;
