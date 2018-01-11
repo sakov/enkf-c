@@ -356,7 +356,7 @@ void tunits_convert(char* tunits, double* tunits_multiple, double* tunits_offset
     if (strncasecmp(tunits, "sec", 3) == 0)
         *tunits_multiple = 1.0 / 86400.0;
     else if (strncasecmp(tunits, "hou", 3) == 0)
-        *tunits_multiple = 1.0 / 3600.0;
+        *tunits_multiple = 1.0 / 24.0;
     else if (strncasecmp(tunits, "day", 3) == 0)
         *tunits_multiple = 1.0;
     else
