@@ -1,5 +1,11 @@
 This is example 5 for the EnKF-C package. It is equivalent to example 1 except
-that the SST observations are split into SST and SST2 observation types.
+that the SST observations are split into SST and SST2 observation types. The
+benefits include getting separate innovation statistics for each observation type
+and ability to monitor the effect of new observations on the innovations of the
+old ones.
+
+A similar outcome can often be achieved with the option
+"--no-superobing-across-instruments" in PREP.
 
 PREREQUISITES
 
