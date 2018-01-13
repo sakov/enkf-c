@@ -136,25 +136,31 @@ void reader_xyh_gridded(char* fname, int fid, obsmeta* meta, model* m, observati
     if (gridname == NULL)
         enkf_quit("reader_xyh_gridded(): %s: GRIDNAME not specified", fname);
 
-    ncw_open(fname, NC_NOWRITE, &ncid);
-    ncw_inq_varid(ncid, varname, &varid_var);
-    ncw_inq_varndims(ncid, varid_var, &ndim);
-    if (ndim == 4) {
-        int dimid[4];
-        size_t nr;
-
-        ncw_inq_vardimid(ncid, varid_var, dimid);
-        ncw_inq_dimlen(ncid, dimid[0], &nr);
-        if (nr != 1)
-            enkf_quit("reader_xyh_gridded(): %d records (currently only one record is allowed)", nr);
-    } else if (ndim != 3)
-        enkf_quit("reader_xyh_gridded(): %s: # dimensions = %d (must be 3 or 4 with a single record)", fname, ndim);
-
     g = model_getgridbyname(m, gridname);
     grid_getdims(g, &ni, &nj, &nk);
     enkf_printf("        (ni, nj, nk) = (%u, %u, %u)\n", ni, nj, nk);
     nij = ni * nj;
     nijk = nij * nk;
+
+    ncw_open(fname, NC_NOWRITE, &ncid);
+    ncw_inq_varid(ncid, varname, &varid_var);
+    ncw_inq_varndims(ncid, varid_var, &ndim);
+    {
+        int dimid[4];
+        size_t dimlen[4];
+
+        ncw_inq_vardimid(ncid, varid_var, dimid);
+        for (i = 0; i < ndim; ++i)
+            ncw_inq_dimlen(ncid, varid_var, &dimlen[i]);
+        if (ndim == 4) {
+            if (dimlen[0] != 1)
+                enkf_quit("reader_xyh_gridded(): %d records (currently only one record is allowed)", dimlen[0]);
+        } else if (ndim != 3)
+            enkf_quit("reader_xyh_gridded(): %s: # dimensions = %d (must be 3 or 4 with a single record)", fname, ndim);
+
+        if (dimlen[ndim - 1] != ni || dimlen[ndim - 2] != nj || dimlen[ndim - 3] != nk)
+            enkf_quit("dimension mismatch between grid \"%s\" and variable \"%s\" in \"%s\"", gridname, varname, fname);
+    }
 
     var = malloc(nijk * sizeof(float));
     ncw_get_var_float(ncid, varid_var, var);
