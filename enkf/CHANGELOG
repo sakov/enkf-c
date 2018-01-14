@@ -1,5 +1,9 @@
+v. 1.67.7
+   PS 15012018
+   -- in readfield(), readfield2(), read3dfield(), read3dfield2() allowed the
+      extra outer dimension to be a non-record dimension if its length is 1.
 v. 1.67.6
-   PS 14012018
+   PS 15012018
    -- Fixed defect in v1.67.5.
 v. 1.67.5
    PS 13012018

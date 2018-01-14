@@ -766,7 +766,7 @@ void readfield(char fname[], char varname[], int k, float* v)
     containsrecorddim = nc_isunlimdimid(ncid, dimids[0]);
 
     if (ndims == 4) {
-        assert(containsrecorddim);
+        assert(containsrecorddim || dimlen[0] == 1);
         start[0] = 0;
         if (dimlen[1] == 1)
             start[1] = 0;
@@ -863,7 +863,7 @@ void readfield2(char fname[], char varname[], int k, int ni, int nj, float* v)
     containsrecorddim = nc_isunlimdimid(ncid, dimids[0]);
 
     if (ndims == 4) {
-        assert(containsrecorddim);
+        assert(containsrecorddim || dimlen[0] == 1);
         start[0] = 0;
         if (dimlen[1] == 1)
             start[1] = 0;
@@ -1226,7 +1226,7 @@ void read3dfield(char* fname, char* varname, float* v)
     containsrecorddim = nc_isunlimdimid(ncid, dimids[0]);
 
     if (ndims == 4) {
-        assert(containsrecorddim);
+        assert(containsrecorddim || dimlen[0] == 1);
         start[0] = 0;
         start[1] = 0;
         start[2] = 0;
@@ -1296,7 +1296,7 @@ void read3dfield2(char* fname, char* varname, int ni, int nj, int nk, float* v)
     containsrecorddim = nc_isunlimdimid(ncid, dimids[0]);
 
     if (ndims == 4) {
-        assert(containsrecorddim);
+        assert(containsrecorddim || dimlen[0] == 1);
         start[0] = 0;
         start[1] = 0;
         start[2] = 0;
