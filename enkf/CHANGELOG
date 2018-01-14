@@ -1,3 +1,6 @@
+v. 1.67.6
+   PS 14012018
+   -- Fixed defect in v1.67.5.
 v. 1.67.5
    PS 13012018
    -- Added dimension check in reader_xyh_gridded().

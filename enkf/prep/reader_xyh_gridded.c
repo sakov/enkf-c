@@ -138,7 +138,6 @@ void reader_xyh_gridded(char* fname, int fid, obsmeta* meta, model* m, observati
 
     g = model_getgridbyname(m, gridname);
     grid_getdims(g, &ni, &nj, &nk);
-    enkf_printf("        (ni, nj, nk) = (%u, %u, %u)\n", ni, nj, nk);
     nij = ni * nj;
     nijk = nij * nk;
 
@@ -151,7 +150,7 @@ void reader_xyh_gridded(char* fname, int fid, obsmeta* meta, model* m, observati
 
         ncw_inq_vardimid(ncid, varid_var, dimid);
         for (i = 0; i < ndim; ++i)
-            ncw_inq_dimlen(ncid, varid_var, &dimlen[i]);
+            ncw_inq_dimlen(ncid, dimid[i], &dimlen[i]);
         if (ndim == 4) {
             if (dimlen[0] != 1)
                 enkf_quit("reader_xyh_gridded(): %d records (currently only one record is allowed)", dimlen[0]);
