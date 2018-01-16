@@ -1,3 +1,6 @@
+v. 1.68.1-dev
+   PS 16012018
+   -- Modified error message in reader_xyh_gridded().
 v. 1.68.0-dev
    PS 16012018
    -- Substantial changes in the vertical grid code. The entries XDIMNAME,
