@@ -1,3 +1,9 @@
+v. 1.68.2-dev
+   PS 16012018
+   -- Brought grid_describeprm() up to date.
+   -- Corrected error message in das_calcinnandspread() ("no point to
+      continue").
+   -- Started updating the user guide.
 v. 1.68.1-dev
    PS 16012018
    -- Modified error message in reader_xyh_gridded().
@@ -8,6 +14,7 @@ v. 1.68.0-dev
       Two new optional parameters have been added:
         - VDIR, with two possible values: FROMSURF (default) and TOSURF;
         - ZCVARNAME.
+   -- Added ncw_inq_vardimlen().
 v. 1.67.7
    PS 15012018
    -- In readfield(), readfield2(), read3dfield(), read3dfield2() allowed the

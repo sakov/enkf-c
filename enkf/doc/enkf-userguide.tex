@@ -35,7 +35,7 @@
 
 \begin{document}
 
-\title{EnKF-C user guide\\{\normalsize version 1.65.4}}
+\title{EnKF-C user guide\\{\normalsize version 1.68.2-dev}}
 
 \author{Pavel Sakov}
 \date{June 19, 2014 -- \today}
@@ -86,7 +86,7 @@ Following are its other main features:
 \item model-agnostic;
 \item can conduct DA either in EnKF or ensemble optimal interpolation (EnOI) mode;
 \item permits multiple model grids;
-\item can handle rectangular or curvilinear horizontal grids, z or sigma vertical layers.
+\item can handle rectangular or curvilinear horizontal grids, z, sigma or hybrid vertical layers.
 \end{itemize}
 
 EnKF-C is available from \url{https://github.com/sakov/enkf-c}.
@@ -745,20 +745,23 @@ It also contains variable names for the depth and for number of layers in a vert
   Grid parameter file format:
 
     NAME             = <name> [ PREP | CALC ]
-    VTYPE            = { z | sigma }
-    [ MAPTYPE        = { binary* | kdtree } (curvilinear grids) ]
+    VTYPE            = { z | sigma | hybrid }
+  [ VDIR             = { fromsurf* | tosurf } ]
+  [ MAPTYPE          = { binary* | kdtree } (curvilinear grids) ]
     DATA             = <data file name>
-    XDIMNAME         = <x dimension name>
-    YDIMNAME         = <y dimension name>
-    ZDIMNAME         = <z dimension name>
-    XVARNAME         = <x variable name>
-    YVARNAME         = <y variable name>
-    ZVARNAME         = <z variable name>
-    DEPTHVARNAME     = <depth variable name>
-    [ NUMLEVELSVARNAME = <# of levels variable name> (z) ]
-    [ MASKVARNAME      = <land mask variable name> (sigma) ]
-    [ STRIDE         = <stride> (common*) ]
-    [ SFACTOR        = <spread factor> (1.0*) ]
+    XVARNAME         = <X variable name>
+    YVARNAME         = <Y variable name>
+    ZVARNAME         = <Z variable name> (z | sigma)
+  [ ZCVARNAME        = <ZC variable name> (z | sigma)]
+    DEPTHVARNAME     = <depth variable name> (z | sigma)
+  [ NUMLEVELSVARNAME = <# of levels variable name> (z) ]
+  [ MASKVARNAME      = <land mask variable name> (sigma) ]
+    AVARNAME         = <A variable name> (hybrid)
+    BVARNAME         = <B variable name> (hybrid)
+    P1VARNAME        = <P1 variable name> (hybrid)
+    P2VARNAME        = <P2 variable name> (hybrid)
+  [ STRIDE           = <stride> (common*) ]
+  [ SFACTOR          = <spread factor> (1.0*) ]
 
   [ <more of the above blocks> ]
 \end{Verbatim}
@@ -781,6 +784,9 @@ See \verb|examples/3| for an example.
 
 From version 1.37.0 such grids can also be handled by using grid mapping via kd-tree instead of the default mapping via spatial binary tree, which is now available from package gridutils-c.
 This is done by setting parameter \verb|MAPTYPE| to ``k''.
+
+For the vertical grids, the code assumes that the surface starts at layer 0.
+If this is not the case, one needs to specify this explicitly by \verb|VDIR = TOSURF|.
 
 \subsection{Observation types parameter file}
 \label{sec:obstypesprm}

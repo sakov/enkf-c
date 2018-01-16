@@ -1026,17 +1026,22 @@ void grid_describeprm(void)
     enkf_printf("\n");
     enkf_printf("    NAME             = <name> [ PREP | CALC ]\n");
     enkf_printf("    VTYPE            = { z | sigma | hybrid }\n");
-    enkf_printf("  [ VDIR             = { FROMSURF* | TOSURF } ]\n");
+    enkf_printf("  [ VDIR             = { fromsurf* | tosurf } ]\n");
 #if !defined(NO_GRIDUTILS)
     enkf_printf("  [ MAPTYPE          = { binary* | kdtree } (curvilinear grids) ]\n");
 #endif
     enkf_printf("    DATA             = <data file name>\n");
-    enkf_printf("    XVARNAME         = <x variable name>\n");
-    enkf_printf("    YVARNAME         = <y variable name>\n");
-    enkf_printf("    ZVARNAME         = <z variable name>\n");
-    enkf_printf("    DEPTHVARNAME     = <depth variable name>\n");
+    enkf_printf("    XVARNAME         = <X variable name>\n");
+    enkf_printf("    YVARNAME         = <Y variable name>\n");
+    enkf_printf("    ZVARNAME         = <Z variable name> (z | sigma)\n");
+    enkf_printf("  [ ZCVARNAME        = <ZC variable name> (z | sigma)]\n");
+    enkf_printf("    DEPTHVARNAME     = <depth variable name> (z | sigma)\n");
     enkf_printf("  [ NUMLEVELSVARNAME = <# of levels variable name> (z) ]\n");
     enkf_printf("  [ MASKVARNAME      = <land mask variable name> (sigma) ]\n");
+    enkf_printf("    AVARNAME         = <A variable name> (hybrid)\n");
+    enkf_printf("    BVARNAME         = <B variable name> (hybrid)\n");
+    enkf_printf("    P1VARNAME        = <P1 variable name> (hybrid)\n");
+    enkf_printf("    P2VARNAME        = <P2 variable name> (hybrid)\n");
     enkf_printf("  [ STRIDE           = <stride> (common*) ]\n");
     enkf_printf("  [ SFACTOR          = <spread factor> (1.0*) ]\n");
     enkf_printf("\n");
