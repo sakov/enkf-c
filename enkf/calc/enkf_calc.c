@@ -229,7 +229,7 @@ static observations* obs_create_fromsingleob(enkfprm* prm, dasystem* das)
         if (!singleob_ijk)
             o->depth = 0.0;
         else
-            o->depth = grid_gettoplayerid(grid);
+            o->depth = grid_getsurflayerid(grid);
     }
 
     if (!singleob_ijk) {

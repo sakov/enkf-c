@@ -1,9 +1,6 @@
 NAME = t-grid
 VTYPE = z
 DATA = conf/grid_spec.nc
-XDIMNAME = i
-YDIMNAME = j
-ZDIMNAME = k
 XVARNAME = lon
 YVARNAME = lat
 ZVARNAME = zt

@@ -62,7 +62,7 @@ void reader_rads_standard(char* fname, int fid, obsmeta* meta, model* m, observa
     char instname[3];
     int mvid;
     float** depth;
-    int i, ktop;
+    int i, ksurf;
 
     for (i = 0; i < meta->npars; ++i) {
         if (strcasecmp(meta->pars[i].name, "MINDEPTH") == 0) {
@@ -131,7 +131,7 @@ void reader_rads_standard(char* fname, int fid, obsmeta* meta, model* m, observa
     instname[2] = 0;
 
     mvid = model_getvarid(m, obs->obstypes[obstype_getid(obs->nobstypes, obs->obstypes, meta->type, 1)].varnames[0], 1);
-    ktop = grid_gettoplayerid(model_getvargrid(m, mvid));
+    ksurf = grid_getsurflayerid(model_getvargrid(m, mvid));
     depth = model_getdepth(m, mvid, 1);
 
     for (i = 0; i < (int) nobs_local; ++i) {
@@ -159,7 +159,7 @@ void reader_rads_standard(char* fname, int fid, obsmeta* meta, model* m, observa
         o->status = model_xy2fij(m, mvid, o->lon, o->lat, &o->fi, &o->fj);
         if (!obs->allobs && o->status == STATUS_OUTSIDEGRID)
             continue;
-        o->fk = (double) ktop;
+        o->fk = (double) ksurf;
         o->model_depth = (isnan(o->fi + o->fj)) ? NAN : depth[(int) (o->fj + 0.5)][(int) (o->fi + 0.5)];
         o->date = time[i] * tunits_multiple + tunits_offset;
         if (o->status == STATUS_OK && o->model_depth < mindepth)
@@ -207,7 +207,7 @@ void reader_rads_standard2(char* fname, int fid, obsmeta* meta, model* m, observ
     char instname[3];
     int mvid;
     float** depth;
-    int i, ktop;
+    int i, ksurf;
 
     for (i = 0; i < meta->npars; ++i) {
         if (strcasecmp(meta->pars[i].name, "MINDEPTH") == 0) {
@@ -285,7 +285,7 @@ void reader_rads_standard2(char* fname, int fid, obsmeta* meta, model* m, observ
     instname[2] = 0;
 
     mvid = model_getvarid(m, obs->obstypes[obstype_getid(obs->nobstypes, obs->obstypes, meta->type, 1)].varnames[0], 1);
-    ktop = grid_gettoplayerid(model_getvargrid(m, mvid));
+    ksurf = grid_getsurflayerid(model_getvargrid(m, mvid));
     depth = model_getdepth(m, mvid, 1);
 
     for (i = 0; i < (int) nobs_local; ++i) {
@@ -317,7 +317,7 @@ void reader_rads_standard2(char* fname, int fid, obsmeta* meta, model* m, observ
         if (!obs->allobs && o->status == STATUS_OUTSIDEGRID)
             continue;
         o->model_depth = (isnan(o->fi + o->fj)) ? NAN : depth[(int) (o->fj + 0.5)][(int) (o->fi + 0.5)];
-        o->fk = (double) ktop;
+        o->fk = (double) ksurf;
         o->date = tunits_offset + 0.5;
         if (o->status == STATUS_OK && o->model_depth < mindepth)
             o->status = STATUS_SHALLOW;

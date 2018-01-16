@@ -53,7 +53,7 @@ void reader_pathfinder_standard(char* fname, int fid, obsmeta* meta, model* m, o
     char instname[5];
     int mvid;
     float** depth;
-    int ktop;
+    int ksurf;
     int i;
 
     for (i = 0; i < meta->npars; ++i)
@@ -112,7 +112,7 @@ void reader_pathfinder_standard(char* fname, int fid, obsmeta* meta, model* m, o
 
     mvid = model_getvarid(m, obs->obstypes[obstype_getid(obs->nobstypes, obs->obstypes, meta->type, 1)].varnames[0], 1);
     depth = model_getdepth(m, mvid, 1);
-    ktop = grid_gettoplayerid(model_getvargrid(m, mvid));
+    ksurf = grid_getsurflayerid(model_getvargrid(m, mvid));
 
     for (i = 0; i < (int) nobs_local; ++i) {
         observation* o;
@@ -134,7 +134,7 @@ void reader_pathfinder_standard(char* fname, int fid, obsmeta* meta, model* m, o
         o->lon = lon[i];
         o->lat = lat[i];
         o->depth = 0.0;
-        o->fk = (double) ktop;
+        o->fk = (double) ksurf;
         o->status = model_xy2fij(m, mvid, o->lon, o->lat, &o->fi, &o->fj);
         if (!obs->allobs && o->status == STATUS_OUTSIDEGRID)
             continue;

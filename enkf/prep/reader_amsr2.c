@@ -47,7 +47,7 @@ void reader_amsr2_standard(char* fname, int fid, obsmeta* meta, model* m, observ
     char* basename;
     int model_vid;
     float** depth;
-    int ktop;
+    int ksurf;
     int i;
 
     for (i = 0; i < meta->npars; ++i)
@@ -108,7 +108,7 @@ void reader_amsr2_standard(char* fname, int fid, obsmeta* meta, model* m, observ
 
     model_vid = model_getvarid(m, obs->obstypes[obstype_getid(obs->nobstypes, obs->obstypes, meta->type, 1)].varnames[0], 1);
     depth = model_getdepth(m, model_vid, 0);
-    ktop = grid_gettoplayerid(model_getvargrid(m, model_vid));
+    ksurf = grid_getsurflayerid(model_getvargrid(m, model_vid));
 
     for (i = 0; i < (int) nobs_local; ++i) {
         observation* o;
@@ -130,7 +130,7 @@ void reader_amsr2_standard(char* fname, int fid, obsmeta* meta, model* m, observ
         o->lon = lon[i];
         o->lat = lat[i];
         o->depth = 0.0;
-        o->fk = (double) ktop;
+        o->fk = (double) ksurf;
         o->status = model_xy2fij(m, model_vid, o->lon, o->lat, &o->fi, &o->fj);
         if (!obs->allobs && o->status == STATUS_OUTSIDEGRID)
             continue;

@@ -22,15 +22,14 @@ typedef struct {
     char maptype;
 #endif
     char* fname;
-    char* xdimname;
-    char* ydimname;
-    char* zdimname;
     char* xvarname;
     char* yvarname;
     char* zvarname;
+    char* zcvarname;
     char* depthvarname;
     char* levelvarnameentry;
     char* levelvarname;
+    char* vdirection;
     /*
      * Hybrid stuff: p(k) = A(k) + B(k) * (p1 - p2)
      * See e.g. Eckerman (2008), eq. 6.

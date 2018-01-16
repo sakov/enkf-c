@@ -219,7 +219,7 @@ void obs_add(observations* obs, model* m, obsmeta* meta)
                     free(v);
                 } else {
                     float*** v = alloc3d(nk, nj, ni, sizeof(float));
-                    int ktop = grid_gettoplayerid(grid);
+                    int ksurf = grid_getsurflayerid(grid);
 
                     read3dfield(fname, std->varname, v[0][0]);
                     for (o = nobs0; o < obs->nobs; ++o) {
@@ -229,7 +229,7 @@ void obs_add(observations* obs, model* m, obsmeta* meta)
                         if (oo->status != STATUS_OK)
                             continue;
 
-                        vv = (float) interpolate3d(oo->fi, oo->fj, oo->fk, ni, nj, nk, ktop, v, nlevels, periodic_x);
+                        vv = (float) interpolate3d(oo->fi, oo->fj, oo->fk, ni, nj, nk, ksurf, v, nlevels, periodic_x);
                         if (std->op == ARITHMETIC_EQ)
                             oo->std = vv;
                         else if (std->op == ARITHMETIC_PLUS)

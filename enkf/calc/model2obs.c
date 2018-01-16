@@ -90,7 +90,7 @@ static void interpolate_3d_obs(model* m, observations* allobs, int nobs, int obs
     int otid = allobs->data[obsids[0]].type;
     int mvid = model_getvarid(m, allobs->obstypes[otid].varnames[0], 1);
     void* grid = model_getvargrid(m, mvid);
-    int ktop = grid_gettoplayerid(grid);
+    int ksurf = grid_getsurflayerid(grid);
     int periodic_x = grid_isperiodic_x(grid);
     int** nlevels = model_getnumlevels(m, mvid);
     int ni, nj, nk;
@@ -103,7 +103,7 @@ static void interpolate_3d_obs(model* m, observations* allobs, int nobs, int obs
 
         assert(o->type == otid);
         assert(out[ii] == 0.0);
-        out[ii] = interpolate3d(o->fi, o->fj, o->fk, ni, nj, nk, ktop, v, nlevels, periodic_x);
+        out[ii] = interpolate3d(o->fi, o->fj, o->fk, ni, nj, nk, ksurf, v, nlevels, periodic_x);
         if (!isfinite(out[ii])) {
             /*
              * the location is on land due to the round-up error after writing
@@ -123,7 +123,7 @@ static void interpolate_3d_obs(model* m, observations* allobs, int nobs, int obs
                 o->std = STD_BIG;
                 continue;
             }
-            out[ii] = interpolate3d(o->fi, o->fj, o->fk, ni, nj, nk, ktop, v, nlevels, periodic_x);
+            out[ii] = interpolate3d(o->fi, o->fj, o->fk, ni, nj, nk, ksurf, v, nlevels, periodic_x);
             if (!isfinite(out[ii])) {
                 o->status = STATUS_ROUNDUP;
                 o->value = 0.0;
@@ -148,7 +148,7 @@ void H_surf_standard(dasystem* das, int nobs, int obsids[], char fname[], int me
     char tag_offset[MAXSTRLEN];
     float** offset = NULL;
     int mvid = model_getvarid(m, ot->varnames[0], 1);
-    int k = grid_gettoplayerid(model_getvargrid(m, mvid));
+    int k = grid_getsurflayerid(model_getvargrid(m, mvid));
 
     assert(ot->nvar == 1);      /* should we care? */
 
@@ -190,7 +190,7 @@ void H_surf_biased(dasystem* das, int nobs, int obsids[], char fname[], int mem,
     int mvid = model_getvarid(m, ot->varnames[0], 1);
     int mvid2;
     char fname2[MAXSTRLEN];
-    int ni, nj, ktop;
+    int ni, nj, ksurf;
     int i, nv;
 
     if (ot->nvar < 2)
@@ -199,7 +199,7 @@ void H_surf_biased(dasystem* das, int nobs, int obsids[], char fname[], int mem,
     if (model_getvargridid(m, mvid) != model_getvargridid(m, mvid2))
         enkf_quit("H_surf_biased(): variables \"%s\" and \"%s\" are defined on different grids", ot->varnames[0], ot->varnames[1]);
 
-    ktop = grid_gettoplayerid(model_getvargrid(m, mvid));
+    ksurf = grid_getsurflayerid(model_getvargrid(m, mvid));
     model_getvardims(m, mvid, &ni, &nj, NULL);
     nv = ni * nj;
 
@@ -208,9 +208,9 @@ void H_surf_biased(dasystem* das, int nobs, int obsids[], char fname[], int mem,
         model_getmemberfname(m, das->ensdir, ot->varnames[1], mem, fname2);
     else if (das->mode == MODE_ENOI)
         model_getbgfname(m, das->bgdir, ot->varnames[1], fname2);
-    model_readfield(m, fname2, INT_MAX, ot->varnames[1], ktop, bias);
+    model_readfield(m, fname2, INT_MAX, ot->varnames[1], ksurf, bias);
 
-    model_readfield(m, fname, t, ot->varnames[0], ktop, src0);
+    model_readfield(m, fname, t, ot->varnames[0], ksurf, src0);
 
     snprintf(tag_offset, MAXSTRLEN, "%s:OFFSET", allobs->obstypes[allobs->data[obsids[0]].type].name);
     offset = model_getdata(m, tag_offset);

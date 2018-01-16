@@ -87,7 +87,7 @@ static void das_updatefields(dasystem* das, int nfields, void** fieldbuffer, fie
     void* grid = model_getvargrid(m, fields[0].varid);
     int stride = grid_getstride(grid);
     int** nlevels = grid_getnumlevels(grid);
-    int topk = grid_gettoplayerid(grid);
+    int surfk = grid_getsurflayerid(grid);
     int periodic_i = grid_isperiodic_x(grid);
     int writeinflation = das->updatespec & UPDATE_DOINFLATION;
 
@@ -245,7 +245,7 @@ static void das_updatefields(dasystem* das, int nfields, void** fieldbuffer, fie
                      * modify as soon as we encounter a Z model with layers
                      * counted up from the bottom.
                      */
-                    if (topk == 0) {
+                    if (surfk == 0) {
                         if (nlevels[j][i] <= f->level) {
                             if (das->updatespec & UPDATE_OUTPUTINC)
                                 for (e = 0; e < nmem; ++e)
@@ -253,7 +253,7 @@ static void das_updatefields(dasystem* das, int nfields, void** fieldbuffer, fie
                             continue;
                         }
                     } else {
-                        if (nlevels[j][i] <= topk - f->level) {
+                        if (nlevels[j][i] <= surfk - f->level) {
                             if (das->updatespec & UPDATE_OUTPUTINC)
                                 for (e = 0; e < nmem; ++e)
                                     vvv[e][j][i] = 0.0f;
@@ -398,7 +398,7 @@ static void das_updatebg(dasystem* das, int nfields, void** fieldbuffer, field f
     void* grid = model_getvargrid(m, fields[0].varid);
     int stride = grid_getstride(grid);
     int** nlevels = grid_getnumlevels(grid);
-    int topk = grid_gettoplayerid(grid);
+    int surfk = grid_getsurflayerid(grid);
     int periodic_i = grid_isperiodic_x(grid);
 
     char fname_w[MAXSTRLEN];
@@ -533,14 +533,14 @@ static void das_updatebg(dasystem* das, int nfields, void** fieldbuffer, field f
                      * modify as soon as we encounter a Z model with layers
                      * counted up from the bottom.
                      */
-                    if (topk == 0) {
+                    if (surfk == 0) {
                         if (nlevels[j][i] <= f->level) {
                             if (das->updatespec & UPDATE_OUTPUTINC)
                                 vvv[nmem][j][i] = 0.0f;
                             continue;
                         }
                     } else {
-                        if (nlevels[j][i] <= topk - f->level) {
+                        if (nlevels[j][i] <= surfk - f->level) {
                             if (das->updatespec & UPDATE_OUTPUTINC)
                                 vvv[nmem][j][i] = 0.0f;
                             continue;
@@ -999,7 +999,7 @@ static void das_assemblemembers(dasystem* das)
                 if (nlev > 1)
                     getfieldfname(das->ensdir, "ens", varname, k, fname_src);
                 else
-                    getfieldfname(das->ensdir, "ens", varname, grid_gettoplayerid(model_getvargrid(m, i)), fname_src);
+                    getfieldfname(das->ensdir, "ens", varname, grid_getsurflayerid(model_getvargrid(m, i)), fname_src);
                 ncw_open(fname_src, NC_NOWRITE, &ncid_src);
                 ncw_inq_varid(ncid_src, varname, &vid_src);
                 ncw_get_vara_float(ncid_src, vid_src, start, count, v);
@@ -1032,7 +1032,7 @@ static void das_assemblemembers(dasystem* das)
                 if (nlev > 1)
                     getfieldfname(das->ensdir, "ens", varname, k, fname);
                 else
-                    getfieldfname(das->ensdir, "ens", varname, grid_gettoplayerid(model_getvargrid(m, i)), fname);
+                    getfieldfname(das->ensdir, "ens", varname, grid_getsurflayerid(model_getvargrid(m, i)), fname);
                 file_delete(fname);
             }
         }
@@ -1088,7 +1088,7 @@ static void das_assemblebg(dasystem* das)
             if (nlev > 1)
                 getfieldfname(das->bgdir, "bg", varname, k, fname_src);
             else
-                getfieldfname(das->bgdir, "bg", varname, grid_gettoplayerid(model_getvargrid(m, i)), fname_src);
+                getfieldfname(das->bgdir, "bg", varname, grid_getsurflayerid(model_getvargrid(m, i)), fname_src);
             ncw_open(fname_src, NC_NOWRITE, &ncid_src);
             ncw_inq_varid(ncid_src, varname, &vid_src);
             ncw_get_var_float(ncid_src, vid_src, v);
@@ -1137,7 +1137,7 @@ static void das_assemblespread(dasystem* das)
             if (nlev > 1)
                 getfieldfname(das->mode == MODE_ENKF ? das->ensdir : das->bgdir, "spread", varname, k, fname_src);
             else
-                getfieldfname(das->mode == MODE_ENKF ? das->ensdir : das->bgdir, "spread", varname, grid_gettoplayerid(model_getvargrid(m, i)), fname_src);
+                getfieldfname(das->mode == MODE_ENKF ? das->ensdir : das->bgdir, "spread", varname, grid_getsurflayerid(model_getvargrid(m, i)), fname_src);
             ncw_open(fname_src, NC_NOWRITE, &ncid_src);
 
             ncw_inq_varid(ncid_src, varname, &vid);
@@ -1151,7 +1151,7 @@ static void das_assemblespread(dasystem* das)
                 if (nlev > 1)
                     getfieldfname(das->ensdir, "spread", varname_an, k, fname_src);
                 else
-                    getfieldfname(das->ensdir, "spread", varname_an, grid_gettoplayerid(model_getvargrid(m, i)), fname_src);
+                    getfieldfname(das->ensdir, "spread", varname_an, grid_getsurflayerid(model_getvargrid(m, i)), fname_src);
                 ncw_open(fname_src, NC_NOWRITE, &ncid_src);
                 ncw_inq_varid(ncid_src, varname_an, &vid);
                 ncw_get_var_float(ncid_src, vid, v);
@@ -1197,7 +1197,7 @@ static void das_assembleinflation(dasystem* das)
             if (nlev > 1)
                 getfieldfname(das->ensdir, "inflation", varname, k, fname_src);
             else
-                getfieldfname(das->ensdir, "inflation", varname, grid_gettoplayerid(model_getvargrid(m, i)), fname_src);
+                getfieldfname(das->ensdir, "inflation", varname, grid_getsurflayerid(model_getvargrid(m, i)), fname_src);
             ncw_open(fname_src, NC_NOWRITE, &ncid_src);
 
             ncw_inq_varid(ncid_src, varname, &vid);
@@ -1555,12 +1555,12 @@ void das_calccorr(dasystem* das, int mvid)
     double* std0 = NULL;
     double* std = NULL;
     int ni, nj, nk;
-    int ktop, nv;
+    int ksurf, nv;
     int e, k, i;
 
     model_getvardims(m, mvid, &ni, &nj, &nk);
     nv = ni * nj;
-    ktop = grid_gettoplayerid(model_getvargrid(m, mvid));
+    ksurf = grid_getsurflayerid(model_getvargrid(m, mvid));
 
     v = alloc3d(das->nmem, nj, ni, sizeof(float));
     v0 = alloc3d(das->nmem, nj, ni, sizeof(float));
@@ -1572,7 +1572,7 @@ void das_calccorr(dasystem* das, int mvid)
         char fname[MAXSTRLEN];
 
         model_getmemberfname(m, das->ensdir, varname, e + 1, fname);
-        model_readfield(das->m, fname, INT_MAX, varname, ktop, v0[e][0]);
+        model_readfield(das->m, fname, INT_MAX, varname, ksurf, v0[e][0]);
     }
     for (i = 0; i < nv; ++i) {
         double vmean = 0.0;

@@ -94,7 +94,7 @@ void reader_xy_scattered(char* fname, int fid, obsmeta* meta, model* m, observat
     double tunits_multiple = NAN, tunits_offset = NAN;
     int mvid;
     float** depth;
-    int ktop;
+    int ksurf;
     int i, nobs_read;
 
     strcpy(instrument, meta->product);
@@ -286,7 +286,7 @@ void reader_xy_scattered(char* fname, int fid, obsmeta* meta, model* m, observat
     ncw_close(ncid);
 
     mvid = model_getvarid(m, obs->obstypes[obstype_getid(obs->nobstypes, obs->obstypes, meta->type, 1)].varnames[0], 1);
-    ktop = grid_gettoplayerid(model_getvargrid(m, mvid));
+    ksurf = grid_getsurflayerid(model_getvargrid(m, mvid));
     depth = model_getdepth(m, mvid, 0);
 
     nobs_read = 0;
@@ -321,7 +321,7 @@ void reader_xy_scattered(char* fname, int fid, obsmeta* meta, model* m, observat
         o->lon = lon[i];
         o->lat = lat[i];
         o->depth = 0.0;
-        o->fk = (double) ktop;
+        o->fk = (double) ksurf;
         o->status = model_xy2fij(m, mvid, o->lon, o->lat, &o->fi, &o->fj);
         if (!obs->allobs && o->status == STATUS_OUTSIDEGRID)
             continue;

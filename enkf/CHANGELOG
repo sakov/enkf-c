@@ -1,6 +1,13 @@
+v. 1.68.0-dev
+   PS 16012018
+   -- Substantial changes in the vertical grid code. The entries XDIMNAME,
+      YDIMNAME, ZDIMNAME have been eliminated from the grid parameter file.
+      Two new optional parameters have been added:
+        - VDIR, with two possible values: FROMSURF (default) and TOSURF;
+        - ZCVARNAME.
 v. 1.67.7
    PS 15012018
-   -- in readfield(), readfield2(), read3dfield(), read3dfield2() allowed the
+   -- In readfield(), readfield2(), read3dfield(), read3dfield2() allowed the
       extra outer dimension to be a non-record dimension if its length is 1.
 v. 1.67.6
    PS 15012018

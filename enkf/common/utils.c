@@ -225,11 +225,6 @@ void enkf_printcompileflags(const char offset[])
 #else
     enkf_printf("%s  NO_GRIDUTILS     = [-]\n", offset);
 #endif
-#if defined(ZSIGN_NOCHECK)
-    enkf_printf("%s  ZSIGN_NOCHECK    = [+]\n", offset);
-#else
-    enkf_printf("%s  ZSIGN_NOCHECK    = [-]\n", offset);
-#endif
 #if defined(OBS_SHUFFLE)
     enkf_printf("%s  OBS_SHUFFLE      = [+]\n", offset);
 #else

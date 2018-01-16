@@ -39,7 +39,7 @@ void grid_describeprm(void);
 void grid_settocartesian_fn(grid* g, grid_tocartesian_fn fn);
 
 void grid_getdims(grid* g, int* ni, int* nj, int* nk);
-int grid_gettoplayerid(grid* g);
+int grid_getsurflayerid(grid* g);
 char* grid_getname(grid* g);
 int grid_getid(grid* g);
 int grid_gethtype(grid* g);

@@ -129,27 +129,6 @@ void gridprm_create(char* fname, int* ngrid, gridprm** prm)
                 enkf_quit("%s, l.%d: DATA specified twice", fname, line);
             else
                 now->fname = strdup(token);
-        } else if (strcasecmp(token, "XDIMNAME") == 0) {
-            if ((token = strtok(NULL, seps)) == NULL)
-                enkf_quit("%s, l.%d: XDIMNAME not specified", fname, line);
-            else if (now->xdimname != NULL)
-                enkf_quit("%s, l.%d: XDIMNAME specified twice", fname, line);
-            else
-                now->xdimname = strdup(token);
-        } else if (strcasecmp(token, "YDIMNAME") == 0) {
-            if ((token = strtok(NULL, seps)) == NULL)
-                enkf_quit("%s, l.%d: YDIMNAME not specified", fname, line);
-            else if (now->ydimname != NULL)
-                enkf_quit("%s, l.%d: YDIMNAME specified twice", fname, line);
-            else
-                now->ydimname = strdup(token);
-        } else if (strcasecmp(token, "ZDIMNAME") == 0) {
-            if ((token = strtok(NULL, seps)) == NULL)
-                enkf_quit("%s, l.%d: ZDIMNAME not specified", fname, line);
-            else if (now->zdimname != NULL)
-                enkf_quit("%s, l.%d: ZDIMNAME specified twice", fname, line);
-            else
-                now->zdimname = strdup(token);
         } else if (strcasecmp(token, "XVARNAME") == 0) {
             if ((token = strtok(NULL, seps)) == NULL)
                 enkf_quit("%s, l.%d: XVARNAME not specified", fname, line);
@@ -171,6 +150,13 @@ void gridprm_create(char* fname, int* ngrid, gridprm** prm)
                 enkf_quit("%s, l.%d: ZVARNAME specified twice", fname, line);
             else
                 now->zvarname = strdup(token);
+        } else if (strcasecmp(token, "ZCVARNAME") == 0) {
+            if ((token = strtok(NULL, seps)) == NULL)
+                enkf_quit("%s, l.%d: ZCVARNAME not specified", fname, line);
+            else if (now->zcvarname != NULL)
+                enkf_quit("%s, l.%d: ZCVARNAME specified twice", fname, line);
+            else
+                now->zcvarname = strdup(token);
         } else if (strcasecmp(token, "DEPTHVARNAME") == 0) {
             if ((token = strtok(NULL, seps)) == NULL)
                 enkf_quit("%s, l.%d: DEPTHVARNAME not specified", fname, line);
@@ -199,6 +185,12 @@ void gridprm_create(char* fname, int* ngrid, gridprm** prm)
                 enkf_quit("%s, l.%d: \"%s\" specified twice", fname, line, now->levelvarnameentry);
             else
                 now->levelvarname = strdup(token);
+        } else if (strncasecmp(token, "VDIR", 4) == 0) {
+            if (now->vdirection != NULL)
+                enkf_quit("%s, l.%d: VDIR specified twice", fname, line);
+            if (strncasecmp(token, "TOSURF", 6) == 0 || strncasecmp(token, "FROMSURF", 8) == 0)
+                enkf_quit("%s, l.%d: unknown entry for VDIR, fname, line");
+            now->vdirection = strdup(token);
         } else if (strcasecmp(token, "AVARNAME") == 0) {
             if ((token = strtok(NULL, seps)) == NULL)
                 enkf_quit("%s, l.%d: AVARNAME not specified", fname, line);
@@ -243,18 +235,10 @@ void gridprm_create(char* fname, int* ngrid, gridprm** prm)
         if (now->maptype == 0)
             now->maptype = MAPTYPE_DEF;
 #endif
-        if (now->xdimname == NULL)
-            enkf_quit("%s: XDIMNAME not specified for grid \"%s\"", fname, now->name);
-        if (now->ydimname == NULL)
-            enkf_quit("%s: YDIMNAME not specified for grid \"%s\"", fname, now->name);
         if (strcasecmp(now->vtype, "HYBRID") != 0) {
-            if (now->zdimname == NULL)
-                enkf_quit("%s: ZDIMNAME not specified for grid \"%s\"", fname, now->name);
             if (now->zvarname == NULL)
                 enkf_quit("%s: ZVARNAME not specified for grid \"%s\"", fname, now->name);
         } else {
-            if (now->zdimname != NULL)
-                enkf_quit("%s: ZDIMNAME specified for grid \"%s\" of vertical type HYBRID", fname, now->name);
             if (now->zvarname != NULL)
                 enkf_quit("%s: ZVARNAME specified for grid \"%s\" of vertical type HYBRID", fname, now->name);
         }
@@ -262,6 +246,10 @@ void gridprm_create(char* fname, int* ngrid, gridprm** prm)
             enkf_quit("%s: XVARNAME not specified for grid \"%s\"", fname, now->name);
         if (now->yvarname == NULL)
             enkf_quit("%s: YVARNAME not specified for grid \"%s\"", fname, now->name);
+        if (strcasecmp(now->vtype, "SIGMA") == 0 && now->depthvarname == NULL)
+            enkf_quit("%s: DEPTHVARNAME not defined for grid \"%s\" of vertical type SIGMA", fname, now->name);
+        if (now->vdirection == NULL)
+            now->vdirection = strdup("FROMSURF");
         if (strcasecmp(now->vtype, "HYBRID") == 0) {
             if (now->avarname == NULL)
                 enkf_quit("\"AVARNAME\" not defined for grid \"%s\" with HYBRID vertical coordinate", now->name);
@@ -288,13 +276,15 @@ void gridprm_destroy(int ngrid, gridprm prm[])
 
         free(now->name);
         free(now->fname);
-        free(now->xdimname);
-        free(now->ydimname);
-        free(now->zdimname);
         free(now->xvarname);
         free(now->yvarname);
         free(now->zvarname);
-        free(now->depthvarname);
+        if (now->zcvarname != NULL)
+            free(now->zcvarname);
+        if (now->depthvarname != NULL)
+            free(now->depthvarname);
+        if (now->vdirection != NULL)
+            free(now->vdirection);
         if (now->avarname != NULL)
             free(now->avarname);
         if (now->bvarname != NULL)
@@ -328,16 +318,19 @@ void gridprm_print(gridprm* prm, char offset[])
         enkf_printf("%s    P1VARNAME = \"%s\"\n", offset, prm->p1varname);
         enkf_printf("%s    P2VARNAME = \"%s\"\n", offset, prm->p2varname);
     }
-    enkf_printf("%s  XDIMNAME = \"%s\"\n", offset, prm->xdimname);
-    enkf_printf("%s  YDIMNAME = \"%s\"\n", offset, prm->ydimname);
-    enkf_printf("%s  ZDIMNAME = \"%s\"\n", offset, prm->zdimname);
+    enkf_printf("%s  VDIR = \"%s\"\n", offset, prm->vdirection);
     enkf_printf("%s  XVARNAME = \"%s\"\n", offset, prm->xvarname);
     enkf_printf("%s  YVARNAME = \"%s\"\n", offset, prm->yvarname);
     if (prm->zvarname != NULL)
         enkf_printf("%s  ZVARNAME = \"%s\"\n", offset, prm->zvarname);
     else
         enkf_printf("%s  ZVARNAME = <none>\n", offset);
-    enkf_printf("%s  DEPTHVARNAME = \"%s\"\n", offset, prm->depthvarname);
+    if (prm->zcvarname != NULL)
+        enkf_printf("%s  ZCVARNAME = \"%s\"\n", offset, prm->zcvarname);
+    else
+        enkf_printf("%s  ZCVARNAME = <none>\n", offset);
+    if (prm->depthvarname != NULL)
+        enkf_printf("%s  DEPTHVARNAME = \"%s\"\n", offset, prm->depthvarname);
     if (prm->levelvarnameentry != NULL && prm->levelvarname != NULL)
         enkf_printf("%s  %s = \"%s\"\n", offset, prm->levelvarnameentry, prm->levelvarname);
     if (prm->stride != 0)

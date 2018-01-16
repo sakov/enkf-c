@@ -148,6 +148,7 @@ void ncw_check_attlen(int ncid, int varid, const char attname[], size_t len);
 void ncw_check_dimlen(int ncid, const char dimname[], size_t len);
 void ncw_check_varndims(int ncid, int varid, int ndims);
 void ncw_check_vardims(int ncid, int varid, int ndims, size_t dimlen[]);
+void ncw_inq_vardimlen(int ncid, int varid, int maxndims, size_t dimlen[]);
 
 #define _NCW_H
 #endif

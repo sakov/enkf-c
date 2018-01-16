@@ -61,7 +61,7 @@ void reader_amsre_standard(char* fname, int fid, obsmeta* meta, model* m, observ
     char* basename;
     int mvid;
     float** depth;
-    int ktop;
+    int ksurf;
     int i, j;
     int channel;
 
@@ -155,7 +155,7 @@ void reader_amsre_standard(char* fname, int fid, obsmeta* meta, model* m, observ
     tunits_convert(tunits, &tunits_multiple, &tunits_offset);
 
     mvid = model_getvarid(m, obs->obstypes[obstype_getid(obs->nobstypes, obs->obstypes, meta->type, 1)].varnames[0], 1);
-    ktop = grid_gettoplayerid(model_getvargrid(m, mvid));
+    ksurf = grid_getsurflayerid(model_getvargrid(m, mvid));
     depth = model_getdepth(m, mvid, 0);
 
     for (channel = 0; channel < 2; ++channel) {
@@ -192,7 +192,7 @@ void reader_amsre_standard(char* fname, int fid, obsmeta* meta, model* m, observ
                 o->lon = lon[i];
                 o->lat = lat[j];
                 o->depth = 0.0;
-                o->fk = (double) ktop;
+                o->fk = (double) ksurf;
                 o->status = model_xy2fij(m, mvid, o->lon, o->lat, &o->fi, &o->fj);
                 if (!obs->allobs && o->status == STATUS_OUTSIDEGRID)
                     continue;

@@ -327,7 +327,7 @@ void das_getfields(dasystem* das, int gridid, int* nfields, field** fields)
             if (nk > 1)
                 f->level = k;
             else
-                f->level = grid_gettoplayerid(model_getvargrid(m, vid));
+                f->level = grid_getsurflayerid(model_getvargrid(m, vid));
             (*nfields)++;
         }
     }
@@ -382,15 +382,15 @@ void das_calcmld(dasystem* das, obstype* ot, float*** src, float** dst)
     int mvid = model_getvarid(m, ot->varnames[0], 1);
     int** nlevels = model_getnumlevels(m, mvid);
     double threshold = ot->mld_threshold;
-    int ni, nj, nk, ktop;
+    int ni, nj, nk, ksurf;
     int i, j, k, kk;
 
     model_getvardims(m, mvid, &ni, &nj, &nk);
-    ktop = grid_gettoplayerid(model_getvargrid(m, mvid));
+    ksurf = grid_getsurflayerid(model_getvargrid(m, mvid));
 
     for (j = 0; j < nj; ++j) {
         for (i = 0; i < ni; ++i) {
-            double vtop, vprev, vnow;
+            double vsurf, vprev, vnow;
             int kprev;
             double fk = NAN, z;
 
@@ -399,15 +399,15 @@ void das_calcmld(dasystem* das, obstype* ot, float*** src, float** dst)
                 continue;
             }
 
-            vtop = src[ktop][j][i];
-            vprev = vtop;
-            kprev = ktop;
-            k = ktop;
+            vsurf = src[ksurf][j][i];
+            vprev = vsurf;
+            kprev = ksurf;
+            k = ksurf;
             for (kk = 1; kk < nlevels[j][i]; ++kk) {
-                k = (ktop == 0) ? kk : ktop - kk;
+                k = (ksurf == 0) ? kk : ksurf - kk;
                 vnow = src[k][j][i];
-                if (fabs(vnow - vtop) >= threshold) {
-                    fk = (ktop == 0) ? (double) kprev + (threshold - fabs(vprev - vtop)) / fabs(vnow - vprev) : (double) kprev - (threshold - fabs(vprev - vtop)) / fabs(vnow - vprev);
+                if (fabs(vnow - vsurf) >= threshold) {
+                    fk = (ksurf == 0) ? (double) kprev + (threshold - fabs(vprev - vsurf)) / fabs(vnow - vprev) : (double) kprev - (threshold - fabs(vprev - vsurf)) / fabs(vnow - vprev);
                     break;
                 }
                 kprev = k;

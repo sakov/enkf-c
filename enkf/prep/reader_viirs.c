@@ -74,7 +74,7 @@ void reader_viirs_standard(char* fname, int fid, obsmeta* meta, model* m, observ
     double varshift = 0.0;
     double mindepth = 0.0;
     float** depth;
-    int ktop;
+    int ksurf;
     int i, nobs;
 
 #if defined(DEBUG)
@@ -193,7 +193,7 @@ void reader_viirs_standard(char* fname, int fid, obsmeta* meta, model* m, observ
     tunits_convert(tunits, &tunits_multiple, &tunits_offset);
 
     mvid = model_getvarid(m, obs->obstypes[obstype_getid(obs->nobstypes, obs->obstypes, meta->type, 1)].varnames[0], 1);
-    ktop = grid_gettoplayerid(model_getvargrid(m, mvid));
+    ksurf = grid_getsurflayerid(model_getvargrid(m, mvid));
     depth = model_getdepth(m, mvid, 0);
 
     nobs = 0;
@@ -231,7 +231,7 @@ void reader_viirs_standard(char* fname, int fid, obsmeta* meta, model* m, observ
             o->lat = (double) lat[i] * lat_scale_factor + lat_add_offset;
         }
         o->depth = 0.0;
-        o->fk = (double) ktop;
+        o->fk = (double) ksurf;
         o->status = model_xy2fij(m, mvid, o->lon, o->lat, &o->fi, &o->fj);
         if (!obs->allobs && o->status == STATUS_OUTSIDEGRID)
             continue;
