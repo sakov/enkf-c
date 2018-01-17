@@ -174,15 +174,15 @@ void obs_add(observations* obs, model* m, obsmeta* meta)
             }
         }
         if (noutow > 0)
-            enkf_printf("      %d observations outside obs. window\n", noutow);
+            enkf_printf("        %d observations outside obs. window\n", noutow);
         if (nmin > 0)
-            enkf_printf("      %d observations below allowed minimum of %.4g\n", nmin, ot->allowed_min);
+            enkf_printf("        %d observations below allowed minimum of %.4g\n", nmin, ot->allowed_min);
         if (nmax > 0)
-            enkf_printf("      %d observations above allowed maximum of %.4g\n", nmax, ot->allowed_max);
+            enkf_printf("        %d observations above allowed maximum of %.4g\n", nmax, ot->allowed_max);
         if (nland > 0)
-            enkf_printf("      %d observations on land\n", nland);
+            enkf_printf("        %d observations on land\n", nland);
         if (nshallow > 0)
-            enkf_printf("      %d observations in shallow areas\n", nshallow);
+            enkf_printf("        %d observations in shallow areas\n", nshallow);
     }
     obs->compacted = 0;
     obs->hasstats = 0;

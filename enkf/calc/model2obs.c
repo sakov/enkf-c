@@ -52,8 +52,8 @@ static void interpolate_2d_obs(model* m, observations* allobs, int nobs, int obs
         assert(out[ii] == 0.0);
         out[ii] = interpolate2d(o->fi, o->fj, ni, nj, v, mask, periodic_x);
         if (!isfinite(out[ii]) || fabs(out[ii]) > STATE_BIGNUM) {
-            fflush(stdout);
-            printf("\n  obs # %d: ", ii);
+            enkf_flush();
+            enkf_printf("\n  obs # %d: ", ii);
             obs_printob(allobs, ii);
             enkf_quit("obs # %d: forecast = %.3g for \"%s\"; no point to continue", ii, out[ii], fname);
         }
@@ -82,8 +82,8 @@ static void interpolate_3d_obs(model* m, observations* allobs, int nobs, int obs
         assert(out[ii] == 0.0);
         out[ii] = interpolate3d(o->fi, o->fj, o->fk, ni, nj, nk, ksurf, v, nlevels, periodic_x);
         if (!isfinite(out[ii]) || fabs(out[ii]) > STATE_BIGNUM) {
-            fflush(stdout);
-            printf("\n  obs # %d: ", ii);
+            enkf_flush();
+            enkf_printf("\n  obs # %d: ", ii);
             obs_printob(allobs, ii);
             enkf_quit("obs # %d: forecast = %.3g in \"%s\"; no point to continue", ii, out[ii], fname);
         }
