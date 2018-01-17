@@ -82,7 +82,7 @@ void obs_add(observations* obs, model* m, obsmeta* meta)
     int otid = obstype_getid(obs->nobstypes, obs->obstypes, meta->type, 1);
     obstype* ot = &obs->obstypes[otid];
     int vid = model_getvarid(m, obs->obstypes[otid].varnames[0], 1);
-    double lonbase= model_getlonbase(m, vid);
+    double lonbase = model_getlonbase(m, vid);
     double mindepth = NAN;
     obsread_fn reader;
     int i, ngood;
@@ -97,7 +97,7 @@ void obs_add(observations* obs, model* m, obsmeta* meta)
             if (!str2double(meta->pars[i].value, &mindepth))
                 enkf_quit("observation prm file: can not convert MINDEPTH = \"%s\" to double\n", meta->pars[i].value);
     }
-        
+
     if (!isnan(lonbase)) {
         for (i = nobs0; i < obs->nobs; ++i) {
             observation* o = &obs->data[i];
@@ -327,6 +327,25 @@ void obs_add(observations* obs, model* m, obsmeta* meta)
             obs_printob(obs, i);
             enkf_quit("bad observation");
         }
+    }
+}
+
+/**
+ */
+void obs_checkforland(observations* obs, model* m)
+{
+    int i;
+
+    for (i = 0; i < obs->nobs; ++i) {
+        observation* o = &obs->data[i];
+        obstype* ot = &obs->obstypes[o->type];
+        int vid = model_getvarid(m, ot->varnames[0], 1);
+        grid* g = model_getvargrid(m, vid);
+        int ni, nj;
+
+        grid_getdims(g, &ni, &nj, NULL);
+        if (island(o->fi, o->fj, ni, nj, grid_getnumlevels(g), grid_isperiodic_x(g)))
+            o->status = STATUS_LAND;
     }
 }
 

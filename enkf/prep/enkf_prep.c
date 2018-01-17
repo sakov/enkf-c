@@ -265,6 +265,13 @@ int main(int argc, char* argv[])
     obstypes_p = obs->obstypes;
     obs_superob(obs, cmp_obs, &sobs, describe_superob_id);
     /*
+     * when obs->stride > 1, it is possible that the superobservation
+     * end up in the model cell surround by land nodes (although each of
+     * the original observations is not)
+     */
+    if (obs->stride > 1)
+        obs_checkforland(sobs, m);
+    /*
      * write superob indices to the file with original observations 
      */
     if (write_orig_obs && describe_superob_id < 0 && obs->stride > 0)

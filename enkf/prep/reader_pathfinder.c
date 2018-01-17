@@ -136,7 +136,7 @@ void reader_pathfinder_standard(char* fname, int fid, obsmeta* meta, model* m, o
         o->status = model_xy2fij(m, mvid, o->lon, o->lat, &o->fi, &o->fj);
         if (!obs->allobs && o->status == STATUS_OUTSIDEGRID)
             continue;
-        o->model_depth = NAN; /* set in obs_add() */
+        o->model_depth = NAN;   /* set in obs_add() */
         if ((o->status == STATUS_OK) && (o->lon <= ot->xmin || o->lon >= ot->xmax || o->lat <= ot->ymin || o->lat >= ot->ymax))
             o->status = STATUS_OUTSIDEOBSDOMAIN;
         o->date = tunits_offset + 0.5;

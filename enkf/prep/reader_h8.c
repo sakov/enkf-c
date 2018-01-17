@@ -157,7 +157,7 @@ void reader_h8_standard(char* fname, int fid, obsmeta* meta, model* m, observati
             continue;
         if ((o->status == STATUS_OK) && (o->lon <= ot->xmin || o->lon >= ot->xmax || o->lat <= ot->ymin || o->lat >= ot->ymax))
             o->status = STATUS_OUTSIDEOBSDOMAIN;
-        o->model_depth = NAN; /* set in obs_add() */
+        o->model_depth = NAN;   /* set in obs_add() */
         o->date = (time[i] + time2[i]) / 2.0 * tunits_multiple + tunits_offset;
         o->aux = -1;
 

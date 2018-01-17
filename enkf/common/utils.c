@@ -1562,7 +1562,7 @@ int island(double fi, double fj, int ni, int nj, int** mask, int periodic_x)
     if (j2 == nj)
         j2 = j1;
 
-    return !(mask[j1][i1] || mask[j1][i2] || mask [j2][i1] || mask[j2][i2]);
+    return !(mask[j1][i1] || mask[j1][i2] || mask[j2][i1] || mask[j2][i2]);
 }
 
 /** Linearly interpolates a 3D field to fractional coordinates in index space.

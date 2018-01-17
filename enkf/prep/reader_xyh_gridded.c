@@ -318,7 +318,7 @@ void reader_xyh_gridded(char* fname, int fid, obsmeta* meta, model* m, observati
                     o->status = model_z2fk(m, mvid, o->fi, o->fj, o->depth, &o->fk);
                 else
                     o->fk = NAN;
-                o->model_depth = NAN; /* set in obs_add() */
+                o->model_depth = NAN;   /* set in obs_add() */
                 if (have_time) {
                     float t = (singletime) ? time[0] : time[ii];
 

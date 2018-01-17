@@ -235,7 +235,7 @@ void reader_viirs_standard(char* fname, int fid, obsmeta* meta, model* m, observ
             continue;
         if ((o->status == STATUS_OK) && (o->lon <= ot->xmin || o->lon >= ot->xmax || o->lat <= ot->ymin || o->lat >= ot->ymax))
             o->status = STATUS_OUTSIDEOBSDOMAIN;
-        o->model_depth = NAN; /* set in obs_add() */
+        o->model_depth = NAN;   /* set in obs_add() */
         o->date = ((double) time[i] * time_scale_factor + time_add_offset) * tunits_multiple + tunits_offset;
         o->aux = -1;
 

@@ -1,3 +1,17 @@
+v. 1.68.4-dev
+   PS 16012018
+   -- Added check for superobs being on land in PREP when obs->stride > 1.
+v. 1.68.3-dev
+   PS 16012018
+   -- Eliminated STATUS_ROUNDUP and associated code in model2obs(). Moved
+      the associated check to PREP.
+   -- Moved calculation of struct observation.model_depth from paticular readers
+      to obs_add().
+   -- Added island() as an analogue to interpolate2d() used for calculation
+      of struct observation.model_depth for situations when there is no depth
+      variable defined for a grid.
+   -- Synced ncw.[ch] with ncw-c v2.15.
+   -- Eliminated STATUS_MISSING as it is not used anymore.
 v. 1.68.2-dev
    PS 16012018
    -- Brought grid_describeprm() up to date.

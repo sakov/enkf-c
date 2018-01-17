@@ -325,7 +325,7 @@ void reader_xy_scattered(char* fname, int fid, obsmeta* meta, model* m, observat
             continue;
         if ((o->status == STATUS_OK) && (o->lon <= ot->xmin || o->lon >= ot->xmax || o->lat <= ot->ymin || o->lat >= ot->ymax))
             o->status = STATUS_OUTSIDEOBSDOMAIN;
-        o->model_depth = NAN; /* set in obs_add() */
+        o->model_depth = NAN;   /* set in obs_add() */
         if (have_time)
             o->date = ((singletime) ? time[0] : time[i]) * tunits_multiple + tunits_offset;
         else
