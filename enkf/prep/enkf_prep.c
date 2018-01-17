@@ -269,8 +269,16 @@ int main(int argc, char* argv[])
      * end up in the model cell surround by land nodes (although each of
      * the original observations is not)
      */
-    if (obs->stride > 1)
+    if (obs->stride > 1) {
+        enkf_printf("  checking for land:\n");
         obs_checkforland(sobs, m);
+        obs_compact(sobs);
+        for (i = 0; i < sobs->nobs; ++i)
+            if (sobs->data[i].status != STATUS_OK)
+                break;
+        sobs->nobs = i;
+    }
+
     /*
      * write superob indices to the file with original observations 
      */

@@ -1,3 +1,6 @@
+v. 1.68.5-dev
+   PS 16012018
+   -- Added deletion of superobs on land in PREP.
 v. 1.68.4-dev
    PS 16012018
    -- Added check for superobs being on land in PREP when obs->stride > 1.
