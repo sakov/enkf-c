@@ -270,12 +270,14 @@ int main(int argc, char* argv[])
      * the original observations is not)
      */
     if (obs->stride > 1) {
-        enkf_printf("  checking for land:\n");
+        enkf_printf("  checking for superobs on land:\n");
         obs_checkforland(sobs, m);
         obs_compact(sobs);
         for (i = 0; i < sobs->nobs; ++i)
             if (sobs->data[i].status != STATUS_OK)
                 break;
+        if (i != sobs->nobs)
+            enkf_printf("    deleted %d obs\n", sobs->nobs - i);
         sobs->nobs = i;
     }
 
