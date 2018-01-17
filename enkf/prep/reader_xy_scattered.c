@@ -93,7 +93,6 @@ void reader_xy_scattered(char* fname, int fid, obsmeta* meta, model* m, observat
     char tunits[MAXSTRLEN];
     double tunits_multiple = NAN, tunits_offset = NAN;
     int mvid;
-    float** depth;
     int ksurf;
     int i, nobs_read;
 
@@ -287,7 +286,6 @@ void reader_xy_scattered(char* fname, int fid, obsmeta* meta, model* m, observat
 
     mvid = model_getvarid(m, obs->obstypes[obstype_getid(obs->nobstypes, obs->obstypes, meta->type, 1)].varnames[0], 1);
     ksurf = grid_getsurflayerid(model_getvargrid(m, mvid));
-    depth = model_getdepth(m, mvid, 0);
 
     nobs_read = 0;
     for (i = 0; i < nobs; ++i) {
@@ -327,9 +325,7 @@ void reader_xy_scattered(char* fname, int fid, obsmeta* meta, model* m, observat
             continue;
         if ((o->status == STATUS_OK) && (o->lon <= ot->xmin || o->lon >= ot->xmax || o->lat <= ot->ymin || o->lat >= ot->ymax))
             o->status = STATUS_OUTSIDEOBSDOMAIN;
-        o->model_depth = (depth == NULL || isnan(o->fi + o->fj)) ? NAN : depth[(int) (o->fj + 0.5)][(int) (o->fi + 0.5)];
-        if (o->status == STATUS_OK && o->model_depth < mindepth)
-            o->status = STATUS_SHALLOW;
+        o->model_depth = NAN; /* set in obs_add() */
         if (have_time)
             o->date = ((singletime) ? time[0] : time[i]) * tunits_multiple + tunits_offset;
         else

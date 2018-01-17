@@ -97,7 +97,6 @@ void reader_xy_gridded(char* fname, int fid, obsmeta* meta, model* m, observatio
     char tunits[MAXSTRLEN];
     double tunits_multiple = NAN, tunits_offset = NAN;
     int mvid;
-    float** depth;
     int ksurf;
     int i, nobs_read;
 
@@ -303,7 +302,6 @@ void reader_xy_gridded(char* fname, int fid, obsmeta* meta, model* m, observatio
 
     mvid = model_getvarid(m, obs->obstypes[obstype_getid(obs->nobstypes, obs->obstypes, meta->type, 1)].varnames[0], 1);
     ksurf = grid_getsurflayerid(model_getvargrid(m, mvid));
-    depth = model_getdepth(m, mvid, 0);
 
     nobs_read = 0;
     for (i = 0; i < (int) n; ++i) {
@@ -361,16 +359,14 @@ void reader_xy_gridded(char* fname, int fid, obsmeta* meta, model* m, observatio
             continue;
         if ((o->status == STATUS_OK) && (o->lon <= ot->xmin || o->lon >= ot->xmax || o->lat <= ot->ymin || o->lat >= ot->ymax))
             o->status = STATUS_OUTSIDEOBSDOMAIN;
-        o->model_depth = (depth == NULL || isnan(o->fi + o->fj)) ? NAN : depth[(int) (o->fj + 0.5)][(int) (o->fi + 0.5)];
-        if (o->status == STATUS_OK && o->model_depth < mindepth)
-            o->status = STATUS_SHALLOW;
+        o->model_depth = NAN; /* set in obs_add() */
         if (have_time) {
             float t = (singletime) ? time[0] : time[i];
 
             if (!isnan(time_add_offset))
                 o->date = (double) (t * time_scale_factor + time_add_offset) * tunits_multiple + tunits_offset;
             else
-                o->date = (double) t* tunits_multiple + tunits_offset;
+                o->date = (double) t * tunits_multiple + tunits_offset;
         } else
             o->date = NAN;
 

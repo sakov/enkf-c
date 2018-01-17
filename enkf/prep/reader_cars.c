@@ -52,7 +52,6 @@ void reader_cars_standard(char* fname, int fid, obsmeta* meta, model* m, observa
     int year, month, day;
     double tunits_multiple, tunits_offset;
     int mvid;
-    float** depth;
     int p, i;
 
     for (i = 0; i < meta->npars; ++i)
@@ -125,7 +124,6 @@ void reader_cars_standard(char* fname, int fid, obsmeta* meta, model* m, observa
     tunits_convert(buf, &tunits_multiple, &tunits_offset);
 
     mvid = model_getvarid(m, obs->obstypes[obstype_getid(obs->nobstypes, obs->obstypes, meta->type, 1)].varnames[0], 1);
-    depth = model_getdepth(m, mvid, 0);
 
     for (p = 0; p < (int) nprof; ++p) {
         char inststr[MAXSTRLEN];
@@ -177,7 +175,7 @@ void reader_cars_standard(char* fname, int fid, obsmeta* meta, model* m, observa
                 o->fk = NAN;
             if ((o->status == STATUS_OK) && (o->lon <= ot->xmin || o->lon >= ot->xmax || o->lat <= ot->ymin || o->lat >= ot->ymax || o->depth <= ot->zmin || o->depth >= ot->zmax))
                 o->status = STATUS_OUTSIDEOBSDOMAIN;
-            o->model_depth = (depth == NULL || isnan(o->fi + o->fj)) ? NAN : depth[(int) (o->fj + 0.5)][(int) (o->fi + 0.5)];
+            o->model_depth = NAN; /* set in obs_add() */
             o->date = tunits_offset + 0.5;
             o->aux = -1;
 

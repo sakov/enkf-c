@@ -31,7 +31,7 @@
 #include <errno.h>
 #include "ncw.h"
 
-const char ncw_version[] = "2.13";
+const char ncw_version[] = "2.15";
 
 /* This macro is substituted in error messages instead of the name of a
  * variable in cases when the name could not be found by the variable id.
@@ -2022,6 +2022,10 @@ void ncw_check_vardims(int ncid, int varid, int ndims, size_t dimlen[])
 }
 
 /** Get dimension lengths for a variable.
+ * @param ncid NetCDF file id
+ * @param varid ID of the variable
+ * @param maxndims Maximal allowed number of dimensions
+ * @param dimlen Output: dimension lengths
  */
 void ncw_inq_vardimlen(int ncid, int varid, int maxndims, size_t dimlen[])
 {
@@ -2039,6 +2043,8 @@ void ncw_inq_vardimlen(int ncid, int varid, int maxndims, size_t dimlen[])
     ncw_inq_vardimid(ncid, varid, dimids);
     for (i = 0; i < ndims; ++i)
         ncw_inq_dimlen(ncid, dimids[i], &dimlen[i]);
+    for (i = ndims; i < maxndims; ++i)
+        dimlen[i] = 0;
 }
 
 /** Check if the file opens

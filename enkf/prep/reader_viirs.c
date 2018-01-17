@@ -73,7 +73,6 @@ void reader_viirs_standard(char* fname, int fid, obsmeta* meta, model* m, observ
     int mvid;
     double varshift = 0.0;
     double mindepth = 0.0;
-    float** depth;
     int ksurf;
     int i, nobs;
 
@@ -194,7 +193,6 @@ void reader_viirs_standard(char* fname, int fid, obsmeta* meta, model* m, observ
 
     mvid = model_getvarid(m, obs->obstypes[obstype_getid(obs->nobstypes, obs->obstypes, meta->type, 1)].varnames[0], 1);
     ksurf = grid_getsurflayerid(model_getvargrid(m, mvid));
-    depth = model_getdepth(m, mvid, 0);
 
     nobs = 0;
     for (i = 0; i < (int) n; ++i) {
@@ -237,9 +235,7 @@ void reader_viirs_standard(char* fname, int fid, obsmeta* meta, model* m, observ
             continue;
         if ((o->status == STATUS_OK) && (o->lon <= ot->xmin || o->lon >= ot->xmax || o->lat <= ot->ymin || o->lat >= ot->ymax))
             o->status = STATUS_OUTSIDEOBSDOMAIN;
-        o->model_depth = (depth == NULL || isnan(o->fi + o->fj)) ? NAN : depth[(int) (o->fj + 0.5)][(int) (o->fi + 0.5)];
-        if (o->status == STATUS_OK && o->model_depth < mindepth)
-            o->status = STATUS_SHALLOW;
+        o->model_depth = NAN; /* set in obs_add() */
         o->date = ((double) time[i] * time_scale_factor + time_add_offset) * tunits_multiple + tunits_offset;
         o->aux = -1;
 

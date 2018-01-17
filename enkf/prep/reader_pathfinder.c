@@ -52,7 +52,6 @@ void reader_pathfinder_standard(char* fname, int fid, obsmeta* meta, model* m, o
     char* basename;
     char instname[5];
     int mvid;
-    float** depth;
     int ksurf;
     int i;
 
@@ -111,7 +110,6 @@ void reader_pathfinder_standard(char* fname, int fid, obsmeta* meta, model* m, o
     instname[4] = 0;
 
     mvid = model_getvarid(m, obs->obstypes[obstype_getid(obs->nobstypes, obs->obstypes, meta->type, 1)].varnames[0], 1);
-    depth = model_getdepth(m, mvid, 1);
     ksurf = grid_getsurflayerid(model_getvargrid(m, mvid));
 
     for (i = 0; i < (int) nobs_local; ++i) {
@@ -138,7 +136,7 @@ void reader_pathfinder_standard(char* fname, int fid, obsmeta* meta, model* m, o
         o->status = model_xy2fij(m, mvid, o->lon, o->lat, &o->fi, &o->fj);
         if (!obs->allobs && o->status == STATUS_OUTSIDEGRID)
             continue;
-        o->model_depth = (isnan(o->fi + o->fj)) ? NAN : depth[(int) (o->fj + 0.5)][(int) (o->fi + 0.5)];
+        o->model_depth = NAN; /* set in obs_add() */
         if ((o->status == STATUS_OK) && (o->lon <= ot->xmin || o->lon >= ot->xmax || o->lat <= ot->ymin || o->lat >= ot->ymax))
             o->status = STATUS_OUTSIDEOBSDOMAIN;
         o->date = tunits_offset + 0.5;

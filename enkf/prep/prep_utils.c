@@ -78,11 +78,13 @@ static void readobs(obsmeta* meta, model* m, obsread_fn reader, observations* ob
  */
 void obs_add(observations* obs, model* m, obsmeta* meta)
 {
-    obsread_fn reader;
     int nobs0 = obs->nobs;
-    int vid, otid;
-    obstype* ot;
-    double lonbase;
+    int otid = obstype_getid(obs->nobstypes, obs->obstypes, meta->type, 1);
+    obstype* ot = &obs->obstypes[otid];
+    int vid = model_getvarid(m, obs->obstypes[otid].varnames[0], 1);
+    double lonbase= model_getlonbase(m, vid);
+    double mindepth = NAN;
+    obsread_fn reader;
     int i, ngood;
 
     enkf_printf("    PRODUCT = %s, TYPE = %s, reader = %s\n", meta->product, meta->type, meta->reader);
@@ -90,11 +92,12 @@ void obs_add(observations* obs, model* m, obsmeta* meta)
     reader = get_obsreadfn(meta);
     readobs(meta, m, reader, obs);      /* adds the data */
 
-    otid = obstype_getid(obs->nobstypes, obs->obstypes, meta->type, 1);
-    ot = &obs->obstypes[otid];
-    vid = model_getvarid(m, obs->obstypes[otid].varnames[0], 1);
-
-    lonbase = model_getlonbase(m, vid);
+    for (i = 0; i < meta->npars; ++i) {
+        if (strcasecmp(meta->pars[i].name, "MINDEPTH") == 0)
+            if (!str2double(meta->pars[i].value, &mindepth))
+                enkf_quit("observation prm file: can not convert MINDEPTH = \"%s\" to double\n", meta->pars[i].value);
+    }
+        
     if (!isnan(lonbase)) {
         for (i = nobs0; i < obs->nobs; ++i) {
             observation* o = &obs->data[i];
@@ -107,39 +110,79 @@ void obs_add(observations* obs, model* m, obsmeta* meta)
         }
     }
 
+    /*
+     * common checks
+     */
     if (obs->nobs - nobs0 > 0) {
+        float** depth = model_getdepth(m, vid, 0);
+        int** numlevels = model_getnumlevels(m, vid);
+        grid* g = model_getvargrid(m, vid);
+        int isperiodic_x = grid_isperiodic_x(g);
         int nmin = 0;
         int nmax = 0;
+        int noutow = 0;
+        int nland = 0;
+        int nshallow = 0;
+        int ni, nj;
 
         enkf_printf("      id = %d - %d\n", nobs0, obs->nobs - 1);
-
-        /*
-         * check range
-         */
+        model_getvardims(m, vid, &ni, &nj, NULL);
         for (i = nobs0; i < obs->nobs; ++i) {
             observation* o = &obs->data[i];
-            obstype* ot = &obs->obstypes[o->type];
 
             if (o->status != STATUS_OK)
                 continue;
-            if (o->date - obs->da_date < ot->windowmin + DT_EPS)
+            if (o->date - obs->da_date < ot->windowmin + DT_EPS) {
                 o->status = STATUS_OUTSIDEOBSWINDOW;
-            if (o->date - obs->da_date > ot->windowmax - DT_EPS)
+                noutow++;
+                continue;
+            }
+            if (o->date - obs->da_date > ot->windowmax - DT_EPS) {
                 o->status = STATUS_OUTSIDEOBSWINDOW;
-
+                noutow++;
+                continue;
+            }
             if (o->value < ot->allowed_min) {
                 o->status = STATUS_RANGE;
                 nmin++;
+                continue;
             }
             if (o->value > ot->allowed_max) {
                 o->status = STATUS_RANGE;
                 nmax++;
+                continue;
+            }
+            if (depth != NULL) {
+                o->model_depth = (double) interpolate2d(o->fi, o->fj, ni, nj, depth, numlevels, isperiodic_x);
+                if (!isfinite(o->model_depth) || o->model_depth == 0) {
+                    o->status = STATUS_LAND;
+                    nland++;
+                    continue;
+                }
+            } else if (island(o->fi, o->fj, ni, nj, numlevels, isperiodic_x)) {
+                o->status = STATUS_LAND;
+                nland++;
+                continue;
+            }
+            if (isfinite(mindepth)) {
+                if (depth == NULL)
+                    enkf_quit("MINDEPTH specified for the obs reader, but no depth specified for grid \"%s\"", grid_getname(g));
+                if (o->model_depth < mindepth) {
+                    o->status = STATUS_SHALLOW;
+                    nshallow++;
+                }
             }
         }
+        if (noutow > 0)
+            enkf_printf("      %d observations outside obs. window\n", noutow);
         if (nmin > 0)
             enkf_printf("      %d observations below allowed minimum of %.4g\n", nmin, ot->allowed_min);
         if (nmax > 0)
             enkf_printf("      %d observations above allowed maximum of %.4g\n", nmax, ot->allowed_max);
+        if (nland > 0)
+            enkf_printf("      %d observations on land\n", nland);
+        if (nshallow > 0)
+            enkf_printf("      %d observations in shallow areas\n", nshallow);
     }
     obs->compacted = 0;
     obs->hasstats = 0;
@@ -308,7 +351,7 @@ void print_obsstats(observations* obs, observations* sobs)
     for (i = 0; i < obs->nobstypes; ++i) {
         obstype* ot = &obs->obstypes[i];
 
-        enkf_printf("    %-7s %-10d %-10d %-10d %-10d %-10d %-10d %-10d %-10d %-10d %-10d\n", ot->name, ot->ngood, ot->nobs - ot->ngood - ot->nmissed, ot->noutside_grid, ot->noutside_obsdomain, ot->noutside_obswindow, ot->nland, ot->nshallow, ot->nbadbatch, ot->nrange, sobs->obstypes[i].nobs);
+        enkf_printf("    %-7s %-10d %-10d %-10d %-10d %-10d %-10d %-10d %-10d %-10d %-10d\n", ot->name, ot->ngood, ot->nobs - ot->ngood, ot->noutside_grid, ot->noutside_obsdomain, ot->noutside_obswindow, ot->nland, ot->nshallow, ot->nbadbatch, ot->nrange, sobs->obstypes[i].nobs);
     }
-    enkf_printf("    total   %-10d %-10d %-10d %-10d %-10d %-10d %-10d %-10d %-10d %-10d\n", obs->ngood, obs->nobs - obs->ngood - obs->nmissed, obs->noutside_grid, obs->noutside_obsdomain, obs->noutside_obswindow, obs->nland, obs->nshallow, obs->nbadbatch, obs->nrange, sobs->nobs);
+    enkf_printf("    total   %-10d %-10d %-10d %-10d %-10d %-10d %-10d %-10d %-10d %-10d\n", obs->ngood, obs->nobs - obs->ngood, obs->noutside_grid, obs->noutside_obsdomain, obs->noutside_obswindow, obs->nland, obs->nshallow, obs->nbadbatch, obs->nrange, sobs->nobs);
 }

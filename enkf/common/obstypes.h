@@ -54,9 +54,7 @@ typedef struct {
     int nland;
     int nshallow;
     int nbadbatch;
-    int nroundup;
     int nrange;
-    int nmissed;
     int nsubgrid;
     int nmodified;
 

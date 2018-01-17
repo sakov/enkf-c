@@ -46,7 +46,6 @@ void reader_windsat_standard(char* fname, int fid, obsmeta* meta, model* m, obse
     double tunits_multiple, tunits_offset;
     char* basename;
     int mvid;
-    float** depth;
     int ksurf;
     int i;
 
@@ -108,7 +107,6 @@ void reader_windsat_standard(char* fname, int fid, obsmeta* meta, model* m, obse
 
     mvid = model_getvarid(m, obs->obstypes[obstype_getid(obs->nobstypes, obs->obstypes, meta->type, 1)].varnames[0], 1);
     ksurf = grid_getsurflayerid(model_getvargrid(m, mvid));
-    depth = model_getdepth(m, mvid, 0);
 
     for (i = 0; i < (int) nobs_local; ++i)
         if (time[i] != 0.0)
@@ -143,7 +141,7 @@ void reader_windsat_standard(char* fname, int fid, obsmeta* meta, model* m, obse
             continue;
         if ((o->status == STATUS_OK) && (o->lon <= ot->xmin || o->lon >= ot->xmax || o->lat <= ot->ymin || o->lat >= ot->ymax || o->depth <= ot->zmin || o->depth >= ot->zmax))
             o->status = STATUS_OUTSIDEOBSDOMAIN;
-        o->model_depth = (depth == NULL || isnan(o->fi + o->fj)) ? NAN : depth[(int) (o->fj + 0.5)][(int) (o->fi + 0.5)];
+        o->model_depth = NAN; /* set in obs_add() */
         o->date = time[i] * tunits_multiple + tunits_offset;
         o->aux = -1;
 

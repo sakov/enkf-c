@@ -60,7 +60,6 @@ void reader_amsre_standard(char* fname, int fid, obsmeta* meta, model* m, observ
     double tunits_multiple, tunits_offset;
     char* basename;
     int mvid;
-    float** depth;
     int ksurf;
     int i, j;
     int channel;
@@ -156,7 +155,6 @@ void reader_amsre_standard(char* fname, int fid, obsmeta* meta, model* m, observ
 
     mvid = model_getvarid(m, obs->obstypes[obstype_getid(obs->nobstypes, obs->obstypes, meta->type, 1)].varnames[0], 1);
     ksurf = grid_getsurflayerid(model_getvargrid(m, mvid));
-    depth = model_getdepth(m, mvid, 0);
 
     for (channel = 0; channel < 2; ++channel) {
         double** data = (channel == 0) ? sst_a : sst_d;
@@ -198,7 +196,7 @@ void reader_amsre_standard(char* fname, int fid, obsmeta* meta, model* m, observ
                     continue;
                 if ((o->status == STATUS_OK) && (o->lon <= ot->xmin || o->lon >= ot->xmax || o->lat <= ot->ymin || o->lat >= ot->ymax))
                     o->status = STATUS_OUTSIDEOBSDOMAIN;
-                o->model_depth = (depth == NULL || isnan(o->fi + o->fj)) ? NAN : depth[(int) (o->fj + 0.5)][(int) (o->fi + 0.5)];
+                o->model_depth = NAN; /* set in obs_add() */
                 o->date = time[j][i] * tunits_multiple + tunits_offset;
                 o->aux = -1;
 

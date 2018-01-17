@@ -1544,6 +1544,27 @@ ENSOBSTYPE interpolate2d(double fi, double fj, int ni, int nj, float** v, int** 
     return (ENSOBSTYPE) sum;
 }
 
+/** A part of interpolate2d() that looks at mask in adjacent nodes only.
+ */
+int island(double fi, double fj, int ni, int nj, int** mask, int periodic_x)
+{
+    int i1 = (int) floor(fi);
+    int i2 = (int) ceil(fi);
+    int j1 = (int) floor(fj);
+    int j2 = (int) ceil(fj);
+
+    if (i1 == -1)
+        i1 = (periodic_x) ? ni - 1 : i2;
+    if (i2 == ni)
+        i2 = (periodic_x) ? 0 : i1;
+    if (j1 == -1)
+        j1 = j2;
+    if (j2 == nj)
+        j2 = j1;
+
+    return !(mask[j1][i1] || mask[j1][i2] || mask [j2][i1] || mask[j2][i2]);
+}
+
 /** Linearly interpolates a 3D field to fractional coordinates in index space.
  *  Assumes that integer k indices correspond to layer centres. E.g. for 
  *  fk = 1.2 the vertical weights are 0.8 of layer 1 and 0.2 of layer 2.

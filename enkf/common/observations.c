@@ -83,9 +83,7 @@ void obs_addtype(observations* obs, obstype* src, obsdomain* domain)
     ot->nland = -1;
     ot->nshallow = -1;
     ot->nbadbatch = -1;
-    ot->nroundup = -1;
     ot->nrange = -1;
-    ot->nmissed = -1;
     ot->nmodified = 0;
     ot->date_min = NAN;
     ot->date_max = NAN;
@@ -139,9 +137,7 @@ observations* obs_create(void)
     obs->nland = 0;
     obs->nshallow = 0;
     obs->nbadbatch = 0;
-    obs->nroundup = 0;
     obs->nrange = 0;
-    obs->nmissed = 0;
     obs->nmodified = 0;
     obs->badbatches = NULL;
     obs->ncformat = NETCDF_FORMAT;
@@ -407,7 +403,6 @@ void obs_calcstats(observations* obs)
     obs->nland = 0;
     obs->nshallow = 0;
     obs->nrange = 0;
-    obs->nmissed = 0;
     for (i = 0; i < obs->nobstypes; ++i) {
         obstype* ot = &obs->obstypes[i];
 
@@ -419,9 +414,7 @@ void obs_calcstats(observations* obs)
         ot->nland = 0;
         ot->nshallow = 0;
         ot->nbadbatch = 0;
-        ot->nroundup = 0;
         ot->nrange = 0;
-        ot->nmissed = 0;
         ot->date_min = DBL_MAX;
         ot->date_max = -DBL_MAX;
     }
@@ -452,15 +445,9 @@ void obs_calcstats(observations* obs)
         } else if (m->status == STATUS_BADBATCH) {
             obs->nbadbatch++;
             ot->nbadbatch++;
-        } else if (m->status == STATUS_ROUNDUP) {
-            obs->nroundup++;
-            ot->nroundup++;
         } else if (m->status == STATUS_RANGE) {
             obs->nrange++;
             ot->nrange++;
-        } else if (m->status == STATUS_MISSING) {
-            obs->nmissed++;
-            ot->nmissed++;
         }
 
         if (m->date < ot->date_min)
@@ -767,10 +754,10 @@ void obs_write(observations* obs, char fname[])
     ncw_put_att_int(ncid, varid_status, "STATUS_RANGE", 1, &i);
     i = STATUS_BADBATCH;
     ncw_put_att_int(ncid, varid_status, "STATUS_BADBATCH", 1, &i);
-    i = STATUS_ROUNDUP;
-    ncw_put_att_int(ncid, varid_status, "STATUS_ROUNDUP", 1, &i);
     i = STATUS_OUTSIDEOBSDOMAIN;
     ncw_put_att_int(ncid, varid_status, "STATUS_OUTSIDEOBSDOMAIN", 1, &i);
+    i = STATUS_OUTSIDEOBSWINDOW;
+    ncw_put_att_int(ncid, varid_status, "STATUS_OUTSIDEOBSWINDOW", 1, &i);
     ncw_def_var(ncid, "aux", NC_INT, 1, dimid_nobs, &varid_aux);
     snprintf(tunits, MAXSTRLEN, "days from %s", obs->datestr);
     ncw_put_att_text(ncid, varid_date, "units", tunits);
@@ -1159,8 +1146,8 @@ void obs_printob(observations* obs, int i)
 {
     observation* o = &obs->data[i];
 
-    enkf_printf("type = %s, product = %s, instrument = %s, datafile = %s, id = %d, original id = %d, batch = %d, value = %.3g, std = %.3g, ", obs->obstypes[o->type].name, st_findstringbyindex(obs->products, o->product), st_findstringbyindex(obs->instruments, o->instrument), st_findstringbyindex(obs->datafiles, o->fid), o->id, o->id_orig, (int) o->batch, o->value, o->std);
-    enkf_printf("lon = %.3f, lat = %.3f, depth = %.1f, model_depth = %.1f, fi = %.3f, fj = %.3f, fk = %.3f, date = %.3g, status = %d\n", o->lon, o->lat, o->depth, o->model_depth, o->fi, o->fj, o->fk, o->date, o->status);
+    printf("type = %s, product = %s, instrument = %s, datafile = %s, id = %d, original id = %d, batch = %d, value = %.3g, std = %.3g, ", obs->obstypes[o->type].name, st_findstringbyindex(obs->products, o->product), st_findstringbyindex(obs->instruments, o->instrument), st_findstringbyindex(obs->datafiles, o->fid), o->id, o->id_orig, (int) o->batch, o->value, o->std);
+    printf("lon = %.3f, lat = %.3f, depth = %.1f, model_depth = %.1f, fi = %.3f, fj = %.3f, fk = %.3f, date = %.3g, status = %d\n", o->lon, o->lat, o->depth, o->model_depth, o->fi, o->fj, o->fk, o->date, o->status);
 }
 
 #if defined(ENKF_CALC)

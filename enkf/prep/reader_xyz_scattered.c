@@ -98,7 +98,6 @@ void reader_xyz_scattered(char* fname, int fid, obsmeta* meta, model* m, observa
     char tunits[MAXSTRLEN];
     double tunits_multiple = NAN, tunits_offset = NAN;
     int mvid;
-    float** depth;
     int i, nobs_read;
 
     strcpy(instrument, meta->product);
@@ -307,7 +306,6 @@ void reader_xyz_scattered(char* fname, int fid, obsmeta* meta, model* m, observa
     ncw_close(ncid);
 
     mvid = model_getvarid(m, obs->obstypes[obstype_getid(obs->nobstypes, obs->obstypes, meta->type, 1)].varnames[0], 1);
-    depth = model_getdepth(m, mvid, 0);
 
     nobs_read = 0;
     for (i = 0; i < nobs; ++i) {
@@ -350,9 +348,7 @@ void reader_xyz_scattered(char* fname, int fid, obsmeta* meta, model* m, observa
             o->status = model_z2fk(m, mvid, o->fi, o->fj, o->depth, &o->fk);
         else
             o->fk = NAN;
-        o->model_depth = (depth == NULL || isnan(o->fi + o->fj)) ? NAN : depth[(int) (o->fj + 0.5)][(int) (o->fi + 0.5)];
-        if (o->status == STATUS_OK && o->model_depth < mindepth)
-            o->status = STATUS_SHALLOW;
+        o->model_depth = NAN; /* set in obs_add() */
         if (have_time)
             o->date = ((singletime) ? time[0] : time[i]) * tunits_multiple + tunits_offset;
         else

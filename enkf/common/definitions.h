@@ -53,13 +53,6 @@
 #define STATUS_BADBATCH 5
 #define STATUS_OUTSIDEOBSDOMAIN 6
 #define STATUS_OUTSIDEOBSWINDOW 7
-#define STATUS_MISSING 8
-/*
- * The fractional grid indices can (very rarely) jump to a neighbour cell after
- * being saved to observations.nc and read back. If they end up on land - mark
- * them with this status.
- */
-#define STATUS_ROUNDUP 7
 
 #define MODE_NONE 0
 #define MODE_ENKF 1

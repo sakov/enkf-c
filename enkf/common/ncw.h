@@ -120,35 +120,41 @@ void ncw_get_att_double(int ncid, int varid, const char attname[], double v[]);
 
 /* These procedures do not have direct analogues in the netcdf library.
  */
-int ncw_inq_nrecords(int ncid);
 const char* ncw_nctype2str(nc_type type);
 size_t ncw_sizeof(nc_type type);
+
+int ncw_inq_nrecords(int ncid);
+void ncw_inq_vardimlen(int ncid, int varid, int maxndims, size_t dimlen[]);
+
 void ncw_copy_dims(int ncid_src, int ncid_dst);
 void ncw_copy_dim(int ncid_src, const char dimname[], int ncid_dst);
 int ncw_copy_vardef(int ncid_src, int varid_src, int ncid_dst);
+void ncw_copy_atts(int ncid_src, int varid_src, int ncid_dst, int varid_dst);
 void ncw_copy_vardata(int ncid_src, int varid_src, int ncid_dst);
 void ncw_copy_var(int ncid_src, const char varname[], int ncid_dst);
-void ncw_def_deflate(int ncid, int shuffle, int deflate, int deflate_level);
 void ncw_inq_dimid2(int ncid, const char dimname1[], const char dimname2[], int* dimid);
 void ncw_get_att_int2(int ncid, int varid, const char attname1[], const char attname2[], int v[]);
-void ncw_find_vars(int ncid, int ndims, const int dims[], const char attr[], const void* attval, int* nvars, int** vids);
+
+void ncw_def_deflate(int ncid, int shuffle, int deflate, int deflate_level);
+
 void ncw_find_timevarid(int ncid, int* varid);
+void ncw_find_vars(int ncid, int ndims, const int dims[], const char attr[], const void* attval, int* nvars, int** vids);
+
+int ncw_file_opens(const char fname[], int mode);
 int ncw_att_exists(int ncid, int varid, const char attname[]);
 int ncw_var_exists(int ncid, const char varname[]);
 int ncw_dim_exists(int ncid, const char dimname[]);
-void ncw_copy_atts(int ncid_src, int varid_src, int ncid_dst, int varid_dst);
+
 void ncw_def_var_as(int ncid, const char oldvarname[], const char newvarname[]);
 void ncw_get_var_double_record(int ncid, int varid, int r, double v[]);
 void ncw_get_var_float_record(int ncid, int varid, int r, float v[]);
 void ncw_put_var_double_record(int ncid, int varid, int r, double v[]);
 void ncw_put_var_float_record(int ncid, int varid, int r, float v[]);
-int ncw_file_opens(const char fname[], int mode);
 
 void ncw_check_attlen(int ncid, int varid, const char attname[], size_t len);
 void ncw_check_dimlen(int ncid, const char dimname[], size_t len);
 void ncw_check_varndims(int ncid, int varid, int ndims);
 void ncw_check_vardims(int ncid, int varid, int ndims, size_t dimlen[]);
-void ncw_inq_vardimlen(int ncid, int varid, int maxndims, size_t dimlen[]);
 
 #define _NCW_H
 #endif

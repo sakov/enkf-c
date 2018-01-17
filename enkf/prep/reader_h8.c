@@ -47,7 +47,6 @@ void reader_h8_standard(char* fname, int fid, obsmeta* meta, model* m, observati
     char tunits[MAXSTRLEN];
     double tunits_multiple, tunits_offset;
     int mvid;
-    float** depth;
     int ksurf;
     int i, nobs;
 
@@ -122,7 +121,6 @@ void reader_h8_standard(char* fname, int fid, obsmeta* meta, model* m, observati
 
     mvid = model_getvarid(m, obs->obstypes[obstype_getid(obs->nobstypes, obs->obstypes, meta->type, 1)].varnames[0], 1);
     ksurf = grid_getsurflayerid(model_getvargrid(m, mvid));
-    depth = model_getdepth(m, mvid, 0);
 
     nobs = 0;
     for (i = 0; i < (int) ni; ++i) {
@@ -159,7 +157,7 @@ void reader_h8_standard(char* fname, int fid, obsmeta* meta, model* m, observati
             continue;
         if ((o->status == STATUS_OK) && (o->lon <= ot->xmin || o->lon >= ot->xmax || o->lat <= ot->ymin || o->lat >= ot->ymax))
             o->status = STATUS_OUTSIDEOBSDOMAIN;
-        o->model_depth = (depth == NULL || isnan(o->fi + o->fj)) ? NAN : depth[(int) (o->fj + 0.5)][(int) (o->fi + 0.5)];
+        o->model_depth = NAN; /* set in obs_add() */
         o->date = (time[i] + time2[i]) / 2.0 * tunits_multiple + tunits_offset;
         o->aux = -1;
 
