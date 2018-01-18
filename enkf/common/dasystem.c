@@ -55,6 +55,7 @@ void das_setobstypes(dasystem* das)
 
         type->vid = vid;
         type->gridid = model_getvargridid(m, vid);
+        type->sob_stride = grid_getsobstride(model_getgridbyid(m, type->gridid));
         snprintf(tag, MAXSTRLEN, "%s:OFFSET", type->name);
         if (type->offset_fname != NULL) {
             if (type->issurface || !is3d(type->offset_fname, type->offset_varname)) {

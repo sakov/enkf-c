@@ -51,6 +51,9 @@ static int obs_badob(observations* obs, int i)
  */
 static void readobs(obsmeta* meta, model* m, obsread_fn reader, observations* obs)
 {
+    int otid = obstype_getid(obs->nobstypes, obs->obstypes, meta->type, 1);
+    obstype* ot = &obs->obstypes[otid];
+    grid* g = model_getgridbyid(m, ot->gridid);
     int nfiles;
     char** fnames = NULL;
     int i;
@@ -63,7 +66,7 @@ static void readobs(obsmeta* meta, model* m, obsread_fn reader, observations* ob
 
         enkf_printf("      reading %s:\n", fnames[i]);
         fid = st_add_ifabsent(obs->datafiles, fnames[i], -1);
-        reader(fnames[i], fid, meta, m, obs);
+        reader(fnames[i], fid, meta, g, obs);
 
         enkf_printf("        # good obs = %d\n", obs->nobs - nobs0);
         enkf_flush();
@@ -332,8 +335,9 @@ void obs_add(observations* obs, model* m, obsmeta* meta)
 
 /**
  */
-void obs_checkforland(observations* obs, model* m)
+int obs_checkforland(observations* obs, model* m)
 {
+    int hasland = 0;
     int i;
 
     for (i = 0; i < obs->nobs; ++i) {
@@ -344,9 +348,13 @@ void obs_checkforland(observations* obs, model* m)
         int ni, nj;
 
         grid_getdims(g, &ni, &nj, NULL);
-        if (island(o->fi, o->fj, ni, nj, grid_getnumlevels(g), grid_isperiodic_x(g)))
+        if (island(o->fi, o->fj, ni, nj, grid_getnumlevels(g), grid_isperiodic_x(g))) {
             o->status = STATUS_LAND;
+            hasland = 1;
+        }
     }
+
+    return hasland;
 }
 
 /**

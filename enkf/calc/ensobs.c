@@ -419,7 +419,7 @@ void das_addforecast(dasystem* das, char fname[])
 
     ncw_open(fname, NC_WRITE, &ncid);
     if (ncw_var_exists(ncid, "Hx_f")) {
-        enkf_printf("  Hx already added to \"%s\" (skipping)\n", fname);
+        enkf_printf("  Hx_f already added to \"%s\" (skipping)\n", fname);
         goto finish;
     }
 
@@ -1310,11 +1310,18 @@ void das_addanalysis(dasystem* das, char fname[])
     ncw_open(fname, NC_WRITE, &ncid);
     ncw_inq_dimid(ncid, "nobs", dimid_nobs);
     ncw_inq_dimlen(ncid, dimid_nobs[0], &nobs);
+    assert(nobs == das->obs->nobs);
 
-    ncw_redef(ncid);
-    ncw_def_var(ncid, "Hx_a", NC_FLOAT, 1, dimid_nobs, &varid_Hx);
-    ncw_def_var(ncid, "std_a", NC_FLOAT, 1, dimid_nobs, &varid_spread);
-    ncw_enddef(ncid);
+    if (ncw_var_exists(ncid, "Hx_a")) {
+        enkf_printf("  Hx_a already added to \"%s\", overwriting\n", fname);
+        ncw_inq_varid(ncid, "Hx_a", &varid_Hx);
+        ncw_inq_varid(ncid, "std_a", &varid_spread);
+    } else {
+        ncw_redef(ncid);
+        ncw_def_var(ncid, "Hx_a", NC_FLOAT, 1, dimid_nobs, &varid_Hx);
+        ncw_def_var(ncid, "std_a", NC_FLOAT, 1, dimid_nobs, &varid_spread);
+        ncw_enddef(ncid);
+    }
 
     ncw_put_var_double(ncid, varid_spread, das->std_a);
     s = malloc(nobs * sizeof(double));

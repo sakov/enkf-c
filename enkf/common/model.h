@@ -44,8 +44,6 @@ void model_setreadfield_fn(model* m, model_readfield_fn fn);
 void model_setread3dfield_fn(model* m, model_read3dfield_fn fn);
 void model_setwritefield_fn(model* m, model_writefield_fn fn);
 
-void model_setgrid(model* m, void* g);
-
 void model_adddata(model* m, char tag[], int vid, int alloctype, void* data);
 void model_addorreplacedata(model* m, char tag[], int vid, int alloctype, void* data);
 void* model_getdata(model* m, char tag[]);

@@ -48,11 +48,13 @@
 #include "grid.h"
 #include "observations.h"
 #include "prep_utils.h"
+#include "allreaders.h"
 
 /**
  */
-void reader_xy_scattered(char* fname, int fid, obsmeta* meta, model* m, observations* obs)
+void reader_xy_scattered(char* fname, int fid, obsmeta* meta, grid* g, observations* obs)
 {
+    int ksurf = grid_getsurflayerid(g);
     char* varname = NULL;
     char* lonname = NULL;
     char* latname = NULL;
@@ -92,8 +94,6 @@ void reader_xy_scattered(char* fname, int fid, obsmeta* meta, model* m, observat
     double time_fill_value = NAN;
     char tunits[MAXSTRLEN];
     double tunits_multiple = NAN, tunits_offset = NAN;
-    int mvid;
-    int ksurf;
     int i, nobs_read;
 
     strcpy(instrument, meta->product);
@@ -284,9 +284,6 @@ void reader_xy_scattered(char* fname, int fid, obsmeta* meta, model* m, observat
 
     ncw_close(ncid);
 
-    mvid = model_getvarid(m, obs->obstypes[obstype_getid(obs->nobstypes, obs->obstypes, meta->type, 1)].varnames[0], 1);
-    ksurf = grid_getsurflayerid(model_getvargrid(m, mvid));
-
     nobs_read = 0;
     for (i = 0; i < nobs; ++i) {
         observation* o;
@@ -320,7 +317,7 @@ void reader_xy_scattered(char* fname, int fid, obsmeta* meta, model* m, observat
         o->lat = lat[i];
         o->depth = 0.0;
         o->fk = (double) ksurf;
-        o->status = model_xy2fij(m, mvid, o->lon, o->lat, &o->fi, &o->fj);
+        o->status = grid_xy2fij(g, o->lon, o->lat, &o->fi, &o->fj);
         if (!obs->allobs && o->status == STATUS_OUTSIDEGRID)
             continue;
         if ((o->status == STATUS_OK) && (o->lon <= ot->xmin || o->lon >= ot->xmax || o->lat <= ot->ymin || o->lat >= ot->ymax))

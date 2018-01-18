@@ -23,25 +23,11 @@
 #include "kdtree.h"
 #include "definitions.h"
 #include "utils.h"
+#include "grid.h"
+#include "model.h"
 #include "obstypes.h"
 
 #define NVAR_INC 10
-
-/**
- */
-int obstype_getid(int n, obstype types[], char* name, int hastosucceed)
-{
-    int i;
-
-    for (i = 0; i < n; ++i)
-        if (strcmp(types[i].name, name) == 0)
-            return i;
-
-    if (hastosucceed)
-        enkf_quit("failed to identify observation type \"%s\"", name);
-
-    return -1;
-}
 
 /**
  */
@@ -383,36 +369,6 @@ void obstypes_read(char fname[], int* n, obstype** types, double locrad_base, do
 
 /**
  */
-void obstypes_destroy(int n, obstype* types)
-{
-    int i, j;
-
-    if (n == 0)
-        return;
-
-    for (i = 0; i < n; ++i) {
-        obstype* type = &types[i];
-
-        free(type->name);
-        for (j = 0; j < type->nvar; ++j)
-            free(type->varnames[j]);
-        free(type->varnames);
-        free(type->hfunction);
-        if (type->offset_fname != NULL) {
-            free(type->offset_fname);
-            free(type->offset_varname);
-        }
-        if (type->mld_varname != NULL)
-            free(type->mld_varname);
-        free(type->locrad);
-        free(type->weight);
-    }
-
-    free(types);
-}
-
-/**
- */
 void obstypes_describeprm(void)
 {
     enkf_printf("\n");
@@ -449,6 +405,74 @@ void obstypes_describeprm(void)
     enkf_printf("    4. * denotes the default value\n");
     enkf_printf("    5. < ... > denotes a description of an entry\n");
     enkf_printf("\n");
+}
+
+#if defined(ENKF_PREP)
+/*
+ * (Outside of PREP use das_setobstypes()
+ */
+
+/**
+ */
+void obstypes_set(int n, obstype* types, model* m)
+{
+    int i;
+
+    for (i = 0; i < n; ++i) {
+        obstype* type = &types[i];
+        int vid = model_getvarid(m, types[i].varnames[0], 1);
+
+        type->vid = vid;
+        type->gridid = model_getvargridid(m, vid);
+        type->sob_stride = grid_getsobstride(model_getgridbyid(m, type->gridid));
+    }
+}
+#endif
+
+/**
+ */
+void obstypes_destroy(int n, obstype* types)
+{
+    int i, j;
+
+    if (n == 0)
+        return;
+
+    for (i = 0; i < n; ++i) {
+        obstype* type = &types[i];
+
+        free(type->name);
+        for (j = 0; j < type->nvar; ++j)
+            free(type->varnames[j]);
+        free(type->varnames);
+        free(type->hfunction);
+        if (type->offset_fname != NULL) {
+            free(type->offset_fname);
+            free(type->offset_varname);
+        }
+        if (type->mld_varname != NULL)
+            free(type->mld_varname);
+        free(type->locrad);
+        free(type->weight);
+    }
+
+    free(types);
+}
+
+/**
+ */
+int obstype_getid(int n, obstype types[], char* name, int hastosucceed)
+{
+    int i;
+
+    for (i = 0; i < n; ++i)
+        if (strcmp(types[i].name, name) == 0)
+            return i;
+
+    if (hastosucceed)
+        enkf_quit("failed to identify observation type \"%s\"", name);
+
+    return -1;
 }
 
 /**

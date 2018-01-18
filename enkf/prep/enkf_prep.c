@@ -36,11 +36,6 @@ int log_all_obs = 0;
  */
 int describe_superob_id = -1;
 
-/*
- * to communicate to sort()
- */
-obstype* obstypes_p = NULL;
-
 int do_superob = 1;
 
 int do_superob_acrossinst = 1;
@@ -153,7 +148,9 @@ static int cmp_obs(const void* p1, const void* p2, void* p)
 {
     observation* m1 = (observation*) p1;
     observation* m2 = (observation*) p2;
-    int stride = ((observations*) p)->stride;
+    observations* obs = (observations*) p;
+    obstype* ot;
+    int stride;
     double offset;
     int i1, i2;
 
@@ -169,13 +166,23 @@ static int cmp_obs(const void* p1, const void* p2, void* p)
             return -1;
     }
 
-    if (obstypes_p[m1->type].isasync) {
-        i1 = get_tshift(m1->date, obstypes_p[m1->type].async_tstep, obstypes_p[m1->type].async_centred);
-        i2 = get_tshift(m2->date, obstypes_p[m2->type].async_tstep, obstypes_p[m1->type].async_centred);
+    ot = &obs->obstypes[m1->type];
+    if (ot->isasync) {
+        i1 = get_tshift(m1->date, ot->async_tstep, ot->async_centred);
+        i2 = get_tshift(m2->date, ot->async_tstep, ot->async_centred);
         if (i1 > i2)
             return 1;
         if (i2 > i1)
             return -1;
+    }
+
+    stride = ot->sob_stride;
+    if (stride == 0) { /* no superobing on this grid */
+        if (m1->id > m2->id)
+            return 1;
+        else if (m1->id < m2->id)
+            return -1;
+        return 0;
     }
 
     /*
@@ -214,11 +221,11 @@ int main(int argc, char* argv[])
 {
     char* fname_prm = NULL;
     enkfprm* prm = NULL;
+    model* m;
     int nmeta = 0;
     obsmeta* meta = NULL;
     observations* obs = NULL;
     observations* sobs = NULL;
-    model* m = NULL;
     int i;
 
     enkf_init(&argc, &argv);
@@ -233,20 +240,16 @@ int main(int argc, char* argv[])
     prm = enkfprm_read(fname_prm);
     enkfprm_print(prm, "    ");
 
-    if (do_superob == 0) {
-        enkf_printf("  switching off superobing:\n");
-        prm->sob_stride = 0;
-    }
-
     enkf_printf("  reading observation specs from \"%s\":\n", prm->obsprm);
     obsmeta_read(prm, &nmeta, &meta);
 
-    enkf_printf("  setting the model:\n");
+    enkf_printf("  creating model and observations:\n");
     m = model_create(prm);
-
     obs = obs_create_fromprm(prm);
     enkfprm_destroy(prm);
+    obstypes_set(obs->nobstypes, obs->obstypes, m);
     obs->allobs = log_all_obs;
+    obs->model = m;
 
     enkf_printf("  reading observations:\n");
     for (i = 0; i < nmeta; i++)
@@ -256,35 +259,46 @@ int main(int argc, char* argv[])
     obs_compact(obs);
     obs_calcstats(obs);
 
-    if (write_orig_obs && describe_superob_id < 0 && obs->stride > 0) {
+    if (write_orig_obs && describe_superob_id < 0) {
         enkf_printf("  writing observations to \"%s\":\n", FNAME_OBS);
         obs_write(obs, FNAME_OBS);
     }
 
-    enkf_printf("  superobing:\n");
-    obstypes_p = obs->obstypes;
-    obs_superob(obs, cmp_obs, &sobs, describe_superob_id);
-    /*
-     * when obs->stride > 1, it is possible that the superobservation
-     * end up in the model cell surround by land nodes (although each of
-     * the original observations is not)
-     */
-    if (obs->stride > 1) {
-        enkf_printf("  checking for superobs on land:\n");
-        obs_checkforland(sobs, m);
-        obs_compact(sobs);
-        for (i = 0; i < sobs->nobs; ++i)
-            if (sobs->data[i].status != STATUS_OK)
+    if (do_superob) {
+        enkf_printf("  superobing:\n");
+        obs_superob(obs, cmp_obs, &sobs, describe_superob_id);
+        /*
+         * when sob_stride > 1, it is possible that the superobservation
+         * end up in the model cell surround by land nodes (although each of
+         * the original observations is not)
+         */
+        for (i = 0; i < obs->nobstypes; ++i)
+            if (obs->obstypes[i].sob_stride > 1)
                 break;
-        if (i != sobs->nobs)
-            enkf_printf("    deleted %d obs\n", sobs->nobs - i);
-        sobs->nobs = i;
+        if (i < obs->nobstypes) {
+            enkf_printf("  checking for superobs on land:\n");
+            if (obs_checkforland(sobs, m)) {
+                obs_compact(sobs);
+                for (i = 0; i < sobs->nobs; ++i)
+                    if (sobs->data[i].status != STATUS_OK)
+                        break;
+                if (i != sobs->nobs)
+                    enkf_printf("    deleted %d obs\n", sobs->nobs - i);
+                sobs->nobs = i;
+            } else
+                enkf_printf("    not found\n");
+        }
+    } else {
+        observation* data = malloc(obs->ngood * sizeof(observation));
+
+        memcpy(data, obs->data, obs->ngood * sizeof(observation));
+        sobs = obs_create_fromdata(obs, obs->ngood, data);
     }
 
     /*
      * write superob indices to the file with original observations 
      */
-    if (write_orig_obs && describe_superob_id < 0 && obs->stride > 0)
+    if (write_orig_obs && describe_superob_id < 0 && do_superob)
         obs_writeaux(obs, FNAME_OBS);
 
     if (describe_superob_id < 0) {

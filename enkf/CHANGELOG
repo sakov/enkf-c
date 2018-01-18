@@ -1,5 +1,15 @@
+v. 1.68.6-dev
+   PS 18012018
+   -- Allow running CALC twice (I hope), just ignoring the previous stuff.
+   -- Made sob_stride grid-dependent. SOBSTRIDE = 0 means no superobing on this
+      grid.
+   -- Tidied and moved handling of array of grids from model.c to grid.c.
+   -- Modified grid_xy2fij(), grid_z2fk(), grid_fk2z() to return meaningful
+      status (previously done by model_*()).
+   -- In all readers -- replaced model* in the argument list by grid*.
+   -- Added obstypes_set().
 v. 1.68.5-dev
-   PS 16012018
+   PS 17012018
    -- Added deletion of superobs on land in PREP.
 v. 1.68.4-dev
    PS 16012018

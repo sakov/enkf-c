@@ -178,6 +178,13 @@ void gridprm_create(char* fname, int* ngrid, gridprm** prm)
                 enkf_quit("%s, l.%d: STRIDE specified twice", fname, line);
             if (!str2int(token, &now->stride))
                 enkf_quit("%s, l.%d: could not convert \"%s\" to int", fname, line, token);
+        } else if (strcasecmp(token, "SOBSTRIDE") == 0) {
+            if ((token = strtok(NULL, seps)) == NULL)
+                enkf_quit("%s, l.%d: SOBSTRIDE not specified", fname, line);
+            if (now->stride != 0)
+                enkf_quit("%s, l.%d: SOBSTRIDE specified twice", fname, line);
+            if (!str2int(token, &now->sob_stride))
+                enkf_quit("%s, l.%d: could not convert \"%s\" to int", fname, line, token);
         } else if (now->levelvarnameentry != NULL && strcasecmp(token, now->levelvarnameentry) == 0) {
             if ((token = strtok(NULL, seps)) == NULL)
                 enkf_printf("%s, l.%d: \"%s\" not specified", fname, line, now->levelvarnameentry);
@@ -335,6 +342,8 @@ void gridprm_print(gridprm* prm, char offset[])
         enkf_printf("%s  %s = \"%s\"\n", offset, prm->levelvarnameentry, prm->levelvarname);
     if (prm->stride != 0)
         enkf_printf("%s  STRIDE = %d\n", offset, prm->stride);
+    if (prm->sob_stride != 0)
+        enkf_printf("%s  SOBSTRIDE = %d\n", offset, prm->sob_stride);
     if (prm->sfactor != 1.0)
         enkf_printf("%s  SFACTOR = \"%.f\"\n", offset, prm->sfactor);
 }

@@ -42,6 +42,7 @@ typedef struct {
      * hybrid stuff end 
      */
     int stride;
+    int sob_stride;
     double sfactor;
 } gridprm;
 

@@ -34,6 +34,7 @@
 #include "grid.h"
 #include "observations.h"
 #include "prep_utils.h"
+#include "allreaders.h"
 
 #define KIND_NIGHTTIME (1 << 0)
 #define KIND_WINDY     (1 << 1)
@@ -41,8 +42,9 @@
 
 /**
  */
-void reader_viirs_standard(char* fname, int fid, obsmeta* meta, model* m, observations* obs)
+void reader_viirs_standard(char* fname, int fid, obsmeta* meta, grid* g, observations* obs)
 {
+    int ksurf = grid_getsurflayerid(g);
     int ncid;
     int ndim;
     int dimid_ni, dimid_nj;
@@ -70,10 +72,8 @@ void reader_viirs_standard(char* fname, int fid, obsmeta* meta, model* m, observ
 
     char tunits[MAXSTRLEN];
     double tunits_multiple, tunits_offset;
-    int mvid;
     double varshift = 0.0;
     double mindepth = 0.0;
-    int ksurf;
     int i, nobs;
 
 #if defined(DEBUG)
@@ -191,9 +191,6 @@ void reader_viirs_standard(char* fname, int fid, obsmeta* meta, model* m, observ
 
     tunits_convert(tunits, &tunits_multiple, &tunits_offset);
 
-    mvid = model_getvarid(m, obs->obstypes[obstype_getid(obs->nobstypes, obs->obstypes, meta->type, 1)].varnames[0], 1);
-    ksurf = grid_getsurflayerid(model_getvargrid(m, mvid));
-
     nobs = 0;
     for (i = 0; i < (int) n; ++i) {
         observation* o;
@@ -230,7 +227,7 @@ void reader_viirs_standard(char* fname, int fid, obsmeta* meta, model* m, observ
         }
         o->depth = 0.0;
         o->fk = (double) ksurf;
-        o->status = model_xy2fij(m, mvid, o->lon, o->lat, &o->fi, &o->fj);
+        o->status = grid_xy2fij(g, o->lon, o->lat, &o->fi, &o->fj);
         if (!obs->allobs && o->status == STATUS_OUTSIDEGRID)
             continue;
         if ((o->status == STATUS_OK) && (o->lon <= ot->xmin || o->lon >= ot->xmax || o->lat <= ot->ymin || o->lat >= ot->ymax))

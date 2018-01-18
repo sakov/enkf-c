@@ -49,16 +49,25 @@ int** grid_getnumlevels(grid* g);
 double grid_getlonbase(grid* g);
 int grid_getstride(grid* g);
 void grid_setstride(grid* g, int stride);
+int grid_getsobstride(grid* g);
+void grid_setsobstride(grid* g, int sobstride);
 double grid_getsfactor(grid* g);
 
-void grid_xy2fij(grid* g, double x, double y, double* fi, double* fj);
-void grid_z2fk(grid* g, double fi, double fj, double z, double* fk);
+int grid_xy2fij(grid* g, double x, double y, double* fi, double* fj);
+int grid_z2fk(grid* g, double fi, double fj, double z, double* fk);
 void grid_fij2xy(grid* g, double fi, double fj, double* x, double* y);
 void grid_ij2xy(grid* g, int i, int j, double* x, double* y);
-void grid_fk2z(grid* g, int i, int j, double fk, double* z);
+int grid_fk2z(grid* g, int i, int j, double fk, double* z);
 void grid_tocartesian(grid* g, double in[2], double out[3]);
 
 int grid_isperiodic_x(grid* g);
+
+/*
+ * stuff to handle an array of grids
+ */
+void grids_create(char gprmfname[], int stride, int sob_stride, int* ngrid, void*** grids);
+void grids_addgrid(int* ngrid, void*** grids, void* g);
+void grids_destroy(int ngrid, void** grids);
 
 #define _GRID_H
 #endif

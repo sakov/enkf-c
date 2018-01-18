@@ -26,11 +26,13 @@
 #include "grid.h"
 #include "observations.h"
 #include "prep_utils.h"
+#include "allreaders.h"
 
 /**
  */
-void reader_windsat_standard(char* fname, int fid, obsmeta* meta, model* m, observations* obs)
+void reader_windsat_standard(char* fname, int fid, obsmeta* meta, grid* g, observations* obs)
 {
+    int ksurf = grid_getsurflayerid(g);
     int ncid;
     int dimid_nobs;
     size_t nobs_local;
@@ -45,8 +47,6 @@ void reader_windsat_standard(char* fname, int fid, obsmeta* meta, model* m, obse
     size_t tunits_len;
     double tunits_multiple, tunits_offset;
     char* basename;
-    int mvid;
-    int ksurf;
     int i;
 
     for (i = 0; i < meta->npars; ++i)
@@ -105,9 +105,6 @@ void reader_windsat_standard(char* fname, int fid, obsmeta* meta, model* m, obse
 
     tunits_convert(tunits, &tunits_multiple, &tunits_offset);
 
-    mvid = model_getvarid(m, obs->obstypes[obstype_getid(obs->nobstypes, obs->obstypes, meta->type, 1)].varnames[0], 1);
-    ksurf = grid_getsurflayerid(model_getvargrid(m, mvid));
-
     for (i = 0; i < (int) nobs_local; ++i)
         if (time[i] != 0.0)
             break;
@@ -136,7 +133,7 @@ void reader_windsat_standard(char* fname, int fid, obsmeta* meta, model* m, obse
         o->lat = lat[i];
         o->depth = 0.0;
         o->fk = (double) ksurf;
-        o->status = model_xy2fij(m, mvid, o->lon, o->lat, &o->fi, &o->fj);
+        o->status = grid_xy2fij(g, o->lon, o->lat, &o->fi, &o->fj);
         if (!obs->allobs && o->status == STATUS_OUTSIDEGRID)
             continue;
         if ((o->status == STATUS_OK) && (o->lon <= ot->xmin || o->lon >= ot->xmax || o->lat <= ot->ymin || o->lat >= ot->ymax || o->depth <= ot->zmin || o->depth >= ot->zmax))

@@ -27,7 +27,6 @@
 
 #define NMODELDATA_INC 10
 #define NVAR_INC 10
-#define GRID_INC 10
 
 typedef struct {
     char* tag;
@@ -91,26 +90,6 @@ static void model_destroyvars(model* m)
 
 /**
  */
-static void model_setgrids(model* m, char gfname[])
-{
-    int ngrid = 0;
-    gridprm* prm = NULL;
-    int i;
-
-    gridprm_create(gfname, &ngrid, &prm);
-    assert(ngrid > 0);
-
-    for (i = 0; i < ngrid; ++i) {
-        grid* g = NULL;
-
-        g = grid_create(&prm[i], i);
-        grid_settocartesian_fn(g, ll2xyz);
-        model_setgrid(m, g);
-    }
-
-    gridprm_destroy(ngrid, prm);
-}
-
 static void model_checkvars(model* m, char* modelprm)
 {
     int i;
@@ -131,17 +110,9 @@ model* model_create(enkfprm* prm)
 {
     model* m = calloc(1, sizeof(model));
     char* modelprm = prm->modelprm;
-    char* gridprm = prm->gridprm;
     int i;
 
-    model_setgrids(m, gridprm);
-
-    for (i = 0; i < m->ngrid; ++i) {
-        grid* g = m->grids[i];
-
-        if (grid_getstride(g) == 0)
-            grid_setstride(g, prm->stride);
-    }
+    grids_create(prm->gridprm, prm->stride, prm->sob_stride, &m->ngrid, &m->grids);
 
     /*
      * read model parameter file
@@ -299,22 +270,10 @@ static void model_freemodeldata(model* m)
 
 /**
  */
-static void model_destroygrids(model* m)
-{
-    int i;
-
-    for (i = 0; i < m->ngrid; ++i)
-        grid_destroy(m->grids[i]);
-
-    free(m->grids);
-}
-
-/**
- */
 void model_destroy(model* m)
 {
     free(m->name);
-    model_destroygrids(m);
+    grids_destroy(m->ngrid, m->grids);
     model_destroyvars(m);
     model_freemodeldata(m);
     free(m);
@@ -374,16 +333,6 @@ void model_describeprm(void)
     enkf_printf("    3. ( ... ) is a note\n");
     enkf_printf("    4. ... denotes repeating the previous item an arbitrary number of times\n");
     enkf_printf("\n");
-}
-
-/**
- */
-void model_setgrid(model* m, void* g)
-{
-    if (m->ngrid % GRID_INC == 0)
-        m->grids = realloc(m->grids, (m->ngrid + GRID_INC) * sizeof(void*));
-    m->grids[m->ngrid] = g;
-    m->ngrid++;
 }
 
 /**
@@ -640,50 +589,7 @@ int model_getbgfname_async(model* m, char bgdir[], char varname[], char otname[]
  */
 int model_xy2fij(model* m, int vid, double x, double y, double* fi, double* fj)
 {
-    void* grid = m->grids[m->vars[vid].gridid];
-    int isperiodic_x = grid_isperiodic_x(grid);
-    int** numlevels = grid_getnumlevels(grid);
-    double lonbase = grid_getlonbase(grid);
-    int ni, nj;
-    int i1, i2, j1, j2;
-
-    if (!isnan(lonbase)) {
-        if (x < lonbase)
-            x += 360.0;
-        else if (x >= lonbase + 360.0)
-            x -= 360.0;
-    }
-
-    grid_xy2fij(grid, x, y, fi, fj);
-
-    if (isnan(*fi + *fj))
-        return STATUS_OUTSIDEGRID;
-
-    /*
-     * Note that this section should be consistent with similar sections in
-     * interpolate2d() and interpolate3d().
-     */
-    i1 = floor(*fi);
-    i2 = ceil(*fi);
-    j1 = floor(*fj);
-    j2 = ceil(*fj);
-
-    model_getvardims(m, vid, &ni, &nj, NULL);
-    if (i1 == -1)
-        i1 = (isperiodic_x) ? ni - 1 : i2;
-    if (i2 == ni)
-        i2 = (isperiodic_x) ? 0 : i1;
-    if (j1 == -1)
-        j1 = j2;
-    if (j2 == nj)
-        j2 = j1;
-
-    if (numlevels[j1][i1] == 0 && numlevels[j1][i2] == 0 && numlevels[j2][i1] == 0 && numlevels[j2][i2] == 0) {
-        *fi = NAN;
-        *fj = NAN;
-        return STATUS_LAND;
-    }
-    return STATUS_OK;
+    return grid_xy2fij(m->grids[m->vars[vid].gridid], x, y, fi, fj);
 }
 
 /**
@@ -716,82 +622,14 @@ int model_ij2xy(model* m, int vid, int i, int j, double* x, double* y)
  */
 int model_z2fk(model* m, int vid, double fi, double fj, double z, double* fk)
 {
-    void* grid = m->grids[m->vars[vid].gridid];
-    int isperiodic_x = grid_isperiodic_x(grid);
-    int** numlevels = grid_getnumlevels(grid);
-    int ni, nj;
-    int i1, i2, j1, j2, k2;
-
-    if (isnan(fi + fj)) {
-        *fk = NAN;
-        return STATUS_OUTSIDEGRID;
-    }
-
-    grid_z2fk(grid, fi, fj, z, fk);
-
-    if (isnan(*fk))
-        return STATUS_OUTSIDEGRID;
-
-    if (grid_getvtype(grid) == GRIDVTYPE_SIGMA || grid_getdepth(grid) == NULL)
-         return STATUS_OK;
-
-    /*
-     * a depth check for z-grid:
-     */
-    model_getvardims(m, vid, &ni, &nj, NULL);
-    i1 = floor(fi);
-    i2 = ceil(fi);
-    if (i1 == -1)
-        i1 = (isperiodic_x) ? ni - 1 : i2;
-    if (i2 == ni)
-        i2 = (isperiodic_x) ? 0 : i1;
-    j1 = floor(fj);
-    j2 = ceil(fj);
-    if (j1 == -1)
-        j1 = j2;
-    if (j2 == nj)
-        j2 = j1;
-    k2 = floor(*fk);
-    if (numlevels[j1][i1] <= k2 && numlevels[j1][i2] <= k2 && numlevels[j2][i1] <= k2 && numlevels[j2][i2] <= k2) {
-        *fk = NAN;
-        return STATUS_LAND;
-    } else if (numlevels[j1][i1] <= k2 || numlevels[j1][i2] <= k2 || numlevels[j2][i1] <= k2 || numlevels[j2][i2] <= k2) {
-        float** depth = grid_getdepth(grid);
-        int ni, nj;
-        double v;
-
-        grid_getdims(grid, &ni, &nj, NULL);
-
-        v = interpolate2d(fi, fj, ni, nj, depth, numlevels, grid_isperiodic_x(grid));
-
-        if (z > v)
-            return STATUS_LAND;
-    }
-
-    return STATUS_OK;
+    return grid_z2fk(m->grids[m->vars[vid].gridid], fi, fj, z, fk);
 }
 
 /**
  */
 int model_fk2z(model* m, int vid, int i, int j, double fk, double* z)
 {
-    grid* g = m->grids[m->vars[vid].gridid];
-    float** depth;
-    int ni, nj;
-
-    grid_getdims(g, &ni, &nj, NULL);
-    if (i < 0 || j < 0 || i >= ni || j >= nj) {
-        *z = NAN;
-        return STATUS_OUTSIDEGRID;
-    }
-    grid_fk2z(g, i, j, fk, z);
-    depth = grid_getdepth(g);
-    if (*z > depth[j][i]) {
-        *z = NAN;
-        return STATUS_OUTSIDEGRID;
-    }
-
-    return STATUS_OK;
+    return grid_fk2z(m->grids[m->vars[vid].gridid], i, j, fk, z);
 }
 
 /**

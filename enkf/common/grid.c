@@ -41,6 +41,8 @@
 #define GRIDVDIR_FROMSURF 0
 #define GRIDVDIR_TOSURF 1
 
+#define GRID_INC 10
+
 typedef struct {
     int nx;
     int ny;
@@ -115,6 +117,11 @@ struct grid {
      * common value defined in the top prm file. 
      */
     int stride;
+    /*
+     * `sobtride' for superobing. "0" means to use the common value defined in
+     * the top prm file. 
+     */
+    int sob_stride;
 
     /*
      * "Spread factor", normally set to 1. Introduced to adjust relative spread
@@ -746,6 +753,8 @@ grid* grid_create(void* p, int id)
     g->vtype = gridprm_getvtype(prm);
     if (prm->stride != 0)
         g->stride = prm->stride;
+    if (prm->sob_stride != 0)
+        g->sob_stride = prm->sob_stride;
     g->sfactor = prm->sfactor;
 #if !defined(NO_GRIDUTILS)
 #if !defined(GRIDMAP_TYPE_DEF)
@@ -1013,6 +1022,8 @@ void grid_print(grid* g, char offset[])
         enkf_quit("not implemented");
     if (g->stride != 0)
         enkf_printf("%s  STRIDE = \"%d\"\n", offset, g->stride);
+    if (g->sob_stride != 0)
+        enkf_printf("%s  SOBSTRIDE = \"%d\"\n", offset, g->sob_stride);
     if (g->sfactor != 1.0)
         enkf_printf("%s  SFACTOR = \"%f\"\n", offset, g->sfactor);
 }
@@ -1043,6 +1054,7 @@ void grid_describeprm(void)
     enkf_printf("    P1VARNAME        = <P1 variable name> (hybrid)\n");
     enkf_printf("    P2VARNAME        = <P2 variable name> (hybrid)\n");
     enkf_printf("  [ STRIDE           = <stride> (common*) ]\n");
+    enkf_printf("  [ SOBSTRIDE        = <sobstride> (common*) ]\n");
     enkf_printf("  [ SFACTOR          = <spread factor> (1.0*) ]\n");
     enkf_printf("\n");
     enkf_printf("  [ <more of the above blocks> ]\n");
@@ -1178,6 +1190,20 @@ void grid_setstride(grid* g, int stride)
 
 /**
  */
+int grid_getsobstride(grid* g)
+{
+    return g->sob_stride;
+}
+
+/**
+ */
+void grid_setsobstride(grid* g, int sob_stride)
+{
+    g->sob_stride = sob_stride;
+}
+
+/**
+ */
 double grid_getsfactor(grid* g)
 {
     return g->sfactor;
@@ -1185,8 +1211,19 @@ double grid_getsfactor(grid* g)
 
 /**
  */
-void grid_xy2fij(grid* g, double x, double y, double* fi, double* fj)
+int grid_xy2fij(grid* g, double x, double y, double* fi, double* fj)
 {
+    int isperiodic_x = grid_isperiodic_x(g);
+    int ni, nj;
+    int i1, i2, j1, j2;
+
+    if (!isnan(g->lonbase)) {
+        if (x < g->lonbase)
+            x += 360.0;
+        else if (x >= g->lonbase + 360.0)
+            x -= 360.0;
+    }
+
     if (g->htype == GRIDHTYPE_LATLON)
         gs_xy2fij(g, x, y, fi, fj);
 #if !defined(NO_GRIDUTILS)
@@ -1195,18 +1232,92 @@ void grid_xy2fij(grid* g, double x, double y, double* fi, double* fj)
 #endif
     else
         enkf_quit("programming error");
+    if (isnan(*fi + *fj))
+        return STATUS_OUTSIDEGRID;
+
+    /*
+     * Note that this section should be consistent with similar sections in
+     * interpolate2d() and interpolate3d().
+     */
+    i1 = floor(*fi);
+    i2 = ceil(*fi);
+    j1 = floor(*fj);
+    j2 = ceil(*fj);
+
+    grid_getdims(g, &ni, &nj, NULL);
+    if (i1 == -1)
+        i1 = (isperiodic_x) ? ni - 1 : i2;
+    if (i2 == ni)
+        i2 = (isperiodic_x) ? 0 : i1;
+    if (j1 == -1)
+        j1 = j2;
+    if (j2 == nj)
+        j2 = j1;
+
+    if (g->numlevels[j1][i1] == 0 && g->numlevels[j1][i2] == 0 && g->numlevels[j2][i1] == 0 && g->numlevels[j2][i2] == 0) {
+        *fi = NAN;
+        *fj = NAN;
+        return STATUS_LAND;
+    }
+    return STATUS_OK;
 }
 
 /**
  */
-void grid_z2fk(grid* g, double fi, double fj, double z, double* fk)
+int grid_z2fk(grid* g, double fi, double fj, double z, double* fk)
 {
+    int isperiodic_x = grid_isperiodic_x(g);
+    int ni, nj;
+    int i1, i2, j1, j2, k;
+
+    if (isnan(fi + fj)) {
+        *fk = NAN;
+        return STATUS_OUTSIDEGRID;
+    }
+
     if (g->vtype == GRIDVTYPE_Z || g->vtype == GRIDVTYPE_SIGMA)
         gz_simple_z2fk(g, fi, fj, z, fk);
     else if (g->vtype == GRIDVTYPE_HYBRID)
         gz_hybrid_z2fk(g, fi, fj, z, fk);
     else
         enkf_quit("not implemented");
+
+    if (isnan(*fk))
+        return STATUS_OUTSIDEGRID;
+
+    if (g->vtype == GRIDVTYPE_SIGMA || g->depth == NULL)
+         return STATUS_OK;
+
+    /*
+     * a depth check for z-grid:
+     */
+    grid_getdims(g, &ni, &nj, NULL);
+    i1 = floor(fi);
+    i2 = ceil(fi);
+    if (i1 == -1)
+        i1 = (isperiodic_x) ? ni - 1 : i2;
+    if (i2 == ni)
+        i2 = (isperiodic_x) ? 0 : i1;
+    j1 = floor(fj);
+    j2 = ceil(fj);
+    if (j1 == -1)
+        j1 = j2;
+    if (j2 == nj)
+        j2 = j1;
+    k = floor(*fk);
+    if (g->numlevels[j1][i1] <= k && g->numlevels[j1][i2] <= k && g->numlevels[j2][i1] <= k && g->numlevels[j2][i2] <= k) {
+        *fk = NAN;
+        return STATUS_LAND;
+    } else if (g->numlevels[j1][i1] <= k || g->numlevels[j1][i2] <= k || g->numlevels[j2][i1] <= k || g->numlevels[j2][i2] <= k) {
+        double v;
+
+        v = interpolate2d(fi, fj, ni, nj, g->depth, g->numlevels, isperiodic_x);
+
+        if (z > v)
+            return STATUS_LAND;
+    }
+
+    return STATUS_OK;
 }
 
 /**
@@ -1257,8 +1368,16 @@ void grid_ij2xy(grid* g, int i, int j, double* x, double* y)
 
 /**
  */
-void grid_fk2z(grid* g, int i, int j, double fk, double* z)
+int grid_fk2z(grid* g, int i, int j, double fk, double* z)
 {
+    int ni, nj;
+
+    grid_getdims(g, &ni, &nj, NULL);
+    if (i < 0 || j < 0 || i >= ni || j >= nj) {
+        *z = NAN;
+        return STATUS_OUTSIDEGRID;
+    }
+
     if (g->vtype == GRIDVTYPE_Z || g->vtype == GRIDVTYPE_SIGMA) {
         gz_simple* nodes = g->gridnodes_z;
         double* zc = nodes->zc;
@@ -1317,6 +1436,14 @@ void grid_fk2z(grid* g, int i, int j, double fk, double* z)
         }
     } else
         enkf_quit("not implemented");
+
+    if (g->depth != NULL && *z > g->depth[j][i]) {
+        *z = NAN;
+        return STATUS_OUTSIDEGRID;
+    }
+
+    return STATUS_OK;
+    
 }
 
 /**
@@ -1341,4 +1468,49 @@ void grid_settocartesian_fn(grid* g, grid_tocartesian_fn fn)
 void grid_tocartesian(grid* g, double* in, double* out)
 {
     g->tocartesian_fn(in, out);
+}
+
+void grids_create(char gprmfname[], int stride, int sob_stride, int* ngrid, void*** grids)
+{
+    int n = 0;
+    gridprm* gprm = NULL;
+    int i;
+
+    gridprm_create(gprmfname, &n, &gprm);
+    assert(n > 0);
+
+    for (i = 0; i < n; ++i) {
+        grid* g = NULL;
+
+        g = grid_create(&gprm[i], i);
+        grid_settocartesian_fn(g, ll2xyz);
+        grids_addgrid(ngrid, grids, g);
+
+        if (grid_getstride(g) == 0)
+            grid_setstride(g, stride);
+        if (grid_getsobstride(g) == 0)
+            grid_setsobstride(g, sob_stride);
+    }
+    gridprm_destroy(n, gprm);
+}
+
+/**
+ */
+void grids_addgrid(int* ngrid, void*** grids, void* g)
+{
+    if (*ngrid % GRID_INC == 0)
+        (*grids) = realloc((*grids), (*ngrid + GRID_INC) * sizeof(void*));
+    (*grids)[*ngrid] = g;
+    (*ngrid)++;
+}
+
+/**
+ */
+void grids_destroy(int ngrid, void** grids)
+{
+    int i;
+
+    for (i = 0; i < ngrid; ++i)
+        grid_destroy(grids[i]);
+    free(grids);
 }

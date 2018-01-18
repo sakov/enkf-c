@@ -20,8 +20,8 @@
 #include "kdtree.h"
 #include "enkfprm.h"
 #include "grid.h"
-#include "obstypes.h"
 #include "model.h"
+#include "obstypes.h"
 
 /*
  * (we keep the integer types signed for compatibility with netcdf 3)
@@ -76,7 +76,7 @@ typedef struct {
 #endif
     int** obsids;
 
-    double da_date;             /* days since 00:00:00
+    double da_date;             /* fractional days since 00:00:00
                                  * BASEDAY-BASEMONTH-BASEYEAR */
     char* datestr;
 
@@ -86,8 +86,6 @@ typedef struct {
     int nobs;
     observation* data;
     int compacted;
-
-    int stride;
 
     int hasstats;
     int ngood;
@@ -104,6 +102,10 @@ typedef struct {
 
     int ncformat;
     int nccompression;
+
+#if defined(ENKF_PREP)
+    void* model;
+#endif
 } observations;
 
 observations* obs_create(void);

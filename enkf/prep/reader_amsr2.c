@@ -26,11 +26,13 @@
 #include "grid.h"
 #include "observations.h"
 #include "prep_utils.h"
+#include "allreaders.h"
 
 /**
  */
-void reader_amsr2_standard(char* fname, int fid, obsmeta* meta, model* m, observations* obs)
+void reader_amsr2_standard(char* fname, int fid, obsmeta* meta, grid* g, observations* obs)
 {
+    int ksurf = grid_getsurflayerid(g);
     int ncid;
     int dimid_nobs;
     size_t nobs_local;
@@ -45,8 +47,6 @@ void reader_amsr2_standard(char* fname, int fid, obsmeta* meta, model* m, observ
     size_t tunits_len;
     double tunits_multiple, tunits_offset;
     char* basename;
-    int model_vid;
-    int ksurf;
     int i;
 
     for (i = 0; i < meta->npars; ++i)
@@ -105,9 +105,6 @@ void reader_amsr2_standard(char* fname, int fid, obsmeta* meta, model* m, observ
 
     tunits_convert(tunits, &tunits_multiple, &tunits_offset);
 
-    model_vid = model_getvarid(m, obs->obstypes[obstype_getid(obs->nobstypes, obs->obstypes, meta->type, 1)].varnames[0], 1);
-    ksurf = grid_getsurflayerid(model_getvargrid(m, model_vid));
-
     for (i = 0; i < (int) nobs_local; ++i) {
         observation* o;
         obstype* ot;
@@ -129,7 +126,7 @@ void reader_amsr2_standard(char* fname, int fid, obsmeta* meta, model* m, observ
         o->lat = lat[i];
         o->depth = 0.0;
         o->fk = (double) ksurf;
-        o->status = model_xy2fij(m, model_vid, o->lon, o->lat, &o->fi, &o->fj);
+        o->status = grid_xy2fij(g, o->lon, o->lat, &o->fi, &o->fj);
         if (!obs->allobs && o->status == STATUS_OUTSIDEGRID)
             continue;
         o->model_depth = NAN;   /* set in obs_add() */

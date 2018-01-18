@@ -30,6 +30,7 @@
 #include "model.h"
 #include "observations.h"
 #include "prep_utils.h"
+#include "allreaders.h"
 
 #define EPS 1.0e-6
 #define WMO_INSTSIZE 4
@@ -54,7 +55,7 @@ static int cmp_lonlat(const void* p1, const void* p2)
 
 /**
  */
-void reader_mmt_standard(char* fname, int fid, obsmeta* meta, model* m, observations* obs)
+void reader_mmt_standard(char* fname, int fid, obsmeta* meta, grid* g, observations* obs)
 {
     int ncid;
     int dimid_nprof, dimid_nz;
@@ -73,7 +74,6 @@ void reader_mmt_standard(char* fname, int fid, obsmeta* meta, model* m, observat
     int len;
     int year, month, day;
     double tunits_multiple, tunits_offset;
-    int mvid;
     int p, i;
 
     for (i = 0; i < meta->npars; ++i)
@@ -143,8 +143,6 @@ void reader_mmt_standard(char* fname, int fid, obsmeta* meta, model* m, observat
 
     tunits_convert(buf, &tunits_multiple, &tunits_offset);
 
-    mvid = model_getvarid(m, obs->obstypes[obstype_getid(obs->nobstypes, obs->obstypes, meta->type, 1)].varnames[0], 1);
-
     for (p = 0; p < (int) nprof; ++p) {
         char inststr[MAXSTRLEN];
         int instnum;
@@ -180,11 +178,11 @@ void reader_mmt_standard(char* fname, int fid, obsmeta* meta, model* m, observat
             o->lon = lon[p];
             o->lat = lat[p];
             o->depth = z[p][i];
-            o->status = model_xy2fij(m, mvid, o->lon, o->lat, &o->fi, &o->fj);
+            o->status = grid_xy2fij(g, o->lon, o->lat, &o->fi, &o->fj);
             if (!obs->allobs && o->status == STATUS_OUTSIDEGRID)
                 break;
             if (o->status == STATUS_OK)
-                o->status = model_z2fk(m, mvid, o->fi, o->fj, o->depth, &o->fk);
+                o->status = grid_z2fk(g, o->fi, o->fj, o->depth, &o->fk);
             else
                 o->fk = NAN;
             if ((o->status == STATUS_OK) && (o->lon <= ot->xmin || o->lon >= ot->xmax || o->lat <= ot->ymin || o->lat >= ot->ymax || o->depth <= ot->zmin || o->depth >= ot->zmax))

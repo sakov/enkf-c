@@ -27,6 +27,7 @@
 #include "grid.h"
 #include "observations.h"
 #include "prep_utils.h"
+#include "allreaders.h"
 
 #define ORBITS_ALL        0
 #define ORBITS_DESCENDING 1
@@ -38,8 +39,9 @@
 
 /**
  */
-void reader_amsre_standard(char* fname, int fid, obsmeta* meta, model* m, observations* obs)
+void reader_amsre_standard(char* fname, int fid, obsmeta* meta, grid* g, observations* obs)
 {
+    int ksurf = grid_getsurflayerid(g);
     double minwind = MINWIND_DEF;
     int orbits = ORBITS_DEF;
     int ncid;
@@ -59,8 +61,6 @@ void reader_amsre_standard(char* fname, int fid, obsmeta* meta, model* m, observ
     size_t tunits_len;
     double tunits_multiple, tunits_offset;
     char* basename;
-    int mvid;
-    int ksurf;
     int i, j;
     int channel;
 
@@ -153,9 +153,6 @@ void reader_amsre_standard(char* fname, int fid, obsmeta* meta, model* m, observ
 
     tunits_convert(tunits, &tunits_multiple, &tunits_offset);
 
-    mvid = model_getvarid(m, obs->obstypes[obstype_getid(obs->nobstypes, obs->obstypes, meta->type, 1)].varnames[0], 1);
-    ksurf = grid_getsurflayerid(model_getvargrid(m, mvid));
-
     for (channel = 0; channel < 2; ++channel) {
         double** data = (channel == 0) ? sst_a : sst_d;
         double** wind = (channel == 0) ? wind_a : wind_d;
@@ -191,7 +188,7 @@ void reader_amsre_standard(char* fname, int fid, obsmeta* meta, model* m, observ
                 o->lat = lat[j];
                 o->depth = 0.0;
                 o->fk = (double) ksurf;
-                o->status = model_xy2fij(m, mvid, o->lon, o->lat, &o->fi, &o->fj);
+                o->status = grid_xy2fij(g, o->lon, o->lat, &o->fi, &o->fj);
                 if (!obs->allobs && o->status == STATUS_OUTSIDEGRID)
                     continue;
                 if ((o->status == STATUS_OK) && (o->lon <= ot->xmin || o->lon >= ot->xmax || o->lat <= ot->ymin || o->lat >= ot->ymax))

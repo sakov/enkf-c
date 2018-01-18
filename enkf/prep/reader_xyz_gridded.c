@@ -51,13 +51,14 @@
 #include "grid.h"
 #include "observations.h"
 #include "prep_utils.h"
+#include "allreaders.h"
 
 #define TYPE_DOUBLE 0
 #define TYPE_SHORT 1
 
 /**
  */
-void reader_xyz_gridded(char* fname, int fid, obsmeta* meta, model* m, observations* obs)
+void reader_xyz_gridded(char* fname, int fid, obsmeta* meta, grid* g, observations* obs)
 {
     char* varname = NULL;
     char* lonname = NULL;
@@ -100,7 +101,6 @@ void reader_xyz_gridded(char* fname, int fid, obsmeta* meta, model* m, observati
     float time_fill_value = NAN;
     char tunits[MAXSTRLEN];
     double tunits_multiple = NAN, tunits_offset = NAN;
-    int mvid;
     int i, nobs_read;
 
     strcpy(instrument, meta->product);
@@ -333,8 +333,6 @@ void reader_xyz_gridded(char* fname, int fid, obsmeta* meta, model* m, observati
 
     ncw_close(ncid);
 
-    mvid = model_getvarid(m, obs->obstypes[obstype_getid(obs->nobstypes, obs->obstypes, meta->type, 1)].varnames[0], 1);
-
     nobs_read = 0;
     for (i = 0; i < (int) nijk; ++i) {
         int ij = i % nij;
@@ -385,14 +383,14 @@ void reader_xyz_gridded(char* fname, int fid, obsmeta* meta, model* m, observati
             o->lon = lon[ij];
             o->lat = lat[ij];
         }
-        o->status = model_xy2fij(m, mvid, o->lon, o->lat, &o->fi, &o->fj);
+        o->status = grid_xy2fij(g, o->lon, o->lat, &o->fi, &o->fj);
         if (!obs->allobs && o->status == STATUS_OUTSIDEGRID)
             continue;
         if ((o->status == STATUS_OK) && (o->lon <= ot->xmin || o->lon >= ot->xmax || o->lat <= ot->ymin || o->lat >= ot->ymax))
             o->status = STATUS_OUTSIDEOBSDOMAIN;
         o->depth = (zndim == 1) ? z[i / nij] : z[i];
         if (o->status == STATUS_OK)
-            o->status = model_z2fk(m, mvid, o->fi, o->fj, o->depth, &o->fk);
+            o->status = grid_z2fk(g, o->fi, o->fj, o->depth, &o->fk);
         else
             o->fk = NAN;
         o->model_depth = NAN;   /* set in obs_add() */

@@ -34,14 +34,16 @@
 #include "model.h"
 #include "observations.h"
 #include "prep_utils.h"
+#include "allreaders.h"
 
 #define MINDEPTH_DEF 200.0
 
 /** For files of the form ??_yyyymmdd.nc. They are assumed to have "time" 
  * variable.
  */
-void reader_rads_standard(char* fname, int fid, obsmeta* meta, model* m, observations* obs)
+void reader_rads_standard(char* fname, int fid, obsmeta* meta, grid* g, observations* obs)
 {
+    int ksurf = grid_getsurflayerid(g);
     double mindepth = MINDEPTH_DEF;
     char* addname = NULL;
     int ncid;
@@ -60,8 +62,7 @@ void reader_rads_standard(char* fname, int fid, obsmeta* meta, model* m, observa
     double tunits_multiple, tunits_offset;
     char* basename;
     char instname[3];
-    int mvid;
-    int i, ksurf;
+    int i;
 
     for (i = 0; i < meta->npars; ++i) {
         if (strcasecmp(meta->pars[i].name, "MINDEPTH") == 0) {
@@ -129,9 +130,6 @@ void reader_rads_standard(char* fname, int fid, obsmeta* meta, model* m, observa
     strncpy(instname, basename, 2);
     instname[2] = 0;
 
-    mvid = model_getvarid(m, obs->obstypes[obstype_getid(obs->nobstypes, obs->obstypes, meta->type, 1)].varnames[0], 1);
-    ksurf = grid_getsurflayerid(model_getvargrid(m, mvid));
-
     for (i = 0; i < (int) nobs_local; ++i) {
         observation* o;
         obstype* ot;
@@ -154,7 +152,7 @@ void reader_rads_standard(char* fname, int fid, obsmeta* meta, model* m, observa
         o->lon = lon[i];
         o->lat = lat[i];
         o->depth = 0.0;
-        o->status = model_xy2fij(m, mvid, o->lon, o->lat, &o->fi, &o->fj);
+        o->status = grid_xy2fij(g, o->lon, o->lat, &o->fi, &o->fj);
         if (!obs->allobs && o->status == STATUS_OUTSIDEGRID)
             continue;
         o->fk = (double) ksurf;
@@ -180,8 +178,9 @@ void reader_rads_standard(char* fname, int fid, obsmeta* meta, model* m, observa
 
 /** For files of the form y<yyyy>/m<mm>/??_d<dd>.nc with no "time" variable.
  */
-void reader_rads_standard2(char* fname, int fid, obsmeta* meta, model* m, observations* obs)
+void reader_rads_standard2(char* fname, int fid, obsmeta* meta, grid* g, observations* obs)
 {
+    int ksurf = grid_getsurflayerid(g);
     double mindepth = MINDEPTH_DEF;
     char* addname = NULL;
     int ncid;
@@ -201,8 +200,7 @@ void reader_rads_standard2(char* fname, int fid, obsmeta* meta, model* m, observ
     double tunits_multiple, tunits_offset;
     char* basename;
     char instname[3];
-    int mvid;
-    int i, ksurf;
+    int i;
 
     for (i = 0; i < meta->npars; ++i) {
         if (strcasecmp(meta->pars[i].name, "MINDEPTH") == 0) {
@@ -279,9 +277,6 @@ void reader_rads_standard2(char* fname, int fid, obsmeta* meta, model* m, observ
     strncpy(instname, basename, 2);
     instname[2] = 0;
 
-    mvid = model_getvarid(m, obs->obstypes[obstype_getid(obs->nobstypes, obs->obstypes, meta->type, 1)].varnames[0], 1);
-    ksurf = grid_getsurflayerid(model_getvargrid(m, mvid));
-
     for (i = 0; i < (int) nobs_local; ++i) {
         observation* o;
         obstype* ot;
@@ -307,7 +302,7 @@ void reader_rads_standard2(char* fname, int fid, obsmeta* meta, model* m, observ
         o->lon = lon[i];
         o->lat = lat[i];
         o->depth = 0.0;
-        o->status = model_xy2fij(m, mvid, o->lon, o->lat, &o->fi, &o->fj);
+        o->status = grid_xy2fij(g, o->lon, o->lat, &o->fi, &o->fj);
         if (!obs->allobs && o->status == STATUS_OUTSIDEGRID)
             continue;
         o->model_depth = NAN;   /* set in obs_add() */

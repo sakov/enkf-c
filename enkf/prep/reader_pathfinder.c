@@ -28,15 +28,15 @@
 #include "enkfprm.h"
 #include "obsmeta.h"
 #include "grid.h"
-#include "model.h"
 #include "observations.h"
 #include "prep_utils.h"
 #include "allreaders.h"
 
 /** For files of the form y<yyyy>/m<mm>/??_d<dd>.nc with no "time" variable.
  */
-void reader_pathfinder_standard(char* fname, int fid, obsmeta* meta, model* m, observations* obs)
+void reader_pathfinder_standard(char* fname, int fid, obsmeta* meta, grid* g, observations* obs)
 {
+    int ksurf = grid_getsurflayerid(g);
     int ncid;
     int dimid_nobs;
     size_t nobs_local;
@@ -51,8 +51,6 @@ void reader_pathfinder_standard(char* fname, int fid, obsmeta* meta, model* m, o
     double tunits_multiple, tunits_offset;
     char* basename;
     char instname[5];
-    int mvid;
-    int ksurf;
     int i;
 
     for (i = 0; i < meta->npars; ++i)
@@ -109,9 +107,6 @@ void reader_pathfinder_standard(char* fname, int fid, obsmeta* meta, model* m, o
     strncpy(instname, basename, 4);
     instname[4] = 0;
 
-    mvid = model_getvarid(m, obs->obstypes[obstype_getid(obs->nobstypes, obs->obstypes, meta->type, 1)].varnames[0], 1);
-    ksurf = grid_getsurflayerid(model_getvargrid(m, mvid));
-
     for (i = 0; i < (int) nobs_local; ++i) {
         observation* o;
         obstype* ot;
@@ -133,7 +128,7 @@ void reader_pathfinder_standard(char* fname, int fid, obsmeta* meta, model* m, o
         o->lat = lat[i];
         o->depth = 0.0;
         o->fk = (double) ksurf;
-        o->status = model_xy2fij(m, mvid, o->lon, o->lat, &o->fi, &o->fj);
+        o->status = grid_xy2fij(g, o->lon, o->lat, &o->fi, &o->fj);
         if (!obs->allobs && o->status == STATUS_OUTSIDEGRID)
             continue;
         o->model_depth = NAN;   /* set in obs_add() */

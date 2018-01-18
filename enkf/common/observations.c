@@ -128,7 +128,6 @@ observations* obs_create(void)
     obs->nobs = 0;
     obs->data = NULL;
     obs->compacted = 0;
-    obs->stride = 1;
     obs->hasstats = 0;
     obs->ngood = 0;
     obs->noutside_grid = 0;
@@ -142,6 +141,9 @@ observations* obs_create(void)
     obs->badbatches = NULL;
     obs->ncformat = NETCDF_FORMAT;
     obs->nccompression = 0;
+#if defined(ENKF_PREP)
+    obs->model = NULL;
+#endif
 
     return obs;
 }
@@ -162,8 +164,6 @@ observations* obs_create_fromprm(enkfprm* prm)
 #if defined(ENKF_PREP)
     obs->da_date = date_str2dbl(prm->date);
     obs->datestr = strdup(prm->date);
-
-    obs->stride = prm->sob_stride;
 
     if (file_exists(FNAME_BADBATCHES)) {
         FILE* f = NULL;
@@ -917,10 +917,7 @@ void obs_superob(observations* obs, __compar_d_fn_t cmp_obs, observations** sobs
     observation* data = obs->data;
     observation* sdata = NULL;
 
-    if (obs->stride == 0)
-        enkf_printf("    no superobing (SOBSTRIDE = 0)\n");
-    else
-        qsort_r(obs->data, obs->ngood, sizeof(observation), cmp_obs, obs);
+    qsort_r(obs->data, obs->ngood, sizeof(observation), cmp_obs, obs);
 
     while (i2 < obs->ngood) {
         observation* so;
@@ -934,7 +931,7 @@ void obs_superob(observations* obs, __compar_d_fn_t cmp_obs, observations** sobs
         /*
          * identify obs that will be combined into this superob 
          */
-        while (obs->stride > 0 && i2 + 1 < obs->nobs && cmp_obs(&data[i1], &data[i2 + 1], obs) == 0)
+        while (i2 + 1 < obs->nobs && cmp_obs(&data[i1], &data[i2 + 1], obs) == 0)
             i2++;
         if (nsobs % NOBS_INC == 0)
             sdata = realloc(sdata, (nsobs + NOBS_INC) * sizeof(observation));

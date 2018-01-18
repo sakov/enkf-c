@@ -38,6 +38,7 @@ typedef struct {
 
     int vid;
     int gridid;
+    int sob_stride;
 
     double xmin;
     double xmax;
@@ -72,9 +73,13 @@ typedef struct {
 } obstype;
 
 void obstypes_read(char fname[], int* n, obstype** types, double locrad_base, double rfactor_base);
-void obstypes_destroy(int n, obstype* types);
-int obstype_getid(int n, obstype types[], char* name, int hastosucceed);
 void obstypes_describeprm(void);
+#if defined(ENKF_PREP)
+void obstypes_set(int n, obstype* types, model* m);
+#endif
+void obstypes_destroy(int n, obstype* types);
+
+int obstype_getid(int n, obstype types[], char* name, int hastosucceed);
 double obstype_calclcoeff(obstype* type, double dist);
 double obstype_getmaxlocrad(obstype* type);
 

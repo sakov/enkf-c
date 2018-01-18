@@ -56,17 +56,18 @@
 #include "grid.h"
 #include "observations.h"
 #include "prep_utils.h"
+#include "allreaders.h"
 
 #define TYPE_DOUBLE 0
 #define TYPE_SHORT 1
 
 /**
  */
-void reader_xyh_gridded(char* fname, int fid, obsmeta* meta, model* m, observations* obs)
+void reader_xyh_gridded(char* fname, int fid, obsmeta* meta, grid* gdst, observations* obs)
 {
     char* varname = NULL;
     char* gridname = NULL;
-    grid* g = NULL;
+    grid* gsrc = NULL;
 
     char* npointsname = NULL;
     char* stdname = NULL;
@@ -100,7 +101,6 @@ void reader_xyh_gridded(char* fname, int fid, obsmeta* meta, model* m, observati
     float time_fill_value = NAN;
     char tunits[MAXSTRLEN];
     double tunits_multiple = NAN, tunits_offset = NAN;
-    int mvid;
     int i, j, k, nobs_read;
 
     strcpy(instrument, meta->product);
@@ -135,8 +135,8 @@ void reader_xyh_gridded(char* fname, int fid, obsmeta* meta, model* m, observati
     if (gridname == NULL)
         enkf_quit("reader_xyh_gridded(): %s: GRIDNAME not specified", fname);
 
-    g = model_getgridbyname(m, gridname);
-    grid_getdims(g, &ni, &nj, &nk);
+    gsrc = model_getgridbyname(obs->model, gridname);
+    grid_getdims(gsrc, &ni, &nj, &nk);
     nij = ni * nj;
     nijk = nij * nk;
 
@@ -259,8 +259,6 @@ void reader_xyh_gridded(char* fname, int fid, obsmeta* meta, model* m, observati
 
     ncw_close(ncid);
 
-    mvid = model_getvarid(m, obs->obstypes[obstype_getid(obs->nobstypes, obs->obstypes, meta->type, 1)].varnames[0], 1);
-
     nobs_read = 0;
     for (i = 0; i < ni; ++i) {
         for (j = 0; j < nj; ++j) {
@@ -306,16 +304,16 @@ void reader_xyh_gridded(char* fname, int fid, obsmeta* meta, model* m, observati
                     } else
                         o->std = (o->std > estd[ii]) ? o->std : estd[ii];
                 }
-                grid_ij2xy(g, i, j, &o->lon, &o->lat);
+                grid_ij2xy(gdst, i, j, &o->lon, &o->lat);
                 assert(isfinite(o->lon + o->lat));
-                o->status = model_xy2fij(m, mvid, o->lon, o->lat, &o->fi, &o->fj);
+                o->status = grid_xy2fij(gdst, o->lon, o->lat, &o->fi, &o->fj);
                 if (!obs->allobs && o->status == STATUS_OUTSIDEGRID)
                     continue;
                 if ((o->status == STATUS_OK) && (o->lon <= ot->xmin || o->lon >= ot->xmax || o->lat <= ot->ymin || o->lat >= ot->ymax))
                     o->status = STATUS_OUTSIDEOBSDOMAIN;
-                grid_fk2z(g, i, j, (double) k, &o->depth);
+                o->status = grid_fk2z(gsrc, i, j, (double) k, &o->depth);
                 if (o->status == STATUS_OK)
-                    o->status = model_z2fk(m, mvid, o->fi, o->fj, o->depth, &o->fk);
+                    o->status = grid_z2fk(gdst, o->fi, o->fj, o->depth, &o->fk);
                 else
                     o->fk = NAN;
                 o->model_depth = NAN;   /* set in obs_add() */
