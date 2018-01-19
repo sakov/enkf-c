@@ -1286,7 +1286,7 @@ int grid_z2fk(grid* g, double fi, double fj, double z, double* fk)
         return STATUS_OUTSIDEGRID;
 
     if (g->vtype == GRIDVTYPE_SIGMA || g->depth == NULL)
-         return STATUS_OK;
+        return STATUS_OK;
 
     /*
      * a depth check for z-grid:
@@ -1443,7 +1443,7 @@ int grid_fk2z(grid* g, int i, int j, double fk, double* z)
     }
 
     return STATUS_OK;
-    
+
 }
 
 /**

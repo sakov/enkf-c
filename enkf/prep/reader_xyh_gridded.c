@@ -136,6 +136,7 @@ void reader_xyh_gridded(char* fname, int fid, obsmeta* meta, grid* gdst, observa
         enkf_quit("reader_xyh_gridded(): %s: GRIDNAME not specified", fname);
 
     gsrc = model_getgridbyname(obs->model, gridname);
+
     grid_getdims(gsrc, &ni, &nj, &nk);
     nij = ni * nj;
     nijk = nij * nk;

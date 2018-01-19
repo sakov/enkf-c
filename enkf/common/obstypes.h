@@ -74,6 +74,7 @@ typedef struct {
 
 void obstypes_read(char fname[], int* n, obstype** types, double locrad_base, double rfactor_base);
 void obstypes_describeprm(void);
+
 #if defined(ENKF_PREP)
 void obstypes_set(int n, obstype* types, model* m);
 #endif

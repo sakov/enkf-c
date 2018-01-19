@@ -177,7 +177,7 @@ static int cmp_obs(const void* p1, const void* p2, void* p)
     }
 
     stride = ot->sob_stride;
-    if (stride == 0) { /* no superobing on this grid */
+    if (stride == 0) {          /* no superobing on this grid */
         if (m1->id > m2->id)
             return 1;
         else if (m1->id < m2->id)
