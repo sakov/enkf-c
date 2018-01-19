@@ -1,23 +1,21 @@
   MPI: initialised 2 process(es)
-  MPI: rank = 0, PID = 18789
-  MPI: rank = 1, PID = 18790
-  running CALC for EnKF-C version 1.59.0:
+  MPI: rank = 0, PID = 23766
+  running CALC for EnKF-C version 1.68.8:
     command = "./enkf_calc --forecast-stats-only stats.prm"
     dir = "/home/pavel/src/enkf-c/trunk/enkf/examples/1"
-  2017-03-30 09:34:38
+  2018-01-19 13:41:57
   reading system specs from "stats.prm":
     MODE = EnOI
     MODEL PRM = "model.prm"
     GRID PRM = "grid.prm"
     OBS TYPES PRM = "obstypes.prm"
-    DATE = "6565.5 days since 1990-01-01"
     OBS PRM = "obs.prm"
+    DATE = "6565.5 days since 1990-01-01"
     BGDIR = "background_6565"
     REGION Global: x = [0.0, 360.0], y = [-90.0, 90.0], z intervals = [0 50] [50 500] [500 9999] 
     SOBSTRIDE = 1
     NCFORMAT = 64BIT
     NCCOMPRESSION = 0
-, prm->nccompression
     EnKF flags:
       enkf_exitaction  = [BACKTRACE]
       enkf_obstype     = [VALUE]
@@ -29,7 +27,6 @@
       GRIDNODES_WRITE  = [-]
       INTERNAL_QSORT_R = [-]
       NO_GRIDUTILS     = [-]
-      ZSIGN_NOCHECK    = [-]
       OBS_SHUFFLE      = [-]
   initialising the system:
   reading observation type specs from "obstypes.prm":
@@ -83,12 +80,11 @@
       DATA = "conf/grid_spec.nc"
       MAPTYPE = "B"
       VTYPE = "z"
-      XDIMNAME = "i"
-      YDIMNAME = "j"
-      ZDIMNAME = "k"
+      VDIR = "FROMSURF"
       XVARNAME = "lon"
       YVARNAME = "lat"
       ZVARNAME = "zt"
+      ZCVARNAME = <none>
       DEPTHVARNAME = "depth_t"
       NUMLEVELSVARNAME = "num_levels"
     grid info:
@@ -96,7 +92,8 @@
       periodic by X = no
       dims = 100 x 100 x 2
       longitude range = [0.000, 360.000]
-      vert type = Z
+      v type = Z
+      v dir = FROMSURF
     model info:
       name = Tasman
       5 variables:
@@ -117,10 +114,9 @@
           inflation = 1.000 1.00
       0 modeldata:
   reading observations from "observations.nc":
-    3864 observations
-    calculating obs stats:
+    3865 observations
   calculating ensemble observations:
-  2017-03-30 09:34:38
+  2018-01-19 13:41:57
     ensemble size = 1
     distributing iterations:
       processes get 1 or 0 iterations
@@ -129,13 +125,13 @@
     TEM +
     SAL +
   adding forecast innovations and spread to "observations.nc":
-  2017-03-30 09:34:38
+  2018-01-19 13:41:57
   printing observation statistics:
     region obs.type   # obs.  |for.inn.| for.inn.
     ---------------------------------------------
     Global
-           SLA           643    0.081      0.027  
-             j1          246    0.086      0.040  
+           SLA           644    0.081      0.027  
+             j1          247    0.086      0.040  
              n1          377    0.077      0.015  
              N/A          20    0.096      0.086  
            SST          3207    0.462     -0.247  
@@ -148,9 +144,10 @@
              50-500m       5    0.832      0.129  
              500-9999m     0     -nan       -nan  
            SAL             7    0.077      0.055  
-             ARGO          7    0.077      0.055  
+             ARGO     MPI: rank = 1, PID = 23767
+       7    0.077      0.055  
              0-50m         2    0.088      0.074  
              50-500m       5    0.072      0.047  
              500-9999m     0     -nan       -nan  
-  2017-03-30 09:34:38
+  2018-01-19 13:41:57
   finished

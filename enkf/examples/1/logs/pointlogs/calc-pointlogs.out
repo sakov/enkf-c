@@ -1,18 +1,18 @@
   MPI: initialised 2 process(es)
-  MPI: rank = 0, PID = 18741
-  MPI: rank = 1, PID = 18742
-  running CALC for EnKF-C version 1.59.0:
+  MPI: rank = 0, PID = 23649
+  MPI: rank = 1, PID = 23650
+  running CALC for EnKF-C version 1.68.8:
     command = "./enkf_calc --point-logs-only pointlogs.prm"
     dir = "/home/pavel/src/enkf-c/trunk/enkf/examples/1"
-  2017-03-30 09:34:14
+  2018-01-19 13:40:14
   reading system specs from "pointlogs.prm":
     MODE = EnKF
     SCHEME = DEnKF
     MODEL PRM = "model.prm"
     GRID PRM = "grid.prm"
     OBS TYPES PRM = "obstypes.prm"
-    DATE = "6565.5 days since 1990-01-01"
     OBS PRM = "obs.prm"
+    DATE = "6565.5 days since 1990-01-01"
     ENSEMBLE DIR = "ensemble_6565"
     ENSEMBLE SIZE = 96
     RFACTOR BASE = 2.0
@@ -29,7 +29,6 @@
     SOBSTRIDE = 1
     NCFORMAT = 64BIT
     NCCOMPRESSION = 0
-, prm->nccompression
     EnKF flags:
       enkf_exitaction  = [BACKTRACE]
       enkf_obstype     = [VALUE]
@@ -41,7 +40,6 @@
       GRIDNODES_WRITE  = [-]
       INTERNAL_QSORT_R = [-]
       NO_GRIDUTILS     = [-]
-      ZSIGN_NOCHECK    = [-]
       OBS_SHUFFLE      = [-]
   initialising the system:
   reading observation type specs from "obstypes.prm":
@@ -95,12 +93,11 @@
       DATA = "conf/grid_spec.nc"
       MAPTYPE = "B"
       VTYPE = "z"
-      XDIMNAME = "i"
-      YDIMNAME = "j"
-      ZDIMNAME = "k"
+      VDIR = "FROMSURF"
       XVARNAME = "lon"
       YVARNAME = "lat"
       ZVARNAME = "zt"
+      ZCVARNAME = <none>
       DEPTHVARNAME = "depth_t"
       NUMLEVELSVARNAME = "num_levels"
     grid info:
@@ -108,7 +105,8 @@
       periodic by X = no
       dims = 100 x 100 x 2
       longitude range = [0.000, 360.000]
-      vert type = Z
+      v type = Z
+      v dir = FROMSURF
     model info:
       name = Tasman
       5 variables:
@@ -129,10 +127,9 @@
           inflation = 1.100 1.00
       0 modeldata:
   reading observations from "observations.nc":
-    3864 observations
-    calculating obs stats:
+    3865 observations
   calculating ensemble observations:
-  2017-03-30 09:34:14
+  2018-01-19 13:40:14
     ensemble size = 96
     distributing iterations:
       all processes get 48 iterations
@@ -141,8 +138,8 @@
     TEM ................................................
     SAL ................................................
   adding forecast innovations and spread to "observations.nc":
-  2017-03-30 09:34:14
-  Hx already added to "observations.nc" (skipping)
+  2018-01-19 13:40:15
+  Hx_f already added to "observations.nc" (skipping)
   moderating observations:
     observations substantially modified:
       SLA          0 (0.0%)
@@ -159,5 +156,5 @@
     writing the log for point (50, 50) on grid "t-grid":
     calculating transform for log point (70, 50): 466 obs
     writing the log for point (70, 50) on grid "t-grid":
-  2017-03-30 09:34:14
+  2018-01-19 13:40:15
   finished

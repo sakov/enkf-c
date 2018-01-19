@@ -1,18 +1,18 @@
   MPI: initialised 2 process(es)
-  MPI: rank = 0, PID = 19603
-  MPI: rank = 1, PID = 19604
-  running CALC for EnKF-C version 1.59.0:
+  MPI: rank = 0, PID = 24784
+  MPI: rank = 1, PID = 24785
+  running CALC for EnKF-C version 1.68.8:
     command = "./enkf_calc enkf.prm"
     dir = "/home/pavel/src/enkf-c/trunk/enkf/examples/5"
-  2017-03-30 09:46:26
+  2018-01-19 13:50:46
   reading system specs from "enkf.prm":
     MODE = EnKF
     SCHEME = DEnKF
     MODEL PRM = "model.prm"
     GRID PRM = "grid.prm"
     OBS TYPES PRM = "obstypes.prm"
-    DATE = "6565.5 days since 1990-01-01"
     OBS PRM = "obs.prm"
+    DATE = "6565.5 days since 1990-01-01"
     ENSEMBLE DIR = "ensemble_6565"
     ENSEMBLE SIZE = 96
     RFACTOR BASE = 2.0
@@ -27,7 +27,6 @@
     SOBSTRIDE = 1
     NCFORMAT = 64BIT
     NCCOMPRESSION = 0
-, prm->nccompression
     EnKF flags:
       enkf_exitaction  = [BACKTRACE]
       enkf_obstype     = [VALUE]
@@ -39,7 +38,6 @@
       GRIDNODES_WRITE  = [-]
       INTERNAL_QSORT_R = [-]
       NO_GRIDUTILS     = [-]
-      ZSIGN_NOCHECK    = [-]
       OBS_SHUFFLE      = [-]
   initialising the system:
   reading observation type specs from "obstypes.prm":
@@ -104,12 +102,11 @@
       DATA = "conf/grid_spec.nc"
       MAPTYPE = "B"
       VTYPE = "z"
-      XDIMNAME = "i"
-      YDIMNAME = "j"
-      ZDIMNAME = "k"
+      VDIR = "FROMSURF"
       XVARNAME = "lon"
       YVARNAME = "lat"
       ZVARNAME = "zt"
+      ZCVARNAME = <none>
       DEPTHVARNAME = "depth_t"
       NUMLEVELSVARNAME = "num_levels"
     grid info:
@@ -117,7 +114,8 @@
       periodic by X = no
       dims = 100 x 100 x 2
       longitude range = [0.000, 360.000]
-      vert type = Z
+      v type = Z
+      v dir = FROMSURF
     model info:
       name = Tasman
       5 variables:
@@ -138,10 +136,9 @@
           inflation = 1.100 1.00
       0 modeldata:
   reading observations from "observations.nc":
-    4184 observations
-    calculating obs stats:
+    4185 observations
   calculating ensemble observations:
-  2017-03-30 09:46:26
+  2018-01-19 13:50:46
     ensemble size = 96
     distributing iterations:
       all processes get 48 iterations
@@ -151,7 +148,7 @@
     TEM ................................................
     SAL ................................................
   adding forecast innovations and spread to "observations.nc":
-  2017-03-30 09:46:26
+  2018-01-19 13:50:46
   moderating observations:
     observations substantially modified:
       SLA          0 (0.0%)
@@ -162,7 +159,7 @@
       total        0 (0.0%)
   writing modified obs errors to "observations.nc":
   calculating transforms:
-  2017-03-30 09:46:26
+  2018-01-19 13:50:46
     creating kd-trees for observations:
     calculating transforms for t-grid:
       creating empty file "X5.nc":
@@ -187,16 +184,16 @@
         j = 42 (0: 7: 47.1%)
         j = 51 (1: 25: 52.9%)
         j = 48 (0: 8: 52.9%)
-        j = 54 (0: 9: 58.8%)
         j = 57 (1: 26: 58.8%)
-        j = 60 (0: 10: 64.7%)
+        j = 54 (0: 9: 58.8%)
         j = 63 (1: 27: 64.7%)
-        j = 66 (0: 11: 70.6%)
+        j = 60 (0: 10: 64.7%)
         j = 69 (1: 28: 70.6%)
-        j = 72 (0: 12: 76.5%)
+        j = 66 (0: 11: 70.6%)
         j = 75 (1: 29: 76.5%)
-        j = 78 (0: 13: 82.4%)
+        j = 72 (0: 12: 76.5%)
         j = 81 (1: 30: 82.4%)
+        j = 78 (0: 13: 82.4%)
         j = 87 (1: 31: 88.2%)
         j = 84 (0: 14: 88.2%)
         j = 93 (1: 32: 94.1%)
@@ -207,14 +204,14 @@
     writing stats to "enkf_diag.nc":
     summary stats on t-grid:
       # of local analyses = 1156
-      average # of local obs = 434.4
+      average # of local obs = 434.5
       # of inversions in obs space = 111
       # of inversions in ens space = 1045
   writing point logs:
     calculating transform for log point (30, 50): 595 obs
     writing the log for point (30, 50) on grid "t-grid":
   calculating analysed observations:
-  2017-03-30 09:46:36
+  2018-01-19 13:50:54
     sorting obs by ij:
     updating HE:
   adding analysis innovations and spread to "observations.nc":
@@ -222,8 +219,8 @@
     region obs.type   # obs.  |for.inn.| |an.inn.|   for.inn.   an.inn.  for.spread  an.spread
     ------------------------------------------------------------------------------------------
     Global
-           SLA           643    0.081      0.031      0.027      0.002      0.039      0.025  
-             j1          246    0.086      0.024      0.040      0.005      0.046      0.027  
+           SLA           644    0.081      0.031      0.027      0.002      0.039      0.025  
+             j1          247    0.086      0.024      0.040      0.005      0.045      0.027  
              n1          377    0.077      0.037      0.015     -0.000      0.034      0.023  
              N/A          20    0.096      0.024      0.086      0.017      0.049      0.028  
            SST          2359    0.464      0.214     -0.225     -0.042      0.331      0.223  
@@ -240,5 +237,5 @@
              0-50m         2    0.088      0.119      0.074      0.082      0.023      0.018  
              50-500m       5    0.072      0.075      0.047      0.036      0.032      0.024  
              500-9999m     0     -nan       -nan       -nan       -nan       -nan       -nan  
-  2017-03-30 09:46:37
+  2018-01-19 13:50:54
   finished

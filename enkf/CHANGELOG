@@ -1,5 +1,8 @@
+v. 1.68.8
+   PS 19012018
+   -- Finalising this development patch.
 v. 1.68.7-dev
-   PS 18012018
+   PS 19012018
    -- Added write/read of superobs in PREP before checking for land to exclude
       round-up effects.
 v. 1.68.6-dev

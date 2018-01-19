@@ -1,18 +1,17 @@
   MPI: initialised 2 process(es)
-  MPI: rank = 0, PID = 18746
-  MPI: rank = 1, PID = 18747
-  running UPDATE for EnKF-C version 1.59.0:
+  MPI: rank = 0, PID = 23657
+  running UPDATE for EnKF-C version 1.68.8:
     command = "./enkf_update --no-fields-write pointlogs.prm"
     dir = "/home/pavel/src/enkf-c/trunk/enkf/examples/1"
-  2017-03-30 09:34:14
+  2018-01-19 13:40:15
   reading system specs from "pointlogs.prm":
     MODE = EnKF
     SCHEME = DEnKF
     MODEL PRM = "model.prm"
     GRID PRM = "grid.prm"
     OBS TYPES PRM = "obstypes.prm"
-    DATE = "6565.5 days since 1990-01-01"
     OBS PRM = "obs.prm"
+    DATE = "6565.5 days since 1990-01-01"
     ENSEMBLE DIR = "ensemble_6565"
     ENSEMBLE SIZE = 96
     RFACTOR BASE = 2.0
@@ -29,7 +28,6 @@
     SOBSTRIDE = 1
     NCFORMAT = 64BIT
     NCCOMPRESSION = 0
-, prm->nccompression
     EnKF flags:
       enkf_exitaction  = [BACKTRACE]
       enkf_obstype     = [VALUE]
@@ -41,7 +39,6 @@
       GRIDNODES_WRITE  = [-]
       INTERNAL_QSORT_R = [-]
       NO_GRIDUTILS     = [-]
-      ZSIGN_NOCHECK    = [-]
       OBS_SHUFFLE      = [-]
   update specs:
     do model fields  = [-]
@@ -53,12 +50,11 @@
       DATA = "conf/grid_spec.nc"
       MAPTYPE = "B"
       VTYPE = "z"
-      XDIMNAME = "i"
-      YDIMNAME = "j"
-      ZDIMNAME = "k"
+      VDIR = "FROMSURF"
       XVARNAME = "lon"
       YVARNAME = "lat"
       ZVARNAME = "zt"
+      ZCVARNAME = <none>
       DEPTHVARNAME = "depth_t"
       NUMLEVELSVARNAME = "num_levels"
     grid info:
@@ -66,7 +62,8 @@
       periodic by X = no
       dims = 100 x 100 x 2
       longitude range = [0.000, 360.000]
-      vert type = Z
+      v type = Z
+      v dir = FROMSURF
     model info:
       name = Tasman
       5 variables:
@@ -89,26 +86,27 @@
   updating the ensemble:
     96 members
     defining state variables in point logs:
+  MPI: rank = 1, PID = 23658
     updating fields for t-grid:
       9 fields
       distributing iterations:
         processes get 5 or 4 iterations
       u        0   (1: 5: 25.0%)
       eta_t    0   (0: 0: 20.0%)
-      temp     0   (0: 1: 40.0%)
       u        1   (1: 6: 50.0%)
-      temp     1   (0: 2: 60.0%)
+      temp     0   (0: 1: 40.0%)
       v        0   (1: 7: 75.0%)
-      salt     0   (0: 3: 80.0%)
+      temp     1   (0: 2: 60.0%)
       v        1   (1: 8: 100.0%)
+      salt     0   (0: 3: 80.0%)
       salt     1   (0: 4: 100.0%)
       (skip writing the fields)
-  2017-03-30 09:34:16
+  2018-01-19 13:40:16
   assembling state variables in point logs:
     distributing iterations:
       processes get 2 or 1 iterations
     deleting tiles:
       distributing iterations:
         processes get 5 or 4 iterations
-  2017-03-30 09:34:16
+  2018-01-19 13:40:16
   finished

@@ -58,7 +58,7 @@ void enkf_init(int* argc, char*** argv)
         enkf_printf("  MPI: initialised %d process(es)\n", nprocesses);
         MPI_Barrier(MPI_COMM_WORLD);
         printf("  MPI: rank = %d, PID = %d\n", rank, getpid());
-        fflush(stdout);
+        fflush(NULL);
     }
     MPI_Barrier(MPI_COMM_WORLD);
 

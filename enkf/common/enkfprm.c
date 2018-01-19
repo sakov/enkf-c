@@ -589,7 +589,7 @@ void enkfprm_print(enkfprm* prm, char offset[])
         enkf_printf("%sNCFORMAT = NETCDF4\n", offset);
     else
         enkf_quit("programming error");
-    enkf_printf("%sNCCOMPRESSION = %d\n, prm->nccompression\n", offset, prm->nccompression);
+    enkf_printf("%sNCCOMPRESSION = %d\n", offset, prm->nccompression);
     enkf_printflags(offset);
 }
 

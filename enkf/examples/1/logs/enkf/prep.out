@@ -1,15 +1,15 @@
-  running PREP for EnKF-C version 1.59.0:
+  running PREP for EnKF-C version 1.68.8:
     command = "./enkf_prep enkf.prm"
     dir = "/home/pavel/src/enkf-c/trunk/enkf/examples/1"
-  2017-03-30 09:31:59
+  2018-01-19 13:37:59
   reading prep specs from "enkf.prm":
     MODE = EnKF
     SCHEME = DEnKF
     MODEL PRM = "model.prm"
     GRID PRM = "grid.prm"
     OBS TYPES PRM = "obstypes.prm"
-    DATE = "6565.5 days since 1990-01-01"
     OBS PRM = "obs.prm"
+    DATE = "6565.5 days since 1990-01-01"
     ENSEMBLE DIR = "ensemble_6565"
     ENSEMBLE SIZE = 96
     RFACTOR BASE = 2.0
@@ -24,7 +24,6 @@
     SOBSTRIDE = 1
     NCFORMAT = 64BIT
     NCCOMPRESSION = 0
-, prm->nccompression
     EnKF flags:
       enkf_exitaction  = [BACKTRACE]
       enkf_obstype     = [VALUE]
@@ -36,7 +35,6 @@
       GRIDNODES_WRITE  = [-]
       INTERNAL_QSORT_R = [-]
       NO_GRIDUTILS     = [-]
-      ZSIGN_NOCHECK    = [-]
       OBS_SHUFFLE      = [-]
   reading observation specs from "obs.prm":
     PRODUCT = RADS
@@ -81,18 +79,17 @@
         File: obs/TS-SEP-2011/y2007/m12/cars_salt_d22.nc
         File: obs/TS-SEP-2011/y2007/m12/cars_salt_d23.nc
       ERROR_STD = 0.1, operation = EQUAL
-  setting the model:
+  creating model and observations:
     grid prm info:
       NAME = "t-grid"
       DATA = "conf/grid_spec.nc"
       MAPTYPE = "B"
       VTYPE = "z"
-      XDIMNAME = "i"
-      YDIMNAME = "j"
-      ZDIMNAME = "k"
+      VDIR = "FROMSURF"
       XVARNAME = "lon"
       YVARNAME = "lat"
       ZVARNAME = "zt"
+      ZCVARNAME = <none>
       DEPTHVARNAME = "depth_t"
       NUMLEVELSVARNAME = "num_levels"
     grid info:
@@ -100,7 +97,8 @@
       periodic by X = no
       dims = 100 x 100 x 2
       longitude range = [0.000, 360.000]
-      vert type = Z
+      v type = Z
+      v dir = FROMSURF
     model info:
       name = Tasman
       5 variables:
@@ -245,7 +243,7 @@
         # good obs = 0
       id = 0 - 980
       total 981 observations
-      978 valid observations
+      981 valid observations
       min date = -4.000
       max date = -1.000
     PRODUCT = NAVO, TYPE = SST, reader = standard
@@ -275,9 +273,6 @@
       min date = -4.039
       max date = 0.453
     PRODUCT = WindSat, TYPE = SST, reader = standard
-ls: cannot access obs/WINDSAT/windsat_20071221.nc: No such file or directory
-ls: cannot access obs/WINDSAT/windsat_20071222.nc: No such file or directory
-ls: cannot access obs/WINDSAT/windsat_20071223.nc: No such file or directory
       reading obs/WINDSAT/windsat_20071219.nc:
         nobs = 320738
         # good obs = 1168
@@ -344,19 +339,21 @@ ls: cannot access obs/WINDSAT/windsat_20071223.nc: No such file or directory
       min date = -4.000
       max date = -2.000
     compacting obs:
-    calculating obs stats:
   writing observations to "observations-orig.nc":
   superobing:
-    3864 superobservations
-    calculating obs stats:
+    3865 superobservations
+  re-reading super-observations from disk:
+    3865 observations
+  checking for superobs on land:
+    not found
   writing superobservations to "observations.nc":
   printing observation statistics:
-    type    # used     # dropped  # outside  # land     # shallow  # badbatch # badvalue # superobs.
-    ----------------------------------------------------------------------------------------
-    SLA     978        3          0          0          3          0          0          643       
-    SST     8249       0          0          0          0          0          0          3207      
-    TEM     184        104        104        0          0          0          0          7         
-    SAL     184        104        104        0          0          0          0          7         
-    total   9595       211        208        0          3          0          0          3864      
-  2017-03-30 09:32:00
+    type    # used     # dropped  # out_grd  # out_obs  # out_wnd  # land     # shallow  # badbatch # badvalue # superobs
+    ---------------------------------------------------------------------------------------------------------------------
+    SLA     981        0          0          0          0          0          0          0          0          644       
+    SST     8249       0          0          0          0          0          0          0          0          3207      
+    TEM     184        104        104        0          0          0          0          0          0          7         
+    SAL     184        104        104        0          0          0          0          0          0          7         
+    total   9598       208        208        0          0          0          0          0          0          3865      
+  2018-01-19 13:38:00
   finished

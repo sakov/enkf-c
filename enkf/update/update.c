@@ -1224,6 +1224,10 @@ void das_update(dasystem* das)
     int gid;
     int i, e;
 
+#if defined(MPI)
+    MPI_Barrier(MPI_COMM_WORLD);
+#endif
+    fflush(NULL);
     if (das->nmem <= 0)
         das_setnmem(das);
     enkf_printf("    %d members\n", das->nmem);
@@ -1232,20 +1236,22 @@ void das_update(dasystem* das)
         enkf_printf("    allocating disk space for spread:");
         das_allocatespread(das, FNAME_SPREAD);
         enkf_printf("\n");
+        enkf_flush();
     }
 
     if (das->updatespec & UPDATE_DOINFLATION && rank == 0) {
         enkf_printf("    allocating disk space for inflation:");
         das_allocateinflation(das, FNAME_INFLATION);
         enkf_printf("\n");
+        enkf_flush();
     }
 
     if (das->updatespec & UPDATE_DOPLOGS && rank == 0 && das->nplogs > 0) {
         enkf_printf("    defining state variables in point logs:");
         plog_definestatevars(das);
         enkf_printf("\n");
+        enkf_flush();
     }
-    enkf_flush();
 
     if (rank == 0)
         dir_createifabsent(DIRNAME_TMP);
@@ -1335,8 +1341,8 @@ void das_update(dasystem* das)
             enkf_flush();
         } else if (das->mode == MODE_ENOI) {
             if (rank == 0) {
-                enkf_printf("    allocating disk space for the analysis:");
                 enkf_printtime("    ");
+                enkf_printf("    allocating disk space for analysis:");
                 enkf_flush();
 
                 if (!(das->updatespec & UPDATE_SEPARATEOUTPUT)) {
@@ -1511,8 +1517,8 @@ void das_update(dasystem* das)
     MPI_Barrier(MPI_COMM_WORLD);
 #endif
     if (!(das->updatespec & UPDATE_DIRECTWRITE)) {
-        enkf_printtime("  ");
         if (das->updatespec & UPDATE_DOFIELDS) {
+            enkf_printtime("  ");
             enkf_printf("  assembling analysis:\n");
             if (das->mode == MODE_ENKF)
                 das_assemblemembers(das);
@@ -1520,14 +1526,17 @@ void das_update(dasystem* das)
                 das_assemblebg(das);
         }
         if (das->updatespec & UPDATE_DOSPREAD && rank == 0) {
+            enkf_printtime("  ");
             enkf_printf("  assembling spread:\n");
             das_assemblespread(das);
         }
         if (das->updatespec & UPDATE_DOINFLATION && rank == 0) {
+            enkf_printtime("  ");
             enkf_printf("  assembling inflation:\n");
             das_assembleinflation(das);
         }
         if (das->updatespec & UPDATE_DOPLOGS && das->nplogs > 0) {
+            enkf_printtime("  ");
             enkf_printf("  assembling state variables in point logs:\n");
             plog_assemblestatevars(das);
         }
