@@ -34,6 +34,7 @@
 
 #define FNAME_OBS "observations-orig.nc"
 #define FNAME_SOBS "observations.nc"
+#define FNAME_SOBS_TMP "observations-tmp.nc"
 #define FNAMEPREFIX_X5 "X5"
 #define FNAMEPREFIX_W "w"
 #define FNAMEPREFIX_DIAG "enkf_diag"

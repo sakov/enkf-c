@@ -246,7 +246,6 @@ int main(int argc, char* argv[])
     enkf_printf("  creating model and observations:\n");
     m = model_create(prm);
     obs = obs_create_fromprm(prm);
-    enkfprm_destroy(prm);
     obstypes_set(obs->nobstypes, obs->obstypes, m);
     obs->allobs = log_all_obs;
     obs->model = m;
@@ -267,27 +266,26 @@ int main(int argc, char* argv[])
     if (do_superob) {
         enkf_printf("  superobing:\n");
         obs_superob(obs, cmp_obs, &sobs, describe_superob_id);
-        /*
-         * when sob_stride > 1, it is possible that the superobservation
-         * end up in the model cell surround by land nodes (although each of
-         * the original observations is not)
-         */
-        for (i = 0; i < obs->nobstypes; ++i)
-            if (obs->obstypes[i].sob_stride > 1)
-                break;
-        if (i < obs->nobstypes) {
-            enkf_printf("  checking for superobs on land:\n");
-            if (obs_checkforland(sobs, m)) {
-                obs_compact(sobs);
-                for (i = 0; i < sobs->nobs; ++i)
-                    if (sobs->data[i].status != STATUS_OK)
-                        break;
-                if (i != sobs->nobs)
-                    enkf_printf("    deleted %d obs\n", sobs->nobs - i);
-                sobs->nobs = i;
-            } else
-                enkf_printf("    not found\n");
-        }
+
+        if (file_exists(FNAME_SOBS_TMP))
+            file_delete(FNAME_SOBS_TMP);
+        obs_write(sobs, FNAME_SOBS_TMP);
+        free(sobs->data);
+        enkf_printf("  re-reading super-observations from disk:\n");
+        obs_read(sobs, FNAME_SOBS_TMP);
+        file_delete(FNAME_SOBS_TMP);
+
+        enkf_printf("  checking for superobs on land:\n");
+        if (obs_checkforland(sobs, m)) {
+            obs_compact(sobs);
+            for (i = 0; i < sobs->nobs; ++i)
+                if (sobs->data[i].status != STATUS_OK)
+                    break;
+            if (i != sobs->nobs)
+                enkf_printf("    deleted %d obs\n", sobs->nobs - i);
+            sobs->nobs = i;
+        } else
+            enkf_printf("    not found\n");
     } else {
         observation* data = malloc(obs->ngood * sizeof(observation));
 
@@ -321,6 +319,7 @@ int main(int argc, char* argv[])
     obs_destroy(obs);
     obs_destroy(sobs);
     model_destroy(m);
+    enkfprm_destroy(prm);
 
     enkf_finish();
 

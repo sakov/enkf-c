@@ -394,8 +394,6 @@ void obs_calcstats(observations* obs)
     if (obs->hasstats)
         return;
 
-    enkf_printf("    calculating obs stats:");
-
     obs->ngood = 0;
     obs->noutside_grid = 0;
     obs->noutside_obsdomain = 0;
@@ -456,7 +454,6 @@ void obs_calcstats(observations* obs)
             ot->date_max = m->date;
     }
     obs->hasstats = 1;
-    enkf_printf("\n");
 }
 
 /** Reads observations from "observations.nc".
@@ -579,7 +576,7 @@ void obs_read(observations* obs, char fname[])
         char attname[NC_MAX_NAME];
 
         ncw_inq_attname(ncid, varid_product, i, attname);
-        st_add(obs->products, attname, i);
+        st_add_ifabsent(obs->products, attname, i);
     }
 
     /*
@@ -590,7 +587,7 @@ void obs_read(observations* obs, char fname[])
         char attname[NC_MAX_NAME];
 
         ncw_inq_attname(ncid, varid_instrument, i, attname);
-        st_add(obs->instruments, attname, i);
+        st_add_ifabsent(obs->instruments, attname, i);
     }
 
     /*
