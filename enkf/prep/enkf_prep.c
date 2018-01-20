@@ -15,6 +15,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include <assert.h>
 #include <math.h>
 #include "version.h"
 #include "definitions.h"
@@ -267,13 +268,14 @@ int main(int argc, char* argv[])
         enkf_printf("  superobing:\n");
         obs_superob(obs, cmp_obs, &sobs, describe_superob_id);
 
-        if (file_exists(FNAME_SOBS_TMP))
-            file_delete(FNAME_SOBS_TMP);
-        obs_write(sobs, FNAME_SOBS_TMP);
+	if (describe_superob_id > 0)
+	    goto finalise;
+
+	enkf_printf("  writing superobservations to \"%s\":\n", FNAME_SOBS);
+        obs_write(sobs, FNAME_SOBS);
         free(sobs->data);
-        enkf_printf("  re-reading super-observations from disk:\n");
-        obs_read(sobs, FNAME_SOBS_TMP);
-        file_delete(FNAME_SOBS_TMP);
+        enkf_printf("  reading super-observations from disk:\n");
+        obs_read(sobs, FNAME_SOBS);
 
         enkf_printf("  checking for superobs on land:\n");
         if (obs_checkforland(sobs, m)) {
@@ -281,11 +283,14 @@ int main(int argc, char* argv[])
             for (i = 0; i < sobs->nobs; ++i)
                 if (sobs->data[i].status != STATUS_OK)
                     break;
-            if (i != sobs->nobs)
-                enkf_printf("    deleted %d obs\n", sobs->nobs - i);
+            assert(i != sobs->nobs);
             sobs->nobs = i;
+	    enkf_printf("    deleted %d observations\n", sobs->nobs - i);
+            file_delete(FNAME_SOBS);
+	    enkf_printf("  writing good superobservations to \"%s\":\n", FNAME_SOBS);
+	    obs_write(sobs, FNAME_SOBS);
         } else
-            enkf_printf("    not found\n");
+            enkf_printf("    all good\n");
     } else {
         observation* data = malloc(obs->ngood * sizeof(observation));
 
@@ -299,11 +304,6 @@ int main(int argc, char* argv[])
     if (write_orig_obs && describe_superob_id < 0 && do_superob)
         obs_writeaux(obs, FNAME_OBS);
 
-    if (describe_superob_id < 0) {
-        enkf_printf("  writing superobservations to \"%s\":\n", FNAME_SOBS);
-        obs_write(sobs, FNAME_SOBS);
-    }
-
     if (enkf_considersubgridvar) {
         enkf_printf("  # obs with increased error due to subgrid variability:\n");
         for (i = 0; i < obs->nobstypes; ++i) {
@@ -315,6 +315,8 @@ int main(int argc, char* argv[])
 
     enkf_printf("  printing observation statistics:\n");
     print_obsstats(obs, sobs);
+
+ finalise:
 
     obs_destroy(obs);
     obs_destroy(sobs);
