@@ -284,8 +284,8 @@ int main(int argc, char* argv[])
                 if (sobs->data[i].status != STATUS_OK)
                     break;
             assert(i != sobs->nobs);
-            sobs->nobs = i;
 	    enkf_printf("    deleted %d observations\n", sobs->nobs - i);
+            sobs->nobs = i;
             file_delete(FNAME_SOBS);
 	    enkf_printf("  writing good superobservations to \"%s\":\n", FNAME_SOBS);
 	    obs_write(sobs, FNAME_SOBS);
