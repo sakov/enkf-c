@@ -1,3 +1,7 @@
+v.1.68.11
+   PS 22012018
+   -- Corrected placement of #endif in grid.c that resulted in a compilation
+      error with -DNO_GRIDUTILS.
 v.1.68.10
    PS 22012018
    -- A minor fix in enkf_prep.c.

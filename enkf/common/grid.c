@@ -811,8 +811,8 @@ grid* grid_create(void* p, int id)
         ncw_get_var_double(ncid, varid_y, y[0]);
 
         grid_sethgrid(g, GRIDHTYPE_CURVILINEAR, NT_COR, nx, ny, x, y);
-    }
 #endif
+    }
     else
         enkf_quit("%s: could not determine the horizontal grid type", fname);
 
