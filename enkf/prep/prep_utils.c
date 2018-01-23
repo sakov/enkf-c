@@ -84,8 +84,13 @@ void obs_add(observations* obs, model* m, obsmeta* meta)
     int nobs0 = obs->nobs;
     int otid = obstype_getid(obs->nobstypes, obs->obstypes, meta->type, 1);
     obstype* ot = &obs->obstypes[otid];
-    int vid = model_getvarid(m, obs->obstypes[otid].varnames[0], 1);
-    double lonbase = model_getlonbase(m, vid);
+
+    grid* g = model_getgridbyid(m, ot->gridid);
+    float** depth = grid_getdepth(g);
+    int** numlevels = grid_getnumlevels(g);
+    int isperiodic_x = grid_isperiodic_x(g);
+    double lonbase = grid_getlonbase(g);
+
     double mindepth = NAN;
     obsread_fn reader;
     int i, ngood;
@@ -117,10 +122,6 @@ void obs_add(observations* obs, model* m, obsmeta* meta)
      * common checks
      */
     if (obs->nobs - nobs0 > 0) {
-        float** depth = model_getdepth(m, vid, 0);
-        int** numlevels = model_getnumlevels(m, vid);
-        grid* g = model_getvargrid(m, vid);
-        int isperiodic_x = grid_isperiodic_x(g);
         int nmin = 0;
         int nmax = 0;
         int noutow = 0;
@@ -129,7 +130,7 @@ void obs_add(observations* obs, model* m, obsmeta* meta)
         int ni, nj;
 
         enkf_printf("      id = %d - %d\n", nobs0, obs->nobs - 1);
-        model_getvardims(m, vid, &ni, &nj, NULL);
+        grid_getdims(g, &ni, &nj, NULL);
         for (i = nobs0; i < obs->nobs; ++i) {
             observation* o = &obs->data[i];
 
@@ -228,14 +229,11 @@ void obs_add(observations* obs, model* m, obsmeta* meta)
                 }
             } else if (std->type == STDTYPE_FILE) {
                 char* fname = (char*) std->data;
-                int** nlevels = model_getnumlevels(m, vid);
                 int ni, nj, nk;
-                void* grid = model_getvargrid(m, vid);
-                int periodic_x = grid_isperiodic_x(grid);
 
                 enkf_printf("      adding error_std from %s %s:\n", fname, std->varname);
 
-                model_getvardims(m, vid, &ni, &nj, &nk);
+                grid_getdims(g, &ni, &nj, &nk);
 
                 if (ot->issurface) {
                     float** v = alloc2d(nj, ni, sizeof(float));
@@ -248,7 +246,7 @@ void obs_add(observations* obs, model* m, obsmeta* meta)
                         if (oo->status != STATUS_OK)
                             continue;
 
-                        vv = (float) interpolate2d(oo->fi, oo->fj, ni, nj, v, nlevels, periodic_x);
+                        vv = (float) interpolate2d(oo->fi, oo->fj, ni, nj, v, numlevels, isperiodic_x);
                         if (std->op == ARITHMETIC_EQ)
                             oo->std = vv;
                         else if (std->op == ARITHMETIC_PLUS)
@@ -265,7 +263,7 @@ void obs_add(observations* obs, model* m, obsmeta* meta)
                     free(v);
                 } else {
                     float*** v = alloc3d(nk, nj, ni, sizeof(float));
-                    int ksurf = grid_getsurflayerid(grid);
+                    int ksurf = grid_getsurflayerid(g);
 
                     read3dfield(fname, std->varname, v[0][0]);
                     for (o = nobs0; o < obs->nobs; ++o) {
@@ -275,7 +273,7 @@ void obs_add(observations* obs, model* m, obsmeta* meta)
                         if (oo->status != STATUS_OK)
                             continue;
 
-                        vv = (float) interpolate3d(oo->fi, oo->fj, oo->fk, ni, nj, nk, ksurf, v, nlevels, periodic_x);
+                        vv = (float) interpolate3d(oo->fi, oo->fj, oo->fk, ni, nj, nk, ksurf, v, numlevels, isperiodic_x);
                         if (std->op == ARITHMETIC_EQ)
                             oo->std = vv;
                         else if (std->op == ARITHMETIC_PLUS)

@@ -305,7 +305,7 @@ void reader_xyh_gridded(char* fname, int fid, obsmeta* meta, grid* gdst, observa
                     } else
                         o->std = (o->std > estd[ii]) ? o->std : estd[ii];
                 }
-                grid_ij2xy(gdst, i, j, &o->lon, &o->lat);
+                grid_ij2xy(gsrc, i, j, &o->lon, &o->lat);
                 assert(isfinite(o->lon + o->lat));
                 o->status = grid_xy2fij(gdst, o->lon, o->lat, &o->fi, &o->fj);
                 if (!obs->allobs && o->status == STATUS_OUTSIDEGRID)

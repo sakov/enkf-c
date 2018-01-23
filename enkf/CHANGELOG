@@ -1,11 +1,16 @@
-v.1.68.11
+v. 1.68.12
+   PS 23012018
+   -- Fixed a bug in reader_xyh_gridded().
+   -- Tidied obs_add().
+   -- Corrected enkf_prep.c:main() for the case --no-superobing.
+v. 1.68.11
    PS 22012018
    -- Corrected placement of #endif in grid.c that resulted in a compilation
       error with -DNO_GRIDUTILS.
-v.1.68.10
+v. 1.68.10
    PS 22012018
    -- A minor fix in enkf_prep.c.
-v.1.68.9
+v. 1.68.9
    PS 20012018
    -- A minor change of the work flow in PREP.
 v. 1.68.8
