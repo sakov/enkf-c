@@ -1767,3 +1767,16 @@ void shuffle(int n, int ids[])
         ids[ii] = tmp;
     }
 }
+
+/**
+ */
+int inloninterval(double lon, double lon1, double lon2)
+{
+    while (lon2 < lon1)
+        lon2 += 360.0;
+    while (lon - 360.0 > lon1)
+        lon = lon - 360.0;
+    while (lon < lon1)
+        lon += 360.0;
+    return (lon <= lon2);
+}

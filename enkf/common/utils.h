@@ -66,6 +66,7 @@ void print_commandinfo(int argc, char* argv[]);
 void get_normalpair(double x[]);
 int istrue(char str[]);
 void shuffle(int n, int ids[]);
+int inloninterval(double lon, double lon1, double lon2);
 
 #if defined(INTERNAL_QSORT_R)
 typedef int (*__compar_d_fn_t) (const void*, const void*, void*);

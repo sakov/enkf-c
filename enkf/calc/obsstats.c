@@ -127,7 +127,7 @@ void das_printobsstats(dasystem* das, int use_rmsd)
                 if (o->status != STATUS_OK)
                     continue;
 
-                if (o->type == otid && o->lon >= r->x1 && o->lon <= r->x2 && o->lat >= r->y1 && o->lat <= r->y2) {
+                if (o->type == otid && o->lat >= r->y1 && o->lat <= r->y2 && inloninterval(o->lon, r->x1, r->x2)) {
                     rstats.inn_f += das->s_f[j];
                     rstats.inn_f_abs += func(das->s_f[j]);
                     rstats.inn_a += das->s_a[j];
@@ -357,7 +357,7 @@ void das_printfobsstats(dasystem* das, int use_rmsd)
                 if (o->status != STATUS_OK)
                     continue;
 
-                if (o->type == otid && o->lon >= r->x1 && o->lon <= r->x2 && o->lat >= r->y1 && o->lat <= r->y2) {
+                if (o->type == otid && o->lat >= r->y1 && o->lat <= r->y2 && inloninterval(o->lon, r->x1, r->x2)) {
                     rstats.inn_f += das->s_f[j];
                     rstats.inn_f_abs += func(das->s_f[j]);
                     if (das->mode == MODE_ENKF)
