@@ -268,10 +268,10 @@ int main(int argc, char* argv[])
         enkf_printf("  superobing:\n");
         obs_superob(obs, cmp_obs, &sobs, describe_superob_id);
 
-	if (describe_superob_id > 0)
-	    goto finalise;
+        if (describe_superob_id > 0)
+            goto finalise;
 
-	enkf_printf("  writing superobservations to \"%s\":\n", FNAME_SOBS);
+        enkf_printf("  writing superobservations to \"%s\":\n", FNAME_SOBS);
         obs_write(sobs, FNAME_SOBS);
         free(sobs->data);
         enkf_printf("  reading super-observations from disk:\n");
@@ -284,11 +284,11 @@ int main(int argc, char* argv[])
                 if (sobs->data[i].status != STATUS_OK)
                     break;
             assert(i != sobs->nobs);
-	    enkf_printf("    deleted %d observations\n", sobs->nobs - i);
+            enkf_printf("    deleted %d observations\n", sobs->nobs - i);
             sobs->nobs = i;
             file_delete(FNAME_SOBS);
-	    enkf_printf("  writing good superobservations to \"%s\":\n", FNAME_SOBS);
-	    obs_write(sobs, FNAME_SOBS);
+            enkf_printf("  writing good superobservations to \"%s\":\n", FNAME_SOBS);
+            obs_write(sobs, FNAME_SOBS);
         } else
             enkf_printf("    all good\n");
     } else {
@@ -318,7 +318,7 @@ int main(int argc, char* argv[])
     enkf_printf("  printing observation statistics:\n");
     print_obsstats(obs, sobs);
 
- finalise:
+  finalise:
 
     obs_destroy(obs);
     obs_destroy(sobs);

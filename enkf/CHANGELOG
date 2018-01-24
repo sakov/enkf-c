@@ -1,3 +1,6 @@
+v. 1.69.1
+   PS 25012018
+   -- Modified fk2z() for hybrid grids. (Still may need some attention.)
 v. 1.69.0
    PS 24012018
    -- Modified checks of a point belonging to a longitude interval in

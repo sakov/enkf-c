@@ -812,8 +812,7 @@ grid* grid_create(void* p, int id)
 
         grid_sethgrid(g, GRIDHTYPE_CURVILINEAR, NT_COR, nx, ny, x, y);
 #endif
-    }
-    else
+    } else
         enkf_quit("%s: could not determine the horizontal grid type", fname);
 
     /*
@@ -1414,14 +1413,25 @@ int grid_fk2z(grid* g, int i, int j, double fk, double* z)
                 gz->pt[i] = gz->a[i] + gz->b[i] * (p1 - p2);    /* for now
                                                                  * assume p1
                                                                  * > p2 */
-            gz->pc[0] = 1.5 * gz->pt[0] - 0.5 * gz->pt[1];
-            if (gz->pc[0] < 0.0)
-                gz->pc[0] = 0.0;
             /*
-             * (some implicit assumptions about directions here)
+             * we assume that it is more reliable to reconstruct cell corner
+             * coords starting from level with about 0 coordinate
              */
-            for (i = 1; i <= gz->nz; ++i)
-                gz->pc[i] = 2.0 * gz->pt[i - 1] - gz->pc[i - 1];
+            if (gz->pt[0] < gz->pt[gz->nz - 1]) {
+                if (fabs(gz->pt[0] + gz->pt[2] - 2.0 * gz->pt[1]) <= EPS_Z)
+                    gz->pc[0] = 1.5 * gz->pt[0] - 0.5 * gz->pt[1];
+                else
+                    gz->pc[0] = 0.0;
+                for (i = 1; i <= gz->nz; ++i)
+                    gz->pc[i] = 2.0 * gz->pt[i - 1] - gz->pc[i - 1];
+            } else {
+                if (fabs(gz->pt[gz->nz - 1] + gz->pt[gz->nz - 3] - 2.0 * gz->pt[gz->nz - 2]) <= EPS_Z)
+                    gz->pc[gz->nz] = 1.5 * gz->pt[gz->nz - 1] - 0.5 * gz->pt[gz->nz - 2];
+                else
+                    gz->pc[gz->nz] = 0.0;
+                for (i = gz->nz - 1; i >= 0; --i)
+                    gz->pc[i] = 2.0 * gz->pt[i + 1] - gz->pc[i + 1];
+            }
             gz->fi_prev = fi;
             gz->fj_prev = fj;
         }
