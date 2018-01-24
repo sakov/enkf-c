@@ -1430,7 +1430,7 @@ int grid_fk2z(grid* g, int i, int j, double fk, double* z)
                 else
                     gz->pc[gz->nz] = 0.0;
                 for (i = gz->nz - 1; i >= 0; --i)
-                    gz->pc[i] = 2.0 * gz->pt[i + 1] - gz->pc[i + 1];
+                    gz->pc[i] = 2.0 * gz->pt[i] - gz->pc[i + 1];
             }
             gz->fi_prev = fi;
             gz->fj_prev = fj;
