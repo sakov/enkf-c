@@ -14,6 +14,9 @@
  *              -0.5 < fi <= 0.0 were mapped to 0.0, and indices
  *              (double) (n - 1) < fi < (double) n - 0.5 were mapped to
  *              (double) (n - 1).)
+ *              11/12/2017 PS Added struct gz_hybrid.
+ *              25/01/2018 PS Modified z2fk_basic() to handle the case
+ *              zt[i] != 0.5 * (zc[i] + zc[i + 1])
  *
  *****************************************************************************/
 
@@ -370,7 +373,7 @@ static gz_hybrid* gz_hybrid_create(int nx, int ny, int nz, double* a, double* b,
 
 /**
  */
-static void gz_simple_destroy(gz_simple * gz)
+static void gz_simple_destroy(gz_simple* gz)
 {
     free(gz->zt);
     free(gz->zc);
@@ -379,7 +382,7 @@ static void gz_simple_destroy(gz_simple * gz)
 
 /**
  */
-static void gz_hybrid_destroy(gz_hybrid * gz)
+static void gz_hybrid_destroy(gz_hybrid* gz)
 {
     free(gz->at);
     free(gz->bt);
@@ -599,29 +602,29 @@ static double z2fk_basic(int n, double* zt, double* zc, double z)
             imid = (i1 + i2) / 2;
             if (imid == i1)
                 break;
-            if (z > zc[imid])
+            if (z > zt[imid])
                 i1 = imid;
             else
                 i2 = imid;
         }
         if (z < zc[i1 + 1])
-            return (double) i1 + (z - zt[i1]) / (zc[i1 + 1] - zc[i1]);
+            return (double) i1 + 0.5 * (z - zt[i1]) / (zc[i1 + 1] - zt[i1]);
         else
-            return (double) i1 + 0.5 + (z - zc[i1 + 1]) / (zc[i1 + 2] - zc[i1 + 1]);
+            return (double) i1 + 0.5 + 0.5 * (z - zc[i1 + 1]) / (zt[i1 + 1] - zc[i1 + 1]);
     } else {
         while (1) {
             imid = (i1 + i2) / 2;
             if (imid == i1)
                 break;
-            if (z > zc[imid])
+            if (z > zt[imid])
                 i2 = imid;
             else
                 i1 = imid;
         }
         if (z > zc[i1 + 1])
-            return (double) i1 + (z - zt[i1]) / (zc[i1 + 1] - zc[i1]);
+            return (double) i1 + 0.5 * (z - zt[i1]) / (zc[i1 + 1] - zt[i1]);
         else
-            return (double) i1 + 0.5 + (z - zc[i1 + 1]) / (zc[i1 + 2] - zc[i1 + 1]);
+            return (double) i1 + 0.5 + 0.5 * (z - zc[i1 + 1]) / (zt[i1 + 1] - zc[i1 + 1]);
     }
 }
 
@@ -666,7 +669,7 @@ static void gz_simple_z2fk(void* p, double fi, double fj, double z, double* fk)
 static void gz_hybrid_z2fk(void* p, double fi, double fj, double z, double* fk)
 {
     grid* g = (grid*) p;
-    gz_hybrid* gz = (gz_hybrid *) g->gridnodes_z;
+    gz_hybrid* gz = (gz_hybrid*) g->gridnodes_z;
 
     if (isnan(gz->fi_prev) || fabs(fi - gz->fi_prev) > EPS_IJ || fabs(fj - gz->fj_prev) > EPS_IJ) {
         double p1 = interpolate2d(fi, fj, gz->nx, gz->ny, gz->p1, g->numlevels, grid_isperiodic_x(g));
@@ -1107,9 +1110,9 @@ void grid_getdims(grid* g, int* ni, int* nj, int* nk)
     }
     if (nk != NULL) {
         if (g->vtype == GRIDVTYPE_Z || g->vtype == GRIDVTYPE_SIGMA)
-            *nk = ((gz_simple *) g->gridnodes_z)->nz;
+            *nk = ((gz_simple*) g->gridnodes_z)->nz;
         else if (g->vtype == GRIDVTYPE_HYBRID)
-            *nk = ((gz_hybrid *) g->gridnodes_z)->nz;
+            *nk = ((gz_hybrid*) g->gridnodes_z)->nz;
         else
             enkf_quit("programming error");
     }
@@ -1415,7 +1418,7 @@ int grid_fk2z(grid* g, int i, int j, double fk, double* z)
         if (g->vtype == GRIDVTYPE_SIGMA)
             *z *= g->depth[j][i];
     } else if (g->vtype == GRIDVTYPE_HYBRID) {
-        gz_hybrid* gz = (gz_hybrid *) g->gridnodes_z;
+        gz_hybrid* gz = (gz_hybrid*) g->gridnodes_z;
         int nz = gz->nz;
 
         /*

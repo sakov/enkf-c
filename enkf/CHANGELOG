@@ -1,3 +1,7 @@
+v. 1.69.3
+   PS 25012018
+   -- Modified z2fk_basic() to handle the case
+      zt[i] != 0.5 * (zc[i] + zc[i + 1]).
 v. 1.69.2
    PS 25012018
    -- Modified hybrid grids stuff in grid.c to get robust z <-> k conversions.
