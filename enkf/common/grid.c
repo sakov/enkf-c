@@ -77,8 +77,10 @@ typedef struct {
     int ny;
     int nz;
     int vdirection;
-    double* a;
-    double* b;
+    double* at;
+    double* ac;
+    double* bt;
+    double* bc;
     float** p1;
     float** p2;
 
@@ -320,6 +322,7 @@ static gz_simple* gz_simple_create(int nz, double* z, double* zc, char* vdirecti
 static gz_hybrid* gz_hybrid_create(int nx, int ny, int nz, double* a, double* b, float** p1, float** p2, char* vdirection)
 {
     gz_hybrid* gz = malloc(sizeof(gz_hybrid));
+    int i;
 
     if (strncasecmp(vdirection, "FROMSURF", 8) == 0)
         gz->vdirection = GRIDVDIR_FROMSURF;
@@ -331,15 +334,36 @@ static gz_hybrid* gz_hybrid_create(int nx, int ny, int nz, double* a, double* b,
     gz->nx = nx;
     gz->ny = ny;
     gz->nz = nz;
-    gz->a = a;
-    gz->b = b;
+    gz->at = a;
+    gz->bt = b;
     gz->p1 = p1;
     gz->p2 = p2;
 
-    gz->fi_prev = NAN;
-    gz->fj_prev = NAN;
+    gz->ac = malloc((nz + 1) * sizeof(double));
+    gz->bc = malloc((nz + 1) * sizeof(double));
+
+    gz->ac[0] = 1.5 * gz->at[0] - 0.5 * gz->at[1];
+    if (gz->ac[0] < 0.0)
+        gz->ac[0] = 0.0;
+    gz->ac[nz] = 1.5 * gz->at[nz - 1] - 0.5 * gz->at[nz - 2];
+    if (gz->ac[nz] < 0.0)
+        gz->ac[nz] = 0.0;
+    for (i = 1; i < nz; ++i)
+        gz->ac[i] = (gz->at[i - 1] + gz->at[i]) / 2.0;
+    gz->bc[0] = 1.5 * gz->bt[0] - 0.5 * gz->bt[1];
+    if (gz->bc[0] < 0.0)
+        gz->bc[0] = 0.0;
+    gz->bc[nz] = 1.5 * gz->bt[nz - 1] - 0.5 * gz->bt[nz - 2];
+    if (gz->bc[nz] < 0.0)
+        gz->bc[nz] = 0.0;
+    for (i = 1; i < nz; ++i)
+        gz->bc[i] = (gz->bt[i - 1] + gz->bt[i]) / 2.0;
+
     gz->pt = malloc(nz * sizeof(double));
     gz->pc = malloc((nz + 1) * sizeof(double));
+
+    gz->fi_prev = NAN;
+    gz->fj_prev = NAN;
 
     return gz;
 }
@@ -357,8 +381,10 @@ static void gz_simple_destroy(gz_simple * gz)
  */
 static void gz_hybrid_destroy(gz_hybrid * gz)
 {
-    free(gz->a);
-    free(gz->b);
+    free(gz->at);
+    free(gz->bt);
+    free(gz->ac);
+    free(gz->bc);
     free(gz->p1);
     free(gz->p2);
     free(gz->pt);
@@ -649,16 +675,9 @@ static void gz_hybrid_z2fk(void* p, double fi, double fj, double z, double* fk)
         int i;
 
         for (i = 0; i < nz; ++i)
-            gz->pt[i] = gz->a[i] + gz->b[i] * (p1 - p2);
-        if (gz->vdirection == GRIDVDIR_FROMSURF) {
-            gz->pc[0] = 1.5 * gz->pt[0] - 0.5 * gz->pt[1];
-            for (i = 1; i <= nz; ++i)
-                gz->pc[i] = 2.0 * gz->pt[i - 1] - gz->pc[i - 1];
-        } else {
-            gz->pc[nz] = 1.5 * gz->pt[nz - 1] - 0.5 * gz->pt[nz - 2];
-            for (i = nz - 1; i >= 0; --i)
-                gz->pc[i] = 2.0 * gz->pt[i] - gz->pc[i + 1];
-        }
+            gz->pt[i] = gz->at[i] + gz->bt[i] * (p1 - p2);
+        for (i = 0; i <= nz; ++i)
+            gz->pc[i] = gz->ac[i] + gz->bc[i] * (p1 - p2);
         gz->fi_prev = fi;
         gz->fj_prev = fj;
     }
@@ -1397,52 +1416,33 @@ int grid_fk2z(grid* g, int i, int j, double fk, double* z)
             *z *= g->depth[j][i];
     } else if (g->vtype == GRIDVTYPE_HYBRID) {
         gz_hybrid* gz = (gz_hybrid *) g->gridnodes_z;
-        double fi = (double) i;
-        double fj = (double) j;
+        int nz = gz->nz;
 
         /*
          * (this block the same as in gz_hybrid_z2fk())
          */
-        if (isnan(gz->fi_prev) || fabs(fi - gz->fi_prev) > EPS_IJ || fabs(fj - gz->fj_prev) > EPS_IJ) {
-            double p1 = interpolate2d(fi, fj, gz->nx, gz->ny, gz->p1, g->numlevels, grid_isperiodic_x(g));
-            double p2 = interpolate2d(fi, fj, gz->nx, gz->ny, gz->p2, g->numlevels, grid_isperiodic_x(g));
+        if (isnan(gz->fi_prev) || fabs((double) i - gz->fi_prev) > EPS_IJ || fabs((double) j - gz->fj_prev) > EPS_IJ) {
+            double p1 = interpolate2d((double) i, (double) j, gz->nx, gz->ny, gz->p1, g->numlevels, grid_isperiodic_x(g));
+            double p2 = interpolate2d((double) i, (double) j, gz->nx, gz->ny, gz->p2, g->numlevels, grid_isperiodic_x(g));
+            int nz = gz->nz;
+            int k;
 
-            int i;
-
-            for (i = 0; i < gz->nz; ++i)
-                gz->pt[i] = gz->a[i] + gz->b[i] * (p1 - p2);    /* for now
-                                                                 * assume p1
-                                                                 * > p2 */
-            /*
-             * we assume that it is more reliable to reconstruct cell corner
-             * coords starting from level with about 0 coordinate
-             */
-            if (gz->pt[0] < gz->pt[gz->nz - 1]) {
-                if (fabs(gz->pt[0] + gz->pt[2] - 2.0 * gz->pt[1]) <= EPS_Z)
-                    gz->pc[0] = 1.5 * gz->pt[0] - 0.5 * gz->pt[1];
-                else
-                    gz->pc[0] = 0.0;
-                for (i = 1; i <= gz->nz; ++i)
-                    gz->pc[i] = 2.0 * gz->pt[i - 1] - gz->pc[i - 1];
-            } else {
-                if (fabs(gz->pt[gz->nz - 1] + gz->pt[gz->nz - 3] - 2.0 * gz->pt[gz->nz - 2]) <= EPS_Z)
-                    gz->pc[gz->nz] = 1.5 * gz->pt[gz->nz - 1] - 0.5 * gz->pt[gz->nz - 2];
-                else
-                    gz->pc[gz->nz] = 0.0;
-                for (i = gz->nz - 1; i >= 0; --i)
-                    gz->pc[i] = 2.0 * gz->pt[i] - gz->pc[i + 1];
-            }
-            gz->fi_prev = fi;
-            gz->fj_prev = fj;
+            for (k = 0; k < nz; ++k)
+                gz->pt[k] = gz->at[k] + gz->bt[k] * (p1 - p2);
+            for (k = 0; k <= nz; ++k)
+                gz->pc[k] = gz->ac[k] + gz->bc[k] * (p1 - p2);
+            gz->fi_prev = (double) i;
+            gz->fj_prev = (double) j;
         }
+
         if (fk <= 0.0)
             *z = gz->pc[0];
-        else if (fk >= gz->nz)
-            *z = gz->pc[gz->nz];
+        else if (fk >= nz)
+            *z = gz->pc[nz];
         else {
             int k = (int) floor(fk);
 
-            *z = gz->pc[k] + (fk - (double) k) * (gz->pc[k + 1] - gz->pc[k]);
+            *z = gz->pc[k] + (fk - (double) k) * gz->pc[k + 1];
         }
     } else
         enkf_quit("not implemented");
