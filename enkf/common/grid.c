@@ -574,8 +574,7 @@ static void gc_fij2xy(void* p, double fi, double fj, double* x, double* y)
 }
 #endif
 
-/** Maps vertical coordinate to fractional cell index. Note that by convention
- ** adopted in EnKF-C an integer k corresponds to the middle of k-th layer.
+/** Maps vertical coordinate to fractional cell index.
  */
 static double z2fk_basic(int n, double* zt, double* zc, double z)
 {
@@ -1399,12 +1398,12 @@ int grid_fk2z(grid* g, int i, int j, double fk, double* z)
         return STATUS_OUTSIDEGRID;
     }
 
-    if (g->vtype == GRIDVTYPE_Z || g->vtype == GRIDVTYPE_SIGMA) {
-        gz_simple* nodes = g->gridnodes_z;
-        double* zc = nodes->zc;
-        int nt = nodes->nz;
+    fk += 0.5;
 
-        fk += 0.5;
+    if (g->vtype == GRIDVTYPE_Z || g->vtype == GRIDVTYPE_SIGMA) {
+        gz_simple* gz = g->gridnodes_z;
+        double* zc = gz->zc;
+        int nt = gz->nz;
 
         if (fk <= 0.0)
             *z = zc[0];
@@ -1412,8 +1411,12 @@ int grid_fk2z(grid* g, int i, int j, double fk, double* z)
             *z = zc[nt];
         else {
             int k = (int) floor(fk);
+            double dk = fk - (double) k;
 
-            *z = zc[k] + (fk - (double) k) * (zc[k + 1] - zc[k]);
+            if (dk < 0.5)
+                *z = gz->zc[k] + dk * (gz->zt[k] - gz->zc[k]) / 0.5;
+            else
+                *z = gz->zt[k] + (dk - 0.5) * (gz->zc[k + 1] - gz->zt[k]) / 0.5;
         }
         if (g->vtype == GRIDVTYPE_SIGMA)
             *z *= g->depth[j][i];
@@ -1444,8 +1447,12 @@ int grid_fk2z(grid* g, int i, int j, double fk, double* z)
             *z = gz->pc[nz];
         else {
             int k = (int) floor(fk);
+            double dk = fk - (double) k;
 
-            *z = gz->pc[k] + (fk - (double) k) * gz->pc[k + 1];
+            if (dk < 0.5)
+                *z = gz->pc[k] + dk * (gz->pt[k] - gz->pc[k]) / 0.5;
+            else
+                *z = gz->pt[k] + (dk - 0.5) * (gz->pc[k + 1] - gz->pt[k]) / 0.5;
         }
     } else
         enkf_quit("not implemented");
