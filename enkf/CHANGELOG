@@ -1,3 +1,6 @@
+v. 1.69.5
+   PS 31012018
+   -- Cut redundant interpolations in grid_fk2z() for hybrid grids.
 v. 1.69.4
    PS 30012018
    -- Modified grid_fk2z() accordingly (see v1.69.3). (This includes correcting

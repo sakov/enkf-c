@@ -17,6 +17,7 @@
  *              11/12/2017 PS Added struct gz_hybrid.
  *              25/01/2018 PS Modified z2fk_basic() to handle the case
  *              zt[i] != 0.5 * (zc[i] + zc[i + 1])
+ *              30/01/2018 PS Modified fk2z() to match the above changes.
  *
  *****************************************************************************/
 
@@ -1424,12 +1425,9 @@ int grid_fk2z(grid* g, int i, int j, double fk, double* z)
         gz_hybrid* gz = (gz_hybrid*) g->gridnodes_z;
         int nz = gz->nz;
 
-        /*
-         * (this block the same as in gz_hybrid_z2fk())
-         */
         if (isnan(gz->fi_prev) || fabs((double) i - gz->fi_prev) > EPS_IJ || fabs((double) j - gz->fj_prev) > EPS_IJ) {
-            double p1 = interpolate2d((double) i, (double) j, gz->nx, gz->ny, gz->p1, g->numlevels, grid_isperiodic_x(g));
-            double p2 = interpolate2d((double) i, (double) j, gz->nx, gz->ny, gz->p2, g->numlevels, grid_isperiodic_x(g));
+            double p1 = gz->p1[j][i];
+            double p2 = gz->p2[j][i];
             int nz = gz->nz;
             int k;
 
