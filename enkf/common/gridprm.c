@@ -195,7 +195,9 @@ void gridprm_create(char* fname, int* ngrid, gridprm** prm)
         } else if (strncasecmp(token, "VDIR", 4) == 0) {
             if (now->vdirection != NULL)
                 enkf_quit("%s, l.%d: VDIR specified twice", fname, line);
-            if (strncasecmp(token, "TOSURF", 6) == 0 || strncasecmp(token, "FROMSURF", 8) == 0)
+            if ((token = strtok(NULL, seps)) == NULL)
+                enkf_quit("%s, l.%d: VDIR not specified", fname, line);
+            if (strncasecmp(token, "TOSURF", 6) != 0 && strncasecmp(token, "FROMSURF", 8) != 0)
                 enkf_quit("%s, l.%d: unknown entry for VDIR, fname, line");
             now->vdirection = strdup(token);
         } else if (strcasecmp(token, "AVARNAME") == 0) {
@@ -253,8 +255,6 @@ void gridprm_create(char* fname, int* ngrid, gridprm** prm)
             enkf_quit("%s: XVARNAME not specified for grid \"%s\"", fname, now->name);
         if (now->yvarname == NULL)
             enkf_quit("%s: YVARNAME not specified for grid \"%s\"", fname, now->name);
-        if (strcasecmp(now->vtype, "SIGMA") == 0 && now->depthvarname == NULL)
-            enkf_quit("%s: DEPTHVARNAME not defined for grid \"%s\" of vertical type SIGMA", fname, now->name);
         if (now->vdirection == NULL)
             now->vdirection = strdup("FROMSURF");
         if (strcasecmp(now->vtype, "HYBRID") == 0) {

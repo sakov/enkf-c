@@ -1,3 +1,7 @@
+v. 1.69.6
+   PS 31012018
+   -- Reverted to DEPTHFNAME being optional for sigma grids.
+   -- Corrected defect in reading VDIR in the grid parameter file.
 v. 1.69.5
    PS 31012018
    -- Cut redundant interpolations in grid_fk2z() for hybrid grids.

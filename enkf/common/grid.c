@@ -1067,7 +1067,7 @@ void grid_describeprm(void)
     enkf_printf("    YVARNAME         = <Y variable name>\n");
     enkf_printf("    ZVARNAME         = <Z variable name> (z | sigma)\n");
     enkf_printf("  [ ZCVARNAME        = <ZC variable name> (z | sigma)]\n");
-    enkf_printf("    DEPTHVARNAME     = <depth variable name> (z | sigma)\n");
+    enkf_printf("  [ DEPTHVARNAME     = <depth variable name> (z | sigma) ]\n");
     enkf_printf("  [ NUMLEVELSVARNAME = <# of levels variable name> (z) ]\n");
     enkf_printf("  [ MASKVARNAME      = <land mask variable name> (sigma) ]\n");
     enkf_printf("    AVARNAME         = <A variable name> (hybrid)\n");
