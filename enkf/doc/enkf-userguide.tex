@@ -86,7 +86,7 @@ Following are its other main features:
 \item model-agnostic;
 \item can conduct DA either in EnKF or ensemble optimal interpolation (EnOI) mode;
 \item permits multiple model grids;
-\item can handle rectangular or curvilinear horizontal grids, z, sigma or hybrid vertical layers.
+\item can handle rectangular or curvilinear horizontal grids, z, sigma or hybrid vertical grids.
 \end{itemize}
 
 EnKF-C is available from \url{https://github.com/sakov/enkf-c}.
@@ -159,7 +159,7 @@ where
     & \mb K_{k+1} \equiv \mb P^f_{k+1} (\mb H_{k+1})\T \left [\mb H_{k+1} \mb P_{k+1}^f (\mb H_{k+1})\T + \mb R_{k+1} \right ]^{-1}
   \end{align}
 \end{subequations}
-\vspace{-10mm}
+\vspace{-8mm}
 \begin{subequations}
   \label{kf-for}
   \begin{align}
@@ -178,6 +178,7 @@ The forecast and analysis model state estimates $\mb x^f$ and $\mb x^a$ are comm
 Matrix $\mb K$ is called Kalman gain.
 
 There are a few things to be noted about the KF:
+\vspace{-3mm}
 \begin{enumerate}
 \item It follows from the Kalman filter (equations \ref{min-xk}-\ref{kf-for}) that the state of the DA system (SDAS) $\mb X$ is carried by the estimated model state vector and model state error covariance:
 \begin{align}
@@ -202,7 +203,7 @@ The standard form of the KF (\ref{kf-for}, \ref{kf-an}) is not necessarily the m
 The corresponding algorithms can be prone to loosing the positive definiteness of the state error covariance $\mb P$ due to round-up errors; and more importantly, explicit use of $\mb P$ makes these algorithms non-scalable in regard to the model state dimension.
 
 Both these immediate problems can be addressed with the ensemble Kalman filter, or the EnKF.
-In the EnKF the SDAS is carried by an ensemble of model states $\mb E$, which can be split into ensemble mean and ensemble anomalies:
+In the EnKF the SDAS is carried by an ensemble of $m$ model states $\mb E$, which can be split into ensemble mean and ensemble anomalies:
 \begin{align}
   \label{sdas-enkf}
   \mb X = \{\mb E\} = \{\mb x, \mb A\}.
@@ -234,9 +235,10 @@ Moreover, it approximates derivatives using ensemble of finite spread that chara
 \begin{subequations}
   \label{der-less-enkf}
   \begin{align}
-    &\mb H \mb x \quad &\to& \quad \mathcal H (\mb E) \, \mb 1 / m \hspace{10cm}\\
+    &\mb E \quad &\leftarrow& \quad \mb x \mb 1 \T  + \mb A \hspace{8cm}\\
+    &\mathcal H (\mb x) \quad &\to& \quad \mathcal H (\mb E) \, \mb 1 / m\\
     &\mb H \mb A \quad &\to& \quad \mathcal H(\mb E)\left(\mb I - \mb 1 \mb 1\T / m\right)\\
-    &\mb M \mb x \quad &\to& \quad \mathcal M (\mb E) \, \mb 1 / m\\
+    &\mathcal M (\mb x) \quad &\to& \quad \mathcal M (\mb E) \, \mb 1 / m\\
     &\mb M \mb A \quad &\to& \quad \mathcal M(\mb E)\left(\mb I - \mb 1 \mb 1\T / m\right)\\
     &\mb H \mb M \mb A &\to& \quad \mathcal H \circ \mathcal M(\mb E) \left(\mb I - \mb 1 \mb 1\T /m \right).
   \end{align}
@@ -246,28 +248,27 @@ This formulation is not the only one possible; one might also use the finite dif
 \begin{subequations}
   \label{der-less-ekf}
   \begin{align}
-    &\mb H \mb x \quad &\to& \quad \mathcal H (\mb x \mb 1\T + \varepsilon \mb A) \, 1/m \hspace{8cm}\\
-    &\mb H \mb A \quad &\to& \quad \mathcal H(\mb x \mb 1\T + \varepsilon \mb A)\left(\mb I - \mb 1 \mb 1\T / m\right) / \varepsilon\\
-    &\mb M \mb x \quad &\to& \quad \mathcal M (\mb x \mb 1\T + \varepsilon \mb A) \, 1/m\\
-    &\mb M \mb A \quad &\to& \quad \mathcal M(\mb x \mb 1\T + \varepsilon \mb A)\left(\mb I - \mb 1 \mb 1\T / m\right) / \varepsilon\\
-    &\mb H \mb M \mb A \quad &\to& \quad \mathcal H \circ \mathcal M(\mb x \mb 1\T + \varepsilon \mb A)\left(\mb I - \mb 1 \mb 1\T / m\right) / \varepsilon.
+    &\mb E \quad &\leftarrow& \quad \mb x \mb 1 \T  + \varepsilon \mb A \hspace{8cm}\\
+    &\mb H \mb A \quad &\to& \quad \mathcal H(\mb E)\left(\mb I - \mb 1 \mb 1\T / m\right) / \varepsilon\\
+    &\mb M \mb A \quad &\to& \quad \mathcal M(\mb E)\left(\mb I - \mb 1 \mb 1\T / m\right) / \varepsilon\\
+    &\mb H \mb M \mb A \quad &\to& \quad \mathcal H \circ \mathcal M(\mb E)\left(\mb I - \mb 1 \mb 1\T / m\right) / \varepsilon.
   \end{align}
 \end{subequations}
 In this form the filter represents a derivative-less ensemble formulation of the EKF.
 In practice the difference between the EnKF formulation (\ref{der-less-enkf}) and the EKF formulation (\ref{der-less-ekf}) is that the latter is more sensitive to small-scale variability and therefore more prone to instability, similar to the difference in behaviour of the Newton and secant methods.
 
-The forecast stage of the EnKF involves only propagation of each ensemble member:
+The forecast stage of the EnKF involves just propagating each ensemble member:
 \begin{align}
   \label{enkf-for}
   \mb E_i^f = \mathcal M_i(\mb E_{i-1}^a).
 \end{align}
-This is a remarkably simple equation compared to the KF forecast equations (\ref{kf-for}), even though the model error still needs to be handled in some way.
-Because propagation of each ensemble member is independent from other members, the forecast stage in the EnKF is naturally parallelisable.
+This is a remarkably simple equation compared to the KF forecast equations (\ref{kf-for}), even though the model error still needs to be accounted for in some way.
+Because propagation of each ensemble member is independent from the other members, the forecast stage in the EnKF is naturally parallelisable.
 
 One way to handle model error in the EnKF is to include stochastic model error into the model operator in (\ref{enkf-for}).
 (This would make it different to the model operator in the KF, which is deterministic.)
 Another option is to use the multiplicative inflation.
-The third option is to mimic the treatment of model error in the KF, although this may require the ``rank reduction'' step \citep[eq. 28]{ver97a}.
+The third option is to mimic the treatment of model error in the KF, although this would require the ``rank reduction'' \citep[eq. 28]{ver97a} to prevent increasing the ensemble size.
 
 At the analysis stage one has to update the ensemble mean and ensemble anomalies to match (\ref{kf-an}).
 This involves handling ensemble as a whole, which is different to the forecast stage, when each ensemble member is propagated individually.

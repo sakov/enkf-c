@@ -10,13 +10,13 @@
  * Description:
  *
  * Revisions:   15/02/2016 PS x2fi_reg() now returns NaN if estimated fi either
- *              < 0.0 or > (double) (n - 1). (In the previous version indices
- *              -0.5 < fi <= 0.0 were mapped to 0.0, and indices
- *              (double) (n - 1) < fi < (double) n - 0.5 were mapped to
- *              (double) (n - 1).)
+ *                < 0.0 or > (double) (n - 1). (In the previous version indices
+ *                -0.5 < fi <= 0.0 were mapped to 0.0, and indices
+ *                (double) (n - 1) < fi < (double) n - 0.5 were mapped to
+ *                (double) (n - 1).)
  *              11/12/2017 PS Added struct gz_hybrid.
  *              25/01/2018 PS Modified z2fk_basic() to handle the case
- *              zt[i] != 0.5 * (zc[i] + zc[i + 1])
+ *                zt[i] != 0.5 * (zc[i] + zc[i + 1])
  *              30/01/2018 PS Modified fk2z() to match the above changes.
  *
  *****************************************************************************/
