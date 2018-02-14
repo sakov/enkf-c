@@ -1,3 +1,7 @@
+v. 1.69.7
+   PS 15022018
+   -- Tidied up output in print_obsstats().
+   -- A few other cosmetic changes.
 v. 1.69.6
    PS 31012018
    -- Reverted to DEPTHFNAME being optional for sigma grids.

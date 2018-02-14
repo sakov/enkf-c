@@ -1337,8 +1337,6 @@ void das_update(dasystem* das)
             MPI_Barrier(MPI_COMM_WORLD);
 #endif
             enkf_printf("\n");
-            enkf_printtime("    ");
-            enkf_flush();
         } else if (das->mode == MODE_ENOI) {
             if (rank == 0) {
                 enkf_printtime("    ");
@@ -1408,8 +1406,6 @@ void das_update(dasystem* das)
                 }
 
                 enkf_printf("\n");
-                enkf_printtime("    ");
-                enkf_flush();
             }
         }
     }
@@ -1423,6 +1419,7 @@ void das_update(dasystem* das)
         int i, e;
 
         enkf_printf("    updating fields for %s:\n", grid_getname(grid));
+        enkf_printtime("      ");
 
         grid_getdims(grid, &mni, &mnj, NULL);
 
