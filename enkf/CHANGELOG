@@ -1,3 +1,6 @@
+v. 1.70.1
+   PS 06032018
+   -- A minor change in error messages in readfield() and read3dfield().
 v. 1.70.0
    PS 06032018
    -- Eliminated readfield() and read3dfield(); renamed readfield2() as

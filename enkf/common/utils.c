@@ -777,7 +777,7 @@ void readfield(char fname[], char varname[], int k, int ni, int nj, float* v)
         count[2] = dimlen[2];
         count[3] = dimlen[3];
         if (dimlen[3] != ni || dimlen[2] != nj)
-            enkf_quit("\"%s\": horizontal dimensions of variable \"%s\" (ni = %d, nj = %d) do not match model dimensions (ni = %d, nj = %d)", fname, varname, dimlen[3], dimlen[2], ni, nj);
+            enkf_quit("\"%s\": horizontal dimensions of variable \"%s\" (ni = %d, nj = %d) do not match grid dimensions (ni = %d, nj = %d)", fname, varname, dimlen[3], dimlen[2], ni, nj);
     } else if (ndims == 3) {
         if (!containsrecorddim) {
             assert(k < dimlen[0]);
@@ -799,7 +799,7 @@ void readfield(char fname[], char varname[], int k, int ni, int nj, float* v)
             count[2] = dimlen[2];
         }
         if (dimlen[2] != ni || dimlen[1] != nj)
-            enkf_quit("\"%s\": horizontal dimensions of variable \"%s\" (ni = %d, nj = %d) do not match model dimensions (ni = %d, nj = %d)", fname, varname, dimlen[2], dimlen[1], ni, nj);
+            enkf_quit("\"%s\": horizontal dimensions of variable \"%s\" (ni = %d, nj = %d) do not match grid dimensions (ni = %d, nj = %d)", fname, varname, dimlen[2], dimlen[1], ni, nj);
     } else if (ndims == 2) {
         if (containsrecorddim)
             enkf_quit("%s: can not read a layer from a 1D variable \"%s\"", fname, varname);
@@ -810,7 +810,7 @@ void readfield(char fname[], char varname[], int k, int ni, int nj, float* v)
         count[0] = dimlen[0];
         count[1] = dimlen[1];
         if (dimlen[1] != ni || dimlen[0] != nj)
-            enkf_quit("\"%s\": horizontal dimensions of variable \"%s\" (ni = %d, nj = %d) do not match model dimensions (ni = %d, nj = %d)", fname, varname, dimlen[1], dimlen[0], ni, nj);
+            enkf_quit("\"%s\": horizontal dimensions of variable \"%s\" (ni = %d, nj = %d) do not match grid dimensions (ni = %d, nj = %d)", fname, varname, dimlen[1], dimlen[0], ni, nj);
     } else
         enkf_quit("%s: can not read 2D field for \"%s\": # of dimensions = %d", fname, varname, ndims);
 
@@ -1135,7 +1135,7 @@ void read3dfield(char* fname, char* varname, int ni, int nj, int nk, float* v)
         count[2] = dimlen[2];
         count[3] = dimlen[3];
         if (dimlen[3] != ni || dimlen[2] != nj || dimlen[1] != nk)
-            enkf_quit("\"%s\": horizontal dimensions of variable \"%s\" (ni = %d, nj = %d, nk = %d) do not match model dimensions (ni = %d, nj = %d, nk = %d)", fname, varname, dimlen[3], dimlen[2], dimlen[1], ni, nj, nk);
+            enkf_quit("\"%s\": horizontal dimensions of variable \"%s\" (ni = %d, nj = %d, nk = %d) do not match grid dimensions (ni = %d, nj = %d, nk = %d)", fname, varname, dimlen[3], dimlen[2], dimlen[1], ni, nj, nk);
     } else if (ndims == 3) {
         assert(!containsrecorddim);
         start[0] = 0;
@@ -1145,7 +1145,7 @@ void read3dfield(char* fname, char* varname, int ni, int nj, int nk, float* v)
         count[1] = dimlen[1];
         count[2] = dimlen[2];
         if (dimlen[2] != ni || dimlen[1] != nj || dimlen[0] != nk)
-            enkf_quit("\"%s\": horizontal dimensions of variable \"%s\" (ni = %d, nj = %d, nk = %d) do not match model dimensions (ni = %d, nj = %d, nk = %d)", fname, varname, dimlen[2], dimlen[1], dimlen[0], ni, nj, nk);
+            enkf_quit("\"%s\": horizontal dimensions of variable \"%s\" (ni = %d, nj = %d, nk = %d) do not match grid dimensions (ni = %d, nj = %d, nk = %d)", fname, varname, dimlen[2], dimlen[1], dimlen[0], ni, nj, nk);
     } else
         enkf_quit("%s: can not read 3D field for \"%s\": # of dimensions = %d", fname, varname, ndims);
 
