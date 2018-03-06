@@ -636,14 +636,22 @@ int model_fk2z(model* m, int vid, int i, int j, double fk, double* z)
  */
 void model_readfield(model* m, char fname[], int time, char varname[], int k, float* v)
 {
-    readfield(fname, varname, k, v);
+    int ni, nj, nk;
+    int mvid = model_getvarid(m, varname, 1);
+
+    model_getvardims(m, mvid, &ni, &nj, &nk);
+    readfield(fname, varname, k, ni, nj, v);
 }
 
 /**
  */
 void model_read3dfield(model* m, char fname[], int time, char varname[], float* v)
 {
-    read3dfield(fname, varname, v);
+    int ni, nj, nk;
+    int mvid = model_getvarid(m, varname, 1);
+
+    model_getvardims(m, mvid, &ni, &nj, &nk);
+    read3dfield(fname, varname, ni, nj, nk, v);
 }
 
 /**

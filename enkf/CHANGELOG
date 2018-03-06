@@ -1,3 +1,9 @@
+v. 1.70.0
+   PS 06032018
+   -- Eliminated readfield() and read3dfield(); renamed readfield2() as
+      readfield() and read3dfield2() as read3dfield(); modified the rest of the
+      code accordingly. This ensures that the dimensions of the fields read are
+      always consistent with the assumed dimensions.
 v. 1.69.7
    PS 15022018
    -- Tidied up output in print_obsstats().

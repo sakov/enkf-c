@@ -64,7 +64,7 @@ void das_setobstypes(dasystem* das)
 
                 model_getvardims(m, vid, &nx, &ny, NULL);
                 v = alloc2d(ny, nx, sizeof(float));
-                readfield2(type->offset_fname, type->offset_varname, 0, nx, ny, v[0]);
+                readfield(type->offset_fname, type->offset_varname, 0, nx, ny, v[0]);
                 model_adddata(m, tag, vid, ALLOCTYPE_2D, v);
             } else {
                 float*** v = NULL;
@@ -72,7 +72,7 @@ void das_setobstypes(dasystem* das)
 
                 model_getvardims(m, vid, &nx, &ny, &nz);
                 v = alloc3d(nz, ny, nx, sizeof(float));
-                read3dfield2(type->offset_fname, type->offset_varname, nx, ny, nz, v[0][0]);
+                read3dfield(type->offset_fname, type->offset_varname, nx, ny, nz, v[0][0]);
                 model_adddata(m, tag, vid, ALLOCTYPE_3D, v);
             }
         }
