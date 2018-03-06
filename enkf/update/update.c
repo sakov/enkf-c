@@ -1419,6 +1419,7 @@ void das_update(dasystem* das)
         int i, e;
 
         enkf_printf("    updating fields for %s:\n", grid_getname(grid));
+
         enkf_printtime("      ");
 
         grid_getdims(grid, &mni, &mnj, NULL);
