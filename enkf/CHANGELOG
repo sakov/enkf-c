@@ -1,3 +1,8 @@
+v. 1.70.2
+   PS 07032018
+   -- In utils.c replaced code borrowed from Jdn_L.C for day difference
+      calculation by that from Scaldate.C (see
+      http://www.diyspeakers.net/snippets.org/c.snippets.org/browser.html).
 v. 1.70.1
    PS 06032018
    -- A minor change in error messages in readfield() and read3dfield().

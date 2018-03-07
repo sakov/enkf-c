@@ -286,45 +286,48 @@ void find_files(char* template, int* nfiles, char*** fnames)
     pclose(in);
 }
 
-#ifdef PAPAL                    /* Pope Gregory XIII's decree */
-#define LASTJULDATE 15821004L   /* last day to use Julian calendar */
-#define LASTJULJDN  2299160L    /* jdn of same */
-#else                           /* British-American usage */
-#define LASTJULDATE 17520902L   /* last day to use Julian calendar */
-#define LASTJULJDN  2361221L    /* jdn of same */
-#endif
-
-/**
- */
-static long ymd_to_jdnl(int y, int m, int d, int julian)
+/*
+** scalar date routines    --    public domain by Ray Gardner
+** Numerically, these will work over the range 1/01/01 thru 14699/12/31.
+** Practically, these only work from the beginning of the Gregorian 
+** calendar thru 14699/12/31.  The Gregorian calendar took effect in
+** much of Europe in about 1582, some parts of Germany in about 1700, in
+** England and the colonies in about 1752ff, and in Russia in 1918.
+*/
+static int isleap(unsigned yr)
 {
-    long jdn;
+    return yr % 400 == 0 || (yr % 4 == 0 && yr % 100 != 0);
+}
+static unsigned months_to_days(unsigned month)
+{
+    return (month * 3057 - 3007) / 100;
+}
+static long years_to_days(unsigned yr)
+{
+    return yr * 365L + yr / 4 - yr / 100 + yr / 400;
+}
+static long ymd_to_scalar(unsigned yr, unsigned mo, unsigned day)
+{
+    long scalar;
 
-    if (julian < 0)             /* set Julian flag if auto set */
-        julian = (((y * 100L) + m) * 100 + d <= LASTJULDATE);
-
-    if (y < 0)                  /* adjust BC year */
-        y++;
-
-    if (julian)
-        jdn = 367L * y - 7 * (y + 5001L + (m - 9) / 7) / 4 + 275 * m / 9 + d + 1729777L;
-    else
-        jdn = (long) (d - 32076)
-            + 1461L * (y + 4800L + (m - 14) / 12) / 4 + 367 * (m - 2 - (m - 14) / 12 * 12) / 12 - 3 * ((y + 4900L + (m - 14) / 12) / 100) / 4 + 1;
-
-    return jdn;
+    scalar = day + months_to_days(mo);
+    if (mo > 2)                 /* adjust if past February */
+        scalar -= isleap(yr) ? 1 : 2;
+    yr--;
+    scalar += years_to_days(yr);
+    return scalar;
 }
 
 /**
  */
-static int daydiff(int y1, int m1, int d1, int y2, int m2, int d2)
+static long int daydiff(unsigned int y1, unsigned int m1, unsigned int d1, unsigned int y2, unsigned int m2, unsigned int d2)
 {
-    int jday1, jday2;
+    long int dn1, dn2;
 
-    jday1 = ymd_to_jdnl(y1, m1, d1, 0);
-    jday2 = ymd_to_jdnl(y2, m2, d2, 0);
+    dn1 = ymd_to_scalar(y1, m1, d1);
+    dn2 = ymd_to_scalar(y2, m2, d2);
 
-    return jday1 - jday2;
+    return dn1 - dn2;
 }
 
 /** Calculates transform from `tunits' to "days from BASEDAY/BASEMONTH/BASYEAR".
