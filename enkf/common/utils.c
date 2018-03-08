@@ -163,7 +163,7 @@ FILE* enkf_fopen(const char* fname, const char* mode)
     if ((f = fopen(fname, mode)) == NULL) {
         int errno_saved = errno;
 
-        enkf_quit("  error: enkf_fopen(): could not open \"%s\": %s", fname, strerror(errno_saved));
+        enkf_quit("enkf_fopen(): could not open \"%s\": %s", fname, strerror(errno_saved));
     }
 
     return f;
@@ -256,8 +256,36 @@ void enkf_printversion(void)
     enkf_printcompileflags("  ");
 }
 
-/** Finds files matching the template by using Unix "ls" command and
- ** adds them to the current list.
+#if 1
+#include <glob.h>
+/** Find files matching the template using glob.
+ */
+void find_files(char* template, int* nfiles, char*** fnames)
+{
+    glob_t gl;
+    int status;
+
+    status = glob(template, GLOB_PERIOD | GLOB_TILDE_CHECK, NULL, &gl);
+    if (status == GLOB_NOSPACE || status == GLOB_ABORTED || status == GLOB_ERR) {
+        int errno_saved = errno;
+
+        enkf_quit("failed looking for \"%s\": %s", template, strerror(errno_saved));
+    }
+
+    if (gl.gl_pathc > 0) {
+        int i, ii;
+
+        if (*nfiles == 0)
+            *fnames = NULL;
+        *fnames = realloc(*fnames, (*nfiles + gl.gl_pathc) * sizeof(void*));
+        for (i = 0, ii = *nfiles; i < gl.gl_pathc; ++i, ++ii)
+            (*fnames)[ii] = strdup(gl.gl_pathv[i]);
+        *nfiles += gl.gl_pathc;
+    }
+    globfree(&gl);
+}
+#else
+/** Find files matching the template using "ls".
  */
 void find_files(char* template, int* nfiles, char*** fnames)
 {
@@ -285,6 +313,7 @@ void find_files(char* template, int* nfiles, char*** fnames)
 
     pclose(in);
 }
+#endif
 
 /*
 ** scalar date routines    --    public domain by Ray Gardner

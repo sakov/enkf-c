@@ -1,3 +1,6 @@
+v. 1.70.3
+   PS 08032018
+   -- Changed find_files() to use glob rather than shell command "ls".
 v. 1.70.2
    PS 07032018
    -- In utils.c replaced code borrowed from Jdn_L.C for day difference
