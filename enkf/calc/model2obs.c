@@ -106,8 +106,6 @@ void H_surf_standard(dasystem* das, int nobs, int obsids[], char fname[], int me
 
     assert(ot->nvar == 1);      /* should we care? */
 
-    if (getnumlevels(fname, ot->varnames[0]) == 1)
-        k = 0;
     model_readfield(m, fname, t, ot->varnames[0], k, src[0]);
 
     snprintf(tag_offset, MAXSTRLEN, "%s:OFFSET", ot->name);
