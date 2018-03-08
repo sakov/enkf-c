@@ -16,7 +16,6 @@
  *
  *****************************************************************************/
 
-#define STRINGTABLE_NSTART 50
 #define STRINGTABLE_NINC 50
 
 #include <stdlib.h>
@@ -51,9 +50,8 @@ stringtable* st_create(char* name)
         st->name = strdup("stringtable");
     st->unique = 1;
     st->n = 0;
-    st->nallocated = STRINGTABLE_NSTART;
     st->sorted = 0;
-    st->se = calloc(STRINGTABLE_NSTART, sizeof(void*));
+    st->se = NULL;
 
     return st;
 }
@@ -74,9 +72,8 @@ stringtable* st_copy(stringtable* parent)
     st->name = strdup(parent->name);
     st->unique = parent->unique;
     st->n = parent->n;
-    st->nallocated = parent->nallocated;
     st->sorted = parent->sorted;
-    st->se = malloc(st->nallocated * sizeof(void*));
+    st->se = malloc((st->n / STRINGTABLE_NINC + 1) * STRINGTABLE_NINC * sizeof(void*));
     for (i = 0; i < st->n; ++i) {
         stringentry* se0 = parent->se[i];
         stringentry* se = malloc(sizeof(stringentry));
@@ -141,10 +138,8 @@ int st_add(stringtable* st, char* s, int index)
             exit(1);
         }
 
-    if (st->n == st->nallocated) {
-        st->se = realloc(st->se, (st->nallocated + STRINGTABLE_NINC) * sizeof(void*));
-        st->nallocated += STRINGTABLE_NINC;
-    }
+    if (st->n % STRINGTABLE_NINC == 0)
+        st->se = realloc(st->se, (st->n + STRINGTABLE_NINC) * sizeof(void*));
 
     st->se[st->n] = se;
     st->n++;
@@ -173,10 +168,8 @@ int st_add_ifabsent(stringtable* st, char* s, int index)
     se->index = (index >= 0) ? index : st->n;
     se->naccess = 0;
 
-    if (st->n == st->nallocated) {
-        st->se = realloc(st->se, (st->nallocated + STRINGTABLE_NINC) * sizeof(void*));
-        st->nallocated += STRINGTABLE_NINC;
-    }
+    if (st->n % STRINGTABLE_NINC == 0)
+        st->se = realloc(st->se, (st->n + STRINGTABLE_NINC) * sizeof(void*));
 
     st->se[st->n] = se;
     st->n++;

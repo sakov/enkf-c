@@ -38,7 +38,6 @@ struct stringtable {
     int unique;                 /* flag: whether all entries must be unique;
                                  * 1 by default */
     int n;
-    int nallocated;
     int sorted;                 /* flag */
     stringentry** se;
 };
