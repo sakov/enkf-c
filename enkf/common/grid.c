@@ -74,7 +74,7 @@ typedef struct {
     int vdirection;
     double* zt;
     double* zc;
-} gz_simple;
+} gz_z;
 
 /*
  * This structure actually manages the "new" ROMS vertical coordinate as
@@ -297,9 +297,9 @@ void gxy_curv_destroy(gxy_curv * nodes)
 
 /**
  */
-static gz_simple* gz_simple_create(grid* g, int nk, double* z, double* zc, char* vdirection)
+static gz_z* gz_z_create(grid* g, int nk, double* z, int nkc, double* zc, char* vdirection)
 {
-    gz_simple* gz = malloc(sizeof(gz_simple));
+    gz_z* gz = malloc(sizeof(gz_z));
     int i;
 
     if (strncasecmp(vdirection, "FROMSURF", 8) == 0)
@@ -342,11 +342,18 @@ static gz_simple* gz_simple_create(grid* g, int nk, double* z, double* zc, char*
                 gz->zc[i] = 2.0 * z[i] - gz->zc[i + 1];
         }
     } else {
-        memcpy(gz->zc, zc, nk * sizeof(double));
-        gz->zc[nk] = 2.0 * z[nk - 1] - zc[nk - 1];
+        if (nkc == nk) { /* e.g. in MOM */
+            memcpy(gz->zc, zc, nk * sizeof(double));
+            gz->zc[nk] = 2.0 * z[nk - 1] - zc[nk - 1];
+        } else if (nkc == nk + 1)
+            memcpy(gz->zc, zc, nkc * sizeof(double));
         free(zc);
     }
 
+    if (gz->vdirection == GRIDVDIR_FROMSURF)
+        assert(gz->zt[0] < gz->zt[nk - 1] && gz->zc[0] < gz->zc[nk]);
+    else if (gz->vdirection == GRIDVDIR_TOSURF)
+        assert(gz->zt[0] > gz->zt[nk - 1] && gz->zc[0] > gz->zc[nk]);
     for (i = 0; i < nk; ++i)
         assert((gz->zt[i] - gz->zc[i]) * (gz->zc[i + 1] - gz->zt[i]) > 0.0);
 
@@ -496,7 +503,7 @@ static gz_hybrid* gz_hybrid_create(int ni, int nj, int nk, double* a, double* b,
 
 /**
  */
-static void gz_simple_destroy(gz_simple* gz)
+static void gz_z_destroy(gz_z* gz)
 {
     free(gz->zt);
     free(gz->zc);
@@ -763,10 +770,10 @@ static double z2fk_basic(int n, double* zt, double* zc, double z)
 
 /**
  */
-static void gz_simple_z2fk(void* p, double fi, double fj, double z, double* fk)
+static void gz_z_z2fk(void* p, double fi, double fj, double z, double* fk)
 {
     grid* g = (grid*) p;
-    gz_simple* nodes = g->gridnodes_z;
+    gz_z* nodes = g->gridnodes_z;
 
     *fk = z2fk_basic(nodes->nk, nodes->zt, nodes->zc, z);
 }
@@ -990,21 +997,23 @@ grid* grid_create(void* p, int id)
         int varid;
         double* z = NULL;
         double* zc = NULL;
+        size_t nkc = 0;
 
         ncw_inq_varid(ncid, prm->zvarname, &varid);
         ncw_inq_vardimlen(ncid, varid, 1, &nk);
         z = malloc(nk * sizeof(double));
         ncw_get_var_double(ncid, varid, z);
         if (prm->zcvarname != NULL) {
-            size_t nkc;
-
             ncw_inq_varid(ncid, prm->zcvarname, &varid);
             ncw_inq_vardimlen(ncid, varid, 1, &nkc);
-            assert(nkc == nk + 1);
+            /*
+             * (nkc = nk in MOM)
+             */
+            assert(nkc == nk || nkc == nk + 1);
             zc = malloc(nkc * sizeof(double));
             ncw_get_var_double(ncid, varid, zc);
         }
-        g->gridnodes_z = gz_simple_create(g, nk, z, zc, prm->vdirection);
+        g->gridnodes_z = gz_z_create(g, nk, z, nkc, zc, prm->vdirection);
         if (zc != NULL)
             free(zc);
     } else if (g->vtype == GRIDVTYPE_SIGMA) {
@@ -1125,7 +1134,7 @@ grid* grid_create(void* p, int id)
                         double fk = NAN;
 
                         if (depth > 0.0) {
-                            gz_simple_z2fk(g, j, i, depth, &fk);
+                            gz_z_z2fk(g, j, i, depth, &fk);
                             g->numlevels[j][i] = ceil(fk + 0.5);
                         }
                     }
@@ -1159,7 +1168,7 @@ void grid_destroy(grid* g)
         enkf_quit("programming_error");
     if (g->gridnodes_z != NULL) {
         if (g->vtype == GRIDVTYPE_Z)
-            gz_simple_destroy(g->gridnodes_z);
+            gz_z_destroy(g->gridnodes_z);
         else if (g->vtype == GRIDVTYPE_SIGMA)
             gz_sigma_destroy(g->gridnodes_z);
         else if (g->vtype == GRIDVTYPE_HYBRID)
@@ -1221,7 +1230,7 @@ void grid_print(grid* g, char offset[])
         enkf_printf("%s  v type = NONE\n", offset);
     }
     if (g->vtype == GRIDVTYPE_Z) {
-        gz_simple* nodes = g->gridnodes_z;
+        gz_z* nodes = g->gridnodes_z;
 
         enkf_printf("%s  v dir = %s\n", offset, (nodes->vdirection == GRIDVDIR_FROMSURF) ? "FROMSURF" : "TOSURF");
     } else if (g->vtype == GRIDVTYPE_SIGMA) {
@@ -1307,7 +1316,7 @@ void grid_getdims(grid* g, int* ni, int* nj, int* nk)
     }
     if (nk != NULL) {
         if (g->vtype == GRIDVTYPE_Z)
-            *nk = ((gz_simple*) g->gridnodes_z)->nk;
+            *nk = ((gz_z*) g->gridnodes_z)->nk;
         else if (g->vtype == GRIDVTYPE_SIGMA)
             *nk = ((gz_sigma *) g->gridnodes_z)->nk;
         else if (g->vtype == GRIDVTYPE_HYBRID)
@@ -1322,7 +1331,7 @@ void grid_getdims(grid* g, int* ni, int* nj, int* nk)
 int grid_getsurflayerid(grid* g)
 {
     if (g->vtype == GRIDVTYPE_Z) {
-        gz_simple* nodes = g->gridnodes_z;
+        gz_z* nodes = g->gridnodes_z;
 
         if (nodes->vdirection == GRIDVDIR_FROMSURF)
             return 0;
@@ -1505,7 +1514,7 @@ int grid_z2fk(grid* g, double fi, double fj, double z, double* fk)
     }
 
     if (g->vtype == GRIDVTYPE_Z)
-        gz_simple_z2fk(g, fi, fj, z, fk);
+        gz_z_z2fk(g, fi, fj, z, fk);
     else if (g->vtype == GRIDVTYPE_SIGMA)
         gz_sigma_z2fk(g, fi, fj, z, fk);
     else if (g->vtype == GRIDVTYPE_HYBRID)
@@ -1612,7 +1621,7 @@ int grid_fk2z(grid* g, int i, int j, double fk, double* z)
     fk += 0.5;
 
     if (g->vtype == GRIDVTYPE_Z) {
-        gz_simple* gz = g->gridnodes_z;
+        gz_z* gz = g->gridnodes_z;
         double* zc = gz->zc;
         int nt = gz->nk;
 
