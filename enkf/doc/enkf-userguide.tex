@@ -559,8 +559,9 @@ This time invariance of ensemble transforms can be used to update ensemble back 
   \begin{align}
     J(\mb x) = (\mb x - \mb x^f)\T (\mb P^f)^{-1} (\mb x - \mb x^f) + \left [ \mb y - \mathcal H \circ \mathcal M(\mb x) \right ] \T \mb R^{-1} \left [ \mb y - \mathcal H \circ \mathcal M(\mb x) \right ].
   \end{align}
-  Here $\mb x^f$ is the analysed state at the end of the previous cycle, considered as the forecast for the current cycle, and $\mb P^f$ is the corresponding state error covariance.
-  Minimising $J$ yields the analysed initial model state $\mb x^a$, which in turn yields the analysed trajectory; the analysed state error covariance is defined so that the analysed background term absorbs the observation term:
+  Here $\mb x^f$ is the analysed state at the end of the previous cycle (it yields the forecast trajectory for the current cycle), and $\mb P^f$ is the corresponding state error covariance.
+  Minimising $J$ yields the analysed initial model state $\mb x^a$, which in turn yields the analysed trajectory.
+  The analysed state error covariance is defined so that the analysed background term absorbs the observation term:
   \begin{align*}
     &\mb x^a = \arg \min \; J(\mb x),\\
     &\mb P^a: \ J(\mb x^a) = (\mb x^a - \mb x^f)\T (\mb P^a)^{-1} (\mb x^a - \mb x^f) + \mathrm{Const}.
