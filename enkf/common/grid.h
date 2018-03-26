@@ -60,7 +60,7 @@ void grid_ij2xy(grid* g, int i, int j, double* x, double* y);
 int grid_fk2z(grid* g, int i, int j, double fk, double* z);
 void grid_tocartesian(grid* g, double in[2], double out[3]);
 
-int grid_isperiodic_x(grid* g);
+int grid_isperiodic_i(grid* g);
 
 /*
  * stuff to handle an array of grids

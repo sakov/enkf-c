@@ -26,18 +26,22 @@ typedef struct {
     char* yvarname;
     char* zvarname;
     char* zcvarname;
+    char* hcvarname;            /* for ROMS sigma coords */
     char* depthvarname;
     char* levelvarnameentry;
     char* levelvarname;
     char* vdirection;
     /*
      * Hybrid stuff: p(k) = A(k) + B(k) * (p1 - p2)
-     * See e.g. Eckerman (2008), eq. 6.
+     * https://journals.ametsoc.org/doi/pdf/10.1175/2008MWR2537.1
+     * See e.g. Eckerman (2009), eq. 6.
      */
     char* avarname;
     char* bvarname;
+    char* acvarname;
+    char* bcvarname;
     char* p1varname;            /* in atmosphere -- P of the surface layer */
-    char* p2varname;            /* in atmosphere - P of the top layer */
+    char* p2varname;            /* in atmosphere -- P of the top layer */
     /*
      * hybrid stuff end 
      */

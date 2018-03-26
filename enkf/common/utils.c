@@ -1319,7 +1319,7 @@ void print_vector_float(int n, float* a, char offset[])
 
 /**
  */
-ENSOBSTYPE interpolate2d(double fi, double fj, int ni, int nj, float** v, int** mask, int periodic_x)
+ENSOBSTYPE interpolate2d(double fi, double fj, int ni, int nj, float** v, int** mask, int periodic_i)
 {
     int i1 = (int) floor(fi);
     double wi1 = ceil(fi) - fi;
@@ -1343,9 +1343,9 @@ ENSOBSTYPE interpolate2d(double fi, double fj, int ni, int nj, float** v, int** 
      * model_xy2fij().
      */
     if (i1 == -1)
-        i1 = (periodic_x) ? ni - 1 : i2;
+        i1 = (periodic_i) ? ni - 1 : i2;
     if (i2 == ni)
-        i2 = (periodic_x) ? 0 : i1;
+        i2 = (periodic_i) ? 0 : i1;
     if (j1 == -1)
         j1 = j2;
     if (j2 == nj)
@@ -1380,7 +1380,7 @@ ENSOBSTYPE interpolate2d(double fi, double fj, int ni, int nj, float** v, int** 
 
 /** A part of interpolate2d() that looks at mask in adjacent nodes only.
  */
-int island(double fi, double fj, int ni, int nj, int** mask, int periodic_x)
+int island(double fi, double fj, int ni, int nj, int** mask, int periodic_i)
 {
     int i1 = (int) floor(fi);
     int i2 = (int) ceil(fi);
@@ -1388,9 +1388,9 @@ int island(double fi, double fj, int ni, int nj, int** mask, int periodic_x)
     int j2 = (int) ceil(fj);
 
     if (i1 == -1)
-        i1 = (periodic_x) ? ni - 1 : i2;
+        i1 = (periodic_i) ? ni - 1 : i2;
     if (i2 == ni)
-        i2 = (periodic_x) ? 0 : i1;
+        i2 = (periodic_i) ? 0 : i1;
     if (j1 == -1)
         j1 = j2;
     if (j2 == nj)
@@ -1403,7 +1403,7 @@ int island(double fi, double fj, int ni, int nj, int** mask, int periodic_x)
  *  Assumes that integer k indices correspond to layer centres. E.g. for 
  *  fk = 1.2 the vertical weights are 0.8 of layer 1 and 0.2 of layer 2.
  */
-ENSOBSTYPE interpolate3d(double fi, double fj, double fk, int ni, int nj, int nk, int ktop, float*** v, int** nlevels, int periodic_x)
+ENSOBSTYPE interpolate3d(double fi, double fj, double fk, int ni, int nj, int nk, int ktop, float*** v, int** nlevels, int periodic_i)
 {
     int i1 = (int) floor(fi);
     double wi1 = ceil(fi) - fi;
@@ -1449,9 +1449,9 @@ ENSOBSTYPE interpolate3d(double fi, double fj, double fk, int ni, int nj, int nk
      * model_xy2fij().
      */
     if (i1 == -1)
-        i1 = (periodic_x) ? ni - 1 : i2;
+        i1 = (periodic_i) ? ni - 1 : i2;
     if (i2 == ni)
-        i2 = (periodic_x) ? 0 : i1;
+        i2 = (periodic_i) ? 0 : i1;
     if (j1 == -1)
         j1 = j2;
     if (j2 == nj)

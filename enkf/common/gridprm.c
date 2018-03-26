@@ -144,6 +144,10 @@ void gridprm_create(char* fname, int* ngrid, gridprm** prm)
             else
                 now->yvarname = strdup(token);
         } else if (strcasecmp(token, "ZVARNAME") == 0) {
+            if (now->vtype == NULL)
+                enkf_quit("%s, l.%d: VTYPE must be set first", fname, line);
+            if (strcasecmp(now->vtype, "Z") != 0 && strcasecmp(now->vtype, "SIGMA") != 0)
+                enkf_quit("%s, l.%d: VTYPE must be set to \"Z\" or \"SIGMA\" (currently \"%s\")", fname, line, now->vtype);
             if ((token = strtok(NULL, seps)) == NULL)
                 enkf_quit("%s, l.%d: ZVARNAME not specified", fname, line);
             else if (now->zvarname != NULL)
@@ -151,6 +155,10 @@ void gridprm_create(char* fname, int* ngrid, gridprm** prm)
             else
                 now->zvarname = strdup(token);
         } else if (strcasecmp(token, "ZCVARNAME") == 0) {
+            if (now->vtype == NULL)
+                enkf_quit("%s, l.%d: VTYPE must be set first", fname, line);
+            if (strcasecmp(now->vtype, "Z") != 0 && strcasecmp(now->vtype, "SIGMA") != 0)
+                enkf_quit("%s, l.%d: VTYPE must be set to \"Z\" or \"SIGMA\" (currently \"%s\")", fname, line, now->vtype);
             if ((token = strtok(NULL, seps)) == NULL)
                 enkf_quit("%s, l.%d: ZCVARNAME not specified", fname, line);
             else if (now->zcvarname != NULL)
@@ -201,6 +209,10 @@ void gridprm_create(char* fname, int* ngrid, gridprm** prm)
                 enkf_quit("%s, l.%d: unknown entry for VDIR, fname, line");
             now->vdirection = strdup(token);
         } else if (strcasecmp(token, "AVARNAME") == 0) {
+            if (now->vtype == NULL)
+                enkf_quit("%s, l.%d: VTYPE must be set first", fname, line);
+            if (strcasecmp(now->vtype, "HYBRID") != 0)
+                enkf_quit("%s, l.%d: VTYPE must be set to \"HYBRID\" (currently \"%s\")", fname, line, now->vtype);
             if ((token = strtok(NULL, seps)) == NULL)
                 enkf_quit("%s, l.%d: AVARNAME not specified", fname, line);
             else if (now->avarname != NULL)
@@ -208,13 +220,43 @@ void gridprm_create(char* fname, int* ngrid, gridprm** prm)
             else
                 now->avarname = strdup(token);
         } else if (strcasecmp(token, "BVARNAME") == 0) {
+            if (now->vtype == NULL)
+                enkf_quit("%s, l.%d: VTYPE must be set first", fname, line);
+            if (strcasecmp(now->vtype, "HYBRID") != 0)
+                enkf_quit("%s, l.%d: VTYPE must be set to \"HYBRID\" (currently \"%s\")", fname, line, now->vtype);
             if ((token = strtok(NULL, seps)) == NULL)
                 enkf_quit("%s, l.%d: BVARNAME not specified", fname, line);
             else if (now->bvarname != NULL)
                 enkf_quit("%s, l.%d: BVARNAME specified twice", fname, line);
             else
                 now->bvarname = strdup(token);
+        } else if (strcasecmp(token, "ACVARNAME") == 0) {
+            if (now->vtype == NULL)
+                enkf_quit("%s, l.%d: VTYPE must be set first", fname, line);
+            if (strcasecmp(now->vtype, "HYBRID") != 0)
+                enkf_quit("%s, l.%d: VTYPE must be set to \"HYBRID\" (currently \"%s\")", fname, line, now->vtype);
+            if ((token = strtok(NULL, seps)) == NULL)
+                enkf_quit("%s, l.%d: ACVARNAME not specified", fname, line);
+            else if (now->acvarname != NULL)
+                enkf_quit("%s, l.%d: ACVARNAME specified twice", fname, line);
+            else
+                now->acvarname = strdup(token);
+        } else if (strcasecmp(token, "BCVARNAME") == 0) {
+            if (now->vtype == NULL)
+                enkf_quit("%s, l.%d: VTYPE must be set first", fname, line);
+            if (strcasecmp(now->vtype, "HYBRID") != 0)
+                enkf_quit("%s, l.%d: VTYPE must be set to \"HYBRID\" (currently \"%s\")", fname, line, now->vtype);
+            if ((token = strtok(NULL, seps)) == NULL)
+                enkf_quit("%s, l.%d: BCVARNAME not specified", fname, line);
+            else if (now->bcvarname != NULL)
+                enkf_quit("%s, l.%d: BCVARNAME specified twice", fname, line);
+            else
+                now->bcvarname = strdup(token);
         } else if (strcasecmp(token, "P1VARNAME") == 0) {
+            if (now->vtype == NULL)
+                enkf_quit("%s, l.%d: VTYPE must be set first", fname, line);
+            if (strcasecmp(now->vtype, "HYBRID") != 0)
+                enkf_quit("%s, l.%d: VTYPE must be set to \"HYBRID\" (currently \"%s\")", fname, line, now->vtype);
             if ((token = strtok(NULL, seps)) == NULL)
                 enkf_quit("%s, l.%d: P1VARNAME not specified", fname, line);
             else if (now->p1varname != NULL)
@@ -222,12 +264,27 @@ void gridprm_create(char* fname, int* ngrid, gridprm** prm)
             else
                 now->p1varname = strdup(token);
         } else if (strcasecmp(token, "P2VARNAME") == 0) {
+            if (now->vtype == NULL)
+                enkf_quit("%s, l.%d: VTYPE must be set first", fname, line);
+            if (strcasecmp(now->vtype, "HYBRID") != 0)
+                enkf_quit("%s, l.%d: VTYPE must be set to \"HYBRID\" (currently \"%s\")", fname, line, now->vtype);
             if ((token = strtok(NULL, seps)) == NULL)
                 enkf_quit("%s, l.%d: P2VARNAME not specified", fname, line);
             else if (now->p2varname != NULL)
                 enkf_quit("%s, l.%d: P2VARNAME specified twice", fname, line);
             else
                 now->p2varname = strdup(token);
+        } else if (strcasecmp(token, "HCVARNAME") == 0) {
+            if (now->vtype == NULL)
+                enkf_quit("%s, l.%d: VTYPE must be set first", fname, line);
+            if (strcasecmp(now->vtype, "SIGMA") != 0)
+                enkf_quit("%s, l.%d: VTYPE must be set to \"SIGMA\" (currently \"%s\")", fname, line, now->vtype);
+            if ((token = strtok(NULL, seps)) == NULL)
+                enkf_quit("%s, l.%d: HCVARNAME not specified", fname, line);
+            else if (now->hcvarname != NULL)
+                enkf_quit("%s, l.%d: HCVARNAME specified twice", fname, line);
+            else
+                now->hcvarname = strdup(token);
         } else
             enkf_quit("%s, l.%d: unexpected token \"%s\"", fname, line, token);
     }
@@ -244,29 +301,29 @@ void gridprm_create(char* fname, int* ngrid, gridprm** prm)
         if (now->maptype == 0)
             now->maptype = MAPTYPE_DEF;
 #endif
-        if (strcasecmp(now->vtype, "HYBRID") != 0) {
+        if (strcasecmp(now->vtype, "Z") == 0) {
             if (now->zvarname == NULL)
-                enkf_quit("%s: ZVARNAME not specified for grid \"%s\"", fname, now->name);
-        } else {
-            if (now->zvarname != NULL)
-                enkf_quit("%s: ZVARNAME specified for grid \"%s\" of vertical type HYBRID", fname, now->name);
-        }
+                enkf_quit("%s: %s: ZVARNAME must be specified for Z grids", fname, now->name);
+	} else if (strcasecmp(now->vtype, "SIGMA") == 0) {
+            if (now->zvarname == NULL)
+                enkf_quit("%s: %s: ZVARNAME must be specified for Z grids", fname, now->name);
+        } else if (strcasecmp(now->vtype, "HYBRID") == 0) {
+            if (now->avarname == NULL)
+                enkf_quit("%s: %s: AVARNAME must be specified for hybrid grids",fname, now->name);
+            if (now->bvarname == NULL)
+                enkf_quit("%s: %s: BVARNAME must be specified for hybrid grids",fname, now->name);
+            if (now->p1varname == NULL)
+                enkf_quit("%s: %s: P1VARNAME must be specified for hybrid grids",fname, now->name);
+            if (now->p2varname == NULL)
+                enkf_quit("%s: %s: P2VARNAME must be specified for hybrid grids",fname, now->name);
+        } else
+            enkf_quit("vertical type \"%s\" specified for grid \"%s\" is unknown", now->vtype, now->name);
         if (now->xvarname == NULL)
             enkf_quit("%s: XVARNAME not specified for grid \"%s\"", fname, now->name);
         if (now->yvarname == NULL)
             enkf_quit("%s: YVARNAME not specified for grid \"%s\"", fname, now->name);
         if (now->vdirection == NULL)
             now->vdirection = strdup("FROMSURF");
-        if (strcasecmp(now->vtype, "HYBRID") == 0) {
-            if (now->avarname == NULL)
-                enkf_quit("\"AVARNAME\" not defined for grid \"%s\" with HYBRID vertical coordinate", now->name);
-            if (now->bvarname == NULL)
-                enkf_quit("\"BVARNAME\" not defined for grid \"%s\" with HYBRID vertical coordinate", now->name);
-            if (now->p1varname == NULL)
-                enkf_quit("\"P1VARNAME\" not defined for grid \"%s\" with HYBRID vertical coordinate", now->name);
-            if (now->p2varname == NULL)
-                enkf_quit("\"P2VARNAME\" not defined for grid \"%s\" with HYBRID vertical coordinate", now->name);
-        }
         if (!isfinite(now->sfactor) || now->sfactor <= 0.0)
             enkf_quit("%s: SFACTOR = %.3g\n", now->sfactor);
     }
@@ -285,9 +342,12 @@ void gridprm_destroy(int ngrid, gridprm prm[])
         free(now->fname);
         free(now->xvarname);
         free(now->yvarname);
-        free(now->zvarname);
+        if (now->zvarname != NULL)
+            free(now->zvarname);
         if (now->zcvarname != NULL)
             free(now->zcvarname);
+        if (now->hcvarname != NULL)
+            free(now->hcvarname);
         if (now->depthvarname != NULL)
             free(now->depthvarname);
         if (now->vdirection != NULL)
@@ -319,27 +379,36 @@ void gridprm_print(gridprm* prm, char offset[])
     enkf_printf("%s  MAPTYPE = \"%c\"\n", offset, prm->maptype);
 #endif
     enkf_printf("%s  VTYPE = \"%s\"\n", offset, prm->vtype);
-    if (strcasecmp(prm->vtype, "HYBRID") == 0) {
+    if (strcasecmp(prm->vtype, "Z") == 0) {
+        enkf_printf("%s  ZVARNAME = \"%s\"\n", offset, prm->zvarname);
+        if (prm->zcvarname != NULL)
+            enkf_printf("%s  ZCVARNAME = \"%s\"\n", offset, prm->zcvarname);
+        else
+            enkf_printf("%s  ZCVARNAME = <none>\n", offset);
+    } else if (strcasecmp(prm->vtype, "SIGMA") == 0) {
+        enkf_printf("%s  ZVARNAME = \"%s\"\n", offset, prm->zvarname);
+        if (prm->zcvarname != NULL)
+            enkf_printf("%s  ZCVARNAME = \"%s\"\n", offset, prm->zcvarname);
+        else
+            enkf_printf("%s  ZCVARNAME = <none>\n", offset);
+        if (prm->hcvarname != 0)
+            enkf_printf("%s  HCVARNAME = \"%s\"\n", offset, prm->hcvarname);
+        else
+            enkf_printf("%s  HCVARNAME = <none> (meaning hc = 0)\n", offset);
+    } else if (strcasecmp(prm->vtype, "HYBRID") == 0) {
         enkf_printf("%s    AVARNAME = \"%s\"\n", offset, prm->avarname);
         enkf_printf("%s    BVARNAME = \"%s\"\n", offset, prm->bvarname);
         enkf_printf("%s    P1VARNAME = \"%s\"\n", offset, prm->p1varname);
         enkf_printf("%s    P2VARNAME = \"%s\"\n", offset, prm->p2varname);
-    }
-    enkf_printf("%s  VDIR = \"%s\"\n", offset, prm->vdirection);
-    enkf_printf("%s  XVARNAME = \"%s\"\n", offset, prm->xvarname);
-    enkf_printf("%s  YVARNAME = \"%s\"\n", offset, prm->yvarname);
-    if (prm->zvarname != NULL)
-        enkf_printf("%s  ZVARNAME = \"%s\"\n", offset, prm->zvarname);
-    else
-        enkf_printf("%s  ZVARNAME = <none>\n", offset);
-    if (prm->zcvarname != NULL)
-        enkf_printf("%s  ZCVARNAME = \"%s\"\n", offset, prm->zcvarname);
-    else
-        enkf_printf("%s  ZCVARNAME = <none>\n", offset);
+    } else
+        enkf_quit("programming error");
     if (prm->depthvarname != NULL)
         enkf_printf("%s  DEPTHVARNAME = \"%s\"\n", offset, prm->depthvarname);
     if (prm->levelvarnameentry != NULL && prm->levelvarname != NULL)
         enkf_printf("%s  %s = \"%s\"\n", offset, prm->levelvarnameentry, prm->levelvarname);
+    enkf_printf("%s  VDIR = \"%s\"\n", offset, prm->vdirection);
+    enkf_printf("%s  XVARNAME = \"%s\"\n", offset, prm->xvarname);
+    enkf_printf("%s  YVARNAME = \"%s\"\n", offset, prm->yvarname);
     if (prm->stride != 0)
         enkf_printf("%s  STRIDE = %d\n", offset, prm->stride);
     if (prm->sob_stride != 0)

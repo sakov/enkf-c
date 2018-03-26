@@ -38,7 +38,7 @@ static void interpolate_2d_obs(model* m, observations* allobs, int nobs, int obs
 {
     int otid = allobs->data[obsids[0]].type;
     int mvid = model_getvarid(m, allobs->obstypes[otid].varnames[0], 1);
-    int periodic_x = grid_isperiodic_x(model_getvargrid(m, mvid));
+    int periodic_i = grid_isperiodic_i(model_getvargrid(m, mvid));
     int** mask = model_getnumlevels(m, mvid);
     int ni, nj;
     int i;
@@ -50,7 +50,7 @@ static void interpolate_2d_obs(model* m, observations* allobs, int nobs, int obs
 
         assert(o->type == otid);
         assert(out[ii] == 0.0);
-        out[ii] = interpolate2d(o->fi, o->fj, ni, nj, v, mask, periodic_x);
+        out[ii] = interpolate2d(o->fi, o->fj, ni, nj, v, mask, periodic_i);
         if (!isfinite(out[ii]) || fabs(out[ii]) > STATE_BIGNUM) {
             enkf_flush();
             enkf_printf("\n  obs # %d: ", ii);
@@ -68,7 +68,7 @@ static void interpolate_3d_obs(model* m, observations* allobs, int nobs, int obs
     int mvid = model_getvarid(m, allobs->obstypes[otid].varnames[0], 1);
     void* grid = model_getvargrid(m, mvid);
     int ksurf = grid_getsurflayerid(grid);
-    int periodic_x = grid_isperiodic_x(grid);
+    int periodic_i = grid_isperiodic_i(grid);
     int** nlevels = model_getnumlevels(m, mvid);
     int ni, nj, nk;
     int i;
@@ -80,7 +80,7 @@ static void interpolate_3d_obs(model* m, observations* allobs, int nobs, int obs
 
         assert(o->type == otid);
         assert(out[ii] == 0.0);
-        out[ii] = interpolate3d(o->fi, o->fj, o->fk, ni, nj, nk, ksurf, v, nlevels, periodic_x);
+        out[ii] = interpolate3d(o->fi, o->fj, o->fk, ni, nj, nk, ksurf, v, nlevels, periodic_i);
         if (!isfinite(out[ii]) || fabs(out[ii]) > STATE_BIGNUM) {
             enkf_flush();
             enkf_printf("\n  obs # %d: ", ii);
@@ -241,7 +241,7 @@ void H_subsurf_wsurfbias(dasystem* das, int nobs, int obsids[], char fname[], in
     obstype* ot = &allobs->obstypes[otid];
     int mvid = model_getvarid(m, ot->varnames[0], 1);
     int mvid2;
-    int periodic_x = grid_isperiodic_x(model_getvargrid(m, mvid));
+    int periodic_i = grid_isperiodic_i(model_getvargrid(m, mvid));
     int** mask = model_getnumlevels(m, mvid);
 
     float*** src = (float***) psrc;
@@ -332,8 +332,8 @@ void H_subsurf_wsurfbias(dasystem* das, int nobs, int obsids[], char fname[], in
             observation* o = &allobs->data[ii];
 
             if (fabs(fi_prev - o->fi) > EPS_IJ || fabs(fj_prev - o->fj) > EPS_IJ) {
-                vmld = interpolate2d(o->fi, o->fj, ni, nj, mld, mask, periodic_x);
-                vbias = interpolate2d(o->fi, o->fj, ni, nj, bias, mask, periodic_x);
+                vmld = interpolate2d(o->fi, o->fj, ni, nj, mld, mask, periodic_i);
+                vbias = interpolate2d(o->fi, o->fj, ni, nj, bias, mask, periodic_i);
                 fi_prev = o->fi;
                 fj_prev = o->fj;
             }

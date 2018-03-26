@@ -153,5 +153,5 @@ clean:
 	rm -f bin/*
 
 indent:
-	indent -T FILE -T field -T dasystem -T grid -T kdtree -T kdnode -T kdset -T model -T modeldata -T gridprm -T gnxy_simple -T gnxy_curv -T gnz -T gz_simple -T gz_hybrid -T gridnodes -T gridmap -T stringtable -T resnode -T tm -T obsmeta -T metastd -T metapar -T obsreader_entry -T H_entry -T model_entry -T enkfprm -T gnll -T rangeentry -T observation -T obstype -T observations -T pointlog -T region -T obsdomain -T zint -T calcstats -T hashtable -T ht_bucket -T badbatchspec -T nc_type -T size_t -T otdesc -T uint32_t -T uint16_t */*.[ch]
+	indent -T FILE -T field -T dasystem -T grid -T kdtree -T kdnode -T kdset -T model -T modeldata -T gridprm -T gnxy_simple -T gnxy_curv -T gnz -T gz_simple -T gz_hybrid -T gz_hybrid -T gridnodes -T gridmap -T stringtable -T resnode -T tm -T obsmeta -T metastd -T metapar -T obsreader_entry -T H_entry -T model_entry -T enkfprm -T gnll -T rangeentry -T observation -T obstype -T observations -T pointlog -T region -T obsdomain -T zint -T calcstats -T hashtable -T ht_bucket -T badbatchspec -T nc_type -T size_t -T otdesc -T uint32_t -T uint16_t */*.[ch]
 	rm -f `find . -name "*.*~"`

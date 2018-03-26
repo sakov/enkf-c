@@ -48,10 +48,10 @@
 #define GRID_INC 10
 
 typedef struct {
-    int nx;
-    int ny;
-    int periodic_x;
-    int regular_x;
+    int ni;
+    int nj;
+    int periodic_i;
+    int regular_i;
     int regular_y;
 
     double* x;
@@ -70,16 +70,44 @@ typedef struct {
 #endif
 
 typedef struct {
-    int nz;
+    int nk;
     int vdirection;
     double* zt;
     double* zc;
 } gz_simple;
 
+/*
+ * This structure actually manages the "new" ROMS vertical coordinate as
+ * described in https://www.myroms.org/wiki/Vertical_S-coordinate, Eq. 2 and
+ * by Shchepetkin in https://www.myroms.org/forum/viewtopic.php?f=20&t=2189.
+ * With hc = 0 it turns into "pure" sigma. To keep consistent with the rest of
+ * the code we use ct and cc for the stretching function C at the layer centres
+ * and corners (these arrays correspond to variables Cs_r and Cs_w in ROMS
+ * restarts).
+ */
 typedef struct {
-    int nx;
-    int ny;
-    int nz;
+    int ni;
+    int nj;
+    int nk;
+    int vdirection;
+    double hc;
+    double* ct;
+    double* cc;
+
+    double fi_prev;
+    double fj_prev;
+    double* zt;
+    double* zc;
+} gz_sigma;
+
+/*
+ * See e.g. Eckerman (2009), Eq. 6 
+ * https://journals.ametsoc.org/doi/pdf/10.1175/2008MWR2537.1
+ */
+typedef struct {
+    int ni;
+    int nj;
+    int nk;
     int vdirection;
     double* at;
     double* ac;
@@ -139,48 +167,48 @@ struct grid {
 
 /**
  */
-static gxy_simple* gxy_simple_create(int nx, int ny, double* x, double* y)
+static gxy_simple* gxy_simple_create(int ni, int nj, double* x, double* y)
 {
     gxy_simple* nodes = malloc(sizeof(gxy_simple));
     int i, ascending;
     double dx, dy;
 
-    assert(nx >= 2 && ny >= 2);
+    assert(ni >= 2 && nj >= 2);
 
     /*
      * x
      */
-    nodes->nx = nx;
+    nodes->ni = ni;
     nodes->x = x;
-    nodes->xc = malloc((nx + 1) * sizeof(double));
+    nodes->xc = malloc((ni + 1) * sizeof(double));
     nodes->xc[0] = x[0] * 1.5 - x[1] * 0.5;
-    for (i = 1; i < nx + 1; ++i)
+    for (i = 1; i < ni + 1; ++i)
         nodes->xc[i] = 2 * x[i - 1] - nodes->xc[i - 1];
 
-    if (fabs(fmod(nodes->x[nx - 1] - nodes->x[0] + EPS_LON / 2.0, 360.0)) < EPS_LON)
-        nodes->periodic_x = 1;  /* closed grid */
-    else if (fabs(fmod(2.0 * nodes->x[nx - 1] - nodes->x[nx - 2] - nodes->x[0] + EPS_LON / 2.0, 360.0)) < EPS_LON) {
-        nodes->periodic_x = 2;  /* non-closed grid (used e.g. by MOM) */
-        nodes->x = realloc(nodes->x, (nx + 1) * sizeof(double));
-        nodes->x[nx] = 2.0 * nodes->x[nx - 1] - nodes->x[nx - 2];
-        nodes->xc = realloc(nodes->xc, (nx + 2) * sizeof(double));
-        nodes->xc[nx + 1] = 2.0 * nodes->xc[nx] - nodes->xc[nx - 1];
+    if (fabs(fmod(nodes->x[ni - 1] - nodes->x[0] + EPS_LON / 2.0, 360.0)) < EPS_LON)
+        nodes->periodic_i = 1;  /* closed grid */
+    else if (fabs(fmod(2.0 * nodes->x[ni - 1] - nodes->x[ni - 2] - nodes->x[0] + EPS_LON / 2.0, 360.0)) < EPS_LON) {
+        nodes->periodic_i = 2;  /* non-closed grid (used e.g. by MOM) */
+        nodes->x = realloc(nodes->x, (ni + 1) * sizeof(double));
+        nodes->x[ni] = 2.0 * nodes->x[ni - 1] - nodes->x[ni - 2];
+        nodes->xc = realloc(nodes->xc, (ni + 2) * sizeof(double));
+        nodes->xc[ni + 1] = 2.0 * nodes->xc[ni] - nodes->xc[ni - 1];
     } else
-        nodes->periodic_x = 0;
+        nodes->periodic_i = 0;
 
-    dx = (nodes->x[nx - 1] - nodes->x[0]) / (double) (nx - 1);
-    for (i = 1; i < (int) nx; ++i)
+    dx = (nodes->x[ni - 1] - nodes->x[0]) / (double) (ni - 1);
+    for (i = 1; i < (int) ni; ++i)
         if (fabs(nodes->x[i] - nodes->x[i - 1] - dx) / fabs(dx) > EPS_LON)
             break;
-    nodes->regular_x = (i == nx);
+    nodes->regular_i = (i == ni);
 
-    ascending = (nodes->x[nx - 1] > nodes->x[0]);
+    ascending = (nodes->x[ni - 1] > nodes->x[0]);
     if (ascending) {
-        for (i = 0; i < nx - 1; ++i)
+        for (i = 0; i < ni - 1; ++i)
             if ((nodes->x[i + 1] - nodes->x[i]) < 0.0)
                 enkf_quit("non-monotonic X coordinate for a simple grid\n");
     } else {
-        for (i = 0; i < nx - 1; ++i)
+        for (i = 0; i < ni - 1; ++i)
             if ((nodes->x[i + 1] - nodes->x[i]) > 0.0)
                 enkf_quit("non-monotonic X coordinate for a simple grid\n");
     }
@@ -188,26 +216,26 @@ static gxy_simple* gxy_simple_create(int nx, int ny, double* x, double* y)
     /*
      * y
      */
-    nodes->ny = ny;
+    nodes->nj = nj;
     nodes->y = y;
-    nodes->yc = malloc((ny + 1) * sizeof(double));
+    nodes->yc = malloc((nj + 1) * sizeof(double));
     nodes->yc[0] = y[0] * 1.5 - y[1] * 0.5;
-    for (i = 1; i < ny + 1; ++i)
+    for (i = 1; i < nj + 1; ++i)
         nodes->yc[i] = 2 * y[i - 1] - nodes->yc[i - 1];
 
-    dy = (y[ny - 1] - y[0]) / (double) (ny - 1);
-    for (i = 1; i < (int) ny; ++i)
+    dy = (y[nj - 1] - y[0]) / (double) (nj - 1);
+    for (i = 1; i < (int) nj; ++i)
         if (fabs(y[i] - y[i - 1] - dy) / fabs(dy) > EPS_LON)
             break;
-    nodes->regular_y = (i == ny);
+    nodes->regular_y = (i == nj);
 
-    ascending = (y[ny - 1] > y[0]);
+    ascending = (y[nj - 1] > y[0]);
     if (ascending) {
-        for (i = 0; i < ny - 1; ++i)
+        for (i = 0; i < nj - 1; ++i)
             if ((y[i + 1] - y[i]) < 0.0)
                 enkf_quit("non-monotonic Y coordinate for a simple grid\n");
     } else {
-        for (i = 0; i < ny - 1; ++i)
+        for (i = 0; i < nj - 1; ++i)
             if ((y[i + 1] - y[i]) > 0.0)
                 enkf_quit("non-monotonic Y coordinate for a simple grid\n");
     }
@@ -229,19 +257,19 @@ void gxy_simple_destroy(gxy_simple * nodes)
 #if !defined(NO_GRIDUTILS)
 /**
  */
-static gxy_curv* gxy_curv_create(int nodetype, int nx, int ny, double** x, double** y, int maptype)
+static gxy_curv* gxy_curv_create(int nodetype, int ni, int nj, double** x, double** y, int maptype)
 {
     gxy_curv* nodes = malloc(sizeof(gxy_curv));
 
     if (nodetype == NT_CEN) {
         gridnodes* gn_new;
 
-        nodes->gn = gridnodes_create2(nx, ny, NT_CEN, x, y);
+        nodes->gn = gridnodes_create2(ni, nj, NT_CEN, x, y);
         gn_new = gridnodes_transform(nodes->gn, NT_COR);
         gridnodes_destroy(nodes->gn);
         nodes->gn = gn_new;
     } else if (nodetype == NT_COR)
-        nodes->gn = gridnodes_create2(nx, ny, NT_COR, x, y);
+        nodes->gn = gridnodes_create2(ni, nj, NT_COR, x, y);
     else
         enkf_quit("unknown node type for horizontal curvilinear grid");
 #if defined(ENKF_PREP) || defined(ENKF_CALC)
@@ -269,7 +297,7 @@ void gxy_curv_destroy(gxy_curv * nodes)
 
 /**
  */
-static gz_simple* gz_simple_create(int nz, double* z, double* zc, char* vdirection)
+static gz_simple* gz_simple_create(grid* g, int nk, double* z, double* zc, char* vdirection)
 {
     gz_simple* gz = malloc(sizeof(gz_simple));
     int i;
@@ -282,48 +310,129 @@ static gz_simple* gz_simple_create(int nz, double* z, double* zc, char* vdirecti
         enkf_quit("programming error");
 
     gz->zt = z;
-    gz->nz = nz;
+    gz->nk = nk;
     /*
      * check monotonicity
      */
-    for (i = 0; i < nz - 2; ++i)
+    for (i = 0; i < nk - 2; ++i)
         if ((z[i + 1] - z[i]) * (z[i + 2] - z[i + 1]) < 0.0)
-            enkf_quit("non-monotonic Z grid");
+            enkf_quit("%s: non-monotonic Z grid", g->name);
     /*
      * change sign if negative
      */
     {
         double sum = 0.0;
 
-        for (i = 0; i < nz; ++i)
+        for (i = 0; i < nk; ++i)
             sum += z[i];
         if (sum < 0.0)
-            for (i = 0; i < nz; ++i)
+            for (i = 0; i < nk; ++i)
                 z[i] = -z[i];
     }
 
-    gz->zc = malloc((nz + 1) * sizeof(double));
+    gz->zc = malloc((nk + 1) * sizeof(double));
     if (zc == NULL) {
-        if (z[nz - 1] >= z[0]) {
+        if (z[nk - 1] >= z[0]) {
             gz->zc[0] = 0.0;
-            for (i = 1; i <= nz; ++i)
+            for (i = 1; i <= nk; ++i)
                 gz->zc[i] = 2.0 * z[i - 1] - gz->zc[i - 1];
         } else {
-            gz->zc[nz] = 0.0;
-            for (i = nz - 1; i >= 0; --i)
+            gz->zc[nk] = 0.0;
+            for (i = nk - 1; i >= 0; --i)
                 gz->zc[i] = 2.0 * z[i] - gz->zc[i + 1];
         }
     } else {
-        memcpy(gz->zc, zc, nz * sizeof(double));
-        gz->zc[nz] = 2.0 * z[nz - 1] - zc[nz - 1];
+        memcpy(gz->zc, zc, nk * sizeof(double));
+        gz->zc[nk] = 2.0 * z[nk - 1] - zc[nk - 1];
+        free(zc);
     }
+
+    for (i = 0; i < nk; ++i)
+        assert((gz->zt[i] - gz->zc[i]) * (gz->zc[i + 1] - gz->zt[i]) > 0.0);
 
     return gz;
 }
 
 /**
  */
-static gz_hybrid* gz_hybrid_create(int nx, int ny, int nz, double* a, double* b, float** p1, float** p2, char* vdirection)
+static gz_sigma* gz_sigma_create(grid* g, int ni, int nj, int nk, double* ct, double* cc, double hc, char* vdirection)
+{
+    gz_sigma* gz = malloc(sizeof(gz_sigma));
+    int i;
+
+    gz->ni = ni;
+    gz->nj = nj;
+    gz->nk = nk;
+    gz->hc = hc;
+    if (strncasecmp(vdirection, "FROMSURF", 8) == 0)
+        gz->vdirection = GRIDVDIR_FROMSURF;
+    else if (strncasecmp(vdirection, "TOSURF", 6) == 0)
+        gz->vdirection = GRIDVDIR_TOSURF;
+    else
+        enkf_quit("programming error");
+
+    /*
+     * check monotonicity
+     */
+    for (i = 0; i < nk - 2; ++i)
+        if ((ct[i + 1] - ct[i]) * (ct[i + 2] - ct[i + 1]) < 0.0)
+            enkf_quit("%s: non-monotonic Z grid", g->name);
+
+    gz->ct = ct;
+
+    if (cc != NULL)
+        gz->cc = cc;
+    else
+        gz->cc = malloc((nk + 1) * sizeof(double));
+    /*
+     * change sign if negative
+     */
+    {
+        double sum = 0.0;
+
+        for (i = 0; i < nk; ++i)
+            sum += ct[i];
+        if (sum < 0.0) {
+            for (i = 0; i < nk; ++i)
+                ct[i] = -ct[i];
+            if (cc != NULL)
+                for (i = 0; i <= nk; ++i)
+                    cc[i] = -cc[i];
+        }
+    }
+    /*
+     * build corner sigma coordinates if necessary
+     */
+    if (cc == NULL) {
+        if (ct[0] > ct[nk - 1]) {
+            gz->cc[0] = 1.0;
+            gz->cc[nk - 1] = 0.0;
+        } else {
+            gz->cc[0] = 0.0;
+            gz->cc[nk - 1] = 1.0;
+        }
+        for (i = 1; i < nk; ++i)
+            gz->cc[i] = (gz->ct[i - 1] + gz->ct[i]) / 2.0;
+    }
+
+    gz->zt = malloc(nk * sizeof(double));
+    gz->zc = malloc((nk + 1) * sizeof(double));
+    gz->fi_prev = NAN;
+    gz->fj_prev = NAN;
+
+    if (gz->vdirection == GRIDVDIR_FROMSURF)
+        assert(gz->ct[0] < gz->ct[nk - 1] && gz->cc[0] < gz->cc[nk]);
+    else if (gz->vdirection == GRIDVDIR_TOSURF)
+        assert(gz->ct[0] > gz->ct[nk - 1] && gz->cc[0] > gz->cc[nk]);
+    for (i = 0; i < nk; ++i)
+        assert((gz->ct[i] - gz->cc[i]) * (gz->cc[i + 1] - gz->ct[i]) > 0.0);
+
+    return gz;
+}
+
+/**
+ */
+static gz_hybrid* gz_hybrid_create(int ni, int nj, int nk, double* a, double* b, double* ac, double* bc, float** p1, float** p2, char* vdirection)
 {
     gz_hybrid* gz = malloc(sizeof(gz_hybrid));
     int i;
@@ -335,39 +444,52 @@ static gz_hybrid* gz_hybrid_create(int nx, int ny, int nz, double* a, double* b,
     else
         enkf_quit("programming error");
 
-    gz->nx = nx;
-    gz->ny = ny;
-    gz->nz = nz;
+    gz->ni = ni;
+    gz->nj = nj;
+    gz->nk = nk;
     gz->at = a;
     gz->bt = b;
     gz->p1 = p1;
     gz->p2 = p2;
 
-    gz->ac = malloc((nz + 1) * sizeof(double));
-    gz->bc = malloc((nz + 1) * sizeof(double));
+    if (ac != NULL) {
+        assert(bc != NULL);
 
-    gz->ac[0] = 1.5 * gz->at[0] - 0.5 * gz->at[1];
-    if (gz->ac[0] < 0.0)
-        gz->ac[0] = 0.0;
-    gz->ac[nz] = 1.5 * gz->at[nz - 1] - 0.5 * gz->at[nz - 2];
-    if (gz->ac[nz] < 0.0)
-        gz->ac[nz] = 0.0;
-    for (i = 1; i < nz; ++i)
-        gz->ac[i] = (gz->at[i - 1] + gz->at[i]) / 2.0;
-    gz->bc[0] = 1.5 * gz->bt[0] - 0.5 * gz->bt[1];
-    if (gz->bc[0] < 0.0)
-        gz->bc[0] = 0.0;
-    gz->bc[nz] = 1.5 * gz->bt[nz - 1] - 0.5 * gz->bt[nz - 2];
-    if (gz->bc[nz] < 0.0)
-        gz->bc[nz] = 0.0;
-    for (i = 1; i < nz; ++i)
-        gz->bc[i] = (gz->bt[i - 1] + gz->bt[i]) / 2.0;
+        gz->ac = a;
+        gz->bc = b;
+    } else {
+        assert(bc == NULL);
 
-    gz->pt = malloc(nz * sizeof(double));
-    gz->pc = malloc((nz + 1) * sizeof(double));
+        gz->ac = malloc((nk + 1) * sizeof(double));
+        gz->bc = malloc((nk + 1) * sizeof(double));
 
+        gz->ac[0] = 1.5 * gz->at[0] - 0.5 * gz->at[1];
+        if (gz->ac[0] < 0.0)
+            gz->ac[0] = 0.0;
+        gz->ac[nk] = 1.5 * gz->at[nk - 1] - 0.5 * gz->at[nk - 2];
+        if (gz->ac[nk] < 0.0)
+            gz->ac[nk] = 0.0;
+        for (i = 1; i < nk; ++i)
+            gz->ac[i] = (gz->at[i - 1] + gz->at[i]) / 2.0;
+        gz->bc[0] = 1.5 * gz->bt[0] - 0.5 * gz->bt[1];
+        if (gz->bc[0] < 0.0)
+            gz->bc[0] = 0.0;
+        gz->bc[nk] = 1.5 * gz->bt[nk - 1] - 0.5 * gz->bt[nk - 2];
+        if (gz->bc[nk] < 0.0)
+            gz->bc[nk] = 0.0;
+        for (i = 1; i < nk; ++i)
+            gz->bc[i] = (gz->bt[i - 1] + gz->bt[i]) / 2.0;
+    }
+
+    gz->pt = malloc(nk * sizeof(double));
+    gz->pc = malloc((nk + 1) * sizeof(double));
     gz->fi_prev = NAN;
     gz->fj_prev = NAN;
+
+    for (i = 0; i < nk; ++i)
+        assert((gz->at[i] - gz->ac[i]) * (gz->ac[i + 1] - gz->at[i]) > 0.0);
+    for (i = 0; i < nk; ++i)
+        assert((gz->bt[i] - gz->bc[i]) * (gz->bc[i + 1] - gz->bt[i]) > 0.0);
 
     return gz;
 }
@@ -376,6 +498,17 @@ static gz_hybrid* gz_hybrid_create(int nx, int ny, int nz, double* a, double* b,
  */
 static void gz_simple_destroy(gz_simple* gz)
 {
+    free(gz->zt);
+    free(gz->zc);
+    free(gz);
+}
+
+/**
+ */
+static void gz_sigma_destroy(gz_sigma * gz)
+{
+    free(gz->ct);
+    free(gz->cc);
     free(gz->zt);
     free(gz->zc);
     free(gz);
@@ -461,8 +594,8 @@ static void gs_fij2xy(void* p, double fi, double fj, double* x, double* y)
 {
     gxy_simple* nodes = (gxy_simple *) ((grid*) p)->gridnodes_xy;
 
-    *x = fi2x(nodes->nx, nodes->x, fi, nodes->periodic_x);
-    *y = fi2x(nodes->ny, nodes->y, fj, 0);
+    *x = fi2x(nodes->ni, nodes->x, fi, nodes->periodic_i);
+    *y = fi2x(nodes->nj, nodes->y, fj, 0);
 }
 
 /** Gets fractional index of a coordinate for a 1D irregular grid.
@@ -541,14 +674,14 @@ static void gs_xy2fij(void* p, double x, double y, double* fi, double* fj)
     gxy_simple* nodes = (gxy_simple *) ((grid*) p)->gridnodes_xy;
     double lonbase = ((grid*) p)->lonbase;
 
-    if (nodes->regular_x)
-        *fi = x2fi_reg(nodes->nx, nodes->x, x, nodes->periodic_x);
+    if (nodes->regular_i)
+        *fi = x2fi_reg(nodes->ni, nodes->x, x, nodes->periodic_i);
     else
-        *fi = x2fi_irreg(nodes->nx, nodes->x, nodes->xc, x, nodes->periodic_x, lonbase);
+        *fi = x2fi_irreg(nodes->ni, nodes->x, nodes->xc, x, nodes->periodic_i, lonbase);
     if (nodes->regular_y)
-        *fj = x2fi_reg(nodes->ny, nodes->y, y, 0);
+        *fj = x2fi_reg(nodes->nj, nodes->y, y, 0);
     else
-        *fj = x2fi_irreg(nodes->ny, nodes->y, nodes->yc, y, 0, NAN);
+        *fj = x2fi_irreg(nodes->nj, nodes->y, nodes->yc, y, 0, NAN);
 }
 
 #if !defined(NO_GRIDUTILS)
@@ -635,33 +768,37 @@ static void gz_simple_z2fk(void* p, double fi, double fj, double z, double* fk)
     grid* g = (grid*) p;
     gz_simple* nodes = g->gridnodes_z;
 
-    /*
-     * for sigma coordinates convert `z' to sigma
-     */
-    if (g->vtype == GRIDVTYPE_SIGMA) {
-        int ni = 0, nj = 0;
-        double depth;
+    *fk = z2fk_basic(nodes->nk, nodes->zt, nodes->zc, z);
+}
 
-        if (g->htype == GRIDHTYPE_LATLON) {
-            gxy_simple* nodes = (gxy_simple *) g->gridnodes_xy;
+/**
+ */
+static void gz_sigma_z2fk(void* p, double fi, double fj, double z, double* fk)
+{
+    grid* g = (grid*) p;
+    gz_sigma* gz = g->gridnodes_z;
 
-            ni = nodes->nx;
-            nj = nodes->ny;
-#if !defined(NO_GRIDUTILS)
-        } else if (g->htype == GRIDHTYPE_CURVILINEAR) {
-            gxy_curv* nodes = (gxy_curv *) g->gridnodes_xy;
+    if (g->depth == NULL)
+	enkf_quit("%s: DEPTHVARNAME must be entered for SIGMA grids to assimilate subsurface obs", g->name);
 
-            ni = gridnodes_getnx(nodes->gn);
-            nj = gridnodes_getny(nodes->gn);
-#endif
-        } else
-            enkf_quit("programming error");
+    if (isnan(gz->fi_prev) || fabs(fi - gz->fi_prev) > EPS_IJ || fabs(fj - gz->fj_prev) > EPS_IJ) {
+        double h = (double) interpolate2d(fi, fj, gz->ni, gz->nj, g->depth, g->numlevels, grid_isperiodic_i(g));
+        int i;
 
-        depth = (double) interpolate2d(fi, fj, ni, nj, g->depth, g->numlevels, grid_isperiodic_x(g));
-        z /= depth;
+        if (gz->hc != 0.0) {
+            for (i = 0; i < gz->nk; ++i)
+                gz->zt[i] = h * (gz->hc * (1.0 - (double) i / (double) gz->nk - 0.5) + h * gz->ct[i]) / (gz->hc + h);
+            for (i = 0; i <= gz->nk; ++i)
+                gz->zc[i] = h * (gz->hc * (1.0 - (double) i / (double) gz->nk) + h * gz->cc[i]) / (gz->hc + h);
+        } else {
+            for (i = 0; i < gz->nk; ++i)
+                gz->zt[i] = h * gz->ct[i];
+            for (i = 0; i <= gz->nk; ++i)
+                gz->zc[i] = h * gz->cc[i];
+        }
     }
 
-    *fk = z2fk_basic(nodes->nz, nodes->zt, nodes->zc, z);
+    *fk = z2fk_basic(gz->nk, gz->zt, gz->zc, z);
 }
 
 /**
@@ -672,19 +809,20 @@ static void gz_hybrid_z2fk(void* p, double fi, double fj, double z, double* fk)
     gz_hybrid* gz = (gz_hybrid*) g->gridnodes_z;
 
     if (isnan(gz->fi_prev) || fabs(fi - gz->fi_prev) > EPS_IJ || fabs(fj - gz->fj_prev) > EPS_IJ) {
-        double p1 = interpolate2d(fi, fj, gz->nx, gz->ny, gz->p1, g->numlevels, grid_isperiodic_x(g));
-        double p2 = interpolate2d(fi, fj, gz->nx, gz->ny, gz->p2, g->numlevels, grid_isperiodic_x(g));
-        int nz = gz->nz;
+
+        double p1 = interpolate2d(fi, fj, gz->ni, gz->nj, gz->p1, g->numlevels, grid_isperiodic_i(g));
+        double p2 = interpolate2d(fi, fj, gz->ni, gz->nj, gz->p2, g->numlevels, grid_isperiodic_i(g));
+        int nk = gz->nk;
         int i;
 
-        for (i = 0; i < nz; ++i)
+        for (i = 0; i < nk; ++i)
             gz->pt[i] = gz->at[i] + gz->bt[i] * (p1 - p2);
-        for (i = 0; i <= nz; ++i)
+        for (i = 0; i <= nk; ++i)
             gz->pc[i] = gz->ac[i] + gz->bc[i] * (p1 - p2);
         gz->fi_prev = fi;
         gz->fj_prev = fj;
     }
-    *fk = z2fk_basic(gz->nz, gz->pt, gz->pc, z);
+    *fk = z2fk_basic(gz->nk, gz->pt, gz->pc, z);
 }
 
 /**
@@ -696,25 +834,25 @@ static void grid_setlonbase(grid* g)
 
     if (g->htype == GRIDHTYPE_LATLON) {
         double* x = ((gxy_simple *) g->gridnodes_xy)->x;
-        int nx = ((gxy_simple *) g->gridnodes_xy)->nx;
+        int ni = ((gxy_simple *) g->gridnodes_xy)->ni;
 
         if (xmin > x[0])
             xmin = x[0];
-        if (xmin > x[nx])
-            xmin = x[nx];
+        if (xmin > x[ni])
+            xmin = x[ni];
         if (xmax < x[0])
             xmax = x[0];
-        if (xmax < x[nx])
-            xmax = x[nx];
+        if (xmax < x[ni])
+            xmax = x[ni];
 #if !defined(NO_GRIDUTILS)
     } else if (g->htype == GRIDHTYPE_CURVILINEAR) {
         double** x = gridnodes_getx(((gxy_curv *) g->gridnodes_xy)->gn);
-        int nx = gridnodes_getnce1(((gxy_curv *) g->gridnodes_xy)->gn);
-        int ny = gridnodes_getnce2(((gxy_curv *) g->gridnodes_xy)->gn);
+        int ni = gridnodes_getnce1(((gxy_curv *) g->gridnodes_xy)->gn);
+        int nj = gridnodes_getnce2(((gxy_curv *) g->gridnodes_xy)->gn);
         int i, j;
 
-        for (j = 0; j < ny; ++j) {
-            for (i = 0; i < nx; ++i) {
+        for (j = 0; j < nj; ++j) {
+            for (i = 0; i < ni; ++i) {
                 if (xmin > x[j][i])
                     xmin = x[j][i];
                 if (xmax < x[j][i])
@@ -733,14 +871,14 @@ static void grid_setlonbase(grid* g)
 
 /**
  */
-static void grid_sethgrid(grid* g, int htype, int hnodetype, int nx, int ny, void* x, void* y)
+static void grid_sethgrid(grid* g, int htype, int hnodetype, int ni, int nj, void* x, void* y)
 {
     g->htype = htype;
     if (htype == GRIDHTYPE_LATLON)
-        g->gridnodes_xy = gxy_simple_create(nx, ny, x, y);
+        g->gridnodes_xy = gxy_simple_create(ni, nj, x, y);
 #if !defined(NO_GRIDUTILS)
     else if (htype == GRIDHTYPE_CURVILINEAR) {
-        g->gridnodes_xy = gxy_curv_create(hnodetype, nx, ny, x, y, g->maptype);
+        g->gridnodes_xy = gxy_curv_create(hnodetype, ni, nj, x, y, g->maptype);
 #if defined(GRIDNODES_WRITE)
         {
             char fname[MAXSTRLEN];
@@ -767,7 +905,7 @@ grid* grid_create(void* p, int id)
     int ncid;
     int varid_x, varid_y;
     int ndims_x, ndims_y;
-    size_t nx, ny, nz;
+    size_t ni, nj, nk;
     int varid_depth, varid_numlevels;
 
     g->name = strdup(prm->name);
@@ -803,16 +941,16 @@ grid* grid_create(void* p, int id)
         double* x;
         double* y;
 
-        ncw_inq_vardimlen(ncid, varid_x, 1, &nx);
-        ncw_inq_vardimlen(ncid, varid_y, 1, &ny);
+        ncw_inq_vardimlen(ncid, varid_x, 1, &ni);
+        ncw_inq_vardimlen(ncid, varid_y, 1, &nj);
 
-        x = malloc(nx * sizeof(double));
-        y = malloc(ny * sizeof(double));
+        x = malloc(ni * sizeof(double));
+        y = malloc(nj * sizeof(double));
 
         ncw_get_var_double(ncid, varid_x, x);
         ncw_get_var_double(ncid, varid_y, y);
 
-        grid_sethgrid(g, GRIDHTYPE_LATLON, NT_NONE, nx, ny, x, y);
+        grid_sethgrid(g, GRIDHTYPE_LATLON, NT_NONE, ni, nj, x, y);
     } else if (ndims_x == 2 && ndims_y == 2) {
 #if defined(NO_GRIDUTILS)
         enkf_quit("%s: grid \"%s\" seems to be of curvilinear type; can not handle it due to flag NO_GRIDUTILS", fname, g->name);
@@ -823,16 +961,16 @@ grid* grid_create(void* p, int id)
 
         ncw_inq_vardimlen(ncid, varid_x, 2, dimlen);
         ncw_check_vardims(ncid, varid_y, 2, dimlen);
-        ny = dimlen[0];
-        nx = dimlen[1];
+        nj = dimlen[0];
+        ni = dimlen[1];
 
-        x = alloc2d(ny, nx, sizeof(double));
-        y = alloc2d(ny, nx, sizeof(double));
+        x = alloc2d(nj, ni, sizeof(double));
+        y = alloc2d(nj, ni, sizeof(double));
 
         ncw_get_var_double(ncid, varid_x, x[0]);
         ncw_get_var_double(ncid, varid_y, y[0]);
 
-        grid_sethgrid(g, GRIDHTYPE_CURVILINEAR, NT_COR, nx, ny, x, y);
+        grid_sethgrid(g, GRIDHTYPE_CURVILINEAR, NT_COR, ni, nj, x, y);
 #endif
     } else
         enkf_quit("%s: could not determine the horizontal grid type", fname);
@@ -840,100 +978,149 @@ grid* grid_create(void* p, int id)
     /*
      * set vertical grid
      */
-    if (g->vtype == GRIDVTYPE_Z || g->vtype == GRIDVTYPE_SIGMA) {
-        int varid_z;
-        double* z = NULL;
-        double* zc = NULL;
-
-        ncw_inq_varid(ncid, prm->zvarname, &varid_z);
-        ncw_inq_vardimlen(ncid, varid_z, 1, &nz);
-        z = malloc(nz * sizeof(double));
-        ncw_get_var_double(ncid, varid_z, z);
-        if (prm->zcvarname != NULL) {
-            int varid_zc;
-            size_t nzc;
-
-            ncw_inq_varid(ncid, prm->zcvarname, &varid_zc);
-            ncw_inq_vardimlen(ncid, varid_zc, 1, &nzc);
-            zc = malloc(nzc * sizeof(double));
-            ncw_get_var_double(ncid, varid_zc, zc);
-        }
-        g->gridnodes_z = gz_simple_create(nz, z, zc, prm->vdirection);
-        if (zc != NULL)
-            free(zc);
-    } else if (g->vtype == GRIDVTYPE_HYBRID) {
-        double* a;
-        double* b;
-        float** p1 = alloc2d(ny, nx, sizeof(float));
-        float** p2 = alloc2d(ny, nx, sizeof(float));
-        int varid_a, varid_b, varid_p1, varid_p2;
-        size_t dimlen[2];
-
-        ncw_inq_varid(ncid, prm->avarname, &varid_a);
-        ncw_inq_vardimlen(ncid, varid_a, 1, &nz);
-        a = malloc(nz * sizeof(double));
-        ncw_get_var_double(ncid, varid_a, a);
-
-        ncw_inq_varid(ncid, prm->bvarname, &varid_b);
-        ncw_check_vardims(ncid, varid_b, 1, &nz);
-        b = malloc(nz * sizeof(double));
-        ncw_get_var_double(ncid, varid_b, b);
-
-        ncw_inq_varid(ncid, prm->p1varname, &varid_p1);
-        dimlen[0] = ny;
-        dimlen[1] = nx;
-        ncw_check_vardims(ncid, varid_p1, 2, dimlen);
-        ncw_get_var_float(ncid, varid_p1, p1[0]);
-
-        ncw_inq_varid(ncid, prm->p2varname, &varid_p2);
-        ncw_check_vardims(ncid, varid_p2, 2, dimlen);
-        ncw_get_var_float(ncid, varid_p2, p2[0]);
-
-        g->gridnodes_z = gz_hybrid_create(nx, ny, nz, a, b, p1, p2, prm->vdirection);
-    } else
-        enkf_quit("not implemented");
-
     if (prm->depthvarname != NULL) {
-        size_t dimlen[2] = { ny, nx };
+        size_t dimlen[2] = { nj, ni };
 
-        g->depth = alloc2d(ny, nx, sizeof(float));
+        g->depth = alloc2d(nj, ni, sizeof(float));
         ncw_inq_varid(ncid, prm->depthvarname, &varid_depth);
         ncw_check_vardims(ncid, varid_depth, 2, dimlen);
         ncw_get_var_float(ncid, varid_depth, g->depth[0]);
     }
-    if (prm->levelvarname != NULL) {
-        size_t dimlen[2] = { ny, nx };
+    if (g->vtype == GRIDVTYPE_Z) {
+        int varid;
+        double* z = NULL;
+        double* zc = NULL;
 
-        g->numlevels = alloc2d(ny, nx, sizeof(int));
+        ncw_inq_varid(ncid, prm->zvarname, &varid);
+        ncw_inq_vardimlen(ncid, varid, 1, &nk);
+        z = malloc(nk * sizeof(double));
+        ncw_get_var_double(ncid, varid, z);
+        if (prm->zcvarname != NULL) {
+            size_t nkc;
+
+            ncw_inq_varid(ncid, prm->zcvarname, &varid);
+            ncw_inq_vardimlen(ncid, varid, 1, &nkc);
+            assert(nkc == nk + 1);
+            zc = malloc(nkc * sizeof(double));
+            ncw_get_var_double(ncid, varid, zc);
+        }
+        g->gridnodes_z = gz_simple_create(g, nk, z, zc, prm->vdirection);
+        if (zc != NULL)
+            free(zc);
+    } else if (g->vtype == GRIDVTYPE_SIGMA) {
+        int varid;
+        double* ct = NULL;
+        double* cc = NULL;
+        double hc = 0.0;
+
+        ncw_inq_varid(ncid, prm->zvarname, &varid);
+        ncw_inq_vardimlen(ncid, varid, 1, &nk);
+        ct = malloc(nk * sizeof(double));
+        ncw_get_var_double(ncid, varid, ct);
+        if (prm->zcvarname != NULL) {
+            size_t nkc = nk + 1;
+
+            ncw_inq_varid(ncid, prm->zcvarname, &varid);
+            ncw_check_vardims(ncid, varid, 1, &nkc);
+            cc = malloc(nkc * sizeof(double));
+            ncw_get_var_double(ncid, varid, cc);
+        }
+        if (prm->hcvarname != NULL) {
+            ncw_inq_varid(ncid, prm->hcvarname, &varid);
+            ncw_check_varndims(ncid, varid, 0);
+            ncw_get_var_double(ncid, varid, &hc);
+        }
+
+        g->gridnodes_z = gz_sigma_create(g, ni, nj, nk, ct, cc, hc, prm->vdirection);
+    } else if (g->vtype == GRIDVTYPE_HYBRID) {
+        double* a = NULL;
+        double* b = NULL;
+        double* ac = NULL;
+        double* bc = NULL;
+        float** p1 = alloc2d(nj, ni, sizeof(float));
+        float** p2 = alloc2d(nj, ni, sizeof(float));
+        int varid;
+        size_t dimlen[2];
+
+        ncw_inq_varid(ncid, prm->avarname, &varid);
+        ncw_inq_vardimlen(ncid, varid, 1, &nk);
+        a = malloc(nk * sizeof(double));
+        ncw_get_var_double(ncid, varid, a);
+
+        ncw_inq_varid(ncid, prm->bvarname, &varid);
+        ncw_check_vardims(ncid, varid, 1, &nk);
+        b = malloc(nk * sizeof(double));
+        ncw_get_var_double(ncid, varid, b);
+
+        if (prm->acvarname != NULL) {
+            size_t nkc = nk + 1;
+
+            assert(prm->bcvarname != NULL);
+
+            ncw_inq_varid(ncid, prm->acvarname, &varid);
+            ncw_check_vardims(ncid, varid, 1, &nkc);
+            ac = malloc(nkc * sizeof(double));
+            ncw_get_var_double(ncid, varid, ac);
+
+            ncw_inq_varid(ncid, prm->bcvarname, &varid);
+            ncw_check_vardims(ncid, varid, 1, &nkc);
+            bc = malloc(nk * sizeof(double));
+            ncw_get_var_double(ncid, varid, bc);
+        }
+
+        ncw_inq_varid(ncid, prm->p1varname, &varid);
+        dimlen[0] = nj;
+        dimlen[1] = ni;
+        ncw_check_vardims(ncid, varid, 2, dimlen);
+        ncw_get_var_float(ncid, varid, p1[0]);
+
+        ncw_inq_varid(ncid, prm->p2varname, &varid);
+        ncw_check_vardims(ncid, varid, 2, dimlen);
+        ncw_get_var_float(ncid, varid, p2[0]);
+
+        g->gridnodes_z = gz_hybrid_create(ni, nj, nk, a, b, ac, bc, p1, p2, prm->vdirection);
+    } else
+        enkf_quit("not implemented");
+
+    if (prm->levelvarname != NULL) {
+        size_t dimlen[2] = { nj, ni };
+
+        g->numlevels = alloc2d(nj, ni, sizeof(int));
         ncw_inq_varid(ncid, prm->levelvarname, &varid_numlevels);
         ncw_check_varndims(ncid, varid_numlevels, 2);
         ncw_check_vardims(ncid, varid_numlevels, 2, dimlen);
         ncw_get_var_int(ncid, varid_numlevels, g->numlevels[0]);
         if (g->vtype == GRIDVTYPE_SIGMA || g->vtype == GRIDVTYPE_HYBRID) {
-            int i, j;
+            int* numlevels = g->numlevels[0];
+            int i;
 
-            for (j = 0; j < ny; ++j)
-                for (i = 0; i < nx; ++i)
-                    g->numlevels[j][i] *= nz;
+            for (i = 0; i < ni * nj; ++i) {
+                if (numlevels[i] == 0)
+                    continue;
+                else if (numlevels[i] == 1)
+                    numlevels[i] = nk;
+                else
+                    enkf_quit("%s: the grid mask (variable MASKVARNAME = \"%s\") contains a value other than 0 or 1", g->name, prm->levelvarname);
+            }
         }
     }
     ncw_close(ncid);
 
     if (g->numlevels == NULL) {
-        g->numlevels = alloc2d(ny, nx, sizeof(int));
+        g->numlevels = alloc2d(nj, ni, sizeof(int));
         if (g->vtype == GRIDVTYPE_SIGMA || g->vtype == GRIDVTYPE_HYBRID) {
             int i, j;
 
-            for (j = 0; j < ny; ++j)
-                for (i = 0; i < nx; ++i)
+            for (j = 0; j < nj; ++j)
+                for (i = 0; i < ni; ++i)
                     if (g->depth == NULL || g->depth[j][i] > 0.0)
-                        g->numlevels[j][i] = nz;
+                        g->numlevels[j][i] = nk;
         } else {
             int i, j;
 
             if (g->depth != NULL) {
-                for (j = 0; j < ny; ++j) {
-                    for (i = 0; i < nx; ++i) {
+                for (j = 0; j < nj; ++j) {
+                    for (i = 0; i < ni; ++i) {
                         double depth = g->depth[j][i];
                         double fk = NAN;
 
@@ -944,9 +1131,9 @@ grid* grid_create(void* p, int id)
                     }
                 }
             } else {
-                for (j = 0; j < ny; ++j)
-                    for (i = 0; i < nx; ++i)
-                        g->numlevels[j][i] = nz;
+                for (j = 0; j < nj; ++j)
+                    for (i = 0; i < ni; ++i)
+                        g->numlevels[j][i] = nk;
             }
         }
     }
@@ -971,8 +1158,10 @@ void grid_destroy(grid* g)
     else
         enkf_quit("programming_error");
     if (g->gridnodes_z != NULL) {
-        if (g->vtype == GRIDVTYPE_Z || g->vtype == GRIDVTYPE_SIGMA)
+        if (g->vtype == GRIDVTYPE_Z)
             gz_simple_destroy(g->gridnodes_z);
+        else if (g->vtype == GRIDVTYPE_SIGMA)
+            gz_sigma_destroy(g->gridnodes_z);
         else if (g->vtype == GRIDVTYPE_HYBRID)
             gz_hybrid_destroy(g->gridnodes_z);
         else
@@ -990,13 +1179,13 @@ void grid_destroy(grid* g)
  */
 void grid_print(grid* g, char offset[])
 {
-    int nx, ny, nz;
+    int ni, nj, nk;
 
     enkf_printf("%sgrid info:\n", offset);
     switch (g->htype) {
     case GRIDHTYPE_LATLON:
         enkf_printf("%s  hor type = LATLON\n", offset);
-        enkf_printf("%s  periodic by X = %s\n", offset, grid_isperiodic_x(g) ? "yes" : "no");
+        enkf_printf("%s  periodic by X = %s\n", offset, grid_isperiodic_i(g) ? "yes" : "no");
         break;
 #if !defined(NO_GRIDUTILS)
     case GRIDHTYPE_CURVILINEAR:
@@ -1012,8 +1201,8 @@ void grid_print(grid* g, char offset[])
     default:
         enkf_printf("%s  h type = NONE\n", offset);
     }
-    grid_getdims(g, &nx, &ny, &nz);
-    enkf_printf("%s  dims = %d x %d x %d\n", offset, nx, ny, nz);
+    grid_getdims(g, &ni, &nj, &nk);
+    enkf_printf("%s  dims = %d x %d x %d\n", offset, ni, nj, nk);
     if (!isnan(g->lonbase))
         enkf_printf("%s  longitude range = [%.3f, %.3f]\n", offset, g->lonbase, g->lonbase + 360.0);
     else
@@ -1031,9 +1220,14 @@ void grid_print(grid* g, char offset[])
     default:
         enkf_printf("%s  v type = NONE\n", offset);
     }
-    if (g->vtype == GRIDVTYPE_Z || g->vtype == GRIDVTYPE_SIGMA) {
+    if (g->vtype == GRIDVTYPE_Z) {
         gz_simple* nodes = g->gridnodes_z;
 
+        enkf_printf("%s  v dir = %s\n", offset, (nodes->vdirection == GRIDVDIR_FROMSURF) ? "FROMSURF" : "TOSURF");
+    } else if (g->vtype == GRIDVTYPE_SIGMA) {
+        gz_sigma* nodes = g->gridnodes_z;
+
+        enkf_printf("%s  hc = %f\n", offset, nodes->hc);
         enkf_printf("%s  v dir = %s\n", offset, (nodes->vdirection == GRIDVDIR_FROMSURF) ? "FROMSURF" : "TOSURF");
     } else if (g->vtype == GRIDVTYPE_HYBRID) {
         gz_hybrid* nodes = g->gridnodes_z;
@@ -1066,12 +1260,15 @@ void grid_describeprm(void)
     enkf_printf("    XVARNAME         = <X variable name>\n");
     enkf_printf("    YVARNAME         = <Y variable name>\n");
     enkf_printf("    ZVARNAME         = <Z variable name> (z | sigma)\n");
-    enkf_printf("  [ ZCVARNAME        = <ZC variable name> (z | sigma)]\n");
+    enkf_printf("  [ ZCVARNAME        = <ZC variable name> (z | sigma) ]\n");
+    enkf_printf("  [ HCVARNAME        = <hc variable name> (0.0*) (sigma) ]\n");
     enkf_printf("  [ DEPTHVARNAME     = <depth variable name> (z | sigma) ]\n");
     enkf_printf("  [ NUMLEVELSVARNAME = <# of levels variable name> (z) ]\n");
-    enkf_printf("  [ MASKVARNAME      = <land mask variable name> (sigma) ]\n");
+    enkf_printf("  [ MASKVARNAME      = <land mask variable name> (sigma | hybrid) ]\n");
     enkf_printf("    AVARNAME         = <A variable name> (hybrid)\n");
     enkf_printf("    BVARNAME         = <B variable name> (hybrid)\n");
+    enkf_printf("  [ ACVARNAME        = <AC variable name> (hybrid) ]\n");
+    enkf_printf("  [ BCVARNAME        = <BC variable name> (hybrid) ]\n");
     enkf_printf("    P1VARNAME        = <P1 variable name> (hybrid)\n");
     enkf_printf("    P2VARNAME        = <P2 variable name> (hybrid)\n");
     enkf_printf("  [ STRIDE           = <stride> (common*) ]\n");
@@ -1096,8 +1293,8 @@ void grid_getdims(grid* g, int* ni, int* nj, int* nk)
         if (g->htype == GRIDHTYPE_LATLON) {
             gxy_simple* nodes = (gxy_simple *) g->gridnodes_xy;
 
-            *ni = nodes->nx;
-            *nj = nodes->ny;
+            *ni = nodes->ni;
+            *nj = nodes->nj;
 #if !defined(NO_GRIDUTILS)
         } else if (g->htype == GRIDHTYPE_CURVILINEAR) {
             gxy_curv* nodes = (gxy_curv *) g->gridnodes_xy;
@@ -1109,10 +1306,12 @@ void grid_getdims(grid* g, int* ni, int* nj, int* nk)
             enkf_quit("programming error");
     }
     if (nk != NULL) {
-        if (g->vtype == GRIDVTYPE_Z || g->vtype == GRIDVTYPE_SIGMA)
-            *nk = ((gz_simple*) g->gridnodes_z)->nz;
+        if (g->vtype == GRIDVTYPE_Z)
+            *nk = ((gz_simple*) g->gridnodes_z)->nk;
+        else if (g->vtype == GRIDVTYPE_SIGMA)
+            *nk = ((gz_sigma *) g->gridnodes_z)->nk;
         else if (g->vtype == GRIDVTYPE_HYBRID)
-            *nk = ((gz_hybrid*) g->gridnodes_z)->nz;
+            *nk = ((gz_hybrid*) g->gridnodes_z)->nk;
         else
             enkf_quit("programming error");
     }
@@ -1122,13 +1321,22 @@ void grid_getdims(grid* g, int* ni, int* nj, int* nk)
  */
 int grid_getsurflayerid(grid* g)
 {
-    if (g->vtype == GRIDVTYPE_Z || g->vtype == GRIDVTYPE_SIGMA) {
+    if (g->vtype == GRIDVTYPE_Z) {
         gz_simple* nodes = g->gridnodes_z;
 
         if (nodes->vdirection == GRIDVDIR_FROMSURF)
             return 0;
         else if (nodes->vdirection == GRIDVDIR_TOSURF)
-            return nodes->nz - 1;
+            return nodes->nk - 1;
+        else
+            enkf_quit("programming error");
+    } else if (g->vtype == GRIDVTYPE_SIGMA) {
+        gz_sigma* nodes = g->gridnodes_z;
+
+        if (nodes->vdirection == GRIDVDIR_FROMSURF)
+            return 0;
+        else if (nodes->vdirection == GRIDVDIR_TOSURF)
+            return nodes->nk - 1;
         else
             enkf_quit("programming error");
     } else if (g->vtype == GRIDVTYPE_HYBRID) {
@@ -1137,7 +1345,7 @@ int grid_getsurflayerid(grid* g)
         if (nodes->vdirection == GRIDVDIR_FROMSURF)
             return 0;
         else if (nodes->vdirection == GRIDVDIR_TOSURF)
-            return nodes->nz - 1;
+            return nodes->nk - 1;
         else
             enkf_quit("programming error");
     } else
@@ -1234,7 +1442,7 @@ double grid_getsfactor(grid* g)
  */
 int grid_xy2fij(grid* g, double x, double y, double* fi, double* fj)
 {
-    int isperiodic_x = grid_isperiodic_x(g);
+    int isperiodic_i = grid_isperiodic_i(g);
     int ni, nj;
     int i1, i2, j1, j2;
 
@@ -1267,9 +1475,9 @@ int grid_xy2fij(grid* g, double x, double y, double* fi, double* fj)
 
     grid_getdims(g, &ni, &nj, NULL);
     if (i1 == -1)
-        i1 = (isperiodic_x) ? ni - 1 : i2;
+        i1 = (isperiodic_i) ? ni - 1 : i2;
     if (i2 == ni)
-        i2 = (isperiodic_x) ? 0 : i1;
+        i2 = (isperiodic_i) ? 0 : i1;
     if (j1 == -1)
         j1 = j2;
     if (j2 == nj)
@@ -1287,7 +1495,7 @@ int grid_xy2fij(grid* g, double x, double y, double* fi, double* fj)
  */
 int grid_z2fk(grid* g, double fi, double fj, double z, double* fk)
 {
-    int isperiodic_x = grid_isperiodic_x(g);
+    int isperiodic_i = grid_isperiodic_i(g);
     int ni, nj;
     int i1, i2, j1, j2, k;
 
@@ -1296,8 +1504,10 @@ int grid_z2fk(grid* g, double fi, double fj, double z, double* fk)
         return STATUS_OUTSIDEGRID;
     }
 
-    if (g->vtype == GRIDVTYPE_Z || g->vtype == GRIDVTYPE_SIGMA)
+    if (g->vtype == GRIDVTYPE_Z)
         gz_simple_z2fk(g, fi, fj, z, fk);
+    else if (g->vtype == GRIDVTYPE_SIGMA)
+        gz_sigma_z2fk(g, fi, fj, z, fk);
     else if (g->vtype == GRIDVTYPE_HYBRID)
         gz_hybrid_z2fk(g, fi, fj, z, fk);
     else
@@ -1306,7 +1516,7 @@ int grid_z2fk(grid* g, double fi, double fj, double z, double* fk)
     if (isnan(*fk))
         return STATUS_OUTSIDEGRID;
 
-    if (g->vtype == GRIDVTYPE_SIGMA || g->depth == NULL)
+    if (g->vtype != GRIDVTYPE_Z || g->depth == NULL)
         return STATUS_OK;
 
     /*
@@ -1316,9 +1526,9 @@ int grid_z2fk(grid* g, double fi, double fj, double z, double* fk)
     i1 = floor(fi);
     i2 = ceil(fi);
     if (i1 == -1)
-        i1 = (isperiodic_x) ? ni - 1 : i2;
+        i1 = (isperiodic_i) ? ni - 1 : i2;
     if (i2 == ni)
-        i2 = (isperiodic_x) ? 0 : i1;
+        i2 = (isperiodic_i) ? 0 : i1;
     j1 = floor(fj);
     j2 = ceil(fj);
     if (j1 == -1)
@@ -1332,7 +1542,7 @@ int grid_z2fk(grid* g, double fi, double fj, double z, double* fk)
     } else if (g->numlevels[j1][i1] <= k || g->numlevels[j1][i2] <= k || g->numlevels[j2][i1] <= k || g->numlevels[j2][i2] <= k) {
         double v;
 
-        v = interpolate2d(fi, fj, ni, nj, g->depth, g->numlevels, isperiodic_x);
+        v = interpolate2d(fi, fj, ni, nj, g->depth, g->numlevels, isperiodic_i);
 
         if (z > v)
             return STATUS_LAND;
@@ -1362,7 +1572,7 @@ void grid_ij2xy(grid* g, int i, int j, double* x, double* y)
     if (g->htype == GRIDHTYPE_LATLON) {
         gxy_simple* gs = (gxy_simple *) g->gridnodes_xy;
 
-        if (i < 0 || j < 0 || i >= gs->nx || j >= gs->ny) {
+        if (i < 0 || j < 0 || i >= gs->ni || j >= gs->nj) {
             *x = NAN;
             *y = NAN;
         } else {
@@ -1401,10 +1611,10 @@ int grid_fk2z(grid* g, int i, int j, double fk, double* z)
 
     fk += 0.5;
 
-    if (g->vtype == GRIDVTYPE_Z || g->vtype == GRIDVTYPE_SIGMA) {
+    if (g->vtype == GRIDVTYPE_Z) {
         gz_simple* gz = g->gridnodes_z;
         double* zc = gz->zc;
-        int nt = gz->nz;
+        int nt = gz->nk;
 
         if (fk <= 0.0)
             *z = zc[0];
@@ -1419,21 +1629,55 @@ int grid_fk2z(grid* g, int i, int j, double fk, double* z)
             else
                 *z = gz->zt[k] + (dk - 0.5) * (gz->zc[k + 1] - gz->zt[k]) / 0.5;
         }
-        if (g->vtype == GRIDVTYPE_SIGMA)
-            *z *= g->depth[j][i];
+    } else if (g->vtype == GRIDVTYPE_SIGMA) {
+	gz_sigma* gz = (gz_sigma*) g->gridnodes_z;
+	double h;
+
+	if (g->depth == NULL)
+	    enkf_quit("%s: DEPTHVARNAME must be entered for SIGMA grids to assimilate subsurface obs", g->name);
+	h = g->depth[j][i];
+
+        if (isnan(gz->fi_prev) || fabs((double) i - gz->fi_prev) > EPS_IJ || fabs((double) j - gz->fj_prev) > EPS_IJ) {
+	    int k;
+
+	    if (gz->hc != 0.0) {
+		for (k = 0; k < gz->nk; ++k)
+		    gz->zt[k] = h * (gz->hc * (1.0 - (double) k / (double) gz->nk - 0.5) + h * gz->ct[k]) / (gz->hc + h);
+		for (k = 0; k <= gz->nk; ++k)
+		    gz->zc[k] = h * (gz->hc * (1.0 - (double) k / (double) gz->nk) + h * gz->cc[k]) / (gz->hc + h);
+	    } else {
+		for (k = 0; k < gz->nk; ++k)
+		    gz->zt[k] = h * gz->ct[k];
+		for (k = 0; k <= gz->nk; ++k)
+		    gz->zc[k] = h * gz->cc[k];
+	    }
+	}
+
+	if (fk <= 0.0)
+	    *z = gz->zc[0];
+	else if (fk >= gz->nk)
+	    *z = gz->zc[gz->nk];
+	else {
+            int k = (int) floor(fk);
+            double dk = fk - (double) k;
+
+            if (dk < 0.5)
+                *z = gz->zc[k] + dk * (gz->zt[k] - gz->zc[k]) / 0.5;
+            else
+                *z = gz->zt[k] + (dk - 0.5) * (gz->zc[k + 1] - gz->zt[k]) / 0.5;
+	}
     } else if (g->vtype == GRIDVTYPE_HYBRID) {
         gz_hybrid* gz = (gz_hybrid*) g->gridnodes_z;
-        int nz = gz->nz;
+        int nk = gz->nk;
 
         if (isnan(gz->fi_prev) || fabs((double) i - gz->fi_prev) > EPS_IJ || fabs((double) j - gz->fj_prev) > EPS_IJ) {
             double p1 = gz->p1[j][i];
             double p2 = gz->p2[j][i];
-            int nz = gz->nz;
             int k;
 
-            for (k = 0; k < nz; ++k)
+            for (k = 0; k < nk; ++k)
                 gz->pt[k] = gz->at[k] + gz->bt[k] * (p1 - p2);
-            for (k = 0; k <= nz; ++k)
+            for (k = 0; k <= nk; ++k)
                 gz->pc[k] = gz->ac[k] + gz->bc[k] * (p1 - p2);
             gz->fi_prev = (double) i;
             gz->fj_prev = (double) j;
@@ -1441,8 +1685,8 @@ int grid_fk2z(grid* g, int i, int j, double fk, double* z)
 
         if (fk <= 0.0)
             *z = gz->pc[0];
-        else if (fk >= nz)
-            *z = gz->pc[nz];
+        else if (fk >= nk)
+            *z = gz->pc[nk];
         else {
             int k = (int) floor(fk);
             double dk = fk - (double) k;
@@ -1453,7 +1697,7 @@ int grid_fk2z(grid* g, int i, int j, double fk, double* z)
                 *z = gz->pt[k] + (dk - 0.5) * (gz->pc[k + 1] - gz->pt[k]) / 0.5;
         }
     } else
-        enkf_quit("not implemented");
+        enkf_quit("programming error");
 
     if (g->depth != NULL && *z > g->depth[j][i]) {
         *z = NAN;
@@ -1466,10 +1710,10 @@ int grid_fk2z(grid* g, int i, int j, double fk, double* z)
 
 /**
  */
-int grid_isperiodic_x(grid* g)
+int grid_isperiodic_i(grid* g)
 {
     if (g->htype == GRIDHTYPE_LATLON)
-        return ((gxy_simple *) ((grid*) g)->gridnodes_xy)->periodic_x;
+        return ((gxy_simple *) ((grid*) g)->gridnodes_xy)->periodic_i;
 
     return 0;
 }

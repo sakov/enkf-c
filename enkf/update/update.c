@@ -88,7 +88,7 @@ static void das_updatefields(dasystem* das, int nfields, void** fieldbuffer, fie
     int stride = grid_getstride(grid);
     int** nlevels = grid_getnumlevels(grid);
     int surfk = grid_getsurflayerid(grid);
-    int periodic_i = grid_isperiodic_x(grid);
+    int periodic_i = grid_isperiodic_i(grid);
     int writeinflation = das->updatespec & UPDATE_DOINFLATION;
 
     /*
@@ -399,7 +399,7 @@ static void das_updatebg(dasystem* das, int nfields, void** fieldbuffer, field f
     int stride = grid_getstride(grid);
     int** nlevels = grid_getnumlevels(grid);
     int surfk = grid_getsurflayerid(grid);
-    int periodic_i = grid_isperiodic_x(grid);
+    int periodic_i = grid_isperiodic_i(grid);
 
     char fname_w[MAXSTRLEN];
     int ncid;

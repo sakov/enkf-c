@@ -862,7 +862,7 @@ static void update_HE(dasystem* das)
 
     for (gid = 0, o = 0; gid < ngrid && o < obs->nobs; ++gid) {
         void* grid = model_getgridbyid(m, gid);
-        int periodic_i = grid_isperiodic_x(grid);
+        int periodic_i = grid_isperiodic_i(grid);
         int stride = grid_getstride(grid);
 
         char fname_X5[MAXSTRLEN];
@@ -1107,7 +1107,7 @@ static void update_Hx(dasystem* das)
 
     for (gid = 0, o = 0; gid < ngrid && o < obs->nobs; ++gid) {
         void* grid = model_getgridbyid(m, gid);
-        int periodic_i = grid_isperiodic_x(grid);
+        int periodic_i = grid_isperiodic_i(grid);
         int stride = grid_getstride(grid);
 
         char fname_w[MAXSTRLEN];

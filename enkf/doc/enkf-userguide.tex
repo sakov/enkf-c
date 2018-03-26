@@ -35,7 +35,7 @@
 
 \begin{document}
 
-\title{EnKF-C user guide\\{\normalsize version 1.68.8}}
+\title{EnKF-C user guide\\{\normalsize version 1.71.0}}
 
 \author{Pavel Sakov}
 \date{June 19, 2014 -- \today}
@@ -753,12 +753,15 @@ It also contains variable names for the depth and for number of layers in a vert
     XVARNAME         = <X variable name>
     YVARNAME         = <Y variable name>
     ZVARNAME         = <Z variable name> (z | sigma)
-  [ ZCVARNAME        = <ZC variable name> (z | sigma)]
-    DEPTHVARNAME     = <depth variable name> (z | sigma)
+  [ ZCVARNAME        = <ZC variable name> (z | sigma) ]
+  [ HCVARNAME        = <hc variable name> (0.0*) (sigma) ]
+  [ DEPTHVARNAME     = <depth variable name> (z | sigma) ]
   [ NUMLEVELSVARNAME = <# of levels variable name> (z) ]
-  [ MASKVARNAME      = <land mask variable name> (sigma) ]
+  [ MASKVARNAME      = <land mask variable name> (sigma | hybrid) ]
     AVARNAME         = <A variable name> (hybrid)
     BVARNAME         = <B variable name> (hybrid)
+  [ ACVARNAME        = <AC variable name> (hybrid) ]
+  [ BCVARNAME        = <BC variable name> (hybrid) ]
     P1VARNAME        = <P1 variable name> (hybrid)
     P2VARNAME        = <P2 variable name> (hybrid)
   [ STRIDE           = <stride> (common*) ]
@@ -770,6 +773,9 @@ It also contains variable names for the depth and for number of layers in a vert
 
 The code is supposed to automatically identify the type of horizontal grid used, while the type of the vertical grid has to be specified explicitly.
 
+\subsubsection{Horizontal grids}
+\label{sec:hgrid}
+
 At the moment, EnKF-C supports 3 main types of horizontal grids:
 \begin{itemize}
 \item equidistant rectangular grids aligned with physical coordinates;
@@ -778,7 +784,7 @@ At the moment, EnKF-C supports 3 main types of horizontal grids:
 \end{itemize}
 For rectangular grids the code tries to determine and handle periodicity in X or Y directions.
 
-With some effort EnKF-C can also handle topologically screwed grids (like tri-polar ORCA grids).
+With some effort EnKF-C can also handle non-simply connected grids (like tri-polar ORCA grids).
 This is achieved by creating an auxiliary grid that is simply connected in grid index space by masking some nodes (replacing their coordinates with NaNs) in the original grid.
 Because only \emph{prep} requires mapping from physical to grid space, this auxiliary grid is then used in \emph{prep} only, while the original grid is used in \emph{calc} and \emph{update}.
 To specify that a grid entry is to be used in \emph{prep} only one needs to add qualifier ``PREP'' after its name; and to specify that it is to be used in \emph{calc} and \emph{update} one needs to add qualifier ``CALC''.
@@ -787,7 +793,26 @@ See \verb|examples/3| for an example.
 From version 1.37.0 such grids can also be handled by using grid mapping via kd-tree instead of the default mapping via spatial binary tree, which is now available from package gridutils-c.
 This is done by setting parameter \verb|MAPTYPE| to ``k''.
 
-For the vertical grids, the code assumes that the surface starts at layer 0.
+\subsubsection{Vertical grids}
+
+The vertical coordinates are used for mapping the depth/height (pressure) of non-surface observations to fractional layer index.
+The observation depth or height are assumed to be positive.
+
+EnKF-C supports 3 types of vertical grids: $Z$; $\sigma$; and hybrid $\sigma$-$p$ ($\sigma$ - pressure).
+
+For $Z$ grids one needs to define vertical coordinates of layer centres (entry \verb|ZVARNAME|) and (optionally) the coordinates of layer corners (\verb|ZCVARNAME|).
+If coordinates of layer corners are not specified they are built by the code assuming that the surface layer starts at $z = 0$.
+
+For $\sigma$ grids the code implements the ``new'' vertical coordinate formulation from ROMS as described in \url{https://www.myroms.org/wiki/Vertical_S-coordinate}, Eq.~2 and elaborated by Shchepetkin in \url{https://www.myroms.org/forum/viewtopic.php?f=20&t=2189}.
+This formulation reduces to the ``standard'' $\sigma$ grid if the entry \verb|HCVARNAME| is not specified or if the corresponding variable in the grid file is set to zero.
+Similarly to $Z$ grid, one needs to define the vertical coordinates of layer centres (entry \verb|CSRVARNAME|) and (optionally) the coordinates of layer corners (entry \verb|CSWVARNAME|).
+
+The hybrid $\sigma$-$p$ grids are implemented as described in \url{https://journals.ametsoc.org/doi/pdf/10.1175/2008MWR2537.1}.
+One needs to specify the $A$ (\verb|AVARNAME|) and $B$ (\verb|BVARNAME|) arrays for layer centres as well as the top and surface pressure (\verb|P1VARNAME| and \verb|P2VARNAME|).
+One can also specify optional $A$ and $B$ arrays for layer corners (\verb|ACVARNAME|, \verb|BCVARNAME|).
+The entry \verb|DEPTHVARNAME| needs only to be specified for variables with non-surface observations.
+
+By default, the code assumes that the surface starts at layer 0.
 If this is not the case, one needs to specify this explicitly by \verb|VDIR = TOSURF|.
 
 \subsection{Observation types parameter file}

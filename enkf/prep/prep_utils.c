@@ -88,7 +88,7 @@ void obs_add(observations* obs, model* m, obsmeta* meta)
     grid* g = model_getgridbyid(m, ot->gridid);
     float** depth = grid_getdepth(g);
     int** numlevels = grid_getnumlevels(g);
-    int isperiodic_x = grid_isperiodic_x(g);
+    int isperiodic_i = grid_isperiodic_i(g);
     double lonbase = grid_getlonbase(g);
 
     double mindepth = NAN;
@@ -157,13 +157,13 @@ void obs_add(observations* obs, model* m, obsmeta* meta)
                 continue;
             }
             if (depth != NULL) {
-                o->model_depth = (double) interpolate2d(o->fi, o->fj, ni, nj, depth, numlevels, isperiodic_x);
+                o->model_depth = (double) interpolate2d(o->fi, o->fj, ni, nj, depth, numlevels, isperiodic_i);
                 if (!isfinite(o->model_depth) || o->model_depth == 0) {
                     o->status = STATUS_LAND;
                     nland++;
                     continue;
                 }
-            } else if (island(o->fi, o->fj, ni, nj, numlevels, isperiodic_x)) {
+            } else if (island(o->fi, o->fj, ni, nj, numlevels, isperiodic_i)) {
                 o->status = STATUS_LAND;
                 nland++;
                 continue;
@@ -246,7 +246,7 @@ void obs_add(observations* obs, model* m, obsmeta* meta)
                         if (oo->status != STATUS_OK)
                             continue;
 
-                        vv = (float) interpolate2d(oo->fi, oo->fj, ni, nj, v, numlevels, isperiodic_x);
+                        vv = (float) interpolate2d(oo->fi, oo->fj, ni, nj, v, numlevels, isperiodic_i);
                         if (std->op == ARITHMETIC_EQ)
                             oo->std = vv;
                         else if (std->op == ARITHMETIC_PLUS)
@@ -273,7 +273,7 @@ void obs_add(observations* obs, model* m, obsmeta* meta)
                         if (oo->status != STATUS_OK)
                             continue;
 
-                        vv = (float) interpolate3d(oo->fi, oo->fj, oo->fk, ni, nj, nk, ksurf, v, numlevels, isperiodic_x);
+                        vv = (float) interpolate3d(oo->fi, oo->fj, oo->fk, ni, nj, nk, ksurf, v, numlevels, isperiodic_i);
                         if (std->op == ARITHMETIC_EQ)
                             oo->std = vv;
                         else if (std->op == ARITHMETIC_PLUS)
@@ -346,7 +346,7 @@ int obs_checkforland(observations* obs, model* m)
         int ni, nj;
 
         grid_getdims(g, &ni, &nj, NULL);
-        if (island(o->fi, o->fj, ni, nj, grid_getnumlevels(g), grid_isperiodic_x(g))) {
+        if (island(o->fi, o->fj, ni, nj, grid_getnumlevels(g), grid_isperiodic_i(g))) {
             o->status = STATUS_LAND;
             hasland = 1;
         }
