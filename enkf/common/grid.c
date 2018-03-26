@@ -773,9 +773,9 @@ static double z2fk_basic(int n, double* zt, double* zc, double z)
 static void gz_z_z2fk(void* p, double fi, double fj, double z, double* fk)
 {
     grid* g = (grid*) p;
-    gz_z* nodes = g->gridnodes_z;
+    gz_z* gz = g->gridnodes_z;
 
-    *fk = z2fk_basic(nodes->nk, nodes->zt, nodes->zc, z);
+    *fk = z2fk_basic(gz->nk, gz->zt, gz->zc, z);
 }
 
 /**
@@ -840,22 +840,27 @@ static void grid_setlonbase(grid* g)
     double xmax = -DBL_MAX;
 
     if (g->htype == GRIDHTYPE_LATLON) {
-        double* x = ((gxy_simple *) g->gridnodes_xy)->x;
-        int ni = ((gxy_simple *) g->gridnodes_xy)->ni;
+        gxy_simple* gxy = (gxy_simple *) g->gridnodes_xy;
+        double* x = gxy->x;
+        int ni = gxy->ni;
+
+        if (gxy->periodic_i == 2) /* periodic non-closed grid */
+            ni++;
 
         if (xmin > x[0])
             xmin = x[0];
-        if (xmin > x[ni])
-            xmin = x[ni];
+        if (xmin > x[ni - 1])
+            xmin = x[ni - 1];
         if (xmax < x[0])
             xmax = x[0];
-        if (xmax < x[ni])
-            xmax = x[ni];
+        if (xmax < x[ni - 1])
+            xmax = x[ni - 1];
 #if !defined(NO_GRIDUTILS)
     } else if (g->htype == GRIDHTYPE_CURVILINEAR) {
-        double** x = gridnodes_getx(((gxy_curv *) g->gridnodes_xy)->gn);
-        int ni = gridnodes_getnce1(((gxy_curv *) g->gridnodes_xy)->gn);
-        int nj = gridnodes_getnce2(((gxy_curv *) g->gridnodes_xy)->gn);
+        gxy_curv* gxy = (gxy_curv*) g->gridnodes_xy;
+        double** x = gridnodes_getx(gxy->gn);
+        int ni = gridnodes_getnce1(gxy->gn);
+        int nj = gridnodes_getnce2(gxy->gn);
         int i, j;
 
         for (j = 0; j < nj; ++j) {
@@ -1331,30 +1336,30 @@ void grid_getdims(grid* g, int* ni, int* nj, int* nk)
 int grid_getsurflayerid(grid* g)
 {
     if (g->vtype == GRIDVTYPE_Z) {
-        gz_z* nodes = g->gridnodes_z;
+        gz_z* gz = g->gridnodes_z;
 
-        if (nodes->vdirection == GRIDVDIR_FROMSURF)
+        if (gz->vdirection == GRIDVDIR_FROMSURF)
             return 0;
-        else if (nodes->vdirection == GRIDVDIR_TOSURF)
-            return nodes->nk - 1;
+        else if (gz->vdirection == GRIDVDIR_TOSURF)
+            return gz->nk - 1;
         else
             enkf_quit("programming error");
     } else if (g->vtype == GRIDVTYPE_SIGMA) {
-        gz_sigma* nodes = g->gridnodes_z;
+        gz_sigma* gz = g->gridnodes_z;
 
-        if (nodes->vdirection == GRIDVDIR_FROMSURF)
+        if (gz->vdirection == GRIDVDIR_FROMSURF)
             return 0;
-        else if (nodes->vdirection == GRIDVDIR_TOSURF)
-            return nodes->nk - 1;
+        else if (gz->vdirection == GRIDVDIR_TOSURF)
+            return gz->nk - 1;
         else
             enkf_quit("programming error");
     } else if (g->vtype == GRIDVTYPE_HYBRID) {
-        gz_hybrid* nodes = g->gridnodes_z;
+        gz_hybrid* gz = g->gridnodes_z;
 
-        if (nodes->vdirection == GRIDVDIR_FROMSURF)
+        if (gz->vdirection == GRIDVDIR_FROMSURF)
             return 0;
-        else if (nodes->vdirection == GRIDVDIR_TOSURF)
-            return nodes->nk - 1;
+        else if (gz->vdirection == GRIDVDIR_TOSURF)
+            return gz->nk - 1;
         else
             enkf_quit("programming error");
     } else
@@ -1741,6 +1746,18 @@ void grid_tocartesian(grid* g, double* in, double* out)
     g->tocartesian_fn(in, out);
 }
 
+/**
+ */
+static void grids_addgrid(int* ngrid, void*** grids, void* g)
+{
+    if (*ngrid % GRID_INC == 0)
+        (*grids) = realloc((*grids), (*ngrid + GRID_INC) * sizeof(void*));
+    (*grids)[*ngrid] = g;
+    (*ngrid)++;
+}
+
+/**
+ */
 void grids_create(char gprmfname[], int stride, int sob_stride, int* ngrid, void*** grids)
 {
     int n = 0;
@@ -1763,16 +1780,6 @@ void grids_create(char gprmfname[], int stride, int sob_stride, int* ngrid, void
             grid_setsobstride(g, sob_stride);
     }
     gridprm_destroy(n, gprm);
-}
-
-/**
- */
-void grids_addgrid(int* ngrid, void*** grids, void* g)
-{
-    if (*ngrid % GRID_INC == 0)
-        (*grids) = realloc((*grids), (*ngrid + GRID_INC) * sizeof(void*));
-    (*grids)[*ngrid] = g;
-    (*ngrid)++;
 }
 
 /**

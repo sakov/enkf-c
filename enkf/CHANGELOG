@@ -1,3 +1,7 @@
+v. 1.71.2
+   PS 27032018
+   -- A possible bug fix in grid_setlonbase(). A few cosmetic changes in grid.c.
+      A minor change in Makefile.
 v. 1.71.1
    PS 26032018
    -- A minor modification for Z grids: when ZCVARNAME is specified --

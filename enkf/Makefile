@@ -137,13 +137,13 @@ bin/enkf_prep: $(SRC_PREP) $(SRC_COMMON) $(HDR_PREP) $(HDR_COMMON)
 	@mkdir -p bin
 	${CC${MPISTATUS_PREP}} -o bin/enkf_prep -DENKF_PREP $(ENKF_FLAGS) $(CFLAGS$(MPISTATUS_PREP)) $(INCS) $(SRC_PREP) $(SRC_COMMON) $(LIBS)
 
-bin/enkf_calc: LIBS += $(LIB_LAPACK)
+bin/enkf_calc: LIBS := $(LIB_LAPACK) $(LIBS)
 bin/enkf_calc: $(SRC_COMMON) $(SRC_CALC) $(HDR_COMMON) $(HDR_CALC)
 	@echo
 	@mkdir -p bin
 	${CC${MPISTATUS_CALC}} -o bin/enkf_calc -DENKF_CALC $(ENKF_FLAGS) $(CFLAGS$(MPISTATUS_CALC)) $(INCS) $(SRC_CALC) $(SRC_COMMON) $(LIBS)
 
-bin/enkf_update: LIBS += $(LIB_LAPACK)
+bin/enkf_update: LIBS := $(LIB_LAPACK) $(LIBS)
 bin/enkf_update: $(SRC_UPDATE) $(SRC_COMMON) $(HDR_UPDATE) $(HDR_COMMON)
 	@echo
 	@mkdir -p bin
@@ -153,5 +153,5 @@ clean:
 	rm -f bin/*
 
 indent:
-	indent -T FILE -T field -T dasystem -T grid -T kdtree -T kdnode -T kdset -T model -T modeldata -T gridprm -T gnxy_simple -T gnxy_curv -T gnz -T gz_simple -T gz_hybrid -T gz_hybrid -T gridnodes -T gridmap -T stringtable -T resnode -T tm -T obsmeta -T metastd -T metapar -T obsreader_entry -T H_entry -T model_entry -T enkfprm -T gnll -T rangeentry -T observation -T obstype -T observations -T pointlog -T region -T obsdomain -T zint -T calcstats -T hashtable -T ht_bucket -T badbatchspec -T nc_type -T size_t -T otdesc -T uint32_t -T uint16_t */*.[ch]
+	indent -T FILE -T field -T dasystem -T grid -T kdtree -T kdnode -T kdset -T model -T modeldata -T gridprm -T gxy_simple -T gxy_curv -T gz_simple -T gz_sigma -T gz_hybrid -T gridnodes -T gridmap -T stringtable -T resnode -T tm -T obsmeta -T metastd -T metapar -T obsreader_entry -T H_entry -T model_entry -T enkfprm -T gnll -T rangeentry -T observation -T obstype -T observations -T pointlog -T region -T obsdomain -T zint -T calcstats -T hashtable -T ht_bucket -T badbatchspec -T nc_type -T size_t -T otdesc -T uint32_t -T uint16_t */*.[ch]
 	rm -f `find . -name "*.*~"`

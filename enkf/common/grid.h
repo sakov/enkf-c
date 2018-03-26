@@ -66,7 +66,6 @@ int grid_isperiodic_i(grid* g);
  * stuff to handle an array of grids
  */
 void grids_create(char gprmfname[], int stride, int sob_stride, int* ngrid, void*** grids);
-void grids_addgrid(int* ngrid, void*** grids, void* g);
 void grids_destroy(int ngrid, void** grids);
 
 #define _GRID_H
