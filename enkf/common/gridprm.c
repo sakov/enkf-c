@@ -304,18 +304,18 @@ void gridprm_create(char* fname, int* ngrid, gridprm** prm)
         if (strcasecmp(now->vtype, "Z") == 0) {
             if (now->zvarname == NULL)
                 enkf_quit("%s: %s: ZVARNAME must be specified for Z grids", fname, now->name);
-	} else if (strcasecmp(now->vtype, "SIGMA") == 0) {
+        } else if (strcasecmp(now->vtype, "SIGMA") == 0) {
             if (now->zvarname == NULL)
                 enkf_quit("%s: %s: ZVARNAME must be specified for Z grids", fname, now->name);
         } else if (strcasecmp(now->vtype, "HYBRID") == 0) {
             if (now->avarname == NULL)
-                enkf_quit("%s: %s: AVARNAME must be specified for hybrid grids",fname, now->name);
+                enkf_quit("%s: %s: AVARNAME must be specified for hybrid grids", fname, now->name);
             if (now->bvarname == NULL)
-                enkf_quit("%s: %s: BVARNAME must be specified for hybrid grids",fname, now->name);
+                enkf_quit("%s: %s: BVARNAME must be specified for hybrid grids", fname, now->name);
             if (now->p1varname == NULL)
-                enkf_quit("%s: %s: P1VARNAME must be specified for hybrid grids",fname, now->name);
+                enkf_quit("%s: %s: P1VARNAME must be specified for hybrid grids", fname, now->name);
             if (now->p2varname == NULL)
-                enkf_quit("%s: %s: P2VARNAME must be specified for hybrid grids",fname, now->name);
+                enkf_quit("%s: %s: P2VARNAME must be specified for hybrid grids", fname, now->name);
         } else
             enkf_quit("vertical type \"%s\" specified for grid \"%s\" is unknown", now->vtype, now->name);
         if (now->xvarname == NULL)
