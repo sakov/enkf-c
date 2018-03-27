@@ -57,6 +57,7 @@ static int cmp_lonlat(const void* p1, const void* p2)
  */
 void reader_mmt_standard(char* fname, int fid, obsmeta* meta, grid* g, observations* obs)
 {
+    stringtable* st_exclude = NULL;
     int ncid;
     int dimid_nprof, dimid_nz;
     size_t nprof, nz;
@@ -76,8 +77,14 @@ void reader_mmt_standard(char* fname, int fid, obsmeta* meta, grid* g, observati
     double tunits_multiple, tunits_offset;
     int p, i;
 
-    for (i = 0; i < meta->npars; ++i)
-        enkf_quit("unknown PARAMETER \"%s\"\n", meta->pars[i].name);
+    for (i = 0; i < meta->npars; ++i) {
+        if (strcasecmp(meta->pars[i].name, "EXCLUDEINST") == 0) {
+            if (st_exclude == NULL)
+                st_exclude = st_create("exclude");
+            st_add(st_exclude, meta->pars[i].value, -1);
+        } else
+            enkf_quit("unknown PARAMETER \"%s\"\n", meta->pars[i].name);
+    }
 
     if (meta->nstds == 0)
         enkf_quit("ERROR_STD is necessary but not specified for product \"%s\"", meta->product);
@@ -153,6 +160,9 @@ void reader_mmt_standard(char* fname, int fid, obsmeta* meta, grid* g, observati
             instnum = 999;
         snprintf(inststr, MAXSTRLEN, "WMO%03d", instnum);
 
+        if (st_exclude != NULL && st_findindexbystring(st_exclude, inststr) >= 0)
+            continue;
+
         for (i = 0; i < (int) nz; ++i) {
             observation* o;
             obstype* ot;
@@ -223,4 +233,6 @@ void reader_mmt_standard(char* fname, int fid, obsmeta* meta, grid* g, observati
     free(v);
     free(z);
     free(type);
+    if (st_exclude != NULL)
+        st_destroy(st_exclude);
 }

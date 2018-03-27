@@ -1,3 +1,7 @@
+v. 1.72.0
+   PS 27032018
+   -- Introduced a new parameter EXCLUDEINST in reader_mmt_standard(). Should be
+      used as e.g. "PARAMETER EXCLUDEINST = WMO995".
 v. 1.71.2
    PS 27032018
    -- A possible bug fix in grid_setlonbase(). A few cosmetic changes in grid.c.
