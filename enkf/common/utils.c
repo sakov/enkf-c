@@ -64,6 +64,8 @@ void enkf_init(int* argc, char*** argv)
 
     MPI_Type_size(MPI_INTEGER, &size);
     assert(size == sizeof(int));
+    MPI_Type_size(MPIENSOBSTYPE, &size);
+    assert(size == sizeof(ENSOBSTYPE));
 #endif
 
     ncw_set_quitfn(enkf_quit);

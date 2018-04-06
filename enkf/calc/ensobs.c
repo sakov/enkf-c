@@ -189,14 +189,18 @@ void das_getHE(dasystem* das)
         /*
          * communicate HE via MPI
          */
+        MPI_Datatype newmpitype;
         int ierror, *recvcounts, *displs;
+
+        ierror = MPI_Type_contiguous(obs->nobs, MPIENSOBSTYPE, &newmpitype);
+        assert(ierror == MPI_SUCCESS);
 
         recvcounts = malloc(nprocesses * sizeof(int));
         displs = malloc(nprocesses * sizeof(int));
 
         for (i = 0; i < nprocesses; ++i) {
-            recvcounts[i] = number_of_iterations[i] * obs->nobs;
-            displs[i] = first_iteration[i] * obs->nobs;
+            recvcounts[i] = number_of_iterations[i];
+            displs[i] = first_iteration[i];
         }
 
         /*
@@ -204,7 +208,7 @@ void das_getHE(dasystem* das)
          * http://hpc.uni-due.de/teaching/wt2013/hpc/programs
          * /allgatherv-example.c)
          */
-        ierror = MPI_Allgatherv(MPI_IN_PLACE, 0, MPI_DATATYPE_NULL, das->S[0], recvcounts, displs, MPIENSOBSTYPE, MPI_COMM_WORLD);
+        ierror = MPI_Allgatherv(MPI_IN_PLACE, 0, MPI_DATATYPE_NULL, das->S[0], recvcounts, displs, newmpitype, MPI_COMM_WORLD);
         assert(ierror == MPI_SUCCESS);
 
         free(recvcounts);

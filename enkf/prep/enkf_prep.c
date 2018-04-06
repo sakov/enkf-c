@@ -268,7 +268,7 @@ int main(int argc, char* argv[])
         enkf_printf("  superobing:\n");
         obs_superob(obs, cmp_obs, &sobs, describe_superob_id);
 
-        if (describe_superob_id > 0)
+        if (describe_superob_id >= 0)
             goto finalise;
 
         enkf_printf("  writing superobservations to \"%s\":\n", FNAME_SOBS);
@@ -315,10 +315,12 @@ int main(int argc, char* argv[])
         }
     }
 
-    enkf_printf("  printing observation statistics:\n");
-    print_obsstats(obs, sobs);
-
   finalise:
+
+    if (describe_superob_id < 0) {
+        enkf_printf("  printing observation statistics:\n");
+        print_obsstats(obs, sobs);
+    }
 
     obs_destroy(obs);
     obs_destroy(sobs);

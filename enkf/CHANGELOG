@@ -1,3 +1,10 @@
+v. 1.73.0
+   PS 06042018
+   -- Using a user defined MPI data type for communicating ensemble obs between
+      members rather than MPI_float. This allows to overcome the MPI limit on
+      the number of elements (currently 2^31 - 1) that manifests when the number
+      of ensemble observations becomes very large (>~ 2.5e8).
+   -- A minor modification in enkf_prep to print obs stats when not superobing.
 v. 1.72.1
    PS 06042018
    -- A (probably, temporal) fix for a very rarely manifested defect caused by
