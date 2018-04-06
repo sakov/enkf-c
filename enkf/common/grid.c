@@ -1479,6 +1479,19 @@ int grid_xy2fij(grid* g, double x, double y, double* fi, double* fj)
         return STATUS_OUTSIDEGRID;
 
     /*
+     * This procedure is used to map observations within a grid. The observation
+     * will then be possibly collated (superobed) and stored in observations.nc.
+     * In particular, the fractional grid coordinates of the observation will be
+     * stored as NC_FLOAT. This onse in a lifetime causes a mismatch between i1,
+     * i2, j1, j2 values below obtained from double precision coordinates and
+     * those obtained from single precision ccordinates and then used for
+     * getting the forecast observation values by interpolating the
+     * corresponding model field. Therefore this bit:
+     */
+    *fi = (float) (*fi);
+    *fj = (float) (*fj);
+
+    /*
      * Note that this section should be consistent with similar sections in
      * interpolate2d() and interpolate3d().
      */
@@ -1532,6 +1545,11 @@ int grid_z2fk(grid* g, double fi, double fj, double z, double* fk)
 
     if (g->vtype != GRIDVTYPE_Z || g->depth == NULL)
         return STATUS_OK;
+
+    /*
+     * see the note on the similar bit in grid_xy2fij()
+     */
+    *fk = (float) (*fk);
 
     /*
      * a depth check for z-grid:

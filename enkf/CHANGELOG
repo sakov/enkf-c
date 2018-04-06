@@ -1,3 +1,9 @@
+v. 1.72.1
+   PS 06042018
+   -- A (probably, temporal) fix for a very rarely manifested defect caused by
+      the mismatch between the data types used for observation fractional grid
+      coordinates when stored in observations.nc (float) and when first
+      calculated in data readers (double).
 v. 1.72.0
    PS 27032018
    -- Introduced a new parameter EXCLUDEINST in reader_mmt_standard(). Should be

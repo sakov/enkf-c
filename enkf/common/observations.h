@@ -28,16 +28,15 @@
  */
 typedef struct {
     /*
-     * for primary observations - the ordered number of the (compacted)
-     * primary observations;
-     * for super observations - the ordered number of superobservations
+     * for primary observations - the number of the (compacted) primary
+     * observation; for super observations - the ordered number of the
+     * superobservation
      */
     int id;
     /*
-     * for primary observations - the original ID corresponds to the number
-     * of the primary observation during the very first read of data files; for
-     * superobs - to the original ID of the very first observation merged into
-     * this superob
+     * for primary observations - the number of the primary observation during
+     * the reading of data files; for superobs - the original ID of the very
+     * first observation merged into this superob
      */
     int id_orig;
     short int type;
