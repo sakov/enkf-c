@@ -92,21 +92,24 @@ static void interpolate_3d_obs(model* m, observations* allobs, int nobs, int obs
 
 /**
  */
-void H_surf_standard(dasystem* das, int nobs, int obsids[], char fname[], int mem, int t, void* psrc, ENSOBSTYPE dst[])
+void H_surf_standard(dasystem* das, int nobs, int obsids[], char fname[], int mem, int t, ENSOBSTYPE dst[])
 {
     model* m = das->m;
     observations* allobs = das->obs;
     int otid = allobs->data[obsids[0]].type;
     obstype* ot = &allobs->obstypes[otid];
-    float** src = (float**) psrc;
+    int mvid = model_getvarid(m, ot->varnames[0], 1);
+    int ksurf = grid_getsurflayerid(model_getvargrid(m, mvid));
+    int ni, nj;
+    float** src = NULL;
     char tag_offset[MAXSTRLEN];
     float** offset = NULL;
-    int mvid = model_getvarid(m, ot->varnames[0], 1);
-    int k = grid_getsurflayerid(model_getvargrid(m, mvid));
 
     assert(ot->nvar == 1);      /* should we care? */
 
-    model_readfield(m, fname, t, ot->varnames[0], k, src[0]);
+    model_getvardims(m, mvid, &ni, &nj, NULL);
+    src = alloc2d(nj, ni, sizeof(float));
+    model_readfield(m, fname, t, ot->varnames[0], ksurf, src[0]);
 
     snprintf(tag_offset, MAXSTRLEN, "%s:OFFSET", ot->name);
     offset = model_getdata(m, tag_offset);
@@ -124,26 +127,28 @@ void H_surf_standard(dasystem* das, int nobs, int obsids[], char fname[], int me
     }
 
     interpolate_2d_obs(m, allobs, nobs, obsids, fname, src, dst);
+    free(src);
 }
 
 /**
  */
-void H_surf_biased(dasystem* das, int nobs, int obsids[], char fname[], int mem, int t, void* psrc, ENSOBSTYPE dst[])
+void H_surf_biased(dasystem* das, int nobs, int obsids[], char fname[], int mem, int t, ENSOBSTYPE dst[])
 {
     model* m = das->m;
     observations* allobs = das->obs;
     int otid = allobs->data[obsids[0]].type;
     obstype* ot = &allobs->obstypes[otid];
-    float** src = (float**) psrc;
-    float* src0 = src[0];
+    int mvid = model_getvarid(m, ot->varnames[0], 1);
+    int ksurf = grid_getsurflayerid(model_getvargrid(m, mvid));
+    int ni, nj, nv;
+    float** src = NULL;
+    float* src0 = NULL;
     char tag_offset[MAXSTRLEN];
     float** offset = NULL;
     float* bias = NULL;
-    int mvid = model_getvarid(m, ot->varnames[0], 1);
     int mvid2;
     char fname2[MAXSTRLEN];
-    int ni, nj, ksurf;
-    int i, nv;
+    int i;
 
     if (ot->nvar < 2)
         enkf_quit("%s: second variable has to be defined for the observation type when using H-function \"biased\"", ot->name);
@@ -151,9 +156,10 @@ void H_surf_biased(dasystem* das, int nobs, int obsids[], char fname[], int mem,
     if (model_getvargridid(m, mvid) != model_getvargridid(m, mvid2))
         enkf_quit("H_surf_biased(): variables \"%s\" and \"%s\" are defined on different grids", ot->varnames[0], ot->varnames[1]);
 
-    ksurf = grid_getsurflayerid(model_getvargrid(m, mvid));
     model_getvardims(m, mvid, &ni, &nj, NULL);
     nv = ni * nj;
+    src = alloc2d(nj, ni, sizeof(float));
+    src0 = src[0];
 
     bias = malloc(nv * sizeof(float));
     if (das->mode == MODE_ENKF)
@@ -180,21 +186,26 @@ void H_surf_biased(dasystem* das, int nobs, int obsids[], char fname[], int mem,
     interpolate_2d_obs(m, allobs, nobs, obsids, fname, src, dst);
 
     free(bias);
+    free(src);
 }
 
 /**
  */
-void H_subsurf_standard(dasystem* das, int nobs, int obsids[], char fname[], int mem, int t, void* psrc, ENSOBSTYPE dst[])
+void H_subsurf_standard(dasystem* das, int nobs, int obsids[], char fname[], int mem, int t, ENSOBSTYPE dst[])
 {
     model* m = das->m;
     observations* allobs = das->obs;
     int otid = allobs->data[obsids[0]].type;
     obstype* ot = &allobs->obstypes[otid];
-    float*** src = (float***) psrc;
+    int mvid = model_getvarid(m, ot->varnames[0], 1);
+    int ni, nj, nk;
+    float*** src = NULL;
     char tag_offset[MAXSTRLEN];
     float*** offset = NULL;
 
     assert(ot->nvar == 1);      /* should we care? */
+    model_getvardims(m, mvid, &ni, &nj, &nk);
+    src = alloc3d(nk, nj, ni, sizeof(float));
     model_read3dfield(m, fname, t, ot->varnames[0], src[0][0]);
 
     snprintf(tag_offset, MAXSTRLEN, "%s:OFFSET", allobs->obstypes[allobs->data[obsids[0]].type].name);
@@ -213,6 +224,7 @@ void H_subsurf_standard(dasystem* das, int nobs, int obsids[], char fname[], int
     }
 
     interpolate_3d_obs(m, allobs, nobs, obsids, fname, src, dst);
+    free(src);
 }
 
 #define MLD_TRANSITION 0.1
@@ -233,24 +245,24 @@ static double mldtaper(double mld, double z)
 
 /** Projects surface bias into subsurface based on the mixed layer depth.
  */
-void H_subsurf_wsurfbias(dasystem* das, int nobs, int obsids[], char fname[], int mem, int t, void* psrc, ENSOBSTYPE dst[])
+void H_subsurf_wsurfbias(dasystem* das, int nobs, int obsids[], char fname[], int mem, int t, ENSOBSTYPE dst[])
 {
     model* m = das->m;
     observations* allobs = das->obs;
     int otid = allobs->data[obsids[0]].type;
     obstype* ot = &allobs->obstypes[otid];
     int mvid = model_getvarid(m, ot->varnames[0], 1);
+    int ni, nj, nk;
+    float*** src = NULL;
     int mvid2;
     int periodic_i = grid_isperiodic_i(model_getvargrid(m, mvid));
     int** mask = model_getnumlevels(m, mvid);
 
-    float*** src = (float***) psrc;
     float** mld = NULL;
     char tag_offset[MAXSTRLEN];
     float*** offset = NULL;
     float** bias = NULL;
     char fname2[MAXSTRLEN];
-    int ni, nj, nk;
     int i;
 
     if (ot->nvar < 2)
@@ -258,7 +270,9 @@ void H_subsurf_wsurfbias(dasystem* das, int nobs, int obsids[], char fname[], in
     mvid2 = model_getvarid(m, ot->varnames[1], 1);
     if (model_getvargridid(m, mvid) != model_getvargridid(m, mvid2))
         enkf_quit("H_surf_biased(): variables \"%s\" and \"%s\" are defined on different grids", ot->varnames[0], ot->varnames[1]);
+
     model_getvardims(m, mvid, &ni, &nj, &nk);
+    src = alloc3d(nk, nj, ni, sizeof(float));
 
     /*
      * this part is similar to H_subsurf_standard()
@@ -349,4 +363,5 @@ void H_subsurf_wsurfbias(dasystem* das, int nobs, int obsids[], char fname[], in
     if (das->mode == MODE_ENKF)
         free(mld);
     free(bias);
+    free(src);
 }

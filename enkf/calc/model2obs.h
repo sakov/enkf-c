@@ -17,10 +17,10 @@
 
 #include "dasystem.h"
 
-void H_surf_standard(dasystem* das, int nobs, int obsids[], char fname[], int mem, int t, void* psrc, ENSOBSTYPE dst[]);
-void H_surf_biased(dasystem* das, int nobs, int obsids[], char fname[], int mem, int t, void* psrc, ENSOBSTYPE dst[]);
-void H_subsurf_standard(dasystem* das, int nobs, int obsids[], char fname[], int mem, int t, void* psrc, ENSOBSTYPE dst[]);
-void H_subsurf_wsurfbias(dasystem* das, int nobs, int obsids[], char fname[], int mem, int t, void* psrc, ENSOBSTYPE dst[]);
+void H_surf_standard(dasystem* das, int nobs, int obsids[], char fname[], int mem, int t, ENSOBSTYPE dst[]);
+void H_surf_biased(dasystem* das, int nobs, int obsids[], char fname[], int mem, int t, ENSOBSTYPE dst[]);
+void H_subsurf_standard(dasystem* das, int nobs, int obsids[], char fname[], int mem, int t, ENSOBSTYPE dst[]);
+void H_subsurf_wsurfbias(dasystem* das, int nobs, int obsids[], char fname[], int mem, int t, ENSOBSTYPE dst[]);
 
 #define _MODEL2OBS_H
 #endif
