@@ -245,7 +245,7 @@ void das_getHE(dasystem* das)
          * subtract ensemble mean; add background
          */
         if (!enkf_fstatsonly) {
-            double* ensmean = calloc(obs->nobs, sizeof(double));
+            ENSOBSTYPE* ensmean = calloc(obs->nobs, sizeof(ENSOBSTYPE));
 
             for (e = 0; e < das->nmem; ++e) {
                 ENSOBSTYPE* Se = das->S[e];
@@ -254,7 +254,7 @@ void das_getHE(dasystem* das)
                     ensmean[i] += Se[i];
             }
             for (i = 0; i < obs->nobs; ++i)
-                ensmean[i] /= (double) das->nmem;
+                ensmean[i] /= (ENSOBSTYPE) das->nmem;
 
             for (e = 0; e < das->nmem; ++e) {
                 ENSOBSTYPE* Se = das->S[e];
