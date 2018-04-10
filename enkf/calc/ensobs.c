@@ -175,14 +175,13 @@ void das_getHE(dasystem* das)
         /*
          * communicate HE via MPI
          */
+        int* recvcounts = malloc(nprocesses * sizeof(int));
+        int* displs = malloc(nprocesses * sizeof(int));
         MPI_Datatype newmpitype;
-        int ierror, *recvcounts, *displs;
+        int ierror;
 
         ierror = MPI_Type_contiguous(obs->nobs, MPIENSOBSTYPE, &newmpitype);
         assert(ierror == MPI_SUCCESS);
-
-        recvcounts = malloc(nprocesses * sizeof(int));
-        displs = malloc(nprocesses * sizeof(int));
 
         for (i = 0; i < nprocesses; ++i) {
             recvcounts[i] = number_of_iterations[i];
