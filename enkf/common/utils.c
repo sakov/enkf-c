@@ -192,6 +192,7 @@ void enkf_printtime(const char offset[])
 void enkf_printcompileflags(const char offset[])
 {
     enkf_printf("%scompile flags:\n", offset);
+#if defined(ENKF_CALC)
 #if defined(CHECK_X5)
     enkf_printf("%s  CHECK_X5         = [+]\n", offset);
 #else
@@ -212,6 +213,18 @@ void enkf_printcompileflags(const char offset[])
 #else
     enkf_printf("%s  HE_VIAFILE       = [-]\n", offset);
 #endif
+#if defined(HE_VIASHMEM)
+    enkf_printf("%s  HE_VIASHMEM      = [+]\n", offset);
+#else
+    enkf_printf("%s  HE_VIASHMEM      = [-]\n", offset);
+#endif
+#if defined(OBS_SHUFFLE)
+    enkf_printf("%s  OBS_SHUFFLE      = [+]\n", offset);
+#else
+    enkf_printf("%s  OBS_SHUFFLE      = [-]\n", offset);
+#endif
+#endif
+#if defined(ENKF_PREP) || defined(ENKF_CALC)
 #if defined(GRIDNODES_WRITE)
     enkf_printf("%s  GRIDNODES_WRITE  = [+]\n", offset);
 #else
@@ -227,10 +240,6 @@ void enkf_printcompileflags(const char offset[])
 #else
     enkf_printf("%s  NO_GRIDUTILS     = [-]\n", offset);
 #endif
-#if defined(OBS_SHUFFLE)
-    enkf_printf("%s  OBS_SHUFFLE      = [+]\n", offset);
-#else
-    enkf_printf("%s  OBS_SHUFFLE      = [-]\n", offset);
 #endif
 }
 
@@ -607,7 +616,7 @@ void* alloc2d(size_t nj, size_t ni, size_t unitsize)
 
     pp = p;
     p = &((size_t*) p)[nj];
-    for (i = 0; i < nj; i++)
+    for (i = 0; i < nj; ++i)
         pp[i] = &((char*) p)[i * ni * unitsize];
 
     return pp;
@@ -639,7 +648,7 @@ void* copy2d(void** src, size_t nj, size_t ni, size_t unitsize)
 
     pp = p;
     p = &((size_t*) p)[nj];
-    for (i = 0; i < nj; i++)
+    for (i = 0; i < nj; ++i)
         pp[i] = &((char*) p)[i * ni * unitsize];
     memcpy(p, src[0], nj * ni * unitsize);
 
@@ -677,9 +686,9 @@ void* alloc3d(size_t nk, size_t nj, size_t ni, size_t unitsize)
     ppp = p;
     pp = &((void**) p)[nk];
     p = &((size_t*) p)[nk + nk * nj];
-    for (i = 0; i < nk; i++)
+    for (i = 0; i < nk; ++i)
         ppp[i] = &pp[i * nj];
-    for (i = 0; i < nk * nj; i++)
+    for (i = 0; i < nk * nj; ++i)
         pp[i] = &((char*) p)[i * ni * unitsize];
 
     return ppp;

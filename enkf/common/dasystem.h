@@ -85,7 +85,13 @@ struct dasystem {
     double* s_a;                /* innovation */
     double* std_a;              /* ensemble spread */
     int s_mode;
-
+#if defined(HE_VIASHMEM)
+    ENSOBSTYPE** St;
+    MPI_Comm sm_comm;
+    MPI_Win sm_win;
+    int sm_rank;
+    int* sm_ranks;
+#endif
     double kfactor;
     double locrad;
 

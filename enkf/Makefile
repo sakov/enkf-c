@@ -1,15 +1,23 @@
-# Select ENKF_FLAGS from the following list (default = none):
+# Select flags common for PREP and CALC from the following list
+# (default = none):
+#
+# -DGRIDNODES_WRITE
+# -DINTERNAL_QSORT_R
+# -DNO_GRIDUTILS
+PREPCALC_FLAGS =
+
+# Select flags for CALC from the following list (default = none):
 #
 # -DCHECK_X5
 # -DCHECK_G
 # -DSHUFFLE_ROWS
-# -DHE_VIAFILE
-# -DGRIDNODES_WRITE
-# -DINTERNAL_QSORT_R
-# -DNO_GRIDUTILS
+# -DHE_VIAFILE | -DHE_VIASHMEM
 # -DOBS_SHUFFLE
+CALC_FLAGS =
+
+# There are currently no flags for UPDATE
 #
-ENKF_FLAGS =
+UPDATE_FLAGS =
 
 # Set MPI status of EnKF-C programs either to "" or "MPI".
 # Note: prep is single-threaded only.
@@ -135,19 +143,19 @@ all: $(ALL)
 bin/enkf_prep: $(SRC_PREP) $(SRC_COMMON) $(HDR_PREP) $(HDR_COMMON)
 	@echo
 	@mkdir -p bin
-	${CC${MPISTATUS_PREP}} -o bin/enkf_prep -DENKF_PREP $(ENKF_FLAGS) $(CFLAGS$(MPISTATUS_PREP)) $(INCS) $(SRC_PREP) $(SRC_COMMON) $(LIBS)
+	${CC${MPISTATUS_PREP}} -o bin/enkf_prep -DENKF_PREP $(PREPCALC_FLAGS) $(CFLAGS$(MPISTATUS_PREP)) $(INCS) $(SRC_PREP) $(SRC_COMMON) $(LIBS)
 
 bin/enkf_calc: LIBS := $(LIB_LAPACK) $(LIBS)
 bin/enkf_calc: $(SRC_COMMON) $(SRC_CALC) $(HDR_COMMON) $(HDR_CALC)
 	@echo
 	@mkdir -p bin
-	${CC${MPISTATUS_CALC}} -o bin/enkf_calc -DENKF_CALC $(ENKF_FLAGS) $(CFLAGS$(MPISTATUS_CALC)) $(INCS) $(SRC_CALC) $(SRC_COMMON) $(LIBS)
+	${CC${MPISTATUS_CALC}} -o bin/enkf_calc -DENKF_CALC $(PREPCALC_FLAGS) $(CALC_FLAGS) $(CFLAGS$(MPISTATUS_CALC)) $(INCS) $(SRC_CALC) $(SRC_COMMON) $(LIBS)
 
 bin/enkf_update: LIBS := $(LIB_LAPACK) $(LIBS)
 bin/enkf_update: $(SRC_UPDATE) $(SRC_COMMON) $(HDR_UPDATE) $(HDR_COMMON)
 	@echo
 	@mkdir -p bin
-	${CC${MPISTATUS_UPDATE}} -o bin/enkf_update -DENKF_UPDATE $(ENKF_FLAGS) $(CFLAGS$(MPISTATUS_UPDATE)) $(INCS) $(SRC_UPDATE) $(SRC_COMMON) $(LIBS)
+	${CC${MPISTATUS_UPDATE}} -o bin/enkf_update -DENKF_UPDATE $(UPDATE_FLAGS) $(CFLAGS$(MPISTATUS_UPDATE)) $(INCS) $(SRC_UPDATE) $(SRC_COMMON) $(LIBS)
 
 clean:
 	rm -f bin/*

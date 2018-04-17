@@ -1,3 +1,12 @@
+v. 1.74.0
+   PS 17042018
+   -- Introduced shared memory model for HE in CALC (need to be compiled with
+      -DHE_VISHMEM). This is useful for situations when CALC becomes memory
+      limited.
+   -- Parallelised update_HE() when compiled with -DHE_VIASHMEM.
+v. 1.73.1
+   PS 10042018
+   -- Eliminated an argument in H_fn definition in allhs.h.
 v. 1.73.0
    PS 06042018
    -- Using a user defined MPI data type for communicating ensemble obs between

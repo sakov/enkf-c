@@ -87,6 +87,12 @@ dasystem* das_create(enkfprm* prm)
     dasystem* das = calloc(1, sizeof(dasystem));
     int i;
 
+#if defined(HE_VIASHMEM)
+    int ierror;
+    int* recvcounts = NULL;
+    int* displs = NULL;
+#endif
+
     das->prmfname = strdup(prm->fname);
     das->mode = prm->mode;
     das->scheme = prm->scheme;
@@ -111,6 +117,29 @@ dasystem* das_create(enkfprm* prm)
     das->s_a = NULL;
     das->std_a = NULL;
     das->s_mode = S_MODE_NONE;
+
+#if defined(HE_VIASHMEM)
+    ierror = MPI_Comm_split_type(MPI_COMM_WORLD, MPI_COMM_TYPE_SHARED, 0, MPI_INFO_NULL, &das->sm_comm);
+    assert(ierror == MPI_SUCCESS);
+    ierror = MPI_Comm_rank(das->sm_comm, &das->sm_rank);
+    assert(ierror == MPI_SUCCESS);
+    das->sm_ranks = malloc(nprocesses * sizeof(int));
+    /*
+     * build map of local ranks
+     */
+    das->sm_ranks[rank] = das->sm_rank;
+    recvcounts = malloc(nprocesses * sizeof(int));
+    displs = malloc(nprocesses * sizeof(int));
+    for (i = 0; i < nprocesses; ++i) {
+        recvcounts[i] = 1;
+        displs[i] = i;
+    }
+    ierror = MPI_Allgatherv(MPI_IN_PLACE, 0, MPI_DATATYPE_NULL, das->sm_ranks, recvcounts, displs, MPI_INT, MPI_COMM_WORLD);
+    assert(ierror == MPI_SUCCESS);
+    free(recvcounts);
+    free(displs);
+#endif
+
 #if defined(ENKF_CALC)
     if (!enkf_fstatsonly) {
         das->kfactor = prm->kfactor;
@@ -232,6 +261,10 @@ void das_destroy(dasystem* das)
         free(das->s_f);
         free(das->std_f);
     }
+#if defined (HE_VIASHMEM)
+    MPI_Win_free(&das->sm_win);
+    MPI_Comm_free(&das->sm_comm);
+#endif
     if (das->s_a != NULL) {
         free(das->s_a);
         free(das->std_a);
