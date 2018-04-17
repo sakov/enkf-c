@@ -207,7 +207,6 @@ void das_getHE(dasystem* das)
         int* displs = malloc(nprocesses * sizeof(int));
         MPI_Datatype mpitype_vec_nobs;
         int ierror;
-
 #if defined(HE_VIASHMEM)
         int ii;
 #endif
@@ -221,7 +220,7 @@ void das_getHE(dasystem* das)
             displs[i] = first_iteration[i];
         }
 #else
-        for (i = 0; i < nprocesses; ++i) {
+        for (i = 0, ii = 0; i < nprocesses; ++i) {
             if (das->sm_ranks[i] == 0)
                 ii = i;
             displs[i] = first_iteration[i];
@@ -953,7 +952,7 @@ static void gather_St(dasystem* das)
     ierror = MPI_Type_contiguous(nmem, MPIENSOBSTYPE, &mpitype_vec_nmem);
     assert(ierror == MPI_SUCCESS);
 
-    for (i = 0; i < nprocesses; ++i) {
+    for (i = 0, ii = 0; i < nprocesses; ++i) {
         if (das->sm_ranks[i] == 0)
             ii = i;
         displs[i] = first_iteration[i];
