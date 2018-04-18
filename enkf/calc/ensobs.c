@@ -1282,7 +1282,7 @@ static void update_Hx(dasystem* das)
     assert(das->s_mode == S_MODE_HE_f);
 
 #if defined(HE_VIASHMEM)
-    distribute_iterations(0, nobs - 1, nprocesses, rank, "    ");
+    distribute_iterations(0, nobs - 1, (nprocesses > HE_NPROCMAX) ? HE_NPROCMAX : nprocesses, rank, "    ");
     for (e = 0; e < nmem; ++e)
         for (o = my_first_iteration; o <= my_last_iteration; ++o)
             das->St[o][e] = das->S[e][o];
