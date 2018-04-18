@@ -74,7 +74,7 @@ void distribute_iterations(int i1, int i2, int nproc, int rank, char prefix[])
     MPI_Barrier(MPI_COMM_WORLD);
 #endif
 
-    assert(nproc > 0 && nproc < nprocesses);
+    assert(nproc > 0 && nproc <= nprocesses);
 
     n = i2 - i1 + 1;
     npp = n / nproc;
