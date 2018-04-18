@@ -1007,7 +1007,7 @@ static void update_HE(dasystem* das)
             das->St[o][e] = das->S[e][o];
 #else
     my_first_iteration = 0;
-    my_last_iteration = nobs;
+    my_last_iteration = nobs - 1;
 #endif
 
 #if !defined(HE_VIASHMEM)
