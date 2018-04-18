@@ -1,3 +1,7 @@
+v. 1.74.1
+   PS 18042018
+   -- Limited the number of parallel processes updateing HE by
+      min(10, nprocesses); otherwhile I/O can become a bottleneck, I think.
 v. 1.74.0
    PS 17042018
    -- Introduced shared memory model for HE in CALC (need to be compiled with

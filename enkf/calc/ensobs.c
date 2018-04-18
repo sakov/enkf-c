@@ -42,6 +42,9 @@
 #include "dasystem.h"
 
 #define EPSF 1.0e-6f
+#if defined(HE_VIASHMEM)
+#define HE_NPROCMAX 10
+#endif
 
 /**
  */
@@ -207,6 +210,7 @@ void das_getHE(dasystem* das)
         int* displs = malloc(nprocesses * sizeof(int));
         MPI_Datatype mpitype_vec_nobs;
         int ierror;
+
 #if defined(HE_VIASHMEM)
         int ii;
 #endif
@@ -953,7 +957,7 @@ static void gather_St(dasystem* das)
     assert(ierror == MPI_SUCCESS);
 
     for (i = 0, ii = 0; i < nprocesses; ++i) {
-        if (das->sm_ranks[i] == 0)
+        if (das->sm_ranks[i] == 0 && number_of_iterations[i] > 0)
             ii = i;
         displs[i] = first_iteration[i];
         recvcounts[i] = 0;
@@ -998,7 +1002,7 @@ static void update_HE(dasystem* das)
     assert(das->s_mode == S_MODE_HE_f);
 
 #if defined(HE_VIASHMEM)
-    distribute_iterations(0, nobs - 1, nprocesses, rank, "    ");
+    distribute_iterations(0, nobs - 1, (nprocesses > HE_NPROCMAX) ? HE_NPROCMAX : nprocesses, rank, "    ");
     for (e = 0; e < nmem; ++e)
         for (o = my_first_iteration; o <= my_last_iteration; ++o)
             das->St[o][e] = das->S[e][o];
