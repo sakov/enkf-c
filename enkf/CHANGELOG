@@ -1,3 +1,6 @@
+v. 1.74.3
+   PS 18042018
+   -- It seems that MPI_Barrier() is needed before MPI_Allgatherv()...
 v. 1.74.2
    PS 18042018
    -- Fixed a defect in the latest version of distribute.c.

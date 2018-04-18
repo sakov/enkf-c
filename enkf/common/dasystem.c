@@ -134,6 +134,7 @@ dasystem* das_create(enkfprm* prm)
         recvcounts[i] = 1;
         displs[i] = i;
     }
+    MPI_Barrier(MPI_COMM_WORLD);
     ierror = MPI_Allgatherv(MPI_IN_PLACE, 0, MPI_DATATYPE_NULL, das->sm_ranks, recvcounts, displs, MPI_INT, MPI_COMM_WORLD);
     assert(ierror == MPI_SUCCESS);
     free(recvcounts);

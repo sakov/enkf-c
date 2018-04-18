@@ -232,15 +232,14 @@ void das_getHE(dasystem* das)
             recvcounts[ii] += number_of_iterations[i];
         }
 
-        if (ii == 0)
-            MPI_Barrier(MPI_COMM_WORLD);
-        else {
+	if (ii > 0) {
 #endif
             /*
              * (the second and third arguments below are ignored -- see
              * http://hpc.uni-due.de/teaching/wt2013/hpc/programs
              * /allgatherv-example.c)
              */
+            MPI_Barrier(MPI_COMM_WORLD);
             ierror = MPI_Allgatherv(MPI_IN_PLACE, 0, MPI_DATATYPE_NULL, das->S[0], recvcounts, displs, mpitype_vec_nobs, MPI_COMM_WORLD);
             assert(ierror == MPI_SUCCESS);
 #if defined(HE_VIASHMEM)
@@ -644,6 +643,7 @@ void das_standardise(dasystem* das)
         goto finish;
 
 #if defined (HE_VIASHMEM)
+    MPI_Barrier(das->sm_comm);
     if (das->sm_rank == 0)
 #endif
         for (e = 0; e < das->nmem; ++e) {
@@ -732,7 +732,7 @@ void das_destandardise(dasystem* das)
         goto finish;
 
 #if defined(HE_VIASHMEM)
-    MPI_Barrier(MPI_COMM_WORLD);
+    MPI_Barrier(das->sm_comm);
     if (das->sm_rank == 0)
 #endif
         for (e = 0; e < das->nmem; ++e) {
@@ -957,16 +957,15 @@ static void gather_St(dasystem* das)
     assert(ierror == MPI_SUCCESS);
 
     for (i = 0, ii = 0; i < nprocesses; ++i) {
-        if (das->sm_ranks[i] == 0 && number_of_iterations[i] > 0)
+	if (das->sm_ranks[i] == 0)
             ii = i;
         displs[i] = first_iteration[i];
         recvcounts[i] = 0;
         recvcounts[ii] += number_of_iterations[i];
     }
 
-    if (ii == 0)
+    if (ii > 0) {
         MPI_Barrier(MPI_COMM_WORLD);
-    else {
         ierror = MPI_Allgatherv(MPI_IN_PLACE, 0, MPI_DATATYPE_NULL, das->St[0], recvcounts, displs, mpitype_vec_nmem, MPI_COMM_WORLD);
         assert(ierror == MPI_SUCCESS);
     }
