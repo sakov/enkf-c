@@ -378,21 +378,19 @@ void das_calcinnandspread(dasystem* das)
             for (e = 0; e < nmem; ++e) {
                 ENSOBSTYPE* Se = das->S[e];
 
-                for (o = 0; o < nobs; ++o) {
+                for (o = 0; o < nobs; ++o)
                     Se[o] -= (ENSOBSTYPE) das->s_f[o];
-                    das->std_f[o] += (double) (Se[o] * Se[o]);
-                }
             }
 #if defined(HE_VIASHMEM)
         MPI_Barrier(das->sm_comm);
-        if (das->sm_rank != 0)
-            for (e = 0; e < nmem; ++e) {
-                ENSOBSTYPE* Se = das->S[e];
-
-                for (o = 0; o < nobs; ++o)
-                    das->std_f[o] += (double) (Se[o] * Se[o]);
-            }
 #endif
+        for (e = 0; e < nmem; ++e) {
+            ENSOBSTYPE* Se = das->S[e];
+
+            for (o = 0; o < nobs; ++o)
+                das->std_f[o] += (double) (Se[o] * Se[o]);
+        }
+
         for (o = 0; o < nobs; ++o) {
             observation* m = &obs->data[o];
 
@@ -440,21 +438,19 @@ void das_calcinnandspread(dasystem* das)
             for (e = 0; e < nmem; ++e) {
                 ENSOBSTYPE* Se = das->S[e];
 
-                for (o = 0; o < nobs; ++o) {
+                for (o = 0; o < nobs; ++o)
                     Se[o] -= (ENSOBSTYPE) das->s_a[o];
-                    das->std_a[o] += (double) (Se[o] * Se[o]);
-                }
             }
 #if defined(HE_VIASHMEM)
         MPI_Barrier(das->sm_comm);
-        if (das->sm_rank != 0)
-            for (e = 0; e < nmem; ++e) {
-                ENSOBSTYPE* Se = das->S[e];
-
-                for (o = 0; o < nobs; ++o)
-                    das->std_a[o] += (double) (Se[o] * Se[o]);
-            }
 #endif
+        for (e = 0; e < nmem; ++e) {
+            ENSOBSTYPE* Se = das->S[e];
+
+            for (o = 0; o < nobs; ++o)
+                das->std_a[o] += (double) (Se[o] * Se[o]);
+        }
+
         for (o = 0; o < nobs; ++o) {
             observation* m = &obs->data[o];
 
@@ -736,6 +732,9 @@ void das_destandardise(dasystem* das)
                 Se[i] *= o->std * sqrt(obs->obstypes[o->type].rfactor) * mult;
             }
         }
+#if defined (HE_VIASHMEM)
+    MPI_Barrier(das->sm_comm);
+#endif
     if (das->s_f != NULL) {
         for (i = 0; i < obs->nobs; ++i) {
             observation* o = &obs->data[i];
@@ -750,9 +749,6 @@ void das_destandardise(dasystem* das)
             das->s_a[i] *= o->std * sqrt(obs->obstypes[o->type].rfactor) * mult;
         }
     }
-#if defined(HE_VIASHMEM)
-    MPI_Barrier(das->sm_comm);
-#endif
 
   finish:
     if (das->s_mode == S_MODE_S_f)
@@ -850,16 +846,16 @@ static void das_changeSmode(dasystem* das, int mode_from, int mode_to)
 
                 for (o = 0; o < obs->nobs; ++o)
                     /*
-                     * das->s_f is innovation = obs - forecast; hence forecast = obs
-                     * - innovation 
+                     * das->s_f is innovation = obs - forecast; hence
+                     * forecast = obs - innovation 
                      */
                     Se[o] += obs->data[o].value - das->s_f[o];
             }
+#if defined(HE_VIASHMEM)
+        MPI_Barrier(das->sm_comm);
+#endif
     } else
         enkf_quit("das_changesmode(): transition from mode %d to mode %d is not handled yet\n", mode_from, mode_to);
-#if defined(HE_VIASHMEM)
-    MPI_Barrier(das->sm_comm);
-#endif
 
   finish:
     das->s_mode = mode_to;
@@ -1277,7 +1273,7 @@ static void update_Hx(dasystem* das)
             das->St[o][e] = das->S[e][o];
 #else
     my_first_iteration = 0;
-    my_last_iteration = nobs;
+    my_last_iteration = nobs - 1;
 #endif
 
     /*
