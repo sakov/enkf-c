@@ -907,6 +907,20 @@ void obs_writeaux(observations* obs, char fname[])
 
 /**
  */
+int obs_modifiederrors_alreadywritten(observations* obs, char fname[])
+{
+    int ncid;
+    int iswritten;
+
+    ncw_open(fname, NC_NOWRITE, &ncid);
+    iswritten = ncw_var_exists(ncid, "std_orig");
+    ncw_close(ncid);
+
+    return iswritten;
+}
+
+/**
+ */
 void obs_superob(observations* obs, __compar_d_fn_t cmp_obs, observations** sobs, int sobid)
 {
     int i1 = 0, i2 = 0;

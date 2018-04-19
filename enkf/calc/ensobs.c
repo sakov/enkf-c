@@ -589,18 +589,13 @@ void das_addmodifiederrors(dasystem* das, char fname[])
         return;
 
     ncw_open(fname, NC_WRITE, &ncid);
+    assert(!ncw_var_exists(ncid, "std_orig"));
     ncw_inq_dimid(ncid, "nobs", dimid_nobs);
     ncw_inq_dimlen(ncid, dimid_nobs[0], &nobs);
 
     ncw_get_att_double(ncid, NC_GLOBAL, "DA_JULDAY", &da_julday);
     if (!enkf_noobsdatecheck && (isnan(da_julday) || fabs(das->obs->da_date - da_julday) > 1e-6))
         enkf_quit("\"observations.nc\" from a different cycle");
-
-    if (ncw_var_exists(ncid, "std_orig")) {
-        enkf_printf("    nothing to do\n");
-        ncw_close(ncid);
-        return;
-    }
 
     ncw_redef(ncid);
     ncw_rename_var(ncid, "std", "std_orig");
