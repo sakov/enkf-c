@@ -1,3 +1,6 @@
+v. 1.74.7
+   PS 19042018
+   -- Improved gather_St() (hopefully).
 v. 1.74.6
    PS 19042018
    -- Improved gathering of HE with -DHE_VIASHMEM. Removed a few barriers.

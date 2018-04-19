@@ -938,24 +938,24 @@ static void gather_St(dasystem* das)
     int nmem = das->nmem;
     MPI_Datatype mpitype_vec_nmem;
     int ierror;
-    int* recvcounts = malloc(nprocesses * sizeof(int));
-    int* displs = malloc(nprocesses * sizeof(int));
+    int* recvcounts = calloc(nprocesses, sizeof(int));
+    int* displs = calloc(nprocesses, sizeof(int));
     int i, ii;
 
     ierror = MPI_Type_contiguous(nmem, MPIENSOBSTYPE, &mpitype_vec_nmem);
     assert(ierror == MPI_SUCCESS);
 
-    for (i = 0, ii = 0; i < nprocesses; ++i) {
-        if (das->sm_ranks[i] == 0)
-            ii = i;
-        displs[i] = first_iteration[i];
-        recvcounts[i] = 0;
-        recvcounts[ii] += number_of_iterations[i];
-    }
-
-    if (ii > 0) {
-        MPI_Barrier(MPI_COMM_WORLD);
-        ierror = MPI_Allgatherv(MPI_IN_PLACE, 0, MPI_DATATYPE_NULL, das->St[0], recvcounts, displs, mpitype_vec_nmem, MPI_COMM_WORLD);
+    MPI_Barrier(MPI_COMM_WORLD);
+    if (das->node_rank >= 0 && das->node_size > 1) {
+        for (i = 0, ii = -1; i < nprocesses; ++i) {
+            if (das->node_ranks[i] >= 0) {
+                ii = das->node_ranks[i];
+                displs[ii] = first_iteration[i];
+            }
+            assert(ii >= 0);
+            recvcounts[ii] += number_of_iterations[i];
+        }
+        ierror = MPI_Allgatherv(MPI_IN_PLACE, 0, MPI_DATATYPE_NULL, das->St[0], recvcounts, displs, mpitype_vec_nmem, das->node_comm);
         assert(ierror == MPI_SUCCESS);
     }
     MPI_Barrier(MPI_COMM_WORLD);
