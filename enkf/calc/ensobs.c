@@ -210,6 +210,7 @@ void das_getHE(dasystem* das)
         int* displs = calloc(nprocesses, sizeof(int));
         MPI_Datatype mpitype_vec_nobs;
         int ierror;
+
 #if defined(HE_VIASHMEM)
         int ii;
 #endif
@@ -227,19 +228,19 @@ void das_getHE(dasystem* das)
         assert(ierror == MPI_SUCCESS);
 #else
         MPI_Barrier(MPI_COMM_WORLD);
-	if (das->node_rank >= 0 && das->node_size > 1) {
-	    for (i = 0, ii = -1; i < nprocesses; ++i) {
-		if (das->node_ranks[i] >= 0) {
-		    ii = das->node_ranks[i];
-		    displs[ii] = first_iteration[i];
-		}
-		assert(ii >= 0);
-		recvcounts[ii] += number_of_iterations[i];
-	    }
-	    ierror = MPI_Allgatherv(MPI_IN_PLACE, 0, MPI_DATATYPE_NULL, das->S[0], recvcounts, displs, mpitype_vec_nobs, das->node_comm);
-	    assert(ierror == MPI_SUCCESS);
-	}
-	MPI_Barrier(MPI_COMM_WORLD);
+        if (das->node_rank >= 0 && das->node_size > 1) {
+            for (i = 0, ii = -1; i < nprocesses; ++i) {
+                if (das->node_ranks[i] >= 0) {
+                    ii = das->node_ranks[i];
+                    displs[ii] = first_iteration[i];
+                }
+                assert(ii >= 0);
+                recvcounts[ii] += number_of_iterations[i];
+            }
+            ierror = MPI_Allgatherv(MPI_IN_PLACE, 0, MPI_DATATYPE_NULL, das->S[0], recvcounts, displs, mpitype_vec_nobs, das->node_comm);
+            assert(ierror == MPI_SUCCESS);
+        }
+        MPI_Barrier(MPI_COMM_WORLD);
 #endif
 
         free(recvcounts);
@@ -501,7 +502,7 @@ void das_addforecast(dasystem* das, char fname[])
 
     ncw_open(fname, NC_WRITE, &ncid);
     if (ncw_var_exists(ncid, "Hx_f")) {
-        enkf_printf("  Hx_f already added to \"%s\" (skipping)\n", fname);
+        enkf_printf("    Hx_f already added to \"%s\" (skipping)\n", fname);
         goto finish;
     }
 

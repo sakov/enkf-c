@@ -86,6 +86,7 @@ dasystem* das_create(enkfprm* prm)
 {
     dasystem* das = calloc(1, sizeof(dasystem));
     int i;
+
 #if defined(HE_VIASHMEM)
     int ierror;
     int* recvcounts = NULL;
