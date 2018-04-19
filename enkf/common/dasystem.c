@@ -86,7 +86,6 @@ dasystem* das_create(enkfprm* prm)
 {
     dasystem* das = calloc(1, sizeof(dasystem));
     int i;
-
 #if defined(HE_VIASHMEM)
     int ierror;
     int* recvcounts = NULL;
@@ -134,9 +133,27 @@ dasystem* das_create(enkfprm* prm)
         recvcounts[i] = 1;
         displs[i] = i;
     }
-    MPI_Barrier(MPI_COMM_WORLD);
     ierror = MPI_Allgatherv(MPI_IN_PLACE, 0, MPI_DATATYPE_NULL, das->sm_ranks, recvcounts, displs, MPI_INT, MPI_COMM_WORLD);
     assert(ierror == MPI_SUCCESS);
+
+    /*
+     * Create communicator based on sm_rank
+     */
+    ierror = MPI_Comm_split(MPI_COMM_WORLD, das->sm_rank, rank, &das->node_comm);
+    assert(ierror == MPI_SUCCESS);
+    ierror = MPI_Comm_rank(das->node_comm, &das->node_rank);
+    assert(ierror == MPI_SUCCESS);
+    ierror = MPI_Comm_size(das->node_comm, &das->node_size);
+    assert(ierror == MPI_SUCCESS);
+    if (das->sm_rank != 0) {
+        MPI_Comm_free(&das->node_comm);
+        das->node_rank = -1;
+    }
+    das->node_ranks = malloc(nprocesses * sizeof(int));
+    das->node_ranks[rank] = das->node_rank;
+    ierror = MPI_Allgatherv(MPI_IN_PLACE, 0, MPI_DATATYPE_NULL, das->node_ranks, recvcounts, displs, MPI_INT, MPI_COMM_WORLD);
+    assert(ierror == MPI_SUCCESS);
+
     free(recvcounts);
     free(displs);
 #endif
@@ -265,6 +282,10 @@ void das_destroy(dasystem* das)
 #if defined (HE_VIASHMEM)
     MPI_Win_free(&das->sm_win);
     MPI_Comm_free(&das->sm_comm);
+    free(das->sm_ranks);
+    if (das->node_comm != MPI_COMM_NULL)
+        MPI_Comm_free(&das->node_comm);
+    free(das->node_ranks);
 #endif
     if (das->s_a != NULL) {
         free(das->s_a);

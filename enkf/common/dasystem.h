@@ -91,6 +91,10 @@ struct dasystem {
     MPI_Win sm_win;
     int sm_rank;
     int* sm_ranks;
+    MPI_Comm node_comm;
+    int node_rank;
+    int node_size;
+    int* node_ranks;
 #endif
     double kfactor;
     double locrad;

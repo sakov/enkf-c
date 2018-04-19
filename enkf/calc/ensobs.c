@@ -210,7 +210,6 @@ void das_getHE(dasystem* das)
         int* displs = calloc(nprocesses, sizeof(int));
         MPI_Datatype mpitype_vec_nobs;
         int ierror;
-
 #if defined(HE_VIASHMEM)
         int ii;
 #endif
@@ -223,23 +222,24 @@ void das_getHE(dasystem* das)
             recvcounts[i] = number_of_iterations[i];
             displs[i] = first_iteration[i];
         }
+        MPI_Barrier(MPI_COMM_WORLD);
+        ierror = MPI_Allgatherv(MPI_IN_PLACE, 0, MPI_DATATYPE_NULL, das->S[0], recvcounts, displs, mpitype_vec_nobs, MPI_COMM_WORLD);
+        assert(ierror == MPI_SUCCESS);
 #else
         MPI_Barrier(MPI_COMM_WORLD);
-        for (i = 0, ii = 0; i < nprocesses; ++i) {
-            if (das->sm_ranks[i] == 0)
-                ii = i;
-            displs[i] = first_iteration[i];
-            recvcounts[i] = 0;
-            recvcounts[ii] += number_of_iterations[i];
-        }
-
-        if (ii > 0) {
-#endif
-            ierror = MPI_Allgatherv(MPI_IN_PLACE, 0, MPI_DATATYPE_NULL, das->S[0], recvcounts, displs, mpitype_vec_nobs, MPI_COMM_WORLD);
-            assert(ierror == MPI_SUCCESS);
-#if defined(HE_VIASHMEM)
-            MPI_Barrier(MPI_COMM_WORLD);
-        }
+	if (das->node_rank >= 0 && das->node_size > 1) {
+	    for (i = 0, ii = -1; i < nprocesses; ++i) {
+		if (das->node_ranks[i] >= 0) {
+		    ii = das->node_ranks[i];
+		    displs[ii] = first_iteration[i];
+		}
+		assert(ii >= 0);
+		recvcounts[ii] += number_of_iterations[i];
+	    }
+	    ierror = MPI_Allgatherv(MPI_IN_PLACE, 0, MPI_DATATYPE_NULL, das->S[0], recvcounts, displs, mpitype_vec_nobs, das->node_comm);
+	    assert(ierror == MPI_SUCCESS);
+	}
+	MPI_Barrier(MPI_COMM_WORLD);
 #endif
 
         free(recvcounts);
@@ -302,7 +302,6 @@ void das_getHE(dasystem* das)
                 ensmean[i] /= (ENSOBSTYPE) nmem;
 
 #if defined (HE_VIASHMEM)
-            MPI_Barrier(das->sm_comm);
             if (das->sm_rank == 0)
 #endif
                 for (e = 0; e < nmem; ++e) {
@@ -347,9 +346,6 @@ void das_calcinnandspread(dasystem* das)
     if (nobs == 0)
         goto finish;
 
-#if defined(HE_VIASHMEM)
-    MPI_Barrier(das->sm_comm);
-#endif
     if (das->s_mode == S_MODE_HE_f) {
         if (das->s_f == NULL) {
             das->s_f = calloc(nobs, sizeof(double));
@@ -482,9 +478,6 @@ void das_calcinnandspread(dasystem* das)
         das->s_mode = S_MODE_HA_f;
     else if (das->s_mode == S_MODE_HE_a)
         das->s_mode = S_MODE_HA_a;
-#if defined(HE_VIASHMEM)
-    MPI_Barrier(das->sm_comm);
-#endif
 }
 
 /** Adds forecast observations and forecast ensemble spread to the observation
@@ -643,7 +636,6 @@ void das_standardise(dasystem* das)
         goto finish;
 
 #if defined (HE_VIASHMEM)
-    MPI_Barrier(das->sm_comm);
     if (das->sm_rank == 0)
 #endif
         for (e = 0; e < das->nmem; ++e) {
@@ -732,7 +724,6 @@ void das_destandardise(dasystem* das)
         goto finish;
 
 #if defined(HE_VIASHMEM)
-    MPI_Barrier(das->sm_comm);
     if (das->sm_rank == 0)
 #endif
         for (e = 0; e < das->nmem; ++e) {
@@ -846,9 +837,6 @@ static void das_changeSmode(dasystem* das, int mode_from, int mode_to)
     if (das->obs->nobs == 0)
         goto finish;
 
-#if defined(HE_VIASHMEM)
-    MPI_Barrier(MPI_COMM_WORLD);
-#endif
     if (mode_from == S_MODE_HA_f && mode_to == S_MODE_HE_f) {
         observations* obs = das->obs;
         int e, o;

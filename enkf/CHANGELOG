@@ -1,3 +1,6 @@
+v. 1.74.6
+   PS 19042018
+   -- Improved gathering of HE with -DHE_VIASHMEM. Removed a few barriers.
 v. 1.74.5
    PS 19042018
    -- Mainly barriers to work with -DHE_VIASHMEM.
