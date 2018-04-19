@@ -206,8 +206,8 @@ void das_getHE(dasystem* das)
         /*
          * communicate HE via MPI
          */
-        int* recvcounts = malloc(nprocesses * sizeof(int));
-        int* displs = malloc(nprocesses * sizeof(int));
+        int* recvcounts = calloc(nprocesses, sizeof(int));
+        int* displs = calloc(nprocesses, sizeof(int));
         MPI_Datatype mpitype_vec_nobs;
         int ierror;
 
@@ -224,6 +224,7 @@ void das_getHE(dasystem* das)
             displs[i] = first_iteration[i];
         }
 #else
+        MPI_Barrier(MPI_COMM_WORLD);
         for (i = 0, ii = 0; i < nprocesses; ++i) {
             if (das->sm_ranks[i] == 0)
                 ii = i;
@@ -232,17 +233,12 @@ void das_getHE(dasystem* das)
             recvcounts[ii] += number_of_iterations[i];
         }
 
-	if (ii > 0) {
+        if (ii > 0) {
 #endif
-            /*
-             * (the second and third arguments below are ignored -- see
-             * http://hpc.uni-due.de/teaching/wt2013/hpc/programs
-             * /allgatherv-example.c)
-             */
-            MPI_Barrier(MPI_COMM_WORLD);
             ierror = MPI_Allgatherv(MPI_IN_PLACE, 0, MPI_DATATYPE_NULL, das->S[0], recvcounts, displs, mpitype_vec_nobs, MPI_COMM_WORLD);
             assert(ierror == MPI_SUCCESS);
 #if defined(HE_VIASHMEM)
+            MPI_Barrier(MPI_COMM_WORLD);
         }
 #endif
 
@@ -351,6 +347,9 @@ void das_calcinnandspread(dasystem* das)
     if (nobs == 0)
         goto finish;
 
+#if defined(HE_VIASHMEM)
+    MPI_Barrier(das->sm_comm);
+#endif
     if (das->s_mode == S_MODE_HE_f) {
         if (das->s_f == NULL) {
             das->s_f = calloc(nobs, sizeof(double));
@@ -377,7 +376,6 @@ void das_calcinnandspread(dasystem* das)
          * calculate ensemble spread and innovation 
          */
 #if defined(HE_VIASHMEM)
-        MPI_Barrier(das->sm_comm);
         if (das->sm_rank == 0)
 #endif
             for (e = 0; e < nmem; ++e) {
@@ -440,7 +438,6 @@ void das_calcinnandspread(dasystem* das)
          * calculate ensemble spread and innovation 
          */
 #if defined(HE_VIASHMEM)
-        MPI_Barrier(das->sm_comm);
         if (das->sm_rank == 0)
 #endif
             for (e = 0; e < nmem; ++e) {
@@ -485,6 +482,9 @@ void das_calcinnandspread(dasystem* das)
         das->s_mode = S_MODE_HA_f;
     else if (das->s_mode == S_MODE_HE_a)
         das->s_mode = S_MODE_HA_a;
+#if defined(HE_VIASHMEM)
+    MPI_Barrier(das->sm_comm);
+#endif
 }
 
 /** Adds forecast observations and forecast ensemble spread to the observation
@@ -744,9 +744,6 @@ void das_destandardise(dasystem* das)
                 Se[i] *= o->std * sqrt(obs->obstypes[o->type].rfactor) * mult;
             }
         }
-#if defined(HE_VIASHMEM)
-    MPI_Barrier(das->sm_comm);
-#endif
     if (das->s_f != NULL) {
         for (i = 0; i < obs->nobs; ++i) {
             observation* o = &obs->data[i];
@@ -761,6 +758,9 @@ void das_destandardise(dasystem* das)
             das->s_a[i] *= o->std * sqrt(obs->obstypes[o->type].rfactor) * mult;
         }
     }
+#if defined(HE_VIASHMEM)
+    MPI_Barrier(das->sm_comm);
+#endif
 
   finish:
     if (das->s_mode == S_MODE_S_f)
@@ -816,7 +816,6 @@ static void das_sortobs_byij(dasystem* das)
         free(s);
     }
 #if defined(HE_VIASHMEM)
-    MPI_Barrier(MPI_COMM_WORLD);
     if (das->sm_rank == 0)
 #endif
     {
@@ -847,12 +846,14 @@ static void das_changeSmode(dasystem* das, int mode_from, int mode_to)
     if (das->obs->nobs == 0)
         goto finish;
 
+#if defined(HE_VIASHMEM)
+    MPI_Barrier(MPI_COMM_WORLD);
+#endif
     if (mode_from == S_MODE_HA_f && mode_to == S_MODE_HE_f) {
         observations* obs = das->obs;
         int e, o;
 
 #if defined(HE_VIASHMEM)
-        MPI_Barrier(MPI_COMM_WORLD);
         if (das->sm_rank == 0)
 #endif
             for (e = 0; e < das->nmem; ++e) {
@@ -865,11 +866,11 @@ static void das_changeSmode(dasystem* das, int mode_from, int mode_to)
                      */
                     Se[o] += obs->data[o].value - das->s_f[o];
             }
-#if defined(HE_VIASHMEM)
-        MPI_Barrier(das->sm_comm);
-#endif
     } else
         enkf_quit("das_changesmode(): transition from mode %d to mode %d is not handled yet\n", mode_from, mode_to);
+#if defined(HE_VIASHMEM)
+    MPI_Barrier(das->sm_comm);
+#endif
 
   finish:
     das->s_mode = mode_to;
@@ -913,25 +914,24 @@ static void das_sortobs_byid(dasystem* das)
 
         free(s);
     }
-
+#if defined(HE_VIASHMEM)
+    if (das->sm_rank == 0)
+#endif
     {
         ENSOBSTYPE* S = calloc(obs->nobs, sizeof(ENSOBSTYPE));
 
-#if defined(HE_VIASHMEM)
-        if (das->sm_rank == 0)
-#endif
-            for (e = 0; e < das->nmem; ++e) {
-                ENSOBSTYPE* Se = das->S[e];
+        for (e = 0; e < das->nmem; ++e) {
+            ENSOBSTYPE* Se = das->S[e];
 
-                for (o = 0; o < obs->nobs; ++o)
-                    S[obs->data[o].id] = Se[o];
-                memcpy(Se, S, obs->nobs * sizeof(ENSOBSTYPE));
-            }
-#if defined(HE_VIASHMEM)
-        MPI_Barrier(das->sm_comm);
-#endif
+            for (o = 0; o < obs->nobs; ++o)
+                S[obs->data[o].id] = Se[o];
+            memcpy(Se, S, obs->nobs * sizeof(ENSOBSTYPE));
+        }
         free(S);
     }
+#if defined(HE_VIASHMEM)
+    MPI_Barrier(das->sm_comm);
+#endif
 
     /*
      * order obs back by id
@@ -957,7 +957,7 @@ static void gather_St(dasystem* das)
     assert(ierror == MPI_SUCCESS);
 
     for (i = 0, ii = 0; i < nprocesses; ++i) {
-	if (das->sm_ranks[i] == 0)
+        if (das->sm_ranks[i] == 0)
             ii = i;
         displs[i] = first_iteration[i];
         recvcounts[i] = 0;
@@ -969,6 +969,7 @@ static void gather_St(dasystem* das)
         ierror = MPI_Allgatherv(MPI_IN_PLACE, 0, MPI_DATATYPE_NULL, das->St[0], recvcounts, displs, mpitype_vec_nmem, MPI_COMM_WORLD);
         assert(ierror == MPI_SUCCESS);
     }
+    MPI_Barrier(MPI_COMM_WORLD);
 
     free(displs);
     free(recvcounts);
