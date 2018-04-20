@@ -1071,8 +1071,8 @@ static void update_HE(dasystem* das)
         for (jj = 0, j = 0; jj < nj; ++jj) {
             for (stepj = 0; stepj < stride && j < mnj; ++stepj, ++j) {
 
-                if ((int) obs->data[o].fj - j >= stride)
-                    continue;
+                if ((int) obs->data[o].fj - j > stride + 1)
+		    continue;
 
                 if (stride == 1) {
                     /*
@@ -1350,7 +1350,7 @@ static void update_Hx(dasystem* das)
         for (jj = 0, j = 0; jj < nj; ++jj) {
             for (stepj = 0; stepj < stride && j < mnj; ++stepj, ++j) {
 
-                if ((int) obs->data[o].fj - j >= stride)
+                if ((int) obs->data[o].fj - j >= stride + 1)
                     continue;
 
                 if (stride == 1) {

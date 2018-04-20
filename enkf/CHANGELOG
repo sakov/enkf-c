@@ -1,14 +1,17 @@
-v. 1.74.10
-   PS 19042018
+v. 1.74.11
+   PS 20042018
+   -- A minor coorection in update_Hx() and update_HE().
+ v. 1.74.10
+   PS 20042018
    -- A few minor modifications in update_Hx() and update_HE() for faster
       cycling of parallel jobs.
 v. 1.74.9
-   PS 19042018
+   PS 20042018
    -- Do not moderate observations if observations.nc already contains moderated
       obs. Previously, the moderated obs has not been written in this case, but
       still moderated (for the second time).
 v. 1.74.8
-   PS 19042018
+   PS 20042018
    -- A minor correction in update_Hx(). A few cosmetic (I think) corrections.
 v. 1.74.7
    PS 19042018
