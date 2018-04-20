@@ -950,7 +950,7 @@ static void gather_St(dasystem* das)
         assert(ierror == MPI_SUCCESS);
     }
     MPI_Barrier(MPI_COMM_WORLD);
-    
+
     free(displs);
     free(recvcounts);
 }
@@ -1079,7 +1079,7 @@ static void update_HE(dasystem* das)
                      * no interpolation necessary; simply read the ETMs for the
                      * j-th row from disk 
                      */
-                   start[0] = j;
+                    start[0] = j;
                     ncw_get_vara_float(ncid, varid, start, count, X5j[0]);
                 } else {
                     /*
