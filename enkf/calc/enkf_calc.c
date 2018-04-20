@@ -339,10 +339,13 @@ int main(int argc, char* argv[])
     if (!enkf_fstatsonly) {
         if (singleob == NULL) {
             enkf_printf("  moderating observations:\n");
-            das_moderateobs(das);
-
-            enkf_printf("  writing modified obs errors to \"%s\":\n", fname_obs);
-            das_addmodifiederrors(das, fname_obs);
+            if (obs_modifiederrors_alreadywritten(das, fname_obs))
+                enkf_printf("    already done\n");
+            else {
+                das_moderateobs(das);
+                enkf_printf("  writing modified obs errors to \"%s\":\n", fname_obs);
+                das_addmodifiederrors(das, fname_obs);
+            }
         }
 
         if (!plogs_only) {
