@@ -43,7 +43,7 @@
 
 #define EPSF 1.0e-6f
 #if defined(HE_VIASHMEM)
-#define HE_NPROCMAX 10
+#define HE_NPROCMAX 20
 #endif
 
 /**
@@ -950,7 +950,7 @@ static void gather_St(dasystem* das)
         assert(ierror == MPI_SUCCESS);
     }
     MPI_Barrier(MPI_COMM_WORLD);
-
+    
     free(displs);
     free(recvcounts);
 }
@@ -1071,7 +1071,7 @@ static void update_HE(dasystem* das)
         for (jj = 0, j = 0; jj < nj; ++jj) {
             for (stepj = 0; stepj < stride && j < mnj; ++stepj, ++j) {
 
-                if (j - (int) obs->data[o].fj >= stride)
+                if ((int) obs->data[o].fj - j >= stride)
                     continue;
 
                 if (stride == 1) {
@@ -1137,8 +1137,10 @@ static void update_HE(dasystem* das)
 
                 if (o > my_last_iteration)
                     break;
+                if ((int) obs->data[o].fj > j)
+                    continue;
 
-                for (; o <= my_last_iteration && (int) (obs->data[o].fj) == j; ++o) {
+                for (; o <= my_last_iteration && (int) obs->data[o].fj == j; ++o) {
                     float inflation0 = NAN;
                     double inf_ratio = NAN;
                     float inflation = NAN;
@@ -1300,7 +1302,8 @@ static void update_Hx(dasystem* das)
         int i, j, ni, nj;
         int jj, stepj, ii, stepi;
 
-        assert(obs->obstypes[obs->data[o].type].gridid == gid);
+        if (gid < obs->obstypes[obs->data[o].type].gridid)
+            continue;
 
         das_getfname_w(das, grid, fname_w);
 
@@ -1346,6 +1349,10 @@ static void update_Hx(dasystem* das)
          */
         for (jj = 0, j = 0; jj < nj; ++jj) {
             for (stepj = 0; stepj < stride && j < mnj; ++stepj, ++j) {
+
+                if ((int) obs->data[o].fj - j >= stride)
+                    continue;
+
                 if (stride == 1) {
                     /*
                      * no interpolation necessary; simply read the ETMs for the
@@ -1480,10 +1487,12 @@ void das_updateHE(dasystem* das)
     das_destandardise(das);
     das_sortobs_byij(das);
     das_changeSmode(das, S_MODE_HA_f, S_MODE_HE_f);
+    enkf_printtime("    ");
     if (das->mode == MODE_ENKF)
         update_HE(das);
     else
         update_Hx(das);
+    enkf_printtime("    ");
     das_calcinnandspread(das);
     das_sortobs_byid(das);
 }
