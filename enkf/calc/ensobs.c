@@ -54,7 +54,7 @@ void das_getHE(dasystem* das)
     model* m = das->m;
     ENSOBSTYPE* Hx = NULL;
     int nobs = obs->nobs;
-    int nmem = das->nmem;
+    int nmem = -1;
     int i, e;
 
 #if defined (HE_VIASHMEM)
@@ -67,10 +67,13 @@ void das_getHE(dasystem* das)
     if (nobs == 0)
         return;
 
-    if (nmem <= 0)
+    if (das->mode == MODE_ENKF || !enkf_fstatsonly) {
         das_setnmem(das);
-    enkf_printf("    ensemble size = %d\n", nmem);
-    assert(nmem > 0);
+        assert(das->nmem > 0);
+        enkf_printf("    ensemble size = %d\n", das->nmem);
+    } else
+        das->nmem = 1;
+    nmem = das->nmem;
 
     /*
      * ensemble observation array to be filled 
@@ -1072,7 +1075,7 @@ static void update_HE(dasystem* das)
             for (stepj = 0; stepj < stride && j < mnj; ++stepj, ++j) {
 
                 if ((int) obs->data[o].fj - j > stride + 1)
-		    continue;
+                    continue;
 
                 if (stride == 1) {
                     /*

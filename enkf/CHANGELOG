@@ -1,7 +1,10 @@
+v. 1.74.12
+   -- das_getHE(): a correction of the ensemble size in the case
+      (das->mode == MODE_ENKF || !enkf_fstatsonly).
 v. 1.74.11
    PS 20042018
    -- A minor coorection in update_Hx() and update_HE().
- v. 1.74.10
+v. 1.74.10
    PS 20042018
    -- A few minor modifications in update_Hx() and update_HE() for faster
       cycling of parallel jobs.
