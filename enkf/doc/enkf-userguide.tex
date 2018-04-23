@@ -35,7 +35,7 @@
 
 \begin{document}
 
-\title{EnKF-C user guide\\{\normalsize version 1.71.0}}
+\title{EnKF-C user guide\\{\normalsize version 1.74.12}}
 
 \author{Pavel Sakov}
 \date{June 19, 2014 -- \today}
@@ -1600,6 +1600,10 @@ It is rarely a problem.
 For \emph{calc} it is mainly defined by the size of ensemble observation anomalies, which require $p \times m \times 4$ bytes for storage.
 For example, with $3 \cdot 10^6$ superobservations and $10^2$ ensemble members the size of this array would be about 1.2\, GB per CPU, which should be manageable on most contemporary systems.
 If the footprint becomes too big, one may consider reducing the number of observations by a coarser superobing (setting the parameter \verb|SOBSTRIDE| to 2 or more) or reducing the number of cores per node used.
+
+From version 1.74, it is possible to substantially reduce the memory footprint in \emph{calc} by using shared memory for the ensemble observations.
+For that, \emph{calc} needs to be compiled with flag \verb|-DHE_VIASHMEM|.
+It is likely to become a default option in future.
 
 The footprint of \emph{update} is mainly defined by the size of the array of simultaneously updated horizontal fields.
 For example, for a $1500 \times 3600$ horizontal field, 100 ensemble members and simultaneous update of 2 fields the size of this array would be about 4.3\,GB per CPU.
