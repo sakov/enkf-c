@@ -1,6 +1,6 @@
 v. 1.74.12
    -- das_getHE(): a correction of the ensemble size in the case
-      (das->mode == MODE_ENKF || !enkf_fstatsonly).
+      (das->mode == MODE_ENOI && enkf_fstatsonly).
 v. 1.74.11
    PS 20042018
    -- A minor coorection in update_Hx() and update_HE().
