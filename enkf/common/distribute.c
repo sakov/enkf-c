@@ -91,11 +91,13 @@ void distribute_iterations(int i1, int i2, int nproc, int rank, char prefix[])
             number_of_iterations[i] = npp + 1;
         for (i = j; i < nproc; ++i)
             number_of_iterations[i] = npp;
-        for (i = nproc; i < nprocesses; ++i)
-            number_of_iterations[i] = 0;
         if (prefix != NULL)
             enkf_printf("%s  %d processes get %d or %d iterations\n", prefix, nproc, npp + 1, npp);
     }
+    for (i = nproc; i < nprocesses; ++i)
+        number_of_iterations[i] = 0;
+    if (nprocesses > nproc && prefix != NULL)
+        enkf_printf("%s  %d processes get 0 iterations\n", prefix, nprocesses - nproc);
 #if defined(MPI)
     if (prefix != NULL)
         fflush(stdout);

@@ -1,4 +1,8 @@
+v. 1.74.13
+   PS 24042018
+   -- Corrected defect in distribute_iterations() introduced in v1.74.1
 v. 1.74.12
+   PS 23042018
    -- das_getHE(): a correction of the ensemble size in the case
       (das->mode == MODE_ENOI && enkf_fstatsonly).
 v. 1.74.11
@@ -38,7 +42,7 @@ v. 1.74.1
    PS 18042018
    -- Limited the number of parallel processes updateing HE by
       min(10, nprocesses); otherwhile I/O can become a bottleneck, I think.
-v. 1.74.0
+v.  v1.74.0
    PS 17042018
    -- Introduced shared memory model for HE in CALC (need to be compiled with
       -DHE_VISHMEM). This is useful for situations when CALC becomes memory
