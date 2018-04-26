@@ -27,10 +27,6 @@ typedef struct {
 } region;
 
 typedef struct {
-    double x1, x2, y1, y2, z1, z2;
-} obsdomain;
-
-typedef struct {
     int id;
     int i, j;
     double lon, lat;

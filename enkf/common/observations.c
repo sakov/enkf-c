@@ -43,7 +43,7 @@ typedef union {
 
 /**
  */
-void obs_addtype(observations* obs, obstype* src, obsdomain* domain)
+void obs_addtype(observations* obs, obstype* src)
 {
     obstype* ot;
     int i;
@@ -87,21 +87,12 @@ void obs_addtype(observations* obs, obstype* src, obsdomain* domain)
     ot->nmodified = 0;
     ot->date_min = NAN;
     ot->date_max = NAN;
-    if (domain != NULL) {
-        ot->xmin = domain->x1;
-        ot->xmax = domain->x2;
-        ot->ymin = domain->y1;
-        ot->ymax = domain->y2;
-        ot->zmin = domain->z1;
-        ot->zmax = domain->z2;
-    } else {
-        ot->xmin = -DBL_MAX;
-        ot->xmax = DBL_MAX;
-        ot->ymin = -DBL_MAX;
-        ot->ymax = DBL_MAX;
-        ot->zmin = -DBL_MAX;
-        ot->zmax = DBL_MAX;
-    }
+    ot->xmin = -DBL_MAX;
+    ot->xmax = DBL_MAX;
+    ot->ymin = -DBL_MAX;
+    ot->ymax = DBL_MAX;
+    ot->zmin = -DBL_MAX;
+    ot->zmax = DBL_MAX;
 
     obs->nobstypes++;
 }
@@ -264,7 +255,7 @@ observations* obs_create_fromdata(observations* parentobs, int nobs, observation
     obs->datafiles = st_copy(parentobs->datafiles);
 
     for (i = 0; i < parentobs->nobstypes; ++i)
-        obs_addtype(obs, &parentobs->obstypes[i], NULL);
+        obs_addtype(obs, &parentobs->obstypes[i]);
 
     obs->da_date = parentobs->da_date;
     obs->datestr = strdup(parentobs->datestr);

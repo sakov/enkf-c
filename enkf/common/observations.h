@@ -114,7 +114,7 @@ observations* obs_create_fromprm(enkfprm* prm);
 observations* obs_create_fromdata(observations* parentobs, int nobs, observation data[]);
 void obs_destroy(observations* obs);
 void obs_checkalloc(observations* obs);
-void obs_addtype(observations* obs, obstype* src, obsdomain* domain);
+void obs_addtype(observations* obs, obstype* src);
 void obs_compact(observations* obs);
 void obs_inorder(observations* obs);
 void obs_calcstats(observations* obs);

@@ -1,3 +1,6 @@
+v. 1.75.0
+   PS 27042018
+   -- Removed redundant struct obsdomain in enkfprm.h.
 v. 1.74.13
    PS 24042018
    -- Corrected defect in distribute_iterations() introduced in v1.74.1
