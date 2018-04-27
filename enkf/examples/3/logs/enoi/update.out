@@ -1,16 +1,10 @@
-[sparse:05171] mca: base: component_find: unable to open /usr/lib64/mpi/gcc/openmpi/lib64/openmpi/mca_btl_usnic: libpsm_infinipath.so.1: cannot open shared object file: No such file or directory (ignored)
-[sparse:05171] mca: base: component_find: unable to open /usr/lib64/mpi/gcc/openmpi/lib64/openmpi/mca_mtl_psm: libpsm_infinipath.so.1: cannot open shared object file: No such file or directory (ignored)
-[sparse:05172] mca: base: component_find: unable to open /usr/lib64/mpi/gcc/openmpi/lib64/openmpi/mca_btl_usnic: libpsm_infinipath.so.1: cannot open shared object file: No such file or directory (ignored)
-[sparse:05172] mca: base: component_find: unable to open /usr/lib64/mpi/gcc/openmpi/lib64/openmpi/mca_mtl_psm: libpsm_infinipath.so.1: cannot open shared object file: No such file or directory (ignored)
-[sparse:05171] mca: base: component_find: unable to open /usr/lib64/mpi/gcc/openmpi/lib64/openmpi/mca_mtl_ofi: libpsm_infinipath.so.1: cannot open shared object file: No such file or directory (ignored)
-[sparse:05172] mca: base: component_find: unable to open /usr/lib64/mpi/gcc/openmpi/lib64/openmpi/mca_mtl_ofi: libpsm_infinipath.so.1: cannot open shared object file: No such file or directory (ignored)
   MPI: initialised 2 process(es)
-  MPI: rank = 0, PID = 5171
-  MPI: rank = 1, PID = 5172
-  running UPDATE for EnKF-C version 1.76.0:
+  MPI: rank = 0, PID = 9772
+  MPI: rank = 1, PID = 9773
+  running UPDATE for EnKF-C version 1.76.1:
     command = "./enkf_update --calculate-spread enoi.prm"
     dir = "/home/pavel/src/enkf-c/trunk/enkf/examples/3"
-  2018-04-27 14:58:41
+  2018-04-27 22:13:12
   reading system specs from "enoi.prm":
     MODE = EnOI
     MODEL PRM = "model.prm"
@@ -86,42 +80,42 @@
     144 members
     allocating disk space for spread:
     defining state variables in point logs:
-    2018-04-27 14:58:42
+    2018-04-27 22:13:12
     allocating disk space for analysis:
     updating fields for t-grid-full:
-      2018-04-27 14:58:42
+      2018-04-27 22:13:12
       9 fields
       distributing iterations:
         2 processes get 5 or 4 iterations
-      eta_t    0   (0: 0: 20.0%)
       u        0   (1: 5: 25.0%)
+      eta_t    0   (0: 0: 20.0%)
       u        1   (1: 6: 50.0%)
-      v        0   (1: 7: 75.0%)
       temp     0   (0: 1: 40.0%)
-      v        1   (1: 8: 100.0%)
+      v        0   (1: 7: 75.0%)
       temp     1   (0: 2: 60.0%)
+      v        1   (1: 8: 100.0%)
       salt     0   (0: 3: 80.0%)
       salt     1   (0: 4: 100.0%)
-  2018-04-27 14:58:42
+  2018-04-27 22:13:12
   assembling analysis:
     eta_t:.
     temp:..
     salt:..
     u:..
     v:..
-  2018-04-27 14:58:42
+  2018-04-27 22:13:12
   assembling spread:
     eta_t:.
     temp:..
     salt:..
     u:..
     v:..
-  2018-04-27 14:58:42
+  2018-04-27 22:13:12
   assembling state variables in point logs:
     distributing iterations:
       2 processes get 1 or 0 iterations
     deleting tiles:
       distributing iterations:
         2 processes get 5 or 4 iterations
-  2018-04-27 14:58:42
+  2018-04-27 22:13:12
   finished

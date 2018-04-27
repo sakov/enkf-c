@@ -1,7 +1,7 @@
-  running PREP for EnKF-C version 1.76.0:
+  running PREP for EnKF-C version 1.76.1:
     command = "./enkf_prep enoi.prm"
     dir = "/home/pavel/src/enkf-c/trunk/enkf/examples/2"
-  2018-04-27 14:56:38
+  2018-04-27 22:11:30
   reading prep specs from "enoi.prm":
     MODE = EnOI
     MODEL PRM = "model.prm"
@@ -351,5 +351,5 @@
     TEM     184      104      104      0        0        0        0        0        0        7       
     SAL     184      104      104      0        0        0        0        0        0        7       
     total   9598     208      208      0        0        0        0        0        0        3865    
-  2018-04-27 14:56:39
+  2018-04-27 22:11:30
   finished

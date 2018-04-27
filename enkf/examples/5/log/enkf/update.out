@@ -1,15 +1,10 @@
-[sparse:05359] mca: base: component_find: unable to open /usr/lib64/mpi/gcc/openmpi/lib64/openmpi/mca_btl_usnic: libpsm_infinipath.so.1: cannot open shared object file: No such file or directory (ignored)
-[sparse:05359] mca: base: component_find: unable to open /usr/lib64/mpi/gcc/openmpi/lib64/openmpi/mca_mtl_psm: libpsm_infinipath.so.1: cannot open shared object file: No such file or directory (ignored)
-[sparse:05360] mca: base: component_find: unable to open /usr/lib64/mpi/gcc/openmpi/lib64/openmpi/mca_btl_usnic: libpsm_infinipath.so.1: cannot open shared object file: No such file or directory (ignored)
-[sparse:05360] mca: base: component_find: unable to open /usr/lib64/mpi/gcc/openmpi/lib64/openmpi/mca_mtl_psm: libpsm_infinipath.so.1: cannot open shared object file: No such file or directory (ignored)
-[sparse:05359] mca: base: component_find: unable to open /usr/lib64/mpi/gcc/openmpi/lib64/openmpi/mca_mtl_ofi: libpsm_infinipath.so.1: cannot open shared object file: No such file or directory (ignored)
-[sparse:05360] mca: base: component_find: unable to open /usr/lib64/mpi/gcc/openmpi/lib64/openmpi/mca_mtl_ofi: libpsm_infinipath.so.1: cannot open shared object file: No such file or directory (ignored)
   MPI: initialised 2 process(es)
-  MPI: rank = 0, PID = 5359
-  running UPDATE for EnKF-C version 1.76.0:
+  MPI: rank = 1, PID = 10018
+  MPI: rank = 0, PID = 10017
+  running UPDATE for EnKF-C version 1.76.1:
     command = "./enkf_update --calculate-spread --write-inflation enkf.prm"
     dir = "/home/pavel/src/enkf-c/trunk/enkf/examples/5"
-  2018-04-27 15:01:05
+  2018-04-27 22:16:24
   reading system specs from "enkf.prm":
     MODE = EnKF
     SCHEME = DEnKF
@@ -85,14 +80,13 @@
     96 members
     allocating disk space for spread:
     allocating disk space for inflation:
-  MPI: rank = 1, PID = 5360
     defining state variables in point logs:
     distributing iterations:
       2 processes get 48 iterations each
-    2018-04-27 15:01:05
+    2018-04-27 22:16:24
     allocating disk space for analysis:................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................
     updating fields for t-grid:
-      2018-04-27 15:01:05
+      2018-04-27 22:16:24
       9 fields
       distributing iterations:
         2 processes get 5 or 4 iterations
@@ -100,12 +94,12 @@
       u        0   (1: 5: 25.0%)
       u        1   (1: 6: 50.0%)
       temp     0   (0: 1: 40.0%)
-      temp     1   (0: 2: 60.0%)
       v        0   (1: 7: 75.0%)
-      salt     0   (0: 3: 80.0%)
+      temp     1   (0: 2: 60.0%)
       v        1   (1: 8: 100.0%)
+      salt     0   (0: 3: 80.0%)
       salt     1   (0: 4: 100.0%)
-  2018-04-27 15:01:06
+  2018-04-27 22:16:25
   assembling analysis:
     distributing iterations:
       2 processes get 48 iterations each
@@ -114,26 +108,26 @@
     salt:................................................
     u:................................................
     v:................................................
-  2018-04-27 15:01:06
+  2018-04-27 22:16:25
   assembling spread:
     eta_t:.
     temp:..
     salt:..
     u:..
     v:..
-  2018-04-27 15:01:06
+  2018-04-27 22:16:25
   assembling inflation:
     eta_t:.
     temp:..
     salt:..
     u:..
     v:..
-  2018-04-27 15:01:06
+  2018-04-27 22:16:25
   assembling state variables in point logs:
     distributing iterations:
       2 processes get 1 or 0 iterations
     deleting tiles:
       distributing iterations:
         2 processes get 5 or 4 iterations
-  2018-04-27 15:01:06
+  2018-04-27 22:16:25
   finished

@@ -1,16 +1,9 @@
-[sparse:04444] mca: base: component_find: unable to open /usr/lib64/mpi/gcc/openmpi/lib64/openmpi/mca_btl_usnic: libpsm_infinipath.so.1: cannot open shared object file: No such file or directory (ignored)
-[sparse:04444] mca: base: component_find: unable to open /usr/lib64/mpi/gcc/openmpi/lib64/openmpi/mca_mtl_psm: libpsm_infinipath.so.1: cannot open shared object file: No such file or directory (ignored)
-[sparse:04445] mca: base: component_find: unable to open /usr/lib64/mpi/gcc/openmpi/lib64/openmpi/mca_btl_usnic: libpsm_infinipath.so.1: cannot open shared object file: No such file or directory (ignored)
-[sparse:04445] mca: base: component_find: unable to open /usr/lib64/mpi/gcc/openmpi/lib64/openmpi/mca_mtl_psm: libpsm_infinipath.so.1: cannot open shared object file: No such file or directory (ignored)
-[sparse:04444] mca: base: component_find: unable to open /usr/lib64/mpi/gcc/openmpi/lib64/openmpi/mca_mtl_ofi: libpsm_infinipath.so.1: cannot open shared object file: No such file or directory (ignored)
-[sparse:04445] mca: base: component_find: unable to open /usr/lib64/mpi/gcc/openmpi/lib64/openmpi/mca_mtl_ofi: libpsm_infinipath.so.1: cannot open shared object file: No such file or directory (ignored)
   MPI: initialised 2 process(es)
-  MPI: rank = 0, PID = 4444
-  MPI: rank = 1, PID = 4445
-  running CALC for EnKF-C version 1.75.0:
+  MPI: rank = 0, PID = 7334
+  running CALC for EnKF-C version 1.76.1:
     command = "./enkf_calc --forecast-stats-only stats.prm"
     dir = "/home/pavel/src/enkf-c/trunk/enkf/examples/1"
-  2018-04-27 14:45:25
+  2018-04-27 21:06:22
   reading system specs from "stats.prm":
     MODE = EnOI
     MODEL PRM = "model.prm"
@@ -125,15 +118,16 @@
   reading observations from "observations.nc":
     3865 observations
   calculating ensemble observations:
-  2018-04-27 14:45:25
+  2018-04-27 21:06:22
     distributing iterations:
       2 processes get 1 or 0 iterations
-    SLA +
+    SLA   MPI: rank = 1, PID = 7335
++
     SST +
     TEM +
     SAL +
   adding forecast innovations and spread to "observations.nc":
-  2018-04-27 14:45:25
+  2018-04-27 21:06:22
   printing observation statistics:
     region obs.type   # obs.  |for.inn.| for.inn.
     ---------------------------------------------
@@ -156,5 +150,5 @@
              0-50m         2    0.088      0.074  
              50-500m       5    0.072      0.047  
              500-9999m     0     -nan       -nan  
-  2018-04-27 14:45:25
+  2018-04-27 21:06:22
   finished

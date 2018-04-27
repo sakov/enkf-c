@@ -1074,7 +1074,7 @@ static void update_HE(dasystem* das)
         for (jj = 0, j = 0; jj < nj; ++jj) {
             for (stepj = 0; stepj < stride && j < mnj; ++stepj, ++j) {
 
-                if ((int) obs->data[o].fj - j > stride + 1)
+                if ((int) obs->data[o].fj / stride > jj + 1)
                     continue;
 
                 if (stride == 1) {
@@ -1140,8 +1140,6 @@ static void update_HE(dasystem* das)
 
                 if (o > my_last_iteration)
                     break;
-                if ((int) obs->data[o].fj > j)
-                    continue;
 
                 for (; o <= my_last_iteration && (int) obs->data[o].fj == j; ++o) {
                     float inflation0 = NAN;
@@ -1353,7 +1351,7 @@ static void update_Hx(dasystem* das)
         for (jj = 0, j = 0; jj < nj; ++jj) {
             for (stepj = 0; stepj < stride && j < mnj; ++stepj, ++j) {
 
-                if ((int) obs->data[o].fj - j >= stride + 1)
+                if ((int) obs->data[o].fj / stride > jj + 1)
                     continue;
 
                 if (stride == 1) {
@@ -1419,10 +1417,8 @@ static void update_Hx(dasystem* das)
 
                 if (o > my_last_iteration)
                     break;
-                if ((int) (obs->data[o].fj) > j)
-                    continue;
 
-                for (; o <= my_last_iteration && (int) (obs->data[o].fj) == j; ++o) {
+                for (; o <= my_last_iteration && (int) obs->data[o].fj == j; ++o) {
                     double dHx = 0.0;
                     double Hx = 0.0;
 

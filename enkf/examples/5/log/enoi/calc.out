@@ -1,16 +1,10 @@
-[sparse:05403] mca: base: component_find: unable to open /usr/lib64/mpi/gcc/openmpi/lib64/openmpi/mca_btl_usnic: libpsm_infinipath.so.1: cannot open shared object file: No such file or directory (ignored)
-[sparse:05403] mca: base: component_find: unable to open /usr/lib64/mpi/gcc/openmpi/lib64/openmpi/mca_mtl_psm: libpsm_infinipath.so.1: cannot open shared object file: No such file or directory (ignored)
-[sparse:05404] mca: base: component_find: unable to open /usr/lib64/mpi/gcc/openmpi/lib64/openmpi/mca_btl_usnic: libpsm_infinipath.so.1: cannot open shared object file: No such file or directory (ignored)
-[sparse:05404] mca: base: component_find: unable to open /usr/lib64/mpi/gcc/openmpi/lib64/openmpi/mca_mtl_psm: libpsm_infinipath.so.1: cannot open shared object file: No such file or directory (ignored)
-[sparse:05403] mca: base: component_find: unable to open /usr/lib64/mpi/gcc/openmpi/lib64/openmpi/mca_mtl_ofi: libpsm_infinipath.so.1: cannot open shared object file: No such file or directory (ignored)
-[sparse:05404] mca: base: component_find: unable to open /usr/lib64/mpi/gcc/openmpi/lib64/openmpi/mca_mtl_ofi: libpsm_infinipath.so.1: cannot open shared object file: No such file or directory (ignored)
   MPI: initialised 2 process(es)
-  MPI: rank = 0, PID = 5403
-  MPI: rank = 1, PID = 5404
-  running CALC for EnKF-C version 1.76.0:
+  MPI: rank = 0, PID = 10043
+  MPI: rank = 1, PID = 10044
+  running CALC for EnKF-C version 1.76.1:
     command = "./enkf_calc enoi.prm"
     dir = "/home/pavel/src/enkf-c/trunk/enkf/examples/5"
-  2018-04-27 15:01:55
+  2018-04-27 22:16:40
   reading system specs from "enoi.prm":
     MODE = EnOI
     MODEL PRM = "model.prm"
@@ -41,7 +35,7 @@
       CHECK_G          = [-]
       SHUFFLE_ROWS     = [-]
       HE_VIAFILE       = [-]
-      HE_VIASHMEM      = [-]
+      HE_VIASHMEM      = [+]
       OBS_SHUFFLE      = [-]
       GRIDNODES_WRITE  = [-]
       INTERNAL_QSORT_R = [-]
@@ -146,7 +140,7 @@
   reading observations from "observations.nc":
     4185 observations
   calculating ensemble observations:
-  2018-04-27 15:01:55
+  2018-04-27 22:16:40
     ensemble size = 144
     distributing iterations:
       2 processes get 72 iterations each
@@ -156,7 +150,7 @@
     TEM +........................................................................
     SAL +........................................................................
   adding forecast innovations and spread to "observations.nc":
-  2018-04-27 15:01:55
+  2018-04-27 22:16:40
   moderating observations:
     observations substantially modified:
       SLA          0 (0.0%)
@@ -167,23 +161,23 @@
       total        0 (0.0%)
   writing modified obs errors to "observations.nc":
   calculating transforms:
-  2018-04-27 15:01:55
+  2018-04-27 22:16:40
     creating kd-trees for observations:
     calculating transforms for t-grid:
     creating empty file "w.nc":
       distributing iterations:
         2 processes get 17 iterations each
       main cycle for t-grid (34 x 34 local analyses):
-        j = 0 (0: 0: 5.9%)
         j = 3 (1: 17: 5.9%)
+        j = 0 (0: 0: 5.9%)
         j = 9 (1: 18: 11.8%)
         j = 6 (0: 1: 11.8%)
-        j = 15 (1: 19: 17.6%)
         j = 12 (0: 2: 17.6%)
+        j = 15 (1: 19: 17.6%)
         j = 21 (1: 20: 23.5%)
         j = 18 (0: 3: 23.5%)
-        j = 27 (1: 21: 29.4%)
         j = 24 (0: 4: 29.4%)
+        j = 27 (1: 21: 29.4%)
         j = 33 (1: 22: 35.3%)
         j = 30 (0: 5: 35.3%)
         j = 39 (1: 23: 41.2%)
@@ -219,11 +213,13 @@
     calculating transform for log point (30, 50): 595 obs
     writing the log for point (30, 50) on grid "t-grid":
   calculating analysed observations:
-  2018-04-27 15:02:08
+  2018-04-27 22:16:52
     sorting obs by ij:
-    2018-04-27 15:02:08
+    2018-04-27 22:16:52
     updating Hx:
-    2018-04-27 15:02:08
+    distributing iterations:
+      2 processes get 2093 or 2092 iterations
+    2018-04-27 22:16:52
   adding analysis innovations and spread to "observations.nc":
   printing observation statistics:
     region obs.type   # obs.  |for.inn.| |an.inn.|   for.inn.   an.inn.  for.spread  an.spread
@@ -247,5 +243,5 @@
              0-50m         2    0.088      0.101      0.074      0.072      0.019      0.019  
              50-500m       5    0.072      0.067      0.047      0.040      0.025      0.025  
              500-9999m     0     -nan       -nan       -nan       -nan       -nan       -nan  
-  2018-04-27 15:02:08
+  2018-04-27 22:16:52
   finished

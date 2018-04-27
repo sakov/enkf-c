@@ -1,3 +1,8 @@
+v. 1.76.1
+   PS 27042018
+   -- Corrected update_HE() and update_Hx() in the case -DHE_VIASHMEM. This is
+      a relatively minor correction that should improve calcuation of analysis
+      observation stats.
 v. 1.76.0
    PS 27042018
    -- Moved specification of ZSTATINTS from the main parameter file to the grid

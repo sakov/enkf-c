@@ -1,15 +1,10 @@
-[sparse:05215] mca: base: component_find: unable to open /usr/lib64/mpi/gcc/openmpi/lib64/openmpi/mca_btl_usnic: libpsm_infinipath.so.1: cannot open shared object file: No such file or directory (ignored)
-[sparse:05215] mca: base: component_find: unable to open /usr/lib64/mpi/gcc/openmpi/lib64/openmpi/mca_mtl_psm: libpsm_infinipath.so.1: cannot open shared object file: No such file or directory (ignored)
-[sparse:05216] mca: base: component_find: unable to open /usr/lib64/mpi/gcc/openmpi/lib64/openmpi/mca_btl_usnic: libpsm_infinipath.so.1: cannot open shared object file: No such file or directory (ignored)
-[sparse:05216] mca: base: component_find: unable to open /usr/lib64/mpi/gcc/openmpi/lib64/openmpi/mca_mtl_psm: libpsm_infinipath.so.1: cannot open shared object file: No such file or directory (ignored)
-[sparse:05215] mca: base: component_find: unable to open /usr/lib64/mpi/gcc/openmpi/lib64/openmpi/mca_mtl_ofi: libpsm_infinipath.so.1: cannot open shared object file: No such file or directory (ignored)
-[sparse:05216] mca: base: component_find: unable to open /usr/lib64/mpi/gcc/openmpi/lib64/openmpi/mca_mtl_ofi: libpsm_infinipath.so.1: cannot open shared object file: No such file or directory (ignored)
   MPI: initialised 2 process(es)
-  MPI: rank = 0, PID = 5215
-  running UPDATE for EnKF-C version 1.76.0:
+  MPI: rank = 0, PID = 9808
+  running UPDATE for EnKF-C version 1.76.1:
     command = "./enkf_update --calculate-spread --write-inflation enkf.prm"
+  MPI: rank = 1, PID = 9809
     dir = "/home/pavel/src/enkf-c/trunk/enkf/examples/4"
-  2018-04-27 14:59:30
+  2018-04-27 22:13:41
   reading system specs from "enkf.prm":
     MODE = EnKF
     SCHEME = DEnKF
@@ -107,29 +102,28 @@
     defining state variables in point logs:
     distributing iterations:
       2 processes get 48 iterations each
-  MPI: rank = 1, PID = 5216
-    2018-04-27 14:59:30
-    allocating disk space for analysis:............................................................................................................................................................................................................................................................................................................................................................................................................................................................
+    2018-04-27 22:13:41
+    allocating disk space for analysis:................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................
     updating fields for t-grid:
-      2018-04-27 14:59:30
+      2018-04-27 22:13:41
       5 fields
       distributing iterations:
         2 processes get 3 or 2 iterations
-....................................      eta_t    0   (0: 0: 33.3%)
       salt     0   (1: 3: 50.0%)
+      eta_t    0   (0: 0: 33.3%)
       temp     0   (0: 1: 66.7%)
       salt     1   (1: 4: 100.0%)
       temp     1   (0: 2: 100.0%)
     updating fields for c-grid:
-      2018-04-27 14:59:31
+      2018-04-27 22:13:42
       4 fields
       distributing iterations:
         2 processes get 2 iterations each
       v        0   (1: 2: 50.0%)
       u        0   (0: 0: 50.0%)
-      u        1   (0: 1: 100.0%)
       v        1   (1: 3: 100.0%)
-  2018-04-27 14:59:32
+      u        1   (0: 1: 100.0%)
+  2018-04-27 22:13:42
   assembling analysis:
     distributing iterations:
       2 processes get 48 iterations each
@@ -138,26 +132,26 @@
     salt:................................................
     u:................................................
     v:................................................
-  2018-04-27 14:59:32
+  2018-04-27 22:13:42
   assembling spread:
     eta_t:.
     temp:..
     salt:..
     u:..
     v:..
-  2018-04-27 14:59:32
+  2018-04-27 22:13:42
   assembling inflation:
     eta_t:.
     temp:..
     salt:..
     u:..
     v:..
-  2018-04-27 14:59:32
+  2018-04-27 22:13:42
   assembling state variables in point logs:
     distributing iterations:
       2 processes get 1 or 0 iterations
     deleting tiles:
       distributing iterations:
         2 processes get 5 or 4 iterations
-  2018-04-27 14:59:32
+  2018-04-27 22:13:42
   finished

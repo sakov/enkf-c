@@ -1,16 +1,10 @@
-[sparse:05162] mca: base: component_find: unable to open /usr/lib64/mpi/gcc/openmpi/lib64/openmpi/mca_btl_usnic: libpsm_infinipath.so.1: cannot open shared object file: No such file or directory (ignored)
-[sparse:05162] mca: base: component_find: unable to open /usr/lib64/mpi/gcc/openmpi/lib64/openmpi/mca_mtl_psm: libpsm_infinipath.so.1: cannot open shared object file: No such file or directory (ignored)
-[sparse:05163] mca: base: component_find: unable to open /usr/lib64/mpi/gcc/openmpi/lib64/openmpi/mca_btl_usnic: libpsm_infinipath.so.1: cannot open shared object file: No such file or directory (ignored)
-[sparse:05163] mca: base: component_find: unable to open /usr/lib64/mpi/gcc/openmpi/lib64/openmpi/mca_mtl_psm: libpsm_infinipath.so.1: cannot open shared object file: No such file or directory (ignored)
-[sparse:05162] mca: base: component_find: unable to open /usr/lib64/mpi/gcc/openmpi/lib64/openmpi/mca_mtl_ofi: libpsm_infinipath.so.1: cannot open shared object file: No such file or directory (ignored)
-[sparse:05163] mca: base: component_find: unable to open /usr/lib64/mpi/gcc/openmpi/lib64/openmpi/mca_mtl_ofi: libpsm_infinipath.so.1: cannot open shared object file: No such file or directory (ignored)
   MPI: initialised 2 process(es)
-  MPI: rank = 0, PID = 5162
-  MPI: rank = 1, PID = 5163
-  running CALC for EnKF-C version 1.76.0:
+  MPI: rank = 1, PID = 9764
+  MPI: rank = 0, PID = 9763
+  running CALC for EnKF-C version 1.76.1:
     command = "./enkf_calc enoi.prm"
     dir = "/home/pavel/src/enkf-c/trunk/enkf/examples/3"
-  2018-04-27 14:58:32
+  2018-04-27 22:13:04
   reading system specs from "enoi.prm":
     MODE = EnOI
     MODEL PRM = "model.prm"
@@ -41,7 +35,7 @@
       CHECK_G          = [-]
       SHUFFLE_ROWS     = [-]
       HE_VIAFILE       = [-]
-      HE_VIASHMEM      = [-]
+      HE_VIASHMEM      = [+]
       OBS_SHUFFLE      = [-]
       GRIDNODES_WRITE  = [-]
       INTERNAL_QSORT_R = [-]
@@ -135,7 +129,7 @@
   reading observations from "observations.nc":
     2943 observations
   calculating ensemble observations:
-  2018-04-27 14:58:32
+  2018-04-27 22:13:04
     ensemble size = 144
     distributing iterations:
       2 processes get 72 iterations each
@@ -144,7 +138,7 @@
     TEM +........................................................................
     SAL +........................................................................
   adding forecast innovations and spread to "observations.nc":
-  2018-04-27 14:58:32
+  2018-04-27 22:13:04
   moderating observations:
     observations substantially modified:
       SLA          0 (0.0%)
@@ -154,7 +148,7 @@
       total        0 (0.0%)
   writing modified obs errors to "observations.nc":
   calculating transforms:
-  2018-04-27 14:58:32
+  2018-04-27 22:13:04
     creating kd-trees for observations:
     calculating transforms for t-grid-full:
     creating empty file "w.nc":
@@ -163,38 +157,38 @@
       main cycle for t-grid-full (34 x 34 local analyses):
         j = 0 (0: 0: 5.9%)
         j = 3 (1: 17: 5.9%)
-        j = 6 (0: 1: 11.8%)
         j = 9 (1: 18: 11.8%)
-        j = 12 (0: 2: 17.6%)
+        j = 6 (0: 1: 11.8%)
         j = 15 (1: 19: 17.6%)
-        j = 18 (0: 3: 23.5%)
+        j = 12 (0: 2: 17.6%)
         j = 21 (1: 20: 23.5%)
-        j = 24 (0: 4: 29.4%)
+        j = 18 (0: 3: 23.5%)
         j = 27 (1: 21: 29.4%)
+        j = 24 (0: 4: 29.4%)
         j = 33 (1: 22: 35.3%)
         j = 30 (0: 5: 35.3%)
         j = 39 (1: 23: 41.2%)
         j = 36 (0: 6: 41.2%)
-        j = 45 (1: 24: 47.1%)
         j = 42 (0: 7: 47.1%)
+        j = 45 (1: 24: 47.1%)
         j = 51 (1: 25: 52.9%)
         j = 48 (0: 8: 52.9%)
         j = 57 (1: 26: 58.8%)
         j = 54 (0: 9: 58.8%)
-        j = 63 (1: 27: 64.7%)
         j = 60 (0: 10: 64.7%)
+        j = 63 (1: 27: 64.7%)
         j = 69 (1: 28: 70.6%)
         j = 66 (0: 11: 70.6%)
         j = 75 (1: 29: 76.5%)
         j = 72 (0: 12: 76.5%)
         j = 81 (1: 30: 82.4%)
         j = 78 (0: 13: 82.4%)
-        j = 84 (0: 14: 88.2%)
         j = 87 (1: 31: 88.2%)
+        j = 84 (0: 14: 88.2%)
         j = 93 (1: 32: 94.1%)
         j = 90 (0: 15: 94.1%)
-        j = 96 (0: 16: 100.0%)
         j = 99 (1: 33: 100.0%)
+        j = 96 (0: 16: 100.0%)
     finished calculating transforms for t-grid-full
     writing stats to "enkf_diag.nc":
     summary stats on t-grid-full:
@@ -206,11 +200,13 @@
     calculating transform for log point (30, 50): 513 obs
     writing the log for point (30, 50) on grid "t-grid-full":
   calculating analysed observations:
-  2018-04-27 14:58:41
+  2018-04-27 22:13:12
     sorting obs by ij:
-    2018-04-27 14:58:41
+    2018-04-27 22:13:12
     updating Hx:
-    2018-04-27 14:58:41
+    distributing iterations:
+      2 processes get 1472 or 1471 iterations
+    2018-04-27 22:13:12
   adding analysis innovations and spread to "observations.nc":
   printing observation statistics:
     region obs.type   # obs.  |for.inn.| |an.inn.|   for.inn.   an.inn.  for.spread  an.spread
@@ -234,5 +230,5 @@
              0-50m         0     -nan       -nan       -nan       -nan       -nan       -nan  
              50-500m       3    0.111      0.078      0.072      0.033      0.026      0.026  
              500-9999m     0     -nan       -nan       -nan       -nan       -nan       -nan  
-  2018-04-27 14:58:41
+  2018-04-27 22:13:12
   finished
