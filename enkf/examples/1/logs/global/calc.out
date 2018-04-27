@@ -1,7 +1,10 @@
-  running CALC for EnKF-C version 1.68.8:
+[sparse:04745] mca: base: component_find: unable to open /usr/lib64/mpi/gcc/openmpi/lib64/openmpi/mca_btl_usnic: libpsm_infinipath.so.1: cannot open shared object file: No such file or directory (ignored)
+[sparse:04745] mca: base: component_find: unable to open /usr/lib64/mpi/gcc/openmpi/lib64/openmpi/mca_mtl_psm: libpsm_infinipath.so.1: cannot open shared object file: No such file or directory (ignored)
+[sparse:04745] mca: base: component_find: unable to open /usr/lib64/mpi/gcc/openmpi/lib64/openmpi/mca_mtl_ofi: libpsm_infinipath.so.1: cannot open shared object file: No such file or directory (ignored)
+  running CALC for EnKF-C version 1.76.0:
     command = "./enkf_calc enkf-global.prm"
     dir = "/home/pavel/src/enkf-c/trunk/enkf/examples/1"
-  2018-01-19 13:39:23
+  2018-04-27 14:53:05
   reading system specs from "enkf-global.prm":
     MODE = EnKF
     SCHEME = DEnKF
@@ -19,7 +22,7 @@
     LOCRAD = 1000000
     STRIDE = 999999
     FIELDBUFFERSIZE = 4
-    REGION Global: x = [0.0, 360.0], y = [-90.0, 90.0], z intervals = [0 50] [50 500] [500 9999] 
+    REGION Global: x = [0.0, 360.0], y = [-90.0, 90.0], z intervals = 
     POINTLOG 30 50
     SOBSTRIDE = 1
     NCFORMAT = 64BIT
@@ -32,10 +35,11 @@
       CHECK_G          = [-]
       SHUFFLE_ROWS     = [-]
       HE_VIAFILE       = [-]
+      HE_VIASHMEM      = [-]
+      OBS_SHUFFLE      = [-]
       GRIDNODES_WRITE  = [-]
       INTERNAL_QSORT_R = [-]
       NO_GRIDUTILS     = [-]
-      OBS_SHUFFLE      = [-]
   initialising the system:
   reading observation type specs from "obstypes.prm":
     NAME = SLA
@@ -88,13 +92,14 @@
       DATA = "conf/grid_spec.nc"
       MAPTYPE = "B"
       VTYPE = "z"
-      VDIR = "FROMSURF"
-      XVARNAME = "lon"
-      YVARNAME = "lat"
       ZVARNAME = "zt"
       ZCVARNAME = <none>
       DEPTHVARNAME = "depth_t"
       NUMLEVELSVARNAME = "num_levels"
+      VDIR = "FROMSURF"
+      XVARNAME = "lon"
+      YVARNAME = "lat"
+      ZSTATINTS = [0 50] [50 500] [500 9999] 
     grid info:
       hor type = LATLON
       periodic by X = no
@@ -124,16 +129,16 @@
   reading observations from "observations.nc":
     3865 observations
   calculating ensemble observations:
-  2018-01-19 13:39:23
+  2018-04-27 14:53:05
     ensemble size = 96
     distributing iterations:
-      all processes get 96 iterations
+      1 processes get 96 iterations each
     SLA ................................................................................................
     SST ................................................................................................
     TEM ................................................................................................
     SAL ................................................................................................
   adding forecast innovations and spread to "observations.nc":
-  2018-01-19 13:39:23
+  2018-04-27 14:53:05
   moderating observations:
     observations substantially modified:
       SLA          0 (0.0%)
@@ -143,12 +148,12 @@
       total        0 (0.0%)
   writing modified obs errors to "observations.nc":
   calculating transforms:
-  2018-01-19 13:39:23
+  2018-04-27 14:53:05
     creating kd-trees for observations:
     calculating transforms for t-grid:
       creating empty file "X5.nc":
       distributing iterations:
-        all processes get 1 iterations
+        1 processes get 1 iterations each
       main cycle for t-grid (1 x 1 local analyses):
         j = 0 (0: 0: 100.0%)
     finished calculating transforms for t-grid
@@ -162,9 +167,11 @@
     calculating transform for log point (30, 50): 3865 obs
     writing the log for point (30, 50) on grid "t-grid":
   calculating analysed observations:
-  2018-01-19 13:39:23
+  2018-04-27 14:53:05
     sorting obs by ij:
+    2018-04-27 14:53:05
     updating HE:
+    2018-04-27 14:53:05
   adding analysis innovations and spread to "observations.nc":
   printing observation statistics:
     region obs.type   # obs.  |for.inn.| |an.inn.|   for.inn.   an.inn.  for.spread  an.spread
@@ -174,19 +181,19 @@
              j1          247    0.086      0.057      0.040      0.022      0.045      0.026  
              n1          377    0.077      0.059      0.015      0.006      0.034      0.019  
              N/A          20    0.096      0.072      0.086      0.068      0.049      0.027  
-           SST          3207    0.462      0.431     -0.247     -0.211      0.336      0.193  
-             AVHRR      2039    0.469      0.408     -0.220     -0.169      0.332      0.191  
-             WindSat     848    0.471      0.508     -0.307     -0.312      0.350      0.203  
-             N/A         320    0.392      0.373     -0.255     -0.212      0.323      0.186  
-           TEM             7    1.015      1.080      0.512      0.908      0.318      0.183  
-             ARGO          7    1.015      1.080      0.512      0.908      0.318      0.183  
-             0-50m         2    1.471      2.160      1.471      2.160      0.321      0.185  
-             50-500m       5    0.832      0.648      0.129      0.407      0.316      0.183  
+           SST          3207    0.462      0.431     -0.247     -0.210      0.336      0.193  
+             AVHRR      2039    0.469      0.408     -0.220     -0.168      0.332      0.191  
+             WindSat     848    0.471      0.508     -0.307     -0.311      0.350      0.203  
+             N/A         320    0.392      0.372     -0.255     -0.211      0.323      0.186  
+           TEM             7    1.015      1.080      0.512      0.909      0.318      0.183  
+             ARGO          7    1.015      1.080      0.512      0.909      0.318      0.183  
+             0-50m         2    1.471      2.161      1.471      2.161      0.321      0.185  
+             50-500m       5    0.832      0.648      0.129      0.408      0.316      0.183  
              500-9999m     0     -nan       -nan       -nan       -nan       -nan       -nan  
-           SAL             7    0.077      0.100      0.055      0.070      0.029      0.017  
-             ARGO          7    0.077      0.100      0.055      0.070      0.029      0.017  
-             0-50m         2    0.088      0.102      0.074      0.099      0.023      0.013  
-             50-500m       5    0.072      0.099      0.047      0.058      0.032      0.019  
+           SAL             7    0.077      0.101      0.055      0.072      0.029      0.017  
+             ARGO          7    0.077      0.101      0.055      0.072      0.029      0.017  
+             0-50m         2    0.088      0.102      0.074      0.101      0.023      0.013  
+             50-500m       5    0.072      0.101      0.047      0.060      0.032      0.019  
              500-9999m     0     -nan       -nan       -nan       -nan       -nan       -nan  
-  2018-01-19 13:39:23
+  2018-04-27 14:53:05
   finished

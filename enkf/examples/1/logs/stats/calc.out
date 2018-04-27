@@ -1,9 +1,16 @@
+[sparse:04444] mca: base: component_find: unable to open /usr/lib64/mpi/gcc/openmpi/lib64/openmpi/mca_btl_usnic: libpsm_infinipath.so.1: cannot open shared object file: No such file or directory (ignored)
+[sparse:04444] mca: base: component_find: unable to open /usr/lib64/mpi/gcc/openmpi/lib64/openmpi/mca_mtl_psm: libpsm_infinipath.so.1: cannot open shared object file: No such file or directory (ignored)
+[sparse:04445] mca: base: component_find: unable to open /usr/lib64/mpi/gcc/openmpi/lib64/openmpi/mca_btl_usnic: libpsm_infinipath.so.1: cannot open shared object file: No such file or directory (ignored)
+[sparse:04445] mca: base: component_find: unable to open /usr/lib64/mpi/gcc/openmpi/lib64/openmpi/mca_mtl_psm: libpsm_infinipath.so.1: cannot open shared object file: No such file or directory (ignored)
+[sparse:04444] mca: base: component_find: unable to open /usr/lib64/mpi/gcc/openmpi/lib64/openmpi/mca_mtl_ofi: libpsm_infinipath.so.1: cannot open shared object file: No such file or directory (ignored)
+[sparse:04445] mca: base: component_find: unable to open /usr/lib64/mpi/gcc/openmpi/lib64/openmpi/mca_mtl_ofi: libpsm_infinipath.so.1: cannot open shared object file: No such file or directory (ignored)
   MPI: initialised 2 process(es)
-  MPI: rank = 0, PID = 23766
-  running CALC for EnKF-C version 1.68.8:
+  MPI: rank = 0, PID = 4444
+  MPI: rank = 1, PID = 4445
+  running CALC for EnKF-C version 1.75.0:
     command = "./enkf_calc --forecast-stats-only stats.prm"
     dir = "/home/pavel/src/enkf-c/trunk/enkf/examples/1"
-  2018-01-19 13:41:57
+  2018-04-27 14:45:25
   reading system specs from "stats.prm":
     MODE = EnOI
     MODEL PRM = "model.prm"
@@ -12,7 +19,7 @@
     OBS PRM = "obs.prm"
     DATE = "6565.5 days since 1990-01-01"
     BGDIR = "background_6565"
-    REGION Global: x = [0.0, 360.0], y = [-90.0, 90.0], z intervals = [0 50] [50 500] [500 9999] 
+    REGION Global: x = [0.0, 360.0], y = [-90.0, 90.0], z intervals = 
     SOBSTRIDE = 1
     NCFORMAT = 64BIT
     NCCOMPRESSION = 0
@@ -24,10 +31,11 @@
       CHECK_G          = [-]
       SHUFFLE_ROWS     = [-]
       HE_VIAFILE       = [-]
+      HE_VIASHMEM      = [+]
+      OBS_SHUFFLE      = [-]
       GRIDNODES_WRITE  = [-]
       INTERNAL_QSORT_R = [-]
       NO_GRIDUTILS     = [-]
-      OBS_SHUFFLE      = [-]
   initialising the system:
   reading observation type specs from "obstypes.prm":
     NAME = SLA
@@ -80,13 +88,14 @@
       DATA = "conf/grid_spec.nc"
       MAPTYPE = "B"
       VTYPE = "z"
-      VDIR = "FROMSURF"
-      XVARNAME = "lon"
-      YVARNAME = "lat"
       ZVARNAME = "zt"
       ZCVARNAME = <none>
       DEPTHVARNAME = "depth_t"
       NUMLEVELSVARNAME = "num_levels"
+      VDIR = "FROMSURF"
+      XVARNAME = "lon"
+      YVARNAME = "lat"
+      ZSTATINTS = [0 50] [50 500] [500 9999] 
     grid info:
       hor type = LATLON
       periodic by X = no
@@ -116,16 +125,15 @@
   reading observations from "observations.nc":
     3865 observations
   calculating ensemble observations:
-  2018-01-19 13:41:57
-    ensemble size = 1
+  2018-04-27 14:45:25
     distributing iterations:
-      processes get 1 or 0 iterations
+      2 processes get 1 or 0 iterations
     SLA +
     SST +
     TEM +
     SAL +
   adding forecast innovations and spread to "observations.nc":
-  2018-01-19 13:41:57
+  2018-04-27 14:45:25
   printing observation statistics:
     region obs.type   # obs.  |for.inn.| for.inn.
     ---------------------------------------------
@@ -144,10 +152,9 @@
              50-500m       5    0.832      0.129  
              500-9999m     0     -nan       -nan  
            SAL             7    0.077      0.055  
-             ARGO     MPI: rank = 1, PID = 23767
-       7    0.077      0.055  
+             ARGO          7    0.077      0.055  
              0-50m         2    0.088      0.074  
              50-500m       5    0.072      0.047  
              500-9999m     0     -nan       -nan  
-  2018-01-19 13:41:57
+  2018-04-27 14:45:25
   finished

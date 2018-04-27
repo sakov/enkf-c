@@ -1,9 +1,16 @@
+[sparse:05403] mca: base: component_find: unable to open /usr/lib64/mpi/gcc/openmpi/lib64/openmpi/mca_btl_usnic: libpsm_infinipath.so.1: cannot open shared object file: No such file or directory (ignored)
+[sparse:05403] mca: base: component_find: unable to open /usr/lib64/mpi/gcc/openmpi/lib64/openmpi/mca_mtl_psm: libpsm_infinipath.so.1: cannot open shared object file: No such file or directory (ignored)
+[sparse:05404] mca: base: component_find: unable to open /usr/lib64/mpi/gcc/openmpi/lib64/openmpi/mca_btl_usnic: libpsm_infinipath.so.1: cannot open shared object file: No such file or directory (ignored)
+[sparse:05404] mca: base: component_find: unable to open /usr/lib64/mpi/gcc/openmpi/lib64/openmpi/mca_mtl_psm: libpsm_infinipath.so.1: cannot open shared object file: No such file or directory (ignored)
+[sparse:05403] mca: base: component_find: unable to open /usr/lib64/mpi/gcc/openmpi/lib64/openmpi/mca_mtl_ofi: libpsm_infinipath.so.1: cannot open shared object file: No such file or directory (ignored)
+[sparse:05404] mca: base: component_find: unable to open /usr/lib64/mpi/gcc/openmpi/lib64/openmpi/mca_mtl_ofi: libpsm_infinipath.so.1: cannot open shared object file: No such file or directory (ignored)
   MPI: initialised 2 process(es)
-  MPI: rank = 0, PID = 24848
-  running CALC for EnKF-C version 1.68.8:
+  MPI: rank = 0, PID = 5403
+  MPI: rank = 1, PID = 5404
+  running CALC for EnKF-C version 1.76.0:
     command = "./enkf_calc enoi.prm"
     dir = "/home/pavel/src/enkf-c/trunk/enkf/examples/5"
-  2018-01-19 13:51:13
+  2018-04-27 15:01:55
   reading system specs from "enoi.prm":
     MODE = EnOI
     MODEL PRM = "model.prm"
@@ -21,7 +28,7 @@
     LOCRAD = 200
     STRIDE = 3
     FIELDBUFFERSIZE = 4
-    REGION Global: x = [0.0, 360.0], y = [-90.0, 90.0], z intervals = [0 50] [50 500] [500 9999] 
+    REGION Global: x = [0.0, 360.0], y = [-90.0, 90.0], z intervals = 
     POINTLOG 30 50
     SOBSTRIDE = 1
     NCFORMAT = 64BIT
@@ -34,10 +41,11 @@
       CHECK_G          = [-]
       SHUFFLE_ROWS     = [-]
       HE_VIAFILE       = [-]
+      HE_VIASHMEM      = [-]
+      OBS_SHUFFLE      = [-]
       GRIDNODES_WRITE  = [-]
       INTERNAL_QSORT_R = [-]
       NO_GRIDUTILS     = [-]
-      OBS_SHUFFLE      = [-]
   initialising the system:
   reading observation type specs from "obstypes.prm":
     NAME = SLA
@@ -101,13 +109,14 @@
       DATA = "conf/grid_spec.nc"
       MAPTYPE = "B"
       VTYPE = "z"
-      VDIR = "FROMSURF"
-      XVARNAME = "lon"
-      YVARNAME = "lat"
       ZVARNAME = "zt"
       ZCVARNAME = <none>
       DEPTHVARNAME = "depth_t"
       NUMLEVELSVARNAME = "num_levels"
+      VDIR = "FROMSURF"
+      XVARNAME = "lon"
+      YVARNAME = "lat"
+      ZSTATINTS = [0 50] [50 500] [500 9999] 
     grid info:
       hor type = LATLON
       periodic by X = no
@@ -137,18 +146,17 @@
   reading observations from "observations.nc":
     4185 observations
   calculating ensemble observations:
-  2018-01-19 13:51:13
+  2018-04-27 15:01:55
     ensemble size = 144
     distributing iterations:
-      all processes get 72 iterations
-    SLA +........................  MPI: rank = 1, PID = 24849
-................................................
+      2 processes get 72 iterations each
+    SLA +........................................................................
     SST +........................................................................
     SST2 +........................................................................
     TEM +........................................................................
     SAL +........................................................................
   adding forecast innovations and spread to "observations.nc":
-  2018-01-19 13:51:13
+  2018-04-27 15:01:55
   moderating observations:
     observations substantially modified:
       SLA          0 (0.0%)
@@ -159,12 +167,12 @@
       total        0 (0.0%)
   writing modified obs errors to "observations.nc":
   calculating transforms:
-  2018-01-19 13:51:13
+  2018-04-27 15:01:55
     creating kd-trees for observations:
     calculating transforms for t-grid:
     creating empty file "w.nc":
       distributing iterations:
-        all processes get 17 iterations
+        2 processes get 17 iterations each
       main cycle for t-grid (34 x 34 local analyses):
         j = 0 (0: 0: 5.9%)
         j = 3 (1: 17: 5.9%)
@@ -188,8 +196,8 @@
         j = 54 (0: 9: 58.8%)
         j = 63 (1: 27: 64.7%)
         j = 60 (0: 10: 64.7%)
-        j = 66 (0: 11: 70.6%)
         j = 69 (1: 28: 70.6%)
+        j = 66 (0: 11: 70.6%)
         j = 75 (1: 29: 76.5%)
         j = 72 (0: 12: 76.5%)
         j = 81 (1: 30: 82.4%)
@@ -211,9 +219,11 @@
     calculating transform for log point (30, 50): 595 obs
     writing the log for point (30, 50) on grid "t-grid":
   calculating analysed observations:
-  2018-01-19 13:51:25
+  2018-04-27 15:02:08
     sorting obs by ij:
+    2018-04-27 15:02:08
     updating Hx:
+    2018-04-27 15:02:08
   adding analysis innovations and spread to "observations.nc":
   printing observation statistics:
     region obs.type   # obs.  |for.inn.| |an.inn.|   for.inn.   an.inn.  for.spread  an.spread
@@ -237,5 +247,5 @@
              0-50m         2    0.088      0.101      0.074      0.072      0.019      0.019  
              50-500m       5    0.072      0.067      0.047      0.040      0.025      0.025  
              500-9999m     0     -nan       -nan       -nan       -nan       -nan       -nan  
-  2018-01-19 13:51:25
+  2018-04-27 15:02:08
   finished

@@ -24,6 +24,7 @@
 #include "utils.h"
 
 #define MAPTYPE_DEF 'B'
+#define NINC 10
 
 typedef struct {
     char* vtype_tag;
@@ -285,6 +286,20 @@ void gridprm_create(char* fname, int* ngrid, gridprm** prm)
                 enkf_quit("%s, l.%d: HCVARNAME specified twice", fname, line);
             else
                 now->hcvarname = strdup(token);
+        } else if (strcasecmp(token, "ZSTATINTS") == 0) {
+            char zseps[] = " =\t\n[](){}";
+
+            while ((token = strtok(NULL, zseps)) != NULL) {
+                if (now->nzints % NINC == 0)
+                    now->zints = realloc(now->zints, (now->nzints + NINC) * sizeof(zint));
+                if (!str2double(token, &now->zints[now->nzints].z1))
+                    enkf_quit("%s, l.%d: could not convert \"%s\" to double", fname, line, token);
+                if ((token = strtok(NULL, zseps)) == NULL)
+                    enkf_quit("%s, l.%d: maximal depth/height for an interval not specified", fname, line);
+                if (!str2double(token, &now->zints[now->nzints].z2))
+                    enkf_quit("%s, l.%d: could not convert \"%s\" to double", fname, line, token);
+                now->nzints++;
+            }
         } else
             enkf_quit("%s, l.%d: unexpected token \"%s\"", fname, line, token);
     }
@@ -326,6 +341,17 @@ void gridprm_create(char* fname, int* ngrid, gridprm** prm)
             now->vdirection = strdup("FROMSURF");
         if (!isfinite(now->sfactor) || now->sfactor <= 0.0)
             enkf_quit("%s: SFACTOR = %.3g\n", now->sfactor);
+
+        if (now->nzints == 0) {
+            now->nzints = 3;
+            now->zints = malloc(now->nzints * sizeof(zint));
+            now->zints[0].z1 = 0.0;
+            now->zints[0].z2 = DEPTH_SHALLOW;
+            now->zints[1].z1 = DEPTH_SHALLOW;
+            now->zints[1].z2 = DEPTH_DEEP;
+            now->zints[2].z1 = DEPTH_DEEP;
+            now->zints[2].z2 = DEPTH_MAX;
+        }
     }
 }
 
@@ -364,6 +390,8 @@ void gridprm_destroy(int ngrid, gridprm prm[])
             free(now->levelvarname);
             free(now->levelvarnameentry);
         }
+        if (now->nzints > 0)
+            free(now->zints);
     }
     free(prm);
 }
@@ -372,6 +400,8 @@ void gridprm_destroy(int ngrid, gridprm prm[])
  */
 void gridprm_print(gridprm* prm, char offset[])
 {
+    int i;
+
     enkf_printf("%sgrid prm info:\n", offset);
     enkf_printf("%s  NAME = \"%s\"\n", offset, prm->name);
     enkf_printf("%s  DATA = \"%s\"\n", offset, prm->fname);
@@ -415,6 +445,12 @@ void gridprm_print(gridprm* prm, char offset[])
         enkf_printf("%s  SOBSTRIDE = %d\n", offset, prm->sob_stride);
     if (prm->sfactor != 1.0)
         enkf_printf("%s  SFACTOR = \"%.f\"\n", offset, prm->sfactor);
+    if (prm->nzints != 0) {
+        enkf_printf("%s  ZSTATINTS = ", offset);
+        for (i = 0; i < prm->nzints; ++i)
+            enkf_printf("[%.0f %.0f] ", prm->zints[i].z1, prm->zints[i].z2);
+        enkf_printf("\n");
+    }
 }
 
 /**

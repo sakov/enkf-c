@@ -31,6 +31,7 @@ typedef struct {
     char* levelvarnameentry;
     char* levelvarname;
     char* vdirection;
+
     /*
      * Hybrid stuff: p(k) = A(k) + B(k) * (p1 - p2)
      * https://journals.ametsoc.org/doi/pdf/10.1175/2008MWR2537.1
@@ -42,12 +43,16 @@ typedef struct {
     char* bcvarname;
     char* p1varname;            /* in atmosphere -- P of the surface layer */
     char* p2varname;            /* in atmosphere -- P of the top layer */
-    /*
-     * hybrid stuff end 
-     */
+
     int stride;
     int sob_stride;
     double sfactor;
+
+    /*
+     * Vertical intervals for observation statistics
+     */
+    int nzints;
+    zint* zints;
 } gridprm;
 
 void gridprm_create(char* fname, int* ngrid, gridprm** prm);

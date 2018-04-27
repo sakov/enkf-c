@@ -1,7 +1,7 @@
-  running PREP for EnKF-C version 1.68.8:
+  running PREP for EnKF-C version 1.76.0:
     command = "./enkf_prep enkf.prm"
     dir = "/home/pavel/src/enkf-c/trunk/enkf/examples/4"
-  2018-01-19 13:48:57
+  2018-04-27 14:59:12
   reading prep specs from "enkf.prm":
     MODE = EnKF
     SCHEME = DEnKF
@@ -19,23 +19,18 @@
     LOCRAD = 200
     STRIDE = 3
     FIELDBUFFERSIZE = 4
-    REGION Global: x = [0.0, 360.0], y = [-90.0, 90.0], z intervals = [0 50] [50 500] [500 9999] 
+    REGION Global: x = [0.0, 360.0], y = [-90.0, 90.0], z intervals = 
     POINTLOG 30 50
     SOBSTRIDE = 1
     NCFORMAT = 64BIT
     NCCOMPRESSION = 0
     EnKF flags:
-      enkf_exitaction  = [BACKTRACE]
+      enkf_exitaction  = [SEGFAULT]
       enkf_obstype     = [VALUE]
     compile flags:
-      CHECK_X5         = [-]
-      CHECK_G          = [-]
-      SHUFFLE_ROWS     = [-]
-      HE_VIAFILE       = [-]
       GRIDNODES_WRITE  = [-]
       INTERNAL_QSORT_R = [-]
       NO_GRIDUTILS     = [-]
-      OBS_SHUFFLE      = [-]
   reading observation specs from "obs.prm":
     PRODUCT = RADS
       READER = standard2
@@ -85,13 +80,14 @@
       DATA = "conf4/grid_spec.nc"
       MAPTYPE = "B"
       VTYPE = "z"
-      VDIR = "FROMSURF"
-      XVARNAME = "lont"
-      YVARNAME = "latt"
       ZVARNAME = "zt"
       ZCVARNAME = <none>
       DEPTHVARNAME = "depth_t"
       NUMLEVELSVARNAME = "num_levels"
+      VDIR = "FROMSURF"
+      XVARNAME = "lont"
+      YVARNAME = "latt"
+      ZSTATINTS = [0 50] [50 500] [500 9999] 
     grid info:
       hor type = LATLON
       periodic by X = no
@@ -104,12 +100,13 @@
       DATA = "conf4/grid_spec.nc"
       MAPTYPE = "B"
       VTYPE = "z"
-      VDIR = "FROMSURF"
-      XVARNAME = "lonc"
-      YVARNAME = "latc"
       ZVARNAME = "zt"
       ZCVARNAME = <none>
       NUMLEVELSVARNAME = "num_levels"
+      VDIR = "FROMSURF"
+      XVARNAME = "lonc"
+      YVARNAME = "latc"
+      ZSTATINTS = [0 50] [50 500] [500 9999] 
     grid info:
       hor type = LATLON
       periodic by X = no
@@ -360,18 +357,18 @@
   writing observations to "observations-orig.nc":
   superobing:
     3865 superobservations
-  re-reading super-observations from disk:
+  writing superobservations to "observations.nc":
+  reading super-observations from disk:
     3865 observations
   checking for superobs on land:
-    not found
-  writing superobservations to "observations.nc":
+    all good
   printing observation statistics:
-    type    # used     # dropped  # out_grd  # out_obs  # out_wnd  # land     # shallow  # badbatch # badvalue # superobs
-    ---------------------------------------------------------------------------------------------------------------------
-    SLA     981        0          0          0          0          0          0          0          0          644       
-    SST     8249       0          0          0          0          0          0          0          0          3207      
-    TEM     184        104        104        0          0          0          0          0          0          7         
-    SAL     184        104        104        0          0          0          0          0          0          7         
-    total   9598       208        208        0          0          0          0          0          0          3865      
-  2018-01-19 13:48:57
+    type    #used    #dropped #out_grd #out_obs #out_wnd #land    #shallow #badbatch#badvalue#superobs
+    --------------------------------------------------------------------------------------------------
+    SLA     981      0        0        0        0        0        0        0        0        644     
+    SST     8249     0        0        0        0        0        0        0        0        3207    
+    TEM     184      104      104      0        0        0        0        0        0        7       
+    SAL     184      104      104      0        0        0        0        0        0        7       
+    total   9598     208      208      0        0        0        0        0        0        3865    
+  2018-04-27 14:59:13
   finished

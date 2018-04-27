@@ -27,6 +27,10 @@
 #define GRIDVTYPE_SIGMA 2
 #define GRIDVTYPE_HYBRID 3
 
+typedef struct {
+    double z1, z2;
+} zint;
+
 struct grid;
 typedef struct grid grid;
 
@@ -52,6 +56,7 @@ void grid_setstride(grid* g, int stride);
 int grid_getsobstride(grid* g);
 void grid_setsobstride(grid* g, int sobstride);
 double grid_getsfactor(grid* g);
+void grid_getzints(grid* g, int* nzints, zint* zints[]);
 
 int grid_xy2fij(grid* g, double x, double y, double* fi, double* fj);
 int grid_z2fk(grid* g, double fi, double fj, double z, double* fk);

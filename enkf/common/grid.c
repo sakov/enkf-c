@@ -163,6 +163,12 @@ struct grid {
      * variables of the grid.
      */
     double sfactor;
+
+    /*
+     * Vertical intervals for observation statistics
+     */
+    int nzints;
+    zint* zints;
 };
 
 /**
@@ -928,6 +934,9 @@ grid* grid_create(void* p, int id)
     if (prm->sob_stride != 0)
         g->sob_stride = prm->sob_stride;
     g->sfactor = prm->sfactor;
+    g->nzints = prm->nzints;
+    g->zints = malloc(g->nzints * sizeof(zint));
+    memcpy(g->zints, prm->zints, g->nzints * sizeof(zint));
 #if !defined(NO_GRIDUTILS)
 #if !defined(GRIDMAP_TYPE_DEF)
 #error("GRIDMAP_TYPE_DEF not defined; please update gridutils-c");
@@ -1185,6 +1194,8 @@ void grid_destroy(grid* g)
         free(g->numlevels);
     if (g->depth != NULL)
         free(g->depth);
+    if (g->nzints > 0)
+        free(g->zints);
 
     free(g);
 }
@@ -1288,6 +1299,7 @@ void grid_describeprm(void)
     enkf_printf("  [ STRIDE           = <stride> (common*) ]\n");
     enkf_printf("  [ SOBSTRIDE        = <sobstride> (common*) ]\n");
     enkf_printf("  [ SFACTOR          = <spread factor> (1.0*) ]\n");
+    enkf_printf("  [ ZSTATINTS        = [<z1> <z2>] ... ]\n");
     enkf_printf("\n");
     enkf_printf("  [ <more of the above blocks> ]\n");
     enkf_printf("\n");
@@ -1450,6 +1462,14 @@ void grid_setsobstride(grid* g, int sob_stride)
 double grid_getsfactor(grid* g)
 {
     return g->sfactor;
+}
+
+/**
+ */
+void grid_getzints(grid* g, int* nzints, zint* zints[])
+{
+    *nzints = g->nzints;
+    *zints = g->zints;
 }
 
 /**

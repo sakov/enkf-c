@@ -1,3 +1,8 @@
+v. 1.76.0
+   PS 27042018
+   -- Moved specification of ZSTATINTS from the main parameter file to the grid
+      parameter file.
+      NOTE: this may require update of the existing parameter files.
 v. 1.75.0
    PS 27042018
    -- Removed redundant struct obsdomain in enkfprm.h.

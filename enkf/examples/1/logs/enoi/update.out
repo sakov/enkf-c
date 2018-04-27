@@ -1,10 +1,15 @@
+[sparse:04354] mca: base: component_find: unable to open /usr/lib64/mpi/gcc/openmpi/lib64/openmpi/mca_btl_usnic: libpsm_infinipath.so.1: cannot open shared object file: No such file or directory (ignored)
+[sparse:04355] mca: base: component_find: unable to open /usr/lib64/mpi/gcc/openmpi/lib64/openmpi/mca_btl_usnic: libpsm_infinipath.so.1: cannot open shared object file: No such file or directory (ignored)
+[sparse:04354] mca: base: component_find: unable to open /usr/lib64/mpi/gcc/openmpi/lib64/openmpi/mca_mtl_psm: libpsm_infinipath.so.1: cannot open shared object file: No such file or directory (ignored)
+[sparse:04355] mca: base: component_find: unable to open /usr/lib64/mpi/gcc/openmpi/lib64/openmpi/mca_mtl_psm: libpsm_infinipath.so.1: cannot open shared object file: No such file or directory (ignored)
+[sparse:04354] mca: base: component_find: unable to open /usr/lib64/mpi/gcc/openmpi/lib64/openmpi/mca_mtl_ofi: libpsm_infinipath.so.1: cannot open shared object file: No such file or directory (ignored)
+[sparse:04355] mca: base: component_find: unable to open /usr/lib64/mpi/gcc/openmpi/lib64/openmpi/mca_mtl_ofi: libpsm_infinipath.so.1: cannot open shared object file: No such file or directory (ignored)
   MPI: initialised 2 process(es)
-  MPI: rank = 0, PID = 23502
-  MPI: rank = 1, PID = 23503
-  running UPDATE for EnKF-C version 1.68.8:
+  MPI: rank = 0, PID = 4354
+  running UPDATE for EnKF-C version 1.75.0:
     command = "./enkf_update --calculate-spread --output-increment enoi.prm"
     dir = "/home/pavel/src/enkf-c/trunk/enkf/examples/1"
-  2018-01-19 13:38:44
+  2018-04-27 14:44:23
   reading system specs from "enoi.prm":
     MODE = EnOI
     MODEL PRM = "model.prm"
@@ -22,7 +27,7 @@
     LOCRAD = 200
     STRIDE = 3
     FIELDBUFFERSIZE = 4
-    REGION Global: x = [0.0, 360.0], y = [-90.0, 90.0], z intervals = [0 50] [50 500] [500 9999] 
+    REGION Global: x = [0.0, 360.0], y = [-90.0, 90.0], z intervals = 
     POINTLOG 30 50
     SOBSTRIDE = 1
     NCFORMAT = 64BIT
@@ -31,14 +36,6 @@
       enkf_exitaction  = [BACKTRACE]
       enkf_obstype     = [VALUE]
     compile flags:
-      CHECK_X5         = [-]
-      CHECK_G          = [-]
-      SHUFFLE_ROWS     = [-]
-      HE_VIAFILE       = [-]
-      GRIDNODES_WRITE  = [-]
-      INTERNAL_QSORT_R = [-]
-      NO_GRIDUTILS     = [-]
-      OBS_SHUFFLE      = [-]
   update specs:
     do model fields  = [+]
     do spread        = [+]
@@ -51,13 +48,14 @@
       DATA = "conf/grid_spec.nc"
       MAPTYPE = "B"
       VTYPE = "z"
-      VDIR = "FROMSURF"
-      XVARNAME = "lon"
-      YVARNAME = "lat"
       ZVARNAME = "zt"
       ZCVARNAME = <none>
       DEPTHVARNAME = "depth_t"
       NUMLEVELSVARNAME = "num_levels"
+      VDIR = "FROMSURF"
+      XVARNAME = "lon"
+      YVARNAME = "lat"
+      ZSTATINTS = [0 50] [50 500] [500 9999] 
     grid info:
       hor type = LATLON
       periodic by X = no
@@ -86,44 +84,45 @@
       0 modeldata:
   updating the model state:
     144 members
+  MPI: rank = 1, PID = 4355
     allocating disk space for spread:
     defining state variables in point logs:
-    2018-01-19 13:38:44
+    2018-04-27 14:44:23
     allocating disk space for analysis:.....
-    2018-01-19 13:38:44
     updating fields for t-grid:
+      2018-04-27 14:44:23
       9 fields
       distributing iterations:
-        processes get 5 or 4 iterations
+        2 processes get 5 or 4 iterations
       u        0   (1: 5: 25.0%)
       eta_t    0   (0: 0: 20.0%)
       temp     0   (0: 1: 40.0%)
-      u        1   (1: 6: 50.0%)
       temp     1   (0: 2: 60.0%)
-      v        0   (1: 7: 75.0%)
       salt     0   (0: 3: 80.0%)
-      v        1   (1: 8: 100.0%)
       salt     1   (0: 4: 100.0%)
-  2018-01-19 13:38:44
+      u        1   (1: 6: 50.0%)
+      v        0   (1: 7: 75.0%)
+      v        1   (1: 8: 100.0%)
+  2018-04-27 14:44:25
   assembling analysis:
     eta_t:.
     temp:..
     salt:..
     u:..
     v:..
-  2018-01-19 13:38:44
+  2018-04-27 14:44:25
   assembling spread:
     eta_t:.
     temp:..
     salt:..
     u:..
     v:..
-  2018-01-19 13:38:44
+  2018-04-27 14:44:25
   assembling state variables in point logs:
     distributing iterations:
-      processes get 1 or 0 iterations
+      2 processes get 1 or 0 iterations
     deleting tiles:
       distributing iterations:
-        processes get 5 or 4 iterations
-  2018-01-19 13:38:44
+        2 processes get 5 or 4 iterations
+  2018-04-27 14:44:25
   finished

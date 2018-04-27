@@ -22,6 +22,7 @@
 #include "definitions.h"
 #include "utils.h"
 #include "hash.h"
+#include "grid.h"
 #include "dasystem.h"
 
 /* for the report */
@@ -84,6 +85,8 @@ void das_printobsstats(dasystem* das, int use_rmsd)
             obstype* ot = &obs->obstypes[otid];
             stats rstats;
             stats* rzstats = NULL;
+            int nzints = 0;
+            zint* zints = NULL;
 
             int t1 = -INT_MAX;
             int t2 = -INT_MAX;
@@ -97,7 +100,13 @@ void das_printobsstats(dasystem* das, int use_rmsd)
             double* std_a_as = NULL;
             int* nobs_as = NULL;
 
-            rzstats = calloc(r->nzints, sizeof(stats));
+            if (!ot->issurface) {
+                int mvid = model_getvarid(das->m, obs->obstypes[otid].varnames[0], 1);
+                void* g = model_getvargrid(das->m, mvid);
+
+                grid_getzints(g, &nzints, &zints);
+                rzstats = calloc(nzints, sizeof(stats));
+            }
 
             if (ot->isasync) {
                 t1 = get_tshift(ot->date_min, ot->async_tstep, ot->async_centred);
@@ -138,8 +147,8 @@ void das_printobsstats(dasystem* das, int use_rmsd)
                     if (!ot->issurface) {
                         int ii;
 
-                        for (ii = 0; ii < r->nzints; ++ii) {
-                            if (o->depth > r->zints[ii].z1 && o->depth <= r->zints[ii].z2) {
+                        for (ii = 0; ii < nzints; ++ii) {
+                            if (o->depth > zints[ii].z1 && o->depth <= zints[ii].z2) {
                                 rzstats[ii].inn_f += das->s_f[j];
                                 rzstats[ii].inn_f_abs += func(das->s_f[j]);
                                 rzstats[ii].inn_a += das->s_a[j];
@@ -234,7 +243,7 @@ void das_printobsstats(dasystem* das, int use_rmsd)
                 char tag[MAXSTRLEN];
                 int ii;
 
-                for (ii = 0; ii < r->nzints; ++ii) {
+                for (ii = 0; ii < nzints; ++ii) {
                     stats* s = &rzstats[ii];
 
                     s->inn_f /= (double) s->nobs;
@@ -247,7 +256,7 @@ void das_printobsstats(dasystem* das, int use_rmsd)
                         s->inn_f_abs = sqrt(s->inn_f_abs);
                         s->inn_a_abs = sqrt(s->inn_a_abs);
                     }
-                    snprintf(tag, MAXSTRLEN, "%.0f-%.0fm", r->zints[ii].z1, r->zints[ii].z2);
+                    snprintf(tag, MAXSTRLEN, "%.0f-%.0fm", zints[ii].z1, zints[ii].z2);
                     enkf_printf("             %-9s%6d%9.3f  %9.3f  %9.3f  %9.3f  %9.3f  %9.3f  \n", tag, s->nobs, s->inn_f_abs, s->inn_a_abs, s->inn_f, s->inn_a, s->std_f, s->std_a);
                 }
             }
@@ -322,6 +331,8 @@ void das_printfobsstats(dasystem* das, int use_rmsd)
             obstype* ot = &obs->obstypes[otid];
             fstats rstats;
             fstats* rzstats = NULL;
+            int nzints = 0;
+            zint* zints = NULL;
 
             int t1 = -INT_MAX;
             int t2 = -INT_MAX;
@@ -332,7 +343,13 @@ void das_printfobsstats(dasystem* das, int use_rmsd)
             double* std_f_as = NULL;
             int* nobs_as = NULL;
 
-            rzstats = calloc(r->nzints, sizeof(fstats));
+            if (!ot->issurface) {
+                int mvid = model_getvarid(das->m, obs->obstypes[otid].varnames[0], 1);
+                void* g = model_getvargrid(das->m, mvid);
+
+                grid_getzints(g, &nzints, &zints);
+                rzstats = calloc(nzints, sizeof(fstats));
+            }
 
             if (ot->isasync) {
                 t1 = get_tshift(ot->date_min, ot->async_tstep, ot->async_centred);
@@ -366,8 +383,8 @@ void das_printfobsstats(dasystem* das, int use_rmsd)
                     if (!ot->issurface) {
                         int ii;
 
-                        for (ii = 0; ii < r->nzints; ++ii) {
-                            if (o->depth > r->zints[ii].z1 && o->depth <= r->zints[ii].z2) {
+                        for (ii = 0; ii < nzints; ++ii) {
+                            if (o->depth > zints[ii].z1 && o->depth <= zints[ii].z2) {
                                 rzstats[ii].inn_f += das->s_f[j];
                                 rzstats[ii].inn_f_abs += func(das->s_f[j]);
                                 rzstats[ii].std_f += das->std_f[j];
@@ -451,7 +468,7 @@ void das_printfobsstats(dasystem* das, int use_rmsd)
                 char tag[MAXSTRLEN];
                 int ii;
 
-                for (ii = 0; ii < r->nzints; ++ii) {
+                for (ii = 0; ii < nzints; ++ii) {
                     fstats* s = &rzstats[ii];
 
                     s->inn_f /= (double) s->nobs;
@@ -461,7 +478,7 @@ void das_printfobsstats(dasystem* das, int use_rmsd)
                     if (das->mode == MODE_ENKF)
                         s->std_f /= (double) s->nobs;
 
-                    snprintf(tag, MAXSTRLEN, "%.0f-%.0fm", r->zints[ii].z1, r->zints[ii].z2);
+                    snprintf(tag, MAXSTRLEN, "%.0f-%.0fm", zints[ii].z1, zints[ii].z2);
                     if (das->mode == MODE_ENKF)
                         enkf_printf("             %-9s%6d%9.3f  %9.3f  %9.3f  \n", tag, s->nobs, s->inn_f_abs, s->inn_f, s->std_f);
                     else

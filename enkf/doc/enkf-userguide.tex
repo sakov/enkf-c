@@ -35,7 +35,7 @@
 
 \begin{document}
 
-\title{EnKF-C user guide\\{\normalsize version 1.74.12}}
+\title{EnKF-C user guide\\{\normalsize version 1.76.0}}
 
 \author{Pavel Sakov}
 \date{June 19, 2014 -- \today}
@@ -684,7 +684,6 @@ Its format is described by running \verb|enkf_prep|, \verb|enkf_calc| or \verb|e
   [ FIELDBUFFERSIZE = <fieldbuffersize> ]                    (1*)
   [ INFLATION       = <inflation> [ <VALUE>* | PLAIN ]       (0.5*)
     ...
-  [ ZSTATINTS       = [<z1> <z2>] ... ]
   [ REGION          = <name> <lon1> <lon2> <lat1> <lat2> [[<z1> <z2>] ... ]
     ...
   [ POINTLOG        <i> <j> [grid name]]
@@ -768,6 +767,7 @@ It also contains variable names for the depth and for number of layers in a vert
   [ STRIDE           = <stride> (common*) ]
   [ SOBSTRIDE        = <sobstride> (common*) ]
   [ SFACTOR          = <spread factor> (1.0*) ]
+  [ ZSTATINTS        = [<z1> <z2>] ... ]
 
   [ <more of the above blocks> ]
 \end{Verbatim}
@@ -1241,8 +1241,7 @@ This statistics is provided for each region defined in the main parameter file (
 By default, EnKF-C defines one statistical region ``Global'' with domain $[x_1,x_2] = [-999,999], [y_1,y_2] = [-999,999]$.
 
 In addition, for 3D observations \emph{calc} also calculates observation statistics in specified depth intervals.
-The global (common for all regions) intervals can be set by the entry \verb|ZSTATINTS| in the main parameter file; by default, three intervals are defined: \verb|[0 DEPTH_SHALLOW]|, \verb|[DEPTH_SHALLOW DEPTH_DEEP]|, and \verb|[DEPTH_DEEP DEPTH_MAX]|, where \verb|DEPTH_SHALLOW|, \verb|DEPTH_DEEP| and \verb|DEPTH_MAX| are the macros defined in \verb|common/definitions.h|.
-These common intervals can be overriden by settings for particular statistical regions.
+These intervals can be set via the entry \verb|ZSTATINTS| in the grid parameter file; by default, three intervals are defined: \verb|[0 DEPTH_SHALLOW]|, \verb|[DEPTH_SHALLOW DEPTH_DEEP]|, and \verb|[DEPTH_DEEP DEPTH_MAX]|, where \verb|DEPTH_SHALLOW|, \verb|DEPTH_DEEP| and \verb|DEPTH_MAX| are the macros defined in \verb|common/definitions.h|.
 
 Following is an example of innovation statistics written to the log (standard output) of \verb|enkf_calc|:
 \begin{Verbatim}[frame=single,fontsize=\footnotesize]

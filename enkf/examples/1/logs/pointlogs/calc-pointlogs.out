@@ -1,10 +1,15 @@
+[sparse:04695] mca: base: component_find: unable to open /usr/lib64/mpi/gcc/openmpi/lib64/openmpi/mca_btl_usnic: libpsm_infinipath.so.1: cannot open shared object file: No such file or directory (ignored)
+[sparse:04695] mca: base: component_find: unable to open /usr/lib64/mpi/gcc/openmpi/lib64/openmpi/mca_mtl_psm: libpsm_infinipath.so.1: cannot open shared object file: No such file or directory (ignored)
+[sparse:04696] mca: base: component_find: unable to open /usr/lib64/mpi/gcc/openmpi/lib64/openmpi/mca_btl_usnic: libpsm_infinipath.so.1: cannot open shared object file: No such file or directory (ignored)
+[sparse:04696] mca: base: component_find: unable to open /usr/lib64/mpi/gcc/openmpi/lib64/openmpi/mca_mtl_psm: libpsm_infinipath.so.1: cannot open shared object file: No such file or directory (ignored)
+[sparse:04695] mca: base: component_find: unable to open /usr/lib64/mpi/gcc/openmpi/lib64/openmpi/mca_mtl_ofi: libpsm_infinipath.so.1: cannot open shared object file: No such file or directory (ignored)
+[sparse:04696] mca: base: component_find: unable to open /usr/lib64/mpi/gcc/openmpi/lib64/openmpi/mca_mtl_ofi: libpsm_infinipath.so.1: cannot open shared object file: No such file or directory (ignored)
   MPI: initialised 2 process(es)
-  MPI: rank = 0, PID = 23649
-  MPI: rank = 1, PID = 23650
-  running CALC for EnKF-C version 1.68.8:
+  MPI: rank = 0, PID = 4695
+  running CALC for EnKF-C version 1.76.0:
     command = "./enkf_calc --point-logs-only pointlogs.prm"
     dir = "/home/pavel/src/enkf-c/trunk/enkf/examples/1"
-  2018-01-19 13:40:14
+  2018-04-27 14:51:58
   reading system specs from "pointlogs.prm":
     MODE = EnKF
     SCHEME = DEnKF
@@ -22,7 +27,7 @@
     LOCRAD = 200
     STRIDE = 3
     FIELDBUFFERSIZE = 4
-    REGION Global: x = [0.0, 360.0], y = [-90.0, 90.0], z intervals = [0 50] [50 500] [500 9999] 
+    REGION Global: x = [0.0, 360.0], y = [-90.0, 90.0], z intervals = 
     POINTLOG 30 50
     POINTLOG 50 50
     POINTLOG 70 50
@@ -30,17 +35,18 @@
     NCFORMAT = 64BIT
     NCCOMPRESSION = 0
     EnKF flags:
-      enkf_exitaction  = [BACKTRACE]
+      enkf_exitaction  = [SEGFAULT]
       enkf_obstype     = [VALUE]
     compile flags:
       CHECK_X5         = [-]
       CHECK_G          = [-]
       SHUFFLE_ROWS     = [-]
       HE_VIAFILE       = [-]
+      HE_VIASHMEM      = [-]
+      OBS_SHUFFLE      = [-]
       GRIDNODES_WRITE  = [-]
       INTERNAL_QSORT_R = [-]
       NO_GRIDUTILS     = [-]
-      OBS_SHUFFLE      = [-]
   initialising the system:
   reading observation type specs from "obstypes.prm":
     NAME = SLA
@@ -93,13 +99,14 @@
       DATA = "conf/grid_spec.nc"
       MAPTYPE = "B"
       VTYPE = "z"
-      VDIR = "FROMSURF"
-      XVARNAME = "lon"
-      YVARNAME = "lat"
       ZVARNAME = "zt"
       ZCVARNAME = <none>
       DEPTHVARNAME = "depth_t"
       NUMLEVELSVARNAME = "num_levels"
+      VDIR = "FROMSURF"
+      XVARNAME = "lon"
+      YVARNAME = "lat"
+      ZSTATINTS = [0 50] [50 500] [500 9999] 
     grid info:
       hor type = LATLON
       periodic by X = no
@@ -129,26 +136,20 @@
   reading observations from "observations.nc":
     3865 observations
   calculating ensemble observations:
-  2018-01-19 13:40:14
+  2018-04-27 14:51:58
     ensemble size = 96
+  MPI: rank = 1, PID = 4696
     distributing iterations:
-      all processes get 48 iterations
+      2 processes get 48 iterations each
     SLA ................................................
     SST ................................................
     TEM ................................................
     SAL ................................................
   adding forecast innovations and spread to "observations.nc":
-  2018-01-19 13:40:15
-  Hx_f already added to "observations.nc" (skipping)
+  2018-04-27 14:51:58
+    Hx_f already added to "observations.nc" (skipping)
   moderating observations:
-    observations substantially modified:
-      SLA          0 (0.0%)
-      SST          0 (0.0%)
-      TEM          0 (0.0%)
-      SAL          0 (0.0%)
-      total        0 (0.0%)
-  writing modified obs errors to "observations.nc":
-    nothing to do
+    already done
   writing point logs:
     calculating transform for log point (30, 50): 538 obs
     writing the log for point (30, 50) on grid "t-grid":
@@ -156,5 +157,5 @@
     writing the log for point (50, 50) on grid "t-grid":
     calculating transform for log point (70, 50): 466 obs
     writing the log for point (70, 50) on grid "t-grid":
-  2018-01-19 13:40:15
+  2018-04-27 14:51:59
   finished

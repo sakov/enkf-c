@@ -266,7 +266,6 @@ enkfprm* enkfprm_read(char fname[])
                     enkf_quit("%s, l.%d: could not convert \"%s\" to double", fname, line, token);
             }
         } else if (strcasecmp(token, "REGION") == 0) {
-            char zseps[] = " =\t\n[](){}";
             char* space;
             char* newtoken;
             region* r = NULL;
@@ -277,9 +276,6 @@ enkfprm* enkfprm_read(char fname[])
                 prm->regions = realloc(prm->regions, (prm->nregions + NINC) * sizeof(region));
 
             r = &prm->regions[prm->nregions];
-            r->nzints = 0;
-            r->zints = NULL;
-
             newtoken = token;
             while ((space = strchr(newtoken, '_')) != NULL) {
                 *space = ' ';
@@ -302,32 +298,7 @@ enkfprm* enkfprm_read(char fname[])
                 enkf_quit("%s, l.%d: maximal latitude not specified", fname, line);
             if (!str2double(token, &r->y2))
                 enkf_quit("%s, l.%d: could not convert \"%s\" to double", fname, line, token);
-            while ((token = strtok(NULL, zseps)) != NULL) {
-                if (r->nzints % NINC == 0)
-                    r->zints = realloc(r->zints, (r->nzints + NINC) * sizeof(zint));
-                if (!str2double(token, &r->zints[r->nzints].z1))
-                    enkf_quit("%s, l.%d: could not convert \"%s\" to double", fname, line, token);
-                if ((token = strtok(NULL, zseps)) == NULL)
-                    enkf_quit("%s, l.%d: maximal depth/height for an interval not specified", fname, line);
-                if (!str2double(token, &r->zints[r->nzints].z2))
-                    enkf_quit("%s, l.%d: could not convert \"%s\" to double", fname, line, token);
-                r->nzints++;
-            }
             prm->nregions++;
-        } else if (strcasecmp(token, "ZSTATINTS") == 0) {
-            char zseps[] = " =\t\n[](){}";
-
-            while ((token = strtok(NULL, zseps)) != NULL) {
-                if (prm->nzints % NINC == 0)
-                    prm->zints = realloc(prm->zints, (prm->nzints + NINC) * sizeof(zint));
-                if (!str2double(token, &prm->zints[prm->nzints].z1))
-                    enkf_quit("%s, l.%d: could not convert \"%s\" to double", fname, line, token);
-                if ((token = strtok(NULL, zseps)) == NULL)
-                    enkf_quit("%s, l.%d: maximal depth/height for an interval not specified", fname, line);
-                if (!str2double(token, &prm->zints[prm->nzints].z2))
-                    enkf_quit("%s, l.%d: could not convert \"%s\" to double", fname, line, token);
-                prm->nzints++;
-            }
         } else if (strcasecmp(token, "POINTLOG") == 0) {
             pointlog* plog = NULL;
 
@@ -416,34 +387,6 @@ enkfprm* enkfprm_read(char fname[])
         r->x2 = 999;
         r->y1 = -999;
         r->y2 = 999;
-        r->nzints = 0;
-        r->zints = NULL;
-    }
-
-    if (prm->nzints == 0) {
-        prm->nzints = 3;
-        prm->zints = malloc(3 * sizeof(zint));
-        prm->zints[0].z1 = 0.0;
-        prm->zints[0].z2 = DEPTH_SHALLOW;
-        prm->zints[1].z1 = DEPTH_SHALLOW;
-        prm->zints[1].z2 = DEPTH_DEEP;
-        prm->zints[2].z1 = DEPTH_DEEP;
-        prm->zints[2].z2 = DEPTH_MAX;
-    }
-
-    for (i = 0; i < prm->nregions; ++i) {
-        region* r = &prm->regions[i];
-
-        if (r->nzints == 0) {
-            int j;
-
-            r->nzints = prm->nzints;
-            r->zints = malloc(r->nzints * sizeof(zint));
-            for (j = 0; j < r->nzints; ++j) {
-                r->zints[j].z1 = prm->zints[j].z1;
-                r->zints[j].z2 = prm->zints[j].z2;
-            }
-        }
     }
 
     for (i = 0; i < prm->nbadbatchspecs; ++i) {
@@ -476,14 +419,10 @@ void enkfprm_destroy(enkfprm* prm)
     if (prm->bgdir != NULL)
         free(prm->bgdir);
     if (prm->nregions > 0) {
-        for (i = 0; i < prm->nregions; ++i) {
+        for (i = 0; i < prm->nregions; ++i)
             free(prm->regions[i].name);
-            free(prm->regions[i].zints);
-        }
         free(prm->regions);
     }
-    if (prm->nzints != 0)
-        free(prm->zints);
     if (prm->nplogs > 0) {
         for (i = 0; i < prm->nplogs; ++i)
             if (prm->plogs[i].gridname != NULL)
@@ -558,11 +497,8 @@ void enkfprm_print(enkfprm* prm, char offset[])
     }
     for (i = 0; i < prm->nregions; ++i) {
         region* r = &prm->regions[i];
-        int j;
 
         enkf_printf("%sREGION %s: x = [%.1f, %.1f], y = [%.1f, %.1f], z intervals = ", offset, r->name, r->x1, r->x2, r->y1, r->y2);
-        for (j = 0; j < r->nzints; ++j)
-            enkf_printf("[%.0f %.0f] ", r->zints[j].z1, r->zints[j].z2);
         enkf_printf("\n");
     }
     if (!enkf_fstatsonly) {
@@ -621,8 +557,7 @@ void enkfprm_describeprm(void)
     enkf_printf("  [ FIELDBUFFERSIZE = <fieldbuffersize> ]                    (1*)\n");
     enkf_printf("  [ INFLATION       = <inflation> [ <VALUE>* | PLAIN ]       (1*)\n");
     enkf_printf("    ...\n");
-    enkf_printf("  [ ZSTATINTS       = [<z1> <z2>] ... ]\n");
-    enkf_printf("  [ REGION          = <name> <lon1> <lon2> <lat1> <lat2> [[<z1> <z2>] ... ]\n");
+    enkf_printf("  [ REGION          = <name> <lon1> <lon2> <lat1> <lat2>\n");
     enkf_printf("    ...\n");
     enkf_printf("  [ POINTLOG        <i> <j> [grid name]]\n");
     enkf_printf("    ...\n");
