@@ -10,7 +10,6 @@
 --dont-break-function-decl-args
 --line-length999
 --no-space-after-parentheses
---pointers-to-type-definitions 
   // works only with the tweaked version of indent
   // available from:
   // https://drive.google.com/folderview?id=0B-joqvlrlCeRMjBtUFpRRHR1M0E&usp=sharing
