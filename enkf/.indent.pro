@@ -9,6 +9,7 @@
 --dont-break-procedure-type
 --dont-break-function-decl-args
 --line-length999
+--no-space-after-parentheses
 --pointers-to-type-definitions 
   // works only with the tweaked version of indent
   // available from:

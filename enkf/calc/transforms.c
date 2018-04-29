@@ -306,7 +306,9 @@ void das_calctransforms(dasystem* das)
                  * If writing of X5 is organised so that each process writes
                  * independently, then it may have sense to distribute the
                  * iterations randomly, so that the total time taken by each
-                 * process is approximately equal.
+                 * process is approximately equal. Currently, only the master
+                 * writes to X5*.nc, therefore shuffling rows makes no
+                 * difference.
                  */
 #if defined(SHUFFLE_ROWS)
                 shuffle(nj, jpool);

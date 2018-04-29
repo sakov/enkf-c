@@ -353,7 +353,7 @@ int main(int argc, char* argv[])
             enkf_printtime("  ");
             das_calctransforms(das);
         } else
-	    das_standardise(das);
+            das_standardise(das);
 
         if (rank == 0) {
             enkf_printf("  writing point logs:\n");
