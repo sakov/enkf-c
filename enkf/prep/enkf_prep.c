@@ -41,9 +41,6 @@ int do_superob = 1;
 
 int do_superob_acrossinst = 1;
 
-/*
- *
- */
 int write_orig_obs = 1;
 
 /**

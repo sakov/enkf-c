@@ -1,3 +1,6 @@
+v. 1.76.2
+   PS 30042018
+   -- Removed redundant declarations in model.h.
 v. 1.76.1
    PS 27042018
    -- Corrected update_HE() and update_Hx() in the case -DHE_VIASHMEM. This is

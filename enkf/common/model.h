@@ -23,26 +23,10 @@ typedef struct model model;
 struct variable;
 typedef struct variable variable;
 
-typedef void (*model_getmemberfname_fn) (model* m, char dir[], char varname[], int mem, char fname[]);
-typedef int (*model_getmemberfnameasync_fn) (model* m, char dir[], char varname[], char otname[], int mem, int t, char fname[]);
-typedef void (*model_getbgfname_fn) (model* m, char dir[], char varname[], char fname[]);
-typedef int (*model_getbgfnameasync_fn) (model* m, char dir[], char varname[], char otnamename[], int t, char fname[]);
-typedef void (*model_readfield_fn) (model* m, char fname[], int mem, int time, char varname[], int k, float* v);
-typedef void (*model_read3dfield_fn) (model* m, char fname[], int mem, int time, char varname[], float* v);
-typedef void (*model_writefield_fn) (model* m, char fname[], int time, char varname[], int k, float* v);
-
 model* model_create(enkfprm* prm);
 void model_destroy(model* m);
 void model_print(model* m, char offset[]);
 void model_describeprm(void);
-
-void model_setgetmemberfname_fn(model* m, model_getmemberfname_fn fn);
-void model_setgetmemberfnameasync_fn(model* m, model_getmemberfnameasync_fn fn);
-void model_setbgfname_fn(model* m, model_getbgfname_fn fn);
-void model_setbgfnameasync_fn(model* m, model_getbgfnameasync_fn fn);
-void model_setreadfield_fn(model* m, model_readfield_fn fn);
-void model_setread3dfield_fn(model* m, model_read3dfield_fn fn);
-void model_setwritefield_fn(model* m, model_writefield_fn fn);
 
 void model_adddata(model* m, char tag[], int vid, int alloctype, void* data);
 void model_addorreplacedata(model* m, char tag[], int vid, int alloctype, void* data);
