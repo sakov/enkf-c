@@ -1,3 +1,9 @@
+v. 1.76.5
+   PS 01052018
+   -- Removed what supposed to be a check on positive layer thicknesses in
+      gz_hybrid_create(), as one needs to run it on the layer coordinates rather
+      than on at/ac/bt/bc coefficients, and for that one needs to know the
+      (approximate) surface pressure that seems unavailble at that point.
 v. 1.76.4
    PS 01052018
    -- Corrected assertions at the end of gz_z_create() and gz_sigma_create() to

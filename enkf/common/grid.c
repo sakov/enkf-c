@@ -499,11 +499,6 @@ static gz_hybrid* gz_hybrid_create(int ni, int nj, int nk, double* a, double* b,
     gz->fi_prev = NAN;
     gz->fj_prev = NAN;
 
-    for (i = 0; i < nk; ++i)
-        assert((gz->at[i] - gz->ac[i]) * (gz->ac[i + 1] - gz->at[i]) > 0.0);
-    for (i = 0; i < nk; ++i)
-        assert((gz->bt[i] - gz->bc[i]) * (gz->bc[i + 1] - gz->bt[i]) > 0.0);
-
     return gz;
 }
 
