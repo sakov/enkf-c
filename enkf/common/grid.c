@@ -357,9 +357,9 @@ static gz_z* gz_z_create(grid* g, int nk, double* z, int nkc, double* zc, char* 
     }
 
     if (gz->vdirection == GRIDVDIR_FROMSURF)
-        assert(gz->zt[0] < gz->zt[nk - 1] && gz->zc[0] < gz->zc[nk]);
+        assert(gz->zt[0] <= gz->zt[nk - 1] && gz->zc[0] < gz->zc[nk]);
     else if (gz->vdirection == GRIDVDIR_TOSURF)
-        assert(gz->zt[0] > gz->zt[nk - 1] && gz->zc[0] > gz->zc[nk]);
+        assert(gz->zt[0] >= gz->zt[nk - 1] && gz->zc[0] > gz->zc[nk]);
     for (i = 0; i < nk; ++i)
         assert((gz->zt[i] - gz->zc[i]) * (gz->zc[i + 1] - gz->zt[i]) > 0.0);
 
@@ -434,9 +434,9 @@ static gz_sigma* gz_sigma_create(grid* g, int ni, int nj, int nk, double* ct, do
     gz->fj_prev = NAN;
 
     if (gz->vdirection == GRIDVDIR_FROMSURF)
-        assert(gz->ct[0] < gz->ct[nk - 1] && gz->cc[0] < gz->cc[nk]);
+        assert(gz->ct[0] <= gz->ct[nk - 1] && gz->cc[0] < gz->cc[nk]);
     else if (gz->vdirection == GRIDVDIR_TOSURF)
-        assert(gz->ct[0] > gz->ct[nk - 1] && gz->cc[0] > gz->cc[nk]);
+        assert(gz->ct[0] >= gz->ct[nk - 1] && gz->cc[0] > gz->cc[nk]);
     for (i = 0; i < nk; ++i)
         assert((gz->ct[i] - gz->cc[i]) * (gz->cc[i + 1] - gz->ct[i]) > 0.0);
 
