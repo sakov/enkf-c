@@ -1,7 +1,7 @@
 v. 1.76.4
    PS 01052018
    -- Corrected assertions at the end of gz_z_create() and gz_sigma_create() to
-      work for 1-layer model (replaced < by <=). Thanks Paul Sandery for the
+      work for 1-layer model (replaced < by <=). Thanks to Paul Sandery for the
       report.
 v. 1.76.3
    PS 01052018
