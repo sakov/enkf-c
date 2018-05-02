@@ -80,7 +80,7 @@ OF SUCH DAMAGE.
 \addcontentsline{toc}{chapter}{Introduction}
 
 EnKF-C aims to provide a compact generic framework for off-line data assimilation (DA) into large-scale layered geophysical models with the ensemble Kalman filter (EnKF).
-Here ``light-weight'' has higher priority than ``generic''; that is, the code is not designed to cover every virtual possibility for the sake of it, but rather to be expandable in practical (from the author's point of view) situations.
+Here ``compact'' has higher priority than ``generic''; that is, the code is not designed to cover every virtual possibility for the sake of it, but rather to be expandable in practical (from the author's point of view) situations.
 Following are its other main features:
 \begin{itemize}
 \item coded in C for GNU/Linux platform;
@@ -96,6 +96,17 @@ It is also available from \url{http://arxiv.org/abs/1410.1233}.
 
 The user guide has two main sections.
 Section~\ref{ch:enkf} overviews the basics of the EnKF; section~\ref{ch:enkf-c} provides technical description of EnKF-C.
+
+\section*{Pre-requisitives and limitations}
+
+Following is the list of main pre-requisitives and limitations resulted from the design and algorithmic solutions adopted in EnKF-C:
+\begin{itemize}
+\item the model is assumed to be layered, so that the horizontal and vertical grids are independent of each other;
+\item horizontal grids are assumed to be structured quadrilateral;
+\item the model output is assumed to be in NetCDF format, with $(x, y, z)$ dimension order (meaning $z$ is the ``slowest'', ``most outward'' variable);
+\item the forecast observations are calculated off-line (outside the model) only;
+\item there is no vertical localisation, so that one typically needs an ensemble of about 100 rather than 40 members.
+\end{itemize}
 
 \chapter{EnKF}
 \label{ch:enkf}
