@@ -1,16 +1,6 @@
 \documentclass{standalone}
 \usepackage{pdfpages}
 \usepackage{tikz}
-\usepackage{adjustbox}
-
-\newlength{\maxtabfigwidth}
-\newlength{\maxtabfigheight}
-\AtBeginDocument{
-  \setlength{\maxtabfigwidth}{\textwidth}
-  \setlength{\maxtabfigheight}{\textheight}
-  % decrease height a bit letting captions fit to one page
-  \addtolength{\maxtabfigheight}{-2.5em}
-}
 
 \def \minnodewidth {5.75cm}
 \tikzset{font=\Huge}
@@ -22,7 +12,6 @@
 \tikzstyle{arrow1}=[->, >=stealth, rounded corners = 5mm, line width = 1.5 mm]
 \tikzstyle{arrow2}=[->, >=stealth, rounded corners = 5mm, line width = 1 mm, densely dashed]
 
-\begin{adjustbox}{max width=\maxtabfigwidth, max height=\maxtabfigheight, center}
 \begin{tikzpicture}[node distance = 30mm and 30mm]
 
   \node (mainprm) [circle, draw, fill = red!20, text depth = 0cm, text height = 0cm, minimum width = \minnodewidth] {enkf.prm};
@@ -93,6 +82,5 @@
     \end{tabular}
   };
 \end{tikzpicture}
-\end{adjustbox}
 
 \end{document}
