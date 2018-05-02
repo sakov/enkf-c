@@ -543,7 +543,7 @@ void enkfprm_describeprm(void)
     enkf_printf("    GRID            = <grid prm file>\n");
     enkf_printf("    OBSTYPES        = <obs. types prm file>\n");
     enkf_printf("    OBS             = <obs. data prm file>\n");
-    enkf_printf("    DATE            = <julian day of analysis>\n");
+    enkf_printf("    DATE            = <day of analysis>\n");
     enkf_printf("  [ WINDOWMIN       = <start of obs window in days from analysis> ] (-inf*)\n");
     enkf_printf("  [ WINDOWMAX       = <end of obs window in days from analysis> ]   (+inf*)\n");
     enkf_printf("    ENSDIR          = <ensemble directory>\n");

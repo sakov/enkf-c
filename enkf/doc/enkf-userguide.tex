@@ -677,7 +677,7 @@ Its format is described by running \verb|enkf_prep|, \verb|enkf_calc| or \verb|e
     GRID            = <grid prm file>
     OBSTYPES        = <obs. types prm file>
     OBS             = <obs. data prm file>
-    DATE            = <julian day of analysis>
+    DATE            = <day of analysis>
   [ WINDOWMIN       = <start of obs window in days from analysis> ] (-inf*)
   [ WINDOWMAX       = <end of obs window in days from analysis> ]   (+inf*)
     ENSDIR          = <ensemble directory>
@@ -691,12 +691,14 @@ Its format is described by running \verb|enkf_prep|, \verb|enkf_calc| or \verb|e
   [ FIELDBUFFERSIZE = <fieldbuffersize> ]                    (1*)
   [ INFLATION       = <inflation> [ <VALUE>* | PLAIN ]       (0.5*)
     ...
-  [ REGION          = <name> <lon1> <lon2> <lat1> <lat2> [[<z1> <z2>] ... ]
+  [ REGION          = <name> <lon1> <lon2> <lat1> <lat2>
     ...
   [ POINTLOG        <i> <j> [grid name]]
     ...
   [ EXITACTION      = { BACKTRACE* | SEGFAULT } ]
   [ BADBATCHES      = <obstype> <max. bias> <max. mad> <min # obs.> ]
+  [ NCFORMAT        = { CLASSIC | 64BIT | NETCDF4 } ]        (64BIT*)
+  [ NCCOMPRESSION   = <compression level>                    (0*) ]
     ...
 
   Notes:
