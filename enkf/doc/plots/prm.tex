@@ -1,0 +1,98 @@
+\documentclass{standalone}
+\usepackage{pdfpages}
+\usepackage{tikz}
+\usepackage{adjustbox}
+
+\newlength{\maxtabfigwidth}
+\newlength{\maxtabfigheight}
+\AtBeginDocument{
+  \setlength{\maxtabfigwidth}{\textwidth}
+  \setlength{\maxtabfigheight}{\textheight}
+  % decrease height a bit letting captions fit to one page
+  \addtolength{\maxtabfigheight}{-2.5em}
+}
+
+\def \minnodewidth {5.75cm}
+\tikzset{font=\Huge}
+\usetikzlibrary{shapes, arrows, positioning}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{document}
+
+\tikzstyle{arrow1}=[->, >=stealth, rounded corners = 5mm, line width = 1.5 mm]
+\tikzstyle{arrow2}=[->, >=stealth, rounded corners = 5mm, line width = 1 mm, densely dashed]
+
+\begin{adjustbox}{max width=\maxtabfigwidth, max height=\maxtabfigheight, center}
+\begin{tikzpicture}[node distance = 30mm and 30mm]
+
+  \node (mainprm) [circle, draw, fill = red!20, text depth = 0cm, text height = 0cm, minimum width = \minnodewidth] {enkf.prm};
+  \node (mainprmdesc) [rectangle, transparent, below = 0mm of mainprm] {
+    \Large
+    \begin{tabular}{l}
+      \textbullet \ lists parameter files\\
+      \textbullet \ defines common DA parameters\\
+    \end{tabular}
+  };
+
+  \node (obsprm) [circle, draw, left = of mainprm, fill = gray!30, text depth = 1cm, text height = 1cm, minimum width = \minnodewidth] {obs.prm};
+  \node (obsprmdesc) [rectangle, transparent, below = 0mm of obsprm] {
+    \Large
+    \begin{tabular}{l}
+      \textbullet \ lists obs. data files\\
+      \textbullet \ associates obs. data with obs. types\\
+    \end{tabular}
+  };
+
+   \node (obstypesprm) [circle, draw, below = of obsprm, fill = green!20, text depth = 1cm, text height = 1cm, minimum width = \minnodewidth] {obstypes.prm};
+  \node (obstypesprmdesc) [rectangle, draw, fill = green!20, below = 0mm of obstypesprm] {
+    \Large
+    \begin{tabular}{l}
+      \textbullet \ defines obs. types\\
+      \textbullet \ associates types with variables\\
+      \textbullet \ defines type specific parameters\\
+    \end{tabular}
+  };
+
+  \node (modelprm) [circle, draw, below = of mainprm, fill = magenta!20, text depth = 1cm, text height = 1cm, minimum width = \minnodewidth] {model.prm};
+  \node (modelprmdesc) [rectangle, draw, fill = magenta!20, below = 0mm of modelprm] {
+    \Large
+    \begin{tabular}{l}
+      \textbullet \ defines model variables\\
+      \textbullet \ associates variables with grids\\
+    \end{tabular}
+  };
+
+  \node (gridprm) [circle, draw, right = of modelprm, fill = cyan!20, text depth = 1cm, text height = 1cm, minimum width = \minnodewidth] {grid.prm};
+  \node (gridprmdesc) [rectangle, draw, fill = cyan!20, below = 0mm of gridprm] {
+    \Large
+    \begin{tabular}{l}
+      \textbullet \ defines grids\\
+    \end{tabular}
+  };
+
+  \draw [arrow1, draw = red] (mainprm) -- (obsprm);
+  \draw [arrow1, draw = red] (mainprm) -- (obstypesprm);
+  \draw [arrow1, draw = red] (mainprm) -- (modelprm);
+  \draw [arrow1, draw = red] (mainprm) -- (gridprm);
+  \draw [arrow2, draw = gray] (obsprm) -- (obstypesprm);
+  \draw [arrow2, draw = green] (obstypesprm) -- (modelprm);
+  \draw [arrow2, draw = magenta] (modelprm) -- (gridprm);
+
+  \node (mainprmdesc) [rectangle, draw, fill = red!20, below = 0mm of mainprm] {
+    \Large
+    \begin{tabular}{l}
+      \textbullet \ lists parameter files\\
+      \textbullet \ defines common DA parameters\\
+    \end{tabular}
+  };
+  \node (obsprmdesc) [rectangle, draw, fill = gray!30, below = 0mm of obsprm] {
+    \Large
+    \begin{tabular}{l}
+      \textbullet \ lists observation data files\\
+      \textbullet \ associates obs. data with obs. types\\
+    \end{tabular}
+  };
+\end{tikzpicture}
+\end{adjustbox}
+
+\end{document}

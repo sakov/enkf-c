@@ -10,6 +10,7 @@
 \usepackage{accents}
 \usepackage{enumitem}
 \usepackage{hyperref}
+\usepackage{graphicx}
 
 \hypersetup{ 
     colorlinks,
@@ -642,7 +643,7 @@ Due to its size (almost 80\,MB) the data for this example is available for downl
 
 \section{Parameter files}
 
-EnKF-C requires 5 parameter files to run:
+EnKF-C requires 5 parameter files to run (fig.~\ref{fig:prm}):
 \begin{itemize} 
 \item main parameter file;
 \item model parameter file;
@@ -652,6 +653,12 @@ EnKF-C requires 5 parameter files to run:
 \end{itemize}
 Examples of these parameter files can be found in \verb|examples/1|.
 Running EnKF-C binaries with \verb|--describe-prm-format| in the command line provides information on the parameter file formats.
+
+\begin{figure}[h]
+  \includegraphics[width=\textwidth]{plots/prm.pdf}
+  \caption{Parameter files in EnKF-C.}
+  \label{fig:prm}
+\end{figure}
 
 \subsection{Main parameter file}
 \label{sec:mainprm}
