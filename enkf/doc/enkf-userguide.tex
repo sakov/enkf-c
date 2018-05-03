@@ -1101,6 +1101,25 @@ reader_xyz_gridded
 These readers allow one to specify a number of parameters by means of the entry \verb|PARAMETER| of the observation data parameter file.
 At the moment the only obligatory parameter for these readers is \verb|VARNAME|; a number of other obligatory parameters (e.g. \verb|LONNAME|, \verb|LATNAME|) can be specified either via the entry \verb|PARAMETER| or by using default variable names in data files.
 
+\subsection{Superobing}
+
+``Superobing'' is the process of reduction of the number of observations by merging spatially close observations before their assimilation.
+EnKF-C merges observations if:
+\begin{itemize}
+\item they belong to the same model grid cell;
+\item are of the same type;
+\item for asynchronous observations -- belong to the same time slot.
+\end{itemize}
+The horizontal size of superobing cells can be increased from the default of 1 model grid cell to $N \times N$ cells by setting \verb|SOBSTRIDE = <N>| in the parameter file; the vertical size is always equal to 1 layer.
+Setting \verb|SOBSTRIDE = 0| switches superobing off.
+
+The observations are merged by averaging their values, coordinates and times with weights inversely proportional to the observation error variance.
+The observation error variance of a superobservation is set to the inverse of the sum of inverse observation error variances of the merged observations.
+The product and instrument fields of the superobservation are set either to those of the merged observations or to -1, depending on whether the merged observations have the same values for these fields or not.
+
+Command line parameter \verb|--consider-subgrid-variability| switches on considering the subgrid variability by calculating standard deviation of the merged observations $\sigma\!_{sub}$ and using $\sigma\!_{obs} = \max(\sigma\!_{obs}, \sigma\!_{sub})$.
+The calculation of $\sigma\!_{sub}$ is currently done in a rather crude way, assuming equal weights for all merged observations.
+
 \subsection{Asynchronous DA / FGAT}
 \label{sec:async}
 
@@ -1146,24 +1165,35 @@ The entries ``.'' indicate calculating ensemble observations for synchronous obs
 Note that only the master process is writing to the log here, which explains why there is only output from 6 members in the log above.
 For EnOI there also will be ``+'' at the end of the line for each observation type indicating reading of the corresponding background field.
 
-\subsection{Superobing}
-
-``Superobing'' is the process of reduction of the number of observations by merging spatially close observations before their assimilation.
-EnKF-C merges observations if:
-\begin{itemize}
-\item they belong to the same model grid cell;
-\item are of the same type;
-\item for asynchronous observations -- belong to the same time slot.
-\end{itemize}
-The horizontal size of superobing cells can be increased from the default of 1 model grid cell to $N \times N$ cells by setting \verb|SOBSTRIDE = <N>| in the parameter file; the vertical size is always equal to 1 layer.
-Setting \verb|SOBSTRIDE = 0| switches superobing off.
-
-The observations are merged by averaging their values, coordinates and times with weights inversely proportional to the observation error variance.
-The observation error variance of a superobservation is set to the inverse of the sum of inverse observation error variances of the merged observations.
-The product and instrument fields of the superobservation are set either to those of the merged observations or to -1, depending on whether the merged observations have the same values for these fields or not.
-
-Command line parameter \verb|--consider-subgrid-variability| switches on considering the subgrid variability by calculating standard deviation of the merged observations $\sigma\!_{sub}$ and using $\sigma\!_{obs} = \max(\sigma\!_{obs}, \sigma\!_{sub})$.
-The calculation of $\sigma\!_{sub}$ is currently done in a rather crude way, assuming equal weights for all merged observations.
+Fig.~\ref{fig:mom_timing} shows an example of observation timing in a MOM based ocean forecasting system with a 3-day assimilation cycle.
+In this system the ``fast'' SST data is assimilated asynchronously with 6\,h intervals using model fields averaged over these intervals; the slower SLA data is assimilated asynchronously with 24\,h intervals using daily model dumps; and in-situ T and S fields are assimilated synchronously.
+This is achieved with the following settings in the observation types parameter file:
+\begin{Verbatim}[frame=single,fontsize=\footnotesize]
+NAME = SLA
+VAR = eta_t
+ISSURFACE = yes
+ASYNCHRONOUS 1
+<...>
+NAME = SST
+VAR = temp sstb
+ISSURFACE = yes
+ASYNCHRONOUS 0.25 E
+<...>
+NAME = TEM
+VAR = temp sstb
+ISSURFACE = no
+<...>
+NAME = SAL
+VAR = salt
+ISSURFACE = no
+<...>
+\end{Verbatim}
+\begin{figure}[h]
+  \centering
+  \includegraphics[width = \textwidth]{plots/obstiming_example.pdf}
+  \caption{Example of observation timing in a MOM based ocean forecasting system.}
+  \label{fig:mom_timing}
+\end{figure}
 
 \section{\emph{calc}}
 
