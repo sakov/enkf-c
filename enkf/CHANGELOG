@@ -1,3 +1,8 @@
+v. 1.77.0
+   PS 03052018
+   -- Added capability to limit the number of observations of each type used
+      in local analyses via entries NLOBSMAX in the main and obstypes parameter
+      files.
 v. 1.76.5
    PS 01052018
    -- Removed what supposed to be a check on positive layer thicknesses in

@@ -18,6 +18,7 @@
 #include <string.h>
 #include <float.h>
 #include <math.h>
+#include <limits.h>
 #include "ncw.h"
 #include "definitions.h"
 #include "utils.h"
@@ -99,6 +100,7 @@ enkfprm* enkfprm_read(char fname[])
     prm->inflation_base = 1.0;
     prm->inf_ratio = INFRATIO_DEFAULT;
     prm->locrad = NAN;
+    prm->nlobsmax = INT_MAX;
     prm->stride = 1;
     prm->fieldbufsize = 1;
     prm->sob_stride = 1;
@@ -233,6 +235,11 @@ enkfprm* enkfprm_read(char fname[])
                 enkf_quit("%s, l.%d: LOCRAD specified twice", fname, line);
             if (!str2double(token, &prm->locrad))
                 enkf_quit("%s, l.%d: could not convert LOCRAD value", fname, line);
+        } else if (strcasecmp(token, "NLOBSMAX") == 0) {
+            if ((token = strtok(NULL, seps)) == NULL)
+                enkf_quit("%s, l.%d: NLOBSMAX not specified", fname, line);
+            if (!str2int(token, &prm->nlobsmax))
+                enkf_quit("%s, l.%d: could not convert \"%s\" to int", fname, line, token);
         } else if (strcasecmp(token, "STRIDE") == 0) {
             if ((token = strtok(NULL, seps)) == NULL)
                 enkf_quit("%s, l.%d: STRIDE not specified", fname, line);
@@ -492,6 +499,7 @@ void enkfprm_print(enkfprm* prm, char offset[])
         else
             enkf_printf("%sKFACTOR = n/a\n", offset);
         enkf_printf("%sLOCRAD = %.0f\n", offset, prm->locrad);
+        enkf_printf("%sNLOBSMAX = %d\n", offset, prm->nlobsmax);
         enkf_printf("%sSTRIDE = %d\n", offset, prm->stride);
         enkf_printf("%sFIELDBUFFERSIZE = %d\n", offset, prm->fieldbufsize);
     }
@@ -552,6 +560,7 @@ void enkfprm_describeprm(void)
     enkf_printf("  [ RFACTOR         = <rfactor> ]                            (1*)\n");
     enkf_printf("    ...\n");
     enkf_printf("    LOCRAD          = <loc. radius in km>\n");
+    enkf_printf("  [ NLOBSMAX        = <max. number of local obs. of each type> ]\n");
     enkf_printf("  [ STRIDE          = <stride> ]                             (1*)\n");
     enkf_printf("  [ SOBSTRIDE       = <stride> ]                             (1*)\n");
     enkf_printf("  [ FIELDBUFFERSIZE = <fieldbuffersize> ]                    (1*)\n");

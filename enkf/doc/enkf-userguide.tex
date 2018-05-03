@@ -36,7 +36,7 @@
 
 \begin{document}
 
-\title{EnKF-C user guide\\{\normalsize version 1.76.0}}
+\title{EnKF-C user guide\\{\normalsize version 1.77.0}}
 
 \author{Pavel Sakov}
 \date{June 19, 2014 -- \today}
@@ -660,7 +660,7 @@ EnKF-C requires 5 parameter files to run (fig.~\ref{fig:prm}):
 \item model parameter file;
 \item grid parameter file;
 \item observation types parameter file;
-\item and observation parameter file.
+\item and observation data parameter file.
 \end{itemize}
 Examples of these parameter files can be found in \verb|examples/1|.
 Running EnKF-C binaries with \verb|--describe-prm-format| in the command line provides information on the parameter file formats.
@@ -698,6 +698,7 @@ Its format is described by running \verb|enkf_prep|, \verb|enkf_calc| or \verb|e
   [ RFACTOR         = <rfactor> ]                            (1*)
     ...
     LOCRAD          = <loc. radius in km>
+  [ NLOBSMAX        = <max. number of local obs. of each type> ]
   [ STRIDE          = <stride> ]                             (1*)
   [ SOBSTRIDE       = <stride> ]                             (1*)
   [ FIELDBUFFERSIZE = <fieldbuffersize> ]                    (1*)
@@ -862,6 +863,7 @@ For example:
   [ LOCRAD      = <locrad> ... ]                   (global*)
   [ WEIGHT      = <weight> ... ]                   (1*)
   [ RFACTOR     = <rfactor> ]                      (1*)
+  [ NLOBSMAX    = <max. number of local obs. ]
   [ MINVALUE    = <minimal allowed value> ]        (-inf*)
   [ MAXVALUE    = <maximal allowed value> ]        (+inf*)
   [ XMIN        = <minimal allowed X coordinate> ] (-inf*)
@@ -1468,6 +1470,11 @@ For the Gaspary and Cohn's taper function used in EnKF-C the effective radius is
 
 Increasing the localisation radius increases the number of local observations and hence the overall impact of observations.
 To compensate this in a system with horizontal localisation one has to change the R-factor as the square of the localisation radius.
+
+From v1.77.0 it is possible to limit the maximal number of local observations of each observation type via the entry \verb|NLOBSMAX| in the main parameter file (sec.~\ref{sec:mainprm}).
+This common setting can be overriden for particular observation types in the observation types parameter file (sec.~\ref{sec:obstypesprm}).
+Note that using this setting can result in discontinuity of the analysis because the set of observations used for local analyses in adjacent grid cells can change in a discontinuous way.
+Therefore the general advise is to avoid using this functionality except perhaps interpolation oriented products.
 
 \section{Point logs}
 \label{sec:pointlogs}

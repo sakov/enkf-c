@@ -7,7 +7,8 @@
  * Author:      Pavel Sakov
  *              Bureau of Meteorology
  *
- * Description:
+ * Description: Handles "obstype" structure, which provides interface between
+ *              observations and model.
  *
  * Revisions:
  *
@@ -20,6 +21,7 @@
 #include <assert.h>
 #include <string.h>
 #include <math.h>
+#include <limits.h>
 #include "kdtree.h"
 #include "definitions.h"
 #include "utils.h"
@@ -54,6 +56,7 @@ static void obstype_new(obstype* type, int i, char* name)
     type->locrad = NULL;
     type->weight = NULL;
     type->rfactor = 1.0;
+    type->nlobsmax = -1;
     type->vid = -1;
     type->gridid = -1;
     type->xmin = -DBL_MAX;
@@ -87,7 +90,9 @@ static void obstype_check(obstype* type)
     if (type->issurface == -1)
         enkf_quit("\"%s\": ISSURFACE not specified\n", type->name);
     if (type->rfactor <= 0)
-        enkf_quit("\"%s\": RFACTOR = %f\n", type->name);
+        enkf_quit("\"%s\": RFACTOR = %f\n", type->name, type->rfactor);
+    if (type->nlobsmax < 0)
+        enkf_quit("\"%s\": NLOBSMAX = %d\n", type->name, type->nlobsmax);
     if (type->nvar == 0)
         enkf_quit("\"%s\": VAR not specified\n", type->name);
     if (type->hfunction == NULL)
@@ -126,6 +131,7 @@ static void obstype_print(obstype* type)
         enkf_printf(" %.3g", type->weight[i]);
     enkf_printf("\n");
     enkf_printf("      RFACTOR = %.3g\n", type->rfactor);
+    enkf_printf("      NLOBSMAX = %d\n", type->nlobsmax);
     if (type->xmin > -DBL_MAX || type->xmax < DBL_MAX || type->ymin > -DBL_MAX || type->ymax < DBL_MAX || type->zmin > -DBL_MAX || type->zmax < DBL_MAX)
         enkf_printf("      DOMAIN = %.3g %.3g %.3g %.3g %.3g %.3g\n", type->xmin, type->xmax, type->ymin, type->ymax, type->zmin, type->zmax);
     if (isfinite(type->windowmin)) {
@@ -136,7 +142,7 @@ static void obstype_print(obstype* type)
 
 /**
  */
-void obstypes_read(char fname[], int* n, obstype** types, double locrad_base, double rfactor_base)
+void obstypes_read(char fname[], int* n, obstype** types, double locrad_base, double rfactor_base, int nlobsmax)
 {
     FILE* f = NULL;
     char buf[MAXSTRLEN];
@@ -288,6 +294,11 @@ void obstypes_read(char fname[], int* n, obstype** types, double locrad_base, do
                 enkf_quit("%s, l.%d: RFACTOR not specified", fname, line);
             if (!str2double(token, &now->rfactor))
                 enkf_quit("%s, l.%d: could not convert \"%s\" to double", fname, line, token);
+        } else if (strcasecmp(token, "NLOBSMAX") == 0) {
+            if ((token = strtok(NULL, seps)) == NULL)
+                enkf_quit("%s, l.%d: NLOBSMAX not specified", fname, line);
+            if (!str2int(token, &now->nlobsmax))
+                enkf_quit("%s, l.%d: could not convert \"%s\" to int", fname, line, token);
         } else if (strcasecmp(token, "XMIN") == 0) {
             if ((token = strtok(NULL, seps)) == NULL)
                 enkf_quit("%s, l.%d: XMIN not specified", fname, line);
@@ -359,6 +370,9 @@ void obstypes_read(char fname[], int* n, obstype** types, double locrad_base, do
                 type->weight[j] /= sum;
         }
         type->rfactor *= rfactor_base;
+
+        if (type->nlobsmax < 0)
+            type->nlobsmax = nlobsmax;
     }
 
     for (i = 0; i < *n; ++i) {
@@ -385,6 +399,7 @@ void obstypes_describeprm(void)
     enkf_printf("  [ LOCRAD      = <locrad> ... ]                   (global*)\n");
     enkf_printf("  [ WEIGHT      = <weight> ... ]                   (1*)\n");
     enkf_printf("  [ RFACTOR     = <rfactor> ]                      (1*)\n");
+    enkf_printf("  [ NLOBSMAX    = <max. number of local obs. ]\n");
     enkf_printf("  [ MINVALUE    = <minimal allowed value> ]        (-inf*)\n");
     enkf_printf("  [ MAXVALUE    = <maximal allowed value> ]        (+inf*)\n");
     enkf_printf("  [ XMIN        = <minimal allowed X coordinate> ] (-inf*)\n");

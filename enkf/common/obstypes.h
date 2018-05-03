@@ -35,6 +35,7 @@ typedef struct {
     double* locrad;
     double* weight;
     double rfactor;
+    int nlobsmax;
 
     int vid;
     int gridid;
@@ -72,7 +73,7 @@ typedef struct {
     double date_max;
 } obstype;
 
-void obstypes_read(char fname[], int* n, obstype** types, double locrad_base, double rfactor_base);
+void obstypes_read(char fname[], int* n, obstype** types, double locrad_base, double rfactor_base, int nlobsmax);
 void obstypes_describeprm(void);
 
 #if defined(ENKF_PREP)

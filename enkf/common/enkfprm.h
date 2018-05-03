@@ -62,6 +62,7 @@ typedef struct {
     double inflation_base;
     double inf_ratio;
     double locrad;
+    int nlobsmax;
     int stride;
     int fieldbufsize;
     int nregions;

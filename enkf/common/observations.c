@@ -150,7 +150,7 @@ observations* obs_create_fromprm(enkfprm* prm)
     obs->datafiles = st_create("datafiles");
 
     enkf_printf("  reading observation type specs from \"%s\":\n", prm->obstypeprm);
-    obstypes_read(prm->obstypeprm, &obs->nobstypes, &obs->obstypes, prm->locrad, prm->rfactor_base);
+    obstypes_read(prm->obstypeprm, &obs->nobstypes, &obs->obstypes, prm->locrad, prm->rfactor_base, prm->nlobsmax);
 
 #if defined(ENKF_PREP)
     obs->da_date = date_str2dbl(prm->date);
@@ -1262,12 +1262,13 @@ void obs_findlocal(observations* obs, model* m, grid* g, int icoord, int jcoord,
         kdset* set = NULL;
         double dist;
         size_t id;
+        int iloc;
 
         if (ot->nobs == 0)
             continue;
 
         set = kd_findnodeswithinrange(tree, xyz, obstype_getmaxlocrad(ot), 1);
-        for (; (id = kdset_read(set, &dist)) != SIZE_MAX; ++i) {
+        for (iloc = 0; iloc < ot->nlobsmax && (id = kdset_read(set, &dist)) != SIZE_MAX; ++i, ++iloc) {
             int id_orig = kd_getnodeorigid(tree, id);
 
             if (i % KD_INC == 0) {
