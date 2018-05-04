@@ -504,7 +504,7 @@ This is done using local normalised ensemble observation anomalies $\ac{i}{\mb S
   \end{align}
 \end{subequations}
 where $\ac{i}{\mb f}$ is the vector of taper coefficients for element $i$, and $\mb A \circ \mb B$ denotes by-element, or Hadamard, or Schur product of matrices $\mb A$ and $\mb B$.
-We consider non-adaptive localisation only, when a taper coefficient is a function of locations of the state element $i$ (denoted as $\ac{i}{\mb r}$) and observation $o$ (denoted as $\ac{\{o\}}{\mb r}$): $\ac{i}{\mb f}_o = g(\ac{i}{\mb r}, \ac{\{o\}}{\mb r})$, where $g$ is the taper function.
+We consider non-adaptive localisation only, when the taper coefficient is a function of locations of the state element $i$ (denoted as $\ac{i}{\mb r}$) and observation $o$ (denoted as $\ac{\{o\}}{\mb r}$): $\ac{i}{\mb f}_o = g(\ac{i}{\mb r}, \ac{\{o\}}{\mb r})$, where $g$ is the taper function.
 In layered geophysical models $g$ is often assumed to depend only on horizontal distance between these locations: 
 \begin{align}
   \label{hor}
@@ -525,7 +525,7 @@ In reality, observations assimilated at a given cycle are made over some period 
 If the DA method accounts for the time of observations, observations and DA method are referred to as \emph{asynchronous}.
 
 The EnKF can be naturally extended for asynchronous DA.
-Let us consider the minimisation problem (\ref{min-nonl}, \ref{L-nonl}) in the case of \underline{perfect model} $\mb Q = 0$.
+Let us consider the minimisation problem (\ref{min-nonl}, \ref{L-nonl}) in the case of \emph{perfect model} $\mb Q = 0$.
 It becomes
 \begin{align}
   \label{min-perf}
@@ -547,7 +547,7 @@ Note that usually only $\mathcal H$ is a function that depends on assimilated ob
 It is also possible to interpret $\mathcal M(\mb x$) as the \emph{trajectory} starting from $\mb x$, while $\mathcal H$ maps it to observations.
 
 Apart from the operator $\mathcal H \circ \mathcal M$, the cost function (\ref{cost-async}) has the same form as that for a single DA cycle with synchronous observations.
-Consequently, \underline{in the linear case} (\ref{lin}) one can use solutions for $\mb w$ and $\mb T$ from section~\ref{sec:numerical}, subject to extending definitions of $\mb s$ (\ref{s}) and $\mb S$ (\ref{S}) as follows:
+Consequently, \emph{in the linear case} (\ref{lin}) one can use solutions for $\mb w$ and $\mb T$ from section~\ref{sec:numerical}, subject to extending definitions of $\mb s$ (\ref{s}) and $\mb S$ (\ref{S}) as follows:
 \begin{align}
   \label{s-async}
   &\mb s = \mb R^{-1/2} \left[ \mb y - \mathcal H \circ \mathcal M (\mb x_1^f) \right] / \sqrt{m - 1},\\
@@ -617,9 +617,9 @@ The assimilation is conducted by calculating a common horizontal field of local 
 
 \section{The workflow}
 
-EnKF-C conducts data assimilation in three stages: \emph{prep}, \emph{calc} and \emph{update}.
+EnKF-C conducts data assimilation in three stages: PREP, CALC and UPDATE.
 
-\emph{prep} preprocesses observations so that they are ready for DA.
+PREP preprocesses observations so that they are ready for DA.
 It has the following stages:
 \begin{itemize}
 \item read original observations and convert them into a vector of structure \verb|observation|;
@@ -628,7 +628,7 @@ It has the following stages:
 \item write super observations to \verb|observations.nc|.
 \end{itemize}
 
-\emph{calc} calculates ensemble transforms for updating the forecast ensemble of model states (EnKF) or the background model state (EnOI) in the following stages:
+CALC calculates ensemble transforms for updating the forecast ensemble of model states (EnKF) or the background model state (EnOI) in the following stages:
 \begin{itemize}
 \item read observations from \verb|observations.nc|;
 \item calculate ensemble of forecast observations $\mb H \mb E^f$ (EnKF) or ensemble of background observation anomalies $\mb H \mb A^f$ and background observations $\mb H \mb x^f$ (EnOI);
@@ -638,9 +638,9 @@ It has the following stages:
 \item calculate observation impact metrics DFS and SRF (sec.~\ref{sec:impact}) and save them to \verb|enkf_diag.nc|;
 \item save ensemble, observations and transforms/weights at specified horizontal locations to pointlog files (sec.~\ref{sec:pointlogs}).
 \end{itemize}
-Apart from this main mode of operation, \emph{calc} can also calculate forecast  innovations only or operate in a single observation experiment mode.
+Apart from this main mode of operation, CALC can also calculate forecast  innovations only or operate in a single observation experiment mode.
 
-\emph{update} updates the ensemble (EnKF) or the background (EnOI) using transforms calculated by \emph{calc}, and saves the analysis according to specifications.
+UPDATE updates the ensemble (EnKF) or the background (EnOI) using transforms calculated by CALC, and saves the analysis according to specifications.
 It also adds analysis information to the pointlog files, and can calculate and save the ensemble spread.
 
 \section{Starting up: example 1}
@@ -809,8 +809,8 @@ For rectangular grids the code tries to determine and handle periodicity in X or
 
 With some effort EnKF-C can also handle non-simply connected grids (like tri-polar ORCA grids).
 This is achieved by creating an auxiliary grid that is simply connected in grid index space by masking some nodes (replacing their coordinates with NaNs) in the original grid.
-Because only \emph{prep} requires mapping from physical to grid space, this auxiliary grid is then used in \emph{prep} only, while the original grid is used in \emph{calc} and \emph{update}.
-To specify that a grid entry is to be used in \emph{prep} only one needs to add qualifier ``PREP'' after its name; and to specify that it is to be used in \emph{calc} and \emph{update} one needs to add qualifier ``CALC''.
+Because only PREP requires mapping from physical to grid space, this auxiliary grid is then used in PREP only, while the original grid is used in CALC and UPDATE.
+To specify that a grid entry is to be used in PREP only one needs to add qualifier ``PREP'' after its name; and to specify that it is to be used in CALC and UPDATE one needs to add qualifier ``CALC''.
 See \verb|examples/3| for an example.
 
 From version 1.37.0 such grids can also be handled by using grid mapping via kd-tree instead of the default mapping via spatial binary tree, which is now available from package gridutils-c.
@@ -965,15 +965,15 @@ The background file (EnOI only) for variable \verb|varname| is assumed to be \sp
 The above names are used for reading forecast states for synchronous DA and for writing analyses, in the case if the analyses are appended to forecasts (true by default).
 For asynchronous DA the member and background file names for the time slot \verb|t| are assumed to be \spverb|sprintf("mem%03d_%s_%d.nc", mid, varname, t)| and \spverb|sprintf("bg_%s_%d.nc", varname, t)|, correspondingly.
 
-\section{\emph{prep}}
+\section{PREP}
 
-\emph{prep} is the first stage of data assimilation in EnKF-C.
+PREP is the first stage of data assimilation in EnKF-C.
 Its preprocesses observations by bringing them to a common form and merging close observations into so called superobservations.
 
-By design, \emph{prep} is supposed to be light-weight, so that it does not read either the ensemble or background, and the only model information it needs is the model grid. 
+By design, PREP is supposed to be light-weight, so that it does not read either the ensemble or background, and the only model information it needs is the model grid. 
 (Note that this may require some additional processing at later stages for models with dynamic grid, such as HYCOM.)
 
-The name of the binary (executable) for \emph{prep} is \verb|enkf_prep|.
+The name of the binary (executable) for PREP is \verb|enkf_prep|.
 It has the following usage and options:
 \begin{Verbatim}[frame=single,fontsize=\footnotesize]
 >./bin/enkf_prep
@@ -1145,7 +1145,7 @@ The interval 0 will then be from day 6085.5 to day 6086.5.
 The model states for each asynchronous interval are read from files with names \spverb|mem<xxx>_<variable name>_<time shift>.nc| in the ensemble directory (for the EnKF) or \spverb|bg_<variable name>_<time shift>.nc| in the background directory (for the EnOI).
 Here ``time shift'' is the interval ID (with the interval 0 being centred/starting at the observation time).
 If the corresponding members (or the background files, in the case of EnOI) are found, the observations are assimilated asynchronously; if they are not found, then the observations are assimilated synchronously.
-This can be tracked from the \emph{calc} log file, e.g.:
+This can be tracked from the CALC log file, e.g.:
 \begin{Verbatim}[frame=single,fontsize=\footnotesize]
   calculating ensemble observations:
   2014-03-22 06:28:28
@@ -1195,12 +1195,12 @@ ISSURFACE = no
   \label{fig:mom_timing}
 \end{figure}
 
-\section{\emph{calc}}
+\section{CALC}
 
-\emph{calc} is the second stage of data assimilation in EnKF-C.
+CALC is the second stage of data assimilation in EnKF-C.
 It calculates 2D arrays of local ensemble transforms $\mb X_5$ (for EnKF) or coefficients $\mb w$ (for EnOI).
 
-The name of the binary for \emph{calc} is \verb|enkf_calc|.
+The name of the binary for CALC is \verb|enkf_calc|.
 It has the following usage and options:
 \begin{Verbatim}[frame=single,fontsize=\footnotesize]
 >./bin/enkf_calc 
@@ -1240,7 +1240,7 @@ Normally, this experiments would be conducted in the EnOI mode, calculating incr
 When run in the EnKF mode, the increment (or analysis, depending on specifications) for each member is calculated.
 
 Note that the calculated transforms \emph{do not} incorporate inflation.
-Inflation is applied during \emph{update} according to specifications (sec.~\ref{sec:capping}).
+Inflation is applied during UPDATE according to specifications (sec.~\ref{sec:capping}).
 
 \subsection{Observation functions}
 \label{sec:hfunctions}
@@ -1258,12 +1258,12 @@ The ``standard'' functions do normally perform 2D or 3D linear interpolation fro
 \subsection{Interpolation of ensemble transforms}
 
 Local ensemble transforms $\mb X_5$ (EnKF) or local ensemble weights $\mb w$ (EnOI) represent smooth fields with the characteristic spatial variability scale of the localisation radius.
-This smoothness allows one to reduce the computational load in \emph{calc} by calculating local transforms or weights on a subgrid with a specified stride only, and using linearly interpolated transforms or weights in the intermediate grid cells.
-The value of the stride is defined by the \verb|STRIDE| entry in the parameter file and can be overwritten for a particular grid in the grid parameter file.
+This smoothness allows one to reduce the computational load in CALC by calculating local transforms or weights on a subgrid with a specified stride only, and using linearly interpolated transforms or weights in the intermediate grid cells.
+The value of the stride is defined by the \verb|STRIDE| entry in the main parameter file and can be overwritten for a particular grid in the grid parameter file.
 
 \subsection{Adaptive moderation of observations}
 
-One of standard quality control (QC) procedures in DA is the so called background check, when an observation is compared with the forecast and discarded if the innovation magnitude exceeds some specified threshold.
+One of the standard quality control (QC) procedures in DA is the so called background check, when an observation is compared with the forecast and discarded if the innovation magnitude exceeds some specified threshold.
 The downside of this approach is that it can not distinguish between situations of an outlier, big model error (e.g. because of an error in forcing), or model divergence.
 While one probably would like to discard an outlier, it is usually desirable to make use of valid observations, although, perhaps, with a reduced impact, to avoid ``over-stressing'' the model.
 In EnKF-C this is achieved by adaptive moderation of the observation impact by restricting the magnitude of the increment from a given observation in observation space by $K$ times magnitude of the spread of the forecast ensemble \citep{sak17a}.
@@ -1273,7 +1273,7 @@ Specifically, the adaptive moderation of the observation impact is conducted by 
   \sigma^2_{obs} \leftarrow \left[(\sigma_{f}^2 + \sigma_{obs}^2)^2 + \sigma_f^2 \, d^2 / K^2\right]^{1/2} - \sigma_f^2,
 \end{align*}
 where $\sigma_{obs}$ is the observation error standard deviation, $\sigma_f$ -- forecast ensemble spread, $d$ -- innovation, and $K$ -- the so called K-factor defined in the main parameter file (sec. \ref{sec:mainprm}).
-Tests with small models show that setting the K-factor to say 2-3 or above makes a marginal impact (if any) on performance of weakly suboptimal systems, while still can be quite beneficial in stressful situations.
+Tests with small models show that setting the $K \ge 2$ makes a marginal impact (if any) on performance of weakly suboptimal systems, while still can be quite beneficial in stressful situations.
 
 \subsection{Moderation of spread reduction}
 
@@ -1289,11 +1289,11 @@ and the ETKF expression (\ref{TR-ETKF}) as
 
 \subsection{Innovation statistics}
 
-In its course \emph{calc} calculates some basic innovation statistics: number of observations, mean absolute forecast innovation, mean absolute analysis innovation, mean forecast innovation, mean analysis innovation, mean forecast ensemble spread, and mean analysis ensemble spread.
+In its course CALC calculates some basic innovation statistics: number of observations, mean absolute forecast innovation, mean absolute analysis innovation, mean forecast innovation, mean analysis innovation, mean forecast ensemble spread, and mean analysis ensemble spread.
 This statistics is provided for each region defined in the main parameter file (sec.~\ref{sec:mainprm}), as well as for each time slot defined for asynchronous DA, and for each instrument.
 By default, EnKF-C defines one statistical region ``Global'' with domain $[x_1,x_2] = [-999,999], [y_1,y_2] = [-999,999]$.
 
-In addition, for 3D observations \emph{calc} also calculates observation statistics in specified depth intervals.
+In addition, for 3D observations CALC also calculates observation statistics in specified depth intervals.
 These intervals can be set via the entry \verb|ZSTATINTS| in the grid parameter file; by default, three intervals are defined: \verb|[0 DEPTH_SHALLOW]|, \verb|[DEPTH_SHALLOW DEPTH_DEEP]|, and \verb|[DEPTH_DEEP DEPTH_MAX]|, where \verb|DEPTH_SHALLOW|, \verb|DEPTH_DEEP| and \verb|DEPTH_MAX| are the macros defined in \verb|common/definitions.h|.
 
 Following is an example of innovation statistics written to the log (standard output) of \verb|enkf_calc|:
@@ -1337,7 +1337,7 @@ After that, statistics for particular instruments is shown; ``N/A'' corresponds 
 (One can avoid superobing across different instruments by using option \verb|--no-superobing-across-instruments| in \verb|enkf_prep|.)
 For subsurface temperature also statistics for shallow (0--50\,m), deep ($>$500\,m), and intermediate (50--500\,m) observations is given.
 
-The analysis innovation statistics is calculated from the updated (analysis) ensemble observations by \emph{calc}, thus avoiding the need to access analysis files produced later by \emph{update}.
+The analysis innovation statistics is calculated from the updated (analysis) ensemble observations by CALC, thus avoiding the need to access analysis files produced later by UPDATE.
 The update of ensemble observations is performed in the same way as that of any other element of the state vector:
 for the EnKF -- by applying the appropriate local ensemble transforms to the forecast ensemble observations,
 \begin{align*}
@@ -1351,7 +1351,7 @@ and for the EnOI -- by applying the appropriate local linear combination of the 
 \subsection{Impact of observations}
 \label{sec:impact}
 
-In the course of its work \emph{calc} routinely calculates two metrics for assessing the impact of observations, degrees of freedom of signal (DFS) and spread reduction factor (SRF):
+In the course of its work CALC routinely calculates two metrics for assessing the impact of observations, degrees of freedom of signal (DFS) and spread reduction factor (SRF):
 \begin{align*}
   & \mathrm{DFS} = \mathrm{tr}(\mb K \mb H) = \mathrm{tr}(\mb G \mb S), \\
   & \mathrm{SRF} = \sqrt{\frac{\mathrm{tr}(\mb H \mb P^f \mb H\T \mb R^{-1})}{\mathrm{tr}(\mb H \mb P^a \mb H\T \mb R^{-1})}} - 1 = \sqrt{\frac{\mathrm{tr}(\mb S\T \mb S)}{\mathrm{tr}(\mb G \mb S)}} - 1,
@@ -1395,12 +1395,12 @@ This can be set by entries \verb|LOCRAD| and \verb|WEIGHT| either in the main pa
 (recall that entries in the observation types parameter file for particular observation types override the common settings in the main parameter file).
 Note that the weights are normalised so that their sum is equal to 1.
 
-\section{\emph{update}}
+\section{UPDATE}
 
-\emph{update} is the third and final stage of data assimilation in EnKF-C.
-It updates the ensemble (EnKF) or the background (EnOI) by applying the transforms calculated by \emph{calc}.
+UPDATE is the third and final stage of data assimilation in EnKF-C.
+It updates the ensemble (EnKF) or the background (EnOI) by applying the transforms calculated by CALC.
 
-The name of the binary for \emph{update} is \verb|enkf_update|.
+The name of the binary for UPDATE is \verb|enkf_update|.
 It has the following usage and options:
 \begin{Verbatim}[frame=single,fontsize=\footnotesize]
 >./bin/enkf_update
@@ -1426,10 +1426,10 @@ It has the following usage and options:
       print version and exit
 \end{Verbatim}
 
-The option \verb|--joint-output| tells \emph{update} to append analyses to the corresponding forecast files, using new variable names constructed by concatenating the forecast variable names and suffix \verb|_an|.
+The option \verb|--joint-output| tells UPDATE to append analyses to the corresponding forecast files, using new variable names constructed by concatenating the forecast variable names and suffix \verb|_an|.
 By default the analyses are written to separate files, using the same variable names as the forecast files, but with an extra suffix \verb|.analysis| or \verb|.increment| added to the file name, depending on whether the analysis or increment is written.
 
-By default, \emph{update} first writes each updated horizontal field of the model to a separate file (referred to here as a tile), and then concatenates these fields into analysis files.
+By default, UPDATE first writes each updated horizontal field of the model to a separate file (referred to here as a tile), and then concatenates these fields into analysis files.
 The tiles are removed after writing the analysis files; one may save time for allocating them on disk in the next cycle by leaving them on disk by using option \verb|--leave-tiles|.
 This approach is somewhat less effective than direct writing to analysis files (without intermediate tiles), but, unfortunately, the direct writing is generally not reliable due to parallel I/O issues with NetCDF.
 Note that in some cases it proved to be possible to obtain robust performance with direct write using ``classic'' or ``64-bit-offset'' NetCDF formats.
@@ -1651,18 +1651,18 @@ Such grids can be used in EnKF-C as described in section~\ref{sec:gridprm}.
 
 To reduce the memory usage, most of the potentially big arrays in EnKF-C use \verb|float| data type.
 
-The memory footprint of \emph{prep} is defined by the size of the \verb|measurement| structure and the number of observations.
+The memory footprint of PREP is defined by the size of the \verb|measurement| structure and the number of observations.
 It is rarely a problem.
 
-For \emph{calc} it is mainly defined by the size of ensemble observation anomalies, which require $p \times m \times 4$ bytes for storage.
+For CALC it is mainly defined by the size of ensemble observation anomalies, which require $p \times m \times 4$ bytes for storage.
 For example, with $3 \cdot 10^6$ superobservations and $10^2$ ensemble members the size of this array would be about 1.2\, GB per CPU, which should be manageable on most contemporary systems.
 If the footprint becomes too big, one may consider reducing the number of observations by a coarser superobing (setting the parameter \verb|SOBSTRIDE| to 2 or more) or reducing the number of cores per node used.
 
-From version 1.74, it is possible to substantially reduce the memory footprint in \emph{calc} by using shared memory for the ensemble observations.
-For that, \emph{calc} needs to be compiled with flag \verb|-DHE_VIASHMEM|.
+From version 1.74, it is possible to substantially reduce the memory footprint in CALC by using shared memory for the ensemble observations.
+For that, CALC needs to be compiled with flag \verb|-DHE_VIASHMEM|.
 It is likely to become a default option in future.
 
-The footprint of \emph{update} is mainly defined by the size of the array of simultaneously updated horizontal fields.
+The footprint of UPDATE is mainly defined by the size of the array of simultaneously updated horizontal fields.
 For example, for a $1500 \times 3600$ horizontal field, 100 ensemble members and simultaneous update of 2 fields the size of this array would be about 4.3\,GB per CPU.
 It can be reduced to 2.15\,GB by setting the parameter \verb|FIELDBUFFERSIZE| to 1.
 Note that reducing the number of simultaneously updated fields specified by parameter \verb|FIELDBUFFERSIZE| increases I/O (the $\mb X_5$ array is read from disk $N_f / N_b$ times, where $N_f$ is the total number of horizontal fields, and $N_b$ is the number of simultaneously updated fields) and reduces computational effectiveness (the $\mb X_5$ array needs to be interpolated horizontally $N_f / N_b$ times).
@@ -1697,7 +1697,7 @@ Add compile flag \verb|-DNO_GRIDUTILS| to compile without it.
 
 \section{Possible problems}
 
-\subsection{\emph{calc} becomes too slow after increasing localisation radius}
+\subsection{CALC becomes too slow after increasing localisation radius}
 
 This is due to the increased number of local observations.
 
