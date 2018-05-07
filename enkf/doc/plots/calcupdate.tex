@@ -28,7 +28,8 @@
 \draw[-, thick] (joint1) to (add1);
 \draw[->, thick] (add1) to (ensobs);
 
-\node (grids) [transparent, above = 1cm of ensobs, minimum width = 1.5cm, minimum height = 1.5cm] {Grids};
+\node (add21) [circle, transparent, minimum width = 2.5cm, above = 1cm of ensobs] {CALC};
+\node (grids) [transparent, above = 1cm of add21, minimum width = 1.5cm, minimum height = 1.5cm] {Grids};
 
 \coordinate (jointG) at (grids.south);
 
@@ -38,10 +39,12 @@
 \draw[->, thick] (jointG) to ([out = 90, in = 90, xshift = -3mm] transforms.south);
 \draw[->, thick] (jointG) to ([out = 90, in = 90] transforms.south);
 \draw[->, thick] (jointG) to ([out = 90, in = 90, xshift = 3mm] transforms.south);
-\node (grids) [draw, fill = cyan!30, above = 1cm of ensobs, minimum width = 1.5cm, minimum height = 1.5cm] {Grids};
+\node (grids) [draw, fill = cyan!30, above = 1cm of add21, minimum width = 1.5cm, minimum height = 1.5cm] {Grids};
 \draw[->, dotted] (jointG) to ([out = 90, in = 90, xshift = -3mm] transforms.south);
 \draw[->, dotted] (jointG) to ([out = 90, in = 90] transforms.south);
 \draw[->, dotted] (jointG) to ([out = 90, in = 90, xshift = 3mm] transforms.south);
+\node (add21) [circle, draw, fill = white, minimum width = 2.5cm, above = 1cm of ensobs] {CALC};
+\draw[-, thick] (obs) to [out = 90, in = 180] (add21);
 
 \node (add2) [circle, draw, minimum width = 2.5cm, right = 2cm of fensd] {UPDATE};
 \coordinate (joint2) at (add2.west);
