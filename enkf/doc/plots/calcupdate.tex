@@ -7,60 +7,58 @@
 
 \newcommand{\mb} {\mathbf}
 \def \minnodewidth {4.5cm}
+\def \minrad {4cm}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \begin{document}
 
 \begin{tikzpicture}
-\Large
-\node (frens) [transparent, draw, minimum width = \minnodewidth] {\begin{tabular}{c}Forecast restart ensemble\\$\mb E^f$\end{tabular}};
-\node (fensd) [transform shape, draw, fill = blue!20, fit = {(frens) ($(frens.center) + (0, 20mm)$)}, minimum width = \minnodewidth] {\begin{tabular}{c}Forecast ensemble dumps\\ at different times\\ \\\end{tabular}};
-\node (frens) [draw, fill = blue!40, minimum width = \minnodewidth] {\begin{tabular}{c}Forecast restart ensemble\\$\mb E^f$\end{tabular}};
-\node (origin) [transparent, left = of fensd] {};
-\node (obs) [draw, fill = gray!40, left = of origin, minimum width = \minnodewidth] {\begin{tabular}{c}Observations\\$\mb y$\end{tabular}};
-\node (add1) [circle, draw, minimum width = 2.5cm, above = 2cm of origin] {CALC};
-\node (ensobs) [draw, fill = green!30, above = 1cm of add1, minimum width = \minnodewidth] {\begin{tabular}{c} Forecast ensemble observations\\$\mathcal M \circ \mathcal H (\mb E^f)$\end{tabular}};
+\Huge
 
-\coordinate (joint1) at (add1.south);
-\draw[-, thick] (obs) to [in = -90, out = 0] (joint1);
-\draw[-, thick] (fensd) to [in = -90, out = 180] (joint1);
-\draw[-, thick] (joint1) to (add1);
+\node (frens) [transparent, draw, minimum width = \minnodewidth] {\begin{tabular}{c}Forecast restart ensemble\\$\mb E^f$\end{tabular}};
+\node (fensd) [transform shape, draw, fill = blue!20, fit = {(frens) ($(frens.center) + (0, 40mm)$)}, minimum width = \minnodewidth] {\begin{tabular}{c}Forecast ensemble dumps\\ at different times\\ \\\end{tabular}};
+\node (frens) [draw, fill = blue!40, minimum width = \minnodewidth] {\begin{tabular}{c}Forecast restart ensemble\\$\mb E^f$\end{tabular}};
+\node (origin) [transparent, left = 2cm of fensd] {};
+\node (obs) [draw, fill = gray!40, left = of origin, minimum width = \minnodewidth] {\begin{tabular}{c}Observations\\$\mb y$\end{tabular}};
+\node (add1) [circle, draw, minimum width = \minrad, above = 2cm of origin] {CALC};
+\node (ensobs) [draw, fill = green!30, above = 1cm of add1, minimum width = \minnodewidth] {\begin{tabular}{c} Forecast ensemble observations\\$\mathcal H \circ \mathcal M (\mb E^f)$\end{tabular}};
+
+\draw[-, thick] (obs) to [in = -90, out = 0] (add1.south);
+\draw[-, thick] (fensd) to [in = -90, out = 180] (add1.south);
+\draw[-, thick] (add1.south) to (add1);
 \draw[->, thick] (add1) to (ensobs);
 
-\node (add21) [circle, transparent, minimum width = 2.5cm, above = 1cm of ensobs] {CALC};
+\node (add21) [circle, transparent, minimum width = \minrad, above = 1cm of ensobs] {CALC};
 \node (grids) [transparent, above = 1cm of add21, minimum width = 1.5cm, minimum height = 1.5cm] {Grids};
-
-\coordinate (jointG) at (grids.south);
 
 \node (transforms) [draw, fill = magenta!30, above = 1cm of grids, minimum width = \minnodewidth] {\begin{tabular}{c}Arrays of local ensemble transforms\\$\mb X_5$-0, $\mb X_5$-1, \dots \end{tabular}};
 
-\draw[-, thick] (ensobs) to (jointG);
-\draw[->, thick] (jointG) to ([out = 90, in = 90, xshift = -3mm] transforms.south);
-\draw[->, thick] (jointG) to ([out = 90, in = 90] transforms.south);
-\draw[->, thick] (jointG) to ([out = 90, in = 90, xshift = 3mm] transforms.south);
+\draw[-, thick] (ensobs) to (grids.south);
+\draw[->, thick] (grids.south) to ([out = 90, in = 90, xshift = -3mm] transforms.south);
+\draw[->, thick] (grids.south) to ([out = 90, in = 90] transforms.south);
+\draw[->, thick] (grids.south) to ([out = 90, in = 90, xshift = 3mm] transforms.south);
 \node (grids) [draw, fill = cyan!30, above = 1cm of add21, minimum width = 1.5cm, minimum height = 1.5cm] {Grids};
-\draw[->, dotted] (jointG) to ([out = 90, in = 90, xshift = -3mm] transforms.south);
-\draw[->, dotted] (jointG) to ([out = 90, in = 90] transforms.south);
-\draw[->, dotted] (jointG) to ([out = 90, in = 90, xshift = 3mm] transforms.south);
-\node (add21) [circle, draw, fill = white, minimum width = 2.5cm, above = 1cm of ensobs] {CALC};
-\draw[-, thick] (obs) to [out = 90, in = 180] (add21);
+\draw[->, dotted] (grids.south) to ([out = 90, in = 90, xshift = -3mm] transforms.south);
+\draw[->, dotted] (grids.south) to ([out = 90, in = 90] transforms.south);
+\draw[->, dotted] (grids.south) to ([out = 90, in = 90, xshift = 3mm] transforms.south);
+\node (add21) [circle, draw, fill = white, minimum width = \minrad, above = 1cm of ensobs] {CALC};
+\draw[-, thick] (obs) to [out = 90, in = -90] ([xshift = -0.5cm] ensobs.west) to [out = 90, in = 180] (add21);
 
-\node (add2) [circle, draw, minimum width = 2.5cm, right = 2cm of fensd] {UPDATE};
-\coordinate (joint2) at (add2.west);
-\draw[-, thick] (transforms.east) to [out = 0, in = 180] (joint2);
-\draw[-, thick] (frens.east) to [out = 0, in = 180] (joint2);
+\node (add2) [circle, draw, minimum width = \minrad, right = 2cm of fensd] {UPDATE};
+\draw[-, thick] (frens.east) to [out = 0, in = 180] (add2.west);
 
 \node (arens) [draw, fill = red!40, minimum width = \minnodewidth, right = 1cm of add2] {\begin{tabular}{c}Analysed restart ensemble\\$\mb E^a$\end{tabular}};
 \draw[->, thick] (add2) to (arens);
 
-\node (add3) [circle, draw, minimum width = 2.5cm] at (ensobs -| add2) {CALC};
-\coordinate (joint3) at (add3.west);
-\draw[-, thick] (transforms.east) to [out = 0, in = 180] (joint3);
-\draw[-, thick] (ensobs.east) to [out = 0, in = 180] (joint3);
+\node (add3) [circle, draw, minimum width = \minrad] at (ensobs -| add2) {CALC};
+\draw[-, thick] (transforms.east) to [out = 0, in = 180] (add3.west);
+\draw[-, thick] (ensobs.east) to [out = 0, in = 180] (add3.west);
 
-\node (aensobs) [draw, fill = yellow!30, right = 1cm of add3, minimum width = \minnodewidth] {\begin{tabular}{c} Analysed ensemble observations\\$\mathcal M \circ \mathcal H (\mb E^a)$\end{tabular}};
+\node (aensobs) [draw, fill = yellow!30, right = 1cm of add3, minimum width = \minnodewidth] {\begin{tabular}{c} Analysed ensemble observations\\$\mathcal H \circ \mathcal M (\mb E^a)$\end{tabular}};
 \draw[->, thick] (add3) to (aensobs);
+
+\draw[-, thick] (transforms.east) to [out = 0, in = 90] ([xshift = -1.2cm, yshift = -6cm] add3.west) to [out = -90, in = 180] (add2.west);
 
 \end{tikzpicture}
 \end{document}
