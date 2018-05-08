@@ -615,6 +615,9 @@ On the other hand, with an ensemble size of about 100, normally one can ignore t
 With the system using horizontal localisation only the model state effectively becomes a collection of independent horizontal fields updated based on their correlations with local observations.
 The assimilation is conducted by calculating a common horizontal field of local ensemble transforms and applying them to each horizontal field of the model.
 
+Another important design decision is the parallel assimilation of local observations.
+Because calculation of the ensemble transforms can be conducted in ensemble space (see sec.~\ref{sec:numerical}), this results in simple, efficient, scalable and robust algorithms.
+
 \section{The workflow}
 
 EnKF-C conducts data assimilation in three stages: PREP, CALC and UPDATE.
@@ -1266,7 +1269,7 @@ The ``standard'' functions do normally perform 2D or 3D linear interpolation fro
 \subsection{Interpolation of ensemble transforms}
 
 Local ensemble transforms $\mb X_5$ (EnKF) or local ensemble weights $\mb w$ (EnOI) represent smooth fields with the characteristic spatial variability scale of the localisation radius.
-This smoothness allows one to reduce the computational load in CALC by calculating local transforms or weights on a subgrid with a specified stride only, and using linearly interpolated transforms or weights in the intermediate grid cells.
+This smoothness allows one to reduce the computational load in CALC by calculating local transforms or weights on a subgrid with a specified stride only, and using linearly interpolated transforms or weights in the intermediate grid cells \citep{yan09a}.
 The value of the stride is defined by the \verb|STRIDE| entry in the main parameter file and can be overwritten for a particular grid in the grid parameter file.
 
 \subsection{Adaptive moderation of observations}
