@@ -61,5 +61,8 @@
 
 \draw[-, thick] (transforms.east) to [out = 0, in = 90] ([xshift = -1.2cm, yshift = -6cm] add3.west) to [out = -90, in = 180] (add2.west);
 
+\node (prep) [circle, draw, minimum width = \minrad, below = 1cm of obs] {PREP};
+\draw[->, thick] (prep) to (obs);
+
 \end{tikzpicture}
 \end{document}
