@@ -1,3 +1,7 @@
+v. 1.77.1
+   PS 09052018
+   -- Added an error message in das_setnmem() to print the name of the missing
+      model file when nmem = 0.
 v. 1.77.0
    PS 03052018
    -- Added capability to limit the number of observations of each type used

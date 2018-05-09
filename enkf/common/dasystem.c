@@ -319,6 +319,7 @@ void das_setnmem(dasystem* das)
 {
     model* m = das->m;
     int nvar = model_getnvar(m);
+    char fname[MAXSTRLEN];
 
     if (das->mode == MODE_NONE)
         enkf_quit("programming error");
@@ -333,7 +334,6 @@ void das_setnmem(dasystem* das)
 
     das->nmem = 0;
     while (1) {
-        char fname[MAXSTRLEN];
         int i;
 
         for (i = 0; i < nvar; ++i) {
@@ -346,6 +346,8 @@ void das_setnmem(dasystem* das)
         else
             break;
     }
+    if (das->nmem == 0)
+        enkf_quit("das_setnmem(): can not find \"%s\"", fname);
 }
 
 /** Looks for all horizontal fields of the model to be updated.
