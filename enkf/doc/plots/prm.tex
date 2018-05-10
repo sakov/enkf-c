@@ -2,20 +2,20 @@
 \usepackage{pdfpages}
 \usepackage{tikz}
 
-\def \minnodewidth {5.75cm}
+\def \minnodewidth {5cm}
 \tikzset{font=\Huge}
-\usetikzlibrary{shapes, arrows, positioning}
+\usetikzlibrary{shapes, arrows, positioning, fit}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \begin{document}
 
-\tikzstyle{arrow1}=[->, >=stealth, line width = 1.5 mm]
-\tikzstyle{arrow2}=[->, >=stealth, line width = 1 mm, densely dashed]
+\tikzstyle{arrow1}=[->, >=stealth, rounded corners = 5mm, line width = 1.5 mm]
+\tikzstyle{arrow2}=[->, >=stealth, rounded corners = 5mm, line width = 1 mm, densely dashed]
 
-\begin{tikzpicture}[node distance = 30mm and 30mm]
+\begin{tikzpicture}[node distance = 30mm and 34mm]
 
-  \node (mainprm) [circle, draw, fill = red!20, text depth = 0cm, text height = 0cm, minimum width = \minnodewidth] {enkf.prm};
-  \node (mainprmdesc) [rectangle, transparent, below = 0mm of mainprm] {
+  \node (mainprm) [circle, draw, fill = red!20, text depth = 0cm, text height = 0cm, minimum width = \minnodewidth, label=center:enkf.prm] {};
+  \node (mainprmdesc) [rectangle, transparent, below = 0mm of mainprm, xshift = 2mm] {
     \Large
     \begin{tabular}{l}
       \textbullet \ lists parameter files\\
@@ -23,7 +23,7 @@
     \end{tabular}
   };
 
-  \node (obsprm) [circle, draw, left = of mainprm, fill = gray!30, text depth = 1cm, text height = 1cm, minimum width = \minnodewidth] {obs.prm};
+  \node (obsprm) [circle, draw, left = of mainprm, fill = gray!30, text depth = 1cm, text height = 1cm, minimum width = \minnodewidth, label=center:obs.prm] {};
   \node (obsprmdesc) [rectangle, transparent, below = 0mm of obsprm] {
     \Large
     \begin{tabular}{l}
@@ -32,7 +32,7 @@
     \end{tabular}
   };
 
-   \node (obstypesprm) [circle, draw, below = of obsprm, fill = green!20, text depth = 1cm, text height = 1cm, minimum width = \minnodewidth] {obstypes.prm};
+   \node (obstypesprm) [circle, draw, below = of obsprm, fill = green!20, text depth = 1cm, text height = 1cm, minimum width = \minnodewidth, label=center:obstypes.prm] {};
   \node (obstypesprmdesc) [rectangle, draw, fill = green!20, below = 0mm of obstypesprm] {
     \Large
     \begin{tabular}{l}
@@ -42,7 +42,7 @@
     \end{tabular}
   };
 
-  \node (modelprm) [circle, draw, below = of mainprm, fill = magenta!20, text depth = 1cm, text height = 1cm, minimum width = \minnodewidth] {model.prm};
+  \node (modelprm) [circle, draw, below = of mainprm, fill = magenta!20, text depth = 1cm, text height = 1cm, minimum width = \minnodewidth, label=center:model.prm] {};
   \node (modelprmdesc) [rectangle, draw, fill = magenta!20, below = 0mm of modelprm] {
     \Large
     \begin{tabular}{l}
@@ -51,7 +51,7 @@
     \end{tabular}
   };
 
-  \node (gridprm) [circle, draw, right = of modelprm, fill = cyan!20, text depth = 1cm, text height = 1cm, minimum width = \minnodewidth] {grid.prm};
+  \node (gridprm) [circle, draw, right = of modelprm, fill = cyan!20, text depth = 1cm, text height = 1cm, minimum width = \minnodewidth, label=center:grid.prm] {};
   \node (gridprmdesc) [rectangle, draw, fill = cyan!20, below = 0mm of gridprm] {
     \Large
     \begin{tabular}{l}
@@ -67,7 +67,7 @@
   \draw [arrow2, draw = green] (obstypesprm) -- (modelprm);
   \draw [arrow2, draw = magenta] (modelprm) -- (gridprm);
 
-  \node (mainprmdesc) [rectangle, draw, fill = red!20, below = 0mm of mainprm] {
+  \node (mainprmdesc) [rectangle, draw, fill = red!20, below = 0mm of mainprm, xshift = 2mm] {
     \Large
     \begin{tabular}{l}
       \textbullet \ lists parameter files\\
