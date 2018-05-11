@@ -25,7 +25,7 @@
 \node (add1) [circle, draw, minimum width = \minrad, above = 2cm of origin] {CALC};
 \node (ensobs) [draw, fill = green!30, above = 1cm of add1, minimum width = \minnodewidth] {\begin{tabular}{c} Forecast ensemble observations\\$\mathcal H \circ \mathcal M (\mb E^f)$\end{tabular}};
 
-\draw[-, thick] (obs) to [in = -90, out = 0] (add1.south);
+\draw[->, thick] (obs) to [in = -90, out = 0] (add1.south);
 \draw[-, thick] (fensd) to [in = -90, out = 180] (add1.south);
 \draw[-, thick] (add1.south) to (add1);
 \draw[->, thick] (add1) to (ensobs);
@@ -35,7 +35,8 @@
 
 \node (transforms) [draw, fill = magenta!30, above = 1cm of grids, minimum width = \minnodewidth] {\begin{tabular}{c}Arrays of local ensemble transforms\\$\mb X_5$-0, $\mb X_5$-1, \dots \end{tabular}};
 
-\draw[-, thick] (ensobs) to (grids.south);
+\draw[-, thick] (add21.north) to (grids.south);
+\draw[->, thick] (ensobs) to (add21.south);
 \draw[->, thick] (grids.south) to ([out = 90, in = 90, xshift = -5mm] transforms.south);
 \draw[->, thick] (grids.south) to ([out = 90, in = 90] transforms.south);
 \draw[->, thick] (grids.south) to ([out = 90, in = 90, xshift = 5mm] transforms.south);
@@ -44,7 +45,7 @@
 \draw[->, dotted] (grids.south) to ([out = 90, in = 90] transforms.south);
 \draw[->, dotted] (grids.south) to ([out = 90, in = 90, xshift = 5mm] transforms.south);
 \node (add21) [circle, draw, fill = white, minimum width = \minrad, above = 1cm of ensobs] {CALC};
-\draw[-, thick] (obs) to [out = 90, in = -90] ([xshift = -0.5cm] ensobs.west) to [out = 90, in = 180] (add21);
+\draw[->, thick] (obs) to [out = 90, in = -90] ([xshift = -8mm] ensobs.west) to [out = 90, in = 180] (add21);
 
 \node (add2) [circle, draw, minimum width = \minrad, right = 2cm of fensd] {UPDATE};
 \draw[-, thick] (frens.east) to [out = 0, in = 180] (add2.west);
@@ -53,13 +54,13 @@
 \draw[->, thick] (add2) to (arens);
 
 \node (add3) [circle, draw, minimum width = \minrad] at (ensobs -| add2) {CALC};
-\draw[-, thick] (transforms.east) to [out = 0, in = 180] (add3.west);
+\draw[->, thick] (transforms.east) to [out = 0, in = 180] (add3.west);
 \draw[-, thick] (ensobs.east) to [out = 0, in = 180] (add3.west);
 
 \node (aensobs) [draw, fill = yellow!30, right = 1cm of add3, minimum width = \minnodewidth] {\begin{tabular}{c} Analysed ensemble observations\\$\mathcal H \circ \mathcal M (\mb E^a)$\end{tabular}};
 \draw[->, thick] (add3) to (aensobs);
 
-\draw[-, thick] (transforms.east) to [out = 0, in = 90] ([xshift = -1.2cm, yshift = -6cm] add3.west) to [out = -90, in = 180] (add2.west);
+\draw[->, thick] (transforms.east) to [out = 0, in = 90] ([xshift = -1.2cm, yshift = -6cm] add3.west) to [out = -90, in = 180] (add2.west);
 
 \node (prep) [circle, draw, minimum width = \minrad, below = 1cm of obs] {PREP};
 \draw[->, thick] (prep) to (obs);
