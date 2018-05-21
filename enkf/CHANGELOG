@@ -1,3 +1,9 @@
+v. 1.78.0
+   PS 21052018
+   -- Shifted transform used for updating an observation at (fi, fj) from
+      ((int) fi, (int) fj) to ((int) (fi + 0.5), (int) (fj + 0.5)). This is
+      supposed to be more consistent, but inpractice makes a very little
+      difference.
 v. 1.77.1
    PS 09052018
    -- Added an error message in das_setnmem() to print the name of the missing

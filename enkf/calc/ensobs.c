@@ -687,15 +687,15 @@ static int cmp_obs_byij(const void* p1, const void* p2, void* p)
     if (gid1 < gid2)
         return -1;
 
-    i1 = (int) floor(o1->fj);
-    i2 = (int) floor(o2->fj);
+    i1 = (int) floor(o1->fj + 0.5);
+    i2 = (int) floor(o2->fj + 0.5);
     if (i1 > i2)
         return 1;
     if (i1 < i2)
         return -1;
 
-    i1 = (int) floor(o1->fi);
-    i2 = (int) floor(o2->fi);
+    i1 = (int) floor(o1->fi + 0.5);
+    i2 = (int) floor(o2->fi + 0.5);
     if (i1 > i2)
         return 1;
     if (i1 < i2)
@@ -1074,7 +1074,7 @@ static void update_HE(dasystem* das)
         for (jj = 0, j = 0; jj < nj; ++jj) {
             for (stepj = 0; stepj < stride && j < mnj; ++stepj, ++j) {
 
-                if ((int) obs->data[o].fj / stride > jj + 1)
+                if ((int) (obs->data[o].fj + 0.5) / stride > jj + 1)
                     continue;
 
                 if (stride == 1) {
@@ -1141,7 +1141,7 @@ static void update_HE(dasystem* das)
                 if (o > my_last_iteration)
                     break;
 
-                for (; o <= my_last_iteration && (int) obs->data[o].fj == j; ++o) {
+                for (; o <= my_last_iteration && (int) (obs->data[o].fj + 0.5) == j; ++o) {
                     float inflation0 = NAN;
                     double inf_ratio = NAN;
                     float inflation = NAN;
@@ -1152,12 +1152,8 @@ static void update_HE(dasystem* das)
                     /*
                      * HE(i, :) = HE(i, :) * X5 
                      */
-                    i = (int) (obs->data[o].fi);
+                    i = (int) (obs->data[o].fi + 0.5);
                     if (i == mni)
-                        /*
-                         * (this can happen once in a lifetime because of the
-                         * round-off due to writing and reading fi as a float)
-                         */
                         i--;
 #if defined(HE_VIASHMEM)
                     HEi_f = das->St[o];
@@ -1351,7 +1347,7 @@ static void update_Hx(dasystem* das)
         for (jj = 0, j = 0; jj < nj; ++jj) {
             for (stepj = 0; stepj < stride && j < mnj; ++stepj, ++j) {
 
-                if ((int) obs->data[o].fj / stride > jj + 1)
+                if ((int) (obs->data[o].fj + 0.5) / stride > jj + 1)
                     continue;
 
                 if (stride == 1) {
@@ -1418,7 +1414,7 @@ static void update_Hx(dasystem* das)
                 if (o > my_last_iteration)
                     break;
 
-                for (; o <= my_last_iteration && (int) obs->data[o].fj == j; ++o) {
+                for (; o <= my_last_iteration && (int) (obs->data[o].fj + 0.5) == j; ++o) {
                     double dHx = 0.0;
                     double Hx = 0.0;
 
@@ -1431,12 +1427,8 @@ static void update_Hx(dasystem* das)
 #endif
                     Hx /= (double) nmem;
 
-                    i = (int) (obs->data[o].fi);
+                    i = (int) (obs->data[o].fi + 0.5);
                     if (i == mni)
-                        /*
-                         * (this can happen once in a lifetime because of the
-                         * round-off due to writing and reading fi as a float)
-                         */
                         i--;
                     /*
                      * HE(i, :) += HA(i, :) * b * 1' 
