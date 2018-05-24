@@ -643,7 +643,7 @@ CALC calculates ensemble transforms for updating the forecast ensemble of model 
 \end{itemize}
 Apart from this main mode of operation, CALC can also calculate forecast  innovations only or operate in a single observation experiment mode.
 
-UPDATE updates the ensemble (EnKF) or the background (EnOI) using transforms calculated by CALC, and saves the analysis according to specifications.
+UPDATE updates the ensemble (EnKF) or the background (EnOI) using transforms calculated by CALC.
 It also adds analysis information to the pointlog files, and can calculate and save the ensemble spread.
 
 The principle diagram of EnKF-C workflow is shown in Fig.~\ref{fig:calcupdate}.
@@ -658,7 +658,7 @@ The principle diagram of EnKF-C workflow is shown in Fig.~\ref{fig:calcupdate}.
 \label{example1}
 
 It may be a good idea to start getting familiar with the system by running the example in \verb|examples/1|.
-The example has been put up based on the runs of regional EnKF and EnOI reanalysis systems for Tasman Sea developed by Bureau of Meteorology. 
+The example has been put up based on runs of the regional EnKF and EnOI reanalysis systems for Tasman Sea developed by Bureau of Meteorology. 
 It allows one to conduct a single assimilation for 23 December 2007 (day 6565 since 1 January 1990) with either EnKF or EnOI.
 To reduce the size of the system, the model state has been stripped down to two vertical levels and $100 \times 100$ horizontal grid.
 Due to its size (almost 80\,MB) the data for this example is available for download separately from the EnKF-C code -- see \verb|examples/1/README| for details.
@@ -816,7 +816,7 @@ At the moment, EnKF-C supports 3 main types of horizontal grids:
 \item non-equidistant rectangular grids aligned with physical coordinates;
 \item quadrilateral simply connected grids (via libgu).
 \end{itemize}
-For rectangular grids the code tries to determine and handle periodicity in X or Y directions.
+For rectangular grids the code tries to determine and handle periodicity in X direction.
 
 With some effort EnKF-C can also handle non-simply connected grids (like tri-polar ORCA grids).
 This is achieved by creating an auxiliary grid that is simply connected in grid index space by masking some nodes (replacing their coordinates with NaNs) in the original grid.
@@ -846,8 +846,8 @@ One needs to specify the $A$ (\verb|AVARNAME|) and $B$ (\verb|BVARNAME|) arrays 
 One can also specify optional $A$ and $B$ arrays for layer corners (\verb|ACVARNAME|, \verb|BCVARNAME|).
 The entry \verb|DEPTHVARNAME| needs only to be specified for variables with non-surface observations.
 
-By default, the code assumes that the surface starts at layer 0.
-If this is not the case, one needs to specify this explicitly by \verb|VDIR = TOSURF|.
+By default, the code assumes that the surface is at layer 0.
+If this is not the case, one needs to describe it explicitly by the entry \verb|VDIR = TOSURF|; otherwise the surface ensemble or background observations will not be calculated correctly.
 
 \subsection{Observation types parameter file}
 \label{sec:obstypesprm}
@@ -855,9 +855,8 @@ If this is not the case, one needs to specify this explicitly by \verb|VDIR = TO
 Observation types are the interface that connects model and observations.
 They are specified in a separate parameter file.
 Each observation type is described in a separate section identified by the entry \verb|NAME|.
-Apart from the type name, the section must contain the tag for the observation kind; associated model variable; the tag for the associated observation operator; and the allowed range.
-The optional parameters include the R-factor for the type (sec.~\ref{sec:datuning}) and spatial limits on corresponding observations.
-For example:
+Apart from the type name, the section must contain the tag for the associated model variable and the tag for the associated observation operator.
+The optional parameters include the R-factor and localisation radius for the type (sec.~\ref{sec:datuning}), the allowed range, and spatial limits for the corresponding observations.
 \begin{Verbatim}[frame=single,fontsize=\footnotesize]
 >./bin/enkf_prep --describe-prm-format obstypes
 
@@ -899,12 +898,9 @@ The R-factors for each observation type are obtained by multiplying the common
 value by the observation type value.
 (More on localisation radius and R-factor in sec.~\ref{sec:datuning}.)
 
-The entry \verb|OFFSET| allows one to add a new observation type without re-compiling the code.
-This can be useful e.g. for evaluating a new instrument (by getting an independent statistics for the new instrument and seeing the change in statistics for the old instruments).
-
 The entries \verb|MLD_VARNAME| and \verb|MLD_THRESH| are used to calculate the model mixed layer depth for projecting the surface bias.
 
-\verb|WINDOWMIN| and \verb|WINDOWMAX| override the corresponding common settings in the main parameter file for this observation type.
+\verb|WINDOWMIN| and \verb|WINDOWMAX| define the allowed temporal interval for this observation type relatively to the analysis day and override the corresponding common settings in the main parameter file.
 
 \subsection{Observation data parameter file}
 
@@ -913,7 +909,7 @@ EnKF-C has a simple policy in this regard: if a data file is listed in the obser
 This allows one using custom observation windows for particular observation types, instruments etc., specifying details on the script level during the parameter file generation.
 
 In practice some of observations specified in the observation data parameter file can be outside the observation time window for the cycle.
-In this case the exact boundaries of the observation window can be specified by entries \verb|WINDOWMIN| and \verb|WINDOWMAX| in the main parameter file;
+In this case the exact boundaries of the observation window can be specified by entries \verb|WINDOWMIN| and \verb|WINDOWMAX| in the main parameter file or (for specific observation types) observation types parameter file;
 observations with time outside interval \verb|[DATE-WINDOWMIN, DATE+WINDOWMAX)| will be discarded.
 
 The observation parameter file contains an arbitrary number of sections identified by entries \verb|PRODUCT|.
@@ -1054,17 +1050,17 @@ The corresponding field in the \verb|measurement| structure is supposed to be fi
 An observation can be attributed to one of the groups called ``batches'', such as altimeter passes, Argo profiles etc., to enable detection and discarding of bad batches.
 Programmatically, to switch on capabilities associated with observation batches for a particular kind of observations, the observation batch ID needs to be set by the corresponding observation reader.
 
-A batch of observations is considered bad if either the magnitude of its innovation bias or the mean magnitude of innovation exceed specified thresholds.
+A batch of observations is considered bad if either its mean innovation or mean absolute innovation exceed specified thresholds.
 Specifications for bad batches can be set in the parameter file as follows:
 \begin{Verbatim}[frame=single,fontsize=\footnotesize]
 BADBATCHES = SLA 0.06 0.10 500
-BBADBATCHES = TEM 4 5 0
-BADBATCHES = SST 0.5 2 10000
+BADBATCHES = TEM 4 5 0
+BADBATCHES = SST 0.3 0.5 10000
 BADBATCHES = SAL 1.5 2 0
 \end{Verbatim}
 The above entry means that any batch of observations of type SLA (typically, an orbit) containing more than 500 observations and having either mean innovation greater than 0.06 (meter) in magnitude or mean absolute innovation greater than 0.10 is considered to be bad.
 Similarly, a TEM batch (typically, a profile) is considered bad if the mean innovation exceeds 4 (degrees) or the mean absolute innovation exceeds 5 (degrees).
-The parameter file can have arbitrary number of such entries.
+The parameter file can have an arbitrary number of such entries.
 Information about bad batches is written by \verb|enkf_calc| to the file \verb|badbatches.out|.
 When \verb|enkf_prep| detects the presence of such file, it marks the corresponding observations as bad.
 
@@ -1077,16 +1073,16 @@ Therefore, the workflow for detecting and eliminating bad batches of observation
 \item calculate analysis in a ``normal'' way by running \verb|enkf_prep|, \verb|enkf_calc| and \verb|enkf_update|.
 \end{enumerate}
 
-Note that bad batches are identified at stage 2 based on superobservations formed by observations from the same batch only.
+Note that bad batches are identified by CALC based on superobservations formed by observations from the same batch only.
 Consequently, detection of bad batches may become unreliable if there are not enough such ``clean'' superobservations.
-It is possible to alleviate this problem by (1) switching off superobing by setting \verb|SOBSTRIDE = 0| or specifying \verb|--no-superobing| for \verb|enkf_prep| and/or (2) by processing observations by parts, one type (or instrument) at a time, and repeating stages 1 and 2 as many times as necessary.
+It is possible to alleviate this problem by (1) switching off superobing by the option \verb|--no-superobing| for \verb|enkf_prep| or (2) as a compromise, by running \verb|enkf_prep| with \verb|--no-superobing-across-instruments|.
 
 \subsubsection{Readers}
 
 The function of data readers is to read observations in specified files and parse them sequentially into \verb|struct observation| defined in \verb|common/observations.h|.
 
 At the moment there are few agreed standards for observational data.
-Even data of similar nature may have specific features that require creating a new or modify an existing observation data reader.
+Even data of similar kind may have specific features that require creating a new or modify an existing observation data reader.
 It is therefore likely that developing a completely new system will require add new data readers.
 
 The new readers can be created based on existing ones, or developed from scratch.
@@ -1108,9 +1104,10 @@ reader_xy_scattered
 reader_xy_gridded
 reader_xyz_scattered
 reader_xyz_gridded
+reader_xyh_gridded
 \end{Verbatim}
 These readers allow one to specify a number of parameters by means of the entry \verb|PARAMETER| of the observation data parameter file.
-At the moment the only obligatory parameter for these readers is \verb|VARNAME|; a number of other obligatory parameters (e.g. \verb|LONNAME|, \verb|LATNAME|) can be specified either via the entry \verb|PARAMETER| or by using default variable names in data files.
+One obligatory parameter for these readers is \verb|VARNAME|; a number of other obligatory parameters (e.g. \verb|LONNAME|, \verb|LATNAME|) can be specified either via the entry \verb|PARAMETER| or by using default variable names in data files.
 
 \subsection{Superobing}
 
