@@ -61,12 +61,12 @@ void reader_mmt_standard(char* fname, int fid, obsmeta* meta, grid* g, observati
     int ncid;
     int dimid_nprof, dimid_nz;
     size_t nprof, nz;
-    int varid_lon, varid_lat, varid_z, varid_type;
-    int varid_v = -1;
+    int varid;
     double* lon;
     double* lat;
     double** z;
     double** v;
+    int** qc;
     double missval;
     double validmin = DBL_MAX;
     double validmax = -DBL_MAX;
@@ -103,35 +103,42 @@ void reader_mmt_standard(char* fname, int fid, obsmeta* meta, grid* g, observati
     }
     enkf_printf("        # z levels = %u\n", (unsigned int) nz);
 
-    ncw_inq_varid(ncid, "LONGITUDE", &varid_lon);
+    ncw_inq_varid(ncid, "LONGITUDE", &varid);
     lon = malloc(nprof * sizeof(double));
-    ncw_get_var_double(ncid, varid_lon, lon);
+    ncw_get_var_double(ncid, varid, lon);
 
-    ncw_inq_varid(ncid, "LATITUDE", &varid_lat);
+    ncw_inq_varid(ncid, "LATITUDE", &varid);
     lat = malloc(nprof * sizeof(double));
-    ncw_get_var_double(ncid, varid_lat, lat);
+    ncw_get_var_double(ncid, varid, lat);
 
-    ncw_inq_varid(ncid, "PRES_BLUELINK", &varid_z);
+    ncw_inq_varid(ncid, "PRES_BLUELINK", &varid);
     z = alloc2d(nprof, nz, sizeof(double));
-    ncw_get_var_double(ncid, varid_z, z[0]);
+    ncw_get_var_double(ncid, varid, z[0]);
 
     if (strncmp(meta->type, "TEM", 3) == 0) {
         validmin = -2.0;
         validmax = 40.0;
-        ncw_inq_varid(ncid, "TEMP_BLUELINK", &varid_v);
+        ncw_inq_varid(ncid, "TEMP_BLUELINK", &varid);
     } else if (strncmp(meta->type, "SAL", 3) == 0) {
         validmin = 0;
         validmax = 50.0;
-        ncw_inq_varid(ncid, "PSAL_BLUELINK", &varid_v);
+        ncw_inq_varid(ncid, "PSAL_BLUELINK", &varid);
     } else
         enkf_quit("observation type \"%s\" not handled for MMT product", meta->type);
     v = alloc2d(nprof, nz, sizeof(double));
-    ncw_get_var_double(ncid, varid_v, v[0]);
-    ncw_get_att_double(ncid, varid_v, "_FillValue", &missval);
+    ncw_get_var_double(ncid, varid, v[0]);
+    ncw_get_att_double(ncid, varid, "_FillValue", &missval);
 
-    ncw_inq_varid(ncid, "WMO_INST_TYPE", &varid_type);
+    if (strncmp(meta->type, "TEM", 3) == 0)
+        ncw_inq_varid(ncid, "TEMP_BLUELINK_QC", &varid);
+    else if (strncmp(meta->type, "SAL", 3) == 0)
+        ncw_inq_varid(ncid, "PSAL_BLUELINK_QC", &varid);
+    qc = alloc2d(nprof, nz, sizeof(int));
+    ncw_get_var_int(ncid, varid, qc[0]);
+
+    ncw_inq_varid(ncid, "WMO_INST_TYPE", &varid);
     type = malloc(nprof * WMO_INSTSIZE);
-    ncw_get_var_text(ncid, varid_type, type);
+    ncw_get_var_text(ncid, varid, type);
 
     ncw_close(ncid);
 
@@ -170,6 +177,8 @@ void reader_mmt_standard(char* fname, int fid, obsmeta* meta, grid* g, observati
             if (fabs(v[p][i] - missval) < EPS || v[p][i] < validmin || v[p][i] > validmax)
                 continue;
             if (z[p][i] < 0.0)
+                continue;
+            if (qc[p][i] != 0)
                 continue;
 
             obs_checkalloc(obs);
@@ -232,6 +241,7 @@ void reader_mmt_standard(char* fname, int fid, obsmeta* meta, grid* g, observati
     free(lat);
     free(v);
     free(z);
+    free(qc);
     free(type);
     if (st_exclude != NULL)
         st_destroy(st_exclude);
