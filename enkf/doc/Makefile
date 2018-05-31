@@ -24,7 +24,7 @@ cleanthis:
           *.inx *.ps *.dvi *.toc *.out *.lot *~ *.lof *.ttt *.fff *.spl
 
 cleanall: clean cleanpdf
-	@for dir in $(wildcard *); do if [ -d $$dir ]; then cd $$dir; rm -f *.pdf; cd ..; fi; done
+	@for dir in $(wildcard *); do if [ -d $$dir ]; then cd $$dir; for file in *.tex; do rm -f $${file%.tex}.pdf; done; cd ..; fi; done
 
 cleanpdf:
 	@rm -f *.pdf
