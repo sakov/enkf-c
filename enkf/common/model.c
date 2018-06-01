@@ -163,7 +163,7 @@ model* model_create(enkfprm* prm)
                 if ((token = strtok(NULL, seps)) == NULL)
                     enkf_quit("%s, l.%d: GRID not specified", modelprm, line);
                 for (i = 0; i < m->ngrid; ++i)
-                    if (strcasecmp(token, grid_getname(m->grids[i])) == 0) {
+                    if (strcmp(token, grid_getname(m->grids[i])) == 0) {
                         now->gridid = i;
                         break;
                     }
