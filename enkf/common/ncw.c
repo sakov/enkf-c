@@ -31,7 +31,7 @@
 #include <errno.h>
 #include "ncw.h"
 
-const char ncw_version[] = "2.15";
+const char ncw_version[] = "2.15m";
 
 /* This macro is substituted in error messages instead of the name of a
  * variable in cases when the name could not be found by the variable id.
@@ -1359,7 +1359,7 @@ int ncw_copy_vardef(int ncid_src, int vid_src, int ncid_dst)
     int dimids_src[NC_MAX_DIMS], dimids_dst[NC_MAX_DIMS];
     int natts;
     int status;
-    int i;
+    int i, ii;
 
     status = nc_redef(ncid_dst);
 
@@ -1371,6 +1371,20 @@ int ncw_copy_vardef(int ncid_src, int vid_src, int ncid_dst)
         size_t len;
 
         ncw_inq_dim(ncid_src, dimids_src[i], dimname, &len);
+
+        if (len == 1 && i < ndims - 1) {
+            /*
+             * skip "normal" (not umlimited) "inner" dimensions of length 1
+             */
+            int unlimdimid = -1;
+
+            ncw_inq_unlimdimid(ncid_src, &unlimdimid);
+            if (dimids_src[i] != unlimdimid) {
+                dimids_dst[i] = -1;
+                continue;
+            }
+        }
+
         if (!ncw_dim_exists(ncid_dst, dimname)) {
             int unlimdimid = -1;
 
@@ -1379,6 +1393,14 @@ int ncw_copy_vardef(int ncid_src, int vid_src, int ncid_dst)
         } else
             ncw_inq_dimid(ncid_dst, dimname, &dimids_dst[i]);
     }
+
+    for (i = 0, ii = 0; i < ndims; ++i) {
+        if (dimids_dst[i] < 0)
+            continue;
+        dimids_dst[ii] = dimids_dst[i];
+        ii++;
+    }
+    ndims = ii;
 
     ncw_def_var(ncid_dst, varname, type, ndims, dimids_dst, &vid_dst);
     ncw_copy_atts(ncid_src, vid_src, ncid_dst, vid_dst);

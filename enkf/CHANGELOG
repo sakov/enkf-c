@@ -1,3 +1,11 @@
+v. 1.79.2
+   PS 04062018
+   -- Trying to work through occasional problems arising when trying to put
+      spreads of each variable (normally stored in different files) into common
+      "spread.nc". This fix targets a particular MOM feature that creates output
+      files with dimension names xaxis_1, yaxis_1, zaxis_1 regardless of those
+      of the grids the variables are defined on... Therefore: in
+      ncw_copy_vardef() -- do not create outer limited dimensions of size 1.
 v. 1.79.1
    PS 01062018
    -- A minor change in model_create() to permit case sensitive grid names.
