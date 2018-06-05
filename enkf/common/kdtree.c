@@ -506,6 +506,13 @@ size_t kd_getnodeorigid(const kdtree* tree, size_t id)
     return (int) tree->nodes[id].id_orig;
 }
 
+/* get boundary rectangle
+ */
+double* kd_getminmax(const kdtree* tree)
+{
+    return tree->min;
+}
+
 #if defined(STANDALONE)
 
 #include <stdarg.h>
