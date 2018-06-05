@@ -450,6 +450,8 @@ static void _clear_results(kdset* rset)
  */
 void kdset_free(kdset* set)
 {
+    if (set == NULL)
+        return;
     _clear_results(set);
     free(set);
 }
@@ -643,22 +645,23 @@ static kdtree* kd_readfile(char* fname, int ndimin, int dorandomise)
  */
 static void description(void)
 {
-    printf("  kd: reads coordinates from a text file; searches for points\n");
-    printf("      within specified radius from a specified location; prints results\n");
-    printf("      (point coordinates and id) to the standard output\n");
+    printf("  kd: reads coordinates from a text file; searches either for points\n");
+    printf("      within specified radius or for the nearest point to the specified\n");
+    printf("      location; prints results (point coordinates and ids) to the standard\n");
+    printf("      output\n");
 }
 
 /**
  */
 static void usage(void)
 {
-    printf("  Usage: kd -i <file> -n <ndim> -p <coords> -r <range> [-s] [-g] [-o]\n");
+    printf("  Usage: kd -i <file> {-n <ndim> | -g} -p <coords> [-r <range>] [-s] [-o]\n");
     printf("         kd -h\n");
     printf("  Options:\n");
-    printf("    -i <file>   -- a text file, with each row containing <ndim> point\n");
+    printf("    -i <file>   -- a text file, with each row containing <ndim> points\n");
     printf("                   coordinates\n");
-    printf("    -g          -- assume coordinates to be lon/lat in degrees and the distance is in\n");
-    printf("                   kilometres (ndim = 2)\n");
+    printf("    -g          -- assume coordinates to be lon/lat in degrees and distance to be in\n");
+    printf("                   kilometres\n");
     printf("    -h          -- describe this program\n");
     printf("    -n <ndim>   -- number of dimensions\n");
     printf("    -o          -- do not shuffle input points\n");
@@ -744,6 +747,18 @@ static void parse_commandline(int argc, char* argv[], char** fname, int* ndim, d
 
 /**
  */
+static void print_location(int ndim, double coords[])
+{
+    int i;
+
+    printf("  location = (");
+    for (i = 0; i < ndim; ++i)
+        printf("%s%.6g", (i > 0) ? ", " : "", coords[i]);
+    printf(")\n");
+}
+
+/**
+ */
 int main(int argc, char* argv[])
 {
     char* fname = NULL;
@@ -760,12 +775,15 @@ int main(int argc, char* argv[])
 
     parse_commandline(argc, argv, &fname, &ndim, coords, &range, &dosort, &dorandomise);
 
+    printf("  src = %s\n", fname);
     tree = kd_readfile(fname, ndim, dorandomise);
+    printf("    %zu points\n", kd_getsize(tree));
     if (kd_getsize(tree) == 0) {
         printf("  nothing to do, exiting\n");
         return 0;
     }
 
+    print_location(ndim, coords);
     if (isll) {
         double lon = coords[0] * INVRAD;
         double lat = coords[1] * INVRAD;
@@ -775,68 +793,68 @@ int main(int argc, char* argv[])
         coords[2] = REARTH * sin(lat);
     }
 
-    /*
-     * first find the nearest node
-     */
-    printf("  searching for the nearest node:");
-    fflush(stdout);
-    id = kd_findnearestnode(tree, coords);
-    id_orig = kd_getnodeorigid(tree, id);
-    printf("\n");
-    printf("       X        Y       ID      DIST\n");
-    {
-        double* rescoords = kd_getnodecoords(tree, id);
-        double rescoordsout[NDIMMAX];
-
-        if (isll) {
-            double lat = asin(rescoords[2] / REARTH);
-            double lon = asin(rescoords[0] / REARTH / cos(lat));
-
-            dist = sqrt((rescoords[0] - coords[0]) * (rescoords[0] - coords[0]) + (rescoords[1] - coords[1]) * (rescoords[1] - coords[1]) + (rescoords[2] - coords[2]) * (rescoords[2] - coords[2]));
-            rescoordsout[0] = lon / INVRAD;
-            rescoordsout[1] = lat / INVRAD;
-        } else {
-            for (i = 0; i < ndim; ++i)
-                dist += (rescoords[i] - coords[i]) * (rescoords[i] - coords[i]);
-            for (i = 0; i < ndim; ++i)
-                rescoordsout[i] = rescoords[i];
-            dist = sqrt(dist);
-        }
-        printf("  ");
-        for (i = 0; i < ndim; ++i)
-            printf("%8.3f ", rescoordsout[i]);
-        printf("%8zu ", id_orig);
-        printf("%8g\n", dist);
-    }
-    fflush(stdout);
-
-    /*
-     * find nodes within range
-     */
-    printf("  searching for the nodes within range:");
-    fflush(stdout);
-    set = kd_findnodeswithinrange(tree, coords, range, dosort);
-    printf("\n");
-    printf("    %zu points found:\n", kdset_getsize(set));
-    if (kdset_getsize(set) > 0)
-        printf("       X        Y       ID      DIST\n");
-    for (; (id = kdset_read(set, &dist)) < SIZE_MAX;) {
-        double* rescoords = kd_getnodecoords(tree, id);
-
+    if (isnan(range)) {
+        /*
+         * find the nearest node
+         */
+        printf("  the nearest node:\n");
+        fflush(stdout);
+        id = kd_findnearestnode(tree, coords);
         id_orig = kd_getnodeorigid(tree, id);
+        printf("       X        Y       ID      DIST\n");
+        {
+            double* rescoords = kd_getnodecoords(tree, id);
+            double rescoordsout[NDIMMAX];
 
-        if (isll) {
-            double lat = asin(rescoords[2] / REARTH);
-            double lon = asin(rescoords[0] / REARTH / cos(lat));
+            if (isll) {
+                double lat = asin(rescoords[2] / REARTH);
+                double lon = asin(rescoords[0] / REARTH / cos(lat));
 
-            rescoords[0] = lon / INVRAD;
-            rescoords[1] = lat / INVRAD;
+                dist = sqrt((rescoords[0] - coords[0]) * (rescoords[0] - coords[0]) + (rescoords[1] - coords[1]) * (rescoords[1] - coords[1]) + (rescoords[2] - coords[2]) * (rescoords[2] - coords[2]));
+                rescoordsout[0] = lon / INVRAD;
+                rescoordsout[1] = lat / INVRAD;
+            } else {
+                for (i = 0; i < ndim; ++i)
+                    dist += (rescoords[i] - coords[i]) * (rescoords[i] - coords[i]);
+                for (i = 0; i < ndim; ++i)
+                    rescoordsout[i] = rescoords[i];
+                dist = sqrt(dist);
+            }
+            printf("  ");
+            for (i = 0; i < ndim; ++i)
+                printf("%8.3f ", rescoordsout[i]);
+            printf("%8zu ", id_orig);
+            printf("%8.3f\n", dist);
         }
-        printf("  ");
-        for (i = 0; i < ndim; ++i)
-            printf("%8.3f ", rescoords[i]);
-        printf("%8zu ", id_orig);
-        printf("%8g\n", dist);
+        fflush(stdout);
+    } else {
+        /*
+         * find nodes within range
+         */
+        printf("  nodes within r < %.3g%s", (isll) ? "km" : "");
+        fflush(stdout);
+        set = kd_findnodeswithinrange(tree, coords, range, dosort);
+        printf("    %zu points found:\n", kdset_getsize(set));
+        if (kdset_getsize(set) > 0)
+            printf("       X        Y       ID      DIST\n");
+        for (; (id = kdset_read(set, &dist)) < SIZE_MAX;) {
+            double* rescoords = kd_getnodecoords(tree, id);
+
+            id_orig = kd_getnodeorigid(tree, id);
+
+            if (isll) {
+                double lat = asin(rescoords[2] / REARTH);
+                double lon = asin(rescoords[0] / REARTH / cos(lat));
+
+                rescoords[0] = lon / INVRAD;
+                rescoords[1] = lat / INVRAD;
+            }
+            printf("  ");
+            for (i = 0; i < ndim; ++i)
+                printf("%8.3f ", rescoords[i]);
+            printf("%8zu ", id_orig);
+            printf("%8.3f\n", dist);
+        }
     }
 
     kdset_free(set);
