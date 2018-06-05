@@ -504,13 +504,6 @@ size_t kd_getnodeorigid(const kdtree* tree, size_t id)
     return (int) tree->nodes[id].id_orig;
 }
 
-/* get boundary rectangle
- */
-double* kd_getminmax(const kdtree* tree)
-{
-    return tree->min;
-}
-
 #if defined(STANDALONE)
 
 #include <stdarg.h>
@@ -818,7 +811,7 @@ int main(int argc, char* argv[])
     fflush(stdout);
 
     /*
-     * first nodes within range
+     * find nodes within range
      */
     printf("  searching for the nodes within range:");
     fflush(stdout);

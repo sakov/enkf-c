@@ -62,10 +62,6 @@ double* kd_getnodecoords(const kdtree* tree, size_t id);
  */
 size_t kd_getnodeorigid(const kdtree* tree, size_t id);
 
-/* get boundary rectangle
- */
-double* kd_getminmax(const kdtree* tree);
-
 /* read node id of the current result (SIZE_MAX if no more results are
  * available; advance the result set iterator)
  */

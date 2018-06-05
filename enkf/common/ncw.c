@@ -31,7 +31,7 @@
 #include <errno.h>
 #include "ncw.h"
 
-const char ncw_version[] = "2.15m";
+const char ncw_version[] = "2.16";
 
 /* This macro is substituted in error messages instead of the name of a
  * variable in cases when the name could not be found by the variable id.
@@ -1374,7 +1374,7 @@ int ncw_copy_vardef(int ncid_src, int vid_src, int ncid_dst)
 
         if (len == 1 && i < ndims - 1) {
             /*
-             * skip "normal" (not umlimited) "inner" dimensions of length 1
+             * skip "normal" (not unlimited) "inner" dimensions of length 1
              */
             int unlimdimid = -1;
 
@@ -1411,7 +1411,7 @@ int ncw_copy_vardef(int ncid_src, int vid_src, int ncid_dst)
     return vid_dst;
 }
 
-/** Copies data for a given variable from one file to another.
+/** Copies data for a variable from one file to another.
  *  Note that variable IDs may be different, but name and dimensions must be
  *  the same.
  *
