@@ -31,6 +31,8 @@ static void usage()
     enkf_printf("  Options:\n");
     enkf_printf("  --calculate-spread\n");
     enkf_printf("      calculate ensemble spread and write to %s\n", FNAME_SPREAD);
+    enkf_printf("  --calculate-forecast-spread\n");
+    enkf_printf("      calculate forecast ensemble spread only and write to %s\n", FNAME_SPREAD);
     enkf_printf("  --describe-prm-format [main|model|grid]\n");
     enkf_printf("      describe format of a parameter file and exit\n");
     enkf_printf("  --direct-write\n");
@@ -70,7 +72,11 @@ static void parse_commandline(int argc, char* argv[], char** fname, int* updates
             } else
                 usage();
         } else if (strcmp(argv[i], "--calculate-spread") == 0) {
-            *updatespec |= UPDATE_DOSPREAD;
+            *updatespec |= (UPDATE_DOFORECASTSPREAD | UPDATE_DOANALYSISSPREAD);
+            i++;
+            continue;
+        } else if (strcmp(argv[i], "--calculate-forecast-spread") == 0) {
+            *updatespec |= UPDATE_DOFORECASTSPREAD;
             i++;
             continue;
         } else if (strcmp(argv[i], "--describe-prm-format") == 0) {

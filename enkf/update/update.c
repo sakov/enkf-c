@@ -77,7 +77,6 @@ static void das_writeinflation(dasystem* das, field* f, int j, float* v)
 
 /** Updates `nfield' fields read into `fieldbuffer' with `X5'. Applies
  * variable-dependent inflation to each field.
- * 
  */
 static void das_updatefields(dasystem* das, int nfields, void** fieldbuffer, field fields[])
 {
@@ -601,7 +600,12 @@ static void das_updatebg(dasystem* das, int nfields, void** fieldbuffer, field f
     das->s_mode = S_MODE_HE_a;
 }
 
-/**
+/** Write analyses/increments directly to the output NetCDF file.
+ *
+ *  The implication is that different CPUs write horizontal variables to
+ *  the same file in parallel. In practice this works only with NC_CLASSIC_MODEL
+ *  or NC_64BIT_OFFSET, and never 100% reliably, although the failure percent
+ *  can be very very low.
  */
 static void das_writefields_direct(dasystem* das, int nfields, void** fieldbuffer, field fields[])
 {
@@ -645,7 +649,9 @@ static void das_writefields_direct(dasystem* das, int nfields, void** fieldbuffe
     }
 }
 
-/**
+/** This is the main procedure for parallel settings. It writes each
+ * horizontal layer (in parallel) to a separate file ("tile"). The tiles are
+ * "assembled" later by a single process.
  */
 static void das_writefields_toassemble(dasystem* das, int nfields, void** fieldbuffer, field fields[])
 {
@@ -697,6 +703,8 @@ static void das_writefields(dasystem* das, int nfields, void** fieldbuffer, fiel
         das_writefields_toassemble(das, nfields, fieldbuffer, fields);
 }
 
+/**
+ */
 static void das_writebg_direct(dasystem* das, int nfields, void** fieldbuffer, field fields[])
 {
     model* m = das->m;
@@ -807,7 +815,7 @@ static void das_allocatespread(dasystem* das, char fname[])
         ncw_copy_dims(ncid_src, ncid);
         ncw_inq_varid(ncid_src, varname_src, &varid_src);
         ncw_copy_vardef(ncid_src, varid_src, ncid);
-        if (das->mode == MODE_ENKF) {
+        if (das->mode == MODE_ENKF && das->updatespec & UPDATE_DOANALYSISSPREAD) {
             char varname_dst[NC_MAX_NAME];
 
             strcpy(varname_dst, varname_src);
@@ -1122,7 +1130,7 @@ static void das_assemblespread(dasystem* das)
 
         enkf_printf("    %s:", varname);
         nlev = getnlevels(FNAME_SPREAD, varname);
-        if (das->mode == MODE_ENKF) {
+        if (das->mode == MODE_ENKF && das->updatespec & UPDATE_DOANALYSISSPREAD) {
             strncpy(varname_an, varname, NC_MAX_NAME);
             strncat(varname_an, "_an", NC_MAX_NAME);
         }
@@ -1147,7 +1155,7 @@ static void das_assemblespread(dasystem* das)
 
             model_writefield(m, FNAME_SPREAD, INT_MAX, varname, k, v);
 
-            if (das->mode == MODE_ENKF) {
+            if (das->mode == MODE_ENKF && das->updatespec & UPDATE_DOANALYSISSPREAD) {
                 if (nlev > 1)
                     getfieldfname(das->ensdir, "spread", varname_an, k, fname_src);
                 else
@@ -1469,7 +1477,7 @@ void das_update(dasystem* das)
                 /*
                  * write forecast spread
                  */
-                if (das->updatespec & UPDATE_DOSPREAD)
+                if (das->updatespec & UPDATE_DOFORECASTSPREAD)
                     das_writespread(das, bufindex + 1, fieldbuffer, &fields[i - bufindex], 0);
                 /*
                  * write forecast variables to point logs
@@ -1493,7 +1501,7 @@ void das_update(dasystem* das)
                 /*
                  * write analysis spread
                  */
-                if (das->updatespec & UPDATE_DOSPREAD && das->mode == MODE_ENKF)
+                if (das->updatespec & UPDATE_DOANALYSISSPREAD && das->mode == MODE_ENKF)
                     das_writespread(das, bufindex + 1, fieldbuffer, &fields[i - bufindex], 1);
                 /*
                  * write analysis variables to point logs

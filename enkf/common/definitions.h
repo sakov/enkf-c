@@ -95,15 +95,17 @@
 #define ALLOCTYPE_2D    1
 #define ALLOCTYPE_3D    2
 
-#define UPDATE_DOFIELDS       (1 << 0)
-#define UPDATE_DOSPREAD       (1 << 1)
-#define UPDATE_DOINFLATION    (1 << 2)
-#define UPDATE_DOPLOGS        (1 << 3)
-#define UPDATE_LEAVETILES     (1 << 4)
-#define UPDATE_OUTPUTINC      (1 << 5)
-#define UPDATE_SEPARATEOUTPUT (1 << 6)
-#define UPDATE_DIRECTWRITE    (1 << 7)
-#define UPDATE_DEFAULT        (UPDATE_DOFIELDS | UPDATE_DOPLOGS | UPDATE_SEPARATEOUTPUT)
+#define UPDATE_DOFIELDS         (1 << 0)
+#define UPDATE_DOFORECASTSPREAD (1 << 1)
+#define UPDATE_DOANALYSISSPREAD (1 << 2)
+#define UPDATE_DOINFLATION      (1 << 3)
+#define UPDATE_DOPLOGS          (1 << 4)
+#define UPDATE_LEAVETILES       (1 << 5)
+#define UPDATE_OUTPUTINC        (1 << 6)
+#define UPDATE_SEPARATEOUTPUT   (1 << 7)
+#define UPDATE_DIRECTWRITE      (1 << 8)
+#define UPDATE_DEFAULT          (UPDATE_DOFIELDS | UPDATE_DOPLOGS | UPDATE_SEPARATEOUTPUT)
+#define UPDATE_DOSPREAD (UPDATE_DOFORECASTSPREAD | UPDATE_DOANALYSISSPREAD)
 
 /*
  * the default vertical split for 3D fields in obs stats
