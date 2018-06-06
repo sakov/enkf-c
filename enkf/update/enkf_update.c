@@ -33,6 +33,9 @@ static void usage()
     enkf_printf("      calculate ensemble spread and write to %s\n", FNAME_SPREAD);
     enkf_printf("  --calculate-forecast-spread\n");
     enkf_printf("      calculate forecast ensemble spread only and write to %s\n", FNAME_SPREAD);
+    enkf_printf("  --calculate-vertical-correlations\n");
+    enkf_printf("      calculate correlation coefficients between surface and other layers of\n");
+    enkf_printf("      3D variables and write to %s\n", FNAME_VERTCORR);
     enkf_printf("  --describe-prm-format [main|model|grid]\n");
     enkf_printf("      describe format of a parameter file and exit\n");
     enkf_printf("  --direct-write\n");
@@ -79,6 +82,9 @@ static void parse_commandline(int argc, char* argv[], char** fname, int* updates
             *updatespec |= UPDATE_DOFORECASTSPREAD;
             i++;
             continue;
+        } else if (strcmp(argv[i], "--calculate-vertical-correlations") == 0) {
+            *updatespec |= UPDATE_DOVERTCORRS;
+            i++;
         } else if (strcmp(argv[i], "--describe-prm-format") == 0) {
             if (i < argc - 1) {
                 if (strcmp(argv[i + 1], "main") == 0)
@@ -203,6 +209,10 @@ int main(int argc, char* argv[])
     else if (das->mode == MODE_ENOI)
         enkf_printf("  updating the model state:\n");
     das_update(das);
+    enkf_flush();
+
+    if (das->updatespec & UPDATE_DOVERTCORRS)
+        das_writevcorrs(das);
 
     das_destroy(das);
 

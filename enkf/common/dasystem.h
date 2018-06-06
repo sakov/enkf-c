@@ -125,7 +125,7 @@ void das_getHE(dasystem* das);
 void das_addanalysis(dasystem* das, char fname[]);
 void das_addforecast(dasystem* das, char fname[]);
 void das_addmodifiederrors(dasystem* das, char fname[]);
-void das_calccorr(dasystem* das, int mvid);
+void das_writevcorrs(dasystem* das);
 void das_calcinnandspread(dasystem* das);
 void das_calctransforms(dasystem* das);
 void das_dopointlogs(dasystem* das);

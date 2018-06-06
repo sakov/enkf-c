@@ -1555,150 +1555,163 @@ void das_update(dasystem* das)
 }
 
 /** Calculates and writes to disk 3D field of correlation coefficients between
- * surface and other layers of a 3D variable. This function is not used at the
- * moment.
+ * surface and other layers of 3D variables.
  */
-void das_calccorr(dasystem* das, int mvid)
+void das_writevcorrs(dasystem* das)
 {
     model* m = das->m;
-    char* varname = model_getvarname(m, mvid);
-    int ncid, vid;
-    int dimids[2];
-    float*** v = NULL;
-    float*** v0 = NULL;
-    double* cor = NULL;
-    double* std0 = NULL;
-    double* std = NULL;
-    int ni, nj, nk;
-    int ksurf, nv;
-    int e, k, i;
+    int nvar = model_getnvar(m);
+    int mvid;
 
-    model_getvardims(m, mvid, &ni, &nj, &nk);
-    nv = ni * nj;
-    ksurf = grid_getsurflayerid(model_getvargrid(m, mvid));
+    enkf_printtime("  ");
+    enkf_printf("  writing vertical correlations:\n");
+    for (mvid = 0; mvid < nvar; ++mvid) {
+        char* varname = model_getvarname(m, mvid);
+        int ncid, vid;
+        int dimids[2];
+        float*** v = NULL;
+        float*** v0 = NULL;
+        double* cor = NULL;
+        double* std0 = NULL;
+        double* std = NULL;
+        int ni, nj, nk;
+        int ksurf, nv;
+        int e, k, i;
 
-    v = alloc3d(das->nmem, nj, ni, sizeof(float));
-    v0 = alloc3d(das->nmem, nj, ni, sizeof(float));
-    cor = calloc(nv, sizeof(double));
-    std = calloc(nv, sizeof(double));
-    std0 = calloc(nv, sizeof(double));
+        {
+            char fname[MAXSTRLEN];
 
-    for (e = 0; e < das->nmem; ++e) {
-        char fname[MAXSTRLEN];
+            model_getmemberfname(m, das->ensdir, varname, 1, fname);
+            if (!is3d(fname, varname))
+                continue;
+        }
 
-        model_getmemberfname(m, das->ensdir, varname, e + 1, fname);
-        model_readfield(das->m, fname, INT_MAX, varname, ksurf, v0[e][0]);
-    }
-    for (i = 0; i < nv; ++i) {
-        double vmean = 0.0;
+        model_getvardims(m, mvid, &ni, &nj, &nk);
+        nv = ni * nj;
+        ksurf = grid_getsurflayerid(model_getvargrid(m, mvid));
 
-        for (e = 0; e < das->nmem; ++e)
-            vmean += (double) v0[e][0][i];
-        vmean /= (double) das->nmem;
-        for (e = 0; e < das->nmem; ++e)
-            v0[e][0][i] -= (float) vmean;
-        std0[i] = 0.0;
-        for (e = 0; e < das->nmem; ++e)
-            std0[i] += (double) (v0[e][0][i] * v0[e][0][i]);
-        std0[i] = sqrt(std0[i] / (double) (das->nmem - 1));
-    }
-
-    distribute_iterations(0, nk - 1, nprocesses, rank, "    ");
-#if defined(MPI)
-    MPI_Barrier(MPI_COMM_WORLD);
-#endif
-    for (k = my_first_iteration; k <= my_last_iteration; ++k) {
-        char fname_src[MAXSTRLEN];
-        char fname_dst[MAXSTRLEN];
+        v = alloc3d(das->nmem, nj, ni, sizeof(float));
+        v0 = alloc3d(das->nmem, nj, ni, sizeof(float));
+        cor = calloc(nv, sizeof(double));
+        std = calloc(nv, sizeof(double));
+        std0 = calloc(nv, sizeof(double));
 
         for (e = 0; e < das->nmem; ++e) {
-            model_getmemberfname(m, das->ensdir, varname, e + 1, fname_src);
-            model_readfield(das->m, fname_src, INT_MAX, varname, k, v[e][0]);
+            char fname[MAXSTRLEN];
+
+            model_getmemberfname(m, das->ensdir, varname, e + 1, fname);
+            model_readfield(das->m, fname, INT_MAX, varname, ksurf, v0[e][0]);
         }
         for (i = 0; i < nv; ++i) {
             double vmean = 0.0;
 
             for (e = 0; e < das->nmem; ++e)
-                vmean += (double) v[e][0][i];
+                vmean += (double) v0[e][0][i];
             vmean /= (double) das->nmem;
             for (e = 0; e < das->nmem; ++e)
-                v[e][0][i] -= (float) vmean;
-            std[i] = 0.0;
+                v0[e][0][i] -= (float) vmean;
+            std0[i] = 0.0;
             for (e = 0; e < das->nmem; ++e)
-                std[i] += (double) (v[e][0][i] * v[e][0][i]);
-            std[i] /= sqrt(std[i] / (double) (das->nmem - 1));
-            cor[i] = 0.0;
-            for (e = 0; e < das->nmem; ++e)
-                cor[i] += (double) (v[e][0][i] * v0[e][0][i]);
-            cor[i] /= (std[i] * std0[i]);
+                std0[i] += (double) (v0[e][0][i] * v0[e][0][i]);
+            std0[i] = sqrt(std0[i] / (double) (das->nmem - 1));
         }
 
-        snprintf(fname_dst, MAXSTRLEN, "corr_%s-%03d.nc", varname, k);
-        if (!file_exists(fname_dst)) {
-            ncw_create(fname_dst, NC_CLOBBER | das->ncformat, &ncid);
-            ncw_def_dim(ncid, "nj", nj, &dimids[0]);
-            ncw_def_dim(ncid, "ni", ni, &dimids[1]);
-            ncw_def_var(ncid, varname, NC_FLOAT, 2, dimids, &vid);
-            if (das->nccompression > 0)
-                ncw_def_deflate(ncid, 0, 1, das->nccompression);
-            ncw_enddef(ncid);
-        } else {
-            ncw_open(fname_dst, NC_WRITE, &ncid);
-            if (!ncw_var_exists(ncid, varname)) {
-                ncw_redef(ncid);
-                ncw_inq_dimid(ncid, "nj", &dimids[0]);
-                ncw_inq_dimid(ncid, "ni", &dimids[1]);
-                ncw_def_var(ncid, varname, NC_FLOAT, 2, dimids, NULL);
-                ncw_enddef(ncid);
-            }
-            ncw_inq_varid(ncid, varname, &vid);
-        }
-        ncw_put_var_double(ncid, vid, cor);
-        ncw_close(ncid);
-    }
-
-    free(v);
-    free(v0);
-    free(std);
-    free(std0);
-    free(cor);
-
+        distribute_iterations(0, nk - 1, nprocesses, rank, NULL);
 #if defined(MPI)
-    MPI_Barrier(MPI_COMM_WORLD);
+        MPI_Barrier(MPI_COMM_WORLD);
 #endif
-    if (rank == 0) {
-        float* v = malloc(nv * sizeof(float));
-        char fname_dst[MAXSTRLEN];
-        char fname_src[MAXSTRLEN];
-        int ncid_dst, ncid_src;
+        for (k = my_first_iteration; k <= my_last_iteration; ++k) {
+            char fname_src[MAXSTRLEN];
+            char fname_dst[MAXSTRLEN];
 
-        snprintf(fname_dst, MAXSTRLEN, "corr_%s.nc", varname);
-        if (!file_exists(fname_dst)) {
-            ncw_create(fname_dst, NC_CLOBBER | das->ncformat, &ncid_dst);
+            for (e = 0; e < das->nmem; ++e) {
+                model_getmemberfname(m, das->ensdir, varname, e + 1, fname_src);
+                model_readfield(das->m, fname_src, INT_MAX, varname, k, v[e][0]);
+            }
+            for (i = 0; i < nv; ++i) {
+                double vmean = 0.0;
 
-            model_getmemberfname(m, das->ensdir, varname, 1, fname_src);
-            ncw_open(fname_src, NC_NOWRITE, &ncid_src);
-            if (das->nccompression > 0)
-                ncw_def_deflate(ncid_src, 0, 1, das->nccompression);
-            ncw_copy_var(ncid_src, varname, ncid_dst);
-            ncw_close(ncid_dst);
-        }
+                for (e = 0; e < das->nmem; ++e)
+                    vmean += (double) v[e][0][i];
+                vmean /= (double) das->nmem;
+                for (e = 0; e < das->nmem; ++e)
+                    v[e][0][i] -= (float) vmean;
+                std[i] = 0.0;
+                for (e = 0; e < das->nmem; ++e)
+                    std[i] += (double) (v[e][0][i] * v[e][0][i]);
+                std[i] /= sqrt(std[i] / (double) (das->nmem - 1));
+                cor[i] = 0.0;
+                for (e = 0; e < das->nmem; ++e)
+                    cor[i] += (double) (v[e][0][i] * v0[e][0][i]);
+                cor[i] /= (std[i] * std0[i]);
+            }
 
-        for (k = 0; k < nk; ++k) {
-            snprintf(fname_src, MAXSTRLEN, "corr_%s-%03d.nc", varname, k);
-
-            ncw_open(fname_src, NC_NOWRITE, &ncid_src);
-            ncw_inq_varid(ncid_src, varname, &vid);
-            ncw_get_var_float(ncid_src, vid, v);
-            ncw_close(ncid_src);
-            file_delete(fname_src);
-
-            model_writefield(m, fname_dst, INT_MAX, varname, k, v);
+            snprintf(fname_dst, MAXSTRLEN, "%s/corr_%s-%03d.nc", das->ensdir, varname, k);
+            if (!file_exists(fname_dst)) {
+                ncw_create(fname_dst, NC_CLOBBER | das->ncformat, &ncid);
+                ncw_def_dim(ncid, "nj", nj, &dimids[0]);
+                ncw_def_dim(ncid, "ni", ni, &dimids[1]);
+                ncw_def_var(ncid, varname, NC_FLOAT, 2, dimids, &vid);
+                if (das->nccompression > 0)
+                    ncw_def_deflate(ncid, 0, 1, das->nccompression);
+                ncw_enddef(ncid);
+            } else {
+                ncw_open(fname_dst, NC_WRITE, &ncid);
+                if (!ncw_var_exists(ncid, varname)) {
+                    ncw_redef(ncid);
+                    ncw_inq_dimid(ncid, "nj", &dimids[0]);
+                    ncw_inq_dimid(ncid, "ni", &dimids[1]);
+                    ncw_def_var(ncid, varname, NC_FLOAT, 2, dimids, NULL);
+                    ncw_enddef(ncid);
+                }
+                ncw_inq_varid(ncid, varname, &vid);
+            }
+            ncw_put_var_double(ncid, vid, cor);
+            ncw_close(ncid);
         }
 
         free(v);
-    }
+        free(v0);
+        free(std);
+        free(std0);
+        free(cor);
+
 #if defined(MPI)
-    MPI_Barrier(MPI_COMM_WORLD);
+        MPI_Barrier(MPI_COMM_WORLD);
 #endif
+        if (rank == 0) {
+            float* v = malloc(nv * sizeof(float));
+            char fname_src[MAXSTRLEN];
+            int ncid_dst, ncid_src;
+
+            if (!file_exists(FNAME_VERTCORR)) {
+                ncw_create(FNAME_VERTCORR, NC_CLOBBER | das->ncformat, &ncid_dst);
+                if (das->nccompression > 0)
+                    ncw_def_deflate(ncid_dst, 0, 1, das->nccompression);
+            } else
+                ncw_open(FNAME_VERTCORR, NC_WRITE, &ncid_dst);
+
+            model_getmemberfname(m, das->ensdir, varname, 1, fname_src);
+            ncw_open(fname_src, NC_NOWRITE, &ncid_src);
+            ncw_copy_var(ncid_src, varname, ncid_dst);
+            ncw_close(ncid_dst);
+
+            for (k = 0; k < nk; ++k) {
+                snprintf(fname_src, MAXSTRLEN, "%s/corr_%s-%03d.nc", das->ensdir, varname, k);
+
+                ncw_open(fname_src, NC_NOWRITE, &ncid_src);
+                ncw_inq_varid(ncid_src, varname, &vid);
+                ncw_get_var_float(ncid_src, vid, v);
+                ncw_close(ncid_src);
+                file_delete(fname_src);
+
+                model_writefield(m, FNAME_VERTCORR, INT_MAX, varname, k, v);
+            }
+
+            free(v);
+        }
+#if defined(MPI)
+        MPI_Barrier(MPI_COMM_WORLD);
+#endif
+    }
 }

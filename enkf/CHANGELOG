@@ -1,3 +1,6 @@
+v. 1.80.1
+   PS 06062018
+   -- Added UPDATE option "--calculate-vertical-correlations".
 v. 1.80.0
    PS 06062018
    -- Added UPDATE option "--calculate-forecast-spread". This skips calculating
