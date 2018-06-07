@@ -1,3 +1,6 @@
+v. 1.80.4
+   PS 07062018
+   Re-wrote das_writecorrs() for better parallelisation.
 v. 1.80.3
    PS 07062018
    -- Multiple technical changes. Among substantial ones: it seems that the

@@ -1547,7 +1547,16 @@ void das_writevcorrs(dasystem* das)
 {
     model* m = das->m;
     int nvar = model_getnvar(m);
-    int mvid;
+    int nfields = 0;
+    field* fields = NULL;
+    char* varname0 = NULL;
+    float*** v0 = NULL;
+    double* std0 = NULL;
+    float*** v = NULL;
+    double* cor = NULL;
+    double* std = NULL;
+    int ni, nj, nk;
+    int fid;
 
     enkf_printtime("  ");
     enkf_printf("  writing vertical correlations:\n");
@@ -1557,6 +1566,7 @@ void das_writevcorrs(dasystem* das)
      */
     if (!file_exists(FNAME_VERTCORR)) {
         int ncid_dst;
+        int mvid;
 
         ncw_create(FNAME_VERTCORR, NC_CLOBBER | das->ncformat, &ncid_dst);
         for (mvid = 0; mvid < nvar; ++mvid) {
@@ -1578,17 +1588,18 @@ void das_writevcorrs(dasystem* das)
         ncw_close(ncid_dst);
     }
 
-    for (mvid = 0; mvid < nvar; ++mvid) {
-        char* varname = model_getvarname(m, mvid);
+    das_getfields(das, -1 /* for all grids */ , &nfields, &fields);
+    distribute_iterations(0, nfields - 1, nprocesses, rank, "      ");
+
+    for (fid = my_first_iteration; fid <= my_last_iteration; ++fid) {
+        field* f = &fields[fid];
+        char* varname = f->varname;
         int dimids[2];
-        float*** v = NULL;
-        float*** v0 = NULL;
-        double* cor = NULL;
-        double* std0 = NULL;
-        double* std = NULL;
-        int ni, nj, nk;
         int ksurf, nv;
         int e, k, i;
+        char fname_src[MAXSTRLEN];
+        char fname_tile[MAXSTRLEN];
+        int ncid_tile, vid_tile;
 
         {
             char fname[MAXSTRLEN];
@@ -1599,114 +1610,132 @@ void das_writevcorrs(dasystem* das)
         }
 
         /*
-         * calculate anomalies and std at surface
+         * (a new variable)
          */
-        model_getvardims(m, mvid, &ni, &nj, &nk);
-        nv = ni * nj;
-        ksurf = grid_getsurflayerid(model_getvargrid(m, mvid));
+        if (varname0 == NULL || strcmp(varname0, varname) != 0) {
+            /*
+             * calculate anomalies and std at surface
+             */
+            model_getvardims(m, f->varid, &ni, &nj, &nk);
+            nv = ni * nj;
+            ksurf = grid_getsurflayerid(model_getvargrid(m, f->varid));
 
-        v = alloc3d(das->nmem, nj, ni, sizeof(float));
-        v0 = alloc3d(das->nmem, nj, ni, sizeof(float));
-        cor = calloc(nv, sizeof(double));
-        std = calloc(nv, sizeof(double));
-        std0 = calloc(nv, sizeof(double));
-
-        for (e = 0; e < das->nmem; ++e) {
-            char fname[MAXSTRLEN];
-
-            model_getmemberfname(m, das->ensdir, varname, e + 1, fname);
-            model_readfield(das->m, fname, varname, ksurf, v0[e][0]);
-        }
-        for (i = 0; i < nv; ++i) {
-            double vmean = 0.0;
-
-            for (e = 0; e < das->nmem; ++e)
-                vmean += (double) v0[e][0][i];
-            vmean /= (double) das->nmem;
-            for (e = 0; e < das->nmem; ++e)
-                v0[e][0][i] -= (float) vmean;
-            std0[i] = 0.0;
-            for (e = 0; e < das->nmem; ++e)
-                std0[i] += (double) (v0[e][0][i] * v0[e][0][i]);
-            std0[i] = sqrt(std0[i] / (double) (das->nmem - 1));
-        }
-
-        /*
-         * calculate corelation coefficients at each layer and save to disk
-         */
-        distribute_iterations(0, nk - 1, nprocesses, rank, NULL);
-#if defined(MPI)
-        MPI_Barrier(MPI_COMM_WORLD);
-#endif
-        for (k = my_first_iteration; k <= my_last_iteration; ++k) {
-            char fname_src[MAXSTRLEN];
-            char fname_tile[MAXSTRLEN];
-            int ncid_tile, vid_tile;
+            if (v != NULL) {
+                free(v0);
+                free(std0);
+                free(v);
+                free(cor);
+                free(std);
+            }
+            v0 = alloc3d(das->nmem, nj, ni, sizeof(float));
+            std0 = calloc(nv, sizeof(double));
+            v = alloc3d(das->nmem, nj, ni, sizeof(float));
+            cor = calloc(nv, sizeof(double));
+            std = calloc(nv, sizeof(double));
 
             for (e = 0; e < das->nmem; ++e) {
-                model_getmemberfname(m, das->ensdir, varname, e + 1, fname_src);
-                model_readfield(das->m, fname_src, varname, k, v[e][0]);
+                char fname[MAXSTRLEN];
+
+                model_getmemberfname(m, das->ensdir, varname, e + 1, fname);
+                model_readfield(das->m, fname, varname, ksurf, v0[e][0]);
             }
             for (i = 0; i < nv; ++i) {
                 double vmean = 0.0;
 
                 for (e = 0; e < das->nmem; ++e)
-                    vmean += (double) v[e][0][i];
+                    vmean += (double) v0[e][0][i];
                 vmean /= (double) das->nmem;
                 for (e = 0; e < das->nmem; ++e)
-                    v[e][0][i] -= (float) vmean;
-                std[i] = 0.0;
+                    v0[e][0][i] -= (float) vmean;
+                std0[i] = 0.0;
                 for (e = 0; e < das->nmem; ++e)
-                    std[i] += (double) (v[e][0][i] * v[e][0][i]);
-                std[i] /= sqrt(std[i] / (double) (das->nmem - 1));
-                cor[i] = 0.0;
-                for (e = 0; e < das->nmem; ++e)
-                    cor[i] += (double) (v[e][0][i] * v0[e][0][i]);
-                cor[i] /= (std[i] * std0[i]);
+                    std0[i] += (double) (v0[e][0][i] * v0[e][0][i]);
+                std0[i] = sqrt(std0[i] / (double) (das->nmem - 1));
             }
+        }
 
-            snprintf(fname_tile, MAXSTRLEN, "%s/vcorr_%s-%03d.nc", das->ensdir, varname, k);
-            ncw_create(fname_tile, NC_CLOBBER | das->ncformat, &ncid_tile);
-            ncw_def_dim(ncid_tile, "nj", nj, &dimids[0]);
-            ncw_def_dim(ncid_tile, "ni", ni, &dimids[1]);
-            ncw_def_var(ncid_tile, varname, NC_FLOAT, 2, dimids, &vid_tile);
-            if (das->nccompression > 0)
-                ncw_def_deflate(ncid_tile, 0, 1, das->nccompression);
-            ncw_enddef(ncid_tile);
-            ncw_put_var_double(ncid_tile, vid_tile, cor);
-            ncw_close(ncid_tile);
-        }                       /* for k */
+        /*
+         * calculate corelation coefficients at each layer and save to disk
+         */
+        k = f->level;
+        for (e = 0; e < das->nmem; ++e) {
+            model_getmemberfname(m, das->ensdir, varname, e + 1, fname_src);
+            model_readfield(das->m, fname_src, varname, k, v[e][0]);
+        }
+        for (i = 0; i < nv; ++i) {
+            double vmean = 0.0;
 
-        free(v);
+            for (e = 0; e < das->nmem; ++e)
+                vmean += (double) v[e][0][i];
+            vmean /= (double) das->nmem;
+            for (e = 0; e < das->nmem; ++e)
+                v[e][0][i] -= (float) vmean;
+            std[i] = 0.0;
+            for (e = 0; e < das->nmem; ++e)
+                std[i] += (double) (v[e][0][i] * v[e][0][i]);
+            std[i] /= sqrt(std[i] / (double) (das->nmem - 1));
+            cor[i] = 0.0;
+            for (e = 0; e < das->nmem; ++e)
+                cor[i] += (double) (v[e][0][i] * v0[e][0][i]);
+            cor[i] /= (std[i] * std0[i]);
+        }
+
+        snprintf(fname_tile, MAXSTRLEN, "%s/vcorr_%s-%03d.nc", das->ensdir, varname, k);
+        ncw_create(fname_tile, NC_CLOBBER | das->ncformat, &ncid_tile);
+        ncw_def_dim(ncid_tile, "nj", nj, &dimids[0]);
+        ncw_def_dim(ncid_tile, "ni", ni, &dimids[1]);
+        ncw_def_var(ncid_tile, varname, NC_FLOAT, 2, dimids, &vid_tile);
+        if (das->nccompression > 0)
+            ncw_def_deflate(ncid_tile, 0, 1, das->nccompression);
+        ncw_enddef(ncid_tile);
+        ncw_put_var_double(ncid_tile, vid_tile, cor);
+        ncw_close(ncid_tile);
+    }                           /* for fid */
+    if (v0 != NULL) {
         free(v0);
-        free(std);
         free(std0);
+        free(v);
+        free(std);
         free(cor);
-
+    }
 #if defined(MPI)
-        MPI_Barrier(MPI_COMM_WORLD);
+    MPI_Barrier(MPI_COMM_WORLD);
 #endif
-        if (rank == 0) {
-            float* v = malloc(nv * sizeof(float));
+    /*
+     * assemble tiles
+     */
+    if (rank == 0) {
+        for (fid = 0; fid < nfields; ++fid) {
+            field* f = &fields[fid];
+            int ni, nj, nk, nv;
+            float* v = NULL;
             char fname_tile[MAXSTRLEN];
             int ncid_tile, vid_tile;
 
-            for (k = 0; k < nk; ++k) {
-                snprintf(fname_tile, MAXSTRLEN, "%s/vcorr_%s-%03d.nc", das->ensdir, varname, k);
+            {
+                char fname[MAXSTRLEN];
 
-                ncw_open(fname_tile, NC_NOWRITE, &ncid_tile);
-                ncw_inq_varid(ncid_tile, varname, &vid_tile);
-                ncw_get_var_float(ncid_tile, vid_tile, v);
-                ncw_close(ncid_tile);
-                file_delete(fname_tile);
-
-                model_writefield(m, FNAME_VERTCORR, varname, k, v);
+                model_getmemberfname(m, das->ensdir, f->varname, 1, fname);
+                if (!is3d(fname, f->varname))
+                    continue;
             }
+            model_getvardims(m, f->varid, &ni, &nj, &nk);
+            nv = ni * nj;
+            v = malloc(nv * sizeof(float));
 
+            snprintf(fname_tile, MAXSTRLEN, "%s/vcorr_%s-%03d.nc", das->ensdir, f->varname, f->level);
+
+            ncw_open(fname_tile, NC_NOWRITE, &ncid_tile);
+            ncw_inq_varid(ncid_tile, f->varname, &vid_tile);
+            ncw_get_var_float(ncid_tile, vid_tile, v);
+            ncw_close(ncid_tile);
+            file_delete(fname_tile);
+
+            model_writefield(m, FNAME_VERTCORR, f->varname, f->level, v);
             free(v);
         }
+    }
 #if defined(MPI)
-        MPI_Barrier(MPI_COMM_WORLD);
+    MPI_Barrier(MPI_COMM_WORLD);
 #endif
-    }                           /* for mvid */
 }
