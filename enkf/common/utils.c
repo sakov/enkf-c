@@ -736,9 +736,9 @@ void* copy3d(void*** src, size_t nk, size_t nj, size_t ni, size_t unitsize)
  */
 int nc_hasunlimdim(int ncid)
 {
-    int unlimdimid, status;
+    int unlimdimid;
 
-    status = nc_inq_unlimdim(ncid, &unlimdimid);
+    (void) nc_inq_unlimdim(ncid, &unlimdimid);
     return (unlimdimid >= 0);
 }
 
