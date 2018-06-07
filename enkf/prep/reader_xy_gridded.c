@@ -8,8 +8,9 @@
  *              Bureau of Meteorology
  *
  * Description: Generic reader for gridded surface observations.
- *                It currently assumes that there is only one data record
- *              (2D field).
+ *                It currently assumes the following:
+ *              - there is only one data record (2D field);
+ *              - longitude is the inner ("fast") coordinate of the variable.
  *                There are a number of parameters that must (++) or can be
  *              specified if they differ from the default value (+). Some
  *              parameters are optional (-):
@@ -68,14 +69,15 @@ void reader_xy_gridded(char* fname, int fid, obsmeta* meta, grid* g, observation
     char* estdname = NULL;
     char* timename = NULL;
     int ncid;
-    int ndim;
+    int ndim_var, ndim_xy;
+    size_t dimlen_var[3], dimlen_xy[2];
 
     float varshift = 0.0;
     double mindepth = 0.0;
     char instrument[MAXSTRLEN];
 
     int iscurv = -1;
-    size_t ni = 0, nj = 0, n = 0;
+    size_t ni = 0, nj = 0, n = 0, n_var = 0;
     int varid_lon = -1, varid_lat = -1;
     double* lon = NULL;
     double* lat = NULL;
@@ -134,8 +136,8 @@ void reader_xy_gridded(char* fname, int fid, obsmeta* meta, grid* g, observation
 
     ncw_open(fname, NC_NOWRITE, &ncid);
     ncw_inq_varid(ncid, varname, &varid_var);
-    ncw_inq_varndims(ncid, varid_var, &ndim);
-    if (ndim == 3) {
+    ncw_inq_vardims(ncid, varid_var, 2, &ndim_var, dimlen_var);
+    if (ndim_var == 3) {
         int dimid[3];
         size_t nr;
 
@@ -143,8 +145,13 @@ void reader_xy_gridded(char* fname, int fid, obsmeta* meta, grid* g, observation
         ncw_inq_dimlen(ncid, dimid[0], &nr);
         if (nr != 1)
             enkf_quit("reader_xy_gridded(): %d records (currently only one is allowed)", nr);
-    } else if (ndim != 2)
-        enkf_quit("reader_xy_gridded(): %s: # dimensions = %d (must be 2 or 3 with only one record)", fname, ndim);
+        n_var = dimlen_var[1] * dimlen_var[2];
+    } else if (ndim_var == 2) {
+        if (nc_hasunlimdim(ncid))
+            enkf_quit("reader_xy_gridded(): %s: %s: not enough spatial dimensions (must be 2)", fname, varname);
+        n_var = dimlen_var[0] * dimlen_var[1];
+    } else if (ndim_var != 2)
+        enkf_quit("reader_xy_gridded(): %s: # dimensions = %d (must be 2 or 3 with only one record)", fname, ndim_var);
 
     if (lonname != NULL)
         ncw_inq_varid(ncid, lonname, &varid_lon);
@@ -154,22 +161,16 @@ void reader_xy_gridded(char* fname, int fid, obsmeta* meta, grid* g, observation
         ncw_inq_varid(ncid, "longitude", &varid_lon);
     else
         enkf_quit("reader_xy_gridded(): %s: could not find longitude variable", fname);
-    ncw_inq_varndims(ncid, varid_lon, &ndim);
-    if (ndim == 1) {
-        int dimid;
-
+    ncw_inq_vardims(ncid, varid_lon, 2, &ndim_xy, dimlen_xy);
+    if (ndim_xy == 1) {
         iscurv = 0;
-        ncw_inq_vardimid(ncid, varid_lon, &dimid);
-        ncw_inq_dimlen(ncid, dimid, &ni);
-    } else if (ndim == 2) {
-        int dimid[2];
-
+        ni = dimlen_xy[0];
+    } else if (ndim_xy == 2) {
         iscurv = 1;
-        ncw_inq_vardimid(ncid, varid_lon, dimid);
-        ncw_inq_dimlen(ncid, dimid[0], &ni);
-        ncw_inq_dimlen(ncid, dimid[1], &nj);
+        ni = dimlen_xy[1];
+        nj = dimlen_xy[0];
     } else
-        enkf_quit("reader_xy_gridded(): %s: variable \"%s\" has neither 1 or 2 dimensions", fname, lonname);
+        enkf_quit("reader_xy_gridded(): %s: coordinate variable \"%s\" has neither 1 or 2 dimensions", fname, lonname);
 
     if (latname != NULL)
         ncw_inq_varid(ncid, latname, &varid_lat);
@@ -180,16 +181,17 @@ void reader_xy_gridded(char* fname, int fid, obsmeta* meta, grid* g, observation
     else
         enkf_quit("reader_xy_gridded(): %s: could not find latitude variable", fname);
     if (iscurv == 0) {
-        int dimid;
-
         ncw_check_varndims(ncid, varid_lat, 1);
-        ncw_inq_vardimid(ncid, varid_lat, &dimid);
-        ncw_inq_dimlen(ncid, dimid, &nj);
+        ncw_inq_vardims(ncid, varid_lat, 1, NULL, &nj);
     } else
-        ncw_check_varndims(ncid, varid_lat, 2);
+        ncw_check_vardims(ncid, varid_lat, 2, dimlen_xy);
 
     enkf_printf("        (ni, nj) = (%u, %u)\n", ni, nj);
     n = ni * nj;
+    if (n != n_var)
+        enkf_quit("reader_xy_gridded(): %s: dimensions of variable \"%s\" do not match coordinate dimensions", fname, varname);
+    if (dimlen_var[ndim_var - 1] != ni)
+        enkf_quit("reader_xy_gridded(): %s: %s: longitude must be the inner coordinate", fname, varname);
 
     if (iscurv == 0) {
         lon = malloc(ni * sizeof(double));

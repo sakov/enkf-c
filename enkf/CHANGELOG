@@ -1,3 +1,8 @@
+v. 1.80.3
+   PS 07062018
+   -- Multiple technical changes. Among substantial ones: it seems that the
+      lon/lat coordinate order in reader_xy_gridded() and reader_xyz_gridded()
+      has been swapped (i.e. lat was assumed to be the innermost one).
 v. 1.80.2
    PS 07062018
    -- Some internal reshuffling, mainly concerning reading/writing of the

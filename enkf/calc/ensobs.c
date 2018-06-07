@@ -1012,7 +1012,6 @@ static void update_HE(dasystem* das)
         char fname_X5[MAXSTRLEN];
         int ncid;
         int varid;
-        int dimids[3];
         size_t dimlens[3];
         size_t start[3], count[3];
         float** X5j = NULL;
@@ -1033,12 +1032,9 @@ static void update_HE(dasystem* das)
 
         ncw_open(fname_X5, NC_NOWRITE, &ncid);
         ncw_inq_varid(ncid, "X5", &varid);
-        ncw_inq_vardimid(ncid, varid, dimids);
-        for (i = 0; i < 3; ++i)
-            ncw_inq_dimlen(ncid, dimids[i], &dimlens[i]);
+        ncw_inq_vardims(ncid, varid, 3, NULL, dimlens);
         ni = dimlens[1];
         nj = dimlens[0];
-
         assert((int) dimlens[2] == nmem * nmem);
 
         jiter = malloc((nj + 1) * sizeof(int)); /* "+ 1" to handle periodic
@@ -1285,7 +1281,6 @@ static void update_Hx(dasystem* das)
         char fname_w[MAXSTRLEN];
         int ncid;
         int varid;
-        int dimids[3];
         size_t dimlens[3];
         size_t start[3], count[3];
         float** wj = NULL;
@@ -1306,12 +1301,9 @@ static void update_Hx(dasystem* das)
 
         ncw_open(fname_w, NC_NOWRITE, &ncid);
         ncw_inq_varid(ncid, "w", &varid);
-        ncw_inq_vardimid(ncid, varid, dimids);
-        for (i = 0; i < 3; ++i)
-            ncw_inq_dimlen(ncid, dimids[i], &dimlens[i]);
+        ncw_inq_vardims(ncid, varid, 3, NULL, dimlens);
         ni = dimlens[1];
         nj = dimlens[0];
-
         assert((int) dimlens[2] == nmem);
 
         jiter = malloc((nj + 1) * sizeof(int)); /* "+ 1" to handle periodic

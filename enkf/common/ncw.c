@@ -31,7 +31,7 @@
 #include <errno.h>
 #include "ncw.h"
 
-const char ncw_version[] = "2.16";
+const char ncw_version[] = "2.17";
 
 /* This macro is substituted in error messages instead of the name of a
  * variable in cases when the name could not be found by the variable id.
@@ -2047,26 +2047,29 @@ void ncw_check_vardims(int ncid, int varid, int ndims, size_t dimlen[])
  * @param ncid NetCDF file id
  * @param varid ID of the variable
  * @param maxndims Maximal allowed number of dimensions
- * @param ndims Output: number of dimensions
+ * @param ndims Output: number of dimensions (can be NULL)
  * @param dimlen Output: dimension lengths
  */
-void ncw_inq_vardims(int ncid, int varid, int maxndims, int* ndims, size_t dimlen[])
+void ncw_inq_vardims(int ncid, int varid, int maxndims, int* ndims_out, size_t dimlen[])
 {
     int dimids[NC_MAX_DIMS];
+    int ndims;
     int i;
 
-    ncw_inq_varndims(ncid, varid, ndims);
-    if (*ndims > maxndims) {
+    ncw_inq_varndims(ncid, varid, &ndims);
+    if (ndims > maxndims) {
         char varname[NC_MAX_NAME] = "STR_UNKNOWN";
 
         ncw_inq_varname(ncid, varid, varname);
         quit("\"%s\": number of dimensions for variable \"%s\" = %d exceeds maximal allowed number = %d", ncw_get_path(ncid), varname, ndims, maxndims);
     }
     ncw_inq_vardimid(ncid, varid, dimids);
-    for (i = 0; i < *ndims; ++i)
+    for (i = 0; i < ndims; ++i)
         ncw_inq_dimlen(ncid, dimids[i], &dimlen[i]);
-    for (i = *ndims; i < maxndims; ++i)
+    for (i = ndims; i < maxndims; ++i)
         dimlen[i] = 0;
+    if (ndims_out != NULL)
+        *ndims_out = ndims;
 }
 
 /** Check if the file opens
