@@ -1736,6 +1736,7 @@ void das_writevcorrs(dasystem* das)
             free(v);
         }
     }
+    free(fields);
 #if defined(MPI)
     MPI_Barrier(MPI_COMM_WORLD);
 #endif
