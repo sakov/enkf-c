@@ -954,11 +954,12 @@ grid* grid_create(void* p, int id)
      * set horizontal grid
      */
     if (ndims_x == 1 && ndims_y == 1) {
+        int dummy;
         double* x;
         double* y;
 
-        ncw_inq_vardimlen(ncid, varid_x, 1, &ni);
-        ncw_inq_vardimlen(ncid, varid_y, 1, &nj);
+        ncw_inq_vardims(ncid, varid_x, 1, &dummy, &ni);
+        ncw_inq_vardims(ncid, varid_y, 1, &dummy, &nj);
 
         x = malloc(ni * sizeof(double));
         y = malloc(nj * sizeof(double));
@@ -971,11 +972,12 @@ grid* grid_create(void* p, int id)
 #if defined(NO_GRIDUTILS)
         enkf_quit("%s: grid \"%s\" seems to be of curvilinear type; can not handle it due to flag NO_GRIDUTILS", fname, g->name);
 #else
+        int dummy;
         double** x;
         double** y;
         size_t dimlen[2];
 
-        ncw_inq_vardimlen(ncid, varid_x, 2, dimlen);
+        ncw_inq_vardims(ncid, varid_x, 2, &dummy, dimlen);
         ncw_check_vardims(ncid, varid_y, 2, dimlen);
         nj = dimlen[0];
         ni = dimlen[1];
@@ -1004,17 +1006,18 @@ grid* grid_create(void* p, int id)
     }
     if (g->vtype == GRIDVTYPE_Z) {
         int varid;
+        int dummy;
         double* z = NULL;
         double* zc = NULL;
         size_t nkc = 0;
 
         ncw_inq_varid(ncid, prm->zvarname, &varid);
-        ncw_inq_vardimlen(ncid, varid, 1, &nk);
+        ncw_inq_vardims(ncid, varid, 1, &dummy, &nk);
         z = malloc(nk * sizeof(double));
         ncw_get_var_double(ncid, varid, z);
         if (prm->zcvarname != NULL) {
             ncw_inq_varid(ncid, prm->zcvarname, &varid);
-            ncw_inq_vardimlen(ncid, varid, 1, &nkc);
+            ncw_inq_vardims(ncid, varid, 1, &dummy, &nkc);
             /*
              * (nkc = nk in MOM)
              */
@@ -1027,12 +1030,13 @@ grid* grid_create(void* p, int id)
             free(zc);
     } else if (g->vtype == GRIDVTYPE_SIGMA) {
         int varid;
+        int dummy;
         double* ct = NULL;
         double* cc = NULL;
         double hc = 0.0;
 
         ncw_inq_varid(ncid, prm->zvarname, &varid);
-        ncw_inq_vardimlen(ncid, varid, 1, &nk);
+        ncw_inq_vardims(ncid, varid, 1, &dummy, &nk);
         ct = malloc(nk * sizeof(double));
         ncw_get_var_double(ncid, varid, ct);
         if (prm->zcvarname != NULL) {
@@ -1058,10 +1062,11 @@ grid* grid_create(void* p, int id)
         float** p1 = alloc2d(nj, ni, sizeof(float));
         float** p2 = alloc2d(nj, ni, sizeof(float));
         int varid;
+        int dummy;
         size_t dimlen[2];
 
         ncw_inq_varid(ncid, prm->avarname, &varid);
-        ncw_inq_vardimlen(ncid, varid, 1, &nk);
+        ncw_inq_vardims(ncid, varid, 1, &dummy, &nk);
         a = malloc(nk * sizeof(double));
         ncw_get_var_double(ncid, varid, a);
 
@@ -1333,6 +1338,8 @@ void grid_getdims(grid* g, int* ni, int* nj, int* nk)
             *nk = ((gz_sigma*) g->gridnodes_z)->nk;
         else if (g->vtype == GRIDVTYPE_HYBRID)
             *nk = ((gz_hybrid*) g->gridnodes_z)->nk;
+        else if (g->vtype == GRIDVTYPE_NONE)
+            *nk = 1;
         else
             enkf_quit("programming error");
     }

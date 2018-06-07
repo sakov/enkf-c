@@ -634,18 +634,19 @@ int model_fk2z(model* m, int vid, int i, int j, double fk, double* z)
 
 /**
  */
-void model_readfield(model* m, char fname[], int time, char varname[], int k, float* v)
+void model_readfield(model* m, char fname[], char varname[], int k, float* v)
 {
     int ni, nj, nk;
     int mvid = model_getvarid(m, varname, 1);
 
     model_getvardims(m, mvid, &ni, &nj, &nk);
-    readfield(fname, varname, k, ni, nj, v);
+    assert(k < nk);
+    readfield(fname, varname, k, ni, nj, nk, v);
 }
 
 /**
  */
-void model_read3dfield(model* m, char fname[], int time, char varname[], float* v)
+void model_read3dfield(model* m, char fname[], char varname[], float* v)
 {
     int ni, nj, nk;
     int mvid = model_getvarid(m, varname, 1);
@@ -656,9 +657,26 @@ void model_read3dfield(model* m, char fname[], int time, char varname[], float* 
 
 /**
  */
-void model_writefield(model* m, char fname[], int time, char varname[], int k, float* v)
+void model_writefield(model* m, char fname[], char varname[], int k, float* v)
 {
-    writefield(fname, varname, k, v);
+    int ni, nj, nk;
+    int mvid = model_getvarid(m, varname, 1);
+
+    model_getvardims(m, mvid, &ni, &nj, &nk);
+    assert(k < nk);
+    writefield(fname, varname, k, ni, nj, nk, v);
+}
+
+/**
+ */
+void model_writefieldas(model* m, char fname[], char varname[], char varnameas[], int k, float* v)
+{
+    int ni, nj, nk;
+    int mvid = model_getvarid(m, varnameas, 1);
+
+    model_getvardims(m, mvid, &ni, &nj, &nk);
+    assert(k < nk);
+    writefield(fname, varname, k, ni, nj, nk, v);
 }
 
 /**

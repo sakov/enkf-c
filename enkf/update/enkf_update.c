@@ -196,7 +196,7 @@ int main(int argc, char* argv[])
         updatespec &= ~UPDATE_DOPLOGS;
 
     describe_updatespec(updatespec);
-    if ((updatespec & (UPDATE_DOFIELDS | UPDATE_DOSPREAD | UPDATE_DOPLOGS | UPDATE_DOINFLATION)) == 0)
+    if ((updatespec & (UPDATE_DOFIELDS | UPDATE_DOSPREAD | UPDATE_DOPLOGS | UPDATE_DOINFLATION | UPDATE_DOVERTCORRS)) == 0)
         enkf_quit("nothing to do");
 
     enkf_printf("  initialising the system:\n");
@@ -204,12 +204,14 @@ int main(int argc, char* argv[])
     enkfprm_destroy(prm);
     das->updatespec = updatespec;
 
-    if (das->mode == MODE_ENKF)
-        enkf_printf("  updating the ensemble:\n");
-    else if (das->mode == MODE_ENOI)
-        enkf_printf("  updating the model state:\n");
-    das_update(das);
-    enkf_flush();
+    if (updatespec & (UPDATE_DOFIELDS | UPDATE_DOSPREAD | UPDATE_DOPLOGS | UPDATE_DOINFLATION)) {
+        if (das->mode == MODE_ENKF)
+            enkf_printf("  updating the ensemble:\n");
+        else if (das->mode == MODE_ENOI)
+            enkf_printf("  updating the model state:\n");
+        das_update(das);
+        enkf_flush();
+    }
 
     if (das->updatespec & UPDATE_DOVERTCORRS)
         das_writevcorrs(das);

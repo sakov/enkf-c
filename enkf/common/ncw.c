@@ -2047,25 +2047,25 @@ void ncw_check_vardims(int ncid, int varid, int ndims, size_t dimlen[])
  * @param ncid NetCDF file id
  * @param varid ID of the variable
  * @param maxndims Maximal allowed number of dimensions
+ * @param ndims Output: number of dimensions
  * @param dimlen Output: dimension lengths
  */
-void ncw_inq_vardimlen(int ncid, int varid, int maxndims, size_t dimlen[])
+void ncw_inq_vardims(int ncid, int varid, int maxndims, int* ndims, size_t dimlen[])
 {
-    int ndims;
     int dimids[NC_MAX_DIMS];
     int i;
 
-    ncw_inq_varndims(ncid, varid, &ndims);
-    if (ndims > maxndims) {
+    ncw_inq_varndims(ncid, varid, ndims);
+    if (*ndims > maxndims) {
         char varname[NC_MAX_NAME] = "STR_UNKNOWN";
 
         ncw_inq_varname(ncid, varid, varname);
-        quit("\"%s\": number of dimensions for variable \"%s\" = %d exceeds maximal allowed number of %d", ncw_get_path(ncid), varname, ndims, maxndims);
+        quit("\"%s\": number of dimensions for variable \"%s\" = %d exceeds maximal allowed number = %d", ncw_get_path(ncid), varname, ndims, maxndims);
     }
     ncw_inq_vardimid(ncid, varid, dimids);
-    for (i = 0; i < ndims; ++i)
+    for (i = 0; i < *ndims; ++i)
         ncw_inq_dimlen(ncid, dimids[i], &dimlen[i]);
-    for (i = ndims; i < maxndims; ++i)
+    for (i = *ndims; i < maxndims; ++i)
         dimlen[i] = 0;
 }
 

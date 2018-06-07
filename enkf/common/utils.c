@@ -45,6 +45,47 @@
 
 /**
  */
+void enkf_quit(char* format, ...)
+{
+    va_list args;
+
+    fflush(stdout);
+
+    fprintf(stderr, "\n\n  ERROR: enkf: CPU #%d: ", rank);
+    va_start(args, format);
+    vfprintf(stderr, format, args);
+    va_end(args);
+    fprintf(stderr, "\n\n");
+    enkf_printtime("  ");
+
+    if (enkf_exitaction == EXITACTION_BACKTRACE) {
+        void* buffer[BACKTRACE_SIZE];
+        size_t size;
+        char** strings;
+        size_t i;
+
+        fprintf(stderr, "\n  I am CPU #%d, now printing the backtrace:\n\n", rank);
+        size = backtrace(buffer, BACKTRACE_SIZE);
+        strings = backtrace_symbols(buffer, size);
+        fprintf(stderr, "  obtained %zd stack frames:\n", size);
+        for (i = 0; i < size; i++)
+            fprintf(stderr, "%s\n", strings[i]);
+        free(strings);
+    } else if (enkf_exitaction == EXITACTION_SEGFAULT) {
+        fprintf(stderr, "\n  I am CPU #%d, now generating a segfault:\n\n", rank);
+    }
+    fflush(NULL);               /* flush all streams */
+#if defined(MPI)
+    MPI_Abort(MPI_COMM_WORLD, 1);       /* kill all MPI jobs */
+#else
+    abort();                    /* raise SIGABRT for debugging */
+#endif
+
+    exit(1);
+}
+
+/**
+ */
 void enkf_init(int* argc, char*** argv)
 {
 #if defined(MPI)
@@ -89,47 +130,6 @@ void enkf_finish(void)
 #if defined(MPI)
     MPI_Finalize();
 #endif
-}
-
-/**
- */
-void enkf_quit(char* format, ...)
-{
-    va_list args;
-
-    fflush(stdout);
-
-    fprintf(stderr, "\n\n  ERROR: enkf: CPU #%d: ", rank);
-    va_start(args, format);
-    vfprintf(stderr, format, args);
-    va_end(args);
-    fprintf(stderr, "\n\n");
-    enkf_printtime("  ");
-
-    if (enkf_exitaction == EXITACTION_BACKTRACE) {
-        void* buffer[BACKTRACE_SIZE];
-        size_t size;
-        char** strings;
-        size_t i;
-
-        fprintf(stderr, "\n  I am CPU #%d, now printing the backtrace:\n\n", rank);
-        size = backtrace(buffer, BACKTRACE_SIZE);
-        strings = backtrace_symbols(buffer, size);
-        fprintf(stderr, "  obtained %zd stack frames:\n", size);
-        for (i = 0; i < size; i++)
-            fprintf(stderr, "%s\n", strings[i]);
-        free(strings);
-    } else if (enkf_exitaction == EXITACTION_SEGFAULT) {
-        fprintf(stderr, "\n  I am CPU #%d, now generating a segfault:\n\n", rank);
-    }
-    fflush(NULL);               /* flush all streams */
-#if defined(MPI)
-    MPI_Abort(MPI_COMM_WORLD, 1);       /* kill all MPI jobs */
-#else
-    abort();                    /* raise SIGABRT for debugging */
-#endif
-
-    exit(1);
 }
 
 /**
@@ -734,17 +734,12 @@ void* copy3d(void*** src, size_t nk, size_t nj, size_t ni, size_t unitsize)
 
 /**
  */
-int nc_isunlimdimid(int ncid, int dimid)
+int nc_hasunlimdim(int ncid)
 {
     int unlimdimid, status;
 
     status = nc_inq_unlimdim(ncid, &unlimdimid);
-    if (status != NC_NOERR)
-        return 0;
-    if (dimid == unlimdimid)
-        return 1;
-
-    return 0;
+    return (unlimdimid >= 0);
 }
 
 /**
@@ -754,28 +749,23 @@ int getnlevels(char fname[], char varname[])
     int ncid;
     int varid;
     int ndims;
-    int dimids[4];
     size_t dimlen[4];
-    int i;
-    int containsrecorddim;
+    int hasrecorddim;
 
     ncw_open(fname, NC_NOWRITE, &ncid);
     ncw_inq_varid(ncid, varname, &varid);
-    ncw_inq_varndims(ncid, varid, &ndims);
-    ncw_inq_vardimid(ncid, varid, dimids);
-    for (i = 0; i < ndims; ++i)
-        ncw_inq_dimlen(ncid, dimids[i], &dimlen[i]);
-    containsrecorddim = nc_isunlimdimid(ncid, dimids[0]);
+    ncw_inq_vardims(ncid, varid, 4, &ndims, dimlen);
+    hasrecorddim = nc_hasunlimdim(ncid);
     ncw_close(ncid);
 
     if (ndims == 4) {
-        assert(containsrecorddim);
+        assert(hasrecorddim);
         return (int) dimlen[1];
     }
     if (ndims == 3)
-        return (containsrecorddim) ? 1 : (int) dimlen[0];
+        return (hasrecorddim) ? 1 : (int) dimlen[0];
     if (ndims == 2)
-        return (containsrecorddim) ? 0 : 1;
+        return (hasrecorddim) ? 0 : 1;
 
     return 0;
 }
@@ -783,36 +773,27 @@ int getnlevels(char fname[], char varname[])
 /** Reads one horizontal field (layer) for a variable from a NetCDF file.
  ** Verifies that the field dimensions are ni x nj.
  */
-void readfield(char fname[], char varname[], int k, int ni, int nj, float* v)
+void readfield(char fname[], char varname[], int k, int ni, int nj, int nk, float* v)
 {
     int ncid;
     int varid;
     int ndims;
-    int dimids[4];
     size_t dimlen[4];
     size_t start[4], count[4];
     int i, n;
-    int containsrecorddim;
+    int hasrecorddim;
 
     ncw_open(fname, NC_NOWRITE, &ncid);
     ncw_inq_varid(ncid, varname, &varid);
-    ncw_inq_varndims(ncid, varid, &ndims);
-    assert(ndims <= 4);
-    ncw_inq_vardimid(ncid, varid, dimids);
-    for (i = 0; i < ndims; ++i)
-        ncw_inq_dimlen(ncid, dimids[i], &dimlen[i]);
-
-    containsrecorddim = nc_isunlimdimid(ncid, dimids[0]);
+    ncw_inq_vardims(ncid, varid, 4, &ndims, dimlen);
+    hasrecorddim = nc_hasunlimdim(ncid);
 
     if (ndims == 4) {
-        assert(containsrecorddim || dimlen[0] == 1);
+        assert(hasrecorddim || dimlen[0] == 1);
         start[0] = 0;
-        if (dimlen[1] == 1)
-            start[1] = 0;
-        else {
-            assert(k < dimlen[1]);
-            start[1] = k;
-        }
+        if (dimlen[1] != nk)
+            enkf_quit("\"%s\": vertical dimension of variable \"%s\" (nk = %d) does not match grid dimension (nk = %d)", fname, varname, dimlen[1], nk);
+        start[1] = k;
         start[2] = 0;
         start[3] = 0;
         count[0] = 1;
@@ -822,8 +803,9 @@ void readfield(char fname[], char varname[], int k, int ni, int nj, float* v)
         if (dimlen[3] != ni || dimlen[2] != nj)
             enkf_quit("\"%s\": horizontal dimensions of variable \"%s\" (ni = %d, nj = %d) do not match grid dimensions (ni = %d, nj = %d)", fname, varname, dimlen[3], dimlen[2], ni, nj);
     } else if (ndims == 3) {
-        if (!containsrecorddim) {
-            assert(k < dimlen[0]);
+        if (!hasrecorddim) {
+            if (dimlen[0] != nk && !(dimlen[0] == 1 && (k == 0 || k == nk - 1)))
+                enkf_quit("\"%s\": vertical dimension of variable \"%s\" (nk = %d) does not match grid dimension (nk = %d)", fname, varname, dimlen[0], nk);
             start[0] = k;
             start[1] = 0;
             start[2] = 0;
@@ -844,7 +826,7 @@ void readfield(char fname[], char varname[], int k, int ni, int nj, float* v)
         if (dimlen[2] != ni || dimlen[1] != nj)
             enkf_quit("\"%s\": horizontal dimensions of variable \"%s\" (ni = %d, nj = %d) do not match grid dimensions (ni = %d, nj = %d)", fname, varname, dimlen[2], dimlen[1], ni, nj);
     } else if (ndims == 2) {
-        if (containsrecorddim)
+        if (hasrecorddim)
             enkf_quit("%s: can not read a layer from a 1D variable \"%s\"", fname, varname);
         if (k > 0)
             enkf_quit("%s: can not read layer %d from a 2D variable \"%s\"", fname, k, varname);
@@ -885,31 +867,26 @@ void readfield(char fname[], char varname[], int k, int ni, int nj, float* v)
 
 /** Writes one horizontal field (layer) for a variable to a NetCDF file.
  */
-void writefield(char fname[], char varname[], int k, float* v)
+void writefield(char fname[], char varname[], int k, int ni, int nj, int nk, float* v)
 {
     int ncid;
     int varid;
     int ndims;
-    int dimids[4];
     size_t dimlen[4];
     size_t start[4], count[4];
     int i, n;
-    int containsrecorddim;
+    int hasrecorddim;
 
     ncw_open(fname, NC_WRITE, &ncid);
     ncw_inq_varid(ncid, varname, &varid);
-    ncw_inq_varndims(ncid, varid, &ndims);
-    assert(ndims <= 4);
-    ncw_inq_vardimid(ncid, varid, dimids);
-    for (i = 0; i < ndims; ++i)
-        ncw_inq_dimlen(ncid, dimids[i], &dimlen[i]);
-
-    containsrecorddim = nc_isunlimdimid(ncid, dimids[0]);
+    ncw_inq_vardims(ncid, varid, 4, &ndims, dimlen);
+    hasrecorddim = nc_hasunlimdim(ncid);
 
     if (ndims == 4) {
-        assert(containsrecorddim);
-        assert(k < dimlen[1]);
+        assert(hasrecorddim);
         start[0] = 0;
+        if (dimlen[1] != nk)
+            enkf_quit("\"%s\": vertical dimension of variable \"%s\" (nk = %d) does not match grid dimension (nk = %d)", fname, varname, dimlen[1], nk);
         start[1] = k;
         start[2] = 0;
         start[3] = 0;
@@ -917,9 +894,12 @@ void writefield(char fname[], char varname[], int k, float* v)
         count[1] = 1;
         count[2] = dimlen[2];
         count[3] = dimlen[3];
+        if (dimlen[3] != ni || dimlen[2] != nj)
+            enkf_quit("\"%s\": horizontal dimensions of variable \"%s\" (ni = %d, nj = %d) do not match grid dimensions (ni = %d, nj = %d)", fname, varname, dimlen[3], dimlen[2], ni, nj);
     } else if (ndims == 3) {
-        if (!containsrecorddim) {
-            assert(k < dimlen[0]);
+        if (!hasrecorddim) {
+            if (dimlen[0] != nk && !(dimlen[0] == 1 && (k == 0 || k == nk - 1)))
+                enkf_quit("\"%s\": vertical dimension of variable \"%s\" (nk = %d) does not match grid dimension (nk = %d)", fname, varname, dimlen[0], nk);
             start[0] = k;
             start[1] = 0;
             start[2] = 0;
@@ -937,8 +917,10 @@ void writefield(char fname[], char varname[], int k, float* v)
             count[1] = dimlen[1];
             count[2] = dimlen[2];
         }
+        if (dimlen[2] != ni || dimlen[1] != nj)
+            enkf_quit("\"%s\": horizontal dimensions of variable \"%s\" (ni = %d, nj = %d) do not match grid dimensions (ni = %d, nj = %d)", fname, varname, dimlen[2], dimlen[1], ni, nj);
     } else if (ndims == 2) {
-        if (containsrecorddim)
+        if (hasrecorddim)
             enkf_quit("%s: can not write a layer from a 1D variable \"%s\"", fname, varname);
         if (k > 0)
             enkf_quit("%s: can not write layer %d from a 2D variable \"%s\"", fname, k, varname);
@@ -946,6 +928,8 @@ void writefield(char fname[], char varname[], int k, float* v)
         start[1] = 0;
         count[0] = dimlen[0];
         count[1] = dimlen[1];
+        if (dimlen[1] != ni || dimlen[0] != nj)
+            enkf_quit("\"%s\": horizontal dimensions of variable \"%s\" (ni = %d, nj = %d) do not match grid dimensions (ni = %d, nj = %d)", fname, varname, dimlen[1], dimlen[0], ni, nj);
     } else
         enkf_quit("%s: can not write 2D field for \"%s\": # of dimensions = %d", fname, varname, ndims);
 
@@ -1023,24 +1007,18 @@ void writerow(char fname[], char varname[], int k, int j, float* v)
     int ncid;
     int varid;
     int ndims;
-    int dimids[4];
     size_t dimlen[4];
     size_t start[4], count[4];
     int i, n;
-    int containsrecorddim;
+    int hasrecorddim;
 
     ncw_open(fname, NC_WRITE, &ncid);
     ncw_inq_varid(ncid, varname, &varid);
-    ncw_inq_varndims(ncid, varid, &ndims);
-    assert(ndims <= 4);
-    ncw_inq_vardimid(ncid, varid, dimids);
-    for (i = 0; i < ndims; ++i)
-        ncw_inq_dimlen(ncid, dimids[i], &dimlen[i]);
-
-    containsrecorddim = nc_isunlimdimid(ncid, dimids[0]);
+    ncw_inq_vardims(ncid, varid, 4, &ndims, dimlen);
+    hasrecorddim = nc_hasunlimdim(ncid);
 
     if (ndims == 4) {
-        assert(containsrecorddim);
+        assert(hasrecorddim);
         assert(k < dimlen[1]);
         start[0] = 0;
         start[1] = k;
@@ -1051,7 +1029,7 @@ void writerow(char fname[], char varname[], int k, int j, float* v)
         count[2] = 1;
         count[3] = dimlen[3];
     } else if (ndims == 3) {
-        if (!containsrecorddim) {
+        if (!hasrecorddim) {
             assert(k < dimlen[0]);
             start[0] = k;
             start[1] = j;
@@ -1069,7 +1047,7 @@ void writerow(char fname[], char varname[], int k, int j, float* v)
             count[2] = dimlen[2];
         }
     } else if (ndims == 2) {
-        if (containsrecorddim)
+        if (hasrecorddim)
             enkf_quit("%s: can not write a row %d to a 1D variable \"%s\"", fname, j, varname);
         if (k > 0)
             enkf_quit("%s: can not write layer %d row %d to a 2D variable \"%s\"", fname, k, j, varname);
@@ -1151,24 +1129,18 @@ void read3dfield(char* fname, char* varname, int ni, int nj, int nk, float* v)
     int ncid;
     int varid;
     int ndims;
-    int dimids[4];
     size_t dimlen[4];
     size_t start[4], count[4];
     int i, n;
-    int containsrecorddim;
+    int hasrecorddim;
 
     ncw_open(fname, NC_NOWRITE, &ncid);
     ncw_inq_varid(ncid, varname, &varid);
-    ncw_inq_varndims(ncid, varid, &ndims);
-    assert(ndims <= 4);
-    ncw_inq_vardimid(ncid, varid, dimids);
-    for (i = 0; i < ndims; ++i)
-        ncw_inq_dimlen(ncid, dimids[i], &dimlen[i]);
-
-    containsrecorddim = nc_isunlimdimid(ncid, dimids[0]);
+    ncw_inq_vardims(ncid, varid, 4, &ndims, dimlen);
+    hasrecorddim = nc_hasunlimdim(ncid);
 
     if (ndims == 4) {
-        assert(containsrecorddim || dimlen[0] == 1);
+        assert(hasrecorddim || dimlen[0] == 1);
         start[0] = 0;
         start[1] = 0;
         start[2] = 0;
@@ -1180,7 +1152,7 @@ void read3dfield(char* fname, char* varname, int ni, int nj, int nk, float* v)
         if (dimlen[3] != ni || dimlen[2] != nj || dimlen[1] != nk)
             enkf_quit("\"%s\": horizontal dimensions of variable \"%s\" (ni = %d, nj = %d, nk = %d) do not match grid dimensions (ni = %d, nj = %d, nk = %d)", fname, varname, dimlen[3], dimlen[2], dimlen[1], ni, nj, nk);
     } else if (ndims == 3) {
-        assert(!containsrecorddim);
+        assert(!hasrecorddim);
         start[0] = 0;
         start[1] = 0;
         start[2] = 0;
@@ -1225,18 +1197,16 @@ int is3d(char fname[], char varname[])
     int ncid;
     int varid;
     int ndims;
-    int dimids[4];
-    int containsrecorddim;
+    int hasrecorddim;
 
     ncw_open(fname, NC_NOWRITE, &ncid);
     ncw_inq_varid(ncid, varname, &varid);
     ncw_inq_varndims(ncid, varid, &ndims);
     assert(ndims <= 4);
-    ncw_inq_vardimid(ncid, varid, dimids);
-    containsrecorddim = nc_isunlimdimid(ncid, dimids[0]);
+    hasrecorddim = nc_hasunlimdim(ncid);
     ncw_close(ncid);
 
-    ndims -= containsrecorddim;
+    ndims -= hasrecorddim;
     assert(ndims >= 2 && ndims <= 3);
 
     return ndims == 3;

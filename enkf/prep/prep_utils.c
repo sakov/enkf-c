@@ -238,7 +238,7 @@ void obs_add(observations* obs, model* m, obsmeta* meta)
                 if (ot->issurface) {
                     float** v = alloc2d(nj, ni, sizeof(float));
 
-                    readfield(fname, std->varname, 0, ni, nj, v[0]);
+                    readfield(fname, std->varname, 0, ni, nj, nk, v[0]);
                     for (o = nobs0; o < obs->nobs; ++o) {
                         observation* oo = &obs->data[o];
                         float vv;

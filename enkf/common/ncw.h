@@ -124,7 +124,7 @@ const char* ncw_nctype2str(nc_type type);
 size_t ncw_sizeof(nc_type type);
 
 int ncw_inq_nrecords(int ncid);
-void ncw_inq_vardimlen(int ncid, int varid, int maxndims, size_t dimlen[]);
+void ncw_inq_vardims(int ncid, int varid, int maxndims, int* ndims, size_t dimlen[]);
 
 void ncw_copy_dims(int ncid_src, int ncid_dst);
 void ncw_copy_dim(int ncid_src, const char dimname[], int ncid_dst);

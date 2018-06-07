@@ -109,7 +109,7 @@ void H_surf_standard(dasystem* das, int nobs, int obsids[], char fname[], int me
 
     model_getvardims(m, mvid, &ni, &nj, NULL);
     src = alloc2d(nj, ni, sizeof(float));
-    model_readfield(m, fname, t, ot->varnames[0], ksurf, src[0]);
+    model_readfield(m, fname, ot->varnames[0], ksurf, src[0]);
 
     snprintf(tag_offset, MAXSTRLEN, "%s:OFFSET", ot->name);
     offset = model_getdata(m, tag_offset);
@@ -166,9 +166,9 @@ void H_surf_biased(dasystem* das, int nobs, int obsids[], char fname[], int mem,
         model_getmemberfname(m, das->ensdir, ot->varnames[1], mem, fname2);
     else if (das->mode == MODE_ENOI)
         model_getbgfname(m, das->bgdir, ot->varnames[1], fname2);
-    model_readfield(m, fname2, INT_MAX, ot->varnames[1], ksurf, bias);
+    model_readfield(m, fname2, ot->varnames[1], ksurf, bias);
 
-    model_readfield(m, fname, t, ot->varnames[0], ksurf, src0);
+    model_readfield(m, fname, ot->varnames[0], ksurf, src0);
 
     snprintf(tag_offset, MAXSTRLEN, "%s:OFFSET", allobs->obstypes[allobs->data[obsids[0]].type].name);
     offset = model_getdata(m, tag_offset);
@@ -206,7 +206,7 @@ void H_subsurf_standard(dasystem* das, int nobs, int obsids[], char fname[], int
     assert(ot->nvar == 1);      /* should we care? */
     model_getvardims(m, mvid, &ni, &nj, &nk);
     src = alloc3d(nk, nj, ni, sizeof(float));
-    model_read3dfield(m, fname, t, ot->varnames[0], src[0][0]);
+    model_read3dfield(m, fname, ot->varnames[0], src[0][0]);
 
     snprintf(tag_offset, MAXSTRLEN, "%s:OFFSET", allobs->obstypes[allobs->data[obsids[0]].type].name);
     offset = model_getdata(m, tag_offset);
@@ -277,7 +277,7 @@ void H_subsurf_wsurfbias(dasystem* das, int nobs, int obsids[], char fname[], in
     /*
      * this part is similar to H_subsurf_standard()
      */
-    model_read3dfield(m, fname, t, ot->varnames[0], src[0][0]);
+    model_read3dfield(m, fname, ot->varnames[0], src[0][0]);
 
     snprintf(tag_offset, MAXSTRLEN, "%s:OFFSET", ot->name);
     offset = model_getdata(m, tag_offset);
@@ -301,7 +301,7 @@ void H_subsurf_wsurfbias(dasystem* das, int nobs, int obsids[], char fname[], in
     else if (das->mode == MODE_ENOI)
         model_getbgfname(m, das->bgdir, ot->varnames[1], fname2);
     assert(!is3d(fname2, ot->varnames[1]));
-    model_readfield(m, fname2, INT_MAX, ot->varnames[1], 0, bias[0]);
+    model_readfield(m, fname2, ot->varnames[1], 0, bias[0]);
 
     if (isnan(ot->mld_threshold) && ot->mld_varname == NULL)
         enkf_quit("\"MLD_THRESH\" or \"MLD_VARNAME\" must be specified for observation type \"%s\" to use H function \"wsurfbias\"", ot->name);
@@ -315,10 +315,10 @@ void H_subsurf_wsurfbias(dasystem* das, int nobs, int obsids[], char fname[], in
             enkf_quit("\"MLD_VARNAME = %s\" for observation type \"%s\" does not exist among model variables", ot->mld_varname, ot->name);
         if (das->mode == MODE_ENKF) {
             model_getmemberfname(m, das->ensdir, ot->mld_varname, mem, fname_mld);
-            model_readfield(m, fname_mld, 0, ot->mld_varname, 0, mld[0]);
+            model_readfield(m, fname_mld, ot->mld_varname, 0, mld[0]);
         } else if (das->mode == MODE_ENOI) {
             model_getbgfname(m, das->bgdir, ot->mld_varname, fname_mld);
-            model_readfield(m, fname_mld, 0, ot->mld_varname, 0, mld[0]);
+            model_readfield(m, fname_mld, ot->mld_varname, 0, mld[0]);
         }
     } else {
         if (das->mode == MODE_ENKF)
