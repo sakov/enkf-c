@@ -1652,10 +1652,11 @@ void das_writevcorrs(dasystem* das)
                     std0[i] += (double) (v0[e][0][i] * v0[e][0][i]);
                 std0[i] = sqrt(std0[i] / (double) (das->nmem - 1));
             }
+            varname0 = varname;
         }
 
         /*
-         * calculate corelation coefficients at each layer and save to disk
+         * calculate correlation coefficients at each layer and save to disk
          */
         k = f->level;
         for (e = 0; e < das->nmem; ++e) {

@@ -1,3 +1,6 @@
+v. 1.80.5
+   PS 08062018
+   A correction in das_writevcorrs() to avoid some redundant calculations.
 v. 1.80.4
    PS 07062018
    Re-wrote das_writecorrs() for better parallelisation.
