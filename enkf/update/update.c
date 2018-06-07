@@ -1708,7 +1708,7 @@ void das_writevcorrs(dasystem* das)
     if (rank == 0) {
         for (fid = 0; fid < nfields; ++fid) {
             field* f = &fields[fid];
-            int ni, nj, nk, nv;
+            int ni, nj;
             float* v = NULL;
             char fname_tile[MAXSTRLEN];
             int ncid_tile, vid_tile;
@@ -1720,9 +1720,8 @@ void das_writevcorrs(dasystem* das)
                 if (!is3d(fname, f->varname))
                     continue;
             }
-            model_getvardims(m, f->varid, &ni, &nj, &nk);
-            nv = ni * nj;
-            v = malloc(nv * sizeof(float));
+            model_getvardims(m, f->varid, &ni, &nj, NULL);
+            v = malloc(ni * nj * sizeof(float));
 
             snprintf(fname_tile, MAXSTRLEN, "%s/vcorr_%s-%03d.nc", das->ensdir, f->varname, f->level);
 
