@@ -1560,6 +1560,7 @@ void das_writevcorrs(dasystem* das)
 
     enkf_printtime("  ");
     enkf_printf("  writing vertical correlations:\n");
+    enkf_printf("    calculating:\n");
 
     /*
      * allocate disk space
@@ -1705,6 +1706,8 @@ void das_writevcorrs(dasystem* das)
     /*
      * assemble tiles
      */
+    enkf_printtime("    ");
+    enkf_printf("    assembling:\n");
     if (rank == 0) {
         for (fid = 0; fid < nfields; ++fid) {
             field* f = &fields[fid];

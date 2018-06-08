@@ -136,7 +136,7 @@ void reader_xy_gridded(char* fname, int fid, obsmeta* meta, grid* g, observation
 
     ncw_open(fname, NC_NOWRITE, &ncid);
     ncw_inq_varid(ncid, varname, &varid_var);
-    ncw_inq_vardims(ncid, varid_var, 2, &ndim_var, dimlen_var);
+    ncw_inq_vardims(ncid, varid_var, 3, &ndim_var, dimlen_var);
     if (ndim_var == 3) {
         int dimid[3];
         size_t nr;

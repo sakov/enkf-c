@@ -1,6 +1,6 @@
-v. 1.80.5
+v. 1.80.6
    PS 08062018
-   A correction in das_writevcorrs() to avoid some redundant calculations.
+   A correction in reader_xy_gridded().
 v. 1.80.4
    PS 07062018
    Re-wrote das_writecorrs() for better parallelisation.
