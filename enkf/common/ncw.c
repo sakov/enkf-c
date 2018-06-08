@@ -2061,7 +2061,7 @@ void ncw_inq_vardims(int ncid, int varid, int maxndims, int* ndims_out, size_t d
         char varname[NC_MAX_NAME] = "STR_UNKNOWN";
 
         ncw_inq_varname(ncid, varid, varname);
-        quit("\"%s\": number of dimensions for variable \"%s\" = %d exceeds maximal allowed number = %d", ncw_get_path(ncid), varname, ndims, maxndims);
+        quit("\"%s\": ncw_inq_vardims(): number of dimensions for variable \"%s\" = %d exceeds maximal allowed number = %d", ncw_get_path(ncid), varname, ndims, maxndims);
     }
     ncw_inq_vardimid(ncid, varid, dimids);
     for (i = 0; i < ndims; ++i)
