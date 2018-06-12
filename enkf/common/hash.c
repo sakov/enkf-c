@@ -19,7 +19,6 @@
 #include <stdlib.h>
 #include <assert.h>
 #include <math.h>
-#include <inttypes.h>
 #include "hash.h"
 
 #define SIZEOFDOUBLE 8
@@ -48,7 +47,12 @@ struct hashtable {
     ht_bucket** table;
 };
 
-/* Creates a hashtable of specified size.
+/** Creates a hash table of specified size.
+ *
+ * @param size Size of hash table for output points
+ * @param cp Key copy function
+ * @param eq Key equality check function
+ * @param hash Hash value calculation function
  */
 hashtable* ht_create(int size, ht_keycp cp, ht_keyeq eq, ht_key2hash hash)
 {
