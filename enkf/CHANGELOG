@@ -1,3 +1,6 @@
+v. 1.80.8
+   PS 12062018
+   Cosmetically modified stringtable.[ch].
 v. 1.80.7
    PS 12062018
    A few minor changes to make sure that the system runs fine when nobs = 0 (and

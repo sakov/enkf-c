@@ -65,7 +65,7 @@ void das_printobsstats(dasystem* das, int use_rmsd)
 
     das_destandardise(das);
 
-    ni = obs->instruments->n;
+    ni = st_getsize(obs->instruments);
     inn_f_inst = malloc((ni + 1) * sizeof(double));
     inn_f_abs_inst = malloc((ni + 1) * sizeof(double));
     std_f_inst = malloc((ni + 1) * sizeof(double));
@@ -309,7 +309,7 @@ void das_printfobsstats(dasystem* das, int use_rmsd)
 
     das_destandardise(das);
 
-    ni = obs->instruments->n;
+    ni = st_getsize(obs->instruments);
     inn_f_inst = malloc((ni + 1) * sizeof(double));
     inn_f_abs_inst = malloc((ni + 1) * sizeof(double));
     std_f_inst = malloc((ni + 1) * sizeof(double));

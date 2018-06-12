@@ -754,13 +754,13 @@ void obs_write(observations* obs, char fname[])
     for (i = 0; i < obs->nobstypes; ++i)
         ncw_put_att_int(ncid, varid_type, obs->obstypes[i].name, 1, &i);
 
-    for (i = 0; i < obs->products->n; ++i)
+    for (i = 0; i < st_getsize(obs->products); ++i)
         ncw_put_att_int(ncid, varid_product, st_findstringbyindex(obs->products, i), 1, &i);
 
-    for (i = 0; i < obs->instruments->n; ++i)
+    for (i = 0; i < st_getsize(obs->instruments); ++i)
         ncw_put_att_int(ncid, varid_instrument, st_findstringbyindex(obs->instruments, i), 1, &i);
 
-    for (i = 0; i < obs->datafiles->n; ++i) {
+    for (i = 0; i < st_getsize(obs->datafiles); ++i) {
         char attname[NC_MAX_NAME];
         char* datafile = st_findstringbyindex(obs->datafiles, i);
 

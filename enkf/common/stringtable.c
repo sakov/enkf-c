@@ -9,8 +9,7 @@
  *
  * Purpose:        String table -- implementation
  *
- * Description:    Stringtable is basically an expandable array of strings
- *                 and associated indices.
+ * Description:    An expandable array of strings.
  *
  * Revisions:      12/2012 PS: Changed prefixes "stringtable_" to "st_"None
  *
@@ -25,6 +24,23 @@
 #include "stringtable.h"
 
 extern int verbose;
+
+typedef struct {
+    char* s;
+    int index;                  /* An index. Is set during the string entry.
+                                 * If "-1" entered, is set to index of this
+                                 * entry in the stringtable. */
+    int naccess;                /* Number of times looked for. */
+} stringentry;
+
+struct stringtable {
+    char* name;
+    int unique;                 /* flag: whether all entries must be unique;
+                                 * 1 by default */
+    int n;
+    int sorted;                 /* flag */
+    stringentry** se;
+};
 
 /** Compare procedure for qsort(). Non-case-sensitive.
  * @param se1 Pointer to stringentry
@@ -54,6 +70,25 @@ stringtable* st_create(char* name)
     st->se = NULL;
 
     return st;
+}
+
+/** Stringtable destructor.
+ * @param st Stringtable
+ */
+void st_destroy(stringtable* st)
+{
+    int i;
+
+    if (st == NULL)
+        return;
+
+    for (i = 0; i < st->n; ++i) {
+        free(st->se[i]->s);
+        free(st->se[i]);
+    }
+    free(st->name);
+    free(st->se);
+    free(st);
 }
 
 /** Stringtable constructor.
@@ -88,23 +123,12 @@ stringtable* st_copy(stringtable* parent)
     return st;
 }
 
-/** Stringtable destructor.
+/** Returns the size of the table.
  * @param st Stringtable
  */
-void st_destroy(stringtable* st)
+int st_getsize(stringtable* st)
 {
-    int i;
-
-    if (st == NULL)
-        return;
-
-    for (i = 0; i < st->n; ++i) {
-        free(st->se[i]->s);
-        free(st->se[i]);
-    }
-    free(st->name);
-    free(st->se);
-    free(st);
+    return st->n;
 }
 
 /** Resets contents of a stringtable.
