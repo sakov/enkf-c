@@ -135,6 +135,7 @@ dasystem* das_create(enkfprm* prm)
         }
         ierror = MPI_Allgatherv(MPI_IN_PLACE, 0, MPI_DATATYPE_NULL, das->sm_ranks, recvcounts, displs, MPI_INT, MPI_COMM_WORLD);
         assert(ierror == MPI_SUCCESS);
+        das->sm_win = MPI_WIN_NULL;
 
         /*
          * Create communicator based on sm_rank

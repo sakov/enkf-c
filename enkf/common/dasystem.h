@@ -86,7 +86,10 @@ struct dasystem {
     double* std_a;              /* ensemble spread */
     int s_mode;
 #if defined(HE_VIASHMEM)
-    ENSOBSTYPE** St;
+    ENSOBSTYPE** St;            /* (S transposed) */
+    /*
+     * ("sm" below stands for "shared memrory")
+     */
     MPI_Comm sm_comm;
     MPI_Win sm_win;
     int sm_rank;

@@ -984,6 +984,9 @@ static void update_HE(dasystem* das)
     enkf_printf("    updating HE:\n");
     assert(das->s_mode == S_MODE_HE_f);
 
+    if (nobs == 0)
+        goto finish;
+
 #if defined(HE_VIASHMEM)
     distribute_iterations(0, nobs - 1, (nprocesses > HE_NPROCMAX) ? HE_NPROCMAX : nprocesses, rank, "    ");
     for (e = 0; e < nmem; ++e)
@@ -1240,6 +1243,8 @@ static void update_HE(dasystem* das)
 #if !defined(HE_VIASHMEM)
     free(HEi_f);
 #endif
+
+  finish:
     das->s_mode = S_MODE_HE_a;
 }                               /* update_HE() */
 

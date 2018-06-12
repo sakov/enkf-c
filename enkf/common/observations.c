@@ -488,11 +488,6 @@ void obs_read(observations* obs, char fname[])
     ncw_inq_dimlen(ncid, dimid_nobs[0], &nobs);
 
     obs->nobs = nobs;
-    if (nobs == 0) {
-        obs->data = NULL;
-        goto finish;
-    }
-
     obs->data = malloc(nobs * sizeof(observation));
     enkf_printf("    %u observations\n", (unsigned int) nobs);
 
@@ -515,26 +510,6 @@ void obs_read(observations* obs, char fname[])
     ncw_inq_varid(ncid, "date", &varid_date);
     ncw_inq_varid(ncid, "status", &varid_status);
     ncw_inq_varid(ncid, "aux", &varid_aux);
-
-    id = malloc(nobs * sizeof(int));
-    id_orig = malloc(nobs * sizeof(int));
-    type = malloc(nobs * sizeof(short int));
-    product = malloc(nobs * sizeof(short int));
-    instrument = malloc(nobs * sizeof(short int));
-    fid = malloc(nobs * sizeof(short int));
-    batch = malloc(nobs * sizeof(short int));
-    value = malloc(nobs * sizeof(double));
-    std = malloc(nobs * sizeof(double));
-    lon = malloc(nobs * sizeof(double));
-    lat = malloc(nobs * sizeof(double));
-    depth = malloc(nobs * sizeof(double));
-    model_depth = malloc(nobs * sizeof(double));
-    fi = malloc(nobs * sizeof(double));
-    fj = malloc(nobs * sizeof(double));
-    fk = malloc(nobs * sizeof(double));
-    date = malloc(nobs * sizeof(double));
-    status = malloc(nobs * sizeof(int));
-    aux = malloc(nobs * sizeof(int));
 
     /*
      * date
@@ -597,6 +572,32 @@ void obs_read(observations* obs, char fname[])
         attstr[len] = 0;
         st_add_ifabsent(obs->datafiles, attstr, i);
     }
+
+    if (nobs == 0) {
+        obs->data = NULL;
+        ncw_close(ncid);
+        goto finish;
+    }
+
+    id = malloc(nobs * sizeof(int));
+    id_orig = malloc(nobs * sizeof(int));
+    type = malloc(nobs * sizeof(short int));
+    product = malloc(nobs * sizeof(short int));
+    instrument = malloc(nobs * sizeof(short int));
+    fid = malloc(nobs * sizeof(short int));
+    batch = malloc(nobs * sizeof(short int));
+    value = malloc(nobs * sizeof(double));
+    std = malloc(nobs * sizeof(double));
+    lon = malloc(nobs * sizeof(double));
+    lat = malloc(nobs * sizeof(double));
+    depth = malloc(nobs * sizeof(double));
+    model_depth = malloc(nobs * sizeof(double));
+    fi = malloc(nobs * sizeof(double));
+    fj = malloc(nobs * sizeof(double));
+    fk = malloc(nobs * sizeof(double));
+    date = malloc(nobs * sizeof(double));
+    status = malloc(nobs * sizeof(int));
+    aux = malloc(nobs * sizeof(int));
 
     ncw_get_var_int(ncid, varid_id, id);
     ncw_get_var_int(ncid, varid_idorig, id_orig);

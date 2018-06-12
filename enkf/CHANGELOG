@@ -1,3 +1,7 @@
+v. 1.80.7
+   PS 12062018
+   A few minor changes to make sure that the system runs fine when nobs = 0 (and
+   CALC is run with --ignore-no-obs).
 v. 1.80.6
    PS 08062018
    A correction in reader_xy_gridded().
