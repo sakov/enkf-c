@@ -527,8 +527,10 @@ void das_addforecast(dasystem* das, char fname[])
 }
 
 /** Modifies observation error so that the increment for this observation would
- * not exceed KFACTOR * <ensemble spread> (all in observation space) after
- * assimilating this observation only. This can be viewed as an adaptive QC.
+ ** not exceed KFACTOR * <ensemble spread> (all in observation space) after
+ ** assimilating this observation only. This can be viewed as an adaptive QC.
+ ** More details in Sakov and Sandery (2017) 
+ ** https://www.tandfonline.com/doi/abs/10.1080/16000870.2017.1318031.
  */
 void das_moderateobs(dasystem* das)
 {
@@ -616,7 +618,9 @@ void das_addmodifiederrors(dasystem* das, char fname[])
     ncw_close(ncid);
 }
 
-/**
+/** "Standardises" HA and (y - Hx) arrays according to Eqs. (5) and (6)
+ ** of Sakov et al (2010)
+ ** https://www.tandfonline.com/doi/pdf/10.1111/j.1600-0870.2009.00417.x.
  */
 void das_standardise(dasystem* das)
 {
@@ -1263,6 +1267,9 @@ static void update_Hx(dasystem* das)
     enkf_printf("    updating Hx:\n");
     assert(das->s_mode == S_MODE_HE_f);
 
+    if (nobs == 0)
+        goto finish;
+
 #if defined(HE_VIASHMEM)
     distribute_iterations(0, nobs - 1, (nprocesses > HE_NPROCMAX) ? HE_NPROCMAX : nprocesses, rank, "    ");
     for (e = 0; e < nmem; ++e)
@@ -1465,6 +1472,8 @@ static void update_Hx(dasystem* das)
             for (o = 0; o < nobs; ++o)
                 das->S[e][o] = das->St[o][e];
 #endif
+
+  finish:
     das->s_mode = S_MODE_HE_a;
 }                               /* update_Hx() */
 

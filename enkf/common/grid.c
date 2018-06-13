@@ -77,13 +77,12 @@ typedef struct {
 } gz_z;
 
 /*
- * This structure actually manages the "new" ROMS vertical coordinate as
- * described in https://www.myroms.org/wiki/Vertical_S-coordinate, Eq. 2 and
- * by Shchepetkin in https://www.myroms.org/forum/viewtopic.php?f=20&t=2189.
- * With hc = 0 it turns into "pure" sigma. To keep consistent with the rest of
- * the code we use ct and cc for the stretching function C at the layer centres
- * and corners (these arrays correspond to variables Cs_r and Cs_w in ROMS
- * restarts).
+ * This structure manages the "new" ROMS vertical coordinate as described in
+ * https://www.myroms.org/wiki/Vertical_S-coordinate, Eq. 2 and by Shchepetkin
+ * in https://www.myroms.org/forum/viewtopic.php?f=20&t=2189. With hc = 0 it
+ * turns into "pure" sigma. To be consistent with the rest of the code we use
+ * ct and cc for the stretching function C at the layer centres and corners
+ * (these arrays correspond to variables Cs_r and Cs_w in ROMS restarts).
  */
 typedef struct {
     int ni;
@@ -596,7 +595,8 @@ static double fi2x(int n, double* v, double fi, int periodic)
         return v[i] + ifrac * (v[i + 1] - v[i]);
 }
 
-/**
+/** Converts fractional indices to physical coordinates for "simple" horizontal
+ ** grid.
  */
 static void gs_fij2xy(void* p, double fi, double fj, double* x, double* y)
 {
@@ -675,7 +675,8 @@ static double x2fi_irreg(int n, double v[], double vb[], double x, int periodic,
     }
 }
 
-/**
+/** Converts physical coordinates to fractional indices for "simple" horizontal
+ ** grid.
  */
 static void gs_xy2fij(void* p, double x, double y, double* fi, double* fj)
 {
@@ -693,7 +694,8 @@ static void gs_xy2fij(void* p, double x, double y, double* fi, double* fj)
 }
 
 #if !defined(NO_GRIDUTILS)
-/**
+/** Converts physical coordinates to fractional indices for curvilinear
+ ** horizontal grid.
  */
 static void gc_xy2fij(void* p, double x, double y, double* fi, double* fj)
 {
@@ -706,7 +708,8 @@ static void gc_xy2fij(void* p, double x, double y, double* fi, double* fj)
     *fj = NAN;
 }
 
-/**
+/** Converts fractional indices to physical coordinates for curvilinear
+ ** horizontal grid.
  */
 static void gc_fij2xy(void* p, double fi, double fj, double* x, double* y)
 {
