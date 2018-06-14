@@ -694,7 +694,7 @@ static void gs_xy2fij(void* p, double x, double y, double* fi, double* fj)
 }
 
 #if !defined(NO_GRIDUTILS)
-/** Converts physical coordinates to fractional indices for curvilinear
+/** Converts physical coordinates to fractional indices of curvilinear
  ** horizontal grid.
  */
 static void gc_xy2fij(void* p, double x, double y, double* fi, double* fj)
@@ -708,8 +708,8 @@ static void gc_xy2fij(void* p, double x, double y, double* fi, double* fj)
     *fj = NAN;
 }
 
-/** Converts fractional indices to physical coordinates for curvilinear
- ** horizontal grid.
+/** Converts fractional indices of curvilinear horizontal grid to physical
+ ** coordinates.
  */
 static void gc_fij2xy(void* p, double fi, double fj, double* x, double* y)
 {
@@ -798,7 +798,7 @@ static void gz_sigma_z2fk(void* p, double fi, double fj, double z, double* fk)
 
         if (gz->hc != 0.0) {
             for (i = 0; i < gz->nk; ++i)
-                gz->zt[i] = h * (gz->hc * (1.0 - (double) i / (double) gz->nk - 0.5) + h * gz->ct[i]) / (gz->hc + h);
+                gz->zt[i] = h * (gz->hc * (1.0 - ((double) i + 0.5)/ (double) gz->nk) + h * gz->ct[i]) / (gz->hc + h);
             for (i = 0; i <= gz->nk; ++i)
                 gz->zc[i] = h * (gz->hc * (1.0 - (double) i / (double) gz->nk) + h * gz->cc[i]) / (gz->hc + h);
         } else {
@@ -1699,7 +1699,7 @@ int grid_fk2z(grid* g, int i, int j, double fk, double* z)
 
             if (gz->hc != 0.0) {
                 for (k = 0; k < gz->nk; ++k)
-                    gz->zt[k] = h * (gz->hc * (1.0 - (double) k / (double) gz->nk - 0.5) + h * gz->ct[k]) / (gz->hc + h);
+                    gz->zt[k] = h * (gz->hc * (1.0 - ((double) k + 0.5) / (double) gz->nk) + h * gz->ct[k]) / (gz->hc + h);
                 for (k = 0; k <= gz->nk; ++k)
                     gz->zc[k] = h * (gz->hc * (1.0 - (double) k / (double) gz->nk) + h * gz->cc[k]) / (gz->hc + h);
             } else {

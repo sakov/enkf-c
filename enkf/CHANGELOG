@@ -1,3 +1,8 @@
+v. 1.80.9
+   PS 14062018
+   Corrected calculation of zt[] in gz_sigma_z2fk() and in grid_fk2z() for
+   "g->vtype == GRIDVTYPE_SIGMA" in the case when hc != 0. Thanks to Frank
+   Colberg for the bug report and correction.
 v. 1.80.8
    PS 12062018
    Cosmetically modified stringtable.[ch].
