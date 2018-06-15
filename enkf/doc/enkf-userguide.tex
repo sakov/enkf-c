@@ -36,7 +36,7 @@
 
 \begin{document}
 
-\title{EnKF-C user guide\\{\normalsize version 1.80.1}}
+\title{EnKF-C user guide\\{\normalsize version 1.81.0}}
 
 \author{Pavel Sakov}
 \date{June 19, 2014 -- \today}
@@ -785,8 +785,12 @@ It also contains variable names for the depth and for number of layers in a vert
     DATA             = <data file name>
     XVARNAME         = <X variable name>
     YVARNAME         = <Y variable name>
-    ZVARNAME         = <Z variable name> (z | sigma)
-  [ ZCVARNAME        = <ZC variable name> (z | sigma) ]
+    ZVARNAME         = <Z variable name> (z)
+  [ ZCVARNAME        = <ZC variable name> (z) ]
+    CVARNAME         = <Cs_rho variable name> (sigma)
+  [ CCVARNAME        = <Cs_w variable name> (sigma) ]
+  [ SVARNAME         = <s_rho variable name> (uniform*) (sigma)
+  [ SCVARNAME        = <s_w variable name> (uniform*) (sigma) ]
   [ HCVARNAME        = <hc variable name> (0.0*) (sigma) ]
   [ DEPTHVARNAME     = <depth variable name> (z | sigma) ]
   [ NUMLEVELSVARNAME = <# of levels variable name> (z) ]
@@ -840,6 +844,7 @@ If coordinates of layer corners are not specified they are built by the code ass
 For $\sigma$ grids the code implements the ``new'' vertical coordinate formulation from ROMS as described in \url{https://www.myroms.org/wiki/Vertical_S-coordinate}, Eq.~2 and elaborated by Shchepetkin in \url{https://www.myroms.org/forum/viewtopic.php?f=20&t=2189}.
 This formulation reduces to the ``standard'' $\sigma$ grid if the entry \verb|HCVARNAME| is not specified or if the corresponding variable in the grid file is set to zero.
 Similarly to $Z$ grid, one needs to define the vertical coordinates of layer centres (entry \verb|CSRVARNAME|) and (optionally) the coordinates of layer corners (entry \verb|CSWVARNAME|).
+From version 1.81.0 one can also specify variables for layer coordinates (which is used to be ``plain'' sigma, that is uniform) via entries \verb|SVARNAME| and \verb|SCVARNAME|.
 
 The hybrid $\sigma$-$p$ grids are implemented as described in \url{https://journals.ametsoc.org/doi/pdf/10.1175/2008MWR2537.1}.
 One needs to specify the $A$ (\verb|AVARNAME|) and $B$ (\verb|BVARNAME|) arrays for layer centres as well as the top and surface pressure (\verb|P1VARNAME| and \verb|P2VARNAME|).

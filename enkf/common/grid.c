@@ -18,6 +18,9 @@
  *              25/01/2018 PS Modified z2fk_basic() to handle the case
  *                zt[i] != 0.5 * (zc[i] + zc[i + 1])
  *              30/01/2018 PS Modified fk2z() to match the above changes.
+ *              15/06/2018 PS Added st and sc arrays to struct gz_sigma to hold
+ *                the possibly stretched sigma coordinates of layers, and
+ *                modified the rest of the code accordingly
  *
  *****************************************************************************/
 
@@ -83,6 +86,10 @@ typedef struct {
  * turns into "pure" sigma. To be consistent with the rest of the code we use
  * ct and cc for the stretching function C at the layer centres and corners
  * (these arrays correspond to variables Cs_r and Cs_w in ROMS restarts).
+ *
+ * Some recent stretching options in ROMS also require stretching of the sigma
+ * coordinate, which is used to be uniform -1 <= s < = 0. This why there are
+ * st and sc arrays added.
  */
 typedef struct {
     int ni;
@@ -92,6 +99,8 @@ typedef struct {
     double hc;
     double* ct;
     double* cc;
+    double* st;
+    double* sc;
 
     double fi_prev;
     double fj_prev;
@@ -367,7 +376,7 @@ static gz_z* gz_z_create(grid* g, int nk, double* z, int nkc, double* zc, char* 
 
 /**
  */
-static gz_sigma* gz_sigma_create(grid* g, int ni, int nj, int nk, double* ct, double* cc, double hc, char* vdirection)
+static gz_sigma* gz_sigma_create(grid* g, int ni, int nj, int nk, double* st, double* sc, double* ct, double* cc, double hc, char* vdirection)
 {
     gz_sigma* gz = malloc(sizeof(gz_sigma));
     int i;
@@ -383,12 +392,13 @@ static gz_sigma* gz_sigma_create(grid* g, int ni, int nj, int nk, double* ct, do
     else
         enkf_quit("programming error");
 
+    assert(ct != NULL);
     /*
      * check monotonicity
      */
     for (i = 0; i < nk - 2; ++i)
         if ((ct[i + 1] - ct[i]) * (ct[i + 2] - ct[i + 1]) < 0.0)
-            enkf_quit("%s: non-monotonic Z grid", g->name);
+            enkf_quit("%s: non-monotonic Cs_t", g->name);
 
     gz->ct = ct;
 
@@ -413,7 +423,7 @@ static gz_sigma* gz_sigma_create(grid* g, int ni, int nj, int nk, double* ct, do
         }
     }
     /*
-     * build corner sigma coordinates if necessary
+     * build Cs_w if necessary
      */
     if (cc == NULL) {
         if (ct[0] > ct[nk - 1]) {
@@ -427,17 +437,94 @@ static gz_sigma* gz_sigma_create(grid* g, int ni, int nj, int nk, double* ct, do
             gz->cc[i] = (gz->ct[i - 1] + gz->ct[i]) / 2.0;
     }
 
+    /*
+     * read sigma arrays if necessary (assume uniform stretching by default)
+     */
+    if (st == NULL) {
+        gz->st = malloc(nk * sizeof(double));
+        if (gz->vdirection == GRIDVDIR_FROMSURF)
+            for (i = 0; i < nk; ++i)
+                gz->st[i] = ((double) i + 0.5)/ (double) gz->nk;
+        else
+            for (i = 0; i < nk; ++i)
+                gz->st[i] = 1.0 - ((double) i + 0.5)/ (double) gz->nk;
+        assert(sc == NULL);
+        gz->sc = malloc((nk + 1) * sizeof(double));
+        if (gz->vdirection == GRIDVDIR_FROMSURF)
+            for (i = 0; i <= nk; ++i)
+                gz->sc[i] = (double) i / (double) gz->nk;
+        else
+            for (i = 0; i <= nk; ++i)
+                gz->sc[i] = 1.0 - (double) i / (double) gz->nk;
+    } else {
+        double sum = 0.0;
+
+        gz->st = st;
+        assert(sc != NULL);
+        gz->sc = sc;
+        /*
+         * check monotonicity
+         */
+        for (i = 0; i < nk - 2; ++i)
+            if ((st[i + 1] - st[i]) * (st[i + 2] - st[i + 1]) < 0.0)
+                enkf_quit("%s: non-monotonic s_rho coordinate (entry SVARNAME in the grid parameter file)", g->name);
+        /*
+         * change sign if negative
+         */
+        for (i = 0; i < nk; ++i)
+            sum += st[i];
+        if (sum < 0.0)
+            for (i = 0; i < nk; ++i)
+                st[i] = -st[i];
+    }
+    /*
+     * build s_w if necessary
+     */
+    if (sc == NULL) {
+        if (st[0] > st[nk - 1]) {
+            gz->sc[0] = 1.0;
+            gz->sc[nk - 1] = 0.0;
+        } else {
+            gz->sc[0] = 0.0;
+            gz->sc[nk - 1] = 1.0;
+        }
+        for (i = 1; i < nk; ++i)
+            gz->sc[i] = (gz->st[i - 1] + gz->st[i]) / 2.0;
+    } else {
+        double sum = 0.0;
+
+        /*
+         * check monotonicity
+         */
+        for (i = 0; i < nk - 1; ++i)
+            if ((sc[i + 1] - sc[i]) * (sc[i + 2] - sc[i + 1]) < 0.0)
+                enkf_quit("%s: non-monotonic s_w coordinate (entry SCVARNAME in the grid parameter file)", g->name);
+        /*
+         * change sign if negative
+         */
+        for (i = 0; i < nk; ++i)
+            sum += st[i];
+        if (sum < 0.0)
+            for (i = 0; i <= nk; ++i)
+                sc[i] = -sc[i];
+    }
+
     gz->zt = malloc(nk * sizeof(double));
     gz->zc = malloc((nk + 1) * sizeof(double));
     gz->fi_prev = NAN;
     gz->fj_prev = NAN;
 
-    if (gz->vdirection == GRIDVDIR_FROMSURF)
+    if (gz->vdirection == GRIDVDIR_FROMSURF) {
         assert(gz->ct[0] <= gz->ct[nk - 1] && gz->cc[0] < gz->cc[nk]);
-    else if (gz->vdirection == GRIDVDIR_TOSURF)
+        assert(gz->st[0] <= gz->st[nk - 1] && gz->sc[0] < gz->sc[nk]);
+    } else if (gz->vdirection == GRIDVDIR_TOSURF) {
         assert(gz->ct[0] >= gz->ct[nk - 1] && gz->cc[0] > gz->cc[nk]);
+        assert(gz->st[0] >= gz->st[nk - 1] && gz->sc[0] > gz->sc[nk]);
+    }
     for (i = 0; i < nk; ++i)
         assert((gz->ct[i] - gz->cc[i]) * (gz->cc[i + 1] - gz->ct[i]) > 0.0);
+    for (i = 0; i < nk; ++i)
+        assert((gz->st[i] - gz->sc[i]) * (gz->sc[i + 1] - gz->st[i]) > 0.0);
 
     return gz;
 }
@@ -798,9 +885,9 @@ static void gz_sigma_z2fk(void* p, double fi, double fj, double z, double* fk)
 
         if (gz->hc != 0.0) {
             for (i = 0; i < gz->nk; ++i)
-                gz->zt[i] = h * (gz->hc * (1.0 - ((double) i + 0.5)/ (double) gz->nk) + h * gz->ct[i]) / (gz->hc + h);
+                gz->zt[i] = h * (gz->hc * gz->st[i] + h * gz->ct[i]) / (gz->hc + h);
             for (i = 0; i <= gz->nk; ++i)
-                gz->zc[i] = h * (gz->hc * (1.0 - (double) i / (double) gz->nk) + h * gz->cc[i]) / (gz->hc + h);
+                gz->zc[i] = h * (gz->hc * gz->sc[i] + h * gz->cc[i]) / (gz->hc + h);
         } else {
             for (i = 0; i < gz->nk; ++i)
                 gz->zt[i] = h * gz->ct[i];
@@ -1036,6 +1123,8 @@ grid* grid_create(void* p, int id)
         int dummy;
         double* ct = NULL;
         double* cc = NULL;
+        double* st = NULL;
+        double* sc = NULL;
         double hc = 0.0;
 
         ncw_inq_varid(ncid, prm->zvarname, &varid);
@@ -1055,8 +1144,22 @@ grid* grid_create(void* p, int id)
             ncw_check_varndims(ncid, varid, 0);
             ncw_get_var_double(ncid, varid, &hc);
         }
+        if (prm->svarname != NULL) {
+            st = malloc(nk * sizeof(double));
+            ncw_inq_varid(ncid, prm->svarname, &varid);
+            ncw_check_vardims(ncid, varid, 1, &nk);
+            ncw_get_var_double(ncid, varid, st);
+        }
+        if (prm->scvarname != NULL) {
+            size_t nkc = nk + 1;
 
-        g->gridnodes_z = gz_sigma_create(g, ni, nj, nk, ct, cc, hc, prm->vdirection);
+            sc = malloc((nk + 1) * sizeof(double));
+            ncw_inq_varid(ncid, prm->scvarname, &varid);
+            ncw_check_vardims(ncid, varid, 1, &nkc);
+            ncw_get_var_double(ncid, varid, sc);
+        }
+
+        g->gridnodes_z = gz_sigma_create(g, ni, nj, nk, st, sc, ct, cc, hc, prm->vdirection);
     } else if (g->vtype == GRIDVTYPE_HYBRID) {
         double* a = NULL;
         double* b = NULL;
@@ -1287,8 +1390,12 @@ void grid_describeprm(void)
     enkf_printf("    DATA             = <data file name>\n");
     enkf_printf("    XVARNAME         = <X variable name>\n");
     enkf_printf("    YVARNAME         = <Y variable name>\n");
-    enkf_printf("    ZVARNAME         = <Z variable name> (z | sigma)\n");
-    enkf_printf("  [ ZCVARNAME        = <ZC variable name> (z | sigma) ]\n");
+    enkf_printf("    ZVARNAME         = <Z variable name> (z)\n");
+    enkf_printf("  [ ZCVARNAME        = <ZC variable name> (z) ]\n");
+    enkf_printf("    CVARNAME         = <Cs_rho variable name> (sigma)\n");
+    enkf_printf("  [ CCVARNAME        = <Cs_w variable name> (sigma) ]\n");
+    enkf_printf("  [ SVARNAME         = <s_rho variable name> (uniform*) (sigma)\n");
+    enkf_printf("  [ SCVARNAME        = <s_w variable name> (uniform*) (sigma) ]\n");
     enkf_printf("  [ HCVARNAME        = <hc variable name> (0.0*) (sigma) ]\n");
     enkf_printf("  [ DEPTHVARNAME     = <depth variable name> (z | sigma) ]\n");
     enkf_printf("  [ NUMLEVELSVARNAME = <# of levels variable name> (z) ]\n");
@@ -1699,9 +1806,9 @@ int grid_fk2z(grid* g, int i, int j, double fk, double* z)
 
             if (gz->hc != 0.0) {
                 for (k = 0; k < gz->nk; ++k)
-                    gz->zt[k] = h * (gz->hc * (1.0 - ((double) k + 0.5) / (double) gz->nk) + h * gz->ct[k]) / (gz->hc + h);
+                    gz->zt[k] = h * (gz->hc * (1.0 - gz->st[k]) + h * gz->ct[k]) / (gz->hc + h);
                 for (k = 0; k <= gz->nk; ++k)
-                    gz->zc[k] = h * (gz->hc * (1.0 - (double) k / (double) gz->nk) + h * gz->cc[k]) / (gz->hc + h);
+                    gz->zc[k] = h * (gz->hc * (1.0 - gz->sc[k]) + h * gz->cc[k]) / (gz->hc + h);
             } else {
                 for (k = 0; k < gz->nk; ++k)
                     gz->zt[k] = h * gz->ct[k];

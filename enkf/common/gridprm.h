@@ -24,9 +24,28 @@ typedef struct {
     char* fname;
     char* xvarname;
     char* yvarname;
+    /*
+     * Z stuff: zvarname and zcvarname hold the names of the layer centre
+     * and layer corner corrdinate variable.
+     */
     char* zvarname;
     char* zcvarname;
-    char* hcvarname;            /* for ROMS sigma coords */
+
+    /*
+     * Sigma stuff:
+     * This is generalised sigma as described in
+     * https://https://www.myroms.org/wiki/Vertical_S-coordinate
+     * For "normal" sigma just specify C arrays (Cs_rho and Cs_w in ROMS) only
+     * via entries CVARNAME (and, optionally) CCVARNAME along with WDIR
+     * ("fromsurf" by default).
+     */ 
+    char* svarname;             /* variable name for sigma coordinate of
+                                 * layer centres for non-uniform mappings */
+    char* scvarname;            /* variable name for sigma coordinate of
+                                 * layer corners for non-uniform mappings */
+    char* hcvarname;            /* parameter for ROMS sigma coords */
+    char* cvarname;             /* Cs_rho */
+    char* ccvarname;            /* Cs_w */
     char* depthvarname;
     char* levelvarnameentry;
     char* levelvarname;
