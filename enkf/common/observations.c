@@ -69,10 +69,10 @@ void obs_addtype(observations* obs, obstype* src)
     ot->async_tstep = src->async_tstep;
     ot->nlocrad = src->nlocrad;
     ot->locrad = malloc(sizeof(double) * ot->nlocrad);
-    ot->weight = malloc(sizeof(double) * ot->nlocrad);
+    ot->locweight = malloc(sizeof(double) * ot->nlocrad);
     for (i = 0; i < ot->nlocrad; ++i) {
         ot->locrad[i] = src->locrad[i];
-        ot->weight[i] = src->weight[i];
+        ot->locweight[i] = src->locweight[i];
     }
     ot->rfactor = src->rfactor;
     ot->nobs = -1;
@@ -150,7 +150,7 @@ observations* obs_create_fromprm(enkfprm* prm)
     obs->datafiles = st_create("datafiles");
 
     enkf_printf("  reading observation type specs from \"%s\":\n", prm->obstypeprm);
-    obstypes_read(prm->obstypeprm, &obs->nobstypes, &obs->obstypes, prm->locrad, prm->rfactor_base, prm->nlobsmax);
+    obstypes_read(prm, prm->obstypeprm, &obs->nobstypes, &obs->obstypes);
 
 #if defined(ENKF_PREP)
     obs->da_date = date_str2dbl(prm->date);

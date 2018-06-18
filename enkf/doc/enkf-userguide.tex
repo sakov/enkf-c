@@ -36,7 +36,7 @@
 
 \begin{document}
 
-\title{EnKF-C user guide\\{\normalsize version 1.81.0}}
+\title{EnKF-C user guide\\{\normalsize version 1.82.0}}
 
 \author{Pavel Sakov}
 \date{June 19, 2014 -- \today}
@@ -708,7 +708,8 @@ Its format is described by running \verb|enkf_prep|, \verb|enkf_calc| or \verb|e
   [ KFACTOR         = <kfactor> ]                            (NaN*)
   [ RFACTOR         = <rfactor> ]                            (1*)
     ...
-    LOCRAD          = <loc. radius in km>
+    LOCRAD          = <loc. radius in km> ...
+  [ LOCWEIGHT       = <loc. weight> ... ]                    (# LOCRAD > 1)
   [ NLOBSMAX        = <max. number of local obs. of each type> ]
   [ STRIDE          = <stride> ]                             (1*)
   [ SOBSTRIDE       = <stride> ]                             (1*)
@@ -875,8 +876,8 @@ The optional parameters include the R-factor and localisation radius for the typ
   [ MLD_THRESH  = <threshold> ]                    (NaN*)
     HFUNCTION   = <H function tag>
   [ ASYNC       = <time interval> [c*|e]]          (synchronous*)
-  [ LOCRAD      = <locrad> ... ]                   (global*)
-  [ WEIGHT      = <weight> ... ]                   (1*)
+  [ LOCRAD      = <loc. radius in km> ... ]
+  [ LOCWEIGHT   = <loc. weight> ... ]              (# LOCRAD > 1)
   [ RFACTOR     = <rfactor> ]                      (1*)
   [ NLOBSMAX    = <max. number of local obs. ]
   [ MINVALUE    = <minimal allowed value> ]        (-inf*)
@@ -1400,10 +1401,10 @@ where $w_i$ is the weight, $r$ is the distance, $R_i$ is the support radius, and
   \end{array}
   \right.
 \end{align*}
-This can be set by entries \verb|LOCRAD| and \verb|WEIGHT| either in the main parameter file or in the observation types parameter file, e.g.:
+This can be set by entries \verb|LOCRAD| and \verb|LOCWEIGHT| either in the main parameter file or in the observation types parameter file, e.g.:
 \begin{Verbatim}
   LOCRAD 150 500
-  WEIGHT 0.9 0.1
+  LOCWEIGHT 0.9 0.1
 \end{Verbatim}
 (recall that entries in the observation types parameter file for particular observation types override the common settings in the main parameter file).
 Note that the weights are normalised so that their sum is equal to 1.

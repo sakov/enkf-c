@@ -100,7 +100,6 @@ struct dasystem {
     int* node_ranks;
 #endif
     double kfactor;
-    double locrad;
 
     int fieldbufsize;
 

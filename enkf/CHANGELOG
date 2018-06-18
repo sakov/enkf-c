@@ -1,3 +1,7 @@
+v. 1.82.0
+   PS 19062012
+   Harmonised specifying LOCRAD in the main parameter file with that in the
+   obstypes parameter file. Replaced WEIGHT by LOCWEIGHT.
 v. 1.81.2
    PS 18062018
    A bit of clean-up; in particular removed asynchronous entries from struct

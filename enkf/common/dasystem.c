@@ -163,14 +163,11 @@ dasystem* das_create(enkfprm* prm)
 #if defined(ENKF_CALC)
     if (!enkf_fstatsonly) {
         das->kfactor = prm->kfactor;
-        das->locrad = prm->locrad;
     } else {
         das->kfactor = NAN;
-        das->locrad = NAN;
     }
 #elif defined(ENKF_UPDATE)
     das->kfactor = NAN;
-    das->locrad = NAN;
 #endif
     if (!enkf_fstatsonly)
         das->fieldbufsize = prm->fieldbufsize;

@@ -60,10 +60,17 @@ struct enkfprm {
     char* bgdir;
 
     double kfactor;
+    /*
+     * Unlike other parameters defined in the main parameter file and obstypes
+     * parameter file, rfactor_base does not provide the default common value,
+     * but a COMMON MULTIPLE for rfactors defined for each observation type.
+     */
     double rfactor_base;
-    double inflation_base;
+    double inflation;
     double inf_ratio;
-    double locrad;
+    int nlocrad;
+    double* locrad;
+    double* locweight;
     int nlobsmax;
     int stride;
     int fieldbufsize;

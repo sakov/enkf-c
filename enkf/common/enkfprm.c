@@ -19,6 +19,7 @@
 #include <float.h>
 #include <math.h>
 #include <limits.h>
+#include <assert.h>
 #include "ncw.h"
 #include "definitions.h"
 #include "utils.h"
@@ -60,7 +61,7 @@ static void enkfprm_check(enkfprm* prm)
      */
 #endif
 #if defined(ENKF_CALC)
-    if (!isfinite(prm->locrad) && !enkf_fstatsonly)
+    if (prm->nlocrad == 0 && !enkf_fstatsonly)
         enkf_quit("%s: LOCRAD not specified", prm->fname);
 #endif
     if (prm->ncformat != NC_CLASSIC_MODEL && prm->ncformat != NC_64BIT_OFFSET && prm->ncformat != NC_NETCDF4)
@@ -97,9 +98,11 @@ enkfprm* enkfprm_read(char fname[])
     prm->enssize = -1;
     prm->kfactor = NAN;
     prm->rfactor_base = 1.0;
-    prm->inflation_base = 1.0;
+    prm->inflation = 1.0;
     prm->inf_ratio = INFRATIO_DEFAULT;
-    prm->locrad = NAN;
+    prm->nlocrad = 0;
+    prm->locrad = NULL;
+    prm->locweight = NULL;
     prm->nlobsmax = INT_MAX;
     prm->stride = 1;
     prm->fieldbufsize = 1;
@@ -229,12 +232,40 @@ enkfprm* enkfprm_read(char fname[])
             if (!str2double(token, &prm->rfactor_base))
                 enkf_quit("%s, l.%d: could not convert RFACTOR \"%s\" to double", fname, line, token);
         } else if (strcasecmp(token, "LOCRAD") == 0) {
-            if ((token = strtok(NULL, seps)) == NULL)
-                enkf_quit("%s, l.%d: LOCRAD not specified", fname, line);
-            if (isfinite(prm->locrad))
-                enkf_quit("%s, l.%d: LOCRAD specified twice", fname, line);
-            if (!str2double(token, &prm->locrad))
-                enkf_quit("%s, l.%d: could not convert LOCRAD value", fname, line);
+            int sid = 0;
+
+            if (prm->nlocrad > 0)
+                prm->locrad = malloc(sizeof(double) * prm->nlocrad);
+            while ((token = strtok(NULL, seps)) != NULL) {
+                if (prm->nlocrad == sid) {
+                    prm->locrad = realloc(prm->locrad, sizeof(double) * (prm->nlocrad + 1));
+                    prm->nlocrad++;
+                }
+                if (!str2double(token, &prm->locrad[sid]))
+                    enkf_quit("%s, l.%d: could not convert \"%s\" to double", fname, line, token);
+                sid++;
+            }
+            if (prm->nlocrad > sid)
+                enkf_quit("%s, l.%d: LOCRAD not specified or its dimension does not match that of RFACTOR", fname, line);
+        } else if (strcasecmp(token, "LOCWEIGHT") == 0) {
+            int sid = 0;
+
+            if (prm->nlocrad > 0) {
+                if (prm->locweight == NULL)
+                    prm->locweight = malloc(sizeof(double) * prm->nlocrad);
+            } else
+                enkf_quit("%s, l.%d: LOCRAD must be entered before LOCWEIGHT", fname, line);
+            while ((token = strtok(NULL, seps)) != NULL) {
+                if (prm->nlocrad == sid) {
+                    prm->locweight = realloc(prm->locweight, sizeof(double) * (prm->nlocrad + 1));
+                    prm->nlocrad++;
+                }
+                if (!str2double(token, &prm->locweight[sid]))
+                    enkf_quit("%s, l.%d: could not convert \"%s\" to double", fname, line, token);
+                sid++;
+            }
+            if (prm->nlocrad > sid)
+                enkf_quit("%s, l.%d: LOCWEIGHT entered but not specified or its dimension does not match that of LOCRAD", fname, line);
         } else if (strcasecmp(token, "NLOBSMAX") == 0) {
             if ((token = strtok(NULL, seps)) == NULL)
                 enkf_quit("%s, l.%d: NLOBSMAX not specified", fname, line);
@@ -264,7 +295,7 @@ enkfprm* enkfprm_read(char fname[])
         } else if (strcasecmp(token, "INFLATION") == 0) {
             if ((token = strtok(NULL, seps)) == NULL)
                 enkf_quit("%s, l.%d: INFLATION not specified", fname, line);
-            if (!str2double(token, &prm->inflation_base))
+            if (!str2double(token, &prm->inflation))
                 enkf_quit("%s, l.%d: could not convert \"%s\" to double", fname, line, token);
             if ((token = strtok(NULL, seps)) != NULL) {
                 if (strcasecmp(token, "PLAIN") == 0)
@@ -384,6 +415,19 @@ enkfprm* enkfprm_read(char fname[])
     if (prm->alpha < 0.0 || prm->alpha > 1.0)
         enkf_quit("ALPHA = %.3g outside [0,1] interval", prm->alpha);
 
+    /*
+     * normalise localisation weights
+     */
+    if (prm->nlocrad > 0) {
+        double sum = 0.0;
+
+        for (i = 0; i < prm->nlocrad; ++i)
+            sum += prm->locweight[i];
+        assert(sum > 0.0);
+        for (i = 0; i < prm->nlocrad; ++i)
+            prm->locweight[i] /= sum;
+    }
+
     if (prm->nregions == 0) {
         region* r = malloc(sizeof(region));
 
@@ -489,7 +533,7 @@ void enkfprm_print(enkfprm* prm, char offset[])
     }
     if (!enkf_fstatsonly) {
         enkf_printf("%sRFACTOR BASE = %.1f\n", offset, prm->rfactor_base);
-        enkf_printf("%sINFLATION BASE = %.4f\n", offset, prm->inflation_base);
+        enkf_printf("%sINFLATION BASE = %.4f\n", offset, prm->inflation);
         if (!isnan(prm->inf_ratio))
             enkf_printf("%sINFLATION MODE = SPREAD LIMITED, MAX RATIO = %.2f\n", offset, prm->inf_ratio);
         else
@@ -498,7 +542,14 @@ void enkfprm_print(enkfprm* prm, char offset[])
             enkf_printf("%sKFACTOR = %.1f\n", offset, prm->kfactor);
         else
             enkf_printf("%sKFACTOR = n/a\n", offset);
-        enkf_printf("%sLOCRAD = %.0f\n", offset, prm->locrad);
+        enkf_printf("      LOCRAD  =");
+        for (i = 0; i < prm->nlocrad; ++i)
+            enkf_printf(" %.3g", prm->locrad[i]);
+        enkf_printf("\n");
+        enkf_printf("      LOCWEIGHT = ");
+        for (i = 0; i < prm->nlocrad; ++i)
+            enkf_printf(" %.3g", prm->locweight[i]);
+        enkf_printf("\n");
         enkf_printf("%sNLOBSMAX = %d\n", offset, prm->nlobsmax);
         enkf_printf("%sSTRIDE = %d\n", offset, prm->stride);
         enkf_printf("%sFIELDBUFFERSIZE = %d\n", offset, prm->fieldbufsize);
@@ -559,7 +610,8 @@ void enkfprm_describeprm(void)
     enkf_printf("  [ KFACTOR         = <kfactor> ]                            (NaN*)\n");
     enkf_printf("  [ RFACTOR         = <rfactor> ]                            (1*)\n");
     enkf_printf("    ...\n");
-    enkf_printf("    LOCRAD          = <loc. radius in km>\n");
+    enkf_printf("    LOCRAD          = <loc. radius in km> ...\n");
+    enkf_printf("  [ LOCWEIGHT       = <loc. weight> ... ]                    (# LOCRAD > 1)\n");
     enkf_printf("  [ NLOBSMAX        = <max. number of local obs. of each type> ]\n");
     enkf_printf("  [ STRIDE          = <stride> ]                             (1*)\n");
     enkf_printf("  [ SOBSTRIDE       = <stride> ]                             (1*)\n");

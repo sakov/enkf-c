@@ -33,7 +33,7 @@ typedef struct {
     int async_centred;
     int nlocrad;
     double* locrad;
-    double* weight;
+    double* locweight;
     double rfactor;
     int nlobsmax;
 
@@ -73,7 +73,7 @@ typedef struct {
     double date_max;
 } obstype;
 
-void obstypes_read(char fname[], int* n, obstype** types, double locrad_base, double rfactor_base, int nlobsmax);
+void obstypes_read(enkfprm* prm, char fname[], int* n, obstype** types);
 void obstypes_describeprm(void);
 
 #if defined(ENKF_PREP)

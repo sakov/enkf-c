@@ -216,10 +216,10 @@ model* model_create(enkfprm* prm)
     {
         for (i = 0; i < m->nvar; ++i)
             if (isnan(m->vars[i].inflation)) {
-                m->vars[i].inflation = prm->inflation_base;
+                m->vars[i].inflation = prm->inflation;
                 m->vars[i].inf_ratio = prm->inf_ratio;
             }
-        prm->inflation_base = NAN;
+        prm->inflation = NAN;
         prm->inf_ratio = NAN;
     }
     /*

@@ -27,6 +27,7 @@
 #include "utils.h"
 #include "grid.h"
 #include "model.h"
+#include "enkfprm.h"
 #include "obstypes.h"
 
 #define NVAR_INC 10
@@ -54,7 +55,7 @@ static void obstype_new(obstype* type, int i, char* name)
                                  * time, suitable for instantaneous fields */
     type->nlocrad = 0;
     type->locrad = NULL;
-    type->weight = NULL;
+    type->locweight = NULL;
     type->rfactor = 1.0;
     type->nlobsmax = -1;
     type->vid = -1;
@@ -126,9 +127,9 @@ static void obstype_print(obstype* type)
     for (i = 0; i < type->nlocrad; ++i)
         enkf_printf(" %.3g", type->locrad[i]);
     enkf_printf("\n");
-    enkf_printf("      WEIGHT = ");
+    enkf_printf("      LOCWEIGHT = ");
     for (i = 0; i < type->nlocrad; ++i)
-        enkf_printf(" %.3g", type->weight[i]);
+        enkf_printf(" %.3g", type->locweight[i]);
     enkf_printf("\n");
     enkf_printf("      RFACTOR = %.3g\n", type->rfactor);
     enkf_printf("      NLOBSMAX = %d\n", type->nlobsmax);
@@ -142,7 +143,7 @@ static void obstype_print(obstype* type)
 
 /**
  */
-void obstypes_read(char fname[], int* n, obstype** types, double locrad_base, double rfactor_base, int nlobsmax)
+void obstypes_read(enkfprm* prm, char fname[], int* n, obstype** types)
 {
     FILE* f = NULL;
     char buf[MAXSTRLEN];
@@ -270,25 +271,25 @@ void obstypes_read(char fname[], int* n, obstype** types, double locrad_base, do
             }
             if (now->nlocrad > sid)
                 enkf_quit("%s, l.%d: LOCRAD not specified or its dimension does not match that of RFACTOR", fname, line);
-        } else if (strcasecmp(token, "WEIGHT") == 0) {
+        } else if (strcasecmp(token, "LOCWEIGHT") == 0) {
             int sid = 0;
 
             if (now->nlocrad > 0) {
-                if (now->weight == NULL)
-                    now->weight = malloc(sizeof(double) * now->nlocrad);
+                if (now->locweight == NULL)
+                    now->locweight = malloc(sizeof(double) * now->nlocrad);
             } else
-                enkf_quit("%s, l.%d: LOCRAD must be entered before WEIGHT", fname, line);
+                enkf_quit("%s, l.%d: LOCRAD must be entered before LOCWEIGHT", fname, line);
             while ((token = strtok(NULL, seps)) != NULL) {
                 if (now->nlocrad == sid) {
-                    now->weight = realloc(now->weight, sizeof(double) * (now->nlocrad + 1));
+                    now->locweight = realloc(now->locweight, sizeof(double) * (now->nlocrad + 1));
                     now->nlocrad++;
                 }
-                if (!str2double(token, &now->weight[sid]))
+                if (!str2double(token, &now->locweight[sid]))
                     enkf_quit("%s, l.%d: could not convert \"%s\" to double", fname, line, token);
                 sid++;
             }
             if (now->nlocrad > sid)
-                enkf_quit("%s, l.%d: WEIGHT entered but not specified or its dimension does not match that of LOCRAD", fname, line);
+                enkf_quit("%s, l.%d: LOCWEIGHT entered but not specified or its dimension does not match that of LOCRAD", fname, line);
         } else if (strcasecmp(token, "RFACTOR") == 0) {
             if ((token = strtok(NULL, seps)) == NULL)
                 enkf_quit("%s, l.%d: RFACTOR not specified", fname, line);
@@ -348,31 +349,37 @@ void obstypes_read(char fname[], int* n, obstype** types, double locrad_base, do
         obstype* type = &(*types)[i];
 
         if (type->nlocrad == 0) {
-            type->locrad = malloc(sizeof(double));
-            type->weight = malloc(sizeof(double));
-            type->locrad[0] = locrad_base;
-            type->weight[0] = 1.0;
-            type->nlocrad = 1;
-        } else if (type->weight == NULL) {
+            int j;
+
+            if (prm->nlocrad == 0 && !enkf_fstatsonly)
+                enkf_quit("LOCRAD specified neither in %s or %s for obstype %s", prm->fname, fname, type->name);
+            type->nlocrad = prm->nlocrad;
+            type->locrad = malloc(type->nlocrad * sizeof(double));
+            type->locweight = malloc(type->nlocrad * sizeof(double));
+            for (j = 0; j < type->nlocrad; ++j) {
+                type->locrad[j] = prm->locrad[j];
+                type->locweight[j] = prm->locweight[j];
+            }
+        } else if (type->locweight == NULL) {
             if (type->nlocrad == 1) {
-                type->weight = malloc(sizeof(double));
-                type->weight[0] = 1.0;
+                type->locweight = malloc(sizeof(double));
+                type->locweight[0] = 1.0;
             } else
-                enkf_quit("%s: WEIGHT not specified for multi-scale observation type \"%s\"", fname, type->name);
+                enkf_quit("%s: LOCWEIGHT not specified for multi-scale observation type \"%s\"", fname, type->name);
         } else {
             double sum = 0.0;
             int j;
 
             for (j = 0; j < type->nlocrad; ++j)
-                sum += type->weight[j];
+                sum += type->locweight[j];
             assert(sum > 0.0);
             for (j = 0; j < type->nlocrad; ++j)
-                type->weight[j] /= sum;
+                type->locweight[j] /= sum;
         }
-        type->rfactor *= rfactor_base;
+        type->rfactor *= prm->rfactor_base;
 
         if (type->nlobsmax < 0)
-            type->nlobsmax = nlobsmax;
+            type->nlobsmax = prm->nlobsmax;
     }
 
     for (i = 0; i < *n; ++i) {
@@ -396,8 +403,8 @@ void obstypes_describeprm(void)
     enkf_printf("  [ MLD_THRESH  = <threshold> ]                    (NaN*)\n");
     enkf_printf("    HFUNCTION   = <H function name>\n");
     enkf_printf("  [ ASYNC       = <time interval> [c*|e]]          (synchronous*)\n");
-    enkf_printf("  [ LOCRAD      = <locrad> ... ]                   (global*)\n");
-    enkf_printf("  [ WEIGHT      = <weight> ... ]                   (1*)\n");
+    enkf_printf("  [ LOCRAD      = <loc. radius in km> ... ]\n");
+    enkf_printf("  [ LOCWEIGHT   = <loc. weight> ... ]              (# LOCRAD > 1)\n");
     enkf_printf("  [ RFACTOR     = <rfactor> ]                      (1*)\n");
     enkf_printf("  [ NLOBSMAX    = <max. number of local obs. ]\n");
     enkf_printf("  [ MINVALUE    = <minimal allowed value> ]        (-inf*)\n");
@@ -468,7 +475,7 @@ void obstypes_destroy(int n, obstype* types)
         if (type->mld_varname != NULL)
             free(type->mld_varname);
         free(type->locrad);
-        free(type->weight);
+        free(type->locweight);
     }
 
     free(types);
@@ -499,7 +506,7 @@ double obstype_calclcoeff(obstype* type, double dist)
 
     for (i = 0; i < type->nlocrad; ++i)
         if (dist <= type->locrad[i])
-            sum += type->weight[i] * taper_gc(dist / type->locrad[i]);
+            sum += type->locweight[i] * taper_gc(dist / type->locrad[i]);
     return sum;
 }
 
