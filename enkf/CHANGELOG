@@ -1,3 +1,12 @@
+v. 1.81.1
+   PS 18062018
+   Cosmetic changes; in particular renamed obsmeta.[ch] to obsprm.[ch].
+v. 1.81.0
+   PS 15062018
+   Modified code for sigma coordinate to permit stretching as described in
+   https://www.myroms.org/wiki/Vertical_S-coordinate, Vstretching = 5
+   (Vstretching = 2..4 did not require that, and Vstretching = 1 corresponds to
+   the "old" stretching function (1) that is not handled in EnKF-C).
 v. 1.80.9
    PS 14062018
    Corrected calculation of zt[] in gz_sigma_z2fk() and in grid_fk2z() for

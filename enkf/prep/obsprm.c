@@ -9,7 +9,8 @@
  *
  * Description:
  *
- * Revisions:
+ * Revisions:   18062018 PS Renamed from obsmeta.c
+
  *
  *****************************************************************************/
 
@@ -20,7 +21,7 @@
 #include "definitions.h"
 #include "utils.h"
 #include "enkfprm.h"
-#include "obsmeta.h"
+#include "obsprm.h"
 
 #define OBSMETA_NFILES_INC 10
 #define NOBSTYPES_INC 10
@@ -44,7 +45,7 @@ static void obsmeta_addfname(obsmeta* meta, char fname[])
 
 /**
  */
-void obsmeta_read(enkfprm* prm, int* nmeta, obsmeta** meta)
+void obsprm_read(enkfprm* prm, int* nmeta, obsmeta** meta)
 {
     char* fname = prm->obsprm;
     FILE* f = NULL;
@@ -216,7 +217,7 @@ void obsmeta_read(enkfprm* prm, int* nmeta, obsmeta** meta)
 
 /**
  */
-void obsmeta_destroy(int n, obsmeta meta[])
+void obsprm_destroy(int n, obsmeta meta[])
 {
     int i, j;
 
@@ -254,7 +255,7 @@ void obsmeta_destroy(int n, obsmeta meta[])
 
 /**
  */
-void obsmeta_describeprm(void)
+void obsprm_describeprm(void)
 {
     enkf_printf("\n");
     enkf_printf("  Observation data parameter file format:\n");

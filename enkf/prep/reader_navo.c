@@ -25,7 +25,7 @@
 #include "ncw.h"
 #include "definitions.h"
 #include "utils.h"
-#include "obsmeta.h"
+#include "obsprm.h"
 #include "grid.h"
 #include "observations.h"
 #include "prep_utils.h"

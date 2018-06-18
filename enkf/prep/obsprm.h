@@ -1,6 +1,6 @@
 /******************************************************************************
  *
- * File:        obsmeta.h        
+ * File:        obsprm.h        
  *
  * Created:     12/2012
  *
@@ -9,11 +9,11 @@
  *
  * Description:
  *
- * Revisions:
+ * Revisions:   18062018 PS Renamed from obsmeta.h
  *
  *****************************************************************************/
 
-#if !defined(_OBSMETA_H)
+#if !defined(_OBSPRM_H)
 
 #include "enkfprm.h"
 
@@ -57,9 +57,9 @@ typedef struct {
     metapar* pars;
 } obsmeta;
 
-void obsmeta_read(enkfprm* prm, int* nmeta, obsmeta** meta);
-void obsmeta_destroy(int n, obsmeta meta[]);
-void obsmeta_describeprm(void);
+void obsprm_read(enkfprm* prm, int* nmeta, obsmeta** meta);
+void obsprm_destroy(int n, obsmeta meta[]);
+void obsprm_describeprm(void);
 
-#define _OBSMETA_H
+#define _OBSPRM_H
 #endif

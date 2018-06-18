@@ -21,26 +21,31 @@
 #include "definitions.h"
 #include "utils.h"
 #include "enkfprm.h"
-#include "obsmeta.h"
+#include "obsprm.h"
 #include "grid.h"
 #include "model.h"
 #include "observations.h"
 #include "prep_utils.h"
 
 /*
- * put all obs int observations-orig.nc (default = only local obs)
+ * put all obs into observations-orig.nc (default = only obs within the grid)
  */
 int log_all_obs = 0;
-
 /*
- * describe this superobservation and exit
+ * describe this superobservation and exit (-1 = normal workflow)
  */
 int describe_superob_id = -1;
-
+/*
+ * superobing can be switched off
+ */
 int do_superob = 1;
-
+/*
+ * superobing across instruments can be switched off
+ */
 int do_superob_acrossinst = 1;
-
+/*
+ * writing of the original obs can be swithched off
+ */
 int write_orig_obs = 1;
 
 /**
@@ -95,7 +100,7 @@ static void parse_commandline(int argc, char* argv[], char** fname)
                 else if (strcmp(argv[i + 1], "obstypes") == 0)
                     obstypes_describeprm();
                 else if (strcmp(argv[i + 1], "obsdata") == 0)
-                    obsmeta_describeprm();
+                    obsprm_describeprm();
                 else
                     usage();
             } else
@@ -184,8 +189,8 @@ static int cmp_obs(const void* p1, const void* p2, void* p)
     }
 
     /*
-     * the idea behind offset is to center superobservation domains in the case
-     * of even stride on grid cells rather than on cell corners
+     * The offset below is supposed to align the superobservation cell
+     * boundaries with the cell boundaries.
      */
     offset = (double) ((stride - 1) % 2) / 2.0;
 
@@ -239,7 +244,7 @@ int main(int argc, char* argv[])
     enkfprm_print(prm, "    ");
 
     enkf_printf("  reading observation specs from \"%s\":\n", prm->obsprm);
-    obsmeta_read(prm, &nmeta, &meta);
+    obsprm_read(prm, &nmeta, &meta);
 
     enkf_printf("  creating model and observations:\n");
     m = model_create(prm);
@@ -252,7 +257,7 @@ int main(int argc, char* argv[])
     for (i = 0; i < nmeta; i++)
         obs_add(obs, m, &meta[i]);
     obs_markbadbatches(obs);
-    obsmeta_destroy(nmeta, meta);
+    obsprm_destroy(nmeta, meta);
     obs_compact(obs);
     obs_calcstats(obs);
 

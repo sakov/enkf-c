@@ -47,7 +47,7 @@
 #include "ncw.h"
 #include "definitions.h"
 #include "utils.h"
-#include "obsmeta.h"
+#include "obsprm.h"
 #include "model.h"
 #include "grid.h"
 #include "observations.h"

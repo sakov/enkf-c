@@ -58,7 +58,7 @@ common/model.h
 SRC_PREP =\
 common/hash.c\
 prep/prep_utils.c\
-prep/obsmeta.c\
+prep/obsprm.c\
 common/obstypes.c\
 common/observations.c\
 prep/allreaders.c\
@@ -82,7 +82,7 @@ prep/enkf_prep.c
 HDR_PREP =\
 prep/prep_utils.h\
 common/hash.h\
-prep/obsmeta.h\
+prep/obsprm.h\
 common/obstypes.h\
 common/observations.h\
 prep/allreaders.h

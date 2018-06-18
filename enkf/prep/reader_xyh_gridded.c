@@ -15,9 +15,13 @@
  *              where p(k) -- z coordinate (pressure) at the middle of layer k.
  *              The grid must be defined in the grid parameter file.
  *
- *                It is currently assumed that there is only one data record
- *              (3D field).
- *                Similarly to reader_xy_gridded(), there are a number of
+ *              Unlike other readers this one requires the (hybrid) data grid
+ *              to be defined in the grid parameter file.
+ *
+ *              It is currently assumed that there is only one data record
+ *              (a 3D field).
+ *
+ *              Similarly to reader_xy_gridded(), there are a number of
  *              parameters that must (++) or can be specified if they differ
  *              from the default value (+). Some parameters are optional (-):
  *              - VARNAME (++)
@@ -51,7 +55,7 @@
 #include "ncw.h"
 #include "definitions.h"
 #include "utils.h"
-#include "obsmeta.h"
+#include "obsprm.h"
 #include "model.h"
 #include "grid.h"
 #include "observations.h"

@@ -21,7 +21,7 @@
 #include "definitions.h"
 #include "utils.h"
 #include "enkfprm.h"
-#include "obsmeta.h"
+#include "obsprm.h"
 #include "model.h"
 #include "grid.h"
 #include "observations.h"
