@@ -35,7 +35,13 @@ typedef struct {
     int minnobs;
 } badbatchspec;
 
-typedef struct {
+#if !defined(_ENKFPRM_TYPEDEF)
+struct enkfprm;
+typedef struct enkfprm enkfprm;
+#define _ENKFPRM_TYPEDEF
+#endif
+
+struct enkfprm {
     char* fname;
     int mode;
     int scheme;
@@ -52,10 +58,6 @@ typedef struct {
     char* ensdir;
     int enssize;
     char* bgdir;
-
-    int nasync;
-    char** async_types;
-    double* async_timesteps;    /* in days */
 
     double kfactor;
     double rfactor_base;
@@ -75,7 +77,7 @@ typedef struct {
 
     int ncformat;
     int nccompression;
-} enkfprm;
+};
 
 enkfprm* enkfprm_read(char fname[]);
 void enkfprm_destroy(enkfprm* prm);

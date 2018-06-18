@@ -20,7 +20,6 @@
 #include <math.h>
 #include "definitions.h"
 #include "utils.h"
-#include "enkfprm.h"
 #include "obsprm.h"
 
 #define OBSMETA_NFILES_INC 10
@@ -45,9 +44,8 @@ static void obsmeta_addfname(obsmeta* meta, char fname[])
 
 /**
  */
-void obsprm_read(enkfprm* prm, int* nmeta, obsmeta** meta)
+void obsprm_read(char fname[], int* nmeta, obsmeta** meta)
 {
-    char* fname = prm->obsprm;
     FILE* f = NULL;
     char buf[MAXSTRLEN];
     int line;
@@ -188,31 +186,6 @@ void obsprm_read(enkfprm* prm, int* nmeta, obsmeta** meta)
         for (j = 0; j < m->npars; ++j)
             enkf_printf("      PARAMETER %s = %s\n", m->pars[j].name, m->pars[j].value);
     }
-
-    /*
-     * check asynchronous obs types 
-     */
-    do {
-        for (j = 0; j < prm->nasync; ++j) {
-            for (i = 0; i < (*nmeta); ++i) {
-                obsmeta* m = &(*meta)[i];
-
-                if (strcmp(m->type, prm->async_types[j]) == 0)
-                    break;
-            }
-            if (i == (*nmeta)) {
-                int k;
-
-                enkf_printf("    WARNING: %s: asynchronous type \"%s\" not in obs\n", prm->fname, prm->async_types[j]);
-                /*
-                 * eliminate redundant entry 
-                 */
-                for (k = j; k < prm->nasync - 1; ++k)
-                    prm->async_types[k] = prm->async_types[k + 1];
-                prm->nasync--;
-            }
-        }
-    } while (j != prm->nasync);
 }
 
 /**

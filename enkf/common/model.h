@@ -15,7 +15,11 @@
 
 #if !defined(_MODEL_H)
 
-#include "enkfprm.h"
+#if !defined(_ENKFPRM_TYPEDEF)
+struct enkfprm;
+typedef struct enkfprm enkfprm;
+#define _ENKFPRM_TYPEDEF
+#endif
 
 struct model;
 typedef struct model model;

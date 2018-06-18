@@ -1,3 +1,7 @@
+v. 1.81.2
+   PS 18062018
+   A bit of clean-up; in particular removed asynchronous entries from struct
+   enkfprm, as they belong now to struct obstype.
 v. 1.81.1
    PS 18062018
    Cosmetic changes; in particular renamed obsmeta.[ch] to obsprm.[ch].

@@ -244,7 +244,7 @@ int main(int argc, char* argv[])
     enkfprm_print(prm, "    ");
 
     enkf_printf("  reading observation specs from \"%s\":\n", prm->obsprm);
-    obsprm_read(prm, &nmeta, &meta);
+    obsprm_read(prm->obsprm, &nmeta, &meta);
 
     enkf_printf("  creating model and observations:\n");
     m = model_create(prm);

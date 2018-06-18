@@ -20,7 +20,6 @@
 #include "kdtree.h"
 #include "definitions.h"
 #include "utils.h"
-#include "enkfprm.h"
 #include "obsprm.h"
 #include "model.h"
 #include "grid.h"

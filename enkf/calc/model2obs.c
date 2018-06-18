@@ -24,7 +24,6 @@
 #include "ncw.h"
 #include "definitions.h"
 #include "utils.h"
-#include "enkfprm.h"
 #include "observations.h"
 #include "model.h"
 #include "model2obs.h"

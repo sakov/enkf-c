@@ -15,8 +15,6 @@
 
 #if !defined(_OBSPRM_H)
 
-#include "enkfprm.h"
-
 #define STDTYPE_NONE 0
 #define STDTYPE_VALUE 1
 #define STDTYPE_FILE 2
@@ -57,7 +55,7 @@ typedef struct {
     metapar* pars;
 } obsmeta;
 
-void obsprm_read(enkfprm* prm, int* nmeta, obsmeta** meta);
+void obsprm_read(char fname[], int* nmeta, obsmeta** meta);
 void obsprm_destroy(int n, obsmeta meta[]);
 void obsprm_describeprm(void);
 
