@@ -38,7 +38,7 @@ typedef struct {
      * For "normal" sigma just specify C arrays (Cs_rho and Cs_w in ROMS) only
      * via entries CVARNAME (and, optionally) CCVARNAME along with WDIR
      * ("fromsurf" by default).
-     */ 
+     */
     char* svarname;             /* variable name for sigma coordinate of
                                  * layer centres for non-uniform mappings */
     char* scvarname;            /* variable name for sigma coordinate of

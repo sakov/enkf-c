@@ -31,18 +31,22 @@
  * put all obs into observations-orig.nc (default = only obs within the grid)
  */
 int log_all_obs = 0;
+
 /*
  * describe this superobservation and exit (-1 = normal workflow)
  */
 int describe_superob_id = -1;
+
 /*
  * superobing can be switched off
  */
 int do_superob = 1;
+
 /*
  * superobing across instruments can be switched off
  */
 int do_superob_acrossinst = 1;
+
 /*
  * writing of the original obs can be swithched off
  */

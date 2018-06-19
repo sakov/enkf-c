@@ -38,6 +38,7 @@ typedef struct {
 #if !defined(_ENKFPRM_TYPEDEF)
 struct enkfprm;
 typedef struct enkfprm enkfprm;
+
 #define _ENKFPRM_TYPEDEF
 #endif
 

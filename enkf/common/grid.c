@@ -444,10 +444,10 @@ static gz_sigma* gz_sigma_create(grid* g, int ni, int nj, int nk, double* st, do
         gz->st = malloc(nk * sizeof(double));
         if (gz->vdirection == GRIDVDIR_FROMSURF)
             for (i = 0; i < nk; ++i)
-                gz->st[i] = ((double) i + 0.5)/ (double) gz->nk;
+                gz->st[i] = ((double) i + 0.5) / (double) gz->nk;
         else
             for (i = 0; i < nk; ++i)
-                gz->st[i] = 1.0 - ((double) i + 0.5)/ (double) gz->nk;
+                gz->st[i] = 1.0 - ((double) i + 0.5) / (double) gz->nk;
         assert(sc == NULL);
         gz->sc = malloc((nk + 1) * sizeof(double));
         if (gz->vdirection == GRIDVDIR_FROMSURF)
