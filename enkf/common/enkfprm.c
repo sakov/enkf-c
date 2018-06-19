@@ -419,13 +419,22 @@ enkfprm* enkfprm_read(char fname[])
      * normalise localisation weights
      */
     if (prm->nlocrad > 0) {
-        double sum = 0.0;
+        if (prm->locweight == NULL) {
+            if (prm->nlocrad == 1) {
+                prm->locweight = malloc(sizeof(double));
+                prm->locweight[0] = 1.0;
+            } else
+                enkf_quit("%s: LOCWEIGHT not specified for multi-scale localisation", fname);
+        } else {
+            double sum = 0.0;
+            int i;
 
-        for (i = 0; i < prm->nlocrad; ++i)
-            sum += prm->locweight[i];
-        assert(sum > 0.0);
-        for (i = 0; i < prm->nlocrad; ++i)
-            prm->locweight[i] /= sum;
+            for (i = 0; i < prm->nlocrad; ++i)
+                sum += prm->locweight[i];
+            assert(sum > 0.0);
+            for (i = 0; i < prm->nlocrad; ++i)
+                prm->locweight[i] /= sum;
+        }
     }
 
     if (prm->nregions == 0) {
