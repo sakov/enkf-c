@@ -142,5 +142,28 @@ extern int enkf_fstatsonly;
 extern int enkf_noobsdatecheck;
 extern int enkf_considersubgridvar;
 
+typedef struct {
+    char* name;
+    double x1, x2, y1, y2;
+} region;
+
+typedef struct {
+    int id;
+    int i, j;
+    double lon, lat;
+    char* gridname;
+    int gridid;
+} pointlog;
+
+typedef struct {
+    char* obstype;
+    double maxbias;
+    double maxmad;
+    int minnobs;
+} badbatchspec;
+
+struct enkfprm;
+typedef struct enkfprm enkfprm;
+
 #define _DEFINITIONS_H
 #endif

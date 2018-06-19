@@ -7,7 +7,7 @@
  * Author:      Pavel Sakov
  *              Bureau of Meteorology
  *
- * Description: The code here update model fields using ensmeble transforms
+ * Description: The code to update model fields using ensmeble transforms
  *              calculated by CALC. It also does a number of auxiliary tasks
  *              such as calculating and writing ensemble spread, inflation,
  *              point logs etc.
@@ -277,10 +277,13 @@ static void das_updatefields(dasystem* das, int nfields, void** fieldbuffer, fie
                      */
 
                     /*
-                     * write the actual (interpolated) transform  matrix to the
-                     * pointlog for this (i,j) pair (if it exists)
+                     * ("f->id == 0" means "for the first field on this grid")
                      */
                     if (f->id == 0) {
+                        /*
+                         * write the actual (interpolated) transform matrix to
+                         * the pointlog for this (i,j) pair (if it exists)
+                         */
                         unsigned short key[4] = { i, j, grid_getid(grid), 0 };
                         pointlog* plog = NULL;
 
@@ -558,10 +561,13 @@ static void das_updatebg(dasystem* das, int nfields, void** fieldbuffer, field f
                     }
 
                     /*
-                     * for fid = 0 write the actual (interpolated) weight
-                     * vector to the pointlog for this (i,j) pair (if it exists)
+                     * ("f->id == 0" means "for the first field on this grid")
                      */
                     if (f->id == 0) {
+                        /*
+                         * write the actual (interpolated) weight vector to the
+                         * pointlog for this (i,j) pair (if it exists)
+                         */
                         unsigned short key[4] = { i, j, grid_getid(grid), 0 };
                         int id;
 

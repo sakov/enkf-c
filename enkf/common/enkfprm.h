@@ -15,33 +15,6 @@
 
 #if !defined(_ENKFPRM_H)
 
-typedef struct {
-    char* name;
-    double x1, x2, y1, y2;
-} region;
-
-typedef struct {
-    int id;
-    int i, j;
-    double lon, lat;
-    char* gridname;
-    int gridid;
-} pointlog;
-
-typedef struct {
-    char* obstype;
-    double maxbias;
-    double maxmad;
-    int minnobs;
-} badbatchspec;
-
-#if !defined(_ENKFPRM_TYPEDEF)
-struct enkfprm;
-typedef struct enkfprm enkfprm;
-
-#define _ENKFPRM_TYPEDEF
-#endif
-
 struct enkfprm {
     char* fname;
     int mode;
