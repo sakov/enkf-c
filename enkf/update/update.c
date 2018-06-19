@@ -280,11 +280,11 @@ static void das_updatefields(dasystem* das, int nfields, void** fieldbuffer, fie
                      * write the actual (interpolated) transform  matrix to the
                      * pointlog for this (i,j) pair (if it exists)
                      */
-                    {
+                    if (f->id == 0) {
                         unsigned short key[4] = { i, j, grid_getid(grid), 0 };
                         pointlog* plog = NULL;
 
-                        if (f->id == 0 && das->nplogs > 0 && (plog = ht_find(das->ht_plogs, key)) != NULL)
+                        if (das->nplogs > 0 && (plog = ht_find(das->ht_plogs, key)) != NULL)
                             plog_writeactualtransform(das, plog->id, X5j[i]);
                     }
 
@@ -565,7 +565,7 @@ static void das_updatebg(dasystem* das, int nfields, void** fieldbuffer, field f
                         unsigned short key[4] = { i, j, grid_getid(grid), 0 };
                         int id;
 
-                        if (f->id == 0 && das->nplogs > 0 && (id = ht_findid(das->ht_plogs, key)) >= 0)
+                        if (das->nplogs > 0 && (id = ht_findid(das->ht_plogs, key)) >= 0)
                             plog_writeactualtransform(das, id, wj[i]);
                     }
 

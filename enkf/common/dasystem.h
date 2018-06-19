@@ -27,20 +27,14 @@
 #define S_MODE_HA_a 5
 #define S_MODE_S_a  6
 
-struct field;
-typedef struct field field;
-
-struct field {
+typedef struct {
     int id;
     int varid;
     char varname[NC_MAX_NAME];
     int level;
-};
+} field;
 
-struct dasystem;
-typedef struct dasystem dasystem;
-
-struct dasystem {
+typedef struct {
     char* prmfname;
     int mode;
     int scheme;
@@ -117,7 +111,7 @@ struct dasystem {
 
     int ncformat;
     int nccompression;
-};
+} dasystem;
 
 dasystem* das_create(enkfprm* prm);
 void das_destroy(dasystem* das);
