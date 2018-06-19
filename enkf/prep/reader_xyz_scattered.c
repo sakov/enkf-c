@@ -261,7 +261,7 @@ void reader_xyz_scattered(char* fname, int fid, obsmeta* meta, grid* g, observat
     else if (ncw_var_exists(ncid, "time"))
         ncw_inq_varid(ncid, "time", &varid_time);
     else {
-        enkf_printf("        reader_xy_scattered(): %s: could not find TIME variable", fname);
+        enkf_printf("        reader_xy_scattered(): %s: could not find TIME variable\n", fname);
         have_time = 0;
     }
 

@@ -113,6 +113,7 @@ model* model_create(enkfprm* prm)
     int i;
 
     grids_create(prm->gridprm, prm->stride, prm->sob_stride, &m->ngrid, &m->grids);
+    assert(m->ngrid > 0);
 
     /*
      * read model parameter file
@@ -236,8 +237,6 @@ model* model_create(enkfprm* prm)
     model_print(m, "    ");
 
     model_checkvars(m, modelprm);
-
-    assert(m->ngrid > 0);
 
     return m;
 }
