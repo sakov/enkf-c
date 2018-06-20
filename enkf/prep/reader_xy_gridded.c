@@ -262,7 +262,7 @@ void reader_xy_gridded(char* fname, int fid, obsmeta* meta, grid* g, observation
     else if (ncw_var_exists(ncid, "time"))
         ncw_inq_varid(ncid, "time", &varid_time);
     else {
-        enkf_printf("        reader_xy_gridded(): %s: could not find TIME variable\n", fname);
+        enkf_printf("        reader_xy_gridded(): %s: no TIME variable\n", fname);
         have_time = 0;
     }
 
