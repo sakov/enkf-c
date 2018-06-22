@@ -1,3 +1,9 @@
+v. 1.82.1
+   PS 22062018
+   Modified ncw_copy_vardef() to handle the case when some of the dimensions
+   of the variable being copied already exist in the destination file and have
+   different length. This manifested in errors during assembly of spread.nc
+   (and, I guess, inflation.nc).
 v. 1.82.0
    PS 19062012
    Harmonised specifying LOCRAD in the main parameter file with that in the
