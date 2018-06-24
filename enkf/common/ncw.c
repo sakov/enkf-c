@@ -31,7 +31,7 @@
 #include <errno.h>
 #include "ncw.h"
 
-const char ncw_version[] = "2.18";
+const char ncw_version[] = "2.19";
 
 /* This macro is substituted in error messages instead of the name of a
  * variable in cases when the name could not be found by the variable id.
@@ -1458,9 +1458,7 @@ void ncw_copy_vardata(int ncid_src, int vid_src, int ncid_dst)
     char varname[NC_MAX_NAME] = STR_UNKNOWN;
     nc_type type;
     int ndims;
-    int dimids[NC_MAX_DIMS];
     size_t dimlens[NC_MAX_DIMS];
-    int natts;
     void* data = NULL;
     int vid_dst = -1;
     int size;
@@ -1470,12 +1468,11 @@ void ncw_copy_vardata(int ncid_src, int vid_src, int ncid_dst)
     status = nc_enddef(ncid_dst);
 
     ncw_inq_varname(ncid_src, vid_src, varname);
-    ncw_inq_var(ncid_src, vid_src, NULL, &type, &ndims, dimids, &natts);
-    for (i = 0; i < ndims; ++i)
-        ncw_inq_dimlen(ncid_src, dimids[i], &dimlens[i]);
+    ncw_inq_vardims(ncid_src, vid_src, NC_MAX_DIMS, &ndims, dimlens);
     size = 1;
     for (i = 0; i < ndims; ++i)
         size *= dimlens[i];
+    ncw_inq_vartype(ncid_src, vid_src, &type);
     ncw_inq_varid(ncid_dst, varname, &vid_dst);
 
     size *= ncw_sizeof(type);
@@ -1864,20 +1861,17 @@ void ncw_def_var_as(int ncid, const char oldvarname[], const char newvarname[])
 void ncw_get_var_double_record(int ncid, int varid, int r, double v[])
 {
     int ndims;
-    int dimids[NC_MAX_DIMS];
     size_t dimlen[NC_MAX_VAR_DIMS];
     size_t start[NC_MAX_VAR_DIMS];
     int i;
     int status;
 
-    ncw_inq_varndims(ncid, varid, &ndims);
-    ncw_inq_vardimid(ncid, varid, dimids);
+    ncw_inq_vardims(ncid, varid, NC_MAX_DIMS, &ndims, dimlen);
     start[0] = r;               /* this record */
     dimlen[0] = 1;              /* one record only */
-    for (i = 1; i < ndims; ++i) {
-        ncw_inq_dimlen(ncid, dimids[i], &dimlen[i]);
+    for (i = 1; i < ndims; ++i)
         start[i] = 0;
-    }
+
     status = nc_get_vara_double(ncid, varid, start, dimlen, v);
 
     if (status != 0) {
@@ -1897,20 +1891,17 @@ void ncw_get_var_double_record(int ncid, int varid, int r, double v[])
 void ncw_get_var_float_record(int ncid, int varid, int r, float v[])
 {
     int ndims;
-    int dimids[NC_MAX_DIMS];
     size_t dimlen[NC_MAX_VAR_DIMS];
     size_t start[NC_MAX_VAR_DIMS];
     int i;
     int status;
 
-    ncw_inq_varndims(ncid, varid, &ndims);
-    ncw_inq_vardimid(ncid, varid, dimids);
+    ncw_inq_vardims(ncid, varid, NC_MAX_DIMS, &ndims, dimlen);
     start[0] = r;               /* this record */
     dimlen[0] = 1;              /* one record only */
-    for (i = 1; i < ndims; ++i) {
-        ncw_inq_dimlen(ncid, dimids[i], &dimlen[i]);
+    for (i = 1; i < ndims; ++i)
         start[i] = 0;
-    }
+
     status = nc_get_vara_float(ncid, varid, start, dimlen, v);
 
     if (status != 0) {
@@ -1930,20 +1921,17 @@ void ncw_get_var_float_record(int ncid, int varid, int r, float v[])
 void ncw_put_var_double_record(int ncid, int varid, int r, double v[])
 {
     int ndims;
-    int dimids[NC_MAX_DIMS];
     size_t dimlen[NC_MAX_VAR_DIMS];
     size_t start[NC_MAX_VAR_DIMS];
     int i;
     int status;
 
-    ncw_inq_varndims(ncid, varid, &ndims);
-    ncw_inq_vardimid(ncid, varid, dimids);
+    ncw_inq_vardims(ncid, varid, NC_MAX_DIMS, &ndims, dimlen);
     start[0] = r;               /* this record */
     dimlen[0] = 1;              /* one record only */
-    for (i = 1; i < ndims; ++i) {
-        ncw_inq_dimlen(ncid, dimids[i], &dimlen[i]);
+    for (i = 1; i < ndims; ++i)
         start[i] = 0;
-    }
+
     status = nc_put_vara_double(ncid, varid, start, dimlen, v);
 
     if (status != 0) {
@@ -1963,20 +1951,17 @@ void ncw_put_var_double_record(int ncid, int varid, int r, double v[])
 void ncw_put_var_float_record(int ncid, int varid, int r, float v[])
 {
     int ndims;
-    int dimids[NC_MAX_DIMS];
     size_t dimlen[NC_MAX_VAR_DIMS];
     size_t start[NC_MAX_VAR_DIMS];
     int i;
     int status;
 
-    ncw_inq_varndims(ncid, varid, &ndims);
-    ncw_inq_vardimid(ncid, varid, dimids);
+    ncw_inq_vardims(ncid, varid, NC_MAX_DIMS, &ndims, dimlen);
     start[0] = r;               /* this record */
     dimlen[0] = 1;              /* one record only */
-    for (i = 1; i < ndims; ++i) {
-        ncw_inq_dimlen(ncid, dimids[i], &dimlen[i]);
+    for (i = 1; i < ndims; ++i)
         start[i] = 0;
-    }
+
     status = nc_put_vara_float(ncid, varid, start, dimlen, v);
 
     if (status != 0) {
