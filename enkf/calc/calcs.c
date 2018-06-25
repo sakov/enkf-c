@@ -37,6 +37,7 @@ double traceprod(int transposeA, int transposeB, int m, int n, double** A, doubl
     double trace = 0.0;
     int i, j;
 
+#if 0
     if (!transposeA && !transposeB) {
         for (i = 0; i < n; ++i) {
             double* Bi = B[i];
@@ -52,9 +53,37 @@ double traceprod(int transposeA, int transposeB, int m, int n, double** A, doubl
                 trace += Ai[j] * B[j][i];
         }
     } else if (transposeA || transposeB) {
+        double* A0 = A[0];
+        double* B0 = B[0];
+
         for (i = 0; i < n * m; ++i)
-            trace += A[0][i] * B[0][i];
+            trace += A0[i] * B0[i];
     }
+#else
+    if (!transposeA && !transposeB) {
+        for (i = 0; i < n; ++i) {
+            double* Aji = &A[0][i];
+            double* Bij = &B[i][0];
+
+            for (j = 0; j < m; ++j, Aji += n, Bij++)
+                trace += *Aji * *Bij;
+        }
+    } else if (transposeA && transposeB) {
+        for (i = 0; i < n; ++i) {
+            double* Bji = &B[0][i];
+            double* Aij = &A[i][0];
+
+            for (j = 0; j < m; ++j, Bji += n, Aij++)
+                trace += *Bji * *Aij;
+        }
+    } else if (transposeA || transposeB) {
+        double* Aij = &A[0][0];
+        double* Bij = &B[0][0];
+
+        for (i = 0; i < n * m; ++i, Aij++, Bij++)
+            trace += *Aij * *Bij;
+    }
+#endif
 
     return trace;
 }

@@ -720,7 +720,7 @@ void das_calctransforms(dasystem* das)
     }                           /* for gid */
 }
 
-/** Calculates transform for logpoints. This is done separately from
+/** Calculates transform for pointlogs. This is done separately from
  * das_calctransfroms() to avoid interpolation related problems.
  */
 void das_dopointlogs(dasystem* das)

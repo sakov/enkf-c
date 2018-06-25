@@ -31,7 +31,7 @@
 #include <errno.h>
 #include "ncw.h"
 
-const char ncw_version[] = "2.19";
+const char ncw_version[] = "2.19.1";
 
 /* This macro is substituted in error messages instead of the name of a
  * variable in cases when the name could not be found by the variable id.
@@ -1383,10 +1383,10 @@ int ncw_copy_vardef(int ncid_src, int vid_src, int ncid_dst)
         if (len == 1 && i < ndims - 1 && dimids_src[i] != unlimdimid_src)
             continue;
 
-        if (!ncw_dim_exists(ncid_dst, dimname)) {
+        if (!ncw_dim_exists(ncid_dst, dimname))
             ncw_def_dim(ncid_dst, dimname, (dimids_src[i] == unlimdimid_src) ? NC_UNLIMITED : len, &dimids_dst[i]);
-        } else {
-            int dimid_dst;
+        else {
+            int dimid_dst, unlimdimid_dst = -1;
             size_t len_dst;
             char dimname_dst[NC_MAX_NAME];
             int j;
@@ -1397,6 +1397,10 @@ int ncw_copy_vardef(int ncid_src, int vid_src, int ncid_dst)
                 dimids_dst[i] = dimid_dst;
                 continue;
             }
+            ncw_inq_unlimdimid(ncid_dst, &unlimdimid_dst);
+            if (dimid_dst == unlimdimid_dst)    /* assume it is ok to proceed 
+                                                 */
+                continue;
 
             /*
              * So... there is this dimension in the destination file, but it has

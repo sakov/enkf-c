@@ -1,3 +1,7 @@
+v. 1.82.2
+   PS 25062018
+   -- A minor fix in ncw_copy_vardef() to deal with unlimited dimensions.
+   -- A minor (supposedly cosmetic) rewrite in traceprod().
 v. 1.82.1
    PS 22062018
    Modified ncw_copy_vardef() to handle the case when some of the dimensions
