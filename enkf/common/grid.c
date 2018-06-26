@@ -460,8 +460,6 @@ static gz_sigma* gz_sigma_create(grid* g, int ni, int nj, int nk, double* st, do
         double sum = 0.0;
 
         gz->st = st;
-        assert(sc != NULL);
-        gz->sc = sc;
         /*
          * check monotonicity
          */
@@ -492,7 +490,7 @@ static gz_sigma* gz_sigma_create(grid* g, int ni, int nj, int nk, double* st, do
             gz->sc[i] = (gz->st[i - 1] + gz->st[i]) / 2.0;
     } else {
         double sum = 0.0;
-
+        gz->sc = sc;
         /*
          * check monotonicity
          */
@@ -503,7 +501,7 @@ static gz_sigma* gz_sigma_create(grid* g, int ni, int nj, int nk, double* st, do
          * change sign if negative
          */
         for (i = 0; i < nk; ++i)
-            sum += st[i];
+            sum += sc[i];
         if (sum < 0.0)
             for (i = 0; i <= nk; ++i)
                 sc[i] = -sc[i];
@@ -852,10 +850,20 @@ static double z2fk_basic(int n, double* zt, double* zc, double z)
             else
                 i1 = imid;
         }
-        if (z > zc[i1 + 1])
-            return (double) i1 + 0.5 * (z - zt[i1]) / (zc[i1 + 1] - zt[i1]);
-        else
-            return (double) i1 + 0.5 + 0.5 * (z - zc[i1 + 1]) / (zt[i1 + 1] - zc[i1 + 1]);
+          double zdist,cell_height,ival;
+          zdist = zt[i1]-z;
+          cell_height = zt[i1]-zt[i1+1];
+          ival = i1 + zdist/cell_height;
+          fprintf(stdout,"value is below zc[%d]=%f!fk=%f\n",i1+1,zc[i1+1],ival);
+          return ival;
+
+        /* //WHY use zc!? */
+        /* if (z > zc[i1 + 1]) */
+        /*     //WRONG!? This assumes spacing between rho points and w points are the same - this is incorrect. */ 
+        /*     return i1 + 0.5 * (z - zt[i1]) / (zc[i1 + 1] - zt[i1]); */
+        /* else */
+        /*     //Same as above, spacing is not equal in all cases */
+        /*     return i1 + 0.5 + 0.5 * (z - zc[i1 + 1]) / (zt[i1 + 1] - zc[i1 + 1]); */ 
     }
 }
 
@@ -882,7 +890,6 @@ static void gz_sigma_z2fk(void* p, double fi, double fj, double z, double* fk)
     if (isnan(gz->fi_prev) || fabs(fi - gz->fi_prev) > EPS_IJ || fabs(fj - gz->fj_prev) > EPS_IJ) {
         double h = (double) interpolate2d(fi, fj, gz->ni, gz->nj, g->depth, g->numlevels, grid_isperiodic_i(g));
         int i;
-
         if (gz->hc != 0.0) {
             for (i = 0; i < gz->nk; ++i)
                 gz->zt[i] = h * (gz->hc * gz->st[i] + h * gz->ct[i]) / (gz->hc + h);
@@ -895,7 +902,6 @@ static void gz_sigma_z2fk(void* p, double fi, double fj, double z, double* fk)
                 gz->zc[i] = h * gz->cc[i];
         }
     }
-
     *fk = z2fk_basic(gz->nk, gz->zt, gz->zc, z);
 }
 
@@ -1126,15 +1132,13 @@ grid* grid_create(void* p, int id)
         double* st = NULL;
         double* sc = NULL;
         double hc = 0.0;
-
-        ncw_inq_varid(ncid, prm->zvarname, &varid);
+        ncw_inq_varid(ncid, prm->cvarname, &varid);
         ncw_inq_vardims(ncid, varid, 1, &dummy, &nk);
         ct = malloc(nk * sizeof(double));
         ncw_get_var_double(ncid, varid, ct);
-        if (prm->zcvarname != NULL) {
+        if (prm->ccvarname != NULL) {
             size_t nkc = nk + 1;
-
-            ncw_inq_varid(ncid, prm->zcvarname, &varid);
+            ncw_inq_varid(ncid, prm->ccvarname, &varid);
             ncw_check_vardims(ncid, varid, 1, &nkc);
             cc = malloc(nkc * sizeof(double));
             ncw_get_var_double(ncid, varid, cc);
@@ -1152,13 +1156,11 @@ grid* grid_create(void* p, int id)
         }
         if (prm->scvarname != NULL) {
             size_t nkc = nk + 1;
-
             sc = malloc((nk + 1) * sizeof(double));
             ncw_inq_varid(ncid, prm->scvarname, &varid);
             ncw_check_vardims(ncid, varid, 1, &nkc);
             ncw_get_var_double(ncid, varid, sc);
         }
-
         g->gridnodes_z = gz_sigma_create(g, ni, nj, nk, st, sc, ct, cc, hc, prm->vdirection);
     } else if (g->vtype == GRIDVTYPE_HYBRID) {
         double* a = NULL;
@@ -1919,7 +1921,6 @@ void grids_create(char gprmfname[], int stride, int sob_stride, int* ngrid, void
 
     for (i = 0; i < n; ++i) {
         grid* g = NULL;
-
         g = grid_create(&gprm[i], i);
         grid_settocartesian_fn(g, ll2xyz);
         grids_addgrid(ngrid, grids, g);
