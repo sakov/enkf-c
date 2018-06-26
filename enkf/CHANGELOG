@@ -1,3 +1,10 @@
+v. 1.82.3
+   PS 26062018
+   -- A fix in ncw_copy_vardef() that often prevented creating unlimited
+      dimension.
+   -- A few fixes in update.c that make it possible to calculate forecast
+      spread without running CALC (note that one needs to comment out point
+      log specs in the main parameter file for it).
 v. 1.82.2
    PS 25062018
    -- A minor fix in ncw_copy_vardef() to deal with unlimited dimensions.

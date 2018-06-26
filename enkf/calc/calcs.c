@@ -234,9 +234,9 @@ static int invsqrtm2(int m, double alpha, double** S, double** D)
     double* sigmas = malloc(m * sizeof(double));
     int lwork = 10 * m;
     double* work = malloc(lwork * sizeof(double));
-    char specU = 'A';           /* "all M columns of U are returned in array
-                                 * * U" */
-    char specV = 'N';           /* "no rows of V**T are computed" */
+    char specU = 'A';           /* all M columns of U are returned in array U 
+                                 */
+    char specV = 'N';           /* no rows of V**T are computed */
     int lapack_info;
     double a = 1.0;
     double b = 0.0;

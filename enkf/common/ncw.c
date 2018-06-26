@@ -1398,9 +1398,11 @@ int ncw_copy_vardef(int ncid_src, int vid_src, int ncid_dst)
                 continue;
             }
             ncw_inq_unlimdimid(ncid_dst, &unlimdimid_dst);
-            if (dimid_dst == unlimdimid_dst)    /* assume it is ok to proceed 
+            if (dimid_dst == unlimdimid_dst) {  /* assume it is ok to proceed 
                                                  */
+                dimids_dst[i] = dimid_dst;
                 continue;
+            }
 
             /*
              * So... there is this dimension in the destination file, but it has
