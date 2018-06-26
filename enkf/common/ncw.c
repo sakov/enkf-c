@@ -31,7 +31,7 @@
 #include <errno.h>
 #include "ncw.h"
 
-const char ncw_version[] = "2.19.1";
+const char ncw_version[] = "2.19.2";
 
 /* This macro is substituted in error messages instead of the name of a
  * variable in cases when the name could not be found by the variable id.
