@@ -1,3 +1,6 @@
+v. 1.82.4
+   Hugo Oliveira 27062018
+   -- Fixed bugs for sigma introduced in v1.81.0.
 v. 1.82.3
    PS 26062018
    -- A fix of a defect in ncw_copy_vardef() that often prevented creating

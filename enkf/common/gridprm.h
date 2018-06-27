@@ -35,9 +35,9 @@ typedef struct {
      * Sigma stuff:
      * This is generalised sigma as described in
      * https://https://www.myroms.org/wiki/Vertical_S-coordinate
-     * For "normal" sigma just specify C arrays (Cs_rho and Cs_w in ROMS) only
-     * via entries CVARNAME (and, optionally) CCVARNAME along with WDIR
-     * ("fromsurf" by default).
+     * For "normal" sigma specify C arrays (Cs_rho and Cs_w in ROMS) only via
+     * entries CVARNAME (and, optionally) CCVARNAME along with WDIR ("fromsurf"
+     * by default).
      */
     char* svarname;             /* variable name for sigma coordinate of
                                  * layer centres for non-uniform mappings */
@@ -46,10 +46,6 @@ typedef struct {
     char* hcvarname;            /* parameter for ROMS sigma coords */
     char* cvarname;             /* Cs_rho */
     char* ccvarname;            /* Cs_w */
-    char* depthvarname;
-    char* levelvarnameentry;
-    char* levelvarname;
-    char* vdirection;
 
     /*
      * Hybrid stuff: p(k) = A(k) + B(k) * (p1 - p2)
@@ -63,6 +59,14 @@ typedef struct {
     char* p1varname;            /* in atmosphere -- P of the surface layer */
     char* p2varname;            /* in atmosphere -- P of the top layer */
 
+    char* depthvarname;
+    char* levelvarnameentry;
+    char* levelvarname;
+    char* vdirection;
+
+    /*
+     * DA related stuff attached to grids
+     */
     int stride;
     int sob_stride;
     double sfactor;

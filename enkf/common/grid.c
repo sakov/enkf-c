@@ -88,8 +88,8 @@ typedef struct {
  * (these arrays correspond to variables Cs_r and Cs_w in ROMS restarts).
  *
  * Some recent stretching options in ROMS also require stretching of the sigma
- * coordinate, which is used to be uniform -1 <= s < = 0. This why there are
- * st and sc arrays added.
+ * coordinate, which previously used to be uniform -1 <= s < = 0. This why there
+ * are st and sc arrays added.
  */
 typedef struct {
     int ni;
@@ -503,7 +503,7 @@ static gz_sigma* gz_sigma_create(grid* g, int ni, int nj, int nk, double* st, do
          * change sign if negative
          */
         for (i = 0; i < nk; ++i)
-            sum += st[i];
+            sum += sc[i];
         if (sum < 0.0)
             for (i = 0; i <= nk; ++i)
                 sc[i] = -sc[i];
@@ -1127,14 +1127,14 @@ grid* grid_create(void* p, int id)
         double* sc = NULL;
         double hc = 0.0;
 
-        ncw_inq_varid(ncid, prm->zvarname, &varid);
+        ncw_inq_varid(ncid, prm->cvarname, &varid);
         ncw_inq_vardims(ncid, varid, 1, &dummy, &nk);
         ct = malloc(nk * sizeof(double));
         ncw_get_var_double(ncid, varid, ct);
-        if (prm->zcvarname != NULL) {
+        if (prm->ccvarname != NULL) {
             size_t nkc = nk + 1;
 
-            ncw_inq_varid(ncid, prm->zcvarname, &varid);
+            ncw_inq_varid(ncid, prm->ccvarname, &varid);
             ncw_check_vardims(ncid, varid, 1, &nkc);
             cc = malloc(nkc * sizeof(double));
             ncw_get_var_double(ncid, varid, cc);
