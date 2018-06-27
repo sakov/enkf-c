@@ -1477,20 +1477,20 @@ void das_update(dasystem* das)
                 if (das->updatespec & UPDATE_DOPLOGS)
                     plog_writestatevars(das, bufindex + 1, fieldbuffer, &fields[i - bufindex], 0);
 
-		if (das->updatespec & (UPDATE_DOFIELDS | UPDATE_DOANALYSISSPREAD | UPDATE_DOPLOGS | UPDATE_DOINFLATION)) {
-		    if (das->mode == MODE_ENKF) {
-			das_updatefields(das, bufindex + 1, fieldbuffer, &fields[i - bufindex]);
-			if (das->updatespec & UPDATE_DOFIELDS)
-			    das_writefields(das, bufindex + 1, fieldbuffer, &fields[i - bufindex]);
-			else if (i == my_last_iteration)
-			    enkf_printf("      (skip writing the fields)\n");
-		    } else if (das->mode == MODE_ENOI) {
-			if (das->updatespec & (UPDATE_DOFIELDS | UPDATE_DOPLOGS))
-			    das_updatebg(das, bufindex + 1, fieldbuffer, &fields[i - bufindex]);
-			if (das->updatespec & UPDATE_DOFIELDS)
-			    das_writebg(das, bufindex + 1, fieldbuffer, &fields[i - bufindex]);
-		    }
-		}
+                if (das->updatespec & (UPDATE_DOFIELDS | UPDATE_DOANALYSISSPREAD | UPDATE_DOPLOGS | UPDATE_DOINFLATION)) {
+                    if (das->mode == MODE_ENKF) {
+                        das_updatefields(das, bufindex + 1, fieldbuffer, &fields[i - bufindex]);
+                        if (das->updatespec & UPDATE_DOFIELDS)
+                            das_writefields(das, bufindex + 1, fieldbuffer, &fields[i - bufindex]);
+                        else if (i == my_last_iteration)
+                            enkf_printf("      (skip writing the fields)\n");
+                    } else if (das->mode == MODE_ENOI) {
+                        if (das->updatespec & (UPDATE_DOFIELDS | UPDATE_DOPLOGS))
+                            das_updatebg(das, bufindex + 1, fieldbuffer, &fields[i - bufindex]);
+                        if (das->updatespec & UPDATE_DOFIELDS)
+                            das_writebg(das, bufindex + 1, fieldbuffer, &fields[i - bufindex]);
+                    }
+                }
 
                 /*
                  * write analysis spread
