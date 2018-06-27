@@ -854,7 +854,6 @@ static double z2fk_basic(int n, double* zt, double* zc, double z)
           zdist = zt[i1]-z;
           cell_height = zt[i1]-zt[i1+1];
           ival = i1 + zdist/cell_height;
-          fprintf(stdout,"value is below zc[%d]=%f!fk=%f\n",i1+1,zc[i1+1],ival);
           return ival;
 
         /* //WHY use zc!? */
