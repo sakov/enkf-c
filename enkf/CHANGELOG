@@ -1,3 +1,9 @@
+v. 1.83.0
+   PS 29062018
+   -- Modified superob grid so that the centres of superob cells now coincide
+      with the nodes of the grid for the corresponding model variable.
+      This addresses the "second problem" reported by Hugo Oliveira in
+      https://github.com/sakov/enkf-c/issues/5.
 v. 1.82.4
    Hugo Oliveira 27062018
    -- Fixed bugs for sigma introduced in v1.81.0.

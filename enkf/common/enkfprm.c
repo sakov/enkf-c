@@ -559,7 +559,8 @@ void enkfprm_print(enkfprm* prm, char offset[])
         for (i = 0; i < prm->nlocrad; ++i)
             enkf_printf(" %.3g", prm->locweight[i]);
         enkf_printf("\n");
-        enkf_printf("%sNLOBSMAX = %d\n", offset, prm->nlobsmax);
+        if (prm->nlobsmax != INT_MAX)
+            enkf_printf("%sNLOBSMAX = %d\n", offset, prm->nlobsmax);
         enkf_printf("%sSTRIDE = %d\n", offset, prm->stride);
         enkf_printf("%sFIELDBUFFERSIZE = %d\n", offset, prm->fieldbufsize);
     }

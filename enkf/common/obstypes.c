@@ -132,7 +132,8 @@ static void obstype_print(obstype* type)
         enkf_printf(" %.3g", type->locweight[i]);
     enkf_printf("\n");
     enkf_printf("      RFACTOR = %.3g\n", type->rfactor);
-    enkf_printf("      NLOBSMAX = %d\n", type->nlobsmax);
+    if (type->nlobsmax != INT_MAX)
+        enkf_printf("      NLOBSMAX = %d\n", type->nlobsmax);
     if (type->xmin > -DBL_MAX || type->xmax < DBL_MAX || type->ymin > -DBL_MAX || type->ymax < DBL_MAX || type->zmin > -DBL_MAX || type->zmax < DBL_MAX)
         enkf_printf("      DOMAIN = %.3g %.3g %.3g %.3g %.3g %.3g\n", type->xmin, type->xmax, type->ymin, type->ymax, type->zmin, type->zmax);
     if (isfinite(type->windowmin)) {
