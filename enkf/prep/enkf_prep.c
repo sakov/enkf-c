@@ -196,7 +196,7 @@ static int cmp_obs(const void* p1, const void* p2, void* p)
      * The offset below is supposed to align the superobservation cell
      * boundaries with the cell boundaries.
      */
-    offset = (double) (stride % 2) / 2.0;
+    offset = (double) ((stride - 1) % 2) / 2.0;
 
     i1 = (int) floor(m1->fi + offset) / stride;
     i2 = (int) floor(m2->fi + offset) / stride;
