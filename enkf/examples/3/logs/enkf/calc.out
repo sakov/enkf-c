@@ -1,10 +1,10 @@
   MPI: initialised 2 process(es)
-  MPI: rank = 0, PID = 9715
-  running CALC for EnKF-C version 1.76.1:
+  MPI: rank = 1, PID = 8819
+  MPI: rank = 0, PID = 8818
+  running CALC for EnKF-C version 1.83.0:
     command = "./enkf_calc enkf.prm"
     dir = "/home/pavel/src/enkf-c/trunk/enkf/examples/3"
-  MPI: rank = 1, PID = 9716
-  2018-04-27 22:12:23
+  2018-06-29 20:58:41
   reading system specs from "enkf.prm":
     MODE = EnKF
     SCHEME = DEnKF
@@ -19,7 +19,8 @@
     INFLATION BASE = 1.1000
     INFLATION MODE = SPREAD LIMITED, MAX RATIO = 1.00
     KFACTOR = 999.0
-    LOCRAD = 200
+      LOCRAD  = 200
+      LOCWEIGHT =  1
     STRIDE = 3
     FIELDBUFFERSIZE = 4
     REGION Global: x = [0.0, 360.0], y = [-90.0, 90.0], z intervals = 
@@ -52,7 +53,7 @@
       ALLOWED MAX = 1
       ASYNCHRONOUS = no
       LOCRAD  = 200
-      WEIGHT =  1
+      LOCWEIGHT =  1
       RFACTOR = 2
     NAME = SST
     ISSURFACE = 1
@@ -63,7 +64,7 @@
       ALLOWED MAX = 42
       ASYNCHRONOUS = no
       LOCRAD  = 200
-      WEIGHT =  1
+      LOCWEIGHT =  1
       RFACTOR = 4
     NAME = TEM
     ISSURFACE = 0
@@ -74,7 +75,7 @@
       ALLOWED MAX = 42
       ASYNCHRONOUS = no
       LOCRAD  = 800
-      WEIGHT =  1
+      LOCWEIGHT =  1
       RFACTOR = 8
     NAME = SAL
     ISSURFACE = 0
@@ -85,7 +86,7 @@
       ALLOWED MAX = 39
       ASYNCHRONOUS = no
       LOCRAD  = 800
-      WEIGHT =  1
+      LOCWEIGHT =  1
       RFACTOR = 8
     grid prm info:
       NAME = "t-grid-full"
@@ -127,9 +128,9 @@
           inflation = 1.100 1.00
       0 modeldata:
   reading observations from "observations.nc":
-    2943 observations
+    2919 observations
   calculating ensemble observations:
-  2018-04-27 22:12:23
+  2018-06-29 20:58:41
     ensemble size = 96
     distributing iterations:
       2 processes get 48 iterations each
@@ -138,7 +139,7 @@
     TEM ................................................
     SAL ................................................
   adding forecast innovations and spread to "observations.nc":
-  2018-04-27 22:12:23
+  2018-06-29 20:58:41
   moderating observations:
     observations substantially modified:
       SLA          0 (0.0%)
@@ -148,15 +149,15 @@
       total        0 (0.0%)
   writing modified obs errors to "observations.nc":
   calculating transforms:
-  2018-04-27 22:12:23
+  2018-06-29 20:58:41
     creating kd-trees for observations:
     calculating transforms for t-grid-full:
       creating empty file "X5.nc":
       distributing iterations:
         2 processes get 17 iterations each
       main cycle for t-grid-full (34 x 34 local analyses):
-        j = 0 (0: 0: 5.9%)
         j = 3 (1: 17: 5.9%)
+        j = 0 (0: 0: 5.9%)
         j = 9 (1: 18: 11.8%)
         j = 6 (0: 1: 11.8%)
         j = 15 (1: 19: 17.6%)
@@ -193,42 +194,42 @@
     writing stats to "enkf_diag.nc":
     summary stats on t-grid-full:
       # of local analyses = 1156
-      average # of local obs = 287.2
-      # of inversions in obs space = 197
-      # of inversions in ens space = 892
+      average # of local obs = 283.7
+      # of inversions in obs space = 201
+      # of inversions in ens space = 888
   writing point logs:
-    calculating transform for log point (30, 50): 513 obs
+    calculating transform for log point (30, 50): 509 obs
     writing the log for point (30, 50) on grid "t-grid-full":
   calculating analysed observations:
-  2018-04-27 22:12:28
+  2018-06-29 20:58:46
     sorting obs by ij:
-    2018-04-27 22:12:28
+    2018-06-29 20:58:46
     updating HE:
     distributing iterations:
-      2 processes get 1472 or 1471 iterations
-    2018-04-27 22:12:28
+      2 processes get 1460 or 1459 iterations
+    2018-06-29 20:58:46
   adding analysis innovations and spread to "observations.nc":
   printing observation statistics:
     region obs.type   # obs.  |for.inn.| |an.inn.|   for.inn.   an.inn.  for.spread  an.spread
     ------------------------------------------------------------------------------------------
     Global
-           SLA           387    0.073      0.032      0.025      0.002      0.033      0.022  
-             j1          151    0.086      0.027      0.049      0.005      0.041      0.025  
-             n1          224    0.063      0.034      0.005     -0.001      0.028      0.020  
-             N/A          12    0.103      0.030      0.103      0.030      0.036      0.022  
-           SST          2550    0.457      0.233     -0.255     -0.057      0.337      0.234  
-             AVHRR      1713    0.466      0.220     -0.223     -0.033      0.333      0.225  
-             WindSat     576    0.468      0.302     -0.342     -0.124      0.358      0.268  
-             N/A         261    0.379      0.173     -0.273     -0.067      0.324      0.222  
-           TEM             3    0.801      0.451      0.801      0.276      0.282      0.203  
-             ARGO          3    0.801      0.451      0.801      0.276      0.282      0.203  
+           SLA           384    0.072      0.032      0.027      0.003      0.033      0.022  
+             j1          162    0.083      0.030      0.045      0.006      0.039      0.024  
+             n1          211    0.062      0.035      0.009      0.000      0.028      0.020  
+             N/A          11    0.102      0.019      0.102      0.015      0.038      0.023  
+           SST          2529    0.462      0.234     -0.256     -0.058      0.342      0.237  
+             AVHRR      1692    0.472      0.220     -0.227     -0.037      0.338      0.228  
+             WindSat     593    0.461      0.303     -0.325     -0.113      0.358      0.267  
+             N/A         244    0.391      0.163     -0.288     -0.064      0.329      0.225  
+           TEM             3    0.801      0.439      0.801      0.283      0.282      0.202  
+             ARGO          3    0.801      0.439      0.801      0.283      0.282      0.202  
              0-50m         0     -nan       -nan       -nan       -nan       -nan       -nan  
-             50-500m       3    0.801      0.451      0.801      0.276      0.282      0.203  
+             50-500m       3    0.801      0.439      0.801      0.283      0.282      0.202  
              500-9999m     0     -nan       -nan       -nan       -nan       -nan       -nan  
-           SAL             3    0.111      0.085      0.072      0.018      0.032      0.024  
-             ARGO          3    0.111      0.085      0.072      0.018      0.032      0.024  
+           SAL             3    0.111      0.083      0.072      0.018      0.032      0.024  
+             ARGO          3    0.111      0.083      0.072      0.018      0.032      0.024  
              0-50m         0     -nan       -nan       -nan       -nan       -nan       -nan  
-             50-500m       3    0.111      0.085      0.072      0.018      0.032      0.024  
+             50-500m       3    0.111      0.083      0.072      0.018      0.032      0.024  
              500-9999m     0     -nan       -nan       -nan       -nan       -nan       -nan  
-  2018-04-27 22:12:28
+  2018-06-29 20:58:46
   finished

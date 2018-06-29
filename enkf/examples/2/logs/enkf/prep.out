@@ -1,7 +1,7 @@
-  running PREP for EnKF-C version 1.76.1:
+  running PREP for EnKF-C version 1.83.0:
     command = "./enkf_prep enkf.prm"
     dir = "/home/pavel/src/enkf-c/trunk/enkf/examples/2"
-  2018-04-27 22:10:20
+  2018-06-29 20:57:43
   reading prep specs from "enkf.prm":
     MODE = EnKF
     SCHEME = DEnKF
@@ -16,7 +16,8 @@
     INFLATION BASE = 1.1000
     INFLATION MODE = SPREAD LIMITED, MAX RATIO = 1.00
     KFACTOR = 999.0
-    LOCRAD = 200
+      LOCRAD  = 200
+      LOCWEIGHT =  1
     STRIDE = 3
     FIELDBUFFERSIZE = 4
     REGION Global: x = [0.0, 360.0], y = [-90.0, 90.0], z intervals = 
@@ -125,7 +126,7 @@
       ALLOWED MAX = 1
       ASYNCHRONOUS = no
       LOCRAD  = 200
-      WEIGHT =  1
+      LOCWEIGHT =  1
       RFACTOR = 2
     NAME = SST
     ISSURFACE = 1
@@ -136,7 +137,7 @@
       ALLOWED MAX = 42
       ASYNCHRONOUS = no
       LOCRAD  = 200
-      WEIGHT =  1
+      LOCWEIGHT =  1
       RFACTOR = 4
     NAME = TEM
     ISSURFACE = 0
@@ -147,7 +148,7 @@
       ALLOWED MAX = 42
       ASYNCHRONOUS = no
       LOCRAD  = 800
-      WEIGHT =  1
+      LOCWEIGHT =  1
       RFACTOR = 8
     NAME = SAL
     ISSURFACE = 0
@@ -158,7 +159,7 @@
       ALLOWED MAX = 39
       ASYNCHRONOUS = no
       LOCRAD  = 800
-      WEIGHT =  1
+      LOCWEIGHT =  1
       RFACTOR = 8
   reading observations:
     PRODUCT = RADS, TYPE = SLA, reader = standard2
@@ -337,19 +338,19 @@
     compacting obs:
   writing observations to "observations-orig.nc":
   superobing:
-    3865 superobservations
+    3813 superobservations
   writing superobservations to "observations.nc":
   reading super-observations from disk:
-    3865 observations
+    3813 observations
   checking for superobs on land:
     all good
   printing observation statistics:
     type    #used    #dropped #out_grd #out_obs #out_wnd #land    #shallow #badbatch#badvalue#superobs
     --------------------------------------------------------------------------------------------------
-    SLA     981      0        0        0        0        0        0        0        0        644     
-    SST     8249     0        0        0        0        0        0        0        0        3207    
+    SLA     981      0        0        0        0        0        0        0        0        645     
+    SST     8249     0        0        0        0        0        0        0        0        3154    
     TEM     184      104      104      0        0        0        0        0        0        7       
     SAL     184      104      104      0        0        0        0        0        0        7       
-    total   9598     208      208      0        0        0        0        0        0        3865    
-  2018-04-27 22:10:20
+    total   9598     208      208      0        0        0        0        0        0        3813    
+  2018-06-29 20:57:43
   finished

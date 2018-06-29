@@ -1,10 +1,10 @@
   MPI: initialised 2 process(es)
-  MPI: rank = 1, PID = 8268
-  MPI: rank = 0, PID = 8267
-  running CALC for EnKF-C version 1.76.1:
+  MPI: rank = 0, PID = 7669
+  MPI: rank = 1, PID = 7670
+  running CALC for EnKF-C version 1.83.0:
     command = "./enkf_calc --point-logs-only pointlogs.prm"
     dir = "/home/pavel/src/enkf-c/trunk/enkf/examples/1"
-  2018-04-27 21:47:21
+  2018-06-29 20:34:48
   reading system specs from "pointlogs.prm":
     MODE = EnKF
     SCHEME = DEnKF
@@ -19,7 +19,8 @@
     INFLATION BASE = 1.1000
     INFLATION MODE = SPREAD LIMITED, MAX RATIO = 1.00
     KFACTOR = 999.0
-    LOCRAD = 200
+      LOCRAD  = 200
+      LOCWEIGHT =  1
     STRIDE = 3
     FIELDBUFFERSIZE = 4
     REGION Global: x = [0.0, 360.0], y = [-90.0, 90.0], z intervals = 
@@ -54,7 +55,7 @@
       ALLOWED MAX = 1
       ASYNCHRONOUS = no
       LOCRAD  = 200
-      WEIGHT =  1
+      LOCWEIGHT =  1
       RFACTOR = 2
     NAME = SST
     ISSURFACE = 1
@@ -65,7 +66,7 @@
       ALLOWED MAX = 42
       ASYNCHRONOUS = no
       LOCRAD  = 200
-      WEIGHT =  1
+      LOCWEIGHT =  1
       RFACTOR = 4
     NAME = TEM
     ISSURFACE = 0
@@ -76,7 +77,7 @@
       ALLOWED MAX = 42
       ASYNCHRONOUS = no
       LOCRAD  = 800
-      WEIGHT =  1
+      LOCWEIGHT =  1
       RFACTOR = 8
     NAME = SAL
     ISSURFACE = 0
@@ -87,7 +88,7 @@
       ALLOWED MAX = 39
       ASYNCHRONOUS = no
       LOCRAD  = 800
-      WEIGHT =  1
+      LOCWEIGHT =  1
       RFACTOR = 8
     grid prm info:
       NAME = "t-grid"
@@ -129,9 +130,9 @@
           inflation = 1.100 1.00
       0 modeldata:
   reading observations from "observations.nc":
-    3865 observations
+    3813 observations
   calculating ensemble observations:
-  2018-04-27 21:47:21
+  2018-06-29 20:34:48
     ensemble size = 96
     distributing iterations:
       2 processes get 48 iterations each
@@ -140,16 +141,16 @@
     TEM ................................................
     SAL ................................................
   adding forecast innovations and spread to "observations.nc":
-  2018-04-27 21:47:21
+  2018-06-29 20:34:48
     Hx_f already added to "observations.nc" (skipping)
   moderating observations:
     already done
   writing point logs:
-    calculating transform for log point (30, 50): 538 obs
+    calculating transform for log point (30, 50): 533 obs
     writing the log for point (30, 50) on grid "t-grid":
-    calculating transform for log point (50, 50): 544 obs
+    calculating transform for log point (50, 50): 536 obs
     writing the log for point (50, 50) on grid "t-grid":
-    calculating transform for log point (70, 50): 466 obs
+    calculating transform for log point (70, 50): 460 obs
     writing the log for point (70, 50) on grid "t-grid":
-  2018-04-27 21:47:21
+  2018-06-29 20:34:48
   finished

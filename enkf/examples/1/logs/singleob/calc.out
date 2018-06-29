@@ -1,11 +1,11 @@
   MPI: initialised 2 process(es)
-  MPI: rank = 0, PID = 7385
-  running CALC for EnKF-C version 1.76.1:
+  MPI: rank = 0, PID = 7715
+  MPI: rank = 1, PID = 7716
+  running CALC for EnKF-C version 1.83.0:
     command = "./enkf_calc --single-observation-ijk 30 50 0 SST 0.5 0.5 singleob.prm"
     dir = "/home/pavel/src/enkf-c/trunk/enkf/examples/1"
-  2018-04-27 21:08:00
+  2018-06-29 20:35:44
   reading system specs from "singleob.prm":
-  MPI: rank = 1, PID = 7386
     MODE = EnOI
     MODEL PRM = "model.prm"
     GRID PRM = "grid.prm"
@@ -19,7 +19,8 @@
     INFLATION BASE = 1.0000
     INFLATION MODE = SPREAD LIMITED, MAX RATIO = 1.00
     KFACTOR = 999.0
-    LOCRAD = 500
+      LOCRAD  = 500
+      LOCWEIGHT =  1
     STRIDE = 3
     FIELDBUFFERSIZE = 4
     REGION Global: x = [0.0, 360.0], y = [-90.0, 90.0], z intervals = 
@@ -52,7 +53,7 @@
       ALLOWED MAX = 1
       ASYNCHRONOUS = no
       LOCRAD  = 500
-      WEIGHT =  1
+      LOCWEIGHT =  1
       RFACTOR = 1
     NAME = SST
     ISSURFACE = 1
@@ -63,7 +64,7 @@
       ALLOWED MAX = 42
       ASYNCHRONOUS = no
       LOCRAD  = 500
-      WEIGHT =  1
+      LOCWEIGHT =  1
       RFACTOR = 2
     NAME = TEM
     ISSURFACE = 0
@@ -74,7 +75,7 @@
       ALLOWED MAX = 42
       ASYNCHRONOUS = no
       LOCRAD  = 800
-      WEIGHT =  1
+      LOCWEIGHT =  1
       RFACTOR = 4
     NAME = SAL
     ISSURFACE = 0
@@ -85,7 +86,7 @@
       ALLOWED MAX = 39
       ASYNCHRONOUS = no
       LOCRAD  = 800
-      WEIGHT =  1
+      LOCWEIGHT =  1
       RFACTOR = 4
     grid prm info:
       NAME = "t-grid"
@@ -137,7 +138,7 @@
       ALLOWED MAX = 1
       ASYNCHRONOUS = no
       LOCRAD  = 500
-      WEIGHT =  1
+      LOCWEIGHT =  1
       RFACTOR = 1
     NAME = SST
     ISSURFACE = 1
@@ -148,7 +149,7 @@
       ALLOWED MAX = 42
       ASYNCHRONOUS = no
       LOCRAD  = 500
-      WEIGHT =  1
+      LOCWEIGHT =  1
       RFACTOR = 2
     NAME = TEM
     ISSURFACE = 0
@@ -159,7 +160,7 @@
       ALLOWED MAX = 42
       ASYNCHRONOUS = no
       LOCRAD  = 800
-      WEIGHT =  1
+      LOCWEIGHT =  1
       RFACTOR = 4
     NAME = SAL
     ISSURFACE = 0
@@ -170,7 +171,7 @@
       ALLOWED MAX = 39
       ASYNCHRONOUS = no
       LOCRAD  = 800
-      WEIGHT =  1
+      LOCWEIGHT =  1
       RFACTOR = 4
   assimilating single observation:
     type = SST
@@ -181,7 +182,7 @@
     i    = 30.000
     j    = 50.000
   calculating ensemble observations:
-  2018-04-27 21:08:00
+  2018-06-29 20:35:44
     ensemble size = 96
     distributing iterations:
       2 processes get 48 iterations each
@@ -190,7 +191,7 @@
     TEM 
     SAL 
   calculating transforms:
-  2018-04-27 21:08:00
+  2018-06-29 20:35:44
     creating kd-trees for observations:
     calculating transforms for t-grid:
     creating empty file "w.nc":
@@ -242,18 +243,18 @@
     calculating transform for log point (30, 50): 1 obs
     writing the log for point (30, 50) on grid "t-grid":
   calculating analysed observations:
-  2018-04-27 21:08:00
+  2018-06-29 20:35:44
     sorting obs by ij:
-    2018-04-27 21:08:00
+    2018-06-29 20:35:44
     updating Hx:
     distributing iterations:
       2 processes get 1 or 0 iterations
-    2018-04-27 21:08:00
+    2018-06-29 20:35:44
   printing observation statistics:
     region obs.type   # obs.  |for.inn.| |an.inn.|   for.inn.   an.inn.  for.spread  an.spread
     ------------------------------------------------------------------------------------------
     Global
            SST             1    0.500      0.271      0.500      0.271      0.655      0.655  
              Virtual       1    0.500      0.271      0.500      0.271      0.655      0.655  
-  2018-04-27 21:08:00
+  2018-06-29 20:35:44
   finished

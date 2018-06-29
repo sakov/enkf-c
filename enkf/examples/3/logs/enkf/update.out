@@ -1,10 +1,10 @@
   MPI: initialised 2 process(es)
-  MPI: rank = 1, PID = 9725
-  MPI: rank = 0, PID = 9724
-  running UPDATE for EnKF-C version 1.76.1:
+  MPI: rank = 1, PID = 8828
+  MPI: rank = 0, PID = 8827
+  running UPDATE for EnKF-C version 1.83.0:
     command = "./enkf_update --calculate-spread --write-inflation enkf.prm"
     dir = "/home/pavel/src/enkf-c/trunk/enkf/examples/3"
-  2018-04-27 22:12:28
+  2018-06-29 20:58:46
   reading system specs from "enkf.prm":
     MODE = EnKF
     SCHEME = DEnKF
@@ -19,7 +19,8 @@
     INFLATION BASE = 1.1000
     INFLATION MODE = SPREAD LIMITED, MAX RATIO = 1.00
     KFACTOR = 999.0
-    LOCRAD = 200
+      LOCRAD  = 200
+      LOCWEIGHT =  1
     STRIDE = 3
     FIELDBUFFERSIZE = 4
     REGION Global: x = [0.0, 360.0], y = [-90.0, 90.0], z intervals = 
@@ -83,23 +84,23 @@
     defining state variables in point logs:
     distributing iterations:
       2 processes get 48 iterations each
-    2018-04-27 22:12:28
+    2018-06-29 20:58:46
     allocating disk space for analysis:................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................
-    updating fields for t-grid-full:
-      2018-04-27 22:12:28
+    processing fields for t-grid-full:
+      2018-06-29 20:58:46
       9 fields
       distributing iterations:
         2 processes get 5 or 4 iterations
       eta_t    0   (0: 0: 20.0%)
       u        0   (1: 5: 25.0%)
-      u        1   (1: 6: 50.0%)
       temp     0   (0: 1: 40.0%)
-      v        0   (1: 7: 75.0%)
+      u        1   (1: 6: 50.0%)
       temp     1   (0: 2: 60.0%)
+      v        0   (1: 7: 75.0%)
       v        1   (1: 8: 100.0%)
       salt     0   (0: 3: 80.0%)
       salt     1   (0: 4: 100.0%)
-  2018-04-27 22:12:29
+  2018-06-29 20:58:47
   assembling analysis:
     distributing iterations:
       2 processes get 48 iterations each
@@ -108,26 +109,26 @@
     salt:................................................
     u:................................................
     v:................................................
-  2018-04-27 22:12:29
+  2018-06-29 20:58:47
   assembling spread:
     eta_t:.
     temp:..
     salt:..
     u:..
     v:..
-  2018-04-27 22:12:29
+  2018-06-29 20:58:47
   assembling inflation:
     eta_t:.
     temp:..
     salt:..
     u:..
     v:..
-  2018-04-27 22:12:29
+  2018-06-29 20:58:47
   assembling state variables in point logs:
     distributing iterations:
       2 processes get 1 or 0 iterations
     deleting tiles:
       distributing iterations:
         2 processes get 5 or 4 iterations
-  2018-04-27 22:12:29
+  2018-06-29 20:58:47
   finished

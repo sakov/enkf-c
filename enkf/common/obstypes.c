@@ -90,12 +90,12 @@ static void obstype_check(obstype* type)
     assert(type->name != NULL);
     if (type->issurface == -1)
         enkf_quit("\"%s\": ISSURFACE not specified\n", type->name);
+    if (type->nvar == 0)
+        enkf_quit("\"%s\": VAR not specified\n", type->name);
     if (type->rfactor <= 0)
         enkf_quit("\"%s\": RFACTOR = %f\n", type->name, type->rfactor);
     if (type->nlobsmax < 0)
         enkf_quit("\"%s\": NLOBSMAX = %d\n", type->name, type->nlobsmax);
-    if (type->nvar == 0)
-        enkf_quit("\"%s\": VAR not specified\n", type->name);
     if (type->hfunction == NULL)
         enkf_quit("\"%s\": HFUNCTION not specified\n", type->name);
 }
@@ -352,8 +352,10 @@ void obstypes_read(enkfprm* prm, char fname[], int* n, obstype** types)
         if (type->nlocrad == 0) {
             int j;
 
+#if defined(ENKF_CALC)
             if (prm->nlocrad == 0 && !enkf_fstatsonly)
                 enkf_quit("LOCRAD specified neither in %s or %s for obstype %s", prm->fname, fname, type->name);
+#endif
             type->nlocrad = prm->nlocrad;
             type->locrad = malloc(type->nlocrad * sizeof(double));
             type->locweight = malloc(type->nlocrad * sizeof(double));
