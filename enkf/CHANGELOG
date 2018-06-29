@@ -1,8 +1,3 @@
-v. 1.83.1
-   PS 29062018
-   Temporally reverted enkf_prep.c to v. 1.82.4 (revision 721), as it turns
-   out not to work as expected (forecast stats printed at the end of CALC
-   has deteriorated).
 v. 1.83.0
    PS 29062018
    -- Modified superob grid so that the centres of superob cells now coincide
