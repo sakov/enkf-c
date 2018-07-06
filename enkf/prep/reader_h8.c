@@ -68,7 +68,7 @@ void reader_h8_standard(char* fname, int fid, obsmeta* meta, grid* g, observatio
             enkf_quit("unknown PARAMETER \"%s\"\n", meta->pars[i].name);
     if (!is1d) {
         if (strlen(llfname) == 0)
-            enkf_quit("observation prm file: reader_h8: mandatory parameter \"LLFNAME\" not specified for a 2d input file\n");
+            enkf_quit("%s: reader_h8: mandatory parameter \"LLFNAME\" not specified for a 2d input file\n", meta->prmfname);
     }
 
     if (!is1d) {

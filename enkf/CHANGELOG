@@ -1,3 +1,7 @@
+v. 1.83.1
+   PS 05072018
+   -- Added QCFLAGNAME and QCFLAGVALS to reader_xyz_scattered() (for now).
+   -- Added prmfname to struct obsmeta for better error messaging in readers.
 v. 1.83.0
    PS 29062018
    -- Modified superob grid so that the centres of superob cells now coincide

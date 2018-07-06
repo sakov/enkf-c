@@ -67,7 +67,7 @@ void reader_rads_standard(char* fname, int fid, obsmeta* meta, grid* g, observat
     for (i = 0; i < meta->npars; ++i) {
         if (strcasecmp(meta->pars[i].name, "MINDEPTH") == 0) {
             if (!str2double(meta->pars[i].value, &mindepth))
-                enkf_quit("observation prm file: can not convert MINDEPTH = \"%s\" to double\n", meta->pars[i].value);
+                enkf_quit("%s: can not convert MINDEPTH = \"%s\" to double\n", meta->prmfname, meta->pars[i].value);
         } else if (strcasecmp(meta->pars[i].name, "ADD") == 0) {
             addname = meta->pars[i].value;
             enkf_printf("        ADDING \"%s\"\n", addname);
@@ -205,7 +205,7 @@ void reader_rads_standard2(char* fname, int fid, obsmeta* meta, grid* g, observa
     for (i = 0; i < meta->npars; ++i) {
         if (strcasecmp(meta->pars[i].name, "MINDEPTH") == 0) {
             if (!str2double(meta->pars[i].value, &mindepth))
-                enkf_quit("observation prm file: can not convert MINDEPTH = \"%s\" to double\n", meta->pars[i].value);
+                enkf_quit("%s: can not convert MINDEPTH = \"%s\" to double\n", meta->prmfname, meta->pars[i].value);
         } else if (strcasecmp(meta->pars[i].name, "ADD") == 0) {
             addname = meta->pars[i].value;
             enkf_printf("        ADDING \"%s\"\n", addname);

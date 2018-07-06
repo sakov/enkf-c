@@ -84,11 +84,11 @@ void reader_viirs_standard(char* fname, int fid, obsmeta* meta, grid* g, observa
     for (i = 0; i < meta->npars; ++i) {
         if (strcasecmp(meta->pars[i].name, "VARSHIFT") == 0) {
             if (!str2double(meta->pars[i].value, &varshift))
-                enkf_quit("observation prm file: can not convert VARSHIFT = \"%s\" to double\n", meta->pars[i].value);
+                enkf_quit("%s: can not convert VARSHIFT = \"%s\" to double\n", meta->prmfname, meta->pars[i].value);
             enkf_printf("        VARSHIFT = %s\n", meta->pars[i].value);
         } else if (strcasecmp(meta->pars[i].name, "MINDEPTH") == 0) {
             if (!str2double(meta->pars[i].value, &mindepth))
-                enkf_quit("observation prm file: can not convert MINDEPTH = \"%s\" to double\n", meta->pars[i].value);
+                enkf_quit("%s: can not convert MINDEPTH = \"%s\" to double\n", meta->prmfname, meta->pars[i].value);
             enkf_printf("        MINDEPTH = %f\n", mindepth);
         } else if (strcasecmp(meta->pars[i].name, "KIND") == 0) {
             int kind_value;
@@ -98,7 +98,7 @@ void reader_viirs_standard(char* fname, int fid, obsmeta* meta, grid* g, observa
             else if (strcasecmp(meta->pars[i].value, "windy"))
                 kind_value = KIND_WINDY;
             else if (!str2int(meta->pars[i].value, &kind_value))
-                enkf_quit("observation prm file: can not convert KIND = \"%s\" to int\n", meta->pars[i].value);
+                enkf_quit("%s: can not convert KIND = \"%s\" to int\n", meta->prmfname, meta->pars[i].value);
             if (kind_value < 0 || kind_value > KIND_ALL)
                 enkf_printf("KIND: value = %d is outside allowed range [0,%d]\n", kind_value, KIND_ALL);
             kind_mask = (unsigned char) kind_value;

@@ -67,7 +67,7 @@ void reader_amsre_standard(char* fname, int fid, obsmeta* meta, grid* g, observa
     for (i = 0; i < meta->npars; ++i) {
         if (strcasecmp(meta->pars[i].name, "MINWIND") == 0) {
             if (!str2double(meta->pars[i].value, &minwind))
-                enkf_quit("observation prm file: can not convert MINWIND = \"%s\" to double\n", meta->pars[i].value);
+                enkf_quit("%s: can not convert MINWIND = \"%s\" to double\n", meta->prmfname, meta->pars[i].value);
         } else if (strcasecmp(meta->pars[i].name, "ORBITS") == 0) {
             if (strcasecmp(meta->pars[i].value, "ALL") == 0)
                 orbits = ORBITS_ALL;
@@ -76,7 +76,7 @@ void reader_amsre_standard(char* fname, int fid, obsmeta* meta, grid* g, observa
             else if (strcasecmp(meta->pars[i].value, "ASCENDING") == 0)
                 orbits = ORBITS_ASCENDING;
             else
-                enkf_quit("observation prm file: parameter \"ORBITS\": value \"%s\" not understood: expected either \"ALL\", \"DESCENDING\", or \"ASCENDING\"\n", meta->pars[i].value);
+                enkf_quit("%s: parameter \"ORBITS\": value \"%s\" not understood: expected either \"ALL\", \"DESCENDING\", or \"ASCENDING\"\n", meta->prmfname, meta->pars[i].value);
         } else
             enkf_quit("unknown PARAMETER \"%s\"\n", meta->pars[i].name);
     }

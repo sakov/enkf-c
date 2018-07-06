@@ -74,6 +74,7 @@ void obsprm_read(char fname[], int* nmeta, obsmeta** meta)
             *meta = realloc(*meta, (*nmeta + 1) * sizeof(obsmeta));
             m = &(*meta)[*nmeta];
             obsmeta_init(m);
+            m->prmfname = strdup(fname);
             m->product = strdup(token);
             (*nmeta)++;
         } else if (strcasecmp(token, "READER") == 0) {
@@ -197,6 +198,7 @@ void obsprm_destroy(int n, obsmeta meta[])
     for (i = 0; i < n; ++i) {
         obsmeta* m = &meta[i];
 
+        free(m->prmfname);
         free(m->product);
         free(m->type);
         if (m->nfiles > 0) {
