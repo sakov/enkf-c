@@ -1,3 +1,7 @@
+v. 1.83.4
+   PS 06072018
+   -- Added QCFLAGNAME and QCFLAGVALS to reader_xy_scattered(),
+      reader_xy_gridded(), reader_xyz_gridded(), reader_xyh_gridded().
 v. 1.83.3
    PS 05072018
    -- Eliminated enquiry about dimension "nobs" in reader_xy_scattered().

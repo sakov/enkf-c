@@ -31,7 +31,9 @@
  *                  instrument string that will be used for calculating
  *                  instrument stats
  *
- * Revisions:  
+ * Revisions:   PS 6/7/2018
+ *                Added parameters QCFLAGNAME and QCFLAGVALS. The latter is
+ *                supposed to contain a list of allowed flag values.
  *
  *****************************************************************************/
 
@@ -61,14 +63,16 @@ void reader_xy_scattered(char* fname, int fid, obsmeta* meta, grid* g, observati
     char* stdname = NULL;
     char* estdname = NULL;
     char* timename = NULL;
+    char* qcflagname = NULL;
     int ncid;
     size_t nobs;
 
+    uint32_t qcflagvals = 0;
     double varshift = 0.0;
     double mindepth = 0.0;
     char instrument[MAXSTRLEN];
 
-    int varid_var = -1, varid_lon = -1, varid_lat = -1, varid_std = -1, varid_estd = -1, varid_time = -1;
+    int varid_var = -1, varid_lon = -1, varid_lat = -1, varid_std = -1, varid_estd = -1, varid_qcflag = -1, varid_time = -1;
     double* lon = NULL;
     double lon_add_offset, lon_scale_factor;
     double lon_fill_value = NAN;
@@ -85,6 +89,7 @@ void reader_xy_scattered(char* fname, int fid, obsmeta* meta, grid* g, observati
     double* estd = NULL;
     double estd_add_offset = NAN, estd_scale_factor = NAN;
     double estd_fill_value = NAN;
+    int32_t* qcflag = NULL;
     int have_time = 1;
     int singletime = -1;
     double* time = NULL;
@@ -108,7 +113,26 @@ void reader_xy_scattered(char* fname, int fid, obsmeta* meta, grid* g, observati
             stdname = meta->pars[i].value;
         else if (strcasecmp(meta->pars[i].name, "ESTDNAME") == 0)
             estdname = meta->pars[i].value;
-        else if (strcasecmp(meta->pars[i].name, "VARSHIFT") == 0) {
+        else if (strcasecmp(meta->pars[i].name, "QCFLAGNAME") == 0)
+            qcflagname = meta->pars[i].value;
+        else if (strcasecmp(meta->pars[i].name, "QCFLAGVALS") == 0) {
+            char seps[] = " ,";
+            char* line = meta->pars[i].value;
+            char* token;
+            int val;
+
+            qcflagvals = 0;
+            while ((token = strtok(line, seps)) != NULL) {
+                if (!str2int(token, &val))
+                    enkf_quit("%s: could not convert QCFLAGVALS entry \"%s\" to integer", meta->prmfname, token);
+                if (val < 0 || val > 31)
+                    enkf_quit("%s: QCFLAGVALS entry = %d (supposed to be in [0,31] interval", meta->prmfname, val);
+                qcflagvals |= 1 << val;
+                line = NULL;
+            }
+            if (qcflagvals == 0)
+                enkf_quit("%s: no valid flag entries found after QCFLAGVALS\n", meta->prmfname);
+        } else if (strcasecmp(meta->pars[i].name, "VARSHIFT") == 0) {
             if (!str2double(meta->pars[i].value, &varshift))
                 enkf_quit("%s: can not convert VARSHIFT = \"%s\" to double\n", meta->prmfname, meta->pars[i].value);
             enkf_printf("        VARSHIFT = %f\n", varshift);
@@ -228,6 +252,12 @@ void reader_xy_scattered(char* fname, int fid, obsmeta* meta, grid* g, observati
             ncw_get_att_double(ncid, varid_var, "error_std", &var_estd);
         }
 
+    if (qcflagname != NULL) {
+        ncw_inq_varid(ncid, qcflagname, &varid_qcflag);
+        qcflag = malloc(nobs * sizeof(int32_t));
+        ncw_get_var_int(ncid, varid_qcflag, qcflag);
+    }
+
     if (timename != NULL)
         ncw_inq_varid(ncid, timename, &varid_time);
     else if (ncw_var_exists(ncid, "time"))
@@ -282,7 +312,11 @@ void reader_xy_scattered(char* fname, int fid, obsmeta* meta, grid* g, observati
         observation* o;
         obstype* ot;
 
-        if (lon[i] == lon_fill_value || isnan(lon[i]) || lat[i] == lat_fill_value || isnan(lat[i]) || var[i] == var_fill_value || isnan(var[i]) || (std != NULL && (std[i] == std_fill_value || isnan(std[i]))) || (estd != NULL && (estd[i] == estd_fill_value || isnan(estd[i]))) || (have_time && !singletime && (time[i] == time_fill_value || isnan(time[i]))))
+        if (lon[i] == lon_fill_value || isnan(lon[i]) || lat[i] == lat_fill_value || isnan(lat[i]))
+            continue;
+        if (var[i] == var_fill_value || isnan(var[i]) || (std != NULL && (std[i] == std_fill_value || isnan(std[i]))) || (estd != NULL && (estd[i] == estd_fill_value || isnan(estd[i]))) || (have_time && !singletime && (time[i] == time_fill_value || isnan(time[i]))))
+            continue;
+        if (qcflag != NULL && !(qcflag[i] | qcflagvals))
             continue;
 
         nobs_read++;
@@ -335,4 +369,6 @@ void reader_xy_scattered(char* fname, int fid, obsmeta* meta, grid* g, observati
         free(estd);
     if (time != NULL)
         free(time);
+    if (qcflag != NULL)
+        free(qcflag);
 }

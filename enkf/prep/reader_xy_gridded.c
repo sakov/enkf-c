@@ -34,7 +34,9 @@
  *                  instrument string that will be used for calculating
  *                  instrument stats
  *
- * Revisions:  
+ * Revisions:   PS 6/7/2018
+ *                Added parameters QCFLAGNAME and QCFLAGVALS. The latter is
+ *                supposed to contain a list of allowed flag values.
  *
  *****************************************************************************/
 
@@ -68,10 +70,12 @@ void reader_xy_gridded(char* fname, int fid, obsmeta* meta, grid* g, observation
     char* stdname = NULL;
     char* estdname = NULL;
     char* timename = NULL;
+    char* qcflagname = NULL;
     int ncid;
     int ndim_var, ndim_xy;
     size_t dimlen_var[3], dimlen_xy[2];
 
+    uint32_t qcflagvals = 0;
     float varshift = 0.0;
     double mindepth = 0.0;
     char instrument[MAXSTRLEN];
@@ -81,7 +85,7 @@ void reader_xy_gridded(char* fname, int fid, obsmeta* meta, grid* g, observation
     int varid_lon = -1, varid_lat = -1;
     double* lon = NULL;
     double* lat = NULL;
-    int varid_var = -1, varid_npoints = -1, varid_std = -1, varid_estd = -1, varid_time = -1;
+    int varid_var = -1, varid_npoints = -1, varid_std = -1, varid_estd = -1, varid_qcflag = -1, varid_time = -1;
     float* var = NULL;
     float var_fill_value = NAN;
     float var_add_offset = NAN, var_scale_factor = NAN;
@@ -93,6 +97,7 @@ void reader_xy_gridded(char* fname, int fid, obsmeta* meta, grid* g, observation
     float* estd = NULL;
     float estd_add_offset = NAN, estd_scale_factor = NAN;
     float estd_fill_value = NAN;
+    int32_t* qcflag = NULL;
     int have_time = 1;
     int singletime = -1;
     float* time = NULL;
@@ -118,7 +123,26 @@ void reader_xy_gridded(char* fname, int fid, obsmeta* meta, grid* g, observation
             stdname = meta->pars[i].value;
         else if (strcasecmp(meta->pars[i].name, "ESTDNAME") == 0)
             estdname = meta->pars[i].value;
-        else if (strcasecmp(meta->pars[i].name, "VARSHIFT") == 0) {
+        else if (strcasecmp(meta->pars[i].name, "QCFLAGNAME") == 0)
+            qcflagname = meta->pars[i].value;
+        else if (strcasecmp(meta->pars[i].name, "QCFLAGVALS") == 0) {
+            char seps[] = " ,";
+            char* line = meta->pars[i].value;
+            char* token;
+            int val;
+
+            qcflagvals = 0;
+            while ((token = strtok(line, seps)) != NULL) {
+                if (!str2int(token, &val))
+                    enkf_quit("%s: could not convert QCFLAGVALS entry \"%s\" to integer", meta->prmfname, token);
+                if (val < 0 || val > 31)
+                    enkf_quit("%s: QCFLAGVALS entry = %d (supposed to be in [0,31] interval", meta->prmfname, val);
+                qcflagvals |= 1 << val;
+                line = NULL;
+            }
+            if (qcflagvals == 0)
+                enkf_quit("%s: no valid flag entries found after QCFLAGVALS\n", meta->prmfname);
+        } else if (strcasecmp(meta->pars[i].name, "VARSHIFT") == 0) {
             if (!str2float(meta->pars[i].value, &varshift))
                 enkf_quit("%s: can not convert VARSHIFT = \"%s\" to float\n", meta->prmfname, meta->pars[i].value);
             enkf_printf("        VARSHIFT = %s\n", meta->pars[i].value);
@@ -257,6 +281,12 @@ void reader_xy_gridded(char* fname, int fid, obsmeta* meta, grid* g, observation
             ncw_get_att_double(ncid, varid_var, "error_std", &var_estd);
         }
 
+    if (qcflagname != NULL) {
+        ncw_inq_varid(ncid, qcflagname, &varid_qcflag);
+        qcflag = malloc(n * sizeof(int32_t));
+        ncw_get_var_int(ncid, varid_qcflag, qcflag);
+    }
+
     if (timename != NULL)
         ncw_inq_varid(ncid, timename, &varid_time);
     else if (ncw_var_exists(ncid, "time"))
@@ -308,6 +338,8 @@ void reader_xy_gridded(char* fname, int fid, obsmeta* meta, grid* g, observation
         obstype* ot;
 
         if ((npoints != NULL && npoints[i] == 0) || var[i] == var_fill_value || isnan(var[i]) || (std != NULL && (std[i] == std_fill_value || isnan(std[i]))) || (estd != NULL && (estd[i] == estd_fill_value || isnan(estd[i]))) || (have_time && !singletime && (time[i] == time_fill_value || isnan(time[i]))))
+            continue;
+        if (qcflag != NULL && !(qcflag[i] | qcflagvals))
             continue;
 
         nobs_read++;
@@ -386,4 +418,6 @@ void reader_xy_gridded(char* fname, int fid, obsmeta* meta, grid* g, observation
         free(npoints);
     if (time != NULL)
         free(time);
+    if (qcflag != NULL)
+        free(qcflag);
 }
