@@ -1,3 +1,8 @@
+v. 1.83.2
+   PS 05072018
+   -- Eliminated enquiry about dimension "nobs" in reader_xyz_scattered() (for
+      now).
+   -- Modified obsprm_read() to enable reading multiple parameter values.
 v. 1.83.1
    PS 05072018
    -- Added QCFLAGNAME and QCFLAGVALS to reader_xyz_scattered() (for now).

@@ -137,9 +137,16 @@ void obsprm_read(char fname[], int* nmeta, obsmeta** meta)
             if ((token = strtok(NULL, seps)) == NULL)
                 enkf_quit("%s, l.%d: parameter name not specified (expected: PARAMETER <name> = <value>)", fname, line);
             now->name = strdup(token);
-            if ((token = strtok(NULL, seps)) == NULL)
+            token = strtok(NULL, seps);
+            if (token != NULL)
+                now->value = strdup(token);
+            else
                 enkf_quit("%s, l.%d: parameter value not specified (expected: PARAMETER <name> = <value>)", fname, line);
-            now->value = strdup(token);
+            while ((token = strtok(NULL, seps)) != NULL) {
+                now->value = realloc(now->value, strlen(token) + 2);
+                strcat(now->value, " ");
+                strcat(now->value, token);
+            }
             m->npars++;
         } else
             enkf_quit("%s, l.%d: unknown token \"%s\"", fname, line, token);
