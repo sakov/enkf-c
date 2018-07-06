@@ -62,8 +62,6 @@ void reader_xy_scattered(char* fname, int fid, obsmeta* meta, grid* g, observati
     char* estdname = NULL;
     char* timename = NULL;
     int ncid;
-    int ndim;
-    int dimid_nobs;
     size_t nobs;
 
     double varshift = 0.0;
@@ -131,12 +129,7 @@ void reader_xy_scattered(char* fname, int fid, obsmeta* meta, grid* g, observati
 
     ncw_open(fname, NC_NOWRITE, &ncid);
     ncw_inq_varid(ncid, varname, &varid_var);
-    ncw_inq_varndims(ncid, varid_var, &ndim);
-    if (ndim != 1)
-        enkf_quit("reader_xy_scattered(): %s: # dimensions = %d (must be 1)", fname, ndim);
-
-    ncw_inq_dimid(ncid, "nobs", &dimid_nobs);
-    ncw_inq_dimlen(ncid, dimid_nobs, &nobs);
+    ncw_inq_vardims(ncid, varid_var, 1, NULL, &nobs);
 
     if (lonname != NULL)
         ncw_inq_varid(ncid, lonname, &varid_lon);

@@ -1,3 +1,6 @@
+v. 1.83.3
+   PS 05072018
+   -- Eliminated enquiry about dimension "nobs" in reader_xy_scattered().
 v. 1.83.2
    PS 05072018
    -- Eliminated enquiry about dimension "nobs" in reader_xyz_scattered() (for
