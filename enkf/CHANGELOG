@@ -1,3 +1,7 @@
+v. 1.83.5
+   PS 10072018
+   -- A minor but potentially important fix in das_writevcorrs() (it ensures
+      that vcorr.nc is created only once).
 v. 1.83.4
    PS 06072018
    -- Added QCFLAGNAME and QCFLAGVALS to reader_xy_scattered(),

@@ -1573,7 +1573,7 @@ void das_writevcorrs(dasystem* das)
     /*
      * allocate disk space
      */
-    if (!file_exists(FNAME_VERTCORR)) {
+    if (rank == 0 && !file_exists(FNAME_VERTCORR)) {
         int ncid_dst;
         int mvid;
 
