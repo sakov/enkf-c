@@ -923,8 +923,9 @@ void writefield(char fname[], char varname[], int k, int ni, int nj, int nk, flo
     } else if (ndims == 2) {
         if (hasrecorddim)
             enkf_quit("%s: can not write a layer from a 1D variable \"%s\"", fname, varname);
-        if (k > 0)
-            enkf_quit("%s: can not write layer %d from a 2D variable \"%s\"", fname, k, varname);
+        /*
+         * ignore k
+         */
         start[0] = 0;
         start[1] = 0;
         count[0] = dimlen[0];
