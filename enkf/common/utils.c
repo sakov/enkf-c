@@ -589,7 +589,7 @@ int str2bool(char* token, int* value)
 }
 
 /** Allocates ni x nj matrix of something and fills it with zeros. An element
- * (i,j) will be accessed as [j][i]. For deallocation use free().
+ ** (i,j) will be accessed as [j][i]. For deallocation use free().
  *
  * @param nj Dimension 2
  * @param ni Dimension 1
@@ -828,8 +828,9 @@ void readfield(char fname[], char varname[], int k, int ni, int nj, int nk, floa
     } else if (ndims == 2) {
         if (hasrecorddim)
             enkf_quit("%s: can not read a layer from a 1D variable \"%s\"", fname, varname);
-        if (k > 0)
-            enkf_quit("%s: can not read layer %d from a 2D variable \"%s\"", fname, k, varname);
+        /*
+         * ignore k
+         */
         start[0] = 0;
         start[1] = 0;
         count[0] = dimlen[0];

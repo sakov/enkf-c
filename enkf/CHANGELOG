@@ -1,3 +1,6 @@
+v. 1.83.6
+   PS 16072018
+   -- A minor modification in readfield().
 v. 1.83.5
    PS 10072018
    -- A minor but potentially important fix in das_writevcorrs() (it ensures
