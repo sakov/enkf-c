@@ -1,3 +1,7 @@
+v. 1.83.8
+   PS 20072018
+   -- In reader_mmt_standard() -- allow to proceed if no flags TEMP_BLUELINK_QC
+      or PSAL_BLUELINK_QC are found.
 v. 1.83.7
    PS 16072018
    -- A minor modification in writefield().

@@ -66,7 +66,7 @@ void reader_mmt_standard(char* fname, int fid, obsmeta* meta, grid* g, observati
     double* lat;
     double** z;
     double** v;
-    int** qc;
+    int** qc = NULL;
     double missval;
     double validmin = DBL_MAX;
     double validmax = -DBL_MAX;
@@ -129,12 +129,22 @@ void reader_mmt_standard(char* fname, int fid, obsmeta* meta, grid* g, observati
     ncw_get_var_double(ncid, varid, v[0]);
     ncw_get_att_double(ncid, varid, "_FillValue", &missval);
 
-    if (strncmp(meta->type, "TEM", 3) == 0)
-        ncw_inq_varid(ncid, "TEMP_BLUELINK_QC", &varid);
-    else if (strncmp(meta->type, "SAL", 3) == 0)
-        ncw_inq_varid(ncid, "PSAL_BLUELINK_QC", &varid);
-    qc = alloc2d(nprof, nz, sizeof(int));
-    ncw_get_var_int(ncid, varid, qc[0]);
+    varid = -1;
+    if (strncmp(meta->type, "TEM", 3) == 0) {
+        if (ncw_var_exists(ncid, "TEMP_BLUELINK_QC"))
+            ncw_inq_varid(ncid, "TEMP_BLUELINK_QC", &varid);
+        else
+            enkf_printf("        no \"TEMP_BLUELINK_QC\" flag\n");
+    } else if (strncmp(meta->type, "SAL", 3) == 0) {
+        if (ncw_var_exists(ncid, "PSAL_BLUELINK_QC"))
+            ncw_inq_varid(ncid, "PSAL_BLUELINK_QC", &varid);
+        else
+            enkf_printf("        no \"PSAL_BLUELINK_QC\" flag\n");
+    }
+    if (varid >= 0) {
+        qc = alloc2d(nprof, nz, sizeof(int));
+        ncw_get_var_int(ncid, varid, qc[0]);
+    }
 
     ncw_inq_varid(ncid, "WMO_INST_TYPE", &varid);
     type = malloc(nprof * WMO_INSTSIZE);
@@ -178,7 +188,7 @@ void reader_mmt_standard(char* fname, int fid, obsmeta* meta, grid* g, observati
                 continue;
             if (z[p][i] < 0.0)
                 continue;
-            if (qc[p][i] != 0)
+            if (qc != NULL && qc[p][i] != 0)
                 continue;
 
             obs_checkalloc(obs);
@@ -241,7 +251,8 @@ void reader_mmt_standard(char* fname, int fid, obsmeta* meta, grid* g, observati
     free(lat);
     free(v);
     free(z);
-    free(qc);
+    if (qc != NULL)
+        free(qc);
     free(type);
     if (st_exclude != NULL)
         st_destroy(st_exclude);
