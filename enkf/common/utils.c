@@ -846,6 +846,51 @@ void readfield(char fname[], char varname[], int k, int ni, int nj, int nk, floa
     for (i = 0; i < ndims; ++i)
         n *= count[i];
 
+    if (ncw_att_exists(ncid, varid, "valid_range")) {
+        nc_type xtype;
+        size_t len;
+
+        ncw_inq_att(ncid, varid, "valid_range", &xtype, &len);
+        assert(len == 2);
+        if (xtype == NC_SHORT) {
+            int valid_range[2];
+            int fill_value = SHRT_MIN;
+            short* vv = malloc(n * sizeof(short));
+
+            ncw_get_vara_short(ncid, varid, start, count, vv);
+
+            if (ncw_att_exists(ncid, varid, "_FillValue"))
+                ncw_get_att_int(ncid, varid, "_FillValue", &fill_value);
+            else if (ncw_att_exists(ncid, varid, "missing_value"))
+                ncw_get_att_int(ncid, varid, "missing_value", &fill_value);
+
+            ncw_get_att_int(ncid, varid, "valid_range", valid_range);
+            for (i = 0; i < n; ++i)
+                if (vv[i] == fill_value || vv[i] < valid_range[0] || vv[i] > valid_range[1])
+                    v[i] = NAN;
+            free(vv);
+        } else if (xtype == NC_FLOAT || xtype == NC_DOUBLE) {
+            float valid_range[2];
+            float fill_value = -FLT_MAX;
+
+            /*
+             * (we assume that double numbers outside of [-FLT_MAX, FLT_MAX]
+             * interval are converted to either -FLT_MAX or FLT_MAX)
+             */
+
+            if (ncw_att_exists(ncid, varid, "_FillValue"))
+                ncw_get_att_float(ncid, varid, "_FillValue", &fill_value);
+            else if (ncw_att_exists(ncid, varid, "missing_value"))
+                ncw_get_att_float(ncid, varid, "missing_value", &fill_value);
+
+            ncw_get_att_float(ncid, varid, "valid_range", valid_range);
+            for (i = 0; i < n; ++i)
+                if (v[i] == fill_value || v[i] < valid_range[0] || v[i] > valid_range[1])
+                    v[i] = NAN;
+        } else
+            enkf_quit("%s: %s: can not properly read NetCDF types other than NC_SHORT, NC_FLOAT, or NC_DOUBLE yet", fname, varname);
+    }
+
     if (ncw_att_exists(ncid, varid, "scale_factor")) {
         float scale_factor;
 
@@ -963,14 +1008,16 @@ void writefield(char fname[], char varname[], int k, int ni, int nj, int nk, flo
         ncw_inq_att(ncid, varid, "valid_range", &xtype, &len);
         if (xtype == NC_SHORT) {
             int valid_range[2];
-            int missing_value = SHRT_MIN;
+            int fill_value = SHRT_MIN;
 
-            if (ncw_att_exists(ncid, varid, "missing_value"))
-                ncw_get_att_int(ncid, varid, "missing_value", &missing_value);
+            if (ncw_att_exists(ncid, varid, "_FillValue"))
+                ncw_get_att_int(ncid, varid, "_FillValue", &fill_value);
+            else if (ncw_att_exists(ncid, varid, "missing_value"))
+                ncw_get_att_int(ncid, varid, "missing_value", &fill_value);
 
             ncw_get_att_int(ncid, varid, "valid_range", valid_range);
             for (i = 0; i < n; ++i) {
-                if (v[i] == missing_value)
+                if (v[i] == fill_value)
                     continue;
                 if ((int) v[i] < valid_range[0])
                     v[i] = (float) valid_range[0];
@@ -979,14 +1026,16 @@ void writefield(char fname[], char varname[], int k, int ni, int nj, int nk, flo
             }
         } else if (xtype == NC_FLOAT) {
             float valid_range[2];
-            float missing_value = -FLT_MAX;
+            float fill_value = -FLT_MAX;
 
-            if (ncw_att_exists(ncid, varid, "missing_value"))
-                ncw_get_att_float(ncid, varid, "missing_value", &missing_value);
+            if (ncw_att_exists(ncid, varid, "_FillValue"))
+                ncw_get_att_float(ncid, varid, "_FillValue", &fill_value);
+            else if (ncw_att_exists(ncid, varid, "missing_value"))
+                ncw_get_att_float(ncid, varid, "missing_value", &fill_value);
 
             ncw_get_att_float(ncid, varid, "valid_range", valid_range);
             for (i = 0; i < n; ++i) {
-                if (v[i] == missing_value)
+                if (v[i] == fill_value)
                     continue;
                 if (v[i] < valid_range[0])
                     v[i] = valid_range[0];
@@ -994,7 +1043,7 @@ void writefield(char fname[], char varname[], int k, int ni, int nj, int nk, flo
                     v[i] = valid_range[1];
             }
         } else
-            enkf_quit("%s: %s: output for types other than NC_SHORT and NC_FLOAT are not handled yet", fname, varname);
+            enkf_quit("%s: %s: output for types other than NC_SHORT and NC_FLOAT is not handled", fname, varname);
     }
 
     ncw_put_vara_float(ncid, varid, start, count, v);
@@ -1086,14 +1135,16 @@ void writerow(char fname[], char varname[], int k, int j, float* v)
         ncw_inq_att(ncid, varid, "valid_range", &xtype, &len);
         if (xtype == NC_SHORT) {
             int valid_range[2];
-            int missing_value = SHRT_MIN;
+            int fill_value = SHRT_MIN;
 
-            if (ncw_att_exists(ncid, varid, "missing_value"))
-                ncw_get_att_int(ncid, varid, "missing_value", &missing_value);
+            if (ncw_att_exists(ncid, varid, "_FillValue"))
+                ncw_get_att_int(ncid, varid, "_FillValue", &fill_value);
+            else if (ncw_att_exists(ncid, varid, "missing_value"))
+                ncw_get_att_int(ncid, varid, "missing_value", &fill_value);
 
             ncw_get_att_int(ncid, varid, "valid_range", valid_range);
             for (i = 0; i < n; ++i) {
-                if (v[i] == missing_value)
+                if (v[i] == fill_value)
                     continue;
                 if ((int) v[i] < valid_range[0])
                     v[i] = (float) valid_range[0];
@@ -1102,14 +1153,16 @@ void writerow(char fname[], char varname[], int k, int j, float* v)
             }
         } else if (xtype == NC_FLOAT) {
             float valid_range[2];
-            float missing_value = -FLT_MAX;
+            float fill_value = -FLT_MAX;
 
-            if (ncw_att_exists(ncid, varid, "missing_value"))
-                ncw_get_att_float(ncid, varid, "missing_value", &missing_value);
+            if (ncw_att_exists(ncid, varid, "_FillValue"))
+                ncw_get_att_float(ncid, varid, "_FillValue", &fill_value);
+            else if (ncw_att_exists(ncid, varid, "missing_value"))
+                ncw_get_att_float(ncid, varid, "missing_value", &fill_value);
 
             ncw_get_att_float(ncid, varid, "valid_range", valid_range);
             for (i = 0; i < n; ++i) {
-                if (v[i] == missing_value)
+                if (v[i] == fill_value)
                     continue;
                 if (v[i] < valid_range[0])
                     v[i] = valid_range[0];
@@ -1171,6 +1224,51 @@ void read3dfield(char* fname, char* varname, int ni, int nj, int nk, float* v)
     n = 1;
     for (i = 0; i < ndims; ++i)
         n *= count[i];
+
+    if (ncw_att_exists(ncid, varid, "valid_range")) {
+        nc_type xtype;
+        size_t len;
+
+        ncw_inq_att(ncid, varid, "valid_range", &xtype, &len);
+        assert(len == 2);
+        if (xtype == NC_SHORT) {
+            int valid_range[2];
+            int fill_value = SHRT_MIN;
+            short* vv = malloc(n * sizeof(short));
+
+            ncw_get_vara_short(ncid, varid, start, count, vv);
+
+            if (ncw_att_exists(ncid, varid, "_FillValue"))
+                ncw_get_att_int(ncid, varid, "_FillValue", &fill_value);
+            else if (ncw_att_exists(ncid, varid, "missing_value"))
+                ncw_get_att_int(ncid, varid, "missing_value", &fill_value);
+
+            ncw_get_att_int(ncid, varid, "valid_range", valid_range);
+            for (i = 0; i < n; ++i)
+                if (vv[i] == fill_value || vv[i] < valid_range[0] || vv[i] > valid_range[1])
+                    v[i] = NAN;
+            free(vv);
+        } else if (xtype == NC_FLOAT || xtype == NC_DOUBLE) {
+            float valid_range[2];
+            float fill_value = -FLT_MAX;
+
+            /*
+             * (we assume that double numbers outside of [-FLT_MAX, FLT_MAX]
+             * interval are converted to either -FLT_MAX or FLT_MAX)
+             */
+
+            if (ncw_att_exists(ncid, varid, "_FillValue"))
+                ncw_get_att_float(ncid, varid, "_FillValue", &fill_value);
+            else if (ncw_att_exists(ncid, varid, "missing_value"))
+                ncw_get_att_float(ncid, varid, "missing_value", &fill_value);
+
+            ncw_get_att_float(ncid, varid, "valid_range", valid_range);
+            for (i = 0; i < n; ++i)
+                if (v[i] == fill_value || v[i] < valid_range[0] || v[i] > valid_range[1])
+                    v[i] = NAN;
+        } else
+            enkf_quit("%s: %s: can not properly read NetCDF types other than NC_SHORT, NC_FLOAT, or NC_DOUBLE yet", fname, varname);
+    }
 
     if (ncw_att_exists(ncid, varid, "scale_factor")) {
         float scale_factor;
