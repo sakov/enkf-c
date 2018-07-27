@@ -475,7 +475,7 @@ void obs_read(observations* obs, char fname[])
     double* date;
     int* status;
     int* aux;
-    int nobstypes, nproducts, ninstruments, ndatafiles;
+    int natts, nproducts, ninstruments, ndatafiles;
     int i;
 
     ncw_open(fname, NC_NOWRITE, &ncid);
@@ -526,12 +526,20 @@ void obs_read(observations* obs, char fname[])
     /*
      * type 
      */
-    ncw_inq_varnatts(ncid, varid_type, &nobstypes);
-    for (i = 0; i < nobstypes; ++i) {
+    ncw_inq_varnatts(ncid, varid_type, &natts);
+    for (i = 0; i < natts; ++i) {
         char attname[NC_MAX_NAME];
+        int typeid;
 
         ncw_inq_attname(ncid, varid_type, i, attname);
-        assert(obstype_getid(obs->nobstypes, obs->obstypes, attname, 1) >= 0);
+        typeid = obstype_getid(obs->nobstypes, obs->obstypes, attname, 0);
+        if (typeid >= 0) {
+            int typeid_read;
+
+            ncw_check_attlen(ncid, varid_type, attname, 1);
+            ncw_get_att_int(ncid, varid_type, attname, &typeid_read);
+            assert(typeid == typeid_read);
+        }
     }
 
     /*
@@ -714,23 +722,42 @@ void obs_write(observations* obs, char fname[])
 
     ncw_def_dim(ncid, "nobs", nobs, dimid_nobs);
     ncw_def_var(ncid, "id", NC_INT, 1, dimid_nobs, &varid_id);
+    ncw_put_att_text(ncid, varid_id, "long_name", "observation ID");
     ncw_def_var(ncid, "id_orig", NC_INT, 1, dimid_nobs, &varid_idorig);
+    ncw_put_att_text(ncid, varid_idorig, "long_name", "original observation ID");
+    ncw_put_att_text(ncid, varid_idorig, "description", "for primary observations - the serial number of the primary observation during the reading of data files; for superobs - the original ID of the very first observation collated into this observation");
     ncw_def_var(ncid, "type", NC_SHORT, 1, dimid_nobs, &varid_type);
+    ncw_put_att_text(ncid, varid_type, "long_name", "observation type ID");
     ncw_def_var(ncid, "product", NC_SHORT, 1, dimid_nobs, &varid_product);
+    ncw_put_att_text(ncid, varid_product, "long_name", "observation product ID");
     ncw_def_var(ncid, "instrument", NC_SHORT, 1, dimid_nobs, &varid_instrument);
+    ncw_put_att_text(ncid, varid_instrument, "long_name", "observation instrument ID");
     ncw_def_var(ncid, "fid", NC_SHORT, 1, dimid_nobs, &varid_fid);
+    ncw_put_att_text(ncid, varid_fid, "long_name", "observation data file ID");
     ncw_def_var(ncid, "batch", NC_SHORT, 1, dimid_nobs, &varid_batch);
+    ncw_put_att_text(ncid, varid_batch, "long_name", "observation batch ID");
     ncw_def_var(ncid, "value", NC_FLOAT, 1, dimid_nobs, &varid_value);
+    ncw_put_att_text(ncid, varid_value, "long_name", "observation value");
     ncw_def_var(ncid, "std", NC_FLOAT, 1, dimid_nobs, &varid_std);
+    ncw_put_att_text(ncid, varid_std, "long_name", "standard deviation of observation error used in DA");
     ncw_def_var(ncid, "lon", NC_FLOAT, 1, dimid_nobs, &varid_lon);
+    ncw_put_att_text(ncid, varid_lon, "long_name", "observation longitude");
     ncw_def_var(ncid, "lat", NC_FLOAT, 1, dimid_nobs, &varid_lat);
+    ncw_put_att_text(ncid, varid_lat, "long_name", "observation latitude");
     ncw_def_var(ncid, "depth", NC_FLOAT, 1, dimid_nobs, &varid_depth);
+    ncw_put_att_text(ncid, varid_depth, "long_name", "observation depth/height");
     ncw_def_var(ncid, "model_depth", NC_FLOAT, 1, dimid_nobs, &varid_mdepth);
+    ncw_put_att_text(ncid, varid_mdepth, "long_name", "model bottom depth at the observation location");
     ncw_def_var(ncid, "fi", NC_FLOAT, 1, dimid_nobs, &varid_fi);
+    ncw_put_att_text(ncid, varid_fi, "long_name", "fractional grid index i of the observation");
     ncw_def_var(ncid, "fj", NC_FLOAT, 1, dimid_nobs, &varid_fj);
+    ncw_put_att_text(ncid, varid_fj, "long_name", "fractional grid index j of the observation");
     ncw_def_var(ncid, "fk", NC_FLOAT, 1, dimid_nobs, &varid_fk);
+    ncw_put_att_text(ncid, varid_fk, "long_name", "fractional grid index k of the observation");
     ncw_def_var(ncid, "date", NC_FLOAT, 1, dimid_nobs, &varid_date);
+    ncw_put_att_text(ncid, varid_date, "long_name", "observation time");
     ncw_def_var(ncid, "status", NC_BYTE, 1, dimid_nobs, &varid_status);
+    ncw_put_att_text(ncid, varid_status, "long_name", "observation status");
     i = STATUS_OK;
     ncw_put_att_int(ncid, varid_status, "STATUS_OK", 1, &i);
     i = STATUS_OUTSIDEGRID;
@@ -748,6 +775,8 @@ void obs_write(observations* obs, char fname[])
     i = STATUS_OUTSIDEOBSWINDOW;
     ncw_put_att_int(ncid, varid_status, "STATUS_OUTSIDEOBSWINDOW", 1, &i);
     ncw_def_var(ncid, "aux", NC_INT, 1, dimid_nobs, &varid_aux);
+    ncw_put_att_text(ncid, varid_aux, "long_name", "auxiliary information");
+    ncw_put_att_text(ncid, varid_aux, "description", "for primary observations - the ID of the superobservation it is collated into; for superobservations - the number of primary observations collated");
     snprintf(tunits, MAXSTRLEN, "days from %s", obs->datestr);
     ncw_put_att_text(ncid, varid_date, "units", tunits);
 

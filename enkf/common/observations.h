@@ -34,9 +34,9 @@ typedef struct {
      */
     int id;
     /*
-     * for primary observations - the number of the primary observation during
-     * the reading of data files; for superobs - the original ID of the very
-     * first observation merged into this superob
+     * for primary observations - the serial number of the primary observation
+     * during the reading of data files; for superobs - the original ID of the
+     * very first observation collated into this observation
      */
     int id_orig;
     short int type;

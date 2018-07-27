@@ -510,7 +510,9 @@ void das_addforecast(dasystem* das, char fname[])
     assert(nobs == das->obs->nobs);
     ncw_redef(ncid);
     ncw_def_var(ncid, "Hx_f", NC_FLOAT, 1, dimid_nobs, &varid_Hx);
+    ncw_put_att_text(ncid, varid_Hx, "long_name", "forecast observation (forecast observation ensemble mean)");
     ncw_def_var(ncid, "std_f", NC_FLOAT, 1, dimid_nobs, &varid_spread);
+    ncw_put_att_text(ncid, varid_spread, "long_name", "standard deviation of the forecast observation ensemble");
     ncw_enddef(ncid);
 
     Hx = calloc(nobs, sizeof(double));
@@ -585,7 +587,7 @@ void das_addmodifiederrors(dasystem* das, char fname[])
     int ncid;
     int dimid_nobs[1];
     size_t nobs;
-    int varid_std;
+    int varid_std, varid_stdorig;
     double* std;
     int i;
     double da_julday = NAN;
@@ -604,7 +606,11 @@ void das_addmodifiederrors(dasystem* das, char fname[])
 
     ncw_redef(ncid);
     ncw_rename_var(ncid, "std", "std_orig");
+    ncw_inq_varid(ncid, "std_orig", &varid_stdorig);
+    ncw_del_att(ncid, varid_stdorig, "long_name");
+    ncw_put_att_text(ncid, varid_stdorig, "long_name", "standard deviation of observation error after superobing (before applying KF-QC)");
     ncw_def_var(ncid, "std", NC_FLOAT, 1, dimid_nobs, &varid_std);
+    ncw_put_att_text(ncid, varid_std, "long_name", "standard deviation of observation error used in DA");
     ncw_enddef(ncid);
 
     std = malloc(nobs * sizeof(double));
@@ -1523,7 +1529,9 @@ void das_addanalysis(dasystem* das, char fname[])
     } else {
         ncw_redef(ncid);
         ncw_def_var(ncid, "Hx_a", NC_FLOAT, 1, dimid_nobs, &varid_Hx);
+        ncw_put_att_text(ncid, varid_Hx, "long_name", "analysis observation (analysis observation ensemble mean)");
         ncw_def_var(ncid, "std_a", NC_FLOAT, 1, dimid_nobs, &varid_spread);
+        ncw_put_att_text(ncid, varid_spread, "long_name", "standard deviation of the analysis observation ensemble");
         ncw_enddef(ncid);
     }
 

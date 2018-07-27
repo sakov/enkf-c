@@ -1,3 +1,7 @@
+v. 1.83.10
+   PS 27072018
+   -- Added "long_name" attribute to variables in observations.nc and
+      observations-orig.nc.
 v. 1.83.9
    PS 23072018
    -- Modified readfield(), writefield(), read3dfield(), writerow() for
