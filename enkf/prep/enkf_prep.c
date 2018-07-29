@@ -313,11 +313,18 @@ int main(int argc, char* argv[])
         obs_writeaux(obs, FNAME_OBS);
 
     if (enkf_considersubgridvar) {
-        enkf_printf("  # obs with increased error due to subgrid variability:\n");
-        for (i = 0; i < obs->nobstypes; ++i) {
-            obstype* ot = &obs->obstypes[i];
+        int firsttime = 1;
 
-            enkf_printf("    %s %d (%.2f%%)\n", ot->name, ot->nsubgrid, (double) ot->nsubgrid / (double) ot->ngood * 100.0);
+        for (i = 0; i < sobs->nobstypes; ++i) {
+            obstype* ot = &sobs->obstypes[i];
+
+            if (ot->nsubgrid > 0) {
+                if (firsttime) {
+                    enkf_printf("  # obs with increased error due to subgrid variability:\n");
+                    firsttime = 0;
+                }
+                enkf_printf("    %s %d (%.2f%%)\n", ot->name, ot->nsubgrid, (double) ot->nsubgrid / (double) ot->ngood * 100.0);
+            }
         }
     }
 

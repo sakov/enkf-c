@@ -75,6 +75,7 @@ void obs_addtype(observations* obs, obstype* src)
         ot->locweight[i] = src->locweight[i];
     }
     ot->rfactor = src->rfactor;
+    ot->nsubgrid = src->nsubgrid;
     ot->nobs = -1;
     ot->ngood = -1;
     ot->noutside_grid = -1;
@@ -475,7 +476,7 @@ void obs_read(observations* obs, char fname[])
     double* date;
     int* status;
     int* aux;
-    int natts, nproducts, ninstruments, ndatafiles;
+    int natts;
     int i;
 
     ncw_open(fname, NC_NOWRITE, &ncid);
@@ -545,38 +546,49 @@ void obs_read(observations* obs, char fname[])
     /*
      * product 
      */
-    ncw_inq_varnatts(ncid, varid_product, &nproducts);
-    for (i = 0; i < nproducts; ++i) {
-        char attname[NC_MAX_NAME];
+    ncw_inq_varnatts(ncid, varid_product, &natts);
+    for (i = 0; i < natts; ++i) {
+        char name[NC_MAX_NAME];
+        nc_type type;
+        size_t len;
 
-        ncw_inq_attname(ncid, varid_product, i, attname);
-        st_add_ifabsent(obs->products, attname, i);
+        ncw_inq_attname(ncid, varid_product, i, name);
+        ncw_inq_att(ncid, varid_product, name, &type, &len);
+        if (type == NC_INT && len == 1)
+            st_add_ifabsent(obs->products, name, i);
     }
 
     /*
      * instrument 
      */
-    ncw_inq_varnatts(ncid, varid_instrument, &ninstruments);
-    for (i = 0; i < ninstruments; ++i) {
-        char attname[NC_MAX_NAME];
+    ncw_inq_varnatts(ncid, varid_instrument, &natts);
+    for (i = 0; i < natts; ++i) {
+        char name[NC_MAX_NAME];
+        nc_type type;
+        size_t len;
 
-        ncw_inq_attname(ncid, varid_instrument, i, attname);
-        st_add_ifabsent(obs->instruments, attname, i);
+        ncw_inq_attname(ncid, varid_instrument, i, name);
+        ncw_inq_att(ncid, varid_instrument, name, &type, &len);
+        if (type == NC_INT && len == 1)
+            st_add_ifabsent(obs->instruments, name, i);
     }
 
     /*
      * datafiles
      */
-    ncw_inq_varnatts(ncid, varid_fid, &ndatafiles);
-    for (i = 0; i < ndatafiles; ++i) {
-        char attname[NC_MAX_NAME];
+    ncw_inq_varnatts(ncid, varid_fid, &natts);
+    for (i = 0; i < natts; ++i) {
+        char name[NC_MAX_NAME];
         char attstr[MAXSTRLEN];
         size_t len;
+        int dummy;
 
-        ncw_inq_attname(ncid, varid_fid, i, attname);
-        ncw_inq_attlen(ncid, varid_fid, attname, &len);
+        ncw_inq_attname(ncid, varid_fid, i, name);
+        if (!str2int(name, &dummy))
+            continue;
+        ncw_inq_attlen(ncid, varid_fid, name, &len);
         assert(len < MAXSTRLEN);
-        ncw_get_att_text(ncid, varid_fid, attname, attstr);
+        ncw_get_att_text(ncid, varid_fid, name, attstr);
         attstr[len] = 0;
         st_add_ifabsent(obs->datafiles, attstr, i);
     }
