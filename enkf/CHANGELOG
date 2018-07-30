@@ -1,3 +1,6 @@
+v. 1.83.12
+   PS 30072018
+   -- Another correction to obs_read().
 v. 1.83.11
    PS 30072018
    -- Corrected obs_read() to take care of the recently added attribute

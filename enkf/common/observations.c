@@ -581,16 +581,16 @@ void obs_read(observations* obs, char fname[])
         char name[NC_MAX_NAME];
         char attstr[MAXSTRLEN];
         size_t len;
-        int dummy;
+        int id;
 
         ncw_inq_attname(ncid, varid_fid, i, name);
-        if (!str2int(name, &dummy))
+        if (!str2int(name, &id))
             continue;
         ncw_inq_attlen(ncid, varid_fid, name, &len);
         assert(len < MAXSTRLEN);
         ncw_get_att_text(ncid, varid_fid, name, attstr);
         attstr[len] = 0;
-        st_add_ifabsent(obs->datafiles, attstr, i);
+        st_add_ifabsent(obs->datafiles, attstr, id);
     }
 
     if (nobs == 0) {
