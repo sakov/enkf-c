@@ -135,8 +135,6 @@ void reader_xy_gridded(char* fname, int fid, obsmeta* meta, grid* g, observation
             while ((token = strtok(line, seps)) != NULL) {
                 if (!str2int(token, &val))
                     enkf_quit("%s: could not convert QCFLAGVALS entry \"%s\" to integer", meta->prmfname, token);
-                if (val < 0 || val > 31)
-                    enkf_quit("%s: QCFLAGVALS entry = %d (supposed to be in [0,31] interval", meta->prmfname, val);
                 qcflagvals |= 1 << val;
                 line = NULL;
             }
