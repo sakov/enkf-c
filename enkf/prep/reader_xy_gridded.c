@@ -356,8 +356,10 @@ void reader_xy_gridded(char* fname, int fid, obsmeta* meta, grid* g, observation
             o->value = (double) (var[i] * var_scale_factor + var_add_offset + varshift);
         else
             o->value = (double) (var[i] + varshift);
-        if (estd == NULL)
-            o->std = var_estd;
+        if (estd == NULL && std == NULL){
+            if (!isnan(var_estd))
+                o->std = var_estd;
+        }
         else {
             if (std == NULL)
                 o->std = 0.0;
