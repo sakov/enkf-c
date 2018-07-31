@@ -1544,6 +1544,13 @@ float** grid_getdepth(grid* g)
 
 /**
  */
+float** grid_getangle(grid* g)
+{
+    return g->angle;
+}
+
+/**
+ */
 int** grid_getnumlevels(grid* g)
 {
     return g->numlevels;
