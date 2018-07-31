@@ -369,12 +369,13 @@ void reader_xy_gridded(char* fname, int fid, obsmeta* meta, grid* g, observation
                 else
                     o->std = (double) std[i];
             }
-            if (!isnan(estd_add_offset)) {
-                double std2 = (double) (estd[i] * estd_scale_factor + estd_add_offset);
-
-                o->std = (o->std > std2) ? o->std : std2;
-            } else
-                o->std = (o->std > estd[i]) ? o->std : estd[i];
+            if (estd != NULL) {
+                if (!isnan(estd_add_offset)) {
+                    double std2 = (double) (estd[i] * estd_scale_factor + estd_add_offset);
+                    o->std = (o->std > std2) ? o->std : std2;
+                } else
+                    o->std = (o->std > estd[i]) ? o->std : estd[i];
+            }
         }
         if (iscurv == 0) {
             o->lon = lon[i % ni];
