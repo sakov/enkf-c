@@ -153,7 +153,7 @@ struct grid {
      */
     int** numlevels;
     float** depth;
-
+    float** angle;
     /*
      * `stride' for calculating ensemble transforms. "0" means to use the
      * common value defined in the top prm file. 
@@ -1010,6 +1010,7 @@ grid* grid_create(void* p, int id)
     int ndims_x, ndims_y;
     size_t ni, nj, nk;
     int varid_depth, varid_numlevels;
+    int varid_angle, ndims_angle;
 
     g->name = strdup(prm->name);
     g->id = id;
@@ -1082,6 +1083,19 @@ grid* grid_create(void* p, int id)
 #endif
     } else
         enkf_quit("%s: could not determine the horizontal grid type", fname);
+
+
+    /*
+     * set angle 
+     */
+    if (prm->angle != NULL) {
+        size_t dimlen[2] = { nj, ni };
+        g->angle = alloc2d(nj, ni, sizeof(double));
+        ncw_inq_varid(ncid, prm->angle, &varid_angle);
+        ncw_inq_varndims(ncid, varid_angle, &ndims_angle);
+        ncw_check_vardims(ncid, varid_angle, 2, dimlen);
+        ncw_get_var_float(ncid, varid_angle, g->angle[0]);
+    }
 
     /*
      * set vertical grid
@@ -1390,6 +1404,7 @@ void grid_describeprm(void)
     enkf_printf("    DATA             = <data file name>\n");
     enkf_printf("    XVARNAME         = <X variable name>\n");
     enkf_printf("    YVARNAME         = <Y variable name>\n");
+    enkf_printf("    ANGLE            = <angle variable name>\n");
     enkf_printf("    ZVARNAME         = <Z variable name> (z)\n");
     enkf_printf("  [ ZCVARNAME        = <ZC variable name> (z) ]\n");
     enkf_printf("    CVARNAME         = <Cs_rho variable name> (sigma)\n");
