@@ -1,3 +1,8 @@
+v. 1.83.13
+   PS 02082018
+   -- Fixed defects in regard to qcflag in reader_xy_gridded(). Thanks to Hugo
+      Oliveira for raising suspicion.
+   -- Updated ncw.[ch] to v2.20.0.
 v. 1.83.12
    PS 30072018
    -- Another correction to obs_read().

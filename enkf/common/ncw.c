@@ -31,7 +31,7 @@
 #include <errno.h>
 #include "ncw.h"
 
-const char ncw_version[] = "2.19.2";
+const char ncw_version[] = "2.20.0";
 
 /* This macro is substituted in error messages instead of the name of a
  * variable in cases when the name could not be found by the variable id.
@@ -83,16 +83,6 @@ static void _ncw_inq_varname(int ncid, int varid, char varname[])
         strcpy(varname, "NC_GLOBAL");
     else if ((status = nc_inq_varname(ncid, varid, varname)) != NC_NOERR)
         quit("\"%s\": nc_inq_varname(): failed for varid = %d: %s", ncw_get_path(ncid), varid, nc_strerror(status));
-}
-
-static void _ncw_inq_varid(int ncid, const char varname[], int* varid)
-{
-    int status;
-
-    if (strcmp(varname, "NC_GLOBAL") == 0)
-        *varid = -1;
-    else if ((status = nc_inq_varid(ncid, varname, varid)) != NC_NOERR)
-        quit("\"%s\": nc_inq_varid(): failed for varid = %d: %s", ncw_get_path(ncid), varid, nc_strerror(status));
 }
 
 #define STRBUFSIZE 1024
@@ -1134,12 +1124,10 @@ void ncw_copy_att(int ncid_src, int varid_src, const char attname[], int ncid_ds
     }
 }
 
-void ncw_rename_att(int ncid, const char varname[], const char oldname[], const char newname[])
+void ncw_rename_att(int ncid, int varid, const char oldname[], const char newname[])
 {
-    int varid;
     int status;
 
-    _ncw_inq_varid(ncid, varname, &varid);
     status = nc_rename_att(ncid, varid, oldname, newname);
 
     if (status != NC_NOERR)
