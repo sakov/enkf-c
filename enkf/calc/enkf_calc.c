@@ -337,7 +337,7 @@ int main(int argc, char* argv[])
     }
 
     if (!enkf_fstatsonly) {
-        if (singleob == NULL) {
+        if (singleob == NULL && rank == 0) {
             enkf_printf("  moderating observations:\n");
             if (obs_modifiederrors_alreadywritten(das->obs, fname_obs))
                 enkf_printf("    already done\n");

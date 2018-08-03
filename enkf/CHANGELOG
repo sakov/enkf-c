@@ -1,3 +1,8 @@
+v. 1.83.14
+   PS 03082018
+   -- A fix in enkf_calc() that prevents of processes other than rank = 0 write
+      the modified errors to observations.nc.
+   -- A cosmetic change in das_writeinflation().
 v. 1.83.13
    PS 02082018
    -- Fixed defects in regard to qcflag in reader_xy_gridded(). Thanks to Hugo

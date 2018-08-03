@@ -49,7 +49,7 @@ static void das_writeinflation(dasystem* das, field* f, int j, float* v)
         writerow(FNAME_INFLATION, f->varname, f->level, j, v);
     else {
         char fname[MAXSTRLEN];
-        int ncid, varid;
+        int ncid;
 
         getfieldfname(das->ensdir, "inflation", f->varname, f->level, fname);
 
@@ -66,10 +66,9 @@ static void das_writeinflation(dasystem* das, field* f, int j, float* v)
             if (das->nccompression > 0)
                 ncw_def_deflate(ncid, 0, 1, das->nccompression);
             ncw_enddef(ncid);
-        } else {
+        } else
             ncw_open(fname, NC_WRITE, &ncid);
-            ncw_inq_varid(ncid, f->varname, &varid);
-        }
+
         writerow(fname, f->varname, 0, j, v);
         ncw_close(ncid);
     }
