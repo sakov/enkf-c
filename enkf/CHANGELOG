@@ -1,3 +1,7 @@
+v. 1.83.15
+   PS 07082018
+   -- Fixed 2 defects in regard to qcflag in reader_xy_gridded(). Thanks to Hugo
+      Oliveira for drawing attention.
 v. 1.83.14
    PS 03082018
    -- A fix in enkf_calc() that prevents of processes other than rank = 0 write

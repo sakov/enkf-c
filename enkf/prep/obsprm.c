@@ -149,7 +149,7 @@ void obsprm_read(char fname[], int* nmeta, obsmeta** meta)
             }
             m->npars++;
         } else
-            enkf_quit("%s, l.%d: unknown token \"%s\"", fname, line, token);
+            enkf_quit("%s, l.%d: unknown token \"%s\" (have you missed \"PARAMETER\"?)", fname, line, token);
     }
 
     fclose(f);

@@ -33,6 +33,10 @@
  *              - INSTRUMENT (-)
  *                  instrument string that will be used for calculating
  *                  instrument stats
+ *              - QCFLAGNAME (-)
+ *                  name of the QC flag variable, 0 <= qcflag <= 31
+ *              - QCFLAGVALS (-)
+ *                  the list of allowed values of QC flag variable
  *
  * Revisions:   PS 6/7/2018
  *                Added parameters QCFLAGNAME and QCFLAGVALS. The latter is
@@ -131,6 +135,9 @@ void reader_xy_gridded(char* fname, int fid, obsmeta* meta, grid* g, observation
             char* token;
             int val;
 
+            assert(meta->pars[i].value != NULL);        /* (supposed to be
+                                                         * inpossible) */
+            line = strdup(meta->pars[i].value);
             qcflagvals = 0;
             while ((token = strtok(line, seps)) != NULL) {
                 if (!str2int(token, &val))
@@ -140,6 +147,7 @@ void reader_xy_gridded(char* fname, int fid, obsmeta* meta, grid* g, observation
                 qcflagvals |= 1 << val;
                 line = NULL;
             }
+            free(line);
             if (qcflagvals == 0)
                 enkf_quit("%s: no valid flag entries found after QCFLAGVALS\n", meta->prmfname);
         } else if (strcasecmp(meta->pars[i].name, "VARSHIFT") == 0) {
@@ -342,7 +350,7 @@ void reader_xy_gridded(char* fname, int fid, obsmeta* meta, grid* g, observation
 
         if ((npoints != NULL && npoints[i] == 0) || var[i] == var_fill_value || isnan(var[i]) || (std != NULL && (std[i] == std_fill_value || isnan(std[i]))) || (estd != NULL && (estd[i] == estd_fill_value || isnan(estd[i]))) || (have_time && !singletime && (time[i] == time_fill_value || isnan(time[i]))))
             continue;
-        if (qcflag != NULL && !(qcflag[i] & qcflagvals))
+        if (qcflag != NULL && !((1 << qcflag[i]) & qcflagvals))
             continue;
 
         nobs_read++;
