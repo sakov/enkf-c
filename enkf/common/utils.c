@@ -275,8 +275,6 @@ void find_files(char* template, int* nfiles, char*** fnames)
 {
     glob_t gl;
     int status;
-    char http_str[4];
-    strncpy(http_str,template,4);
 
     status = glob(template, GLOB_PERIOD | GLOB_TILDE_CHECK, NULL, &gl);
     if (status == GLOB_NOSPACE || status == GLOB_ABORTED || status == GLOB_ERR) {
@@ -297,7 +295,7 @@ void find_files(char* template, int* nfiles, char*** fnames)
         *nfiles += gl.gl_pathc;
     globfree(&gl);
     }
-    else if (strcasecmp(http_str,"http") == 0){
+    else if (strncasecmp(template,"http",4) == 0){
         
         if (*nfiles == 0)
             *fnames = NULL;
