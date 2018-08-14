@@ -337,14 +337,15 @@ int main(int argc, char* argv[])
     }
 
     if (!enkf_fstatsonly) {
-        if (singleob == NULL && rank == 0) {
+        if (singleob == NULL) {
             enkf_printf("  moderating observations:\n");
             if (obs_modifiederrors_alreadywritten(das->obs, fname_obs))
                 enkf_printf("    already done\n");
             else {
                 das_moderateobs(das);
                 enkf_printf("  writing modified obs errors to \"%s\":\n", fname_obs);
-                das_addmodifiederrors(das, fname_obs);
+                if (rank == 0)
+                    das_addmodifiederrors(das, fname_obs);
             }
         }
 
