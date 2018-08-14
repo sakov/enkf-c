@@ -283,7 +283,6 @@ void find_files(char* template, int* nfiles, char*** fnames)
         enkf_quit("failed looking for \"%s\": %s", template, strerror(errno_saved));
     }
 
-
     if (gl.gl_pathc > 0) {
         int i, ii;
 
@@ -293,17 +292,14 @@ void find_files(char* template, int* nfiles, char*** fnames)
         for (i = 0, ii = *nfiles; i < gl.gl_pathc; ++i, ++ii)
             (*fnames)[ii] = strdup(gl.gl_pathv[i]);
         *nfiles += gl.gl_pathc;
-    globfree(&gl);
-    }
-    else if (strncasecmp(template,"http",4) == 0){
-        
+        globfree(&gl);
+    } else if (strncasecmp(template, "http", 4) == 0) {
         if (*nfiles == 0)
             *fnames = NULL;
         *fnames = realloc(*fnames, (*nfiles + 1) * sizeof(void*));
         (*fnames)[*nfiles] = strdup(template);
         *nfiles += 1;
     }
-
 }
 #else
 /** Find files matching the template using "ls".

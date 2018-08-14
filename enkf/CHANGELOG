@@ -1,3 +1,6 @@
+v. 1.84.0
+   -- find_files(): merged pull request by Hugo Oliveira (to allow opendap
+      access).
 v. 1.83.15
    PS 07082018
    -- Fixed 2 defects in regard to qcflag in reader_xy_gridded(). Thanks to Hugo
