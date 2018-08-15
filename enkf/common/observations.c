@@ -554,8 +554,12 @@ void obs_read(observations* obs, char fname[])
 
         ncw_inq_attname(ncid, varid_product, i, name);
         ncw_inq_att(ncid, varid_product, name, &type, &len);
-        if (type == NC_INT && len == 1)
-            st_add_ifabsent(obs->products, name, i);
+        if (type == NC_INT && len == 1) {
+            int id;
+
+            ncw_get_att_int(ncid, varid_product, name, &id);
+            st_add(obs->products, name, id);
+        }
     }
 
     /*
@@ -569,8 +573,12 @@ void obs_read(observations* obs, char fname[])
 
         ncw_inq_attname(ncid, varid_instrument, i, name);
         ncw_inq_att(ncid, varid_instrument, name, &type, &len);
-        if (type == NC_INT && len == 1)
-            st_add_ifabsent(obs->instruments, name, i);
+        if (type == NC_INT && len == 1) {
+            int id;
+
+            ncw_get_att_int(ncid, varid_instrument, name, &id);
+            st_add(obs->instruments, name, id);
+        }
     }
 
     /*

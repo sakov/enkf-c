@@ -1,6 +1,12 @@
+v. 1.84.2
+   PS 14082018
+   -- Fixed reading of products and instruments from "observations.nc" in
+      obs_read(). (This defect was probably hanging from 1.83.10.)
 v. 1.84.1
+   PS 13082018
    -- Fixed defect introduced in v1.83.14.
 v. 1.84.0
+   PS 13082018
    -- find_files(): merged pull request by Hugo Oliveira (to allow opendap
       access).
 v. 1.83.15
