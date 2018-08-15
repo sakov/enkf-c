@@ -1,3 +1,7 @@
+v. 1.84.3
+   PS 14082018
+   -- Fixed (I hope) a defect in das_writevcorrs() sometimes manifested in
+      segfaults.
 v. 1.84.2
    PS 14082018
    -- Fixed reading of products and instruments from "observations.nc" in

@@ -1562,7 +1562,7 @@ void das_writevcorrs(dasystem* das)
     float*** v = NULL;
     double* cor = NULL;
     double* std = NULL;
-    int ni, nj, nk;
+    int ni, nj, nk, nv;
     int fid;
 
     enkf_printtime("  ");
@@ -1603,7 +1603,7 @@ void das_writevcorrs(dasystem* das)
         field* f = &fields[fid];
         char* varname = f->varname;
         int dimids[2];
-        int ksurf, nv;
+        int ksurf;
         int e, k, i;
         char fname_src[MAXSTRLEN];
         char fname_tile[MAXSTRLEN];
