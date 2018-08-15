@@ -1,3 +1,9 @@
+v. 1.84.5
+   PS 14082018
+   -- Modified st_add() to handle the recent replacement st_add_ifabsent() by
+      st_add() + check (which is more robust, I guess) in obs_read(): it now
+      simply returns (not quits) if the existing entry has the same ID as the
+      requested ID.
 v. 1.84.4
    PS 14082018
    -- Put a barrier in enkf_calc.c::main() that is supposed to fix occasional

@@ -153,14 +153,20 @@ int st_add(stringtable* st, char* s, int index)
     se->index = (index >= 0) ? index : st->n;
     se->naccess = 0;
 
-    if (st->unique)
-        if (st_findindexbystring(st, s) >= 0) {
-            /*
-             * (there is no error quit function for stringtable for now) 
-             */
-            fprintf(stderr, "  error: stringtable \"%s\": entry \"%s\" duplicated\n", st->name, s);
-            exit(1);
+    if (st->unique) {
+        int previndex = st_findindexbystring(st, s);
+
+        if (previndex >= 0) {
+            if (previndex != index) {
+                /*
+                 * (there is no error quit function for stringtable for now) 
+                 */
+                fprintf(stderr, "  error: stringtable \"%s\": entry \"%s\" duplicated\n", st->name, s);
+                exit(1);
+            } else
+                return index;
         }
+    }
 
     if (st->n % STRINGTABLE_NINC == 0)
         st->se = realloc(st->se, (st->n + STRINGTABLE_NINC) * sizeof(void*));
