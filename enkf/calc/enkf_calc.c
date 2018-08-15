@@ -338,8 +338,14 @@ int main(int argc, char* argv[])
 
     if (!enkf_fstatsonly) {
         if (singleob == NULL) {
+            int done;
+
             enkf_printf("  moderating observations:\n");
-            if (obs_modifiederrors_alreadywritten(das->obs, fname_obs))
+            done = obs_modifiederrors_alreadywritten(das->obs, fname_obs);
+#if defined(MPI)
+            MPI_Barrier(MPI_COMM_WORLD);
+#endif
+            if (done)
                 enkf_printf("    already done\n");
             else {
                 das_moderateobs(das);
