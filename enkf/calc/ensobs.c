@@ -363,6 +363,9 @@ void das_calcinnandspread(dasystem* das)
         /*
          * calculate ensemble mean observations 
          */
+#if defined(HE_VIASHMEM)
+        MPI_Barrier(das->sm_comm);
+#endif
         for (e = 0; e < nmem; ++e) {
             ENSOBSTYPE* Se = das->S[e];
 

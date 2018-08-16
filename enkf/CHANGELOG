@@ -1,3 +1,7 @@
+v. 1.84.7
+   PS 16082018
+   -- Added a barrier in das_calcinnandspread() that is supposed to fix a
+      rarely (but consistently when it does) manifested defect with HE_VIASHMEM.
 v. 1.84.6
    PS 16082018
    -- Moved the barrier introduced in v1.84.4 to a (hopefully) better position.
