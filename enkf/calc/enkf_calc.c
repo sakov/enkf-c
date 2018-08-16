@@ -345,6 +345,9 @@ int main(int argc, char* argv[])
 
             enkf_printf("  moderating observations:\n");
             done = obs_modifiederrors_alreadywritten(das->obs, fname_obs);
+#if defined(MPI)
+            MPI_Barrier(MPI_COMM_WORLD);
+#endif
             if (done)
                 enkf_printf("    already done\n");
             else {

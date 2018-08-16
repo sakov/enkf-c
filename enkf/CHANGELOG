@@ -1,3 +1,7 @@
+v. 1.84.8
+   PS 17082018
+   -- Added another barrier in enkf_calc.c::main(). Thanks to Paul Sandery for
+      the bug report.
 v. 1.84.7
    PS 16082018
    -- Added a barrier in das_calcinnandspread() that is supposed to fix a
