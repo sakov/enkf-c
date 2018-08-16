@@ -2,23 +2,28 @@ v. 1.84.7
    PS 16082018
    -- Added a barrier in das_calcinnandspread() that is supposed to fix a
       rarely (but consistently when it does) manifested defect with HE_VIASHMEM.
+      Thanks to Roger Scott for the bug report.
 v. 1.84.6
    PS 16082018
    -- Moved the barrier introduced in v1.84.4 to a (hopefully) better position.
+      Thanks to Paul Sandery for the bug report.
 v. 1.84.5
    PS 15082018
    -- Modified st_add() to handle the recent replacement st_add_ifabsent() by
       st_add() + check (which is more robust, I guess) in obs_read(): it now
       simply returns (not quits) if the existing entry has the same ID as the
       requested ID.
+      Thanks to Paul Sandery for the bug report.
 v. 1.84.4
    PS 15082018
    -- Put a barrier in enkf_calc.c::main() that is supposed to fix occasional
       HDF errors.
+      Thanks to Paul Sandery for the bug report.
 v. 1.84.3
    PS 14082018
    -- Fixed (I hope) a defect in das_writevcorrs() sometimes manifested in
       segfaults.
+      Thanks to Paul Sandery for the bug report.
 v. 1.84.2
    PS 14082018
    -- Fixed reading of products and instruments from "observations.nc" in
@@ -26,6 +31,7 @@ v. 1.84.2
 v. 1.84.1
    PS 13082018
    -- Fixed defect introduced in v1.83.14.
+      Thanks to Roger Scott and Paul Sandery for the bug report.
 v. 1.84.0
    PS 13082018
    -- find_files(): merged pull request by Hugo Oliveira (to allow opendap
