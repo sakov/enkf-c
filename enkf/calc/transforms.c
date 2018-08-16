@@ -297,16 +297,6 @@ void das_calctransforms(dasystem* das)
 #if defined(MPI)
         MPI_Barrier(MPI_COMM_WORLD);
 #endif
-        {
-            char fname[MAXSTRLEN];
-            FILE* f = NULL;
-
-            sprintf(fname, "obs-%02d.bin", rank);
-            f = fopen(fname, "w");
-            fwrite(das->S, sizeof(ENSOBSTYPE), das->nmem * obs->nobs, f);
-            fclose(f);
-        }
-
         jpool = malloc(nj * sizeof(int));
         if (rank == 0) {
             for (j = 0; j < nj; ++j)
