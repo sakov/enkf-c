@@ -131,13 +131,12 @@ void reader_xy_gridded(char* fname, int fid, obsmeta* meta, grid* g, observation
             qcflagname = meta->pars[i].value;
         else if (strcasecmp(meta->pars[i].name, "QCFLAGVALS") == 0) {
             char seps[] = " ,";
-            char* line = meta->pars[i].value;
+            char* line = strdup(meta->pars[i].value);
             char* token;
             int val;
 
             assert(meta->pars[i].value != NULL);        /* (supposed to be
-                                                         * inpossible) */
-            line = strdup(meta->pars[i].value);
+                                                         * impossible) */
             qcflagvals = 0;
             while ((token = strtok(line, seps)) != NULL) {
                 if (!str2int(token, &val))
@@ -164,19 +163,14 @@ void reader_xy_gridded(char* fname, int fid, obsmeta* meta, grid* g, observation
             enkf_quit("unknown PARAMETER \"%s\"\n", meta->pars[i].name);
     }
     if (varname == NULL)
-        enkf_quit("reader_xy_gridded(): %s variable name not specified", fname);
+        enkf_quit("reader_xy_gridded(): %s VARNAME not specified", fname);
 
     ncw_open(fname, NC_NOWRITE, &ncid);
     ncw_inq_varid(ncid, varname, &varid_var);
     ncw_inq_vardims(ncid, varid_var, 3, &ndim_var, dimlen_var);
     if (ndim_var == 3) {
-        int dimid[3];
-        size_t nr;
-
-        ncw_inq_vardimid(ncid, varid_var, dimid);
-        ncw_inq_dimlen(ncid, dimid[0], &nr);
-        if (nr != 1)
-            enkf_quit("reader_xy_gridded(): %d records (currently only one is allowed)", nr);
+        if (dimlen_var[0] != 1)
+            enkf_quit("reader_xy_gridded(): %d records (currently only one is allowed)", dimlen_var[0]);
         n_var = dimlen_var[1] * dimlen_var[2];
     } else if (ndim_var == 2) {
         if (nc_hasunlimdim(ncid))

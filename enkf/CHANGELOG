@@ -1,3 +1,7 @@
+v. 1.84.9
+   PS 24082018
+   -- Passed corrections made in v1.83.15 in reader_xy_gridded.c to
+      reader_xyz_gridded.c.
 v. 1.84.8
    PS 17082018
    -- Added another barrier in enkf_calc.c::main(). Thanks to Paul Sandery for
