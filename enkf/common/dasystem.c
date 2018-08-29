@@ -318,6 +318,7 @@ void das_setnmem(dasystem* das)
     model* m = das->m;
     int nvar = model_getnvar(m);
     char fname[MAXSTRLEN];
+    int nmem;
 
     if (das->mode == MODE_NONE)
         enkf_quit("programming error");
@@ -330,22 +331,29 @@ void das_setnmem(dasystem* das)
     if (das->ensdir == NULL)
         enkf_quit("programming error");
 
-    das->nmem = 0;
+    nmem = 0;
     while (1) {
         int i;
 
         for (i = 0; i < nvar; ++i) {
-            model_getmemberfname(m, das->ensdir, model_getvarname(m, i), das->nmem + 1, fname);
+            model_getmemberfname(m, das->ensdir, model_getvarname(m, i), nmem + 1, fname);
             if (!file_exists(fname))
                 break;
         }
         if (i == nvar)
-            das->nmem++;
+            nmem++;
         else
             break;
     }
-    if (das->nmem == 0)
-        enkf_quit("das_setnmem(): can not find \"%s\"", fname);
+    if (nmem == 0)
+        enkf_quit("das_setnmem(): could not find \"%s\"", fname);
+    if (das->nmem > 0) {
+        if (nmem < das->nmem)
+            enkf_quit("das_setnmem(): could not find \"%s\"", fname);
+        else if (nmem > das->nmem)
+            enkf_printf("      %d members found on disk; ignoring excess to specified ensemble size\n", nmem);
+    }
+    das->nmem = nmem;
 }
 
 /** Looks for all horizontal fields of the model to be updated.

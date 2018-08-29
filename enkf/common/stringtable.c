@@ -42,6 +42,23 @@ struct stringtable {
     stringentry** se;
 };
 
+static void quit_def(char* format, ...);
+static st_quit_fn quit = quit_def;
+
+static void quit_def(char* format, ...)
+{
+    va_list args;
+
+    fflush(stdout);
+
+    fprintf(stderr, "\n\n  error: stringtable: ");
+    va_start(args, format);
+    vfprintf(stderr, format, args);
+    va_end(args);
+    fprintf(stderr, "\n\n");
+    exit(1);
+}
+
 /** Compare procedure for qsort(). Non-case-sensitive.
  * @param se1 Pointer to stringentry
  * @param se2 Pointer to stringentry
@@ -157,13 +174,9 @@ int st_add(stringtable* st, char* s, int index)
         int previndex = st_findindexbystring(st, s);
 
         if (previndex >= 0) {
-            if (previndex != index) {
-                /*
-                 * (there is no error quit function for stringtable for now) 
-                 */
-                fprintf(stderr, "  error: stringtable \"%s\": entry \"%s\" duplicated\n", st->name, s);
-                exit(1);
-            } else
+            if (previndex != index)
+                quit("\"%s\": entry \"%s\" duplicated\n", st->name, s);
+            else
                 return index;
         }
     }

@@ -1,3 +1,8 @@
+v. 1.84.10
+   PS 29082018
+   -- Modified das_setnmem() to exit with error if the detected ensemble size is
+      less than the specified one.
+   -- Some trivial changes in stringtable.[ch].
 v. 1.84.9
    PS 24082018
    -- Passed corrections made in v1.83.15 in reader_xy_gridded.c to

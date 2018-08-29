@@ -19,6 +19,7 @@
 
 struct stringtable;
 typedef struct stringtable stringtable;
+typedef void (*st_quit_fn) (char* format, ...);
 
 stringtable* st_create(char* name);
 void st_destroy(stringtable* st);
@@ -33,6 +34,7 @@ void st_sort(stringtable* st);
 void st_print(stringtable* st);
 void st_printentries(stringtable* st, char* sep);
 void st_printentry(stringtable* st, int i);
+void st_set_quitfn(st_quit_fn quit_fn);
 
 #define _STRINGTABLE_H
 #endif
