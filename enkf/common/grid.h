@@ -49,6 +49,7 @@ int grid_getid(grid* g);
 int grid_gethtype(grid* g);
 int grid_getvtype(grid* g);
 float** grid_getdepth(grid* g);
+float** grid_getangle(grid* g);
 int** grid_getnumlevels(grid* g);
 double grid_getlonbase(grid* g);
 int grid_getstride(grid* g);

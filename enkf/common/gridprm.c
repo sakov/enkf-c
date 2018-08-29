@@ -137,6 +137,13 @@ void gridprm_create(char* fname, int* ngrid, gridprm** prm)
                 enkf_quit("%s, l.%d: XVARNAME specified twice", fname, line);
             else
                 now->xvarname = strdup(token);
+        } else if (strcasecmp(token, "ANGLE") == 0) {
+            if ((token = strtok(NULL, seps)) == NULL)
+                enkf_quit("%s, l%d: ANGLE not sepcified", fname, line);
+            else if (now->angle != NULL)
+                enkf_quit("%s, l.%d: ANGLE specified twice", fname, line);
+            else
+                now->angle = strdup(token);
         } else if (strcasecmp(token, "YVARNAME") == 0) {
             if ((token = strtok(NULL, seps)) == NULL)
                 enkf_quit("%s, l.%d: YVARNAME not specified", fname, line);
