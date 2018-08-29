@@ -1562,7 +1562,7 @@ void das_writevcorrs(dasystem* das)
     float*** v = NULL;
     double* cor = NULL;
     double* std = NULL;
-    int ni, nj, nk, nv;
+    int ni, nj, nk, nv = -1;
     int fid;
 
     enkf_printtime("  ");
