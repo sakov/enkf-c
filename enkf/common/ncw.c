@@ -31,7 +31,7 @@
 #include <errno.h>
 #include "ncw.h"
 
-const char ncw_version[] = "2.20.0";
+const char ncw_version[] = "2.21.0";
 
 /* This macro is substituted in error messages instead of the name of a
  * variable in cases when the name could not be found by the variable id.
@@ -793,6 +793,18 @@ void ncw_get_var1_double(int ncid, int varid, const size_t len[], double* in)
     }
 }
 
+void ncw_put_vara(int ncid, int varid, const size_t start[], const size_t count[], void* v)
+{
+    int status = nc_put_vara(ncid, varid, start, count, v);
+
+    if (status != NC_NOERR) {
+        char varname[NC_MAX_NAME] = STR_UNKNOWN;
+
+        ncw_inq_varname(ncid, varid, varname);
+        quit("\"%s\": nc_put_vara(): failed for varid = %d (varname = \"%s\"): %s\n", ncw_get_path(ncid), varid, varname, nc_strerror(status));
+    }
+}
+
 void ncw_put_vara_text(int ncid, int varid, const size_t start[], const size_t count[], const char v[])
 {
     int status = nc_put_vara_text(ncid, varid, start, count, v);
@@ -888,6 +900,18 @@ void ncw_put_vara_double(int ncid, int varid, const size_t start[], const size_t
         ncw_inq_varname(ncid, varid, varname);
         ncw_inq_varndims(ncid, varid, &ndims);
         quit("\"%s\": nc_put_vara_double(): failed for varid = %d (varname = \"%s\"), start = %s, count = %s: %s", ncw_get_path(ncid), varid, varname, uint2str(ndims, (unsigned int*) start), uint2str(ndims, (unsigned int*) count), nc_strerror(status));
+    }
+}
+
+void ncw_get_vara(int ncid, int varid, const size_t start[], const size_t count[], void* v)
+{
+    int status = nc_get_vara(ncid, varid, start, count, v);
+
+    if (status != NC_NOERR) {
+        char varname[NC_MAX_NAME] = STR_UNKNOWN;
+
+        ncw_inq_varname(ncid, varid, varname);
+        quit("\"%s\": nc_get_vara(): failed for varid = %d (varname = \"%s\"): %s\n", ncw_get_path(ncid), varid, varname, nc_strerror(status));
     }
 }
 
@@ -1143,6 +1167,18 @@ void ncw_del_att(int ncid, int varid, const char attname[])
 
         _ncw_inq_varname(ncid, varid, varname);
         quit("\"%s\": nc_del_att(): failed for varid = %d (varname = \"%s\"): %s", ncw_get_path(ncid), varid, varname, nc_strerror(status));
+    }
+}
+
+void ncw_get_att(int ncid, int varid, const char attname[], void* v)
+{
+    int status = nc_get_att(ncid, varid, attname, v);
+
+    if (status != NC_NOERR) {
+        char varname[NC_MAX_NAME] = STR_UNKNOWN;
+
+        _ncw_inq_varname(ncid, varid, varname);
+        quit("\"%s\": nc_get_att(): failed for varid = %d (varname = \"%s\"), attname = \"%s\": %s\n", ncw_get_path(ncid), varid, varname, attname, nc_strerror(status));
     }
 }
 

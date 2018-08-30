@@ -1,3 +1,6 @@
+v. 1.84.11
+   PS 30082018
+   -- Updated ncw.[ch] to v2.21.0.
 v. 1.84.10
    PS 29082018
    -- Modified das_setnmem() to exit with error if the detected ensemble size is
