@@ -160,10 +160,9 @@ void reader_cmems_standard(char* fname, int fid, obsmeta* meta, grid* g, observa
             enkf_printf("        reading TEMP_ADJUSTED\n");
             ncw_inq_varid(ncid, "TEMP_ADJUSTED", &varid);
             ncw_inq_varid(ncid, "TEMP_ADJUSTED_QC", &varid_qc);
-        } else if (ncw_var_exists(ncid, "TEMP")) {
-            enkf_printf("        reading TEMP\n");
-            ncw_inq_varid(ncid, "TEMP", &varid);
-            ncw_inq_varid(ncid, "TEMP_QC", &varid_qc);
+        } else {
+            ncw_close(ncid);
+            goto nodata;
         }
     } else if (strncmp(meta->type, "SAL", 3) == 0) {
         validmin = 0;
@@ -172,10 +171,9 @@ void reader_cmems_standard(char* fname, int fid, obsmeta* meta, grid* g, observa
             enkf_printf("        reading PSAL_ADJUSTED\n");
             ncw_inq_varid(ncid, "PSAL_ADJUSTED", &varid);
             ncw_inq_varid(ncid, "PSAL_ADJUSTED_QC", &varid_qc);
-        } else if (ncw_var_exists(ncid, "PSAL")) {
-            enkf_printf("        reading PSAL\n");
-            ncw_inq_varid(ncid, "PSAL", &varid);
-            ncw_inq_varid(ncid, "PSAL_QC", &varid_qc);
+        } else {
+            ncw_close(ncid);
+            goto nodata;
         }
     } else
         enkf_quit("observation type \"%s\" not handled for CMEMS product", meta->type);
@@ -282,12 +280,13 @@ void reader_cmems_standard(char* fname, int fid, obsmeta* meta, grid* g, observa
         free(lonlat);
     }
 
-    free(lon);
-    free(lat);
     free(v);
     free(z);
     free(qcflag);
     free(insttype);
+  nodata:
+    free(lon);
+    free(lat);
     if (st_exclude != NULL)
         st_destroy(st_exclude);
 }

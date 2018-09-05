@@ -1,3 +1,7 @@
+v. 1.85.5
+   PS 05092018
+   -- Corrected reader_cmems_standard() to handle case of no data of specified
+      kind in the file.
 v. 1.85.4
    PS 05092018
    -- Corrected defect in calculating the num,ber of unique locations in
