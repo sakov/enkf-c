@@ -1,3 +1,6 @@
+v. 1.85.3
+   PS 05092018
+   -- Corrected depth input in reader_cmems_standard().
 v. 1.85.2
    PS 05092018
    -- Corrected qcflag input in reader_cmems_standard().

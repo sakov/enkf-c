@@ -146,7 +146,10 @@ void reader_cmems_standard(char* fname, int fid, obsmeta* meta, grid* g, observa
     lat = malloc(nprof * sizeof(double));
     ncw_get_var_double(ncid, varid, lat);
 
-    ncw_inq_varid(ncid, "DEPH_ADJUSTED", &varid);
+    if (ncw_var_exists(ncid, "DEPH_ADJUSTED"))
+        ncw_inq_varid(ncid, "DEPH_ADJUSTED", &varid);
+    else
+        ncw_inq_varid(ncid, "PRES_ADJUSTED", &varid);
     z = alloc2d(nprof, nz, sizeof(double));
     ncw_get_var_double(ncid, varid, z[0]);
 
