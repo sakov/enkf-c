@@ -81,7 +81,7 @@ void reader_cmems_standard(char* fname, int fid, obsmeta* meta, grid* g, observa
     double* lat;
     double** z;
     double** v;
-    int** qcflag;
+    char** qcflag;
     uint32_t qcflagvals = QCFLAGVALS_DEF;
     double* time;
     double missval;
@@ -179,8 +179,8 @@ void reader_cmems_standard(char* fname, int fid, obsmeta* meta, grid* g, observa
     v = alloc2d(nprof, nz, sizeof(double));
     ncw_get_var_double(ncid, varid, v[0]);
     ncw_get_att_double(ncid, varid, "_FillValue", &missval);
-    qcflag = alloc2d(nprof, nz, sizeof(int));
-    ncw_get_var_int(ncid, varid_qc, qcflag[0]);
+    qcflag = alloc2d(nprof, nz, sizeof(char));
+    ncw_get_var_text(ncid, varid_qc, qcflag[0]);
 
     ncw_inq_varid(ncid, "JULD_LOCATION", &varid);
     ncw_get_att_text(ncid, varid, "units", buf);
@@ -215,8 +215,13 @@ void reader_cmems_standard(char* fname, int fid, obsmeta* meta, grid* g, observa
                 continue;
             if (z[p][i] < 0.0)
                 continue;
-            if (!((1 << qcflag[p][i]) & qcflagvals))
-                continue;
+            {
+                int qcflagint = (int) qcflag[p][i] - (int) '0';
+
+                assert(qcflagint >= 0 && qcflagint <= 9);
+                if (!((1 << qcflagint) & qcflagvals))
+                    continue;
+            }
 
             obs_checkalloc(obs);
             o = &obs->data[obs->nobs];
