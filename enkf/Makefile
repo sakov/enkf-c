@@ -77,6 +77,7 @@ prep/reader_xy_gridded.c\
 prep/reader_xyz_scattered.c\
 prep/reader_xyz_gridded.c\
 prep/reader_xyh_gridded.c\
+prep/reader_cmems.c\
 prep/enkf_prep.c
 
 HDR_PREP =\

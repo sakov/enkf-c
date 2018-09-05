@@ -1,3 +1,6 @@
+v. 1.85.0
+   PS 05092018
+   -- Added reader_cmems_standard() for profiles from Copernicus.
 v. 1.84.11
    PS 30082018
    -- Updated ncw.[ch] to v2.21.0.
