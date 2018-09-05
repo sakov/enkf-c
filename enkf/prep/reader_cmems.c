@@ -19,8 +19,8 @@
  *              - EXCLUDEINST
  *                  WMO instrument type id (p. 27 of the above manual) to be
  *                  skipped, one entry (one line) per instrument, e.g.
- *                  PARAMETER EXCLUDEINST = 995 # marine mammals
- *                  PARAMETER EXCLUDEINST = 999 # unknown
+ *                  PARAMETER EXCLUDEINST = WMO995 # marine mammals
+ *                  PARAMETER EXCLUDEINST = WMO999 # unknown
  *
  * Revisions:
  *
