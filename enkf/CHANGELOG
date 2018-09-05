@@ -1,3 +1,6 @@
+v. 1.85.1
+   PS 05092018
+   -- Corrected time input in reader_cmems_standard().
 v. 1.85.0
    PS 05092018
    -- Added reader_cmems_standard() for profiles from Copernicus.

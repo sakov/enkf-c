@@ -244,7 +244,7 @@ void reader_cmems_standard(char* fname, int fid, obsmeta* meta, grid* g, observa
             if ((o->status == STATUS_OK) && (o->lon <= ot->xmin || o->lon >= ot->xmax || o->lat <= ot->ymin || o->lat >= ot->ymax || o->depth <= ot->zmin || o->depth >= ot->zmax))
                 o->status = STATUS_OUTSIDEOBSDOMAIN;
             o->model_depth = NAN;       /* set in obs_add() */
-            o->date = tunits_offset + 0.5;
+            o->date = time[p] * tunits_multiple + tunits_offset;
             o->aux = -1;
 
             obs->nobs++;
