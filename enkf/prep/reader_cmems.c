@@ -161,6 +161,7 @@ void reader_cmems_standard(char* fname, int fid, obsmeta* meta, grid* g, observa
             ncw_inq_varid(ncid, "TEMP_ADJUSTED", &varid);
             ncw_inq_varid(ncid, "TEMP_ADJUSTED_QC", &varid_qc);
         } else {
+            enkf_printf("        no data of specified type\n");
             ncw_close(ncid);
             goto nodata;
         }
@@ -172,6 +173,7 @@ void reader_cmems_standard(char* fname, int fid, obsmeta* meta, grid* g, observa
             ncw_inq_varid(ncid, "PSAL_ADJUSTED", &varid);
             ncw_inq_varid(ncid, "PSAL_ADJUSTED_QC", &varid_qc);
         } else {
+            enkf_printf("        no data of specified type\n");
             ncw_close(ncid);
             goto nodata;
         }
