@@ -1,3 +1,7 @@
+v. 1.85.4
+   PS 05092018
+   -- Corrected defect in calculating the num,ber of unique locations in
+      reader_mmt_standard() and reader_cmems_standard().
 v. 1.85.3
    PS 05092018
    -- Corrected depth input in reader_cmems_standard().

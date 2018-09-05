@@ -234,7 +234,7 @@ void reader_mmt_standard(char* fname, int fid, obsmeta* meta, grid* g, observati
 
         for (i = 0; i < nprof; ++i) {
             lonlat[i * 2] = lon[i];
-            lonlat[i + 2 + 1] = lat[i];
+            lonlat[i * 2 + 1] = lat[i];
         }
         qsort(lonlat, nprof, sizeof(double) * 2, cmp_lonlat);
         for (i = 1; i < nprof; ++i) {
