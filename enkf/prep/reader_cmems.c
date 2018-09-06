@@ -71,6 +71,42 @@ static int cmp_lonlat(const void* p1, const void* p2)
 
 /**
  */
+static int allmissing(int ncid, char varname[])
+{
+    int varid;
+    int ndims;
+    size_t dimlen[2];
+    double missval;
+    double* v = NULL;
+    int status = 1;
+    int n, i;
+
+    if (!ncw_var_exists(ncid, varname))
+        return 1;
+    ncw_inq_varid(ncid, varname, &varid);
+    if (ncw_att_exists(ncid, varid, "_FillValue"))
+        ncw_get_att_double(ncid, varid, "_FillValue", &missval);
+    else if (ncw_att_exists(ncid, varid, "missing_value"))
+        ncw_get_att_double(ncid, varid, "missing_value", &missval);
+    else
+        return 0;
+    ncw_inq_vardims(ncid, varid, 2, &ndims, dimlen);
+    n = dimlen[0] * dimlen[1];
+    assert(ndims == 2);
+    v = malloc(n * sizeof(double));
+    ncw_get_var_double(ncid, varid, v);
+    for (i = 0; i < n; ++i)
+        if (fabs(v[i] - missval) > EPS) {
+            status = 0;
+            break;
+        }
+
+    free(v);
+    return status;
+}
+
+/**
+ */
 void reader_cmems_standard(char* fname, int fid, obsmeta* meta, grid* g, observations* obs)
 {
     stringtable* st_exclude = NULL;
@@ -159,20 +195,28 @@ void reader_cmems_standard(char* fname, int fid, obsmeta* meta, grid* g, observa
     lat = malloc(nprof * sizeof(double));
     ncw_get_var_double(ncid, varid, lat);
 
-    if (ncw_var_exists(ncid, "DEPH_ADJUSTED"))
+    if (!allmissing(ncid, "DEPH_ADJUSTED"))
         ncw_inq_varid(ncid, "DEPH_ADJUSTED", &varid);
-    else
+    else if (!allmissing(ncid, "PRES_ADJUSTED"))
         ncw_inq_varid(ncid, "PRES_ADJUSTED", &varid);
+    else if (!allmissing(ncid, "DEPH"))
+        ncw_inq_varid(ncid, "DEPH", &varid);
+    else if (!allmissing(ncid, "PRES"))
+        ncw_inq_varid(ncid, "PRES", &varid);
     z = alloc2d(nprof, nz, sizeof(double));
     ncw_get_var_double(ncid, varid, z[0]);
 
     if (strncmp(meta->type, "TEM", 3) == 0) {
         validmin = -2.0;
         validmax = 40.0;
-        if (ncw_var_exists(ncid, "TEMP_ADJUSTED")) {
+        if (!allmissing(ncid, "TEMP_ADJUSTED")) {
             enkf_printf("        reading TEMP_ADJUSTED\n");
             ncw_inq_varid(ncid, "TEMP_ADJUSTED", &varid);
             ncw_inq_varid(ncid, "TEMP_ADJUSTED_QC", &varid_qc);
+        } else if (!allmissing(ncid, "TEMP")) {
+            enkf_printf("        reading TEMP\n");
+            ncw_inq_varid(ncid, "TEMP", &varid);
+            ncw_inq_varid(ncid, "TEMP_QC", &varid_qc);
         } else {
             enkf_printf("        no data of specified type\n");
             ncw_close(ncid);
@@ -181,10 +225,14 @@ void reader_cmems_standard(char* fname, int fid, obsmeta* meta, grid* g, observa
     } else if (strncmp(meta->type, "SAL", 3) == 0) {
         validmin = 0;
         validmax = 50.0;
-        if (ncw_var_exists(ncid, "PSAL_ADJUSTED")) {
+        if (!allmissing(ncid, "PSAL_ADJUSTED")) {
             enkf_printf("        reading PSAL_ADJUSTED\n");
             ncw_inq_varid(ncid, "PSAL_ADJUSTED", &varid);
             ncw_inq_varid(ncid, "PSAL_ADJUSTED_QC", &varid_qc);
+        } else if (!allmissing(ncid, "PSAL")) {
+            enkf_printf("        reading PSAL\n");
+            ncw_inq_varid(ncid, "PSAL", &varid);
+            ncw_inq_varid(ncid, "PSAL_QC", &varid_qc);
         } else {
             enkf_printf("        no data of specified type\n");
             ncw_close(ncid);
