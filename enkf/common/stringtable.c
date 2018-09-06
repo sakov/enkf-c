@@ -297,13 +297,13 @@ void st_print(stringtable* st)
 {
     int i;
 
-    fprintf(stdout, "%s:\n", st->name);
+    printf("%s:\n", st->name);
     for (i = 0; i < st->n; ++i)
-        fprintf(stdout, "  %s(%d)\n", st->se[i]->s, st->se[i]->index);
+        printf("  %s(%d)\n", st->se[i]->s, st->se[i]->index);
     fflush(stdout);
 }
 
-/** Prints stringtable entries with specified separator to standard error.
+/** Prints stringtable entries with specified separator to standard output.
  * @param st Stringtable
  * @param sep Separator
  */
@@ -317,10 +317,9 @@ void st_printentries(stringtable* st, char* sep)
     if (n < 1)
         return;
 
-    fprintf(stdout, "%s", st->se[0]->s);
+    printf("%s", st->se[0]->s);
     for (i = 1; i < n; ++i)
-        fprintf(stdout, "%s%s", sep, st->se[i]->s);
-    fprintf(stdout, "%s", sep);
+        printf("%s%s", sep, st->se[i]->s);
     fflush(stdout);
 }
 

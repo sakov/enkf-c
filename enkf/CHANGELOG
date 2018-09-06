@@ -1,3 +1,7 @@
+v. 1.85.7
+   -- A few relatively minor changes in reader_cmems_standard(),
+      reader_xy_gridded(), and reader_xyz_gridded(), some log related, others
+      qcflag handling related.
 v. 1.85.6
    PS 06092018
    -- Corrected descroiption of the reader in the header of reader_cmems.c.

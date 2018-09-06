@@ -49,6 +49,7 @@
 #define WMO_INSTSIZE 4
 #define QCFLAGVALS_DEF 2        /* 0b00000000000000000000000000000010
                                  * corresponds to QCFLAG = 1 */
+#define QCFLAGVALMAX 9
 
 /**
  */
@@ -83,6 +84,7 @@ void reader_cmems_standard(char* fname, int fid, obsmeta* meta, grid* g, observa
     double** v;
     char** qcflag;
     uint32_t qcflagvals = QCFLAGVALS_DEF;
+    int qcflagcounts[QCFLAGVALMAX + 1];
     double* time;
     double missval;
     double validmin = DBL_MAX;
@@ -90,7 +92,8 @@ void reader_cmems_standard(char* fname, int fid, obsmeta* meta, grid* g, observa
     char* insttype;
     char buf[MAXSTRLEN];
     double tunits_multiple, tunits_offset;
-    int p, i;
+    int npexcluded;
+    int p, i, nobs;
 
     for (i = 0; i < meta->npars; ++i) {
         if (strcasecmp(meta->pars[i].name, "EXCLUDEINST") == 0) {
@@ -109,16 +112,25 @@ void reader_cmems_standard(char* fname, int fid, obsmeta* meta, grid* g, observa
             while ((token = strtok(line, seps)) != NULL) {
                 if (!str2int(token, &val))
                     enkf_quit("%s: could not convert QCFLAGVALS entry \"%s\" to integer", meta->prmfname, token);
-                if (val < 0 || val > 31)
-                    enkf_quit("%s: QCFLAGVALS entry = %d (supposed to be in [0,31] interval", meta->prmfname, val);
+                if (val < 0 || val > QCFLAGVALMAX)
+                    enkf_quit("%s: QCFLAGVALS entry = %d (supposed to be in [0,%d] interval", meta->prmfname, val, QCFLAGVALMAX);
                 qcflagvals |= 1 << val;
                 line = NULL;
             }
             free(line);
             if (qcflagvals == 0)
                 enkf_quit("%s: no valid flag entries found after QCFLAGVALS\n", meta->prmfname);
+            enkf_printf("        QCFLAGS used =");
+            for (i = 0; i <= QCFLAGVALMAX; ++i)
+                if (qcflagvals & (1 << i))
+                    enkf_printf(" %d", i);
+            enkf_printf("\n");
         } else
             enkf_quit("unknown PARAMETER \"%s\"\n", meta->pars[i].name);
+    }
+    if (st_exclude != NULL) {
+        enkf_printf("        exluding instruments:");
+        st_printentries(st_exclude, " ");
     }
 
     if (meta->nstds == 0)
@@ -133,8 +145,9 @@ void reader_cmems_standard(char* fname, int fid, obsmeta* meta, grid* g, observa
     ncw_inq_dimid(ncid, "N_LEVELS", &dimid_nz);
     ncw_inq_dimlen(ncid, dimid_nz, &nz);
     if (nprof == 0) {
+        enkf_printf("        no profiles found\n");
         ncw_close(ncid);
-        return;
+        goto noprofiles;
     }
     enkf_printf("        # levels = %u\n", (unsigned int) nz);
 
@@ -197,6 +210,9 @@ void reader_cmems_standard(char* fname, int fid, obsmeta* meta, grid* g, observa
 
     ncw_close(ncid);
 
+    npexcluded = 0;
+    memset(qcflagcounts, 0, (QCFLAGVALMAX + 1) * sizeof(int));
+    nobs = 0;
     for (p = 0; p < (int) nprof; ++p) {
         char inststr[MAXSTRLEN];
         int instnum;
@@ -207,24 +223,27 @@ void reader_cmems_standard(char* fname, int fid, obsmeta* meta, grid* g, observa
             instnum = 999;
         snprintf(inststr, MAXSTRLEN, "WMO%03d", instnum);
 
-        if (st_exclude != NULL && st_findindexbystring(st_exclude, inststr) >= 0)
+        if (st_exclude != NULL && st_findindexbystring(st_exclude, inststr) >= 0) {
+            npexcluded++;
             continue;
+        }
 
         for (i = 0; i < (int) nz; ++i) {
             observation* o;
             obstype* ot;
+            int qcflagint;
 
             if (fabs(v[p][i] - missval) < EPS || v[p][i] < validmin || v[p][i] > validmax)
                 continue;
             if (z[p][i] < 0.0)
                 continue;
             {
-                int qcflagint = (int) qcflag[p][i] - (int) '0';
-
-                assert(qcflagint >= 0 && qcflagint <= 9);
+                qcflagint = (int) qcflag[p][i] - (int) '0';
+                assert(qcflagint >= 0 && qcflagint <= QCFLAGVALMAX);
                 if (!((1 << qcflagint) & qcflagvals))
                     continue;
             }
+            qcflagcounts[qcflagint]++;
 
             obs_checkalloc(obs);
             o = &obs->data[obs->nobs];
@@ -256,13 +275,16 @@ void reader_cmems_standard(char* fname, int fid, obsmeta* meta, grid* g, observa
             o->aux = -1;
 
             obs->nobs++;
+            nobs++;
         }
     }
+    if (npexcluded > 0)
+        enkf_printf("        # profiles excluded = %d\n", npexcluded);
 
     /*
      * get the number of unique profile locations
      */
-    {
+    if (nobs > 0) {
         double* lonlat = malloc(nprof * sizeof(double) * 2);
         int nunique = (nprof > 0) ? 1 : 0;
         int ii = 0;
@@ -282,6 +304,13 @@ void reader_cmems_standard(char* fname, int fid, obsmeta* meta, grid* g, observa
         free(lonlat);
     }
 
+    if (nobs > 0) {
+        enkf_printf("        # of processed obs by quality flags:\n");
+        for (i = 0; i <= QCFLAGVALMAX; ++i)
+            if (qcflagvals & (1 << i) && qcflagcounts[i] > 0)
+                enkf_printf("          %d: %d obs\n", i, qcflagcounts[i]);
+    }
+
     free(v);
     free(z);
     free(qcflag);
@@ -289,6 +318,7 @@ void reader_cmems_standard(char* fname, int fid, obsmeta* meta, grid* g, observa
   nodata:
     free(lon);
     free(lat);
+  noprofiles:
     if (st_exclude != NULL)
         st_destroy(st_exclude);
 }

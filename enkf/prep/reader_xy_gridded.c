@@ -61,6 +61,7 @@
 
 #define TYPE_DOUBLE 0
 #define TYPE_SHORT 1
+#define QCFLAGVALMAX 31
 
 /**
  */
@@ -141,14 +142,19 @@ void reader_xy_gridded(char* fname, int fid, obsmeta* meta, grid* g, observation
             while ((token = strtok(line, seps)) != NULL) {
                 if (!str2int(token, &val))
                     enkf_quit("%s: could not convert QCFLAGVALS entry \"%s\" to integer", meta->prmfname, token);
-                if (val < 0 || val > 31)
-                    enkf_quit("%s: QCFLAGVALS entry = %d (supposed to be in [0,31] interval", meta->prmfname, val);
+                if (val < 0 || val > QCFLAGVALMAX)
+                    enkf_quit("%s: QCFLAGVALS entry = %d (supposed to be in [0,%d] interval", meta->prmfname, val, QCFLAGVALMAX);
                 qcflagvals |= 1 << val;
                 line = NULL;
             }
             free(line);
             if (qcflagvals == 0)
                 enkf_quit("%s: no valid flag entries found after QCFLAGVALS\n", meta->prmfname);
+            enkf_printf("        QCFLAGS used =");
+            for (i = 0; i <= QCFLAGVALMAX; ++i)
+                if (qcflagvals & (1 << i))
+                    enkf_printf(" %d", i);
+            enkf_printf("\n");
         } else if (strcasecmp(meta->pars[i].name, "VARSHIFT") == 0) {
             if (!str2float(meta->pars[i].value, &varshift))
                 enkf_quit("%s: can not convert VARSHIFT = \"%s\" to float\n", meta->prmfname, meta->pars[i].value);
@@ -288,8 +294,8 @@ void reader_xy_gridded(char* fname, int fid, obsmeta* meta, grid* g, observation
         qcflag = malloc(n * sizeof(int32_t));
         ncw_get_var_int(ncid, varid_qcflag, qcflag);
         for (i = 0; i < n; ++i)
-            if (qcflag[i] < 0 || qcflag[i] > 31)
-                enkf_quit("        reader_xy_gridded(): %s: %s: a value outside allowed range (expected 0 <= v <= 31)\n", fname, qcflagname);
+            if (qcflag[i] < 0 || qcflag[i] > QCFLAGVALMAX)
+                enkf_quit("        reader_xy_gridded(): %s: %s: a value outside allowed range (expected 0 <= v <= %d)\n", fname, qcflagname, QCFLAGVALMAX);
     }
 
     if (timename != NULL)
