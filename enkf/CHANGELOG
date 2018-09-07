@@ -1,7 +1,13 @@
+v. 1.85.9
+   PS 07092018
+   -- In reader_cmems_standard() - changed time variable from JULD_LOCATION
+      to JULD.
 v. 1.85.8
+   PS 06092018
    -- Added a few checks on whether all data for a variable is missing in
       reader_cmems_standard().
 v. 1.85.7
+   PS 06092018
    -- A few relatively minor changes in reader_cmems_standard(),
       reader_xy_gridded(), and reader_xyz_gridded(), some log related, others
       qcflag handling related.

@@ -246,7 +246,7 @@ void reader_cmems_standard(char* fname, int fid, obsmeta* meta, grid* g, observa
     qcflag = alloc2d(nprof, nz, sizeof(char));
     ncw_get_var_text(ncid, varid_qc, qcflag[0]);
 
-    ncw_inq_varid(ncid, "JULD_LOCATION", &varid);
+    ncw_inq_varid(ncid, "JULD", &varid);
     ncw_get_att_text(ncid, varid, "units", buf);
     tunits_convert(buf, &tunits_multiple, &tunits_offset);
     time = malloc(nprof * sizeof(double));
