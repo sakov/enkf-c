@@ -1,3 +1,7 @@
+v. 1.85.10
+   PS 10092018
+   -- Moved field "batch" in "struct observation" from "short int" to "int"
+      because of the overflow caused by drifter boys data from CMEMS.
 v. 1.85.9
    PS 07092018
    -- In reader_cmems_standard() - changed time variable from JULD_LOCATION

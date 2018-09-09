@@ -463,7 +463,7 @@ void obs_read(observations* obs, char fname[])
     short int* product;
     short int* instrument;
     short int* fid;
-    short int* batch;
+    int* batch;
     double* value;
     double* std;
     double* lon;
@@ -613,7 +613,7 @@ void obs_read(observations* obs, char fname[])
     product = malloc(nobs * sizeof(short int));
     instrument = malloc(nobs * sizeof(short int));
     fid = malloc(nobs * sizeof(short int));
-    batch = malloc(nobs * sizeof(short int));
+    batch = malloc(nobs * sizeof(int));
     value = malloc(nobs * sizeof(double));
     std = malloc(nobs * sizeof(double));
     lon = malloc(nobs * sizeof(double));
@@ -633,7 +633,7 @@ void obs_read(observations* obs, char fname[])
     ncw_get_var_short(ncid, varid_product, product);
     ncw_get_var_short(ncid, varid_instrument, instrument);
     ncw_get_var_short(ncid, varid_fid, fid);
-    ncw_get_var_short(ncid, varid_batch, batch);
+    ncw_get_var_int(ncid, varid_batch, batch);
     ncw_get_var_double(ncid, varid_value, value);
     ncw_get_var_double(ncid, varid_std, std);
     ncw_get_var_double(ncid, varid_lon, lon);
@@ -715,7 +715,7 @@ void obs_write(observations* obs, char fname[])
     short int* product;
     short int* instrument;
     short int* fid;
-    short int* batch;
+    int* batch;
     double* value;
     double* std;
     double* lon;
@@ -754,7 +754,7 @@ void obs_write(observations* obs, char fname[])
     ncw_put_att_text(ncid, varid_instrument, "long_name", "observation instrument ID");
     ncw_def_var(ncid, "fid", NC_SHORT, 1, dimid_nobs, &varid_fid);
     ncw_put_att_text(ncid, varid_fid, "long_name", "observation data file ID");
-    ncw_def_var(ncid, "batch", NC_SHORT, 1, dimid_nobs, &varid_batch);
+    ncw_def_var(ncid, "batch", NC_INT, 1, dimid_nobs, &varid_batch);
     ncw_put_att_text(ncid, varid_batch, "long_name", "observation batch ID");
     ncw_def_var(ncid, "value", NC_FLOAT, 1, dimid_nobs, &varid_value);
     ncw_put_att_text(ncid, varid_value, "long_name", "observation value");
@@ -827,7 +827,7 @@ void obs_write(observations* obs, char fname[])
     product = malloc(nobs * sizeof(short int));
     instrument = malloc(nobs * sizeof(short int));
     fid = malloc(nobs * sizeof(short int));
-    batch = malloc(nobs * sizeof(short int));
+    batch = malloc(nobs * sizeof(int));
     value = malloc(nobs * sizeof(double));
     std = malloc(nobs * sizeof(double));
     lon = malloc(nobs * sizeof(double));
@@ -879,7 +879,7 @@ void obs_write(observations* obs, char fname[])
     ncw_put_var_short(ncid, varid_product, product);
     ncw_put_var_short(ncid, varid_instrument, instrument);
     ncw_put_var_short(ncid, varid_fid, fid);
-    ncw_put_var_short(ncid, varid_batch, batch);
+    ncw_put_var_int(ncid, varid_batch, batch);
     ncw_put_var_double(ncid, varid_value, value);
     ncw_put_var_double(ncid, varid_std, std);
     ncw_put_var_double(ncid, varid_lon, lon);

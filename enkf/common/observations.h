@@ -43,7 +43,7 @@ typedef struct {
     short int product;
     short int instrument;
     short int fid;
-    short int batch;
+    int batch;
     double value;
     double std;
     double lon;
