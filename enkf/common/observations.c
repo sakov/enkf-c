@@ -983,7 +983,7 @@ void obs_superob(observations* obs, __compar_d_fn_t cmp_obs, observations** sobs
         /*
          * identify obs that will be combined into this superob 
          */
-        while (i2 + 1 < obs->nobs && cmp_obs(&data[i1], &data[i2 + 1], obs) == 0)
+        while (i2 + 1 < obs->ngood && cmp_obs(&data[i1], &data[i2 + 1], obs) == 0)
             i2++;
         if (nsobs % NOBS_INC == 0)
             sdata = realloc(sdata, (nsobs + NOBS_INC) * sizeof(observation));
