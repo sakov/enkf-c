@@ -1119,7 +1119,7 @@ void obs_superob(observations* obs, __compar_d_fn_t cmp_obs, observations** sobs
         }
         so->std = sqrt(1.0 / so->std);
 
-        nsobs += 1;
+        nsobs++;
 
         i1 = i2 + 1;
         i2 = i1;
@@ -1127,6 +1127,12 @@ void obs_superob(observations* obs, __compar_d_fn_t cmp_obs, observations** sobs
     enkf_printf("    %d superobservations\n", nsobs);
 
     *sobs = obs_create_fromdata(obs, nsobs, sdata);
+    if (sobid >= 0) {
+        enkf_printf("    sob # %d info:\n", sobid);
+        enkf_printf("      ");
+        obs_printob(*sobs, sobid);
+    }
+
     obs_calcstats(*sobs);
 }
 

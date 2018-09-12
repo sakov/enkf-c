@@ -1,3 +1,7 @@
+v. 1.86.0
+   PS 12092018
+   -- Included printing description of the superob itself when running PREP
+      with --describe-superob.
 v. 1.85.10
    PS 10092018
    -- Moved field "batch" in "struct observation" from "short int" to "int"
