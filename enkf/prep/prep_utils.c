@@ -162,7 +162,7 @@ void obs_add(observations* obs, model* m, obsmeta* meta)
                     nland++;
                     continue;
                 }
-            } else if (island(o->fi, o->fj, ni, nj, numlevels, isperiodic_i)) {
+            } else if (island(o->fi, o->fj, o->fk, ni, nj, numlevels, isperiodic_i)) {
                 o->status = STATUS_LAND;
                 nland++;
                 continue;
@@ -345,7 +345,7 @@ int obs_checkforland(observations* obs, model* m)
         int ni, nj;
 
         grid_getdims(g, &ni, &nj, NULL);
-        if (island(o->fi, o->fj, ni, nj, grid_getnumlevels(g), grid_isperiodic_i(g))) {
+        if (island(o->fi, o->fj, o->fk, ni, nj, grid_getnumlevels(g), grid_isperiodic_i(g))) {
             o->status = STATUS_LAND;
             hasland = 1;
         }
