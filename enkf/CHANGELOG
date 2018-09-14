@@ -1,3 +1,7 @@
+v. 1.86.3
+   PS 14092018
+   -- Corrected the code for counting the number of unique locations in
+      reader_cmems_standard(). Added this code to reader_cars_standard().
 v. 1.86.2
    PS 13092018
    -- Modified island() to check whether the cell is above the bottom rather

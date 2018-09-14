@@ -335,14 +335,14 @@ void reader_cmems_standard(char* fname, int fid, obsmeta* meta, grid* g, observa
     if (nobs > 0) {
         double* lonlat = malloc(nprof * sizeof(double) * 2);
         int nunique = (nprof > 0) ? 1 : 0;
-        int ii = 0;
+        int ii;
 
-        for (i = 0, ii = 0; i < nprof; ++i) {
-            lonlat[ii * 2] = lon[ii];
-            lonlat[ii * 2 + 1] = lat[ii];
+        for (i = 0; i < nprof; ++i) {
+            lonlat[i * 2] = lon[i];
+            lonlat[i * 2 + 1] = lat[i];
         }
         qsort(lonlat, nprof, sizeof(double) * 2, cmp_lonlat);
-        for (i = 1; i < nprof; ++i) {
+        for (i = 1, ii = 0; i < nprof; ++i) {
             if (lonlat[i * 2] == lonlat[ii * 2] && lonlat[i * 2 + 1] == lonlat[ii * 2 + 1])
                 continue;
             ii = i;
