@@ -1,3 +1,9 @@
+v. 1.87.0
+   PS 17092018
+   -- To deal with data from high-frequency instruments -- modified
+      obs_superob() to thin superobed observations made at the same location.
+      Added STATUS_THINNED to mark the obs being thinned; modified
+      print_obsstats() to report the number of thinned obs in PREP.
 v. 1.86.3
    PS 14092018
    -- Corrected the code for counting the number of unique locations in

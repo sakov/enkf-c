@@ -58,6 +58,7 @@ typedef struct {
     int nbadbatch;
     int nrange;
     int nsubgrid;
+    int nthinned;
     int nmodified;
 
     /*

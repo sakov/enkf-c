@@ -85,6 +85,7 @@ void obs_addtype(observations* obs, obstype* src)
     ot->nshallow = -1;
     ot->nbadbatch = -1;
     ot->nrange = -1;
+    ot->nthinned = -1;
     ot->nmodified = 0;
     ot->date_min = NAN;
     ot->date_max = NAN;
@@ -127,6 +128,7 @@ observations* obs_create(void)
     obs->noutside_obswindow = 0;
     obs->nland = 0;
     obs->nshallow = 0;
+    obs->nthinned = 0;
     obs->nbadbatch = 0;
     obs->nrange = 0;
     obs->nmodified = 0;
@@ -438,6 +440,9 @@ void obs_calcstats(observations* obs)
         } else if (m->status == STATUS_RANGE) {
             obs->nrange++;
             ot->nrange++;
+        } else if (m->status == STATUS_THINNED) {
+            obs->nthinned++;
+            ot->nthinned++;
         }
 
         if (m->date < ot->date_min)
@@ -794,6 +799,8 @@ void obs_write(observations* obs, char fname[])
     ncw_put_att_int(ncid, varid_status, "STATUS_OUTSIDEOBSDOMAIN", 1, &i);
     i = STATUS_OUTSIDEOBSWINDOW;
     ncw_put_att_int(ncid, varid_status, "STATUS_OUTSIDEOBSWINDOW", 1, &i);
+    i = STATUS_THINNED;
+    ncw_put_att_int(ncid, varid_status, "STATUS_THINNED", 1, &i);
     ncw_def_var(ncid, "aux", NC_INT, 1, dimid_nobs, &varid_aux);
     ncw_put_att_text(ncid, varid_aux, "long_name", "auxiliary information");
     ncw_put_att_text(ncid, varid_aux, "description", "for primary observations - the ID of the superobservation it is collated into; for superobservations - the number of primary observations collated");
@@ -962,10 +969,37 @@ int obs_modifiederrors_alreadywritten(observations* obs, char fname[])
 
 /**
  */
+static int cmp_xyz(const void* p1, const void* p2)
+{
+    observation* o1 = (observation*) p1;
+    observation* o2 = (observation*) p2;
+
+    if (o1->lon > o2->lon)
+        return 1;
+    else if (o1->lon < o2->lon)
+        return -1;
+    else if (o1->lat > o2->lat)
+        return 1;
+    else if (o1->lat < o2->lat)
+        return -1;
+    else if (o1->depth > o2->depth)
+        return 1;
+    else if (o1->depth < o2->depth)
+        return -1;
+    else if (o1->instrument > o2->instrument)
+        return 1;
+    else if (o1->instrument < o2->instrument)
+        return -1;
+    return 0;
+}
+
+/**
+ */
 void obs_superob(observations* obs, __compar_d_fn_t cmp_obs, observations** sobs, int sobid)
 {
     int i1 = 0, i2 = 0;
     int nsobs = 0;
+    int nthinned = 0;
     observation* data = obs->data;
     observation* sdata = NULL;
 
@@ -974,7 +1008,6 @@ void obs_superob(observations* obs, __compar_d_fn_t cmp_obs, observations** sobs
     while (i2 < obs->ngood) {
         observation* so;
         observation* o;
-        double n;
         double lon_min, lon_max;
         int ii;
         double sum, sumsq, subvar;
@@ -985,6 +1018,28 @@ void obs_superob(observations* obs, __compar_d_fn_t cmp_obs, observations** sobs
          */
         while (i2 + 1 < obs->ngood && cmp_obs(&data[i1], &data[i2 + 1], obs) == 0)
             i2++;
+
+        /*
+         * thin observations with identical positions (these are supposedly
+         * coming from high-frequency instruments)
+         */
+        qsort(&data[i1], i2 - i1 + 1, sizeof(observation), cmp_xyz);
+        {
+            int i11 = i1;
+            int i22 = i1;
+
+            while (i22 <= i2) {
+                while (i22 + 1 <= i2 && cmp_xyz(&data[i11], &data[i22 + 1]) == 0)
+                    i22++;
+                for (ii = i11 + 1; ii <= i22; ++ii) {
+                    data[ii].status = STATUS_THINNED;
+                    nthinned++;
+                }
+                i22++;
+                i11 = i22;
+            }
+        }
+
         if (nsobs % NOBS_INC == 0)
             sdata = realloc(sdata, (nsobs + NOBS_INC) * sizeof(observation));
 
@@ -1047,12 +1102,13 @@ void obs_superob(observations* obs, __compar_d_fn_t cmp_obs, observations** sobs
         so->date = o->date;
         so->status = o->status;
         so->aux = 1;
-        n = 1.0;
 
         lon_min = o->lon;
         lon_max = o->lon;
         for (ii = i1 + 1; ii <= i2; ++ii) {
             o = &data[ii];
+            if (o->status == STATUS_THINNED)
+                continue;
             if (so->product != o->product)
                 so->product = -1;
             if (so->instrument != o->instrument)
@@ -1089,7 +1145,6 @@ void obs_superob(observations* obs, __compar_d_fn_t cmp_obs, observations** sobs
             so->fk /= so->std;
             so->date /= so->std;
             so->aux++;
-            n++;
 
             if (o->lon < lon_min)
                 lon_min = o->lon;
@@ -1124,6 +1179,8 @@ void obs_superob(observations* obs, __compar_d_fn_t cmp_obs, observations** sobs
         i1 = i2 + 1;
         i2 = i1;
     }
+    if (nthinned > 0)
+        enkf_printf("    thinned %d observations\n", nthinned);
     enkf_printf("    %d superobservations\n", nsobs);
 
     *sobs = obs_create_fromdata(obs, nsobs, sdata);
