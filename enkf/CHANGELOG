@@ -1,3 +1,6 @@
+v. 1.87.1
+   PS 17092018
+   Added updating the count of thinned observations to obs_superob().
 v. 1.87.0
    PS 17092018
    -- To deal with data from high-frequency instruments -- modified
