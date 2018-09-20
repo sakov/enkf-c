@@ -482,7 +482,7 @@ void get_qcflags(obsmeta* meta, int* nqcflags, char*** qcflagname, uint32_t** qc
 
     assert(*nqcflags == 0);
     assert(*qcflagname == NULL);
-    assert(qcflagvals == NULL);
+    assert(*qcflagvals == NULL);
 
     for (i = 0; i < meta->npars; ++i) {
         if (strcasecmp(meta->pars[i].name, "QCFLAGNAME") == 0) {
