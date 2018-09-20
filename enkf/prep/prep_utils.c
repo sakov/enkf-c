@@ -32,6 +32,8 @@
 #include "prep_utils.h"
 
 #define DT_EPS 1.0e-6
+#define NINC 5
+#define QCFLAGVALMAX 31
 
 /**
  */
@@ -378,4 +380,143 @@ void print_obsstats(observations* obs, observations* sobs)
         enkf_printf("    %-7s %-8d %-8d %-8d %-8d %-8d %-8d %-8d %-8d %-8d %-8d %-8d\n", ot->name, ot->ngood, ot->nobs - ot->ngood, ot->noutside_grid, ot->noutside_obsdomain, ot->noutside_obswindow, ot->nland, ot->nshallow, ot->nbadbatch, ot->nrange, ot->nthinned, sobs->obstypes[i].nobs);
     }
     enkf_printf("    total   %-8d %-8d %-8d %-8d %-8d %-8d %-8d %-8d %-8d %-8d %-8d\n", obs->ngood, obs->nobs - obs->ngood, obs->noutside_grid, obs->noutside_obsdomain, obs->noutside_obswindow, obs->nland, obs->nshallow, obs->nbadbatch, obs->nrange, obs->nthinned, sobs->nobs);
+}
+
+#define NLONNAMES 3
+char* LONNAMES[] = { "lon",
+    "longitude",
+    "LONGITUDE"
+};
+
+/**
+ */
+char* get_lonname(int ncid, char* lonname)
+{
+    int i;
+
+    if (lonname != NULL) {
+        ncw_inq_varid(ncid, lonname, &i);
+        return lonname;
+    }
+    for (i = 0; i < NLONNAMES; ++i)
+        if (ncw_var_exists(ncid, LONNAMES[i]))
+            return LONNAMES[i];
+
+    return NULL;
+}
+
+#define NLATNAMES 3
+char* LATNAMES[] = { "lat",
+    "latitude",
+    "LATITUDE"
+};
+
+/**
+ */
+char* get_latname(int ncid, char* latname)
+{
+    int i;
+
+    if (latname != NULL) {
+        ncw_inq_varid(ncid, latname, &i);
+        return latname;
+    }
+    for (i = 0; i < NLATNAMES; ++i)
+        if (ncw_var_exists(ncid, LATNAMES[i]))
+            return LATNAMES[i];
+
+    return NULL;
+}
+
+#define NZNAMES 3
+char* ZNAMES[] = { "z",
+    "depth",
+    "DEPTH"
+};
+
+/**
+ */
+char* get_zname(int ncid, char* zname)
+{
+    int i;
+
+    if (zname != NULL) {
+        ncw_inq_varid(ncid, zname, &i);
+        return zname;
+    }
+    for (i = 0; i < NZNAMES; ++i)
+        if (ncw_var_exists(ncid, ZNAMES[i]))
+            return ZNAMES[i];
+
+    return NULL;
+}
+
+#define NTIMENAMES 3
+char* TIMENAMES[] = { "time",
+    "Time",
+    "TIME"
+};
+
+/**
+ */
+char* get_timename(int ncid, char* timename)
+{
+    int i;
+
+    if (timename != NULL) {
+        ncw_inq_varid(ncid, timename, &i);
+        return timename;
+    }
+    for (i = 0; i < NTIMENAMES; ++i)
+        if (ncw_var_exists(ncid, TIMENAMES[i]))
+            return TIMENAMES[i];
+
+    return NULL;
+}
+
+/**
+ */
+void get_qcflags(obsmeta* meta, int* nqcflags, char*** qcflagname, uint32_t** qcflagvals)
+{
+    int i;
+
+    assert(*nqcflags == 0);
+    assert(*qcflagname == NULL);
+    assert(qcflagvals == NULL);
+
+    for (i = 0; i < meta->npars; ++i) {
+        if (strcasecmp(meta->pars[i].name, "QCFLAGNAME") == 0) {
+            if (*nqcflags % NINC == 0)
+                *qcflagname = realloc(*qcflagname, (*nqcflags + NINC) * sizeof(char*));
+            (*qcflagname)[*nqcflags] = meta->pars[i].value;
+        } else if (strcasecmp(meta->pars[i].name, "QCFLAGVALS") == 0) {
+            char seps[] = " ,";
+            char* line = meta->pars[i].value;
+            char* token;
+            int val;
+            int ii;
+
+            if (*nqcflags % NINC == 0)
+                *qcflagvals = realloc(*qcflagvals, (*nqcflags + NINC) * sizeof(uint32_t));
+
+            (*qcflagvals)[*nqcflags] = 0;
+            while ((token = strtok(line, seps)) != NULL) {
+                if (!str2int(token, &val))
+                    enkf_quit("%s: could not convert QCFLAGVALS entry \"%s\" to integer", meta->prmfname, token);
+                if (val < 0 || val > 31)
+                    enkf_quit("%s: QCFLAGVALS entry = %d (supposed to be in [0,31] interval", meta->prmfname, val);
+                (*qcflagvals)[*nqcflags] |= 1 << val;
+                line = NULL;
+            }
+            if ((*qcflagvals)[*nqcflags] == 0)
+                enkf_quit("%s: no valid flag entries found after QCFLAGVALS\n", meta->prmfname);
+            enkf_printf("        QCFLAGNAME = %s\n", (*qcflagname)[*nqcflags]);
+            enkf_printf("        QCFLAG values used =");
+            for (ii = 0; ii <= QCFLAGVALMAX; ++ii)
+                if ((*qcflagvals)[*nqcflags] & (1 << ii))
+                    enkf_printf(" %d", ii);
+            enkf_printf("\n");
+            (*nqcflags)++;
+        }
+    }
 }

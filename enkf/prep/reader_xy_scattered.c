@@ -63,16 +63,16 @@ void reader_xy_scattered(char* fname, int fid, obsmeta* meta, grid* g, observati
     char* stdname = NULL;
     char* estdname = NULL;
     char* timename = NULL;
-    char* qcflagname = NULL;
-    int ncid;
-    size_t nobs;
-
-    uint32_t qcflagvals = 0;
     double varshift = 0.0;
     double mindepth = 0.0;
     char instrument[MAXSTRLEN];
+    int nqcflags = 0;
+    char** qcflagname = NULL;
+    uint32_t* qcflagvals = 0;
 
-    int varid_var = -1, varid_lon = -1, varid_lat = -1, varid_std = -1, varid_estd = -1, varid_qcflag = -1, varid_time = -1;
+    int ncid;
+    size_t nobs;
+    int varid_var = -1, varid_lon = -1, varid_lat = -1, varid_std = -1, varid_estd = -1, varid_time = -1;
     double* lon = NULL;
     double lon_add_offset, lon_scale_factor;
     double lon_fill_value = NAN;
@@ -89,7 +89,7 @@ void reader_xy_scattered(char* fname, int fid, obsmeta* meta, grid* g, observati
     double* estd = NULL;
     double estd_add_offset = NAN, estd_scale_factor = NAN;
     double estd_fill_value = NAN;
-    int32_t* qcflag = NULL;
+    uint32_t** qcflag = NULL;
     int have_time = 1;
     int singletime = -1;
     double* time = NULL;
@@ -113,26 +113,7 @@ void reader_xy_scattered(char* fname, int fid, obsmeta* meta, grid* g, observati
             stdname = meta->pars[i].value;
         else if (strcasecmp(meta->pars[i].name, "ESTDNAME") == 0)
             estdname = meta->pars[i].value;
-        else if (strcasecmp(meta->pars[i].name, "QCFLAGNAME") == 0)
-            qcflagname = meta->pars[i].value;
-        else if (strcasecmp(meta->pars[i].name, "QCFLAGVALS") == 0) {
-            char seps[] = " ,";
-            char* line = meta->pars[i].value;
-            char* token;
-            int val;
-
-            qcflagvals = 0;
-            while ((token = strtok(line, seps)) != NULL) {
-                if (!str2int(token, &val))
-                    enkf_quit("%s: could not convert QCFLAGVALS entry \"%s\" to integer", meta->prmfname, token);
-                if (val < 0 || val > 31)
-                    enkf_quit("%s: QCFLAGVALS entry = %d (supposed to be in [0,31] interval", meta->prmfname, val);
-                qcflagvals |= 1 << val;
-                line = NULL;
-            }
-            if (qcflagvals == 0)
-                enkf_quit("%s: no valid flag entries found after QCFLAGVALS\n", meta->prmfname);
-        } else if (strcasecmp(meta->pars[i].name, "VARSHIFT") == 0) {
+        else if (strcasecmp(meta->pars[i].name, "VARSHIFT") == 0) {
             if (!str2double(meta->pars[i].value, &varshift))
                 enkf_quit("%s: can not convert VARSHIFT = \"%s\" to double\n", meta->prmfname, meta->pars[i].value);
             enkf_printf("        VARSHIFT = %f\n", varshift);
@@ -143,35 +124,40 @@ void reader_xy_scattered(char* fname, int fid, obsmeta* meta, grid* g, observati
             if (!str2double(meta->pars[i].value, &mindepth))
                 enkf_quit("%s: can not convert MINDEPTH = \"%s\" to double\n", meta->prmfname, meta->pars[i].value);
             enkf_printf("        MINDEPTH = %f\n", mindepth);
-        } else if (strcasecmp(meta->pars[i].name, "INSTRUMENT") == 0) {
+        } else if (strcasecmp(meta->pars[i].name, "INSTRUMENT") == 0)
             strncpy(instrument, meta->pars[i].value, MAXSTRLEN);
-        } else
+        else if (strcasecmp(meta->pars[i].name, "QCFLAGNAME") == 0 || strcasecmp(meta->pars[i].name, "QCFLAGVALS") == 0)
+            /*
+             * QCFLAGNAME and QCFLAGVALS are dealt with separately
+             */
+            ;
+        else
             enkf_quit("unknown PARAMETER \"%s\"\n", meta->pars[i].name);
     }
+    get_qcflags(meta, &nqcflags, &qcflagname, &qcflagvals);
+
     if (varname == NULL)
-        enkf_quit("reader_xy_scattered(): %s variable name not specified", fname);
+        enkf_quit("reader_xy_scattered(): %s: VARNAME not specified", fname);
+    else
+        enkf_printf("        VARNAME = %s\n", varname);
 
     ncw_open(fname, NC_NOWRITE, &ncid);
     ncw_inq_varid(ncid, varname, &varid_var);
     ncw_inq_vardims(ncid, varid_var, 1, NULL, &nobs);
 
-    if (lonname != NULL)
+    lonname = get_lonname(ncid, lonname);
+    if (lonname != NULL) {
+        enkf_printf("        LONNAME = %s\n", lonname);
         ncw_inq_varid(ncid, lonname, &varid_lon);
-    else if (ncw_var_exists(ncid, "lon"))
-        ncw_inq_varid(ncid, "lon", &varid_lon);
-    else if (ncw_var_exists(ncid, "longitude"))
-        ncw_inq_varid(ncid, "longitude", &varid_lon);
-    else
+    } else
         enkf_quit("reader_xy_scattered(): %s: could not find longitude variable", fname);
 
-    if (latname != NULL)
+    latname = get_latname(ncid, latname);
+    if (latname != NULL) {
+        enkf_printf("        LATNAME = %s\n", latname);
         ncw_inq_varid(ncid, latname, &varid_lat);
-    else if (ncw_var_exists(ncid, "lat"))
-        ncw_inq_varid(ncid, "lat", &varid_lat);
-    else if (ncw_var_exists(ncid, "latitude"))
-        ncw_inq_varid(ncid, "latitude", &varid_lat);
-    else
-        enkf_quit("reader_xy_scattered(): %s: could not find latitude variable", fname);
+    } else
+        enkf_quit("reader_xyz_scattered(): %s: could not find latitude variable", fname);
 
     lon = malloc(nobs * sizeof(double));
     lat = malloc(nobs * sizeof(double));
@@ -252,17 +238,21 @@ void reader_xy_scattered(char* fname, int fid, obsmeta* meta, grid* g, observati
             ncw_get_att_double(ncid, varid_var, "error_std", &var_estd);
         }
 
-    if (qcflagname != NULL) {
-        ncw_inq_varid(ncid, qcflagname, &varid_qcflag);
-        qcflag = malloc(nobs * sizeof(int32_t));
-        ncw_get_var_int(ncid, varid_qcflag, qcflag);
+    if (nqcflags > 0) {
+        int varid = -1;
+
+        qcflag = alloc2d(nqcflags, nobs, sizeof(int32_t));
+        for (i = 0; i < nqcflags; ++i) {
+            ncw_inq_varid(ncid, qcflagname[i], &varid);
+            ncw_get_var_uint(ncid, varid, qcflag[i]);
+        }
     }
 
-    if (timename != NULL)
+    timename = get_timename(ncid, timename);
+    if (timename != NULL) {
+        enkf_printf("        TIMENAME = %s\n", timename);
         ncw_inq_varid(ncid, timename, &varid_time);
-    else if (ncw_var_exists(ncid, "time"))
-        ncw_inq_varid(ncid, "time", &varid_time);
-    else {
+    } else {
         enkf_printf("        reader_xy_scattered(): %s: no TIME variable\n", fname);
         have_time = 0;
     }
@@ -311,13 +301,15 @@ void reader_xy_scattered(char* fname, int fid, obsmeta* meta, grid* g, observati
     for (i = 0; i < nobs; ++i) {
         observation* o;
         obstype* ot;
+        int ii;
 
         if (lon[i] == lon_fill_value || isnan(lon[i]) || lat[i] == lat_fill_value || isnan(lat[i]))
             continue;
         if (var[i] == var_fill_value || isnan(var[i]) || (std != NULL && (std[i] == std_fill_value || isnan(std[i]))) || (estd != NULL && (estd[i] == estd_fill_value || isnan(estd[i]))) || (have_time && !singletime && (time[i] == time_fill_value || isnan(time[i]))))
             continue;
-        if (qcflag != NULL && !(qcflag[i] | qcflagvals))
-            continue;
+        for (ii = 0; ii < nqcflags; ++ii)
+            if (!(qcflag[ii][i] | qcflagvals[ii]))
+                continue;
 
         nobs_read++;
         obs_checkalloc(obs);
@@ -369,6 +361,9 @@ void reader_xy_scattered(char* fname, int fid, obsmeta* meta, grid* g, observati
         free(estd);
     if (time != NULL)
         free(time);
-    if (qcflag != NULL)
+    if (nqcflags > 0) {
+        free(qcflagname);
+        free(qcflagvals);
         free(qcflag);
+    }
 }

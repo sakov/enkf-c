@@ -1,6 +1,13 @@
+v. 1.88.0
+   PS 20092018
+   -- Modified reader_xy_gridded(), reader_xyz_gridded(), reader_xy_scattered(),
+      reader_xyz_scattered() to allow multiple instances of QC flags (e.g.
+      for the observed variable and coordinates). In prep_utils.c created
+      get_lonname()m get_latname(), get_zname(), get_timename(), get_qcflags()
+      for common treatment in readers.
 v. 1.87.1
    PS 17092018
-   Added updating the count of thinned observations to obs_superob().
+   -- Added updating the count of thinned observations to obs_superob().
 v. 1.87.0
    PS 17092018
    -- To deal with data from high-frequency instruments -- modified

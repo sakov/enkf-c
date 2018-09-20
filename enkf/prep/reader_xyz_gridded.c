@@ -62,7 +62,6 @@
 
 #define TYPE_DOUBLE 0
 #define TYPE_SHORT 1
-#define QCFLAGVALMAX 31
 
 /**
  */
@@ -75,15 +74,15 @@ void reader_xyz_gridded(char* fname, int fid, obsmeta* meta, grid* g, observatio
     char* npointsname = NULL;
     char* stdname = NULL;
     char* estdname = NULL;
-    char* qcflagname = NULL;
     char* timename = NULL;
-    int ncid;
-
-    uint32_t qcflagvals = 0;
     float varshift = 0.0;
     double mindepth = 0.0;
     char instrument[MAXSTRLEN];
+    int nqcflags = 0;
+    char** qcflagname = NULL;
+    uint32_t* qcflagvals = 0;
 
+    int ncid;
     int iscurv = -1, zndim = -1;
     int ndim_var, ndim_xy;
     size_t dimlen_var[4], dimlen_xy[2], dimlen_z[3];
@@ -93,7 +92,7 @@ void reader_xyz_gridded(char* fname, int fid, obsmeta* meta, grid* g, observatio
     double* lat = NULL;
     float* z = NULL;
 
-    int varid_var = -1, varid_npoints = -1, varid_std = -1, varid_estd = -1, varid_qcflag = -1, varid_time = -1;
+    int varid_var = -1, varid_npoints = -1, varid_std = -1, varid_estd = -1, varid_time = -1;
     float* var = NULL;
     float var_fill_value = NAN;
     float var_add_offset = NAN, var_scale_factor = NAN;
@@ -105,7 +104,7 @@ void reader_xyz_gridded(char* fname, int fid, obsmeta* meta, grid* g, observatio
     float* estd = NULL;
     float estd_add_offset = NAN, estd_scale_factor = NAN;
     float estd_fill_value = NAN;
-    int32_t* qcflag = NULL;
+    uint32_t** qcflag = NULL;
     int have_time = 1;
     int singletime = -1;
     float* time = NULL;
@@ -133,34 +132,7 @@ void reader_xyz_gridded(char* fname, int fid, obsmeta* meta, grid* g, observatio
             stdname = meta->pars[i].value;
         else if (strcasecmp(meta->pars[i].name, "ESTDNAME") == 0)
             estdname = meta->pars[i].value;
-        else if (strcasecmp(meta->pars[i].name, "QCFLAGNAME") == 0)
-            qcflagname = meta->pars[i].value;
-        else if (strcasecmp(meta->pars[i].name, "QCFLAGVALS") == 0) {
-            char seps[] = " ,";
-            char* line = strdup(meta->pars[i].value);
-            char* token;
-            int val;
-
-            assert(meta->pars[i].value != NULL);        /* (supposed to be
-                                                         * impossible) */
-            qcflagvals = 0;
-            while ((token = strtok(line, seps)) != NULL) {
-                if (!str2int(token, &val))
-                    enkf_quit("%s: could not convert QCFLAGVALS entry \"%s\" to integer", meta->prmfname, token);
-                if (val < 0 || val > QCFLAGVALMAX)
-                    enkf_quit("%s: QCFLAGVALS entry = %d (supposed to be in [0,%d] interval", meta->prmfname, val, QCFLAGVALMAX);
-                qcflagvals |= 1 << val;
-                line = NULL;
-            }
-            free(line);
-            if (qcflagvals == 0)
-                enkf_quit("%s: no valid flag entries found after QCFLAGVALS\n", meta->prmfname);
-            enkf_printf("        QCFLAGS used =");
-            for (i = 0; i <= QCFLAGVALMAX; ++i)
-                if (qcflagvals & (1 << i))
-                    enkf_printf(" %d", i);
-            enkf_printf("\n");
-        } else if (strcasecmp(meta->pars[i].name, "VARSHIFT") == 0) {
+        else if (strcasecmp(meta->pars[i].name, "VARSHIFT") == 0) {
             if (!str2float(meta->pars[i].value, &varshift))
                 enkf_quit("%s: can not convert VARSHIFT = \"%s\" to float\n", meta->prmfname, meta->pars[i].value);
             enkf_printf("        VARSHIFT = %s\n", meta->pars[i].value);
@@ -168,13 +140,22 @@ void reader_xyz_gridded(char* fname, int fid, obsmeta* meta, grid* g, observatio
             if (!str2double(meta->pars[i].value, &mindepth))
                 enkf_quit("%s: can not convert MINDEPTH = \"%s\" to double\n", meta->prmfname, meta->pars[i].value);
             enkf_printf("        MINDEPTH = %f\n", mindepth);
-        } else if (strcasecmp(meta->pars[i].name, "INSTRUMENT") == 0) {
+        } else if (strcasecmp(meta->pars[i].name, "INSTRUMENT") == 0)
             strncpy(instrument, meta->pars[i].value, MAXSTRLEN);
-        } else
+        else if (strcasecmp(meta->pars[i].name, "QCFLAGNAME") == 0 || strcasecmp(meta->pars[i].name, "QCFLAGVALS") == 0)
+            /*
+             * QCFLAGNAME and QCFLAGVALS are dealt with separately
+             */
+            ;
+        else
             enkf_quit("unknown PARAMETER \"%s\"\n", meta->pars[i].name);
     }
+    get_qcflags(meta, &nqcflags, &qcflagname, &qcflagvals);
+
     if (varname == NULL)
         enkf_quit("reader_xyz_gridded(): %s: VARNAME not specified", fname);
+    else
+        enkf_printf("        VARNAME = %s\n", varname);
 
     ncw_open(fname, NC_NOWRITE, &ncid);
     ncw_inq_varid(ncid, varname, &varid_var);
@@ -190,13 +171,11 @@ void reader_xyz_gridded(char* fname, int fid, obsmeta* meta, grid* g, observatio
     } else
         enkf_quit("reader_xyz_gridded(): %s: %s: # dimensions = %d (must be 3 or 4 with a single record)", fname, varname, ndim_var);
 
-    if (lonname != NULL)
+    lonname = get_lonname(ncid, lonname);
+    if (lonname != NULL) {
+        enkf_printf("        LONNAME = %s\n", lonname);
         ncw_inq_varid(ncid, lonname, &varid_lon);
-    else if (ncw_var_exists(ncid, "lon"))
-        ncw_inq_varid(ncid, "lon", &varid_lon);
-    else if (ncw_var_exists(ncid, "longitude"))
-        ncw_inq_varid(ncid, "longitude", &varid_lon);
-    else
+    } else
         enkf_quit("reader_xyz_gridded(): %s: could not find longitude variable", fname);
 
     ncw_inq_vardims(ncid, varid_lon, 2, &ndim_xy, dimlen_xy);
@@ -210,26 +189,20 @@ void reader_xyz_gridded(char* fname, int fid, obsmeta* meta, grid* g, observatio
     } else
         enkf_quit("reader_xyz_gridded(): %s: coordinate variable \"%s\" has neither 1 or 2 dimensions", fname, lonname);
 
-    if (latname != NULL)
+    latname = get_latname(ncid, latname);
+    if (latname != NULL) {
+        enkf_printf("        LATNAME = %s\n", latname);
         ncw_inq_varid(ncid, latname, &varid_lat);
-    else if (ncw_var_exists(ncid, "lat"))
-        ncw_inq_varid(ncid, "lat", &varid_lat);
-    else if (ncw_var_exists(ncid, "latitude"))
-        ncw_inq_varid(ncid, "latitude", &varid_lat);
-    else
-        enkf_quit("reader_xyz_gridded(): %s: could not find latitude variable", fname);
-    if (iscurv == 0) {
-        ncw_check_varndims(ncid, varid_lat, 1);
-        ncw_inq_vardims(ncid, varid_lat, 1, NULL, &nj);
     } else
-        ncw_check_vardims(ncid, varid_lat, 2, dimlen_xy);
+        enkf_quit("reader_xyz_gridded(): %s: could not find latitude variable", fname);
 
-    if (zname != NULL)
+    zname = get_zname(ncid, zname);
+    if (zname != NULL) {
+        enkf_printf("        ZNAME = %s\n", zname);
         ncw_inq_varid(ncid, zname, &varid_z);
-    else if (ncw_var_exists(ncid, "z"))
-        ncw_inq_varid(ncid, "z", &varid_z);
-    else
-        enkf_quit("reader_xyz_gridded(): %s: could not find z variable", fname);
+    } else
+        enkf_quit("reader_xzy_gridded(): %s: could not find Z variable", fname);
+
     ncw_inq_vardims(ncid, varid_z, 3, &zndim, dimlen_z);
     if (zndim == 1)
         nk = dimlen_z[0];
@@ -317,20 +290,21 @@ void reader_xyz_gridded(char* fname, int fid, obsmeta* meta, grid* g, observatio
             ncw_get_att_double(ncid, varid_var, "error_std", &var_estd);
         }
 
-    if (qcflagname != NULL) {
-        ncw_inq_varid(ncid, qcflagname, &varid_qcflag);
-        qcflag = malloc(nijk * sizeof(int32_t));
-        ncw_get_var_int(ncid, varid_qcflag, qcflag);
-        for (i = 0; i < nijk; ++i)
-            if (qcflag[i] < 0 || qcflag[i] > QCFLAGVALMAX)
-                enkf_quit("        reader_xyz_gridded(): %s: %s: a value outside allowed range (expected 0 <= v <= %d)\n", fname, qcflagname, QCFLAGVALMAX);
+    if (nqcflags > 0) {
+        int varid = -1;
+
+        qcflag = alloc2d(nqcflags, nijk, sizeof(int32_t));
+        for (i = 0; i < nqcflags; ++i) {
+            ncw_inq_varid(ncid, qcflagname[i], &varid);
+            ncw_get_var_uint(ncid, varid, qcflag[i]);
+        }
     }
 
-    if (timename != NULL)
+    timename = get_timename(ncid, timename);
+    if (timename != NULL) {
+        enkf_printf("        TIMENAME = %s\n", timename);
         ncw_inq_varid(ncid, timename, &varid_time);
-    else if (ncw_var_exists(ncid, "time"))
-        ncw_inq_varid(ncid, "time", &varid_time);
-    else {
+    } else {
         enkf_printf("        reader_xyz_gridded(): %s: no TIME variable\n", fname);
         have_time = 0;
     }
@@ -376,11 +350,13 @@ void reader_xyz_gridded(char* fname, int fid, obsmeta* meta, grid* g, observatio
         int ij = i % nij;
         observation* o;
         obstype* ot;
+        int ii;
 
         if ((npoints != NULL && npoints[i] == 0) || var[i] == var_fill_value || isnan(var[i]) || (std != NULL && (std[i] == std_fill_value || isnan(std[i]))) || (estd != NULL && (estd[i] == estd_fill_value || isnan(estd[i]))) || (have_time && !singletime && (time[i] == time_fill_value || isnan(time[i]))))
             continue;
-        if (qcflag != NULL && !((1 << qcflag[i]) & qcflagvals))
-            continue;
+        for (ii = 0; ii < nqcflags; ++ii)
+            if (!(qcflag[ii][i] | qcflagvals[ii]))
+                continue;
 
         nobs_read++;
         obs_checkalloc(obs);
@@ -462,6 +438,9 @@ void reader_xyz_gridded(char* fname, int fid, obsmeta* meta, grid* g, observatio
         free(npoints);
     if (time != NULL)
         free(time);
-    if (qcflag != NULL)
+    if (nqcflags > 0) {
+        free(qcflagname);
+        free(qcflagvals);
         free(qcflag);
+    }
 }
