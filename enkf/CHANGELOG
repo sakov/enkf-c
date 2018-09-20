@@ -1,3 +1,6 @@
+v. 1.88.1
+   PS 21092018
+   -- Fixed a defect in model_addorreplacedata().
 v. 1.88.0
    PS 20092018
    -- Modified reader_xy_gridded(), reader_xyz_gridded(), reader_xy_scattered(),

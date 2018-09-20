@@ -369,16 +369,18 @@ void model_addorreplacedata(model* m, char tag[], int vid, int alloctype, void* 
         if (strcmp(tag, m->data[i].tag) == 0)
             break;
 
-    mdata = &m->data[i];
     if (i == m->ndata) {
         if (m->ndata % NMODELDATA_INC == 0)
             m->data = realloc(m->data, (m->ndata + NMODELDATA_INC) * sizeof(modeldata));
+        mdata = &m->data[i];
         mdata->tag = strdup(tag);
         mdata->vid = vid;
         mdata->alloctype = alloctype;
         m->ndata++;
-    } else
-        assert(mdata->alloctype == alloctype);
+    } else {
+        mdata = &m->data[i];
+        assert(m->data[i].alloctype == alloctype);
+    }
 
     model_getvardims(m, mdata->vid, &ni, &nj, &nk);
     if (mdata->alloctype == ALLOCTYPE_1D)
