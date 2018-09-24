@@ -232,7 +232,6 @@ static double mldtaper(double mld, double z)
 {
     double v;
 
-    assert(z >= 0.0);
     v = (z / mld - 1) / MLD_TRANSITION;
     if (v < -1.0)
         return 1.0;

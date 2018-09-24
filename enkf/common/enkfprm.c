@@ -567,7 +567,7 @@ void enkfprm_print(enkfprm* prm, char offset[])
     for (i = 0; i < prm->nregions; ++i) {
         region* r = &prm->regions[i];
 
-        enkf_printf("%sREGION %s: x = [%.1f, %.1f], y = [%.1f, %.1f], z intervals = ", offset, r->name, r->x1, r->x2, r->y1, r->y2);
+        enkf_printf("%sREGION %s: x = [%.1f, %.1f], y = [%.1f, %.1f]", offset, r->name, r->x1, r->x2, r->y1, r->y2);
         enkf_printf("\n");
     }
     if (!enkf_fstatsonly) {
