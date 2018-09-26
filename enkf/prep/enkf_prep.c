@@ -302,6 +302,7 @@ int main(int argc, char* argv[])
 
         memcpy(data, obs->data, obs->ngood * sizeof(observation));
         sobs = obs_create_fromdata(obs, obs->ngood, data);
+	obs_calcstats(sobs);
         obs_write(sobs, FNAME_SOBS);
         goto finalise;
     }

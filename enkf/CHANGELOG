@@ -1,3 +1,7 @@
+v. 1.88.3
+   PS 26092018
+   -- Added obs_calcstats() in enkf_prep.c:main() in the case --no-superobing to
+      get correct counts of observations of each type.
 v. 1.88.2
    PS 24092018
    -- Removed assertion z >= 0 in mldtaper().
