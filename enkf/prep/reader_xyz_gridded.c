@@ -38,7 +38,19 @@
  *                  name of the QC flag variable, 0 <= qcflag <= 31
  *              - QCFLAGVALS (-)
  *                  the list of allowed values of QC flag variable
-*
+ *              Note: it is possible to have multiple entries of QCFLAGNAME and
+ *                QCFLAGVALS combination, e.g.:
+ *                  PARAMETER QCFLAGNAME = TEMP_quality_control
+ *                  PARAMETER QCFLAGVALS = 1
+ *                  PARAMETER QCFLAGNAME = DEPTH_quality_control
+ *                  PARAMETER QCFLAGVALS = 1
+ *                  PARAMETER QCFLAGNAME = LONGITUDE_quality_control
+ *                  PARAMETER QCFLAGVALS = 1,8
+ *                  PARAMETER QCFLAGNAME = LATITUDE_quality_control
+ *                  PARAMETER QCFLAGVALS = 1,8
+ *                An observation is considered valid if each of the specified
+ *                flags takes a permitted value.
+ *
  * Revisions:   PS 6/7/2018
  *                Added parameters QCFLAGNAME and QCFLAGVALS. The latter is
  *                supposed to contain a list of allowed flag values.
