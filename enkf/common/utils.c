@@ -1467,7 +1467,7 @@ ENSOBSTYPE interpolate2d(double fi, double fj, int ni, int nj, float** v, int** 
 
 /** A part of interpolate2d() that looks at mask in adjacent nodes only.
  */
-int island(double fi, double fj, double fk, int ni, int nj, int** numlevels, int periodic_i)
+int island(double fi, double fj, double fk, int ni, int nj, int ksurf, int** numlevels, int periodic_i)
 {
     int i1 = (int) floor(fi);
     int i2 = (int) ceil(fi);
@@ -1483,6 +1483,8 @@ int island(double fi, double fj, double fk, int ni, int nj, int** numlevels, int
     if (j2 == nj)
         j2 = j1;
 
+    if (ksurf > 0)
+	fk = (double) ksurf - fk;
     if (fk == 0.0)
         return !(numlevels[j1][i1] || numlevels[j1][i2] || numlevels[j2][i1] || numlevels[j2][i2]);
     else {
