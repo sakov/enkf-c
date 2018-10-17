@@ -46,6 +46,7 @@ typedef struct {
 
     model* m;
 
+#if defined(ENKF_CALC)
     observations* obs;
     /*
      * Currently there are two observation sorting modes used by the code: by ID
@@ -79,6 +80,9 @@ typedef struct {
     double* s_a;                /* innovation */
     double* std_a;              /* ensemble spread */
     int s_mode;
+
+    double kfactor;
+#endif
 #if defined(HE_VIASHMEM)
     ENSOBSTYPE** St;            /* (S transposed) */
     /*
@@ -93,8 +97,6 @@ typedef struct {
     int node_size;
     int* node_ranks;
 #endif
-    double kfactor;
-
     int fieldbufsize;
 
     int nregions;
@@ -116,7 +118,6 @@ typedef struct {
 dasystem* das_create(enkfprm* prm);
 void das_destroy(dasystem* das);
 
-void das_setobstypes(dasystem* das);
 void das_getHE(dasystem* das);
 void das_addanalysis(dasystem* das, char fname[]);
 void das_addforecast(dasystem* das, char fname[]);

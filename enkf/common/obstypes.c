@@ -471,6 +471,31 @@ void obstypes_set(int n, obstype* types, model* m)
             for (j = 0; j < ot->ndomains; ++j)
                 if (model_getdomainid(m, ot->domainnames[j]) < 0)
                     enkf_quit("OBSTYPE = %s: no grid is associated with domain \"%s\"\n", ot->name, ot->domainnames[j]);
+
+#if defined(ENKF_CALC)
+        char tag[MAXSTRLEN];
+
+        snprintf(tag, MAXSTRLEN, "%s:OFFSET", ot->name);
+        if (ot->offset_fname != NULL) {
+            if (ot->issurface || !is3d(ot->offset_fname, ot->offset_varname)) {
+                float** v = NULL;
+                int nx, ny;
+
+                model_getvardims(m, vid, &nx, &ny, NULL);
+                v = alloc2d(ny, nx, sizeof(float));
+                readfield(ot->offset_fname, ot->offset_varname, 0, nx, ny, 1, v[0]);
+                model_adddata(m, tag, vid, ALLOCTYPE_2D, v);
+            } else {
+                float*** v = NULL;
+                int nx, ny, nz;
+
+                model_getvardims(m, vid, &nx, &ny, &nz);
+                v = alloc3d(nz, ny, nx, sizeof(float));
+                read3dfield(ot->offset_fname, ot->offset_varname, nx, ny, nz, v[0][0]);
+                model_adddata(m, tag, vid, ALLOCTYPE_3D, v);
+            }
+        }
+#endif
     }
 }
 

@@ -38,47 +38,6 @@
 #define NFIELDS_INC 100
 #define MPIIDOFFSET 10000
 
-#if defined(ENKF_CALC)
-/**
- */
-void das_setobstypes(dasystem* das)
-{
-    int n = das->obs->nobstypes;
-    obstype* types = das->obs->obstypes;
-    model* m = das->m;
-    char tag[MAXSTRLEN];
-    int i;
-
-    obstypes_set(n, types, m);
-
-    for (i = 0; i < n; ++i) {
-        obstype* ot = &types[i];
-        int vid = model_getvarid(m, types[i].varnames[0], 1);
-
-        snprintf(tag, MAXSTRLEN, "%s:OFFSET", ot->name);
-        if (ot->offset_fname != NULL) {
-            if (ot->issurface || !is3d(ot->offset_fname, ot->offset_varname)) {
-                float** v = NULL;
-                int nx, ny;
-
-                model_getvardims(m, vid, &nx, &ny, NULL);
-                v = alloc2d(ny, nx, sizeof(float));
-                readfield(ot->offset_fname, ot->offset_varname, 0, nx, ny, 1, v[0]);
-                model_adddata(m, tag, vid, ALLOCTYPE_2D, v);
-            } else {
-                float*** v = NULL;
-                int nx, ny, nz;
-
-                model_getvardims(m, vid, &nx, &ny, &nz);
-                v = alloc3d(nz, ny, nx, sizeof(float));
-                read3dfield(ot->offset_fname, ot->offset_varname, nx, ny, nz, v[0][0]);
-                model_adddata(m, tag, vid, ALLOCTYPE_3D, v);
-            }
-        }
-    }
-}
-#endif
-
 /**
  */
 dasystem* das_create(enkfprm* prm)
@@ -101,8 +60,7 @@ dasystem* das_create(enkfprm* prm)
 
     das->m = model_create(prm);
 #if defined(ENKF_CALC)
-    das_setobstypes(das);
-#endif
+    obstypes_set(das->obs->nobstypes, das->obs->obstypes, das->m);
 
     das->S = NULL;
     das->s_f = NULL;
@@ -110,6 +68,7 @@ dasystem* das_create(enkfprm* prm)
     das->s_a = NULL;
     das->std_a = NULL;
     das->s_mode = S_MODE_NONE;
+#endif
 
 #if defined(HE_VIASHMEM)
     {
@@ -165,8 +124,6 @@ dasystem* das_create(enkfprm* prm)
     } else {
         das->kfactor = NAN;
     }
-#elif defined(ENKF_UPDATE)
-    das->kfactor = NAN;
 #endif
     if (!enkf_fstatsonly)
         das->fieldbufsize = prm->fieldbufsize;
@@ -264,12 +221,18 @@ void das_destroy(dasystem* das)
     obs_destroy(das->obs);
 #endif
     model_destroy(das->m);
+#if defined(ENKF_CALC)
     if (das->S != NULL)
         free(das->S);
     if (das->s_f != NULL) {
         free(das->s_f);
         free(das->std_f);
     }
+    if (das->s_a != NULL) {
+        free(das->s_a);
+        free(das->std_a);
+    }
+#endif
 #if defined (HE_VIASHMEM)
     if (das->sm_win != MPI_WIN_NULL)
         MPI_Win_free(&das->sm_win);
@@ -284,10 +247,6 @@ void das_destroy(dasystem* das)
     if (das->St != NULL)
         free(das->St);
 #endif
-    if (das->s_a != NULL) {
-        free(das->s_a);
-        free(das->std_a);
-    }
     if (das->nregions > 0) {
         for (i = 0; i < das->nregions; ++i)
             free(das->regions[i].name);

@@ -23,6 +23,7 @@
 #include "dasystem.h"
 #include "pointlog.h"
 
+#if defined(ENKF_CALC)
 /** Creates a point log file and writes ensemble observations, transforms, and
  * accompanying information.
  */
@@ -173,7 +174,9 @@ void plog_write(dasystem* das, int id, double depth, int p, int* lobs, double* l
 
     ncw_close(ncid);
 }
+#endif
 
+#if defined(ENKF_UPDATE)
 /** Writes the "actual" (interpolated) ensemble transform to a pointlog file.
  */
 void plog_writeactualtransform(dasystem* das, int id, float* transform)
@@ -507,3 +510,4 @@ void plog_assemblestatevars(dasystem* das)
     free(v);
     free(fields);
 }
+#endif

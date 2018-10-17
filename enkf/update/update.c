@@ -596,7 +596,6 @@ static void das_updatebg(dasystem* das, int nfields, void** fieldbuffer, field f
         free(wjj1);
         free(wjj2);
     }
-    das->s_mode = S_MODE_HE_a;
 }
 
 /** Write analyses/increments directly to the output NetCDF file.
