@@ -1390,9 +1390,9 @@ These transforms are then used for updating of the model variables defined on th
 \subsection{Domains}
 
 By default, all ``local'' observations at a given grid node contribute to the corresponding ensemble transform.
-Sometimes it is desirable to disconnect observations of certain type from contributing to transforms on a specific grid.
+Sometimes it is desirable to disconnect observations of certain type from contributing to transforms on some grids.
 For example, it may be desirable in climate systems to disregard observations of the sea surface height in updating the variables on atmospheric grids.
-The ``domains'' introduced in v1.89.0 provide a mechanism for handling such situations.
+The concept of ``domains'' introduced in v1.89.0 provides a mechanism for handling such situations within a single analysis.
 It works as follows.
 Each grid can be associated with a certain domain via the optional entry \verb|DOMAIN| in the grid parameter file.
 For example, in a climate system one can have domains ``Ocean'' and ``Atmoshere''.
