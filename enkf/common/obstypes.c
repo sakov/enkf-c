@@ -30,7 +30,7 @@
 #include "enkfprm.h"
 #include "obstypes.h"
 
-#define NVAR_INC 10
+#define NINC 10
 
 /**
  */
@@ -82,6 +82,8 @@ static void obstype_new(obstype* type, int i, char* name)
     type->windowmax = NAN;
     type->date_min = DBL_MAX;
     type->date_max = -DBL_MAX;
+    type->ndomains = 0;
+    type->domainnames = NULL;
 }
 
 /**
@@ -108,6 +110,12 @@ static void obstype_print(obstype* type)
     int i;
 
     enkf_printf("    NAME = %s\n", type->name);
+    if (type->ndomains > 0) {
+        enkf_printf("    DOMAINS =");
+        for (i = 0; i < type->ndomains; ++i)
+            enkf_printf(" %s\n", type->domainnames[i]);
+        enkf_printf("\n");
+    }
     enkf_printf("    ISSURFACE = %d\n", (type->issurface) ? 1 : 0);
     enkf_printf("      VAR =");
     for (i = 0; i < type->nvar; ++i)
@@ -136,7 +144,7 @@ static void obstype_print(obstype* type)
     if (type->nlobsmax != INT_MAX)
         enkf_printf("      NLOBSMAX = %d\n", type->nlobsmax);
     if (type->xmin > -DBL_MAX || type->xmax < DBL_MAX || type->ymin > -DBL_MAX || type->ymax < DBL_MAX || type->zmin > -DBL_MAX || type->zmax < DBL_MAX)
-        enkf_printf("      DOMAIN = %.3g %.3g %.3g %.3g %.3g %.3g\n", type->xmin, type->xmax, type->ymin, type->ymax, type->zmin, type->zmax);
+        enkf_printf("      SPATIAL DOMAIN = %.3g %.3g %.3g %.3g %.3g %.3g\n", type->xmin, type->xmax, type->ymin, type->ymax, type->zmin, type->zmax);
     if (isfinite(type->windowmin)) {
         enkf_printf("      WINDOWMIN = %.3f", type->windowmin);
         enkf_printf("      WINDOWMAX = %.3f", type->windowmax);
@@ -195,8 +203,8 @@ void obstypes_read(enkfprm* prm, char fname[], int* n, obstype** types)
             if (now->varnames != NULL)
                 enkf_quit("%s, l.%d: VAR already specified", fname, line);
             while (token != NULL) {
-                if (now->nvar % NVAR_INC == 0)
-                    now->varnames = realloc(now->varnames, (now->nvar + NVAR_INC) * sizeof(char*));
+                if (now->nvar % NINC == 0)
+                    now->varnames = realloc(now->varnames, (now->nvar + NINC) * sizeof(char*));
                 now->varnames[now->nvar] = strdup(token);
                 now->nvar++;
                 token = strtok(NULL, seps);
@@ -342,6 +350,17 @@ void obstypes_read(enkfprm* prm, char fname[], int* n, obstype** types)
                 enkf_quit("%s, l.%d: WINDOWMAX not specified", fname, line);
             else if (!str2double(token, &now->windowmax))
                 enkf_quit("%s, l.%d: could convert WINDOWMAX entry", fname, line);
+        } else if (strcasecmp(token, "DOMAINS") == 0) {
+            if (now->ndomains != 0)
+                enkf_quit("%s, l.%d: DOMAINS specified twice", fname, line);
+            while ((token = strtok(NULL, seps)) != NULL) {
+                if (now->ndomains % NINC == 0)
+                    now->domainnames = realloc(now->domainnames, (now->ndomains + NINC) * sizeof(char*));
+                now->domainnames[now->ndomains] = strdup(token);
+                now->ndomains++;
+            }
+            if (now->ndomains == 0)
+                enkf_quit("%s, l.%d: DOMAINS not specified", fname, line);
         } else
             enkf_quit("%s, l.%d: unknown token \"%s\"", fname, line, token);
     }
@@ -400,8 +419,9 @@ void obstypes_describeprm(void)
     enkf_printf("  Observation types parameter file format:\n");
     enkf_printf("\n");
     enkf_printf("    NAME        = <name>\n");
+    enkf_printf("  [ DOMAINS     = <domain name> ... ]\n");
     enkf_printf("    ISSURFACE   = {0 | 1}\n");
-    enkf_printf("    VAR         = <model variable name> [...]\n");
+    enkf_printf("    VAR         = <model variable name> ...\n");
     enkf_printf("  [ OFFSET      = <file name> <variable name> ]    (none*)\n");
     enkf_printf("  [ MLD_VARNAME = <model varname> ]                (none*)\n");
     enkf_printf("  [ MLD_THRESH  = <threshold> ]                    (NaN*)\n");
@@ -433,11 +453,6 @@ void obstypes_describeprm(void)
     enkf_printf("\n");
 }
 
-#if defined(ENKF_PREP)
-/*
- * (Outside of PREP use das_setobstypes()
- */
-
 /**
  */
 void obstypes_set(int n, obstype* types, model* m)
@@ -445,15 +460,19 @@ void obstypes_set(int n, obstype* types, model* m)
     int i;
 
     for (i = 0; i < n; ++i) {
-        obstype* type = &types[i];
+        obstype* ot = &types[i];
         int vid = model_getvarid(m, types[i].varnames[0], 1);
+        int j;
 
-        type->vid = vid;
-        type->gridid = model_getvargridid(m, vid);
-        type->sob_stride = grid_getsobstride(model_getgridbyid(m, type->gridid));
+        ot->vid = vid;
+        ot->gridid = model_getvargridid(m, vid);
+        ot->sob_stride = grid_getsobstride(model_getgridbyid(m, ot->gridid));
+        if (ot->ndomains > 0)
+            for (j = 0; j < ot->ndomains; ++j)
+                if (model_getdomainid(m, ot->domainnames[j]) < 0)
+                    enkf_quit("OBSTYPE = %s: no grid is associated with domain \"%s\"\n", ot->name, ot->domainnames[j]);
     }
 }
-#endif
 
 /**
  */
@@ -465,21 +484,26 @@ void obstypes_destroy(int n, obstype* types)
         return;
 
     for (i = 0; i < n; ++i) {
-        obstype* type = &types[i];
+        obstype* ot = &types[i];
 
-        free(type->name);
-        for (j = 0; j < type->nvar; ++j)
-            free(type->varnames[j]);
-        free(type->varnames);
-        free(type->hfunction);
-        if (type->offset_fname != NULL) {
-            free(type->offset_fname);
-            free(type->offset_varname);
+        free(ot->name);
+        for (j = 0; j < ot->nvar; ++j)
+            free(ot->varnames[j]);
+        free(ot->varnames);
+        free(ot->hfunction);
+        if (ot->offset_fname != NULL) {
+            free(ot->offset_fname);
+            free(ot->offset_varname);
         }
-        if (type->mld_varname != NULL)
-            free(type->mld_varname);
-        free(type->locrad);
-        free(type->locweight);
+        if (ot->mld_varname != NULL)
+            free(ot->mld_varname);
+        free(ot->locrad);
+        free(ot->locweight);
+        if (ot->ndomains > 0) {
+            for (j = 0; j < ot->ndomains; ++j)
+                free(ot->domainnames[j]);
+            free(ot->domainnames);
+        }
     }
 
     free(types);

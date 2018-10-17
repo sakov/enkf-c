@@ -344,6 +344,13 @@ void gridprm_create(char* fname, int* ngrid, gridprm** prm)
                     enkf_quit("%s, l.%d: could not convert \"%s\" to double", fname, line, token);
                 now->nzints++;
             }
+        } else if (strcasecmp(token, "DOMAIN") == 0) {
+            if ((token = strtok(NULL, seps)) == NULL)
+                enkf_quit("%s, l.%d: DOMAIN not specified", fname, line);
+            else if (now->p1varname != NULL)
+                enkf_quit("%s, l.%d: DOMAIN specified twice", fname, line);
+            else
+                now->domainname = strdup(token);
         } else
             enkf_quit("%s, l.%d: unexpected token \"%s\"", fname, line, token);
     }
@@ -356,6 +363,8 @@ void gridprm_create(char* fname, int* ngrid, gridprm** prm)
             enkf_quit("%s: VTYPE not specified for grid \"%s\"", fname, now->name);
         if (now->fname == NULL)
             enkf_quit("%s: DATA not specified for grid \"%s\"", fname, now->name);
+        if (now->domainname == NULL)
+            now->domainname = strdup("Default");
 #if !defined(NO_GRIDUTILS)
         if (now->maptype == 0)
             now->maptype = MAPTYPE_DEF;
@@ -436,6 +445,7 @@ void gridprm_destroy(int ngrid, gridprm prm[])
         }
         if (now->nzints > 0)
             free(now->zints);
+        free(now->domainname);
     }
     free(prm);
 }
@@ -448,6 +458,7 @@ void gridprm_print(gridprm* prm, char offset[])
 
     enkf_printf("%sgrid prm info:\n", offset);
     enkf_printf("%s  NAME = \"%s\"\n", offset, prm->name);
+    enkf_printf("%s  DOMAIN = %s\n", offset, prm->domainname);
     enkf_printf("%s  DATA = \"%s\"\n", offset, prm->fname);
 #if !defined(NO_GRIDUTILS)
     enkf_printf("%s  MAPTYPE = \"%c\"\n", offset, prm->maptype);

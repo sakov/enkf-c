@@ -1,3 +1,9 @@
+v. 1.89.0
+   PS 17102018
+   -- Introduced entries "DOMAIN" in the grid parameter file and "DOMAINS" in
+      the obstypes parameter file. They provide a mechanism for disconnecting
+      observations of a given type from updating variables on certain grids.
+      (See sec. 2.7.8 "Domains" of the User Guide.)
 v. 1.88.4
    PS 15102018
    -- Corrected island() to handle the case when Z axis is directed towards the

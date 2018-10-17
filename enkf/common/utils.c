@@ -1484,7 +1484,7 @@ int island(double fi, double fj, double fk, int ni, int nj, int ksurf, int** num
         j2 = j1;
 
     if (ksurf > 0)
-	fk = (double) ksurf - fk;
+        fk = (double) ksurf - fk;
     if (fk == 0.0)
         return !(numlevels[j1][i1] || numlevels[j1][i2] || numlevels[j2][i1] || numlevels[j2][i2]);
     else {

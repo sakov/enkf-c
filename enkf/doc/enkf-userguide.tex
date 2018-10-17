@@ -36,7 +36,7 @@
 
 \begin{document}
 
-\title{EnKF-C user guide\\{\normalsize version 1.82.0}}
+\title{EnKF-C user guide\\{\normalsize version 1.89.0}}
 
 \author{Pavel Sakov}
 \date{June 19, 2014 -- \today}
@@ -780,6 +780,7 @@ It also contains variable names for the depth and for number of layers in a vert
   Grid parameter file format:
 
     NAME             = <name> [ PREP | CALC ]
+  [ DOMAIN           = <domain name> ]
     VTYPE            = { z | sigma | hybrid }
   [ VDIR             = { fromsurf* | tosurf } ]
   [ MAPTYPE          = { binary* | kdtree } (curvilinear grids) ]
@@ -869,8 +870,9 @@ The optional parameters include the R-factor and localisation radius for the typ
   Observation types parameter file format:
 
     NAME        = <name>
+  [ DOMAINS     = <domain name> ... ]
     ISSURFACE   = {0 | 1}
-    VAR         = <model variable name> [...]
+    VAR         = <model variable name> ...
   [ OFFSET      = <file name> <variable name> ]    (none*)
   [ MLD_VARNAME = <model varname> ]                (none*)
   [ MLD_THRESH  = <threshold> ]                    (NaN*)
@@ -1384,6 +1386,18 @@ Therefore, ideally, SRF should be small (below 1, on average).
 
 EnKF-C permits using multiple model grids, in which case the ensemble transforms are calculated sequentially for each of the grids.
 These transforms are then used for updating of the model variables defined on the corresponding grids.
+
+\subsection{Domains}
+
+By default, all ``local'' observations at a given grid node contribute to the corresponding ensemble transform.
+Sometimes it is desirable to disconnect observations of certain type from contributing to transforms on a specific grid.
+For example, it may be desirable in climate systems to disregard observations of the sea surface height in updating the variables on atmospheric grids.
+The ``domains'' introduced in v1.89.0 provide a mechanism for handling such situations.
+It works as follows.
+Each grid can be associated with a certain domain via the optional entry \verb|DOMAIN| in the grid parameter file.
+For example, in a climate system one can have domains ``Ocean'' and ``Atmoshere''.
+From another side, via entry \verb|DOMAINS| in the observation types parameter file one can list domains observations of this type are visible from.
+By default, observations of any type are visible from all grids.
 
 \subsection {``Multi-scale'' localisation}
 

@@ -72,14 +72,17 @@ typedef struct {
      */
     double date_min;
     double date_max;
+
+    /*
+     * domains observations of this type are visible from
+     */
+    int ndomains;
+    char** domainnames;
 } obstype;
 
 void obstypes_read(enkfprm* prm, char fname[], int* n, obstype** types);
 void obstypes_describeprm(void);
-
-#if defined(ENKF_PREP)
 void obstypes_set(int n, obstype* types, model* m);
-#endif
 void obstypes_destroy(int n, obstype* types);
 
 int obstype_getid(int n, obstype types[], char* name, int hastosucceed);

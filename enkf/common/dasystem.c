@@ -49,22 +49,21 @@ void das_setobstypes(dasystem* das)
     char tag[MAXSTRLEN];
     int i;
 
+    obstypes_set(n, types, m);
+
     for (i = 0; i < n; ++i) {
-        obstype* type = &types[i];
+        obstype* ot = &types[i];
         int vid = model_getvarid(m, types[i].varnames[0], 1);
 
-        type->vid = vid;
-        type->gridid = model_getvargridid(m, vid);
-        type->sob_stride = grid_getsobstride(model_getgridbyid(m, type->gridid));
-        snprintf(tag, MAXSTRLEN, "%s:OFFSET", type->name);
-        if (type->offset_fname != NULL) {
-            if (type->issurface || !is3d(type->offset_fname, type->offset_varname)) {
+        snprintf(tag, MAXSTRLEN, "%s:OFFSET", ot->name);
+        if (ot->offset_fname != NULL) {
+            if (ot->issurface || !is3d(ot->offset_fname, ot->offset_varname)) {
                 float** v = NULL;
                 int nx, ny;
 
                 model_getvardims(m, vid, &nx, &ny, NULL);
                 v = alloc2d(ny, nx, sizeof(float));
-                readfield(type->offset_fname, type->offset_varname, 0, nx, ny, 1, v[0]);
+                readfield(ot->offset_fname, ot->offset_varname, 0, nx, ny, 1, v[0]);
                 model_adddata(m, tag, vid, ALLOCTYPE_2D, v);
             } else {
                 float*** v = NULL;
@@ -72,7 +71,7 @@ void das_setobstypes(dasystem* das)
 
                 model_getvardims(m, vid, &nx, &ny, &nz);
                 v = alloc3d(nz, ny, nx, sizeof(float));
-                read3dfield(type->offset_fname, type->offset_varname, nx, ny, nz, v[0][0]);
+                read3dfield(ot->offset_fname, ot->offset_varname, nx, ny, nz, v[0][0]);
                 model_adddata(m, tag, vid, ALLOCTYPE_3D, v);
             }
         }

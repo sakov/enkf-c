@@ -177,6 +177,9 @@ struct grid {
      */
     int nzints;
     zint* zints;
+
+    char* domainname;
+    int domainid;
 };
 
 /**
@@ -1013,6 +1016,8 @@ grid* grid_create(void* p, int id)
 
     g->name = strdup(prm->name);
     g->id = id;
+    g->domainname = strdup(prm->domainname);
+    g->domainid = -1;           /* to be set */
     g->vtype = gridprm_getvtype(prm);
     if (prm->stride != 0)
         g->stride = prm->stride;
@@ -1278,6 +1283,7 @@ grid* grid_create(void* p, int id)
 void grid_destroy(grid* g)
 {
     free(g->name);
+    free(g->domainname);
     if (g->htype == GRIDHTYPE_LATLON)
         gxy_simple_destroy(g->gridnodes_xy);
 #if !defined(NO_GRIDUTILS)
@@ -1382,6 +1388,7 @@ void grid_describeprm(void)
     enkf_printf("  Grid parameter file format:\n");
     enkf_printf("\n");
     enkf_printf("    NAME             = <name> [ PREP | CALC ]\n");
+    enkf_printf("  [ DOMAIN           = <domain name> ]\n");
     enkf_printf("    VTYPE            = { z | sigma | hybrid }\n");
     enkf_printf("  [ VDIR             = { fromsurf* | tosurf } ]\n");
 #if !defined(NO_GRIDUTILS)
@@ -1941,4 +1948,11 @@ void grids_destroy(int ngrid, void** grids)
     for (i = 0; i < ngrid; ++i)
         grid_destroy(grids[i]);
     free(grids);
+}
+
+/**
+ */
+char* grid_getdomainname(grid* g)
+{
+    return g->domainname;
 }

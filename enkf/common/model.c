@@ -18,6 +18,7 @@
 #include <string.h>
 #include <math.h>
 #include <assert.h>
+#include "stringtable.h"
 #include "definitions.h"
 #include "utils.h"
 #include "grid.h"
@@ -62,6 +63,8 @@ struct model {
 
     int ndata;
     modeldata* data;
+
+    stringtable* domains;
 };
 
 /**
@@ -115,6 +118,10 @@ model* model_create(enkfprm* prm)
     grids_create(prm->gridprm, prm->stride, prm->sob_stride, &m->ngrid, &m->grids);
 
     assert(m->ngrid > 0);
+
+    m->domains = st_create("domains");
+    for (i = 0; i < m->ngrid; ++i)
+        st_add_ifabsent(m->domains, grid_getdomainname(m->grids[i]), -1);
 
     /*
      * read model parameter file
@@ -235,7 +242,6 @@ model* model_create(enkfprm* prm)
                 enkf_quit("deflation = %.3g for variable \"%s\" (should be between 0 and 1)", m->vars[i].deflation, m->vars[i].name);
         }
     }
-    model_print(m, "    ");
 
     model_checkvars(m, modelprm);
 
@@ -276,6 +282,7 @@ void model_destroy(model* m)
     grids_destroy(m->ngrid, m->grids);
     model_destroyvars(m);
     model_freemodeldata(m);
+    st_destroy(m->domains);
     free(m);
 }
 
@@ -585,6 +592,13 @@ int model_getbgfname_async(model* m, char bgdir[], char varname[], char otname[]
         return 0;
     }
     return 1;
+}
+
+/**
+ */
+int model_getdomainid(model* m, char* domainname)
+{
+    return st_findindexbystring(m->domains, domainname);
 }
 
 /**

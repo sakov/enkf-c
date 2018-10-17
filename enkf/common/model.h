@@ -50,6 +50,7 @@ int model_getmemberfname_async(model* m, char dir[], char varname[], char otname
 void model_getbgfname(model* m, char dir[], char varname[], char fname[]);
 void model_getspreadfname(model* m, char varname[], char fname[]);
 int model_getbgfname_async(model* m, char dir[], char varname[], char otname[], int time, char fname[]);
+int model_getdomainid(model* m, char* domainname);
 
 int model_xy2fij(model* m, int vid, double x, double y, double* fi, double* fj);
 int model_fij2xy(model* m, int vid, double fi, double fj, double* x, double* y);

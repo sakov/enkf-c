@@ -76,6 +76,24 @@ void obs_addtype(observations* obs, obstype* src)
     }
     ot->rfactor = src->rfactor;
     ot->nsubgrid = src->nsubgrid;
+    ot->nmodified = 0;
+    ot->date_min = src->date_min;
+    ot->date_max = src->date_max;
+    ot->xmin = src->xmin;
+    ot->xmax = src->xmax;
+    ot->ymin = src->ymin;
+    ot->ymax = src->ymax;
+    ot->zmin = src->zmin;
+    ot->zmax = src->zmax;
+
+    ot->ndomains = src->ndomains;
+    ot->domainnames = malloc(ot->ndomains * sizeof(char*));
+    for (i = 0; i < ot->ndomains; ++i)
+        ot->domainnames[i] = strdup(src->domainnames[i]);
+
+    /*
+     * (these fields are set by obs_calcstats())
+     */
     ot->nobs = -1;
     ot->ngood = -1;
     ot->noutside_grid = -1;
@@ -86,15 +104,6 @@ void obs_addtype(observations* obs, obstype* src)
     ot->nbadbatch = -1;
     ot->nrange = -1;
     ot->nthinned = -1;
-    ot->nmodified = 0;
-    ot->date_min = NAN;
-    ot->date_max = NAN;
-    ot->xmin = -DBL_MAX;
-    ot->xmax = DBL_MAX;
-    ot->ymin = -DBL_MAX;
-    ot->ymax = DBL_MAX;
-    ot->zmin = -DBL_MAX;
-    ot->zmax = DBL_MAX;
 
     obs->nobstypes++;
 }
@@ -1392,6 +1401,20 @@ void obs_findlocal(observations* obs, model* m, grid* g, int icoord, int jcoord,
 
         if (ot->nobs == 0)
             continue;
+
+        if (ot->ndomains > 0) {
+            /*
+             * (if ot->ndomains = 0 then observations of this type are visible
+             * from all grids)
+             */
+            int d;
+
+            for (d = 0; d < ot->ndomains; ++d)
+                if (strcasecmp(grid_getdomainname(g), ot->domainnames[d]) == 0)
+                    break;
+            if (d == ot->ndomains)
+                continue;
+        }
 
         set = kd_findnodeswithinrange(tree, xyz, obstype_getmaxlocrad(ot), 1);
         for (iloc = 0; iloc < ot->nlobsmax && (id = kdset_read(set, &dist)) != SIZE_MAX; ++i, ++iloc) {

@@ -302,7 +302,7 @@ int main(int argc, char* argv[])
 
         memcpy(data, obs->data, obs->ngood * sizeof(observation));
         sobs = obs_create_fromdata(obs, obs->ngood, data);
-	obs_calcstats(sobs);
+        obs_calcstats(sobs);
         obs_write(sobs, FNAME_SOBS);
         goto finalise;
     }
@@ -332,7 +332,7 @@ int main(int argc, char* argv[])
   finalise:
 
     if (describe_superob_id < 0) {
-        enkf_printf("  printing observation statistics:\n");
+        enkf_printf("  printing observation summary:\n");
         print_obsstats(obs, sobs);
     }
 

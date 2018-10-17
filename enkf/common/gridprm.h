@@ -76,6 +76,11 @@ typedef struct {
      */
     int nzints;
     zint* zints;
+
+    /*
+     * Spatial domain the grid belongs to
+     */
+    char* domainname;
 } gridprm;
 
 void gridprm_create(char* fname, int* ngrid, gridprm** prm);
