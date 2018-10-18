@@ -36,7 +36,7 @@
 
 \begin{document}
 
-\title{EnKF-C user guide\\{\normalsize version 1.89.0}}
+\title{EnKF-C user guide\\{\normalsize version 1.89.1}}
 
 \author{Pavel Sakov}
 \date{June 19, 2014 -- \today}
@@ -1349,6 +1349,8 @@ Following is an example of innovation statistics written to the log (standard ou
 This excerpt shows innovation statistics for the region ``Tasman''.
 It contains sections for SST, SLA and TEM observations.
 The summary statistics for each observation type is shown at the top of each section; then statistics for days -4, -3, -2, -1 and 0 of a 5-day DAW are shown for the two asynchronous types, SST and SLA.
+(More generally, the numbering of time intervals corresponds to their positions relative to the analysis time.
+For more details see sec.~\ref{sec:async}.)
 After that, statistics for particular instruments is shown; ``N/A'' corresponds to superobservations resulted from merging observations from two or more instruments.
 (One can avoid superobing across different instruments by using option \verb|--no-superobing-across-instruments| in \verb|enkf_prep|.)
 For subsurface temperature also statistics for shallow (0--50\,m), deep ($>$500\,m), and intermediate (50--500\,m) observations is given.
@@ -1377,7 +1379,7 @@ The values of these metrics for each local analysis, calculated both for all obs
 Note that the in EnKF-C DFS and SRF are calculated from the above expressions and represent theoretical values for the EnKF analysis; they coincide with the actual DFS and SRF values only for the ETKF, but not for the DEnKF, which is an approximation of the KF (and indeed not for the EnOI, which is not even an approximation).
 
 In the EnKF context DFS is a useful indicator of potential rank problems.
-Normally, it should not exceed a fraction (a half, or better, a quarter) of the ensemble size.
+Normally, it should not exceed a fraction (a half, or better, a quarter) of the ensemble size per the characteristic time of the error growth.
 SRF shows the ``strength'' of DA.
 ``Strong'' DA implies a close to optimal system, which indeed never happens in practice.
 Therefore, ideally, SRF should be small (below 1, on average).

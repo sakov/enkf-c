@@ -1,3 +1,7 @@
+v. 1.89.2
+   PS 18102018
+   -- Added ADDBIAS parameter to reader_amsr2_standard() (initially implemented
+      by Xinmei Huang).
 v. 1.89.1
    PS 18102018
    -- A bit of tidying up.

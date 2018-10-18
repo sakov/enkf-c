@@ -9,7 +9,9 @@
  *
  * Description: AMSR-2 reader, created from reader_navo.c.
  *
- * Revisions:  
+ * Revisions:   07/08/2018   Xinmei Huang 
+ *                Added parameter ADDBIAS for reverting subtraction of sses_bias
+ *                during pre-processing.
  *
  *****************************************************************************/
 
@@ -26,20 +28,23 @@
 #include "grid.h"
 #include "observations.h"
 #include "prep_utils.h"
-#include "allreaders.h"
+
+#define ADDBIAS_DEF 0
 
 /**
  */
 void reader_amsr2_standard(char* fname, int fid, obsmeta* meta, grid* g, observations* obs)
 {
     int ksurf = grid_getsurflayerid(g);
+    int addbias = ADDBIAS_DEF;
     int ncid;
     int dimid_nobs;
     size_t nobs_local;
-    int varid_lon, varid_lat, varid_sst, varid_error, varid_time;
+    int varid_lon, varid_lat, varid_sst, varid_sstb, varid_error, varid_time;
     double* lon;
     double* lat;
     double* sst;
+    double* sstb;
     double* error_std;
     double* time;
     int year, month, day;
@@ -49,8 +54,13 @@ void reader_amsr2_standard(char* fname, int fid, obsmeta* meta, grid* g, observa
     char* basename;
     int i;
 
-    for (i = 0; i < meta->npars; ++i)
-        enkf_quit("unknown PARAMETER \"%s\"\n", meta->pars[i].name);
+    for (i = 0; i < meta->npars; ++i) {
+        if (strcasecmp(meta->pars[i].name, "ADDBIAS") == 0)
+            addbias = (istrue(meta->pars[i].value)) ? 1 : 0;
+        else
+            enkf_quit("unknown PARAMETER \"%s\"\n", meta->pars[i].name);
+    }
+    enkf_printf("        ADDBIAS = %s\n", (addbias) ? "YES" : "NO");
 
     basename = strrchr(fname, '/');
     if (basename == NULL)
@@ -80,6 +90,12 @@ void reader_amsr2_standard(char* fname, int fid, obsmeta* meta, grid* g, observa
     ncw_inq_varid(ncid, "sst", &varid_sst);
     sst = malloc(nobs_local * sizeof(double));
     ncw_get_var_double(ncid, varid_sst, sst);
+
+    if (addbias) {
+        ncw_inq_varid(ncid, "sses_bias", &varid_sstb);
+        sstb = malloc(nobs_local * sizeof(double));
+        ncw_get_var_double(ncid, varid_sstb, sstb);
+    }
 
     ncw_inq_varid(ncid, "error", &varid_error);
     error_std = malloc(nobs_local * sizeof(double));
@@ -120,7 +136,7 @@ void reader_amsr2_standard(char* fname, int fid, obsmeta* meta, grid* g, observa
         o->id = obs->nobs;
         o->fid = fid;
         o->batch = 0;
-        o->value = sst[i];
+        o->value = (addbias) ? sst[i] + sstb[i] : sst[i];
         o->std = error_std[i];
         o->lon = lon[i];
         o->lat = lat[i];

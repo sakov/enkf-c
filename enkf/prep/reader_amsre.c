@@ -7,8 +7,7 @@
  * Author:      Pavel Sakov
  *              Bureau of Meteorology
  *
- * Description: AMSRE reader. Note that (at the moment) this is the only
- *              reader for grided data in EnKF-C.
+ * Description: AMSRE reader.
  *
  * Revisions:  
  *
