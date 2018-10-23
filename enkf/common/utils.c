@@ -740,16 +740,6 @@ void* copy3d(void*** src, size_t nk, size_t nj, size_t ni, size_t unitsize)
 
 /**
  */
-int nc_hasunlimdim(int ncid)
-{
-    int unlimdimid;
-
-    (void) nc_inq_unlimdim(ncid, &unlimdimid);
-    return (unlimdimid >= 0);
-}
-
-/**
- */
 int getnlevels(char fname[], char varname[])
 {
     int ncid;
@@ -761,7 +751,7 @@ int getnlevels(char fname[], char varname[])
     ncw_open(fname, NC_NOWRITE, &ncid);
     ncw_inq_varid(ncid, varname, &varid);
     ncw_inq_vardims(ncid, varid, 4, &ndims, dimlen);
-    hasrecorddim = nc_hasunlimdim(ncid);
+    hasrecorddim = ncw_var_hasunlimdim(ncid, varid);
     ncw_close(ncid);
 
     if (ndims == 4) {
@@ -792,11 +782,11 @@ void readfield(char fname[], char varname[], int k, int ni, int nj, int nk, floa
     ncw_open(fname, NC_NOWRITE, &ncid);
     ncw_inq_varid(ncid, varname, &varid);
     ncw_inq_vardims(ncid, varid, 4, &ndims, dimlen);
-    hasrecorddim = nc_hasunlimdim(ncid);
+    hasrecorddim = ncw_var_hasunlimdim(ncid, varid);
 
     if (ndims == 4) {
-        assert(hasrecorddim || dimlen[0] == 1);
-        start[0] = 0;
+        assert(hasrecorddim);
+        start[0] = dimlen[0] - 1;
         if (dimlen[1] != nk)
             enkf_quit("\"%s\": vertical dimension of variable \"%s\" (nk = %d) does not match grid dimension (nk = %d)", fname, varname, dimlen[1], nk);
         start[1] = k;
@@ -822,7 +812,7 @@ void readfield(char fname[], char varname[], int k, int ni, int nj, int nk, floa
             /*
              * ignore k in this case
              */
-            start[0] = 0;
+            start[0] = dimlen[0] - 1;
             start[1] = 0;
             start[2] = 0;
             count[0] = 1;
@@ -932,11 +922,11 @@ void writefield(char fname[], char varname[], int k, int ni, int nj, int nk, flo
     ncw_open(fname, NC_WRITE, &ncid);
     ncw_inq_varid(ncid, varname, &varid);
     ncw_inq_vardims(ncid, varid, 4, &ndims, dimlen);
-    hasrecorddim = nc_hasunlimdim(ncid);
+    hasrecorddim = ncw_var_hasunlimdim(ncid, varid);
 
     if (ndims == 4) {
         assert(hasrecorddim);
-        start[0] = 0;
+        start[0] = dimlen[0] - 1;
         if (dimlen[1] != nk)
             enkf_quit("\"%s\": vertical dimension of variable \"%s\" (nk = %d) does not match grid dimension (nk = %d)", fname, varname, dimlen[1], nk);
         start[1] = k;
@@ -962,7 +952,7 @@ void writefield(char fname[], char varname[], int k, int ni, int nj, int nk, flo
             /*
              * 2D variable, ignore k
              */
-            start[0] = 0;
+            start[0] = dimlen[0] - 1;
             start[1] = 0;
             start[2] = 0;
             count[0] = 1;
@@ -1072,12 +1062,12 @@ void writerow(char fname[], char varname[], int k, int j, float* v)
     ncw_open(fname, NC_WRITE, &ncid);
     ncw_inq_varid(ncid, varname, &varid);
     ncw_inq_vardims(ncid, varid, 4, &ndims, dimlen);
-    hasrecorddim = nc_hasunlimdim(ncid);
+    hasrecorddim = ncw_var_hasunlimdim(ncid, varid);
 
     if (ndims == 4) {
         assert(hasrecorddim);
         assert(k < dimlen[1]);
-        start[0] = 0;
+        start[0] = dimlen[0] - 1;
         start[1] = k;
         start[2] = j;
         start[3] = 0;
@@ -1096,7 +1086,7 @@ void writerow(char fname[], char varname[], int k, int j, float* v)
             count[2] = dimlen[2];
         } else {
             assert(k <= 0);
-            start[0] = 0;
+            start[0] = dimlen[0] - 1;
             start[1] = j;
             start[2] = 0;
             count[0] = 1;
@@ -1198,11 +1188,11 @@ void read3dfield(char* fname, char* varname, int ni, int nj, int nk, float* v)
     ncw_open(fname, NC_NOWRITE, &ncid);
     ncw_inq_varid(ncid, varname, &varid);
     ncw_inq_vardims(ncid, varid, 4, &ndims, dimlen);
-    hasrecorddim = nc_hasunlimdim(ncid);
+    hasrecorddim = ncw_var_hasunlimdim(ncid, varid);
 
     if (ndims == 4) {
-        assert(hasrecorddim || dimlen[0] == 1);
-        start[0] = 0;
+        assert(hasrecorddim);
+        start[0] = dimlen[0] - 1;
         start[1] = 0;
         start[2] = 0;
         start[3] = 0;
@@ -1309,7 +1299,7 @@ int is3d(char fname[], char varname[])
     ncw_inq_varid(ncid, varname, &varid);
     ncw_inq_varndims(ncid, varid, &ndims);
     assert(ndims <= 4);
-    hasrecorddim = nc_hasunlimdim(ncid);
+    hasrecorddim = ncw_var_hasunlimdim(ncid, varid);
     ncw_close(ncid);
 
     ndims -= hasrecorddim;

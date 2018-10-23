@@ -31,7 +31,7 @@
 #include <errno.h>
 #include "ncw.h"
 
-const char ncw_version[] = "2.21.0";
+const char ncw_version[] = "2.23";
 
 /* This macro is substituted in error messages instead of the name of a
  * variable in cases when the name could not be found by the variable id.
@@ -369,12 +369,20 @@ void ncw_inq_natts(int ncid, int* natts)
         quit("\"%s\": nc_inq_natts(): failed: %s", ncw_get_path(ncid), nc_strerror(status));
 }
 
-void ncw_inq_unlimdimid(int ncid, int* unlimdimid)
+void ncw_inq_unlimdim(int ncid, int* unlimdimid)
 {
     int status = nc_inq_unlimdim(ncid, unlimdimid);
 
     if (status != NC_NOERR)
         quit("\"%s\": nc_inq_unlimdim(): failed: %s", ncw_get_path(ncid), nc_strerror(status));
+}
+
+void ncw_inq_format(int ncid, int* format)
+{
+    int status = nc_inq_format(ncid, format);
+
+    if (status != NC_NOERR)
+        quit("\"%s\": nc_inq_format(): failed: %s", ncw_get_path(ncid), nc_strerror(status));
 }
 
 void ncw_def_dim(int ncid, const char dimname[], size_t len, int* dimid)
@@ -1268,7 +1276,7 @@ int ncw_inq_nrecords(int ncid)
     int unlimdimid;
     size_t nrecords;
 
-    ncw_inq_unlimdimid(ncid, &unlimdimid);
+    ncw_inq_unlimdim(ncid, &unlimdimid);
     if (unlimdimid < 0)
         return 0;
     ncw_inq_dimlen(ncid, unlimdimid, &nrecords);
@@ -1331,7 +1339,7 @@ void ncw_copy_dims(int ncid_src, int ncid_dst)
     int i;
 
     ncw_inq_ndims(ncid_src, &ndims);
-    ncw_inq_unlimdimid(ncid_src, &unlimdimid);
+    ncw_inq_unlimdim(ncid_src, &unlimdimid);
 
     for (i = 0; i < ndims; ++i) {
         char dimname[NC_MAX_NAME] = STR_UNKNOWN;
@@ -1360,7 +1368,7 @@ void ncw_copy_dim(int ncid_src, const char dimname[], int ncid_dst)
     int dimid;
     size_t size;
 
-    ncw_inq_unlimdimid(ncid_src, &unlimdimid);
+    ncw_inq_unlimdim(ncid_src, &unlimdimid);
     ncw_inq_dimid(ncid_src, dimname, &dimid);
     if (dimid == unlimdimid)
         size = NC_UNLIMITED;
@@ -1390,7 +1398,7 @@ int ncw_copy_vardef(int ncid_src, int vid_src, int ncid_dst)
 
     status = nc_redef(ncid_dst);
 
-    ncw_inq_unlimdimid(ncid_src, &unlimdimid_src);
+    ncw_inq_unlimdim(ncid_src, &unlimdimid_src);
     ncw_inq_varname(ncid_src, vid_src, varname);
     ncw_inq_var(ncid_src, vid_src, NULL, &type, &ndims, dimids_src, &natts);
 
@@ -1421,7 +1429,7 @@ int ncw_copy_vardef(int ncid_src, int vid_src, int ncid_dst)
                 dimids_dst[i] = dimid_dst;
                 continue;
             }
-            ncw_inq_unlimdimid(ncid_dst, &unlimdimid_dst);
+            ncw_inq_unlimdim(ncid_dst, &unlimdimid_dst);
             if (dimid_dst == unlimdimid_dst) {  /* assume it is ok to proceed 
                                                  */
                 dimids_dst[i] = dimid_dst;
@@ -1760,7 +1768,7 @@ void ncw_find_timevarid(int ncid, int* varid)
     int nvars = -1;
     int i;
 
-    ncw_inq_unlimdimid(ncid, &unlimdimid);
+    ncw_inq_unlimdim(ncid, &unlimdimid);
     ncw_inq_nvars(ncid, &nvars);
 
     for (i = 0; i < nvars; ++i) {
@@ -2131,6 +2139,38 @@ int ncw_file_opens(const char fname[], int mode)
     if (status == NC_NOERR) {
         ncw_close(ncid);
         return 1;
+    }
+    return 0;
+}
+
+/** Checks whether the variable depends on an unlimited dimension.
+ */
+int ncw_var_hasunlimdim(int ncid, int varid)
+{
+    int ndims;
+    int dimids[NC_MAX_DIMS];
+    int format;
+
+    ncw_inq_varndims(ncid, varid, &ndims);
+    if (ndims == 0)
+        return 0;
+    ncw_inq_vardimid(ncid, varid, dimids);
+    ncw_inq_format(ncid, &format);
+    if (format == NC_FORMAT_NETCDF4) {
+        int nunlimdims = -1;
+        int unlimdimids[NC_MAX_DIMS];
+        int i;
+
+        (void) nc_inq_unlimdims(ncid, &nunlimdims, unlimdimids);
+        for (i = 0; i < nunlimdims; ++i)
+            if (unlimdimids[i] == dimids[0])
+                return 1;
+    } else {
+        int unlimdimid;
+
+        (void) nc_inq_unlimdim(ncid, &unlimdimid);
+        if (unlimdimid == dimids[0])
+            return 1;
     }
     return 0;
 }

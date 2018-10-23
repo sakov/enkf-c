@@ -48,7 +48,8 @@ void ncw_inq(int ncid, int* ndims, int* nvars, int* natts, int* unlimdimid);
 void ncw_inq_ndims(int ncid, int* ndims);
 void ncw_inq_nvars(int ncid, int* nvars);
 void ncw_inq_natts(int ncid, int* natts);
-void ncw_inq_unlimdimid(int ncid, int* unlimdimid);
+void ncw_inq_unlimdim(int ncid, int* unlimdimid);
+void ncw_inq_format(int ncid, int* format);
 void ncw_def_dim(int ncid, const char dimname[], size_t len, int* dimid);
 void ncw_inq_dimid(int ncid, const char dimname[], int* dimid);
 void ncw_inq_dim(int ncid, int dimid, char dimname[], size_t* len);
@@ -158,6 +159,8 @@ void ncw_check_attlen(int ncid, int varid, const char attname[], size_t len);
 void ncw_check_dimlen(int ncid, const char dimname[], size_t len);
 void ncw_check_varndims(int ncid, int varid, int ndims);
 void ncw_check_vardims(int ncid, int varid, int ndims, size_t dimlen[]);
+
+int ncw_var_hasunlimdim(int ncid, int varid);
 
 #define _NCW_H
 #endif

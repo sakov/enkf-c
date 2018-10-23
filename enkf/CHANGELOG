@@ -1,3 +1,6 @@
+v. 1.89.3
+   PS 23102018
+   -- Replaced utils.c:hasunlimdim() by ncw.c:ncw_var_hasunlimdim().
 v. 1.89.2
    PS 18102018
    -- Added ADDBIAS parameter to reader_amsr2_standard() (initially implemented

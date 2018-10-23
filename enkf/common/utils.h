@@ -41,9 +41,7 @@ void* alloc2d(size_t nj, size_t ni, size_t unitsize);
 void* copy2d(void** src, size_t nj, size_t ni, size_t unitsize);
 void* alloc3d(size_t n3, size_t nj, size_t ni, size_t unitsize);
 void* copy3d(void*** src, size_t nk, size_t nj, size_t ni, size_t unitsize);
-int nc_hasunlimdim(int ncid);
 int getnlevels(char fname[], char varname[]);
-
 void readfield(char fname[], char varname[], int k, int ni, int nj, int nk, float* v);
 void writefield(char fname[], char varname[], int k, int ni, int nj, int nk, float* v);
 void writerow(char fname[], char varname[], int k, int j, float* v);

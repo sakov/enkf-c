@@ -169,15 +169,17 @@ void reader_xy_gridded(char* fname, int fid, obsmeta* meta, grid* g, observation
     ncw_inq_varid(ncid, varname, &varid_var);
     ncw_inq_vardims(ncid, varid_var, 3, &ndim_var, dimlen_var);
     if (ndim_var == 3) {
+        if (!ncw_var_hasunlimdim(ncid, varid_var))\
+            enkf_quit("reader_xy_gridded(): %s: %s: depends on 3 dimensions, but has no unlimited dimension", fname, varname);
         if (dimlen_var[0] != 1)
-            enkf_quit("reader_xy_gridded(): %d records (currently only one is allowed)", dimlen_var[0]);
+            enkf_quit("reader_xy_gridded(): %s: %s: %d records (currently only one is allowed)", fname, varname, dimlen_var[0]);
         n_var = dimlen_var[1] * dimlen_var[2];
     } else if (ndim_var == 2) {
-        if (nc_hasunlimdim(ncid))
+        if (ncw_var_hasunlimdim(ncid, varid_var))
             enkf_quit("reader_xy_gridded(): %s: %s: not enough spatial dimensions (must be 2)", fname, varname);
         n_var = dimlen_var[0] * dimlen_var[1];
     } else if (ndim_var != 2)
-        enkf_quit("reader_xy_gridded(): %s: # dimensions = %d (must be 2 or 3 with only one record)", fname, ndim_var);
+        enkf_quit("reader_xy_gridded(): %s: %s: %d dimensions (must be 2 or 3 with only one record)", fname, varname, ndim_var);
 
     lonname = get_lonname(ncid, lonname);
     if (lonname != NULL) {
