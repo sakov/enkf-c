@@ -84,7 +84,7 @@ void das_getHE(dasystem* das)
 #else
     das->S = calloc(nmem, sizeof(void*));
     das->St = calloc(nobs, sizeof(void*));
-    size = (das->sm_rank == 0) ? nmem * nobs * sizeof(ENSOBSTYPE) * 2 : 0;
+    size = (das->sm_rank == 0) ? (MPI_Aint) nmem * (MPI_Aint) nobs * (MPI_Aint) sizeof(ENSOBSTYPE) * (MPI_Aint) 2 : 0;
     ierror = MPI_Win_allocate_shared(size, sizeof(ENSOBSTYPE), MPI_INFO_NULL, das->sm_comm, &SS, &das->sm_win);
     assert(ierror == MPI_SUCCESS);
 
