@@ -1,3 +1,7 @@
+v. 1.89.5
+   PS 24102018
+   -- Fixed defect introduced in v1.89.3 in writefield() and writerow() (handle
+      # records = 0).
 v. 1.89.4
    PS 24102018
    -- Fixed an internal overflow in multiplication at calculating the size of
