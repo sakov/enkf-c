@@ -169,7 +169,7 @@ void reader_xy_gridded(char* fname, int fid, obsmeta* meta, grid* g, observation
     ncw_inq_varid(ncid, varname, &varid_var);
     ncw_inq_vardims(ncid, varid_var, 3, &ndim_var, dimlen_var);
     if (ndim_var == 3) {
-        if (!ncw_var_hasunlimdim(ncid, varid_var))\
+        if (!ncw_var_hasunlimdim(ncid, varid_var))
             enkf_quit("reader_xy_gridded(): %s: %s: depends on 3 dimensions, but has no unlimited dimension", fname, varname);
         if (dimlen_var[0] != 1)
             enkf_quit("reader_xy_gridded(): %s: %s: %d records (currently only one is allowed)", fname, varname, dimlen_var[0]);

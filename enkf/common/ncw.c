@@ -31,7 +31,7 @@
 #include <errno.h>
 #include "ncw.h"
 
-const char ncw_version[] = "2.23";
+const char ncw_version[] = "2.23.1";
 
 /* This macro is substituted in error messages instead of the name of a
  * variable in cases when the name could not be found by the variable id.
@@ -1418,9 +1418,10 @@ int ncw_copy_vardef(int ncid_src, int vid_src, int ncid_dst)
         if (!ncw_dim_exists(ncid_dst, dimname))
             ncw_def_dim(ncid_dst, dimname, (dimids_src[i] == unlimdimid_src) ? NC_UNLIMITED : len, &dimids_dst[i]);
         else {
-            int dimid_dst, unlimdimid_dst = -1;
+            int dimid_dst;
             size_t len_dst;
             char dimname_dst[NC_MAX_NAME];
+            int format;
             int j;
 
             ncw_inq_dimid(ncid_dst, dimname, &dimid_dst);
@@ -1429,11 +1430,29 @@ int ncw_copy_vardef(int ncid_src, int vid_src, int ncid_dst)
                 dimids_dst[i] = dimid_dst;
                 continue;
             }
-            ncw_inq_unlimdim(ncid_dst, &unlimdimid_dst);
-            if (dimid_dst == unlimdimid_dst) {  /* assume it is ok to proceed 
-                                                 */
-                dimids_dst[i] = dimid_dst;
-                continue;
+
+            ncw_inq_format(ncid_dst, &format);
+            if (format == NC_FORMAT_NETCDF4) {
+                int nunlimdims = -1;
+                int unlimdimids[NC_MAX_DIMS];
+                int d;
+
+                (void) nc_inq_unlimdims(ncid_dst, &nunlimdims, unlimdimids);
+                for (d = 0; d < nunlimdims; ++d)
+                    if (dimid_dst == unlimdimids[d])
+                        break;
+                if (d < nunlimdims) {
+                    dimids_dst[i] = dimid_dst;
+                    continue;
+                }
+            } else {
+                int unlimdimid_dst = -1;
+
+                ncw_inq_unlimdim(ncid_dst, &unlimdimid_dst);
+                if (dimid_dst == unlimdimid_dst) {
+                    dimids_dst[i] = dimid_dst;
+                    continue;
+                }
             }
 
             /*
@@ -1441,7 +1460,7 @@ int ncw_copy_vardef(int ncid_src, int vid_src, int ncid_dst)
              * the wrong length. We will define and use another dimension then.
              */
             for (j = 0; j < DIMNAME_NTRIES; ++j) {
-                snprintf(dimname_dst, NC_MAX_NAME, "%s%d", dimname, i);
+                snprintf(dimname_dst, NC_MAX_NAME, "%s%d", dimname, j);
                 if (ncw_dim_exists(ncid_dst, dimname_dst)) {
                     ncw_inq_dimid(ncid_dst, dimname_dst, &dimid_dst);
                     ncw_inq_dimlen(ncid_dst, dimid_dst, &len_dst);

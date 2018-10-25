@@ -539,7 +539,7 @@ void obs_read(observations* obs, char fname[])
     }
 
     /*
-     * type 
+     * type (basically, just a check)
      */
     ncw_inq_varnatts(ncid, varid_type, &natts);
     for (i = 0; i < natts; ++i) {

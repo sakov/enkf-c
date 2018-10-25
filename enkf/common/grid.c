@@ -1373,11 +1373,11 @@ void grid_print(grid* g, char offset[])
     } else
         enkf_quit("not implemented");
     if (g->stride != 0)
-        enkf_printf("%s  STRIDE = \"%d\"\n", offset, g->stride);
+        enkf_printf("%s  STRIDE = %d\n", offset, g->stride);
     if (g->sob_stride != 0)
-        enkf_printf("%s  SOBSTRIDE = \"%d\"\n", offset, g->sob_stride);
+        enkf_printf("%s  SOBSTRIDE = %d\n", offset, g->sob_stride);
     if (g->sfactor != 1.0)
-        enkf_printf("%s  SFACTOR = \"%f\"\n", offset, g->sfactor);
+        enkf_printf("%s  SFACTOR = %f\n", offset, g->sfactor);
 }
 
 /**

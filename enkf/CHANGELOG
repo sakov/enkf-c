@@ -1,5 +1,9 @@
+v. 1.89.6
+   PS 26102018
+   -- ncw_copy_vardef(): fixed a defect and modified for multiple unlimited
+      dimensions.
 v. 1.89.5
-   PS 24102018
+   PS 25102018
    -- Fixed defect introduced in v1.89.3 in writefield() and writerow() (handle
       # records = 0).
 v. 1.89.4
