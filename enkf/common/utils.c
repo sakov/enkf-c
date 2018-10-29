@@ -754,8 +754,11 @@ int getnlevels(char fname[], char varname[])
     hasrecorddim = ncw_var_hasunlimdim(ncid, varid);
     ncw_close(ncid);
 
+    if (ndims > 4)
+        enkf_quit("%s: %s: EnKF-C does not know how to handle more than 4-dimensional variables\n", fname, varname);
     if (ndims == 4) {
-        assert(hasrecorddim);
+        if (!hasrecorddim)
+            enkf_quit("%s: %s: expect an unlimited dimension to be present for a 4-dimensional variable\n", fname, varname);
         return (int) dimlen[1];
     }
     if (ndims == 3)
@@ -927,7 +930,8 @@ void writefield(char fname[], char varname[], int k, int ni, int nj, int nk, flo
     hasrecorddim = ncw_var_hasunlimdim(ncid, varid);
 
     if (ndims == 4) {
-        assert(hasrecorddim);
+        if (!hasrecorddim)
+            enkf_quit("%s: %s: expect an unlimited dimension to be present for a 4-dimensional variable\n", fname, varname);
         start[0] = (dimlen[0] == 0) ? 0 : dimlen[0] - 1;
         if (dimlen[1] != nk)
             enkf_quit("\"%s\": vertical dimension of variable \"%s\" (nk = %d) does not match grid dimension (nk = %d)", fname, varname, dimlen[1], nk);
@@ -1067,7 +1071,8 @@ void writerow(char fname[], char varname[], int k, int j, float* v)
     hasrecorddim = ncw_var_hasunlimdim(ncid, varid);
 
     if (ndims == 4) {
-        assert(hasrecorddim);
+        if (!hasrecorddim)
+            enkf_quit("%s: %s: expect an unlimited dimension to be present for a 4-dimensional variable\n", fname, varname);
         assert(k < dimlen[1]);
         start[0] = (dimlen[0] == 0) ? 0 : dimlen[0] - 1;
         start[1] = k;
@@ -1195,7 +1200,8 @@ void read3dfield(char* fname, char* varname, int ni, int nj, int nk, float* v)
         assert(dimlen[0] > 0);
 
     if (ndims == 4) {
-        assert(hasrecorddim);
+        if (!hasrecorddim)
+            enkf_quit("%s: %s: expect an unlimited dimension to be present for a 4-dimensional variable\n", fname, varname);
         start[0] = dimlen[0] - 1;
         start[1] = 0;
         start[2] = 0;

@@ -1,3 +1,6 @@
+v. 1.89.7
+   -- Replaced a number of assert() calls by more meaningful error messages in
+      a number of read/write procedures in utils.c.
 v. 1.89.6
    PS 26102018
    -- ncw_copy_vardef(): fixed a defect and modified for multiple unlimited
