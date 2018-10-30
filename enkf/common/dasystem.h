@@ -89,13 +89,13 @@ typedef struct {
      * ("sm" below stands for "shared memrory")
      */
     MPI_Comm sm_comm;
-    MPI_Win sm_win;
-    int sm_rank;
-    int* sm_ranks;
+    MPI_Win sm_comm_win;
+    int sm_comm_rank;
+    int* sm_comm_ranks;
     MPI_Comm node_comm;
-    int node_rank;
-    int node_size;
-    int* node_ranks;
+    int node_comm_rank;
+    int node_comm_size;
+    int* node_comm_ranks;
 #endif
     int fieldbufsize;
 

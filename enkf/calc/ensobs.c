@@ -68,6 +68,7 @@ void das_getHE(dasystem* das)
         return;
 
     if (das->mode == MODE_ENKF || !enkf_fstatsonly) {
+
         das_setnmem(das);
         assert(das->nmem > 0);
         enkf_printf("    ensemble size = %d\n", das->nmem);
@@ -87,16 +88,16 @@ void das_getHE(dasystem* das)
     size = nmem * nobs * sizeof(ENSOBSTYPE) * 2;
     enkf_printf("    allocating %zu bytes for HE array:\n", size);
 
-    ierror = MPI_Win_allocate_shared((das->sm_rank == 0) ? size : 0, sizeof(ENSOBSTYPE), MPI_INFO_NULL, das->sm_comm, &SS, &das->sm_win);
+    ierror = MPI_Win_allocate_shared((das->sm_comm_rank == 0) ? size : 0, sizeof(ENSOBSTYPE), MPI_INFO_NULL, das->sm_comm, &SS, &das->sm_comm_win);
     assert(ierror == MPI_SUCCESS);
 
-    if (das->sm_rank == 0) {
+    if (das->sm_comm_rank == 0) {
         memset(SS, 0, size);
     } else {
         int disp_unit;
         MPI_Aint my_size;
 
-        ierror = MPI_Win_shared_query(das->sm_win, 0, &my_size, &disp_unit, &SS);
+        ierror = MPI_Win_shared_query(das->sm_comm_win, 0, &my_size, &disp_unit, &SS);
         assert(ierror == MPI_SUCCESS);
         assert(my_size == size);
     }
@@ -114,9 +115,6 @@ void das_getHE(dasystem* das)
     for (i = 0; i < obs->nobstypes; ++i) {
         obstype* ot = &obs->obstypes[i];
         H_fn H = NULL;
-        int nobs;
-        int* obsids;
-        char fname[MAXSTRLEN];
 
         enkf_printf("    %s ", ot->name);
         fflush(stdout);
@@ -132,9 +130,13 @@ void das_getHE(dasystem* das)
             int t;
 
             for (t = t1; t <= t2; ++t) {
+                int nobs_tomap = -1;
+                int* obsids = NULL;
+                char fname[MAXSTRLEN] = "";
+
                 enkf_printf("|");
-                obs_find_bytypeandtime(obs, i, t, &nobs, &obsids);
-                if (nobs == 0)
+                obs_find_bytypeandtime(obs, i, t, &nobs_tomap, &obsids);
+                if (nobs_tomap == 0)
                     continue;
 
                 /*
@@ -145,7 +147,7 @@ void das_getHE(dasystem* das)
                     if (enkf_obstype == OBSTYPE_VALUE) {
                         int success = model_getbgfname_async(m, das->bgdir, ot->varnames[0], ot->name, t, fname);
 
-                        H(das, nobs, obsids, fname, -1, t, Hx);
+                        H(das, nobs_tomap, obsids, fname, -1, t, Hx);
                         enkf_printf((success) ? "A" : "S");
                         fflush(stdout);
                     } else if (enkf_obstype == OBSTYPE_INNOVATION) {
@@ -159,7 +161,7 @@ void das_getHE(dasystem* das)
                     for (e = my_first_iteration; e <= my_last_iteration; ++e) {
                         int success = model_getmemberfname_async(m, das->ensdir, ot->varnames[0], ot->name, e + 1, t, fname);
 
-                        H(das, nobs, obsids, fname, e + 1, t, das->S[e]);
+                        H(das, nobs_tomap, obsids, fname, e + 1, t, das->S[e]);
                         enkf_printf((success) ? "a" : "s");
                         fflush(stdout);
                     }
@@ -168,8 +170,12 @@ void das_getHE(dasystem* das)
                 free(obsids);
             }
         } else {
-            obs_find_bytype(obs, i, &nobs, &obsids);
-            if (nobs == 0)
+            int nobs_tomap = -1;
+            int* obsids = NULL;
+            char fname[MAXSTRLEN] = "";
+
+            obs_find_bytype(obs, i, &nobs_tomap, &obsids);
+            if (nobs_tomap == 0)
                 goto next;
 
             /*
@@ -179,7 +185,7 @@ void das_getHE(dasystem* das)
             if (das->mode == MODE_ENOI) {
                 if (enkf_obstype == OBSTYPE_VALUE) {
                     model_getbgfname(m, das->bgdir, ot->varnames[0], fname);
-                    H(das, nobs, obsids, fname, -1, INT_MAX, Hx);
+                    H(das, nobs_tomap, obsids, fname, -1, INT_MAX, Hx);
                     enkf_printf("+");
                     fflush(stdout);
                 } else if (enkf_obstype == OBSTYPE_INNOVATION) {
@@ -192,7 +198,7 @@ void das_getHE(dasystem* das)
             if (das->mode == MODE_ENKF || !enkf_fstatsonly) {
                 for (e = my_first_iteration; e <= my_last_iteration; ++e) {
                     model_getmemberfname(m, das->ensdir, ot->varnames[0], e + 1, fname);
-                    H(das, nobs, obsids, fname, e + 1, INT_MAX, das->S[e]);
+                    H(das, nobs_tomap, obsids, fname, e + 1, INT_MAX, das->S[e]);
                     enkf_printf(".");
                     fflush(stdout);
                 }
@@ -234,10 +240,10 @@ void das_getHE(dasystem* das)
         assert(ierror == MPI_SUCCESS);
 #else
         MPI_Barrier(MPI_COMM_WORLD);
-        if (das->node_rank >= 0 && das->node_size > 1) {
+        if (das->node_comm_rank >= 0 && das->node_comm_size > 1) {
             for (i = 0, ii = -1; i < nprocesses; ++i) {
-                if (das->node_ranks[i] >= 0) {
-                    ii = das->node_ranks[i];
+                if (das->node_comm_ranks[i] >= 0) {
+                    ii = das->node_comm_ranks[i];
                     displs[ii] = first_iteration[i];
                 }
                 assert(ii >= 0);
@@ -309,7 +315,7 @@ void das_getHE(dasystem* das)
                 ensmean[i] /= (ENSOBSTYPE) nmem;
 
 #if defined (HE_VIASHMEM)
-            if (das->sm_rank == 0)
+            if (das->sm_comm_rank == 0)
 #endif
                 for (e = 0; e < nmem; ++e) {
                     ENSOBSTYPE* Se = das->S[e];
@@ -323,7 +329,7 @@ void das_getHE(dasystem* das)
             free(ensmean);
         } else {
 #if defined (HE_VIASHMEM)
-            if (das->sm_rank == 0)
+            if (das->sm_comm_rank == 0)
 #endif
                 for (e = 0; e < nmem; ++e) {
                     ENSOBSTYPE* Se = das->S[e];
@@ -382,7 +388,7 @@ void das_calcinnandspread(dasystem* das)
          * calculate ensemble spread and innovation 
          */
 #if defined(HE_VIASHMEM)
-        if (das->sm_rank == 0)
+        if (das->sm_comm_rank == 0)
 #endif
             for (e = 0; e < nmem; ++e) {
                 ENSOBSTYPE* Se = das->S[e];
@@ -442,7 +448,7 @@ void das_calcinnandspread(dasystem* das)
          * calculate ensemble spread and innovation 
          */
 #if defined(HE_VIASHMEM)
-        if (das->sm_rank == 0)
+        if (das->sm_comm_rank == 0)
 #endif
             for (e = 0; e < nmem; ++e) {
                 ENSOBSTYPE* Se = das->S[e];
@@ -647,7 +653,7 @@ void das_standardise(dasystem* das)
         goto finish;
 
 #if defined (HE_VIASHMEM)
-    if (das->sm_rank == 0)
+    if (das->sm_comm_rank == 0)
 #endif
         for (e = 0; e < das->nmem; ++e) {
             ENSOBSTYPE* Se = das->S[e];
@@ -735,7 +741,7 @@ void das_destandardise(dasystem* das)
         goto finish;
 
 #if defined(HE_VIASHMEM)
-    if (das->sm_rank == 0)
+    if (das->sm_comm_rank == 0)
 #endif
         for (e = 0; e < das->nmem; ++e) {
             ENSOBSTYPE* Se = das->S[e];
@@ -818,7 +824,7 @@ static void das_sortobs_byij(dasystem* das)
         free(s);
     }
 #if defined(HE_VIASHMEM)
-    if (das->sm_rank == 0)
+    if (das->sm_comm_rank == 0)
 #endif
     {
         ENSOBSTYPE* S = calloc(obs->nobs, sizeof(ENSOBSTYPE));
@@ -853,7 +859,7 @@ static void das_changeSmode(dasystem* das, int mode_from, int mode_to)
         int e, o;
 
 #if defined(HE_VIASHMEM)
-        if (das->sm_rank == 0)
+        if (das->sm_comm_rank == 0)
 #endif
             for (e = 0; e < das->nmem; ++e) {
                 ENSOBSTYPE* Se = das->S[e];
@@ -914,7 +920,7 @@ static void das_sortobs_byid(dasystem* das)
         free(s);
     }
 #if defined(HE_VIASHMEM)
-    if (das->sm_rank == 0)
+    if (das->sm_comm_rank == 0)
 #endif
     {
         ENSOBSTYPE* S = calloc(obs->nobs, sizeof(ENSOBSTYPE));
@@ -956,10 +962,10 @@ static void gather_St(dasystem* das)
     assert(ierror == MPI_SUCCESS);
 
     MPI_Barrier(MPI_COMM_WORLD);
-    if (das->node_rank >= 0 && das->node_size > 1) {
+    if (das->node_comm_rank >= 0 && das->node_comm_size > 1) {
         for (i = 0, ii = -1; i < nprocesses; ++i) {
-            if (das->node_ranks[i] >= 0) {
-                ii = das->node_ranks[i];
+            if (das->node_comm_ranks[i] >= 0) {
+                ii = das->node_comm_ranks[i];
                 displs[ii] = first_iteration[i];
             }
             assert(ii >= 0);
