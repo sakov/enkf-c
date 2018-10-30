@@ -1,3 +1,5 @@
+v. 1.89.8
+   -- A number of minor, mostly cosmetic, changes.
 v. 1.89.7
    -- Replaced a number of assert() calls by more meaningful error messages in
       a number of read/write procedures in utils.c.

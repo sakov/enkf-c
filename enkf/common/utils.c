@@ -640,7 +640,7 @@ void* copy2d(void** src, size_t nj, size_t ni, size_t unitsize)
     size_t size;
     void* p;
     void** pp;
-    int i;
+    size_t i;
 
     if (ni <= 0 || nj <= 0)
         enkf_quit("copy2d(): invalid size (nj = %d, ni = %d)", nj, ni);
@@ -676,7 +676,7 @@ void* alloc3d(size_t nk, size_t nj, size_t ni, size_t unitsize)
     void* p;
     void** pp;
     void*** ppp;
-    int i;
+    size_t i;
 
     if (nk <= 0 || nj <= 0 || ni <= 0)
         enkf_quit("alloc3d(): invalid size (nk = %d, nj = %d, ni = %d)", nk, nj, ni);

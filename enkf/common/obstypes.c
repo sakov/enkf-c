@@ -146,8 +146,8 @@ static void obstype_print(obstype* type)
     if (type->xmin > -DBL_MAX || type->xmax < DBL_MAX || type->ymin > -DBL_MAX || type->ymax < DBL_MAX || type->zmin > -DBL_MAX || type->zmax < DBL_MAX)
         enkf_printf("      SPATIAL DOMAIN = %.3g %.3g %.3g %.3g %.3g %.3g\n", type->xmin, type->xmax, type->ymin, type->ymax, type->zmin, type->zmax);
     if (isfinite(type->windowmin)) {
-        enkf_printf("      WINDOWMIN = %.3f", type->windowmin);
-        enkf_printf("      WINDOWMAX = %.3f", type->windowmax);
+        enkf_printf("      WINDOWMIN = %.3f\n", type->windowmin);
+        enkf_printf("      WINDOWMAX = %.3f\n", type->windowmax);
     }
 }
 

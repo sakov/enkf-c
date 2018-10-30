@@ -53,9 +53,9 @@ void das_getHE(dasystem* das)
     observations* obs = das->obs;
     model* m = das->m;
     ENSOBSTYPE* Hx = NULL;
-    int nobs = obs->nobs;
-    int nmem = -1;
-    int i, e;
+    size_t nobs = obs->nobs;
+    size_t nmem = 0;
+    size_t i, e;
 
 #if defined (HE_VIASHMEM)
     ENSOBSTYPE* SS = NULL;
@@ -84,9 +84,10 @@ void das_getHE(dasystem* das)
 #else
     das->S = calloc(nmem, sizeof(void*));
     das->St = calloc(nobs, sizeof(void*));
-    size = (das->sm_rank == 0) ? (MPI_Aint) nmem* (MPI_Aint) nobs* (MPI_Aint) sizeof(ENSOBSTYPE) * (MPI_Aint) 2 : 0;
+    size = nmem * nobs * sizeof(ENSOBSTYPE) * 2;
+    enkf_printf("    allocating %zu bytes for HE array:\n", size);
 
-    ierror = MPI_Win_allocate_shared(size, sizeof(ENSOBSTYPE), MPI_INFO_NULL, das->sm_comm, &SS, &das->sm_win);
+    ierror = MPI_Win_allocate_shared((das->sm_rank == 0) ? size : 0, sizeof(ENSOBSTYPE), MPI_INFO_NULL, das->sm_comm, &SS, &das->sm_win);
     assert(ierror == MPI_SUCCESS);
 
     if (das->sm_rank == 0) {
@@ -97,6 +98,7 @@ void das_getHE(dasystem* das)
 
         ierror = MPI_Win_shared_query(das->sm_win, 0, &my_size, &disp_unit, &SS);
         assert(ierror == MPI_SUCCESS);
+        assert(my_size == size);
     }
     for (i = 0; i < nmem; ++i)
         das->S[i] = &SS[i * nobs];
