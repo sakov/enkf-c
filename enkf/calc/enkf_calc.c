@@ -320,10 +320,8 @@ int main(int argc, char* argv[])
     }
     enkfprm_destroy(prm);
 
-    if (das->obs->nobs == 0 && !ignorenoobs) {
-        enkf_printf("  nothing to do! (nobs = 0)\n");
-        goto finish;
-    }
+    if (das->obs->nobs == 0 && !ignorenoobs)
+        enkf_quit("nothing to do! (nobs = 0). Use \"--ignore-no-obs\" to proceed cleanly");
 
     enkf_printf("  calculating ensemble observations:\n");
     enkf_printtime("  ");
@@ -395,10 +393,8 @@ int main(int argc, char* argv[])
     if (printbatchstats || das->nbadbatchspecs > 0)
         das_calcbatchstats(das, printbatchstats);
 
-  finish:
     das_destroy(das);
     free(fname_obs);
-
     enkf_finish();
 
     return 0;

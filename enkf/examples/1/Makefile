@@ -17,7 +17,7 @@ enkf-prep: enkf_prep conf obs enkf.prm
 	./enkf_prep enkf.prm 2>&1 | tee prep.out
 
 enkf-calc: enkf_calc observations.nc conf ensemble_6565
-	nice -n +19 mpirun -np $(NP_CALC) ./enkf_calc enkf.prm --ignore-no-obs 2>&1 | tee calc.out
+	nice -n +19 mpirun -np $(NP_CALC) ./enkf_calc enkf.prm 2>&1 | tee calc.out
 
 enkf-update: enkf_update X5.nc conf ensemble_6565
 	nice -n +19 mpirun -np $(NP_UPDATE) ./enkf_update --calculate-spread --write-inflation --calculate-vertical-correlations --output-increment enkf.prm 2>&1 | tee update.out
