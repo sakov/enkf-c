@@ -195,16 +195,45 @@ void reader_cmems_standard(char* fname, int fid, obsmeta* meta, grid* g, observa
     lat = malloc(nprof * sizeof(double));
     ncw_get_var_double(ncid, varid, lat);
 
-    if (!allmissing(ncid, "DEPH_ADJUSTED"))
-        ncw_inq_varid(ncid, "DEPH_ADJUSTED", &varid);
-    else if (!allmissing(ncid, "PRES_ADJUSTED"))
-        ncw_inq_varid(ncid, "PRES_ADJUSTED", &varid);
-    else if (!allmissing(ncid, "DEPH"))
-        ncw_inq_varid(ncid, "DEPH", &varid);
-    else if (!allmissing(ncid, "PRES"))
-        ncw_inq_varid(ncid, "PRES", &varid);
     z = alloc2d(nprof, nz, sizeof(double));
-    ncw_get_var_double(ncid, varid, z[0]);
+    {
+        double* zall[4] = { NULL, NULL, NULL, NULL };
+        double zmissval[4] = { DBL_MAX, DBL_MAX, DBL_MAX, DBL_MAX };
+        char znames[4][20] = { "DEPH_ADJUSTED",
+            "PRES_ADJUSTED",
+            "DEPH",
+            "PRES"
+        };
+        int j;
+
+        for (i = 0; i < 4; ++i) {
+            if (!ncw_var_exists(ncid, znames[i]))
+                continue;
+            ncw_inq_varid(ncid, znames[i], &varid);
+            if (ncw_att_exists(ncid, varid, "_FillValue"))
+                ncw_get_att_double(ncid, varid, "_FillValue", &zmissval[i]);
+            else if (ncw_att_exists(ncid, varid, "missing_value"))
+                ncw_get_att_double(ncid, varid, "missing_value", &zmissval[i]);
+            zall[i] = malloc(nprof * nz * sizeof(double));
+            ncw_get_var_double(ncid, varid, zall[i]);
+        }
+
+        for (i = 0; i < nprof * nz; ++i) {
+            for (j = 0; j < 4; ++j) {
+                if (zall[j] == NULL)
+                    continue;
+                if (fabs(zall[j][i] - zmissval[j]) > EPS)
+                    break;
+            }
+            if (j < 4)
+                z[0][i] = zall[j][i];
+            else
+                z[0][i] = NAN;
+        }
+        for (i = 0; i < 4; ++i)
+            if (zall[i] != NULL)
+                free(zall[i]);
+    }
 
     if (strncmp(meta->type, "TEM", 3) == 0) {
         validmin = -2.0;
@@ -283,7 +312,7 @@ void reader_cmems_standard(char* fname, int fid, obsmeta* meta, grid* g, observa
 
             if (fabs(v[p][i] - missval) < EPS || v[p][i] < validmin || v[p][i] > validmax)
                 continue;
-            if (z[p][i] < 0.0)
+            if (isnan(z[p][i]) || z[p][i] < 0.0)
                 continue;
             {
                 qcflagint = (int) qcflag[p][i] - (int) '0';

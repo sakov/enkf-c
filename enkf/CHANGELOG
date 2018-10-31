@@ -1,8 +1,15 @@
+v. 1.89.10
+   PS 01112018
+   -- Modified reading depth in reader_cmems_standard(). Now for each datum
+      the first valid depth value out of four candidate variables is used.
 v. 1.89.9
+   PS 31102018
    -- A number of minor changes in HE stuff, supposed to be cosmetic.
 v. 1.89.8
+   PS 29102018
    -- A number of minor, mostly cosmetic, changes.
 v. 1.89.7
+   PS 27102018
    -- Replaced a number of assert() calls by more meaningful error messages in
       a number of read/write procedures in utils.c.
 v. 1.89.6

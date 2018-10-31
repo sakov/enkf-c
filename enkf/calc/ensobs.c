@@ -249,6 +249,7 @@ void das_getHE(dasystem* das)
                 assert(ii >= 0);
                 recvcounts[ii] += number_of_iterations[i];
             }
+            MPI_Barrier(das->node_comm);
             ierror = MPI_Allgatherv(MPI_IN_PLACE, 0, MPI_DATATYPE_NULL, das->S[0], recvcounts, displs, mpitype_vec_nobs, das->node_comm);
             assert(ierror == MPI_SUCCESS);
         }
