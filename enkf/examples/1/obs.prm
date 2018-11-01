@@ -1,0 +1,47 @@
+PRODUCT = RADS
+TYPE = SLA
+READER = standard2
+FILE = obs/RADS-IB/y2007/m12/??_d19.nc
+FILE = obs/RADS-IB/y2007/m12/??_d20.nc
+FILE = obs/RADS-IB/y2007/m12/??_d21.nc
+FILE = obs/RADS-IB/y2007/m12/??_d22.nc
+FILE = obs/RADS-IB/y2007/m12/??_d23.nc
+
+PRODUCT = NAVO
+TYPE = SST
+READER = standard
+FILE = obs/NAVO/navo_20071219.nc
+FILE = obs/NAVO/navo_20071220.nc
+FILE = obs/NAVO/navo_20071221.nc
+FILE = obs/NAVO/navo_20071222.nc
+FILE = obs/NAVO/navo_20071223.nc
+
+PRODUCT = WindSat
+TYPE = SST
+READER = standard
+FILE = obs/WINDSAT/windsat_20071219.nc
+FILE = obs/WINDSAT/windsat_20071220.nc
+FILE = obs/WINDSAT/windsat_20071221.nc
+FILE = obs/WINDSAT/windsat_20071222.nc
+FILE = obs/WINDSAT/windsat_20071223.nc
+
+PRODUCT = CARS
+TYPE = TEM
+READER = standard
+FILE = obs/TS-SEP-2011/y2007/m12/cars_temp_d19.nc
+FILE = obs/TS-SEP-2011/y2007/m12/cars_temp_d20.nc
+FILE = obs/TS-SEP-2011/y2007/m12/cars_temp_d21.nc
+FILE = obs/TS-SEP-2011/y2007/m12/cars_temp_d22.nc
+FILE = obs/TS-SEP-2011/y2007/m12/cars_temp_d23.nc
+ERROR_STD = 0.5
+
+PRODUCT = CARS
+TYPE = SAL
+READER = standard
+FILE = obs/TS-SEP-2011/y2007/m12/cars_salt_d19.nc
+FILE = obs/TS-SEP-2011/y2007/m12/cars_salt_d20.nc
+FILE = obs/TS-SEP-2011/y2007/m12/cars_salt_d21.nc
+FILE = obs/TS-SEP-2011/y2007/m12/cars_salt_d22.nc
+FILE = obs/TS-SEP-2011/y2007/m12/cars_salt_d23.nc
+ERROR_STD = 0.1
+
