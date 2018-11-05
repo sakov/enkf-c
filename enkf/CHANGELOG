@@ -1,3 +1,10 @@
+v. 1.89.13
+   PS 05112018
+   -- Replaced a number of assertions in read/write procedures in utils.c by
+      more explicit error messages.
+v. 1.89.12
+   PS 05112018
+   -- Modified dasystem.h to undefine HE_VIASHMEM when MPI is not defined.
 v. 1.89.11
    PS 01112018
    -- Modified default behaviour in enkf_calc.c:main() to exit with error if

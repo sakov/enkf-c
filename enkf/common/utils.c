@@ -787,10 +787,12 @@ void readfield(char fname[], char varname[], int k, int ni, int nj, int nk, floa
     ncw_inq_vardims(ncid, varid, 4, &ndims, dimlen);
     hasrecorddim = ncw_var_hasunlimdim(ncid, varid);
     if (hasrecorddim)
-        assert(dimlen[0] > 0);
+        if (dimlen[0] == 0)
+            enkf_quit("%s: %s: empty record dimension", fname, varname);
 
     if (ndims == 4) {
-        assert(hasrecorddim);
+        if (!hasrecorddim)
+            enkf_quit("%s: %s: expect an unlimited dimension to be present for a 4-dimensional variable\n", fname, varname);
         start[0] = dimlen[0] - 1;
         if (dimlen[1] != nk)
             enkf_quit("\"%s\": vertical dimension of variable \"%s\" (nk = %d) does not match grid dimension (nk = %d)", fname, varname, dimlen[1], nk);
@@ -852,7 +854,8 @@ void readfield(char fname[], char varname[], int k, int ni, int nj, int nk, floa
         size_t len;
 
         ncw_inq_att(ncid, varid, "valid_range", &xtype, &len);
-        assert(len == 2);
+        if (len != 2)
+            enkf_quit("%s: %s: \"valid_range\" attribute must have 2 elements", fname, varname);
         if (xtype == NC_SHORT) {
             int valid_range[2];
             int fill_value = SHRT_MIN;
@@ -1073,7 +1076,8 @@ void writerow(char fname[], char varname[], int k, int j, float* v)
     if (ndims == 4) {
         if (!hasrecorddim)
             enkf_quit("%s: %s: expect an unlimited dimension to be present for a 4-dimensional variable\n", fname, varname);
-        assert(k < dimlen[1]);
+        if (k >= dimlen[1])
+            enkf_quit("%s: %s: the length of dimension 1 (%d) is not sufficient to read layer %d", fname, varname, dimlen[1], k);
         start[0] = (dimlen[0] == 0) ? 0 : dimlen[0] - 1;
         start[1] = k;
         start[2] = j;
@@ -1092,7 +1096,8 @@ void writerow(char fname[], char varname[], int k, int j, float* v)
             count[1] = 1;
             count[2] = dimlen[2];
         } else {
-            assert(k <= 0);
+            if (k > 0)
+                enkf_quit("%s: %s: can not read layer %d from a 2D variable", fname, varname, k);
             start[0] = (dimlen[0] == 0) ? 0 : dimlen[0] - 1;
             start[1] = j;
             start[2] = 0;
@@ -1197,7 +1202,8 @@ void read3dfield(char* fname, char* varname, int ni, int nj, int nk, float* v)
     ncw_inq_vardims(ncid, varid, 4, &ndims, dimlen);
     hasrecorddim = ncw_var_hasunlimdim(ncid, varid);
     if (hasrecorddim)
-        assert(dimlen[0] > 0);
+        if (dimlen[0] == 0)
+            enkf_quit("%s: %s: empty record dimension", fname, varname);
 
     if (ndims == 4) {
         if (!hasrecorddim)
@@ -1213,7 +1219,8 @@ void read3dfield(char* fname, char* varname, int ni, int nj, int nk, float* v)
         if (dimlen[3] != ni || dimlen[2] != nj || dimlen[1] != nk)
             enkf_quit("\"%s\": horizontal dimensions of variable \"%s\" (ni = %d, nj = %d, nk = %d) do not match grid dimensions (ni = %d, nj = %d, nk = %d)", fname, varname, dimlen[3], dimlen[2], dimlen[1], ni, nj, nk);
     } else if (ndims == 3) {
-        assert(!hasrecorddim);
+        if (hasrecorddim)
+            enkf_quit("%s: %s: can not read 3D field because the variable is only 2D", fname, varname);
         start[0] = 0;
         start[1] = 0;
         start[2] = 0;
@@ -1236,7 +1243,8 @@ void read3dfield(char* fname, char* varname, int ni, int nj, int nk, float* v)
         size_t len;
 
         ncw_inq_att(ncid, varid, "valid_range", &xtype, &len);
-        assert(len == 2);
+        if (len != 2)
+            enkf_quit("%s: %s: \"valid_range\" attribute must have 2 elements", fname, varname);
         if (xtype == NC_SHORT) {
             int valid_range[2];
             int fill_value = SHRT_MIN;
@@ -1308,12 +1316,14 @@ int is3d(char fname[], char varname[])
     ncw_open(fname, NC_NOWRITE, &ncid);
     ncw_inq_varid(ncid, varname, &varid);
     ncw_inq_varndims(ncid, varid, &ndims);
-    assert(ndims <= 4);
+    if (ndims > 4)
+        enkf_quit("%s: %s: do not know how to read a %d-dimensional variable", fname, varname, ndims);
     hasrecorddim = ncw_var_hasunlimdim(ncid, varid);
     ncw_close(ncid);
 
     ndims -= hasrecorddim;
-    assert(ndims >= 2 && ndims <= 3);
+    if (ndims < 2 || ndims > 3)
+        enkf_quit("%s: %s: a 2D or 3D variable expected", fname, varname);
 
     return ndims == 3;
 }
