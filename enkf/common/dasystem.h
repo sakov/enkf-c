@@ -84,18 +84,27 @@ typedef struct {
     double kfactor;
 #endif
 #if defined(HE_VIASHMEM)
+#if !defined(MPI)
+#undef HE_VIASHMEM
+#else
     ENSOBSTYPE** St;            /* (S transposed) */
     /*
-     * ("sm" below stands for "shared memrory")
+     * "sm" below stands for "shared memory". The shared memory is allocated
+     * on each node to hold HE (S) and (HE)^T (S^T) objects.
      */
     MPI_Comm sm_comm;
     MPI_Win sm_comm_win;
     int sm_comm_rank;
     int* sm_comm_ranks;
+    /*
+     * The node communicator includes the first core on each node. It is created
+     * to gather S and S^T.
+     */
     MPI_Comm node_comm;
     int node_comm_rank;
     int node_comm_size;
     int* node_comm_ranks;
+#endif
 #endif
     int fieldbufsize;
 
