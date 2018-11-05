@@ -1692,23 +1692,6 @@ int istrue(char str[])
 
 /**
  */
-void shuffle(int n, int ids[])
-{
-    int i;
-
-    srand48(SEED);
-
-    for (i = 0; i < n; ++i) {
-        int ii = (int) ((double) n * drand48());
-        int tmp = ids[i];
-
-        ids[i] = ids[ii];
-        ids[ii] = tmp;
-    }
-}
-
-/**
- */
 int inloninterval(double lon, double lon1, double lon2)
 {
     while (lon2 < lon1)

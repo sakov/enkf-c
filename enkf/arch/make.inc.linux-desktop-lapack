@@ -20,7 +20,7 @@ LD_PATH =
 
 LIB_NC = -lnetcdf -lhdf5 -lhdf5_hl
 LIB_LAPACK = -llapack -lblas -lgfortran
-LIB_M = -lm -ldmalloc
+LIB_M = -lm
 
 # with gridutils (default) (comment out below to compile without):
 #
