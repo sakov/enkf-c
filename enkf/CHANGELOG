@@ -1,3 +1,6 @@
+v. 1.89.14
+   PS 06112018
+   -- Fixed a few minor memory allocation/deallocation mismatches.
 v. 1.89.13
    PS 05112018
    -- Replaced a number of assertions in read/write procedures in utils.c by

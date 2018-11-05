@@ -478,6 +478,10 @@ void enkfprm_destroy(enkfprm* prm)
     free(prm->ensdir);
     if (prm->bgdir != NULL)
         free(prm->bgdir);
+    if (prm->locrad != NULL)
+        free(prm->locrad);
+    if (prm->locweight != NULL)
+        free(prm->locweight);
     if (prm->nregions > 0) {
         for (i = 0; i < prm->nregions; ++i)
             free(prm->regions[i].name);

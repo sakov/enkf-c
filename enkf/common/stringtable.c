@@ -165,11 +165,7 @@ void st_reset(stringtable* st)
  */
 int st_add(stringtable* st, char* s, int index)
 {
-    stringentry* se = malloc(sizeof(stringentry));
-
-    se->s = strdup(s);
-    se->index = (index >= 0) ? index : st->n;
-    se->naccess = 0;
+    stringentry* se = NULL;
 
     if (st->unique) {
         int previndex = st_findindexbystring(st, s);
@@ -185,7 +181,11 @@ int st_add(stringtable* st, char* s, int index)
     if (st->n % STRINGTABLE_NINC == 0)
         st->se = realloc(st->se, (st->n + STRINGTABLE_NINC) * sizeof(void*));
 
-    st->se[st->n] = se;
+    st->se[st->n] = malloc(sizeof(stringentry));
+    se = st->se[st->n];
+    se->s = strdup(s);
+    se->index = (index >= 0) ? index : st->n;
+    se->naccess = 0;
     st->n++;
     st->sorted = 0;
 
@@ -200,22 +200,20 @@ int st_add(stringtable* st, char* s, int index)
  */
 int st_add_ifabsent(stringtable* st, char* s, int index)
 {
-    stringentry* se;
-    int index2;
+    stringentry* se = NULL;
+    int previndex = st_findindexbystring(st, s);
 
-    index2 = st_findindexbystring(st, s);
-    if (index2 >= 0)
-        return index2;
-
-    se = malloc(sizeof(stringentry));
-    se->s = strdup(s);
-    se->index = (index >= 0) ? index : st->n;
-    se->naccess = 0;
+    if (previndex >= 0)
+        return previndex;
 
     if (st->n % STRINGTABLE_NINC == 0)
         st->se = realloc(st->se, (st->n + STRINGTABLE_NINC) * sizeof(void*));
 
-    st->se[st->n] = se;
+    st->se[st->n] = malloc(sizeof(stringentry));
+    se = st->se[st->n];
+    se->s = strdup(s);
+    se->index = (index >= 0) ? index : st->n;
+    se->naccess = 0;
     st->n++;
     st->sorted = 0;
 

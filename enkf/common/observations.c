@@ -87,7 +87,8 @@ void obs_addtype(observations* obs, obstype* src)
     ot->zmax = src->zmax;
 
     ot->ndomains = src->ndomains;
-    ot->domainnames = malloc(ot->ndomains * sizeof(char*));
+    if (ot->ndomains > 0)
+        ot->domainnames = malloc(ot->ndomains * sizeof(char*));
     for (i = 0; i < ot->ndomains; ++i)
         ot->domainnames[i] = strdup(src->domainnames[i]);
 
