@@ -1,3 +1,8 @@
+v. 1.89.15
+   PS 09112018
+   -- Added MPI_Type_commit()/MPI_Type_free() after MPI_Type_contiguous().
+      Seems to be necessary, but surprisingly OpenMPI worked without it, while
+      Intel-MPI crashed.
 v. 1.89.14
    PS 06112018
    -- Fixed a few minor memory allocation/deallocation mismatches.

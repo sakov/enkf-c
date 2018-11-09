@@ -229,6 +229,8 @@ void das_getHE(dasystem* das)
 
         ierror = MPI_Type_contiguous(nobs, MPIENSOBSTYPE, &mpitype_vec_nobs);
         assert(ierror == MPI_SUCCESS);
+        ierror = MPI_Type_commit(&mpitype_vec_nobs);
+        assert(ierror == MPI_SUCCESS);
 
 #if !defined(HE_VIASHMEM)
         for (i = 0; i < nprocesses; ++i) {
@@ -253,6 +255,8 @@ void das_getHE(dasystem* das)
             ierror = MPI_Allgatherv(MPI_IN_PLACE, 0, MPI_DATATYPE_NULL, das->S[0], recvcounts, displs, mpitype_vec_nobs, das->node_comm);
             assert(ierror == MPI_SUCCESS);
         }
+        ierror = MPI_Type_free(&mpitype_vec_nobs);
+        assert(ierror == MPI_SUCCESS);
         MPI_Barrier(MPI_COMM_WORLD);
 #endif
 
@@ -961,6 +965,8 @@ static void gather_St(dasystem* das)
 
     ierror = MPI_Type_contiguous(nmem, MPIENSOBSTYPE, &mpitype_vec_nmem);
     assert(ierror == MPI_SUCCESS);
+    ierror = MPI_Type_commit(&mpitype_vec_nmem);
+    assert(ierror == MPI_SUCCESS);
 
     MPI_Barrier(MPI_COMM_WORLD);
     if (das->node_comm_rank >= 0 && das->node_comm_size > 1) {
@@ -973,6 +979,8 @@ static void gather_St(dasystem* das)
             recvcounts[ii] += number_of_iterations[i];
         }
         ierror = MPI_Allgatherv(MPI_IN_PLACE, 0, MPI_DATATYPE_NULL, das->St[0], recvcounts, displs, mpitype_vec_nmem, das->node_comm);
+        assert(ierror == MPI_SUCCESS);
+        ierror = MPI_Type_free(&mpitype_vec_nmem);
         assert(ierror == MPI_SUCCESS);
     }
     MPI_Barrier(MPI_COMM_WORLD);
