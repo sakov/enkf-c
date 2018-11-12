@@ -1232,9 +1232,6 @@ void das_update(dasystem* das)
     MPI_Barrier(MPI_COMM_WORLD);
 #endif
     fflush(NULL);
-    if (das->nmem <= 0)
-        das_setnmem(das);
-    enkf_printf("    %d members\n", das->nmem);
 
     if (das->updatespec & UPDATE_DOSPREAD && rank == 0) {
         enkf_printf("    allocating disk space for spread:");

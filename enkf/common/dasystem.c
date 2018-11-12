@@ -38,6 +38,54 @@
 #define NFIELDS_INC 100
 #define MPIIDOFFSET 10000
 
+/** Determines ensemble size based on existence of forecast files for each
+ ** variable. If das->nmem <= 0 then sets the ensemble size to the maximum
+ ** available; otherwhile checks if the declared ensemble size is actually
+ ** available.
+ */
+static void das_setnmem(dasystem* das)
+{
+    model* m = das->m;
+    int nvar = model_getnvar(m);
+    char fname[MAXSTRLEN];
+    int nmem;
+
+    if (das->mode == MODE_NONE)
+        enkf_quit("programming error");
+
+    if (das->mode == MODE_ENOI && enkf_fstatsonly) {
+        das->nmem = 1;
+        return;
+    }
+
+    if (das->ensdir == NULL)
+        enkf_quit("programming error");
+
+    nmem = 0;
+    while (1) {
+        int i;
+
+        for (i = 0; i < nvar; ++i) {
+            model_getmemberfname(m, das->ensdir, model_getvarname(m, i), nmem + 1, fname);
+            if (!file_exists(fname))
+                break;
+        }
+        if (i == nvar)
+            nmem++;
+        else
+            break;
+    }
+    if (nmem == 0)
+        enkf_quit("das_setnmem(): could not find \"%s\"", fname);
+    if (das->nmem > 0) {
+        if (nmem < das->nmem)
+            enkf_quit("das_setnmem(): could not find \"%s\"", fname);
+        else if (nmem > das->nmem)
+            enkf_printf("      %d members found on disk; ignoring excess to specified ensemble size\n", nmem);
+    }
+    das->nmem = nmem;
+}
+
 /**
  */
 dasystem* das_create(enkfprm* prm)
@@ -69,6 +117,10 @@ dasystem* das_create(enkfprm* prm)
     das->std_a = NULL;
     das->s_mode = S_MODE_NONE;
 #endif
+
+    enkf_printf("  setting the ensemble size:\n");
+    das_setnmem(das);
+    enkf_printf("    %d member%s\n", das->nmem, das->nmem == 1 ? "" : "s");
 
 #if defined(HE_VIASHMEM)
     {
@@ -266,52 +318,6 @@ void das_destroy(dasystem* das)
     }
     free(das);
     distribute_free();
-}
-
-/** Determines ensemble size based on existence of forecast files for each
- * variable.
- */
-void das_setnmem(dasystem* das)
-{
-    model* m = das->m;
-    int nvar = model_getnvar(m);
-    char fname[MAXSTRLEN];
-    int nmem;
-
-    if (das->mode == MODE_NONE)
-        enkf_quit("programming error");
-
-    if (das->mode == MODE_ENOI && enkf_fstatsonly) {
-        das->nmem = 1;
-        return;
-    }
-
-    if (das->ensdir == NULL)
-        enkf_quit("programming error");
-
-    nmem = 0;
-    while (1) {
-        int i;
-
-        for (i = 0; i < nvar; ++i) {
-            model_getmemberfname(m, das->ensdir, model_getvarname(m, i), nmem + 1, fname);
-            if (!file_exists(fname))
-                break;
-        }
-        if (i == nvar)
-            nmem++;
-        else
-            break;
-    }
-    if (nmem == 0)
-        enkf_quit("das_setnmem(): could not find \"%s\"", fname);
-    if (das->nmem > 0) {
-        if (nmem < das->nmem)
-            enkf_quit("das_setnmem(): could not find \"%s\"", fname);
-        else if (nmem > das->nmem)
-            enkf_printf("      %d members found on disk; ignoring excess to specified ensemble size\n", nmem);
-    }
-    das->nmem = nmem;
 }
 
 /** Looks for all horizontal fields of the model to be updated.
