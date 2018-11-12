@@ -52,6 +52,12 @@ int do_superob_acrossinst = 1;
  */
 int write_orig_obs = 1;
 
+/*
+ * thinning of obs with identical positions in the same time window can be
+ * switched off
+ */
+int do_thin = 1;
+
 /**
  */
 static void usage()
@@ -65,9 +71,10 @@ static void usage()
     enkf_printf("  --describe-superob <sob #>\n");
     enkf_printf("      print composition of this superobservation and exit\n");
     enkf_printf("  --log-all-obs\n");
-    enkf_printf("      put all obs into %s (default: obs within model domain only)\n", FNAME_OBS);
+    enkf_printf("      write all obs to %s (default: obs within model domain only)\n", FNAME_OBS);
     enkf_printf("  --no-superobing\n");
     enkf_printf("  --no-superobing-across-instruments\n");
+    enkf_printf("  --no-thinning\n");
     enkf_printf("  --no-writing-orig-obs\n");
     enkf_printf("  --version\n");
     enkf_printf("      print version and exit\n");
@@ -132,6 +139,10 @@ static void parse_commandline(int argc, char* argv[], char** fname)
             continue;
         } else if (strcmp(argv[i], "--no-superobing-across-instruments") == 0) {
             do_superob_acrossinst = 0;
+            i++;
+            continue;
+        } else if (strcmp(argv[i], "--no-thinning") == 0) {
+            do_thin = 0;
             i++;
             continue;
         } else if (strcmp(argv[i], "--no-writing-orig-obs") == 0) {
@@ -272,7 +283,7 @@ int main(int argc, char* argv[])
 
     if (do_superob) {
         enkf_printf("  superobing:\n");
-        obs_superob(obs, cmp_obs, &sobs, describe_superob_id);
+        obs_superob(obs, cmp_obs, &sobs, describe_superob_id, do_thin);
 
         if (describe_superob_id >= 0)
             goto finalise;

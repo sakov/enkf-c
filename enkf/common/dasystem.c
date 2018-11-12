@@ -134,7 +134,7 @@ dasystem* das_create(enkfprm* prm)
         assert(ierror == MPI_SUCCESS);
         das->sm_comm_ranks = malloc(nprocesses * sizeof(int));
         /*
-         * build map of local ranks
+         * build map of local (i.e. within the node the core belongs to) ranks
          */
         das->sm_comm_ranks[rank] = das->sm_comm_rank;
         recvcounts = malloc(nprocesses * sizeof(int));
@@ -148,7 +148,7 @@ dasystem* das_create(enkfprm* prm)
         das->sm_comm_win = MPI_WIN_NULL;
 
         /*
-         * Create communicator based on sm_comm_rank
+         * create communicators based on local ranks
          */
         ierror = MPI_Comm_split(MPI_COMM_WORLD, das->sm_comm_rank, rank, &das->node_comm);
         assert(ierror == MPI_SUCCESS);
@@ -156,6 +156,10 @@ dasystem* das_create(enkfprm* prm)
         assert(ierror == MPI_SUCCESS);
         ierror = MPI_Comm_size(das->node_comm, &das->node_comm_size);
         assert(ierror == MPI_SUCCESS);
+        /*
+         * Free communicators for local ranks other than 0. The communicator for
+         * local rank 0 will be used for gathering S and St.
+         */
         if (das->sm_comm_rank != 0) {
             MPI_Comm_free(&das->node_comm);
             das->node_comm_rank = -1;

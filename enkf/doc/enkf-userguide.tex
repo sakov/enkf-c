@@ -36,7 +36,7 @@
 
 \begin{document}
 
-\title{EnKF-C user guide\\{\normalsize version 1.89.1}}
+\title{EnKF-C user guide\\{\normalsize version 1.90.0}}
 
 \author{Pavel Sakov}
 \date{June 19, 2014 -- \today}
@@ -997,13 +997,14 @@ It has the following usage and options:
   --consider-subgrid-variability
       increase error of superobservations according to subgrid variability
   --describe-prm-format [main|model|grid|obstypes|obsdata]
-      describe format of the parameter file and exit
+      describe format of a parameter file and exit
   --describe-superob <sob #>
       print composition of this superobservation and exit
   --log-all-obs
-      put all obs into observations.nc (default: obs within model domain only)
+      write all obs to observations-orig.nc (default: obs within model domain only)
   --no-superobing
   --no-superobing-across-instruments
+  --no-thinning
   --no-writing-orig-obs
   --version
       print version and exit
@@ -1135,6 +1136,9 @@ The product and instrument fields of the superobservation are set either to thos
 
 Command line parameter \verb|--consider-subgrid-variability| switches on considering the subgrid variability by calculating standard deviation of the merged observations $\sigma\!_{sub}$ and using $\sigma\!_{obs} = \max(\sigma\!_{obs}, \sigma\!_{sub})$.
 The calculation of $\sigma\!_{sub}$ is currently done in a rather crude way, assuming equal weights for all merged observations.
+
+Note that during superobing EnKF-C by default thins observations with identical positions, assuming that those must been obtained from high-frequency instruments (e.g. moorings).
+This thinning can be switched off by the command line parameter \verb|--no-thinning|.
 
 \subsection{Asynchronous DA / FGAT}
 \label{sec:async}

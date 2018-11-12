@@ -1005,7 +1005,7 @@ static int cmp_xyz(const void* p1, const void* p2)
 
 /**
  */
-void obs_superob(observations* obs, __compar_d_fn_t cmp_obs, observations** sobs, int sobid)
+void obs_superob(observations* obs, __compar_d_fn_t cmp_obs, observations** sobs, int sobid, int do_thin)
 {
     int i1 = 0, i2 = 0;
     int nsobs = 0;
@@ -1033,11 +1033,11 @@ void obs_superob(observations* obs, __compar_d_fn_t cmp_obs, observations** sobs
          * thin observations with identical positions (these are supposedly
          * coming from high-frequency instruments)
          */
-        qsort(&data[i1], i2 - i1 + 1, sizeof(observation), cmp_xyz);
-        {
+        if (do_thin) {
             int i11 = i1;
             int i22 = i1;
 
+            qsort(&data[i1], i2 - i1 + 1, sizeof(observation), cmp_xyz);
             while (i22 <= i2) {
                 while (i22 + 1 <= i2 && cmp_xyz(&data[i11], &data[i22 + 1]) == 0)
                     i22++;
