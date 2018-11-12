@@ -1,3 +1,7 @@
+v. 1.89.16
+   PS 12112018
+   -- reader_amsr2_standard(): ignore option ADD_BIAS if variable "sses_bias"
+      does not exist.
 v. 1.89.15
    PS 09112018
    -- Added MPI_Type_commit()/MPI_Type_free() after MPI_Type_contiguous().

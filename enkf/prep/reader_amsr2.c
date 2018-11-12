@@ -41,17 +41,17 @@ void reader_amsr2_standard(char* fname, int fid, obsmeta* meta, grid* g, observa
     int dimid_nobs;
     size_t nobs_local;
     int varid_lon, varid_lat, varid_sst, varid_sstb, varid_error, varid_time;
-    double* lon;
-    double* lat;
-    double* sst;
-    double* sstb;
-    double* error_std;
-    double* time;
+    double* lon = NULL;
+    double* lat = NULL;
+    double* sst = NULL;
+    double* sstb = NULL;
+    double* error_std = NULL;
+    double* time = NULL;
     int year, month, day;
     char tunits[MAXSTRLEN];
     size_t tunits_len;
     double tunits_multiple, tunits_offset;
-    char* basename;
+    char* basename = NULL;
     int i;
 
     for (i = 0; i < meta->npars; ++i) {
@@ -92,9 +92,12 @@ void reader_amsr2_standard(char* fname, int fid, obsmeta* meta, grid* g, observa
     ncw_get_var_double(ncid, varid_sst, sst);
 
     if (addbias) {
-        ncw_inq_varid(ncid, "sses_bias", &varid_sstb);
-        sstb = malloc(nobs_local * sizeof(double));
-        ncw_get_var_double(ncid, varid_sstb, sstb);
+        if (ncw_var_exists(ncid, "sses_bias")) {
+            ncw_inq_varid(ncid, "sses_bias", &varid_sstb);
+            sstb = malloc(nobs_local * sizeof(double));
+            ncw_get_var_double(ncid, varid_sstb, sstb);
+        } else
+            addbias = 0;
     }
 
     ncw_inq_varid(ncid, "error", &varid_error);
@@ -159,4 +162,6 @@ void reader_amsr2_standard(char* fname, int fid, obsmeta* meta, grid* g, observa
     free(sst);
     free(error_std);
     free(time);
+    if (addbias)
+        free(sstb);
 }
