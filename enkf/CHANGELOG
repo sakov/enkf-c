@@ -1,3 +1,9 @@
+v. 1.90.2
+   PS 20112018
+   -- Introduced compile flag MINIMISE_ALLOC in CALC, which aims at eliminating
+      the largest sources of dynamic memory allocation during calculating
+      transforms, which can cause OOM problems on very large system. (Nothing
+      is supposed to change for default setting.)
 v. 1.90.1
    PS 14112018
    -- Updated to ncw v2.23.2: it now removes skippinng singleton dimensions by

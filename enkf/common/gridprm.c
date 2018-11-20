@@ -421,6 +421,8 @@ void gridprm_destroy(int ngrid, gridprm prm[])
         free(now->fname);
         free(now->xvarname);
         free(now->yvarname);
+        if (now->vtype != NULL)
+            free(now->vtype);
         if (now->zvarname != NULL)
             free(now->zvarname);
         if (now->zcvarname != NULL)

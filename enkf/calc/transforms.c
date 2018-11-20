@@ -27,6 +27,15 @@
 #include "dasystem.h"
 #include "pointlog.h"
 
+#if defined(MINIMISE_ALLOC)
+#define PLOC_START 5000
+int ploc_allocated1 = 0;
+void* storage = NULL;
+int ploc_allocated2 = 0;
+int* lobs = NULL;
+double* lcoeffs = NULL;
+#endif
+
 /**
  */
 static void nc_createX5(dasystem* das, char fname[], char gridname[], int nj, int ni, int stride, int nmem, int* ncid, int* varid_X5)
@@ -165,6 +174,46 @@ static void group_iterations(int n, int ids[])
     for (iter = 0, i = 0; iter <= last_iteration[0]; ++iter)
         for (r = 0; r < nprocesses && i < n; ++r, ++i)
             ids[first_iteration[r] + iter] = i;
+}
+#endif
+
+#if defined(MINIMISE_ALLOC)
+/**
+ */
+static void prepare_transforms(size_t ploc, size_t m, double*** Sloc, double*** G)
+{
+    int dorealloc = (ploc > ploc_allocated1);
+    size_t size;
+    void* p;
+    void** pp;
+    int i;
+
+    while (ploc > ploc_allocated1)
+        ploc_allocated1 += PLOC_START;
+
+    size = 2 * ploc_allocated1 * m * sizeof(double) + (ploc_allocated1 + m) * sizeof(void*);
+    if (dorealloc)
+        storage = realloc(storage, size);
+
+    memset(storage, 0, size);
+
+    /*
+     * set Sloc
+     */
+    pp = storage;
+    p = &((size_t*) pp)[m];
+    for (i = 0; i < m; ++i)
+        pp[i] = &((char*) p)[i * ploc * sizeof(double)];
+    *Sloc = (double**) pp;
+
+    /*
+     * set G
+     */
+    pp = (void**) &((char*) storage)[m * sizeof(void*) + ploc * m * sizeof(double)];
+    p = &((size_t*) pp)[ploc];
+    for (i = 0; i < ploc; ++i)
+        pp[i] = &((char*) p)[i * m * sizeof(double)];
+    *G = (double**) pp;
 }
 #endif
 
@@ -340,18 +389,25 @@ void das_calctransforms(dasystem* das)
             for (ii = 0; ii < ni; ++ii) {
                 int ploc = 0;   /* `nlobs' already engaged, using another
                                  * name */
-                int* lobs = NULL;
-                int* plobs = NULL;
-                double* lcoeffs = NULL;
+
                 double** Sloc = NULL;
-                double* sloc = NULL;
                 double** G = NULL;
+
+#if !defined(MINIMISE_ALLOC)
+                int* lobs = NULL;
+                double* lcoeffs = NULL;
+#endif
+                int* plobs = NULL;
+                double* sloc = NULL;
                 int e, o;
 
                 i = iiter[ii];
 
+#if defined(MINIMISE_ALLOC)
+                obs_findlocal(obs, m, grid, i, j, &ploc, &lobs, &lcoeffs, &ploc_allocated2);
+#else
                 obs_findlocal(obs, m, grid, i, j, &ploc, &lobs, &lcoeffs);
-
+#endif
                 assert(ploc >= 0 && ploc <= obs->nobs);
 
                 if (ploc > stats.nlobs_max)
@@ -388,10 +444,17 @@ void das_calctransforms(dasystem* das)
                     }
                     continue;
                 }
-
+#if defined(MINIMISE_ALLOC)
+                /*
+                 * prepare_transforms() sets Sloc and G matrices while trying
+                 * to minimise unnecessary memory allocations
+                 */
+                prepare_transforms(ploc, das->nmem, &Sloc, &G);
+#else
                 Sloc = alloc2d(das->nmem, ploc, sizeof(double));
-                sloc = malloc(ploc * sizeof(double));
                 G = alloc2d(ploc, das->nmem, sizeof(double));
+#endif
+                sloc = malloc(ploc * sizeof(double));
                 plobs = malloc(ploc * sizeof(int));
 
                 for (e = 0; e < das->nmem; ++e) {
@@ -474,12 +537,14 @@ void das_calctransforms(dasystem* das)
                 else
                     stats.n_inv_obs++;
 
+#if !defined(MINIMISE_ALLOC)
                 free(G);
-                free(sloc);
                 free(Sloc);
                 free(lobs);
-                free(plobs);
                 free(lcoeffs);
+#endif
+                free(sloc);
+                free(plobs);
             }                   /* for i */
 
 #if defined(MPI)
@@ -601,7 +666,7 @@ void das_calctransforms(dasystem* das)
                 }
                 free(buffer_nlobs);
 
-                buffer_dfs = alloc2d(number_of_iterations[r], ni, sizeof(int));
+                buffer_dfs = alloc2d(number_of_iterations[r], ni, sizeof(float));
                 ierror = MPI_Recv(buffer_dfs[0], number_of_iterations[r] * ni, MPI_FLOAT, r, 2, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
                 assert(ierror == MPI_SUCCESS);
                 for (jj = first_iteration[r], jjj = 0; jj <= last_iteration[r]; ++jj, ++jjj) {
@@ -718,6 +783,21 @@ void das_calctransforms(dasystem* das)
         free(iiter);
         free(jpool);
     }                           /* for gid */
+
+#if defined(MINIMISE_ALLOC)
+    if (storage != NULL) {
+        free(storage);
+        storage = NULL;
+        ploc_allocated1 = 0;
+    }
+    if (lobs != NULL) {
+        free(lobs);
+        free(lcoeffs);
+        lobs = NULL;
+        lcoeffs = NULL;
+        ploc_allocated2 = 0;
+    }
+#endif
 }
 
 /** Calculates transform for pointlogs. This is done separately from
@@ -752,7 +832,11 @@ void das_dopointlogs(dasystem* das)
         double** T = NULL;
 
         printf("    calculating transform for log point (%d, %d):", plog->i, plog->j);
+#if defined(MINIMISE_ALLOC)
+        obs_findlocal(obs, m, grid, plog->i, plog->j, &ploc, &lobs, &lcoeffs, NULL);
+#else
         obs_findlocal(obs, m, grid, plog->i, plog->j, &ploc, &lobs, &lcoeffs);
+#endif
 
         assert(ploc >= 0 && ploc <= obs->nobs);
 

@@ -1376,7 +1376,11 @@ void obs_destroykdtrees(observations* obs)
 
 /**
  */
+#if defined(MINIMISE_ALLOC)
+void obs_findlocal(observations* obs, model* m, grid* g, int icoord, int jcoord, int* n, int** ids, double** lcoeffs, int* ploc_allocated)
+#else
 void obs_findlocal(observations* obs, model* m, grid* g, int icoord, int jcoord, int* n, int** ids, double** lcoeffs)
+#endif
 {
     double ll[2];
     double xyz[3];
@@ -1421,10 +1425,25 @@ void obs_findlocal(observations* obs, model* m, grid* g, int icoord, int jcoord,
         for (iloc = 0; iloc < ot->nlobsmax && (id = kdset_read(set, &dist)) != SIZE_MAX; ++i, ++iloc) {
             int id_orig = kd_getnodeorigid(tree, id);
 
+#if defined(MINIMISE_ALLOC)
+            if (ploc_allocated != NULL) {
+                if (i >= *ploc_allocated) {
+                    *ploc_allocated += KD_INC;
+                    *ids = realloc(*ids, *ploc_allocated * sizeof(int));
+                    *lcoeffs = realloc(*lcoeffs, *ploc_allocated * sizeof(double));
+                }
+            } else {
+                if (i % KD_INC == 0) {
+                    *ids = realloc(*ids, (i + KD_INC) * sizeof(int));
+                    *lcoeffs = realloc(*lcoeffs, (i + KD_INC) * sizeof(double));
+                }
+            }
+#else
             if (i % KD_INC == 0) {
                 *ids = realloc(*ids, (i + KD_INC) * sizeof(int));
                 *lcoeffs = realloc(*lcoeffs, (i + KD_INC) * sizeof(double));
             }
+#endif
             (*ids)[i] = obsids[id_orig];
         }
         kdset_free(set);
@@ -1449,7 +1468,11 @@ void obs_findlocal(observations* obs, model* m, grid* g, int icoord, int jcoord,
         ngood++;
     }
     *n = ngood;
+#if defined (MINIMISE_ALLOC)
+    if (ploc_allocated == NULL && ngood == 0 && *ids != NULL) {
+#else
     if (ngood == 0 && *ids != NULL) {
+#endif
         free(*ids);
         free(*lcoeffs);
     }
