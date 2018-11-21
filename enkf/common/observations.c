@@ -504,8 +504,17 @@ void obs_read(observations* obs, char fname[])
     ncw_inq_dimlen(ncid, dimid_nobs[0], &nobs);
 
     obs->nobs = nobs;
-    obs->data = malloc(nobs * sizeof(observation));
     enkf_printf("    %u observations\n", (unsigned int) nobs);
+    if (nobs == 0) {
+        obs->data = NULL;
+        ncw_close(ncid);
+        goto finish;
+    }
+
+    obs->data = malloc(nobs * sizeof(observation));
+#if defined(MPI)
+    MPI_Barrier(MPI_COMM_WORLD);
+#endif
 
     ncw_inq_varid(ncid, "type", &varid_type);
     ncw_inq_varid(ncid, "product", &varid_product);
@@ -616,12 +625,6 @@ void obs_read(observations* obs, char fname[])
         st_add_ifabsent(obs->datafiles, attstr, id);
     }
 
-    if (nobs == 0) {
-        obs->data = NULL;
-        ncw_close(ncid);
-        goto finish;
-    }
-
     id = malloc(nobs * sizeof(int));
     id_orig = malloc(nobs * sizeof(int));
     type = malloc(nobs * sizeof(short int));
@@ -707,6 +710,9 @@ void obs_read(observations* obs, char fname[])
     free(date);
     free(status);
     free(aux);
+#if defined(MPI)
+    MPI_Barrier(MPI_COMM_WORLD);
+#endif
 
   finish:
 
@@ -838,6 +844,11 @@ void obs_write(observations* obs, char fname[])
         ncw_def_deflate(ncid, 0, 1, obs->nccompression);
     ncw_enddef(ncid);
 
+    if (nobs == 0) {
+        ncw_close(ncid);
+        return;
+    }
+
     id = malloc(nobs * sizeof(int));
     id_orig = malloc(nobs * sizeof(int));
     type = malloc(nobs * sizeof(short int));
@@ -930,6 +941,9 @@ void obs_write(observations* obs, char fname[])
     free(date);
     free(status);
     free(aux);
+#if defined(MPI)
+    MPI_Barrier(MPI_COMM_WORLD);
+#endif
 }
 
 /**
