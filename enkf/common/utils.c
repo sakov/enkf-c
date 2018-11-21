@@ -218,6 +218,11 @@ void enkf_printcompileflags(const char offset[])
 #else
     enkf_printf("%s  HE_VIASHMEM      = [-]\n", offset);
 #endif
+#if defined(MINIMISE_ALLOC)
+    enkf_printf("%s  MINIMISE_ALLOC   = [+]\n", offset);
+#else
+    enkf_printf("%s  MINIMISE_ALLOC   = [-]\n", offset);
+#endif
 #if defined(OBS_SHUFFLE)
     enkf_printf("%s  OBS_SHUFFLE      = [+]\n", offset);
 #else
