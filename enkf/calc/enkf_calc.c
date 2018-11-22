@@ -32,6 +32,7 @@ int printbatchstats = 0;
 int ignorenoobs = 0;
 int use_rmsd = 0;
 int plogs_only = 0;
+int skip_transforms = 0;
 
 /**
  */
@@ -55,6 +56,9 @@ static void usage()
     enkf_printf("      assimilate single observation with these parameters\n");
     enkf_printf("  --single-observation-ijk <fi> <fj> <fk> <type> <inn> <std>\n");
     enkf_printf("      assimilate single observation with these parameters\n");
+    enkf_printf("  --use-existing-transforms\n");
+    enkf_printf("      skip calculating ensemble transforms; use existing X5-*.nc \n");
+    enkf_printf("      files\n");
     enkf_printf("  --use-rmsd-for-obsstats\n");
     enkf_printf("      use RMSD instead of MAD when printing observation stats\n");
     enkf_printf("  --use-these-obs <obs file>\n");
@@ -154,7 +158,10 @@ static void parse_commandline(int argc, char* argv[], char** fname_prm, char** f
                 enkf_quit("command line: could not convert \"%s\" to double", argv[i]);
             i++;
             continue;
-
+        } else if (strcmp(argv[i], "--use-existing-transforms") == 0) {
+            skip_transforms = 1;
+            i++;
+            continue;
         } else if (strcmp(argv[i], "--use-these-obs") == 0) {
             i++;
             if (i >= argc)
@@ -356,7 +363,7 @@ int main(int argc, char* argv[])
             }
         }
 
-        if (!plogs_only) {
+        if (!plogs_only && !skip_transforms) {
             enkf_printf("  calculating transforms:\n");
             enkf_printtime("  ");
             das_calctransforms(das);
