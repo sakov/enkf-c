@@ -1,3 +1,8 @@
+v. 1.90.4
+   PS 23112018
+   -- A few changes in kdtree.c. The main one concerns the search of nodes
+      within specified distance from a location, where individual allocations
+      where replaced by allocations of blocks of 1024 nodes.
 v. 1.90.3
    PS 21112018
    -- A few minor changes in obs_read() and obs_write().

@@ -10,7 +10,12 @@
  *
  * Description: KD-tree code
  *
- * Revisions:   
+ * Revisions:   23/11/2018 PS:
+ *              - Replaced individual allocations of "resnode" in the linked
+ *                list structure in _kdset_insert() by allocations of blocks of
+ *                KDSET_BLOCKSIZE resnodes.
+ *              - Streamlined counting the size of the results set by simply
+ *                adding "set->size++" to _kdset_insert().
  *
  *****************************************************************************/
 
@@ -24,6 +29,8 @@
 
 #define NALLOCSTART 1024
 #define SEED 5555
+#define KDSET_BLOCKSIZE 1024
+#define KDSET_NBLOCKS_INC 10
 
 struct resnode;
 typedef struct resnode resnode;
@@ -57,6 +64,8 @@ struct kdset {
     resnode* toread;
     size_t size;
     int beingread;
+    int nblocks;
+    resnode** blocks;
 };
 
 /**
@@ -245,17 +254,21 @@ static double disttohyperrect(int ndim, const double* min, const double* max, co
  */
 static void _kdset_insert(kdset* set, size_t id, double dist, int ordered)
 {
-    resnode* res = malloc(sizeof(resnode));
+    resnode* res;
 
+    if (set->size % KDSET_BLOCKSIZE == 0) {
+        if (set->nblocks % KDSET_NBLOCKS_INC == 0)
+            set->blocks = realloc(set->blocks, (set->nblocks + KDSET_NBLOCKS_INC) * sizeof(resnode*));
+        set->blocks[set->nblocks] = calloc(KDSET_BLOCKSIZE, sizeof(resnode));
+        set->nblocks++;
+    }
+
+    res = &set->blocks[set->nblocks - 1][set->size % KDSET_BLOCKSIZE];
     res->id = id;
     res->dist = dist;
 
     if (set->root == NULL) {
         set->root = res;
-        set->toread = NULL;
-        set->size = 0;
-        set->beingread = 0;
-        res->next = NULL;
     } else if (ordered && set->root->dist > res->dist) {
         resnode* tmp = set->root;
 
@@ -270,20 +283,21 @@ static void _kdset_insert(kdset* set, size_t id, double dist, int ordered)
         res->next = now->next;
         now->next = res;
     }
+    set->size++;
 }
 
 /**
  */
-static int _kd_findnodeswithinrange(const kdtree* tree, int id, const double* coords, double range, kdset* set, int ordered)
+static void _kd_findnodeswithinrange(const kdtree* tree, int id, const double* coords, double range, kdset* set, int ordered)
 {
     int ndim = tree->ndim;
     kdnode* node;
     double* nodecoords;
     double dist, dx;
-    int i, ret, added_res;
+    int i;
 
     if (id < 0)
-        return 0;
+        return;
 
     node = &tree->nodes[id];
     nodecoords = &tree->coords[node->id * ndim];
@@ -291,36 +305,22 @@ static int _kd_findnodeswithinrange(const kdtree* tree, int id, const double* co
     for (i = 0, dist = 0.0; i < ndim; i++)
         dist += (nodecoords[i] - coords[i]) * (nodecoords[i] - coords[i]);
 
-    added_res = 0;
-    if (dist <= range * range) {
+    if (dist <= range * range)
         _kdset_insert(set, id, dist, ordered);
-        added_res = 1;
-    }
 
     dx = coords[node->dir] - nodecoords[node->dir];
-    ret = _kd_findnodeswithinrange(tree, dx <= 0.0 ? node->left : node->right, coords, range, set, ordered);
-    if (fabs(dx) < range) {
-        added_res += ret;
-        ret = _kd_findnodeswithinrange(tree, dx <= 0.0 ? node->right : node->left, coords, range, set, ordered);
-    }
-    added_res += ret;
-
-    return added_res;
+    _kd_findnodeswithinrange(tree, dx <= 0.0 ? node->left : node->right, coords, range, set, ordered);
+    if (fabs(dx) < range)
+        _kd_findnodeswithinrange(tree, dx <= 0.0 ? node->right : node->left, coords, range, set, ordered);
 }
 
 /**
  */
 kdset* kd_findnodeswithinrange(const kdtree* tree, const double* coords, double range, int ordered)
 {
-    int ret;
-    kdset* rset;
+    kdset* rset = calloc(1, sizeof(kdset));
 
-    rset = malloc(sizeof(kdset));
-    rset->root = NULL;
-    rset->size = 0;
-
-    ret = _kd_findnodeswithinrange(tree, 0, coords, range, rset, ordered);
-    rset->size = ret;
+    _kd_findnodeswithinrange(tree, 0, coords, range, rset, ordered);
 
     return rset;
 }
@@ -432,27 +432,15 @@ size_t kd_findnearestnode(const kdtree* tree, const double* coords)
 
 /**
  */
-static void _clear_results(kdset* rset)
-{
-    resnode* root = rset->root;
-
-    while (root != NULL) {
-        resnode* now = root;
-
-        root = root->next;
-        free(now);
-    }
-    rset->root = NULL;
-    rset->size = 0;
-}
-
-/**
- */
 void kdset_free(kdset* set)
 {
+    int i;
+
     if (set == NULL)
         return;
-    _clear_results(set);
+    for (i = 0; i < set->nblocks; ++i)
+	free(set->blocks[i]);
+    free(set->blocks);
     free(set);
 }
 
