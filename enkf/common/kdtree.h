@@ -69,7 +69,7 @@ double* kd_getminmax(const kdtree* tree);
 /* read node id of the current result (SIZE_MAX if no more results are
  * available; advance the result set iterator)
  */
-size_t kdset_read(kdset* set, double* dist);
+size_t kdset_readnext(kdset* set, double* dist);
 
 /* get the size of the result set
  */

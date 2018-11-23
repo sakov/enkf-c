@@ -1436,7 +1436,7 @@ void obs_findlocal(observations* obs, model* m, grid* g, int icoord, int jcoord,
         }
 
         set = kd_findnodeswithinrange(tree, xyz, obstype_getmaxlocrad(ot), 1);
-        for (iloc = 0; iloc < ot->nlobsmax && (id = kdset_read(set, &dist)) != SIZE_MAX; ++i, ++iloc) {
+        for (iloc = 0; iloc < ot->nlobsmax && (id = kdset_readnext(set, &dist)) != SIZE_MAX; ++i, ++iloc) {
             int id_orig = kd_getnodeorigid(tree, id);
 
 #if defined(MINIMISE_ALLOC)

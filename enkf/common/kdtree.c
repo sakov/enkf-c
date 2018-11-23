@@ -439,7 +439,7 @@ void kdset_free(kdset* set)
     if (set == NULL)
         return;
     for (i = 0; i < set->nblocks; ++i)
-	free(set->blocks[i]);
+        free(set->blocks[i]);
     free(set->blocks);
     free(set);
 }
@@ -453,7 +453,7 @@ size_t kdset_getsize(const kdset* set)
 
 /**
  */
-size_t kdset_read(kdset* set, double* dist)
+size_t kdset_readnext(kdset* set, double* dist)
 {
     size_t id;
 
