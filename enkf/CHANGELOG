@@ -1,3 +1,7 @@
+v. 1.91.1
+   PS 27112018
+   -- Fixed defect in reader_xyz_gridded(). Thanks to Paul Sandery for the bug
+      report.
 v. 1.91.0
    PS 23112018
    -- Added option "--use-existing-transforms" to CALC.
