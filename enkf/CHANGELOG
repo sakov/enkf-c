@@ -1,3 +1,6 @@
+v. 1.91.2
+   PS 28112018
+   -- Mirrored the fix from 1.91.1 in reader_xy_gridded().
 v. 1.91.1
    PS 27112018
    -- Fixed defect in reader_xyz_gridded(). Thanks to Paul Sandery for the bug

@@ -504,14 +504,16 @@ void obs_read(observations* obs, char fname[])
     ncw_inq_dimlen(ncid, dimid_nobs[0], &nobs);
 
     obs->nobs = nobs;
-    enkf_printf("    %u observations\n", (unsigned int) nobs);
+    enkf_printf("    %zu observations\n", nobs);
     if (nobs == 0) {
         obs->data = NULL;
         ncw_close(ncid);
         goto finish;
     }
 
+    enkf_printf("    allocating %zu bytes for array of observations\n", nobs * sizeof(observation));
     obs->data = malloc(nobs * sizeof(observation));
+    assert(obs->data != NULL);
 #if defined(MPI)
     MPI_Barrier(MPI_COMM_WORLD);
 #endif

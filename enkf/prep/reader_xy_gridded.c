@@ -204,6 +204,8 @@ void reader_xy_gridded(char* fname, int fid, obsmeta* meta, grid* g, observation
         ncw_inq_varid(ncid, latname, &varid_lat);
     } else
         enkf_quit("reader_xyz_gridded(): %s: could not find latitude variable", fname);
+    if (ndim_xy == 1)
+        ncw_inq_vardims(ncid, varid_lat, 1, &ndim_xy, &nj);
 
     if (iscurv == 0) {
         ncw_check_varndims(ncid, varid_lat, 1);
