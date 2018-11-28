@@ -1,3 +1,7 @@
+v. 1.91.3
+   PS 28112018
+   -- Fixed for an unhandled case of ascending Z grids in grid_z2fk(). Thanks to
+      Paul Sandery for the bug report.
 v. 1.91.2
    PS 28112018
    -- Mirrored the fix from 1.91.1 in reader_xy_gridded().

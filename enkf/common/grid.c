@@ -1662,6 +1662,7 @@ int grid_xy2fij(grid* g, double x, double y, double* fi, double* fj)
 int grid_z2fk(grid* g, double fi, double fj, double z, double* fk)
 {
     int isperiodic_i = grid_isperiodic_i(g);
+    int ksurf = grid_getsurflayerid(g);
     int ni, nj;
     int i1, i2, j1, j2, k;
 
@@ -1706,7 +1707,7 @@ int grid_z2fk(grid* g, double fi, double fj, double z, double* fk)
         j1 = j2;
     if (j2 == nj)
         j2 = j1;
-    k = floor(*fk);
+    k = (ksurf == 0) ? floor(*fk) : ksurf - ceil(*fk);
     if (g->numlevels[j1][i1] <= k && g->numlevels[j1][i2] <= k && g->numlevels[j2][i1] <= k && g->numlevels[j2][i2] <= k) {
         *fk = NAN;
         return STATUS_LAND;
