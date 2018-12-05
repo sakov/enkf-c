@@ -1,7 +1,6 @@
 v. 1.91.4
    PS 05122018
-   -- Skip writing variables to pointlogs if the grid of the variable is
-      different to the grid of the pointlog.
+   -- Skip writing a variable to a pointlog if they are on different grids.
 v. 1.91.3
    PS 28112018
    -- Fixed for an unhandled case of ascending Z grids in grid_z2fk().
