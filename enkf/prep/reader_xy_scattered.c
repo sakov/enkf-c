@@ -161,6 +161,7 @@ void reader_xy_scattered(char* fname, int fid, obsmeta* meta, grid* g, observati
     if (lonname != NULL) {
         enkf_printf("        LONNAME = %s\n", lonname);
         ncw_inq_varid(ncid, lonname, &varid_lon);
+        ncw_check_vardims(ncid, varid_lon, 1, &nobs);
     } else
         enkf_quit("reader_xy_scattered(): %s: could not find longitude variable", fname);
 
@@ -168,6 +169,7 @@ void reader_xy_scattered(char* fname, int fid, obsmeta* meta, grid* g, observati
     if (latname != NULL) {
         enkf_printf("        LATNAME = %s\n", latname);
         ncw_inq_varid(ncid, latname, &varid_lat);
+        ncw_check_vardims(ncid, varid_lat, 1, &nobs);
     } else
         enkf_quit("reader_xyz_scattered(): %s: could not find latitude variable", fname);
 
@@ -211,6 +213,7 @@ void reader_xy_scattered(char* fname, int fid, obsmeta* meta, grid* g, observati
     else if (ncw_var_exists(ncid, "std"))
         ncw_inq_varid(ncid, "std", &varid_std);
     if (varid_std >= 0) {
+        ncw_check_vardims(ncid, varid_std, 1, &nobs);
         std = malloc(nobs * sizeof(double));
         ncw_get_var_double(ncid, varid_std, std);
         if (ncw_att_exists(ncid, varid_std, "_FillValue"))
@@ -230,6 +233,7 @@ void reader_xy_scattered(char* fname, int fid, obsmeta* meta, grid* g, observati
     else if (ncw_var_exists(ncid, "error_std"))
         ncw_inq_varid(ncid, "error_std", &varid_estd);
     if (varid_estd >= 0) {
+        ncw_check_vardims(ncid, varid_estd, 1, &nobs);
         estd = malloc(nobs * sizeof(double));
         ncw_get_var_double(ncid, varid_estd, estd);
         if (ncw_att_exists(ncid, varid_estd, "_FillValue"))
@@ -256,6 +260,7 @@ void reader_xy_scattered(char* fname, int fid, obsmeta* meta, grid* g, observati
         qcflag = alloc2d(nqcflags, nobs, sizeof(int32_t));
         for (i = 0; i < nqcflags; ++i) {
             ncw_inq_varid(ncid, qcflagname[i], &varid);
+            ncw_check_vardims(ncid, varid, 1, &nobs);
             ncw_get_var_uint(ncid, varid, qcflag[i]);
         }
     }
