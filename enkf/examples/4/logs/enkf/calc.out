@@ -1,10 +1,12 @@
+sparse.7205hfi_wait_for_device: The /dev/hfi1_0 device failed to appear after 15.0 seconds: Connection timed out
+sparse.7204hfi_wait_for_device: The /dev/hfi1_0 device failed to appear after 15.0 seconds: Connection timed out
   MPI: initialised 2 process(es)
-  MPI: rank = 0, PID = 8904
-  running CALC for EnKF-C version 1.83.0:
+  MPI: rank = 0, PID = 7204
+  MPI: rank = 1, PID = 7205
+  running CALC for EnKF-C version 1.91.4:
     command = "./enkf_calc enkf.prm"
     dir = "/home/pavel/src/enkf-c/trunk/enkf/examples/4"
-  MPI: rank = 1, PID = 8905
-  2018-06-29 20:59:43
+  2018-12-05 14:54:14
   reading system specs from "enkf.prm":
     MODE = EnKF
     SCHEME = DEnKF
@@ -23,8 +25,9 @@
       LOCWEIGHT =  1
     STRIDE = 3
     FIELDBUFFERSIZE = 4
-    REGION Global: x = [0.0, 360.0], y = [-90.0, 90.0], z intervals = 
-    POINTLOG 30 50
+    REGION Global: x = [0.0, 360.0], y = [-90.0, 90.0]
+    POINTLOG 30 50 t-grid
+    POINTLOG 30 50 c-grid
     SOBSTRIDE = 1
     NCFORMAT = 64BIT
     NCCOMPRESSION = 0
@@ -37,6 +40,7 @@
       SHUFFLE_ROWS     = [-]
       HE_VIAFILE       = [-]
       HE_VIASHMEM      = [+]
+      MINIMISE_ALLOC   = [-]
       OBS_SHUFFLE      = [-]
       GRIDNODES_WRITE  = [-]
       INTERNAL_QSORT_R = [-]
@@ -90,6 +94,7 @@
       RFACTOR = 8
     grid prm info:
       NAME = "t-grid"
+      DOMAIN = Default
       DATA = "conf4/grid_spec.nc"
       MAPTYPE = "B"
       VTYPE = "z"
@@ -110,6 +115,7 @@
       v dir = FROMSURF
     grid prm info:
       NAME = "c-grid"
+      DOMAIN = Default
       DATA = "conf4/grid_spec.nc"
       MAPTYPE = "B"
       VTYPE = "z"
@@ -127,30 +133,14 @@
       longitude range = [0.000, 360.000]
       v type = Z
       v dir = FROMSURF
-    model info:
-      name = Tasman
-      5 variables:
-        eta_t:
-          grid = "t-grid"
-          inflation = 1.100 1.00
-        temp:
-          grid = "t-grid"
-          inflation = 1.100 1.00
-        salt:
-          grid = "t-grid"
-          inflation = 1.100 1.00
-        u:
-          grid = "c-grid"
-          inflation = 1.100 1.00
-        v:
-          grid = "c-grid"
-          inflation = 1.100 1.00
-      0 modeldata:
+  setting the ensemble size:
+    96 members
   reading observations from "observations.nc":
     3813 observations
+    allocating 427056 bytes for array of observations
   calculating ensemble observations:
-  2018-06-29 20:59:43
-    ensemble size = 96
+  2018-12-05 14:54:14
+    allocating 2928384 bytes for HE array:
     distributing iterations:
       2 processes get 48 iterations each
     SLA ................................................
@@ -158,7 +148,7 @@
     TEM ................................................
     SAL ................................................
   adding forecast innovations and spread to "observations.nc":
-  2018-06-29 20:59:43
+  2018-12-05 14:54:14
   moderating observations:
     observations substantially modified:
       SLA          0 (0.0%)
@@ -168,15 +158,15 @@
       total        0 (0.0%)
   writing modified obs errors to "observations.nc":
   calculating transforms:
-  2018-06-29 20:59:43
+  2018-12-05 14:54:14
     creating kd-trees for observations:
     calculating transforms for t-grid:
       creating empty file "X5-0.nc":
       distributing iterations:
-        j = 3 (1: 17: 5.9%)
         2 processes get 17 iterations each
       main cycle for t-grid (34 x 34 local analyses):
         j = 0 (0: 0: 5.9%)
+        j = 3 (1: 17: 5.9%)
         j = 9 (1: 18: 11.8%)
         j = 6 (0: 1: 11.8%)
         j = 15 (1: 19: 17.6%)
@@ -219,10 +209,10 @@
     calculating transforms for c-grid:
       creating empty file "X5-1.nc":
       distributing iterations:
+        j = 3 (1: 17: 5.9%)
         2 processes get 17 iterations each
       main cycle for c-grid (34 x 34 local analyses):
         j = 0 (0: 0: 5.9%)
-        j = 3 (1: 17: 5.9%)
         j = 9 (1: 18: 11.8%)
         j = 6 (0: 1: 11.8%)
         j = 15 (1: 19: 17.6%)
@@ -265,14 +255,16 @@
   writing point logs:
     calculating transform for log point (30, 50): 533 obs
     writing the log for point (30, 50) on grid "t-grid":
+    calculating transform for log point (30, 50): 529 obs
+    writing the log for point (30, 50) on grid "c-grid":
   calculating analysed observations:
-  2018-06-29 20:59:56
+  2018-12-05 14:54:27
     sorting obs by ij:
-    2018-06-29 20:59:56
+    2018-12-05 14:54:27
     updating HE:
     distributing iterations:
       2 processes get 1907 or 1906 iterations
-    2018-06-29 20:59:56
+    2018-12-05 14:54:28
   adding analysis innovations and spread to "observations.nc":
   printing observation statistics:
     region obs.type   # obs.  |for.inn.| |an.inn.|   for.inn.   an.inn.  for.spread  an.spread
@@ -296,5 +288,5 @@
              0-50m         2    0.088      0.119      0.074      0.082      0.023      0.018  
              50-500m       5    0.072      0.074      0.047      0.035      0.032      0.023  
              500-9999m     0     -nan       -nan       -nan       -nan       -nan       -nan  
-  2018-06-29 20:59:56
+  2018-12-05 14:54:28
   finished

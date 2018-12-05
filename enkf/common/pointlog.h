@@ -15,7 +15,7 @@
 
 #if !defined(_POINTLOG_H)
 
-void plog_write(dasystem* das, int id, double depth, int p, int* lobs, double* lcoeffs, double* s, double* S, double* transform);
+void plog_write(dasystem* das, int id, float depth, int p, int* lobs, double* lcoeffs, double* s, double* S, double* transform);
 void plog_writeactualtransform(dasystem* das, int id, float* transform);
 void plog_definestatevars(dasystem* das);
 void plog_writestatevars(dasystem* das, int nfields, void** fieldbuffer, field* fields, int isanalysis);

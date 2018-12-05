@@ -1,14 +1,18 @@
+v. 1.91.4
+   PS 05122018
+   -- Skip writing variables to pointlogs if the grid of the variable is
+      different to the grid of the pointlog.
 v. 1.91.3
    PS 28112018
-   -- Fixed for an unhandled case of ascending Z grids in grid_z2fk(). Thanks to
-      Paul Sandery for the bug report.
+   -- Fixed for an unhandled case of ascending Z grids in grid_z2fk().
+      Thanks to Paul Sandery for the bug report.
 v. 1.91.2
    PS 28112018
    -- Mirrored the fix from 1.91.1 in reader_xy_gridded().
 v. 1.91.1
    PS 27112018
-   -- Fixed defect in reader_xyz_gridded(). Thanks to Paul Sandery for the bug
-      report.
+   -- Fixed defect in reader_xyz_gridded().
+      Thanks to Paul Sandery for the bug report.
 v. 1.91.0
    PS 23112018
    -- Added option "--use-existing-transforms" to CALC.
@@ -175,7 +179,7 @@ v. 1.85.5
       kind in the file.
 v. 1.85.4
    PS 05092018
-   -- Corrected defect in calculating the num,ber of unique locations in
+   -- Corrected defect in calculating the number of unique locations in
       reader_mmt_standard() and reader_cmems_standard().
 v. 1.85.3
    PS 05092018
@@ -203,8 +207,8 @@ v. 1.84.9
       reader_xyz_gridded.c.
 v. 1.84.8
    PS 17082018
-   -- Added another barrier in enkf_calc.c::main(). Thanks to Paul Sandery for
-      the bug report.
+   -- Added another barrier in enkf_calc.c::main().
+      Thanks to Paul Sandery for the bug report.
 v. 1.84.7
    PS 16082018
    -- Added a barrier in das_calcinnandspread() that is supposed to fix a
@@ -245,8 +249,8 @@ v. 1.84.0
       access).
 v. 1.83.15
    PS 07082018
-   -- Fixed 2 defects in regard to qcflag in reader_xy_gridded(). Thanks to Hugo
-      Oliveira for drawing attention.
+   -- Fixed 2 defects in regard to qcflag in reader_xy_gridded().
+      Thanks to Hugo Oliveira for drawing attention.
 v. 1.83.14
    PS 03082018
    -- A fix in enkf_calc() that prevents of processes other than rank = 0 write
@@ -254,8 +258,8 @@ v. 1.83.14
    -- A cosmetic change in das_writeinflation().
 v. 1.83.13
    PS 02082018
-   -- Fixed defects in regard to qcflag in reader_xy_gridded(). Thanks to Hugo
-      Oliveira for raising suspicion.
+   -- Fixed defects in regard to qcflag in reader_xy_gridded().
+      Thanks to Hugo Oliveira for the tip.
    -- Updated ncw.[ch] to v2.20.0.
 v. 1.83.12
    PS 30072018
@@ -351,8 +355,8 @@ v. 1.81.0
 v. 1.80.9
    PS 14062018
    Corrected calculation of zt[] in gz_sigma_z2fk() and in grid_fk2z() for
-   "g->vtype == GRIDVTYPE_SIGMA" in the case when hc != 0. Thanks to Frank
-   Colberg for the bug report and correction.
+   "g->vtype == GRIDVTYPE_SIGMA" in the case when hc != 0.
+   Thanks to Frank Colberg for the bug report and correction.
 v. 1.80.8
    PS 12062018
    Cosmetically modified stringtable.[ch].
@@ -421,12 +425,12 @@ v. 1.76.5
 v. 1.76.4
    PS 01052018
    -- Corrected assertions at the end of gz_z_create() and gz_sigma_create() to
-      work for 1-layer model (replaced < by <=). Thanks to Paul Sandery for the
-      report.
+      work for 1-layer model (replaced < by <=).
+      Thanks to Paul Sandery for the report.
 v. 1.76.3
    PS 01052018
-   -- Corrected error message in reader_xyh_gridded() -- thanks to Paul Sandery
-      for the report.
+   -- Corrected error message in reader_xyh_gridded(). 
+      Thanks to Paul Sandery for the report.
 v. 1.76.2
    PS 30042018
    -- Removed redundant declarations in model.h.
@@ -775,8 +779,8 @@ v. 1.62.2
    -- Fixed (hopefully) a subtle defect in handling periodic grids. It
       manifested in getting weird longitude values for super-observations when
       the collated obs had fi (fractional i indices) both in [ni - 1, ni - 0.5)
-      and [ni - 0.5, ni) intervals. Thanks to Matt Chamberlain and Russ Fiedler
-      for the bug report.
+      and [ni - 0.5, ni) intervals.
+      Thanks to Matt Chamberlain and Russ Fiedler for the bug report.
 v. 1.62.1
    PS 26092017
    -- Added optional parameters VARSHIFT and MINDEPTH to
@@ -1099,8 +1103,8 @@ v. 1.40.0
    -- Added SSS reader reader_aquarius.c.
 v. 1.39.8
    PS 15062016
-   -- Added the actual code that discards observation outside the allowed range
-      (thanks to Paul Sandery for the report).
+   -- Added the actual code that discards observation outside the allowed range.
+      Thanks to Paul Sandery for the report.
    -- Added exit with error in the case of asynchronous time interval <= 0.
 v. 1.39.7
    PS 24052016
@@ -1455,11 +1459,12 @@ v. 1.11
 v. 1.10
    PS 12082015
    -- Fixed a major slowdown in obs_findlocal() introduced in v. 1.08: moved
-      obs_find_bytype() outside. Thanks to Paul Sandery for the report.
+      obs_find_bytype() outside.
+      Thanks to Paul Sandery for the report.
 v. 1.09.1
    PS 07082015
-   -- Fixed bug in invsqrtm2() that resulted in wrong X5 for the ETKF. Thanks
-      to Yonghong Yin for the report.
+   -- Fixed bug in invsqrtm2() that resulted in wrong X5 for the ETKF.
+      Thanks to Yonghong Yin for the report.
 v. 1.09
    PS 04082015
    -- Added a new flag "--use-rmsd-for-obsstats" for enkf_calc. When RMSD is
@@ -1484,7 +1489,8 @@ v. 1.07
 v. 1.06.1
    PS 23072015
    -- Fixed a defect -- checking that plogs do actually exist before working
-      on them. Thanks to Paul Sandery for reporting.
+      on them.
+      Thanks to Paul Sandery for reporting.
 v. 1.06
    PS 22072015
    -- Added capability to define the limiting multiple for inflation (remains
@@ -1508,8 +1514,8 @@ v. 1.02
       models).
 v. 1.01
    PS 18062015
-   -- Fixed inconsistency with -DNO_GRIDUTILS (thanks to Russ Fiedler for the
-      bug report).
+   -- Fixed inconsistency with -DNO_GRIDUTILS.
+      Thanks to Russ Fiedler for the bug report.
    -- Some cosmetic changes.
 v. 1.00
    PS 17062015
@@ -1555,8 +1561,8 @@ v. 0.96.1
 v. 0.96
    PS 17022015
    -- Fixed the call to grid_create() in model.c to pass correctly the grid type
-      to the grid structure (was defaulted to GRIDVTYPE_Z). (Thanks to Paul
-      Sandery for the bug report.)
+      to the grid structure (was defaulted to GRIDVTYPE_Z).
+      Thanks to Paul Sandery for the bug report.
 v. 0.95
    PS 12022015
    -- Modified code to be able to proceed with nobs = 0; introduced a new option
@@ -1570,8 +1576,8 @@ v. 0.93
    -- Added a reader for AMSR-2.
 v. 0.92.3
    PS 30012015
-   -- Corrected das_updatebg() to work in the case STRIDE = 1 (thanks to Paul
-      Sandery for the bug report).
+   -- Corrected das_updatebg() to work in the case STRIDE = 1.
+      Thanks to Paul Sandery for the bug report.
 v. 0.92.2
    PS 16012015
    -- Modified H_surf_standard() and H_surf_biased() to read the actual level
@@ -1600,8 +1606,8 @@ v. 0.91
       specifications now require VTYPE (currently can be either "z" or "sigma").
 v. 0.90
    PS 17122014
-   -- Corrected defect in verticall mapping -- thanks to Russ Fiedler for the
-      bug report.
+   -- Corrected defect in verticall mapping.
+      Thanks to Russ Fiedler for the bug report.
    -- Moved `gridprm' stuff to gridprm.[ch].
 v. 0.89
    PS 10122014

@@ -1,7 +1,7 @@
-  running PREP for EnKF-C version 1.83.0:
+  running PREP for EnKF-C version 1.91.4:
     command = "./enkf_prep enkf.prm"
     dir = "/home/pavel/src/enkf-c/trunk/enkf/examples/4"
-  2018-06-29 20:59:42
+  2018-12-05 14:53:58
   reading prep specs from "enkf.prm":
     MODE = EnKF
     SCHEME = DEnKF
@@ -20,8 +20,9 @@
       LOCWEIGHT =  1
     STRIDE = 3
     FIELDBUFFERSIZE = 4
-    REGION Global: x = [0.0, 360.0], y = [-90.0, 90.0], z intervals = 
-    POINTLOG 30 50
+    REGION Global: x = [0.0, 360.0], y = [-90.0, 90.0]
+    POINTLOG 30 50 t-grid
+    POINTLOG 30 50 c-grid
     SOBSTRIDE = 1
     NCFORMAT = 64BIT
     NCCOMPRESSION = 0
@@ -78,6 +79,7 @@
   creating model and observations:
     grid prm info:
       NAME = "t-grid"
+      DOMAIN = Default
       DATA = "conf4/grid_spec.nc"
       MAPTYPE = "B"
       VTYPE = "z"
@@ -98,6 +100,7 @@
       v dir = FROMSURF
     grid prm info:
       NAME = "c-grid"
+      DOMAIN = Default
       DATA = "conf4/grid_spec.nc"
       MAPTYPE = "B"
       VTYPE = "z"
@@ -115,25 +118,6 @@
       longitude range = [0.000, 360.000]
       v type = Z
       v dir = FROMSURF
-    model info:
-      name = Tasman
-      5 variables:
-        eta_t:
-          grid = "t-grid"
-          inflation = 1.100 1.00
-        temp:
-          grid = "t-grid"
-          inflation = 1.100 1.00
-        salt:
-          grid = "t-grid"
-          inflation = 1.100 1.00
-        u:
-          grid = "c-grid"
-          inflation = 1.100 1.00
-        v:
-          grid = "c-grid"
-          inflation = 1.100 1.00
-      0 modeldata:
   reading observation type specs from "obstypes.prm":
     NAME = SLA
     ISSURFACE = 1
@@ -304,22 +288,27 @@
       reading obs/TS-SEP-2011/y2007/m12/cars_temp_d19.nc:
         # profiles = 384
         # z levels = 191
+        # unique locations = 383
         # good obs = 176
       reading obs/TS-SEP-2011/y2007/m12/cars_temp_d20.nc:
         # profiles = 377
         # z levels = 191
+        # unique locations = 377
         # good obs = 56
       reading obs/TS-SEP-2011/y2007/m12/cars_temp_d21.nc:
         # profiles = 329
         # z levels = 191
+        # unique locations = 329
         # good obs = 56
       reading obs/TS-SEP-2011/y2007/m12/cars_temp_d22.nc:
         # profiles = 350
         # z levels = 191
+        # unique locations = 350
         # good obs = 0
       reading obs/TS-SEP-2011/y2007/m12/cars_temp_d23.nc:
         # profiles = 344
         # z levels = 191
+        # unique locations = 344
         # good obs = 0
       id = 9230 - 9517
       total 288 observations
@@ -331,22 +320,27 @@
       reading obs/TS-SEP-2011/y2007/m12/cars_salt_d19.nc:
         # profiles = 366
         # z levels = 191
+        # unique locations = 365
         # good obs = 176
       reading obs/TS-SEP-2011/y2007/m12/cars_salt_d20.nc:
         # profiles = 360
         # z levels = 191
+        # unique locations = 360
         # good obs = 56
       reading obs/TS-SEP-2011/y2007/m12/cars_salt_d21.nc:
         # profiles = 314
         # z levels = 191
+        # unique locations = 314
         # good obs = 56
       reading obs/TS-SEP-2011/y2007/m12/cars_salt_d22.nc:
         # profiles = 323
         # z levels = 191
+        # unique locations = 323
         # good obs = 0
       reading obs/TS-SEP-2011/y2007/m12/cars_salt_d23.nc:
         # profiles = 325
         # z levels = 191
+        # unique locations = 325
         # good obs = 0
       id = 9518 - 9805
       total 288 observations
@@ -361,15 +355,16 @@
   writing superobservations to "observations.nc":
   reading super-observations from disk:
     3813 observations
+    allocating 427056 bytes for array of observations
   checking for superobs on land:
     all good
-  printing observation statistics:
-    type    #used    #dropped #out_grd #out_obs #out_wnd #land    #shallow #badbatch#badvalue#superobs
-    --------------------------------------------------------------------------------------------------
-    SLA     981      0        0        0        0        0        0        0        0        645     
-    SST     8249     0        0        0        0        0        0        0        0        3154    
-    TEM     184      104      104      0        0        0        0        0        0        7       
-    SAL     184      104      104      0        0        0        0        0        0        7       
-    total   9598     208      208      0        0        0        0        0        0        3813    
-  2018-06-29 20:59:43
+  printing observation summary:
+    type    #used    #dropped #out_grd #out_obs #out_wnd #land    #shallow #badbatch#badvalue#thinned #superobs
+    -----------------------------------------------------------------------------------------------------------
+    SLA     981      0        0        0        0        0        0        0        0        0        645     
+    SST     8249     0        0        0        0        0        0        0        0        0        3154    
+    TEM     184      104      104      0        0        0        0        0        0        0        7       
+    SAL     184      104      104      0        0        0        0        0        0        0        7       
+    total   9598     208      208      0        0        0        0        0        0        0        3813    
+  2018-12-05 14:53:59
   finished

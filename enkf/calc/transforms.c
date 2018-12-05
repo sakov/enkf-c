@@ -886,8 +886,12 @@ void das_dopointlogs(dasystem* das)
         printf(" %d obs\n", ploc);
 
         printf("    writing the log for point (%d, %d) on grid \"%s\":", plog->i, plog->j, plog->gridname);
-        plog_write(das, p, (grid_getdepth(grid))[plog->j][plog->i], ploc, lobs, lcoeffs, sloc, (ploc == 0) ? NULL : Sloc[0], (das->mode == MODE_ENKF) ? X5[0] : w);
+        {
+            float** depths = grid_getdepth(grid);
+            float depth = (depths != NULL) ? depths[plog->j][plog->i] : NAN;
 
+            plog_write(das, p, depth, ploc, lobs, lcoeffs, sloc, (ploc == 0) ? NULL : Sloc[0], (das->mode == MODE_ENKF) ? X5[0] : w);
+        }
         printf("\n");
 
         if (ploc > 0) {

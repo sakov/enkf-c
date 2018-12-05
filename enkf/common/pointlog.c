@@ -27,7 +27,7 @@
 /** Creates a point log file and writes ensemble observations, transforms, and
  * accompanying information.
  */
-void plog_write(dasystem* das, int id, double depth, int p, int* lobs, double* lcoeffs, double* s, double* S, double* transform)
+void plog_write(dasystem* das, int id, float depth, int p, int* lobs, double* lcoeffs, double* s, double* S, double* transform)
 {
     pointlog* plog = &das->plogs[id];
     observations* obs = das->obs;
@@ -109,7 +109,7 @@ void plog_write(dasystem* das, int id, double depth, int p, int* lobs, double* l
     ncw_put_att_int(ncid, NC_GLOBAL, "j", 1, &plog->j);
     ncw_put_att_double(ncid, NC_GLOBAL, "lon", 1, &plog->lon);
     ncw_put_att_double(ncid, NC_GLOBAL, "lat", 1, &plog->lat);
-    ncw_put_att_double(ncid, NC_GLOBAL, "depth", 1, &depth);
+    ncw_put_att_float(ncid, NC_GLOBAL, "depth", 1, &depth);
 
     if (das->nccompression > 0)
         ncw_def_deflate(ncid, 0, 1, das->nccompression);
@@ -223,6 +223,7 @@ void plog_definestatevars(dasystem* das)
         char fname[MAXSTRLEN];
         char nkname[NC_MAX_NAME];
         char varname_an[NC_MAX_NAME];
+        int vargridid = model_getvargridid(das->m, vid);
         int nk;
 
         model_getmemberfname(das->m, das->ensdir, varname, 1, fname);
@@ -235,6 +236,9 @@ void plog_definestatevars(dasystem* das)
             int dimid_nk, dimid_m;
             int dimids[2];
             int varid;
+
+            if (plog->gridid != vargridid)
+                continue;
 
             das_getfname_plog(das, plog, fname);
             ncw_open(fname, NC_WRITE, &ncid);
