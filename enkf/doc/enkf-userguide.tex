@@ -1679,8 +1679,8 @@ For example, with $3 \cdot 10^6$ superobservations and $10^2$ ensemble members t
 If the footprint becomes too big, one may consider reducing the number of observations by a coarser superobing (setting the parameter \verb|SOBSTRIDE| to 2 or more) or reducing the number of cores per node used.
 
 From version 1.74, it is possible to substantially reduce the memory footprint in CALC by using shared memory for the ensemble observations.
-For that, CALC needs to be compiled with flag \verb|-DHE_VIASHMEM|.
-It is likely to become a default option in future.
+For that, CALC needs to be compiled with flag \verb|-DHE_VIASHMEM| (this requires MPI-3).
+It has now became the default option.
 
 The footprint of UPDATE is mainly defined by the size of the array of simultaneously updated horizontal fields.
 For example, for a $1500 \times 3600$ horizontal field, 100 ensemble members and simultaneous update of 2 fields the size of this array would be about 4.3\,GB per CPU.
