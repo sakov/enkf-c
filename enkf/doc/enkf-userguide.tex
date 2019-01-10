@@ -120,16 +120,12 @@ Consider the global (in time) nonlinear minimisation problem
 \begin{align}
   \label{min-nonl}
   &\{\mb x_i^a\}_{i=1}^k = \arg \underset{\{\mb x_i\}_{i = 1}^k}\min J_k(\mb x_1, \dots, \mb x_k),\\
-  \nonumber
-  &J_k(\mb x_1, \dots, \mb x_k)  = \left . (\mb x_1 - \mb x_1^f)\T (\mb P_1^f)^{-1} (\mb x_1 - \mb x_1^f) 
-  \vphantom{\sum_{i = 2}^{k}}
-  \right . \\
-  \nonumber
-  & \qquad + \sum_{i = 1}^k \left [ \mb y_i - \mathcal H_i(\mb x_i) \right ] \T (\mb R_i)^{-1} \left [ \mb y_i - \mathcal H_i(\mb x_i) \right ] \\ 
-  & \qquad + \sum_{i = 2}^k \left [ \mb x_i - \mathcal M_i(\mb x_{i-1}) \right ]\T (\mb Q_i)^{-1} \left [ \mb x_i - \mathcal M_i(\mb x_{i-1}) \right ].
+  &J_k(\mb x_1, \dots, \mb x_k)  = \|\mb x_1 - \mb x_1^f\|^2_{(\mb P_1^f)^{-1}}
+  + \sum_{i = 1}^k \|\mb y_i - \mathcal H_i(\mb x_i)\|^2_{(\mb R_i)^{-1}}
+  + \sum_{i = 2}^k \|\mb x_i - \mathcal M_i(\mb x_{i-1})\|^2_{(\mb Q_i)^{-1}}.
   \label{L-nonl}
 \end{align}
-Here $\{\mb x_i^a\}_{i=1}^k$ is a set of $k$ state vectors that minimise the cost function (\ref{L-nonl}); indices $i = 1,\dots,k$ correspond to a sequence of DA cycles, so that $\mb x_1$ is the estimated model state at the first cycle and $\mb x_k$ is the estimated model state at the last cycle; $\mb y_i$ are observation vectors related to the model state by nonlinear observation operators $\mathcal H_i(\mb x)$; $\mathcal M_i(\mb x)$ are nonlinear model functions that map the model states $\mb x_{i - 1}$ to $\mb x_i$; $\mb P_1^f$ is the initial state error covariance; $\mb R_i$ are observation error covariances; and $\mb Q_i$ are model error covariances; and $(\cdot)\T$ denotes matrix transposition.
+Here $\{\mb x_i^a\}_{i=1}^k$ is a set of $k$ state vectors that minimise the cost function (\ref{L-nonl}); indices $i = 1,\dots,k$ correspond to a sequence of DA cycles, so that $\mb x_1$ is the estimated model state at the first cycle and $\mb x_k$ is the estimated model state at the last cycle; $\mb y_i$ are observation vectors; $\mathcal H_i$ are observation operators; $\mathcal M_i$ are model operators; $\mb P_1^f$ is the initial state error covariance; $\mb R_i$ are observation error covariances; $\mb Q_i$ are model error covariances; the norm notation $\|\mb x\|^2_{\mb B} \equiv \mb x\T \mb B \mb x$ is used; and $(\cdot)\T$ denotes matrix transposition.
 
 The minimisation problem (\ref{min-nonl}, \ref{L-nonl}) is, generally, very complicated, but, luckily, has an exact solution in the \emph{linear} case; moreover, this solution is recursive.
 Namely, assume that $\mathcal M$ and $\mathcal H$ are affine:
@@ -143,19 +139,19 @@ Namely, assume that $\mathcal M$ and $\mathcal H$ are affine:
   \end{align}
 \end{subequations}
 where $\mb x^{(1)}, \mb x^{(2)}$ are arbitrary model states, and $\mb M_i,\, \mb H_i = \mathrm{Const}$.
-Then the cost function (\ref{L-nonl}) becomes quadratic and can be written in canonical form in regard to $\mb x_k$ as follows:
+Then the cost function (\ref{L-nonl}) becomes quadratic and can be written in canonical form in regard to $\mb x_k$:
 \begin{align*}
-   J_k(\mb x_1, \dots, \mb x_k) = (\mb x_k - \mb x_k^a)\T (\mb P_{k}^a)^{-1}(\mb x_k - \mb x_k^a) + \tilde{{J}}_{k-1}(\mb x_1,\dots,\mb x_{k-1}),
+   J_k(\mb x_1, \dots, \mb x_k) = \|\mb x_k - \mb x_k^a\|^2_{(\mb P_{k}^a)^{-1}} + \tilde{{J}}_{k-1}(\mb x_1,\dots,\mb x_{k-1}),
 \end{align*}
 so that
 \begin{align}
   \label{min-xk}
-  \underset {\{\mb x_i\}_{i = 1}^{k - 1}}{\min} J_k(\mb x_1, \dots, \mb x_k) = (\mb x_k - \mb x_k^a)\T (\mb P_{k}^a)^{-1}(\mb x_k - \mb x_k^a) + \mathrm{Const}.
+  \underset {\{\mb x_i\}_{i = 1}^{k - 1}}{\min} J_k(\mb x_1, \dots, \mb x_k) = \|\mb x_k - \mb x_k^a\|^2_{(\mb P_{k}^a)^{-1}} + \mathrm{Const}.
 \end{align}
 (\emph{Proposition}) Then
 \begin{align}
   \label{min-xkp1}
-    \underset {\{\mb x_i\}_{i = 1}^{k}}{\min} J_{k+1}(\mb x_1, \dots, \mb x_k, \mb x_{k+1}) = (\mb x_{k+1} - \mb x_{k+1}^a)\T (\mb P_{k+1}^a)^{-1}(\mb x_{k+1} - \mb x_{k+1}^a) + \mathrm{Const},
+    \underset {\{\mb x_i\}_{i = 1}^{k}}{\min} J_{k+1}(\mb x_1, \dots, \mb x_k, \mb x_{k+1}) = \|\mb x_{k+1} - \mb x_{k+1}^a\|^2_{(\mb P_{k+1}^a)^{-1}} + \mathrm{Const},
 \end{align}
 where
 \begin{subequations}
@@ -323,8 +319,9 @@ Note that to preserve the ensemble mean $\mb T_R$ has to satisfy $\mb T_R \mb 1 
 It follows from (\ref{redraw}) that if $\mb T_R$ is a particular solution for the right-multiplied ETM, then (for a full rank ensemble) any other solution can be written as
 \begin{align}
   \label{TR-all}
-  \tilde{\mb T}_R = \mb T_R (\mb U^p + \alpha \mb 1 \mb 1\T), \quad \mb U^p:\ \mb U^p (\mb U^p)\T = \mb I,\ \mb U^p \mb 1 = \mb 1.
+  \tilde{\mb T}_R = \mb T_R \mb U^p, \quad \mb U^p:\ \mb U^p (\mb U^p)\T = \mb I,\ \mb U^p \mb 1 = \mb 1.
 \end{align}
+(More generally, one could write $\tilde{\mb T}_R = \mb T_R (\mb U^p + \mb 1 \mb a\T)$, where $\mb a$ is an arbitrary vector, but this additional term does not change the ensemble.)
 
 Similarly, the analysis increment can be represented as a linear combination of the forecast ensemble anomalies:
 \begin{align}
@@ -531,7 +528,7 @@ It becomes
   \label{min-perf}
   &{\mb x_1^a} = \arg \min \; J(\mb x_1),\\
   \label{cost-perf}
-  &J(\mb x_1)  = (\mb x_1 - \mb x_1^f)\T (\mb P_1^f)^{-1} (\mb x_1 - \mb x_1^f) + \sum_{i = 1}^k \left [ \mb y_i - \mathcal H_i(\mb x_i) \right ] \T (\mb R_i)^{-1} \left [ \mb y_i - \mathcal H_i(\mb x_i) \right ],\\
+  &J(\mb x_1)  = \|\mb x_1 - \mb x_1^f\|^2_{(\mb P_1^f)^{-1}} + \sum_{i = 1}^k \|\mb y_i - \mathcal H_i(\mb x_i)\|^2_{(\mb R_i)^{-1}},\\
   \label{model-perf}
   &\mb x_{i+1} = \mathcal M(\mb x_i),\quad i = 1,\dots,k-1.
 \end{align}
@@ -539,7 +536,7 @@ Compared to the original problem, the dimensionality of the solution is much red
 The cost function (\ref{cost-perf}) can then be written as
 \begin{align}
   \label{cost-async}
-  J(\mb x_1)  = (\mb x_1 - \mb x_1^f)\T (\mb P^f)^{-1} (\mb x_1 - \mb x_1^f) + \left [ \mb y - \mathcal H \circ \mathcal M(\mb x_1) \right ] \T \mb R^{-1} \left [ \mb y - \mathcal H\circ \mathcal M(\mb x_1) \right ],
+  J(\mb x_1)  = \|\mb x_1 - \mb x_1^f\|^2_{(\mb P^f)^{-1}} + \|\mb y - \mathcal H \circ \mathcal M(\mb x_1)\|^2_{\mb R^{-1}},
 \end{align}
 where observations $\mb y$ represent the augmented observation vector: $\mb y = [\mb y_1\T,\dots,\mb y_k\T]\T$, $\mb R$ is the corresponding observation error covariance, and forward operator $\mathcal H \circ \mathcal M (\mb x_1)$ relates the initial state $\mb x_1$ to observations.
 
@@ -566,17 +563,16 @@ This time invariance of ensemble transforms can be used to update ensemble back 
   \setlength{\abovedisplayskip}{2pt}
   \setlength{\belowdisplayskip}{2pt}
   \scriptsize
-  {\bf Note.} The background term $(\mb x_1 - \mb x_1^f)\T (\mb P^f)^{-1} (\mb x_1 - \mb x_1^f)$ in (\ref{cost-async}) can be seen as accumulating the previous history of the system rather than characterising the initial uncertainty in the global problem.
+  {\bf Note.} The background term $\|\mb x_1 - \mb x_1^f\|^2_{(\mb P^f)^{-1}}$ in (\ref{cost-async}) can be seen as accumulating the previous history of the system rather than characterising the initial uncertainty in the global problem.
   In this case it is natural to anchor it to the previous analysis:
   \begin{align}
-    J(\mb x) = (\mb x - \mb x^f)\T (\mb P^f)^{-1} (\mb x - \mb x^f) + \left [ \mb y - \mathcal H \circ \mathcal M(\mb x) \right ] \T \mb R^{-1} \left [ \mb y - \mathcal H \circ \mathcal M(\mb x) \right ].
+    J(\mb x) = \|\mb x - \mb x^f\|^2_{(\mb P^f)^{-1}} + \|\mb y - \mathcal H \circ \mathcal M(\mb x)\|^2_{\mb R^{-1}}.
   \end{align}
-  Here $\mb x^f$ is the analysed state at the end of the previous cycle (it yields the forecast trajectory for the current cycle), and $\mb P^f$ is the corresponding state error covariance.
+  Here $\mb x^f$ is the forecast state at the start of the cycle obtained from the previoius analysis, and $\mb P^f$ is the corresponding state error covariance.
   Minimising $J$ yields the analysed initial model state $\mb x^a$, which in turn yields the analysed trajectory.
   The analysed state error covariance is defined so that the analysed background term absorbs the observation term:
   \begin{align*}
-    &\mb x^a = \arg \min \; J(\mb x),\\
-    &\mb P^a: \ J(\mb x^a) = (\mb x^a - \mb x^f)\T (\mb P^a)^{-1} (\mb x^a - \mb x^f) + \mathrm{Const}.
+    &\mb x^a, \mb P^a: \ J(\mb x) = \|\mb x - \mb x^a\|^2_{(\mb P^a)^{-1}} + \mathrm{Const}.
   \end{align*}
   This framework is a natural extension of the problem (\ref{min-nonl}) in the linear, perfect-model case to continuous time; and is convenient for iterative minimisation.\par
 }
@@ -1793,8 +1789,9 @@ Paul Sandery was the first user of this code (apart from the author), and his en
   $\mb A^{1/2}$ &-& the unique positive definite square root of a positive definite matrix $\mb A$ \\
   $\mathrm{tr}(\mb A)$ &-& trace of $\mb A$ \\
   $\mathcal H \circ \mathcal M(\mb x)$ &-& $\mathcal H \left[ \mathcal M (\mb x) \right]$ \\
-  $\mb A \circ \mb B$ &-& by-element, or Hadamard, or Schur product of matrices
-\end{tabular}
+  $\mb A \circ \mb B$ &-& by-element, or Hadamard, or Schur product of matrices\\
+  $\|\mb x\|^2_{\mb B }$ &-& $ \mb x\T \mb B \mb x$
+  \end{tabular}
 
 \section*{DA related symbols}
 \begin{tabular}{lll}
