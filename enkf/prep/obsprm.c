@@ -249,7 +249,7 @@ void obsprm_describeprm(void)
     enkf_printf("    TYPE      = <observation type>\n");
     enkf_printf("    FILE      = <data file wildcard> \n");
     enkf_printf("    ...\n");
-    enkf_printf("  [ ERROR_STD = { <value> | <data file> } [ EQ* | PL | MU | MI | MA ] ]\n");
+    enkf_printf("  [ ERROR_STD = { <value> | <data file> <varname> } [ EQ* | PL | MU | MI | MA ] ]\n");
     enkf_printf("    ...\n");
     enkf_printf("\n");
     enkf_printf("  [ <more of the above blocks> ]\n");

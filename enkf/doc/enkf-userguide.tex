@@ -36,7 +36,7 @@
 
 \begin{document}
 
-\title{EnKF-C user guide\\{\normalsize version 1.90.0}}
+\title{EnKF-C user guide\\{\normalsize version 1.91.6}}
 
 \author{Pavel Sakov}
 \date{June 19, 2014 -- \today}
@@ -930,7 +930,7 @@ Each section specifies the observation type, input files, reader and, possibly, 
     TYPE      = <observation type>
     FILE      = <data file wildcard> 
     ...
-  [ ERROR_STD = { <value> | <data file> } [ EQ* | PL | MU | MI | MA ] ]
+  [ ERROR_STD = { <value> | <data file> <varname> } [ EQ* | PL | MU | MI | MA ] ]
     ...
 
   [ <more of the above blocks> ]

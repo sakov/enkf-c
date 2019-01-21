@@ -1,3 +1,6 @@
+v. 1.91.6
+   PS 21012019
+   -- A minor correction in usage message.
 v. 1.91.5
    PS 06122018
    -- Added a few checks in reader_xy_scattered() and reader_xyz_scattered().
