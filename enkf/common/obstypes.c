@@ -113,7 +113,7 @@ static void obstype_print(obstype* type)
     if (type->ndomains > 0) {
         enkf_printf("    DOMAINS =");
         for (i = 0; i < type->ndomains; ++i)
-            enkf_printf(" %s\n", type->domainnames[i]);
+            enkf_printf(" %s", type->domainnames[i]);
         enkf_printf("\n");
     }
     enkf_printf("    ISSURFACE = %d\n", (type->issurface) ? 1 : 0);

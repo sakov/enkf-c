@@ -1,3 +1,6 @@
+v. 1.91.7
+   PS 22012019
+   -- A cosmetic correction in printing domains in obstype_print().
 v. 1.91.6
    PS 21012019
    -- A minor correction in usage message.
