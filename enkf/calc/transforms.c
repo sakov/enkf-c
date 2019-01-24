@@ -829,7 +829,6 @@ void das_dopointlogs(dasystem* das)
         double** Sloc = NULL;
         double* sloc = NULL;
         double** G = NULL;
-        double** T = NULL;
 
         printf("    calculating transform for log point (%d, %d):", plog->i, plog->j);
 #if defined(MINIMISE_ALLOC)
@@ -854,9 +853,6 @@ void das_dopointlogs(dasystem* das)
             sloc = malloc(ploc * sizeof(double));
             G = alloc2d(ploc, das->nmem, sizeof(double));
 
-            if (das->mode == MODE_ENKF && das->scheme == SCHEME_ETKF)
-                T = alloc2d(das->nmem, das->nmem, sizeof(double));
-
             for (e = 0; e < das->nmem; ++e) {
                 ENSOBSTYPE* Se = das->S[e];
                 double* Sloce = Sloc[e];
@@ -870,7 +866,7 @@ void das_dopointlogs(dasystem* das)
             if (das->mode == MODE_ENOI || das->scheme == SCHEME_DENKF)
                 calc_G_denkf(das->nmem, ploc, Sloc, plog->i, plog->j, G);
             else if (das->scheme == SCHEME_ETKF)
-                calc_G_etkf(das->nmem, ploc, Sloc, das->alpha, plog->i, plog->j, G, T);
+                calc_G_etkf(das->nmem, ploc, Sloc, das->alpha, plog->i, plog->j, G, X5);
             else
                 enkf_quit("programming error");
             if (das->mode == MODE_ENKF) {
@@ -900,8 +896,6 @@ void das_dopointlogs(dasystem* das)
             free(Sloc);
             free(lobs);
             free(lcoeffs);
-            if (T != NULL)
-                free(T);
         }
     }
 

@@ -1,3 +1,6 @@
+v. 1.91.8
+   PS 24012019
+   -- Fixed X5 in pointlog files for SCHEME = ETKF.
 v. 1.91.7
    PS 22012019
    -- A cosmetic correction in printing domains in obstype_print().
