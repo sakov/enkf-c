@@ -16,8 +16,9 @@ PREPCALC_FLAGS =
 # -DMINIMISE_ALLOC
 CALC_FLAGS = -DHE_VIASHMEM
 
-# There are currently no flags for UPDATE
+# Select flags for UPDATE
 #
+# -DNCW_SKIPSINGLE
 UPDATE_FLAGS =
 
 # Set MPI status of EnKF-C programs either to "" or "MPI".

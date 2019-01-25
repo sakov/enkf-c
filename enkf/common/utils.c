@@ -228,7 +228,7 @@ void enkf_printcompileflags(const char offset[])
 #else
     enkf_printf("%s  OBS_SHUFFLE      = [-]\n", offset);
 #endif
-#endif
+#endif                          /* ENKF_CALC */
 #if defined(ENKF_PREP) || defined(ENKF_CALC)
 #if defined(GRIDNODES_WRITE)
     enkf_printf("%s  GRIDNODES_WRITE  = [+]\n", offset);
@@ -245,7 +245,14 @@ void enkf_printcompileflags(const char offset[])
 #else
     enkf_printf("%s  NO_GRIDUTILS     = [-]\n", offset);
 #endif
+#endif                          /* ENKF_PREP || ENKF_CALC */
+#if defined(ENKF_UPDATE)
+#if defined(NCW_SKIPSINGLE)
+    enkf_printf("%s  NCW_SKIPSINGLE = [+]\n", offset);
+#else
+    enkf_printf("%s  NCW_SKIPSINGLE = [-]\n", offset);
 #endif
+#endif                          /* ENKF_UPDATE */
 }
 
 /**

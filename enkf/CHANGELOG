@@ -1,3 +1,6 @@
+v. 1.91.9
+   PS 25012019
+   -- Fixed enkf_printcompileflags() for the flag NCW_SKIPSINGLE.
 v. 1.91.8
    PS 24012019
    -- Fixed X5 in pointlog files for SCHEME = ETKF.
@@ -43,7 +46,7 @@ v. 1.90.2
       is supposed to change for default setting.)
 v. 1.90.1
    PS 14112018
-   -- Updated to ncw v2.23.2: it now removes skippinng singleton dimensions by
+   -- Updated to ncw v2.23.2: it now removes skipping singleton dimensions by
       default in ncw_copy_vardef(); one needs to define NCW_SKIPSINGLE to
       activate it.
 v. 1.90.0
