@@ -886,7 +886,7 @@ void das_dopointlogs(dasystem* das)
             float** depths = grid_getdepth(grid);
             float depth = (depths != NULL) ? depths[plog->j][plog->i] : NAN;
 
-            plog_write(das, p, depth, ploc, lobs, lcoeffs, sloc, (ploc == 0) ? NULL : Sloc[0], (das->mode == MODE_ENKF) ? X5[0] : w);
+            plog_write(das, p, depth, das->alpha, ploc, lobs, lcoeffs, sloc, (ploc == 0) ? NULL : Sloc[0], (das->mode == MODE_ENKF) ? X5[0] : w);
         }
         printf("\n");
 

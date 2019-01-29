@@ -22,12 +22,13 @@
 #include "utils.h"
 #include "dasystem.h"
 #include "pointlog.h"
+#include "version.h"
 
 #if defined(ENKF_CALC)
 /** Creates a point log file and writes ensemble observations, transforms, and
  * accompanying information.
  */
-void plog_write(dasystem* das, int id, float depth, int p, int* lobs, double* lcoeffs, double* s, double* S, double* transform)
+void plog_write(dasystem* das, int id, float depth, double alpha, int p, int* lobs, double* lcoeffs, double* s, double* S, double* transform)
 {
     pointlog* plog = &das->plogs[id];
     observations* obs = das->obs;
@@ -103,6 +104,7 @@ void plog_write(dasystem* das, int id, float depth, int p, int* lobs, double* lc
         ncw_def_var(ncid, "w", NC_DOUBLE, 1, &dimids[0], &vid_transform);
         ncw_def_var(ncid, "w_actual", NC_FLOAT, 1, &dimids[0], &vid_transform_actual);
     }
+    ncw_put_att_text(ncid, NC_GLOBAL, "version", ENKF_VERSION);
     ncw_put_att_text(ncid, NC_GLOBAL, "date", obs->datestr);
     ncw_put_att_text(ncid, NC_GLOBAL, "grid_name", plog->gridname);
     ncw_put_att_int(ncid, NC_GLOBAL, "i", 1, &plog->i);
@@ -110,6 +112,7 @@ void plog_write(dasystem* das, int id, float depth, int p, int* lobs, double* lc
     ncw_put_att_double(ncid, NC_GLOBAL, "lon", 1, &plog->lon);
     ncw_put_att_double(ncid, NC_GLOBAL, "lat", 1, &plog->lat);
     ncw_put_att_float(ncid, NC_GLOBAL, "depth", 1, &depth);
+    ncw_put_att_double(ncid, NC_GLOBAL, "alpha", 1, &alpha);
 
     if (das->nccompression > 0)
         ncw_def_deflate(ncid, 0, 1, das->nccompression);

@@ -1,3 +1,6 @@
+v. 1.91.10
+   PS 29122019
+   -- Added global parameters "version" and "alpha" to pointlogs.
 v. 1.91.9
    PS 25012019
    -- Fixed enkf_printcompileflags() for the flag NCW_SKIPSINGLE.
