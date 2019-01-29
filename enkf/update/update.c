@@ -41,6 +41,43 @@ static void getfieldfname(char* dir, char* prefix, char* varname, int level, cha
 
 /**
  */
+static void addnoise(dasystem* das, int varid, float*** v)
+{
+    model* m = das->m;
+    double deflation = model_getvardeflation(m, varid);
+    double sigma = model_getvarsigma(m, varid);
+    double* random = NULL;
+    double sum = 0.0;
+    float mult;
+    int ni, nj;
+    int e, i;
+
+    assert(isfinite(deflation));
+
+    random = malloc((das->nmem + 1) / 2 * 2 * sizeof(double));
+
+    for (e = 0; e < (das->nmem + 1) / 2; ++e)
+        get_normalpair(&random[e * 2]);
+    for (e = 0; e < das->nmem; ++e)
+        sum += random[e];
+    sum /= (double) das->nmem;
+    for (e = 0; e < das->nmem; ++e)
+        random[e] -= sum;
+
+    mult = (float) (sqrt(1.0 - deflation * deflation) * sigma);
+    model_getvardims(m, varid, &ni, &nj, NULL);
+    for (e = 0; e < das->nmem; ++e) {
+        float* vv = v[e][0];
+
+        for (i = 0; i < ni * nj; ++i)
+            vv[i] = vv[i] * (float) deflation + mult * random[e];
+    }
+
+    free(random);
+}
+
+/**
+ */
 static void das_writeinflation(dasystem* das, field* f, int j, float* v)
 {
     assert(das->mode == MODE_ENKF);
@@ -374,15 +411,10 @@ static void das_updatefields(dasystem* das, int nfields, void** fieldbuffer, fie
      * "randomise" ("propagate") fields if required
      */
     for (fid = 0; fid < nfields; ++fid) {
-        field* f = &fields[fid];
-        float*** vvv = (float***) fieldbuffer[fid];
+        int varid = fields[fid].varid;
 
-        if (!isnan(model_getvardeflation(m, f->varid))) {
-            int e;
-
-            for (e = 0; e < das->nmem; ++e)
-                model_randomisefield(m, f->varid, vvv[e]);
-        }
+        if (!isnan(model_getvardeflation(m, varid)))
+            addnoise(das, varid, fieldbuffer[fid]);
     }
 }
 

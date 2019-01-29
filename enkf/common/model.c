@@ -482,6 +482,13 @@ double model_getvardeflation(model* m, int varid)
 
 /**
  */
+double model_getvarsigma(model* m, int varid)
+{
+    return m->vars[varid].sigma;
+}
+
+/**
+ */
 void model_getvardims(model* m, int vid, int* ni, int* nj, int* nk)
 {
     grid_getdims(m->grids[m->vars[vid].gridid], ni, nj, nk);
@@ -693,24 +700,4 @@ void model_writefieldas(model* m, char fname[], char varname[], char varnameas[]
     model_getvardims(m, mvid, &ni, &nj, &nk);
     assert(k < nk);
     writefield(fname, varname, k, ni, nj, nk, v);
-}
-
-/**
- */
-void model_randomisefield(model* m, int varid, float** v)
-{
-    float deflation = (float) m->vars[varid].deflation;
-    float sigma = (float) m->vars[varid].sigma;
-    float s;
-    int ni, nj;
-    int i, j;
-    double tmp[2];
-
-    get_normalpair(tmp);
-    s = (float) (sqrt(1.0 - deflation * deflation) * tmp[0]) * sigma;
-
-    model_getvardims(m, varid, &ni, &nj, NULL);
-    for (j = 0; j < nj; ++j)
-        for (i = 0; i < ni; ++i)
-            v[j][i] = deflation * v[j][i] + s;
 }

@@ -1,3 +1,7 @@
+v. 1.91.11
+   PS 29122019
+   -- Replaced model_randomisefield() by addnoise() that enforces zero ensemble
+      mean of the added perturbations.
 v. 1.91.10
    PS 29122019
    -- Added global parameters "version" and "alpha" to pointlogs.
