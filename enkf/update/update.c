@@ -22,6 +22,7 @@
 #include <assert.h>
 #include <limits.h>
 #include <math.h>
+#include <time.h>
 #include "definitions.h"
 #include "utils.h"
 #include "distribute.h"
@@ -56,6 +57,14 @@ static void addnoise(dasystem* das, int varid, float*** v)
 
     random = malloc((das->nmem + 1) / 2 * 2 * sizeof(double));
 
+    /*
+     * make the random number sequences different for different variables
+     */
+    {
+        uintmax_t t = time(NULL);
+
+        srand48((long int) t * (varid + 1) + varid);
+    }
     for (e = 0; e < (das->nmem + 1) / 2; ++e)
         get_normalpair(&random[e * 2]);
     for (e = 0; e < das->nmem; ++e)
@@ -65,7 +74,7 @@ static void addnoise(dasystem* das, int varid, float*** v)
         random[e] -= sum;
 
     mult = (float) (sqrt(1.0 - deflation * deflation) * sigma);
-    model_getvardims(m, varid, &ni, &nj, NULL);
+    model_getvargriddims(m, varid, &ni, &nj, NULL);
     for (e = 0; e < das->nmem; ++e) {
         float* vv = v[e][0];
 
@@ -94,7 +103,7 @@ static void das_writeinflation(dasystem* das, field* f, int j, float* v)
             int ni, nj;
             int dimids[2];
 
-            model_getvardims(das->m, f->varid, &ni, &nj, NULL);
+            model_getvargriddims(das->m, f->varid, &ni, &nj, NULL);
 
             ncw_create(fname, NC_CLOBBER | das->ncformat, &ncid);
             ncw_def_dim(ncid, "nj", nj, &dimids[0]);
@@ -413,8 +422,11 @@ static void das_updatefields(dasystem* das, int nfields, void** fieldbuffer, fie
     for (fid = 0; fid < nfields; ++fid) {
         int varid = fields[fid].varid;
 
-        if (!isnan(model_getvardeflation(m, varid)))
+        if (!isnan(model_getvardeflation(m, varid))) {
+            assert(fields[fid].level == 0);     /* (for now -- for 2D
+                                                 * variables only) */
             addnoise(das, varid, fieldbuffer[fid]);
+        }
     }
 }
 
@@ -689,7 +701,7 @@ static void das_writefields_toassemble(dasystem* das, int nfields, void** fieldb
     int ni, nj;
     int i;
 
-    model_getvardims(das->m, fields[0].varid, &ni, &nj, NULL);
+    model_getvargriddims(das->m, fields[0].varid, &ni, &nj, NULL);
 
     for (i = 0; i < nfields; ++i) {
         field* f = &fields[i];
@@ -743,7 +755,7 @@ static void das_writebg_direct(dasystem* das, int nfields, void** fieldbuffer, f
 
     assert(das->mode == MODE_ENOI);
 
-    model_getvardims(m, fields[0].varid, &ni, &nj, NULL);
+    model_getvargriddims(m, fields[0].varid, &ni, &nj, NULL);
 
     if (!(das->updatespec & UPDATE_SEPARATEOUTPUT)) {
         for (i = 0; i < nfields; ++i) {
@@ -782,7 +794,7 @@ static void das_writebg_toassemble(dasystem* das, int nfields, void** fieldbuffe
     int ni, nj;
     int i;
 
-    model_getvardims(das->m, fields[0].varid, &ni, &nj, NULL);
+    model_getvargriddims(das->m, fields[0].varid, &ni, &nj, NULL);
 
     for (i = 0; i < nfields; ++i) {
         field* f = &fields[i];
@@ -905,7 +917,7 @@ static void das_writespread(dasystem* das, int nfields, void** fieldbuffer, fiel
     if (das->updatespec & UPDATE_DIRECTWRITE)
         strcpy(fname, FNAME_SPREAD);
 
-    model_getvardims(m, fields[0].varid, &ni, &nj, &nk);
+    model_getvargriddims(m, fields[0].varid, &ni, &nj, &nk);
     nv = ni * nj;
     v1 = malloc(nv * sizeof(double));
     v2 = malloc(nv * sizeof(double));
@@ -1009,7 +1021,7 @@ static void das_assemblemembers(dasystem* das)
         nlev = getnlevels(fname_dst, varname);
         strncpy(varname_dst, varname, NC_MAX_NAME);
 
-        model_getvardims(m, i, &ni, &nj, NULL);
+        model_getvargriddims(m, i, &ni, &nj, NULL);
         v = malloc(ni * nj * sizeof(float));
 
         for (e = my_first_iteration; e <= my_last_iteration; ++e) {
@@ -1102,7 +1114,7 @@ static void das_assemblebg(dasystem* das)
         nlev = getnlevels(fname_dst, varname);
         strncpy(varname_dst, varname, NC_MAX_NAME);
 
-        model_getvardims(m, i, &ni, &nj, NULL);
+        model_getvargriddims(m, i, &ni, &nj, NULL);
         v = malloc(ni * nj * sizeof(float));
 
         if (das->updatespec & UPDATE_SEPARATEOUTPUT) {
@@ -1163,7 +1175,7 @@ static void das_assemblespread(dasystem* das)
             strncat(varname_an, "_an", NC_MAX_NAME);
         }
 
-        model_getvardims(m, i, &ni, &nj, NULL);
+        model_getvargriddims(m, i, &ni, &nj, NULL);
         v = malloc(ni * nj * sizeof(float));
 
         for (k = 0; k < nlev; ++k) {
@@ -1223,7 +1235,7 @@ static void das_assembleinflation(dasystem* das)
         enkf_printf("    %s:", varname);
         nlev = getnlevels(FNAME_INFLATION, varname);
 
-        model_getvardims(m, i, &ni, &nj, NULL);
+        model_getvargriddims(m, i, &ni, &nj, NULL);
         v = malloc(ni * nj * sizeof(float));
 
         for (k = 0; k < nlev; ++k) {
@@ -1652,7 +1664,7 @@ void das_writevcorrs(dasystem* das)
             /*
              * calculate anomalies and std at surface
              */
-            model_getvardims(m, f->varid, &ni, &nj, &nk);
+            model_getvargriddims(m, f->varid, &ni, &nj, &nk);
             nv = ni * nj;
             ksurf = grid_getsurflayerid(model_getvargrid(m, f->varid));
 
@@ -1758,7 +1770,7 @@ void das_writevcorrs(dasystem* das)
                 if (!is3d(fname, f->varname))
                     continue;
             }
-            model_getvardims(m, f->varid, &ni, &nj, NULL);
+            model_getvargriddims(m, f->varid, &ni, &nj, NULL);
             v = malloc(ni * nj * sizeof(float));
 
             snprintf(fname_tile, MAXSTRLEN, "%s/vcorr_%s-%03d.nc", das->ensdir, f->varname, f->level);

@@ -1,9 +1,14 @@
+v. 1.91.12
+   PS 31012019
+   -- Re-seeded rand48() with the variable ID in addnoise() to make sure that
+      different random sequences are used for different variables.
+   -- Changed name model_getvardims() to model_getvargriddims().
 v. 1.91.11
-   PS 29122019
+   PS 29012019
    -- Replaced model_randomisefield() by addnoise() that enforces zero ensemble
       mean of the added perturbations.
 v. 1.91.10
-   PS 29122019
+   PS 29012019
    -- Added global parameters "version" and "alpha" to pointlogs.
 v. 1.91.9
    PS 25012019
