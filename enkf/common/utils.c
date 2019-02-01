@@ -86,6 +86,26 @@ void enkf_quit(char* format, ...)
 
 /**
  */
+static long int gen_randseed(void)
+{
+    char fname[] = "/dev/urandom";
+    FILE* f = enkf_fopen(fname, "r");
+    long int seed;
+    size_t status;
+
+    status = fread(&seed, sizeof(seed), 1, f);
+    if (status != 1) {
+        int errno_saved = errno;
+
+        enkf_quit("gen_randseed(): could not read from \"%s\": %s", fname, strerror(errno_saved));
+    }
+    fclose(f);
+
+    return seed;
+}
+
+/**
+ */
 void enkf_init(int* argc, char*** argv)
 {
 #if defined(MPI)
@@ -114,7 +134,10 @@ void enkf_init(int* argc, char*** argv)
     gu_setquitfn(enkf_quit);
 #endif
 
-    srand48(time(NULL));
+    /*
+     * initialise the random number generator to a random state for each cpu
+     */
+    srand48(gen_randseed());
 }
 
 /**

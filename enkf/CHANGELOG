@@ -1,3 +1,7 @@
+v. 1.91.13
+   PS 01022019
+   -- Removed re-seeding from addnoise(); modified enkf_init() to ensure that
+      the random number generator is initialised randomly for each process.
 v. 1.91.12
    PS 31012019
    -- Re-seeded rand48() with the variable ID in addnoise() to make sure that

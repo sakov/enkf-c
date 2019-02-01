@@ -56,15 +56,6 @@ static void addnoise(dasystem* das, int varid, float*** v)
     assert(isfinite(deflation));
 
     random = malloc((das->nmem + 1) / 2 * 2 * sizeof(double));
-
-    /*
-     * make the random number sequences different for different variables
-     */
-    {
-        uintmax_t t = time(NULL);
-
-        srand48((long int) t * (varid + 1) + varid);
-    }
     for (e = 0; e < (das->nmem + 1) / 2; ++e)
         get_normalpair(&random[e * 2]);
     for (e = 0; e < das->nmem; ++e)
