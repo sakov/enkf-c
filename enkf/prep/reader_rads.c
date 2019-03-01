@@ -36,15 +36,12 @@
 #include "prep_utils.h"
 #include "allreaders.h"
 
-#define MINDEPTH_DEF 200.0
-
 /** For files of the form ??_yyyymmdd.nc. They are assumed to have "time" 
  * variable.
  */
 void reader_rads_standard(char* fname, int fid, obsmeta* meta, grid* g, observations* obs)
 {
     int ksurf = grid_getsurflayerid(g);
-    double mindepth = MINDEPTH_DEF;
     char* addname = NULL;
     int ncid;
     int dimid_nobs;
@@ -65,16 +62,22 @@ void reader_rads_standard(char* fname, int fid, obsmeta* meta, grid* g, observat
     int i;
 
     for (i = 0; i < meta->npars; ++i) {
+        /*
+         * (MINDEPTH is handled in obs_add() )
+         */
         if (strcasecmp(meta->pars[i].name, "MINDEPTH") == 0) {
+            double mindepth;
+
             if (!str2double(meta->pars[i].value, &mindepth))
                 enkf_quit("%s: can not convert MINDEPTH = \"%s\" to double\n", meta->prmfname, meta->pars[i].value);
+            enkf_printf("        MINDEPTH = %.0f\n", mindepth);
+            continue;
         } else if (strcasecmp(meta->pars[i].name, "ADD") == 0) {
             addname = meta->pars[i].value;
             enkf_printf("        ADDING \"%s\"\n", addname);
         } else
             enkf_quit("unknown PARAMETER \"%s\"\n", meta->pars[i].name);
     }
-    enkf_printf("        MINDEPTH = %.0f\n", mindepth);
 
     ncw_open(fname, NC_NOWRITE, &ncid);
 
@@ -181,7 +184,6 @@ void reader_rads_standard(char* fname, int fid, obsmeta* meta, grid* g, observat
 void reader_rads_standard2(char* fname, int fid, obsmeta* meta, grid* g, observations* obs)
 {
     int ksurf = grid_getsurflayerid(g);
-    double mindepth = MINDEPTH_DEF;
     char* addname = NULL;
     int ncid;
     int dimid_nobs;
@@ -203,16 +205,22 @@ void reader_rads_standard2(char* fname, int fid, obsmeta* meta, grid* g, observa
     int i;
 
     for (i = 0; i < meta->npars; ++i) {
+        /*
+         * (MINDEPTH is handled in obs_add() )
+         */
         if (strcasecmp(meta->pars[i].name, "MINDEPTH") == 0) {
+            double mindepth;
+
             if (!str2double(meta->pars[i].value, &mindepth))
-                enkf_quit("%s: can not convert MINDEPTH = \"%s\" to double\n", meta->prmfname, meta->pars[i].value);
+                enkf_quit("observation prm file: can not convert MINDEPTH = \"%s\" to double\n", meta->pars[i].value);
+            enkf_printf("        MINDEPTH = %.0f\n", mindepth);
+            continue;
         } else if (strcasecmp(meta->pars[i].name, "ADD") == 0) {
             addname = meta->pars[i].value;
             enkf_printf("        ADDING \"%s\"\n", addname);
         } else
             enkf_quit("unknown PARAMETER \"%s\"\n", meta->pars[i].name);
     }
-    enkf_printf("        MINDEPTH = %.0f\n", mindepth);
 
     ncw_open(fname, NC_NOWRITE, &ncid);
     ncw_inq_dimid(ncid, "nobs", &dimid_nobs);
@@ -308,8 +316,6 @@ void reader_rads_standard2(char* fname, int fid, obsmeta* meta, grid* g, observa
         o->model_depth = NAN;   /* set in obs_add() */
         o->fk = (double) ksurf;
         o->date = tunits_offset + 0.5;
-        if (o->status == STATUS_OK && o->model_depth < mindepth)
-            o->status = STATUS_SHALLOW;
         if ((o->status == STATUS_OK) && (o->lon <= ot->xmin || o->lon >= ot->xmax || o->lat <= ot->ymin || o->lat >= ot->ymax))
             o->status = STATUS_OUTSIDEOBSDOMAIN;
 

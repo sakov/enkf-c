@@ -30,6 +30,8 @@
  *                  data offset to be added
  *              - MINDEPTH (-)
  *                  minimal allowed depth
+ *              - MAXDEPTH (-)
+ *                  maximal allowed depth
  *              - INSTRUMENT (-)
  *                  instrument string that will be used for calculating
  *                  instrument stats
@@ -94,7 +96,6 @@ void reader_xy_gridded(char* fname, int fid, obsmeta* meta, grid* g, observation
 
     int ncid;
     float varshift = 0.0;
-    double mindepth = 0.0;
     char instrument[MAXSTRLEN];
 
     int iscurv = -1;
@@ -144,10 +145,24 @@ void reader_xy_gridded(char* fname, int fid, obsmeta* meta, grid* g, observation
             if (!str2float(meta->pars[i].value, &varshift))
                 enkf_quit("%s: can not convert VARSHIFT = \"%s\" to float\n", meta->prmfname, meta->pars[i].value);
             enkf_printf("        VARSHIFT = %s\n", meta->pars[i].value);
-        } else if (strcasecmp(meta->pars[i].name, "MINDEPTH") == 0) {
+        }
+        /*
+         * (MINDEPTH and MAXDEPTH are handled in obs_add() )
+         */
+        else if (strcasecmp(meta->pars[i].name, "MINDEPTH") == 0) {
+            double mindepth;
+
             if (!str2double(meta->pars[i].value, &mindepth))
-                enkf_quit("%s: can not convert MINDEPTH = \"%s\" to double\n", meta->prmfname, meta->pars[i].value);
-            enkf_printf("        MINDEPTH = %f\n", mindepth);
+                enkf_quit("observation prm file: can not convert MINDEPTH = \"%s\" to double\n", meta->pars[i].value);
+            enkf_printf("        MINDEPTH = %.0f\n", mindepth);
+            continue;
+        } else if (strcasecmp(meta->pars[i].name, "MAXDEPTH") == 0) {
+            double maxdepth;
+
+            if (!str2double(meta->pars[i].value, &maxdepth))
+                enkf_quit("observation prm file: can not convert MAXDEPTH = \"%s\" to double\n", meta->pars[i].value);
+            enkf_printf("        MAXDEPTH = %.0f\n", maxdepth);
+            continue;
         } else if (strcasecmp(meta->pars[i].name, "INSTRUMENT") == 0)
             strncpy(instrument, meta->pars[i].value, MAXSTRLEN);
         else if (strcasecmp(meta->pars[i].name, "QCFLAGNAME") == 0 || strcasecmp(meta->pars[i].name, "QCFLAGVALS") == 0)

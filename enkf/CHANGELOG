@@ -1,3 +1,9 @@
+v. 1.92.0
+   PS 01032019
+   -- Added parameter MAXDEPTH to reader_xy_gridded(), reader_xy_scattered(),
+      reader_xyz_gridded(), reader_xyz_scattered(), reader_xyh_gridded().
+   -- Tidied up code for MINDEPTH in reader_rads_standard(),
+      reader_rads_standard2(), reader_viirs().
 v. 1.91.13
    PS 01022019
    -- Removed re-seeding from addnoise(); modified enkf_init() to ensure that

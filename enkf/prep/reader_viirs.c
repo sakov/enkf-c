@@ -73,7 +73,6 @@ void reader_viirs_standard(char* fname, int fid, obsmeta* meta, grid* g, observa
     char tunits[MAXSTRLEN];
     double tunits_multiple, tunits_offset;
     double varshift = 0.0;
-    double mindepth = 0.0;
     int i, nobs;
 
 #if defined(DEBUG)
@@ -86,10 +85,17 @@ void reader_viirs_standard(char* fname, int fid, obsmeta* meta, grid* g, observa
             if (!str2double(meta->pars[i].value, &varshift))
                 enkf_quit("%s: can not convert VARSHIFT = \"%s\" to double\n", meta->prmfname, meta->pars[i].value);
             enkf_printf("        VARSHIFT = %s\n", meta->pars[i].value);
-        } else if (strcasecmp(meta->pars[i].name, "MINDEPTH") == 0) {
+        }
+        /*
+         * (MINDEPTH is handled in obs_add() )
+         */
+        else if (strcasecmp(meta->pars[i].name, "MINDEPTH") == 0) {
+            double mindepth;
+
             if (!str2double(meta->pars[i].value, &mindepth))
-                enkf_quit("%s: can not convert MINDEPTH = \"%s\" to double\n", meta->prmfname, meta->pars[i].value);
-            enkf_printf("        MINDEPTH = %f\n", mindepth);
+                enkf_quit("observation prm file: can not convert MINDEPTH = \"%s\" to double\n", meta->pars[i].value);
+            enkf_printf("        MINDEPTH = %.0f\n", mindepth);
+            continue;
         } else if (strcasecmp(meta->pars[i].name, "KIND") == 0) {
             int kind_value;
 
