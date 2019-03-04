@@ -1,3 +1,7 @@
+v. 1.92.2
+   PS 04032019
+   -- Fixed obs_add() to handle PARAMETER MAXDEPTH in relevant readers. Thanks
+      to Roger Scott for the bug report.
 v. 1.92.1
    PS 04032019
    -- Two technical fixes in das_updatefields() and writerow() to handle case

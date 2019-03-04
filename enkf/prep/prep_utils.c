@@ -93,6 +93,7 @@ void obs_add(observations* obs, model* m, obsmeta* meta)
     double lonbase = grid_getlonbase(g);
 
     double mindepth = NAN;
+    double maxdepth = NAN;
     obsread_fn reader;
     int i, ngood;
 
@@ -102,9 +103,13 @@ void obs_add(observations* obs, model* m, obsmeta* meta)
     readobs(meta, m, reader, obs);      /* adds the data */
 
     for (i = 0; i < meta->npars; ++i) {
-        if (strcasecmp(meta->pars[i].name, "MINDEPTH") == 0)
+        if (strcasecmp(meta->pars[i].name, "MINDEPTH") == 0) {
             if (!str2double(meta->pars[i].value, &mindepth))
                 enkf_quit("observation prm file: can not convert MINDEPTH = \"%s\" to double\n", meta->pars[i].value);
+        } else if (strcasecmp(meta->pars[i].name, "MAXDEPTH") == 0) {
+            if (!str2double(meta->pars[i].value, &maxdepth))
+                enkf_quit("observation prm file: can not convert MAXDEPTH = \"%s\" to double\n", meta->pars[i].value);
+        }
     }
 
     if (!isnan(lonbase)) {
@@ -174,6 +179,14 @@ void obs_add(observations* obs, model* m, obsmeta* meta)
                 if (depth == NULL)
                     enkf_quit("MINDEPTH specified for the obs reader, but no depth specified for grid \"%s\"", grid_getname(g));
                 if (o->model_depth < mindepth) {
+                    o->status = STATUS_SHALLOW;
+                    nshallow++;
+                }
+            }
+            if (isfinite(maxdepth)) {
+                if (depth == NULL)
+                    enkf_quit("MAXDEPTH specified for the obs reader, but no depth specified for grid \"%s\"", grid_getname(g));
+                if (o->model_depth > maxdepth) {
                     o->status = STATUS_SHALLOW;
                     nshallow++;
                 }
