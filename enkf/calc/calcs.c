@@ -400,7 +400,6 @@ void calc_G_etkf(int m, int p, double** S, double alpha, int ii, int jj, double*
 }
 
 /** Calculates X5 = G * s * 1' + T.
- * X5 is assumed being initialised to 0
  * G is [m x p]
  * S is [p x m]
  * s is [p]

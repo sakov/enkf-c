@@ -1131,8 +1131,9 @@ void writerow(char fname[], char varname[], int k, int j, float* v)
             count[1] = 1;
             count[2] = dimlen[2];
         } else {
-            if (k > 0)
-                enkf_quit("%s: %s: can not read layer %d from a 2D variable", fname, varname, k);
+            /*
+             * 2D variable, ignore k
+             */
             start[0] = (dimlen[0] == 0) ? 0 : dimlen[0] - 1;
             start[1] = j;
             start[2] = 0;
