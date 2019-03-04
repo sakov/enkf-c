@@ -414,8 +414,10 @@ static void das_updatefields(dasystem* das, int nfields, void** fieldbuffer, fie
         int varid = fields[fid].varid;
 
         if (!isnan(model_getvardeflation(m, varid))) {
-            assert(fields[fid].level == grid_getsurflayerid(grid));     /* (for now -- for 2D
-                                                 * variables only) */
+            /*
+             * (for now -- for 2D variables only) 
+             */
+            assert(fields[fid].level == grid_getsurflayerid(grid));
             addnoise(das, varid, fieldbuffer[fid]);
         }
     }
