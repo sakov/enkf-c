@@ -1,3 +1,7 @@
+v. 1.92.3
+   PS 06032019
+   -- Modified readfield() to ignore k if there is only one vertical field in
+      the file.
 v. 1.92.2
    PS 04032019
    -- Fixed obs_add() to handle PARAMETER MAXDEPTH in relevant readers. Thanks
