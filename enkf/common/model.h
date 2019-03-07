@@ -47,10 +47,10 @@ double model_getlonbase(model* m, int vid);
 float** model_getdepth(model* m, int vid, int musthave);
 int** model_getnumlevels(model* m, int vid);
 void model_getmemberfname(model* m, char dir[], char varname[], int mem, char fname[]);
-int model_getmemberfname_async(model* m, char dir[], char varname[], char otname[], int mem, int time, char fname[]);
+int model_getmemberfname_async(model* m, char dir[], char varname[], int mem, int time, char fname[]);
 void model_getbgfname(model* m, char dir[], char varname[], char fname[]);
 void model_getspreadfname(model* m, char varname[], char fname[]);
-int model_getbgfname_async(model* m, char dir[], char varname[], char otname[], int time, char fname[]);
+int model_getbgfname_async(model* m, char dir[], char varname[], int time, char fname[]);
 int model_getdomainid(model* m, char* domainname);
 
 int model_xy2fij(model* m, int vid, double x, double y, double* fi, double* fj);
