@@ -1,3 +1,8 @@
+v. 1.92.4
+   PS 08032019
+   -- Modified das_updatefields() for the case "--output-increment" to set
+      increment to 0 not only if the field element is too large, but also if
+      it is is NaN.
 v. 1.92.3
    PS 06032019
    -- Modified readfield() to ignore k if there is only one vertical field in

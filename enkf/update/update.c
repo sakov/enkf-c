@@ -297,7 +297,7 @@ static void das_updatefields(dasystem* das, int nfields, void** fieldbuffer, fie
                      * with the missing value 
                      */
                     for (e = 0; e < nmem; ++e)
-                        if (fabsf(vvv[e][j][i]) > (float) MAXOBSVAL)
+                        if (!isfinite(vvv[e][j][i]) || fabsf(vvv[e][j][i]) > (float) MAXOBSVAL)
                             break;
                     if (e < nmem) {
                         if (das->updatespec & UPDATE_OUTPUTINC)
