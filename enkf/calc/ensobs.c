@@ -136,7 +136,7 @@ void das_getHE(dasystem* das)
                  */
                 if (das->mode == MODE_ENOI) {
                     if (enkf_obstype == OBSTYPE_VALUE) {
-                        int success = model_getbgfname_async(m, das->bgdir, ot->varnames[0], t, fname);
+                        int success = model_getbgfname_async(m, das->bgdir, ot->alias, t, fname);
 
                         H(das, nobs_tomap, obsids, fname, -1, t, Hx);
                         enkf_printf((success) ? "A" : "S");
@@ -150,7 +150,7 @@ void das_getHE(dasystem* das)
 
                 if (das->mode == MODE_ENKF || !enkf_fstatsonly) {
                     for (e = my_first_iteration; e <= my_last_iteration; ++e) {
-                        int success = model_getmemberfname_async(m, das->ensdir, ot->varnames[0], e + 1, t, fname);
+                        int success = model_getmemberfname_async(m, das->ensdir, ot->alias, e + 1, t, fname);
 
                         H(das, nobs_tomap, obsids, fname, e + 1, t, das->S[e]);
                         enkf_printf((success) ? "a" : "s");
@@ -175,7 +175,7 @@ void das_getHE(dasystem* das)
              */
             if (das->mode == MODE_ENOI) {
                 if (enkf_obstype == OBSTYPE_VALUE) {
-                    model_getbgfname(m, das->bgdir, ot->varnames[0], fname);
+                    model_getbgfname(m, das->bgdir, ot->alias, fname);
                     H(das, nobs_tomap, obsids, fname, -1, INT_MAX, Hx);
                     enkf_printf("+");
                     fflush(stdout);
@@ -188,7 +188,7 @@ void das_getHE(dasystem* das)
 
             if (das->mode == MODE_ENKF || !enkf_fstatsonly) {
                 for (e = my_first_iteration; e <= my_last_iteration; ++e) {
-                    model_getmemberfname(m, das->ensdir, ot->varnames[0], e + 1, fname);
+                    model_getmemberfname(m, das->ensdir, ot->alias, e + 1, fname);
                     H(das, nobs_tomap, obsids, fname, e + 1, INT_MAX, das->S[e]);
                     enkf_printf(".");
                     fflush(stdout);

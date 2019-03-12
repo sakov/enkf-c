@@ -36,7 +36,7 @@
 
 \begin{document}
 
-\title{EnKF-C user guide\\{\normalsize version 1.91.6}}
+\title{EnKF-C user guide\\{\normalsize version 1.93.0}}
 
 \author{Pavel Sakov}
 \date{June 19, 2014 -- \today}
@@ -869,6 +869,7 @@ The optional parameters include the R-factor and localisation radius for the typ
   [ DOMAINS     = <domain name> ... ]
     ISSURFACE   = {0 | 1}
     VAR         = <model variable name> ...
+  [ ALIAS       = <variable name used in file names> ] (VAR*)
   [ OFFSET      = <file name> <variable name> ]    (none*)
   [ MLD_VARNAME = <model varname> ]                (none*)
   [ MLD_THRESH  = <threshold> ]                    (NaN*)
@@ -905,6 +906,8 @@ value by the observation type value.
 The entries \verb|MLD_VARNAME| and \verb|MLD_THRESH| are used to calculate the model mixed layer depth for projecting the surface bias.
 
 \verb|WINDOWMIN| and \verb|WINDOWMAX| define the allowed temporal interval for this observation type relatively to the analysis day and override the corresponding common settings in the main parameter file.
+
+The use of \verb|ALIAS| is described in sec.~\ref{sec:filenames}.
 
 \subsection{Observation data parameter file}
 
@@ -969,12 +972,18 @@ file=/short/p93/pxs599/obs/RADS-IB/y2006/m05/[!g]?_d23.nc
 \end{Verbatim}
 
 \section{File name conventions}
+\label{sec:filenames}
 
 EnKF-C assumes that the ensemble and background file names have some predefined formats.
 The file name for member \verb|mid| and model variable \verb|varname| is assumed to be \spverb|sprintf("mem%03d_%s.nc", mid, varname)|.
 The background file (EnOI only) for variable \verb|varname| is assumed to be \spverb|sprintf("bg_%s.nc", varname)|.
 The above names are used for reading forecast states for synchronous DA and for writing analyses, in the case if the analyses are appended to forecasts (true by default).
 For asynchronous DA the member and background file names for the time slot \verb|t| are assumed to be \spverb|sprintf("mem%03d_%s_%d.nc", mid, varname, t)| and \spverb|sprintf("bg_%s_%d.nc", varname, t)|, correspondingly.
+
+There are possible situations when the surface field and 3D field of the same variable have different asynchronous settings.
+For example, the sea surface temperature (SST) may have asynchronous time intervals of 0.25 days, while for the subsurface temperature these may be set to 1 day.
+In such cases there is a clash between the corresponding asynchronous file names.
+To resolve it, one (or both) fields should use an alias instead of the model variable name in its file name specified by the entry ALIAS of the corresponding observation type.
 
 \section{PREP}
 

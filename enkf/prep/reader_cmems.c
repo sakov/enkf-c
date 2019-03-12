@@ -316,8 +316,9 @@ void reader_cmems_standard(char* fname, int fid, obsmeta* meta, grid* g, observa
                 continue;
             {
                 qcflagint = (int) qcflag[p][i] - (int) '0';
-                if (qcflagint < 0 || qcflagint > QCFLAGVALMAX) /* impossible */
-		    continue;
+                if (qcflagint < 0 || qcflagint > QCFLAGVALMAX)  /* impossible 
+                                                                 */
+                    continue;
                 if (!((1 << qcflagint) & qcflagvals))
                     continue;
             }

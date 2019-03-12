@@ -830,11 +830,11 @@ void readfield(char fname[], char varname[], int k, int ni, int nj, int nk, floa
             enkf_quit("%s: %s: expect an unlimited dimension to be present for a 4-dimensional variable\n", fname, varname);
         start[0] = dimlen[0] - 1;
         if (dimlen[1] != nk) {
-	    if (dimlen[1] != 1)
-		enkf_quit("\"%s\": vertical dimension of variable \"%s\" (nk = %d) does not match grid dimension (nk = %d)", fname, varname, dimlen[1], nk);
-	    else
-		k = 0; /* ignore k */
-	}
+            if (dimlen[1] != 1)
+                enkf_quit("\"%s\": vertical dimension of variable \"%s\" (nk = %d) does not match grid dimension (nk = %d)", fname, varname, dimlen[1], nk);
+            else
+                k = 0;          /* ignore k */
+        }
         start[1] = k;
         start[2] = 0;
         start[3] = 0;

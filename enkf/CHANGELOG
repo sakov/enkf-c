@@ -1,3 +1,9 @@
+v. 1.93.0
+   PS 12032019
+   -- Added entry ALIAS to obstypes parameter file that if specified is to be
+      used instead of the variable name. The purpose is to handle situations
+      when the surface field and 3D field of the same variable have different
+      asynchronous settings.
 v. 1.92.5
    PS 12032019
    -- Modified reader_cmems_standard() to skip and continue on an invalid QC

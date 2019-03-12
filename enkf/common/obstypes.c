@@ -41,6 +41,7 @@ static void obstype_new(obstype* type, int i, char* name)
     type->name = strdup(name);
     type->nvar = 0;
     type->varnames = NULL;
+    type->alias = NULL;
     type->issurface = -1;
     type->offset_fname = NULL;
     type->offset_varname = NULL;
@@ -121,6 +122,8 @@ static void obstype_print(obstype* type)
     for (i = 0; i < type->nvar; ++i)
         enkf_printf(" %s", type->varnames[i]);
     enkf_printf("\n");
+    if (strcasecmp(type->alias, type->varnames[0]) != 0)
+        enkf_printf("      ALIAS = %s\n", type->alias);
     enkf_printf("      ID = %d\n", type->id);
     if (type->offset_fname != NULL)
         enkf_printf("      OFFSET = %s %s\n", type->offset_fname, type->offset_varname);
@@ -209,6 +212,12 @@ void obstypes_read(enkfprm* prm, char fname[], int* n, obstype** types)
                 now->nvar++;
                 token = strtok(NULL, seps);
             }
+        } else if (strcasecmp(token, "ALIAS") == 0) {
+            if ((token = strtok(NULL, seps)) == NULL)
+                enkf_quit("%s, l.%d: ALIAS not specified", fname, line);
+            if (now->alias != NULL)
+                enkf_quit("%s, l.%d: ALIAS entry already specified", fname, line);
+            now->alias = strdup(token);
         } else if (strcasecmp(token, "OFFSET") == 0) {
             if ((token = strtok(NULL, seps)) == NULL)
                 enkf_quit("%s, l.%d: OFFSET file name not specified", fname, line);
@@ -369,6 +378,9 @@ void obstypes_read(enkfprm* prm, char fname[], int* n, obstype** types)
     for (i = 0; i < *n; ++i) {
         obstype* type = &(*types)[i];
 
+        if (type->alias == NULL && type->varnames != NULL)
+            type->alias = strdup(type->varnames[0]);
+
         if (type->nlocrad == 0) {
             int j;
 
@@ -422,6 +434,7 @@ void obstypes_describeprm(void)
     enkf_printf("  [ DOMAINS     = <domain name> ... ]\n");
     enkf_printf("    ISSURFACE   = {0 | 1}\n");
     enkf_printf("    VAR         = <model variable name> ...\n");
+    enkf_printf("  [ ALIAS       = <variable name used in file names> ] (VAR*)\n");
     enkf_printf("  [ OFFSET      = <file name> <variable name> ]    (none*)\n");
     enkf_printf("  [ MLD_VARNAME = <model varname> ]                (none*)\n");
     enkf_printf("  [ MLD_THRESH  = <threshold> ]                    (NaN*)\n");
@@ -515,6 +528,7 @@ void obstypes_destroy(int n, obstype* types)
         for (j = 0; j < ot->nvar; ++j)
             free(ot->varnames[j]);
         free(ot->varnames);
+        free(ot->alias);
         free(ot->hfunction);
         if (ot->offset_fname != NULL) {
             free(ot->offset_fname);

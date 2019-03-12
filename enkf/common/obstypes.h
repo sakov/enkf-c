@@ -21,6 +21,7 @@ typedef struct {
     int issurface;
     int nvar;
     char** varnames;
+    char* alias;                /* variable name used in file names */
     char* offset_fname;
     char* offset_varname;
     char* mld_varname;
