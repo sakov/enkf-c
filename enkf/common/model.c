@@ -572,9 +572,9 @@ void model_getmemberfname(model* m, char ensdir[], char varname[], int mem, char
 
 /**
  */
-int model_getmemberfname_async(model* m, char ensdir[], char varname[], int mem, int t, char fname[])
+int model_getmemberfname_async(model* m, char ensdir[], char alias[], char varname[], int mem, int t, char fname[])
 {
-    snprintf(fname, MAXSTRLEN, "%s/mem%03d_%s_%d.nc", ensdir, mem, varname, t);
+    snprintf(fname, MAXSTRLEN, "%s/mem%03d_%s_%d.nc", ensdir, mem, alias, t);
     if (!file_exists(fname)) {
         snprintf(fname, MAXSTRLEN, "%s/mem%03d_%s.nc", ensdir, mem, varname);
         return 0;
@@ -591,9 +591,9 @@ void model_getbgfname(model* m, char ensdir[], char varname[], char fname[])
 
 /**
  */
-int model_getbgfname_async(model* m, char bgdir[], char varname[], int t, char fname[])
+int model_getbgfname_async(model* m, char bgdir[], char alias[], char varname[], int t, char fname[])
 {
-    snprintf(fname, MAXSTRLEN, "%s/bg_%s_%d.nc", bgdir, varname, t);
+    snprintf(fname, MAXSTRLEN, "%s/bg_%s_%d.nc", bgdir, alias, t);
     if (!file_exists(fname)) {
         snprintf(fname, MAXSTRLEN, "%s/bg_%s.nc", bgdir, varname);
         return 0;
