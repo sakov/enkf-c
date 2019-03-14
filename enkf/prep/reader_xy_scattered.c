@@ -329,7 +329,6 @@ void reader_xy_scattered(char* fname, int fid, obsmeta* meta, grid* g, observati
     nobs_read = 0;
     for (i = 0; i < nobs; ++i) {
         observation* o;
-        obstype* ot;
         int ii;
 
         if (lon[i] == lon_fill_value || isnan(lon[i]) || lat[i] == lat_fill_value || isnan(lat[i]))
@@ -347,7 +346,6 @@ void reader_xy_scattered(char* fname, int fid, obsmeta* meta, grid* g, observati
         o->product = st_findindexbystring(obs->products, meta->product);
         assert(o->product >= 0);
         o->type = obstype_getid(obs->nobstypes, obs->obstypes, meta->type, 1);
-        ot = &obs->obstypes[o->type];
         o->instrument = st_add_ifabsent(obs->instruments, instrument, -1);
         o->id = obs->nobs;
         o->fid = fid;

@@ -315,7 +315,6 @@ void reader_xyh_gridded(char* fname, int fid, obsmeta* meta, grid* gdst, observa
             for (k = 0; k < nk; ++k) {
                 int ii = k * nij + j * ni + i;
                 observation* o;
-                obstype* ot;
 
                 if ((npoints != NULL && npoints[ii] == 0) || var[ii] == var_fill_value || (std != NULL && (std[ii] == std_fill_value || isnan(std[ii]))) || (estd != NULL && (estd[ii] == estd_fill_value || isnan(estd[ii]))) || (have_time && !singletime && (time[ii] == time_fill_value || isnan(time[ii]))))
                     continue;
@@ -329,7 +328,6 @@ void reader_xyh_gridded(char* fname, int fid, obsmeta* meta, grid* gdst, observa
                 o->product = st_findindexbystring(obs->products, meta->product);
                 assert(o->product >= 0);
                 o->type = obstype_getid(obs->nobstypes, obs->obstypes, meta->type, 1);
-                ot = &obs->obstypes[o->type];
                 o->instrument = st_add_ifabsent(obs->instruments, instrument, -1);
                 o->id = obs->nobs;
                 o->fid = fid;

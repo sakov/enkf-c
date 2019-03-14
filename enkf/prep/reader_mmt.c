@@ -182,7 +182,6 @@ void reader_mmt_standard(char* fname, int fid, obsmeta* meta, grid* g, observati
 
         for (i = 0; i < (int) nz; ++i) {
             observation* o;
-            obstype* ot;
 
             if (fabs(v[p][i] - missval) < EPS || v[p][i] < validmin || v[p][i] > validmax)
                 continue;
@@ -197,7 +196,6 @@ void reader_mmt_standard(char* fname, int fid, obsmeta* meta, grid* g, observati
             o->product = st_findindexbystring(obs->products, meta->product);
             assert(o->product >= 0);
             o->type = obstype_getid(obs->nobstypes, obs->obstypes, meta->type, 1);
-            ot = &obs->obstypes[o->type];
             o->instrument = st_add_ifabsent(obs->instruments, inststr, -1);
             o->id = obs->nobs;
             o->fid = fid;

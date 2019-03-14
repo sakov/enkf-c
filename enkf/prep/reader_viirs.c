@@ -200,7 +200,6 @@ void reader_viirs_standard(char* fname, int fid, obsmeta* meta, grid* g, observa
     nobs = 0;
     for (i = 0; i < (int) n; ++i) {
         observation* o;
-        obstype* ot;
 
         if (npoints[i] == 0 || sst[i] == sst_fill_value || std[i] == std_fill_value || estd[i] == estd_fill_value || time[i] == time_fill_value || (kind != NULL && kind[i] != kind_mask))
             continue;
@@ -212,7 +211,6 @@ void reader_viirs_standard(char* fname, int fid, obsmeta* meta, grid* g, observa
         o->product = st_findindexbystring(obs->products, meta->product);
         assert(o->product >= 0);
         o->type = obstype_getid(obs->nobstypes, obs->obstypes, meta->type, 1);
-        ot = &obs->obstypes[o->type];
         o->instrument = st_add_ifabsent(obs->instruments, "VIIRS", -1);
         o->id = obs->nobs;
         o->fid = fid;

@@ -163,7 +163,6 @@ void reader_amsre_standard(char* fname, int fid, obsmeta* meta, grid* g, observa
         for (j = 0; j < (int) nj; ++j) {
             for (i = 0; i < (int) ni; ++i) {
                 observation* o;
-                obstype* ot;
 
                 if (fabs(data[j][i]) > MAXOBSVAL)
                     continue;
@@ -176,7 +175,6 @@ void reader_amsre_standard(char* fname, int fid, obsmeta* meta, grid* g, observa
                 o->product = st_findindexbystring(obs->products, meta->product);
                 assert(o->product >= 0);
                 o->type = obstype_getid(obs->nobstypes, obs->obstypes, meta->type, 1);
-                ot = &obs->obstypes[o->type];
                 o->instrument = st_add_ifabsent(obs->instruments, "AMSRE", -1);
                 o->id = obs->nobs;
                 o->fid = fid;

@@ -122,7 +122,6 @@ void reader_h8_standard(char* fname, int fid, obsmeta* meta, grid* g, observatio
     nobs = 0;
     for (i = 0; i < (int) ni; ++i) {
         observation* o;
-        obstype* ot;
 
         if (!isfinite(sst[i]) || fabs(sst[i]) > MAXOBSVAL)
             continue;
@@ -134,7 +133,6 @@ void reader_h8_standard(char* fname, int fid, obsmeta* meta, grid* g, observatio
         o->product = st_findindexbystring(obs->products, meta->product);
         assert(o->product >= 0);
         o->type = obstype_getid(obs->nobstypes, obs->obstypes, meta->type, 1);
-        ot = &obs->obstypes[o->type];
         o->instrument = st_add_ifabsent(obs->instruments, "H8", -1);
         o->id = obs->nobs;
         o->fid = fid;

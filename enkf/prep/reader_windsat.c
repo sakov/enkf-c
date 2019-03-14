@@ -114,7 +114,6 @@ void reader_windsat_standard(char* fname, int fid, obsmeta* meta, grid* g, obser
 
     for (i = 0; i < (int) nobs_local; ++i) {
         observation* o;
-        obstype* ot;
 
         obs_checkalloc(obs);
         o = &obs->data[obs->nobs];
@@ -122,7 +121,6 @@ void reader_windsat_standard(char* fname, int fid, obsmeta* meta, grid* g, obser
         o->product = st_findindexbystring(obs->products, meta->product);
         assert(o->product >= 0);
         o->type = obstype_getid(obs->nobstypes, obs->obstypes, meta->type, 1);
-        ot = &obs->obstypes[o->type];
         o->instrument = st_add_ifabsent(obs->instruments, "WindSat", -1);
         o->id = obs->nobs;
         o->fid = fid;
