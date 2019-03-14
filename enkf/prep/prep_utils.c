@@ -163,6 +163,10 @@ void obs_add(observations* obs, model* m, obsmeta* meta)
                 nmax++;
                 continue;
             }
+            if (o->depth < ot->zmin || o->depth > ot->zmax) {
+                o->status = STATUS_OUTSIDEOBSDOMAIN;
+                continue;
+            }
             if (depth != NULL) {
                 o->model_depth = (double) interpolate2d(o->fi, o->fj, ni, nj, depth, numlevels, isperiodic_i);
                 if (!isfinite(o->model_depth) || o->model_depth == 0) {

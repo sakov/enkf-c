@@ -148,7 +148,7 @@ void das_printobsstats(dasystem* das, int use_rmsd)
                         int ii;
 
                         for (ii = 0; ii < nzints; ++ii) {
-                            if (o->depth > zints[ii].z1 && o->depth <= zints[ii].z2) {
+                            if (o->depth >= zints[ii].z1 && o->depth < zints[ii].z2) {
                                 rzstats[ii].inn_f += das->s_f[j];
                                 rzstats[ii].inn_f_abs += func(das->s_f[j]);
                                 rzstats[ii].inn_a += das->s_a[j];
@@ -384,7 +384,7 @@ void das_printfobsstats(dasystem* das, int use_rmsd)
                         int ii;
 
                         for (ii = 0; ii < nzints; ++ii) {
-                            if (o->depth > zints[ii].z1 && o->depth <= zints[ii].z2) {
+                            if (o->depth >= zints[ii].z1 && o->depth < zints[ii].z2) {
                                 rzstats[ii].inn_f += das->s_f[j];
                                 rzstats[ii].inn_f_abs += func(das->s_f[j]);
                                 rzstats[ii].std_f += das->std_f[j];

@@ -1,3 +1,8 @@
+v. 1.93.3
+   PS 14032019
+   -- In obs_add() implemented filtering by ot->zmin and ot->zmax.
+   -- In das_printfobsstats() and das_printobsstats() changed filtering by
+      depth intervals: z > z1 && z <= z2 became z >= z1 && z < z2.
 v. 1.93.2
    PS 12032019
    - Another follow-on fix to v1.93.0.
