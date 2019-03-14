@@ -161,8 +161,6 @@ void reader_rads_standard(char* fname, int fid, obsmeta* meta, grid* g, observat
         o->fk = (double) ksurf;
         o->model_depth = NAN;   /* set in obs_add() */
         o->date = time[i] * tunits_multiple + tunits_offset;
-        if ((o->status == STATUS_OK) && (o->lon <= ot->xmin || o->lon >= ot->xmax || o->lat <= ot->ymin || o->lat >= ot->ymax))
-            o->status = STATUS_OUTSIDEOBSDOMAIN;
 
         o->aux = -1;
 

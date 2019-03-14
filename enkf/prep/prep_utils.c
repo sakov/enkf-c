@@ -131,6 +131,7 @@ void obs_add(observations* obs, model* m, obsmeta* meta)
         int nmin = 0;
         int nmax = 0;
         int noutow = 0;
+        int noutod = 0;
         int nland = 0;
         int nshallow = 0;
         int ni, nj, ksurf;
@@ -163,8 +164,9 @@ void obs_add(observations* obs, model* m, obsmeta* meta)
                 nmax++;
                 continue;
             }
-            if (o->depth < ot->zmin || o->depth > ot->zmax) {
+            if (o->lon <= ot->xmin || o->lon >= ot->xmax || o->lat <= ot->ymin || o->lat >= ot->ymax || o->depth < ot->zmin || o->depth > ot->zmax) {
                 o->status = STATUS_OUTSIDEOBSDOMAIN;
+                noutod++;
                 continue;
             }
             if (depth != NULL) {
@@ -198,6 +200,8 @@ void obs_add(observations* obs, model* m, obsmeta* meta)
         }
         if (noutow > 0)
             enkf_printf("        %d observations outside obs. window\n", noutow);
+        if (noutod > 0)
+            enkf_printf("        %d obbservations outside obs. domain\n", noutod);
         if (nmin > 0)
             enkf_printf("        %d observations below allowed minimum of %.4g\n", nmin, ot->allowed_min);
         if (nmax > 0)

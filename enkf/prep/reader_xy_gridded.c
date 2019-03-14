@@ -412,8 +412,6 @@ void reader_xy_gridded(char* fname, int fid, obsmeta* meta, grid* g, observation
         o->status = grid_xy2fij(g, o->lon, o->lat, &o->fi, &o->fj);
         if (!obs->allobs && o->status == STATUS_OUTSIDEGRID)
             continue;
-        if ((o->status == STATUS_OK) && (o->lon <= ot->xmin || o->lon >= ot->xmax || o->lat <= ot->ymin || o->lat >= ot->ymax))
-            o->status = STATUS_OUTSIDEOBSDOMAIN;
         o->model_depth = NAN;   /* set in obs_add() */
         if (have_time) {
             float t = (singletime) ? time[0] : time[i];

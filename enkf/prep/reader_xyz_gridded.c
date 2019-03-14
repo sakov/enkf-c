@@ -433,8 +433,6 @@ void reader_xyz_gridded(char* fname, int fid, obsmeta* meta, grid* g, observatio
         o->status = grid_xy2fij(g, o->lon, o->lat, &o->fi, &o->fj);
         if (!obs->allobs && o->status == STATUS_OUTSIDEGRID)
             continue;
-        if ((o->status == STATUS_OK) && (o->lon <= ot->xmin || o->lon >= ot->xmax || o->lat <= ot->ymin || o->lat >= ot->ymax))
-            o->status = STATUS_OUTSIDEOBSDOMAIN;
         o->depth = (zndim == 1) ? z[i / nij] : z[i];
         if (o->status == STATUS_OK)
             o->status = grid_z2fk(g, o->fi, o->fj, o->depth, &o->fk);
