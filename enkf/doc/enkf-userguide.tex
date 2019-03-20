@@ -36,7 +36,7 @@
 
 \begin{document}
 
-\title{EnKF-C user guide\\{\normalsize version 1.93.0}}
+\title{EnKF-C user guide\\{\normalsize version 1.93.4}}
 
 \author{Pavel Sakov}
 \date{June 19, 2014 -- \today}
@@ -97,9 +97,9 @@ It is also available from \url{http://arxiv.org/abs/1410.1233}.
 The user guide has two main sections.
 Section~\ref{ch:enkf} overviews the basics of the EnKF; section~\ref{ch:enkf-c} provides technical description of EnKF-C.
 
-\section*{Pre-requisitives and limitations}
+\section*{Pre-requisites and limitations}
 
-Following is the list of main pre-requisitives and limitations resulted from the design and algorithmic solutions adopted in EnKF-C:
+Following is the list of main pre-requisites and limitations resulted from the design and algorithmic solutions adopted in EnKF-C:
 \begin{itemize}
 \item the model is assumed to be layered, so that the horizontal and vertical grids are independent of each other;
 \item horizontal grids are assumed to be structured quadrilateral;
@@ -568,7 +568,7 @@ This time invariance of ensemble transforms can be used to update ensemble back 
   \begin{align}
     J(\mb x) = \|\mb x - \mb x^f\|^2_{(\mb P^f)^{-1}} + \|\mb y - \mathcal H \circ \mathcal M(\mb x)\|^2_{\mb R^{-1}}.
   \end{align}
-  Here $\mb x^f$ is the forecast state at the start of the cycle obtained from the previoius analysis, and $\mb P^f$ is the corresponding state error covariance.
+  Here $\mb x^f$ is the forecast state at the start of the cycle obtained from the previous analysis, and $\mb P^f$ is the corresponding state error covariance.
   Minimising $J$ yields the analysed initial model state $\mb x^a$, which in turn yields the analysed trajectory.
   The analysed state error covariance is defined so that the analysed background term absorbs the observation term:
   \begin{align*}
@@ -826,7 +826,7 @@ Because only PREP requires mapping from physical to grid space, this auxiliary g
 To specify that a grid entry is to be used in PREP only one needs to add qualifier ``PREP'' after its name; and to specify that it is to be used in CALC and UPDATE one needs to add qualifier ``CALC''.
 See \verb|examples/3| for an example.
 
-From version 1.37.0 such grids can also be handled by using grid mapping via kd-tree instead of the default mapping via spatial binary tree, which is now available from package gridutils-c.
+From version 1.37.0 such grids can also be handled by using grid mapping via K-d tree instead of the default mapping via spatial binary tree, which is now available from package gridutils-c.
 This is done by setting parameter \verb|MAPTYPE| to ``k''.
 
 \subsubsection{Vertical grids}
@@ -1184,7 +1184,7 @@ This can be tracked from the CALC log file, e.g.:
     SAL ......
 \end{Verbatim}
 The entries ``a'' mean that the observations are assimilated asynchronously and the files and the corresponding (by name) files have been found.
-These entris would be replaced by ``s'' if the observations were assimilated synchronously because of lacking the corresponding files.
+These entries would be replaced by ``s'' if the observations were assimilated synchronously because of lacking the corresponding files.
 The vertical lines indicate the time slots for asynchronous DA; in the above example the DAW has 5 time slots.
 The entries ``.'' indicate calculating ensemble observations for synchronous observations.
 Note that only the master process is writing to the log here, which explains why there is only output from 6 members in the log above.
@@ -1406,7 +1406,7 @@ For example, it may be desirable in climate systems to disregard observations of
 The concept of ``domains'' introduced in v1.89.0 provides a mechanism for handling such situations within a single analysis.
 It works as follows.
 Each grid can be associated with a certain domain via the optional entry \verb|DOMAIN| in the grid parameter file.
-For example, in a climate system one can have domains ``Ocean'' and ``Atmoshere''.
+For example, in a climate system one can have domains ``Ocean'' and ``Atmosphere''.
 From another side, via entry \verb|DOMAINS| in the observation types parameter file one can list domains observations of this type are visible from.
 By default, observations of any type are visible from all grids.
 
@@ -1675,6 +1675,44 @@ where $\lambda$ is the forgetting factor, $0 < \lambda < 1, \; 1 - \lambda \ll 1
 This can be specified for a model variable via entry \verb|RANDOMISE| in the corresponding section of the model parameter file (sec.~\ref{sec:modelprm}).
 
 \section{System issues}
+
+\subsection{Compiler flags}
+
+Following is a brief description of the compiler flags in EnKF-C.
+
+\begin{description}
+\item{\verb|GRIDNODES_WRITE|} (\verb|enkf_prep|, \verb|enkf_calc|)
+  Writes nodes of each grid defined in the grid parameter file to a text file \verb|gridnodes-<grid id>.txt| in format used by package gridutils-c.
+\item{\verb|INTERNAL_QSORT_R|} (\verb|enkf_prep|, \verb|enkf_calc|)
+  Uses internal code for \verb|qsort_r()|.
+  Has to be defined for compiling on Mac OS platforms.
+\item{\verb|NO_GRIDUTILS|} (\verb|enkf_prep|, \verb|enkf_calc|)
+  Excludes code for handling curvilinear grids, and eliminates dependence on gridutils-c.
+\item{\verb|CHECK_X5|} (\verb|enkf_calc|)
+  Verifies that each column of $\mb X5$ matrices sums up to 1.
+\item{\verb|CHECK_G|} (\verb|enkf_calc|)
+  Verifies that each column of $\mb G$ matrices sums up to 0.
+\item{\verb|SHUFFLE_ROWS|} (\verb|enkf_calc|)
+  Supposed to produce more latitudinally uniform load between CPUs.
+  Currently, because transforms for each row of the grid are sent to the master process for writing, this option effectively makes no difference to performance, I believe.
+\item{\verb|HE_VIAFILE|} (\verb|enkf_calc|)
+  Communicates ensemble observations between processes via file.
+  This was used in early versions of EnKF-C and has been later replaced by MPI communications.
+  Still should be usable if something goes wrong with the system, I guess.
+\item{\verb|HE_VIASHMEM|} (\verb|enkf_calc|)
+  Uses shared memory for storing ensemble observations, which much reduces the memory footprint in CALC.
+  Requires MPI-3.
+  This is a default option in EnKF-C, but can be unset, particularly in smaller systems, when memory is not an issue.
+\item{\verb|MINIMISE_ALLOC|} (\verb|enkf_calc|)
+  Tries to pre-allocate arrays in CALC to reduce potential problems with memory fragmentation.
+  Not verified to make a difference in boundary (OOM) situations.
+  Probably does not make much sense to be used with the ETKF, as it makes a number of additional allocations.
+\item{\verb|OBS_SHUFFLE|} (\verb|enkf_calc|)
+  Randomly shuffles observations before parsing them into K-d trees.
+  Potentially this can substantially improve performance in the case of spatially ordered observations (not verified).
+\item{\verb|NCW_SKIPSINGLE|} (\verb|enkf_update|)
+  Skips ``normal'' (not unlimited) ``inner'' dimensions of length one when copying definitions of variables from one NetCDF file to another.
+\end{description}
 
 \subsection{Memory footprint}
 
