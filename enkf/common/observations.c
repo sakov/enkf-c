@@ -76,6 +76,8 @@ void obs_addtype(observations* obs, obstype* src)
         ot->locweight[i] = src->locweight[i];
     }
     ot->rfactor = src->rfactor;
+    ot->nlobsmax = src->nlobsmax;
+    ot->estdmin = src->estdmin;
     ot->nsubgrid = src->nsubgrid;
     ot->nmodified = 0;
     ot->date_min = src->date_min;
@@ -1200,6 +1202,8 @@ void obs_superob(observations* obs, __compar_d_fn_t cmp_obs, observations** sobs
                 so->lon += 360.0;
         }
         so->std = sqrt(1.0 / so->std);
+        if (so->std < obs->obstypes[so->type].estdmin)
+            so->std = obs->obstypes[so->type].estdmin;
 
         nsobs++;
 

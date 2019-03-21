@@ -36,7 +36,7 @@
 
 \begin{document}
 
-\title{EnKF-C user guide\\{\normalsize version 1.93.4}}
+\title{EnKF-C user guide\\{\normalsize version 1.94.0}}
 
 \author{Pavel Sakov}
 \date{June 19, 2014 -- \today}
@@ -869,24 +869,25 @@ The optional parameters include the R-factor and localisation radius for the typ
   [ DOMAINS     = <domain name> ... ]
     ISSURFACE   = {0 | 1}
     VAR         = <model variable name> ...
-  [ ALIAS       = <variable name used in file names> ] (VAR*)
-  [ OFFSET      = <file name> <variable name> ]    (none*)
-  [ MLD_VARNAME = <model varname> ]                (none*)
-  [ MLD_THRESH  = <threshold> ]                    (NaN*)
-    HFUNCTION   = <H function tag>
-  [ ASYNC       = <time interval> [c*|e]]          (synchronous*)
+  [ ALIAS       = <variable name used in file names> ]  (VAR*)
+  [ OFFSET      = <file name> <variable name> ]         (none*)
+  [ MLD_VARNAME = <model varname> ]                     (none*)
+  [ MLD_THRESH  = <threshold> ]                         (NaN*)
+  [ HFUNCTION   = <H function name> ]                   (standard*)
+  [ ASYNC       = <time interval> [c*|e]]               (0*)
   [ LOCRAD      = <loc. radius in km> ... ]
-  [ LOCWEIGHT   = <loc. weight> ... ]              (# LOCRAD > 1)
-  [ RFACTOR     = <rfactor> ]                      (1*)
-  [ NLOBSMAX    = <max. number of local obs. ]
-  [ MINVALUE    = <minimal allowed value> ]        (-inf*)
-  [ MAXVALUE    = <maximal allowed value> ]        (+inf*)
-  [ XMIN        = <minimal allowed X coordinate> ] (-inf*)
-  [ XMAX        = <maximal allowed X coordinate> ] (+inf*)
-  [ YMIN        = <minimal allowed Y coordinate> ] (-inf*)
-  [ YMAX        = <maximal allowed Y coordinate> ] (+inf*)
-  [ ZMIN        = <minimal allowed Z coordinate> ] (-inf*)
-  [ ZMAX        = <maximal allowed Z coordinate> ] (+inf*)
+  [ LOCWEIGHT   = <loc. weight> ... ]                   (# LOCRAD > 1)
+  [ RFACTOR     = <rfactor> ]                           (1*)
+  [ NLOBSMAX    = <max. allowed number of local obs.> ] (inf*)
+  [ ERROR_STD_MIN = <min. allowed superob error> ]      (0*)
+  [ MINVALUE    = <minimal allowed value> ]             (-inf*)
+  [ MAXVALUE    = <maximal allowed value> ]             (+inf*)
+  [ XMIN        = <minimal allowed X coordinate> ]      (-inf*)
+  [ XMAX        = <maximal allowed X coordinate> ]      (+inf*)
+  [ YMIN        = <minimal allowed Y coordinate> ]      (-inf*)
+  [ YMAX        = <maximal allowed Y coordinate> ]      (+inf*)
+  [ ZMIN        = <minimal allowed Z coordinate> ]      (-inf*)
+  [ ZMAX        = <maximal allowed Z coordinate> ]      (+inf*)
   [ WINDOWMIN   = <start of obs window in days from analysis> ] (-inf*)
   [ WINDOWMAX   = <end of obs window in days from analysis> ]   (+inf*)
 

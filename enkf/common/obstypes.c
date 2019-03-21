@@ -59,6 +59,7 @@ static void obstype_new(obstype* type, int i, char* name)
     type->locweight = NULL;
     type->rfactor = 1.0;
     type->nlobsmax = -1;
+    type->estdmin = 0.0;
     type->vid = -1;
     type->gridid = -1;
     type->xmin = -DBL_MAX;
@@ -146,6 +147,8 @@ static void obstype_print(obstype* type)
     enkf_printf("      RFACTOR = %.3g\n", type->rfactor);
     if (type->nlobsmax != INT_MAX)
         enkf_printf("      NLOBSMAX = %d\n", type->nlobsmax);
+    if (type->estdmin > 0.0)
+        enkf_printf("      ERROR_STD_MIN = %.3g\n", type->estdmin);
     if (type->xmin > -DBL_MAX || type->xmax < DBL_MAX || type->ymin > -DBL_MAX || type->ymax < DBL_MAX || type->zmin > -DBL_MAX || type->zmax < DBL_MAX)
         enkf_printf("      SPATIAL DOMAIN = %.3g %.3g %.3g %.3g %.3g %.3g\n", type->xmin, type->xmax, type->ymin, type->ymax, type->zmin, type->zmax);
     if (isfinite(type->windowmin)) {
@@ -319,6 +322,11 @@ void obstypes_read(enkfprm* prm, char fname[], int* n, obstype** types)
                 enkf_quit("%s, l.%d: NLOBSMAX not specified", fname, line);
             if (!str2int(token, &now->nlobsmax))
                 enkf_quit("%s, l.%d: could not convert \"%s\" to int", fname, line, token);
+        } else if (strcasecmp(token, "ERROR_STD_MIN") == 0) {
+            if ((token = strtok(NULL, seps)) == NULL)
+                enkf_quit("%s, l.%d: ERROR_STD_MIN not specified", fname, line);
+            if (!str2double(token, &now->estdmin))
+                enkf_quit("%s, l.%d: could not convert \"%s\" to double", fname, line, token);
         } else if (strcasecmp(token, "XMIN") == 0) {
             if ((token = strtok(NULL, seps)) == NULL)
                 enkf_quit("%s, l.%d: XMIN not specified", fname, line);
@@ -413,6 +421,8 @@ void obstypes_read(enkfprm* prm, char fname[], int* n, obstype** types)
         }
         type->rfactor *= prm->rfactor_base;
 
+        if (type->hfunction == NULL)
+            type->hfunction = strdup("standard");
         if (type->nlobsmax < 0)
             type->nlobsmax = prm->nlobsmax;
     }
@@ -434,24 +444,25 @@ void obstypes_describeprm(void)
     enkf_printf("  [ DOMAINS     = <domain name> ... ]\n");
     enkf_printf("    ISSURFACE   = {0 | 1}\n");
     enkf_printf("    VAR         = <model variable name> ...\n");
-    enkf_printf("  [ ALIAS       = <variable name used in file names> ] (VAR*)\n");
-    enkf_printf("  [ OFFSET      = <file name> <variable name> ]    (none*)\n");
-    enkf_printf("  [ MLD_VARNAME = <model varname> ]                (none*)\n");
-    enkf_printf("  [ MLD_THRESH  = <threshold> ]                    (NaN*)\n");
-    enkf_printf("    HFUNCTION   = <H function name>\n");
-    enkf_printf("  [ ASYNC       = <time interval> [c*|e]]          (synchronous*)\n");
+    enkf_printf("  [ ALIAS       = <variable name used in file names> ]  (VAR*)\n");
+    enkf_printf("  [ OFFSET      = <file name> <variable name> ]         (none*)\n");
+    enkf_printf("  [ MLD_VARNAME = <model varname> ]                     (none*)\n");
+    enkf_printf("  [ MLD_THRESH  = <threshold> ]                         (NaN*)\n");
+    enkf_printf("  [ HFUNCTION   = <H function name> ]                   (standard*)\n");
+    enkf_printf("  [ ASYNC       = <time interval> [c*|e]]               (0*)\n");
     enkf_printf("  [ LOCRAD      = <loc. radius in km> ... ]\n");
-    enkf_printf("  [ LOCWEIGHT   = <loc. weight> ... ]              (# LOCRAD > 1)\n");
-    enkf_printf("  [ RFACTOR     = <rfactor> ]                      (1*)\n");
-    enkf_printf("  [ NLOBSMAX    = <max. number of local obs. ]\n");
-    enkf_printf("  [ MINVALUE    = <minimal allowed value> ]        (-inf*)\n");
-    enkf_printf("  [ MAXVALUE    = <maximal allowed value> ]        (+inf*)\n");
-    enkf_printf("  [ XMIN        = <minimal allowed X coordinate> ] (-inf*)\n");
-    enkf_printf("  [ XMAX        = <maximal allowed X coordinate> ] (+inf*)\n");
-    enkf_printf("  [ YMIN        = <minimal allowed Y coordinate> ] (-inf*)\n");
-    enkf_printf("  [ YMAX        = <maximal allowed Y coordinate> ] (+inf*)\n");
-    enkf_printf("  [ ZMIN        = <minimal allowed Z coordinate> ] (-inf*)\n");
-    enkf_printf("  [ ZMAX        = <maximal allowed Z coordinate> ] (+inf*)\n");
+    enkf_printf("  [ LOCWEIGHT   = <loc. weight> ... ]                   (# LOCRAD > 1)\n");
+    enkf_printf("  [ RFACTOR     = <rfactor> ]                           (1*)\n");
+    enkf_printf("  [ NLOBSMAX    = <max. allowed number of local obs.> ] (inf*)\n");
+    enkf_printf("  [ ERROR_STD_MIN = <min. allowed superob error> ]      (0*)\n");
+    enkf_printf("  [ MINVALUE    = <minimal allowed value> ]             (-inf*)\n");
+    enkf_printf("  [ MAXVALUE    = <maximal allowed value> ]             (+inf*)\n");
+    enkf_printf("  [ XMIN        = <minimal allowed X coordinate> ]      (-inf*)\n");
+    enkf_printf("  [ XMAX        = <maximal allowed X coordinate> ]      (+inf*)\n");
+    enkf_printf("  [ YMIN        = <minimal allowed Y coordinate> ]      (-inf*)\n");
+    enkf_printf("  [ YMAX        = <maximal allowed Y coordinate> ]      (+inf*)\n");
+    enkf_printf("  [ ZMIN        = <minimal allowed Z coordinate> ]      (-inf*)\n");
+    enkf_printf("  [ ZMAX        = <maximal allowed Z coordinate> ]      (+inf*)\n");
     enkf_printf("  [ WINDOWMIN   = <start of obs window in days from analysis> ] (-inf*)\n");
     enkf_printf("  [ WINDOWMAX   = <end of obs window in days from analysis> ]   (+inf*)\n");
     enkf_printf("\n");

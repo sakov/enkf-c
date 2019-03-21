@@ -37,6 +37,7 @@ typedef struct {
     double* locweight;
     double rfactor;
     int nlobsmax;
+    double estdmin;
 
     int vid;
     int gridid;
