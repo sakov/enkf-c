@@ -1,3 +1,7 @@
+v. 1.94.1
+   PS 22032019
+   -- A minor correction in das_calctransforms() that fixes numerics of
+      calculating partial SRF ("psrf") when pdfs is close to 0.
 v. 1.94.0
    PS 21032019
    -- Added entry ERROR_STD_MIN to obstypes parameter file to specify minimal

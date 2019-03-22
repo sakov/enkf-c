@@ -27,6 +27,8 @@
 #include "dasystem.h"
 #include "pointlog.h"
 
+#define DFS_MIN 1.0e-6
+
 #if defined(MINIMISE_ALLOC)
 #define PLOC_START 5000
 int ploc_allocated1 = 0;
@@ -522,7 +524,7 @@ void das_calctransforms(dasystem* das)
                             for (o = 0; o < p; ++o)
                                 pS[e][o] = Sloc[e][plobs[o]];
                         pdfs[ot][jjj][ii] = traceprod(0, 0, p, das->nmem, pG, pS);
-                        if (pdfs[ot][jjj][ii] > 0.0)
+                        if (pdfs[ot][jjj][ii] > DFS_MIN)
                             psrf[ot][jjj][ii] = sqrt(traceprod(0, 1, das->nmem, p, pS, pS) / pdfs[ot][jjj][ii]) - 1.0;
                         else
                             psrf[ot][jjj][ii] = 0.0;
