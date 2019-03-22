@@ -1025,8 +1025,10 @@ grid* grid_create(void* p, int id)
         g->sob_stride = prm->sob_stride;
     g->sfactor = prm->sfactor;
     g->nzints = prm->nzints;
-    g->zints = malloc(g->nzints * sizeof(zint));
-    memcpy(g->zints, prm->zints, g->nzints * sizeof(zint));
+    if (prm->nzints > 0) {
+        g->zints = malloc(g->nzints * sizeof(zint));
+        memcpy(g->zints, prm->zints, g->nzints * sizeof(zint));
+    }
 #if !defined(NO_GRIDUTILS)
 #if !defined(GRIDMAP_TYPE_DEF)
 #error("GRIDMAP_TYPE_DEF not defined; please update gridutils-c");

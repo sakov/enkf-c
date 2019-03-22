@@ -344,6 +344,12 @@ void gridprm_create(char* fname, int* ngrid, gridprm** prm)
                     enkf_quit("%s, l.%d: could not convert \"%s\" to double", fname, line, token);
                 now->nzints++;
             }
+            /*
+             * a temporal setting, to indicate that an empty range has been
+             * entered (as opposed to no entry)
+             */
+            if (now->nzints == 0)
+                now->nzints = -1;
         } else if (strcasecmp(token, "DOMAIN") == 0) {
             if ((token = strtok(NULL, seps)) == NULL)
                 enkf_quit("%s, l.%d: DOMAIN not specified", fname, line);
@@ -404,7 +410,8 @@ void gridprm_create(char* fname, int* ngrid, gridprm** prm)
             now->zints[1].z2 = DEPTH_DEEP;
             now->zints[2].z1 = DEPTH_DEEP;
             now->zints[2].z2 = DEPTH_MAX;
-        }
+        } else if (now->nzints < 0)
+            now->nzints = 0;
     }
 }
 

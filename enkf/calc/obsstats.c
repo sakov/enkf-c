@@ -105,7 +105,8 @@ void das_printobsstats(dasystem* das, int use_rmsd)
                 void* g = model_getvargrid(das->m, mvid);
 
                 grid_getzints(g, &nzints, &zints);
-                rzstats = calloc(nzints, sizeof(stats));
+                if (nzints > 0)
+                    rzstats = calloc(nzints, sizeof(stats));
             }
 
             if (ot->isasync) {
@@ -270,7 +271,8 @@ void das_printobsstats(dasystem* das, int use_rmsd)
                 free(std_a_as);
                 free(nobs_as);
             }
-            free(rzstats);
+            if (nzints > 0)
+                free(rzstats);
         }
     }
 
@@ -348,7 +350,8 @@ void das_printfobsstats(dasystem* das, int use_rmsd)
                 void* g = model_getvargrid(das->m, mvid);
 
                 grid_getzints(g, &nzints, &zints);
-                rzstats = calloc(nzints, sizeof(fstats));
+                if (nzints > 0)
+                    rzstats = calloc(nzints, sizeof(fstats));
             }
 
             if (ot->isasync) {
@@ -493,7 +496,8 @@ void das_printfobsstats(dasystem* das, int use_rmsd)
                     free(std_f_as);
                 free(nobs_as);
             }
-            free(rzstats);
+            if (nzints > 0)
+                free(rzstats);
         }
     }
 

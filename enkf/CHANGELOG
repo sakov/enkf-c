@@ -1,3 +1,8 @@
+v. 1.94.2
+   PS 22032019
+   -- An empty entry "ZSTATINTS =" in the grid parameter file now specifies
+      no vertical statistical intervals (as opposed to default intervals in the
+      case of no entry).
 v. 1.94.1
    PS 22032019
    -- A minor correction in das_calctransforms() that fixes numerics of
