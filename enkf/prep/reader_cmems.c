@@ -169,7 +169,7 @@ void reader_cmems_standard(char* fname, int fid, obsmeta* meta, grid* g, observa
         st_printentries(st_exclude, " ");
     }
 
-    if (meta->nstds == 0)
+    if (meta->nestds == 0)
         enkf_quit("ERROR_STD is necessary but not specified for product \"%s\"", meta->product);
 
     ncw_open(fname, NC_NOWRITE, &ncid);
@@ -334,7 +334,7 @@ void reader_cmems_standard(char* fname, int fid, obsmeta* meta, grid* g, observa
             o->fid = fid;
             o->batch = p;
             o->value = v[p][i];
-            o->std = 0.0;
+            o->estd = 0.0;
             o->lon = lon[p];
             o->lat = lat[p];
             o->depth = z[p][i];
@@ -346,7 +346,7 @@ void reader_cmems_standard(char* fname, int fid, obsmeta* meta, grid* g, observa
             else
                 o->fk = NAN;
             o->model_depth = NAN;       /* set in obs_add() */
-            o->date = time[p] * tunits_multiple + tunits_offset;
+            o->day = time[p] * tunits_multiple + tunits_offset;
             o->aux = -1;
 
             obs->nobs++;

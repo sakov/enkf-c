@@ -1372,25 +1372,25 @@ int is3d(char fname[], char varname[])
  */
 /**
  */
-double date_str2dbl(char strdate[])
+double date2day(char strdate[])
 {
     char buf[MAXSTRLEN];
     char* token;
     char seps[] = " ";
     char seps2[] = "\n";
-    double date, offset, multiple;
+    double day, offset, multiple;
 
     strncpy(buf, strdate, MAXSTRLEN);
     if ((token = strtok(buf, seps)) == NULL)
         enkf_quit("could not understand date \"%s\"", strdate);
-    if (!str2double(token, &date))
+    if (!str2double(token, &day))
         enkf_quit("could not convert date \"%s\" to double", token);
     if ((token = strtok(NULL, seps2)) == NULL)
         enkf_quit("could not understand date \"%s\"", strdate);
     tunits_convert(token, &multiple, &offset);
-    date = date * multiple + offset;
+    day = day * multiple + offset;
 
-    return date;
+    return day;
 }
 
 /**

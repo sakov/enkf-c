@@ -352,12 +352,12 @@ void reader_xy_scattered(char* fname, int fid, obsmeta* meta, grid* g, observati
         o->batch = 0;
         o->value = var[i] + varshift;
         if (estd == NULL)
-            o->std = var_estd;
+            o->estd = var_estd;
         else {
             if (std == NULL)
-                o->std = estd[i];
+                o->estd = estd[i];
             else
-                o->std = (std[i] > estd[i]) ? std[i] : estd[i];
+                o->estd = (std[i] > estd[i]) ? std[i] : estd[i];
         }
         o->lon = lon[i];
         o->lat = lat[i];
@@ -368,9 +368,9 @@ void reader_xy_scattered(char* fname, int fid, obsmeta* meta, grid* g, observati
             continue;
         o->model_depth = NAN;   /* set in obs_add() */
         if (have_time)
-            o->date = ((singletime) ? time[0] : time[i]) * tunits_multiple + tunits_offset;
+            o->day = ((singletime) ? time[0] : time[i]) * tunits_multiple + tunits_offset;
         else
-            o->date = NAN;
+            o->day = NAN;
         o->aux = -1;
 
         obs->nobs++;

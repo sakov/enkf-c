@@ -43,7 +43,7 @@ static int obs_badob(observations* obs, int i)
 
     if (o->status != STATUS_OK)
         return 0;
-    if (o->type < 0 || o->product < 0 || o->instrument < 0 || o->fid < 0 || o->batch < 0 || !isfinite(o->value) || fabs(o->value) > MAXOBSVAL || isnan(o->std) || o->std <= 0.0 || !isfinite(o->fi) || !isfinite(o->fj) || !isfinite(o->fk) || !isfinite(o->lon) || !isfinite(o->lat) || !isfinite(o->depth))
+    if (o->type < 0 || o->product < 0 || o->instrument < 0 || o->fid < 0 || o->batch < 0 || !isfinite(o->value) || fabs(o->value) > MAXOBSVAL || isnan(o->estd) || o->estd <= 0.0 || !isfinite(o->fi) || !isfinite(o->fj) || !isfinite(o->fk) || !isfinite(o->lon) || !isfinite(o->lat) || !isfinite(o->depth))
         return 1;
     return 0;
 }
@@ -144,12 +144,12 @@ void obs_add(observations* obs, model* m, obsmeta* meta)
 
             if (o->status != STATUS_OK)
                 continue;
-            if (o->date - obs->da_date < ot->windowmin + DT_EPS) {
+            if (o->day - obs->da_day < ot->windowmin + DT_EPS) {
                 o->status = STATUS_OUTSIDEOBSWINDOW;
                 noutow++;
                 continue;
             }
-            if (o->date - obs->da_date > ot->windowmax - DT_EPS) {
+            if (o->day - obs->da_day > ot->windowmax - DT_EPS) {
                 o->status = STATUS_OUTSIDEOBSWINDOW;
                 noutow++;
                 continue;
@@ -222,14 +222,14 @@ void obs_add(observations* obs, model* m, obsmeta* meta)
     /*
      * add specified errors 
      */
-    if (obs->nobs - nobs0 > 0 && meta->nstds > 0) {
+    if (obs->nobs - nobs0 > 0 && meta->nestds > 0) {
         int i, o;
 
-        for (i = 0; i < meta->nstds; ++i) {
-            metastd* std = &meta->stds[i];
+        for (i = 0; i < meta->nestds; ++i) {
+            metastd* estd = &meta->estds[i];
 
-            if (std->type == STDTYPE_VALUE) {
-                double v = ((double*) std->data)[0];
+            if (estd->type == STDTYPE_VALUE) {
+                double v = ((double*) estd->data)[0];
 
                 enkf_printf("      adding error_std = %.3g:\n", v);
                 for (o = nobs0; o < obs->nobs; ++o) {
@@ -237,31 +237,31 @@ void obs_add(observations* obs, model* m, obsmeta* meta)
 
                     if (oo->status != STATUS_OK)
                         continue;
-                    if (std->op == ARITHMETIC_EQ)
-                        oo->std = v;
-                    else if (std->op == ARITHMETIC_PLUS)
-                        oo->std = sqrt(oo->std * oo->std + v * v);
-                    else if (std->op == ARITHMETIC_MULT)
-                        oo->std *= v;
-                    else if (std->op == ARITHMETIC_MIN)
-                        oo->std = (oo->std < v) ? v : oo->std;
-                    else if (std->op == ARITHMETIC_MAX)
-                        oo->std = (oo->std > v) ? v : oo->std;
+                    if (estd->op == ARITHMETIC_EQ)
+                        oo->estd = v;
+                    else if (estd->op == ARITHMETIC_PLUS)
+                        oo->estd = sqrt(oo->estd * oo->estd + v * v);
+                    else if (estd->op == ARITHMETIC_MULT)
+                        oo->estd *= v;
+                    else if (estd->op == ARITHMETIC_MIN)
+                        oo->estd = (oo->estd < v) ? v : oo->estd;
+                    else if (estd->op == ARITHMETIC_MAX)
+                        oo->estd = (oo->estd > v) ? v : oo->estd;
                     else
                         enkf_quit("programming error");
                 }
-            } else if (std->type == STDTYPE_FILE) {
-                char* fname = (char*) std->data;
+            } else if (estd->type == STDTYPE_FILE) {
+                char* fname = (char*) estd->data;
                 int ni, nj, nk;
 
-                enkf_printf("      adding error_std from %s %s:\n", fname, std->varname);
+                enkf_printf("      adding error_std from %s %s:\n", fname, estd->varname);
 
                 grid_getdims(g, &ni, &nj, &nk);
 
                 if (ot->issurface) {
                     float** v = alloc2d(nj, ni, sizeof(float));
 
-                    readfield(fname, std->varname, 0, ni, nj, nk, v[0]);
+                    readfield(fname, estd->varname, 0, ni, nj, nk, v[0]);
                     for (o = nobs0; o < obs->nobs; ++o) {
                         observation* oo = &obs->data[o];
                         float vv;
@@ -270,16 +270,16 @@ void obs_add(observations* obs, model* m, obsmeta* meta)
                             continue;
 
                         vv = (float) interpolate2d(oo->fi, oo->fj, ni, nj, v, numlevels, isperiodic_i);
-                        if (std->op == ARITHMETIC_EQ)
-                            oo->std = vv;
-                        else if (std->op == ARITHMETIC_PLUS)
-                            oo->std = sqrt(oo->std * oo->std + vv * vv);
-                        else if (std->op == ARITHMETIC_MULT)
-                            oo->std *= vv;
-                        else if (std->op == ARITHMETIC_MIN)
-                            oo->std = (oo->std < vv) ? vv : oo->std;
-                        else if (std->op == ARITHMETIC_MAX)
-                            oo->std = (oo->std > vv) ? vv : oo->std;
+                        if (estd->op == ARITHMETIC_EQ)
+                            oo->estd = vv;
+                        else if (estd->op == ARITHMETIC_PLUS)
+                            oo->estd = sqrt(oo->estd * oo->estd + vv * vv);
+                        else if (estd->op == ARITHMETIC_MULT)
+                            oo->estd *= vv;
+                        else if (estd->op == ARITHMETIC_MIN)
+                            oo->estd = (oo->estd < vv) ? vv : oo->estd;
+                        else if (estd->op == ARITHMETIC_MAX)
+                            oo->estd = (oo->estd > vv) ? vv : oo->estd;
                         else
                             enkf_quit("programming error");
                     }
@@ -288,7 +288,7 @@ void obs_add(observations* obs, model* m, obsmeta* meta)
                     float*** v = alloc3d(nk, nj, ni, sizeof(float));
                     int ksurf = grid_getsurflayerid(g);
 
-                    read3dfield(fname, std->varname, ni, nj, nk, v[0][0]);
+                    read3dfield(fname, estd->varname, ni, nj, nk, v[0][0]);
                     for (o = nobs0; o < obs->nobs; ++o) {
                         observation* oo = &obs->data[o];
                         float vv;
@@ -297,16 +297,16 @@ void obs_add(observations* obs, model* m, obsmeta* meta)
                             continue;
 
                         vv = (float) interpolate3d(oo->fi, oo->fj, oo->fk, ni, nj, nk, ksurf, v, numlevels, isperiodic_i);
-                        if (std->op == ARITHMETIC_EQ)
-                            oo->std = vv;
-                        else if (std->op == ARITHMETIC_PLUS)
-                            oo->std = sqrt(oo->std * oo->std + vv * vv);
-                        else if (std->op == ARITHMETIC_MULT)
-                            oo->std *= vv;
-                        else if (std->op == ARITHMETIC_MIN)
-                            oo->std = (oo->std < vv) ? vv : oo->std;
-                        else if (std->op == ARITHMETIC_MAX)
-                            oo->std = (oo->std > vv) ? vv : oo->std;
+                        if (estd->op == ARITHMETIC_EQ)
+                            oo->estd = vv;
+                        else if (estd->op == ARITHMETIC_PLUS)
+                            oo->estd = sqrt(oo->estd * oo->estd + vv * vv);
+                        else if (estd->op == ARITHMETIC_MULT)
+                            oo->estd *= vv;
+                        else if (estd->op == ARITHMETIC_MIN)
+                            oo->estd = (oo->estd < vv) ? vv : oo->estd;
+                        else if (estd->op == ARITHMETIC_MAX)
+                            oo->estd = (oo->estd > vv) ? vv : oo->estd;
                         else
                             enkf_quit("programming error");
                     }
@@ -320,27 +320,27 @@ void obs_add(observations* obs, model* m, obsmeta* meta)
      * report time range 
      */
     if (obs->nobs - nobs0 > 0) {
-        double date_min = DBL_MAX;
-        double date_max = -DBL_MAX;
+        double day_min = DBL_MAX;
+        double day_max = -DBL_MAX;
         int i;
 
         for (i = nobs0; i < obs->nobs; ++i) {
             observation* o = &obs->data[i];
 
-            if (!isnan(o->date))
-                o->date -= obs->da_date;
+            if (!isnan(o->day))
+                o->day -= obs->da_day;
             else
-                o->date = 0.0;
+                o->day = 0.0;
             if (o->status != STATUS_OK)
                 continue;
-            if (o->date < date_min)
-                date_min = o->date;
-            if (o->date > date_max)
-                date_max = o->date;
+            if (o->day < day_min)
+                day_min = o->day;
+            if (o->day > day_max)
+                day_max = o->day;
         }
-        if (date_min <= date_max) {
-            enkf_printf("      min date = %.3f\n", date_min);
-            enkf_printf("      max date = %.3f\n", date_max);
+        if (day_min <= day_max) {
+            enkf_printf("      min day = %.3f\n", day_min);
+            enkf_printf("      max day = %.3f\n", day_max);
         }
     }
     fflush(stdout);

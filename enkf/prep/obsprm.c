@@ -93,8 +93,8 @@ void obsprm_read(char fname[], int* nmeta, obsmeta** meta)
             metastd* now = NULL;
             double std;
 
-            m->stds = realloc(m->stds, (m->nstds + 1) * sizeof(metastd));
-            now = &m->stds[m->nstds];
+            m->estds = realloc(m->estds, (m->nestds + 1) * sizeof(metastd));
+            now = &m->estds[m->nestds];
 
             if ((token = strtok(NULL, seps)) == NULL)
                 enkf_quit("%s, l.%d: STD not specified", fname, line);
@@ -127,7 +127,7 @@ void obsprm_read(char fname[], int* nmeta, obsmeta** meta)
                 now->op = ARITHMETIC_MAX;
             else
                 enkf_quit("%s, l.%d:, unknown operation", fname, line);
-            m->nstds++;
+            m->nestds++;
         } else if (strcasecmp(token, "PARAMETER") == 0) {
             metapar* now = NULL;
 
@@ -171,9 +171,9 @@ void obsprm_read(char fname[], int* nmeta, obsmeta** meta)
         enkf_printf("      TYPE = %s\n", m->type);
         for (j = 0; j < m->nfiles; ++j)
             enkf_printf("        File: %s\n", m->fnames[j]);
-        for (j = 0; j < m->nstds; ++j) {
+        for (j = 0; j < m->nestds; ++j) {
             char operstr[MAXSTRLEN] = "";
-            metastd* std = &m->stds[j];
+            metastd* std = &m->estds[j];
 
             if (std->op == ARITHMETIC_EQ)
                 strcpy(operstr, "EQUAL");
@@ -213,16 +213,16 @@ void obsprm_destroy(int n, obsmeta meta[])
                 free(m->fnames[j]);
             free(m->fnames);
         }
-        if (m->nstds > 0) {
-            for (j = 0; j < m->nstds; ++j) {
-                metastd* std = &m->stds[j];
+        if (m->nestds > 0) {
+            for (j = 0; j < m->nestds; ++j) {
+                metastd* std = &m->estds[j];
 
                 if (std->data != NULL)
                     free(std->data);
                 if (std->varname != NULL)
                     free(std->varname);
             }
-            free(m->stds);
+            free(m->estds);
         }
         if (m->npars > 0) {
             for (j = 0; j < m->npars; ++j) {

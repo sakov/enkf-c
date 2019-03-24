@@ -220,7 +220,7 @@ void reader_viirs_standard(char* fname, int fid, obsmeta* meta, grid* g, observa
             double std1 = (double) std[i] * std_scale_factor + std_add_offset;
             double std2 = (double) estd[i] * estd_scale_factor + estd_add_offset;
 
-            o->std = (std1 > std2) ? std1 : std2;
+            o->estd = (std1 > std2) ? std1 : std2;
         }
         if (ndim == 2) {
             o->lon = lon[i % ni];
@@ -235,7 +235,7 @@ void reader_viirs_standard(char* fname, int fid, obsmeta* meta, grid* g, observa
         if (!obs->allobs && o->status == STATUS_OUTSIDEGRID)
             continue;
         o->model_depth = NAN;   /* set in obs_add() */
-        o->date = ((double) time[i] * time_scale_factor + time_add_offset) * tunits_multiple + tunits_offset;
+        o->day = ((double) time[i] * time_scale_factor + time_add_offset) * tunits_multiple + tunits_offset;
         o->aux = -1;
 
         obs->nobs++;

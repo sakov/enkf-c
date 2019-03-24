@@ -75,7 +75,7 @@ void reader_cars_standard(char* fname, int fid, obsmeta* meta, grid* g, observat
     for (i = 0; i < meta->npars; ++i)
         enkf_quit("unknown PARAMETER \"%s\"\n", meta->pars[i].name);
 
-    if (meta->nstds == 0)
+    if (meta->nestds == 0)
         enkf_quit("ERROR_STD is necessary but not specified for product \"%s\"", meta->product);
 
     ncw_open(fname, NC_NOWRITE, &ncid);
@@ -176,7 +176,7 @@ void reader_cars_standard(char* fname, int fid, obsmeta* meta, grid* g, observat
             o->fid = fid;
             o->batch = p;
             o->value = v[p][i];
-            o->std = 0.0;
+            o->estd = 0.0;
             o->lon = lon[p];
             o->lat = lat[p];
             o->depth = z[p][i];
@@ -188,7 +188,7 @@ void reader_cars_standard(char* fname, int fid, obsmeta* meta, grid* g, observat
             else
                 o->fk = NAN;
             o->model_depth = NAN;       /* set in obs_add() */
-            o->date = tunits_offset + 0.5;
+            o->day = tunits_offset + 0.5;
             o->aux = -1;
 
             obs->nobs++;

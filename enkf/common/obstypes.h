@@ -72,8 +72,8 @@ typedef struct {
     /*
      * actual time range of observations 
      */
-    double date_min;
-    double date_max;
+    double day_min;
+    double day_max;
 
     /*
      * domains observations of this type are visible from

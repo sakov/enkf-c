@@ -120,7 +120,7 @@ void reader_pathfinder_standard(char* fname, int fid, obsmeta* meta, grid* g, ob
         o->fid = fid;
         o->batch = 0;
         o->value = sst[i];
-        o->std = error_std[i];
+        o->estd = error_std[i];
         o->lon = lon[i];
         o->lat = lat[i];
         o->depth = 0.0;
@@ -129,7 +129,7 @@ void reader_pathfinder_standard(char* fname, int fid, obsmeta* meta, grid* g, ob
         if (!obs->allobs && o->status == STATUS_OUTSIDEGRID)
             continue;
         o->model_depth = NAN;   /* set in obs_add() */
-        o->date = tunits_offset + 0.5;
+        o->day = tunits_offset + 0.5;
         o->aux = -1;
 
         obs->nobs++;

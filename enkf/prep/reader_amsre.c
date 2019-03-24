@@ -180,7 +180,7 @@ void reader_amsre_standard(char* fname, int fid, obsmeta* meta, grid* g, observa
                 o->fid = fid;
                 o->batch = channel;
                 o->value = data[j][i];
-                o->std = ERRORSTD_DEF;
+                o->estd = ERRORSTD_DEF;
                 o->lon = lon[i];
                 o->lat = lat[j];
                 o->depth = 0.0;
@@ -189,7 +189,7 @@ void reader_amsre_standard(char* fname, int fid, obsmeta* meta, grid* g, observa
                 if (!obs->allobs && o->status == STATUS_OUTSIDEGRID)
                     continue;
                 o->model_depth = NAN;   /* set in obs_add() */
-                o->date = time[j][i] * tunits_multiple + tunits_offset;
+                o->day = time[j][i] * tunits_multiple + tunits_offset;
                 o->aux = -1;
 
                 obs->nobs++;

@@ -47,7 +47,7 @@ void writefield(char fname[], char varname[], int k, int ni, int nj, int nk, flo
 void writerow(char fname[], char varname[], int k, int j, float* v);
 void read3dfield(char fname[], char varname[], int ni, int nj, int nk, float* v);
 int is3d(char fname[], char varname[]);
-double date_str2dbl(char strdate[]);
+double date2day(char strdate[]);
 int get_tshift(double date, double tstep, int centred);
 void print_matrix_double(int n, int m, double** A, char offset[]);
 void print_matrix_float(int n, int m, float** A, char offset[]);

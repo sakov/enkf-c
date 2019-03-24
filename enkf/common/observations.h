@@ -1,3 +1,4 @@
+
 /******************************************************************************
  *
  * File:        observations.h        
@@ -45,7 +46,7 @@ typedef struct {
     short int fid;
     int batch;
     double value;
-    double std;
+    double estd;
     double lon;
     double lat;
     double depth;
@@ -53,7 +54,7 @@ typedef struct {
     double fi;
     double fj;
     double fk;
-    double date;
+    double day;
     int status;                 /* 0 = OK */
     /*
      * auxiliary information:
@@ -75,7 +76,7 @@ typedef struct {
 #endif
     int** obsids;
 
-    double da_date;             /* fractional days since 00:00:00
+    double da_day;              /* fractional days since 00:00:00
                                  * BASEDAY-BASEMONTH-BASEYEAR */
     char* datestr;
 

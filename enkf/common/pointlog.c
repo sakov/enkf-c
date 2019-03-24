@@ -36,19 +36,19 @@ void plog_write(dasystem* das, int id, float depth, double alpha, int p, int* lo
     char fname[MAXSTRLEN];
     int ncid;
     int dimids[2];
-    int vid_ids, vid_S, vid_s, vid_lcoeffs, vid_transform, vid_transform_actual, vid_lon, vid_lat, vid_depth, vid_val, vid_std, vid_fi, vid_fj, vid_fk, vid_type, vid_date;
+    int vid_ids, vid_S, vid_s, vid_lcoeffs, vid_transform, vid_transform_actual, vid_lon, vid_lat, vid_depth, vid_val, vid_estd, vid_fi, vid_fj, vid_fk, vid_type, vid_date;
     char tunits[MAXSTRLEN];
 
     float* olon;
     float* olat;
     float* odepth;
     float* val;
-    float* std;
+    float* estd;
     float* fi;
     float* fj;
     float* fk;
     int* otype;
-    float* odate;
+    float* oday;
 
     int ot, oid;
 
@@ -68,7 +68,7 @@ void plog_write(dasystem* das, int id, float depth, double alpha, int p, int* lo
         ncw_def_var(ncid, "lat", NC_FLOAT, 1, &dimids[1], &vid_lat);
         ncw_def_var(ncid, "depth", NC_FLOAT, 1, &dimids[1], &vid_depth);
         ncw_def_var(ncid, "obs_val", NC_FLOAT, 1, &dimids[1], &vid_val);
-        ncw_def_var(ncid, "obs_std", NC_FLOAT, 1, &dimids[1], &vid_std);
+        ncw_def_var(ncid, "obs_estd", NC_FLOAT, 1, &dimids[1], &vid_estd);
         ncw_def_var(ncid, "obs_fi", NC_FLOAT, 1, &dimids[1], &vid_fi);
         ncw_def_var(ncid, "obs_fj", NC_FLOAT, 1, &dimids[1], &vid_fj);
         ncw_def_var(ncid, "obs_fk", NC_FLOAT, 1, &dimids[1], &vid_fk);
@@ -123,12 +123,12 @@ void plog_write(dasystem* das, int id, float depth, double alpha, int p, int* lo
         olat = malloc(p * sizeof(float));
         odepth = malloc(p * sizeof(float));
         val = malloc(p * sizeof(float));
-        std = malloc(p * sizeof(float));
+        estd = malloc(p * sizeof(float));
         fi = malloc(p * sizeof(float));
         fj = malloc(p * sizeof(float));
         fk = malloc(p * sizeof(float));
         otype = malloc(p * sizeof(int));
-        odate = malloc(p * sizeof(float));
+        oday = malloc(p * sizeof(float));
 
         for (oid = 0; oid < p; ++oid) {
             observation* o = &obs->data[lobs[oid]];
@@ -137,24 +137,24 @@ void plog_write(dasystem* das, int id, float depth, double alpha, int p, int* lo
             olat[oid] = o->lat;
             odepth[oid] = o->depth;
             val[oid] = o->value;
-            std[oid] = o->std;
+            estd[oid] = o->estd;
             fi[oid] = o->fi;
             fj[oid] = o->fj;
             fk[oid] = o->fk;
             otype[oid] = o->type;
-            odate[oid] = o->date;
+            oday[oid] = o->day;
         }
 
         ncw_put_var_float(ncid, vid_lon, olon);
         ncw_put_var_float(ncid, vid_lat, olat);
         ncw_put_var_float(ncid, vid_depth, odepth);
         ncw_put_var_float(ncid, vid_val, val);
-        ncw_put_var_float(ncid, vid_std, std);
+        ncw_put_var_float(ncid, vid_estd, estd);
         ncw_put_var_float(ncid, vid_fi, fi);
         ncw_put_var_float(ncid, vid_fj, fj);
         ncw_put_var_float(ncid, vid_fk, fk);
         ncw_put_var_int(ncid, vid_type, otype);
-        ncw_put_var_float(ncid, vid_date, odate);
+        ncw_put_var_float(ncid, vid_date, oday);
 
         ncw_put_var_int(ncid, vid_ids, lobs);
         ncw_put_var_double(ncid, vid_lcoeffs, lcoeffs);
@@ -165,12 +165,12 @@ void plog_write(dasystem* das, int id, float depth, double alpha, int p, int* lo
         free(olat);
         free(odepth);
         free(val);
-        free(std);
+        free(estd);
         free(fi);
         free(fj);
         free(fk);
         free(otype);
-        free(odate);
+        free(oday);
     }
 
     ncw_put_var_double(ncid, vid_transform, transform);

@@ -116,8 +116,8 @@ void das_getHE(dasystem* das)
         H = getH(ot->issurface, ot->hfunction);
 
         if (ot->isasync) {
-            int t1 = get_tshift(ot->date_min, ot->async_tstep, ot->async_centred);
-            int t2 = get_tshift(ot->date_max, ot->async_tstep, ot->async_centred);
+            int t1 = get_tshift(ot->day_min, ot->async_tstep, ot->async_centred);
+            int t2 = get_tshift(ot->day_max, ot->async_tstep, ot->async_centred);
             int t;
 
             for (t = t1; t <= t2; ++t) {
@@ -546,7 +546,7 @@ void das_moderateobs(dasystem* das)
 {
     observations* obs = das->obs;
     double kfactor = das->kfactor;
-    double* std_new;
+    double* estd_new;
     int i;
 
     if (obs->nobs == 0)
@@ -556,78 +556,78 @@ void das_moderateobs(dasystem* das)
 
     assert(das->s_mode == S_MODE_HA_f);
 
-    std_new = malloc(obs->nobs * sizeof(double));
+    estd_new = malloc(obs->nobs * sizeof(double));
 
     for (i = 0; i < obs->nobs; ++i) {
         observation* o = &obs->data[i];
         double svar = das->std_f[i] * das->std_f[i];
-        double ovar = o->std * o->std;
+        double ovar = o->estd * o->estd;
         double inn = das->s_f[i];
 
         if (o->status != STATUS_OK) {
-            std_new[i] = o->std;
+            estd_new[i] = o->estd;
             continue;
         }
 
-        std_new[i] = sqrt(sqrt((svar + ovar) * (svar + ovar) + svar * inn * inn / kfactor / kfactor) - svar);
-        if (svar > 0.0 && std_new[i] * std_new[i] / ovar > 2.0) {
+        estd_new[i] = sqrt(sqrt((svar + ovar) * (svar + ovar) + svar * inn * inn / kfactor / kfactor) - svar);
+        if (svar > 0.0 && estd_new[i] * estd_new[i] / ovar > 2.0) {
             obs->nmodified++;
             obs->obstypes[o->type].nmodified++;
         }
     }
 
     for (i = 0; i < obs->nobs; ++i)
-        obs->data[i].std = std_new[i];
+        obs->data[i].estd = estd_new[i];
 
     enkf_printf("    observations substantially modified:\n");
     for (i = 0; i < obs->nobstypes; ++i)
         enkf_printf("      %s    %7d (%.1f%%)\n", obs->obstypes[i].name, obs->obstypes[i].nmodified, 100.0 * (double) obs->obstypes[i].nmodified / (double) obs->obstypes[i].nobs);
     enkf_printf("      total  %7d (%.1f%%)\n", obs->nmodified, 100.0 * (double) obs->nmodified / (double) obs->nobs);
 
-    free(std_new);
+    free(estd_new);
 }
 
 /** Replaces observation errors in the observation file with the modified
- * values. The original values are stored as "std_orig".
+ * values. The original values are stored as "estd_orig".
  */
 void das_addmodifiederrors(dasystem* das, char fname[])
 {
     int ncid;
     int dimid_nobs[1];
     size_t nobs;
-    int varid_std, varid_stdorig;
-    double* std;
+    int varid_estd, varid_estdorig;
+    double* estd;
     int i;
-    double da_julday = NAN;
+    double da_day = NAN;
 
     if (rank != 0)
         return;
 
     ncw_open(fname, NC_WRITE, &ncid);
-    assert(!ncw_var_exists(ncid, "std_orig"));
+    assert(!ncw_var_exists(ncid, "estd_orig"));
     ncw_inq_dimid(ncid, "nobs", dimid_nobs);
     ncw_inq_dimlen(ncid, dimid_nobs[0], &nobs);
 
-    ncw_get_att_double(ncid, NC_GLOBAL, "DA_JULDAY", &da_julday);
-    if (!enkf_noobsdatecheck && (isnan(da_julday) || fabs(das->obs->da_date - da_julday) > 1e-6))
+    ncw_get_att_double(ncid, NC_GLOBAL, "DA_DAY", &da_day);
+    if (!enkf_noobsdatecheck && (isnan(da_day) || fabs(das->obs->da_day - da_day) > 1e-6))
         enkf_quit("\"observations.nc\" from a different cycle");
 
     ncw_redef(ncid);
-    ncw_rename_var(ncid, "std", "std_orig");
-    ncw_inq_varid(ncid, "std_orig", &varid_stdorig);
-    ncw_del_att(ncid, varid_stdorig, "long_name");
-    ncw_put_att_text(ncid, varid_stdorig, "long_name", "standard deviation of observation error after superobing (before applying KF-QC)");
-    ncw_def_var(ncid, "std", NC_FLOAT, 1, dimid_nobs, &varid_std);
-    ncw_put_att_text(ncid, varid_std, "long_name", "standard deviation of observation error used in DA");
+    ncw_rename_var(ncid, "estd", "estd_orig");
+    ncw_inq_varid(ncid, "estd_orig", &varid_estdorig);
+    ncw_del_att(ncid, varid_estdorig, "long_name");
+    ncw_put_att_text(ncid, varid_estdorig, "long_name", "standard deviation of observation error after superobing (before applying KF-QC)");
+    ncw_def_var(ncid, "std", NC_FLOAT, 1, dimid_nobs, &varid_estd);
+    ncw_put_att_text(ncid, varid_estd, "long_name", "standard deviation of observation error used in DA");
     ncw_enddef(ncid);
 
-    std = malloc(nobs * sizeof(double));
+    estd = malloc(nobs * sizeof(double));
 
     for (i = 0; i < (int) nobs; ++i)
-        std[i] = das->obs->data[i].std;
-    ncw_put_var_double(ncid, varid_std, std);
+        estd[i] = das->obs->data[i].estd;
+    ncw_put_var_double(ncid, varid_estd, estd);
 
-    free(std);
+    free(estd);
 
     ncw_close(ncid);
 }
@@ -657,7 +657,7 @@ void das_standardise(dasystem* das)
             for (i = 0; i < obs->nobs; ++i) {
                 observation* o = &obs->data[i];
 
-                Se[i] /= o->std * sqrt(obs->obstypes[o->type].rfactor) * mult;
+                Se[i] /= o->estd * sqrt(obs->obstypes[o->type].rfactor) * mult;
             }
         }
 #if defined (HE_VIASHMEM)
@@ -667,14 +667,14 @@ void das_standardise(dasystem* das)
         for (i = 0; i < obs->nobs; ++i) {
             observation* o = &obs->data[i];
 
-            das->s_f[i] /= o->std * sqrt(obs->obstypes[o->type].rfactor) * mult;
+            das->s_f[i] /= o->estd * sqrt(obs->obstypes[o->type].rfactor) * mult;
         }
     }
     if (das->s_a != NULL) {
         for (i = 0; i < obs->nobs; ++i) {
             observation* o = &obs->data[i];
 
-            das->s_a[i] /= o->std * sqrt(obs->obstypes[o->type].rfactor) * mult;
+            das->s_a[i] /= o->estd * sqrt(obs->obstypes[o->type].rfactor) * mult;
         }
     }
 
@@ -745,7 +745,7 @@ void das_destandardise(dasystem* das)
             for (i = 0; i < obs->nobs; ++i) {
                 observation* o = &obs->data[i];
 
-                Se[i] *= o->std * sqrt(obs->obstypes[o->type].rfactor) * mult;
+                Se[i] *= o->estd * sqrt(obs->obstypes[o->type].rfactor) * mult;
             }
         }
 #if defined (HE_VIASHMEM)
@@ -755,14 +755,14 @@ void das_destandardise(dasystem* das)
         for (i = 0; i < obs->nobs; ++i) {
             observation* o = &obs->data[i];
 
-            das->s_f[i] *= o->std * sqrt(obs->obstypes[o->type].rfactor) * mult;
+            das->s_f[i] *= o->estd * sqrt(obs->obstypes[o->type].rfactor) * mult;
         }
     }
     if (das->s_a != NULL) {
         for (i = 0; i < obs->nobs; ++i) {
             observation* o = &obs->data[i];
 
-            das->s_a[i] *= o->std * sqrt(obs->obstypes[o->type].rfactor) * mult;
+            das->s_a[i] *= o->estd * sqrt(obs->obstypes[o->type].rfactor) * mult;
         }
     }
 

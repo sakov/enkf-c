@@ -82,8 +82,8 @@ static void obstype_new(obstype* type, int i, char* name)
     type->nmodified = 0;
     type->windowmin = NAN;
     type->windowmax = NAN;
-    type->date_min = DBL_MAX;
-    type->date_max = -DBL_MAX;
+    type->day_min = DBL_MAX;
+    type->day_max = -DBL_MAX;
     type->ndomains = 0;
     type->domainnames = NULL;
 }

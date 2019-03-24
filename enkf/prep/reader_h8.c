@@ -142,7 +142,7 @@ void reader_h8_standard(char* fname, int fid, obsmeta* meta, grid* g, observatio
          * temperature
          */
         o->value = sst[i] - 273.15 + 0.17;
-        o->std = ERRORSTD_DEF;
+        o->estd = ERRORSTD_DEF;
         o->lon = lon[i];
         o->lat = lat[i];
         o->depth = 0.0;
@@ -151,7 +151,7 @@ void reader_h8_standard(char* fname, int fid, obsmeta* meta, grid* g, observatio
         if (!obs->allobs && o->status == STATUS_OUTSIDEGRID)
             continue;
         o->model_depth = NAN;   /* set in obs_add() */
-        o->date = (time[i] + time2[i]) / 2.0 * tunits_multiple + tunits_offset;
+        o->day = (time[i] + time2[i]) / 2.0 * tunits_multiple + tunits_offset;
         o->aux = -1;
 
         obs->nobs++;

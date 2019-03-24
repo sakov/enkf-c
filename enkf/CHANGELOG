@@ -1,3 +1,10 @@
+v. 1.94.3
+   PS 25032019
+   -- Changes some names in structures as well as output file formats. "std"
+      generally became "estd" for "error std"; "date" in situation where it
+      represents time in days became "day", "DA_JULDAY" became "DA_DAY". This is
+      supposed to be a cosmetic change aimed at improving code consistency and
+      readability.
 v. 1.94.2
    PS 22032019
    -- An empty entry "ZSTATINTS =" in the grid parameter file now specifies

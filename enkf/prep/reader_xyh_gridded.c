@@ -337,22 +337,22 @@ void reader_xyh_gridded(char* fname, int fid, obsmeta* meta, grid* gdst, observa
                 else
                     o->value = (double) (var[ii] + varshift);
                 if (estd == NULL)
-                    o->std = var_estd;
+                    o->estd = var_estd;
                 else {
                     if (std == NULL)
-                        o->std = 0.0;
+                        o->estd = 0.0;
                     else {
                         if (!isnan(std_add_offset))
-                            o->std = (double) (std[ii] * std_scale_factor + std_add_offset);
+                            o->estd = (double) (std[ii] * std_scale_factor + std_add_offset);
                         else
-                            o->std = (double) std[ii];
+                            o->estd = (double) std[ii];
                     }
                     if (!isnan(estd_add_offset)) {
                         double std2 = (double) (estd[ii] * estd_scale_factor + estd_add_offset);
 
-                        o->std = (o->std > std2) ? o->std : std2;
+                        o->estd = (o->estd > std2) ? o->estd : std2;
                     } else
-                        o->std = (o->std > estd[ii]) ? o->std : estd[ii];
+                        o->estd = (o->estd > estd[ii]) ? o->estd : estd[ii];
                 }
                 grid_ij2xy(gsrc, i, j, &o->lon, &o->lat);
                 assert(isfinite(o->lon + o->lat));
@@ -369,11 +369,11 @@ void reader_xyh_gridded(char* fname, int fid, obsmeta* meta, grid* gdst, observa
                     float t = (singletime) ? time[0] : time[ii];
 
                     if (!isnan(time_add_offset))
-                        o->date = (double) (t * time_scale_factor + time_add_offset) * tunits_multiple + tunits_offset;
+                        o->day = (double) (t * time_scale_factor + time_add_offset) * tunits_multiple + tunits_offset;
                     else
-                        o->date = (double) t* tunits_multiple + tunits_offset;
+                        o->day = (double) t* tunits_multiple + tunits_offset;
                 } else
-                    o->date = NAN;
+                    o->day = NAN;
 
                 o->aux = -1;
 

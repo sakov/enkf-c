@@ -154,7 +154,7 @@ static void parse_commandline(int argc, char* argv[], char** fname_prm, char** f
             i++;
             if (i >= argc)
                 usage();
-            if (!str2double(argv[i], &singleob->std))
+            if (!str2double(argv[i], &singleob->estd))
                 enkf_quit("command line: could not convert \"%s\" to double", argv[i]);
             i++;
             continue;
@@ -214,7 +214,7 @@ static observations* obs_create_fromsingleob(enkfprm* prm, dasystem* das)
     enkf_printf("  reading observation type specs from \"%s\":\n", prm->obstypeprm);
     obstypes_read(prm, prm->obstypeprm, &obs->nobstypes, &obs->obstypes);
 
-    obs->da_date = date_str2dbl(prm->date);
+    obs->da_day = date2day(prm->date);
     obs->datestr = strdup(prm->date);
 
     o->type = obstype_getid(obs->nobstypes, obs->obstypes, singleobtype, 1);
@@ -279,7 +279,7 @@ static observations* obs_create_fromsingleob(enkfprm* prm, dasystem* das)
     enkf_printf("  assimilating single observation:\n");
     enkf_printf("    type = %s\n", singleobtype);
     enkf_printf("    inn  = %.3f\n", singleob->value);
-    enkf_printf("    std  = %.3f\n", singleob->std);
+    enkf_printf("    estd = %.3f\n", singleob->estd);
     enkf_printf("    lon  = %.3f\n", o->lon);
     enkf_printf("    lon  = %.3f\n", o->lat);
     enkf_printf("    i    = %.3f\n", o->fi);

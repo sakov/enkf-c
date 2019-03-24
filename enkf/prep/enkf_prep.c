@@ -186,8 +186,8 @@ static int cmp_obs(const void* p1, const void* p2, void* p)
 
     ot = &obs->obstypes[m1->type];
     if (ot->isasync) {
-        i1 = get_tshift(m1->date, ot->async_tstep, ot->async_centred);
-        i2 = get_tshift(m2->date, ot->async_tstep, ot->async_centred);
+        i1 = get_tshift(m1->day, ot->async_tstep, ot->async_centred);
+        i2 = get_tshift(m2->day, ot->async_tstep, ot->async_centred);
         if (i1 > i2)
             return 1;
         if (i2 > i1)

@@ -47,8 +47,8 @@ typedef struct {
     /*
      * variables for specifying observation error
      */
-    int nstds;
-    metastd* stds;
+    int nestds;
+    metastd* estds;
     /*
      * extra parameters
      */
