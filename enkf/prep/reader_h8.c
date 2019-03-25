@@ -151,7 +151,7 @@ void reader_h8_standard(char* fname, int fid, obsmeta* meta, grid* g, observatio
         if (!obs->allobs && o->status == STATUS_OUTSIDEGRID)
             continue;
         o->model_depth = NAN;   /* set in obs_add() */
-        o->day = (time[i] + time2[i]) / 2.0 * tunits_multiple + tunits_offset;
+        o->time = (time[i] + time2[i]) / 2.0 * tunits_multiple + tunits_offset;
         o->aux = -1;
 
         obs->nobs++;

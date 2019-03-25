@@ -1,3 +1,7 @@
+v. 1.94.4
+   PS 25032019
+   Changed field name in struct observation from "day" to "time". A few other
+   cosmetic changes.
 v. 1.94.3
    PS 25032019
    -- Changes some names in structures as well as output file formats. "std"

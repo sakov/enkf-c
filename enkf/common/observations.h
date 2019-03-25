@@ -54,7 +54,7 @@ typedef struct {
     double fi;
     double fj;
     double fk;
-    double day;
+    double time;
     int status;                 /* 0 = OK */
     /*
      * auxiliary information:

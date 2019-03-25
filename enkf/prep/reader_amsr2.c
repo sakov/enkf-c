@@ -147,7 +147,7 @@ void reader_amsr2_standard(char* fname, int fid, obsmeta* meta, grid* g, observa
         if (!obs->allobs && o->status == STATUS_OUTSIDEGRID)
             continue;
         o->model_depth = NAN;   /* set in obs_add() */
-        o->day = time[i] * tunits_multiple + tunits_offset;
+        o->time = time[i] * tunits_multiple + tunits_offset;
         o->aux = -1;
 
         obs->nobs++;

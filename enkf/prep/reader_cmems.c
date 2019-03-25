@@ -346,7 +346,7 @@ void reader_cmems_standard(char* fname, int fid, obsmeta* meta, grid* g, observa
             else
                 o->fk = NAN;
             o->model_depth = NAN;       /* set in obs_add() */
-            o->day = time[p] * tunits_multiple + tunits_offset;
+            o->time = time[p] * tunits_multiple + tunits_offset;
             o->aux = -1;
 
             obs->nobs++;

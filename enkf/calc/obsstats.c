@@ -162,7 +162,7 @@ void das_printobsstats(dasystem* das, int use_rmsd)
                     }
 
                     if (ot->isasync) {
-                        t = get_tshift(o->day, ot->async_tstep, ot->async_centred) - t1;
+                        t = get_tshift(o->time, ot->async_tstep, ot->async_centred) - t1;
                         assert(t >= 0 && t < nt);
                         inn_f_as[t] += das->s_f[j];
                         inn_f_abs_as[t] += func(das->s_f[j]);
@@ -397,7 +397,7 @@ void das_printfobsstats(dasystem* das, int use_rmsd)
                     }
 
                     if (ot->isasync) {
-                        t = get_tshift(o->day, ot->async_tstep, ot->async_centred) - t1;
+                        t = get_tshift(o->time, ot->async_tstep, ot->async_centred) - t1;
                         assert(t >= 0 && t < nt);
                         inn_f_as[t] += das->s_f[j];
                         inn_f_abs_as[t] += func(das->s_f[j]);

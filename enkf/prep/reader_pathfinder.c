@@ -129,7 +129,7 @@ void reader_pathfinder_standard(char* fname, int fid, obsmeta* meta, grid* g, ob
         if (!obs->allobs && o->status == STATUS_OUTSIDEGRID)
             continue;
         o->model_depth = NAN;   /* set in obs_add() */
-        o->day = tunits_offset + 0.5;
+        o->time = tunits_offset + 0.5;
         o->aux = -1;
 
         obs->nobs++;

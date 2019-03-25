@@ -235,7 +235,7 @@ void reader_viirs_standard(char* fname, int fid, obsmeta* meta, grid* g, observa
         if (!obs->allobs && o->status == STATUS_OUTSIDEGRID)
             continue;
         o->model_depth = NAN;   /* set in obs_add() */
-        o->day = ((double) time[i] * time_scale_factor + time_add_offset) * tunits_multiple + tunits_offset;
+        o->time = ((double) time[i] * time_scale_factor + time_add_offset) * tunits_multiple + tunits_offset;
         o->aux = -1;
 
         obs->nobs++;

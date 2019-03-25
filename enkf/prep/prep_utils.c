@@ -144,12 +144,12 @@ void obs_add(observations* obs, model* m, obsmeta* meta)
 
             if (o->status != STATUS_OK)
                 continue;
-            if (o->day - obs->da_day < ot->windowmin + DT_EPS) {
+            if (o->time - obs->da_day < ot->windowmin + DT_EPS) {
                 o->status = STATUS_OUTSIDEOBSWINDOW;
                 noutow++;
                 continue;
             }
-            if (o->day - obs->da_day > ot->windowmax - DT_EPS) {
+            if (o->time - obs->da_day > ot->windowmax - DT_EPS) {
                 o->status = STATUS_OUTSIDEOBSWINDOW;
                 noutow++;
                 continue;
@@ -327,16 +327,16 @@ void obs_add(observations* obs, model* m, obsmeta* meta)
         for (i = nobs0; i < obs->nobs; ++i) {
             observation* o = &obs->data[i];
 
-            if (!isnan(o->day))
-                o->day -= obs->da_day;
+            if (!isnan(o->time))
+                o->time -= obs->da_day;
             else
-                o->day = 0.0;
+                o->time = 0.0;
             if (o->status != STATUS_OK)
                 continue;
-            if (o->day < day_min)
-                day_min = o->day;
-            if (o->day > day_max)
-                day_max = o->day;
+            if (o->time < day_min)
+                day_min = o->time;
+            if (o->time > day_max)
+                day_max = o->time;
         }
         if (day_min <= day_max) {
             enkf_printf("      min day = %.3f\n", day_min);

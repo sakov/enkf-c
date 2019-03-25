@@ -369,11 +369,11 @@ void reader_xyh_gridded(char* fname, int fid, obsmeta* meta, grid* gdst, observa
                     float t = (singletime) ? time[0] : time[ii];
 
                     if (!isnan(time_add_offset))
-                        o->day = (double) (t * time_scale_factor + time_add_offset) * tunits_multiple + tunits_offset;
+                        o->time = (double) (t * time_scale_factor + time_add_offset) * tunits_multiple + tunits_offset;
                     else
-                        o->day = (double) t* tunits_multiple + tunits_offset;
+                        o->time = (double) t* tunits_multiple + tunits_offset;
                 } else
-                    o->day = NAN;
+                    o->time = NAN;
 
                 o->aux = -1;
 

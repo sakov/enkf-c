@@ -393,9 +393,9 @@ void reader_xyz_scattered(char* fname, int fid, obsmeta* meta, grid* g, observat
             o->fk = NAN;
         o->model_depth = NAN;   /* set in obs_add() */
         if (have_time)
-            o->day = ((singletime) ? time[0] : time[i]) * tunits_multiple + tunits_offset;
+            o->time = ((singletime) ? time[0] : time[i]) * tunits_multiple + tunits_offset;
         else
-            o->day = NAN;
+            o->time = NAN;
         o->aux = -1;
 
         obs->nobs++;

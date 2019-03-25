@@ -425,43 +425,43 @@ void obs_calcstats(observations* obs)
     }
 
     for (i = 0; i < obs->nobs; ++i) {
-        observation* m = &obs->data[i];
-        obstype* ot = &obs->obstypes[m->type];
+        observation* o = &obs->data[i];
+        obstype* ot = &obs->obstypes[o->type];
 
         ot->nobs++;
-        if (m->status == STATUS_OK) {
+        if (o->status == STATUS_OK) {
             obs->ngood++;
             ot->ngood++;
-        } else if (m->status == STATUS_OUTSIDEGRID) {
+        } else if (o->status == STATUS_OUTSIDEGRID) {
             obs->noutside_grid++;
             ot->noutside_grid++;
-        } else if (m->status == STATUS_OUTSIDEOBSDOMAIN) {
+        } else if (o->status == STATUS_OUTSIDEOBSDOMAIN) {
             obs->noutside_obsdomain++;
             ot->noutside_obsdomain++;
-        } else if (m->status == STATUS_OUTSIDEOBSWINDOW) {
+        } else if (o->status == STATUS_OUTSIDEOBSWINDOW) {
             obs->noutside_obswindow++;
             ot->noutside_obswindow++;
-        } else if (m->status == STATUS_LAND) {
+        } else if (o->status == STATUS_LAND) {
             obs->nland++;
             ot->nland++;
-        } else if (m->status == STATUS_SHALLOW) {
+        } else if (o->status == STATUS_SHALLOW) {
             obs->nshallow++;
             ot->nshallow++;
-        } else if (m->status == STATUS_BADBATCH) {
+        } else if (o->status == STATUS_BADBATCH) {
             obs->nbadbatch++;
             ot->nbadbatch++;
-        } else if (m->status == STATUS_RANGE) {
+        } else if (o->status == STATUS_RANGE) {
             obs->nrange++;
             ot->nrange++;
-        } else if (m->status == STATUS_THINNED) {
+        } else if (o->status == STATUS_THINNED) {
             obs->nthinned++;
             ot->nthinned++;
         }
 
-        if (m->day < ot->day_min)
-            ot->day_min = m->day;
-        if (m->day > ot->day_max)
-            ot->day_max = m->day;
+        if (o->time < ot->day_min)
+            ot->day_min = o->time;
+        if (o->time > ot->day_max)
+            ot->day_max = o->time;
     }
     obs->hasstats = 1;
 }
@@ -474,7 +474,7 @@ void obs_read(observations* obs, char fname[])
     double da_day = NAN;
     int dimid_nobs[1];
     size_t nobs;
-    int varid_type, varid_product, varid_instrument, varid_id, varid_idorig, varid_fid, varid_batch, varid_value, varid_estd, varid_lon, varid_lat, varid_depth, varid_mdepth, varid_fi, varid_fj, varid_fk, varid_day, varid_status, varid_aux;
+    int varid_type, varid_product, varid_instrument, varid_id, varid_idorig, varid_fid, varid_batch, varid_value, varid_estd, varid_lon, varid_lat, varid_depth, varid_mdepth, varid_fi, varid_fj, varid_fk, varid_time, varid_status, varid_aux;
     int* id;
     int* id_orig;
     short int* type;
@@ -491,7 +491,7 @@ void obs_read(observations* obs, char fname[])
     double* fi;
     double* fj;
     double* fk;
-    double* day;
+    double* time;
     int* status;
     int* aux;
     int natts;
@@ -538,19 +538,19 @@ void obs_read(observations* obs, char fname[])
     ncw_inq_varid(ncid, "fi", &varid_fi);
     ncw_inq_varid(ncid, "fj", &varid_fj);
     ncw_inq_varid(ncid, "fk", &varid_fk);
-    ncw_inq_varid(ncid, "day", &varid_day);
+    ncw_inq_varid(ncid, "time", &varid_time);
     ncw_inq_varid(ncid, "status", &varid_status);
     ncw_inq_varid(ncid, "aux", &varid_aux);
 
     /*
-     * day
+     * date
      */
     {
         size_t len = 0;
 
-        ncw_inq_attlen(ncid, varid_day, "units", &len);
+        ncw_inq_attlen(ncid, varid_time, "units", &len);
         obs->datestr = malloc(len + 1);
-        ncw_get_att_text(ncid, varid_day, "units", obs->datestr);
+        ncw_get_att_text(ncid, varid_time, "units", obs->datestr);
         obs->datestr[len] = 0;
     }
 
@@ -647,7 +647,7 @@ void obs_read(observations* obs, char fname[])
     fi = malloc(nobs * sizeof(double));
     fj = malloc(nobs * sizeof(double));
     fk = malloc(nobs * sizeof(double));
-    day = malloc(nobs * sizeof(double));
+    time = malloc(nobs * sizeof(double));
     status = malloc(nobs * sizeof(int));
     aux = malloc(nobs * sizeof(int));
 
@@ -667,34 +667,34 @@ void obs_read(observations* obs, char fname[])
     ncw_get_var_double(ncid, varid_fi, fi);
     ncw_get_var_double(ncid, varid_fj, fj);
     ncw_get_var_double(ncid, varid_fk, fk);
-    ncw_get_var_double(ncid, varid_day, day);
+    ncw_get_var_double(ncid, varid_time, time);
     ncw_get_var_int(ncid, varid_status, status);
     ncw_get_var_int(ncid, varid_aux, aux);
 
     ncw_close(ncid);
 
     for (i = 0; i < (int) nobs; ++i) {
-        observation* m = &obs->data[i];
+        observation* o = &obs->data[i];
 
-        m->type = type[i];
-        m->product = product[i];
-        m->instrument = instrument[i];
-        m->id = id[i];
-        m->id_orig = id_orig[i];
-        m->fid = fid[i];
-        m->batch = batch[i];
-        m->value = value[i];
-        m->estd = estd[i];
-        m->lon = lon[i];
-        m->lat = lat[i];
-        m->depth = depth[i];
-        m->model_depth = model_depth[i];
-        m->fi = fi[i];
-        m->fj = fj[i];
-        m->fk = fk[i];
-        m->day = day[i];
-        m->status = status[i];
-        m->aux = aux[i];
+        o->type = type[i];
+        o->product = product[i];
+        o->instrument = instrument[i];
+        o->id = id[i];
+        o->id_orig = id_orig[i];
+        o->fid = fid[i];
+        o->batch = batch[i];
+        o->value = value[i];
+        o->estd = estd[i];
+        o->lon = lon[i];
+        o->lat = lat[i];
+        o->depth = depth[i];
+        o->model_depth = model_depth[i];
+        o->fi = fi[i];
+        o->fj = fj[i];
+        o->fk = fk[i];
+        o->time = time[i];
+        o->status = status[i];
+        o->aux = aux[i];
     }
 
     free(type);
@@ -713,7 +713,7 @@ void obs_read(observations* obs, char fname[])
     free(fi);
     free(fj);
     free(fk);
-    free(day);
+    free(time);
     free(status);
     free(aux);
 #if defined(MPI)
@@ -734,7 +734,7 @@ void obs_write(observations* obs, char fname[])
 
     int ncid;
     int dimid_nobs[1];
-    int varid_type, varid_product, varid_instrument, varid_id, varid_idorig, varid_fid, varid_batch, varid_value, varid_estd, varid_lon, varid_lat, varid_depth, varid_mdepth, varid_fi, varid_fj, varid_fk, varid_day, varid_status, varid_aux;
+    int varid_type, varid_product, varid_instrument, varid_id, varid_idorig, varid_fid, varid_batch, varid_value, varid_estd, varid_lon, varid_lat, varid_depth, varid_mdepth, varid_fi, varid_fj, varid_fk, varid_time, varid_status, varid_aux;
 
     int* id;
     int* id_orig;
@@ -752,7 +752,7 @@ void obs_write(observations* obs, char fname[])
     double* fi;
     double* fj;
     double* fk;
-    double* day;
+    double* time;
     int* status;
     int* aux;
 
@@ -801,8 +801,8 @@ void obs_write(observations* obs, char fname[])
     ncw_put_att_text(ncid, varid_fj, "long_name", "fractional grid index j of the observation");
     ncw_def_var(ncid, "fk", NC_FLOAT, 1, dimid_nobs, &varid_fk);
     ncw_put_att_text(ncid, varid_fk, "long_name", "fractional grid index k of the observation");
-    ncw_def_var(ncid, "day", NC_FLOAT, 1, dimid_nobs, &varid_day);
-    ncw_put_att_text(ncid, varid_day, "long_name", "observation time");
+    ncw_def_var(ncid, "time", NC_FLOAT, 1, dimid_nobs, &varid_time);
+    ncw_put_att_text(ncid, varid_time, "long_name", "observation time");
     ncw_def_var(ncid, "status", NC_BYTE, 1, dimid_nobs, &varid_status);
     ncw_put_att_text(ncid, varid_status, "long_name", "observation status");
     i = STATUS_OK;
@@ -827,7 +827,7 @@ void obs_write(observations* obs, char fname[])
     ncw_put_att_text(ncid, varid_aux, "long_name", "auxiliary information");
     ncw_put_att_text(ncid, varid_aux, "description", "for primary observations - the ID of the superobservation it is collated into; for superobservations - the number of primary observations collated");
     snprintf(tunits, MAXSTRLEN, "days from %s", obs->datestr);
-    ncw_put_att_text(ncid, varid_day, "units", tunits);
+    ncw_put_att_text(ncid, varid_time, "units", tunits);
 
     for (i = 0; i < obs->nobstypes; ++i)
         ncw_put_att_int(ncid, varid_type, obs->obstypes[i].name, 1, &i);
@@ -871,38 +871,38 @@ void obs_write(observations* obs, char fname[])
     fi = malloc(nobs * sizeof(double));
     fj = malloc(nobs * sizeof(double));
     fk = malloc(nobs * sizeof(double));
-    day = malloc(nobs * sizeof(double));
+    time = malloc(nobs * sizeof(double));
     status = malloc(nobs * sizeof(int));
     aux = malloc(nobs * sizeof(int));
 
     for (i = 0, ii = 0; i < obs->nobs; ++i) {
-        observation* m = &obs->data[i];
+        observation* o = &obs->data[i];
 
-        if (!isfinite(m->value) || fabs(m->value) > FLT_MAX || !isfinite((float) m->value))
+        if (!isfinite(o->value) || fabs(o->value) > FLT_MAX || !isfinite((float) o->value))
             enkf_quit("bad value");
 
-        type[ii] = m->type;
-        product[ii] = m->product;
-        instrument[ii] = m->instrument;
-        id[ii] = m->id;
-        fid[ii] = m->fid;
-        batch[ii] = m->batch;
+        type[ii] = o->type;
+        product[ii] = o->product;
+        instrument[ii] = o->instrument;
+        id[ii] = o->id;
+        fid[ii] = o->fid;
+        batch[ii] = o->batch;
         /*
          * id of the first ob contributed to this sob 
          */
-        id_orig[ii] = m->id_orig;
-        value[ii] = m->value;
-        estd[ii] = m->estd;
-        lon[ii] = m->lon;
-        lat[ii] = m->lat;
-        depth[ii] = m->depth;
-        model_depth[ii] = m->model_depth;
-        fi[ii] = m->fi;
-        fj[ii] = m->fj;
-        fk[ii] = m->fk;
-        day[ii] = m->day;
-        status[ii] = m->status;
-        aux[ii] = m->aux;
+        id_orig[ii] = o->id_orig;
+        value[ii] = o->value;
+        estd[ii] = o->estd;
+        lon[ii] = o->lon;
+        lat[ii] = o->lat;
+        depth[ii] = o->depth;
+        model_depth[ii] = o->model_depth;
+        fi[ii] = o->fi;
+        fj[ii] = o->fj;
+        fk[ii] = o->fk;
+        time[ii] = o->time;
+        status[ii] = o->status;
+        aux[ii] = o->aux;
         ii++;
     }
     assert(ii == nobs);
@@ -923,7 +923,7 @@ void obs_write(observations* obs, char fname[])
     ncw_put_var_double(ncid, varid_fi, fi);
     ncw_put_var_double(ncid, varid_fj, fj);
     ncw_put_var_double(ncid, varid_fk, fk);
-    ncw_put_var_double(ncid, varid_day, day);
+    ncw_put_var_double(ncid, varid_time, time);
     ncw_put_var_int(ncid, varid_status, status);
     ncw_put_var_int(ncid, varid_aux, aux);
 
@@ -944,7 +944,7 @@ void obs_write(observations* obs, char fname[])
     free(fi);
     free(fj);
     free(fk);
-    free(day);
+    free(time);
     free(status);
     free(aux);
 #if defined(MPI)
@@ -1129,7 +1129,7 @@ void obs_superob(observations* obs, __compar_d_fn_t cmp_obs, observations** sobs
         so->fi = o->fi;
         so->fj = o->fj;
         so->fk = o->fk;
-        so->day = o->day;
+        so->time = o->time;
         so->status = o->status;
         so->aux = 1;
 
@@ -1161,7 +1161,7 @@ void obs_superob(observations* obs, __compar_d_fn_t cmp_obs, observations** sobs
             so->fi = so->fi * so->estd + o->fi / evar;
             so->fj = so->fj * so->estd + o->fj / evar;
             so->fk = so->fk * so->estd + o->fk / evar;
-            so->day = so->day * so->estd + o->day / evar;
+            so->time = so->time * so->estd + o->time / evar;
 
             so->estd += 1.0 / evar;
 
@@ -1173,7 +1173,7 @@ void obs_superob(observations* obs, __compar_d_fn_t cmp_obs, observations** sobs
             so->fi /= so->estd;
             so->fj /= so->estd;
             so->fk /= so->estd;
-            so->day /= so->estd;
+            so->time /= so->estd;
             so->aux++;
 
             if (o->lon < lon_min)
@@ -1215,10 +1215,10 @@ void obs_superob(observations* obs, __compar_d_fn_t cmp_obs, observations** sobs
         int i;
 
         for (i = 0; i < obs->nobs; ++i) {
-            observation* m = &obs->data[i];
-            obstype* ot = &obs->obstypes[m->type];
+            observation* o = &obs->data[i];
+            obstype* ot = &obs->obstypes[o->type];
 
-            if (m->status == STATUS_THINNED) {
+            if (o->status == STATUS_THINNED) {
                 obs->nthinned++;
                 ot->nthinned++;
             }
@@ -1286,7 +1286,7 @@ void obs_find_bytypeandtime(observations* obs, int type, int time, int* nobs, in
     for (i = 0; i < obs->nobs; ++i) {
         observation* o = &obs->data[i];
 
-        if (o->type == type && o->status == STATUS_OK && get_tshift(o->day, ot->async_tstep, ot->async_centred) == time) {
+        if (o->type == type && o->status == STATUS_OK && get_tshift(o->time, ot->async_tstep, ot->async_centred) == time) {
             (*obsids)[*nobs] = i;
             (*nobs)++;
         }
@@ -1304,7 +1304,7 @@ void obs_printob(observations* obs, int i)
     observation* o = &obs->data[i];
 
     enkf_printf("type = %s, product = %s, instrument = %s, datafile = %s, id = %d, original id = %d, batch = %d, value = %.3g, estd = %.3g, ", obs->obstypes[o->type].name, st_findstringbyindex(obs->products, o->product), st_findstringbyindex(obs->instruments, o->instrument), st_findstringbyindex(obs->datafiles, o->fid), o->id, o->id_orig, (int) o->batch, o->value, o->estd);
-    enkf_printf("lon = %.3f, lat = %.3f, depth = %.1f, model_depth = %.1f, fi = %.3f, fj = %.3f, fk = %.3f, day = %.3g, status = %d\n", o->lon, o->lat, o->depth, o->model_depth, o->fi, o->fj, o->fk, o->day, o->status);
+    enkf_printf("lon = %.3f, lat = %.3f, depth = %.1f, model_depth = %.1f, fi = %.3f, fj = %.3f, fk = %.3f, day = %.3g, status = %d\n", o->lon, o->lat, o->depth, o->model_depth, o->fi, o->fj, o->fk, o->time, o->status);
 }
 
 #if defined(ENKF_CALC)

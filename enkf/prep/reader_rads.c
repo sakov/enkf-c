@@ -158,7 +158,7 @@ void reader_rads_standard(char* fname, int fid, obsmeta* meta, grid* g, observat
             continue;
         o->fk = (double) ksurf;
         o->model_depth = NAN;   /* set in obs_add() */
-        o->day = time[i] * tunits_multiple + tunits_offset;
+        o->time = time[i] * tunits_multiple + tunits_offset;
 
         o->aux = -1;
 
@@ -311,7 +311,7 @@ void reader_rads_standard2(char* fname, int fid, obsmeta* meta, grid* g, observa
             continue;
         o->model_depth = NAN;   /* set in obs_add() */
         o->fk = (double) ksurf;
-        o->day = tunits_offset + 0.5;
+        o->time = tunits_offset + 0.5;
         if ((o->status == STATUS_OK) && (o->lon <= ot->xmin || o->lon >= ot->xmax || o->lat <= ot->ymin || o->lat >= ot->ymax))
             o->status = STATUS_OUTSIDEOBSDOMAIN;
 

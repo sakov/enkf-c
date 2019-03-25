@@ -164,30 +164,30 @@ static void parse_commandline(int argc, char* argv[], char** fname)
  */
 static int cmp_obs(const void* p1, const void* p2, void* p)
 {
-    observation* m1 = (observation*) p1;
-    observation* m2 = (observation*) p2;
+    observation* o1 = (observation*) p1;
+    observation* o2 = (observation*) p2;
     observations* obs = (observations*) p;
     obstype* ot;
     int stride;
     double offset;
     int i1, i2;
 
-    if (m1->type > m2->type)
+    if (o1->type > o2->type)
         return 1;
-    if (m1->type < m2->type)
+    if (o1->type < o2->type)
         return -1;
 
     if (!do_superob_acrossinst) {
-        if (m1->instrument > m2->instrument)
+        if (o1->instrument > o2->instrument)
             return 1;
-        if (m1->instrument < m2->instrument)
+        if (o1->instrument < o2->instrument)
             return -1;
     }
 
-    ot = &obs->obstypes[m1->type];
+    ot = &obs->obstypes[o1->type];
     if (ot->isasync) {
-        i1 = get_tshift(m1->day, ot->async_tstep, ot->async_centred);
-        i2 = get_tshift(m2->day, ot->async_tstep, ot->async_centred);
+        i1 = get_tshift(o1->time, ot->async_tstep, ot->async_centred);
+        i2 = get_tshift(o2->time, ot->async_tstep, ot->async_centred);
         if (i1 > i2)
             return 1;
         if (i2 > i1)
@@ -196,9 +196,9 @@ static int cmp_obs(const void* p1, const void* p2, void* p)
 
     stride = ot->sob_stride;
     if (stride == 0) {          /* no superobing on this grid */
-        if (m1->id > m2->id)
+        if (o1->id > o2->id)
             return 1;
-        else if (m1->id < m2->id)
+        else if (o1->id < o2->id)
             return -1;
         return 0;
     }
@@ -209,22 +209,22 @@ static int cmp_obs(const void* p1, const void* p2, void* p)
      */
     offset = (double) (stride % 2) / 2.0;
 
-    i1 = (int) floor(m1->fi + offset) / stride;
-    i2 = (int) floor(m2->fi + offset) / stride;
+    i1 = (int) floor(o1->fi + offset) / stride;
+    i2 = (int) floor(o2->fi + offset) / stride;
     if (i1 > i2)
         return 1;
     if (i1 < i2)
         return -1;
 
-    i1 = (int) floor(m1->fj + offset) / stride;
-    i2 = (int) floor(m2->fj + offset) / stride;
+    i1 = (int) floor(o1->fj + offset) / stride;
+    i2 = (int) floor(o2->fj + offset) / stride;
     if (i1 > i2)
         return 1;
     if (i1 < i2)
         return -1;
 
-    i1 = (int) floor(m1->fk + 0.5);
-    i2 = (int) floor(m2->fk + 0.5);
+    i1 = (int) floor(o1->fk + 0.5);
+    i2 = (int) floor(o2->fk + 0.5);
     if (i1 > i2)
         return 1;
     if (i1 < i2)
