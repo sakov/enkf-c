@@ -955,8 +955,8 @@ static void grid_setlonbase(grid* g)
     } else if (g->htype == GRIDHTYPE_CURVILINEAR) {
         gxy_curv* gxy = (gxy_curv*) g->gridnodes_xy;
         double** x = gridnodes_getx(gxy->gn);
-        int ni = gridnodes_getnce1(gxy->gn);
-        int nj = gridnodes_getnce2(gxy->gn);
+        int ni = gridnodes_getnx(gxy->gn);
+        int nj = gridnodes_getny(gxy->gn);
         int i, j;
 
         for (j = 0; j < nj; ++j) {
@@ -1762,7 +1762,7 @@ void grid_ij2xy(grid* g, int i, int j, double* x, double* y)
     else if (g->htype == GRIDHTYPE_CURVILINEAR) {
         gridnodes* gn = ((gxy_curv*) g->gridnodes_xy)->gn;
 
-        if (i < 0 || j < 0 || i >= gridnodes_getnce1(gn) || j >= gridnodes_getnce2(gn)) {
+        if (i < 0 || j < 0 || i >= gridnodes_getnx(gn) || j >= gridnodes_getny(gn)) {
             *x = NAN;
             *y = NAN;
         } else {
@@ -1978,19 +1978,7 @@ kdtree* grid_gettree(grid* g)
         return g->tree;
 
     tree = kd_create(3);
-
-    if (g->htype == GRIDHTYPE_LATLON) {
-        gxy_simple* gxy = (gxy_simple*) g->gridnodes_xy;
-
-        ni = gxy->ni;
-        nj = gxy->nj;
-    } else if (g->htype == GRIDHTYPE_CURVILINEAR) {
-        gxy_curv* gxy = (gxy_curv*) g->gridnodes_xy;
-
-        ni = gridnodes_getnce1(gxy->gn);
-        nj = gridnodes_getnce2(gxy->gn);
-    } else
-        enkf_quit("programming error");
+    grid_getdims(g, &ni, &nj, NULL);
 
     ids = malloc(ni * nj * sizeof(size_t));
     for (j = 0, ii = 0, nii = 0; j < nj; ++j) {

@@ -1,3 +1,6 @@
+v. 1.95.3
+   PS 27032019
+   Fixed defects in grid_gettree() and evaluate_2d_obs() introduced in v1.95.0.
 v. 1.95.2
    PS 26032019
    Fixed defect in obs_superob() untroduced in v1.95.1.

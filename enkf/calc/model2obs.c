@@ -53,7 +53,7 @@ static void evaluate_2d_obs(model* m, observations* allobs, int nobs, int obsids
         if (o->footprint == 0.0)
             out[ii] = interpolate2d(o->fi, o->fj, ni, nj, v, mask, periodic_i);
         else {
-            grid* g = model_getgridbyid(m, otid);
+            grid* g = model_getvargrid(m, mvid);
             kdtree* tree = grid_gettree(g);
             double ll[2] = { o->lon, o->lat };
             double xyz[3];
