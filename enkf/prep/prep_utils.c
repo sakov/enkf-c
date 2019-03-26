@@ -94,6 +94,7 @@ void obs_add(observations* obs, model* m, obsmeta* meta)
 
     double mindepth = NAN;
     double maxdepth = NAN;
+    double footprint = 0.0;
     obsread_fn reader;
     int i, ngood;
 
@@ -109,6 +110,9 @@ void obs_add(observations* obs, model* m, obsmeta* meta)
         } else if (strcasecmp(meta->pars[i].name, "MAXDEPTH") == 0) {
             if (!str2double(meta->pars[i].value, &maxdepth))
                 enkf_quit("observation prm file: can not convert MAXDEPTH = \"%s\" to double\n", meta->pars[i].value);
+        } else if (strcasecmp(meta->pars[i].name, "FOOTPRINT") == 0) {
+            if (!str2double(meta->pars[i].value, &footprint))
+                enkf_quit("observation prm file: can not convert FOOTPRINT = \"%s\" to double\n", meta->pars[i].value);
         }
     }
 
@@ -144,12 +148,12 @@ void obs_add(observations* obs, model* m, obsmeta* meta)
 
             if (o->status != STATUS_OK)
                 continue;
-            if (o->time - obs->da_day < ot->windowmin + DT_EPS) {
+            if (o->time - obs->da_time < ot->windowmin + DT_EPS) {
                 o->status = STATUS_OUTSIDEOBSWINDOW;
                 noutow++;
                 continue;
             }
-            if (o->time - obs->da_day > ot->windowmax - DT_EPS) {
+            if (o->time - obs->da_time > ot->windowmax - DT_EPS) {
                 o->status = STATUS_OUTSIDEOBSWINDOW;
                 noutow++;
                 continue;
@@ -197,6 +201,10 @@ void obs_add(observations* obs, model* m, obsmeta* meta)
                     nshallow++;
                 }
             }
+            if (footprint > 0.0)
+                o->footprint = footprint;
+            else
+                o->footprint = 0.0;
         }
         if (noutow > 0)
             enkf_printf("        %d observations outside obs. window\n", noutow);
@@ -328,7 +336,7 @@ void obs_add(observations* obs, model* m, obsmeta* meta)
             observation* o = &obs->data[i];
 
             if (!isnan(o->time))
-                o->time -= obs->da_day;
+                o->time -= obs->da_time;
             else
                 o->time = 0.0;
             if (o->status != STATUS_OK)

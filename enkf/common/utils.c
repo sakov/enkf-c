@@ -29,6 +29,7 @@
 #include <dirent.h>
 #include <sys/stat.h>
 #include <sys/types.h>
+#include <stdint.h>
 #if !defined(NO_GRIDUTILS)
 #include <guquit.h>
 #endif
@@ -1515,6 +1516,18 @@ ENSOBSTYPE interpolate2d(double fi, double fj, int ni, int nj, float** v, int** 
     return (ENSOBSTYPE) sum;
 }
 
+ENSOBSTYPE average2d(size_t* ids, int n, float** v)
+{
+    double sum = 0.0;
+    float* v0 = v[0];
+    int i;
+
+    for (i = 0; i < n; ++i)
+        sum += v0[ids[i]];
+
+    return (ENSOBSTYPE) (sum / (double) n);
+}
+
 /** A part of interpolate2d() that looks at mask in adjacent nodes only.
  */
 int island(double fi, double fj, double fk, int ni, int nj, int ksurf, int** numlevels, int periodic_i)
@@ -1741,4 +1754,19 @@ int inloninterval(double lon, double lon1, double lon2)
     while (lon < lon1)
         lon += 360.0;
     return (lon <= lon2);
+}
+
+void shuffle(size_t n, size_t ids[])
+{
+    size_t i;
+
+    srand48(SEED);
+
+    for (i = 0; i < n; ++i) {
+        size_t ii = (size_t) ((double) n * drand48());
+        size_t tmp = ids[i];
+
+        ids[i] = ids[ii];
+        ids[ii] = tmp;
+    }
 }

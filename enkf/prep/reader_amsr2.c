@@ -57,7 +57,14 @@ void reader_amsr2_standard(char* fname, int fid, obsmeta* meta, grid* g, observa
     for (i = 0; i < meta->npars; ++i) {
         if (strcasecmp(meta->pars[i].name, "ADDBIAS") == 0)
             addbias = (istrue(meta->pars[i].value)) ? 1 : 0;
-        else
+        else if (strcasecmp(meta->pars[i].name, "FOOTPRINT") == 0) {
+            double footprint;
+
+            if (!str2double(meta->pars[i].value, &footprint))
+                enkf_quit("observation prm file: can not convert FOOTPRINT = \"%s\" to double\n", meta->pars[i].value);
+            enkf_printf("        FOOTPRINT = %.0f\n", footprint);
+            continue;
+        } else
             enkf_quit("unknown PARAMETER \"%s\"\n", meta->pars[i].name);
     }
     enkf_printf("        ADDBIAS = %s\n", (addbias) ? "YES" : "NO");

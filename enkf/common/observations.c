@@ -127,13 +127,14 @@ observations* obs_create(void)
     obs->loctrees = NULL;
 #endif
     obs->obsids = NULL;
-    obs->da_day = NAN;
+    obs->da_time = NAN;
     obs->datestr = NULL;
     obs->allobs = 0;
     obs->nallocated = 0;
     obs->nobs = 0;
     obs->data = NULL;
     obs->compacted = 0;
+    obs->has_nonpointobs = 0;
     obs->hasstats = 0;
     obs->ngood = 0;
     obs->noutside_grid = 0;
@@ -169,7 +170,7 @@ observations* obs_create_fromprm(enkfprm* prm)
     obstypes_read(prm, prm->obstypeprm, &obs->nobstypes, &obs->obstypes);
 
 #if defined(ENKF_PREP)
-    obs->da_day = date2day(prm->date);
+    obs->da_time = date2day(prm->date);
     obs->datestr = strdup(prm->date);
 
     if (file_exists(FNAME_BADBATCHES)) {
@@ -273,7 +274,7 @@ observations* obs_create_fromdata(observations* parentobs, int nobs, observation
     for (i = 0; i < parentobs->nobstypes; ++i)
         obs_addtype(obs, &parentobs->obstypes[i]);
 
-    obs->da_day = parentobs->da_day;
+    obs->da_time = parentobs->da_time;
     obs->datestr = strdup(parentobs->datestr);
 
     obs->nobs = nobs;
@@ -471,10 +472,10 @@ void obs_calcstats(observations* obs)
 void obs_read(observations* obs, char fname[])
 {
     int ncid;
-    double da_day = NAN;
+    double da_time = NAN;
     int dimid_nobs[1];
     size_t nobs;
-    int varid_type, varid_product, varid_instrument, varid_id, varid_idorig, varid_fid, varid_batch, varid_value, varid_estd, varid_lon, varid_lat, varid_depth, varid_mdepth, varid_fi, varid_fj, varid_fk, varid_time, varid_status, varid_aux;
+    int varid_type, varid_product, varid_instrument, varid_id, varid_idorig, varid_fid, varid_batch, varid_value, varid_estd, varid_footprint, varid_lon, varid_lat, varid_depth, varid_mdepth, varid_fi, varid_fj, varid_fk, varid_time, varid_status, varid_aux;
     int* id;
     int* id_orig;
     short int* type;
@@ -484,6 +485,7 @@ void obs_read(observations* obs, char fname[])
     int* batch;
     double* value;
     double* estd;
+    double* footprint;
     double* lon;
     double* lat;
     double* depth;
@@ -500,8 +502,8 @@ void obs_read(observations* obs, char fname[])
     ncw_open(fname, NC_NOWRITE, &ncid);
 
     if (ncw_att_exists(ncid, NC_GLOBAL, "DA_DAY"))
-        ncw_get_att_double(ncid, NC_GLOBAL, "DA_DAY", &da_day);
-    if (!enkf_noobsdatecheck && (isnan(da_day) || fabs(obs->da_day - da_day) > 1e-6))
+        ncw_get_att_double(ncid, NC_GLOBAL, "DA_DAY", &da_time);
+    if (!enkf_noobsdatecheck && (isnan(da_time) || fabs(obs->da_time - da_time) > 1e-6))
         enkf_quit("\"observations.nc\" from a different cycle");
 
     ncw_inq_dimid(ncid, "nobs", dimid_nobs);
@@ -516,7 +518,7 @@ void obs_read(observations* obs, char fname[])
     }
 
     enkf_printf("    allocating %zu bytes for array of observations\n", nobs * sizeof(observation));
-    obs->data = malloc(nobs * sizeof(observation));
+    obs->data = calloc(nobs, sizeof(observation));
     assert(obs->data != NULL);
 #if defined(MPI)
     MPI_Barrier(MPI_COMM_WORLD);
@@ -531,6 +533,10 @@ void obs_read(observations* obs, char fname[])
     ncw_inq_varid(ncid, "batch", &varid_batch);
     ncw_inq_varid(ncid, "value", &varid_value);
     ncw_inq_varid(ncid, "estd", &varid_estd);
+    if (ncw_var_exists(ncid, "footprint")) {
+        ncw_inq_varid(ncid, "footprint", &varid_footprint);
+        obs->has_nonpointobs = 1;
+    }
     ncw_inq_varid(ncid, "lon", &varid_lon);
     ncw_inq_varid(ncid, "lat", &varid_lat);
     ncw_inq_varid(ncid, "depth", &varid_depth);
@@ -640,6 +646,8 @@ void obs_read(observations* obs, char fname[])
     batch = malloc(nobs * sizeof(int));
     value = malloc(nobs * sizeof(double));
     estd = malloc(nobs * sizeof(double));
+    if (obs->has_nonpointobs)
+        footprint = malloc(nobs * sizeof(double));
     lon = malloc(nobs * sizeof(double));
     lat = malloc(nobs * sizeof(double));
     depth = malloc(nobs * sizeof(double));
@@ -660,6 +668,8 @@ void obs_read(observations* obs, char fname[])
     ncw_get_var_int(ncid, varid_batch, batch);
     ncw_get_var_double(ncid, varid_value, value);
     ncw_get_var_double(ncid, varid_estd, estd);
+    if (obs->has_nonpointobs)
+        ncw_get_var_double(ncid, varid_footprint, footprint);
     ncw_get_var_double(ncid, varid_lon, lon);
     ncw_get_var_double(ncid, varid_lat, lat);
     ncw_get_var_double(ncid, varid_depth, depth);
@@ -685,6 +695,8 @@ void obs_read(observations* obs, char fname[])
         o->batch = batch[i];
         o->value = value[i];
         o->estd = estd[i];
+        if (obs->has_nonpointobs)
+            o->footprint = footprint[i];
         o->lon = lon[i];
         o->lat = lat[i];
         o->depth = depth[i];
@@ -706,6 +718,8 @@ void obs_read(observations* obs, char fname[])
     free(batch);
     free(value);
     free(estd);
+    if (obs->has_nonpointobs)
+        free(footprint);
     free(lon);
     free(lat);
     free(depth);
@@ -734,7 +748,7 @@ void obs_write(observations* obs, char fname[])
 
     int ncid;
     int dimid_nobs[1];
-    int varid_type, varid_product, varid_instrument, varid_id, varid_idorig, varid_fid, varid_batch, varid_value, varid_estd, varid_lon, varid_lat, varid_depth, varid_mdepth, varid_fi, varid_fj, varid_fk, varid_time, varid_status, varid_aux;
+    int varid_type, varid_product, varid_instrument, varid_id, varid_idorig, varid_fid, varid_batch, varid_value, varid_estd, varid_footprint, varid_lon, varid_lat, varid_depth, varid_mdepth, varid_fi, varid_fj, varid_fk, varid_time, varid_status, varid_aux;
 
     int* id;
     int* id_orig;
@@ -745,6 +759,7 @@ void obs_write(observations* obs, char fname[])
     int* batch;
     double* value;
     double* estd;
+    double* footprint;
     double* lon;
     double* lat;
     double* depth;
@@ -765,7 +780,7 @@ void obs_write(observations* obs, char fname[])
         enkf_quit("file \"%s\" already exists", fname);
     ncw_create(fname, NC_NOCLOBBER | obs->ncformat, &ncid);
 
-    ncw_put_att_double(ncid, NC_GLOBAL, "DA_DAY", 1, &obs->da_day);
+    ncw_put_att_double(ncid, NC_GLOBAL, "DA_DAY", 1, &obs->da_time);
 
     ncw_def_dim(ncid, "nobs", nobs, dimid_nobs);
     ncw_def_var(ncid, "id", NC_INT, 1, dimid_nobs, &varid_id);
@@ -787,6 +802,8 @@ void obs_write(observations* obs, char fname[])
     ncw_put_att_text(ncid, varid_value, "long_name", "observation value");
     ncw_def_var(ncid, "estd", NC_FLOAT, 1, dimid_nobs, &varid_estd);
     ncw_put_att_text(ncid, varid_estd, "long_name", "standard deviation of observation error used in DA");
+    if (obs->has_nonpointobs)
+        ncw_def_var(ncid, "footprint", NC_FLOAT, 1, dimid_nobs, &varid_footprint);
     ncw_def_var(ncid, "lon", NC_FLOAT, 1, dimid_nobs, &varid_lon);
     ncw_put_att_text(ncid, varid_lon, "long_name", "observation longitude");
     ncw_def_var(ncid, "lat", NC_FLOAT, 1, dimid_nobs, &varid_lat);
@@ -864,6 +881,8 @@ void obs_write(observations* obs, char fname[])
     batch = malloc(nobs * sizeof(int));
     value = malloc(nobs * sizeof(double));
     estd = malloc(nobs * sizeof(double));
+    if (obs->has_nonpointobs)
+        footprint = malloc(nobs * sizeof(footprint));
     lon = malloc(nobs * sizeof(double));
     lat = malloc(nobs * sizeof(double));
     depth = malloc(nobs * sizeof(double));
@@ -893,6 +912,8 @@ void obs_write(observations* obs, char fname[])
         id_orig[ii] = o->id_orig;
         value[ii] = o->value;
         estd[ii] = o->estd;
+        if (obs->has_nonpointobs)
+            footprint[ii] = o->footprint;
         lon[ii] = o->lon;
         lat[ii] = o->lat;
         depth[ii] = o->depth;
@@ -916,6 +937,8 @@ void obs_write(observations* obs, char fname[])
     ncw_put_var_int(ncid, varid_batch, batch);
     ncw_put_var_double(ncid, varid_value, value);
     ncw_put_var_double(ncid, varid_estd, estd);
+    if (obs->has_nonpointobs)
+        ncw_put_var_double(ncid, varid_footprint, footprint);
     ncw_put_var_double(ncid, varid_lon, lon);
     ncw_put_var_double(ncid, varid_lat, lat);
     ncw_put_var_double(ncid, varid_depth, depth);
@@ -937,6 +960,8 @@ void obs_write(observations* obs, char fname[])
     free(batch);
     free(value);
     free(estd);
+    if (obs->has_nonpointobs)
+        free(footprint);
     free(lon);
     free(lat);
     free(depth);
@@ -1122,6 +1147,7 @@ void obs_superob(observations* obs, __compar_d_fn_t cmp_obs, observations** sobs
         evar = (subvar > evar) ? subvar : evar;
         so->estd = 1.0 / evar;
         so->value = o->value;
+        so->footprint = o->footprint;
         so->lon = o->lon;
         so->lat = o->lat;
         so->depth = o->depth;
@@ -1205,12 +1231,14 @@ void obs_superob(observations* obs, __compar_d_fn_t cmp_obs, observations** sobs
         so->estd = sqrt(1.0 / so->estd);
         if (so->estd < obs->obstypes[so->type].estdmin)
             so->estd = obs->obstypes[so->type].estdmin;
+        if (so->footprint > 0.0)
+            (*sobs)->has_nonpointobs = 1;
 
         nsobs++;
 
         i1 = i2 + 1;
         i2 = i1;
-    }
+    }                           /* main cycle */
     if (nthinned > 0) {
         int i;
 
@@ -1303,7 +1331,7 @@ void obs_printob(observations* obs, int i)
 {
     observation* o = &obs->data[i];
 
-    enkf_printf("type = %s, product = %s, instrument = %s, datafile = %s, id = %d, original id = %d, batch = %d, value = %.3g, estd = %.3g, ", obs->obstypes[o->type].name, st_findstringbyindex(obs->products, o->product), st_findstringbyindex(obs->instruments, o->instrument), st_findstringbyindex(obs->datafiles, o->fid), o->id, o->id_orig, (int) o->batch, o->value, o->estd);
+    enkf_printf("type = %s, product = %s, instrument = %s, datafile = %s, id = %d, original id = %d, batch = %d, value = %.3g, estd = %.3g, footprint = %.3g, ", obs->obstypes[o->type].name, st_findstringbyindex(obs->products, o->product), st_findstringbyindex(obs->instruments, o->instrument), st_findstringbyindex(obs->datafiles, o->fid), o->id, o->id_orig, (int) o->batch, o->value, o->estd, o->footprint);
     enkf_printf("lon = %.3f, lat = %.3f, depth = %.1f, model_depth = %.1f, fi = %.3f, fj = %.3f, fk = %.3f, day = %.3g, status = %d\n", o->lon, o->lat, o->depth, o->model_depth, o->fi, o->fj, o->fk, o->time, o->status);
 }
 

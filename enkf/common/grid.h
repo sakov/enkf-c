@@ -15,6 +15,7 @@
  *****************************************************************************/
 
 #if !defined(_GRID_H)
+#include "kdtree.h"
 
 #define GRIDHTYPE_NONE 0
 #define GRIDHTYPE_LATLON 1
@@ -65,6 +66,7 @@ void grid_fij2xy(grid* g, double fi, double fj, double* x, double* y);
 void grid_ij2xy(grid* g, int i, int j, double* x, double* y);
 int grid_fk2z(grid* g, int i, int j, double fk, double* z);
 void grid_tocartesian(grid* g, double in[2], double out[3]);
+kdtree* grid_gettree(grid* g);
 
 int grid_isperiodic_i(grid* g);
 

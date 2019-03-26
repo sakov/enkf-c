@@ -47,6 +47,7 @@ typedef struct {
     int batch;
     double value;
     double estd;
+    double footprint;
     double lon;
     double lat;
     double depth;
@@ -76,7 +77,7 @@ typedef struct {
 #endif
     int** obsids;
 
-    double da_day;              /* fractional days since 00:00:00
+    double da_time;             /* fractional days since 00:00:00
                                  * BASEDAY-BASEMONTH-BASEYEAR */
     char* datestr;
 
@@ -88,6 +89,7 @@ typedef struct {
     int nobs;
     observation* data;
     int compacted;
+    int has_nonpointobs;
 
     int hasstats;
     int ngood;

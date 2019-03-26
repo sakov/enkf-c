@@ -598,7 +598,7 @@ void das_addmodifiederrors(dasystem* das, char fname[])
     int varid_estd, varid_estdorig;
     double* estd;
     int i;
-    double da_day = NAN;
+    double da_time = NAN;
 
     if (rank != 0)
         return;
@@ -608,8 +608,8 @@ void das_addmodifiederrors(dasystem* das, char fname[])
     ncw_inq_dimid(ncid, "nobs", dimid_nobs);
     ncw_inq_dimlen(ncid, dimid_nobs[0], &nobs);
 
-    ncw_get_att_double(ncid, NC_GLOBAL, "DA_DAY", &da_day);
-    if (!enkf_noobsdatecheck && (isnan(da_day) || fabs(das->obs->da_day - da_day) > 1e-6))
+    ncw_get_att_double(ncid, NC_GLOBAL, "DA_DAY", &da_time);
+    if (!enkf_noobsdatecheck && (isnan(da_time) || fabs(das->obs->da_time - da_time) > 1e-6))
         enkf_quit("\"observations.nc\" from a different cycle");
 
     ncw_redef(ncid);

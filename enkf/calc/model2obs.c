@@ -30,10 +30,11 @@
 
 #define EPSMULT (float) 1.000001
 #define EPS_IJ 0.01
+#define FOOTPRINT_INC 1000
 
 /**
  */
-static void interpolate_2d_obs(model* m, observations* allobs, int nobs, int obsids[], char fname[], float** v, ENSOBSTYPE out[])
+static void evaluate_2d_obs(model* m, observations* allobs, int nobs, int obsids[], char fname[], float** v, ENSOBSTYPE out[])
 {
     int otid = allobs->data[obsids[0]].type;
     int mvid = model_getvarid(m, allobs->obstypes[otid].varnames[0], 1);
@@ -49,7 +50,32 @@ static void interpolate_2d_obs(model* m, observations* allobs, int nobs, int obs
 
         assert(o->type == otid);
         assert(out[ii] == 0.0);
-        out[ii] = interpolate2d(o->fi, o->fj, ni, nj, v, mask, periodic_i);
+        if (o->footprint == 0.0)
+            out[ii] = interpolate2d(o->fi, o->fj, ni, nj, v, mask, periodic_i);
+        else {
+            grid* g = model_getgridbyid(m, otid);
+            kdtree* tree = grid_gettree(g);
+            double ll[2] = { o->lon, o->lat };
+            double xyz[3];
+            kdset* set = NULL;
+            int ncells = 0;
+            size_t* ids = NULL;
+            size_t id;
+
+            grid_tocartesian(g, ll, xyz);
+            set = kd_findnodeswithinrange(tree, xyz, o->footprint, 0);
+            while ((id = kdset_readnext(set, NULL)) != SIZE_MAX) {
+                int id_orig = kd_getnodeorigid(tree, id);
+
+                if (ncells % FOOTPRINT_INC == 0)
+                    ids = realloc(ids, (ncells + FOOTPRINT_INC) * sizeof(size_t));
+                ids[ncells] = id_orig;
+                ncells++;
+            }
+            kdset_free(set);
+            out[ii] = average2d(ids, ncells, v);
+            free(ids);
+        }
         if (!isfinite(out[ii]) || fabs(out[ii]) > STATE_BIGNUM) {
             enkf_flush();
             enkf_printf("\n  obs # %d: ", ii);
@@ -125,7 +151,8 @@ void H_surf_standard(dasystem* das, int nobs, int obsids[], char fname[], int me
             src0[i] -= offset0[i];
     }
 
-    interpolate_2d_obs(m, allobs, nobs, obsids, fname, src, dst);
+    evaluate_2d_obs(m, allobs, nobs, obsids, fname, src, dst);
+
     free(src);
 }
 
@@ -182,7 +209,7 @@ void H_surf_biased(dasystem* das, int nobs, int obsids[], char fname[], int mem,
         for (i = 0; i < nv; ++i)
             src0[i] -= bias[i];
 
-    interpolate_2d_obs(m, allobs, nobs, obsids, fname, src, dst);
+    evaluate_2d_obs(m, allobs, nobs, obsids, fname, src, dst);
 
     free(bias);
     free(src);

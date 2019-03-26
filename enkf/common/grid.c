@@ -180,6 +180,8 @@ struct grid {
 
     char* domainname;
     int domainid;
+
+    kdtree* tree;
 };
 
 /**
@@ -1310,6 +1312,8 @@ void grid_destroy(grid* g)
         free(g->depth);
     if (g->nzints > 0)
         free(g->zints);
+    if (g->tree != NULL)
+        kd_destroy(g->tree);
 
     free(g);
 }
@@ -1958,4 +1962,68 @@ void grids_destroy(int ngrid, void** grids)
 char* grid_getdomainname(grid* g)
 {
     return g->domainname;
+}
+
+/**
+ */
+kdtree* grid_gettree(grid* g)
+{
+    kdtree* tree;
+    size_t* ids;
+    size_t ii, nii;
+    int ni = -1, nj = -1;
+    int i, j;
+
+    if (g->tree != NULL)
+        return g->tree;
+
+    tree = kd_create(3);
+
+    if (g->htype == GRIDHTYPE_LATLON) {
+        gxy_simple* gxy = (gxy_simple*) g->gridnodes_xy;
+
+        ni = gxy->ni;
+        nj = gxy->nj;
+    } else if (g->htype == GRIDHTYPE_CURVILINEAR) {
+        gxy_curv* gxy = (gxy_curv*) g->gridnodes_xy;
+
+        ni = gridnodes_getnce1(gxy->gn);
+        nj = gridnodes_getnce2(gxy->gn);
+    } else
+        enkf_quit("programming error");
+
+    ids = malloc(ni * nj * sizeof(size_t));
+    for (j = 0, ii = 0, nii = 0; j < nj; ++j) {
+        for (i = 0; i < ni; ++i, ++ii) {
+            if (g->numlevels[j][i] == 0)
+                continue;
+            ids[nii] = ii;
+            nii++;
+        }
+    }
+
+    shuffle(nii, ids);
+    for (ii = 0; ii < nii; ++ii) {
+        double ll[2];
+        double xyz[3];
+
+        i = ids[ii] % ni;
+        j = ids[ii] / ni;
+        if (g->htype == GRIDHTYPE_LATLON) {
+            gxy_simple* gxy = (gxy_simple*) g->gridnodes_xy;
+
+            ll[0] = gxy->x[i];
+            ll[1] = gxy->y[j];
+        } else if (g->htype == GRIDHTYPE_CURVILINEAR) {
+            gxy_curv* gxy = (gxy_curv*) g->gridnodes_xy;
+
+            ll[0] = gridnodes_getx(gxy->gn)[j][i];
+            ll[1] = gridnodes_gety(gxy->gn)[j][i];
+        }
+        grid_tocartesian(g, ll, xyz);
+        kd_insertnode(tree, xyz, ids[ii]);
+    }
+    g->tree = tree;
+
+    return tree;
 }

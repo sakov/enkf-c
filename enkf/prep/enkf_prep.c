@@ -194,6 +194,11 @@ static int cmp_obs(const void* p1, const void* p2, void* p)
             return -1;
     }
 
+    if (o1->footprint > o2->footprint)
+        return 1;
+    else if (o1->footprint < o2->footprint)
+        return -1;
+
     stride = ot->sob_stride;
     if (stride == 0) {          /* no superobing on this grid */
         if (o1->id > o2->id)

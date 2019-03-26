@@ -458,7 +458,8 @@ size_t kdset_readnext(kdset* set, double* dist)
     size_t id;
 
     if (set == NULL || set->root == NULL) {
-        *dist = NAN;
+        if (dist != NULL)
+            *dist = NAN;
         return SIZE_MAX;
     }
 
@@ -468,11 +469,13 @@ size_t kdset_readnext(kdset* set, double* dist)
     }
 
     if (set->toread == NULL) {
-        *dist = NAN;
+        if (dist != NULL)
+            *dist = NAN;
         return SIZE_MAX;
     }
 
-    *dist = sqrt(set->toread->dist);
+    if (dist != NULL)
+        *dist = sqrt(set->toread->dist);
     id = set->toread->id;
     set->toread = set->toread->next;
 

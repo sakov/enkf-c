@@ -55,6 +55,7 @@ void print_vector_double(int n, double* a, char offset[]);
 void print_vector_float(int n, float* a, char offset[]);
 ENSOBSTYPE interpolate2d(double fi, double fj, int ni, int nj, float** v, int** mask, int periodic_i);
 ENSOBSTYPE interpolate3d(double fi, double fj, double fk, int ni, int nj, int nk, int ktop, float*** v, int** nlevels, int periodic_i);
+ENSOBSTYPE average2d(size_t* ids, int n, float** v);
 int island(double fi, double fj, double fk, int ni, int nj, int ksurf, int** numlevels, int periodic_i);
 double taper_gc(double x);
 void ll2xyz(double in[2], double out[3]);
@@ -62,6 +63,7 @@ void print_commandinfo(int argc, char* argv[]);
 void get_normalpair(double x[]);
 int istrue(char str[]);
 int inloninterval(double lon, double lon1, double lon2);
+void shuffle(size_t n, size_t ids[]);
 
 #if defined(INTERNAL_QSORT_R)
 typedef int (*__compar_d_fn_t) (const void*, const void*, void*);

@@ -1,3 +1,11 @@
+v. 1.95.0
+   PS 26032019
+   Introduced a new parameter FOOTPRINT in observation parameter file, which
+   specifies the observation footprint radius in km. Added field "footprint"
+   to "struct observation". Modified 2D readers in model2obs.c to handle
+   observations with non-zero footprint. Added ability to handle parameter
+   FOOTPRINT to reader_amsr2_standard(), reader_xy_gridded(),
+   reader_xy_scattered(), reader_xyz_gridded(), reader_xyz_scattered().
 v. 1.94.4
    PS 25032019
    Changed field name in struct observation from "day" to "time". A few other

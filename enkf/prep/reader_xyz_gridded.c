@@ -29,6 +29,8 @@
  *                  in the oobservation data parameter file
  *              - VARSHIFT (-)
  *                  data offset to be added
+ *              - FOOTRPINT (-)
+ *                  footprint of observations in km
  *              - MINDEPTH (-)
  *                  minimal allowed depth
  *              - MAXDEPTH (-)
@@ -151,9 +153,16 @@ void reader_xyz_gridded(char* fname, int fid, obsmeta* meta, grid* g, observatio
             enkf_printf("        VARSHIFT = %s\n", meta->pars[i].value);
         }
         /*
-         * (MINDEPTH and MAXDEPTH are handled in obs_add() )
+         * (FOOTPRINT, MINDEPTH and MAXDEPTH are handled in obs_add() )
          */
-        else if (strcasecmp(meta->pars[i].name, "MINDEPTH") == 0) {
+        else if (strcasecmp(meta->pars[i].name, "FOOTPRINT") == 0) {
+            double footprint;
+
+            if (!str2double(meta->pars[i].value, &footprint))
+                enkf_quit("observation prm file: can not convert FOOTPRINT = \"%s\" to double\n", meta->pars[i].value);
+            enkf_printf("        FOOTPRINT = %.0f\n", footprint);
+            continue;
+        } else if (strcasecmp(meta->pars[i].name, "MINDEPTH") == 0) {
             double mindepth;
 
             if (!str2double(meta->pars[i].value, &mindepth))
