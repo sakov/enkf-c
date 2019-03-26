@@ -39,6 +39,7 @@
 #define KIND_NIGHTTIME (1 << 0)
 #define KIND_WINDY     (1 << 1)
 #define KIND_ALL       (KIND_NIGHTTIME | KIND_WINDY)
+#define KIND_DEF       KIND_ALL
 
 /**
  */
@@ -68,7 +69,7 @@ void reader_viirs_standard(char* fname, int fid, obsmeta* meta, grid* g, observa
     double time_add_offset, time_scale_factor;
     short time_fill_value;
     unsigned char* kind = NULL;
-    unsigned char kind_mask = KIND_ALL;
+    unsigned char kind_mask = KIND_DEF;
 
     char tunits[MAXSTRLEN];
     double tunits_multiple, tunits_offset;

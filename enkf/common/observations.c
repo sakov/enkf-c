@@ -485,7 +485,7 @@ void obs_read(observations* obs, char fname[])
     int* batch;
     double* value;
     double* estd;
-    double* footprint;
+    double* footprint = NULL;
     double* lon;
     double* lat;
     double* depth;
@@ -759,7 +759,7 @@ void obs_write(observations* obs, char fname[])
     int* batch;
     double* value;
     double* estd;
-    double* footprint;
+    double* footprint = NULL;
     double* lon;
     double* lat;
     double* depth;
