@@ -1,3 +1,6 @@
+v. 1.95.2
+   PS 26032019
+   Fixed defect in obs_superob() untroduced in v1.95.1.
 v. 1.95.1
    PS 26032019
    A minor change in obsprm_read().

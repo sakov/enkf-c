@@ -1057,6 +1057,7 @@ void obs_superob(observations* obs, __compar_d_fn_t cmp_obs, observations** sobs
     int nthinned = 0;
     observation* data = obs->data;
     observation* sdata = NULL;
+    int has_nonpointobs = 0;
 
     qsort_r(obs->data, obs->ngood, sizeof(observation), cmp_obs, obs);
 
@@ -1232,7 +1233,7 @@ void obs_superob(observations* obs, __compar_d_fn_t cmp_obs, observations** sobs
         if (so->estd < obs->obstypes[so->type].estdmin)
             so->estd = obs->obstypes[so->type].estdmin;
         if (so->footprint > 0.0)
-            (*sobs)->has_nonpointobs = 1;
+            has_nonpointobs = 1;
 
         nsobs++;
 
@@ -1262,6 +1263,7 @@ void obs_superob(observations* obs, __compar_d_fn_t cmp_obs, observations** sobs
         enkf_printf("      ");
         obs_printob(*sobs, sobid);
     }
+    (*sobs)->has_nonpointobs = has_nonpointobs;
 
     obs_calcstats(*sobs);
 }
