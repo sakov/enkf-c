@@ -1,3 +1,6 @@
+v. 1.95.1
+   PS 26032019
+   A minor change in obsprm_read().
 v. 1.95.0
    PS 26032019
    Introduced a new parameter FOOTPRINT in observation parameter file, which
