@@ -1,24 +1,28 @@
+v. 1.95.4
+   PS 27032019
+   -- Corrected variable name in das_addmodifiederrors(), related to v1.94.3.
 v. 1.95.3
    PS 27032019
-   Fixed defects in grid_gettree() and evaluate_2d_obs() introduced in v1.95.0.
+   -- Fixed defects in grid_gettree() and evaluate_2d_obs() introduced in
+      v1.95.0.
 v. 1.95.2
    PS 26032019
-   Fixed defect in obs_superob() untroduced in v1.95.1.
+   -- Fixed defect in obs_superob() untroduced in v1.95.1.
 v. 1.95.1
    PS 26032019
-   A minor change in obsprm_read().
+   -- A minor change in obsprm_read().
 v. 1.95.0
    PS 26032019
-   Introduced a new parameter FOOTPRINT in observation parameter file, which
-   specifies the observation footprint radius in km. Added field "footprint"
-   to "struct observation". Modified 2D readers in model2obs.c to handle
-   observations with non-zero footprint. Added ability to handle parameter
-   FOOTPRINT to reader_amsr2_standard(), reader_xy_gridded(),
-   reader_xy_scattered(), reader_xyz_gridded(), reader_xyz_scattered().
+   -- Introduced a new parameter FOOTPRINT in observation parameter file, which
+      specifies the observation footprint radius in km. Added field "footprint"
+      to "struct observation". Modified 2D readers in model2obs.c to handle
+      observations with non-zero footprint. Added ability to handle parameter
+      FOOTPRINT to reader_amsr2_standard(), reader_xy_gridded(),
+      reader_xy_scattered(), reader_xyz_gridded(), reader_xyz_scattered().
 v. 1.94.4
    PS 25032019
-   Changed field name in struct observation from "day" to "time". A few other
-   cosmetic changes.
+   -- Changed field name in struct observation from "day" to "time". A few other
+      cosmetic changes.
 v. 1.94.3
    PS 25032019
    -- Changes some names in structures as well as output file formats. "std"

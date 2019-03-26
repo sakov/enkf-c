@@ -617,7 +617,7 @@ void das_addmodifiederrors(dasystem* das, char fname[])
     ncw_inq_varid(ncid, "estd_orig", &varid_estdorig);
     ncw_del_att(ncid, varid_estdorig, "long_name");
     ncw_put_att_text(ncid, varid_estdorig, "long_name", "standard deviation of observation error after superobing (before applying KF-QC)");
-    ncw_def_var(ncid, "std", NC_FLOAT, 1, dimid_nobs, &varid_estd);
+    ncw_def_var(ncid, "estd", NC_FLOAT, 1, dimid_nobs, &varid_estd);
     ncw_put_att_text(ncid, varid_estd, "long_name", "standard deviation of observation error used in DA");
     ncw_enddef(ncid);
 
