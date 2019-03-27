@@ -627,8 +627,8 @@ void enkfprm_describeprm(void)
     enkf_printf("    LOCRAD          = <loc. radius in km> ...\n");
     enkf_printf("  [ LOCWEIGHT       = <loc. weight> ... ]                    (# LOCRAD > 1)\n");
     enkf_printf("  [ NLOBSMAX        = <max. number of local obs. of each type> ]\n");
-    enkf_printf("  [ STRIDE          = <stride> ]                             (1*)\n");
-    enkf_printf("  [ SOBSTRIDE       = <stride> ]                             (1*)\n");
+    enkf_printf("  [ STRIDE          = <stride for ensemble transforms> ]     (1*)\n");
+    enkf_printf("  [ SOBSTRIDE       = <stride for superobing> ]              (1*)\n");
     enkf_printf("  [ FIELDBUFFERSIZE = <fieldbuffersize> ]                    (1*)\n");
     enkf_printf("  [ INFLATION       = <inflation> [ <VALUE>* | PLAIN ]       (1*)\n");
     enkf_printf("    ...\n");

@@ -159,10 +159,6 @@ struct grid {
      * common value defined in the top prm file. 
      */
     int stride;
-    /*
-     * `sobtride' for superobing. "0" means to use the common value defined in
-     * the top prm file. 
-     */
     int sob_stride;
 
     /*
@@ -1023,8 +1019,6 @@ grid* grid_create(void* p, int id)
     g->vtype = gridprm_getvtype(prm);
     if (prm->stride != 0)
         g->stride = prm->stride;
-    if (prm->sob_stride != 0)
-        g->sob_stride = prm->sob_stride;
     g->sfactor = prm->sfactor;
     g->nzints = prm->nzints;
     if (prm->nzints > 0) {
@@ -1419,8 +1413,7 @@ void grid_describeprm(void)
     enkf_printf("  [ BCVARNAME        = <BC variable name> (hybrid) ]\n");
     enkf_printf("    P1VARNAME        = <P1 variable name> (hybrid)\n");
     enkf_printf("    P2VARNAME        = <P2 variable name> (hybrid)\n");
-    enkf_printf("  [ STRIDE           = <stride> (common*) ]\n");
-    enkf_printf("  [ SOBSTRIDE        = <sobstride> (common*) ]\n");
+    enkf_printf("  [ STRIDE           = <stride for ensemble transforms> (1*) ]\n");
     enkf_printf("  [ SFACTOR          = <spread factor> (1.0*) ]\n");
     enkf_printf("  [ ZSTATINTS        = [<z1> <z2>] ... ]\n");
     enkf_printf("\n");

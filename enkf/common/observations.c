@@ -78,10 +78,15 @@ void obs_addtype(observations* obs, obstype* src)
     ot->rfactor = src->rfactor;
     ot->nlobsmax = src->nlobsmax;
     ot->estdmin = src->estdmin;
-    ot->nsubgrid = src->nsubgrid;
-    ot->nmodified = 0;
+    ot->vid = src->vid;
+    ot->gridid = src->gridid;
+    ot->sob_stride = src->sob_stride;
+
+    ot->obswindow_min = src->obswindow_min;
+    ot->obswindow_max = src->obswindow_max;
     ot->time_min = src->time_min;
     ot->time_max = src->time_max;
+
     ot->xmin = src->xmin;
     ot->xmax = src->xmax;
     ot->ymin = src->ymin;
@@ -95,6 +100,8 @@ void obs_addtype(observations* obs, obstype* src)
     for (i = 0; i < ot->ndomains; ++i)
         ot->domainnames[i] = strdup(src->domainnames[i]);
 
+    ot->nsubgrid = src->nsubgrid;
+    ot->nmodified = 0;
     /*
      * (these fields are set by obs_calcstats())
      */

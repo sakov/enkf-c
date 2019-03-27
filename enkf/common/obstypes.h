@@ -41,6 +41,11 @@ typedef struct {
 
     int vid;
     int gridid;
+
+    /*
+     * Stride for superobing. "0" means to use the common value defined in
+     * the top prm file (default = 1). 
+     */
     int sob_stride;
 
     double xmin;

@@ -62,6 +62,7 @@ static void obstype_new(obstype* type, int i, char* name)
     type->estdmin = 0.0;
     type->vid = -1;
     type->gridid = -1;
+    type->sob_stride = -1;
     type->xmin = -DBL_MAX;
     type->xmax = DBL_MAX;
     type->ymin = -DBL_MAX;
@@ -155,6 +156,8 @@ static void obstype_print(obstype* type)
         enkf_printf("      WINDOWMIN = %.3f\n", type->obswindow_min);
         enkf_printf("      WINDOWMAX = %.3f\n", type->obswindow_max);
     }
+    if (type->sob_stride != 1)
+        enkf_printf("      SOB_STRIDE = %d\n", type->sob_stride);
 }
 
 /**
@@ -378,6 +381,13 @@ void obstypes_read(enkfprm* prm, char fname[], int* n, obstype** types)
             }
             if (now->ndomains == 0)
                 enkf_quit("%s, l.%d: DOMAINS not specified", fname, line);
+       } else if (strcasecmp(token, "SOBSTRIDE") == 0) {
+            if ((token = strtok(NULL, seps)) == NULL)
+                enkf_quit("%s, l.%d: SOBSTRIDE not specified", fname, line);
+            if (now->sob_stride != 0)
+                enkf_quit("%s, l.%d: SOBSTRIDE specified twice", fname, line);
+            if (!str2int(token, &now->sob_stride))
+                enkf_quit("%s, l.%d: could not convert \"%s\" to int", fname, line, token);
         } else
             enkf_quit("%s, l.%d: unknown token \"%s\"", fname, line, token);
     }
@@ -425,6 +435,8 @@ void obstypes_read(enkfprm* prm, char fname[], int* n, obstype** types)
             type->hfunction = strdup("standard");
         if (type->nlobsmax < 0)
             type->nlobsmax = prm->nlobsmax;
+        if (type->sob_stride < 0)
+            type->sob_stride = prm->sob_stride;
     }
 
     for (i = 0; i < *n; ++i) {
@@ -455,6 +467,7 @@ void obstypes_describeprm(void)
     enkf_printf("  [ RFACTOR     = <rfactor> ]                           (1*)\n");
     enkf_printf("  [ NLOBSMAX    = <max. allowed number of local obs.> ] (inf*)\n");
     enkf_printf("  [ ERROR_STD_MIN = <min. allowed superob error> ]      (0*)\n");
+    enkf_printf("  [ SOBSTRIDE   = <stride for superobing> ]             (1*)\n");
     enkf_printf("  [ MINVALUE    = <minimal allowed value> ]             (-inf*)\n");
     enkf_printf("  [ MAXVALUE    = <maximal allowed value> ]             (+inf*)\n");
     enkf_printf("  [ XMIN        = <minimal allowed X coordinate> ]      (-inf*)\n");
@@ -490,7 +503,6 @@ void obstypes_set(int n, obstype* types, model* m)
 
         ot->vid = vid;
         ot->gridid = model_getvargridid(m, vid);
-        ot->sob_stride = grid_getsobstride(model_getgridbyid(m, ot->gridid));
         if (ot->ndomains > 0)
             for (j = 0; j < ot->ndomains; ++j)
                 if (model_getdomainid(m, ot->domainnames[j]) < 0)

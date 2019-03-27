@@ -36,7 +36,7 @@
 
 \begin{document}
 
-\title{EnKF-C user guide\\{\normalsize version 1.94.0}}
+\title{EnKF-C user guide\\{\normalsize version 1.96.0}}
 
 \author{Pavel Sakov}
 \date{June 19, 2014 -- \today}
@@ -707,8 +707,8 @@ Its format is described by running \verb|enkf_prep|, \verb|enkf_calc| or \verb|e
     LOCRAD          = <loc. radius in km> ...
   [ LOCWEIGHT       = <loc. weight> ... ]                    (# LOCRAD > 1)
   [ NLOBSMAX        = <max. number of local obs. of each type> ]
-  [ STRIDE          = <stride> ]                             (1*)
-  [ SOBSTRIDE       = <stride> ]                             (1*)
+  [ STRIDE          = <stride for superobing> ]              (1*)
+  [ SOBSTRIDE       = <stride for ensemble transforms> ]     (1*)
   [ FIELDBUFFERSIZE = <fieldbuffersize> ]                    (1*)
   [ INFLATION       = <inflation> [ <VALUE>* | PLAIN ]       (0.5*)
     ...
@@ -799,8 +799,7 @@ It also contains variable names for the depth and for number of layers in a vert
   [ BCVARNAME        = <BC variable name> (hybrid) ]
     P1VARNAME        = <P1 variable name> (hybrid)
     P2VARNAME        = <P2 variable name> (hybrid)
-  [ STRIDE           = <stride> (common*) ]
-  [ SOBSTRIDE        = <sobstride> (common*) ]
+  [ STRIDE           = <stride for ensemble transforms> (1*) ]
   [ SFACTOR          = <spread factor> (1.0*) ]
   [ ZSTATINTS        = [<z1> <z2>] ... ]
 
@@ -880,6 +879,7 @@ The optional parameters include the R-factor and localisation radius for the typ
   [ RFACTOR     = <rfactor> ]                           (1*)
   [ NLOBSMAX    = <max. allowed number of local obs.> ] (inf*)
   [ ERROR_STD_MIN = <min. allowed superob error> ]      (0*)
+  [ SOBSTRIDE   = <stride for superobing>               (1*)
   [ MINVALUE    = <minimal allowed value> ]             (-inf*)
   [ MAXVALUE    = <maximal allowed value> ]             (+inf*)
   [ XMIN        = <minimal allowed X coordinate> ]      (-inf*)

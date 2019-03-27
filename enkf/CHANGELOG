@@ -1,3 +1,9 @@
+v. 1.96.0
+   PS 27032019
+   -- Moved SOBSTRIDE from grid parameter file to obstypes parameter file. 
+      Therefore, one can either specify a common stride for superobing in the
+      main paramater file, or (override it with) observation type specific
+      strides.
 v. 1.95.5
    PS 27032019
    -- Changed field names obstype.windowmin -> obstype.obswindow_min,
