@@ -1,6 +1,10 @@
+v. 1.96.1
+   PS 28032019
+   -- Some minor shuffling of barriers in das_update(), probably with no
+      noticable implications.
 v. 1.96.0
    PS 27032019
-   -- Moved SOBSTRIDE from grid parameter file to obstypes parameter file. 
+   -- Moved SOBSTRIDE from grid parameter file to obstypes parameter file.
       Therefore, one can either specify a common stride for superobing in the
       main paramater file, or (override it with) observation type specific
       strides.

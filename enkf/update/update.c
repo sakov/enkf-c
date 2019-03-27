@@ -1297,9 +1297,7 @@ void das_update(dasystem* das)
     if (das->updatespec & UPDATE_DOFIELDS) {
         if (das->mode == MODE_ENKF) {
             distribute_iterations(0, das->nmem - 1, nprocesses, rank, "    ");
-#if defined(MPI)
-            MPI_Barrier(MPI_COMM_WORLD);
-#endif
+
             enkf_printtime("    ");
             enkf_printf("    allocating disk space for analysis:");
             enkf_flush();
@@ -1457,6 +1455,9 @@ void das_update(dasystem* das)
 
         grid_getdims(grid, &mni, &mnj, NULL);
 
+#if defined(MPI)
+        MPI_Barrier(MPI_COMM_WORLD);
+#endif
         das_getfields(das, gid, &nfields, &fields);
         enkf_printf("      %d fields\n", nfields);
 
@@ -1464,7 +1465,8 @@ void das_update(dasystem* das)
             continue;
 
         distribute_iterations(0, nfields - 1, nprocesses, rank, "      ");
-
+        enkf_flush();
+ 
         fieldbuffer = malloc(das->fieldbufsize * sizeof(void*));
         if (das->mode == MODE_ENKF) {
             for (i = 0; i < das->fieldbufsize; ++i)
@@ -1474,10 +1476,6 @@ void das_update(dasystem* das)
                 fieldbuffer[i] = alloc3d(das->nmem + 1, mnj, mni, sizeof(float));
         }
 
-        enkf_flush();
-#if defined(MPI)
-        MPI_Barrier(MPI_COMM_WORLD);
-#endif
         for (i = my_first_iteration; i <= my_last_iteration; ++i) {
             int bufindex = (i - my_first_iteration) % das->fieldbufsize;
             field* f = &fields[i];

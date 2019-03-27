@@ -100,7 +100,7 @@ void distribute_iterations(int i1, int i2, int nproc, int rank, char prefix[])
         enkf_printf("%s  %d processes get 0 iterations\n", prefix, nprocesses - nproc);
 #if defined(MPI)
     if (prefix != NULL)
-        fflush(stdout);
+        enkf_flush();
     MPI_Barrier(MPI_COMM_WORLD);
 #endif
 
