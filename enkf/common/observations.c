@@ -80,8 +80,8 @@ void obs_addtype(observations* obs, obstype* src)
     ot->estdmin = src->estdmin;
     ot->nsubgrid = src->nsubgrid;
     ot->nmodified = 0;
-    ot->day_min = src->day_min;
-    ot->day_max = src->day_max;
+    ot->time_min = src->time_min;
+    ot->time_max = src->time_max;
     ot->xmin = src->xmin;
     ot->xmax = src->xmax;
     ot->ymin = src->ymin;
@@ -212,10 +212,10 @@ observations* obs_create_fromprm(enkfprm* prm)
         for (otid = 0; otid <= obs->nobstypes; ++otid) {
             obstype* ot = &obs->obstypes[otid];
 
-            if (isnan(ot->windowmin))
-                ot->windowmin = prm->windowmin;
-            if (isnan(ot->windowmax))
-                ot->windowmax = prm->windowmax;
+            if (isnan(ot->obswindow_min))
+                ot->obswindow_min = prm->obswindow_min;
+            if (isnan(ot->obswindow_max))
+                ot->obswindow_max = prm->obswindow_max;
         }
     }
 #endif
@@ -421,8 +421,8 @@ void obs_calcstats(observations* obs)
         ot->nshallow = 0;
         ot->nbadbatch = 0;
         ot->nrange = 0;
-        ot->day_min = DBL_MAX;
-        ot->day_max = -DBL_MAX;
+        ot->time_min = DBL_MAX;
+        ot->time_max = -DBL_MAX;
     }
 
     for (i = 0; i < obs->nobs; ++i) {
@@ -459,10 +459,10 @@ void obs_calcstats(observations* obs)
             ot->nthinned++;
         }
 
-        if (o->time < ot->day_min)
-            ot->day_min = o->time;
-        if (o->time > ot->day_max)
-            ot->day_max = o->time;
+        if (o->time < ot->time_min)
+            ot->time_min = o->time;
+        if (o->time > ot->time_max)
+            ot->time_max = o->time;
     }
     obs->hasstats = 1;
 }

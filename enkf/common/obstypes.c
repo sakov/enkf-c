@@ -80,10 +80,10 @@ static void obstype_new(obstype* type, int i, char* name)
     type->nthinned = 0;
     type->nsubgrid = 0;
     type->nmodified = 0;
-    type->windowmin = NAN;
-    type->windowmax = NAN;
-    type->day_min = DBL_MAX;
-    type->day_max = -DBL_MAX;
+    type->obswindow_min = NAN;
+    type->obswindow_max = NAN;
+    type->time_min = DBL_MAX;
+    type->time_max = -DBL_MAX;
     type->ndomains = 0;
     type->domainnames = NULL;
 }
@@ -151,9 +151,9 @@ static void obstype_print(obstype* type)
         enkf_printf("      ERROR_STD_MIN = %.3g\n", type->estdmin);
     if (type->xmin > -DBL_MAX || type->xmax < DBL_MAX || type->ymin > -DBL_MAX || type->ymax < DBL_MAX || type->zmin > -DBL_MAX || type->zmax < DBL_MAX)
         enkf_printf("      SPATIAL DOMAIN = %.3g %.3g %.3g %.3g %.3g %.3g\n", type->xmin, type->xmax, type->ymin, type->ymax, type->zmin, type->zmax);
-    if (isfinite(type->windowmin)) {
-        enkf_printf("      WINDOWMIN = %.3f\n", type->windowmin);
-        enkf_printf("      WINDOWMAX = %.3f\n", type->windowmax);
+    if (isfinite(type->obswindow_min)) {
+        enkf_printf("      WINDOWMIN = %.3f\n", type->obswindow_min);
+        enkf_printf("      WINDOWMAX = %.3f\n", type->obswindow_max);
     }
 }
 
@@ -360,12 +360,12 @@ void obstypes_read(enkfprm* prm, char fname[], int* n, obstype** types)
         } else if (strcasecmp(token, "WINDOWMIN") == 0) {
             if ((token = strtok(NULL, seps)) == NULL)
                 enkf_quit("%s, l.%d: WINDOWMIN not specified", fname, line);
-            else if (!str2double(token, &now->windowmin))
+            else if (!str2double(token, &now->obswindow_min))
                 enkf_quit("%s, l.%d: could convert WINDOWMIN entry", fname, line);
         } else if (strcasecmp(token, "WINDOWMAX") == 0) {
             if ((token = strtok(NULL, seps)) == NULL)
                 enkf_quit("%s, l.%d: WINDOWMAX not specified", fname, line);
-            else if (!str2double(token, &now->windowmax))
+            else if (!str2double(token, &now->obswindow_max))
                 enkf_quit("%s, l.%d: could convert WINDOWMAX entry", fname, line);
         } else if (strcasecmp(token, "DOMAINS") == 0) {
             if (now->ndomains != 0)

@@ -110,8 +110,8 @@ void das_printobsstats(dasystem* das, int use_rmsd)
             }
 
             if (ot->isasync) {
-                t1 = get_tshift(ot->day_min, ot->async_tstep, ot->async_centred);
-                t2 = get_tshift(ot->day_max, ot->async_tstep, ot->async_centred);
+                t1 = get_tshift(ot->time_min, ot->async_tstep, ot->async_centred);
+                t2 = get_tshift(ot->time_max, ot->async_tstep, ot->async_centred);
                 nt = t2 - t1 + 1;
                 inn_f_as = calloc(nt, sizeof(double));
                 inn_f_abs_as = calloc(nt, sizeof(double));
@@ -355,8 +355,8 @@ void das_printfobsstats(dasystem* das, int use_rmsd)
             }
 
             if (ot->isasync) {
-                t1 = get_tshift(ot->day_min, ot->async_tstep, ot->async_centred);
-                t2 = get_tshift(ot->day_max, ot->async_tstep, ot->async_centred);
+                t1 = get_tshift(ot->time_min, ot->async_tstep, ot->async_centred);
+                t2 = get_tshift(ot->time_max, ot->async_tstep, ot->async_centred);
                 nt = t2 - t1 + 1;
                 inn_f_as = calloc(nt, sizeof(double));
                 inn_f_abs_as = calloc(nt, sizeof(double));

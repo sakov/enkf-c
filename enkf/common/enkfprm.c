@@ -88,8 +88,8 @@ enkfprm* enkfprm_read(char fname[])
     prm->scheme = SCHEME_DEFAULT;
     prm->alpha = ALPHA_DEFAULT;
     prm->date = NULL;
-    prm->windowmin = NAN;
-    prm->windowmax = NAN;
+    prm->obswindow_min = NAN;
+    prm->obswindow_max = NAN;
     prm->modelprm = NULL;
     prm->gridprm = NULL;
 
@@ -163,12 +163,12 @@ enkfprm* enkfprm_read(char fname[])
         } else if (strcasecmp(token, "WINDOWMIN") == 0) {
             if ((token = strtok(NULL, seps)) == NULL)
                 enkf_quit("%s, l.%d: WINDOWMIN not specified", fname, line);
-            else if (!str2double(token, &prm->windowmin))
+            else if (!str2double(token, &prm->obswindow_min))
                 enkf_quit("%s, l.%d: could convert WINDOWMIN entry", fname, line);
         } else if (strcasecmp(token, "WINDOWMAX") == 0) {
             if ((token = strtok(NULL, seps)) == NULL)
                 enkf_quit("%s, l.%d: WINDOWMAX not specified", fname, line);
-            else if (!str2double(token, &prm->windowmax))
+            else if (!str2double(token, &prm->obswindow_max))
                 enkf_quit("%s, l.%d: could convert WINDOWMAX entry", fname, line);
         } else if (strcasecmp(token, "MODEL") == 0) {
             if ((token = strtok(NULL, seps)) == NULL)
@@ -531,9 +531,9 @@ void enkfprm_print(enkfprm* prm, char offset[])
     enkf_printf("%sOBS TYPES PRM = \"%s\"\n", offset, prm->obstypeprm);
     enkf_printf("%sOBS PRM = \"%s\"\n", offset, prm->obsprm);
     enkf_printf("%sDATE = \"%s\"\n", offset, prm->date);
-    if (!isnan(prm->windowmin)) {
-        enkf_printf("%sWINDOWMIN = %.3f\n", offset, prm->windowmin);
-        enkf_printf("%sWINDOWMAX = %.3f\n", offset, prm->windowmax);
+    if (!isnan(prm->obswindow_min)) {
+        enkf_printf("%sWINDOWMIN = %.3f\n", offset, prm->obswindow_min);
+        enkf_printf("%sWINDOWMAX = %.3f\n", offset, prm->obswindow_max);
     }
     if (prm->mode == MODE_ENOI)
         enkf_printf("%sBGDIR = \"%s\"\n", offset, prm->bgdir);

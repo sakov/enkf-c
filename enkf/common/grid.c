@@ -181,7 +181,7 @@ struct grid {
     char* domainname;
     int domainid;
 
-    kdtree* tree;
+    kdtree* nodetree;
 };
 
 /**
@@ -1312,8 +1312,8 @@ void grid_destroy(grid* g)
         free(g->depth);
     if (g->nzints > 0)
         free(g->zints);
-    if (g->tree != NULL)
-        kd_destroy(g->tree);
+    if (g->nodetree != NULL)
+        kd_destroy(g->nodetree);
 
     free(g);
 }
@@ -1974,8 +1974,8 @@ kdtree* grid_gettree(grid* g)
     int ni = -1, nj = -1;
     int i, j;
 
-    if (g->tree != NULL)
-        return g->tree;
+    if (g->nodetree != NULL)
+        return g->nodetree;
 
     tree = kd_create(3);
     grid_getdims(g, &ni, &nj, NULL);
@@ -2011,7 +2011,7 @@ kdtree* grid_gettree(grid* g)
         grid_tocartesian(g, ll, xyz);
         kd_insertnode(tree, xyz, ids[ii]);
     }
-    g->tree = tree;
+    g->nodetree = tree;
 
     return tree;
 }

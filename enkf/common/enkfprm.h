@@ -21,8 +21,8 @@ struct enkfprm {
     int scheme;
     double alpha;
     char* date;
-    double windowmin;
-    double windowmax;
+    double obswindow_min;
+    double obswindow_max;
 
     char* modelprm;
     char* gridprm;

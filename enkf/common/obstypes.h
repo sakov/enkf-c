@@ -66,14 +66,14 @@ typedef struct {
     /*
      * allowed time range of observations 
      */
-    double windowmin;
-    double windowmax;
+    double obswindow_min;
+    double obswindow_max;
 
     /*
      * actual time range of observations 
      */
-    double day_min;
-    double day_max;
+    double time_min;
+    double time_max;
 
     /*
      * domains observations of this type are visible from

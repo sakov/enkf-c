@@ -1,3 +1,10 @@
+v. 1.95.5
+   PS 27032019
+   -- Changed field names obstype.windowmin -> obstype.obswindow_min,
+      obstype.windowmax -> obstype.obswindow_max, obstype.day_min ->
+      obstype.time_min, obstype.day_max -> obstype.time_max,
+      enkfprm.windowmin -> enkfprm.obswindow_min, enkfprm.windowmax ->
+      enkfprm.obswindow_max, grid.tree -> grid.nodetree.
 v. 1.95.4
    PS 27032019
    -- Corrected variable name in das_addmodifiederrors(), related to v1.94.3.
