@@ -1,3 +1,8 @@
+v. 1.96.3
+   PS 28032019
+   -- Eliminated seeding drand48 from a fixed seed in shuffle(), both in
+      utils.c and kdtree.c, to eliminate posibility of the generator becoming
+      (re-)synchronised on different processes.
 v. 1.96.2
    PS 28032019
    -- Tidied up log messages. Made sure that if enkf_verbose = 0 then no log

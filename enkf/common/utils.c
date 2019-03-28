@@ -42,7 +42,8 @@
 #define EPS_DOUBLE 4.0e-15
 #define EPS_FLOAT  1.0e-7
 #define BACKTRACE_SIZE 50
-#define SEED 5555
+
+long int seed_rand48 = 0;
 
 /**
  */
@@ -87,22 +88,25 @@ void enkf_quit(char* format, ...)
 
 /**
  */
-static long int gen_randseed(void)
+static void randomise_rand48(void)
 {
     char fname[] = "/dev/urandom";
-    FILE* f = enkf_fopen(fname, "r");
-    long int seed;
+    FILE* f;
     size_t status;
 
-    status = fread(&seed, sizeof(seed), 1, f);
+    if (seed_rand48 != 0)
+        return;
+
+    f = enkf_fopen(fname, "r");
+
+    status = fread(&seed_rand48, sizeof(seed_rand48), 1, f);
     if (status != 1) {
         int errno_saved = errno;
 
-        enkf_quit("gen_randseed(): could not read from \"%s\": %s", fname, strerror(errno_saved));
+        enkf_quit("randomise_rand48(): could not read from \"%s\": %s", fname, strerror(errno_saved));
     }
     fclose(f);
-
-    return seed;
+    srand(seed_rand48);
 }
 
 /**
@@ -140,7 +144,7 @@ void enkf_init(int* argc, char*** argv)
     /*
      * initialise the random number generator to a random state for each cpu
      */
-    srand48(gen_randseed());
+    randomise_rand48();
 }
 
 /**
@@ -1761,8 +1765,6 @@ int inloninterval(double lon, double lon1, double lon2)
 void shuffle(size_t n, size_t ids[])
 {
     size_t i;
-
-    srand48(SEED);
 
     for (i = 0; i < n; ++i) {
         size_t ii = (size_t) ((double) n * drand48());

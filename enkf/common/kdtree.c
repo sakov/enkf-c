@@ -25,10 +25,11 @@
 #include <math.h>
 #include <float.h>
 #include <stdint.h>
+#include <stdarg.h>
+#include <errno.h>
 #include "kdtree.h"
 
 #define NALLOCSTART 1024
-#define SEED 5555
 #define KDSET_BLOCKSIZE 1024
 #define KDSET_NBLOCKS_INC 10
 
@@ -67,6 +68,23 @@ struct kdset {
     int nblocks;
     resnode** blocks;
 };
+
+/**
+ */
+static void quit(char* format, ...)
+{
+    va_list args;
+
+    fflush(stdout);
+
+    fprintf(stderr, "\n\n  ERROR: kdtree: ");
+    va_start(args, format);
+    vfprintf(stderr, format, args);
+    va_end(args);
+    fprintf(stderr, "\n\n");
+    fflush(NULL);
+    exit(1);
+}
 
 /**
  */
@@ -160,11 +178,40 @@ void kd_insertnode(kdtree* tree, const double* coords, size_t id_orig)
 
 /**
  */
+static void randomise_rand48(void)
+{
+    char fname[] = "/dev/urandom";
+    FILE* f = NULL;
+    size_t status;
+
+    if (seed_rand48 != 0)
+        return;
+
+    f = fopen(fname, "r");
+    if (f == NULL) {
+        int errno_saved = errno;
+
+        quit("randomise_rand48(): could not open \"%s\": %s", fname, strerror(errno_saved));
+    }
+
+    status = fread(&seed_rand48, sizeof(seed_rand48), 1, f);
+    if (status != 1) {
+        int errno_saved = errno;
+
+        quit("randomise_rand48(): could not read from \"%s\": %s", fname, strerror(errno_saved));
+    }
+    fclose(f);
+
+    srand(seed_rand48);
+}
+
+/**
+ */
 static void shuffle(size_t n, size_t ids[])
 {
     size_t i;
 
-    srand48(SEED);
+    randomise_rand48();
 
     for (i = 0; i < n; ++i) {
         size_t ii = (size_t) ((double) n * drand48());
@@ -506,9 +553,6 @@ double* kd_getminmax(const kdtree* tree)
 
 #if defined(STANDALONE)
 
-#include <stdarg.h>
-#include <errno.h>
-
 #define BUFSIZE 1024
 #define NDIMMAX 256
 #define NALLOCSTART 1024
@@ -518,22 +562,6 @@ double* kd_getminmax(const kdtree* tree)
 #define REARTH 6371.0
 
 static int isll = 0;
-
-/**
- */
-static void quit(char* format, ...)
-{
-    va_list args;
-
-    fflush(stdout);
-
-    fprintf(stderr, "  error: ");
-    va_start(args, format);
-    vfprintf(stderr, format, args);
-    va_end(args);
-    fprintf(stderr, "\n\n");
-    exit(1);
-}
 
 /**
  */

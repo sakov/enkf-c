@@ -16,6 +16,8 @@
 
 #if !defined(_KDTREE_H_)
 
+extern long int seed_rand48;
+
 struct kdtree;
 typedef struct kdtree kdtree;
 
