@@ -1,3 +1,7 @@
+v. 1.96.2
+   PS 28032019
+   -- Tidied up log messages. Made sure that if enkf_verbose = 0 then no log
+      appears.
 v. 1.96.1
    PS 28032019
    -- Some minor shuffling of barriers in das_update(), probably with no

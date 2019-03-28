@@ -380,7 +380,8 @@ void das_calctransforms(dasystem* das)
          */
         for (jj = my_first_iteration; jj <= my_last_iteration; ++jj) {
             j = jiter[jpool[jj]];
-            printf("        j = %d (%d: %d: %.1f%%)\n", j, rank, jj, 100.0 * (double) (jj - my_first_iteration + 1) / (double) my_number_of_iterations);
+            if (enkf_verbose)
+                printf("        j = %d (%d: %d: %.1f%%)\n", j, rank, jj, 100.0 * (double) (jj - my_first_iteration + 1) / (double) my_number_of_iterations);
             fflush(stdout);
 
             if (rank == 0)
@@ -802,8 +803,10 @@ void das_calctransforms(dasystem* das)
 #endif
 }
 
-/** Calculates transform for pointlogs. This is done separately from
- * das_calctransfroms() to avoid interpolation related problems.
+/** Calculates transforms for pointlogs. This is done separately from
+ * das_calctransfroms() to avoid interpolation related problems. At the moment
+ * the procedure cycles serially through the pointlogs, but it would be trivial
+ * to parallelise in needed.
  */
 void das_dopointlogs(dasystem* das)
 {
@@ -832,7 +835,7 @@ void das_dopointlogs(dasystem* das)
         double* sloc = NULL;
         double** G = NULL;
 
-        printf("    calculating transform for log point (%d, %d):", plog->i, plog->j);
+        enkf_printf("    calculating transform for log point (%d, %d):", plog->i, plog->j);
 #if defined(MINIMISE_ALLOC)
         obs_findlocal(obs, m, grid, plog->i, plog->j, &ploc, &lobs, &lcoeffs, NULL);
 #else
@@ -881,16 +884,16 @@ void das_dopointlogs(dasystem* das)
             } else if (das->mode == MODE_ENOI)
                 calc_w(das->nmem, ploc, G, sloc, w);
         }
-        printf(" %d obs\n", ploc);
+        enkf_printf(" %d obs\n", ploc);
 
-        printf("    writing the log for point (%d, %d) on grid \"%s\":", plog->i, plog->j, plog->gridname);
+        enkf_printf("    writing the log for point (%d, %d) on grid \"%s\":", plog->i, plog->j, plog->gridname);
         {
             float** depths = grid_getdepth(grid);
             float depth = (depths != NULL) ? depths[plog->j][plog->i] : NAN;
 
             plog_write(das, p, depth, das->alpha, ploc, lobs, lcoeffs, sloc, (ploc == 0) ? NULL : Sloc[0], (das->mode == MODE_ENKF) ? X5[0] : w);
         }
-        printf("\n");
+        enkf_printf("\n");
 
         if (ploc > 0) {
             free(G);

@@ -1325,8 +1325,10 @@ void das_update(dasystem* das)
                             ncw_def_var_as(ncid, varname_src, varname_dst);
                         }
                         ncw_close(ncid);
-                        printf(".");
-                        fflush(stdout);
+                        if (enkf_verbose) {
+                            printf(".");
+                            fflush(stdout);
+                        }
                     }
                 }
             } else {
@@ -1362,8 +1364,10 @@ void das_update(dasystem* das)
                             ncw_def_deflate(ncid_a, 0, 1, das->nccompression);
                         ncw_close(ncid_a);
                         ncw_close(ncid_f);
-                        printf(".");
-                        fflush(stdout);
+                        if (enkf_verbose) {
+                            printf(".");
+                            fflush(stdout);
+                        }
                     }
                 }
             }
@@ -1396,8 +1400,10 @@ void das_update(dasystem* das)
                             ncw_def_var_as(ncid, varname_src, varname_dst);
                         }
                         ncw_close(ncid);
-                        printf(".");
-                        fflush(stdout);
+                        if (enkf_verbose) {
+                            printf(".");
+                            fflush(stdout);
+                        }
                     }
                 } else {
                     for (i = 0; i < nvar; ++i) {
@@ -1431,8 +1437,10 @@ void das_update(dasystem* das)
                             ncw_def_deflate(ncid_a, 0, 1, das->nccompression);
                         ncw_close(ncid_a);
                         ncw_close(ncid_f);
-                        printf(".");
-                        fflush(stdout);
+                        if (enkf_verbose) {
+                            printf(".");
+                            fflush(stdout);
+                        }
                     }
                 }
 
@@ -1481,8 +1489,10 @@ void das_update(dasystem* das)
             field* f = &fields[i];
             char fname[MAXSTRLEN];
 
-            printf("      %-8s %-3d (%d: %d: %.1f%%)\n", f->varname, f->level, rank, i, 100.0 * (double) (i - my_first_iteration + 1) / (double) (my_last_iteration - my_first_iteration + 1));
-            fflush(stdout);
+            if (enkf_verbose) {
+                printf("      %-8s %-3d (%d: %d: %.1f%%)\n", f->varname, f->level, rank, i, 100.0 * (double) (i - my_first_iteration + 1) / (double) (my_last_iteration - my_first_iteration + 1));
+                fflush(stdout);
+            }
 
             for (e = 0; e < das->nmem; ++e) {
                 model_getmemberfname(m, das->ensdir, f->varname, e + 1, fname);

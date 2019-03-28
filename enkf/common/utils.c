@@ -119,8 +119,10 @@ void enkf_init(int* argc, char*** argv)
     if (*argc > 1 && nprocesses > 1) {
         enkf_printf("  MPI: initialised %d process(es)\n", nprocesses);
         MPI_Barrier(MPI_COMM_WORLD);
-        printf("  MPI: rank = %d, PID = %d\n", rank, getpid());
-        fflush(NULL);
+        if (enkf_verbose) {
+            printf("  MPI: rank = %d, PID = %d\n", rank, getpid());
+            fflush(NULL);
+        }
     }
     MPI_Barrier(MPI_COMM_WORLD);
 
@@ -202,7 +204,7 @@ void enkf_printtime(const char offset[])
     time_t t;
     struct tm tm;
 
-    if (rank != 0)
+    if (rank != 0 || !enkf_verbose)
         return;
 
     t = time(NULL);
