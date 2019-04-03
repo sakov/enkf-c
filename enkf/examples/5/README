@@ -7,6 +7,10 @@ old ones.
 A similar outcome can often be achieved with the option
 "--no-superobing-across-instruments" in PREP.
 
+Another possible setting of this example is to add "STATSONLY = 1" to the
+section for SST2 in obstypes.prm. In this case the Windsat observations will not
+be assimilated, but used for observation statistics only.
+
 PREREQUISITES
 
 Set up example 1 as described in ../1/README.

@@ -1,10 +1,10 @@
   MPI: initialised 2 process(es)
-  MPI: rank = 1, PID = 7678
-  MPI: rank = 0, PID = 7677
-  running UPDATE for EnKF-C version 1.83.0:
+  MPI: rank = 0, PID = 27619
+  MPI: rank = 1, PID = 27621
+  running UPDATE for EnKF-C version 1.97.0:
     command = "./enkf_update --no-fields-write pointlogs.prm"
     dir = "/home/pavel/src/enkf-c/trunk/enkf/examples/1"
-  2018-06-29 20:34:49
+  2019-04-03 11:40:18
   reading system specs from "pointlogs.prm":
     MODE = EnKF
     SCHEME = DEnKF
@@ -23,8 +23,8 @@
       LOCWEIGHT =  1
     STRIDE = 3
     FIELDBUFFERSIZE = 4
-    REGION Global: x = [0.0, 360.0], y = [-90.0, 90.0], z intervals = 
-    POINTLOG 30 50
+    REGION Global: x = [0.0, 360.0], y = [-90.0, 90.0]
+    POINTLOG 30 50 t-grid
     POINTLOG 50 50
     POINTLOG 70 50
     SOBSTRIDE = 1
@@ -34,6 +34,7 @@
       enkf_exitaction  = [SEGFAULT]
       enkf_obstype     = [VALUE]
     compile flags:
+      NCW_SKIPSINGLE = [-]
   update specs:
     do model fields  = [-]
     do spread        = [-]
@@ -41,6 +42,7 @@
   initialising the system:
     grid prm info:
       NAME = "t-grid"
+      DOMAIN = Default
       DATA = "conf/grid_spec.nc"
       MAPTYPE = "B"
       VTYPE = "z"
@@ -59,49 +61,31 @@
       longitude range = [0.000, 360.000]
       v type = Z
       v dir = FROMSURF
-    model info:
-      name = Tasman
-      5 variables:
-        eta_t:
-          grid = "t-grid"
-          inflation = 1.100 1.00
-        temp:
-          grid = "t-grid"
-          inflation = 1.100 1.00
-        salt:
-          grid = "t-grid"
-          inflation = 1.100 1.00
-        u:
-          grid = "t-grid"
-          inflation = 1.100 1.00
-        v:
-          grid = "t-grid"
-          inflation = 1.100 1.00
-      0 modeldata:
-  updating the ensemble:
+  setting the ensemble size:
     96 members
+  updating the ensemble:
     defining state variables in point logs:
     processing fields for t-grid:
-      2018-06-29 20:34:49
+      2019-04-03 11:40:18
       9 fields
       distributing iterations:
         2 processes get 5 or 4 iterations
-      u        0   (1: 5: 25.0%)
       eta_t    0   (0: 0: 20.0%)
-      temp     0   (0: 1: 40.0%)
+      u        0   (1: 5: 25.0%)
       u        1   (1: 6: 50.0%)
-      temp     1   (0: 2: 60.0%)
+      temp     0   (0: 1: 40.0%)
       v        0   (1: 7: 75.0%)
-      salt     0   (0: 3: 80.0%)
+      temp     1   (0: 2: 60.0%)
       v        1   (1: 8: 100.0%)
+      salt     0   (0: 3: 80.0%)
       salt     1   (0: 4: 100.0%)
       (skip writing the fields)
-  2018-06-29 20:34:49
+  2019-04-03 11:40:19
   assembling state variables in point logs:
     distributing iterations:
       2 processes get 2 or 1 iterations
     deleting tiles:
       distributing iterations:
         2 processes get 5 or 4 iterations
-  2018-06-29 20:34:49
+  2019-04-03 11:40:19
   finished

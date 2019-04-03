@@ -54,6 +54,7 @@ void obs_addtype(observations* obs, obstype* src)
     ot->id = obs->nobstypes;
     ot->name = strdup(src->name);
     ot->issurface = src->issurface;
+    ot->statsonly = src->statsonly;
     ot->nvar = src->nvar;
     ot->varnames = malloc(src->nvar * sizeof(char*));
     for (i = 0; i < src->nvar; ++i)
@@ -1375,6 +1376,9 @@ void obs_createkdtrees(observations* obs, model* m)
 #endif
         int i;
 
+        if (ot->statsonly)
+            continue;
+
         obs_find_bytype(obs, otid, &nobs, &obsids);
         if (nobs == 0)
             continue;
@@ -1462,7 +1466,7 @@ void obs_findlocal(observations* obs, model* m, grid* g, int icoord, int jcoord,
         size_t id;
         int iloc;
 
-        if (ot->nobs == 0)
+        if (ot->nobs == 0 || ot->statsonly)
             continue;
 
         if (ot->ndomains > 0) {

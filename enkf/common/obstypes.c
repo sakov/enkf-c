@@ -38,11 +38,11 @@ static void obstype_new(obstype* type, int i, char* name)
 {
     type->id = i;
     type->issurface = -1;
+    type->statsonly = 0;
     type->name = strdup(name);
     type->nvar = 0;
     type->varnames = NULL;
     type->alias = NULL;
-    type->issurface = -1;
     type->offset_fname = NULL;
     type->offset_varname = NULL;
     type->mld_varname = NULL;
@@ -120,6 +120,8 @@ static void obstype_print(obstype* type)
         enkf_printf("\n");
     }
     enkf_printf("    ISSURFACE = %d\n", (type->issurface) ? 1 : 0);
+    if (type->statsonly)
+        enkf_printf("    STATSONLY = 1\n");
     enkf_printf("      VAR =");
     for (i = 0; i < type->nvar; ++i)
         enkf_printf(" %s", type->varnames[i]);
@@ -205,6 +207,11 @@ void obstypes_read(enkfprm* prm, char fname[], int* n, obstype** types)
             if (now->issurface >= 0)
                 enkf_quit("%s, l.%d: ISSURFACE already specified", fname, line);
             if (!str2bool(token, &now->issurface))
+                enkf_quit("%s, l.%d: could not convert \"%s\" to boolean", fname, line, token);
+        } else if (strcasecmp(token, "STATSONLY") == 0) {
+            if ((token = strtok(NULL, seps)) == NULL)
+                enkf_quit("%s, l.%d: STATSONLY not specified", fname, line);
+            if (!str2bool(token, &now->statsonly))
                 enkf_quit("%s, l.%d: could not convert \"%s\" to boolean", fname, line, token);
         } else if (strcasecmp(token, "VAR") == 0) {
             if ((token = strtok(NULL, seps)) == NULL)
@@ -381,7 +388,7 @@ void obstypes_read(enkfprm* prm, char fname[], int* n, obstype** types)
             }
             if (now->ndomains == 0)
                 enkf_quit("%s, l.%d: DOMAINS not specified", fname, line);
-       } else if (strcasecmp(token, "SOBSTRIDE") == 0) {
+        } else if (strcasecmp(token, "SOBSTRIDE") == 0) {
             if ((token = strtok(NULL, seps)) == NULL)
                 enkf_quit("%s, l.%d: SOBSTRIDE not specified", fname, line);
             if (now->sob_stride != 0)
@@ -455,6 +462,7 @@ void obstypes_describeprm(void)
     enkf_printf("    NAME        = <name>\n");
     enkf_printf("  [ DOMAINS     = <domain name> ... ]\n");
     enkf_printf("    ISSURFACE   = {0 | 1}\n");
+    enkf_printf("  [ STATSONLY   = {0* | 1} ]\n");
     enkf_printf("    VAR         = <model variable name> ...\n");
     enkf_printf("  [ ALIAS       = <variable name used in file names> ]  (VAR*)\n");
     enkf_printf("  [ OFFSET      = <file name> <variable name> ]         (none*)\n");

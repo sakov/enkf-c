@@ -81,6 +81,9 @@ void plog_write(dasystem* das, int id, float depth, double alpha, int p, int* lo
         for (ot = 0; ot < obs->nobstypes; ++ot) {
             char attname[NC_MAX_NAME];
 
+            if (obs->obstypes[ot].statsonly)
+                continue;
+
             ncw_put_att_int(ncid, vid_type, obs->obstypes[ot].name, 1, &ot);
             snprintf(attname, NC_MAX_NAME, "RFACTOR_%s", obs->obstypes[ot].name);
             ncw_put_att_double(ncid, vid_type, attname, 1, &obs->obstypes[ot].rfactor);

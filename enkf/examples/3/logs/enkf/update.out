@@ -1,10 +1,10 @@
+  MPI: rank = 1, PID = 28569
   MPI: initialised 2 process(es)
-  MPI: rank = 1, PID = 8828
-  MPI: rank = 0, PID = 8827
-  running UPDATE for EnKF-C version 1.83.0:
+  MPI: rank = 0, PID = 28567
+  running UPDATE for EnKF-C version 1.97.0:
     command = "./enkf_update --calculate-spread --write-inflation enkf.prm"
     dir = "/home/pavel/src/enkf-c/trunk/enkf/examples/3"
-  2018-06-29 20:58:46
+  2019-04-03 11:56:09
   reading system specs from "enkf.prm":
     MODE = EnKF
     SCHEME = DEnKF
@@ -23,7 +23,7 @@
       LOCWEIGHT =  1
     STRIDE = 3
     FIELDBUFFERSIZE = 4
-    REGION Global: x = [0.0, 360.0], y = [-90.0, 90.0], z intervals = 
+    REGION Global: x = [0.0, 360.0], y = [-90.0, 90.0]
     POINTLOG 30 50
     SOBSTRIDE = 1
     NCFORMAT = 64BIT
@@ -32,6 +32,7 @@
       enkf_exitaction  = [SEGFAULT]
       enkf_obstype     = [VALUE]
     compile flags:
+      NCW_SKIPSINGLE = [-]
   update specs:
     do model fields  = [+]
     do spread        = [+]
@@ -40,6 +41,7 @@
   initialising the system:
     grid prm info:
       NAME = "t-grid-full"
+      DOMAIN = Default
       DATA = "conf3/grid_spec.nc"
       MAPTYPE = "B"
       VTYPE = "z"
@@ -58,49 +60,31 @@
       longitude range = [0.000, 360.000]
       v type = Z
       v dir = FROMSURF
-    model info:
-      name = Tasman
-      5 variables:
-        eta_t:
-          grid = "t-grid-full"
-          inflation = 1.100 1.00
-        temp:
-          grid = "t-grid-full"
-          inflation = 1.100 1.00
-        salt:
-          grid = "t-grid-full"
-          inflation = 1.100 1.00
-        u:
-          grid = "t-grid-full"
-          inflation = 1.100 1.00
-        v:
-          grid = "t-grid-full"
-          inflation = 1.100 1.00
-      0 modeldata:
-  updating the ensemble:
+  setting the ensemble size:
     96 members
+  updating the ensemble:
     allocating disk space for spread:
     allocating disk space for inflation:
     defining state variables in point logs:
     distributing iterations:
       2 processes get 48 iterations each
-    2018-06-29 20:58:46
+    2019-04-03 11:56:09
     allocating disk space for analysis:................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................
     processing fields for t-grid-full:
-      2018-06-29 20:58:46
+      2019-04-03 11:56:09
       9 fields
       distributing iterations:
         2 processes get 5 or 4 iterations
-      eta_t    0   (0: 0: 20.0%)
       u        0   (1: 5: 25.0%)
-      temp     0   (0: 1: 40.0%)
+      eta_t    0   (0: 0: 20.0%)
       u        1   (1: 6: 50.0%)
-      temp     1   (0: 2: 60.0%)
+      temp     0   (0: 1: 40.0%)
       v        0   (1: 7: 75.0%)
+      temp     1   (0: 2: 60.0%)
       v        1   (1: 8: 100.0%)
       salt     0   (0: 3: 80.0%)
       salt     1   (0: 4: 100.0%)
-  2018-06-29 20:58:47
+  2019-04-03 11:56:11
   assembling analysis:
     distributing iterations:
       2 processes get 48 iterations each
@@ -109,26 +93,26 @@
     salt:................................................
     u:................................................
     v:................................................
-  2018-06-29 20:58:47
+  2019-04-03 11:56:11
   assembling spread:
     eta_t:.
     temp:..
     salt:..
     u:..
     v:..
-  2018-06-29 20:58:47
+  2019-04-03 11:56:11
   assembling inflation:
     eta_t:.
     temp:..
     salt:..
     u:..
     v:..
-  2018-06-29 20:58:47
+  2019-04-03 11:56:11
   assembling state variables in point logs:
     distributing iterations:
       2 processes get 1 or 0 iterations
     deleting tiles:
       distributing iterations:
         2 processes get 5 or 4 iterations
-  2018-06-29 20:58:47
+  2019-04-03 11:56:11
   finished

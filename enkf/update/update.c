@@ -1474,7 +1474,7 @@ void das_update(dasystem* das)
 
         distribute_iterations(0, nfields - 1, nprocesses, rank, "      ");
         enkf_flush();
- 
+
         fieldbuffer = malloc(das->fieldbufsize * sizeof(void*));
         if (das->mode == MODE_ENKF) {
             for (i = 0; i < das->fieldbufsize; ++i)

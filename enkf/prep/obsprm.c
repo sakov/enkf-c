@@ -77,11 +77,11 @@ void obsprm_read(char fname[], int* nmeta, obsmeta** meta)
             m->prmfname = strdup(fname);
             m->product = strdup(token);
             (*nmeta)++;
-	    continue;
-	}
+            continue;
+        }
 
-	if (m == NULL)
-	    enkf_quit("%s, l.%d: expected entry PRODUCT", fname, line);
+        if (m == NULL)
+            enkf_quit("%s, l.%d: expected entry PRODUCT", fname, line);
 
         if (strcasecmp(token, "READER") == 0) {
             if ((token = strtok(NULL, seps)) == NULL)

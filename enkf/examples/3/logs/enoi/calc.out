@@ -1,10 +1,10 @@
   MPI: initialised 2 process(es)
-  MPI: rank = 0, PID = 8857
-  MPI: rank = 1, PID = 8858
-  running CALC for EnKF-C version 1.83.0:
+  MPI: rank = 0, PID = 28601
+  MPI: rank = 1, PID = 28602
+  running CALC for EnKF-C version 1.97.0:
     command = "./enkf_calc enoi.prm"
     dir = "/home/pavel/src/enkf-c/trunk/enkf/examples/3"
-  2018-06-29 20:59:00
+  2019-04-03 11:56:36
   reading system specs from "enoi.prm":
     MODE = EnOI
     MODEL PRM = "model.prm"
@@ -23,7 +23,7 @@
       LOCWEIGHT =  1
     STRIDE = 3
     FIELDBUFFERSIZE = 4
-    REGION Global: x = [0.0, 360.0], y = [-90.0, 90.0], z intervals = 
+    REGION Global: x = [0.0, 360.0], y = [-90.0, 90.0]
     POINTLOG 30 50
     SOBSTRIDE = 1
     NCFORMAT = 64BIT
@@ -37,6 +37,7 @@
       SHUFFLE_ROWS     = [-]
       HE_VIAFILE       = [-]
       HE_VIASHMEM      = [+]
+      MINIMISE_ALLOC   = [-]
       OBS_SHUFFLE      = [-]
       GRIDNODES_WRITE  = [-]
       INTERNAL_QSORT_R = [-]
@@ -90,6 +91,7 @@
       RFACTOR = 4
     grid prm info:
       NAME = "t-grid-full"
+      DOMAIN = Default
       DATA = "conf3/grid_spec.nc"
       MAPTYPE = "B"
       VTYPE = "z"
@@ -108,30 +110,14 @@
       longitude range = [0.000, 360.000]
       v type = Z
       v dir = FROMSURF
-    model info:
-      name = Tasman
-      5 variables:
-        eta_t:
-          grid = "t-grid-full"
-          inflation = 1.000 1.00
-        temp:
-          grid = "t-grid-full"
-          inflation = 1.000 1.00
-        salt:
-          grid = "t-grid-full"
-          inflation = 1.000 1.00
-        u:
-          grid = "t-grid-full"
-          inflation = 1.000 1.00
-        v:
-          grid = "t-grid-full"
-          inflation = 1.000 1.00
-      0 modeldata:
+  setting the ensemble size:
+    144 members
   reading observations from "observations.nc":
     2919 observations
+    allocating 350280 bytes for array of observations
   calculating ensemble observations:
-  2018-06-29 20:59:00
-    ensemble size = 144
+  2019-04-03 11:56:36
+    allocating 3362688 bytes for HE array:
     distributing iterations:
       2 processes get 72 iterations each
     SLA +........................................................................
@@ -139,7 +125,7 @@
     TEM +........................................................................
     SAL +........................................................................
   adding forecast innovations and spread to "observations.nc":
-  2018-06-29 20:59:00
+  2019-04-03 11:56:36
   moderating observations:
     observations substantially modified:
       SLA          0 (0.0%)
@@ -149,7 +135,8 @@
       total        0 (0.0%)
   writing modified obs errors to "observations.nc":
   calculating transforms:
-  2018-06-29 20:59:00
+  2019-04-03 11:56:36
+        j = 3 (1: 17: 5.9%)
     creating kd-trees for observations:
     calculating transforms for t-grid-full:
     creating empty file "w.nc":
@@ -157,11 +144,10 @@
         2 processes get 17 iterations each
       main cycle for t-grid-full (34 x 34 local analyses):
         j = 0 (0: 0: 5.9%)
-        j = 3 (1: 17: 5.9%)
-        j = 9 (1: 18: 11.8%)
         j = 6 (0: 1: 11.8%)
-        j = 15 (1: 19: 17.6%)
+        j = 9 (1: 18: 11.8%)
         j = 12 (0: 2: 17.6%)
+        j = 15 (1: 19: 17.6%)
         j = 21 (1: 20: 23.5%)
         j = 18 (0: 3: 23.5%)
         j = 27 (1: 21: 29.4%)
@@ -194,33 +180,33 @@
     writing stats to "enkf_diag.nc":
     summary stats on t-grid-full:
       # of local analyses = 1156
-      average # of local obs = 283.7
-      # of inversions in obs space = 252
-      # of inversions in ens space = 837
+      average # of local obs = 294.1
+      # of inversions in obs space = 277
+      # of inversions in ens space = 879
   writing point logs:
     calculating transform for log point (30, 50): 509 obs
     writing the log for point (30, 50) on grid "t-grid-full":
   calculating analysed observations:
-  2018-06-29 20:59:08
+  2019-04-03 11:56:44
     sorting obs by ij:
-    2018-06-29 20:59:08
+    2019-04-03 11:56:44
     updating Hx:
     distributing iterations:
       2 processes get 1460 or 1459 iterations
-    2018-06-29 20:59:08
+    2019-04-03 11:56:44
   adding analysis innovations and spread to "observations.nc":
   printing observation statistics:
     region obs.type   # obs.  |for.inn.| |an.inn.|   for.inn.   an.inn.  for.spread  an.spread
     ------------------------------------------------------------------------------------------
     Global
-           SLA           384    0.072      0.028      0.027      0.001      0.026      0.026  
-             j1          162    0.083      0.025      0.045      0.002      0.029      0.029  
+           SLA           384    0.072      0.027      0.027      0.001      0.026      0.026  
+             j1          162    0.083      0.023      0.045      0.001      0.029      0.029  
              n1          211    0.062      0.031      0.009      0.000      0.023      0.023  
              N/A          11    0.102      0.015      0.102      0.005      0.029      0.029  
-           SST          2529    0.462      0.185     -0.256     -0.016      0.428      0.428  
-             AVHRR      1692    0.472      0.165     -0.227     -0.010      0.436      0.436  
-             WindSat     593    0.461      0.266     -0.325     -0.032      0.403      0.403  
-             N/A         244    0.391      0.126     -0.288     -0.022      0.432      0.432  
+           SST          2529    0.462      0.179     -0.256     -0.012      0.428      0.428  
+             AVHRR      1692    0.472      0.159     -0.227     -0.005      0.436      0.436  
+             WindSat     593    0.461      0.263     -0.325     -0.029      0.403      0.403  
+             N/A         244    0.391      0.118     -0.288     -0.019      0.432      0.432  
            TEM             3    0.801      0.453      0.801      0.415      0.304      0.304  
              ARGO          3    0.801      0.453      0.801      0.415      0.304      0.304  
              0-50m         0     -nan       -nan       -nan       -nan       -nan       -nan  
@@ -231,5 +217,5 @@
              0-50m         0     -nan       -nan       -nan       -nan       -nan       -nan  
              50-500m       3    0.111      0.077      0.072      0.033      0.026      0.026  
              500-9999m     0     -nan       -nan       -nan       -nan       -nan       -nan  
-  2018-06-29 20:59:08
+  2019-04-03 11:56:44
   finished

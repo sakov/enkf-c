@@ -1,7 +1,7 @@
-  running PREP for EnKF-C version 1.91.4:
+  running PREP for EnKF-C version 1.97.0:
     command = "./enkf_prep enoi.prm"
     dir = "/home/pavel/src/enkf-c/trunk/enkf/examples/4"
-  2018-12-05 14:55:20
+  2019-04-03 11:58:19
   reading prep specs from "enoi.prm":
     MODE = EnOI
     MODEL PRM = "model.prm"
@@ -166,85 +166,70 @@
   reading observations:
     PRODUCT = RADS, TYPE = SLA, reader = standard2
       reading obs/RADS-IB/y2007/m12/e2_d19.nc:
-        MINDEPTH = 200
         nobs = 5394
         error_std = 0.05
         # good obs = 0
       reading obs/RADS-IB/y2007/m12/j1_d19.nc:
-        MINDEPTH = 200
         nobs = 50386
         error_std = 0.03
         # good obs = 18
       reading obs/RADS-IB/y2007/m12/n1_d19.nc:
-        MINDEPTH = 200
         nobs = 40491
         error_std = 0.05
         # good obs = 233
       reading obs/RADS-IB/y2007/m12/e2_d20.nc:
-        MINDEPTH = 200
         nobs = 6177
         error_std = 0.05
         # good obs = 0
       reading obs/RADS-IB/y2007/m12/j1_d20.nc:
-        MINDEPTH = 200
         nobs = 50153
         error_std = 0.03
         # good obs = 0
       reading obs/RADS-IB/y2007/m12/n1_d20.nc:
-        MINDEPTH = 200
         nobs = 39486
         error_std = 0.05
         # good obs = 0
       reading obs/RADS-IB/y2007/m12/e2_d21.nc:
-        MINDEPTH = 200
         nobs = 5364
         error_std = 0.05
         # good obs = 0
       reading obs/RADS-IB/y2007/m12/j1_d21.nc:
-        MINDEPTH = 200
         nobs = 51928
         error_std = 0.03
         # good obs = 345
       reading obs/RADS-IB/y2007/m12/n1_d21.nc:
-        MINDEPTH = 200
         nobs = 39512
         error_std = 0.05
         # good obs = 22
       reading obs/RADS-IB/y2007/m12/e2_d22.nc:
-        MINDEPTH = 200
         nobs = 5200
         error_std = 0.05
         # good obs = 0
       reading obs/RADS-IB/y2007/m12/j1_d22.nc:
-        MINDEPTH = 200
         nobs = 51022
         error_std = 0.03
         # good obs = 68
       reading obs/RADS-IB/y2007/m12/n1_d22.nc:
-        MINDEPTH = 200
         nobs = 41034
         error_std = 0.05
         # good obs = 295
       reading obs/RADS-IB/y2007/m12/e2_d23.nc:
-        MINDEPTH = 200
         nobs = 6030
         error_std = 0.05
         # good obs = 0
       reading obs/RADS-IB/y2007/m12/j1_d23.nc:
-        MINDEPTH = 200
         nobs = 49922
         error_std = 0.03
         # good obs = 0
       reading obs/RADS-IB/y2007/m12/n1_d23.nc:
-        MINDEPTH = 200
         nobs = 38946
         error_std = 0.05
         # good obs = 0
       id = 0 - 980
       total 981 observations
       981 valid observations
-      min date = -4.000
-      max date = -1.000
+      min day = -4.000
+      max day = -1.000
     PRODUCT = NAVO, TYPE = SST, reader = standard
       reading obs/NAVO/navo_20071219.nc:
         ADDBIAS = NO
@@ -269,8 +254,8 @@
       id = 981 - 8061
       total 7081 observations
       7081 valid observations
-      min date = -4.039
-      max date = 0.453
+      min day = -4.039
+      max day = 0.453
     PRODUCT = WindSat, TYPE = SST, reader = standard
       reading obs/WINDSAT/windsat_20071219.nc:
         nobs = 320738
@@ -281,8 +266,8 @@
       id = 8062 - 9229
       total 1168 observations
       1168 valid observations
-      min date = -4.000
-      max date = -4.000
+      min day = -4.000
+      max day = -4.000
     PRODUCT = CARS, TYPE = TEM, reader = standard
       reading obs/TS-SEP-2011/y2007/m12/cars_temp_d19.nc:
         # profiles = 384
@@ -313,8 +298,8 @@
       total 288 observations
       184 valid observations
       adding error_std = 0.5:
-      min date = -4.000
-      max date = -2.000
+      min day = -4.000
+      max day = -2.000
     PRODUCT = CARS, TYPE = SAL, reader = standard
       reading obs/TS-SEP-2011/y2007/m12/cars_salt_d19.nc:
         # profiles = 366
@@ -345,8 +330,8 @@
       total 288 observations
       184 valid observations
       adding error_std = 0.1:
-      min date = -4.000
-      max date = -2.000
+      min day = -4.000
+      max day = -2.000
     compacting obs:
   writing observations to "observations-orig.nc":
   superobing:
@@ -354,7 +339,7 @@
   writing superobservations to "observations.nc":
   reading super-observations from disk:
     3813 observations
-    allocating 427056 bytes for array of observations
+    allocating 457560 bytes for array of observations
   checking for superobs on land:
     all good
   printing observation summary:
@@ -365,5 +350,5 @@
     TEM     184      104      104      0        0        0        0        0        0        0        7       
     SAL     184      104      104      0        0        0        0        0        0        0        7       
     total   9598     208      208      0        0        0        0        0        0        0        3813    
-  2018-12-05 14:55:21
+  2019-04-03 11:58:19
   finished

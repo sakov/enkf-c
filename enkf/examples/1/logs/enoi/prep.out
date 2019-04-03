@@ -1,7 +1,7 @@
-  running PREP for EnKF-C version 1.83.0:
+  running PREP for EnKF-C version 1.97.0:
     command = "./enkf_prep enoi.prm"
     dir = "/home/pavel/src/enkf-c/trunk/enkf/examples/1"
-  2018-06-29 20:32:46
+  2019-04-03 11:41:13
   reading prep specs from "enoi.prm":
     MODE = EnOI
     MODEL PRM = "model.prm"
@@ -20,7 +20,7 @@
       LOCWEIGHT =  1
     STRIDE = 3
     FIELDBUFFERSIZE = 4
-    REGION Global: x = [0.0, 360.0], y = [-90.0, 90.0], z intervals = 
+    REGION Global: x = [0.0, 360.0], y = [-90.0, 90.0]
     POINTLOG 30 50
     SOBSTRIDE = 1
     NCFORMAT = 64BIT
@@ -78,6 +78,7 @@
   creating model and observations:
     grid prm info:
       NAME = "t-grid"
+      DOMAIN = Default
       DATA = "conf/grid_spec.nc"
       MAPTYPE = "B"
       VTYPE = "z"
@@ -96,25 +97,6 @@
       longitude range = [0.000, 360.000]
       v type = Z
       v dir = FROMSURF
-    model info:
-      name = Tasman
-      5 variables:
-        eta_t:
-          grid = "t-grid"
-          inflation = 1.000 1.00
-        temp:
-          grid = "t-grid"
-          inflation = 1.000 1.00
-        salt:
-          grid = "t-grid"
-          inflation = 1.000 1.00
-        u:
-          grid = "t-grid"
-          inflation = 1.000 1.00
-        v:
-          grid = "t-grid"
-          inflation = 1.000 1.00
-      0 modeldata:
   reading observation type specs from "obstypes.prm":
     NAME = SLA
     ISSURFACE = 1
@@ -164,85 +146,70 @@
   reading observations:
     PRODUCT = RADS, TYPE = SLA, reader = standard2
       reading obs/RADS-IB/y2007/m12/e2_d19.nc:
-        MINDEPTH = 200
         nobs = 5394
         error_std = 0.05
         # good obs = 0
       reading obs/RADS-IB/y2007/m12/j1_d19.nc:
-        MINDEPTH = 200
         nobs = 50386
         error_std = 0.03
         # good obs = 18
       reading obs/RADS-IB/y2007/m12/n1_d19.nc:
-        MINDEPTH = 200
         nobs = 40491
         error_std = 0.05
         # good obs = 233
       reading obs/RADS-IB/y2007/m12/e2_d20.nc:
-        MINDEPTH = 200
         nobs = 6177
         error_std = 0.05
         # good obs = 0
       reading obs/RADS-IB/y2007/m12/j1_d20.nc:
-        MINDEPTH = 200
         nobs = 50153
         error_std = 0.03
         # good obs = 0
       reading obs/RADS-IB/y2007/m12/n1_d20.nc:
-        MINDEPTH = 200
         nobs = 39486
         error_std = 0.05
         # good obs = 0
       reading obs/RADS-IB/y2007/m12/e2_d21.nc:
-        MINDEPTH = 200
         nobs = 5364
         error_std = 0.05
         # good obs = 0
       reading obs/RADS-IB/y2007/m12/j1_d21.nc:
-        MINDEPTH = 200
         nobs = 51928
         error_std = 0.03
         # good obs = 345
       reading obs/RADS-IB/y2007/m12/n1_d21.nc:
-        MINDEPTH = 200
         nobs = 39512
         error_std = 0.05
         # good obs = 22
       reading obs/RADS-IB/y2007/m12/e2_d22.nc:
-        MINDEPTH = 200
         nobs = 5200
         error_std = 0.05
         # good obs = 0
       reading obs/RADS-IB/y2007/m12/j1_d22.nc:
-        MINDEPTH = 200
         nobs = 51022
         error_std = 0.03
         # good obs = 68
       reading obs/RADS-IB/y2007/m12/n1_d22.nc:
-        MINDEPTH = 200
         nobs = 41034
         error_std = 0.05
         # good obs = 295
       reading obs/RADS-IB/y2007/m12/e2_d23.nc:
-        MINDEPTH = 200
         nobs = 6030
         error_std = 0.05
         # good obs = 0
       reading obs/RADS-IB/y2007/m12/j1_d23.nc:
-        MINDEPTH = 200
         nobs = 49922
         error_std = 0.03
         # good obs = 0
       reading obs/RADS-IB/y2007/m12/n1_d23.nc:
-        MINDEPTH = 200
         nobs = 38946
         error_std = 0.05
         # good obs = 0
       id = 0 - 980
       total 981 observations
       981 valid observations
-      min date = -4.000
-      max date = -1.000
+      min day = -4.000
+      max day = -1.000
     PRODUCT = NAVO, TYPE = SST, reader = standard
       reading obs/NAVO/navo_20071219.nc:
         ADDBIAS = NO
@@ -267,8 +234,8 @@
       id = 981 - 8061
       total 7081 observations
       7081 valid observations
-      min date = -4.039
-      max date = 0.453
+      min day = -4.039
+      max day = 0.453
     PRODUCT = WindSat, TYPE = SST, reader = standard
       reading obs/WINDSAT/windsat_20071219.nc:
         nobs = 320738
@@ -279,62 +246,72 @@
       id = 8062 - 9229
       total 1168 observations
       1168 valid observations
-      min date = -4.000
-      max date = -4.000
+      min day = -4.000
+      max day = -4.000
     PRODUCT = CARS, TYPE = TEM, reader = standard
       reading obs/TS-SEP-2011/y2007/m12/cars_temp_d19.nc:
         # profiles = 384
         # z levels = 191
+        # unique locations = 383
         # good obs = 176
       reading obs/TS-SEP-2011/y2007/m12/cars_temp_d20.nc:
         # profiles = 377
         # z levels = 191
+        # unique locations = 377
         # good obs = 56
       reading obs/TS-SEP-2011/y2007/m12/cars_temp_d21.nc:
         # profiles = 329
         # z levels = 191
+        # unique locations = 329
         # good obs = 56
       reading obs/TS-SEP-2011/y2007/m12/cars_temp_d22.nc:
         # profiles = 350
         # z levels = 191
+        # unique locations = 350
         # good obs = 0
       reading obs/TS-SEP-2011/y2007/m12/cars_temp_d23.nc:
         # profiles = 344
         # z levels = 191
+        # unique locations = 344
         # good obs = 0
       id = 9230 - 9517
       total 288 observations
       184 valid observations
       adding error_std = 0.5:
-      min date = -4.000
-      max date = -2.000
+      min day = -4.000
+      max day = -2.000
     PRODUCT = CARS, TYPE = SAL, reader = standard
       reading obs/TS-SEP-2011/y2007/m12/cars_salt_d19.nc:
         # profiles = 366
         # z levels = 191
+        # unique locations = 365
         # good obs = 176
       reading obs/TS-SEP-2011/y2007/m12/cars_salt_d20.nc:
         # profiles = 360
         # z levels = 191
+        # unique locations = 360
         # good obs = 56
       reading obs/TS-SEP-2011/y2007/m12/cars_salt_d21.nc:
         # profiles = 314
         # z levels = 191
+        # unique locations = 314
         # good obs = 56
       reading obs/TS-SEP-2011/y2007/m12/cars_salt_d22.nc:
         # profiles = 323
         # z levels = 191
+        # unique locations = 323
         # good obs = 0
       reading obs/TS-SEP-2011/y2007/m12/cars_salt_d23.nc:
         # profiles = 325
         # z levels = 191
+        # unique locations = 325
         # good obs = 0
       id = 9518 - 9805
       total 288 observations
       184 valid observations
       adding error_std = 0.1:
-      min date = -4.000
-      max date = -2.000
+      min day = -4.000
+      max day = -2.000
     compacting obs:
   writing observations to "observations-orig.nc":
   superobing:
@@ -342,15 +319,16 @@
   writing superobservations to "observations.nc":
   reading super-observations from disk:
     3813 observations
+    allocating 457560 bytes for array of observations
   checking for superobs on land:
     all good
-  printing observation statistics:
-    type    #used    #dropped #out_grd #out_obs #out_wnd #land    #shallow #badbatch#badvalue#superobs
-    --------------------------------------------------------------------------------------------------
-    SLA     981      0        0        0        0        0        0        0        0        645     
-    SST     8249     0        0        0        0        0        0        0        0        3154    
-    TEM     184      104      104      0        0        0        0        0        0        7       
-    SAL     184      104      104      0        0        0        0        0        0        7       
-    total   9598     208      208      0        0        0        0        0        0        3813    
-  2018-06-29 20:32:46
+  printing observation summary:
+    type    #used    #dropped #out_grd #out_obs #out_wnd #land    #shallow #badbatch#badvalue#thinned #superobs
+    -----------------------------------------------------------------------------------------------------------
+    SLA     981      0        0        0        0        0        0        0        0        0        645     
+    SST     8249     0        0        0        0        0        0        0        0        0        3154    
+    TEM     184      104      104      0        0        0        0        0        0        0        7       
+    SAL     184      104      104      0        0        0        0        0        0        0        7       
+    total   9598     208      208      0        0        0        0        0        0        0        3813    
+  2019-04-03 11:41:13
   finished

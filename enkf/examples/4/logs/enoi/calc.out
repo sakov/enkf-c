@@ -1,12 +1,10 @@
-sparse.7245hfi_wait_for_device: The /dev/hfi1_0 device failed to appear after 15.0 seconds: Connection timed out
-sparse.7246hfi_wait_for_device: The /dev/hfi1_0 device failed to appear after 15.0 seconds: Connection timed out
-  MPI: rank = 1, PID = 7246
   MPI: initialised 2 process(es)
-  MPI: rank = 0, PID = 7245
-  running CALC for EnKF-C version 1.91.4:
+  MPI: rank = 1, PID = 28716
+  MPI: rank = 0, PID = 28715
+  running CALC for EnKF-C version 1.97.0:
     command = "./enkf_calc enoi.prm"
     dir = "/home/pavel/src/enkf-c/trunk/enkf/examples/4"
-  2018-12-05 14:55:36
+  2019-04-03 11:58:19
   reading system specs from "enoi.prm":
     MODE = EnOI
     MODEL PRM = "model.prm"
@@ -136,9 +134,9 @@ sparse.7246hfi_wait_for_device: The /dev/hfi1_0 device failed to appear after 15
     144 members
   reading observations from "observations.nc":
     3813 observations
-    allocating 427056 bytes for array of observations
+    allocating 457560 bytes for array of observations
   calculating ensemble observations:
-  2018-12-05 14:55:36
+  2019-04-03 11:58:19
     allocating 4392576 bytes for HE array:
     distributing iterations:
       2 processes get 72 iterations each
@@ -147,7 +145,7 @@ sparse.7246hfi_wait_for_device: The /dev/hfi1_0 device failed to appear after 15
     TEM +........................................................................
     SAL +........................................................................
   adding forecast innovations and spread to "observations.nc":
-  2018-12-05 14:55:39
+  2019-04-03 11:58:20
   moderating observations:
     observations substantially modified:
       SLA          0 (0.0%)
@@ -157,7 +155,7 @@ sparse.7246hfi_wait_for_device: The /dev/hfi1_0 device failed to appear after 15
       total        0 (0.0%)
   writing modified obs errors to "observations.nc":
   calculating transforms:
-  2018-12-05 14:55:39
+  2019-04-03 11:58:20
     creating kd-trees for observations:
     calculating transforms for t-grid:
     creating empty file "w-0.nc":
@@ -184,8 +182,8 @@ sparse.7246hfi_wait_for_device: The /dev/hfi1_0 device failed to appear after 15
         j = 48 (0: 8: 52.9%)
         j = 57 (1: 26: 58.8%)
         j = 54 (0: 9: 58.8%)
-        j = 60 (0: 10: 64.7%)
         j = 63 (1: 27: 64.7%)
+        j = 60 (0: 10: 64.7%)
         j = 69 (1: 28: 70.6%)
         j = 66 (0: 11: 70.6%)
         j = 75 (1: 29: 76.5%)
@@ -224,24 +222,24 @@ sparse.7246hfi_wait_for_device: The /dev/hfi1_0 device failed to appear after 15
         j = 30 (0: 5: 35.3%)
         j = 39 (1: 23: 41.2%)
         j = 36 (0: 6: 41.2%)
-        j = 42 (0: 7: 47.1%)
         j = 45 (1: 24: 47.1%)
-        j = 48 (0: 8: 52.9%)
+        j = 42 (0: 7: 47.1%)
         j = 51 (1: 25: 52.9%)
+        j = 48 (0: 8: 52.9%)
         j = 57 (1: 26: 58.8%)
         j = 54 (0: 9: 58.8%)
         j = 63 (1: 27: 64.7%)
         j = 60 (0: 10: 64.7%)
-        j = 66 (0: 11: 70.6%)
         j = 69 (1: 28: 70.6%)
+        j = 66 (0: 11: 70.6%)
         j = 75 (1: 29: 76.5%)
         j = 72 (0: 12: 76.5%)
         j = 81 (1: 30: 82.4%)
         j = 78 (0: 13: 82.4%)
         j = 87 (1: 31: 88.2%)
         j = 84 (0: 14: 88.2%)
-        j = 90 (0: 15: 94.1%)
         j = 93 (1: 32: 94.1%)
+        j = 90 (0: 15: 94.1%)
         j = 99 (1: 33: 100.0%)
         j = 96 (0: 16: 100.0%)
     finished calculating transforms for c-grid
@@ -255,13 +253,13 @@ sparse.7246hfi_wait_for_device: The /dev/hfi1_0 device failed to appear after 15
     calculating transform for log point (30, 50): 533 obs
     writing the log for point (30, 50) on grid "t-grid":
   calculating analysed observations:
-  2018-12-05 14:55:59
+  2019-04-03 11:58:41
     sorting obs by ij:
-    2018-12-05 14:55:59
+    2019-04-03 11:58:41
     updating Hx:
     distributing iterations:
       2 processes get 1907 or 1906 iterations
-    2018-12-05 14:55:59
+    2019-04-03 11:58:41
   adding analysis innovations and spread to "observations.nc":
   printing observation statistics:
     region obs.type   # obs.  |for.inn.| |an.inn.|   for.inn.   an.inn.  for.spread  an.spread
@@ -285,5 +283,5 @@ sparse.7246hfi_wait_for_device: The /dev/hfi1_0 device failed to appear after 15
              0-50m         2    0.088      0.101      0.074      0.072      0.019      0.019  
              50-500m       5    0.072      0.067      0.047      0.040      0.025      0.025  
              500-9999m     0     -nan       -nan       -nan       -nan       -nan       -nan  
-  2018-12-05 14:55:59
+  2019-04-03 11:58:41
   finished

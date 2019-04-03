@@ -19,6 +19,7 @@ typedef struct {
     int id;
     char* name;
     int issurface;
+    int statsonly;
     int nvar;
     char** varnames;
     char* alias;                /* variable name used in file names */

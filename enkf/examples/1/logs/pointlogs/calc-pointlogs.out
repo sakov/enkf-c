@@ -1,10 +1,10 @@
   MPI: initialised 2 process(es)
-  MPI: rank = 0, PID = 7669
-  MPI: rank = 1, PID = 7670
-  running CALC for EnKF-C version 1.83.0:
+  MPI: rank = 1, PID = 27613
+  MPI: rank = 0, PID = 27611
+  running CALC for EnKF-C version 1.97.0:
     command = "./enkf_calc --point-logs-only pointlogs.prm"
     dir = "/home/pavel/src/enkf-c/trunk/enkf/examples/1"
-  2018-06-29 20:34:48
+  2019-04-03 11:40:18
   reading system specs from "pointlogs.prm":
     MODE = EnKF
     SCHEME = DEnKF
@@ -23,8 +23,8 @@
       LOCWEIGHT =  1
     STRIDE = 3
     FIELDBUFFERSIZE = 4
-    REGION Global: x = [0.0, 360.0], y = [-90.0, 90.0], z intervals = 
-    POINTLOG 30 50
+    REGION Global: x = [0.0, 360.0], y = [-90.0, 90.0]
+    POINTLOG 30 50 t-grid
     POINTLOG 50 50
     POINTLOG 70 50
     SOBSTRIDE = 1
@@ -39,6 +39,7 @@
       SHUFFLE_ROWS     = [-]
       HE_VIAFILE       = [-]
       HE_VIASHMEM      = [+]
+      MINIMISE_ALLOC   = [-]
       OBS_SHUFFLE      = [-]
       GRIDNODES_WRITE  = [-]
       INTERNAL_QSORT_R = [-]
@@ -92,6 +93,7 @@
       RFACTOR = 8
     grid prm info:
       NAME = "t-grid"
+      DOMAIN = Default
       DATA = "conf/grid_spec.nc"
       MAPTYPE = "B"
       VTYPE = "z"
@@ -110,30 +112,14 @@
       longitude range = [0.000, 360.000]
       v type = Z
       v dir = FROMSURF
-    model info:
-      name = Tasman
-      5 variables:
-        eta_t:
-          grid = "t-grid"
-          inflation = 1.100 1.00
-        temp:
-          grid = "t-grid"
-          inflation = 1.100 1.00
-        salt:
-          grid = "t-grid"
-          inflation = 1.100 1.00
-        u:
-          grid = "t-grid"
-          inflation = 1.100 1.00
-        v:
-          grid = "t-grid"
-          inflation = 1.100 1.00
-      0 modeldata:
+  setting the ensemble size:
+    96 members
   reading observations from "observations.nc":
     3813 observations
+    allocating 457560 bytes for array of observations
   calculating ensemble observations:
-  2018-06-29 20:34:48
-    ensemble size = 96
+  2019-04-03 11:40:18
+    allocating 2928384 bytes for HE array:
     distributing iterations:
       2 processes get 48 iterations each
     SLA ................................................
@@ -141,7 +127,7 @@
     TEM ................................................
     SAL ................................................
   adding forecast innovations and spread to "observations.nc":
-  2018-06-29 20:34:48
+  2019-04-03 11:40:18
     Hx_f already added to "observations.nc" (skipping)
   moderating observations:
     already done
@@ -152,5 +138,5 @@
     writing the log for point (50, 50) on grid "t-grid":
     calculating transform for log point (70, 50): 460 obs
     writing the log for point (70, 50) on grid "t-grid":
-  2018-06-29 20:34:48
+  2019-04-03 11:40:18
   finished
