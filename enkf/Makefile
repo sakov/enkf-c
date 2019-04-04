@@ -4,7 +4,7 @@
 # -DGRIDNODES_WRITE
 # -DINTERNAL_QSORT_R
 # -DNO_GRIDUTILS
-PREPCALC_FLAGS = -DNO_GRIDUTILS
+PREPCALC_FLAGS =
 
 # Select flags for CALC from the following list (default = none):
 #
