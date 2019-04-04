@@ -1,3 +1,6 @@
+v. 1.97.1
+   PS 04042019
+   -- Fixed a compilation defect in grid.c manifested in the case -DNO_GIDUTILS.
 v. 1.97.0
    PS 03042019
    -- Added an optional entry STATSONLY to obstypes parameter file.

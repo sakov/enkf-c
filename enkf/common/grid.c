@@ -1995,12 +1995,15 @@ kdtree* grid_gettree(grid* g)
 
             ll[0] = gxy->x[i];
             ll[1] = gxy->y[j];
-        } else if (g->htype == GRIDHTYPE_CURVILINEAR) {
+        }
+#if !defined(NO_GRIDUTILS)
+	else if (g->htype == GRIDHTYPE_CURVILINEAR) {
             gxy_curv* gxy = (gxy_curv*) g->gridnodes_xy;
 
             ll[0] = gridnodes_getx(gxy->gn)[j][i];
             ll[1] = gridnodes_gety(gxy->gn)[j][i];
         }
+#endif
         grid_tocartesian(g, ll, xyz);
         kd_insertnode(tree, xyz, ids[ii]);
     }
