@@ -1,6 +1,11 @@
+v. 1.97.2
+   PS 05042019
+   --Fixed a kdtree related compilation defect in grid.c and grid.h manifested on
+     Intel compilers. Thanks to Prasanth Divarkan for the report.
 v. 1.97.1
    PS 04042019
    -- Fixed a compilation defect in grid.c manifested in the case -DNO_GIDUTILS.
+      Thanks to Prasanth Divarkan for the report.
 v. 1.97.0
    PS 03042019
    -- Added an optional entry STATSONLY to obstypes parameter file.

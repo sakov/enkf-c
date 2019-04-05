@@ -1306,8 +1306,10 @@ void grid_destroy(grid* g)
         free(g->depth);
     if (g->nzints > 0)
         free(g->zints);
+#if defined(ENKF_CALC)
     if (g->nodetree != NULL)
         kd_destroy(g->nodetree);
+#endif
 
     free(g);
 }
@@ -1957,6 +1959,7 @@ char* grid_getdomainname(grid* g)
     return g->domainname;
 }
 
+#if defined(ENKF_CALC)
 /**
  */
 kdtree* grid_gettree(grid* g)
@@ -2011,3 +2014,4 @@ kdtree* grid_gettree(grid* g)
 
     return tree;
 }
+#endif
