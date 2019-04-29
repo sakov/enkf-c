@@ -131,13 +131,13 @@ void obs_superob(observations* obs, __compar_d_fn_t cmp_obs, observations** sobs
 void obs_find_bytype(observations* obs, int type, int* nobs, int** obsids);
 void obs_find_bytypeandtime(observations* obs, int type, int time, int* nobs, int** obsids);
 void obs_printob(observations* obs, int id);
-void obs_createkdtrees(observations* obs, model* m);
+void obs_createkdtrees(observations* obs);
 void obs_destroykdtrees(observations* obs);
 
 #if defined(MINIMISE_ALLOC)
-void obs_findlocal(observations* obs, model* m, grid* g, int i, int j, int* n, int** ids, double** lcoeffs, int* ploc_allocated);
+void obs_findlocal(observations* obs, double lon, double lat, char* dimainname, int* n, int** ids, double** lcoeffs, int* ploc_allocated);
 #else
-void obs_findlocal(observations* obs, model* m, grid* g, int i, int j, int* n, int** ids, double** lcoeffs);
+void obs_findlocal(observations* obs, double lon, double lat, char* domainname, int* n, int** ids, double** lcoeffs);
 #endif
 
 #define _OBSERVATIONS_H

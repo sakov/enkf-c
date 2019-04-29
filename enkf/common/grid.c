@@ -140,8 +140,6 @@ struct grid {
                                  * grids only */
 #endif
 
-    grid_tocartesian_fn tocartesian_fn;
-
     void* gridnodes_xy;         /* (the structure is defined by `htype') */
     double lonbase;             /* (lon range = [lonbase, lonbase + 360)] */
 
@@ -175,7 +173,6 @@ struct grid {
     zint* zints;
 
     char* domainname;
-    int domainid;
 
     kdtree* nodetree;
 };
@@ -287,13 +284,10 @@ static gxy_curv* gxy_curv_create(int nodetype, int ni, int nj, double** x, doubl
         nodes->gn = gridnodes_create2(ni, nj, NT_COR, x, y);
     else
         enkf_quit("unknown node type for horizontal curvilinear grid");
-#if defined(ENKF_PREP) || defined(ENKF_CALC)
     gridnodes_validate(nodes->gn);
     gridnodes_setmaptype(nodes->gn, maptype);
     nodes->gm = gridmap_build2(nodes->gn);
-#else
-    nodes->gm = NULL;
-#endif
+
     return nodes;
 }
 
@@ -1014,8 +1008,7 @@ grid* grid_create(void* p, int id)
 
     g->name = strdup(prm->name);
     g->id = id;
-    g->domainname = strdup(prm->domainname);
-    g->domainid = -1;           /* to be set */
+    g->domainname = strdup(prm->domainname);    /* ("Default" by default) */
     g->vtype = gridprm_getvtype(prm);
     if (prm->stride != 0)
         g->stride = prm->stride;
@@ -1893,20 +1886,6 @@ int grid_isperiodic_i(grid* g)
 
 /**
  */
-void grid_settocartesian_fn(grid* g, grid_tocartesian_fn fn)
-{
-    g->tocartesian_fn = fn;
-}
-
-/**
- */
-void grid_tocartesian(grid* g, double* in, double* out)
-{
-    g->tocartesian_fn(in, out);
-}
-
-/**
- */
 static void grids_addgrid(int* ngrid, void*** grids, void* g)
 {
     if (*ngrid % GRID_INC == 0)
@@ -1930,7 +1909,6 @@ void grids_create(char gprmfname[], int stride, int sob_stride, int* ngrid, void
         grid* g = NULL;
 
         g = grid_create(&gprm[i], i);
-        grid_settocartesian_fn(g, ll2xyz);
         grids_addgrid(ngrid, grids, g);
 
         if (grid_getstride(g) == 0)
@@ -2000,14 +1978,14 @@ kdtree* grid_gettree(grid* g)
             ll[1] = gxy->y[j];
         }
 #if !defined(NO_GRIDUTILS)
-	else if (g->htype == GRIDHTYPE_CURVILINEAR) {
+        else if (g->htype == GRIDHTYPE_CURVILINEAR) {
             gxy_curv* gxy = (gxy_curv*) g->gridnodes_xy;
 
             ll[0] = gridnodes_getx(gxy->gn)[j][i];
             ll[1] = gridnodes_gety(gxy->gn)[j][i];
         }
 #endif
-        grid_tocartesian(g, ll, xyz);
+        ll2xyz(ll, xyz);
         kd_insertnode(tree, xyz, ids[ii]);
     }
     g->nodetree = tree;

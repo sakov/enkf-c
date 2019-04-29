@@ -36,7 +36,7 @@
 
 \begin{document}
 
-\title{EnKF-C user guide\\{\normalsize version 1.97.0}}
+\title{EnKF-C user guide\\{\normalsize version 1.98.0}}
 
 \author{Pavel Sakov}
 \date{June 19, 2014 -- \today}
@@ -640,7 +640,7 @@ CALC calculates ensemble transforms for updating the forecast ensemble of model 
 Apart from this main mode of operation, CALC can also calculate forecast  innovations only or operate in a single observation experiment mode.
 
 UPDATE updates the ensemble (EnKF) or the background (EnOI) using transforms calculated by CALC.
-It also adds analysis information to the pointlog files, and can calculate and save the ensemble spread.
+It also adds forecast and analysis variables to the pointlog files, and can calculate and save the ensemble spread.
 
 The principle diagram of EnKF-C workflow is shown in Fig.~\ref{fig:calcupdate}.
 \begin{figure}
@@ -714,7 +714,7 @@ Its format is described by running \verb|enkf_prep|, \verb|enkf_calc| or \verb|e
     ...
   [ REGION          = <name> <lon1> <lon2> <lat1> <lat2>
     ...
-  [ POINTLOG        <i> <j> [grid name]]
+  [ POINTLOG        <lon> <lat> [grid name]]
     ...
   [ EXITACTION      = { BACKTRACE* | SEGFAULT } ]
   [ BADBATCHES      = <obstype> <max. bias> <max. mad> <min # obs.> ]
@@ -1401,15 +1401,16 @@ EnKF-C permits using multiple model grids, in which case the ensemble transforms
 These transforms are then used for updating of the model variables defined on the corresponding grids.
 
 \subsection{Domains}
+\label{sec:domains}
 
-By default, all ``local'' observations at a given grid node contribute to the corresponding ensemble transform.
+By default, all local observations at a given grid node contribute to the corresponding ensemble transform.
 Sometimes it is desirable to disconnect observations of certain type from contributing to transforms on some grids.
 For example, it may be desirable in climate systems to disregard observations of the sea surface height in updating the variables on atmospheric grids.
 The concept of ``domains'' introduced in v1.89.0 provides a mechanism for handling such situations within a single analysis.
 It works as follows.
 Each grid can be associated with a certain domain via the optional entry \verb|DOMAIN| in the grid parameter file.
 For example, in a climate system one can have domains ``Ocean'' and ``Atmosphere''.
-From another side, via entry \verb|DOMAINS| in the observation types parameter file one can list domains observations of this type are visible from.
+Then entry \verb|DOMAINS| in the observation types parameter file can list domains observations of this type are visible from.
 By default, observations of any type are visible from all grids.
 
 \subsection {``Multi-scale'' localisation}
@@ -1555,98 +1556,118 @@ Therefore the general advise is to avoid using this functionality except perhaps
 \section{Point logs}
 \label{sec:pointlogs}
 
-It is often desirable to investigate sensitivity of model variables to observations or, more generally,  analyse certain features of the DAS and their behaviour over time.
-In practice such analysis can be logistically complicated due to limitations on storage and/or access to it.
-Yet, it is usually feasible to save this information in a number of specified locations.
+It is often desirable to investigate the drivers of the analysis or, more generally, certain features of the DAS and their behaviour over time.
+In practice such investigations can be logistically complicated due to limitations on storage and/or access to it.
+Yet, it is usually feasible to save the model state and observations for a number of specified locations.
 
 EnKF-C provides capability of saving complete DA related information for specified horizontal locations in so called ``point logs''.
 The locations are specified in the main parameter file, e.g.:
 \begin{Verbatim}
-POINTLOG 94 134
-POINTLOG 78 111
-POINTLOG 57 51
-POINTLOG 86 191
+POINTLOG 94.3 134.1
+POINTLOG 78.39 111.7
 \end{Verbatim}
-Here the information will be saved for points with horizontal grid coordinates (94, 134), (78, 111), (67, 51), and (86, 191) in files \verb|pointlog_94,134.nc|, \verb|pointlog_78,111.nc|, and so on.
-By default the coordinates are defined on the first grid in the grid parameter file (sec.~\ref{sec:gridprm}); otherwhile the grid can be specified by entering the grid name as an additional parameter, .e.g:
+Here the information will be saved for points with geographic coordinates (94.3,134.1), (78.39, 111.7) in files \verb|pointlog_94.300,134.100.nc|, \verb|pointlog_78.390,111.700.nc|, and so on.
+By default the ensemble trsansforms and all forecast and analysis state variables existing at these locations are saved; however, if an optional grid name is specified as the third paramater of the \verb|POINTLOG| entry, e.g.
 \begin{Verbatim}
-POINTLOG 86 191 t-grid
+POINTLOG 94.3 134.1 t-grid
 \end{Verbatim}
+then only transforms and variables for this grid are saved.
 
-Following is an example of the header of the saved point log file in NetCDF format:
+Following is an example of point log file header (file \verb|pointlog_156.000,-32.000.nc| from example~4):
 \begin{Verbatim}[frame=single,fontsize=\footnotesize]
-netcdf pointlog_57\,51 {
+netcdf pointlog_156.000\,-32.000 {
 dimensions:
         m = 96 ;
-	p = 515 ;
-	nk-0 = 25 ;
-	nk-1 = 25 ;
-	nk-2 = 25 ;
+        p = 539 ;
+        p-0 = 539 ;
+        p-1 = 539 ;
+        nk-0 = 2 ;
+        nk-1 = 2 ;
 variables:
-	int obs_ids(p) ;
-	float lcoeffs(p) ;
-	float lon(p) ;
-	float lat(p) ;
-	float depth(p) ;
-	float obs_val(p) ;
-	float obs_std(p) ;
-	float obs_fi(p) ;
-	float obs_fj(p) ;
-	float obs_fk(p) ;
-	int obs_type(p) ;
-		obs_type:SLA = 0 ;
-		obs_type:RFACTOR_SLA = 2. ;
-		obs_type:LOCRAD_SLA = 200. ;
-		obs_type:SST = 1 ;
-		obs_type:RFACTOR_SST = 4. ;
-		obs_type:LOCRAD_SST = 200. ;
-		obs_type:TEM = 2 ;
-		obs_type:RFACTOR_TEM = 8. ;
-		obs_type:LOCRAD_TEM = 800. ;
-		obs_type:SAL = 3 ;
-		obs_type:RFACTOR_SAL = 8. ;
-		obs_type:LOCRAD_TEM = 800. ;
-	float obs_date(p) ;
-		obs_date:units = "days from 5875.5 days since 1990-01-01" ;
-	float s(p) ;
-	float S(m, p) ;
-	double X5(m, m) ;
-		X5:long_name = "ensemble transform calculated for this (i,j) location in grid-0 
-                   (rho-grid)" ;
-	float X5_actual(m, m) ;
-		X5_actual:long_name = "the actual (interpolated) ensemble transform used at this 
-                          (i,j) location in grid-0 (rho-grid)" ;
-	float zeta(m) ;
-	float zeta_an(m) ;
-                zeta_an:INFLATION = 1.1f, 0.5f ;
-	float temp(nk-0, m) ;
-	float temp_an(nk-0, m) ;
-                temp_an:INFLATION = 1.1f, 0.5f ;
-	float salt(nk-0, m) ;
-	float salt_an(nk-0, m) ;
-                salt_an:INFLATION = 1.1f, 0.5f ;
-	float u(nk-1, m) ;
-	float u_an(nk-1, m) ;
-                u_an:INFLATION = 1.1f, 0.5f ;
-	float v(nk-2, m) ;
-	float v_an(nk-2, m) ;
-                v_an:INFLATION = 1.1f, 0.5f ;
-	float ubar(m) ;
-	float ubar_an(m) ;
-                ubar_an:INFLATION = 1.1f, 0.5f ;
-	float vbar(m) ;
-	float vbar_an(m) ;
-                vbar_an:INFLATION = 1.1f, 0.5f ;
+        int obs_ids(p) ;
+        float lcoeffs(p) ;
+        float lon(p) ;
+        float lat(p) ;
+        float depth(p) ;
+        float obs_val(p) ;
+        float obs_estd(p) ;
+        float obs_fi(p) ;
+        float obs_fj(p) ;
+        float obs_fk(p) ;
+        int obs_type(p) ;
+                obs_type:SLA = 0 ;
+                obs_type:RFACTOR_SLA = 2. ;
+                obs_type:LOCRAD_SLA = 200. ;
+                obs_type:WEIGHT_SLA = 1. ;
+                obs_type:SST = 1 ;
+                obs_type:RFACTOR_SST = 4. ;
+                obs_type:LOCRAD_SST = 200. ;
+                obs_type:WEIGHT_SST = 1. ;
+                obs_type:TEM = 2 ;
+                obs_type:RFACTOR_TEM = 8. ;
+                obs_type:LOCRAD_TEM = 800. ;
+                obs_type:WEIGHT_TEM = 1. ;
+                obs_type:SAL = 3 ;
+                obs_type:RFACTOR_SAL = 8. ;
+                obs_type:LOCRAD_SAL = 800. ;
+                obs_type:WEIGHT_SAL = 1. ;
+        float obs_time(p) ;
+                obs_time:units = "days from days from 6565.5 days since 1990-01-01" ;
+        int grid-0 ;
+                grid-0:id = 0 ;
+                grid-0:NAME = "t-grid" ;
+                grid-0:DOMAIN = "Default" ;
+                grid-0:fi = 49.5 ;
+                grid-0:fj = 49.5 ;
+                grid-0:nk = 2 ;
+                grid-0:depth = 4642.25f ;
+        int grid-1 ;
+                grid-1:id = 1 ;
+                grid-1:NAME = "c-grid" ;
+                grid-1:DOMAIN = "Default" ;
+                grid-1:fi = 48.9999694824219 ;
+                grid-1:fj = 49.0000076293945 ;
+                grid-1:nk = 2 ;
+                grid-1:depth = NaNf ;
+        float s-0(p-0) ;
+        float S-0(m, p-0) ;
+        double X5-0(m, m) ;
+                X5-0:long_name = "ensemble transform calculated for location (fi,fj)=
+                                  (49.500,49.500) on grid 0 (\"t-grid\")" ;
+        float s-1(p-1) ;
+        float S-1(m, p-1) ;
+        double X5-1(m, m) ;
+                X5-1:long_name = "ensemble transform calculated for location (fi,fj)=
+                                  (49.000,49.000) on grid 1 (\"c-grid\")" ;
+        float eta_t(nk-0, m) ;
+                eta_t:INFLATION = 1.1f, 1.f ;
+        float eta_t_an(nk-0, m) ;
+        float temp(nk-0, m) ;
+                temp:INFLATION = 1.1f, 1.f ;
+        float temp_an(nk-0, m) ;
+        float salt(nk-0, m) ;
+                salt:INFLATION = 1.1f, 1.f ;
+        float salt_an(nk-0, m) ;
+        float u(nk-1, m) ;
+                u:INFLATION = 1.1f, 1.f ;
+        float u_an(nk-1, m) ;
+        float v(nk-1, m) ;
+                v:INFLATION = 1.1f, 1.f ;
+        float v_an(nk-1, m) ;
 
 // global attributes:
-		:date = "5875.5 days since 1990-01-01" ;
-		:i = 57 ;
-		:j = 51 ;
-		:lon = 151.75 ;
-		:lat = -39.849998 ;
-		:depth = 4632.623046875 ;
+                :version = "1.97.2" ;
+                :date = "days from 6565.5 days since 1990-01-01" ;
+                :lon = 156. ;
+                :lat = -32. ;
+                :ALPHA = 1. ;
+}
 \end{Verbatim}
+
 This data makes it possible to check DA algorithms by reproducing the ensemble transforms (for EnKF) or weights (for EnOI) calculated by EnKF-C from $\mb S$ and $\mb s$ according to section~\ref{sec:numerical}; restore observations from $\mb s$ by using the corresponding R-factors and localisation coefficients; to monitor the ensemble spread for each model variable; calculate inflation applied to the analysed anomalies; calculate impacts of particular observations; and so on.
+
+Note that in a multi-domain setting (sec.~\ref{sec:domains}) the number of local observations seen on a particular grid (e.g. \verb|p-0|) can be smaller than the total number of local observations $p$.
+In this case to get the local observations on this grid one needs to filter out observations of types defined on domains other than the domain the grid belongs to.
 
 \section{Use of innovation statistics for model validation}
 
@@ -1666,7 +1687,9 @@ An example of using this functionality is available by running \verb|make stats|
 
 It is possible to estimate and correct bias for a model variable with the EnKF by generating and using an ensemble of bias fields.
 These bias fields need to be subtracted from the corresponding observation forecasts.
-This is accomplished by specifying a secondary variable in the observation type entry \verb|VAR| and by passing the name of this variable to the corresponding observation functions, which need to take care for subtracting the bias from the model forecasts.
+This is accomplished by specifying a secondary variable in the observation type entry \verb|VAR| and by passing the name of this variable to the corresponding observation (H-) functions, which need to take care for subtracting the bias from the model forecasts.
+As of v1.98.0, there are two such H-functions: \verb|H_surf_biased()| identified by entry ``biased'' in observation types paramater file, and \verb|H_subsurf_wsurfbias()|, identified by entry ``wsurfbias''.
+(The latter applies surface bias field to the mixed layer.)
 
 Because bias fields are usually assumed to persist (not change) during propagation, one may need to make specific settings for their inflation to avoid their collapse (loss of spread) over time.
 Another possibility is to introduce a ``forgetting'' stochastic model for bias fields, for example:

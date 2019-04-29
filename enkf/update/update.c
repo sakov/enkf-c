@@ -312,21 +312,6 @@ static void das_updatefields(dasystem* das, int nfields, void** fieldbuffer, fie
                      * variations) 
                      */
 
-                    /*
-                     * ("f->id == 0" means "for the first field on this grid")
-                     */
-                    if (f->id == 0) {
-                        /*
-                         * write the actual (interpolated) transform matrix to
-                         * the pointlog for this (i,j) pair (if it exists)
-                         */
-                        unsigned short key[4] = { i, j, grid_getid(grid), 0 };
-                        pointlog* plog = NULL;
-
-                        if (das->nplogs > 0 && (plog = ht_find(das->ht_plogs, key)) != NULL)
-                            plog_writeactualtransform(das, plog->id, X5j[i]);
-                    }
-
                     for (e = 0; e < nmem; ++e)
                         v_f[e] = vvv[e][j][i];
 
@@ -597,22 +582,7 @@ static void das_updatebg(dasystem* das, int nfields, void** fieldbuffer, field f
                         continue;
                     }
 
-                    /*
-                     * ("f->id == 0" means "for the first field on this grid")
-                     */
-                    if (f->id == 0) {
-                        /*
-                         * write the actual (interpolated) weight vector to the
-                         * pointlog for this (i,j) pair (if it exists)
-                         */
-                        unsigned short key[4] = { i, j, grid_getid(grid), 0 };
-                        int id;
-
-                        if (das->nplogs > 0 && (id = ht_findid(das->ht_plogs, key)) >= 0)
-                            plog_writeactualtransform(das, id, wj[i]);
-                    }
-
-                    for (e = 0; e < nmem; ++e)
+                   for (e = 0; e < nmem; ++e)
                         xmean += vvv[e][j][i];
                     xmean /= (float) nmem;
 

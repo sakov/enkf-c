@@ -1,10 +1,10 @@
   MPI: initialised 2 process(es)
-  MPI: rank = 0, PID = 28682
-  MPI: rank = 1, PID = 28683
-  running UPDATE for EnKF-C version 1.97.0:
+  MPI: rank = 1, PID = 18246
+  MPI: rank = 0, PID = 18245
+  running UPDATE for EnKF-C version 1.98.0:
     command = "./enkf_update --calculate-spread --write-inflation enkf.prm"
     dir = "/home/pavel/src/enkf-c/trunk/enkf/examples/4"
-  2019-04-03 11:57:48
+  2019-04-29 14:12:28
   reading system specs from "enkf.prm":
     MODE = EnKF
     SCHEME = DEnKF
@@ -24,7 +24,7 @@
     STRIDE = 3
     FIELDBUFFERSIZE = 4
     REGION Global: x = [0.0, 360.0], y = [-90.0, 90.0]
-    POINTLOG 30 50
+    POINTLOG 156.000 -32.000
     SOBSTRIDE = 1
     NCFORMAT = 64BIT
     NCCOMPRESSION = 0
@@ -88,10 +88,10 @@
     defining state variables in point logs:
     distributing iterations:
       2 processes get 48 iterations each
-    2019-04-03 11:57:48
+    2019-04-29 14:12:28
     allocating disk space for analysis:................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................
     processing fields for t-grid:
-      2019-04-03 11:57:48
+      2019-04-29 14:12:28
       5 fields
       distributing iterations:
         2 processes get 3 or 2 iterations
@@ -101,7 +101,7 @@
       temp     0   (0: 1: 66.7%)
       temp     1   (0: 2: 100.0%)
     processing fields for c-grid:
-      2019-04-03 11:57:49
+      2019-04-29 14:12:29
       4 fields
       distributing iterations:
         2 processes get 2 iterations each
@@ -109,7 +109,7 @@
       u        0   (0: 0: 50.0%)
       v        1   (1: 3: 100.0%)
       u        1   (0: 1: 100.0%)
-  2019-04-03 11:57:50
+  2019-04-29 14:12:30
   assembling analysis:
     distributing iterations:
       2 processes get 48 iterations each
@@ -118,26 +118,26 @@
     salt:................................................
     u:................................................
     v:................................................
-  2019-04-03 11:57:51
+  2019-04-29 14:12:30
   assembling spread:
     eta_t:.
     temp:..
     salt:..
     u:..
     v:..
-  2019-04-03 11:57:51
+  2019-04-29 14:12:30
   assembling inflation:
     eta_t:.
     temp:..
     salt:..
     u:..
     v:..
-  2019-04-03 11:57:51
+  2019-04-29 14:12:30
   assembling state variables in point logs:
     distributing iterations:
       2 processes get 1 or 0 iterations
     deleting tiles:
       distributing iterations:
         2 processes get 5 or 4 iterations
-  2019-04-03 11:57:51
+  2019-04-29 14:12:30
   finished

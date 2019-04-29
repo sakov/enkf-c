@@ -1,10 +1,10 @@
   MPI: initialised 2 process(es)
-  MPI: rank = 1, PID = 28612
-  MPI: rank = 0, PID = 28611
-  running UPDATE for EnKF-C version 1.97.0:
+  MPI: rank = 1, PID = 18206
+  MPI: rank = 0, PID = 18205
+  running UPDATE for EnKF-C version 1.98.0:
     command = "./enkf_update --calculate-spread enoi.prm"
     dir = "/home/pavel/src/enkf-c/trunk/enkf/examples/3"
-  2019-04-03 11:56:44
+  2019-04-29 14:11:46
   reading system specs from "enoi.prm":
     MODE = EnOI
     MODEL PRM = "model.prm"
@@ -24,7 +24,7 @@
     STRIDE = 3
     FIELDBUFFERSIZE = 4
     REGION Global: x = [0.0, 360.0], y = [-90.0, 90.0]
-    POINTLOG 30 50
+    POINTLOG 156.000 -32.000
     SOBSTRIDE = 1
     NCFORMAT = 64BIT
     NCCOMPRESSION = 0
@@ -65,15 +65,15 @@
   updating the model state:
     allocating disk space for spread:
     defining state variables in point logs:
-    2019-04-03 11:56:44
-    allocating disk space for analysis:
+    2019-04-29 14:11:47
+    allocating disk space for analysis:.....
     processing fields for t-grid-full:
-      2019-04-03 11:56:44
+      2019-04-29 14:11:47
       9 fields
       distributing iterations:
         2 processes get 5 or 4 iterations
-      u        0   (1: 5: 25.0%)
       eta_t    0   (0: 0: 20.0%)
+      u        0   (1: 5: 25.0%)
       u        1   (1: 6: 50.0%)
       temp     0   (0: 1: 40.0%)
       v        0   (1: 7: 75.0%)
@@ -81,26 +81,26 @@
       v        1   (1: 8: 100.0%)
       salt     0   (0: 3: 80.0%)
       salt     1   (0: 4: 100.0%)
-  2019-04-03 11:56:45
+  2019-04-29 14:11:47
   assembling analysis:
     eta_t:.
     temp:..
     salt:..
     u:..
     v:..
-  2019-04-03 11:56:45
+  2019-04-29 14:11:47
   assembling spread:
     eta_t:.
     temp:..
     salt:..
     u:..
     v:..
-  2019-04-03 11:56:45
+  2019-04-29 14:11:47
   assembling state variables in point logs:
     distributing iterations:
       2 processes get 1 or 0 iterations
     deleting tiles:
       distributing iterations:
         2 processes get 5 or 4 iterations
-  2019-04-03 11:56:45
+  2019-04-29 14:11:47
   finished

@@ -192,7 +192,7 @@ int main(int argc, char* argv[])
             updatespec &= ~UPDATE_DOINFLATION;
         }
     }
-    if (prm->nplogs == 0)
+    if (prm->nplog == 0)
         updatespec &= ~UPDATE_DOPLOGS;
 
     describe_updatespec(updatespec);

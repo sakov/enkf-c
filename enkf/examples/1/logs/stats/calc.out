@@ -1,9 +1,10 @@
   MPI: initialised 2 process(es)
-  MPI: rank = 0, PID = 27771
-  running CALC for EnKF-C version 1.97.0:
+  MPI: rank = 1, PID = 14271
+  MPI: rank = 0, PID = 14270
+  running CALC for EnKF-C version 1.98.0:
     command = "./enkf_calc --forecast-stats-only stats.prm"
     dir = "/home/pavel/src/enkf-c/trunk/enkf/examples/1"
-  2019-04-03 11:42:32
+  2019-04-29 12:26:50
   reading system specs from "stats.prm":
     MODE = EnOI
     MODEL PRM = "model.prm"
@@ -104,17 +105,16 @@
     3813 observations
     allocating 457560 bytes for array of observations
   calculating ensemble observations:
-  2019-04-03 11:42:32
+  2019-04-29 12:26:50
     allocating 30504 bytes for HE array:
     distributing iterations:
       2 processes get 1 or 0 iterations
     SLA +
     SST +
-    TEM   MPI: rank = 1, PID = 27772
-+
+    TEM +
     SAL +
   adding forecast innovations and spread to "observations.nc":
-  2019-04-03 11:42:32
+  2019-04-29 12:26:50
   printing observation statistics:
     region obs.type   # obs.  |for.inn.| for.inn.
     ---------------------------------------------
@@ -137,5 +137,5 @@
              0-50m         2    0.088      0.074  
              50-500m       5    0.072      0.047  
              500-9999m     0     -nan       -nan  
-  2019-04-03 11:42:32
+  2019-04-29 12:26:50
   finished

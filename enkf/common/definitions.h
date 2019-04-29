@@ -149,19 +149,14 @@ typedef struct {
 } region;
 
 typedef struct {
-    int id;
-    int i, j;
-    double lon, lat;
-    char* gridname;
-    int gridid;
-} pointlog;
-
-typedef struct {
     char* obstype;
     double maxbias;
     double maxmad;
     int minnobs;
 } badbatchspec;
+
+struct pointlog;
+typedef struct pointlog pointlog;
 
 struct enkfprm;
 typedef struct enkfprm enkfprm;

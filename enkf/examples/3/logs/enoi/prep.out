@@ -1,7 +1,7 @@
-  running PREP for EnKF-C version 1.97.0:
+  running PREP for EnKF-C version 1.98.0:
     command = "./enkf_prep enoi.prm"
     dir = "/home/pavel/src/enkf-c/trunk/enkf/examples/3"
-  2019-04-03 11:56:35
+  2019-04-29 14:11:38
   reading prep specs from "enoi.prm":
     MODE = EnOI
     MODEL PRM = "model.prm"
@@ -21,7 +21,6 @@
     STRIDE = 3
     FIELDBUFFERSIZE = 4
     REGION Global: x = [0.0, 360.0], y = [-90.0, 90.0]
-    POINTLOG 30 50
     SOBSTRIDE = 1
     NCFORMAT = 64BIT
     NCCOMPRESSION = 0
@@ -330,5 +329,5 @@
     TEM     101      67       67       0        0        0        0        0        0        0        3       
     SAL     101      67       67       0        0        0        0        0        0        0        3       
     total   7821     134      134      0        0        0        0        0        0        0        2919    
-  2019-04-03 11:56:36
+  2019-04-29 14:11:39
   finished

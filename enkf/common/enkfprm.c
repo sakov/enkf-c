@@ -23,6 +23,7 @@
 #include "ncw.h"
 #include "definitions.h"
 #include "utils.h"
+#include "pointlog.h"
 #include "enkfprm.h"
 
 #define NINC 10
@@ -338,27 +339,22 @@ enkfprm* enkfprm_read(char fname[])
                 enkf_quit("%s, l.%d: could not convert \"%s\" to double", fname, line, token);
             prm->nregions++;
         } else if (strcasecmp(token, "POINTLOG") == 0) {
-            pointlog* plog = NULL;
+#if defined(ENKF_CALC) || defined(ENKF_UPDATE)
+            double lon, lat;
 
             if ((token = strtok(NULL, seps)) == NULL)
-                enkf_quit("%s, l.%d: \"I\" coordinate for POINTLOG not specified", fname, line);
-            if (prm->nplogs % NINC == 0)
-                prm->plogs = realloc(prm->plogs, (prm->nplogs + NINC) * sizeof(pointlog));
-            plog = &prm->plogs[prm->nplogs];
-            plog->id = prm->nplogs;
-            if (!str2int(token, &plog->i))
-                enkf_quit("%s, l.%d: could convert \"I\" entry", fname, line);
+                enkf_quit("%s, l.%d: \"LON\" coordinate for POINTLOG not specified", fname, line);
+            if (!str2double(token, &lon))
+                enkf_quit("%s, l.%d: could convert \"LON\" entry", fname, line);
             if ((token = strtok(NULL, seps)) == NULL)
-                enkf_quit("%s, l.%d: \"J\" coordinate for POINTLOG not specified", fname, line);
-            if (!str2int(token, &plog->j))
-                enkf_quit("%s, l.%d: could convert \"J\" entry", fname, line);
+                enkf_quit("%s, l.%d: \"LAT\" coordinate for POINTLOG not specified", fname, line);
+            if (!str2double(token, &lat))
+                enkf_quit("%s, l.%d: could convert \"LAT\" entry", fname, line);
             if ((token = strtok(NULL, seps)) != NULL && token[0] != '#')
-                plog->gridname = strdup(token);
+                plogs_add(&prm->nplog, &prm->plogs, lon, lat, token);
             else
-                plog->gridname = NULL;
-            plog->lon = NAN;
-            plog->lat = NAN;
-            prm->nplogs++;
+                plogs_add(&prm->nplog, &prm->plogs, lon, lat, NULL);
+#endif
         } else if (strcasecmp(token, "EXITACTION") == 0) {
             if ((token = strtok(NULL, seps)) == NULL)
                 enkf_quit("%s, l.%d: EXITACTION not specified", fname, line);
@@ -487,12 +483,9 @@ void enkfprm_destroy(enkfprm* prm)
             free(prm->regions[i].name);
         free(prm->regions);
     }
-    if (prm->nplogs > 0) {
-        for (i = 0; i < prm->nplogs; ++i)
-            if (prm->plogs[i].gridname != NULL)
-                free(prm->plogs[i].gridname);
-        free(prm->plogs);
-    }
+#if defined(ENKF_CALC) || defined(ENKF_UPDATE)
+    plogs_destroy(prm->nplog, prm->plogs);
+#endif
     if (prm->nbadbatchspecs > 0) {
         for (i = 0; i < prm->nbadbatchspecs; ++i)
             free(prm->badbatchspecs[i].obstype);
@@ -574,16 +567,15 @@ void enkfprm_print(enkfprm* prm, char offset[])
         enkf_printf("%sREGION %s: x = [%.1f, %.1f], y = [%.1f, %.1f]", offset, r->name, r->x1, r->x2, r->y1, r->y2);
         enkf_printf("\n");
     }
+#if defined(ENKF_CALC) || defined(ENKF_UPDATE)
     if (!enkf_fstatsonly) {
-        for (i = 0; i < prm->nplogs; ++i) {
+        for (i = 0; i < prm->nplog; ++i) {
             pointlog* plog = &prm->plogs[i];
 
-            if (plog->gridname == NULL)
-                enkf_printf("%sPOINTLOG %d %d\n", offset, plog->i, plog->j);
-            else
-                enkf_printf("%sPOINTLOG %d %d %s\n", offset, plog->i, plog->j, plog->gridname);
+            enkf_printf("%sPOINTLOG %.3f %.3f\n", offset, plog->lon, plog->lat);
         }
     }
+#endif
     enkf_printf("%sSOBSTRIDE = %d\n", offset, prm->sob_stride);
     for (i = 0; i < prm->nbadbatchspecs; ++i) {
         badbatchspec* bb = &prm->badbatchspecs[i];
@@ -634,7 +626,7 @@ void enkfprm_describeprm(void)
     enkf_printf("    ...\n");
     enkf_printf("  [ REGION          = <name> <lon1> <lon2> <lat1> <lat2>\n");
     enkf_printf("    ...\n");
-    enkf_printf("  [ POINTLOG        <i> <j> [grid name]]\n");
+    enkf_printf("  [ POINTLOG        <lon> <lat> [grid name]]\n");
     enkf_printf("    ...\n");
     enkf_printf("  [ EXITACTION      = { BACKTRACE* | SEGFAULT } ]\n");
     enkf_printf("  [ BADBATCHES      = <obstype> <max. bias> <max. mad> <min # obs.> ]\n");

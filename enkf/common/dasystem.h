@@ -111,9 +111,8 @@ typedef struct {
     int nregions;
     region* regions;
 
-    int nplogs;
+    int nplog;
     pointlog* plogs;
-    hashtable* ht_plogs;
 
     int nbadbatchspecs;
     badbatchspec* badbatchspecs;
@@ -152,6 +151,12 @@ void das_getfname_stats(dasystem* das, void* grid, char fname[]);
 void das_getfname_plog(dasystem* das, pointlog* plog, char fname[]);
 
 void das_calcmld(dasystem* das, obstype* ot, float*** src, float** dst);
+
+void plog_create(dasystem* das, int plogid, int ploc, int* lobs, double* lcoeffs);
+void plog_writetransform(dasystem* das, int plogid, int gid, int ploc, double* s, double* S, double* transform);
+void plog_definestatevars(dasystem* das);
+void plog_writestatevars(dasystem* das, int nfields, void** fieldbuffer, field* fields, int isanalysis);
+void plog_assemblestatevars(dasystem* das);
 
 #define _DASYSTEM_H
 #endif

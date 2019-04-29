@@ -1,3 +1,9 @@
+v. 1.98.0
+   PS 29042019
+   -- Changed point logs: now a pointlog entry specifies a geographic location
+      instead of a grid node. In CALC, the ensemble transforms on each grid are
+      calculated for this location. In UPDATE, the forecast and analysis state
+      variables on each grid are interpolated to this location.
 v. 1.97.2
    PS 05042019
    --Fixed a kdtree related compilation defect in grid.c and grid.h manifested on
@@ -8,7 +14,7 @@ v. 1.97.1
       Thanks to Prasanth Divarkan for the report.
 v. 1.97.0
    PS 03042019
-   -- Added an optional entry STATSONLY to obstypes parameter file.
+   -- Added an optional trtentry STATSONLY to obstypes parameter file.
 v. 1.96.3
    PS 28032019
    -- Eliminated seeding drand48 from a fixed seed in shuffle(), both in

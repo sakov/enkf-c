@@ -232,7 +232,7 @@ void das_calctransforms(dasystem* das)
     das_standardise(das);
 
     enkf_printf("    creating kd-trees for observations:");
-    obs_createkdtrees(obs, m);
+    obs_createkdtrees(obs);
     enkf_printf("\n");
 
     for (gid = 0; gid < ngrid; ++gid) {
@@ -406,13 +406,18 @@ void das_calctransforms(dasystem* das)
 
                 i = iiter[ii];
 
-#if defined(MINIMISE_ALLOC)
-                obs_findlocal(obs, m, grid, i, j, &ploc, &lobs, &lcoeffs, &ploc_allocated2);
-#else
-                obs_findlocal(obs, m, grid, i, j, &ploc, &lobs, &lcoeffs);
-#endif
-                assert(ploc >= 0 && ploc <= obs->nobs);
+                {
+                    double lon, lat;
 
+                    grid_ij2xy(grid, i, j, &lon, &lat);
+
+#if defined(MINIMISE_ALLOC)
+                    obs_findlocal(obs, lon, lat, grid_getdomainname(grid), &ploc, &lobs, &lcoeffs, &ploc_allocated2);
+#else
+                    obs_findlocal(obs, lon, lat, grid_getdomainname(grid), &ploc, &lobs, &lcoeffs);
+#endif
+                    assert(ploc >= 0 && ploc <= obs->nobs);
+                }
                 if (ploc > stats.nlobs_max)
                     stats.nlobs_max = ploc;
                 stats.nlobs_sum += ploc;
@@ -814,7 +819,7 @@ void das_dopointlogs(dasystem* das)
     observations* obs = das->obs;
     double** X5 = NULL;
     double* w = NULL;
-    int p, e, o;
+    int plogid, e, o, gid;
 
     if (das->s_mode == S_MODE_HA_f)
         das_standardise(das);
@@ -824,83 +829,109 @@ void das_dopointlogs(dasystem* das)
     } else if (das->mode == MODE_ENOI)
         w = malloc(das->nmem * sizeof(double));
 
-    for (p = 0; p < das->nplogs; ++p) {
-        pointlog* plog = &das->plogs[p];
-        void* grid = model_getgridbyid(m, plog->gridid);
-        double sfactor = grid_getsfactor(grid);
+    for (plogid = 0; plogid < das->nplog; ++plogid) {
+        pointlog* plog = &das->plogs[plogid];
         int* lobs = NULL;
         double* lcoeffs = NULL;
         int ploc = 0;
-        double** Sloc = NULL;
-        double* sloc = NULL;
-        double** G = NULL;
 
-        enkf_printf("    calculating transform for log point (%d, %d):", plog->i, plog->j);
+        enkf_printf("    calculating transforms for log point (%.3f,%.3f):", plog->lon, plog->lat);
+
+        /*
+         * find all (for all domains) local obs
+         */
 #if defined(MINIMISE_ALLOC)
-        obs_findlocal(obs, m, grid, plog->i, plog->j, &ploc, &lobs, &lcoeffs, NULL);
+        obs_findlocal(obs, plog->lon, plog->lat, NULL, &ploc, &lobs, &lcoeffs, NULL);
 #else
-        obs_findlocal(obs, m, grid, plog->i, plog->j, &ploc, &lobs, &lcoeffs);
+        obs_findlocal(obs, plog->lon, plog->lat, NULL, &ploc, &lobs, &lcoeffs);
 #endif
-
         assert(ploc >= 0 && ploc <= obs->nobs);
-
-        if (X5 != NULL)
-            memset(X5[0], 0, das->nmem * das->nmem * sizeof(double));
-        if (w != NULL)
-            memset(w, 0, das->nmem * sizeof(double));
-
-        if (ploc == 0) {
-            if (das->mode == MODE_ENKF)
-                for (e = 0; e < das->nmem; ++e)
-                    X5[e][e] = 1.0;
-        } else {
-            Sloc = alloc2d(das->nmem, ploc, sizeof(double));
-            sloc = malloc(ploc * sizeof(double));
-            G = alloc2d(ploc, das->nmem, sizeof(double));
-
-            for (e = 0; e < das->nmem; ++e) {
-                ENSOBSTYPE* Se = das->S[e];
-                double* Sloce = Sloc[e];
-
-                for (o = 0; o < ploc; ++o)
-                    Sloce[o] = (double) Se[lobs[o]] * lcoeffs[o] * sfactor;
-            }
-            for (o = 0; o < ploc; ++o)
-                sloc[o] = das->s_f[lobs[o]] * lcoeffs[o];
-
-            if (das->mode == MODE_ENOI || das->scheme == SCHEME_DENKF)
-                calc_G_denkf(das->nmem, ploc, Sloc, plog->i, plog->j, G);
-            else if (das->scheme == SCHEME_ETKF)
-                calc_G_etkf(das->nmem, ploc, Sloc, das->alpha, plog->i, plog->j, G, X5);
-            else
-                enkf_quit("programming error");
-            if (das->mode == MODE_ENKF) {
-                if (das->scheme == SCHEME_DENKF)
-                    calc_X5_denkf(das->nmem, ploc, G, Sloc, sloc, das->alpha, plog->i, plog->j, X5);
-                else if (das->scheme == SCHEME_ETKF)
-                    calc_X5_etkf(das->nmem, ploc, G, sloc, plog->i, plog->j, X5);
-                else
-                    enkf_quit("programming error");
-            } else if (das->mode == MODE_ENOI)
-                calc_w(das->nmem, ploc, G, sloc, w);
-        }
         enkf_printf(" %d obs\n", ploc);
-
-        enkf_printf("    writing the log for point (%d, %d) on grid \"%s\":", plog->i, plog->j, plog->gridname);
-        {
-            float** depths = grid_getdepth(grid);
-            float depth = (depths != NULL) ? depths[plog->j][plog->i] : NAN;
-
-            plog_write(das, p, depth, das->alpha, ploc, lobs, lcoeffs, sloc, (ploc == 0) ? NULL : Sloc[0], (das->mode == MODE_ENKF) ? X5[0] : w);
-        }
-        enkf_printf("\n");
-
+        /*
+         * create a pointlog output file and write all local obs to it
+         */
+        plog_create(das, plogid, ploc, lobs, lcoeffs);
         if (ploc > 0) {
-            free(G);
-            free(sloc);
-            free(Sloc);
             free(lobs);
             free(lcoeffs);
+        }
+
+        /*
+         * calculate and write transforms for each grid
+         */
+        for (gid = 0; gid < model_getngrid(m); ++gid) {
+            void* g = model_getgridbyid(m, gid);
+            int i = (int) (plog->fi[gid] + 0.5);
+            int j = (int) (plog->fj[gid] + 0.5);
+            double sfactor = grid_getsfactor(g);
+            int* lobs = NULL;
+            double* lcoeffs = NULL;
+            int ploc = 0;
+            double** Sloc = NULL;
+            double* sloc = NULL;
+            double** G = NULL;
+
+            if (plog->gridid >= 0 && plog->gridid != gid)
+                continue;
+
+#if defined(MINIMISE_ALLOC)
+            obs_findlocal(obs, plog->lon, plog->lat, grid_getdomainname(g), &ploc, &lobs, &lcoeffs, NULL);
+#else
+            obs_findlocal(obs, plog->lon, plog->lat, grid_getdomainname(g), &ploc, &lobs, &lcoeffs);
+#endif
+
+            if (X5 != NULL)
+                memset(X5[0], 0, das->nmem * das->nmem * sizeof(double));
+            if (w != NULL)
+                memset(w, 0, das->nmem * sizeof(double));
+
+            if (ploc == 0) {
+                if (das->mode == MODE_ENKF)
+                    for (e = 0; e < das->nmem; ++e)
+                        X5[e][e] = 1.0;
+            } else {
+                Sloc = alloc2d(das->nmem, ploc, sizeof(double));
+                sloc = malloc(ploc * sizeof(double));
+                G = alloc2d(ploc, das->nmem, sizeof(double));
+
+                for (e = 0; e < das->nmem; ++e) {
+                    ENSOBSTYPE* Se = das->S[e];
+                    double* Sloce = Sloc[e];
+
+                    for (o = 0; o < ploc; ++o)
+                        Sloce[o] = (double) Se[lobs[o]] * lcoeffs[o] * sfactor;
+                }
+                for (o = 0; o < ploc; ++o)
+                    sloc[o] = das->s_f[lobs[o]] * lcoeffs[o];
+
+                if (das->mode == MODE_ENOI || das->scheme == SCHEME_DENKF)
+                    calc_G_denkf(das->nmem, ploc, Sloc, i, j, G);
+                else if (das->scheme == SCHEME_ETKF)
+                    calc_G_etkf(das->nmem, ploc, Sloc, das->alpha, i, j, G, X5);
+                else
+                    enkf_quit("programming error");
+                if (das->mode == MODE_ENKF) {
+                    if (das->scheme == SCHEME_DENKF)
+                        calc_X5_denkf(das->nmem, ploc, G, Sloc, sloc, das->alpha, i, j, X5);
+                    else if (das->scheme == SCHEME_ETKF)
+                        calc_X5_etkf(das->nmem, ploc, G, sloc, i, j, X5);
+                    else
+                        enkf_quit("programming error");
+                } else if (das->mode == MODE_ENOI)
+                    calc_w(das->nmem, ploc, G, sloc, w);
+            }
+
+            enkf_printf("    writing log for point (%.3f,%.3f) on grid \"%s\":", plog->lon, plog->lat, grid_getname(g));
+            plog_writetransform(das, plogid, gid, ploc, sloc, (ploc == 0) ? NULL : Sloc[0], (das->mode == MODE_ENKF) ? X5[0] : w);
+            enkf_printf("\n");
+
+            if (ploc > 0) {
+                free(G);
+                free(sloc);
+                free(Sloc);
+                free(lobs);
+                free(lcoeffs);
+            }
         }
     }
 

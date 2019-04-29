@@ -50,7 +50,7 @@ struct enkfprm {
     int fieldbufsize;
     int nregions;
     region* regions;
-    int nplogs;
+    int nplog;
     pointlog* plogs;
     int sob_stride;
     int nbadbatchspecs;

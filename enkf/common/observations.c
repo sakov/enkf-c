@@ -1355,7 +1355,7 @@ static double distance(double xyz1[3], double xyz2[3])
 
 /**
  */
-void obs_createkdtrees(observations* obs, model* m)
+void obs_createkdtrees(observations* obs)
 {
     int otid;
 
@@ -1366,7 +1366,6 @@ void obs_createkdtrees(observations* obs, model* m)
 
     for (otid = 0; otid < obs->nobstypes; ++otid) {
         obstype* ot = &obs->obstypes[otid];
-        grid* g = model_getgridbyid(m, ot->gridid);
         kdtree** tree = &obs->loctrees[otid];
         int nobs = 0;
         int* obsids = NULL;
@@ -1408,7 +1407,7 @@ void obs_createkdtrees(observations* obs, model* m)
             double ll[2] = { o->lon, o->lat };
             double xyz[3];
 
-            grid_tocartesian(g, ll, xyz);
+            ll2xyz(ll, xyz);
 #if defined(OBS_SHUFFLE)
             kd_insertnode(*tree, xyz, id);
 #else
@@ -1440,23 +1439,22 @@ void obs_destroykdtrees(observations* obs)
 /**
  */
 #if defined(MINIMISE_ALLOC)
-void obs_findlocal(observations* obs, model* m, grid* g, int icoord, int jcoord, int* n, int** ids, double** lcoeffs, int* ploc_allocated)
+void obs_findlocal(observations* obs, double lon, double lat, char* domainname, int* n, int** ids, double** lcoeffs, int* ploc_allocated)
 #else
-void obs_findlocal(observations* obs, model* m, grid* g, int icoord, int jcoord, int* n, int** ids, double** lcoeffs)
+void obs_findlocal(observations* obs, double lon, double lat, char* domainname, int* n, int** ids, double** lcoeffs)
 #endif
 {
-    double ll[2];
+    double ll[2] = { lon, lat };;
     double xyz[3];
     int otid;
     int i, ntot, ngood;
 
-    grid_ij2xy(g, icoord, jcoord, &ll[0], &ll[1]);
-    grid_tocartesian(g, ll, xyz);
+    ll2xyz(ll, xyz);
 
     if (obs->nobstypes == 0)
         return;
     if (obs->loctrees == NULL)
-        obs_createkdtrees(obs, m);
+        obs_createkdtrees(obs);
 
     for (otid = 0, i = 0; otid < obs->nobstypes; ++otid) {
         obstype* ot = &obs->obstypes[otid];
@@ -1469,7 +1467,7 @@ void obs_findlocal(observations* obs, model* m, grid* g, int icoord, int jcoord,
         if (ot->nobs == 0 || ot->statsonly)
             continue;
 
-        if (ot->ndomains > 0) {
+        if (domainname != NULL && ot->ndomains > 0) {
             /*
              * (if ot->ndomains = 0 then observations of this type are visible
              * from all grids)
@@ -1477,7 +1475,7 @@ void obs_findlocal(observations* obs, model* m, grid* g, int icoord, int jcoord,
             int d;
 
             for (d = 0; d < ot->ndomains; ++d)
-                if (strcasecmp(grid_getdomainname(g), ot->domainnames[d]) == 0)
+                if (strcasecmp(domainname, ot->domainnames[d]) == 0)
                     break;
             if (d == ot->ndomains)
                 continue;
@@ -1524,7 +1522,7 @@ void obs_findlocal(observations* obs, model* m, grid* g, int icoord, int jcoord,
         if (o->status != STATUS_OK)
             continue;
 
-        grid_tocartesian(g, ll2, xyz2);
+        ll2xyz(ll2, xyz2);
         (*ids)[ngood] = id;
         (*lcoeffs)[ngood] = obstype_calclcoeff(&obs->obstypes[o->type], distance(xyz, xyz2));
         ngood++;

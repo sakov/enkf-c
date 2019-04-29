@@ -1,10 +1,10 @@
   MPI: initialised 2 process(es)
-  MPI: rank = 0, PID = 28601
-  MPI: rank = 1, PID = 28602
-  running CALC for EnKF-C version 1.97.0:
+  MPI: rank = 1, PID = 18197
+  MPI: rank = 0, PID = 18196
+  running CALC for EnKF-C version 1.98.0:
     command = "./enkf_calc enoi.prm"
     dir = "/home/pavel/src/enkf-c/trunk/enkf/examples/3"
-  2019-04-03 11:56:36
+  2019-04-29 14:11:39
   reading system specs from "enoi.prm":
     MODE = EnOI
     MODEL PRM = "model.prm"
@@ -24,7 +24,7 @@
     STRIDE = 3
     FIELDBUFFERSIZE = 4
     REGION Global: x = [0.0, 360.0], y = [-90.0, 90.0]
-    POINTLOG 30 50
+    POINTLOG 156.000 -32.000
     SOBSTRIDE = 1
     NCFORMAT = 64BIT
     NCCOMPRESSION = 0
@@ -116,7 +116,7 @@
     2919 observations
     allocating 350280 bytes for array of observations
   calculating ensemble observations:
-  2019-04-03 11:56:36
+  2019-04-29 14:11:39
     allocating 3362688 bytes for HE array:
     distributing iterations:
       2 processes get 72 iterations each
@@ -125,7 +125,7 @@
     TEM +........................................................................
     SAL +........................................................................
   adding forecast innovations and spread to "observations.nc":
-  2019-04-03 11:56:36
+  2019-04-29 14:11:39
   moderating observations:
     observations substantially modified:
       SLA          0 (0.0%)
@@ -135,8 +135,7 @@
       total        0 (0.0%)
   writing modified obs errors to "observations.nc":
   calculating transforms:
-  2019-04-03 11:56:36
-        j = 3 (1: 17: 5.9%)
+  2019-04-29 14:11:39
     creating kd-trees for observations:
     calculating transforms for t-grid-full:
     creating empty file "w.nc":
@@ -144,10 +143,11 @@
         2 processes get 17 iterations each
       main cycle for t-grid-full (34 x 34 local analyses):
         j = 0 (0: 0: 5.9%)
-        j = 6 (0: 1: 11.8%)
+        j = 3 (1: 17: 5.9%)
         j = 9 (1: 18: 11.8%)
-        j = 12 (0: 2: 17.6%)
+        j = 6 (0: 1: 11.8%)
         j = 15 (1: 19: 17.6%)
+        j = 12 (0: 2: 17.6%)
         j = 21 (1: 20: 23.5%)
         j = 18 (0: 3: 23.5%)
         j = 27 (1: 21: 29.4%)
@@ -184,16 +184,16 @@
       # of inversions in obs space = 277
       # of inversions in ens space = 879
   writing point logs:
-    calculating transform for log point (30, 50): 509 obs
-    writing the log for point (30, 50) on grid "t-grid-full":
+    calculating transforms for log point (156.000,-32.000): 286 obs
+    writing log for point (156.000,-32.000) on grid "t-grid-full":
   calculating analysed observations:
-  2019-04-03 11:56:44
+  2019-04-29 14:11:46
     sorting obs by ij:
-    2019-04-03 11:56:44
+    2019-04-29 14:11:46
     updating Hx:
     distributing iterations:
       2 processes get 1460 or 1459 iterations
-    2019-04-03 11:56:44
+    2019-04-29 14:11:46
   adding analysis innovations and spread to "observations.nc":
   printing observation statistics:
     region obs.type   # obs.  |for.inn.| |an.inn.|   for.inn.   an.inn.  for.spread  an.spread
@@ -217,5 +217,5 @@
              0-50m         0     -nan       -nan       -nan       -nan       -nan       -nan  
              50-500m       3    0.111      0.077      0.072      0.033      0.026      0.026  
              500-9999m     0     -nan       -nan       -nan       -nan       -nan       -nan  
-  2019-04-03 11:56:44
+  2019-04-29 14:11:46
   finished

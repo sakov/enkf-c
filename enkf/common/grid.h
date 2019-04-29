@@ -35,13 +35,10 @@ typedef struct {
 struct grid;
 typedef struct grid grid;
 
-typedef void (*grid_tocartesian_fn) (double in[2], double out[3]);
-
 grid* grid_create(void* prm, int id);
 void grid_destroy(grid* g);
 void grid_print(grid* g, char offset[]);
 void grid_describeprm(void);
-void grid_settocartesian_fn(grid* g, grid_tocartesian_fn fn);
 
 void grid_getdims(grid* g, int* ni, int* nj, int* nk);
 int grid_getsurflayerid(grid* g);
@@ -65,7 +62,7 @@ int grid_z2fk(grid* g, double fi, double fj, double z, double* fk);
 void grid_fij2xy(grid* g, double fi, double fj, double* x, double* y);
 void grid_ij2xy(grid* g, int i, int j, double* x, double* y);
 int grid_fk2z(grid* g, int i, int j, double fk, double* z);
-void grid_tocartesian(grid* g, double in[2], double out[3]);
+
 #if defined(ENKF_CALC)
 kdtree* grid_gettree(grid* g);
 #endif

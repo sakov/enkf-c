@@ -62,7 +62,7 @@ static void evaluate_2d_obs(model* m, observations* allobs, int nobs, int obsids
             size_t* ids = NULL;
             size_t id;
 
-            grid_tocartesian(g, ll, xyz);
+            ll2xyz(ll, xyz);
             set = kd_findnodeswithinrange(tree, xyz, o->footprint, 0);
             while ((id = kdset_readnext(set, NULL)) != SIZE_MAX) {
                 int id_orig = kd_getnodeorigid(tree, id);

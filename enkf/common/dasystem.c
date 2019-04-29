@@ -25,6 +25,7 @@
 #include <assert.h>
 #include <math.h>
 #include <unistd.h>
+#include <limits.h>
 #include "ncw.h"
 #include "hash.h"
 #include "definitions.h"
@@ -33,6 +34,7 @@
 #include "enkfprm.h"
 #include "observations.h"
 #include "dasystem.h"
+#include "pointlog.h"
 
 #define NPLOGS_INC 10
 #define NFIELDS_INC 100
@@ -91,6 +93,7 @@ static void das_setnmem(dasystem* das)
 dasystem* das_create(enkfprm* prm)
 {
     dasystem* das = calloc(1, sizeof(dasystem));
+    int ngrid;
     int i;
 
     das->prmfname = strdup(prm->fname);
@@ -122,6 +125,9 @@ dasystem* das_create(enkfprm* prm)
     das_setnmem(das);
     enkf_printf("    %d member%s\n", das->nmem, das->nmem == 1 ? "" : "s");
 
+    /*
+     * initialise communicators
+     */
 #if defined(HE_VIASHMEM)
     {
         int ierror;
@@ -184,6 +190,9 @@ dasystem* das_create(enkfprm* prm)
     if (!enkf_fstatsonly)
         das->fieldbufsize = prm->fieldbufsize;
 
+    /*
+     * initialise regions
+     */
 #if defined(ENKF_CALC)
     das->nregions = prm->nregions;
     if (das->nregions > 0)
@@ -202,40 +211,52 @@ dasystem* das_create(enkfprm* prm)
     }
 #endif
 
-    if (prm->nplogs > 0)
-        das->ht_plogs = ht_create_s4(prm->nplogs * 2);
-    das->plogs = malloc(sizeof(pointlog) * prm->nplogs);
-    das->nplogs = prm->nplogs;
-    for (i = 0; i < prm->nplogs; ++i) {
+    /*
+     * initialise pointlogs
+     */
+    das->plogs = malloc(sizeof(pointlog) * prm->nplog);
+    das->nplog = prm->nplog;
+    ngrid = model_getngrid(das->m);
+    for (i = 0; i < prm->nplog; ++i) {
         pointlog* src = &prm->plogs[i];
         pointlog* dst = &das->plogs[i];
-        void* grid = NULL;
-        unsigned short key[4] = { src->i, src->j, 0, 0 };
+        int gid;
 
         dst->id = src->id;
-        dst->i = src->i;
-        dst->j = src->j;
-        if (src->gridname == NULL) {
-            dst->gridid = 0;
-            grid = model_getgridbyid(das->m, 0);
-            dst->gridname = strdup(grid_getname(grid));
-        } else {
+        dst->lon = src->lon;
+        dst->lat = src->lat;
+        if (src->gridname != NULL) {
             dst->gridname = strdup(src->gridname);
-            grid = model_getgridbyname(das->m, src->gridname);
-            dst->gridid = grid_getid(grid);
-        }
-        key[3] = dst->gridid;
-
-        grid_ij2xy(grid, dst->i, dst->j, &dst->lon, &dst->lat);
-
-        if (isnan(dst->lon + dst->lat)) {
-            enkf_printf("  WARNING: %s: POINTLOG %d %d: point outside the grid \"%s\"\n", das->prmfname, dst->i, dst->j, dst->gridname);
-            continue;
+            dst->gridid = grid_getid(model_getgridbyname(das->m, dst->gridname));
+        } else {
+            dst->gridname = NULL;
+            dst->gridid = -1;
         }
 
-        ht_insert(das->ht_plogs, key, dst);
+        dst->fi = malloc(ngrid * sizeof(double));
+        dst->fj = malloc(ngrid * sizeof(double));
+        for (gid = 0; gid < model_getngrid(das->m); ++gid) {
+            grid* g = model_getgridbyid(das->m, gid);
+
+            if (dst->gridid >= 0 && dst->gridid != gid) {
+                dst->fi[gid] = NAN;
+                dst->fj[gid] = NAN;
+                continue;
+            }
+
+            if (grid_xy2fij(g, src->lon, src->lat, &dst->fi[gid], &dst->fj[gid]) != STATUS_OK && gid == dst->gridid)
+                enkf_printf("  WARNING: %s: POINTLOG %f %f: point outside the grid \"%s\"\n", das->prmfname, dst->lon, dst->lat, dst->gridname);
+        }
+        for (gid = 0; gid < model_getngrid(das->m); ++gid)
+            if (!isnan(dst->fi[gid]))
+                break;
+        if (gid == model_getngrid(das->m))
+            enkf_quit("%s: POINTLOG %f %f: point outside all grids\n", das->prmfname, dst->lon, dst->lat);
     }
 
+    /*
+     * initialise badbatches
+     */
 #if defined(ENKF_CALC)
     das->nbadbatchspecs = prm->nbadbatchspecs;
     if (das->nbadbatchspecs > 0) {
@@ -308,12 +329,7 @@ void das_destroy(dasystem* das)
             free(das->regions[i].name);
         free(das->regions);
     }
-    if (das->nplogs > 0) {
-        ht_destroy(das->ht_plogs);
-        for (i = 0; i < das->nplogs; ++i)
-            free(das->plogs[i].gridname);
-        free(das->plogs);
-    }
+    plogs_destroy(das->nplog, das->plogs);
     if (das->nbadbatchspecs > 0) {
         for (i = 0; i < das->nbadbatchspecs; ++i)
             free(das->badbatchspecs[i].obstype);
@@ -397,10 +413,7 @@ void das_getfname_stats(dasystem* das, void* grid, char fname[])
  */
 void das_getfname_plog(dasystem* das, pointlog* plog, char fname[])
 {
-    if (model_getngrid(das->m) == 1)
-        snprintf(fname, MAXSTRLEN, "%s_%d,%d.nc", FNAMEPREFIX_PLOG, plog->i, plog->j);
-    else
-        snprintf(fname, MAXSTRLEN, "%s_%d,%d-%d.nc", FNAMEPREFIX_PLOG, plog->i, plog->j, plog->gridid);
+    snprintf(fname, MAXSTRLEN, "%s_%.3f,%.3f.nc", FNAMEPREFIX_PLOG, plog->lon, plog->lat);
 }
 
 /** Calculates the mixed layer depth for consistent application of the SST bias

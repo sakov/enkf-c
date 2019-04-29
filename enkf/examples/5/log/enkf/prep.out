@@ -1,7 +1,7 @@
-  running PREP for EnKF-C version 1.97.0:
+  running PREP for EnKF-C version 1.98.0:
     command = "./enkf_prep enkf.prm"
     dir = "/home/pavel/src/enkf-c/trunk/enkf/examples/5"
-  2019-04-03 11:59:14
+  2019-04-29 14:14:13
   reading prep specs from "enkf.prm":
     MODE = EnKF
     SCHEME = DEnKF
@@ -21,7 +21,6 @@
     STRIDE = 3
     FIELDBUFFERSIZE = 4
     REGION Global: x = [0.0, 360.0], y = [-90.0, 90.0]
-    POINTLOG 30 50
     SOBSTRIDE = 1
     NCFORMAT = 64BIT
     NCCOMPRESSION = 0
@@ -342,5 +341,5 @@
     TEM     184      104      104      0        0        0        0        0        0        0        7       
     SAL     184      104      104      0        0        0        0        0        0        0        7       
     total   9598     208      208      0        0        0        0        0        0        0        4112    
-  2019-04-03 11:59:14
+  2019-04-29 14:14:13
   finished
