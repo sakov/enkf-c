@@ -371,14 +371,24 @@ void plog_definestatevars(dasystem* das)
                     ncw_inq_dimid(ncid, nkname, &dimids[0]);
                 ncw_inq_dimid(ncid, "m", &dimids[1]);
 
-                ncw_def_var(ncid, varname, NC_FLOAT, 2, dimids, &varid);
-                ncw_def_var(ncid, varname_an, NC_FLOAT, 2, dimids, &varid_an);
+		if (!ncw_var_exists(ncid, varname)) {
+		    ncw_def_var(ncid, varname, NC_FLOAT, 2, dimids, &varid);
+		    ncw_def_var(ncid, varname_an, NC_FLOAT, 2, dimids, &varid_an);
+		} else {
+		    ncw_inq_varid(ncid, varname, &varid);
+		    ncw_inq_varid(ncid, varname_an, &varid_an);
+		}
             } else {
                 int dimid;
 
                 ncw_inq_dimid(ncid, "m", &dimid);
-                ncw_def_var(ncid, varname, NC_FLOAT, 1, &dimid, &varid);
-                ncw_def_var(ncid, varname_an, NC_FLOAT, 1, &dimid, &varid_an);
+		if (!ncw_var_exists(ncid, varname)) {
+		    ncw_def_var(ncid, varname, NC_FLOAT, 1, &dimid, &varid);
+		    ncw_def_var(ncid, varname_an, NC_FLOAT, 1, &dimid, &varid_an);
+		} else {
+		    ncw_inq_varid(ncid, varname, &varid);
+		    ncw_inq_varid(ncid, varname_an, &varid_an);
+		}
             }
 
             {

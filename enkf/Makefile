@@ -33,7 +33,7 @@ MPISTATUS_UPDATE = MPI
 include ./make.inc
 
 INCS = -I. -I./common $(INC_NC) $(INC_GU)
-LIBS = $(LD_PATH) $(LIB_NC) $(LIB_GU) $(LIB_M)
+LIBS = $(LD_PATH) $(LIB_GU) $(LIB_NC) $(LIB_M)
 
 SRC_COMMON =\
 common/ncw.c\

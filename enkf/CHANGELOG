@@ -1,3 +1,6 @@
+v. 1.98.2
+   PS 29042019
+   -- A minor correction in plog_definestatevars().
 v. 1.98.1
    PS 29042019
    -- A minor correction in plogs_add().
