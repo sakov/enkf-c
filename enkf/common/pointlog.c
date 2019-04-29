@@ -41,8 +41,7 @@ void plogs_add(int* nplog, pointlog** plogs, double lon, double lat, char* gridn
     plog->lon = lon;
     plog->lat = lat;
     plog->gridid = -1;
-    if (gridname != NULL)
-        plog->gridname = strdup(gridname);
+    plog->gridname = (gridname != NULL) ? strdup(gridname) : NULL;
     plog->fi = NULL;
     plog->fj = NULL;
     (*nplog)++;

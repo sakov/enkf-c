@@ -1,3 +1,6 @@
+v. 1.98.1
+   PS 29042019
+   -- A minor correction in plogs_add().
 v. 1.98.0
    PS 29042019
    -- Changed point logs: now a pointlog entry specifies a geographic location
