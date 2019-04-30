@@ -248,7 +248,7 @@ dasystem* das_create(enkfprm* prm)
                 enkf_printf("  WARNING: %s: POINTLOG %f %f: point outside the grid \"%s\"\n", das->prmfname, dst->lon, dst->lat, dst->gridname);
         }
         for (gid = 0; gid < model_getngrid(das->m); ++gid)
-            if (!isnan(dst->fi[gid]))
+            if (!isnan(dst->fi[gid] + dst->fj[gid]))
                 break;
         if (gid == model_getngrid(das->m))
             enkf_quit("%s: POINTLOG %f %f: point outside all grids\n", das->prmfname, dst->lon, dst->lat);

@@ -1,3 +1,6 @@
+v. 1.98.4
+   PS 30042019
+   -- A minor correction in pointlog initialisation in das_create().
 v. 1.98.3
    PS 30042019
    -- In pointlog files added MODE and SCHEME to global parameters.
