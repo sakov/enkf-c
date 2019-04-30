@@ -181,7 +181,7 @@ void plog_create(dasystem* das, int plogid, int ploc, int* lobs, double* lcoeffs
         depths = grid_getdepth(g);
         if (depths != NULL)
             depth = interpolate2d(plog->fi[gid], plog->fj[gid], ni, nj, depths, grid_getnumlevels(g), grid_isperiodic_i(g));
-        ncw_put_att_float(ncid, vid_grid, "depth", 1, &depth);
+        ncw_put_att_float(ncid, vid_grid, "model_depth", 1, &depth);
     }
 
     /*
@@ -191,7 +191,12 @@ void plog_create(dasystem* das, int plogid, int ploc, int* lobs, double* lcoeffs
     ncw_put_att_text(ncid, NC_GLOBAL, "date", obs->datestr);
     ncw_put_att_double(ncid, NC_GLOBAL, "lon", 1, &plog->lon);
     ncw_put_att_double(ncid, NC_GLOBAL, "lat", 1, &plog->lat);
-    ncw_put_att_double(ncid, NC_GLOBAL, "ALPHA", 1, &das->alpha);
+    if (das->mode == MODE_ENKF) {
+        ncw_put_att_text(ncid, NC_GLOBAL, "MODE", "EnKF");
+        ncw_put_att_text(ncid, NC_GLOBAL, "SCHEME", (das->scheme == SCHEME_DENKF) ? "DEnKF" : "ETKF");
+        ncw_put_att_double(ncid, NC_GLOBAL, "ALPHA", 1, &das->alpha);
+    } else
+        ncw_put_att_text(ncid, NC_GLOBAL, "MODE", "EnOI");
 
     if (das->nccompression > 0)
         ncw_def_deflate(ncid, 0, 1, das->nccompression);
