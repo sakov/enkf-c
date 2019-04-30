@@ -142,6 +142,8 @@ void plog_create(dasystem* das, int plogid, int ploc, int* lobs, double* lcoeffs
         ncw_put_att_double(ncid, vid_type, name, obs->obstypes[otid].nlocrad, obs->obstypes[otid].locrad);
         snprintf(name, NC_MAX_NAME, "WEIGHT_%s", obs->obstypes[otid].name);
         ncw_put_att_double(ncid, vid_type, name, obs->obstypes[otid].nlocrad, obs->obstypes[otid].locweight);
+        snprintf(name, NC_MAX_NAME, "GRIDID_%s", obs->obstypes[otid].name);
+        ncw_put_att_int(ncid, vid_type, name, 1, &obs->obstypes[otid].gridid);
         domains[0] = 0;
         for (i = 0; i < obs->obstypes[otid].ndomains; ++i) {
             if (i > 0)
