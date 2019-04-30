@@ -85,6 +85,7 @@ void plog_create(dasystem* das, int plogid, int ploc, int* lobs, double* lcoeffs
 {
     pointlog* plog = &das->plogs[plogid];
     observations* obs = das->obs;
+    int ngrid = model_getngrid(das->m);
     char fname[MAXSTRLEN];
     int ncid;
     int dimids[2];
@@ -156,7 +157,7 @@ void plog_create(dasystem* das, int plogid, int ploc, int* lobs, double* lcoeffs
     /*
      * grids
      */
-    for (gid = 0; gid < model_getngrid(das->m); ++gid) {
+    for (gid = 0; gid < ngrid; ++gid) {
         grid* g = model_getgridbyid(das->m, gid);
         char varname[NC_MAX_NAME];
         int vid_grid;
@@ -179,9 +180,10 @@ void plog_create(dasystem* das, int plogid, int ploc, int* lobs, double* lcoeffs
         grid_getdims(g, &ni, &nj, &nk);
         ncw_put_att_int(ncid, vid_grid, "nk", 1, &nk);
         depths = grid_getdepth(g);
-        if (depths != NULL)
+        if (depths != NULL) {
             depth = interpolate2d(plog->fi[gid], plog->fj[gid], ni, nj, depths, grid_getnumlevels(g), grid_isperiodic_i(g));
-        ncw_put_att_float(ncid, vid_grid, "model_depth", 1, &depth);
+            ncw_put_att_float(ncid, vid_grid, "model_depth", 1, &depth);
+        }
     }
 
     /*
@@ -197,6 +199,7 @@ void plog_create(dasystem* das, int plogid, int ploc, int* lobs, double* lcoeffs
         ncw_put_att_double(ncid, NC_GLOBAL, "ALPHA", 1, &das->alpha);
     } else
         ncw_put_att_text(ncid, NC_GLOBAL, "MODE", "EnOI");
+    ncw_put_att_int(ncid, NC_GLOBAL, "ngrids", 1, &ngrid);
 
     if (das->nccompression > 0)
         ncw_def_deflate(ncid, 0, 1, das->nccompression);
