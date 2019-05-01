@@ -544,13 +544,6 @@ static void das_updatebg(dasystem* das, int nfields, void** fieldbuffer, field f
                 for (i = 0; i < mni; ++i) {
                     float xmean = 0.0f;
 
-                    /*
-                     * For now we assume that layers are counted down from the
-                     * surface. (This is not so in ROMS, but there the number
-                     * of layers is always the same.) This will be easy to
-                     * modify as soon as we encounter a Z model with layers
-                     * counted up from the bottom.
-                     */
                     if (surfk == 0) {
                         if (nlevels[j][i] <= f->level) {
                             if (das->updatespec & UPDATE_OUTPUTINC)
@@ -582,7 +575,7 @@ static void das_updatebg(dasystem* das, int nfields, void** fieldbuffer, field f
                         continue;
                     }
 
-                   for (e = 0; e < nmem; ++e)
+                    for (e = 0; e < nmem; ++e)
                         xmean += vvv[e][j][i];
                     xmean /= (float) nmem;
 
@@ -1455,7 +1448,7 @@ void das_update(dasystem* das)
         }
 
         for (i = my_first_iteration; i <= my_last_iteration; ++i) {
-            int bufindex = (i - my_first_iteration) % das->fieldbufsize;
+            int bufid = (i - my_first_iteration) % das->fieldbufsize;
             field* f = &fields[i];
             char fname[MAXSTRLEN];
 
@@ -1466,40 +1459,53 @@ void das_update(dasystem* das)
 
             for (e = 0; e < das->nmem; ++e) {
                 model_getmemberfname(m, das->ensdir, f->varname, e + 1, fname);
-                model_readfield(das->m, fname, f->varname, f->level, ((float***) fieldbuffer[bufindex])[e][0]);
-            }
-            if (das->mode == MODE_ENOI) {
-                if (!(das->updatespec & UPDATE_OUTPUTINC) && das->updatespec & (UPDATE_DOFIELDS | UPDATE_DOPLOGS)) {
-                    model_getbgfname(m, das->bgdir, f->varname, fname);
-                    model_readfield(das->m, fname, f->varname, f->level, ((float***) fieldbuffer[bufindex])[das->nmem][0]);
-                } else
-                    memset(((float***) fieldbuffer[bufindex])[das->nmem][0], 0, mni * mnj * sizeof(float));
+                model_readfield(das->m, fname, f->varname, f->level, ((float***) fieldbuffer[bufid])[e][0]);
             }
 
-            if (bufindex == das->fieldbufsize - 1 || i == my_last_iteration) {
+            /*
+             * read the background to write it to pointlogs, regardless of
+             * whether output is increment or analysis
+             */
+            if (das->mode == MODE_ENOI) {
+                model_getbgfname(m, das->bgdir, f->varname, fname);
+                model_readfield(das->m, fname, f->varname, f->level, ((float***) fieldbuffer[bufid])[das->nmem][0]);
+            }
+
+            if (bufid == das->fieldbufsize - 1 || i == my_last_iteration) {
                 /*
                  * write forecast spread
                  */
                 if (das->updatespec & UPDATE_DOFORECASTSPREAD)
-                    das_writespread(das, bufindex + 1, fieldbuffer, &fields[i - bufindex], 0);
+                    das_writespread(das, bufid + 1, fieldbuffer, &fields[i - bufid], 0);
+
                 /*
                  * write forecast variables to point logs
                  */
                 if (das->updatespec & UPDATE_DOPLOGS)
-                    plog_writestatevars(das, bufindex + 1, fieldbuffer, &fields[i - bufindex], 0);
+                    plog_writestatevars(das, bufid + 1, fieldbuffer, &fields[i - bufid], 0);
+
+                /*
+                 * now set the background to 0 if output is increment
+                 */
+                if (das->mode == MODE_ENOI && (das->updatespec & UPDATE_OUTPUTINC)) {
+                    int ii;
+
+                    for (ii = 0; ii <= bufid; ++ii)
+                        memset(((float***) fieldbuffer[ii])[das->nmem][0], 0, mni * mnj * sizeof(float));
+                }
 
                 if (das->updatespec & (UPDATE_DOFIELDS | UPDATE_DOANALYSISSPREAD | UPDATE_DOPLOGS | UPDATE_DOINFLATION)) {
                     if (das->mode == MODE_ENKF) {
-                        das_updatefields(das, bufindex + 1, fieldbuffer, &fields[i - bufindex]);
+                        das_updatefields(das, bufid + 1, fieldbuffer, &fields[i - bufid]);
                         if (das->updatespec & UPDATE_DOFIELDS)
-                            das_writefields(das, bufindex + 1, fieldbuffer, &fields[i - bufindex]);
+                            das_writefields(das, bufid + 1, fieldbuffer, &fields[i - bufid]);
                         else if (i == my_last_iteration)
                             enkf_printf("      (skip writing the fields)\n");
                     } else if (das->mode == MODE_ENOI) {
                         if (das->updatespec & (UPDATE_DOFIELDS | UPDATE_DOPLOGS))
-                            das_updatebg(das, bufindex + 1, fieldbuffer, &fields[i - bufindex]);
+                            das_updatebg(das, bufid + 1, fieldbuffer, &fields[i - bufid]);
                         if (das->updatespec & UPDATE_DOFIELDS)
-                            das_writebg(das, bufindex + 1, fieldbuffer, &fields[i - bufindex]);
+                            das_writebg(das, bufid + 1, fieldbuffer, &fields[i - bufid]);
                     }
                 }
 
@@ -1507,12 +1513,12 @@ void das_update(dasystem* das)
                  * write analysis spread
                  */
                 if (das->updatespec & UPDATE_DOANALYSISSPREAD && das->mode == MODE_ENKF)
-                    das_writespread(das, bufindex + 1, fieldbuffer, &fields[i - bufindex], 1);
+                    das_writespread(das, bufid + 1, fieldbuffer, &fields[i - bufid], 1);
                 /*
                  * write analysis variables to point logs
                  */
                 if (das->updatespec & UPDATE_DOPLOGS)
-                    plog_writestatevars(das, bufindex + 1, fieldbuffer, &fields[i - bufindex], 1);
+                    plog_writestatevars(das, bufid + 1, fieldbuffer, &fields[i - bufid], 1);
             }
         }
 

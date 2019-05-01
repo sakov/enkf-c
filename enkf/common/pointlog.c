@@ -53,7 +53,7 @@ void plogs_destroy(int nplog, pointlog plogs[])
 {
     int i;
 
-    for(i = 0; i < nplog; ++i) {
+    for (i = 0; i < nplog; ++i) {
         pointlog* plog = &plogs[i];
 
         if (plog->gridname != NULL)
@@ -357,6 +357,7 @@ void plog_definestatevars(dasystem* das)
         pointlog* plog = &das->plogs[plogid];
         char fname[MAXSTRLEN];
         int ncid;
+
         das_getfname_plog(das, plog, fname);
         ncw_open(fname, NC_WRITE, &ncid);
         ncw_redef(ncid);
@@ -379,12 +380,12 @@ void plog_definestatevars(dasystem* das)
             else
                 snprintf(varname_an, NC_MAX_NAME, "%s_inc", varname);
 
-	    {
-		char fname[MAXSTRLEN];
+            {
+                char fname[MAXSTRLEN];
 
-		model_getmemberfname(das->m, das->ensdir, varname, 1, fname);
-		nk = getnlevels(fname, varname);
-	    }
+                model_getmemberfname(das->m, das->ensdir, varname, 1, fname);
+                nk = getnlevels(fname, varname);
+            }
             if (nk > 1) {
                 char gridstr[NC_MAX_NAME];
                 char nkname[NC_MAX_NAME];
@@ -398,24 +399,24 @@ void plog_definestatevars(dasystem* das)
                     ncw_inq_dimid(ncid, nkname, &dimids[0]);
                 ncw_inq_dimid(ncid, "m", &dimids[1]);
 
-		if (!ncw_var_exists(ncid, varname)) {
-		    ncw_def_var(ncid, varname, NC_FLOAT, 2, dimids, &varid);
-		    ncw_def_var(ncid, varname_an, NC_FLOAT, 2, dimids, &varid_an);
-		} else {
-		    ncw_inq_varid(ncid, varname, &varid);
-		    ncw_inq_varid(ncid, varname_an, &varid_an);
-		}
+                if (!ncw_var_exists(ncid, varname)) {
+                    ncw_def_var(ncid, varname, NC_FLOAT, 2, dimids, &varid);
+                    ncw_def_var(ncid, varname_an, NC_FLOAT, 2, dimids, &varid_an);
+                } else {
+                    ncw_inq_varid(ncid, varname, &varid);
+                    ncw_inq_varid(ncid, varname_an, &varid_an);
+                }
             } else {
                 int dimid;
 
                 ncw_inq_dimid(ncid, "m", &dimid);
-		if (!ncw_var_exists(ncid, varname)) {
-		    ncw_def_var(ncid, varname, NC_FLOAT, 1, &dimid, &varid);
-		    ncw_def_var(ncid, varname_an, NC_FLOAT, 1, &dimid, &varid_an);
-		} else {
-		    ncw_inq_varid(ncid, varname, &varid);
-		    ncw_inq_varid(ncid, varname_an, &varid_an);
-		}
+                if (!ncw_var_exists(ncid, varname)) {
+                    ncw_def_var(ncid, varname, NC_FLOAT, 1, &dimid, &varid);
+                    ncw_def_var(ncid, varname_an, NC_FLOAT, 1, &dimid, &varid_an);
+                } else {
+                    ncw_inq_varid(ncid, varname, &varid);
+                    ncw_inq_varid(ncid, varname_an, &varid_an);
+                }
             }
 
             {
@@ -437,7 +438,6 @@ static void plog_writestatevars_direct(dasystem* das, int nfields, void** fieldb
 {
     int p, fid, e;
     float*** v_src = NULL;
-    int** mask = NULL;
     float* v = NULL;
     size_t start[2] = { 0, 0 };
     size_t count[2] = { 1, das->nmem };
@@ -456,6 +456,7 @@ static void plog_writestatevars_direct(dasystem* das, int nfields, void** fieldb
             field* f = &fields[fid];
             grid* g = model_getvargrid(das->m, f->varid);
             int gid = grid_getid(g);
+            int** mask = model_getnumlevels(das->m, f->varid);
             int periodic_i = grid_isperiodic_i(g);
             char varname[NC_MAX_NAME];
             int vid, ndims;
@@ -465,7 +466,6 @@ static void plog_writestatevars_direct(dasystem* das, int nfields, void** fieldb
                 continue;
 
             v_src = (float***) fieldbuffer[fid];
-            mask = model_getnumlevels(das->m, f->varid);
             grid_getdims(g, &ni, &nj, NULL);
 
             if (das->mode == MODE_ENKF) {
@@ -486,14 +486,9 @@ static void plog_writestatevars_direct(dasystem* das, int nfields, void** fieldb
                 }
             }
 
-            if (!isanalysis)
-                strncpy(varname, f->varname, NC_MAX_NAME);
-            else {
-                if (!(das->updatespec & UPDATE_OUTPUTINC))
-                    snprintf(varname, NC_MAX_NAME, "%s%s", f->varname, "_an");
-                else
-                    snprintf(varname, NC_MAX_NAME, "%s%s", f->varname, "_inc");
-            }
+            snprintf(varname, NC_MAX_NAME, "%s", f->varname);
+            if (isanalysis)
+                strncat(varname, !(das->updatespec & UPDATE_OUTPUTINC) ? "_an" : "_inc", NC_MAX_NAME);
             ncw_inq_varid(ncid, varname, &vid);
             ncw_inq_varndims(ncid, vid, &ndims);
             if (ndims == 1)
@@ -645,14 +640,15 @@ void plog_assemblestatevars(dasystem* das)
                 char varname[NC_MAX_NAME];
                 int ncid_src, vid_src, vid_dst, ndims_dst;
 
-                ncw_open(fname_src, NC_NOWRITE, &ncid_src);
-                ncw_inq_varid(ncid_src, f->varname, &vid_src);
-                ncw_get_var_float(ncid_src, vid_src, v);
-                ncw_close(ncid_src);
-
                 snprintf(varname, NC_MAX_NAME, "%s", f->varname);
                 if (ii == 1)
                     strncat(varname, !(das->updatespec & UPDATE_OUTPUTINC) ? "_an" : "_inc", NC_MAX_NAME);
+
+                ncw_open(fname_src, NC_NOWRITE, &ncid_src);
+                ncw_inq_varid(ncid_src, varname, &vid_src);
+                ncw_get_var_float(ncid_src, vid_src, v);
+                ncw_close(ncid_src);
+
                 ncw_inq_varid(ncid_dst, varname, &vid_dst);
                 ncw_inq_varndims(ncid_dst, vid_dst, &ndims_dst);
                 if (ndims_dst == 1)
