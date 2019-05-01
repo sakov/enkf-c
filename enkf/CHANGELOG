@@ -1,6 +1,9 @@
+v. 1.98.7
+   PS 01052019
+   -- In pointlog files added instrument ids.
 v. 1.98.6
    PS 01052019
-   -- In npointlog files for each observation type added attribute
+   -- In pointlog files for each observation type added attribute
       "GRIDID_<type>".
 v. 1.98.5
    PS 30042019

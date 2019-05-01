@@ -98,10 +98,11 @@ void plog_create(dasystem* das, int plogid, int ploc, int* lobs, double* lcoeffs
     float* ofj;
     float* ofk;
     int* otype;
+    int* oinst;
     float* otime;
-    int vid_ids, vid_lcoeffs, vid_lon, vid_lat, vid_depth, vid_val, vid_estd, vid_fi, vid_fj, vid_fk, vid_type, vid_time;
+    int vid_ids, vid_lcoeffs, vid_lon, vid_lat, vid_depth, vid_val, vid_estd, vid_fi, vid_fj, vid_fk, vid_type, vid_inst, vid_time;
     char tunits[MAXSTRLEN];
-    int otid, gid;
+    int otid, gid, iid;
 
     assert(das->s_mode == S_MODE_S_f);
 
@@ -120,6 +121,7 @@ void plog_create(dasystem* das, int plogid, int ploc, int* lobs, double* lcoeffs
     ncw_def_var(ncid, "obs_fj", NC_FLOAT, 1, &dimids[1], &vid_fj);
     ncw_def_var(ncid, "obs_fk", NC_FLOAT, 1, &dimids[1], &vid_fk);
     ncw_def_var(ncid, "obs_type", NC_INT, 1, &dimids[1], &vid_type);
+    ncw_def_var(ncid, "obs_inst", NC_INT, 1, &dimids[1], &vid_inst);
     ncw_def_var(ncid, "obs_time", NC_FLOAT, 1, &dimids[1], &vid_time);
     snprintf(tunits, MAXSTRLEN, "days from %s", obs->datestr);
     ncw_put_att_text(ncid, vid_time, "units", tunits);
@@ -189,6 +191,12 @@ void plog_create(dasystem* das, int plogid, int ploc, int* lobs, double* lcoeffs
     }
 
     /*
+     * instruments
+     */
+    for (iid = 0; iid < st_getsize(obs->instruments); ++iid)
+        ncw_put_att_int(ncid, vid_inst, st_findstringbyindex(obs->instruments, iid), 1, &iid);
+
+    /*
      * global atts
      */
     ncw_put_att_text(ncid, NC_GLOBAL, "version", ENKF_VERSION);
@@ -225,6 +233,7 @@ void plog_create(dasystem* das, int plogid, int ploc, int* lobs, double* lcoeffs
         ofj = malloc(ploc * sizeof(float));
         ofk = malloc(ploc * sizeof(float));
         otype = malloc(ploc * sizeof(int));
+        oinst = malloc(ploc * sizeof(int));
         otime = malloc(ploc * sizeof(float));
 
         for (oid = 0; oid < ploc; ++oid) {
@@ -239,6 +248,7 @@ void plog_create(dasystem* das, int plogid, int ploc, int* lobs, double* lcoeffs
             ofj[oid] = o->fj;
             ofk[oid] = o->fk;
             otype[oid] = o->type;
+            oinst[oid] = o->instrument;
             otime[oid] = o->time;
         }
 
@@ -251,6 +261,7 @@ void plog_create(dasystem* das, int plogid, int ploc, int* lobs, double* lcoeffs
         ncw_put_var_float(ncid, vid_fj, ofj);
         ncw_put_var_float(ncid, vid_fk, ofk);
         ncw_put_var_int(ncid, vid_type, otype);
+        ncw_put_var_int(ncid, vid_type, oinst);
         ncw_put_var_float(ncid, vid_time, otime);
 
         free(olon);
@@ -262,6 +273,7 @@ void plog_create(dasystem* das, int plogid, int ploc, int* lobs, double* lcoeffs
         free(ofj);
         free(ofk);
         free(otype);
+        free(oinst);
         free(otime);
     }
 
