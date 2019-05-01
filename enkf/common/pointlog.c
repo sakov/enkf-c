@@ -468,13 +468,22 @@ static void plog_writestatevars_direct(dasystem* das, int nfields, void** fieldb
             mask = model_getnumlevels(das->m, f->varid);
             grid_getdims(g, &ni, &nj, NULL);
 
-            for (e = 0; e < das->nmem; ++e)
-                v[e] = interpolate2d(plog->fi[gid], plog->fj[gid], ni, nj, v_src[e], mask, periodic_i);
-            if (das->mode == MODE_ENOI && !(das->updatespec & UPDATE_OUTPUTINC)) {
+            if (das->mode == MODE_ENKF) {
+                for (e = 0; e < das->nmem; ++e)
+                    v[e] = interpolate2d(plog->fi[gid], plog->fj[gid], ni, nj, v_src[e], mask, periodic_i);
+            } else if (das->mode == MODE_ENOI) {
                 float bg = interpolate2d(plog->fi[gid], plog->fj[gid], ni, nj, v_src[das->nmem], mask, periodic_i);
 
-                for (e = 0; e < das->nmem; ++e)
-                    v[e] += bg;
+                if (isanalysis && (das->updatespec & UPDATE_OUTPUTINC)) {
+                    /*
+                     * same increments for all ensemble members
+                     */
+                    for (e = 0; e < das->nmem; ++e)
+                        v[e] = bg;
+                } else {
+                    for (e = 0; e < das->nmem; ++e)
+                        v[e] = bg + interpolate2d(plog->fi[gid], plog->fj[gid], ni, nj, v_src[e], mask, periodic_i);
+                }
             }
 
             if (!isanalysis)
@@ -551,14 +560,24 @@ static void plog_writestatevars_toassemble(dasystem* das, int nfields, void** fi
             ncw_def_var(ncid, varname, NC_FLOAT, 1, &dimid, &vid);
             ncw_enddef(ncid);
 
-            for (e = 0; e < das->nmem; ++e)
-                v[e] = interpolate2d(plog->fi[gid], plog->fj[gid], ni, nj, v_src[e], mask, periodic_i);
-            if (das->mode == MODE_ENOI) {
+            if (das->mode == MODE_ENKF) {
+                for (e = 0; e < das->nmem; ++e)
+                    v[e] = interpolate2d(plog->fi[gid], plog->fj[gid], ni, nj, v_src[e], mask, periodic_i);
+            } else if (das->mode == MODE_ENOI) {
                 float bg = interpolate2d(plog->fi[gid], plog->fj[gid], ni, nj, v_src[das->nmem], mask, periodic_i);
 
-                for (e = 0; e < das->nmem; ++e)
-                    v[e] += bg;
+                if (isanalysis && (das->updatespec & UPDATE_OUTPUTINC)) {
+                    /*
+                     * same increments for all ensemble members
+                     */
+                    for (e = 0; e < das->nmem; ++e)
+                        v[e] = bg;
+                } else {
+                    for (e = 0; e < das->nmem; ++e)
+                        v[e] = bg + interpolate2d(plog->fi[gid], plog->fj[gid], ni, nj, v_src[e], mask, periodic_i);
+                }
             }
+
             ncw_put_var_float(ncid, vid, v);
             ncw_close(ncid);
         }

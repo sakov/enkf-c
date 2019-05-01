@@ -1,3 +1,7 @@
+v. 1.98.10
+   PS 01052019
+   -- Corrected the writing of EnOI ensemble in plog_writestatevars_direct() and
+      plog_writestatevars_toassemble().
 v. 1.98.9
    PS 01052019
    -- Fixed a defect in plog_writestatevars_toassemble().
