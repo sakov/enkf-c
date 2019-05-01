@@ -560,8 +560,8 @@ static void plog_writestatevars_toassemble(dasystem* das, int nfields, void** fi
                     v[e] += bg;
             }
             ncw_put_var_float(ncid, vid, v);
+            ncw_close(ncid);
         }
-        ncw_close(ncid);
     }
 
     free(v);
