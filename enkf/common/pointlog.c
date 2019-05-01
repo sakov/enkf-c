@@ -261,7 +261,7 @@ void plog_create(dasystem* das, int plogid, int ploc, int* lobs, double* lcoeffs
         ncw_put_var_float(ncid, vid_fj, ofj);
         ncw_put_var_float(ncid, vid_fk, ofk);
         ncw_put_var_int(ncid, vid_type, otype);
-        ncw_put_var_int(ncid, vid_type, oinst);
+        ncw_put_var_int(ncid, vid_inst, oinst);
         ncw_put_var_float(ncid, vid_time, otime);
 
         free(olon);
