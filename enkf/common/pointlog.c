@@ -379,7 +379,12 @@ void plog_definestatevars(dasystem* das)
             else
                 snprintf(varname_an, NC_MAX_NAME, "%s_inc", varname);
 
-            model_getvargriddims(das->m, vid, NULL, NULL, &nk);
+	    {
+		char fname[MAXSTRLEN];
+
+		model_getmemberfname(das->m, das->ensdir, varname, 1, fname);
+		nk = getnlevels(fname, varname);
+	    }
             if (nk > 1) {
                 char gridstr[NC_MAX_NAME];
                 char nkname[NC_MAX_NAME];
@@ -465,7 +470,7 @@ static void plog_writestatevars_direct(dasystem* das, int nfields, void** fieldb
 
             for (e = 0; e < das->nmem; ++e)
                 v[e] = interpolate2d(plog->fi[gid], plog->fj[gid], ni, nj, v_src[e], mask, periodic_i);
-            if (das->mode == MODE_ENOI) {
+            if (das->mode == MODE_ENOI && !(das->updatespec & UPDATE_OUTPUTINC)) {
                 float bg = interpolate2d(plog->fi[gid], plog->fj[gid], ni, nj, v_src[das->nmem], mask, periodic_i);
 
                 for (e = 0; e < das->nmem; ++e)
@@ -612,7 +617,7 @@ void plog_assemblestatevars(dasystem* das)
             char fname_src[MAXSTRLEN];
             int ii;
 
-            if (plog->gridid != gid)
+            if (plog->gridid >= 0 && plog->gridid != gid)
                 continue;
 
             snprintf(fname_src, MAXSTRLEN, "%s/pointlog-%d_%s-%03d.nc", DIRNAME_TMP, plogid, f->varname, f->level);
