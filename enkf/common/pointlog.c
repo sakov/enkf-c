@@ -303,15 +303,17 @@ void plog_writetransform(dasystem* das, int plogid, int gid, int ploc, double* s
     ncw_open(fname, NC_WRITE, &ncid);
     ncw_redef(ncid);
     ncw_inq_dimid(ncid, "m", &dimids[0]);
-    snprintf(name, NC_MAX_NAME, "p%s", gridstr);
-    if (!ncw_dim_exists(ncid, name))
-        ncw_def_dim(ncid, name, ploc, &dimids[1]);
-    else
-        ncw_inq_dimid(ncid, name, &dimids[1]);
-    snprintf(name, NC_MAX_NAME, "s%s", gridstr);
-    ncw_def_var(ncid, name, NC_FLOAT, 1, &dimids[1], &vid_s);
-    snprintf(name, NC_MAX_NAME, "S%s", gridstr);
-    ncw_def_var(ncid, name, NC_FLOAT, 2, dimids, &vid_S);
+    if (ploc > 0) {
+        snprintf(name, NC_MAX_NAME, "p%s", gridstr);
+        if (!ncw_dim_exists(ncid, name))
+            ncw_def_dim(ncid, name, ploc, &dimids[1]);
+        else
+            ncw_inq_dimid(ncid, name, &dimids[1]);
+        snprintf(name, NC_MAX_NAME, "s%s", gridstr);
+        ncw_def_var(ncid, name, NC_FLOAT, 1, &dimids[1], &vid_s);
+        snprintf(name, NC_MAX_NAME, "S%s", gridstr);
+        ncw_def_var(ncid, name, NC_FLOAT, 2, dimids, &vid_S);
+    }
     if (das->mode == MODE_ENKF) {
         char attstr[MAXSTRLEN];
 
