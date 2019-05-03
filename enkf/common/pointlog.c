@@ -210,6 +210,7 @@ void plog_create(dasystem* das, int plogid, int ploc, int* lobs, double* lcoeffs
     } else
         ncw_put_att_text(ncid, NC_GLOBAL, "MODE", "EnOI");
     ncw_put_att_int(ncid, NC_GLOBAL, "ngrids", 1, &ngrid);
+    ncw_put_att_text(ncid, NC_GLOBAL, "output", (das->updatespec & UPDATE_OUTPUTINC) ? "increment" : "analysis");
 
     if (das->nccompression > 0)
         ncw_def_deflate(ncid, 0, 1, das->nccompression);
@@ -420,8 +421,9 @@ void plog_definestatevars(dasystem* das)
                     ncw_inq_varid(ncid, varname_an, &varid_an);
                 }
             }
+            ncw_put_att_int(ncid, varid, "gridid", 1, &gid);
 
-            {
+            if (das->mode == MODE_ENKF) {
                 float inflation[2];
                 double tmp;
 
