@@ -1,3 +1,7 @@
+v. 1.98.14
+   PS 03052019
+   -- Moved putting attribute "output" in pointlog files from plog_create()
+      to plog_definestatevars().
 v. 1.98.13
    PS 03052019
    -- In pointlog files added global attribute "output" (which has value of
