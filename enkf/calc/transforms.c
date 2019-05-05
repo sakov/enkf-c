@@ -288,7 +288,7 @@ void das_calctransforms(dasystem* das)
         if (i == model_getnvar(m))
             continue;
 
-        enkf_printf("    calculating transforms for %s:\n", grid_getname(grid));
+        enkf_printf("    calculating transforms for %s:\n", gridname);
 
         grid_getdims(grid, &mni, &mnj, NULL);
 
@@ -339,15 +339,6 @@ void das_calctransforms(dasystem* das)
             psrf = alloc3d(obs->nobstypes, my_number_of_iterations, ni, sizeof(float));
         }
 
-        /*
-         * main cycle 
-         */
-        enkf_printf("      main cycle for %s (%d x %d local analyses):\n", grid_getname(grid), nj, ni);
-
-        enkf_flush();
-#if defined(MPI)
-        MPI_Barrier(MPI_COMM_WORLD);
-#endif
         jpool = malloc(nj * sizeof(int));
         if (rank == 0) {
             for (j = 0; j < nj; ++j)
@@ -378,6 +369,11 @@ void das_calctransforms(dasystem* das)
         /*
          * main cycle
          */
+        enkf_printf("      main cycle for %s (%d x %d local analyses):\n", gridname, nj, ni);
+        enkf_flush();
+#if defined(MPI)
+        MPI_Barrier(MPI_COMM_WORLD);    /* (to sync the logs) */
+#endif
         for (jj = my_first_iteration; jj <= my_last_iteration; ++jj) {
             j = jiter[jpool[jj]];
             if (enkf_verbose)
@@ -628,7 +624,7 @@ void das_calctransforms(dasystem* das)
 #if defined(MPI)
         MPI_Barrier(MPI_COMM_WORLD);
 #endif
-        enkf_printf("    finished calculating transforms for %s\n", grid_getname(grid));
+        enkf_printf("    finished calculating transforms for %s\n", gridname);
 
         enkf_flush();
 
@@ -771,7 +767,7 @@ void das_calctransforms(dasystem* das)
         }
 #endif
 
-        enkf_printf("    summary stats on %s:\n", grid_getname(grid));
+        enkf_printf("    summary stats on %s:\n", gridname);
 
         enkf_printf("      # of local analyses = %d\n", stats.ncell);
         enkf_printf("      average # of local obs = %.1f\n", (double) stats.nlobs_sum / (double) stats.ncell);
