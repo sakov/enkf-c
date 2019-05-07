@@ -1,3 +1,9 @@
+v. 1.98.15
+   PS 07052019
+   -- In H_subsurf_standard() and H_subsurf_wsurfbias() -- in the case nk = 0
+      use model_readfield() instead of model_read3dfield().
+   -- Corrected das_setnmem() to use specified ensemble size if it is smaller
+      than than the available one.
 v. 1.98.14
    PS 03052019
    -- Moved putting attribute "output" in pointlog files from plog_create()

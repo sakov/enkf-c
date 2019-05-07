@@ -232,7 +232,10 @@ void H_subsurf_standard(dasystem* das, int nobs, int obsids[], char fname[], int
     assert(ot->nvar == 1);      /* should we care? */
     model_getvargriddims(m, mvid, &ni, &nj, &nk);
     src = alloc3d(nk, nj, ni, sizeof(float));
-    model_read3dfield(m, fname, ot->varnames[0], src[0][0]);
+    if (nk > 1)
+        model_read3dfield(m, fname, ot->varnames[0], src[0][0]);
+    else if (nk == 1)
+        model_readfield(m, fname, ot->varnames[0], 0, src[0][0]);
 
     snprintf(tag_offset, MAXSTRLEN, "%s:OFFSET", allobs->obstypes[allobs->data[obsids[0]].type].name);
     offset = model_getdata(m, tag_offset);
@@ -302,7 +305,10 @@ void H_subsurf_wsurfbias(dasystem* das, int nobs, int obsids[], char fname[], in
     /*
      * this part is similar to H_subsurf_standard()
      */
-    model_read3dfield(m, fname, ot->varnames[0], src[0][0]);
+    if (nk > 1)
+        model_read3dfield(m, fname, ot->varnames[0], src[0][0]);
+    else if (nk == 1)
+        model_readfield(m, fname, ot->varnames[0], 0, src[0][0]);
 
     snprintf(tag_offset, MAXSTRLEN, "%s:OFFSET", ot->name);
     offset = model_getdata(m, tag_offset);
