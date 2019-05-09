@@ -572,7 +572,7 @@ void enkfprm_print(enkfprm* prm, char offset[])
         for (i = 0; i < prm->nplog; ++i) {
             pointlog* plog = &prm->plogs[i];
 
-            enkf_printf("%sPOINTLOG %.3f %.3f\n", offset, plog->lon, plog->lat);
+            enkf_printf("%sPOINTLOG %.3f %.3f %s\n", offset, plog->lon, plog->lat, (plog->gridname == NULL) ? "" : plog->gridname);
         }
     }
 #endif
