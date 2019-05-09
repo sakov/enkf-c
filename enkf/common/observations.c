@@ -1153,7 +1153,10 @@ void obs_superob(observations* obs, __compar_d_fn_t cmp_obs, observations** sobs
         so->batch = o->batch;
 
         evar = o->estd * o->estd;
-        evar = (subvar > evar) ? subvar : evar;
+        if (subvar > evar) {
+            evar = subvar;
+            obs->obstypes[o->type].nsubgrid++;
+        }
         so->estd = 1.0 / evar;
         so->value = o->value;
         so->footprint = o->footprint;
@@ -1184,10 +1187,7 @@ void obs_superob(observations* obs, __compar_d_fn_t cmp_obs, observations** sobs
                 so->batch = -1;
 
             evar = o->estd * o->estd;
-            if (subvar > evar) {
-                evar = subvar;
-                obs->obstypes[o->type].nsubgrid++;
-            }
+            evar = (subvar > evar) ? subvar : evar;
             so->value = so->value * so->estd + o->value / evar;
             so->lon = so->lon * so->estd + o->lon / evar;
             so->lat = so->lat * so->estd + o->lat / evar;
