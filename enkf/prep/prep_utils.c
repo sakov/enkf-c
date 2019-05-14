@@ -141,7 +141,7 @@ void obs_add(observations* obs, model* m, obsmeta* meta)
         int ni, nj, ksurf;
 
         enkf_printf("      id = %d - %d\n", nobs0, obs->nobs - 1);
-        grid_getdims(g, &ni, &nj, NULL);
+        grid_getsize(g, &ni, &nj, NULL);
         ksurf = grid_getsurflayerid(g);
         for (i = nobs0; i < obs->nobs; ++i) {
             observation* o = &obs->data[i];
@@ -264,7 +264,7 @@ void obs_add(observations* obs, model* m, obsmeta* meta)
 
                 enkf_printf("      adding error_std from %s %s:\n", fname, estd->varname);
 
-                grid_getdims(g, &ni, &nj, &nk);
+                grid_getsize(g, &ni, &nj, &nk);
 
                 if (ot->issurface) {
                     float** v = alloc2d(nj, ni, sizeof(float));
@@ -376,7 +376,7 @@ int obs_checkforland(observations* obs, model* m)
         grid* g = model_getvargrid(m, vid);
         int ni, nj, ksurf;
 
-        grid_getdims(g, &ni, &nj, NULL);
+        grid_getsize(g, &ni, &nj, NULL);
         ksurf = grid_getsurflayerid(g);
         if (island(o->fi, o->fj, o->fk, ni, nj, ksurf, grid_getnumlevels(g), grid_isperiodic_i(g))) {
             o->status = STATUS_LAND;

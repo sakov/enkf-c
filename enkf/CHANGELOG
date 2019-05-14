@@ -1,3 +1,8 @@
+v. 1.98.18
+   PS 14052019
+   -- Skip building curvilinear horizontal grid map in UPDATE to save memory.
+   -- Replaced grid_getdims() by grid_getsize() and model_getvargriddims() by
+      model_getvargridsize().
 v. 1.98.17
    PS 09052019
    -- A very minor, almost cosmetic correction of printing pointlogs in

@@ -115,7 +115,7 @@ model* model_create(enkfprm* prm)
     char* modelprm = prm->modelprm;
     int i;
 
-    grids_create(prm->gridprm, prm->stride, prm->sob_stride, &m->ngrid, &m->grids);
+    grids_create(prm->gridprm, prm->stride, &m->ngrid, &m->grids);
 
     assert(m->ngrid > 0);
 
@@ -389,7 +389,7 @@ void model_addorreplacedata(model* m, char tag[], int vid, int alloctype, void* 
         assert(m->data[i].alloctype == alloctype);
     }
 
-    model_getvargriddims(m, mdata->vid, &ni, &nj, &nk);
+    model_getvargridsize(m, mdata->vid, &ni, &nj, &nk);
     if (mdata->alloctype == ALLOCTYPE_1D)
         memcpy(mdata->data, data, nk * sizeof(float));
     else if (mdata->alloctype == ALLOCTYPE_2D)
@@ -489,9 +489,9 @@ double model_getvarsigma(model* m, int varid)
 
 /**
  */
-void model_getvargriddims(model* m, int vid, int* ni, int* nj, int* nk)
+void model_getvargridsize(model* m, int vid, int* ni, int* nj, int* nk)
 {
-    grid_getdims(m->grids[m->vars[vid].gridid], ni, nj, nk);
+    grid_getsize(m->grids[m->vars[vid].gridid], ni, nj, nk);
 }
 
 /**
@@ -662,7 +662,7 @@ void model_readfield(model* m, char fname[], char varname[], int k, float* v)
     int ni, nj, nk;
     int mvid = model_getvarid(m, varname, 1);
 
-    model_getvargriddims(m, mvid, &ni, &nj, &nk);
+    model_getvargridsize(m, mvid, &ni, &nj, &nk);
     assert(k < nk);
     readfield(fname, varname, k, ni, nj, nk, v);
 }
@@ -674,7 +674,7 @@ void model_read3dfield(model* m, char fname[], char varname[], float* v)
     int ni, nj, nk;
     int mvid = model_getvarid(m, varname, 1);
 
-    model_getvargriddims(m, mvid, &ni, &nj, &nk);
+    model_getvargridsize(m, mvid, &ni, &nj, &nk);
     read3dfield(fname, varname, ni, nj, nk, v);
 }
 
@@ -685,7 +685,7 @@ void model_writefield(model* m, char fname[], char varname[], int k, float* v)
     int ni, nj, nk;
     int mvid = model_getvarid(m, varname, 1);
 
-    model_getvargriddims(m, mvid, &ni, &nj, &nk);
+    model_getvargridsize(m, mvid, &ni, &nj, &nk);
     assert(k < nk);
     writefield(fname, varname, k, ni, nj, nk, v);
 }
@@ -697,7 +697,7 @@ void model_writefieldas(model* m, char fname[], char varname[], char varnameas[]
     int ni, nj, nk;
     int mvid = model_getvarid(m, varnameas, 1);
 
-    model_getvargriddims(m, mvid, &ni, &nj, &nk);
+    model_getvargridsize(m, mvid, &ni, &nj, &nk);
     assert(k < nk);
     writefield(fname, varname, k, ni, nj, nk, v);
 }

@@ -257,7 +257,7 @@ static observations* obs_create_fromsingleob(enkfprm* prm, dasystem* das)
             model_fk2z(m, vid, (int) (o->fi + EPS_IJ), (int) (o->fj + EPS_IJ), o->fk, &o->depth);
 
         o->status = STATUS_OK;
-        grid_getdims(grid, &ni, &nj, &nk);
+        grid_getsize(grid, &ni, &nj, &nk);
 
         if (o->fi < 0.0 || o->fi > (double) (ni - 1) || o->fj < 0.0 || o->fj > (double) (nj - 1) || o->fk < 0.0 || o->fk > (double) (nk - 1))
             o->status = STATUS_OUTSIDEGRID;

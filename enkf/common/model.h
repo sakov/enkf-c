@@ -37,7 +37,7 @@ int model_getvarid(model* m, char* varname, int hastosucceed);
 void model_getvarinflation(model* m, int varid, float* inflation, double* inf_ratio);
 double model_getvardeflation(model* m, int varid);
 double model_getvarsigma(model* m, int varid);
-void model_getvargriddims(model* m, int vid, int* ni, int* nj, int* nk);
+void model_getvargridsize(model* m, int vid, int* ni, int* nj, int* nk);
 void* model_getvargrid(model* m, int vid);
 int model_getvargridid(model* m, int vid);
 int model_getngrid(model* m);

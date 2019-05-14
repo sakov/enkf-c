@@ -181,7 +181,7 @@ void plog_create(dasystem* das, int plogid, int ploc, int* lobs, double* lcoeffs
         ncw_put_att_text(ncid, vid_grid, "DOMAIN", grid_getdomainname(g));
         ncw_put_att_double(ncid, vid_grid, "fi", 1, &plog->fi[gid]);
         ncw_put_att_double(ncid, vid_grid, "fj", 1, &plog->fj[gid]);
-        grid_getdims(g, &ni, &nj, &nk);
+        grid_getsize(g, &ni, &nj, &nk);
         ncw_put_att_int(ncid, vid_grid, "nk", 1, &nk);
         depths = grid_getdepth(g);
         if (depths != NULL) {
@@ -474,7 +474,7 @@ static void plog_writestatevars_direct(dasystem* das, int nfields, void** fieldb
                 continue;
 
             v_src = (float***) fieldbuffer[fid];
-            grid_getdims(g, &ni, &nj, NULL);
+            grid_getsize(g, &ni, &nj, NULL);
 
             if (das->mode == MODE_ENKF) {
                 for (e = 0; e < das->nmem; ++e)
@@ -536,7 +536,7 @@ static void plog_writestatevars_toassemble(dasystem* das, int nfields, void** fi
         int e;
 
         v_src = (float***) fieldbuffer[fid];
-        grid_getdims(g, &ni, &nj, NULL);
+        grid_getsize(g, &ni, &nj, NULL);
 
         for (plogid = 0; plogid < das->nplog; ++plogid) {
             pointlog* plog = &das->plogs[plogid];

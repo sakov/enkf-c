@@ -47,12 +47,12 @@ struct enkfprm {
     double* locweight;
     int nlobsmax;
     int stride;
+    int sob_stride;
     int fieldbufsize;
     int nregions;
     region* regions;
     int nplog;
     pointlog* plogs;
-    int sob_stride;
     int nbadbatchspecs;
     badbatchspec* badbatchspecs;
 

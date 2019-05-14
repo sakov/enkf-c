@@ -65,6 +65,8 @@ typedef struct {
 
 #if !defined(NO_GRIDUTILS)
 typedef struct {
+    int ni;
+    int nj;
     gridnodes* gn;
     gridmap* gm;
 } gxy_curv;
@@ -157,7 +159,6 @@ struct grid {
      * common value defined in the top prm file. 
      */
     int stride;
-    int sob_stride;
 
     /*
      * "Spread factor", normally set to 1. Introduced to adjust relative spread
@@ -273,6 +274,9 @@ static gxy_curv* gxy_curv_create(int nodetype, int ni, int nj, double** x, doubl
 {
     gxy_curv* nodes = malloc(sizeof(gxy_curv));
 
+    nodes->ni = ni;
+    nodes->nj = nj;
+#if defined(ENKF_PREP) || defined(ENKF_CALC)
     if (nodetype == NT_CEN) {
         gridnodes* gn_new;
 
@@ -287,6 +291,10 @@ static gxy_curv* gxy_curv_create(int nodetype, int ni, int nj, double** x, doubl
     gridnodes_validate(nodes->gn);
     gridnodes_setmaptype(nodes->gn, maptype);
     nodes->gm = gridmap_build2(nodes->gn);
+#elif defined(ENKF_UPDATE)
+    nodes->gn = NULL;
+    nodes->gm = NULL;
+#endif
 
     return nodes;
 }
@@ -1333,7 +1341,7 @@ void grid_print(grid* g, char offset[])
     default:
         enkf_printf("%s  h type = NONE\n", offset);
     }
-    grid_getdims(g, &ni, &nj, &nk);
+    grid_getsize(g, &ni, &nj, &nk);
     enkf_printf("%s  dims = %d x %d x %d\n", offset, ni, nj, nk);
     if (!isnan(g->lonbase))
         enkf_printf("%s  longitude range = [%.3f, %.3f]\n", offset, g->lonbase, g->lonbase + 360.0);
@@ -1367,10 +1375,8 @@ void grid_print(grid* g, char offset[])
         enkf_printf("%s  v dir = %s\n", offset, (nodes->vdirection == GRIDVDIR_FROMSURF) ? "FROMSURF" : "TOSURF");
     } else
         enkf_quit("not implemented");
-    if (g->stride != 0)
+    if (g->stride != 1)
         enkf_printf("%s  STRIDE = %d\n", offset, g->stride);
-    if (g->sob_stride != 0)
-        enkf_printf("%s  SOBSTRIDE = %d\n", offset, g->sob_stride);
     if (g->sfactor != 1.0)
         enkf_printf("%s  SFACTOR = %f\n", offset, g->sfactor);
 }
@@ -1387,29 +1393,30 @@ void grid_describeprm(void)
     enkf_printf("    VTYPE            = { z | sigma | hybrid }\n");
     enkf_printf("  [ VDIR             = { fromsurf* | tosurf } ]\n");
 #if !defined(NO_GRIDUTILS)
-    enkf_printf("  [ MAPTYPE          = { binary* | kdtree } (curvilinear grids) ]\n");
+    enkf_printf("  [ MAPTYPE          = { binary* | kdtree } ]             (curvilinear grids)\n");
 #endif
     enkf_printf("    DATA             = <data file name>\n");
     enkf_printf("    XVARNAME         = <X variable name>\n");
     enkf_printf("    YVARNAME         = <Y variable name>\n");
-    enkf_printf("    ZVARNAME         = <Z variable name> (z)\n");
-    enkf_printf("  [ ZCVARNAME        = <ZC variable name> (z) ]\n");
-    enkf_printf("    CVARNAME         = <Cs_rho variable name> (sigma)\n");
-    enkf_printf("  [ CCVARNAME        = <Cs_w variable name> (sigma) ]\n");
-    enkf_printf("  [ SVARNAME         = <s_rho variable name> (uniform*) (sigma)\n");
-    enkf_printf("  [ SCVARNAME        = <s_w variable name> (uniform*) (sigma) ]\n");
-    enkf_printf("  [ HCVARNAME        = <hc variable name> (0.0*) (sigma) ]\n");
-    enkf_printf("  [ DEPTHVARNAME     = <depth variable name> (z | sigma) ]\n");
-    enkf_printf("  [ NUMLEVELSVARNAME = <# of levels variable name> (z) ]\n");
-    enkf_printf("  [ MASKVARNAME      = <land mask variable name> (sigma | hybrid) ]\n");
-    enkf_printf("    AVARNAME         = <A variable name> (hybrid)\n");
-    enkf_printf("    BVARNAME         = <B variable name> (hybrid)\n");
-    enkf_printf("  [ ACVARNAME        = <AC variable name> (hybrid) ]\n");
-    enkf_printf("  [ BCVARNAME        = <BC variable name> (hybrid) ]\n");
-    enkf_printf("    P1VARNAME        = <P1 variable name> (hybrid)\n");
-    enkf_printf("    P2VARNAME        = <P2 variable name> (hybrid)\n");
-    enkf_printf("  [ STRIDE           = <stride for ensemble transforms> (1*) ]\n");
-    enkf_printf("  [ SFACTOR          = <spread factor> (1.0*) ]\n");
+    enkf_printf("    ZVARNAME         = <Z variable name>                  (z)\n");
+    enkf_printf("  [ ZCVARNAME        = <ZC variable name> ]               (z)\n");
+    enkf_printf("    CVARNAME         = <Cs_rho variable name>             (sigma)\n");
+    enkf_printf("  [ CCVARNAME        = <Cs_w variable name> ]             (sigma)\n");
+    enkf_printf("  [ SVARNAME         = <s_rho variable name> ]            (uniform*) (sigma)\n");
+    enkf_printf("  [ SCVARNAME        = <s_w variable name> ]              (uniform*) (sigma)\n");
+    enkf_printf("  [ HCVARNAME        = <hc variable name> ]               (0.0*) (sigma)\n");
+    enkf_printf("  [ DEPTHVARNAME     = <depth variable name> ]            (z | sigma)\n");
+    enkf_printf("  [ NUMLEVELSVARNAME = <# of levels variable name> ]      (z)\n");
+    enkf_printf("  [ MASKVARNAME      = <land mask variable name> ]        (sigma | hybrid)\n");
+    enkf_printf("    AVARNAME         = <A variable name>                  (hybrid)\n");
+    enkf_printf("    BVARNAME         = <B variable name>                  (hybrid)\n");
+    enkf_printf("  [ ACVARNAME        = <AC variable name> ]               (hybrid)\n");
+    enkf_printf("  [ BCVARNAME        = <BC variable name> ]               (hybrid)\n");
+    enkf_printf("    P1VARNAME        = <P1 variable name>                 (hybrid)\n");
+    enkf_printf("    P2VARNAME        = <P2 variable name>                 (hybrid)\n");
+    enkf_printf("  [ STRIDE           = <stride for ensemble transforms> ] (1*)\n");
+    enkf_printf("  [ SOBSTRIDE        = <stride for superobing> ]          (1*)\n");
+    enkf_printf("  [ SFACTOR          = <spread factor> ]                  (1.0*)\n");
     enkf_printf("  [ ZSTATINTS        = [<z1> <z2>] ... ]\n");
     enkf_printf("\n");
     enkf_printf("  [ <more of the above blocks> ]\n");
@@ -1424,7 +1431,7 @@ void grid_describeprm(void)
 
 /**
  */
-void grid_getdims(grid* g, int* ni, int* nj, int* nk)
+void grid_getsize(grid* g, int* ni, int* nj, int* nk)
 {
     if (ni != NULL) {
         if (g->htype == GRIDHTYPE_LATLON) {
@@ -1436,8 +1443,8 @@ void grid_getdims(grid* g, int* ni, int* nj, int* nk)
         } else if (g->htype == GRIDHTYPE_CURVILINEAR) {
             gxy_curv* nodes = (gxy_curv*) g->gridnodes_xy;
 
-            *ni = gridnodes_getnx(nodes->gn);
-            *nj = gridnodes_getny(nodes->gn);
+            *ni = nodes->ni;
+            *nj = nodes->nj;
 #endif
         } else
             enkf_quit("programming error");
@@ -1558,20 +1565,6 @@ void grid_setstride(grid* g, int stride)
 
 /**
  */
-int grid_getsobstride(grid* g)
-{
-    return g->sob_stride;
-}
-
-/**
- */
-void grid_setsobstride(grid* g, int sob_stride)
-{
-    g->sob_stride = sob_stride;
-}
-
-/**
- */
 double grid_getsfactor(grid* g)
 {
     return g->sfactor;
@@ -1633,7 +1626,7 @@ int grid_xy2fij(grid* g, double x, double y, double* fi, double* fj)
     j1 = floor(*fj);
     j2 = ceil(*fj);
 
-    grid_getdims(g, &ni, &nj, NULL);
+    grid_getsize(g, &ni, &nj, NULL);
     if (i1 == -1)
         i1 = (isperiodic_i) ? ni - 1 : i2;
     if (i2 == ni)
@@ -1688,7 +1681,7 @@ int grid_z2fk(grid* g, double fi, double fj, double z, double* fk)
     /*
      * a depth check for z-grid:
      */
-    grid_getdims(g, &ni, &nj, NULL);
+    grid_getsize(g, &ni, &nj, NULL);
     i1 = floor(fi);
     i2 = ceil(fi);
     if (i1 == -1)
@@ -1769,7 +1762,7 @@ int grid_fk2z(grid* g, int i, int j, double fk, double* z)
 {
     int ni, nj;
 
-    grid_getdims(g, &ni, &nj, NULL);
+    grid_getsize(g, &ni, &nj, NULL);
     if (i < 0 || j < 0 || i >= ni || j >= nj) {
         *z = NAN;
         return STATUS_OUTSIDEGRID;
@@ -1896,7 +1889,7 @@ static void grids_addgrid(int* ngrid, void*** grids, void* g)
 
 /**
  */
-void grids_create(char gprmfname[], int stride, int sob_stride, int* ngrid, void*** grids)
+void grids_create(char gprmfname[], int stride, int* ngrid, void*** grids)
 {
     int n = 0;
     gridprm* gprm = NULL;
@@ -1913,8 +1906,6 @@ void grids_create(char gprmfname[], int stride, int sob_stride, int* ngrid, void
 
         if (grid_getstride(g) == 0)
             grid_setstride(g, stride);
-        if (grid_getsobstride(g) == 0)
-            grid_setsobstride(g, sob_stride);
     }
     gridprm_destroy(n, gprm);
 }
@@ -1952,7 +1943,7 @@ kdtree* grid_gettree(grid* g)
         return g->nodetree;
 
     tree = kd_create(3);
-    grid_getdims(g, &ni, &nj, NULL);
+    grid_getsize(g, &ni, &nj, NULL);
 
     ids = malloc(ni * nj * sizeof(size_t));
     for (j = 0, ii = 0, nii = 0; j < nj; ++j) {

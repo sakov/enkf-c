@@ -430,7 +430,7 @@ void das_calcmld(dasystem* das, obstype* ot, float*** src, float** dst)
     int ni, nj, nk, ksurf;
     int i, j, k, kk;
 
-    model_getvargriddims(m, mvid, &ni, &nj, &nk);
+    model_getvargridsize(m, mvid, &ni, &nj, &nk);
     ksurf = grid_getsurflayerid(model_getvargrid(m, mvid));
 
     for (j = 0; j < nj; ++j) {

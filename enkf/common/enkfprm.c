@@ -106,8 +106,8 @@ enkfprm* enkfprm_read(char fname[])
     prm->locweight = NULL;
     prm->nlobsmax = INT_MAX;
     prm->stride = 1;
-    prm->fieldbufsize = 1;
     prm->sob_stride = 1;
+    prm->fieldbufsize = 1;
     prm->ncformat = NC_64BIT_OFFSET;
     prm->nccompression = 0;
 
@@ -559,6 +559,8 @@ void enkfprm_print(enkfprm* prm, char offset[])
         if (prm->nlobsmax != INT_MAX)
             enkf_printf("%sNLOBSMAX = %d\n", offset, prm->nlobsmax);
         enkf_printf("%sSTRIDE = %d\n", offset, prm->stride);
+        if (prm->sob_stride != 1)
+            enkf_printf("%sSOBSTRIDE = %d\n", offset, prm->sob_stride);
         enkf_printf("%sFIELDBUFFERSIZE = %d\n", offset, prm->fieldbufsize);
     }
     for (i = 0; i < prm->nregions; ++i) {
@@ -576,7 +578,6 @@ void enkfprm_print(enkfprm* prm, char offset[])
         }
     }
 #endif
-    enkf_printf("%sSOBSTRIDE = %d\n", offset, prm->sob_stride);
     for (i = 0; i < prm->nbadbatchspecs; ++i) {
         badbatchspec* bb = &prm->badbatchspecs[i];
 

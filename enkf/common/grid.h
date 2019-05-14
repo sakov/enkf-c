@@ -40,7 +40,7 @@ void grid_destroy(grid* g);
 void grid_print(grid* g, char offset[]);
 void grid_describeprm(void);
 
-void grid_getdims(grid* g, int* ni, int* nj, int* nk);
+void grid_getsize(grid* g, int* ni, int* nj, int* nk);
 int grid_getsurflayerid(grid* g);
 char* grid_getname(grid* g);
 int grid_getid(grid* g);
@@ -51,8 +51,6 @@ int** grid_getnumlevels(grid* g);
 double grid_getlonbase(grid* g);
 int grid_getstride(grid* g);
 void grid_setstride(grid* g, int stride);
-int grid_getsobstride(grid* g);
-void grid_setsobstride(grid* g, int sobstride);
 double grid_getsfactor(grid* g);
 void grid_getzints(grid* g, int* nzints, zint* zints[]);
 char* grid_getdomainname(grid* g);
@@ -71,7 +69,7 @@ int grid_isperiodic_i(grid* g);
 /*
  * stuff to handle an array of grids
  */
-void grids_create(char gprmfname[], int stride, int sob_stride, int* ngrid, void*** grids);
+void grids_create(char gprmfname[], int stride, int* ngrid, void*** grids);
 void grids_destroy(int ngrid, void** grids);
 
 #define _GRID_H

@@ -36,7 +36,7 @@
 
 \begin{document}
 
-\title{EnKF-C user guide\\{\normalsize version 1.98.0}}
+\title{EnKF-C user guide\\{\normalsize version 1.98.18}}
 
 \author{Pavel Sakov}
 \date{June 19, 2014 -- \today}
@@ -779,28 +779,29 @@ It also contains variable names for the depth and for number of layers in a vert
   [ DOMAIN           = <domain name> ]
     VTYPE            = { z | sigma | hybrid }
   [ VDIR             = { fromsurf* | tosurf } ]
-  [ MAPTYPE          = { binary* | kdtree } (curvilinear grids) ]
+  [ MAPTYPE          = { binary* | kdtree } ]             (curvilinear grids)
     DATA             = <data file name>
     XVARNAME         = <X variable name>
     YVARNAME         = <Y variable name>
-    ZVARNAME         = <Z variable name> (z)
-  [ ZCVARNAME        = <ZC variable name> (z) ]
-    CVARNAME         = <Cs_rho variable name> (sigma)
-  [ CCVARNAME        = <Cs_w variable name> (sigma) ]
-  [ SVARNAME         = <s_rho variable name> (uniform*) (sigma)
-  [ SCVARNAME        = <s_w variable name> (uniform*) (sigma) ]
-  [ HCVARNAME        = <hc variable name> (0.0*) (sigma) ]
-  [ DEPTHVARNAME     = <depth variable name> (z | sigma) ]
-  [ NUMLEVELSVARNAME = <# of levels variable name> (z) ]
-  [ MASKVARNAME      = <land mask variable name> (sigma | hybrid) ]
-    AVARNAME         = <A variable name> (hybrid)
-    BVARNAME         = <B variable name> (hybrid)
-  [ ACVARNAME        = <AC variable name> (hybrid) ]
-  [ BCVARNAME        = <BC variable name> (hybrid) ]
-    P1VARNAME        = <P1 variable name> (hybrid)
-    P2VARNAME        = <P2 variable name> (hybrid)
-  [ STRIDE           = <stride for ensemble transforms> (1*) ]
-  [ SFACTOR          = <spread factor> (1.0*) ]
+    ZVARNAME         = <Z variable name>                  (z)
+  [ ZCVARNAME        = <ZC variable name> ]               (z)
+    CVARNAME         = <Cs_rho variable name>             (sigma)
+  [ CCVARNAME        = <Cs_w variable name> ]             (sigma)
+  [ SVARNAME         = <s_rho variable name> ]            (uniform*) (sigma)
+  [ SCVARNAME        = <s_w variable name> ]              (uniform*) (sigma)
+  [ HCVARNAME        = <hc variable name> ]               (0.0*) (sigma)
+  [ DEPTHVARNAME     = <depth variable name> ]            (z | sigma)
+  [ NUMLEVELSVARNAME = <# of levels variable name> ]      (z)
+  [ MASKVARNAME      = <land mask variable name> ]        (sigma | hybrid)
+    AVARNAME         = <A variable name>                  (hybrid)
+    BVARNAME         = <B variable name>                  (hybrid)
+  [ ACVARNAME        = <AC variable name> ]               (hybrid)
+  [ BCVARNAME        = <BC variable name> ]               (hybrid)
+    P1VARNAME        = <P1 variable name>                 (hybrid)
+    P2VARNAME        = <P2 variable name>                 (hybrid)
+  [ STRIDE           = <stride for ensemble transforms> ] (1*)
+  [ SOBSTRIDE        = <stride for superobing> ]          (1*)
+  [ SFACTOR          = <spread factor> ]                  (1.0*)
   [ ZSTATINTS        = [<z1> <z2>] ... ]
 
   [ <more of the above blocks> ]
@@ -1758,6 +1759,10 @@ The footprint of UPDATE is mainly defined by the size of the array of simultaneo
 For example, for a $1500 \times 3600$ horizontal field, 100 ensemble members and simultaneous update of 2 fields the size of this array would be about 4.3\,GB per CPU.
 It can be reduced to 2.15\,GB by setting the parameter \verb|FIELDBUFFERSIZE| to 1.
 Note that reducing the number of simultaneously updated fields specified by parameter \verb|FIELDBUFFERSIZE| increases I/O (the $\mb X_5$ array is read from disk $N_f / N_b$ times, where $N_f$ is the total number of horizontal fields, and $N_b$ is the number of simultaneously updated fields) and reduces computational effectiveness (the $\mb X_5$ array needs to be interpolated horizontally $N_f / N_b$ times).
+
+Note that in PREP and CALC considerable memory may be required by curvilinear
+grid maps, particularly for the (default) tree type \verb|MAPTYPE = binary|.
+This footprint can be much reduced by using \verb|MAPTYPE = kdtree|.
 
 \subsection{Exit action}
 

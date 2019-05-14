@@ -68,6 +68,7 @@ typedef struct {
      * DA related stuff attached to grids
      */
     int stride;
+    int sob_stride;
     double sfactor;
 
     /*

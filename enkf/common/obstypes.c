@@ -525,7 +525,7 @@ void obstypes_set(int n, obstype* types, model* m)
                 float** v = NULL;
                 int nx, ny;
 
-                model_getvargriddims(m, vid, &nx, &ny, NULL);
+                model_getvargridsize(m, vid, &nx, &ny, NULL);
                 v = alloc2d(ny, nx, sizeof(float));
                 readfield(ot->offset_fname, ot->offset_varname, 0, nx, ny, 1, v[0]);
                 model_adddata(m, tag, vid, ALLOCTYPE_2D, v);
@@ -533,7 +533,7 @@ void obstypes_set(int n, obstype* types, model* m)
                 float*** v = NULL;
                 int nx, ny, nz;
 
-                model_getvargriddims(m, vid, &nx, &ny, &nz);
+                model_getvargridsize(m, vid, &nx, &ny, &nz);
                 v = alloc3d(nz, ny, nx, sizeof(float));
                 read3dfield(ot->offset_fname, ot->offset_varname, nx, ny, nz, v[0][0]);
                 model_adddata(m, tag, vid, ALLOCTYPE_3D, v);

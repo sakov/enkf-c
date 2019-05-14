@@ -43,7 +43,7 @@ static void evaluate_2d_obs(model* m, observations* allobs, int nobs, int obsids
     int ni, nj;
     int i;
 
-    model_getvargriddims(m, mvid, &ni, &nj, NULL);
+    model_getvargridsize(m, mvid, &ni, &nj, NULL);
     for (i = 0; i < nobs; ++i) {
         int ii = obsids[i];
         observation* o = &allobs->data[ii];
@@ -98,7 +98,7 @@ static void interpolate_3d_obs(model* m, observations* allobs, int nobs, int obs
     int ni, nj, nk;
     int i;
 
-    model_getvargriddims(m, mvid, &ni, &nj, &nk);
+    model_getvargridsize(m, mvid, &ni, &nj, &nk);
     for (i = 0; i < nobs; ++i) {
         int ii = obsids[i];
         observation* o = &allobs->data[ii];
@@ -132,7 +132,7 @@ void H_surf_standard(dasystem* das, int nobs, int obsids[], char fname[], int me
 
     assert(ot->nvar == 1);      /* should we care? */
 
-    model_getvargriddims(m, mvid, &ni, &nj, NULL);
+    model_getvargridsize(m, mvid, &ni, &nj, NULL);
     src = alloc2d(nj, ni, sizeof(float));
     model_readfield(m, fname, ot->varnames[0], ksurf, src[0]);
 
@@ -146,7 +146,7 @@ void H_surf_standard(dasystem* das, int nobs, int obsids[], char fname[], int me
 
         assert(model_getdataalloctype(m, tag_offset) == ALLOCTYPE_2D);
         assert(mvid >= 0);
-        model_getvargriddims(m, mvid, &ni, &nj, NULL);
+        model_getvargridsize(m, mvid, &ni, &nj, NULL);
         for (i = 0; i < ni * nj; ++i)
             src0[i] -= offset0[i];
     }
@@ -182,7 +182,7 @@ void H_surf_biased(dasystem* das, int nobs, int obsids[], char fname[], int mem,
     if (model_getvargridid(m, mvid) != model_getvargridid(m, mvid2))
         enkf_quit("H_surf_biased(): variables \"%s\" and \"%s\" are defined on different grids", ot->varnames[0], ot->varnames[1]);
 
-    model_getvargriddims(m, mvid, &ni, &nj, NULL);
+    model_getvargridsize(m, mvid, &ni, &nj, NULL);
     nv = ni * nj;
     src = alloc2d(nj, ni, sizeof(float));
     src0 = src[0];
@@ -230,7 +230,7 @@ void H_subsurf_standard(dasystem* das, int nobs, int obsids[], char fname[], int
     float*** offset = NULL;
 
     assert(ot->nvar == 1);      /* should we care? */
-    model_getvargriddims(m, mvid, &ni, &nj, &nk);
+    model_getvargridsize(m, mvid, &ni, &nj, &nk);
     src = alloc3d(nk, nj, ni, sizeof(float));
     if (nk > 1)
         model_read3dfield(m, fname, ot->varnames[0], src[0][0]);
@@ -247,7 +247,7 @@ void H_subsurf_standard(dasystem* das, int nobs, int obsids[], char fname[], int
         int i;
 
         assert(model_getdataalloctype(m, tag_offset) == ALLOCTYPE_3D);
-        model_getvargriddims(m, mvid, &ni, &nj, &nk);
+        model_getvargridsize(m, mvid, &ni, &nj, &nk);
         for (i = 0; i < ni * nj * nk; ++i)
             src0[i] -= offset0[i];
     }
@@ -299,7 +299,7 @@ void H_subsurf_wsurfbias(dasystem* das, int nobs, int obsids[], char fname[], in
     if (model_getvargridid(m, mvid) != model_getvargridid(m, mvid2))
         enkf_quit("H_surf_biased(): variables \"%s\" and \"%s\" are defined on different grids", ot->varnames[0], ot->varnames[1]);
 
-    model_getvargriddims(m, mvid, &ni, &nj, &nk);
+    model_getvargridsize(m, mvid, &ni, &nj, &nk);
     src = alloc3d(nk, nj, ni, sizeof(float));
 
     /*

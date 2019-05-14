@@ -1072,7 +1072,7 @@ static void update_HE(dasystem* das)
         if (periodic_i)
             iiter[ni] = iiter[ni - 1] + stride;
 
-        grid_getdims(grid, &mni, &mnj, NULL);
+        grid_getsize(grid, &mni, &mnj, NULL);
 
         start[0] = 0;
         start[1] = 0;
@@ -1346,7 +1346,7 @@ static void update_Hx(dasystem* das)
         if (periodic_i)
             iiter[ni] = iiter[ni - 1] + stride;
 
-        grid_getdims(grid, &mni, &mnj, NULL);
+        grid_getsize(grid, &mni, &mnj, NULL);
 
         start[0] = 0;
         start[1] = 0;

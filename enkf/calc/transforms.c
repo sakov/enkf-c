@@ -290,7 +290,7 @@ void das_calctransforms(dasystem* das)
 
         enkf_printf("    calculating transforms for %s:\n", gridname);
 
-        grid_getdims(grid, &mni, &mnj, NULL);
+        grid_getsize(grid, &mni, &mnj, NULL);
 
         /*
          * work out how to cycle j 
