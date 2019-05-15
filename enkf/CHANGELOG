@@ -1,3 +1,6 @@
+v. 1.98.19
+   PS 15052019
+   -- A few minor, basically cosmetic, changes in update.c and grid.c.
 v. 1.98.18
    PS 14052019
    -- Skip building curvilinear horizontal grid map in UPDATE to save memory.

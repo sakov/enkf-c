@@ -1418,7 +1418,7 @@ void das_update(dasystem* das)
         field* fields = NULL;
         void** fieldbuffer = NULL;
         int mni, mnj;
-        int i, e;
+        int fid, i;
 
         enkf_printf("    processing fields for %s:\n", grid_getname(grid));
 
@@ -1436,7 +1436,9 @@ void das_update(dasystem* das)
             continue;
 
         distribute_iterations(0, nfields - 1, nprocesses, rank, "      ");
-        enkf_flush();
+
+        if (my_first_iteration > my_last_iteration)
+            continue;
 
         fieldbuffer = malloc(das->fieldbufsize * sizeof(void*));
         if (das->mode == MODE_ENKF) {
@@ -1447,13 +1449,14 @@ void das_update(dasystem* das)
                 fieldbuffer[i] = alloc3d(das->nmem + 1, mnj, mni, sizeof(float));
         }
 
-        for (i = my_first_iteration; i <= my_last_iteration; ++i) {
-            int bufid = (i - my_first_iteration) % das->fieldbufsize;
-            field* f = &fields[i];
+        for (fid = my_first_iteration; fid <= my_last_iteration; ++fid) {
+            int bufid = (fid - my_first_iteration) % das->fieldbufsize;
+            field* f = &fields[fid];
             char fname[MAXSTRLEN];
+            int e;
 
             if (enkf_verbose) {
-                printf("      %-8s %-3d (%d: %d: %.1f%%)\n", f->varname, f->level, rank, i, 100.0 * (double) (i - my_first_iteration + 1) / (double) (my_last_iteration - my_first_iteration + 1));
+                printf("      %-8s %-3d (%d: %d: %.1f%%)\n", f->varname, f->level, rank, fid, 100.0 * (double) (fid - my_first_iteration + 1) / (double) (my_last_iteration - my_first_iteration + 1));
                 fflush(stdout);
             }
 
@@ -1471,18 +1474,18 @@ void das_update(dasystem* das)
                 model_readfield(das->m, fname, f->varname, f->level, ((float***) fieldbuffer[bufid])[das->nmem][0]);
             }
 
-            if (bufid == das->fieldbufsize - 1 || i == my_last_iteration) {
+            if (bufid == das->fieldbufsize - 1 || fid == my_last_iteration) {
                 /*
                  * write forecast spread
                  */
                 if (das->updatespec & UPDATE_DOFORECASTSPREAD)
-                    das_writespread(das, bufid + 1, fieldbuffer, &fields[i - bufid], 0);
+                    das_writespread(das, bufid + 1, fieldbuffer, &fields[fid - bufid], 0);
 
                 /*
                  * write forecast variables to point logs
                  */
                 if (das->updatespec & UPDATE_DOPLOGS)
-                    plog_writestatevars(das, bufid + 1, fieldbuffer, &fields[i - bufid], 0);
+                    plog_writestatevars(das, bufid + 1, fieldbuffer, &fields[fid - bufid], 0);
 
                 /*
                  * now set the background to 0 if output is increment
@@ -1496,16 +1499,18 @@ void das_update(dasystem* das)
 
                 if (das->updatespec & (UPDATE_DOFIELDS | UPDATE_DOANALYSISSPREAD | UPDATE_DOPLOGS | UPDATE_DOINFLATION)) {
                     if (das->mode == MODE_ENKF) {
-                        das_updatefields(das, bufid + 1, fieldbuffer, &fields[i - bufid]);
+                        das_updatefields(das, bufid + 1, fieldbuffer, &fields[fid - bufid]);
                         if (das->updatespec & UPDATE_DOFIELDS)
-                            das_writefields(das, bufid + 1, fieldbuffer, &fields[i - bufid]);
-                        else if (i == my_last_iteration)
+                            das_writefields(das, bufid + 1, fieldbuffer, &fields[fid - bufid]);
+                        else if (fid == my_last_iteration)
                             enkf_printf("      (skip writing the fields)\n");
                     } else if (das->mode == MODE_ENOI) {
                         if (das->updatespec & (UPDATE_DOFIELDS | UPDATE_DOPLOGS))
-                            das_updatebg(das, bufid + 1, fieldbuffer, &fields[i - bufid]);
+                            das_updatebg(das, bufid + 1, fieldbuffer, &fields[fid - bufid]);
                         if (das->updatespec & UPDATE_DOFIELDS)
-                            das_writebg(das, bufid + 1, fieldbuffer, &fields[i - bufid]);
+                            das_writebg(das, bufid + 1, fieldbuffer, &fields[fid - bufid]);
+                        else if (fid == my_last_iteration)
+                            enkf_printf("      (skip writing the fields)\n");
                     }
                 }
 
@@ -1513,19 +1518,19 @@ void das_update(dasystem* das)
                  * write analysis spread
                  */
                 if (das->updatespec & UPDATE_DOANALYSISSPREAD && das->mode == MODE_ENKF)
-                    das_writespread(das, bufid + 1, fieldbuffer, &fields[i - bufid], 1);
+                    das_writespread(das, bufid + 1, fieldbuffer, &fields[fid - bufid], 1);
                 /*
                  * write analysis variables to point logs
                  */
                 if (das->updatespec & UPDATE_DOPLOGS)
-                    plog_writestatevars(das, bufid + 1, fieldbuffer, &fields[i - bufid], 1);
+                    plog_writestatevars(das, bufid + 1, fieldbuffer, &fields[fid - bufid], 1);
             }
-        }
+        }                       /* for fid */
 
-        free(fields);
         for (i = 0; i < das->fieldbufsize; ++i)
             free(fieldbuffer[i]);
         free(fieldbuffer);
+        free(fields);
 
         enkf_flush();
     }                           /* for gid */

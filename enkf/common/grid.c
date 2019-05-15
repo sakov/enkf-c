@@ -276,7 +276,7 @@ static gxy_curv* gxy_curv_create(int nodetype, int ni, int nj, double** x, doubl
 
     nodes->ni = ni;
     nodes->nj = nj;
-#if defined(ENKF_PREP) || defined(ENKF_CALC)
+#if !defined(ENKF_UPDATE)
     if (nodetype == NT_CEN) {
         gridnodes* gn_new;
 
@@ -291,7 +291,7 @@ static gxy_curv* gxy_curv_create(int nodetype, int ni, int nj, double** x, doubl
     gridnodes_validate(nodes->gn);
     gridnodes_setmaptype(nodes->gn, maptype);
     nodes->gm = gridmap_build2(nodes->gn);
-#elif defined(ENKF_UPDATE)
+#else
     nodes->gn = NULL;
     nodes->gm = NULL;
 #endif
@@ -608,6 +608,8 @@ static void gz_sigma_destroy(gz_sigma* gz)
     free(gz->cc);
     free(gz->zt);
     free(gz->zc);
+    free(gz->st);
+    free(gz->sc);
     free(gz);
 }
 
