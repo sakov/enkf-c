@@ -930,6 +930,7 @@ static void gz_hybrid_z2fk(void* p, double fi, double fj, double z, double* fk)
 
 /**
  */
+#if !defined(ENKF_UPDATE)
 static void grid_setlonbase(grid* g)
 {
     double xmin = DBL_MAX;
@@ -976,6 +977,7 @@ static void grid_setlonbase(grid* g)
     else
         g->lonbase = xmin;
 }
+#endif
 
 /**
  */
@@ -1000,7 +1002,9 @@ static void grid_sethgrid(grid* g, int htype, int hnodetype, int ni, int nj, voi
 #endif
     else
         enkf_quit("programming error");
+#if !defined(ENKF_UPDATE)
     grid_setlonbase(g);
+#endif
 }
 
 /**
