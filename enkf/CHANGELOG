@@ -1,3 +1,7 @@
+v. 1.98.21
+   PS 17052019
+   -- In field read/write procedures in utils.c -- for 4D variables allow the
+      first dimension to be not only unlimited but also of size 1.
 v. 1.98.20
    PS 17052019
    -- A fix for v1.98.18: should not ask to set the lonbase in UPDATE now.

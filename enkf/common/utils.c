@@ -833,8 +833,8 @@ void readfield(char fname[], char varname[], int k, int ni, int nj, int nk, floa
             enkf_quit("%s: %s: empty record dimension", fname, varname);
 
     if (ndims == 4) {
-        if (!hasrecorddim)
-            enkf_quit("%s: %s: expect an unlimited dimension to be present for a 4-dimensional variable\n", fname, varname);
+        if (!hasrecorddim && dimlen[0] != 1)
+            enkf_quit("%s: %s: for a 4-dimensional variable expected the first dimension to be either unlimited or of length 1\n", fname, varname);
         start[0] = dimlen[0] - 1;
         if (dimlen[1] != nk) {
             if (dimlen[1] != 1)
@@ -979,8 +979,8 @@ void writefield(char fname[], char varname[], int k, int ni, int nj, int nk, flo
     hasrecorddim = ncw_var_hasunlimdim(ncid, varid);
 
     if (ndims == 4) {
-        if (!hasrecorddim)
-            enkf_quit("%s: %s: expect an unlimited dimension to be present for a 4-dimensional variable\n", fname, varname);
+        if (!hasrecorddim && dimlen[0] != 1)
+            enkf_quit("%s: %s: for a 4-dimensional variable expected the first dimension to be either unlimited or of length 1\n", fname, varname);
         start[0] = (dimlen[0] == 0) ? 0 : dimlen[0] - 1;
         if (dimlen[1] != nk)
             enkf_quit("\"%s\": vertical dimension of variable \"%s\" (nk = %d) does not match grid dimension (nk = %d)", fname, varname, dimlen[1], nk);
@@ -1120,8 +1120,8 @@ void writerow(char fname[], char varname[], int k, int j, float* v)
     hasrecorddim = ncw_var_hasunlimdim(ncid, varid);
 
     if (ndims == 4) {
-        if (!hasrecorddim)
-            enkf_quit("%s: %s: expect an unlimited dimension to be present for a 4-dimensional variable\n", fname, varname);
+        if (!hasrecorddim && dimlen[0] != 1)
+            enkf_quit("%s: %s: for a 4-dimensional variable expected the first dimension to be either unlimited or of length 1\n", fname, varname);
         if (k >= dimlen[1])
             enkf_quit("%s: %s: the length of dimension 1 (%d) is not sufficient to read layer %d", fname, varname, dimlen[1], k);
         start[0] = (dimlen[0] == 0) ? 0 : dimlen[0] - 1;
@@ -1253,8 +1253,8 @@ void read3dfield(char* fname, char* varname, int ni, int nj, int nk, float* v)
             enkf_quit("%s: %s: empty record dimension", fname, varname);
 
     if (ndims == 4) {
-        if (!hasrecorddim)
-            enkf_quit("%s: %s: expect an unlimited dimension to be present for a 4-dimensional variable\n", fname, varname);
+        if (!hasrecorddim && dimlen[0] != 1)
+            enkf_quit("%s: %s: for a 4-dimensional variable expected the first dimension to be either unlimited or of length 1\n", fname, varname);
         start[0] = dimlen[0] - 1;
         start[1] = 0;
         start[2] = 0;
@@ -1358,14 +1358,15 @@ int is3d(char fname[], char varname[])
     int ncid;
     int varid;
     int ndims;
+    size_t dimlen[4];
     int hasrecorddim;
 
     ncw_open(fname, NC_NOWRITE, &ncid);
     ncw_inq_varid(ncid, varname, &varid);
-    ncw_inq_varndims(ncid, varid, &ndims);
+    ncw_inq_vardims(ncid, varid, 4, &ndims, dimlen);
     if (ndims > 4)
         enkf_quit("%s: %s: do not know how to read a %d-dimensional variable", fname, varname, ndims);
-    hasrecorddim = ncw_var_hasunlimdim(ncid, varid);
+    hasrecorddim = (ncw_var_hasunlimdim(ncid, varid) || dimlen[0] == 1);
     ncw_close(ncid);
 
     ndims -= hasrecorddim;
