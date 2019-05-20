@@ -793,7 +793,7 @@ int getnlevels(char fname[], char varname[])
     ncw_open(fname, NC_NOWRITE, &ncid);
     ncw_inq_varid(ncid, varname, &varid);
     ncw_inq_vardims(ncid, varid, 4, &ndims, dimlen);
-    hasrecorddim = ncw_var_hasunlimdim(ncid, varid);
+    hasrecorddim = (ncw_var_hasunlimdim(ncid, varid) || dimlen[0] == 1);
     ncw_close(ncid);
 
     if (ndims > 4)
