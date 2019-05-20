@@ -184,10 +184,11 @@ void plog_create(dasystem* das, int plogid, int ploc, int* lobs, double* lcoeffs
         grid_getsize(g, &ni, &nj, &nk);
         ncw_put_att_int(ncid, vid_grid, "nk", 1, &nk);
         depths = grid_getdepth(g);
-        if (depths != NULL) {
+        if (depths != NULL && !isnan(plog->fi[gid] + plog->fj[gid]))
             depth = interpolate2d(plog->fi[gid], plog->fj[gid], ni, nj, depths, grid_getnumlevels(g), grid_isperiodic_i(g));
-            ncw_put_att_float(ncid, vid_grid, "model_depth", 1, &depth);
-        }
+        else
+            depth = NAN;
+        ncw_put_att_float(ncid, vid_grid, "model_depth", 1, &depth);
     }
 
     /*
@@ -472,6 +473,8 @@ static void plog_writestatevars_direct(dasystem* das, int nfields, void** fieldb
 
             if (plog->gridid >= 0 && plog->gridid != gid)
                 continue;
+            if (isnan(plog->fi[gid] + plog->fj[fid]))
+                continue;
 
             v_src = (float***) fieldbuffer[fid];
             grid_getsize(g, &ni, &nj, NULL);
@@ -544,6 +547,8 @@ static void plog_writestatevars_toassemble(dasystem* das, int nfields, void** fi
 
             if (plog->gridid >= 0 && plog->gridid != gid)
                 continue;
+            if (isnan(plog->fi[gid] + plog->fj[fid]))
+                continue;
 
             snprintf(fname, MAXSTRLEN, "%s/pointlog-%d_%s-%03d.nc", DIRNAME_TMP, plogid, f->varname, f->level);
             if (!isanalysis) {
@@ -604,6 +609,13 @@ void plog_writestatevars(dasystem* das, int nfields, void** fieldbuffer, field* 
 
 /**
  */
+static void get_plogtilefname(int plogid, field* f, char fname[])
+{
+    snprintf(fname, MAXSTRLEN, "%s/pointlog-%d_%s-%03d.nc", DIRNAME_TMP, plogid, f->varname, f->level);
+}
+
+/**
+ */
 void plog_assemblestatevars(dasystem* das)
 {
     float* v = NULL;
@@ -642,7 +654,9 @@ void plog_assemblestatevars(dasystem* das)
             if (plog->gridid >= 0 && plog->gridid != gid)
                 continue;
 
-            snprintf(fname_src, MAXSTRLEN, "%s/pointlog-%d_%s-%03d.nc", DIRNAME_TMP, plogid, f->varname, f->level);
+            get_plogtilefname(plogid, f, fname_src);
+            if (!file_exists(fname_src))
+                continue;
 
             for (ii = 0; ii < 2; ++ii) {
                 char varname[NC_MAX_NAME];
@@ -681,8 +695,9 @@ void plog_assemblestatevars(dasystem* das)
         int plogid;
 
         for (plogid = 0; plogid < das->nplog; ++plogid) {
-            snprintf(fname, MAXSTRLEN, "%s/pointlog-%d_%s-%03d.nc", DIRNAME_TMP, plogid, f->varname, f->level);
-            file_delete(fname);
+            get_plogtilefname(plogid, f, fname);
+            if (file_exists(fname))
+                file_delete(fname);
         }
     }
 

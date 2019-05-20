@@ -303,7 +303,8 @@ static gxy_curv* gxy_curv_create(int nodetype, int ni, int nj, double** x, doubl
  */
 void gxy_curv_destroy(gxy_curv* nodes)
 {
-    gridnodes_destroy(nodes->gn);
+    if (nodes->gn != NULL)
+        gridnodes_destroy(nodes->gn);
     if (nodes->gm != NULL)
         gridmap_destroy(nodes->gm);
     free(nodes);

@@ -1,3 +1,14 @@
+v. 1.98.23
+   PS 20052019
+   -- Read grid coordinates of pointlogs from the pointlog file (if exists).
+      This makes it possible to interpolate without parsing the grid in UPDATE
+      (possible after v1.98.18).
+   -- Corrected gxy_curv_destroy() for the case nodes->gn = NULL (necessary
+      after v1.98.18).
+   -- Corrected plog_create() to handle grids that do not contain a particular
+      pointlog.
+   -- Corrected plog_writestatevars_toassemble() and
+      plog_writestatevars_direct() to skip non-existent locations on a grid.
 v. 1.98.22
    PS 20052019
    -- Completing v1.98.21 by the corresponding change in getnlevels().
