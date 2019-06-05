@@ -76,9 +76,9 @@ static void readobs(obsmeta* meta, model* m, obsread_fn reader, observations* ob
     free(fnames);
 }
 
-/** Adds observations from a certain provider.
- *  This procedure is put in prep_utils.c because of its dependence on
- *  `obsmeta'.
+/** Add observations from a certain provider.
+ *  This procedure contains generic/common operations done after reading the
+ *  data.
  */
 void obs_add(observations* obs, model* m, obsmeta* meta)
 {
@@ -239,20 +239,19 @@ void obs_add(observations* obs, model* m, obsmeta* meta)
             if (estd->type == STDTYPE_VALUE) {
                 double v = ((double*) estd->data)[0];
 
-                if (obs->nobs > nobs0) {
-                    if (estd->op == ARITHMETIC_EQ)
-                        enkf_printf("      setting error_std to %.3g\n", v);
-                    else if (estd->op == ARITHMETIC_PLUS)
-                        enkf_printf("      adding error_std of %.3g\n", v);
-                    else if (estd->op == ARITHMETIC_MULT)
-                        enkf_printf("      multiplying error_std by %.3g\n", v);
-                    else if (estd->op == ARITHMETIC_MIN)
-                        enkf_printf("      setting minimum error_std to %.3g\n", v);
-                    else if (estd->op == ARITHMETIC_MAX)
-                        enkf_printf("      setting maximum error_std to %.3g\n", v);
-                    else
-                        enkf_quit("programming error");
-                }
+                if (estd->op == ARITHMETIC_EQ)
+                    enkf_printf("      setting error_std to %.3g\n", v);
+                else if (estd->op == ARITHMETIC_PLUS)
+                    enkf_printf("      adding error_std of %.3g\n", v);
+                else if (estd->op == ARITHMETIC_MULT)
+                    enkf_printf("      multiplying error_std by %.3g\n", v);
+                else if (estd->op == ARITHMETIC_MIN)
+                    enkf_printf("      setting minimum error_std to %.3g\n", v);
+                else if (estd->op == ARITHMETIC_MAX)
+                    enkf_printf("      setting maximum error_std to %.3g\n", v);
+                else
+                    enkf_quit("programming error");
+
                 for (o = nobs0; o < obs->nobs; ++o) {
                     observation* oo = &obs->data[o];
 
@@ -275,7 +274,18 @@ void obs_add(observations* obs, model* m, obsmeta* meta)
                 char* fname = (char*) estd->data;
                 int ni, nj, nk;
 
-                enkf_printf("      adding error_std from %s %s:\n", fname, estd->varname);
+                if (estd->op == ARITHMETIC_EQ)
+                    enkf_printf("      setting error_std to %s from %s\n", estd->varname, fname);
+                else if (estd->op == ARITHMETIC_PLUS)
+                    enkf_printf("      adding error_std of %s from %s\n", estd->varname, fname);
+                else if (estd->op == ARITHMETIC_MULT)
+                    enkf_printf("      multiplying error_std by %s from %s\n", estd->varname, fname);
+                else if (estd->op == ARITHMETIC_MIN)
+                    enkf_printf("      setting minimum error_std to %s from %s\n", estd->varname, fname);
+                else if (estd->op == ARITHMETIC_MAX)
+                    enkf_printf("      setting maximum error_std to %s from %s\n", estd->varname, fname);
+                else
+                    enkf_quit("programming error");
 
                 grid_getsize(g, &ni, &nj, &nk);
 
