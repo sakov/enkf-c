@@ -175,6 +175,9 @@ struct grid {
 
     char* domainname;
 
+    /*
+     * used for calculating forecast obs with finite footprint
+     */
     kdtree* nodetree;
 };
 

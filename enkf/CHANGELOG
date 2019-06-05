@@ -1,5 +1,10 @@
+v. 1.98.24
+   PS 05062019
+   -- Improved error_std operation message in PREP log (used to be "adding
+      error_std of %.3g:\n" for any operation).
+   -- Changed year of the internal time base from 1990 to 1970.
 v. 1.98.23
-   PS 20052019
+   PS 2052019
    -- Read grid coordinates of pointlogs from the pointlog file (if exists).
       This makes it possible to interpolate without parsing the grid in UPDATE
       (possible after v1.98.18).

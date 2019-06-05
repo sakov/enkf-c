@@ -26,7 +26,7 @@
  */
 #define NOBS_INC 500000
 
-#define BASEYEAR 1990
+#define BASEYEAR 1970
 #define BASEMONTH 1
 #define BASEDAY 1
 

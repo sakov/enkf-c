@@ -239,7 +239,20 @@ void obs_add(observations* obs, model* m, obsmeta* meta)
             if (estd->type == STDTYPE_VALUE) {
                 double v = ((double*) estd->data)[0];
 
-                enkf_printf("      adding error_std = %.3g:\n", v);
+                if (obs->nobs > nobs0) {
+                    if (estd->op == ARITHMETIC_EQ)
+                        enkf_printf("      setting error_std to %.3g:\n", v);
+                    else if (estd->op == ARITHMETIC_PLUS)
+                        enkf_printf("      adding error_std of %.3g:\n", v);
+                    else if (estd->op == ARITHMETIC_MULT)
+                        enkf_printf("      multiplying error_std by %.3g:\n", v);
+                    else if (estd->op == ARITHMETIC_MIN)
+                        enkf_printf("      setting minimum error_std to %.3g:\n", v);
+                    else if (estd->op == ARITHMETIC_MAX)
+                        enkf_printf("      setting maximum error_std to %.3g:\n", v);
+                    else
+                        enkf_quit("programming error");
+                }
                 for (o = nobs0; o < obs->nobs; ++o) {
                     observation* oo = &obs->data[o];
 
