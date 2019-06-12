@@ -188,7 +188,7 @@ void obs_add(observations* obs, model* m, obsmeta* meta)
             if (isfinite(mindepth)) {
                 if (depth == NULL)
                     enkf_quit("MINDEPTH specified for the obs reader, but no depth specified for grid \"%s\"", grid_getname(g));
-                if (o->model_depth < mindepth) {
+                if (o->model_depth < mindepth || !isfinite(o->model_depth)) {
                     o->status = STATUS_SHALLOW;
                     nshallow++;
                 }
@@ -196,7 +196,7 @@ void obs_add(observations* obs, model* m, obsmeta* meta)
             if (isfinite(maxdepth)) {
                 if (depth == NULL)
                     enkf_quit("MAXDEPTH specified for the obs reader, but no depth specified for grid \"%s\"", grid_getname(g));
-                if (o->model_depth > maxdepth) {
+                if (o->model_depth > maxdepth || !isfinite(o->model_depth)) {
                     o->status = STATUS_SHALLOW;
                     nshallow++;
                 }
