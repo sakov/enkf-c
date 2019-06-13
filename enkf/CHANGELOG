@@ -1,3 +1,9 @@
+v. 1.98.26
+   PS 13062019
+   -- Added read_ncvarfloat() and read_ncvardouble() that read the whole
+      variable and handle _FillValue, scale_factor and add_offset.
+   -- Modified reader_xy_scattered() and reader_xyz_scattered() to accommodate
+      read_ncvardouble() (with the gridded readers on the way).
 v. 1.98.25
    PS 12062019
    -- Untangled attrubutes scale_factor and add_offset in reader_xy_scattered()

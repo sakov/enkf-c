@@ -574,3 +574,143 @@ void get_qcflags(obsmeta* meta, int* nqcflags, char*** qcflagname, uint32_t** qc
         }
     }
 }
+
+/**
+ */
+void read_ncvarfloat(int ncid, int varid, int n, float v[])
+{
+    int typesize;
+    int i;
+
+    ncw_check_varsize(ncid, varid, n);
+
+    if (ncw_att_exists(ncid, varid, "_FillValue")) {
+        void* vv = NULL;
+        nc_type type;
+
+        ncw_check_attlen(ncid, varid, "_FillValue", 1);
+        ncw_inq_vartype(ncid, varid, &type);
+        typesize = ncw_sizeof(type);
+        vv = malloc(n * typesize);
+        ncw_get_var(ncid, varid, vv);
+
+        if (typesize == 1) {
+            int8_t fill_value;
+
+            ncw_get_att(ncid, varid, "_FillValue", &fill_value);
+            for (i = 0; i < n; ++i)
+                if (((int8_t *) vv)[i] == fill_value)
+                    v[i] = NAN;
+        } else if (typesize == 2) {
+            int16_t fill_value;
+
+            ncw_get_att(ncid, varid, "_FillValue", &fill_value);
+            for (i = 0; i < n; ++i)
+                if (((int16_t *) vv)[i] == fill_value)
+                    v[i] = NAN;
+        } else if (typesize == 4) {
+            int32_t fill_value;
+
+            ncw_get_att(ncid, varid, "_FillValue", &fill_value);
+            for (i = 0; i < n; ++i)
+                if (((int32_t *) vv)[i] == fill_value)
+                    v[i] = NAN;
+        } else if (typesize == 4) {
+            int64_t fill_value;
+
+            ncw_get_att(ncid, varid, "_FillValue", &fill_value);
+            for (i = 0; i < n; ++i)
+                if (((int64_t *) vv)[i] == fill_value)
+                    v[i] = NAN;
+        }
+        free(vv);
+    }
+
+    ncw_get_var_float(ncid, varid, v);
+
+    if (ncw_att_exists(ncid, varid, "scale_factor")) {
+        float scale_factor;
+
+        ncw_check_attlen(ncid, varid, "scale_factor", 1);
+        ncw_get_att_float(ncid, varid, "scale_factor", &scale_factor);
+        for (i = 0; i < n; ++i)
+            v[i] *= scale_factor;
+    }
+    if (ncw_att_exists(ncid, varid, "add_offset")) {
+        float add_offset;
+
+        ncw_get_att_float(ncid, varid, "add_offset", &add_offset);
+        for (i = 0; i < n; ++i)
+            v[i] += add_offset;
+    }
+}
+
+/**
+ */
+void read_ncvardouble(int ncid, int varid, int n, double v[])
+{
+    int typesize;
+    int i;
+
+    ncw_check_varsize(ncid, varid, n);
+
+    if (ncw_att_exists(ncid, varid, "_FillValue")) {
+        void* vv = NULL;
+        nc_type type;
+
+        ncw_check_attlen(ncid, varid, "_FillValue", 1);
+        ncw_inq_vartype(ncid, varid, &type);
+        typesize = ncw_sizeof(type);
+        vv = malloc(n * typesize);
+        ncw_get_var(ncid, varid, vv);
+
+        if (typesize == 1) {
+            int8_t fill_value;
+
+            ncw_get_att(ncid, varid, "_FillValue", &fill_value);
+            for (i = 0; i < n; ++i)
+                if (((int8_t *) vv)[i] == fill_value)
+                    v[i] = NAN;
+        } else if (typesize == 2) {
+            int16_t fill_value;
+
+            ncw_get_att(ncid, varid, "_FillValue", &fill_value);
+            for (i = 0; i < n; ++i)
+                if (((int16_t *) vv)[i] == fill_value)
+                    v[i] = NAN;
+        } else if (typesize == 4) {
+            int32_t fill_value;
+
+            ncw_get_att(ncid, varid, "_FillValue", &fill_value);
+            for (i = 0; i < n; ++i)
+                if (((int32_t *) vv)[i] == fill_value)
+                    v[i] = NAN;
+        } else if (typesize == 4) {
+            int64_t fill_value;
+
+            ncw_get_att(ncid, varid, "_FillValue", &fill_value);
+            for (i = 0; i < n; ++i)
+                if (((int64_t *) vv)[i] == fill_value)
+                    v[i] = NAN;
+        }
+        free(vv);
+    }
+
+    ncw_get_var_double(ncid, varid, v);
+
+    if (ncw_att_exists(ncid, varid, "scale_factor")) {
+        double scale_factor;
+
+        ncw_check_attlen(ncid, varid, "scale_factor", 1);
+        ncw_get_att_double(ncid, varid, "scale_factor", &scale_factor);
+        for (i = 0; i < n; ++i)
+            v[i] *= scale_factor;
+    }
+    if (ncw_att_exists(ncid, varid, "add_offset")) {
+        double add_offset;
+
+        ncw_get_att_double(ncid, varid, "add_offset", &add_offset);
+        for (i = 0; i < n; ++i)
+            v[i] += add_offset;
+    }
+}

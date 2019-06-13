@@ -85,34 +85,20 @@ void reader_xyz_scattered(char* fname, int fid, obsmeta* meta, grid* g, observat
 
     int ncid;
     size_t nobs;
-    int varid_var = -1, varid_lon = -1, varid_lat = -1, varid_z = -1, varid_std = -1, varid_estd = -1, varid_time = -1;
     double* lon = NULL;
-    double lon_add_offset, lon_scale_factor;
-    double lon_fill_value = NAN;
     double* lat = NULL;
-    double lat_add_offset, lat_scale_factor;
-    double lat_fill_value = NAN;
     double* z = NULL;
-    double z_add_offset, z_scale_factor;
-    double z_fill_value = NAN;
     double* var = NULL;
-    double var_fill_value = NAN;
-    double var_add_offset = NAN, var_scale_factor = NAN;
     double var_estd = NAN;
     double* std = NULL;
-    double std_add_offset = NAN, std_scale_factor = NAN;
-    double std_fill_value = NAN;
     double* estd = NULL;
-    double estd_add_offset = NAN, estd_scale_factor = NAN;
-    double estd_fill_value = NAN;
     uint32_t** qcflag = NULL;
     int have_time = 1;
     int singletime = -1;
     double* time = NULL;
-    double time_add_offset = NAN, time_scale_factor = NAN;
-    double time_fill_value = NAN;
     char tunits[MAXSTRLEN];
     double tunits_multiple = NAN, tunits_offset = NAN;
+    int varid;
     int i, nobs_read;
 
     strcpy(instrument, meta->product);
@@ -182,26 +168,10 @@ void reader_xyz_scattered(char* fname, int fid, obsmeta* meta, grid* g, observat
     /*
      * main variable
      */
-    ncw_inq_varid(ncid, varname, &varid_var);
-    ncw_inq_vardims(ncid, varid_var, 1, NULL, &nobs);
+    ncw_inq_varid(ncid, varname, &varid);
+    ncw_inq_vardims(ncid, varid, 1, NULL, &nobs);
     var = malloc(nobs * sizeof(double));
-    ncw_get_var_double(ncid, varid_var, var);
-    if (ncw_att_exists(ncid, varid_var, "_FillValue")) {
-        ncw_get_att_double(ncid, varid_var, "_FillValue", &var_fill_value);
-        for (i = 0; i < nobs; ++i)
-            if (var[i] == var_fill_value)
-                var[i] = NAN;
-    }
-    if (ncw_att_exists(ncid, varid_var, "scale_factor")) {
-        ncw_get_att_double(ncid, varid_var, "scale_factor", &var_scale_factor);
-        for (i = 0; i < nobs; ++i)
-            var[i] *= var_scale_factor;
-    }
-    if (ncw_att_exists(ncid, varid_var, "add_offset")) {
-        ncw_get_att_double(ncid, varid_var, "add_offset", &var_add_offset);
-        for (i = 0; i < nobs; ++i)
-            var[i] += var_add_offset;
-    }
+    read_ncvardouble(ncid, varid, nobs, var);
 
     /*
      * longitude
@@ -209,29 +179,12 @@ void reader_xyz_scattered(char* fname, int fid, obsmeta* meta, grid* g, observat
     lonname = get_lonname(ncid, lonname);
     if (lonname != NULL) {
         enkf_printf("        LONNAME = %s\n", lonname);
-        ncw_inq_varid(ncid, lonname, &varid_lon);
-        ncw_check_vardims(ncid, varid_lon, 1, &nobs);
+        ncw_inq_varid(ncid, lonname, &varid);
+        ncw_check_vardims(ncid, varid, 1, &nobs);
     } else
         enkf_quit("reader_xy_scattered(): %s: could not find longitude variable", fname);
     lon = malloc(nobs * sizeof(double));
-    ncw_get_var_double(ncid, varid_lon, lon);
-    if (ncw_att_exists(ncid, varid_lon, "_FillValue")) {
-        ncw_get_att_double(ncid, varid_lon, "_FillValue", &lon_fill_value);
-        for (i = 0; i < nobs; ++i) {
-            if (lon[i] == lon_fill_value)
-                lon[i] = NAN;
-        }
-    }
-    if (ncw_att_exists(ncid, varid_lon, "scale_factor")) {
-        ncw_get_att_double(ncid, varid_lon, "scale_factor", &lon_scale_factor);
-        for (i = 0; i < nobs; ++i)
-            lon[i] *= lon_scale_factor;
-    }
-    if (ncw_att_exists(ncid, varid_lon, "add_offset")) {
-        ncw_get_att_double(ncid, varid_lon, "add_offset", &lon_add_offset);
-        for (i = 0; i < nobs; ++i)
-            lon[i] += lon_add_offset;
-    }
+    read_ncvardouble(ncid, varid, nobs, lon);
 
     /*
      * latitude
@@ -239,29 +192,12 @@ void reader_xyz_scattered(char* fname, int fid, obsmeta* meta, grid* g, observat
     latname = get_latname(ncid, latname);
     if (latname != NULL) {
         enkf_printf("        LATNAME = %s\n", latname);
-        ncw_inq_varid(ncid, latname, &varid_lat);
-        ncw_check_vardims(ncid, varid_lat, 1, &nobs);
+        ncw_inq_varid(ncid, latname, &varid);
+        ncw_check_vardims(ncid, varid, 1, &nobs);
     } else
         enkf_quit("reader_xyz_scattered(): %s: could not find latitude variable", fname);
     lat = malloc(nobs * sizeof(double));
-    ncw_get_var_double(ncid, varid_lat, lat);
-    if (ncw_att_exists(ncid, varid_lat, "_FillValue")) {
-        ncw_get_att_double(ncid, varid_lat, "_FillValue", &lat_fill_value);
-        for (i = 0; i < nobs; ++i) {
-            if (lat[i] == lat_fill_value)
-                lat[i] = NAN;
-        }
-    }
-    if (ncw_att_exists(ncid, varid_lat, "scale_factor")) {
-        ncw_get_att_double(ncid, varid_lat, "scale_factor", &lat_scale_factor);
-        for (i = 0; i < nobs; ++i)
-            lat[i] *= lat_scale_factor;
-    }
-    if (ncw_att_exists(ncid, varid_lat, "add_offset")) {
-        ncw_get_att_double(ncid, varid_lat, "add_offset", &lat_add_offset);
-        for (i = 0; i < nobs; ++i)
-            lat[i] += lat_add_offset;
-    }
+    read_ncvardouble(ncid, varid, nobs, lat);
 
     /*
      * z
@@ -269,93 +205,48 @@ void reader_xyz_scattered(char* fname, int fid, obsmeta* meta, grid* g, observat
     zname = get_zname(ncid, zname);
     if (zname != NULL) {
         enkf_printf("        ZNAME = %s\n", zname);
-        ncw_inq_varid(ncid, zname, &varid_z);
-        ncw_check_vardims(ncid, varid_z, 1, &nobs);
+        ncw_inq_varid(ncid, zname, &varid);
+        ncw_check_vardims(ncid, varid, 1, &nobs);
     } else
         enkf_quit("reader_xzy_scattered(): %s: could not find Z variable", fname);
     z = malloc(nobs * sizeof(double));
-    ncw_get_var_double(ncid, varid_z, z);
-    if (ncw_att_exists(ncid, varid_z, "_FillValue")) {
-        ncw_get_att_double(ncid, varid_z, "_FillValue", &z_fill_value);
-        for (i = 0; i < nobs; ++i) {
-            if (z[i] == z_fill_value)
-                z[i] = NAN;
-        }
-    }
-    if (ncw_att_exists(ncid, varid_z, "scale_factor")) {
-        ncw_get_att_double(ncid, varid_z, "scale_factor", &z_scale_factor);
-        for (i = 0; i < nobs; ++i)
-            z[i] *= z_scale_factor;
-    }
-    if (ncw_att_exists(ncid, varid_z, "add_offset")) {
-        ncw_get_att_double(ncid, varid_z, "add_offset", &z_add_offset);
-        for (i = 0; i < nobs; ++i)
-            z[i] += z_add_offset;
-    }
+    read_ncvardouble(ncid, varid, nobs, z);
 
     /*
      * std
      */
+    varid = -1;
     if (stdname != NULL)
-        ncw_inq_varid(ncid, stdname, &varid_std);
+        ncw_inq_varid(ncid, stdname, &varid);
     else if (ncw_var_exists(ncid, "std"))
-        ncw_inq_varid(ncid, "std", &varid_std);
-    if (varid_std >= 0) {
-        ncw_check_vardims(ncid, varid_std, 1, &nobs);
+        ncw_inq_varid(ncid, "std", &varid);
+    if (varid >= 0) {
+        ncw_check_vardims(ncid, varid, 1, &nobs);
         std = malloc(nobs * sizeof(double));
-        ncw_get_var_double(ncid, varid_std, std);
-        if (ncw_att_exists(ncid, varid_std, "_FillValue")) {
-            ncw_get_att_double(ncid, varid_std, "_FillValue", &std_fill_value);
-            for (i = 0; i < nobs; ++i)
-                if (std[i] == std_fill_value)
-                    std[i] = NAN;
-        }
-        if (ncw_att_exists(ncid, varid_std, "scale_factor")) {
-            ncw_get_att_double(ncid, varid_std, "scale_factor", &std_scale_factor);
-            for (i = 0; i < nobs; ++i)
-                std[i] *= std[i] * std_scale_factor;
-        }
-        if (ncw_att_exists(ncid, varid_std, "add_offset")) {
-            ncw_get_att_double(ncid, varid_std, "add_offset", &std_add_offset);
-            for (i = 0; i < nobs; ++i)
-                std[i] += std_add_offset;
-        }
+        read_ncvardouble(ncid, varid, nobs, std);
     }
 
     /*
      * estd
      */
+    varid = -1;
     if (estdname != NULL)
-        ncw_inq_varid(ncid, estdname, &varid_estd);
+        ncw_inq_varid(ncid, estdname, &varid);
     else if (ncw_var_exists(ncid, "error_std"))
-        ncw_inq_varid(ncid, "error_std", &varid_estd);
-    if (varid_estd >= 0) {
-        ncw_check_vardims(ncid, varid_estd, 1, &nobs);
+        ncw_inq_varid(ncid, "error_std", &varid);
+    if (varid >= 0) {
+        ncw_check_vardims(ncid, varid, 1, &nobs);
         estd = malloc(nobs * sizeof(double));
-        ncw_get_var_double(ncid, varid_estd, estd);
-        if (ncw_att_exists(ncid, varid_estd, "_FillValue")) {
-            ncw_get_att_double(ncid, varid_estd, "_FillValue", &estd_fill_value);
-            for (i = 0; i < nobs; ++i)
-                if (estd[i] == estd_fill_value)
-                    estd[i] = NAN;
-        }
-        if (ncw_att_exists(ncid, varid_estd, "scale_factor")) {
-            ncw_get_att_double(ncid, varid_estd, "scale_factor", &estd_scale_factor);
-            for (i = 0; i < nobs; ++i)
-                estd[i] *= estd_scale_factor;
-        }
-        if (ncw_att_exists(ncid, varid_estd, "add_offset")) {
-            ncw_get_att_double(ncid, varid_estd, "add_offset", &estd_add_offset);
-            for (i = 0; i < nobs; ++i)
-                estd[i] += estd_add_offset;
-        }
+        read_ncvardouble(ncid, varid, nobs, estd);
     }
 
-    if (std == NULL && estd == NULL)
-        if (ncw_att_exists(ncid, varid_var, "error_std")) {
-            ncw_check_attlen(ncid, varid_var, "error_std", 1);
-            ncw_get_att_double(ncid, varid_var, "error_std", &var_estd);
+    if (std == NULL && estd == NULL) {
+        ncw_inq_varid(ncid, varname, &varid);
+        if (ncw_att_exists(ncid, varid, "error_std")) {
+            ncw_check_attlen(ncid, varid, "error_std", 1);
+            ncw_get_att_double(ncid, varid, "error_std", &var_estd);
         }
+    }
 
     /*
      * qcflag
@@ -377,7 +268,7 @@ void reader_xyz_scattered(char* fname, int fid, obsmeta* meta, grid* g, observat
     timename = get_timename(ncid, timename);
     if (timename != NULL) {
         enkf_printf("        TIMENAME = %s\n", timename);
-        ncw_inq_varid(ncid, timename, &varid_time);
+        ncw_inq_varid(ncid, timename, &varid);
     } else {
         enkf_printf("        reader_xyz_scattered(): %s: no TIME variable\n", fname);
         have_time = 0;
@@ -388,8 +279,8 @@ void reader_xyz_scattered(char* fname, int fid, obsmeta* meta, grid* g, observat
         int timedimids[NC_MAX_DIMS];
         size_t timelen = 1;
 
-        ncw_inq_varndims(ncid, varid_time, &timendims);
-        ncw_inq_vardimid(ncid, varid_time, timedimids);
+        ncw_inq_varndims(ncid, varid, &timendims);
+        ncw_inq_vardimid(ncid, varid, timedimids);
         for (i = 0; i < timendims; ++i) {
             size_t dimlen;
 
@@ -406,24 +297,8 @@ void reader_xyz_scattered(char* fname, int fid, obsmeta* meta, grid* g, observat
             time = malloc(nobs * sizeof(double));
         }
 
-        ncw_get_var_double(ncid, varid_time, time);
-        if (ncw_att_exists(ncid, varid_time, "_FillValue")) {
-            ncw_get_att_double(ncid, varid_time, "_FillValue", &time_fill_value);
-            for (i = 0; i < nobs; ++i)
-                if (time[i] == time_fill_value)
-                    time[i] = NAN;
-        }
-        if (ncw_att_exists(ncid, varid_time, "scale_factor")) {
-            ncw_get_att_double(ncid, varid_time, "scale_factor", &time_scale_factor);
-            for (i = 0; i < nobs; ++i)
-                time[i] *= time_scale_factor;
-        }
-        if (ncw_att_exists(ncid, varid_time, "add_offset")) {
-            ncw_get_att_double(ncid, varid_time, "add_offset", &time_add_offset);
-            for (i = 0; i < nobs; ++i)
-                time[i] += time_add_offset;
-        }
-        ncw_get_att_text(ncid, varid_time, "units", tunits);
+        read_ncvardouble(ncid, varid, timelen, time);
+        ncw_get_att_text(ncid, varid, "units", tunits);
         tunits_convert(tunits, &tunits_multiple, &tunits_offset);
     }
 
@@ -434,9 +309,9 @@ void reader_xyz_scattered(char* fname, int fid, obsmeta* meta, grid* g, observat
         observation* o;
         int ii;
 
-        if (isnan(lon[i]) || isnan(lat[i]))
+        if (isnan(lon[i]) || isnan(lat[i]) || isnan(z[i]) || isnan(var[i]))
             continue;
-        if (isnan(z[i]) || isnan(var[i]) || (std != NULL && isnan(std[i])) || (estd != NULL && isnan(estd[i])) || (have_time && !singletime && isnan(time[i])))
+        if ((std != NULL && isnan(std[i])) || (estd != NULL && isnan(estd[i])) || (have_time && !singletime && isnan(time[i])))
             continue;
         for (ii = 0; ii < nqcflags; ++ii)
             if (!(qcflag[ii][i] | qcflagvals[ii]))

@@ -24,6 +24,8 @@ char* get_latname(int ncid, char* latname);
 char* get_zname(int ncid, char* zname);
 char* get_timename(int ncid, char* timename);
 void get_qcflags(obsmeta* meta, int* nqcflags, char*** qcflagname, uint32_t** qcflagvals);
+void read_ncvarfloat(int ncid, int varid, int n, float v[]);
+void read_ncvardouble(int ncid, int varid, int n, double v[]);
 
 #define _PREP_UTILS_H
 #endif
