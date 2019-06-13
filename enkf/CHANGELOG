@@ -1,3 +1,7 @@
+v. 1.99.0
+   PS 13062019
+   -- Added parameter ADDVAR to reader_xy_scattered() to test reversing
+      particular SLA compensations.
 v. 1.98.27
    PS 13062019
    -- Modified reader_xy_gridded(), reader_xyz_gridded(), reader_xyh_gridded(),

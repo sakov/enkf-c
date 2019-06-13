@@ -31,6 +31,9 @@
  *              - INSTRUMENT (-)
  *                  instrument string that will be used for calculating
  *                  instrument stats
+ *              - ADDVAR (-)
+ *                  name of the variable to be added to the main variable
+ *                  (can be repeated)
  *              Note: it is possible to have multiple entries of QCFLAGNAME and
  *                QCFLAGVALS combination, e.g.:
  *                  PARAMETER QCFLAGNAME = TEMP_quality_control
@@ -65,6 +68,13 @@
 #include "prep_utils.h"
 #include "allreaders.h"
 
+#define NADDVAR_INC 1
+
+typedef struct {
+    char* name;
+    double* v;
+} addvar;
+
 /**
  */
 void reader_xy_scattered(char* fname, int fid, obsmeta* meta, grid* g, observations* obs)
@@ -81,6 +91,8 @@ void reader_xy_scattered(char* fname, int fid, obsmeta* meta, grid* g, observati
     int nqcflags = 0;
     char** qcflagname = NULL;
     uint32_t* qcflagvals = 0;
+    int naddvar = 0;
+    addvar* addvars = NULL;
 
     int ncid;
     size_t nobs;
@@ -149,7 +161,14 @@ void reader_xy_scattered(char* fname, int fid, obsmeta* meta, grid* g, observati
              * QCFLAGNAME and QCFLAGVALS are dealt with separately
              */
             ;
-        else
+        else if (strcasecmp(meta->pars[i].name, "ADDVAR") == 0) {
+            if (naddvar % NADDVAR_INC == 0) {
+                addvars = realloc(addvars, (naddvar + NADDVAR_INC) * sizeof(char*));
+                addvars[naddvar].name = strdup(meta->pars[i].value);
+                addvars[naddvar].v = NULL;
+                naddvar++;
+            }
+        } else
             enkf_quit("unknown PARAMETER \"%s\"\n", meta->pars[i].name);
     }
     get_qcflags(meta, &nqcflags, &qcflagname, &qcflagvals);
@@ -168,6 +187,17 @@ void reader_xy_scattered(char* fname, int fid, obsmeta* meta, grid* g, observati
     ncw_inq_vardims(ncid, varid, 1, NULL, &nobs);
     var = malloc(nobs * sizeof(double));
     read_ncvardouble(ncid, varid, nobs, var);
+
+    /*
+     * add variables
+     */
+    for (i = 0; i < naddvar; ++i) {
+        addvar* a = &addvars[i];
+
+        ncw_inq_varid(ncid, a->name, &varid);
+        a->v = malloc(nobs * sizeof(double));
+        read_ncvardouble(ncid, varid, nobs, a->v);
+    }
 
     /*
      * longitude
@@ -312,6 +342,8 @@ void reader_xy_scattered(char* fname, int fid, obsmeta* meta, grid* g, observati
         o->fid = fid;
         o->batch = 0;
         o->value = var[i] + varshift;
+        for (ii = 0; ii < naddvar; ++ii)
+            o->value += addvars[ii].v[i];
         if (estd == NULL)
             o->estd = var_estd;
         else {
@@ -351,5 +383,12 @@ void reader_xy_scattered(char* fname, int fid, obsmeta* meta, grid* g, observati
         free(qcflagname);
         free(qcflagvals);
         free(qcflag);
+    }
+    if (naddvar > 0) {
+        for (i = 0; i < naddvar; ++i) {
+            free(addvars[i].name);
+            free(addvars[i].v);
+        }
+        free(addvars);
     }
 }
