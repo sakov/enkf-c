@@ -107,22 +107,14 @@ void reader_xy_gridded(char* fname, int fid, obsmeta* meta, grid* g, observation
     double* lat = NULL;
     int varid_var = -1, varid_npoints = -1, varid_std = -1, varid_estd = -1, varid_time = -1;
     float* var = NULL;
-    float var_fill_value = NAN;
-    float var_add_offset = NAN, var_scale_factor = NAN;
     double var_estd = NAN;
     short* npoints = NULL;
     float* std = NULL;
-    float std_add_offset = NAN, std_scale_factor = NAN;
-    float std_fill_value = NAN;
     float* estd = NULL;
-    float estd_add_offset = NAN, estd_scale_factor = NAN;
-    float estd_fill_value = NAN;
     uint32_t** qcflag = NULL;
     int have_time = 1;
     int singletime = -1;
     float* time = NULL;
-    float time_add_offset = NAN, time_scale_factor = NAN;
-    float time_fill_value = NAN;
     char tunits[MAXSTRLEN];
     double tunits_multiple = NAN, tunits_offset = NAN;
     int i, nobs_read;
@@ -193,8 +185,6 @@ void reader_xy_gridded(char* fname, int fid, obsmeta* meta, grid* g, observation
     ncw_inq_varid(ncid, varname, &varid_var);
     ncw_inq_vardims(ncid, varid_var, 3, &ndim_var, dimlen_var);
     if (ndim_var == 3) {
-        if (!ncw_var_hasunlimdim(ncid, varid_var))
-            enkf_quit("reader_xy_gridded(): %s: %s: depends on 3 dimensions, but has no unlimited dimension", fname, varname);
         if (dimlen_var[0] != 1)
             enkf_quit("reader_xy_gridded(): %s: %s: %d records (currently only one is allowed)", fname, varname, dimlen_var[0]);
         n_var = dimlen_var[1] * dimlen_var[2];
@@ -244,25 +234,32 @@ void reader_xy_gridded(char* fname, int fid, obsmeta* meta, grid* g, observation
     if (dimlen_var[ndim_var - 1] != ni)
         enkf_quit("reader_xy_gridded(): %s: %s: longitude must be the inner coordinate", fname, varname);
 
+    /*
+     * lon/lat
+     */
     if (iscurv == 0) {
         lon = malloc(ni * sizeof(double));
+        read_ncvardouble(ncid, varid_lon, ni, lon);
+
         lat = malloc(nj * sizeof(double));
+        read_ncvardouble(ncid, varid_lat, nj, lat);
     } else {
         lon = malloc(n * sizeof(double));
+        read_ncvardouble(ncid, varid_lon, n, lon);
+
         lat = malloc(n * sizeof(double));
+        read_ncvardouble(ncid, varid_lat, n, lat);
     }
-    ncw_get_var_double(ncid, varid_lon, lon);
-    ncw_get_var_double(ncid, varid_lat, lat);
 
+    /*
+     * main variable
+     */
     var = malloc(n * sizeof(float));
-    ncw_get_var_float(ncid, varid_var, var);
-    if (ncw_att_exists(ncid, varid_var, "add_offset")) {
-        ncw_get_att_float(ncid, varid_var, "add_offset", &var_add_offset);
-        ncw_get_att_float(ncid, varid_var, "scale_factor", &var_scale_factor);
-    }
-    if (ncw_att_exists(ncid, varid_var, "_FillValue"))
-        ncw_get_att_float(ncid, varid_var, "_FillValue", &var_fill_value);
+    read_ncvarfloat(ncid, varid_var, n, var);
 
+    /*
+     * npoints
+     */
     if (npointsname != NULL)
         ncw_inq_varid(ncid, npointsname, &varid_npoints);
     else if (ncw_var_exists(ncid, "npoints"))
@@ -272,42 +269,40 @@ void reader_xy_gridded(char* fname, int fid, obsmeta* meta, grid* g, observation
         ncw_get_var_short(ncid, varid_npoints, npoints);
     }
 
+    /*
+     * std
+     */
     if (stdname != NULL)
         ncw_inq_varid(ncid, stdname, &varid_std);
     else if (ncw_var_exists(ncid, "std"))
         ncw_inq_varid(ncid, "std", &varid_std);
     if (varid_std >= 0) {
         std = malloc(n * sizeof(float));
-        ncw_get_var_float(ncid, varid_std, std);
-        if (ncw_att_exists(ncid, varid_std, "_FillValue"))
-            ncw_get_att_float(ncid, varid_std, "_FillValue", &std_fill_value);
-        if (ncw_att_exists(ncid, varid_std, "add_offset")) {
-            ncw_get_att_float(ncid, varid_std, "add_offset", &std_add_offset);
-            ncw_get_att_float(ncid, varid_std, "scale_factor", &std_scale_factor);
-        }
+        read_ncvarfloat(ncid, varid_std, n, std);
     }
 
+    /*
+     * estd
+     */
     if (estdname != NULL)
         ncw_inq_varid(ncid, estdname, &varid_estd);
     else if (ncw_var_exists(ncid, "error_std"))
         ncw_inq_varid(ncid, "error_std", &varid_estd);
     if (varid_estd >= 0) {
         estd = malloc(n * sizeof(float));
-        ncw_get_var_float(ncid, varid_estd, estd);
-        if (ncw_att_exists(ncid, varid_estd, "_FillValue"))
-            ncw_get_att_float(ncid, varid_estd, "_FillValue", &estd_fill_value);
-        if (ncw_att_exists(ncid, varid_estd, "add_offset")) {
-            ncw_get_att_float(ncid, varid_estd, "add_offset", &estd_add_offset);
-            ncw_get_att_float(ncid, varid_estd, "scale_factor", &estd_scale_factor);
-        }
+        read_ncvarfloat(ncid, varid_estd, n, estd);
     }
 
-    if (std == NULL && estd == NULL)
+    if (std == NULL && estd == NULL) {
         if (ncw_att_exists(ncid, varid_var, "error_std")) {
             ncw_check_attlen(ncid, varid_var, "error_std", 1);
             ncw_get_att_double(ncid, varid_var, "error_std", &var_estd);
         }
+    }
 
+    /*
+     * qcflag
+     */
     if (nqcflags > 0) {
         int varid = -1;
 
@@ -318,6 +313,9 @@ void reader_xy_gridded(char* fname, int fid, obsmeta* meta, grid* g, observation
         }
     }
 
+    /*
+     * time
+     */
     timename = get_timename(ncid, timename);
     if (timename != NULL) {
         enkf_printf("        TIMENAME = %s\n", timename);
@@ -350,13 +348,7 @@ void reader_xy_gridded(char* fname, int fid, obsmeta* meta, grid* g, observation
             time = malloc(n * sizeof(float));
         }
 
-        ncw_get_var_float(ncid, varid_time, time);
-        if (ncw_att_exists(ncid, varid_time, "_FillValue"))
-            ncw_get_att_float(ncid, varid_time, "_FillValue", &time_fill_value);
-        if (ncw_att_exists(ncid, varid_time, "add_offset")) {
-            ncw_get_att_float(ncid, varid_time, "add_offset", &time_add_offset);
-            ncw_get_att_float(ncid, varid_time, "scale_factor", &time_scale_factor);
-        }
+        read_ncvarfloat(ncid, varid_time, timelen, time);
         ncw_get_att_text(ncid, varid_time, "units", tunits);
         tunits_convert(tunits, &tunits_multiple, &tunits_offset);
     }
@@ -368,7 +360,7 @@ void reader_xy_gridded(char* fname, int fid, obsmeta* meta, grid* g, observation
         observation* o;
         int ii;
 
-        if ((npoints != NULL && npoints[i] == 0) || var[i] == var_fill_value || isnan(var[i]) || (std != NULL && (std[i] == std_fill_value || isnan(std[i]))) || (estd != NULL && (estd[i] == estd_fill_value || isnan(estd[i]))) || (have_time && !singletime && (time[i] == time_fill_value || isnan(time[i]))))
+        if ((npoints != NULL && npoints[i] == 0) || isnan(var[i]) || (std != NULL && isnan(std[i])) || (estd != NULL && isnan(estd[i])) || (have_time && !singletime && isnan(time[i])))
             continue;
         for (ii = 0; ii < nqcflags; ++ii)
             if (!(qcflag[ii][i] | qcflagvals[ii]))
@@ -385,27 +377,12 @@ void reader_xy_gridded(char* fname, int fid, obsmeta* meta, grid* g, observation
         o->id = obs->nobs;
         o->fid = fid;
         o->batch = 0;
-        if (!isnan(var_add_offset))
-            o->value = (double) (var[i] * var_scale_factor + var_add_offset + varshift);
-        else
-            o->value = (double) (var[i] + varshift);
+        o->value = (double) (var[i] + varshift);
         if (estd == NULL)
             o->estd = var_estd;
         else {
-            if (std == NULL)
-                o->estd = 0.0;
-            else {
-                if (!isnan(std_add_offset))
-                    o->estd = (double) (std[i] * std_scale_factor + std_add_offset);
-                else
-                    o->estd = (double) std[i];
-            }
-            if (!isnan(estd_add_offset)) {
-                double std2 = (double) (estd[i] * estd_scale_factor + estd_add_offset);
-
-                o->estd = (o->estd > std2) ? o->estd : std2;
-            } else
-                o->estd = (o->estd > estd[i]) ? o->estd : estd[i];
+            o->estd = (std == NULL) ? 0.0 : (double) std[i];
+            o->estd = (o->estd > estd[i]) ? o->estd : estd[i];
         }
         if (iscurv == 0) {
             o->lon = lon[i % ni];
@@ -423,10 +400,7 @@ void reader_xy_gridded(char* fname, int fid, obsmeta* meta, grid* g, observation
         if (have_time) {
             float t = (singletime) ? time[0] : time[i];
 
-            if (!isnan(time_add_offset))
-                o->time = (double) (t * time_scale_factor + time_add_offset) * tunits_multiple + tunits_offset;
-            else
-                o->time = (double) t* tunits_multiple + tunits_offset;
+            o->time = (double) t* tunits_multiple + tunits_offset;
         } else
             o->time = NAN;
 
