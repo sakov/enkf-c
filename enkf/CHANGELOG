@@ -1,3 +1,7 @@
+v. 1.99.2
+   PS 13062019
+   -- Modified read_ncvarfloat() and read_ncvardouble() to take care of
+      missing_value, valid_min, valid_max, and valid_range.
 v. 1.99.1
    PS 13062019
    -- Corrected read_ncvarfloat() and read_ncvardouble() introduced in v1.98.26
