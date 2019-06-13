@@ -579,14 +579,15 @@ void get_qcflags(obsmeta* meta, int* nqcflags, char*** qcflagname, uint32_t** qc
  */
 void read_ncvarfloat(int ncid, int varid, int n, float v[])
 {
-    int typesize;
     int i;
 
     ncw_check_varsize(ncid, varid, n);
+    ncw_get_var_float(ncid, varid, v);
 
     if (ncw_att_exists(ncid, varid, "_FillValue")) {
         void* vv = NULL;
         nc_type type;
+        int typesize;
 
         ncw_check_attlen(ncid, varid, "_FillValue", 1);
         ncw_inq_vartype(ncid, varid, &type);
@@ -625,8 +626,6 @@ void read_ncvarfloat(int ncid, int varid, int n, float v[])
         }
         free(vv);
     }
-
-    ncw_get_var_float(ncid, varid, v);
 
     if (ncw_att_exists(ncid, varid, "scale_factor")) {
         float scale_factor;
@@ -653,6 +652,7 @@ void read_ncvardouble(int ncid, int varid, int n, double v[])
     int i;
 
     ncw_check_varsize(ncid, varid, n);
+    ncw_get_var_double(ncid, varid, v);
 
     if (ncw_att_exists(ncid, varid, "_FillValue")) {
         void* vv = NULL;
@@ -695,8 +695,6 @@ void read_ncvardouble(int ncid, int varid, int n, double v[])
         }
         free(vv);
     }
-
-    ncw_get_var_double(ncid, varid, v);
 
     if (ncw_att_exists(ncid, varid, "scale_factor")) {
         double scale_factor;

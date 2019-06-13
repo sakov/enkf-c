@@ -1,3 +1,7 @@
+v. 1.99.1
+   PS 13062019
+   -- Corrected read_ncvarfloat() and read_ncvardouble() introduced in v1.98.26
+      to avoid overwriting of invalid values just been set to NaN.
 v. 1.99.0
    PS 13062019
    -- Added parameter ADDVAR to reader_xy_scattered() to test reversing
