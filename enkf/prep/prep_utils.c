@@ -626,7 +626,7 @@ void read_ncvarfloat(int ncid, int varid, int n, float v[])
                 for (i = 0; i < n; ++i)
                     if (((int32_t *) vv)[i] == value)
                         v[i] = NAN;
-            } else if (typesize == 4) {
+            } else if (typesize == 8) {
                 int64_t value;
 
                 ncw_get_att(ncid, varid, attname, &value);
@@ -966,7 +966,7 @@ void read_ncvardouble(int ncid, int varid, int n, double v[])
                 for (i = 0; i < n; ++i)
                     if (((int32_t *) vv)[i] == value)
                         v[i] = NAN;
-            } else if (typesize == 4) {
+            } else if (typesize == 8) {
                 int64_t value;
 
                 ncw_get_att(ncid, varid, attname, &value);

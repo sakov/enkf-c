@@ -1,3 +1,7 @@
+v. 1.99.4
+   PS 17062019
+   -- Corrected read_ncvarfloat() and read_ncvardouble() for data types of
+      size 8.
 v. 1.99.3
    PS 17062019
    -- Modified read_ncvarfloat() and read_ncvardouble() for slightly better
