@@ -580,25 +580,29 @@ void get_qcflags(obsmeta* meta, int* nqcflags, char*** qcflagname, uint32_t** qc
 void read_ncvarfloat(int ncid, int varid, int n, float v[])
 {
     char attnames[2][20] = { "_FillValue", "missing_value" };
+    nc_type type = -1;
+    int typesize = 0;
     void* vv = NULL;
     int i, s;
 
     ncw_check_varsize(ncid, varid, n);
     ncw_get_var_float(ncid, varid, v);
 
+    ncw_inq_vartype(ncid, varid, &type);
+    typesize = ncw_sizeof(type);
+
     for (s = 0; s < 2; ++s) {
         char* attname = attnames[s];
 
         if (ncw_att_exists(ncid, varid, attname)) {
-            nc_type type;
-            int typesize;
-
             ncw_check_attlen(ncid, varid, attname, 1);
-            ncw_inq_vartype(ncid, varid, &type);
-            typesize = ncw_sizeof(type);
+
             if (vv == NULL) {
-                vv = malloc(n * typesize);
-                ncw_get_var(ncid, varid, vv);
+                if (typesize != sizeof(float)) {
+                    vv = malloc(n * typesize);
+                    ncw_get_var(ncid, varid, vv);
+                } else
+                    vv = v;
             }
 
             if (typesize == 1) {
@@ -634,15 +638,14 @@ void read_ncvarfloat(int ncid, int varid, int n, float v[])
         }
     }
     if (ncw_att_exists(ncid, varid, "valid_min")) {
-        nc_type type;
-        int typesize;
-
         ncw_check_attlen(ncid, varid, "valid_min", 1);
-        ncw_inq_vartype(ncid, varid, &type);
-        typesize = ncw_sizeof(type);
+
         if (vv == NULL) {
-            vv = malloc(n * typesize);
-            ncw_get_var(ncid, varid, vv);
+            if (typesize != sizeof(float)) {
+                vv = malloc(n * typesize);
+                ncw_get_var(ncid, varid, vv);
+            } else
+                vv = v;
         }
 
         if (type == NC_BYTE || type == NC_CHAR) {
@@ -721,16 +724,15 @@ void read_ncvarfloat(int ncid, int varid, int n, float v[])
             enkf_quit("programming error");
     }
     if (ncw_att_exists(ncid, varid, "valid_max")) {
-        nc_type type;
-        int typesize;
-
         ncw_check_attlen(ncid, varid, "valid_max", 1);
-        ncw_inq_vartype(ncid, varid, &type);
-        typesize = ncw_sizeof(type);
+
         if (vv == NULL) {
-            vv = malloc(n * typesize);
-            ncw_get_var(ncid, varid, vv);
-        }
+            if (typesize != sizeof(float)) {
+                vv = malloc(n * typesize);
+                ncw_get_var(ncid, varid, vv);
+            } else
+                vv = v;
+         }
 
         if (type == NC_BYTE || type == NC_CHAR) {
             char value;
@@ -808,15 +810,14 @@ void read_ncvarfloat(int ncid, int varid, int n, float v[])
             enkf_quit("programming error");
     }
     if (ncw_att_exists(ncid, varid, "valid_range")) {
-        nc_type type;
-        int typesize;
-
         ncw_check_attlen(ncid, varid, "valid_range", 2);
-        ncw_inq_vartype(ncid, varid, &type);
-        typesize = ncw_sizeof(type);
+
         if (vv == NULL) {
-            vv = malloc(n * typesize);
-            ncw_get_var(ncid, varid, vv);
+            if (typesize != sizeof(float)) {
+                vv = malloc(n * typesize);
+                ncw_get_var(ncid, varid, vv);
+            } else
+                vv = v;
         }
 
         if (type == NC_BYTE || type == NC_CHAR) {
@@ -894,7 +895,7 @@ void read_ncvarfloat(int ncid, int varid, int n, float v[])
         } else
             enkf_quit("programming error");
     }
-    if (vv != NULL)
+    if (vv != NULL && typesize != sizeof(float))
         free(vv);
 
     if (ncw_att_exists(ncid, varid, "scale_factor")) {
@@ -919,25 +920,29 @@ void read_ncvarfloat(int ncid, int varid, int n, float v[])
 void read_ncvardouble(int ncid, int varid, int n, double v[])
 {
     char attnames[2][20] = { "_FillValue", "missing_value" };
+    nc_type type = -1;
+    int typesize = 0;
     void* vv = NULL;
     int i, s;
 
     ncw_check_varsize(ncid, varid, n);
     ncw_get_var_double(ncid, varid, v);
 
+    ncw_inq_vartype(ncid, varid, &type);
+    typesize = ncw_sizeof(type);
+
     for (s = 0; s < 2; ++s) {
         char* attname = attnames[s];
 
         if (ncw_att_exists(ncid, varid, attname)) {
-            nc_type type;
-            int typesize;
-
             ncw_check_attlen(ncid, varid, attname, 1);
-            ncw_inq_vartype(ncid, varid, &type);
-            typesize = ncw_sizeof(type);
+
             if (vv == NULL) {
-                vv = malloc(n * typesize);
-                ncw_get_var(ncid, varid, vv);
+                if (typesize != sizeof(double)) {
+                    vv = malloc(n * typesize);
+                    ncw_get_var(ncid, varid, vv);
+                } else
+                    vv = v;
             }
 
             if (typesize == 1) {
@@ -973,15 +978,14 @@ void read_ncvardouble(int ncid, int varid, int n, double v[])
         }
     }
     if (ncw_att_exists(ncid, varid, "valid_min")) {
-        nc_type type;
-        int typesize;
-
         ncw_check_attlen(ncid, varid, "valid_min", 1);
-        ncw_inq_vartype(ncid, varid, &type);
-        typesize = ncw_sizeof(type);
+
         if (vv == NULL) {
-            vv = malloc(n * typesize);
-            ncw_get_var(ncid, varid, vv);
+            if (typesize != sizeof(double)) {
+                vv = malloc(n * typesize);
+                ncw_get_var(ncid, varid, vv);
+            } else
+                vv = v;
         }
 
         if (type == NC_BYTE || type == NC_CHAR) {
@@ -1060,15 +1064,14 @@ void read_ncvardouble(int ncid, int varid, int n, double v[])
             enkf_quit("programming error");
     }
     if (ncw_att_exists(ncid, varid, "valid_max")) {
-        nc_type type;
-        int typesize;
-
         ncw_check_attlen(ncid, varid, "valid_max", 1);
-        ncw_inq_vartype(ncid, varid, &type);
-        typesize = ncw_sizeof(type);
+
         if (vv == NULL) {
-            vv = malloc(n * typesize);
-            ncw_get_var(ncid, varid, vv);
+            if (typesize != sizeof(double)) {
+                vv = malloc(n * typesize);
+                ncw_get_var(ncid, varid, vv);
+            } else
+                vv = v;
         }
 
         if (type == NC_BYTE || type == NC_CHAR) {
@@ -1147,15 +1150,14 @@ void read_ncvardouble(int ncid, int varid, int n, double v[])
             enkf_quit("programming error");
     }
     if (ncw_att_exists(ncid, varid, "valid_range")) {
-        nc_type type;
-        int typesize;
-
         ncw_check_attlen(ncid, varid, "valid_range", 2);
-        ncw_inq_vartype(ncid, varid, &type);
-        typesize = ncw_sizeof(type);
+
         if (vv == NULL) {
-            vv = malloc(n * typesize);
-            ncw_get_var(ncid, varid, vv);
+            if (typesize != sizeof(double)) {
+                vv = malloc(n * typesize);
+                ncw_get_var(ncid, varid, vv);
+            } else
+                vv = v;
         }
 
         if (type == NC_BYTE || type == NC_CHAR) {

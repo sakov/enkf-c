@@ -1,3 +1,7 @@
+v. 1.99.3
+   PS 17062019
+   -- Modified read_ncvarfloat() and read_ncvardouble() for slightly better
+      efficiency.
 v. 1.99.2
    PS 13062019
    -- Modified read_ncvarfloat() and read_ncvardouble() to take care of
