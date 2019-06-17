@@ -580,7 +580,7 @@ void get_qcflags(obsmeta* meta, int* nqcflags, char*** qcflagname, uint32_t** qc
 void read_ncvarfloat(int ncid, int varid, int n, float v[])
 {
     char attnames[2][20] = { "_FillValue", "missing_value" };
-    nc_type type = -1;
+    nc_type vartype = -1;
     int typesize = 0;
     void* vv = NULL;
     int i, s;
@@ -588,8 +588,8 @@ void read_ncvarfloat(int ncid, int varid, int n, float v[])
     ncw_check_varsize(ncid, varid, n);
     ncw_get_var_float(ncid, varid, v);
 
-    ncw_inq_vartype(ncid, varid, &type);
-    typesize = ncw_sizeof(type);
+    ncw_inq_vartype(ncid, varid, &vartype);
+    typesize = ncw_sizeof(vartype);
 
     for (s = 0; s < 2; ++s) {
         char* attname = attnames[s];
@@ -648,63 +648,63 @@ void read_ncvarfloat(int ncid, int varid, int n, float v[])
                 vv = v;
         }
 
-        if (type == NC_BYTE || type == NC_CHAR) {
+        if (vartype == NC_BYTE || vartype == NC_CHAR) {
             char value;
 
             ncw_get_att(ncid, varid, "valid_min", &value);
             for (i = 0; i < n; ++i)
                 if (((char*) vv)[i] < value)
                     v[i] = NAN;
-        } else if (type == NC_UBYTE) {
+        } else if (vartype == NC_UBYTE) {
             char value;
 
             ncw_get_att(ncid, varid, "valid_min", &value);
             for (i = 0; i < n; ++i)
                 if (((unsigned char*) vv)[i] < value)
                     v[i] = NAN;
-        } else if (type == NC_SHORT) {
+        } else if (vartype == NC_SHORT) {
             int16_t value;
 
             ncw_get_att(ncid, varid, "valid_min", &value);
             for (i = 0; i < n; ++i)
                 if (((int16_t *) vv)[i] < value)
                     v[i] = NAN;
-        } else if (type == NC_USHORT) {
+        } else if (vartype == NC_USHORT) {
             uint16_t value;
 
             ncw_get_att(ncid, varid, "valid_min", &value);
             for (i = 0; i < n; ++i)
                 if (((uint16_t*) vv)[i] < value)
                     v[i] = NAN;
-        } else if (type == NC_INT || type == NC_LONG) {
+        } else if (vartype == NC_INT || vartype == NC_LONG) {
             int32_t value;
 
             ncw_get_att(ncid, varid, "valid_min", &value);
             for (i = 0; i < n; ++i)
                 if (((int32_t *) vv)[i] < value)
                     v[i] = NAN;
-        } else if (type == NC_UINT) {
+        } else if (vartype == NC_UINT) {
             uint32_t value;
 
             ncw_get_att(ncid, varid, "valid_min", &value);
             for (i = 0; i < n; ++i)
                 if (((uint32_t*) vv)[i] < value)
                     v[i] = NAN;
-        } else if (type == NC_INT64) {
+        } else if (vartype == NC_INT64) {
             int64_t value;
 
             ncw_get_att(ncid, varid, "valid_min", &value);
             for (i = 0; i < n; ++i)
                 if (((int64_t *) vv)[i] < value)
                     v[i] = NAN;
-        } else if (type == NC_UINT64) {
+        } else if (vartype == NC_UINT64) {
             uint64_t value;
 
             ncw_get_att(ncid, varid, "valid_min", &value);
             for (i = 0; i < n; ++i)
                 if (((uint64_t *) vv)[i] < value)
                     v[i] = NAN;
-        } else if (type == NC_FLOAT) {
+        } else if (vartype == NC_FLOAT) {
             float value;
 
             assert(sizeof(float) == 4);
@@ -712,7 +712,7 @@ void read_ncvarfloat(int ncid, int varid, int n, float v[])
             for (i = 0; i < n; ++i)
                 if (((float*) vv)[i] < value)
                     v[i] = NAN;
-        } else if (type == NC_DOUBLE) {
+        } else if (vartype == NC_DOUBLE) {
             double value;
 
             assert(sizeof(double) == 8);
@@ -734,63 +734,63 @@ void read_ncvarfloat(int ncid, int varid, int n, float v[])
                 vv = v;
          }
 
-        if (type == NC_BYTE || type == NC_CHAR) {
+        if (vartype == NC_BYTE || vartype == NC_CHAR) {
             char value;
 
             ncw_get_att(ncid, varid, "valid_max", &value);
             for (i = 0; i < n; ++i)
                 if (((char*) vv)[i] > value)
                     v[i] = NAN;
-        } else if (type == NC_UBYTE) {
+        } else if (vartype == NC_UBYTE) {
             char value;
 
             ncw_get_att(ncid, varid, "valid_max", &value);
             for (i = 0; i < n; ++i)
                 if (((unsigned char*) vv)[i] > value)
                     v[i] = NAN;
-        } else if (type == NC_SHORT) {
+        } else if (vartype == NC_SHORT) {
             int16_t value;
 
             ncw_get_att(ncid, varid, "valid_max", &value);
             for (i = 0; i < n; ++i)
                 if (((int16_t *) vv)[i] > value)
                     v[i] = NAN;
-        } else if (type == NC_USHORT) {
+        } else if (vartype == NC_USHORT) {
             uint16_t value;
 
             ncw_get_att(ncid, varid, "valid_max", &value);
             for (i = 0; i < n; ++i)
                 if (((uint16_t*) vv)[i] > value)
                     v[i] = NAN;
-        } else if (type == NC_INT || type == NC_LONG) {
+        } else if (vartype == NC_INT || vartype == NC_LONG) {
             int32_t value;
 
             ncw_get_att(ncid, varid, "valid_max", &value);
             for (i = 0; i < n; ++i)
                 if (((int32_t *) vv)[i] > value)
                     v[i] = NAN;
-        } else if (type == NC_UINT) {
+        } else if (vartype == NC_UINT) {
             uint32_t value;
 
             ncw_get_att(ncid, varid, "valid_max", &value);
             for (i = 0; i < n; ++i)
                 if (((uint32_t*) vv)[i] > value)
                     v[i] = NAN;
-        } else if (type == NC_INT64) {
+        } else if (vartype == NC_INT64) {
             int64_t value;
 
             ncw_get_att(ncid, varid, "valid_max", &value);
             for (i = 0; i < n; ++i)
                 if (((int64_t *) vv)[i] > value)
                     v[i] = NAN;
-        } else if (type == NC_UINT64) {
+        } else if (vartype == NC_UINT64) {
             uint64_t value;
 
             ncw_get_att(ncid, varid, "valid_max", &value);
             for (i = 0; i < n; ++i)
                 if (((uint64_t *) vv)[i] > value)
                     v[i] = NAN;
-        } else if (type == NC_FLOAT) {
+        } else if (vartype == NC_FLOAT) {
             float value;
 
             assert(sizeof(float) == 4);
@@ -798,7 +798,7 @@ void read_ncvarfloat(int ncid, int varid, int n, float v[])
             for (i = 0; i < n; ++i)
                 if (((float*) vv)[i] > value)
                     v[i] = NAN;
-        } else if (type == NC_DOUBLE) {
+        } else if (vartype == NC_DOUBLE) {
             double value;
 
             assert(sizeof(double) == 8);
@@ -820,63 +820,63 @@ void read_ncvarfloat(int ncid, int varid, int n, float v[])
                 vv = v;
         }
 
-        if (type == NC_BYTE || type == NC_CHAR) {
+        if (vartype == NC_BYTE || vartype == NC_CHAR) {
             char value[2];
 
             ncw_get_att(ncid, varid, "valid_range", value);
             for (i = 0; i < n; ++i)
                 if (((char*) vv)[i] < value[0] || ((char*) vv)[i] > value[1])
                     v[i] = NAN;
-        } else if (type == NC_UBYTE) {
+        } else if (vartype == NC_UBYTE) {
             char value[2];
 
             ncw_get_att(ncid, varid, "valid_range", value);
             for (i = 0; i < n; ++i)
                 if (((unsigned char*) vv)[i] < value[0] || ((unsigned char*) vv)[i] > value[1])
                     v[i] = NAN;
-        } else if (type == NC_SHORT) {
+        } else if (vartype == NC_SHORT) {
             int16_t value[2];
 
             ncw_get_att(ncid, varid, "valid_range", value);
             for (i = 0; i < n; ++i)
                 if (((int16_t *) vv)[i] < value[0] || ((int16_t *) vv)[i] > value[1])
                     v[i] = NAN;
-        } else if (type == NC_USHORT) {
+        } else if (vartype == NC_USHORT) {
             uint16_t value[2];
 
             ncw_get_att(ncid, varid, "valid_range", value);
             for (i = 0; i < n; ++i)
                 if (((uint16_t*) vv)[i] < value[0] || ((uint16_t*) vv)[i] > value[1])
                     v[i] = NAN;
-        } else if (type == NC_INT || type == NC_LONG) {
+        } else if (vartype == NC_INT || vartype == NC_LONG) {
             int32_t value[2];
 
             ncw_get_att(ncid, varid, "valid_range", value);
             for (i = 0; i < n; ++i)
                 if (((int32_t *) vv)[i] < value[0] || ((int32_t *) vv)[i] > value[1])
                     v[i] = NAN;
-        } else if (type == NC_UINT) {
+        } else if (vartype == NC_UINT) {
             uint32_t value[2];
 
             ncw_get_att(ncid, varid, "valid_range", value);
             for (i = 0; i < n; ++i)
                 if (((uint32_t*) vv)[i] < value[0] || ((uint32_t*) vv)[i] > value[1])
                     v[i] = NAN;
-        } else if (type == NC_INT64) {
+        } else if (vartype == NC_INT64) {
             int64_t value[2];
 
             ncw_get_att(ncid, varid, "valid_range", value);
             for (i = 0; i < n; ++i)
                 if (((int64_t *) vv)[i] < value[0] || ((int64_t *) vv)[i] > value[1])
                     v[i] = NAN;
-        } else if (type == NC_UINT64) {
+        } else if (vartype == NC_UINT64) {
             uint64_t value[2];
 
             ncw_get_att(ncid, varid, "valid_range", value);
             for (i = 0; i < n; ++i)
                 if (((uint64_t *) vv)[i] < value[0] || ((uint64_t *) vv)[i] > value[1])
                     v[i] = NAN;
-        } else if (type == NC_FLOAT) {
+        } else if (vartype == NC_FLOAT) {
             float value[2];
 
             assert(sizeof(float) == 4);
@@ -884,7 +884,7 @@ void read_ncvarfloat(int ncid, int varid, int n, float v[])
             for (i = 0; i < n; ++i)
                 if (((float*) vv)[i] < value[0] || ((float*) vv)[i] > value[1])
                     v[i] = NAN;
-        } else if (type == NC_DOUBLE) {
+        } else if (vartype == NC_DOUBLE) {
             double value[2];
 
             assert(sizeof(double) == 8);
@@ -920,7 +920,7 @@ void read_ncvarfloat(int ncid, int varid, int n, float v[])
 void read_ncvardouble(int ncid, int varid, int n, double v[])
 {
     char attnames[2][20] = { "_FillValue", "missing_value" };
-    nc_type type = -1;
+    nc_type vartype = -1;
     int typesize = 0;
     void* vv = NULL;
     int i, s;
@@ -928,8 +928,8 @@ void read_ncvardouble(int ncid, int varid, int n, double v[])
     ncw_check_varsize(ncid, varid, n);
     ncw_get_var_double(ncid, varid, v);
 
-    ncw_inq_vartype(ncid, varid, &type);
-    typesize = ncw_sizeof(type);
+    ncw_inq_vartype(ncid, varid, &vartype);
+    typesize = ncw_sizeof(vartype);
 
     for (s = 0; s < 2; ++s) {
         char* attname = attnames[s];
@@ -988,63 +988,63 @@ void read_ncvardouble(int ncid, int varid, int n, double v[])
                 vv = v;
         }
 
-        if (type == NC_BYTE || type == NC_CHAR) {
+        if (vartype == NC_BYTE || vartype == NC_CHAR) {
             char value;
 
             ncw_get_att(ncid, varid, "valid_min", &value);
             for (i = 0; i < n; ++i)
                 if (((char*) vv)[i] < value)
                     v[i] = NAN;
-        } else if (type == NC_UBYTE) {
+        } else if (vartype == NC_UBYTE) {
             char value;
 
             ncw_get_att(ncid, varid, "valid_min", &value);
             for (i = 0; i < n; ++i)
                 if (((unsigned char*) vv)[i] < value)
                     v[i] = NAN;
-        } else if (type == NC_SHORT) {
+        } else if (vartype == NC_SHORT) {
             int16_t value;
 
             ncw_get_att(ncid, varid, "valid_min", &value);
             for (i = 0; i < n; ++i)
                 if (((int16_t *) vv)[i] < value)
                     v[i] = NAN;
-        } else if (type == NC_USHORT) {
+        } else if (vartype == NC_USHORT) {
             uint16_t value;
 
             ncw_get_att(ncid, varid, "valid_min", &value);
             for (i = 0; i < n; ++i)
                 if (((uint16_t*) vv)[i] < value)
                     v[i] = NAN;
-        } else if (type == NC_INT || type == NC_LONG) {
+        } else if (vartype == NC_INT || vartype == NC_LONG) {
             int32_t value;
 
             ncw_get_att(ncid, varid, "valid_min", &value);
             for (i = 0; i < n; ++i)
                 if (((int32_t *) vv)[i] < value)
                     v[i] = NAN;
-        } else if (type == NC_UINT) {
+        } else if (vartype == NC_UINT) {
             uint32_t value;
 
             ncw_get_att(ncid, varid, "valid_min", &value);
             for (i = 0; i < n; ++i)
                 if (((uint32_t*) vv)[i] < value)
                     v[i] = NAN;
-        } else if (type == NC_INT64) {
+        } else if (vartype == NC_INT64) {
             int64_t value;
 
             ncw_get_att(ncid, varid, "valid_min", &value);
             for (i = 0; i < n; ++i)
                 if (((int64_t *) vv)[i] < value)
                     v[i] = NAN;
-        } else if (type == NC_UINT64) {
+        } else if (vartype == NC_UINT64) {
             uint64_t value;
 
             ncw_get_att(ncid, varid, "valid_min", &value);
             for (i = 0; i < n; ++i)
                 if (((uint64_t *) vv)[i] < value)
                     v[i] = NAN;
-        } else if (type == NC_FLOAT) {
+        } else if (vartype == NC_FLOAT) {
             float value;
 
             assert(sizeof(float) == 4);
@@ -1052,7 +1052,7 @@ void read_ncvardouble(int ncid, int varid, int n, double v[])
             for (i = 0; i < n; ++i)
                 if (((float*) vv)[i] < value)
                     v[i] = NAN;
-        } else if (type == NC_DOUBLE) {
+        } else if (vartype == NC_DOUBLE) {
             double value;
 
             assert(sizeof(double) == 8);
@@ -1074,63 +1074,63 @@ void read_ncvardouble(int ncid, int varid, int n, double v[])
                 vv = v;
         }
 
-        if (type == NC_BYTE || type == NC_CHAR) {
+        if (vartype == NC_BYTE || vartype == NC_CHAR) {
             char value;
 
             ncw_get_att(ncid, varid, "valid_max", &value);
             for (i = 0; i < n; ++i)
                 if (((char*) vv)[i] > value)
                     v[i] = NAN;
-        } else if (type == NC_UBYTE) {
+        } else if (vartype == NC_UBYTE) {
             char value;
 
             ncw_get_att(ncid, varid, "valid_max", &value);
             for (i = 0; i < n; ++i)
                 if (((unsigned char*) vv)[i] > value)
                     v[i] = NAN;
-        } else if (type == NC_SHORT) {
+        } else if (vartype == NC_SHORT) {
             int16_t value;
 
             ncw_get_att(ncid, varid, "valid_max", &value);
             for (i = 0; i < n; ++i)
                 if (((int16_t *) vv)[i] > value)
                     v[i] = NAN;
-        } else if (type == NC_USHORT) {
+        } else if (vartype == NC_USHORT) {
             uint16_t value;
 
             ncw_get_att(ncid, varid, "valid_max", &value);
             for (i = 0; i < n; ++i)
                 if (((uint16_t*) vv)[i] > value)
                     v[i] = NAN;
-        } else if (type == NC_INT || type == NC_LONG) {
+        } else if (vartype == NC_INT || vartype == NC_LONG) {
             int32_t value;
 
             ncw_get_att(ncid, varid, "valid_max", &value);
             for (i = 0; i < n; ++i)
                 if (((int32_t *) vv)[i] > value)
                     v[i] = NAN;
-        } else if (type == NC_UINT) {
+        } else if (vartype == NC_UINT) {
             uint32_t value;
 
             ncw_get_att(ncid, varid, "valid_max", &value);
             for (i = 0; i < n; ++i)
                 if (((uint32_t*) vv)[i] > value)
                     v[i] = NAN;
-        } else if (type == NC_INT64) {
+        } else if (vartype == NC_INT64) {
             int64_t value;
 
             ncw_get_att(ncid, varid, "valid_max", &value);
             for (i = 0; i < n; ++i)
                 if (((int64_t *) vv)[i] > value)
                     v[i] = NAN;
-        } else if (type == NC_UINT64) {
+        } else if (vartype == NC_UINT64) {
             uint64_t value;
 
             ncw_get_att(ncid, varid, "valid_max", &value);
             for (i = 0; i < n; ++i)
                 if (((uint64_t *) vv)[i] > value)
                     v[i] = NAN;
-        } else if (type == NC_FLOAT) {
+        } else if (vartype == NC_FLOAT) {
             float value;
 
             assert(sizeof(float) == 4);
@@ -1138,7 +1138,7 @@ void read_ncvardouble(int ncid, int varid, int n, double v[])
             for (i = 0; i < n; ++i)
                 if (((float*) vv)[i] > value)
                     v[i] = NAN;
-        } else if (type == NC_DOUBLE) {
+        } else if (vartype == NC_DOUBLE) {
             double value;
 
             assert(sizeof(double) == 8);
@@ -1160,63 +1160,63 @@ void read_ncvardouble(int ncid, int varid, int n, double v[])
                 vv = v;
         }
 
-        if (type == NC_BYTE || type == NC_CHAR) {
+        if (vartype == NC_BYTE || vartype == NC_CHAR) {
             char value[2];
 
             ncw_get_att(ncid, varid, "valid_range", value);
             for (i = 0; i < n; ++i)
                 if (((char*) vv)[i] < value[0] || ((char*) vv)[i] > value[1])
                     v[i] = NAN;
-        } else if (type == NC_UBYTE) {
+        } else if (vartype == NC_UBYTE) {
             char value[2];
 
             ncw_get_att(ncid, varid, "valid_range", value);
             for (i = 0; i < n; ++i)
                 if (((unsigned char*) vv)[i] < value[0] || ((unsigned char*) vv)[i] > value[1])
                     v[i] = NAN;
-        } else if (type == NC_SHORT) {
+        } else if (vartype == NC_SHORT) {
             int16_t value[2];
 
             ncw_get_att(ncid, varid, "valid_range", value);
             for (i = 0; i < n; ++i)
                 if (((int16_t *) vv)[i] < value[0] || ((int16_t *) vv)[i] > value[1])
                     v[i] = NAN;
-        } else if (type == NC_USHORT) {
+        } else if (vartype == NC_USHORT) {
             uint16_t value[2];
 
             ncw_get_att(ncid, varid, "valid_range", value);
             for (i = 0; i < n; ++i)
                 if (((uint16_t*) vv)[i] < value[0] || ((uint16_t*) vv)[i] > value[1])
                     v[i] = NAN;
-        } else if (type == NC_INT || type == NC_LONG) {
+        } else if (vartype == NC_INT || vartype == NC_LONG) {
             int32_t value[2];
 
             ncw_get_att(ncid, varid, "valid_range", value);
             for (i = 0; i < n; ++i)
                 if (((int32_t *) vv)[i] < value[0] || ((int32_t *) vv)[i] > value[1])
                     v[i] = NAN;
-        } else if (type == NC_UINT) {
+        } else if (vartype == NC_UINT) {
             uint32_t value[2];
 
             ncw_get_att(ncid, varid, "valid_range", value);
             for (i = 0; i < n; ++i)
                 if (((uint32_t*) vv)[i] < value[0] || ((uint32_t*) vv)[i] > value[1])
                     v[i] = NAN;
-        } else if (type == NC_INT64) {
+        } else if (vartype == NC_INT64) {
             int64_t value[2];
 
             ncw_get_att(ncid, varid, "valid_range", value);
             for (i = 0; i < n; ++i)
                 if (((int64_t *) vv)[i] < value[0] || ((int64_t *) vv)[i] > value[1])
                     v[i] = NAN;
-        } else if (type == NC_UINT64) {
+        } else if (vartype == NC_UINT64) {
             uint64_t value[2];
 
             ncw_get_att(ncid, varid, "valid_range", value);
             for (i = 0; i < n; ++i)
                 if (((uint64_t *) vv)[i] < value[0] || ((uint64_t *) vv)[i] > value[1])
                     v[i] = NAN;
-        } else if (type == NC_FLOAT) {
+        } else if (vartype == NC_FLOAT) {
             float value[2];
 
             assert(sizeof(float) == 4);
@@ -1224,7 +1224,7 @@ void read_ncvardouble(int ncid, int varid, int n, double v[])
             for (i = 0; i < n; ++i)
                 if (((float*) vv)[i] < value[0] || ((float*) vv)[i] > value[1])
                     v[i] = NAN;
-        } else if (type == NC_DOUBLE) {
+        } else if (vartype == NC_DOUBLE) {
             double value[2];
 
             assert(sizeof(double) == 8);

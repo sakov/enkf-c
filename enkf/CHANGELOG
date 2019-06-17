@@ -1,3 +1,8 @@
+v. 1.99.5
+   PS 17062019
+   -- Modified readfield() and read3dfield() to provide more robust treatment
+      (hopefully) of _FillValue, missing_value, valid_min, valid_max, and
+      valid_range attributes.
 v. 1.99.4
    PS 17062019
    -- Corrected read_ncvarfloat() and read_ncvardouble() for data types of

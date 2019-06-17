@@ -894,56 +894,219 @@ void readfield(char fname[], char varname[], int k, int ni, int nj, int nk, floa
     n = 1;
     for (i = 0; i < ndims; ++i)
         n *= count[i];
+        
+    if (ncw_att_exists(ncid, varid, "_FillValue") || ncw_att_exists(ncid, varid, "missing_value") || ncw_att_exists(ncid, varid, "valid_range") || ncw_att_exists(ncid, varid, "valid_min") || ncw_att_exists(ncid, varid, "valid_max")) {
+        void* vv = NULL;
+        nc_type vartype = -1;
+        int typesize = 0;
+        char attval[128];
 
-    if (ncw_att_exists(ncid, varid, "valid_range")) {
-        nc_type xtype;
-        size_t len;
-
-        ncw_inq_att(ncid, varid, "valid_range", &xtype, &len);
-        if (len != 2)
-            enkf_quit("%s: %s: \"valid_range\" attribute must have 2 elements", fname, varname);
-        if (xtype == NC_SHORT) {
-            int valid_range[2];
-            int fill_value = SHRT_MIN;
-            short* vv = malloc(n * sizeof(short));
-
-            ncw_get_vara_short(ncid, varid, start, count, vv);
-
-            if (ncw_att_exists(ncid, varid, "_FillValue"))
-                ncw_get_att_int(ncid, varid, "_FillValue", &fill_value);
-            else if (ncw_att_exists(ncid, varid, "missing_value"))
-                ncw_get_att_int(ncid, varid, "missing_value", &fill_value);
-
-            ncw_get_att_int(ncid, varid, "valid_range", valid_range);
-            for (i = 0; i < n; ++i)
-                if (vv[i] == fill_value || vv[i] < valid_range[0] || vv[i] > valid_range[1])
-                    v[i] = NAN;
-            free(vv);
-        } else if (xtype == NC_FLOAT || xtype == NC_DOUBLE) {
-            float valid_range[2];
-            float fill_value = -FLT_MAX;
-
-            /*
-             * (we assume that double numbers outside of [-FLT_MAX, FLT_MAX]
-             * interval are converted to either -FLT_MAX or FLT_MAX)
-             */
-
-            if (ncw_att_exists(ncid, varid, "_FillValue"))
-                ncw_get_att_float(ncid, varid, "_FillValue", &fill_value);
-            else if (ncw_att_exists(ncid, varid, "missing_value"))
-                ncw_get_att_float(ncid, varid, "missing_value", &fill_value);
-
-            ncw_get_att_float(ncid, varid, "valid_range", valid_range);
-            for (i = 0; i < n; ++i)
-                if (v[i] == fill_value || v[i] < valid_range[0] || v[i] > valid_range[1])
-                    v[i] = NAN;
+        ncw_inq_vartype(ncid, varid, &vartype);
+        typesize = ncw_sizeof(vartype);
+        if (typesize != sizeof(float)) {
+            vv = malloc(n * typesize);
+            ncw_get_vara(ncid, varid, start, count, vv);
         } else
-            enkf_quit("%s: %s: can not properly read NetCDF types other than NC_SHORT, NC_FLOAT, or NC_DOUBLE yet", fname, varname);
+            vv = v;
+
+        if (ncw_att_exists(ncid, varid, "_FillValue")) {
+            ncw_check_attlen(ncid, varid, "_FillValue", 1);
+            ncw_get_att(ncid, varid, "_FillValue", attval);
+            if (typesize == 1) {
+                for (i = 0; i < n; ++i)
+                    if (((int8_t *) vv)[i] == ((int8_t *) attval)[0])
+                        v[i] = NAN;
+            } else if (typesize == 2) {
+                for (i = 0; i < n; ++i)
+                    if (((int16_t *) vv)[i] == ((int16_t *) attval)[0])
+                        v[i] = NAN;
+            } else if (typesize == 4) {
+                for (i = 0; i < n; ++i)
+                    if (((int32_t *) vv)[i] == ((int32_t *) attval)[0])
+                        v[i] = NAN;
+            } else if (typesize == 8) {
+                for (i = 0; i < n; ++i)
+                    if (((int64_t *) vv)[i] == ((int64_t *) attval)[0])
+                        v[i] = NAN;
+            } else
+                enkf_quit("programming error");
+        }
+
+        if (ncw_att_exists(ncid, varid, "missing_value")) {
+            ncw_check_attlen(ncid, varid, "missing_value", 1);
+            ncw_get_att(ncid, varid, "missing_value", attval);
+            if (typesize == 1) {
+                for (i = 0; i < n; ++i)
+                    if (((int8_t *) vv)[i] == ((int8_t *) attval)[0])
+                        v[i] = NAN;
+            } else if (typesize == 2) {
+                for (i = 0; i < n; ++i)
+                    if (((int16_t *) vv)[i] == ((int16_t *) attval)[0])
+                        v[i] = NAN;
+            } else if (typesize == 4) {
+                for (i = 0; i < n; ++i)
+                    if (((int32_t *) vv)[i] == ((int32_t *) attval)[0])
+                        v[i] = NAN;
+            } else if (typesize == 8) {
+                for (i = 0; i < n; ++i)
+                    if (((int64_t *) vv)[i] == ((int64_t *) attval)[0])
+                        v[i] = NAN;
+            } else
+                enkf_quit("programming error");
+        }
+
+        if (ncw_att_exists(ncid, varid, "valid_min")) {
+            ncw_check_attlen(ncid, varid, "valid_min", 1);
+            ncw_get_att(ncid, varid, "valid_min", attval);
+            if (vartype == NC_BYTE || vartype == NC_CHAR) {
+                for (i = 0; i < n; ++i)
+                    if (((char*) vv)[i] < attval[0])
+                        v[i] = NAN;
+            } else if (vartype == NC_UBYTE) {
+                for (i = 0; i < n; ++i)
+                    if (((unsigned char*) vv)[i] < ((unsigned char*) attval)[0])
+                        v[i] = NAN;
+            } else if (vartype == NC_SHORT) {
+                for (i = 0; i < n; ++i)
+                    if (((int16_t *) vv)[i] < ((int16_t*) attval)[0])
+                        v[i] = NAN;
+            } else if (vartype == NC_USHORT) {
+                for (i = 0; i < n; ++i)
+                    if (((uint16_t*) vv)[i] < ((uint16_t*) attval)[0])
+                        v[i] = NAN;
+            } else if (vartype == NC_INT || vartype == NC_LONG) {
+                for (i = 0; i < n; ++i)
+                    if (((int32_t *) vv)[i] < ((int32_t*) attval)[0])
+                        v[i] = NAN;
+            } else if (vartype == NC_UINT) {
+                for (i = 0; i < n; ++i)
+                    if (((uint32_t*) vv)[i] < ((uint32_t*) attval)[0])
+                        v[i] = NAN;
+            } else if (vartype == NC_INT64) {
+                for (i = 0; i < n; ++i)
+                    if (((int64_t *) vv)[i] < ((int64_t*) attval)[0])
+                        v[i] = NAN;
+            } else if (vartype == NC_UINT64) {
+                for (i = 0; i < n; ++i)
+                    if (((uint64_t *) vv)[i] < ((uint64_t*) attval)[0])
+                        v[i] = NAN;
+            } else if (vartype == NC_FLOAT) {
+                assert(sizeof(float) == 4);
+                for (i = 0; i < n; ++i)
+                    if (((float*) vv)[i] < ((float*) attval)[0])
+                        v[i] = NAN;
+            } else if (vartype == NC_DOUBLE) {
+                for (i = 0; i < n; ++i)
+                    if (((double*) vv)[i] < ((double*) attval)[0])
+                        v[i] = NAN;
+            } else
+                enkf_quit("programming error");
+        }
+
+        if (ncw_att_exists(ncid, varid, "valid_max")) {
+            ncw_check_attlen(ncid, varid, "valid_max", 1);
+            ncw_get_att(ncid, varid, "valid_max", attval);
+            if (vartype == NC_BYTE || vartype == NC_CHAR) {
+                for (i = 0; i < n; ++i)
+                    if (((char*) vv)[i] > attval[0])
+                        v[i] = NAN;
+            } else if (vartype == NC_UBYTE) {
+                for (i = 0; i < n; ++i)
+                    if (((unsigned char*) vv)[i] > ((unsigned char*) attval)[0])
+                        v[i] = NAN;
+            } else if (vartype == NC_SHORT) {
+                for (i = 0; i < n; ++i)
+                    if (((int16_t *) vv)[i] > ((int16_t*) attval)[0])
+                        v[i] = NAN;
+            } else if (vartype == NC_USHORT) {
+                for (i = 0; i < n; ++i)
+                    if (((uint16_t*) vv)[i] > ((uint16_t*) attval)[0])
+                        v[i] = NAN;
+            } else if (vartype == NC_INT || vartype == NC_LONG) {
+                for (i = 0; i < n; ++i)
+                    if (((int32_t *) vv)[i] > ((int32_t*) attval)[0])
+                        v[i] = NAN;
+            } else if (vartype == NC_UINT) {
+                for (i = 0; i < n; ++i)
+                    if (((uint32_t*) vv)[i] > ((uint32_t*) attval)[0])
+                        v[i] = NAN;
+            } else if (vartype == NC_INT64) {
+                for (i = 0; i < n; ++i)
+                    if (((int64_t *) vv)[i] > ((int64_t*) attval)[0])
+                        v[i] = NAN;
+            } else if (vartype == NC_UINT64) {
+                for (i = 0; i < n; ++i)
+                    if (((uint64_t *) vv)[i] > ((uint64_t*) attval)[0])
+                        v[i] = NAN;
+            } else if (vartype == NC_FLOAT) {
+                assert(sizeof(float) == 4);
+                for (i = 0; i < n; ++i)
+                    if (((float*) vv)[i] > ((float*) attval)[0])
+                        v[i] = NAN;
+            } else if (vartype == NC_DOUBLE) {
+                for (i = 0; i < n; ++i)
+                    if (((double*) vv)[i] > ((double*) attval)[0])
+                        v[i] = NAN;
+            } else
+                enkf_quit("programming error");
+        }
+
+        if (ncw_att_exists(ncid, varid, "valid_range")) {
+            ncw_check_attlen(ncid, varid, "valid_range", 2);
+            ncw_get_att(ncid, varid, "valid_range", attval);
+            if (vartype == NC_BYTE || vartype == NC_CHAR) {
+                for (i = 0; i < n; ++i)
+                    if (((char*) vv)[i] < attval[0] || ((char*) vv)[i] > attval[1])
+                        v[i] = NAN;
+            } else if (vartype == NC_UBYTE) {
+                for (i = 0; i < n; ++i)
+                    if (((unsigned char*) vv)[i] < ((unsigned char*) attval)[0] || ((unsigned char*) vv)[i] > ((unsigned char*) attval)[1])
+                        v[i] = NAN;
+            } else if (vartype == NC_SHORT) {
+                for (i = 0; i < n; ++i)
+                    if (((int16_t *) vv)[i] < ((int16_t*) attval)[0] || ((int16_t *) vv)[i] > ((int16_t*) attval)[1])
+                        v[i] = NAN;
+            } else if (vartype == NC_USHORT) {
+                for (i = 0; i < n; ++i)
+                    if (((uint16_t*) vv)[i] < ((uint16_t*) attval)[0] || ((uint16_t*) vv)[i] > ((uint16_t*) attval)[1])
+                        v[i] = NAN;
+            } else if (vartype == NC_INT || vartype == NC_LONG) {
+                for (i = 0; i < n; ++i)
+                    if (((int32_t *) vv)[i] < ((int32_t*) attval)[0] || ((int32_t *) vv)[i] > ((int32_t*) attval)[1])
+                        v[i] = NAN;
+            } else if (vartype == NC_UINT) {
+                for (i = 0; i < n; ++i)
+                    if (((uint32_t*) vv)[i] < ((uint32_t*) attval)[0] || ((uint32_t*) vv)[i] > ((uint32_t*) attval)[1])
+                        v[i] = NAN;
+            } else if (vartype == NC_INT64) {
+                for (i = 0; i < n; ++i)
+                    if (((int64_t *) vv)[i] < ((int64_t*) attval)[0] || ((int64_t *) vv)[i] > ((int64_t*) attval)[1])
+                        v[i] = NAN;
+            } else if (vartype == NC_UINT64) {
+                for (i = 0; i < n; ++i)
+                    if (((uint64_t *) vv)[i] < ((uint64_t*) attval)[0] || ((uint64_t *) vv)[i] > ((uint64_t*) attval)[1])
+                        v[i] = NAN;
+            } else if (vartype == NC_FLOAT) {
+                assert(sizeof(float) == 4);
+                for (i = 0; i < n; ++i)
+                    if (((float*) vv)[i] < ((float*) attval)[0] || ((float*) vv)[i] > ((float*) attval)[1])
+                        v[i] = NAN;
+            } else if (vartype == NC_DOUBLE) {
+                for (i = 0; i < n; ++i)
+                    if (((double*) vv)[i] < ((double*) attval)[0] || ((double*) vv)[i] > ((double*) attval)[1])
+                        v[i] = NAN;
+            } else
+                enkf_quit("programming error");
+        }
+
+        if (typesize != sizeof(float))
+            free(vv);
     }
 
     if (ncw_att_exists(ncid, varid, "scale_factor")) {
         float scale_factor;
 
+        ncw_check_attlen(ncid, varid, "scale_factor", 1);
         ncw_get_att_float(ncid, varid, "scale_factor", &scale_factor);
         for (i = 0; i < n; ++i)
             v[i] *= scale_factor;
@@ -952,8 +1115,8 @@ void readfield(char fname[], char varname[], int k, int ni, int nj, int nk, floa
     if (ncw_att_exists(ncid, varid, "add_offset")) {
         float add_offset;
 
+        ncw_check_attlen(ncid, varid, "add_offset", 1);
         ncw_get_att_float(ncid, varid, "add_offset", &add_offset);
-
         for (i = 0; i < n; ++i)
             v[i] += add_offset;
     }
@@ -1285,50 +1448,212 @@ void read3dfield(char* fname, char* varname, int ni, int nj, int nk, float* v)
     for (i = 0; i < ndims; ++i)
         n *= count[i];
 
-    if (ncw_att_exists(ncid, varid, "valid_range")) {
-        nc_type xtype;
-        size_t len;
+    if (ncw_att_exists(ncid, varid, "_FillValue") || ncw_att_exists(ncid, varid, "missing_value") || ncw_att_exists(ncid, varid, "valid_range") || ncw_att_exists(ncid, varid, "valid_min") || ncw_att_exists(ncid, varid, "valid_max")) {
+        void* vv = NULL;
+        nc_type vartype = -1;
+        int typesize = 0;
+        char attval[128];
 
-        ncw_inq_att(ncid, varid, "valid_range", &xtype, &len);
-        if (len != 2)
-            enkf_quit("%s: %s: \"valid_range\" attribute must have 2 elements", fname, varname);
-        if (xtype == NC_SHORT) {
-            int valid_range[2];
-            int fill_value = SHRT_MIN;
-            short* vv = malloc(n * sizeof(short));
-
-            ncw_get_vara_short(ncid, varid, start, count, vv);
-
-            if (ncw_att_exists(ncid, varid, "_FillValue"))
-                ncw_get_att_int(ncid, varid, "_FillValue", &fill_value);
-            else if (ncw_att_exists(ncid, varid, "missing_value"))
-                ncw_get_att_int(ncid, varid, "missing_value", &fill_value);
-
-            ncw_get_att_int(ncid, varid, "valid_range", valid_range);
-            for (i = 0; i < n; ++i)
-                if (vv[i] == fill_value || vv[i] < valid_range[0] || vv[i] > valid_range[1])
-                    v[i] = NAN;
-            free(vv);
-        } else if (xtype == NC_FLOAT || xtype == NC_DOUBLE) {
-            float valid_range[2];
-            float fill_value = -FLT_MAX;
-
-            /*
-             * (we assume that double numbers outside of [-FLT_MAX, FLT_MAX]
-             * interval are converted to either -FLT_MAX or FLT_MAX)
-             */
-
-            if (ncw_att_exists(ncid, varid, "_FillValue"))
-                ncw_get_att_float(ncid, varid, "_FillValue", &fill_value);
-            else if (ncw_att_exists(ncid, varid, "missing_value"))
-                ncw_get_att_float(ncid, varid, "missing_value", &fill_value);
-
-            ncw_get_att_float(ncid, varid, "valid_range", valid_range);
-            for (i = 0; i < n; ++i)
-                if (v[i] == fill_value || v[i] < valid_range[0] || v[i] > valid_range[1])
-                    v[i] = NAN;
+        ncw_inq_vartype(ncid, varid, &vartype);
+        typesize = ncw_sizeof(vartype);
+        if (typesize != sizeof(float)) {
+            vv = malloc(n * typesize);
+            ncw_get_vara(ncid, varid, start, count, vv);
         } else
-            enkf_quit("%s: %s: can not properly read NetCDF types other than NC_SHORT, NC_FLOAT, or NC_DOUBLE yet", fname, varname);
+            vv = v;
+
+        if (ncw_att_exists(ncid, varid, "_FillValue")) {
+            ncw_check_attlen(ncid, varid, "_FillValue", 1);
+            ncw_get_att(ncid, varid, "_FillValue", attval);
+            if (typesize == 1) {
+                for (i = 0; i < n; ++i)
+                    if (((int8_t *) vv)[i] == ((int8_t *) attval)[0])
+                        v[i] = NAN;
+            } else if (typesize == 2) {
+                for (i = 0; i < n; ++i)
+                    if (((int16_t *) vv)[i] == ((int16_t *) attval)[0])
+                        v[i] = NAN;
+            } else if (typesize == 4) {
+                for (i = 0; i < n; ++i)
+                    if (((int32_t *) vv)[i] == ((int32_t *) attval)[0])
+                        v[i] = NAN;
+            } else if (typesize == 8) {
+                for (i = 0; i < n; ++i)
+                    if (((int64_t *) vv)[i] == ((int64_t *) attval)[0])
+                        v[i] = NAN;
+            } else
+                enkf_quit("programming error");
+        }
+
+        if (ncw_att_exists(ncid, varid, "missing_value")) {
+            ncw_check_attlen(ncid, varid, "missing_value", 1);
+            ncw_get_att(ncid, varid, "missing_value", attval);
+            if (typesize == 1) {
+                for (i = 0; i < n; ++i)
+                    if (((int8_t *) vv)[i] == ((int8_t *) attval)[0])
+                        v[i] = NAN;
+            } else if (typesize == 2) {
+                for (i = 0; i < n; ++i)
+                    if (((int16_t *) vv)[i] == ((int16_t *) attval)[0])
+                        v[i] = NAN;
+            } else if (typesize == 4) {
+                for (i = 0; i < n; ++i)
+                    if (((int32_t *) vv)[i] == ((int32_t *) attval)[0])
+                        v[i] = NAN;
+            } else if (typesize == 8) {
+                for (i = 0; i < n; ++i)
+                    if (((int64_t *) vv)[i] == ((int64_t *) attval)[0])
+                        v[i] = NAN;
+            } else
+                enkf_quit("programming error");
+        }
+
+        if (ncw_att_exists(ncid, varid, "valid_min")) {
+            ncw_check_attlen(ncid, varid, "valid_min", 1);
+            ncw_get_att(ncid, varid, "valid_min", attval);
+            if (vartype == NC_BYTE || vartype == NC_CHAR) {
+                for (i = 0; i < n; ++i)
+                    if (((char*) vv)[i] < attval[0])
+                        v[i] = NAN;
+            } else if (vartype == NC_UBYTE) {
+                for (i = 0; i < n; ++i)
+                    if (((unsigned char*) vv)[i] < ((unsigned char*) attval)[0])
+                        v[i] = NAN;
+            } else if (vartype == NC_SHORT) {
+                for (i = 0; i < n; ++i)
+                    if (((int16_t *) vv)[i] < ((int16_t*) attval)[0])
+                        v[i] = NAN;
+            } else if (vartype == NC_USHORT) {
+                for (i = 0; i < n; ++i)
+                    if (((uint16_t*) vv)[i] < ((uint16_t*) attval)[0])
+                        v[i] = NAN;
+            } else if (vartype == NC_INT || vartype == NC_LONG) {
+                for (i = 0; i < n; ++i)
+                    if (((int32_t *) vv)[i] < ((int32_t*) attval)[0])
+                        v[i] = NAN;
+            } else if (vartype == NC_UINT) {
+                for (i = 0; i < n; ++i)
+                    if (((uint32_t*) vv)[i] < ((uint32_t*) attval)[0])
+                        v[i] = NAN;
+            } else if (vartype == NC_INT64) {
+                for (i = 0; i < n; ++i)
+                    if (((int64_t *) vv)[i] < ((int64_t*) attval)[0])
+                        v[i] = NAN;
+            } else if (vartype == NC_UINT64) {
+                for (i = 0; i < n; ++i)
+                    if (((uint64_t *) vv)[i] < ((uint64_t*) attval)[0])
+                        v[i] = NAN;
+            } else if (vartype == NC_FLOAT) {
+                assert(sizeof(float) == 4);
+                for (i = 0; i < n; ++i)
+                    if (((float*) vv)[i] < ((float*) attval)[0])
+                        v[i] = NAN;
+            } else if (vartype == NC_DOUBLE) {
+                for (i = 0; i < n; ++i)
+                    if (((double*) vv)[i] < ((double*) attval)[0])
+                        v[i] = NAN;
+            } else
+                enkf_quit("programming error");
+        }
+
+        if (ncw_att_exists(ncid, varid, "valid_max")) {
+            ncw_check_attlen(ncid, varid, "valid_max", 1);
+            ncw_get_att(ncid, varid, "valid_max", attval);
+            if (vartype == NC_BYTE || vartype == NC_CHAR) {
+                for (i = 0; i < n; ++i)
+                    if (((char*) vv)[i] > attval[0])
+                        v[i] = NAN;
+            } else if (vartype == NC_UBYTE) {
+                for (i = 0; i < n; ++i)
+                    if (((unsigned char*) vv)[i] > ((unsigned char*) attval)[0])
+                        v[i] = NAN;
+            } else if (vartype == NC_SHORT) {
+                for (i = 0; i < n; ++i)
+                    if (((int16_t *) vv)[i] > ((int16_t*) attval)[0])
+                        v[i] = NAN;
+            } else if (vartype == NC_USHORT) {
+                for (i = 0; i < n; ++i)
+                    if (((uint16_t*) vv)[i] > ((uint16_t*) attval)[0])
+                        v[i] = NAN;
+            } else if (vartype == NC_INT || vartype == NC_LONG) {
+                for (i = 0; i < n; ++i)
+                    if (((int32_t *) vv)[i] > ((int32_t*) attval)[0])
+                        v[i] = NAN;
+            } else if (vartype == NC_UINT) {
+                for (i = 0; i < n; ++i)
+                    if (((uint32_t*) vv)[i] > ((uint32_t*) attval)[0])
+                        v[i] = NAN;
+            } else if (vartype == NC_INT64) {
+                for (i = 0; i < n; ++i)
+                    if (((int64_t *) vv)[i] > ((int64_t*) attval)[0])
+                        v[i] = NAN;
+            } else if (vartype == NC_UINT64) {
+                for (i = 0; i < n; ++i)
+                    if (((uint64_t *) vv)[i] > ((uint64_t*) attval)[0])
+                        v[i] = NAN;
+            } else if (vartype == NC_FLOAT) {
+                assert(sizeof(float) == 4);
+                for (i = 0; i < n; ++i)
+                    if (((float*) vv)[i] > ((float*) attval)[0])
+                        v[i] = NAN;
+            } else if (vartype == NC_DOUBLE) {
+                for (i = 0; i < n; ++i)
+                    if (((double*) vv)[i] > ((double*) attval)[0])
+                        v[i] = NAN;
+            } else
+                enkf_quit("programming error");
+        }
+
+        if (ncw_att_exists(ncid, varid, "valid_range")) {
+            ncw_check_attlen(ncid, varid, "valid_range", 2);
+            ncw_get_att(ncid, varid, "valid_range", attval);
+            if (vartype == NC_BYTE || vartype == NC_CHAR) {
+                for (i = 0; i < n; ++i)
+                    if (((char*) vv)[i] < attval[0] || ((char*) vv)[i] > attval[1])
+                        v[i] = NAN;
+            } else if (vartype == NC_UBYTE) {
+                for (i = 0; i < n; ++i)
+                    if (((unsigned char*) vv)[i] < ((unsigned char*) attval)[0] || ((unsigned char*) vv)[i] > ((unsigned char*) attval)[1])
+                        v[i] = NAN;
+            } else if (vartype == NC_SHORT) {
+                for (i = 0; i < n; ++i)
+                    if (((int16_t *) vv)[i] < ((int16_t*) attval)[0] || ((int16_t *) vv)[i] > ((int16_t*) attval)[1])
+                        v[i] = NAN;
+            } else if (vartype == NC_USHORT) {
+                for (i = 0; i < n; ++i)
+                    if (((uint16_t*) vv)[i] < ((uint16_t*) attval)[0] || ((uint16_t*) vv)[i] > ((uint16_t*) attval)[1])
+                        v[i] = NAN;
+            } else if (vartype == NC_INT || vartype == NC_LONG) {
+                for (i = 0; i < n; ++i)
+                    if (((int32_t *) vv)[i] < ((int32_t*) attval)[0] || ((int32_t *) vv)[i] > ((int32_t*) attval)[1])
+                        v[i] = NAN;
+            } else if (vartype == NC_UINT) {
+                for (i = 0; i < n; ++i)
+                    if (((uint32_t*) vv)[i] < ((uint32_t*) attval)[0] || ((uint32_t*) vv)[i] > ((uint32_t*) attval)[1])
+                        v[i] = NAN;
+            } else if (vartype == NC_INT64) {
+                for (i = 0; i < n; ++i)
+                    if (((int64_t *) vv)[i] < ((int64_t*) attval)[0] || ((int64_t *) vv)[i] > ((int64_t*) attval)[1])
+                        v[i] = NAN;
+            } else if (vartype == NC_UINT64) {
+                for (i = 0; i < n; ++i)
+                    if (((uint64_t *) vv)[i] < ((uint64_t*) attval)[0] || ((uint64_t *) vv)[i] > ((uint64_t*) attval)[1])
+                        v[i] = NAN;
+            } else if (vartype == NC_FLOAT) {
+                assert(sizeof(float) == 4);
+                for (i = 0; i < n; ++i)
+                    if (((float*) vv)[i] < ((float*) attval)[0] || ((float*) vv)[i] > ((float*) attval)[1])
+                        v[i] = NAN;
+            } else if (vartype == NC_DOUBLE) {
+                for (i = 0; i < n; ++i)
+                    if (((double*) vv)[i] < ((double*) attval)[0] || ((double*) vv)[i] > ((double*) attval)[1])
+                        v[i] = NAN;
+            } else
+                enkf_quit("programming error");
+        }
+
+        if (typesize != sizeof(float))
+            free(vv);
     }
 
     if (ncw_att_exists(ncid, varid, "scale_factor")) {
