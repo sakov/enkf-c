@@ -894,7 +894,7 @@ void readfield(char fname[], char varname[], int k, int ni, int nj, int nk, floa
     n = 1;
     for (i = 0; i < ndims; ++i)
         n *= count[i];
-        
+
     if (ncw_att_exists(ncid, varid, "_FillValue") || ncw_att_exists(ncid, varid, "missing_value") || ncw_att_exists(ncid, varid, "valid_range") || ncw_att_exists(ncid, varid, "valid_min") || ncw_att_exists(ncid, varid, "valid_max")) {
         void* vv = NULL;
         nc_type vartype = -1;
@@ -968,7 +968,7 @@ void readfield(char fname[], char varname[], int k, int ni, int nj, int nk, floa
                         v[i] = NAN;
             } else if (vartype == NC_SHORT) {
                 for (i = 0; i < n; ++i)
-                    if (((int16_t *) vv)[i] < ((int16_t*) attval)[0])
+                    if (((int16_t *) vv)[i] < ((int16_t *) attval)[0])
                         v[i] = NAN;
             } else if (vartype == NC_USHORT) {
                 for (i = 0; i < n; ++i)
@@ -976,7 +976,7 @@ void readfield(char fname[], char varname[], int k, int ni, int nj, int nk, floa
                         v[i] = NAN;
             } else if (vartype == NC_INT || vartype == NC_LONG) {
                 for (i = 0; i < n; ++i)
-                    if (((int32_t *) vv)[i] < ((int32_t*) attval)[0])
+                    if (((int32_t *) vv)[i] < ((int32_t *) attval)[0])
                         v[i] = NAN;
             } else if (vartype == NC_UINT) {
                 for (i = 0; i < n; ++i)
@@ -984,11 +984,11 @@ void readfield(char fname[], char varname[], int k, int ni, int nj, int nk, floa
                         v[i] = NAN;
             } else if (vartype == NC_INT64) {
                 for (i = 0; i < n; ++i)
-                    if (((int64_t *) vv)[i] < ((int64_t*) attval)[0])
+                    if (((int64_t *) vv)[i] < ((int64_t *) attval)[0])
                         v[i] = NAN;
             } else if (vartype == NC_UINT64) {
                 for (i = 0; i < n; ++i)
-                    if (((uint64_t *) vv)[i] < ((uint64_t*) attval)[0])
+                    if (((uint64_t *) vv)[i] < ((uint64_t *) attval)[0])
                         v[i] = NAN;
             } else if (vartype == NC_FLOAT) {
                 assert(sizeof(float) == 4);
@@ -1016,7 +1016,7 @@ void readfield(char fname[], char varname[], int k, int ni, int nj, int nk, floa
                         v[i] = NAN;
             } else if (vartype == NC_SHORT) {
                 for (i = 0; i < n; ++i)
-                    if (((int16_t *) vv)[i] > ((int16_t*) attval)[0])
+                    if (((int16_t *) vv)[i] > ((int16_t *) attval)[0])
                         v[i] = NAN;
             } else if (vartype == NC_USHORT) {
                 for (i = 0; i < n; ++i)
@@ -1024,7 +1024,7 @@ void readfield(char fname[], char varname[], int k, int ni, int nj, int nk, floa
                         v[i] = NAN;
             } else if (vartype == NC_INT || vartype == NC_LONG) {
                 for (i = 0; i < n; ++i)
-                    if (((int32_t *) vv)[i] > ((int32_t*) attval)[0])
+                    if (((int32_t *) vv)[i] > ((int32_t *) attval)[0])
                         v[i] = NAN;
             } else if (vartype == NC_UINT) {
                 for (i = 0; i < n; ++i)
@@ -1032,11 +1032,11 @@ void readfield(char fname[], char varname[], int k, int ni, int nj, int nk, floa
                         v[i] = NAN;
             } else if (vartype == NC_INT64) {
                 for (i = 0; i < n; ++i)
-                    if (((int64_t *) vv)[i] > ((int64_t*) attval)[0])
+                    if (((int64_t *) vv)[i] > ((int64_t *) attval)[0])
                         v[i] = NAN;
             } else if (vartype == NC_UINT64) {
                 for (i = 0; i < n; ++i)
-                    if (((uint64_t *) vv)[i] > ((uint64_t*) attval)[0])
+                    if (((uint64_t *) vv)[i] > ((uint64_t *) attval)[0])
                         v[i] = NAN;
             } else if (vartype == NC_FLOAT) {
                 assert(sizeof(float) == 4);
@@ -1064,7 +1064,7 @@ void readfield(char fname[], char varname[], int k, int ni, int nj, int nk, floa
                         v[i] = NAN;
             } else if (vartype == NC_SHORT) {
                 for (i = 0; i < n; ++i)
-                    if (((int16_t *) vv)[i] < ((int16_t*) attval)[0] || ((int16_t *) vv)[i] > ((int16_t*) attval)[1])
+                    if (((int16_t *) vv)[i] < ((int16_t *) attval)[0] || ((int16_t *) vv)[i] > ((int16_t *) attval)[1])
                         v[i] = NAN;
             } else if (vartype == NC_USHORT) {
                 for (i = 0; i < n; ++i)
@@ -1072,7 +1072,7 @@ void readfield(char fname[], char varname[], int k, int ni, int nj, int nk, floa
                         v[i] = NAN;
             } else if (vartype == NC_INT || vartype == NC_LONG) {
                 for (i = 0; i < n; ++i)
-                    if (((int32_t *) vv)[i] < ((int32_t*) attval)[0] || ((int32_t *) vv)[i] > ((int32_t*) attval)[1])
+                    if (((int32_t *) vv)[i] < ((int32_t *) attval)[0] || ((int32_t *) vv)[i] > ((int32_t *) attval)[1])
                         v[i] = NAN;
             } else if (vartype == NC_UINT) {
                 for (i = 0; i < n; ++i)
@@ -1080,11 +1080,11 @@ void readfield(char fname[], char varname[], int k, int ni, int nj, int nk, floa
                         v[i] = NAN;
             } else if (vartype == NC_INT64) {
                 for (i = 0; i < n; ++i)
-                    if (((int64_t *) vv)[i] < ((int64_t*) attval)[0] || ((int64_t *) vv)[i] > ((int64_t*) attval)[1])
+                    if (((int64_t *) vv)[i] < ((int64_t *) attval)[0] || ((int64_t *) vv)[i] > ((int64_t *) attval)[1])
                         v[i] = NAN;
             } else if (vartype == NC_UINT64) {
                 for (i = 0; i < n; ++i)
-                    if (((uint64_t *) vv)[i] < ((uint64_t*) attval)[0] || ((uint64_t *) vv)[i] > ((uint64_t*) attval)[1])
+                    if (((uint64_t *) vv)[i] < ((uint64_t *) attval)[0] || ((uint64_t *) vv)[i] > ((uint64_t *) attval)[1])
                         v[i] = NAN;
             } else if (vartype == NC_FLOAT) {
                 assert(sizeof(float) == 4);
@@ -1202,7 +1202,6 @@ void writefield(char fname[], char varname[], int k, int ni, int nj, int nk, flo
         float add_offset;
 
         ncw_get_att_float(ncid, varid, "add_offset", &add_offset);
-
         for (i = 0; i < n; ++i)
             v[i] -= add_offset;
     }
@@ -1215,49 +1214,46 @@ void writefield(char fname[], char varname[], int k, int ni, int nj, int nk, flo
             v[i] /= scale_factor;
     }
 
-    if (ncw_att_exists(ncid, varid, "valid_range")) {
-        nc_type xtype;
-        size_t len;
+    if (ncw_att_exists(ncid, varid, "_FillValue") || ncw_att_exists(ncid, varid, "missing_value") || ncw_att_exists(ncid, varid, "valid_range") || ncw_att_exists(ncid, varid, "valid_min") || ncw_att_exists(ncid, varid, "valid_max")) {
+        float attval[2];
 
-        ncw_inq_att(ncid, varid, "valid_range", &xtype, &len);
-        if (xtype == NC_SHORT) {
-            int valid_range[2];
-            int fill_value = SHRT_MIN;
-
-            if (ncw_att_exists(ncid, varid, "_FillValue"))
-                ncw_get_att_int(ncid, varid, "_FillValue", &fill_value);
-            else if (ncw_att_exists(ncid, varid, "missing_value"))
-                ncw_get_att_int(ncid, varid, "missing_value", &fill_value);
-
-            ncw_get_att_int(ncid, varid, "valid_range", valid_range);
-            for (i = 0; i < n; ++i) {
-                if (v[i] == fill_value)
-                    continue;
-                if ((int) v[i] < valid_range[0])
-                    v[i] = (float) valid_range[0];
-                else if ((int) v[i] > valid_range[1])
-                    v[i] = (float) valid_range[1];
-            }
-        } else if (xtype == NC_FLOAT) {
-            float valid_range[2];
-            float fill_value = -FLT_MAX;
-
-            if (ncw_att_exists(ncid, varid, "_FillValue"))
-                ncw_get_att_float(ncid, varid, "_FillValue", &fill_value);
-            else if (ncw_att_exists(ncid, varid, "missing_value"))
-                ncw_get_att_float(ncid, varid, "missing_value", &fill_value);
-
-            ncw_get_att_float(ncid, varid, "valid_range", valid_range);
-            for (i = 0; i < n; ++i) {
-                if (v[i] == fill_value)
-                    continue;
-                if (v[i] < valid_range[0])
-                    v[i] = valid_range[0];
-                else if (v[i] > valid_range[1])
-                    v[i] = valid_range[1];
-            }
-        } else
-            enkf_quit("%s: %s: output for types other than NC_SHORT and NC_FLOAT is not handled", fname, varname);
+        if (ncw_att_exists(ncid, varid, "valid_min")) {
+            ncw_check_attlen(ncid, varid, "valid_min", 1);
+            ncw_get_att_float(ncid, varid, "valid_min", attval);
+            for (i = 0; i < n; ++i)
+                if (v[i] < attval[0])
+                    v[i] = attval[0];
+        }
+        if (ncw_att_exists(ncid, varid, "valid_max")) {
+            ncw_check_attlen(ncid, varid, "valid_max", 1);
+            ncw_get_att_float(ncid, varid, "valid_max", attval);
+            for (i = 0; i < n; ++i)
+                if (v[i] > attval[0])
+                    v[i] = attval[0];
+        }
+        if (ncw_att_exists(ncid, varid, "valid_range")) {
+            ncw_check_attlen(ncid, varid, "valid_max", 2);
+            ncw_get_att_float(ncid, varid, "valid_range", attval);
+            for (i = 0; i < n; ++i)
+                if (v[i] < attval[0])
+                    v[i] = attval[0];
+                else if (v[i] > attval[1])
+                    v[i] = attval[1];
+        }
+        if (ncw_att_exists(ncid, varid, "_FillValue")) {
+            ncw_check_attlen(ncid, varid, "_FillValue", 1);
+            ncw_get_att_float(ncid, varid, "_FillValue", attval);
+            for (i = 0; i < n; ++i)
+                if (isnan(v[i]))
+                    v[i] = attval[0];
+        }
+        if (ncw_att_exists(ncid, varid, "missing_value")) {
+            ncw_check_attlen(ncid, varid, "missing_value", 1);
+            ncw_get_att_float(ncid, varid, "missing_value", attval);
+            for (i = 0; i < n; ++i)
+                if (isnan(v[i]))
+                    v[i] = attval[0];
+        }
     }
 
     ncw_put_vara_float(ncid, varid, start, count, v);
@@ -1333,7 +1329,6 @@ void writerow(char fname[], char varname[], int k, int j, float* v)
         float add_offset;
 
         ncw_get_att_float(ncid, varid, "add_offset", &add_offset);
-
         for (i = 0; i < n; ++i)
             v[i] -= add_offset;
     }
@@ -1346,49 +1341,46 @@ void writerow(char fname[], char varname[], int k, int j, float* v)
             v[i] /= scale_factor;
     }
 
-    if (ncw_att_exists(ncid, varid, "valid_range")) {
-        nc_type xtype;
-        size_t len;
+    if (ncw_att_exists(ncid, varid, "_FillValue") || ncw_att_exists(ncid, varid, "missing_value") || ncw_att_exists(ncid, varid, "valid_range") || ncw_att_exists(ncid, varid, "valid_min") || ncw_att_exists(ncid, varid, "valid_max")) {
+        float attval[2];
 
-        ncw_inq_att(ncid, varid, "valid_range", &xtype, &len);
-        if (xtype == NC_SHORT) {
-            int valid_range[2];
-            int fill_value = SHRT_MIN;
-
-            if (ncw_att_exists(ncid, varid, "_FillValue"))
-                ncw_get_att_int(ncid, varid, "_FillValue", &fill_value);
-            else if (ncw_att_exists(ncid, varid, "missing_value"))
-                ncw_get_att_int(ncid, varid, "missing_value", &fill_value);
-
-            ncw_get_att_int(ncid, varid, "valid_range", valid_range);
-            for (i = 0; i < n; ++i) {
-                if (v[i] == fill_value)
-                    continue;
-                if ((int) v[i] < valid_range[0])
-                    v[i] = (float) valid_range[0];
-                else if ((int) v[i] > valid_range[1])
-                    v[i] = (float) valid_range[1];
-            }
-        } else if (xtype == NC_FLOAT) {
-            float valid_range[2];
-            float fill_value = -FLT_MAX;
-
-            if (ncw_att_exists(ncid, varid, "_FillValue"))
-                ncw_get_att_float(ncid, varid, "_FillValue", &fill_value);
-            else if (ncw_att_exists(ncid, varid, "missing_value"))
-                ncw_get_att_float(ncid, varid, "missing_value", &fill_value);
-
-            ncw_get_att_float(ncid, varid, "valid_range", valid_range);
-            for (i = 0; i < n; ++i) {
-                if (v[i] == fill_value)
-                    continue;
-                if (v[i] < valid_range[0])
-                    v[i] = valid_range[0];
-                else if (v[i] > valid_range[1])
-                    v[i] = valid_range[1];
-            }
-        } else
-            enkf_quit("%s: %s: output for types other than NC_SHORT and NC_FLOAT are not handled yet", fname, varname);
+        if (ncw_att_exists(ncid, varid, "valid_min")) {
+            ncw_check_attlen(ncid, varid, "valid_min", 1);
+            ncw_get_att_float(ncid, varid, "valid_min", attval);
+            for (i = 0; i < n; ++i)
+                if (v[i] < attval[0])
+                    v[i] = attval[0];
+        }
+        if (ncw_att_exists(ncid, varid, "valid_max")) {
+            ncw_check_attlen(ncid, varid, "valid_max", 1);
+            ncw_get_att_float(ncid, varid, "valid_max", attval);
+            for (i = 0; i < n; ++i)
+                if (v[i] > attval[0])
+                    v[i] = attval[0];
+        }
+        if (ncw_att_exists(ncid, varid, "valid_range")) {
+            ncw_check_attlen(ncid, varid, "valid_max", 2);
+            ncw_get_att_float(ncid, varid, "valid_range", attval);
+            for (i = 0; i < n; ++i)
+                if (v[i] < attval[0])
+                    v[i] = attval[0];
+                else if (v[i] > attval[1])
+                    v[i] = attval[1];
+        }
+        if (ncw_att_exists(ncid, varid, "_FillValue")) {
+            ncw_check_attlen(ncid, varid, "_FillValue", 1);
+            ncw_get_att_float(ncid, varid, "_FillValue", attval);
+            for (i = 0; i < n; ++i)
+                if (isnan(v[i]))
+                    v[i] = attval[0];
+        }
+        if (ncw_att_exists(ncid, varid, "missing_value")) {
+            ncw_check_attlen(ncid, varid, "missing_value", 1);
+            ncw_get_att_float(ncid, varid, "missing_value", attval);
+            for (i = 0; i < n; ++i)
+                if (isnan(v[i]))
+                    v[i] = attval[0];
+        }
     }
 
     ncw_put_vara_float(ncid, varid, start, count, v);
@@ -1521,7 +1513,7 @@ void read3dfield(char* fname, char* varname, int ni, int nj, int nk, float* v)
                         v[i] = NAN;
             } else if (vartype == NC_SHORT) {
                 for (i = 0; i < n; ++i)
-                    if (((int16_t *) vv)[i] < ((int16_t*) attval)[0])
+                    if (((int16_t *) vv)[i] < ((int16_t *) attval)[0])
                         v[i] = NAN;
             } else if (vartype == NC_USHORT) {
                 for (i = 0; i < n; ++i)
@@ -1529,7 +1521,7 @@ void read3dfield(char* fname, char* varname, int ni, int nj, int nk, float* v)
                         v[i] = NAN;
             } else if (vartype == NC_INT || vartype == NC_LONG) {
                 for (i = 0; i < n; ++i)
-                    if (((int32_t *) vv)[i] < ((int32_t*) attval)[0])
+                    if (((int32_t *) vv)[i] < ((int32_t *) attval)[0])
                         v[i] = NAN;
             } else if (vartype == NC_UINT) {
                 for (i = 0; i < n; ++i)
@@ -1537,11 +1529,11 @@ void read3dfield(char* fname, char* varname, int ni, int nj, int nk, float* v)
                         v[i] = NAN;
             } else if (vartype == NC_INT64) {
                 for (i = 0; i < n; ++i)
-                    if (((int64_t *) vv)[i] < ((int64_t*) attval)[0])
+                    if (((int64_t *) vv)[i] < ((int64_t *) attval)[0])
                         v[i] = NAN;
             } else if (vartype == NC_UINT64) {
                 for (i = 0; i < n; ++i)
-                    if (((uint64_t *) vv)[i] < ((uint64_t*) attval)[0])
+                    if (((uint64_t *) vv)[i] < ((uint64_t *) attval)[0])
                         v[i] = NAN;
             } else if (vartype == NC_FLOAT) {
                 assert(sizeof(float) == 4);
@@ -1569,7 +1561,7 @@ void read3dfield(char* fname, char* varname, int ni, int nj, int nk, float* v)
                         v[i] = NAN;
             } else if (vartype == NC_SHORT) {
                 for (i = 0; i < n; ++i)
-                    if (((int16_t *) vv)[i] > ((int16_t*) attval)[0])
+                    if (((int16_t *) vv)[i] > ((int16_t *) attval)[0])
                         v[i] = NAN;
             } else if (vartype == NC_USHORT) {
                 for (i = 0; i < n; ++i)
@@ -1577,7 +1569,7 @@ void read3dfield(char* fname, char* varname, int ni, int nj, int nk, float* v)
                         v[i] = NAN;
             } else if (vartype == NC_INT || vartype == NC_LONG) {
                 for (i = 0; i < n; ++i)
-                    if (((int32_t *) vv)[i] > ((int32_t*) attval)[0])
+                    if (((int32_t *) vv)[i] > ((int32_t *) attval)[0])
                         v[i] = NAN;
             } else if (vartype == NC_UINT) {
                 for (i = 0; i < n; ++i)
@@ -1585,11 +1577,11 @@ void read3dfield(char* fname, char* varname, int ni, int nj, int nk, float* v)
                         v[i] = NAN;
             } else if (vartype == NC_INT64) {
                 for (i = 0; i < n; ++i)
-                    if (((int64_t *) vv)[i] > ((int64_t*) attval)[0])
+                    if (((int64_t *) vv)[i] > ((int64_t *) attval)[0])
                         v[i] = NAN;
             } else if (vartype == NC_UINT64) {
                 for (i = 0; i < n; ++i)
-                    if (((uint64_t *) vv)[i] > ((uint64_t*) attval)[0])
+                    if (((uint64_t *) vv)[i] > ((uint64_t *) attval)[0])
                         v[i] = NAN;
             } else if (vartype == NC_FLOAT) {
                 assert(sizeof(float) == 4);
@@ -1617,7 +1609,7 @@ void read3dfield(char* fname, char* varname, int ni, int nj, int nk, float* v)
                         v[i] = NAN;
             } else if (vartype == NC_SHORT) {
                 for (i = 0; i < n; ++i)
-                    if (((int16_t *) vv)[i] < ((int16_t*) attval)[0] || ((int16_t *) vv)[i] > ((int16_t*) attval)[1])
+                    if (((int16_t *) vv)[i] < ((int16_t *) attval)[0] || ((int16_t *) vv)[i] > ((int16_t *) attval)[1])
                         v[i] = NAN;
             } else if (vartype == NC_USHORT) {
                 for (i = 0; i < n; ++i)
@@ -1625,7 +1617,7 @@ void read3dfield(char* fname, char* varname, int ni, int nj, int nk, float* v)
                         v[i] = NAN;
             } else if (vartype == NC_INT || vartype == NC_LONG) {
                 for (i = 0; i < n; ++i)
-                    if (((int32_t *) vv)[i] < ((int32_t*) attval)[0] || ((int32_t *) vv)[i] > ((int32_t*) attval)[1])
+                    if (((int32_t *) vv)[i] < ((int32_t *) attval)[0] || ((int32_t *) vv)[i] > ((int32_t *) attval)[1])
                         v[i] = NAN;
             } else if (vartype == NC_UINT) {
                 for (i = 0; i < n; ++i)
@@ -1633,11 +1625,11 @@ void read3dfield(char* fname, char* varname, int ni, int nj, int nk, float* v)
                         v[i] = NAN;
             } else if (vartype == NC_INT64) {
                 for (i = 0; i < n; ++i)
-                    if (((int64_t *) vv)[i] < ((int64_t*) attval)[0] || ((int64_t *) vv)[i] > ((int64_t*) attval)[1])
+                    if (((int64_t *) vv)[i] < ((int64_t *) attval)[0] || ((int64_t *) vv)[i] > ((int64_t *) attval)[1])
                         v[i] = NAN;
             } else if (vartype == NC_UINT64) {
                 for (i = 0; i < n; ++i)
-                    if (((uint64_t *) vv)[i] < ((uint64_t*) attval)[0] || ((uint64_t *) vv)[i] > ((uint64_t*) attval)[1])
+                    if (((uint64_t *) vv)[i] < ((uint64_t *) attval)[0] || ((uint64_t *) vv)[i] > ((uint64_t *) attval)[1])
                         v[i] = NAN;
             } else if (vartype == NC_FLOAT) {
                 assert(sizeof(float) == 4);

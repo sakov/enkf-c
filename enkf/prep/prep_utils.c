@@ -732,7 +732,7 @@ void read_ncvarfloat(int ncid, int varid, int n, float v[])
                 ncw_get_var(ncid, varid, vv);
             } else
                 vv = v;
-         }
+        }
 
         if (vartype == NC_BYTE || vartype == NC_CHAR) {
             char value;

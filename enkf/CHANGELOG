@@ -1,3 +1,8 @@
+v. 1.99.6
+   PS 17062019
+   -- Modified writefield() and writerow() for (hopefully) more consistent
+      treatment of _FillValue, missing_value, valid_min, valid_max, and
+      valid_range attributes.
 v. 1.99.5
    PS 17062019
    -- Modified readfield() and read3dfield() to provide more robust treatment
