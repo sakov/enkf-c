@@ -1,3 +1,6 @@
+v. 1.99.7
+   PS 18062019 Cosmetic changes in readfield() and read3dfield() to avoid
+      compiler warnings about violating strict aliasing rules.
 v. 1.99.6
    PS 17062019
    -- Modified writefield() and writerow() for (hopefully) more consistent

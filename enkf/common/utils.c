@@ -899,7 +899,8 @@ void readfield(char fname[], char varname[], int k, int ni, int nj, int nk, floa
         void* vv = NULL;
         nc_type vartype = -1;
         int typesize = 0;
-        char attval[128];
+        char buf[128];
+        void* attval = buf;
 
         ncw_inq_vartype(ncid, varid, &vartype);
         typesize = ncw_sizeof(vartype);
@@ -960,7 +961,7 @@ void readfield(char fname[], char varname[], int k, int ni, int nj, int nk, floa
             ncw_get_att(ncid, varid, "valid_min", attval);
             if (vartype == NC_BYTE || vartype == NC_CHAR) {
                 for (i = 0; i < n; ++i)
-                    if (((char*) vv)[i] < attval[0])
+                    if (((char*) vv)[i] < ((char*) attval)[0])
                         v[i] = NAN;
             } else if (vartype == NC_UBYTE) {
                 for (i = 0; i < n; ++i)
@@ -1008,7 +1009,7 @@ void readfield(char fname[], char varname[], int k, int ni, int nj, int nk, floa
             ncw_get_att(ncid, varid, "valid_max", attval);
             if (vartype == NC_BYTE || vartype == NC_CHAR) {
                 for (i = 0; i < n; ++i)
-                    if (((char*) vv)[i] > attval[0])
+                    if (((char*) vv)[i] > ((char*) attval)[0])
                         v[i] = NAN;
             } else if (vartype == NC_UBYTE) {
                 for (i = 0; i < n; ++i)
@@ -1056,7 +1057,7 @@ void readfield(char fname[], char varname[], int k, int ni, int nj, int nk, floa
             ncw_get_att(ncid, varid, "valid_range", attval);
             if (vartype == NC_BYTE || vartype == NC_CHAR) {
                 for (i = 0; i < n; ++i)
-                    if (((char*) vv)[i] < attval[0] || ((char*) vv)[i] > attval[1])
+                    if (((char*) vv)[i] < ((char*) attval)[0] || ((char*) vv)[i] > ((char*) attval)[1])
                         v[i] = NAN;
             } else if (vartype == NC_UBYTE) {
                 for (i = 0; i < n; ++i)
@@ -1444,7 +1445,8 @@ void read3dfield(char* fname, char* varname, int ni, int nj, int nk, float* v)
         void* vv = NULL;
         nc_type vartype = -1;
         int typesize = 0;
-        char attval[128];
+        char buf[128];
+        void* attval = buf;
 
         ncw_inq_vartype(ncid, varid, &vartype);
         typesize = ncw_sizeof(vartype);
@@ -1505,7 +1507,7 @@ void read3dfield(char* fname, char* varname, int ni, int nj, int nk, float* v)
             ncw_get_att(ncid, varid, "valid_min", attval);
             if (vartype == NC_BYTE || vartype == NC_CHAR) {
                 for (i = 0; i < n; ++i)
-                    if (((char*) vv)[i] < attval[0])
+                    if (((char*) vv)[i] < ((char*) attval)[0])
                         v[i] = NAN;
             } else if (vartype == NC_UBYTE) {
                 for (i = 0; i < n; ++i)
@@ -1553,7 +1555,7 @@ void read3dfield(char* fname, char* varname, int ni, int nj, int nk, float* v)
             ncw_get_att(ncid, varid, "valid_max", attval);
             if (vartype == NC_BYTE || vartype == NC_CHAR) {
                 for (i = 0; i < n; ++i)
-                    if (((char*) vv)[i] > attval[0])
+                    if (((char*) vv)[i] > ((char*) attval)[0])
                         v[i] = NAN;
             } else if (vartype == NC_UBYTE) {
                 for (i = 0; i < n; ++i)
@@ -1601,7 +1603,7 @@ void read3dfield(char* fname, char* varname, int ni, int nj, int nk, float* v)
             ncw_get_att(ncid, varid, "valid_range", attval);
             if (vartype == NC_BYTE || vartype == NC_CHAR) {
                 for (i = 0; i < n; ++i)
-                    if (((char*) vv)[i] < attval[0] || ((char*) vv)[i] > attval[1])
+                    if (((char*) vv)[i] < ((char*) attval)[0] || ((char*) vv)[i] > ((char*) attval)[1])
                         v[i] = NAN;
             } else if (vartype == NC_UBYTE) {
                 for (i = 0; i < n; ++i)
