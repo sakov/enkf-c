@@ -1707,7 +1707,7 @@ double date2day(char strdate[])
     char seps2[] = "\n";
     double day, offset, multiple;
 
-    strncpy(buf, strdate, MAXSTRLEN);
+    strncpy(buf, strdate, MAXSTRLEN - 1);
     if ((token = strtok(buf, seps)) == NULL)
         enkf_quit("could not understand date \"%s\"", strdate);
     if (!str2double(token, &day))

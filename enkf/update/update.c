@@ -617,7 +617,7 @@ static void das_writefields_direct(dasystem* das, int nfields, void** fieldbuffe
             field* f = &fields[i];
             char varname[NC_MAX_NAME];
 
-            strncpy(varname, f->varname, NC_MAX_NAME);
+            strncpy(varname, f->varname, NC_MAX_NAME - 1);
             if (!(das->updatespec & UPDATE_OUTPUTINC))
                 strncat(varname, "_an", NC_MAX_NAME);
             else
@@ -721,7 +721,7 @@ static void das_writebg_direct(dasystem* das, int nfields, void** fieldbuffer, f
             char fname[MAXSTRLEN];
 
             model_getbgfname(m, das->bgdir, f->varname, fname);
-            strncpy(varname, f->varname, NC_MAX_NAME);
+            strncpy(varname, f->varname, NC_MAX_NAME - 1);
             if (!(das->updatespec & UPDATE_OUTPUTINC))
                 strncat(varname, "_an", NC_MAX_NAME);
             else
@@ -904,7 +904,7 @@ static void das_writespread(dasystem* das, int nfields, void** fieldbuffer, fiel
                 v2[i] = NAN;
         }
 
-        strncpy(varname, f->varname, NC_MAX_NAME);
+        strncpy(varname, f->varname, NC_MAX_NAME - 1);
         if (isanalysis)
             strncat(varname, "_an", MAXSTRLEN);
 
@@ -976,7 +976,7 @@ static void das_assemblemembers(dasystem* das)
         enkf_printf("    %s:", varname);
         model_getmemberfname(m, das->ensdir, varname, 1, fname_dst);
         nlev = getnlevels(fname_dst, varname);
-        strncpy(varname_dst, varname, NC_MAX_NAME);
+        strncpy(varname_dst, varname, NC_MAX_NAME - 1);
 
         model_getvargridsize(m, i, &ni, &nj, NULL);
         v = malloc(ni * nj * sizeof(float));
@@ -1069,7 +1069,7 @@ static void das_assemblebg(dasystem* das)
         enkf_printf("    %s:", varname);
         model_getbgfname(m, das->bgdir, varname, fname_dst);
         nlev = getnlevels(fname_dst, varname);
-        strncpy(varname_dst, varname, NC_MAX_NAME);
+        strncpy(varname_dst, varname, NC_MAX_NAME - 1);
 
         model_getvargridsize(m, i, &ni, &nj, NULL);
         v = malloc(ni * nj * sizeof(float));
@@ -1128,8 +1128,8 @@ static void das_assemblespread(dasystem* das)
         enkf_printf("    %s:", varname);
         nlev = getnlevels(FNAME_SPREAD, varname);
         if (das->mode == MODE_ENKF && das->updatespec & UPDATE_DOANALYSISSPREAD) {
-            strncpy(varname_an, varname, NC_MAX_NAME);
-            strncat(varname_an, "_an", NC_MAX_NAME);
+            strncpy(varname_an, varname, NC_MAX_NAME - 1);
+            strncat(varname_an, "_an", NC_MAX_NAME - 1);
         }
 
         model_getvargridsize(m, i, &ni, &nj, NULL);
@@ -1275,7 +1275,7 @@ void das_update(dasystem* das)
                         int ncid;
                         char varname_dst[NC_MAX_NAME];
 
-                        strncpy(varname_dst, varname_src, NC_MAX_NAME);
+                        strncpy(varname_dst, varname_src, NC_MAX_NAME - 1);
                         if (!(das->updatespec & UPDATE_OUTPUTINC))
                             strncat(varname_dst, "_an", NC_MAX_NAME);
                         else
@@ -1351,7 +1351,7 @@ void das_update(dasystem* das)
                         int ncid;
                         char varname_dst[NC_MAX_NAME];
 
-                        strncpy(varname_dst, varname_src, NC_MAX_NAME);
+                        strncpy(varname_dst, varname_src, NC_MAX_NAME - 1);
                         if (!(das->updatespec & UPDATE_OUTPUTINC))
                             strncat(varname_dst, "_an", NC_MAX_NAME);
                         else

@@ -168,13 +168,13 @@ void plog_create(dasystem* das, int plogid, int ploc, int* lobs, double* lcoeffs
         int ni, nj, nk;
         float** depths;
         float depth = NAN;
-        char gridstr[MAXSTRLEN];
+        char gridstr[SMALLSTRLEN];
 
         if (plog->gridid >= 0 && plog->gridid != gid)
             continue;
 
         get_gridstr(das, gid, gridstr);
-        snprintf(varname, NC_MAX_NAME, "grid%s", gridstr);
+	snprintf(varname, MAXSTRLEN, "grid%s", gridstr);
         ncw_def_var(ncid, varname, NC_INT, 0, NULL, &vid_grid);
         ncw_put_att_int(ncid, vid_grid, "id", 1, &gid);
         ncw_put_att_text(ncid, vid_grid, "NAME", grid_getname(g));
@@ -294,7 +294,7 @@ void plog_writetransform(dasystem* das, int plogid, int gid, int ploc, double* s
     int dimids[2];
     char name[NC_MAX_NAME];
     int vid_S, vid_s, vid_transform;
-    char gridstr[MAXSTRLEN];
+    char gridstr[SMALLSTRLEN];
 
     assert(das->s_mode == S_MODE_S_f);
 
@@ -390,7 +390,7 @@ void plog_definestatevars(dasystem* das)
                 nk = getnlevels(fname, varname);
             }
             if (nk > 1) {
-                char gridstr[NC_MAX_NAME];
+                char gridstr[SMALLSTRLEN];
                 char nkname[NC_MAX_NAME];
                 int dimids[2];
 
@@ -499,7 +499,7 @@ static void plog_writestatevars_direct(dasystem* das, int nfields, void** fieldb
 
             snprintf(varname, NC_MAX_NAME, "%s", f->varname);
             if (isanalysis)
-                strncat(varname, !(das->updatespec & UPDATE_OUTPUTINC) ? "_an" : "_inc", NC_MAX_NAME);
+                strncat(varname, !(das->updatespec & UPDATE_OUTPUTINC) ? "_an" : "_inc", NC_MAX_NAME - 4);
             ncw_inq_varid(ncid, varname, &vid);
             ncw_inq_varndims(ncid, vid, &ndims);
             if (ndims == 1)
@@ -564,7 +564,7 @@ static void plog_writestatevars_toassemble(dasystem* das, int nfields, void** fi
 
             snprintf(varname, NC_MAX_NAME, "%s", f->varname);
             if (isanalysis)
-                strncat(varname, !(das->updatespec & UPDATE_OUTPUTINC) ? "_an" : "_inc", NC_MAX_NAME);
+                strncat(varname, !(das->updatespec & UPDATE_OUTPUTINC) ? "_an" : "_inc", NC_MAX_NAME - 4);
             ncw_def_var(ncid, varname, NC_FLOAT, 1, &dimid, &vid);
             ncw_enddef(ncid);
 
@@ -664,7 +664,7 @@ void plog_assemblestatevars(dasystem* das)
 
                 snprintf(varname, NC_MAX_NAME, "%s", f->varname);
                 if (ii == 1)
-                    strncat(varname, !(das->updatespec & UPDATE_OUTPUTINC) ? "_an" : "_inc", NC_MAX_NAME);
+                    strncat(varname, !(das->updatespec & UPDATE_OUTPUTINC) ? "_an" : "_inc", NC_MAX_NAME - 4);
 
                 ncw_open(fname_src, NC_NOWRITE, &ncid_src);
                 ncw_inq_varid(ncid_src, varname, &vid_src);

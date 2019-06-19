@@ -1,6 +1,11 @@
+v. 1.99.8
+   PS 19062019
+   -- A number mainly cosmetic changes to eliminate warnings from gcc v9.1.0
+      about strncat(), strncpy(), and snprintf().
 v. 1.99.7
-   PS 18062019 Cosmetic changes in readfield() and read3dfield() to avoid
-      compiler warnings about violating strict aliasing rules.
+   PS 18062019
+   -- Cosmetic changes in readfield() and read3dfield() to avoid compiler
+      warnings about violating strict aliasing rules.
 v. 1.99.6
    PS 17062019
    -- Modified writefield() and writerow() for (hopefully) more consistent

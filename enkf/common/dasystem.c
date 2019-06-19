@@ -261,7 +261,7 @@ dasystem* das_create(enkfprm* prm)
 
             if (file_exists(fname)) {
                 int ncid, varid;
-                char gridstr[MAXSTRLEN];
+                char gridstr[SMALLSTRLEN];
                 char varname[NC_MAX_NAME];
 
                 ncw_open(fname, NC_NOWRITE, &ncid);

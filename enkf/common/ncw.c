@@ -44,6 +44,8 @@ const char ncw_version[] = "2.24.0";
 
 #define DIMNAME_NTRIES 100
 
+#define STRBUFSIZE 1024
+
 static void quit_def(char* format, ...);
 static ncw_quit_fn quit = quit_def;
 
@@ -84,8 +86,6 @@ static void _ncw_inq_varname(int ncid, int varid, char varname[])
     else if ((status = nc_inq_varname(ncid, varid, varname)) != NC_NOERR)
         quit("\"%s\": nc_inq_varname(): failed for varid = %d: %s", ncw_get_path(ncid), varid, nc_strerror(status));
 }
-
-#define STRBUFSIZE 1024
 
 /* Prints array of integers to a string. E.g., {1,2,5} will be printed as
  * "(1,2,5)".
@@ -1422,7 +1422,7 @@ int ncw_copy_vardef(int ncid_src, int vid_src, int ncid_dst)
         else {
             int dimid_dst;
             size_t len_dst;
-            char dimname_dst[NC_MAX_NAME];
+            char dimname_dst[STRBUFSIZE];
             int format;
             int j;
 
@@ -1462,7 +1462,19 @@ int ncw_copy_vardef(int ncid_src, int vid_src, int ncid_dst)
              * the wrong length. We will define and use another dimension then.
              */
             for (j = 0; j < DIMNAME_NTRIES; ++j) {
-                snprintf(dimname_dst, NC_MAX_NAME, "%s%d", dimname, j);
+		{
+		    char buf[STRBUFSIZE];
+
+		    snprintf(buf, STRBUFSIZE, "%s%d", dimname, j);
+		    if (strlen(buf) < NC_MAX_NAME)
+			strcpy(dimname_dst, buf);
+		    else {
+			int diff = strlen(buf) - NC_MAX_NAME + 1;
+			
+			dimname[NC_MAX_NAME - diff] = 0;
+			sprintf(dimname_dst, "%s%d", dimname, j);
+		    }
+		}
                 if (ncw_dim_exists(ncid_dst, dimname_dst)) {
                     ncw_inq_dimid(ncid_dst, dimname_dst, &dimid_dst);
                     ncw_inq_dimlen(ncid_dst, dimid_dst, &len_dst);
@@ -1477,7 +1489,7 @@ int ncw_copy_vardef(int ncid_src, int vid_src, int ncid_dst)
             if (j == DIMNAME_NTRIES) {  /* (error) */
                 char fname_dst[STRBUFSIZE];
 
-                strncpy(fname_dst, ncw_get_path(ncid_dst), STRBUFSIZE);
+                strncpy(fname_dst, ncw_get_path(ncid_dst), STRBUFSIZE - 1);
                 ncw_close(ncid_dst);    /* (to be able to examine the file) */
                 quit("\"%s\": ncw_copy_vardef(): technical problem while copying \"%s\" from \"%s\"\n", fname_dst, varname, ncw_get_path(ncid_src));
             }

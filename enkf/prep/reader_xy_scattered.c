@@ -155,7 +155,7 @@ void reader_xy_scattered(char* fname, int fid, obsmeta* meta, grid* g, observati
             enkf_printf("        MAXDEPTH = %.0f\n", maxdepth);
             continue;
         } else if (strcasecmp(meta->pars[i].name, "INSTRUMENT") == 0)
-            strncpy(instrument, meta->pars[i].value, MAXSTRLEN);
+            strncpy(instrument, meta->pars[i].value, MAXSTRLEN - 1);
         else if (strcasecmp(meta->pars[i].name, "QCFLAGNAME") == 0 || strcasecmp(meta->pars[i].name, "QCFLAGVALS") == 0)
             /*
              * QCFLAGNAME and QCFLAGVALS are dealt with separately

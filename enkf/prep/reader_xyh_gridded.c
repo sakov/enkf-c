@@ -161,7 +161,7 @@ void reader_xyh_gridded(char* fname, int fid, obsmeta* meta, grid* gdst, observa
             enkf_printf("        MAXDEPTH = %.0f\n", maxdepth);
             continue;
         } else if (strcasecmp(meta->pars[i].name, "INSTRUMENT") == 0) {
-            strncpy(instrument, meta->pars[i].value, MAXSTRLEN);
+            strncpy(instrument, meta->pars[i].value, MAXSTRLEN - 1);
         } else
             enkf_quit("unknown PARAMETER \"%s\"\n", meta->pars[i].name);
     }

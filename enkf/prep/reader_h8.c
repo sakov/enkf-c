@@ -63,7 +63,7 @@ void reader_h8_standard(char* fname, int fid, obsmeta* meta, grid* g, observatio
 
     for (i = 0; i < meta->npars; ++i)
         if (strcasecmp(meta->pars[i].name, "LLFNAME") == 0)
-            strncpy(llfname, meta->pars[i].value, MAXSTRLEN);
+            strncpy(llfname, meta->pars[i].value, MAXSTRLEN - 1);
         else
             enkf_quit("unknown PARAMETER \"%s\"\n", meta->pars[i].name);
     if (!is1d) {

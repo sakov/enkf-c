@@ -20,6 +20,7 @@
 #endif
 
 #define MAXSTRLEN 2048
+#define SMALLSTRLEN 128
 /*
  * Memory allocation increment for observations. One might increase it for
  * large systems and possibly reduce for small systems.
