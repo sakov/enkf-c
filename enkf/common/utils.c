@@ -1233,7 +1233,7 @@ void writefield(char fname[], char varname[], int k, int ni, int nj, int nk, flo
                     v[i] = attval[0];
         }
         if (ncw_att_exists(ncid, varid, "valid_range")) {
-            ncw_check_attlen(ncid, varid, "valid_max", 2);
+            ncw_check_attlen(ncid, varid, "valid_range", 2);
             ncw_get_att_float(ncid, varid, "valid_range", attval);
             for (i = 0; i < n; ++i)
                 if (v[i] < attval[0])
@@ -1360,7 +1360,7 @@ void writerow(char fname[], char varname[], int k, int j, float* v)
                     v[i] = attval[0];
         }
         if (ncw_att_exists(ncid, varid, "valid_range")) {
-            ncw_check_attlen(ncid, varid, "valid_max", 2);
+            ncw_check_attlen(ncid, varid, "valid_range", 2);
             ncw_get_att_float(ncid, varid, "valid_range", attval);
             for (i = 0; i < n; ++i)
                 if (v[i] < attval[0])
