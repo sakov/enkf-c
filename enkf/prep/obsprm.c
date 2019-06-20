@@ -173,7 +173,7 @@ void obsprm_read(char fname[], int* nmeta, obsmeta** meta)
         } else
             enkf_printf("      READER = %s\n", m->reader);
         if (m->type == NULL)
-            enkf_quit("%s: obsservation type not specified for product \"%s\"", fname, m->product);
+            enkf_quit("%s: observation type not specified for product \"%s\"", fname, m->product);
         enkf_printf("      TYPE = %s\n", m->type);
         for (j = 0; j < m->nfiles; ++j)
             enkf_printf("        File: %s\n", m->fnames[j]);
