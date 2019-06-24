@@ -1,3 +1,6 @@
+v. 1.99.10
+   PS 24062019
+   -- Corrected a defect in read_ncvardouble().
 v. 1.99.9
    PS 21062019
    -- Corrected a typo in writefield() and writerow() introduced in v1.99.6.

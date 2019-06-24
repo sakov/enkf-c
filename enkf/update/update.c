@@ -1585,7 +1585,7 @@ void das_writevcorrs(dasystem* das)
     float*** v = NULL;
     double* cor = NULL;
     double* std = NULL;
-    int ni, nj, nk, nv = -1;
+    int ni, nj, nk, nij = -1;
     int fid;
 
     enkf_printtime("  ");
@@ -1648,7 +1648,7 @@ void das_writevcorrs(dasystem* das)
              * calculate anomalies and std at surface
              */
             model_getvargridsize(m, f->varid, &ni, &nj, &nk);
-            nv = ni * nj;
+            nij = ni * nj;
             ksurf = grid_getsurflayerid(model_getvargrid(m, f->varid));
 
             if (v != NULL) {
@@ -1659,10 +1659,10 @@ void das_writevcorrs(dasystem* das)
                 free(std);
             }
             v0 = alloc3d(das->nmem, nj, ni, sizeof(float));
-            std0 = calloc(nv, sizeof(double));
+            std0 = calloc(nij, sizeof(double));
             v = alloc3d(das->nmem, nj, ni, sizeof(float));
-            cor = calloc(nv, sizeof(double));
-            std = calloc(nv, sizeof(double));
+            cor = calloc(nij, sizeof(double));
+            std = calloc(nij, sizeof(double));
 
             for (e = 0; e < das->nmem; ++e) {
                 char fname[MAXSTRLEN];
@@ -1670,7 +1670,7 @@ void das_writevcorrs(dasystem* das)
                 model_getmemberfname(m, das->ensdir, varname, e + 1, fname);
                 model_readfield(das->m, fname, varname, ksurf, v0[e][0]);
             }
-            for (i = 0; i < nv; ++i) {
+            for (i = 0; i < nij; ++i) {
                 double vmean = 0.0;
 
                 for (e = 0; e < das->nmem; ++e)
@@ -1694,7 +1694,7 @@ void das_writevcorrs(dasystem* das)
             model_getmemberfname(m, das->ensdir, varname, e + 1, fname_src);
             model_readfield(das->m, fname_src, varname, k, v[e][0]);
         }
-        for (i = 0; i < nv; ++i) {
+        for (i = 0; i < nij; ++i) {
             double vmean = 0.0;
 
             for (e = 0; e < das->nmem; ++e)

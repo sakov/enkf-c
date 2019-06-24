@@ -1235,7 +1235,7 @@ void read_ncvardouble(int ncid, int varid, int n, double v[])
         } else
             enkf_quit("programming error");
     }
-    if (vv != NULL)
+    if (vv != NULL && typesize != sizeof(double))
         free(vv);
 
     if (ncw_att_exists(ncid, varid, "scale_factor")) {
