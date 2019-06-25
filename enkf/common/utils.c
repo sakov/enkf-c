@@ -895,7 +895,7 @@ void readfield(char fname[], char varname[], int k, int ni, int nj, int nk, floa
     for (i = 0; i < ndims; ++i)
         n *= count[i];
 
-    if (ncw_att_exists(ncid, varid, "_FillValue") || ncw_att_exists(ncid, varid, "missing_value") || ncw_att_exists(ncid, varid, "valid_range") || ncw_att_exists(ncid, varid, "valid_min") || ncw_att_exists(ncid, varid, "valid_max")) {
+    if (ncw_att_exists2(ncid, varid, "_FillValue") || ncw_att_exists2(ncid, varid, "missing_value") || ncw_att_exists2(ncid, varid, "valid_range") || ncw_att_exists2(ncid, varid, "valid_min") || ncw_att_exists2(ncid, varid, "valid_max")) {
         void* vv = NULL;
         nc_type vartype = -1;
         int typesize = 0;
@@ -910,7 +910,7 @@ void readfield(char fname[], char varname[], int k, int ni, int nj, int nk, floa
         } else
             vv = v;
 
-        if (ncw_att_exists(ncid, varid, "_FillValue")) {
+        if (ncw_att_exists2(ncid, varid, "_FillValue")) {
             ncw_check_attlen(ncid, varid, "_FillValue", 1);
             ncw_get_att(ncid, varid, "_FillValue", attval);
             if (typesize == 1) {
@@ -933,7 +933,7 @@ void readfield(char fname[], char varname[], int k, int ni, int nj, int nk, floa
                 enkf_quit("programming error");
         }
 
-        if (ncw_att_exists(ncid, varid, "missing_value")) {
+        if (ncw_att_exists2(ncid, varid, "missing_value")) {
             ncw_check_attlen(ncid, varid, "missing_value", 1);
             ncw_get_att(ncid, varid, "missing_value", attval);
             if (typesize == 1) {
@@ -956,7 +956,7 @@ void readfield(char fname[], char varname[], int k, int ni, int nj, int nk, floa
                 enkf_quit("programming error");
         }
 
-        if (ncw_att_exists(ncid, varid, "valid_min")) {
+        if (ncw_att_exists2(ncid, varid, "valid_min")) {
             ncw_check_attlen(ncid, varid, "valid_min", 1);
             ncw_get_att(ncid, varid, "valid_min", attval);
             if (vartype == NC_BYTE || vartype == NC_CHAR) {
@@ -1004,7 +1004,7 @@ void readfield(char fname[], char varname[], int k, int ni, int nj, int nk, floa
                 enkf_quit("programming error");
         }
 
-        if (ncw_att_exists(ncid, varid, "valid_max")) {
+        if (ncw_att_exists2(ncid, varid, "valid_max")) {
             ncw_check_attlen(ncid, varid, "valid_max", 1);
             ncw_get_att(ncid, varid, "valid_max", attval);
             if (vartype == NC_BYTE || vartype == NC_CHAR) {
@@ -1052,7 +1052,7 @@ void readfield(char fname[], char varname[], int k, int ni, int nj, int nk, floa
                 enkf_quit("programming error");
         }
 
-        if (ncw_att_exists(ncid, varid, "valid_range")) {
+        if (ncw_att_exists2(ncid, varid, "valid_range")) {
             ncw_check_attlen(ncid, varid, "valid_range", 2);
             ncw_get_att(ncid, varid, "valid_range", attval);
             if (vartype == NC_BYTE || vartype == NC_CHAR) {
@@ -1215,24 +1215,24 @@ void writefield(char fname[], char varname[], int k, int ni, int nj, int nk, flo
             v[i] /= scale_factor;
     }
 
-    if (ncw_att_exists(ncid, varid, "_FillValue") || ncw_att_exists(ncid, varid, "missing_value") || ncw_att_exists(ncid, varid, "valid_range") || ncw_att_exists(ncid, varid, "valid_min") || ncw_att_exists(ncid, varid, "valid_max")) {
+    if (ncw_att_exists2(ncid, varid, "_FillValue") || ncw_att_exists2(ncid, varid, "missing_value") || ncw_att_exists2(ncid, varid, "valid_range") || ncw_att_exists2(ncid, varid, "valid_min") || ncw_att_exists2(ncid, varid, "valid_max")) {
         float attval[2];
 
-        if (ncw_att_exists(ncid, varid, "valid_min")) {
+        if (ncw_att_exists2(ncid, varid, "valid_min")) {
             ncw_check_attlen(ncid, varid, "valid_min", 1);
             ncw_get_att_float(ncid, varid, "valid_min", attval);
             for (i = 0; i < n; ++i)
                 if (v[i] < attval[0])
                     v[i] = attval[0];
         }
-        if (ncw_att_exists(ncid, varid, "valid_max")) {
+        if (ncw_att_exists2(ncid, varid, "valid_max")) {
             ncw_check_attlen(ncid, varid, "valid_max", 1);
             ncw_get_att_float(ncid, varid, "valid_max", attval);
             for (i = 0; i < n; ++i)
                 if (v[i] > attval[0])
                     v[i] = attval[0];
         }
-        if (ncw_att_exists(ncid, varid, "valid_range")) {
+        if (ncw_att_exists2(ncid, varid, "valid_range")) {
             ncw_check_attlen(ncid, varid, "valid_range", 2);
             ncw_get_att_float(ncid, varid, "valid_range", attval);
             for (i = 0; i < n; ++i)
@@ -1241,14 +1241,14 @@ void writefield(char fname[], char varname[], int k, int ni, int nj, int nk, flo
                 else if (v[i] > attval[1])
                     v[i] = attval[1];
         }
-        if (ncw_att_exists(ncid, varid, "_FillValue")) {
+        if (ncw_att_exists2(ncid, varid, "_FillValue")) {
             ncw_check_attlen(ncid, varid, "_FillValue", 1);
             ncw_get_att_float(ncid, varid, "_FillValue", attval);
             for (i = 0; i < n; ++i)
                 if (isnan(v[i]))
                     v[i] = attval[0];
         }
-        if (ncw_att_exists(ncid, varid, "missing_value")) {
+        if (ncw_att_exists2(ncid, varid, "missing_value")) {
             ncw_check_attlen(ncid, varid, "missing_value", 1);
             ncw_get_att_float(ncid, varid, "missing_value", attval);
             for (i = 0; i < n; ++i)
@@ -1342,24 +1342,24 @@ void writerow(char fname[], char varname[], int k, int j, float* v)
             v[i] /= scale_factor;
     }
 
-    if (ncw_att_exists(ncid, varid, "_FillValue") || ncw_att_exists(ncid, varid, "missing_value") || ncw_att_exists(ncid, varid, "valid_range") || ncw_att_exists(ncid, varid, "valid_min") || ncw_att_exists(ncid, varid, "valid_max")) {
+    if (ncw_att_exists2(ncid, varid, "_FillValue") || ncw_att_exists2(ncid, varid, "missing_value") || ncw_att_exists2(ncid, varid, "valid_range") || ncw_att_exists2(ncid, varid, "valid_min") || ncw_att_exists2(ncid, varid, "valid_max")) {
         float attval[2];
 
-        if (ncw_att_exists(ncid, varid, "valid_min")) {
+        if (ncw_att_exists2(ncid, varid, "valid_min")) {
             ncw_check_attlen(ncid, varid, "valid_min", 1);
             ncw_get_att_float(ncid, varid, "valid_min", attval);
             for (i = 0; i < n; ++i)
                 if (v[i] < attval[0])
                     v[i] = attval[0];
         }
-        if (ncw_att_exists(ncid, varid, "valid_max")) {
+        if (ncw_att_exists2(ncid, varid, "valid_max")) {
             ncw_check_attlen(ncid, varid, "valid_max", 1);
             ncw_get_att_float(ncid, varid, "valid_max", attval);
             for (i = 0; i < n; ++i)
                 if (v[i] > attval[0])
                     v[i] = attval[0];
         }
-        if (ncw_att_exists(ncid, varid, "valid_range")) {
+        if (ncw_att_exists2(ncid, varid, "valid_range")) {
             ncw_check_attlen(ncid, varid, "valid_range", 2);
             ncw_get_att_float(ncid, varid, "valid_range", attval);
             for (i = 0; i < n; ++i)
@@ -1368,14 +1368,14 @@ void writerow(char fname[], char varname[], int k, int j, float* v)
                 else if (v[i] > attval[1])
                     v[i] = attval[1];
         }
-        if (ncw_att_exists(ncid, varid, "_FillValue")) {
+        if (ncw_att_exists2(ncid, varid, "_FillValue")) {
             ncw_check_attlen(ncid, varid, "_FillValue", 1);
             ncw_get_att_float(ncid, varid, "_FillValue", attval);
             for (i = 0; i < n; ++i)
                 if (isnan(v[i]))
                     v[i] = attval[0];
         }
-        if (ncw_att_exists(ncid, varid, "missing_value")) {
+        if (ncw_att_exists2(ncid, varid, "missing_value")) {
             ncw_check_attlen(ncid, varid, "missing_value", 1);
             ncw_get_att_float(ncid, varid, "missing_value", attval);
             for (i = 0; i < n; ++i)
@@ -1441,7 +1441,7 @@ void read3dfield(char* fname, char* varname, int ni, int nj, int nk, float* v)
     for (i = 0; i < ndims; ++i)
         n *= count[i];
 
-    if (ncw_att_exists(ncid, varid, "_FillValue") || ncw_att_exists(ncid, varid, "missing_value") || ncw_att_exists(ncid, varid, "valid_range") || ncw_att_exists(ncid, varid, "valid_min") || ncw_att_exists(ncid, varid, "valid_max")) {
+    if (ncw_att_exists2(ncid, varid, "_FillValue") || ncw_att_exists2(ncid, varid, "missing_value") || ncw_att_exists2(ncid, varid, "valid_range") || ncw_att_exists2(ncid, varid, "valid_min") || ncw_att_exists2(ncid, varid, "valid_max")) {
         void* vv = NULL;
         nc_type vartype = -1;
         int typesize = 0;
@@ -1456,7 +1456,7 @@ void read3dfield(char* fname, char* varname, int ni, int nj, int nk, float* v)
         } else
             vv = v;
 
-        if (ncw_att_exists(ncid, varid, "_FillValue")) {
+        if (ncw_att_exists2(ncid, varid, "_FillValue")) {
             ncw_check_attlen(ncid, varid, "_FillValue", 1);
             ncw_get_att(ncid, varid, "_FillValue", attval);
             if (typesize == 1) {
@@ -1479,7 +1479,7 @@ void read3dfield(char* fname, char* varname, int ni, int nj, int nk, float* v)
                 enkf_quit("programming error");
         }
 
-        if (ncw_att_exists(ncid, varid, "missing_value")) {
+        if (ncw_att_exists2(ncid, varid, "missing_value")) {
             ncw_check_attlen(ncid, varid, "missing_value", 1);
             ncw_get_att(ncid, varid, "missing_value", attval);
             if (typesize == 1) {
@@ -1502,7 +1502,7 @@ void read3dfield(char* fname, char* varname, int ni, int nj, int nk, float* v)
                 enkf_quit("programming error");
         }
 
-        if (ncw_att_exists(ncid, varid, "valid_min")) {
+        if (ncw_att_exists2(ncid, varid, "valid_min")) {
             ncw_check_attlen(ncid, varid, "valid_min", 1);
             ncw_get_att(ncid, varid, "valid_min", attval);
             if (vartype == NC_BYTE || vartype == NC_CHAR) {
@@ -1550,7 +1550,7 @@ void read3dfield(char* fname, char* varname, int ni, int nj, int nk, float* v)
                 enkf_quit("programming error");
         }
 
-        if (ncw_att_exists(ncid, varid, "valid_max")) {
+        if (ncw_att_exists2(ncid, varid, "valid_max")) {
             ncw_check_attlen(ncid, varid, "valid_max", 1);
             ncw_get_att(ncid, varid, "valid_max", attval);
             if (vartype == NC_BYTE || vartype == NC_CHAR) {
@@ -1598,7 +1598,7 @@ void read3dfield(char* fname, char* varname, int ni, int nj, int nk, float* v)
                 enkf_quit("programming error");
         }
 
-        if (ncw_att_exists(ncid, varid, "valid_range")) {
+        if (ncw_att_exists2(ncid, varid, "valid_range")) {
             ncw_check_attlen(ncid, varid, "valid_range", 2);
             ncw_get_att(ncid, varid, "valid_range", attval);
             if (vartype == NC_BYTE || vartype == NC_CHAR) {
@@ -2082,6 +2082,8 @@ int inloninterval(double lon, double lon1, double lon2)
     return (lon <= lon2);
 }
 
+/**
+ */
 void shuffle(size_t n, size_t ids[])
 {
     size_t i;

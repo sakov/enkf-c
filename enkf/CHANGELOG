@@ -1,3 +1,8 @@
+v. 1.100.1
+   PS 25062019
+   -- Added ncw_att_exists2(); modified NetCDF i/o procedures in prep_utils.c
+      and utils.c to honor _FillValue, valid_min, valid_max, and valid_range
+      only if these attributes are of the same type as their host variable.
 v. 1.100.0
    PS 25062019
    -- Added reader_z() for single profiles.

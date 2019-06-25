@@ -594,7 +594,7 @@ void read_ncvarfloat(int ncid, int varid, int n, float v[])
     for (s = 0; s < 2; ++s) {
         char* attname = attnames[s];
 
-        if (ncw_att_exists(ncid, varid, attname)) {
+        if (ncw_att_exists2(ncid, varid, attname)) {
             ncw_check_attlen(ncid, varid, attname, 1);
 
             if (vv == NULL) {
@@ -637,7 +637,7 @@ void read_ncvarfloat(int ncid, int varid, int n, float v[])
                 enkf_quit("programming error");
         }
     }
-    if (ncw_att_exists(ncid, varid, "valid_min")) {
+    if (ncw_att_exists2(ncid, varid, "valid_min")) {
         ncw_check_attlen(ncid, varid, "valid_min", 1);
 
         if (vv == NULL) {
@@ -723,7 +723,7 @@ void read_ncvarfloat(int ncid, int varid, int n, float v[])
         } else
             enkf_quit("programming error");
     }
-    if (ncw_att_exists(ncid, varid, "valid_max")) {
+    if (ncw_att_exists2(ncid, varid, "valid_max")) {
         ncw_check_attlen(ncid, varid, "valid_max", 1);
 
         if (vv == NULL) {
@@ -809,7 +809,7 @@ void read_ncvarfloat(int ncid, int varid, int n, float v[])
         } else
             enkf_quit("programming error");
     }
-    if (ncw_att_exists(ncid, varid, "valid_range")) {
+    if (ncw_att_exists2(ncid, varid, "valid_range")) {
         ncw_check_attlen(ncid, varid, "valid_range", 2);
 
         if (vv == NULL) {
@@ -934,7 +934,7 @@ void read_ncvardouble(int ncid, int varid, int n, double v[])
     for (s = 0; s < 2; ++s) {
         char* attname = attnames[s];
 
-        if (ncw_att_exists(ncid, varid, attname)) {
+        if (ncw_att_exists2(ncid, varid, attname)) {
             ncw_check_attlen(ncid, varid, attname, 1);
 
             if (vv == NULL) {
@@ -977,7 +977,7 @@ void read_ncvardouble(int ncid, int varid, int n, double v[])
                 enkf_quit("programming error");
         }
     }
-    if (ncw_att_exists(ncid, varid, "valid_min")) {
+    if (ncw_att_exists2(ncid, varid, "valid_min")) {
         ncw_check_attlen(ncid, varid, "valid_min", 1);
 
         if (vv == NULL) {
@@ -1063,7 +1063,7 @@ void read_ncvardouble(int ncid, int varid, int n, double v[])
         } else
             enkf_quit("programming error");
     }
-    if (ncw_att_exists(ncid, varid, "valid_max")) {
+    if (ncw_att_exists2(ncid, varid, "valid_max")) {
         ncw_check_attlen(ncid, varid, "valid_max", 1);
 
         if (vv == NULL) {
@@ -1149,7 +1149,7 @@ void read_ncvardouble(int ncid, int varid, int n, double v[])
         } else
             enkf_quit("programming error");
     }
-    if (ncw_att_exists(ncid, varid, "valid_range")) {
+    if (ncw_att_exists2(ncid, varid, "valid_range")) {
         ncw_check_attlen(ncid, varid, "valid_range", 2);
 
         if (vv == NULL) {

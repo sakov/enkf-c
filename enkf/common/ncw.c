@@ -1883,6 +1883,27 @@ int ncw_dim_exists(int ncid, const char dimname[])
         return 0;
 }
 
+/** Checks if specified attribute exists and is of the same type as its host
+ ** varible.
+ *
+ * @param ncid NetCDF file id
+ * @param varid Variable id (NC_GLOBAL for a global attribute)
+ * @param attname Attribute name
+ * @return 1 if attribute exists, 0 if not
+ */
+int ncw_att_exists2(int ncid, int varid, const char attname[])
+{
+    if (nc_inq_attid(ncid, varid, attname, NULL) == NC_NOERR) {
+        nc_type vartype, atttype;
+
+        ncw_inq_vartype(ncid, varid, &vartype);
+        ncw_inq_att(ncid, varid, attname, &atttype, NULL);
+
+        return (atttype == vartype);
+    } else
+        return 0;
+}
+
 /** Copies all attributes of a specified variable from one NetCDF file to
  * another.
  *

@@ -149,6 +149,7 @@ int ncw_file_opens(const char fname[], int mode);
 int ncw_att_exists(int ncid, int varid, const char attname[]);
 int ncw_var_exists(int ncid, const char varname[]);
 int ncw_dim_exists(int ncid, const char dimname[]);
+int ncw_att_exists2(int ncid, int varid, const char attname[]);
 
 void ncw_def_var_as(int ncid, const char oldvarname[], const char newvarname[]);
 void ncw_get_var_double_record(int ncid, int varid, int r, double v[]);
