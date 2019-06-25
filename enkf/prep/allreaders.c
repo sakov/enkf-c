@@ -46,17 +46,17 @@ obsreader_entry allreaders[] = {
     {"HIMAWARI8", "standard", reader_h8_standard},
     {"VIIRS", "standard", reader_viirs_standard},
     {"CMEMS", "standard", reader_cmems_standard},
-    {"ALL", "xy_scattered", reader_xy_scattered},
-    {"ALL", "xy_gridded", reader_xy_gridded},
-    {"ALL", "xyz_scattered", reader_xyz_scattered},
-    {"ALL", "xyz_gridded", reader_xyz_gridded},
-    {"ALL", "xyh_gridded", reader_xyh_gridded},
-    {"ALL", "z", reader_z},
+    {"ANY", "xy_scattered", reader_xy_scattered},
+    {"ANY", "xy_gridded", reader_xy_gridded},
+    {"ANY", "xyz_scattered", reader_xyz_scattered},
+    {"ANY", "xyz_gridded", reader_xyz_gridded},
+    {"ANY", "xyh_gridded", reader_xyh_gridded},
+    {"ANY", "z", reader_z},
 };
 
 /**
  */
-void describe_readers(void)
+static void describe_readers(void)
 {
     int nreaders = sizeof(allreaders) / sizeof(obsreader_entry);
     int i;
@@ -76,7 +76,7 @@ obsread_fn get_obsreadfn(obsmeta* m)
     int i;
 
     for (i = 0; i < nreaders; ++i)
-        if ((strcmp(allreaders[i].product, "ALL") == 0 || strcasecmp(m->product, allreaders[i].product) == 0) && strcmp(m->reader, allreaders[i].reader) == 0)
+        if ((strcmp(allreaders[i].product, "ANY") == 0 || strcasecmp(m->product, allreaders[i].product) == 0) && strcmp(m->reader, allreaders[i].reader) == 0)
             return allreaders[i].readfn;
 
     enkf_printf("\n\n  ERROR: no observation reader \"%s\" for product \"%s\"\n\n", m->reader, m->product);

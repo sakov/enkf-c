@@ -231,7 +231,7 @@ void reader_xyz_gridded(char* fname, int fid, obsmeta* meta, grid* g, observatio
         enkf_printf("        ZNAME = %s\n", zname);
         ncw_inq_varid(ncid, zname, &varid_z);
     } else
-        enkf_quit("reader_xzy_gridded(): %s: could not find Z variable", fname);
+        enkf_quit("reader_xyz_gridded(): %s: could not find Z variable", fname);
 
     ncw_inq_vardims(ncid, varid_z, 3, &zndim, dimlen_z);
     if (zndim == 1)
