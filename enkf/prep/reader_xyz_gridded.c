@@ -119,7 +119,7 @@ void reader_xyz_gridded(char* fname, int fid, obsmeta* meta, grid* g, observatio
     float* time = NULL;
     char tunits[MAXSTRLEN];
     double tunits_multiple = NAN, tunits_offset = NAN;
-    int i, nobs_read;
+    size_t i, nobs_read;
 
     strcpy(instrument, meta->product);
     for (i = 0; i < meta->npars; ++i) {
@@ -353,19 +353,9 @@ void reader_xyz_gridded(char* fname, int fid, obsmeta* meta, grid* g, observatio
     }
 
     if (have_time) {
-        int timendims;
-        int timedimids[NC_MAX_DIMS];
-        size_t timelen = 1;
+        size_t timelen = 0;
 
-        ncw_inq_varndims(ncid, varid_time, &timendims);
-        ncw_inq_vardimid(ncid, varid_time, timedimids);
-        for (i = 0; i < timendims; ++i) {
-            size_t dimlen;
-
-            ncw_inq_dimlen(ncid, timedimids[i], &dimlen);
-            timelen *= dimlen;
-        }
-
+        ncw_inq_varsize(ncid, varid_time, &timelen);
         if (timelen == 1) {
             singletime = 1;
             time = malloc(sizeof(float));
@@ -383,7 +373,7 @@ void reader_xyz_gridded(char* fname, int fid, obsmeta* meta, grid* g, observatio
     ncw_close(ncid);
 
     nobs_read = 0;
-    for (i = 0; i < (int) nijk; ++i) {
+    for (i = 0; i < nijk; ++i) {
         int ij = i % nij;
         observation* o;
         int ii;

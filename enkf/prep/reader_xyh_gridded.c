@@ -89,7 +89,8 @@ void reader_xyh_gridded(char* fname, int fid, obsmeta* meta, grid* gdst, observa
     float varshift = 0.0;
     char instrument[MAXSTRLEN];
 
-    int ni = 0, nj = 0, nk = 0, nij = 0, nijk = 0;
+    int ni = 0, nj = 0, nk = 0;
+    size_t nij = 0, nijk = 0;
 
     int varid_var = -1, varid_npoints = -1, varid_std = -1, varid_estd = -1, varid_qcflag = -1, varid_time = -1;
     float* var = NULL;
@@ -103,7 +104,7 @@ void reader_xyh_gridded(char* fname, int fid, obsmeta* meta, grid* gdst, observa
     float* time = NULL;
     char tunits[MAXSTRLEN];
     double tunits_multiple = NAN, tunits_offset = NAN;
-    int i, j, k, nobs_read;
+    size_t i, j, k, nobs_read;
 
     strcpy(instrument, meta->product);
     for (i = 0; i < meta->npars; ++i) {
@@ -268,19 +269,9 @@ void reader_xyh_gridded(char* fname, int fid, obsmeta* meta, grid* gdst, observa
     }
 
     if (have_time) {
-        int timendims;
-        int timedimids[NC_MAX_DIMS];
-        size_t timelen = 1;
+        size_t timelen = 0;
 
-        ncw_inq_varndims(ncid, varid_time, &timendims);
-        ncw_inq_vardimid(ncid, varid_time, timedimids);
-        for (i = 0; i < timendims; ++i) {
-            size_t dimlen;
-
-            ncw_inq_dimlen(ncid, timedimids[i], &dimlen);
-            timelen *= dimlen;
-        }
-
+        ncw_inq_varsize(ncid, varid_time, &timelen);
         if (timelen == 1) {
             singletime = 1;
             time = malloc(sizeof(float));

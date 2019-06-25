@@ -109,7 +109,7 @@ void reader_xy_scattered(char* fname, int fid, obsmeta* meta, grid* g, observati
     char tunits[MAXSTRLEN];
     double tunits_multiple = NAN, tunits_offset = NAN;
     int varid;
-    int i, nobs_read;
+    size_t i, nobs_read;
 
     strcpy(instrument, meta->product);
     for (i = 0; i < meta->npars; ++i) {
@@ -221,7 +221,7 @@ void reader_xy_scattered(char* fname, int fid, obsmeta* meta, grid* g, observati
         ncw_inq_varid(ncid, latname, &varid);
         ncw_check_vardims(ncid, varid, 1, &nobs);
     } else
-        enkf_quit("reader_xyz_scattered(): %s: could not find latitude variable", fname);
+        enkf_quit("reader_xy_scattered(): %s: could not find latitude variable", fname);
     lat = malloc(nobs * sizeof(double));
     read_ncvardouble(ncid, varid, nobs, lat);
 
@@ -288,19 +288,9 @@ void reader_xy_scattered(char* fname, int fid, obsmeta* meta, grid* g, observati
     }
 
     if (have_time) {
-        int timendims;
-        int timedimids[NC_MAX_DIMS];
-        size_t timelen = 1;
+        size_t timelen = 0;
 
-        ncw_inq_varndims(ncid, varid, &timendims);
-        ncw_inq_vardimid(ncid, varid, timedimids);
-        for (i = 0; i < timendims; ++i) {
-            size_t dimlen;
-
-            ncw_inq_dimlen(ncid, timedimids[i], &dimlen);
-            timelen *= dimlen;
-        }
-
+        ncw_inq_varsize(ncid, varid, &timelen);
         if (timelen == 1) {
             singletime = 1;
             time = malloc(sizeof(double));

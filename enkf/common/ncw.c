@@ -31,7 +31,7 @@
 #include <errno.h>
 #include "ncw.h"
 
-const char ncw_version[] = "2.24.0";
+const char ncw_version[] = "2.25.0";
 
 /* This macro is substituted in error messages instead of the name of a
  * variable in cases when the name could not be found by the variable id.
@@ -522,6 +522,22 @@ void ncw_inq_varnatts(int ncid, int varid, int* natts)
 
         _ncw_inq_varname(ncid, varid, varname);
         quit("\"%s\": nc_inq_varnatts(): failed for varid = %d (varnatts = \"%s\"): %s", ncw_get_path(ncid), varid, varname, nc_strerror(status));
+    }
+}
+
+void ncw_inq_varsize(int ncid, int varid, size_t* size)
+{
+    int ndims;
+    int dimids[NC_MAX_DIMS];
+    int i;
+
+    ncw_inq_varndims(ncid, varid, &ndims);
+    ncw_inq_vardimid(ncid, varid, dimids);
+    for (i = 0, *size = 1; i < ndims; ++i) {
+        size_t dimlen;
+
+        ncw_inq_dimlen(ncid, dimids[i], &dimlen);
+        *size *= dimlen;
     }
 }
 
@@ -1462,19 +1478,19 @@ int ncw_copy_vardef(int ncid_src, int vid_src, int ncid_dst)
              * the wrong length. We will define and use another dimension then.
              */
             for (j = 0; j < DIMNAME_NTRIES; ++j) {
-		{
-		    char buf[STRBUFSIZE];
+                {
+                    char buf[STRBUFSIZE];
 
-		    snprintf(buf, STRBUFSIZE, "%s%d", dimname, j);
-		    if (strlen(buf) < NC_MAX_NAME)
-			strcpy(dimname_dst, buf);
-		    else {
-			int diff = strlen(buf) - NC_MAX_NAME + 1;
-			
-			dimname[NC_MAX_NAME - diff] = 0;
-			sprintf(dimname_dst, "%s%d", dimname, j);
-		    }
-		}
+                    snprintf(buf, STRBUFSIZE, "%s%d", dimname, j);
+                    if (strlen(buf) < NC_MAX_NAME)
+                        strcpy(dimname_dst, buf);
+                    else {
+                        int diff = strlen(buf) - NC_MAX_NAME + 1;
+
+                        dimname[NC_MAX_NAME - diff] = 0;
+                        sprintf(dimname_dst, "%s%d", dimname, j);
+                    }
+                }
                 if (ncw_dim_exists(ncid_dst, dimname_dst)) {
                     ncw_inq_dimid(ncid_dst, dimname_dst, &dimid_dst);
                     ncw_inq_dimlen(ncid_dst, dimid_dst, &len_dst);

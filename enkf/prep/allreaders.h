@@ -44,6 +44,7 @@ void reader_pathfinder_standard(char* fname, int fid, obsmeta* meta, grid* g, ob
 void reader_h8_standard(char* fname, int fid, obsmeta* meta, grid* g, observations* obs);
 void reader_viirs_standard(char* fname, int fid, obsmeta* meta, grid* g, observations* obs);
 void reader_cmems_standard(char* fname, int fid, obsmeta* meta, grid* g, observations* obs);
+void reader_z(char* fname, int fid, obsmeta* meta, grid* g, observations* obs);
 
 #define _ALLREADERS_H
 #endif

@@ -64,6 +64,7 @@ void ncw_inq_vartype(int ncid, int varid, nc_type* xtype);
 void ncw_inq_varndims(int ncid, int varid, int* ndims);
 void ncw_inq_vardimid(int ncid, int varid, int dimids[]);
 void ncw_inq_varnatts(int ncid, int varid, int* natts);
+void ncw_inq_varsize(int ncid, int varid, size_t* size);
 void ncw_rename_var(int ncid, const char oldname[], const char newname[]);
 void ncw_def_var_deflate(int ncid, int varid, int shuffle, int deflate, int deflate_level);
 void ncw_put_var(int ncid, int varid, const void* v);

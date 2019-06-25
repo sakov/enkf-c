@@ -1,3 +1,8 @@
+v. 1.100.0
+   PS 25062019
+   -- Added reader_z() for single profiles.
+   -- Added ncw_inq_varsize().
+   -- A number of supposedly cosmetic changes in readers.
 v. 1.99.10
    PS 24062019
    -- Corrected a defect in read_ncvardouble().

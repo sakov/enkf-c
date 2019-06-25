@@ -101,7 +101,7 @@ void reader_xy_gridded(char* fname, int fid, obsmeta* meta, grid* g, observation
     char instrument[MAXSTRLEN];
 
     int iscurv = -1;
-    size_t ni = 0, nj = 0, n = 0, n_var = 0;
+    size_t ni = 0, nj = 0, nij = 0, n_var = 0;
     int varid_lon = -1, varid_lat = -1;
     double* lon = NULL;
     double* lat = NULL;
@@ -117,7 +117,7 @@ void reader_xy_gridded(char* fname, int fid, obsmeta* meta, grid* g, observation
     float* time = NULL;
     char tunits[MAXSTRLEN];
     double tunits_multiple = NAN, tunits_offset = NAN;
-    int i, nobs_read;
+    size_t i, nobs_read;
 
     strcpy(instrument, meta->product);
     for (i = 0; i < meta->npars; ++i) {
@@ -228,8 +228,8 @@ void reader_xy_gridded(char* fname, int fid, obsmeta* meta, grid* g, observation
         ncw_check_vardims(ncid, varid_lat, 2, dimlen_xy);
 
     enkf_printf("        (ni, nj) = (%u, %u)\n", ni, nj);
-    n = ni * nj;
-    if (n != n_var)
+    nij = ni * nj;
+    if (nij != n_var)
         enkf_quit("reader_xy_gridded(): %s: dimensions of variable \"%s\" do not match coordinate dimensions", fname, varname);
     if (dimlen_var[ndim_var - 1] != ni)
         enkf_quit("reader_xy_gridded(): %s: %s: longitude must be the inner coordinate", fname, varname);
@@ -244,18 +244,18 @@ void reader_xy_gridded(char* fname, int fid, obsmeta* meta, grid* g, observation
         lat = malloc(nj * sizeof(double));
         read_ncvardouble(ncid, varid_lat, nj, lat);
     } else {
-        lon = malloc(n * sizeof(double));
-        read_ncvardouble(ncid, varid_lon, n, lon);
+        lon = malloc(nij * sizeof(double));
+        read_ncvardouble(ncid, varid_lon, nij, lon);
 
-        lat = malloc(n * sizeof(double));
-        read_ncvardouble(ncid, varid_lat, n, lat);
+        lat = malloc(nij * sizeof(double));
+        read_ncvardouble(ncid, varid_lat, nij, lat);
     }
 
     /*
      * main variable
      */
-    var = malloc(n * sizeof(float));
-    read_ncvarfloat(ncid, varid_var, n, var);
+    var = malloc(nij * sizeof(float));
+    read_ncvarfloat(ncid, varid_var, nij, var);
 
     /*
      * npoints
@@ -265,7 +265,7 @@ void reader_xy_gridded(char* fname, int fid, obsmeta* meta, grid* g, observation
     else if (ncw_var_exists(ncid, "npoints"))
         ncw_inq_varid(ncid, "npoints", &varid_npoints);
     if (varid_npoints >= 0) {
-        npoints = malloc(n * sizeof(short));
+        npoints = malloc(nij * sizeof(short));
         ncw_get_var_short(ncid, varid_npoints, npoints);
     }
 
@@ -277,8 +277,8 @@ void reader_xy_gridded(char* fname, int fid, obsmeta* meta, grid* g, observation
     else if (ncw_var_exists(ncid, "std"))
         ncw_inq_varid(ncid, "std", &varid_std);
     if (varid_std >= 0) {
-        std = malloc(n * sizeof(float));
-        read_ncvarfloat(ncid, varid_std, n, std);
+        std = malloc(nij * sizeof(float));
+        read_ncvarfloat(ncid, varid_std, nij, std);
     }
 
     /*
@@ -289,8 +289,8 @@ void reader_xy_gridded(char* fname, int fid, obsmeta* meta, grid* g, observation
     else if (ncw_var_exists(ncid, "error_std"))
         ncw_inq_varid(ncid, "error_std", &varid_estd);
     if (varid_estd >= 0) {
-        estd = malloc(n * sizeof(float));
-        read_ncvarfloat(ncid, varid_estd, n, estd);
+        estd = malloc(nij * sizeof(float));
+        read_ncvarfloat(ncid, varid_estd, nij, estd);
     }
 
     if (std == NULL && estd == NULL) {
@@ -306,7 +306,7 @@ void reader_xy_gridded(char* fname, int fid, obsmeta* meta, grid* g, observation
     if (nqcflags > 0) {
         int varid = -1;
 
-        qcflag = alloc2d(nqcflags, n, sizeof(int32_t));
+        qcflag = alloc2d(nqcflags, nij, sizeof(int32_t));
         for (i = 0; i < nqcflags; ++i) {
             ncw_inq_varid(ncid, qcflagname[i], &varid);
             ncw_get_var_uint(ncid, varid, qcflag[i]);
@@ -326,26 +326,16 @@ void reader_xy_gridded(char* fname, int fid, obsmeta* meta, grid* g, observation
     }
 
     if (have_time) {
-        int timendims;
-        int timedimids[NC_MAX_DIMS];
-        size_t timelen = 1;
+        size_t timelen = 0;
 
-        ncw_inq_varndims(ncid, varid_time, &timendims);
-        ncw_inq_vardimid(ncid, varid_time, timedimids);
-        for (i = 0; i < timendims; ++i) {
-            size_t dimlen;
-
-            ncw_inq_dimlen(ncid, timedimids[i], &dimlen);
-            timelen *= dimlen;
-        }
-
+        ncw_inq_varsize(ncid, varid_time, &timelen);
         if (timelen == 1) {
             singletime = 1;
             time = malloc(sizeof(float));
         } else {
             singletime = 0;
-            assert(timelen == n);
-            time = malloc(n * sizeof(float));
+            assert(timelen == nij);
+            time = malloc(nij * sizeof(float));
         }
 
         read_ncvarfloat(ncid, varid_time, timelen, time);
@@ -356,7 +346,7 @@ void reader_xy_gridded(char* fname, int fid, obsmeta* meta, grid* g, observation
     ncw_close(ncid);
 
     nobs_read = 0;
-    for (i = 0; i < (int) n; ++i) {
+    for (i = 0; i < nij; ++i) {
         observation* o;
         int ii;
 

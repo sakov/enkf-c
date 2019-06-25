@@ -174,7 +174,7 @@ void plog_create(dasystem* das, int plogid, int ploc, int* lobs, double* lcoeffs
             continue;
 
         get_gridstr(das, gid, gridstr);
-	snprintf(varname, MAXSTRLEN, "grid%s", gridstr);
+        snprintf(varname, MAXSTRLEN, "grid%s", gridstr);
         ncw_def_var(ncid, varname, NC_INT, 0, NULL, &vid_grid);
         ncw_put_att_int(ncid, vid_grid, "id", 1, &gid);
         ncw_put_att_text(ncid, vid_grid, "NAME", grid_getname(g));
