@@ -50,7 +50,7 @@ void reader_pathfinder_standard(char* fname, int fid, obsmeta* meta, grid* g, ob
     double tunits_multiple, tunits_offset;
     char* basename;
     char instname[5];
-    int i;
+    int i, nobs_read;
 
     for (i = 0; i < meta->npars; ++i)
         enkf_quit("unknown PARAMETER \"%s\"\n", meta->pars[i].name);
@@ -106,12 +106,14 @@ void reader_pathfinder_standard(char* fname, int fid, obsmeta* meta, grid* g, ob
     strncpy(instname, basename, 4);
     instname[4] = 0;
 
+    nobs_read = 0;
     for (i = 0; i < (int) nobs_local; ++i) {
         observation* o;
 
         obs_checkalloc(obs);
         o = &obs->data[obs->nobs];
 
+        nobs_read++;
         o->product = st_findindexbystring(obs->products, meta->product);
         assert(o->product >= 0);
         o->type = obstype_getid(obs->nobstypes, obs->obstypes, meta->type, 1);
@@ -134,6 +136,7 @@ void reader_pathfinder_standard(char* fname, int fid, obsmeta* meta, grid* g, ob
 
         obs->nobs++;
     }
+    enkf_printf("        nobs = %d\n", nobs_read);
 
     free(lon);
     free(lat);

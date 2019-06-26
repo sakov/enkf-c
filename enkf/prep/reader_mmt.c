@@ -75,7 +75,7 @@ void reader_mmt_standard(char* fname, int fid, obsmeta* meta, grid* g, observati
     int len;
     int year, month, day;
     double tunits_multiple, tunits_offset;
-    int p, i;
+    int p, i, nobs_read;
 
     for (i = 0; i < meta->npars; ++i) {
         if (strcasecmp(meta->pars[i].name, "EXCLUDEINST") == 0) {
@@ -167,6 +167,7 @@ void reader_mmt_standard(char* fname, int fid, obsmeta* meta, grid* g, observati
 
     tunits_convert(buf, &tunits_multiple, &tunits_offset);
 
+    nobs_read = 0;
     for (p = 0; p < (int) nprof; ++p) {
         char inststr[MAXSTRLEN];
         int instnum;
@@ -190,6 +191,7 @@ void reader_mmt_standard(char* fname, int fid, obsmeta* meta, grid* g, observati
             if (qc != NULL && qc[p][i] != 0)
                 continue;
 
+            nobs_read++;
             obs_checkalloc(obs);
             o = &obs->data[obs->nobs];
 
@@ -219,6 +221,7 @@ void reader_mmt_standard(char* fname, int fid, obsmeta* meta, grid* g, observati
             obs->nobs++;
         }
     }
+    enkf_printf("        nobs = %d\n", nobs_read);
 
     /*
      * get the number of unique profile locations

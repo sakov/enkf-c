@@ -47,7 +47,7 @@ void reader_windsat_standard(char* fname, int fid, obsmeta* meta, grid* g, obser
     size_t tunits_len;
     double tunits_multiple, tunits_offset;
     char* basename;
-    int i;
+    int i, nobs_read;
 
     for (i = 0; i < meta->npars; ++i)
         enkf_quit("unknown PARAMETER \"%s\"\n", meta->pars[i].name);
@@ -112,9 +112,11 @@ void reader_windsat_standard(char* fname, int fid, obsmeta* meta, grid* g, obser
         for (i = 0; i < (int) nobs_local; ++i)
             time[i] = 0.5;
 
+    nobs_read = 0;
     for (i = 0; i < (int) nobs_local; ++i) {
         observation* o;
 
+        nobs_read++;
         obs_checkalloc(obs);
         o = &obs->data[obs->nobs];
 
@@ -140,6 +142,7 @@ void reader_windsat_standard(char* fname, int fid, obsmeta* meta, grid* g, obser
 
         obs->nobs++;
     }
+    enkf_printf("        nobs = %d\n", nobs_read);
 
     free(lon);
     free(lat);

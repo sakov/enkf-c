@@ -70,7 +70,7 @@ void reader_cars_standard(char* fname, int fid, obsmeta* meta, grid* g, observat
     int len;
     int year, month, day;
     double tunits_multiple, tunits_offset;
-    int p, i;
+    int p, i, nobs_read;
 
     for (i = 0; i < meta->npars; ++i)
         enkf_quit("unknown PARAMETER \"%s\"\n", meta->pars[i].name);
@@ -141,6 +141,7 @@ void reader_cars_standard(char* fname, int fid, obsmeta* meta, grid* g, observat
 
     tunits_convert(buf, &tunits_multiple, &tunits_offset);
 
+    nobs_read = 0;
     for (p = 0; p < (int) nprof; ++p) {
         char inststr[MAXSTRLEN];
 
@@ -165,6 +166,7 @@ void reader_cars_standard(char* fname, int fid, obsmeta* meta, grid* g, observat
             if (z[p][i] < 0.0)
                 continue;
 
+            nobs_read++;
             obs_checkalloc(obs);
             o = &obs->data[obs->nobs];
 
@@ -194,6 +196,7 @@ void reader_cars_standard(char* fname, int fid, obsmeta* meta, grid* g, observat
             obs->nobs++;
         }
     }
+    enkf_printf("        nobs = %d\n", nobs_read);
 
     /*
      * get the number of unique profile locations

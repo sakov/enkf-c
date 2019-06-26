@@ -48,7 +48,7 @@ void reader_h8_standard(char* fname, int fid, obsmeta* meta, grid* g, observatio
     double* time2;
     char tunits[MAXSTRLEN];
     double tunits_multiple, tunits_offset;
-    int i, nobs;
+    int i, nobs_read;
 
     ncw_open(fname, NC_NOWRITE, &ncid);
     if (ncw_dim_exists(ncid, "x") && ncw_dim_exists(ncid, "y")) {
@@ -119,14 +119,14 @@ void reader_h8_standard(char* fname, int fid, obsmeta* meta, grid* g, observatio
     ncw_close(ncid);
     tunits_convert(tunits, &tunits_multiple, &tunits_offset);
 
-    nobs = 0;
+    nobs_read = 0;
     for (i = 0; i < (int) ni; ++i) {
         observation* o;
 
         if (!isfinite(sst[i]) || fabs(sst[i]) > MAXOBSVAL)
             continue;
 
-        nobs++;
+        nobs_read++;
         obs_checkalloc(obs);
         o = &obs->data[obs->nobs];
 
@@ -156,7 +156,7 @@ void reader_h8_standard(char* fname, int fid, obsmeta* meta, grid* g, observatio
 
         obs->nobs++;
     }
-    enkf_printf("        nobs = %d\n", nobs);
+    enkf_printf("        nobs = %d\n", nobs_read);
 
     free(lon);
     free(lat);

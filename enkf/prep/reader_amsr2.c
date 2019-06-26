@@ -159,6 +159,7 @@ void reader_amsr2_standard(char* fname, int fid, obsmeta* meta, grid* g, observa
 
         obs->nobs++;
     }
+    enkf_printf("        nobs = %d\n", nobs_local);
 
     free(lon);
     free(lat);

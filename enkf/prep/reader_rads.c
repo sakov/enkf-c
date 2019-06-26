@@ -59,7 +59,7 @@ void reader_rads_standard(char* fname, int fid, obsmeta* meta, grid* g, observat
     double tunits_multiple, tunits_offset;
     char* basename;
     char instname[3];
-    int i;
+    int i, nobs_read;
 
     for (i = 0; i < meta->npars; ++i) {
         /*
@@ -133,12 +133,14 @@ void reader_rads_standard(char* fname, int fid, obsmeta* meta, grid* g, observat
     strncpy(instname, basename, 2);
     instname[2] = 0;
 
+    nobs_read = 0;
     for (i = 0; i < (int) nobs_local; ++i) {
         observation* o;
 
         obs_checkalloc(obs);
         o = &obs->data[obs->nobs];
 
+        nobs_read++;
         o->product = st_findindexbystring(obs->products, meta->product);
         assert(o->product >= 0);
         o->type = obstype_getid(obs->nobstypes, obs->obstypes, meta->type, 1);
@@ -164,6 +166,7 @@ void reader_rads_standard(char* fname, int fid, obsmeta* meta, grid* g, observat
 
         obs->nobs++;
     }
+    enkf_printf("        nobs = %d\n", nobs_read);
 
     if (add != NULL)
         free(add);

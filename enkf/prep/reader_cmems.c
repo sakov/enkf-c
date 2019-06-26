@@ -129,7 +129,7 @@ void reader_cmems_standard(char* fname, int fid, obsmeta* meta, grid* g, observa
     char buf[MAXSTRLEN];
     double tunits_multiple, tunits_offset;
     int npexcluded;
-    int p, i, nobs;
+    int p, i, nobs_read;
 
     for (i = 0; i < meta->npars; ++i) {
         if (strcasecmp(meta->pars[i].name, "EXCLUDEINST") == 0) {
@@ -289,7 +289,7 @@ void reader_cmems_standard(char* fname, int fid, obsmeta* meta, grid* g, observa
 
     npexcluded = 0;
     memset(qcflagcounts, 0, (QCFLAGVALMAX + 1) * sizeof(int));
-    nobs = 0;
+    nobs_read = 0;
     for (p = 0; p < (int) nprof; ++p) {
         char inststr[MAXSTRLEN];
         int instnum;
@@ -322,6 +322,7 @@ void reader_cmems_standard(char* fname, int fid, obsmeta* meta, grid* g, observa
                     continue;
             }
             qcflagcounts[qcflagint]++;
+            nobs_read++;
 
             obs_checkalloc(obs);
             o = &obs->data[obs->nobs];
@@ -350,7 +351,6 @@ void reader_cmems_standard(char* fname, int fid, obsmeta* meta, grid* g, observa
             o->aux = -1;
 
             obs->nobs++;
-            nobs++;
         }
     }
     if (npexcluded > 0)
@@ -359,7 +359,7 @@ void reader_cmems_standard(char* fname, int fid, obsmeta* meta, grid* g, observa
     /*
      * get the number of unique profile locations
      */
-    if (nobs > 0) {
+    if (nobs_read > 0) {
         double* lonlat = malloc(nprof * sizeof(double) * 2);
         int nunique = (nprof > 0) ? 1 : 0;
         int ii;
@@ -379,7 +379,8 @@ void reader_cmems_standard(char* fname, int fid, obsmeta* meta, grid* g, observa
         free(lonlat);
     }
 
-    if (nobs > 0) {
+    enkf_printf("        nobs = %d\n", nobs_read);
+    if (nobs_read > 0) {
         enkf_printf("        # of processed obs by quality flags:\n");
         for (i = 0; i <= QCFLAGVALMAX; ++i)
             if (qcflagvals & (1 << i) && qcflagcounts[i] > 0)
