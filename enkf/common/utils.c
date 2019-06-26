@@ -386,14 +386,17 @@ static int isleap(unsigned yr)
 {
     return yr % 400 == 0 || (yr % 4 == 0 && yr % 100 != 0);
 }
+
 static unsigned months_to_days(unsigned month)
 {
     return (month * 3057 - 3007) / 100;
 }
+
 static long years_to_days(unsigned yr)
 {
     return yr * 365L + yr / 4 - yr / 100 + yr / 400;
 }
+
 static long ymd_to_scalar(unsigned yr, unsigned mo, unsigned day)
 {
     long scalar;

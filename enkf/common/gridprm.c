@@ -37,6 +37,7 @@ gridvtype_entry allgridvtypeentries[] = {
     {"SIGMA", GRIDVTYPE_SIGMA, "MASKVARNAME"},
     {"HYBRID", GRIDVTYPE_HYBRID, "MASKVARNAME"}
 };
+
 int ngridvtypeentries = sizeof(allgridvtypeentries) / sizeof(gridvtype_entry);
 
 /**
