@@ -101,7 +101,6 @@ void reader_xyz_scattered(char* fname, int fid, obsmeta* meta, grid* g, observat
     int varid;
     size_t i, nobs_read;
 
-    strcpy(instrument, meta->product);
     for (i = 0; i < meta->npars; ++i) {
         if (strcasecmp(meta->pars[i].name, "VARNAME") == 0)
             varname = meta->pars[i].value;
@@ -291,6 +290,12 @@ void reader_xyz_scattered(char* fname, int fid, obsmeta* meta, grid* g, observat
         ncw_get_att_text(ncid, varid, "units", tunits);
         tunits_convert(tunits, &tunits_multiple, &tunits_offset);
     }
+
+    /*
+     * instrument
+     */
+    if (strlen(instrument) == 0 && !get_insttag(ncid, varname, instrument))
+        strncpy(instrument, meta->product, MAXSTRLEN);
 
     ncw_close(ncid);
 

@@ -358,7 +358,7 @@ static void das_updatefields(dasystem* das, int nfields, void** fieldbuffer, fie
                     }
 
                     /*
-                     * (Do not inflate if inflation is about 1 or less than 1.)
+                     * (do not inflate if inflation is about 1 or less than 1)
                      */
                     if (inflation - 1.0f > EPSF)
                         for (e = 0; e < nmem; ++e)

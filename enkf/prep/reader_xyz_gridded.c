@@ -121,7 +121,6 @@ void reader_xyz_gridded(char* fname, int fid, obsmeta* meta, grid* g, observatio
     double tunits_multiple = NAN, tunits_offset = NAN;
     size_t i, nobs_read;
 
-    strcpy(instrument, meta->product);
     for (i = 0; i < meta->npars; ++i) {
         if (strcasecmp(meta->pars[i].name, "VARNAME") == 0)
             varname = meta->pars[i].value;
@@ -186,6 +185,9 @@ void reader_xyz_gridded(char* fname, int fid, obsmeta* meta, grid* g, observatio
         enkf_printf("        VARNAME = %s\n", varname);
 
     ncw_open(fname, NC_NOWRITE, &ncid);
+    /*
+     * main variable dims
+     */
     ncw_inq_varid(ncid, varname, &varid_var);
     ncw_inq_vardims(ncid, varid_var, 4, &ndim_var, dimlen_var);
     if (ndim_var == 4) {
@@ -199,6 +201,9 @@ void reader_xyz_gridded(char* fname, int fid, obsmeta* meta, grid* g, observatio
     } else
         enkf_quit("reader_xyz_gridded(): %s: %s: %d dimensions (must be 3 or 4 with only one record)", fname, varname, ndim_var);
 
+    /*
+     * longitude dims
+     */
     lonname = get_lonname(ncid, lonname);
     if (lonname != NULL) {
         enkf_printf("        LONNAME = %s\n", lonname);
@@ -226,6 +231,9 @@ void reader_xyz_gridded(char* fname, int fid, obsmeta* meta, grid* g, observatio
     if (ndim_xy == 1)
         ncw_inq_vardims(ncid, varid_lat, 1, &ndim_xy, &nj);
 
+    /*
+     * latitude dims
+     */
     zname = get_zname(ncid, zname);
     if (zname != NULL) {
         enkf_printf("        ZNAME = %s\n", zname);
@@ -233,6 +241,9 @@ void reader_xyz_gridded(char* fname, int fid, obsmeta* meta, grid* g, observatio
     } else
         enkf_quit("reader_xyz_gridded(): %s: could not find Z variable", fname);
 
+    /*
+     * z dims
+     */
     ncw_inq_vardims(ncid, varid_z, 3, &zndim, dimlen_z);
     if (zndim == 1)
         nk = dimlen_z[0];
@@ -369,6 +380,12 @@ void reader_xyz_gridded(char* fname, int fid, obsmeta* meta, grid* g, observatio
         ncw_get_att_text(ncid, varid_time, "units", tunits);
         tunits_convert(tunits, &tunits_multiple, &tunits_offset);
     }
+
+    /*
+     * instrument
+     */
+    if (strlen(instrument) == 0 && !get_insttag(ncid, varname, instrument))
+        strncpy(instrument, meta->product, MAXSTRLEN);
 
     ncw_close(ncid);
 

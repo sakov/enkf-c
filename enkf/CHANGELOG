@@ -1,3 +1,7 @@
+v. 1.100.2
+   PS Modified generic readers to read instrument tag from an appropiate global
+      or variable attribute (attribute name "instrument", "Instrument",
+      "INSTRUMENT", "platform", "Platform", "PLATFORM") when it exists.
 v. 1.100.1
    PS 25062019
    -- Added ncw_att_exists2(); modified NetCDF i/o procedures in prep_utils.c

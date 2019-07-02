@@ -460,7 +460,7 @@ char* get_lonname(int ncid, char* lonname)
 }
 
 #define NLATNAMES 3
-char* LATNAMES[] = { "lat",
+static char* LATNAMES[] = { "lat",
     "latitude",
     "LATITUDE"
 };
@@ -483,7 +483,7 @@ char* get_latname(int ncid, char* latname)
 }
 
 #define NZNAMES 3
-char* ZNAMES[] = { "z",
+static char* ZNAMES[] = { "z",
     "depth",
     "DEPTH"
 };
@@ -506,7 +506,7 @@ char* get_zname(int ncid, char* zname)
 }
 
 #define NTIMENAMES 3
-char* TIMENAMES[] = { "time",
+static char* TIMENAMES[] = { "time",
     "Time",
     "TIME"
 };
@@ -526,6 +526,41 @@ char* get_timename(int ncid, char* timename)
             return TIMENAMES[i];
 
     return NULL;
+}
+
+#define NINSTNAMES 3
+static char* INSTNAMES[] = { "instrument",
+    "Instrument",
+    "INSTRUMENT",
+    "platform",
+    "Platform",
+    "PLATFORM"
+};
+
+/**
+ */
+int get_insttag(int ncid, char* varname, char* insttag)
+{
+    int i;
+    int varid = NC_GLOBAL;
+
+    if (varname != NULL)
+        ncw_inq_varid(ncid, varname, &varid);
+
+    for (i = 0; i < NINSTNAMES; ++i) {
+        if (ncw_att_exists(ncid, varid, INSTNAMES[i])) {
+            nc_type type;
+            size_t len;
+
+            ncw_inq_att(ncid, varid, INSTNAMES[i], &type, &len);
+            if (type == NC_CHAR && len < MAXSTRLEN) {
+                ncw_get_att_text(ncid, varid, INSTNAMES[i], insttag);
+                return 1;
+            }
+        }
+    }
+
+    return 0;
 }
 
 /**
