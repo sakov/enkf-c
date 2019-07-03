@@ -402,11 +402,9 @@ void reader_xy_gridded(char* fname, int fid, obsmeta* meta, grid* g, observation
         if (!obs->allobs && o->status == STATUS_OUTSIDEGRID)
             continue;
         o->model_depth = NAN;   /* set in obs_add() */
-        if (have_time) {
-            float t = (singletime) ? time[0] : time[i];
-
-            o->time = (double) t* tunits_multiple + tunits_offset;
-        } else
+        if (have_time)
+            o->time = ((singletime) ? time[0] : time[i]) * tunits_multiple + tunits_offset;
+        else
             o->time = NAN;
 
         o->aux = -1;

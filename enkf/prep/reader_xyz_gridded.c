@@ -435,11 +435,9 @@ void reader_xyz_gridded(char* fname, int fid, obsmeta* meta, grid* g, observatio
         else
             o->fk = NAN;
         o->model_depth = NAN;   /* set in obs_add() */
-        if (have_time) {
-            float t = (singletime) ? time[0] : time[i];
-
-            o->time = (double) t* tunits_multiple + tunits_offset;
-        } else
+        if (have_time)
+            o->time = ((singletime) ? time[0] : time[i]) * tunits_multiple + tunits_offset;
+        else
             o->time = NAN;
 
         o->aux = -1;

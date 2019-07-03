@@ -944,6 +944,7 @@ void read_ncvarfloat(int ncid, int varid, int n, float v[])
     if (ncw_att_exists(ncid, varid, "add_offset")) {
         float add_offset;
 
+        ncw_check_attlen(ncid, varid, "scale_factor", 1);
         ncw_get_att_float(ncid, varid, "add_offset", &add_offset);
         for (i = 0; i < n; ++i)
             v[i] += add_offset;
@@ -1284,6 +1285,7 @@ void read_ncvardouble(int ncid, int varid, int n, double v[])
     if (ncw_att_exists(ncid, varid, "add_offset")) {
         double add_offset;
 
+        ncw_check_attlen(ncid, varid, "scale_factor", 1);
         ncw_get_att_double(ncid, varid, "add_offset", &add_offset);
         for (i = 0; i < n; ++i)
             v[i] += add_offset;
