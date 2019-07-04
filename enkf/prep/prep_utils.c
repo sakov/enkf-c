@@ -31,7 +31,6 @@
 #include "allreaders.h"
 #include "prep_utils.h"
 
-#define DT_EPS 1.0e-6
 #define NINC 5
 #define QCFLAGVALMAX 31
 
@@ -148,12 +147,12 @@ void obs_add(observations* obs, model* m, obsmeta* meta)
 
             if (o->status != STATUS_OK)
                 continue;
-            if (o->time - obs->da_time < ot->obswindow_min + DT_EPS) {
+            if (o->time - obs->da_time < ot->obswindow_min) {
                 o->status = STATUS_OUTSIDEOBSWINDOW;
                 noutow++;
                 continue;
             }
-            if (o->time - obs->da_time > ot->obswindow_max - DT_EPS) {
+            if (o->time - obs->da_time > ot->obswindow_max) {
                 o->status = STATUS_OUTSIDEOBSWINDOW;
                 noutow++;
                 continue;

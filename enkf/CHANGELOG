@@ -1,3 +1,7 @@
+v. 1.100.4
+   -- Modified reader_mmt_standard() to read time from the file rather than set
+      it from the file name.
+   -- Eliminated tolerances on the observation window (DT_EPS) in obs_add().
 v. 1.100.3
    PS 04072019
    -- Added a couple of routine checks in read_ncvardouble() and

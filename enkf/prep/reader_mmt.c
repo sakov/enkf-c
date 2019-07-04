@@ -66,14 +66,13 @@ void reader_mmt_standard(char* fname, int fid, obsmeta* meta, grid* g, observati
     double* lat;
     double** z;
     double** v;
+    double* time;
+    char tunits[MAXSTRLEN];
     int** qc = NULL;
     double missval;
     double validmin = DBL_MAX;
     double validmax = -DBL_MAX;
     char* type;
-    char buf[MAXSTRLEN];
-    int len;
-    int year, month, day;
     double tunits_multiple, tunits_offset;
     int p, i, nobs_read;
 
@@ -129,6 +128,12 @@ void reader_mmt_standard(char* fname, int fid, obsmeta* meta, grid* g, observati
     ncw_get_var_double(ncid, varid, v[0]);
     ncw_get_att_double(ncid, varid, "_FillValue", &missval);
 
+    ncw_inq_varid(ncid, "JULD", &varid);
+    time = malloc(nprof * sizeof(double));
+    ncw_get_var_double(ncid, varid, time);
+    ncw_get_att_text(ncid, varid, "units", tunits);
+    tunits_convert(tunits, &tunits_multiple, &tunits_offset);
+
     varid = -1;
     if (strncmp(meta->type, "TEM", 3) == 0) {
         if (ncw_var_exists(ncid, "TEMP_BLUELINK_QC"))
@@ -151,21 +156,6 @@ void reader_mmt_standard(char* fname, int fid, obsmeta* meta, grid* g, observati
     ncw_get_var_text(ncid, varid, type);
 
     ncw_close(ncid);
-
-    strcpy(buf, fname);
-    len = strlen(buf);
-    buf[len - 10] = 0;          /* _mmt_qc.nc */
-    if (!str2int(&buf[len - 12], &day))
-        enkf_quit("MMT reader: could not convert file name \"%s\" to date", fname);
-    buf[len - 12] = 0;
-    if (!str2int(&buf[len - 14], &month))
-        enkf_quit("MMT reader: could not convert file name \"%s\" to date", fname);
-    buf[len - 14] = 0;
-    if (!str2int(&buf[len - 18], &year))
-        enkf_quit("MMT reader: could not convert file name \"%s\" to date", fname);
-    snprintf(buf, MAXSTRLEN, "days since %4d-%02d-%02d", year, month, day);
-
-    tunits_convert(buf, &tunits_multiple, &tunits_offset);
 
     nobs_read = 0;
     for (p = 0; p < (int) nprof; ++p) {
@@ -215,7 +205,7 @@ void reader_mmt_standard(char* fname, int fid, obsmeta* meta, grid* g, observati
             else
                 o->fk = NAN;
             o->model_depth = NAN;       /* set in obs_add() */
-            o->time = tunits_offset + 0.5;
+            o->time = time[p] * tunits_multiple + tunits_offset;
             o->aux = -1;
 
             obs->nobs++;
