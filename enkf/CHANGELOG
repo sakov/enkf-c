@@ -1,3 +1,6 @@
+v. 1.100.5
+   -- Moved code for calculating and writing spread, inflation, and vertical
+      correlations from update/update.c to update/diag.c.
 v. 1.100.4
    -- Modified reader_mmt_standard() to read time from the file rather than set
       it from the file name.

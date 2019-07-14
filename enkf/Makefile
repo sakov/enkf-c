@@ -125,13 +125,15 @@ common/distribute.c\
 common/pointlog.c\
 common/dasystem.c\
 update/update.c\
+update/diags.c\
 update/enkf_update.c
 
 HDR_UPDATE =\
 common/hash.h\
 common/distribute.h\
 common/pointlog.h\
-common/dasystem.h
+common/dasystem.h\
+update/diags.h
 
 PROGRAMS =\
 bin/enkf_prep\

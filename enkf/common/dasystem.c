@@ -1,6 +1,6 @@
 /******************************************************************************
  *
- * File:        dasystem.c        
+ * File:        dasystem.c
  *
  * Created:     12/2012
  *
@@ -408,6 +408,13 @@ void das_getfields(dasystem* das, int gridid, int* nfields, field** fields)
             (*nfields)++;
         }
     }
+}
+
+/**
+ */
+void getfieldfname(char* dir, char* prefix, char* varname, int level, char* fname)
+{
+    snprintf(fname, MAXSTRLEN, "%s/%s_%s-%03d.nc", dir, prefix, varname, level);
 }
 
 /**

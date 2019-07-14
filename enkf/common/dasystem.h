@@ -135,6 +135,7 @@ void das_calcinnandspread(dasystem* das);
 void das_calctransforms(dasystem* das);
 void das_dopointlogs(dasystem* das);
 void das_getfields(dasystem* das, int gridid, int* nfield, field** fields);
+void getfieldfname(char* dir, char* prefix, char* varname, int level, char* fname);
 void das_moderateobs(dasystem* das);
 void das_calcbatchstats(dasystem* das, int doprint);
 void das_printobsstats(dasystem* das, int use_rmsd);
