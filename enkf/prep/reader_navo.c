@@ -73,7 +73,6 @@ void reader_navo_standard(char* fname, int fid, obsmeta* meta, grid* g, observat
     ncw_open(fname, NC_NOWRITE, &ncid);
     ncw_inq_dimid(ncid, (ncw_dim_exists(ncid, "nobs")) ? "nobs" : "length", &dimid_nobs);
     ncw_inq_dimlen(ncid, dimid_nobs, &nobs_local);
-    enkf_printf("        nobs = %u\n", (unsigned int) nobs_local);
 
     if (nobs_local == 0) {
         ncw_close(ncid);
