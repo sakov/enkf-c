@@ -386,7 +386,7 @@ void plog_definestatevars(dasystem* das)
             {
                 char fname[MAXSTRLEN];
 
-                model_getmemberfname(das->m, das->ensdir, varname, 1, fname);
+                das_getmemberfname(das, das->ensdir, varname, 1, fname);
                 nk = getnlevels(fname, varname);
             }
             if (nk > 1) {

@@ -54,6 +54,7 @@ static void obstype_new(obstype* type, int i, char* name)
     type->async_tstep = NAN;
     type->async_centred = 1;    /* interval 0 is centred at assimilation
                                  * time, suitable for instantaneous fields */
+    type->async_tname = NULL;
     type->nlocrad = 0;
     type->locrad = NULL;
     type->locweight = NULL;
@@ -135,10 +136,12 @@ static void obstype_print(obstype* type)
     enkf_printf("      ALLOWED MIN = %.3g\n", type->allowed_min);
     enkf_printf("      ALLOWED MAX = %.3g\n", type->allowed_max);
     enkf_printf("      ASYNCHRONOUS = %s", (type->isasync) ? "yes" : "no");
-    if (type->isasync)
-        enkf_printf(", DT = %.3f (%s)\n", type->async_tstep, (type->async_centred) ? "centre-aligned" : "endpoint-aligned");
-    else
-        enkf_printf("\n");
+    if (type->isasync) {
+        enkf_printf(", DT = %.3f (%s)", type->async_tstep, (type->async_centred) ? "centre-aligned" : "corner-aligned");
+        if (type->async_tname != NULL)
+            enkf_printf(", TNAME = %s", type->async_tname);
+    }
+    enkf_printf("\n");
     enkf_printf("      LOCRAD  =");
     for (i = 0; i < type->nlocrad; ++i)
         enkf_printf(" %.3g", type->locrad[i]);
@@ -286,6 +289,8 @@ void obstypes_read(enkfprm* prm, char fname[], int* n, obstype** types)
                     now->async_centred = 0;
                 else
                     enkf_quit("%s, l.%d: the asynchronous intervals can be either \"c\" (centre-aligned) or \"e\" (endpoint-aligned)", fname, line);
+                if ((token = strtok(NULL, seps)) != NULL)
+                    now->async_tname = strdup(token);
             }
         } else if (strcasecmp(token, "LOCRAD") == 0) {
             int sid = 0;
@@ -464,26 +469,26 @@ void obstypes_describeprm(void)
     enkf_printf("    ISSURFACE   = {0 | 1}\n");
     enkf_printf("  [ STATSONLY   = {0* | 1} ]\n");
     enkf_printf("    VAR         = <model variable name> ...\n");
-    enkf_printf("  [ ALIAS       = <variable name used in file names> ]  (VAR*)\n");
-    enkf_printf("  [ OFFSET      = <file name> <variable name> ]         (none*)\n");
-    enkf_printf("  [ MLD_VARNAME = <model varname> ]                     (none*)\n");
-    enkf_printf("  [ MLD_THRESH  = <threshold> ]                         (NaN*)\n");
-    enkf_printf("  [ HFUNCTION   = <H function name> ]                   (standard*)\n");
-    enkf_printf("  [ ASYNC       = <time interval> [c*|e]]               (0*)\n");
+    enkf_printf("  [ ALIAS       = <variable name used in file names> ]   (VAR*)\n");
+    enkf_printf("  [ OFFSET      = <file name> <variable name> ]          (none*)\n");
+    enkf_printf("  [ MLD_VARNAME = <model varname> ]                      (none*)\n");
+    enkf_printf("  [ MLD_THRESH  = <threshold> ]                          (NaN*)\n");
+    enkf_printf("  [ HFUNCTION   = <H function name> ]                    (standard*)\n");
+    enkf_printf("  [ ASYNC       = <time interval> [c*|e] [time varname]] (0*)\n");
     enkf_printf("  [ LOCRAD      = <loc. radius in km> ... ]\n");
-    enkf_printf("  [ LOCWEIGHT   = <loc. weight> ... ]                   (# LOCRAD > 1)\n");
-    enkf_printf("  [ RFACTOR     = <rfactor> ]                           (1*)\n");
-    enkf_printf("  [ NLOBSMAX    = <max. allowed number of local obs.> ] (inf*)\n");
-    enkf_printf("  [ ERROR_STD_MIN = <min. allowed superob error> ]      (0*)\n");
-    enkf_printf("  [ SOBSTRIDE   = <stride for superobing> ]             (1*)\n");
-    enkf_printf("  [ MINVALUE    = <minimal allowed value> ]             (-inf*)\n");
-    enkf_printf("  [ MAXVALUE    = <maximal allowed value> ]             (+inf*)\n");
-    enkf_printf("  [ XMIN        = <minimal allowed X coordinate> ]      (-inf*)\n");
-    enkf_printf("  [ XMAX        = <maximal allowed X coordinate> ]      (+inf*)\n");
-    enkf_printf("  [ YMIN        = <minimal allowed Y coordinate> ]      (-inf*)\n");
-    enkf_printf("  [ YMAX        = <maximal allowed Y coordinate> ]      (+inf*)\n");
-    enkf_printf("  [ ZMIN        = <minimal allowed Z coordinate> ]      (-inf*)\n");
-    enkf_printf("  [ ZMAX        = <maximal allowed Z coordinate> ]      (+inf*)\n");
+    enkf_printf("  [ LOCWEIGHT   = <loc. weight> ... ]                    (# LOCRAD > 1)\n");
+    enkf_printf("  [ RFACTOR     = <rfactor> ]                            (1*)\n");
+    enkf_printf("  [ NLOBSMAX    = <max. allowed number of local obs.> ]  (inf*)\n");
+    enkf_printf("  [ ERROR_STD_MIN = <min. allowed superob error> ]       (0*)\n");
+    enkf_printf("  [ SOBSTRIDE   = <stride for superobing> ]              (1*)\n");
+    enkf_printf("  [ MINVALUE    = <minimal allowed value> ]              (-inf*)\n");
+    enkf_printf("  [ MAXVALUE    = <maximal allowed value> ]              (+inf*)\n");
+    enkf_printf("  [ XMIN        = <minimal allowed X coordinate> ]       (-inf*)\n");
+    enkf_printf("  [ XMAX        = <maximal allowed X coordinate> ]       (+inf*)\n");
+    enkf_printf("  [ YMIN        = <minimal allowed Y coordinate> ]       (-inf*)\n");
+    enkf_printf("  [ YMAX        = <maximal allowed Y coordinate> ]       (+inf*)\n");
+    enkf_printf("  [ ZMIN        = <minimal allowed Z coordinate> ]       (-inf*)\n");
+    enkf_printf("  [ ZMAX        = <maximal allowed Z coordinate> ]       (+inf*)\n");
     enkf_printf("  [ WINDOWMIN   = <start of obs window in days from analysis> ] (-inf*)\n");
     enkf_printf("  [ WINDOWMAX   = <end of obs window in days from analysis> ]   (+inf*)\n");
     enkf_printf("\n");
@@ -565,6 +570,8 @@ void obstypes_destroy(int n, obstype* types)
             free(ot->offset_fname);
             free(ot->offset_varname);
         }
+        if (ot->async_tname != NULL)
+            free(ot->async_tname);
         if (ot->mld_varname != NULL)
             free(ot->mld_varname);
         free(ot->locrad);

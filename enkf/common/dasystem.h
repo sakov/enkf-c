@@ -159,5 +159,10 @@ void plog_definestatevars(dasystem* das);
 void plog_writestatevars(dasystem* das, int nfields, void** fieldbuffer, field* fields, int isanalysis);
 void plog_assemblestatevars(dasystem* das);
 
+void das_getmemberfname(dasystem* das, char ensdir[], char varname[], int mem, char fname[]);
+int das_getmemberfname_async(dasystem* das, char ensdir[], obstype* ot, int mem, int t, char fname[]);
+void das_getbgfname(dasystem* das, char ensdir[], char varname[], char fname[]);
+int das_getbgfname_async(dasystem* das, char bgdir[], obstype* ot, int t, char fname[]);
+
 #define _DASYSTEM_H
 #endif

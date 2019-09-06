@@ -39,6 +39,7 @@
 #define NPLOGS_INC 10
 #define NFIELDS_INC 100
 #define MPIIDOFFSET 10000
+#define TEPS 1.0e-3
 
 /** Determines ensemble size based on existence of forecast files for each
  ** variable. If das->nmem <= 0 then sets the ensemble size to the maximum
@@ -68,7 +69,7 @@ static void das_setnmem(dasystem* das)
         int i;
 
         for (i = 0; i < nvar; ++i) {
-            model_getmemberfname(m, das->ensdir, model_getvarname(m, i), nmem + 1, fname);
+            das_getmemberfname(das, das->ensdir, model_getvarname(m, i), nmem + 1, fname);
             if (!file_exists(fname))
                 break;
         }
@@ -325,11 +326,9 @@ void das_destroy(dasystem* das)
     free(das->ensdir);
     if (das->bgdir != NULL)
         free(das->bgdir);
-#if defined(ENKF_CALC)
-    obs_destroy(das->obs);
-#endif
     model_destroy(das->m);
 #if defined(ENKF_CALC)
+    obs_destroy(das->obs);
     if (das->S != NULL)
         free(das->S);
     if (das->s_f != NULL) {
@@ -390,7 +389,7 @@ void das_getfields(dasystem* das, int gridid, int* nfields, field** fields)
         if (gridid >= 0 && model_getvargridid(m, vid) != gridid)
             continue;
 
-        model_getmemberfname(m, das->ensdir, varname, 1, fname);
+        das_getmemberfname(das, das->ensdir, varname, 1, fname);
         nk = getnlevels(fname, varname);
         for (k = 0; k < nk; ++k) {
             field* f;
@@ -501,3 +500,111 @@ void das_calcmld(dasystem* das, obstype* ot, float*** src, float** dst)
         }
     }
 }
+
+/**
+ */
+void das_getmemberfname(dasystem* das, char ensdir[], char varname[], int mem, char fname[])
+{
+    snprintf(fname, MAXSTRLEN, "%s/mem%03d_%s.nc", ensdir, mem, varname);
+}
+
+/**
+ */
+void das_getbgfname(dasystem* das, char ensdir[], char varname[], char fname[])
+{
+    snprintf(fname, MAXSTRLEN, "%s/bg_%s.nc", ensdir, varname);
+}
+
+#if defined(ENKF_CALC)
+/**
+ */
+int das_getmemberfname_async(dasystem* das, char ensdir[], obstype* ot, int mem, int t, char fname[])
+{
+    char* alias = ot->alias;
+    char* varname = ot->varnames[0];
+
+    snprintf(fname, MAXSTRLEN, "%s/mem%03d_%s_%d.nc", ensdir, mem, alias, t);
+    if (!file_exists(fname)) {
+        snprintf(fname, MAXSTRLEN, "%s/mem%03d_%s.nc", ensdir, mem, varname);
+        return 0;
+    }
+    /*
+     * if the time variable name has been specified for the obs. type -- verify
+     * that the time is right for the interval t
+     */
+    if (ot->async_tname != NULL) {
+        int ncid, vid;
+        size_t vsize;
+        double time, correcttime;
+
+        ncw_open(fname, NC_NOWRITE, &ncid);
+        if (!ncw_var_exists(ncid, ot->async_tname))
+            enkf_quit("%s: found no time variable \"%s\" specified for observation type \"%s\"", fname, ot->async_tname, ot->name);
+        ncw_inq_varid(ncid, ot->async_tname, &vid);
+        ncw_inq_varsize(ncid, vid, &vsize);
+        if (vsize != 1)
+            enkf_quit("%s: dimension of the time variable \"%s\" must be one", fname, ot->async_tname);
+        {
+            char tunits[MAXSTRLEN];
+            double tunits_multiple, tunits_offset;
+
+            ncw_get_var_double(ncid, vid, &time);
+            ncw_get_att_text(ncid, vid, "units", tunits);
+            tunits_convert(tunits, &tunits_multiple, &tunits_offset);
+            time = time * tunits_multiple + tunits_offset;
+            correcttime = das->obs->da_time + t * ot->async_tstep;
+            if (!ot->async_centred)
+                correcttime += 0.5 * ot->async_tstep;
+            if (fabs(time - correcttime) > TEPS)
+                enkf_quit("%s: \"s\" = %f; expected %f\n", fname, ot->async_tname, time, correcttime);
+        }
+    }
+    return 1;
+}
+
+/**
+ */
+int das_getbgfname_async(dasystem* das, char bgdir[], obstype* ot, int t, char fname[])
+{
+    char* alias = ot->alias;
+    char* varname = ot->varnames[0];
+
+    snprintf(fname, MAXSTRLEN, "%s/bg_%s_%d.nc", bgdir, alias, t);
+    if (!file_exists(fname)) {
+        snprintf(fname, MAXSTRLEN, "%s/bg_%s.nc", bgdir, varname);
+        return 0;
+    }
+    /*
+     * if the time variable name has been specified for the obs. type -- verify
+     * that the time is right for the interval t
+     */
+    if (ot->async_tname != NULL) {
+        int ncid, vid;
+        size_t vsize;
+        double time, correcttime;
+
+        ncw_open(fname, NC_NOWRITE, &ncid);
+        if (!ncw_var_exists(ncid, ot->async_tname))
+            enkf_quit("%s: found no time variable \"%s\" specified for observation type \"%s\"", fname, ot->async_tname, ot->name);
+        ncw_inq_varid(ncid, ot->async_tname, &vid);
+        ncw_inq_varsize(ncid, vid, &vsize);
+        if (vsize != 1)
+            enkf_quit("%s: dimension of the time variable \"%s\" must be one", fname, ot->async_tname);
+        {
+            char tunits[MAXSTRLEN];
+            double tunits_multiple, tunits_offset;
+
+            ncw_get_var_double(ncid, vid, &time);
+            ncw_get_att_text(ncid, vid, "units", tunits);
+            tunits_convert(tunits, &tunits_multiple, &tunits_offset);
+            time = time * tunits_multiple + tunits_offset;
+            correcttime = das->obs->da_time + t * ot->async_tstep;
+            if (!ot->async_centred)
+                correcttime += 0.5 * ot->async_tstep;
+            if (fabs(time - correcttime) > TEPS)
+                enkf_quit("%s: \"s\" = %f; expected %f\n", fname, ot->async_tname, time, correcttime);
+        }
+    }
+    return 1;
+}
+#endif

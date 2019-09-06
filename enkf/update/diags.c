@@ -50,7 +50,7 @@ void das_allocatespread(dasystem* das, char fname[])
         char* varname_src = model_getvarname(m, vid);
         int varid_src;
 
-        model_getmemberfname(m, das->ensdir, varname_src, 1, fname_src);
+        das_getmemberfname(das, das->ensdir, varname_src, 1, fname_src);
         ncw_open(fname_src, NC_NOWRITE, &ncid_src);
         ncw_inq_varid(ncid_src, varname_src, &varid_src);
         ncw_copy_vardef(ncid_src, varid_src, ncid);
@@ -244,7 +244,7 @@ void das_allocateinflation(dasystem* das, char fname[])
         char* varname_src = model_getvarname(m, vid);
         int varid_src;
 
-        model_getmemberfname(m, das->ensdir, varname_src, 1, fname_src);
+        das_getmemberfname(das, das->ensdir, varname_src, 1, fname_src);
         ncw_open(fname_src, NC_NOWRITE, &ncid_src);
         ncw_inq_varid(ncid_src, varname_src, &varid_src);
         ncw_copy_vardef(ncid_src, varid_src, ncid);
@@ -370,7 +370,7 @@ void das_writevcorrs(dasystem* das)
             char fname_src[MAXSTRLEN];
             int ncid_src, varid_src;
 
-            model_getmemberfname(m, das->ensdir, varname, 1, fname_src);
+            das_getmemberfname(das, das->ensdir, varname, 1, fname_src);
             if (!is3d(fname_src, varname))
                 continue;
 
@@ -400,7 +400,7 @@ void das_writevcorrs(dasystem* das)
         {
             char fname[MAXSTRLEN];
 
-            model_getmemberfname(m, das->ensdir, varname, 1, fname);
+            das_getmemberfname(das, das->ensdir, varname, 1, fname);
             if (!is3d(fname, varname))
                 continue;
         }
@@ -432,7 +432,7 @@ void das_writevcorrs(dasystem* das)
             for (e = 0; e < das->nmem; ++e) {
                 char fname[MAXSTRLEN];
 
-                model_getmemberfname(m, das->ensdir, varname, e + 1, fname);
+                das_getmemberfname(das, das->ensdir, varname, e + 1, fname);
                 model_readfield(das->m, fname, varname, ksurf, v0[e][0]);
             }
             for (i = 0; i < nij; ++i) {
@@ -456,7 +456,7 @@ void das_writevcorrs(dasystem* das)
          */
         k = f->level;
         for (e = 0; e < das->nmem; ++e) {
-            model_getmemberfname(m, das->ensdir, varname, e + 1, fname_src);
+            das_getmemberfname(das, das->ensdir, varname, e + 1, fname_src);
             model_readfield(das->m, fname_src, varname, k, v[e][0]);
         }
         for (i = 0; i < nij; ++i) {
@@ -514,7 +514,7 @@ void das_writevcorrs(dasystem* das)
             {
                 char fname[MAXSTRLEN];
 
-                model_getmemberfname(m, das->ensdir, f->varname, 1, fname);
+                das_getmemberfname(das, das->ensdir, f->varname, 1, fname);
                 if (!is3d(fname, f->varname))
                     continue;
             }

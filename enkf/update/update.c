@@ -586,7 +586,7 @@ static void das_writefields_direct(dasystem* das, int nfields, void** fieldbuffe
             for (e = 0; e < das->nmem; ++e) {
                 char fname[MAXSTRLEN];
 
-                model_getmemberfname(das->m, das->ensdir, f->varname, e + 1, fname);
+                das_getmemberfname(das, das->ensdir, f->varname, e + 1, fname);
                 model_writefieldas(das->m, fname, varname, f->varname, f->level, ((float***) fieldbuffer[i])[e][0]);
             }
         }
@@ -597,7 +597,7 @@ static void das_writefields_direct(dasystem* das, int nfields, void** fieldbuffe
             for (e = 0; e < das->nmem; ++e) {
                 char fname[MAXSTRLEN];
 
-                model_getmemberfname(das->m, das->ensdir, f->varname, e + 1, fname);
+                das_getmemberfname(das, das->ensdir, f->varname, e + 1, fname);
                 if (!(das->updatespec & UPDATE_OUTPUTINC))
                     strncat(fname, ".analysis", MAXSTRLEN);
                 else
@@ -680,7 +680,7 @@ static void das_writebg_direct(dasystem* das, int nfields, void** fieldbuffer, f
             char varname[NC_MAX_NAME];
             char fname[MAXSTRLEN];
 
-            model_getbgfname(m, das->bgdir, f->varname, fname);
+            das_getbgfname(das, das->bgdir, f->varname, fname);
             strncpy(varname, f->varname, NC_MAX_NAME - 1);
             if (!(das->updatespec & UPDATE_OUTPUTINC))
                 strncat(varname, "_an", NC_MAX_NAME);
@@ -693,7 +693,7 @@ static void das_writebg_direct(dasystem* das, int nfields, void** fieldbuffer, f
             field* f = &fields[i];
             char fname[MAXSTRLEN];
 
-            model_getbgfname(m, das->bgdir, f->varname, fname);
+            das_getbgfname(das, das->bgdir, f->varname, fname);
             if (!(das->updatespec & UPDATE_OUTPUTINC))
                 strncat(fname, ".analysis", MAXSTRLEN);
             else
@@ -748,7 +748,6 @@ static void das_writebg(dasystem* das, int nfields, void** fieldbuffer, field fi
         das_writebg_toassemble(das, nfields, fieldbuffer, fields);
 }
 
-
 /**
  */
 static void das_assemblemembers(dasystem* das)
@@ -772,7 +771,7 @@ static void das_assemblemembers(dasystem* das)
         float* v = NULL;
 
         enkf_printf("    %s:", varname);
-        model_getmemberfname(m, das->ensdir, varname, 1, fname_dst);
+        das_getmemberfname(das, das->ensdir, varname, 1, fname_dst);
         nlev = getnlevels(fname_dst, varname);
         strncpy(varname_dst, varname, NC_MAX_NAME - 1);
 
@@ -780,7 +779,7 @@ static void das_assemblemembers(dasystem* das)
         v = malloc(ni * nj * sizeof(float));
 
         for (e = my_first_iteration; e <= my_last_iteration; ++e) {
-            model_getmemberfname(m, das->ensdir, varname, e + 1, fname_dst);
+            das_getmemberfname(das, das->ensdir, varname, e + 1, fname_dst);
             if (das->updatespec & UPDATE_SEPARATEOUTPUT) {
                 if (!(das->updatespec & UPDATE_OUTPUTINC))
                     strncat(fname_dst, ".analysis", MAXSTRLEN);
@@ -829,7 +828,7 @@ static void das_assemblemembers(dasystem* das)
             char fname[MAXSTRLEN];
             int nlev, k;
 
-            model_getmemberfname(m, das->ensdir, varname, 1, fname);
+            das_getmemberfname(das, das->ensdir, varname, 1, fname);
             nlev = getnlevels(fname, varname);
             for (k = 0; k < nlev; ++k) {
                 if (nlev > 1)
@@ -865,7 +864,7 @@ static void das_assemblebg(dasystem* das)
         float* v = NULL;
 
         enkf_printf("    %s:", varname);
-        model_getbgfname(m, das->bgdir, varname, fname_dst);
+        das_getbgfname(das, das->bgdir, varname, fname_dst);
         nlev = getnlevels(fname_dst, varname);
         strncpy(varname_dst, varname, NC_MAX_NAME - 1);
 
@@ -971,7 +970,7 @@ void das_update(dasystem* das)
                         else
                             strncat(varname_dst, "_inc", NC_MAX_NAME);
 
-                        model_getmemberfname(m, das->ensdir, varname_src, e + 1, fname);
+                        das_getmemberfname(das, das->ensdir, varname_src, e + 1, fname);
                         ncw_open(fname, NC_WRITE, &ncid);
                         if (!ncw_var_exists(ncid, varname_dst)) {
                             ncw_redef(ncid);
@@ -993,7 +992,7 @@ void das_update(dasystem* das)
                         int ncid_f, ncid_a;
                         int vid_f;
 
-                        model_getmemberfname(m, das->ensdir, varname, e + 1, fname_f);
+                        das_getmemberfname(das, das->ensdir, varname, e + 1, fname_f);
                         ncw_open(fname_f, NC_NOWRITE, &ncid_f);
 
                         strncpy(fname_a, fname_f, MAXSTRLEN);
@@ -1046,7 +1045,7 @@ void das_update(dasystem* das)
                             strncat(varname_dst, "_an", NC_MAX_NAME);
                         else
                             strncat(varname_dst, "_inc", NC_MAX_NAME);
-                        model_getbgfname(m, das->bgdir, varname_src, fname);
+                        das_getbgfname(das, das->bgdir, varname_src, fname);
                         ncw_open(fname, NC_WRITE, &ncid);
                         if (!ncw_var_exists(ncid, varname_dst)) {
                             ncw_redef(ncid);
@@ -1065,7 +1064,7 @@ void das_update(dasystem* das)
                         int ncid_f, ncid_a;
                         int vid_f;
 
-                        model_getbgfname(m, das->bgdir, varname, fname_f);
+                        das_getbgfname(das, das->bgdir, varname, fname_f);
                         ncw_open(fname_f, NC_NOWRITE, &ncid_f);
 
                         strncpy(fname_a, fname_f, MAXSTRLEN);
@@ -1151,7 +1150,7 @@ void das_update(dasystem* das)
             }
 
             for (e = 0; e < das->nmem; ++e) {
-                model_getmemberfname(m, das->ensdir, f->varname, e + 1, fname);
+                das_getmemberfname(das, das->ensdir, f->varname, e + 1, fname);
                 model_readfield(das->m, fname, f->varname, f->level, ((float***) fieldbuffer[bufid])[e][0]);
             }
 
@@ -1160,7 +1159,7 @@ void das_update(dasystem* das)
              * whether output is increment or analysis
              */
             if (das->mode == MODE_ENOI) {
-                model_getbgfname(m, das->bgdir, f->varname, fname);
+                das_getbgfname(das, das->bgdir, f->varname, fname);
                 model_readfield(das->m, fname, f->varname, f->level, ((float***) fieldbuffer[bufid])[das->nmem][0]);
             }
 

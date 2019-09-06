@@ -33,6 +33,7 @@ typedef struct {
     int isasync;
     double async_tstep;
     int async_centred;
+    char* async_tname;
     int nlocrad;
     double* locrad;
     double* locweight;

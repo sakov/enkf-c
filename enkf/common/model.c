@@ -565,44 +565,6 @@ int** model_getnumlevels(model* m, int vid)
 
 /**
  */
-void model_getmemberfname(model* m, char ensdir[], char varname[], int mem, char fname[])
-{
-    snprintf(fname, MAXSTRLEN, "%s/mem%03d_%s.nc", ensdir, mem, varname);
-}
-
-/**
- */
-int model_getmemberfname_async(model* m, char ensdir[], char alias[], char varname[], int mem, int t, char fname[])
-{
-    snprintf(fname, MAXSTRLEN, "%s/mem%03d_%s_%d.nc", ensdir, mem, alias, t);
-    if (!file_exists(fname)) {
-        snprintf(fname, MAXSTRLEN, "%s/mem%03d_%s.nc", ensdir, mem, varname);
-        return 0;
-    }
-    return 1;
-}
-
-/**
- */
-void model_getbgfname(model* m, char ensdir[], char varname[], char fname[])
-{
-    snprintf(fname, MAXSTRLEN, "%s/bg_%s.nc", ensdir, varname);
-}
-
-/**
- */
-int model_getbgfname_async(model* m, char bgdir[], char alias[], char varname[], int t, char fname[])
-{
-    snprintf(fname, MAXSTRLEN, "%s/bg_%s_%d.nc", bgdir, alias, t);
-    if (!file_exists(fname)) {
-        snprintf(fname, MAXSTRLEN, "%s/bg_%s.nc", bgdir, varname);
-        return 0;
-    }
-    return 1;
-}
-
-/**
- */
 int model_getdomainid(model* m, char* domainname)
 {
     return st_findindexbystring(m->domains, domainname);

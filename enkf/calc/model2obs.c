@@ -189,9 +189,9 @@ void H_surf_biased(dasystem* das, int nobs, int obsids[], char fname[], int mem,
 
     bias = malloc(nv * sizeof(float));
     if (das->mode == MODE_ENKF)
-        model_getmemberfname(m, das->ensdir, ot->varnames[1], mem, fname2);
+        das_getmemberfname(das, das->ensdir, ot->varnames[1], mem, fname2);
     else if (das->mode == MODE_ENOI)
-        model_getbgfname(m, das->bgdir, ot->varnames[1], fname2);
+        das_getbgfname(das, das->bgdir, ot->varnames[1], fname2);
     model_readfield(m, fname2, ot->varnames[1], ksurf, bias);
 
     model_readfield(m, fname, ot->varnames[0], ksurf, src0);
@@ -328,9 +328,9 @@ void H_subsurf_wsurfbias(dasystem* das, int nobs, int obsids[], char fname[], in
      */
     bias = alloc2d(nj, ni, sizeof(float));
     if (das->mode == MODE_ENKF)
-        model_getmemberfname(m, das->ensdir, ot->varnames[1], mem, fname2);
+        das_getmemberfname(das, das->ensdir, ot->varnames[1], mem, fname2);
     else if (das->mode == MODE_ENOI)
-        model_getbgfname(m, das->bgdir, ot->varnames[1], fname2);
+        das_getbgfname(das, das->bgdir, ot->varnames[1], fname2);
     assert(!is3d(fname2, ot->varnames[1]));
     model_readfield(m, fname2, ot->varnames[1], 0, bias[0]);
 
@@ -345,10 +345,10 @@ void H_subsurf_wsurfbias(dasystem* das, int nobs, int obsids[], char fname[], in
         if (model_getvarid(m, ot->mld_varname, 0) < 0)
             enkf_quit("\"MLD_VARNAME = %s\" for observation type \"%s\" does not exist among model variables", ot->mld_varname, ot->name);
         if (das->mode == MODE_ENKF) {
-            model_getmemberfname(m, das->ensdir, ot->mld_varname, mem, fname_mld);
+            das_getmemberfname(das, das->ensdir, ot->mld_varname, mem, fname_mld);
             model_readfield(m, fname_mld, ot->mld_varname, 0, mld[0]);
         } else if (das->mode == MODE_ENOI) {
-            model_getbgfname(m, das->bgdir, ot->mld_varname, fname_mld);
+            das_getbgfname(das, das->bgdir, ot->mld_varname, fname_mld);
             model_readfield(m, fname_mld, ot->mld_varname, 0, mld[0]);
         }
     } else {

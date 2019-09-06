@@ -69,6 +69,8 @@ void obs_addtype(observations* obs, obstype* src)
     ot->allowed_max = src->allowed_max;
     ot->isasync = src->isasync;
     ot->async_tstep = src->async_tstep;
+    ot->async_centred = src->async_centred;
+    ot->async_tname = (src->async_tname == NULL) ? NULL : strdup(src->async_tname);
     ot->nlocrad = src->nlocrad;
     ot->locrad = malloc(sizeof(double) * ot->nlocrad);
     ot->locweight = malloc(sizeof(double) * ot->nlocrad);
