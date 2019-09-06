@@ -3,8 +3,8 @@ v. 1.101.0
       asynchronous/FGAT DA versus the time of the corresponding observation
       time windows. This check is activated by adding the time variable name at
       the end of the entry "ASYNCHRONOUS" in the obstypes paramater file. E.g.
-      "ASYNCHRONOUS 1" could become "ASYNCHRONOUS 1 C ocean_time", and
-      "ASYNCHRONOUS 0.25 E" could become "ASYNCHRONOUS 0.25 E ocean_time".
+      "ASYNCHRONOUS 1" could become "ASYNCHRONOUS 1 C Time", and
+      "ASYNCHRONOUS 0.25 E" could become "ASYNCHRONOUS 0.25 E Time".
 v. 1.100.5
    -- Moved code for calculating and writing spread, inflation, and vertical
       correlations from update/update.c to update/diag.c.
