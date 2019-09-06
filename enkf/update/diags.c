@@ -26,6 +26,7 @@
 #include "distribute.h"
 #include "definitions.h"
 #include "utils.h"
+#include "ncutils.h"
 #include "model.h"
 #include "dasystem.h"
 
@@ -176,7 +177,7 @@ void das_assemblespread(dasystem* das)
         float* v = NULL;
 
         enkf_printf("    %s:", varname);
-        nlev = getnlevels(FNAME_SPREAD, varname);
+        nlev = ncu_getnlevels(FNAME_SPREAD, varname);
         if (das->mode == MODE_ENKF && das->updatespec & UPDATE_DOANALYSISSPREAD) {
             strncpy(varname_an, varname, NC_MAX_NAME - 1);
             strncat(varname_an, "_an", NC_MAX_NAME - 1);
@@ -262,7 +263,7 @@ void das_writeinflation(dasystem* das, field* f, int j, float* v)
     assert(das->mode == MODE_ENKF);
 
     if (das->updatespec & UPDATE_DIRECTWRITE)
-        writerow(FNAME_INFLATION, f->varname, f->level, j, v);
+        ncu_writerow(FNAME_INFLATION, f->varname, f->level, j, v);
     else {
         char fname[MAXSTRLEN];
         int ncid;
@@ -285,7 +286,7 @@ void das_writeinflation(dasystem* das, field* f, int j, float* v)
         } else
             ncw_open(fname, NC_WRITE, &ncid);
 
-        writerow(fname, f->varname, 0, j, v);
+        ncu_writerow(fname, f->varname, 0, j, v);
         ncw_close(ncid);
     }
 }
@@ -307,7 +308,7 @@ void das_assembleinflation(dasystem* das)
         float* v = NULL;
 
         enkf_printf("    %s:", varname);
-        nlev = getnlevels(FNAME_INFLATION, varname);
+        nlev = ncu_getnlevels(FNAME_INFLATION, varname);
 
         model_getvargridsize(m, i, &ni, &nj, NULL);
         v = malloc(ni * nj * sizeof(float));
@@ -371,7 +372,7 @@ void das_writevcorrs(dasystem* das)
             int ncid_src, varid_src;
 
             das_getmemberfname(das, das->ensdir, varname, 1, fname_src);
-            if (!is3d(fname_src, varname))
+            if (!ncu_is3d(fname_src, varname))
                 continue;
 
             ncw_open(fname_src, NC_NOWRITE, &ncid_src);
@@ -401,7 +402,7 @@ void das_writevcorrs(dasystem* das)
             char fname[MAXSTRLEN];
 
             das_getmemberfname(das, das->ensdir, varname, 1, fname);
-            if (!is3d(fname, varname))
+            if (!ncu_is3d(fname, varname))
                 continue;
         }
 
@@ -515,7 +516,7 @@ void das_writevcorrs(dasystem* das)
                 char fname[MAXSTRLEN];
 
                 das_getmemberfname(das, das->ensdir, f->varname, 1, fname);
-                if (!is3d(fname, f->varname))
+                if (!ncu_is3d(fname, f->varname))
                     continue;
             }
             model_getvargridsize(m, f->varid, &ni, &nj, NULL);

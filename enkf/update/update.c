@@ -26,6 +26,7 @@
 #include <time.h>
 #include "definitions.h"
 #include "utils.h"
+#include "ncutils.h"
 #include "distribute.h"
 #include "grid.h"
 #include "lapack.h"
@@ -772,7 +773,7 @@ static void das_assemblemembers(dasystem* das)
 
         enkf_printf("    %s:", varname);
         das_getmemberfname(das, das->ensdir, varname, 1, fname_dst);
-        nlev = getnlevels(fname_dst, varname);
+        nlev = ncu_getnlevels(fname_dst, varname);
         strncpy(varname_dst, varname, NC_MAX_NAME - 1);
 
         model_getvargridsize(m, i, &ni, &nj, NULL);
@@ -829,7 +830,7 @@ static void das_assemblemembers(dasystem* das)
             int nlev, k;
 
             das_getmemberfname(das, das->ensdir, varname, 1, fname);
-            nlev = getnlevels(fname, varname);
+            nlev = ncu_getnlevels(fname, varname);
             for (k = 0; k < nlev; ++k) {
                 if (nlev > 1)
                     getfieldfname(das->ensdir, "ens", varname, k, fname);
@@ -865,7 +866,7 @@ static void das_assemblebg(dasystem* das)
 
         enkf_printf("    %s:", varname);
         das_getbgfname(das, das->bgdir, varname, fname_dst);
-        nlev = getnlevels(fname_dst, varname);
+        nlev = ncu_getnlevels(fname_dst, varname);
         strncpy(varname_dst, varname, NC_MAX_NAME - 1);
 
         model_getvargridsize(m, i, &ni, &nj, NULL);

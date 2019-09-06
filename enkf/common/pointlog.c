@@ -21,6 +21,7 @@
 #include "definitions.h"
 #include "distribute.h"
 #include "utils.h"
+#include "ncutils.h"
 #include "dasystem.h"
 #include "pointlog.h"
 #include "version.h"
@@ -387,7 +388,7 @@ void plog_definestatevars(dasystem* das)
                 char fname[MAXSTRLEN];
 
                 das_getmemberfname(das, das->ensdir, varname, 1, fname);
-                nk = getnlevels(fname, varname);
+                nk = ncu_getnlevels(fname, varname);
             }
             if (nk > 1) {
                 char gridstr[SMALLSTRLEN];

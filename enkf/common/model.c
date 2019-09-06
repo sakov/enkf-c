@@ -21,6 +21,7 @@
 #include "stringtable.h"
 #include "definitions.h"
 #include "utils.h"
+#include "ncutils.h"
 #include "grid.h"
 #include "gridprm.h"
 #include "enkfprm.h"
@@ -626,7 +627,7 @@ void model_readfield(model* m, char fname[], char varname[], int k, float* v)
 
     model_getvargridsize(m, mvid, &ni, &nj, &nk);
     assert(k < nk);
-    readfield(fname, varname, k, ni, nj, nk, v);
+    ncu_readfield(fname, varname, k, ni, nj, nk, v);
 }
 
 /**
@@ -637,7 +638,7 @@ void model_read3dfield(model* m, char fname[], char varname[], float* v)
     int mvid = model_getvarid(m, varname, 1);
 
     model_getvargridsize(m, mvid, &ni, &nj, &nk);
-    read3dfield(fname, varname, ni, nj, nk, v);
+    ncu_read3dfield(fname, varname, ni, nj, nk, v);
 }
 
 /**
@@ -649,7 +650,7 @@ void model_writefield(model* m, char fname[], char varname[], int k, float* v)
 
     model_getvargridsize(m, mvid, &ni, &nj, &nk);
     assert(k < nk);
-    writefield(fname, varname, k, ni, nj, nk, v);
+    ncu_writefield(fname, varname, k, ni, nj, nk, v);
 }
 
 /**
@@ -661,5 +662,5 @@ void model_writefieldas(model* m, char fname[], char varname[], char varnameas[]
 
     model_getvargridsize(m, mvid, &ni, &nj, &nk);
     assert(k < nk);
-    writefield(fname, varname, k, ni, nj, nk, v);
+    ncu_writefield(fname, varname, k, ni, nj, nk, v);
 }

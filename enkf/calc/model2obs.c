@@ -24,6 +24,7 @@
 #include "ncw.h"
 #include "definitions.h"
 #include "utils.h"
+#include "ncutils.h"
 #include "observations.h"
 #include "model.h"
 #include "model2obs.h"
@@ -331,7 +332,7 @@ void H_subsurf_wsurfbias(dasystem* das, int nobs, int obsids[], char fname[], in
         das_getmemberfname(das, das->ensdir, ot->varnames[1], mem, fname2);
     else if (das->mode == MODE_ENOI)
         das_getbgfname(das, das->bgdir, ot->varnames[1], fname2);
-    assert(!is3d(fname2, ot->varnames[1]));
+    assert(!ncu_is3d(fname2, ot->varnames[1]));
     model_readfield(m, fname2, ot->varnames[1], 0, bias[0]);
 
     if (isnan(ot->mld_threshold) && ot->mld_varname == NULL)

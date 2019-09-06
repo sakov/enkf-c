@@ -30,6 +30,7 @@
 #include "hash.h"
 #include "definitions.h"
 #include "utils.h"
+#include "ncutils.h"
 #include "distribute.h"
 #include "enkfprm.h"
 #include "observations.h"
@@ -390,7 +391,7 @@ void das_getfields(dasystem* das, int gridid, int* nfields, field** fields)
             continue;
 
         das_getmemberfname(das, das->ensdir, varname, 1, fname);
-        nk = getnlevels(fname, varname);
+        nk = ncu_getnlevels(fname, varname);
         for (k = 0; k < nk; ++k) {
             field* f;
 

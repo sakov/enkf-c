@@ -25,6 +25,7 @@
 #include "kdtree.h"
 #include "definitions.h"
 #include "utils.h"
+#include "ncutils.h"
 #include "grid.h"
 #include "model.h"
 #include "enkfprm.h"
@@ -526,13 +527,13 @@ void obstypes_set(int n, obstype* types, model* m)
 
         snprintf(tag, MAXSTRLEN, "%s:OFFSET", ot->name);
         if (ot->offset_fname != NULL) {
-            if (ot->issurface || !is3d(ot->offset_fname, ot->offset_varname)) {
+            if (ot->issurface || !ncu_is3d(ot->offset_fname, ot->offset_varname)) {
                 float** v = NULL;
                 int nx, ny;
 
                 model_getvargridsize(m, vid, &nx, &ny, NULL);
                 v = alloc2d(ny, nx, sizeof(float));
-                readfield(ot->offset_fname, ot->offset_varname, 0, nx, ny, 1, v[0]);
+                ncu_readfield(ot->offset_fname, ot->offset_varname, 0, nx, ny, 1, v[0]);
                 model_adddata(m, tag, vid, ALLOCTYPE_2D, v);
             } else {
                 float*** v = NULL;
@@ -540,7 +541,7 @@ void obstypes_set(int n, obstype* types, model* m)
 
                 model_getvargridsize(m, vid, &nx, &ny, &nz);
                 v = alloc3d(nz, ny, nx, sizeof(float));
-                read3dfield(ot->offset_fname, ot->offset_varname, nx, ny, nz, v[0][0]);
+                ncu_read3dfield(ot->offset_fname, ot->offset_varname, nx, ny, nz, v[0][0]);
                 model_adddata(m, tag, vid, ALLOCTYPE_3D, v);
             }
         }

@@ -24,6 +24,7 @@
 #include "kdtree.h"
 #include "definitions.h"
 #include "utils.h"
+#include "ncutils.h"
 #include "obsprm.h"
 #include "grid.h"
 #include "model.h"
@@ -291,7 +292,7 @@ void obs_add(observations* obs, model* m, obsmeta* meta)
                 if (ot->issurface) {
                     float** v = alloc2d(nj, ni, sizeof(float));
 
-                    readfield(fname, estd->varname, 0, ni, nj, nk, v[0]);
+                    ncu_readfield(fname, estd->varname, 0, ni, nj, nk, v[0]);
                     for (o = nobs0; o < obs->nobs; ++o) {
                         observation* oo = &obs->data[o];
                         float vv;
@@ -318,7 +319,7 @@ void obs_add(observations* obs, model* m, obsmeta* meta)
                     float*** v = alloc3d(nk, nj, ni, sizeof(float));
                     int ksurf = grid_getsurflayerid(g);
 
-                    read3dfield(fname, estd->varname, ni, nj, nk, v[0][0]);
+                    ncu_read3dfield(fname, estd->varname, ni, nj, nk, v[0][0]);
                     for (o = nobs0; o < obs->nobs; ++o) {
                         observation* oo = &obs->data[o];
                         float vv;

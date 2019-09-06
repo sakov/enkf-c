@@ -41,6 +41,7 @@ common/stringtable.c\
 common/version.c\
 common/global.c\
 common/utils.c\
+common/ncutils.c\
 common/enkfprm.c\
 common/grid.c\
 common/gridprm.c\
@@ -52,6 +53,7 @@ common/stringtable.h\
 common/version.h\
 common/definitions.h\
 common/utils.h\
+common/ncutils.h\
 common/enkfprm.h\
 common/grid.h\
 common/gridprm.h\
