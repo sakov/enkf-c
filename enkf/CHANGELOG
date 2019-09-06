@@ -1,3 +1,6 @@
+v. 1.101.3
+   PS 06092019
+   -- Added <stdarg.h> to ncutils.c.
 v. 1.101.2
    PS 06092019
    -- Renamed read_ncvardouble() to ncu_readvardouble(), read_ncvarfloat() to
