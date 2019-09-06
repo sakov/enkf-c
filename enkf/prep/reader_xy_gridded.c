@@ -66,6 +66,7 @@
 #include <math.h>
 #include <assert.h>
 #include "ncw.h"
+#include "ncutils.h"
 #include "definitions.h"
 #include "utils.h"
 #include "obsprm.h"
@@ -248,23 +249,23 @@ void reader_xy_gridded(char* fname, int fid, obsmeta* meta, grid* g, observation
      */
     if (iscurv == 0) {
         lon = malloc(ni * sizeof(double));
-        read_ncvardouble(ncid, varid_lon, ni, lon);
+        ncu_readvardouble(ncid, varid_lon, ni, lon);
 
         lat = malloc(nj * sizeof(double));
-        read_ncvardouble(ncid, varid_lat, nj, lat);
+        ncu_readvardouble(ncid, varid_lat, nj, lat);
     } else {
         lon = malloc(nij * sizeof(double));
-        read_ncvardouble(ncid, varid_lon, nij, lon);
+        ncu_readvardouble(ncid, varid_lon, nij, lon);
 
         lat = malloc(nij * sizeof(double));
-        read_ncvardouble(ncid, varid_lat, nij, lat);
+        ncu_readvardouble(ncid, varid_lat, nij, lat);
     }
 
     /*
      * main variable
      */
     var = malloc(nij * sizeof(float));
-    read_ncvarfloat(ncid, varid_var, nij, var);
+    ncu_readvarfloat(ncid, varid_var, nij, var);
 
     /*
      * npoints
@@ -287,7 +288,7 @@ void reader_xy_gridded(char* fname, int fid, obsmeta* meta, grid* g, observation
         ncw_inq_varid(ncid, "std", &varid_std);
     if (varid_std >= 0) {
         std = malloc(nij * sizeof(float));
-        read_ncvarfloat(ncid, varid_std, nij, std);
+        ncu_readvarfloat(ncid, varid_std, nij, std);
     }
 
     /*
@@ -299,7 +300,7 @@ void reader_xy_gridded(char* fname, int fid, obsmeta* meta, grid* g, observation
         ncw_inq_varid(ncid, "error_std", &varid_estd);
     if (varid_estd >= 0) {
         estd = malloc(nij * sizeof(float));
-        read_ncvarfloat(ncid, varid_estd, nij, estd);
+        ncu_readvarfloat(ncid, varid_estd, nij, estd);
     }
 
     if (std == NULL && estd == NULL) {
@@ -347,7 +348,7 @@ void reader_xy_gridded(char* fname, int fid, obsmeta* meta, grid* g, observation
             time = malloc(nij * sizeof(float));
         }
 
-        read_ncvarfloat(ncid, varid_time, timelen, time);
+        ncu_readvarfloat(ncid, varid_time, timelen, time);
         ncw_get_att_text(ncid, varid_time, "units", tunits);
         tunits_convert(tunits, &tunits_multiple, &tunits_offset);
     }

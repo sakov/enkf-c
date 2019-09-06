@@ -1,3 +1,7 @@
+v. 1.101.2
+   PS 06092019
+   -- Renamed read_ncvardouble() to ncu_readvardouble(), read_ncvarfloat() to
+      ncu_readvarfloat(), and moved from prep_utils.[ch] to ncutils.[ch].
 v. 1.101.1
    PS 06092019
    -- Moved NetCDF procedures from utils.[ch] to ncutils.[ch].

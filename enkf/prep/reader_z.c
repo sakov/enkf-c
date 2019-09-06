@@ -63,6 +63,7 @@
 #include <math.h>
 #include <assert.h>
 #include "ncw.h"
+#include "ncutils.h"
 #include "definitions.h"
 #include "utils.h"
 #include "obsprm.h"
@@ -175,7 +176,7 @@ void reader_z(char* fname, int fid, obsmeta* meta, grid* g, observations* obs)
      * main variable
      */
     var = malloc(nobs * sizeof(double));
-    read_ncvardouble(ncid, varid, nobs, var);
+    ncu_readvardouble(ncid, varid, nobs, var);
 
     /*
      * lon/lat
@@ -209,7 +210,7 @@ void reader_z(char* fname, int fid, obsmeta* meta, grid* g, observations* obs)
         enkf_quit("reader_z(): %s: could not find Z variable", fname);
     ncw_check_varsize(ncid, varid, nobs);
     z = malloc(nobs * sizeof(double));
-    read_ncvardouble(ncid, varid, nobs, z);
+    ncu_readvardouble(ncid, varid, nobs, z);
 
     /*
      * estd
@@ -221,7 +222,7 @@ void reader_z(char* fname, int fid, obsmeta* meta, grid* g, observations* obs)
         ncw_inq_varid(ncid, "error_std", &varid);
     if (varid >= 0) {
         estd = malloc(nobs * sizeof(double));
-        read_ncvardouble(ncid, varid, nobs, estd);
+        ncu_readvardouble(ncid, varid, nobs, estd);
     }
 
     if (estd == NULL) {
@@ -269,7 +270,7 @@ void reader_z(char* fname, int fid, obsmeta* meta, grid* g, observations* obs)
             time = malloc(nobs * sizeof(double));
         }
 
-        read_ncvardouble(ncid, varid, timelen, time);
+        ncu_readvardouble(ncid, varid, timelen, time);
         ncw_get_att_text(ncid, varid, "units", tunits);
         tunits_convert(tunits, &tunits_multiple, &tunits_offset);
     }

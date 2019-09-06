@@ -59,6 +59,7 @@
 #include <math.h>
 #include <assert.h>
 #include "ncw.h"
+#include "ncutils.h"
 #include "definitions.h"
 #include "utils.h"
 #include "obsprm.h"
@@ -185,7 +186,7 @@ void reader_xy_scattered(char* fname, int fid, obsmeta* meta, grid* g, observati
     ncw_inq_varid(ncid, varname, &varid);
     ncw_inq_vardims(ncid, varid, 1, NULL, &nobs);
     var = malloc(nobs * sizeof(double));
-    read_ncvardouble(ncid, varid, nobs, var);
+    ncu_readvardouble(ncid, varid, nobs, var);
 
     /*
      * add variables
@@ -195,7 +196,7 @@ void reader_xy_scattered(char* fname, int fid, obsmeta* meta, grid* g, observati
 
         ncw_inq_varid(ncid, a->name, &varid);
         a->v = malloc(nobs * sizeof(double));
-        read_ncvardouble(ncid, varid, nobs, a->v);
+        ncu_readvardouble(ncid, varid, nobs, a->v);
     }
 
     /*
@@ -209,7 +210,7 @@ void reader_xy_scattered(char* fname, int fid, obsmeta* meta, grid* g, observati
     } else
         enkf_quit("reader_xy_scattered(): %s: could not find longitude variable", fname);
     lon = malloc(nobs * sizeof(double));
-    read_ncvardouble(ncid, varid, nobs, lon);
+    ncu_readvardouble(ncid, varid, nobs, lon);
 
     /*
      * latitude
@@ -222,7 +223,7 @@ void reader_xy_scattered(char* fname, int fid, obsmeta* meta, grid* g, observati
     } else
         enkf_quit("reader_xy_scattered(): %s: could not find latitude variable", fname);
     lat = malloc(nobs * sizeof(double));
-    read_ncvardouble(ncid, varid, nobs, lat);
+    ncu_readvardouble(ncid, varid, nobs, lat);
 
     /*
      * std
@@ -235,7 +236,7 @@ void reader_xy_scattered(char* fname, int fid, obsmeta* meta, grid* g, observati
     if (varid >= 0) {
         ncw_check_vardims(ncid, varid, 1, &nobs);
         std = malloc(nobs * sizeof(double));
-        read_ncvardouble(ncid, varid, nobs, std);
+        ncu_readvardouble(ncid, varid, nobs, std);
     }
 
     /*
@@ -249,7 +250,7 @@ void reader_xy_scattered(char* fname, int fid, obsmeta* meta, grid* g, observati
     if (varid >= 0) {
         ncw_check_vardims(ncid, varid, 1, &nobs);
         estd = malloc(nobs * sizeof(double));
-        read_ncvardouble(ncid, varid, nobs, estd);
+        ncu_readvardouble(ncid, varid, nobs, estd);
     }
 
     if (std == NULL && estd == NULL) {
@@ -299,7 +300,7 @@ void reader_xy_scattered(char* fname, int fid, obsmeta* meta, grid* g, observati
             time = malloc(nobs * sizeof(double));
         }
 
-        read_ncvardouble(ncid, varid, timelen, time);
+        ncu_readvardouble(ncid, varid, timelen, time);
         ncw_get_att_text(ncid, varid, "units", tunits);
         tunits_convert(tunits, &tunits_multiple, &tunits_offset);
     }

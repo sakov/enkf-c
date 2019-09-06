@@ -27,6 +27,7 @@
 #include <math.h>
 #include <assert.h>
 #include "ncw.h"
+#include "ncutils.h"
 #include "definitions.h"
 #include "utils.h"
 #include "obsprm.h"
@@ -140,28 +141,28 @@ void reader_viirs_standard(char* fname, int fid, obsmeta* meta, grid* g, observa
      */
     ncw_inq_varid(ncid, "lon", &varid_lon);
     ncw_inq_varid(ncid, "lat", &varid_lat);
-    read_ncvarfloat(ncid, varid_lon, (ndim == 1) ? n : ni, lon);
-    read_ncvarfloat(ncid, varid_lat, (ndim == 1) ? n : nj, lat);
+    ncu_readvarfloat(ncid, varid_lon, (ndim == 1) ? n : ni, lon);
+    ncu_readvarfloat(ncid, varid_lat, (ndim == 1) ? n : nj, lat);
 
     /*
      * sst
      */
     sst = malloc(n * sizeof(float));
-    read_ncvarfloat(ncid, varid_sst, n, sst);
+    ncu_readvarfloat(ncid, varid_sst, n, sst);
 
     /*
      * std
      */
     ncw_inq_varid(ncid, "std", &varid_std);
     std = malloc(n * sizeof(float));
-    read_ncvarfloat(ncid, varid_std, n, std);
+    ncu_readvarfloat(ncid, varid_std, n, std);
 
     /*
      * error_std
      */
     ncw_inq_varid(ncid, "error_std", &varid_estd);
     estd = malloc(n * sizeof(float));
-    read_ncvarfloat(ncid, varid_estd, n, estd);
+    ncu_readvarfloat(ncid, varid_estd, n, estd);
 
     /*
      * npoints
@@ -178,7 +179,7 @@ void reader_viirs_standard(char* fname, int fid, obsmeta* meta, grid* g, observa
 
     ncw_inq_varid(ncid, "time", &varid_time);
     time = malloc(n * sizeof(double));
-    read_ncvardouble(ncid, varid_time, n, time);
+    ncu_readvardouble(ncid, varid_time, n, time);
     ncw_get_att_text(ncid, varid_time, "units", tunits);
 
     ncw_close(ncid);

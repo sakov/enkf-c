@@ -67,6 +67,7 @@
 #include <math.h>
 #include <assert.h>
 #include "ncw.h"
+#include "ncutils.h"
 #include "definitions.h"
 #include "utils.h"
 #include "obsprm.h"
@@ -266,16 +267,16 @@ void reader_xyz_gridded(char* fname, int fid, obsmeta* meta, grid* g, observatio
      */
     if (iscurv == 0) {
         lon = malloc(ni * sizeof(double));
-        read_ncvardouble(ncid, varid_lon, ni, lon);
+        ncu_readvardouble(ncid, varid_lon, ni, lon);
 
         lat = malloc(nj * sizeof(double));
-        read_ncvardouble(ncid, varid_lat, nj, lat);
+        ncu_readvardouble(ncid, varid_lat, nj, lat);
     } else {
         lon = malloc(nij * sizeof(double));
-        read_ncvardouble(ncid, varid_lon, nij, lon);
+        ncu_readvardouble(ncid, varid_lon, nij, lon);
 
         lat = malloc(nij * sizeof(double));
-        read_ncvardouble(ncid, varid_lat, nij, lat);
+        ncu_readvardouble(ncid, varid_lat, nij, lat);
     }
 
     /*
@@ -283,17 +284,17 @@ void reader_xyz_gridded(char* fname, int fid, obsmeta* meta, grid* g, observatio
      */
     if (zndim == 1) {
         z = malloc(nk * sizeof(float));
-        read_ncvarfloat(ncid, varid_z, nk, z);
+        ncu_readvarfloat(ncid, varid_z, nk, z);
     } else if (zndim == 3) {
         z = malloc(nijk * sizeof(float));
-        read_ncvarfloat(ncid, varid_z, nijk, z);
+        ncu_readvarfloat(ncid, varid_z, nijk, z);
     }
 
     /*
      * main variable
      */
     var = malloc(nijk * sizeof(float));
-    read_ncvarfloat(ncid, varid_var, nijk, var);
+    ncu_readvarfloat(ncid, varid_var, nijk, var);
 
     /*
      * npoints
@@ -316,7 +317,7 @@ void reader_xyz_gridded(char* fname, int fid, obsmeta* meta, grid* g, observatio
         ncw_inq_varid(ncid, "std", &varid_std);
     if (varid_std >= 0) {
         std = malloc(nijk * sizeof(float));
-        read_ncvarfloat(ncid, varid_std, nijk, std);
+        ncu_readvarfloat(ncid, varid_std, nijk, std);
     }
 
     /*
@@ -328,7 +329,7 @@ void reader_xyz_gridded(char* fname, int fid, obsmeta* meta, grid* g, observatio
         ncw_inq_varid(ncid, "error_std", &varid_estd);
     if (varid_estd >= 0) {
         estd = malloc(nijk * sizeof(float));
-        read_ncvarfloat(ncid, varid_estd, nijk, estd);
+        ncu_readvarfloat(ncid, varid_estd, nijk, estd);
     }
 
     if (std == NULL && estd == NULL) {
@@ -376,7 +377,7 @@ void reader_xyz_gridded(char* fname, int fid, obsmeta* meta, grid* g, observatio
             time = malloc(nijk * sizeof(float));
         }
 
-        read_ncvarfloat(ncid, varid_time, timelen, time);
+        ncu_readvarfloat(ncid, varid_time, timelen, time);
         ncw_get_att_text(ncid, varid_time, "units", tunits);
         tunits_convert(tunits, &tunits_multiple, &tunits_offset);
     }
