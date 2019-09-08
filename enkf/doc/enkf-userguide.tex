@@ -36,7 +36,7 @@
 
 \begin{document}
 
-\title{EnKF-C user guide\\{\normalsize version 1.98.18}}
+\title{EnKF-C user guide\\{\normalsize version 1.101.3}}
 
 \author{Pavel Sakov}
 \date{June 19, 2014 -- \today}
@@ -870,26 +870,26 @@ The optional parameters include the R-factor and localisation radius for the typ
     ISSURFACE   = {0 | 1}
   [ STATSONLY   = {0* | 1} ]
     VAR         = <model variable name> ...
-  [ ALIAS       = <variable name used in file names> ]  (VAR*)
-  [ OFFSET      = <file name> <variable name> ]         (none*)
-  [ MLD_VARNAME = <model varname> ]                     (none*)
-  [ MLD_THRESH  = <threshold> ]                         (NaN*)
-  [ HFUNCTION   = <H function name> ]                   (standard*)
-  [ ASYNC       = <time interval> [c*|e]]               (0*)
+  [ ALIAS       = <variable name used in file names> ]   (VAR*)
+  [ OFFSET      = <file name> <variable name> ]          (none*)
+  [ MLD_VARNAME = <model varname> ]                      (none*)
+  [ MLD_THRESH  = <threshold> ]                          (NaN*)
+  [ HFUNCTION   = <H function name> ]                    (standard*)
+  [ ASYNC       = <time interval> [c*|e [time varname]]] (0*)
   [ LOCRAD      = <loc. radius in km> ... ]
-  [ LOCWEIGHT   = <loc. weight> ... ]                   (# LOCRAD > 1)
-  [ RFACTOR     = <rfactor> ]                           (1*)
-  [ NLOBSMAX    = <max. allowed number of local obs.> ] (inf*)
-  [ ERROR_STD_MIN = <min. allowed superob error> ]      (0*)
-  [ SOBSTRIDE   = <stride for superobing>               (1*)
-  [ MINVALUE    = <minimal allowed value> ]             (-inf*)
-  [ MAXVALUE    = <maximal allowed value> ]             (+inf*)
-  [ XMIN        = <minimal allowed X coordinate> ]      (-inf*)
-  [ XMAX        = <maximal allowed X coordinate> ]      (+inf*)
-  [ YMIN        = <minimal allowed Y coordinate> ]      (-inf*)
-  [ YMAX        = <maximal allowed Y coordinate> ]      (+inf*)
-  [ ZMIN        = <minimal allowed Z coordinate> ]      (-inf*)
-  [ ZMAX        = <maximal allowed Z coordinate> ]      (+inf*)
+  [ LOCWEIGHT   = <loc. weight> ... ]                    (# LOCRAD > 1)
+  [ RFACTOR     = <rfactor> ]                            (1*)
+  [ NLOBSMAX    = <max. allowed number of local obs.> ]  (inf*)
+  [ ERROR_STD_MIN = <min. allowed superob error> ]       (0*)
+  [ SOBSTRIDE   = <stride for superobing> ]              (1*)
+  [ MINVALUE    = <minimal allowed value> ]              (-inf*)
+  [ MAXVALUE    = <maximal allowed value> ]              (+inf*)
+  [ XMIN        = <minimal allowed X coordinate> ]       (-inf*)
+  [ XMAX        = <maximal allowed X coordinate> ]       (+inf*)
+  [ YMIN        = <minimal allowed Y coordinate> ]       (-inf*)
+  [ YMAX        = <maximal allowed Y coordinate> ]       (+inf*)
+  [ ZMIN        = <minimal allowed Z coordinate> ]       (-inf*)
+  [ ZMAX        = <maximal allowed Z coordinate> ]       (+inf*)
   [ WINDOWMIN   = <start of obs window in days from analysis> ] (-inf*)
   [ WINDOWMAX   = <end of obs window in days from analysis> ]   (+inf*)
 
@@ -1170,7 +1170,7 @@ ASYNC = 1 e
 \end{Verbatim}
 The interval 0 will then be from day 6085.5 to day 6086.5.
 
-The model states for each asynchronous interval are read from files with names \spverb|mem<xxx>_<variable name>_<time shift>.nc| in the ensemble directory (for the EnKF) or \spverb|bg_<variable name>_<time shift>.nc| in the background directory (for the EnOI).
+The model dumps for each asynchronous interval are read from files with names \spverb|mem<xxx>_<variable name>_<time shift>.nc| in the ensemble directory (for the EnKF) or \spverb|bg_<variable name>_<time shift>.nc| in the background directory (for the EnOI).
 Here ``time shift'' is the interval ID (with the interval 0 being centred/starting at the observation time).
 If the corresponding members (or the background files, in the case of EnOI) are found, the observations are assimilated asynchronously; if they are not found, then the observations are assimilated synchronously.
 This can be tracked from the CALC log file, e.g.:
@@ -1191,7 +1191,6 @@ These entries would be replaced by ``s'' if the observations were assimilated sy
 The vertical lines indicate the time slots for asynchronous DA; in the above example the DAW has 5 time slots.
 The entries ``.'' indicate calculating ensemble observations for synchronous observations.
 Note that only the master process is writing to the log here, which explains why there is only output from 6 members in the log above.
-For EnOI there also will be ``+'' at the end of the line for each observation type indicating reading of the corresponding background field.
 
 Fig.~\ref{fig:mom_timing} shows an example of observation timing in a MOM based ocean forecasting system with a 3-day assimilation cycle.
 In this system the ``fast'' SST data is assimilated asynchronously with 6\,h intervals using model fields averaged over these intervals; the slower SLA data is assimilated asynchronously with 24\,h intervals using daily model dumps; and in-situ T and S fields are assimilated synchronously.
@@ -1222,6 +1221,22 @@ ISSURFACE = no
   \caption{Example of observation timing in a MOM based ocean forecasting system.}
   \label{fig:mom_timing}
 \end{figure}
+
+From version 1.101.0 the code can check whether the time of the model dump used to calculate forecast observations matches the time of the (centre of the) corresponding observation window.
+To activate this check, one needs to add the name of the time variable in the model dump after the timing qualifier ``c'' or ``e''.
+For the example above the first two sections of the observation types parameter file would the look as follows:
+\begin{Verbatim}[frame=single,fontsize=\footnotesize]
+NAME = SLA
+VAR = eta_t
+ISSURFACE = yes
+ASYNCHRONOUS 1 C Time
+<...>
+NAME = SST
+VAR = temp sstb
+ISSURFACE = yes
+ASYNCHRONOUS 0.25 E Time
+<...>
+\end{Verbatim}
 
 \section{CALC}
 

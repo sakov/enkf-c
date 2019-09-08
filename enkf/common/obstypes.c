@@ -475,7 +475,7 @@ void obstypes_describeprm(void)
     enkf_printf("  [ MLD_VARNAME = <model varname> ]                      (none*)\n");
     enkf_printf("  [ MLD_THRESH  = <threshold> ]                          (NaN*)\n");
     enkf_printf("  [ HFUNCTION   = <H function name> ]                    (standard*)\n");
-    enkf_printf("  [ ASYNC       = <time interval> [c*|e] [time varname]] (0*)\n");
+    enkf_printf("  [ ASYNC       = <time interval> [c*|e [time varname]]] (0*)\n");
     enkf_printf("  [ LOCRAD      = <loc. radius in km> ... ]\n");
     enkf_printf("  [ LOCWEIGHT   = <loc. weight> ... ]                    (# LOCRAD > 1)\n");
     enkf_printf("  [ RFACTOR     = <rfactor> ]                            (1*)\n");
