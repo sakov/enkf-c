@@ -1,6 +1,6 @@
 /******************************************************************************
  *
- * File:        stringtable.c           strinftable.c
+ * File:           stringtable.c
  *
  * Created:        27/09/2002
  *
@@ -238,7 +238,7 @@ int st_findindexbystring(stringtable* st, char* s)
 
         {
             stringentry* se = &tmp;
-            stringentry** ans = (stringentry **) bsearch(&se, st->se, st->n, sizeof(void*), cmpse);
+            stringentry** ans = bsearch(&se, st->se, st->n, sizeof(void*), cmpse);
 
             if (ans != NULL) {
                 index = (*ans)->index;
