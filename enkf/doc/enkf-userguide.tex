@@ -827,7 +827,7 @@ Because only PREP requires mapping from physical to grid space, this auxiliary g
 To specify that a grid entry is to be used in PREP only one needs to add qualifier ``PREP'' after its name; and to specify that it is to be used in CALC and UPDATE one needs to add qualifier ``CALC''.
 See \verb|examples/3| for an example.
 
-From version 1.37.0 such grids can also be handled by using grid mapping via K-d tree instead of the default mapping via spatial binary tree, which is now available from package gridutils-c.
+From version 1.37.0 such grids can also be handled by using grid mapping via K-D tree instead of the default mapping via spatial binary tree, which is now available from package gridutils-c.
 This is done by setting parameter \verb|MAPTYPE| to ``k''.
 
 \subsubsection{Vertical grids}
@@ -1750,7 +1750,7 @@ Following is a brief description of the compiler flags in EnKF-C.
   Not verified to make a difference in boundary (OOM) situations.
   Probably does not make much sense to be used with the ETKF, as it makes a number of additional allocations.
 \item{\verb|OBS_SHUFFLE|} (\verb|enkf_calc|)
-  Randomly shuffles observations before parsing them into K-d trees.
+  Randomly shuffles observations before parsing them into K-D trees.
   Potentially this can substantially improve performance in the case of spatially ordered observations (not verified).
 \item{\verb|NCW_SKIPSINGLE|} (\verb|enkf_update|)
   Skips ``normal'' (not unlimited) ``inner'' dimensions of length one when copying definitions of variables from one NetCDF file to another.
@@ -1760,7 +1760,7 @@ Following is a brief description of the compiler flags in EnKF-C.
 
 To reduce the memory footprint, most of the potentially large arrays in EnKF-C use \verb|float| data type.
 
-The following table lists the most important objects in terms of memory usage.
+The following table lists the most memory-wise important objects.
 
 {
   \renewcommand{\arraystretch}{1.2}
@@ -1774,7 +1774,7 @@ The following table lists the most important objects in terms of memory usage.
     one horizontal field & 2\,GB & & & \textbullet\\
     transform array (I/O, EnKF only) & 24\,GB$^2$ & & & \textbullet\\
     single grid: binary tree & 2.7\,GB & \textbullet & \textbullet &\\ 
-    single grid: KD tree & 0.4\,GB & \textbullet & \textbullet &\\ 
+    single grid: K-D tree & 0.4\,GB & \textbullet & \textbullet &\\ 
     \hline
   \end{tabular}\\[1mm]
   {\scriptsize$^{(1)}$\,for EnKF/OFAM3 system ($3600 \times 1500 \times 51$ grid, 96 members, $5\cdot 10^7$ observations, $1.3 \cdot 10^7$ super-observations)}\\
@@ -1782,7 +1782,7 @@ The following table lists the most important objects in terms of memory usage.
 }
 
 The memory footprint of PREP is defined by the size of the \verb|observation| structure array and, in some cases, by curvilinear grids.
-The memory usage by curvilinear grids can be much reduced by parsing them into KD trees rather than into binary trees (which is the default option).
+The memory usage by curvilinear grids can be much reduced by parsing them into K-D trees rather than into binary trees (which is the default option).
 Because PREP is not parallelised (mainly due to lack of robust parallel analog of \verb|qsort| procedure), in practice its memory footprint is rarely a problem.
 
 The footprint of CALC is mainly defined by the size of ensemble observations $\mathcal H(\mb E)$.
@@ -1828,7 +1828,7 @@ Add compile flag \verb|-DNO_GRIDUTILS| to compile without it.
 
 This is due to the increased number of local observations.
 
-The local observations are sought by using so called k-d tree.
+The local observations are sought by using so called K-D tree.
 Normally it works well, but can become a bottleneck when the number of local observations becomes very large.
 If this happens, one may use a coarser superobing to reduce the number of assimilated observations, by increasing parameter \verb|SOBSTRIDE| from the default value of 1 to 2 or more.
 
