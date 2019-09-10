@@ -443,7 +443,7 @@ Assuming that $\mb K \mb H$ is small in some sense, one can approximate solution
   \label{denkf}
   \mb T_L = \mb I - \frac{1}{2} \mb K \mb H.
 \end{align}
-This approximation is known as the deterministic Kalman filter, or DEnKF \citep{sak08a}.
+This approximation is known as the deterministic ensemble Kalman filter, or DEnKF \citep{sak08a}.
 It has a simple interpretation of using half of the Kalman gain for updating the ensemble anomalies; but apart from that the DEnKF often represents a good practical choice due to its algorithmic convenience and good performance in suboptimal situations.
 The DEnKF is the default scheme in EnKF-C.
 
@@ -610,7 +610,7 @@ Generally, dynamical processes include a variety of barotropic and baroclinic co
 On the other hand, with an ensemble size of about 100, normally one can ignore the problem of spurious vertical correlations and leave the system to deal with the vertical covariances on its own.
 
 With the system using horizontal localisation only the model state effectively becomes a collection of independent horizontal fields updated based on their correlations with local observations.
-The assimilation is conducted by calculating a common horizontal field of local ensemble transforms and applying them to each horizontal field of the model.
+The assimilation is conducted by calculating a common horizontal array of local ensemble transforms and applying them to each horizontal field of the model.
 
 Another important design decision is the parallel assimilation of local observations.
 Because calculation of the ensemble transforms can be conducted in ensemble space (see sec.~\ref{sec:numerical}), this results in simple, efficient, scalable and robust algorithms.
@@ -625,14 +625,14 @@ It has the following stages:
 \item read original observations and convert them into a vector of structure \verb|observation|;
 \item write these observations to file \verb|observations-orig.nc|;
 \item collate them into superobservations;
-\item write super observations to \verb|observations.nc|.
+\item write superobservations to \verb|observations.nc|.
 \end{itemize}
 
 CALC calculates ensemble transforms for updating the forecast ensemble of model states (EnKF) or the background model state (EnOI) in the following stages:
 \begin{itemize}
-\item read observations from \verb|observations.nc|;
+\item read superobservations from \verb|observations.nc|;
 \item calculate ensemble of forecast observations $\mb H \mb E^f$ (EnKF) or ensemble of background observation anomalies $\mb H \mb A^f$ and background observations $\mb H \mb x^f$ (EnOI);
-\item for each horizontal grid cell calculate local ensemble transforms $\mb X_5$ (EnKF) or background update coefficients $\mb w$ (EnOI);
+\item for nodes with specified stride on each horizontal get local observations and grid calculate local ensemble transforms $\mb X_5$ (EnKF) or local background update coefficients $\mb w$ (EnOI);
 \item save these transforms to \verb|X5.nc| (EnKF) or \verb|w.nc| (EnOI);
 \item calculate and report forecast and analysis innovation statistics;
 \item calculate observation impact metrics DFS and SRF (sec.~\ref{sec:impact}) and save them to \verb|enkf_diag.nc|;
@@ -640,8 +640,8 @@ CALC calculates ensemble transforms for updating the forecast ensemble of model 
 \end{itemize}
 Apart from this main mode of operation, CALC can also calculate forecast  innovations only or operate in a single observation experiment mode.
 
-UPDATE updates the ensemble (EnKF) or the background (EnOI) using transforms calculated by CALC.
-It also adds forecast and analysis variables to the pointlog files, and can calculate and save the ensemble spread.
+UPDATE updates the ensemble (EnKF) or the background (EnOI) using the transforms calculated by CALC and the specified inflation for each variable.
+It also adds forecast and analysis variables to the pointlog files, and can calculate and save the ensemble spread and vertical correlations.
 
 The principle diagram of EnKF-C workflow is shown in Fig.~\ref{fig:calcupdate}.
 \begin{figure}
@@ -1415,18 +1415,18 @@ Therefore, ideally, SRF should be small (below 1, on average).
 \subsection{Multiple model grids}
 
 EnKF-C permits using multiple model grids, in which case the ensemble transforms are calculated sequentially for each of the grids.
-These transforms are then used for updating of the model variables defined on the corresponding grids.
+These transforms are then used for updating the model variables defined on the corresponding grids.
 
 \subsection{Domains}
 \label{sec:domains}
 
-By default, all local observations at a given grid node contribute to the corresponding ensemble transform.
-Sometimes it is desirable to disconnect observations of certain type from contributing to transforms on some grids.
-For example, it may be desirable in climate systems to disregard observations of the sea surface height in updating the variables on atmospheric grids.
+By default, all local observations for a given grid node contribute to the corresponding ensemble transform.
+Sometimes it is desirable to disconnect observations of certain type from contributing to transforms on particular grids.
+For example, it may be desirable in climate systems to disregard observations of the sea surface height in updating the atmospheric variables.
 The concept of ``domains'' introduced in v1.89.0 provides a mechanism for handling such situations within a single analysis.
 It works as follows.
 Each grid can be associated with a certain domain via the optional entry \verb|DOMAIN| in the grid parameter file.
-For example, in a climate system one can have domains ``Ocean'' and ``Atmosphere''.
+For example, in a climate model one can have domains ``Ocean'' and ``Atmosphere''.
 Then entry \verb|DOMAINS| in the observation types parameter file can list domains observations of this type are visible from.
 By default, observations of any type are visible from all grids.
 
@@ -1519,11 +1519,11 @@ is equivalent to
 \begin{Verbatim}
 INFLATION = 1.06 1
 \end{Verbatim}
-Capping inflation by the magnitude of reduction of the ensemble spread is a default mode of application of inflation in EnKF-C; to revert to the uniform inflation add qualifier \verb|PLAIN| to the entry \verb|INFLATION| in the main parameter file, e.g.:
+Capping inflation by the magnitude of reduction of the ensemble spread is the default in EnKF-C; to revert to the uniform inflation add qualifier \verb|PLAIN| to the entry \verb|INFLATION| in the main parameter file, e.g.:
 \begin{Verbatim}
 INFLATION = 1.06 PLAIN
 \end{Verbatim}
-The common inflation settings in the main parmater file can be overwritten by settings for particular model variables specified in the model parameter file (sec.~\ref{sec:modelprm}).
+The common inflation settings in the main parameter file can be overwritten by settings for particular model variables specified in the model parameter file (sec.~\ref{sec:modelprm}).
 
 \section{DA tuning}
 \label{sec:datuning}
