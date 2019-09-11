@@ -1403,7 +1403,7 @@ void grid_describeprm(void)
     enkf_printf("    VTYPE            = { z | sigma | hybrid }\n");
     enkf_printf("  [ VDIR             = { fromsurf* | tosurf } ]\n");
 #if !defined(NO_GRIDUTILS)
-    enkf_printf("  [ MAPTYPE          = { binary* | kdtree } ]             (curvilinear grids)\n");
+    enkf_printf("  [ MAPTYPE          = { kdtree* | binary } ]             (curvilinear grids)\n");
 #endif
     enkf_printf("    DATA             = <data file name>\n");
     enkf_printf("    XVARNAME         = <X variable name>\n");

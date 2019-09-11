@@ -23,7 +23,7 @@
 #include "gridprm.h"
 #include "utils.h"
 
-#define MAPTYPE_DEF 'B'
+#define MAPTYPE_DEF 'K'
 #define NINC 10
 
 typedef struct {

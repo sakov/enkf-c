@@ -37,7 +37,7 @@
 
 \begin{document}
 
-\title{EnKF-C user guide\\{\normalsize version 1.101.3}}
+\title{EnKF-C user guide\\{\normalsize version 1.101.4}}
 
 \author{Pavel Sakov}
 \date{June 19, 2014 -- \today}
@@ -780,7 +780,7 @@ It also contains variable names for the depth and for number of layers in a vert
   [ DOMAIN           = <domain name> ]
     VTYPE            = { z | sigma | hybrid }
   [ VDIR             = { fromsurf* | tosurf } ]
-  [ MAPTYPE          = { binary* | kdtree } ]             (curvilinear grids)
+  [ MAPTYPE          = { kdtree* | binary } ]             (curvilinear grids)
     DATA             = <data file name>
     XVARNAME         = <X variable name>
     YVARNAME         = <Y variable name>
@@ -817,18 +817,19 @@ At the moment, EnKF-C supports 3 main types of horizontal grids:
 \begin{itemize}
 \item equidistant rectangular grids aligned with physical coordinates;
 \item non-equidistant rectangular grids aligned with physical coordinates;
-\item quadrilateral simply connected grids (via libgu).
+\item quadrilateral grids (via libgu).
 \end{itemize}
 For rectangular grids the code tries to determine and handle periodicity in X direction.
 
-With some effort EnKF-C can also handle non-simply connected grids (like tri-polar ORCA grids).
-This is achieved by creating an auxiliary grid that is simply connected in grid index space by masking some nodes (replacing their coordinates with NaNs) in the original grid.
+Horizontal grids are parsed either into K-D tree (default from v1.101.4) or into binary tree (default prior to v1.101.4).
+Parsing into K-D trees permits use of non-simply connected grids (like tri-polar ORCA grids) and is more memory efficient (see sec.~\ref{sec:memory}).
+Note that the code does not detect and therefore can not take advantage of periodic curvilinear grids; because of that, it does not map (skips) observations in cells connecting the grid edges.
+
+Handling non-simply connected grids with parsing into the binary tree requires a bit of effort.
+It involves creating an auxiliary grid that is simply connected in grid index space by masking some nodes (replacing their coordinates with NaNs) in the original grid.
 Because only PREP requires mapping from physical to grid space, this auxiliary grid is then used in PREP only, while the original grid is used in CALC and UPDATE.
 To specify that a grid entry is to be used in PREP only one needs to add qualifier ``PREP'' after its name; and to specify that it is to be used in CALC and UPDATE one needs to add qualifier ``CALC''.
 See \verb|examples/3| for an example.
-
-From version 1.37.0 such grids can also be handled by using grid mapping via K-D tree instead of the default mapping via spatial binary tree, which is now available from package gridutils-c.
-This is done by setting parameter \verb|MAPTYPE| to ``k''.
 
 \subsubsection{Vertical grids}
 
@@ -1757,6 +1758,7 @@ Following is a brief description of the compiler flags in EnKF-C.
 \end{description}
 
 \subsection{Memory footprint}
+\label{sec:memory}
 
 To reduce the memory footprint, most of the potentially large arrays in EnKF-C use \verb|float| data type.
 
@@ -1782,7 +1784,7 @@ The following table lists the most memory-wise important objects.
 }
 
 The memory footprint of PREP is defined by the size of the \verb|observation| structure array and, in some cases, by curvilinear grids.
-The memory usage by curvilinear grids can be much reduced by parsing them into K-D trees rather than into binary trees (which is the default option).
+The memory usage by curvilinear grids is much reduced by parsing them into K-D trees (default from v1.101.4) rather than into binary trees.
 Because PREP is not parallelised (mainly due to lack of robust parallel analog of \verb|qsort| procedure), in practice its memory footprint is rarely a problem.
 
 The footprint of CALC is mainly defined by the size of ensemble observations $\mathcal H(\mb E)$.

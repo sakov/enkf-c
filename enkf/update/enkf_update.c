@@ -45,7 +45,7 @@ static void usage()
     enkf_printf("  --leave-tiles\n");
     enkf_printf("      do not delete tiles\n");
     enkf_printf("  --no-fields-write\n");
-    enkf_printf("      do not write analysis fields (only point logs and/or spread)\n");
+    enkf_printf("      do not write analysis fields (only diagnostic data)\n");
     enkf_printf("  --output-increment\n");
     enkf_printf("      output analysis increment (default: output analysis)\n");
     enkf_printf("  --write-inflation\n");
