@@ -226,16 +226,6 @@ void enkf_printcompileflags(const char offset[])
 {
     enkf_printf("%scompile flags:\n", offset);
 #if defined(ENKF_CALC)
-#if defined(CHECK_X5)
-    enkf_printf("%s  CHECK_X5         = [+]\n", offset);
-#else
-    enkf_printf("%s  CHECK_X5         = [-]\n", offset);
-#endif
-#if defined(CHECK_G)
-    enkf_printf("%s  CHECK_G          = [+]\n", offset);
-#else
-    enkf_printf("%s  CHECK_G          = [-]\n", offset);
-#endif
 #if defined(SHUFFLE_ROWS)
     enkf_printf("%s  SHUFFLE_ROWS     = [+]\n", offset);
 #else

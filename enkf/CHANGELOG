@@ -1,3 +1,10 @@
+v. 1.102.0
+   PS 12092019
+   -- Changed (actually, corrected) the "moderation of spread reduction" (sec.
+      2.7.4 of the User Guide) for the ETKF, making it consistent with the
+      "relaxation to prior" technique by Zhang et al. 2004.
+   -- Reshuffled interfaces of a number of function in calcs.[ch].
+   -- Eliminated compile flags -DCHECK_G and -DCHECK_X5 (no need).
 v. 1.101.3
    PS 06092019
    -- Added <stdarg.h> to ncutils.c.

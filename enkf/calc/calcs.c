@@ -226,7 +226,7 @@ static int calc_M(int p, int m, int transpose, double** S, double** M)
  * @param D - output: S^-1/2
  * @return lapack_info from dgesvd_() (0 = success)
  */
-static int invsqrtm2(int m, double alpha, double** S, double** D)
+static int invsqrtm2(int m, double** S, double** D)
 {
     double** U = alloc2d(m, m, sizeof(double));
     double** Us1 = alloc2d(m, m, sizeof(double));
@@ -258,7 +258,7 @@ static int invsqrtm2(int m, double alpha, double** S, double** D)
         double* Us1i = Us1[i];
         double* Us2i = Us2[i];
         double si = sigmas[i];
-        double si_sqrt = sqrt(1.0 - alpha + alpha * sigmas[i]);
+        double si_sqrt = sqrt(si);
 
         for (j = 0; j < m; ++j) {
             Us1i[j] = Ui[j] / si;
@@ -279,7 +279,7 @@ static int invsqrtm2(int m, double alpha, double** S, double** D)
 
 /** Calculates G = inv(I + S' * S) * S' = S' * inv(I + S * S').
  */
-void calc_G_denkf(int m, int p, double** S, int i, int j, double** G)
+void calc_G(int m, int p, double** S, int i, int j, double** G)
 {
     double** M;
     double a = 1.0;
@@ -313,35 +313,37 @@ void calc_G_denkf(int m, int p, double** S, int i, int j, double** G)
         dgemm_(&noT, &doT, &m, &p, &m, &a, M[0], &m, S[0], &p, &b, G[0], &m);
     }
 
-#if defined(CHECK_G)
-    {
-        int e, o;
-
-        /*
-         * check that columns of G sum up to 0
-         */
-        for (o = 1; o < p; ++o) {
-            double* Go = G[o];
-            double sumG = 0.0;
-            double sumS = 0.0;
-
-            for (e = 0; e < m; ++e) {
-                sumG += Go[e];
-                sumS += S[e][o];
-            }
-
-            if (fabs(sumG) > EPS)
-                enkf_quit("inconsistency in G: column %d sums up to %.15f for (i, j) = (%d, %d); sum(S(%d,:) = %.15f)", o, sumG, i, j, o, sumS);
-        }
-    }
-#endif
-
     free(M);
+}
+
+/** Calculates X5 = G * s * 1' + T.
+ * G is [m x p]
+ * S is [p x m]
+ * s is [p]
+ * X5 is [m x m]
+ */
+void calc_T_denkf(int m, int p, double** G, double** S, double** T)
+{
+    double a, b;
+    int i;
+
+    /*
+     * T <- -1/2 * G * S 
+     */
+    a = -0.5;
+    b = 0.0;
+    dgemm_(&noT, &noT, &m, &m, &p, &a, G[0], &m, S[0], &p, &b, T[0], &m);
+
+    /*
+     * T = I - 1/2 * G * S
+     */
+    for (i = 0; i < m; ++i)
+        T[i][i] += 1.0;
 }
 
 /** Calculates G = inv(I + S' * S) * S' and T = (I + S' * S)^-1/2.
  */
-void calc_G_etkf(int m, int p, double** S, double alpha, int ii, int jj, double** G, double** T)
+void calc_GT_etkf(int m, int p, double** S, int ii, int jj, double** G, double** T)
 {
     double** M = alloc2d(m, m, sizeof(double));
     int lapack_info;
@@ -364,7 +366,7 @@ void calc_G_etkf(int m, int p, double** S, double alpha, int ii, int jj, double*
     for (i = 0; i < m; ++i)
         M[i][i] += 1.0;
 
-    lapack_info = invsqrtm2(m, alpha, M, T);    /* M = M^-1, T = M^-1/2 */
+    lapack_info = invsqrtm2(m, M, T);   /* M = M^-1, T = M^-1/2 */
     if (lapack_info != 0)
         enkf_quit("dgesvd(): lapack_info = %d at (i, j) = (%d, %d)", lapack_info, ii, jj);
 
@@ -373,129 +375,34 @@ void calc_G_etkf(int m, int p, double** S, double alpha, int ii, int jj, double*
      */
     dgemm_(&noT, &doT, &m, &p, &m, &a, M[0], &m, S[0], &p, &b, G[0], &m);
 
-#if defined(CHECK_G)
-    /*
-     * check that columns of G sum up to 0
-     */
-    {
-        int e, o;
-
-        for (o = 1; o < p; ++o) {
-            double* Go = G[o];
-            double sumG = 0.0;
-            double sumS = 0.0;
-
-            for (e = 0; e < m; ++e) {
-                sumG += Go[e];
-                sumS += S[e][o];
-            }
-
-            if (fabs(sumG) > EPS)
-                enkf_quit("inconsistency in G: column %d sums up to %.15f for (i, j) = (%d, %d); sum(S(%d,:) = %.15f)", o, sumG, ii, jj, o, sumS);
-        }
-    }
-#endif
-
     free(M);
 }
 
-/** Calculates X5 = G * s * 1' + T.
- * G is [m x p]
- * S is [p x m]
- * s is [p]
- * X5 is [m x m]
+/** Calculates X5 = w * 1' + I + alpha * (T - I).
+ * @param m - size
+ * @param alpha - relaxation parameter (0 <= alpha <= 1; 
+ *        alpha = 1 -- no relaxation, alpha = 0 -- no anomalies update)
+ * @param w[m] - weights
+ * @param X5[m][m] - input: T, output: X5
  */
-void calc_X5_denkf(int m, int p, double** G, double** S, double* s, double alpha, int ii, int jj, double** X5)
+void calc_X5(int m, double alpha, double* w, double** X5)
 {
-    double* w = calloc(m, sizeof(double));
-    double a, b;
     int i, j;
 
     /*
-     * w = G * s 
-     */
-    if (enkf_nomeanupdate == 0) /* "normal" way */
-        calc_w(m, p, G, s, w);
-
-    /*
-     * X5 = G * s * 1^T 
-     */
-    for (j = 0; j < m; ++j)
-        memcpy(X5[j], w, m * sizeof(double));
-
-    /*
-     * X5 = G * s * 1^T - 1/2 * alpha * G * S 
-     */
-    a = -0.5 * alpha;
-    b = 1.0;
-    dgemm_(&noT, &noT, &m, &m, &p, &a, G[0], &m, S[0], &p, &b, X5[0], &m);
-
-    /*
-     * X5 = G * s * 1^T - 1/2 * alpha * G * S + I 
-     */
-    for (i = 0; i < m; ++i)
-        X5[i][i] += 1.0;
-
-#if defined(CHECK_X5)
-    /*
-     * check that columns of X5 sum up to 1 
+     * X5 = w * 1^T + I + alpha * (T - I)
      */
     for (i = 0; i < m; ++i) {
         double* X5i = X5[i];
-        double sum = 0.0;
 
+        X5i[i] -= 1.0;
         for (j = 0; j < m; ++j)
-            sum += X5i[j];
-
-        if (fabs(sum - 1.0) > EPS)
-            enkf_quit("inconsistency in X5: column %d sums up to %.15f for (i, j) = (%d, %d)", i, sum, ii, jj);
-    }
-#endif
-
-    free(w);
-}
-
-/** Calculates X5 = G * s * 1' + T.
- * X5 = T on input
- */
-void calc_X5_etkf(int m, int p, double** G, double* s, int ii, int jj, double** X5)
-{
-    double* w = calloc(m, sizeof(double));
-    int i, j;
-
-    /*
-     * w = G * s 
-     */
-    if (enkf_nomeanupdate == 0) /* "normal" way */
-        calc_w(m, p, G, s, w);
-
-    /*
-     * X5 = G * s * 1^T + T
-     */
-    for (i = 0; i < m; ++i) {
-        double* X5i = X5[i];
+            X5i[j] *= alpha;
+        X5i[i] += 1.0;
 
         for (j = 0; j < m; ++j)
             X5i[j] += w[j];
     }
-
-#if defined(CHECK_X5)
-    /*
-     * check that columns of X5 sum up to 1 
-     */
-    for (i = 0; i < m; ++i) {
-        double* X5i = X5[i];
-        double sum = 0.0;
-
-        for (j = 0; j < m; ++j)
-            sum += X5i[j];
-
-        if (fabs(sum - 1.0) > EPS)
-            enkf_quit("inconsistency in X5: column %d sums up to %.15f for (i, j) = (%d, %d)", i, sum, ii, jj);
-    }
-#endif
-
-    free(w);
 }
 
 /** Calculates w = G * s.
@@ -506,5 +413,8 @@ void calc_w(int m, int p, double** G, double* s, double* w)
     int inc = 1;
     double b = 0.0;
 
+    /*
+     * (no need to initialize w because b = 0, and w <- a * G * s + b * w)
+     */
     dgemv_(&noT, &m, &p, &a, G[0], &m, s, &inc, &b, w, &inc);
 }

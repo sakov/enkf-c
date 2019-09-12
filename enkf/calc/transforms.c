@@ -224,6 +224,8 @@ static void prepare_transforms(size_t ploc, size_t m, double*** Sloc, double*** 
 void das_calctransforms(dasystem* das)
 {
     model* m = das->m;
+    int nmem = das->nmem;
+    double* w = malloc(nmem * sizeof(double));
     observations* obs = das->obs;
     int ngrid = model_getngrid(m);
     int gid;
@@ -263,7 +265,6 @@ void das_calctransforms(dasystem* das)
          * coeffs 
          */
         float** wj = NULL;
-        double* w = NULL;
 
         /*
          * stats 
@@ -308,16 +309,15 @@ void das_calctransforms(dasystem* das)
             das_getfname_X5(das, grid, fname);
 
             if (rank == 0)
-                nc_createX5(das, fname, gridname, nj, ni, stride, das->nmem, &ncid, &varid);
-            X5j = alloc2d(ni, das->nmem * das->nmem, sizeof(float));
-            X5 = alloc2d(das->nmem, das->nmem, sizeof(double));
+                nc_createX5(das, fname, gridname, nj, ni, stride, nmem, &ncid, &varid);
+            X5j = alloc2d(ni, nmem * nmem, sizeof(float));
+            X5 = alloc2d(nmem, nmem, sizeof(double));
         } else if (das->mode == MODE_ENOI) {
             das_getfname_w(das, grid, fname);
 
             if (rank == 0)
-                nc_createw(das, fname, gridname, nj, ni, stride, das->nmem, &ncid, &varid);
-            wj = alloc2d(ni, das->nmem, sizeof(float));
-            w = malloc(das->nmem * sizeof(double));
+                nc_createw(das, fname, gridname, nj, ni, stride, nmem, &ncid, &varid);
+            wj = alloc2d(ni, nmem, sizeof(float));
         } else
             enkf_quit("programming error");
 
@@ -423,20 +423,20 @@ void das_calctransforms(dasystem* das)
                  * set X5 = 0 
                  */
                 if (das->mode == MODE_ENKF)
-                    memset(X5[0], 0, das->nmem * das->nmem * sizeof(double));
+                    memset(X5[0], 0, nmem * nmem * sizeof(double));
                 else if (das->mode == MODE_ENOI)
-                    memset(w, 0, das->nmem * sizeof(double));
+                    memset(w, 0, nmem * sizeof(double));
 
                 if (ploc == 0) {
                     if (das->mode == MODE_ENKF) {
                         /*
                          * set X5 = I 
                          */
-                        memset(X5j[ii], 0, das->nmem * das->nmem * sizeof(float));
-                        for (e = 0; e < das->nmem; ++e)
-                            X5j[ii][e * das->nmem + e] = (float) 1.0;
+                        memset(X5j[ii], 0, nmem * nmem * sizeof(float));
+                        for (e = 0; e < nmem; ++e)
+                            X5j[ii][e * nmem + e] = (float) 1.0;
                     } else if (das->mode == MODE_ENOI)
-                        memset(wj[ii], 0, das->nmem * sizeof(float));
+                        memset(wj[ii], 0, nmem * sizeof(float));
 
                     nlobs[jjj][ii] = 0;
                     dfs[jjj][ii] = 0.0;
@@ -453,15 +453,15 @@ void das_calctransforms(dasystem* das)
                  * prepare_transforms() sets Sloc and G matrices while trying
                  * to minimise unnecessary memory allocations
                  */
-                prepare_transforms(ploc, das->nmem, &Sloc, &G);
+                prepare_transforms(ploc, nmem, &Sloc, &G);
 #else
-                Sloc = alloc2d(das->nmem, ploc, sizeof(double));
-                G = alloc2d(ploc, das->nmem, sizeof(double));
+                Sloc = alloc2d(nmem, ploc, sizeof(double));
+                G = alloc2d(ploc, nmem, sizeof(double));
 #endif
                 sloc = malloc(ploc * sizeof(double));
                 plobs = malloc(ploc * sizeof(int));
 
-                for (e = 0; e < das->nmem; ++e) {
+                for (e = 0; e < nmem; ++e) {
                     ENSOBSTYPE* Se = das->S[e];
                     double* Sloce = Sloc[e];
 
@@ -471,36 +471,35 @@ void das_calctransforms(dasystem* das)
                 for (o = 0; o < ploc; ++o)
                     sloc[o] = das->s_f[lobs[o]] * lcoeffs[o];
 
-                if (das->mode == MODE_ENOI || das->scheme == SCHEME_DENKF)
-                    calc_G_denkf(das->nmem, ploc, Sloc, i, j, G);
-                else if (das->scheme == SCHEME_ETKF)
-                    /*
-                     * (X5 is used for storing T)
-                     */
-                    calc_G_etkf(das->nmem, ploc, Sloc, das->alpha, i, j, G, X5);
+                /*
+                 * (X5 is used for storing T)
+                 */
+                if (das->mode == MODE_ENOI || das->scheme == SCHEME_DENKF) {
+                    calc_G(nmem, ploc, Sloc, i, j, G);
+                    if (das->mode == MODE_ENKF)
+                        calc_T_denkf(nmem, ploc, G, Sloc, X5);
+                } else if (das->scheme == SCHEME_ETKF)
+                    calc_GT_etkf(nmem, ploc, Sloc, i, j, G, X5);
+                else
+                    enkf_quit("programming error");
+
+                calc_w(nmem, ploc, G, sloc, w);
 
                 if (das->mode == MODE_ENKF) {
-                    if (das->scheme == SCHEME_DENKF)
-                        calc_X5_denkf(das->nmem, ploc, G, Sloc, sloc, das->alpha, i, j, X5);
-                    else if (das->scheme == SCHEME_ETKF)
-                        calc_X5_etkf(das->nmem, ploc, G, sloc, i, j, X5);
-                    else
-                        enkf_quit("programming error");
+                    calc_X5(nmem, das->alpha, w, X5);
                     /*
                      * convert X5 to float and store in X5j 
                      */
-                    for (e = 0; e < das->nmem * das->nmem; ++e)
+                    for (e = 0; e < nmem * nmem; ++e)
                         X5j[ii][e] = (float) X5[0][e];
                 } else if (das->mode == MODE_ENOI) {
-                    calc_w(das->nmem, ploc, G, sloc, w);
-
-                    for (e = 0; e < das->nmem; ++e)
+                    for (e = 0; e < nmem; ++e)
                         wj[ii][e] = (float) w[e];
                 }
 
                 nlobs[jjj][ii] = ploc;  /* (ploc > 0 here) */
-                dfs[jjj][ii] = traceprod(0, 0, ploc, das->nmem, G, Sloc);
-                srf[jjj][ii] = sqrt(traceprod(0, 1, das->nmem, ploc, Sloc, Sloc) / dfs[jjj][ii]) - 1.0;
+                dfs[jjj][ii] = traceprod(0, 0, ploc, nmem, G, Sloc);
+                srf[jjj][ii] = sqrt(traceprod(0, 1, nmem, ploc, Sloc, Sloc) / dfs[jjj][ii]) - 1.0;
                 for (ot = 0; ot < obs->nobstypes; ++ot) {
                     int p = 0;
 
@@ -521,13 +520,13 @@ void das_calctransforms(dasystem* das)
                         pG = malloc(p * sizeof(double*));
                         for (o = 0; o < p; ++o)
                             pG[o] = G[plobs[o]];
-                        pS = alloc2d(das->nmem, p, sizeof(double));
-                        for (e = 0; e < das->nmem; ++e)
+                        pS = alloc2d(nmem, p, sizeof(double));
+                        for (e = 0; e < nmem; ++e)
                             for (o = 0; o < p; ++o)
                                 pS[e][o] = Sloc[e][plobs[o]];
-                        pdfs[ot][jjj][ii] = traceprod(0, 0, p, das->nmem, pG, pS);
+                        pdfs[ot][jjj][ii] = traceprod(0, 0, p, nmem, pG, pS);
                         if (pdfs[ot][jjj][ii] > DFS_MIN)
-                            psrf[ot][jjj][ii] = sqrt(traceprod(0, 1, das->nmem, p, pS, pS) / pdfs[ot][jjj][ii]) - 1.0;
+                            psrf[ot][jjj][ii] = sqrt(traceprod(0, 1, nmem, p, pS, pS) / pdfs[ot][jjj][ii]) - 1.0;
                         else
                             psrf[ot][jjj][ii] = 0.0;
 
@@ -536,7 +535,7 @@ void das_calctransforms(dasystem* das)
                     }
                 }
 
-                if (ploc > das->nmem)
+                if (ploc > nmem)
                     stats.n_inv_ens++;
                 else
                     stats.n_inv_obs++;
@@ -555,7 +554,7 @@ void das_calctransforms(dasystem* das)
             if (das->mode == MODE_ENKF) {
                 if (rank > 0) {
                     if (my_number_of_iterations > 0) {
-                        int ierror = MPI_Send(X5j[0], ni * das->nmem * das->nmem, MPI_FLOAT, 0, jj, MPI_COMM_WORLD);
+                        int ierror = MPI_Send(X5j[0], ni * nmem * nmem, MPI_FLOAT, 0, jj, MPI_COMM_WORLD);
 
                         assert(ierror == MPI_SUCCESS);
                     }
@@ -565,7 +564,7 @@ void das_calctransforms(dasystem* das)
                     /*
                      * write own results 
                      */
-                    nc_writeX5(ncid, jpool[jj], ni, das->nmem, varid, X5j[0]);
+                    nc_writeX5(ncid, jpool[jj], ni, nmem, varid, X5j[0]);
                     /*
                      * collect and write results from slaves 
                      */
@@ -576,15 +575,15 @@ void das_calctransforms(dasystem* das)
                          * (recall that my_number_of_iterations <=
                          * number_of_iterations[0]) 
                          */
-                        ierror = MPI_Recv(X5j[0], ni * das->nmem * das->nmem, MPI_FLOAT, r, first_iteration[r] + jj, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+                        ierror = MPI_Recv(X5j[0], ni * nmem * nmem, MPI_FLOAT, r, first_iteration[r] + jj, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
                         assert(ierror == MPI_SUCCESS);
-                        nc_writeX5(ncid, jpool[first_iteration[r] + jj], ni, das->nmem, varid, X5j[0]);
+                        nc_writeX5(ncid, jpool[first_iteration[r] + jj], ni, nmem, varid, X5j[0]);
                     }
                 }
             } else if (das->mode == MODE_ENOI) {
                 if (rank > 0) {
                     if (my_number_of_iterations > 0) {
-                        int ierror = MPI_Send(wj[0], ni * das->nmem, MPI_FLOAT, 0, jj, MPI_COMM_WORLD);
+                        int ierror = MPI_Send(wj[0], ni * nmem, MPI_FLOAT, 0, jj, MPI_COMM_WORLD);
 
                         assert(ierror == MPI_SUCCESS);
                     }
@@ -594,7 +593,7 @@ void das_calctransforms(dasystem* das)
                     /*
                      * write own results 
                      */
-                    nc_writew(ncid, jpool[jj], ni, das->nmem, varid, wj[0]);
+                    nc_writew(ncid, jpool[jj], ni, nmem, varid, wj[0]);
                     /*
                      * collect and write results from slaves 
                      */
@@ -605,17 +604,17 @@ void das_calctransforms(dasystem* das)
                          * (recall that my_number_of_iterations <=
                          * number_of_iterations[0]) 
                          */
-                        ierror = MPI_Recv(wj[0], ni * das->nmem, MPI_FLOAT, r, first_iteration[r] + jj, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+                        ierror = MPI_Recv(wj[0], ni * nmem, MPI_FLOAT, r, first_iteration[r] + jj, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
                         assert(ierror == MPI_SUCCESS);
-                        nc_writew(ncid, jpool[first_iteration[r] + jj], ni, das->nmem, varid, wj[0]);
+                        nc_writew(ncid, jpool[first_iteration[r] + jj], ni, nmem, varid, wj[0]);
                     }
                 }
             }
 #else                           /* no MPI */
             if (das->mode == MODE_ENKF)
-                nc_writeX5(ncid, jpool[jj], ni, das->nmem, varid, X5j[0]);
+                nc_writeX5(ncid, jpool[jj], ni, nmem, varid, X5j[0]);
             else if (das->mode == MODE_ENKF)
-                nc_writew(ncid, jpool[jj], ni, das->nmem, varid, wj[0]);
+                nc_writew(ncid, jpool[jj], ni, nmem, varid, wj[0]);
 #endif                          /* if defined(MPI) */
         }                       /* for jj */
 
@@ -732,7 +731,6 @@ void das_calctransforms(dasystem* das)
             free(X5);
         } else if (das->mode == MODE_ENOI) {
             free(wj);
-            free(w);
         }
 #if defined(MPI)
         /*
@@ -802,6 +800,7 @@ void das_calctransforms(dasystem* das)
         ploc_allocated2 = 0;
     }
 #endif
+    free(w);
 }
 
 /** Calculates transforms for pointlogs. This is done separately from
@@ -812,18 +811,17 @@ void das_calctransforms(dasystem* das)
 void das_dopointlogs(dasystem* das)
 {
     model* m = das->m;
+    int nmem = das->nmem;
+    double* w = malloc(nmem * sizeof(double));
     observations* obs = das->obs;
     double** X5 = NULL;
-    double* w = NULL;
     int plogid, e, o, gid;
 
     if (das->s_mode == S_MODE_HA_f)
         das_standardise(das);
 
-    if (das->mode == MODE_ENKF) {
-        X5 = alloc2d(das->nmem, das->nmem, sizeof(double));
-    } else if (das->mode == MODE_ENOI)
-        w = malloc(das->nmem * sizeof(double));
+    if (das->mode == MODE_ENKF)
+        X5 = alloc2d(nmem, nmem, sizeof(double));
 
     for (plogid = 0; plogid < das->nplog; ++plogid) {
         pointlog* plog = &das->plogs[plogid];
@@ -877,20 +875,18 @@ void das_dopointlogs(dasystem* das)
 #endif
 
             if (X5 != NULL)
-                memset(X5[0], 0, das->nmem * das->nmem * sizeof(double));
-            if (w != NULL)
-                memset(w, 0, das->nmem * sizeof(double));
+                memset(X5[0], 0, nmem * nmem * sizeof(double));
 
             if (ploc == 0) {
                 if (das->mode == MODE_ENKF)
-                    for (e = 0; e < das->nmem; ++e)
+                    for (e = 0; e < nmem; ++e)
                         X5[e][e] = 1.0;
             } else {
-                Sloc = alloc2d(das->nmem, ploc, sizeof(double));
+                Sloc = alloc2d(nmem, ploc, sizeof(double));
                 sloc = malloc(ploc * sizeof(double));
-                G = alloc2d(ploc, das->nmem, sizeof(double));
+                G = alloc2d(ploc, nmem, sizeof(double));
 
-                for (e = 0; e < das->nmem; ++e) {
+                for (e = 0; e < nmem; ++e) {
                     ENSOBSTYPE* Se = das->S[e];
                     double* Sloce = Sloc[e];
 
@@ -900,21 +896,18 @@ void das_dopointlogs(dasystem* das)
                 for (o = 0; o < ploc; ++o)
                     sloc[o] = das->s_f[lobs[o]] * lcoeffs[o];
 
-                if (das->mode == MODE_ENOI || das->scheme == SCHEME_DENKF)
-                    calc_G_denkf(das->nmem, ploc, Sloc, i, j, G);
-                else if (das->scheme == SCHEME_ETKF)
-                    calc_G_etkf(das->nmem, ploc, Sloc, das->alpha, i, j, G, X5);
+                if (das->mode == MODE_ENOI || das->scheme == SCHEME_DENKF) {
+                    calc_G(nmem, ploc, Sloc, i, j, G);
+                    if (das->mode == MODE_ENKF)
+                        calc_T_denkf(nmem, ploc, G, Sloc, X5);
+                } else if (das->scheme == SCHEME_ETKF)
+                    calc_GT_etkf(nmem, ploc, Sloc, i, j, G, X5);
                 else
                     enkf_quit("programming error");
-                if (das->mode == MODE_ENKF) {
-                    if (das->scheme == SCHEME_DENKF)
-                        calc_X5_denkf(das->nmem, ploc, G, Sloc, sloc, das->alpha, i, j, X5);
-                    else if (das->scheme == SCHEME_ETKF)
-                        calc_X5_etkf(das->nmem, ploc, G, sloc, i, j, X5);
-                    else
-                        enkf_quit("programming error");
-                } else if (das->mode == MODE_ENOI)
-                    calc_w(das->nmem, ploc, G, sloc, w);
+
+                calc_w(nmem, ploc, G, sloc, w);
+                if (das->mode == MODE_ENKF)
+                    calc_X5(nmem, das->alpha, w, X5);
             }
 
             enkf_printf("    writing log for point (%.3f,%.3f) on grid \"%s\":", plog->lon, plog->lat, grid_getname(g));
@@ -933,6 +926,5 @@ void das_dopointlogs(dasystem* das)
 
     if (das->mode == MODE_ENKF)
         free(X5);
-    else if (das->mode == MODE_ENOI)
-        free(w);
+    free(w);
 }

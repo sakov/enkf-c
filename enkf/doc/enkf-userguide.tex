@@ -37,7 +37,7 @@
 
 \begin{document}
 
-\title{EnKF-C user guide\\{\normalsize version 1.101.4}}
+\title{EnKF-C user guide\\{\normalsize version 1.102.0}}
 
 \author{Pavel Sakov}
 \date{June 19, 2014 -- \today}
@@ -1322,15 +1322,12 @@ Tests with small models show that setting the $K \ge 2$ makes a marginal impact 
 
 \subsection{Moderation of spread reduction}
 
-The moderating parameter $\alpha \in (0, 1]$ specified in the main parameter file via the entry \verb|ALPHA| allows one to reduce the contraction of ensemble during assimilation, while leaving the increment unchanged.
-It modifies the DEnKF expression (\ref{TR-DEnKF}) for $\mb T_R$ as
+The moderating parameter $\alpha \in (0, 1]$ specified in the main parameter file via the entry \verb|ALPHA| allows one to reduce the contraction of ensemble during assimilation, while leaving the increment unchanged (``relaxation to prior spread'', \citealt{zha04a}, eq.~5).
+It modifies the right multiplied ensemble transform matrix as
 \begin{align*}
-  \mb T_R = \mb I - \frac{\alpha}{2} \, \mb G \mb S,
+  \mb T_R \leftarrow \mb I + \alpha (\mb T_R - \mb I).
 \end{align*}
-and the ETKF expression (\ref{TR-ETKF}) as
-\begin{align*}
-  \mb T_R = (\mb I + \alpha \, \mb S\T \mb S)^{-1/2}.
-\end{align*}
+Setting $\alpha = 0$ results in no update of the ensemble anomalies, while $\alpha = 1$ results in full update.
 
 \subsection{Innovation statistics}
 
@@ -1731,10 +1728,6 @@ Following is a brief description of the compiler flags in EnKF-C.
   Has to be defined for compiling on Mac OS platforms.
 \item{\verb|NO_GRIDUTILS|} (\verb|enkf_prep|, \verb|enkf_calc|)
   Excludes code for handling curvilinear grids, and eliminates dependence on gridutils-c.
-\item{\verb|CHECK_X5|} (\verb|enkf_calc|)
-  Verifies that each column of $\mb X5$ matrices sums up to 1.
-\item{\verb|CHECK_G|} (\verb|enkf_calc|)
-  Verifies that each column of $\mb G$ matrices sums up to 0.
 \item{\verb|SHUFFLE_ROWS|} (\verb|enkf_calc|)
   Supposed to produce more latitudinally uniform load between CPUs.
   Currently, because transforms for each row of the grid are sent to the master process for writing, this option effectively makes no difference to performance, I believe.
