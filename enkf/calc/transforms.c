@@ -30,7 +30,7 @@
 #define DFS_MIN 1.0e-6
 
 #if defined(MINIMISE_ALLOC)
-#define PLOC_INC 5000
+#define PLOC_INC 1000
 int ploc_allocated1 = 0;
 void* storage = NULL;
 int ploc_allocated2 = 0;
@@ -187,9 +187,7 @@ static void prepare_transforms(size_t ploc, size_t nmem, double*** Sloc, double*
     if (ploc > ploc_allocated1) {
         size_t size;
         
-        while (ploc > ploc_allocated1)
-            ploc_allocated1 += PLOC_INC;
-
+        ploc_allocated1 = ploc + PLOC_INC;
         /*
          * Sloc[nmem][ploc]
          */

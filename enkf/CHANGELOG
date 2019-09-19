@@ -1,3 +1,6 @@
+v. 1.103.1
+   PS 20092019
+   -- A minor technical change in prepare_transforms().
 v. 1.103.0
    PS 19092019
    -- Reshuffled transform calculations (S,G,M,w,T,X5...) for simplicity.
