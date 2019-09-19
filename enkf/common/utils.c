@@ -666,6 +666,34 @@ void* alloc2d(size_t nj, size_t ni, size_t unitsize)
     return pp;
 }
 
+/** Casts an ni x nj matrix onto a pre-allocated storage and fills it with
+ ** zeros.
+ * @param p Address of allocated bloc
+ * @param nj Dimension 2
+ * @param ni Dimension 1
+ * @param unitsize Size of one matrix element in bytes
+ * @return Matrix (= (unit**) p)
+ */
+void* cast2d(void* p, size_t nj, size_t ni, size_t unitsize)
+{
+    size_t size;
+    void** pp;
+    int i;
+
+    if (ni <= 0 || nj <= 0)
+        enkf_quit("alloc2d(): invalid size (nj = %d, ni = %d)", nj, ni);
+
+    size = nj * sizeof(void*) + nj * ni * unitsize;
+    memset(p, 0, size);
+
+    pp = p;
+    p = &((size_t*) p)[nj];
+    for (i = 0; i < nj; ++i)
+        pp[i] = &((char*) p)[i * ni * unitsize];
+
+    return pp;
+}
+
 /** Copies 2D matrix.
  * @param src Source matrix
  * @param nj Dimension 2

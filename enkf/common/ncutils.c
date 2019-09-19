@@ -7,7 +7,7 @@
  * Author:      Pavel Sakov
  *              Bureau of Meteorology
  *
- * Description: Moved NetCDF procedures from utils.c to here
+ * Description: Moved NetCDF procedures from utils.c and prep_utils.c to here
  *
  * Revisions:
  *

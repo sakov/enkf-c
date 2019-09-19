@@ -8,13 +8,11 @@ PREPCALC_FLAGS =
 
 # Select flags for CALC from the following list (default = none):
 #
-# -DCHECK_X5
-# -DCHECK_G
 # -DSHUFFLE_ROWS
 # -DHE_VIAFILE | -DHE_VIASHMEM
 # -DOBS_SHUFFLE
 # -DMINIMISE_ALLOC
-CALC_FLAGS = -DHE_VIASHMEM
+CALC_FLAGS = -DHE_VIASHMEM -DMINIMISE_ALLOC
 
 # Select flags for UPDATE
 #

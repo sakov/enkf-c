@@ -1,3 +1,10 @@
+v. 1.103.0
+   PS 19092019
+   -- Reshuffled transform calculations (S,G,M,w,T,X5...) for simplicity.
+   -- Introduced cast2d() for changing matrix size without reallocation.
+   -- Added compile flag -DMINIMISE_ALLOC as a default for CALC. Modified a
+      number of procedures in calcs.c to use pre-allocated storage when
+      compiled with -DMINIMISE_ALLOC.
 v. 1.102.0
    PS 12092019
    -- Changed (actually, corrected) the "moderation of spread reduction" (sec.

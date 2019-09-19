@@ -38,6 +38,7 @@ int str2float(char* token, float* value);
 int str2int(char* token, int* value);
 int str2bool(char* token, int* value);
 void* alloc2d(size_t nj, size_t ni, size_t unitsize);
+void* cast2d(void* p, size_t nj, size_t ni, size_t unitsize);
 void* copy2d(void** src, size_t nj, size_t ni, size_t unitsize);
 void* alloc3d(size_t n3, size_t nj, size_t ni, size_t unitsize);
 void* copy3d(void*** src, size_t nk, size_t nj, size_t ni, size_t unitsize);

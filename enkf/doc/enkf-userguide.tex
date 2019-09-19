@@ -37,7 +37,7 @@
 
 \begin{document}
 
-\title{EnKF-C user guide\\{\normalsize version 1.102.0}}
+\title{EnKF-C user guide\\{\normalsize version 1.103.0}}
 
 \author{Pavel Sakov}
 \date{June 19, 2014 -- \today}
@@ -1738,11 +1738,10 @@ Following is a brief description of the compiler flags in EnKF-C.
 \item{\verb|HE_VIASHMEM|} (\verb|enkf_calc|)
   Uses shared memory for storing ensemble observations, which much reduces the memory footprint in CALC.
   Requires MPI-3.
-  This is a default option in EnKF-C, but can be unset, particularly in smaller systems, when memory is not an issue.
+  This is a default option, but can be unset, particularly for smaller systems, when memory is not an issue.
 \item{\verb|MINIMISE_ALLOC|} (\verb|enkf_calc|)
-  Tries to pre-allocate arrays in CALC to reduce potential problems with memory fragmentation.
-  Not verified to make a difference in boundary (OOM) situations.
-  Probably does not make much sense to be used with the ETKF, as it makes a number of additional allocations.
+  Pre-allocates arrays in CALC to reduce potential problems with memory fragmentation.
+  This is a default option from v1.103.0.
 \item{\verb|OBS_SHUFFLE|} (\verb|enkf_calc|)
   Randomly shuffles observations before parsing them into K-D trees.
   Potentially this can substantially improve performance in the case of spatially ordered observations (not verified).

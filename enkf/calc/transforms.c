@@ -30,7 +30,7 @@
 #define DFS_MIN 1.0e-6
 
 #if defined(MINIMISE_ALLOC)
-#define PLOC_START 5000
+#define PLOC_INC 5000
 int ploc_allocated1 = 0;
 void* storage = NULL;
 int ploc_allocated2 = 0;
@@ -182,40 +182,35 @@ static void group_iterations(int n, int ids[])
 #if defined(MINIMISE_ALLOC)
 /**
  */
-static void prepare_transforms(size_t ploc, size_t m, double*** Sloc, double*** G)
+static void prepare_transforms(size_t ploc, size_t nmem, double*** Sloc, double*** G, double*** M)
 {
-    int dorealloc = (ploc > ploc_allocated1);
-    size_t size;
-    void* p;
-    void** pp;
-    int i;
+    if (ploc > ploc_allocated1) {
+        size_t size;
+        
+        while (ploc > ploc_allocated1)
+            ploc_allocated1 += PLOC_INC;
 
-    while (ploc > ploc_allocated1)
-        ploc_allocated1 += PLOC_START;
+        /*
+         * Sloc[nmem][ploc]
+         */
+        size = ploc_allocated1 * nmem * sizeof(double) + nmem * sizeof(void*);
+        /*
+         * G[ploc][nmem]
+         */
+        size += ploc_allocated1 * nmem * sizeof(double) + ploc_allocated1 * sizeof(void*);
+        /*
+         * M[nmem * 2 + 11][nmem] (the surplus is used for work arrays and
+         * matrices in invsqrtm2() for scheme = ETKF, and just wasted for scheme
+         * = DEnKF)
+         */
+        size += nmem * (2 * nmem + 11) * sizeof(double) + (2 * nmem + 11) * sizeof(void*);
 
-    size = 2 * ploc_allocated1 * m * sizeof(double) + (ploc_allocated1 + m) * sizeof(void*);
-    if (dorealloc)
         storage = realloc(storage, size);
+    }
 
-    memset(storage, 0, size);
-
-    /*
-     * set Sloc
-     */
-    pp = storage;
-    p = &((size_t*) pp)[m];
-    for (i = 0; i < m; ++i)
-        pp[i] = &((char*) p)[i * ploc * sizeof(double)];
-    *Sloc = (double**) pp;
-
-    /*
-     * set G
-     */
-    pp = (void**) &((char*) storage)[m * sizeof(void*) + ploc * m * sizeof(double)];
-    p = &((size_t*) pp)[ploc];
-    for (i = 0; i < ploc; ++i)
-        pp[i] = &((char*) p)[i * m * sizeof(double)];
-    *G = (double**) pp;
+    *Sloc = cast2d(storage, nmem, ploc, sizeof(double));
+    *G = cast2d(&(*Sloc)[0][nmem * ploc], ploc, nmem, sizeof(double));
+    *M = (void*) &(*G)[0][nmem * ploc];
 }
 #endif
 
@@ -395,6 +390,8 @@ void das_calctransforms(dasystem* das)
 #if !defined(MINIMISE_ALLOC)
                 int* lobs = NULL;
                 double* lcoeffs = NULL;
+#else
+                double** M = NULL;
 #endif
                 int* plobs = NULL;
                 double* sloc = NULL;
@@ -453,7 +450,7 @@ void das_calctransforms(dasystem* das)
                  * prepare_transforms() sets Sloc and G matrices while trying
                  * to minimise unnecessary memory allocations
                  */
-                prepare_transforms(ploc, nmem, &Sloc, &G);
+                prepare_transforms(ploc, nmem, &Sloc, &G, &M);
 #else
                 Sloc = alloc2d(nmem, ploc, sizeof(double));
                 G = alloc2d(ploc, nmem, sizeof(double));
@@ -475,11 +472,19 @@ void das_calctransforms(dasystem* das)
                  * (X5 is used for storing T)
                  */
                 if (das->mode == MODE_ENOI || das->scheme == SCHEME_DENKF) {
-                    calc_G(nmem, ploc, Sloc, i, j, G);
+#if defined(MINIMISE_ALLOC)
+                    calc_G(nmem, ploc, M, Sloc, i, j, G);
+#else
+                    calc_G(nmem, ploc, NULL, Sloc, i, j, G);
+#endif
                     if (das->mode == MODE_ENKF)
                         calc_T_denkf(nmem, ploc, G, Sloc, X5);
                 } else if (das->scheme == SCHEME_ETKF)
-                    calc_GT_etkf(nmem, ploc, Sloc, i, j, G, X5);
+#if defined(MINIMISE_ALLOC)
+                    calc_GT_etkf(nmem, ploc, M, Sloc, i, j, G, X5);
+#else
+                    calc_GT_etkf(nmem, ploc, NULL, Sloc, i, j, G, X5);
+#endif
                 else
                     enkf_quit("programming error");
 
@@ -498,8 +503,8 @@ void das_calctransforms(dasystem* das)
                 }
 
                 nlobs[jjj][ii] = ploc;  /* (ploc > 0 here) */
-                dfs[jjj][ii] = traceprod(0, 0, ploc, nmem, G, Sloc);
-                srf[jjj][ii] = sqrt(traceprod(0, 1, nmem, ploc, Sloc, Sloc) / dfs[jjj][ii]) - 1.0;
+                dfs[jjj][ii] = traceprod(0, 0, ploc, nmem, G, Sloc, 1);
+                srf[jjj][ii] = sqrt(traceprod(0, 1, nmem, ploc, Sloc, Sloc, 1) / dfs[jjj][ii]) - 1.0;
                 for (ot = 0; ot < obs->nobstypes; ++ot) {
                     int p = 0;
 
@@ -514,23 +519,30 @@ void das_calctransforms(dasystem* das)
                         pdfs[ot][jjj][ii] = 0.0;
                         psrf[ot][jjj][ii] = 0.0;
                     } else {
-                        double** pS;
-                        double** pG;
+#if 0
+                        double** pS = alloc2d(nmem, p, sizeof(double));
+                        double** pG = &G[plobs[0]];
 
-                        pG = malloc(p * sizeof(double*));
-                        for (o = 0; o < p; ++o)
-                            pG[o] = G[plobs[o]];
-                        pS = alloc2d(nmem, p, sizeof(double));
                         for (e = 0; e < nmem; ++e)
                             for (o = 0; o < p; ++o)
                                 pS[e][o] = Sloc[e][plobs[o]];
-                        pdfs[ot][jjj][ii] = traceprod(0, 0, p, nmem, pG, pS);
+                        pdfs[ot][jjj][ii] = traceprod(0, 0, p, nmem, pG, pS, 1);
                         if (pdfs[ot][jjj][ii] > DFS_MIN)
-                            psrf[ot][jjj][ii] = sqrt(traceprod(0, 1, nmem, p, pS, pS) / pdfs[ot][jjj][ii]) - 1.0;
+                            psrf[ot][jjj][ii] = sqrt(traceprod(0, 1, nmem, p, pS, pS, 1) / pdfs[ot][jjj][ii]) - 1.0;
                         else
                             psrf[ot][jjj][ii] = 0.0;
+#else
+                        double** pS = malloc(nmem * sizeof(double*));
+                        double** pG = &G[plobs[0]];
 
-                        free(pG);
+                        for (e = 0; e < nmem; ++e)
+                            pS[e] = &Sloc[e][plobs[0]];
+                        pdfs[ot][jjj][ii] = traceprod(0, 0, p, nmem, pG, pS, 0);
+                        if (pdfs[ot][jjj][ii] > DFS_MIN)
+                            psrf[ot][jjj][ii] = sqrt(traceprod(0, 1, nmem, p, pS, pS, 0) / pdfs[ot][jjj][ii]) - 1.0;
+                        else
+                            psrf[ot][jjj][ii] = 0.0;
+#endif
                         free(pS);
                     }
                 }
@@ -897,11 +909,11 @@ void das_dopointlogs(dasystem* das)
                     sloc[o] = das->s_f[lobs[o]] * lcoeffs[o];
 
                 if (das->mode == MODE_ENOI || das->scheme == SCHEME_DENKF) {
-                    calc_G(nmem, ploc, Sloc, i, j, G);
+                    calc_G(nmem, ploc, NULL, Sloc, i, j, G);
                     if (das->mode == MODE_ENKF)
                         calc_T_denkf(nmem, ploc, G, Sloc, X5);
                 } else if (das->scheme == SCHEME_ETKF)
-                    calc_GT_etkf(nmem, ploc, Sloc, i, j, G, X5);
+                    calc_GT_etkf(nmem, ploc, NULL, Sloc, i, j, G, X5);
                 else
                     enkf_quit("programming error");
 
