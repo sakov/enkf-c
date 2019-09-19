@@ -263,11 +263,7 @@ void calc_G(int m, int p, double** Min, double** S, int i, int j, double** G)
         free(M);
 }
 
-/** Calculates X5 = G * s * 1' + T.
- * G is [m x p]
- * S is [p x m]
- * s is [p]
- * X5 is [m x m]
+/** Calculates T = I - 1/2 * G * S.
  */
 void calc_T_denkf(int m, int p, double** G, double** S, double** T)
 {
