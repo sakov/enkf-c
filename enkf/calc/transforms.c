@@ -36,6 +36,8 @@ void* storage = NULL;
 int ploc_allocated2 = 0;
 int* lobs = NULL;
 double* lcoeffs = NULL;
+double* plobs = NULL;
+double* sloc = NULL;
 #endif
 
 /**
@@ -182,22 +184,30 @@ static void group_iterations(int n, int ids[])
 #if defined(MINIMISE_ALLOC)
 /**
  */
-static void prepare_transforms(size_t ploc, size_t nmem, double*** Sloc, double*** G, double*** M)
+static void prepare_calcs(size_t ploc, size_t nmem, double** sloc, int** plobs, double*** Sloc, double*** G, double*** M)
 {
     if (ploc > ploc_allocated1) {
         size_t size;
         
         ploc_allocated1 = ploc + PLOC_INC;
         /*
-         * Sloc[nmem][ploc]
+         * sloc [ploc]
          */
-        size = ploc_allocated1 * nmem * sizeof(double) + nmem * sizeof(void*);
+        size = ploc_allocated1 * sizeof (double);
         /*
-         * G[ploc][nmem]
+         * plobs [ploc]
+         */
+        size += ploc_allocated1 * sizeof(int);
+        /*
+         * Sloc [nmem][ploc]
+         */
+        size += ploc_allocated1 * nmem * sizeof(double) + nmem * sizeof(void*);
+        /*
+         * G [ploc][nmem]
          */
         size += ploc_allocated1 * nmem * sizeof(double) + ploc_allocated1 * sizeof(void*);
         /*
-         * M[nmem * 2 + 11][nmem] (the surplus is used for work arrays and
+         * M [nmem * 2 + 11][nmem] (the surplus is used for work arrays and
          * matrices in invsqrtm2() for scheme = ETKF, and just wasted for scheme
          * = DEnKF)
          */
@@ -206,7 +216,9 @@ static void prepare_transforms(size_t ploc, size_t nmem, double*** Sloc, double*
         storage = realloc(storage, size);
     }
 
-    *Sloc = cast2d(storage, nmem, ploc, sizeof(double));
+    *sloc = storage;
+    *plobs = (void*) &(*sloc)[ploc];
+    *Sloc = cast2d(&(*plobs)[ploc], nmem, ploc, sizeof(double));
     *G = cast2d(&(*Sloc)[0][nmem * ploc], ploc, nmem, sizeof(double));
     *M = (void*) &(*G)[0][nmem * ploc];
 }
@@ -382,6 +394,8 @@ void das_calctransforms(dasystem* das)
                 int ploc = 0;   /* `nlobs' already engaged, using another
                                  * name */
 
+                double* sloc = NULL;
+                int* plobs = NULL;
                 double** Sloc = NULL;
                 double** G = NULL;
 
@@ -391,8 +405,6 @@ void das_calctransforms(dasystem* das)
 #else
                 double** M = NULL;
 #endif
-                int* plobs = NULL;
-                double* sloc = NULL;
                 int e, o;
 
                 i = iiter[ii];
@@ -445,16 +457,16 @@ void das_calctransforms(dasystem* das)
                 }
 #if defined(MINIMISE_ALLOC)
                 /*
-                 * prepare_transforms() sets Sloc and G matrices while trying
-                 * to minimise unnecessary memory allocations
+                 * prepare_calcs() sets Sloc, G and M matrices while trying
+                 * to minimise the number of dynamic allocations
                  */
-                prepare_transforms(ploc, nmem, &Sloc, &G, &M);
+                prepare_calcs(ploc, nmem, &sloc, &plobs, &Sloc, &G, &M);
 #else
                 Sloc = alloc2d(nmem, ploc, sizeof(double));
                 G = alloc2d(ploc, nmem, sizeof(double));
-#endif
                 sloc = malloc(ploc * sizeof(double));
                 plobs = malloc(ploc * sizeof(int));
+#endif
 
                 for (e = 0; e < nmem; ++e) {
                     ENSOBSTYPE* Se = das->S[e];
@@ -553,11 +565,11 @@ void das_calctransforms(dasystem* das)
 #if !defined(MINIMISE_ALLOC)
                 free(G);
                 free(Sloc);
+                free(sloc);
+                free(plobs);
                 free(lobs);
                 free(lcoeffs);
 #endif
-                free(sloc);
-                free(plobs);
             }                   /* for i */
 
 #if defined(MPI)
@@ -796,19 +808,23 @@ void das_calctransforms(dasystem* das)
         free(jpool);
     }                           /* for gid */
 
+    /*
+     * (this block can be put outside the grid loop because the storage sizes
+     * do not depend on the grid size)
+     */
 #if defined(MINIMISE_ALLOC)
-    if (storage != NULL) {
-        free(storage);
-        storage = NULL;
-        ploc_allocated1 = 0;
-    }
-    if (lobs != NULL) {
-        free(lobs);
-        free(lcoeffs);
-        lobs = NULL;
-        lcoeffs = NULL;
-        ploc_allocated2 = 0;
-    }
+        if (storage != NULL) {
+            free(storage);
+            storage = NULL;
+            ploc_allocated1 = 0;
+        }
+        if (lobs != NULL) {
+            free(lobs);
+            free(lcoeffs);
+            lobs = NULL;
+            lcoeffs = NULL;
+            ploc_allocated2 = 0;
+        }
 #endif
     free(w);
 }
@@ -871,8 +887,8 @@ void das_dopointlogs(dasystem* das)
             int* lobs = NULL;
             double* lcoeffs = NULL;
             int ploc = 0;
-            double** Sloc = NULL;
             double* sloc = NULL;
+            double** Sloc = NULL;
             double** G = NULL;
 
             if (plog->gridid >= 0 && plog->gridid != gid)

@@ -1,3 +1,7 @@
+v. 1.103.2
+   PS 23092019
+   -- Eliminated dynamic allocation of sloc and plobs at each cycle in
+      das_calctransforms() with -DMINIMISE_ALLOC.
 v. 1.103.1
    PS 20092019
    -- A minor technical change in prepare_transforms().

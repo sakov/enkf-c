@@ -17,7 +17,7 @@ CALC_FLAGS = -DHE_VIASHMEM -DMINIMISE_ALLOC
 # Select flags for UPDATE
 #
 # -DNCW_SKIPSINGLE
-UPDATE_FLAGS =
+UPDATE_FLAGS = -DNO_GRIDUTILS
 
 # Set MPI status of EnKF-C programs either to "" or "MPI".
 # Note: prep is single-threaded only.
@@ -30,8 +30,15 @@ MPISTATUS_UPDATE = MPI
 
 include ./make.inc
 
-INCS = -I. -I./common $(INC_NC) $(INC_GU)
-LIBS = $(LD_PATH) $(LIB_GU) $(LIB_NC) $(LIB_M)
+INCS_COMMON = -I. -I./common $(INC_NC)
+LIBS_COMMON = $(LD_PATH) $(LIB_NC) $(LIB_M)
+
+INCS_PREP = $(INC_GU)
+LIBS_PREP = $(LIB_GU)
+INCS_CALC = $(INC_GU)
+LIBS_CALC = $(LIB_GU) $(LIB_LAPACK)
+INCS_UPDATE =
+LIBS_UPDATE = $(LIB_LAPACK)
 
 SRC_COMMON =\
 common/ncw.c\
@@ -149,19 +156,17 @@ all: $(ALL)
 bin/enkf_prep: $(SRC_PREP) $(SRC_COMMON) $(HDR_PREP) $(HDR_COMMON)
 	@echo
 	@mkdir -p bin
-	${CC${MPISTATUS_PREP}} -o bin/enkf_prep -DENKF_PREP $(PREPCALC_FLAGS) $(CFLAGS$(MPISTATUS_PREP)) $(INCS) $(SRC_PREP) $(SRC_COMMON) $(LIBS)
+	${CC${MPISTATUS_PREP}} -o bin/enkf_prep -DENKF_PREP $(PREPCALC_FLAGS) $(CFLAGS$(MPISTATUS_PREP)) $(INCS_PREP) $(INCS_COMMON) $(SRC_PREP) $(SRC_COMMON) $(LIBS_PREP) $(LIBS_COMMON)
 
-bin/enkf_calc: LIBS := $(LIB_LAPACK) $(LIBS)
 bin/enkf_calc: $(SRC_COMMON) $(SRC_CALC) $(HDR_COMMON) $(HDR_CALC)
 	@echo
 	@mkdir -p bin
-	${CC${MPISTATUS_CALC}} -o bin/enkf_calc -DENKF_CALC $(PREPCALC_FLAGS) $(CALC_FLAGS) $(CFLAGS$(MPISTATUS_CALC)) $(INCS) $(SRC_CALC) $(SRC_COMMON) $(LIBS)
+	${CC${MPISTATUS_CALC}} -o bin/enkf_calc -DENKF_CALC $(PREPCALC_FLAGS) $(CALC_FLAGS) $(CFLAGS$(MPISTATUS_CALC)) $(INCS_CALC) $(INCS_COMMON) $(SRC_CALC) $(SRC_COMMON) $(LIBS_CALC) $(LIBS_COMMON)
 
-bin/enkf_update: LIBS := $(LIB_LAPACK) $(LIBS)
 bin/enkf_update: $(SRC_UPDATE) $(SRC_COMMON) $(HDR_UPDATE) $(HDR_COMMON)
 	@echo
 	@mkdir -p bin
-	${CC${MPISTATUS_UPDATE}} -o bin/enkf_update -DENKF_UPDATE $(UPDATE_FLAGS) $(CFLAGS$(MPISTATUS_UPDATE)) $(INCS) $(SRC_UPDATE) $(SRC_COMMON) $(LIBS)
+	${CC${MPISTATUS_UPDATE}} -o bin/enkf_update -DENKF_UPDATE $(UPDATE_FLAGS) $(CFLAGS$(MPISTATUS_UPDATE)) $(INCS_UPDATE) $(INCS_COMMON) $(SRC_UPDATE) $(SRC_COMMON) $(LIBS_UPDATE) $(LIBS_COMMON)
 
 clean:
 	rm -f bin/*

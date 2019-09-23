@@ -26,7 +26,7 @@
 #include "observations.h"
 
 #define NOBSTYPES_INC 10
-#define KD_INC 50000
+#define PLOC_INC 10000
 #define HT_SIZE 500
 
 typedef struct {
@@ -1490,20 +1490,20 @@ void obs_findlocal(observations* obs, double lon, double lat, char* domainname, 
 #if defined(MINIMISE_ALLOC)
             if (ploc_allocated != NULL) {
                 if (i >= *ploc_allocated) {
-                    *ploc_allocated += KD_INC;
+                    *ploc_allocated += PLOC_INC;
                     *ids = realloc(*ids, *ploc_allocated * sizeof(int));
                     *lcoeffs = realloc(*lcoeffs, *ploc_allocated * sizeof(double));
                 }
             } else {
-                if (i % KD_INC == 0) {
-                    *ids = realloc(*ids, (i + KD_INC) * sizeof(int));
-                    *lcoeffs = realloc(*lcoeffs, (i + KD_INC) * sizeof(double));
+                if (i % PLOC_INC == 0) {
+                    *ids = realloc(*ids, (i + PLOC_INC) * sizeof(int));
+                    *lcoeffs = realloc(*lcoeffs, (i + PLOC_INC) * sizeof(double));
                 }
             }
 #else
-            if (i % KD_INC == 0) {
-                *ids = realloc(*ids, (i + KD_INC) * sizeof(int));
-                *lcoeffs = realloc(*lcoeffs, (i + KD_INC) * sizeof(double));
+            if (i % PLOC_INC == 0) {
+                *ids = realloc(*ids, (i + PLOC_INC) * sizeof(int));
+                *lcoeffs = realloc(*lcoeffs, (i + PLOC_INC) * sizeof(double));
             }
 #endif
             (*ids)[i] = obsids[id_orig];

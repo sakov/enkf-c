@@ -58,9 +58,13 @@ double traceprod(int transposeA, int transposeB, int m, int n, double** A, doubl
                     trace += Ai[j] * B[j][i];
             }
         } else if (transposeA || transposeB) {
-            for (j = 0; j < m; ++j)
+            for (j = 0; j < m; ++j) {
+                double* Aj = A[j];
+                double* Bj = B[j];
+
                 for (i = 0; i < n; ++i)
-                    trace += A[j][i] * B[j][i];
+                    trace += Aj[i] * Bj[i];
+            }
         }
     } else {
         if (!transposeA && !transposeB) {
