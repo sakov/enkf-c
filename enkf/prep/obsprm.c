@@ -149,7 +149,7 @@ void obsprm_read(char fname[], int* nmeta, obsmeta** meta)
             else
                 enkf_quit("%s, l.%d: parameter value not specified (expected: PARAMETER <name> = <value>)", fname, line);
             while ((token = strtok(NULL, seps)) != NULL) {
-                now->value = realloc(now->value, strlen(token) + 2);
+                now->value = realloc(now->value, strlen(now->value) + strlen(token) + 2);
                 strcat(now->value, " ");
                 strcat(now->value, token);
             }
@@ -214,6 +214,7 @@ void obsprm_destroy(int n, obsmeta meta[])
         free(m->prmfname);
         free(m->product);
         free(m->type);
+        free(m->reader);
         if (m->nfiles > 0) {
             for (j = 0; j < m->nfiles; ++j)
                 free(m->fnames[j]);

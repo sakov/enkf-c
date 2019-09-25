@@ -1,3 +1,7 @@
+v. 1.103.3
+   PS 25092019
+   -- Fixed two defects in obsprm.c: a potentially major one in obsprm_read(),
+      and an insignificant one in obsprm_destroy().
 v. 1.103.2
    PS 23092019
    -- Eliminated dynamic allocation of sloc and plobs at each cycle in
