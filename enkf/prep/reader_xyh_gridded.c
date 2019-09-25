@@ -26,7 +26,8 @@
  *              from the default value (+). Some parameters are optional (-):
  *              - VARNAME (++)
  *              - GRIDNAME (++)
- *              - TIMENAME ("time") (+)
+ *              - TIMENAME ("*[tT][iI][mM][eE]*") (+)
+ *              - or TIMENAMES (when time = base_time + offset) (+)
  *              - NPOINTSNAME ("npoints") (-)
  *                  number of collated points for each datum; used basically as
  *                  a data mask n = 0
@@ -44,6 +45,22 @@
  *              - INSTRUMENT (-)
  *                  instrument string that will be used for calculating
  *                  instrument stats
+ *              - QCFLAGNAME (-)
+ *                  name of the QC flag variable, 0 <= qcflag <= 31
+ *              - QCFLAGVALS (-)
+ *                  the list of allowed values of QC flag variable
+ *              Note: it is possible to have multiple entries of QCFLAGNAME and
+ *                QCFLAGVALS combination, e.g.:
+ *                  PARAMETER QCFLAGNAME = TEMP_quality_control
+ *                  PARAMETER QCFLAGVALS = 1
+ *                  PARAMETER QCFLAGNAME = DEPTH_quality_control
+ *                  PARAMETER QCFLAGVALS = 1
+ *                  PARAMETER QCFLAGNAME = LONGITUDE_quality_control
+ *                  PARAMETER QCFLAGVALS = 1,8
+ *                  PARAMETER QCFLAGNAME = LATITUDE_quality_control
+ *                  PARAMETER QCFLAGVALS = 1,8
+ *                An observation is considered valid if each of the specified
+ *                flags takes a permitted value.
  *
  * Revisions:   PS 6/7/2018
  *                Added parameters QCFLAGNAME and QCFLAGVALS. The latter is
@@ -81,30 +98,27 @@ void reader_xyh_gridded(char* fname, int fid, obsmeta* meta, grid* gdst, observa
     char* npointsname = NULL;
     char* stdname = NULL;
     char* estdname = NULL;
-    char* timename = NULL;
-    char* qcflagname = NULL;
-    int ncid;
-    int ndim;
-
-    uint32_t qcflagvals = 0;
     float varshift = 0.0;
     char instrument[MAXSTRLEN];
+
+    int nqcflags = 0;
+    char** qcflagname = NULL;
+    uint32_t* qcflagvals = 0;
 
     int ni = 0, nj = 0, nk = 0;
     size_t nij = 0, nijk = 0;
 
-    int varid_var = -1, varid_npoints = -1, varid_std = -1, varid_estd = -1, varid_qcflag = -1, varid_time = -1;
+    int ncid;
+    int ndim;
+    int varid_var = -1, varid_npoints = -1, varid_std = -1, varid_estd = -1;
     float* var = NULL;
     double var_estd = NAN;
     short* npoints = NULL;
     float* std = NULL;
     float* estd = NULL;
-    int32_t* qcflag = NULL;
-    int have_time = 1;
-    int singletime = -1;
-    float* time = NULL;
-    char tunits[MAXSTRLEN];
-    double tunits_multiple = NAN, tunits_offset = NAN;
+    uint32_t** qcflag = NULL;
+    size_t ntime = 0;
+    double* time = NULL;
     size_t i, j, k, nobs_read;
 
     for (i = 0; i < meta->npars; ++i) {
@@ -112,34 +126,13 @@ void reader_xyh_gridded(char* fname, int fid, obsmeta* meta, grid* gdst, observa
             varname = meta->pars[i].value;
         else if (strcasecmp(meta->pars[i].name, "GRIDNAME") == 0)
             gridname = meta->pars[i].value;
-        else if (strcasecmp(meta->pars[i].name, "TIMENAME") == 0)
-            timename = meta->pars[i].value;
         else if (strcasecmp(meta->pars[i].name, "NPOINTSNAME") == 0)
             npointsname = meta->pars[i].value;
         else if (strcasecmp(meta->pars[i].name, "STDNAME") == 0)
             stdname = meta->pars[i].value;
         else if (strcasecmp(meta->pars[i].name, "ESTDNAME") == 0)
             estdname = meta->pars[i].value;
-        else if (strcasecmp(meta->pars[i].name, "QCFLAGNAME") == 0)
-            qcflagname = meta->pars[i].value;
-        else if (strcasecmp(meta->pars[i].name, "QCFLAGVALS") == 0) {
-            char seps[] = " ,";
-            char* line = meta->pars[i].value;
-            char* token;
-            int val;
-
-            qcflagvals = 0;
-            while ((token = strtok(line, seps)) != NULL) {
-                if (!str2int(token, &val))
-                    enkf_quit("%s: could not convert QCFLAGVALS entry \"%s\" to integer", meta->prmfname, token);
-                if (val < 0 || val > 31)
-                    enkf_quit("%s: QCFLAGVALS entry = %d (supposed to be in [0,31] interval", meta->prmfname, val);
-                qcflagvals |= 1 << val;
-                line = NULL;
-            }
-            if (qcflagvals == 0)
-                enkf_quit("%s: no valid flag entries found after QCFLAGVALS\n", meta->prmfname);
-        } else if (strcasecmp(meta->pars[i].name, "VARSHIFT") == 0) {
+        else if (strcasecmp(meta->pars[i].name, "VARSHIFT") == 0) {
             if (!str2float(meta->pars[i].value, &varshift))
                 enkf_quit("%s: can not convert VARSHIFT = \"%s\" to float\n", meta->prmfname, meta->pars[i].value);
             enkf_printf("        VARSHIFT = %s\n", meta->pars[i].value);
@@ -161,15 +154,31 @@ void reader_xyh_gridded(char* fname, int fid, obsmeta* meta, grid* gdst, observa
                 enkf_quit("observation prm file: can not convert MAXDEPTH = \"%s\" to double\n", meta->pars[i].value);
             enkf_printf("        MAXDEPTH = %.0f\n", maxdepth);
             continue;
-        } else if (strcasecmp(meta->pars[i].name, "INSTRUMENT") == 0) {
+        } else if (strcasecmp(meta->pars[i].name, "INSTRUMENT") == 0)
             strncpy(instrument, meta->pars[i].value, MAXSTRLEN - 1);
-        } else
+        else if (strcasecmp(meta->pars[i].name, "TIMENAME") == 0 || strcasecmp(meta->pars[i].name, "TIMENAMES") == 0)
+            /*
+             * TIMENAME and TIMENAMES are dealt with separately
+             */
+            ;
+        else if (strcasecmp(meta->pars[i].name, "QCFLAGNAME") == 0 || strcasecmp(meta->pars[i].name, "QCFLAGVALS") == 0)
+            /*
+             * QCFLAGNAME and QCFLAGVALS are dealt with separately
+             */
+            ;
+        else
             enkf_quit("unknown PARAMETER \"%s\"\n", meta->pars[i].name);
     }
+    get_qcflags(meta, &nqcflags, &qcflagname, &qcflagvals);
+
     if (varname == NULL)
         enkf_quit("reader_xyh_gridded(): %s: VARNAME not specified", fname);
+    else
+        enkf_printf("        VARNAME = %s\n", varname);
     if (gridname == NULL)
         enkf_quit("reader_xyh_gridded(): %s: GRIDNAME not specified", fname);
+    else
+        enkf_printf("        GRIDNAME = %s\n", gridname);
 
     gsrc = model_getgridbyname(obs->model, gridname);
 
@@ -250,41 +259,21 @@ void reader_xyh_gridded(char* fname, int fid, obsmeta* meta, grid* gdst, observa
     /*
      * qcflag
      */
-    if (qcflagname != NULL) {
-        ncw_inq_varid(ncid, qcflagname, &varid_qcflag);
-        qcflag = malloc(nijk * sizeof(int32_t));
-        ncw_get_var_int(ncid, varid_qcflag, qcflag);
+    if (nqcflags > 0) {
+        int varid = -1;
+
+        qcflag = alloc2d(nqcflags, nijk, sizeof(int32_t));
+        for (i = 0; i < nqcflags; ++i) {
+            ncw_inq_varid(ncid, qcflagname[i], &varid);
+            ncw_get_var_uint(ncid, varid, qcflag[i]);
+        }
     }
 
     /*
      * time
      */
-    if (timename != NULL)
-        ncw_inq_varid(ncid, timename, &varid_time);
-    else if (ncw_var_exists(ncid, "time"))
-        ncw_inq_varid(ncid, "time", &varid_time);
-    else {
-        enkf_printf("        reader_xyh_gridded(): %s: no TIME variable\n", fname);
-        have_time = 0;
-    }
-
-    if (have_time) {
-        size_t timelen = 0;
-
-        ncw_inq_varsize(ncid, varid_time, &timelen);
-        if (timelen == 1) {
-            singletime = 1;
-            time = malloc(sizeof(float));
-        } else {
-            singletime = 0;
-            assert(timelen == nijk);
-            time = malloc(nijk * sizeof(float));
-        }
-
-        ncu_readvarfloat(ncid, varid_time, timelen, time);
-        ncw_get_att_text(ncid, varid_time, "units", tunits);
-        tunits_convert(tunits, &tunits_multiple, &tunits_offset);
-    }
+    get_time(meta, ncid, &ntime, &time);
+    assert(ntime == nijk || ntime <= 1);
 
     /*
      * instrument
@@ -300,11 +289,13 @@ void reader_xyh_gridded(char* fname, int fid, obsmeta* meta, grid* gdst, observa
             for (k = 0; k < nk; ++k) {
                 int ii = k * nij + j * ni + i;
                 observation* o;
+                int qcid;
 
-                if ((npoints != NULL && npoints[ii] == 0) || isnan(var[ii]) || (std != NULL && isnan(std[ii])) || (estd != NULL && isnan(estd[ii])) || (have_time && !singletime && isnan(time[ii])))
+                if ((npoints != NULL && npoints[ii] == 0) || isnan(var[ii]) || (std != NULL && isnan(std[ii])) || (estd != NULL && isnan(estd[ii])) || (ntime == nijk && isnan(time[ii])))
                     continue;
-                if (qcflag != NULL && !(qcflag[ii] | qcflagvals))
-                    continue;
+                for (qcid = 0; qcid < nqcflags; ++qcid)
+                    if (!(qcflag[qcid][ii] | qcflagvals[qcid]))
+                        continue;
 
                 nobs_read++;
                 obs_checkalloc(obs);
@@ -335,8 +326,8 @@ void reader_xyh_gridded(char* fname, int fid, obsmeta* meta, grid* gdst, observa
                 else
                     o->fk = NAN;
                 o->model_depth = NAN;   /* set in obs_add() */
-                if (have_time)
-                    o->time = ((singletime) ? time[0] : time[ii]) * tunits_multiple + tunits_offset;
+                if (ntime > 0)
+                    o->time = (ntime == 1) ? time[0] : time[ii];
                 else
                     o->time = NAN;
 

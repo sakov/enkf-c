@@ -290,7 +290,7 @@ void calc_T_denkf(int m, int p, double** G, double** S, double** T)
 
 /** Calculates G = inv(I + S' * S) * S' and T = (I + S' * S)^-1/2.
  */
- void calc_GT_etkf(int m, int p, double** Min, double** S, int ii, int jj, double** G, double** T)
+void calc_GT_etkf(int m, int p, double** Min, double** S, int ii, int jj, double** G, double** T)
 {
     double** M;
     int lapack_info;

@@ -22,9 +22,9 @@ void print_obsstats(observations* obs, observations* sobs);
 char* get_lonname(int ncid, char* lonname);
 char* get_latname(int ncid, char* latname);
 char* get_zname(int ncid, char* zname);
-char* get_timename(int ncid, char* timename);
 int get_insttag(int ncid, char* varname, char* insttag);
 void get_qcflags(obsmeta* meta, int* nqcflags, char*** qcflagname, uint32_t** qcflagvals);
+void get_time(obsmeta* meta, int ncid, size_t* size, double** time);
 
 #define _PREP_UTILS_H
 #endif

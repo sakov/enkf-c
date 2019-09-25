@@ -188,12 +188,12 @@ static void prepare_calcs(size_t ploc, size_t nmem, double** sloc, int** plobs, 
 {
     if (ploc > ploc_allocated1) {
         size_t size;
-        
+
         ploc_allocated1 = ploc + PLOC_INC;
         /*
          * sloc [ploc]
          */
-        size = ploc_allocated1 * sizeof (double);
+        size = ploc_allocated1 * sizeof(double);
         /*
          * plobs [ploc]
          */
@@ -214,6 +214,11 @@ static void prepare_calcs(size_t ploc, size_t nmem, double** sloc, int** plobs, 
         size += nmem * (2 * nmem + 11) * sizeof(double) + (2 * nmem + 11) * sizeof(void*);
 
         storage = realloc(storage, size);
+        if (storage == NULL) {
+            int errno_saved = errno;
+
+            enkf_quit("prepare_calcs(): realloc(): %s", strerror(errno_saved));
+        }
     }
 
     *sloc = storage;
@@ -813,18 +818,18 @@ void das_calctransforms(dasystem* das)
      * do not depend on the grid size)
      */
 #if defined(MINIMISE_ALLOC)
-        if (storage != NULL) {
-            free(storage);
-            storage = NULL;
-            ploc_allocated1 = 0;
-        }
-        if (lobs != NULL) {
-            free(lobs);
-            free(lcoeffs);
-            lobs = NULL;
-            lcoeffs = NULL;
-            ploc_allocated2 = 0;
-        }
+    if (storage != NULL) {
+        free(storage);
+        storage = NULL;
+        ploc_allocated1 = 0;
+    }
+    if (lobs != NULL) {
+        free(lobs);
+        free(lcoeffs);
+        lobs = NULL;
+        lcoeffs = NULL;
+        ploc_allocated2 = 0;
+    }
 #endif
     free(w);
 }

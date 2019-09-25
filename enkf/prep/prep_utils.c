@@ -505,30 +505,136 @@ char* get_zname(int ncid, char* zname)
     return NULL;
 }
 
-#define NTIMENAMES 3
-static char* TIMENAMES[] = { "time",
-    "Time",
-    "TIME"
-};
-
 /**
  */
-char* get_timename(int ncid, char* timename)
+static void get_timenames(int ncid, int* varids, char** timenames)
 {
-    int i;
+    int i, nfound, nvar;
 
-    if (timename != NULL) {
-        ncw_inq_varid(ncid, timename, &i);
-        return timename;
+    if (timenames[0] != NULL) {
+        if (timenames[1] != NULL)
+            ncw_inq_varid(ncid, timenames[1], &varids[1]);
+        ncw_inq_varid(ncid, timenames[0], &varids[0]);
+        nfound = (timenames[1] == NULL) ? 1 : 2;
+    } else {
+        ncw_inq_nvars(ncid, &nvar);
+        for (i = 0, nfound = 0; i < nvar; ++i) {
+            char varname[NC_MAX_NAME];
+
+            ncw_inq_varname(ncid, i, varname);
+            if (strcasestr(varname, "time") != NULL) {
+                if (nfound == 2)
+                    enkf_quit("%s: more than 2 possible time variables found: %s, %s, %s", ncw_get_path(ncid), timenames[0], timenames[1], varname);
+                varids[nfound] = i;
+                timenames[nfound] = strdup(varname);
+                nfound++;
+            }
+        }
     }
-    for (i = 0; i < NTIMENAMES; ++i)
-        if (ncw_var_exists(ncid, TIMENAMES[i]))
-            return TIMENAMES[i];
 
-    return NULL;
+    if (nfound == 0)
+        enkf_quit("%s: no time variable found", ncw_get_path(ncid));
+    if (nfound == 2) {
+        size_t size[2];
+
+        for (i = 0; i < 2; ++i)
+            ncw_inq_varsize(ncid, varids[i], &size[i]);
+        if (size[1] == 1)
+            return;
+        if (size[1] > 1 && size[0] == 1) {
+            char* tmpc = timenames[0];
+            int tmpi = varids[0];
+
+            timenames[0] = timenames[1];
+            timenames[1] = tmpc;
+            varids[0] = varids[1];
+            varids[1] = tmpi;
+
+            return;
+        }
+        enkf_quit("%s: both possible time variables \"%s\" and \"%s\" have size greater than 1", ncw_get_path(ncid), timenames[0], timenames[1]);
+    }
 }
 
-#define NINSTNAMES 3
+/** Returns scaling multiple to convert time units to days.
+ */
+static double tunits2days(char* tunits)
+{
+    double mult = NAN;
+
+    if (strchr(tunits, ' ') != NULL)
+        enkf_quit("tunits2days(): the input = \"%s\" is not supposed to contain spaces", tunits);
+    if (strncasecmp(tunits, "sec", 3) == 0)
+        mult = 1.0 / 86400.0;
+    else if (strncasecmp(tunits, "hou", 3) == 0)
+        mult = 1.0 / 24.0;
+    else if (strncasecmp(tunits, "day", 3) == 0)
+        mult = 1.0;
+    else
+        enkf_quit("can not convert \"%s\" to days", tunits);
+
+    return mult;
+}
+
+/** Reads observation time. Can handle compound time represented as sum of
+ ** a base time (of size 1) and offset time.
+ * @param meta - meta data for the block of observations
+ * @param ncid - input data file
+ * @param size - output: length of the time vector
+ * @param time - output: time vector
+ */
+void get_time(obsmeta* meta, int ncid, size_t* size, double** time)
+{
+    char* timenames[2] = { NULL, NULL };
+    int varids[2] = { -1, -1 };
+    char tunits[MAXSTRLEN];
+    double tunits_multiple = NAN, tunits_offset = 0.0;
+    int i;
+
+    for (i = 0; i < meta->npars; ++i) {
+        if (strcasecmp(meta->pars[i].name, "TIMENAME") == 0)
+            timenames[0] = strdup(meta->pars[i].value);
+        else if (strcasecmp(meta->pars[i].name, "TIMENAMES") == 0) {
+            char seps[] = " ,";
+            char* token;
+
+            token = strtok(meta->pars[i].value, seps);
+            if (token == NULL)
+                enkf_quit("%s: no entries found after TIMENAMES", meta->prmfname);
+            timenames[0] = strdup(token);
+            token = strtok(NULL, seps);
+            if (token != NULL)
+                timenames[1] = strdup(token);
+        }
+    }
+    get_timenames(ncid, varids, timenames);
+    if (timenames[1] != NULL) {
+        double offset = 0.0;
+
+        ncw_get_att_text(ncid, varids[1], "units", tunits);
+        tunits_convert(tunits, &tunits_multiple, &tunits_offset);
+        ncu_readvardouble(ncid, varids[1], 1, &offset);
+        tunits_offset = offset * tunits_multiple + tunits_offset;
+    }
+    ncw_get_att_text(ncid, varids[0], "units", tunits);
+    if (timenames[1] != NULL)
+        tunits_multiple = tunits2days(tunits);
+    else
+        tunits_convert(tunits, &tunits_multiple, &tunits_offset);
+    ncw_inq_varsize(ncid, varids[0], size);
+    assert(*size > 0);
+    *time = malloc(*size * sizeof(size_t));
+    ncu_readvardouble(ncid, varids[0], *size, *time);
+    for (i = 0; i < *size; ++i)
+        (*time)[i] = (*time)[i] * tunits_multiple + tunits_offset;
+
+    if (timenames[0] != NULL)
+        free(timenames[0]);
+    if (timenames[1] != NULL)
+        free(timenames[1]);
+}
+
+#define NINSTNAMES 5
 static char* INSTNAMES[] = { "instrument",
     "Instrument",
     "INSTRUMENT",

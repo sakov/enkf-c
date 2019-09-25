@@ -20,7 +20,8 @@
  *              specified if they differ from the default value (+). Some
  *              parameters are optional (-):
  *              - VARNAME (++)
- *              - TIMENAME ("time") (+)
+ *              - TIMENAME ("*[tT][iI][mM][eE]*") (+)
+ *              - or TIMENAMES (when time = base_time + offset) (+)
  *              - LONNAME ("lon" | "longitude") (+)
  *              - LATNAME ("lat" | "latitude") (+)
  *              - ZNAME ("z") (+)
@@ -85,7 +86,6 @@ void reader_z(char* fname, int fid, obsmeta* meta, grid* g, observations* obs)
     char* latname = NULL;
     char* zname = NULL;
     char* estdname = NULL;
-    char* timename = NULL;
     int nqcflags = 0;
     char** qcflagname = NULL;
     uint32_t* qcflagvals = 0;
@@ -103,18 +103,13 @@ void reader_z(char* fname, int fid, obsmeta* meta, grid* g, observations* obs)
     double var_estd = NAN;
     double* estd = NULL;
     uint32_t** qcflag = NULL;
-    int have_time = 1;
-    int singletime = -1;
+    size_t ntime = 0;
     double* time = NULL;
-    char tunits[MAXSTRLEN];
-    double tunits_multiple = NAN, tunits_offset = NAN;
     int i, nobs_read;
 
     for (i = 0; i < meta->npars; ++i) {
         if (strcasecmp(meta->pars[i].name, "VARNAME") == 0)
             varname = meta->pars[i].value;
-        else if (strcasecmp(meta->pars[i].name, "TIMENAME") == 0)
-            timename = meta->pars[i].value;
         else if (strcasecmp(meta->pars[i].name, "LONNAME") == 0)
             lonname = meta->pars[i].value;
         else if (strcasecmp(meta->pars[i].name, "LATNAME") == 0)
@@ -154,6 +149,11 @@ void reader_z(char* fname, int fid, obsmeta* meta, grid* g, observations* obs)
             continue;
         } else if (strcasecmp(meta->pars[i].name, "INSTRUMENT") == 0)
             strncpy(instrument, meta->pars[i].value, MAXSTRLEN - 1);
+        else if (strcasecmp(meta->pars[i].name, "TIMENAME") == 0 || strcasecmp(meta->pars[i].name, "TIMENAMES") == 0)
+            /*
+             * TIMENAME and TIMENAMES are dealt with separately
+             */
+            ;
         else if (strcasecmp(meta->pars[i].name, "QCFLAGNAME") == 0 || strcasecmp(meta->pars[i].name, "QCFLAGVALS") == 0)
             /*
              * QCFLAGNAME and QCFLAGVALS are dealt with separately
@@ -248,32 +248,8 @@ void reader_z(char* fname, int fid, obsmeta* meta, grid* g, observations* obs)
     /*
      * time
      */
-    timename = get_timename(ncid, timename);
-    if (timename != NULL) {
-        enkf_printf("        TIMENAME = %s\n", timename);
-        ncw_inq_varid(ncid, timename, &varid);
-    } else {
-        enkf_printf("        reader_z(): %s: no TIME variable\n", fname);
-        have_time = 0;
-    }
-
-    if (have_time) {
-        size_t timelen = 0;
-
-        ncw_inq_varsize(ncid, varid, &timelen);
-        if (timelen == 1) {
-            singletime = 1;
-            time = malloc(sizeof(double));
-        } else {
-            singletime = 0;
-            assert(timelen == nobs);
-            time = malloc(nobs * sizeof(double));
-        }
-
-        ncu_readvardouble(ncid, varid, timelen, time);
-        ncw_get_att_text(ncid, varid, "units", tunits);
-        tunits_convert(tunits, &tunits_multiple, &tunits_offset);
-    }
+    get_time(meta, ncid, &ntime, &time);
+    assert(ntime == nobs || ntime <= 1);
 
     /*
      * instrument
@@ -288,7 +264,7 @@ void reader_z(char* fname, int fid, obsmeta* meta, grid* g, observations* obs)
         observation* o;
         int ii;
 
-        if (isnan(var[i]) || (estd != NULL && isnan(estd[i])) || (have_time && !singletime && isnan(time[i])))
+        if (isnan(var[i]) || (estd != NULL && isnan(estd[i])) || (ntime == nobs && isnan(time[i])))
             continue;
         for (ii = 0; ii < nqcflags; ++ii)
             if (!(qcflag[ii][i] | qcflagvals[ii]))
@@ -321,8 +297,8 @@ void reader_z(char* fname, int fid, obsmeta* meta, grid* g, observations* obs)
         else
             o->fk = NAN;
         o->model_depth = NAN;   /* set in obs_add() */
-        if (have_time)
-            o->time = ((singletime) ? time[0] : time[i]) * tunits_multiple + tunits_offset;
+        if (ntime > 0)
+            o->time = (ntime == 1) ? time[0] : time[i];
         else
             o->time = NAN;
 

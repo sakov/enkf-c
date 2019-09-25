@@ -561,7 +561,7 @@ void obs_read(observations* obs, char fname[])
     /*
      * date
      */
-    {
+    if (obs->datestr == NULL) {
         size_t len = 0;
 
         ncw_inq_attlen(ncid, varid_time, "units", &len);

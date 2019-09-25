@@ -1,3 +1,11 @@
+v. 1.104.0
+   PS 25092019
+   -- Added get_time() to prep_utils.c; modified reader_xyz_gridded(),
+      reader_xyz_scattered(), reader_xy_gridded(), reader_z(), and
+      reader_xyh_gridded() accordingly.
+   -- Corrected NINSTNAMES from 3 to 5.
+   -- Modified treatment of qcflags in reader_xyh_gridded() to be in line with
+      other generic readers.
 v. 1.103.3
    PS 25092019
    -- Fixed two defects in obsprm.c: a potentially major one in obsprm_read(),
