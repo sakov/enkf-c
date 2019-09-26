@@ -255,7 +255,7 @@ void reader_z(char* fname, int fid, obsmeta* meta, grid* g, observations* obs)
      * instrument
      */
     if (strlen(instrument) == 0 && !get_insttag(ncid, varname, instrument))
-        strncpy(instrument, meta->product, MAXSTRLEN);
+        strncpy(instrument, meta->product, MAXSTRLEN - 1);
 
     ncw_close(ncid);
 

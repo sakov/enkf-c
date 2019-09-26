@@ -1593,7 +1593,7 @@ void grid_getzints(grid* g, int* nzints, zint* zints[])
 int grid_xy2fij(grid* g, double x, double y, double* fi, double* fj)
 {
     int isperiodic_i = grid_isperiodic_i(g);
-    int ni, nj;
+    int ni = -1, nj = -1;
     int i1, i2, j1, j2;
 
     if (!isnan(g->lonbase)) {
@@ -1660,7 +1660,7 @@ int grid_z2fk(grid* g, double fi, double fj, double z, double* fk)
 {
     int isperiodic_i = grid_isperiodic_i(g);
     int ksurf = grid_getsurflayerid(g);
-    int ni, nj;
+    int ni = -1, nj = -1;
     int i1, i2, j1, j2, k;
 
     if (isnan(fi + fj)) {
@@ -1770,7 +1770,7 @@ void grid_ij2xy(grid* g, int i, int j, double* x, double* y)
  */
 int grid_fk2z(grid* g, int i, int j, double fk, double* z)
 {
-    int ni, nj;
+    int ni = -1, nj = -1;
 
     grid_getsize(g, &ni, &nj, NULL);
     if (i < 0 || j < 0 || i >= ni || j >= nj) {
