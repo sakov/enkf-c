@@ -35,6 +35,9 @@
  *              - ADDVAR (-)
  *                  name of the variable to be added to the main variable
  *                  (can be repeated)
+ *              - SUBVAR (-)
+ *                  name of the variable to be subtracted from the main variable
+ *                  (can be repeated)
  *              Note: it is possible to have multiple entries of QCFLAGNAME and
  *                QCFLAGVALS combination, e.g.:
  *                  PARAMETER QCFLAGNAME = TEMP_quality_control
@@ -71,9 +74,12 @@
 #include "allreaders.h"
 
 #define NADDVAR_INC 1
+#define ADDVAR_ACTION_ADD 0
+#define ADDVAR_ACTION_SUB 1
 
 typedef struct {
     char* name;
+    int action;
     double* v;
 } addvar;
 
@@ -165,6 +171,15 @@ void reader_xy_scattered(char* fname, int fid, obsmeta* meta, grid* g, observati
             if (naddvar % NADDVAR_INC == 0) {
                 addvars = realloc(addvars, (naddvar + NADDVAR_INC) * sizeof(char*));
                 addvars[naddvar].name = strdup(meta->pars[i].value);
+                addvars[naddvar].name = ADDVAR_ACTION_ADD;
+                addvars[naddvar].v = NULL;
+                naddvar++;
+            }
+        } else if (strcasecmp(meta->pars[i].name, "SUBVAR") == 0) {
+            if (naddvar % NADDVAR_INC == 0) {
+                addvars = realloc(addvars, (naddvar + NADDVAR_INC) * sizeof(char*));
+                addvars[naddvar].name = strdup(meta->pars[i].value);
+                addvars[naddvar].action = ADDVAR_ACTION_SUB;
                 addvars[naddvar].v = NULL;
                 naddvar++;
             }
@@ -197,6 +212,12 @@ void reader_xy_scattered(char* fname, int fid, obsmeta* meta, grid* g, observati
         ncw_inq_varid(ncid, a->name, &varid);
         a->v = malloc(nobs * sizeof(double));
         ncu_readvardouble(ncid, varid, nobs, a->v);
+        if (a->action == ADDVAR_ACTION_SUB) {
+            int ii;
+
+            for (ii = 0; ii < nobs; ++ii)
+                a->v[ii] = -a->v[ii];
+        }
     }
 
     /*
