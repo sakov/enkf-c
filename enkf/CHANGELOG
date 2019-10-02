@@ -1,3 +1,9 @@
+v. 1.104.5
+   PS 01102019
+   -- Changed default indentification of time variable in generic readers. Now
+      the default variable can be "time" (case insensitive) only. In case of
+      offset/difference time variables they need to be specified explicitly via
+      entry TIMENAMES (in any order).
 v. 1.104.4
    PS 01102019
    -- Fixed a defect at reading SOBSTRIDE in obstypes_read(). (Thanks to Paul

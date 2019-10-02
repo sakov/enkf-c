@@ -521,9 +521,9 @@ static void get_timenames(int ncid, int* varids, char** timenames)
             char varname[NC_MAX_NAME];
 
             ncw_inq_varname(ncid, i, varname);
-            if (strcasestr(varname, "time") != NULL) {
-                if (nfound == 2)
-                    enkf_quit("%s: more than 2 possible time variables found: %s, %s, %s", ncw_get_path(ncid), timenames[0], timenames[1], varname);
+            if (strncasecmp(varname, "time", MAXSTRLEN - 1) == 0) {
+                if (nfound == 1)
+                    enkf_quit("%s: more than 1 possible time variables found: %s, %s. Use entry TIMENAMES to specify offset and difference time variable names", ncw_get_path(ncid), timenames[0], varname);
                 varids[nfound] = i;
                 timenames[nfound] = strdup(varname);
                 nfound++;
