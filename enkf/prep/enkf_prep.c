@@ -306,10 +306,11 @@ int main(int argc, char* argv[])
                 if (sobs->data[i].status != STATUS_OK)
                     break;
             assert(i != sobs->nobs);
-            enkf_printf("    deleted %d observations\n", sobs->nobs - i);
+            enkf_printf("    deleted %d observation(s)\n", sobs->nobs - i);
             sobs->nobs = i;
+            obs_calcstats(sobs);
+            enkf_printf("  re-writing good superobservations to \"%s\":\n", FNAME_SOBS);
             file_delete(FNAME_SOBS);
-            enkf_printf("  writing good superobservations to \"%s\":\n", FNAME_SOBS);
             obs_write(sobs, FNAME_SOBS);
         } else
             enkf_printf("    all good\n");

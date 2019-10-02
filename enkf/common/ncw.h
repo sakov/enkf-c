@@ -120,6 +120,7 @@ void ncw_get_att_text(int ncid, int varid, const char attname[], char v[]);
 void ncw_get_att_schar(int ncid, int varid, const char attname[], signed char v[]);
 void ncw_get_att_short(int ncid, int varid, const char attname[], short int v[]);
 void ncw_get_att_int(int ncid, int varid, const char attname[], int v[]);
+void ncw_get_att_uint(int ncid, int varid, const char attname[], unsigned int v[]);
 void ncw_get_att_float(int ncid, int varid, const char attname[], float v[]);
 void ncw_get_att_double(int ncid, int varid, const char attname[], double v[]);
 

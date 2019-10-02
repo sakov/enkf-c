@@ -86,9 +86,9 @@ void reader_z(char* fname, int fid, obsmeta* meta, grid* g, observations* obs)
     char* latname = NULL;
     char* zname = NULL;
     char* estdname = NULL;
-    int nqcflags = 0;
-    char** qcflagname = NULL;
-    uint32_t* qcflagvals = 0;
+    int nqcflagvars = 0;
+    char** qcflagvarnames = NULL;
+    uint32_t* qcflagmasks = 0;
 
     int ncid;
     double varshift = 0.0;
@@ -162,7 +162,7 @@ void reader_z(char* fname, int fid, obsmeta* meta, grid* g, observations* obs)
         else
             enkf_quit("unknown PARAMETER \"%s\"\n", meta->pars[i].name);
     }
-    get_qcflags(meta, &nqcflags, &qcflagname, &qcflagvals);
+    get_qcflags(meta, &nqcflagvars, &qcflagvarnames, &qcflagmasks);
 
     if (varname == NULL)
         enkf_quit("reader_z(): %s: VARNAME not specified", fname);
@@ -236,10 +236,10 @@ void reader_z(char* fname, int fid, obsmeta* meta, grid* g, observations* obs)
     /*
      * qcflag
      */
-    if (nqcflags > 0) {
-        qcflag = alloc2d(nqcflags, nobs, sizeof(int32_t));
-        for (i = 0; i < nqcflags; ++i) {
-            ncw_inq_varid(ncid, qcflagname[i], &varid);
+    if (nqcflagvars > 0) {
+        qcflag = alloc2d(nqcflagvars, nobs, sizeof(int32_t));
+        for (i = 0; i < nqcflagvars; ++i) {
+            ncw_inq_varid(ncid, qcflagvarnames[i], &varid);
             ncw_check_vardims(ncid, varid, 1, &nobs);
             ncw_get_var_uint(ncid, varid, qcflag[i]);
         }
@@ -266,9 +266,9 @@ void reader_z(char* fname, int fid, obsmeta* meta, grid* g, observations* obs)
 
         if (isnan(var[i]) || (estd != NULL && isnan(estd[i])) || (ntime == nobs && isnan(time[i])))
             continue;
-        for (ii = 0; ii < nqcflags; ++ii)
-            if (!(qcflag[ii][i] | qcflagvals[ii]))
-                continue;
+        for (ii = 0; ii < nqcflagvars; ++ii)
+            if (!((1 << qcflag[ii][i]) & qcflagmasks[ii]))
+                goto nextob;
 
         nobs_read++;
         obs_checkalloc(obs);
@@ -305,6 +305,8 @@ void reader_z(char* fname, int fid, obsmeta* meta, grid* g, observations* obs)
         o->aux = -1;
 
         obs->nobs++;
+      nextob:
+        ;
     }
     enkf_printf("        nobs = %d\n", nobs_read);
 
@@ -314,9 +316,9 @@ void reader_z(char* fname, int fid, obsmeta* meta, grid* g, observations* obs)
         free(estd);
     if (time != NULL)
         free(time);
-    if (nqcflags > 0) {
-        free(qcflagname);
-        free(qcflagvals);
+    if (nqcflagvars > 0) {
+        free(qcflagvarnames);
+        free(qcflagmasks);
         free(qcflag);
     }
 }

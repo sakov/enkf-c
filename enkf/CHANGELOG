@@ -1,3 +1,9 @@
+v. 1.104.3
+   PS 01102019
+   -- In generic readers fixed the check on matching the specified quality
+      flags.
+   -- In enkf_prep::main() added re-calculating the obs stats if some obs
+      on land are removed.
 v. 1.104.2
    PS 26092019
    -- In reader_xy_scattered() added parameter SUBVAR -- the name of the

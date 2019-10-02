@@ -93,9 +93,9 @@ void reader_xy_gridded(char* fname, int fid, obsmeta* meta, grid* g, observation
     char* estdname = NULL;
     int ndim_var, ndim_xy;
     size_t dimlen_var[3], dimlen_xy[2];
-    int nqcflags = 0;
-    char** qcflagname = NULL;
-    uint32_t* qcflagvals = 0;
+    int nqcflagvars = 0;
+    char** qcflagvarnames = NULL;
+    uint32_t* qcflagmasks = 0;
 
     int ncid;
     float varshift = 0.0;
@@ -312,13 +312,13 @@ void reader_xy_gridded(char* fname, int fid, obsmeta* meta, grid* g, observation
     /*
      * qcflags
      */
-    get_qcflags(meta, &nqcflags, &qcflagname, &qcflagvals);
-    if (nqcflags > 0) {
+    get_qcflags(meta, &nqcflagvars, &qcflagvarnames, &qcflagmasks);
+    if (nqcflagvars > 0) {
         int varid = -1;
 
-        qcflag = alloc2d(nqcflags, nij, sizeof(int32_t));
-        for (i = 0; i < nqcflags; ++i) {
-            ncw_inq_varid(ncid, qcflagname[i], &varid);
+        qcflag = alloc2d(nqcflagvars, nij, sizeof(int32_t));
+        for (i = 0; i < nqcflagvars; ++i) {
+            ncw_inq_varid(ncid, qcflagvarnames[i], &varid);
             ncw_get_var_uint(ncid, varid, qcflag[i]);
         }
     }
@@ -344,9 +344,9 @@ void reader_xy_gridded(char* fname, int fid, obsmeta* meta, grid* g, observation
 
         if ((npoints != NULL && npoints[i] == 0) || isnan(var[i]) || (std != NULL && isnan(std[i])) || (estd != NULL && isnan(estd[i])) || (ntime == nij && isnan(time[i])))
             continue;
-        for (ii = 0; ii < nqcflags; ++ii)
-            if (!(qcflag[ii][i] | qcflagvals[ii]))
-                continue;
+        for (ii = 0; ii < nqcflagvars; ++ii)
+            if (!((1 << qcflag[ii][i]) & qcflagmasks[ii]))
+                goto nextob;
 
         nobs_read++;
         obs_checkalloc(obs);
@@ -387,6 +387,8 @@ void reader_xy_gridded(char* fname, int fid, obsmeta* meta, grid* g, observation
         o->aux = -1;
 
         obs->nobs++;
+      nextob:
+        ;
     }
     enkf_printf("        nobs = %d\n", nobs_read);
 
@@ -401,9 +403,9 @@ void reader_xy_gridded(char* fname, int fid, obsmeta* meta, grid* g, observation
         free(npoints);
     if (time != NULL)
         free(time);
-    if (nqcflags > 0) {
-        free(qcflagname);
-        free(qcflagvals);
+    if (nqcflagvars > 0) {
+        free(qcflagvarnames);
+        free(qcflagmasks);
         free(qcflag);
     }
 }

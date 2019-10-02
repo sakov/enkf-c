@@ -145,7 +145,6 @@ observations* obs_create(void)
     obs->data = NULL;
     obs->compacted = 0;
     obs->has_nonpointobs = 0;
-    obs->hasstats = 0;
     obs->ngood = 0;
     obs->noutside_grid = 0;
     obs->noutside_obsdomain = 0;
@@ -409,9 +408,6 @@ void obs_calcstats(observations* obs)
 {
     int i;
 
-    if (obs->hasstats)
-        return;
-
     obs->ngood = 0;
     obs->noutside_grid = 0;
     obs->noutside_obsdomain = 0;
@@ -474,7 +470,6 @@ void obs_calcstats(observations* obs)
         if (o->time > ot->time_max)
             ot->time_max = o->time;
     }
-    obs->hasstats = 1;
 }
 
 /** Reads observations from "observations.nc".

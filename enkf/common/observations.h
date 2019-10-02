@@ -91,7 +91,6 @@ typedef struct {
     int compacted;
     int has_nonpointobs;
 
-    int hasstats;
     int ngood;
     int noutside_grid;
     int noutside_obsdomain;

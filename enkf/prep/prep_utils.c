@@ -220,7 +220,6 @@ void obs_add(observations* obs, model* m, obsmeta* meta)
             enkf_printf("        %d observations in shallow areas\n", nshallow);
     }
     obs->compacted = 0;
-    obs->hasstats = 0;
     enkf_printf("      total %d observations\n", obs->nobs - nobs0);
     for (ngood = 0, i = nobs0; i < obs->nobs; ++i)
         if (obs->data[i].status == STATUS_OK)
@@ -671,19 +670,19 @@ int get_insttag(int ncid, char* varname, char* insttag)
 
 /**
  */
-void get_qcflags(obsmeta* meta, int* nqcflags, char*** qcflagname, uint32_t** qcflagvals)
+void get_qcflags(obsmeta* meta, int* nqcflagvars, char*** qcflagvarnames, uint32_t** qcflagmasks)
 {
     int i;
 
-    assert(*nqcflags == 0);
-    assert(*qcflagname == NULL);
-    assert(*qcflagvals == NULL);
+    assert(*nqcflagvars == 0);
+    assert(*qcflagvarnames == NULL);
+    assert(*qcflagmasks == NULL);
 
     for (i = 0; i < meta->npars; ++i) {
-        if (strcasecmp(meta->pars[i].name, "QCFLAGNAME") == 0) {
-            if (*nqcflags % NINC == 0)
-                *qcflagname = realloc(*qcflagname, (*nqcflags + NINC) * sizeof(char*));
-            (*qcflagname)[*nqcflags] = meta->pars[i].value;
+        if (strcasecmp(meta->pars[i].name, "QCFLAGVARNAMES") == 0) {
+            if (*nqcflagvars % NINC == 0)
+                *qcflagvarnames = realloc(*qcflagvarnames, (*nqcflagvars + NINC) * sizeof(char*));
+            (*qcflagvarnames)[*nqcflagvars] = meta->pars[i].value;
         } else if (strcasecmp(meta->pars[i].name, "QCFLAGVALS") == 0) {
             char seps[] = " ,";
             char* line = meta->pars[i].value;
@@ -691,27 +690,27 @@ void get_qcflags(obsmeta* meta, int* nqcflags, char*** qcflagname, uint32_t** qc
             int val;
             int ii;
 
-            if (*nqcflags % NINC == 0)
-                *qcflagvals = realloc(*qcflagvals, (*nqcflags + NINC) * sizeof(uint32_t));
+            if (*nqcflagvars % NINC == 0)
+                *qcflagmasks = realloc(*qcflagmasks, (*nqcflagvars + NINC) * sizeof(uint32_t));
 
-            (*qcflagvals)[*nqcflags] = 0;
+            (*qcflagmasks)[*nqcflagvars] = 0;
             while ((token = strtok(line, seps)) != NULL) {
                 if (!str2int(token, &val))
                     enkf_quit("%s: could not convert QCFLAGVALS entry \"%s\" to integer", meta->prmfname, token);
                 if (val < 0 || val > 31)
                     enkf_quit("%s: QCFLAGVALS entry = %d (supposed to be in [0,31] interval", meta->prmfname, val);
-                (*qcflagvals)[*nqcflags] |= 1 << val;
+                (*qcflagmasks)[*nqcflagvars] |= 1 << val;
                 line = NULL;
             }
-            if ((*qcflagvals)[*nqcflags] == 0)
+            if ((*qcflagmasks)[*nqcflagvars] == 0)
                 enkf_quit("%s: no valid flag entries found after QCFLAGVALS\n", meta->prmfname);
-            enkf_printf("        QCFLAGNAME = %s\n", (*qcflagname)[*nqcflags]);
+            enkf_printf("        QCFLAGVARNAMES = %s\n", (*qcflagvarnames)[*nqcflagvars]);
             enkf_printf("        QCFLAG values used =");
             for (ii = 0; ii <= QCFLAGVALMAX; ++ii)
-                if ((*qcflagvals)[*nqcflags] & (1 << ii))
+                if ((*qcflagmasks)[*nqcflagvars] & (1 << ii))
                     enkf_printf(" %d", ii);
             enkf_printf("\n");
-            (*nqcflags)++;
+            (*nqcflagvars)++;
         }
     }
 }

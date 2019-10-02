@@ -101,9 +101,9 @@ void reader_xyh_gridded(char* fname, int fid, obsmeta* meta, grid* gdst, observa
     float varshift = 0.0;
     char instrument[MAXSTRLEN];
 
-    int nqcflags = 0;
-    char** qcflagname = NULL;
-    uint32_t* qcflagvals = 0;
+    int nqcflagvars = 0;
+    char** qcflagvarnames = NULL;
+    uint32_t* qcflagmasks = 0;
 
     int ni = 0, nj = 0, nk = 0;
     size_t nij = 0, nijk = 0;
@@ -169,7 +169,7 @@ void reader_xyh_gridded(char* fname, int fid, obsmeta* meta, grid* gdst, observa
         else
             enkf_quit("unknown PARAMETER \"%s\"\n", meta->pars[i].name);
     }
-    get_qcflags(meta, &nqcflags, &qcflagname, &qcflagvals);
+    get_qcflags(meta, &nqcflagvars, &qcflagvarnames, &qcflagmasks);
 
     if (varname == NULL)
         enkf_quit("reader_xyh_gridded(): %s: VARNAME not specified", fname);
@@ -259,12 +259,12 @@ void reader_xyh_gridded(char* fname, int fid, obsmeta* meta, grid* gdst, observa
     /*
      * qcflag
      */
-    if (nqcflags > 0) {
+    if (nqcflagvars > 0) {
         int varid = -1;
 
-        qcflag = alloc2d(nqcflags, nijk, sizeof(int32_t));
-        for (i = 0; i < nqcflags; ++i) {
-            ncw_inq_varid(ncid, qcflagname[i], &varid);
+        qcflag = alloc2d(nqcflagvars, nijk, sizeof(int32_t));
+        for (i = 0; i < nqcflagvars; ++i) {
+            ncw_inq_varid(ncid, qcflagvarnames[i], &varid);
             ncw_get_var_uint(ncid, varid, qcflag[i]);
         }
     }
@@ -293,9 +293,9 @@ void reader_xyh_gridded(char* fname, int fid, obsmeta* meta, grid* gdst, observa
 
                 if ((npoints != NULL && npoints[ii] == 0) || isnan(var[ii]) || (std != NULL && isnan(std[ii])) || (estd != NULL && isnan(estd[ii])) || (ntime == nijk && isnan(time[ii])))
                     continue;
-                for (qcid = 0; qcid < nqcflags; ++qcid)
-                    if (!(qcflag[qcid][ii] | qcflagvals[qcid]))
-                        continue;
+                for (qcid = 0; qcid < nqcflagvars; ++qcid)
+                    if (!((1 << qcflag[qcid][ii]) & qcflagmasks[qcid]))
+                        goto nextob;
 
                 nobs_read++;
                 obs_checkalloc(obs);
@@ -334,6 +334,8 @@ void reader_xyh_gridded(char* fname, int fid, obsmeta* meta, grid* gdst, observa
                 o->aux = -1;
 
                 obs->nobs++;
+              nextob:
+                ;
             }
         }
     }
@@ -348,6 +350,9 @@ void reader_xyh_gridded(char* fname, int fid, obsmeta* meta, grid* gdst, observa
         free(npoints);
     if (time != NULL)
         free(time);
-    if (qcflag != NULL)
+    if (nqcflagvars > 0) {
+        free(qcflagvarnames);
+        free(qcflagmasks);
         free(qcflag);
+    }
 }
