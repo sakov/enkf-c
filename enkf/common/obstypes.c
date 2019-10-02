@@ -397,7 +397,7 @@ void obstypes_read(enkfprm* prm, char fname[], int* n, obstype** types)
         } else if (strcasecmp(token, "SOBSTRIDE") == 0) {
             if ((token = strtok(NULL, seps)) == NULL)
                 enkf_quit("%s, l.%d: SOBSTRIDE not specified", fname, line);
-            if (now->sob_stride != 0)
+            if (now->sob_stride >= 0)
                 enkf_quit("%s, l.%d: SOBSTRIDE specified twice", fname, line);
             if (!str2int(token, &now->sob_stride))
                 enkf_quit("%s, l.%d: could not convert \"%s\" to int", fname, line, token);

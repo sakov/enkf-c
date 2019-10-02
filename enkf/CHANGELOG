@@ -1,3 +1,7 @@
+v. 1.104.4
+   PS 01102019
+   -- Fixed a defect at reading SOBSTRIDE in obstypes_read(). (Thanks to Paul
+      Sandery for the report.)
 v. 1.104.3
    PS 01102019
    -- In generic readers fixed the check on matching the specified quality
