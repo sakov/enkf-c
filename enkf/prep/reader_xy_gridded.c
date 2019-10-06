@@ -99,7 +99,7 @@ void reader_xy_gridded(char* fname, int fid, obsmeta* meta, grid* g, observation
 
     int ncid;
     float varshift = 0.0;
-    char instrument[MAXSTRLEN];
+    char instrument[MAXSTRLEN] = "";
 
     int iscurv = -1;
     size_t ni = 0, nj = 0, nij = 0, n_var = 0;

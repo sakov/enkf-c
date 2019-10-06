@@ -387,6 +387,7 @@ void reader_cmems_standard(char* fname, int fid, obsmeta* meta, grid* g, observa
                 enkf_printf("          %d: %d obs\n", i, qcflagcounts[i]);
     }
 
+    free(time);
     free(v);
     free(z);
     free(qcflag);

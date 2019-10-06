@@ -629,6 +629,7 @@ static void gz_hybrid_destroy(gz_hybrid* gz)
     free(gz->p2);
     free(gz->pt);
     free(gz->pc);
+    free(gz);
 }
 
 /**

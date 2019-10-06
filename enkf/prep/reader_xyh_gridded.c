@@ -99,7 +99,7 @@ void reader_xyh_gridded(char* fname, int fid, obsmeta* meta, grid* gdst, observa
     char* stdname = NULL;
     char* estdname = NULL;
     float varshift = 0.0;
-    char instrument[MAXSTRLEN];
+    char instrument[MAXSTRLEN] = "";
 
     int nqcflagvars = 0;
     char** qcflagvarnames = NULL;

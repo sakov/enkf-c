@@ -92,7 +92,7 @@ void reader_z(char* fname, int fid, obsmeta* meta, grid* g, observations* obs)
 
     int ncid;
     double varshift = 0.0;
-    char instrument[MAXSTRLEN];
+    char instrument[MAXSTRLEN] = "";
 
     size_t nobs = 0;
     int varid;

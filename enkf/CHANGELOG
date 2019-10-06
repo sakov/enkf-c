@@ -1,3 +1,8 @@
+v. 1.104.6
+   PS 07102019
+   -- Initialised char instrument[] in generic readers to "".
+   -- Deallocated "time" in reader_cmems_standard().
+   -- Deallocated "gz" in gz_hybrid_destroy().
 v. 1.104.5
    PS 01102019
    -- Changed default indentification of time variable in generic readers. Now

@@ -79,7 +79,7 @@ void reader_xyz_scattered(char* fname, int fid, obsmeta* meta, grid* g, observat
     char* stdname = NULL;
     char* estdname = NULL;
     double varshift = 0.0;
-    char instrument[MAXSTRLEN];
+    char instrument[MAXSTRLEN] = "";
     int nqcflagvars = 0;
     char** qcflagvarnames = NULL;
     uint32_t* qcflagmasks = NULL;
