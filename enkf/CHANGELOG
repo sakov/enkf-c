@@ -1,3 +1,6 @@
+v. 1.104.7
+   PS 07102019
+   -- Removed reader_pathfinder_standard() and the associated stuff.
 v. 1.104.6
    PS 07102019
    -- Initialised char instrument[] in generic readers to "".
