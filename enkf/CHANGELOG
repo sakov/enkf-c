@@ -1,3 +1,7 @@
+v. 1.104.9
+   PS 08102019
+   -- Fixed yet another redundancy in grid.c related to having -DNO_GRIDUTILS
+      in UPDATE.
 v. 1.104.8
    PS 08102019
    -- Modified gridprm_create() to ignore "MAPTYPE" when compiled with

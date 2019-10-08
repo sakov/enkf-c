@@ -53,6 +53,11 @@
 typedef struct {
     int ni;
     int nj;
+} gxy_none;
+
+typedef struct {
+    int ni;
+    int nj;
     int periodic_i;
     int regular_i;
     int regular_y;
@@ -180,6 +185,18 @@ struct grid {
      */
     kdtree* nodetree;
 };
+
+/**
+ */
+static gxy_none* gxy_none_create(int ni, int nj)
+{
+    gxy_none* gxy = malloc(sizeof(gxy_none));
+
+    gxy->ni = ni;
+    gxy->nj = nj;
+
+    return gxy;
+}
 
 /**
  */
@@ -1005,7 +1022,9 @@ static void grid_sethgrid(grid* g, int htype, int hnodetype, int ni, int nj, voi
 #endif
     }
 #endif
-    else
+    else if (htype == GRIDHTYPE_NONE) {
+        g->gridnodes_xy = gxy_none_create(ni, nj);
+    } else
         enkf_quit("programming error");
 #if !defined(ENKF_UPDATE)
     grid_setlonbase(g);
@@ -1075,7 +1094,19 @@ grid* grid_create(void* p, int id)
         grid_sethgrid(g, GRIDHTYPE_LATLON, NT_NONE, ni, nj, x, y);
     } else if (ndims_x == 2 && ndims_y == 2) {
 #if defined(NO_GRIDUTILS)
+#if defined(ENKF_UPDATE)
+        int dummy;
+        size_t dimlen[2];
+
+        ncw_inq_vardims(ncid, varid_x, 2, &dummy, dimlen);
+        ncw_check_vardims(ncid, varid_y, 2, dimlen);
+        nj = dimlen[0];
+        ni = dimlen[1];
+
+        grid_sethgrid(g, GRIDHTYPE_NONE, NT_NONE, ni, nj, NULL, NULL);
+#else
         enkf_quit("%s: grid \"%s\" seems to be of curvilinear type; can not handle it due to flag NO_GRIDUTILS", fname, g->name);
+#endif
 #else
         int dummy;
         double** x;
@@ -1294,7 +1325,9 @@ void grid_destroy(grid* g)
 {
     free(g->name);
     free(g->domainname);
-    if (g->htype == GRIDHTYPE_LATLON)
+    if (g->htype == GRIDHTYPE_NONE)
+        free(g->gridnodes_xy);
+    else if (g->htype == GRIDHTYPE_LATLON)
         gxy_simple_destroy(g->gridnodes_xy);
 #if !defined(NO_GRIDUTILS)
     else if (g->htype == GRIDHTYPE_CURVILINEAR)
@@ -1457,6 +1490,11 @@ void grid_getsize(grid* g, int* ni, int* nj, int* nk)
             *ni = nodes->ni;
             *nj = nodes->nj;
 #endif
+        } else if (g->htype == GRIDHTYPE_NONE) {
+            gxy_none* gxy = (gxy_none *) g->gridnodes_xy;
+
+            *ni = gxy->ni;
+            *nj = gxy->nj;
         } else
             enkf_quit("programming error");
     }
