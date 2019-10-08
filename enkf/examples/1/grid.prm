@@ -6,4 +6,3 @@ YVARNAME = lat
 ZVARNAME = zt
 DEPTHVARNAME = depth_t
 NUMLEVELSVARNAME = num_levels
-MAPTYPE = k
