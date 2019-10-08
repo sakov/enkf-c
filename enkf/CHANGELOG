@@ -1,3 +1,7 @@
+v. 1.104.8
+   PS 08102019
+   -- Modified gridprm_create() to ignore "MAPTYPE" when compiled with
+      -DNO_GRIDUTILS.
 v. 1.104.7
    PS 07102019
    -- Removed reader_pathfinder_standard() and the associated stuff.

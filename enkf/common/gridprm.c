@@ -115,14 +115,16 @@ void gridprm_create(char* fname, int* ngrid, gridprm** prm)
                 enkf_quit("%s, l %d: VTYPE \"%s\" is unknown", fname, line, token);
             if (allgridvtypeentries[i].levelvarnameentry != NULL)
                 now->levelvarnameentry = strdup(allgridvtypeentries[i].levelvarnameentry);
-#if !defined(NO_GRIDUTILS)
         } else if (strcasecmp(token, "MAPTYPE") == 0) {
+#if !defined(NO_GRIDUTILS)
             if ((token = strtok(NULL, seps)) == NULL)
                 enkf_quit("%s, l.%d: MAPTYPE not specified", fname, line);
             if (token[0] == 'b' || token[0] == 'B' || token[0] == 'k' || token[0] == 'K')
                 now->maptype = token[0];
             else
                 enkf_quit("%s, l %d: MAPTYPE \"%s\" is unknown", fname, line, token);
+#else
+            ;
 #endif
         } else if (strcasecmp(token, "DATA") == 0) {
             if ((token = strtok(NULL, seps)) == NULL)
