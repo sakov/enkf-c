@@ -202,7 +202,7 @@ static gxy_none* gxy_none_create(int ni, int nj)
  */
 static gxy_simple* gxy_simple_create(int ni, int nj, double* x, double* y)
 {
-    gxy_simple* nodes = malloc(sizeof(gxy_simple));
+    gxy_simple* gxy = malloc(sizeof(gxy_simple));
     int i, ascending;
     double dx, dy;
 
@@ -211,56 +211,56 @@ static gxy_simple* gxy_simple_create(int ni, int nj, double* x, double* y)
     /*
      * x
      */
-    nodes->ni = ni;
-    nodes->x = x;
-    nodes->xc = malloc((ni + 1) * sizeof(double));
-    nodes->xc[0] = x[0] * 1.5 - x[1] * 0.5;
+    gxy->ni = ni;
+    gxy->x = x;
+    gxy->xc = malloc((ni + 1) * sizeof(double));
+    gxy->xc[0] = x[0] * 1.5 - x[1] * 0.5;
     for (i = 1; i < ni + 1; ++i)
-        nodes->xc[i] = 2 * x[i - 1] - nodes->xc[i - 1];
+        gxy->xc[i] = 2 * x[i - 1] - gxy->xc[i - 1];
 
-    if (fabs(fmod(nodes->x[ni - 1] - nodes->x[0] + EPS_LON / 2.0, 360.0)) < EPS_LON)
-        nodes->periodic_i = 1;  /* closed grid */
-    else if (fabs(fmod(2.0 * nodes->x[ni - 1] - nodes->x[ni - 2] - nodes->x[0] + EPS_LON / 2.0, 360.0)) < EPS_LON) {
-        nodes->periodic_i = 2;  /* non-closed grid (used e.g. by MOM) */
-        nodes->x = realloc(nodes->x, (ni + 1) * sizeof(double));
-        nodes->x[ni] = 2.0 * nodes->x[ni - 1] - nodes->x[ni - 2];
-        nodes->xc = realloc(nodes->xc, (ni + 2) * sizeof(double));
-        nodes->xc[ni + 1] = 2.0 * nodes->xc[ni] - nodes->xc[ni - 1];
+    if (fabs(fmod(gxy->x[ni - 1] - gxy->x[0] + EPS_LON / 2.0, 360.0)) < EPS_LON)
+        gxy->periodic_i = 1;  /* closed grid */
+    else if (fabs(fmod(2.0 * gxy->x[ni - 1] - gxy->x[ni - 2] - gxy->x[0] + EPS_LON / 2.0, 360.0)) < EPS_LON) {
+        gxy->periodic_i = 2;  /* non-closed grid (used e.g. by MOM) */
+        gxy->x = realloc(gxy->x, (ni + 1) * sizeof(double));
+        gxy->x[ni] = 2.0 * gxy->x[ni - 1] - gxy->x[ni - 2];
+        gxy->xc = realloc(gxy->xc, (ni + 2) * sizeof(double));
+        gxy->xc[ni + 1] = 2.0 * gxy->xc[ni] - gxy->xc[ni - 1];
     } else
-        nodes->periodic_i = 0;
+        gxy->periodic_i = 0;
 
-    dx = (nodes->x[ni - 1] - nodes->x[0]) / (double) (ni - 1);
+    dx = (gxy->x[ni - 1] - gxy->x[0]) / (double) (ni - 1);
     for (i = 1; i < (int) ni; ++i)
-        if (fabs(nodes->x[i] - nodes->x[i - 1] - dx) / fabs(dx) > EPS_LON)
+        if (fabs(gxy->x[i] - gxy->x[i - 1] - dx) / fabs(dx) > EPS_LON)
             break;
-    nodes->regular_i = (i == ni);
+    gxy->regular_i = (i == ni);
 
-    ascending = (nodes->x[ni - 1] > nodes->x[0]);
+    ascending = (gxy->x[ni - 1] > gxy->x[0]);
     if (ascending) {
         for (i = 0; i < ni - 1; ++i)
-            if ((nodes->x[i + 1] - nodes->x[i]) < 0.0)
+            if ((gxy->x[i + 1] - gxy->x[i]) < 0.0)
                 enkf_quit("non-monotonic X coordinate for a simple grid\n");
     } else {
         for (i = 0; i < ni - 1; ++i)
-            if ((nodes->x[i + 1] - nodes->x[i]) > 0.0)
+            if ((gxy->x[i + 1] - gxy->x[i]) > 0.0)
                 enkf_quit("non-monotonic X coordinate for a simple grid\n");
     }
 
     /*
      * y
      */
-    nodes->nj = nj;
-    nodes->y = y;
-    nodes->yc = malloc((nj + 1) * sizeof(double));
-    nodes->yc[0] = y[0] * 1.5 - y[1] * 0.5;
+    gxy->nj = nj;
+    gxy->y = y;
+    gxy->yc = malloc((nj + 1) * sizeof(double));
+    gxy->yc[0] = y[0] * 1.5 - y[1] * 0.5;
     for (i = 1; i < nj + 1; ++i)
-        nodes->yc[i] = 2 * y[i - 1] - nodes->yc[i - 1];
+        gxy->yc[i] = 2 * y[i - 1] - gxy->yc[i - 1];
 
     dy = (y[nj - 1] - y[0]) / (double) (nj - 1);
     for (i = 1; i < (int) nj; ++i)
         if (fabs(y[i] - y[i - 1] - dy) / fabs(dy) > EPS_LON)
             break;
-    nodes->regular_y = (i == nj);
+    gxy->regular_y = (i == nj);
 
     ascending = (y[nj - 1] > y[0]);
     if (ascending) {
@@ -273,18 +273,18 @@ static gxy_simple* gxy_simple_create(int ni, int nj, double* x, double* y)
                 enkf_quit("non-monotonic Y coordinate for a simple grid\n");
     }
 
-    return nodes;
+    return gxy;
 }
 
 /**
  */
-void gxy_simple_destroy(gxy_simple* nodes)
+void gxy_simple_destroy(gxy_simple* gxy)
 {
-    free(nodes->x);
-    free(nodes->y);
-    free(nodes->xc);
-    free(nodes->yc);
-    free(nodes);
+    free(gxy->x);
+    free(gxy->y);
+    free(gxy->xc);
+    free(gxy->yc);
+    free(gxy);
 }
 
 #if !defined(NO_GRIDUTILS)
@@ -292,42 +292,42 @@ void gxy_simple_destroy(gxy_simple* nodes)
  */
 static gxy_curv* gxy_curv_create(int nodetype, int ni, int nj, double** x, double** y, int maptype)
 {
-    gxy_curv* nodes = malloc(sizeof(gxy_curv));
+    gxy_curv* gxy = malloc(sizeof(gxy_curv));
 
-    nodes->ni = ni;
-    nodes->nj = nj;
+    gxy->ni = ni;
+    gxy->nj = nj;
 #if !defined(ENKF_UPDATE)
     if (nodetype == NT_CEN) {
         gridnodes* gn_new;
 
-        nodes->gn = gridnodes_create2(ni, nj, NT_CEN, x, y);
-        gn_new = gridnodes_transform(nodes->gn, NT_COR);
-        gridnodes_destroy(nodes->gn);
-        nodes->gn = gn_new;
+        gxy->gn = gridnodes_create2(ni, nj, NT_CEN, x, y);
+        gn_new = gridnodes_transform(gxy->gn, NT_COR);
+        gridnodes_destroy(gxy->gn);
+        gxy->gn = gn_new;
     } else if (nodetype == NT_COR)
-        nodes->gn = gridnodes_create2(ni, nj, NT_COR, x, y);
+        gxy->gn = gridnodes_create2(ni, nj, NT_COR, x, y);
     else
         enkf_quit("unknown node type for horizontal curvilinear grid");
-    gridnodes_validate(nodes->gn);
-    gridnodes_setmaptype(nodes->gn, maptype);
-    nodes->gm = gridmap_build2(nodes->gn);
+    gridnodes_validate(gxy->gn);
+    gridnodes_setmaptype(gxy->gn, maptype);
+    gxy->gm = gridmap_build2(gxy->gn);
 #else
-    nodes->gn = NULL;
-    nodes->gm = NULL;
+    gxy->gn = NULL;
+    gxy->gm = NULL;
 #endif
 
-    return nodes;
+    return gxy;
 }
 
 /**
  */
-void gxy_curv_destroy(gxy_curv* nodes)
+void gxy_curv_destroy(gxy_curv* gxy)
 {
-    if (nodes->gn != NULL)
-        gridnodes_destroy(nodes->gn);
-    if (nodes->gm != NULL)
-        gridmap_destroy(nodes->gm);
-    free(nodes);
+    if (gxy->gn != NULL)
+        gridnodes_destroy(gxy->gn);
+    if (gxy->gm != NULL)
+        gridmap_destroy(gxy->gm);
+    free(gxy);
 }
 #endif
 
@@ -714,10 +714,10 @@ static double fi2x(int n, double* v, double fi, int periodic)
  */
 static void gs_fij2xy(void* p, double fi, double fj, double* x, double* y)
 {
-    gxy_simple* nodes = (gxy_simple*) ((grid*) p)->gridnodes_xy;
+    gxy_simple* gxy = (gxy_simple*) ((grid*) p)->gridnodes_xy;
 
-    *x = fi2x(nodes->ni, nodes->x, fi, nodes->periodic_i);
-    *y = fi2x(nodes->nj, nodes->y, fj, 0);
+    *x = fi2x(gxy->ni, gxy->x, fi, gxy->periodic_i);
+    *y = fi2x(gxy->nj, gxy->y, fj, 0);
 }
 
 /** Gets fractional index of a coordinate for a 1D irregular grid.
@@ -1006,7 +1006,9 @@ static void grid_setlonbase(grid* g)
 static void grid_sethgrid(grid* g, int htype, int hnodetype, int ni, int nj, void* x, void* y)
 {
     g->htype = htype;
-    if (htype == GRIDHTYPE_LATLON)
+    if (htype == GRIDHTYPE_NONE)
+        g->gridnodes_xy = gxy_none_create(ni, nj);
+    else if (htype == GRIDHTYPE_LATLON)
         g->gridnodes_xy = gxy_simple_create(ni, nj, x, y);
 #if !defined(NO_GRIDUTILS)
     else if (htype == GRIDHTYPE_CURVILINEAR) {
@@ -1022,9 +1024,7 @@ static void grid_sethgrid(grid* g, int htype, int hnodetype, int ni, int nj, voi
 #endif
     }
 #endif
-    else if (htype == GRIDHTYPE_NONE) {
-        g->gridnodes_xy = gxy_none_create(ni, nj);
-    } else
+    else
         enkf_quit("programming error");
 #if !defined(ENKF_UPDATE)
     grid_setlonbase(g);
