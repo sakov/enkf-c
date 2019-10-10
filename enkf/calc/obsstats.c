@@ -113,13 +113,15 @@ void das_printobsstats(dasystem* das, int use_rmsd)
                 t1 = get_tshift(ot->time_min, ot->async_tstep, ot->async_centred);
                 t2 = get_tshift(ot->time_max, ot->async_tstep, ot->async_centred);
                 nt = t2 - t1 + 1;
-                inn_f_as = calloc(nt, sizeof(double));
-                inn_f_abs_as = calloc(nt, sizeof(double));
-                inn_a_as = calloc(nt, sizeof(double));
-                inn_a_abs_as = calloc(nt, sizeof(double));
-                std_f_as = calloc(nt, sizeof(double));
-                std_a_as = calloc(nt, sizeof(double));
-                nobs_as = calloc(nt, sizeof(int));
+                if (nt > 1) {
+                    inn_f_as = calloc(nt, sizeof(double));
+                    inn_f_abs_as = calloc(nt, sizeof(double));
+                    inn_a_as = calloc(nt, sizeof(double));
+                    inn_a_abs_as = calloc(nt, sizeof(double));
+                    std_f_as = calloc(nt, sizeof(double));
+                    std_a_as = calloc(nt, sizeof(double));
+                    nobs_as = calloc(nt, sizeof(int));
+                }
             }
 
             memset(&rstats, 0, sizeof(stats));
@@ -161,7 +163,7 @@ void das_printobsstats(dasystem* das, int use_rmsd)
                         }
                     }
 
-                    if (ot->isasync) {
+                    if (ot->isasync && nt > 1) {
                         t = get_tshift(o->time, ot->async_tstep, ot->async_centred) - t1;
                         assert(t >= 0 && t < nt);
                         inn_f_as[t] += das->s_f[j];
@@ -206,7 +208,7 @@ void das_printobsstats(dasystem* das, int use_rmsd)
             if (rstats.nobs > 0)
                 enkf_printf("           %s      %8d%9.3f  %9.3f  %9.3f  %9.3f  %9.3f  %9.3f  \n", ot->name, rstats.nobs, rstats.inn_f_abs, rstats.inn_a_abs, rstats.inn_f, rstats.inn_a, rstats.std_f, rstats.std_a);
 
-            if (ot->isasync && rstats.nobs > 0) {
+            if (ot->isasync && nt > 1 && rstats.nobs > 0) {
                 for (t = 0; t < nt; ++t) {
                     inn_f_as[t] /= (double) nobs_as[t];
                     inn_f_abs_as[t] /= (double) nobs_as[t];
@@ -262,7 +264,7 @@ void das_printobsstats(dasystem* das, int use_rmsd)
                 }
             }
 
-            if (ot->isasync) {
+            if (ot->isasync && nt > 1) {
                 free(inn_f_as);
                 free(inn_f_abs_as);
                 free(inn_a_as);
@@ -358,11 +360,13 @@ void das_printfobsstats(dasystem* das, int use_rmsd)
                 t1 = get_tshift(ot->time_min, ot->async_tstep, ot->async_centred);
                 t2 = get_tshift(ot->time_max, ot->async_tstep, ot->async_centred);
                 nt = t2 - t1 + 1;
-                inn_f_as = calloc(nt, sizeof(double));
-                inn_f_abs_as = calloc(nt, sizeof(double));
-                if (das->mode == MODE_ENKF)
-                    std_f_as = calloc(nt, sizeof(double));
-                nobs_as = calloc(nt, sizeof(int));
+                if (nt > 1) {
+                    inn_f_as = calloc(nt, sizeof(double));
+                    inn_f_abs_as = calloc(nt, sizeof(double));
+                    if (das->mode == MODE_ENKF)
+                        std_f_as = calloc(nt, sizeof(double));
+                    nobs_as = calloc(nt, sizeof(int));
+                }
             }
 
             memset(&rstats, 0, sizeof(fstats));
@@ -396,7 +400,7 @@ void das_printfobsstats(dasystem* das, int use_rmsd)
                         }
                     }
 
-                    if (ot->isasync) {
+                    if (ot->isasync && nt > 1) {
                         t = get_tshift(o->time, ot->async_tstep, ot->async_centred) - t1;
                         assert(t >= 0 && t < nt);
                         inn_f_as[t] += das->s_f[j];
@@ -435,7 +439,7 @@ void das_printfobsstats(dasystem* das, int use_rmsd)
                     enkf_printf("           %s      %8d%9.3f  %9.3f  \n", ot->name, rstats.nobs, rstats.inn_f_abs, rstats.inn_f);
             }
 
-            if (ot->isasync && rstats.nobs > 0) {
+            if (ot->isasync && nt > 1 && rstats.nobs > 0) {
                 for (t = 0; t < nt; ++t) {
                     inn_f_as[t] /= (double) nobs_as[t];
                     inn_f_abs_as[t] /= (double) nobs_as[t];
@@ -489,7 +493,7 @@ void das_printfobsstats(dasystem* das, int use_rmsd)
                 }
             }
 
-            if (ot->isasync) {
+            if (ot->isasync && nt > 1) {
                 free(inn_f_as);
                 free(inn_f_abs_as);
                 if (das->mode == MODE_ENKF)
