@@ -1,3 +1,8 @@
+v. 1.104.10
+   PS 11102019
+   -- Changed das_printobsstats() and das_printfobsstats() to skip printing
+      stats for asynchronous time intervals if there is only one such interval
+      in the cycle.
 v. 1.104.9
    PS 08102019
    -- Fixed yet another redundancy in grid.c related to having -DNO_GRIDUTILS
