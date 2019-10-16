@@ -173,3 +173,20 @@ clean:
 indent:
 	indent -T FILE -T field -T dasystem -T grid -T kdtree -T kdnode -T kdset -T model -T modeldata -T gridprm -T gxy_simple -T gxy_curv -T gz_simple -T gz_sigma -T gz_hybrid -T gridnodes -T gridmap -T stringtable -T resnode -T tm -T obsmeta -T metastd -T metapar -T obsreader_entry -T H_entry -T model_entry -T enkfprm -T gnll -T rangeentry -T observation -T obstype -T observations -T pointlog -T region -T obsdomain -T zint -T calcstats -T hashtable -T ht_bucket -T badbatchspec -T nc_type -T size_t -T otdesc -T uint32_t -T uint16_t */*.[ch]
 	rm -f `find . -name "*.*~"`
+
+# following are 3 convenience targets for compiling particular binaries
+
+.PHONY: prep
+prep:
+	@rm -f bin/enkf_prep
+	@$(MAKE) bin/enkf_prep
+
+.PHONY: calc
+calc:
+	@rm -f bin/enkf_calc
+	@$(MAKE) bin/enkf_calc
+
+.PHONY: update
+update:
+	@rm -f bin/enkf_update
+	@$(MAKE) bin/enkf_update
