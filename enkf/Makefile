@@ -179,14 +179,14 @@ indent:
 .PHONY: prep
 prep:
 	@rm -f bin/enkf_prep
-	@$(MAKE) bin/enkf_prep
+	@$(MAKE) --no-print-directory bin/enkf_prep
 
 .PHONY: calc
 calc:
 	@rm -f bin/enkf_calc
-	@$(MAKE) bin/enkf_calc
+	@$(MAKE) --no-print-directory bin/enkf_calc
 
 .PHONY: update
 update:
 	@rm -f bin/enkf_update
-	@$(MAKE) bin/enkf_update
+	@$(MAKE) --no-print-directory bin/enkf_update
