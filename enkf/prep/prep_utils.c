@@ -697,8 +697,8 @@ void get_qcflags(obsmeta* meta, int* nqcflagvars, char*** qcflagvarnames, uint32
             int val;
             int ii;
 
-            if (i == 0 || strcasecmp(meta->pars[i - 1].name, "QCFLAGVARNAME") != 0 || strcasecmp(meta->pars[i - 1].name, "QCFLAGNAME") != 0)
-		enkf_quit("%s: parameter \"QCFLAGVARS\" must be preceeded by parameter \"QCFLAGVARNAME\"\n", meta->prmfname);
+            if (i == 0 || (strcasecmp(meta->pars[i - 1].name, "QCFLAGVARNAME") != 0 && strcasecmp(meta->pars[i - 1].name, "QCFLAGNAME") != 0))
+		enkf_quit("%s: parameter \"QCFLAGVALS\" must be preceeded by parameter \"QCFLAGVARNAME\"\n", meta->prmfname);
 
             if (*nqcflagvars % NINC == 0)
                 *qcflagmasks = realloc(*qcflagmasks, (*nqcflagvars + NINC) * sizeof(uint32_t));
