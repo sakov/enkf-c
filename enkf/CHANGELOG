@@ -1,3 +1,9 @@
+v. 1.104.12
+   PS 18102019
+   -- Fixed inconsistency between description of QC flags specification in
+      the file headers of generic readers and get_qcflags(). Also put in checks
+      that (i) an entry of the QC flag name is always followed by QCFLAGVALS
+      and (ii) an entry of QCFLAGVALS is always preceeded by QCGLAGVARNAME.
 v. 1.104.11
    PS 16102019
    -- Added a few convenience targets in Makefile.
