@@ -33,6 +33,7 @@ typedef struct {
 } gridvtype_entry;
 
 gridvtype_entry allgridvtypeentries[] = {
+    {"NONE", GRIDVTYPE_NONE, "MASKVARNAME"},
     {"Z", GRIDVTYPE_Z, "NUMLEVELSVARNAME"},
     {"SIGMA", GRIDVTYPE_SIGMA, "MASKVARNAME"},
     {"HYBRID", GRIDVTYPE_HYBRID, "MASKVARNAME"}
@@ -378,7 +379,9 @@ void gridprm_create(char* fname, int* ngrid, gridprm** prm)
         if (now->maptype == 0)
             now->maptype = MAPTYPE_DEF;
 #endif
-        if (strcasecmp(now->vtype, "Z") == 0) {
+        if (strcasecmp(now->vtype, "NONE") == 0)
+            ;
+        else if (strcasecmp(now->vtype, "Z") == 0) {
             if (now->zvarname == NULL)
                 enkf_quit("%s: %s: ZVARNAME must be specified for Z grids", fname, now->name);
         } else if (strcasecmp(now->vtype, "SIGMA") == 0) {
@@ -399,22 +402,24 @@ void gridprm_create(char* fname, int* ngrid, gridprm** prm)
             enkf_quit("%s: XVARNAME not specified for grid \"%s\"", fname, now->name);
         if (now->yvarname == NULL)
             enkf_quit("%s: YVARNAME not specified for grid \"%s\"", fname, now->name);
-        if (now->vdirection == NULL)
-            now->vdirection = strdup("FROMSURF");
+        if (strcasecmp(now->vtype, "NONE") != 0) {
+            if (now->vdirection == NULL)
+                now->vdirection = strdup("FROMSURF");
+            if (now->nzints == 0) {
+                now->nzints = 3;
+                now->zints = malloc(now->nzints * sizeof(zint));
+                now->zints[0].z1 = 0.0;
+                now->zints[0].z2 = DEPTH_SHALLOW;
+                now->zints[1].z1 = DEPTH_SHALLOW;
+                now->zints[1].z2 = DEPTH_DEEP;
+                now->zints[2].z1 = DEPTH_DEEP;
+                now->zints[2].z2 = DEPTH_MAX;
+            } else if (now->nzints < 0)
+                now->nzints = 0;
+        } else
+            now->zints = 0;
         if (!isfinite(now->sfactor) || now->sfactor <= 0.0)
             enkf_quit("%s: SFACTOR = %.3g\n", now->sfactor);
-
-        if (now->nzints == 0) {
-            now->nzints = 3;
-            now->zints = malloc(now->nzints * sizeof(zint));
-            now->zints[0].z1 = 0.0;
-            now->zints[0].z2 = DEPTH_SHALLOW;
-            now->zints[1].z1 = DEPTH_SHALLOW;
-            now->zints[1].z2 = DEPTH_DEEP;
-            now->zints[2].z1 = DEPTH_DEEP;
-            now->zints[2].z2 = DEPTH_MAX;
-        } else if (now->nzints < 0)
-            now->nzints = 0;
     }
 }
 
@@ -476,7 +481,9 @@ void gridprm_print(gridprm* prm, char offset[])
     enkf_printf("%s  MAPTYPE = \"%c\"\n", offset, prm->maptype);
 #endif
     enkf_printf("%s  VTYPE = \"%s\"\n", offset, prm->vtype);
-    if (strcasecmp(prm->vtype, "Z") == 0) {
+    if (strcasecmp(prm->vtype, "NONE") == 0)
+        ;
+    else if (strcasecmp(prm->vtype, "Z") == 0) {
         enkf_printf("%s  ZVARNAME = \"%s\"\n", offset, prm->zvarname);
         if (prm->zcvarname != NULL)
             enkf_printf("%s  ZCVARNAME = \"%s\"\n", offset, prm->zcvarname);
@@ -511,7 +518,8 @@ void gridprm_print(gridprm* prm, char offset[])
         enkf_printf("%s  DEPTHVARNAME = \"%s\"\n", offset, prm->depthvarname);
     if (prm->levelvarnameentry != NULL && prm->levelvarname != NULL)
         enkf_printf("%s  %s = \"%s\"\n", offset, prm->levelvarnameentry, prm->levelvarname);
-    enkf_printf("%s  VDIR = \"%s\"\n", offset, prm->vdirection);
+    if (prm->vdirection != NULL)
+        enkf_printf("%s  VDIR = \"%s\"\n", offset, prm->vdirection);
     enkf_printf("%s  XVARNAME = \"%s\"\n", offset, prm->xvarname);
     enkf_printf("%s  YVARNAME = \"%s\"\n", offset, prm->yvarname);
     if (prm->stride != 0)
@@ -539,5 +547,5 @@ int gridprm_getvtype(gridprm* prm)
             return allgridvtypeentries[i].vtype;
     }
 
-    return GRIDVTYPE_NONE;
+    return GRIDVTYPE_UNDEFINED;
 }

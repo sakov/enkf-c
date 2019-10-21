@@ -1,3 +1,7 @@
+v. 1.105.0
+   PS 21102019
+   -- Added vertical coordinate type "none" to grid parameter file for handling
+      purely 2D grids. (Before that they had to be treated as 1-layer 3D grids.)
 v. 1.104.13
    PS 18102019
    -- A correction to v1.104.12.

@@ -45,6 +45,7 @@
 #define EPS_IJ 1.0e-3
 #define EPS_Z 1.0e-3
 
+#define GRIDVDIR_NONE 0
 #define GRIDVDIR_FROMSURF 0
 #define GRIDVDIR_TOSURF 1
 
@@ -1140,7 +1141,9 @@ grid* grid_create(void* p, int id)
         ncw_check_vardims(ncid, varid_depth, 2, dimlen);
         ncw_get_var_float(ncid, varid_depth, g->depth[0]);
     }
-    if (g->vtype == GRIDVTYPE_Z) {
+    if (g->vtype == GRIDVTYPE_NONE)
+        ;
+    else if (g->vtype == GRIDVTYPE_Z) {
         int varid;
         int dummy;
         double* z = NULL;
@@ -1392,6 +1395,9 @@ void grid_print(grid* g, char offset[])
     else
         enkf_printf("%s  longitude range = any\n", offset);
     switch (g->vtype) {
+    case GRIDVTYPE_NONE:
+        enkf_printf("%s  v type = NONE\n", offset);
+        break;
     case GRIDVTYPE_Z:
         enkf_printf("%s  v type = Z\n", offset);
         break;
@@ -1402,9 +1408,11 @@ void grid_print(grid* g, char offset[])
         enkf_printf("%s  v type = HYBRID\n", offset);
         break;
     default:
-        enkf_printf("%s  v type = NONE\n", offset);
+        enkf_printf("%s  v type = UNDEFINED\n", offset);
     }
-    if (g->vtype == GRIDVTYPE_Z) {
+    if (g->vtype == GRIDVTYPE_NONE)
+        ;
+    else if (g->vtype == GRIDVTYPE_Z) {
         gz_z* nodes = g->gridnodes_z;
 
         enkf_printf("%s  v dir = %s\n", offset, (nodes->vdirection == GRIDVDIR_FROMSURF) ? "FROMSURF" : "TOSURF");
@@ -1516,7 +1524,9 @@ void grid_getsize(grid* g, int* ni, int* nj, int* nk)
  */
 int grid_getsurflayerid(grid* g)
 {
-    if (g->vtype == GRIDVTYPE_Z) {
+    if (g->vtype == GRIDVTYPE_NONE)
+        return 0;
+    else if (g->vtype == GRIDVTYPE_Z) {
         gz_z* gz = g->gridnodes_z;
 
         if (gz->vdirection == GRIDVDIR_FROMSURF)
