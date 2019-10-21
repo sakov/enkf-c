@@ -220,9 +220,9 @@ static gxy_simple* gxy_simple_create(int ni, int nj, double* x, double* y)
         gxy->xc[i] = 2 * x[i - 1] - gxy->xc[i - 1];
 
     if (fabs(fmod(gxy->x[ni - 1] - gxy->x[0] + EPS_LON / 2.0, 360.0)) < EPS_LON)
-        gxy->periodic_i = 1;  /* closed grid */
+        gxy->periodic_i = 1;    /* closed grid */
     else if (fabs(fmod(2.0 * gxy->x[ni - 1] - gxy->x[ni - 2] - gxy->x[0] + EPS_LON / 2.0, 360.0)) < EPS_LON) {
-        gxy->periodic_i = 2;  /* non-closed grid (used e.g. by MOM) */
+        gxy->periodic_i = 2;    /* non-closed grid (used e.g. by MOM) */
         gxy->x = realloc(gxy->x, (ni + 1) * sizeof(double));
         gxy->x[ni] = 2.0 * gxy->x[ni - 1] - gxy->x[ni - 2];
         gxy->xc = realloc(gxy->xc, (ni + 2) * sizeof(double));
@@ -1141,8 +1141,7 @@ grid* grid_create(void* p, int id)
         ncw_check_vardims(ncid, varid_depth, 2, dimlen);
         ncw_get_var_float(ncid, varid_depth, g->depth[0]);
     }
-    if (g->vtype == GRIDVTYPE_NONE)
-        ;
+    if (g->vtype == GRIDVTYPE_NONE);
     else if (g->vtype == GRIDVTYPE_Z) {
         int varid;
         int dummy;
@@ -1410,8 +1409,7 @@ void grid_print(grid* g, char offset[])
     default:
         enkf_printf("%s  v type = UNDEFINED\n", offset);
     }
-    if (g->vtype == GRIDVTYPE_NONE)
-        ;
+    if (g->vtype == GRIDVTYPE_NONE);
     else if (g->vtype == GRIDVTYPE_Z) {
         gz_z* nodes = g->gridnodes_z;
 

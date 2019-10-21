@@ -1,3 +1,10 @@
+v. 1.105.1
+   PS 21102019
+   -- In reader_cmems_standard() and reader_mmt_standard() modified reporting on
+      the number of profiles and on the number of unique profile locations so
+      that only profiles containing at least one good observation (this requires
+      the observation to be in the model grid domain) are considered.
+      considered.
 v. 1.105.0
    PS 21102019
    -- Added vertical coordinate type "none" to grid parameter file for handling

@@ -684,12 +684,12 @@ void get_qcflags(obsmeta* meta, int* nqcflagvars, char*** qcflagvarnames, uint32
                 *qcflagvarnames = realloc(*qcflagvarnames, (*nqcflagvars + NINC) * sizeof(char*));
             (*qcflagvarnames)[*nqcflagvars] = meta->pars[i].value;
 
-	    /*
-	     * make sure that the entry "QCFLAGVARNAME" or "QCFLAGNAME" is
-	     * followed by "QCFLAGVALS"
-	     */
-	    if (meta->npars == i + 1 || strcasecmp(meta->pars[i + 1].name, "QCFLAGVALS") != 0)
-		enkf_quit("%s: parameter \"%s\" must be followed by parameter \"QCFLAGVALS\"\n", meta->prmfname, meta->pars[i].name);
+            /*
+             * make sure that the entry "QCFLAGVARNAME" or "QCFLAGNAME" is
+             * followed by "QCFLAGVALS"
+             */
+            if (meta->npars == i + 1 || strcasecmp(meta->pars[i + 1].name, "QCFLAGVALS") != 0)
+                enkf_quit("%s: parameter \"%s\" must be followed by parameter \"QCFLAGVALS\"\n", meta->prmfname, meta->pars[i].name);
         } else if (strcasecmp(meta->pars[i].name, "QCFLAGVALS") == 0) {
             char seps[] = " ,";
             char* line = meta->pars[i].value;
@@ -698,7 +698,7 @@ void get_qcflags(obsmeta* meta, int* nqcflagvars, char*** qcflagvarnames, uint32
             int ii;
 
             if (i == 0 || (strcasecmp(meta->pars[i - 1].name, "QCFLAGVARNAME") != 0 && strcasecmp(meta->pars[i - 1].name, "QCFLAGNAME") != 0))
-		enkf_quit("%s: parameter \"QCFLAGVALS\" must be preceeded by parameter \"QCFLAGVARNAME\"\n", meta->prmfname);
+                enkf_quit("%s: parameter \"QCFLAGVALS\" must be preceeded by parameter \"QCFLAGVARNAME\"\n", meta->prmfname);
 
             if (*nqcflagvars % NINC == 0)
                 *qcflagmasks = realloc(*qcflagmasks, (*nqcflagvars + NINC) * sizeof(uint32_t));

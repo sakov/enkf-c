@@ -379,8 +379,7 @@ void gridprm_create(char* fname, int* ngrid, gridprm** prm)
         if (now->maptype == 0)
             now->maptype = MAPTYPE_DEF;
 #endif
-        if (strcasecmp(now->vtype, "NONE") == 0)
-            ;
+        if (strcasecmp(now->vtype, "NONE") == 0);
         else if (strcasecmp(now->vtype, "Z") == 0) {
             if (now->zvarname == NULL)
                 enkf_quit("%s: %s: ZVARNAME must be specified for Z grids", fname, now->name);
@@ -481,8 +480,7 @@ void gridprm_print(gridprm* prm, char offset[])
     enkf_printf("%s  MAPTYPE = \"%c\"\n", offset, prm->maptype);
 #endif
     enkf_printf("%s  VTYPE = \"%s\"\n", offset, prm->vtype);
-    if (strcasecmp(prm->vtype, "NONE") == 0)
-        ;
+    if (strcasecmp(prm->vtype, "NONE") == 0);
     else if (strcasecmp(prm->vtype, "Z") == 0) {
         enkf_printf("%s  ZVARNAME = \"%s\"\n", offset, prm->zvarname);
         if (prm->zcvarname != NULL)

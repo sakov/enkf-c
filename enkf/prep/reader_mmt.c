@@ -62,6 +62,7 @@ void reader_mmt_standard(char* fname, int fid, obsmeta* meta, grid* g, observati
     int dimid_nprof, dimid_nz;
     size_t nprof, nz;
     int varid;
+    int* status = NULL;
     double* lon;
     double* lat;
     double** z;
@@ -97,9 +98,12 @@ void reader_mmt_standard(char* fname, int fid, obsmeta* meta, grid* g, observati
     ncw_inq_dimlen(ncid, dimid_nz, &nz);
     enkf_printf("        # profiles = %u\n", (unsigned int) nprof);
     if (nprof == 0) {
+        enkf_printf("        no profiles found\n");
         ncw_close(ncid);
-        return;
+        goto noprofiles;
     }
+    status = calloc(nprof, sizeof(int));
+
     enkf_printf("        # z levels = %u\n", (unsigned int) nz);
 
     ncw_inq_varid(ncid, "LONGITUDE", &varid);
@@ -207,6 +211,8 @@ void reader_mmt_standard(char* fname, int fid, obsmeta* meta, grid* g, observati
             o->model_depth = NAN;       /* set in obs_add() */
             o->time = time[p] * tunits_multiple + tunits_offset;
             o->aux = -1;
+            if (o->status == STATUS_OK)
+                status[p] = 1;
 
             obs->nobs++;
         }
@@ -218,31 +224,41 @@ void reader_mmt_standard(char* fname, int fid, obsmeta* meta, grid* g, observati
      */
     {
         double* lonlat = malloc(nprof * sizeof(double) * 2);
-        int nunique = (nprof > 0) ? 1 : 0;
-        int ii;
+        int ngood, ii;
 
+        ngood = 0;
         for (i = 0; i < nprof; ++i) {
-            lonlat[i * 2] = lon[i];
-            lonlat[i * 2 + 1] = lat[i];
-        }
-        qsort(lonlat, nprof, sizeof(double) * 2, cmp_lonlat);
-        for (i = 1, ii = 0; i < nprof; ++i) {
-            if (lonlat[i * 2] == lonlat[ii * 2] && lonlat[i * 2 + 1] == lonlat[ii * 2 + 1])
+            if (status[i] == 0)
                 continue;
-            ii = i;
-            nunique++;
+            lonlat[ngood * 2] = lon[i];
+            lonlat[ngood * 2 + 1] = lat[i];
+            ngood++;
         }
-        enkf_printf("        # unique locations = %d\n", nunique);
+        enkf_printf("        # profiles with data to process = %d\n", ngood);
+        if (ngood > 1) {
+            int nunique = 1;
+
+            qsort(lonlat, ngood, sizeof(double) * 2, cmp_lonlat);
+            for (i = 1, ii = 0; i < ngood; ++i) {
+                if (lonlat[i * 2] == lonlat[ii * 2] && lonlat[i * 2 + 1] == lonlat[ii * 2 + 1])
+                    continue;
+                ii = i;
+                nunique++;
+            }
+            enkf_printf("        # unique locations = %d\n", nunique);
+        }
         free(lonlat);
     }
 
     free(lon);
     free(lat);
+    free(status);
     free(v);
     free(z);
     if (qc != NULL)
         free(qc);
     free(type);
+  noprofiles:
     if (st_exclude != NULL)
         st_destroy(st_exclude);
 }
