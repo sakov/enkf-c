@@ -37,7 +37,7 @@
 
 \begin{document}
 
-\title{EnKF-C user guide\\{\normalsize version 1.103.0}}
+\title{EnKF-C user guide\\{\normalsize version 1.105.0}}
 
 \author{Pavel Sakov}
 \date{June 19, 2014 -- \today}
@@ -836,7 +836,9 @@ See \verb|examples/3| for an example.
 The vertical coordinates are used for mapping the depth/height (pressure) of non-surface observations to fractional layer index.
 The observation depth or height are assumed to be positive.
 
-EnKF-C supports 3 types of vertical grids: $Z$; $\sigma$; and hybrid $\sigma$-$p$ ($\sigma$ - pressure).
+The type of the vertical grid is defined by entry \verb|VTYPE| in the grid parameter file.
+EnKF-C supports 3 types of vertical grids: $Z$ (``z''); $\sigma$ (``sigma''); and hybrid $\sigma$-$p$ ($\sigma$ - pressure, ``hybrid'').
+It is also possible to define a purely horizontal (two-dimensional) grid by defining its vertical type as ``none''.
 
 For $Z$ grids one needs to define vertical coordinates of layer centres (entry \verb|ZVARNAME|) and (optionally) the coordinates of layer corners (\verb|ZCVARNAME|).
 If coordinates of layer corners are not specified they are built by the code assuming that the surface layer starts at $z = 0$.
