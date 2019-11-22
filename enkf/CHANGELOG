@@ -1,3 +1,7 @@
+v. 1.105.2
+   PS 22112019
+   -- A few semi-cosmetic changes in update.c and diags.c to eliminate compiler
+      warnings from gcc v8.2.1.
 v. 1.105.1
    PS 21102019
    -- In reader_cmems_standard() and reader_mmt_standard() modified reporting on

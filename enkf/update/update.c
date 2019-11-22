@@ -580,9 +580,9 @@ static void das_writefields_direct(dasystem* das, int nfields, void** fieldbuffe
 
             strncpy(varname, f->varname, NC_MAX_NAME - 1);
             if (!(das->updatespec & UPDATE_OUTPUTINC))
-                strncat(varname, "_an", NC_MAX_NAME);
+                strncat(varname, "_an", NC_MAX_NAME - 1);
             else
-                strncat(varname, "_inc", NC_MAX_NAME);
+                strncat(varname, "_inc", NC_MAX_NAME - 1);
 
             for (e = 0; e < das->nmem; ++e) {
                 char fname[MAXSTRLEN];
@@ -600,9 +600,9 @@ static void das_writefields_direct(dasystem* das, int nfields, void** fieldbuffe
 
                 das_getmemberfname(das, das->ensdir, f->varname, e + 1, fname);
                 if (!(das->updatespec & UPDATE_OUTPUTINC))
-                    strncat(fname, ".analysis", MAXSTRLEN);
+                    strncat(fname, ".analysis", MAXSTRLEN - 1);
                 else
-                    strncat(fname, ".increment", MAXSTRLEN);
+                    strncat(fname, ".increment", MAXSTRLEN - 1);
                 model_writefield(das->m, fname, f->varname, f->level, ((float***) fieldbuffer[i])[e][0]);
             }
         }
@@ -684,9 +684,9 @@ static void das_writebg_direct(dasystem* das, int nfields, void** fieldbuffer, f
             das_getbgfname(das, das->bgdir, f->varname, fname);
             strncpy(varname, f->varname, NC_MAX_NAME - 1);
             if (!(das->updatespec & UPDATE_OUTPUTINC))
-                strncat(varname, "_an", NC_MAX_NAME);
+                strncat(varname, "_an", NC_MAX_NAME - 1);
             else
-                strncat(varname, "_inc", NC_MAX_NAME);
+                strncat(varname, "_inc", NC_MAX_NAME - 1);
             model_writefield(m, fname, varname, f->level, ((float***) fieldbuffer[i])[das->nmem][0]);
         }
     } else {
@@ -696,9 +696,9 @@ static void das_writebg_direct(dasystem* das, int nfields, void** fieldbuffer, f
 
             das_getbgfname(das, das->bgdir, f->varname, fname);
             if (!(das->updatespec & UPDATE_OUTPUTINC))
-                strncat(fname, ".analysis", MAXSTRLEN);
+                strncat(fname, ".analysis", MAXSTRLEN - 1);
             else
-                strncat(fname, ".increment", MAXSTRLEN);
+                strncat(fname, ".increment", MAXSTRLEN - 1);
             model_writefield(m, fname, f->varname, f->level, ((float***) fieldbuffer[i])[das->nmem][0]);
         }
     }
@@ -783,14 +783,14 @@ static void das_assemblemembers(dasystem* das)
             das_getmemberfname(das, das->ensdir, varname, e + 1, fname_dst);
             if (das->updatespec & UPDATE_SEPARATEOUTPUT) {
                 if (!(das->updatespec & UPDATE_OUTPUTINC))
-                    strncat(fname_dst, ".analysis", MAXSTRLEN);
+                    strncat(fname_dst, ".analysis", MAXSTRLEN - 1);
                 else
-                    strncat(fname_dst, ".increment", MAXSTRLEN);
+                    strncat(fname_dst, ".increment", MAXSTRLEN - 1);
             } else {
                 if (!(das->updatespec & UPDATE_OUTPUTINC))
-                    strncat(varname_dst, "_an", NC_MAX_NAME);
+                    strncat(varname_dst, "_an", NC_MAX_NAME - 1);
                 else
-                    strncat(varname_dst, "_inc", NC_MAX_NAME);
+                    strncat(varname_dst, "_inc", NC_MAX_NAME - 1);
             }
 
             for (k = 0; k < nlev; ++k) {
@@ -874,14 +874,14 @@ static void das_assemblebg(dasystem* das)
 
         if (das->updatespec & UPDATE_SEPARATEOUTPUT) {
             if (!(das->updatespec & UPDATE_OUTPUTINC))
-                strncat(fname_dst, ".analysis", MAXSTRLEN);
+                strncat(fname_dst, ".analysis", MAXSTRLEN - 1);
             else
-                strncat(fname_dst, ".increment", MAXSTRLEN);
+                strncat(fname_dst, ".increment", MAXSTRLEN - 1);
         } else {
             if (!(das->updatespec & UPDATE_OUTPUTINC))
-                strncat(varname_dst, "_an", NC_MAX_NAME);
+                strncat(varname_dst, "_an", NC_MAX_NAME - 1);
             else
-                strncat(varname_dst, "_inc", NC_MAX_NAME);
+                strncat(varname_dst, "_inc", NC_MAX_NAME - 1);
         }
 
         for (k = 0; k < nlev; ++k) {
@@ -967,9 +967,9 @@ void das_update(dasystem* das)
 
                         strncpy(varname_dst, varname_src, NC_MAX_NAME - 1);
                         if (!(das->updatespec & UPDATE_OUTPUTINC))
-                            strncat(varname_dst, "_an", NC_MAX_NAME);
+                            strncat(varname_dst, "_an", NC_MAX_NAME - 1);
                         else
-                            strncat(varname_dst, "_inc", NC_MAX_NAME);
+                            strncat(varname_dst, "_inc", NC_MAX_NAME - 1);
 
                         das_getmemberfname(das, das->ensdir, varname_src, e + 1, fname);
                         ncw_open(fname, NC_WRITE, &ncid);
@@ -998,9 +998,9 @@ void das_update(dasystem* das)
 
                         strncpy(fname_a, fname_f, MAXSTRLEN);
                         if (!(das->updatespec & UPDATE_OUTPUTINC))
-                            strncat(fname_a, ".analysis", MAXSTRLEN);
+                            strncat(fname_a, ".analysis", MAXSTRLEN - 1);
                         else
-                            strncat(fname_a, ".increment", MAXSTRLEN);
+                            strncat(fname_a, ".increment", MAXSTRLEN - 1);
                         if (file_exists(fname_a)) {
                             ncw_open(fname_a, NC_WRITE, &ncid_a);
                             if (ncw_var_exists(ncid_a, varname)) {
@@ -1043,9 +1043,9 @@ void das_update(dasystem* das)
 
                         strncpy(varname_dst, varname_src, NC_MAX_NAME - 1);
                         if (!(das->updatespec & UPDATE_OUTPUTINC))
-                            strncat(varname_dst, "_an", NC_MAX_NAME);
+                            strncat(varname_dst, "_an", NC_MAX_NAME - 1);
                         else
-                            strncat(varname_dst, "_inc", NC_MAX_NAME);
+                            strncat(varname_dst, "_inc", NC_MAX_NAME - 1);
                         das_getbgfname(das, das->bgdir, varname_src, fname);
                         ncw_open(fname, NC_WRITE, &ncid);
                         if (!ncw_var_exists(ncid, varname_dst)) {
@@ -1070,9 +1070,9 @@ void das_update(dasystem* das)
 
                         strncpy(fname_a, fname_f, MAXSTRLEN);
                         if (!(das->updatespec & UPDATE_OUTPUTINC))
-                            strncat(fname_a, ".analysis", MAXSTRLEN);
+                            strncat(fname_a, ".analysis", MAXSTRLEN - 1);
                         else
-                            strncat(fname_a, ".increment", MAXSTRLEN);
+                            strncat(fname_a, ".increment", MAXSTRLEN - 1);
 
                         if (file_exists(fname_a)) {
                             ncw_open(fname_a, NC_WRITE, &ncid_a);

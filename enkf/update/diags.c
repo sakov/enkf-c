@@ -59,7 +59,7 @@ void das_allocatespread(dasystem* das, char fname[])
             char varname_dst[NC_MAX_NAME];
 
             strcpy(varname_dst, varname_src);
-            strncat(varname_dst, "_an", NC_MAX_NAME);
+            strncat(varname_dst, "_an", NC_MAX_NAME - 1);
             ncw_def_var_as(ncid, varname_src, varname_dst);
         }
         ncw_close(ncid_src);
@@ -116,7 +116,7 @@ void das_writespread(dasystem* das, int nfields, void** fieldbuffer, field field
 
         strncpy(varname, f->varname, NC_MAX_NAME - 1);
         if (isanalysis)
-            strncat(varname, "_an", MAXSTRLEN);
+            strncat(varname, "_an", NC_MAX_NAME - 1);
 
         if (!(das->updatespec & UPDATE_DIRECTWRITE)) {  /* create file for *
                                                          * this field */
