@@ -13,7 +13,7 @@ Following are its other main features:
 
 - can handle rectangular or curvilinear horizontal grids, z, sigma or hybrid vertical grids.
 
-By "large-scale" models we mean really (but not necessarilly) large-scale. Here is a snapshot of ensemble spread of sea surface temperature from the 96-member EnKF ocean forecasting system with MOM5 based OFAM3 model (51 x 1500 x 3600 grid), assimilating about 14M super-observations at each 3-day cycle.
+The code is designed to handle as large models as possible. Here is a snapshot of ensemble spread of sea surface temperature from the 96-member EnKF ocean forecasting system with MOM5 based OFAM3 model (51 x 1500 x 3600 grid), assimilating about 14M super-observations at each 3-day cycle.
 
 ![](sst-spread.png)
 
