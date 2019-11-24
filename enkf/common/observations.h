@@ -84,7 +84,6 @@ typedef struct {
     int allobs;                 /* flag - whether to keep obs outside model
                                  * grid */
     int nallocated;
-    int nobs_inc;
 
     int nobs;
     observation* data;

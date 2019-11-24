@@ -1441,7 +1441,7 @@ void obs_findlocal(observations* obs, double lon, double lat, char* domainname, 
 void obs_findlocal(observations* obs, double lon, double lat, char* domainname, int* n, int** ids, double** lcoeffs)
 #endif
 {
-    double ll[2] = { lon, lat };;
+    double ll[2] = { lon, lat };
     double xyz[3];
     int otid;
     int i, ntot, ngood;
