@@ -1,3 +1,21 @@
+/******************************************************************************
+ *
+ * File:        gxy_curv.c
+ *
+ * Created:     27/11/2019
+ *
+ * Author:      Pavel Sakov
+ *              Bureau of Meteorology
+ *
+ * Description: Contains code for mappings between indices and physical
+ *              coordinates of a curvilinear (or, rather, quadrilateral) grid.
+ *              The code has been extracted from and replaces that from
+ *              gridutils library.
+ *
+ * Revisions:   
+ *
+ *****************************************************************************/
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
@@ -172,6 +190,8 @@ static int gxy_curv_xy2ij(gxy_curv* gxy, double x, double y, int* iout, int* jou
     return success;
 }
 
+/**
+ */
 static int calc_branch(gxy_curv* gxy, double x, double y)
 {
     double** gx = gxy->x;
@@ -235,7 +255,7 @@ static int calc_branch(gxy_curv* gxy, double x, double y)
     return -1;
 }
 
-/**
+/** Maps physical coordinates to fractional grid indices.
  */
 int gxy_curv_xy2fij(gxy_curv* gxy, double x, double y, double* fi, double* fj)
 {
@@ -295,7 +315,7 @@ int gxy_curv_xy2fij(gxy_curv* gxy, double x, double y, double* fi, double* fj)
     return 1;
 }
 
-/**
+/** Maps fractional grid indices to physical coordinates.
  */
 int gxy_curv_fij2xy(gxy_curv* gxy, double fi, double fj, double* x, double* y)
 {

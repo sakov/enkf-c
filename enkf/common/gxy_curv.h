@@ -1,3 +1,21 @@
+/******************************************************************************
+ *
+ * File:        gxy_curv.h
+ *
+ * Created:     27/11/2019
+ *
+ * Author:      Pavel Sakov
+ *              Bureau of Meteorology
+ *
+ * Description: Contains code for mappings between indices and physical
+ *              coordinates of a curvilinear (or, rather, quadrilateral) grid.
+ *              The code has been extracted from and replaces that from
+ *              gridutils library.
+ *
+ * Revisions:   
+ *
+ *****************************************************************************/
+
 #if !defined(_GXY_CURV_H)
 struct gxy_curv;
 typedef struct gxy_curv gxy_curv;
