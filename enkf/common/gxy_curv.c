@@ -118,14 +118,16 @@ static int inquadri(double x, double y, double* px, double* py)
 {
     int count, i;
 
-    for (i = 0, count = 0; i < 5; ++i) {
+    for (i = 0, count = 0; i < 4; ++i) {
+        int i1 = (i + 1) % 4;
+
         if (py[i] <= y) {
-            if (py[i + 1] > y)
-                if (onleft(px[i], py[i], px[i + 1], py[i + 1], x, y) > 0)
+            if (py[i1] > y)
+                if (onleft(px[i], py[i], px[i1], py[i1], x, y) > 0)
                     ++count;
         } else {
-            if (py[i + 1] <= y)
-                if (onleft(px[i], py[i], px[i + 1], py[i + 1], x, y) < 0)
+            if (py[i1] <= y)
+                if (onleft(px[i], py[i], px[i1], py[i1], x, y) < 0)
                     --count;
         }
     }
@@ -142,7 +144,7 @@ static int gxy_curv_xy2ij(gxy_curv* gxy, double x, double y, int* iout, int* jou
     size_t nearest;
     size_t id;
     int i, j, i1, i2, j1, j2;
-    double px[5], py[5];
+    double px[4], py[4];
     int success = 0;
 
     minmax = kd_getminmax(gxy->nodetree);
@@ -175,8 +177,6 @@ static int gxy_curv_xy2ij(gxy_curv* gxy, double x, double y, int* iout, int* jou
             py[2] = gxy->y[j + 1][i + 1];
             px[3] = gxy->x[j + 1][i];
             py[3] = gxy->y[j + 1][i];
-            px[4] = gxy->x[j][i];
-            py[4] = gxy->y[j][i];
 
             if (inquadri(x, y, px, py)) {
                 success = 1;

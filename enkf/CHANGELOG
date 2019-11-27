@@ -1,3 +1,8 @@
+v. 1.106.1
+   PS 28112019
+   -- A minor correction in inquadri(): correcting the cycle to be over 4 edges,
+      not 5. I actually do not get why, but somehow the previous (obviously
+      wrong) version seemed to work equally well in tests.
 v. 1.106.0
    PS 27112019
    -- Moved grid mapping stuff from libgu to gxy_curv.[ch] and thus eliminated
