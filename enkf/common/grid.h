@@ -19,9 +19,7 @@
 
 #define GRIDHTYPE_NONE 0
 #define GRIDHTYPE_LATLON 1
-#if !defined(NO_GRIDUTILS)
 #define GRIDHTYPE_CURVILINEAR 2
-#endif
 
 #define GRIDVTYPE_UNDEFINED 0
 #define GRIDVTYPE_NONE 1

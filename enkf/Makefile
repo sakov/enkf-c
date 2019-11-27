@@ -33,10 +33,10 @@ include ./make.inc
 INCS_COMMON = -I. -I./common $(INC_NC)
 LIBS_COMMON = $(LD_PATH) $(LIB_NC) $(LIB_M)
 
-INCS_PREP = $(INC_GU)
-LIBS_PREP = $(LIB_GU)
-INCS_CALC = $(INC_GU)
-LIBS_CALC = $(LIB_GU) $(LIB_LAPACK)
+INCS_PREP =
+LIBS_PREP =
+INCS_CALC =
+LIBS_CALC = $(LIB_LAPACK)
 INCS_UPDATE =
 LIBS_UPDATE = $(LIB_LAPACK)
 
@@ -66,6 +66,8 @@ common/model.h
 
 SRC_PREP =\
 common/hash.c\
+common/kdtree.c\
+common/gxy_curv.c\
 prep/prep_utils.c\
 prep/obsprm.c\
 common/obstypes.c\
@@ -90,8 +92,9 @@ prep/reader_z.c\
 prep/enkf_prep.c
 
 HDR_PREP =\
-prep/prep_utils.h\
 common/hash.h\
+common/gxy_curv.h\
+prep/prep_utils.h\
 prep/obsprm.h\
 common/obstypes.h\
 common/observations.h\
@@ -99,6 +102,7 @@ prep/allreaders.h
 
 SRC_CALC =\
 common/hash.c\
+common/gxy_curv.c\
 common/distribute.c\
 common/pointlog.c\
 common/obstypes.c\
@@ -116,6 +120,7 @@ calc/enkf_calc.c
 HDR_CALC =\
 common/hash.h\
 common/distribute.h\
+common/gxy_curv.h\
 common/pointlog.h\
 common/dasystem.h\
 common/kdtree.h\

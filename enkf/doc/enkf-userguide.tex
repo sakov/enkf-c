@@ -37,7 +37,7 @@
 
 \begin{document}
 
-\title{EnKF-C user guide\\{\normalsize version 1.105.0}}
+\title{EnKF-C user guide\\{\normalsize version 1.106.0}}
 
 \author{Pavel Sakov}
 \date{June 19, 2014 -- \today}
@@ -780,7 +780,6 @@ It also contains variable names for the depth and for number of layers in a vert
   [ DOMAIN           = <domain name> ]
     VTYPE            = { z | sigma | hybrid }
   [ VDIR             = { fromsurf* | tosurf } ]
-  [ MAPTYPE          = { kdtree* | binary } ]             (curvilinear grids)
     DATA             = <data file name>
     XVARNAME         = <X variable name>
     YVARNAME         = <Y variable name>
@@ -817,19 +816,12 @@ At the moment, EnKF-C supports 3 main types of horizontal grids:
 \begin{itemize}
 \item equidistant rectangular grids aligned with physical coordinates;
 \item non-equidistant rectangular grids aligned with physical coordinates;
-\item quadrilateral grids (via libgu).
+\item quadrilateral grids.
 \end{itemize}
 For rectangular grids the code tries to determine and handle periodicity in X direction.
 
-Horizontal grids are parsed either into K-D tree (default from v1.101.4) or into binary tree (default prior to v1.101.4).
-Parsing into K-D trees permits use of non-simply connected grids (like tri-polar ORCA grids) and is more memory efficient (see sec.~\ref{sec:memory}).
+Qadrilateral horizontal grids are parsed either into K-D tree.
 Note that the code does not detect and therefore can not take advantage of periodic curvilinear grids; because of that, it does not map (skips) observations in cells connecting the grid edges.
-
-Handling non-simply connected grids with parsing into the binary tree requires a bit of effort.
-It involves creating an auxiliary grid that is simply connected in grid index space by masking some nodes (replacing their coordinates with NaNs) in the original grid.
-Because only PREP requires mapping from physical to grid space, this auxiliary grid is then used in PREP only, while the original grid is used in CALC and UPDATE.
-To specify that a grid entry is to be used in PREP only one needs to add qualifier ``PREP'' after its name; and to specify that it is to be used in CALC and UPDATE one needs to add qualifier ``CALC''.
-See \verb|examples/3| for an example.
 
 \subsubsection{Vertical grids}
 
@@ -1723,13 +1715,9 @@ This can be specified for a model variable via entry \verb|RANDOMISE| in the cor
 Following is a brief description of the compiler flags in EnKF-C.
 
 \begin{description}
-\item{\verb|GRIDNODES_WRITE|} (\verb|enkf_prep|, \verb|enkf_calc|)
-  Writes nodes of each grid defined in the grid parameter file to a text file \verb|gridnodes-<grid id>.txt| in format used by package gridutils-c.
 \item{\verb|INTERNAL_QSORT_R|} (\verb|enkf_prep|, \verb|enkf_calc|)
   Uses internal code for \verb|qsort_r()|.
   Has to be defined for compiling on Mac OS platforms.
-\item{\verb|NO_GRIDUTILS|} (\verb|enkf_prep|, \verb|enkf_calc|)
-  Excludes code for handling curvilinear grids, and eliminates dependence on gridutils-c.
 \item{\verb|SHUFFLE_ROWS|} (\verb|enkf_calc|)
   Supposed to produce more latitudinally uniform load between CPUs.
   Currently, because transforms for each row of the grid are sent to the master process for writing, this option effectively makes no difference to performance, I believe.
@@ -1769,16 +1757,16 @@ The following table lists the most memory-wise important objects.
     ensemble observations $\mathcal H(\mb E)$ & 5\,GB & & \textbullet &\\
     one horizontal field & 2\,GB & & & \textbullet\\
     transform array (I/O, EnKF only) & 24\,GB$^2$ & & & \textbullet\\
-    single grid: binary tree & 2.7\,GB & \textbullet & \textbullet &\\ 
-    single grid: K-D tree & 0.4\,GB & \textbullet & \textbullet &\\ 
+    single grid$^3$ & 0.4\,GB & \textbullet & \textbullet &\\ 
     \hline
   \end{tabular}\\[1mm]
   {\scriptsize$^{(1)}$\,for EnKF/OFAM3 system ($3600 \times 1500 \times 51$ grid, 96 members, $5\cdot 10^7$ observations, $1.3 \cdot 10^7$ super-observations)}\\
-  {\scriptsize$^{(2)}$\,with \verb|STRIDE| = 3}
+  {\scriptsize$^{(2)}$\,with \verb|STRIDE| = 3}\\
+  {\scriptsize$^{(3)}$\,when defined as a 2D grid; when defined as two 1D grids the memory usage becomes negligible}
 }
 
 The memory footprint of PREP is defined by the size of the \verb|observation| structure array and, in some cases, by curvilinear grids.
-The memory usage by curvilinear grids is much reduced by parsing them into K-D trees (default from v1.101.4) rather than into binary trees.
+The memory usage by curvilinear grids is much reduced by parsing them into K-D trees (default from v1.101.4; the only option since v1.106.0) rather than into binary trees.
 Because PREP is not parallelised (mainly due to lack of robust parallel analog of \verb|qsort| procedure), in practice its memory footprint is rarely a problem.
 
 The footprint of CALC is mainly defined by the size of ensemble observations $\mathcal H(\mb E)$.
@@ -1804,7 +1792,6 @@ Compiling EnKF-C requires the following external libraries:
 \item netcdf;
 \item lapack (or mkl\_rt);
 \item openmpi;
-\item gridutils.
 \end{itemize}
 
 EnKF-C also relies on \verb|qsort_r()|, which may be lacking in older systems.
@@ -1814,8 +1801,6 @@ Notes:
 \vspace{-3mm}
 \begin{enumerate}
 \item Using Intel's version of Lapack library -- Intel Math Kernel Library -- can improve performance over Lapack compiled with gfortran.
-\item Grid  utilities package (libgu) is necessary for handling curvilinear grids only.
-Add compile flag \verb|-DNO_GRIDUTILS| to compile without it.
 \end{enumerate}
 
 \section{Possible problems}

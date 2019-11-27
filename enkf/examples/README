@@ -20,9 +20,7 @@ Example 2:
 
 Example 3:
 
-  Demonstrates using partially masked curvilinear grid in PREP. This may be
-  useful to handle topologically screwed grids, e.g. tri-polar ORCA grids.
-  (Another option is setting MAPTYPE = k.)
+  This example is now redundant.
 
 Example 4:
 

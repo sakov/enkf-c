@@ -23,7 +23,6 @@
 #include "gridprm.h"
 #include "utils.h"
 
-#define MAPTYPE_DEF 'K'
 #define NINC 10
 
 typedef struct {
@@ -116,17 +115,6 @@ void gridprm_create(char* fname, int* ngrid, gridprm** prm)
                 enkf_quit("%s, l %d: VTYPE \"%s\" is unknown", fname, line, token);
             if (allgridvtypeentries[i].levelvarnameentry != NULL)
                 now->levelvarnameentry = strdup(allgridvtypeentries[i].levelvarnameentry);
-        } else if (strcasecmp(token, "MAPTYPE") == 0) {
-#if !defined(NO_GRIDUTILS)
-            if ((token = strtok(NULL, seps)) == NULL)
-                enkf_quit("%s, l.%d: MAPTYPE not specified", fname, line);
-            if (token[0] == 'b' || token[0] == 'B' || token[0] == 'k' || token[0] == 'K')
-                now->maptype = token[0];
-            else
-                enkf_quit("%s, l %d: MAPTYPE \"%s\" is unknown", fname, line, token);
-#else
-            ;
-#endif
         } else if (strcasecmp(token, "DATA") == 0) {
             if ((token = strtok(NULL, seps)) == NULL)
                 enkf_quit("%s, l.%d: DATA not specified", fname, line);
@@ -375,10 +363,6 @@ void gridprm_create(char* fname, int* ngrid, gridprm** prm)
             enkf_quit("%s: DATA not specified for grid \"%s\"", fname, now->name);
         if (now->domainname == NULL)
             now->domainname = strdup("Default");
-#if !defined(NO_GRIDUTILS)
-        if (now->maptype == 0)
-            now->maptype = MAPTYPE_DEF;
-#endif
         if (strcasecmp(now->vtype, "NONE") == 0);
         else if (strcasecmp(now->vtype, "Z") == 0) {
             if (now->zvarname == NULL)
@@ -476,9 +460,6 @@ void gridprm_print(gridprm* prm, char offset[])
     enkf_printf("%s  NAME = \"%s\"\n", offset, prm->name);
     enkf_printf("%s  DOMAIN = %s\n", offset, prm->domainname);
     enkf_printf("%s  DATA = \"%s\"\n", offset, prm->fname);
-#if !defined(NO_GRIDUTILS)
-    enkf_printf("%s  MAPTYPE = \"%c\"\n", offset, prm->maptype);
-#endif
     enkf_printf("%s  VTYPE = \"%s\"\n", offset, prm->vtype);
     if (strcasecmp(prm->vtype, "NONE") == 0);
     else if (strcasecmp(prm->vtype, "Z") == 0) {

@@ -8,8 +8,6 @@
 #   lapack
 #   blas -- if not bundled with lapack
 #
-# On libgu -- see ../README.
-#
 # It may also be necessary to add a few minor tweaks. For example, on OpenSUSE
 # desktops one may need to make a couple softlinks, e.g.
 #   >ln -s /usr/lib64/lapack/liblapack.so.3.5.0 /usr/lib64/liblapack.so
@@ -21,18 +19,6 @@ LD_PATH =
 LIB_NC = -lnetcdf -lhdf5 -lhdf5_hl
 LIB_LAPACK = -llapack -lblas -lgfortran
 LIB_M = -lm
-
-# with gridutils (default) (comment out below to compile without):
-#
-# (assume it is installed in $/usr/local)
-#
-INC_GU = -I/usr/local/include
-LIB_GU = /usr/local/lib64/libgu.so
-#
-# without gridutils (uncomment below):
-#
-#INC_GU = -DNO_GRIDUTILS
-#LIB_GU =
 
 # which compiler/flags to use without MPI
 # choose gcc if you do not have clang

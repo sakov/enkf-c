@@ -1,3 +1,9 @@
+v. 1.106.0
+   PS 27112019
+   -- Moved grid mapping stuff from libgu to gxy_curv.[ch] and thus eliminated
+      dependence on libgu.
+   -- Stripped the option parsing grid into a binary tree; the only option now
+      is parsing into kd-tree.
 v. 1.105.2
    PS 22112019
    -- A few semi-cosmetic changes in update.c and diags.c to eliminate compiler

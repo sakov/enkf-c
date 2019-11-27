@@ -31,9 +31,6 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <stdint.h>
-#if !defined(NO_GRIDUTILS)
-#include <guquit.h>
-#endif
 #include "ncw.h"
 #include "ncutils.h"
 #include "definitions.h"
@@ -140,9 +137,6 @@ void enkf_init(int* argc, char*** argv)
 
     ncw_set_quitfn(enkf_quit);
     ncu_set_quitfn(enkf_quit);
-#if !defined(NO_GRIDUTILS)
-    gu_setquitfn(enkf_quit);
-#endif
 
     /*
      * initialise the random number generator to a random state for each cpu
@@ -252,23 +246,11 @@ void enkf_printcompileflags(const char offset[])
     enkf_printf("%s  OBS_SHUFFLE      = [-]\n", offset);
 #endif
 #endif                          /* ENKF_CALC */
-#if defined(ENKF_PREP) || defined(ENKF_CALC)
-#if defined(GRIDNODES_WRITE)
-    enkf_printf("%s  GRIDNODES_WRITE  = [+]\n", offset);
-#else
-    enkf_printf("%s  GRIDNODES_WRITE  = [-]\n", offset);
-#endif
 #if defined(INTERNAL_QSORT_R)
     enkf_printf("%s  INTERNAL_QSORT_R = [+]\n", offset);
 #else
     enkf_printf("%s  INTERNAL_QSORT_R = [-]\n", offset);
 #endif
-#if defined(NO_GRIDUTILS)
-    enkf_printf("%s  NO_GRIDUTILS     = [+]\n", offset);
-#else
-    enkf_printf("%s  NO_GRIDUTILS     = [-]\n", offset);
-#endif
-#endif                          /* ENKF_PREP || ENKF_CALC */
 #if defined(ENKF_UPDATE)
 #if defined(NCW_SKIPSINGLE)
     enkf_printf("%s  NCW_SKIPSINGLE = [+]\n", offset);

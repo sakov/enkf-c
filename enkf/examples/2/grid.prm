@@ -1,7 +1,5 @@
 NAME = t-grid
 VTYPE = z
-# you may also try using kd-tree (uncomment below)
-# MAPTYPE = k
 DATA = conf2/grid_spec.nc
 XVARNAME = lon
 YVARNAME = lat
