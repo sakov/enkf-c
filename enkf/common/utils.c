@@ -246,10 +246,12 @@ void enkf_printcompileflags(const char offset[])
     enkf_printf("%s  OBS_SHUFFLE      = [-]\n", offset);
 #endif
 #endif                          /* ENKF_CALC */
+#if defined(ENKF_PREP) || defined(ENKF_CALC)
 #if defined(INTERNAL_QSORT_R)
     enkf_printf("%s  INTERNAL_QSORT_R = [+]\n", offset);
 #else
     enkf_printf("%s  INTERNAL_QSORT_R = [-]\n", offset);
+#endif
 #endif
 #if defined(ENKF_UPDATE)
 #if defined(NCW_SKIPSINGLE)

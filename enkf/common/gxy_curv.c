@@ -325,10 +325,7 @@ int gxy_curv_fij2xy(gxy_curv* gxy, double fi, double fj, double* x, double* y)
     double u, v;
     double a, b, c, d, e, f, g, h;
 
-    /*
-     * Trim I to range 0 to nce1 
-     */
-    if (fi < 0 || fi >= gxy->ni || fj < 0 || fj >= gxy->nj)
+    if (fi < 0.0 || fi > (double) gxy->ni - 1.0 || fj < 0.0 || fj > (double) gxy->nj - 1.0)
         return 0;
 
     u = fi - floor(fi);
