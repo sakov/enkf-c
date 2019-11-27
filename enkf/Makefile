@@ -16,7 +16,7 @@ CALC_FLAGS = -DHE_VIASHMEM -DMINIMISE_ALLOC
 # Select flags for UPDATE
 #
 # -DNCW_SKIPSINGLE
-UPDATE_FLAGS = -DNO_GRIDUTILS
+UPDATE_FLAGS =
 
 # Set MPI status of EnKF-C programs either to "" or "MPI".
 # Note: prep is single-threaded only.
