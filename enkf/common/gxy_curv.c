@@ -100,16 +100,9 @@ int gxy_curv_getnj(gxy_curv* gxy)
 
 /**
  */
-static inline int onleft(double x0, double y0, double x1, double y1, double x2, double y2)
+static inline double onleft(double x0, double y0, double x1, double y1, double x2, double y2)
 {
-    double a = (x1 - x0) * (y2 - y0) - (x2 - x0) * (y1 - y0);
-
-    if (a > 0.0)
-        return 1;
-    else if (a < 0.0)
-        return -1;
-    else
-        return 0;
+    return (x1 - x0) * (y2 - y0) - (x2 - x0) * (y1 - y0);
 }
 
 /**
@@ -123,11 +116,11 @@ static int inquadri(double x, double y, double* px, double* py)
 
         if (py[i] <= y) {
             if (py[i1] > y)
-                if (onleft(px[i], py[i], px[i1], py[i1], x, y) > 0)
+                if (onleft(px[i], py[i], px[i1], py[i1], x, y) > 0.0)
                     ++count;
         } else {
             if (py[i1] <= y)
-                if (onleft(px[i], py[i], px[i1], py[i1], x, y) < 0)
+                if (onleft(px[i], py[i], px[i1], py[i1], x, y) < 0.0)
                     --count;
         }
     }
