@@ -7,10 +7,7 @@
  * Author:      Pavel Sakov
  *              Bureau of Meteorology
  *
- * Description: Contains code for mappings between indices and physical
- *              coordinates of a curvilinear (or, rather, quadrilateral) grid.
- *              The code has been extracted from and replaces that from
- *              gridutils library.
+ * Description: The header file for gxy_curv.c.
  *
  * Revisions:   
  *
