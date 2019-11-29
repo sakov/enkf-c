@@ -1,3 +1,7 @@
+v. 1.106.2
+   PS 29112019
+   -- A minor modification in initialising curvilinear grids in grid_creeate()
+      that treats filled/missing values properly.
 v. 1.106.1
    PS 28112019
    -- A minor correction in inquadri(): correcting the cycle to be over 4 edges,

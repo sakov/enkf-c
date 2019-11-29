@@ -31,6 +31,7 @@
 #include <float.h>
 #include <string.h>
 #include "ncw.h"
+#include "ncutils.h"
 #include "definitions.h"
 #include "utils.h"
 #include "grid.h"
@@ -1006,8 +1007,8 @@ grid* grid_create(void* p, int id)
         x = alloc2d(nj, ni, sizeof(double));
         y = alloc2d(nj, ni, sizeof(double));
 
-        ncw_get_var_double(ncid, varid_x, x[0]);
-        ncw_get_var_double(ncid, varid_y, y[0]);
+        ncu_readvardouble(ncid, varid_x, ni * nj, x[0]);
+        ncu_readvardouble(ncid, varid_y, ni * nj, y[0]);
 
         grid_sethgrid(g, GRIDHTYPE_CURVILINEAR, ni, nj, x, y);
 #endif
