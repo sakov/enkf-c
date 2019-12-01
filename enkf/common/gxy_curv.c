@@ -98,34 +98,49 @@ int gxy_curv_getnj(gxy_curv* gxy)
     return gxy->nj;
 }
 
-/**
+/** Test of whether the point (x, y) is inside quadrilateral {(px[0], py[0]),
+ ** ..., (px[3], py[3])}. Based on Algorithm 1 from Symmetry 2018, 10, 477;
+ ** doi:10.3390/sym10100477.
  */
-static inline double onleft(double x0, double y0, double x1, double y1, double x2, double y2)
+static int incell(double x, double y, double* px, double* py)
 {
-    return (x1 - x0) * (y2 - y0) - (y1 - y0) * (x2 - x0);
-}
-
-/**
- */
-static int inquadri(double x, double y, double* px, double* py)
-{
-    int count, i;
+    int count, i, i1;
+    double v1, v2, u1, u2, f;
 
     for (i = 0, count = 0; i < 4; ++i) {
-        int i1 = (i + 1) % 4;
-
-        if (py[i] <= y) {
-            if (py[i1] > y)
-                if (onleft(px[i], py[i], px[i1], py[i1], x, y) > 0.0)
-                    ++count;
-        } else {
-            if (py[i1] <= y)
-                if (onleft(px[i], py[i], px[i1], py[i1], x, y) < 0.0)
-                    --count;
+        i1 = (i + 1) % 4;
+        v1 = py[i] - y;
+        v2 = py[i1] - y;
+        if ((v1 < 0.0 && v2 < 0.0) || (v1 > 0.0 && v2 > 0.0))
+            continue;
+        u1 = px[i] - x;
+        u2 = px[i1] - x;
+        f = u1 * v2 - u2 * v1;
+        if (v2 > 0.0 && v1 <= 0.0) {
+            if (f > 0.0)
+                count++;
+            else if (f == 0.0)
+                return 1;
+        } else if (v1 > 0.0 && v2 <= 0.0) {
+            if (f < 0.0)
+                count++;
+            else if (f == 0.0)
+                return 1;
+        } else if (v2 == 0.0 && v1 < 0.0) {
+            if (f == 0.0)
+                return 1;
+        } else if (v1 == 0.0 && v2 < 0.0) {
+            if (f == 0.0)
+                return 1;
+        } else if (v1 == 0.0 && v2 == 0.0) {
+            if (u2 <= 0.0 && u1 >= 0.0)
+                return 1;
+            else if (u1 <= 0.0 && u2 >= 0.0)
+                return 1;
         }
     }
 
-    return count;
+    return count % 2;
 }
 
 /**
@@ -171,7 +186,7 @@ static int gxy_curv_xy2ij(gxy_curv* gxy, double x, double y, int* iout, int* jou
             px[3] = gxy->x[j + 1][i];
             py[3] = gxy->y[j + 1][i];
 
-            if (inquadri(x, y, px, py)) {
+            if (incell(x, y, px, py)) {
                 success = 1;
                 *iout = i;
                 *jout = j;
