@@ -98,7 +98,7 @@ int gxy_curv_getnj(gxy_curv* gxy)
     return gxy->nj;
 }
 
-/** Test of whether the point (x, y) is inside quadrilateral {(px[0], py[0]),
+/** Test whether the point (x, y) is inside quadrilateral {(px[0], py[0]),
  ** ..., (px[3], py[3])}. Based on Algorithm 1 from Symmetry 2018, 10, 477;
  ** doi:10.3390/sym10100477.
  */
@@ -153,11 +153,10 @@ static int gxy_curv_xy2ij(gxy_curv* gxy, double x, double y, int* iout, int* jou
     size_t id;
     int i, j, i1, i2, j1, j2;
     double px[4], py[4];
-    int success = 0;
 
     minmax = kd_getminmax(gxy->nodetree);
     if (x < minmax[0] || y < minmax[1] || x > minmax[2] || y > minmax[3])
-        return success;
+        return 0;
 
     pos[0] = x;
     pos[1] = y;
@@ -172,7 +171,7 @@ static int gxy_curv_xy2ij(gxy_curv* gxy, double x, double y, int* iout, int* jou
     j1 = (j > 0) ? j - 1 : j;
     j2 = (j < gxy->nj - 1) ? j + 1 : j;
 
-    for (j = j1; j <= j2 - 1; ++j)
+    for (j = j1; j <= j2 - 1; ++j) {
         for (i = i1; i <= i2 - 1; ++i) {
             if (!isfinite(gxy->x[j][i]) || !isfinite(gxy->x[j][i + 1]) || !isfinite(gxy->x[j + 1][i + 1]) || !isfinite(gxy->x[j + 1][i]))
                 continue;
@@ -187,15 +186,14 @@ static int gxy_curv_xy2ij(gxy_curv* gxy, double x, double y, int* iout, int* jou
             py[3] = gxy->y[j + 1][i];
 
             if (incell(x, y, px, py)) {
-                success = 1;
                 *iout = i;
                 *jout = j;
-                goto finish;
+                return 1;
             }
         }
+    }
 
-  finish:
-    return success;
+    return 0;
 }
 
 /**
