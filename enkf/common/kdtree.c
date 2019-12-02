@@ -32,6 +32,7 @@
 #define NALLOCSTART 1024
 #define KDSET_BLOCKSIZE 1024
 #define KDSET_NBLOCKS_INC 10
+#define NDIMMAX 3
 
 struct resnode;
 typedef struct resnode resnode;
@@ -93,6 +94,8 @@ kdtree* kd_create(int ndim)
     kdtree* tree;
     int i;
 
+    if (ndim > NDIMMAX)
+        quit("ndim = %d, NDIMMAX = %d", ndim, NDIMMAX);
     tree = malloc(sizeof(kdtree));
     tree->ndim = ndim;
     tree->nnodes = 0;
@@ -456,7 +459,7 @@ static void _kd_findnearestnode(const kdtree* tree, const size_t nodeid, const d
 size_t kd_findnearestnode(const kdtree* tree, const double* coords)
 {
     int ndim = tree->ndim;
-    double* minmax = malloc(ndim * 2 * sizeof(double));
+    double minmax[NDIMMAX * 2];
     size_t result;
     double dist;
     int i;
@@ -471,8 +474,6 @@ size_t kd_findnearestnode(const kdtree* tree, const double* coords)
      * search for the nearest neighbour recursively 
      */
     _kd_findnearestnode(tree, 0, coords, &result, &dist, minmax);
-
-    free(minmax);
 
     return result;
 }
