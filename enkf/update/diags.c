@@ -372,7 +372,7 @@ void das_writevcorrs(dasystem* das)
             int ncid_src, varid_src;
 
             das_getmemberfname(das, das->ensdir, varname, 1, fname_src);
-            if (!ncu_is3d(fname_src, varname))
+            if (ncu_getnD(fname_src, varname) != 3)
                 continue;
 
             ncw_open(fname_src, NC_NOWRITE, &ncid_src);
@@ -402,7 +402,7 @@ void das_writevcorrs(dasystem* das)
             char fname[MAXSTRLEN];
 
             das_getmemberfname(das, das->ensdir, varname, 1, fname);
-            if (!ncu_is3d(fname, varname))
+            if (ncu_getnD(fname, varname) != 3)
                 continue;
         }
 
@@ -516,7 +516,7 @@ void das_writevcorrs(dasystem* das)
                 char fname[MAXSTRLEN];
 
                 das_getmemberfname(das, das->ensdir, f->varname, 1, fname);
-                if (!ncu_is3d(fname, f->varname))
+                if (ncu_getnD(fname, f->varname) != 3)
                     continue;
             }
             model_getvargridsize(m, f->varid, &ni, &nj, NULL);

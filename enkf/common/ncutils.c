@@ -938,9 +938,10 @@ void ncu_read3dfield(char* fname, char* varname, int ni, int nj, int nk, float* 
     ncw_close(ncid);
 }
 
-/** Tries to determine whether the variable is 3D or 2D.
+/** Tries to determine the number of physical dimensions of a variable (total
+ ** number of dimensions less 1 if there is an unlimited dimension).
  */
-int ncu_is3d(char fname[], char varname[])
+int ncu_getnD(char fname[], char varname[])
 {
     int ncid;
     int varid;
@@ -957,10 +958,8 @@ int ncu_is3d(char fname[], char varname[])
     ncw_close(ncid);
 
     ndims -= hasrecorddim;
-    if (ndims < 2 || ndims > 3)
-        quit("%s: %s: a 2D or 3D variable expected", fname, varname);
 
-    return ndims == 3;
+    return ndims;
 }
 
 /**

@@ -228,7 +228,7 @@ void H_subsurf_standard(dasystem* das, int nobs, int obsids[], char fname[], int
     int ni, nj, nk;
     float*** src = NULL;
     char tag_offset[MAXSTRLEN];
-    float*** offset = NULL;
+    void* offset_data = NULL;
 
     assert(ot->nvar == 1);      /* should we care? */
     model_getvargridsize(m, mvid, &ni, &nj, &nk);
@@ -239,18 +239,27 @@ void H_subsurf_standard(dasystem* das, int nobs, int obsids[], char fname[], int
         model_readfield(m, fname, ot->varnames[0], 0, src[0][0]);
 
     snprintf(tag_offset, MAXSTRLEN, "%s:OFFSET", allobs->obstypes[allobs->data[obsids[0]].type].name);
-    offset = model_getdata(m, tag_offset);
-    if (offset != NULL) {
-        int mvid = model_getvarid(m, ot->varnames[0], 1);
-        int ni, nj, nk;
-        float* src0 = src[0][0];
-        float* offset0 = offset[0][0];
-        int i;
+    offset_data = model_getdata(m, tag_offset);
+    if (offset_data != NULL) {
+        if (model_getdataalloctype(m, tag_offset) == ALLOCTYPE_3D) {
+            float* src0 = src[0][0];
+            float* offset0 = ((float***) offset_data)[0][0];
+            int ijk;
 
-        assert(model_getdataalloctype(m, tag_offset) == ALLOCTYPE_3D);
-        model_getvargridsize(m, mvid, &ni, &nj, &nk);
-        for (i = 0; i < ni * nj * nk; ++i)
-            src0[i] -= offset0[i];
+            for (ijk = 0; ijk < ni * nj * nk; ++ijk)
+                src0[ijk] -= offset0[ijk];
+        } else if (model_getdataalloctype(m, tag_offset) == ALLOCTYPE_1D) {
+            int ij, k;
+
+            for (k = 0; k < nk; ++k) {
+                float* srck = src[k][0];
+                float offsetk = ((float*) offset_data)[k];
+
+                for (ij = 0; ij < ni * nj; ++ij)
+                    srck[ij] -= offsetk;
+            }
+        } else
+            enkf_quit("obstype = %s: offset variable must be either 3D or 1D for a 3D observation type", ot->name);
     }
 
     interpolate_3d_obs(m, allobs, nobs, obsids, fname, src, dst);
@@ -289,7 +298,7 @@ void H_subsurf_wsurfbias(dasystem* das, int nobs, int obsids[], char fname[], in
 
     float** mld = NULL;
     char tag_offset[MAXSTRLEN];
-    float*** offset = NULL;
+    void* offset_data = NULL;
     float** bias = NULL;
     char fname2[MAXSTRLEN];
     int i;
@@ -312,14 +321,27 @@ void H_subsurf_wsurfbias(dasystem* das, int nobs, int obsids[], char fname[], in
         model_readfield(m, fname, ot->varnames[0], 0, src[0][0]);
 
     snprintf(tag_offset, MAXSTRLEN, "%s:OFFSET", ot->name);
-    offset = model_getdata(m, tag_offset);
-    if (offset != NULL) {
-        float* src0 = src[0][0];
-        float* offset0 = offset[0][0];
+    offset_data = model_getdata(m, tag_offset);
+    if (offset_data != NULL) {
+        if (model_getdataalloctype(m, tag_offset) == ALLOCTYPE_3D) {
+            float* src0 = src[0][0];
+            float* offset0 = ((float***) offset_data)[0][0];
+            int ijk;
 
-        assert(model_getdataalloctype(m, tag_offset) == ALLOCTYPE_3D);
-        for (i = 0; i < ni * nj * nk; ++i)
-            src0[i] -= offset0[i];
+            for (ijk = 0; ijk < ni * nj * nk; ++ijk)
+                src0[ijk] -= offset0[ijk];
+        } else if (model_getdataalloctype(m, tag_offset) == ALLOCTYPE_1D) {
+            int ij, k;
+
+            for (k = 0; k < nk; ++k) {
+                float* srck = src[k][0];
+                float offsetk = ((float*) offset_data)[k];
+
+                for (ij = 0; ij < ni * nj; ++ij)
+                    srck[ij] -= offsetk;
+            }
+        } else
+            enkf_quit("obstype = %s: offset variable must be either 3D or 1D for a 3D observation type", ot->name);
     }
 
     interpolate_3d_obs(m, allobs, nobs, obsids, fname, src, dst);
@@ -332,7 +354,7 @@ void H_subsurf_wsurfbias(dasystem* das, int nobs, int obsids[], char fname[], in
         das_getmemberfname(das, das->ensdir, ot->varnames[1], mem, fname2);
     else if (das->mode == MODE_ENOI)
         das_getbgfname(das, das->bgdir, ot->varnames[1], fname2);
-    assert(!ncu_is3d(fname2, ot->varnames[1]));
+    assert(ncu_getnD(fname2, ot->varnames[1]) == 2);
     model_readfield(m, fname2, ot->varnames[1], 0, bias[0]);
 
     if (isnan(ot->mld_threshold) && ot->mld_varname == NULL)

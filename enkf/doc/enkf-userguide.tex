@@ -37,7 +37,7 @@
 
 \begin{document}
 
-\title{EnKF-C user guide\\{\normalsize version 1.106.0}}
+\title{EnKF-C user guide\\{\normalsize version 1.107.0}}
 
 \author{Pavel Sakov}
 \date{June 19, 2014 -- \today}
@@ -895,6 +895,7 @@ The optional parameters include the R-factor and localisation radius for the typ
 The tags for available observation operators are listed in array \verb|allhentries| in file \verb|calc/allhs.c|.
 
 The \verb|OFFSET| entry may be used for adding the known model bias to observations, for example, to specify the mean dynamic topography (MDT) when assimilating sea level anomaly (SLA) observations.
+The dimension of the offset should match that of the corresponding model variable, except that it is possible to define (1D) layer-wise offsets for 3D model variables.
 
 The localisation radius for an observation type, if specified, overrides the
 common value from the main parameter file.

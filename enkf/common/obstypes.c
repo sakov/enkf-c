@@ -25,6 +25,7 @@
 #include "kdtree.h"
 #include "definitions.h"
 #include "utils.h"
+#include "ncw.h"
 #include "ncutils.h"
 #include "grid.h"
 #include "model.h"
@@ -512,11 +513,11 @@ void obstypes_set(int n, obstype* types, model* m)
 
     for (i = 0; i < n; ++i) {
         obstype* ot = &types[i];
-        int vid = model_getvarid(m, types[i].varnames[0], 1);
+        int mvid = model_getvarid(m, types[i].varnames[0], 1);
         int j;
 
-        ot->vid = vid;
-        ot->gridid = model_getvargridid(m, vid);
+        ot->vid = mvid;
+        ot->gridid = model_getvargridid(m, mvid);
         if (ot->ndomains > 0)
             for (j = 0; j < ot->ndomains; ++j)
                 if (model_getdomainid(m, ot->domainnames[j]) < 0)
@@ -527,23 +528,42 @@ void obstypes_set(int n, obstype* types, model* m)
 
         snprintf(tag, MAXSTRLEN, "%s:OFFSET", ot->name);
         if (ot->offset_fname != NULL) {
-            if (ot->issurface || !ncu_is3d(ot->offset_fname, ot->offset_varname)) {
-                float** v = NULL;
-                int nx, ny;
+            int ncid, varid;
 
-                model_getvargridsize(m, vid, &nx, &ny, NULL);
+            ncw_open(ot->offset_fname, NC_NOWRITE, &ncid);
+            ncw_inq_varid(ncid, ot->offset_varname, &varid);
+            if (ncu_getnD(ot->offset_fname, ot->offset_varname) == 1) {
+                int nz;
+                float* v = NULL;
+
+                if (ot->issurface)
+                    enkf_quit("%s: 1D offset is not allowed for a 2D observation type", ot->name);
+                model_getvargridsize(m, mvid, NULL, NULL, &nz);
+                v = malloc(nz * sizeof(float));
+                ncu_readvarfloat(ncid, varid, nz, v);
+                model_adddata(m, tag, mvid, ALLOCTYPE_1D, v);
+            } else if (ncu_getnD(ot->offset_fname, ot->offset_varname) == 2) {
+                int nx, ny;
+                float** v = NULL;
+
+                model_getvargridsize(m, mvid, &nx, &ny, NULL);
                 v = alloc2d(ny, nx, sizeof(float));
-                ncu_readfield(ot->offset_fname, ot->offset_varname, 0, nx, ny, 1, v[0]);
-                model_adddata(m, tag, vid, ALLOCTYPE_2D, v);
-            } else {
+                ncu_readvarfloat(ncid, varid, nx * ny, v[0]);
+                model_adddata(m, tag, mvid, ALLOCTYPE_2D, v);
+            } else if (ncu_getnD(ot->offset_fname, ot->offset_varname) == 3) {
                 float*** v = NULL;
                 int nx, ny, nz;
 
-                model_getvargridsize(m, vid, &nx, &ny, &nz);
+                if (ot->issurface)
+                    enkf_quit("%s: 3D offset is not allowed for a 2D observation type", ot->name);
+                model_getvargridsize(m, mvid, &nx, &ny, &nz);
                 v = alloc3d(nz, ny, nx, sizeof(float));
-                ncu_read3dfield(ot->offset_fname, ot->offset_varname, nx, ny, nz, v[0][0]);
-                model_adddata(m, tag, vid, ALLOCTYPE_3D, v);
-            }
+                ncu_readvarfloat(ncid, varid, nx * ny * nz, v[0][0]);
+                model_adddata(m, tag, mvid, ALLOCTYPE_3D, v);
+            } else
+                enkf_quit("programming error");
+            
+            ncw_close(ncid);
         }
 #endif
     }

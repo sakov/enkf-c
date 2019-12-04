@@ -1,3 +1,10 @@
+v. 1.107.0
+   PS 04122019
+   A few modifications to make it possible to define 1D offsets for 3D
+   observation types, treated as (negative) layer-wise model field offsets.
+v. 1.106.4
+   PS 02122019
+   A minor modification in kdtree.c to save a memory allocation per search.
 v. 1.106.3
    PS 02122019
    -- Replaced the point-in-quadrilateral test in gxy_curv.c by the one based on
