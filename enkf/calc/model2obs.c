@@ -55,7 +55,7 @@ static void evaluate_2d_obs(model* m, observations* allobs, int nobs, int obsids
             out[ii] = interpolate2d(o->fi, o->fj, ni, nj, v, mask, periodic_i);
         else {
             grid* g = model_getvargrid(m, mvid);
-            kdtree* tree = grid_gettree(g);
+            kdtree* tree = grid_gettreeXYZ(g);
             double ll[2] = { o->lon, o->lat };
             double xyz[3];
             kdset* set = NULL;

@@ -166,7 +166,7 @@ struct grid {
     /*
      * used for calculating forecast obs with finite footprint
      */
-    kdtree* nodetree;
+    kdtree* nodetreeXYZ;
 };
 
 /**
@@ -1239,8 +1239,8 @@ void grid_destroy(grid* g)
     if (g->nzints > 0)
         free(g->zints);
 #if defined(ENKF_CALC)
-    if (g->nodetree != NULL)
-        kd_destroy(g->nodetree);
+    if (g->nodetreeXYZ != NULL)
+        kd_destroy(g->nodetreeXYZ);
 #endif
 
     free(g);
@@ -1861,53 +1861,72 @@ char* grid_getdomainname(grid* g)
 #if defined(ENKF_CALC)
 /**
  */
-kdtree* grid_gettree(grid* g)
+kdtree* grid_gettreeXYZ(grid* g)
 {
     kdtree* tree;
+    int ni, nj;
     size_t* ids;
-    size_t ii, nii;
-    int ni = -1, nj = -1;
-    int i, j;
 
-    if (g->nodetree != NULL)
-        return g->nodetree;
+    if (g->nodetreeXYZ != NULL)
+        return g->nodetreeXYZ;
 
     tree = kd_create(3);
     grid_getsize(g, &ni, &nj, NULL);
-
     ids = malloc(ni * nj * sizeof(size_t));
-    for (j = 0, ii = 0, nii = 0; j < nj; ++j) {
-        for (i = 0; i < ni; ++i, ++ii) {
-            if (g->numlevels[j][i] == 0)
-                continue;
-            ids[nii] = ii;
-            nii++;
+    if (g->htype == GRIDHTYPE_LATLON) {
+        gxy_simple* gxy = (gxy_simple*) g->gridnodes_xy;
+        size_t ii, nii;
+        int i, j;
+
+        for (j = 0, ii = 0, nii = 0; j < nj; ++j) {
+            for (i = 0; i < ni; ++i, ++ii) {
+                if (g->numlevels[j][i] == 0)
+                    continue;
+                ids[nii] = ii;
+                nii++;
+            }
         }
-    }
+        shuffle(nii, ids);
+        for (ii = 0; ii < nii; ++ii) {
+            double ll[2], xyz[3];
 
-    shuffle(nii, ids);
-    for (ii = 0; ii < nii; ++ii) {
-        double ll[2];
-        double xyz[3];
-
-        i = ids[ii] % ni;
-        j = ids[ii] / ni;
-        if (g->htype == GRIDHTYPE_LATLON) {
-            gxy_simple* gxy = (gxy_simple*) g->gridnodes_xy;
-
+            i = ids[ii] % ni;
+            j = ids[ii] / ni;
             ll[0] = gxy->x[i];
             ll[1] = gxy->y[j];
-        } else if (g->htype == GRIDHTYPE_CURVILINEAR) {
-            gxy_curv* gxy = (gxy_curv*) g->gridnodes_xy;
-
-            ll[0] = gxy_curv_getx(gxy)[j][i];
-            ll[1] = gxy_curv_gety(gxy)[j][i];
+            ll2xyz(ll, xyz);
+            kd_insertnode(tree, xyz, ids[ii]);
         }
-        ll2xyz(ll, xyz);
-        kd_insertnode(tree, xyz, ids[ii]);
-    }
-    g->nodetree = tree;
+    } else if (g->htype == GRIDHTYPE_CURVILINEAR) {
+        gxy_curv* gxy = (gxy_curv*) g->gridnodes_xy;
+        double** x = gxy_curv_getx(gxy);
+        double** y =  gxy_curv_gety(gxy);
+        size_t ii, nii;
+        int i, j;
 
-    return tree;
+        for (j = 0, ii = 0, nii = 0; j < nj; ++j) {
+            for (i = 0; i < ni; ++i, ++ii) {
+                if (g->numlevels[j][i] == 0 || isnan(x[j][i]))
+                    continue;
+                ids[nii] = ii;
+                nii++;
+            }
+        }
+        shuffle(nii, ids);
+        for (ii = 0; ii < nii; ++ii) {
+            double ll[2], xyz[3];
+
+            i = ids[ii] % ni;
+            j = ids[ii] / ni;
+            ll[0] = x[j][i];
+            ll[1] = y[j][i];
+            ll2xyz(ll, xyz);
+            kd_insertnode(tree, xyz, ids[ii]);
+        }
+    } 
+    free(ids);
+    g->nodetreeXYZ = tree;
+
+    return g->nodetreeXYZ;
 }
 #endif

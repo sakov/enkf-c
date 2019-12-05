@@ -1,7 +1,12 @@
+v. 1.107.1
+   PS 05122019
+   -- Cleaned up a mess with two kd-trees, one in struct grid (used for
+      estimating observations with finite footprint), and another in struct
+      gxy_curv (used for fij <-> xy mappings).
 v. 1.107.0
    PS 04122019
-   A few modifications to make it possible to define 1D offsets for 3D
-   observation types, treated as (negative) layer-wise model field offsets.
+   -- A few modifications to make it possible to define 1D offsets for 3D
+      observation types, treated as (negative) layer-wise model field offsets.
 v. 1.106.4
    PS 02122019
    A minor modification in kdtree.c to save a memory allocation per search.
