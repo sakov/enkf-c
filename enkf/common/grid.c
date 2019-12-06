@@ -923,7 +923,7 @@ static void grid_sethgrid(grid* g, int htype, int ni, int nj, void* x, void* y)
         g->gridnodes_xy = gxy_simple_create(ni, nj, x, y);
 #if defined(ENKF_PREP) || defined(ENKF_CALC)
     else if (htype == GRIDHTYPE_CURVILINEAR)
-        g->gridnodes_xy = gxy_curv_create(ni, nj, x, y);
+        g->gridnodes_xy = gxy_curv_create(ni, nj, x, y, g->numlevels);
 #endif
     else
         enkf_quit("programming error");
@@ -1875,25 +1875,21 @@ kdtree* grid_gettreeXYZ(grid* g)
     ids = malloc(ni * nj * sizeof(size_t));
     if (g->htype == GRIDHTYPE_LATLON) {
         gxy_simple* gxy = (gxy_simple*) g->gridnodes_xy;
-        size_t ii, nii;
-        int i, j;
+        size_t ii, n;
 
-        for (j = 0, ii = 0, nii = 0; j < nj; ++j) {
-            for (i = 0; i < ni; ++i, ++ii) {
-                if (g->numlevels[j][i] == 0)
-                    continue;
-                ids[nii] = ii;
-                nii++;
-            }
+        for (ii = 0, n = 0; ii < ni * nj; ++ii) {
+            if (g->numlevels[0][ii] == 0)
+                continue;
+            ids[n] = ii;
+            n++;
         }
-        shuffle(nii, ids);
-        for (ii = 0; ii < nii; ++ii) {
+        shuffle(n, ids);
+        for (ii = 0; ii < n; ++ii) {
+            int id = ids[ii];
             double ll[2], xyz[3];
 
-            i = ids[ii] % ni;
-            j = ids[ii] / ni;
-            ll[0] = gxy->x[i];
-            ll[1] = gxy->y[j];
+            ll[0] = gxy->x[id % ni];
+            ll[1] = gxy->y[id / ni];
             ll2xyz(ll, xyz);
             kd_insertnode(tree, xyz, ids[ii]);
         }
@@ -1901,25 +1897,20 @@ kdtree* grid_gettreeXYZ(grid* g)
         gxy_curv* gxy = (gxy_curv*) g->gridnodes_xy;
         double** x = gxy_curv_getx(gxy);
         double** y =  gxy_curv_gety(gxy);
-        size_t ii, nii;
-        int i, j;
+        size_t ii, n;
 
-        for (j = 0, ii = 0, nii = 0; j < nj; ++j) {
-            for (i = 0; i < ni; ++i, ++ii) {
-                if (g->numlevels[j][i] == 0 || isnan(x[j][i]))
-                    continue;
-                ids[nii] = ii;
-                nii++;
-            }
+        for (ii = 0, n = 0; ii < ni * nj; ++ii) {
+            if (g->numlevels[0][ii] == 0 || isnan(x[0][ii]))
+                continue;
+            ids[n] = ii;
+            n++;
         }
-        shuffle(nii, ids);
-        for (ii = 0; ii < nii; ++ii) {
+        shuffle(n, ids);
+        for (ii = 0; ii < n; ++ii) {
             double ll[2], xyz[3];
 
-            i = ids[ii] % ni;
-            j = ids[ii] / ni;
-            ll[0] = x[j][i];
-            ll[1] = y[j][i];
+            ll[0] = x[0][ids[ii]];
+            ll[1] = y[0][ids[ii]];
             ll2xyz(ll, xyz);
             kd_insertnode(tree, xyz, ids[ii]);
         }

@@ -1,3 +1,9 @@
+v. 1.107.2
+   PS 06122019
+   -- Added mask to arguments of kd_insertnodes(). Made a few internal changes
+      in kdtree.c, mainly related to moving `id_orig' (a sequential number of
+      the node) to `data' (either the sequential number of the node or some
+      explicitly set number). Fingers crossed.
 v. 1.107.1
    PS 05122019
    -- Cleaned up a mess with two kd-trees, one in struct grid (used for

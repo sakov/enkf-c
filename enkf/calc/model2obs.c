@@ -66,7 +66,7 @@ static void evaluate_2d_obs(model* m, observations* allobs, int nobs, int obsids
             ll2xyz(ll, xyz);
             set = kd_findnodeswithinrange(tree, xyz, o->footprint, 0);
             while ((id = kdset_readnext(set, NULL)) != SIZE_MAX) {
-                int id_orig = kd_getnodeorigid(tree, id);
+                int id_orig = kd_getnodedata(tree, id);
 
                 if (ncells % FOOTPRINT_INC == 0)
                     ids = realloc(ids, (ncells + FOOTPRINT_INC) * sizeof(size_t));

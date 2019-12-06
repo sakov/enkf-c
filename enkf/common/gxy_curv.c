@@ -37,9 +37,12 @@ struct gxy_curv {
 
 /**
  */
-gxy_curv* gxy_curv_create(int ni, int nj, double** x, double** y)
+gxy_curv* gxy_curv_create(int ni, int nj, double** x, double** y, int** mask)
 {
     gxy_curv* gxy = malloc(sizeof(gxy_curv));
+    double* data[2];
+
+    assert(x != NULL && y != NULL);
 
     gxy->ni = ni;
     gxy->nj = nj;
@@ -47,15 +50,10 @@ gxy_curv* gxy_curv_create(int ni, int nj, double** x, double** y)
     gxy->y = y;
     gxy->sign = 0;
 
-    assert(gxy->x != NULL && gxy->y != NULL);
-    {
-        double* data[2];
-
-        data[0] = x[0];
-        data[1] = y[0];
-        gxy->nodetreeXY = kd_create(2);
-        kd_insertnodes(gxy->nodetreeXY, ni * nj, data, 1 /* shuffle */ );
-    }
+    data[0] = x[0];
+    data[1] = y[0];
+    gxy->nodetreeXY = kd_create(2);
+    kd_insertnodes(gxy->nodetreeXY, ni * nj, data, NULL, (mask != NULL) ? mask[0] : NULL, 1 /* shuffle */ );
 
     return gxy;
 }
@@ -161,7 +159,7 @@ static int gxy_curv_xy2ij(gxy_curv* gxy, double x, double y, int* iout, int* jou
     pos[0] = x;
     pos[1] = y;
     nearest = kd_findnearestnode(gxy->nodetreeXY, pos);
-    id = kd_getnodeorigid(gxy->nodetreeXY, nearest);
+    id = kd_getnodedata(gxy->nodetreeXY, nearest);
 
     j = id / (gxy->ni);
     i = id % (gxy->ni);

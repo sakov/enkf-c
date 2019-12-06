@@ -1480,7 +1480,7 @@ void obs_findlocal(observations* obs, double lon, double lat, char* domainname, 
 
         set = kd_findnodeswithinrange(tree, xyz, obstype_getmaxlocrad(ot), 1);
         for (iloc = 0; iloc < ot->nlobsmax && (id = kdset_readnext(set, NULL)) != SIZE_MAX; ++i, ++iloc) {
-            int id_orig = kd_getnodeorigid(tree, id);
+            size_t id_orig = kd_getnodedata(tree, id);
 
 #if defined(MINIMISE_ALLOC)
             if (ploc_allocated != NULL) {

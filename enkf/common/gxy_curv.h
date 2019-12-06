@@ -17,7 +17,7 @@
 struct gxy_curv;
 typedef struct gxy_curv gxy_curv;
 
-gxy_curv* gxy_curv_create(int ni, int nj, double** x, double** y);
+gxy_curv* gxy_curv_create(int ni, int nj, double** x, double** y, int** mask);
 void gxy_curv_destroy(gxy_curv* gxy);
 double** gxy_curv_getx(gxy_curv* gxy);
 double** gxy_curv_gety(gxy_curv* gxy);

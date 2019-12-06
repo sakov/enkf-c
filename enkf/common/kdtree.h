@@ -37,11 +37,11 @@ void kd_destroy(kdtree* tree);
 
 /* insert a node, specifying its position, and optional data
  */
-void kd_insertnode(kdtree* tree, const double* coords, size_t id_orig);
+void kd_insertnode(kdtree* tree, const double* coords, size_t id_extern);
 
 /* insert an array of nodes
  */
-void kd_insertnodes(kdtree* tree, size_t n, double** src, int randomise);
+void kd_insertnodes(kdtree* tree, size_t n, double** src, size_t* ids_extern, int* mask, int randomise);
 
 /* get the number of tree nodes
  */
@@ -59,10 +59,10 @@ size_t kd_findnearestnode(const kdtree* tree, const double* coords);
  */
 double* kd_getnodecoords(const kdtree* tree, size_t id);
 
-/* get the original ID of the node (it is different to the current ID if the
+/* get the external ID of the node (it is different to the current ID if the
  * input was shuffled)
  */
-size_t kd_getnodeorigid(const kdtree* tree, size_t id);
+size_t kd_getnodedata(const kdtree* tree, size_t id);
 
 /* get boundary rectangle
  */
