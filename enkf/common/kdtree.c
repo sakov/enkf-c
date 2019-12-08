@@ -219,6 +219,10 @@ static void shuffle(size_t n, size_t ids[])
 {
     size_t i;
 
+    /*
+     * (PS) this initialisation is not really necessary, I think, but let it
+     * stay for now
+     */
     randomise_rand48();
 
     for (i = 0; i < n; ++i) {
@@ -230,7 +234,14 @@ static void shuffle(size_t n, size_t ids[])
     }
 }
 
-/**
+/** Insert nodes into the tree.
+ * @param tree - Kd-tree
+ * @param n - number of inserted nodes
+ * @param src - [ndim][n] arrays of coordinates of inserted nodes
+ * @param data - [n] array of data or NULL
+ * @param mask - [n] array of mask values (node [i] is ignored if mask[i] = 0)
+ * @param randomise - whether to insert nodes in random order. Should normally
+ *                    be set to 1 for getting a balanced tree.
  */
 void kd_insertnodes(kdtree* tree, size_t n, double** src, size_t* data, int* mask, int randomise)
 {
@@ -465,7 +476,10 @@ static void _kd_findnearestnode(const kdtree* tree, const size_t nodeid, const d
     }
 }
 
-/**
+/** Find the nearest node to the specified point
+ * @param tree - Kd-tree
+ * @param coords - [ndim] array of point coordinates
+ * @return - ID of the nearest node
  */
 size_t kd_findnearestnode(const kdtree* tree, const double* coords)
 {
@@ -544,10 +558,16 @@ size_t kdset_readnext(kdset* set, double* dist)
     return id;
 }
 
-/**
+/** Get coordinates of the node.
+ * @param tree - Kd-tree
+ * @param id - ID of the node
+ * @return - [ndim] array of node coordinates
  */
 double* kd_getnodecoords(const kdtree* tree, size_t id)
 {
+    if (id < tree->nnodes)
+        quit("id = %zu >= tree size = %zu", id, tree->nnodes);
+
     return &tree->coords[id * tree->ndim];
 }
 
@@ -555,6 +575,8 @@ double* kd_getnodecoords(const kdtree* tree, size_t id)
  */
 size_t kd_getnodedata(const kdtree* tree, size_t id)
 {
+    if (id < tree->nnodes)
+        quit("id = %zu >= tree size = %zu", id, tree->nnodes);
 
     return (int) tree->nodes[id].data;
 }

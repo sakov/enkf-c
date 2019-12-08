@@ -40,7 +40,7 @@ struct gxy_curv {
 gxy_curv* gxy_curv_create(int ni, int nj, double** x, double** y, int** mask)
 {
     gxy_curv* gxy = malloc(sizeof(gxy_curv));
-    double* data[2];
+    double* nodecoords[2];
 
     assert(x != NULL && y != NULL);
 
@@ -50,10 +50,10 @@ gxy_curv* gxy_curv_create(int ni, int nj, double** x, double** y, int** mask)
     gxy->y = y;
     gxy->sign = 0;
 
-    data[0] = x[0];
-    data[1] = y[0];
+    nodecoords[0] = x[0];
+    nodecoords[1] = y[0];
     gxy->nodetreeXY = kd_create(2);
-    kd_insertnodes(gxy->nodetreeXY, ni * nj, data, NULL, (mask != NULL) ? mask[0] : NULL, 1 /* shuffle */ );
+    kd_insertnodes(gxy->nodetreeXY, ni * nj, nodecoords, NULL, (mask != NULL) ? mask[0] : NULL, 1 /* shuffle */ );
 
     return gxy;
 }
@@ -158,12 +158,19 @@ static int gxy_curv_xy2ij(gxy_curv* gxy, double x, double y, int* iout, int* jou
 
     pos[0] = x;
     pos[1] = y;
+    /*
+     * this is a rather expensive call, O(log N)
+     */
     nearest = kd_findnearestnode(gxy->nodetreeXY, pos);
     id = kd_getnodedata(gxy->nodetreeXY, nearest);
 
     j = id / (gxy->ni);
     i = id % (gxy->ni);
 
+    /*
+     * the code below could be somewhat optimised, I guess, but it would not
+     * matter much because of the rather expensive search above
+     */
     i1 = (i > 0) ? i - 1 : i;
     i2 = (i < gxy->ni - 1) ? i + 1 : i;
     j1 = (j > 0) ? j - 1 : j;
