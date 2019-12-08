@@ -16,6 +16,10 @@
  *                KDSET_BLOCKSIZE resnodes.
  *              - Streamlined counting the size of the results set by simply
  *                adding "set->size++" to _kdset_insert().
+ *              6/12/2019 PS:
+ *              - The field "id_orig" became "data". In kd_insertnode() it is
+ *                treated as generic data; in kd_insertnodes() it can be either
+ *                generic data or (if NULL) the sequential number of the node.
  *
  *****************************************************************************/
 
@@ -506,7 +510,10 @@ size_t kdset_getsize(const kdset* set)
     return set->size;
 }
 
-/**
+/** Reads the next record in the set.
+ * @param set - (input) the set
+ * @param dist - (output) the distance to the next node (or NAN)
+ * @return - the ID of the next node (or SIZE MAX)
  */
 size_t kdset_readnext(kdset* set, double* dist)
 {
