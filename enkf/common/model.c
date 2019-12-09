@@ -70,7 +70,7 @@ struct model {
 
 /**
  */
-static void variable_new(variable * v, int id, char* name)
+static void variable_new(variable* v, int id, char* name)
 {
     v->id = id;
     v->name = strdup(name);

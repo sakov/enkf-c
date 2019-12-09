@@ -1,3 +1,6 @@
+v. 1.107.3
+   PS 10122019
+   -- A few cosmetic changes.
 v. 1.107.2
    PS 06122019
    -- Added mask to arguments of kd_insertnodes(). Made a few internal changes

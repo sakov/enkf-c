@@ -43,8 +43,9 @@ typedef struct resnode resnode;
 
 struct kdnode {
     size_t id;
-    size_t data; /* either set explicitly when adding node(s) or set to the
-                  * sequential number of the node added */
+    size_t data;                /* either set explicitly when adding node(s)
+                                 * or set to the sequential number of the
+                                 * node added */
     int dir;
     size_t left;
     size_t right;

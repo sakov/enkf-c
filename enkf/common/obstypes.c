@@ -562,7 +562,7 @@ void obstypes_set(int n, obstype* types, model* m)
                 model_adddata(m, tag, mvid, ALLOCTYPE_3D, v);
             } else
                 enkf_quit("programming error");
-            
+
             ncw_close(ncid);
         }
 #endif

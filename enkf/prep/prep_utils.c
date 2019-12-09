@@ -389,21 +389,29 @@ void obs_add(observations* obs, model* m, obsmeta* meta)
 int obs_checkforland(observations* obs, model* m)
 {
     int hasland = 0;
-    int i;
+    int ni = -1, nj = -1, ksurf = -1, isperiodic = -1;
+    int** numlevels = NULL;
+    int type_prev, i;
 
-    for (i = 0; i < obs->nobs; ++i) {
+    for (i = 0, type_prev = -1; i < obs->nobs; ++i) {
         observation* o = &obs->data[i];
-        obstype* ot = &obs->obstypes[o->type];
-        int vid = model_getvarid(m, ot->varnames[0], 1);
-        grid* g = model_getvargrid(m, vid);
-        int ni, nj, ksurf;
 
-        grid_getsize(g, &ni, &nj, NULL);
-        ksurf = grid_getsurflayerid(g);
-        if (island(o->fi, o->fj, o->fk, ni, nj, ksurf, grid_getnumlevels(g), grid_isperiodic_i(g))) {
+        if (o->type != type_prev) {
+            obstype* ot = &obs->obstypes[o->type];
+            int vid = model_getvarid(m, ot->varnames[0], 1);
+            grid* g = model_getvargrid(m, vid);
+
+            grid_getsize(g, &ni, &nj, NULL);
+            ksurf = grid_getsurflayerid(g);
+            numlevels = grid_getnumlevels(g);
+            isperiodic = grid_isperiodic_i(g);
+        }
+
+        if (island(o->fi, o->fj, o->fk, ni, nj, ksurf, numlevels, isperiodic)) {
             o->status = STATUS_LAND;
             hasland = 1;
         }
+        type_prev = o->type;
     }
 
     return hasland;

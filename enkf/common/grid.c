@@ -1896,7 +1896,7 @@ kdtree* grid_gettreeXYZ(grid* g)
     } else if (g->htype == GRIDHTYPE_CURVILINEAR) {
         gxy_curv* gxy = (gxy_curv*) g->gridnodes_xy;
         double** x = gxy_curv_getx(gxy);
-        double** y =  gxy_curv_gety(gxy);
+        double** y = gxy_curv_gety(gxy);
         size_t ii, n;
 
         for (ii = 0, n = 0; ii < ni * nj; ++ii) {
@@ -1914,7 +1914,7 @@ kdtree* grid_gettreeXYZ(grid* g)
             ll2xyz(ll, xyz);
             kd_insertnode(tree, xyz, ids[ii]);
         }
-    } 
+    }
     free(ids);
     g->nodetreeXYZ = tree;
 

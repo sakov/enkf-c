@@ -29,15 +29,13 @@
  */
 typedef struct {
     /*
-     * for primary observations - the number of the (compacted) primary
-     * observation; for super observations - the ordered number of the
-     * superobservation
+     * observation index
      */
     int id;
     /*
-     * for primary observations - the serial number of the primary observation
-     * during the reading of data files; for superobs - the original ID of the
-     * very first observation collated into this observation
+     * for primary observations - the sequential number of observation; for
+     * superobs - the original ID of the very first observation collated into
+     * this observation
      */
     int id_orig;
     short int type;

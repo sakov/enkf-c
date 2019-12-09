@@ -58,7 +58,7 @@ void model_read3dfield(model* m, char fname[], char varname[], float* v);
 void model_writefield(model* m, char fname[], char varname[], int k, float* v);
 void model_writefieldas(model* m, char fname[], char varname[], char varnameas[], int k, float* v);
 void model_addcustomdata(model* m, char* token, char* fname, int line);
-void model_addcustomtaper(model* m, variable * var, char* token, char* fname, int line);
+void model_addcustomtaper(model* m, variable* var, char* token, char* fname, int line);
 
 #define _MODEL_H
 #endif
