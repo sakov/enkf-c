@@ -566,7 +566,7 @@ size_t kdset_readnext(kdset* set, double* dist)
  */
 double* kd_getnodecoords(const kdtree* tree, size_t id)
 {
-    if (id < tree->nnodes)
+    if (id >= tree->nnodes)
         quit("id = %zu >= tree size = %zu", id, tree->nnodes);
 
     return &tree->coords[id * tree->ndim];
