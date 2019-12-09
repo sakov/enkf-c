@@ -576,7 +576,7 @@ double* kd_getnodecoords(const kdtree* tree, size_t id)
  */
 size_t kd_getnodedata(const kdtree* tree, size_t id)
 {
-    if (id < tree->nnodes)
+    if (id >= tree->nnodes)
         quit("id = %zu >= tree size = %zu", id, tree->nnodes);
 
     return (int) tree->nodes[id].data;
