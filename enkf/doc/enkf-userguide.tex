@@ -37,7 +37,7 @@
 
 \begin{document}
 
-\title{EnKF-C user guide\\{\normalsize version 1.107.0}}
+\title{EnKF-C user guide\\{\normalsize version 1.107.4}}
 
 \author{Pavel Sakov}
 \date{June 19, 2014 -- \today}
@@ -1722,10 +1722,6 @@ Following is a brief description of the compiler flags in EnKF-C.
 \item{\verb|SHUFFLE_ROWS|} (\verb|enkf_calc|)
   Supposed to produce more latitudinally uniform load between CPUs.
   Currently, because transforms for each row of the grid are sent to the master process for writing, this option effectively makes no difference to performance, I believe.
-\item{\verb|HE_VIAFILE|} (\verb|enkf_calc|)
-  Communicates ensemble observations between processes via file.
-  This was used in early versions of EnKF-C and has been later replaced by MPI communications.
-  Still should be usable if something goes wrong with the system, I guess.
 \item{\verb|HE_VIASHMEM|} (\verb|enkf_calc|)
   Uses shared memory for storing ensemble observations, which much reduces the memory footprint in CALC.
   Requires MPI-3.

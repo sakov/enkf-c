@@ -204,7 +204,6 @@ void das_getHE(dasystem* das)
 
 #if defined(MPI)
     if (das->mode == MODE_ENKF || !enkf_fstatsonly) {
-#if !defined(HE_VIAFILE)
         /*
          * communicate HE via MPI
          */
@@ -252,44 +251,6 @@ void das_getHE(dasystem* das)
 
         free(recvcounts);
         free(displs);
-#else                           /* HE_VIAFILE */
-        /*
-         * communicate HE via file
-         */
-        {
-            int ncid;
-            int varid;
-            size_t start[2], count[2];
-
-            if (rank == 0) {
-                int dimids[2];
-
-                ncw_create(FNAME_HE, NC_CLOBBER | das->ncformat, &ncid);
-                ncw_def_dim(FNAME_HE, ncid, "m", nmem, &dimids[0]);
-                ncw_def_dim(FNAME_HE, ncid, "p", nobs, &dimids[1]);
-                ncw_def_var(FNAME_HE, ncid, "HE", NC_FLOAT, 2, dimids, &varid);
-                if (das->nccompression > 0)
-                    ncw_def_deflate(ncid, 0, 1, das->nccompression);
-                ncw_close(FNAME_HE, ncid);
-            }
-            MPI_Barrier(MPI_COMM_WORLD);
-
-            ncw_open(FNAME_HE, NC_WRITE, &ncid);
-            ncw_inq_varid(FNAME_HE, ncid, "HE", &varid);
-            start[0] = my_first_iteration;
-            start[1] = 0;
-            count[0] = my_last_iteration - my_first_iteration + 1;
-            count[1] = nobs;
-            ncw_put_vara_float(FNAME_HE, ncid, varid, start, count, das->S[my_first_iteration]);
-            ncw_close(FNAME_HE, ncid);
-            MPI_Barrier(MPI_COMM_WORLD);
-
-            ncw_open(FNAME_HE, NC_NOWRITE, &ncid);
-            ncw_inq_varid(FNAME_HE, ncid, "HE", &varid);
-            ncw_get_var_float(FNAME_HE, ncid, varid, das->S[0]);
-            ncw_close(FNAME_HE, ncid);
-        }
-#endif
     }
 #endif
 

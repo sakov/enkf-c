@@ -225,11 +225,6 @@ void enkf_printcompileflags(const char offset[])
 #else
     enkf_printf("%s  SHUFFLE_ROWS     = [-]\n", offset);
 #endif
-#if defined(HE_VIAFILE)
-    enkf_printf("%s  HE_VIAFILE       = [+]\n", offset);
-#else
-    enkf_printf("%s  HE_VIAFILE       = [-]\n", offset);
-#endif
 #if defined(HE_VIASHMEM)
     enkf_printf("%s  HE_VIASHMEM      = [+]\n", offset);
 #else
