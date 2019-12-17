@@ -6,6 +6,7 @@ FILE = obs/RADS-IB/y2007/m12/??_d20.nc
 FILE = obs/RADS-IB/y2007/m12/??_d21.nc
 FILE = obs/RADS-IB/y2007/m12/??_d22.nc
 FILE = obs/RADS-IB/y2007/m12/??_d23.nc
+PARAMETER MINDEPTH = 100
 
 PRODUCT = NAVO
 TYPE = SST

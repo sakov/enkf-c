@@ -1,3 +1,7 @@
+v. 1.107.5
+   PS 18122019
+   -- Check that parameters are only entered once in each section of the
+      observation data parameter file.
 v. 1.107.4
    PS 16122019
    -- Eliminated compile flag -DHE_VIAFILE.

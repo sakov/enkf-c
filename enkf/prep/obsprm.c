@@ -136,12 +136,20 @@ void obsprm_read(char fname[], int* nmeta, obsmeta** meta)
             m->nestds++;
         } else if (strcasecmp(token, "PARAMETER") == 0) {
             metapar* now = NULL;
+            int p;
 
             m->pars = realloc(m->pars, (m->npars + 1) * sizeof(metapar));
             now = &m->pars[m->npars];
 
             if ((token = strtok(NULL, seps)) == NULL)
                 enkf_quit("%s, l.%d: parameter name not specified (expected: PARAMETER <name> = <value>)", fname, line);
+            /*
+             * check that this parameter has not already been set in this
+             * section, to avoid ambiguity
+             */
+            for (p = 0; p < m->npars; ++p)
+                if (strncasecmp(token, m->pars[p].name, MAXSTRLEN - 1) == 0)
+                    enkf_quit("%s: l.%d: parameter \"%s\" has already been set in this section", fname, line, token);
             now->name = strdup(token);
             token = strtok(NULL, seps);
             if (token != NULL)
