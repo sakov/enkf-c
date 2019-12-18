@@ -655,19 +655,32 @@ static char* INSTNAMES[] = { "instrument",
 int get_insttag(int ncid, char* varname, char* insttag)
 {
     int i;
-    int varid = NC_GLOBAL;
 
-    if (varname != NULL)
+    if (varname != NULL) {
+        int varid;
+
         ncw_inq_varid(ncid, varname, &varid);
+        for (i = 0; i < NINSTNAMES; ++i) {
+            if (ncw_att_exists(ncid, varid, INSTNAMES[i])) {
+                nc_type type;
+                size_t len;
 
+                ncw_inq_att(ncid, varid, INSTNAMES[i], &type, &len);
+                if (type == NC_CHAR && len < MAXSTRLEN) {
+                    ncw_get_att_text(ncid, varid, INSTNAMES[i], insttag);
+                    return 1;
+                }
+            }
+        }
+    }
     for (i = 0; i < NINSTNAMES; ++i) {
-        if (ncw_att_exists(ncid, varid, INSTNAMES[i])) {
+        if (ncw_att_exists(ncid, NC_GLOBAL, INSTNAMES[i])) {
             nc_type type;
             size_t len;
 
-            ncw_inq_att(ncid, varid, INSTNAMES[i], &type, &len);
+            ncw_inq_att(ncid, NC_GLOBAL, INSTNAMES[i], &type, &len);
             if (type == NC_CHAR && len < MAXSTRLEN) {
-                ncw_get_att_text(ncid, varid, INSTNAMES[i], insttag);
+                ncw_get_att_text(ncid, NC_GLOBAL, INSTNAMES[i], insttag);
                 return 1;
             }
         }

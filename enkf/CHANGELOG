@@ -1,3 +1,6 @@
+v. 1.107.6
+   PS 19122019
+   -- Fixed a defect in get_insttag().
 v. 1.107.5
    PS 18122019
    -- Check that parameters are only entered once in each section of the
