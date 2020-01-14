@@ -90,7 +90,9 @@ void das_getHE(dasystem* das)
         ierror = MPI_Win_shared_query(das->sm_comm_win, 0, &my_size, &disp_unit, &SS);
         assert(ierror == MPI_SUCCESS);
         assert(my_size == size);
+        assert(disp_unit == sizeof(ENSOBSTYPE));
     }
+    MPI_Barrier(MPI_COMM_WORLD);
     for (i = 0; i < nmem; ++i)
         das->S[i] = &SS[i * nobs];
     for (i = 0; i < nobs; ++i)

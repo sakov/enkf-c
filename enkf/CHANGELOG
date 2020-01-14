@@ -1,3 +1,8 @@
+v. 1.107.7
+   PS 24122019
+   -- Added an barrier in das_getHE(), just in case.
+   -- Changed a number of "int"s to "size_t"s in ncutils.c to handle variables
+      of larger size.
 v. 1.107.6
    PS 19122019
    -- Fixed a defect in get_insttag().

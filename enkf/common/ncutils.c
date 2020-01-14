@@ -89,7 +89,7 @@ void ncu_readfield(char fname[], char varname[], int k, int ni, int nj, int nk, 
     int ndims;
     size_t dimlen[4];
     size_t start[4], count[4];
-    int i, n;
+    size_t i, n;
     int hasrecorddim;
 
     ncw_open(fname, NC_NOWRITE, &ncid);
@@ -402,7 +402,7 @@ void ncu_writefield(char fname[], char varname[], int k, int ni, int nj, int nk,
     int ndims;
     size_t dimlen[4];
     size_t start[4], count[4];
-    int i, n;
+    size_t i, n;
     int hasrecorddim;
 
     ncw_open(fname, NC_WRITE, &ncid);
@@ -539,7 +539,7 @@ void ncu_writerow(char fname[], char varname[], int k, int j, float* v)
     int ndims;
     size_t dimlen[4];
     size_t start[4], count[4];
-    int i, n;
+    size_t i, n;
     int hasrecorddim;
 
     ncw_open(fname, NC_WRITE, &ncid);
@@ -665,7 +665,7 @@ void ncu_read3dfield(char* fname, char* varname, int ni, int nj, int nk, float* 
     int ndims;
     size_t dimlen[4];
     size_t start[4], count[4];
-    int i, n;
+    size_t i, n;
     int hasrecorddim;
 
     ncw_open(fname, NC_NOWRITE, &ncid);
@@ -964,13 +964,13 @@ int ncu_getnD(char fname[], char varname[])
 
 /**
  */
-void ncu_readvarfloat(int ncid, int varid, int n, float v[])
+void ncu_readvarfloat(int ncid, int varid, size_t n, float v[])
 {
     char attnames[2][20] = { "_FillValue", "missing_value" };
     nc_type vartype = -1;
     int typesize = 0;
     void* vv = NULL;
-    int i, s;
+    size_t i, s;
 
     ncw_check_varsize(ncid, varid, n);
     ncw_get_var_float(ncid, varid, v);
@@ -1305,7 +1305,7 @@ void ncu_readvarfloat(int ncid, int varid, int n, float v[])
 
 /**
  */
-void ncu_readvardouble(int ncid, int varid, int n, double v[])
+void ncu_readvardouble(int ncid, int varid, size_t n, double v[])
 {
     char attnames[2][20] = { "_FillValue", "missing_value" };
     nc_type vartype = -1;
