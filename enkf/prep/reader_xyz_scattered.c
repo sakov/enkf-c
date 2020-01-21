@@ -78,7 +78,6 @@ void reader_xyz_scattered(char* fname, int fid, obsmeta* meta, grid* g, observat
     char* zname = NULL;
     char* stdname = NULL;
     char* estdname = NULL;
-    double varshift = 0.0;
     char instrument[MAXSTRLEN] = "";
     int nqcflagvars = 0;
     char** qcflagvarnames = NULL;
@@ -112,15 +111,16 @@ void reader_xyz_scattered(char* fname, int fid, obsmeta* meta, grid* g, observat
             stdname = meta->pars[i].value;
         else if (strcasecmp(meta->pars[i].name, "ESTDNAME") == 0)
             estdname = meta->pars[i].value;
-        else if (strcasecmp(meta->pars[i].name, "VARSHIFT") == 0) {
-            if (!str2double(meta->pars[i].value, &varshift))
-                enkf_quit("%s: can not convert VARSHIFT = \"%s\" to double\n", meta->prmfname, meta->pars[i].value);
-            enkf_printf("        VARSHIFT = %f\n", varshift);
-        }
         /*
          * (FOOTPRINT, MINDEPTH and MAXDEPTH are handled in obs_add() )
          */
-        else if (strcasecmp(meta->pars[i].name, "FOOTPRINT") == 0) {
+        else if (strcasecmp(meta->pars[i].name, "VARSHIFT") == 0) {
+            double varshift;
+
+            if (!str2double(meta->pars[i].value, &varshift))
+                enkf_quit("%s: can not convert VARSHIFT = \"%s\" to double\n", meta->prmfname, meta->pars[i].value);
+            enkf_printf("        VARSHIFT = %.3f\n", varshift);
+        } else if (strcasecmp(meta->pars[i].name, "FOOTPRINT") == 0) {
             double footprint;
 
             if (!str2double(meta->pars[i].value, &footprint))
@@ -156,7 +156,6 @@ void reader_xyz_scattered(char* fname, int fid, obsmeta* meta, grid* g, observat
         else
             enkf_quit("unknown PARAMETER \"%s\"\n", meta->pars[i].name);
     }
-    get_qcflags(meta, &nqcflagvars, &qcflagvarnames, &qcflagmasks);
 
     if (varname == NULL)
         enkf_quit("reader_xyz_scattered(): %s VARNAME not specified", fname);
@@ -251,6 +250,7 @@ void reader_xyz_scattered(char* fname, int fid, obsmeta* meta, grid* g, observat
     /*
      * qcflag
      */
+    get_qcflags(meta, &nqcflagvars, &qcflagvarnames, &qcflagmasks);
     if (nqcflagvars > 0) {
         int varid = -1;
 
@@ -300,7 +300,7 @@ void reader_xyz_scattered(char* fname, int fid, obsmeta* meta, grid* g, observat
         o->id = obs->nobs;
         o->fid = fid;
         o->batch = 0;
-        o->value = var[i] + varshift;
+        o->value = (double) var[i];
         if (estd == NULL)
             o->estd = var_estd;
         else {

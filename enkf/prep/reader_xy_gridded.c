@@ -98,7 +98,6 @@ void reader_xy_gridded(char* fname, int fid, obsmeta* meta, grid* g, observation
     uint32_t* qcflagmasks = 0;
 
     int ncid;
-    float varshift = 0.0;
     char instrument[MAXSTRLEN] = "";
 
     int iscurv = -1;
@@ -130,15 +129,16 @@ void reader_xy_gridded(char* fname, int fid, obsmeta* meta, grid* g, observation
             stdname = meta->pars[i].value;
         else if (strcasecmp(meta->pars[i].name, "ESTDNAME") == 0)
             estdname = meta->pars[i].value;
-        else if (strcasecmp(meta->pars[i].name, "VARSHIFT") == 0) {
-            if (!str2float(meta->pars[i].value, &varshift))
-                enkf_quit("%s: can not convert VARSHIFT = \"%s\" to float\n", meta->prmfname, meta->pars[i].value);
-            enkf_printf("        VARSHIFT = %s\n", meta->pars[i].value);
-        }
         /*
-         * (FOOTPRINT, MINDEPTH and MAXDEPTH are handled in obs_add() )
+         * (FOOTPRINT, MINDEPTH, MAXDEPTH and VARSHIFT are handled in obs_add())
          */
-        else if (strcasecmp(meta->pars[i].name, "FOOTPRINT") == 0) {
+        else if (strcasecmp(meta->pars[i].name, "VARSHIFT") == 0) {
+            double varshift;
+
+            if (!str2double(meta->pars[i].value, &varshift))
+                enkf_quit("%s: can not convert VARSHIFT = \"%s\" to float\n", meta->prmfname, meta->pars[i].value);
+            enkf_printf("        VARSHIFT = %.3f\n", varshift);
+        } else if (strcasecmp(meta->pars[i].name, "FOOTPRINT") == 0) {
             double footprint;
 
             if (!str2double(meta->pars[i].value, &footprint))
@@ -359,12 +359,14 @@ void reader_xy_gridded(char* fname, int fid, obsmeta* meta, grid* g, observation
         o->id = obs->nobs;
         o->fid = fid;
         o->batch = 0;
-        o->value = (double) (var[i] + varshift);
+        o->value = (double) var[i];
         if (estd == NULL)
             o->estd = var_estd;
         else {
-            o->estd = (std == NULL) ? 0.0 : (double) std[i];
-            o->estd = (o->estd > estd[i]) ? o->estd : estd[i];
+            if (std == NULL)
+                o->estd = estd[i];
+            else
+                o->estd = (std[i] > estd[i]) ? std[i] : estd[i];
         }
         if (iscurv == 0) {
             o->lon = lon[i % ni];

@@ -49,8 +49,40 @@ void reader_windsat_standard(char* fname, int fid, obsmeta* meta, grid* g, obser
     char* basename;
     int i, nobs_read;
 
-    for (i = 0; i < meta->npars; ++i)
-        enkf_quit("unknown PARAMETER \"%s\"\n", meta->pars[i].name);
+    for (i = 0; i < meta->npars; ++i) {
+        /*
+         * (FOOTPRINT, MINDEPTH, MAXDEPTH and VARSHIFT are handled in obs_add())
+         */
+        if (strcasecmp(meta->pars[i].name, "VARSHIFT") == 0) {
+            double varshift;
+
+            if (!str2double(meta->pars[i].value, &varshift))
+                enkf_quit("%s: can not convert VARSHIFT = \"%s\" to float\n", meta->prmfname, meta->pars[i].value);
+            enkf_printf("        VARSHIFT = %.3f\n", varshift);
+        } else if (strcasecmp(meta->pars[i].name, "FOOTPRINT") == 0) {
+            double footprint;
+
+            if (!str2double(meta->pars[i].value, &footprint))
+                enkf_quit("observation prm file: can not convert FOOTPRINT = \"%s\" to double\n", meta->pars[i].value);
+            enkf_printf("        FOOTPRINT = %.0f\n", footprint);
+            continue;
+        } else if (strcasecmp(meta->pars[i].name, "MINDEPTH") == 0) {
+            double mindepth;
+
+            if (!str2double(meta->pars[i].value, &mindepth))
+                enkf_quit("observation prm file: can not convert MINDEPTH = \"%s\" to double\n", meta->pars[i].value);
+            enkf_printf("        MINDEPTH = %.0f\n", mindepth);
+            continue;
+        } else if (strcasecmp(meta->pars[i].name, "MAXDEPTH") == 0) {
+            double maxdepth;
+
+            if (!str2double(meta->pars[i].value, &maxdepth))
+                enkf_quit("observation prm file: can not convert MAXDEPTH = \"%s\" to double\n", meta->pars[i].value);
+            enkf_printf("        MAXDEPTH = %.0f\n", maxdepth);
+            continue;
+        } else
+            enkf_quit("unknown PARAMETER \"%s\"\n", meta->pars[i].name);
+    }
 
     basename = strrchr(fname, '/');
     if (basename == NULL)

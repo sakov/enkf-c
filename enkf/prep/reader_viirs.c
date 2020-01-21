@@ -7,15 +7,8 @@
  * Author:      Pavel Sakov
  *              Bureau of Meteorology
  *
- * Description: Reader for pre-preprocessed (L3C) SST from VIIRS.
- *                There are a number of parameters that can be specified:
- *              - VARSHIFT (-)
- *                  data offset to be added. Note that by default the data is
- *                shifted by -273.15. Because VIIRS data by NOAA represent
- *                skin temperature, we suggest set PARAMETER VARSHIFT = 0.16
- *              - MINDEPTH (-)
- *                  minimal allowed depth
- *              
+ * Description: Reader for pre-preprocessed (L3C) SST from VIIRS. Parameter
+ *              KIND allows one to assimilate NIGHTTIME, WINDY or ALL obs.
  *
  * Revisions:  
  *
@@ -64,7 +57,6 @@ void reader_viirs_standard(char* fname, int fid, obsmeta* meta, grid* g, observa
 
     char tunits[MAXSTRLEN];
     double tunits_multiple, tunits_offset;
-    double varshift = 0.0;
     int i, nobs;
 
 #if defined(DEBUG)
@@ -73,20 +65,35 @@ void reader_viirs_standard(char* fname, int fid, obsmeta* meta, grid* g, observa
 #endif
 
     for (i = 0; i < meta->npars; ++i) {
-        if (strcasecmp(meta->pars[i].name, "VARSHIFT") == 0) {
-            if (!str2double(meta->pars[i].value, &varshift))
-                enkf_quit("%s: can not convert VARSHIFT = \"%s\" to double\n", meta->prmfname, meta->pars[i].value);
-            enkf_printf("        VARSHIFT = %s\n", meta->pars[i].value);
-        }
         /*
-         * (MINDEPTH is handled in obs_add() )
+         * (FOOTPRINT, MINDEPTH, MAXDEPTH and VARSHIFT are handled in obs_add())
          */
-        else if (strcasecmp(meta->pars[i].name, "MINDEPTH") == 0) {
+        if (strcasecmp(meta->pars[i].name, "VARSHIFT") == 0) {
+            double varshift;
+
+            if (!str2double(meta->pars[i].value, &varshift))
+                enkf_quit("%s: can not convert VARSHIFT = \"%s\" to float\n", meta->prmfname, meta->pars[i].value);
+            enkf_printf("        VARSHIFT = %.3f\n", varshift);
+        } else if (strcasecmp(meta->pars[i].name, "FOOTPRINT") == 0) {
+            double footprint;
+
+            if (!str2double(meta->pars[i].value, &footprint))
+                enkf_quit("observation prm file: can not convert FOOTPRINT = \"%s\" to double\n", meta->pars[i].value);
+            enkf_printf("        FOOTPRINT = %.0f\n", footprint);
+            continue;
+        } else if (strcasecmp(meta->pars[i].name, "MINDEPTH") == 0) {
             double mindepth;
 
             if (!str2double(meta->pars[i].value, &mindepth))
                 enkf_quit("observation prm file: can not convert MINDEPTH = \"%s\" to double\n", meta->pars[i].value);
             enkf_printf("        MINDEPTH = %.0f\n", mindepth);
+            continue;
+        } else if (strcasecmp(meta->pars[i].name, "MAXDEPTH") == 0) {
+            double maxdepth;
+
+            if (!str2double(meta->pars[i].value, &maxdepth))
+                enkf_quit("observation prm file: can not convert MAXDEPTH = \"%s\" to double\n", meta->pars[i].value);
+            enkf_printf("        MAXDEPTH = %.0f\n", maxdepth);
             continue;
         } else if (strcasecmp(meta->pars[i].name, "KIND") == 0) {
             int kind_value;
@@ -204,7 +211,7 @@ void reader_viirs_standard(char* fname, int fid, obsmeta* meta, grid* g, observa
         o->id = obs->nobs;
         o->fid = fid;
         o->batch = 0;
-        o->value = sst[i] + varshift - 273.15;
+        o->value = sst[i] - 273.15;
         o->estd = (std[i] > estd[i]) ? std[i] : estd[i];
         if (ndim == 2) {
             o->lon = lon[i % ni];

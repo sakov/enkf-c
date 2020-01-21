@@ -95,6 +95,7 @@ void obs_add(observations* obs, model* m, obsmeta* meta)
     double mindepth = NAN;
     double maxdepth = NAN;
     double footprint = 0.0;
+    double varshift = 0.0;
     obsread_fn reader;
     int i, ngood;
 
@@ -113,6 +114,9 @@ void obs_add(observations* obs, model* m, obsmeta* meta)
         } else if (strcasecmp(meta->pars[i].name, "FOOTPRINT") == 0) {
             if (!str2double(meta->pars[i].value, &footprint))
                 enkf_quit("observation prm file: can not convert FOOTPRINT = \"%s\" to double\n", meta->pars[i].value);
+        } else if (strcasecmp(meta->pars[i].name, "VARSHIFT") == 0) {
+            if (!str2double(meta->pars[i].value, &varshift))
+                enkf_quit("observation prm file: can not convert VARSHIFT = \"%s\" to double\n", meta->pars[i].value);
         }
     }
 
@@ -158,6 +162,7 @@ void obs_add(observations* obs, model* m, obsmeta* meta)
                 noutow++;
                 continue;
             }
+            o->value += varshift;
             if (o->value < ot->allowed_min) {
                 o->status = STATUS_RANGE;
                 nmin++;

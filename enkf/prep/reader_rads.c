@@ -42,18 +42,16 @@
 void reader_rads_standard(char* fname, int fid, obsmeta* meta, grid* g, observations* obs)
 {
     int ksurf = grid_getsurflayerid(g);
-    char* addname = NULL;
     int ncid;
     int dimid_nobs;
     size_t nobs_local;
-    int varid_lon, varid_lat, varid_pass, varid_sla, varid_time, varid_add;
+    int varid_lon, varid_lat, varid_pass, varid_sla, varid_time;
     double* lon;
     double* lat;
     int* pass;
     double* sla;
     double* time;
     double error_std;
-    double* add = NULL;
     size_t tunits_len;
     char* tunits;
     double tunits_multiple, tunits_offset;
@@ -63,18 +61,35 @@ void reader_rads_standard(char* fname, int fid, obsmeta* meta, grid* g, observat
 
     for (i = 0; i < meta->npars; ++i) {
         /*
-         * (MINDEPTH is handled in obs_add() )
+         * (FOOTPRINT, MINDEPTH, MAXDEPTH and VARSHIFT are handled in obs_add())
          */
-        if (strcasecmp(meta->pars[i].name, "MINDEPTH") == 0) {
+        if (strcasecmp(meta->pars[i].name, "VARSHIFT") == 0) {
+            double varshift;
+
+            if (!str2double(meta->pars[i].value, &varshift))
+                enkf_quit("%s: can not convert VARSHIFT = \"%s\" to float\n", meta->prmfname, meta->pars[i].value);
+            enkf_printf("        VARSHIFT = %.3f\n", varshift);
+        } else if (strcasecmp(meta->pars[i].name, "FOOTPRINT") == 0) {
+            double footprint;
+
+            if (!str2double(meta->pars[i].value, &footprint))
+                enkf_quit("observation prm file: can not convert FOOTPRINT = \"%s\" to double\n", meta->pars[i].value);
+            enkf_printf("        FOOTPRINT = %.0f\n", footprint);
+            continue;
+        } else if (strcasecmp(meta->pars[i].name, "MINDEPTH") == 0) {
             double mindepth;
 
             if (!str2double(meta->pars[i].value, &mindepth))
-                enkf_quit("%s: can not convert MINDEPTH = \"%s\" to double\n", meta->prmfname, meta->pars[i].value);
+                enkf_quit("observation prm file: can not convert MINDEPTH = \"%s\" to double\n", meta->pars[i].value);
             enkf_printf("        MINDEPTH = %.0f\n", mindepth);
             continue;
-        } else if (strcasecmp(meta->pars[i].name, "ADD") == 0) {
-            addname = meta->pars[i].value;
-            enkf_printf("        ADDING \"%s\"\n", addname);
+        } else if (strcasecmp(meta->pars[i].name, "MAXDEPTH") == 0) {
+            double maxdepth;
+
+            if (!str2double(meta->pars[i].value, &maxdepth))
+                enkf_quit("observation prm file: can not convert MAXDEPTH = \"%s\" to double\n", meta->pars[i].value);
+            enkf_printf("        MAXDEPTH = %.0f\n", maxdepth);
+            continue;
         } else
             enkf_quit("unknown PARAMETER \"%s\"\n", meta->pars[i].name);
     }
@@ -107,12 +122,6 @@ void reader_rads_standard(char* fname, int fid, obsmeta* meta, grid* g, observat
     ncw_get_var_double(ncid, varid_sla, sla);
     ncw_get_att_double(ncid, varid_sla, "error_std", &error_std);
     enkf_printf("        error_std = %3g\n", error_std);
-
-    if (addname != NULL) {
-        ncw_inq_varid(ncid, addname, &varid_add);
-        add = malloc(nobs_local * sizeof(double));
-        ncw_get_var_double(ncid, varid_add, add);
-    }
 
     ncw_inq_varid(ncid, "time", &varid_time);
     time = malloc(nobs_local * sizeof(double));
@@ -149,8 +158,6 @@ void reader_rads_standard(char* fname, int fid, obsmeta* meta, grid* g, observat
         o->fid = fid;
         o->batch = pass[i];
         o->value = sla[i];
-        if (add != NULL)
-            o->value += add[i];
         o->estd = error_std;
         o->lon = lon[i];
         o->lat = lat[i];
@@ -168,8 +175,6 @@ void reader_rads_standard(char* fname, int fid, obsmeta* meta, grid* g, observat
     }
     enkf_printf("        nobs = %d\n", nobs_read);
 
-    if (add != NULL)
-        free(add);
     free(lon);
     free(lat);
     free(pass);
@@ -183,18 +188,16 @@ void reader_rads_standard(char* fname, int fid, obsmeta* meta, grid* g, observat
 void reader_rads_standard2(char* fname, int fid, obsmeta* meta, grid* g, observations* obs)
 {
     int ksurf = grid_getsurflayerid(g);
-    char* addname = NULL;
     int ncid;
     int dimid_nobs;
     size_t nobs_local;
-    int varid_lon, varid_lat, varid_pass, varid_sla, varid_flag, varid_add;
+    int varid_lon, varid_lat, varid_pass, varid_sla, varid_flag;
     double* lon;
     double* lat;
     int* pass;
     double* sla;
     int* flag;
     double error_std;
-    double* add = NULL;
     char buf[MAXSTRLEN];
     int len;
     int year, month, day;
@@ -205,18 +208,35 @@ void reader_rads_standard2(char* fname, int fid, obsmeta* meta, grid* g, observa
 
     for (i = 0; i < meta->npars; ++i) {
         /*
-         * (MINDEPTH is handled in obs_add() )
+         * (FOOTPRINT, MINDEPTH, MAXDEPTH and VARSHIFT are handled in obs_add())
          */
-        if (strcasecmp(meta->pars[i].name, "MINDEPTH") == 0) {
+        if (strcasecmp(meta->pars[i].name, "VARSHIFT") == 0) {
+            double varshift;
+
+            if (!str2double(meta->pars[i].value, &varshift))
+                enkf_quit("%s: can not convert VARSHIFT = \"%s\" to float\n", meta->prmfname, meta->pars[i].value);
+            enkf_printf("        VARSHIFT = %.3f\n", varshift);
+        } else if (strcasecmp(meta->pars[i].name, "FOOTPRINT") == 0) {
+            double footprint;
+
+            if (!str2double(meta->pars[i].value, &footprint))
+                enkf_quit("observation prm file: can not convert FOOTPRINT = \"%s\" to double\n", meta->pars[i].value);
+            enkf_printf("        FOOTPRINT = %.0f\n", footprint);
+            continue;
+        } else if (strcasecmp(meta->pars[i].name, "MINDEPTH") == 0) {
             double mindepth;
 
             if (!str2double(meta->pars[i].value, &mindepth))
                 enkf_quit("observation prm file: can not convert MINDEPTH = \"%s\" to double\n", meta->pars[i].value);
             enkf_printf("        MINDEPTH = %.0f\n", mindepth);
             continue;
-        } else if (strcasecmp(meta->pars[i].name, "ADD") == 0) {
-            addname = meta->pars[i].value;
-            enkf_printf("        ADDING \"%s\"\n", addname);
+        } else if (strcasecmp(meta->pars[i].name, "MAXDEPTH") == 0) {
+            double maxdepth;
+
+            if (!str2double(meta->pars[i].value, &maxdepth))
+                enkf_quit("observation prm file: can not convert MAXDEPTH = \"%s\" to double\n", meta->pars[i].value);
+            enkf_printf("        MAXDEPTH = %.0f\n", maxdepth);
+            continue;
         } else
             enkf_quit("unknown PARAMETER \"%s\"\n", meta->pars[i].name);
     }
@@ -248,12 +268,6 @@ void reader_rads_standard2(char* fname, int fid, obsmeta* meta, grid* g, observa
     ncw_get_var_double(ncid, varid_sla, sla);
     ncw_get_att_double(ncid, varid_sla, "error_std", &error_std);
     enkf_printf("        error_std = %3g\n", error_std);
-
-    if (addname != NULL) {
-        ncw_inq_varid(ncid, addname, &varid_add);
-        add = malloc(nobs_local * sizeof(double));
-        ncw_get_var_double(ncid, varid_add, add);
-    }
 
     ncw_inq_varid(ncid, "local_flag", &varid_flag);
     flag = malloc(nobs_local * sizeof(int));
@@ -303,8 +317,6 @@ void reader_rads_standard2(char* fname, int fid, obsmeta* meta, grid* g, observa
         o->fid = fid;
         o->batch = pass[i];
         o->value = sla[i];
-        if (add != NULL)
-            o->value += add[i];
         o->estd = error_std;
         o->lon = lon[i];
         o->lat = lat[i];
@@ -323,8 +335,6 @@ void reader_rads_standard2(char* fname, int fid, obsmeta* meta, grid* g, observa
         obs->nobs++;
     }
 
-    if (add != NULL)
-        free(add);
     free(lon);
     free(lat);
     free(pass);

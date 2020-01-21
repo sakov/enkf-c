@@ -91,7 +91,6 @@ void reader_z(char* fname, int fid, obsmeta* meta, grid* g, observations* obs)
     uint32_t* qcflagmasks = 0;
 
     int ncid;
-    double varshift = 0.0;
     char instrument[MAXSTRLEN] = "";
 
     size_t nobs = 0;
@@ -118,15 +117,16 @@ void reader_z(char* fname, int fid, obsmeta* meta, grid* g, observations* obs)
             zname = meta->pars[i].value;
         else if (strcasecmp(meta->pars[i].name, "ESTDNAME") == 0)
             estdname = meta->pars[i].value;
+        /*
+         * (FOOTPRINT, MINDEPTH, MAXDEPTH and VARSHIFT are handled in obs_add())
+         */
         else if (strcasecmp(meta->pars[i].name, "VARSHIFT") == 0) {
+            double varshift;
+
             if (!str2double(meta->pars[i].value, &varshift))
                 enkf_quit("%s: can not convert VARSHIFT = \"%s\" to double\n", meta->prmfname, meta->pars[i].value);
-            enkf_printf("        VARSHIFT = %s\n", meta->pars[i].value);
-        }
-        /*
-         * (FOOTPRINT, MINDEPTH and MAXDEPTH are handled in obs_add() )
-         */
-        else if (strcasecmp(meta->pars[i].name, "FOOTPRINT") == 0) {
+            enkf_printf("        VARSHIFT = %.3f\n", varshift);
+        } else if (strcasecmp(meta->pars[i].name, "FOOTPRINT") == 0) {
             double footprint;
 
             if (!str2double(meta->pars[i].value, &footprint))
@@ -162,7 +162,6 @@ void reader_z(char* fname, int fid, obsmeta* meta, grid* g, observations* obs)
         else
             enkf_quit("unknown PARAMETER \"%s\"\n", meta->pars[i].name);
     }
-    get_qcflags(meta, &nqcflagvars, &qcflagvarnames, &qcflagmasks);
 
     if (varname == NULL)
         enkf_quit("reader_z(): %s: VARNAME not specified", fname);
@@ -236,6 +235,7 @@ void reader_z(char* fname, int fid, obsmeta* meta, grid* g, observations* obs)
     /*
      * qcflag
      */
+    get_qcflags(meta, &nqcflagvars, &qcflagvarnames, &qcflagmasks);
     if (nqcflagvars > 0) {
         qcflag = alloc2d(nqcflagvars, nobs, sizeof(int32_t));
         for (i = 0; i < nqcflagvars; ++i) {
@@ -281,7 +281,7 @@ void reader_z(char* fname, int fid, obsmeta* meta, grid* g, observations* obs)
         o->id = obs->nobs;
         o->fid = fid;
         o->batch = 0;
-        o->value = (double) (var[i] + varshift);
+        o->value = (double) var[i];
         if (estd == NULL)
             o->estd = var_estd;
         else

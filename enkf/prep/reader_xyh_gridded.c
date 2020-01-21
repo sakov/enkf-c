@@ -98,7 +98,6 @@ void reader_xyh_gridded(char* fname, int fid, obsmeta* meta, grid* gdst, observa
     char* npointsname = NULL;
     char* stdname = NULL;
     char* estdname = NULL;
-    float varshift = 0.0;
     char instrument[MAXSTRLEN] = "";
 
     int nqcflagvars = 0;
@@ -132,15 +131,16 @@ void reader_xyh_gridded(char* fname, int fid, obsmeta* meta, grid* gdst, observa
             stdname = meta->pars[i].value;
         else if (strcasecmp(meta->pars[i].name, "ESTDNAME") == 0)
             estdname = meta->pars[i].value;
-        else if (strcasecmp(meta->pars[i].name, "VARSHIFT") == 0) {
-            if (!str2float(meta->pars[i].value, &varshift))
-                enkf_quit("%s: can not convert VARSHIFT = \"%s\" to float\n", meta->prmfname, meta->pars[i].value);
-            enkf_printf("        VARSHIFT = %s\n", meta->pars[i].value);
-        }
         /*
-         * (MINDEPTH and MAXDEPTH are handled in obs_add() )
+         * (FOOTPRINT, MINDEPTH, MAXDEPTH and VARSHIFT are handled in obs_add())
          */
-        else if (strcasecmp(meta->pars[i].name, "MINDEPTH") == 0) {
+        else if (strcasecmp(meta->pars[i].name, "VARSHIFT") == 0) {
+            double varshift;
+
+            if (!str2double(meta->pars[i].value, &varshift))
+                enkf_quit("%s: can not convert VARSHIFT = \"%s\" to float\n", meta->prmfname, meta->pars[i].value);
+            enkf_printf("        VARSHIFT = %.3f\n", varshift);
+        } else if (strcasecmp(meta->pars[i].name, "MINDEPTH") == 0) {
             double mindepth;
 
             if (!str2double(meta->pars[i].value, &mindepth))
@@ -169,7 +169,6 @@ void reader_xyh_gridded(char* fname, int fid, obsmeta* meta, grid* gdst, observa
         else
             enkf_quit("unknown PARAMETER \"%s\"\n", meta->pars[i].name);
     }
-    get_qcflags(meta, &nqcflagvars, &qcflagvarnames, &qcflagmasks);
 
     if (varname == NULL)
         enkf_quit("reader_xyh_gridded(): %s: VARNAME not specified", fname);
@@ -259,6 +258,7 @@ void reader_xyh_gridded(char* fname, int fid, obsmeta* meta, grid* gdst, observa
     /*
      * qcflag
      */
+    get_qcflags(meta, &nqcflagvars, &qcflagvarnames, &qcflagmasks);
     if (nqcflagvars > 0) {
         int varid = -1;
 
@@ -308,12 +308,14 @@ void reader_xyh_gridded(char* fname, int fid, obsmeta* meta, grid* gdst, observa
                 o->id = obs->nobs;
                 o->fid = fid;
                 o->batch = 0;
-                o->value = (double) (var[ii] + varshift);
+                o->value = (double) var[ii];
                 if (estd == NULL)
                     o->estd = var_estd;
                 else {
-                    o->estd = (std == NULL) ? 0.0 : std[ii];
-                    o->estd = (o->estd > estd[ii]) ? o->estd : estd[ii];
+                    if (std == NULL)
+                        o->estd = estd[ii];
+                    else
+                        o->estd = (std[ii] > estd[ii]) ? std[ii] : estd[ii];
                 }
                 grid_ij2xy(gsrc, i, j, &o->lon, &o->lat);
                 assert(isfinite(o->lon + o->lat));

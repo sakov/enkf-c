@@ -1,3 +1,10 @@
+v. 1.108.0
+   PS 21012020
+   -- Added parameters VARSHIFT, MINDEPTH, MAXDEPTH, FOOTPRINT to all readers
+      (I think).
+   -- Removed redundant parameter ADD from reader_rads_standard() and
+      reader_rads_standard2() (the MDT is subtracted via for SLA in obstypes
+      parameter file).
 v. 1.107.7
    PS 24122019
    -- Added an barrier in das_getHE(), just in case.
