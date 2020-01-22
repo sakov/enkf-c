@@ -1,3 +1,9 @@
+v. 1.108.1
+   PS 22012020
+   -- Added code to obs_add() to remove standard parameters handled in obs_add()
+      (these are VARSHIFT, MINDEPTH, MAXDEPTH, FOOTPRINT) from the paramaters
+      passed to readers; then removed the checks for these parameters from all
+      readers.
 v. 1.108.0
    PS 21012020
    -- Added parameters VARSHIFT, MINDEPTH, MAXDEPTH, FOOTPRINT to all readers

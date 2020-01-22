@@ -97,28 +97,65 @@ void obs_add(observations* obs, model* m, obsmeta* meta)
     double footprint = 0.0;
     double varshift = 0.0;
     obsread_fn reader;
-    int i, ngood;
+    int i, ngood, npars;
 
     enkf_printf("    PRODUCT = %s, TYPE = %s, reader = %s\n", meta->product, meta->type, meta->reader);
     st_add_ifabsent(obs->products, meta->product, -1);
-    reader = get_obsreadfn(meta);
-    readobs(meta, m, reader, obs);      /* adds the data */
 
     for (i = 0; i < meta->npars; ++i) {
         if (strcasecmp(meta->pars[i].name, "MINDEPTH") == 0) {
             if (!str2double(meta->pars[i].value, &mindepth))
                 enkf_quit("observation prm file: can not convert MINDEPTH = \"%s\" to double\n", meta->pars[i].value);
+            else {
+                free(meta->pars[i].name);
+                free(meta->pars[i].value);
+                meta->pars[i].name = NULL;
+                meta->pars[i].value = NULL;
+            }
         } else if (strcasecmp(meta->pars[i].name, "MAXDEPTH") == 0) {
             if (!str2double(meta->pars[i].value, &maxdepth))
                 enkf_quit("observation prm file: can not convert MAXDEPTH = \"%s\" to double\n", meta->pars[i].value);
+            else {
+                free(meta->pars[i].name);
+                free(meta->pars[i].value);
+                meta->pars[i].name = NULL;
+                meta->pars[i].value = NULL;
+            }
         } else if (strcasecmp(meta->pars[i].name, "FOOTPRINT") == 0) {
             if (!str2double(meta->pars[i].value, &footprint))
                 enkf_quit("observation prm file: can not convert FOOTPRINT = \"%s\" to double\n", meta->pars[i].value);
+            else {
+                free(meta->pars[i].name);
+                free(meta->pars[i].value);
+                meta->pars[i].name = NULL;
+                meta->pars[i].value = NULL;
+            }
         } else if (strcasecmp(meta->pars[i].name, "VARSHIFT") == 0) {
             if (!str2double(meta->pars[i].value, &varshift))
                 enkf_quit("observation prm file: can not convert VARSHIFT = \"%s\" to double\n", meta->pars[i].value);
+            else {
+                free(meta->pars[i].name);
+                free(meta->pars[i].value);
+                meta->pars[i].name = NULL;
+                meta->pars[i].value = NULL;
+            }
         }
     }
+    /*
+     * compact parameters
+     */
+    npars = 0;
+    for (i = 0; i < meta->npars; ++i) {
+        if (meta->pars[i].name != NULL) {
+            meta->pars[npars].name = meta->pars[i].name;
+            meta->pars[npars].value = meta->pars[i].value;
+            npars++;
+        }
+    }
+    meta->npars = npars;
+
+    reader = get_obsreadfn(meta);
+    readobs(meta, m, reader, obs);      /* add the data to obs*/
 
     if (!isnan(lonbase)) {
         for (i = nobs0; i < obs->nobs; ++i) {
