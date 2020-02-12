@@ -53,7 +53,7 @@ v. 1.106.3
       Algorithm 1 from Hao et al. (2018).
 v. 1.106.2
    PS 29112019
-   -- A minor modification in initialising curvilinear grids in grid_creeate()
+   -- A minor modification in initialising curvilinear grids in grid_create()
       that treats filled/missing values properly.
 v. 1.106.1
    PS 28112019

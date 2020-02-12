@@ -155,7 +155,7 @@ void obs_add(observations* obs, model* m, obsmeta* meta)
     meta->npars = npars;
 
     reader = get_obsreadfn(meta);
-    readobs(meta, m, reader, obs);      /* add the data to obs*/
+    readobs(meta, m, reader, obs);      /* add the data to obs */
 
     if (!isnan(lonbase)) {
         for (i = nobs0; i < obs->nobs; ++i) {

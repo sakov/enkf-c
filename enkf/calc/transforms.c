@@ -7,9 +7,7 @@
  * Author:      Pavel Sakov
  *              Bureau of Meteorology
  *
- * Description: The code in this file structurally belongs to dasystem.c,
- *              and is put in a separate file just to break dasystem.c in
- *              smaller parts.
+ * Description: Contains procedures for calculating ensemble transforms.
  *
  * Revisions:
  *
@@ -837,9 +835,9 @@ void das_calctransforms(dasystem* das)
 /** Calculates transforms for pointlogs. This is done separately from
  * das_calctransfroms() to avoid interpolation related problems. At the moment
  * the procedure cycles serially through the pointlogs, but it would be trivial
- * to parallelise in needed.
+ * to parallelise if needed.
  */
-void das_dopointlogs(dasystem* das)
+void das_calcpointlogtransforms(dasystem* das)
 {
     model* m = das->m;
     int nmem = das->nmem;

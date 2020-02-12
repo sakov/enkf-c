@@ -372,7 +372,7 @@ int main(int argc, char* argv[])
 
         if (rank == 0) {
             enkf_printf("  writing point logs:\n");
-            das_dopointlogs(das);
+            das_calcpointlogtransforms(das);
         }
 
         if (!plogs_only) {

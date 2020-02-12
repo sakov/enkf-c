@@ -632,7 +632,7 @@ void enkfprm_describeprm(void)
     enkf_printf("  [ EXITACTION      = { BACKTRACE* | SEGFAULT } ]\n");
     enkf_printf("  [ BADBATCHES      = <obstype> <max. bias> <max. mad> <min # obs.> ]\n");
     enkf_printf("  [ NCFORMAT        = { CLASSIC | 64BIT | NETCDF4 } ]        (64BIT*)\n");
-    enkf_printf("  [ NCCOMPRESSION   = <compression level>                    (0*) ]\n");
+    enkf_printf("  [ NCCOMPRESSION   = <compression level> ]                  (0*)\n");
     enkf_printf("    ...\n");
     enkf_printf("\n");
     enkf_printf("  Notes:\n");

@@ -716,7 +716,7 @@ static void description(void)
  */
 static void usage(void)
 {
-    printf("  Usage: kd -i <file> [<file> ...] {-n <ndim> | -g} -p <coords> [-r <range>] [-s] [-o]\n");
+    printf("  Usage: kd -i <file> [<file> ...] {-n <ndim> | -g} -p <coords> [-r <range>] [-s]\n");
     printf("         kd -h\n");
     printf("  Options:\n");
     printf("    -i <file>   -- a text file, with each row containing <ndim> points\n");

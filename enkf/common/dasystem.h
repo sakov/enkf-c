@@ -133,7 +133,7 @@ void das_addmodifiederrors(dasystem* das, char fname[]);
 void das_writevcorrs(dasystem* das);
 void das_calcinnandspread(dasystem* das);
 void das_calctransforms(dasystem* das);
-void das_dopointlogs(dasystem* das);
+void das_calcpointlogtransforms(dasystem* das);
 void das_getfields(dasystem* das, int gridid, int* nfield, field** fields);
 void getfieldfname(char* dir, char* prefix, char* varname, int level, char* fname);
 void das_moderateobs(dasystem* das);
