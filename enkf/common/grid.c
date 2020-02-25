@@ -1872,7 +1872,7 @@ kdtree* grid_gettreeXYZ(grid* g)
         return g->nodetreeXYZ;
 
     snprintf(name, MAXSTRLEN - 4, "%sXYZ", g->name);
-    tree = kd_create(g->name, 3);
+    tree = kd_create(name, 3);
     grid_getsize(g, &ni, &nj, NULL);
     ids = malloc(ni * nj * sizeof(size_t));
     if (g->htype == GRIDHTYPE_LATLON) {
@@ -1920,8 +1920,17 @@ kdtree* grid_gettreeXYZ(grid* g)
     kd_finalise(tree);
     free(ids);
     g->nodetreeXYZ = tree;
-    kd_printinfo(tree, "  ");
 
     return g->nodetreeXYZ;
+}
+
+/**
+ */
+void grid_destroytreeXYZ(grid* g)
+{
+    if (g->nodetreeXYZ != NULL) {
+        kd_destroy(g->nodetreeXYZ);
+        g->nodetreeXYZ = NULL;
+    }
 }
 #endif

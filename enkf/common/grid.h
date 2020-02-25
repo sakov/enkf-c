@@ -62,6 +62,7 @@ int grid_fk2z(grid* g, int i, int j, double fk, double* z);
 
 #if defined(ENKF_CALC)
 kdtree* grid_gettreeXYZ(grid* g);
+void grid_destroytreeXYZ(grid* g);
 #endif
 int grid_isperiodic_i(grid* g);
 

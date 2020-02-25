@@ -303,6 +303,18 @@ void das_getHE(dasystem* das)
 
     if (das->mode == MODE_ENOI)
         free(Hx);
+
+    for (i = 0; i < model_getngrid(das->m); ++i) {
+        void* g = model_getgridbyid(das->m, i);
+        kdtree* tree = grid_gettreeXYZ(g);
+
+        if (tree == NULL)
+            continue;
+
+        kd_printinfo(tree, "    ");
+        enkf_printf("      (now destroying)\n");
+        grid_destroytreeXYZ(g);
+    }
 }
 
 /**

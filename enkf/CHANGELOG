@@ -1,3 +1,6 @@
+v. 1.108.3
+   PS 25022020
+   -- Destroyed XYZ node trees (if there are any) after getting HE.
 v. 1.108.2
    PS 25022020
    -- Added reporting the size of kd-trees involved.
