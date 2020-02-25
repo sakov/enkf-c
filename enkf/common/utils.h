@@ -16,6 +16,7 @@
 #if !defined(_UTILS_H)
 
 #include <unistd.h>
+#include "kdtree.h"
 
 void enkf_init(int* argc, char*** argv);
 void enkf_finish(void);
@@ -59,6 +60,7 @@ void get_normalpair(double x[]);
 int istrue(char str[]);
 int inloninterval(double lon, double lon1, double lon2);
 void shuffle(size_t n, size_t ids[]);
+void kd_printinfo(kdtree* tree, char* offset);
 
 #if defined(ENKF_PREP) || defined(ENKF_CALC)
 #if defined(INTERNAL_QSORT_R)

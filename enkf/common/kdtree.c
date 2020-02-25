@@ -52,7 +52,8 @@ struct kdnode {
 };
 
 struct kdtree {
-    int ndim;
+    char* name;
+    size_t ndim;
     size_t nnodes;
     size_t nallocated;
     kdnode* nodes;
@@ -95,7 +96,7 @@ static void quit(char* format, ...)
 
 /**
  */
-kdtree* kd_create(int ndim)
+kdtree* kd_create(char* name, size_t ndim)
 {
     kdtree* tree;
     int i;
@@ -103,6 +104,7 @@ kdtree* kd_create(int ndim)
     if (ndim > NDIMMAX)
         quit("ndim = %d, NDIMMAX = %d", ndim, NDIMMAX);
     tree = malloc(sizeof(kdtree));
+    tree->name = strdup(name);
     tree->ndim = ndim;
     tree->nnodes = 0;
     tree->nallocated = 0;
@@ -126,6 +128,7 @@ void kd_destroy(kdtree* tree)
         free(tree->nodes);
         free(tree->coords);
     }
+    free(tree->name);
     free(tree->min);
     free(tree);
 }
@@ -301,9 +304,42 @@ void kd_insertnodes(kdtree* tree, size_t n, double** src, size_t* data, int* mas
 
 /**
  */
+void kd_finalise(kdtree* tree)
+{
+
+    if (tree->nallocated > 0 && tree->nallocated > tree->nnodes) {
+        tree->nodes = realloc(tree->nodes, tree->nnodes * sizeof(kdnode));
+        tree->coords = realloc(tree->coords, tree->nnodes * tree->ndim * sizeof(double));
+        tree->nallocated = tree->nnodes;
+    }
+}
+
+/**
+ */
 size_t kd_getsize(kdtree* tree)
 {
     return tree->nnodes;
+}
+
+/**
+ */
+size_t kd_getnalloc(kdtree* tree)
+{
+    return tree->nallocated;
+}
+
+/**
+ */
+size_t kd_getnodesize(kdtree* tree)
+{
+    return sizeof(kdnode) + tree->ndim * sizeof(double);
+}
+
+/**
+ */
+char* kd_getname(const kdtree* tree)
+{
+    return tree->name;
 }
 
 /**
@@ -582,7 +618,7 @@ size_t kd_getnodedata(const kdtree* tree, size_t id)
     return (int) tree->nodes[id].data;
 }
 
-/* get boundary rectangle
+/** get boundary rectangle
  */
 double* kd_getminmax(const kdtree* tree)
 {

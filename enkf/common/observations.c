@@ -1393,7 +1393,7 @@ void obs_createkdtrees(observations* obs)
         shuffle(nobs, ids);
 #endif
 
-        *tree = kd_create(3);
+        *tree = kd_create(ot->name, 3);
         for (i = 0; i < nobs; ++i) {
 #if defined(OBS_SHUFFLE)
             int id = ids[i];
@@ -1411,6 +1411,8 @@ void obs_createkdtrees(observations* obs)
             kd_insertnode(*tree, xyz, i);
 #endif
         }
+        kd_finalise(*tree);
+        kd_printinfo(*tree, "      ");
 
 #if defined(OBS_SHUFFLE)
         free(ids);

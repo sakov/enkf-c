@@ -18,15 +18,19 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <math.h>
 #include <assert.h>
 #include "kdtree.h"
+#include "definitions.h"
+#include "utils.h"
 #include "gxy_curv.h"
 
 #define EPS 1.0e-8
 #define EPS_ZERO 1.0e-5
 
 struct gxy_curv {
+    char* name;
     int ni;
     int nj;
     double** x;
@@ -37,13 +41,14 @@ struct gxy_curv {
 
 /**
  */
-gxy_curv* gxy_curv_create(int ni, int nj, double** x, double** y, int** mask)
+gxy_curv* gxy_curv_create(char* name, int ni, int nj, double** x, double** y, int** mask)
 {
     gxy_curv* gxy = malloc(sizeof(gxy_curv));
     double* nodecoords[2];
 
     assert(x != NULL && y != NULL);
 
+    gxy->name = strdup(name);
     gxy->ni = ni;
     gxy->nj = nj;
     gxy->x = x;
@@ -52,9 +57,9 @@ gxy_curv* gxy_curv_create(int ni, int nj, double** x, double** y, int** mask)
 
     nodecoords[0] = x[0];
     nodecoords[1] = y[0];
-    gxy->nodetreeXY = kd_create(2);
-    kd_insertnodes(gxy->nodetreeXY, ni * nj, nodecoords, NULL, (mask != NULL) ? mask[0] : NULL, 1       /* shuffle 
-                                                                                                         */ );
+    gxy->nodetreeXY = kd_create(name, 2);
+    kd_insertnodes(gxy->nodetreeXY, ni * nj, nodecoords, NULL, (mask != NULL) ? mask[0] : NULL, 1);
+    kd_printinfo(gxy->nodetreeXY, "    ");
 
     return gxy;
 }
@@ -63,6 +68,7 @@ gxy_curv* gxy_curv_create(int ni, int nj, double** x, double** y, int** mask)
  */
 void gxy_curv_destroy(gxy_curv* gxy)
 {
+    free(gxy->name);
     free(gxy->x);
     free(gxy->y);
     kd_destroy(gxy->nodetreeXY);

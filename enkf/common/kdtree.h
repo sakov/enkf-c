@@ -27,9 +27,9 @@ typedef struct kdnode kdnode;
 struct kdset;
 typedef struct kdset kdset;
 
-/* create a kd-tree for "k"-dimensional data
+/* create a kd-tree for "k"-dimensional data (size optional)
  */
-kdtree* kd_create(int ndim);
+kdtree* kd_create(char* name, size_t ndim);
 
 /* free the kdtree
  */
@@ -43,9 +43,29 @@ void kd_insertnode(kdtree* tree, const double* coords, size_t id_extern);
  */
 void kd_insertnodes(kdtree* tree, size_t n, double** src, size_t* ids_extern, int* mask, int randomise);
 
+/* set the allocated number of nodes to the actual number
+ */
+void kd_finalise(kdtree* tree);
+
+/* get the tree name
+ */
+char* kd_getname(const kdtree* tree);
+
 /* get the number of tree nodes
  */
 size_t kd_getsize(kdtree* tree);
+
+/* get the number of allocated nodes
+ */
+size_t kd_getnalloc(kdtree* tree);
+
+/* get the node size in bytes
+ */
+size_t kd_getnodesize(kdtree* tree);
+
+/* get the number of dimansions
+ */
+size_t kd_getndim(kdtree* tree);
 
 /* find any nearest nodes from the specified point within a range
  */
@@ -67,6 +87,10 @@ size_t kd_getnodedata(const kdtree* tree, size_t id);
 /* get boundary rectangle
  */
 double* kd_getminmax(const kdtree* tree);
+
+/* 
+ */
+char* kd_getname(const kdtree* tree);
 
 /* read node id of the current result (SIZE_MAX if no more results are
  * available; advance the result set iterator)

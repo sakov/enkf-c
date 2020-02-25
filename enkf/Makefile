@@ -41,6 +41,7 @@ LIBS_UPDATE = $(LIB_LAPACK)
 
 SRC_COMMON =\
 common/ncw.c\
+common/kdtree.c\
 common/stringtable.c\
 common/version.c\
 common/global.c\
@@ -65,7 +66,6 @@ common/model.h
 
 SRC_PREP =\
 common/hash.c\
-common/kdtree.c\
 common/gxy_curv.c\
 prep/prep_utils.c\
 prep/obsprm.c\
@@ -107,7 +107,6 @@ common/pointlog.c\
 common/obstypes.c\
 common/observations.c\
 common/dasystem.c\
-common/kdtree.c\
 calc/obsstats.c\
 calc/allhs.c\
 calc/model2obs.c\

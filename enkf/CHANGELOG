@@ -1,3 +1,6 @@
+v. 1.108.2
+   PS 25022020
+   -- Added reporting the size of kd-trees involved.
 v. 1.108.1
    PS 22012020
    -- Added code to obs_add() to remove standard parameters handled in obs_add()
