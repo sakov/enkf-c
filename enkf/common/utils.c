@@ -1187,15 +1187,21 @@ void shuffle(size_t n, size_t ids[])
  */
 void kd_printinfo(kdtree* tree, char* offset)
 {
-    char* name = kd_getname(tree);
-    size_t nnode = kd_getsize(tree);
-    size_t nalloc = kd_getnalloc(tree);
+    size_t nnode;
+    size_t nalloc;
 
-    enkf_printf("%skdtree \"%s\":\n", offset == NULL ? "" : offset, name);
+    if (rank != 0)
+        return;
+
+    nnode = kd_getsize(tree);
+    nalloc = kd_getnalloc(tree);
+
+    enkf_printf("%skdtree \"%s\":\n", offset == NULL ? "" : offset, kd_getname(tree));
     enkf_printf("%s  %zu nodes", offset == NULL ? "" : offset, nnode);
     if (nnode != nalloc)
         enkf_printf("(%zu allocated)\n", nalloc);
     else
         enkf_printf("\n");
     enkf_printf("%s  %zu bytes\n", offset == NULL ? "" : offset, nalloc * kd_getnodesize(tree));
+    enkf_flush();
 }
