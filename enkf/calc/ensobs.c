@@ -306,7 +306,7 @@ void das_getHE(dasystem* das)
 
     for (i = 0; i < model_getngrid(das->m); ++i) {
         void* g = model_getgridbyid(das->m, i);
-        kdtree* tree = grid_gettreeXYZ(g);
+        kdtree* tree = grid_gettreeXYZ(g, 0);
 
         if (tree == NULL)
             continue;

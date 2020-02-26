@@ -1,3 +1,6 @@
+v. 1.108.4
+   PS 25022020
+   -- A minor change in XYZ node tree handling.
 v. 1.108.3
    PS 25022020
    -- Destroyed XYZ node trees (if there are any) after getting HE.

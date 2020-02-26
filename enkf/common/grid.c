@@ -1861,14 +1861,14 @@ char* grid_getdomainname(grid* g)
 #if defined(ENKF_CALC)
 /**
  */
-kdtree* grid_gettreeXYZ(grid* g)
+kdtree* grid_gettreeXYZ(grid* g, int createifnull)
 {
     char name[MAXSTRLEN];
     kdtree* tree;
     int ni, nj;
     size_t* ids;
 
-    if (g->nodetreeXYZ != NULL)
+    if (!createifnull || g->nodetreeXYZ != NULL)
         return g->nodetreeXYZ;
 
     snprintf(name, MAXSTRLEN - 4, "%sXYZ", g->name);
