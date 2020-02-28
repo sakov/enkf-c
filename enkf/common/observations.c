@@ -304,14 +304,7 @@ void obs_destroy(observations* obs)
     st_destroy(obs->datafiles);
     obstypes_destroy(obs->nobstypes, obs->obstypes);
 #if defined(ENKF_CALC)
-    if (obs->loctrees != NULL) {
-        int i;
-
-        for (i = 0; i < obs->nobstypes; ++i)
-            if (obs->loctrees[i] != NULL)
-                kd_destroy(obs->loctrees[i]);
-        free(obs->loctrees);
-    }
+    obs_destroykdtrees(obs);
 #endif
     if (obs->obsids != NULL) {
         int i;
@@ -1350,6 +1343,7 @@ static double distance(double xyz1[3], double xyz2[3])
     return sqrt((xyz1[0] - xyz2[0]) * (xyz1[0] - xyz2[0]) + (xyz1[1] - xyz2[1]) * (xyz1[1] - xyz2[1]) + (xyz1[2] - xyz2[2]) * (xyz1[2] - xyz2[2]));
 }
 
+#if defined(ENKF_CALC)
 /**
  */
 void obs_createkdtrees(observations* obs)
@@ -1426,6 +1420,9 @@ void obs_destroykdtrees(observations* obs)
 {
     int otid;
 
+    if (obs->loctrees == NULL)
+        return;
+
     for (otid = 0; otid < obs->nobstypes; ++otid) {
         kdtree** tree = &obs->loctrees[otid];
 
@@ -1434,6 +1431,7 @@ void obs_destroykdtrees(observations* obs)
         *tree = NULL;
     }
 }
+#endif
 
 /**
  */

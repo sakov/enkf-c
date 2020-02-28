@@ -375,6 +375,8 @@ int main(int argc, char* argv[])
             das_calcpointlogtransforms(das);
         }
 
+        obs_destroykdtrees(das->obs);
+
         if (!plogs_only) {
             /*
              * the following is an optional bit - updating ensemble observations
