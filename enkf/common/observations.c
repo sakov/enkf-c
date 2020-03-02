@@ -1297,7 +1297,7 @@ void obs_find_bytype(observations* obs, int type, int* nobs, int** obsids)
 
 /**
  */
-void obs_find_bytypeandtime(observations* obs, int type, int time, int* nobs, int** obsids)
+void obs_find_bytypeandtime(observations* obs, int type, int time, int* nobs, int** obsids, double teps)
 {
     obstype* ot = &obs->obstypes[type];
     int i;
@@ -1314,7 +1314,7 @@ void obs_find_bytypeandtime(observations* obs, int type, int time, int* nobs, in
     for (i = 0; i < obs->nobs; ++i) {
         observation* o = &obs->data[i];
 
-        if (o->type == type && o->status == STATUS_OK && get_tshift(o->time, ot->async_tstep, ot->async_centred) == time) {
+        if (o->type == type && o->status == STATUS_OK && get_tshift(o->time + teps, ot->async_tstep, ot->async_centred) == time) {
             (*obsids)[*nobs] = i;
             (*nobs)++;
         }

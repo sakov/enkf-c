@@ -42,6 +42,7 @@
 #include "dasystem.h"
 
 #define EPSF 1.0e-6f
+#define EPSD 1.0e-10
 #if defined(HE_VIASHMEM)
 #define HE_NPROCMAX 20
 #endif
@@ -117,17 +118,23 @@ void das_getHE(dasystem* das)
         H = getH(ot->issurface, ot->hfunction);
 
         if (ot->isasync) {
-            int t1 = get_tshift(ot->time_min, ot->async_tstep, ot->async_centred);
-            int t2 = get_tshift(ot->time_max, ot->async_tstep, ot->async_centred);
+            int t1 = get_tshift(ot->time_min + EPSD, ot->async_tstep, ot->async_centred);
+            int t2 = get_tshift(ot->time_max - EPSD, ot->async_tstep, ot->async_centred);
             int t;
 
             for (t = t1; t <= t2; ++t) {
                 int nobs_tomap = -1;
                 int* obsids = NULL;
                 char fname[MAXSTRLEN] = "";
+                double teps = 0.0;
+
+                if (t == t1)
+                    teps = EPSD;
+                else if (t == t2)
+                    teps = -EPSD;
 
                 enkf_printf("|");
-                obs_find_bytypeandtime(obs, i, t, &nobs_tomap, &obsids);
+                obs_find_bytypeandtime(obs, i, t, &nobs_tomap, &obsids, teps);
                 if (nobs_tomap == 0)
                     continue;
 

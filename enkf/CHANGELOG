@@ -1,3 +1,6 @@
+v. 1.108.6
+   PS 02032020
+   -- Minor changes to time binning for the first and last asynchronous intervals.
 v. 1.108.5
    PS 25022020
    -- Deallocating obs kd-trees straight after finishing with transforms in
