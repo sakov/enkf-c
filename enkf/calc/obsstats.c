@@ -167,10 +167,10 @@ void das_printobsstats(dasystem* das, int use_rmsd)
 
                     if (ot->isasync && nt > 1) {
                         t = get_tshift(o->time, ot->async_tstep, ot->async_centred) - t1;
-                        if (t < t1)
-                            t = t1;
-                        else if (t > t2)
-                            t = t2;
+                        if (t < 0)
+                            t = 0;
+                        else if (t >= nt)
+                            t = nt - 1;
                         inn_f_as[t] += das->s_f[j];
                         inn_f_abs_as[t] += func(das->s_f[j]);
                         inn_a_as[t] += das->s_a[j];
@@ -407,10 +407,10 @@ void das_printfobsstats(dasystem* das, int use_rmsd)
 
                     if (ot->isasync && nt > 1) {
                         t = get_tshift(o->time, ot->async_tstep, ot->async_centred) - t1;
-                        if (t < t1)
-                            t = t1;
-                        else if (t > t2)
-                            t = t2;
+                        if (t < 0)
+                            t = 0;
+                        else if (t >= nt)
+                            t = nt - 1;
                         inn_f_as[t] += das->s_f[j];
                         inn_f_abs_as[t] += func(das->s_f[j]);
                         if (das->mode == MODE_ENKF)
