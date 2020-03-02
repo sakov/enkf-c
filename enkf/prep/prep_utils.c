@@ -34,6 +34,7 @@
 
 #define NINC 5
 #define QCFLAGVALMAX 31
+#define EPSD 1.0e-10
 
 /**
  */
@@ -194,11 +195,15 @@ void obs_add(observations* obs, model* m, obsmeta* meta)
                 noutow++;
                 continue;
             }
+            if (o->time - obs->da_time == ot->obswindow_min)
+                o->time = o->time + EPSD;
             if (o->time - obs->da_time > ot->obswindow_max) {
                 o->status = STATUS_OUTSIDEOBSWINDOW;
                 noutow++;
                 continue;
             }
+            if (o->time - obs->da_time == ot->obswindow_max)
+                o->time = o->time - EPSD;
             o->value += varshift;
             if (o->value < ot->allowed_min) {
                 o->status = STATUS_RANGE;
