@@ -928,7 +928,7 @@ ENSOBSTYPE interpolate2d(double fi, double fj, int ni, int nj, float** v, int** 
     return (ENSOBSTYPE) sum;
 }
 
-ENSOBSTYPE average2d(size_t* ids, int n, float** v)
+ENSOBSTYPE average2d(int n, size_t* ids, float** v)
 {
     double sum = 0.0;
     float* v0 = v[0];

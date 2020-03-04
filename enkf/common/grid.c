@@ -1252,6 +1252,9 @@ void grid_print(grid* g, char offset[])
 {
     int ni, nj, nk;
 
+    if (rank != 0)
+        return;
+
     enkf_printf("%sgrid info:\n", offset);
     switch (g->htype) {
     case GRIDHTYPE_LATLON:
@@ -1306,6 +1309,19 @@ void grid_print(grid* g, char offset[])
         enkf_printf("%s  STRIDE = %d\n", offset, g->stride);
     if (g->sfactor != 1.0)
         enkf_printf("%s  SFACTOR = %f\n", offset, g->sfactor);
+    if (g->nodetreeXYZ != NULL) {
+        kdtree* tree = g->nodetreeXYZ;
+        size_t nnode = kd_getsize(tree);
+        size_t nalloc = kd_getnalloc(tree);
+
+        enkf_printf("  %skdtree \"%s\":\n", offset == NULL ? "" : offset, kd_getname(tree));
+        enkf_printf("  %s  %zu nodes", offset == NULL ? "" : offset, nnode);
+        if (nnode != nalloc)
+            enkf_printf("(%zu allocated)\n", nalloc);
+        else
+            enkf_printf("\n");
+        enkf_printf("  %s  %zu bytes\n", offset == NULL ? "" : offset, nalloc * kd_getnodesize(tree));
+    }
 }
 
 /**

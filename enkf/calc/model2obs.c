@@ -74,7 +74,7 @@ static void evaluate_2d_obs(model* m, observations* allobs, int nobs, int obsids
                 ncells++;
             }
             kdset_free(set);
-            out[ii] = average2d(ids, ncells, v);
+            out[ii] = average2d(ncells, ids, v);
             free(ids);
         }
         if (!isfinite(out[ii]) || fabs(out[ii]) > STATE_BIGNUM) {

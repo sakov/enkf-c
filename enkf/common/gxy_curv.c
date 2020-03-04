@@ -59,7 +59,6 @@ gxy_curv* gxy_curv_create(char* name, int ni, int nj, double** x, double** y, in
     nodecoords[1] = y[0];
     gxy->nodetreeXY = kd_create(name, 2);
     kd_insertnodes(gxy->nodetreeXY, ni * nj, nodecoords, NULL, (mask != NULL) ? mask[0] : NULL, 1);
-    kd_printinfo(gxy->nodetreeXY, "    ");
 
     return gxy;
 }
