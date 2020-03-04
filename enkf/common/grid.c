@@ -162,11 +162,12 @@ struct grid {
     zint* zints;
 
     char* domainname;
-
+#if defined(ENKF_CALC)
     /*
      * used for calculating forecast obs with finite footprint
      */
     kdtree* nodetreeXYZ;
+#endif
 };
 
 /**
@@ -1309,19 +1310,14 @@ void grid_print(grid* g, char offset[])
         enkf_printf("%s  STRIDE = %d\n", offset, g->stride);
     if (g->sfactor != 1.0)
         enkf_printf("%s  SFACTOR = %f\n", offset, g->sfactor);
-    if (g->nodetreeXYZ != NULL) {
-        kdtree* tree = g->nodetreeXYZ;
-        size_t nnode = kd_getsize(tree);
-        size_t nalloc = kd_getnalloc(tree);
-
-        enkf_printf("  %skdtree \"%s\":\n", offset == NULL ? "" : offset, kd_getname(tree));
-        enkf_printf("  %s  %zu nodes", offset == NULL ? "" : offset, nnode);
-        if (nnode != nalloc)
-            enkf_printf("(%zu allocated)\n", nalloc);
-        else
-            enkf_printf("\n");
-        enkf_printf("  %s  %zu bytes\n", offset == NULL ? "" : offset, nalloc * kd_getnodesize(tree));
-    }
+#if defined(ENKF_PREP) || defined(ENKF_CALC)
+    if (g->htype == GRIDHTYPE_CURVILINEAR)
+        kd_printinfo(gxy_curv_gettree(g->gridnodes_xy), "      ");
+#endif
+#if defined(ENKF_CALC)
+    if (g->nodetreeXYZ != NULL)
+        kd_printinfo(g->nodetreeXYZ, "      ");
+#endif
 }
 
 /**
@@ -1887,7 +1883,7 @@ kdtree* grid_gettreeXYZ(grid* g, int createifnull)
     if (!createifnull || g->nodetreeXYZ != NULL)
         return g->nodetreeXYZ;
 
-    snprintf(name, MAXSTRLEN - 4, "%sXYZ", g->name);
+    snprintf(name, MAXSTRLEN - 4, "%s_XYZ", g->name);
     tree = kd_create(name, 3);
     grid_getsize(g, &ni, &nj, NULL);
     ids = malloc(ni * nj * sizeof(size_t));

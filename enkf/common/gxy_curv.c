@@ -41,13 +41,15 @@ struct gxy_curv {
 
 /**
  */
-gxy_curv* gxy_curv_create(char* name, int ni, int nj, double** x, double** y, int** mask)
+gxy_curv* gxy_curv_create(char* gridname, int ni, int nj, double** x, double** y, int** mask)
 {
+    char name[MAXSTRLEN];
     gxy_curv* gxy = malloc(sizeof(gxy_curv));
     double* nodecoords[2];
 
     assert(x != NULL && y != NULL);
 
+    snprintf(name, MAXSTRLEN - 4, "%s_XY", gridname);
     gxy->name = strdup(name);
     gxy->ni = ni;
     gxy->nj = nj;
@@ -59,6 +61,7 @@ gxy_curv* gxy_curv_create(char* name, int ni, int nj, double** x, double** y, in
     nodecoords[1] = y[0];
     gxy->nodetreeXY = kd_create(name, 2);
     kd_insertnodes(gxy->nodetreeXY, ni * nj, nodecoords, NULL, (mask != NULL) ? mask[0] : NULL, 1);
+    kd_printinfo(gxy->nodetreeXY, "    ");
 
     return gxy;
 }
@@ -373,4 +376,11 @@ int gxy_curv_fij2xy(gxy_curv* gxy, double fi, double fj, double* x, double* y)
     }
 
     return 1;
+}
+
+/**
+ */
+kdtree* gxy_curv_gettree(gxy_curv* gxy)
+{
+    return gxy->nodetreeXY;
 }
