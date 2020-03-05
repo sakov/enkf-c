@@ -79,7 +79,7 @@ void das_getHE(dasystem* das)
     size = nmem * nobs * sizeof(ENSOBSTYPE) * 2;
     enkf_printf("    allocating %zu bytes for HE array:\n", size);
 
-    ierror = MPI_Win_allocate_shared((das->sm_comm_rank == 0) ? size : 0, sizeof(ENSOBSTYPE), MPI_INFO_NULL, das->sm_comm, &SS, &das->sm_comm_win);
+    ierror = MPI_Win_allocate_shared((das->sm_comm_rank == 0) ? size : 0, sizeof(ENSOBSTYPE), MPI_INFO_NULL, das->sm_comm, &SS, &das->sm_comm_win_S);
     assert(ierror == MPI_SUCCESS);
 
     if (das->sm_comm_rank == 0) {
@@ -88,7 +88,7 @@ void das_getHE(dasystem* das)
         int disp_unit;
         MPI_Aint my_size;
 
-        ierror = MPI_Win_shared_query(das->sm_comm_win, 0, &my_size, &disp_unit, &SS);
+        ierror = MPI_Win_shared_query(das->sm_comm_win_S, 0, &my_size, &disp_unit, &SS);
         assert(ierror == MPI_SUCCESS);
         assert(my_size == size);
         assert(disp_unit == sizeof(ENSOBSTYPE));

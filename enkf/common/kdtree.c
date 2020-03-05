@@ -879,7 +879,7 @@ int main(int argc, char* argv[])
         printf("%s ", srcs[i]);
     printf("\n");
 
-    tree = kd_create((isll) ? 3 : ndim);
+    tree = kd_create("kdtree", (isll) ? 3 : ndim);
     for (i = 0; i < nsrc; ++i)
         kd_readfile(tree, srcs[i], ndim);
     printf("    %zu points\n", kd_getsize(tree));

@@ -165,7 +165,7 @@ dasystem* das_create(enkfprm* prm)
         }
         ierror = MPI_Allgatherv(MPI_IN_PLACE, 0, MPI_DATATYPE_NULL, das->sm_comm_ranks, recvcounts, displs, MPI_INT, MPI_COMM_WORLD);
         assert(ierror == MPI_SUCCESS);
-        das->sm_comm_win = MPI_WIN_NULL;
+        das->sm_comm_win_S = MPI_WIN_NULL;
 
         /*
          * create communicators based on local ranks
@@ -342,8 +342,8 @@ void das_destroy(dasystem* das)
     }
 #endif
 #if defined (HE_VIASHMEM)
-    if (das->sm_comm_win != MPI_WIN_NULL)
-        MPI_Win_free(&das->sm_comm_win);
+    if (das->sm_comm_win_S != MPI_WIN_NULL)
+        MPI_Win_free(&das->sm_comm_win_S);
     if (das->sm_comm != MPI_COMM_NULL)
         MPI_Comm_free(&das->sm_comm);
     if (das->sm_comm_ranks != NULL)

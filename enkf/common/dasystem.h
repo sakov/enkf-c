@@ -93,7 +93,7 @@ typedef struct {
      * on each node to hold HE (S) and (HE)^T (S^T) objects.
      */
     MPI_Comm sm_comm;
-    MPI_Win sm_comm_win;
+    MPI_Win sm_comm_win_S;
     int sm_comm_rank;
     int* sm_comm_ranks;
     /*
