@@ -24,12 +24,14 @@
 #include "kdtree.h"
 #include "definitions.h"
 #include "utils.h"
+#include "grid.h"
 #include "gxy_curv.h"
 
 #define EPS 1.0e-8
 #define EPS_ZERO 1.0e-5
 
 struct gxy_curv {
+    void* grid;                 /* parent grid */
     char* name;
     int ni;
     int nj;
@@ -41,7 +43,7 @@ struct gxy_curv {
 
 /**
  */
-gxy_curv* gxy_curv_create(char* gridname, int ni, int nj, double** x, double** y, int** mask)
+gxy_curv* gxy_curv_create(void* grid, int ni, int nj, double** x, double** y, int** mask)
 {
     char name[MAXSTRLEN];
     gxy_curv* gxy = malloc(sizeof(gxy_curv));
@@ -49,7 +51,8 @@ gxy_curv* gxy_curv_create(char* gridname, int ni, int nj, double** x, double** y
 
     assert(x != NULL && y != NULL);
 
-    snprintf(name, MAXSTRLEN - 4, "%s_XY", gridname);
+    snprintf(name, MAXSTRLEN - 4, "%s_XY", grid_getname(grid));
+
     gxy->name = strdup(name);
     gxy->ni = ni;
     gxy->nj = nj;

@@ -125,6 +125,7 @@ typedef struct {
 } gz_hybrid;
 
 struct grid {
+    void* das;
     char* name;
     int id;
     int htype;                  /* horizontal type */
@@ -924,7 +925,7 @@ static void grid_sethgrid(grid* g, int htype, int ni, int nj, void* x, void* y)
         g->gridnodes_xy = gxy_simple_create(ni, nj, x, y);
 #if defined(ENKF_PREP) || defined(ENKF_CALC)
     else if (htype == GRIDHTYPE_CURVILINEAR)
-        g->gridnodes_xy = gxy_curv_create(g->name, ni, nj, x, y, g->numlevels);
+        g->gridnodes_xy = gxy_curv_create(g, ni, nj, x, y, g->numlevels);
 #endif
     else
         enkf_quit("programming error");
@@ -946,6 +947,7 @@ grid* grid_create(void* p, int id)
     size_t ni, nj, nk;
     int varid_depth, varid_numlevels;
 
+    g->das = NULL;
     g->name = strdup(prm->name);
     g->id = id;
     g->domainname = strdup(prm->domainname);    /* ("Default" by default) */

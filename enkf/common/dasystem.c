@@ -15,7 +15,8 @@
  *                update.c
  *              , just to reduce the size of dasystem.c.
  *
- * Revisions:
+ * Revisions:   06032020 PS: moved code for setting MPI communicators etc.
+ *                from das_create() to enkf_init()
  *
  *****************************************************************************/
 
@@ -138,61 +139,6 @@ dasystem* das_create(enkfprm* prm)
     enkf_printf("  setting the ensemble size:\n");
     das_setnmem(das);
     enkf_printf("    %d member%s\n", das->nmem, das->nmem == 1 ? "" : "s");
-
-    /*
-     * initialise communicators
-     */
-#if defined(HE_VIASHMEM)
-    {
-        int ierror;
-        int* recvcounts = NULL;
-        int* displs = NULL;
-
-        ierror = MPI_Comm_split_type(MPI_COMM_WORLD, MPI_COMM_TYPE_SHARED, 0, MPI_INFO_NULL, &das->sm_comm);
-        assert(ierror == MPI_SUCCESS);
-        ierror = MPI_Comm_rank(das->sm_comm, &das->sm_comm_rank);
-        assert(ierror == MPI_SUCCESS);
-        das->sm_comm_ranks = malloc(nprocesses * sizeof(int));
-        /*
-         * build map of local (i.e. within the node the core belongs to) ranks
-         */
-        das->sm_comm_ranks[rank] = das->sm_comm_rank;
-        recvcounts = malloc(nprocesses * sizeof(int));
-        displs = malloc(nprocesses * sizeof(int));
-        for (i = 0; i < nprocesses; ++i) {
-            recvcounts[i] = 1;
-            displs[i] = i;
-        }
-        ierror = MPI_Allgatherv(MPI_IN_PLACE, 0, MPI_DATATYPE_NULL, das->sm_comm_ranks, recvcounts, displs, MPI_INT, MPI_COMM_WORLD);
-        assert(ierror == MPI_SUCCESS);
-        das->sm_comm_win_S = MPI_WIN_NULL;
-
-        /*
-         * create communicators based on local ranks
-         */
-        ierror = MPI_Comm_split(MPI_COMM_WORLD, das->sm_comm_rank, rank, &das->node_comm);
-        assert(ierror == MPI_SUCCESS);
-        ierror = MPI_Comm_rank(das->node_comm, &das->node_comm_rank);
-        assert(ierror == MPI_SUCCESS);
-        ierror = MPI_Comm_size(das->node_comm, &das->node_comm_size);
-        assert(ierror == MPI_SUCCESS);
-        /*
-         * Free communicators for local ranks other than 0. The communicator for
-         * local rank 0 will be used for gathering S and St.
-         */
-        if (das->sm_comm_rank != 0) {
-            MPI_Comm_free(&das->node_comm);
-            das->node_comm_rank = -1;
-        }
-        das->node_comm_ranks = malloc(nprocesses * sizeof(int));
-        das->node_comm_ranks[rank] = das->node_comm_rank;
-        ierror = MPI_Allgatherv(MPI_IN_PLACE, 0, MPI_DATATYPE_NULL, das->node_comm_ranks, recvcounts, displs, MPI_INT, MPI_COMM_WORLD);
-        assert(ierror == MPI_SUCCESS);
-
-        free(recvcounts);
-        free(displs);
-    }
-#endif
 
 #if defined(ENKF_CALC)
     if (!enkf_fstatsonly) {
@@ -342,16 +288,16 @@ void das_destroy(dasystem* das)
     }
 #endif
 #if defined (HE_VIASHMEM)
-    if (das->sm_comm_win_S != MPI_WIN_NULL)
-        MPI_Win_free(&das->sm_comm_win_S);
-    if (das->sm_comm != MPI_COMM_NULL)
-        MPI_Comm_free(&das->sm_comm);
-    if (das->sm_comm_ranks != NULL)
-        free(das->sm_comm_ranks);
-    if (das->node_comm != MPI_COMM_NULL)
-        MPI_Comm_free(&das->node_comm);
-    if (das->node_comm_ranks != NULL)
-        free(das->node_comm_ranks);
+    if (sm_comm_win_S != MPI_WIN_NULL)
+        MPI_Win_free(&sm_comm_win_S);
+    if (sm_comm != MPI_COMM_NULL)
+        MPI_Comm_free(&sm_comm);
+    if (sm_comm_ranks != NULL)
+        free(sm_comm_ranks);
+    if (node_comm != MPI_COMM_NULL)
+        MPI_Comm_free(&node_comm);
+    if (node_comm_ranks != NULL)
+        free(node_comm_ranks);
     if (das->St != NULL)
         free(das->St);
 #endif

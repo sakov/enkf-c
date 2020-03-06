@@ -79,16 +79,16 @@ void das_getHE(dasystem* das)
     size = nmem * nobs * sizeof(ENSOBSTYPE) * 2;
     enkf_printf("    allocating %zu bytes for HE array:\n", size);
 
-    ierror = MPI_Win_allocate_shared((das->sm_comm_rank == 0) ? size : 0, sizeof(ENSOBSTYPE), MPI_INFO_NULL, das->sm_comm, &SS, &das->sm_comm_win_S);
+    ierror = MPI_Win_allocate_shared((sm_comm_rank == 0) ? size : 0, sizeof(ENSOBSTYPE), MPI_INFO_NULL, sm_comm, &SS, &sm_comm_win_S);
     assert(ierror == MPI_SUCCESS);
 
-    if (das->sm_comm_rank == 0) {
+    if (sm_comm_rank == 0) {
         memset(SS, 0, size);
     } else {
         int disp_unit;
         MPI_Aint my_size;
 
-        ierror = MPI_Win_shared_query(das->sm_comm_win_S, 0, &my_size, &disp_unit, &SS);
+        ierror = MPI_Win_shared_query(sm_comm_win_S, 0, &my_size, &disp_unit, &SS);
         assert(ierror == MPI_SUCCESS);
         assert(my_size == size);
         assert(disp_unit == sizeof(ENSOBSTYPE));
@@ -240,17 +240,17 @@ void das_getHE(dasystem* das)
         assert(ierror == MPI_SUCCESS);
 #else
         MPI_Barrier(MPI_COMM_WORLD);
-        if (das->node_comm_rank >= 0 && das->node_comm_size > 1) {
+        if (node_comm_rank >= 0 && node_comm_size > 1) {
             for (i = 0, ii = -1; i < nprocesses; ++i) {
-                if (das->node_comm_ranks[i] >= 0) {
-                    ii = das->node_comm_ranks[i];
+                if (node_comm_ranks[i] >= 0) {
+                    ii = node_comm_ranks[i];
                     displs[ii] = first_iteration[i];
                 }
                 assert(ii >= 0);
                 recvcounts[ii] += number_of_iterations[i];
             }
-            MPI_Barrier(das->node_comm);
-            ierror = MPI_Allgatherv(MPI_IN_PLACE, 0, MPI_DATATYPE_NULL, das->S[0], recvcounts, displs, mpitype_vec_nobs, das->node_comm);
+            MPI_Barrier(node_comm);
+            ierror = MPI_Allgatherv(MPI_IN_PLACE, 0, MPI_DATATYPE_NULL, das->S[0], recvcounts, displs, mpitype_vec_nobs, node_comm);
             assert(ierror == MPI_SUCCESS);
         }
         ierror = MPI_Type_free(&mpitype_vec_nobs);
@@ -280,7 +280,7 @@ void das_getHE(dasystem* das)
                 ensmean[i] /= (ENSOBSTYPE) nmem;
 
 #if defined (HE_VIASHMEM)
-            if (das->sm_comm_rank == 0)
+            if (sm_comm_rank == 0)
 #endif
                 for (e = 0; e < nmem; ++e) {
                     ENSOBSTYPE* Se = das->S[e];
@@ -289,12 +289,12 @@ void das_getHE(dasystem* das)
                         Se[i] += Hx[i] - ensmean[i];
                 }
 #if defined (HE_VIASHMEM)
-            MPI_Barrier(das->sm_comm);
+            MPI_Barrier(sm_comm);
 #endif
             free(ensmean);
         } else {
 #if defined (HE_VIASHMEM)
-            if (das->sm_comm_rank == 0)
+            if (sm_comm_rank == 0)
 #endif
                 for (e = 0; e < nmem; ++e) {
                     ENSOBSTYPE* Se = das->S[e];
@@ -303,7 +303,7 @@ void das_getHE(dasystem* das)
                         Se[i] = Hx[i];
                 }
 #if defined (HE_VIASHMEM)
-            MPI_Barrier(das->sm_comm);
+            MPI_Barrier(sm_comm);
 #endif
         }
     }
@@ -350,7 +350,7 @@ void das_calcinnandspread(dasystem* das)
          * calculate ensemble mean observations 
          */
 #if defined(HE_VIASHMEM)
-        MPI_Barrier(das->sm_comm);
+        MPI_Barrier(sm_comm);
 #endif
         for (e = 0; e < nmem; ++e) {
             ENSOBSTYPE* Se = das->S[e];
@@ -365,7 +365,7 @@ void das_calcinnandspread(dasystem* das)
          * calculate ensemble spread and innovation 
          */
 #if defined(HE_VIASHMEM)
-        if (das->sm_comm_rank == 0)
+        if (sm_comm_rank == 0)
 #endif
             for (e = 0; e < nmem; ++e) {
                 ENSOBSTYPE* Se = das->S[e];
@@ -374,7 +374,7 @@ void das_calcinnandspread(dasystem* das)
                     Se[o] -= (ENSOBSTYPE) das->s_f[o];
             }
 #if defined(HE_VIASHMEM)
-        MPI_Barrier(das->sm_comm);
+        MPI_Barrier(sm_comm);
 #endif
         for (e = 0; e < nmem; ++e) {
             ENSOBSTYPE* Se = das->S[e];
@@ -425,7 +425,7 @@ void das_calcinnandspread(dasystem* das)
          * calculate ensemble spread and innovation 
          */
 #if defined(HE_VIASHMEM)
-        if (das->sm_comm_rank == 0)
+        if (sm_comm_rank == 0)
 #endif
             for (e = 0; e < nmem; ++e) {
                 ENSOBSTYPE* Se = das->S[e];
@@ -434,7 +434,7 @@ void das_calcinnandspread(dasystem* das)
                     Se[o] -= (ENSOBSTYPE) das->s_a[o];
             }
 #if defined(HE_VIASHMEM)
-        MPI_Barrier(das->sm_comm);
+        MPI_Barrier(sm_comm);
 #endif
         for (e = 0; e < nmem; ++e) {
             ENSOBSTYPE* Se = das->S[e];
@@ -630,7 +630,7 @@ void das_standardise(dasystem* das)
         goto finish;
 
 #if defined (HE_VIASHMEM)
-    if (das->sm_comm_rank == 0)
+    if (sm_comm_rank == 0)
 #endif
         for (e = 0; e < das->nmem; ++e) {
             ENSOBSTYPE* Se = das->S[e];
@@ -642,7 +642,7 @@ void das_standardise(dasystem* das)
             }
         }
 #if defined (HE_VIASHMEM)
-    MPI_Barrier(das->sm_comm);
+    MPI_Barrier(sm_comm);
 #endif
     if (das->s_f != NULL) {
         for (i = 0; i < obs->nobs; ++i) {
@@ -718,7 +718,7 @@ void das_destandardise(dasystem* das)
         goto finish;
 
 #if defined(HE_VIASHMEM)
-    if (das->sm_comm_rank == 0)
+    if (sm_comm_rank == 0)
 #endif
         for (e = 0; e < das->nmem; ++e) {
             ENSOBSTYPE* Se = das->S[e];
@@ -730,7 +730,7 @@ void das_destandardise(dasystem* das)
             }
         }
 #if defined (HE_VIASHMEM)
-    MPI_Barrier(das->sm_comm);
+    MPI_Barrier(sm_comm);
 #endif
     if (das->s_f != NULL) {
         for (i = 0; i < obs->nobs; ++i) {
@@ -801,7 +801,7 @@ static void das_sortobs_byij(dasystem* das)
         free(s);
     }
 #if defined(HE_VIASHMEM)
-    if (das->sm_comm_rank == 0)
+    if (sm_comm_rank == 0)
 #endif
     {
         ENSOBSTYPE* S = calloc(obs->nobs, sizeof(ENSOBSTYPE));
@@ -816,7 +816,7 @@ static void das_sortobs_byij(dasystem* das)
         free(S);
     }
 #if defined(HE_VIASHMEM)
-    MPI_Barrier(das->sm_comm);
+    MPI_Barrier(sm_comm);
 #endif
 
     das->sort_mode = OBS_SORTMODE_IJ;
@@ -836,7 +836,7 @@ static void das_changeSmode(dasystem* das, int mode_from, int mode_to)
         int e, o;
 
 #if defined(HE_VIASHMEM)
-        if (das->sm_comm_rank == 0)
+        if (sm_comm_rank == 0)
 #endif
             for (e = 0; e < das->nmem; ++e) {
                 ENSOBSTYPE* Se = das->S[e];
@@ -849,7 +849,7 @@ static void das_changeSmode(dasystem* das, int mode_from, int mode_to)
                     Se[o] += obs->data[o].value - das->s_f[o];
             }
 #if defined(HE_VIASHMEM)
-        MPI_Barrier(das->sm_comm);
+        MPI_Barrier(sm_comm);
 #endif
     } else
         enkf_quit("das_changesmode(): transition from mode %d to mode %d is not handled yet\n", mode_from, mode_to);
@@ -897,7 +897,7 @@ static void das_sortobs_byid(dasystem* das)
         free(s);
     }
 #if defined(HE_VIASHMEM)
-    if (das->sm_comm_rank == 0)
+    if (sm_comm_rank == 0)
 #endif
     {
         ENSOBSTYPE* S = calloc(obs->nobs, sizeof(ENSOBSTYPE));
@@ -912,7 +912,7 @@ static void das_sortobs_byid(dasystem* das)
         free(S);
     }
 #if defined(HE_VIASHMEM)
-    MPI_Barrier(das->sm_comm);
+    MPI_Barrier(sm_comm);
 #endif
 
     /*
@@ -941,16 +941,16 @@ static void gather_St(dasystem* das)
     assert(ierror == MPI_SUCCESS);
 
     MPI_Barrier(MPI_COMM_WORLD);
-    if (das->node_comm_rank >= 0 && das->node_comm_size > 1) {
+    if (node_comm_rank >= 0 && node_comm_size > 1) {
         for (i = 0, ii = -1; i < nprocesses; ++i) {
-            if (das->node_comm_ranks[i] >= 0) {
-                ii = das->node_comm_ranks[i];
+            if (node_comm_ranks[i] >= 0) {
+                ii = node_comm_ranks[i];
                 displs[ii] = first_iteration[i];
             }
             assert(ii >= 0);
             recvcounts[ii] += number_of_iterations[i];
         }
-        ierror = MPI_Allgatherv(MPI_IN_PLACE, 0, MPI_DATATYPE_NULL, das->St[0], recvcounts, displs, mpitype_vec_nmem, das->node_comm);
+        ierror = MPI_Allgatherv(MPI_IN_PLACE, 0, MPI_DATATYPE_NULL, das->St[0], recvcounts, displs, mpitype_vec_nmem, node_comm);
         assert(ierror == MPI_SUCCESS);
         ierror = MPI_Type_free(&mpitype_vec_nmem);
         assert(ierror == MPI_SUCCESS);

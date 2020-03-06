@@ -126,6 +126,61 @@ void enkf_init(int* argc, char*** argv)
             printf("  MPI: rank = %d, PID = %d\n", rank, getpid());
             fflush(NULL);
         }
+#if defined(HE_VIASHMEM)
+        /*
+         * initialise communicators for handling shared memory stuff
+         */
+        {
+            int ierror;
+            int* recvcounts = NULL;
+            int* displs = NULL;
+            int i;
+
+            ierror = MPI_Comm_split_type(MPI_COMM_WORLD, MPI_COMM_TYPE_SHARED, 0, MPI_INFO_NULL, &sm_comm);
+            assert(ierror == MPI_SUCCESS);
+            ierror = MPI_Comm_rank(sm_comm, &sm_comm_rank);
+            assert(ierror == MPI_SUCCESS);
+            sm_comm_ranks = malloc(nprocesses * sizeof(int));
+            /*
+             * build map of local (i.e. within the node the core belongs to)
+             * ranks
+             */
+            sm_comm_ranks[rank] = sm_comm_rank;
+            recvcounts = malloc(nprocesses * sizeof(int));
+            displs = malloc(nprocesses * sizeof(int));
+            for (i = 0; i < nprocesses; ++i) {
+                recvcounts[i] = 1;
+                displs[i] = i;
+            }
+            ierror = MPI_Allgatherv(MPI_IN_PLACE, 0, MPI_DATATYPE_NULL, sm_comm_ranks, recvcounts, displs, MPI_INT, MPI_COMM_WORLD);
+            assert(ierror == MPI_SUCCESS);
+            sm_comm_win_S = MPI_WIN_NULL;
+            /*
+             * create communicators based on local ranks
+             */
+            ierror = MPI_Comm_split(MPI_COMM_WORLD, sm_comm_rank, rank, &node_comm);
+            assert(ierror == MPI_SUCCESS);
+            ierror = MPI_Comm_rank(node_comm, &node_comm_rank);
+            assert(ierror == MPI_SUCCESS);
+            ierror = MPI_Comm_size(node_comm, &node_comm_size);
+            assert(ierror == MPI_SUCCESS);
+            /*
+             * Free communicators for local ranks other than 0. The communicator
+             * for local rank 0 will be used for gathering S and St.
+             */
+            if (sm_comm_rank != 0) {
+                MPI_Comm_free(&node_comm);
+                node_comm_rank = -1;
+            }
+            node_comm_ranks = malloc(nprocesses * sizeof(int));
+            node_comm_ranks[rank] = node_comm_rank;
+            ierror = MPI_Allgatherv(MPI_IN_PLACE, 0, MPI_DATATYPE_NULL, node_comm_ranks, recvcounts, displs, MPI_INT, MPI_COMM_WORLD);
+            assert(ierror == MPI_SUCCESS);
+
+            free(recvcounts);
+            free(displs);
+        }
+#endif
     }
     MPI_Barrier(MPI_COMM_WORLD);
 

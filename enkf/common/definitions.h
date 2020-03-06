@@ -134,6 +134,22 @@
 extern int nprocesses;
 extern int rank;
 
+#if defined(HE_VIASHMEM)
+#if !defined(MPI)
+#undef HE_VIASHMEM
+#else
+extern MPI_Comm sm_comm;
+extern MPI_Win sm_comm_win_S;
+extern MPI_Win* sm_comm_win_gridnodesXY;
+extern int sm_comm_rank;
+extern int* sm_comm_ranks;
+extern MPI_Comm node_comm;
+extern int node_comm_rank;
+extern int node_comm_size;
+extern int* node_comm_ranks;
+#endif
+#endif
+
 extern int enkf_obstype;
 extern int enkf_exitaction;
 extern int enkf_verbose;

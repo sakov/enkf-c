@@ -127,6 +127,7 @@ void obs_superob(observations* obs, __compar_d_fn_t cmp_obs, observations** sobs
 void obs_find_bytype(observations* obs, int type, int* nobs, int** obsids);
 void obs_find_bytypeandtime(observations* obs, int type, int time, int* nobs, int** obsids, double teps);
 void obs_printob(observations* obs, int id);
+
 #if defined(ENKF_CALC)
 void obs_createkdtrees(observations* obs);
 void obs_destroykdtrees(observations* obs);
