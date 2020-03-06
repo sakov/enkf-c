@@ -84,6 +84,7 @@ typedef struct {
     double kfactor;
 #endif
 #if defined(HE_VIASHMEM)
+    MPI_Win sm_comm_win_S;
     ENSOBSTYPE** St;            /* (S transposed) */
 #endif
     int fieldbufsize;

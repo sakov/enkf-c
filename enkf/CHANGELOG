@@ -1,3 +1,6 @@
+v. 1.108.12
+   PS 06032020
+   -- Further to v1.108.11.
 v. 1.108.11
    PS 06032020
    -- Moved MPI communicators etc. for handling shared memory stuff from

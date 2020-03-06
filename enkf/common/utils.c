@@ -154,7 +154,6 @@ void enkf_init(int* argc, char*** argv)
             }
             ierror = MPI_Allgatherv(MPI_IN_PLACE, 0, MPI_DATATYPE_NULL, sm_comm_ranks, recvcounts, displs, MPI_INT, MPI_COMM_WORLD);
             assert(ierror == MPI_SUCCESS);
-            sm_comm_win_S = MPI_WIN_NULL;
             /*
              * create communicators based on local ranks
              */
@@ -205,6 +204,16 @@ void enkf_finish(void)
 {
 #if defined(MPI)
     MPI_Barrier(MPI_COMM_WORLD);
+#endif
+#if defined (HE_VIASHMEM)
+    if (sm_comm != MPI_COMM_NULL)
+        MPI_Comm_free(&sm_comm);
+    if (sm_comm_ranks != NULL)
+        free(sm_comm_ranks);
+    if (node_comm != MPI_COMM_NULL)
+        MPI_Comm_free(&node_comm);
+    if (node_comm_ranks != NULL)
+        free(node_comm_ranks);
 #endif
     enkf_printtime("  ");
     enkf_printf("  finished\n");

@@ -147,6 +147,10 @@ dasystem* das_create(enkfprm* prm)
         das->kfactor = NAN;
     }
 #endif
+#if defined(HE_VIASHMEM)
+    das->sm_comm_win_S = MPI_WIN_NULL;
+    das->St = NULL;
+#endif
     if (!enkf_fstatsonly)
         das->fieldbufsize = prm->fieldbufsize;
 
@@ -288,16 +292,8 @@ void das_destroy(dasystem* das)
     }
 #endif
 #if defined (HE_VIASHMEM)
-    if (sm_comm_win_S != MPI_WIN_NULL)
-        MPI_Win_free(&sm_comm_win_S);
-    if (sm_comm != MPI_COMM_NULL)
-        MPI_Comm_free(&sm_comm);
-    if (sm_comm_ranks != NULL)
-        free(sm_comm_ranks);
-    if (node_comm != MPI_COMM_NULL)
-        MPI_Comm_free(&node_comm);
-    if (node_comm_ranks != NULL)
-        free(node_comm_ranks);
+    if (das->sm_comm_win_S != MPI_WIN_NULL)
+        MPI_Win_free(&das->sm_comm_win_S);
     if (das->St != NULL)
         free(das->St);
 #endif
