@@ -1,3 +1,6 @@
+v. 1.109.0
+   PS 10082020
+   -- Using shared memory for grid kd-trees in CALC.
 v. 1.108.12
    PS 06032020
    -- Further to v1.108.11.

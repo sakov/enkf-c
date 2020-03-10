@@ -24,7 +24,6 @@ int rank = 0;
  * on each node to hold HE (S) and (HE)^T (S^T) objects.
  */
 MPI_Comm sm_comm;
-MPI_Win* sm_comm_win_gridnodesXY = NULL;        /* [ngrid] */
 int sm_comm_rank = -1;
 int* sm_comm_ranks = NULL;
 

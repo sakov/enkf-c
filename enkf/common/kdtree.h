@@ -92,6 +92,14 @@ double* kd_getminmax(const kdtree* tree);
  */
 char* kd_getname(const kdtree* tree);
 
+/* get the memory size necessary for tree->nodes and tree->coords
+ */
+size_t kd_getstoragesize(const kdtree* tree);
+
+/* relocate tree->nodes and tree->coords to the specified location in memory
+ */
+void kd_relocate(kdtree* tree, void* storage, int docopy);
+
 /* read node id of the current result (SIZE_MAX if no more results are
  * available; advance the result set iterator)
  */

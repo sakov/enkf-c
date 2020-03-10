@@ -164,6 +164,9 @@ void kd_insertnode(kdtree* tree, const double* coords, size_t data)
 {
     int i;
 
+    if (tree->nallocated < tree->nnodes)
+        quit("programming error");
+
     if (!isfinite(coords[0]))
         return;
 
@@ -254,6 +257,9 @@ void kd_insertnodes(kdtree* tree, size_t n, double** src, size_t* data, int* mas
     double* coords;
     size_t i, j, ngood;
 
+    if (tree->nallocated < tree->nnodes)
+        quit("programming error");
+
     if (n <= 0)
         return;
 
@@ -307,6 +313,9 @@ void kd_insertnodes(kdtree* tree, size_t n, double** src, size_t* data, int* mas
 void kd_finalise(kdtree* tree)
 {
 
+    if (tree->nallocated < tree->nnodes)
+        quit("programming error");
+
     if (tree->nallocated > 0 && tree->nallocated > tree->nnodes) {
         tree->nodes = realloc(tree->nodes, tree->nnodes * sizeof(kdnode));
         tree->coords = realloc(tree->coords, tree->nnodes * tree->ndim * sizeof(double));
@@ -340,6 +349,37 @@ size_t kd_getnodesize(kdtree* tree)
 char* kd_getname(const kdtree* tree)
 {
     return tree->name;
+}
+
+/** get the memory size necessary for the tree
+ */
+size_t kd_getstoragesize(const kdtree* tree)
+{
+    return tree->nnodes * sizeof(kdnode) + tree->nnodes * tree->ndim * sizeof(double);
+}
+
+/** relocate tree to an external block in memory
+ */
+void kd_relocate(kdtree* tree, void* storage, int docopy)
+{
+    char* mem = storage;
+
+    if (tree->nallocated == 0 || tree->nnodes == 0)
+        quit("programming error");
+
+    if (docopy)
+        memcpy(mem, tree->nodes, tree->nnodes * sizeof(kdnode));
+    free(tree->nodes);
+    tree->nodes = (kdnode*) mem;
+
+    mem += tree->nnodes * sizeof(kdnode);
+
+    if (docopy)
+        memcpy(mem, tree->coords, tree->nnodes * tree->ndim * sizeof(double));
+    free(tree->coords);
+    tree->coords = (double*) mem;
+
+    tree->nallocated = 0;       /* works as a flag of using external storage */
 }
 
 /**
