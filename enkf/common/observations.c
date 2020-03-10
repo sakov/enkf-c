@@ -136,6 +136,9 @@ observations* obs_create(void)
 #if defined(ENKF_CALC)
     obs->loctrees = NULL;
 #endif
+#if defined(HE_VIASHMEM)
+    obs->sm_comm_win = NULL;
+#endif
     obs->obsids = NULL;
     obs->da_time = NAN;
     obs->datestr = NULL;
@@ -299,6 +302,8 @@ observations* obs_create_fromdata(observations* parentobs, int nobs, observation
  */
 void obs_destroy(observations* obs)
 {
+    int i;
+
     st_destroy(obs->products);
     st_destroy(obs->instruments);
     st_destroy(obs->datafiles);
@@ -306,9 +311,13 @@ void obs_destroy(observations* obs)
 #if defined(ENKF_CALC)
     obs_destroykdtrees(obs);
 #endif
+#if defined(HE_VIASHMEM)
+    if (obs->sm_comm_win != NULL)
+        for (i = 0; i < obs->nobstypes; ++i)
+            if (obs->sm_comm_win[i] != MPI_WIN_NULL)
+                MPI_Win_free(&obs->sm_comm_win[i]);
+#endif
     if (obs->obsids != NULL) {
-        int i;
-
         for (i = 0; i < obs->nobstypes; ++i)
             if (obs->obsids[i] != NULL)
                 free(obs->obsids[i]);
@@ -1350,10 +1359,15 @@ void obs_createkdtrees(observations* obs)
 {
     int otid;
 
-    if (obs->loctrees == NULL)
-        obs->loctrees = calloc(obs->nobstypes, sizeof(kdtree*));
-    if (obs->obsids == NULL)
-        obs->obsids = calloc(obs->nobstypes, sizeof(int*));
+    if (obs->loctrees != NULL || obs->obsids != NULL)
+        enkf_quit("programming error");
+    obs->loctrees = calloc(obs->nobstypes, sizeof(kdtree*));
+    obs->obsids = calloc(obs->nobstypes, sizeof(int*));
+#if defined(HE_VIASHMEM)
+    if (obs->sm_comm_win != NULL)
+        enkf_quit("programming error");
+    obs->sm_comm_win = calloc(obs->nobstypes, sizeof(MPI_Win));
+#endif
 
     for (otid = 0; otid < obs->nobstypes; ++otid) {
         obstype* ot = &obs->obstypes[otid];
@@ -1378,7 +1392,7 @@ void obs_createkdtrees(observations* obs)
         obs->obsids[otid] = obsids;
 
         if (*tree != NULL)
-            kd_destroy(*tree);
+            enkf_quit("programming error");
 
 #if defined(OBS_SHUFFLE)
         ids = malloc(nobs * sizeof(int));
@@ -1406,6 +1420,35 @@ void obs_createkdtrees(observations* obs)
 #endif
         }
         kd_finalise(*tree);
+#if defined(HE_VIASHMEM)
+        {
+            MPI_Win* sm_comm_win = &obs->sm_comm_win[otid];
+            MPI_Aint size;
+            int ierror;
+
+            size = kd_getstoragesize(*tree);
+            if (sm_comm_rank == 0) {
+                void* storage = NULL;
+                int ierror;
+
+                assert(sizeof(MPI_Aint) == sizeof(size_t));
+                ierror = MPI_Win_allocate_shared(size, sizeof(double), MPI_INFO_NULL, sm_comm, &storage, sm_comm_win);
+                assert(ierror == MPI_SUCCESS);
+                kd_relocate(*tree, storage, 1);
+            } else {
+                MPI_Aint my_size;
+                void* storage = NULL;
+                int disp_unit;
+
+                ierror = MPI_Win_allocate_shared(0, sizeof(double), MPI_INFO_NULL, sm_comm, &storage, sm_comm_win);
+                assert(ierror == MPI_SUCCESS);
+                ierror = MPI_Win_shared_query(*sm_comm_win, 0, &my_size, &disp_unit, &storage);
+                assert(ierror == MPI_SUCCESS);
+                assert(my_size = size);
+                kd_relocate(*tree, storage, 0);
+            }
+        }
+#endif
         kd_printinfo(*tree, "      ");
 
 #if defined(OBS_SHUFFLE)

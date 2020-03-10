@@ -21,7 +21,8 @@ int rank = 0;
 #if defined(HE_VIASHMEM)
 /*
  * "sm" below stands for "shared memory". The shared memory is allocated
- * on each node to hold HE (S) and (HE)^T (S^T) objects.
+ * on each node to hold HE (S) and (HE)^T (S^T) objects. From v1.109.0 and
+ * v1.110.0 it is also used for holding large kd-trees.
  */
 MPI_Comm sm_comm;
 int sm_comm_rank = -1;

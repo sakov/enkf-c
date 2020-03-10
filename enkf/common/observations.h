@@ -73,6 +73,9 @@ typedef struct {
 #if defined(ENKF_CALC)
     kdtree** loctrees;
 #endif
+#if defined(HE_VIASHMEM)
+    MPI_Win* sm_comm_win;
+#endif
     int** obsids;
 
     double da_time;             /* fractional days since 00:00:00
