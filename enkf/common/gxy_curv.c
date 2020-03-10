@@ -73,7 +73,7 @@ gxy_curv* gxy_curv_create(void* grid, int ni, int nj, double** x, double** y, in
         int ierror;
 
         size = kd_getstoragesize(gxy->nodetreeXY);
-        if (rank == 0) {
+        if (sm_comm_rank == 0) {
             void* storage = NULL;
             int ierror;
 

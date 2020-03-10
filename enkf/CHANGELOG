@@ -1,3 +1,6 @@
+v. 1.109.1
+   PS 10082020
+   -- A fix to v1.109.0.
 v. 1.109.0
    PS 10082020
    -- Using shared memory for grid kd-trees in CALC.
