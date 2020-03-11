@@ -72,11 +72,11 @@ typedef struct {
     obstype* obstypes;
 #if defined(ENKF_CALC)
     kdtree** loctrees;
-#endif
+    int** obsids;
 #if defined(HE_VIASHMEM)
     MPI_Win* sm_comm_wins;
 #endif
-    int** obsids;
+#endif
 
     double da_time;             /* fractional days since 00:00:00
                                  * BASEDAY-BASEMONTH-BASEYEAR */
@@ -134,11 +134,11 @@ void obs_printob(observations* obs, int id);
 #if defined(ENKF_CALC)
 void obs_createkdtrees(observations* obs);
 void obs_destroykdtrees(observations* obs);
-#endif
 #if defined(MINIMISE_ALLOC)
 void obs_findlocal(observations* obs, double lon, double lat, char* dimainname, int* n, int** ids, double** lcoeffs, int* ploc_allocated);
 #else
 void obs_findlocal(observations* obs, double lon, double lat, char* domainname, int* n, int** ids, double** lcoeffs);
+#endif
 #endif
 
 #define _OBSERVATIONS_H

@@ -135,11 +135,11 @@ observations* obs_create(void)
     obs->obstypes = NULL;
 #if defined(ENKF_CALC)
     obs->loctrees = NULL;
-#endif
+    obs->obsids = NULL;
 #if defined(HE_VIASHMEM)
     obs->sm_comm_wins = NULL;
 #endif
-    obs->obsids = NULL;
+#endif
     obs->da_time = NAN;
     obs->datestr = NULL;
     obs->allobs = 0;
@@ -302,21 +302,21 @@ observations* obs_create_fromdata(observations* parentobs, int nobs, observation
  */
 void obs_destroy(observations* obs)
 {
-    int i;
-
     st_destroy(obs->products);
     st_destroy(obs->instruments);
     st_destroy(obs->datafiles);
     obstypes_destroy(obs->nobstypes, obs->obstypes);
 #if defined(ENKF_CALC)
     obs_destroykdtrees(obs);
-#endif
     if (obs->obsids != NULL) {
+        int i;
+
         for (i = 0; i < obs->nobstypes; ++i)
             if (obs->obsids[i] != NULL)
                 free(obs->obsids[i]);
         free(obs->obsids);
     }
+#endif
     if (obs->nobs > 0)
         free(obs->data);
     if (obs->datestr != NULL)
@@ -1345,6 +1345,7 @@ static double distance(double xyz1[3], double xyz2[3])
 {
     return sqrt((xyz1[0] - xyz2[0]) * (xyz1[0] - xyz2[0]) + (xyz1[1] - xyz2[1]) * (xyz1[1] - xyz2[1]) + (xyz1[2] - xyz2[2]) * (xyz1[2] - xyz2[2]));
 }
+#endif
 
 #if defined(ENKF_CALC)
 /**
@@ -1452,7 +1453,9 @@ void obs_createkdtrees(observations* obs)
 #endif
     }
 }
+#endif
 
+#if defined(ENKF_CALC)
 /**
  */
 void obs_destroykdtrees(observations* obs)
@@ -1484,6 +1487,7 @@ void obs_destroykdtrees(observations* obs)
 }
 #endif
 
+#if defined(ENKF_CALC)
 /**
  */
 #if defined(MINIMISE_ALLOC)
