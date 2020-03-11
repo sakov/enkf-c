@@ -1,10 +1,10 @@
   MPI: initialised 2 process(es)
-  MPI: rank = 1, PID = 13830
-  MPI: rank = 0, PID = 13829
-  running CALC for EnKF-C version 1.98.0:
+  MPI: rank = 0, PID = 5277
+  MPI: rank = 1, PID = 5278
+  running CALC for EnKF-C version 1.110.1:
     command = "./enkf_calc enoi.prm"
     dir = "/home/pavel/src/enkf-c/trunk/enkf/examples/1"
-  2019-04-29 12:10:59
+  2020-03-11 13:06:25
   reading system specs from "enoi.prm":
     MODE = EnOI
     MODEL PRM = "model.prm"
@@ -24,24 +24,18 @@
     STRIDE = 3
     FIELDBUFFERSIZE = 4
     REGION Global: x = [0.0, 360.0], y = [-90.0, 90.0]
-    POINTLOG 156.000 -32.000
-    SOBSTRIDE = 1
+    POINTLOG 156.000 -32.000 
     NCFORMAT = 64BIT
     NCCOMPRESSION = 0
     EnKF flags:
       enkf_exitaction  = [BACKTRACE]
       enkf_obstype     = [VALUE]
     compile flags:
-      CHECK_X5         = [-]
-      CHECK_G          = [-]
       SHUFFLE_ROWS     = [-]
-      HE_VIAFILE       = [-]
       HE_VIASHMEM      = [+]
-      MINIMISE_ALLOC   = [-]
+      MINIMISE_ALLOC   = [+]
       OBS_SHUFFLE      = [-]
-      GRIDNODES_WRITE  = [-]
       INTERNAL_QSORT_R = [-]
-      NO_GRIDUTILS     = [-]
   initialising the system:
   reading observation type specs from "obstypes.prm":
     NAME = SLA
@@ -93,7 +87,6 @@
       NAME = "t-grid"
       DOMAIN = Default
       DATA = "conf/grid_spec.nc"
-      MAPTYPE = "B"
       VTYPE = "z"
       ZVARNAME = "zt"
       ZCVARNAME = <none>
@@ -110,13 +103,14 @@
       longitude range = [0.000, 360.000]
       v type = Z
       v dir = FROMSURF
+      STRIDE = 0
   setting the ensemble size:
     144 members
   reading observations from "observations.nc":
     3813 observations
     allocating 457560 bytes for array of observations
   calculating ensemble observations:
-  2019-04-29 12:10:59
+  2020-03-11 13:06:25
     allocating 4392576 bytes for HE array:
     distributing iterations:
       2 processes get 72 iterations each
@@ -125,7 +119,7 @@
     TEM +........................................................................
     SAL +........................................................................
   adding forecast innovations and spread to "observations.nc":
-  2019-04-29 12:10:59
+  2020-03-11 13:06:25
   moderating observations:
     observations substantially modified:
       SLA          0 (0.0%)
@@ -135,15 +129,27 @@
       total        0 (0.0%)
   writing modified obs errors to "observations.nc":
   calculating transforms:
-  2019-04-29 12:10:59
+  2020-03-11 13:06:25
     creating kd-trees for observations:
+      kdtree "SLA":
+        645 nodes
+        41280 bytes (externally allocated)
+      kdtree "SST":
+        3154 nodes
+        201856 bytes (externally allocated)
+      kdtree "TEM":
+        7 nodes
+        448 bytes (externally allocated)
+      kdtree "SAL":
+        7 nodes
+        448 bytes (externally allocated)
     calculating transforms for t-grid:
     creating empty file "w.nc":
       distributing iterations:
         2 processes get 17 iterations each
       main cycle for t-grid (34 x 34 local analyses):
-        j = 0 (0: 0: 5.9%)
         j = 3 (1: 17: 5.9%)
+        j = 0 (0: 0: 5.9%)
         j = 9 (1: 18: 11.8%)
         j = 6 (0: 1: 11.8%)
         j = 15 (1: 19: 17.6%)
@@ -187,13 +193,13 @@
     calculating transforms for log point (156.000,-32.000): 539 obs
     writing log for point (156.000,-32.000) on grid "t-grid":
   calculating analysed observations:
-  2019-04-29 12:11:09
+  2020-03-11 13:06:36
     sorting obs by ij:
-    2019-04-29 12:11:09
+    2020-03-11 13:06:36
     updating Hx:
     distributing iterations:
       2 processes get 1907 or 1906 iterations
-    2019-04-29 12:11:09
+    2020-03-11 13:06:36
   adding analysis innovations and spread to "observations.nc":
   printing observation statistics:
     region obs.type   # obs.  |for.inn.| |an.inn.|   for.inn.   an.inn.  for.spread  an.spread
@@ -217,5 +223,5 @@
              0-50m         2    0.088      0.101      0.074      0.072      0.019      0.019  
              50-500m       5    0.072      0.067      0.047      0.040      0.025      0.025  
              500-9999m     0     -nan       -nan       -nan       -nan       -nan       -nan  
-  2019-04-29 12:11:09
+  2020-03-11 13:06:36
   finished

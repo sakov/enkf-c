@@ -370,6 +370,8 @@ int main(int argc, char* argv[])
         } else
             das_standardise(das);
 
+        if (das->nplog > 0 && das->obs->loctrees == NULL)
+            obs_createkdtrees(das->obs);
         if (rank == 0) {
             enkf_printf("  writing point logs:\n");
             das_calcpointlogtransforms(das);

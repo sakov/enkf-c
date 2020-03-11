@@ -1,3 +1,6 @@
+v. 1.110.1
+   PS 11032020
+   -- Updated example logs.
 v. 1.110.0
    PS 11032020
    -- Using shared memory for the obs kd-trees in CALC.

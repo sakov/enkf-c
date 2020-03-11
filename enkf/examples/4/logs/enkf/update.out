@@ -1,10 +1,10 @@
   MPI: initialised 2 process(es)
-  MPI: rank = 1, PID = 18246
-  MPI: rank = 0, PID = 18245
-  running UPDATE for EnKF-C version 1.98.0:
+  MPI: rank = 1, PID = 5504
+  MPI: rank = 0, PID = 5503
+  running UPDATE for EnKF-C version 1.110.1:
     command = "./enkf_update --calculate-spread --write-inflation enkf.prm"
     dir = "/home/pavel/src/enkf-c/trunk/enkf/examples/4"
-  2019-04-29 14:12:28
+  2020-03-11 13:09:39
   reading system specs from "enkf.prm":
     MODE = EnKF
     SCHEME = DEnKF
@@ -24,8 +24,7 @@
     STRIDE = 3
     FIELDBUFFERSIZE = 4
     REGION Global: x = [0.0, 360.0], y = [-90.0, 90.0]
-    POINTLOG 156.000 -32.000
-    SOBSTRIDE = 1
+    POINTLOG 156.000 -32.000 
     NCFORMAT = 64BIT
     NCCOMPRESSION = 0
     EnKF flags:
@@ -43,7 +42,6 @@
       NAME = "t-grid"
       DOMAIN = Default
       DATA = "conf4/grid_spec.nc"
-      MAPTYPE = "B"
       VTYPE = "z"
       ZVARNAME = "zt"
       ZCVARNAME = <none>
@@ -60,11 +58,11 @@
       longitude range = [0.000, 360.000]
       v type = Z
       v dir = FROMSURF
+      STRIDE = 0
     grid prm info:
       NAME = "c-grid"
       DOMAIN = Default
       DATA = "conf4/grid_spec.nc"
-      MAPTYPE = "B"
       VTYPE = "z"
       ZVARNAME = "zt"
       ZCVARNAME = <none>
@@ -80,6 +78,7 @@
       longitude range = [0.000, 360.000]
       v type = Z
       v dir = FROMSURF
+      STRIDE = 0
   setting the ensemble size:
     96 members
   updating the ensemble:
@@ -88,20 +87,20 @@
     defining state variables in point logs:
     distributing iterations:
       2 processes get 48 iterations each
-    2019-04-29 14:12:28
+    2020-03-11 13:09:39
     allocating disk space for analysis:................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................
     processing fields for t-grid:
-      2019-04-29 14:12:28
+      2020-03-11 13:09:39
       5 fields
       distributing iterations:
         2 processes get 3 or 2 iterations
       salt     0   (1: 3: 50.0%)
       eta_t    0   (0: 0: 33.3%)
-      salt     1   (1: 4: 100.0%)
       temp     0   (0: 1: 66.7%)
+      salt     1   (1: 4: 100.0%)
       temp     1   (0: 2: 100.0%)
     processing fields for c-grid:
-      2019-04-29 14:12:29
+      2020-03-11 13:09:39
       4 fields
       distributing iterations:
         2 processes get 2 iterations each
@@ -109,7 +108,7 @@
       u        0   (0: 0: 50.0%)
       v        1   (1: 3: 100.0%)
       u        1   (0: 1: 100.0%)
-  2019-04-29 14:12:30
+  2020-03-11 13:09:40
   assembling analysis:
     distributing iterations:
       2 processes get 48 iterations each
@@ -118,26 +117,26 @@
     salt:................................................
     u:................................................
     v:................................................
-  2019-04-29 14:12:30
+  2020-03-11 13:09:40
   assembling spread:
     eta_t:.
     temp:..
     salt:..
     u:..
     v:..
-  2019-04-29 14:12:30
+  2020-03-11 13:09:40
   assembling inflation:
     eta_t:.
     temp:..
     salt:..
     u:..
     v:..
-  2019-04-29 14:12:30
+  2020-03-11 13:09:40
   assembling state variables in point logs:
     distributing iterations:
       2 processes get 1 or 0 iterations
     deleting tiles:
       distributing iterations:
         2 processes get 5 or 4 iterations
-  2019-04-29 14:12:30
+  2020-03-11 13:09:40
   finished

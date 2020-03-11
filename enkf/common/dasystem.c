@@ -292,8 +292,10 @@ void das_destroy(dasystem* das)
     }
 #endif
 #if defined (HE_VIASHMEM)
-    if (das->sm_comm_win_S != MPI_WIN_NULL)
+    if (das->sm_comm_win_S != MPI_WIN_NULL) {
         MPI_Win_free(&das->sm_comm_win_S);
+        assert(das->sm_comm_win_S == MPI_WIN_NULL);
+    }
     if (das->St != NULL)
         free(das->St);
 #endif

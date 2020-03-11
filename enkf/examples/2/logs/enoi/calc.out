@@ -1,10 +1,10 @@
   MPI: initialised 2 process(es)
-  MPI: rank = 1, PID = 18106
-  MPI: rank = 0, PID = 18105
-  running CALC for EnKF-C version 1.98.0:
+  MPI: rank = 1, PID = 5453
+  MPI: rank = 0, PID = 5452
+  running CALC for EnKF-C version 1.110.1:
     command = "./enkf_calc enoi.prm"
     dir = "/home/pavel/src/enkf-c/trunk/enkf/examples/2"
-  2019-04-29 14:10:18
+  2020-03-11 13:08:54
   reading system specs from "enoi.prm":
     MODE = EnOI
     MODEL PRM = "model.prm"
@@ -24,24 +24,18 @@
     STRIDE = 3
     FIELDBUFFERSIZE = 4
     REGION Global: x = [0.0, 360.0], y = [-90.0, 90.0]
-    POINTLOG 156.000 -32.000
-    SOBSTRIDE = 1
+    POINTLOG 156.000 -32.000 
     NCFORMAT = 64BIT
     NCCOMPRESSION = 0
     EnKF flags:
       enkf_exitaction  = [BACKTRACE]
       enkf_obstype     = [VALUE]
     compile flags:
-      CHECK_X5         = [-]
-      CHECK_G          = [-]
       SHUFFLE_ROWS     = [-]
-      HE_VIAFILE       = [-]
       HE_VIASHMEM      = [+]
-      MINIMISE_ALLOC   = [-]
+      MINIMISE_ALLOC   = [+]
       OBS_SHUFFLE      = [-]
-      GRIDNODES_WRITE  = [-]
       INTERNAL_QSORT_R = [-]
-      NO_GRIDUTILS     = [-]
   initialising the system:
   reading observation type specs from "obstypes.prm":
     NAME = SLA
@@ -89,11 +83,13 @@
       LOCRAD  = 800
       LOCWEIGHT =  1
       RFACTOR = 4
+    kdtree "t-grid_XY":
+      10000 nodes
+      560000 bytes (externally allocated)
     grid prm info:
       NAME = "t-grid"
       DOMAIN = Default
       DATA = "conf2/grid_spec.nc"
-      MAPTYPE = "B"
       VTYPE = "z"
       ZVARNAME = "zt"
       ZCVARNAME = <none>
@@ -105,18 +101,21 @@
       ZSTATINTS = [0 50] [50 500] [500 9999] 
     grid info:
       hor type = CURVILINEAR
-      map type = BINARY TREE
       dims = 100 x 100 x 2
       longitude range = [0.000, 360.000]
       v type = Z
       v dir = FROMSURF
+      STRIDE = 0
+      kdtree "t-grid_XY":
+        10000 nodes
+        560000 bytes (externally allocated)
   setting the ensemble size:
     144 members
   reading observations from "observations.nc":
     3813 observations
     allocating 457560 bytes for array of observations
   calculating ensemble observations:
-  2019-04-29 14:10:18
+  2020-03-11 13:08:54
     allocating 4392576 bytes for HE array:
     distributing iterations:
       2 processes get 72 iterations each
@@ -125,7 +124,7 @@
     TEM +........................................................................
     SAL +........................................................................
   adding forecast innovations and spread to "observations.nc":
-  2019-04-29 14:10:18
+  2020-03-11 13:08:55
   moderating observations:
     observations substantially modified:
       SLA          0 (0.0%)
@@ -135,15 +134,27 @@
       total        0 (0.0%)
   writing modified obs errors to "observations.nc":
   calculating transforms:
-  2019-04-29 14:10:18
+  2020-03-11 13:08:55
     creating kd-trees for observations:
+      kdtree "SLA":
+        645 nodes
+        41280 bytes (externally allocated)
+      kdtree "SST":
+        3154 nodes
+        201856 bytes (externally allocated)
+      kdtree "TEM":
+        7 nodes
+        448 bytes (externally allocated)
+      kdtree "SAL":
+        7 nodes
+        448 bytes (externally allocated)
     calculating transforms for t-grid:
     creating empty file "w.nc":
       distributing iterations:
         2 processes get 17 iterations each
       main cycle for t-grid (34 x 34 local analyses):
-        j = 0 (0: 0: 5.9%)
         j = 3 (1: 17: 5.9%)
+        j = 0 (0: 0: 5.9%)
         j = 9 (1: 18: 11.8%)
         j = 6 (0: 1: 11.8%)
         j = 15 (1: 19: 17.6%)
@@ -187,13 +198,13 @@
     calculating transforms for log point (156.000,-32.000): 539 obs
     writing log for point (156.000,-32.000) on grid "t-grid":
   calculating analysed observations:
-  2019-04-29 14:10:29
+  2020-03-11 13:09:05
     sorting obs by ij:
-    2019-04-29 14:10:29
+    2020-03-11 13:09:05
     updating Hx:
     distributing iterations:
       2 processes get 1907 or 1906 iterations
-    2019-04-29 14:10:29
+    2020-03-11 13:09:05
   adding analysis innovations and spread to "observations.nc":
   printing observation statistics:
     region obs.type   # obs.  |for.inn.| |an.inn.|   for.inn.   an.inn.  for.spread  an.spread
@@ -217,5 +228,5 @@
              0-50m         2    0.088      0.101      0.074      0.072      0.019      0.019  
              50-500m       5    0.072      0.067      0.047      0.040      0.025      0.025  
              500-9999m     0     -nan       -nan       -nan       -nan       -nan       -nan  
-  2019-04-29 14:10:29
+  2020-03-11 13:09:05
   finished

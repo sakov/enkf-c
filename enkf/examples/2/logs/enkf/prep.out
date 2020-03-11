@@ -1,7 +1,7 @@
-  running PREP for EnKF-C version 1.98.0:
+  running PREP for EnKF-C version 1.110.1:
     command = "./enkf_prep enkf.prm"
     dir = "/home/pavel/src/enkf-c/trunk/enkf/examples/2"
-  2019-04-29 14:09:49
+  2020-03-11 13:08:29
   reading prep specs from "enkf.prm":
     MODE = EnKF
     SCHEME = DEnKF
@@ -21,16 +21,13 @@
     STRIDE = 3
     FIELDBUFFERSIZE = 4
     REGION Global: x = [0.0, 360.0], y = [-90.0, 90.0]
-    SOBSTRIDE = 1
     NCFORMAT = 64BIT
     NCCOMPRESSION = 0
     EnKF flags:
       enkf_exitaction  = [SEGFAULT]
       enkf_obstype     = [VALUE]
     compile flags:
-      GRIDNODES_WRITE  = [-]
       INTERNAL_QSORT_R = [-]
-      NO_GRIDUTILS     = [-]
   reading observation specs from "obs.prm":
     PRODUCT = RADS
       READER = standard2
@@ -40,6 +37,7 @@
         File: obs/RADS-IB/y2007/m12/??_d21.nc
         File: obs/RADS-IB/y2007/m12/??_d22.nc
         File: obs/RADS-IB/y2007/m12/??_d23.nc
+      PARAMETER MINDEPTH = 100
     PRODUCT = NAVO
       READER = standard
       TYPE = SST
@@ -75,11 +73,13 @@
         File: obs/TS-SEP-2011/y2007/m12/cars_salt_d23.nc
       ERROR_STD = 0.1, operation = EQUAL
   creating model and observations:
+    kdtree "t-grid_XY":
+      10000 nodes
+      560000 bytes
     grid prm info:
       NAME = "t-grid"
       DOMAIN = Default
       DATA = "conf2/grid_spec.nc"
-      MAPTYPE = "B"
       VTYPE = "z"
       ZVARNAME = "zt"
       ZCVARNAME = <none>
@@ -91,11 +91,14 @@
       ZSTATINTS = [0 50] [50 500] [500 9999] 
     grid info:
       hor type = CURVILINEAR
-      map type = BINARY TREE
       dims = 100 x 100 x 2
       longitude range = [0.000, 360.000]
       v type = Z
       v dir = FROMSURF
+      STRIDE = 0
+      kdtree "t-grid_XY":
+        10000 nodes
+        560000 bytes
   reading observation type specs from "obstypes.prm":
     NAME = SLA
     ISSURFACE = 1
@@ -238,8 +241,10 @@
     PRODUCT = WindSat, TYPE = SST, reader = standard
       reading obs/WINDSAT/windsat_20071219.nc:
         nobs = 320738
+        nobs = 320738
         # good obs = 1168
       reading obs/WINDSAT/windsat_20071220.nc:
+        nobs = 29534
         nobs = 29534
         # good obs = 0
       id = 8062 - 9229
@@ -251,64 +256,74 @@
       reading obs/TS-SEP-2011/y2007/m12/cars_temp_d19.nc:
         # profiles = 384
         # z levels = 191
+        nobs = 548
         # unique locations = 383
         # good obs = 176
       reading obs/TS-SEP-2011/y2007/m12/cars_temp_d20.nc:
         # profiles = 377
         # z levels = 191
+        nobs = 429
         # unique locations = 377
         # good obs = 56
       reading obs/TS-SEP-2011/y2007/m12/cars_temp_d21.nc:
         # profiles = 329
         # z levels = 191
+        nobs = 376
         # unique locations = 329
         # good obs = 56
       reading obs/TS-SEP-2011/y2007/m12/cars_temp_d22.nc:
         # profiles = 350
         # z levels = 191
+        nobs = 345
         # unique locations = 350
         # good obs = 0
       reading obs/TS-SEP-2011/y2007/m12/cars_temp_d23.nc:
         # profiles = 344
         # z levels = 191
+        nobs = 336
         # unique locations = 344
         # good obs = 0
       id = 9230 - 9517
       total 288 observations
       184 valid observations
-      adding error_std = 0.5:
+      setting error_std to 0.5
       min day = -4.000
       max day = -2.000
     PRODUCT = CARS, TYPE = SAL, reader = standard
       reading obs/TS-SEP-2011/y2007/m12/cars_salt_d19.nc:
         # profiles = 366
         # z levels = 191
+        nobs = 530
         # unique locations = 365
         # good obs = 176
       reading obs/TS-SEP-2011/y2007/m12/cars_salt_d20.nc:
         # profiles = 360
         # z levels = 191
+        nobs = 412
         # unique locations = 360
         # good obs = 56
       reading obs/TS-SEP-2011/y2007/m12/cars_salt_d21.nc:
         # profiles = 314
         # z levels = 191
+        nobs = 362
         # unique locations = 314
         # good obs = 56
       reading obs/TS-SEP-2011/y2007/m12/cars_salt_d22.nc:
         # profiles = 323
         # z levels = 191
+        nobs = 318
         # unique locations = 323
         # good obs = 0
       reading obs/TS-SEP-2011/y2007/m12/cars_salt_d23.nc:
         # profiles = 325
         # z levels = 191
+        nobs = 317
         # unique locations = 325
         # good obs = 0
       id = 9518 - 9805
       total 288 observations
       184 valid observations
-      adding error_std = 0.1:
+      setting error_std to 0.1
       min day = -4.000
       max day = -2.000
     compacting obs:
@@ -329,5 +344,5 @@
     TEM     184      104      104      0        0        0        0        0        0        0        7       
     SAL     184      104      104      0        0        0        0        0        0        0        7       
     total   9598     208      208      0        0        0        0        0        0        0        3813    
-  2019-04-29 14:09:49
+  2020-03-11 13:08:29
   finished

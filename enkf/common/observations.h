@@ -74,7 +74,7 @@ typedef struct {
     kdtree** loctrees;
 #endif
 #if defined(HE_VIASHMEM)
-    MPI_Win* sm_comm_win;
+    MPI_Win* sm_comm_wins;
 #endif
     int** obsids;
 

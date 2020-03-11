@@ -119,7 +119,7 @@ void enkf_init(int* argc, char*** argv)
     MPI_Init(argc, argv);
     MPI_Comm_size(MPI_COMM_WORLD, &nprocesses);
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-    if (*argc > 1 && nprocesses > 1) {
+    if (*argc > 1) {
         enkf_printf("  MPI: initialised %d process(es)\n", nprocesses);
         MPI_Barrier(MPI_COMM_WORLD);
         if (enkf_verbose) {

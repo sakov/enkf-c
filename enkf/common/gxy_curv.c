@@ -111,6 +111,7 @@ void gxy_curv_destroy(gxy_curv* gxy)
     kd_destroy(gxy->nodetreeXY);
 #if defined(HE_VIASHMEM)
     MPI_Win_free(&gxy->sm_comm_win);
+    assert(gxy->sm_comm_win == MPI_WIN_NULL);
 #endif
     free(gxy);
 }
