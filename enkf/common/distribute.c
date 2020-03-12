@@ -79,7 +79,6 @@ void distribute_iterations(int i1, int i2, int nproc, int rank, char prefix[])
     n = i2 - i1 + 1;
     npp = n / nproc;
     if (n % nproc == 0) {
-        my_number_of_iterations = npp;
         for (i = 0; i < nproc; ++i)
             number_of_iterations[i] = npp;
         if (prefix != NULL)
