@@ -44,7 +44,6 @@
 #define EPSF 1.0e-6f
 #define EPSD 1.0e-10
 #if defined(HE_VIASHMEM)
-#define HE_NPROCMAX 20
 #endif
 
 /**
@@ -991,10 +990,15 @@ static void update_HE(dasystem* das)
         goto finish;
 
 #if defined(HE_VIASHMEM)
-    distribute_iterations(0, nobs - 1, (nprocesses > HE_NPROCMAX) ? HE_NPROCMAX : nprocesses, rank, "    ");
-    for (e = 0; e < nmem; ++e)
-        for (o = my_first_iteration; o <= my_last_iteration; ++o)
-            das->St[o][e] = das->S[e][o];
+    {
+        int nproc;
+
+        for (nproc = 0; nproc < nprocesses && node_comm_ranks[nproc] != 1; ++nproc);
+        distribute_iterations(0, nobs - 1, nproc, rank, "    ");
+        for (e = 0; e < nmem; ++e)
+            for (o = my_first_iteration; o <= my_last_iteration; ++o)
+                das->St[o][e] = das->S[e][o];
+    }
 #else
     my_first_iteration = 0;
     my_last_iteration = nobs - 1;
@@ -1270,10 +1274,14 @@ static void update_Hx(dasystem* das)
         goto finish;
 
 #if defined(HE_VIASHMEM)
-    distribute_iterations(0, nobs - 1, (nprocesses > HE_NPROCMAX) ? HE_NPROCMAX : nprocesses, rank, "    ");
-    for (e = 0; e < nmem; ++e)
-        for (o = my_first_iteration; o <= my_last_iteration; ++o)
-            das->St[o][e] = das->S[e][o];
+    {
+        int nproc;
+
+        for (nproc = 0; nproc < nprocesses && node_comm_ranks[nproc] != 1; ++nproc);
+        for (e = 0; e < nmem; ++e)
+            for (o = my_first_iteration; o <= my_last_iteration; ++o)
+                das->St[o][e] = das->S[e][o];
+    }
 #else
     my_first_iteration = 0;
     my_last_iteration = nobs - 1;

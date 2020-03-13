@@ -1,3 +1,7 @@
+v. 1.110.2
+   PS 13032020
+   -- Replaced # of CPUs used for updating HE from "#define HE_NPROCMAX 20" to
+      the number of cores used on the first node.
 v. 1.110.1
    PS 11032020
    -- Updated example logs.
