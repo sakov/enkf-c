@@ -1453,6 +1453,8 @@ void obs_createkdtrees(observations* obs)
         free(ids);
 #endif
     }
+    if (print_mem)
+        print_memory_usage();
 }
 #endif
 

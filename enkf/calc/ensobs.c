@@ -125,6 +125,9 @@ void das_getHE(dasystem* das)
     das->St = calloc(nobs, sizeof(void*));
     for (i = 0; i < nobs; ++i)
         das->St[i] = &SSt[i * nmem];
+
+    if (print_mem)
+        print_memory_usage();
 #endif
 
     distribute_iterations(0, nmem - 1, nprocesses, rank, "    ");

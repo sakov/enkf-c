@@ -161,6 +161,7 @@ extern int enkf_nomeanupdate;
 extern int enkf_fstatsonly;
 extern int enkf_noobsdatecheck;
 extern int enkf_considersubgridvar;
+extern int print_mem;
 
 typedef struct {
     char* name;
