@@ -1424,7 +1424,7 @@ void obs_createkdtrees(observations* obs)
             int ierror;
 
             size = kd_getstoragesize(*tree);
-            if (sm_comm_rank == 0) {
+            if (sm_comm_rank == sm_comm_rank_master) {
                 void* storage = NULL;
                 int ierror;
 
@@ -1439,11 +1439,12 @@ void obs_createkdtrees(observations* obs)
 
                 ierror = MPI_Win_allocate_shared(0, sizeof(double), MPI_INFO_NULL, sm_comm, &storage, sm_comm_win);
                 assert(ierror == MPI_SUCCESS);
-                ierror = MPI_Win_shared_query(*sm_comm_win, 0, &my_size, &disp_unit, &storage);
+                ierror = MPI_Win_shared_query(*sm_comm_win, sm_comm_rank_master, &my_size, &disp_unit, &storage);
                 assert(ierror == MPI_SUCCESS);
                 assert(my_size = size);
                 kd_relocate(*tree, storage, 0);
             }
+            sm_comm_rank_master = (sm_comm_rank_master + 1) % sm_comm_size;
         }
 #endif
         kd_printinfo(*tree, "      ");

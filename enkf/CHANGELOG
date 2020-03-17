@@ -1,3 +1,13 @@
+v. 1.110.4
+   PS 17032020
+   -- Split das->S and das->St arrays, including allocating shared memory from
+      different processes.
+v. 1.110.3
+   PS 17032020
+   -- In CALC added option "--print-memory-usage".
+   -- Added global variables `sm_comm_size' and `sm_comm_rank_master' to manage
+      process used for shared memory allocation (rather than using process with
+      sm_comm_rank = 0 only).
 v. 1.110.2
    PS 13032020
    -- Replaced # of CPUs used for updating HE from "#define HE_NPROCMAX 20" to

@@ -28,11 +28,12 @@
 observation* singleob = NULL;
 int singleob_ijk = 1;
 char* singleobtype = NULL;
-int printbatchstats = 0;
+int print_batchstats = 0;
 int ignorenoobs = 0;
 int use_rmsd = 0;
 int plogs_only = 0;
 int skip_transforms = 0;
+int print_mem = 0;
 
 /**
  */
@@ -52,6 +53,8 @@ static void usage()
     enkf_printf("      skip calculating transforms for the whole grid and observation stats\n");
     enkf_printf("  --print-batch-stats\n");
     enkf_printf("      calculate and print global biases for each batch of observations\n");
+    enkf_printf("  --print-memory-usage\n");
+    enkf_printf("      print memory usage by each process\n");
     enkf_printf("  --single-observation-xyz <lon> <lat> <depth> <type> <inn> <std>\n");
     enkf_printf("      assimilate single observation with these parameters\n");
     enkf_printf("  --single-observation-ijk <fi> <fj> <fk> <type> <inn> <std>\n");
@@ -112,7 +115,11 @@ static void parse_commandline(int argc, char* argv[], char** fname_prm, char** f
             i++;
             continue;
         } else if (strcmp(argv[i], "--print-batch-stats") == 0) {
-            printbatchstats = 1;
+            print_batchstats = 1;
+            i++;
+            continue;
+        } else if (strcmp(argv[i], "--print-memory-usage") == 0) {
+            print_mem = 1;
             i++;
             continue;
         } else if (strcmp(argv[i], "--point-logs-only") == 0) {
@@ -315,6 +322,9 @@ int main(int argc, char* argv[])
     enkf_printf("  initialising the system:\n");
     das = das_create(prm);
 
+    if (print_mem)
+        print_memory_usage();
+
     if (singleob == NULL) {
         if (fname_obs == NULL)
             fname_obs = strdup(FNAME_SOBS);
@@ -327,6 +337,9 @@ int main(int argc, char* argv[])
     }
     enkfprm_destroy(prm);
 
+    if (print_mem)
+        print_memory_usage();
+
     if (das->obs->nobs == 0 && !ignorenoobs)
         enkf_quit("nothing to do! (nobs = 0). Use \"--ignore-no-obs\" to proceed cleanly");
 
@@ -334,6 +347,9 @@ int main(int argc, char* argv[])
     enkf_printtime("  ");
     das_getHE(das);
     das_calcinnandspread(das);
+
+    if (print_mem)
+        print_memory_usage();
 
     if (singleob == NULL) {
         enkf_printf("  adding forecast innovations and spread to \"%s\":\n", fname_obs);
@@ -377,6 +393,9 @@ int main(int argc, char* argv[])
             das_calcpointlogtransforms(das);
         }
 
+        if (print_mem)
+            print_memory_usage();
+
         obs_destroykdtrees(das->obs);
 
         if (!plogs_only) {
@@ -401,8 +420,8 @@ int main(int argc, char* argv[])
         das_printfobsstats(das, use_rmsd);
     }
 
-    if (printbatchstats || das->nbadbatchspecs > 0)
-        das_calcbatchstats(das, printbatchstats);
+    if (print_batchstats || das->nbadbatchspecs > 0)
+        das_calcbatchstats(das, print_batchstats);
 
     das_destroy(das);
     free(fname_obs);

@@ -140,6 +140,8 @@ void enkf_init(int* argc, char*** argv)
             assert(ierror == MPI_SUCCESS);
             ierror = MPI_Comm_rank(sm_comm, &sm_comm_rank);
             assert(ierror == MPI_SUCCESS);
+            ierror = MPI_Comm_size(sm_comm, &sm_comm_size);
+            assert(ierror == MPI_SUCCESS);
             sm_comm_ranks = malloc(nprocesses * sizeof(int));
             /*
              * build map of local (i.e. within the node the core belongs to)
@@ -1274,3 +1276,92 @@ void kd_printinfo(kdtree* tree, char* offset)
     }
     enkf_flush();
 }
+
+#if defined MPI
+#include <memory.h>
+
+/**
+ */
+static int get_memory_usage_kb(size_t* vmrss_kb, size_t* vmsize_kb)
+{
+    /*
+     * Get the the current process' status file from the proc filesystem 
+     */
+    FILE* procfile = fopen("/proc/self/status", "r");
+
+    size_t to_read = 8192;
+    char buffer[to_read];
+
+    (void) fread(buffer, sizeof(char), to_read, procfile);
+    fclose(procfile);
+
+    int found_vmrss = 0;
+    int found_vmsize = 0;
+    char* search_result;
+
+    /*
+     * Look through proc status contents line by line 
+     */
+    char delims[] = "\n";
+    char* line = strtok(buffer, delims);
+
+    while (line != NULL && (found_vmrss == 0 || found_vmsize == 0)) {
+        search_result = strstr(line, "VmRSS:");
+        if (search_result != NULL) {
+            sscanf(line, "%*s %zu", vmrss_kb);
+            found_vmrss = 1;
+        }
+
+        search_result = strstr(line, "VmSize:");
+        if (search_result != NULL) {
+            sscanf(line, "%*s %zu", vmsize_kb);
+            found_vmsize = 1;
+        }
+
+        line = strtok(NULL, delims);
+    }
+
+    return (found_vmrss == 1 && found_vmsize == 1) ? 0 : 1;
+}
+
+/**
+ */
+static int get_cluster_memory_usage_kb(size_t* vmrss_per_process, size_t* vmsize_per_process, int root, int np)
+{
+    size_t vmrss_kb;
+    size_t vmsize_kb;
+    int ret_code = get_memory_usage_kb(&vmrss_kb, &vmsize_kb);
+
+    if (ret_code != 0)
+        enkf_quit("could not gather memory usage: %s\n", strerror(ret_code));
+
+    MPI_Gather(&vmrss_kb, 1, MPI_UNSIGNED_LONG, vmrss_per_process, 1, MPI_UNSIGNED_LONG, root, MPI_COMM_WORLD);
+
+    MPI_Gather(&vmsize_kb, 1, MPI_UNSIGNED_LONG, vmsize_per_process, 1, MPI_UNSIGNED_LONG, root, MPI_COMM_WORLD);
+
+    return 0;
+}
+
+/**
+ */
+void print_memory_usage()
+{
+    size_t vmrss_per_process[nprocesses];
+    size_t vmsize_per_process[nprocesses];
+    size_t vmrss, vmsize;
+
+    get_cluster_memory_usage_kb(vmrss_per_process, vmsize_per_process, 0, nprocesses);
+
+    if (rank == 0) {
+        int i;
+
+        enkf_printf("  Memory usage:\n");
+        for (i = 0, vmrss = 0, vmsize = 0; i < nprocesses; i++) {
+            enkf_printf("    process %03d: VmRSS = %zu kB, VmSize = %zu kB\n", i, vmrss_per_process[i], vmsize_per_process[i]);
+            vmrss += vmrss_per_process[i];
+            vmsize += vmsize_per_process[i];
+        }
+	enkf_printf("    total: VmRSS = %zu kB, VmSize = %zu kB\n", vmrss, vmsize);
+    }
+}
+#endif

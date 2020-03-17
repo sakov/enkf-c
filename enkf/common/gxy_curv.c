@@ -73,7 +73,7 @@ gxy_curv* gxy_curv_create(void* grid, int ni, int nj, double** x, double** y, in
         int ierror;
 
         size = kd_getstoragesize(gxy->nodetreeXY);
-        if (sm_comm_rank == 0) {
+        if (sm_comm_rank == sm_comm_rank_master) {
             void* storage = NULL;
             int ierror;
 
@@ -88,11 +88,12 @@ gxy_curv* gxy_curv_create(void* grid, int ni, int nj, double** x, double** y, in
 
             ierror = MPI_Win_allocate_shared(0, sizeof(double), MPI_INFO_NULL, sm_comm, &storage, &gxy->sm_comm_win);
             assert(ierror == MPI_SUCCESS);
-            ierror = MPI_Win_shared_query(gxy->sm_comm_win, 0, &my_size, &disp_unit, &storage);
+            ierror = MPI_Win_shared_query(gxy->sm_comm_win, sm_comm_rank_master, &my_size, &disp_unit, &storage);
             assert(ierror == MPI_SUCCESS);
             assert(my_size = size);
             kd_relocate(gxy->nodetreeXY, storage, 0);
         }
+        sm_comm_rank_master = (sm_comm_rank_master + 1) % sm_comm_size;
     }
 #endif
 

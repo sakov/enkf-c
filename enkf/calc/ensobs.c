@@ -58,6 +58,7 @@ void das_getHE(dasystem* das)
 
 #if defined (HE_VIASHMEM)
     ENSOBSTYPE* SS = NULL;
+    ENSOBSTYPE* SSt = NULL;
     MPI_Aint size;
     int ierror;
 #endif
@@ -73,30 +74,57 @@ void das_getHE(dasystem* das)
 #if !defined(HE_VIASHMEM)
     das->S = alloc2d(nmem, nobs, sizeof(ENSOBSTYPE));
 #else
-    das->S = calloc(nmem, sizeof(void*));
-    das->St = calloc(nobs, sizeof(void*));
-    size = nmem * nobs * sizeof(ENSOBSTYPE) * 2;
+    size = nmem * nobs * sizeof(ENSOBSTYPE);
+
+    /*
+     * S
+     */
     enkf_printf("    allocating %zu bytes for HE array:\n", size);
 
-    ierror = MPI_Win_allocate_shared((sm_comm_rank == 0) ? size : 0, sizeof(ENSOBSTYPE), MPI_INFO_NULL, sm_comm, &SS, &das->sm_comm_win_S);
+    ierror = MPI_Win_allocate_shared((sm_comm_rank == sm_comm_rank_master) ? size : 0, sizeof(ENSOBSTYPE), MPI_INFO_NULL, sm_comm, &SS, &das->sm_comm_win_S);
     assert(ierror == MPI_SUCCESS);
-
-    if (sm_comm_rank == 0) {
+    if (sm_comm_rank == sm_comm_rank_master)
         memset(SS, 0, size);
-    } else {
+    else {
         int disp_unit;
         MPI_Aint my_size;
 
-        ierror = MPI_Win_shared_query(das->sm_comm_win_S, 0, &my_size, &disp_unit, &SS);
+        ierror = MPI_Win_shared_query(das->sm_comm_win_S, sm_comm_rank_master, &my_size, &disp_unit, &SS);
         assert(ierror == MPI_SUCCESS);
         assert(my_size == size);
         assert(disp_unit == sizeof(ENSOBSTYPE));
     }
+    sm_comm_rank_master = (sm_comm_rank_master + 1) % sm_comm_size;
     MPI_Barrier(MPI_COMM_WORLD);
+
+    das->S = calloc(nmem, sizeof(void*));
     for (i = 0; i < nmem; ++i)
         das->S[i] = &SS[i * nobs];
+
+    /*
+     * St
+     */
+    enkf_printf("    allocating %zu bytes for HE^T array:\n", size);
+
+    ierror = MPI_Win_allocate_shared((sm_comm_rank == sm_comm_rank_master) ? size : 0, sizeof(ENSOBSTYPE), MPI_INFO_NULL, sm_comm, &SSt, &das->sm_comm_win_St);
+    assert(ierror == MPI_SUCCESS);
+    if (sm_comm_rank == sm_comm_rank_master)
+        memset(SSt, 0, size);
+    else {
+        int disp_unit;
+        MPI_Aint my_size;
+
+        ierror = MPI_Win_shared_query(das->sm_comm_win_St, sm_comm_rank_master, &my_size, &disp_unit, &SSt);
+        assert(ierror == MPI_SUCCESS);
+        assert(my_size == size);
+        assert(disp_unit == sizeof(ENSOBSTYPE));
+    }
+    sm_comm_rank_master = (sm_comm_rank_master + 1) % sm_comm_size;
+    MPI_Barrier(MPI_COMM_WORLD);
+
+    das->St = calloc(nobs, sizeof(void*));
     for (i = 0; i < nobs; ++i)
-        das->St[i] = &SS[(i + nobs) * nmem];
+        das->St[i] = &SSt[i * nmem];
 #endif
 
     distribute_iterations(0, nmem - 1, nprocesses, rank, "    ");
@@ -991,10 +1019,7 @@ static void update_HE(dasystem* das)
 
 #if defined(HE_VIASHMEM)
     {
-        int nproc;
-
-        for (nproc = 0; nproc < nprocesses && node_comm_ranks[nproc] != 1; ++nproc);
-        distribute_iterations(0, nobs - 1, nproc, rank, "    ");
+        distribute_iterations(0, nobs - 1, sm_comm_size, rank, "    ");
         for (e = 0; e < nmem; ++e)
             for (o = my_first_iteration; o <= my_last_iteration; ++o)
                 das->St[o][e] = das->S[e][o];
