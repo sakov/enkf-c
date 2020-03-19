@@ -326,11 +326,7 @@ void kd_allocate(kdtree* tree, size_t n)
  */
 void kd_finalise(kdtree* tree)
 {
-
-    if (tree->nallocated < tree->nnodes)
-        quit("programming error");
-
-    if (tree->nallocated > 0 && tree->nallocated > tree->nnodes) {
+    if (tree->nallocated > tree->nnodes) {
         tree->nodes = realloc(tree->nodes, tree->nnodes * sizeof(kdnode));
         tree->coords = realloc(tree->coords, tree->nnodes * tree->ndim * sizeof(double));
         tree->nallocated = tree->nnodes;

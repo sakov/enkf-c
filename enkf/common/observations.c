@@ -1417,7 +1417,6 @@ void obs_createkdtrees(observations* obs)
             kd_insertnode(*tree, xyz, i);
 #endif
         }
-        kd_finalise(*tree);
 #if defined(HE_VIASHMEM)
         {
             MPI_Win* sm_comm_win = &obs->sm_comm_wins[otid];
