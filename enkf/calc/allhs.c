@@ -31,7 +31,8 @@ H_entry allhentries[] = {
     {1, "standard", H_surf_standard},
     {1, "biased", H_surf_biased},
     {0, "standard", H_subsurf_standard},
-    {0, "wsurfbias", H_subsurf_wsurfbias}
+    {0, "wsurfbias", H_subsurf_wsurfbias},
+    {0, "lowmem", H_subsurf_lowmem}
 };
 
 /** List H-functions for all observation types (obstypename = NULL) or for

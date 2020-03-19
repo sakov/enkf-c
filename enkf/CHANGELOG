@@ -1,3 +1,10 @@
+v. 1.111.0
+   PS 19032020
+   -- Created H_subsurf_lowmem() as an alternative to H_subsurf_standard(). The
+      new function reads variable by two layers at a time rather than the whole
+      3D field. This is aimed at reducing memory when dealing with very large
+      models, but somehow I can not see the reduction in memory usage so far
+      :(.
 v. 1.110.4
    PS 17032020
    -- Split das->S and das->St arrays, including allocating shared memory from

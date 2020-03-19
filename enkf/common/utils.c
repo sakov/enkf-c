@@ -1356,12 +1356,15 @@ void print_memory_usage()
         int i;
 
         enkf_printf("  Memory usage:\n");
-        for (i = 0, vmrss = 0, vmsize = 0; i < nprocesses; i++) {
-            enkf_printf("    process %03d: VmRSS = %zu kB, VmSize = %zu kB\n", i, vmrss_per_process[i], vmsize_per_process[i]);
-            vmrss += vmrss_per_process[i];
-            vmsize += vmsize_per_process[i];
-        }
-	enkf_printf("    total: VmRSS = %zu kB, VmSize = %zu kB\n", vmrss, vmsize);
+        if (nprocesses > 1) {
+            for (i = 0, vmrss = 0, vmsize = 0; i < nprocesses; i++) {
+                enkf_printf("    process %03d: VmRSS = %zu kB, VmSize = %zu kB\n", i, vmrss_per_process[i], vmsize_per_process[i]);
+                vmrss += vmrss_per_process[i];
+                vmsize += vmsize_per_process[i];
+            }
+            enkf_printf("    total: VmRSS = %zu kB, VmSize = %zu kB\n", vmrss, vmsize);
+        } else
+            enkf_printf("    VmRSS = %zu kB, VmSize = %zu kB\n", vmrss_per_process[0], vmsize_per_process[0]);
     }
 }
 #endif

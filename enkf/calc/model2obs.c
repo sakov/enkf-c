@@ -266,8 +266,115 @@ void H_subsurf_standard(dasystem* das, int nobs, int obsids[], char fname[], int
     free(src);
 }
 
+static int cmp_obs_byfk(const void* p1, const void* p2, void* p)
+{
+    observation* obs = (observation*) p;
+    observation* o1 = &obs[*(int*) p1];
+    observation* o2 = &obs[*(int*) p2];
+
+    if (o1->fk > o2->fk)
+        return 1;
+    if (o1->fk < o2->fk)
+        return -1;
+    return 0;
+}
+
+/**
+ */
+void H_subsurf_lowmem(dasystem* das, int nobs, int obsids[], char fname[], int mem, int t, ENSOBSTYPE dst[])
+{
+    model* m = das->m;
+    observations* allobs = das->obs;
+    int otid = allobs->data[obsids[0]].type;
+    obstype* ot = &allobs->obstypes[otid];
+    int mvid = model_getvarid(m, ot->varnames[0], 1);
+    int ni, nj, nk;
+    float** src1 = NULL;
+    float** src2 = NULL;
+    float*** src;
+    char tag_offset[MAXSTRLEN];
+    void* offset_data = NULL;
+    int k1, i1, i2, k1_now, k2_now;;
+
+    assert(ot->nvar == 1);      /* should we care? */
+    model_getvargridsize(m, mvid, &ni, &nj, &nk);
+
+    if (nk == 1) {
+        H_subsurf_standard(das, nobs, obsids, fname, mem, t, dst);
+        return;
+    }
+
+    snprintf(tag_offset, MAXSTRLEN, "%s:OFFSET", allobs->obstypes[allobs->data[obsids[0]].type].name);
+    offset_data = model_getdata(m, tag_offset);
+    if (offset_data != NULL) {
+        if (model_getdataalloctype(m, tag_offset) == ALLOCTYPE_3D)
+            enkf_quit("obstype = %s: \"lowmem\" subsurface H-function works with 1D offsets only; use \"standard\" function for 3D offset", ot->name);
+        else if (model_getdataalloctype(m, tag_offset) == ALLOCTYPE_2D)
+            enkf_quit("obstype = %s:  \"lowmem\" subsurface H-function works with 1D offsets only", ot->name);
+    }
+
+    src = calloc(nk, sizeof(float**));
+    src1 = alloc2d(nj, ni, sizeof(float));
+    src2 = alloc2d(nj, ni, sizeof(float));
+
+    /*
+     * (we assume that obsids are not used elsewhere)
+     */
+    qsort_r(obsids, nobs, sizeof(int), cmp_obs_byfk, allobs->data);
+
+    for (k1 = 0, i1 = 0, i2 = -1, k1_now = -1, k2_now = -1; k1 < nk - 1 && i2 < nobs; ++k1) {
+        int k2 = k1 + 1;
+
+        while (i2 + 1 < nobs && allobs->data[obsids[i2 + 1]].fk < (double) k2)
+            i2++;
+
+        if (i2 < i1)
+            continue;
+
+        if (k2_now == k1) {
+            void* tmp = src1;
+
+            src1 = src2;
+            src2 = tmp;
+            k1_now = k1;
+        }
+        if (k1_now != k1) {
+            model_readfield(m, fname, ot->varnames[0], k1, src1[0]);
+            k1_now = k1;
+        }
+        model_readfield(m, fname, ot->varnames[0], k2, src2[0]);
+        k2_now = k2;
+
+        /*
+         * (interpolate)
+         */
+        src[k1] = src1;
+        src[k2] = src2;
+        if (offset_data != NULL) {
+            int k;
+
+            for (k = k1; k <= k2; ++k) {
+                float* srck = src[k][0];
+                float offsetk = ((float*) offset_data)[k];
+                int ij;
+
+                for (ij = 0; ij < ni * nj; ++ij)
+                    srck[ij] -= offsetk;
+            }
+        }
+        interpolate_3d_obs(m, allobs, i2 - i1 + 1, &obsids[i1], fname, src, dst);
+
+        i1 = i2 + 1;
+    }
+    free(src1);
+    free(src2);
+    free(src);
+}
+
 #define MLD_TRANSITION 0.1
 
+/**
+ */
 static double mldtaper(double mld, double z)
 {
     double v;
