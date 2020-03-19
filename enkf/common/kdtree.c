@@ -308,6 +308,20 @@ void kd_insertnodes(kdtree* tree, size_t n, double** src, size_t* data, int* mas
     free(coords);
 }
 
+/* allocate space for n nodes
+ */
+void kd_allocate(kdtree* tree, size_t n)
+{
+    if (n <= tree->nallocated)
+        return;
+
+    tree->nodes = realloc(tree->nodes, n * sizeof(kdnode));
+    tree->coords = realloc(tree->coords, n * tree->ndim * sizeof(double));
+    if (tree->nallocated == 0)
+        tree->nodes[0].id = SIZE_MAX;
+    tree->nallocated = n;
+}
+
 /**
  */
 void kd_finalise(kdtree* tree)

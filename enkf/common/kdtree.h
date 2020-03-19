@@ -43,6 +43,10 @@ void kd_insertnode(kdtree* tree, const double* coords, size_t id_extern);
  */
 void kd_insertnodes(kdtree* tree, size_t n, double** src, size_t* ids_extern, int* mask, int randomise);
 
+/* allocate space for n nodes
+ */
+void kd_allocate(kdtree* tree, size_t n);
+
 /* set the allocated number of nodes to the actual number
  */
 void kd_finalise(kdtree* tree);

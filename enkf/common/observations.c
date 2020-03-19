@@ -1399,6 +1399,7 @@ void obs_createkdtrees(observations* obs)
 #endif
 
         *tree = kd_create(ot->name, 3);
+        kd_allocate(*tree, nobs);
         for (i = 0; i < nobs; ++i) {
 #if defined(OBS_SHUFFLE)
             int id = ids[i];
