@@ -97,8 +97,6 @@ gxy_curv* gxy_curv_create(void* grid, int ni, int nj, double** x, double** y, in
     }
 #endif
 
-    kd_printinfo(gxy->nodetreeXY, "    ");
-
     return gxy;
 }
 

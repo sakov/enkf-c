@@ -1,3 +1,6 @@
+v. 1.111.2
+   PS 19032020
+   -- Removed redundant kd_printinfo() in gxy_curv_create().
 v. 1.111.1
    PS 19032020
    -- A minor change in obs_createkdtrees() to pre-allocate the known number of
