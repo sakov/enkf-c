@@ -1399,31 +1399,13 @@ void obs_createkdtrees(observations* obs)
 #endif
 
         *tree = kd_create(ot->name, 3);
-        kd_allocate(*tree, nobs);
-        for (i = 0; i < nobs; ++i) {
-#if defined(OBS_SHUFFLE)
-            int id = ids[i];
-            observation* o = &obs->data[obsids[id]];
-#else
-            observation* o = &obs->data[obsids[i]];
-#endif
-            double ll[2] = { o->lon, o->lat };
-            double xyz[3];
-
-            ll2xyz(ll, xyz);
-#if defined(OBS_SHUFFLE)
-            kd_insertnode(*tree, xyz, id);
-#else
-            kd_insertnode(*tree, xyz, i);
-#endif
-        }
 #if defined(HE_VIASHMEM)
         {
             MPI_Win* sm_comm_win = &obs->sm_comm_wins_kd[otid];
             MPI_Aint size;
             int ierror;
 
-            size = kd_getstoragesize(*tree, 0);
+            size = kd_getstoragesize(*tree, nobs);
             if (sm_comm_rank == sm_comm_rank_master) {
                 void* storage = NULL;
                 int ierror;
@@ -1431,7 +1413,7 @@ void obs_createkdtrees(observations* obs)
                 assert(sizeof(MPI_Aint) == sizeof(size_t));
                 ierror = MPI_Win_allocate_shared(size, sizeof(double), MPI_INFO_NULL, sm_comm, &storage, sm_comm_win);
                 assert(ierror == MPI_SUCCESS);
-                kd_relocate(*tree, storage, 1);
+                kd_allocate(*tree, nobs, storage);
             } else {
                 MPI_Aint my_size;
                 void* storage = NULL;
@@ -1442,10 +1424,37 @@ void obs_createkdtrees(observations* obs)
                 ierror = MPI_Win_shared_query(*sm_comm_win, sm_comm_rank_master, &my_size, &disp_unit, &storage);
                 assert(ierror == MPI_SUCCESS);
                 assert(my_size = size);
-                kd_relocate(*tree, storage, 0);
+                kd_allocate(*tree, nobs, storage);
+                kd_syncsize(*tree);
             }
-            sm_comm_rank_master = (sm_comm_rank_master + 1) % sm_comm_size;
         }
+#else
+        kd_allocate(*tree, nobs, NULL);
+#endif
+#if defined(HE_VIASHMEM)
+        if (sm_comm_rank == sm_comm_rank_master) {
+#endif
+            for (i = 0; i < nobs; ++i) {
+#if defined(OBS_SHUFFLE)
+                int id = ids[i];
+                observation* o = &obs->data[obsids[id]];
+#else
+                observation* o = &obs->data[obsids[i]];
+#endif
+                double ll[2] = { o->lon, o->lat };
+                double xyz[3];
+
+                ll2xyz(ll, xyz);
+#if defined(OBS_SHUFFLE)
+                kd_insertnode(*tree, xyz, id);
+#else
+                kd_insertnode(*tree, xyz, i);
+#endif
+            }
+#if defined(HE_VIASHMEM)
+        }
+        MPI_Barrier(MPI_COMM_WORLD);
+        sm_comm_rank_master = (sm_comm_rank_master + 1) % sm_comm_size;
 #endif
         kd_printinfo(*tree, "      ");
 

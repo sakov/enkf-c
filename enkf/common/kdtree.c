@@ -31,6 +31,7 @@
 #include <stdint.h>
 #include <stdarg.h>
 #include <errno.h>
+#include <assert.h>
 #include "kdtree.h"
 
 #define NALLOCSTART 1024
@@ -165,8 +166,7 @@ void kd_insertnode(kdtree* tree, const double* coords, size_t data)
     size_t nallocated_prev = tree->nallocated;
     int i;
 
-    if (tree->nallocated < tree->nnodes)
-        quit("programming error");
+    assert(tree->nallocated >= tree->nnodes);
 
     if (!isfinite(coords[0]))
         return;
@@ -179,7 +179,7 @@ void kd_insertnode(kdtree* tree, const double* coords, size_t data)
         tree->nodes = realloc(tree->nodes, tree->nallocated * sizeof(kdnode) + tree->nallocated * tree->ndim * sizeof(double));
         tree->coords = (double*) &tree->nodes[tree->nallocated];
         memmove(tree->coords, &tree->nodes[nallocated_prev], tree->nnodes * tree->ndim * sizeof(double));
-        if (tree->nallocated == NALLOCSTART)
+        if (tree->nnodes == 0)
             tree->nodes[0].id = SIZE_MAX;
     }
 
@@ -260,8 +260,7 @@ void kd_insertnodes(kdtree* tree, size_t n, double** src, size_t* data, int* mas
     double* coords;
     size_t i, j, ngood;
 
-    if (tree->nallocated < tree->nnodes)
-        quit("programming error");
+    assert(tree->nallocated >= tree->nnodes);
 
     if (n <= 0)
         return;
@@ -272,7 +271,7 @@ void kd_insertnodes(kdtree* tree, size_t n, double** src, size_t* data, int* mas
         tree->nodes = realloc(tree->nodes, tree->nallocated * sizeof(kdnode) + tree->nallocated * tree->ndim * sizeof(double));
         tree->coords = (double*) &tree->nodes[tree->nallocated];
         memmove(tree->coords, &tree->nodes[nallocated_prev], tree->nnodes * tree->ndim * sizeof(double));
-        if (tree->nallocated == n)
+        if (tree->nnodes == 0)
             tree->nodes[0].id = SIZE_MAX;
     }
 
@@ -313,19 +312,46 @@ void kd_insertnodes(kdtree* tree, size_t n, double** src, size_t* data, int* mas
     free(coords);
 }
 
-/* allocate space for n nodes
+/** Allocate/set space for n nodes
+ * @param tree Kd-tree
+ * @param n Number of nodes to allocate/set
+ * @param storage Either the external storage to use (must have the size to
+                  hold n nodes), or (if NULL) - a flag to allocate internally.
  */
-void kd_allocate(kdtree* tree, size_t n)
+void kd_allocate(kdtree* tree, size_t n, void* storage)
 {
-    if (n <= tree->nallocated)
+    if (n <= tree->nallocated) {
+        assert(storage == NULL);
         return;
+    }
 
-    tree->nodes = realloc(tree->nodes, n * sizeof(kdnode) + n * tree->ndim * sizeof(double));
-    tree->coords = (double*) &tree->nodes[n];
-    memmove(tree->coords, &tree->nodes[tree->nallocated], tree->nnodes * tree->ndim * sizeof(double));
-    if (tree->nallocated == 0)
+    if (storage == NULL) {
+        tree->nodes = realloc(tree->nodes, n * sizeof(kdnode) + n * tree->ndim * sizeof(double));
+        tree->coords = (double*) &tree->nodes[n];
+        memmove(tree->coords, &tree->nodes[tree->nallocated], tree->nnodes * tree->ndim * sizeof(double));
+    } else {
+        void* storage_prev = tree->nodes;
+
+        tree->nodes = storage;
+        tree->coords = (double*) &tree->nodes[n];
+        if (storage_prev != NULL) {
+            memmove(tree->nodes, storage_prev, tree->nnodes * sizeof(kdnode));
+            memmove(tree->coords, &((kdnode*) storage_prev)[tree->nallocated], tree->nnodes * tree->ndim * sizeof(double));
+            free(storage_prev);
+        }
+        tree->external_storage = 1;
+    }
+    if (tree->nnodes == 0)
         tree->nodes[0].id = SIZE_MAX;
     tree->nallocated = n;
+}
+
+/**
+ */
+void kd_syncsize(kdtree* tree)
+{
+    assert(tree->nnodes == 0);
+    tree->nnodes = tree->nallocated;
 }
 
 /**
@@ -387,8 +413,7 @@ void kd_relocate(kdtree* tree, void* storage, int docopy)
     char* mem = storage;
     void* storage_prev = tree->nodes;
 
-    if (tree->nallocated == 0 || tree->nnodes == 0)
-        quit("programming error");
+    assert(tree->nallocated != 0 && tree->nnodes != 0);
 
     if (docopy)
         memcpy(mem, tree->nodes, tree->nnodes * sizeof(kdnode));
