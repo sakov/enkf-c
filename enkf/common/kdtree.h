@@ -96,9 +96,10 @@ double* kd_getminmax(const kdtree* tree);
  */
 char* kd_getname(const kdtree* tree);
 
-/* get the memory size necessary for tree->nodes and tree->coords
+/* get the memory size necessary for tree->nodes and tree->coords for
+ * the current tree (nnodes = 0) or for the tree with `nnodes' nodes
  */
-size_t kd_getstoragesize(const kdtree* tree);
+size_t kd_getstoragesize(const kdtree* tree, size_t nnodes);
 
 /* relocate tree->nodes and tree->coords to the specified location in memory
  */

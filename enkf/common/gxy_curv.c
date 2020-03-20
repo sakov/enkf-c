@@ -72,7 +72,7 @@ gxy_curv* gxy_curv_create(void* grid, int ni, int nj, double** x, double** y, in
         MPI_Aint size;
         int ierror;
 
-        size = kd_getstoragesize(gxy->nodetreeXY);
+        size = kd_getstoragesize(gxy->nodetreeXY, 0);
         if (sm_comm_rank == sm_comm_rank_master) {
             void* storage = NULL;
             int ierror;

@@ -1,3 +1,7 @@
+v. 1.111.3
+   PS 20032020
+   -- Modified kdtree.c to allocate kdtree.nodes and kdtree.coords as a single
+      block of memory rather than two separate blocks.
 v. 1.111.2
    PS 19032020
    -- Removed redundant kd_printinfo() in gxy_curv_create().

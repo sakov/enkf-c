@@ -137,7 +137,7 @@ observations* obs_create(void)
     obs->loctrees = NULL;
     obs->obsids = NULL;
 #if defined(HE_VIASHMEM)
-    obs->sm_comm_wins = NULL;
+    obs->sm_comm_wins_kd = NULL;
 #endif
 #endif
     obs->da_time = NAN;
@@ -1359,11 +1359,11 @@ void obs_createkdtrees(observations* obs)
     obs->loctrees = calloc(obs->nobstypes, sizeof(kdtree*));
     obs->obsids = calloc(obs->nobstypes, sizeof(int*));
 #if defined(HE_VIASHMEM)
-    if (obs->sm_comm_wins != NULL)
+    if (obs->sm_comm_wins_kd != NULL)
         enkf_quit("programming error");
-    obs->sm_comm_wins = calloc(obs->nobstypes, sizeof(MPI_Win));
+    obs->sm_comm_wins_kd = calloc(obs->nobstypes, sizeof(MPI_Win));
     for (otid = 0; otid < obs->nobstypes; ++otid)
-        obs->sm_comm_wins[otid] = MPI_WIN_NULL;
+        obs->sm_comm_wins_kd[otid] = MPI_WIN_NULL;
 #endif
 
     for (otid = 0; otid < obs->nobstypes; ++otid) {
@@ -1419,11 +1419,11 @@ void obs_createkdtrees(observations* obs)
         }
 #if defined(HE_VIASHMEM)
         {
-            MPI_Win* sm_comm_win = &obs->sm_comm_wins[otid];
+            MPI_Win* sm_comm_win = &obs->sm_comm_wins_kd[otid];
             MPI_Aint size;
             int ierror;
 
-            size = kd_getstoragesize(*tree);
+            size = kd_getstoragesize(*tree, 0);
             if (sm_comm_rank == sm_comm_rank_master) {
                 void* storage = NULL;
                 int ierror;
@@ -1476,15 +1476,15 @@ void obs_destroykdtrees(observations* obs)
         *tree = NULL;
     }
 #if defined(HE_VIASHMEM)
-    if (obs->sm_comm_wins != NULL) {
+    if (obs->sm_comm_wins_kd != NULL) {
         for (otid = 0; otid < obs->nobstypes; ++otid) {
-            if (obs->sm_comm_wins[otid] == MPI_WIN_NULL)
+            if (obs->sm_comm_wins_kd[otid] == MPI_WIN_NULL)
                 continue;
-            MPI_Win_free(&obs->sm_comm_wins[otid]);
-            assert(obs->sm_comm_wins[otid] == MPI_WIN_NULL);
+            MPI_Win_free(&obs->sm_comm_wins_kd[otid]);
+            assert(obs->sm_comm_wins_kd[otid] == MPI_WIN_NULL);
         }
-        free(obs->sm_comm_wins);
-        obs->sm_comm_wins = NULL;
+        free(obs->sm_comm_wins_kd);
+        obs->sm_comm_wins_kd = NULL;
     }
 #endif
 }
