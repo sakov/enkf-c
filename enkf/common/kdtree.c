@@ -163,7 +163,6 @@ static int _kd_insertnode(kdtree* tree, size_t* id, const double* coords, size_t
  */
 void kd_insertnode(kdtree* tree, const double* coords, size_t data)
 {
-    size_t nallocated_prev = tree->nallocated;
     int i;
 
     assert(tree->nallocated >= tree->nnodes);
@@ -178,7 +177,7 @@ void kd_insertnode(kdtree* tree, const double* coords, size_t data)
             tree->nallocated = NALLOCSTART;
         tree->nodes = realloc(tree->nodes, tree->nallocated * sizeof(kdnode) + tree->nallocated * tree->ndim * sizeof(double));
         tree->coords = (double*) &tree->nodes[tree->nallocated];
-        memmove(tree->coords, &tree->nodes[nallocated_prev], tree->nnodes * tree->ndim * sizeof(double));
+        memmove(tree->coords, &tree->nodes[tree->nnodes], tree->nnodes * tree->ndim * sizeof(double));
         if (tree->nnodes == 0)
             tree->nodes[0].id = SIZE_MAX;
     }
@@ -410,20 +409,17 @@ size_t kd_getstoragesize(const kdtree* tree, size_t nnodes)
  */
 void kd_relocate(kdtree* tree, void* storage, int docopy)
 {
-    char* mem = storage;
     void* storage_prev = tree->nodes;
 
     assert(tree->nallocated != 0 && tree->nnodes != 0);
 
     if (docopy)
-        memcpy(mem, tree->nodes, tree->nnodes * sizeof(kdnode));
-    tree->nodes = (kdnode*) mem;
-
-    mem += tree->nnodes * sizeof(kdnode);
+        memcpy(storage, tree->nodes, tree->nnodes * sizeof(kdnode));
+    tree->nodes = storage;
 
     if (docopy)
-        memcpy(mem, tree->coords, tree->nnodes * tree->ndim * sizeof(double));
-    tree->coords = (double*) mem;
+        memcpy(&((kdnode*) storage)[tree->nnodes], tree->coords, tree->nnodes * tree->ndim * sizeof(double));
+    tree->coords = (double*) &((kdnode*) storage)[tree->nnodes];
 
     free(storage_prev);
     tree->external_storage = 1;

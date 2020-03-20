@@ -55,16 +55,14 @@ static void das_setnmem(dasystem* das)
     char fname[MAXSTRLEN];
     int nmem;
 
-    if (das->mode == MODE_NONE)
-        enkf_quit("programming error");
+    assert(das->mode != MODE_NONE);
 
     if (das->mode == MODE_ENOI && enkf_fstatsonly) {
         das->nmem = 1;
         return;
     }
 
-    if (das->ensdir == NULL)
-        enkf_quit("programming error");
+    assert(das->ensdir != NULL);
 
     nmem = 0;
     while (1) {

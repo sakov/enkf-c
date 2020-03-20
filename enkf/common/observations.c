@@ -1354,13 +1354,11 @@ void obs_createkdtrees(observations* obs)
 {
     int otid;
 
-    if (obs->loctrees != NULL || obs->obsids != NULL)
-        enkf_quit("programming error");
+    assert(obs->loctrees == NULL && obs->obsids == NULL);
     obs->loctrees = calloc(obs->nobstypes, sizeof(kdtree*));
     obs->obsids = calloc(obs->nobstypes, sizeof(int*));
 #if defined(HE_VIASHMEM)
-    if (obs->sm_comm_wins_kd != NULL)
-        enkf_quit("programming error");
+    assert(obs->sm_comm_wins_kd == NULL);
     obs->sm_comm_wins_kd = calloc(obs->nobstypes, sizeof(MPI_Win));
     for (otid = 0; otid < obs->nobstypes; ++otid)
         obs->sm_comm_wins_kd[otid] = MPI_WIN_NULL;
@@ -1388,8 +1386,7 @@ void obs_createkdtrees(observations* obs)
             free(obs->obsids[otid]);
         obs->obsids[otid] = obsids;
 
-        if (*tree != NULL)
-            enkf_quit("programming error");
+        assert(*tree == NULL);
 
 #if defined(OBS_SHUFFLE)
         ids = malloc(nobs * sizeof(int));
