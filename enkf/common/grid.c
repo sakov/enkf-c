@@ -1860,6 +1860,8 @@ void grids_destroy(int ngrid, void** grids)
 {
     int i;
 
+    if (ngrid == 0)
+        return;
     for (i = 0; i < ngrid; ++i)
         grid_destroy(grids[i]);
     free(grids);

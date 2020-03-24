@@ -277,10 +277,18 @@ static void model_freemodeldata(model* m)
 
 /**
  */
+void model_destroygrids(model* m)
+{
+    grids_destroy(m->ngrid, m->grids);
+    m->ngrid = 0;
+}
+
+/**
+ */
 void model_destroy(model* m)
 {
     free(m->name);
-    grids_destroy(m->ngrid, m->grids);
+    model_destroygrids(m);
     model_destroyvars(m);
     model_freemodeldata(m);
     st_destroy(m->domains);

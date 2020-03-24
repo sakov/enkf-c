@@ -66,13 +66,20 @@ gxy_curv* gxy_curv_create(void* grid, int ni, int nj, double** x, double** y, in
     nodecoords[0] = x[0];
     nodecoords[1] = y[0];
     gxy->nodetreeXY = kd_create(name, 2);
-    kd_insertnodes(gxy->nodetreeXY, ni * nj, nodecoords, NULL, (mask != NULL) ? mask[0] : NULL, 1);
 #if defined(HE_VIASHMEM)
     {
         MPI_Aint size;
         int ierror;
+        size_t nnodes, i;
 
-        size = kd_getstoragesize(gxy->nodetreeXY, 0);
+        if (mask == NULL)
+            nnodes = ni * nj;
+        else
+            for (i = 0, nnodes = 0; i < ni * nj; ++i)
+                if (mask[i] != 0)
+                    nnodes++;
+
+        size = kd_getstoragesize(gxy->nodetreeXY, nnodes);
         if (sm_comm_rank == sm_comm_rank_master) {
             void* storage = NULL;
             int ierror;
@@ -80,7 +87,8 @@ gxy_curv* gxy_curv_create(void* grid, int ni, int nj, double** x, double** y, in
             assert(sizeof(MPI_Aint) == sizeof(size_t));
             ierror = MPI_Win_allocate_shared(size, sizeof(double), MPI_INFO_NULL, sm_comm, &storage, &gxy->sm_comm_win);
             assert(ierror == MPI_SUCCESS);
-            kd_relocate(gxy->nodetreeXY, storage, 1);
+            kd_setstorage(gxy->nodetreeXY, nnodes, storage, 1);
+            kd_insertnodes(gxy->nodetreeXY, ni * nj, nodecoords, NULL, (mask != NULL) ? mask[0] : NULL, 1);
         } else {
             MPI_Aint my_size;
             void* storage = NULL;
@@ -91,10 +99,14 @@ gxy_curv* gxy_curv_create(void* grid, int ni, int nj, double** x, double** y, in
             ierror = MPI_Win_shared_query(gxy->sm_comm_win, sm_comm_rank_master, &my_size, &disp_unit, &storage);
             assert(ierror == MPI_SUCCESS);
             assert(my_size = size);
-            kd_relocate(gxy->nodetreeXY, storage, 0);
+            kd_setstorage(gxy->nodetreeXY, nnodes, storage, 0);
+            kd_syncsize(gxy->nodetreeXY);
         }
+        MPI_Barrier(MPI_COMM_WORLD);
         sm_comm_rank_master = (sm_comm_rank_master + 1) % sm_comm_size;
     }
+#else
+    kd_insertnodes(gxy->nodetreeXY, ni * nj, nodecoords, NULL, (mask != NULL) ? mask[0] : NULL, 1);
 #endif
 
     return gxy;

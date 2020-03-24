@@ -43,9 +43,9 @@ void kd_insertnode(kdtree* tree, const double* coords, size_t id_extern);
  */
 void kd_insertnodes(kdtree* tree, size_t n, double** src, size_t* ids_extern, int* mask, int randomise);
 
-/* allocate/set space for n nodes
+/* set space for n nodes
  */
-void kd_allocate(kdtree* tree, size_t n, void* storage);
+void kd_setstorage(kdtree* tree, size_t n, void* storage, int ismaster);
 
 /* set number of nnodes to nallocated
  */
@@ -105,12 +105,7 @@ char* kd_getname(const kdtree* tree);
  */
 size_t kd_getstoragesize(const kdtree* tree, size_t nnodes);
 
-/* relocate tree->nodes and tree->coords to the specified location in memory
- */
-void kd_relocate(kdtree* tree, void* storage, int docopy);
-
-/* read node id of the current result (SIZE_MAX if no more results are
- * available; advance the result set iterator)
+/* read next result (SIZE_MAX if no more results are available)
  */
 size_t kdset_readnext(kdset* set, double* dist);
 

@@ -1,10 +1,16 @@
+v. 1.111.5
+   PS 25032020
+   -- Further changes to kdtree.[ch] for relocatability of the trees, including
+      fixing a number of defects from v1.111.4.
+   -- Modified gxy_curv_create() to avoid creating temporal trees.
+   -- Changed grid attribute names in pointlog files from "NAME" to "name" and
+      from "DOMAIN" to "domain", as "NAME" somehow started to cause NetCDF
+      crashes with "String match to name in use".
 v. 1.111.4
    PS 20032020
    -- Modified kd-tree.c to make it possible copy information from one tree to
       another.
-   -- Modifiied creation obs_createkdtrees() to (i) avoid creating redundant
-      trees on slave shared memory nodes and (ii) avoid temporal allocation of
-      node buffer on the master shared memory node.
+   -- Modified obs_createkdtrees() to avoid creating temporal trees.
 v. 1.111.3
    PS 20032020
    -- Modified kdtree.c to allocate kdtree.nodes and kdtree.coords as a single

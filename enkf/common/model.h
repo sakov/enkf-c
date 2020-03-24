@@ -23,6 +23,7 @@ typedef struct variable variable;
 
 model* model_create(enkfprm* prm);
 void model_destroy(model* m);
+void model_destroygrids(model* m);
 void model_print(model* m, char offset[]);
 void model_describeprm(void);
 

@@ -178,8 +178,8 @@ void plog_create(dasystem* das, int plogid, int ploc, int* lobs, double* lcoeffs
         snprintf(varname, MAXSTRLEN, "grid%s", gridstr);
         ncw_def_var(ncid, varname, NC_INT, 0, NULL, &vid_grid);
         ncw_put_att_int(ncid, vid_grid, "id", 1, &gid);
-        ncw_put_att_text(ncid, vid_grid, "NAME", grid_getname(g));
-        ncw_put_att_text(ncid, vid_grid, "DOMAIN", grid_getdomainname(g));
+        ncw_put_att_text(ncid, vid_grid, "name", grid_getname(g));
+        ncw_put_att_text(ncid, vid_grid, "domain", grid_getdomainname(g));
         ncw_put_att_double(ncid, vid_grid, "fi", 1, &plog->fi[gid]);
         ncw_put_att_double(ncid, vid_grid, "fj", 1, &plog->fj[gid]);
         grid_getsize(g, &ni, &nj, &nk);

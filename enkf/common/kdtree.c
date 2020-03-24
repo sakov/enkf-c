@@ -110,15 +110,16 @@ kdtree* kd_create(char* name, size_t ndim)
     tree->ndim = ndim;
     tree->nnodes = 0;
     tree->nallocated = 0;
-    tree->nodes = NULL;
-    tree->coords = NULL;
     tree->min = malloc(ndim * 2 * sizeof(double));
+    tree->nodes = (void*) tree->min;
+    tree->coords = (void*) tree->min;
     tree->max = &tree->min[ndim];
+    tree->external_storage = 0;
+
     for (i = 0; i < ndim; ++i) {
         tree->min[i] = DBL_MAX;
         tree->max[i] = -DBL_MAX;
     }
-    tree->external_storage = 0;
 
     return tree;
 }
@@ -130,7 +131,6 @@ void kd_destroy(kdtree* tree)
     if (tree->nallocated > 0 && !tree->external_storage)
         free(tree->nodes);
     free(tree->name);
-    free(tree->min);
     free(tree);
 }
 
@@ -159,31 +159,55 @@ static int _kd_insertnode(kdtree* tree, size_t* id, const double* coords, size_t
     return _kd_insertnode(tree, (coords[node->dir] < tree->coords[node->id * ndim + node->dir]) ? &node->left : &node->right, coords, data, new_dir);
 }
 
+static void _kd_changealloc(kdtree* tree, size_t nallocated)
+{
+    int ndim = tree->ndim;
+
+    assert(nallocated >= tree->nnodes);
+    if (nallocated > tree->nallocated) {
+        double* coords_prev;
+        double* min_prev;
+
+        tree->nodes = realloc(tree->nodes, nallocated * sizeof(kdnode) + nallocated * ndim * sizeof(double) + ndim * 2 * sizeof(double));
+        tree->coords = (double*) &tree->nodes[nallocated];
+        coords_prev = (double*) &tree->nodes[tree->nallocated];
+        tree->min = &tree->coords[nallocated * ndim];
+        min_prev = &coords_prev[tree->nallocated * ndim];
+        memmove(tree->min, min_prev, ndim * 2 * sizeof(double));
+        memmove(tree->coords, coords_prev, tree->nnodes * ndim * sizeof(double));
+        tree->max = &tree->min[ndim];
+        if (tree->nnodes == 0)
+            tree->nodes[0].id = SIZE_MAX;
+    } else if (nallocated < tree->nallocated) {
+        tree->coords = (double*) &tree->nodes[nallocated];
+        memmove(tree->coords, &tree->nodes[tree->nallocated], tree->nnodes * ndim * sizeof(double));
+        tree->min = &tree->coords[nallocated * ndim];
+        memmove(tree->min, &tree->coords[tree->nallocated * ndim], ndim * 2 * sizeof(double));
+        tree->nodes = realloc(tree->nodes, nallocated * sizeof(kdnode) + nallocated * ndim * sizeof(double) + ndim * 2 * sizeof(double));
+        tree->coords = (double*) &tree->nodes[nallocated];
+        tree->min = &tree->coords[nallocated * ndim];
+        tree->max = &tree->min[ndim];
+    }
+    tree->nallocated = nallocated;
+}
+
 /**
  */
 void kd_insertnode(kdtree* tree, const double* coords, size_t data)
 {
-    int i;
+    size_t ndim = tree->ndim;
+    size_t i;
 
     assert(tree->nallocated >= tree->nnodes);
 
     if (!isfinite(coords[0]))
         return;
 
-    if (tree->nallocated == tree->nnodes) {
-        if (tree->nallocated != 0)
-            tree->nallocated *= 2;
-        else
-            tree->nallocated = NALLOCSTART;
-        tree->nodes = realloc(tree->nodes, tree->nallocated * sizeof(kdnode) + tree->nallocated * tree->ndim * sizeof(double));
-        tree->coords = (double*) &tree->nodes[tree->nallocated];
-        memmove(tree->coords, &tree->nodes[tree->nnodes], tree->nnodes * tree->ndim * sizeof(double));
-        if (tree->nnodes == 0)
-            tree->nodes[0].id = SIZE_MAX;
-    }
+    if (tree->nallocated == tree->nnodes)
+        _kd_changealloc(tree, (tree->nallocated != 0) ? tree->nallocated * 2 : NALLOCSTART);
 
     (void) _kd_insertnode(tree, &tree->nodes[0].id, coords, data, 0);
-    for (i = 0; i < tree->ndim; ++i) {
+    for (i = 0; i < ndim; ++i) {
         if (coords[i] < tree->min[i])
             tree->min[i] = coords[i];
         if (coords[i] > tree->max[i])
@@ -253,7 +277,6 @@ static void shuffle(size_t n, size_t ids[])
  */
 void kd_insertnodes(kdtree* tree, size_t n, double** src, size_t* data, int* mask, int randomise)
 {
-    size_t nallocated_prev = tree->nallocated;
     size_t nnodes_prev = tree->nnodes;
     size_t* ids = NULL;
     double* coords;
@@ -264,15 +287,8 @@ void kd_insertnodes(kdtree* tree, size_t n, double** src, size_t* data, int* mas
     if (n <= 0)
         return;
 
-    if (tree->nallocated - tree->nnodes < n) {
-        tree->nallocated += n;
-
-        tree->nodes = realloc(tree->nodes, tree->nallocated * sizeof(kdnode) + tree->nallocated * tree->ndim * sizeof(double));
-        tree->coords = (double*) &tree->nodes[tree->nallocated];
-        memmove(tree->coords, &tree->nodes[nallocated_prev], tree->nnodes * tree->ndim * sizeof(double));
-        if (tree->nnodes == 0)
-            tree->nodes[0].id = SIZE_MAX;
-    }
+    if (tree->nallocated - tree->nnodes < n)
+        _kd_changealloc(tree, tree->nnodes + n);
 
     if (randomise || mask != NULL) {
         ids = malloc(n * sizeof(size_t));
@@ -311,38 +327,36 @@ void kd_insertnodes(kdtree* tree, size_t n, double** src, size_t* data, int* mas
     free(coords);
 }
 
-/** Allocate/set space for n nodes
- * @param tree Kd-tree
- * @param n Number of nodes to allocate/set
- * @param storage Either the external storage to use (must have the size to
-                  hold n nodes), or (if NULL) - a flag to allocate internally.
+/** Allocate space for n nodes (for an empty tree only).
+ * @param tree     Kd-tree
+ * @param n        Number of nodes to allocate for
+ * @param storage  The external storage to use (must have the size to hold n
+ *                 nodes).
+ * @param ismaster Flag whether to initialise min/max
  */
-void kd_allocate(kdtree* tree, size_t n, void* storage)
+void kd_setstorage(kdtree* tree, size_t n, void* storage, int ismaster)
 {
-    if (n <= tree->nallocated) {
-        assert(storage == NULL);
-        return;
-    }
+    size_t ndim = tree->ndim;
 
-    if (storage == NULL) {
-        tree->nodes = realloc(tree->nodes, n * sizeof(kdnode) + n * tree->ndim * sizeof(double));
-        tree->coords = (double*) &tree->nodes[n];
-        memmove(tree->coords, &tree->nodes[tree->nallocated], tree->nnodes * tree->ndim * sizeof(double));
-    } else {
-        void* storage_prev = tree->nodes;
+    assert(tree->nnodes == 0);
+    free(tree->nodes);
 
-        tree->nodes = storage;
-        tree->coords = (double*) &tree->nodes[n];
-        if (storage_prev != NULL) {
-            memmove(tree->nodes, storage_prev, tree->nnodes * sizeof(kdnode));
-            memmove(tree->coords, &((kdnode*) storage_prev)[tree->nallocated], tree->nnodes * tree->ndim * sizeof(double));
-            free(storage_prev);
+    tree->nodes = storage;
+    tree->coords = (double*) &tree->nodes[n];
+    tree->min = &tree->coords[ndim * n];
+    tree->max = &tree->min[ndim];
+    tree->nodes[0].id = SIZE_MAX;
+    if (ismaster) {
+        int i;
+
+        for (i = 0; i < ndim; ++i) {
+            tree->min[i] = DBL_MAX;
+            tree->max[i] = -DBL_MAX;
         }
-        tree->external_storage = 1;
     }
-    if (tree->nnodes == 0)
-        tree->nodes[0].id = SIZE_MAX;
+
     tree->nallocated = n;
+    tree->external_storage = 1;
 }
 
 /**
@@ -402,27 +416,7 @@ size_t kd_getstoragesize(const kdtree* tree, size_t nnodes)
     if (nnodes == 0)
         nnodes = tree->nnodes;
 
-    return nnodes * sizeof(kdnode) + nnodes * tree->ndim * sizeof(double);
-}
-
-/** relocate tree to an external block in memory
- */
-void kd_relocate(kdtree* tree, void* storage, int docopy)
-{
-    void* storage_prev = tree->nodes;
-
-    assert(tree->nallocated != 0 && tree->nnodes != 0);
-
-    if (docopy)
-        memcpy(storage, tree->nodes, tree->nnodes * sizeof(kdnode));
-    tree->nodes = storage;
-
-    if (docopy)
-        memcpy(&((kdnode*) storage)[tree->nnodes], tree->coords, tree->nnodes * tree->ndim * sizeof(double));
-    tree->coords = (double*) &((kdnode*) storage)[tree->nnodes];
-
-    free(storage_prev);
-    tree->external_storage = 1;
+    return nnodes * sizeof(kdnode) + nnodes * tree->ndim * sizeof(double) + tree->ndim * 2 * sizeof(double);
 }
 
 /**
@@ -644,8 +638,8 @@ size_t kdset_getsize(const kdset* set)
     return set->size;
 }
 
-/** Reads the next record in the set.
- * @param set - (input) the set
+/** Reads the next result.
+ * @param set - (input) the set of results
  * @param dist - (output) the distance to the next node (or NAN)
  * @return - the ID of the next node (or SIZE MAX)
  */

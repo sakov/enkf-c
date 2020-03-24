@@ -94,8 +94,8 @@ void das_getHE(dasystem* das)
         assert(my_size == size);
         assert(disp_unit == sizeof(ENSOBSTYPE));
     }
-    sm_comm_rank_master = (sm_comm_rank_master + 1) % sm_comm_size;
     MPI_Barrier(MPI_COMM_WORLD);
+    sm_comm_rank_master = (sm_comm_rank_master + 1) % sm_comm_size;
 
     das->S = calloc(nmem, sizeof(void*));
     for (i = 0; i < nmem; ++i)
@@ -119,8 +119,8 @@ void das_getHE(dasystem* das)
         assert(my_size == size);
         assert(disp_unit == sizeof(ENSOBSTYPE));
     }
-    sm_comm_rank_master = (sm_comm_rank_master + 1) % sm_comm_size;
     MPI_Barrier(MPI_COMM_WORLD);
+    sm_comm_rank_master = (sm_comm_rank_master + 1) % sm_comm_size;
 
     das->St = calloc(nobs, sizeof(void*));
     for (i = 0; i < nobs; ++i)
