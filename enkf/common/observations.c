@@ -1403,7 +1403,7 @@ void obs_createkdtrees(observations* obs)
             int ierror;
 
             size = kd_getstoragesize(*tree, nobs);
-            if (sm_comm_rank == sm_comm_rank_master) {
+            if (sm_comm_rank == 0) {
                 void* storage = NULL;
                 int ierror;
 
@@ -1418,17 +1418,17 @@ void obs_createkdtrees(observations* obs)
 
                 ierror = MPI_Win_allocate_shared(0, sizeof(double), MPI_INFO_NULL, sm_comm, &storage, sm_comm_win);
                 assert(ierror == MPI_SUCCESS);
-                ierror = MPI_Win_shared_query(*sm_comm_win, sm_comm_rank_master, &my_size, &disp_unit, &storage);
+                ierror = MPI_Win_shared_query(*sm_comm_win, 0, &my_size, &disp_unit, &storage);
                 assert(ierror == MPI_SUCCESS);
                 assert(my_size = size);
                 kd_setstorage(*tree, nobs, storage, 0);
             }
         }
 #else
-        kd_allocate(*tree, nobs, NULL);
+        kd_setstorage(*tree, nobs, NULL, -1);
 #endif
 #if defined(HE_VIASHMEM)
-        if (sm_comm_rank == sm_comm_rank_master) {
+        if (sm_comm_rank == 0) {
 #endif
             for (i = 0; i < nobs; ++i) {
 #if defined(OBS_SHUFFLE)
@@ -1451,7 +1451,6 @@ void obs_createkdtrees(observations* obs)
         } else
             kd_syncsize(*tree);
         MPI_Barrier(MPI_COMM_WORLD);
-        sm_comm_rank_master = (sm_comm_rank_master + 1) % sm_comm_size;
 #endif
         kd_printinfo(*tree, "      ");
 

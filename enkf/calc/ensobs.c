@@ -81,21 +81,20 @@ void das_getHE(dasystem* das)
      */
     enkf_printf("    allocating %zu bytes for HE array:\n", size);
 
-    ierror = MPI_Win_allocate_shared((sm_comm_rank == sm_comm_rank_master) ? size : 0, sizeof(ENSOBSTYPE), MPI_INFO_NULL, sm_comm, &SS, &das->sm_comm_win_S);
+    ierror = MPI_Win_allocate_shared((sm_comm_rank == 0) ? size : 0, sizeof(ENSOBSTYPE), MPI_INFO_NULL, sm_comm, &SS, &das->sm_comm_win_S);
     assert(ierror == MPI_SUCCESS);
-    if (sm_comm_rank == sm_comm_rank_master)
+    if (sm_comm_rank == 0)
         memset(SS, 0, size);
     else {
         int disp_unit;
         MPI_Aint my_size;
 
-        ierror = MPI_Win_shared_query(das->sm_comm_win_S, sm_comm_rank_master, &my_size, &disp_unit, &SS);
+        ierror = MPI_Win_shared_query(das->sm_comm_win_S, 0, &my_size, &disp_unit, &SS);
         assert(ierror == MPI_SUCCESS);
         assert(my_size == size);
         assert(disp_unit == sizeof(ENSOBSTYPE));
     }
     MPI_Barrier(MPI_COMM_WORLD);
-    sm_comm_rank_master = (sm_comm_rank_master + 1) % sm_comm_size;
 
     das->S = calloc(nmem, sizeof(void*));
     for (i = 0; i < nmem; ++i)
@@ -106,21 +105,20 @@ void das_getHE(dasystem* das)
      */
     enkf_printf("    allocating %zu bytes for HE^T array:\n", size);
 
-    ierror = MPI_Win_allocate_shared((sm_comm_rank == sm_comm_rank_master) ? size : 0, sizeof(ENSOBSTYPE), MPI_INFO_NULL, sm_comm, &SSt, &das->sm_comm_win_St);
+    ierror = MPI_Win_allocate_shared((sm_comm_rank == 0) ? size : 0, sizeof(ENSOBSTYPE), MPI_INFO_NULL, sm_comm, &SSt, &das->sm_comm_win_St);
     assert(ierror == MPI_SUCCESS);
-    if (sm_comm_rank == sm_comm_rank_master)
+    if (sm_comm_rank == 0)
         memset(SSt, 0, size);
     else {
         int disp_unit;
         MPI_Aint my_size;
 
-        ierror = MPI_Win_shared_query(das->sm_comm_win_St, sm_comm_rank_master, &my_size, &disp_unit, &SSt);
+        ierror = MPI_Win_shared_query(das->sm_comm_win_St, 0, &my_size, &disp_unit, &SSt);
         assert(ierror == MPI_SUCCESS);
         assert(my_size == size);
         assert(disp_unit == sizeof(ENSOBSTYPE));
     }
     MPI_Barrier(MPI_COMM_WORLD);
-    sm_comm_rank_master = (sm_comm_rank_master + 1) % sm_comm_size;
 
     das->St = calloc(nobs, sizeof(void*));
     for (i = 0; i < nobs; ++i)

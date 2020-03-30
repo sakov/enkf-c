@@ -28,7 +28,6 @@ MPI_Comm sm_comm;
 int sm_comm_rank = -1;
 int sm_comm_size = 0;
 int* sm_comm_ranks = NULL;
-int sm_comm_rank_master = 0;
 
 /*
  * The node communicator includes the first core on each node. It is created

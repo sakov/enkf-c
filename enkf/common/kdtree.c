@@ -339,16 +339,23 @@ void kd_setstorage(kdtree* tree, size_t n, void* storage, int ismaster)
     size_t ndim = tree->ndim;
 
     assert(tree->nnodes == 0);
+    assert(n > 0);
+
+    if (storage == NULL) {
+        _kd_changealloc(tree, n);
+        return;
+    }
+
     free(tree->nodes);
 
     tree->nodes = storage;
     tree->coords = (double*) &tree->nodes[n];
     tree->min = &tree->coords[ndim * n];
     tree->max = &tree->min[ndim];
-    tree->nodes[0].id = SIZE_MAX;
     if (ismaster) {
-        int i;
+        size_t i;
 
+        tree->nodes[0].id = SIZE_MAX;
         for (i = 0; i < ndim; ++i) {
             tree->min[i] = DBL_MAX;
             tree->max[i] = -DBL_MAX;

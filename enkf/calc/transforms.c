@@ -241,9 +241,6 @@ void das_calctransforms(dasystem* das)
     assert(das->s_mode == S_MODE_HA_f);
     das_standardise(das);
 
-    enkf_printf("    creating kd-trees for observations:\n");
-    obs_createkdtrees(obs);
-
     for (gid = 0; gid < ngrid; ++gid) {
         void* grid = model_getgridbyid(m, gid);
         char* gridname = grid_getname(grid);

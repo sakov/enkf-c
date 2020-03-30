@@ -80,7 +80,7 @@ gxy_curv* gxy_curv_create(void* grid, int ni, int nj, double** x, double** y, in
                     nnodes++;
 
         size = kd_getstoragesize(gxy->nodetreeXY, nnodes);
-        if (sm_comm_rank == sm_comm_rank_master) {
+        if (sm_comm_rank == 0) {
             void* storage = NULL;
             int ierror;
 
@@ -96,14 +96,13 @@ gxy_curv* gxy_curv_create(void* grid, int ni, int nj, double** x, double** y, in
 
             ierror = MPI_Win_allocate_shared(0, sizeof(double), MPI_INFO_NULL, sm_comm, &storage, &gxy->sm_comm_win);
             assert(ierror == MPI_SUCCESS);
-            ierror = MPI_Win_shared_query(gxy->sm_comm_win, sm_comm_rank_master, &my_size, &disp_unit, &storage);
+            ierror = MPI_Win_shared_query(gxy->sm_comm_win, 0, &my_size, &disp_unit, &storage);
             assert(ierror == MPI_SUCCESS);
             assert(my_size = size);
             kd_setstorage(gxy->nodetreeXY, nnodes, storage, 0);
             kd_syncsize(gxy->nodetreeXY);
         }
         MPI_Barrier(MPI_COMM_WORLD);
-        sm_comm_rank_master = (sm_comm_rank_master + 1) % sm_comm_size;
     }
 #else
     kd_insertnodes(gxy->nodetreeXY, ni * nj, nodecoords, NULL, (mask != NULL) ? mask[0] : NULL, 1);
@@ -112,18 +111,29 @@ gxy_curv* gxy_curv_create(void* grid, int ni, int nj, double** x, double** y, in
     return gxy;
 }
 
-/**
- */
-void gxy_curv_destroy(gxy_curv* gxy)
+void gxy_curv_destroykdtree(gxy_curv* gxy)
 {
-    free(gxy->name);
-    free(gxy->x);
-    free(gxy->y);
+    if (gxy->nodetreeXY == NULL)
+        return;
     kd_destroy(gxy->nodetreeXY);
+    gxy->nodetreeXY = NULL;
 #if defined(HE_VIASHMEM)
     MPI_Win_free(&gxy->sm_comm_win);
     assert(gxy->sm_comm_win == MPI_WIN_NULL);
 #endif
+}
+
+/**
+ */
+void gxy_curv_destroy(gxy_curv* gxy)
+{
+    if (gxy == NULL)
+        return;
+
+    free(gxy->name);
+    free(gxy->x);
+    free(gxy->y);
+    gxy_curv_destroykdtree(gxy);
     free(gxy);
 }
 

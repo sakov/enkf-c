@@ -1,3 +1,13 @@
+v. 1.111.6
+   PS 25032020
+   -- In kd_setstorage() removed initialising top node on slave nodes.
+   -- Destroying kd-trees of curvilinear grids in CALC on an early stage.
+   -- In all shared memory allocations now using process with sm_rank = 0 as
+      master.
+   -- Modified kd_setstorage() to interpret the case `storage' = NULL as a flag
+      to change the storage size only.
+   -- Moved obs_createkdtrees() from das_calctransforms() to enkf_calc.c:main().
+   -- A number of cosmetic changes.
 v. 1.111.5
    PS 25032020
    -- Further changes to kdtree.[ch] for relocatability of the trees, including

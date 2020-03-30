@@ -67,7 +67,7 @@ void distribute_iterations(int i1, int i2, int nproc, int rank, char prefix[])
         last_iteration = malloc(nprocesses * sizeof(int));
     }
     if (prefix != NULL)
-        enkf_printf("%sdistributing iterations:\n", prefix);
+        enkf_printf("%sdistributing %d iterations:\n", prefix, i2 - i1 + 1);
 #if defined(MPI)
     if (prefix != NULL)
         fflush(stdout);

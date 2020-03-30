@@ -145,7 +145,6 @@ extern int sm_comm_rank;
 extern int sm_comm_size;
 extern MPI_Comm node_comm;
 extern int* sm_comm_ranks;
-extern int sm_comm_rank_master;
 extern int node_comm_rank;
 extern int node_comm_size;
 extern int* node_comm_ranks;

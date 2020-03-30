@@ -971,12 +971,11 @@ grid* grid_create(void* p, int id)
      * set horizontal grid
      */
     if (ndims_x == 1 && ndims_y == 1) {
-        int dummy;
         double* x;
         double* y;
 
-        ncw_inq_vardims(ncid, varid_x, 1, &dummy, &ni);
-        ncw_inq_vardims(ncid, varid_y, 1, &dummy, &nj);
+        ncw_inq_vardims(ncid, varid_x, 1, NULL, &ni);
+        ncw_inq_vardims(ncid, varid_y, 1, NULL, &nj);
 
         x = malloc(ni * sizeof(double));
         y = malloc(nj * sizeof(double));
@@ -987,22 +986,20 @@ grid* grid_create(void* p, int id)
         grid_sethgrid(g, GRIDHTYPE_LATLON, ni, nj, x, y);
     } else if (ndims_x == 2 && ndims_y == 2) {
 #if defined(ENKF_UPDATE)
-        int dummy;
         size_t dimlen[2];
 
-        ncw_inq_vardims(ncid, varid_x, 2, &dummy, dimlen);
+        ncw_inq_vardims(ncid, varid_x, 2, NULL, dimlen);
         ncw_check_vardims(ncid, varid_y, 2, dimlen);
         nj = dimlen[0];
         ni = dimlen[1];
 
         grid_sethgrid(g, GRIDHTYPE_NONE, ni, nj, NULL, NULL);
 #else
-        int dummy;
         double** x;
         double** y;
         size_t dimlen[2];
 
-        ncw_inq_vardims(ncid, varid_x, 2, &dummy, dimlen);
+        ncw_inq_vardims(ncid, varid_x, 2, NULL, dimlen);
         ncw_check_vardims(ncid, varid_y, 2, dimlen);
         nj = dimlen[0];
         ni = dimlen[1];
@@ -1032,18 +1029,17 @@ grid* grid_create(void* p, int id)
     if (g->vtype == GRIDVTYPE_NONE);
     else if (g->vtype == GRIDVTYPE_Z) {
         int varid;
-        int dummy;
         double* z = NULL;
         double* zc = NULL;
         size_t nkc = 0;
 
         ncw_inq_varid(ncid, prm->zvarname, &varid);
-        ncw_inq_vardims(ncid, varid, 1, &dummy, &nk);
+        ncw_inq_vardims(ncid, varid, 1, NULL, &nk);
         z = malloc(nk * sizeof(double));
         ncw_get_var_double(ncid, varid, z);
         if (prm->zcvarname != NULL) {
             ncw_inq_varid(ncid, prm->zcvarname, &varid);
-            ncw_inq_vardims(ncid, varid, 1, &dummy, &nkc);
+            ncw_inq_vardims(ncid, varid, 1, NULL, &nkc);
             /*
              * (nkc = nk in MOM)
              */
@@ -1056,7 +1052,6 @@ grid* grid_create(void* p, int id)
             free(zc);
     } else if (g->vtype == GRIDVTYPE_SIGMA) {
         int varid;
-        int dummy;
         double* ct = NULL;
         double* cc = NULL;
         double* st = NULL;
@@ -1064,7 +1059,7 @@ grid* grid_create(void* p, int id)
         double hc = 0.0;
 
         ncw_inq_varid(ncid, prm->cvarname, &varid);
-        ncw_inq_vardims(ncid, varid, 1, &dummy, &nk);
+        ncw_inq_vardims(ncid, varid, 1, NULL, &nk);
         ct = malloc(nk * sizeof(double));
         ncw_get_var_double(ncid, varid, ct);
         if (prm->ccvarname != NULL) {
@@ -1104,11 +1099,10 @@ grid* grid_create(void* p, int id)
         float** p1 = alloc2d(nj, ni, sizeof(float));
         float** p2 = alloc2d(nj, ni, sizeof(float));
         int varid;
-        int dummy;
         size_t dimlen[2];
 
         ncw_inq_varid(ncid, prm->avarname, &varid);
-        ncw_inq_vardims(ncid, varid, 1, &dummy, &nk);
+        ncw_inq_vardims(ncid, varid, 1, NULL, &nk);
         a = malloc(nk * sizeof(double));
         ncw_get_var_double(ncid, varid, a);
 
@@ -1866,6 +1860,23 @@ void grids_destroy(int ngrid, void** grids)
         grid_destroy(grids[i]);
     free(grids);
 }
+
+#if defined(ENKF_CALC)
+/**
+ */
+void grids_destroygxytrees(int ngrid, void** grids)
+{
+    int i;
+
+    for (i = 0; i < ngrid; ++i) {
+        grid* g = grids[i];
+
+        if (g->htype != GRIDHTYPE_CURVILINEAR)
+            continue;
+        gxy_curv_destroykdtree(g->gridnodes_xy);
+    }
+}
+#endif
 
 /**
  */

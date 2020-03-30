@@ -295,6 +295,13 @@ void model_destroy(model* m)
     free(m);
 }
 
+#if defined(ENKF_CALC)
+void model_destroygxytrees(model* m)
+{
+    grids_destroygxytrees(m->ngrid, m->grids);
+}
+#endif
+
 /**
  */
 void model_print(model* m, char offset[])
