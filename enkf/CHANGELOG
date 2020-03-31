@@ -1,5 +1,8 @@
-v. 1.111.6
-   PS 25032020
+v1.111.7
+   PS 31032020
+   -- Semi-cosmetic: corrected deallocation of a constructed MPI type.
+v1.111.6
+   PS 27032020
    -- In kd_setstorage() removed initialising top node on slave nodes.
    -- Destroying kd-trees of curvilinear grids in CALC on an early stage.
    -- In all shared memory allocations now using process with sm_rank = 0 as
@@ -8,7 +11,7 @@ v. 1.111.6
       to change the storage size only.
    -- Moved obs_createkdtrees() from das_calctransforms() to enkf_calc.c:main().
    -- A number of cosmetic changes.
-v. 1.111.5
+v1.111.5
    PS 25032020
    -- Further changes to kdtree.[ch] for relocatability of the trees, including
       fixing a number of defects from v1.111.4.
@@ -16,232 +19,232 @@ v. 1.111.5
    -- Changed grid attribute names in pointlog files from "NAME" to "name" and
       from "DOMAIN" to "domain", as "NAME" somehow started to cause NetCDF
       crashes with "String match to name in use".
-v. 1.111.4
+v1.111.4
    PS 20032020
    -- Modified kd-tree.c to make it possible copy information from one tree to
       another.
    -- Modified obs_createkdtrees() to avoid creating temporal trees.
-v. 1.111.3
+v1.111.3
    PS 20032020
    -- Modified kdtree.c to allocate kdtree.nodes and kdtree.coords as a single
       block of memory rather than two separate blocks.
-v. 1.111.2
+v1.111.2
    PS 19032020
    -- Removed redundant kd_printinfo() in gxy_curv_create().
-v. 1.111.1
+v1.111.1
    PS 19032020
    -- A minor change in obs_createkdtrees() to pre-allocate the known number of
       nodes in a tree.
-v. 1.111.0
+v1.111.0
    PS 19032020
    -- Created H_subsurf_lowmem() as an alternative to H_subsurf_standard(). The
       new function reads variable by two layers at a time rather than the whole
       3D field. This is aimed at reducing memory when dealing with very large
       models, but somehow I can not see the reduction in memory usage so far
       :(.
-v. 1.110.4
+v1.110.4
    PS 17032020
    -- Split das->S and das->St arrays, including allocating shared memory from
       different processes.
-v. 1.110.3
+v1.110.3
    PS 17032020
    -- In CALC added option "--print-memory-usage".
    -- Added global variables `sm_comm_size' and `sm_comm_rank_master' to manage
       process used for shared memory allocation (rather than using process with
       sm_comm_rank = 0 only).
-v. 1.110.2
+v1.110.2
    PS 13032020
    -- Replaced # of CPUs used for updating HE from "#define HE_NPROCMAX 20" to
       the number of cores used on the first node.
-v. 1.110.1
+v1.110.1
    PS 11032020
    -- Updated example logs.
-v. 1.110.0
+v1.110.0
    PS 11032020
    -- Using shared memory for the obs kd-trees in CALC.
-v. 1.109.1
+v1.109.1
    PS 10032020
    -- A fix to v1.109.0.
-v. 1.109.0
+v1.109.0
    PS 10032020
    -- Using shared memory for grid kd-trees in CALC.
-v. 1.108.12
+v1.108.12
    PS 06032020
    -- Further to v1.108.11.
-v. 1.108.11
+v1.108.11
    PS 06032020
    -- Moved MPI communicators etc. for handling shared memory stuff from
       `struct dasystem' to global.c; moved code for setting MPI communicators
       etc. from das_create() to enkf_init().
-v. 1.108.10
+v1.108.10
    PS 04032020
    -- Still more cosmetic changes related to v1.108.2.
-v. 1.108.9
+v1.108.9
    PS 04032020
    -- Some cosmetic changes related to v1.108.2.
-v. 1.108.8
+v1.108.8
    PS 02032020
    -- Some missing bits to v1.108.6.
-v. 1.108.7
+v1.108.7
    PS 02032020
    -- Some missing bits to v1.108.6.
-v. 1.108.6
+v1.108.6
    PS 02032020
    -- Minor changes to time binning for the first and last asynchronous
       intervals.
-v. 1.108.5
+v1.108.5
    PS 25022020
    -- Deallocating obs kd-trees straight after finishing with transforms in
       CALC.
-v. 1.108.4
+v1.108.4
    PS 25022020
    -- A minor change in XYZ node tree handling.
-v. 1.108.3
+v1.108.3
    PS 25022020
    -- Destroyed XYZ node trees (if there are any) after getting HE.
-v. 1.108.2
+v1.108.2
    PS 25022020
    -- Added reporting the size of kd-trees involved.
-v. 1.108.1
+v1.108.1
    PS 22012020
    -- Added code to obs_add() to remove standard parameters handled in obs_add()
       (these are VARSHIFT, MINDEPTH, MAXDEPTH, FOOTPRINT) from the paramaters
       passed to readers; then removed the checks for these parameters from all
       readers.
-v. 1.108.0
+v1.108.0
    PS 21012020
    -- Added parameters VARSHIFT, MINDEPTH, MAXDEPTH, FOOTPRINT to all readers
       (I think).
    -- Removed redundant parameter ADD from reader_rads_standard() and
       reader_rads_standard2() (the MDT is subtracted via for SLA in obstypes
       parameter file).
-v. 1.107.7
+v1.107.7
    PS 24122019
    -- Added an barrier in das_getHE(), just in case.
    -- Changed a number of "int"s to "size_t"s in ncutils.c to handle variables
       of larger size.
-v. 1.107.6
+v1.107.6
    PS 19122019
    -- Fixed a defect in get_insttag().
-v. 1.107.5
+v1.107.5
    PS 18122019
    -- Check that parameters are only entered once in each section of the
       observation data parameter file.
-v. 1.107.4
+v1.107.4
    PS 16122019
    -- Eliminated compile flag -DHE_VIAFILE.
-v. 1.107.3
+v1.107.3
    PS 10122019
    -- A few cosmetic changes.
-v. 1.107.2
+v1.107.2
    PS 06122019
    -- Added mask to arguments of kd_insertnodes(). Made a few internal changes
       in kdtree.c, mainly related to moving `id_orig' (the sequential number of
       the node) to `data'. It is still set to the sequential number of the node
       in kd_insertnodes() if parameter "data" is NULL.
-v. 1.107.1
+v1.107.1
    PS 05122019
    -- Cleaned up a mess with two kd-trees, one in struct grid (used for
       estimating observations with finite footprint), and another in struct
       gxy_curv (used for fij <-> xy mappings).
-v. 1.107.0
+v1.107.0
    PS 04122019
    -- A few modifications to make it possible to define 1D offsets for 3D
       observation types, treated as (negative) layer-wise model field offsets.
-v. 1.106.4
+v1.106.4
    PS 02122019
    A minor modification in kdtree.c to save a memory allocation per search.
-v. 1.106.3
+v1.106.3
    PS 02122019
    -- Replaced the point-in-quadrilateral test in gxy_curv.c by the one based on
       Algorithm 1 from Hao et al. (2018).
-v. 1.106.2
+v1.106.2
    PS 29112019
    -- A minor modification in initialising curvilinear grids in grid_create()
       that treats filled/missing values properly.
-v. 1.106.1
+v1.106.1
    PS 28112019
    -- A minor correction in inquadri(): correcting the cycle to be over 4 edges,
       not 5. I actually do not get why, but somehow the previous (obviously
       wrong) version seemed to work equally well in tests.
-v. 1.106.0
+v1.106.0
    PS 27112019
    -- Moved grid mapping stuff from libgu to gxy_curv.[ch] and thus eliminated
       dependence on libgu.
    -- Stripped the option parsing grid into a binary tree; the only option now
       is parsing into kd-tree.
-v. 1.105.2
+v1.105.2
    PS 22112019
    -- A few semi-cosmetic changes in update.c and diags.c to eliminate compiler
       warnings from gcc v8.2.1.
-v. 1.105.1
+v1.105.1
    PS 21102019
    -- In reader_cmems_standard() and reader_mmt_standard() modified reporting on
       the number of profiles and on the number of unique profile locations so
       that only profiles containing at least one good observation (this requires
       the observation to be in the model grid domain) are considered.
       considered.
-v. 1.105.0
+v1.105.0
    PS 21102019
    -- Added vertical coordinate type "none" to grid parameter file for handling
       purely 2D grids. (Before that they had to be treated as 1-layer 3D grids.)
-v. 1.104.13
+v1.104.13
    PS 18102019
    -- A correction to v1.104.12.
-v. 1.104.12
+v1.104.12
    PS 18102019
    -- Fixed inconsistency between description of QC flags specification in
       the file headers of generic readers and get_qcflags(). Also put in checks
       that (i) an entry of the QC flag name is always followed by QCFLAGVALS
       and (ii) an entry of QCFLAGVALS is always preceeded by QCGLAGVARNAME.
-v. 1.104.11
+v1.104.11
    PS 16102019
    -- Added a few convenience targets in Makefile.
-v. 1.104.10
+v1.104.10
    PS 11102019
    -- Changed das_printobsstats() and das_printfobsstats() to skip printing
       stats for asynchronous time intervals if there is only one such interval
       in the cycle.
-v. 1.104.9
+v1.104.9
    PS 08102019
    -- Fixed yet another redundancy in grid.c related to having -DNO_GRIDUTILS
       in UPDATE.
-v. 1.104.8
+v1.104.8
    PS 08102019
    -- Modified gridprm_create() to ignore "MAPTYPE" when compiled with
       -DNO_GRIDUTILS.
-v. 1.104.7
+v1.104.7
    PS 07102019
    -- Removed reader_pathfinder_standard() and the associated stuff.
-v. 1.104.6
+v1.104.6
    PS 07102019
    -- Initialised char instrument[] in generic readers to "".
    -- Deallocated "time" in reader_cmems_standard().
    -- Deallocated "gz" in gz_hybrid_destroy().
-v. 1.104.5
+v1.104.5
    PS 01102019
    -- Changed default indentification of time variable in generic readers. Now
       the default variable can be "time" (case insensitive) only. In case of
       offset/difference time variables they need to be specified explicitly via
       entry TIMENAMES (in any order).
-v. 1.104.4
+v1.104.4
    PS 01102019
    -- Fixed a defect at reading SOBSTRIDE in obstypes_read(). (Thanks to Paul
       Sandery for the report.)
-v. 1.104.3
+v1.104.3
    PS 01102019
    -- In generic readers fixed the check on matching the specified quality
       flags.
    -- In enkf_prep::main() added re-calculating the obs stats if some obs
       on land are removed.
-v. 1.104.2
+v1.104.2
    PS 26092019
    -- In reader_xy_scattered() added parameter SUBVAR -- the name of the
       variable to be subtracted from observations.
-v. 1.104.1
+v1.104.1
    PS 26092019
    -- A few insignificant changes to eliminate warnings from gcc v9.1.0.
-v. 1.104.0
+v1.104.0
    PS 25092019
    -- Added get_time() to prep_utils.c; modified reader_xyz_gridded(),
       reader_xyz_scattered(), reader_xy_gridded(), reader_z(), and
@@ -249,42 +252,42 @@ v. 1.104.0
    -- Corrected NINSTNAMES from 3 to 5.
    -- Modified treatment of qcflags in reader_xyh_gridded() to be in line with
       other generic readers.
-v. 1.103.3
+v1.103.3
    PS 25092019
    -- Fixed two defects in obsprm.c: a potentially major one in obsprm_read(),
       and an insignificant one in obsprm_destroy().
-v. 1.103.2
+v1.103.2
    PS 23092019
    -- Eliminated dynamic allocation of sloc and plobs at each cycle in
       das_calctransforms() with -DMINIMISE_ALLOC.
-v. 1.103.1
+v1.103.1
    PS 20092019
    -- A minor technical change in prepare_transforms().
-v. 1.103.0
+v1.103.0
    PS 19092019
    -- Reshuffled transform calculations (S,G,M,w,T,X5...) for simplicity.
    -- Introduced cast2d() for changing matrix size without reallocation.
    -- Added compile flag -DMINIMISE_ALLOC as a default for CALC. Modified a
       number of procedures in calcs.c to use pre-allocated storage when
       compiled with -DMINIMISE_ALLOC.
-v. 1.102.0
+v1.102.0
    PS 12092019
    -- Changed (actually, corrected) the "moderation of spread reduction" (sec.
       2.7.4 of the User Guide) for the ETKF, making it consistent with the
       "relaxation to prior" technique by Zhang et al. 2004.
    -- Reshuffled interfaces of a number of function in calcs.[ch].
    -- Eliminated compile flags -DCHECK_G and -DCHECK_X5 (no need).
-v. 1.101.3
+v1.101.3
    PS 06092019
    -- Added <stdarg.h> to ncutils.c.
-v. 1.101.2
+v1.101.2
    PS 06092019
    -- Renamed read_ncvardouble() to ncu_readvardouble(), read_ncvarfloat() to
       ncu_readvarfloat(), and moved from prep_utils.[ch] to ncutils.[ch].
-v. 1.101.1
+v1.101.1
    PS 06092019
    -- Moved NetCDF procedures from utils.[ch] to ncutils.[ch].
-v. 1.101.0
+v1.101.0
    PS 06092019
    -- Added an option to check the time of model dumps used in
       asynchronous/FGAT DA versus the time of the corresponding observation
@@ -292,101 +295,101 @@ v. 1.101.0
       the end of the entry "ASYNCHRONOUS" in the obstypes parameter file. E.g.
       "ASYNCHRONOUS 1" could become "ASYNCHRONOUS 1 C Time", and
       "ASYNCHRONOUS 0.25 E" could become "ASYNCHRONOUS 0.25 E Time".
-v. 1.100.5
+v1.100.5
    PS 150720199
    -- Moved code for calculating and writing spread, inflation, and vertical
       correlations from update/update.c to update/diag.c.
-v. 1.100.4
+v1.100.4
    PS 04072019
    -- Modified reader_mmt_standard() to read time from the file rather than set
       it from the file name.
    -- Eliminated tolerances on the observation window (DT_EPS) in obs_add().
-v. 1.100.3
+v1.100.3
    PS 04072019
    -- Added a couple of routine checks in read_ncvardouble() and
       read_ncvarfloat().
-v. 1.100.2
+v1.100.2
    PS 02072019
    -- Modified generic readers to read instrument tag from an appropiate global
       or variable attribute (attribute name "instrument", "Instrument",
       "INSTRUMENT", "platform", "Platform", "PLATFORM") when it exists.
-v. 1.100.1
+v1.100.1
    PS 25062019
    -- Added ncw_att_exists2(); modified NetCDF i/o procedures in prep_utils.c
       and utils.c to honor _FillValue, valid_min, valid_max, and valid_range
       only if these attributes are of the same type as their host variable.
-v. 1.100.0
+v1.100.0
    PS 25062019
    -- Added reader_z() for single profiles.
    -- Added ncw_inq_varsize().
    -- A number of supposedly cosmetic changes in readers.
-v. 1.99.10
+v1.99.10
    PS 24062019
    -- Corrected a defect in read_ncvardouble().
-v. 1.99.9
+v1.99.9
    PS 21062019
    -- Corrected a typo in writefield() and writerow() introduced in v1.99.6.
-v. 1.99.8
+v1.99.8
    PS 19062019
    -- A number mainly cosmetic changes to eliminate warnings from gcc v9.1.0
       about strncat(), strncpy(), and snprintf().
-v. 1.99.7
+v1.99.7
    PS 18062019
    -- Cosmetic changes in readfield() and read3dfield() to avoid compiler
       warnings about violating strict aliasing rules.
-v. 1.99.6
+v1.99.6
    PS 17062019
    -- Modified writefield() and writerow() for (hopefully) more consistent
       treatment of _FillValue, missing_value, valid_min, valid_max, and
       valid_range attributes.
-v. 1.99.5
+v1.99.5
    PS 17062019
    -- Modified readfield() and read3dfield() to provide more robust treatment
       (hopefully) of _FillValue, missing_value, valid_min, valid_max, and
       valid_range attributes.
-v. 1.99.4
+v1.99.4
    PS 17062019
    -- Corrected read_ncvarfloat() and read_ncvardouble() for data types of
       size 8.
-v. 1.99.3
+v1.99.3
    PS 17062019
    -- Modified read_ncvarfloat() and read_ncvardouble() for slightly better
       efficiency.
-v. 1.99.2
+v1.99.2
    PS 13062019
    -- Modified read_ncvarfloat() and read_ncvardouble() to take care of
       missing_value, valid_min, valid_max, and valid_range.
-v. 1.99.1
+v1.99.1
    PS 13062019
    -- Corrected read_ncvarfloat() and read_ncvardouble() introduced in v1.98.26
       to avoid overwriting of invalid values just been set to NaN.
-v. 1.99.0
+v1.99.0
    PS 13062019
    -- Added parameter ADDVAR to reader_xy_scattered() to test reversing
       particular SLA compensations.
-v. 1.98.27
+v1.98.27
    PS 13062019
    -- Modified reader_xy_gridded(), reader_xyz_gridded(), reader_xyh_gridded(),
       and reader_viirs_standard() to accommodate read_ncvarfloat() and
       read_ncvardouble().
-v. 1.98.26
+v1.98.26
    PS 13062019
    -- Added read_ncvarfloat() and read_ncvardouble() that read the whole
       variable and handle _FillValue, scale_factor and add_offset.
    -- Modified reader_xy_scattered() and reader_xyz_scattered() to accommodate
       read_ncvardouble() (with the gridded readers on the way).
-v. 1.98.25
+v1.98.25
    PS 12062019
    -- Untangled attrubutes scale_factor and add_offset in reader_xy_scattered()
       and reader_xyz_scattered().
    -- In obs_add() consider tests on MINDEPTH and MAXDEPTH failing when model
       depth is NaN.
-v. 1.98.24
+v1.98.24
    PS 05062019
    -- Improved error_std operation message in PREP log (used to be "adding
       error_std of %.3g:\n" for any operation).
    -- Changed year of the internal time base from 1990 to 1970.
-v. 1.98.23
+v1.98.23
    PS 2052019
    -- Read grid coordinates of pointlogs from the pointlog file (if exists).
       This makes it possible to interpolate without parsing the grid in UPDATE
@@ -397,145 +400,145 @@ v. 1.98.23
       pointlog.
    -- Corrected plog_writestatevars_toassemble() and
       plog_writestatevars_direct() to skip non-existent locations on a grid.
-v. 1.98.22
+v1.98.22
    PS 20052019
    -- Completing v1.98.21 by the corresponding change in getnlevels().
-v. 1.98.21
+v1.98.21
    PS 17052019
    -- In field read/write procedures in utils.c -- for 4D variables allow the
       first dimension to be not only unlimited but also of size 1.
-v. 1.98.20
+v1.98.20
    PS 17052019
    -- A fix for v1.98.18: should not ask to set the lonbase in UPDATE now.
-v. 1.98.19
+v1.98.19
    PS 15052019
    -- A few minor, basically cosmetic, changes in update.c and grid.c.
-v. 1.98.18
+v1.98.18
    PS 14052019
    -- Skip building curvilinear horizontal grid map in UPDATE to save memory.
    -- Replaced grid_getdims() by grid_getsize() and model_getvargriddims() by
       model_getvargridsize().
-v. 1.98.17
+v1.98.17
    PS 09052019
    -- A very minor, almost cosmetic correction of printing pointlogs in
       enkfprm_print().
-v. 1.98.16
+v1.98.16
    PS 09052019
    -- Corrected count of obs. modified due to subgrid variability (was in the
       wrong loop, for obs., now for superobs.).
-v. 1.98.15
+v1.98.15
    PS 07052019
    -- In H_subsurf_standard() and H_subsurf_wsurfbias() -- in the case nk = 0
       use model_readfield() instead of model_read3dfield().
    -- Corrected das_setnmem() to use specified ensemble size if it is smaller
       than than the available one.
-v. 1.98.14
+v1.98.14
    PS 03052019
    -- Moved putting attribute "output" in pointlog files from plog_create()
       to plog_definestatevars().
-v. 1.98.13
+v1.98.13
    PS 03052019
    -- In pointlog files added global attribute "output" (which has value of
       either "analysis" or "increment") and forecast variables attribute
       "gridid".
-v. 1.98.12
+v1.98.12
    PS 02052019
    -- Corrected plog_writetransform() to handle case of zero local obs.
-v. 1.98.11
+v1.98.11
    PS 02052019
    -- Corrected plog_assemblestatevars().
    -- Corrected das_update() to write correct forecasts and increments in
       pointlogs for EnOI.
-v. 1.98.10
+v1.98.10
    PS 01052019
    -- Corrected the writing of EnOI ensemble in plog_writestatevars_direct() and
       plog_writestatevars_toassemble().
-v. 1.98.9
+v1.98.9
    PS 01052019
    -- Fixed a defect in plog_writestatevars_toassemble().
-v. 1.98.8
+v1.98.8
    PS 01052019
    -- Fixed defects in plog_definestatevars() and plog_assemblestatevars().
-v. 1.98.7
+v1.98.7
    PS 01052019
    -- In pointlog files added instrument ids.
-v. 1.98.6
+v1.98.6
    PS 01052019
    -- In pointlog files for each observation type added attribute
       "GRIDID_<type>".
-v. 1.98.5
+v1.98.5
    PS 30042019
    -- In pointlog files added global parameter "ngrids".
-v. 1.98.4
+v1.98.4
    PS 30042019
    -- A minor correction in pointlog initialisation in das_create().
-v. 1.98.3
+v1.98.3
    PS 30042019
    -- In pointlog files added global parameters MODE and SCHEME.
    -- In pointlog files changed grid parameter "depth" to "model_depth".
-v. 1.98.2
+v1.98.2
    PS 29042019
    -- A minor correction in plog_definestatevars().
-v. 1.98.1
+v1.98.1
    PS 29042019
    -- A minor correction in plogs_add().
-v. 1.98.0
+v1.98.0
    PS 29042019
    -- Changed point logs: now a pointlog entry specifies a geographic location
       instead of a grid node. In CALC, the ensemble transforms on each grid are
       calculated for this location. In UPDATE, the forecast and analysis state
       variables on each grid are interpolated to this location.
-v. 1.97.2
+v1.97.2
    PS 05042019
    --Fixed a kdtree related compilation defect in grid.c and grid.h manifested on
      Intel compilers. Thanks to Prasanth Divarkan for the report.
-v. 1.97.1
+v1.97.1
    PS 04042019
    -- Fixed a compilation defect in grid.c manifested in the case -DNO_GIDUTILS.
       Thanks to Prasanth Divarkan for the report.
-v. 1.97.0
+v1.97.0
    PS 03042019
    -- Added an optional trtentry STATSONLY to obstypes parameter file.
-v. 1.96.3
+v1.96.3
    PS 28032019
    -- Eliminated seeding drand48 from a fixed seed in shuffle(), both in
       utils.c and kdtree.c, to eliminate posibility of the generator becoming
       (re-)synchronised on different processes.
-v. 1.96.2
+v1.96.2
    PS 28032019
    -- Tidied up log messages. Made sure that if enkf_verbose = 0 then no log
       appears.
-v. 1.96.1
+v1.96.1
    PS 28032019
    -- Some minor shuffling of barriers in das_update(), probably with no
       noticable implications.
-v. 1.96.0
+v1.96.0
    PS 27032019
    -- Moved SOBSTRIDE from grid parameter file to obstypes parameter file.
       Therefore, one can either specify a common stride for superobing in the
       main paramater file, or (override it with) observation type specific
       strides.
-v. 1.95.5
+v1.95.5
    PS 27032019
    -- Changed field names obstype.windowmin -> obstype.obswindow_min,
       obstype.windowmax -> obstype.obswindow_max, obstype.day_min ->
       obstype.time_min, obstype.day_max -> obstype.time_max,
       enkfprm.windowmin -> enkfprm.obswindow_min, enkfprm.windowmax ->
       enkfprm.obswindow_max, grid.tree -> grid.nodetree.
-v. 1.95.4
+v1.95.4
    PS 27032019
    -- Corrected variable name in das_addmodifiederrors(), related to v1.94.3.
-v. 1.95.3
+v1.95.3
    PS 27032019
    -- Fixed defects in grid_gettree() and evaluate_2d_obs() introduced in
       v1.95.0.
-v. 1.95.2
+v1.95.2
    PS 26032019
    -- Fixed defect in obs_superob() untroduced in v1.95.1.
-v. 1.95.1
+v1.95.1
    PS 26032019
    -- A minor change in obsprm_read().
-v. 1.95.0
+v1.95.0
    PS 26032019
    -- Introduced a new parameter FOOTPRINT in observation parameter file, which
       specifies the observation footprint radius in km. Added field "footprint"
@@ -543,498 +546,498 @@ v. 1.95.0
       observations with non-zero footprint. Added ability to handle parameter
       FOOTPRINT to reader_amsr2_standard(), reader_xy_gridded(),
       reader_xy_scattered(), reader_xyz_gridded(), reader_xyz_scattered().
-v. 1.94.4
+v1.94.4
    PS 25032019
    -- Changed field name in struct observation from "day" to "time". A few other
       cosmetic changes.
-v. 1.94.3
+v1.94.3
    PS 25032019
    -- Changes some names in structures as well as output file formats. "std"
       generally became "estd" for "error std"; "date" in situation where it
       represents time in days became "day", "DA_JULDAY" became "DA_DAY". This is
       supposed to be a cosmetic change aimed at improving code consistency and
       readability.
-v. 1.94.2
+v1.94.2
    PS 22032019
    -- An empty entry "ZSTATINTS =" in the grid parameter file now specifies
       no vertical statistical intervals (as opposed to default intervals in the
       case of no entry).
-v. 1.94.1
+v1.94.1
    PS 22032019
    -- A minor correction in das_calctransforms() that fixes numerics of
       calculating partial SRF ("psrf") when pdfs is close to 0.
-v. 1.94.0
+v1.94.0
    PS 21032019
    -- Added entry ERROR_STD_MIN to obstypes parameter file to specify minimal
       allowed error standard deviation for an observation type.
    -- Made HFUNCTION entry optional, with the default value "standard".
-v. 1.93.4
+v1.93.4
    PS 15032019
    -- Moved checks for observations being in allowed spatial domains for their
       type (XMIN, XMAX, YMIN, YMAX, ZMIN, ZMAX) from readers to obs_add().
-v. 1.93.3
+v1.93.3
    PS 14032019
    -- In obs_add() implemented filtering by ot->zmin and ot->zmax.
    -- In das_printfobsstats() and das_printobsstats() changed filtering by
       depth intervals: z > z1 && z <= z2 became z >= z1 && z < z2.
-v. 1.93.2
+v1.93.2
    PS 12032019
    - Another follow-on fix to v1.93.0.
-v. 1.93.1
+v1.93.1
    PS 12032019
    - A follow-on fix to v1.93.0.
-v. 1.93.0
+v1.93.0
    PS 12032019
    -- Added entry ALIAS to obstypes parameter file that if specified is to be
       used instead of the variable name. The purpose is to handle situations
       when the surface field and 3D field of the same variable have different
       asynchronous settings.
-v. 1.92.5
+v1.92.5
    PS 12032019
    -- Modified reader_cmems_standard() to skip and continue on an invalid QC
       flag value.
-v. 1.92.4
+v1.92.4
    PS 08032019
    -- Modified das_updatefields() for the case "--output-increment" to set
       increment to 0 not only if the field element is too large, but also if
       it is is NaN.
-v. 1.92.3
+v1.92.3
    PS 06032019
    -- Modified readfield() to ignore k if there is only one vertical field in
       the file.
-v. 1.92.2
+v1.92.2
    PS 04032019
    -- Fixed obs_add() to handle PARAMETER MAXDEPTH in relevant readers. Thanks
       to Roger Scott for the bug report.
-v. 1.92.1
+v1.92.1
    PS 04032019
    -- Two technical fixes in das_updatefields() and writerow() to handle case
       with top layer id != 0.
-v. 1.92.0
+v1.92.0
    PS 01032019
    -- Added parameter MAXDEPTH to reader_xy_gridded(), reader_xy_scattered(),
       reader_xyz_gridded(), reader_xyz_scattered(), reader_xyh_gridded().
    -- Tidied up code for MINDEPTH in reader_rads_standard(),
       reader_rads_standard2(), reader_viirs().
-v. 1.91.13
+v1.91.13
    PS 01022019
    -- Removed re-seeding from addnoise(); modified enkf_init() to ensure that
       the random number generator is initialised randomly for each process.
-v. 1.91.12
+v1.91.12
    PS 31012019
    -- Re-seeded rand48() with the variable ID in addnoise() to make sure that
       different random sequences are used for different variables.
    -- Changed name model_getvardims() to model_getvargriddims().
-v. 1.91.11
+v1.91.11
    PS 29012019
    -- Replaced model_randomisefield() by addnoise() that enforces zero ensemble
       mean of the added perturbations.
-v. 1.91.10
+v1.91.10
    PS 29012019
    -- Added global parameters "version" and "alpha" to pointlogs.
-v. 1.91.9
+v1.91.9
    PS 25012019
    -- Fixed enkf_printcompileflags() for the flag NCW_SKIPSINGLE.
-v. 1.91.8
+v1.91.8
    PS 24012019
    -- Fixed X5 in pointlog files for SCHEME = ETKF.
-v. 1.91.7
+v1.91.7
    PS 22012019
    -- A cosmetic correction in printing domains in obstype_print().
-v. 1.91.6
+v1.91.6
    PS 21012019
    -- A minor correction in usage message.
-v. 1.91.5
+v1.91.5
    PS 06122018
    -- Added a few checks in reader_xy_scattered() and reader_xyz_scattered().
-v. 1.91.4
+v1.91.4
    PS 05122018
    -- Skip writing a variable to a pointlog if they are on different grids.
-v. 1.91.3
+v1.91.3
    PS 28112018
    -- Fixed for an unhandled case of ascending Z grids in grid_z2fk().
       Thanks to Paul Sandery for the bug report.
-v. 1.91.2
+v1.91.2
    PS 28112018
    -- Mirrored the fix from 1.91.1 in reader_xy_gridded().
-v. 1.91.1
+v1.91.1
    PS 27112018
    -- Fixed defect in reader_xyz_gridded().
       Thanks to Paul Sandery for the bug report.
-v. 1.91.0
+v1.91.0
    PS 23112018
    -- Added option "--use-existing-transforms" to CALC.
-v. 1.90.4
+v1.90.4
    PS 23112018
    -- A few changes in kdtree.c. The main one concerns the search of nodes
       within specified distance from a location, where individual allocations
       where replaced by allocations of blocks of 1024 nodes.
-v. 1.90.3
+v1.90.3
    PS 21112018
    -- A few minor changes in obs_read() and obs_write().
-v. 1.90.2
+v1.90.2
    PS 20112018
    -- Introduced compile flag MINIMISE_ALLOC in CALC, which aims at eliminating
       the largest sources of dynamic memory allocation during calculating
       transforms, which can cause OOM problems on very large system. (Nothing
       is supposed to change for default setting.)
-v. 1.90.1
+v1.90.1
    PS 14112018
    -- Updated to ncw v2.23.2: it now removes skipping singleton dimensions by
       default in ncw_copy_vardef(); one needs to define NCW_SKIPSINGLE to
       activate it.
-v. 1.90.0
+v1.90.0
    PS 13112018
    -- Added PREP parameter "--no-thinning".
-v. 1.89.17
+v1.89.17
    PS 12112018
    -- Moved das_setnmem() from update.c and ensobs.c to a single location
       in das_create().
-v. 1.89.16
+v1.89.16
    PS 12112018
    -- reader_amsr2_standard(): ignore option ADD_BIAS if variable "sses_bias"
       does not exist.
-v. 1.89.15
+v1.89.15
    PS 09112018
    -- Added MPI_Type_commit()/MPI_Type_free() after MPI_Type_contiguous().
       Seems to be necessary, but surprisingly OpenMPI worked without it, while
       Intel-MPI crashed.
-v. 1.89.14
+v1.89.14
    PS 06112018
    -- Fixed a few minor memory allocation/deallocation mismatches.
-v. 1.89.13
+v1.89.13
    PS 05112018
    -- Replaced a number of assertions in read/write procedures in utils.c by
       more explicit error messages.
-v. 1.89.12
+v1.89.12
    PS 05112018
    -- Modified dasystem.h to undefine HE_VIASHMEM when MPI is not defined.
-v. 1.89.11
+v1.89.11
    PS 01112018
    -- Modified default behaviour in enkf_calc.c:main() to exit with error if
       there are no observations; use "--ignore-no-obs" to proceed cleanly.
-v. 1.89.10
+v1.89.10
    PS 01112018
    -- Modified reading depth in reader_cmems_standard(). Now for each datum
       the first valid depth value out of four candidate variables is used.
-v. 1.89.9
+v1.89.9
    PS 31102018
    -- A number of minor changes in HE stuff, supposed to be cosmetic.
-v. 1.89.8
+v1.89.8
    PS 29102018
    -- A number of minor, mostly cosmetic, changes.
-v. 1.89.7
+v1.89.7
    PS 27102018
    -- Replaced a number of assert() calls by more meaningful error messages in
       a number of read/write procedures in utils.c.
-v. 1.89.6
+v1.89.6
    PS 26102018
    -- ncw_copy_vardef(): fixed a defect and modified for multiple unlimited
       dimensions.
-v. 1.89.5
+v1.89.5
    PS 25102018
    -- Fixed defect introduced in v1.89.3 in writefield() and writerow() (handle
       # records = 0).
-v. 1.89.4
+v1.89.4
    PS 24102018
    -- Fixed an internal overflow in multiplication at calculating the size of
       the HE array in das_getHE(). This defect manifested in large systems only.
-v. 1.89.3
+v1.89.3
    PS 23102018
    -- Replaced utils.c:hasunlimdim() by ncw.c:ncw_var_hasunlimdim().
-v. 1.89.2
+v1.89.2
    PS 18102018
    -- Added ADDBIAS parameter to reader_amsr2_standard() (initially implemented
       by Xinmei Huang).
-v. 1.89.1
+v1.89.1
    PS 18102018
    -- A bit of tidying up.
-v. 1.89.0
+v1.89.0
    PS 17102018
    -- Introduced entries "DOMAIN" in the grid parameter file and "DOMAINS" in
       the obstypes parameter file. They provide a mechanism for disconnecting
       observations of a given type from updating variables on certain grids.
       (See sec. 2.7.8 "Domains" of the User Guide.)
-v. 1.88.4
+v1.88.4
    PS 15102018
    -- Corrected island() to handle the case when Z axis is directed towards the
       surface.
-v. 1.88.3
+v1.88.3
    PS 26092018
    -- Added obs_calcstats() in enkf_prep.c:main() in the case --no-superobing to
       get correct counts of observations of each type.
-v. 1.88.2
+v1.88.2
    PS 24092018
    -- Removed assertion z >= 0 in mldtaper().
-v. 1.88.1
+v1.88.1
    PS 21092018
    -- Fixed a defect in model_addorreplacedata().
-v. 1.88.0
+v1.88.0
    PS 20092018
    -- Modified reader_xy_gridded(), reader_xyz_gridded(), reader_xy_scattered(),
       reader_xyz_scattered() to allow multiple instances of QC flags (e.g.
       for the observed variable and coordinates). In prep_utils.c created
       get_lonname()m get_latname(), get_zname(), get_timename(), get_qcflags()
       for common treatment in readers.
-v. 1.87.1
+v1.87.1
    PS 17092018
    -- Added updating the count of thinned observations to obs_superob().
-v. 1.87.0
+v1.87.0
    PS 17092018
    -- To deal with data from high-frequency instruments -- modified
       obs_superob() to thin superobed observations made at the same location.
       Added STATUS_THINNED to mark the obs being thinned; modified
       print_obsstats() to report the number of thinned obs in PREP.
-v. 1.86.3
+v1.86.3
    PS 14092018
    -- Corrected the code for counting the number of unique locations in
       reader_cmems_standard(). Added this code to reader_cars_standard().
-v. 1.86.2
+v1.86.2
    PS 13092018
    -- Modified island() to check whether the cell is above the bottom rather
       than whether the column is on land or not.
-v. 1.86.1
+v1.86.1
    PS 12092018
    -- Fixed a defect in obs_superob() that (extremely rarely) manifested as
       "Assertion `o->status == 0' failed".
-v. 1.86.0
+v1.86.0
    PS 12092018
    -- Included printing description of the superob itself when running PREP
       with --describe-superob.
-v. 1.85.10
+v1.85.10
    PS 10092018
    -- Moved field "batch" in "struct observation" from "short int" to "int"
       because of the overflow caused by drifter boys data from CMEMS.
-v. 1.85.9
+v1.85.9
    PS 07092018
    -- In reader_cmems_standard() - changed time variable from JULD_LOCATION
       to JULD.
-v. 1.85.8
+v1.85.8
    PS 06092018
    -- Added a few checks on whether all data for a variable is missing in
       reader_cmems_standard().
-v. 1.85.7
+v1.85.7
    PS 06092018
    -- A few relatively minor changes in reader_cmems_standard(),
       reader_xy_gridded(), and reader_xyz_gridded(), some log related, others
       qcflag handling related.
-v. 1.85.6
+v1.85.6
    PS 06092018
    -- Corrected descroiption of the reader in the header of reader_cmems.c.
-v. 1.85.5
+v1.85.5
    PS 05092018
    -- Corrected reader_cmems_standard() to handle case of no data of specified
       kind in the file.
-v. 1.85.4
+v1.85.4
    PS 05092018
    -- Corrected defect in calculating the number of unique locations in
       reader_mmt_standard() and reader_cmems_standard().
-v. 1.85.3
+v1.85.3
    PS 05092018
    -- Corrected depth input in reader_cmems_standard().
-v. 1.85.2
+v1.85.2
    PS 05092018
    -- Corrected qcflag input in reader_cmems_standard().
-v. 1.85.1
+v1.85.1
    PS 05092018
    -- Corrected time input in reader_cmems_standard().
-v. 1.85.0
+v1.85.0
    PS 05092018
    -- Added reader_cmems_standard() for profiles from Copernicus.
-v. 1.84.11
+v1.84.11
    PS 30082018
    -- Updated ncw.[ch] to v2.21.0.
-v. 1.84.10
+v1.84.10
    PS 29082018
    -- Modified das_setnmem() to exit with error if the detected ensemble size is
       less than the specified one.
    -- Some trivial changes in stringtable.[ch].
-v. 1.84.9
+v1.84.9
    PS 24082018
    -- Passed corrections made in v1.83.15 in reader_xy_gridded.c to
       reader_xyz_gridded.c.
-v. 1.84.8
+v1.84.8
    PS 17082018
    -- Added another barrier in enkf_calc.c::main().
       Thanks to Paul Sandery for the bug report.
-v. 1.84.7
+v1.84.7
    PS 16082018
    -- Added a barrier in das_calcinnandspread() that is supposed to fix a
       rarely (but consistently when it does) manifested defect with HE_VIASHMEM.
       Thanks to Roger Scott for the bug report.
-v. 1.84.6
+v1.84.6
    PS 16082018
    -- Moved the barrier introduced in v1.84.4 to a (hopefully) better position.
       Thanks to Paul Sandery for the bug report.
-v. 1.84.5
+v1.84.5
    PS 15082018
    -- Modified st_add() to handle the recent replacement st_add_ifabsent() by
       st_add() + check (which is more robust, I guess) in obs_read(): it now
       simply returns (not quits) if the existing entry has the same ID as the
       requested ID.
       Thanks to Paul Sandery for the bug report.
-v. 1.84.4
+v1.84.4
    PS 15082018
    -- Put a barrier in enkf_calc.c::main() that is supposed to fix occasional
       HDF errors.
       Thanks to Paul Sandery for the bug report.
-v. 1.84.3
+v1.84.3
    PS 14082018
    -- Fixed (I hope) a defect in das_writevcorrs() sometimes manifested in
       segfaults.
       Thanks to Paul Sandery for the bug report.
-v. 1.84.2
+v1.84.2
    PS 14082018
    -- Fixed reading of products and instruments from "observations.nc" in
       obs_read(). (This defect was probably hanging from 1.83.10.)
-v. 1.84.1
+v1.84.1
    PS 13082018
    -- Fixed defect introduced in v1.83.14.
       Thanks to Roger Scott and Paul Sandery for the bug report.
-v. 1.84.0
+v1.84.0
    PS 13082018
    -- find_files(): merged pull request by Hugo Oliveira (to allow opendap
       access).
-v. 1.83.15
+v1.83.15
    PS 07082018
    -- Fixed 2 defects in regard to qcflag in reader_xy_gridded().
       Thanks to Hugo Oliveira for drawing attention.
-v. 1.83.14
+v1.83.14
    PS 03082018
    -- A fix in enkf_calc() that prevents of processes other than rank = 0 write
       the modified errors to observations.nc.
    -- A cosmetic change in das_writeinflation().
-v. 1.83.13
+v1.83.13
    PS 02082018
    -- Fixed defects in regard to qcflag in reader_xy_gridded().
       Thanks to Hugo Oliveira for the tip.
    -- Updated ncw.[ch] to v2.20.0.
-v. 1.83.12
+v1.83.12
    PS 30072018
    -- Another correction to obs_read().
-v. 1.83.11
+v1.83.11
    PS 30072018
    -- Corrected obs_read() to take care of the recently added attribute
       "long_name" for some variables.
    -- Corrected (I hope) the report of the report on subgrid variability in
       PREP.
-v. 1.83.10
+v1.83.10
    PS 27072018
    -- Added "long_name" attribute to variables in observations.nc and
       observations-orig.nc.
-v. 1.83.9
+v1.83.9
    PS 23072018
    -- Modified readfield(), writefield(), read3dfield(), writerow() for
       (hopefully) more robust handling of the fill value and valid range. Not
       expected to have any effect in majority of existing applications.
-v. 1.83.8
+v1.83.8
    PS 20072018
    -- In reader_mmt_standard() -- allow to proceed if no flags TEMP_BLUELINK_QC
       or PSAL_BLUELINK_QC are found.
-v. 1.83.7
+v1.83.7
    PS 16072018
    -- A minor modification in writefield().
-v. 1.83.6
+v1.83.6
    PS 16072018
    -- A minor modification in readfield().
-v. 1.83.5
+v1.83.5
    PS 10072018
    -- A minor but potentially important fix in das_writevcorrs() (it ensures
       that vcorr.nc is created only once).
-v. 1.83.4
+v1.83.4
    PS 06072018
    -- Added QCFLAGNAME and QCFLAGVALS to reader_xy_scattered(),
       reader_xy_gridded(), reader_xyz_gridded(), reader_xyh_gridded().
-v. 1.83.3
+v1.83.3
    PS 05072018
    -- Eliminated enquiry about dimension "nobs" in reader_xy_scattered().
-v. 1.83.2
+v1.83.2
    PS 05072018
    -- Eliminated enquiry about dimension "nobs" in reader_xyz_scattered() (for
       now).
    -- Modified obsprm_read() to enable reading multiple parameter values.
-v. 1.83.1
+v1.83.1
    PS 05072018
    -- Added QCFLAGNAME and QCFLAGVALS to reader_xyz_scattered() (for now).
    -- Added prmfname to struct obsmeta for better error messaging in readers.
-v. 1.83.0
+v1.83.0
    PS 29062018
    -- Modified superob grid so that the centres of superob cells now coincide
       with the nodes of the grid for the corresponding model variable.
       This addresses the "second problem" reported by Hugo Oliveira in
       https://github.com/sakov/enkf-c/issues/5.
-v. 1.82.4
+v1.82.4
    Hugo Oliveira 27062018
    -- Fixed bugs for sigma introduced in v1.81.0.
-v. 1.82.3
+v1.82.3
    PS 26062018
    -- A fix of a defect in ncw_copy_vardef() that often prevented creating
       unlimited dimension.
    -- A few fixes in update.c that make it possible to calculate forecast
       spread without running CALC (note that one needs to comment out point
       log specs in the main parameter file for it).
-v. 1.82.2
+v1.82.2
    PS 25062018
    -- A minor fix in ncw_copy_vardef() to deal with unlimited dimensions.
    -- A minor (supposedly cosmetic) rewrite in traceprod().
-v. 1.82.1
+v1.82.1
    PS 22062018
    Modified ncw_copy_vardef() to handle the case when some of the dimensions
    of the variable being copied already exist in the destination file and have
    different length. This manifested in errors during assembly of spread.nc
    (and, I guess, inflation.nc).
-v. 1.82.0
+v1.82.0
    PS 19062012
    Harmonised specifying LOCRAD in the main parameter file with that in the
    obstypes parameter file. Replaced WEIGHT by LOCWEIGHT.
-v. 1.81.2
+v1.81.2
    PS 18062018
    A bit of clean-up; in particular removed asynchronous entries from struct
    enkfprm, as they belong now to struct obstype.
-v. 1.81.1
+v1.81.1
    PS 18062018
    Cosmetic changes; in particular renamed obsmeta.[ch] to obsprm.[ch].
-v. 1.81.0
+v1.81.0
    PS 15062018
    Modified code for sigma coordinate to permit stretching as described in
    https://www.myroms.org/wiki/Vertical_S-coordinate, Vstretching = 5
    (Vstretching = 2..4 did not require that, and Vstretching = 1 corresponds to
    the "old" stretching function (1) that is not handled in EnKF-C).
-v. 1.80.9
+v1.80.9
    PS 14062018
    Corrected calculation of zt[] in gz_sigma_z2fk() and in grid_fk2z() for
    "g->vtype == GRIDVTYPE_SIGMA" in the case when hc != 0.
    Thanks to Frank Colberg for the bug report and correction.
-v. 1.80.8
+v1.80.8
    PS 12062018
    Cosmetically modified stringtable.[ch].
-v. 1.80.7
+v1.80.7
    PS 12062018
    A few minor changes to make sure that the system runs fine when nobs = 0 (and
    CALC is run with --ignore-no-obs).
-v. 1.80.6
+v1.80.6
    PS 08062018
    A correction in reader_xy_gridded().
-v. 1.80.4
+v1.80.4
    PS 07062018
    Re-wrote das_writecorrs() for better parallelisation.
-v. 1.80.3
+v1.80.3
    PS 07062018
    -- Multiple technical changes. Among substantial ones: it seems that the
       lon/lat coordinate order in reader_xy_gridded() and reader_xyz_gridded()
       has been swapped (i.e. lat was assumed to be the innermost one).
-v. 1.80.2
+v1.80.2
    PS 07062018
    -- Some internal reshuffling, mainly concerning reading/writing of the
       fields, and also of das_writecorrs(), which seems too slow.
-v. 1.80.1
+v1.80.1
    PS 06062018
    -- Added UPDATE option "--calculate-vertical-correlations".
-v. 1.80.0
+v1.80.0
    PS 06062018
    -- Added UPDATE option "--calculate-forecast-spread". This skips calculating
       analysis spread.
-v. 1.79.2
+v1.79.2
    PS 04062018
    -- Trying to work through occasional problems arising when trying to put
       spreads of each variable (normally stored in different files) into common
@@ -1042,216 +1045,216 @@ v. 1.79.2
       files with dimension names xaxis_1, yaxis_1, zaxis_1 regardless of those
       of the grids the variables are defined on... Therefore: in
       ncw_copy_vardef() -- do not create outer limited dimensions of size 1.
-v. 1.79.1
+v1.79.1
    PS 01062018
    -- A minor change in model_create() to permit case sensitive grid names.
-v. 1.79.0
+v1.79.0
    PS 30052018
    -- In reader_mmt.c: only use data with TEMP_BLUELINK_QC (for T) or
       PSAL_BLUELINK_QC (for S) = 0.
-v. 1.78.0
+v1.78.0
    PS 21052018
    -- Shifted transform used for updating an observation at (fi, fj) from
       ((int) fi, (int) fj) to ((int) (fi + 0.5), (int) (fj + 0.5)). This is
       supposed to be more consistent, but inpractice makes a very little
       difference.
-v. 1.77.1
+v1.77.1
    PS 09052018
    -- Added an error message in das_setnmem() to print the name of the missing
       model file when nmem = 0.
-v. 1.77.0
+v1.77.0
    PS 03052018
    -- Added capability to limit the number of observations of each type used
       in local analyses via entries NLOBSMAX in the main and obstypes parameter
       files.
-v. 1.76.5
+v1.76.5
    PS 01052018
    -- Removed what supposed to be a check on positive layer thicknesses in
       gz_hybrid_create(), as one needs to run it on the layer coordinates rather
       than on at/ac/bt/bc coefficients, and for that one needs to know the
       (approximate) surface pressure that seems unavailble at that point.
-v. 1.76.4
+v1.76.4
    PS 01052018
    -- Corrected assertions at the end of gz_z_create() and gz_sigma_create() to
       work for 1-layer model (replaced < by <=).
       Thanks to Paul Sandery for the report.
-v. 1.76.3
+v1.76.3
    PS 01052018
    -- Corrected error message in reader_xyh_gridded(). 
       Thanks to Paul Sandery for the report.
-v. 1.76.2
+v1.76.2
    PS 30042018
    -- Removed redundant declarations in model.h.
-v. 1.76.1
+v1.76.1
    PS 27042018
    -- Corrected update_HE() and update_Hx() in the case -DHE_VIASHMEM. This is
       a relatively minor correction that should improve calcuation of analysis
       observation stats.
-v. 1.76.0
+v1.76.0
    PS 27042018
    -- Moved specification of ZSTATINTS from the main parameter file to the grid
       parameter file.
       NOTE: this may require update of the existing parameter files.
-v. 1.75.0
+v1.75.0
    PS 27042018
    -- Removed redundant struct obsdomain in enkfprm.h.
-v. 1.74.13
+v1.74.13
    PS 24042018
    -- Corrected defect in distribute_iterations() introduced in v1.74.1
-v. 1.74.12
+v1.74.12
    PS 23042018
    -- das_getHE(): a correction of the ensemble size in the case
       (das->mode == MODE_ENOI && enkf_fstatsonly).
-v. 1.74.11
+v1.74.11
    PS 20042018
    -- A minor correction in update_Hx() and update_HE().
-v. 1.74.10
+v1.74.10
    PS 20042018
    -- A few minor modifications in update_Hx() and update_HE() for faster
       cycling of parallel jobs. Increased HE_NPROCMAX from 10 to 20.
-v. 1.74.9
+v1.74.9
    PS 20042018
    -- Do not moderate observations if observations.nc already contains moderated
       obs. Previously, the moderated obs has not been written in this case, but
       still moderated (for the second time).
-v. 1.74.8
+v1.74.8
    PS 20042018
    -- A minor correction in update_Hx(). A few cosmetic (I think) corrections.
-v. 1.74.7
+v1.74.7
    PS 19042018
    -- Improved gather_St() (hopefully).
-v. 1.74.6
+v1.74.6
    PS 19042018
    -- Improved gathering of HE with -DHE_VIASHMEM. Removed a few barriers.
-v. 1.74.5
+v1.74.5
    PS 19042018
    -- Mainly barriers to work with -DHE_VIASHMEM.
-v. 1.74.4
+v1.74.4
    PS 18042018
    -- A minor correction in update_HE().
-v. 1.74.3
+v1.74.3
    PS 18042018
    -- It seems that MPI_Barrier() is needed before MPI_Allgatherv()...
-v. 1.74.2
+v1.74.2
    PS 18042018
    -- Fixed a defect in the latest version of distribute.c.
-v. 1.74.1
+v1.74.1
    PS 18042018
    -- Limited the number of parallel processes updating HE by
       min(10, nprocesses); otherwhile I/O can become a bottleneck, I think.
-v.  v1.74.0
+v v1.74.0
    PS 17042018
    -- Introduced shared memory model for HE in CALC (need to be compiled with
       -DHE_VISHMEM). This is useful for situations when CALC becomes memory
       limited.
    -- Parallelised update_HE() when compiled with -DHE_VIASHMEM.
-v. 1.73.1
+v1.73.1
    PS 10042018
    -- Eliminated an argument in H_fn definition in allhs.h.
-v. 1.73.0
+v1.73.0
    PS 06042018
    -- Using a user defined MPI data type for communicating ensemble obs between
       members rather than MPI_float. This allows to overcome the MPI limit on
       the number of elements (currently 2^31 - 1) that manifests when the number
       of ensemble observations becomes very large (>~ 2.5e8).
    -- A minor modification in enkf_prep to print obs stats when not superobing.
-v. 1.72.1
+v1.72.1
    PS 06042018
    -- A (probably, temporal) fix for a very rarely manifested defect caused by
       the mismatch between the data types used for observation fractional grid
       coordinates when stored in observations.nc (float) and when first
       calculated in data readers (double).
-v. 1.72.0
+v1.72.0
    PS 27032018
    -- Introduced a new parameter EXCLUDEINST in reader_mmt_standard(). Should be
       used as e.g. "PARAMETER EXCLUDEINST = WMO995".
-v. 1.71.2
+v1.71.2
    PS 27032018
    -- A possible bug fix in grid_setlonbase(). A few cosmetic changes in grid.c.
       A minor change in Makefile.
-v. 1.71.1
+v1.71.1
    PS 26032018
    -- A minor modification for Z grids: when ZCVARNAME is specified --
       distinguish cases nkc = nk and nkc = nk + 1.
-v. 1.71.0
+v1.71.0
    PS 26032018
    -- Implemented the "new" ROMS formulation of the vertical sigma coordinate,
       with the associated changes in gridprm.[ch] and grid.c.
-v. 1.70.5
+v1.70.5
    PS 08032018
    -- Eliminated field "nallocated" in struct stringtable.
-v. 1.70.4
+v1.70.4
    PS 08032018
    -- Eliminated getnumlevels(), which was redundant because of getnlevels().
-v. 1.70.3
+v1.70.3
    PS 08032018
    -- Changed find_files() to use glob rather than shell command "ls".
-v. 1.70.2
+v1.70.2
    PS 07032018
    -- In utils.c replaced code borrowed from Jdn_L.C for day difference
       calculation by that from Scaldate.C (see
       http://www.diyspeakers.net/snippets.org/c.snippets.org/browser.html).
-v. 1.70.1
+v1.70.1
    PS 06032018
    -- A minor change in error messages in readfield() and read3dfield().
-v. 1.70.0
+v1.70.0
    PS 06032018
    -- Eliminated readfield() and read3dfield(); renamed readfield2() as
       readfield() and read3dfield2() as read3dfield(); modified the rest of the
       code accordingly. This ensures that the dimensions of the fields read are
       always consistent with the assumed dimensions.
-v. 1.69.7
+v1.69.7
    PS 15022018
    -- Tidied up output in print_obsstats().
    -- A few other cosmetic changes.
-v. 1.69.6
+v1.69.6
    PS 31012018
    -- Reverted to DEPTHFNAME being optional for sigma grids.
    -- Corrected defect in reading VDIR in the grid parameter file.
-v. 1.69.5
+v1.69.5
    PS 31012018
    -- Cut redundant interpolations in grid_fk2z() for hybrid grids.
-v. 1.69.4
+v1.69.4
    PS 30012018
    -- Modified grid_fk2z() accordingly (see v1.69.3). (This includes correcting
       a bug in grid_fk2z() for hybrid grids.)
-v. 1.69.3
+v1.69.3
    PS 25012018
    -- Modified z2fk_basic() to handle the case
       zt[i] != 0.5 * (zc[i] + zc[i + 1]).
-v. 1.69.2
+v1.69.2
    PS 25012018
    -- Modified hybrid grids stuff in grid.c to get robust z <-> k conversions.
-v. 1.69.1
+v1.69.1
    PS 25012018
    -- Modified fk2z() for hybrid grids. (Still may need some attention.)
-v. 1.69.0
+v1.69.0
    PS 24012018
    -- Modified checks of a point belonging to a longitude interval in
       das_printobsstats() and das_printfobsstats.
-v. 1.68.12
+v1.68.12
    PS 23012018
    -- Fixed a bug in reader_xyh_gridded().
    -- Tidied obs_add().
    -- Corrected enkf_prep.c:main() for the case --no-superobing.
-v. 1.68.11
+v1.68.11
    PS 22012018
    -- Corrected placement of #endif in grid.c that resulted in a compilation
       error with -DNO_GRIDUTILS.
-v. 1.68.10
+v1.68.10
    PS 22012018
    -- A minor fix in enkf_prep.c.
-v. 1.68.9
+v1.68.9
    PS 20012018
    -- A minor change of the work flow in PREP.
-v. 1.68.8
+v1.68.8
    PS 19012018
    -- Finalising this development patch.
-v. 1.68.7-dev
+v1.68.7-dev
    PS 19012018
    -- Added write/read of superobs in PREP before checking for land to exclude
       round-up effects.
-v. 1.68.6-dev
+v1.68.6-dev
    PS 19012018
    -- Allow running CALC twice (I hope), just ignoring the previous stuff.
    -- Made sob_stride grid-dependent. SOBSTRIDE = 0 means no superobing on this
@@ -1262,13 +1265,13 @@ v. 1.68.6-dev
    -- Changed format of readers -- replaced model* in the argument list by
       grid*.
    -- Added obstypes_set().
-v. 1.68.5-dev
+v1.68.5-dev
    PS 17012018
    -- Added deletion of superobs on land in PREP.
-v. 1.68.4-dev
+v1.68.4-dev
    PS 16012018
    -- Added check for superobs being on land in PREP when obs->stride > 1.
-v. 1.68.3-dev
+v1.68.3-dev
    PS 16012018
    -- Eliminated STATUS_ROUNDUP and associated code in model2obs(). Moved
       the associated check to PREP.
@@ -1279,16 +1282,16 @@ v. 1.68.3-dev
       variable defined for a grid.
    -- Synced ncw.[ch] with ncw-c v2.15.
    -- Eliminated STATUS_MISSING as it is not used anymore.
-v. 1.68.2-dev
+v1.68.2-dev
    PS 16012018
    -- Brought grid_describeprm() up to date.
    -- Corrected error message in das_calcinnandspread() ("no point to
       continue").
    -- Started updating the user guide.
-v. 1.68.1-dev
+v1.68.1-dev
    PS 16012018
    -- Modified error message in reader_xyh_gridded().
-v. 1.68.0-dev
+v1.68.0-dev
    PS 16012018
    -- Substantial changes in the vertical grid code. The entries XDIMNAME,
       YDIMNAME, ZDIMNAME have been eliminated from the grid parameter file.
@@ -1296,208 +1299,208 @@ v. 1.68.0-dev
         - VDIR, with two possible values: FROMSURF (default) and TOSURF;
         - ZCVARNAME.
    -- Added ncw_inq_vardimlen().
-v. 1.67.7
+v1.67.7
    PS 15012018
    -- In readfield(), readfield2(), read3dfield(), read3dfield2() allowed the
       extra outer dimension to be a non-record dimension if its length is 1.
-v. 1.67.6
+v1.67.6
    PS 15012018
    -- Fixed defect in v1.67.5.
-v. 1.67.5
+v1.67.5
    PS 13012018
    -- Added dimension check in reader_xyh_gridded().
-v. 1.67.4
+v1.67.4
    PS 11012018
    -- Updated ncw.c to v2.13 (adds trailing zero to extracted text attribute).
    -- Modified tunits_convert() to understand "hours".
    -- Changed data type of calcstats.nlobs_sum from int to long long int.
-v. 1.67.3
+v1.67.3
    PS 05012018
    -- Corrected a defect in reading INSTRUMENT parameter in reader_xy*()
       procedures.
-v. 1.67.2
+v1.67.2
    PS 04012018
    -- Elaborated observation stats: split "noutside" into "noutside_grid",
       "noutside_obsdomain" and "noutside_obswindow".
-v. 1.67.1
+v1.67.1
    PS 03012018
    -- Changed cycling in reader_xyh_gridded() to make k the fastest index (this
       is supoposed to accelerate fk2z and z2fk conversions).
-v. 1.67.0
+v1.67.0
    PS 03012018
    -- Replaced TODO in obs_create_fromsingleob() by a call to model_fk2z().
-v. 1.66.5-dev
+v1.66.5-dev
    PS 03012018
    -- Implemented grid_fk2z() for GRIDVTYPE_HYBRID.
-v. 1.66.4-dev
+v1.66.4-dev
    PS 03012018
    -- Added a few lacking pieces for hybrid vertical grids.
    -- Modified update_HE() to handle observations on multiple grids.
    -- Updated ncw.c to v2.12 to fix defect in ncw_check_vardims().
-v. 1.66.3-dev
+v1.66.3-dev
    PS 02012018
    -- Added reader_xyh_gridded() for 3D data with hybrid vertical coordinate.
       (Not tested yet.)
-v. 1.66.2-dev
+v1.66.2-dev
    PS 11122017
    -- Fixed a defect in Makefile introduced in r556.
-v. 1.66.1-dev
+v1.66.1-dev
    PS 11122017
    -- Continuing: fixed a lot of silly bugs. This version should work with
       historic settings as long as one does not try using "VTYPE = HYBRID".
-v. 1.66.0-dev
+v1.66.0-dev
    PS 11122017
    -- Started implementing hybrid vertical grid.
-v. 1.65.8
+v1.65.8
    PS 07122017
    -- Corrected instrument string in reader_mmt_standard().
-v. 1.65.7
+v1.65.7
    PS 05122017
    -- Renamed arch/make.inc.linux to arch/make.inc.linux-desktop-lapack, and
       arch/make.inc.mkl to arch/make.inc.linux-server-mkl
-v. 1.65.6
+v1.65.6
    PS 04122017
    -- Cosmetic updates of arch/make.inc.linux and arch/make.inc.mkl.
-v. 1.65.5
+v1.65.5
    PS 27112017
    -- Fixed a defect in get_shift() associated with v1.65.4.
-v. 1.65.4
+v1.65.4
    PS 27112017
    -- Changed specification for edge-aligned asynchronous intervals from "n"
       (for non-centred) to "e" (for edge-aligned).
-v. 1.65.3
+v1.65.3
    PS 24112017
    -- Added checks on dimensions of DEPTH and NLEVELS fields in grid.c.
-v. 1.65.2
+v1.65.2
    PS 24112017
    -- Introduced option "non-centred" for the asynchronous time binning
       intervals. By default the interval 0 is centred about the assimilation
       time. When specified as "non-centred" its start considdes with the
       assimilation time.
-v. 1.65.1
+v1.65.1
    PS 14112017
    -- A minor correction in obstypes_read().
-v. 1.65.0
+v1.65.0
    PS 10112017
    -- Added a new option to enkf_prep: "--no-superobing-across-instruments" to
       make it possible to obtain clean stats on each instrument type.
-v. 1.64.4
+v1.64.4
    PS 09112017
    -- In model_adddata() added a check that the field dimension matches the
       the assumed (model) dimension.
-v. 1.64.3
+v1.64.3
    PS 07112017
    -- Included observations outside strictly defined observation window into
       slot "outside" in observation statistics reported by PREP.
-v. 1.64.2
+v1.64.2
    PS 07112017
    -- "ASYNC 0" is now considered as specifying synchronous DA (i.e. is
       equivalent to the absense of this entry).
-v. 1.64.1
+v1.64.1
    PS 07112017
    -- Modified grid_create() to allow z-grids with no depth specified (e.g. for
       atmosphere). `numlevels' is then simply set to the number of layers
       everywhere.
-v. 1.64.0
+v1.64.0
    PS 07112017
    -- Made observation window observation type dependent. The common observation
       main window still can be set from the main parameter file. For a
       particular observation type it can be overwritten in the obstypes
       parameter file.
-v. 1.63.4
+v1.63.4
    PS 01112017
    -- Added a barrier before removing ".enkftmp".
-v. 1.63.3
+v1.63.3
    PS 01112017
    -- Write tiles for pointlog files in directory ".enkftmp" (used to be written
       in the work directory).
-v. 1.63.2
+v1.63.2
    PS 23102017
    -- Corrected VIIRS reader. Now PARAMETER KIND = 1 or PARAMETER KIND = 2 will
       use the nighttime or dayghlight obs only, and PARAMETER KIND = 3 will use
       all observations.
-v. 1.63.1
+v1.63.1
    PS 19102017
    -- Added optional PARAMETER KIND to reader_viirs_standard().
-v. 1.63.0
+v1.63.0
    PS 03102017
    -- Added reader_xyz_scattered.c.
-v. 1.62.2
+v1.62.2
    PS 27092017
    -- Fixed (hopefully) a subtle defect in handling periodic grids. It
       manifested in getting weird longitude values for super-observations when
       the collated obs had fi (fractional i indices) both in [ni - 1, ni - 0.5)
       and [ni - 0.5, ni) intervals.
       Thanks to Matt Chamberlain and Russ Fiedler for the bug report.
-v. 1.62.1
+v1.62.1
    PS 26092017
    -- Added optional parameters VARSHIFT and MINDEPTH to
       reader_viirs_standard().
-v. 1.62.0
+v1.62.0
    PS 21092017
    -- Added reader_xyz_gridded(). It mainly targets assimilating re-analysis
       fields.
-v. 1.61.6
+v1.61.6
    PS 15092017 (actually Russ Fiedler)
    -- Corrected the call to MPI_Allgatherv() in ensobs.c:
       MPI_Allgatherv(das->S[my_first_iteration],...) became
       MPI_Allgatherv(MPI_IN_PLACE,...). It seems that the previous version
       started to work dogy with OpenMPI v1.10.2.
-v. 1.61.5
+v1.61.5
    PS 14092017
    -- Removed redundant reader_aquarius.c and reader_smos.c (these data are now
       handled by reader_xy_gridded.c).
-v. 1.61.4
+v1.61.4
    PS 13092017
    -- Modified reader_xy_gridded() to allow a record dimension with a single
       record only (for now).
-v. 1.61.3
+v1.61.3
    PS 13092017
    -- Modified reader_xy_gridded() and reader_xy_scattered() to allow NaNs as
       fill values. Necessary to make it possible to use for reading SMOS data.
-v. 1.61.2
+v1.61.2
    PS 15082017
    -- A minor modification in the observation constructor in CALC.
-v. 1.61.1
+v1.61.1
    PS 15082017
    -- A change to permit variable names in the state vector (defined in the
       model prm file) different by case only, e.g.: t and T, u and U etc.
-v. 1.61.0
+v1.61.0
    PS 15082017
    -- Made STRIDE grid dependent.
-v. 1.60.4
+v1.60.4
    PS 11082017
    -- Cosmetic changes.
-v. 1.60.3
+v1.60.3
    PS 02082017
    -- Modified reader_xy_gridded.c and reader_xy_scattered.c to allow lack of
       the time variable. Time is assumed then to be at the anaysis time.
-v. 1.60.2
+v1.60.2
    PS 02082017
    -- Modified reader_xy_gridded.c to handle curvilinear grids.
-v. 1.60.1
+v1.60.1
    PS 07062017
    -- Some minor portability related changes in hash.[ch].
-v. 1.60.0
+v1.60.0
    PS 26052017
    -- Corrected (I hope) the sign of the bias correction in the mixed layer in
       subsurface fields. (It should be the same in H_subsurf_wsurfbias() and
       in H_surf_biased().)
-v. 1.59.2
+v1.59.2
    PS 30032017
    -- Introduced and using now str2bool() for reading ISSURFACE entry.
-v. 1.59.1
+v1.59.1
    PS 30032017
    -- Cosmetic changes.
-v. 1.59.0
+v1.59.0
    PS 30032017
    -- Replaced KIND entry in observation types parameter file by ISSURFACE.
-v. 1.58.0
+v1.58.0
    PS 29032017
    -- Added two new entries NCFORMAT and NCCOMPRESSION to the main parameter
       file. Consider it experimental at this stage! The defaults remain
       NC-64BIT_OFFSET and no compression.
-v. 1.57.0
+v1.57.0
    PS 29032017
    -- Changed identification of observation types. Each type now is
       characterised by its "observation kind". Currently there are two kinds
@@ -1506,172 +1509,172 @@ v. 1.57.0
 
       ONE MUST MAKE (RATHER MINOR) CHANGES TO OBSTYPES.PRM FILES WHEN UPDATING
       TO THIS VERSION.
-v. 1.56.3
+v1.56.3
    PS 28032017
    -- Corrected obs_addtype() to initialise the new field `aliasname'.
-v. 1.56.2
+v1.56.2
    PS 28032017
    -- Eliminated H_sla_bran().
-v. 1.56.1
+v1.56.1
    PS 27032017
    -- Added examples/5.
-v. 1.56.0
+v1.56.0
    PS 27032017
    -- Introduced a new optional field "ALIAS" for observation types. This
       allows one to add a new observation type without re-compiling the code.
       This can be useful e.g. for evaluating a new instrument (by getting an
       independent statistics for the new instrument and seeing the change in
       statistics for the old instruments).
-v. 1.55.4
+v1.55.4
    PS 24032017
    -- Added 0.17 to H8 SST to get the foundation temperature.
-v. 1.55.3
+v1.55.3
    PS 23032017
    -- Added parameter INSTRUMENT to reader_xy_gridded() and
       reader_xy_scattered().
-v. 1.55.2
+v1.55.2
    PS 23032017
    -- In reader_xy_gridded() and reader_xy_scattered() added check for attribute
       of the data variable "error_std".
-v. 1.55.1
+v1.55.1
    PS 23032017
    -- Added parameter MINDEPTH to reader_xy_gridded() and reader_xy_scattered().
-v. 1.55.0
+v1.55.0
    PS 23032017
    -- Eliminated nan.h.
-v. 1.54.1
+v1.54.1
    PS 23032017
    -- Corrected time calculation in reader_xy_scattered().
-v. 1.54.0
+v1.54.0
    PS 22032017
    -- Added reader_xy_gridded().
-v. 1.53.0
+v1.53.0
    PS 22032017
    -- Started work on generic obs readers. Added reader_xy_scattered().
-v. 1.52.0
+v1.52.0
    PS 16032017
    -- Incorporated optional shuffling of obs (flag -DOBS_SHUFFLE).
-v. 1.51.1
+v1.51.1
    PS 10032017
    -- reverted change in v.1.50.0 until some issues resolved
-v. 1.51.0
+v1.51.0
    PS 10032017
    -- Added new optional entries WINDOWMIN and WINDOWMAX in the main parameter
       file to specify exact boundaries of the observation time window.
    -- Added new reader for pre-processed L3C SST observations from VIIRS.
    -- Synced ncw.[ch] with ncw-c v2.07.
-v. 1.50.0
+v1.50.0
    PS 10022017
    -- Added randomising observation order before inserting into kd-tree.
-v. 1.49.2
+v1.49.2
    PS 20012017
    -- Fixed a defect in reader_h8.c.
-v. 1.49.1
+v1.49.1
    PS 19012017
    -- Modified reader_h8.c to handle both 1D and 2D file structure.
-v. 1.49.0
+v1.49.0
    PS 18012017
    -- Added reader_h8.c for SST observatiopns from Himawari-8 pre-procesed by
       BOM.
-v. 1.48.9
+v1.48.9
    PS 17012017
    -- Fixed a recent bug in das_updatebg() resulted in zero increments in EnOI
       systems.
-v. 1.48.8
+v1.48.8
    PS 02122016
    -- Further to 1.48.5
-v. 1.48.7
+v1.48.7
    PS 28112016
    -- Further to 1.48.5
-v. 1.48.6
+v1.48.6
    PS 28112016
    -- Further to 1.48.5
-v. 1.48.5
+v1.48.5
    PS 28112016
    -- Further to 1.48.2, to handle 2D fields.
-v. 1.48.4
+v1.48.4
    PS 24112016
    -- Some internal changes in hash.c.
-v. 1.48.3
+v1.48.3
    PS 24112016
    -- Tighten up aliasing of the hash table key in observations.c by
       introducing union keydata.
-v. 1.48.2
+v1.48.2
    PS 24112016
    -- Corrected das_updatefields() and das_updatebg() to handle situation when
       (1) the number of watered layers is less than the number of layers and (2)
       the layers are indexed from bottom up.
-v. 1.48.1
+v1.48.1
    PS 23112016
    -- Modified updatefields() to skip updating in cells with partial
       drying/wetting.
-v. 1.48.0
+v1.48.0
    PS 22112016
    -- Added reader_smos.c.
-v. 1.47.1
+v1.47.1
    PS 03102016
    -- Corrected data type for struct observation.id_orig from "short int" to
       "int".
-v. 1.47.0
+v1.47.0
    PS 28092016
    -- Added argument "ktop" to interpolate3d() to take care of the case when
       the layer indexing starts from the bottom.
-v. 1.46.14
+v1.46.14
    PS 28092016
    -- Modified reader_cars_standard() to look for either dimension "zt" or
       "ztd".
-v. 1.46.13
+v1.46.13
    PS 28092016
    Added argument "hastosucceed" to obstype_getid().
-v. 1.46.12
+v1.46.12
    PS 28092016
    -- Modified obstype_getid() to exit with error if an observation type is not
       found.
    -- Cosmetic change: in struct obstype replaced field "nscale" by "nlocrad".
-v. 1.46.11
+v1.46.11
    PS 19092016
    -- Corrected obstype_check().
-v. 1.46.10
+v1.46.10
    PS 18092016
    -- Fixed defect in das_calctransforms() that led to a hang in the case
       nprocesses > nj / stride.
-v. 1.46.9
+v1.46.9
    PS 16092016
    -- Cosmetic changes.
-v. 1.46.8
+v1.46.8
    PS 15092016
    -- Grid mask is assumed 1 everywhere for sigma model now by default (i.e.
       if no depth variable is specified for the grid)
-v. 1.46.7
+v1.46.7
    PS 14092016
    -- Changed MAXOBSVAL from 900.0 to 9000.0 to handle atmospheric pressure
       (which can exceed 1000.0)
-v. 1.46.6
+v1.46.6
    PS 14092016
    -- On multi-grid model - modified plog_writestatevars_direct() and
      plog_writestatevars_toassemble() to skip writing variables from grids
      other than the native one for a given pointlog (this could try to access
      nodes outside grid and generate segfaults).
-v. 1.46.5
+v1.46.5
    PS 05092016
    - Cosmetic simplifications in distribute.c.
-v. 1.46.4
+v1.46.4
    PS 02092016
    -- Added reporting the number of unique profile locations by reader_mmt.c.
-v. 1.46.3
+v1.46.3
    PS 01092016
    -- Fixed a defect that prevented writing w_actual to pointlogs.
-v. 1.46.2
+v1.46.2
    PS 01092016
    -- Added an option to PREP "--no-writing-orig-obs".
-v. 1.46.1
+v1.46.1
    PS 24082016
    -- Fixed a defect in reader_aquarius.c.
-v. 1.46.0
+v1.46.0
    PS 24082016
    -- Updated common/ncw.[ch] to ncw-c v2.00. Updated the calls to ncw_*()
       functions to match the new interfaces.
-v. 1.45.2
+v1.45.2
    PS 18082016
    -- Slightly modified update_HE() and update_Hx() to fix a once-in-a-lifetime
       round-off error occuring after writing and reading `fi' to observations.nc
@@ -1681,194 +1684,194 @@ v. 1.45.2
       observations-orig.nc (that is, after compacting).
    -- Changed the type of fields `type', `product' and `instrument' of struct
       observation from int to short int.
-v. 1.45.1
+v1.45.1
    PS 17082016
    -- Changed enkfprm_check() so that no unnecessary parameters are demanded
       when calculating ensemble spread only.
-v. 1.45.0
+v1.45.0
    PS 16082016
    -- Minor changes to permit calculating ensemble spread only for EnOI (without
       running PREP and CALC).
-v. 1.44.6
+v1.44.6
    PS 22072016
    -- Updated ncw.[ch] to ncw-c v1.02.
-v. 1.44.5
+v1.44.5
    PS 22072016
    -- A typo fixed in interpolate2d() and interpolate3d().
-v. 1.44.4
+v1.44.4
    PS 18072016
    -- Fixed (hopefully) handling of periodic grids. (Need another look.)
-v. 1.44.3
+v1.44.3
    PS 12072016
    -- Fixed a defect in detecting periodic grid in gnxy_simple_create().
-v. 1.44.2
+v1.44.2
    PS 29062016
-   -- Fixed a defect introduced in v. 1.43.0 in copying obstypes in
+   -- Fixed a defect introduced in v1.43.0 in copying obstypes in
       obs_addtype().
-v. 1.44.1
+v1.44.1
    PS 29062016
    -- Fixed obs readers in regard to setting model depth in case when an ob is
       outside the grid.
-v. 1.44.0
+v1.44.0
    PS 28062016
    -- Added `model_depth' to `struct observation'.
-v. 1.43.0
+v1.43.0
    PS 28062016
    -- Minor structural changes for struct obstype -- now can depend on an
       arbitrary number of model variables specified after the entry VAR in
       the observation types parameter file. The entry VAR2 is now redundant.
-v. 1.42.1
+v1.42.1
    PS 22062016
    -- Further changes for the case -DZSIGN_NOCHECK.
-v. 1.42.0
+v1.42.0
    PS 22062016
    -- Introduced compile flag ZSIGN_NOCHECK to make it work with SHOC models
       that might have both positive and negative values for z coordinate.
-v. 1.41.2
+v1.41.2
    PS 22062016
    -- Replaced <values.h> with <limits.h> and/or <float.h>
-v. 1.41.1
+v1.41.1
    PS 20062016
    -- A rather minor change in z2fk_basic() in how the last layer is handled in
       the descending case.
-v. 1.41.0
+v1.41.0
    PS 20062016
    -- Some structural and numerical changes in handling of horizontal grids
       aligned with lat/lon.
-v. 1.40.3
+v1.40.3
    PS 20062016
    -- Corrected grid code to ensure that grids with odd lonbase (eg. -80) are
       handled correctly.
-v. 1.40.2
+v1.40.2
    PS 17062016
    -- Added "|NETCDF_FORMAT" when creating observations*.nc files to allow
       bigger size.
-v. 1.40.1
+v1.40.1
    PS 15062016
    -- Added STATUS_MISSED for missing gridded obs.
-v. 1.40.0
+v1.40.0
    PS 15062016
    -- Added SSS reader reader_aquarius.c.
-v. 1.39.8
+v1.39.8
    PS 15062016
    -- Added the actual code that discards observation outside the allowed range.
       Thanks to Paul Sandery for the report.
    -- Added exit with error in the case of asynchronous time interval <= 0.
-v. 1.39.7
+v1.39.7
    PS 24052016
    -- Cosmetic change in obs_add(): range of the obs IDs read from a file
       not printed if it is empty.
-v. 1.39.6
+v1.39.6
    PS 24052016
    -- Fixed a defect (I believe) in _kd_findnearestnode().
-v. 1.39.5
+v1.39.5
    PS 18052016
    -- Minor fix: allowed creating gridmap in CALC -- necessary for single
       observation experiments.
-v. 1.39.4
+v1.39.4
    PS 13052016
    -- Minor simple general structural chages or vertical grid ztuff.
-v. 1.39.3
+v1.39.3
    PS 10052016
    -- Added index range check in grid_ij2xy().
-v. 1.39.2
+v1.39.2
    PS 05052016
    -- Changed calls to gu_alloc2d() to reflect changes in the gridutils library.
-v. 1.39.1
+v1.39.1
    PS 05052016
    -- Corrected defect in copy3d().
-v. 1.39.0
+v1.39.0
    PS 04052016
    -- Modified internally alloc2d(), alloc3d(). Changed interface in copy2d()
       copy3d(). Eliminated free2d() and free3d() -- now just free().
-v. 1.38.6
+v1.38.6
    PS 04052016
    -- Corrected MLD calculation.
-v. 1.38.5
+v1.38.5
    PS 03052016
    -- Replaced alloc2d() to gu_alloc2d() for curvilinear nodes.
-v. 1.38.4
+v1.38.4
    PS 03052016
    -- Corrected obs_addtype() for a change in struct obstype.
-v. 1.38.3
+v1.38.3
    PS 03052016
    -- Modified internally alloc2d(), free2d(), copy2d(), alloc3d(), free3d(),
       copy3d().
-v. 1.38.2
+v1.38.2
    PS 03052016
    -- Removed redundant interpolations in H_subsurf_wsurfbias().
-v. 1.38.1
+v1.38.1
    PS 03052016
    -- Removed redundant arguments in H_fn().
-v. 1.38.0
+v1.38.0
    PS 02052016
    -- Added H_subsurf_wsurfbias(). As a consequence, also added das_calcmld(),
       copy2d(), copy3d(). Modified alloc2d(), free2d(), alloc3d(), free3d().
       Added model_addorreplacedata(). Modified model_adddata(). A lot of minor
       changes.
-v. 1.37.3
+v1.37.3
    PS 14042016
    -- Modified readfield() to ignore "k" index if the number of dimensions is 4
       and the size of the corresponding dimension is 1
-v. 1.37.2
+v1.37.2
    PS 13042016
    -- Added "biased" H-finction for observation type "SST".
-v. 1.37.1
+v1.37.1
    PS 12042016
    -- Fixed analysis variable names in pointlog files: they now have suffix
       suffix "_an" if ehkf_update outputs analyses, and "inc" if it outputs
       increments (before it was "_an" regardless).
-v. 1.37.0
+v1.37.0
    PS 24032016
    -- Added a new optional grid parameter "MAPTYPE" that can be set either to
       "b" (binary tree) or "k" (kd-tree)
    -- Fixed examples/2/grid2/grid_spec.nc
-v. 1.36.3
+v1.36.3
    PS 24032016
    -- Minor changes in kd-tree code
-v. 1.36.2
+v1.36.2
    PS 23032016
    -- Re-wrote the kdtree code
-v. 1.36.1
+v1.36.1
    PS 18032016
    -- Removed redundant dependency on the latest version of gridutils (not
       yet...)
-v. 1.36.0
+v1.36.0
    PS 18032016
    -- Refurbished the kdtree code (for no particular reason)
-v. 1.35.0
+v1.35.0
    Marshall Ward 11032016
    -- Replaced isend/bcast calls in das_getHE() with allgatherv
-v. 1.34.0
+v1.34.0
    PS 11032016
    -- Made sure that in single observation experiments (options
       --single-observation-xyz or --single-observation-ijk of enkf_calc) for
       surface obs types the observation layer/depth is set to surface
       regardless of the entered value
-v. 1.33.0
+v1.33.0
    PS 03032016
    -- Adding parameter "ADD" to the RADS reader to make it possible to revert
       a correction to SLA
-v. 1.32.4
+v1.32.4
    PS 20022016
    -- A minor fix: replaced a number ofcalls to abs() by fabs() in grid.c
-v. 1.32.3
+v1.32.3
    PS 17022016
    -- Added examples/4 to demonstrate a multi-grid setting.
    -- Added examples/1/conf directory to the source. Excluded it from the
       example data download.
    -- Changed some dimension and variable names and deleted global attributes
       in grid_spec.nc files.
-v. 1.32.2
+v1.32.2
    PS 16022016
    -- Beautified examples/2/Makefile
    -- Added examples/3 to demonstrate using masked curvilinear grid in PREP
-v. 1.32.1
+v1.32.1
    PS 16022016
    -- Bug fix for the previous version.
    -- Put in examples/2. It is exactly as example 1 except that the grid is
       set aas curvilinear (although in fact it is rectangular in lon/lat).
-v. 1.32.0
+v1.32.0
    PS 12022016
    Made changes in the grid code to enable handling of ORCA grids. Also
    simplified the structure of the grid code -- got rid of dynamic functions,
@@ -1882,361 +1885,361 @@ v. 1.32.0
       with this grid. It will be fully mapped at a cost that a very small
       percent of obs along the line connecting the two poles will be ignored.
    2. Run CALC and POST with the normal grid.
-v. 1.31.1
+v1.31.1
    PS 25012016
    -- Modified section 1.2 of the user guide.
-v. 1.31.0
+v1.31.0
    PS 03012016
    -- Modified reader_navo.c to allow dimension name "length" along with the
       old name "nobs".
-v. 1.30.0
+v1.30.0
    PS 23122015
    -- Added a crude check on individual observations after reading and initial
       processing to avoid situations with zero error or likewise.
-v. 1.29.1
+v1.29.1
    PS 09122015
    -- Cosmetic changes.
-v. 1.29.0
+v1.29.0
    PS 30112015
    -- Modified code to allow arbitrary range for the grid longitude.
       The range is now defined by the grid.lonbase field:
       lon range = [lonbase, lonbase + 360). (Used to be allowed either
       [-180, 180) or [0, 360) only.)
-v. 1.28.3
+v1.28.3
    PS 17112015
    -- Modified gridprm_create() to make sure that the entry NAME is entered
       first when initialising a new grid.
-v. 1.28.2
+v1.28.2
    PS 04112015
    -- Corrected a defect in reading multiple LOCRAD nd WEIGHT entries in
       obstypes parameter file.
-v. 1.28.1
+v1.28.1
    PS 04112015
    -- Added a check on distance in obstype_calclcoeff(), necessary in
       multi-scale case.
-v. 1.29.0
+v1.29.0
    PS 03122015
    Made entries "NUMLEVELSVARNAME" for Z grids or "MASKVARNAME" for sigma grids
    optional. The code builds these arrays now if necessary.
-v. 1.28.1
+v1.28.1
    PS 03122015
    -- Cosmetic changes.
-v. 1.28.0
+v1.28.0
    PS 30112015
    -- Made changes that suppose to make it possible multi-scale localisation.
       For now made it sure the code works with (single scale) example 1.
-v. 1.27.4
+v1.27.4
    PS 28102015
    -- A change in an error message in enkfprm.c.
-v. 1.27.3
+v1.27.3
    PS 28102015
    -- Moved #include "gridmap.h" in grid.c inside "#if !defined(NO_GRIDUTILS)".
       Thanks to Justin Freeman for reporting this defect.
-v. 1.27.2
+v1.27.2
    PS 28102015
    -- Modified all readers to generate an error on unknown parameter.
-v. 1.27.1
+v1.27.1
    PS 28102015
    -- Fixed a few glitches in reader_pathfinder_standard().
-v. 1.27.0
+v1.27.0
    PS 28102015
    -- Added reader_pathfinder.c.
    -- Added PARAMETER ADDBIAS to reader_navo_standard(); default = no.
    -- Cosmetic changes in readers.
-v. 1.26.11
+v1.26.11
    PS 26102015
    -- Allowed comments (starting with "#") after definition of pointlog in the
       main parameter file.
    -- Made model_getgridbyname() exit with error rather than return NULL when
       no grid with specified name is found.
-v. 1.26.10
+v1.26.10
    PS 20102015
    -- Moved obs_createkdtrees() from the cycle over grids.
-v. 1.26.9
+v1.26.9
    PS 15102016
    -- Cosmetic changes: definitions.h::NETCDF_FORMAT now defines the NetCDF
       format used.
-v. 1.26.8
+v1.26.8
    PS 15102016
    -- Cosmetic changes (initialisation log).
-v. 1.26.7
+v1.26.7
    PS 15102015
    -- Fixed inconsistency between insert and search keys in ht_plogs.
-v. 1.26.6
+v1.26.6
    PS 15102015
    -- Reversed 1.26.3; instead write the "actual" transform to the point log
       only for if field.id == 0.
-v. 1.26.5
+v1.26.5
    PS 15102015
    -- Corrected a (recently introduced) defect in g2_xy2fij() that filtered
       latitude according to the longitude range (-180 to 180 or 0 to 360).
-v. 1.26.4
+v1.26.4
    PS 15102015
    -- Corrected log printing in model_print().
-v. 1.26.3
+v1.26.3
    PS 14102015
    -- Introduced field pointlog.transform_written to avoid multiple writes of
       the "actual" (interpolated) transforms to pointlog files.
-v. 1.26.2
+v1.26.2
    PS 13102015
    -- Generate error on unknown parameter in observation parameter file.
-v. 1.26.1
+v1.26.1
    PS 13102015
    -- Fixed log when reporting obstypes parameter file (observation parameter
       file was reported instead).
-v. 1.26.0
+v1.26.0
    PS 12102015
    -- Added parameter ORBITS to reader_amsre_standard(). Can be either "ALL",
       "DESCENDING", or "ASCENDING".
-v. 1.25.5
+v1.25.5
    PS 08102015
    -- A similar change in z2fk_basic().
-v. 1.25.4
+v1.25.4
    PS 08102015
    -- Fixed defects in x2fi_irreg() during mapping of points in the last cell.
-v. 1.25.3
+v1.25.3
    PS 06102015
    -- Fixed a potentially major defect in vertical mapping for sigma grids in
       the case of grids going from bottom up. (Somehow it has not show up in
       practice.)
-v. 1.25.2
+v1.25.2
    PS 06102015
    -- Changed INFRATIO_DEFAULT from 0.5 to 1.0.
-v. 1.25.1
+v1.25.1
    PS 29092015
    -- Semi-cosmetic changes.
-v. 1.25
+v1.25
    PS 24092015
    -- Added option of additive noise, which could be useful to keep spread
       during bias estimation.
-v. 1.24
+v1.24
    PS 16092015
    -- Introduced alpha -- moderating parameter in DEnKF and ETKF.
-v. 1.23.5
+v1.23.5
    PS 14092015
    -- Modified reader_amsre_standard() to handle parameter MINWIND. Inreased
       default value of MINWIND from 1 to 5 (m/s).
-v. 1.23.4
+v1.23.4
    PS 10092015
    -- Fixed an inconsistency in enkf_prep.c when it sometimes tried to write
       to non-existent observation-orig.nc.
-v. 1.23.3
+v1.23.3
    PS 09092015
    -- Fixed deallocation of null pointer in model.c and added missed
       deallocations in pointlog.c.
-v. 1.23.2
+v1.23.2
    PS 09092015
    -- Cosmetic changes in distribute.c.
-v. 1.23.1
+v1.23.1
    PS 09092015
    -- A minor clean-up of a previous development.
-v. 1.23
+v1.23
    PS 08092015
    -- Added a new optional entry PARAMETER to the parameter data file.
       This allows to specify an arbitrary number of parameters for the reader.
       Modified reader_rads_standard() and reader_rads_standard2() to handle
       parameter MINDEPTH.
-v. 1.22
+v1.22
    PS 07092015
    -- in find_files() added fflush(stdout) before calling popen() to avoid
       "intermingling" of outputs of the original and fork processes.
    -- Added a section on adaptive moderation of observations ("K-factor") to
       user manual.
-v. 1.21.1
+v1.21.1
    PS 04092015
    -- Changed default to ignore subgrid variability.
-v. 1.21
+v1.21
    PS 04092015
    -- During superobing - calculate std of the subgrid variability (in a rather
       crude way) and use <obs error std> = max(<obs error std>, <subgrid std>).
-v. 1.20
+v1.20
    PS 03092015
    -- Switched off writing obs to observations-orig.nc when enkf_prep is run
       with --no-superobing.
    -- Corrected indexing of obs. This might be a substantial defect that was
       demonstrated to result in losing superobs in some cases, at least.
-v. 1.19.2
+v1.19.2
    PS 01092015
    -- Fixed inconsistency in handling pointlog hash table.
-v. 1.19.1
+v1.19.1
    PS 01092015
-   -- A number of minor follow-on changes to v. 1.19.
-v. 1.19
+   -- A number of minor follow-on changes to v1.19.
+v1.19
    PS 31082015
    -- Modified code to allow point logs to be specified on any grid by entering
       the grid name as an additional parameter in the pointlog entry. Grid 0
       will still be used as default.
-v. 1.18
+v1.18
    PS 31082015
    -- Verified that setting LOCRAD and STRIDE to big numbers results in
       calculating a global analysis. Made some changes to the code to ensure
       that it runs with such setings, even when using more than one CPU in calc.
       Added target "global" to example 1.
-v. 1.17
+v1.17
    PS 27082015
    -- Made writing analyses to separate files (rather than appending to forecast
       files) the default action. The former option "--separate-output" became
       redundant, a new option "--joint-analysis" appends analysis to forecast
       files.
-v. 1.16
+v1.16
    PS 26082015
    -- Fixed a defect for sigma models resulted only in the first (with zero id)
       layer being updated (not sure when it was introduced).
-v. 1.15
+v1.15
    PS 26082015
    -- Added a check on analysis julian day when opening observations.nc (to
       exclude using data from another cycle).
-v. 1.14
+v1.14
    PS 25082015
    -- Added option "--point-logs-only" to enkf_calc to complement
       "--no-fields-write" in enkf_update.
-v. 1.13
+v1.13
    PS 18082015
    -- Introduced global z intervals used for each region (unless overriden
       by local settings). Also, if no regions defined introduced a default
       region "Global" with domain [x1,x2] = [-999,999], [y1,y2] = [-999,999].
-v. 1.12
+v1.12
    PS 17082015
    -- Can now specify arbitrary number of z intervals for obs stats of 3D
       fields for each region. The default is [0 50] [50 500] [500 9999].
-v. 1.11
+v1.11
    PS 13082015
    -- Added ability to specify vertical split in observation stats for 3D fields
       for each region (in the region specs in the main parameter file); also
       added stats for the intermediate interval.
-v. 1.10
+v1.10
    PS 12082015
-   -- Fixed a major slowdown in obs_findlocal() introduced in v. 1.08: moved
+   -- Fixed a major slowdown in obs_findlocal() introduced in v1.08: moved
       obs_find_bytype() outside.
       Thanks to Paul Sandery for the report.
-v. 1.09.1
+v1.09.1
    PS 07082015
    -- Fixed bug in invsqrtm2() that resulted in wrong X5 for the ETKF.
       Thanks to Yonghong Yin for the report.
-v. 1.09
+v1.09
    PS 04082015
    -- Added a new flag "--use-rmsd-for-obsstats" for enkf_calc. When RMSD is
       printed to the log, "[.]" is shown instead of "|.|" used for printing
       MAD. Also, added printing of the command line and working directory to the
       log for all binaries.
-v. 1.08.2
+v1.08.2
    PS 03082015
    -- Corrected bug in obs_findlocal().
-v. 1.08.1
+v1.08.1
    PS 03082015
    -- Bugs corrected in das_writefields() and obs_addtype().
-v. 1.08
+v1.08
    PS 03082015
    -- Modified code to make localisation radius dependent on the observation
       type. The common value can now be overriden for  particular obs. type
       in the observation types parameter file.
-v. 1.07
+v1.07
    PS 29072015
    -- Added a new option to enkf_update: --write-inflation. (It only takes
       effect when using adaptive inflation.)
-v. 1.06.1
+v1.06.1
    PS 23072015
    -- Fixed a defect -- checking that plogs do actually exist before working
       on them.
       Thanks to Paul Sandery for reporting.
-v. 1.06
+v1.06
    PS 22072015
    -- Added capability to define the limiting multiple for inflation (remains
       0.5 by default).
-v. 1.05
+v1.05
    PS 09072015
    -- Added AMSRE reader.
-v. 1.04
+v1.04
    PS 09072015
    -- Eliminated the field `dasystem.target'; it is replaced by the flag
       `das->updatespec & UPDATE_OUTPUTINC'.
-v. 1.03
+v1.03
    PS 08072015
    -- Unified specifications for enkf_update -- they are now all in the variable
       `updatespec'.
    -- Introduced a new option in enkf_update "-no-fields-update".
-v. 1.02
+v1.02
    PS 22062015
    -- Made land test in das_updatefields() and das_updatebg() depth dependent.
       For now assume that the layeres are counted down from the surface (for Z
       models).
-v. 1.01
+v1.01
    PS 18062015
    -- Fixed inconsistency with -DNO_GRIDUTILS.
       Thanks to Russ Fiedler for the bug report.
    -- Some cosmetic changes.
-v. 1.00
+v1.00
    PS 17062015
    -- Modified code to make the actual (interpolated) transforms/weights also
       written to the pointlog files (as "X5_actual" or "w_actual").
-v. 0.99
+v0.99
    PS 16062015
    -- Modified pointlog code to write both analysis and forecast variables (was
       analysis only).
    -- Corrrected spread calculation (replaced /(m-1) by /m).
    -- Changed sprintf() to snprintf() throughout the code.
-v. 0.98
+v0.98
    PS 03062015
    -- Fixed a (minor) inconsistency that led to assertion failure in some
       single observation experiments.
-v. 0.97.3
+v0.97.3
    PS 11052015
    -- Corrected a defect in utils.c: replaced "sort_r()" by "qsort_r()" to
       compile correctly for systems with no qsort_r().
-v. 0.97.2
+v0.97.2
    PS 08052015
    -- Added a new procedure utils.c::int getnumlevels(char fname[], char
       varname[]) and use it in H_surf_standard() to test whether the model file
       has been stripped to contain the surface layer only or not. (This is
       necessary when the top layer is not k = 0.)
    -- Added a few assertions to readfield() and writefield().
-v. 0.97.1
+v0.97.1
    PS 06052015
    -- Added parameter `hastosucceed' to model_getvarid().
-v. 0.97
+v0.97
    PS 05052015
    -- Set quit function for gridutils to enkf_quit. This change requires
-      upgrade to the latest version of libgu (v. 0.54).
-v. 0.96.3
+      upgrade to the latest version of libgu (v0.54).
+v0.96.3
    PS 05052015
    -- Fixed a defect in gridprm.c that sometimes caused exiting with error
       "VTYPE specified twice".
-v. 0.96.2
+v0.96.2
    -- Cosmetic changes.
-v. 0.96.1
+v0.96.1
    PS 19022015
    -- Fixed name of the "nk" dimension in pointlog files, get_nkname().
-v. 0.96
+v0.96
    PS 17022015
    -- Fixed the call to grid_create() in model.c to pass correctly the grid type
       to the grid structure (was defaulted to GRIDVTYPE_Z).
       Thanks to Paul Sandery for the bug report.
-v. 0.95
+v0.95
    PS 12022015
    -- Modified code to be able to proceed with nobs = 0; introduced a new option
       for enkf_calc "--ignore-no-obs".
-v. 0.94
+v0.94
    PS 05022015
    -- Added code for qsort_r() activated by compiler flag -DNO_QSORT_R. (For
       systems with old glibc; based on public code sort_r.h by Isaac Turner.)
-v. 0.93
+v0.93
    Paul Sandery 30012015
    -- Added a reader for AMSR-2.
-v. 0.92.3
+v0.92.3
    PS 30012015
    -- Corrected das_updatebg() to work in the case STRIDE = 1.
       Thanks to Paul Sandery for the bug report.
-v. 0.92.2
+v0.92.2
    PS 16012015
    -- Modified H_surf_standard() and H_surf_biased() to read the actual level
       of the surface variable.
-v. 0.92.1
+v0.92.1
    PS 16012015
    -- Made DEPTHVARNAME optional for a grid; an error is generated in
       model_getdepth() if it is not set for the grid the variable is defined on.
    -- Made the inflation limited by half of the magnitude of the spread
       reduction.
-v. 0.92
+v0.92
    PS 06012015
    -- Added a strict check on keywords in obstypes parameter file. Corrected
       obstypes parameter file in example 1 (replaced MIN and MAX by MINVALUE and
@@ -2248,20 +2251,20 @@ v. 0.92
    -- Do not calculate transforms for a grid in das_calctransforms() if there
       are no model variable associated with it.
    -- Corrected das_updatefields() to work in the case STRIDE = 1.
-v. 0.91
+v0.91
    PS 12122014
    -- Structural changes: no more `models' directory. Instead, grid
       specifications now require VTYPE (currently can be either "z" or "sigma").
-v. 0.90
+v0.90
    PS 17122014
    -- Corrected defect in verticall mapping.
       Thanks to Russ Fiedler for the bug report.
    -- Moved `gridprm' stuff to gridprm.[ch].
-v. 0.89
+v0.89
    PS 10122014
    -- Added sigma model to enable assimilating with ROMS. Quite substantial
       secondary changes overall.
-v. 0.88
+v0.88
    PS 20141120
    -- SUBSTANTIAL structural changes. It is now possible to have multiple grids
       within a model. Each variable is associated with one of the grids. The
@@ -2270,18 +2273,18 @@ v. 0.88
       defined first in the grid parameter file, for now.
    -- A correction for the CARS reader: an obs is considered invalid if its
       depth is < 0.
-v. 0.87
+v0.87
    PS 20141114
    -- Replaced SRF limited inflation by inflation limited by directly calculated
       spread reduction for each element of the state vector. This is a default
       inflation mode; add PLAIN to the inflation specification in the parameter
       file to use uniform inflation.
-v. 0.86
+v0.86
    PS 20141110
    -- The variable-specific inflation set in the model parameter file now simply
       overrides (not multiplies with) the common inflation set in the main
       parameter file.
-v. 0.85
+v0.85
    PS 20141103
    -- Added RADS reader "biased" for MDT bias correction with the EnKF.
    -- Modified format of H_fn: added varname2 to specify for the bias variable
@@ -2289,32 +2292,32 @@ v. 0.85
    -- Corrected a minor interpolation bug introduced in previous version in
       das_updatefields().
    -- Corrected interpolation bug in fi2x().
-v. 0.84
+v0.84
    PS 20141024
    -- in das_updatefields() limited inflation by 1 + SRF.
-v. 0.83
+v0.83
    PS 20141013
    -- Added a new parameter "--no-superobing" to enkf_prep.
-v. 0.82
+v0.82
    PS 20141010
    -- Fixed a defect in update_HE() that might cause accessing observation
       array element outside the array.
-v. 0.81
+v0.81
    PS 20141008
    -- Modified das_calcbatchstats() to run only on master.
-v. 0.80
+v0.80
    PS 20141003
    -- Corrected a defect in obs_markbadbatches() when a batch of wrong type
       could be used.
-v. 0.79
+v0.79
    PS 20140919 (minor changes)
    -- Made it possible to compile without `gridutils' by defining flag
       -DNO_GRIDUTILS
-v. 0.78
+v0.78
    PS 20140919 (minor changes)
    -- Set batch ID for NAVO and Windsat SST obs to 0 (was -1). This makes it
       possible to identify "bad batches" of these obs on "per file" basis.
-v. 0.77
+v0.77
    PS 20140909 (moderate structural changes)
    -- Introduced `struct variable'.
    -- Changed the way the custom model initialisation is done: now it is called
@@ -2326,32 +2329,32 @@ v. 0.77
    -- Removed redudant variable `vv' in das_updatefields().
    -- Modified definition of das_updatefields() to make it more general and
       more consistent with other update procedures.
-v. 0.76
+v0.76
    PS 20140901
    -- Renamed stage 3 from "post" to "update".
-v. 0.75
+v0.75
    PS 20140828
    -- Introduced field `alloctype' in `modeldata' to handle de-allocation.
    -- Made the parameter `nk' in
       model_getdims(model* m, int* ni, int* nj, int* nk) optional (can be NULL
       if not needed).
-v. 0.74
+v0.74
    PS 28082014
    -- Moved specification of variables from main parameter file to model
       parameter file.
    -- Modified entry for model data: it now should start with "DATA".
-v. 0.73
+v0.73
    PS 27082014
    -- Reduced number of tiles for point logs by joining tiles for the same
       field for all point logs into one.
-v. 0.72
+v0.72
    PS 26082014
    -- Made writing state variables to point log files two-stage, similar
       to other updates: first to tiles, one cpu per tile, and then the final
       "assembly". Added plog_writestatevars_toassemble() and
       plog_assemblestatevars(); plog_writestatevars() became
       plog_writestatevars_direct().
-v. 0.71
+v0.71
    PS 20082014
    -- Made structural changes: put observation type related stuff into
       obstypes.[ch]. Introduced new "observation types" parameter file.
@@ -2365,88 +2368,88 @@ v. 0.71
       file (along with the total number of obs). Removed this from CARS and
       MMT readers (no longer needed).
    -- In example 1 added a new target "singleob".
-v. 0.70
+v0.70
    PS 18082014
    -- Fixed a silly defect in das_writefields_toassemble() (an unecessary cycle
       over ensemble).
-v. 0.69
+v0.69
    PS 15082014
    -- Introduced obs_checkdatasize() and put it into readers.
-v. 0.68
+v0.68
    PS 15082014
    -- Introduced option to specify domains for each type of observations by
       entries "OBSDOMAIN <obs type> <x1> <x2> <y1> <y2> [<z1> <z2>]" in the
       parameter file.
    -- For RADS reader in Neil White's format - only use obs with local_flag = 0.
-v. 0.67
+v0.67
    PS 14082014
    -- Made a modification: the entries for standard deviations optionally
       specified in each section of the observation parameter file can now
       also specify the associated arithmetic operation: EQUAL (default),
       PLUS (actually sqrt(std * std + prev * prev)), MULT, MIN, MAX
-v. 0.66
+v0.66
    PS 13082014
    -- Made a small correction in readers.
    -- Merged das_create() for calc and post. Added creation of pointlogs for
       post.
    -- Swapped dimensions for S in plog_write().
    -- Introduced field `struct observation.nallocated'.
-v. 0.65
+v0.65
    PS 09082014
    -- Eliminated potentially architechture dependent operations with floating
       point in distribute_iterations().
-v. 0.64
+v0.64
    PS 08082014
    -- Removed exit by error in distribute_iterations() in the case when the
       number of iterations is less than the number of CPUs. Seems to work fine.
    -- Replaced enkf_calc.c::int fstatsonly by global.c::int enkf_fstatsonly.
    -- Added a new target "stats" to example/1.
-v. 0.63
+v0.63
    PS 06082014
    -- Removed field `dasystem.Hx'.
-v. 0.62
+v0.62
    PS 06082014
    -- Replaced  NC_CLOBBER by NC_CLOBBER | NC_64BIT_OFFSET.
-v. 0.61
+v0.61
    PS 05082014
    -- Added consistency to standardising/destandardising/sorting/unsorting obs.
-      Fixed inconsistencies introduced in v. 0.60.
-v. 0.60
+      Fixed inconsistencies introduced in v0.60.
+v0.60
    PS 05082014
    -- Bug fix in das_calcinnandspread().
-v. 0.59
+v0.59
    PS 04082014
    -- Replicated using STATUS_ROUNDUP in interpolate_3d_obs() (was only in
       interpolate_2d_obs() ).
-v. 0.58
+v0.58
    PS 04082014
    -- Rewrote unsortobs_byij() in an economical way, avoiding duplication of S.
-v. 0.57
+v0.57
    PS 01082014
    -- Modified das_destandardise() to include restoring obs order by id.
       Simplified das_printobsstats(), das_printfobsstats(dasystem* das)
       and das_calcbatchstats() accordingly.
    -- Added obs_inorder().
    -- Minor fixes.
-v. 0.56
+v0.56
    PS 23072014
    -- A defect in enkf_calc.c (using destroyed object)
-v. 0.55
+v0.55
    PS 23072014
    -- Miscellaneous changes: batch identification, hashtable, MMT reader...
-v. 0.54
+v0.54
    PS 22072014
    -- Introduces STATUS_ROUNDUP for the cases when the observation changes
       grid cell after its fractional indices are written and read from
       observations.nc
-v. 0.53
+v0.53
    PS 15072014
    -- Adding another parameter for entry BADBATCHES - threshold batch mean
       absolute innovation.
-v. 0.52
+v0.52
    PS 14072014
    -- Setting SOBSTRIDE = 0 now switches superobing off.
-v. 0.51
+v0.51
    PS 11072014 Added functionality to detect and remove bad batches of obs:
    -- Makefile: introduced flags -DENKF_PREP, -DENKF_CALC, -DENKF_POST when
       compiling enkf_prep, enkf_calc and enkf_post; added hash.h and hash.c;
@@ -2458,7 +2461,7 @@ v. 0.51
       `struct dasystem'
    -- obsstats.c: added das_calcbatchstats()
    -- lots of small changes elsewhere to handle batches
-v. 0.50
+v0.50
    PS 09072014
    -- Replaced `struct measurement' by `struct observation'.
    -- Added fields `datafiles', `fid' and `batch' to `observation'. Updated
@@ -2467,18 +2470,18 @@ v. 0.50
    -- Added stringtable `datafiles' to `struct observations'.
    -- Fixed a minor defect in reader_rads_standard2() to take care of
       obs->allobs.
-v. 0.49
+v0.49
    PS 01072014
    -- Renamed "mom4" to "z-model" (or "zmodel" in the code).
-v. 0.48
+v0.48
    PS 27062014
    -- Added H_sla_bran() that conducts global debiasing of SLA innovation.
-v. 0.47
+v0.47
    PS 26062014
    -- A bit of generalisation on coordinates: added grid_settocartesian_fn()
       and grid_tocartesian(); made the associated changes in the rest of the
       code.
-v. 0.46
+v0.46
    PS 26062014
    Quite a bit of structural change. Some of the parameter files are affected.
    -- Added `name' to `struct model'; renamed `tag' by `type'.
@@ -2495,55 +2498,55 @@ v. 0.46
    -- Added model_describe() and grid_describe().
    -- Moved `nvar', `varnames' from `dasystem' to `model'; added
       model_getnvar(), model_getvarname(), model_getvarinflation().
-v. 0.45
+v0.45
    PS 06062014
    -- Try to automatically detect whether the model grid's longitudes belong to
       [-180, 180] or [0, 360] range and adjust observations accordingly.
    -- Changed model->depth from double** to float**.
    -- Modified model_z2k(): it now checks that the observation depth is smaller
       than the model depth.
-v. 0.44
+v0.44
    PS 19052014
    -- Added new scheme EnKF-N
    -- Filtered out (by default) obs outside model grid in obs readers now, not
       during writing obs to files.
-v. 0.43
+v0.43
    PS 14052014
    -- Consolidated tiles for the EnKF in per variable/per layer files. That
       is, one tile now holds the whole ensemble. Fixed defects in detecting
       tiles. Removed WRITEBG_BYMASTER pre-processor flag.
-v. 0.42
+v0.42
    PS 09052014
    -- Remove tiles by default, add a new command option --leave-tiles to post
       to leave tiles
-v. 0.41
+v0.41
    PS 16042014
    -- Modified writing spread to use tiles by default, and write directly to
       spread.nc when specified --direct-write.
-v. 0.40
+v0.40
    PS 01042014
    -- Introduced new parameter SOBSTRIDE, 1 by default, to define the stride
       of superobing.
-v. 0.39
+v0.39
    PS 31032014
    -- Corrected superobing to weight by the inverse error variance not only
       the value, but also: lon, lat, depth, fi, fj, fk, date
    -- Introduced a new option "--no-mean-update" for enkf_calc.
-v. 0.38
+v0.38
    PS 27022014
    -- Reshuffle of writing the output by post: now by default it writes analysed
       2D fields to individual files, and then assemble those into final
       analysis files. Use --direct-write option to post to force the direct
       write
-v. 0.37
+v0.37
    PS 21022014
    Bug fix: inflation was not applied properly when running with
    --out-increment in enkf_post.
-v. 0.36
+v0.36
    PS 15022014
    -- Introduced a new command line option "--describe-prm-format"
    -- Eliminated pre-processor flag CONSERVATIVE_Z2K (assumed always false now).
-v. 0.35
+v0.35
    PS 20122013
    -- Changed options style from "-x" to "--do-that".
    -- Removed utility "mkunitobs", introduced two new options for enkf_calc
@@ -2552,7 +2555,7 @@ v. 0.35
       enkf_post "separate-output"
    -- Introduced a new option to enkf_post "output-increment".
    -- Introduced a new file global.c to store global flags and settings.
-v. 0.34
+v0.34
    PS 17122013
    -- Introduced compile flag CONSERVATIVE_Z2K, if defined (default = no) then
       the z2k transformations in partially watered cell are assumed to be
@@ -2563,11 +2566,11 @@ v. 0.34
    -- Changed MPI send/receive for HE from blocking to asynchronous to avoid a
       bottleneck for very large models.
    -- Added compile flag HE_VIAFILE to communicate HE via a NetCDF file.
-v. 0.33
+v0.33
    PS 27112013
    -- Introduced ENSOBSTYPE for ensemble observations (was double), to save
       memory for very big systems.
-v. 0.32
+v0.32
    PS 15112013
    -- Added reporting stats for individual instruments by das_printobsstats()
       and das_printfobsstats().
@@ -2580,39 +2583,39 @@ v. 0.32
       CALC and POST
    -- Added a command-line utility `mkunitobs' that creates observations.nc
       with a single observation of specified type, innovation and error
-v. 0.31
+v0.31
    PS 04112013
    -- Added SCHEME = ETKF (DEnKF remains the default) for MODE = EnKF.
    -- observations-orig.nc: excluding observations with status = STATUS_OUTSIDE;
       use "enkf_prep -a ..." to put all obs.
-v. 0.30
+v0.30
    PS 18102013
    Added a pre-processor option SEPARATE_STORAGE to split forecast and analysis
    into different files. The analysis file name is created by appending
    ".analysis" to the forecast file name.
-v. 0.29
+v0.29
    PS 14102013
    Implemented point logs.
-v. 0.28
+v0.28
    PS 26092013
    Added option -s to enkf_post to calculate the ensemble spread and write to
    "spread.nc".
-v. 0.27
+v0.27
    PS 12092013
    Added backtrace() in enkf_quit().
    Added a pre-processor option WRITEBG_BYMASTER to update BG fields by all
    processes or by master only.
-v. 0.26
+v0.26
    Paul Sandery 4/9/2013
    Added reading profiles in BoM's MMT format.
-v. 0.25
+v0.25
    PS 22/8/2013
    Added option -s to enkf_calc to calculate forecast observation stats only.
    This cuts (for EnOI) reading the ensemble and calculating transforms.
-v. 0.24
+v0.24
    PS 19/8/2013
    Modified das_writebg() to pass all writing to the master.
-v. 0.23
+v0.23
    PS 31/7/2013
    Changed return values for model_getmemberfnameasync_fn and
    model_getbgfnameasync_fn from void to int. These functions are supposed
@@ -2620,29 +2623,29 @@ v. 0.23
    or not (0).
    Modified writefield() to handle "missing_value" atribute for NC_FLOAT.
    Modified das_printobsstats() to print stats by day for asynchronous obs.
-v. 0.22
+v0.22
    PS 11/7/2013
    Modified writefield() to handle "valid_range" attribute for data of type
    NC_FLOAT.
-v. 0.21
+v0.21
    PS 5/7/2013
    Added curvilinear capability for MOM. Was not able to test.
-v. 0.20
+v0.20
    PS 15/5/2013
    Added file headers
-v. 0.18
+v0.18
    PS 10/5/2013
    Added `scale_factor' and `add_offset' to readfield().
-v. 0.17
+v0.17
    PS 10/4/2013
    Added "indent" target to the Makefile.
-v. 0.16
+v0.16
    PS 8/4/2013
    Fixed defect in distribute_iterations().
-v. 0.15
+v0.15
    PS 5/4/2013
    Fixed inconsistency between distribute_iterations() and
    das_calculatetransforms().
-v. 0.14
+v0.14
    PS 5/4/2013
    For all readers - handle the case of # obs. = 0.

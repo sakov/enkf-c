@@ -980,9 +980,9 @@ static void gather_St(dasystem* das)
         }
         ierror = MPI_Allgatherv(MPI_IN_PLACE, 0, MPI_DATATYPE_NULL, das->St[0], recvcounts, displs, mpitype_vec_nmem, node_comm);
         assert(ierror == MPI_SUCCESS);
-        ierror = MPI_Type_free(&mpitype_vec_nmem);
-        assert(ierror == MPI_SUCCESS);
     }
+    ierror = MPI_Type_free(&mpitype_vec_nmem);
+    assert(ierror == MPI_SUCCESS);
     MPI_Barrier(MPI_COMM_WORLD);
 
     free(displs);
