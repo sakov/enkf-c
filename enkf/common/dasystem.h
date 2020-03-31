@@ -83,7 +83,7 @@ typedef struct {
 
     double kfactor;
 #endif
-#if defined(HE_VIASHMEM)
+#if defined(USE_SHMEM)
     MPI_Win sm_comm_win_S;
     MPI_Win sm_comm_win_St;
     ENSOBSTYPE** St;            /* (S transposed) */

@@ -43,7 +43,7 @@
 
 #define EPSF 1.0e-6f
 #define EPSD 1.0e-10
-#if defined(HE_VIASHMEM)
+#if defined(USE_SHMEM)
 #endif
 
 /**
@@ -56,7 +56,7 @@ void das_getHE(dasystem* das)
     size_t nmem = das->nmem;
     size_t i, e;
 
-#if defined (HE_VIASHMEM)
+#if defined (USE_SHMEM)
     ENSOBSTYPE* SS = NULL;
     ENSOBSTYPE* SSt = NULL;
     MPI_Aint size;
@@ -71,7 +71,7 @@ void das_getHE(dasystem* das)
      * ensemble observation array to be filled 
      */
     assert(das->S == NULL);
-#if !defined(HE_VIASHMEM)
+#if !defined(USE_SHMEM)
     das->S = alloc2d(nmem, nobs, sizeof(ENSOBSTYPE));
 #else
     size = nmem * nobs * sizeof(ENSOBSTYPE);
@@ -249,7 +249,7 @@ void das_getHE(dasystem* das)
         MPI_Datatype mpitype_vec_nobs;
         int ierror;
 
-#if defined(HE_VIASHMEM)
+#if defined(USE_SHMEM)
         int ii;
 #endif
 
@@ -258,7 +258,7 @@ void das_getHE(dasystem* das)
         ierror = MPI_Type_commit(&mpitype_vec_nobs);
         assert(ierror == MPI_SUCCESS);
 
-#if !defined(HE_VIASHMEM)
+#if !defined(USE_SHMEM)
         for (i = 0; i < nprocesses; ++i) {
             recvcounts[i] = number_of_iterations[i];
             displs[i] = first_iteration[i];
@@ -307,7 +307,7 @@ void das_getHE(dasystem* das)
             for (i = 0; i < nobs; ++i)
                 ensmean[i] /= (ENSOBSTYPE) nmem;
 
-#if defined (HE_VIASHMEM)
+#if defined (USE_SHMEM)
             if (sm_comm_rank == 0)
 #endif
                 for (e = 0; e < nmem; ++e) {
@@ -316,12 +316,12 @@ void das_getHE(dasystem* das)
                     for (i = 0; i < nobs; ++i)
                         Se[i] += Hx[i] - ensmean[i];
                 }
-#if defined (HE_VIASHMEM)
+#if defined (USE_SHMEM)
             MPI_Barrier(sm_comm);
 #endif
             free(ensmean);
         } else {
-#if defined (HE_VIASHMEM)
+#if defined (USE_SHMEM)
             if (sm_comm_rank == 0)
 #endif
                 for (e = 0; e < nmem; ++e) {
@@ -330,7 +330,7 @@ void das_getHE(dasystem* das)
                     for (i = 0; i < nobs; ++i)
                         Se[i] = Hx[i];
                 }
-#if defined (HE_VIASHMEM)
+#if defined (USE_SHMEM)
             MPI_Barrier(sm_comm);
 #endif
         }
@@ -377,7 +377,7 @@ void das_calcinnandspread(dasystem* das)
         /*
          * calculate ensemble mean observations 
          */
-#if defined(HE_VIASHMEM)
+#if defined(USE_SHMEM)
         MPI_Barrier(sm_comm);
 #endif
         for (e = 0; e < nmem; ++e) {
@@ -392,7 +392,7 @@ void das_calcinnandspread(dasystem* das)
         /*
          * calculate ensemble spread and innovation 
          */
-#if defined(HE_VIASHMEM)
+#if defined(USE_SHMEM)
         if (sm_comm_rank == 0)
 #endif
             for (e = 0; e < nmem; ++e) {
@@ -401,7 +401,7 @@ void das_calcinnandspread(dasystem* das)
                 for (o = 0; o < nobs; ++o)
                     Se[o] -= (ENSOBSTYPE) das->s_f[o];
             }
-#if defined(HE_VIASHMEM)
+#if defined(USE_SHMEM)
         MPI_Barrier(sm_comm);
 #endif
         for (e = 0; e < nmem; ++e) {
@@ -452,7 +452,7 @@ void das_calcinnandspread(dasystem* das)
         /*
          * calculate ensemble spread and innovation 
          */
-#if defined(HE_VIASHMEM)
+#if defined(USE_SHMEM)
         if (sm_comm_rank == 0)
 #endif
             for (e = 0; e < nmem; ++e) {
@@ -461,7 +461,7 @@ void das_calcinnandspread(dasystem* das)
                 for (o = 0; o < nobs; ++o)
                     Se[o] -= (ENSOBSTYPE) das->s_a[o];
             }
-#if defined(HE_VIASHMEM)
+#if defined(USE_SHMEM)
         MPI_Barrier(sm_comm);
 #endif
         for (e = 0; e < nmem; ++e) {
@@ -657,7 +657,7 @@ void das_standardise(dasystem* das)
     if (obs->nobs == 0)
         goto finish;
 
-#if defined (HE_VIASHMEM)
+#if defined (USE_SHMEM)
     if (sm_comm_rank == 0)
 #endif
         for (e = 0; e < das->nmem; ++e) {
@@ -669,7 +669,7 @@ void das_standardise(dasystem* das)
                 Se[i] /= o->estd * sqrt(obs->obstypes[o->type].rfactor) * mult;
             }
         }
-#if defined (HE_VIASHMEM)
+#if defined (USE_SHMEM)
     MPI_Barrier(sm_comm);
 #endif
     if (das->s_f != NULL) {
@@ -745,7 +745,7 @@ void das_destandardise(dasystem* das)
     if (obs->nobs == 0)
         goto finish;
 
-#if defined(HE_VIASHMEM)
+#if defined(USE_SHMEM)
     if (sm_comm_rank == 0)
 #endif
         for (e = 0; e < das->nmem; ++e) {
@@ -757,7 +757,7 @@ void das_destandardise(dasystem* das)
                 Se[i] *= o->estd * sqrt(obs->obstypes[o->type].rfactor) * mult;
             }
         }
-#if defined (HE_VIASHMEM)
+#if defined (USE_SHMEM)
     MPI_Barrier(sm_comm);
 #endif
     if (das->s_f != NULL) {
@@ -828,7 +828,7 @@ static void das_sortobs_byij(dasystem* das)
 
         free(s);
     }
-#if defined(HE_VIASHMEM)
+#if defined(USE_SHMEM)
     if (sm_comm_rank == 0)
 #endif
     {
@@ -843,7 +843,7 @@ static void das_sortobs_byij(dasystem* das)
         }
         free(S);
     }
-#if defined(HE_VIASHMEM)
+#if defined(USE_SHMEM)
     MPI_Barrier(sm_comm);
 #endif
 
@@ -863,7 +863,7 @@ static void das_changeSmode(dasystem* das, int mode_from, int mode_to)
         observations* obs = das->obs;
         int e, o;
 
-#if defined(HE_VIASHMEM)
+#if defined(USE_SHMEM)
         if (sm_comm_rank == 0)
 #endif
             for (e = 0; e < das->nmem; ++e) {
@@ -876,7 +876,7 @@ static void das_changeSmode(dasystem* das, int mode_from, int mode_to)
                      */
                     Se[o] += obs->data[o].value - das->s_f[o];
             }
-#if defined(HE_VIASHMEM)
+#if defined(USE_SHMEM)
         MPI_Barrier(sm_comm);
 #endif
     } else
@@ -924,7 +924,7 @@ static void das_sortobs_byid(dasystem* das)
 
         free(s);
     }
-#if defined(HE_VIASHMEM)
+#if defined(USE_SHMEM)
     if (sm_comm_rank == 0)
 #endif
     {
@@ -939,7 +939,7 @@ static void das_sortobs_byid(dasystem* das)
         }
         free(S);
     }
-#if defined(HE_VIASHMEM)
+#if defined(USE_SHMEM)
     MPI_Barrier(sm_comm);
 #endif
 
@@ -953,7 +953,7 @@ static void das_sortobs_byid(dasystem* das)
 
 /**
  */
-#if defined(HE_VIASHMEM)
+#if defined(USE_SHMEM)
 static void gather_St(dasystem* das)
 {
     int nmem = das->nmem;
@@ -1018,7 +1018,7 @@ static void update_HE(dasystem* das)
     if (nobs == 0)
         goto finish;
 
-#if defined(HE_VIASHMEM)
+#if defined(USE_SHMEM)
     {
         distribute_iterations(0, nobs - 1, sm_comm_size, rank, "    ");
         for (e = 0; e < nmem; ++e)
@@ -1030,7 +1030,7 @@ static void update_HE(dasystem* das)
     my_last_iteration = nobs - 1;
 #endif
 
-#if !defined(HE_VIASHMEM)
+#if !defined(USE_SHMEM)
     HEi_f = malloc(nmem * sizeof(ENSOBSTYPE));
 #endif
     HEi_a = malloc(nmem * sizeof(ENSOBSTYPE));
@@ -1187,7 +1187,7 @@ static void update_HE(dasystem* das)
                     i = (int) (obs->data[o].fi + 0.5);
                     if (i == mni)
                         i--;
-#if defined(HE_VIASHMEM)
+#if defined(USE_SHMEM)
                     HEi_f = das->St[o];
 #else
                     for (e = 0; e < nmem; ++e)
@@ -1240,7 +1240,7 @@ static void update_HE(dasystem* das)
                         for (e = 0; e < nmem; ++e)
                             HEi_a[e] = (HEi_a[e] - (float) v1_a) * inflation + v1_a;
 
-#if defined(HE_VIASHMEM)
+#if defined(USE_SHMEM)
                     for (e = 0; e < nmem; ++e)
                         das->St[o][e] = HEi_a[e];
 #else
@@ -1263,7 +1263,7 @@ static void update_HE(dasystem* das)
         }
     }                           /* for gid */
 
-#if defined(HE_VIASHMEM)
+#if defined(USE_SHMEM)
     gather_St(das);
 
     if (rank == 0)
@@ -1273,7 +1273,7 @@ static void update_HE(dasystem* das)
 #endif
 
     free(HEi_a);
-#if !defined(HE_VIASHMEM)
+#if !defined(USE_SHMEM)
     free(HEi_f);
 #endif
 
@@ -1299,7 +1299,7 @@ static void update_Hx(dasystem* das)
     if (nobs == 0)
         goto finish;
 
-#if defined(HE_VIASHMEM)
+#if defined(USE_SHMEM)
     {
         int nproc;
 
@@ -1455,7 +1455,7 @@ static void update_Hx(dasystem* das)
                     double dHx = 0.0;
                     double Hx = 0.0;
 
-#if defined(HE_VIASHMEM)
+#if defined(USE_SHMEM)
                     for (e = 0; e < nmem; ++e)
                         Hx += das->St[o][e];
 #else
@@ -1470,7 +1470,7 @@ static void update_Hx(dasystem* das)
                     /*
                      * HE(i, :) += HA(i, :) * b * 1' 
                      */
-#if defined(HE_VIASHMEM)
+#if defined(USE_SHMEM)
                     for (e = 0; e < nmem; ++e)
                         dHx += (das->St[o][e] - Hx) * wj[i][e];
                     for (e = 0; e < nmem; ++e)
@@ -1497,7 +1497,7 @@ static void update_Hx(dasystem* das)
         }
     }                           /* for gid */
 
-#if defined(HE_VIASHMEM)
+#if defined(USE_SHMEM)
     gather_St(das);
 
     if (rank == 0)

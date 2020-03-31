@@ -1722,7 +1722,7 @@ Following is a brief description of the compiler flags in EnKF-C.
 \item{\verb|SHUFFLE_ROWS|} (\verb|enkf_calc|)
   Supposed to produce more latitudinally uniform load between CPUs.
   Currently, because transforms for each row of the grid are sent to the master process for writing, this option effectively makes no difference to performance, I believe.
-\item{\verb|HE_VIASHMEM|} (\verb|enkf_calc|)
+\item{\verb|USE_SHMEM|} (\verb|enkf_calc|)
   Uses shared memory for storing ensemble observations, which much reduces the memory footprint in CALC.
   From v1.110.0 also uses shared memory for storing grid K-D trees and observation K-D trees.
   Requires MPI-3.

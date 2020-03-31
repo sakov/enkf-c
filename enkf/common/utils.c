@@ -121,8 +121,8 @@ void enkf_init(int* argc, char*** argv)
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 
     if (*argc == 2 && strcmp((*argv)[1], "--version") == 0)
-	return;
-    
+        return;
+
     if (*argc > 1) {
         enkf_printf("  MPI: initialised %d process(es)\n", nprocesses);
         MPI_Barrier(MPI_COMM_WORLD);
@@ -130,7 +130,7 @@ void enkf_init(int* argc, char*** argv)
             printf("  MPI: rank = %d, PID = %d\n", rank, getpid());
             fflush(NULL);
         }
-#if defined(HE_VIASHMEM)
+#if defined(USE_SHMEM)
         /*
          * initialise communicators for handling shared memory stuff
          */
@@ -214,7 +214,7 @@ void enkf_finish(void)
 #if defined(MPI)
     MPI_Barrier(MPI_COMM_WORLD);
 #endif
-#if defined (HE_VIASHMEM)
+#if defined (USE_SHMEM)
     if (sm_comm != MPI_COMM_NULL)
         MPI_Comm_free(&sm_comm);
     if (sm_comm_ranks != NULL)
@@ -291,7 +291,7 @@ void enkf_printtime(const char offset[])
  */
 void enkf_printcompileflags(const char offset[])
 {
-#if defined(ENKF_PREP)    
+#if defined(ENKF_PREP)
     enkf_printf("%senkf_prep compile flags:\n", offset);
 #elif defined(ENKF_CALC)
     enkf_printf("%senkf_calc compile flags:\n", offset);
@@ -306,10 +306,10 @@ void enkf_printcompileflags(const char offset[])
 #else
     enkf_printf("%s  SHUFFLE_ROWS     = [-]\n", offset);
 #endif
-#if defined(HE_VIASHMEM)
-    enkf_printf("%s  HE_VIASHMEM      = [+]\n", offset);
+#if defined(USE_SHMEM)
+    enkf_printf("%s  USE_SHMEM        = [+]\n", offset);
 #else
-    enkf_printf("%s  HE_VIASHMEM      = [-]\n", offset);
+    enkf_printf("%s  USE_SHMEM        = [-]\n", offset);
 #endif
 #if defined(MINIMISE_ALLOC)
     enkf_printf("%s  MINIMISE_ALLOC   = [+]\n", offset);

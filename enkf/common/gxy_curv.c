@@ -39,7 +39,7 @@ struct gxy_curv {
     double** y;
     int sign;
     kdtree* nodetreeXY;
-#if defined(HE_VIASHMEM)
+#if defined(USE_SHMEM)
     MPI_Win sm_comm_win;
 #endif
 };
@@ -66,7 +66,7 @@ gxy_curv* gxy_curv_create(void* grid, int ni, int nj, double** x, double** y, in
     nodecoords[0] = x[0];
     nodecoords[1] = y[0];
     gxy->nodetreeXY = kd_create(name, 2);
-#if defined(HE_VIASHMEM)
+#if defined(USE_SHMEM)
     {
         MPI_Aint size;
         int ierror;
@@ -117,7 +117,7 @@ void gxy_curv_destroykdtree(gxy_curv* gxy)
         return;
     kd_destroy(gxy->nodetreeXY);
     gxy->nodetreeXY = NULL;
-#if defined(HE_VIASHMEM)
+#if defined(USE_SHMEM)
     MPI_Win_free(&gxy->sm_comm_win);
     assert(gxy->sm_comm_win == MPI_WIN_NULL);
 #endif

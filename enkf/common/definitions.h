@@ -134,9 +134,9 @@
 extern int nprocesses;
 extern int rank;
 
-#if defined(HE_VIASHMEM)
+#if defined(USE_SHMEM)
 #if !defined(MPI)
-#undef HE_VIASHMEM
+#undef USE_SHMEM
 #else
 extern MPI_Comm sm_comm;
 extern MPI_Win sm_comm_win_S;

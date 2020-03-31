@@ -145,7 +145,7 @@ dasystem* das_create(enkfprm* prm)
         das->kfactor = NAN;
     }
 #endif
-#if defined(HE_VIASHMEM)
+#if defined(USE_SHMEM)
     das->sm_comm_win_S = MPI_WIN_NULL;
     das->St = NULL;
 #endif
@@ -289,7 +289,7 @@ void das_destroy(dasystem* das)
         free(das->std_a);
     }
 #endif
-#if defined (HE_VIASHMEM)
+#if defined (USE_SHMEM)
     if (das->sm_comm_win_S != MPI_WIN_NULL) {
         MPI_Win_free(&das->sm_comm_win_S);
         assert(das->sm_comm_win_S == MPI_WIN_NULL);

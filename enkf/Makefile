@@ -1,7 +1,6 @@
 # Select flags common for PREP and CALC from the following list
 # (default = none):
 #
-# -DGRIDNODES_WRITE
 # -DINTERNAL_QSORT_R
 PREPCALC_FLAGS =
 
@@ -11,7 +10,7 @@ PREPCALC_FLAGS =
 # -DHE_VIAFILE | -DHE_VIASHMEM
 # -DOBS_SHUFFLE
 # -DMINIMISE_ALLOC
-CALC_FLAGS = -DHE_VIASHMEM -DMINIMISE_ALLOC
+CALC_FLAGS = -DUSE_SHMEM -DMINIMISE_ALLOC
 
 # Select flags for UPDATE
 #

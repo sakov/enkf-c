@@ -136,7 +136,7 @@ observations* obs_create(void)
 #if defined(ENKF_CALC)
     obs->loctrees = NULL;
     obs->obsids = NULL;
-#if defined(HE_VIASHMEM)
+#if defined(USE_SHMEM)
     obs->sm_comm_wins_kd = NULL;
 #endif
 #endif
@@ -1357,7 +1357,7 @@ void obs_createkdtrees(observations* obs)
     assert(obs->loctrees == NULL && obs->obsids == NULL);
     obs->loctrees = calloc(obs->nobstypes, sizeof(kdtree*));
     obs->obsids = calloc(obs->nobstypes, sizeof(int*));
-#if defined(HE_VIASHMEM)
+#if defined(USE_SHMEM)
     assert(obs->sm_comm_wins_kd == NULL);
     obs->sm_comm_wins_kd = calloc(obs->nobstypes, sizeof(MPI_Win));
     for (otid = 0; otid < obs->nobstypes; ++otid)
@@ -1396,7 +1396,7 @@ void obs_createkdtrees(observations* obs)
 #endif
 
         *tree = kd_create(ot->name, 3);
-#if defined(HE_VIASHMEM)
+#if defined(USE_SHMEM)
         {
             MPI_Win* sm_comm_win = &obs->sm_comm_wins_kd[otid];
             MPI_Aint size;
@@ -1427,7 +1427,7 @@ void obs_createkdtrees(observations* obs)
 #else
         kd_setstorage(*tree, nobs, NULL, -1);
 #endif
-#if defined(HE_VIASHMEM)
+#if defined(USE_SHMEM)
         if (sm_comm_rank == 0) {
 #endif
             for (i = 0; i < nobs; ++i) {
@@ -1447,7 +1447,7 @@ void obs_createkdtrees(observations* obs)
                 kd_insertnode(*tree, xyz, i);
 #endif
             }
-#if defined(HE_VIASHMEM)
+#if defined(USE_SHMEM)
         } else
             kd_syncsize(*tree);
         MPI_Barrier(MPI_COMM_WORLD);
@@ -1480,7 +1480,7 @@ void obs_destroykdtrees(observations* obs)
             kd_destroy(*tree);
         *tree = NULL;
     }
-#if defined(HE_VIASHMEM)
+#if defined(USE_SHMEM)
     if (obs->sm_comm_wins_kd != NULL) {
         for (otid = 0; otid < obs->nobstypes; ++otid) {
             if (obs->sm_comm_wins_kd[otid] == MPI_WIN_NULL)

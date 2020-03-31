@@ -18,7 +18,7 @@
 int nprocesses = 1;
 int rank = 0;
 
-#if defined(HE_VIASHMEM)
+#if defined(USE_SHMEM)
 /*
  * "sm" below stands for "shared memory". The shared memory is allocated
  * on each node to hold HE (S) and (HE)^T (S^T) objects. From v1.109.0 and

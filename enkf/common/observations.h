@@ -73,7 +73,7 @@ typedef struct {
 #if defined(ENKF_CALC)
     kdtree** loctrees;
     int** obsids;
-#if defined(HE_VIASHMEM)
+#if defined(USE_SHMEM)
     MPI_Win* sm_comm_wins_kd;
 #endif
 #endif
