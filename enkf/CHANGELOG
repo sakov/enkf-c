@@ -1,3 +1,6 @@
+v1.111.8
+   PS 01042020
+   -- Tidied up output after "--version".
 v1.111.7
    PS 31032020
    -- Semi-cosmetic: corrected deallocation of a constructed MPI type.

@@ -119,6 +119,10 @@ void enkf_init(int* argc, char*** argv)
     MPI_Init(argc, argv);
     MPI_Comm_size(MPI_COMM_WORLD, &nprocesses);
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+
+    if (*argc == 2 && strcmp((*argv)[1], "--version") == 0)
+	return;
+    
     if (*argc > 1) {
         enkf_printf("  MPI: initialised %d process(es)\n", nprocesses);
         MPI_Barrier(MPI_COMM_WORLD);
@@ -287,7 +291,15 @@ void enkf_printtime(const char offset[])
  */
 void enkf_printcompileflags(const char offset[])
 {
-    enkf_printf("%scompile flags:\n", offset);
+#if defined(ENKF_PREP)    
+    enkf_printf("%senkf_prep compile flags:\n", offset);
+#elif defined(ENKF_CALC)
+    enkf_printf("%senkf_calc compile flags:\n", offset);
+#elif defined(ENKF_UPDATE)
+    enkf_printf("%senkf_update compile flags:\n", offset);
+#else
+    enkf_quit("programming error");
+#endif
 #if defined(ENKF_CALC)
 #if defined(SHUFFLE_ROWS)
     enkf_printf("%s  SHUFFLE_ROWS     = [+]\n", offset);
