@@ -1,3 +1,6 @@
+v1.111.10
+   PS 01042020
+   -- Removed dependency of enkf_update on kdtree.c.
 v1.111.9
    PS 01042020
    -- Replaced the name of the preprocessor conditional from "HE_VIASHMEM" to

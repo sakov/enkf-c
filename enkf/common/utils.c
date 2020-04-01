@@ -1264,6 +1264,7 @@ void shuffle(size_t n, size_t ids[])
     }
 }
 
+#if defined(ENKF_PREP) || defined(ENKF_CALC)
 /**
  */
 void kd_printinfo(kdtree* tree, char* offset)
@@ -1291,6 +1292,7 @@ void kd_printinfo(kdtree* tree, char* offset)
     }
     enkf_flush();
 }
+#endif
 
 #if defined MPI
 #include <memory.h>

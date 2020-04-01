@@ -60,8 +60,7 @@ static void usage()
     enkf_printf("  --single-observation-ijk <fi> <fj> <fk> <type> <inn> <std>\n");
     enkf_printf("      assimilate single observation with these parameters\n");
     enkf_printf("  --use-existing-transforms\n");
-    enkf_printf("      skip calculating ensemble transforms; use existing X5-*.nc \n");
-    enkf_printf("      files\n");
+    enkf_printf("      skip calculating ensemble transforms; use existing X5*.nc files\n");
     enkf_printf("  --use-rmsd-for-obsstats\n");
     enkf_printf("      use RMSD instead of MAD when printing observation stats\n");
     enkf_printf("  --use-these-obs <obs file>\n");

@@ -40,7 +40,6 @@ LIBS_UPDATE = $(LIB_LAPACK)
 
 SRC_COMMON =\
 common/ncw.c\
-common/kdtree.c\
 common/stringtable.c\
 common/version.c\
 common/global.c\
@@ -68,6 +67,7 @@ common/hash.c\
 common/gxy_curv.c\
 prep/prep_utils.c\
 prep/obsprm.c\
+common/kdtree.c\
 common/obstypes.c\
 common/observations.c\
 prep/allreaders.c\
@@ -91,6 +91,7 @@ prep/enkf_prep.c
 
 HDR_PREP =\
 common/hash.h\
+common/kdtree.h\
 common/gxy_curv.h\
 prep/prep_utils.h\
 prep/obsprm.h\
@@ -100,8 +101,9 @@ prep/allreaders.h
 
 SRC_CALC =\
 common/hash.c\
-common/gxy_curv.c\
 common/distribute.c\
+common/gxy_curv.c\
+common/kdtree.c\
 common/pointlog.c\
 common/obstypes.c\
 common/observations.c\
