@@ -1864,8 +1864,9 @@ void grids_destroy(int ngrid, void** grids)
 #if defined(ENKF_CALC)
 /**
  */
-void grids_destroygxytrees(int ngrid, void** grids)
+int grids_destroygxytrees(int ngrid, void** grids)
 {
+    int hadtrees = 0;
     int i;
 
     for (i = 0; i < ngrid; ++i) {
@@ -1873,8 +1874,11 @@ void grids_destroygxytrees(int ngrid, void** grids)
 
         if (g->htype != GRIDHTYPE_CURVILINEAR)
             continue;
-        gxy_curv_destroykdtree(g->gridnodes_xy);
+        if (gxy_curv_destroykdtree(g->gridnodes_xy))
+            hadtrees = 1;
     }
+
+    return hadtrees;
 }
 #endif
 

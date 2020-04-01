@@ -75,6 +75,7 @@ typedef struct {
     int** obsids;
 #if defined(USE_SHMEM)
     MPI_Win* sm_comm_wins_kd;
+    MPI_Win sm_comm_win_data;
 #endif
 #endif
 

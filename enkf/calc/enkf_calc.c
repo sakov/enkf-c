@@ -335,10 +335,15 @@ int main(int argc, char* argv[])
         enkf_obstype = OBSTYPE_INNOVATION;
     }
     enkfprm_destroy(prm);
-    model_destroygxytrees(das->m);
 
     if (print_mem)
         print_memory_usage();
+
+    if (model_destroygxytrees(das->m))
+        if (print_mem) {
+            enkf_printf("  (destroyed grid kd-trees)\n");
+            print_memory_usage();
+        }
 
     enkf_printf("    creating kd-trees for observations:\n");
     obs_createkdtrees(das->obs);

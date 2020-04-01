@@ -26,7 +26,7 @@ void model_destroy(model* m);
 void model_destroygrids(model* m);
 
 #if defined(ENKF_CALC)
-void model_destroygxytrees(model* m);
+int model_destroygxytrees(model* m);
 #endif
 void model_print(model* m, char offset[]);
 void model_describeprm(void);

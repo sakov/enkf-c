@@ -1372,7 +1372,7 @@ void print_memory_usage()
     if (rank == 0) {
         int i;
 
-        enkf_printf("  Memory usage:\n");
+        enkf_printf("  memory usage:\n");
         if (nprocesses > 1) {
             for (i = 0, vmrss = 0, vmsize = 0; i < nprocesses; i++) {
                 enkf_printf("    process %03d: VmRSS = %zu kB, VmSize = %zu kB\n", i, vmrss_per_process[i], vmsize_per_process[i]);

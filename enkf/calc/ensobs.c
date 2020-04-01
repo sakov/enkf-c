@@ -799,7 +799,12 @@ static void das_sortobs_byij(dasystem* das)
         return;
 
     enkf_printf("    sorting obs by ij:\n");
+#if defined(USE_SHMEM)
+    if (sm_comm_rank == 0)
+        qsort_r(obs->data, obs->nobs, sizeof(observation), cmp_obs_byij, das);
+#else
     qsort_r(obs->data, obs->nobs, sizeof(observation), cmp_obs_byij, das);
+#endif
 
     if (das->s_f != NULL) {
         double* s = calloc(obs->nobs, sizeof(double));
@@ -939,21 +944,24 @@ static void das_sortobs_byid(dasystem* das)
         }
         free(S);
     }
-#if defined(USE_SHMEM)
-    MPI_Barrier(sm_comm);
-#endif
 
     /*
      * order obs back by id
      */
+#if defined(USE_SHMEM)
+    if (sm_comm_rank == 0)
+        obs_inorder(obs);
+    MPI_Barrier(sm_comm);
+#else
     obs_inorder(obs);
+#endif
 
     das->sort_mode = OBS_SORTMODE_ID;
 }
 
+#if defined(USE_SHMEM)
 /**
  */
-#if defined(USE_SHMEM)
 static void gather_St(dasystem* das)
 {
     int nmem = das->nmem;

@@ -138,6 +138,7 @@ observations* obs_create(void)
     obs->obsids = NULL;
 #if defined(USE_SHMEM)
     obs->sm_comm_wins_kd = NULL;
+    obs->sm_comm_win_data = MPI_WIN_NULL;
 #endif
 #endif
     obs->da_time = NAN;
@@ -317,8 +318,15 @@ void obs_destroy(observations* obs)
         free(obs->obsids);
     }
 #endif
+#if defined(USE_SHMEM)
+    if (obs->sm_comm_win_data != MPI_WIN_NULL) {
+        MPI_Win_free(&obs->sm_comm_win_data);
+        assert(obs->sm_comm_win_data == MPI_WIN_NULL);
+    }
+#else
     if (obs->nobs > 0)
         free(obs->data);
+#endif
     if (obs->datestr != NULL)
         free(obs->datestr);
     if (obs->badbatches != NULL) {
@@ -519,10 +527,29 @@ void obs_read(observations* obs, char fname[])
     }
 
     enkf_printf("    allocating %zu bytes for array of observations\n", nobs * sizeof(observation));
+#if defined(USE_SHMEM)
+    {
+        MPI_Aint size;
+        int ierror;
+
+        assert(sizeof(MPI_Aint) == sizeof(size_t));
+        size = nobs * sizeof(observation);
+        ierror = MPI_Win_allocate_shared((sm_comm_rank == 0) ? size : 0, sizeof(observation), MPI_INFO_NULL, sm_comm, &obs->data, &obs->sm_comm_win_data);
+        assert(ierror == MPI_SUCCESS);
+        if (sm_comm_rank != 0) {
+            int disp_unit;
+            MPI_Aint my_size;
+
+            ierror = MPI_Win_shared_query(obs->sm_comm_win_data, 0, &my_size, &disp_unit, &obs->data);
+            assert(ierror == MPI_SUCCESS);
+            assert(my_size == size);
+            assert(disp_unit == sizeof(observation));
+        }
+        MPI_Barrier(MPI_COMM_WORLD);
+    }
+#else
     obs->data = calloc(nobs, sizeof(observation));
     assert(obs->data != NULL);
-#if defined(MPI)
-    MPI_Barrier(MPI_COMM_WORLD);
 #endif
 
     ncw_inq_varid(ncid, "type", &varid_type);
@@ -1458,8 +1485,6 @@ void obs_createkdtrees(observations* obs)
         free(ids);
 #endif
     }
-    if (print_mem)
-        print_memory_usage();
 }
 #endif
 

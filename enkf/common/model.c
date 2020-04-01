@@ -296,9 +296,9 @@ void model_destroy(model* m)
 }
 
 #if defined(ENKF_CALC)
-void model_destroygxytrees(model* m)
+int model_destroygxytrees(model* m)
 {
-    grids_destroygxytrees(m->ngrid, m->grids);
+    return grids_destroygxytrees(m->ngrid, m->grids);
 }
 #endif
 

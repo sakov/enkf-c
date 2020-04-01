@@ -1,3 +1,7 @@
+v1.111.11
+   PS 01042020
+   -- In CALC using shared memory of observation array.
+   -- A few cosmetic changes concerned the memory usage printing.
 v1.111.10
    PS 01042020
    -- Removed dependency of enkf_update on kdtree.c.

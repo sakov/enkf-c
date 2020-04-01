@@ -73,7 +73,7 @@ void grids_create(char gprmfname[], int stride, int* ngrid, void*** grids);
 void grids_destroy(int ngrid, void** grids);
 
 #if defined(ENKF_CALC)
-void grids_destroygxytrees(int ngrid, void** grids);
+int grids_destroygxytrees(int ngrid, void** grids);
 #endif
 
 #define _GRID_H
