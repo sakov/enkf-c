@@ -1,3 +1,6 @@
+v1.112.1
+   PS 02042020
+   -- Minor changes in pointlog intialisation.
 v1.112.0
    PS 02042020
    -- Added an H-function "vertsum". It can be used e.g. for estimating sea
