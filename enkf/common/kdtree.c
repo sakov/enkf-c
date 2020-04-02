@@ -5,8 +5,10 @@
  * Created:     23/03/2016
  *
  * Author:      Pavel Sakov
- *              Derived from the code by John Tsiombikas (see the tail of the
- *              file)
+ *              Initially derived from the code by John Tsiombikas (see the
+ *              tail of the file). The changes mainly concern allocating memory
+ *              in big (increasing) blocks and facilities to pre-allocate
+ *              memory externally to make way for use of shared memory.
  *
  * Description: KD-tree code
  *

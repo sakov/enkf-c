@@ -1285,10 +1285,10 @@ void kd_printinfo(kdtree* tree, char* offset)
             enkf_printf("(%zu allocated)\n", nalloc);
         else
             enkf_printf("\n");
-        enkf_printf("%s  %zu bytes\n", offset == NULL ? "" : offset, nalloc * kd_getnodesize(tree));
+        enkf_printf("%s  %zu bytes\n", offset == NULL ? "" : offset, kd_getstoragesize(tree, nalloc));
     } else {
         enkf_printf("\n");
-        enkf_printf("%s  %zu bytes (externally allocated)\n", offset == NULL ? "" : offset, nnode * kd_getnodesize(tree));
+        enkf_printf("%s  %zu bytes (externally allocated)\n", offset == NULL ? "" : offset, kd_getstoragesize(tree, 0));
     }
     enkf_flush();
 }
