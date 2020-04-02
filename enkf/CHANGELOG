@@ -1,6 +1,10 @@
+v1.112.0
+   PS 02042020
+   -- Added an H-function "vertsum". It can be used e.g. for estimating sea
+      ice sheet properties from a layered sea ice model.
 v1.111.11
    PS 01042020
-   -- In CALC using shared memory of observation array.
+   -- CALC now uses shared memory for the observation array obs->data.
    -- A few cosmetic changes concerned the memory usage printing.
 v1.111.10
    PS 01042020

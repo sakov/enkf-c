@@ -22,6 +22,7 @@ void H_surf_biased(dasystem* das, int nobs, int obsids[], char fname[], int mem,
 void H_subsurf_standard(dasystem* das, int nobs, int obsids[], char fname[], int mem, int t, ENSOBSTYPE dst[]);
 void H_subsurf_wsurfbias(dasystem* das, int nobs, int obsids[], char fname[], int mem, int t, ENSOBSTYPE dst[]);
 void H_subsurf_lowmem(dasystem* das, int nobs, int obsids[], char fname[], int mem, int t, ENSOBSTYPE dst[]);
+void H_vertsum(dasystem* das, int nobs, int obsids[], char fname[], int mem, int t, ENSOBSTYPE dst[]);
 
 #define _MODEL2OBS_H
 #endif

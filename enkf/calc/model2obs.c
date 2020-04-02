@@ -244,12 +244,12 @@ void H_subsurf_standard(dasystem* das, int nobs, int obsids[], char fname[], int
         if (model_getdataalloctype(m, tag_offset) == ALLOCTYPE_3D) {
             float* src0 = src[0][0];
             float* offset0 = ((float***) offset_data)[0][0];
-            int ijk;
+            size_t ijk;
 
-            for (ijk = 0; ijk < ni * nj * nk; ++ijk)
+            for (ijk = 0; ijk < (size_t) ni * nj * nk; ++ijk)
                 src0[ijk] -= offset0[ijk];
         } else if (model_getdataalloctype(m, tag_offset) == ALLOCTYPE_1D) {
-            int ij, k;
+            size_t ij, k;
 
             for (k = 0; k < nk; ++k) {
                 float* srck = src[k][0];
@@ -266,6 +266,8 @@ void H_subsurf_standard(dasystem* das, int nobs, int obsids[], char fname[], int
     free(src);
 }
 
+/**
+ */
 static int cmp_obs_byfk(const void* p1, const void* p2, void* p)
 {
     observation* obs = (observation*) p;
@@ -279,7 +281,9 @@ static int cmp_obs_byfk(const void* p1, const void* p2, void* p)
     return 0;
 }
 
-/**
+/** This is a subsurface (3D) interpolator that avoids reading the whole 3D
+ ** field. Instead, it proceeds by keeping in memory two layers at a time and
+ ** interpolating observations in between these layers.
  */
 void H_subsurf_lowmem(dasystem* das, int nobs, int obsids[], char fname[], int mem, int t, ENSOBSTYPE dst[])
 {
@@ -318,7 +322,7 @@ void H_subsurf_lowmem(dasystem* das, int nobs, int obsids[], char fname[], int m
     src2 = alloc2d(nj, ni, sizeof(float));
 
     /*
-     * (we assume that obsids are not used elsewhere)
+     * (we assume that obsids are not used elsewhere and thus can be reordered)
      */
     qsort_r(obsids, nobs, sizeof(int), cmp_obs_byfk, allobs->data);
 
@@ -356,9 +360,9 @@ void H_subsurf_lowmem(dasystem* das, int nobs, int obsids[], char fname[], int m
             for (k = k1; k <= k2; ++k) {
                 float* srck = src[k][0];
                 float offsetk = ((float*) offset_data)[k];
-                int ij;
+                size_t ij;
 
-                for (ij = 0; ij < ni * nj; ++ij)
+                for (ij = 0; ij < (size_t) ni * nj; ++ij)
                     srck[ij] -= offsetk;
             }
         }
@@ -408,7 +412,7 @@ void H_subsurf_wsurfbias(dasystem* das, int nobs, int obsids[], char fname[], in
     void* offset_data = NULL;
     float** bias = NULL;
     char fname2[MAXSTRLEN];
-    int i;
+    size_t i;
 
     if (ot->nvar < 2)
         enkf_quit("%s: second variable has to be defined for the observation type when using H-function \"wsurfbias\"", ot->name);
@@ -433,12 +437,12 @@ void H_subsurf_wsurfbias(dasystem* das, int nobs, int obsids[], char fname[], in
         if (model_getdataalloctype(m, tag_offset) == ALLOCTYPE_3D) {
             float* src0 = src[0][0];
             float* offset0 = ((float***) offset_data)[0][0];
-            int ijk;
+            size_t ijk;
 
-            for (ijk = 0; ijk < ni * nj * nk; ++ijk)
+            for (ijk = 0; ijk < (size_t) ni * nj * nk; ++ijk)
                 src0[ijk] -= offset0[ijk];
         } else if (model_getdataalloctype(m, tag_offset) == ALLOCTYPE_1D) {
-            int ij, k;
+            size_t ij, k;
 
             for (k = 0; k < nk; ++k) {
                 float* srck = src[k][0];
@@ -503,7 +507,7 @@ void H_subsurf_wsurfbias(dasystem* das, int nobs, int obsids[], char fname[], in
         double vmld = NAN, vbias = NAN;
 
         for (i = 0; i < nobs; ++i) {
-            int ii = obsids[i];
+            size_t ii = obsids[i];
             observation* o = &allobs->data[ii];
 
             if (fabs(fi_prev - o->fi) > EPS_IJ || fabs(fj_prev - o->fj) > EPS_IJ) {
@@ -525,4 +529,61 @@ void H_subsurf_wsurfbias(dasystem* das, int nobs, int obsids[], char fname[], in
         free(mld);
     free(bias);
     free(src);
+}
+
+/** Sum up the estimates in all vertical layers.
+ */
+void H_vertsum(dasystem* das, int nobs, int obsids[], char fname[], int mem, int t, ENSOBSTYPE dst[])
+{
+    model* m = das->m;
+    observations* allobs = das->obs;
+    int otid = allobs->data[obsids[0]].type;
+    obstype* ot = &allobs->obstypes[otid];
+    int mvid = model_getvarid(m, ot->varnames[0], 1);
+    int ni, nj, nk;
+    float** src = NULL;
+    float** srcsum = NULL;
+    float* src0 = NULL;
+    float* srcsum0 = NULL;
+    char tag_offset[MAXSTRLEN];
+    void* offset_data = NULL;
+    size_t k, i;
+
+    {
+        int vtype = grid_getvtype(model_getvargrid(m, mvid));
+
+        if (vtype != GRIDVTYPE_SIGMA && vtype != GRIDVTYPE_HYBRID)
+            enkf_quit("obstype = %s: H-function \"vertsum\" can only be used for variables on either sigma or hybrid vertical grids", ot->name);
+    }
+
+    assert(ot->nvar == 1);      /* should we care? */
+    model_getvargridsize(m, mvid, &ni, &nj, &nk);
+    src = alloc2d(nj, ni, sizeof(float));
+    srcsum = alloc2d(nj, ni, sizeof(float));
+    src0 = src[0];
+    srcsum0 = srcsum[0];
+
+    model_readfield(m, fname, ot->varnames[0], 0, srcsum0);
+    for (k = 1; k < nk; ++k) {
+        model_readfield(m, fname, ot->varnames[0], k, src0);
+        for (i = 0; i < (size_t) ni * nj; i++)
+            srcsum0[i] += src0[i];
+    }
+    free(src);
+    src0 = NULL;
+
+    snprintf(tag_offset, MAXSTRLEN, "%s:OFFSET", allobs->obstypes[allobs->data[obsids[0]].type].name);
+    offset_data = model_getdata(m, tag_offset);
+    if (offset_data != NULL) {
+        float* offset0 = ((float**) offset_data)[0];
+
+        if (model_getdataalloctype(m, tag_offset) != ALLOCTYPE_2D)
+            enkf_quit("obstype = %s: offset variable must be 2D to be used in H-function \"vertsum\"", ot->name);
+
+        for (i = 0; i < (size_t) ni * nj; ++i)
+            srcsum0[i] -= offset0[i];
+    }
+
+    evaluate_2d_obs(m, allobs, nobs, obsids, fname, srcsum, dst);
+    free(srcsum);
 }
