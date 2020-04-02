@@ -37,7 +37,7 @@
 
 \begin{document}
 
-\title{EnKF-C user guide\\{\normalsize version 1.111.9}}
+\title{EnKF-C user guide\\{\normalsize version 1.112.1}}
 
 \author{Pavel Sakov}
 \date{June 19, 2014 -- \today}
@@ -1751,8 +1751,8 @@ The following table lists the most memory-wise important objects.
     Object & Typical size$^1$ & PREP & CALC & UPDATE\\
     \hline
     observation array & 6\,GB & \textbullet & &\\
-    super-observation array & 1.5\,GB & \textbullet & \textbullet &\\
-    ensemble observations $\mathcal H(\mb E)$$^2$ & 5\,GB $\times$ 2 & & \textbullet &\\
+    super-observation array$^{2}$ & 1.5\,GB & \textbullet & \textbullet &\\
+    ensemble observations$^2$ $\mathcal H(\mb E)$ & 5\,GB $\times$ 2 & & \textbullet &\\
     single grid$^{2,3}$ & 0.4\,GB & \textbullet & \textbullet &\\
     observation K-D trees$^2$ & 0.85\,GB & & \textbullet &\\
     one 3D model field & 1\,GB & & \textbullet &\\
