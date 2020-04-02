@@ -23,9 +23,6 @@ extern long int seed_rand48;
 struct kdtree;
 typedef struct kdtree kdtree;
 
-struct kdnode;
-typedef struct kdnode kdnode;
-
 struct kdset;
 typedef struct kdset kdset;
 

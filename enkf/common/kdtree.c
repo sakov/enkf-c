@@ -41,10 +41,7 @@
 #define KDSET_NBLOCKS_INC 10
 #define NDIMMAX 3
 
-struct resnode;
-typedef struct resnode resnode;
-
-struct kdnode {
+typedef struct {
     size_t id;
     size_t data;                /* either set explicitly when adding node(s)
                                  * or set to the sequential number of the
@@ -52,7 +49,7 @@ struct kdnode {
     int dir;
     size_t left;
     size_t right;
-};
+} kdnode;
 
 struct kdtree {
     char* name;
@@ -65,6 +62,9 @@ struct kdtree {
     double* max;
     int external_storage;
 };
+
+struct resnode;
+typedef struct resnode resnode;
 
 struct resnode {
     size_t id;
