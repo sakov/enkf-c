@@ -1,3 +1,8 @@
+v1.112.2
+   PS 03042020
+   -- Added a barrier in das_calcinnandspread() that seems to eliminate
+      "striping" occurring in some tests.
+   -- Removed an unnecessary initialisation in das_calctransforms().
 v1.112.1
    PS 02042020
    -- Minor changes in pointlog intialisation.

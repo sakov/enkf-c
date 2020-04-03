@@ -285,7 +285,6 @@ void das_getHE(dasystem* das)
         assert(ierror == MPI_SUCCESS);
         MPI_Barrier(MPI_COMM_WORLD);
 #endif
-
         free(recvcounts);
         free(displs);
     }
@@ -393,6 +392,7 @@ void das_calcinnandspread(dasystem* das)
          * calculate ensemble spread and innovation 
          */
 #if defined(USE_SHMEM)
+        MPI_Barrier(sm_comm);
         if (sm_comm_rank == 0)
 #endif
             for (e = 0; e < nmem; ++e) {

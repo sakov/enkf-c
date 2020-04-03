@@ -425,14 +425,6 @@ void das_calctransforms(dasystem* das)
                 stats.nlobs_sum += ploc;
                 stats.ncell++;
 
-                /*
-                 * set X5 = 0 
-                 */
-                if (das->mode == MODE_ENKF)
-                    memset(X5[0], 0, nmem * nmem * sizeof(double));
-                else if (das->mode == MODE_ENOI)
-                    memset(w, 0, nmem * sizeof(double));
-
                 if (ploc == 0) {
                     if (das->mode == MODE_ENKF) {
                         /*
