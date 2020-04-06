@@ -181,25 +181,26 @@ void ncu_readfield(char fname[], char varname[], int k, int ni, int nj, int nk, 
         if (ncw_att_exists2(ncid, varid, "_FillValue")) {
             ncw_check_attlen(ncid, varid, "_FillValue", 1);
             ncw_get_att(ncid, varid, "_FillValue", attval);
-            if (typesize == 1) {
-                for (i = 0; i < n; ++i)
-                    if (((int8_t *) vv)[i] == ((int8_t *) attval)[0])
-                        v[i] = NAN;
-            } else if (typesize == 2) {
-                for (i = 0; i < n; ++i)
-                    if (((int16_t *) vv)[i] == ((int16_t *) attval)[0])
-                        v[i] = NAN;
-            } else if (typesize == 4) {
-                for (i = 0; i < n; ++i)
-                    if (((int32_t *) vv)[i] == ((int32_t *) attval)[0])
-                        v[i] = NAN;
-            } else if (typesize == 8) {
-                for (i = 0; i < n; ++i)
-                    if (((int64_t *) vv)[i] == ((int64_t *) attval)[0])
-                        v[i] = NAN;
-            } else
-                quit("programming error");
-        }
+        } else
+            ncw_inq_var_fill(ncid, varid, NULL, attval);
+        if (typesize == 1) {
+            for (i = 0; i < n; ++i)
+                if (((int8_t *) vv)[i] == ((int8_t *) attval)[0])
+                    v[i] = NAN;
+        } else if (typesize == 2) {
+            for (i = 0; i < n; ++i)
+                if (((int16_t *) vv)[i] == ((int16_t *) attval)[0])
+                    v[i] = NAN;
+        } else if (typesize == 4) {
+            for (i = 0; i < n; ++i)
+                if (((int32_t *) vv)[i] == ((int32_t *) attval)[0])
+                    v[i] = NAN;
+        } else if (typesize == 8) {
+            for (i = 0; i < n; ++i)
+                if (((int64_t *) vv)[i] == ((int64_t *) attval)[0])
+                    v[i] = NAN;
+        } else
+            quit("programming error");
 
         if (ncw_att_exists2(ncid, varid, "missing_value")) {
             ncw_check_attlen(ncid, varid, "missing_value", 1);
@@ -512,10 +513,11 @@ void ncu_writefield(char fname[], char varname[], int k, int ni, int nj, int nk,
         if (ncw_att_exists2(ncid, varid, "_FillValue")) {
             ncw_check_attlen(ncid, varid, "_FillValue", 1);
             ncw_get_att_float(ncid, varid, "_FillValue", attval);
-            for (i = 0; i < n; ++i)
-                if (isnan(v[i]))
-                    v[i] = attval[0];
-        }
+        } else
+            ncw_inq_var_fill(ncid, varid, NULL, attval);
+        for (i = 0; i < n; ++i)
+            if (isnan(v[i]))
+                v[i] = attval[0];
         if (ncw_att_exists2(ncid, varid, "missing_value")) {
             ncw_check_attlen(ncid, varid, "missing_value", 1);
             ncw_get_att_float(ncid, varid, "missing_value", attval);
@@ -639,10 +641,11 @@ void ncu_writerow(char fname[], char varname[], int k, int j, float* v)
         if (ncw_att_exists2(ncid, varid, "_FillValue")) {
             ncw_check_attlen(ncid, varid, "_FillValue", 1);
             ncw_get_att_float(ncid, varid, "_FillValue", attval);
-            for (i = 0; i < n; ++i)
-                if (isnan(v[i]))
-                    v[i] = attval[0];
-        }
+        } else
+            ncw_inq_var_fill(ncid, varid, NULL, attval);
+        for (i = 0; i < n; ++i)
+            if (isnan(v[i]))
+                v[i] = attval[0];
         if (ncw_att_exists2(ncid, varid, "missing_value")) {
             ncw_check_attlen(ncid, varid, "missing_value", 1);
             ncw_get_att_float(ncid, varid, "missing_value", attval);
@@ -727,25 +730,26 @@ void ncu_read3dfield(char* fname, char* varname, int ni, int nj, int nk, float* 
         if (ncw_att_exists2(ncid, varid, "_FillValue")) {
             ncw_check_attlen(ncid, varid, "_FillValue", 1);
             ncw_get_att(ncid, varid, "_FillValue", attval);
-            if (typesize == 1) {
-                for (i = 0; i < n; ++i)
-                    if (((int8_t *) vv)[i] == ((int8_t *) attval)[0])
-                        v[i] = NAN;
-            } else if (typesize == 2) {
-                for (i = 0; i < n; ++i)
-                    if (((int16_t *) vv)[i] == ((int16_t *) attval)[0])
-                        v[i] = NAN;
-            } else if (typesize == 4) {
-                for (i = 0; i < n; ++i)
-                    if (((int32_t *) vv)[i] == ((int32_t *) attval)[0])
-                        v[i] = NAN;
-            } else if (typesize == 8) {
-                for (i = 0; i < n; ++i)
-                    if (((int64_t *) vv)[i] == ((int64_t *) attval)[0])
-                        v[i] = NAN;
-            } else
-                quit("programming error");
-        }
+        } else
+            ncw_inq_var_fill(ncid, varid, NULL, attval);
+        if (typesize == 1) {
+            for (i = 0; i < n; ++i)
+                if (((int8_t *) vv)[i] == ((int8_t *) attval)[0])
+                    v[i] = NAN;
+        } else if (typesize == 2) {
+            for (i = 0; i < n; ++i)
+                if (((int16_t *) vv)[i] == ((int16_t *) attval)[0])
+                    v[i] = NAN;
+        } else if (typesize == 4) {
+            for (i = 0; i < n; ++i)
+                if (((int32_t *) vv)[i] == ((int32_t *) attval)[0])
+                    v[i] = NAN;
+        } else if (typesize == 8) {
+            for (i = 0; i < n; ++i)
+                if (((int64_t *) vv)[i] == ((int64_t *) attval)[0])
+                    v[i] = NAN;
+        } else
+            quit("programming error");
 
         if (ncw_att_exists2(ncid, varid, "missing_value")) {
             ncw_check_attlen(ncid, varid, "missing_value", 1);
@@ -1023,6 +1027,45 @@ void ncu_readvarfloat(int ncid, int varid, size_t n, float v[])
             } else
                 quit("programming error");
         }
+    }
+    if (!ncw_att_exists2(ncid, varid, "_FillValue")) {
+        if (vv == NULL) {
+            if (typesize != sizeof(float)) {
+                vv = malloc(n * typesize);
+                ncw_get_var(ncid, varid, vv);
+            } else
+                vv = v;
+        }
+        if (typesize == 1) {
+            int8_t value;
+
+            ncw_inq_var_fill(ncid, varid, NULL, &value);
+            for (i = 0; i < n; ++i)
+                if (((int8_t *) vv)[i] == value)
+                    v[i] = NAN;
+        } else if (typesize == 2) {
+            int16_t value;
+
+            ncw_inq_var_fill(ncid, varid, NULL, &value);
+            for (i = 0; i < n; ++i)
+                if (((int16_t *) vv)[i] == value)
+                    v[i] = NAN;
+        } else if (typesize == 4) {
+            int32_t value;
+
+            ncw_inq_var_fill(ncid, varid, NULL, &value);
+            for (i = 0; i < n; ++i)
+                if (((int32_t *) vv)[i] == value)
+                    v[i] = NAN;
+        } else if (typesize == 8) {
+            int64_t value;
+
+            ncw_inq_var_fill(ncid, varid, NULL, &value);
+            for (i = 0; i < n; ++i)
+                if (((int64_t *) vv)[i] == value)
+                    v[i] = NAN;
+        } else
+            quit("programming error");
     }
     if (ncw_att_exists2(ncid, varid, "valid_min")) {
         ncw_check_attlen(ncid, varid, "valid_min", 1);
@@ -1364,6 +1407,45 @@ void ncu_readvardouble(int ncid, int varid, size_t n, double v[])
             } else
                 quit("programming error");
         }
+    }
+    if (!ncw_att_exists2(ncid, varid, "_FillValue")) {
+        if (vv == NULL) {
+            if (typesize != sizeof(double)) {
+                vv = malloc(n * typesize);
+                ncw_get_var(ncid, varid, vv);
+            } else
+                vv = v;
+        }
+        if (typesize == 1) {
+            int8_t value;
+
+            ncw_inq_var_fill(ncid, varid, NULL, &value);
+            for (i = 0; i < n; ++i)
+                if (((int8_t *) vv)[i] == value)
+                    v[i] = NAN;
+        } else if (typesize == 2) {
+            int16_t value;
+
+            ncw_inq_var_fill(ncid, varid, NULL, &value);
+            for (i = 0; i < n; ++i)
+                if (((int16_t *) vv)[i] == value)
+                    v[i] = NAN;
+        } else if (typesize == 4) {
+            int32_t value;
+
+            ncw_inq_var_fill(ncid, varid, NULL, &value);
+            for (i = 0; i < n; ++i)
+                if (((int32_t *) vv)[i] == value)
+                    v[i] = NAN;
+        } else if (typesize == 8) {
+            int64_t value;
+
+            ncw_inq_var_fill(ncid, varid, NULL, &value);
+            for (i = 0; i < n; ++i)
+                if (((int64_t *) vv)[i] == value)
+                    v[i] = NAN;
+        } else
+            quit("programming error");
     }
     if (ncw_att_exists2(ncid, varid, "valid_min")) {
         ncw_check_attlen(ncid, varid, "valid_min", 1);

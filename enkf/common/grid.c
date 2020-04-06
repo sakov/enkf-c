@@ -358,6 +358,14 @@ static gz_sigma* gz_sigma_create(grid* g, int ni, int nj, int nk, double* st, do
         enkf_quit("programming error");
 
     assert(ct != NULL);
+    {
+        for (i = 0; i < nk; ++i)
+            if (isnan(ct[i]))
+                break;
+        if (i < nk)
+            for (i = 0; i < nk; ++i)
+                ct[i] = (0.5 + (double) i) / (double) nk;
+    }
     /*
      * check monotonicity
      */
@@ -981,8 +989,8 @@ grid* grid_create(void* p, int id)
         x = malloc(ni * sizeof(double));
         y = malloc(nj * sizeof(double));
 
-        ncw_get_var_double(ncid, varid_x, x);
-        ncw_get_var_double(ncid, varid_y, y);
+        ncu_readvardouble(ncid, varid_x, ni, x);
+        ncu_readvardouble(ncid, varid_y, nj, y);
 
         grid_sethgrid(g, GRIDHTYPE_LATLON, ni, nj, x, y);
     } else if (ndims_x == 2 && ndims_y == 2) {
@@ -1025,7 +1033,7 @@ grid* grid_create(void* p, int id)
         g->depth = alloc2d(nj, ni, sizeof(float));
         ncw_inq_varid(ncid, prm->depthvarname, &varid_depth);
         ncw_check_vardims(ncid, varid_depth, 2, dimlen);
-        ncw_get_var_float(ncid, varid_depth, g->depth[0]);
+        ncu_readvarfloat(ncid, varid_depth, ni * nj, g->depth[0]);
     }
     if (g->vtype == GRIDVTYPE_NONE);
     else if (g->vtype == GRIDVTYPE_Z) {
@@ -1037,7 +1045,7 @@ grid* grid_create(void* p, int id)
         ncw_inq_varid(ncid, prm->zvarname, &varid);
         ncw_inq_vardims(ncid, varid, 1, NULL, &nk);
         z = malloc(nk * sizeof(double));
-        ncw_get_var_double(ncid, varid, z);
+        ncu_readvardouble(ncid, varid, nk, z);
         if (prm->zcvarname != NULL) {
             ncw_inq_varid(ncid, prm->zcvarname, &varid);
             ncw_inq_vardims(ncid, varid, 1, NULL, &nkc);
@@ -1046,7 +1054,7 @@ grid* grid_create(void* p, int id)
              */
             assert(nkc == nk || nkc == nk + 1);
             zc = malloc(nkc * sizeof(double));
-            ncw_get_var_double(ncid, varid, zc);
+            ncu_readvardouble(ncid, varid, nkc, zc);
         }
         g->gridnodes_z = gz_z_create(g, nk, z, nkc, zc, prm->vdirection);
         if (zc != NULL)
@@ -1062,25 +1070,25 @@ grid* grid_create(void* p, int id)
         ncw_inq_varid(ncid, prm->cvarname, &varid);
         ncw_inq_vardims(ncid, varid, 1, NULL, &nk);
         ct = malloc(nk * sizeof(double));
-        ncw_get_var_double(ncid, varid, ct);
+        ncu_readvardouble(ncid, varid, nk, ct);
         if (prm->ccvarname != NULL) {
             size_t nkc = nk + 1;
 
             ncw_inq_varid(ncid, prm->ccvarname, &varid);
             ncw_check_vardims(ncid, varid, 1, &nkc);
             cc = malloc(nkc * sizeof(double));
-            ncw_get_var_double(ncid, varid, cc);
+            ncu_readvardouble(ncid, varid, nkc, cc);
         }
         if (prm->hcvarname != NULL) {
             ncw_inq_varid(ncid, prm->hcvarname, &varid);
             ncw_check_varndims(ncid, varid, 0);
-            ncw_get_var_double(ncid, varid, &hc);
+            ncu_readvardouble(ncid, varid, 1, &hc);
         }
         if (prm->svarname != NULL) {
             st = malloc(nk * sizeof(double));
             ncw_inq_varid(ncid, prm->svarname, &varid);
             ncw_check_vardims(ncid, varid, 1, &nk);
-            ncw_get_var_double(ncid, varid, st);
+            ncu_readvardouble(ncid, varid, nk, st);
         }
         if (prm->scvarname != NULL) {
             size_t nkc = nk + 1;
@@ -1088,7 +1096,7 @@ grid* grid_create(void* p, int id)
             sc = malloc((nk + 1) * sizeof(double));
             ncw_inq_varid(ncid, prm->scvarname, &varid);
             ncw_check_vardims(ncid, varid, 1, &nkc);
-            ncw_get_var_double(ncid, varid, sc);
+            ncu_readvardouble(ncid, varid, nkc, sc);
         }
 
         g->gridnodes_z = gz_sigma_create(g, ni, nj, nk, st, sc, ct, cc, hc, prm->vdirection);
@@ -1105,12 +1113,12 @@ grid* grid_create(void* p, int id)
         ncw_inq_varid(ncid, prm->avarname, &varid);
         ncw_inq_vardims(ncid, varid, 1, NULL, &nk);
         a = malloc(nk * sizeof(double));
-        ncw_get_var_double(ncid, varid, a);
+        ncu_readvardouble(ncid, varid, nk, a);
 
         ncw_inq_varid(ncid, prm->bvarname, &varid);
         ncw_check_vardims(ncid, varid, 1, &nk);
         b = malloc(nk * sizeof(double));
-        ncw_get_var_double(ncid, varid, b);
+        ncu_readvardouble(ncid, varid, nk, b);
 
         if (prm->acvarname != NULL) {
             size_t nkc = nk + 1;
@@ -1120,23 +1128,23 @@ grid* grid_create(void* p, int id)
             ncw_inq_varid(ncid, prm->acvarname, &varid);
             ncw_check_vardims(ncid, varid, 1, &nkc);
             ac = malloc(nkc * sizeof(double));
-            ncw_get_var_double(ncid, varid, ac);
+            ncu_readvardouble(ncid, varid, nkc, ac);
 
             ncw_inq_varid(ncid, prm->bcvarname, &varid);
             ncw_check_vardims(ncid, varid, 1, &nkc);
-            bc = malloc(nk * sizeof(double));
-            ncw_get_var_double(ncid, varid, bc);
+            bc = malloc(nkc * sizeof(double));
+            ncu_readvardouble(ncid, varid, nkc, bc);
         }
 
         ncw_inq_varid(ncid, prm->p1varname, &varid);
         dimlen[0] = nj;
         dimlen[1] = ni;
         ncw_check_vardims(ncid, varid, 2, dimlen);
-        ncw_get_var_float(ncid, varid, p1[0]);
+        ncu_readvarfloat(ncid, varid, ni * nj, p1[0]);
 
         ncw_inq_varid(ncid, prm->p2varname, &varid);
         ncw_check_vardims(ncid, varid, 2, dimlen);
-        ncw_get_var_float(ncid, varid, p2[0]);
+        ncu_readvarfloat(ncid, varid, ni * nj, p2[0]);
 
         g->gridnodes_z = gz_hybrid_create(ni, nj, nk, a, b, ac, bc, p1, p2, prm->vdirection);
     } else

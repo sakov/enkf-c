@@ -1,6 +1,12 @@
+v1.112.4
+   PS 07042020
+   -- A few minor changes in grid.c.
+   -- Added ncw_inq_var_fill().
+   -- Use ncw_inq_var_fill() in ncutils.c when no attribute _FillValue found.
 v1.112.3
    PS 06042020
-   A few fixes and tweaks in grid.c for sigma grids defined with CVARNAME only.
+   -- A few fixes and tweaks in grid.c for sigma grids defined with CVARNAME
+      only.
 v1.112.2
    PS 03042020
    -- Added a barrier in das_calcinnandspread() that seems to eliminate

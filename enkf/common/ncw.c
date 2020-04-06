@@ -31,7 +31,7 @@
 #include <errno.h>
 #include "ncw.h"
 
-const char ncw_version[] = "2.26.0";
+const char ncw_version[] = "2.26.1";
 
 /* This macro is substituted in error messages instead of the name of a
  * variable in cases when the name could not be found by the variable id.
@@ -538,6 +538,18 @@ void ncw_inq_varsize(int ncid, int varid, size_t* size)
 
         ncw_inq_dimlen(ncid, dimids[i], &dimlen);
         *size *= dimlen;
+    }
+}
+
+void ncw_inq_var_fill(int ncid, int varid, int* nofill, void* fillvalue)
+{
+    int status = nc_inq_var_fill(ncid, varid, nofill, fillvalue);
+
+    if (status != NC_NOERR) {
+        char varname[NC_MAX_NAME] = STR_UNKNOWN;
+
+        ncw_inq_varname(ncid, varid, varname);
+        quit("\"%s\": nc_inq_var_fill(): failed for varid = %d (varname = \"%s\"): %s", ncw_get_path(ncid), varid, varname, nc_strerror(status));
     }
 }
 
