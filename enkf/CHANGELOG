@@ -1,3 +1,6 @@
+v1.112.3
+   PS 06042020
+   A few fixes and tweaks in grid.c for sigma grids defined with CVARNAME only.
 v1.112.2
    PS 03042020
    -- Added a barrier in das_calcinnandspread() that seems to eliminate

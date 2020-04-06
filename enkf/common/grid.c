@@ -400,6 +400,7 @@ static gz_sigma* gz_sigma_create(grid* g, int ni, int nj, int nk, double* st, do
         }
         for (i = 1; i < nk; ++i)
             gz->cc[i] = (gz->ct[i - 1] + gz->ct[i]) / 2.0;
+        gz->cc[nk] = 2.0 * gz->ct[nk - 1] - gz->cc[nk - 1];
     }
 
     /*
@@ -446,7 +447,7 @@ static gz_sigma* gz_sigma_create(grid* g, int ni, int nj, int nk, double* st, do
      * build s_w if necessary
      */
     if (sc == NULL) {
-        if (st[0] > st[nk - 1]) {
+        if (gz->st[0] > gz->st[nk - 1]) {
             gz->sc[0] = 1.0;
             gz->sc[nk - 1] = 0.0;
         } else {
@@ -1156,10 +1157,8 @@ grid* grid_create(void* p, int id)
             for (i = 0; i < ni * nj; ++i) {
                 if (numlevels[i] == 0)
                     continue;
-                else if (numlevels[i] == 1)
-                    numlevels[i] = nk;
                 else
-                    enkf_quit("%s: the grid mask (variable MASKVARNAME = \"%s\") contains a value other than 0 or 1", g->name, prm->levelvarname);
+                    numlevels[i] = nk;
             }
         }
     }
