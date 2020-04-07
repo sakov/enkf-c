@@ -1,3 +1,8 @@
+v1.113.0
+   PS 07042020
+   -- In CALC added option of communicating ensemble transforms via file system
+      -DX5_VIAFILE. It seems to work well with 0.1-degree OM2, when the normal
+      (default) communication via MPI somehow gets clogged.
 v1.112.5
    PS 07042020
    -- In obs_read() corrected missed initialisation of obs->data in the case

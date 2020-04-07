@@ -134,6 +134,7 @@
 extern int nprocesses;
 extern int rank;
 
+#if defined(ENKF_CALC)
 #if defined(USE_SHMEM)
 #if !defined(MPI)
 #undef USE_SHMEM
@@ -150,6 +151,15 @@ extern int node_comm_size;
 extern int* node_comm_ranks;
 #endif
 #endif
+#if defined(X5_VIAFILE) && !defined(MPI)
+#undef(X5_VIAFILE)
+#endif
+#if defined(SHUFFLE_ROWS)
+#if !defined(MPI) || defined(X5_VIAFILE)
+#undef(SHUFFLE_ROWS)
+#endif
+#endif
+#endif                          /* ENKF_CALC */
 
 extern int enkf_obstype;
 extern int enkf_exitaction;

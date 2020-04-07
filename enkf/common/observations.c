@@ -545,7 +545,7 @@ void obs_read(observations* obs, char fname[])
             assert(my_size == size);
             assert(disp_unit == sizeof(observation));
         } else
-	    memset(obs->data, 0, size);
+            memset(obs->data, 0, size);
         MPI_Barrier(MPI_COMM_WORLD);
     }
 #else

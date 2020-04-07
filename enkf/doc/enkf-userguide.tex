@@ -37,7 +37,7 @@
 
 \begin{document}
 
-\title{EnKF-C user guide\\{\normalsize version 1.112.1}}
+\title{EnKF-C user guide\\{\normalsize version 1.113.0}}
 
 \author{Pavel Sakov}
 \date{June 19, 2014 -- \today}
@@ -1733,6 +1733,9 @@ Following is a brief description of the compiler flags in EnKF-C.
 \item{\verb|OBS_SHUFFLE|} (\verb|enkf_calc|)
   Randomly shuffles observations before parsing them into K-D trees.
   Potentially this can substantially improve performance in the case of spatially ordered observations (not verified).
+\item{\verb|X5_VIAFILE|} (\verb|enkf_calc|)
+  Communicate ensemble transforms via files.
+  Use this option if MPI communication becomes clogged.
 \item{\verb|NCW_SKIPSINGLE|} (\verb|enkf_update|)
   Skips ``normal'' (not unlimited) ``inner'' dimensions of length one when copying definitions of variables from one NetCDF file to another.
 \end{description}

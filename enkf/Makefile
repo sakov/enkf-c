@@ -7,9 +7,11 @@ PREPCALC_FLAGS =
 # Select flags for CALC from the following list (default = none):
 #
 # -DSHUFFLE_ROWS
-# -DHE_VIAFILE | -DHE_VIASHMEM
+# -DHE_VIASHMEM
 # -DOBS_SHUFFLE
 # -DMINIMISE_ALLOC
+# -DUSE_SHMEM
+# -DX5_VIAFILE
 CALC_FLAGS = -DUSE_SHMEM -DMINIMISE_ALLOC
 
 # Select flags for UPDATE
