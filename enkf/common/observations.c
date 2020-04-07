@@ -485,26 +485,26 @@ void obs_read(observations* obs, char fname[])
     int dimid_nobs[1];
     size_t nobs;
     int varid_type, varid_product, varid_instrument, varid_id, varid_idorig, varid_fid, varid_batch, varid_value, varid_estd, varid_footprint, varid_lon, varid_lat, varid_depth, varid_mdepth, varid_fi, varid_fj, varid_fk, varid_time, varid_status, varid_aux;
-    int* id;
-    int* id_orig;
-    short int* type;
-    short int* product;
-    short int* instrument;
-    short int* fid;
-    int* batch;
-    double* value;
-    double* estd;
+    int* id = NULL;
+    int* id_orig = NULL;
+    short int* type = NULL;
+    short int* product = NULL;
+    short int* instrument = NULL;
+    short int* fid = NULL;
+    int* batch = NULL;
+    double* value = NULL;
+    double* estd = NULL;
     double* footprint = NULL;
-    double* lon;
-    double* lat;
-    double* depth;
-    double* model_depth;
-    double* fi;
-    double* fj;
-    double* fk;
-    double* time;
-    int* status;
-    int* aux;
+    double* lon = NULL;
+    double* lat = NULL;
+    double* depth = NULL;
+    double* model_depth = NULL;
+    double* fi = NULL;
+    double* fj = NULL;
+    double* fk = NULL;
+    double* time = NULL;
+    int* status = NULL;
+    int* aux = NULL;
     int natts;
     int i;
 
@@ -666,77 +666,90 @@ void obs_read(observations* obs, char fname[])
         st_add_ifabsent(obs->datafiles, attstr, id);
     }
 
-    id = malloc(nobs * sizeof(int));
-    id_orig = malloc(nobs * sizeof(int));
-    type = malloc(nobs * sizeof(short int));
-    product = malloc(nobs * sizeof(short int));
-    instrument = malloc(nobs * sizeof(short int));
-    fid = malloc(nobs * sizeof(short int));
-    batch = malloc(nobs * sizeof(int));
-    value = malloc(nobs * sizeof(double));
-    estd = malloc(nobs * sizeof(double));
-    if (obs->has_nonpointobs)
-        footprint = malloc(nobs * sizeof(double));
-    lon = malloc(nobs * sizeof(double));
-    lat = malloc(nobs * sizeof(double));
-    depth = malloc(nobs * sizeof(double));
-    model_depth = malloc(nobs * sizeof(double));
-    fi = malloc(nobs * sizeof(double));
-    fj = malloc(nobs * sizeof(double));
-    fk = malloc(nobs * sizeof(double));
-    time = malloc(nobs * sizeof(double));
-    status = malloc(nobs * sizeof(int));
-    aux = malloc(nobs * sizeof(int));
+#if defined(USE_SHMEM)
+    if (sm_comm_rank == 0) {
+#endif
+        id = malloc(nobs * sizeof(int));
+        id_orig = malloc(nobs * sizeof(int));
+        type = malloc(nobs * sizeof(short int));
+        product = malloc(nobs * sizeof(short int));
+        instrument = malloc(nobs * sizeof(short int));
+        fid = malloc(nobs * sizeof(short int));
+        batch = malloc(nobs * sizeof(int));
+        value = malloc(nobs * sizeof(double));
+        estd = malloc(nobs * sizeof(double));
+        if (obs->has_nonpointobs)
+            footprint = malloc(nobs * sizeof(double));
+        lon = malloc(nobs * sizeof(double));
+        lat = malloc(nobs * sizeof(double));
+        depth = malloc(nobs * sizeof(double));
+        model_depth = malloc(nobs * sizeof(double));
+        fi = malloc(nobs * sizeof(double));
+        fj = malloc(nobs * sizeof(double));
+        fk = malloc(nobs * sizeof(double));
+        time = malloc(nobs * sizeof(double));
+        status = malloc(nobs * sizeof(int));
+        aux = malloc(nobs * sizeof(int));
 
-    ncw_get_var_int(ncid, varid_id, id);
-    ncw_get_var_int(ncid, varid_idorig, id_orig);
-    ncw_get_var_short(ncid, varid_type, type);
-    ncw_get_var_short(ncid, varid_product, product);
-    ncw_get_var_short(ncid, varid_instrument, instrument);
-    ncw_get_var_short(ncid, varid_fid, fid);
-    ncw_get_var_int(ncid, varid_batch, batch);
-    ncw_get_var_double(ncid, varid_value, value);
-    ncw_get_var_double(ncid, varid_estd, estd);
-    if (obs->has_nonpointobs)
-        ncw_get_var_double(ncid, varid_footprint, footprint);
-    ncw_get_var_double(ncid, varid_lon, lon);
-    ncw_get_var_double(ncid, varid_lat, lat);
-    ncw_get_var_double(ncid, varid_depth, depth);
-    ncw_get_var_double(ncid, varid_mdepth, model_depth);
-    ncw_get_var_double(ncid, varid_fi, fi);
-    ncw_get_var_double(ncid, varid_fj, fj);
-    ncw_get_var_double(ncid, varid_fk, fk);
-    ncw_get_var_double(ncid, varid_time, time);
-    ncw_get_var_int(ncid, varid_status, status);
-    ncw_get_var_int(ncid, varid_aux, aux);
+        ncw_get_var_int(ncid, varid_id, id);
+        ncw_get_var_int(ncid, varid_idorig, id_orig);
+        ncw_get_var_short(ncid, varid_type, type);
+        ncw_get_var_short(ncid, varid_product, product);
+        ncw_get_var_short(ncid, varid_instrument, instrument);
+        ncw_get_var_short(ncid, varid_fid, fid);
+        ncw_get_var_int(ncid, varid_batch, batch);
+        ncw_get_var_double(ncid, varid_value, value);
+        ncw_get_var_double(ncid, varid_estd, estd);
+        if (obs->has_nonpointobs)
+            ncw_get_var_double(ncid, varid_footprint, footprint);
+        ncw_get_var_double(ncid, varid_lon, lon);
+        ncw_get_var_double(ncid, varid_lat, lat);
+        ncw_get_var_double(ncid, varid_depth, depth);
+        ncw_get_var_double(ncid, varid_mdepth, model_depth);
+        ncw_get_var_double(ncid, varid_fi, fi);
+        ncw_get_var_double(ncid, varid_fj, fj);
+        ncw_get_var_double(ncid, varid_fk, fk);
+        ncw_get_var_double(ncid, varid_time, time);
+        ncw_get_var_int(ncid, varid_status, status);
+        ncw_get_var_int(ncid, varid_aux, aux);
+#if defined(USE_SHMEM)
+    }
+#endif
 
     ncw_close(ncid);
 
-    for (i = 0; i < (int) nobs; ++i) {
-        observation* o = &obs->data[i];
+#if defined(USE_SHMEM)
+    if (sm_comm_rank == 0) {
+#endif
+        for (i = 0; i < (int) nobs; ++i) {
+            observation* o = &obs->data[i];
 
-        o->type = type[i];
-        o->product = product[i];
-        o->instrument = instrument[i];
-        o->id = id[i];
-        o->id_orig = id_orig[i];
-        o->fid = fid[i];
-        o->batch = batch[i];
-        o->value = value[i];
-        o->estd = estd[i];
-        if (obs->has_nonpointobs)
-            o->footprint = footprint[i];
-        o->lon = lon[i];
-        o->lat = lat[i];
-        o->depth = depth[i];
-        o->model_depth = model_depth[i];
-        o->fi = fi[i];
-        o->fj = fj[i];
-        o->fk = fk[i];
-        o->time = time[i];
-        o->status = status[i];
-        o->aux = aux[i];
+            o->type = type[i];
+            o->product = product[i];
+            o->instrument = instrument[i];
+            o->id = id[i];
+            o->id_orig = id_orig[i];
+            o->fid = fid[i];
+            o->batch = batch[i];
+            o->value = value[i];
+            o->estd = estd[i];
+            if (obs->has_nonpointobs)
+                o->footprint = footprint[i];
+            o->lon = lon[i];
+            o->lat = lat[i];
+            o->depth = depth[i];
+            o->model_depth = model_depth[i];
+            o->fi = fi[i];
+            o->fj = fj[i];
+            o->fk = fk[i];
+            o->time = time[i];
+            o->status = status[i];
+            o->aux = aux[i];
+        }
+#if defined(USE_SHMEM)
     }
+    MPI_Barrier(sm_comm);
+#endif
 
     free(type);
     free(product);
