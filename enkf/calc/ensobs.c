@@ -1309,9 +1309,7 @@ static void update_Hx(dasystem* das)
 
 #if defined(USE_SHMEM)
     {
-        int nproc;
-
-        for (nproc = 0; nproc < nprocesses && node_comm_ranks[nproc] != 1; ++nproc);
+        distribute_iterations(0, nobs - 1, sm_comm_size, rank, "    ");
         for (e = 0; e < nmem; ++e)
             for (o = my_first_iteration; o <= my_last_iteration; ++o)
                 das->St[o][e] = das->S[e][o];

@@ -746,12 +746,15 @@ void das_calctransforms(dasystem* das)
         if (rank == 0)
             ncw_close(ncid);
 #else
-        ncw_close(ncid);
-        MPI_Barrier(MPI_COMM_WORLD);
-        if (rank == 0) {
-            nc_assembleX5(das, grid, nj, ni, stride, nmem);
+        if (das->mode == MODE_ENKF || (das->mode == MODE_ENOI && rank == 0))
+            ncw_close(ncid);
+        if (das->mode == MODE_ENKF) {
+            MPI_Barrier(MPI_COMM_WORLD);
+            if (rank == 0) {
+                nc_assembleX5(das, grid, nj, ni, stride, nmem);
 
-            dir_rmifexists(DIRNAME_TMP);
+                dir_rmifexists(DIRNAME_TMP);
+            }
         }
 #endif
 #if defined(MPI)
