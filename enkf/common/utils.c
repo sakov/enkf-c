@@ -336,11 +336,18 @@ void enkf_printcompileflags(const char offset[])
 #endif
 #if defined(ENKF_UPDATE)
 #if defined(NCW_SKIPSINGLE)
-    enkf_printf("%s  NCW_SKIPSINGLE = [+]\n", offset);
+    enkf_printf("%s  NCW_SKIPSINGLE   = [+]\n", offset);
 #else
-    enkf_printf("%s  NCW_SKIPSINGLE = [-]\n", offset);
+    enkf_printf("%s  NCW_SKIPSINGLE   = [-]\n", offset);
 #endif
 #endif                          /* ENKF_UPDATE */
+#if defined(ENKF_CALC) || defined(ENKF_UPDATE)
+#if defined(DEFLATE_ALL)
+    enkf_printf("%s  DEFLATE_ALL      = [+]\n", offset);
+#else
+    enkf_printf("%s  DEFLATE_ALL      = [-]\n", offset);
+#endif
+#endif
 }
 
 /**

@@ -1,7 +1,15 @@
+
+v1.113.3
+   PS 08042020
+   -- Introduced compile flag -DDEFLATE_ALL for CALC and PREP. By default
+      the NetCDF deflation defined in the main parameter file applies only
+      to observations.nc and analysis.
+   -- In das_writefields_toassemble() -- if a tile does not open then clobber
+      it.
 v1.113.2
    PS 07042020
    -- Fixed a couple of recently introduced bugs, the most severe one in
-      update_Hx() completely screwed up EnOI.
+      update_Hx() has screwed up innovation stats in EnOI.
 v1.113.1
    PS 07042020
    -- In obs_read() when -DUSE_SHMEM - removed redundant setting of obs->data

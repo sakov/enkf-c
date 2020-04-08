@@ -626,7 +626,7 @@ static void das_writefields_toassemble(dasystem* das, int nfields, void** fieldb
 
         getfieldfname(das->ensdir, "ens", f->varname, f->level, fname);
 
-        if (!file_exists(fname)) {
+        if (!file_exists(fname) || !ncw_file_opens(fname, NC_WRITE)) {
             int ncid;
             int dimids[3];
             int vid;
@@ -636,8 +636,10 @@ static void das_writefields_toassemble(dasystem* das, int nfields, void** fieldb
             ncw_def_dim(ncid, "nj", nj, &dimids[1]);
             ncw_def_dim(ncid, "ni", ni, &dimids[2]);
             ncw_def_var(ncid, f->varname, NC_FLOAT, 3, dimids, &vid);
+#if defined(DEFLATE_ALL)
             if (das->nccompression > 0)
                 ncw_def_deflate(ncid, 0, 1, das->nccompression);
+#endif
             ncw_enddef(ncid);
             ncw_put_var_float(ncid, vid, ((float***) fieldbuffer[i])[0][0]);
             ncw_close(ncid);
@@ -728,8 +730,10 @@ static void das_writebg_toassemble(dasystem* das, int nfields, void** fieldbuffe
             ncw_def_dim(ncid, "nj", nj, &dimids[0]);
             ncw_def_dim(ncid, "ni", ni, &dimids[1]);
             ncw_def_var(ncid, f->varname, NC_FLOAT, 2, dimids, &vid);
+#if defined(DEFLATE_ALL)
             if (das->nccompression > 0)
                 ncw_def_deflate(ncid, 0, 1, das->nccompression);
+#endif
             ncw_enddef(ncid);
             ncw_put_var_float(ncid, vid, ((float***) fieldbuffer[i])[das->nmem][0]);
             ncw_close(ncid);

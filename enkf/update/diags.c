@@ -64,8 +64,10 @@ void das_allocatespread(dasystem* das, char fname[])
         }
         ncw_close(ncid_src);
     }
+#if defined(DEFLATE_ALL)
     if (das->nccompression > 0)
         ncw_def_deflate(ncid, 0, 1, das->nccompression);
+#endif
     ncw_close(ncid);
 }
 
@@ -130,8 +132,10 @@ void das_writespread(dasystem* das, int nfields, void** fieldbuffer, field field
                 ncw_def_dim(ncid, "nj", nj, &dimids[0]);
                 ncw_def_dim(ncid, "ni", ni, &dimids[1]);
                 ncw_def_var(ncid, varname, NC_FLOAT, 2, dimids, &vid);
+#if defined(DEFLATE_ALL)
                 if (das->nccompression > 0)
                     ncw_def_deflate(ncid, 0, 1, das->nccompression);
+#endif
                 ncw_enddef(ncid);
             } else {
                 ncw_open(fname, NC_WRITE, &ncid);
@@ -251,8 +255,10 @@ void das_allocateinflation(dasystem* das, char fname[])
         ncw_copy_vardef(ncid_src, varid_src, ncid);
         ncw_close(ncid_src);
     }
+#if defined(DEFLATE_ALL)
     if (das->nccompression > 0)
         ncw_def_deflate(ncid, 0, 1, das->nccompression);
+#endif
     ncw_close(ncid);
 }
 
@@ -280,8 +286,10 @@ void das_writeinflation(dasystem* das, field* f, int j, float* v)
             ncw_def_dim(ncid, "nj", nj, &dimids[0]);
             ncw_def_dim(ncid, "ni", ni, &dimids[1]);
             ncw_def_var(ncid, f->varname, NC_FLOAT, 2, dimids, NULL);
+#if defined(DEFLATE_ALL)
             if (das->nccompression > 0)
                 ncw_def_deflate(ncid, 0, 1, das->nccompression);
+#endif
             ncw_enddef(ncid);
         } else
             ncw_open(fname, NC_WRITE, &ncid);
@@ -380,8 +388,10 @@ void das_writevcorrs(dasystem* das)
             ncw_copy_vardef(ncid_src, varid_src, ncid_dst);
             ncw_close(ncid_src);
         }
+#if defined(DEFLATE_ALL)
         if (das->nccompression > 0)
             ncw_def_deflate(ncid_dst, 0, 1, das->nccompression);
+#endif
         ncw_close(ncid_dst);
     }
 
@@ -483,8 +493,10 @@ void das_writevcorrs(dasystem* das)
         ncw_def_dim(ncid_tile, "nj", nj, &dimids[0]);
         ncw_def_dim(ncid_tile, "ni", ni, &dimids[1]);
         ncw_def_var(ncid_tile, varname, NC_FLOAT, 2, dimids, &vid_tile);
+#if defined(DEFLATE_ALL)
         if (das->nccompression > 0)
             ncw_def_deflate(ncid_tile, 0, 1, das->nccompression);
+#endif
         ncw_enddef(ncid_tile);
         ncw_put_var_double(ncid_tile, vid_tile, cor);
         ncw_close(ncid_tile);

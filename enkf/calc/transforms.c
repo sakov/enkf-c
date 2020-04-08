@@ -56,7 +56,7 @@ static void nc_createX5(dasystem* das, char fname[], char gridname[], size_t nj,
     ncw_put_att_int(*ncid, NC_GLOBAL, "stride", 1, &stride);
     ncw_def_var(*ncid, "X5", NC_FLOAT, 3, dimids, varid_X5);
     ncw_put_att_text(*ncid, NC_GLOBAL, "grid_name", gridname);
-#if !defined(X5_VIAFILE)
+#if defined(DEFLATE_ALL)
     if (das->nccompression > 0)
         ncw_def_deflate(*ncid, 0, 1, das->nccompression);
 #endif
@@ -109,6 +109,10 @@ static void nc_createX5tile(dasystem* das, void* grid, int ni, int nmem, int* nc
     ncw_def_dim(*ncid, "msq", nmem * nmem, &dimids[2]);
     ncw_def_var(*ncid, "X5", NC_FLOAT, 3, dimids, varid_X5);
     ncw_put_att_int(*ncid, NC_GLOBAL, "j1", 1, &my_first_iteration);
+#if defined(DEFLATE_ALL)
+    if (das->nccompression > 0)
+        ncw_def_deflate(*ncid, 0, 1, das->nccompression);
+#endif
     ncw_enddef(*ncid);
 }
 
