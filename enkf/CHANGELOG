@@ -1,7 +1,7 @@
 
 v1.113.3
    PS 08042020
-   -- Introduced compile flag -DDEFLATE_ALL for CALC and PREP. By default
+   -- Introduced compile flag -DDEFLATE_ALL for CALC and UPDATE. By default
       the NetCDF deflation defined in the main parameter file applies only
       to observations.nc and analysis.
    -- In das_writefields_toassemble() -- if a tile does not open then clobber
