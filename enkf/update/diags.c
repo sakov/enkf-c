@@ -127,27 +127,15 @@ void das_writespread(dasystem* das, int nfields, void** fieldbuffer, field field
 
             getfieldfname(das->mode == MODE_ENKF ? das->ensdir : das->bgdir, "spread", varname, f->level, fname);
 
-            if (!file_exists(fname)) {
-                ncw_create(fname, NC_CLOBBER | das->ncformat, &ncid);
-                ncw_def_dim(ncid, "nj", nj, &dimids[0]);
-                ncw_def_dim(ncid, "ni", ni, &dimids[1]);
-                ncw_def_var(ncid, varname, NC_FLOAT, 2, dimids, &vid);
+            ncw_create(fname, NC_CLOBBER | das->ncformat, &ncid);
+            ncw_def_dim(ncid, "nj", nj, &dimids[0]);
+            ncw_def_dim(ncid, "ni", ni, &dimids[1]);
+            ncw_def_var(ncid, varname, NC_FLOAT, 2, dimids, &vid);
 #if defined(DEFLATE_ALL)
-                if (das->nccompression > 0)
-                    ncw_def_deflate(ncid, 0, 1, das->nccompression);
+            if (das->nccompression > 0)
+                ncw_def_deflate(ncid, 0, 1, das->nccompression);
 #endif
-                ncw_enddef(ncid);
-            } else {
-                ncw_open(fname, NC_WRITE, &ncid);
-                if (!ncw_var_exists(ncid, varname)) {
-                    ncw_redef(ncid);
-                    ncw_inq_dimid(ncid, "nj", &dimids[0]);
-                    ncw_inq_dimid(ncid, "ni", &dimids[1]);
-                    ncw_def_var(ncid, varname, NC_FLOAT, 2, dimids, NULL);
-                    ncw_enddef(ncid);
-                }
-                ncw_inq_varid(ncid, varname, &vid);
-            }
+            ncw_enddef(ncid);
             ncw_put_var_double(ncid, vid, v2);
             ncw_close(ncid);
         } else {

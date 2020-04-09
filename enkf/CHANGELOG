@@ -1,4 +1,6 @@
-
+v1.113.4
+   PS 09042020
+   -- Clobber (do not try to open) spread tiles left from the previous cycle.
 v1.113.3
    PS 08042020
    -- Introduced compile flag -DDEFLATE_ALL for CALC and UPDATE. By default
