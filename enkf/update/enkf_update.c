@@ -36,6 +36,9 @@ static void usage()
     enkf_printf("  --calculate-vertical-correlations\n");
     enkf_printf("      calculate correlation coefficients between surface and other layers of\n");
     enkf_printf("      3D variables and write to %s\n", FNAME_VERTCORR);
+    enkf_printf("  --calculate-vertical-correlations-only\n");
+    enkf_printf("      calculate correlation coefficients between surface and other layers of\n");
+    enkf_printf("      3D variables and write to %s only\n", FNAME_VERTCORR);
     enkf_printf("  --describe-prm-format [main|model|grid]\n");
     enkf_printf("      describe format of a parameter file and exit\n");
     enkf_printf("  --direct-write\n");
@@ -46,6 +49,8 @@ static void usage()
     enkf_printf("      do not delete tiles\n");
     enkf_printf("  --no-fields-write\n");
     enkf_printf("      do not write analysis fields (only diagnostic data)\n");
+    enkf_printf("  --no-update\n");
+    enkf_printf("      exclude tasks that require ensemble update\n");
     enkf_printf("  --output-increment\n");
     enkf_printf("      output analysis increment (default: output analysis)\n");
     enkf_printf("  --write-inflation\n");
@@ -60,6 +65,8 @@ static void usage()
  */
 static void parse_commandline(int argc, char* argv[], char** fname, int* updatespec)
 {
+    int no_update = 0;
+    int vcorrs_only = 0;
     int i;
 
     if (argc < 2)
@@ -84,6 +91,10 @@ static void parse_commandline(int argc, char* argv[], char** fname, int* updates
             continue;
         } else if (strcmp(argv[i], "--calculate-vertical-correlations") == 0) {
             *updatespec |= UPDATE_DOVERTCORRS;
+            i++;
+        } else if (strcmp(argv[i], "--calculate-vertical-correlations-only") == 0) {
+            *updatespec |= UPDATE_DOVERTCORRS;
+            vcorrs_only = 1;
             i++;
         } else if (strcmp(argv[i], "--describe-prm-format") == 0) {
             if (i < argc - 1) {
@@ -114,6 +125,10 @@ static void parse_commandline(int argc, char* argv[], char** fname, int* updates
             *updatespec &= ~UPDATE_DOFIELDS;
             i++;
             continue;
+        } else if (strcmp(argv[i], "--no-update") == 0) {
+            no_update = 1;
+            i++;
+            continue;
         } else if (strcmp(argv[i], "--output-increment") == 0) {
             *updatespec |= UPDATE_OUTPUTINC;
             i++;
@@ -137,6 +152,11 @@ static void parse_commandline(int argc, char* argv[], char** fname, int* updates
 
     if (*fname == NULL)
         enkf_quit("command line: parameter file not specified");
+
+    if (no_update)
+        *updatespec &= ~UPDATE_NEEDAN;
+    if (vcorrs_only)
+        *updatespec = UPDATE_DOVERTCORRS;
 }
 
 /**
@@ -205,10 +225,17 @@ int main(int argc, char* argv[])
     das->updatespec = updatespec;
 
     if (updatespec & (UPDATE_DOFIELDS | UPDATE_DOSPREAD | UPDATE_DOPLOGS | UPDATE_DOINFLATION)) {
-        if (das->mode == MODE_ENKF)
-            enkf_printf("  updating the ensemble:\n");
-        else if (das->mode == MODE_ENOI)
-            enkf_printf("  updating the model state:\n");
+        if (das->mode == MODE_ENKF) {
+            if (updatespec & UPDATE_NEEDAN)
+                enkf_printf("  updating the ensemble:\n");
+            else
+                enkf_printf("  processing the ensemble:\n");
+        } else if (das->mode == MODE_ENOI) {
+            if (updatespec & UPDATE_NEEDAN)
+                enkf_printf("  updating the model state:\n");
+            else
+                enkf_printf("  processing the model state and/or ensemble:\n");
+        }
         das_update(das);
         enkf_flush();
     }

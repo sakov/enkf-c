@@ -949,7 +949,7 @@ void das_update(dasystem* das)
         enkf_flush();
     }
 
-    if (rank == 0)
+    if (rank == 0 && (das->updatespec | UPDATE_DOPLOGS))
         dir_createifabsent(DIRNAME_TMP);
     if (das->updatespec & UPDATE_DOFIELDS) {
         if (das->mode == MODE_ENKF) {
@@ -1178,7 +1178,7 @@ void das_update(dasystem* das)
                 /*
                  * write forecast variables to point logs
                  */
-                if (das->updatespec & UPDATE_DOPLOGS)
+                if (das->updatespec & UPDATE_DOPLOGSFC)
                     plog_writestatevars(das, bufid + 1, fieldbuffer, &fields[fid - bufid], 0);
 
                 /*
@@ -1191,7 +1191,7 @@ void das_update(dasystem* das)
                         memset(((float***) fieldbuffer[ii])[das->nmem][0], 0, mni * mnj * sizeof(float));
                 }
 
-                if (das->updatespec & (UPDATE_DOFIELDS | UPDATE_DOANALYSISSPREAD | UPDATE_DOPLOGS | UPDATE_DOINFLATION)) {
+                if (das->updatespec & (UPDATE_DOFIELDS | UPDATE_DOANALYSISSPREAD | UPDATE_DOPLOGSAN | UPDATE_DOINFLATION)) {
                     if (das->mode == MODE_ENKF) {
                         das_updatefields(das, bufid + 1, fieldbuffer, &fields[fid - bufid]);
                         if (das->updatespec & UPDATE_DOFIELDS)
@@ -1199,7 +1199,7 @@ void das_update(dasystem* das)
                         else if (fid == my_last_iteration)
                             enkf_printf("      (skip writing the fields)\n");
                     } else if (das->mode == MODE_ENOI) {
-                        if (das->updatespec & (UPDATE_DOFIELDS | UPDATE_DOPLOGS))
+                        if (das->updatespec & (UPDATE_DOFIELDS | UPDATE_DOPLOGSAN))
                             das_updatebg(das, bufid + 1, fieldbuffer, &fields[fid - bufid]);
                         if (das->updatespec & UPDATE_DOFIELDS)
                             das_writebg(das, bufid + 1, fieldbuffer, &fields[fid - bufid]);
@@ -1216,7 +1216,7 @@ void das_update(dasystem* das)
                 /*
                  * write analysis variables to point logs
                  */
-                if (das->updatespec & UPDATE_DOPLOGS)
+                if (das->updatespec & UPDATE_DOPLOGSAN)
                     plog_writestatevars(das, bufid + 1, fieldbuffer, &fields[fid - bufid], 1);
             }
         }                       /* for fid */
