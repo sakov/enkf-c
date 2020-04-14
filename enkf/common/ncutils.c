@@ -1037,33 +1037,41 @@ void ncu_readvarfloat(int ncid, int varid, size_t n, float v[])
                 vv = v;
         }
         if (typesize == 1) {
+            int nofill;
             int8_t value;
 
-            ncw_inq_var_fill(ncid, varid, NULL, &value);
-            for (i = 0; i < n; ++i)
-                if (((int8_t *) vv)[i] == value)
-                    v[i] = NAN;
+            ncw_inq_var_fill(ncid, varid, &nofill, &value);
+            if (nofill == 0)
+                for (i = 0; i < n; ++i)
+                    if (((int8_t *) vv)[i] == value)
+                        v[i] = NAN;
         } else if (typesize == 2) {
+            int nofill;
             int16_t value;
 
-            ncw_inq_var_fill(ncid, varid, NULL, &value);
-            for (i = 0; i < n; ++i)
-                if (((int16_t *) vv)[i] == value)
-                    v[i] = NAN;
+            ncw_inq_var_fill(ncid, varid, &nofill, &value);
+            if (nofill == 0)
+                for (i = 0; i < n; ++i)
+                    if (((int16_t *) vv)[i] == value)
+                        v[i] = NAN;
         } else if (typesize == 4) {
+            int nofill;
             int32_t value;
 
-            ncw_inq_var_fill(ncid, varid, NULL, &value);
-            for (i = 0; i < n; ++i)
-                if (((int32_t *) vv)[i] == value)
-                    v[i] = NAN;
+            ncw_inq_var_fill(ncid, varid, &nofill, &value);
+            if (nofill == 0)
+                for (i = 0; i < n; ++i)
+                    if (((int32_t *) vv)[i] == value)
+                        v[i] = NAN;
         } else if (typesize == 8) {
+            int nofill;
             int64_t value;
 
-            ncw_inq_var_fill(ncid, varid, NULL, &value);
-            for (i = 0; i < n; ++i)
-                if (((int64_t *) vv)[i] == value)
-                    v[i] = NAN;
+            ncw_inq_var_fill(ncid, varid, &nofill, &value);
+            if (nofill == 0)
+                for (i = 0; i < n; ++i)
+                    if (((int64_t *) vv)[i] == value)
+                        v[i] = NAN;
         } else
             quit("programming error");
     }
@@ -1417,33 +1425,41 @@ void ncu_readvardouble(int ncid, int varid, size_t n, double v[])
                 vv = v;
         }
         if (typesize == 1) {
+            int nofill;
             int8_t value;
 
-            ncw_inq_var_fill(ncid, varid, NULL, &value);
-            for (i = 0; i < n; ++i)
-                if (((int8_t *) vv)[i] == value)
-                    v[i] = NAN;
+            ncw_inq_var_fill(ncid, varid, &nofill, &value);
+            if (nofill == 0)
+                for (i = 0; i < n; ++i)
+                    if (((int8_t *) vv)[i] == value)
+                        v[i] = NAN;
         } else if (typesize == 2) {
+            int nofill;
             int16_t value;
 
-            ncw_inq_var_fill(ncid, varid, NULL, &value);
-            for (i = 0; i < n; ++i)
-                if (((int16_t *) vv)[i] == value)
-                    v[i] = NAN;
+            ncw_inq_var_fill(ncid, varid, &nofill, &value);
+            if (nofill == 0)
+                for (i = 0; i < n; ++i)
+                    if (((int16_t *) vv)[i] == value)
+                        v[i] = NAN;
         } else if (typesize == 4) {
+            int nofill;
             int32_t value;
 
-            ncw_inq_var_fill(ncid, varid, NULL, &value);
-            for (i = 0; i < n; ++i)
-                if (((int32_t *) vv)[i] == value)
-                    v[i] = NAN;
+            ncw_inq_var_fill(ncid, varid, &nofill, &value);
+            if (nofill == 0)
+                for (i = 0; i < n; ++i)
+                    if (((int32_t *) vv)[i] == value)
+                        v[i] = NAN;
         } else if (typesize == 8) {
+            int nofill;
             int64_t value;
 
-            ncw_inq_var_fill(ncid, varid, NULL, &value);
-            for (i = 0; i < n; ++i)
-                if (((int64_t *) vv)[i] == value)
-                    v[i] = NAN;
+            ncw_inq_var_fill(ncid, varid, &nofill, &value);
+            if (nofill == 0)
+                for (i = 0; i < n; ++i)
+                    if (((int64_t *) vv)[i] == value)
+                        v[i] = NAN;
         } else
             quit("programming error");
     }

@@ -1,3 +1,9 @@
+v1.113.6
+   PS 14042020
+   -- Fixed defect in reader_xy_scattered() in setting ADDVAR.
+   -- In ncu_readvardouble() and ncu_readvarfloat() eliminated processing data
+      according to the default fill value if nofill = 1.
+   -- A few semi-cosmetic changes in das_writevcorrs().
 v1.113.5
    PS 14042020
    -- Added two options to UPDATE: "--no-update" and

@@ -342,17 +342,15 @@ void das_writevcorrs(dasystem* das)
     int nfields = 0;
     field* fields = NULL;
     char* varname0 = NULL;
-    float*** v0 = NULL;
-    double* std0 = NULL;
-    float*** v = NULL;
+    float** v0 = NULL;
+    double* var0 = NULL;
+    float** v = NULL;
     double* cor = NULL;
-    double* std = NULL;
-    int ni, nj, nk, nij = -1;
+    int ni, nj, nij = -1;
     int fid;
 
     enkf_printtime("  ");
     enkf_printf("  writing vertical correlations:\n");
-    enkf_printf("    calculating:\n");
 
     /*
      * allocate disk space
@@ -384,7 +382,8 @@ void das_writevcorrs(dasystem* das)
     }
 
     das_getfields(das, -1 /* for all grids */ , &nfields, &fields);
-    distribute_iterations(0, nfields - 1, nprocesses, rank, "      ");
+    distribute_iterations(0, nfields - 1, nprocesses, rank, "    ");
+    enkf_printf("    calculating:");
 
     for (fid = my_first_iteration; fid <= my_last_iteration; ++fid) {
         field* f = &fields[fid];
@@ -409,43 +408,41 @@ void das_writevcorrs(dasystem* das)
          */
         if (varname0 == NULL || strcmp(varname0, varname) != 0) {
             /*
-             * calculate anomalies and std at surface
+             * calculate anomalies and scaled variance at surface
              */
-            model_getvargridsize(m, f->varid, &ni, &nj, &nk);
-            nij = ni * nj;
-            ksurf = grid_getsurflayerid(model_getvargrid(m, f->varid));
-
-            if (v != NULL) {
-                free(v0);
-                free(std0);
-                free(v);
-                free(cor);
-                free(std);
+            model_getvargridsize(m, f->varid, &ni, &nj, NULL);
+            if (ni * nj != nij) {
+                nij = ni * nj;
+                if (v != NULL) {
+                    free(v0);
+                    free(var0);
+                    free(v);
+                    free(cor);
+                }
+                v0 = alloc2d(das->nmem, nij, sizeof(float));
+                var0 = calloc(nij, sizeof(double));
+                v = alloc2d(das->nmem, nij, sizeof(float));
+                cor = calloc(nij, sizeof(double));
             }
-            v0 = alloc3d(das->nmem, nj, ni, sizeof(float));
-            std0 = calloc(nij, sizeof(double));
-            v = alloc3d(das->nmem, nj, ni, sizeof(float));
-            cor = calloc(nij, sizeof(double));
-            std = calloc(nij, sizeof(double));
 
+            ksurf = grid_getsurflayerid(model_getvargrid(m, f->varid));
             for (e = 0; e < das->nmem; ++e) {
                 char fname[MAXSTRLEN];
 
                 das_getmemberfname(das, das->ensdir, varname, e + 1, fname);
-                model_readfield(das->m, fname, varname, ksurf, v0[e][0]);
+                model_readfield(das->m, fname, varname, ksurf, v0[e]);
             }
             for (i = 0; i < nij; ++i) {
                 double vmean = 0.0;
 
                 for (e = 0; e < das->nmem; ++e)
-                    vmean += (double) v0[e][0][i];
+                    vmean += (double) v0[e][i];
                 vmean /= (double) das->nmem;
                 for (e = 0; e < das->nmem; ++e)
-                    v0[e][0][i] -= (float) vmean;
-                std0[i] = 0.0;
+                    v0[e][i] -= (float) vmean;
+                var0[i] = 0.0;
                 for (e = 0; e < das->nmem; ++e)
-                    std0[i] += (double) (v0[e][0][i] * v0[e][0][i]);
-                std0[i] = sqrt(std0[i] / (double) (das->nmem - 1));
+                    var0[i] += (double) (v0[e][i] * v0[e][i]);
             }
             varname0 = varname;
         }
@@ -456,24 +453,23 @@ void das_writevcorrs(dasystem* das)
         k = f->level;
         for (e = 0; e < das->nmem; ++e) {
             das_getmemberfname(das, das->ensdir, varname, e + 1, fname_src);
-            model_readfield(das->m, fname_src, varname, k, v[e][0]);
+            model_readfield(das->m, fname_src, varname, k, v[e]);
         }
         for (i = 0; i < nij; ++i) {
             double vmean = 0.0;
+            double var = 0.0;
 
             for (e = 0; e < das->nmem; ++e)
-                vmean += (double) v[e][0][i];
+                vmean += (double) v[e][i];
             vmean /= (double) das->nmem;
             for (e = 0; e < das->nmem; ++e)
-                v[e][0][i] -= (float) vmean;
-            std[i] = 0.0;
+                v[e][i] -= (float) vmean;
             for (e = 0; e < das->nmem; ++e)
-                std[i] += (double) (v[e][0][i] * v[e][0][i]);
-            std[i] /= sqrt(std[i] / (double) (das->nmem - 1));
+                var += (double) (v[e][i] * v[e][i]);
             cor[i] = 0.0;
             for (e = 0; e < das->nmem; ++e)
-                cor[i] += (double) (v[e][0][i] * v0[e][0][i]);
-            cor[i] /= (std[i] * std0[i]);
+                cor[i] += (double) (v[e][i] * v0[e][i]);
+            cor[i] /= sqrt(var * var0[i]);
         }
 
         snprintf(fname_tile, MAXSTRLEN, "%s/vcorr_%s-%03d.nc", das->ensdir, varname, k);
@@ -488,14 +484,16 @@ void das_writevcorrs(dasystem* das)
         ncw_enddef(ncid_tile);
         ncw_put_var_double(ncid_tile, vid_tile, cor);
         ncw_close(ncid_tile);
+        enkf_printf(".");
+        enkf_flush();
     }                           /* for fid */
     if (v0 != NULL) {
         free(v0);
-        free(std0);
+        free(var0);
         free(v);
-        free(std);
         free(cor);
     }
+    enkf_printf("\n");
 #if defined(MPI)
     MPI_Barrier(MPI_COMM_WORLD);
 #endif

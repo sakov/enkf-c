@@ -141,7 +141,7 @@ void reader_xy_scattered(char* fname, int fid, obsmeta* meta, grid* g, observati
             if (naddvar % NADDVAR_INC == 0) {
                 addvars = realloc(addvars, (naddvar + NADDVAR_INC) * sizeof(char*));
                 addvars[naddvar].name = strdup(meta->pars[i].value);
-                addvars[naddvar].name = ADDVAR_ACTION_ADD;
+                addvars[naddvar].action = ADDVAR_ACTION_ADD;
                 addvars[naddvar].v = NULL;
                 naddvar++;
             }
