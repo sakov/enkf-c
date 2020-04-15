@@ -143,7 +143,6 @@ void reader_xy_scattered(char* fname, int fid, obsmeta* meta, grid* g, observati
                 addvars[naddvar].varname = strdup(meta->pars[i].value);
                 addvars[naddvar].action = ADDVAR_ACTION_ADD;
                 addvars[naddvar].v = NULL;
-		enkf_printf("      ADDVAR = %s\n", addvars[naddvar].varname);
                 naddvar++;
             }
         } else if (strcasecmp(meta->pars[i].name, "SUBVAR") == 0) {
@@ -152,7 +151,6 @@ void reader_xy_scattered(char* fname, int fid, obsmeta* meta, grid* g, observati
                 addvars[naddvar].varname = strdup(meta->pars[i].value);
                 addvars[naddvar].action = ADDVAR_ACTION_SUB;
                 addvars[naddvar].v = NULL;
-		enkf_printf("      SUBVAR = %s\n", addvars[naddvar].varname);
                 naddvar++;
             }
         } else
@@ -163,6 +161,9 @@ void reader_xy_scattered(char* fname, int fid, obsmeta* meta, grid* g, observati
         enkf_quit("reader_xy_scattered(): %s: VARNAME not specified", fname);
     else
         enkf_printf("        VARNAME = %s\n", varname);
+
+    for (i = 0; i < naddvar; ++i)
+        enkf_printf("        %s = %s\n", (addvars[i].action == ADDVAR_ACTION_ADD) ? "ADDVAR" : "SUBVAR", addvars[i].varname);
 
     ncw_open(fname, NC_NOWRITE, &ncid);
 
