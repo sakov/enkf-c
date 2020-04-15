@@ -384,6 +384,7 @@ void das_writevcorrs(dasystem* das)
     das_getfields(das, -1 /* for all grids */ , &nfields, &fields);
     distribute_iterations(0, nfields - 1, nprocesses, rank, "    ");
     enkf_printf("    calculating:");
+    enkf_flush();
 
     for (fid = my_first_iteration; fid <= my_last_iteration; ++fid) {
         field* f = &fields[fid];
@@ -493,10 +494,11 @@ void das_writevcorrs(dasystem* das)
         free(v);
         free(cor);
     }
-    enkf_printf("\n");
 #if defined(MPI)
     MPI_Barrier(MPI_COMM_WORLD);
 #endif
+    enkf_printf("\n");
+
     /*
      * assemble tiles
      */
