@@ -37,8 +37,7 @@ static void usage()
     enkf_printf("      calculate correlation coefficients between surface and other layers of\n");
     enkf_printf("      3D variables and write to %s\n", FNAME_VERTCORR);
     enkf_printf("  --calculate-vertical-correlations-only\n");
-    enkf_printf("      calculate correlation coefficients between surface and other layers of\n");
-    enkf_printf("      3D variables and write to %s only\n", FNAME_VERTCORR);
+    enkf_printf("      as above, but exclude other (normally performed) jobs\n");
     enkf_printf("  --describe-prm-format [main|model|grid]\n");
     enkf_printf("      describe format of a parameter file and exit\n");
     enkf_printf("  --direct-write\n");

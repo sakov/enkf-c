@@ -37,7 +37,7 @@
 
 \begin{document}
 
-\title{EnKF-C user guide\\{\normalsize version 1.113.3}}
+\title{EnKF-C user guide\\{\normalsize version 1.113.7}}
 
 \author{Pavel Sakov}
 \date{June 19, 2014 -- \today}
@@ -1462,11 +1462,13 @@ It has the following usage and options:
       calculate ensemble spread and write to spread.nc
   --calculate-forecast-spread
       calculate forecast ensemble spread only and write to spread.nc
-  --describe-prm-format [main|model|grid]
-      describe format of a parameter file and exit
   --calculate-vertical-correlations
       calculate correlation coefficients between surface and other layers of
       3D variables and write to vcorr.nc
+  --calculate-vertical-correlations-only
+      as above, but exclude other (normally performed) jobs
+  --describe-prm-format [main|model|grid]
+      describe format of a parameter file and exit
   --direct-write
       write fields directly to the output file (default: write to tiles first)
   --joint-output
@@ -1475,6 +1477,8 @@ It has the following usage and options:
       do not delete tiles
   --no-fields-write
       do not write analysis fields
+  --no-update
+      exclude tasks that require ensemble update
   --output-increment
       output analysis increment (default: output analysis)
   --write-inflation
