@@ -1817,19 +1817,28 @@ Notes:
 \section{Possible problems (Q\&A)}
 
 \begin{enumerate}
+
+\item{\bf In the innovation stats report at the tail of CALC log I get some entries ``N/A'' for instrument tags.}
+
+These entries show stats for super-observations obtained by collating observations from different instruments.
+To avoid collating such observations run PREP with option \\\verb|--no-superobing-across-instruments|.
+
 \item{\bf CALC becomes too slow after increasing localisation radius}
 
 This is due to the increased number of local observations.
+One way to reduce it is to run superobing on a virtual coarser horizontal grid by increasing parameter \verb|SOBSTRIDE| from the default value of 1 to 2 or more.
 
-The local observations are sought by using so called K-D tree.
-Normally it works well, but can become a bottleneck when the number of local observations becomes very large.
-If this happens, one may use a coarser superobing to reduce the number of assimilated observations, by increasing parameter \verb|SOBSTRIDE| from the default value of 1 to 2 or more.
+\item{\bf CALC starts calculating transforms swiftly, but then slows down almost to a standstill.}
 
-\item{\bf In UPDATE getting error ``\verb|<...> "spread.nc": <...> NC_UNLIMITED size already in use|''}
+This can happen with large systems when the MPI communication becomes clogged.
+Recompile CALC with flag \verb|-DX5_VIAFILE| to communicate transforms via filesystem.
 
-UPDATE tries to create an output file with ensemble spread for all model variables.
-This may be not straightforward due to possible differences in formats of files for different model variables.
-Try to compile UPDATE with flag \verb|-DNCW_SKIPSINGLE|.
+\item{\bf In UPDATE I am getting error \\``\verb|<...> "spread.nc": <...> NC_UNLIMITED size already in use|''.}
+
+UPDATE tries to create a common output file for all model variables.
+This may be not straightforward due to possible differences in formats of source files.
+Try compiling UPDATE with flag \verb|-DNCW_SKIPSINGLE|.
+
 \end{enumerate}
 
 \chapter*{Acknowledgements}
