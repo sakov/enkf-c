@@ -1,3 +1,6 @@
+v1.113.7
+   PS 15042020
+   -- Fixed defect in reader_xy_scattered() in setting ADDVAR and SUBVAR.
 v1.113.6
    PS 14042020
    -- Fixed defect in reader_xy_scattered() in setting ADDVAR.

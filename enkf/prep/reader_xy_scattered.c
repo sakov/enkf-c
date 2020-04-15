@@ -78,7 +78,7 @@
 #define ADDVAR_ACTION_SUB 1
 
 typedef struct {
-    char* name;
+    char* varname;
     int action;
     double* v;
 } addvar;
@@ -139,18 +139,20 @@ void reader_xy_scattered(char* fname, int fid, obsmeta* meta, grid* g, observati
             ;
         else if (strcasecmp(meta->pars[i].name, "ADDVAR") == 0) {
             if (naddvar % NADDVAR_INC == 0) {
-                addvars = realloc(addvars, (naddvar + NADDVAR_INC) * sizeof(char*));
-                addvars[naddvar].name = strdup(meta->pars[i].value);
+                addvars = realloc(addvars, (naddvar + NADDVAR_INC) * sizeof(addvar));
+                addvars[naddvar].varname = strdup(meta->pars[i].value);
                 addvars[naddvar].action = ADDVAR_ACTION_ADD;
                 addvars[naddvar].v = NULL;
+		enkf_printf("      ADDVAR = %s\n", addvars[naddvar].varname);
                 naddvar++;
             }
         } else if (strcasecmp(meta->pars[i].name, "SUBVAR") == 0) {
             if (naddvar % NADDVAR_INC == 0) {
-                addvars = realloc(addvars, (naddvar + NADDVAR_INC) * sizeof(char*));
-                addvars[naddvar].name = strdup(meta->pars[i].value);
+                addvars = realloc(addvars, (naddvar + NADDVAR_INC) * sizeof(addvar));
+                addvars[naddvar].varname = strdup(meta->pars[i].value);
                 addvars[naddvar].action = ADDVAR_ACTION_SUB;
                 addvars[naddvar].v = NULL;
+		enkf_printf("      SUBVAR = %s\n", addvars[naddvar].varname);
                 naddvar++;
             }
         } else
@@ -178,7 +180,7 @@ void reader_xy_scattered(char* fname, int fid, obsmeta* meta, grid* g, observati
     for (i = 0; i < naddvar; ++i) {
         addvar* a = &addvars[i];
 
-        ncw_inq_varid(ncid, a->name, &varid);
+        ncw_inq_varid(ncid, a->varname, &varid);
         a->v = malloc(nobs * sizeof(double));
         ncu_readvardouble(ncid, varid, nobs, a->v);
         if (a->action == ADDVAR_ACTION_SUB) {
@@ -351,7 +353,7 @@ void reader_xy_scattered(char* fname, int fid, obsmeta* meta, grid* g, observati
     }
     if (naddvar > 0) {
         for (i = 0; i < naddvar; ++i) {
-            free(addvars[i].name);
+            free(addvars[i].varname);
             free(addvars[i].v);
         }
         free(addvars);
