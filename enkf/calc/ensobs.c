@@ -147,9 +147,11 @@ void das_getHE(dasystem* das)
 
         if (ot->isasync) {
             int t1 = get_tshift(ot->time_min + EPSD, ot->async_tstep, ot->async_centred);
-            int t2 = get_tshift(ot->time_max - EPSD, ot->async_tstep, ot->async_centred);
+            int t2 = get_tshift(ot->time_max, ot->async_tstep, ot->async_centred);
             int t;
 
+            if (t2 < t1)
+                t2 = t1;
             for (t = t1; t <= t2; ++t) {
                 int nobs_tomap = -1;
                 int* obsids = NULL;
@@ -158,8 +160,6 @@ void das_getHE(dasystem* das)
 
                 if (t == t1)
                     teps = EPSD;
-                else if (t == t2)
-                    teps = -EPSD;
 
                 enkf_printf("|");
                 obs_find_bytypeandtime(obs, i, t, &nobs_tomap, &obsids, teps);
