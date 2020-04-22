@@ -15,7 +15,7 @@
 
 #if !defined(_ALLHS_H)
 
-typedef void (*H_fn) (dasystem* das, int nobs, int obsids[], char fname[], int mem, int t, ENSOBSTYPE dst[]);
+typedef void (*H_fn) (dasystem* das, int nobs, int obsids[], char fname[], int mem, int t, float dst[]);
 
 H_fn getH(int issurface, char H_tag[]);
 

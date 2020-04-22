@@ -74,7 +74,7 @@ typedef struct {
      * S_MODE_HA_a         no                yes          no
      * S_MODE_S_a          yes               yes          no
      */
-    ENSOBSTYPE** S;             /* HE or HA or S [mem][obs] */
+    float** S;                  /* HE or HA or S [mem][obs] */
     double* s_f;                /* innovation */
     double* std_f;              /* ensemble spread */
     double* s_a;                /* innovation */
@@ -86,7 +86,7 @@ typedef struct {
 #if defined(USE_SHMEM)
     MPI_Win sm_comm_win_S;
     MPI_Win sm_comm_win_St;
-    ENSOBSTYPE** St;            /* (S transposed) */
+    float** St;                 /* (S transposed) */
 #endif
     int fieldbufsize;
 

@@ -87,9 +87,6 @@
 #define OBS_SORTMODE_ID 0
 #define OBS_SORTMODE_IJ 1
 
-#define ENSOBSTYPE float
-#define MPIENSOBSTYPE MPI_FLOAT
-
 #define STATE_BIGNUM 1.0e3
 #define STD_BIG 1.0e10
 

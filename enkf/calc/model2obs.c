@@ -35,7 +35,7 @@
 
 /**
  */
-static void evaluate_2d_obs(model* m, observations* allobs, int nobs, int obsids[], char fname[], float** v, ENSOBSTYPE out[])
+static void evaluate_2d_obs(model* m, observations* allobs, int nobs, int obsids[], char fname[], float** v, float out[])
 {
     int otid = allobs->data[obsids[0]].type;
     int mvid = model_getvarid(m, allobs->obstypes[otid].varnames[0], 1);
@@ -50,7 +50,7 @@ static void evaluate_2d_obs(model* m, observations* allobs, int nobs, int obsids
         observation* o = &allobs->data[ii];
 
         assert(o->type == otid);
-        assert(out[ii] == 0.0);
+        assert(isnan(out[ii]));
         if (o->footprint == 0.0)
             out[ii] = interpolate2d(o->fi, o->fj, ni, nj, v, mask, periodic_i);
         else {
@@ -88,7 +88,7 @@ static void evaluate_2d_obs(model* m, observations* allobs, int nobs, int obsids
 
 /**
  */
-static void interpolate_3d_obs(model* m, observations* allobs, int nobs, int obsids[], char fname[], float*** v, ENSOBSTYPE out[])
+static void interpolate_3d_obs(model* m, observations* allobs, int nobs, int obsids[], char fname[], float*** v, float out[])
 {
     int otid = allobs->data[obsids[0]].type;
     int mvid = model_getvarid(m, allobs->obstypes[otid].varnames[0], 1);
@@ -105,7 +105,7 @@ static void interpolate_3d_obs(model* m, observations* allobs, int nobs, int obs
         observation* o = &allobs->data[ii];
 
         assert(o->type == otid);
-        assert(out[ii] == 0.0);
+        assert(isnan(out[ii]));
         out[ii] = interpolate3d(o->fi, o->fj, o->fk, ni, nj, nk, ksurf, v, nlevels, periodic_i);
         if (!isfinite(out[ii]) || fabs(out[ii]) > STATE_BIGNUM) {
             enkf_flush();
@@ -118,7 +118,7 @@ static void interpolate_3d_obs(model* m, observations* allobs, int nobs, int obs
 
 /**
  */
-void H_surf_standard(dasystem* das, int nobs, int obsids[], char fname[], int mem, int t, ENSOBSTYPE dst[])
+void H_surf_standard(dasystem* das, int nobs, int obsids[], char fname[], int mem, int t, float dst[])
 {
     model* m = das->m;
     observations* allobs = das->obs;
@@ -159,7 +159,7 @@ void H_surf_standard(dasystem* das, int nobs, int obsids[], char fname[], int me
 
 /**
  */
-void H_surf_biased(dasystem* das, int nobs, int obsids[], char fname[], int mem, int t, ENSOBSTYPE dst[])
+void H_surf_biased(dasystem* das, int nobs, int obsids[], char fname[], int mem, int t, float dst[])
 {
     model* m = das->m;
     observations* allobs = das->obs;
@@ -218,7 +218,7 @@ void H_surf_biased(dasystem* das, int nobs, int obsids[], char fname[], int mem,
 
 /**
  */
-void H_subsurf_standard(dasystem* das, int nobs, int obsids[], char fname[], int mem, int t, ENSOBSTYPE dst[])
+void H_subsurf_standard(dasystem* das, int nobs, int obsids[], char fname[], int mem, int t, float dst[])
 {
     model* m = das->m;
     observations* allobs = das->obs;
@@ -285,7 +285,7 @@ static int cmp_obs_byfk(const void* p1, const void* p2, void* p)
  ** field. Instead, it proceeds by keeping in memory two layers at a time and
  ** interpolating observations in between these layers.
  */
-void H_subsurf_lowmem(dasystem* das, int nobs, int obsids[], char fname[], int mem, int t, ENSOBSTYPE dst[])
+void H_subsurf_lowmem(dasystem* das, int nobs, int obsids[], char fname[], int mem, int t, float dst[])
 {
     model* m = das->m;
     observations* allobs = das->obs;
@@ -394,7 +394,7 @@ static double mldtaper(double mld, double z)
 
 /** Projects surface bias into subsurface based on the mixed layer depth.
  */
-void H_subsurf_wsurfbias(dasystem* das, int nobs, int obsids[], char fname[], int mem, int t, ENSOBSTYPE dst[])
+void H_subsurf_wsurfbias(dasystem* das, int nobs, int obsids[], char fname[], int mem, int t, float dst[])
 {
     model* m = das->m;
     observations* allobs = das->obs;
@@ -533,7 +533,7 @@ void H_subsurf_wsurfbias(dasystem* das, int nobs, int obsids[], char fname[], in
 
 /** Sum up the estimates in all vertical layers.
  */
-void H_vertsum(dasystem* das, int nobs, int obsids[], char fname[], int mem, int t, ENSOBSTYPE dst[])
+void H_vertsum(dasystem* das, int nobs, int obsids[], char fname[], int mem, int t, float dst[])
 {
     model* m = das->m;
     observations* allobs = das->obs;

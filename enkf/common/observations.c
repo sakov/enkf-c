@@ -742,6 +742,20 @@ void obs_read(observations* obs, char fname[])
             o->fi = fi[i];
             o->fj = fj[i];
             o->fk = fk[i];
+            /*
+             * if because of the roundup error time gets outside the allowed
+             * range, then correct it
+             */
+            {
+                obstype* ot = &obs->obstypes[o->type];
+
+                if (time[i] < ot->obswindow_min)
+                    o->time = ot->obswindow_min;
+                else if (time[i] > ot->obswindow_max)
+                    o->time = ot->obswindow_max;
+                else
+                    o->time = time[i];
+            }
             o->time = time[i];
             o->status = status[i];
             o->aux = aux[i];
@@ -1341,7 +1355,7 @@ void obs_find_bytype(observations* obs, int type, int* nobs, int** obsids)
 
 /**
  */
-void obs_find_bytypeandtime(observations* obs, int type, int time, int* nobs, int** obsids, double teps)
+void obs_find_bytypeandtime(observations* obs, int type, int time, int* nobs, int** obsids)
 {
     obstype* ot = &obs->obstypes[type];
     int i;
@@ -1358,7 +1372,7 @@ void obs_find_bytypeandtime(observations* obs, int type, int time, int* nobs, in
     for (i = 0; i < obs->nobs; ++i) {
         observation* o = &obs->data[i];
 
-        if (o->type == type && o->status == STATUS_OK && get_tshift(o->time + teps, ot->async_tstep, ot->async_centred) == time) {
+        if (o->type == type && o->status == STATUS_OK && get_tshift(o->time, ot->async_tstep, ot->async_centred) == time) {
             (*obsids)[*nobs] = i;
             (*nobs)++;
         }

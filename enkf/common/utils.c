@@ -194,8 +194,8 @@ void enkf_init(int* argc, char*** argv)
 
     MPI_Type_size(MPI_INTEGER, &size);
     assert(size == sizeof(int));
-    MPI_Type_size(MPIENSOBSTYPE, &size);
-    assert(size == sizeof(ENSOBSTYPE));
+    MPI_Type_size(MPI_FLOAT, &size);
+    assert(size == sizeof(float));
 #endif
 
     ncw_set_quitfn(enkf_quit);
@@ -901,11 +901,11 @@ double date2day(char strdate[])
 
 /**
  */
-int get_tshift(double date, double tstep, int centred)
+int get_tshift(double reltime, double tstep, int centred)
 {
     double offset = (centred) ? 0.5 : 0.0;
 
-    return (int) floor(date / tstep + offset);
+    return (int) floor(reltime / tstep + offset);
 }
 
 /** For debugging purposes - to be called from GDB.
@@ -962,7 +962,7 @@ void print_vector_float(int n, float* a, char offset[])
 
 /**
  */
-ENSOBSTYPE interpolate2d(double fi, double fj, int ni, int nj, float** v, int** mask, int periodic_i)
+float interpolate2d(double fi, double fj, int ni, int nj, float** v, int** mask, int periodic_i)
 {
     int i1 = (int) floor(fi);
     double wi1 = ceil(fi) - fi;
@@ -1018,10 +1018,10 @@ ENSOBSTYPE interpolate2d(double fi, double fj, int ni, int nj, float** v, int** 
     }
     sum = sum / w;
 
-    return (ENSOBSTYPE) sum;
+    return (float) sum;
 }
 
-ENSOBSTYPE average2d(int n, size_t* ids, float** v)
+float average2d(int n, size_t* ids, float** v)
 {
     double sum = 0.0;
     float* v0 = v[0];
@@ -1030,7 +1030,7 @@ ENSOBSTYPE average2d(int n, size_t* ids, float** v)
     for (i = 0; i < n; ++i)
         sum += v0[ids[i]];
 
-    return (ENSOBSTYPE) (sum / (double) n);
+    return (float) (sum / (double) n);
 }
 
 /** A part of interpolate2d() that looks at mask in adjacent nodes only.
@@ -1066,7 +1066,7 @@ int island(double fi, double fj, double fk, int ni, int nj, int ksurf, int** num
  *  Assumes that integer k indices correspond to layer centres. E.g. for 
  *  fk = 1.2 the vertical weights are 0.8 of layer 1 and 0.2 of layer 2.
  */
-ENSOBSTYPE interpolate3d(double fi, double fj, double fk, int ni, int nj, int nk, int ktop, float*** v, int** nlevels, int periodic_i)
+float interpolate3d(double fi, double fj, double fk, int ni, int nj, int nk, int ktop, float*** v, int** nlevels, int periodic_i)
 {
     int i1 = (int) floor(fi);
     double wi1 = ceil(fi) - fi;
@@ -1164,7 +1164,7 @@ ENSOBSTYPE interpolate3d(double fi, double fj, double fk, int ni, int nj, int nk
     }
     sum = sum / w;
 
-    return (ENSOBSTYPE) sum;
+    return (float) sum;
 }
 
 /** Gaspary & Cohn's taper function.

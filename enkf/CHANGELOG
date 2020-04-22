@@ -1,3 +1,9 @@
+v1.113.9
+   PS 21042020
+   -- Reversing v1.108.6 and v1.113.8 due to a better fix.
+   -- Initialising HE (das->S) by NaNs to make sure that no observations are
+      missed during time binning.
+   -- Eliminated ENSOBSTYPE; using plain float instead.
 v1.113.8
    PS 21042020
    -- A correction to modification v1.108.6

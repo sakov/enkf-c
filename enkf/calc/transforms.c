@@ -571,7 +571,7 @@ void das_calctransforms(dasystem* das)
 #endif
 
                 for (e = 0; e < nmem; ++e) {
-                    ENSOBSTYPE* Se = das->S[e];
+                    float* Se = das->S[e];
                     double* Sloce = Sloc[e];
 
                     for (o = 0; o < ploc; ++o)
@@ -1032,7 +1032,7 @@ void das_calcpointlogtransforms(dasystem* das)
                 G = alloc2d(ploc, nmem, sizeof(double));
 
                 for (e = 0; e < nmem; ++e) {
-                    ENSOBSTYPE* Se = das->S[e];
+                    float* Se = das->S[e];
                     double* Sloce = Sloc[e];
 
                     for (o = 0; o < ploc; ++o)

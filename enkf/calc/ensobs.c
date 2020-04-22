@@ -42,7 +42,6 @@
 #include "dasystem.h"
 
 #define EPSF 1.0e-6f
-#define EPSD 1.0e-10
 #if defined(USE_SHMEM)
 #endif
 
@@ -51,14 +50,14 @@
 void das_getHE(dasystem* das)
 {
     observations* obs = das->obs;
-    ENSOBSTYPE* Hx = NULL;
+    float* Hx = NULL;
     size_t nobs = obs->nobs;
     size_t nmem = das->nmem;
     size_t i, e;
 
 #if defined (USE_SHMEM)
-    ENSOBSTYPE* SS = NULL;
-    ENSOBSTYPE* SSt = NULL;
+    float* SS = NULL;
+    float* SSt = NULL;
     MPI_Aint size;
     int ierror;
 #endif
@@ -72,27 +71,30 @@ void das_getHE(dasystem* das)
      */
     assert(das->S == NULL);
 #if !defined(USE_SHMEM)
-    das->S = alloc2d(nmem, nobs, sizeof(ENSOBSTYPE));
+    das->S = alloc2d(nmem, nobs, sizeof(float));
+    for (i = 0; i < nmem * nobs; ++i)
+        S[0][i] = NAN;
 #else
-    size = nmem * nobs * sizeof(ENSOBSTYPE);
+    size = nmem * nobs * sizeof(float);
 
     /*
      * S
      */
     enkf_printf("    allocating %zu bytes for HE array:\n", size);
 
-    ierror = MPI_Win_allocate_shared((sm_comm_rank == 0) ? size : 0, sizeof(ENSOBSTYPE), MPI_INFO_NULL, sm_comm, &SS, &das->sm_comm_win_S);
+    ierror = MPI_Win_allocate_shared((sm_comm_rank == 0) ? size : 0, sizeof(float), MPI_INFO_NULL, sm_comm, &SS, &das->sm_comm_win_S);
     assert(ierror == MPI_SUCCESS);
-    if (sm_comm_rank == 0)
-        memset(SS, 0, size);
-    else {
+    if (sm_comm_rank == 0) {
+        for (i = 0; i < nmem * nobs; ++i)
+            SS[i] = NAN;
+    } else {
         int disp_unit;
         MPI_Aint my_size;
 
         ierror = MPI_Win_shared_query(das->sm_comm_win_S, 0, &my_size, &disp_unit, &SS);
         assert(ierror == MPI_SUCCESS);
         assert(my_size == size);
-        assert(disp_unit == sizeof(ENSOBSTYPE));
+        assert(disp_unit == sizeof(float));
     }
     MPI_Barrier(MPI_COMM_WORLD);
 
@@ -105,7 +107,7 @@ void das_getHE(dasystem* das)
      */
     enkf_printf("    allocating %zu bytes for HE^T array:\n", size);
 
-    ierror = MPI_Win_allocate_shared((sm_comm_rank == 0) ? size : 0, sizeof(ENSOBSTYPE), MPI_INFO_NULL, sm_comm, &SSt, &das->sm_comm_win_St);
+    ierror = MPI_Win_allocate_shared((sm_comm_rank == 0) ? size : 0, sizeof(float), MPI_INFO_NULL, sm_comm, &SSt, &das->sm_comm_win_St);
     assert(ierror == MPI_SUCCESS);
     if (sm_comm_rank == 0)
         memset(SSt, 0, size);
@@ -116,7 +118,7 @@ void das_getHE(dasystem* das)
         ierror = MPI_Win_shared_query(das->sm_comm_win_St, 0, &my_size, &disp_unit, &SSt);
         assert(ierror == MPI_SUCCESS);
         assert(my_size == size);
-        assert(disp_unit == sizeof(ENSOBSTYPE));
+        assert(disp_unit == sizeof(float));
     }
     MPI_Barrier(MPI_COMM_WORLD);
 
@@ -130,8 +132,11 @@ void das_getHE(dasystem* das)
 
     distribute_iterations(0, nmem - 1, nprocesses, rank, "    ");
 
-    if (das->mode == MODE_ENOI)
-        Hx = calloc(nobs, sizeof(ENSOBSTYPE));
+    if (das->mode == MODE_ENOI) {
+        Hx = malloc(nobs * sizeof(float));
+        for (i = 0; i < nobs; ++i)
+            Hx[i] = NAN;
+    }
 
     for (i = 0; i < obs->nobstypes; ++i) {
         obstype* ot = &obs->obstypes[i];
@@ -146,23 +151,17 @@ void das_getHE(dasystem* das)
         H = getH(ot->issurface, ot->hfunction);
 
         if (ot->isasync) {
-            int t1 = get_tshift(ot->time_min + EPSD, ot->async_tstep, ot->async_centred);
+            int t1 = get_tshift(ot->time_min, ot->async_tstep, ot->async_centred);
             int t2 = get_tshift(ot->time_max, ot->async_tstep, ot->async_centred);
             int t;
 
-            if (t2 < t1)
-                t2 = t1;
             for (t = t1; t <= t2; ++t) {
                 int nobs_tomap = -1;
                 int* obsids = NULL;
                 char fname[MAXSTRLEN] = "";
-                double teps = 0.0;
-
-                if (t == t1)
-                    teps = EPSD;
 
                 enkf_printf("|");
-                obs_find_bytypeandtime(obs, i, t, &nobs_tomap, &obsids, teps);
+                obs_find_bytypeandtime(obs, i, t, &nobs_tomap, &obsids);
                 if (nobs_tomap == 0)
                     continue;
 
@@ -253,7 +252,7 @@ void das_getHE(dasystem* das)
         int ii;
 #endif
 
-        ierror = MPI_Type_contiguous(nobs, MPIENSOBSTYPE, &mpitype_vec_nobs);
+        ierror = MPI_Type_contiguous(nobs, MPI_FLOAT, &mpitype_vec_nobs);
         assert(ierror == MPI_SUCCESS);
         ierror = MPI_Type_commit(&mpitype_vec_nobs);
         assert(ierror == MPI_SUCCESS);
@@ -295,22 +294,22 @@ void das_getHE(dasystem* das)
          * subtract ensemble mean; add background
          */
         if (!enkf_fstatsonly) {
-            ENSOBSTYPE* ensmean = calloc(nobs, sizeof(ENSOBSTYPE));
+            float* ensmean = calloc(nobs, sizeof(float));
 
             for (e = 0; e < nmem; ++e) {
-                ENSOBSTYPE* Se = das->S[e];
+                float* Se = das->S[e];
 
                 for (i = 0; i < nobs; ++i)
                     ensmean[i] += Se[i];
             }
             for (i = 0; i < nobs; ++i)
-                ensmean[i] /= (ENSOBSTYPE) nmem;
+                ensmean[i] /= (float) nmem;
 
 #if defined (USE_SHMEM)
             if (sm_comm_rank == 0)
 #endif
                 for (e = 0; e < nmem; ++e) {
-                    ENSOBSTYPE* Se = das->S[e];
+                    float* Se = das->S[e];
 
                     for (i = 0; i < nobs; ++i)
                         Se[i] += Hx[i] - ensmean[i];
@@ -324,7 +323,7 @@ void das_getHE(dasystem* das)
             if (sm_comm_rank == 0)
 #endif
                 for (e = 0; e < nmem; ++e) {
-                    ENSOBSTYPE* Se = das->S[e];
+                    float* Se = das->S[e];
 
                     for (i = 0; i < nobs; ++i)
                         Se[i] = Hx[i];
@@ -380,7 +379,7 @@ void das_calcinnandspread(dasystem* das)
         MPI_Barrier(sm_comm);
 #endif
         for (e = 0; e < nmem; ++e) {
-            ENSOBSTYPE* Se = das->S[e];
+            float* Se = das->S[e];
 
             for (o = 0; o < nobs; ++o)
                 das->s_f[o] += (double) Se[o];
@@ -396,16 +395,16 @@ void das_calcinnandspread(dasystem* das)
         if (sm_comm_rank == 0)
 #endif
             for (e = 0; e < nmem; ++e) {
-                ENSOBSTYPE* Se = das->S[e];
+                float* Se = das->S[e];
 
                 for (o = 0; o < nobs; ++o)
-                    Se[o] -= (ENSOBSTYPE) das->s_f[o];
+                    Se[o] -= (float) das->s_f[o];
             }
 #if defined(USE_SHMEM)
         MPI_Barrier(sm_comm);
 #endif
         for (e = 0; e < nmem; ++e) {
-            ENSOBSTYPE* Se = das->S[e];
+            float* Se = das->S[e];
 
             for (o = 0; o < nobs; ++o)
                 das->std_f[o] += (double) (Se[o] * Se[o]);
@@ -441,7 +440,7 @@ void das_calcinnandspread(dasystem* das)
          * calculate ensemble mean observations 
          */
         for (e = 0; e < nmem; ++e) {
-            ENSOBSTYPE* Se = das->S[e];
+            float* Se = das->S[e];
 
             for (o = 0; o < nobs; ++o)
                 das->s_a[o] += (double) Se[o];
@@ -456,16 +455,16 @@ void das_calcinnandspread(dasystem* das)
         if (sm_comm_rank == 0)
 #endif
             for (e = 0; e < nmem; ++e) {
-                ENSOBSTYPE* Se = das->S[e];
+                float* Se = das->S[e];
 
                 for (o = 0; o < nobs; ++o)
-                    Se[o] -= (ENSOBSTYPE) das->s_a[o];
+                    Se[o] -= (float) das->s_a[o];
             }
 #if defined(USE_SHMEM)
         MPI_Barrier(sm_comm);
 #endif
         for (e = 0; e < nmem; ++e) {
-            ENSOBSTYPE* Se = das->S[e];
+            float* Se = das->S[e];
 
             for (o = 0; o < nobs; ++o)
                 das->std_a[o] += (double) (Se[o] * Se[o]);
@@ -661,7 +660,7 @@ void das_standardise(dasystem* das)
     if (sm_comm_rank == 0)
 #endif
         for (e = 0; e < das->nmem; ++e) {
-            ENSOBSTYPE* Se = das->S[e];
+            float* Se = das->S[e];
 
             for (i = 0; i < obs->nobs; ++i) {
                 observation* o = &obs->data[i];
@@ -749,7 +748,7 @@ void das_destandardise(dasystem* das)
     if (sm_comm_rank == 0)
 #endif
         for (e = 0; e < das->nmem; ++e) {
-            ENSOBSTYPE* Se = das->S[e];
+            float* Se = das->S[e];
 
             for (i = 0; i < obs->nobs; ++i) {
                 observation* o = &obs->data[i];
@@ -837,14 +836,14 @@ static void das_sortobs_byij(dasystem* das)
     if (sm_comm_rank == 0)
 #endif
     {
-        ENSOBSTYPE* S = calloc(obs->nobs, sizeof(ENSOBSTYPE));
+        float* S = calloc(obs->nobs, sizeof(float));
 
         for (e = 0; e < das->nmem; ++e) {
-            ENSOBSTYPE* Se = das->S[e];
+            float* Se = das->S[e];
 
             for (o = 0; o < obs->nobs; ++o)
                 S[o] = Se[obs->data[o].id];
-            memcpy(Se, S, obs->nobs * sizeof(ENSOBSTYPE));
+            memcpy(Se, S, obs->nobs * sizeof(float));
         }
         free(S);
     }
@@ -872,7 +871,7 @@ static void das_changeSmode(dasystem* das, int mode_from, int mode_to)
         if (sm_comm_rank == 0)
 #endif
             for (e = 0; e < das->nmem; ++e) {
-                ENSOBSTYPE* Se = das->S[e];
+                float* Se = das->S[e];
 
                 for (o = 0; o < obs->nobs; ++o)
                     /*
@@ -933,14 +932,14 @@ static void das_sortobs_byid(dasystem* das)
     if (sm_comm_rank == 0)
 #endif
     {
-        ENSOBSTYPE* S = calloc(obs->nobs, sizeof(ENSOBSTYPE));
+        float* S = calloc(obs->nobs, sizeof(float));
 
         for (e = 0; e < das->nmem; ++e) {
-            ENSOBSTYPE* Se = das->S[e];
+            float* Se = das->S[e];
 
             for (o = 0; o < obs->nobs; ++o)
                 S[obs->data[o].id] = Se[o];
-            memcpy(Se, S, obs->nobs * sizeof(ENSOBSTYPE));
+            memcpy(Se, S, obs->nobs * sizeof(float));
         }
         free(S);
     }
@@ -971,7 +970,7 @@ static void gather_St(dasystem* das)
     int* displs = calloc(nprocesses, sizeof(int));
     int i, ii;
 
-    ierror = MPI_Type_contiguous(nmem, MPIENSOBSTYPE, &mpitype_vec_nmem);
+    ierror = MPI_Type_contiguous(nmem, MPI_FLOAT, &mpitype_vec_nmem);
     assert(ierror == MPI_SUCCESS);
     ierror = MPI_Type_commit(&mpitype_vec_nmem);
     assert(ierror == MPI_SUCCESS);
@@ -1013,8 +1012,8 @@ static void update_HE(dasystem* das)
     observations* obs = das->obs;
     int nobs = obs->nobs;
     int e, o;
-    ENSOBSTYPE* HEi_f;
-    ENSOBSTYPE* HEi_a;
+    float* HEi_f;
+    float* HEi_a;
     char do_T = 'T';
     float alpha = 1.0f;
     float beta = 0.0f;
@@ -1039,9 +1038,9 @@ static void update_HE(dasystem* das)
 #endif
 
 #if !defined(USE_SHMEM)
-    HEi_f = malloc(nmem * sizeof(ENSOBSTYPE));
+    HEi_f = malloc(nmem * sizeof(float));
 #endif
-    HEi_a = malloc(nmem * sizeof(ENSOBSTYPE));
+    HEi_a = malloc(nmem * sizeof(float));
 
     /*
      * the following code for interpolation of X5 essentially coincides with
