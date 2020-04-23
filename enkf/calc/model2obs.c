@@ -65,17 +65,25 @@ static void evaluate_2d_obs(model* m, observations* allobs, int nobs, int obsids
 
             ll2xyz(ll, xyz);
             set = kd_findnodeswithinrange(tree, xyz, o->footprint, 0);
-            while ((id = kdset_readnext(set, NULL)) != SIZE_MAX) {
-                int id_orig = kd_getnodedata(tree, id);
+            if (kdset_getsize(set) > 0) {
+                while ((id = kdset_readnext(set, NULL)) != SIZE_MAX) {
+                    int id_orig = kd_getnodedata(tree, id);
 
-                if (ncells % FOOTPRINT_INC == 0)
-                    ids = realloc(ids, (ncells + FOOTPRINT_INC) * sizeof(size_t));
-                ids[ncells] = id_orig;
-                ncells++;
+                    if (ncells % FOOTPRINT_INC == 0)
+                        ids = realloc(ids, (ncells + FOOTPRINT_INC) * sizeof(size_t));
+                    ids[ncells] = id_orig;
+                    ncells++;
+                }
+                kdset_free(set);
+                out[ii] = average2d(ncells, ids, v);
+                free(ids);
+            } else {
+                obstype* ot = &allobs->obstypes[o->type];
+
+                enkf_printf("\n  obs # %d: ", ii);
+                obs_printob(allobs, ii);
+                enkf_quit("obs # %d: it seems that the grid is too coarse to handle footprint = %f for observations of type \"%s\"; you need to set the footprint to zero (or remove the entry)", ii, o->footprint, ot->name);
             }
-            kdset_free(set);
-            out[ii] = average2d(ncells, ids, v);
-            free(ids);
         }
         if (!isfinite(out[ii]) || fabs(out[ii]) > STATE_BIGNUM) {
             enkf_flush();
