@@ -471,6 +471,8 @@ void das_writevcorrs(dasystem* das)
             for (e = 0; e < das->nmem; ++e)
                 cor[i] += (double) (v[e][i] * v0[e][i]);
             cor[i] /= sqrt(var * var0[i]);
+            if (!isnormal(cor[i]))
+                cor[i] = 0.0;
         }
 
         snprintf(fname_tile, MAXSTRLEN, "%s/vcorr_%s-%03d.nc", das->ensdir, varname, k);

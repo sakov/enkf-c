@@ -72,6 +72,11 @@ void das_getHE(dasystem* das)
     assert(das->S == NULL);
 #if !defined(USE_SHMEM)
     das->S = alloc2d(nmem, nobs, sizeof(float));
+    /*
+     * HE (das->S) is filled independently for different observation types and
+     * asynchronous time intervals. To make sure that there are no gaps left
+     * initialise it with NANs.
+     */
     for (i = 0; i < nmem * nobs; ++i)
         S[0][i] = NAN;
 #else
@@ -85,6 +90,11 @@ void das_getHE(dasystem* das)
     ierror = MPI_Win_allocate_shared((sm_comm_rank == 0) ? size : 0, sizeof(float), MPI_INFO_NULL, sm_comm, &SS, &das->sm_comm_win_S);
     assert(ierror == MPI_SUCCESS);
     if (sm_comm_rank == 0) {
+        /*
+         * HE (das->S) is filled independently for different observation types
+         * and asynchronous time intervals. To make sure that there are no gaps
+         * left initialise it with NANs.
+         */
         for (i = 0; i < nmem * nobs; ++i)
             SS[i] = NAN;
     } else {
@@ -134,10 +144,16 @@ void das_getHE(dasystem* das)
 
     if (das->mode == MODE_ENOI) {
         Hx = malloc(nobs * sizeof(float));
+        /*
+         * Similar to HE (das->S), initialise Hx with NANs.
+         */
         for (i = 0; i < nobs; ++i)
             Hx[i] = NAN;
     }
 
+    /*
+     * fill HE (das->S)
+     */
     for (i = 0; i < obs->nobstypes; ++i) {
         obstype* ot = &obs->obstypes[i];
         H_fn H = NULL;
