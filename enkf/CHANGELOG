@@ -1,3 +1,9 @@
+v1.113.12
+   PS 29042020
+   -- Modified das_addforecast() not to write std_f to observations.nc for 
+      EnOI system when calculating forecast stats only. (The ensemble obs are
+      not calculated in this case to speed up CALC, so that std_f are NaNs
+      anyway.)
 v1.113.11
    PS 27042020
    -- Fixed (I hope) an odd and rare crash with message "Numeric conversion not

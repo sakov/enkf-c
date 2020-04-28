@@ -274,6 +274,9 @@ void das_getHE(dasystem* das)
         assert(ierror == MPI_SUCCESS);
 
 #if !defined(USE_SHMEM)
+        /*
+         * gather HE on each CPU
+         */
         for (i = 0; i < nprocesses; ++i) {
             recvcounts[i] = number_of_iterations[i];
             displs[i] = first_iteration[i];
@@ -282,6 +285,10 @@ void das_getHE(dasystem* das)
         ierror = MPI_Allgatherv(MPI_IN_PLACE, 0, MPI_DATATYPE_NULL, das->S[0], recvcounts, displs, mpitype_vec_nobs, MPI_COMM_WORLD);
         assert(ierror == MPI_SUCCESS);
 #else
+        /*
+         * gather HE between CPUs with sm_comm_rank = 0; via shared memory it
+         * will be available for all CPUs
+         */
         MPI_Barrier(MPI_COMM_WORLD);
         if (node_comm_rank >= 0 && node_comm_size > 1) {
             for (i = 0, ii = -1; i < nprocesses; ++i) {
@@ -543,8 +550,10 @@ void das_addforecast(dasystem* das, char fname[])
     ncw_redef(ncid);
     ncw_def_var(ncid, "Hx_f", NC_FLOAT, 1, dimid_nobs, &varid_Hx);
     ncw_put_att_text(ncid, varid_Hx, "long_name", "forecast observation (forecast observation ensemble mean)");
-    ncw_def_var(ncid, "std_f", NC_FLOAT, 1, dimid_nobs, &varid_spread);
-    ncw_put_att_text(ncid, varid_spread, "long_name", "standard deviation of the forecast observation ensemble");
+    if (!(das->mode == MODE_ENOI && enkf_fstatsonly)) {
+        ncw_def_var(ncid, "std_f", NC_FLOAT, 1, dimid_nobs, &varid_spread);
+        ncw_put_att_text(ncid, varid_spread, "long_name", "standard deviation of the forecast observation ensemble");
+    }
     ncw_enddef(ncid);
 
     Hx = calloc(nobs, sizeof(double));
@@ -552,7 +561,8 @@ void das_addforecast(dasystem* das, char fname[])
         Hx[o] = das->obs->data[o].value - das->s_f[o];
 
     ncw_put_var_double(ncid, varid_Hx, Hx);
-    ncw_put_var_double(ncid, varid_spread, das->std_f);
+    if (!(das->mode == MODE_ENOI && enkf_fstatsonly))
+        ncw_put_var_double(ncid, varid_spread, das->std_f);
 
     free(Hx);
 
