@@ -375,6 +375,33 @@ void das_getHE(dasystem* das)
 
 /**
  */
+void das_writeHE(dasystem* das)
+{
+    int ncid;
+    int dimids[2];
+    int varid;
+
+    if (rank != 0)
+        return;
+
+    enkf_printf("  writing HE to \"%s\":", FNAME_HE);
+    enkf_flush();
+    ncw_create(FNAME_HE, NC_CLOBBER | NC_NOFILL | das->ncformat, &ncid);
+    ncw_def_dim(ncid, "nmem", das->nmem, &dimids[0]);
+    ncw_def_dim(ncid, "nobs", das->obs->nobs, &dimids[1]);
+    ncw_def_var(ncid, "HE", NC_FLOAT, 2, dimids, &varid);
+    if (das->nccompression > 0)
+        ncw_def_deflate(ncid, 0, 1, das->nccompression);
+    ncw_enddef(ncid);
+
+    ncw_put_var_float(ncid, varid, das->S[0]);
+    ncw_close(ncid);
+    enkf_printf("\n");
+    enkf_flush();
+}
+
+/**
+ */
 void das_calcinnandspread(dasystem* das)
 {
     observations* obs = das->obs;

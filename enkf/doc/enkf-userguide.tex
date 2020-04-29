@@ -37,7 +37,7 @@
 
 \begin{document}
 
-\title{EnKF-C user guide\\{\normalsize version 1.113.7}}
+\title{EnKF-C user guide\\{\normalsize version 1.114.0}}
 
 \author{Pavel Sakov}
 \date{June 19, 2014 -- \today}
@@ -1258,10 +1258,14 @@ It has the following usage and options:
       skip calculating transforms for the whole grid and observation stats
   --print-batch-stats
        calculate and print global biases for each batch of observations
+  --print-memory-usage
+      print memory usage by each process
   --single-observation-xyz <lon> <lat> <depth> <type> <inn> <std>
       assimilate single observation with these parameters
   --single-observation-ijk <fi> <fj> <fk> <type> <inn> <std>
       assimilate single observation with these parameters
+  --use-existing-transforms
+      skip calculating ensemble transforms; use existing X5*.nc files
   --use-rmsd-for-obsstats
       use RMSD instead of MAD when printing observation stats
   --use-these-obs <obs file>
@@ -1269,6 +1273,8 @@ It has the following usage and options:
       with that of observations.nc produced by `enkf_prep'
   --version
       print version and exit
+  --write-HE
+      write ensemble observations to file "HE.nc"
 \end{Verbatim}
 
 The option \verb|--forecast-stats-only| can be used for quick calculation of the innovation statistics for a given background (or ensemble).

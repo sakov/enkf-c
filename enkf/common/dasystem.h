@@ -109,6 +109,7 @@ dasystem* das_create(enkfprm* prm);
 void das_destroy(dasystem* das);
 
 void das_getHE(dasystem* das);
+void das_writeHE(dasystem* das);
 void das_addanalysis(dasystem* das, char fname[]);
 void das_addforecast(dasystem* das, char fname[]);
 void das_addmodifiederrors(dasystem* das, char fname[]);

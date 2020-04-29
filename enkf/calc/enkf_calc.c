@@ -34,6 +34,7 @@ int use_rmsd = 0;
 int plogs_only = 0;
 int skip_transforms = 0;
 int print_mem = 0;
+int write_HE = 0;
 
 /**
  */
@@ -68,6 +69,8 @@ static void usage()
     enkf_printf("      with that of observations.nc produced by `enkf_prep'\n");
     enkf_printf("  --version\n");
     enkf_printf("      print version and exit\n");
+    enkf_printf("  --write-HE\n");
+    enkf_printf("      write ensemble observations to file \"%s\"\n", FNAME_HE);
 
     exit(0);
 }
@@ -190,6 +193,10 @@ static void parse_commandline(int argc, char* argv[], char** fname_prm, char** f
         } else if (strcmp(argv[i], "--version") == 0) {
             enkf_printversion();
             exit(0);
+        } else if (strcmp(argv[i], "--write-HE") == 0) {
+            write_HE = 1;
+            i++;
+            continue;
         } else
             enkf_quit("command line: option \"%s\" not recognised", argv[i]);
     }
@@ -357,6 +364,8 @@ int main(int argc, char* argv[])
     enkf_printf("  calculating ensemble observations:\n");
     enkf_printtime("  ");
     das_getHE(das);
+    if (write_HE)
+        das_writeHE(das);
     das_calcinnandspread(das);
 
     if (print_mem)

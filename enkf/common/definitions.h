@@ -44,6 +44,7 @@
 #define FNAME_BADBATCHES "badbatches.out"
 #define FNAME_INFLATION "inflation.nc"
 #define FNAME_VERTCORR "vcorr.nc"
+#define FNAME_HE "HE.nc"
 
 #define DIRNAME_TMP ".enkftmp"
 
