@@ -1,3 +1,10 @@
+v1.114.1
+   PS 12052020
+   -- Modified obsprmread() to allow multiple entries of parameters
+      "QCFLAGNAME", "QCFLAGVARNAME", "QCFLAGVALS".
+   -- Modified reader_xy_scattered(), reader_xy_gridded(),
+      reader_xyz_scattered(), reader_xyz_gridded(), reader_xyh_gridded(),
+      reader_z() to allow using "QCFLAGVARNAME" along with "QCFLAGNAME".
 v1.114.0
    PS 29042020
    -- Added option --write-HE to CALC.

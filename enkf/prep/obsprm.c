@@ -147,9 +147,12 @@ void obsprm_read(char fname[], int* nmeta, obsmeta** meta)
              * check that this parameter has not already been set in this
              * section, to avoid ambiguity
              */
-            for (p = 0; p < m->npars; ++p)
-                if (strncasecmp(token, m->pars[p].name, MAXSTRLEN - 1) == 0)
-                    enkf_quit("%s: l.%d: parameter \"%s\" has already been set in this section", fname, line, token);
+            if (!strcasecmp(token, "QCFLAGNAME") == 0 && !strcasecmp(token, "QCFLAGVARNAME") == 0 && !strcasecmp(token, "QCFLAGVALS") == 0) {
+                for (p = 0; p < m->npars; ++p) {
+                    if (strncasecmp(token, m->pars[p].name, MAXSTRLEN - 1) == 0)
+                        enkf_quit("%s: l.%d: parameter \"%s\" has already been set in this section", fname, line, token);
+                }
+            }
             now->name = strdup(token);
             token = strtok(NULL, seps);
             if (token != NULL)
