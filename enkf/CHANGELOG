@@ -1,3 +1,7 @@
+v1.114.2
+   PS 13052020
+   -- A number of cosmetic or semi-cosmetic modifications, mainly around
+      -DUSE_SHMEM.
 v1.114.1
    PS 12052020
    -- Modified obsprmread() to allow multiple entries of parameters

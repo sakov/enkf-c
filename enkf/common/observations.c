@@ -760,32 +760,31 @@ void obs_read(observations* obs, char fname[])
             o->status = status[i];
             o->aux = aux[i];
         }
+
+        free(type);
+        free(product);
+        free(instrument);
+        free(id);
+        free(id_orig);
+        free(fid);
+        free(batch);
+        free(value);
+        free(estd);
+        if (obs->has_nonpointobs)
+            free(footprint);
+        free(lon);
+        free(lat);
+        free(depth);
+        free(model_depth);
+        free(fi);
+        free(fj);
+        free(fk);
+        free(time);
+        free(status);
+        free(aux);
 #if defined(USE_SHMEM)
     }
-    MPI_Barrier(sm_comm);
 #endif
-
-    free(type);
-    free(product);
-    free(instrument);
-    free(id);
-    free(id_orig);
-    free(fid);
-    free(batch);
-    free(value);
-    free(estd);
-    if (obs->has_nonpointobs)
-        free(footprint);
-    free(lon);
-    free(lat);
-    free(depth);
-    free(model_depth);
-    free(fi);
-    free(fj);
-    free(fk);
-    free(time);
-    free(status);
-    free(aux);
 #if defined(MPI)
     MPI_Barrier(MPI_COMM_WORLD);
 #endif

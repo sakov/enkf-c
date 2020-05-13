@@ -599,7 +599,7 @@ static void gz_hybrid_destroy(gz_hybrid* gz)
     free(gz);
 }
 
-/**
+/** Find fractional index for a coordinate in a regularly spaced 1D grid.
  */
 static double x2fi_reg(int n, double* v, double x, int periodic)
 {

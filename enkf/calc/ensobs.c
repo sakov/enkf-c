@@ -17,10 +17,7 @@
  *              observation statistics in obsstats.c.
  *
  *              For the EnOI the ensemble observations are calculated as
- *              H(E) = H(x) 1' + H(A). This implies that the observation
- *              functions H are linear. For nonlinear H one needs to use
- *              H(E) = H(x 1' + A) instead, but this has little sense as the
- *              EnOI itself implies linearity
+ *              H(E) = H(x) 1' + H(A).
  *
  * Revisions:
  *
@@ -42,8 +39,6 @@
 #include "dasystem.h"
 
 #define EPSF 1.0e-6f
-#if defined(USE_SHMEM)
-#endif
 
 /**
  */
@@ -55,7 +50,7 @@ void das_getHE(dasystem* das)
     size_t nmem = das->nmem;
     size_t i, e;
 
-#if defined (USE_SHMEM)
+#if defined(USE_SHMEM)
     float* SS = NULL;
     float* SSt = NULL;
     MPI_Aint size;
@@ -78,12 +73,13 @@ void das_getHE(dasystem* das)
      * initialise it with NANs.
      */
     for (i = 0; i < nmem * nobs; ++i)
-        S[0][i] = NAN;
+        das->S[0][i] = NAN;
 #else
     size = nmem * nobs * sizeof(float);
 
     /*
-     * S
+     * Allocate das->S in shared memory at each compute node. Allocate the
+     * whole block on CPU with sm_comm_rank = 0.
      */
     enkf_printf("    allocating %zu bytes for HE array:\n", size);
 
@@ -108,12 +104,16 @@ void das_getHE(dasystem* das)
     }
     MPI_Barrier(MPI_COMM_WORLD);
 
+    /*
+     * set addresses of column vectors of the 2D array das->S
+     */
     das->S = calloc(nmem, sizeof(void*));
     for (i = 0; i < nmem; ++i)
         das->S[i] = &SS[i * nobs];
 
     /*
-     * St
+     * Allocate das->St in shared memory at each compute node. Allocate the
+     * whole block on CPU with sm_comm_rank = 0.
      */
     enkf_printf("    allocating %zu bytes for HE^T array:\n", size);
 
@@ -132,6 +132,9 @@ void das_getHE(dasystem* das)
     }
     MPI_Barrier(MPI_COMM_WORLD);
 
+    /*
+     * set addresses of column vectors of the 2D array das->St
+     */
     das->St = calloc(nobs, sizeof(void*));
     for (i = 0; i < nobs; ++i)
         das->St[i] = &SSt[i * nmem];
@@ -152,7 +155,12 @@ void das_getHE(dasystem* das)
     }
 
     /*
-     * fill HE (das->S)
+     * The main cycle: fill HE (das->S).
+     *
+     * Note that in the case (das->mode == MODE_ENOI && enkf_fstatonly) to make
+     * CALC faster only the forecast observations for the background are
+     * calculated; as a consequence, the ensemble spread is not calculated in
+     * this case.
      */
     for (i = 0; i < obs->nobstypes; ++i) {
         obstype* ot = &obs->obstypes[i];
@@ -254,6 +262,11 @@ void das_getHE(dasystem* das)
         enkf_printf("\n");
     }                           /* for i (over obstypes) */
 
+    /*
+     * all ensemble forecast observations have been calculated; now consolidate
+     * them to be available on each compute node (with USE_SHMEM) or on each
+     * CPU (without USE_SHMEM)
+     */
 #if defined(MPI)
     if (das->mode == MODE_ENKF || !enkf_fstatsonly) {
         /*
@@ -312,54 +325,53 @@ void das_getHE(dasystem* das)
     }
 #endif
 
-    if (das->mode == MODE_ENOI) {
-        /*
-         * subtract ensemble mean; add background
-         */
-        if (!enkf_fstatsonly) {
-            float* ensmean = calloc(nobs, sizeof(float));
-
-            for (e = 0; e < nmem; ++e) {
-                float* Se = das->S[e];
-
-                for (i = 0; i < nobs; ++i)
-                    ensmean[i] += Se[i];
-            }
-            for (i = 0; i < nobs; ++i)
-                ensmean[i] /= (float) nmem;
-
-#if defined (USE_SHMEM)
-            if (sm_comm_rank == 0)
+#if defined(USE_SHMEM)
+    if (sm_comm_rank == 0) {
 #endif
+        if (das->mode == MODE_ENOI) {
+            /*
+             * subtract ensemble mean; add background
+             */
+            if (!enkf_fstatsonly) {
+                float* ensmean = calloc(nobs, sizeof(float));
+
+                for (e = 0; e < nmem; ++e) {
+                    float* Se = das->S[e];
+
+                    for (i = 0; i < nobs; ++i)
+                        ensmean[i] += Se[i];
+                }
+                for (i = 0; i < nobs; ++i)
+                    ensmean[i] /= (float) nmem;
+
                 for (e = 0; e < nmem; ++e) {
                     float* Se = das->S[e];
 
                     for (i = 0; i < nobs; ++i)
                         Se[i] += Hx[i] - ensmean[i];
                 }
-#if defined (USE_SHMEM)
-            MPI_Barrier(sm_comm);
-#endif
-            free(ensmean);
-        } else {
-#if defined (USE_SHMEM)
-            if (sm_comm_rank == 0)
-#endif
+                free(ensmean);
+            } else {
                 for (e = 0; e < nmem; ++e) {
                     float* Se = das->S[e];
 
                     for (i = 0; i < nobs; ++i)
                         Se[i] = Hx[i];
                 }
-#if defined (USE_SHMEM)
-            MPI_Barrier(sm_comm);
-#endif
+            }
         }
+#if defined(USE_SHMEM)
     }
+    MPI_Barrier(sm_comm);
+#endif
 
     if (das->mode == MODE_ENOI)
         free(Hx);
 
+    /*
+     * kd-trees grid.nodetreeXYZ are used for calculating forecast obs with
+     * finite footprint; they are no longer needed and can be destroyed
+     */
     for (i = 0; i < model_getngrid(das->m); ++i) {
         void* g = model_getgridbyid(das->m, i);
         kdtree* tree = grid_gettreeXYZ(g, 0);
@@ -412,6 +424,10 @@ void das_calcinnandspread(dasystem* das)
     if (nobs == 0)
         goto finish;
 
+#if defined(USE_SHMEM)
+    MPI_Barrier(MPI_COMM_WORLD);
+#endif
+
     if (das->s_mode == S_MODE_HE_f) {
         if (das->s_f == NULL) {
             das->s_f = calloc(nobs, sizeof(double));
@@ -425,9 +441,6 @@ void das_calcinnandspread(dasystem* das)
         /*
          * calculate ensemble mean observations 
          */
-#if defined(USE_SHMEM)
-        MPI_Barrier(sm_comm);
-#endif
         for (e = 0; e < nmem; ++e) {
             float* Se = das->S[e];
 
@@ -441,8 +454,7 @@ void das_calcinnandspread(dasystem* das)
          * calculate ensemble spread and innovation 
          */
 #if defined(USE_SHMEM)
-        MPI_Barrier(sm_comm);
-        if (sm_comm_rank == 0)
+        if (sm_comm_rank == 0) {
 #endif
             for (e = 0; e < nmem; ++e) {
                 float* Se = das->S[e];
@@ -451,6 +463,7 @@ void das_calcinnandspread(dasystem* das)
                     Se[o] -= (float) das->s_f[o];
             }
 #if defined(USE_SHMEM)
+        }
         MPI_Barrier(sm_comm);
 #endif
         for (e = 0; e < nmem; ++e) {
@@ -502,7 +515,7 @@ void das_calcinnandspread(dasystem* das)
          * calculate ensemble spread and innovation 
          */
 #if defined(USE_SHMEM)
-        if (sm_comm_rank == 0)
+        if (sm_comm_rank == 0) {
 #endif
             for (e = 0; e < nmem; ++e) {
                 float* Se = das->S[e];
@@ -511,6 +524,7 @@ void das_calcinnandspread(dasystem* das)
                     Se[o] -= (float) das->s_a[o];
             }
 #if defined(USE_SHMEM)
+        }
         MPI_Barrier(sm_comm);
 #endif
         for (e = 0; e < nmem; ++e) {
@@ -547,7 +561,7 @@ void das_calcinnandspread(dasystem* das)
 }
 
 /** Adds forecast observations and forecast ensemble spread to the observation
- * file.
+ ** file.
  */
 void das_addforecast(dasystem* das, char fname[])
 {
@@ -637,8 +651,15 @@ void das_moderateobs(dasystem* das)
         }
     }
 
-    for (i = 0; i < obs->nobs; ++i)
-        obs->data[i].estd = estd_new[i];
+#if defined(USE_SHMEM)
+    if (sm_comm_rank == 0) {
+#endif
+        for (i = 0; i < obs->nobs; ++i)
+            obs->data[i].estd = estd_new[i];
+#if defined(USE_SHMEM)
+    }
+    MPI_Barrier(sm_comm);
+#endif
 
     enkf_printf("    observations substantially modified:\n");
     for (i = 0; i < obs->nobstypes; ++i)
@@ -709,7 +730,7 @@ void das_standardise(dasystem* das)
     if (obs->nobs == 0)
         goto finish;
 
-#if defined (USE_SHMEM)
+#if defined(USE_SHMEM)
     if (sm_comm_rank == 0)
 #endif
         for (e = 0; e < das->nmem; ++e) {
@@ -721,7 +742,7 @@ void das_standardise(dasystem* das)
                 Se[i] /= o->estd * sqrt(obs->obstypes[o->type].rfactor) * mult;
             }
         }
-#if defined (USE_SHMEM)
+#if defined(USE_SHMEM)
     MPI_Barrier(sm_comm);
 #endif
     if (das->s_f != NULL) {
@@ -746,7 +767,6 @@ void das_standardise(dasystem* das)
         das->s_mode = S_MODE_S_a;
     else
         enkf_quit("programming error");
-
 }
 
 /**
@@ -809,7 +829,7 @@ void das_destandardise(dasystem* das)
                 Se[i] *= o->estd * sqrt(obs->obstypes[o->type].rfactor) * mult;
             }
         }
-#if defined (USE_SHMEM)
+#if defined(USE_SHMEM)
     MPI_Barrier(sm_comm);
 #endif
     if (das->s_f != NULL) {
