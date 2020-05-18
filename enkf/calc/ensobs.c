@@ -102,7 +102,7 @@ void das_getHE(dasystem* das)
         assert(my_size == size);
         assert(disp_unit == sizeof(float));
     }
-    MPI_Barrier(MPI_COMM_WORLD);
+    MPI_Barrier(sm_comm);
 
     /*
      * set addresses of column vectors of the 2D array das->S
@@ -130,7 +130,7 @@ void das_getHE(dasystem* das)
         assert(my_size == size);
         assert(disp_unit == sizeof(float));
     }
-    MPI_Barrier(MPI_COMM_WORLD);
+    MPI_Barrier(sm_comm);
 
     /*
      * set addresses of column vectors of the 2D array das->St
@@ -316,10 +316,10 @@ void das_getHE(dasystem* das)
             ierror = MPI_Allgatherv(MPI_IN_PLACE, 0, MPI_DATATYPE_NULL, das->S[0], recvcounts, displs, mpitype_vec_nobs, node_comm);
             assert(ierror == MPI_SUCCESS);
         }
+        MPI_Barrier(sm_comm);
+#endif
         ierror = MPI_Type_free(&mpitype_vec_nobs);
         assert(ierror == MPI_SUCCESS);
-        MPI_Barrier(MPI_COMM_WORLD);
-#endif
         free(recvcounts);
         free(displs);
     }
@@ -454,6 +454,7 @@ void das_calcinnandspread(dasystem* das)
          * calculate ensemble spread and innovation 
          */
 #if defined(USE_SHMEM)
+        MPI_Barrier(sm_comm);   /* do not remove */
         if (sm_comm_rank == 0) {
 #endif
             for (e = 0; e < nmem; ++e) {
@@ -874,8 +875,9 @@ static void das_sortobs_byij(dasystem* das)
 #if defined(USE_SHMEM)
     if (sm_comm_rank == 0)
         qsort_r(obs->data, obs->nobs, sizeof(observation), cmp_obs_byij, das);
-#else
-    qsort_r(obs->data, obs->nobs, sizeof(observation), cmp_obs_byij, das);
+#endif
+#if defined(USE_SHMEM)
+    MPI_Barrier(sm_comm);
 #endif
 
     if (das->s_f != NULL) {
@@ -1022,10 +1024,10 @@ static void das_sortobs_byid(dasystem* das)
      */
 #if defined(USE_SHMEM)
     if (sm_comm_rank == 0)
+#endif
         obs_inorder(obs);
+#if defined(USE_SHMEM)
     MPI_Barrier(sm_comm);
-#else
-    obs_inorder(obs);
 #endif
 
     das->sort_mode = OBS_SORTMODE_ID;

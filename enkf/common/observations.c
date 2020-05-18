@@ -349,6 +349,7 @@ void obs_checkalloc(observations* obs)
     }
 }
 
+#if defined(ENKF_PREP)
 /**
  */
 static int comp_obsstatus(const void* p1, const void* p2)
@@ -384,6 +385,7 @@ void obs_compact(observations* obs)
     enkf_flush();
     obs->compacted = 1;
 }
+#endif
 
 /**
  */
@@ -1233,6 +1235,9 @@ void obs_superob(observations* obs, __compar_d_fn_t cmp_obs, observations** sobs
             if (so->batch != o->batch)
                 so->batch = -1;
 
+            /*
+             * find average of collated obs weighted by inverse error variance
+             */
             evar = o->estd * o->estd;
             evar = (subvar > evar) ? subvar : evar;
             so->value = so->value * so->estd + o->value / evar;
