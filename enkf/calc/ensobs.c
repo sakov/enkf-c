@@ -874,8 +874,8 @@ static void das_sortobs_byij(dasystem* das)
     enkf_printf("    sorting obs by ij:\n");
 #if defined(USE_SHMEM)
     if (sm_comm_rank == 0)
-        qsort_r(obs->data, obs->nobs, sizeof(observation), cmp_obs_byij, das);
 #endif
+        qsort_r(obs->data, obs->nobs, sizeof(observation), cmp_obs_byij, das);
 #if defined(USE_SHMEM)
     MPI_Barrier(sm_comm);
 #endif
