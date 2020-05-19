@@ -78,7 +78,7 @@ void das_getHE(dasystem* das)
     size = nmem * nobs * sizeof(float);
 
     /*
-     * Allocate das->S in shared memory at each compute node. Allocate the
+     * Allocate das->S in shared memory on each compute node. Allocate the
      * whole block on CPU with sm_comm_rank = 0.
      */
     enkf_printf("    allocating %zu bytes for HE array:\n", size);
@@ -112,7 +112,7 @@ void das_getHE(dasystem* das)
         das->S[i] = &SS[i * nobs];
 
     /*
-     * Allocate das->St in shared memory at each compute node. Allocate the
+     * Allocate das->St in shared memory on each compute node. Allocate the
      * whole block on CPU with sm_comm_rank = 0.
      */
     enkf_printf("    allocating %zu bytes for HE^T array:\n", size);
@@ -316,6 +316,7 @@ void das_getHE(dasystem* das)
             ierror = MPI_Allgatherv(MPI_IN_PLACE, 0, MPI_DATATYPE_NULL, das->S[0], recvcounts, displs, mpitype_vec_nobs, node_comm);
             assert(ierror == MPI_SUCCESS);
         }
+        MPI_Win_sync(das->sm_comm_win_S);
         MPI_Barrier(sm_comm);
 #endif
         ierror = MPI_Type_free(&mpitype_vec_nobs);

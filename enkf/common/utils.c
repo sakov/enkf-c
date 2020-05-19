@@ -126,10 +126,6 @@ void enkf_init(int* argc, char*** argv)
     if (*argc > 1) {
         enkf_printf("  MPI: initialised %d process(es)\n", nprocesses);
         MPI_Barrier(MPI_COMM_WORLD);
-        if (enkf_verbose) {
-            printf("  MPI: rank = %d, PID = %d\n", rank, getpid());
-            fflush(NULL);
-        }
 #if defined(USE_SHMEM)
         /*
          * initialise communicators for handling shared memory stuff
@@ -185,8 +181,20 @@ void enkf_init(int* argc, char*** argv)
             free(recvcounts);
             free(displs);
 
-            enkf_printf("  sm_comm size = %d\n", sm_comm_size);
-            enkf_printf("  node_comm size = %d\n", node_comm_size);
+	    enkf_printf("  Using MPI-3 shared memory:\n");
+            enkf_printf("    sm_comm size = %d\n", sm_comm_size);
+            enkf_printf("    node_comm size = %d\n", node_comm_size);
+        }
+        if (enkf_verbose > 1) {
+            MPI_Barrier(MPI_COMM_WORLD);
+            printf("  MPI: rank = %3d, sm_comm_rank = %2d, node_comm_rank = %2d, PID = %d\n", rank, sm_comm_rank, node_comm_rank, getpid());
+            fflush(NULL);
+        }
+#else
+        if (enkf_verbose > 1) {
+            MPI_Barrier(MPI_COMM_WORLD);
+            printf("  MPI: rank = %d, PID = %d\n", rank, getpid());
+            fflush(NULL);
         }
 #endif
     }
