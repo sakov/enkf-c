@@ -193,10 +193,6 @@ void das_getHE(dasystem* das)
                 if (nobs_tomap == 0)
                     continue;
 
-                /*
-                 * for EnOI it is essential sometimes (e.g. in some bias
-                 * correction cases) that the background is interpolated first
-                 */
                 if (das->mode == MODE_ENOI) {
                     if (enkf_obstype == OBSTYPE_VALUE) {
                         if (rank == 0) {
@@ -234,10 +230,6 @@ void das_getHE(dasystem* das)
             if (nobs_tomap == 0)
                 goto next;
 
-            /*
-             * for EnOI it is essential sometimes (e.g. in some bias correction
-             * cases) that the background is interpolated first
-             */
             if (das->mode == MODE_ENOI) {
                 if (enkf_obstype == OBSTYPE_VALUE) {
                     if (rank == 0) {
@@ -339,10 +331,14 @@ void das_getHE(dasystem* das)
     if (das->mode == MODE_ENOI && enkf_obstype == OBSTYPE_VALUE) {
 #if defined(USE_SHMEM)
         int ierror = MPI_Bcast(Hx, nobs, MPI_FLOAT, 0, node_comm);
+
+        assert(ierror == MPI_SUCCESS);
+        MPI_Barrier(sm_comm);
 #else
         int ierror = MPI_Bcast(Hx, nobs, MPI_FLOAT, 0, MPI_COMM_WORLD);
-#endif
+
         assert(ierror == MPI_SUCCESS);
+#endif
     }
 #if defined(USE_SHMEM)
     if (sm_comm_rank == 0) {
