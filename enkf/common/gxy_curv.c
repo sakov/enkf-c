@@ -102,7 +102,8 @@ gxy_curv* gxy_curv_create(void* grid, int ni, int nj, double** x, double** y, in
             kd_setstorage(gxy->nodetreeXY, nnodes, storage, 0);
             kd_syncsize(gxy->nodetreeXY);
         }
-        MPI_Barrier(MPI_COMM_WORLD);
+        MPI_Win_fence(0, gxy->sm_comm_win);
+        MPI_Barrier(sm_comm);
     }
 #else
     kd_insertnodes(gxy->nodetreeXY, ni * nj, nodecoords, NULL, (mask != NULL) ? mask[0] : NULL, 1);

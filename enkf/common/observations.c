@@ -548,7 +548,8 @@ void obs_read(observations* obs, char fname[])
             assert(disp_unit == sizeof(observation));
         } else
             memset(obs->data, 0, size);
-        MPI_Barrier(MPI_COMM_WORLD);
+        MPI_Win_fence(0, obs->sm_comm_win_data);
+        MPI_Barrier(sm_comm);
     }
 #else
     obs->data = calloc(nobs, sizeof(observation));
@@ -1509,7 +1510,8 @@ void obs_createkdtrees(observations* obs)
 #if defined(USE_SHMEM)
         } else
             kd_syncsize(*tree);
-        MPI_Barrier(MPI_COMM_WORLD);
+        MPI_Win_fence(0, obs->sm_comm_wins_kd[otid]);
+        MPI_Barrier(sm_comm);
 #endif
         kd_printinfo(*tree, "      ");
 

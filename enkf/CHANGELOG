@@ -1,3 +1,13 @@
+v1.114.5
+   PS 19052020
+   -- Removed MPI_Win_sync() added in v1.114.4. Added MPI_Win_fence() a number
+      of times instead. Not sure if all of them are really needed, but some of
+      these fences helped to remove a barrier in das_calcinnandspread() that
+      seemed to make no sense, so I added the others for consistency.
+   -- In das_getHE() for das->mode = MODE_ENOI replaced the parallel reading of
+      background obs by the reading on process 0 only, with the following
+      broadcasting. This (so far) has eliminated an occasional corruption of
+      ensemble observations on some EnOI systems.
 v1.114.4
    PS 19052020
    -- Added call to MPI_Win_sync() in das_getHE().
@@ -26,7 +36,7 @@ v1.114.0
    -- Added option --write-HE to CALC.
 v1.113.12
    PS 29042020
-   -- Modified das_addforecast() not to write std_f to observations.nc for 
+   -- Modified das_addforecast() not to write std_f to observations.nc for
       EnOI system when calculating forecast stats only. (The ensemble obs are
       not calculated in this case to speed up CALC, so that std_f are NaNs
       anyway.)

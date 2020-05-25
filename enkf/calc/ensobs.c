@@ -85,15 +85,7 @@ void das_getHE(dasystem* das)
 
     ierror = MPI_Win_allocate_shared((sm_comm_rank == 0) ? size : 0, sizeof(float), MPI_INFO_NULL, sm_comm, &SS, &das->sm_comm_win_S);
     assert(ierror == MPI_SUCCESS);
-    if (sm_comm_rank == 0) {
-        /*
-         * HE (das->S) is filled independently for different observation types
-         * and asynchronous time intervals. To make sure that there are no gaps
-         * left initialise it with NANs.
-         */
-        for (i = 0; i < nmem * nobs; ++i)
-            SS[i] = NAN;
-    } else {
+    if (sm_comm_rank != 0) {
         int disp_unit;
         MPI_Aint my_size;
 
@@ -102,6 +94,18 @@ void das_getHE(dasystem* das)
         assert(my_size == size);
         assert(disp_unit == sizeof(float));
     }
+    MPI_Win_fence(0, das->sm_comm_win_S);
+    MPI_Barrier(sm_comm);
+    if (sm_comm_rank == 0) {
+        /*
+         * HE (das->S) is filled independently for different observation types
+         * and asynchronous time intervals. To make sure that there are no gaps
+         * left initialise it with NANs.
+         */
+        for (i = 0; i < nmem * nobs; ++i)
+            SS[i] = NAN;
+    }
+    MPI_Win_fence(0, das->sm_comm_win_S);
     MPI_Barrier(sm_comm);
 
     /*
@@ -195,11 +199,13 @@ void das_getHE(dasystem* das)
                  */
                 if (das->mode == MODE_ENOI) {
                     if (enkf_obstype == OBSTYPE_VALUE) {
-                        int success = das_getbgfname_async(das, das->bgdir, ot, t, fname);
+                        if (rank == 0) {
+                            int success = das_getbgfname_async(das, das->bgdir, ot, t, fname);
 
-                        H(das, nobs_tomap, obsids, fname, -1, t, Hx);
-                        enkf_printf((success) ? "A" : "S");
-                        fflush(stdout);
+                            H(das, nobs_tomap, obsids, fname, -1, t, Hx);
+                            enkf_printf((success) ? "A" : "S");
+                            fflush(stdout);
+                        }
                     } else if (enkf_obstype == OBSTYPE_INNOVATION) {
                         Hx[0] = 0;
                         enkf_printf("-");
@@ -234,10 +240,12 @@ void das_getHE(dasystem* das)
              */
             if (das->mode == MODE_ENOI) {
                 if (enkf_obstype == OBSTYPE_VALUE) {
-                    das_getbgfname(das, das->bgdir, ot->alias, fname);
-                    H(das, nobs_tomap, obsids, fname, -1, INT_MAX, Hx);
-                    enkf_printf("+");
-                    fflush(stdout);
+                    if (rank == 0) {
+                        das_getbgfname(das, das->bgdir, ot->alias, fname);
+                        H(das, nobs_tomap, obsids, fname, -1, INT_MAX, Hx);
+                        enkf_printf("+");
+                        fflush(stdout);
+                    }
                 } else if (enkf_obstype == OBSTYPE_INNOVATION) {
                     Hx[0] = 0;
                     enkf_printf("-");
@@ -294,15 +302,15 @@ void das_getHE(dasystem* das)
             recvcounts[i] = number_of_iterations[i];
             displs[i] = first_iteration[i];
         }
-        MPI_Barrier(MPI_COMM_WORLD);
         ierror = MPI_Allgatherv(MPI_IN_PLACE, 0, MPI_DATATYPE_NULL, das->S[0], recvcounts, displs, mpitype_vec_nobs, MPI_COMM_WORLD);
         assert(ierror == MPI_SUCCESS);
+        MPI_Win_fence(0, das->sm_comm_win_S);
+        MPI_Barrier(sm_comm);
 #else
         /*
          * gather HE between CPUs with sm_comm_rank = 0; via shared memory it
          * will be available for all CPUs
          */
-        MPI_Barrier(MPI_COMM_WORLD);
         if (node_comm_rank >= 0 && node_comm_size > 1) {
             for (i = 0, ii = -1; i < nprocesses; ++i) {
                 if (node_comm_ranks[i] >= 0) {
@@ -312,11 +320,10 @@ void das_getHE(dasystem* das)
                 assert(ii >= 0);
                 recvcounts[ii] += number_of_iterations[i];
             }
-            MPI_Barrier(node_comm);
             ierror = MPI_Allgatherv(MPI_IN_PLACE, 0, MPI_DATATYPE_NULL, das->S[0], recvcounts, displs, mpitype_vec_nobs, node_comm);
             assert(ierror == MPI_SUCCESS);
         }
-        MPI_Win_sync(das->sm_comm_win_S);
+        MPI_Win_fence(0, das->sm_comm_win_S);
         MPI_Barrier(sm_comm);
 #endif
         ierror = MPI_Type_free(&mpitype_vec_nobs);
@@ -326,6 +333,17 @@ void das_getHE(dasystem* das)
     }
 #endif
 
+/*
+ * Broadcast the background obs from process 0 to the world.
+ */
+    if (das->mode == MODE_ENOI && enkf_obstype == OBSTYPE_VALUE) {
+#if defined(USE_SHMEM)
+        int ierror = MPI_Bcast(Hx, nobs, MPI_FLOAT, 0, node_comm);
+#else
+        int ierror = MPI_Bcast(Hx, nobs, MPI_FLOAT, 0, MPI_COMM_WORLD);
+#endif
+        assert(ierror == MPI_SUCCESS);
+    }
 #if defined(USE_SHMEM)
     if (sm_comm_rank == 0) {
 #endif
@@ -363,6 +381,7 @@ void das_getHE(dasystem* das)
         }
 #if defined(USE_SHMEM)
     }
+    MPI_Win_fence(0, das->sm_comm_win_S);
     MPI_Barrier(sm_comm);
 #endif
 
@@ -455,7 +474,6 @@ void das_calcinnandspread(dasystem* das)
          * calculate ensemble spread and innovation 
          */
 #if defined(USE_SHMEM)
-        MPI_Barrier(sm_comm);   /* do not remove */
         if (sm_comm_rank == 0) {
 #endif
             for (e = 0; e < nmem; ++e) {
@@ -466,6 +484,7 @@ void das_calcinnandspread(dasystem* das)
             }
 #if defined(USE_SHMEM)
         }
+        MPI_Win_fence(0, das->sm_comm_win_S);
         MPI_Barrier(sm_comm);
 #endif
         for (e = 0; e < nmem; ++e) {
@@ -527,6 +546,7 @@ void das_calcinnandspread(dasystem* das)
             }
 #if defined(USE_SHMEM)
         }
+        MPI_Win_fence(0, das->sm_comm_win_S);
         MPI_Barrier(sm_comm);
 #endif
         for (e = 0; e < nmem; ++e) {

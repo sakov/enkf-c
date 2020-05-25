@@ -181,7 +181,7 @@ void enkf_init(int* argc, char*** argv)
             free(recvcounts);
             free(displs);
 
-	    enkf_printf("  Using MPI-3 shared memory:\n");
+            enkf_printf("  Using MPI-3 shared memory:\n");
             enkf_printf("    sm_comm size = %d\n", sm_comm_size);
             enkf_printf("    node_comm size = %d\n", node_comm_size);
         }
