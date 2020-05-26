@@ -330,10 +330,13 @@ void das_getHE(dasystem* das)
  */
     if (das->mode == MODE_ENOI && enkf_obstype == OBSTYPE_VALUE) {
 #if defined(USE_SHMEM)
-        int ierror = MPI_Bcast(Hx, nobs, MPI_FLOAT, 0, node_comm);
+        if (node_comm != MPI_COMM_NULL) {
+            int ierror = MPI_Bcast(Hx, nobs, MPI_FLOAT, 0, node_comm);
 
-        assert(ierror == MPI_SUCCESS);
-        MPI_Barrier(sm_comm);
+            assert(ierror == MPI_SUCCESS);
+        }
+        if (node_comm_size > 1)
+            MPI_Barrier(sm_comm);
 #else
         int ierror = MPI_Bcast(Hx, nobs, MPI_FLOAT, 0, MPI_COMM_WORLD);
 
@@ -470,6 +473,7 @@ void das_calcinnandspread(dasystem* das)
          * calculate ensemble spread and innovation 
          */
 #if defined(USE_SHMEM)
+        MPI_Barrier(sm_comm);   /* do not remove */
         if (sm_comm_rank == 0) {
 #endif
             for (e = 0; e < nmem; ++e) {

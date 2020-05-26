@@ -1,5 +1,9 @@
+v1.114.6
+   PS 26052020
+   -- Added check on node_comm before broadcasting Hx in das_getHE.
+   -- Added back the rogue barrier in das_calcinnandspread()...
 v1.114.5
-   PS 19052020
+   PS 25052020
    -- Removed MPI_Win_sync() added in v1.114.4. Added MPI_Win_fence() a number
       of times instead. Not sure if all of them are really needed, but some of
       these fences helped to remove a barrier in das_calcinnandspread() that
