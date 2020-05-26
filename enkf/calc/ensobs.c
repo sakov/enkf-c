@@ -326,7 +326,7 @@ void das_getHE(dasystem* das)
 #endif
 
 /*
- * Broadcast the background obs from process 0 to the world.
+ * broadcast Hx from process 0
  */
     if (das->mode == MODE_ENOI && enkf_obstype == OBSTYPE_VALUE) {
 #if defined(USE_SHMEM)
