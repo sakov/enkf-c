@@ -1087,10 +1087,6 @@ Therefore, the workflow for detecting and eliminating bad batches of observation
 \item calculate analysis in a ``normal'' way by running \verb|enkf_prep|, \verb|enkf_calc| and \verb|enkf_update|.
 \end{enumerate}
 
-Note that bad batches are identified by CALC based on superobservations formed by observations from the same batch only.
-Consequently, detection of bad batches may become unreliable if there are not enough such ``clean'' superobservations.
-It is possible to alleviate this problem by (1) switching off superobing by the option \verb|--no-superobing| for \verb|enkf_prep| or (2) as a compromise, by running \verb|enkf_prep| with \verb|--no-superobing-across-instruments|.
-
 \subsubsection{Readers}
 
 The function of data readers is to read observations in specified files and parse them sequentially into \verb|struct observation| defined in \verb|common/observations.h|.
@@ -1379,7 +1375,7 @@ The summary statistics for each observation type is shown at the top of each sec
 (More generally, the numbering of time intervals corresponds to their positions relative to the analysis time.
 For more details see sec.~\ref{sec:async}.)
 After that, statistics for particular instruments is shown; ``N/A'' corresponds to superobservations resulted from merging observations from two or more instruments.
-(One can avoid superobing across different instruments by using option \verb|--no-superobing-across-instruments| in \verb|enkf_prep|.)
+(From v1.115.0 there is no superobing across different instruments by default.)
 For subsurface temperature also statistics for shallow (0--50\,m), deep ($>$500\,m), and intermediate (50--500\,m) observations is given.
 
 The analysis innovation statistics is calculated from the updated (analysis) ensemble observations by CALC, thus avoiding the need to access analysis files produced later by UPDATE.
