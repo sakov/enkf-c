@@ -1,3 +1,10 @@
+v1.115.0
+   PS 28052020
+   -- Changed default settings in PREP:
+      -- by default there is no writing of the original (not superobed) obs now;
+         to switch it on use "--write-orig-obs" argument
+      -- by default there is no superobing across instruments now; to switch it
+         on use "--superob-across-instruments" argument
 v1.114.6
    PS 26052020
    -- Added check on node_comm before broadcasting Hx in das_getHE.
