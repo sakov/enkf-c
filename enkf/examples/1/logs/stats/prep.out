@@ -1,7 +1,7 @@
-  running PREP for EnKF-C version 1.110.1:
+  running PREP for EnKF-C version 1.115.2:
     command = "./enkf_prep stats.prm"
     dir = "/home/pavel/src/enkf-c/trunk/enkf/examples/1"
-  2020-03-11 13:08:07
+  2020-06-02 13:41:13
   reading prep specs from "stats.prm":
     MODE = EnOI
     MODEL PRM = "model.prm"
@@ -26,7 +26,7 @@
     EnKF flags:
       enkf_exitaction  = [BACKTRACE]
       enkf_obstype     = [VALUE]
-    compile flags:
+    enkf_prep compile flags:
       INTERNAL_QSORT_R = [-]
   reading observation specs from "obs.prm":
     PRODUCT = RADS
@@ -322,22 +322,21 @@
       min day = -4.000
       max day = -2.000
     compacting obs:
-  writing observations to "observations-orig.nc":
   superobing:
-    3813 superobservations
+    4128 superobservations
   writing superobservations to "observations.nc":
   reading super-observations from disk:
-    3813 observations
-    allocating 457560 bytes for array of observations
+    4128 observations
+    allocating 495360 bytes for array of observations
   checking for superobs on land:
     all good
   printing observation summary:
     type    #used    #dropped #out_grd #out_obs #out_wnd #land    #shallow #badbatch#badvalue#thinned #superobs
     -----------------------------------------------------------------------------------------------------------
-    SLA     981      0        0        0        0        0        0        0        0        0        645     
-    SST     8249     0        0        0        0        0        0        0        0        0        3154    
+    SLA     981      0        0        0        0        0        0        0        0        0        661     
+    SST     8249     0        0        0        0        0        0        0        0        0        3453    
     TEM     184      104      104      0        0        0        0        0        0        0        7       
     SAL     184      104      104      0        0        0        0        0        0        0        7       
-    total   9598     208      208      0        0        0        0        0        0        0        3813    
-  2020-03-11 13:08:07
+    total   9598     208      208      0        0        0        0        0        0        0        4128    
+  2020-06-02 13:41:13
   finished

@@ -1,10 +1,11 @@
   MPI: initialised 2 process(es)
-  MPI: rank = 1, PID = 5453
-  MPI: rank = 0, PID = 5452
-  running CALC for EnKF-C version 1.110.1:
+  Using MPI-3 shared memory:
+    sm_comm size = 2
+    node_comm size = 1
+  running CALC for EnKF-C version 1.115.2:
     command = "./enkf_calc enoi.prm"
     dir = "/home/pavel/src/enkf-c/trunk/enkf/examples/2"
-  2020-03-11 13:08:54
+  2020-06-02 13:43:01
   reading system specs from "enoi.prm":
     MODE = EnOI
     MODEL PRM = "model.prm"
@@ -30,12 +31,14 @@
     EnKF flags:
       enkf_exitaction  = [BACKTRACE]
       enkf_obstype     = [VALUE]
-    compile flags:
+    enkf_calc compile flags:
       SHUFFLE_ROWS     = [-]
-      HE_VIASHMEM      = [+]
+      USE_SHMEM        = [+]
       MINIMISE_ALLOC   = [+]
       OBS_SHUFFLE      = [-]
+      X5_VIAFILE       = [-]
       INTERNAL_QSORT_R = [-]
+      DEFLATE_ALL      = [-]
   initialising the system:
   reading observation type specs from "obstypes.prm":
     NAME = SLA
@@ -83,9 +86,6 @@
       LOCRAD  = 800
       LOCWEIGHT =  1
       RFACTOR = 4
-    kdtree "t-grid_XY":
-      10000 nodes
-      560000 bytes (externally allocated)
     grid prm info:
       NAME = "t-grid"
       DOMAIN = Default
@@ -108,23 +108,40 @@
       STRIDE = 0
       kdtree "t-grid_XY":
         10000 nodes
-        560000 bytes (externally allocated)
+        560032 bytes
   setting the ensemble size:
     144 members
+  initialising pointlogs:
+    pointlog (156.000, -32.000):
+      t-grid: (i, j) = (49.500, 49.500)
   reading observations from "observations.nc":
-    3813 observations
-    allocating 457560 bytes for array of observations
+    4128 observations
+    allocating 495360 bytes for array of observations
+    creating kd-trees for observations:
+      kdtree "SLA":
+        661 nodes
+        42352 bytes
+      kdtree "SST":
+        3453 nodes
+        221040 bytes
+      kdtree "TEM":
+        7 nodes
+        496 bytes
+      kdtree "SAL":
+        7 nodes
+        496 bytes
   calculating ensemble observations:
-  2020-03-11 13:08:54
-    allocating 4392576 bytes for HE array:
-    distributing iterations:
+  2020-06-02 13:43:01
+    allocating 2394240 bytes for HE array:
+    allocating 2377728 bytes for HE^T array:
+    distributing 144 iterations:
       2 processes get 72 iterations each
     SLA +........................................................................
     SST +........................................................................
     TEM +........................................................................
     SAL +........................................................................
   adding forecast innovations and spread to "observations.nc":
-  2020-03-11 13:08:55
+  2020-06-02 13:43:02
   moderating observations:
     observations substantially modified:
       SLA          0 (0.0%)
@@ -134,27 +151,14 @@
       total        0 (0.0%)
   writing modified obs errors to "observations.nc":
   calculating transforms:
-  2020-03-11 13:08:55
-    creating kd-trees for observations:
-      kdtree "SLA":
-        645 nodes
-        41280 bytes (externally allocated)
-      kdtree "SST":
-        3154 nodes
-        201856 bytes (externally allocated)
-      kdtree "TEM":
-        7 nodes
-        448 bytes (externally allocated)
-      kdtree "SAL":
-        7 nodes
-        448 bytes (externally allocated)
+  2020-06-02 13:43:02
     calculating transforms for t-grid:
-    creating empty file "w.nc":
-      distributing iterations:
+      distributing 34 iterations:
         2 processes get 17 iterations each
+    creating empty file "w.nc":
       main cycle for t-grid (34 x 34 local analyses):
-        j = 3 (1: 17: 5.9%)
         j = 0 (0: 0: 5.9%)
+        j = 3 (1: 17: 5.9%)
         j = 9 (1: 18: 11.8%)
         j = 6 (0: 1: 11.8%)
         j = 15 (1: 19: 17.6%)
@@ -163,8 +167,8 @@
         j = 18 (0: 3: 23.5%)
         j = 27 (1: 21: 29.4%)
         j = 24 (0: 4: 29.4%)
-        j = 33 (1: 22: 35.3%)
         j = 30 (0: 5: 35.3%)
+        j = 33 (1: 22: 35.3%)
         j = 39 (1: 23: 41.2%)
         j = 36 (0: 6: 41.2%)
         j = 45 (1: 24: 47.1%)
@@ -191,33 +195,31 @@
     writing stats to "enkf_diag.nc":
     summary stats on t-grid:
       # of local analyses = 1156
-      average # of local obs = 394.8
-      # of inversions in obs space = 138
-      # of inversions in ens space = 1018
+      average # of local obs = 426.9
+      # of inversions in obs space = 134
+      # of inversions in ens space = 1022
   writing point logs:
-    calculating transforms for log point (156.000,-32.000): 539 obs
+    calculating transforms for log point (156.000,-32.000): 591 obs
     writing log for point (156.000,-32.000) on grid "t-grid":
   calculating analysed observations:
-  2020-03-11 13:09:05
+  2020-06-02 13:43:12
     sorting obs by ij:
-    2020-03-11 13:09:05
+    2020-06-02 13:43:12
     updating Hx:
-    distributing iterations:
-      2 processes get 1907 or 1906 iterations
-    2020-03-11 13:09:05
+    distributing 4128 iterations:
+      2 processes get 2064 iterations each
+    2020-06-02 13:43:12
   adding analysis innovations and spread to "observations.nc":
   printing observation statistics:
     region obs.type   # obs.  |for.inn.| |an.inn.|   for.inn.   an.inn.  for.spread  an.spread
     ------------------------------------------------------------------------------------------
     Global
-           SLA           645    0.082      0.029      0.027     -0.001      0.027      0.027  
-             j1          259    0.087      0.022      0.040      0.004      0.030      0.030  
-             n1          370    0.077      0.035      0.015     -0.004      0.025      0.025  
-             N/A          16    0.102      0.016      0.088      0.006      0.028      0.028  
-           SST          3154    0.462      0.180     -0.250     -0.020      0.426      0.426  
-             AVHRR      1986    0.470      0.159     -0.229     -0.006      0.434      0.434  
-             WindSat     869    0.458      0.252     -0.295     -0.053      0.407      0.407  
-             N/A         299    0.418      0.113     -0.260     -0.018      0.432      0.432  
+           SLA           661    0.082      0.029      0.028     -0.001      0.027      0.027  
+             j1          275    0.088      0.021      0.043      0.004      0.030      0.030  
+             n1          386    0.078      0.035      0.017     -0.004      0.025      0.025  
+           SST          3453    0.462      0.192     -0.251     -0.020      0.426      0.426  
+             AVHRR      2285    0.468      0.158     -0.231     -0.006      0.433      0.433  
+             WindSat    1168    0.451      0.258     -0.290     -0.048      0.413      0.413  
            TEM             7    1.015      0.954      0.512      0.873      0.296      0.296  
              ARGO          7    1.015      0.954      0.512      0.873      0.296      0.296  
              0-50m         2    1.471      2.547      1.471      2.547      0.305      0.305  
@@ -228,5 +230,5 @@
              0-50m         2    0.088      0.101      0.074      0.072      0.019      0.019  
              50-500m       5    0.072      0.067      0.047      0.040      0.025      0.025  
              500-9999m     0     -nan       -nan       -nan       -nan       -nan       -nan  
-  2020-03-11 13:09:05
+  2020-06-02 13:43:12
   finished

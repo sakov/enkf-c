@@ -1,10 +1,11 @@
   MPI: initialised 2 process(es)
-  MPI: rank = 0, PID = 5252
-  MPI: rank = 1, PID = 5253
-  running CALC for EnKF-C version 1.110.1:
+  Using MPI-3 shared memory:
+    sm_comm size = 2
+    node_comm size = 1
+  running CALC for EnKF-C version 1.115.2:
     command = "./enkf_calc --point-logs-only pointlogs.prm"
     dir = "/home/pavel/src/enkf-c/trunk/enkf/examples/1"
-  2020-03-11 13:06:13
+  2020-06-02 13:39:30
   reading system specs from "pointlogs.prm":
     MODE = EnKF
     SCHEME = DEnKF
@@ -32,12 +33,14 @@
     EnKF flags:
       enkf_exitaction  = [SEGFAULT]
       enkf_obstype     = [VALUE]
-    compile flags:
+    enkf_calc compile flags:
       SHUFFLE_ROWS     = [-]
-      HE_VIASHMEM      = [+]
+      USE_SHMEM        = [+]
       MINIMISE_ALLOC   = [+]
       OBS_SHUFFLE      = [-]
+      X5_VIAFILE       = [-]
       INTERNAL_QSORT_R = [-]
+      DEFLATE_ALL      = [-]
   initialising the system:
   reading observation type specs from "obstypes.prm":
     NAME = SLA
@@ -108,41 +111,50 @@
       STRIDE = 0
   setting the ensemble size:
     96 members
+  initialising pointlogs:
+    pointlog (156.000, -32.000):
+      t-grid: (i, j) = (49.500, 49.500)
+    pointlog (160.000, -29.000):
+      t-grid: (i, j) = (89.500, 79.500)
+    pointlog (152.000, -36.000):
+      t-grid: (i, j) = (9.500, 9.500)
   reading observations from "observations.nc":
-    3813 observations
-    allocating 457560 bytes for array of observations
+    4128 observations
+    allocating 495360 bytes for array of observations
+    creating kd-trees for observations:
+      kdtree "SLA":
+        661 nodes
+        42352 bytes
+      kdtree "SST":
+        3453 nodes
+        221040 bytes
+      kdtree "TEM":
+        7 nodes
+        496 bytes
+      kdtree "SAL":
+        7 nodes
+        496 bytes
   calculating ensemble observations:
-  2020-03-11 13:06:13
-    allocating 2928384 bytes for HE array:
-    distributing iterations:
+  2020-06-02 13:39:30
+    allocating 1585152 bytes for HE array:
+    allocating 1585152 bytes for HE^T array:
+    distributing 96 iterations:
       2 processes get 48 iterations each
     SLA ................................................
     SST ................................................
     TEM ................................................
     SAL ................................................
   adding forecast innovations and spread to "observations.nc":
-  2020-03-11 13:06:13
+  2020-06-02 13:39:30
     Hx_f already added to "observations.nc" (skipping)
   moderating observations:
     already done
-      kdtree "SLA":
-        645 nodes
-        41280 bytes (externally allocated)
-      kdtree "SST":
-        3154 nodes
-        201856 bytes (externally allocated)
-      kdtree "TEM":
-        7 nodes
-        448 bytes (externally allocated)
-      kdtree "SAL":
-        7 nodes
-        448 bytes (externally allocated)
   writing point logs:
-    calculating transforms for log point (156.000,-32.000): 539 obs
+    calculating transforms for log point (156.000,-32.000): 591 obs
     writing log for point (156.000,-32.000) on grid "t-grid":
-    calculating transforms for log point (160.000,-29.000): 427 obs
+    calculating transforms for log point (160.000,-29.000): 462 obs
     writing log for point (160.000,-29.000) on grid "t-grid":
-    calculating transforms for log point (152.000,-36.000): 280 obs
+    calculating transforms for log point (152.000,-36.000): 296 obs
     writing log for point (152.000,-36.000) on grid "t-grid":
-  2020-03-11 13:06:13
+  2020-06-02 13:39:30
   finished

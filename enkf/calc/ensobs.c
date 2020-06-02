@@ -136,6 +136,7 @@ void das_getHE(dasystem* das)
         assert(my_size == size);
         assert(disp_unit == sizeof(float));
     }
+    MPI_Win_fence(0, das->sm_comm_win_S);
     MPI_Barrier(sm_comm);
 
     /*
@@ -270,6 +271,10 @@ void das_getHE(dasystem* das)
 
         enkf_printf("\n");
     }                           /* for i (over obstypes) */
+#if defined(USE_SHMEM)
+    MPI_Win_fence(0, das->sm_comm_win_S);
+    MPI_Barrier(sm_comm);
+#endif
 
     /*
      * all ensemble forecast observations have been calculated; now consolidate

@@ -1,10 +1,8 @@
   MPI: initialised 2 process(es)
-  MPI: rank = 0, PID = 5619
-  MPI: rank = 1, PID = 5620
-  running UPDATE for EnKF-C version 1.110.1:
+  running UPDATE for EnKF-C version 1.115.2:
     command = "./enkf_update --calculate-spread enoi.prm"
     dir = "/home/pavel/src/enkf-c/trunk/enkf/examples/5"
-  2020-03-11 13:11:04
+  2020-06-02 13:46:39
   reading system specs from "enoi.prm":
     MODE = EnOI
     MODEL PRM = "model.prm"
@@ -30,8 +28,9 @@
     EnKF flags:
       enkf_exitaction  = [BACKTRACE]
       enkf_obstype     = [VALUE]
-    compile flags:
-      NCW_SKIPSINGLE = [-]
+    enkf_update compile flags:
+      NCW_SKIPSINGLE   = [-]
+      DEFLATE_ALL      = [-]
   update specs:
     do model fields  = [+]
     do spread        = [+]
@@ -61,15 +60,18 @@
       STRIDE = 0
   setting the ensemble size:
     144 members
+  initialising pointlogs:
+    pointlog (156.000, -32.000):
+      t-grid: (i, j) = (49.500, 49.500)
   updating the model state:
     allocating disk space for spread:
     defining state variables in point logs:
-    2020-03-11 13:11:04
-    allocating disk space for analysis:
+    2020-06-02 13:46:39
+    allocating disk space for analysis:.....
     processing fields for t-grid:
-      2020-03-11 13:11:04
+      2020-06-02 13:46:39
       9 fields
-      distributing iterations:
+      distributing 9 iterations:
         2 processes get 5 or 4 iterations
       u        0   (1: 5: 25.0%)
       eta_t    0   (0: 0: 20.0%)
@@ -80,26 +82,26 @@
       v        1   (1: 8: 100.0%)
       salt     0   (0: 3: 80.0%)
       salt     1   (0: 4: 100.0%)
-  2020-03-11 13:11:04
+  2020-06-02 13:46:39
   assembling analysis:
     eta_t:.
     temp:..
     salt:..
     u:..
     v:..
-  2020-03-11 13:11:04
+  2020-06-02 13:46:39
   assembling spread:
     eta_t:.
     temp:..
     salt:..
     u:..
     v:..
-  2020-03-11 13:11:04
+  2020-06-02 13:46:39
   assembling state variables in point logs:
-    distributing iterations:
-      2 processes get 1 or 0 iterations
+    distributing 1 iterations:
+      1 processes get 1 iteration, 1 processes get 0 iterations
     deleting tiles:
-      distributing iterations:
+      distributing 9 iterations:
         2 processes get 5 or 4 iterations
-  2020-03-11 13:11:04
+  2020-06-02 13:46:39
   finished

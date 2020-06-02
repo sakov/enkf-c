@@ -1,5 +1,8 @@
+v1.115.2
+   PS 02062020
+   -- Added another fence in das_getHE().
 v1.115.1
-   PS 28052020
+   PS 02062020
    -- Removed #2 v1.114.5; now reading Hx as an extra member in HE array.
 v1.115.0
    PS 28052020

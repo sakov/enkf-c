@@ -1,10 +1,8 @@
   MPI: initialised 2 process(es)
-  MPI: rank = 0, PID = 5260
-  MPI: rank = 1, PID = 5261
-  running UPDATE for EnKF-C version 1.110.1:
+  running UPDATE for EnKF-C version 1.115.2:
     command = "./enkf_update --no-fields-write pointlogs.prm"
     dir = "/home/pavel/src/enkf-c/trunk/enkf/examples/1"
-  2020-03-11 13:06:13
+  2020-06-02 13:39:30
   reading system specs from "pointlogs.prm":
     MODE = EnKF
     SCHEME = DEnKF
@@ -32,8 +30,9 @@
     EnKF flags:
       enkf_exitaction  = [SEGFAULT]
       enkf_obstype     = [VALUE]
-    compile flags:
-      NCW_SKIPSINGLE = [-]
+    enkf_update compile flags:
+      NCW_SKIPSINGLE   = [-]
+      DEFLATE_ALL      = [-]
   update specs:
     do model fields  = [-]
     do spread        = [-]
@@ -62,12 +61,19 @@
       STRIDE = 0
   setting the ensemble size:
     96 members
+  initialising pointlogs:
+    pointlog (156.000, -32.000):
+      t-grid: (i, j) = (49.500, 49.500)
+    pointlog (160.000, -29.000):
+      t-grid: (i, j) = (89.500, 79.500)
+    pointlog (152.000, -36.000):
+      t-grid: (i, j) = (9.500, 9.500)
   updating the ensemble:
     defining state variables in point logs:
     processing fields for t-grid:
-      2020-03-11 13:06:13
+      2020-06-02 13:39:30
       9 fields
-      distributing iterations:
+      distributing 9 iterations:
         2 processes get 5 or 4 iterations
       eta_t    0   (0: 0: 20.0%)
       u        0   (1: 5: 25.0%)
@@ -79,12 +85,12 @@
       v        1   (1: 8: 100.0%)
       salt     1   (0: 4: 100.0%)
       (skip writing the fields)
-  2020-03-11 13:06:14
+  2020-06-02 13:39:31
   assembling state variables in point logs:
-    distributing iterations:
+    distributing 3 iterations:
       2 processes get 2 or 1 iterations
     deleting tiles:
-      distributing iterations:
+      distributing 9 iterations:
         2 processes get 5 or 4 iterations
-  2020-03-11 13:06:14
+  2020-06-02 13:39:31
   finished

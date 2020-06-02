@@ -1,10 +1,11 @@
   MPI: initialised 2 process(es)
-  MPI: rank = 0, PID = 5347
-  MPI: rank = 1, PID = 5348
-  running CALC for EnKF-C version 1.110.1:
+  Using MPI-3 shared memory:
+    sm_comm size = 2
+    node_comm size = 1
+  running CALC for EnKF-C version 1.115.2:
     command = "./enkf_calc --single-observation-ijk 35 55 0 SST 0.5 0.5 singleob.prm"
     dir = "/home/pavel/src/enkf-c/trunk/enkf/examples/1"
-  2020-03-11 13:07:43
+  2020-06-02 13:41:51
   reading system specs from "singleob.prm":
     MODE = EnOI
     MODEL PRM = "model.prm"
@@ -30,12 +31,14 @@
     EnKF flags:
       enkf_exitaction  = [BACKTRACE]
       enkf_obstype     = [VALUE]
-    compile flags:
+    enkf_calc compile flags:
       SHUFFLE_ROWS     = [-]
-      HE_VIASHMEM      = [+]
+      USE_SHMEM        = [+]
       MINIMISE_ALLOC   = [+]
       OBS_SHUFFLE      = [-]
+      X5_VIAFILE       = [-]
       INTERNAL_QSORT_R = [-]
+      DEFLATE_ALL      = [-]
   initialising the system:
   reading observation type specs from "obstypes.prm":
     NAME = SLA
@@ -106,6 +109,9 @@
       STRIDE = 0
   setting the ensemble size:
     96 members
+  initialising pointlogs:
+    pointlog (156.000, -32.000):
+      t-grid: (i, j) = (49.500, 49.500)
   reading observation type specs from "obstypes.prm":
     NAME = SLA
     ISSURFACE = 1
@@ -160,53 +166,54 @@
     lon  = -31.450
     i    = 35.000
     j    = 55.000
-  calculating ensemble observations:
-  2020-03-11 13:07:43
-    allocating 768 bytes for HE array:
-    distributing iterations:
-      2 processes get 48 iterations each
-    SLA 
-    SST -....................        j = 3 (1: 17: 5.9%)
-        j = 9 (1: 18: 11.8%)
-        j = 15 (1: 19: 17.6%)
-        j = 21 (1: 20: 23.5%)
-        j = 27 (1: 21: 29.4%)
-        j = 33 (1: 22: 35.3%)
-        j = 39 (1: 23: 41.2%)
-        j = 45 (1: 24: 47.1%)
-        j = 51 (1: 25: 52.9%)
-        j = 57 (1: 26: 58.8%)
-        j = 63 (1: 27: 64.7%)
-............................
-    TEM 
-    SAL 
-  calculating transforms:
-  2020-03-11 13:07:43
     creating kd-trees for observations:
       kdtree "SST":
         1 nodes
-        64 bytes (externally allocated)
+        112 bytes
+  calculating ensemble observations:
+  2020-06-02 13:41:51
+    allocating 388 bytes for HE array:
+    allocating 384 bytes for HE^T array:
+    distributing 96 iterations:
+      2 processes get 48 iterations each
+    SLA 
+    SST -................................................
+    TEM 
+    SAL 
+  calculating transforms:
+  2020-06-02 13:41:51
     calculating transforms for t-grid:
-    creating empty file "w.nc":
-      distributing iterations:
+      distributing 34 iterations:
         2 processes get 17 iterations each
+    creating empty file "w.nc":
       main cycle for t-grid (34 x 34 local analyses):
         j = 0 (0: 0: 5.9%)
+        j = 3 (1: 17: 5.9%)
+        j = 9 (1: 18: 11.8%)
+        j = 15 (1: 19: 17.6%)
         j = 6 (0: 1: 11.8%)
         j = 12 (0: 2: 17.6%)
+        j = 21 (1: 20: 23.5%)
         j = 18 (0: 3: 23.5%)
+        j = 27 (1: 21: 29.4%)
+        j = 33 (1: 22: 35.3%)
         j = 24 (0: 4: 29.4%)
+        j = 39 (1: 23: 41.2%)
+        j = 45 (1: 24: 47.1%)
         j = 30 (0: 5: 35.3%)
+        j = 51 (1: 25: 52.9%)
+        j = 57 (1: 26: 58.8%)
         j = 36 (0: 6: 41.2%)
-        j = 42 (0: 7: 47.1%)
+        j = 63 (1: 27: 64.7%)
         j = 69 (1: 28: 70.6%)
+        j = 42 (0: 7: 47.1%)
         j = 75 (1: 29: 76.5%)
+        j = 48 (0: 8: 52.9%)
         j = 81 (1: 30: 82.4%)
         j = 87 (1: 31: 88.2%)
         j = 93 (1: 32: 94.1%)
-        j = 99 (1: 33: 100.0%)
-        j = 48 (0: 8: 52.9%)
         j = 54 (0: 9: 58.8%)
+        j = 99 (1: 33: 100.0%)
         j = 60 (0: 10: 64.7%)
         j = 66 (0: 11: 70.6%)
         j = 72 (0: 12: 76.5%)
@@ -225,18 +232,18 @@
     calculating transforms for log point (156.000,-32.000): 1 obs
     writing log for point (156.000,-32.000) on grid "t-grid":
   calculating analysed observations:
-  2020-03-11 13:07:43
+  2020-06-02 13:41:51
     sorting obs by ij:
-    2020-03-11 13:07:43
+    2020-06-02 13:41:51
     updating Hx:
-    distributing iterations:
-      2 processes get 1 or 0 iterations
-    2020-03-11 13:07:43
+    distributing 1 iterations:
+      1 processes get 1 iteration, 1 processes get 0 iterations
+    2020-06-02 13:41:51
   printing observation statistics:
     region obs.type   # obs.  |for.inn.| |an.inn.|   for.inn.   an.inn.  for.spread  an.spread
     ------------------------------------------------------------------------------------------
     Global
            SST             1    0.500      0.468      0.500      0.468      0.186      0.186  
              Virtual       1    0.500      0.468      0.500      0.468      0.186      0.186  
-  2020-03-11 13:07:43
+  2020-06-02 13:41:51
   finished
