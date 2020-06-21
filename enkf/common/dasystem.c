@@ -139,7 +139,7 @@ dasystem* das_create(enkfprm* prm)
     das_setnmem(das);
     enkf_printf("    %d member%s\n", das->nmem, das->nmem == 1 ? "" : "s");
 #if defined(ENKF_CALC)
-    if (das->nmem == 1)
+    if (das->nmem == 1 && !(das->mode == MODE_ENOI && enkf_fstatsonly))
         enkf_quit("CALC is not supposed to be run with 1-member ensemble");
 #endif
 

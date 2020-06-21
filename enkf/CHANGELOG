@@ -1,3 +1,7 @@
+v1.115.4
+   PS 21062020
+   -- Correction to v1.115.3: added exception for the case
+      (das->mode == MODE_ENOI && enkf_fstatsonly).
 v1.115.3
    PS 09062020
    -- Added a check in CALC that the ensemble size is greater than 1.
