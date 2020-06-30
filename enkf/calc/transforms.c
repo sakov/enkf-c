@@ -145,7 +145,7 @@ static void nc_assembleX5(dasystem* das, void* grid, size_t nj, size_t ni, int s
     das_getfname_X5(das, grid, fname);
     nc_createX5(das, fname, grid_getname(grid), nj, ni, stride, nmem, &ncid, &varid_X5);
 
-    enkf_printf("      assembling \"%s\":\n", fname);
+    enkf_printf("      assembling \"%s\":", fname);
 
     v = malloc(ni * number_of_iterations[0] * nmem * nmem * sizeof(float));
 
@@ -172,8 +172,12 @@ static void nc_assembleX5(dasystem* das, void* grid, size_t nj, size_t ni, int s
         count[2] = nmem * nmem;
 
         ncw_put_vara_float(ncid, varid_X5, start, count, v);
+        enkf_printf(".");
+        enkf_flush();
     }
     ncw_close(ncid);
+    enkf_printf("\n");
+    enkf_flush();
 
     free(v);
 }
@@ -672,7 +676,7 @@ void das_calctransforms(dasystem* das)
                 free(lobs);
                 free(lcoeffs);
 #endif
-            }                   /* for i */
+            }                   /* for ii */
 
 #if defined(MPI)
             if (das->mode == MODE_ENKF) {
