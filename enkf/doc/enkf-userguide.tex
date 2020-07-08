@@ -37,7 +37,7 @@
 
 \begin{document}
 
-\title{EnKF-C user guide\\{\normalsize version 1.115.0}}
+\title{EnKF-C user guide\\{\normalsize version 1.115.3}}
 
 \author{Pavel Sakov}
 \date{June 19, 2014 -- \today}
@@ -1816,14 +1816,19 @@ Notes:
 \item Using Intel's version of Lapack library -- Intel Math Kernel Library -- can improve performance over Lapack compiled with gfortran.
 \end{enumerate}
 
-\section{Possible problems (Q\&A)}
+\section{Possible problems / FAQ}
 
 \begin{enumerate}
+
+\item{\bf The code does not compile on OS X platform.}
+
+Edit Makefile by adding \verb|-DINTERNAL_QSORT_R| to \verb|PREPCALC_FLAGS|.
 
 \item{\bf In the innovation stats report at the tail of CALC log I get some entries ``N/A'' for instrument tags.}
 
 These entries show stats for super-observations obtained by collating observations from different instruments.
 To avoid collating such observations run PREP with option \\\verb|--no-superobing-across-instruments|.
+This became default since v1.115.0.
 
 \item{\bf CALC becomes too slow after increasing localisation radius}
 
