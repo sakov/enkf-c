@@ -1106,6 +1106,7 @@ static int cmp_xyz(const void* p1, const void* p2)
     return 0;
 }
 
+#if defined(ENKF_PREP)
 /**
  */
 void obs_superob(observations* obs, __compar_d_fn_t cmp_obs, observations** sobs, int sobid, int do_thin)
@@ -1328,6 +1329,7 @@ void obs_superob(observations* obs, __compar_d_fn_t cmp_obs, observations** sobs
 
     obs_calcstats(*sobs);
 }
+#endif
 
 /**
  */

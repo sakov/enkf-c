@@ -64,7 +64,7 @@ void kd_printinfo(kdtree* tree, char* offset);
 
 void print_memory_usage();
 
-#if defined(ENKF_PREP) || defined(ENKF_CALC)
+#if defined(ENKF_PREP)
 #if defined(INTERNAL_QSORT_R)
 typedef int (*__compar_d_fn_t) (const void*, const void*, void*);
 static inline void qsort_r(void* base, size_t n, size_t width, __compar_d_fn_t cmp, void* p)
