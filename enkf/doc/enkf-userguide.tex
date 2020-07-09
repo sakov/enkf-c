@@ -1822,13 +1822,21 @@ Notes:
 
 \item{\bf The code does not compile on OS X platform.}
 
+In some cases compiler can not find \verb|qsort_r()|.
 Edit Makefile by adding \verb|-DINTERNAL_QSORT_R| to \verb|PREPCALC_FLAGS|.
+
+In other cases compiler can not find definition of data type \verb|__compar_d_fn_t|.
+Add line
+\begin{Verbatim}
+  typedef int (*__compar_d_fn_t) (const void*, const void*, void*);
+\end{Verbatim}
+to \verb|common/definitions.h|.
 
 \item{\bf In the innovation stats report at the tail of CALC log I get some entries ``N/A'' for instrument tags.}
 
 These entries show stats for super-observations obtained by collating observations from different instruments.
 To avoid collating such observations run PREP with option \\\verb|--no-superobing-across-instruments|.
-This became default since v1.115.0.
+This became default from v1.115.0.
 
 \item{\bf CALC becomes too slow after increasing localisation radius}
 
@@ -1843,7 +1851,7 @@ Recompile CALC with flag \verb|-DX5_VIAFILE| to communicate transforms via files
 \item{\bf In UPDATE I am getting error \\``\verb|<...> "spread.nc": <...> NC_UNLIMITED size already in use|''.}
 
 UPDATE tries to create a common output file for all model variables.
-This may be not straightforward due to possible differences in formats of source files.
+This may be not straightforward due to possible differences in formats of various model data files involved.
 Try compiling UPDATE with flag \verb|-DNCW_SKIPSINGLE|.
 
 \end{enumerate}
