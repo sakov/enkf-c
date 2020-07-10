@@ -169,13 +169,13 @@ void plog_create(dasystem* das, int plogid, int ploc, int* lobs, double* lcoeffs
         int ni, nj, nk;
         float** depths;
         float depth = NAN;
-        char gridstr[SMALLSTRLEN];
+        char gridstr[SMALLSTRLEN - 5];
 
         if (plog->gridid >= 0 && plog->gridid != gid)
             continue;
 
         get_gridstr(das, gid, gridstr);
-        snprintf(varname, MAXSTRLEN, "grid%s", gridstr);
+        snprintf(varname, SMALLSTRLEN - 1, "grid%s", gridstr);
         ncw_def_var(ncid, varname, NC_INT, 0, NULL, &vid_grid);
         ncw_put_att_int(ncid, vid_grid, "id", 1, &gid);
         ncw_put_att_text(ncid, vid_grid, "name", grid_getname(g));
