@@ -127,6 +127,7 @@ void obs_read(observations* obs, char fname[]);
 void obs_write(observations* obs, char fname[]);
 void obs_writeaux(observations* obs, char fname[]);
 int obs_modifiederrors_alreadywritten(observations* obs, char fname[]);
+
 #if defined(ENKF_PREP)
 void obs_superob(observations* obs, __compar_d_fn_t cmp_obs, observations** sobs, int sobid, int do_thin);
 #endif

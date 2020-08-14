@@ -97,12 +97,17 @@ void obs_add(observations* obs, model* m, obsmeta* meta)
     double maxdepth = NAN;
     double footprint = 0.0;
     double varshift = 0.0;
+    int thin = 0;
     obsread_fn reader;
     int i, ngood, npars;
 
     enkf_printf("    PRODUCT = %s, TYPE = %s, reader = %s\n", meta->product, meta->type, meta->reader);
     st_add_ifabsent(obs->products, meta->product, -1);
 
+    /*
+     * search for and take notice of parameters common for all readers, and
+     * remove them from the parameter list
+     */
     for (i = 0; i < meta->npars; ++i) {
         if (strcasecmp(meta->pars[i].name, "MINDEPTH") == 0) {
             if (!str2double(meta->pars[i].value, &mindepth))
@@ -134,6 +139,15 @@ void obs_add(observations* obs, model* m, obsmeta* meta)
         } else if (strcasecmp(meta->pars[i].name, "VARSHIFT") == 0) {
             if (!str2double(meta->pars[i].value, &varshift))
                 enkf_quit("observation prm file: can not convert VARSHIFT = \"%s\" to double\n", meta->pars[i].value);
+            else {
+                free(meta->pars[i].name);
+                free(meta->pars[i].value);
+                meta->pars[i].name = NULL;
+                meta->pars[i].value = NULL;
+            }
+        } else if (strcasecmp(meta->pars[i].name, "THIN") == 0) {
+            if (!str2int(meta->pars[i].value, &thin))
+                enkf_quit("observation prm file: can not convert THIN = \"%s\" to double\n", meta->pars[i].value);
             else {
                 free(meta->pars[i].name);
                 free(meta->pars[i].value);
@@ -180,6 +194,7 @@ void obs_add(observations* obs, model* m, obsmeta* meta)
         int noutod = 0;
         int nland = 0;
         int nshallow = 0;
+        int nthin = 0;
         int ni, nj, ksurf;
 
         enkf_printf("      id = %d - %d\n", nobs0, obs->nobs - 1);
@@ -248,6 +263,12 @@ void obs_add(observations* obs, model* m, obsmeta* meta)
                     nshallow++;
                 }
             }
+            if (thin > 1 && i % thin != 0) {
+                o->status = STATUS_THINNED;
+                nthin++;
+                continue;
+            }
+
             if (footprint > 0.0)
                 o->footprint = footprint;
             else

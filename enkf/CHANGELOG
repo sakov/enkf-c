@@ -1,3 +1,8 @@
+v1.116.0
+   PS 14082020
+   -- Added a common parameter THIN for observation parameter files. "PARAMETER
+      THIN <N>" specifies that only every <N>th observation is considered in
+      this group.
 v1.115.5
    PS 10072020
    -- A few minor changes to compile and run cleanly on Ubuntu 20.04 GCC 9.3.0.
