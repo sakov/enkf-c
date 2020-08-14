@@ -296,6 +296,8 @@ observations* obs_create_fromdata(observations* parentobs, int nobs, observation
     obs->ncformat = parentobs->ncformat;
     obs->nccompression = parentobs->nccompression;
 
+    obs_calcstats(obs);
+
     return obs;
 }
 
@@ -419,8 +421,10 @@ void obs_calcstats(observations* obs)
     obs->noutside_obsdomain = 0;
     obs->noutside_obswindow = 0;
     obs->nland = 0;
+    obs->nbadbatch = 0;
     obs->nshallow = 0;
     obs->nrange = 0;
+    obs->nthinned = 0;
     for (i = 0; i < obs->nobstypes; ++i) {
         obstype* ot = &obs->obstypes[i];
 
@@ -433,6 +437,7 @@ void obs_calcstats(observations* obs)
         ot->nshallow = 0;
         ot->nbadbatch = 0;
         ot->nrange = 0;
+        ot->nthinned = 0;
         ot->time_min = DBL_MAX;
         ot->time_max = -DBL_MAX;
     }
@@ -1302,21 +1307,8 @@ void obs_superob(observations* obs, __compar_d_fn_t cmp_obs, observations** sobs
         i1 = i2 + 1;
         i2 = i1;
     }                           /* main cycle */
-    if (nthinned > 0) {
-        int i;
-
-        for (i = 0; i < obs->nobs; ++i) {
-            observation* o = &obs->data[i];
-            obstype* ot = &obs->obstypes[o->type];
-
-            if (o->status == STATUS_THINNED) {
-                obs->nthinned++;
-                ot->nthinned++;
-            }
-        }
-        assert(nthinned == obs->nthinned);
-        enkf_printf("    thinned %d observations\n", nthinned);
-    }
+    if (nthinned > 0)
+        enkf_printf("    %d observations thinned\n", nthinned);
     enkf_printf("    %d superobservations\n", nsobs);
 
     *sobs = obs_create_fromdata(obs, nsobs, sdata);
@@ -1326,8 +1318,6 @@ void obs_superob(observations* obs, __compar_d_fn_t cmp_obs, observations** sobs
         obs_printob(*sobs, sobid);
     }
     (*sobs)->has_nonpointobs = has_nonpointobs;
-
-    obs_calcstats(*sobs);
 }
 #endif
 

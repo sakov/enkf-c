@@ -1,3 +1,8 @@
+v1.116.1
+   PS 14082020
+   -- A few minor corrections concerning calculation of observation statistics
+      (counts) in PREP, including fixing crash from failing assertion activated
+      in v1.116.0.
 v1.116.0
    PS 14082020
    -- Added a common parameter THIN for observation parameter files. "PARAMETER
