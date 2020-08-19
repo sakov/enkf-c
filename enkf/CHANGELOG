@@ -1,3 +1,8 @@
+v1.116.2
+   PS 19082020
+   -- Removed reader_viirs.c; use reader_xy_scattered.c instead for
+      observations in vector (1D) format, and reader_xy_gridded.c for gridded
+      (2D) observations.
 v1.116.1
    PS 14082020
    -- A few minor corrections concerning calculation of observation statistics

@@ -43,7 +43,6 @@ obsreader_entry allreaders[] = {
     {"AMSR2", "standard", reader_amsr2_standard},
     {"AMSRE", "standard", reader_amsre_standard},
     {"HIMAWARI8", "standard", reader_h8_standard},
-    {"VIIRS", "standard", reader_viirs_standard},
     {"CMEMS", "standard", reader_cmems_standard},
     {"ANY", "xy_scattered", reader_xy_scattered},
     {"ANY", "xy_gridded", reader_xy_gridded},
