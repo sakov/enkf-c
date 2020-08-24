@@ -2,10 +2,10 @@
   Using MPI-3 shared memory:
     sm_comm size = 2
     node_comm size = 1
-  running CALC for EnKF-C version 1.115.2:
+  running CALC for EnKF-C version 1.116.3:
     command = "./enkf_calc --forecast-stats-only stats.prm"
     dir = "/home/pavel/src/enkf-c/trunk/enkf/examples/1"
-  2020-06-02 13:41:13
+  2020-08-24 15:37:24
   reading system specs from "stats.prm":
     MODE = EnOI
     MODEL PRM = "model.prm"
@@ -100,15 +100,15 @@
     1 member
   initialising pointlogs:
   reading observations from "observations.nc":
-    4128 observations
-    allocating 495360 bytes for array of observations
+    10220 observations
+    allocating 1226400 bytes for array of observations
     creating kd-trees for observations:
       kdtree "SLA":
-        661 nodes
-        42352 bytes
+        652 nodes
+        41776 bytes
       kdtree "SST":
-        3453 nodes
-        221040 bytes
+        9554 nodes
+        611504 bytes
       kdtree "TEM":
         7 nodes
         496 bytes
@@ -116,9 +116,9 @@
         7 nodes
         496 bytes
   calculating ensemble observations:
-  2020-06-02 13:41:13
-    allocating 33024 bytes for HE array:
-    allocating 16512 bytes for HE^T array:
+  2020-08-24 15:37:24
+    allocating 81760 bytes for HE array:
+    allocating 40880 bytes for HE^T array:
     distributing 1 iterations:
       1 processes get 1 iteration, 1 processes get 0 iterations
     SLA +
@@ -126,16 +126,16 @@
     TEM +
     SAL +
   adding forecast innovations and spread to "observations.nc":
-  2020-06-02 13:41:13
+  2020-08-24 15:37:24
   printing observation statistics:
     region obs.type   # obs.  |for.inn.| for.inn.
     ---------------------------------------------
     Global
-           SLA           661    0.082      0.028  
-             j1          275    0.088      0.043  
-             n1          386    0.078      0.017  
-           SST          3453    0.462     -0.251  
-             AVHRR      2285    0.468     -0.231  
+           SLA           652    0.077      0.022  
+             j1          272    0.073      0.023  
+             n1          380    0.080      0.021  
+           SST          9554    0.490     -0.134  
+             ESACCI     8386    0.496     -0.113  
              WindSat    1168    0.451     -0.290  
            TEM             7    1.015      0.512  
              ARGO          7    1.015      0.512  
@@ -147,5 +147,5 @@
              0-50m         2    0.088      0.074  
              50-500m       5    0.072      0.047  
              500-9999m     0     -nan       -nan  
-  2020-06-02 13:41:13
+  2020-08-24 15:37:24
   finished

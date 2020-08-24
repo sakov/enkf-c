@@ -32,8 +32,6 @@ void reader_z(char* fname, int fid, obsmeta* meta, grid* g, observations* obs);
 /*
  * readers for particular products
  */
-void reader_rads_standard(char* fname, int fid, obsmeta* meta, grid* g, observations* obs);
-void reader_rads_standard2(char* fname, int fid, obsmeta* meta, grid* g, observations* obs);
 void reader_navo_standard(char* fname, int fid, obsmeta* meta, grid* g, observations* obs);
 void reader_windsat_standard(char* fname, int fid, obsmeta* meta, grid* g, observations* obs);
 void reader_cars_standard(char* fname, int fid, obsmeta* meta, grid* g, observations* obs);

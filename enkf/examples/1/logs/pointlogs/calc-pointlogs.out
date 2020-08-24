@@ -2,10 +2,10 @@
   Using MPI-3 shared memory:
     sm_comm size = 2
     node_comm size = 1
-  running CALC for EnKF-C version 1.115.2:
+  running CALC for EnKF-C version 1.116.3:
     command = "./enkf_calc --point-logs-only pointlogs.prm"
     dir = "/home/pavel/src/enkf-c/trunk/enkf/examples/1"
-  2020-06-02 13:39:30
+  2020-08-24 15:36:41
   reading system specs from "pointlogs.prm":
     MODE = EnKF
     SCHEME = DEnKF
@@ -119,15 +119,15 @@
     pointlog (152.000, -36.000):
       t-grid: (i, j) = (9.500, 9.500)
   reading observations from "observations.nc":
-    4128 observations
-    allocating 495360 bytes for array of observations
+    10220 observations
+    allocating 1226400 bytes for array of observations
     creating kd-trees for observations:
       kdtree "SLA":
-        661 nodes
-        42352 bytes
+        652 nodes
+        41776 bytes
       kdtree "SST":
-        3453 nodes
-        221040 bytes
+        9554 nodes
+        611504 bytes
       kdtree "TEM":
         7 nodes
         496 bytes
@@ -135,9 +135,9 @@
         7 nodes
         496 bytes
   calculating ensemble observations:
-  2020-06-02 13:39:30
-    allocating 1585152 bytes for HE array:
-    allocating 1585152 bytes for HE^T array:
+  2020-08-24 15:36:41
+    allocating 3924480 bytes for HE array:
+    allocating 3924480 bytes for HE^T array:
     distributing 96 iterations:
       2 processes get 48 iterations each
     SLA ................................................
@@ -145,16 +145,16 @@
     TEM ................................................
     SAL ................................................
   adding forecast innovations and spread to "observations.nc":
-  2020-06-02 13:39:30
+  2020-08-24 15:36:41
     Hx_f already added to "observations.nc" (skipping)
   moderating observations:
     already done
   writing point logs:
-    calculating transforms for log point (156.000,-32.000): 591 obs
+    calculating transforms for log point (156.000,-32.000): 1444 obs
     writing log for point (156.000,-32.000) on grid "t-grid":
-    calculating transforms for log point (160.000,-29.000): 462 obs
+    calculating transforms for log point (160.000,-29.000): 1213 obs
     writing log for point (160.000,-29.000) on grid "t-grid":
-    calculating transforms for log point (152.000,-36.000): 296 obs
+    calculating transforms for log point (152.000,-36.000): 808 obs
     writing log for point (152.000,-36.000) on grid "t-grid":
-  2020-06-02 13:39:30
+  2020-08-24 15:36:41
   finished

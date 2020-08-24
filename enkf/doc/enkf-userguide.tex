@@ -37,7 +37,7 @@
 
 \begin{document}
 
-\title{EnKF-C user guide\\{\normalsize version 1.115.3}}
+\title{EnKF-C user guide\\{\normalsize version 1.116.3}}
 
 \author{Pavel Sakov}
 \date{June 19, 2014 -- \today}
@@ -958,17 +958,21 @@ This enables custom treatment of some specific data.
 For example, the following entries override observation error for Geosat (files with prefix \verb|g1_|) on 23 May 2006:
 \begin{Verbatim}[frame=single,fontsize=\footnotesize]
 # set observation error for Geosat to 7cm
-product == RADS
-type = SLA
-reader = standard2
-file=/short/p93/pxs599/obs/RADS-IB/y2006/m05/g?_d23.nc
-error_std = 0.07
+PRODUCT == RADS
+TYPE = SLA
+READER = xy_scatered
+PARAMETER VARNAME = sla
+PARAMETER MINDEPTH = 100
+FILE = /short/p93/pxs599/obs/RADS/2006/g?_20060523.nc
+ERROR_STD = 0.07
 
 # use default errors for other altimeters
-product == RADS
-type = SLA
-reader = standard2
-file=/short/p93/pxs599/obs/RADS-IB/y2006/m05/[!g]?_d23.nc
+PRODUCT == RADS
+TYPE = SLA
+READER = xy_scatered
+PARAMETER VARNAME = sla
+PARAMETER MINDEPTH = 100
+file = /short/p93/pxs599/obs/RADS/2006/[!g]?_20060523.nc
 \end{Verbatim}
 
 \section{File name conventions}
@@ -1035,23 +1039,19 @@ Observation types are described in the corresponding parameter file (sec.~\ref{s
 An observation is also characterised by ``product''.
 It can be a tag for an organisation that provides data from certain observational platforms, e.g.:
 \begin{Verbatim}[frame=single,fontsize=\footnotesize]
-PRODUCT == RADS
+PRODUCT = RADS
 TYPE = SLA
-READER = standard2
-FILE = obs/RADS-IB/y2007/m12/??_d19.nc
-FILE = obs/RADS-IB/y2007/m12/??_d20.nc
-FILE = obs/RADS-IB/y2007/m12/??_d21.nc
-FILE = obs/RADS-IB/y2007/m12/??_d22.nc
-FILE = obs/RADS-IB/y2007/m12/??_d23.nc
+READER = xy_scattered
+PARAMETER VARNAME = sla
+PARAMETER MINDEPTH = 100
+FILE = obs/RADS/2007/??_200712{19,20,21,22,23}.nc
 
-PRODUCT == NAVO
+PRODUCT = ESACCI
 TYPE = SST
-READER = standard
-FILE = obs/NAVO/navo_20071219.nc
-FILE = obs/NAVO/navo_20071220.nc
-FILE = obs/NAVO/navo_20071221.nc
-FILE = obs/NAVO/navo_20071222.nc
-FILE = obs/NAVO/navo_20071223.nc
+READER = xy_scattered
+PARAMETER VARNAME = sst
+PARAMETER VARSHIFT = -273.15
+FILE = obs/ESACCI/2007/200712{19,20,21,22,23}-*.nc
 \end{Verbatim}
 
 \subsubsection{Instruments}
@@ -1091,33 +1091,87 @@ Therefore, the workflow for detecting and eliminating bad batches of observation
 
 The function of data readers is to read observations in specified files and parse them sequentially into \verb|struct observation| defined in \verb|common/observations.h|.
 
-At the moment there are few agreed standards for observational data.
-Even data of similar kind may have specific features that require creating a new or modify an existing observation data reader.
-It is therefore likely that developing a completely new system will require add new data readers.
-
-The new readers can be created based on existing ones, or developed from scratch.
-The available readers are listed by the variable \verb|allreaders| defined in \verb|prep/allreaders.c|.
-Each reader can be specified in the observation data parameter file with an arbitrary number of parameters.
-For example, the following section changes the default minimal depth for using altimetry observations to 150\,m:
-\begin{Verbatim}
-(...)
-product == RADS
-type = SLA
-reader = standard2
-parameter MINDEPTH = 150
-(...)
-\end{Verbatim}
-
-There are also several generic readers:
+Users are strongly encouraged to use generic readers:
 \begin{Verbatim}
 reader_xy_scattered
 reader_xy_gridded
 reader_xyz_scattered
 reader_xyz_gridded
 reader_xyh_gridded
+reader_z
 \end{Verbatim}
-These readers allow one to specify a number of parameters by means of the entry \verb|PARAMETER| of the observation data parameter file.
-One obligatory parameter for these readers is \verb|VARNAME|; a number of other obligatory parameters (e.g. \verb|LONNAME|, \verb|LATNAME|) can be specified either via the entry \verb|PARAMETER| or by using default variable names in data files.
+
+When this is not possible, one may have to develop custom readers.
+The available readers are listed by the variable \verb|allreaders| defined in \verb|prep/allreaders.c|.
+
+Each reader can be specified in the observation data parameter file with an arbitrary number of parameters.
+For example, the following section changes the default minimal depth for using altimetry observations to 150\,m:
+\begin{Verbatim}
+(...)
+PRODUCT == RADS
+TYPE = SLA
+READER = xy_scattered
+PARAMETER VARNAME = sla
+PARAMETER MINDEPTH = 150
+(...)
+\end{Verbatim}
+
+Observation data parameters can be either generic (common for all readers), or custom (specific to specific readers or groups of readers).
+The generic parameters include:
+\begin{description}
+\item{\verb|MINDEPTH|} -- minimal allowed model depth;
+\item{\verb|MAXDEPTH|} -- maximal allowed model depth;
+\item{\verb|FOOTPRINT|} -- the radius in km of the horizontal footprint;
+\item{\verb|VARSHIFT|} -- data offset;
+\item{\verb|THIN|} -- data thinning ratio.
+\end{description}
+
+The custom parameters for specific readers are described in the source code headers.
+Following is the description for the reader \verb|xy_scattered|:
+\begin{Verbatim}
+ *                There are a number of parameters that must (++) or can be
+ *              specified if they differ from the default value (+). Some
+ *              parameters are optional (-):
+ *              - VARNAME (++)
+ *              - TIMENAME ("*[tT][iI][mM][eE]*") (+)
+ *              - or TIMENAMES (when time = base_time + offset) (+)
+ *              - LONNAME ("lon" | "longitude") (+)
+ *              - LATNAME ("lat" | "latitude") (+)
+ *              - STDNAME ("std") (-)
+ *                  internal variability of the collated data
+ *              - ESTDNAME ("error_std") (-)
+ *                  error STD; if absent then needs to be specified externally
+ *                  in the oobservation data parameter file
+ *              - VARSHIFT (-)
+ *                  data offset to be added
+ *              - FOOTRPINT (-)
+ *                  footprint of observations in km
+ *              - MINDEPTH (-)
+ *                  minimal allowed depth
+ *              - MAXDEPTH (-)
+ *                  maximal allowed depth
+ *              - INSTRUMENT (-)
+ *                  instrument string that will be used for calculating
+ *                  instrument stats
+ *              - ADDVAR (-)
+ *                  name of the variable to be added to the main variable
+ *                  (can be repeated)
+ *              - SUBVAR (-)
+ *                  name of the variable to be subtracted from the main variable
+ *                  (can be repeated)
+ *              Note: it is possible to have multiple entries of QCFLAGNAME and
+ *                QCFLAGVALS combination, e.g.:
+ *                  PARAMETER QCFLAGNAME = TEMP_quality_control
+ *                  PARAMETER QCFLAGVALS = 1
+ *                  PARAMETER QCFLAGNAME = DEPTH_quality_control
+ *                  PARAMETER QCFLAGVALS = 1
+ *                  PARAMETER QCFLAGNAME = LONGITUDE_quality_control
+ *                  PARAMETER QCFLAGVALS = 1,8
+ *                  PARAMETER QCFLAGNAME = LATITUDE_quality_control
+ *                  PARAMETER QCFLAGVALS = 1,8
+ *                An observation is considered valid if each of the specified
+ *                flags takes a permitted value.
+\end{Verbatim}
 
 \subsection{Superobing}
 

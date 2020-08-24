@@ -1,47 +1,31 @@
 PRODUCT = RADS
 TYPE = SLA
-READER = standard2
-FILE = obs/RADS-IB/y2007/m12/??_d19.nc
-FILE = obs/RADS-IB/y2007/m12/??_d20.nc
-FILE = obs/RADS-IB/y2007/m12/??_d21.nc
-FILE = obs/RADS-IB/y2007/m12/??_d22.nc
-FILE = obs/RADS-IB/y2007/m12/??_d23.nc
+READER = xy_scattered
+PARAMETER VARNAME = sla
+PARAMETER MINDEPTH = 100
+FILE = obs/RADS/2007/??_200712{19,20,21,22,23}.nc
 
-PRODUCT = NAVO
+PRODUCT = ESACCI
 TYPE = SST
-READER = standard
-FILE = obs/NAVO/navo_20071219.nc
-FILE = obs/NAVO/navo_20071220.nc
-FILE = obs/NAVO/navo_20071221.nc
-FILE = obs/NAVO/navo_20071222.nc
-FILE = obs/NAVO/navo_20071223.nc
+READER = xy_scattered
+PARAMETER VARNAME = sst
+PARAMETER VARSHIFT = -273.15
+FILE = obs/ESACCI/2007/200712{19,20,21,22,23}-*.nc
 
 PRODUCT = WindSat
 TYPE = SST2
 READER = standard
-FILE = obs/WINDSAT/windsat_20071219.nc
-FILE = obs/WINDSAT/windsat_20071220.nc
-FILE = obs/WINDSAT/windsat_20071221.nc
-FILE = obs/WINDSAT/windsat_20071222.nc
-FILE = obs/WINDSAT/windsat_20071223.nc
+FILE = obs/WINDSAT/2007/windsat_200712{19,20,21,22,23}.nc
 
 PRODUCT = CARS
 TYPE = TEM
 READER = standard
-FILE = obs/TS-SEP-2011/y2007/m12/cars_temp_d19.nc
-FILE = obs/TS-SEP-2011/y2007/m12/cars_temp_d20.nc
-FILE = obs/TS-SEP-2011/y2007/m12/cars_temp_d21.nc
-FILE = obs/TS-SEP-2011/y2007/m12/cars_temp_d22.nc
-FILE = obs/TS-SEP-2011/y2007/m12/cars_temp_d23.nc
+FILE = obs/TS-SEP-2011/y2007/m12/cars_temp_d{19,20,21,22,23}.nc
 ERROR_STD = 0.5
 
 PRODUCT = CARS
 TYPE = SAL
 READER = standard
-FILE = obs/TS-SEP-2011/y2007/m12/cars_salt_d19.nc
-FILE = obs/TS-SEP-2011/y2007/m12/cars_salt_d20.nc
-FILE = obs/TS-SEP-2011/y2007/m12/cars_salt_d21.nc
-FILE = obs/TS-SEP-2011/y2007/m12/cars_salt_d22.nc
-FILE = obs/TS-SEP-2011/y2007/m12/cars_salt_d23.nc
+FILE = obs/TS-SEP-2011/y2007/m12/cars_salt_d{19,20,21,22,23}.nc
 ERROR_STD = 0.1
 

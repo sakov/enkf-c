@@ -17,9 +17,9 @@ Examine Makefile to understand what happens and how for each particular target.
 
 PREREQUISITES
 
-1. To run this example you need to download example1-data.tar.gz (79 MB) from
+1. To run this example you need to download example1-data-v2.tar.gz (69 MB) from
 
-https://github.com/sakov/enkf-c/releases/download/data/example1-data.tar.gz
+https://github.com/sakov/enkf-c/releases/download/data/example1-data-v2.tar.gz
 
 and unpack in this directory.
 

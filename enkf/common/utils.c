@@ -391,7 +391,7 @@ void find_files(char* template, int* nfiles, char*** fnames)
     glob_t gl;
     int status;
 
-    status = glob(template, GLOB_PERIOD | GLOB_TILDE_CHECK, NULL, &gl);
+    status = glob(template, GLOB_BRACE | GLOB_PERIOD | GLOB_TILDE_CHECK, NULL, &gl);
     if (status == GLOB_NOSPACE || status == GLOB_ABORTED || status == GLOB_ERR) {
         int errno_saved = errno;
 

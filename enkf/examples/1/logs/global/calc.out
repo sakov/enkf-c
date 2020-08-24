@@ -2,10 +2,10 @@
   Using MPI-3 shared memory:
     sm_comm size = 2
     node_comm size = 1
-  running CALC for EnKF-C version 1.115.2:
+  running CALC for EnKF-C version 1.116.3:
     command = "./enkf_calc enkf-global.prm"
     dir = "/home/pavel/src/enkf-c/trunk/enkf/examples/1"
-  2020-06-02 13:40:49
+  2020-08-24 15:35:38
   reading system specs from "enkf-global.prm":
     MODE = EnKF
     SCHEME = DEnKF
@@ -113,15 +113,15 @@
     pointlog (156.000, -32.000):
       t-grid: (i, j) = (49.500, 49.500)
   reading observations from "observations.nc":
-    4128 observations
-    allocating 495360 bytes for array of observations
+    10220 observations
+    allocating 1226400 bytes for array of observations
     creating kd-trees for observations:
       kdtree "SLA":
-        661 nodes
-        42352 bytes
+        652 nodes
+        41776 bytes
       kdtree "SST":
-        3453 nodes
-        221040 bytes
+        9554 nodes
+        611504 bytes
       kdtree "TEM":
         7 nodes
         496 bytes
@@ -129,9 +129,9 @@
         7 nodes
         496 bytes
   calculating ensemble observations:
-  2020-06-02 13:40:49
-    allocating 1585152 bytes for HE array:
-    allocating 1585152 bytes for HE^T array:
+  2020-08-24 15:35:38
+    allocating 3924480 bytes for HE array:
+    allocating 3924480 bytes for HE^T array:
     distributing 96 iterations:
       2 processes get 48 iterations each
     SLA ................................................
@@ -139,7 +139,7 @@
     TEM ................................................
     SAL ................................................
   adding forecast innovations and spread to "observations.nc":
-  2020-06-02 13:40:49
+  2020-08-24 15:35:38
   moderating observations:
     observations substantially modified:
       SLA          0 (0.0%)
@@ -149,7 +149,7 @@
       total        0 (0.0%)
   writing modified obs errors to "observations.nc":
   calculating transforms:
-  2020-06-02 13:40:49
+  2020-08-24 15:35:38
     calculating transforms for t-grid:
       distributing 1 iterations:
         1 processes get 1 iteration, 1 processes get 0 iterations
@@ -160,40 +160,40 @@
     writing stats to "enkf_diag.nc":
     summary stats on t-grid:
       # of local analyses = 1
-      average # of local obs = 4118.0
+      average # of local obs = 10210.0
       # of inversions in obs space = 0
       # of inversions in ens space = 1
   writing point logs:
-    calculating transforms for log point (156.000,-32.000): 4128 obs
+    calculating transforms for log point (156.000,-32.000): 10220 obs
     writing log for point (156.000,-32.000) on grid "t-grid":
   calculating analysed observations:
-  2020-06-02 13:40:49
+  2020-08-24 15:35:39
     sorting obs by ij:
-    2020-06-02 13:40:49
+    2020-08-24 15:35:39
     updating HE:
-    distributing 4128 iterations:
-      2 processes get 2064 iterations each
-    2020-06-02 13:40:49
+    distributing 10220 iterations:
+      2 processes get 5110 iterations each
+    2020-08-24 15:35:39
   adding analysis innovations and spread to "observations.nc":
   printing observation statistics:
     region obs.type   # obs.  |for.inn.| |an.inn.|   for.inn.   an.inn.  for.spread  an.spread
     ------------------------------------------------------------------------------------------
     Global
-           SLA           661    0.082      0.060      0.028      0.015      0.039      0.022  
-             j1          275    0.088      0.061      0.043      0.026      0.043      0.024  
-             n1          386    0.078      0.060      0.017      0.008      0.035      0.020  
-           SST          3453    0.462      0.433     -0.251     -0.209      0.338      0.194  
-             AVHRR      2285    0.468      0.407     -0.231     -0.170      0.336      0.192  
-             WindSat    1168    0.451      0.485     -0.290     -0.284      0.343      0.198  
-           TEM             7    1.015      1.072      0.512      0.898      0.318      0.183  
-             ARGO          7    1.015      1.072      0.512      0.898      0.318      0.183  
-             0-50m         2    1.471      2.143      1.471      2.143      0.321      0.184  
-             50-500m       5    0.832      0.644      0.129      0.400      0.316      0.182  
+           SLA           652    0.077      0.075      0.022      0.019      0.039      0.021  
+             j1          272    0.073      0.085      0.023      0.024      0.043      0.024  
+             n1          380    0.080      0.068      0.021      0.015      0.035      0.019  
+           SST          9554    0.490      0.577     -0.134     -0.369      0.352      0.194  
+             ESACCI     8386    0.496      0.571     -0.113     -0.343      0.354      0.195  
+             WindSat    1168    0.451      0.627     -0.290     -0.554      0.343      0.189  
+           TEM             7    1.015      1.077      0.512      0.846      0.318      0.175  
+             ARGO          7    1.015      1.077      0.512      0.846      0.318      0.175  
+             0-50m         2    1.471      2.101      1.471      2.101      0.321      0.177  
+             50-500m       5    0.832      0.667      0.129      0.344      0.316      0.174  
              500-9999m     0     -nan       -nan       -nan       -nan       -nan       -nan  
-           SAL             7    0.077      0.098      0.055      0.067      0.029      0.017  
-             ARGO          7    0.077      0.098      0.055      0.067      0.029      0.017  
-             0-50m         2    0.088      0.101      0.074      0.096      0.023      0.013  
-             50-500m       5    0.072      0.097      0.047      0.056      0.032      0.019  
+           SAL             7    0.077      0.235      0.055     -0.235      0.029      0.016  
+             ARGO          7    0.077      0.235      0.055     -0.235      0.029      0.016  
+             0-50m         2    0.088      0.226      0.074     -0.226      0.023      0.012  
+             50-500m       5    0.072      0.239      0.047     -0.239      0.032      0.018  
              500-9999m     0     -nan       -nan       -nan       -nan       -nan       -nan  
-  2020-06-02 13:40:49
+  2020-08-24 15:35:39
   finished

@@ -1,3 +1,14 @@
+v1.116.3
+   PS 24082020
+   -- Removed reader_rads.c. For newer pre-processed data from RADS use
+      reader_xy_scattered.c.
+   -- Replaced old RADS data in examples by RADS data in current format used
+      by BoM, filtered by lon/lat to reduce size.
+   -- Replaced old NAVO data in examples by ESACCI data in current format used
+      by BoM, filtered by lon/lat to reduce size.
+   -- Re-run exampes and replaced logs.
+   -- Added GLOB_BRACE to glob() in find_files() to allow curly braces in file
+      name templates.
 v1.116.2
    PS 19082020
    -- Removed reader_viirs.c; use reader_xy_scattered.c instead for
