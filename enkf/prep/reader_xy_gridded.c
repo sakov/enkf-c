@@ -91,15 +91,18 @@ void reader_xy_gridded(char* fname, int fid, obsmeta* meta, grid* g, observation
     char* npointsname = NULL;
     char* stdname = NULL;
     char* estdname = NULL;
+    char instrument[MAXSTRLEN] = "";
     int ndim_var, ndim_xy;
     size_t dimlen_var[3], dimlen_xy[2];
     int nqcflagvars = 0;
     char** qcflagvarnames = NULL;
-    uint32_t* qcflagmasks = 0;
+    uint32_t* qcflagmasks = NULL;
+
+    int instid = -1;
+    int productid = -1;
+    int typeid = -1;
 
     int ncid;
-    char instrument[MAXSTRLEN] = "";
-
     int iscurv = -1;
     size_t ni = 0, nj = 0, nij = 0, n_var = 0;
     int varid_lon = -1, varid_lat = -1;
@@ -307,6 +310,10 @@ void reader_xy_gridded(char* fname, int fid, obsmeta* meta, grid* g, observation
 
     ncw_close(ncid);
 
+    instid = st_add_ifabsent(obs->instruments, instrument, -1);
+    productid = st_findindexbystring(obs->products, meta->product);
+    assert(productid >= 0);
+    typeid = obstype_getid(obs->nobstypes, obs->obstypes, meta->type, 1);
     nobs_read = 0;
     for (i = 0; i < nij; ++i) {
         observation* o;
@@ -322,10 +329,9 @@ void reader_xy_gridded(char* fname, int fid, obsmeta* meta, grid* g, observation
         obs_checkalloc(obs);
         o = &obs->data[obs->nobs];
 
-        o->product = st_findindexbystring(obs->products, meta->product);
-        assert(o->product >= 0);
-        o->type = obstype_getid(obs->nobstypes, obs->obstypes, meta->type, 1);
-        o->instrument = st_add_ifabsent(obs->instruments, instrument, -1);
+        o->product = productid;
+        o->type = typeid;
+        o->instrument = instid;
         o->id = obs->nobs;
         o->fid = fid;
         o->batch = 0;

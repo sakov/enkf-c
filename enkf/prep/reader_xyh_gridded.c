@@ -107,6 +107,10 @@ void reader_xyh_gridded(char* fname, int fid, obsmeta* meta, grid* gdst, observa
     int ni = 0, nj = 0, nk = 0;
     size_t nij = 0, nijk = 0;
 
+    int instid = -1;
+    int productid = -1;
+    int typeid = -1;
+
     int ncid;
     int ndim;
     int varid_var = -1, varid_npoints = -1, varid_std = -1, varid_estd = -1;
@@ -260,6 +264,10 @@ void reader_xyh_gridded(char* fname, int fid, obsmeta* meta, grid* gdst, observa
 
     ncw_close(ncid);
 
+    instid = st_add_ifabsent(obs->instruments, instrument, -1);
+    productid = st_findindexbystring(obs->products, meta->product);
+    assert(productid >= 0);
+    typeid = obstype_getid(obs->nobstypes, obs->obstypes, meta->type, 1);
     nobs_read = 0;
     for (i = 0; i < ni; ++i) {
         for (j = 0; j < nj; ++j) {
@@ -278,10 +286,9 @@ void reader_xyh_gridded(char* fname, int fid, obsmeta* meta, grid* gdst, observa
                 obs_checkalloc(obs);
                 o = &obs->data[obs->nobs];
 
-                o->product = st_findindexbystring(obs->products, meta->product);
-                assert(o->product >= 0);
-                o->type = obstype_getid(obs->nobstypes, obs->obstypes, meta->type, 1);
-                o->instrument = st_add_ifabsent(obs->instruments, instrument, -1);
+                o->product = productid;
+                o->type = typeid;
+                o->instrument = instid;
                 o->id = obs->nobs;
                 o->fid = fid;
                 o->batch = 0;

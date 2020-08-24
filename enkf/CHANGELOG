@@ -1,3 +1,6 @@
+v1.116.4
+   PS 24082020
+   -- In generic readers - moved a few calls outside the main loop.
 v1.116.3
    PS 24082020
    -- Removed reader_rads.c. For newer pre-processed data from RADS use

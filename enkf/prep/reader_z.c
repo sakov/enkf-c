@@ -86,13 +86,17 @@ void reader_z(char* fname, int fid, obsmeta* meta, grid* g, observations* obs)
     char* latname = NULL;
     char* zname = NULL;
     char* estdname = NULL;
-    int nqcflagvars = 0;
-    char** qcflagvarnames = NULL;
-    uint32_t* qcflagmasks = 0;
-
-    int ncid;
     char instrument[MAXSTRLEN] = "";
 
+    int nqcflagvars = 0;
+    char** qcflagvarnames = NULL;
+    uint32_t* qcflagmasks = NULL;
+
+    int instid = -1;
+    int productid = -1;
+    int typeid = -1;
+
+    int ncid;
     size_t nobs = 0;
     int varid;
     double lon = NAN;
@@ -229,6 +233,10 @@ void reader_z(char* fname, int fid, obsmeta* meta, grid* g, observations* obs)
 
     ncw_close(ncid);
 
+    instid = st_add_ifabsent(obs->instruments, instrument, -1);
+    productid = st_findindexbystring(obs->products, meta->product);
+    assert(productid >= 0);
+    typeid = obstype_getid(obs->nobstypes, obs->obstypes, meta->type, 1);
     nobs_read = 0;
     for (i = 0; i < (int) nobs; ++i) {
         observation* o;
@@ -244,10 +252,9 @@ void reader_z(char* fname, int fid, obsmeta* meta, grid* g, observations* obs)
         obs_checkalloc(obs);
         o = &obs->data[obs->nobs];
 
-        o->product = st_findindexbystring(obs->products, meta->product);
-        assert(o->product >= 0);
-        o->type = obstype_getid(obs->nobstypes, obs->obstypes, meta->type, 1);
-        o->instrument = st_add_ifabsent(obs->instruments, instrument, -1);
+        o->product = productid;
+        o->type = typeid;
+        o->instrument = instid;
         o->id = obs->nobs;
         o->fid = fid;
         o->batch = 0;
