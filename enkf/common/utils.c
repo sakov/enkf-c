@@ -31,6 +31,7 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <stdint.h>
+#include <glob.h>
 #include "ncw.h"
 #include "ncutils.h"
 #include "definitions.h"
@@ -382,8 +383,6 @@ void enkf_printversion(void)
     enkf_printcompileflags("  ");
 }
 
-#if 1
-#include <glob.h>
 /** Find files matching the template using glob.
  */
 void find_files(char* template, int* nfiles, char*** fnames)
@@ -416,36 +415,6 @@ void find_files(char* template, int* nfiles, char*** fnames)
         *nfiles += 1;
     }
 }
-#else
-/** Find files matching the template using "ls".
- */
-void find_files(char* template, int* nfiles, char*** fnames)
-{
-    char command[MAXSTRLEN];
-
-    FILE* in;
-    char buf[MAXSTRLEN];
-    char* eol;
-
-    snprintf(command, MAXSTRLEN, "ls -1 %s", template);
-    fflush(stdout);
-    in = popen(command, "r");
-    if (in == NULL)
-        return;
-
-    while (fgets(buf, MAXSTRLEN, in) != NULL) {
-        if (*nfiles % FILE_FIND_INC == 0)
-            *fnames = realloc(*fnames, (*nfiles + FILE_FIND_INC) * sizeof(char*));
-        eol = strchr(buf, '\n');
-        if (eol != NULL)
-            *eol = 0;
-        (*fnames)[*nfiles] = strdup(buf);
-        (*nfiles)++;
-    }
-
-    pclose(in);
-}
-#endif
 
 /*
 ** scalar date routines    --    public domain by Ray Gardner

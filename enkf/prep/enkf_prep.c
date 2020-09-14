@@ -278,6 +278,8 @@ int main(int argc, char* argv[])
         obs_add(obs, m, &meta[i]);
     obs_markbadbatches(obs);
     obsprm_destroy(nmeta, meta);
+    enkf_printf("  compacting obs:");
+    enkf_printtime("  ");
     obs_compact(obs);
     obs_calcstats(obs);
 
@@ -288,12 +290,14 @@ int main(int argc, char* argv[])
 
     if (do_superob) {
         enkf_printf("  superobing:\n");
+        enkf_printtime("  ");
         obs_superob(obs, cmp_obs, &sobs, describe_superob_id, do_thin);
 
         if (describe_superob_id >= 0)
             goto finalise;
 
         enkf_printf("  writing superobservations to \"%s\":\n", FNAME_SOBS);
+        enkf_printtime("  ");
         obs_write(sobs, FNAME_SOBS);
         free(sobs->data);
         enkf_printf("  reading super-observations from disk:\n");

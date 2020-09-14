@@ -366,7 +366,7 @@ static int comp_obsstatus(const void* p1, const void* p2)
     return 0;
 }
 
-/**
+/** Move good observations to the head of the observation array.
  */
 void obs_compact(observations* obs)
 {
@@ -375,7 +375,6 @@ void obs_compact(observations* obs)
     if (obs->compacted)
         return;
 
-    enkf_printf("    compacting obs:");
     enkf_flush();
     assert(STATUS_OK == 0);
     qsort(obs->data, obs->nobs, sizeof(observation), comp_obsstatus);
