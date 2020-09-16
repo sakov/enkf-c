@@ -1,3 +1,9 @@
+v1.116.6
+   PS 16092020
+   -- Merged reader_xy_scattered() and reader_xyz_scattered() into
+      reader_scattered(). The new reader is pretty much equivalent to
+      reader_xyz_scattered(); for it to operate as reader_xy_scattered() one
+      needs to specify "parameter ZVALUE = 0".
 v1.116.5
    PS 14092020
    -- A few cosmetic modifications: added the list of generic reader parameters

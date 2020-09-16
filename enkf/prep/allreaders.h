@@ -22,9 +22,8 @@ obsread_fn get_obsreadfn(obsmeta* m);
 /*
  * generic readers
  */
-void reader_xy_scattered(char* fname, int fid, obsmeta* meta, grid* g, observations* obs);
+void reader_scattered(char* fname, int fid, obsmeta* meta, grid* g, observations* obs);
 void reader_xy_gridded(char* fname, int fid, obsmeta* meta, grid* g, observations* obs);
-void reader_xyz_scattered(char* fname, int fid, obsmeta* meta, grid* g, observations* obs);
 void reader_xyz_gridded(char* fname, int fid, obsmeta* meta, grid* g, observations* obs);
 void reader_xyh_gridded(char* fname, int fid, obsmeta* meta, grid* g, observations* obs);
 void reader_z(char* fname, int fid, obsmeta* meta, grid* g, observations* obs);

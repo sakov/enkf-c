@@ -37,7 +37,7 @@
 
 \begin{document}
 
-\title{EnKF-C user guide\\{\normalsize version 1.116.3}}
+\title{EnKF-C user guide\\{\normalsize version 1.116.6}}
 
 \author{Pavel Sakov}
 \date{June 19, 2014 -- \today}
@@ -960,8 +960,9 @@ For example, the following entries override observation error for Geosat (files 
 # set observation error for Geosat to 7cm
 PRODUCT == RADS
 TYPE = SLA
-READER = xy_scatered
+READER = scattered
 PARAMETER VARNAME = sla
+PARAMETER ZVALUE = 0
 PARAMETER MINDEPTH = 100
 FILE = /short/p93/pxs599/obs/RADS/2006/g?_20060523.nc
 ERROR_STD = 0.07
@@ -969,8 +970,9 @@ ERROR_STD = 0.07
 # use default errors for other altimeters
 PRODUCT == RADS
 TYPE = SLA
-READER = xy_scatered
+READER = scattered
 PARAMETER VARNAME = sla
+PARAMETER ZVALUE = 0
 PARAMETER MINDEPTH = 100
 file = /short/p93/pxs599/obs/RADS/2006/[!g]?_20060523.nc
 \end{Verbatim}
@@ -1041,15 +1043,17 @@ It can be a tag for an organisation that provides data from certain observationa
 \begin{Verbatim}[frame=single,fontsize=\footnotesize]
 PRODUCT = RADS
 TYPE = SLA
-READER = xy_scattered
+READER = scattered
 PARAMETER VARNAME = sla
+PARAMETER ZVALUE = 0
 PARAMETER MINDEPTH = 100
 FILE = obs/RADS/2007/??_200712{19,20,21,22,23}.nc
 
 PRODUCT = ESACCI
 TYPE = SST
-READER = xy_scattered
+READER = scattered
 PARAMETER VARNAME = sst
+PARAMETER ZVALUE = 0
 PARAMETER VARSHIFT = -273.15
 FILE = obs/ESACCI/2007/200712{19,20,21,22,23}-*.nc
 \end{Verbatim}
@@ -1091,11 +1095,10 @@ Therefore, the workflow for detecting and eliminating bad batches of observation
 
 The function of data readers is to read observations in specified files and parse them sequentially into \verb|struct observation| defined in \verb|common/observations.h|.
 
-Users are strongly encouraged to use generic readers:
+Users are encouraged to use generic readers:
 \begin{Verbatim}
-reader_xy_scattered
+reader_scattered
 reader_xy_gridded
-reader_xyz_scattered
 reader_xyz_gridded
 reader_xyh_gridded
 reader_z
@@ -1110,8 +1113,9 @@ For example, the following section changes the default minimal depth for using a
 (...)
 PRODUCT == RADS
 TYPE = SLA
-READER = xy_scattered
+READER = scattered
 PARAMETER VARNAME = sla
+PARAMETER ZVALUE = 0
 PARAMETER MINDEPTH = 150
 (...)
 \end{Verbatim}
@@ -1127,7 +1131,7 @@ The generic parameters include:
 \end{description}
 
 The custom parameters are described in the headers of the source code for the readers.
-Following is the description of the reader \verb|xy_scattered| from \verb|reade_xy_scattered.c|:
+Following is the description of the reader \verb|scattered| from \verb|reade_scattered.c|:
 \begin{Verbatim}
  *                There are a number of parameters that must (++) or can be
  *              specified if they differ from the default value (+). Some
@@ -1137,6 +1141,7 @@ Following is the description of the reader \verb|xy_scattered| from \verb|reade_
  *              - or TIMENAMES (when time = base_time + offset) (+)
  *              - LONNAME ("lon" | "longitude") (+)
  *              - LATNAME ("lat" | "latitude") (+)
+ *              - ZNAME ("z") | ZVALUE (+)
  *              - STDNAME ("std") (-)
  *                  internal variability of the collated data
  *              - ESTDNAME ("error_std") (-)
