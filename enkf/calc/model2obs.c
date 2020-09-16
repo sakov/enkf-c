@@ -181,15 +181,17 @@ void H_surf_biased(dasystem* das, int nobs, int obsids[], char fname[], int mem,
     char tag_offset[MAXSTRLEN];
     float** offset = NULL;
     float* bias = NULL;
-    int mvid2;
     char fname2[MAXSTRLEN];
     int i;
 
     if (ot->nvar < 2)
         enkf_quit("%s: second variable has to be defined for the observation type when using H-function \"biased\"", ot->name);
-    mvid2 = model_getvarid(m, ot->varnames[1], 1);
-    if (model_getvargridid(m, mvid) != model_getvargridid(m, mvid2))
-        enkf_quit("H_surf_biased(): variables \"%s\" and \"%s\" are defined on different grids", ot->varnames[0], ot->varnames[1]);
+    {
+        int mvid2 = model_getvarid(m, ot->varnames[1], 1);
+
+        if (model_getvargridid(m, mvid) != model_getvargridid(m, mvid2))
+            enkf_quit("H_surf_biased(): variables \"%s\" and \"%s\" are defined on different grids", ot->varnames[0], ot->varnames[1]);
+    }
 
     model_getvargridsize(m, mvid, &ni, &nj, NULL);
     nv = ni * nj;
@@ -411,7 +413,6 @@ void H_subsurf_wsurfbias(dasystem* das, int nobs, int obsids[], char fname[], in
     int mvid = model_getvarid(m, ot->varnames[0], 1);
     int ni, nj, nk;
     float*** src = NULL;
-    int mvid2;
     int periodic_i = grid_isperiodic_i(model_getvargrid(m, mvid));
     int** mask = model_getnumlevels(m, mvid);
 
@@ -424,9 +425,12 @@ void H_subsurf_wsurfbias(dasystem* das, int nobs, int obsids[], char fname[], in
 
     if (ot->nvar < 2)
         enkf_quit("%s: second variable has to be defined for the observation type when using H-function \"wsurfbias\"", ot->name);
-    mvid2 = model_getvarid(m, ot->varnames[1], 1);
-    if (model_getvargridid(m, mvid) != model_getvargridid(m, mvid2))
-        enkf_quit("H_surf_biased(): variables \"%s\" and \"%s\" are defined on different grids", ot->varnames[0], ot->varnames[1]);
+    {
+        int mvid2 = model_getvarid(m, ot->varnames[1], 1);
+
+        if (model_getvargridid(m, mvid) != model_getvargridid(m, mvid2))
+            enkf_quit("H_surf_biased(): variables \"%s\" and \"%s\" are defined on different grids", ot->varnames[0], ot->varnames[1]);
+    }
 
     model_getvargridsize(m, mvid, &ni, &nj, &nk);
     src = alloc3d(nk, nj, ni, sizeof(float));
@@ -539,7 +543,7 @@ void H_subsurf_wsurfbias(dasystem* das, int nobs, int obsids[], char fname[], in
     free(src);
 }
 
-/** Sum up the estimates in all vertical layers.
+/** Sum up the estimates over layers.
  */
 void H_vertsum(dasystem* das, int nobs, int obsids[], char fname[], int mem, int t, float dst[])
 {
@@ -594,4 +598,80 @@ void H_vertsum(dasystem* das, int nobs, int obsids[], char fname[], int mem, int
 
     evaluate_2d_obs(m, allobs, nobs, obsids, fname, srcsum, dst);
     free(srcsum);
+}
+
+/** Calculate weighted average of estimates over layers.
+ */
+void H_vertwavg(dasystem* das, int nobs, int obsids[], char fname[], int mem, int t, float dst[])
+{
+    model* m = das->m;
+    observations* allobs = das->obs;
+    int otid = allobs->data[obsids[0]].type;
+    obstype* ot = &allobs->obstypes[otid];
+    int mvid = model_getvarid(m, ot->varnames[0], 1);
+    int ni, nj, nk;
+    float* src = NULL;
+    float** sum = NULL;
+    float* w = NULL;
+    float* sumw = NULL;
+    char tag_offset[MAXSTRLEN];
+    void* offset_data = NULL;
+    size_t k, i;
+
+    if (ot->nvar < 2)
+        enkf_quit("%s: second variable has to be defined for the observation type when using H-function \"vertavg\"", ot->name);
+    {
+        int mvid2 = model_getvarid(m, ot->varnames[1], 1);
+
+        if (model_getvargridid(m, mvid) != model_getvargridid(m, mvid2))
+            enkf_quit("H_surf_biased(): variables \"%s\" and \"%s\" are defined on different grids", ot->varnames[0], ot->varnames[1]);
+    }
+
+    model_getvargridsize(m, mvid, &ni, &nj, &nk);
+    src = calloc(nj * ni, sizeof(float));
+    sum = alloc2d(nj, ni, sizeof(float));
+    w = calloc(nj * ni, sizeof(float));
+    sumw = calloc(nj * ni, sizeof(float));
+
+    /* get sum of weights */
+    model_readfield(m, fname, ot->varnames[1], 0, sumw);
+    for (k = 1; k < nk; ++k) {
+        model_readfield(m, fname, ot->varnames[1], k, w);
+        for (i = 0; i < (size_t) ni * nj; i++)
+            sumw[i] += w[i];
+    }
+
+    /* calculate weighted average */
+    for (k = 0; k < nk; ++k) {
+        float* sum0 = sum[0];
+
+        model_readfield(m, fname, ot->varnames[0], k, src);
+        model_readfield(m, fname, ot->varnames[1], k, w);
+        for (i = 0; i < (size_t) ni * nj; i++) {
+            double v = src[i] * w[i] / sumw[i];
+
+            if (isfinite(v) && v > 0.0)
+                sum0[i] += v;
+        }
+    }
+
+    free(src);
+    free(w);
+    free(sumw);
+
+    snprintf(tag_offset, MAXSTRLEN, "%s:OFFSET", allobs->obstypes[allobs->data[obsids[0]].type].name);
+    offset_data = model_getdata(m, tag_offset);
+    if (offset_data != NULL) {
+        float* offset0 = ((float**) offset_data)[0];
+        float* sum0 = sum[0];
+
+        if (model_getdataalloctype(m, tag_offset) != ALLOCTYPE_2D)
+            enkf_quit("obstype = %s: offset variable must be 2D to be used in H-function \"vertavg\"", ot->name);
+
+        for (i = 0; i < (size_t) ni * nj; ++i)
+            sum0[i] -= offset0[i];
+    }
+
+    evaluate_2d_obs(m, allobs, nobs, obsids, fname, sum, dst);
+    free(sum);
 }

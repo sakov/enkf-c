@@ -38,7 +38,9 @@ H_entry allhentries[] = {
      * "issurface = 1" or "issurface = 0")
      */
     {1, "vertsum", H_vertsum},
-    {0, "vertsum", H_vertsum}
+    {0, "vertsum", H_vertsum},
+    {1, "vertwavg", H_vertwavg},
+    {0, "vertwavg", H_vertwavg}
 };
 
 /** List H-functions for all observation types (obstypename = NULL) or for
