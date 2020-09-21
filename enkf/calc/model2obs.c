@@ -624,7 +624,7 @@ void H_vertwavg(dasystem* das, int nobs, int obsids[], char fname[], int mem, in
         int mvid2 = model_getvarid(m, ot->varnames[1], 1);
 
         if (model_getvargridid(m, mvid) != model_getvargridid(m, mvid2))
-            enkf_quit("H_surf_biased(): variables \"%s\" and \"%s\" are defined on different grids", ot->varnames[0], ot->varnames[1]);
+            enkf_quit("H_vertwavg(): variables \"%s\" and \"%s\" are defined on different grids", ot->varnames[0], ot->varnames[1]);
     }
 
     model_getvargridsize(m, mvid, &ni, &nj, &nk);
