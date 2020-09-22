@@ -32,6 +32,7 @@ static void usage()
     enkf_printf("  --calculate-spread\n");
     enkf_printf("      calculate ensemble spread and write to %s\n", FNAME_SPREAD);
     enkf_printf("  --calculate-forecast-spread\n");
+    enkf_printf("  --calculate-forecast-spread-only\n");
     enkf_printf("      calculate forecast ensemble spread only and write to %s\n", FNAME_SPREAD);
     enkf_printf("  --calculate-vertical-correlations\n");
     enkf_printf("      calculate correlation coefficients between surface and other layers of\n");
@@ -66,6 +67,7 @@ static void parse_commandline(int argc, char* argv[], char** fname, int* updates
 {
     int no_update = 0;
     int vcorrs_only = 0;
+    int fspread_only = 0;
     int i;
 
     if (argc < 2)
@@ -86,6 +88,11 @@ static void parse_commandline(int argc, char* argv[], char** fname, int* updates
             continue;
         } else if (strcmp(argv[i], "--calculate-forecast-spread") == 0) {
             *updatespec |= UPDATE_DOFORECASTSPREAD;
+            i++;
+            continue;
+        } else if (strcmp(argv[i], "--calculate-forecast-spread-only") == 0) {
+            *updatespec |= UPDATE_DOFORECASTSPREAD;
+            fspread_only = 1;
             i++;
             continue;
         } else if (strcmp(argv[i], "--calculate-vertical-correlations") == 0) {
@@ -156,6 +163,8 @@ static void parse_commandline(int argc, char* argv[], char** fname, int* updates
         *updatespec &= ~UPDATE_NEEDAN;
     if (vcorrs_only)
         *updatespec = UPDATE_DOVERTCORRS;
+    if (fspread_only)
+        *updatespec = UPDATE_DOFORECASTSPREAD;
 }
 
 /**
@@ -219,11 +228,10 @@ int main(int argc, char* argv[])
         enkf_quit("nothing to do");
 
     enkf_printf("  initialising the system:\n");
-    das = das_create(prm);
+    das = das_create(prm, updatespec);
     enkfprm_destroy(prm);
-    das->updatespec = updatespec;
 
-    if (updatespec & (UPDATE_DOFIELDS | UPDATE_DOSPREAD | UPDATE_DOPLOGS | UPDATE_DOINFLATION)) {
+    if (das->updatespec & (UPDATE_DOFIELDS | UPDATE_DOSPREAD | UPDATE_DOPLOGS | UPDATE_DOINFLATION)) {
         if (das->mode == MODE_ENKF) {
             if (updatespec & UPDATE_NEEDAN)
                 enkf_printf("  updating the ensemble:\n");

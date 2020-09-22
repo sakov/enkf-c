@@ -933,6 +933,8 @@ void das_update(dasystem* das)
         das_allocatespread(das, FNAME_SPREAD);
         enkf_printf("\n");
         enkf_flush();
+        if (rank == 0 && !(das->updatespec & UPDATE_DIRECTWRITE))
+            dir_createifabsent(DIRNAME_TMP);
     }
 
     if (das->updatespec & UPDATE_DOINFLATION && rank == 0) {
@@ -940,6 +942,8 @@ void das_update(dasystem* das)
         das_allocateinflation(das, FNAME_INFLATION);
         enkf_printf("\n");
         enkf_flush();
+        if (rank == 0 && !(das->updatespec & UPDATE_DIRECTWRITE))
+            dir_createifabsent(DIRNAME_TMP);
     }
 
     if (das->updatespec & UPDATE_DOPLOGS && rank == 0) {
@@ -1163,7 +1167,7 @@ void das_update(dasystem* das)
              * read the background to write it to pointlogs, regardless of
              * whether output is increment or analysis
              */
-            if (das->mode == MODE_ENOI) {
+            if (das->mode == MODE_ENOI && (das->updatespec & (UPDATE_DOFIELDS | UPDATE_DOANALYSISSPREAD | UPDATE_DOPLOGSAN | UPDATE_DOINFLATION))) {
                 das_getbgfname(das, das->bgdir, f->varname, fname);
                 model_readfield(das->m, fname, f->varname, f->level, ((float***) fieldbuffer[bufid])[das->nmem][0]);
             }
@@ -1260,6 +1264,4 @@ void das_update(dasystem* das)
 #if defined(MPI)
     MPI_Barrier(MPI_COMM_WORLD);
 #endif
-    if (rank == 0)
-        dir_rmifexists(DIRNAME_TMP);
 }

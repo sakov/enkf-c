@@ -105,7 +105,11 @@ typedef struct {
     int nccompression;
 } dasystem;
 
+#if defined(ENKF_UPDATE)
+dasystem* das_create(enkfprm* prm, int updatespec);
+#else
 dasystem* das_create(enkfprm* prm);
+#endif
 void das_destroy(dasystem* das);
 
 void das_getHE(dasystem* das);

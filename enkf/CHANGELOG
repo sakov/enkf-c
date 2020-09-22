@@ -1,3 +1,8 @@
+v1.118.0
+   PS 22092020
+   -- Added UPDATE option "--calculate-forecast-spread-only".
+   -- Moved all UPDATE tiles except the ensemble ones to .enkftmp directory.
+   Note: these changes have not been havily tested, stuff possible.
 v1.117.1
    PS 22092020
    -- A minor correction in H_vertwavg().

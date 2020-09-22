@@ -125,7 +125,7 @@ void das_writespread(dasystem* das, int nfields, void** fieldbuffer, field field
             int ncid, vid;
             int dimids[2];
 
-            getfieldfname(das->mode == MODE_ENKF ? das->ensdir : das->bgdir, "spread", varname, f->level, fname);
+            getfieldfname(DIRNAME_TMP, "spread", varname, f->level, fname);
 
             ncw_create(fname, NC_CLOBBER | das->ncformat, &ncid);
             ncw_def_dim(ncid, "nj", nj, &dimids[0]);
@@ -183,9 +183,9 @@ void das_assemblespread(dasystem* das)
             int ncid_src, vid;
 
             if (nlev > 1)
-                getfieldfname(das->mode == MODE_ENKF ? das->ensdir : das->bgdir, "spread", varname, k, fname_src);
+                getfieldfname(DIRNAME_TMP, "spread", varname, k, fname_src);
             else
-                getfieldfname(das->mode == MODE_ENKF ? das->ensdir : das->bgdir, "spread", varname, grid_getsurflayerid(model_getvargrid(m, i)), fname_src);
+                getfieldfname(DIRNAME_TMP, "spread", varname, grid_getsurflayerid(model_getvargrid(m, i)), fname_src);
             ncw_open(fname_src, NC_NOWRITE, &ncid_src);
 
             ncw_inq_varid(ncid_src, varname, &vid);
@@ -197,9 +197,9 @@ void das_assemblespread(dasystem* das)
 
             if (das->mode == MODE_ENKF && das->updatespec & UPDATE_DOANALYSISSPREAD) {
                 if (nlev > 1)
-                    getfieldfname(das->ensdir, "spread", varname_an, k, fname_src);
+                    getfieldfname(DIRNAME_TMP, "spread", varname_an, k, fname_src);
                 else
-                    getfieldfname(das->ensdir, "spread", varname_an, grid_getsurflayerid(model_getvargrid(m, i)), fname_src);
+                    getfieldfname(DIRNAME_TMP, "spread", varname_an, grid_getsurflayerid(model_getvargrid(m, i)), fname_src);
                 ncw_open(fname_src, NC_NOWRITE, &ncid_src);
                 ncw_inq_varid(ncid_src, varname_an, &vid);
                 ncw_get_var_float(ncid_src, vid, v);
@@ -262,7 +262,7 @@ void das_writeinflation(dasystem* das, field* f, int j, float* v)
         char fname[MAXSTRLEN];
         int ncid;
 
-        getfieldfname(das->ensdir, "inflation", f->varname, f->level, fname);
+        getfieldfname(DIRNAME_TMP, "inflation", f->varname, f->level, fname);
 
         if (j == 0) {
             int ni, nj;
@@ -314,9 +314,9 @@ void das_assembleinflation(dasystem* das)
             int ncid_src, vid;
 
             if (nlev > 1)
-                getfieldfname(das->ensdir, "inflation", varname, k, fname_src);
+                getfieldfname(DIRNAME_TMP, "inflation", varname, k, fname_src);
             else
-                getfieldfname(das->ensdir, "inflation", varname, grid_getsurflayerid(model_getvargrid(m, i)), fname_src);
+                getfieldfname(DIRNAME_TMP, "inflation", varname, grid_getsurflayerid(model_getvargrid(m, i)), fname_src);
             ncw_open(fname_src, NC_NOWRITE, &ncid_src);
 
             ncw_inq_varid(ncid_src, varname, &vid);
@@ -475,7 +475,7 @@ void das_writevcorrs(dasystem* das)
                 cor[i] = 0.0;
         }
 
-        snprintf(fname_tile, MAXSTRLEN, "%s/vcorr_%s-%03d.nc", das->ensdir, varname, k);
+        snprintf(fname_tile, MAXSTRLEN, "%s/vcorr_%s-%03d.nc", DIRNAME_TMP, varname, k);
         ncw_create(fname_tile, NC_CLOBBER | das->ncformat, &ncid_tile);
         ncw_def_dim(ncid_tile, "nj", nj, &dimids[0]);
         ncw_def_dim(ncid_tile, "ni", ni, &dimids[1]);
@@ -524,7 +524,7 @@ void das_writevcorrs(dasystem* das)
             model_getvargridsize(m, f->varid, &ni, &nj, NULL);
             v = malloc(ni * nj * sizeof(float));
 
-            snprintf(fname_tile, MAXSTRLEN, "%s/vcorr_%s-%03d.nc", das->ensdir, f->varname, f->level);
+            snprintf(fname_tile, MAXSTRLEN, "%s/vcorr_%s-%03d.nc", DIRNAME_TMP, f->varname, f->level);
 
             ncw_open(fname_tile, NC_NOWRITE, &ncid_tile);
             ncw_inq_varid(ncid_tile, f->varname, &vid_tile);

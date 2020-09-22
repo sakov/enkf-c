@@ -104,12 +104,19 @@ static void get_gridstr(dasystem* das, int gid, char str[])
 
 /**
  */
+#if defined(ENKF_UPDATE)
+dasystem* das_create(enkfprm* prm, int updatespec)
+#else
 dasystem* das_create(enkfprm* prm)
+#endif
 {
     dasystem* das = calloc(1, sizeof(dasystem));
     int ngrid;
     int i;
 
+#if defined(ENKF_UPDATE)
+    das->updatespec = updatespec;
+#endif
     das->prmfname = strdup(prm->fname);
     das->mode = prm->mode;
     das->scheme = prm->scheme;
@@ -217,7 +224,7 @@ dasystem* das_create(enkfprm* prm)
             if (grid_xy2fij(g, src->lon, src->lat, &dst->fi[gid], &dst->fj[gid]) != STATUS_OK && gid == dst->gridid)
                 enkf_printf("  WARNING: %s: POINTLOG %f %f: point outside the grid \"%s\"\n", das->prmfname, dst->lon, dst->lat, dst->gridname);
 #elif defined(ENKF_UPDATE)
-            {
+            if (das->updatespec & UPDATE_DOPLOGSAN) {
                 char fname[MAXSTRLEN];
                 int ncid, varid;
                 char gridstr[SMALLSTRLEN];
@@ -266,10 +273,6 @@ dasystem* das_create(enkfprm* prm)
             dst->minnobs = src->minnobs;
         }
     }
-#endif
-
-#if defined(ENKF_UPDATE)
-    das->updatespec = UPDATE_DEFAULT;
 #endif
 
     das->ncformat = prm->ncformat;
@@ -326,6 +329,8 @@ void das_destroy(dasystem* das)
     }
     free(das);
     distribute_free();
+    if (rank == 0)
+        dir_rmifexists(DIRNAME_TMP);
 }
 
 /** Looks for all horizontal fields of the model to be updated.

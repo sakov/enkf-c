@@ -633,7 +633,9 @@ void H_vertwavg(dasystem* das, int nobs, int obsids[], char fname[], int mem, in
     w = calloc(nj * ni, sizeof(float));
     sumw = calloc(nj * ni, sizeof(float));
 
-    /* get sum of weights */
+    /*
+     * get sum of weights 
+     */
     model_readfield(m, fname, ot->varnames[1], 0, sumw);
     for (k = 1; k < nk; ++k) {
         model_readfield(m, fname, ot->varnames[1], k, w);
@@ -641,7 +643,9 @@ void H_vertwavg(dasystem* das, int nobs, int obsids[], char fname[], int mem, in
             sumw[i] += w[i];
     }
 
-    /* calculate weighted average */
+    /*
+     * calculate weighted average 
+     */
     for (k = 0; k < nk; ++k) {
         float* sum0 = sum[0];
 
