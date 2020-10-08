@@ -28,6 +28,7 @@
 #define NOBSTYPES_INC 10
 #define PLOC_INC 10000
 #define HT_SIZE 500
+#define EPSD 1.0e-10
 
 typedef struct {
     int obstypeid;
@@ -218,6 +219,7 @@ observations* obs_create_fromprm(enkfprm* prm)
         }
         fclose(f);
     }
+#endif
 
     {
         int otid;
@@ -231,7 +233,6 @@ observations* obs_create_fromprm(enkfprm* prm)
                 ot->obswindow_max = prm->obswindow_max;
         }
     }
-#endif
 
     obs->ncformat = prm->ncformat;
     obs->nccompression = prm->nccompression;
@@ -756,10 +757,10 @@ void obs_read(observations* obs, char fname[])
             {
                 obstype* ot = &obs->obstypes[o->type];
 
-                if (time[i] < ot->obswindow_min)
-                    o->time = ot->obswindow_min;
-                else if (time[i] > ot->obswindow_max)
-                    o->time = ot->obswindow_max;
+                if (time[i] <= ot->obswindow_min)
+                    o->time = ot->obswindow_min + EPSD;
+                else if (time[i] >= ot->obswindow_max)
+                    o->time = ot->obswindow_max - EPSD;
                 else
                     o->time = time[i];
             }
