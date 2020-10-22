@@ -26,6 +26,8 @@
 \newcommand{\T}{^{\tiny \mathrm T}}
 \newcommand{\TS}{^{{\mathrm T}/2}}
 \newcommand{\ac}{\accentset}
+\newcommand*\suptxt[1]{^{\textnormal{#1}}}
+\newcommand*\subtxt[1]{_{\textnormal{#1}}}
 
 \nobibliography*
 \setlength{\parindent}{0pt}
@@ -37,7 +39,7 @@
 
 \begin{document}
 
-\title{EnKF-C user guide\\{\normalsize version 1.116.6}}
+\title{EnKF-C user guide\\{\normalsize version 2.0.0}}
 
 \author{Pavel Sakov}
 \date{June 19, 2014 -- \today}
@@ -599,6 +601,42 @@ In contrast to the EnKF, due to the use of a static ensemble the EnOI avoids pot
 The EnOI can account for the time of observations by calculating innovation using forecast at observation time, as in (\ref{s-async}).
 This approach is commonly known as ``first guess at appropriate time'', or FGAT.
 
+\section{EnOI/EnKF hybrid}
+
+By EnOI/EnKF hybrid we understand formulation in which forecast state error covariance is assumed to be equal to a sum of the ``dynamic'' covariance carried by the EnKF ensemble, and ``static'' covariance carried by a pre-defined ensemble of anomalies:
+\begin{align}
+  \mb P^f = \mb P\suptxt{dyn} + \gamma \mb P\suptxt{stat},
+\end{align}
+where
+\begin{align*}
+  & \mb P\suptxt{dyn} = \frac{1}{m\subtxt{dyn} - 1}\mb A\suptxt{dyn} (\mb A\suptxt{dyn})\T,\\
+  & \mb P\suptxt{stat} = \frac{1}{m\subtxt{stat} - 1}\mb A\suptxt{stat} (\mb A\suptxt{stat})\T,\\
+\end{align*}
+where $\mb A\suptxt{dyn}$ is the ensemble of dynamic anomalies of size $m\subtxt{dyn}$, and $\mb A\suptxt{stat}$ -- static ensemble anomalies of size $m\subtxt{stat}$.
+The added static covariance can be assumed to represent the model error covariance (matrices $\mb Q_i$ in (\ref{L-nonl}) and $\mb Q_{k+1}$ in (\ref{prop-P})).
+
+The forecast covariance $\mb P^f$ can be assumed to be carried by a combined ensemble $\mb A^f$,
+\begin{align}
+  \label{hybrid_combined}
+  \mb A^f = \left[ \left(\frac{m - 1}{m\subtxt{dyn} - 1}\right)^{1/2} \mb A\suptxt{dyn}, \left(\gamma \frac{m - 1}{m\subtxt{stat} - 1}\right)^{1/2} \mb A\suptxt{stat} \right],
+\end{align}
+where $m = m\subtxt{dyn} + m\subtxt{stat}$, so that
+\begin{align*}
+  \mb P^f = \frac{1}{m - 1} \mb A^f (\mb A^f)\T.
+\end{align*}
+
+The combined forecast ensemble anomalies (\ref{hybrid_combined}) have larger ensemble size than that of the dynamic ensemble; hence there arises a problem of ensemble reduction to obtain the dynamic analysed ensemble of size $m\subtxt{dyn}$.
+There are a number of approaches to this problem.
+Perhaps the easiest one to implement is to use members of the analysed ensemble corresponding to the members of the dynamic forecast ensemble:
+\begin{align*}
+  (\mb E\suptxt{dyn})^a = \mb E^f \mb X_5(1 : m, 1 : m\subtxt{dyn}),
+\end{align*}
+where the forecast ensemble $\mb E^f$ is built from the combined forecast ensemble anomalies (\ref{hybrid_combined}) using the ensemble average of the dynamic forecast ensemble to build static ensemble from static ensemble anomalies:
+\begin{align}
+  \mb E^f = \left[(\mb E\suptxt{dyn})^f, (\frac{1}{m\subtxt{dyn}} \mb E\suptxt{dyn})^f \mb 1 \mb 1\T + \mb A\suptxt{stat}\right].
+\end{align}
+This is the approach used in EnKF-C.
+
 \chapter{EnKF-C}
 \label{ch:enkf-c}
 
@@ -690,27 +728,34 @@ Its format is described by running \verb|enkf_prep|, \verb|enkf_calc| or \verb|e
 
   Main parameter file format:
 
-    MODE            = { ENKF | ENOI }
-  [ SCHEME          = { DENKF* | ETKF } ]
-  [ ALPHA           = <alpha> ]                              (1*)
+    MODE            = { ENKF | ENOI | HYBRID }
     MODEL           = <model prm file>
+  [ SCHEME          = { DENKF* | ETKF } ]                    (MODE = ENKF or HYBRID)
+  [ ALPHA           = <alpha> ]                              (1*) (MODE = ENKF or HYBRID)
+    GAMMA           = <gamma>                                (MODE = HYBRID)
     GRID            = <grid prm file>
     OBSTYPES        = <obs. types prm file>
     OBS             = <obs. data prm file>
     DATE            = <day of analysis>
   [ WINDOWMIN       = <start of obs window in days from analysis> ] (-inf*)
   [ WINDOWMAX       = <end of obs window in days from analysis> ]   (+inf*)
-    ENSDIR          = <ensemble directory>
+    ENSDIR          = <ensemble directory>                   (except MODE = ENOI and
+                                                             --forecast-stats-only)
+  [ ENSDIR_STATIC   = <static ensemble directory> ]          (MODE = HYBRID)
+  [ ENSSIZE         = <ensemble size> ]                      (<full>*)
+  [ ENSSIZE_DYNAMIC = <size of dynamic ensemble> ]           (<full>*) (MODE = HYBRID)
+  [ ENSSIZE_STATIC  = <size of static ensemble> ]            (<full>*) (MODE = HYBRID)
     BGDIR           = <background directory>                 (MODE = ENOI)
   [ KFACTOR         = <kfactor> ]                            (NaN*)
   [ RFACTOR         = <rfactor> ]                            (1*)
     ...
     LOCRAD          = <loc. radius in km> ...
-  [ LOCWEIGHT       = <loc. weight> ... ]                    (# LOCRAD > 1)
+    LOCWEIGHT       = <loc. weight> ...                      (# LOCRAD > 1)
   [ NLOBSMAX        = <max. number of local obs. of each type> ]
   [ STRIDE          = <stride for ensemble transforms> ]     (1*)
   [ SOBSTRIDE       = <stride for superobing> ]              (1*)
-  [ INFLATION       = <inflation> [ <VALUE>* | PLAIN ]       (0.5*)
+  [ FIELDBUFFERSIZE = <fieldbuffersize> ]                    (1*)
+  [ INFLATION       = <inflation> [ <VALUE>* | PLAIN ]       (1*)
     ...
   [ REGION          = <name> <lon1> <lon2> <lat1> <lat2>
     ...
@@ -1582,6 +1627,16 @@ INFLATION = 1.06 PLAIN
 \end{Verbatim}
 The common inflation settings in the main parameter file can be overwritten by settings for particular model variables specified in the model parameter file (sec.~\ref{sec:modelprm}).
 
+\section{Hybrid covariance}
+\label{sec:hybrid}
+
+From v2.0.0 EnKF-C makes it possible using hybrid state error covariance by combining that from an EnKF ensemble and a predefined (EnOI) ensemble of anomalies.
+The formal side is described in section \ref{sec:hybrid}.
+This option is activated by specifying \verb|METHOD = HYBRID| in the main parameter file, and then specifying the directory of the static ensemble.
+
+When the method is set to ``hybrid'', the forecast and analysis ensemble spreads(UPDATE options \verb|--calculate-spread|, \verb|--calculate-forecast-spread|, and \verb|--calculate-forecast-spread-only|) are calculated using the dynamic ensemble anomalies only.
+In contrast, the vertical correlations (UPDATE options \verb|--calculate-vertical-correlations| and \verb|--calculate-vertical-correlations-only|) are calculated using the full (combined) ensemble anomalies.
+
 \section{DA tuning}
 \label{sec:datuning}
 
@@ -1976,6 +2031,7 @@ Paul Sandery was the first user of this code (apart from the author), and his en
   $\mb U$ &-& a unitary matrix, $\mb U \mb U\T = \mb I$ \\
   $\mb A\T$ &-& transposed matrix $\mb A$ \\
   $\mb A^{1/2}$ &-& the unique positive definite square root of a positive definite matrix $\mb A$ \\
+  $\mb A(m_1 : m_2, n_1 : n_2)$ &-& the block of $\mb A$ composed of rows from $m_1$ to $m_2$ and columns from $n_1$ to $n_2$\\
   $\mathrm{tr}(\mb A)$ &-& trace of $\mb A$ \\
   $\mathcal H \circ \mathcal M(\mb x)$ &-& $\mathcal H \left[ \mathcal M (\mb x) \right]$ \\
   $\mb A \circ \mb B$ &-& by-element, or Hadamard, or Schur product of matrices\\

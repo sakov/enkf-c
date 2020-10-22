@@ -200,7 +200,7 @@ void das_getHE(dasystem* das)
                     if (sm_comm_rank == 0) {
 #endif
                         if (enkf_obstype == OBSTYPE_VALUE) {
-                            int success = das_getbgfname_async(das, das->bgdir, ot, t, fname);
+                            int success = das_getbgfname_async(das, ot, t, fname);
 
                             H(das, nobs_tomap, obsids, fname, -1, t, Hx);
                             enkf_printf((success) ? "A" : "S");
@@ -215,9 +215,9 @@ void das_getHE(dasystem* das)
 #endif
                 }
 
-                if (das->mode == MODE_ENKF || !enkf_fstatsonly) {
+                if (das->mode == MODE_ENKF || das->mode == MODE_HYBRID || !enkf_fstatsonly) {
                     for (e = my_first_iteration; e <= my_last_iteration; ++e) {
-                        int success = das_getmemberfname_async(das, das->ensdir, ot, e + 1, t, fname);
+                        int success = das_getmemberfname_async(das, ot, e + 1, t, fname);
 
                         H(das, nobs_tomap, obsids, fname, e + 1, t, das->S[e]);
                         enkf_printf((success) ? "a" : "s");
@@ -241,7 +241,7 @@ void das_getHE(dasystem* das)
                 if (sm_comm_rank == 0) {
 #endif
                     if (enkf_obstype == OBSTYPE_VALUE) {
-                        das_getbgfname(das, das->bgdir, ot->alias, fname);
+                        das_getbgfname(das, ot->alias, fname);
                         H(das, nobs_tomap, obsids, fname, -1, INT_MAX, Hx);
                         enkf_printf("+");
                         fflush(stdout);
@@ -255,9 +255,9 @@ void das_getHE(dasystem* das)
 #endif
             }
 
-            if (das->mode == MODE_ENKF || !enkf_fstatsonly) {
+            if (das->mode == MODE_ENKF || das->mode == MODE_HYBRID || !enkf_fstatsonly) {
                 for (e = my_first_iteration; e <= my_last_iteration; ++e) {
-                    das_getmemberfname(das, das->ensdir, ot->alias, e + 1, fname);
+                    das_getmemberfname(das, ot->alias, e + 1, fname);
                     H(das, nobs_tomap, obsids, fname, e + 1, INT_MAX, das->S[e]);
                     enkf_printf(".");
                     fflush(stdout);
@@ -282,7 +282,7 @@ void das_getHE(dasystem* das)
      * CPU (without USE_SHMEM)
      */
 #if defined(MPI)
-    if (das->mode == MODE_ENKF || !enkf_fstatsonly) {
+    if (!(das->mode == MODE_ENOI && enkf_fstatsonly)) {
         /*
          * communicate HE via MPI
          */
@@ -341,6 +341,7 @@ void das_getHE(dasystem* das)
     if (sm_comm_rank == 0) {
 #endif
         if (das->mode == MODE_ENOI) {
+            enkf_printf("    subtracting ensemble mean:\n", size);
             /*
              * subtract ensemble mean; add background
              */
@@ -371,6 +372,57 @@ void das_getHE(dasystem* das)
                         Se[i] = Hx[i];
                 }
             }
+        } else if (das->mode == MODE_HYBRID) {
+            double* ensmean_d = calloc(nobs, sizeof(double));
+            double* ensmean_s = calloc(nobs, sizeof(double));
+            int nmem_d = das->nmem_dynamic;
+            int nmem_s = das->nmem_static;
+            double k_d = sqrt((double) (nmem - 1) / (double) (nmem_d - 1));
+            double k_s = sqrt(das->gamma * (double) (nmem - 1) / (double) (nmem_s - 1));
+
+            enkf_printf("    scaling:\n", size);
+            /*
+             * calculate dynamic ensemble mean
+             */
+            for (e = 0; e < nmem_d; ++e) {
+                float* Se = das->S[e];
+
+                for (i = 0; i < nobs; ++i)
+                    ensmean_d[i] += Se[i];
+            }
+            for (i = 0; i < nobs; ++i)
+                ensmean_d[i] /= (double) nmem_d;
+            /*
+             * scale dynamic ensemble animalies
+             */
+            for (e = 0; e < nmem_d; ++e) {
+                float* Se = das->S[e];
+
+                for (i = 0; i < nobs; ++i)
+                    Se[i] = (Se[i] - ensmean_d[i]) * k_d + ensmean_d[i];
+            }
+            /*
+             * calculate static ensemble mean
+             */
+            for (e = nmem_d; e < nmem; ++e) {
+                float* Se = das->S[e];
+
+                for (i = 0; i < nobs; ++i)
+                    ensmean_s[i] += Se[i];
+            }
+            for (i = 0; i < nobs; ++i)
+                ensmean_s[i] /= (double) nmem_s;
+            /*
+             * scale static ensemble anomalies and add dynamic ensemble mean
+             */
+            for (e = nmem_d; e < nmem; ++e) {
+                float* Se = das->S[e];
+
+                for (i = 0; i < nobs; ++i)
+                    Se[i] = (Se[i] - ensmean_s[i]) * k_s + ensmean_d[i];
+            }
+            free(ensmean_d);
+            free(ensmean_s);
         }
 #if defined(USE_SHMEM)
     }
@@ -412,6 +464,8 @@ void das_writeHE(dasystem* das)
     ncw_def_dim(ncid, "nmem", das->nmem, &dimids[0]);
     ncw_def_dim(ncid, "nobs", das->obs->nobs, &dimids[1]);
     ncw_def_var(ncid, "HE", NC_FLOAT, 2, dimids, &varid);
+    if (das->mode == MODE_HYBRID)
+        ncw_put_att_int(ncid, NC_GLOBAL, "nmem_dynamic", 1, &das->nmem_dynamic);
     if (das->nccompression > 0)
         ncw_def_deflate(ncid, 0, 1, das->nccompression);
     ncw_enddef(ncid);
@@ -502,6 +556,14 @@ void das_calcinnandspread(dasystem* das)
 
         das->s_mode = S_MODE_HA_f;
     } else if (das->s_mode == S_MODE_HE_a) {
+        /*
+         * for HYBRID mode use only dynamic ensemble for analysis stats (in fact
+         * there is little choice because the transforms do not update the
+         * static ensemble)
+         */
+        if (das->mode == MODE_HYBRID)
+            nmem = das->nmem_dynamic;
+
         if (das->s_a == NULL) {
             das->s_a = calloc(nobs, sizeof(double));
             assert(das->std_a == NULL);
@@ -755,6 +817,10 @@ void das_standardise(dasystem* das)
                 Se[i] /= o->estd * sqrt(obs->obstypes[o->type].rfactor) * mult;
             }
         }
+
+    if (das->mode == MODE_HYBRID)
+        mult = sqrt((double) das->nmem_dynamic - 1);
+
 #if defined(USE_SHMEM)
     MPI_Barrier(sm_comm);
 #endif
@@ -821,7 +887,7 @@ static int cmp_obs_byij(const void* p1, const void* p2, void* p)
 void das_destandardise(dasystem* das)
 {
     observations* obs = das->obs;
-    double mult = sqrt((double) das->nmem - 1);
+    double mult;
     int e, i;
 
     if (das->s_mode == S_MODE_HA_f || das->s_mode == S_MODE_HA_a)
@@ -829,6 +895,11 @@ void das_destandardise(dasystem* das)
 
     if (obs->nobs == 0)
         goto finish;
+
+    if (das->mode == MODE_HYBRID)
+        mult = sqrt((double) das->nmem_dynamic - 1);
+    else
+        mult = sqrt((double) das->nmem - 1);
 
 #if defined(USE_SHMEM)
     if (sm_comm_rank == 0)
@@ -1095,6 +1166,7 @@ static void update_HE(dasystem* das)
     model* m = das->m;
     int ngrid = model_getngrid(m);
     int nmem = das->nmem;
+    int nmem_dynamic = das->nmem_dynamic;
     int gid;
     observations* obs = das->obs;
     int nobs = obs->nobs;
@@ -1142,12 +1214,12 @@ static void update_HE(dasystem* das)
         char fname_X5[MAXSTRLEN];
         int ncid;
         int varid;
-        size_t dimlens[3];
-        size_t start[3], count[3];
-        float** X5j = NULL;
-        float** X5jj = NULL;
-        float** X5jj1 = NULL;
-        float** X5jj2 = NULL;
+        size_t dimlens[4];
+        size_t start[4], count[4];
+        float*** X5j = NULL;
+        float*** X5jj = NULL;
+        float*** X5jj1 = NULL;
+        float*** X5jj2 = NULL;
 
         int mni, mnj;
         int* iiter;
@@ -1162,10 +1234,9 @@ static void update_HE(dasystem* das)
 
         ncw_open(fname_X5, NC_NOWRITE, &ncid);
         ncw_inq_varid(ncid, "X5", &varid);
-        ncw_inq_vardims(ncid, varid, 3, NULL, dimlens);
-        ni = dimlens[1];
+        ncw_inq_vardims(ncid, varid, 4, NULL, dimlens);
         nj = dimlens[0];
-        assert((int) dimlens[2] == nmem * nmem);
+        ni = dimlens[1];
 
         jiter = malloc((nj + 1) * sizeof(int)); /* "+ 1" to handle periodic
                                                  * grids */
@@ -1182,15 +1253,17 @@ static void update_HE(dasystem* das)
         start[0] = 0;
         start[1] = 0;
         start[2] = 0;
+        start[3] = 0;
         count[0] = 1;
         count[1] = ni;
-        count[2] = nmem * nmem;
-        X5j = alloc2d(mni, nmem * nmem, sizeof(float));
+        count[2] = nmem_dynamic;
+        count[3] = nmem;
+        X5j = alloc3d(mni, nmem_dynamic, nmem, sizeof(float));
         if (stride > 1) {
-            X5jj = alloc2d(ni, nmem * nmem, sizeof(float));
-            X5jj1 = alloc2d(ni, nmem * nmem, sizeof(float));
-            X5jj2 = alloc2d(ni, nmem * nmem, sizeof(float));
-            ncw_get_vara_float(ncid, varid, start, count, X5jj2[0]);
+            X5jj = alloc3d(ni, nmem_dynamic, nmem, sizeof(float));
+            X5jj1 = alloc3d(ni, nmem_dynamic, nmem, sizeof(float));
+            X5jj2 = alloc3d(ni, nmem_dynamic, nmem, sizeof(float));
+            ncw_get_vara_float(ncid, varid, start, count, X5jj2[0][0]);
         }
 
         /*
@@ -1209,29 +1282,29 @@ static void update_HE(dasystem* das)
                      * j-th row from disk 
                      */
                     start[0] = j;
-                    ncw_get_vara_float(ncid, varid, start, count, X5j[0]);
+                    ncw_get_vara_float(ncid, varid, start, count, X5j[0][0]);
                 } else {
                     /*
                      * the following code interpolates the ETM back to the
                      * original grid, first by j, and then by i 
                      */
                     if (stepj == 0) {
-                        memcpy(X5jj[0], X5jj2[0], ni * nmem * nmem * sizeof(float));
-                        memcpy(X5jj1[0], X5jj2[0], ni * nmem * nmem * sizeof(float));
+                        memcpy(X5jj[0][0], X5jj2[0][0], ni * nmem_dynamic * nmem * sizeof(float));
+                        memcpy(X5jj1[0][0], X5jj2[0][0], ni * nmem_dynamic * nmem * sizeof(float));
                         if (jj < nj - 1) {
                             start[0] = (jj + 1) % nj;
-                            ncw_get_vara_float(ncid, varid, start, count, X5jj2[0]);
+                            ncw_get_vara_float(ncid, varid, start, count, X5jj2[0][0]);
                         }
                     } else {
                         float weight2 = (float) stepj / stride;
                         float weight1 = (float) 1.0 - weight2;
 
                         for (ii = 0; ii < ni; ++ii) {
-                            float* X5jjii = X5jj[ii];
-                            float* X5jj1ii = X5jj1[ii];
-                            float* X5jj2ii = X5jj2[ii];
+                            float* X5jjii = X5jj[ii][0];
+                            float* X5jj1ii = X5jj1[ii][0];
+                            float* X5jj2ii = X5jj2[ii][0];
 
-                            for (e = 0; e < nmem * nmem; ++e)
+                            for (e = 0; e < nmem_dynamic * nmem; ++e)
                                 X5jjii[e] = X5jj1ii[e] * weight1 + X5jj2ii[e] * weight2;
                         }
                     }
@@ -1239,20 +1312,20 @@ static void update_HE(dasystem* das)
                     for (ii = 0, i = 0; ii < ni; ++ii) {
                         for (stepi = 0; stepi < stride && i < mni; ++stepi, ++i) {
                             if (stepi == 0)
-                                memcpy(X5j[i], X5jj[ii], nmem * nmem * sizeof(float));
+                                memcpy(X5j[i][0], X5jj[ii][0], nmem_dynamic * nmem * sizeof(float));
                             else {
                                 float weight2 = (float) stepi / stride;
                                 float weight1 = (float) 1.0 - weight2;
-                                float* X5jjii1 = X5jj[ii];
-                                float* X5ji = X5j[i];
+                                float* X5jjii1 = X5jj[ii][0];
+                                float* X5ji = X5j[i][0];
                                 float* X5jjii2;
 
                                 if (ii < ni - 1)
-                                    X5jjii2 = X5jj[ii + 1];
+                                    X5jjii2 = X5jj[ii + 1][0];
                                 else
-                                    X5jjii2 = X5jj[(periodic_i) ? (ii + 1) % ni : ii];
+                                    X5jjii2 = X5jj[(periodic_i) ? (ii + 1) % ni : ii][0];
 
-                                for (e = 0; e < nmem * nmem; ++e)
+                                for (e = 0; e < nmem_dynamic * nmem; ++e)
                                     X5ji[e] = X5jjii1[e] * weight1 + X5jjii2[e] * weight2;
                             }
                         }
@@ -1287,11 +1360,11 @@ static void update_HE(dasystem* das)
                     for (e = 0; e < nmem; ++e)
                         HEi_f[e] = das->S[e][o];
 #endif
-                    sgemv_(&do_T, &nmem, &nmem, &alpha, X5j[i], &nmem, HEi_f, &inc, &beta, HEi_a, &inc);
+                    sgemv_(&do_T, &nmem, &nmem_dynamic, &alpha, X5j[i][0], &nmem, HEi_f, &inc, &beta, HEi_a, &inc);
 
-                    for (e = 0; e < nmem; ++e)
+                    for (e = 0; e < nmem_dynamic; ++e)
                         v1_a += HEi_a[e];
-                    v1_a /= (double) nmem;
+                    v1_a /= (double) nmem_dynamic;
 
                     if (!isnan(inf_ratio)) {
                         double v1_f = 0.0;
@@ -1299,21 +1372,21 @@ static void update_HE(dasystem* das)
                         double v2_a = 0.0;
                         double var_a, var_f;
 
-                        for (e = 0; e < nmem; ++e) {
+                        for (e = 0; e < nmem_dynamic; ++e) {
                             double ve = (double) HEi_f[e];
 
                             v1_f += ve;
                             v2_f += ve * ve;
                         }
-                        v1_f /= (double) nmem;
-                        var_f = v2_f / (double) nmem - v1_f * v1_f;
+                        v1_f /= (double) nmem_dynamic;
+                        var_f = v2_f / (double) nmem_dynamic - v1_f * v1_f;
 
-                        for (e = 0; e < nmem; ++e) {
+                        for (e = 0; e < nmem_dynamic; ++e) {
                             double ve = (double) HEi_a[e];
 
                             v2_a += ve * ve;
                         }
-                        var_a = v2_a / (double) nmem - v1_a * v1_a;
+                        var_a = v2_a / (double) nmem_dynamic - v1_a * v1_a;
 
                         if (var_a > 0) {
                             /*
@@ -1331,14 +1404,14 @@ static void update_HE(dasystem* das)
                      * applying inflation:
                      */
                     if (fabsf(inflation - 1.0f) > EPSF)
-                        for (e = 0; e < nmem; ++e)
+                        for (e = 0; e < nmem_dynamic; ++e)
                             HEi_a[e] = (HEi_a[e] - (float) v1_a) * inflation + v1_a;
 
 #if defined(USE_SHMEM)
-                    for (e = 0; e < nmem; ++e)
+                    for (e = 0; e < nmem_dynamic; ++e)
                         das->St[o][e] = HEi_a[e];
 #else
-                    for (e = 0; e < nmem; ++e)
+                    for (e = 0; e < nmem_dynamic; ++e)
                         das->S[e][o] = HEi_a[e];
 #endif
                 }
@@ -1361,7 +1434,7 @@ static void update_HE(dasystem* das)
     gather_St(das);
 
     if (rank == 0)
-        for (e = 0; e < nmem; ++e)
+        for (e = 0; e < nmem_dynamic; ++e)
             for (o = 0; o < nobs; ++o)
                 das->S[e][o] = das->St[o][e];
 #endif
@@ -1610,7 +1683,7 @@ void das_updateHE(dasystem* das)
     das_sortobs_byij(das);
     das_changeSmode(das, S_MODE_HA_f, S_MODE_HE_f);
     enkf_printtime("    ");
-    if (das->mode == MODE_ENKF)
+    if (das->mode == MODE_ENKF || das->mode == MODE_HYBRID)
         update_HE(das);
     else
         update_Hx(das);

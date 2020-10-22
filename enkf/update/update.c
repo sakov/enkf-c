@@ -79,6 +79,7 @@ static void das_updatefields(dasystem* das, int nfields, void** fieldbuffer, fie
 {
     model* m = das->m;
     int nmem = das->nmem;
+    int nmem_dynamic = das->nmem_dynamic;
 
     void* grid = model_getvargrid(m, fields[0].varid);
     int stride = grid_getstride(grid);
@@ -93,8 +94,8 @@ static void das_updatefields(dasystem* das, int nfields, void** fieldbuffer, fie
     char fname_X5[MAXSTRLEN];
     int ncid;
     int varid;
-    size_t dimlens[3];
-    size_t start[3], count[3];
+    size_t dimlens[4];
+    size_t start[4], count[4];
     float** X5jj = NULL;
     float** X5jj1 = NULL;
     float** X5jj2 = NULL;
@@ -110,7 +111,7 @@ static void das_updatefields(dasystem* das, int nfields, void** fieldbuffer, fie
     int jj, stepj, ii, stepi;
     int e, fid;
 
-    assert(das->mode == MODE_ENKF);
+    assert(das->mode == MODE_ENKF || das->mode == MODE_HYBRID);
 
     grid_getsize(grid, &mni, &mnj, NULL);
 
@@ -118,29 +119,30 @@ static void das_updatefields(dasystem* das, int nfields, void** fieldbuffer, fie
 
     ncw_open(fname_X5, NC_NOWRITE, &ncid);
     ncw_inq_varid(ncid, "X5", &varid);
-    ncw_inq_vardims(ncid, varid, 3, NULL, dimlens);
+    ncw_inq_vardims(ncid, varid, 4, NULL, dimlens);
     nj = dimlens[0];
     ni = dimlens[1];
-    assert((int) dimlens[2] == nmem * nmem);
 
     start[0] = 0;
     start[1] = 0;
     start[2] = 0;
+    start[3] = 0;
     count[0] = 1;
     count[1] = ni;
-    count[2] = nmem * nmem;
+    count[2] = nmem_dynamic;
+    count[3] = nmem;
 
-    X5j = alloc2d(mni, nmem * nmem, sizeof(float));
+    X5j = alloc2d(mni, nmem_dynamic * nmem, sizeof(float));
     if (stride > 1) {
-        X5jj = alloc2d(ni, nmem * nmem, sizeof(float));
-        X5jj1 = alloc2d(ni, nmem * nmem, sizeof(float));
-        X5jj2 = alloc2d(ni, nmem * nmem, sizeof(float));
+        X5jj = alloc2d(ni, nmem_dynamic * nmem, sizeof(float));
+        X5jj1 = alloc2d(ni, nmem_dynamic * nmem, sizeof(float));
+        X5jj2 = alloc2d(ni, nmem_dynamic * nmem, sizeof(float));
 
         ncw_get_vara_float(ncid, varid, start, count, X5jj2[0]);
     }
 
     v_f = malloc(nmem * sizeof(float));
-    v_a = malloc(nmem * sizeof(float));
+    v_a = malloc(nmem_dynamic * sizeof(float));
     if (writeinflation)
         infl = malloc(mni * sizeof(float));
 
@@ -163,8 +165,8 @@ static void das_updatefields(dasystem* das, int nfields, void** fieldbuffer, fie
                  * original grid, first by j, and then by i 
                  */
                 if (stepj == 0) {
-                    memcpy(X5jj1[0], X5jj2[0], ni * nmem * nmem * sizeof(float));
-                    memcpy(X5jj[0], X5jj2[0], ni * nmem * nmem * sizeof(float));
+                    memcpy(X5jj1[0], X5jj2[0], ni * nmem_dynamic * nmem * sizeof(float));
+                    memcpy(X5jj[0], X5jj2[0], ni * nmem_dynamic * nmem * sizeof(float));
                     if (jj < nj - 1) {
                         start[0] = (jj + 1) % nj;
                         ncw_get_vara_float(ncid, varid, start, count, X5jj2[0]);
@@ -178,7 +180,7 @@ static void das_updatefields(dasystem* das, int nfields, void** fieldbuffer, fie
                         float* X5jj1ii = X5jj1[ii];
                         float* X5jj2ii = X5jj2[ii];
 
-                        for (e = 0; e < nmem * nmem; ++e)
+                        for (e = 0; e < nmem_dynamic * nmem; ++e)
                             X5jjii[e] = X5jj1ii[e] * weight1 + X5jj2ii[e] * weight2;
                     }
                 }
@@ -186,7 +188,7 @@ static void das_updatefields(dasystem* das, int nfields, void** fieldbuffer, fie
                 for (ii = 0, i = 0; ii < ni; ++ii) {
                     for (stepi = 0; stepi < stride && i < mni; ++stepi, ++i) {
                         if (stepi == 0) {
-                            memcpy(X5j[i], X5jj[ii], nmem * nmem * sizeof(float));
+                            memcpy(X5j[i], X5jj[ii], nmem_dynamic * nmem * sizeof(float));
                         } else {
                             float weight2 = (float) stepi / (float) stride;
                             float weight1 = 1.0f - weight2;
@@ -198,7 +200,7 @@ static void das_updatefields(dasystem* das, int nfields, void** fieldbuffer, fie
                                 X5jjii2 = X5jj[ii + 1];
                             else
                                 X5jjii2 = X5jj[(periodic_i) ? (ii + 1) % ni : ii];
-                            for (e = 0; e < nmem * nmem; ++e)
+                            for (e = 0; e < nmem_dynamic * nmem; ++e)
                                 X5ji[e] = X5jjii1[e] * weight1 + X5jjii2[e] * weight2;
                         }
                     }
@@ -279,11 +281,11 @@ static void das_updatefields(dasystem* das, int nfields, void** fieldbuffer, fie
                     /*
                      * E_a(i, :) = E_f(i, :) * X5 
                      */
-                    sgemv_(&do_T, &nmem, &nmem, &alpha, X5j[i], &nmem, v_f, &inc, &beta, v_a, &inc);
+                    sgemv_(&do_T, &nmem, &nmem_dynamic, &alpha, X5j[i], &nmem, v_f, &inc, &beta, v_a, &inc);
 
-                    for (e = 0; e < nmem; ++e)
+                    for (e = 0; e < nmem_dynamic; ++e)
                         v1_a += v_a[e];
-                    v1_a /= (double) nmem;
+                    v1_a /= (double) nmem_dynamic;
 
                     if (!isnan(inf_ratio)) {
                         double v1_f = 0.0;
@@ -291,21 +293,21 @@ static void das_updatefields(dasystem* das, int nfields, void** fieldbuffer, fie
                         double v2_a = 0.0;
                         double var_a, var_f;
 
-                        for (e = 0; e < nmem; ++e) {
+                        for (e = 0; e < nmem_dynamic; ++e) {
                             double ve = (double) v_f[e];
 
                             v1_f += ve;
                             v2_f += ve * ve;
                         }
-                        v1_f /= (double) nmem;
-                        var_f = v2_f / (double) nmem - v1_f * v1_f;
+                        v1_f /= (double) nmem_dynamic;
+                        var_f = v2_f / (double) nmem_dynamic - v1_f * v1_f;
 
-                        for (e = 0; e < nmem; ++e) {
+                        for (e = 0; e < nmem_dynamic; ++e) {
                             double ve = (double) v_a[e];
 
                             v2_a += ve * ve;
                         }
-                        var_a = v2_a / (double) nmem - v1_a * v1_a;
+                        var_a = v2_a / (double) nmem_dynamic - v1_a * v1_a;
 
                         if (var_a > 0) {
                             /*
@@ -322,14 +324,14 @@ static void das_updatefields(dasystem* das, int nfields, void** fieldbuffer, fie
                      * (do not inflate if inflation is about 1 or less than 1)
                      */
                     if (inflation - 1.0f > EPSF)
-                        for (e = 0; e < nmem; ++e)
+                        for (e = 0; e < nmem_dynamic; ++e)
                             v_a[e] = (v_a[e] - (float) v1_a) * inflation + (float) v1_a;
 
                     if (!(das->updatespec & UPDATE_OUTPUTINC))
-                        for (e = 0; e < nmem; ++e)
+                        for (e = 0; e < nmem_dynamic; ++e)
                             vvv[e][j][i] = v_a[e];
                     else
-                        for (e = 0; e < nmem; ++e)
+                        for (e = 0; e < nmem_dynamic; ++e)
                             vvv[e][j][i] = v_a[e] - v_f[e];
 
                     if (writeinflation)
@@ -571,8 +573,6 @@ static void das_writefields_direct(dasystem* das, int nfields, void** fieldbuffe
 {
     int i, e;
 
-    assert(das->mode == MODE_ENKF);
-
     if (!(das->updatespec & UPDATE_SEPARATEOUTPUT)) {
         for (i = 0; i < nfields; ++i) {
             field* f = &fields[i];
@@ -584,10 +584,10 @@ static void das_writefields_direct(dasystem* das, int nfields, void** fieldbuffe
             else
                 strncat(varname, "_inc", NC_MAX_NAME - 1);
 
-            for (e = 0; e < das->nmem; ++e) {
+            for (e = 0; e < das->nmem_dynamic; ++e) {
                 char fname[MAXSTRLEN];
 
-                das_getmemberfname(das, das->ensdir, f->varname, e + 1, fname);
+                das_getmemberfname(das, f->varname, e + 1, fname);
                 model_writefieldas(das->m, fname, varname, f->varname, f->level, ((float***) fieldbuffer[i])[e][0]);
             }
         }
@@ -595,10 +595,10 @@ static void das_writefields_direct(dasystem* das, int nfields, void** fieldbuffe
         for (i = 0; i < nfields; ++i) {
             field* f = &fields[i];
 
-            for (e = 0; e < das->nmem; ++e) {
+            for (e = 0; e < das->nmem_dynamic; ++e) {
                 char fname[MAXSTRLEN];
 
-                das_getmemberfname(das, das->ensdir, f->varname, e + 1, fname);
+                das_getmemberfname(das, f->varname, e + 1, fname);
                 if (!(das->updatespec & UPDATE_OUTPUTINC))
                     strncat(fname, ".analysis", MAXSTRLEN - 1);
                 else
@@ -683,7 +683,7 @@ static void das_writebg_direct(dasystem* das, int nfields, void** fieldbuffer, f
             char varname[NC_MAX_NAME];
             char fname[MAXSTRLEN];
 
-            das_getbgfname(das, das->bgdir, f->varname, fname);
+            das_getbgfname(das, f->varname, fname);
             strncpy(varname, f->varname, NC_MAX_NAME - 1);
             if (!(das->updatespec & UPDATE_OUTPUTINC))
                 strncat(varname, "_an", NC_MAX_NAME - 1);
@@ -696,7 +696,7 @@ static void das_writebg_direct(dasystem* das, int nfields, void** fieldbuffer, f
             field* f = &fields[i];
             char fname[MAXSTRLEN];
 
-            das_getbgfname(das, das->bgdir, f->varname, fname);
+            das_getbgfname(das, f->varname, fname);
             if (!(das->updatespec & UPDATE_OUTPUTINC))
                 strncat(fname, ".analysis", MAXSTRLEN - 1);
             else
@@ -765,7 +765,7 @@ static void das_assemblemembers(dasystem* das)
     MPI_Barrier(MPI_COMM_WORLD);
 #endif
 
-    distribute_iterations(0, das->nmem - 1, nprocesses, rank, "    ");
+    distribute_iterations(0, das->nmem_dynamic - 1, nprocesses, rank, "    ");
 
     for (i = 0; i < nvar; ++i) {
         char* varname = model_getvarname(m, i);
@@ -776,7 +776,7 @@ static void das_assemblemembers(dasystem* das)
         float* v = NULL;
 
         enkf_printf("    %s:", varname);
-        das_getmemberfname(das, das->ensdir, varname, 1, fname_dst);
+        das_getmemberfname(das, varname, 1, fname_dst);
         nlev = ncu_getnlevels(fname_dst, varname);
         strncpy(varname_dst, varname, NC_MAX_NAME - 1);
 
@@ -784,7 +784,7 @@ static void das_assemblemembers(dasystem* das)
         v = malloc(ni * nj * sizeof(float));
 
         for (e = my_first_iteration; e <= my_last_iteration; ++e) {
-            das_getmemberfname(das, das->ensdir, varname, e + 1, fname_dst);
+            das_getmemberfname(das, varname, e + 1, fname_dst);
             if (das->updatespec & UPDATE_SEPARATEOUTPUT) {
                 if (!(das->updatespec & UPDATE_OUTPUTINC))
                     strncat(fname_dst, ".analysis", MAXSTRLEN - 1);
@@ -833,7 +833,7 @@ static void das_assemblemembers(dasystem* das)
             char fname[MAXSTRLEN];
             int nlev, k;
 
-            das_getmemberfname(das, das->ensdir, varname, 1, fname);
+            das_getmemberfname(das, varname, 1, fname);
             nlev = ncu_getnlevels(fname, varname);
             for (k = 0; k < nlev; ++k) {
                 if (nlev > 1)
@@ -869,7 +869,7 @@ static void das_assemblebg(dasystem* das)
         float* v = NULL;
 
         enkf_printf("    %s:", varname);
-        das_getbgfname(das, das->bgdir, varname, fname_dst);
+        das_getbgfname(das, varname, fname_dst);
         nlev = ncu_getnlevels(fname_dst, varname);
         strncpy(varname_dst, varname, NC_MAX_NAME - 1);
 
@@ -956,8 +956,8 @@ void das_update(dasystem* das)
     if (rank == 0 && (das->updatespec | UPDATE_DOPLOGS))
         dir_createifabsent(DIRNAME_TMP);
     if (das->updatespec & UPDATE_DOFIELDS) {
-        if (das->mode == MODE_ENKF) {
-            distribute_iterations(0, das->nmem - 1, nprocesses, rank, "    ");
+        if (das->mode == MODE_ENKF || das->mode == MODE_HYBRID) {
+            distribute_iterations(0, das->nmem_dynamic - 1, nprocesses, rank, "    ");
 
             enkf_printtime("    ");
             enkf_printf("    allocating disk space for analysis:");
@@ -979,7 +979,7 @@ void das_update(dasystem* das)
                         else
                             strncat(varname_dst, "_inc", NC_MAX_NAME - 1);
 
-                        das_getmemberfname(das, das->ensdir, varname_src, e + 1, fname);
+                        das_getmemberfname(das, varname_src, e + 1, fname);
                         ncw_open(fname, NC_WRITE, &ncid);
                         if (!ncw_var_exists(ncid, varname_dst)) {
                             ncw_redef(ncid);
@@ -1001,7 +1001,7 @@ void das_update(dasystem* das)
                         int ncid_f, ncid_a;
                         int vid_f;
 
-                        das_getmemberfname(das, das->ensdir, varname, e + 1, fname_f);
+                        das_getmemberfname(das, varname, e + 1, fname_f);
                         ncw_open(fname_f, NC_NOWRITE, &ncid_f);
 
                         strncpy(fname_a, fname_f, MAXSTRLEN);
@@ -1054,7 +1054,7 @@ void das_update(dasystem* das)
                             strncat(varname_dst, "_an", NC_MAX_NAME - 1);
                         else
                             strncat(varname_dst, "_inc", NC_MAX_NAME - 1);
-                        das_getbgfname(das, das->bgdir, varname_src, fname);
+                        das_getbgfname(das, varname_src, fname);
                         ncw_open(fname, NC_WRITE, &ncid);
                         if (!ncw_var_exists(ncid, varname_dst)) {
                             ncw_redef(ncid);
@@ -1073,7 +1073,7 @@ void das_update(dasystem* das)
                         int ncid_f, ncid_a;
                         int vid_f;
 
-                        das_getbgfname(das, das->bgdir, varname, fname_f);
+                        das_getbgfname(das, varname, fname_f);
                         ncw_open(fname_f, NC_NOWRITE, &ncid_f);
 
                         strncpy(fname_a, fname_f, MAXSTRLEN);
@@ -1145,8 +1145,14 @@ void das_update(dasystem* das)
         } else if (das->mode == MODE_ENOI) {
             for (i = 0; i < das->fieldbufsize; ++i)
                 fieldbuffer[i] = alloc3d(das->nmem + 1, mnj, mni, sizeof(float));
+        } else if (das->mode == MODE_HYBRID) {
+            /*
+             * allocate two additional members to calculate ensemble mean with
+             * double precision
+             */
+            for (i = 0; i < das->fieldbufsize; ++i)
+                fieldbuffer[i] = alloc3d(das->nmem + 2, mnj, mni, sizeof(float));
         }
-
         for (fid = my_first_iteration; fid <= my_last_iteration; ++fid) {
             int bufid = (fid - my_first_iteration) % das->fieldbufsize;
             field* f = &fields[fid];
@@ -1159,8 +1165,16 @@ void das_update(dasystem* das)
             }
 
             for (e = 0; e < das->nmem; ++e) {
-                das_getmemberfname(das, das->ensdir, f->varname, e + 1, fname);
+                das_getmemberfname(das, f->varname, e + 1, fname);
                 model_readfield(das->m, fname, f->varname, f->level, ((float***) fieldbuffer[bufid])[e][0]);
+            }
+
+            if (das->mode == MODE_HYBRID) {
+                float* v[das->nmem + 1];
+
+                for (e = 0; e < das->nmem + 1; ++e)
+                    v[e] = ((float***) fieldbuffer[bufid])[e][0];
+                das_sethybridensemble(das, mni * mnj, v);
             }
 
             /*
@@ -1168,7 +1182,7 @@ void das_update(dasystem* das)
              * whether output is increment or analysis
              */
             if (das->mode == MODE_ENOI && (das->updatespec & (UPDATE_DOFIELDS | UPDATE_DOANALYSISSPREAD | UPDATE_DOPLOGSAN | UPDATE_DOINFLATION))) {
-                das_getbgfname(das, das->bgdir, f->varname, fname);
+                das_getbgfname(das, f->varname, fname);
                 model_readfield(das->m, fname, f->varname, f->level, ((float***) fieldbuffer[bufid])[das->nmem][0]);
             }
 
@@ -1196,7 +1210,7 @@ void das_update(dasystem* das)
                 }
 
                 if (das->updatespec & (UPDATE_DOFIELDS | UPDATE_DOANALYSISSPREAD | UPDATE_DOPLOGSAN | UPDATE_DOINFLATION)) {
-                    if (das->mode == MODE_ENKF) {
+                    if (das->mode == MODE_ENKF || das->mode == MODE_HYBRID) {
                         das_updatefields(das, bufid + 1, fieldbuffer, &fields[fid - bufid]);
                         if (das->updatespec & UPDATE_DOFIELDS)
                             das_writefields(das, bufid + 1, fieldbuffer, &fields[fid - bufid]);
@@ -1215,7 +1229,7 @@ void das_update(dasystem* das)
                 /*
                  * write analysis spread
                  */
-                if (das->updatespec & UPDATE_DOANALYSISSPREAD && das->mode == MODE_ENKF)
+                if (das->updatespec & UPDATE_DOANALYSISSPREAD && (das->mode == MODE_ENKF || das->mode == MODE_HYBRID))
                     das_writespread(das, bufid + 1, fieldbuffer, &fields[fid - bufid], 1);
                 /*
                  * write analysis variables to point logs
@@ -1240,7 +1254,7 @@ void das_update(dasystem* das)
         if (das->updatespec & UPDATE_DOFIELDS) {
             enkf_printtime("  ");
             enkf_printf("  assembling analysis:\n");
-            if (das->mode == MODE_ENKF)
+            if (das->mode == MODE_ENKF || das->mode == MODE_HYBRID)
                 das_assemblemembers(das);
             else if (das->mode == MODE_ENOI)
                 das_assemblebg(das);

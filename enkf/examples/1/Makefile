@@ -13,6 +13,8 @@ pointlogs: pointlogs-calc pointlogs-update
 
 global: clean enkf-prep enkf-calc-global enkf-update-global
 
+hybrid: clean hybrid-prep hybrid-calc hybrid-update
+
 enkf-prep: enkf_prep conf obs enkf.prm
 	./enkf_prep enkf.prm 2>&1 | tee prep.out
 
@@ -58,6 +60,15 @@ enkf-calc-global: enkf_calc observations.nc conf ensemble_6565
 enkf-update-global: enkf_update X5.nc conf ensemble_6565
 	nice -n +19 mpirun -np $(NP_UPDATE) ./enkf_update --calculate-spread --write-inflation enkf-global.prm 2>&1 | tee update.out
 	rm -f ensemble_6565/mem*_*-???.nc
+
+hybrid-prep: enkf_prep conf obs hybrid.prm
+	./enkf_prep enkf.prm 2>&1 | tee prep.out
+
+hybrid-calc: enkf_calc observations.nc conf ensemble_6565 ensemble_static
+	nice -n +19 mpirun -np $(NP_CALC) ./enkf_calc hybrid.prm 2>&1 | tee calc.out
+
+hybrid-update: enkf_update X5.nc conf ensemble_6565 ensemble_static
+	nice -n +19 mpirun -np $(NP_UPDATE) ./enkf_update --calculate-spread --write-inflation --calculate-vertical-correlations --output-increment hybrid.prm 2>&1 | tee update.out
 
 enkf_prep:
 	cp ../../bin/enkf_prep .

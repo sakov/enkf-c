@@ -1,3 +1,7 @@
+v2.0.0beta
+   PS 22102020
+   -- Added mode MODE_HYBRID for using hybrid dynamic/static ensemble. See
+      examples/1/hybrid.prm for an example.
 v1.118.1
    PS 08102020
    -- Improved handling of situations when due to roundup errors the

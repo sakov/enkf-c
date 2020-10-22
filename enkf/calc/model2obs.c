@@ -198,31 +198,33 @@ void H_surf_biased(dasystem* das, int nobs, int obsids[], char fname[], int mem,
     src = alloc2d(nj, ni, sizeof(float));
     src0 = src[0];
 
-    bias = malloc(nv * sizeof(float));
-    if (das->mode == MODE_ENKF)
-        das_getmemberfname(das, das->ensdir, ot->varnames[1], mem, fname2);
-    else if (das->mode == MODE_ENOI)
-        das_getbgfname(das, das->bgdir, ot->varnames[1], fname2);
-    model_readfield(m, fname2, ot->varnames[1], ksurf, bias);
-
     model_readfield(m, fname, ot->varnames[0], ksurf, src0);
 
     snprintf(tag_offset, MAXSTRLEN, "%s:OFFSET", allobs->obstypes[allobs->data[obsids[0]].type].name);
     offset = model_getdata(m, tag_offset);
-
     if (offset != NULL) {
         float* offset0 = offset[0];
 
         assert(model_getdataalloctype(m, tag_offset) == ALLOCTYPE_2D);
         for (i = 0; i < nv; ++i)
-            src0[i] -= offset0[i] + bias[i];
-    } else
+            src0[i] -= offset0[i];
+    }
+
+    if (das->mode != MODE_HYBRID || mem <= das->nmem_dynamic) {
+        bias = malloc(nv * sizeof(float));
+        if (das->mode == MODE_ENKF || das->mode == MODE_HYBRID)
+            das_getmemberfname(das, ot->varnames[1], mem, fname2);
+        else if (das->mode == MODE_ENOI)
+            das_getbgfname(das, ot->varnames[1], fname2);
+        model_readfield(m, fname2, ot->varnames[1], ksurf, bias);
+
         for (i = 0; i < nv; ++i)
             src0[i] -= bias[i];
+        free(bias);
+    }
 
     evaluate_2d_obs(m, allobs, nobs, obsids, fname, src, dst);
 
-    free(bias);
     free(src);
 }
 
@@ -470,76 +472,79 @@ void H_subsurf_wsurfbias(dasystem* das, int nobs, int obsids[], char fname[], in
     interpolate_3d_obs(m, allobs, nobs, obsids, fname, src, dst);
 
     /*
-     * now correct for the surface bias
+     * now correct for surface bias
      */
-    bias = alloc2d(nj, ni, sizeof(float));
-    if (das->mode == MODE_ENKF)
-        das_getmemberfname(das, das->ensdir, ot->varnames[1], mem, fname2);
-    else if (das->mode == MODE_ENOI)
-        das_getbgfname(das, das->bgdir, ot->varnames[1], fname2);
-    assert(ncu_getnD(fname2, ot->varnames[1]) == 2);
-    model_readfield(m, fname2, ot->varnames[1], 0, bias[0]);
+    if (das->mode != MODE_HYBRID || mem <= das->nmem_dynamic) {
+        bias = alloc2d(nj, ni, sizeof(float));
+        if (das->mode == MODE_ENKF || das->mode == MODE_HYBRID)
+            das_getmemberfname(das, ot->varnames[1], mem, fname2);
+        else if (das->mode == MODE_ENOI)
+            das_getbgfname(das, ot->varnames[1], fname2);
+        assert(ncu_getnD(fname2, ot->varnames[1]) == 2);
 
-    if (isnan(ot->mld_threshold) && ot->mld_varname == NULL)
-        enkf_quit("\"MLD_THRESH\" or \"MLD_VARNAME\" must be specified for observation type \"%s\" to use H function \"wsurfbias\"", ot->name);
-    if (!isnan(ot->mld_threshold) && ot->mld_varname != NULL)
-        enkf_quit("both \"MLD_THRESH\" and \"MLD_VARNAME\" are specified for observation type \"%s\"", ot->name);
-    mld = alloc2d(nj, ni, sizeof(float));
-    if (ot->mld_varname != NULL) {
-        char fname_mld[MAXSTRLEN];
+        model_readfield(m, fname2, ot->varnames[1], 0, bias[0]);
 
-        if (model_getvarid(m, ot->mld_varname, 0) < 0)
-            enkf_quit("\"MLD_VARNAME = %s\" for observation type \"%s\" does not exist among model variables", ot->mld_varname, ot->name);
-        if (das->mode == MODE_ENKF) {
-            das_getmemberfname(das, das->ensdir, ot->mld_varname, mem, fname_mld);
-            model_readfield(m, fname_mld, ot->mld_varname, 0, mld[0]);
-        } else if (das->mode == MODE_ENOI) {
-            das_getbgfname(das, das->bgdir, ot->mld_varname, fname_mld);
-            model_readfield(m, fname_mld, ot->mld_varname, 0, mld[0]);
-        }
-    } else {
-        if (das->mode == MODE_ENKF)
-            das_calcmld(das, ot, src, mld);
-        else if (das->mode == MODE_ENOI) {
-            char tag[MAXSTRLEN];
+        if (isnan(ot->mld_threshold) && ot->mld_varname == NULL)
+            enkf_quit("\"MLD_THRESH\" or \"MLD_VARNAME\" must be specified for observation type \"%s\" to use H function \"wsurfbias\"", ot->name);
+        if (!isnan(ot->mld_threshold) && ot->mld_varname != NULL)
+            enkf_quit("both \"MLD_THRESH\" and \"MLD_VARNAME\" are specified for observation type \"%s\"", ot->name);
+        mld = alloc2d(nj, ni, sizeof(float));
+        if (ot->mld_varname != NULL) {
+            char fname_mld[MAXSTRLEN];
 
-            snprintf(tag, MAXSTRLEN, "%s:MLD", ot->name);
-            if (mem <= 0) {     /* background */
-                das_calcmld(das, ot, src, mld);
-                model_addorreplacedata(m, tag, mvid, ALLOCTYPE_2D, mld);
-            } else              /* members */
-                mld = model_getdata(m, tag);
-        } else
-            enkf_quit("programming error");
-    }
-
-    {
-        double fi_prev = DBL_MAX;
-        double fj_prev = DBL_MAX;
-        double vmld = NAN, vbias = NAN;
-
-        for (i = 0; i < nobs; ++i) {
-            size_t ii = obsids[i];
-            observation* o = &allobs->data[ii];
-
-            if (fabs(fi_prev - o->fi) > EPS_IJ || fabs(fj_prev - o->fj) > EPS_IJ) {
-                vmld = interpolate2d(o->fi, o->fj, ni, nj, mld, mask, periodic_i);
-                vbias = interpolate2d(o->fi, o->fj, ni, nj, bias, mask, periodic_i);
-                fi_prev = o->fi;
-                fj_prev = o->fj;
+            if (model_getvarid(m, ot->mld_varname, 0) < 0)
+                enkf_quit("\"MLD_VARNAME = %s\" for observation type \"%s\" does not exist among model variables", ot->mld_varname, ot->name);
+            if (das->mode == MODE_ENKF || das->mode == MODE_HYBRID) {
+                das_getmemberfname(das, ot->mld_varname, mem, fname_mld);
+                model_readfield(m, fname_mld, ot->mld_varname, 0, mld[0]);
+            } else if (das->mode == MODE_ENOI) {
+                das_getbgfname(das, ot->mld_varname, fname_mld);
+                model_readfield(m, fname_mld, ot->mld_varname, 0, mld[0]);
             }
+        } else {
+            if (das->mode == MODE_ENKF || das->mode == MODE_HYBRID)
+                das_calcmld(das, ot, src, mld);
+            else if (das->mode == MODE_ENOI) {
+                char tag[MAXSTRLEN];
 
-            if (!isfinite(vmld))
-                continue;
-
-            assert(isfinite(vbias));
-            dst[ii] -= mldtaper(vmld, o->depth) * vbias;
+                snprintf(tag, MAXSTRLEN, "%s:MLD", ot->name);
+                if (mem <= 0) { /* background */
+                    das_calcmld(das, ot, src, mld);
+                    model_addorreplacedata(m, tag, mvid, ALLOCTYPE_2D, mld);
+                } else          /* members */
+                    mld = model_getdata(m, tag);
+            } else
+                enkf_quit("programming error");
         }
-    }
 
-    if (das->mode == MODE_ENKF)
-        free(mld);
-    free(bias);
+        {
+            double fi_prev = DBL_MAX;
+            double fj_prev = DBL_MAX;
+            double vmld = NAN, vbias = NAN;
+
+            for (i = 0; i < nobs; ++i) {
+                size_t ii = obsids[i];
+                observation* o = &allobs->data[ii];
+
+                if (fabs(fi_prev - o->fi) > EPS_IJ || fabs(fj_prev - o->fj) > EPS_IJ) {
+                    vmld = interpolate2d(o->fi, o->fj, ni, nj, mld, mask, periodic_i);
+                    vbias = interpolate2d(o->fi, o->fj, ni, nj, bias, mask, periodic_i);
+                    fi_prev = o->fi;
+                    fj_prev = o->fj;
+                }
+
+                if (!isfinite(vmld))
+                    continue;
+
+                assert(isfinite(vbias));
+                dst[ii] -= mldtaper(vmld, o->depth) * vbias;
+            }
+        }
+
+        if (das->mode == MODE_ENKF || das->mode == MODE_HYBRID)
+            free(mld);
+        free(bias);
+    }
     free(src);
 }
 

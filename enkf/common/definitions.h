@@ -61,6 +61,7 @@
 #define MODE_NONE 0
 #define MODE_ENKF 1
 #define MODE_ENOI 2
+#define MODE_HYBRID 3
 
 #define ALPHA_DEFAULT 1.0
 

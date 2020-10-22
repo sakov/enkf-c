@@ -51,11 +51,11 @@ void das_allocatespread(dasystem* das, char fname[])
         char* varname_src = model_getvarname(m, vid);
         int varid_src;
 
-        das_getmemberfname(das, das->ensdir, varname_src, 1, fname_src);
+        das_getmemberfname(das, varname_src, 1, fname_src);
         ncw_open(fname_src, NC_NOWRITE, &ncid_src);
         ncw_inq_varid(ncid_src, varname_src, &varid_src);
         ncw_copy_vardef(ncid_src, varid_src, ncid);
-        if (das->mode == MODE_ENKF && das->updatespec & UPDATE_DOANALYSISSPREAD) {
+        if ((das->mode == MODE_ENKF || das->mode == MODE_HYBRID) && das->updatespec & UPDATE_DOANALYSISSPREAD) {
             char varname_dst[NC_MAX_NAME];
 
             strcpy(varname_dst, varname_src);
@@ -77,8 +77,9 @@ void das_writespread(dasystem* das, int nfields, void** fieldbuffer, field field
 {
     char fname[MAXSTRLEN];
     model* m = das->m;
+    int nmem = (das->mode == MODE_HYBRID) ? das->nmem_dynamic : das->nmem;
     int ni, nj, nk;
-    int fid, e, i, nv;
+    int fid, e, i, nij;
     double* v1 = NULL;
     double* v2 = NULL;
     float*** v_src = NULL;
@@ -87,33 +88,33 @@ void das_writespread(dasystem* das, int nfields, void** fieldbuffer, field field
         strcpy(fname, FNAME_SPREAD);
 
     model_getvargridsize(m, fields[0].varid, &ni, &nj, &nk);
-    nv = ni * nj;
-    v1 = malloc(nv * sizeof(double));
-    v2 = malloc(nv * sizeof(double));
+    nij = ni * nj;
+    v1 = malloc(nij * sizeof(double));
+    v2 = malloc(nij * sizeof(double));
 
     for (fid = 0; fid < nfields; ++fid) {
         field* f = &fields[fid];
         char varname[NC_MAX_NAME];
 
         v_src = (float***) fieldbuffer[fid];
-        memset(v1, 0, nv * sizeof(double));
-        memset(v2, 0, nv * sizeof(double));
+        memset(v1, 0, nij * sizeof(double));
+        memset(v2, 0, nij * sizeof(double));
 
-        for (e = 0; e < das->nmem; ++e) {
+        for (e = 0; e < nmem; ++e) {
             float* v = v_src[e][0];
 
-            for (i = 0; i < nv; ++i) {
+            for (i = 0; i < nij; ++i) {
                 v1[i] += v[i];
                 v2[i] += v[i] * v[i];
             }
         }
 
-        for (i = 0; i < nv; ++i) {
-            v1[i] /= (double) das->nmem;
-            v2[i] = v2[i] / (double) das->nmem - v1[i] * v1[i];
+        for (i = 0; i < nij; ++i) {
+            v1[i] /= (double) nmem;
+            v2[i] = v2[i] / (double) nmem - v1[i] * v1[i];
             v2[i] = (v2[i] < 0.0) ? 0.0 : sqrt(v2[i]);
-            if (fabs(v2[i]) > (double) MAXOBSVAL)
-                v2[i] = NAN;
+            if (fabs(v1[i]) > (double) MAXOBSVAL)
+                v2[i] = 0.0;
         }
 
         strncpy(varname, f->varname, NC_MAX_NAME - 1);
@@ -139,9 +140,9 @@ void das_writespread(dasystem* das, int nfields, void** fieldbuffer, field field
             ncw_put_var_double(ncid, vid, v2);
             ncw_close(ncid);
         } else {
-            float* v = calloc(nv, sizeof(float));
+            float* v = calloc(nij, sizeof(float));
 
-            for (i = 0; i < nv; ++i)
+            for (i = 0; i < nij; ++i)
                 v[i] = (float) v2[i];
 
             model_writefieldas(m, fname, varname, f->varname, f->level, v);
@@ -170,7 +171,7 @@ void das_assemblespread(dasystem* das)
 
         enkf_printf("    %s:", varname);
         nlev = ncu_getnlevels(FNAME_SPREAD, varname);
-        if (das->mode == MODE_ENKF && das->updatespec & UPDATE_DOANALYSISSPREAD) {
+        if ((das->mode == MODE_ENKF || das->mode == MODE_HYBRID) && das->updatespec & UPDATE_DOANALYSISSPREAD) {
             strncpy(varname_an, varname, NC_MAX_NAME - 1);
             strncat(varname_an, "_an", NC_MAX_NAME - 1);
         }
@@ -195,7 +196,7 @@ void das_assemblespread(dasystem* das)
 
             model_writefield(m, FNAME_SPREAD, varname, k, v);
 
-            if (das->mode == MODE_ENKF && das->updatespec & UPDATE_DOANALYSISSPREAD) {
+            if ((das->mode == MODE_ENKF || das->mode == MODE_HYBRID) && das->updatespec & UPDATE_DOANALYSISSPREAD) {
                 if (nlev > 1)
                     getfieldfname(DIRNAME_TMP, "spread", varname_an, k, fname_src);
                 else
@@ -237,7 +238,7 @@ void das_allocateinflation(dasystem* das, char fname[])
         char* varname_src = model_getvarname(m, vid);
         int varid_src;
 
-        das_getmemberfname(das, das->ensdir, varname_src, 1, fname_src);
+        das_getmemberfname(das, varname_src, 1, fname_src);
         ncw_open(fname_src, NC_NOWRITE, &ncid_src);
         ncw_inq_varid(ncid_src, varname_src, &varid_src);
         ncw_copy_vardef(ncid_src, varid_src, ncid);
@@ -254,7 +255,7 @@ void das_allocateinflation(dasystem* das, char fname[])
  */
 void das_writeinflation(dasystem* das, field* f, int j, float* v)
 {
-    assert(das->mode == MODE_ENKF);
+    assert(das->mode == MODE_ENKF || das->mode == MODE_HYBRID);
 
     if (das->updatespec & UPDATE_DIRECTWRITE)
         ncu_writerow(FNAME_INFLATION, f->varname, f->level, j, v);
@@ -295,7 +296,7 @@ void das_assembleinflation(dasystem* das)
     int nvar = model_getnvar(m);
     int i;
 
-    assert(das->mode == MODE_ENKF);
+    assert(das->mode == MODE_ENKF || das->mode == MODE_HYBRID);
 
     for (i = 0; i < nvar; ++i) {
         char* varname = model_getvarname(m, i);
@@ -365,7 +366,7 @@ void das_writevcorrs(dasystem* das)
             char fname_src[MAXSTRLEN];
             int ncid_src, varid_src;
 
-            das_getmemberfname(das, das->ensdir, varname, 1, fname_src);
+            das_getmemberfname(das, varname, 1, fname_src);
             if (ncu_getnD(fname_src, varname) != 3)
                 continue;
 
@@ -399,7 +400,7 @@ void das_writevcorrs(dasystem* das)
         {
             char fname[MAXSTRLEN];
 
-            das_getmemberfname(das, das->ensdir, varname, 1, fname);
+            das_getmemberfname(das, varname, 1, fname);
             if (ncu_getnD(fname, varname) != 3)
                 continue;
         }
@@ -420,9 +421,13 @@ void das_writevcorrs(dasystem* das)
                     free(v);
                     free(cor);
                 }
-                v0 = alloc2d(das->nmem, nij, sizeof(float));
+                /*
+                 * for mode = MODE_HYBRID allocate two additional members to
+                 * calculate ensemble mean with double precision
+                 */
+                v0 = alloc2d((das->mode == MODE_HYBRID) ? das->nmem + 2 : das->nmem, nij, sizeof(float));
                 var0 = calloc(nij, sizeof(double));
-                v = alloc2d(das->nmem, nij, sizeof(float));
+                v = alloc2d((das->mode == MODE_HYBRID) ? das->nmem + 2 : das->nmem, nij, sizeof(float));
                 cor = calloc(nij, sizeof(double));
             }
 
@@ -430,9 +435,11 @@ void das_writevcorrs(dasystem* das)
             for (e = 0; e < das->nmem; ++e) {
                 char fname[MAXSTRLEN];
 
-                das_getmemberfname(das, das->ensdir, varname, e + 1, fname);
+                das_getmemberfname(das, varname, e + 1, fname);
                 model_readfield(das->m, fname, varname, ksurf, v0[e]);
             }
+            if (das->mode == MODE_HYBRID)
+                das_sethybridensemble(das, nij, v0);
             for (i = 0; i < nij; ++i) {
                 double vmean = 0.0;
 
@@ -453,9 +460,11 @@ void das_writevcorrs(dasystem* das)
          */
         k = f->level;
         for (e = 0; e < das->nmem; ++e) {
-            das_getmemberfname(das, das->ensdir, varname, e + 1, fname_src);
+            das_getmemberfname(das, varname, e + 1, fname_src);
             model_readfield(das->m, fname_src, varname, k, v[e]);
         }
+        if (das->mode == MODE_HYBRID)
+            das_sethybridensemble(das, nij, v);
         for (i = 0; i < nij; ++i) {
             double vmean = 0.0;
             double var = 0.0;
@@ -517,7 +526,7 @@ void das_writevcorrs(dasystem* das)
             {
                 char fname[MAXSTRLEN];
 
-                das_getmemberfname(das, das->ensdir, f->varname, 1, fname);
+                das_getmemberfname(das, f->varname, 1, fname);
                 if (ncu_getnD(fname, f->varname) != 3)
                     continue;
             }

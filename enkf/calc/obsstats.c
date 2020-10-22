@@ -322,7 +322,7 @@ void das_printfobsstats(dasystem* das, int use_rmsd)
     std_f_inst = malloc((ni + 1) * sizeof(double));
     nobs_inst = malloc((ni + 1) * sizeof(int));
 
-    if (das->mode == MODE_ENKF) {
+    if (das->mode == MODE_ENKF || das->mode == MODE_HYBRID) {
         enkf_printf("    region obs.type   # obs.  %cfor.inn.%c for.inn.   for.spread\n", (use_rmsd) ? '[' : '|', (use_rmsd) ? ']' : '|');
         enkf_printf("    ----------------------------------------------------------\n");
     } else {
@@ -366,7 +366,7 @@ void das_printfobsstats(dasystem* das, int use_rmsd)
                 if (nt > 1) {
                     inn_f_as = calloc(nt, sizeof(double));
                     inn_f_abs_as = calloc(nt, sizeof(double));
-                    if (das->mode == MODE_ENKF)
+                    if (das->mode == MODE_ENKF || das->mode == MODE_HYBRID)
                         std_f_as = calloc(nt, sizeof(double));
                     nobs_as = calloc(nt, sizeof(int));
                 }
@@ -387,7 +387,7 @@ void das_printfobsstats(dasystem* das, int use_rmsd)
                 if (o->type == otid && o->lat >= r->y1 && o->lat <= r->y2 && inloninterval(o->lon, r->x1, r->x2)) {
                     rstats.inn_f += das->s_f[j];
                     rstats.inn_f_abs += func(das->s_f[j]);
-                    if (das->mode == MODE_ENKF)
+                    if (das->mode == MODE_ENKF || das->mode == MODE_HYBRID)
                         rstats.std_f += das->std_f[j];
                     rstats.nobs++;
                     if (!ot->issurface) {
@@ -411,7 +411,7 @@ void das_printfobsstats(dasystem* das, int use_rmsd)
                             t = nt - 1;
                         inn_f_as[t] += das->s_f[j];
                         inn_f_abs_as[t] += func(das->s_f[j]);
-                        if (das->mode == MODE_ENKF)
+                        if (das->mode == MODE_ENKF || das->mode == MODE_HYBRID)
                             std_f_as[t] += das->std_f[j];
                         nobs_as[t]++;
                     }
@@ -419,13 +419,13 @@ void das_printfobsstats(dasystem* das, int use_rmsd)
                     if (o->instrument >= 0) {
                         inn_f_inst[o->instrument] += das->s_f[j];
                         inn_f_abs_inst[o->instrument] += func(das->s_f[j]);
-                        if (das->mode == MODE_ENKF)
+                        if (das->mode == MODE_ENKF || das->mode == MODE_HYBRID)
                             std_f_inst[o->instrument] += das->std_f[j];
                         nobs_inst[o->instrument]++;
                     } else {
                         inn_f_inst[ni] += das->s_f[j];
                         inn_f_abs_inst[ni] += func(das->s_f[j]);
-                        if (das->mode == MODE_ENKF)
+                        if (das->mode == MODE_ENKF || das->mode == MODE_HYBRID)
                             std_f_inst[ni] += das->std_f[j];
                         nobs_inst[ni]++;
                     }
@@ -435,11 +435,11 @@ void das_printfobsstats(dasystem* das, int use_rmsd)
             rstats.inn_f_abs /= (double) rstats.nobs;
             if (use_rmsd)
                 rstats.inn_f_abs = sqrt(rstats.inn_f_abs);
-            if (das->mode == MODE_ENKF)
+            if (das->mode == MODE_ENKF || das->mode == MODE_HYBRID)
                 rstats.std_f /= (double) rstats.nobs;
 
             if (rstats.nobs > 0) {
-                if (das->mode == MODE_ENKF)
+                if (das->mode == MODE_ENKF || das->mode == MODE_HYBRID)
                     enkf_printf("           %s      %8d%9.3f  %9.3f  %9.3f  \n", ot->name, rstats.nobs, rstats.inn_f_abs, rstats.inn_f, rstats.std_f);
                 else
                     enkf_printf("           %s      %8d%9.3f  %9.3f  \n", ot->name, rstats.nobs, rstats.inn_f_abs, rstats.inn_f);
@@ -451,9 +451,9 @@ void das_printfobsstats(dasystem* das, int use_rmsd)
                     inn_f_abs_as[t] /= (double) nobs_as[t];
                     if (use_rmsd)
                         inn_f_abs_as[t] = sqrt(inn_f_abs_as[t]);
-                    if (das->mode == MODE_ENKF)
+                    if (das->mode == MODE_ENKF || das->mode == MODE_HYBRID)
                         std_f_as[t] /= (double) nobs_as[t];
-                    if (das->mode == MODE_ENKF)
+                    if (das->mode == MODE_ENKF || das->mode == MODE_HYBRID)
                         enkf_printf("           %3d      %8d%9.3f  %9.3f  %9.3f  \n", t1 + t, nobs_as[t], inn_f_abs_as[t], inn_f_as[t], std_f_as[t]);
                     else
                         enkf_printf("           %3d      %8d%9.3f  %9.3f  \n", t1 + t, nobs_as[t], inn_f_abs_as[t], inn_f_as[t]);
@@ -469,9 +469,9 @@ void das_printfobsstats(dasystem* das, int use_rmsd)
                 inn_f_abs_inst[inst] /= (double) nobs_inst[inst];
                 if (use_rmsd)
                     inn_f_abs_inst[inst] = sqrt(inn_f_abs_inst[inst]);
-                if (das->mode == MODE_ENKF)
+                if (das->mode == MODE_ENKF || das->mode == MODE_HYBRID)
                     std_f_inst[inst] /= (double) nobs_inst[inst];
-                if (das->mode == MODE_ENKF)
+                if (das->mode == MODE_ENKF || das->mode == MODE_HYBRID)
                     enkf_printf("             %-7s%8d%9.3f  %9.3f  %9.3f  \n", (inst < ni) ? st_findstringbyindex(obs->instruments, inst) : "N/A", nobs_inst[inst], inn_f_abs_inst[inst], inn_f_inst[inst], std_f_inst[inst]);
                 else
                     enkf_printf("             %-7s%8d%9.3f  %9.3f  \n", (inst < ni) ? st_findstringbyindex(obs->instruments, inst) : "N/A", nobs_inst[inst], inn_f_abs_inst[inst], inn_f_inst[inst]);
@@ -488,11 +488,11 @@ void das_printfobsstats(dasystem* das, int use_rmsd)
                     s->inn_f_abs /= (double) s->nobs;
                     if (use_rmsd)
                         s->inn_f_abs = sqrt(s->inn_f_abs);
-                    if (das->mode == MODE_ENKF)
+                    if (das->mode == MODE_ENKF || das->mode == MODE_HYBRID)
                         s->std_f /= (double) s->nobs;
 
                     snprintf(tag, MAXSTRLEN, "%.0f-%.0fm", zints[ii].z1, zints[ii].z2);
-                    if (das->mode == MODE_ENKF)
+                    if (das->mode == MODE_ENKF || das->mode == MODE_HYBRID)
                         enkf_printf("             %-9s%6d%9.3f  %9.3f  %9.3f  \n", tag, s->nobs, s->inn_f_abs, s->inn_f, s->std_f);
                     else
                         enkf_printf("             %-9s%6d%9.3f  %9.3f  \n", tag, s->nobs, s->inn_f_abs, s->inn_f);
@@ -502,7 +502,7 @@ void das_printfobsstats(dasystem* das, int use_rmsd)
             if (ot->isasync && nt > 1) {
                 free(inn_f_as);
                 free(inn_f_abs_as);
-                if (das->mode == MODE_ENKF)
+                if (das->mode == MODE_ENKF || das->mode == MODE_HYBRID)
                     free(std_f_as);
                 free(nobs_as);
             }

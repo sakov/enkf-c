@@ -29,8 +29,31 @@ struct enkfprm {
     char* obstypeprm;
     char* obsprm;
 
+    /*
+     * Ensemble directory for mode = MODE_ENKF or mode = MODE_ENOI. Directory of
+     * the dynamic ensemble for mode = MODE_HYBRID.
+     */
     char* ensdir;
+    /*
+     * directory of the static ensemble for mode = MODE_HYBRID
+     */
+    char* ensdir2;
+    /*
+     * total ensemble size
+     */
     int enssize;
+    /*
+     * size of the dynamic ensemble
+     */
+    int enssize_dynamic;
+    /*
+     * size of the static ensemble
+     */
+    int enssize_static;
+    /*
+     * mixing coefficient for hybrid covariance
+     */
+    double gamma;
     char* bgdir;
 
     double kfactor;

@@ -40,9 +40,13 @@ typedef struct {
     int scheme;
     double alpha;               /* moderating multiple */
     char* ensdir;
+    char* ensdir2;              /* static ens. for mode = MODE_STATIC */
     char* bgdir;
 
-    int nmem;
+    int nmem;                   /* total size of the ensemble */
+    int nmem_dynamic;           /* size of the dynamic ensemble */
+    int nmem_static;            /* size of the static ensemble */
+    double gamma;               /* mixing coefficient: P = P_d + gamma P_s */
 
     model* m;
 
@@ -146,10 +150,11 @@ void plog_definestatevars(dasystem* das);
 void plog_writestatevars(dasystem* das, int nfields, void** fieldbuffer, field* fields, int isanalysis);
 void plog_assemblestatevars(dasystem* das);
 
-void das_getmemberfname(dasystem* das, char ensdir[], char varname[], int mem, char fname[]);
-int das_getmemberfname_async(dasystem* das, char ensdir[], obstype* ot, int mem, int t, char fname[]);
-void das_getbgfname(dasystem* das, char ensdir[], char varname[], char fname[]);
-int das_getbgfname_async(dasystem* das, char bgdir[], obstype* ot, int t, char fname[]);
+void das_getmemberfname(dasystem* das, char varname[], int mem, char fname[]);
+int das_getmemberfname_async(dasystem* das, obstype* ot, int mem, int t, char fname[]);
+void das_getbgfname(dasystem* das, char varname[], char fname[]);
+int das_getbgfname_async(dasystem* das, obstype* ot, int t, char fname[]);
+void das_sethybridensemble(dasystem* das, int nij, float** v);
 
 #define _DASYSTEM_H
 #endif

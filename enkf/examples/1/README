@@ -79,6 +79,10 @@ TESTING GLOBAL ENKF ANALYSIS
 Setting "LOCRAD 1e6" and "STRIDE 999999" effectively results in conducting a
 global analysis. Run "make global" to test.
 
+TESTING HYBRID covariance.
+
+Run "make hybrid".
+
 --
 
 To clean up the analysis, run "make clean".
