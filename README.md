@@ -7,7 +7,7 @@ Following are its other main features:
 
 - model-agnostic;
 
-- can conduct DA either in EnKF or ensemble optimal interpolation (EnOI) mode;
+- can conduct DA in EnKF, ensemble optimal interpolation (EnOI), or hybrid EnKF/EnOI modes;
 
 - permits multiple model grids;
 
