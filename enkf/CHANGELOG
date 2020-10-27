@@ -1,3 +1,9 @@
+v2.0.2beta
+   PS 22102020
+   -- Bug fix in das_setnmem().
+v2.0.1beta
+   PS 22102020
+   -- Bug fix in das_calctransforms().
 v2.0.0beta
    PS 22102020
    -- Added mode MODE_HYBRID for using hybrid dynamic/static ensemble. See

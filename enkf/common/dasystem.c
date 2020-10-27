@@ -96,8 +96,8 @@ static void das_setnmem(dasystem* das)
                 enkf_quit("das_setnmem(): could not find \"%s\"", fname);
             if (nmem > das->nmem)
                 enkf_printf("    %d members found on disk; ignoring excess to specified ensemble size = %d\n", nmem, das->nmem);
-        }
-        das->nmem = nmem;
+        } else
+            das->nmem = nmem;
         if (nmem == 1)
             enkf_quit("only 1 member found; need at least 2 members to continue");
         if (das->mode == MODE_ENKF) {
