@@ -559,7 +559,7 @@ void das_calctransforms(dasystem* das)
                         /*
                          * set X5 = I 
                          */
-                        memset(X5j[ii], 0, nmem_dynamic * nmem * sizeof(float));
+                        memset(X5j[ii][0], 0, nmem_dynamic * nmem * sizeof(float));
                         for (e = 0; e < nmem_dynamic; ++e)
                             X5j[ii][e][e] = (float) 1.0;
                     } else if (das->mode == MODE_ENOI)
