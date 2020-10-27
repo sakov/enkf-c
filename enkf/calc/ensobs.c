@@ -120,24 +120,26 @@ void das_getHE(dasystem* das)
      * Allocate das->St in shared memory on each compute node. Allocate the
      * whole block on CPU with sm_comm_rank = 0.
      */
-    size = nmem * nobs * sizeof(float);
-    enkf_printf("    allocating %zu bytes for HE^T array:\n", size);
+    if (!enkf_fstatsonly) {
+        size = nmem * nobs * sizeof(float);
+        enkf_printf("    allocating %zu bytes for HE^T array:\n", size);
 
-    ierror = MPI_Win_allocate_shared((sm_comm_rank == 0) ? size : 0, sizeof(float), MPI_INFO_NULL, sm_comm, &SSt, &das->sm_comm_win_St);
-    assert(ierror == MPI_SUCCESS);
-    if (sm_comm_rank == 0)
-        memset(SSt, 0, size);
-    else {
-        int disp_unit;
-        MPI_Aint my_size;
-
-        ierror = MPI_Win_shared_query(das->sm_comm_win_St, 0, &my_size, &disp_unit, &SSt);
+        ierror = MPI_Win_allocate_shared((sm_comm_rank == 0) ? size : 0, sizeof(float), MPI_INFO_NULL, sm_comm, &SSt, &das->sm_comm_win_St);
         assert(ierror == MPI_SUCCESS);
-        assert(my_size == size);
-        assert(disp_unit == sizeof(float));
+        if (sm_comm_rank == 0)
+            memset(SSt, 0, size);
+        else {
+            int disp_unit;
+            MPI_Aint my_size;
+
+            ierror = MPI_Win_shared_query(das->sm_comm_win_St, 0, &my_size, &disp_unit, &SSt);
+            assert(ierror == MPI_SUCCESS);
+            assert(my_size == size);
+            assert(disp_unit == sizeof(float));
+        }
+        MPI_Win_fence(0, das->sm_comm_win_S);
+        MPI_Barrier(sm_comm);
     }
-    MPI_Win_fence(0, das->sm_comm_win_S);
-    MPI_Barrier(sm_comm);
 
     /*
      * set addresses of column vectors of the 2D array das->St

@@ -1,3 +1,6 @@
+v2.0.3beta
+   PS 28102020
+   -- In das_getHE() - do not allocate das->St if enkf_fstatsonly = 1.
 v2.0.2beta
    PS 28102020
    -- Bug fix in das_setnmem().
