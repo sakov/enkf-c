@@ -234,6 +234,8 @@ dasystem* das_create(enkfprm* prm)
 #endif
 #if defined(USE_SHMEM)
     das->sm_comm_win_S = MPI_WIN_NULL;
+    das->sm_comm_win_St = MPI_WIN_NULL;
+    das->S = NULL;
     das->St = NULL;
 #endif
     if (!enkf_fstatsonly)
