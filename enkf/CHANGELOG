@@ -1,3 +1,7 @@
+v2.0.4
+   PS 28102020
+   -- Skip initialisation of pointlogs in CALC and UPDATE if not necessary.
+   -- Removed "beta" after testing mode = hybrid with real system.
 v2.0.3beta
    PS 28102020
    -- In das_getHE() - do not allocate das->St if enkf_fstatsonly = 1.
@@ -731,7 +735,7 @@ v1.97.1
       Thanks to Prasanth Divarkan for the report.
 v1.97.0
    PS 03042019
-   -- Added an optional trtentry STATSONLY to obstypes parameter file.
+   -- Added an optional entry STATSONLY to obstypes parameter file.
 v1.96.3
    PS 28032019
    -- Eliminated seeding drand48 from a fixed seed in shuffle(), both in

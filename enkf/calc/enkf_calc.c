@@ -325,6 +325,9 @@ int main(int argc, char* argv[])
     prm = enkfprm_read(fname_prm);
     enkfprm_print(prm, "    ");
 
+    if (enkf_fstatsonly)
+        enkf_doplogs = 0;
+
     enkf_printf("  initialising the system:\n");
     das = das_create(prm);
 

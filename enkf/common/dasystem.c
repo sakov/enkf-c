@@ -265,71 +265,73 @@ dasystem* das_create(enkfprm* prm)
     /*
      * initialise pointlogs
      */
-    enkf_printf("  initialising pointlogs:\n");
-    das->plogs = malloc(sizeof(pointlog) * prm->nplog);
-    das->nplog = prm->nplog;
-    ngrid = model_getngrid(das->m);
-    for (i = 0; i < prm->nplog; ++i) {
-        pointlog* src = &prm->plogs[i];
-        pointlog* dst = &das->plogs[i];
-        int gid;
+    if (enkf_doplogs) {
+        enkf_printf("  initialising pointlogs:\n");
+        das->plogs = malloc(sizeof(pointlog) * prm->nplog);
+        das->nplog = prm->nplog;
+        ngrid = model_getngrid(das->m);
+        for (i = 0; i < prm->nplog; ++i) {
+            pointlog* src = &prm->plogs[i];
+            pointlog* dst = &das->plogs[i];
+            int gid;
 
-        enkf_printf("    pointlog (%.3f, %.3f):\n", src->lon, src->lat);
+            enkf_printf("    pointlog (%.3f, %.3f):\n", src->lon, src->lat);
 
-        dst->id = src->id;
-        dst->lon = src->lon;
-        dst->lat = src->lat;
-        if (src->gridname != NULL) {
-            dst->gridname = strdup(src->gridname);
-            dst->gridid = grid_getid(model_getgridbyname(das->m, dst->gridname));
-        } else {
-            dst->gridname = NULL;
-            dst->gridid = -1;
-        }
-
-        dst->fi = malloc(ngrid * sizeof(double));
-        dst->fj = malloc(ngrid * sizeof(double));
-        for (gid = 0; gid < model_getngrid(das->m); ++gid) {
-            grid* g = model_getgridbyid(das->m, gid);
-
-            if (dst->gridid >= 0 && dst->gridid != gid) {
-                dst->fi[gid] = NAN;
-                dst->fj[gid] = NAN;
-                continue;
+            dst->id = src->id;
+            dst->lon = src->lon;
+            dst->lat = src->lat;
+            if (src->gridname != NULL) {
+                dst->gridname = strdup(src->gridname);
+                dst->gridid = grid_getid(model_getgridbyname(das->m, dst->gridname));
+            } else {
+                dst->gridname = NULL;
+                dst->gridid = -1;
             }
+
+            dst->fi = malloc(ngrid * sizeof(double));
+            dst->fj = malloc(ngrid * sizeof(double));
+            for (gid = 0; gid < model_getngrid(das->m); ++gid) {
+                grid* g = model_getgridbyid(das->m, gid);
+
+                if (dst->gridid >= 0 && dst->gridid != gid) {
+                    dst->fi[gid] = NAN;
+                    dst->fj[gid] = NAN;
+                    continue;
+                }
 #if defined(ENKF_CALC)
-            if (grid_xy2fij(g, src->lon, src->lat, &dst->fi[gid], &dst->fj[gid]) != STATUS_OK && gid == dst->gridid)
-                enkf_printf("  WARNING: %s: POINTLOG %f %f: point outside the grid \"%s\"\n", das->prmfname, dst->lon, dst->lat, dst->gridname);
-#elif defined(ENKF_UPDATE)
-            if (das->updatespec & UPDATE_DOPLOGSAN) {
-                char fname[MAXSTRLEN];
-                int ncid, varid;
-                char gridstr[SMALLSTRLEN];
-                char varname[NC_MAX_NAME];
-
-                das_getfname_plog(das, dst, fname);
-                assert(file_exists(fname));
-
-                ncw_open(fname, NC_NOWRITE, &ncid);
-                get_gridstr(das, gid, gridstr);
-                snprintf(varname, NC_MAX_NAME, "grid%s", gridstr);
-                ncw_inq_varid(ncid, varname, &varid);
-                ncw_get_att_double(ncid, varid, "fi", &dst->fi[gid]);
-                ncw_get_att_double(ncid, varid, "fj", &dst->fj[gid]);
-                ncw_close(ncid);
-                if (isnan(dst->fi[gid] + dst->fj[gid]) && gid == dst->gridid)
+                if (grid_xy2fij(g, src->lon, src->lat, &dst->fi[gid], &dst->fj[gid]) != STATUS_OK && gid == dst->gridid)
                     enkf_printf("  WARNING: %s: POINTLOG %f %f: point outside the grid \"%s\"\n", das->prmfname, dst->lon, dst->lat, dst->gridname);
-            }
+#elif defined(ENKF_UPDATE)
+                if (das->updatespec & UPDATE_DOPLOGSAN) {
+                    char fname[MAXSTRLEN];
+                    int ncid, varid;
+                    char gridstr[SMALLSTRLEN];
+                    char varname[NC_MAX_NAME];
+
+                    das_getfname_plog(das, dst, fname);
+                    assert(file_exists(fname));
+
+                    ncw_open(fname, NC_NOWRITE, &ncid);
+                    get_gridstr(das, gid, gridstr);
+                    snprintf(varname, NC_MAX_NAME, "grid%s", gridstr);
+                    ncw_inq_varid(ncid, varname, &varid);
+                    ncw_get_att_double(ncid, varid, "fi", &dst->fi[gid]);
+                    ncw_get_att_double(ncid, varid, "fj", &dst->fj[gid]);
+                    ncw_close(ncid);
+                    if (isnan(dst->fi[gid] + dst->fj[gid]) && gid == dst->gridid)
+                        enkf_printf("  WARNING: %s: POINTLOG %f %f: point outside the grid \"%s\"\n", das->prmfname, dst->lon, dst->lat, dst->gridname);
+                }
 #else
-            enkf_quit("programming error");
+                enkf_quit("programming error");
 #endif
-            enkf_printf("      %s: (i, j) = (%.3f, %.3f)\n", grid_getname(g), dst->fi[gid], dst->fj[gid]);
+                enkf_printf("      %s: (i, j) = (%.3f, %.3f)\n", grid_getname(g), dst->fi[gid], dst->fj[gid]);
+            }
+            for (gid = 0; gid < model_getngrid(das->m); ++gid)
+                if (!isnan(dst->fi[gid] + dst->fj[gid]))
+                    break;
+            if (gid == model_getngrid(das->m))
+                enkf_quit("%s: POINTLOG %f %f: point outside all grids\n", das->prmfname, dst->lon, dst->lat);
         }
-        for (gid = 0; gid < model_getngrid(das->m); ++gid)
-            if (!isnan(dst->fi[gid] + dst->fj[gid]))
-                break;
-        if (gid == model_getngrid(das->m))
-            enkf_quit("%s: POINTLOG %f %f: point outside all grids\n", das->prmfname, dst->lon, dst->lat);
     }
 
     /*
