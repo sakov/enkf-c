@@ -602,6 +602,7 @@ The EnOI can account for the time of observations by calculating innovation usin
 This approach is commonly known as ``first guess at appropriate time'', or FGAT.
 
 \section{EnOI/EnKF hybrid}
+\label{sec:hybrid-theory}
 
 By EnOI/EnKF hybrid we understand formulation in which forecast state error covariance is assumed to be equal to a sum of the ``dynamic'' covariance carried by the EnKF ensemble, and ``static'' covariance carried by a pre-defined ensemble of anomalies:
 \begin{align}
@@ -1628,14 +1629,14 @@ INFLATION = 1.06 PLAIN
 The common inflation settings in the main parameter file can be overwritten by settings for particular model variables specified in the model parameter file (sec.~\ref{sec:modelprm}).
 
 \section{Hybrid covariance}
-\label{sec:hybrid}
+\label{sec:hybrid-enkfc}
 
-From v2.0.0 EnKF-C makes it possible using hybrid state error covariance by combining covariances from an EnKF ensemble and another predefined ensemble of anomalies (see sec.~\ref{sec:mainprm}).
-The formal side is described in section \ref{sec:hybrid}.
-This option is activated by specifying \verb|METHOD = HYBRID| in the main parameter file, the directory of the static ensemble, and the mixing coefficient:
+From v2.0.0 EnKF-C makes it possible using hybrid state error covariance by combining covariances from the EnKF ensemble and an ensemble of static anomalies (sec.~\ref{sec:hybrid-theory}).
+This option is activated by specifying \verb|METHOD = HYBRID| in the main parameter file, the directory of the static ensemble, and the mixing coefficient \verb|GAMMA| (see sec.~\ref{sec:mainprm}).
 
-When the method is set to ``hybrid'', the forecast and analysis ensemble spreads(UPDATE options \verb|--calculate-spread|, \verb|--calculate-forecast-spread|, and \verb|--calculate-forecast-spread-only|) are calculated using the dynamic ensemble anomalies only.
-In contrast, the vertical correlations (UPDATE options \verb|--calculate-vertical-correlations| and \verb|--calculate-vertical-correlations-only|) are calculated using the full (combined) ensemble anomalies.
+When the method is set to ``hybrid'', the forecast ensemble spread written in the innovation statistics summary at the end of CALC is that of the combined ensemble (\ref{hybrid_combined}), but the analysis innovation spread is that of the dynamic ensemble only.
+The forecast and analysis ensemble spread fields written by UPDATE when specifying options \verb|--calculate-spread|, \verb|--calculate-forecast-spread|, and \verb|--calculate-forecast-spread-only| are calculated using the dynamic ensemble anomalies only.
+In contrast, the vertical correlations (UPDATE options \verb|--calculate-vertical-correlations| and \verb|--calculate-vertical-correlations-only|) are calculated using the full ensemble.
 
 \section{DA tuning}
 \label{sec:datuning}
