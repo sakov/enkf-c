@@ -648,11 +648,9 @@ While some may argue that using vertical localisation might help to decrease the
 Generally, dynamical processes include a variety of barotropic and baroclinic components, and introducing vertical localisation in one form or another can be detrimental for the model's balances.
 On the other hand, with an ensemble size of about 100, normally one can ignore the problem of spurious vertical correlations and leave the system to deal with the vertical covariances on its own.
 
-With the system using horizontal localisation only the model state effectively becomes a collection of independent horizontal fields updated based on their correlations with local observations.
+With the system using horizontal localisation only, the model state effectively becomes a collection of independent horizontal fields updated based on their correlations with local ensemble observations.
 The assimilation is conducted by calculating a common horizontal array of local ensemble transforms and applying them to each horizontal field of the model.
-
-Another important design decision is the parallel assimilation of local observations.
-Because calculation of the ensemble transforms can be conducted in ensemble space (see sec.~\ref{sec:numerical}), this results in simple, efficient, scalable and robust algorithms.
+The local transforms are independent of each other and can be calculated in parallel, as well as the updates of the ensembles of horizontal model fields.
 
 \section{The workflow}
 
@@ -667,20 +665,22 @@ It has the following stages:
 \item write superobservations to \verb|observations.nc|.
 \end{itemize}
 
+PREP does not need to access the model state; it only needs to access the model grid.
+(Note that for some types of vertical coordinates the vertical model grid depends on the state.)
+
 CALC calculates ensemble transforms for updating the forecast ensemble of model states (EnKF) or the background model state (EnOI) in the following stages:
 \begin{itemize}
 \item read superobservations from \verb|observations.nc|;
 \item calculate ensemble of forecast observations $\mb H \mb E^f$ (EnKF) or ensemble of background observation anomalies $\mb H \mb A^f$ and background observations $\mb H \mb x^f$ (EnOI);
-\item for nodes with specified stride on each horizontal get local observations and grid calculate local ensemble transforms $\mb X_5$ (EnKF) or local background update coefficients $\mb w$ (EnOI);
+\item for nodes with specified stride on each horizontal grid get local observations and calculate local ensemble transforms $\mb X_5$ (EnKF) or local background update coefficients $\mb w$ (EnOI);
 \item save these transforms to \verb|X5.nc| (EnKF) or \verb|w.nc| (EnOI);
 \item calculate and report forecast and analysis innovation statistics;
 \item calculate observation impact metrics DFS and SRF (sec.~\ref{sec:impact}) and save them to \verb|enkf_diag.nc|;
-\item save ensemble, observations and transforms/weights at specified horizontal locations to pointlog files (sec.~\ref{sec:pointlogs}).
+\item at specified horizontal locations save the model state ensemble, observations, transforms/weights, and DA settings to pointlog files (sec.~\ref{sec:pointlogs}).
 \end{itemize}
-Apart from this main mode of operation, CALC can also calculate forecast  innovations only or operate in a single observation experiment mode.
+Apart from this main mode of operation, CALC can also be used for calculating the forecast innovations, or operate in the single observation experiment mode.
 
-UPDATE updates the ensemble (EnKF) or the background (EnOI) using the transforms calculated by CALC and the specified inflation for each variable.
-It also adds forecast and analysis variables to the pointlog files, and can calculate and save the ensemble spread and vertical correlations.
+UPDATE updates the ensemble (EnKF) or the background (EnOI) using the transforms calculated by CALC, allong with a number of specified diagnostics, such as the ensemble spread, inflation, or vertical correlations of subsurface fields with the surface field.
 
 The principle diagram of EnKF-C workflow is shown in Fig.~\ref{fig:calcupdate}.
 \begin{figure}
@@ -1492,6 +1492,9 @@ and for the EnOI -- by applying the appropriate local linear combination of the 
 \begin{align*}
   \mathcal H (\mb E^a) \leftarrow \left[ \mathcal H (\mb x^f) + (\mb H \mb A^f) \mb w\right] \mb 1\T + \mb H \mb A^f.
 \end{align*}
+
+CALC can be used for calculating forecast observation statictics only (via command line option \verb|--forecast-stats-only|), without calculating transforms (EnKF) of update coefficients (EnOI).
+In the EnKF mode this regime involves calculating the statistics for the ensemble observation spread (and therefore parsing of the forecast ensemble), while in the EnOI mode it only calculates the statistics for the forecast innovation (and therefore does not need to access the ensemble).
 
 \subsection{Impact of observations}
 \label{sec:impact}
