@@ -1,3 +1,7 @@
+v2.0.5
+   PS 03112020
+   -- Two subtle corrections in island() and gz_z_create() that are supposed to
+      handle the case nk = 1, vdir = fromsurf.
 v2.0.4
    PS 28102020
    -- Skip initialisation of pointlogs in CALC and UPDATE if not necessary.

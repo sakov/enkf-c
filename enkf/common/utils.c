@@ -1035,7 +1035,7 @@ int island(double fi, double fj, double fk, int ni, int nj, int ksurf, int** num
     else {
         int k = ceil(fk);
 
-        return !(numlevels[j1][i1] > k || numlevels[j1][i2] > k || numlevels[j2][i1] > k || numlevels[j2][i2] > k);
+        return !(numlevels[j1][i1] >= k || numlevels[j1][i2] >= k || numlevels[j2][i1] >= k || numlevels[j2][i2] >= k);
     }
 }
 

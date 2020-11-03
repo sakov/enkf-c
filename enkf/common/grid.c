@@ -311,7 +311,7 @@ static gz_z* gz_z_create(grid* g, int nk, double* z, int nkc, double* zc, char* 
 
     gz->zc = malloc((nk + 1) * sizeof(double));
     if (zc == NULL) {
-        if (z[nk - 1] >= z[0]) {
+        if (gz->vdirection == GRIDVDIR_FROMSURF) {
             gz->zc[0] = 0.0;
             for (i = 1; i <= nk; ++i)
                 gz->zc[i] = 2.0 * z[i - 1] - gz->zc[i - 1];
