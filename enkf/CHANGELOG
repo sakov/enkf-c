@@ -1,3 +1,7 @@
+v2.0.6
+   PS 06112020
+   -- Corrected das_setnmem() for the case when the specifiied ensemble size is
+      smaller than the available one.
 v2.0.5
    PS 03112020
    -- Two subtle corrections in island() and gz_z_create() that are supposed to

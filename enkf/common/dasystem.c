@@ -101,11 +101,11 @@ static void das_setnmem(dasystem* das)
         if (nmem == 1)
             enkf_quit("only 1 member found; need at least 2 members to continue");
         if (das->mode == MODE_ENKF) {
-            das->nmem_dynamic = nmem;
+            das->nmem_dynamic = das->nmem;
             das->nmem_static = 0;
         }
         if (das->mode == MODE_ENOI) {
-            das->nmem_static = nmem;
+            das->nmem_static = das->nmem;
             das->nmem_dynamic = 0;
         }
         return;
