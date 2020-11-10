@@ -1,8 +1,8 @@
   MPI: initialised 2 process(es)
-  running UPDATE for EnKF-C version 2.0.0beta:
+  running UPDATE for EnKF-C version 2.0.7:
     command = "./enkf_update --calculate-spread --write-inflation --calculate-vertical-correlations --output-increment hybrid.prm"
     dir = "/home/pavel/src/enkf-c/trunk/enkf/examples/1"
-  2020-10-22 22:24:44
+  2020-11-10 14:31:31
   reading system specs from "hybrid.prm":
     MODE = Hybrid
     SCHEME = DEnKF
@@ -67,30 +67,27 @@
   setting the ensemble size:
     96 dynamic members
     144 static members
-  initialising pointlogs:
-    pointlog (156.000, -32.000):
-      t-grid: (i, j) = (49.500, 49.500)
     allocating disk space for spread:
     defining state variables in point logs:
     distributing 96 iterations:
       2 processes get 48 iterations each
-    2020-10-22 22:24:44
+    2020-11-10 14:31:31
     allocating disk space for analysis:................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................
     processing fields for t-grid:
-      2020-10-22 22:24:44
+      2020-11-10 14:31:31
       9 fields
       distributing 9 iterations:
         2 processes get 5 or 4 iterations
-      eta_t    0   (0: 0: 20.0%)
       u        0   (1: 5: 25.0%)
-      temp     0   (0: 1: 40.0%)
-      temp     1   (0: 2: 60.0%)
-      salt     0   (0: 3: 80.0%)
+      eta_t    0   (0: 0: 20.0%)
       u        1   (1: 6: 50.0%)
+      temp     0   (0: 1: 40.0%)
       v        0   (1: 7: 75.0%)
+      temp     1   (0: 2: 60.0%)
       v        1   (1: 8: 100.0%)
+      salt     0   (0: 3: 80.0%)
       salt     1   (0: 4: 100.0%)
-  2020-10-22 22:24:47
+  2020-11-10 14:31:34
   assembling analysis:
     distributing 96 iterations:
       2 processes get 48 iterations each
@@ -99,26 +96,21 @@
     salt:................................................
     u:................................................
     v:................................................
-  2020-10-22 22:24:47
+  2020-11-10 14:31:34
   assembling spread:
     eta_t:.
     temp:..
     salt:..
     u:..
     v:..
-  2020-10-22 22:24:47
+  2020-11-10 14:31:34
   assembling state variables in point logs:
-    distributing 1 iterations:
-      1 processes get 1 iteration, 1 processes get 0 iterations
-    deleting tiles:
-      distributing 9 iterations:
-        2 processes get 5 or 4 iterations
-  2020-10-22 22:24:47
+  2020-11-10 14:31:34
   writing vertical correlations:
     distributing 9 iterations:
       2 processes get 5 or 4 iterations
     calculating:....
-    2020-10-22 22:24:47
+    2020-11-10 14:31:34
     assembling:
-  2020-10-22 22:24:47
+  2020-11-10 14:31:34
   finished

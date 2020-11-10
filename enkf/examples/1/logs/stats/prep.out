@@ -1,7 +1,7 @@
-  running PREP for EnKF-C version 1.116.3:
+  running PREP for EnKF-C version 2.0.7:
     command = "./enkf_prep stats.prm"
     dir = "/home/pavel/src/enkf-c/trunk/enkf/examples/1"
-  2020-08-24 15:37:23
+  2020-11-10 14:33:57
   reading prep specs from "stats.prm":
     MODE = EnOI
     MODEL PRM = "model.prm"
@@ -30,16 +30,18 @@
       INTERNAL_QSORT_R = [-]
   reading observation specs from "obs.prm":
     PRODUCT = RADS
-      READER = xy_scattered
+      READER = scattered
       TYPE = SLA
         File: obs/RADS/2007/??_200712{19,20,21,22,23}.nc
       PARAMETER VARNAME = sla
+      PARAMETER ZVALUE = 0
       PARAMETER MINDEPTH = 100
     PRODUCT = ESACCI
-      READER = xy_scattered
+      READER = scattered
       TYPE = SST
         File: obs/ESACCI/2007/200712{19,20,21,22,23}-*.nc
       PARAMETER VARNAME = sst
+      PARAMETER ZVALUE = 0
       PARAMETER VARSHIFT = -273.15
     PRODUCT = WindSat
       READER = standard
@@ -124,7 +126,7 @@
       LOCWEIGHT =  1
       RFACTOR = 4
   reading observations:
-    PRODUCT = RADS, TYPE = SLA, reader = xy_scattered
+    PRODUCT = RADS, TYPE = SLA, reader = scattered
       reading obs/RADS/2007/j1_20071219.nc:
         VARNAME = sla
         LONNAME = lon
@@ -167,7 +169,7 @@
       969 valid observations
       min day = -4.264
       max day = -0.540
-    PRODUCT = ESACCI, TYPE = SST, reader = xy_scattered
+    PRODUCT = ESACCI, TYPE = SST, reader = scattered
       reading obs/ESACCI/2007/20071219-ESACCI-L3C-SSTdepth-AATSR-01-1d.nc:
         VARNAME = sst
         LONNAME = lon
@@ -567,11 +569,14 @@
       setting error_std to 0.1
       min day = -4.000
       max day = -2.000
-    compacting obs:
+  compacting obs:  2020-11-10 14:33:58
+
   superobing:
+  2020-11-10 14:33:58
     106423 observations thinned
     10220 superobservations
   writing superobservations to "observations.nc":
+  2020-11-10 14:33:58
   reading super-observations from disk:
     10220 observations
     allocating 1226400 bytes for array of observations
@@ -585,5 +590,5 @@
     TEM     184      104      104      0        0        0        0        0        0        0        7       
     SAL     184      104      104      0        0        0        0        0        0        0        7       
     total   158006   209      208      0        0        0        1        0        0        0        10220   
-  2020-08-24 15:37:24
+  2020-11-10 14:33:58
   finished

@@ -1,8 +1,8 @@
   MPI: initialised 2 process(es)
-  running UPDATE for EnKF-C version 1.116.3:
+  running UPDATE for EnKF-C version 2.0.7:
     command = "./enkf_update --calculate-spread --write-inflation enkf.prm"
     dir = "/home/pavel/src/enkf-c/trunk/enkf/examples/4"
-  2020-08-24 15:40:02
+  2020-11-10 14:36:18
   reading system specs from "enkf.prm":
     MODE = EnKF
     SCHEME = DEnKF
@@ -80,38 +80,34 @@
       STRIDE = 0
   setting the ensemble size:
     96 members
-  initialising pointlogs:
-    pointlog (156.000, -32.000):
-      t-grid: (i, j) = (49.500, 49.500)
-      c-grid: (i, j) = (49.000, 49.000)
   updating the ensemble:
     allocating disk space for spread:
     allocating disk space for inflation:
     defining state variables in point logs:
     distributing 96 iterations:
       2 processes get 48 iterations each
-    2020-08-24 15:40:02
+    2020-11-10 14:36:18
     allocating disk space for analysis:................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................
     processing fields for t-grid:
-      2020-08-24 15:40:02
+      2020-11-10 14:36:18
       5 fields
       distributing 5 iterations:
         2 processes get 3 or 2 iterations
-      eta_t    0   (0: 0: 33.3%)
       salt     0   (1: 3: 50.0%)
-      salt     1   (1: 4: 100.0%)
+      eta_t    0   (0: 0: 33.3%)
       temp     0   (0: 1: 66.7%)
+      salt     1   (1: 4: 100.0%)
       temp     1   (0: 2: 100.0%)
     processing fields for c-grid:
-      2020-08-24 15:40:03
+      2020-11-10 14:36:19
       4 fields
       distributing 4 iterations:
         2 processes get 2 iterations each
       v        0   (1: 2: 50.0%)
       u        0   (0: 0: 50.0%)
-      u        1   (0: 1: 100.0%)
       v        1   (1: 3: 100.0%)
-  2020-08-24 15:40:03
+      u        1   (0: 1: 100.0%)
+  2020-11-10 14:36:19
   assembling analysis:
     distributing 96 iterations:
       2 processes get 48 iterations each
@@ -120,26 +116,21 @@
     salt:................................................
     u:................................................
     v:................................................
-  2020-08-24 15:40:03
+  2020-11-10 14:36:19
   assembling spread:
     eta_t:.
     temp:..
     salt:..
     u:..
     v:..
-  2020-08-24 15:40:03
+  2020-11-10 14:36:19
   assembling inflation:
     eta_t:.
     temp:..
     salt:..
     u:..
     v:..
-  2020-08-24 15:40:03
+  2020-11-10 14:36:19
   assembling state variables in point logs:
-    distributing 1 iterations:
-      1 processes get 1 iteration, 1 processes get 0 iterations
-    deleting tiles:
-      distributing 9 iterations:
-        2 processes get 5 or 4 iterations
-  2020-08-24 15:40:03
+  2020-11-10 14:36:19
   finished

@@ -1,3 +1,10 @@
+v2.0.7
+   PS 10112020
+   -- In das_printobsstats() and das_printfobsstats() -- do not skip regions
+      with no obs.
+   -- In das_printobsstats() and das_printfobsstats() - replaced %.3f entries by
+      %.3g.
+   -- Generated new logs in examples.
 v2.0.6
    PS 06112020
    -- Corrected das_setnmem() for the case when the specifiied ensemble size is
