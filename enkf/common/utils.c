@@ -1018,6 +1018,7 @@ int island(double fi, double fj, double fk, int ni, int nj, int ksurf, int** num
     int i2 = (int) ceil(fi);
     int j1 = (int) floor(fj);
     int j2 = (int) ceil(fj);
+    int k = (ksurf == 0) ? ceil(fk) : ceil((double) ksurf - fk);
 
     if (i1 == -1)
         i1 = (periodic_i) ? ni - 1 : i2;
@@ -1028,15 +1029,10 @@ int island(double fi, double fj, double fk, int ni, int nj, int ksurf, int** num
     if (j2 == nj)
         j2 = j1;
 
-    if (ksurf > 0)
-        fk = (double) ksurf - fk;
-    if (fk == 0.0)
+    if (k == 0)
         return !(numlevels[j1][i1] || numlevels[j1][i2] || numlevels[j2][i1] || numlevels[j2][i2]);
-    else {
-        int k = ceil(fk);
-
+    else
         return !(numlevels[j1][i1] >= k || numlevels[j1][i2] >= k || numlevels[j2][i1] >= k || numlevels[j2][i2] >= k);
-    }
 }
 
 /** Linearly interpolates a 3D field to fractional coordinates in index space.
