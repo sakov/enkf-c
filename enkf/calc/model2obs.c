@@ -338,8 +338,9 @@ void H_subsurf_lowmem(dasystem* das, int nobs, int obsids[], char fname[], int m
      */
     qsort_r(obsids, nobs, sizeof(int), cmp_obs_byfk, allobs->data);
 
-    for (k1 = 0, i1 = 0, i2 = -1, k1_now = -1, k2_now = -1; k1 < nk - 1 && i2 < nobs; ++k1) {
+    for (k1 = 0, i1 = 0, i2 = -1, k1_now = -1, k2_now = -1; k1 < nk && i2 < nobs; ++k1) {
         int k2 = k1 + 1;
+        int k1_isnew = 0;
 
         while (i2 + 1 < nobs && allobs->data[obsids[i2 + 1]].fk < (double) k2)
             i2++;
@@ -357,9 +358,12 @@ void H_subsurf_lowmem(dasystem* das, int nobs, int obsids[], char fname[], int m
         if (k1_now != k1) {
             model_readfield(m, fname, ot->varnames[0], k1, src1[0]);
             k1_now = k1;
+            k1_isnew = 1;
         }
-        model_readfield(m, fname, ot->varnames[0], k2, src2[0]);
-        k2_now = k2;
+        if (k2 < nk) {
+            model_readfield(m, fname, ot->varnames[0], k2, src2[0]);
+            k2_now = k2;
+        }
 
         /*
          * (interpolate)
@@ -369,7 +373,7 @@ void H_subsurf_lowmem(dasystem* das, int nobs, int obsids[], char fname[], int m
         if (offset_data != NULL) {
             int k;
 
-            for (k = k1; k <= k2; ++k) {
+            for (k = (k1_isnew = 1) ? k1 : k2; k <= k2; ++k) {
                 float* srck = src[k][0];
                 float offsetk = ((float*) offset_data)[k];
                 size_t ij;

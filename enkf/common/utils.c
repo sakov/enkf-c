@@ -1030,9 +1030,9 @@ int island(double fi, double fj, double fk, int ni, int nj, int ksurf, int** num
         j2 = j1;
 
     if (k == 0)
-        return !(numlevels[j1][i1] || numlevels[j1][i2] || numlevels[j2][i1] || numlevels[j2][i2]);
+        return numlevels[j1][i1] == 0 && numlevels[j1][i2] == 0 && numlevels[j2][i1] == 0 && numlevels[j2][i2] == 0;
     else
-        return !(numlevels[j1][i1] >= k || numlevels[j1][i2] >= k || numlevels[j2][i1] >= k || numlevels[j2][i2] >= k);
+        return numlevels[j1][i1] < k && numlevels[j1][i2] < k && numlevels[j2][i1] < k && numlevels[j2][i2] < k;
 }
 
 /** Linearly interpolates a 3D field to fractional coordinates in index space.

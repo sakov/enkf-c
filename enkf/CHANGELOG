@@ -1,3 +1,9 @@
+v2.0.9
+   PS 11112020
+   -- Corrected H_vertsum() to handle obs just outside the bottom layer (to
+      match interpolate3d() and island()). Should eliminate some recently
+      occurred messages "no point to continue".
+   -- Minor corrections in das_getHE().
 v2.0.8
    PS 11112020
    -- Modified island() for correct handling of surface cells.

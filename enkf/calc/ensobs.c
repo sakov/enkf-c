@@ -137,16 +137,18 @@ void das_getHE(dasystem* das)
             assert(my_size == size);
             assert(disp_unit == sizeof(float));
         }
-        MPI_Win_fence(0, das->sm_comm_win_S);
+        MPI_Win_fence(0, das->sm_comm_win_St);
         MPI_Barrier(sm_comm);
+
+        /*
+         * set addresses of column vectors of the 2D array das->St
+         */
+        das->St = calloc(nobs, sizeof(void*));
+        for (i = 0; i < nobs; ++i)
+            das->St[i] = &SSt[i * nmem];
     }
 
-    /*
-     * set addresses of column vectors of the 2D array das->St
-     */
-    das->St = calloc(nobs, sizeof(void*));
-    for (i = 0; i < nobs; ++i)
-        das->St[i] = &SSt[i * nmem];
+    MPI_Barrier(sm_comm);
 
     if (print_mem)
         print_memory_usage();
