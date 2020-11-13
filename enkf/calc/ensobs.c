@@ -381,7 +381,7 @@ void das_getHE(dasystem* das)
             double* ensmean_s = calloc(nobs, sizeof(double));
             int nmem_d = das->nmem_dynamic;
             int nmem_s = das->nmem_static;
-            double k_d = sqrt((double) (nmem - 1) / (double) (nmem_d - 1));
+            double k_d = (nmem_d > 1) ? sqrt((double) (nmem - 1) / (double) (nmem_d - 1)) : 0.0;
             double k_s = sqrt(das->gamma * (double) (nmem - 1) / (double) (nmem_s - 1));
 
             enkf_printf("    scaling:\n", size);
@@ -560,14 +560,6 @@ void das_calcinnandspread(dasystem* das)
 
         das->s_mode = S_MODE_HA_f;
     } else if (das->s_mode == S_MODE_HE_a) {
-        /*
-         * for HYBRID mode use only dynamic ensemble for analysis stats (in fact
-         * there is little choice because the transforms do not update the
-         * static ensemble)
-         */
-        if (das->mode == MODE_HYBRID)
-            nmem = das->nmem_dynamic;
-
         if (das->s_a == NULL) {
             das->s_a = calloc(nobs, sizeof(double));
             assert(das->std_a == NULL);
@@ -821,10 +813,6 @@ void das_standardise(dasystem* das)
                 Se[i] /= o->estd * sqrt(obs->obstypes[o->type].rfactor) * mult;
             }
         }
-
-    if (das->mode == MODE_HYBRID)
-        mult = sqrt((double) das->nmem_dynamic - 1);
-
 #if defined(USE_SHMEM)
     MPI_Barrier(sm_comm);
 #endif
@@ -891,7 +879,7 @@ static int cmp_obs_byij(const void* p1, const void* p2, void* p)
 void das_destandardise(dasystem* das)
 {
     observations* obs = das->obs;
-    double mult;
+    double mult = sqrt((double) das->nmem - 1);
     int e, i;
 
     if (das->s_mode == S_MODE_HA_f || das->s_mode == S_MODE_HA_a)
@@ -899,11 +887,6 @@ void das_destandardise(dasystem* das)
 
     if (obs->nobs == 0)
         goto finish;
-
-    if (das->mode == MODE_HYBRID)
-        mult = sqrt((double) das->nmem_dynamic - 1);
-    else
-        mult = sqrt((double) das->nmem - 1);
 
 #if defined(USE_SHMEM)
     if (sm_comm_rank == 0)

@@ -1,3 +1,8 @@
+v2.0.10
+   PS 11112020
+   -- Changes to ensure that MODE = HYBRID with ENSSIZE_DYNAMIC = 1 is
+      equivalent to MODE = ENOI. This involves changing (correcting?) scaling
+      in das_standardise() and das_destandardise().
 v2.0.9
    PS 11112020
    -- Corrected H_vertsum() to handle obs just outside the bottom layer (to

@@ -147,7 +147,7 @@ static void das_setnmem(dasystem* das)
     if (das->nmem == 1)
         enkf_quit("only 1 member found; need at least 2 members to continue");
     if (das->nmem_dynamic == 1)
-        enkf_quit("only 1 dynamic member found; need at least 2 to continue");
+        enkf_printf("only 1 dynamic member found; the system will effectively run in EnOI mode");
     if (das->nmem_static == 1)
         enkf_quit("only 1 static member found; need at least 2 to continue");
 }
