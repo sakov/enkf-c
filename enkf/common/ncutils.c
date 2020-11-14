@@ -181,8 +181,13 @@ void ncu_readfield(char fname[], char varname[], int k, int ni, int nj, int nk, 
         if (ncw_att_exists2(ncid, varid, "_FillValue")) {
             ncw_check_attlen(ncid, varid, "_FillValue", 1);
             ncw_get_att(ncid, varid, "_FillValue", attval);
-        } else
-            ncw_inq_var_fill(ncid, varid, NULL, attval);
+        } else {
+            int nofill;
+
+            ncw_inq_var_fill(ncid, varid, &nofill, attval);
+            if (nofill)
+                goto skip;
+        }
         if (typesize == 1) {
             for (i = 0; i < n; ++i)
                 if (((int8_t *) vv)[i] == ((int8_t *) attval)[0])
@@ -202,6 +207,7 @@ void ncu_readfield(char fname[], char varname[], int k, int ni, int nj, int nk, 
         } else
             quit("programming error");
 
+      skip:
         if (ncw_att_exists2(ncid, varid, "missing_value")) {
             ncw_check_attlen(ncid, varid, "missing_value", 1);
             ncw_get_att(ncid, varid, "missing_value", attval);
@@ -730,8 +736,13 @@ void ncu_read3dfield(char* fname, char* varname, int ni, int nj, int nk, float* 
         if (ncw_att_exists2(ncid, varid, "_FillValue")) {
             ncw_check_attlen(ncid, varid, "_FillValue", 1);
             ncw_get_att(ncid, varid, "_FillValue", attval);
-        } else
-            ncw_inq_var_fill(ncid, varid, NULL, attval);
+        } else {
+            int nofill;
+
+            ncw_inq_var_fill(ncid, varid, &nofill, attval);
+            if (nofill)
+                goto skip;
+        }
         if (typesize == 1) {
             for (i = 0; i < n; ++i)
                 if (((int8_t *) vv)[i] == ((int8_t *) attval)[0])
@@ -751,6 +762,7 @@ void ncu_read3dfield(char* fname, char* varname, int ni, int nj, int nk, float* 
         } else
             quit("programming error");
 
+    skip:
         if (ncw_att_exists2(ncid, varid, "missing_value")) {
             ncw_check_attlen(ncid, varid, "missing_value", 1);
             ncw_get_att(ncid, varid, "missing_value", attval);

@@ -1,5 +1,9 @@
+v2.0.11
+   PS 14112020
+   -- Modified checks for fill value in ncu_readfield() and ncu_read3dfield()
+      to skip checks if nofill = 1.
 v2.0.10
-   PS 11112020
+   PS 13112020
    -- Changes to ensure that MODE = HYBRID with ENSSIZE_DYNAMIC = 1 is
       equivalent to MODE = ENOI. This involves changing (correcting?) scaling
       in das_standardise() and das_destandardise().
