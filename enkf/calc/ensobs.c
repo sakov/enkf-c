@@ -816,6 +816,8 @@ void das_standardise(dasystem* das)
 #if defined(USE_SHMEM)
     MPI_Barrier(sm_comm);
 #endif
+    if (das->mode == MODE_HYBRID)
+        mult = sqrt((double) das->nmem - 2);
     if (das->s_f != NULL) {
         for (i = 0; i < obs->nobs; ++i) {
             observation* o = &obs->data[i];
@@ -903,6 +905,8 @@ void das_destandardise(dasystem* das)
 #if defined(USE_SHMEM)
     MPI_Barrier(sm_comm);
 #endif
+    if (das->mode == MODE_HYBRID)
+        mult = sqrt((double) das->nmem - 2);
     if (das->s_f != NULL) {
         for (i = 0; i < obs->nobs; ++i) {
             observation* o = &obs->data[i];
@@ -1332,6 +1336,7 @@ static void update_HE(dasystem* das)
                     double inf_ratio = NAN;
                     float inflation = NAN;
                     double v1_a = 0.0;
+                    double v1_f = NAN;
 
                     model_getvarinflation(m, obs->obstypes[obs->data[o].type].vid, &inflation0, &inf_ratio);
 
@@ -1354,11 +1359,11 @@ static void update_HE(dasystem* das)
                     v1_a /= (double) nmem_dynamic;
 
                     if (!isnan(inf_ratio)) {
-                        double v1_f = 0.0;
                         double v2_f = 0.0;
                         double v2_a = 0.0;
                         double var_a, var_f;
 
+                        v1_f = 0.0;
                         for (e = 0; e < nmem_dynamic; ++e) {
                             double ve = (double) HEi_f[e];
 
@@ -1375,7 +1380,7 @@ static void update_HE(dasystem* das)
                         }
                         var_a = v2_a / (double) nmem_dynamic - v1_a * v1_a;
 
-                        if (var_a > 0) {
+                        if (var_a > 0.0) {
                             /*
                              * (Normal case.) Limit inflation by inf_ratio of
                              * the magnitude of spread reduction.
@@ -1394,12 +1399,22 @@ static void update_HE(dasystem* das)
                         for (e = 0; e < nmem_dynamic; ++e)
                             HEi_a[e] = (HEi_a[e] - (float) v1_a) * inflation + v1_a;
 
+                    if (nmem > nmem_dynamic && isnan(v1_f)) {
+                        v1_f = 0.0;
+                        for (e = 0; e < nmem_dynamic; ++e)
+                            v1_f += HEi_f[e];
+                        v1_f /= (double) nmem_dynamic;
+                    }
 #if defined(USE_SHMEM)
                     for (e = 0; e < nmem_dynamic; ++e)
                         das->St[o][e] = HEi_a[e];
+                    for (e = nmem_dynamic; e < nmem; ++e)
+                        das->St[o][e] += v1_a - v1_f;
 #else
                     for (e = 0; e < nmem_dynamic; ++e)
                         das->S[e][o] = HEi_a[e];
+                    for (e = nmem_dynamic; e < nmem; ++e)
+                        das->S[e][o] += v1_a - v1_f;
 #endif
                 }
             }                   /* for stepj */
@@ -1421,7 +1436,7 @@ static void update_HE(dasystem* das)
     gather_St(das);
 
     if (rank == 0)
-        for (e = 0; e < nmem_dynamic; ++e)
+        for (e = 0; e < nmem; ++e)
             for (o = 0; o < nobs; ++o)
                 das->S[e][o] = das->St[o][e];
 #endif

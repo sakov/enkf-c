@@ -309,7 +309,7 @@ static void das_updatefields(dasystem* das, int nfields, void** fieldbuffer, fie
                         }
                         var_a = v2_a / (double) nmem_dynamic - v1_a * v1_a;
 
-                        if (var_a > 0) {
+                        if (var_a > 0.0) {
                             /*
                              * (Normal case.) Limit inflation by inf_ratio of
                              * the magnitude of spread reduction.

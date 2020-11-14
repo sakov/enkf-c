@@ -677,7 +677,7 @@ void das_sethybridensemble(dasystem* das, int nij, float** v)
     assert(das->mode == MODE_HYBRID);
 
     vmean = (double*) v[das->nmem];
-    hscale = sqrt(das->gamma * (double) (das->nmem_dynamic - 1) / (double) (das->nmem_static - 1));
+    hscale = sqrt(das->gamma * (double) (das->nmem - 1) / (double) (das->nmem_static - 1));
 
     memset(vmean, 0, nij * sizeof(double));
     for (e = 0; e < das->nmem_dynamic; ++e) {
