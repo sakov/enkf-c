@@ -187,6 +187,7 @@ void obs_add(observations* obs, model* m, obsmeta* meta)
      * common checks
      */
     if (obs->nobs - nobs0 > 0) {
+        int ninf = 0;
         int nmin = 0;
         int nmax = 0;
         int noutow = 0;
@@ -215,6 +216,11 @@ void obs_add(observations* obs, model* m, obsmeta* meta)
                 continue;
             }
             o->value += varshift;
+            if (!isfinite(o->value)) {
+                o->status = STATUS_RANGE;
+                ninf++;
+                continue;
+            }
             if (o->value < ot->allowed_min) {
                 o->status = STATUS_RANGE;
                 nmin++;
@@ -273,6 +279,8 @@ void obs_add(observations* obs, model* m, obsmeta* meta)
             enkf_printf("        %d observations outside obs. window\n", noutow);
         if (noutod > 0)
             enkf_printf("        %d obbservations outside obs. domain\n", noutod);
+        if (ninf > 0)
+            enkf_printf("        %d observations not finite\n", ninf);
         if (nmin > 0)
             enkf_printf("        %d observations below allowed minimum of %.4g\n", nmin, ot->allowed_min);
         if (nmax > 0)

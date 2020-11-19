@@ -762,7 +762,7 @@ void ncu_read3dfield(char* fname, char* varname, int ni, int nj, int nk, float* 
         } else
             quit("programming error");
 
-    skip:
+      skip:
         if (ncw_att_exists2(ncid, varid, "missing_value")) {
             ncw_check_attlen(ncid, varid, "missing_value", 1);
             ncw_get_att(ncid, varid, "missing_value", attval);
