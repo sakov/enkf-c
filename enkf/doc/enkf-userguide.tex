@@ -604,7 +604,7 @@ This approach is commonly known as ``first guess at appropriate time'', or FGAT.
 \section{EnOI/EnKF hybrid}
 \label{sec:hybrid-theory}
 
-By EnOI/EnKF hybrid we understand formulation in which forecast state error covariance is assumed to be equal to a sum of the ``dynamic'' covariance carried by the EnKF ensemble, and ``static'' covariance carried by a pre-defined ensemble of anomalies:
+By EnOI/EnKF hybrid we understand formulation in which forecast state error covariance is equal to the sum of ``dynamic'' covariance carried by the EnKF ensemble, and ``static'' covariance carried by a pre-defined ensemble of anomalies:
 \begin{align}
   \mb P^f = \mb P\suptxt{dyn} + \gamma \mb P\suptxt{stat},
 \end{align}
@@ -614,9 +614,9 @@ where
   & \mb P\suptxt{stat} = \frac{1}{m\subtxt{stat} - 1}\mb A\suptxt{stat} (\mb A\suptxt{stat})\T,\\
 \end{align*}
 where $\mb A\suptxt{dyn}$ is the ensemble of dynamic anomalies of size $m\subtxt{dyn}$, and $\mb A\suptxt{stat}$ is the ensemble of static anomalies of size $m\subtxt{stat}$.
-The added static covariance can be supposed to represent the model error covariance (matrices $\mb Q_i$ in (\ref{L-nonl}) and $\mb Q_{k+1}$ in (\ref{prop-P})).
+The added static covariance can be assumed to represent the model error covariance (matrices $\mb Q_i$ in (\ref{L-nonl}) and $\mb Q_{k+1}$ in (\ref{prop-P})).
 
-The forecast covariance $\mb P^f$ is then carried by a combined ensemble $\mb A^f$,
+The forecast covariance $\mb P^f$ is then carried by the combined ensemble $\mb A^f$,
 \begin{align}
   \label{hybrid_combined}
   \mb A^f = \left[ \left(\frac{m - 1}{m\subtxt{dyn} - 1}\right)^{1/2} \mb A\suptxt{dyn}, \left(\gamma \frac{m - 1}{m\subtxt{stat} - 1}\right)^{1/2} \mb A\suptxt{stat} \right],
@@ -626,15 +626,19 @@ where $m = m\subtxt{dyn} + m\subtxt{stat}$, so that
   \mb P^f = \frac{1}{m - 1} \mb A^f (\mb A^f)\T.
 \end{align*}
 
-The combined forecast ensemble anomalies (\ref{hybrid_combined}) have larger ensemble size than that of the dynamic ensemble; hence there arises a problem of ensemble reduction to obtain the dynamic analysed ensemble of size $m\subtxt{dyn}$.
+The combined forecast ensemble anomalies (\ref{hybrid_combined}) have larger ensemble size than that of the dynamic ensemble; hence there arises a problem of ensemble reduction to obtain the analysed dynamic ensemble of size $m\subtxt{dyn}$.
 There are a number of approaches to this problem.
 Perhaps the easiest one to implement is to use members of the analysed ensemble corresponding to the members of the dynamic forecast ensemble:
 \begin{align*}
-  (\mb E\suptxt{dyn})^a = \mb E^f \mb X_5(1 : m, 1 : m\subtxt{dyn}),
+  (\mb E\suptxt{dyn})^a = \mb E^f \mb X_5(1 : m, 1 : m\subtxt{dyn}).
 \end{align*}
-where the forecast ensemble $\mb E^f$ is built from the combined forecast ensemble anomalies (\ref{hybrid_combined}) using the ensemble average of the dynamic forecast ensemble to build the static ensemble from the static ensemble anomalies:
+The forecast ensemble $\mb E^f$ is built from the combined forecast ensemble anomalies (\ref{hybrid_combined}):
 \begin{align}
-  \mb E^f = \left[(\mb E\suptxt{dyn})^f, (\frac{1}{m\subtxt{dyn}} \mb E\suptxt{dyn})^f \mb 1 \mb 1\T + \mb A\suptxt{stat}\right].
+  \mb E^f = \mb x^f \mb 1\T + \mb A^f,
+\end{align}
+where the forecast state $\mb x^f$ is assumed to be equal to the mean of the dynamic ensemble only:
+\begin{align}
+\mb x^f \equiv \frac{1}{m\subtxt{dyn}} \mb E\suptxt{dyn}.
 \end{align}
 This is the approach used in EnKF-C.
 
