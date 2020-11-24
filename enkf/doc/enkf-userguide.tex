@@ -664,7 +664,6 @@ PREP preprocesses observations so that they are ready for DA.
 It has the following stages:
 \begin{itemize}
 \item read original observations and convert them into a vector of structure \verb|observation|;
-\item write these observations to file \verb|observations-orig.nc|;
 \item collate them into superobservations;
 \item write superobservations to \verb|observations.nc|.
 \end{itemize}
@@ -672,7 +671,7 @@ It has the following stages:
 PREP does not need to access the model state; it only needs to access the model grid.
 (Note that for some types of vertical coordinates the vertical model grid depends on the state.)
 
-CALC calculates ensemble transforms for updating the forecast ensemble of model states (EnKF) or the background model state (EnOI) in the following stages:
+CALC calculates ensemble transforms for updating the forecast ensemble of model states (EnKF) or the background model state (EnOI) in the following steps:
 \begin{itemize}
 \item read superobservations from \verb|observations.nc|;
 \item calculate ensemble of forecast observations $\mb H \mb E^f$ (EnKF) or ensemble of background observation anomalies $\mb H \mb A^f$ and background observations $\mb H \mb x^f$ (EnOI);
@@ -684,7 +683,7 @@ CALC calculates ensemble transforms for updating the forecast ensemble of model 
 \end{itemize}
 Apart from this main mode of operation, CALC can also be used for calculating the forecast innovations, or operate in the single observation experiment mode.
 
-UPDATE updates the ensemble (EnKF) or the background (EnOI) using the transforms calculated by CALC, allong with a number of specified diagnostics, such as the ensemble spread, inflation, or vertical correlations of subsurface fields with the surface field.
+UPDATE updates the ensemble (EnKF) or the background (EnOI) using the transforms calculated by CALC, along with a number of specified diagnostics, such as the ensemble spread, inflation, or vertical correlations of subsurface fields with the surface field.
 
 The principle diagram of EnKF-C workflow is shown in Fig.~\ref{fig:calcupdate}.
 \begin{figure}
@@ -867,9 +866,9 @@ At the moment, EnKF-C supports 3 main types of horizontal grids:
 \item non-equidistant rectangular grids aligned with physical coordinates;
 \item quadrilateral grids.
 \end{itemize}
+The grid is assumed to be rectangular if grid node coordinates depend on one dimension, and quadrilateral (curvilinear) if they depend on two dimensions.
 For rectangular grids the code tries to determine and handle periodicity in X direction.
 
-Qadrilateral horizontal grids are parsed either into K-D tree.
 Note that the code does not detect and therefore can not take advantage of periodic curvilinear grids; because of that, it does not map (skips) observations in cells connecting the grid edges.
 
 \subsubsection{Vertical grids}
@@ -1180,7 +1179,7 @@ The generic parameters include:
 \end{description}
 
 The custom parameters are described in the headers of the source code for the readers.
-Following is the description of the reader \verb|scattered| from \verb|reade_scattered.c|:
+Following is the description of the reader \verb|scattered| from \verb|reader_scattered.c|:
 \begin{Verbatim}
  *                There are a number of parameters that must (++) or can be
  *              specified if they differ from the default value (+). Some
