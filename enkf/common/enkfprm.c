@@ -619,7 +619,7 @@ void enkfprm_print(enkfprm* prm, char offset[])
         enkf_printf("%sRFACTOR BASE = %.1f\n", offset, prm->rfactor_base);
         enkf_printf("%sINFLATION BASE = %.4f\n", offset, prm->inflation);
         if (!isnan(prm->inf_ratio))
-            enkf_printf("%sINFLATION MODE = SPREAD LIMITED, MAX RATIO = %.2f\n", offset, prm->inf_ratio);
+            enkf_printf("%sINFLATION MODE = CAPPED, MAX RATIO = %.2f\n", offset, prm->inf_ratio);
         else
             enkf_printf("%sINFLATION MODE = PLAIN\n", offset);
         if (isfinite(prm->kfactor))

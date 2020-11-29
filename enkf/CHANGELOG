@@ -1,3 +1,8 @@
+v2.0.14
+   PS 30112020
+   -- Corrected checking of UPDATE flags to permit writing of inflation in the
+      case MODE = HYBRID.
+   -- Minor addition to sec. 2.9 (Hybrid covariance) of the user guide.
 v2.0.13
    PS 19112020
    -- In obs_add() added a check that an observation value is finite.

@@ -1644,6 +1644,8 @@ When the method is set to ``hybrid'', the forecast ensemble spread written in th
 The forecast and analysis ensemble spread fields written by UPDATE when specifying options \verb|--calculate-spread|, \verb|--calculate-forecast-spread|, and \verb|--calculate-forecast-spread-only| are calculated using the dynamic ensemble anomalies only.
 In contrast, the vertical correlations (UPDATE options \verb|--calculate-vertical-correlations| and \verb|--calculate-vertical-correlations-only|) are calculated using the full ensemble.
 
+Note that setting \verb|GAMMA = 0| makes the hybrid system formally equivalent to the EnKF (but not numerically, because of the roundoff errors), while setting \verb|ENSSIZE_DYNAMIC = 1| makes it formally equivalent to the EnOI.
+
 \section{DA tuning}
 \label{sec:datuning}
 

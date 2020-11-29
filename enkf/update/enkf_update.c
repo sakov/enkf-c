@@ -212,7 +212,7 @@ int main(int argc, char* argv[])
         updatespec |= UPDATE_DIRECTWRITE;
     }
     if (updatespec & UPDATE_DOINFLATION) {
-        if (prm->mode != MODE_ENKF) {
+        if (prm->mode == MODE_ENOI) {
             enkf_printf("  prm: mode = EnOI -> cancelling writing of inflation\n");
             updatespec &= ~UPDATE_DOINFLATION;
         } else if (isnan(prm->inf_ratio)) {
