@@ -1,3 +1,7 @@
+v2.0.16
+   PS 30112020
+   -- In plog_create() - removed writing global attribute "date", as the time
+      units are already specified for variable "obs_time".
 v2.0.15
    PS 30112020
    -- Modified das_writespread() so that the analysis spread in the case MODE =
