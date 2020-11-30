@@ -77,7 +77,7 @@ void das_writespread(dasystem* das, int nfields, void** fieldbuffer, field field
 {
     char fname[MAXSTRLEN];
     model* m = das->m;
-    int nmem = (das->mode == MODE_HYBRID) ? das->nmem_dynamic : das->nmem;
+    int nmem = (das->mode == MODE_HYBRID && isanalysis) ? das->nmem_dynamic : das->nmem;
     int ni, nj, nk;
     int fid, e, i, nij;
     double* v1 = NULL;

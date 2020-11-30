@@ -1,3 +1,9 @@
+v2.0.15
+   PS 30112020
+   -- Modified das_writespread() so that the analysis spread in the case MODE =
+      HYBRID is calculated from dynamic members only, as described in the user
+      manual. (Calculating analysis spread from the combined ensemble makes
+      little sense because the static members are not updated.)
 v2.0.14
    PS 30112020
    -- Corrected checking of UPDATE flags to permit writing of inflation in the
