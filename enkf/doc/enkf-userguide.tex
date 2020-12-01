@@ -1508,7 +1508,7 @@ In the course of its work CALC routinely calculates two metrics for assessing th
   & \mathrm{SRF} = \sqrt{\frac{\mathrm{tr}(\mb H \mb P^f \mb H\T \mb R^{-1})}{\mathrm{tr}(\mb H \mb P^a \mb H\T \mb R^{-1})}} - 1 = \sqrt{\frac{\mathrm{tr}(\mb S\T \mb S)}{\mathrm{tr}(\mb G \mb S)}} - 1,
 \end{align*}
 where $\mathrm{tr}(\cdot)$ is the trace function.
-The values of these metrics for each local analysis, calculated both for all observations and for observations of each type only, are written to file \verb|enkf_diagn.nc|.
+The values of these metrics for each local analysis, calculated both for all observations and for observations of each type only, are written to file \verb|enkf_diag.nc|.
 Note that the in EnKF-C DFS and SRF are calculated from the above expressions and represent theoretical values for the EnKF analysis; they coincide with the actual DFS and SRF values only for the ETKF, but not for the DEnKF, which is an approximation of the KF (and indeed not for the EnOI, which is not even an approximation).
 
 In the EnKF context DFS is a useful indicator of potential rank problems.
