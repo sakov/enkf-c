@@ -223,7 +223,7 @@ int main(int argc, char* argv[])
     if (prm->nplog == 0)
         updatespec &= ~UPDATE_DOPLOGS;
     if (updatespec & UPDATE_DOPLOGS)
-        enkf_doplogs = 0;
+        enkf_doplogs = 1;
 
     describe_updatespec(updatespec);
     if ((updatespec & (UPDATE_DOFIELDS | UPDATE_DOSPREAD | UPDATE_DOPLOGS | UPDATE_DOINFLATION | UPDATE_DOVERTCORRS)) == 0)

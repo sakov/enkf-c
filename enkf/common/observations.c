@@ -1307,8 +1307,11 @@ void obs_superob(observations* obs, __compar_d_fn_t cmp_obs, observations** sobs
         i1 = i2 + 1;
         i2 = i1;
     }                           /* main cycle */
-    if (nthinned > 0)
+    if (nthinned > 0) {
         enkf_printf("    %d observations thinned\n", nthinned);
+        obs_calcstats(obs);
+    }
+
     enkf_printf("    %d superobservations\n", nsobs);
 
     *sobs = obs_create_fromdata(obs, nsobs, sdata);

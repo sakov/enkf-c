@@ -278,31 +278,27 @@ int main(int argc, char* argv[])
         obs_add(obs, m, &meta[i]);
     obs_markbadbatches(obs);
     obsprm_destroy(nmeta, meta);
-    enkf_printf("  compacting obs:");
     enkf_printtime("  ");
+    enkf_printf("  compacting obs:");
     obs_compact(obs);
     obs_calcstats(obs);
 
-    if (write_orig_obs && describe_superob_id < 0) {
-        enkf_printf("  writing observations to \"%s\":\n", FNAME_OBS);
-        obs_write(obs, FNAME_OBS);
-    }
-
     if (do_superob) {
-        enkf_printf("  superobing:\n");
         enkf_printtime("  ");
+        enkf_printf("  superobing:\n");
         obs_superob(obs, cmp_obs, &sobs, describe_superob_id, do_thin);
 
         if (describe_superob_id >= 0)
             goto finalise;
 
-        enkf_printf("  writing superobservations to \"%s\":\n", FNAME_SOBS);
         enkf_printtime("  ");
+        enkf_printf("  writing superobservations to \"%s\":\n", FNAME_SOBS);
         obs_write(sobs, FNAME_SOBS);
         free(sobs->data);
         enkf_printf("  reading super-observations from disk:\n");
         obs_read(sobs, FNAME_SOBS);
 
+        enkf_printtime("  ");
         enkf_printf("  checking for superobs on land:\n");
         if (obs_checkforland(sobs, m)) {
             obs_compact(sobs);
@@ -325,6 +321,11 @@ int main(int argc, char* argv[])
         sobs = obs_create_fromdata(obs, obs->ngood, data);
         obs_write(sobs, FNAME_SOBS);
         goto finalise;
+    }
+
+    if (write_orig_obs && describe_superob_id < 0) {
+        enkf_printf("  writing observations to \"%s\":\n", FNAME_OBS);
+        obs_write(obs, FNAME_OBS);
     }
 
     /*

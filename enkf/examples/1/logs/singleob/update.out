@@ -1,8 +1,8 @@
   MPI: initialised 2 process(es)
-  running UPDATE for EnKF-C version 2.0.7:
+  running UPDATE for EnKF-C version 2.0.17:
     command = "./enkf_update --output-increment singleob.prm"
     dir = "/home/pavel/src/enkf-c/trunk/enkf/examples/1"
-  2020-11-10 14:33:41
+  2020-12-02 11:00:47
   reading system specs from "singleob.prm":
     MODE = EnOI
     MODEL PRM = "model.prm"
@@ -15,7 +15,7 @@
     ENSEMBLE SIZE = 96
     RFACTOR BASE = 1.0
     INFLATION BASE = 1.0000
-    INFLATION MODE = SPREAD LIMITED, MAX RATIO = 1.00
+    INFLATION MODE = CAPPED, MAX RATIO = 1.00
     KFACTOR = 999.0
       LOCRAD  = 500
       LOCWEIGHT =  1
@@ -61,12 +61,15 @@
       STRIDE = 0
   setting the ensemble size:
     96 members
+  initialising pointlogs:
+    pointlog (156.000, -32.000):
+      t-grid: (i, j) = (49.500, 49.500)
   updating the model state:
     defining state variables in point logs:
-    2020-11-10 14:33:41
+    2020-12-02 11:00:47
     allocating disk space for analysis:.....
     processing fields for t-grid:
-      2020-11-10 14:33:41
+      2020-12-02 11:00:47
       9 fields
       distributing 9 iterations:
         2 processes get 5 or 4 iterations
@@ -79,14 +82,19 @@
       v        1   (1: 8: 100.0%)
       salt     0   (0: 3: 80.0%)
       salt     1   (0: 4: 100.0%)
-  2020-11-10 14:33:41
+  2020-12-02 11:00:47
   assembling analysis:
     eta_t:.
     temp:..
     salt:..
     u:..
     v:..
-  2020-11-10 14:33:41
+  2020-12-02 11:00:47
   assembling state variables in point logs:
-  2020-11-10 14:33:41
+    distributing 1 iterations:
+      1 processes get 1 iteration, 1 processes get 0 iterations
+    deleting tiles:
+      distributing 9 iterations:
+        2 processes get 5 or 4 iterations
+  2020-12-02 11:00:47
   finished

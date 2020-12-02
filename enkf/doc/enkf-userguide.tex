@@ -39,7 +39,7 @@
 
 \begin{document}
 
-\title{EnKF-C user guide\\{\normalsize version 2.0.4}}
+\title{EnKF-C user guide\\{\normalsize version 2.0.17}}
 
 \author{Pavel Sakov}
 \date{June 19, 2014 -- \today}
@@ -1715,12 +1715,11 @@ Following is an example of point log file header (file \verb|pointlog_156.000,-3
 \begin{Verbatim}[frame=single,fontsize=\footnotesize]
 netcdf pointlog_156.000\,-32.000 {
 dimensions:
-        m = 96 ;
-        p = 539 ;
-        p-0 = 539 ;
-        p-1 = 539 ;
-        nk-0 = 2 ;
-        nk-1 = 2 ;
+        m1 = 96 ;
+        m2 = 96 ;
+        p = 1444 ;
+        p-0 = 1444 ;
+        p-1 = 1444 ;
 variables:
         int obs_ids(p) ;
         float lcoeffs(p) ;
@@ -1737,68 +1736,89 @@ variables:
                 obs_type:RFACTOR_SLA = 2. ;
                 obs_type:LOCRAD_SLA = 200. ;
                 obs_type:WEIGHT_SLA = 1. ;
+                obs_type:GRIDID_SLA = 0 ;
                 obs_type:SST = 1 ;
                 obs_type:RFACTOR_SST = 4. ;
                 obs_type:LOCRAD_SST = 200. ;
                 obs_type:WEIGHT_SST = 1. ;
+                obs_type:GRIDID_SST = 0 ;
                 obs_type:TEM = 2 ;
                 obs_type:RFACTOR_TEM = 8. ;
                 obs_type:LOCRAD_TEM = 800. ;
                 obs_type:WEIGHT_TEM = 1. ;
+                obs_type:GRIDID_TEM = 0 ;
                 obs_type:SAL = 3 ;
                 obs_type:RFACTOR_SAL = 8. ;
-                obs_type:LOCRAD_SAL = 800. ;
-                obs_type:WEIGHT_SAL = 1. ;
+                obs_type:LOCRAD_SAL = 800. ;                                                                   
+                obs_type:WEIGHT_SAL = 1. ;                                                                     
+                obs_type:GRIDID_SAL = 0 ;                                                                      
+        int obs_inst(p) ;                                                                                      
+                obs_inst:j1 = 0 ;                                                                              
+                obs_inst:n1 = 1 ;                                                                              
+                obs_inst:ESACCI = 2 ;                                                                          
+                obs_inst:WindSat = 3 ;                                                                         
+                obs_inst:ARGO = 4 ;                                                                            
+                obs_inst:CTD = 5 ;
+                obs_inst:TAO = 6 ;
+                obs_inst:PIRATA = 7 ;
+                obs_inst:CARS62 = 8 ;
         float obs_time(p) ;
                 obs_time:units = "days from days from 6565.5 days since 1990-01-01" ;
         int grid-0 ;
                 grid-0:id = 0 ;
-                grid-0:NAME = "t-grid" ;
-                grid-0:DOMAIN = "Default" ;
+                grid-0:name = "t-grid" ;
+                grid-0:domain = "Default" ;
                 grid-0:fi = 49.5 ;
                 grid-0:fj = 49.5 ;
                 grid-0:nk = 2 ;
-                grid-0:depth = 4642.25f ;
+                grid-0:model_depth = 4642.25f ;
         int grid-1 ;
                 grid-1:id = 1 ;
-                grid-1:NAME = "c-grid" ;
-                grid-1:DOMAIN = "Default" ;
+                grid-1:name = "c-grid" ;
+                grid-1:domain = "Default" ;
                 grid-1:fi = 48.9999694824219 ;
                 grid-1:fj = 49.0000076293945 ;
                 grid-1:nk = 2 ;
-                grid-1:depth = NaNf ;
+                grid-1:model_depth = NaNf ;
         float s-0(p-0) ;
-        float S-0(m, p-0) ;
-        double X5-0(m, m) ;
-                X5-0:long_name = "ensemble transform calculated for location (fi,fj)=
-                                  (49.500,49.500) on grid 0 (\"t-grid\")" ;
+        float S-0(m2, p-0) ;
+        double X5-0(m1, m2) ;
+                X5-0:long_name = "ensemble transform calculated for location
+                     (fi,fj)=(49.500,49.500) on grid 0 (\"t-grid\")" ;
         float s-1(p-1) ;
-        float S-1(m, p-1) ;
-        double X5-1(m, m) ;
-                X5-1:long_name = "ensemble transform calculated for location (fi,fj)=
-                                  (49.000,49.000) on grid 1 (\"c-grid\")" ;
-        float eta_t(nk-0, m) ;
+        float S-1(m2, p-1) ;
+        double X5-1(m1, m2) ;
+                X5-1:long_name = "ensemble transform calculated for location
+                     (fi,fj)=(49.000,49.000) on grid 1 (\"c-grid\")" ;
+        float eta_t(m2) ;
+                eta_t:gridid = 0 ;
                 eta_t:INFLATION = 1.1f, 1.f ;
-        float eta_t_an(nk-0, m) ;
-        float temp(nk-0, m) ;
+        float eta_t_an(m2) ;
+        float temp(nk-0, m2) ;
+                temp:gridid = 0 ;
                 temp:INFLATION = 1.1f, 1.f ;
-        float temp_an(nk-0, m) ;
-        float salt(nk-0, m) ;
+        float temp_an(nk-0, m2) ;
+        float salt(nk-0, m2) ;
+                salt:gridid = 0 ;
                 salt:INFLATION = 1.1f, 1.f ;
-        float salt_an(nk-0, m) ;
-        float u(nk-1, m) ;
+        float salt_an(nk-0, m2) ;
+        float u(nk-1, m2) ;
+                u:gridid = 1 ;
                 u:INFLATION = 1.1f, 1.f ;
-        float u_an(nk-1, m) ;
-        float v(nk-1, m) ;
+        float u_an(nk-1, m2) ;
+        float v(nk-1, m2) ;
+                v:gridid = 1 ;
                 v:INFLATION = 1.1f, 1.f ;
-        float v_an(nk-1, m) ;
+        float v_an(nk-1, m2) ;
 
 // global attributes:
-                :version = "1.97.2" ;
-                :date = "days from 6565.5 days since 1990-01-01" ;
+                :version = "2.0.17" ;
                 :lon = 156. ;
                 :lat = -32. ;
+                :MODE = "EnKF" ;
+                :SCHEME = "DEnKF" ;
                 :ALPHA = 1. ;
+                :ngrids = 2 ;
 }
 \end{Verbatim}
 

@@ -2,10 +2,10 @@
   Using MPI-3 shared memory:
     sm_comm size = 2
     node_comm size = 1
-  running CALC for EnKF-C version 2.0.7:
+  running CALC for EnKF-C version 2.0.17:
     command = "./enkf_calc --point-logs-only pointlogs.prm"
     dir = "/home/pavel/src/enkf-c/trunk/enkf/examples/1"
-  2020-11-10 14:33:03
+  2020-12-02 10:13:51
   reading system specs from "pointlogs.prm":
     MODE = EnKF
     SCHEME = DEnKF
@@ -18,7 +18,7 @@
     ENSEMBLE SIZE = 96
     RFACTOR BASE = 2.0
     INFLATION BASE = 1.1000
-    INFLATION MODE = SPREAD LIMITED, MAX RATIO = 1.00
+    INFLATION MODE = CAPPED, MAX RATIO = 1.00
     KFACTOR = 999.0
       LOCRAD  = 200
       LOCWEIGHT =  1
@@ -135,7 +135,7 @@
         7 nodes
         496 bytes
   calculating ensemble observations:
-  2020-11-10 14:33:03
+  2020-12-02 10:13:51
     allocating 3924480 bytes for HE array:
     allocating 3924480 bytes for HE^T array:
     distributing 96 iterations:
@@ -145,7 +145,7 @@
     TEM ................................................
     SAL ................................................
   adding forecast innovations and spread to "observations.nc":
-  2020-11-10 14:33:03
+  2020-12-02 10:13:51
     Hx_f already added to "observations.nc" (skipping)
   moderating observations:
     already done
@@ -156,5 +156,5 @@
     writing log for point (160.000,-29.000) on grid "t-grid":
     calculating transforms for log point (152.000,-36.000): 808 obs
     writing log for point (152.000,-36.000) on grid "t-grid":
-  2020-11-10 14:33:03
+  2020-12-02 10:13:51
   finished

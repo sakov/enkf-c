@@ -1,7 +1,7 @@
-  running PREP for EnKF-C version 2.0.7:
+  running PREP for EnKF-C version 2.0.17:
     command = "./enkf_prep enoi.prm"
     dir = "/home/pavel/src/enkf-c/trunk/enkf/examples/2"
-  2020-11-10 14:34:53
+  2020-12-02 11:02:50
   reading prep specs from "enoi.prm":
     MODE = EnOI
     MODEL PRM = "model.prm"
@@ -14,7 +14,7 @@
     ENSEMBLE SIZE = 144
     RFACTOR BASE = 1.0
     INFLATION BASE = 1.0000
-    INFLATION MODE = SPREAD LIMITED, MAX RATIO = 1.00
+    INFLATION MODE = CAPPED, MAX RATIO = 1.00
     KFACTOR = 999.0
       LOCRAD  = 200
       LOCWEIGHT =  1
@@ -571,26 +571,27 @@
       setting error_std to 0.1
       min day = -4.000
       max day = -2.000
-  compacting obs:  2020-11-10 14:34:53
-
+  2020-12-02 11:02:50
+  compacting obs:
+  2020-12-02 11:02:50
   superobing:
-  2020-11-10 14:34:53
     106423 observations thinned
     10220 superobservations
+  2020-12-02 11:02:50
   writing superobservations to "observations.nc":
-  2020-11-10 14:34:53
   reading super-observations from disk:
     10220 observations
     allocating 1226400 bytes for array of observations
+  2020-12-02 11:02:50
   checking for superobs on land:
     all good
   printing observation summary:
     type    #used    #dropped #out_grd #out_obs #out_wnd #land    #shallow #badbatch#badvalue#thinned #superobs
     -----------------------------------------------------------------------------------------------------------
     SLA     969      1        0        0        0        0        1        0        0        0        652     
-    SST     156669   0        0        0        0        0        0        0        0        0        9554    
+    SST     50246    106423   0        0        0        0        0        0        0        106423   9554    
     TEM     184      104      104      0        0        0        0        0        0        0        7       
     SAL     184      104      104      0        0        0        0        0        0        0        7       
-    total   158006   209      208      0        0        0        1        0        0        0        10220   
-  2020-11-10 14:34:53
+    total   51583    106632   208      0        0        0        1        0        0        106423   10220   
+  2020-12-02 11:02:50
   finished
