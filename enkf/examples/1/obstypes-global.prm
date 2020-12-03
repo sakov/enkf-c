@@ -1,0 +1,30 @@
+NAME = SLA
+ISSURFACE = 1
+VAR = eta_t
+OFFSET = conf/eta_mean-bran.nc eta_t
+HFUNCTION = standard
+MINVALUE = -1.0
+MAXVALUE = 1.0
+
+NAME = SST
+ISSURFACE = 1
+VAR = temp
+HFUNCTION = standard
+MINVALUE = -2.0
+MAXVALUE = 42.0
+# Increase rfactor for SST to avoid overfitting.
+RFACTOR = 2
+
+NAME = TEM
+ISSURFACE = 0
+VAR = temp
+HFUNCTION = standard
+MINVALUE = -2.0
+MAXVALUE = 42.0
+
+NAME = SAL
+ISSURFACE = 0
+VAR = salt
+HFUNCTION = standard
+MINVALUE = 28.0
+MAXVALUE = 39.0
