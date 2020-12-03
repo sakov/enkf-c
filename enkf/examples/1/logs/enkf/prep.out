@@ -1,7 +1,7 @@
-  running PREP for EnKF-C version 2.0.17:
+  running PREP for EnKF-C version 2.1.0:
     command = "./enkf_prep enkf.prm"
     dir = "/home/pavel/src/enkf-c/trunk/enkf/examples/1"
-  2020-12-02 10:12:51
+  2020-12-03 11:58:49
   reading prep specs from "enkf.prm":
     MODE = EnKF
     SCHEME = DEnKF
@@ -569,18 +569,18 @@
       setting error_std to 0.1
       min day = -4.000
       max day = -2.000
-  2020-12-02 10:12:51
+  2020-12-03 11:58:49
   compacting obs:
-  2020-12-02 10:12:51
+  2020-12-03 11:58:49
   superobing:
     106423 observations thinned
     10220 superobservations
-  2020-12-02 10:12:51
+  2020-12-03 11:58:49
   writing superobservations to "observations.nc":
   reading super-observations from disk:
     10220 observations
     allocating 1226400 bytes for array of observations
-  2020-12-02 10:12:51
+  2020-12-03 11:58:49
   checking for superobs on land:
     all good
   printing observation summary:
@@ -591,5 +591,5 @@
     TEM     184      104      104      0        0        0        0        0        0        0        7       
     SAL     184      104      104      0        0        0        0        0        0        0        7       
     total   51583    106632   208      0        0        0        1        0        0        106423   10220   
-  2020-12-02 10:12:51
+  2020-12-03 11:58:49
   finished

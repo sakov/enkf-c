@@ -3,7 +3,7 @@ SCHEME = DEnKF
 
 MODEL = model.prm
 GRID = grid.prm
-OBSTYPES = obstypes.prm
+OBSTYPES = obstypes-global.prm
 
 OBS = obs.prm
 DATE = 6565.5 days since 1990-01-01

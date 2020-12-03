@@ -58,7 +58,7 @@ enkf-calc-global: enkf_calc observations.nc conf ensemble_6565
 	nice -n +19 mpirun -np $(NP_CALC) ./enkf_calc enkf-global.prm 2>&1 | tee calc.out
 
 enkf-update-global: enkf_update X5.nc conf ensemble_6565
-	nice -n +19 mpirun -np $(NP_UPDATE) ./enkf_update --calculate-spread --write-inflation enkf-global.prm 2>&1 | tee update.out
+	nice -n +19 mpirun -np $(NP_UPDATE) ./enkf_update --calculate-spread --write-inflation --output-increment enkf-global.prm 2>&1 | tee update.out
 	rm -f ensemble_6565/mem*_*-???.nc
 
 hybrid-prep: enkf_prep conf obs hybrid.prm

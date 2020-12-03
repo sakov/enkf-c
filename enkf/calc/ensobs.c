@@ -1162,8 +1162,8 @@ static void update_HE(dasystem* das)
     observations* obs = das->obs;
     int nobs = obs->nobs;
     int e, o;
-    float* HEi_f;
-    float* HEi_a;
+    float* HEo_f;
+    float* HEo_a;
     char do_T = 'T';
     float alpha = 1.0f;
     float beta = 0.0f;
@@ -1188,10 +1188,9 @@ static void update_HE(dasystem* das)
 #endif
 
 #if !defined(USE_SHMEM)
-    HEi_f = malloc(nmem * sizeof(float));
+    HEo_f = malloc(nmem * sizeof(float));
 #endif
-    HEi_a = malloc(nmem * sizeof(float));
-
+    HEo_a = malloc(nmem * sizeof(float));
     /*
      * the following code for interpolation of X5 essentially coincides with
      * that in das_updatefields() 
@@ -1336,26 +1335,42 @@ static void update_HE(dasystem* das)
                     double inf_ratio = NAN;
                     float inflation = NAN;
                     double v1_a = 0.0;
-                    double v1_f = NAN;
+                    double v1_f = 0.0;
 
                     model_getvarinflation(m, obs->obstypes[obs->data[o].type].vid, &inflation0, &inf_ratio);
 
                     /*
-                     * HE(i, :) = HE(i, :) * X5 
+                     * HE(o, :) = HE(o, :) * X5 
                      */
                     i = (int) (obs->data[o].fi + 0.5);
                     if (i == mni)
                         i--;
 #if defined(USE_SHMEM)
-                    HEi_f = das->St[o];
+                    HEo_f = das->St[o];
 #else
                     for (e = 0; e < nmem; ++e)
-                        HEi_f[e] = das->S[e][o];
+                        HEo_f[e] = das->S[e][o];
 #endif
-                    sgemv_(&do_T, &nmem, &nmem_dynamic, &alpha, X5j[i][0], &nmem, HEi_f, &inc, &beta, HEi_a, &inc);
 
                     for (e = 0; e < nmem_dynamic; ++e)
-                        v1_a += HEi_a[e];
+                        v1_f += HEo_f[e];
+                    v1_f /= (double) nmem_dynamic;
+
+                    /*
+                     * We calculate analysed ensemble as E^a = x^f 1^T + A^f X_5
+                     * rather than E^a = E^f X_5 because it seems to reduce
+                     * systematic round-off errors.
+                     */
+                    for (e = 0; e < nmem; ++e)
+                        HEo_f[e] -= v1_f;
+                    sgemv_(&do_T, &nmem, &nmem_dynamic, &alpha, X5j[i][0], &nmem, HEo_f, &inc, &beta, HEo_a, &inc);
+                    for (e = 0; e < nmem_dynamic; ++e)
+                        HEo_a[e] += v1_f;
+                    for (e = 0; e < nmem; ++e)
+                        HEo_f[e] += v1_f;
+
+                    for (e = 0; e < nmem_dynamic; ++e)
+                        v1_a += HEo_a[e];
                     v1_a /= (double) nmem_dynamic;
 
                     if (!isnan(inf_ratio)) {
@@ -1363,18 +1378,15 @@ static void update_HE(dasystem* das)
                         double v2_a = 0.0;
                         double var_a, var_f;
 
-                        v1_f = 0.0;
                         for (e = 0; e < nmem_dynamic; ++e) {
-                            double ve = (double) HEi_f[e];
+                            double ve = (double) HEo_f[e];
 
-                            v1_f += ve;
                             v2_f += ve * ve;
                         }
-                        v1_f /= (double) nmem_dynamic;
                         var_f = v2_f / (double) nmem_dynamic - v1_f * v1_f;
 
                         for (e = 0; e < nmem_dynamic; ++e) {
-                            double ve = (double) HEi_a[e];
+                            double ve = (double) HEo_a[e];
 
                             v2_a += ve * ve;
                         }
@@ -1397,22 +1409,16 @@ static void update_HE(dasystem* das)
                      */
                     if (fabsf(inflation - 1.0f) > EPSF)
                         for (e = 0; e < nmem_dynamic; ++e)
-                            HEi_a[e] = (HEi_a[e] - (float) v1_a) * inflation + v1_a;
+                            HEo_a[e] = (HEo_a[e] - (float) v1_a) * inflation + v1_a;
 
-                    if (nmem > nmem_dynamic && isnan(v1_f)) {
-                        v1_f = 0.0;
-                        for (e = 0; e < nmem_dynamic; ++e)
-                            v1_f += HEi_f[e];
-                        v1_f /= (double) nmem_dynamic;
-                    }
 #if defined(USE_SHMEM)
                     for (e = 0; e < nmem_dynamic; ++e)
-                        das->St[o][e] = HEi_a[e];
+                        das->St[o][e] = HEo_a[e];
                     for (e = nmem_dynamic; e < nmem; ++e)
                         das->St[o][e] += v1_a - v1_f;
 #else
                     for (e = 0; e < nmem_dynamic; ++e)
-                        das->S[e][o] = HEi_a[e];
+                        das->S[e][o] = HEo_a[e];
                     for (e = nmem_dynamic; e < nmem; ++e)
                         das->S[e][o] += v1_a - v1_f;
 #endif
@@ -1441,9 +1447,9 @@ static void update_HE(dasystem* das)
                 das->S[e][o] = das->St[o][e];
 #endif
 
-    free(HEi_a);
+    free(HEo_a);
 #if !defined(USE_SHMEM)
-    free(HEi_f);
+    free(HEo_f);
 #endif
 
   finish:
@@ -1611,7 +1617,7 @@ static void update_Hx(dasystem* das)
                 }               /* stride != 1 */
 
                 /*
-                 * (at this stage wj should contain the array of b vectors for
+                 * (at this stage wj should contain the array of mni vectors for
                  * the j-th row of the grid) 
                  */
 

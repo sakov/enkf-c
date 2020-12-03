@@ -1,3 +1,11 @@
+v2.1.0
+   PS 03112020
+   -- Slightly modified the ensemble update numerics in update_HE() and
+      das_updatefields(). The new numerics seems to have little effect in most
+      cases, but sometimes it can eliminate large effects from systematic
+      round-off errors. E.g. compare innovation errors (tail of calc.out) with
+      the new version and the previous version for target "global" in
+      examples/1. This change does not affect EnOI systems.
 v2.0.17
    PS 02112020
    -- Added obs_calcstats() to obs_superob() if nthinned > 0 to get the number

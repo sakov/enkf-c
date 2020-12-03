@@ -231,6 +231,7 @@ static void das_updatefields(dasystem* das, int nfields, void** fieldbuffer, fie
 
                 for (i = 0; i < mni; ++i) {
                     float inflation = inflation0;
+                    double v1_f = 0.0;
                     double v1_a = 0.0;
 
                     /*
@@ -278,17 +279,30 @@ static void das_updatefields(dasystem* das, int nfields, void** fieldbuffer, fie
                     for (e = 0; e < nmem; ++e)
                         v_f[e] = vvv[e][j][i];
 
+                    for (e = 0; e < nmem_dynamic; ++e)
+                        v1_f += v_f[e];
+                    v1_f /= (double) nmem_dynamic;
+
                     /*
-                     * E_a(i, :) = E_f(i, :) * X5 
+                     * We calculate analysed ensemble as
+                     *   E^a(i,:) = x^f(i) 1^T + A^f(i,:) X_5
+                     * rather than
+                     *   E^a(i,:) = E^f(i,:) X_5
+                     * because it seems to reduce systematic round-off errors.
                      */
+                    for (e = 0; e < nmem; ++e)
+                        v_f[e] -= v1_f;
                     sgemv_(&do_T, &nmem, &nmem_dynamic, &alpha, X5j[i], &nmem, v_f, &inc, &beta, v_a, &inc);
+                    for (e = 0; e < nmem_dynamic; ++e)
+                        v_a[e] += v1_f;
+                    for (e = 0; e < nmem; ++e)
+                        v_f[e] += v1_f;
 
                     for (e = 0; e < nmem_dynamic; ++e)
                         v1_a += v_a[e];
                     v1_a /= (double) nmem_dynamic;
 
                     if (!isnan(inf_ratio)) {
-                        double v1_f = 0.0;
                         double v2_f = 0.0;
                         double v2_a = 0.0;
                         double var_a, var_f;
@@ -296,10 +310,8 @@ static void das_updatefields(dasystem* das, int nfields, void** fieldbuffer, fie
                         for (e = 0; e < nmem_dynamic; ++e) {
                             double ve = (double) v_f[e];
 
-                            v1_f += ve;
                             v2_f += ve * ve;
                         }
-                        v1_f /= (double) nmem_dynamic;
                         var_f = v2_f / (double) nmem_dynamic - v1_f * v1_f;
 
                         for (e = 0; e < nmem_dynamic; ++e) {
