@@ -85,6 +85,7 @@ void obs_add(observations* obs, model* m, obsmeta* meta)
     int nobs0 = obs->nobs;
     int otid = obstype_getid(obs->nobstypes, obs->obstypes, meta->type, 1);
     obstype* ot = &obs->obstypes[otid];
+    int applylog = model_getvarislog(m, model_getvarid(m, ot->varnames[0], 1));
 
     grid* g = model_getgridbyid(m, ot->gridid);
     float** depth = grid_getdepth(g);
@@ -275,6 +276,21 @@ void obs_add(observations* obs, model* m, obsmeta* meta)
             else
                 o->footprint = 0.0;
         }
+
+        if (applylog) {
+            for (i = nobs0; i < obs->nobs; ++i) {
+                observation* o = &obs->data[i];
+
+                if (o->status != STATUS_OK)
+                    continue;
+                o->value = log10(o->value);
+                if (!isnormal(o->value)) {
+                    o->status = STATUS_RANGE;
+                    ninf++;
+                }
+            }
+        }
+
         if (noutow > 0)
             enkf_printf("        %d observations outside obs. window\n", noutow);
         if (noutod > 0)
@@ -290,12 +306,16 @@ void obs_add(observations* obs, model* m, obsmeta* meta)
         if (nshallow > 0)
             enkf_printf("        %d observations in shallow areas\n", nshallow);
     }
+
     obs->compacted = 0;
     enkf_printf("      total %d observations\n", obs->nobs - nobs0);
     for (ngood = 0, i = nobs0; i < obs->nobs; ++i)
         if (obs->data[i].status == STATUS_OK)
             ngood++;
     enkf_printf("      %d valid observations\n", ngood);
+
+    if (obs->nobs - nobs0 > 0 && applylog && meta->nestds == 0)
+        enkf_quit("%s: observation error must be specified explicitly for observations of type associated with log-transformed model variables", ot->name);
 
     /*
      * add specified errors 

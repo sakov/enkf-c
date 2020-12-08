@@ -45,6 +45,7 @@ static void obstype_new(obstype* type, int i, char* name)
     type->nvar = 0;
     type->varnames = NULL;
     type->alias = NULL;
+    type->logapplied = 0;
     type->offset_fname = NULL;
     type->offset_varname = NULL;
     type->mld_varname = NULL;
@@ -516,6 +517,7 @@ void obstypes_set(int n, obstype* types, model* m)
         int mvid = model_getvarid(m, types[i].varnames[0], 1);
         int j;
 
+        ot->logapplied = model_getvarislog(m, mvid);
         ot->vid = mvid;
         ot->gridid = model_getvargridid(m, mvid);
         if (ot->ndomains > 0)
@@ -529,6 +531,9 @@ void obstypes_set(int n, obstype* types, model* m)
         snprintf(tag, MAXSTRLEN, "%s:OFFSET", ot->name);
         if (ot->offset_fname != NULL) {
             int ncid, varid;
+
+            if (ot->logapplied)
+                enkf_quit("%s: can not specify offset for observations associated with log-transformed model variables", ot->name);
 
             ncw_open(ot->offset_fname, NC_NOWRITE, &ncid);
             ncw_inq_varid(ncid, ot->offset_varname, &varid);

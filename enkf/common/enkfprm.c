@@ -138,7 +138,7 @@ enkfprm* enkfprm_read(char fname[])
     prm->stride = 1;
     prm->sob_stride = 1;
     prm->fieldbufsize = 1;
-    prm->ncformat = NC_64BIT_OFFSET;
+    prm->ncformat = NETCDF_FORMAT;
     prm->nccompression = 0;
 
     f = enkf_fopen(fname, "r");
@@ -715,7 +715,7 @@ void enkfprm_describeprm(void)
     enkf_printf("    ...\n");
     enkf_printf("  [ EXITACTION      = { BACKTRACE* | SEGFAULT } ]\n");
     enkf_printf("  [ BADBATCHES      = <obstype> <max. bias> <max. mad> <min # obs.> ]\n");
-    enkf_printf("  [ NCFORMAT        = { CLASSIC | 64BIT | NETCDF4 } ]        (64BIT*)\n");
+    enkf_printf("  [ NCFORMAT        = { CLASSIC | 64BIT | NETCDF4 } ]        (NETCDF4*)\n");
     enkf_printf("  [ NCCOMPRESSION   = <compression level> ]                  (0*)\n");
     enkf_printf("    ...\n");
     enkf_printf("\n");

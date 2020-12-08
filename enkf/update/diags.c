@@ -145,7 +145,7 @@ void das_writespread(dasystem* das, int nfields, void** fieldbuffer, field field
             for (i = 0; i < nij; ++i)
                 v[i] = (float) v2[i];
 
-            model_writefieldas(m, fname, varname, f->varname, f->level, v);
+            model_writefieldas(m, fname, varname, f->varname, f->level, v, 1);
             free(v);
         }
     }
@@ -194,7 +194,7 @@ void das_assemblespread(dasystem* das)
             ncw_close(ncid_src);
             file_delete(fname_src);
 
-            model_writefield(m, FNAME_SPREAD, varname, k, v);
+            model_writefield(m, FNAME_SPREAD, varname, k, v, 1);
 
             if ((das->mode == MODE_ENKF || das->mode == MODE_HYBRID) && das->updatespec & UPDATE_DOANALYSISSPREAD) {
                 if (nlev > 1)
@@ -207,7 +207,7 @@ void das_assemblespread(dasystem* das)
                 ncw_close(ncid_src);
                 file_delete(fname_src);
 
-                model_writefieldas(m, FNAME_SPREAD, varname_an, varname, k, v);
+                model_writefieldas(m, FNAME_SPREAD, varname_an, varname, k, v, 1);
             }
 
             enkf_printf(".");
@@ -323,7 +323,7 @@ void das_assembleinflation(dasystem* das)
             ncw_inq_varid(ncid_src, varname, &vid);
             ncw_get_var_float(ncid_src, vid, v);
             ncw_close(ncid_src);
-            model_writefield(m, FNAME_INFLATION, varname, k, v);
+            model_writefield(m, FNAME_INFLATION, varname, k, v, 1);
             file_delete(fname_src);
 
             enkf_printf(".");
@@ -541,7 +541,7 @@ void das_writevcorrs(dasystem* das)
             ncw_close(ncid_tile);
             file_delete(fname_tile);
 
-            model_writefield(m, FNAME_VERTCORR, f->varname, f->level, v);
+            model_writefield(m, FNAME_VERTCORR, f->varname, f->level, v, 1);
             free(v);
         }
     }

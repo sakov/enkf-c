@@ -61,6 +61,7 @@ void obs_addtype(observations* obs, obstype* src)
     for (i = 0; i < src->nvar; ++i)
         ot->varnames[i] = strdup(src->varnames[i]);
     ot->alias = strdup(src->alias);
+    ot->logapplied = src->logapplied;
     ot->offset_fname = (src->offset_fname != NULL) ? strdup(src->offset_fname) : NULL;
     ot->offset_varname = (src->offset_varname != NULL) ? strdup(src->offset_varname) : NULL;
     ot->mld_varname = (src->mld_varname != NULL) ? strdup(src->mld_varname) : NULL;
@@ -909,8 +910,15 @@ void obs_write(observations* obs, char fname[])
     snprintf(tunits, MAXSTRLEN, "days from %s", obs->datestr);
     ncw_put_att_text(ncid, varid_time, "units", tunits);
 
-    for (i = 0; i < obs->nobstypes; ++i)
+    for (i = 0; i < obs->nobstypes; ++i) {
         ncw_put_att_int(ncid, varid_type, obs->obstypes[i].name, 1, &i);
+        if (obs->obstypes[i].logapplied) {
+            char attname[NC_MAX_NAME];
+
+            snprintf(attname, NC_MAX_NAME, "%s:LOGAPPLIED", obs->obstypes[i].name);
+            ncw_put_att_text(ncid, varid_type, attname, "true");
+        }
+    }
 
     for (i = 0; i < st_getsize(obs->products); ++i)
         ncw_put_att_int(ncid, varid_product, st_findstringbyindex(obs->products, i), 1, &i);

@@ -39,7 +39,7 @@
 
 \begin{document}
 
-\title{EnKF-C user guide\\{\normalsize version 2.0.17}}
+\title{EnKF-C user guide\\{\normalsize version 2.2.0}}
 
 \author{Pavel Sakov}
 \date{June 19, 2014 -- \today}
@@ -796,10 +796,10 @@ The model parameter file mainly describes the composition of the state vector by
   Model parameter file format:
 
     NAME      = <name>
-
     VAR       = <name>
   [ GRID      = <name> ]                    (# grids > 1)
   [ INFLATION = <value> [<value> | PLAIN] ]
+  [ APPLYLOG  = <YES | NO*> ]               (MODE = ENKF)
   [ RANDOMISE <deflation> <sigma> ]
 
   [ <more of the above blocks> ]
@@ -807,7 +807,7 @@ The model parameter file mainly describes the composition of the state vector by
 
 Each model variable is described in a block started by the entry for the variable name.
 The inflation parameters for a variable, if specified, override the common values set in the main parameter file (sec.~\ref{sec:capping}).
-Entry RANDOMISE makes it possible to specify a ``forgetting'' model for a variable (sec.~\ref{sec:bias}).
+The option APPLYLOG makes it possible to conduct assimilation in log space (sec.~\ref{sec:logspace}), and RANDOMISE -- to specify a ``forgetting'' model for the variable (sec.~\ref{sec:bias}).
 
 EnKF-C permits using multiple model grids.
 In this case each model variable must be associated with one of the grids defined in the grid parameter file.
@@ -1856,6 +1856,14 @@ Another possibility is to introduce a ``forgetting'' stochastic model for bias f
 \end{align*}
 where $\lambda$ is the forgetting factor, $0 < \lambda < 1, \; 1 - \lambda \ll 1$, and $\ms \sigma \sim \sigma_0 N(0, 1)$, where $\sigma_0$ is the error standard deviation of $\mb x$.
 This can be specified for a model variable via entry \verb|RANDOMISE| in the corresponding section of the model parameter file (sec.~\ref{sec:modelprm}).
+
+\section{Assimilation in log space}
+\label{sec:logspace}
+
+The entry \verb|APPLYLOG| in the model parameter file makes it possible to conduct assimilation for a variable in log space.
+This means that a transform with log10 function will be applied to model values and observations before DA, and the inverse transform with pow10 will be applied after DA.
+At the moment this option can only be specified with EnKF systems (\verb|MODE = ENKF|).
+When APPLYLOG is specified, the ensemble spread and ensemble vertical correlations are calculated for the transformed variable.
 
 \section{System issues}
 

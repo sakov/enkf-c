@@ -153,6 +153,9 @@ void H_surf_standard(dasystem* das, int nobs, int obsids[], char fname[], int me
         float* offset0 = offset[0];
         int i;
 
+        if (model_getvarislog(m, mvid))
+            enkf_quit("%s: offset can not be specified for model variables with APPLYLOG = 1", ot->name);
+
         assert(model_getdataalloctype(m, tag_offset) == ALLOCTYPE_2D);
         assert(mvid >= 0);
         model_getvargridsize(m, mvid, &ni, &nj, NULL);
@@ -205,6 +208,9 @@ void H_surf_biased(dasystem* das, int nobs, int obsids[], char fname[], int mem,
     if (offset != NULL) {
         float* offset0 = offset[0];
 
+        if (model_getvarislog(m, mvid))
+            enkf_quit("%s: offset can not be specified for model variables with APPLYLOG = 1", ot->name);
+
         assert(model_getdataalloctype(m, tag_offset) == ALLOCTYPE_2D);
         for (i = 0; i < nv; ++i)
             src0[i] -= offset0[i];
@@ -253,6 +259,9 @@ void H_subsurf_standard(dasystem* das, int nobs, int obsids[], char fname[], int
     snprintf(tag_offset, MAXSTRLEN, "%s:OFFSET", allobs->obstypes[allobs->data[obsids[0]].type].name);
     offset_data = model_getdata(m, tag_offset);
     if (offset_data != NULL) {
+        if (model_getvarislog(m, mvid))
+            enkf_quit("%s: offset can not be specified for model variables with APPLYLOG = 1", ot->name);
+
         if (model_getdataalloctype(m, tag_offset) == ALLOCTYPE_3D) {
             float* src0 = src[0][0];
             float* offset0 = ((float***) offset_data)[0][0];
@@ -323,6 +332,9 @@ void H_subsurf_lowmem(dasystem* das, int nobs, int obsids[], char fname[], int m
     snprintf(tag_offset, MAXSTRLEN, "%s:OFFSET", allobs->obstypes[allobs->data[obsids[0]].type].name);
     offset_data = model_getdata(m, tag_offset);
     if (offset_data != NULL) {
+        if (model_getvarislog(m, mvid))
+            enkf_quit("%s: offset can not be specified for model variables with APPLYLOG = 1", ot->name);
+
         if (model_getdataalloctype(m, tag_offset) == ALLOCTYPE_3D)
             enkf_quit("obstype = %s: \"lowmem\" subsurface H-function works with 1D offsets only; use \"standard\" function for 3D offset", ot->name);
         else if (model_getdataalloctype(m, tag_offset) == ALLOCTYPE_2D)
@@ -428,6 +440,9 @@ void H_subsurf_wsurfbias(dasystem* das, int nobs, int obsids[], char fname[], in
     float** bias = NULL;
     char fname2[MAXSTRLEN];
     size_t i;
+
+    if (model_getvarislog(m, mvid))
+        enkf_quit("%s: H-function \"wsurfbias\" can not be specified for model variables with APPLYLOG = 1", ot->name);
 
     if (ot->nvar < 2)
         enkf_quit("%s: second variable has to be defined for the observation type when using H-function \"wsurfbias\"", ot->name);
@@ -570,6 +585,9 @@ void H_vertsum(dasystem* das, int nobs, int obsids[], char fname[], int mem, int
     void* offset_data = NULL;
     size_t k, i;
 
+    if (model_getvarislog(m, mvid))
+        enkf_quit("%s: H-function \"vertsum\" can not be specified for model variables with APPLYLOG = 1", ot->name);
+
     {
         int vtype = grid_getvtype(model_getvargrid(m, mvid));
 
@@ -626,6 +644,9 @@ void H_vertwavg(dasystem* das, int nobs, int obsids[], char fname[], int mem, in
     char tag_offset[MAXSTRLEN];
     void* offset_data = NULL;
     size_t k, i;
+
+    if (model_getvarislog(m, mvid))
+        enkf_quit("%s: H-function \"vertwavg\" can not be specified for model variables with APPLYLOG = 1", ot->name);
 
     if (ot->nvar < 2)
         enkf_quit("%s: second variable has to be defined for the observation type when using H-function \"vertavg\"", ot->name);

@@ -217,6 +217,7 @@ static void das_updatefields(dasystem* das, int nfields, void** fieldbuffer, fie
              */
             for (fid = 0; fid < nfields; ++fid) {
                 field* f = &fields[fid];
+                int applylog = model_getvarislog(m, f->varid);
                 float*** vvv = (float***) fieldbuffer[fid];
                 char do_T = 'T';
                 float alpha = 1.0f;
@@ -342,9 +343,18 @@ static void das_updatefields(dasystem* das, int nfields, void** fieldbuffer, fie
                     if (!(das->updatespec & UPDATE_OUTPUTINC))
                         for (e = 0; e < nmem_dynamic; ++e)
                             vvv[e][j][i] = v_a[e];
-                    else
-                        for (e = 0; e < nmem_dynamic; ++e)
-                            vvv[e][j][i] = v_a[e] - v_f[e];
+                    else {
+                        if (!applylog)
+                            for (e = 0; e < nmem_dynamic; ++e)
+                                vvv[e][j][i] = v_a[e] - v_f[e];
+                        else
+                            for (e = 0; e < nmem_dynamic; ++e) {
+                                if (!isnormal(v_f[e]))
+                                    vvv[e][j][i] = 0.0;
+                                else
+                                    vvv[e][j][i] = pow10(v_a[e]) - pow10(v_f[e]);
+                            }
+                    }
 
                     if (writeinflation)
                         infl[i] = inflation;
@@ -600,7 +610,7 @@ static void das_writefields_direct(dasystem* das, int nfields, void** fieldbuffe
                 char fname[MAXSTRLEN];
 
                 das_getmemberfname(das, f->varname, e + 1, fname);
-                model_writefieldas(das->m, fname, varname, f->varname, f->level, ((float***) fieldbuffer[i])[e][0]);
+                model_writefieldas(das->m, fname, varname, f->varname, f->level, ((float***) fieldbuffer[i])[e][0], 0);
             }
         }
     } else {
@@ -615,7 +625,7 @@ static void das_writefields_direct(dasystem* das, int nfields, void** fieldbuffe
                     strncat(fname, ".analysis", MAXSTRLEN - 1);
                 else
                     strncat(fname, ".increment", MAXSTRLEN - 1);
-                model_writefield(das->m, fname, f->varname, f->level, ((float***) fieldbuffer[i])[e][0]);
+                model_writefield(das->m, fname, f->varname, f->level, ((float***) fieldbuffer[i])[e][0], 0);
             }
         }
     }
@@ -701,7 +711,7 @@ static void das_writebg_direct(dasystem* das, int nfields, void** fieldbuffer, f
                 strncat(varname, "_an", NC_MAX_NAME - 1);
             else
                 strncat(varname, "_inc", NC_MAX_NAME - 1);
-            model_writefield(m, fname, varname, f->level, ((float***) fieldbuffer[i])[das->nmem][0]);
+            model_writefield(m, fname, varname, f->level, ((float***) fieldbuffer[i])[das->nmem][0], 0);
         }
     } else {
         for (i = 0; i < nfields; ++i) {
@@ -713,7 +723,7 @@ static void das_writebg_direct(dasystem* das, int nfields, void** fieldbuffer, f
                 strncat(fname, ".analysis", MAXSTRLEN - 1);
             else
                 strncat(fname, ".increment", MAXSTRLEN - 1);
-            model_writefield(m, fname, f->varname, f->level, ((float***) fieldbuffer[i])[das->nmem][0]);
+            model_writefield(m, fname, f->varname, f->level, ((float***) fieldbuffer[i])[das->nmem][0], 0);
         }
     }
 }
@@ -747,11 +757,13 @@ static void das_writebg_toassemble(dasystem* das, int nfields, void** fieldbuffe
                 ncw_def_deflate(ncid, 0, 1, das->nccompression);
 #endif
             ncw_enddef(ncid);
-            ncw_put_var_float(ncid, vid, ((float***) fieldbuffer[i])[das->nmem][0]);
             ncw_close(ncid);
-        } else {
-            model_writefield(das->m, fname, f->varname, f->level, ((float***) fieldbuffer[i])[das->nmem][0]);
         }
+        /*
+         * ignorelog = 1 here, as it will be handled during assembling if
+         * necessary
+         */
+        model_writefield(das->m, fname, f->varname, f->level, ((float***) fieldbuffer[i])[das->nmem][0], 1);
     }
 }
 
@@ -824,7 +836,10 @@ static void das_assemblemembers(dasystem* das)
                 ncw_get_vara_float(ncid_src, vid_src, start, count, v);
                 ncw_close(ncid_src);
 
-                model_writefield(m, fname_dst, varname_dst, k, v);
+                if (!(das->updatespec & UPDATE_OUTPUTINC))
+                    model_writefield(m, fname_dst, varname_dst, k, v, 0);
+                else
+                    model_writefield(m, fname_dst, varname_dst, k, v, 1);
             }
             enkf_printf(".");
         }
@@ -913,7 +928,7 @@ static void das_assemblebg(dasystem* das)
             ncw_get_var_float(ncid_src, vid_src, v);
             ncw_close(ncid_src);
 
-            model_writefield(m, fname_dst, varname_dst, k, v);
+            model_writefield(m, fname_dst, varname_dst, k, v, 0);
             if (!(das->updatespec & UPDATE_LEAVETILES))
                 file_delete(fname_src);
 

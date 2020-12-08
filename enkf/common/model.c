@@ -43,6 +43,7 @@ struct variable {
     int gridid;
     double inflation;
     double inf_ratio;
+    int applylog;
     /*
      * if not NaN then the code will "propagate" the variable as follows:
      *   v <- deflation * v + (1 - deflation^2)^1/2 * s, 
@@ -77,6 +78,7 @@ static void variable_new(variable* v, int id, char* name)
     v->gridid = -1;
     v->inflation = NAN;
     v->inf_ratio = NAN;
+    v->applylog = 0;
     v->deflation = NAN;
     v->sigma = NAN;
 }
@@ -185,13 +187,21 @@ model* model_create(enkfprm* prm)
                 if (!isnan(now->inflation))
                     enkf_quit("%s, l.%d: INFLATION already specified for \"%s\"", modelprm, line, now->name);
                 if ((token = strtok(NULL, seps)) == NULL)
-                    enkf_quit("%s, l.%d: INFLATION not specified", modelprm, line);
+                    enkf_quit("%s, l.%d: INFLATION value not specified", modelprm, line);
                 if (!str2double(token, &now->inflation))
                     enkf_quit("%s, l.%d: could not convert \"%s\" to double", modelprm, line, token);
                 if ((token = strtok(NULL, seps)) != NULL) {
                     if (!str2double(token, &now->inf_ratio))
                         enkf_quit("%s, l.%d: could not convert \"%s\" to double", modelprm, line, token);
                 }
+            } else if (strcasecmp(token, "APPLYLOG") == 0) {
+                if (now == NULL)
+                    enkf_quit("%s, l.%d: VAR not specified", modelprm, line);
+                if ((token = strtok(NULL, seps)) == NULL)
+                    enkf_quit("%s, l.%d: APPLYLOG value not specified", modelprm, line);
+                now->applylog = istrue(token) ? 1 : 0;
+                if (now->applylog && prm->mode != MODE_ENKF)
+                    enkf_quit("%s, l.%d: APPLYLOG can only be used with MODE = ENKF", modelprm, line);
             } else if (strcasecmp(token, "RANDOMISE") == 0 || strcasecmp(token, "RANDOMIZE") == 0) {
                 if (!isnan(now->deflation))
                     enkf_quit("%s, l.%d: randomisation multiple already specified for \"%s\"", modelprm, line, now->name);
@@ -200,7 +210,7 @@ model* model_create(enkfprm* prm)
                 if (!str2double(token, &now->deflation))
                     enkf_quit("%s, l.%d: could not convert \"%s\" to double", modelprm, line, token);
                 if ((token = strtok(NULL, seps)) == NULL)
-                    enkf_quit("%s, l.%d: RANDOMISE STD not specified", modelprm, line);
+                    enkf_quit("%s, l.%d: RANDOMISE STD value not specified", modelprm, line);
                 if (!str2double(token, &now->sigma))
                     enkf_quit("%s, l.%d: could not convert \"%s\" to double", modelprm, line, token);
             } else
@@ -320,6 +330,8 @@ void model_print(model* m, char offset[])
             enkf_printf("%s      inflation = %.3f PLAIN\n", offset, v->inflation);
         else
             enkf_printf("%s      inflation = %.3f %.2f\n", offset, v->inflation, v->inf_ratio);
+        if (v->applylog)
+            enkf_printf("%s      applylog = true\n", offset);
         if (!isnan(v->deflation))
             enkf_printf("%s      randomise: deflation = %.3f, sigma = %.3f\n", offset, v->deflation, v->sigma);
     }
@@ -346,6 +358,7 @@ void model_describeprm(void)
     enkf_printf("    VAR       = <name>\n");
     enkf_printf("  [ GRID      = <name> ]                    (# grids > 1)\n");
     enkf_printf("  [ INFLATION = <value> [<value> | PLAIN] ]\n");
+    enkf_printf("  [ APPLYLOG  = <YES | NO*> ]               (MODE = ENKF)\n");
     enkf_printf("  [ RANDOMISE <deflation> <sigma> ]\n");
     enkf_printf("\n");
     enkf_printf("  [ <more of the above blocks> ]\n");
@@ -354,7 +367,7 @@ void model_describeprm(void)
     enkf_printf("    1. [ ... ] denotes an optional input\n");
     enkf_printf("    2. < ... > denotes a description of an entry\n");
     enkf_printf("    3. ( ... ) is a note\n");
-    enkf_printf("    4. ... denotes repeating the previous item an arbitrary number of times\n");
+    enkf_printf("    4. * denotes the default value\n");
     enkf_printf("\n");
 }
 
@@ -526,6 +539,13 @@ int model_getvargridid(model* m, int vid)
 
 /**
  */
+int model_getvarislog(model* m, int vid)
+{
+    return m->vars[vid].applylog;
+}
+
+/**
+ */
 int model_getngrid(model* m)
 {
     return m->ngrid;
@@ -643,6 +663,14 @@ void model_readfield(model* m, char fname[], char varname[], int k, float* v)
     model_getvargridsize(m, mvid, &ni, &nj, &nk);
     assert(k < nk);
     ncu_readfield(fname, varname, k, ni, nj, nk, v);
+
+    if (m->vars[mvid].applylog) {
+        size_t nij = ni * nj;
+        size_t i;
+
+        for (i = 0; i < nij; ++i)
+            v[i] = log10(v[i]);
+    }
 }
 
 /**
@@ -654,28 +682,54 @@ void model_read3dfield(model* m, char fname[], char varname[], float* v)
 
     model_getvargridsize(m, mvid, &ni, &nj, &nk);
     ncu_read3dfield(fname, varname, ni, nj, nk, v);
+
+    if (m->vars[mvid].applylog) {
+        size_t nijk = (size_t) ni * nj * nk;
+        size_t i;
+
+        for (i = 0; i < nijk; ++i)
+            v[i] = log10(v[i]);
+    }
 }
 
 /**
  */
-void model_writefield(model* m, char fname[], char varname[], int k, float* v)
+void model_writefield(model* m, char fname[], char varname[], int k, float* v, int ignorelog)
 {
     int ni, nj, nk;
     int mvid = model_getvarid(m, varname, 1);
 
     model_getvargridsize(m, mvid, &ni, &nj, &nk);
     assert(k < nk);
+
+    if (m->vars[mvid].applylog && !ignorelog) {
+        size_t nij = (size_t) ni * nj;
+        size_t i;
+
+        for (i = 0; i < nij; ++i)
+            v[i] = pow10(v[i]);
+    }
+
     ncu_writefield(fname, varname, k, ni, nj, nk, v);
 }
 
 /**
  */
-void model_writefieldas(model* m, char fname[], char varname[], char varnameas[], int k, float* v)
+void model_writefieldas(model* m, char fname[], char varname[], char varnameas[], int k, float* v, int ignorelog)
 {
     int ni, nj, nk;
     int mvid = model_getvarid(m, varnameas, 1);
 
     model_getvargridsize(m, mvid, &ni, &nj, &nk);
     assert(k < nk);
+
+    if (m->vars[mvid].applylog && !ignorelog) {
+        size_t nij = (size_t) ni * nj;
+        size_t i;
+
+        for (i = 0; i < nij; ++i)
+            v[i] = pow10(v[i]);
+    }
+
     ncu_writefield(fname, varname, k, ni, nj, nk, v);
 }

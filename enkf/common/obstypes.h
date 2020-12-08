@@ -23,6 +23,7 @@ typedef struct {
     int nvar;
     char** varnames;
     char* alias;                /* variable name used in file names */
+    int logapplied;
     char* offset_fname;
     char* offset_varname;
     char* mld_varname;

@@ -1,5 +1,11 @@
+v2.2.0
+   PS 08122020
+   -- Introduced a new flag for variables in model parameter file:
+      APPLYLOG = [true | false]. When set to true the assimilation is done in
+      log-transformed space. This option can only be defined with MODE = ENKF.
+   -- Changed default NetCDF format to NETCDF4.
 v2.1.0
-   PS 03112020
+   PS 03122020
    -- Slightly modified the ensemble update numerics in update_HE() and
       das_updatefields(). The new numerics seems to have little effect in most
       cases, but sometimes it can eliminate large effects from systematic
@@ -7,7 +13,7 @@ v2.1.0
       the new version and the previous version for target "global" in
       examples/1. This change does not affect EnOI systems.
 v2.0.17
-   PS 02112020
+   PS 02122020
    -- Added obs_calcstats() to obs_superob() if nthinned > 0 to get the number
       of thinned obs. reported correctly in the PREP summary.
    -- Corrected defect in enkf_update.c:main() that prevented adding model
