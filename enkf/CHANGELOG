@@ -1,3 +1,7 @@
+v2.2.1
+   PS 09122020
+   -- replaced pow10() with exp10() as pow10() is not present in some GCC
+      versions
 v2.2.0
    PS 08122020
    -- Introduced a new flag for variables in model parameter file:

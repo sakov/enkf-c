@@ -352,7 +352,7 @@ static void das_updatefields(dasystem* das, int nfields, void** fieldbuffer, fie
                                 if (!isnormal(v_f[e]))
                                     vvv[e][j][i] = 0.0;
                                 else
-                                    vvv[e][j][i] = pow10(v_a[e]) - pow10(v_f[e]);
+                                    vvv[e][j][i] = exp10(v_a[e]) - pow10(v_f[e]);
                             }
                     }
 
