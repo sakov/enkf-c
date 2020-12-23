@@ -42,6 +42,8 @@ static void usage()
 {
     enkf_printf("  Usage: enkf_calc <prm file> [<options>]\n");
     enkf_printf("  Options:\n");
+    enkf_printf("  --allow-logspace-with-static-ens\n");
+    enkf_printf("      confirm that static ensemble is conditioned for using log space\n");
     enkf_printf("  --describe-prm-format [main|model|grid|obstypes]\n");
     enkf_printf("      describe format of a parameter file and exit\n");
     enkf_printf("  --forecast-stats-only\n");
@@ -93,6 +95,10 @@ static void parse_commandline(int argc, char* argv[], char** fname_prm, char** f
                 continue;
             } else
                 usage();
+        } else if (strcmp(argv[i], "--allow-logspace-with-static-ens") == 0) {
+            enkf_allowenoilog = 1;
+            i++;
+            continue;
         } else if (strcmp(argv[i], "--describe-prm-format") == 0) {
             if (i < argc - 1) {
                 if (strcmp(argv[i + 1], "main") == 0)

@@ -137,8 +137,7 @@ void das_destandardise(dasystem* das);
 void das_update(dasystem* das);
 void das_updateHE(dasystem* das);
 
-void das_getfname_X5(dasystem* das, void* grid, char fname[]);
-void das_getfname_w(dasystem* das, void* grid, char fname[]);
+void das_getfname_transforms(dasystem* das, int gridid, char fname[]);
 void das_getfname_stats(dasystem* das, void* grid, char fname[]);
 void das_getfname_plog(dasystem* das, pointlog* plog, char fname[]);
 
@@ -155,6 +154,7 @@ int das_getmemberfname_async(dasystem* das, obstype* ot, int mem, int t, char fn
 void das_getbgfname(dasystem* das, char varname[], char fname[]);
 int das_getbgfname_async(dasystem* das, obstype* ot, int t, char fname[]);
 void das_sethybridensemble(dasystem* das, int nij, float** v);
+int das_maskinglogneeded(dasystem* das, int mem);
 
 #define _DASYSTEM_H
 #endif

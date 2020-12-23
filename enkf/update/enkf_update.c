@@ -29,6 +29,8 @@ static void usage()
 {
     enkf_printf("  Usage: enkf_update <prm file> [<options>]\n");
     enkf_printf("  Options:\n");
+    enkf_printf("  --allow-logspace-with-static-ens\n");
+    enkf_printf("      confirm that static ensemble is conditioned for using log space\n");
     enkf_printf("  --calculate-spread\n");
     enkf_printf("      calculate ensemble spread and write to %s\n", FNAME_SPREAD);
     enkf_printf("  --calculate-forecast-spread\n");
@@ -82,6 +84,10 @@ static void parse_commandline(int argc, char* argv[], char** fname, int* updates
                 continue;
             } else
                 usage();
+        } else if (strcmp(argv[i], "--allow-logspace-with-static-ens") == 0) {
+            enkf_allowenoilog = 1;
+            i++;
+            continue;
         } else if (strcmp(argv[i], "--calculate-spread") == 0) {
             *updatespec |= (UPDATE_DOFORECASTSPREAD | UPDATE_DOANALYSISSPREAD);
             i++;

@@ -1,8 +1,8 @@
   MPI: initialised 2 process(es)
-  running UPDATE for EnKF-C version 2.0.17:
+  running UPDATE for EnKF-C version 2.2.2:
     command = "./enkf_update --no-fields-write pointlogs.prm"
     dir = "/home/pavel/src/enkf-c/trunk/enkf/examples/1"
-  2020-12-02 10:13:51
+  2020-12-23 08:29:09
   reading system specs from "pointlogs.prm":
     MODE = EnKF
     SCHEME = DEnKF
@@ -25,7 +25,7 @@
     POINTLOG 156.000 -32.000 
     POINTLOG 160.000 -29.000 
     POINTLOG 152.000 -36.000 
-    NCFORMAT = 64BIT
+    NCFORMAT = NETCDF4
     NCCOMPRESSION = 0
     EnKF flags:
       enkf_exitaction  = [SEGFAULT]
@@ -59,6 +59,24 @@
       v type = Z
       v dir = FROMSURF
       STRIDE = 0
+  model info:
+    name = Tasman
+    5 variables:
+      eta_t:
+        grid = "t-grid"
+        inflation = 1.100 1.00
+      temp:
+        grid = "t-grid"
+        inflation = 1.100 1.00
+      salt:
+        grid = "t-grid"
+        inflation = 1.100 1.00
+      u:
+        grid = "t-grid"
+        inflation = 1.100 1.00
+      v:
+        grid = "t-grid"
+        inflation = 1.100 1.00
   setting the ensemble size:
     96 members
   initialising pointlogs:
@@ -71,7 +89,7 @@
   updating the ensemble:
     defining state variables in point logs:
     processing fields for t-grid:
-      2020-12-02 10:13:51
+      2020-12-23 08:29:09
       9 fields
       distributing 9 iterations:
         2 processes get 5 or 4 iterations
@@ -81,16 +99,16 @@
       u        1   (1: 6: 50.0%)
       temp     1   (0: 2: 60.0%)
       v        0   (1: 7: 75.0%)
-      v        1   (1: 8: 100.0%)
       salt     0   (0: 3: 80.0%)
+      v        1   (1: 8: 100.0%)
       salt     1   (0: 4: 100.0%)
       (skip writing the fields)
-  2020-12-02 10:13:52
+  2020-12-23 08:29:10
   assembling state variables in point logs:
     distributing 3 iterations:
       2 processes get 2 or 1 iterations
     deleting tiles:
       distributing 9 iterations:
         2 processes get 5 or 4 iterations
-  2020-12-02 10:13:52
+  2020-12-23 08:29:10
   finished

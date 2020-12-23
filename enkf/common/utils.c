@@ -330,10 +330,10 @@ void enkf_printcompileflags(const char offset[])
 #else
     enkf_printf("%s  OBS_SHUFFLE      = [-]\n", offset);
 #endif
-#if defined(X5_VIAFILE)
-    enkf_printf("%s  X5_VIAFILE       = [+]\n", offset);
+#if defined(TW_VIAFILE)
+    enkf_printf("%s  TW_VIAFILE       = [+]\n", offset);
 #else
-    enkf_printf("%s  X5_VIAFILE       = [-]\n", offset);
+    enkf_printf("%s  TW_VIAFILE       = [-]\n", offset);
 #endif
 #endif                          /* ENKF_CALC */
 #if defined(ENKF_PREP) || defined(ENKF_CALC)

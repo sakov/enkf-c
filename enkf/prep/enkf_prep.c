@@ -64,6 +64,8 @@ static void usage()
 {
     enkf_printf("  Usage: enkf_prep <prm file> [<options>]\n");
     enkf_printf("  Options:\n");
+    enkf_printf("  --allow-logspace-with-static-ens\n");
+    enkf_printf("      confirm that static ensemble is conditioned for using log space\n");
     enkf_printf("  --consider-subgrid-variability\n");
     enkf_printf("      increase error of superobservations according to subgrid variability\n");
     enkf_printf("  --describe-prm-format [main|model|grid|obstypes|obsdata]\n");
@@ -73,8 +75,8 @@ static void usage()
     enkf_printf("  --log-all-obs\n");
     enkf_printf("      write all obs to %s (default: obs within model domain only)\n", FNAME_OBS);
     enkf_printf("  --no-superobing\n");
-    enkf_printf("  --superob-across-instruments\n");
     enkf_printf("  --no-thinning\n");
+    enkf_printf("  --superob-across-instruments\n");
     enkf_printf("  --write-orig-obs\n");
     enkf_printf("  --version\n");
     enkf_printf("      print version and exit\n");
@@ -100,6 +102,14 @@ static void parse_commandline(int argc, char* argv[], char** fname)
                 continue;
             } else
                 usage();
+        } else if (strcmp(argv[i], "--allow-logspace-with-static-ens") == 0) {
+            enkf_allowenoilog = 1;
+            i++;
+            continue;
+        } else if (strcmp(argv[i], "--consider-subgrid-variability") == 0) {
+            enkf_considersubgridvar = 1;
+            i++;
+            continue;
         } else if (strcmp(argv[i], "--describe-prm-format") == 0) {
             if (i < argc - 1) {
                 if (strcmp(argv[i + 1], "main") == 0)
@@ -125,10 +135,6 @@ static void parse_commandline(int argc, char* argv[], char** fname)
                 enkf_quit("usage: could not convert \"%s\" to integer", argv[i]);
             i++;
             continue;
-        } else if (strcmp(argv[i], "--consider-subgrid-variability") == 0) {
-            enkf_considersubgridvar = 1;
-            i++;
-            continue;
         } else if (strcmp(argv[i], "--log-all-obs") == 0) {
             log_all_obs = 1;
             i++;
@@ -137,12 +143,12 @@ static void parse_commandline(int argc, char* argv[], char** fname)
             do_superob = 0;
             i++;
             continue;
-        } else if (strcmp(argv[i], "--superob-across-instruments") == 0) {
-            do_superob_acrossinst = 1;
-            i++;
-            continue;
         } else if (strcmp(argv[i], "--no-thinning") == 0) {
             do_thin = 0;
+            i++;
+            continue;
+        } else if (strcmp(argv[i], "--superob-across-instruments") == 0) {
+            do_superob_acrossinst = 1;
             i++;
             continue;
         } else if (strcmp(argv[i], "--write-orig-obs") == 0) {

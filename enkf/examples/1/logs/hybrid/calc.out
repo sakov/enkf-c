@@ -2,10 +2,10 @@
   Using MPI-3 shared memory:
     sm_comm size = 2
     node_comm size = 1
-  running CALC for EnKF-C version 2.1.0:
+  running CALC for EnKF-C version 2.2.2:
     command = "./enkf_calc hybrid.prm"
     dir = "/home/pavel/src/enkf-c/trunk/enkf/examples/1"
-  2020-12-03 11:59:43
+  2020-12-23 08:31:57
   reading system specs from "hybrid.prm":
     MODE = Hybrid
     SCHEME = DEnKF
@@ -30,7 +30,7 @@
     FIELDBUFFERSIZE = 4
     REGION Global: x = [0.0, 360.0], y = [-90.0, 90.0]
     POINTLOG 156.000 -32.000 
-    NCFORMAT = 64BIT
+    NCFORMAT = NETCDF4
     NCCOMPRESSION = 0
     EnKF flags:
       enkf_exitaction  = [SEGFAULT]
@@ -111,6 +111,24 @@
       v type = Z
       v dir = FROMSURF
       STRIDE = 0
+  model info:
+    name = Tasman
+    5 variables:
+      eta_t:
+        grid = "t-grid"
+        inflation = 1.100 1.00
+      temp:
+        grid = "t-grid"
+        inflation = 1.100 1.00
+      salt:
+        grid = "t-grid"
+        inflation = 1.100 1.00
+      u:
+        grid = "t-grid"
+        inflation = 1.100 1.00
+      v:
+        grid = "t-grid"
+        inflation = 1.100 1.00
   setting the ensemble size:
     96 dynamic members
     144 static members
@@ -134,7 +152,7 @@
         7 nodes
         496 bytes
   calculating ensemble observations:
-  2020-12-03 11:59:43
+  2020-12-23 08:31:57
     allocating 9811200 bytes for HE array:
     allocating 9811200 bytes for HE^T array:
     distributing 240 iterations:
@@ -145,7 +163,7 @@
     SAL ........................................................................................................................
     scaling:
   adding forecast innovations and spread to "observations.nc":
-  2020-12-03 11:59:43
+  2020-12-23 08:31:57
   moderating observations:
     observations substantially modified:
       SLA          0 (0.0%)
@@ -155,11 +173,11 @@
       total        0 (0.0%)
   writing modified obs errors to "observations.nc":
   calculating transforms:
-  2020-12-03 11:59:43
+  2020-12-23 08:31:57
     calculating transforms for t-grid:
       distributing 34 iterations:
         2 processes get 17 iterations each
-      creating empty file "X5.nc":
+      creating empty file "transforms.nc":
       main cycle for t-grid (34 x 34 local analyses):
         j = 0 (0: 0: 5.9%)
         j = 3 (1: 17: 5.9%)
@@ -175,8 +193,8 @@
         j = 30 (0: 5: 35.3%)
         j = 39 (1: 23: 41.2%)
         j = 36 (0: 6: 41.2%)
-        j = 45 (1: 24: 47.1%)
         j = 42 (0: 7: 47.1%)
+        j = 45 (1: 24: 47.1%)
         j = 51 (1: 25: 52.9%)
         j = 48 (0: 8: 52.9%)
         j = 57 (1: 26: 58.8%)
@@ -206,33 +224,33 @@
     calculating transforms for log point (156.000,-32.000): 1444 obs
     writing log for point (156.000,-32.000) on grid "t-grid":
   calculating analysed observations:
-  2020-12-03 12:01:22
+  2020-12-23 08:33:36
     sorting obs by ij:
-    2020-12-03 12:01:22
+    2020-12-23 08:33:36
     updating HE:
     distributing 10220 iterations:
       2 processes get 5110 iterations each
-    2020-12-03 12:01:23
+    2020-12-23 08:33:36
   adding analysis innovations and spread to "observations.nc":
   printing observation statistics:
     region obs.type   # obs.  |for.inn.| |an.inn.|   for.inn.   an.inn.  for.spread  an.spread
     ------------------------------------------------------------------------------------------
     Global
-           SLA           652   0.0769     0.0256     0.0218  -0.000411     0.0437     0.0302  
-             j1          272   0.0731     0.0223     0.0228   0.000219     0.0488     0.0333  
-             n1          380   0.0797      0.028     0.0211  -0.000863       0.04      0.028  
-           SST          9554     0.49      0.188     -0.134    -0.0248      0.473      0.365  
-             ESACCI     8386    0.496      0.162     -0.113   -0.00399      0.474      0.365  
+           SLA           652   0.0769     0.0257     0.0218  -0.000365     0.0437     0.0302  
+             j1          272   0.0731     0.0224     0.0228   0.000266     0.0488     0.0333  
+             n1          380   0.0797      0.028     0.0211  -0.000817       0.04      0.028  
+           SST          9554     0.49      0.188     -0.134    -0.0251      0.473      0.365  
+             ESACCI     8386    0.496      0.162     -0.113   -0.00421      0.474      0.365  
              WindSat    1168    0.451      0.371      -0.29     -0.175      0.465       0.36  
-           TEM             7     1.01      0.963      0.512       0.86      0.388      0.292  
-             ARGO          7     1.01      0.963      0.512       0.86      0.388      0.292  
+           TEM             7     1.01      0.963      0.512      0.859      0.388      0.292  
+             ARGO          7     1.01      0.963      0.512      0.859      0.388      0.292  
              0-50m         2     1.47       2.57       1.47       2.57      0.393      0.286  
-             50-500m       5    0.832       0.32      0.129      0.176      0.386      0.294  
+             50-500m       5    0.832      0.321      0.129      0.176      0.386      0.294  
              500-9999m     0     -nan       -nan       -nan       -nan       -nan       -nan  
            SAL             7   0.0768     0.0811     0.0546     0.0546     0.0337      0.026  
              ARGO          7   0.0768     0.0811     0.0546     0.0546     0.0337      0.026  
              0-50m         2   0.0881     0.0969     0.0739     0.0718     0.0263     0.0205  
              50-500m       5   0.0723     0.0748     0.0469     0.0478     0.0366     0.0282  
              500-9999m     0     -nan       -nan       -nan       -nan       -nan       -nan  
-  2020-12-03 12:01:23
+  2020-12-23 08:33:36
   finished

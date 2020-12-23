@@ -21,7 +21,7 @@ enkf-prep: enkf_prep conf obs enkf.prm
 enkf-calc: enkf_calc observations.nc conf ensemble_6565
 	nice -n +19 mpirun -np $(NP_CALC) ./enkf_calc enkf.prm 2>&1 | tee calc.out
 
-enkf-update: enkf_update X5.nc conf ensemble_6565
+enkf-update: enkf_update transforms.nc conf ensemble_6565
 	nice -n +19 mpirun -np $(NP_UPDATE) ./enkf_update --calculate-spread --write-inflation --calculate-vertical-correlations --output-increment enkf.prm 2>&1 | tee update.out
 
 enoi-prep: enkf_prep conf obs enoi.prm
@@ -30,7 +30,7 @@ enoi-prep: enkf_prep conf obs enoi.prm
 enoi-calc: enkf_calc observations.nc conf background_6565 ensemble_static
 	nice -n +19 mpirun -np $(NP_CALC) ./enkf_calc enoi.prm 2>&1 | tee calc.out
 
-enoi-update: enkf_update w.nc conf background_6565 ensemble_static
+enoi-update: enkf_update transforms.nc conf background_6565 ensemble_static
 	nice -n +19 mpirun -np $(NP_UPDATE) ./enkf_update --calculate-spread --output-increment enoi.prm 2>&1 | tee update.out
 
 stats-prep: enkf_prep conf obs stats.prm
@@ -45,19 +45,19 @@ singleob-calc: enkf_calc ensemble_static
 singleob-update: enkf_update ensemble_static
 	nice -n +19 mpirun -np $(NP_UPDATE) ./enkf_update --output-increment singleob.prm 2>&1 | tee update.out
 
-pointlogs-calc: enkf_calc observations.nc conf ensemble_6565 X5.nc
+pointlogs-calc: enkf_calc observations.nc conf ensemble_6565 transforms.nc
 	cp enkf.prm pointlogs.prm
 	echo "POINTLOG 160 -29" >> pointlogs.prm
 	echo "POINTLOG 152 -36" >> pointlogs.prm
 	nice -n +19 mpirun -np $(NP_CALC) ./enkf_calc --point-logs-only pointlogs.prm 2>&1 | tee calc-pointlogs.out
 
-pointlogs-update: enkf_update X5.nc conf ensemble_6565
+pointlogs-update: enkf_update transforms.nc conf ensemble_6565
 	nice -n +19 mpirun -np $(NP_UPDATE) ./enkf_update --no-fields-write pointlogs.prm 2>&1 | tee update-pointlogs.out
 
 enkf-calc-global: enkf_calc observations.nc conf ensemble_6565
 	nice -n +19 mpirun -np $(NP_CALC) ./enkf_calc enkf-global.prm 2>&1 | tee calc.out
 
-enkf-update-global: enkf_update X5.nc conf ensemble_6565
+enkf-update-global: enkf_update transforms.nc conf ensemble_6565
 	nice -n +19 mpirun -np $(NP_UPDATE) ./enkf_update --calculate-spread --write-inflation --output-increment enkf-global.prm 2>&1 | tee update.out
 	rm -f ensemble_6565/mem*_*-???.nc
 
@@ -67,7 +67,7 @@ hybrid-prep: enkf_prep conf obs hybrid.prm
 hybrid-calc: enkf_calc observations.nc conf ensemble_6565 ensemble_static
 	nice -n +19 mpirun -np $(NP_CALC) ./enkf_calc hybrid.prm 2>&1 | tee calc.out
 
-hybrid-update: enkf_update X5.nc conf ensemble_6565 ensemble_static
+hybrid-update: enkf_update transforms.nc conf ensemble_6565 ensemble_static
 	nice -n +19 mpirun -np $(NP_UPDATE) ./enkf_update --calculate-spread --write-inflation --calculate-vertical-correlations --output-increment hybrid.prm 2>&1 | tee update.out
 
 enkf_prep:
@@ -80,5 +80,5 @@ enkf_update:
 	cp ../../bin/enkf_update .
 
 clean:
-	@rm -f X5*.nc w*.nc enkf_diag*.nc badbatches.txt observations*.nc *.out ensemble_6565/*.analysis* ensemble_6565/*.increment* ensemble_6565/*-???.nc background_6565/*.analysis* background_6565/*.increment* ensemble_6565/ens_*-???.nc background_6565/bg_*-???.nc *.nc enkf_* pointlogs.prm
+	@rm -f transforms*.nc w*.nc enkf_diag*.nc badbatches.txt observations*.nc *.out ensemble_6565/*.analysis* ensemble_6565/*.increment* ensemble_6565/*-???.nc background_6565/*.analysis* background_6565/*.increment* ensemble_6565/ens_*-???.nc background_6565/bg_*-???.nc *.nc enkf_* pointlogs.prm
 	@rm -rf .enkftmp

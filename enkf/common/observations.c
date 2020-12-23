@@ -609,11 +609,24 @@ void obs_read(observations* obs, char fname[])
         ncw_inq_attname(ncid, varid_type, i, attname);
         typeid = obstype_getid(obs->nobstypes, obs->obstypes, attname, 0);
         if (typeid >= 0) {
+            obstype* ot = &obs->obstypes[typeid];
             int typeid_read;
 
             ncw_check_attlen(ncid, varid_type, attname, 1);
             ncw_get_att_int(ncid, varid_type, attname, &typeid_read);
             assert(typeid == typeid_read);
+
+            if (ot->logapplied) {
+                char attname[NC_MAX_NAME];
+                char attval[MAXSTRLEN];
+
+                snprintf(attname, NC_MAX_NAME, "%s:LOGAPPLIED", ot->name);
+                if (!ncw_att_exists(ncid, varid_type, attname))
+                    enkf_quit("%s: variable = \"type\": expected attribute \"%s\" to be present for a log-transformed obs. type", fname, attname);
+                ncw_get_att_text(ncid, varid_type, attname, attval);
+                if (strncmp(attval, "true", 4) != 0)
+                    enkf_quit("%s: variable = \"type\": expected attribute \"%s\" to have value \"true\" a log-transformed obs. type", fname, attname);
+            }
         }
     }
 

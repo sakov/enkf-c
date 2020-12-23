@@ -39,7 +39,7 @@
 
 \begin{document}
 
-\title{EnKF-C user guide\\{\normalsize version 2.2.0}}
+\title{EnKF-C user guide\\{\normalsize version 2.2.2}}
 
 \author{Pavel Sakov}
 \date{June 19, 2014 -- \today}
@@ -640,6 +640,16 @@ where the forecast state $\mb x^f$ is assumed to be equal to the mean of the dyn
 \begin{align}
 \mb x^f \equiv \frac{1}{m\subtxt{dyn}} \mb E\suptxt{dyn}.
 \end{align}
+
+Finally, note that in abscence of observations $\mb X_5 = \mb I$, and $(\mb E\suptxt{dyn})^a = \mb E^f(:, 1 : m\subtxt{dyn})$, and according to (\ref{hybrid_combined})
+\begin{align*}
+  (\mb A\suptxt{dyn})^a = \left(\frac{m - 1}{m\subtxt{dyn} - 1}\right)^{1/2}\mb A\suptxt{dyn},
+\end{align*}
+while for robust cycling of the system one needs $(\mb A\suptxt{dyn})^a = \mb A\suptxt{dyn}$.
+Therefore, it is neccessary to scale $(\mb A\suptxt{dyn})^a$ as follows:
+\begin{align}
+  (\mb E\suptxt{dyn})^a = (\mb x^f + \mb A^f \mb w) \mb 1\T + \left(\frac{m\subtxt{dyn} - 1}{m - 1}\right)^{1/2} \mb A^f \mb T(1 : m, 1 : m\subtxt{dyn}).
+\end{align}
 This is the approach used in EnKF-C.
 
 \chapter{EnKF-C}
@@ -676,7 +686,7 @@ CALC calculates ensemble transforms for updating the forecast ensemble of model 
 \item read superobservations from \verb|observations.nc|;
 \item calculate ensemble of forecast observations $\mb H \mb E^f$ (EnKF) or ensemble of background observation anomalies $\mb H \mb A^f$ and background observations $\mb H \mb x^f$ (EnOI);
 \item for nodes with specified stride on each horizontal grid get local observations and calculate local ensemble transforms $\mb X_5$ (EnKF) or local background update coefficients $\mb w$ (EnOI);
-\item save these transforms to \verb|X5.nc| (EnKF) or \verb|w.nc| (EnOI);
+\item save these transforms to \verb|transforms.nc| (or \verb|transforms.nc-0|, \verb|transforms.nc-1|, ... in multi-grid case);
 \item calculate and report forecast and analysis innovation statistics;
 \item calculate observation impact metrics DFS and SRF (sec.~\ref{sec:impact}) and save them to \verb|enkf_diag.nc|;
 \item at specified horizontal locations save the model state ensemble, observations, transforms/weights, and DA settings to pointlog files (sec.~\ref{sec:pointlogs}).
@@ -799,7 +809,7 @@ The model parameter file mainly describes the composition of the state vector by
     VAR       = <name>
   [ GRID      = <name> ]                    (# grids > 1)
   [ INFLATION = <value> [<value> | PLAIN] ]
-  [ APPLYLOG  = <YES | NO*> ]               (MODE = ENKF)
+  [ APPLYLOG  = <YES | NO*> ]
   [ RANDOMISE <deflation> <sigma> ]
 
   [ <more of the above blocks> ]
@@ -1368,7 +1378,7 @@ It has the following usage and options:
   --single-observation-ijk <fi> <fj> <fk> <type> <inn> <std>
       assimilate single observation with these parameters
   --use-existing-transforms
-      skip calculating ensemble transforms; use existing X5*.nc files
+      skip calculating ensemble transforms; use existing transforms*.nc files
   --use-rmsd-for-obsstats
       use RMSD instead of MAD when printing observation stats
   --use-these-obs <obs file>
@@ -1862,7 +1872,11 @@ This can be specified for a model variable via entry \verb|RANDOMISE| in the cor
 
 The entry \verb|APPLYLOG| in the model parameter file makes it possible to conduct assimilation for a variable in log space.
 This means that a transform with log10 function will be applied to model values and observations before DA, and the inverse transform with pow10 will be applied after DA.
-At the moment this option can only be specified with EnKF systems (\verb|MODE = ENKF|).
+This option can be applied only for positive variables.
+
+To apply log10/pow10 transforms in EnOI or Hybrid modes (\verb|MODE = ENOI| or \verb|MODE = HYBRID|) is only possible if the static ensemble is in logarithmic space.
+This must be confirmed by the user by using option \verb|--allow-logspace-with-static-ens|.
+
 When APPLYLOG is specified, the ensemble spread and ensemble vertical correlations are calculated for the transformed variable.
 
 \section{System issues}
@@ -1889,7 +1903,7 @@ Following is a brief description of the compiler flags in EnKF-C.
 \item{\verb|OBS_SHUFFLE|} (\verb|enkf_calc|)
   Randomly shuffles observations before parsing them into K-D trees.
   Potentially this can substantially improve performance in the case of spatially ordered observations (not verified).
-\item{\verb|X5_VIAFILE|} (\verb|enkf_calc|)
+\item{\verb|TW_VIAFILE|} (\verb|enkf_calc|)
   Communicate ensemble transforms via files.
   Use this option if MPI communication becomes clogged.
 \item{\verb|DEFLATE_ALL|} (\verb|enkf_calc|, \verb|enkf_update|)
@@ -1996,7 +2010,7 @@ One way to reduce it is to run superobing on a virtual coarser horizontal grid b
 \item{\bf CALC starts calculating transforms swiftly, but then slows down almost to a standstill.}
 
 This can happen with large systems when the MPI communication becomes clogged.
-Recompile CALC with flag \verb|-DX5_VIAFILE| to communicate transforms via filesystem.
+Recompile CALC with flag \verb|-DTW_VIAFILE| to communicate transforms via filesystem.
 
 \item{\bf In UPDATE I am getting error \\``\verb|<...> "spread.nc": <...> NC_UNLIMITED size already in use|''.}
 

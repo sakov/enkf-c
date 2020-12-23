@@ -147,7 +147,7 @@ static void das_setnmem(dasystem* das)
     if (das->nmem == 1)
         enkf_quit("only 1 member found; need at least 2 members to continue");
     if (das->nmem_dynamic == 1)
-        enkf_printf("only 1 dynamic member found; the system will effectively run in EnOI mode");
+        enkf_printf("    only 1 dynamic member found; effectively the system will run in EnOI mode");
     if (das->nmem_static == 1)
         enkf_quit("only 1 static member found; need at least 2 to continue");
 }
@@ -462,22 +462,12 @@ void getfieldfname(char* dir, char* prefix, char* varname, int level, char* fnam
 
 /**
  */
-void das_getfname_X5(dasystem* das, void* grid, char fname[])
+void das_getfname_transforms(dasystem* das, int gridid, char fname[])
 {
     if (model_getngrid(das->m) == 1)
-        snprintf(fname, MAXSTRLEN, "%s.nc", FNAMEPREFIX_X5);
+        snprintf(fname, MAXSTRLEN, "%s.nc", FNAMEPREFIX_TRANSFORMS);
     else
-        snprintf(fname, MAXSTRLEN, "%s-%d.nc", FNAMEPREFIX_X5, grid_getid(grid));
-}
-
-/**
- */
-void das_getfname_w(dasystem* das, void* grid, char fname[])
-{
-    if (model_getngrid(das->m) == 1)
-        snprintf(fname, MAXSTRLEN, "%s.nc", FNAMEPREFIX_W);
-    else
-        snprintf(fname, MAXSTRLEN, "%s-%d.nc", FNAMEPREFIX_W, grid_getid(grid));
+        snprintf(fname, MAXSTRLEN, "%s-%d.nc", FNAMEPREFIX_TRANSFORMS, gridid);
 }
 
 /**
@@ -664,34 +654,62 @@ int das_getbgfname_async(dasystem* das, obstype* ot, int t, char fname[])
 #endif
 
 /** Calculate dynamic ensemble mean; add it to static ensemble anomalies; scale
- **  static ensemble anomalies.
+ ** static ensemble anomalies.
  *  Note that the allocated size of v should be v[das->nmem + 2][nij] to make it
  *  possible calculating ensemble mean with double precision.
  */
 void das_sethybridensemble(dasystem* das, int nij, float** v)
 {
-    double* vmean;
-    double hscale;
+    double* vmean = (double*) v[das->nmem];
+    int nmem = das->nmem;
+    int nmem_d = das->nmem_dynamic;
+    int nmem_s = das->nmem_static;
+    double k_d = (nmem_d > 1) ? sqrt((double) (nmem - 1) / (double) (nmem_d - 1)) : 0.0;
+    double k_s = sqrt(das->gamma * (double) (nmem - 1) / (double) (nmem_s - 1));
     int i, e;
 
     assert(das->mode == MODE_HYBRID);
 
-    vmean = (double*) v[das->nmem];
-    hscale = sqrt(das->gamma * (double) (das->nmem - 1) / (double) (das->nmem_static - 1));
-
+    /*
+     * calculate dynamic ensemble mean
+     */
     memset(vmean, 0, nij * sizeof(double));
-    for (e = 0; e < das->nmem_dynamic; ++e) {
+    for (e = 0; e < nmem_d; ++e) {
         float* ve = v[e];
 
         for (i = 0; i < nij; ++i)
             vmean[i] += (double) ve[i];
     }
     for (i = 0; i < nij; ++i)
-        vmean[i] /= (double) das->nmem_dynamic;
-    for (e = das->nmem_dynamic; e < das->nmem; ++e) {
+        vmean[i] /= (double) nmem_d;
+
+    /*
+     * set dynamic members
+     */
+    for (e = 0; e < nmem_d; ++e) {
         float* ve = v[e];
 
         for (i = 0; i < nij; ++i)
-            ve[i] = ve[i] * hscale + vmean[i];
+            ve[i] = (ve[i] - vmean[i]) * k_d + vmean[i];
     }
+
+    /*
+     * set static members
+     */
+    for (e = nmem_d; e < nmem; ++e) {
+        float* ve = v[e];
+
+        for (i = 0; i < nij; ++i)
+            ve[i] = ve[i] * k_s + vmean[i];
+    }
+}
+
+/** Return 1 if this member is EnOI anomaly, 0 otherwise.
+ *  Note that 1 <= mem <= ensemble size, and is mem = -1 for the background.
+ */
+int das_maskinglogneeded(dasystem* das, int mem)
+{
+    if (das->mode == MODE_ENKF)
+        return 0;
+    return mem > das->nmem_dynamic && mem <= das->nmem;
 }

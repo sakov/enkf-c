@@ -433,10 +433,11 @@ void das_writevcorrs(dasystem* das)
 
             ksurf = grid_getsurflayerid(model_getvargrid(m, f->varid));
             for (e = 0; e < das->nmem; ++e) {
+                int masklog = das_maskinglogneeded(das, e + 1);
                 char fname[MAXSTRLEN];
 
                 das_getmemberfname(das, varname, e + 1, fname);
-                model_readfield(das->m, fname, varname, ksurf, v0[e]);
+                model_readfield(das->m, fname, varname, ksurf, v0[e], masklog);
             }
             if (das->mode == MODE_HYBRID)
                 das_sethybridensemble(das, nij, v0);
@@ -460,8 +461,10 @@ void das_writevcorrs(dasystem* das)
          */
         k = f->level;
         for (e = 0; e < das->nmem; ++e) {
+            int masklog = das_maskinglogneeded(das, e + 1);
+
             das_getmemberfname(das, varname, e + 1, fname_src);
-            model_readfield(das->m, fname_src, varname, k, v[e]);
+            model_readfield(das->m, fname_src, varname, k, v[e], masklog);
         }
         if (das->mode == MODE_HYBRID)
             das_sethybridensemble(das, nij, v);

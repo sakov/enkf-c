@@ -1,8 +1,8 @@
   MPI: initialised 2 process(es)
-  running UPDATE for EnKF-C version 2.0.17:
+  running UPDATE for EnKF-C version 2.2.2:
     command = "./enkf_update --output-increment singleob.prm"
     dir = "/home/pavel/src/enkf-c/trunk/enkf/examples/1"
-  2020-12-02 11:00:47
+  2020-12-23 08:34:09
   reading system specs from "singleob.prm":
     MODE = EnOI
     MODEL PRM = "model.prm"
@@ -23,7 +23,7 @@
     FIELDBUFFERSIZE = 4
     REGION Global: x = [0.0, 360.0], y = [-90.0, 90.0]
     POINTLOG 156.000 -32.000 
-    NCFORMAT = 64BIT
+    NCFORMAT = NETCDF4
     NCCOMPRESSION = 0
     EnKF flags:
       enkf_exitaction  = [BACKTRACE]
@@ -59,6 +59,24 @@
       v type = Z
       v dir = FROMSURF
       STRIDE = 0
+  model info:
+    name = Tasman
+    5 variables:
+      eta_t:
+        grid = "t-grid"
+        inflation = 1.000 1.00
+      temp:
+        grid = "t-grid"
+        inflation = 1.000 1.00
+      salt:
+        grid = "t-grid"
+        inflation = 1.000 1.00
+      u:
+        grid = "t-grid"
+        inflation = 1.000 1.00
+      v:
+        grid = "t-grid"
+        inflation = 1.000 1.00
   setting the ensemble size:
     96 members
   initialising pointlogs:
@@ -66,10 +84,10 @@
       t-grid: (i, j) = (49.500, 49.500)
   updating the model state:
     defining state variables in point logs:
-    2020-12-02 11:00:47
+    2020-12-23 08:34:09
     allocating disk space for analysis:.....
     processing fields for t-grid:
-      2020-12-02 11:00:47
+      2020-12-23 08:34:09
       9 fields
       distributing 9 iterations:
         2 processes get 5 or 4 iterations
@@ -82,19 +100,19 @@
       v        1   (1: 8: 100.0%)
       salt     0   (0: 3: 80.0%)
       salt     1   (0: 4: 100.0%)
-  2020-12-02 11:00:47
+  2020-12-23 08:34:09
   assembling analysis:
     eta_t:.
     temp:..
     salt:..
     u:..
     v:..
-  2020-12-02 11:00:47
+  2020-12-23 08:34:09
   assembling state variables in point logs:
     distributing 1 iterations:
       1 processes get 1 iteration, 1 processes get 0 iterations
     deleting tiles:
       distributing 9 iterations:
         2 processes get 5 or 4 iterations
-  2020-12-02 11:00:47
+  2020-12-23 08:34:09
   finished

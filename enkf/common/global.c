@@ -47,3 +47,4 @@ int enkf_fstatsonly = 0;
 int enkf_noobsdatecheck = 0;
 int enkf_considersubgridvar = 0;
 int enkf_doplogs = 1;
+int enkf_allowenoilog = 0;

@@ -134,6 +134,7 @@ void H_surf_standard(dasystem* das, int nobs, int obsids[], char fname[], int me
     obstype* ot = &allobs->obstypes[otid];
     int mvid = model_getvarid(m, ot->varnames[0], 1);
     int ksurf = grid_getsurflayerid(model_getvargrid(m, mvid));
+    int masklog = das_maskinglogneeded(das, mem);
     int ni, nj;
     float** src = NULL;
     char tag_offset[MAXSTRLEN];
@@ -143,22 +144,16 @@ void H_surf_standard(dasystem* das, int nobs, int obsids[], char fname[], int me
 
     model_getvargridsize(m, mvid, &ni, &nj, NULL);
     src = alloc2d(nj, ni, sizeof(float));
-    model_readfield(m, fname, ot->varnames[0], ksurf, src[0]);
+    model_readfield(m, fname, ot->varnames[0], ksurf, src[0], masklog);
 
     snprintf(tag_offset, MAXSTRLEN, "%s:OFFSET", ot->name);
     offset = model_getdata(m, tag_offset);
     if (offset != NULL) {
-        int ni, nj;
         float* src0 = src[0];
         float* offset0 = offset[0];
         int i;
 
-        if (model_getvarislog(m, mvid))
-            enkf_quit("%s: offset can not be specified for model variables with APPLYLOG = 1", ot->name);
-
         assert(model_getdataalloctype(m, tag_offset) == ALLOCTYPE_2D);
-        assert(mvid >= 0);
-        model_getvargridsize(m, mvid, &ni, &nj, NULL);
         for (i = 0; i < ni * nj; ++i)
             src0[i] -= offset0[i];
     }
@@ -178,6 +173,7 @@ void H_surf_biased(dasystem* das, int nobs, int obsids[], char fname[], int mem,
     obstype* ot = &allobs->obstypes[otid];
     int mvid = model_getvarid(m, ot->varnames[0], 1);
     int ksurf = grid_getsurflayerid(model_getvargrid(m, mvid));
+    int masklog = das_maskinglogneeded(das, mem);
     int ni, nj, nv;
     float** src = NULL;
     float* src0 = NULL;
@@ -201,15 +197,12 @@ void H_surf_biased(dasystem* das, int nobs, int obsids[], char fname[], int mem,
     src = alloc2d(nj, ni, sizeof(float));
     src0 = src[0];
 
-    model_readfield(m, fname, ot->varnames[0], ksurf, src0);
+    model_readfield(m, fname, ot->varnames[0], ksurf, src0, masklog);
 
     snprintf(tag_offset, MAXSTRLEN, "%s:OFFSET", allobs->obstypes[allobs->data[obsids[0]].type].name);
     offset = model_getdata(m, tag_offset);
     if (offset != NULL) {
         float* offset0 = offset[0];
-
-        if (model_getvarislog(m, mvid))
-            enkf_quit("%s: offset can not be specified for model variables with APPLYLOG = 1", ot->name);
 
         assert(model_getdataalloctype(m, tag_offset) == ALLOCTYPE_2D);
         for (i = 0; i < nv; ++i)
@@ -222,7 +215,7 @@ void H_surf_biased(dasystem* das, int nobs, int obsids[], char fname[], int mem,
             das_getmemberfname(das, ot->varnames[1], mem, fname2);
         else if (das->mode == MODE_ENOI)
             das_getbgfname(das, ot->varnames[1], fname2);
-        model_readfield(m, fname2, ot->varnames[1], ksurf, bias);
+        model_readfield(m, fname2, ot->varnames[1], ksurf, bias, das->mode == MODE_ENOI ? 1 : 0);
 
         for (i = 0; i < nv; ++i)
             src0[i] -= bias[i];
@@ -243,6 +236,7 @@ void H_subsurf_standard(dasystem* das, int nobs, int obsids[], char fname[], int
     int otid = allobs->data[obsids[0]].type;
     obstype* ot = &allobs->obstypes[otid];
     int mvid = model_getvarid(m, ot->varnames[0], 1);
+    int masklog = das_maskinglogneeded(das, mem);
     int ni, nj, nk;
     float*** src = NULL;
     char tag_offset[MAXSTRLEN];
@@ -252,16 +246,13 @@ void H_subsurf_standard(dasystem* das, int nobs, int obsids[], char fname[], int
     model_getvargridsize(m, mvid, &ni, &nj, &nk);
     src = alloc3d(nk, nj, ni, sizeof(float));
     if (nk > 1)
-        model_read3dfield(m, fname, ot->varnames[0], src[0][0]);
+        model_read3dfield(m, fname, ot->varnames[0], src[0][0], masklog);
     else if (nk == 1)
-        model_readfield(m, fname, ot->varnames[0], 0, src[0][0]);
+        model_readfield(m, fname, ot->varnames[0], 0, src[0][0], masklog);
 
     snprintf(tag_offset, MAXSTRLEN, "%s:OFFSET", allobs->obstypes[allobs->data[obsids[0]].type].name);
     offset_data = model_getdata(m, tag_offset);
     if (offset_data != NULL) {
-        if (model_getvarislog(m, mvid))
-            enkf_quit("%s: offset can not be specified for model variables with APPLYLOG = 1", ot->name);
-
         if (model_getdataalloctype(m, tag_offset) == ALLOCTYPE_3D) {
             float* src0 = src[0][0];
             float* offset0 = ((float***) offset_data)[0][0];
@@ -313,6 +304,7 @@ void H_subsurf_lowmem(dasystem* das, int nobs, int obsids[], char fname[], int m
     int otid = allobs->data[obsids[0]].type;
     obstype* ot = &allobs->obstypes[otid];
     int mvid = model_getvarid(m, ot->varnames[0], 1);
+    int masklog = das_maskinglogneeded(das, mem);
     int ni, nj, nk;
     float** src1 = NULL;
     float** src2 = NULL;
@@ -332,9 +324,6 @@ void H_subsurf_lowmem(dasystem* das, int nobs, int obsids[], char fname[], int m
     snprintf(tag_offset, MAXSTRLEN, "%s:OFFSET", allobs->obstypes[allobs->data[obsids[0]].type].name);
     offset_data = model_getdata(m, tag_offset);
     if (offset_data != NULL) {
-        if (model_getvarislog(m, mvid))
-            enkf_quit("%s: offset can not be specified for model variables with APPLYLOG = 1", ot->name);
-
         if (model_getdataalloctype(m, tag_offset) == ALLOCTYPE_3D)
             enkf_quit("obstype = %s: \"lowmem\" subsurface H-function works with 1D offsets only; use \"standard\" function for 3D offset", ot->name);
         else if (model_getdataalloctype(m, tag_offset) == ALLOCTYPE_2D)
@@ -368,12 +357,12 @@ void H_subsurf_lowmem(dasystem* das, int nobs, int obsids[], char fname[], int m
             k1_now = k1;
         }
         if (k1_now != k1) {
-            model_readfield(m, fname, ot->varnames[0], k1, src1[0]);
+            model_readfield(m, fname, ot->varnames[0], k1, src1[0], masklog);
             k1_now = k1;
             k1_isnew = 1;
         }
         if (k2 < nk) {
-            model_readfield(m, fname, ot->varnames[0], k2, src2[0]);
+            model_readfield(m, fname, ot->varnames[0], k2, src2[0], masklog);
             k2_now = k2;
         }
 
@@ -429,11 +418,12 @@ void H_subsurf_wsurfbias(dasystem* das, int nobs, int obsids[], char fname[], in
     int otid = allobs->data[obsids[0]].type;
     obstype* ot = &allobs->obstypes[otid];
     int mvid = model_getvarid(m, ot->varnames[0], 1);
-    int ni, nj, nk;
-    float*** src = NULL;
     int periodic_i = grid_isperiodic_i(model_getvargrid(m, mvid));
     int** mask = model_getnumlevels(m, mvid);
+    int masklog = das_maskinglogneeded(das, mem);
 
+    float*** src = NULL;
+    int ni, nj, nk;
     float** mld = NULL;
     char tag_offset[MAXSTRLEN];
     void* offset_data = NULL;
@@ -460,9 +450,9 @@ void H_subsurf_wsurfbias(dasystem* das, int nobs, int obsids[], char fname[], in
      * this part is similar to H_subsurf_standard()
      */
     if (nk > 1)
-        model_read3dfield(m, fname, ot->varnames[0], src[0][0]);
+        model_read3dfield(m, fname, ot->varnames[0], src[0][0], masklog);
     else if (nk == 1)
-        model_readfield(m, fname, ot->varnames[0], 0, src[0][0]);
+        model_readfield(m, fname, ot->varnames[0], 0, src[0][0], masklog);
 
     snprintf(tag_offset, MAXSTRLEN, "%s:OFFSET", ot->name);
     offset_data = model_getdata(m, tag_offset);
@@ -500,8 +490,7 @@ void H_subsurf_wsurfbias(dasystem* das, int nobs, int obsids[], char fname[], in
         else if (das->mode == MODE_ENOI)
             das_getbgfname(das, ot->varnames[1], fname2);
         assert(ncu_getnD(fname2, ot->varnames[1]) == 2);
-
-        model_readfield(m, fname2, ot->varnames[1], 0, bias[0]);
+        model_readfield(m, fname2, ot->varnames[1], 0, bias[0], das->mode == MODE_ENOI ? 1 : 0);
 
         if (isnan(ot->mld_threshold) && ot->mld_varname == NULL)
             enkf_quit("\"MLD_THRESH\" or \"MLD_VARNAME\" must be specified for observation type \"%s\" to use H function \"wsurfbias\"", ot->name);
@@ -513,13 +502,11 @@ void H_subsurf_wsurfbias(dasystem* das, int nobs, int obsids[], char fname[], in
 
             if (model_getvarid(m, ot->mld_varname, 0) < 0)
                 enkf_quit("\"MLD_VARNAME = %s\" for observation type \"%s\" does not exist among model variables", ot->mld_varname, ot->name);
-            if (das->mode == MODE_ENKF || das->mode == MODE_HYBRID) {
+            if (das->mode == MODE_ENKF || das->mode == MODE_HYBRID)
                 das_getmemberfname(das, ot->mld_varname, mem, fname_mld);
-                model_readfield(m, fname_mld, ot->mld_varname, 0, mld[0]);
-            } else if (das->mode == MODE_ENOI) {
+            else if (das->mode == MODE_ENOI)
                 das_getbgfname(das, ot->mld_varname, fname_mld);
-                model_readfield(m, fname_mld, ot->mld_varname, 0, mld[0]);
-            }
+            model_readfield(m, fname_mld, ot->mld_varname, 0, mld[0], das->mode == MODE_ENOI ? 1 : 0);
         } else {
             if (das->mode == MODE_ENKF || das->mode == MODE_HYBRID)
                 das_calcmld(das, ot, src, mld);
@@ -602,9 +589,9 @@ void H_vertsum(dasystem* das, int nobs, int obsids[], char fname[], int mem, int
     src0 = src[0];
     srcsum0 = srcsum[0];
 
-    model_readfield(m, fname, ot->varnames[0], 0, srcsum0);
+    model_readfield(m, fname, ot->varnames[0], 0, srcsum0, 0);
     for (k = 1; k < nk; ++k) {
-        model_readfield(m, fname, ot->varnames[0], k, src0);
+        model_readfield(m, fname, ot->varnames[0], k, src0, 0);
         for (i = 0; i < (size_t) ni * nj; i++)
             srcsum0[i] += src0[i];
     }
@@ -666,9 +653,9 @@ void H_vertwavg(dasystem* das, int nobs, int obsids[], char fname[], int mem, in
     /*
      * get sum of weights 
      */
-    model_readfield(m, fname, ot->varnames[1], 0, sumw);
+    model_readfield(m, fname, ot->varnames[1], 0, sumw, 0);
     for (k = 1; k < nk; ++k) {
-        model_readfield(m, fname, ot->varnames[1], k, w);
+        model_readfield(m, fname, ot->varnames[1], k, w, 0);
         for (i = 0; i < (size_t) ni * nj; i++)
             sumw[i] += w[i];
     }
@@ -679,8 +666,8 @@ void H_vertwavg(dasystem* das, int nobs, int obsids[], char fname[], int mem, in
     for (k = 0; k < nk; ++k) {
         float* sum0 = sum[0];
 
-        model_readfield(m, fname, ot->varnames[0], k, src);
-        model_readfield(m, fname, ot->varnames[1], k, w);
+        model_readfield(m, fname, ot->varnames[0], k, src, 0);
+        model_readfield(m, fname, ot->varnames[1], k, w, 0);
         for (i = 0; i < (size_t) ni * nj; i++) {
             double v = src[i] * w[i] / sumw[i];
 

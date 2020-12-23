@@ -2,10 +2,10 @@
   Using MPI-3 shared memory:
     sm_comm size = 2
     node_comm size = 1
-  running CALC for EnKF-C version 2.0.17:
+  running CALC for EnKF-C version 2.2.2:
     command = "./enkf_calc enoi.prm"
     dir = "/home/pavel/src/enkf-c/trunk/enkf/examples/5"
-  2020-12-02 11:06:26
+  2020-12-23 09:00:35
   reading system specs from "enoi.prm":
     MODE = EnOI
     MODEL PRM = "model.prm"
@@ -26,7 +26,7 @@
     FIELDBUFFERSIZE = 4
     REGION Global: x = [0.0, 360.0], y = [-90.0, 90.0]
     POINTLOG 156.000 -32.000 
-    NCFORMAT = 64BIT
+    NCFORMAT = NETCDF4
     NCCOMPRESSION = 0
     EnKF flags:
       enkf_exitaction  = [BACKTRACE]
@@ -118,6 +118,24 @@
       v type = Z
       v dir = FROMSURF
       STRIDE = 0
+  model info:
+    name = Tasman
+    5 variables:
+      eta_t:
+        grid = "t-grid"
+        inflation = 1.000 1.00
+      temp:
+        grid = "t-grid"
+        inflation = 1.000 1.00
+      salt:
+        grid = "t-grid"
+        inflation = 1.000 1.00
+      u:
+        grid = "t-grid"
+        inflation = 1.000 1.00
+      v:
+        grid = "t-grid"
+        inflation = 1.000 1.00
   setting the ensemble size:
     144 members
   initialising pointlogs:
@@ -143,7 +161,7 @@
         7 nodes
         496 bytes
   calculating ensemble observations:
-  2020-12-02 11:06:26
+  2020-12-23 09:00:35
     allocating 5927600 bytes for HE array:
     allocating 5886720 bytes for HE^T array:
     distributing 144 iterations:
@@ -155,7 +173,7 @@
     SAL +........................................................................
     subtracting ensemble mean:
   adding forecast innovations and spread to "observations.nc":
-  2020-12-02 11:06:26
+  2020-12-23 09:00:35
   moderating observations:
     observations substantially modified:
       SLA          0 (0.0%)
@@ -166,11 +184,11 @@
       total        0 (0.0%)
   writing modified obs errors to "observations.nc":
   calculating transforms:
-  2020-12-02 11:06:26
+  2020-12-23 09:00:35
     calculating transforms for t-grid:
       distributing 34 iterations:
         2 processes get 17 iterations each
-    creating empty file "w.nc":
+      creating empty file "transforms.nc":
       main cycle for t-grid (34 x 34 local analyses):
         j = 0 (0: 0: 5.9%)
         j = 3 (1: 17: 5.9%)
@@ -217,13 +235,13 @@
     calculating transforms for log point (156.000,-32.000): 1444 obs
     writing log for point (156.000,-32.000) on grid "t-grid":
   calculating analysed observations:
-  2020-12-02 11:06:52
+  2020-12-23 09:01:01
     sorting obs by ij:
-    2020-12-02 11:06:52
+    2020-12-23 09:01:01
     updating Hx:
     distributing 10220 iterations:
       2 processes get 5110 iterations each
-    2020-12-02 11:06:52
+    2020-12-23 09:01:01
   adding analysis innovations and spread to "observations.nc":
   printing observation statistics:
     region obs.type   # obs.  |for.inn.| |an.inn.|   for.inn.   an.inn.  for.spread  an.spread
@@ -246,5 +264,5 @@
              0-50m         2   0.0881      0.107     0.0739     0.0789     0.0193     0.0193  
              50-500m       5   0.0723     0.0793     0.0469     0.0501     0.0246     0.0246  
              500-9999m     0     -nan       -nan       -nan       -nan       -nan       -nan  
-  2020-12-02 11:06:52
+  2020-12-23 09:01:01
   finished

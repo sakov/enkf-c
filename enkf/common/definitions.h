@@ -35,8 +35,7 @@
 
 #define FNAME_OBS "observations-orig.nc"
 #define FNAME_SOBS "observations.nc"
-#define FNAMEPREFIX_X5 "X5"
-#define FNAMEPREFIX_W "w"
+#define FNAMEPREFIX_TRANSFORMS "transforms"
 #define FNAMEPREFIX_DIAG "enkf_diag"
 #define FNAMEPREFIX_PLOG "pointlog"
 #define FNAME_SPREAD "spread.nc"
@@ -153,11 +152,11 @@ extern int node_comm_size;
 extern int* node_comm_ranks;
 #endif
 #endif
-#if defined(X5_VIAFILE) && !defined(MPI)
-#undef(X5_VIAFILE)
+#if defined(TW_VIAFILE) && !defined(MPI)
+#undef(TW_VIAFILE)
 #endif
 #if defined(SHUFFLE_ROWS)
-#if !defined(MPI) || defined(X5_VIAFILE)
+#if !defined(MPI) || defined(TW_VIAFILE)
 #undef(SHUFFLE_ROWS)
 #endif
 #endif
@@ -173,6 +172,7 @@ extern int enkf_fstatsonly;
 extern int enkf_noobsdatecheck;
 extern int enkf_considersubgridvar;
 extern int enkf_doplogs;
+extern int enkf_allowenoilog;
 extern int print_mem;
 
 typedef struct {

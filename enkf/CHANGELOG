@@ -1,3 +1,17 @@
+v2.2.2
+   PS 17122020
+   -- Changes to allow log transform in EnOI or Hybrid mode. The static ensemble
+      must be in log space. One needs to run PREP, CALC and UPDATE with option
+      --allow-logspace-with-static-ens to confirm that the static ensemble is
+      conditioned (is in log space) to be used with APPLYLOG = true.
+   -- Corrected scaling in das_sethybridensemble().
+   -- Re-scaling of ensemble anomalies in Hybrid mode in das_updatefields() to
+      get zero increment in the case with no obs.
+   -- For the above -- moved from saving X5 to saving T and w. Instead of X5*.nc
+      files there are now transforms*.nc files.
+   -- Replaced macro definition X5_VIAFILE by TW_VIAFILE.
+   -- Corrected scalings for Hybrid mode in das_standardise() and
+      das_destandardise().
 v2.2.1
    PS 09122020
    -- replaced pow10() with exp10() as pow10() is not present in some GCC

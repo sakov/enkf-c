@@ -41,22 +41,29 @@ double* sloc = NULL;
 
 /**
  */
-static void nc_createX5(dasystem* das, char fname[], char gridname[], size_t nj, size_t ni, int stride, int* ncid, int* varid_X5)
+static void nc_createtransforms(dasystem* das, int gridid, size_t nj, size_t ni, int stride, int* ncid, int* varid_T, int* varid_w)
 {
+    char fname[MAXSTRLEN];
     int dimids[4];
 
     assert(rank == 0);
 
+    das_getfname_transforms(das, gridid, fname);
     enkf_printf("      creating empty file \"%s\":\n", fname);
     enkf_flush();
     ncw_create(fname, NC_CLOBBER | NC_NOFILL | das->ncformat, ncid);
     ncw_def_dim(*ncid, "nj", nj, &dimids[0]);
     ncw_def_dim(*ncid, "ni", ni, &dimids[1]);
-    ncw_def_dim(*ncid, "m1", das->nmem_dynamic, &dimids[2]);
-    ncw_def_dim(*ncid, "m2", das->nmem, &dimids[3]);
+    if (das->mode == MODE_ENKF || das->mode == MODE_HYBRID) {
+        ncw_def_dim(*ncid, "m_dyn", das->nmem_dynamic, &dimids[2]);
+        ncw_def_dim(*ncid, "m", das->nmem, &dimids[3]);
+        ncw_def_var(*ncid, "T", NC_FLOAT, 4, dimids, varid_T);
+        dimids[2] = dimids[3];
+    } else
+        ncw_def_dim(*ncid, "m", das->nmem, &dimids[2]);
+    ncw_def_var(*ncid, "w", NC_FLOAT, 3, dimids, varid_w);
     ncw_put_att_int(*ncid, NC_GLOBAL, "stride", 1, &stride);
-    ncw_def_var(*ncid, "X5", NC_FLOAT, 4, dimids, varid_X5);
-    ncw_put_att_text(*ncid, NC_GLOBAL, "grid_name", gridname);
+    ncw_put_att_text(*ncid, NC_GLOBAL, "grid_name", grid_getname(model_getgridbyid(das->m, gridid)));
 #if defined(DEFLATE_ALL)
     if (das->nccompression > 0)
         ncw_def_deflate(*ncid, 0, 1, das->nccompression);
@@ -64,10 +71,9 @@ static void nc_createX5(dasystem* das, char fname[], char gridname[], size_t nj,
     ncw_enddef(*ncid);
 }
 
-#if !defined(X5_VIAFILE)
 /**
  */
-static void nc_writeX5(dasystem* das, int ncid, int j, int ni, int varid_X5, float* X5j)
+static void nc_writetransforms(dasystem* das, int ncid, int j, int ni, int varid_T, float* Tj, int varid_w, float* wj)
 {
     size_t start[4], count[4];
 
@@ -83,40 +89,44 @@ static void nc_writeX5(dasystem* das, int ncid, int j, int ni, int varid_X5, flo
     count[2] = das->nmem_dynamic;
     count[3] = das->nmem;
 
-    ncw_put_vara_float(ncid, varid_X5, start, count, X5j);
+    if (Tj != NULL)
+        ncw_put_vara_float(ncid, varid_T, start, count, Tj);
+
+    count[2] = das->nmem;
+    ncw_put_vara_float(ncid, varid_w, start, count, wj);
 }
 
-#else
+#if defined(TW_VIAFILE)
 /**
  */
-static void das_getfname_X5tile(dasystem* das, void* grid, int r, char fname[])
+static void das_getfname_transformstile(dasystem* das, int gridid, int r, char fname[])
 {
     if (model_getngrid(das->m) == 1)
-        snprintf(fname, MAXSTRLEN, "%s/%s-%03d.nc", DIRNAME_TMP, FNAMEPREFIX_X5, r);
+        snprintf(fname, MAXSTRLEN, "%s/%s-%03d.nc", DIRNAME_TMP, FNAMEPREFIX_TRANSFORMS, r);
     else
-        snprintf(fname, MAXSTRLEN, "%s/%s-%d-%03d.nc", DIRNAME_TMP, FNAMEPREFIX_X5, grid_getid(grid), r);
+        snprintf(fname, MAXSTRLEN, "%s/%s-%d-%03d.nc", DIRNAME_TMP, FNAMEPREFIX_TRANSFORMS, gridid, r);
 }
 
 /**
  */
-static void nc_createX5tile(dasystem* das, void* grid, int ni, int* ncid, int* varid_X5)
+static void nc_createtransformstile(dasystem* das, int gridid, int ni, int* ncid, int* varid_T, int* varid_w)
 {
     char fname[MAXSTRLEN];
     int dimids[4];
 
-    das_getfname_X5tile(das, grid, rank, fname);
+    das_getfname_transformstile(das, gridid, rank, fname);
 
     ncw_create(fname, NC_CLOBBER | NC_NOFILL | das->ncformat, ncid);
     ncw_def_dim(*ncid, "nj", my_number_of_iterations, &dimids[0]);
     ncw_def_dim(*ncid, "ni", ni, &dimids[1]);
-    if (das->mode == MODE_ENKF) {
-        ncw_def_dim(*ncid, "m", das->nmem, &dimids[2]);
-        dimids[3] = dimids[2];
-    } else if (das->mode == MODE_HYBRID) {
-        ncw_def_dim(*ncid, "m_dynamic", das->nmem_dynamic, &dimids[2]);
+    if (das->mode == MODE_ENKF || das->mode == MODE_HYBRID) {
+        ncw_def_dim(*ncid, "m_dyn", das->nmem_dynamic, &dimids[2]);
         ncw_def_dim(*ncid, "m", das->nmem, &dimids[3]);
-    }
-    ncw_def_var(*ncid, "X5", NC_FLOAT, 4, dimids, varid_X5);
+        ncw_def_var(*ncid, "T", NC_FLOAT, 4, dimids, varid_T);
+        dimids[2] = dimids[3];
+    } else
+        ncw_def_dim(*ncid, "m", das->nmem, &dimids[2]);
+    ncw_def_var(*ncid, "w", NC_FLOAT, 3, dimids, varid_w);
     ncw_put_att_int(*ncid, NC_GLOBAL, "j1", 1, &my_first_iteration);
 #if defined(DEFLATE_ALL)
     if (das->nccompression > 0)
@@ -127,7 +137,7 @@ static void nc_createX5tile(dasystem* das, void* grid, int ni, int* ncid, int* v
 
 /**
  */
-static void nc_writeX5tile(dasystem* das, int iter, int ni, float* X5j, int ncid, int varid_X5)
+static void nc_writetransformstile(dasystem* das, int iter, int ni, float* Tj, float* wj, int ncid, int varid_T, int varid_w)
 {
     size_t start[4], count[4];
 
@@ -141,36 +151,43 @@ static void nc_writeX5tile(dasystem* das, int iter, int ni, float* X5j, int ncid
     count[2] = das->nmem_dynamic;
     count[3] = das->nmem;
 
-    ncw_put_vara_float(ncid, varid_X5, start, count, X5j);
+    ncw_put_vara_float(ncid, varid_T, start, count, Tj);
+
+    count[2] = das->nmem;
+    ncw_put_vara_float(ncid, varid_w, start, count, wj);
 }
 
-static void nc_assembleX5(dasystem* das, void* grid, size_t nj, size_t ni, int stride)
+static void nc_assembletransforms(dasystem* das, int gridid, size_t nj, size_t ni, int stride)
 {
     char fname[MAXSTRLEN];
-    int ncid, varid_X5;
+    int ncid, varid_T, varid_w;
     int r;
-    float* v = NULL;
+    float* v_T = NULL;
+    float* v_w = NULL;
 
     assert(rank == 0);
 
-    das_getfname_X5(das, grid, fname);
-    nc_createX5(das, fname, grid_getname(grid), nj, ni, stride, &ncid, &varid_X5);
+    das_getfname_transforms(das, gridid, fname);
+    nc_createtransforms(das, gridid, nj, ni, stride, &ncid, &varid_T, &varid_w);
 
     enkf_printf("      assembling \"%s\":", fname);
 
-    v = malloc(ni * number_of_iterations[0] * das->nmem_dynamic * das->nmem * sizeof(float));
+    v_T = malloc(ni * number_of_iterations[0] * das->nmem_dynamic * das->nmem * sizeof(float));
+    v_w = malloc(ni * number_of_iterations[0] * das->nmem * sizeof(float));
 
     for (r = 0; r < nprocesses; ++r) {
         char fname_tile[MAXSTRLEN];
         int ncid_tile;
-        int varid_X5_tile;
+        int varid_T_tile, varid_w_tile;
         size_t start[4], count[4];
 
-        das_getfname_X5tile(das, grid, r, fname_tile);
+        das_getfname_transformstile(das, gridid, r, fname_tile);
 
         ncw_open(fname_tile, NC_NOWRITE, &ncid_tile);
-        ncw_inq_varid(ncid_tile, "X5", &varid_X5_tile);
-        ncu_readvarfloat(ncid_tile, varid_X5_tile, ni * number_of_iterations[r] * das->nmem * das->nmem_dynamic, v);
+        ncw_inq_varid(ncid_tile, "T", &varid_T_tile);
+        ncu_readvarfloat(ncid_tile, varid_T_tile, ni * number_of_iterations[r] * das->nmem * das->nmem_dynamic, v_T);
+        ncw_inq_varid(ncid_tile, "w", &varid_w_tile);
+        ncu_readvarfloat(ncid_tile, varid_w_tile, ni * number_of_iterations[r] * das->nmem, v_w);
         ncw_close(ncid_tile);
         file_delete(fname_tile);
 
@@ -184,7 +201,9 @@ static void nc_assembleX5(dasystem* das, void* grid, size_t nj, size_t ni, int s
         count[2] = das->nmem_dynamic;
         count[3] = das->nmem;
 
-        ncw_put_vara_float(ncid, varid_X5, start, count, v);
+        ncw_put_vara_float(ncid, varid_T, start, count, v_T);
+        count[2] = das->nmem;
+        ncw_put_vara_float(ncid, varid_w, start, count, v_w);
         enkf_printf(".");
         enkf_flush();
     }
@@ -192,49 +211,10 @@ static void nc_assembleX5(dasystem* das, void* grid, size_t nj, size_t ni, int s
     enkf_printf("\n");
     enkf_flush();
 
-    free(v);
+    free(v_T);
+    free(v_w);
 }
 #endif
-
-/**
- */
-static void nc_createw(dasystem* das, char fname[], char gridname[], int nj, int ni, int stride, int* ncid, int* varid_w)
-{
-    int dimids[3];
-
-    assert(rank == 0);
-
-    enkf_printf("    creating empty file \"%s\":\n", fname);
-    ncw_create(fname, NC_CLOBBER | das->ncformat, ncid);
-    ncw_def_dim(*ncid, "nj", nj, &dimids[0]);
-    ncw_def_dim(*ncid, "ni", ni, &dimids[1]);
-    ncw_def_dim(*ncid, "m", das->nmem, &dimids[2]);
-    ncw_put_att_int(*ncid, NC_GLOBAL, "stride", 1, &stride);
-    ncw_def_var(*ncid, "w", NC_FLOAT, 3, dimids, varid_w);
-    ncw_put_att_text(*ncid, NC_GLOBAL, "grid_name", gridname);
-    if (das->nccompression > 0)
-        ncw_def_deflate(*ncid, 0, 1, das->nccompression);
-    ncw_enddef(*ncid);
-}
-
-/**
- */
-static void nc_writew(dasystem* das, int ncid, int j, int ni, int varid_w, float* wj)
-{
-    size_t start[3], count[3];
-
-    assert(rank == 0);
-
-    start[0] = j;
-    start[1] = 0;
-    start[2] = 0;
-
-    count[0] = 1;
-    count[1] = ni;
-    count[2] = das->nmem;
-
-    ncw_put_vara_float(ncid, varid_w, start, count, wj);
-}
 
 typedef struct {
     long long int nlobs_sum;
@@ -280,7 +260,7 @@ static void nc_writediag(dasystem* das, char fname[], int nobstypes, int nj, int
     ncw_close(ncid);
 }
 
-#if !defined(X5_VIAFILE)
+#if !defined(TW_VIAFILE)
 #if !defined(SHUFFLE_ROWS)
 /** Distributes iterations in such a way that for any given i iterations # i 
  * for each process are grouped together.
@@ -373,17 +353,17 @@ void das_calctransforms(dasystem* das)
         int* iiter = NULL;
 
         /*
-         * X5 (EnKF) or w (EnOI) files
+         * ids of/in transform file
          */
-        char fname[MAXSTRLEN];
         int ncid = -1;
-        int varid = -1;
+        int varid_T = -1;
+        int varid_w = -1;
 
         /*
          * transforms 
          */
-        float*** X5j = NULL;    /* X5 for one grid row [ni][m x m] */
-        double** X5 = NULL;     /* X5 for one grid cell [m][m] */
+        float*** Tj = NULL;     /* T for one grid row [ni][m x m] */
+        double** T = NULL;      /* T for one grid cell [m][m] */
 
         /*
          * coeffs 
@@ -432,27 +412,23 @@ void das_calctransforms(dasystem* das)
         distribute_iterations(0, nj - 1, nprocesses, rank, "      ");
 
         if (das->mode == MODE_ENKF || das->mode == MODE_HYBRID) {
-#if !defined(X5_VIAFILE)
-            das_getfname_X5(das, grid, fname);
-
+#if !defined(TW_VIAFILE)
             if (rank == 0)
-                nc_createX5(das, fname, gridname, nj, ni, stride, &ncid, &varid);
+                nc_createtransforms(das, gid, nj, ni, stride, &ncid, &varid_T, &varid_w);
 #else
             if (rank == 0)
                 dir_createifabsent(DIRNAME_TMP);
             MPI_Barrier(MPI_COMM_WORLD);
-            nc_createX5tile(das, grid, ni, &ncid, &varid);
+            nc_createtransformstile(das, gid, ni, &ncid, &varid_T, &varid_w);
 #endif
-            X5j = alloc3d(ni, nmem_dynamic, nmem, sizeof(float));
-            X5 = alloc2d(nmem, nmem, sizeof(double));
+            Tj = alloc3d(ni, nmem_dynamic, nmem, sizeof(float));
+            T = alloc2d(nmem, nmem, sizeof(double));
         } else if (das->mode == MODE_ENOI) {
-            das_getfname_w(das, grid, fname);
-
             if (rank == 0)
-                nc_createw(das, fname, gridname, nj, ni, stride, &ncid, &varid);
-            wj = alloc2d(ni, nmem, sizeof(float));
+                nc_createtransforms(das, gid, nj, ni, stride, &ncid, NULL, &varid_w);
         } else
             enkf_quit("programming error");
+        wj = alloc2d(ni, nmem, sizeof(float));
 
         if (rank == 0) {
             nlobs = alloc2d(nj, ni, sizeof(int));
@@ -476,17 +452,17 @@ void das_calctransforms(dasystem* das)
                 jpool[j] = j;
             if (nprocesses > 1) {
                 /*
-                 * If writing of X5 is organised so that each process writes
+                 * If writing of T is organised so that each process writes
                  * independently, then it may have sense to distribute the
                  * iterations randomly, so that the total time taken by each
                  * process is approximately equal. Currently, only the master
-                 * writes to X5*.nc, therefore shuffling rows makes no
+                 * writes to T*.nc, therefore shuffling rows makes no
                  * difference.
                  */
 #if defined(SHUFFLE_ROWS)
                 shuffle(nj, jpool);
 #else
-#if !defined(X5_VIAFILE)
+#if !defined(TW_VIAFILE)
                 group_iterations(nj, jpool);
 #endif
 #endif
@@ -557,11 +533,11 @@ void das_calctransforms(dasystem* das)
                 if (ploc == 0) {
                     if (das->mode == MODE_ENKF || das->mode == MODE_HYBRID) {
                         /*
-                         * set X5 = I 
+                         * set T = I 
                          */
-                        memset(X5j[ii][0], 0, nmem_dynamic * nmem * sizeof(float));
+                        memset(Tj[ii][0], 0, nmem_dynamic * nmem * sizeof(float));
                         for (e = 0; e < nmem_dynamic; ++e)
-                            X5j[ii][e][e] = (float) 1.0;
+                            Tj[ii][e][e] = (float) 1.0;
                     } else if (das->mode == MODE_ENOI)
                         memset(wj[ii], 0, nmem * sizeof(float));
 
@@ -598,9 +574,6 @@ void das_calctransforms(dasystem* das)
                 for (o = 0; o < ploc; ++o)
                     sloc[o] = das->s_f[lobs[o]] * lcoeffs[o];
 
-                /*
-                 * (X5 is used for storing T)
-                 */
                 if (das->mode == MODE_ENOI || das->scheme == SCHEME_DENKF) {
 #if defined(MINIMISE_ALLOC)
                     calc_G(nmem, ploc, M, Sloc, i, j, G);
@@ -608,12 +581,12 @@ void das_calctransforms(dasystem* das)
                     calc_G(nmem, ploc, NULL, Sloc, i, j, G);
 #endif
                     if (das->mode == MODE_ENKF || das->mode == MODE_HYBRID)
-                        calc_T_denkf(nmem, ploc, G, Sloc, X5);
+                        calc_T_denkf(nmem, ploc, G, Sloc, T);
                 } else if (das->scheme == SCHEME_ETKF)
 #if defined(MINIMISE_ALLOC)
-                    calc_GT_etkf(nmem, ploc, M, Sloc, i, j, G, X5);
+                    calc_GT_etkf(nmem, ploc, M, Sloc, i, j, G, T);
 #else
-                    calc_GT_etkf(nmem, ploc, NULL, Sloc, i, j, G, X5);
+                    calc_GT_etkf(nmem, ploc, NULL, Sloc, i, j, G, T);
 #endif
                 else
                     enkf_quit("programming error");
@@ -623,17 +596,24 @@ void das_calctransforms(dasystem* das)
                 if (das->mode == MODE_ENKF || das->mode == MODE_HYBRID) {
                     int e1, e2;
 
-                    calc_X5(nmem, das->alpha, w, X5);
+                    for (e1 = 0; e1 < nmem_dynamic; ++e1) {
+                        double* Ti = T[e1];
+
+                        Ti[e1] -= 1.0;
+                        for (e2 = 0; e2 < nmem; ++e2)
+                            Ti[e2] *= das->alpha;
+                        Ti[e1] += 1.0;
+                    }
+
                     /*
-                     * convert X5 to float and store in X5j 
+                     * convert T to float and store in Tj 
                      */
                     for (e1 = 0; e1 < nmem_dynamic; ++e1)
                         for (e2 = 0; e2 < nmem; ++e2)
-                            X5j[ii][e1][e2] = (float) X5[e1][e2];
-                } else if (das->mode == MODE_ENOI) {
-                    for (e = 0; e < nmem; ++e)
-                        wj[ii][e] = (float) w[e];
+                            Tj[ii][e1][e2] = (float) T[e1][e2];
                 }
+                for (e = 0; e < nmem; ++e)
+                    wj[ii][e] = (float) w[e];
 
                 nlobs[jjj][ii] = ploc;  /* (ploc > 0 here) */
                 dfs[jjj][ii] = traceprod(0, 0, ploc, nmem, G, Sloc, 1);
@@ -697,11 +677,14 @@ void das_calctransforms(dasystem* das)
 
 #if defined(MPI)
             if (das->mode == MODE_ENKF || das->mode == MODE_HYBRID) {
-#if !defined(X5_VIAFILE)
+#if !defined(TW_VIAFILE)
                 if (rank > 0) {
                     if (my_number_of_iterations > 0) {
-                        int ierror = MPI_Send(X5j[0][0], ni * nmem_dynamic * nmem, MPI_FLOAT, 0, jj, MPI_COMM_WORLD);
+                        int ierror;
 
+                        ierror = MPI_Send(Tj[0][0], ni * nmem_dynamic * nmem, MPI_FLOAT, 0, jj, MPI_COMM_WORLD);
+                        assert(ierror == MPI_SUCCESS);
+                        ierror = MPI_Send(wj[0], ni * nmem, MPI_FLOAT, 0, jj, MPI_COMM_WORLD);
                         assert(ierror == MPI_SUCCESS);
                     }
                 } else {
@@ -710,7 +693,7 @@ void das_calctransforms(dasystem* das)
                     /*
                      * write own results 
                      */
-                    nc_writeX5(das, ncid, jpool[jj], ni, varid, X5j[0][0]);
+                    nc_writetransforms(das, ncid, jpool[jj], ni, varid_T, Tj[0][0], varid_w, wj[0]);
                     /*
                      * collect and write results from slaves 
                      */
@@ -721,13 +704,15 @@ void das_calctransforms(dasystem* das)
                          * (recall that my_number_of_iterations <=
                          * number_of_iterations[0]) 
                          */
-                        ierror = MPI_Recv(X5j[0][0], ni * nmem * nmem, MPI_FLOAT, r, first_iteration[r] + jj, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+                        ierror = MPI_Recv(Tj[0][0], ni * nmem * nmem, MPI_FLOAT, r, first_iteration[r] + jj, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
                         assert(ierror == MPI_SUCCESS);
-                        nc_writeX5(das, ncid, jpool[first_iteration[r] + jj], ni, varid, X5j[0][0]);
+                        ierror = MPI_Recv(wj[0], ni * nmem, MPI_FLOAT, r, first_iteration[r] + jj, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+                        assert(ierror == MPI_SUCCESS);
+                        nc_writetransforms(das, ncid, jpool[first_iteration[r] + jj], ni, varid_T, Tj[0][0], varid_w, wj[0]);
                     }
                 }
-#else                           /* X5_VIAFILE */
-                nc_writeX5tile(das, jj - my_first_iteration, ni, X5j[0][0], ncid, varid);
+#else                           /* TW_VIAFILE */
+                nc_writetransformstile(das, jj - my_first_iteration, ni, Tj[0][0], wj[0], ncid, varid_T, varid_w);
 #endif
             } else if (das->mode == MODE_ENOI) {
                 if (rank > 0) {
@@ -742,7 +727,7 @@ void das_calctransforms(dasystem* das)
                     /*
                      * write own results 
                      */
-                    nc_writew(das, ncid, jpool[jj], ni, varid, wj[0]);
+                    nc_writetransforms(das, ncid, jpool[jj], ni, -1, NULL, varid_w, wj[0]);
                     /*
                      * collect and write results from slaves 
                      */
@@ -755,19 +740,19 @@ void das_calctransforms(dasystem* das)
                          */
                         ierror = MPI_Recv(wj[0], ni * nmem, MPI_FLOAT, r, first_iteration[r] + jj, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
                         assert(ierror == MPI_SUCCESS);
-                        nc_writew(das, ncid, jpool[first_iteration[r] + jj], ni, varid, wj[0]);
+                        nc_writetransforms(das, ncid, jpool[first_iteration[r] + jj], ni, -1, NULL, varid_w, wj[0]);
                     }
                 }
             }
 #else                           /* no MPI */
             if (das->mode == MODE_ENKF || das->mode == MODE_HYBRID)
-                nc_writeX5(ncid, jpool[jj], ni, varid, X5j[0][0]);
+                nc_writetransforms(ncid, jpool[jj], ni, varid_T, Tj[0][0], varid_w, wj[0]);
             else if (das->mode == MODE_ENOI)
-                nc_writew(ncid, jpool[jj], ni, varid, wj[0]);
+                nc_writetransforms(ncid, jpool[jj], ni, -1, NULL, varid_w, wj[0]);
 #endif                          /* if defined(MPI) */
         }                       /* for jj */
 
-#if !defined(X5_VIAFILE)
+#if !defined(TW_VIAFILE)
         if (rank == 0)
             ncw_close(ncid);
 #else
@@ -776,7 +761,7 @@ void das_calctransforms(dasystem* das)
         if (das->mode == MODE_ENKF || das->mode == MODE_HYBRID) {
             MPI_Barrier(MPI_COMM_WORLD);
             if (rank == 0) {
-                nc_assembleX5(das, grid, nj, ni, stride);
+                nc_assembletransforms(das, gid, nj, ni, stride);
 
                 dir_rmifexists(DIRNAME_TMP);
             }
@@ -889,8 +874,8 @@ void das_calctransforms(dasystem* das)
         }
 
         if (das->mode == MODE_ENKF || das->mode == MODE_HYBRID) {
-            free(X5j);
-            free(X5);
+            free(Tj);
+            free(T);
         } else if (das->mode == MODE_ENOI) {
             free(wj);
         }

@@ -1,8 +1,8 @@
   MPI: initialised 2 process(es)
-  running UPDATE for EnKF-C version 2.1.0:
+  running UPDATE for EnKF-C version 2.2.2:
     command = "./enkf_update --calculate-spread --write-inflation enkf.prm"
     dir = "/home/pavel/src/enkf-c/trunk/enkf/examples/5"
-  2020-12-03 12:08:19
+  2020-12-23 09:00:22
   reading system specs from "enkf.prm":
     MODE = EnKF
     SCHEME = DEnKF
@@ -23,7 +23,7 @@
     FIELDBUFFERSIZE = 4
     REGION Global: x = [0.0, 360.0], y = [-90.0, 90.0]
     POINTLOG 156.000 -32.000 
-    NCFORMAT = 64BIT
+    NCFORMAT = NETCDF4
     NCCOMPRESSION = 0
     EnKF flags:
       enkf_exitaction  = [SEGFAULT]
@@ -58,6 +58,24 @@
       v type = Z
       v dir = FROMSURF
       STRIDE = 0
+  model info:
+    name = Tasman
+    5 variables:
+      eta_t:
+        grid = "t-grid"
+        inflation = 1.100 1.00
+      temp:
+        grid = "t-grid"
+        inflation = 1.100 1.00
+      salt:
+        grid = "t-grid"
+        inflation = 1.100 1.00
+      u:
+        grid = "t-grid"
+        inflation = 1.100 1.00
+      v:
+        grid = "t-grid"
+        inflation = 1.100 1.00
   setting the ensemble size:
     96 members
   initialising pointlogs:
@@ -69,10 +87,10 @@
     defining state variables in point logs:
     distributing 96 iterations:
       2 processes get 48 iterations each
-    2020-12-03 12:08:19
-    allocating disk space for analysis:
+    2020-12-23 09:00:22
+    allocating disk space for analysis:................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................
     processing fields for t-grid:
-      2020-12-03 12:08:19
+      2020-12-23 09:00:22
       9 fields
       distributing 9 iterations:
         2 processes get 5 or 4 iterations
@@ -85,7 +103,7 @@
       v        1   (1: 8: 100.0%)
       salt     0   (0: 3: 80.0%)
       salt     1   (0: 4: 100.0%)
-  2020-12-03 12:08:20
+  2020-12-23 09:00:24
   assembling analysis:
     distributing 96 iterations:
       2 processes get 48 iterations each
@@ -94,26 +112,26 @@
     salt:................................................
     u:................................................
     v:................................................
-  2020-12-03 12:08:20
+  2020-12-23 09:00:25
   assembling spread:
     eta_t:.
     temp:..
     salt:..
     u:..
     v:..
-  2020-12-03 12:08:20
+  2020-12-23 09:00:25
   assembling inflation:
     eta_t:.
     temp:..
     salt:..
     u:..
     v:..
-  2020-12-03 12:08:20
+  2020-12-23 09:00:25
   assembling state variables in point logs:
     distributing 1 iterations:
       1 processes get 1 iteration, 1 processes get 0 iterations
     deleting tiles:
       distributing 9 iterations:
         2 processes get 5 or 4 iterations
-  2020-12-03 12:08:20
+  2020-12-23 09:00:25
   finished
