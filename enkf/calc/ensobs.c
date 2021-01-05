@@ -634,7 +634,7 @@ void das_calcinnandspread(dasystem* das)
 /** Adds forecast observations and forecast ensemble spread to the observation
  ** file.
  */
-void das_addforecast(dasystem* das, char fname[])
+void das_writeforecastobs(dasystem* das, char fname[])
 {
     int ncid;
     int dimid_nobs[1];
@@ -743,7 +743,7 @@ void das_moderateobs(dasystem* das)
 /** Replaces observation errors in the observation file with the modified
  * values. The original values are stored as "estd_orig".
  */
-void das_addmodifiederrors(dasystem* das, char fname[])
+void das_writemoderatedobs(dasystem* das, char fname[])
 {
     int ncid;
     int dimid_nobs[1];
@@ -816,8 +816,6 @@ void das_standardise(dasystem* das)
 #if defined(USE_SHMEM)
     MPI_Barrier(sm_comm);
 #endif
-    // if (das->mode == MODE_HYBRID)
-    // mult = sqrt((double) das->nmem - 2);
     if (das->s_f != NULL) {
         for (i = 0; i < obs->nobs; ++i) {
             observation* o = &obs->data[i];
@@ -905,8 +903,6 @@ void das_destandardise(dasystem* das)
 #if defined(USE_SHMEM)
     MPI_Barrier(sm_comm);
 #endif
-    // if (das->mode == MODE_HYBRID)
-    // mult = sqrt((double) das->nmem - 2);
     if (das->s_f != NULL) {
         for (i = 0; i < obs->nobs; ++i) {
             observation* o = &obs->data[i];
@@ -1354,8 +1350,9 @@ static void update_HE(dasystem* das)
                 }               /* stride != 1 */
 
                 /*
-                 * (at this stage Tj should contain the array of T matrices
-                 * for the j-th row of the grid) 
+                 * (at this stage Tj should contain the array of mni T matrices
+                 * for the j-th row of the grid, and wj should contain the
+                 * array of mni vectors for the j-th row of the grid)
                  */
 
                 if (o > my_last_iteration)

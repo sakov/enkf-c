@@ -119,8 +119,8 @@ void das_destroy(dasystem* das);
 void das_getHE(dasystem* das);
 void das_writeHE(dasystem* das);
 void das_addanalysis(dasystem* das, char fname[]);
-void das_addforecast(dasystem* das, char fname[]);
-void das_addmodifiederrors(dasystem* das, char fname[]);
+void das_writeforecastobs(dasystem* das, char fname[]);
+void das_writemoderatedobs(dasystem* das, char fname[]);
 void das_writevcorrs(dasystem* das);
 void das_calcinnandspread(dasystem* das);
 void das_calctransforms(dasystem* das);
@@ -154,7 +154,7 @@ int das_getmemberfname_async(dasystem* das, obstype* ot, int mem, int t, char fn
 void das_getbgfname(dasystem* das, char varname[], char fname[]);
 int das_getbgfname_async(dasystem* das, obstype* ot, int t, char fname[]);
 void das_sethybridensemble(dasystem* das, int nij, float** v);
-int das_maskinglogneeded(dasystem* das, int mem);
+int das_isstatic(dasystem* das, int mem);
 
 #define _DASYSTEM_H
 #endif

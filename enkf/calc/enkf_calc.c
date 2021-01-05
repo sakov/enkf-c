@@ -381,9 +381,9 @@ int main(int argc, char* argv[])
         print_memory_usage();
 
     if (singleob == NULL) {
-        enkf_printf("  adding forecast innovations and spread to \"%s\":\n", fname_obs);
+        enkf_printf("  writing forecast innovations and spread to \"%s\":\n", fname_obs);
         enkf_printtime("  ");
-        das_addforecast(das, fname_obs);
+        das_writeforecastobs(das, fname_obs);
     }
 
     if (!enkf_fstatsonly) {
@@ -404,7 +404,7 @@ int main(int argc, char* argv[])
                 das_moderateobs(das);
                 enkf_printf("  writing modified obs errors to \"%s\":\n", fname_obs);
                 if (rank == 0)
-                    das_addmodifiederrors(das, fname_obs);
+                    das_writemoderatedobs(das, fname_obs);
             }
         }
 

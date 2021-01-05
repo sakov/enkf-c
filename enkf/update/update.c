@@ -1272,7 +1272,7 @@ void das_update(dasystem* das)
             }
 
             for (e = 0; e < das->nmem; ++e) {
-                int masklog = das_maskinglogneeded(das, e + 1);
+                int masklog = das_isstatic(das, e + 1);
 
                 das_getmemberfname(das, f->varname, e + 1, fname);
                 model_readfield(das->m, fname, f->varname, f->level, ((float***) fieldbuffer[bufid])[e][0], masklog);

@@ -704,12 +704,12 @@ void das_sethybridensemble(dasystem* das, int nij, float** v)
     }
 }
 
-/** Return 1 if this member is EnOI anomaly, 0 otherwise.
- *  Note that 1 <= mem <= ensemble size, and is mem = -1 for the background.
+/** Return 1 if this member is static anomaly, 0 otherwise.
+ * @param das - pointer to dasystem
+ * @param mem - member number, 1 <= mem <= ensemble size, and mem = -1 is used
+ *              for the background
  */
-int das_maskinglogneeded(dasystem* das, int mem)
+int das_isstatic(dasystem* das, int mem)
 {
-    if (das->mode == MODE_ENKF)
-        return 0;
-    return mem > das->nmem_dynamic && mem <= das->nmem;
+    return mem > das->nmem_dynamic;
 }

@@ -134,7 +134,7 @@ void H_surf_standard(dasystem* das, int nobs, int obsids[], char fname[], int me
     obstype* ot = &allobs->obstypes[otid];
     int mvid = model_getvarid(m, ot->varnames[0], 1);
     int ksurf = grid_getsurflayerid(model_getvargrid(m, mvid));
-    int masklog = das_maskinglogneeded(das, mem);
+    int masklog = das_isstatic(das, mem);
     int ni, nj;
     float** src = NULL;
     char tag_offset[MAXSTRLEN];
@@ -173,7 +173,7 @@ void H_surf_biased(dasystem* das, int nobs, int obsids[], char fname[], int mem,
     obstype* ot = &allobs->obstypes[otid];
     int mvid = model_getvarid(m, ot->varnames[0], 1);
     int ksurf = grid_getsurflayerid(model_getvargrid(m, mvid));
-    int masklog = das_maskinglogneeded(das, mem);
+    int masklog = das_isstatic(das, mem);
     int ni, nj, nv;
     float** src = NULL;
     float* src0 = NULL;
@@ -236,7 +236,7 @@ void H_subsurf_standard(dasystem* das, int nobs, int obsids[], char fname[], int
     int otid = allobs->data[obsids[0]].type;
     obstype* ot = &allobs->obstypes[otid];
     int mvid = model_getvarid(m, ot->varnames[0], 1);
-    int masklog = das_maskinglogneeded(das, mem);
+    int masklog = das_isstatic(das, mem);
     int ni, nj, nk;
     float*** src = NULL;
     char tag_offset[MAXSTRLEN];
@@ -304,7 +304,7 @@ void H_subsurf_lowmem(dasystem* das, int nobs, int obsids[], char fname[], int m
     int otid = allobs->data[obsids[0]].type;
     obstype* ot = &allobs->obstypes[otid];
     int mvid = model_getvarid(m, ot->varnames[0], 1);
-    int masklog = das_maskinglogneeded(das, mem);
+    int masklog = das_isstatic(das, mem);
     int ni, nj, nk;
     float** src1 = NULL;
     float** src2 = NULL;
@@ -420,7 +420,7 @@ void H_subsurf_wsurfbias(dasystem* das, int nobs, int obsids[], char fname[], in
     int mvid = model_getvarid(m, ot->varnames[0], 1);
     int periodic_i = grid_isperiodic_i(model_getvargrid(m, mvid));
     int** mask = model_getnumlevels(m, mvid);
-    int masklog = das_maskinglogneeded(das, mem);
+    int masklog = das_isstatic(das, mem);
 
     float*** src = NULL;
     int ni, nj, nk;
