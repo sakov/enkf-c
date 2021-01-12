@@ -64,6 +64,7 @@ static void obstype_new(obstype* type, int i, char* name)
     type->rfactor = 1.0;
     type->nlobsmax = -1;
     type->estdmin = 0.0;
+    type->can_thin = 1;
     type->vid = -1;
     type->gridid = -1;
     type->sob_stride = -1;
@@ -166,6 +167,7 @@ static void obstype_print(obstype* type)
     }
     if (type->sob_stride != 1)
         enkf_printf("      SOB_STRIDE = %d\n", type->sob_stride);
+    enkf_printf("      PERMIT_LOCATION_BASED_THINNING = %s\n", (type->can_thin)? "YES" : "NO");
 }
 
 /**
@@ -403,6 +405,11 @@ void obstypes_read(enkfprm* prm, char fname[], int* n, obstype** types)
                 enkf_quit("%s, l.%d: SOBSTRIDE specified twice", fname, line);
             if (!str2int(token, &now->sob_stride))
                 enkf_quit("%s, l.%d: could not convert \"%s\" to int", fname, line, token);
+        } else if (strcasecmp(token, "PERMIT_LOCATION_BASED_THINNING") == 0) {
+            if ((token = strtok(NULL, seps)) == NULL)
+                enkf_quit("%s, l.%d: PERMIT_LOCATION_BASED_THINNING not specified", fname, line);
+            if (!str2bool(token, &now->can_thin))
+                enkf_quit("%s, l.%d: could not convert \"%s\" to boolean", fname, line, token);
         } else
             enkf_quit("%s, l.%d: unknown token \"%s\"", fname, line, token);
     }
@@ -484,6 +491,7 @@ void obstypes_describeprm(void)
     enkf_printf("  [ NLOBSMAX    = <max. allowed number of local obs.> ]  (inf*)\n");
     enkf_printf("  [ ERROR_STD_MIN = <min. allowed superob error> ]       (0*)\n");
     enkf_printf("  [ SOBSTRIDE   = <stride for superobing> ]              (1*)\n");
+    enkf_printf("  [ PERMIT_LOCATION_BASED_THINNING = <yes | no> ]        (yes*)\n");
     enkf_printf("  [ MINVALUE    = <minimal allowed value> ]              (-inf*)\n");
     enkf_printf("  [ MAXVALUE    = <maximal allowed value> ]              (+inf*)\n");
     enkf_printf("  [ XMIN        = <minimal allowed X coordinate> ]       (-inf*)\n");

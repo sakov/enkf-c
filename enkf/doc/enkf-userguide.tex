@@ -39,7 +39,7 @@
 
 \begin{document}
 
-\title{EnKF-C user guide\\{\normalsize version 2.2.2}}
+\title{EnKF-C user guide\\{\normalsize version 2.3.0}}
 
 \author{Pavel Sakov}
 \date{June 19, 2014 -- \today}
@@ -936,6 +936,7 @@ The optional parameters include the R-factor and localisation radius for the typ
   [ NLOBSMAX    = <max. allowed number of local obs.> ]  (inf*)
   [ ERROR_STD_MIN = <min. allowed superob error> ]       (0*)
   [ SOBSTRIDE   = <stride for superobing> ]              (1*)
+  [ PERMIT_LOCATION_BASED_THINNING = <yes | no> ]        (yes*)
   [ MINVALUE    = <minimal allowed value> ]              (-inf*)
   [ MAXVALUE    = <maximal allowed value> ]              (+inf*)
   [ XMIN        = <minimal allowed X coordinate> ]       (-inf*)
@@ -1256,7 +1257,7 @@ Command line parameter \verb|--consider-subgrid-variability| switches on conside
 The calculation of $\sigma\!_{sub}$ is currently done in a rather crude way, assuming equal weights for all merged observations.
 
 Note that during superobing EnKF-C by default thins observations with identical positions, assuming that those must been obtained from high-frequency instruments (e.g. moorings).
-This thinning can be switched off by the command line parameter \verb|--no-thinning|.
+This thinning can be switched off by the command line parameter \verb|--no-thinning|, or for observatins of a particular data type only by adding flag \verb|PERMIT_LOCATION_BASED_THINNING = no| to the corresponding section in the observation types parameter file.
 
 \subsection{Asynchronous DA / FGAT}
 \label{sec:async}

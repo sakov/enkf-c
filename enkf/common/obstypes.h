@@ -51,6 +51,12 @@ typedef struct {
      */
     int sob_stride;
 
+    /*
+     * whether observations of this type with identical locations are allowed
+     * to be thinned (default = yes)
+     */
+    int can_thin;
+
     double xmin;
     double xmax;
     double ymin;

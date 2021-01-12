@@ -2,10 +2,10 @@
   Using MPI-3 shared memory:
     sm_comm size = 2
     node_comm size = 1
-  running CALC for EnKF-C version 2.2.2:
+  running CALC for EnKF-C version 2.3.0:
     command = "./enkf_calc enoi.prm"
     dir = "/home/pavel/src/enkf-c/trunk/enkf/examples/5"
-  2020-12-23 09:00:35
+  2021-01-12 13:27:13
   reading system specs from "enoi.prm":
     MODE = EnOI
     MODEL PRM = "model.prm"
@@ -36,7 +36,7 @@
       USE_SHMEM        = [+]
       MINIMISE_ALLOC   = [+]
       OBS_SHUFFLE      = [-]
-      X5_VIAFILE       = [-]
+      TW_VIAFILE       = [-]
       INTERNAL_QSORT_R = [-]
       DEFLATE_ALL      = [-]
   initialising the system:
@@ -53,6 +53,7 @@
       LOCRAD  = 200
       LOCWEIGHT =  1
       RFACTOR = 1
+      PERMIT_LOCATION_BASED_THINNING = YES
     NAME = SST
     ISSURFACE = 1
       VAR = temp
@@ -64,6 +65,7 @@
       LOCRAD  = 200
       LOCWEIGHT =  1
       RFACTOR = 2
+      PERMIT_LOCATION_BASED_THINNING = YES
     NAME = SST2
     ISSURFACE = 1
       VAR = temp
@@ -75,6 +77,7 @@
       LOCRAD  = 200
       LOCWEIGHT =  1
       RFACTOR = 2
+      PERMIT_LOCATION_BASED_THINNING = YES
     NAME = TEM
     ISSURFACE = 0
       VAR = temp
@@ -86,6 +89,7 @@
       LOCRAD  = 800
       LOCWEIGHT =  1
       RFACTOR = 4
+      PERMIT_LOCATION_BASED_THINNING = YES
     NAME = SAL
     ISSURFACE = 0
       VAR = salt
@@ -97,6 +101,7 @@
       LOCRAD  = 800
       LOCWEIGHT =  1
       RFACTOR = 4
+      PERMIT_LOCATION_BASED_THINNING = YES
     grid prm info:
       NAME = "t-grid"
       DOMAIN = Default
@@ -161,7 +166,7 @@
         7 nodes
         496 bytes
   calculating ensemble observations:
-  2020-12-23 09:00:35
+  2021-01-12 13:27:13
     allocating 5927600 bytes for HE array:
     allocating 5886720 bytes for HE^T array:
     distributing 144 iterations:
@@ -172,8 +177,8 @@
     TEM +........................................................................
     SAL +........................................................................
     subtracting ensemble mean:
-  adding forecast innovations and spread to "observations.nc":
-  2020-12-23 09:00:35
+  writing forecast innovations and spread to "observations.nc":
+  2021-01-12 13:27:13
   moderating observations:
     observations substantially modified:
       SLA          0 (0.0%)
@@ -184,7 +189,7 @@
       total        0 (0.0%)
   writing modified obs errors to "observations.nc":
   calculating transforms:
-  2020-12-23 09:00:35
+  2021-01-12 13:27:13
     calculating transforms for t-grid:
       distributing 34 iterations:
         2 processes get 17 iterations each
@@ -235,13 +240,13 @@
     calculating transforms for log point (156.000,-32.000): 1444 obs
     writing log for point (156.000,-32.000) on grid "t-grid":
   calculating analysed observations:
-  2020-12-23 09:01:01
+  2021-01-12 13:27:38
     sorting obs by ij:
-    2020-12-23 09:01:01
+    2021-01-12 13:27:38
     updating Hx:
     distributing 10220 iterations:
       2 processes get 5110 iterations each
-    2020-12-23 09:01:01
+    2021-01-12 13:27:38
   adding analysis innovations and spread to "observations.nc":
   printing observation statistics:
     region obs.type   # obs.  |for.inn.| |an.inn.|   for.inn.   an.inn.  for.spread  an.spread
@@ -264,5 +269,5 @@
              0-50m         2   0.0881      0.107     0.0739     0.0789     0.0193     0.0193  
              50-500m       5   0.0723     0.0793     0.0469     0.0501     0.0246     0.0246  
              500-9999m     0     -nan       -nan       -nan       -nan       -nan       -nan  
-  2020-12-23 09:01:01
+  2021-01-12 13:27:38
   finished

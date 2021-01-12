@@ -1,7 +1,7 @@
-  running PREP for EnKF-C version 2.2.2:
+  running PREP for EnKF-C version 2.3.0:
     command = "./enkf_prep enoi.prm"
     dir = "/home/pavel/src/enkf-c/trunk/enkf/examples/2"
-  2020-12-23 08:37:59
+  2021-01-12 13:23:40
   reading prep specs from "enoi.prm":
     MODE = EnOI
     MODEL PRM = "model.prm"
@@ -112,6 +112,7 @@
       LOCRAD  = 200
       LOCWEIGHT =  1
       RFACTOR = 1
+      PERMIT_LOCATION_BASED_THINNING = YES
     NAME = SST
     ISSURFACE = 1
       VAR = temp
@@ -122,7 +123,8 @@
       ASYNCHRONOUS = no
       LOCRAD  = 200
       LOCWEIGHT =  1
-      RFACTOR = 2
+      RFACTOR = 16
+      PERMIT_LOCATION_BASED_THINNING = NO
     NAME = TEM
     ISSURFACE = 0
       VAR = temp
@@ -134,6 +136,7 @@
       LOCRAD  = 800
       LOCWEIGHT =  1
       RFACTOR = 4
+      PERMIT_LOCATION_BASED_THINNING = YES
     NAME = SAL
     ISSURFACE = 0
       VAR = salt
@@ -145,6 +148,7 @@
       LOCRAD  = 800
       LOCWEIGHT =  1
       RFACTOR = 4
+      PERMIT_LOCATION_BASED_THINNING = YES
   reading observations:
     PRODUCT = RADS, TYPE = SLA, reader = scattered
       reading obs/RADS/2007/j1_20071219.nc:
@@ -589,27 +593,26 @@
       setting error_std to 0.1
       min day = -4.000
       max day = -2.000
-  2020-12-23 08:37:59
+  2021-01-12 13:23:41
   compacting obs:
-  2020-12-23 08:37:59
+  2021-01-12 13:23:41
   superobing:
-    106423 observations thinned
     10220 superobservations
-  2020-12-23 08:37:59
+  2021-01-12 13:23:41
   writing superobservations to "observations.nc":
   reading super-observations from disk:
     10220 observations
     allocating 1226400 bytes for array of observations
-  2020-12-23 08:37:59
+  2021-01-12 13:23:41
   checking for superobs on land:
     all good
   printing observation summary:
     type    #used    #dropped #out_grd #out_obs #out_wnd #land    #shallow #badbatch#badvalue#thinned #superobs
     -----------------------------------------------------------------------------------------------------------
     SLA     969      1        0        0        0        0        1        0        0        0        652     
-    SST     50246    106423   0        0        0        0        0        0        0        106423   9554    
+    SST     156669   0        0        0        0        0        0        0        0        0        9554    
     TEM     184      104      104      0        0        0        0        0        0        0        7       
     SAL     184      104      104      0        0        0        0        0        0        0        7       
-    total   51583    106632   208      0        0        0        1        0        0        106423   10220   
-  2020-12-23 08:37:59
+    total   158006   209      208      0        0        0        1        0        0        0        10220   
+  2021-01-12 13:23:41
   finished

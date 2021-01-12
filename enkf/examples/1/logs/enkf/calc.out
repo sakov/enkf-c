@@ -2,10 +2,10 @@
   Using MPI-3 shared memory:
     sm_comm size = 2
     node_comm size = 1
-  running CALC for EnKF-C version 2.2.2:
+  running CALC for EnKF-C version 2.3.0:
     command = "./enkf_calc enkf.prm"
     dir = "/home/pavel/src/enkf-c/trunk/enkf/examples/1"
-  2020-12-23 08:27:06
+  2021-01-12 13:11:27
   reading system specs from "enkf.prm":
     MODE = EnKF
     SCHEME = DEnKF
@@ -36,7 +36,7 @@
       USE_SHMEM        = [+]
       MINIMISE_ALLOC   = [+]
       OBS_SHUFFLE      = [-]
-      X5_VIAFILE       = [-]
+      TW_VIAFILE       = [-]
       INTERNAL_QSORT_R = [-]
       DEFLATE_ALL      = [-]
   initialising the system:
@@ -53,6 +53,7 @@
       LOCRAD  = 200
       LOCWEIGHT =  1
       RFACTOR = 2
+      PERMIT_LOCATION_BASED_THINNING = YES
     NAME = SST
     ISSURFACE = 1
       VAR = temp
@@ -63,7 +64,8 @@
       ASYNCHRONOUS = no
       LOCRAD  = 200
       LOCWEIGHT =  1
-      RFACTOR = 4
+      RFACTOR = 32
+      PERMIT_LOCATION_BASED_THINNING = NO
     NAME = TEM
     ISSURFACE = 0
       VAR = temp
@@ -75,6 +77,7 @@
       LOCRAD  = 800
       LOCWEIGHT =  1
       RFACTOR = 8
+      PERMIT_LOCATION_BASED_THINNING = YES
     NAME = SAL
     ISSURFACE = 0
       VAR = salt
@@ -86,6 +89,7 @@
       LOCRAD  = 800
       LOCWEIGHT =  1
       RFACTOR = 8
+      PERMIT_LOCATION_BASED_THINNING = YES
     grid prm info:
       NAME = "t-grid"
       DOMAIN = Default
@@ -147,7 +151,7 @@
         7 nodes
         496 bytes
   calculating ensemble observations:
-  2020-12-23 08:27:06
+  2021-01-12 13:11:27
     allocating 3924480 bytes for HE array:
     allocating 3924480 bytes for HE^T array:
     distributing 96 iterations:
@@ -156,8 +160,8 @@
     SST ................................................
     TEM ................................................
     SAL ................................................
-  adding forecast innovations and spread to "observations.nc":
-  2020-12-23 08:27:06
+  writing forecast innovations and spread to "observations.nc":
+  2021-01-12 13:11:27
   moderating observations:
     observations substantially modified:
       SLA          0 (0.0%)
@@ -167,7 +171,7 @@
       total        0 (0.0%)
   writing modified obs errors to "observations.nc":
   calculating transforms:
-  2020-12-23 08:27:06
+  2021-01-12 13:11:27
     calculating transforms for t-grid:
       distributing 34 iterations:
         2 processes get 17 iterations each
@@ -211,40 +215,40 @@
     writing stats to "enkf_diag.nc":
     summary stats on t-grid:
       # of local analyses = 1156
-      average # of local obs = 1049.3
+      average # of local obs = 1049.4
       # of inversions in obs space = 47
       # of inversions in ens space = 1109
   writing point logs:
     calculating transforms for log point (156.000,-32.000): 1444 obs
     writing log for point (156.000,-32.000) on grid "t-grid":
   calculating analysed observations:
-  2020-12-23 08:27:23
+  2021-01-12 13:11:44
     sorting obs by ij:
-    2020-12-23 08:27:23
+    2021-01-12 13:11:44
     updating HE:
     distributing 10220 iterations:
       2 processes get 5110 iterations each
-    2020-12-23 08:27:23
+    2021-01-12 13:11:44
   adding analysis innovations and spread to "observations.nc":
   printing observation statistics:
     region obs.type   # obs.  |for.inn.| |an.inn.|   for.inn.   an.inn.  for.spread  an.spread
     ------------------------------------------------------------------------------------------
     Global
-           SLA           652   0.0769     0.0345     0.0218    0.00139     0.0387      0.023  
-             j1          272   0.0731     0.0296     0.0228    0.00169     0.0434     0.0255  
-             n1          380   0.0797      0.038     0.0211    0.00118     0.0353     0.0212  
-           SST          9554     0.49      0.207     -0.134    -0.0277      0.352      0.203  
-             ESACCI     8386    0.496      0.184     -0.113   -0.00655      0.354      0.204  
-             WindSat    1168    0.451      0.367      -0.29      -0.18      0.343      0.197  
-           TEM             7     1.01       1.02      0.512      0.705      0.318      0.197  
-             ARGO          7     1.01       1.02      0.512      0.705      0.318      0.197  
-             0-50m         2     1.47       2.46       1.47       2.46      0.321      0.183  
-             50-500m       5    0.832      0.439      0.129    0.00173      0.316      0.203  
+           SLA           652   0.0769     0.0306     0.0218   0.000273     0.0387     0.0232  
+             j1          272   0.0731     0.0267     0.0228   4.59e-05     0.0434     0.0257  
+             n1          380   0.0797     0.0334     0.0211   0.000436     0.0353     0.0214  
+           SST          9554    0.456      0.205     -0.148    -0.0423      0.352      0.212  
+             ESACCI     8386    0.457       0.18     -0.128    -0.0232      0.354      0.212  
+             WindSat    1168    0.451       0.38      -0.29     -0.179      0.343      0.205  
+           TEM             7     1.01      0.983      0.512      0.706      0.318      0.201  
+             ARGO          7     1.01      0.983      0.512      0.706      0.318      0.201  
+             0-50m         2     1.47       2.33       1.47       2.33      0.321      0.186  
+             50-500m       5    0.832      0.444      0.129     0.0554      0.316      0.207  
              500-9999m     0     -nan       -nan       -nan       -nan       -nan       -nan  
-           SAL             7   0.0768     0.0828     0.0546     0.0485     0.0293     0.0196  
-             ARGO          7   0.0768     0.0828     0.0546     0.0485     0.0293     0.0196  
-             0-50m         2   0.0881     0.0988     0.0739     0.0731     0.0225     0.0147  
-             50-500m       5   0.0723     0.0765     0.0469     0.0387      0.032     0.0216  
+           SAL             7   0.0768     0.0887     0.0546     0.0459     0.0293     0.0204  
+             ARGO          7   0.0768     0.0887     0.0546     0.0459     0.0293     0.0204  
+             0-50m         2   0.0881      0.115     0.0739      0.072     0.0225     0.0157  
+             50-500m       5   0.0723     0.0782     0.0469     0.0355      0.032     0.0223  
              500-9999m     0     -nan       -nan       -nan       -nan       -nan       -nan  
-  2020-12-23 08:27:23
+  2021-01-12 13:11:44
   finished

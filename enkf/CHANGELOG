@@ -1,3 +1,9 @@
+v2.3.0
+   PS 05012021
+   -- Added a new flag PERMIT_LOCATION_BASED_THINNING (default = yes) to
+      obstypes parameter file. This can be useful for synchronous assimilation
+      of gridded SST observations, when some of the observations can be on the
+      same grid.
 v2.2.3
    PS 05012021
    -- Cosmetic changes.

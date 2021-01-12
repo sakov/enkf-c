@@ -1164,7 +1164,7 @@ void obs_superob(observations* obs, __compar_d_fn_t cmp_obs, observations** sobs
          * thin observations with identical positions (these are supposedly
          * coming from high-frequency instruments)
          */
-        if (do_thin) {
+        if (do_thin && obs->obstypes[data[i1].type].can_thin) {
             int i11 = i1;
             int i22 = i1;
 

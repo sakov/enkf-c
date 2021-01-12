@@ -2,10 +2,10 @@
   Using MPI-3 shared memory:
     sm_comm size = 2
     node_comm size = 1
-  running CALC for EnKF-C version 2.2.2:
+  running CALC for EnKF-C version 2.3.0:
     command = "./enkf_calc --forecast-stats-only stats.prm"
     dir = "/home/pavel/src/enkf-c/trunk/enkf/examples/1"
-  2020-12-23 08:34:31
+  2021-01-12 13:22:45
   reading system specs from "stats.prm":
     MODE = EnOI
     MODEL PRM = "model.prm"
@@ -25,7 +25,7 @@
       USE_SHMEM        = [+]
       MINIMISE_ALLOC   = [+]
       OBS_SHUFFLE      = [-]
-      X5_VIAFILE       = [-]
+      TW_VIAFILE       = [-]
       INTERNAL_QSORT_R = [-]
       DEFLATE_ALL      = [-]
   initialising the system:
@@ -42,6 +42,7 @@
       LOCRAD  =
       LOCWEIGHT = 
       RFACTOR = 1
+      PERMIT_LOCATION_BASED_THINNING = YES
     NAME = SST
     ISSURFACE = 1
       VAR = temp
@@ -52,7 +53,8 @@
       ASYNCHRONOUS = no
       LOCRAD  =
       LOCWEIGHT = 
-      RFACTOR = 2
+      RFACTOR = 16
+      PERMIT_LOCATION_BASED_THINNING = NO
     NAME = TEM
     ISSURFACE = 0
       VAR = temp
@@ -64,6 +66,7 @@
       LOCRAD  = 800
       LOCWEIGHT =  1
       RFACTOR = 4
+      PERMIT_LOCATION_BASED_THINNING = YES
     NAME = SAL
     ISSURFACE = 0
       VAR = salt
@@ -75,6 +78,7 @@
       LOCRAD  = 800
       LOCWEIGHT =  1
       RFACTOR = 4
+      PERMIT_LOCATION_BASED_THINNING = YES
     grid prm info:
       NAME = "t-grid"
       DOMAIN = Default
@@ -133,7 +137,7 @@
         7 nodes
         496 bytes
   calculating ensemble observations:
-  2020-12-23 08:34:31
+  2021-01-12 13:22:45
     allocating 81760 bytes for HE array:
     distributing 1 iterations:
       1 processes get 1 iteration, 1 processes get 0 iterations
@@ -142,8 +146,8 @@
     TEM +
     SAL +
     subtracting ensemble mean:
-  adding forecast innovations and spread to "observations.nc":
-  2020-12-23 08:34:31
+  writing forecast innovations and spread to "observations.nc":
+  2021-01-12 13:22:45
   printing observation statistics:
     region obs.type   # obs.  |for.inn.| for.inn.
     ---------------------------------------------
@@ -151,8 +155,8 @@
            SLA           652   0.0769     0.0218  
              j1          272   0.0731     0.0228  
              n1          380   0.0797     0.0211  
-           SST          9554     0.49     -0.134  
-             ESACCI     8386    0.496     -0.113  
+           SST          9554    0.456     -0.148  
+             ESACCI     8386    0.457     -0.128  
              WindSat    1168    0.451      -0.29  
            TEM             7     1.01      0.512  
              ARGO          7     1.01      0.512  
@@ -164,5 +168,5 @@
              0-50m         2   0.0881     0.0739  
              50-500m       5   0.0723     0.0469  
              500-9999m     0     -nan       -nan  
-  2020-12-23 08:34:31
+  2021-01-12 13:22:45
   finished
