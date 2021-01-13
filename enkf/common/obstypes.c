@@ -167,7 +167,7 @@ static void obstype_print(obstype* type)
     }
     if (type->sob_stride != 1)
         enkf_printf("      SOB_STRIDE = %d\n", type->sob_stride);
-    enkf_printf("      PERMIT_LOCATION_BASED_THINNING = %s\n", (type->can_thin)? "YES" : "NO");
+    enkf_printf("      PERMIT_LOCATION_BASED_THINNING = %s\n", (type->can_thin) ? "YES" : "NO");
 }
 
 /**

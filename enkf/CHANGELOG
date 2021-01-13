@@ -1,3 +1,6 @@
+v2.3.1
+   PS 14012021
+   -- Cosmetics, mainly in kdtree.[ch].
 v2.3.0
    PS 05012021
    -- Added a new flag PERMIT_LOCATION_BASED_THINNING (default = yes) to

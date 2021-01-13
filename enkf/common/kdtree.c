@@ -5,12 +5,11 @@
  * Created:     23/03/2016
  *
  * Author:      Pavel Sakov
- *              Initially derived from the code by John Tsiombikas (see the
- *              tail of the file). The changes mainly concern allocating memory
- *              in big (increasing) blocks and facilities to pre-allocate
- *              memory externally to make way for use of shared memory.
  *
- * Description: KD-tree code
+ * Description: KD-tree code.  Initially derived from the code by John
+ *              Tsiombikas (see the tail of the file). The main changes concern
+ *              (1) using continuous block of memory and (2) making it possible
+ *              to pre-allocate memory externally to permit using shared memory.
  *
  * Revisions:   23/11/2018 PS:
  *              - Replaced individual allocations of "resnode" in the linked
@@ -22,6 +21,9 @@
  *              - The field "id_orig" became "data". In kd_insertnode() it is
  *                treated as generic data; in kd_insertnodes() it can be either
  *                generic data or (if NULL) the sequential number of the node.
+ *              27/3/2020 PS:
+ *              - Added  kd_getstoragesize(), kd_setstorage(), and
+ *                kd_syncsize().
  *
  *****************************************************************************/
 

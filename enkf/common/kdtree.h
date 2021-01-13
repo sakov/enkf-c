@@ -5,12 +5,11 @@
  * Created:     23/03/2016
  *
  * Author:      Pavel Sakov
- *              Initially derived from the code by John Tsiombikas (see the
- *              tail of the file). The changes mainly concern allocating memory
- *              in big (increasing) blocks and facilities to pre-allocate
- *              memory externally to make way for use of shared memory.
  *
- * Description: KD-tree code
+ * Description: KD-tree code.  Initially derived from the code by John
+ *              Tsiombikas (see the tail of the file). The main changes concern
+ *              (1) using continuous block of memory and (2) making it possible
+ *              to pre-allocate memory externally to permit using shared memory.
  *
  * Revisions:   
  *
@@ -26,27 +25,42 @@ typedef struct kdtree kdtree;
 struct kdset;
 typedef struct kdset kdset;
 
+/*
+ * basic procedures
+ */
 kdtree* kd_create(char* name, size_t ndim);
 void kd_destroy(kdtree* tree);
 void kd_insertnode(kdtree* tree, const double* coords, size_t data);
 void kd_insertnodes(kdtree* tree, size_t n, double** src, size_t* data, int* mask, int randomise);
+void kd_finalise(kdtree* tree);
+
+/*
+ * pre-allocating the memory
+ */
+size_t kd_getstoragesize(const kdtree* tree, size_t nnodes);
+void kd_setstorage(kdtree* tree, size_t n, void* storage, int ismaster);
+void kd_syncsize(kdtree* tree);
+
+/*
+ * tree information
+ */
 char* kd_getname(const kdtree* tree);
 size_t kd_getsize(kdtree* tree);
 size_t kd_getnalloc(kdtree* tree);
 size_t kd_getndim(kdtree* tree);
 double* kd_getminmax(const kdtree* tree);
-
 double* kd_getnodecoords(const kdtree* tree, size_t id);
 size_t kd_getnodedata(const kdtree* tree, size_t id);
 
+/*
+ * searches
+ */
 kdset* kd_findnodeswithinrange(const kdtree* tree, const double* coords, double range, int ordered);
 size_t kd_findnearestnode(const kdtree* tree, const double* coords);
 
-void kd_finalise(kdtree* tree);
-size_t kd_getstoragesize(const kdtree* tree, size_t nnodes);
-void kd_setstorage(kdtree* tree, size_t n, void* storage, int ismaster);
-void kd_syncsize(kdtree* tree);
-
+/*
+ * search results
+ */
 size_t kdset_readnext(kdset* set, double* dist);
 size_t kdset_getsize(const kdset* set);
 void kdset_free(kdset* set);
