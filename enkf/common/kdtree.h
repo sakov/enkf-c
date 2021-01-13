@@ -35,7 +35,7 @@ void kd_insertnodes(kdtree* tree, size_t n, double** src, size_t* data, int* mas
 void kd_finalise(kdtree* tree);
 
 /*
- * pre-allocating the memory
+ * memory pre-allocation
  */
 size_t kd_getstoragesize(const kdtree* tree, size_t nnodes);
 void kd_setstorage(kdtree* tree, size_t n, void* storage, int ismaster);
