@@ -118,7 +118,7 @@ void das_destroy(dasystem* das);
 
 void das_getHE(dasystem* das);
 void das_writeHE(dasystem* das);
-void das_addanalysis(dasystem* das, char fname[]);
+void das_writeanalysisobs(dasystem* das, char fname[]);
 void das_writeforecastobs(dasystem* das, char fname[]);
 void das_writemoderatedobs(dasystem* das, char fname[]);
 void das_writevcorrs(dasystem* das);

@@ -10,9 +10,9 @@
  * Description: This file contains code for calculating forecast and analysis
  *              ensemble observations HE. The forecast ensemble observations are
  *              calculated using observation functions H from model2obs.c.
- *              They are then used for calculating ensemble transforms X5.
+ *              They are then used for calculating ensemble transforms.
  *              The analysis ensemble observations are calculated by applying
- *              the ensemble transforms X5 to the forecast HE. Both forecast and
+ *              the ensemble transforms to the forecast HE. Both forecast and
  *              analysis ensemble observations are used for calculating
  *              observation statistics in obsstats.c.
  *
@@ -631,7 +631,7 @@ void das_calcinnandspread(dasystem* das)
         das->s_mode = S_MODE_HA_a;
 }
 
-/** Adds forecast observations and forecast ensemble spread to the observation
+/** Write forecast observations and forecast ensemble spread to the observation
  ** file.
  */
 void das_writeforecastobs(dasystem* das, char fname[])
@@ -1749,9 +1749,10 @@ void das_updateHE(dasystem* das)
     das_sortobs_byid(das);
 }
 
-/** Add analysed observation estimates and ensemble spread to FNAME_SOBS.
+/** Write analysed observation estimates and ensemble spread to the observation
+ ** file.
  */
-void das_addanalysis(dasystem* das, char fname[])
+void das_writeanalysisobs(dasystem* das, char fname[])
 {
     int ncid;
     int dimid_nobs[1];

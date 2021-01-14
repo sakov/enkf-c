@@ -68,10 +68,10 @@ common/model.h
 
 SRC_PREP =\
 common/hash.c\
+common/kdtree.c\
 common/gxy_curv.c\
 prep/prep_utils.c\
 prep/obsprm.c\
-common/kdtree.c\
 common/obstypes.c\
 common/observations.c\
 prep/allreaders.c\

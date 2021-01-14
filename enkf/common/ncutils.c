@@ -7,7 +7,10 @@
  * Author:      Pavel Sakov
  *              Bureau of Meteorology
  *
- * Description: Moved NetCDF procedures from utils.c and prep_utils.c to here
+ * Description: Intermediate level NetCDF r/w procedures. Among other things
+ *              these procedures are supposed to handle the following
+ *              attributes: _FillValue, missing_value, valid_range, valid_min,
+ *              valid_max, add_offset, and scale_factor.
  *
  * Revisions:
  *

@@ -438,7 +438,7 @@ int main(int argc, char* argv[])
 
             if (singleob == NULL) {
                 enkf_printf("  adding analysis innovations and spread to \"%s\":\n", fname_obs);
-                das_addanalysis(das, fname_obs);
+                das_writeanalysisobs(das, fname_obs);
             }
 
             enkf_printf("  printing observation statistics:\n");
