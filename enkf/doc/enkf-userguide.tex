@@ -189,11 +189,11 @@ The forecast and analysis model state estimates $\mb x^f$ and $\mb x^a$ are comm
 Matrix $\mb K$ is called Kalman gain.
 
 The recursive character of the KF makes it possible to consider solving the minimisation problem (\ref{L-nonl}) as a sequence of forecasts and analyses, as shown in Fig.~\ref{fig:dacycle}.
-Together a forecast and the following analysis (or an analysis and the following forecast) are referred to as assimilation cycle.
+Together an assimilation and the following propagation (or a propagation and the following assimilation) are referred to as assimilation cycle.
 \begin{figure}
   \centering
   \includegraphics[width = 0.7\textwidth]{plots/dacycle.pdf}
-  \caption{Data assimilation cycle of Kalman filter.}
+  \caption{Data assimilation cycle of the Kalman filter.}
   \label{fig:dacycle}
 \end{figure}
 
