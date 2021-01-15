@@ -39,7 +39,7 @@
 
 \begin{document}
 
-\title{EnKF-C user guide\\{\normalsize version 2.3.0}}
+\title{EnKF-C user guide\\{\normalsize version 2.3.2}}
 
 \author{Pavel Sakov}
 \date{June 19, 2014 -- \today}
@@ -187,6 +187,15 @@ Equations (\ref{kf-for}) describe advancing the system in time and represent the
 The superscripts $f$ and $a$ are used hereafter to refer to the forecast and analysis variables, correspondingly.
 The forecast and analysis model state estimates $\mb x^f$ and $\mb x^a$ are commonly called (simply) forecast and analysis.
 Matrix $\mb K$ is called Kalman gain.
+
+The recursive character of the KF makes it possible to consider solving the minimisation problem (\ref{L-nonl}) as a sequence of forecasts and analyses, as shown in Fig.~\ref{fig:dacycle}.
+Together a forecast and the following analysis (or an analysis and the following forecast) are referred to as assimilation cycle.
+\begin{figure}
+  \centering
+  \includegraphics[width = 0.7\textwidth]{plots/dacycle.pdf}
+  \caption{Data assimilation cycle of Kalman filter.}
+  \label{fig:dacycle}
+\end{figure}
 
 There are a few things to be noted about the KF:
 \vspace{-3mm}
@@ -641,12 +650,12 @@ where the forecast state $\mb x^f$ is assumed to be equal to the mean of the dyn
 \mb x^f \equiv \frac{1}{m\subtxt{dyn}} \mb E\suptxt{dyn}.
 \end{align}
 
-Finally, note that in abscence of observations $\mb X_5 = \mb I$, $(\mb E\suptxt{dyn})^a = \mb E^f(:, 1 : m\subtxt{dyn})$, and according to (\ref{hybrid_combined})
+Finally, note that in absence of observations $\mb X_5 = \mb I$, $(\mb E\suptxt{dyn})^a = \mb E^f(:, 1 : m\subtxt{dyn})$, and according to (\ref{hybrid_combined})
 \begin{align*}
   (\mb A\suptxt{dyn})^a = \left(\frac{m - 1}{m\subtxt{dyn} - 1}\right)^{1/2}\mb A\suptxt{dyn},
 \end{align*}
 while for correct cycling of the system one needs $(\mb A\suptxt{dyn})^a = \mb A\suptxt{dyn}$.
-Therefore, it is neccessary to scale $(\mb A\suptxt{dyn})^a$ as follows:
+Therefore, it is necessary to scale $(\mb A\suptxt{dyn})^a$ as follows:
 \begin{align}
   (\mb E\suptxt{dyn})^a = (\mb x^f + \mb A^f \mb w) \mb 1\T + \left(\frac{m\subtxt{dyn} - 1}{m - 1}\right)^{1/2} \mb A^f \mb T(1 : m, 1 : m\subtxt{dyn}).
 \end{align}
@@ -1205,7 +1214,7 @@ Following is the description of the reader \verb|scattered| from \verb|reader_sc
  *                  internal variability of the collated data
  *              - ESTDNAME ("error_std") (-)
  *                  error STD; if absent then needs to be specified externally
- *                  in the oobservation data parameter file
+ *                  in the observation data parameter file
  *              - VARSHIFT (-)
  *                  data offset to be added
  *              - FOOTRPINT (-)
@@ -1257,7 +1266,7 @@ Command line parameter \verb|--consider-subgrid-variability| switches on conside
 The calculation of $\sigma\!_{sub}$ is currently done in a rather crude way, assuming equal weights for all merged observations.
 
 Note that during superobing EnKF-C by default thins observations with identical positions, assuming that those must been obtained from high-frequency instruments (e.g. moorings).
-This thinning can be switched off by the command line parameter \verb|--no-thinning|, or for observatins of a particular data type only by adding flag \verb|PERMIT_LOCATION_BASED_THINNING = no| to the corresponding section in the observation types parameter file.
+This thinning can be switched off by the command line parameter \verb|--no-thinning|, or for observations of a particular data type only by adding flag \verb|PERMIT_LOCATION_BASED_THINNING = no| to the corresponding section in the observation types parameter file.
 
 \subsection{Asynchronous DA / FGAT}
 \label{sec:async}
@@ -1507,7 +1516,7 @@ and for the EnOI -- by applying the appropriate local linear combination of the 
   \mathcal H (\mb E^a) \leftarrow \left[ \mathcal H (\mb x^f) + (\mb H \mb A^f) \mb w\right] \mb 1\T + \mb H \mb A^f.
 \end{align*}
 
-CALC can be used for calculating forecast observation statictics only (via command line option \verb|--forecast-stats-only|), without calculating transforms (EnKF) of update coefficients (EnOI).
+CALC can be used for calculating forecast observation statistics only (via command line option \verb|--forecast-stats-only|), without calculating transforms (EnKF) of update coefficients (EnOI).
 In the EnKF mode this regime involves calculating the statistics for the ensemble observation spread (and therefore parsing of the forecast ensemble), while in the EnOI mode it only calculates the statistics for the forecast innovation (and therefore does not need to access the ensemble).
 
 \subsection{Impact of observations}
@@ -1945,7 +1954,7 @@ The following table lists the most memory-wise important objects.
 
 The memory footprint of PREP is defined by the size of the \verb|observation| structure array and, in some cases, by curvilinear grids.
 The memory usage by curvilinear grids is much reduced by parsing them into K-D trees (default from v1.101.4; the only option since v1.106.0) rather than into binary trees.
-Because PREP is not parallelised (mainly due to lack of robust parallel analog of \verb|qsort| procedure), in practice its memory footprint is rarely a problem.
+Because PREP is not parallelised (mainly due to lack of robust parallel analogue of \verb|qsort| procedure), in practice its memory footprint is rarely a problem.
 
 The footprint of CALC is mainly defined by the size of ensemble observations $\mathcal H(\mb E)$.
 From version 1.74, it has been substantially reduced for multi-core CPUs by storing only one instance of ensemble observations per compute node.
