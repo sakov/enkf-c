@@ -26,3 +26,10 @@ cleanthis:
 	egrep -c $(RERUNBIB) $*.log && (bibtex $*;pdflatex $<); true
 	egrep $(RERUN) $*.log && (pdflatex $<) ; true
 	egrep $(RERUN) $*.log && (pdflatex $<) ; true
+
+dacycle.pdf: dacycle.tex dacycle.fig
+	fig2dev -L pstex_t dacycle.fig > dacycle.pstex_t
+	latex dacycle.tex
+	dvips -E dacycle.dvi
+	ps2pdf dacycle.ps
+	rm -f dacycle.pstex_t dacycle.aux dacycle.dvi dacycle.log dacycle.ps
