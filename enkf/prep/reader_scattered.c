@@ -22,6 +22,8 @@
  *              - ESTDNAME ("error_std") (-)
  *                  error STD; if absent then needs to be specified externally
  *                  in the oobservation data parameter file
+ *              - BATCHNAME ("batch") (-)
+ *                  name of the variable used for batch ID
  *              - VARSHIFT (-)
  *                  data offset to be added
  *              - FOOTRPINT (-)
@@ -33,6 +35,18 @@
  *              - INSTRUMENT (-)
  *                  instrument string that will be used for calculating
  *                  instrument stats
+ *              - ADDVAR (-)
+ *                  name of the variable to be added to the main variable
+ *                  (can be repeated)
+ *              - SUBVAR (-)
+ *                  name of the variable to be subtracted from the main variable
+ *                  (can be repeated)
+ *              - QCFLAGNAME (-)
+ *                  name of the QC flag variable, 0 <= qcflag <= 31
+ *              - QCFLAGVALS (-)
+ *                  the list of allowed values of QC flag variable
+ *              - THIN (-)
+ *                  data thinning ratio
  *              Note: it is possible to have multiple entries of QCFLAGNAME and
  *                QCFLAGVALS combination, e.g.:
  *                  PARAMETER QCFLAGNAME = TEMP_quality_control
@@ -73,6 +87,16 @@
 #include "prep_utils.h"
 #include "allreaders.h"
 
+#define NADDVAR_INC 1
+#define ADDVAR_ACTION_ADD 0
+#define ADDVAR_ACTION_SUB 1
+
+typedef struct {
+    char* varname;
+    int action;
+    double* v;
+} addvar;
+
 /**
  */
 void reader_scattered(char* fname, int fid, obsmeta* meta, grid* g, observations* obs)
@@ -84,10 +108,14 @@ void reader_scattered(char* fname, int fid, obsmeta* meta, grid* g, observations
     double zvalue = NAN;
     char* stdname = NULL;
     char* estdname = NULL;
+    char* batchname = NULL;
     char instrument[MAXSTRLEN] = "";
     int nqcflagvars = 0;
     char** qcflagvarnames = NULL;
     uint32_t* qcflagmasks = NULL;
+
+    int naddvar = 0;
+    addvar* addvars = NULL;
 
     int instid = -1;
     int productid = -1;
@@ -102,6 +130,7 @@ void reader_scattered(char* fname, int fid, obsmeta* meta, grid* g, observations
     double var_estd = NAN;
     double* std = NULL;
     double* estd = NULL;
+    int* batch = NULL;
     uint32_t** qcflag = NULL;
     size_t ntime = 0;
     double* time = NULL;
@@ -128,6 +157,8 @@ void reader_scattered(char* fname, int fid, obsmeta* meta, grid* g, observations
             stdname = meta->pars[i].value;
         else if (strcasecmp(meta->pars[i].name, "ESTDNAME") == 0)
             estdname = meta->pars[i].value;
+        else if (strcasecmp(meta->pars[i].name, "BATCHNAME") == 0)
+            batchname = meta->pars[i].value;
         else if (strcasecmp(meta->pars[i].name, "INSTRUMENT") == 0)
             strncpy(instrument, meta->pars[i].value, MAXSTRLEN - 1);
         else if (strcasecmp(meta->pars[i].name, "TIMENAME") == 0 || strcasecmp(meta->pars[i].name, "TIMENAMES") == 0)
@@ -140,7 +171,25 @@ void reader_scattered(char* fname, int fid, obsmeta* meta, grid* g, observations
              * QCFLAGNAME and QCFLAGVALS are dealt with separately
              */
             ;
-        else
+        else if (strcasecmp(meta->pars[i].name, "ADDVAR") == 0) {
+            if (naddvar % NADDVAR_INC == 0) {
+                addvars = realloc(addvars, (naddvar + NADDVAR_INC) * sizeof(addvar));
+                addvars[naddvar].varname = strdup(meta->pars[i].value);
+                addvars[naddvar].action = ADDVAR_ACTION_ADD;
+                addvars[naddvar].v = NULL;
+                enkf_printf("      ADDVAR = %s\n", addvars[naddvar].varname);
+                naddvar++;
+            }
+        } else if (strcasecmp(meta->pars[i].name, "SUBVAR") == 0) {
+            if (naddvar % NADDVAR_INC == 0) {
+                addvars = realloc(addvars, (naddvar + NADDVAR_INC) * sizeof(addvar));
+                addvars[naddvar].varname = strdup(meta->pars[i].value);
+                addvars[naddvar].action = ADDVAR_ACTION_SUB;
+                addvars[naddvar].v = NULL;
+                enkf_printf("      SUBVAR = %s\n", addvars[naddvar].varname);
+                naddvar++;
+            }
+        } else
             enkf_quit("reader_scattered(): unknown PARAMETER \"%s\"\n", meta->pars[i].name);
     }
 
@@ -158,6 +207,23 @@ void reader_scattered(char* fname, int fid, obsmeta* meta, grid* g, observations
     ncw_inq_vardims(ncid, varid, 1, NULL, &nobs);
     var = malloc(nobs * sizeof(double));
     ncu_readvardouble(ncid, varid, nobs, var);
+
+    /*
+     * add variables
+     */
+    for (i = 0; i < naddvar; ++i) {
+        addvar* a = &addvars[i];
+
+        ncw_inq_varid(ncid, a->varname, &varid);
+        a->v = malloc(nobs * sizeof(double));
+        ncu_readvardouble(ncid, varid, nobs, a->v);
+        if (a->action == ADDVAR_ACTION_SUB) {
+            int ii;
+
+            for (ii = 0; ii < nobs; ++ii)
+                a->v[ii] = -a->v[ii];
+        }
+    }
 
     /*
      * longitude
@@ -228,6 +294,20 @@ void reader_scattered(char* fname, int fid, obsmeta* meta, grid* g, observations
         ncu_readvardouble(ncid, varid, nobs, estd);
     }
 
+    /*
+     * batch
+     */
+    varid = -1;
+    if (batchname != NULL)
+        ncw_inq_varid(ncid, batchname, &varid);
+    else if (ncw_var_exists(ncid, "batch"))
+        ncw_inq_varid(ncid, "batch", &varid);
+    if (varid >= 0) {
+        ncw_check_varsize(ncid, varid, nobs);
+        batch = malloc(nobs * sizeof(int));
+        ncw_get_var_int(ncid, varid, batch);
+    }
+
     if (std == NULL && estd == NULL) {
         ncw_inq_varid(ncid, varname, &varid);
         if (ncw_att_exists(ncid, varid, "error_std")) {
@@ -291,8 +371,10 @@ void reader_scattered(char* fname, int fid, obsmeta* meta, grid* g, observations
         o->instrument = instid;
         o->id = obs->nobs;
         o->fid = fid;
-        o->batch = 0;
+        o->batch = (batch == NULL) ? 0 : batch[i];
         o->value = (double) var[i];
+        for (ii = 0; ii < naddvar; ++ii)
+            o->value += addvars[ii].v[i];
         if (estd == NULL)
             o->estd = var_estd;
         else {
@@ -333,11 +415,20 @@ void reader_scattered(char* fname, int fid, obsmeta* meta, grid* g, observations
         free(std);
     if (estd != NULL)
         free(estd);
+    if (batch != NULL)
+        free(batch);
     if (time != NULL)
         free(time);
     if (nqcflagvars > 0) {
         free(qcflagvarnames);
         free(qcflagmasks);
         free(qcflag);
+    }
+    if (naddvar > 0) {
+        for (i = 0; i < naddvar; ++i) {
+            free(addvars[i].varname);
+            free(addvars[i].v);
+        }
+        free(addvars);
     }
 }

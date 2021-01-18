@@ -36,6 +36,8 @@
  *              - ESTDNAME ("error_std") (-)
  *                  error STD; if absent then needs to be specified externally
  *                  in the oobservation data parameter file
+ *              - BATCHNAME ("batch") (-)
+ *                  name of the variable used for batch ID
  *              - VARSHIFT (-)
  *                  data offset to be added
  *              - MINDEPTH (-)
@@ -98,6 +100,7 @@ void reader_xyh_gridded(char* fname, int fid, obsmeta* meta, grid* gdst, observa
     char* npointsname = NULL;
     char* stdname = NULL;
     char* estdname = NULL;
+    char* batchname = NULL;
     char instrument[MAXSTRLEN] = "";
 
     int nqcflagvars = 0;
@@ -113,12 +116,13 @@ void reader_xyh_gridded(char* fname, int fid, obsmeta* meta, grid* gdst, observa
 
     int ncid;
     int ndim;
-    int varid_var = -1, varid_npoints = -1, varid_std = -1, varid_estd = -1;
+    int varid_var = -1, varid_npoints = -1, varid_std = -1, varid_estd = -1, varid_batch = -1;
     float* var = NULL;
     double var_estd = NAN;
     short* npoints = NULL;
     float* std = NULL;
     float* estd = NULL;
+    int* batch = NULL;
     uint32_t** qcflag = NULL;
     size_t ntime = 0;
     double* time = NULL;
@@ -135,6 +139,8 @@ void reader_xyh_gridded(char* fname, int fid, obsmeta* meta, grid* gdst, observa
             stdname = meta->pars[i].value;
         else if (strcasecmp(meta->pars[i].name, "ESTDNAME") == 0)
             estdname = meta->pars[i].value;
+        else if (strcasecmp(meta->pars[i].name, "BATCHNAME") == 0)
+            batchname = meta->pars[i].value;
         else if (strcasecmp(meta->pars[i].name, "INSTRUMENT") == 0)
             strncpy(instrument, meta->pars[i].value, MAXSTRLEN - 1);
         else if (strcasecmp(meta->pars[i].name, "TIMENAME") == 0 || strcasecmp(meta->pars[i].name, "TIMENAMES") == 0)
@@ -237,6 +243,19 @@ void reader_xyh_gridded(char* fname, int fid, obsmeta* meta, grid* gdst, observa
     }
 
     /*
+     * batch
+     */
+    if (batchname != NULL)
+        ncw_inq_varid(ncid, batchname, &varid_batch);
+    else if (ncw_var_exists(ncid, "batch"))
+        ncw_inq_varid(ncid, "batch", &varid_batch);
+    if (varid_batch >= 0) {
+        ncw_check_varsize(ncid, varid_batch, nijk);
+        batch = malloc(nijk * sizeof(int));
+        ncw_get_var_int(ncid, varid_batch, batch);
+    }
+
+    /*
      * qcflag
      */
     get_qcflags(meta, &nqcflagvars, &qcflagvarnames, &qcflagmasks);
@@ -291,7 +310,7 @@ void reader_xyh_gridded(char* fname, int fid, obsmeta* meta, grid* gdst, observa
                 o->instrument = instid;
                 o->id = obs->nobs;
                 o->fid = fid;
-                o->batch = 0;
+                o->batch = (batch == NULL) ? 0 : batch[ii];
                 o->value = (double) var[ii];
                 if (estd == NULL)
                     o->estd = var_estd;
@@ -332,6 +351,8 @@ void reader_xyh_gridded(char* fname, int fid, obsmeta* meta, grid* gdst, observa
         free(std);
     if (estd != NULL)
         free(estd);
+    if (batch != NULL)
+        free(batch);
     if (npoints != NULL)
         free(npoints);
     if (time != NULL)

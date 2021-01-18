@@ -27,6 +27,8 @@
  *              - ESTDNAME ("error_std") (-)
  *                  error STD; if absent then needs to be specified externally
  *                  in the observation data parameter file
+ *              - BATCHNAME ("batch") (-)
+ *                  name of the variable used for batch ID
  *              - VARSHIFT (-)
  *                  data offset to be added
  *              - FOOTRPINT (-)
@@ -42,6 +44,8 @@
  *                  name of the QC flag variable, 0 <= qcflag <= 31
  *              - QCFLAGVALS (-)
  *                  the list of allowed values of QC flag variable
+ *              - THIN (-)
+ *                  data thinning ratio
  *              Note: it is possible to have multiple entries of QCFLAGNAME and
  *                QCFLAGVALS combination, e.g.:
  *                  PARAMETER QCFLAGNAME = TEMP_quality_control
@@ -91,6 +95,7 @@ void reader_xy_gridded(char* fname, int fid, obsmeta* meta, grid* g, observation
     char* npointsname = NULL;
     char* stdname = NULL;
     char* estdname = NULL;
+    char* batchname = NULL;
     char instrument[MAXSTRLEN] = "";
     int ndim_var, ndim_xy;
     size_t dimlen_var[3], dimlen_xy[2];
@@ -108,12 +113,13 @@ void reader_xy_gridded(char* fname, int fid, obsmeta* meta, grid* g, observation
     int varid_lon = -1, varid_lat = -1;
     double* lon = NULL;
     double* lat = NULL;
-    int varid_var = -1, varid_npoints = -1, varid_std = -1, varid_estd = -1;
+    int varid_var = -1, varid_npoints = -1, varid_std = -1, varid_estd = -1, varid_batch = -1;
     float* var = NULL;
     double var_estd = NAN;
     short* npoints = NULL;
     float* std = NULL;
     float* estd = NULL;
+    int* batch = NULL;
     uint32_t** qcflag = NULL;
     size_t ntime = 0;
     double* time = NULL;
@@ -132,6 +138,8 @@ void reader_xy_gridded(char* fname, int fid, obsmeta* meta, grid* g, observation
             stdname = meta->pars[i].value;
         else if (strcasecmp(meta->pars[i].name, "ESTDNAME") == 0)
             estdname = meta->pars[i].value;
+        else if (strcasecmp(meta->pars[i].name, "BATCHNAME") == 0)
+            batchname = meta->pars[i].value;
         else if (strcasecmp(meta->pars[i].name, "INSTRUMENT") == 0)
             strncpy(instrument, meta->pars[i].value, MAXSTRLEN - 1);
         else if (strcasecmp(meta->pars[i].name, "TIMENAME") == 0 || strcasecmp(meta->pars[i].name, "TIMENAMES") == 0)
@@ -283,6 +291,19 @@ void reader_xy_gridded(char* fname, int fid, obsmeta* meta, grid* g, observation
     }
 
     /*
+     * batch
+     */
+    if (batchname != NULL)
+        ncw_inq_varid(ncid, batchname, &varid_batch);
+    else if (ncw_var_exists(ncid, "batch"))
+        ncw_inq_varid(ncid, "batch", &varid_batch);
+    if (varid_batch >= 0) {
+        ncw_check_varsize(ncid, varid_batch, nij);
+        batch = malloc(nij * sizeof(int));
+        ncw_get_var_int(ncid, varid_batch, batch);
+    }
+
+    /*
      * qcflags
      */
     get_qcflags(meta, &nqcflagvars, &qcflagvarnames, &qcflagmasks);
@@ -292,6 +313,7 @@ void reader_xy_gridded(char* fname, int fid, obsmeta* meta, grid* g, observation
         qcflag = alloc2d(nqcflagvars, nij, sizeof(int32_t));
         for (i = 0; i < nqcflagvars; ++i) {
             ncw_inq_varid(ncid, qcflagvarnames[i], &varid);
+            ncw_check_varsize(ncid, varid, nij);
             ncw_get_var_uint(ncid, varid, qcflag[i]);
         }
     }
@@ -334,7 +356,7 @@ void reader_xy_gridded(char* fname, int fid, obsmeta* meta, grid* g, observation
         o->instrument = instid;
         o->id = obs->nobs;
         o->fid = fid;
-        o->batch = 0;
+        o->batch = (batch == NULL) ? 0 : batch[i];
         o->value = (double) var[i];
         if (estd == NULL)
             o->estd = var_estd;
@@ -377,6 +399,8 @@ void reader_xy_gridded(char* fname, int fid, obsmeta* meta, grid* g, observation
         free(std);
     if (estd != NULL)
         free(estd);
+    if (batch != NULL)
+        free(batch);
     if (npoints != NULL)
         free(npoints);
     if (time != NULL)

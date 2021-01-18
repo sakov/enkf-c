@@ -39,7 +39,7 @@
 
 \begin{document}
 
-\title{EnKF-C user guide\\{\normalsize version 2.3.2}}
+\title{EnKF-C user guide\\{\normalsize version 2.4.0}}
 
 \author{Pavel Sakov}
 \date{June 19, 2014 -- \today}
@@ -1062,7 +1062,7 @@ To resolve it, one (or both) fields should use an alias instead of the model var
 \section{PREP}
 
 PREP is the first stage of data assimilation in EnKF-C.
-Its preprocesses observations by bringing them to a common form and merging close observations into so called superobservations.
+It preprocesses observations by bringing them to a common form and merging close observations into so called superobservations.
 
 By design, PREP is supposed to be light-weight, so that it does not read either the ensemble or background, and the only model information it needs is the model grid. 
 (Note that this may require some additional processing at later stages for models with dynamic grid, such as HYCOM.)
@@ -1082,6 +1082,7 @@ It has the following usage and options:
   --log-all-obs
       write all obs to observations-orig.nc (default: obs within model domain only)
   --no-superobing
+  --superob-across-batches
   --superob-across-instruments
   --no-thinning
   --write-orig-obs
@@ -1090,8 +1091,8 @@ It has the following usage and options:
 \end{Verbatim}
 
 \verb|enkf_prep| writes the preprocessed observations to file \verb|observatons.nc|.
-It also writes original (not superobed) observations to \verb|observatons-orig.nc| (provided that superobing has not been switched off by flag \verb|--no-superobing|).
-By default, only observations within the model grid are written to it, but the the option \verb|--log-all-obs| changes this behaviour to writing all observations from the input files.
+When run with command line argument \verb|--write-orig-obs|, it also writes the original (not superobed) observations to \verb|observatons-orig.nc|.
+By default, the original observations only involve observations within the corresponding model grids, but can include all observations by the command line argument \verb|--log-all-obs|.
 
 \subsection{Observation types, products, instruments, batches, readers}
 
@@ -1107,12 +1108,13 @@ Observation types are described in the corresponding parameter file (sec.~\ref{s
 \subsubsection{Products}
 
 An observation is also characterised by ``product''.
-It can be a tag for an organisation that provides data from certain observational platforms, e.g.:
+It can be a tag for the data set, e.g.:
 \begin{Verbatim}[frame=single,fontsize=\footnotesize]
 PRODUCT = RADS
 TYPE = SLA
 READER = scattered
 PARAMETER VARNAME = sla
+PARAMETER BATCHNAME = pass
 PARAMETER ZVALUE = 0
 PARAMETER MINDEPTH = 100
 FILE = obs/RADS/2007/??_200712{19,20,21,22,23}.nc
@@ -1128,13 +1130,13 @@ FILE = obs/ESACCI/2007/200712{19,20,21,22,23}-*.nc
 
 \subsubsection{Instruments}
 
-The observational data from a product can be collected by a number of instruments.
+The observational data in a product can be collected by a number of instruments.
 The corresponding field in the \verb|measurement| structure is supposed to be filled by the observation reader.
 
 \subsubsection{Batches}
 
 An observation can be attributed to one of the groups called ``batches'', such as altimeter passes, Argo profiles etc., to enable detection and discarding of bad batches.
-Programmatically, to switch on capabilities associated with observation batches for a particular kind of observations, the observation batch ID needs to be set by the corresponding observation reader.
+Programmatically, to switch on quality control (QC) capabilities associated with observation batches, the observation batch ID needs to be set by the corresponding observation reader.
 
 A batch of observations is considered bad if either its mean innovation or mean absolute innovation exceed specified thresholds.
 Specifications for bad batches can be set in the parameter file as follows:
@@ -1198,7 +1200,7 @@ The generic parameters include:
 \item{\verb|THIN|} -- data thinning ratio.
 \end{description}
 
-The custom parameters are described in the headers of the source code for the readers.
+The custom parameters are described (along with the generic parameters) in the headers of the source code for the readers.
 Following is the description of the reader \verb|scattered| from \verb|reader_scattered.c|:
 \begin{Verbatim}
  *                There are a number of parameters that must (++) or can be
@@ -1215,6 +1217,8 @@ Following is the description of the reader \verb|scattered| from \verb|reader_sc
  *              - ESTDNAME ("error_std") (-)
  *                  error STD; if absent then needs to be specified externally
  *                  in the observation data parameter file
+ *              - BATCHNAME ("batch") (-)
+ *                  name of the variable used for batch ID
  *              - VARSHIFT (-)
  *                  data offset to be added
  *              - FOOTRPINT (-)
@@ -1232,6 +1236,12 @@ Following is the description of the reader \verb|scattered| from \verb|reader_sc
  *              - SUBVAR (-)
  *                  name of the variable to be subtracted from the main variable
  *                  (can be repeated)
+ *              - QCFLAGNAME (-)
+ *                  name of the QC flag variable, 0 <= qcflag <= 31
+ *              - QCFLAGVALS (-)
+ *                  the list of allowed values of QC flag variable
+ *              - THIN (-)
+ *                  data thinning ratio
  *              Note: it is possible to have multiple entries of QCFLAGNAME and
  *                QCFLAGVALS combination, e.g.:
  *                  PARAMETER QCFLAGNAME = TEMP_quality_control
@@ -1432,7 +1442,7 @@ The value of the stride is defined by the \verb|STRIDE| entry in the main parame
 
 \subsection{Adaptive moderation of observations}
 
-One of the standard quality control (QC) procedures in DA is the so called background check, when an observation is compared with the forecast and discarded if the innovation magnitude exceeds some specified threshold.
+One of the standard QC procedures in DA is the so called background check, when an observation is compared with the forecast and discarded if the innovation magnitude exceeds some specified threshold.
 The downside of this approach is that it can not distinguish between situations of an outlier, big model error (e.g. because of an error in forcing), or model divergence.
 While one probably would like to discard an outlier, it is usually desirable to make use of valid observations, although, perhaps, with a reduced impact, to avoid ``over-stressing'' the model.
 In EnKF-C this is achieved by adaptive moderation of the observation impact by restricting the magnitude of the increment from a given observation in observation space by $K$ times magnitude of the spread of the forecast ensemble \citep{sak17a}.
@@ -2072,6 +2082,7 @@ Paul Sandery was the first user of this code (apart from the author), and his en
   KF &-& Kalman filter \\
   KS &-& Kalman smoother \\
   LA &-& local analysis \\
+  QC &-& quality control \\
   SDAS &-& state of data assimilation system \\
   SRF &-& spread reduction factor \\
   SVD &-& singular value decomposition \\

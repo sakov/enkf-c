@@ -43,9 +43,14 @@ int describe_superob_id = -1;
 int do_superob = 1;
 
 /*
- * superobing across instruments can be switched off
+ * superobing across instruments can be switched on
  */
 int do_superob_acrossinst = 0;
+
+/*
+ * superobing across batches can be switched on
+ */
+int do_superob_acrossbatches = 0;
 
 /*
  * writing of the original obs can be swithched off
@@ -76,6 +81,7 @@ static void usage()
     enkf_printf("      write all obs to %s (default: obs within model domain only)\n", FNAME_OBS);
     enkf_printf("  --no-superobing\n");
     enkf_printf("  --no-thinning\n");
+    enkf_printf("  --superob-across-batches\n");
     enkf_printf("  --superob-across-instruments\n");
     enkf_printf("  --write-orig-obs\n");
     enkf_printf("  --version\n");
@@ -151,6 +157,10 @@ static void parse_commandline(int argc, char* argv[], char** fname)
             do_superob_acrossinst = 1;
             i++;
             continue;
+        } else if (strcmp(argv[i], "--superob-across-batches") == 0) {
+            do_superob_acrossbatches = 1;
+            i++;
+            continue;
         } else if (strcmp(argv[i], "--write-orig-obs") == 0) {
             write_orig_obs = 1;
             i++;
@@ -187,6 +197,13 @@ static int cmp_obs(const void* p1, const void* p2, void* p)
         if (o1->instrument > o2->instrument)
             return 1;
         if (o1->instrument < o2->instrument)
+            return -1;
+    }
+
+    if (!do_superob_acrossbatches) {
+        if (o1->batch > o2->batch)
+            return 1;
+        if (o1->batch < o2->batch)
             return -1;
     }
 
