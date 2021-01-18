@@ -2,10 +2,10 @@
   Using MPI-3 shared memory:
     sm_comm size = 2
     node_comm size = 1
-  running CALC for EnKF-C version 2.3.0:
+  running CALC for EnKF-C version 2.4.0:
     command = "./enkf_calc --forecast-stats-only stats.prm"
     dir = "/home/pavel/src/enkf-c/trunk/enkf/examples/1"
-  2021-01-12 13:22:45
+  2021-01-18 21:47:05
   reading system specs from "stats.prm":
     MODE = EnOI
     MODEL PRM = "model.prm"
@@ -121,12 +121,12 @@
   setting the ensemble size:
     1 member
   reading observations from "observations.nc":
-    10220 observations
-    allocating 1226400 bytes for array of observations
+    10228 observations
+    allocating 1227360 bytes for array of observations
     creating kd-trees for observations:
       kdtree "SLA":
-        652 nodes
-        41776 bytes
+        660 nodes
+        42288 bytes
       kdtree "SST":
         9554 nodes
         611504 bytes
@@ -137,8 +137,8 @@
         7 nodes
         496 bytes
   calculating ensemble observations:
-  2021-01-12 13:22:45
-    allocating 81760 bytes for HE array:
+  2021-01-18 21:47:06
+    allocating 81824 bytes for HE array:
     distributing 1 iterations:
       1 processes get 1 iteration, 1 processes get 0 iterations
     SLA +
@@ -147,14 +147,14 @@
     SAL +
     subtracting ensemble mean:
   writing forecast innovations and spread to "observations.nc":
-  2021-01-12 13:22:45
+  2021-01-18 21:47:06
   printing observation statistics:
     region obs.type   # obs.  |for.inn.| for.inn.
     ---------------------------------------------
     Global
-           SLA           652   0.0769     0.0218  
-             j1          272   0.0731     0.0228  
-             n1          380   0.0797     0.0211  
+           SLA           660   0.0766     0.0216  
+             j1          274    0.073     0.0226  
+             n1          386   0.0791     0.0208  
            SST          9554    0.456     -0.148  
              ESACCI     8386    0.457     -0.128  
              WindSat    1168    0.451      -0.29  
@@ -168,5 +168,5 @@
              0-50m         2   0.0881     0.0739  
              50-500m       5   0.0723     0.0469  
              500-9999m     0     -nan       -nan  
-  2021-01-12 13:22:45
+  2021-01-18 21:47:06
   finished

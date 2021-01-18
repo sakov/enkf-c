@@ -2,10 +2,10 @@
   Using MPI-3 shared memory:
     sm_comm size = 2
     node_comm size = 1
-  running CALC for EnKF-C version 2.3.0:
+  running CALC for EnKF-C version 2.4.0:
     command = "./enkf_calc --single-observation-ijk 35 55 0 SST 0.5 0.5 singleob.prm"
     dir = "/home/pavel/src/enkf-c/trunk/enkf/examples/1"
-  2021-01-12 13:22:22
+  2021-01-18 21:46:03
   reading system specs from "singleob.prm":
     MODE = EnOI
     MODEL PRM = "model.prm"
@@ -197,7 +197,7 @@
         1 nodes
         112 bytes
   calculating ensemble observations:
-  2021-01-12 13:22:22
+  2021-01-18 21:46:03
     allocating 388 bytes for HE array:
     allocating 384 bytes for HE^T array:
     distributing 96 iterations:
@@ -208,7 +208,7 @@
     SAL 
     subtracting ensemble mean:
   calculating transforms:
-  2021-01-12 13:22:22
+  2021-01-18 21:46:03
     calculating transforms for t-grid:
       distributing 34 iterations:
         2 processes get 17 iterations each
@@ -217,36 +217,36 @@
         j = 0 (0: 0: 5.9%)
         j = 3 (1: 17: 5.9%)
         j = 9 (1: 18: 11.8%)
-        j = 15 (1: 19: 17.6%)
         j = 6 (0: 1: 11.8%)
+        j = 15 (1: 19: 17.6%)
         j = 12 (0: 2: 17.6%)
         j = 21 (1: 20: 23.5%)
         j = 18 (0: 3: 23.5%)
         j = 27 (1: 21: 29.4%)
-        j = 33 (1: 22: 35.3%)
         j = 24 (0: 4: 29.4%)
-        j = 39 (1: 23: 41.2%)
-        j = 45 (1: 24: 47.1%)
+        j = 33 (1: 22: 35.3%)
         j = 30 (0: 5: 35.3%)
-        j = 51 (1: 25: 52.9%)
-        j = 57 (1: 26: 58.8%)
+        j = 39 (1: 23: 41.2%)
         j = 36 (0: 6: 41.2%)
-        j = 63 (1: 27: 64.7%)
+        j = 45 (1: 24: 47.1%)
         j = 42 (0: 7: 47.1%)
-        j = 69 (1: 28: 70.6%)
-        j = 75 (1: 29: 76.5%)
+        j = 51 (1: 25: 52.9%)
         j = 48 (0: 8: 52.9%)
-        j = 81 (1: 30: 82.4%)
-        j = 87 (1: 31: 88.2%)
+        j = 57 (1: 26: 58.8%)
         j = 54 (0: 9: 58.8%)
-        j = 93 (1: 32: 94.1%)
-        j = 99 (1: 33: 100.0%)
+        j = 63 (1: 27: 64.7%)
         j = 60 (0: 10: 64.7%)
+        j = 69 (1: 28: 70.6%)
         j = 66 (0: 11: 70.6%)
+        j = 75 (1: 29: 76.5%)
         j = 72 (0: 12: 76.5%)
+        j = 81 (1: 30: 82.4%)
         j = 78 (0: 13: 82.4%)
+        j = 87 (1: 31: 88.2%)
         j = 84 (0: 14: 88.2%)
+        j = 93 (1: 32: 94.1%)
         j = 90 (0: 15: 94.1%)
+        j = 99 (1: 33: 100.0%)
         j = 96 (0: 16: 100.0%)
     finished calculating transforms for t-grid
     writing stats to "enkf_diag.nc":
@@ -259,13 +259,13 @@
     calculating transforms for log point (156.000,-32.000): 1 obs
     writing log for point (156.000,-32.000) on grid "t-grid":
   calculating analysed observations:
-  2021-01-12 13:22:22
+  2021-01-18 21:46:03
     sorting obs by ij:
-    2021-01-12 13:22:22
+    2021-01-18 21:46:03
     updating Hx:
     distributing 1 iterations:
       1 processes get 1 iteration, 1 processes get 0 iterations
-    2021-01-12 13:22:22
+    2021-01-18 21:46:03
   printing observation statistics:
     region obs.type   # obs.  |for.inn.| |an.inn.|   for.inn.   an.inn.  for.spread  an.spread
     ------------------------------------------------------------------------------------------
@@ -275,5 +275,5 @@
              Virtual       1      0.5      0.496        0.5      0.496      0.186      0.186  
            TEM             0     -nan       -nan       -nan       -nan       -nan       -nan  
            SAL             0     -nan       -nan       -nan       -nan       -nan       -nan  
-  2021-01-12 13:22:22
+  2021-01-18 21:46:03
   finished

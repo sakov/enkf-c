@@ -1,7 +1,7 @@
-  running PREP for EnKF-C version 2.3.0:
+  running PREP for EnKF-C version 2.4.0:
     command = "./enkf_prep stats.prm"
     dir = "/home/pavel/src/enkf-c/trunk/enkf/examples/1"
-  2021-01-12 13:22:44
+  2021-01-18 21:47:05
   reading prep specs from "stats.prm":
     MODE = EnOI
     MODEL PRM = "model.prm"
@@ -34,6 +34,7 @@
       TYPE = SLA
         File: obs/RADS/2007/??_200712{19,20,21,22,23}.nc
       PARAMETER VARNAME = sla
+      PARAMETER BATCHNAME = pass
       PARAMETER ZVALUE = 0
       PARAMETER MINDEPTH = 100
     PRODUCT = ESACCI
@@ -591,26 +592,26 @@
       setting error_std to 0.1
       min day = -4.000
       max day = -2.000
-  2021-01-12 13:22:45
+  2021-01-18 21:47:05
   compacting obs:
-  2021-01-12 13:22:45
+  2021-01-18 21:47:05
   superobing:
-    10220 superobservations
-  2021-01-12 13:22:45
+    10228 superobservations
+  2021-01-18 21:47:05
   writing superobservations to "observations.nc":
   reading super-observations from disk:
-    10220 observations
-    allocating 1226400 bytes for array of observations
-  2021-01-12 13:22:45
+    10228 observations
+    allocating 1227360 bytes for array of observations
+  2021-01-18 21:47:05
   checking for superobs on land:
     all good
   printing observation summary:
     type    #used    #dropped #out_grd #out_obs #out_wnd #land    #shallow #badbatch#badvalue#thinned #superobs
     -----------------------------------------------------------------------------------------------------------
-    SLA     969      1        0        0        0        0        1        0        0        0        652     
+    SLA     969      1        0        0        0        0        1        0        0        0        660     
     SST     156669   0        0        0        0        0        0        0        0        0        9554    
     TEM     184      104      104      0        0        0        0        0        0        0        7       
     SAL     184      104      104      0        0        0        0        0        0        0        7       
-    total   158006   209      208      0        0        0        1        0        0        0        10220   
-  2021-01-12 13:22:45
+    total   158006   209      208      0        0        0        1        0        0        0        10228   
+  2021-01-18 21:47:05
   finished

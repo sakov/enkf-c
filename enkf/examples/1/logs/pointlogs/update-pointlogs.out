@@ -1,8 +1,8 @@
   MPI: initialised 2 process(es)
-  running UPDATE for EnKF-C version 2.3.0:
+  running UPDATE for EnKF-C version 2.4.0:
     command = "./enkf_update --no-fields-write pointlogs.prm"
     dir = "/home/pavel/src/enkf-c/trunk/enkf/examples/1"
-  2021-01-12 13:12:01
+  2021-01-18 21:43:55
   reading system specs from "pointlogs.prm":
     MODE = EnKF
     SCHEME = DEnKF
@@ -89,7 +89,7 @@
   updating the ensemble:
     defining state variables in point logs:
     processing fields for t-grid:
-      2021-01-12 13:12:01
+      2021-01-18 21:43:56
       9 fields
       distributing 9 iterations:
         2 processes get 5 or 4 iterations
@@ -97,18 +97,18 @@
       u        0   (1: 5: 25.0%)
       temp     0   (0: 1: 40.0%)
       u        1   (1: 6: 50.0%)
-      temp     1   (0: 2: 60.0%)
       v        0   (1: 7: 75.0%)
-      salt     0   (0: 3: 80.0%)
+      temp     1   (0: 2: 60.0%)
       v        1   (1: 8: 100.0%)
+      salt     0   (0: 3: 80.0%)
       salt     1   (0: 4: 100.0%)
       (skip writing the fields)
-  2021-01-12 13:12:02
+  2021-01-18 21:43:56
   assembling state variables in point logs:
     distributing 3 iterations:
       2 processes get 2 or 1 iterations
     deleting tiles:
       distributing 9 iterations:
         2 processes get 5 or 4 iterations
-  2021-01-12 13:12:02
+  2021-01-18 21:43:56
   finished

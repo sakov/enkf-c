@@ -2,10 +2,10 @@
   Using MPI-3 shared memory:
     sm_comm size = 2
     node_comm size = 1
-  running CALC for EnKF-C version 2.3.0:
+  running CALC for EnKF-C version 2.4.0:
     command = "./enkf_calc enkf.prm"
     dir = "/home/pavel/src/enkf-c/trunk/enkf/examples/5"
-  2021-01-12 13:26:41
+  2021-01-18 21:55:12
   reading system specs from "enkf.prm":
     MODE = EnKF
     SCHEME = DEnKF
@@ -166,7 +166,7 @@
         7 nodes
         496 bytes
   calculating ensemble observations:
-  2021-01-12 13:26:41
+  2021-01-18 21:55:12
     allocating 3924480 bytes for HE array:
     allocating 3924480 bytes for HE^T array:
     distributing 96 iterations:
@@ -177,7 +177,7 @@
     TEM ................................................
     SAL ................................................
   writing forecast innovations and spread to "observations.nc":
-  2021-01-12 13:26:41
+  2021-01-18 21:55:12
   moderating observations:
     observations substantially modified:
       SLA          0 (0.0%)
@@ -188,7 +188,7 @@
       total        0 (0.0%)
   writing modified obs errors to "observations.nc":
   calculating transforms:
-  2021-01-12 13:26:41
+  2021-01-18 21:55:12
     calculating transforms for t-grid:
       distributing 34 iterations:
         2 processes get 17 iterations each
@@ -220,8 +220,8 @@
         j = 66 (0: 11: 70.6%)
         j = 75 (1: 29: 76.5%)
         j = 72 (0: 12: 76.5%)
-        j = 81 (1: 30: 82.4%)
         j = 78 (0: 13: 82.4%)
+        j = 81 (1: 30: 82.4%)
         j = 87 (1: 31: 88.2%)
         j = 84 (0: 14: 88.2%)
         j = 93 (1: 32: 94.1%)
@@ -239,13 +239,13 @@
     calculating transforms for log point (156.000,-32.000): 1444 obs
     writing log for point (156.000,-32.000) on grid "t-grid":
   calculating analysed observations:
-  2021-01-12 13:26:58
+  2021-01-18 21:55:34
     sorting obs by ij:
-    2021-01-12 13:26:58
+    2021-01-18 21:55:34
     updating HE:
     distributing 10220 iterations:
       2 processes get 5110 iterations each
-    2021-01-12 13:26:58
+    2021-01-18 21:55:35
   adding analysis innovations and spread to "observations.nc":
   printing observation statistics:
     region obs.type   # obs.  |for.inn.| |an.inn.|   for.inn.   an.inn.  for.spread  an.spread
@@ -268,5 +268,5 @@
              0-50m         2   0.0881     0.0988     0.0739     0.0731     0.0225     0.0147  
              50-500m       5   0.0723     0.0765     0.0469     0.0387      0.032     0.0216  
              500-9999m     0     -nan       -nan       -nan       -nan       -nan       -nan  
-  2021-01-12 13:26:58
+  2021-01-18 21:55:35
   finished

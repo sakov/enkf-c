@@ -2,10 +2,10 @@
   Using MPI-3 shared memory:
     sm_comm size = 2
     node_comm size = 1
-  running CALC for EnKF-C version 2.3.0:
+  running CALC for EnKF-C version 2.4.0:
     command = "./enkf_calc enoi.prm"
     dir = "/home/pavel/src/enkf-c/trunk/enkf/examples/1"
-  2021-01-12 13:12:19
+  2021-01-18 21:44:30
   reading system specs from "enoi.prm":
     MODE = EnOI
     MODEL PRM = "model.prm"
@@ -135,12 +135,12 @@
     pointlog (156.000, -32.000):
       t-grid: (i, j) = (49.500, 49.500)
   reading observations from "observations.nc":
-    10220 observations
-    allocating 1226400 bytes for array of observations
+    10228 observations
+    allocating 1227360 bytes for array of observations
     creating kd-trees for observations:
       kdtree "SLA":
-        652 nodes
-        41776 bytes
+        660 nodes
+        42288 bytes
       kdtree "SST":
         9554 nodes
         611504 bytes
@@ -151,9 +151,9 @@
         7 nodes
         496 bytes
   calculating ensemble observations:
-  2021-01-12 13:12:19
-    allocating 5927600 bytes for HE array:
-    allocating 5886720 bytes for HE^T array:
+  2021-01-18 21:44:30
+    allocating 5932240 bytes for HE array:
+    allocating 5891328 bytes for HE^T array:
     distributing 144 iterations:
       2 processes get 72 iterations each
     SLA +........................................................................
@@ -162,7 +162,7 @@
     SAL +........................................................................
     subtracting ensemble mean:
   writing forecast innovations and spread to "observations.nc":
-  2021-01-12 13:12:22
+  2021-01-18 21:44:30
   moderating observations:
     observations substantially modified:
       SLA          0 (0.0%)
@@ -172,7 +172,7 @@
       total        0 (0.0%)
   writing modified obs errors to "observations.nc":
   calculating transforms:
-  2021-01-12 13:12:22
+  2021-01-18 21:44:30
     calculating transforms for t-grid:
       distributing 34 iterations:
         2 processes get 17 iterations each
@@ -186,8 +186,8 @@
         j = 12 (0: 2: 17.6%)
         j = 21 (1: 20: 23.5%)
         j = 18 (0: 3: 23.5%)
-        j = 24 (0: 4: 29.4%)
         j = 27 (1: 21: 29.4%)
+        j = 24 (0: 4: 29.4%)
         j = 33 (1: 22: 35.3%)
         j = 30 (0: 5: 35.3%)
         j = 39 (1: 23: 41.2%)
@@ -196,16 +196,16 @@
         j = 42 (0: 7: 47.1%)
         j = 51 (1: 25: 52.9%)
         j = 48 (0: 8: 52.9%)
-        j = 57 (1: 26: 58.8%)
         j = 54 (0: 9: 58.8%)
+        j = 57 (1: 26: 58.8%)
         j = 63 (1: 27: 64.7%)
         j = 60 (0: 10: 64.7%)
         j = 69 (1: 28: 70.6%)
         j = 66 (0: 11: 70.6%)
         j = 75 (1: 29: 76.5%)
         j = 72 (0: 12: 76.5%)
-        j = 81 (1: 30: 82.4%)
         j = 78 (0: 13: 82.4%)
+        j = 81 (1: 30: 82.4%)
         j = 87 (1: 31: 88.2%)
         j = 84 (0: 14: 88.2%)
         j = 93 (1: 32: 94.1%)
@@ -216,28 +216,28 @@
     writing stats to "enkf_diag.nc":
     summary stats on t-grid:
       # of local analyses = 1156
-      average # of local obs = 1049.4
+      average # of local obs = 1050.2
       # of inversions in obs space = 57
       # of inversions in ens space = 1099
   writing point logs:
     calculating transforms for log point (156.000,-32.000): 1444 obs
     writing log for point (156.000,-32.000) on grid "t-grid":
   calculating analysed observations:
-  2021-01-12 13:12:48
+  2021-01-18 21:44:59
     sorting obs by ij:
-    2021-01-12 13:12:48
+    2021-01-18 21:44:59
     updating Hx:
-    distributing 10220 iterations:
-      2 processes get 5110 iterations each
-    2021-01-12 13:12:48
+    distributing 10228 iterations:
+      2 processes get 5114 iterations each
+    2021-01-18 21:44:59
   adding analysis innovations and spread to "observations.nc":
   printing observation statistics:
     region obs.type   # obs.  |for.inn.| |an.inn.|   for.inn.   an.inn.  for.spread  an.spread
     ------------------------------------------------------------------------------------------
     Global
-           SLA           652   0.0769     0.0253     0.0218   8.48e-05     0.0271     0.0271  
-             j1          272   0.0731     0.0219     0.0228   0.000927     0.0297     0.0297  
-             n1          380   0.0797     0.0277     0.0211  -0.000518     0.0253     0.0253  
+           SLA           660   0.0766     0.0255     0.0216  -1.98e-05     0.0271     0.0271  
+             j1          274    0.073     0.0222     0.0226    0.00075     0.0296     0.0296  
+             n1          386   0.0791     0.0278     0.0208  -0.000567     0.0253     0.0253  
            SST          9554    0.456      0.186     -0.148    -0.0319      0.415      0.415  
              ESACCI     8386    0.457      0.158     -0.128    -0.0127      0.416      0.416  
              WindSat    1168    0.451       0.38      -0.29      -0.17      0.413      0.413  
@@ -251,5 +251,5 @@
              0-50m         2   0.0881      0.104     0.0739      0.078     0.0193     0.0193  
              50-500m       5   0.0723     0.0751     0.0469     0.0457     0.0246     0.0246  
              500-9999m     0     -nan       -nan       -nan       -nan       -nan       -nan  
-  2021-01-12 13:12:48
+  2021-01-18 21:44:59
   finished
