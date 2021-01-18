@@ -4,8 +4,8 @@ v2.4.0
       reader_scattered(), reader_xy_gridded(), reader_xyz_gridded(),
       reader_xyh_gridded().
    -- In examples added "BATCHNAME = pass" to SLA section on obs.prm. It does
-      make difference to outputs, just writes pass based values for variable
-      "batch" in obsewrvations.nc.
+      make difference to DA outputs, just writes pass based values for variable
+      "batch" to observations.nc.
    -- Modified enkf_prep.c:main() and enkf_prep.c:cmp_obs() to prevent
       superobing across batches by default. Added a new command line option to
       "--superob-across-batches" to PREP to revert this if needed.
