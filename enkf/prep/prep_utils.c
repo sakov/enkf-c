@@ -80,7 +80,7 @@ static void readobs(obsmeta* meta, model* m, obsread_fn reader, observations* ob
  *  This procedure contains generic/common operations done after reading the
  *  data.
  */
-void obs_add(observations* obs, model* m, obsmeta* meta, int nexclude, obsregion * exclude)
+void obs_add(observations* obs, model* m, obsmeta* meta, int nexclude, obsregion* exclude)
 {
     int nobs0 = obs->nobs;
     int otid = obstype_getid(obs->nobstypes, obs->obstypes, meta->type, 1);
@@ -285,6 +285,8 @@ void obs_add(observations* obs, model* m, obsmeta* meta, int nexclude, obsregion
                 for (i = nobs0; i < obs->nobs; ++i) {
                     observation* o = &obs->data[i];
 
+                    if (o->status != STATUS_OK)
+                        continue;
                     if (o->lon >= r->x1 && o->lon <= r->x2 && o->lat >= r->y1 && o->lat <= r->y2) {
                         o->status = STATUS_EXCLUDED;
                         nexcluded++;

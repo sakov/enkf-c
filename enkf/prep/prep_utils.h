@@ -15,7 +15,7 @@
 
 #if !defined(_PREP_UTILS_H)
 
-void obs_add(observations* obs, model* m, obsmeta* meta, int nexclude, obsregion * exclude);
+void obs_add(observations* obs, model* m, obsmeta* meta, int nexclude, obsregion* exclude);
 int obs_checkforland(observations* obs, model* m);
 void get_obsfiles(obsmeta* meta, int* nfiles, char*** fnames);
 void print_obsstats(observations* obs, observations* sobs);

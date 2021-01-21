@@ -43,7 +43,7 @@ static void obsmeta_addfname(obsmeta* meta, char fname[])
 
 /**
  */
-void obsprm_read(char fname[], int* nmeta, obsmeta** meta, int* nexclude, obsregion ** exclude)
+void obsprm_read(char fname[], int* nmeta, obsmeta** meta, int* nexclude, obsregion** exclude)
 {
     FILE* f = NULL;
     char buf[MAXSTRLEN];
