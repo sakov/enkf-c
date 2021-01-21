@@ -101,6 +101,7 @@ typedef struct {
     int nbadbatch;
     int nrange;
     int nthinned;
+    int nexcluded;
     int nmodified;
 
     hashtable* badbatches;

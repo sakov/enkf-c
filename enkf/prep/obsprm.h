@@ -56,8 +56,8 @@ typedef struct {
     metapar* pars;
 } obsmeta;
 
-void obsprm_read(char fname[], int* nmeta, obsmeta** meta);
-void obsprm_destroy(int n, obsmeta meta[]);
+void obsprm_read(char fname[], int* nmeta, obsmeta** meta, int* nexclude, obsregion ** exclude);
+void obsprm_destroy(int nmeta, obsmeta meta[], int nexclude, obsregion * exclude);
 void obsprm_describeprm(void);
 
 #define _OBSPRM_H

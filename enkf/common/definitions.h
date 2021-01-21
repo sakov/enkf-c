@@ -56,6 +56,7 @@
 #define STATUS_OUTSIDEOBSDOMAIN 6
 #define STATUS_OUTSIDEOBSWINDOW 7
 #define STATUS_THINNED 8
+#define STATUS_EXCLUDED 9
 
 #define MODE_NONE 0
 #define MODE_ENKF 1
@@ -186,6 +187,12 @@ typedef struct {
     double maxmad;
     int minnobs;
 } badbatchspec;
+
+typedef struct {
+    char* otname;
+    int otid;
+    double x1, x2, y1, y2;
+} obsregion;
 
 struct pointlog;
 typedef struct pointlog pointlog;

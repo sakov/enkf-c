@@ -80,7 +80,7 @@ static void readobs(obsmeta* meta, model* m, obsread_fn reader, observations* ob
  *  This procedure contains generic/common operations done after reading the
  *  data.
  */
-void obs_add(observations* obs, model* m, obsmeta* meta)
+void obs_add(observations* obs, model* m, obsmeta* meta, int nexclude, obsregion * exclude)
 {
     int nobs0 = obs->nobs;
     int otid = obstype_getid(obs->nobstypes, obs->obstypes, meta->type, 1);
@@ -196,7 +196,8 @@ void obs_add(observations* obs, model* m, obsmeta* meta)
         int nland = 0;
         int nshallow = 0;
         int nthin = 0;
-        int ni, nj, ksurf;
+        int nexcluded = 0;
+        int ni, nj, ksurf, n;
 
         enkf_printf("      id = %d - %d\n", nobs0, obs->nobs - 1);
         grid_getsize(g, &ni, &nj, NULL);
@@ -277,6 +278,21 @@ void obs_add(observations* obs, model* m, obsmeta* meta)
                 o->footprint = 0.0;
         }
 
+        for (n = 0; n < nexclude; ++n) {
+            obsregion* r = &exclude[n];
+
+            if (r->otid == -1 || r->otid == otid) {
+                for (i = nobs0; i < obs->nobs; ++i) {
+                    observation* o = &obs->data[i];
+
+                    if (o->lon >= r->x1 && o->lon <= r->x2 && o->lat >= r->y1 && o->lat <= r->y2) {
+                        o->status = STATUS_EXCLUDED;
+                        nexcluded++;
+                    }
+                }
+            }
+        }
+
         if (applylog) {
             for (i = nobs0; i < obs->nobs; ++i) {
                 observation* o = &obs->data[i];
@@ -305,6 +321,10 @@ void obs_add(observations* obs, model* m, obsmeta* meta)
             enkf_printf("        %d observations on land\n", nland);
         if (nshallow > 0)
             enkf_printf("        %d observations in shallow areas\n", nshallow);
+        if (nthin > 0)
+            enkf_printf("        %d observations thinned\n", nthin);
+        if (nexcluded > 0)
+            enkf_printf("        %d observations in excluded regions\n", nexcluded);
     }
 
     obs->compacted = 0;
@@ -524,14 +544,14 @@ void print_obsstats(observations* obs, observations* sobs)
 {
     int i;
 
-    enkf_printf("    type    #used    #dropped #out_grd #out_obs #out_wnd #land    #shallow #badbatch#badvalue#thinned #superobs\n");
+    enkf_printf("    type    #used    #dropped #out_grd #out_obs #out_wnd #land    #shallow #badbatch#badvalue#thinned #excluded#superobs\n");
     enkf_printf("    -----------------------------------------------------------------------------------------------------------\n");
     for (i = 0; i < obs->nobstypes; ++i) {
         obstype* ot = &obs->obstypes[i];
 
-        enkf_printf("    %-7s %-8d %-8d %-8d %-8d %-8d %-8d %-8d %-8d %-8d %-8d %-8d\n", ot->name, ot->ngood, ot->nobs - ot->ngood, ot->noutside_grid, ot->noutside_obsdomain, ot->noutside_obswindow, ot->nland, ot->nshallow, ot->nbadbatch, ot->nrange, ot->nthinned, sobs->obstypes[i].nobs);
+        enkf_printf("    %-7s %-8d %-8d %-8d %-8d %-8d %-8d %-8d %-8d %-8d %-8d %-8d %-8d\n", ot->name, ot->ngood, ot->nobs - ot->ngood, ot->noutside_grid, ot->noutside_obsdomain, ot->noutside_obswindow, ot->nland, ot->nshallow, ot->nbadbatch, ot->nrange, ot->nthinned, ot->nexcluded, sobs->obstypes[i].nobs);
     }
-    enkf_printf("    total   %-8d %-8d %-8d %-8d %-8d %-8d %-8d %-8d %-8d %-8d %-8d\n", obs->ngood, obs->nobs - obs->ngood, obs->noutside_grid, obs->noutside_obsdomain, obs->noutside_obswindow, obs->nland, obs->nshallow, obs->nbadbatch, obs->nrange, obs->nthinned, sobs->nobs);
+    enkf_printf("    total   %-8d %-8d %-8d %-8d %-8d %-8d %-8d %-8d %-8d %-8d %-8d %-8d\n", obs->ngood, obs->nobs - obs->ngood, obs->noutside_grid, obs->noutside_obsdomain, obs->noutside_obswindow, obs->nland, obs->nshallow, obs->nbadbatch, obs->nrange, obs->nthinned, obs->nexcluded, sobs->nobs);
 }
 
 #define NLONNAMES 3

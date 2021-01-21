@@ -75,6 +75,7 @@ typedef struct {
     int nrange;
     int nsubgrid;
     int nthinned;
+    int nexcluded;
     int nmodified;
 
     /*

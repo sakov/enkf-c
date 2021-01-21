@@ -22,8 +22,7 @@
 #include "utils.h"
 #include "obsprm.h"
 
-#define OBSMETA_NFILES_INC 10
-#define NOBSTYPES_INC 10
+#define NINC 10
 
 /**
  */
@@ -36,15 +35,15 @@ static void obsmeta_init(obsmeta* meta)
  */
 static void obsmeta_addfname(obsmeta* meta, char fname[])
 {
-    if (meta->nfiles % OBSMETA_NFILES_INC == 0)
-        meta->fnames = realloc(meta->fnames, (meta->nfiles + OBSMETA_NFILES_INC) * sizeof(char*));
+    if (meta->nfiles % NINC == 0)
+        meta->fnames = realloc(meta->fnames, (meta->nfiles + NINC) * sizeof(char*));
     meta->fnames[meta->nfiles] = strdup(fname);
     meta->nfiles++;
 }
 
 /**
  */
-void obsprm_read(char fname[], int* nmeta, obsmeta** meta)
+void obsprm_read(char fname[], int* nmeta, obsmeta** meta, int* nexclude, obsregion ** exclude)
 {
     FILE* f = NULL;
     char buf[MAXSTRLEN];
@@ -54,6 +53,9 @@ void obsprm_read(char fname[], int* nmeta, obsmeta** meta)
 
     *nmeta = 0;
     *meta = NULL;
+
+    *nexclude = 0;
+    *exclude = NULL;
 
     f = enkf_fopen(fname, "r");
 
@@ -77,6 +79,35 @@ void obsprm_read(char fname[], int* nmeta, obsmeta** meta)
             m->prmfname = strdup(fname);
             m->product = strdup(token);
             (*nmeta)++;
+            continue;
+        }
+
+        if (strcasecmp(token, "EXCLUDE") == 0) {
+            obsregion* r = NULL;
+
+            if (*nexclude % NINC == 0)
+                *exclude = realloc(*exclude, (*nexclude + NINC) * sizeof(obsregion));
+            r = &(*exclude)[*nexclude];
+            if ((token = strtok(NULL, seps)) == NULL)
+                enkf_quit("%s, l.%d: EXCLUDE observation type not specified", fname, line);
+            r->otname = strdup(token);
+            if ((token = strtok(NULL, seps)) == NULL)
+                enkf_quit("%s, l.%d: minimal longitude not specified", fname, line);
+            if (!str2double(token, &r->x1))
+                enkf_quit("%s, l.%d: could not convert \"%s\" to double", fname, line, token);
+            if ((token = strtok(NULL, seps)) == NULL)
+                enkf_quit("%s, l.%d: maximal longitude not specified", fname, line);
+            if (!str2double(token, &r->x2))
+                enkf_quit("%s, l.%d: could not convert \"%s\" to double", fname, line, token);
+            if ((token = strtok(NULL, seps)) == NULL)
+                enkf_quit("%s, l.%d: minimal latitude not specified", fname, line);
+            if (!str2double(token, &r->y1))
+                enkf_quit("%s, l.%d: could not convert \"%s\" to double", fname, line, token);
+            if ((token = strtok(NULL, seps)) == NULL)
+                enkf_quit("%s, l.%d: maximal latitude not specified", fname, line);
+            if (!str2double(token, &r->y2))
+                enkf_quit("%s, l.%d: could not convert \"%s\" to double", fname, line, token);
+            (*nexclude)++;
             continue;
         }
 
@@ -174,7 +205,7 @@ void obsprm_read(char fname[], int* nmeta, obsmeta** meta)
     /*
      * print summary 
      */
-    for (i = 0; i < (*nmeta); ++i) {
+    for (i = 0; i < *nmeta; ++i) {
         obsmeta* m = &(*meta)[i];
 
         enkf_printf("    PRODUCT = %s\n", m->product);
@@ -211,15 +242,21 @@ void obsprm_read(char fname[], int* nmeta, obsmeta** meta)
         for (j = 0; j < m->npars; ++j)
             enkf_printf("      PARAMETER %s = %s\n", m->pars[j].name, m->pars[j].value);
     }
+
+    for (i = 0; i < *nexclude; ++i) {
+        obsregion* r = &(*exclude)[i];
+
+        enkf_printf("    EXCLUDE: TYPE = %s, %.3f <= lon <= %.3f, %.3f <= lat <= %.3f\n", r->otname, r->x1, r->x2, r->y1, r->y2);
+    }
 }
 
 /**
  */
-void obsprm_destroy(int n, obsmeta meta[])
+void obsprm_destroy(int nmeta, obsmeta meta[], int nexclude, obsregion exclude[])
 {
     int i, j;
 
-    for (i = 0; i < n; ++i) {
+    for (i = 0; i < nmeta; ++i) {
         obsmeta* m = &meta[i];
 
         free(m->prmfname);
@@ -250,7 +287,13 @@ void obsprm_destroy(int n, obsmeta meta[])
             free(m->pars);
         }
     }
-    free(meta);
+    if (meta != NULL)
+        free(meta);
+
+    for (i = 0; i < nexclude; ++i)
+        free(exclude[i].otname);
+    if (exclude != NULL)
+        free(exclude);
 }
 
 /**
@@ -271,6 +314,9 @@ void obsprm_describeprm(void)
     enkf_printf("    ...\n");
     enkf_printf("\n");
     enkf_printf("  [ <more of the above blocks> ]\n");
+    enkf_printf("\n");
+    enkf_printf("  [ EXCLUDE   = { <observation type> | ALL } <lon1> <lon2> <lat1> <lat2> ]\n");
+    enkf_printf("    ...\n");
     enkf_printf("\n");
     enkf_printf("  Notes:\n");
     enkf_printf("    1. { ... | ... | ... } denotes the list of possible choices\n");

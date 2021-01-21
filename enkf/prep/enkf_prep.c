@@ -270,6 +270,8 @@ int main(int argc, char* argv[])
     model* m;
     int nmeta = 0;
     obsmeta* meta = NULL;
+    int nexclude = 0;
+    obsregion* exclude = NULL;
     observations* obs = NULL;
     observations* sobs = NULL;
     int i;
@@ -287,7 +289,7 @@ int main(int argc, char* argv[])
     enkfprm_print(prm, "    ");
 
     enkf_printf("  reading observation specs from \"%s\":\n", prm->obsprm);
-    obsprm_read(prm->obsprm, &nmeta, &meta);
+    obsprm_read(prm->obsprm, &nmeta, &meta, &nexclude, &exclude);
 
     enkf_printf("  creating model and observations:\n");
     m = model_create(prm);
@@ -296,11 +298,18 @@ int main(int argc, char* argv[])
     obs->allobs = log_all_obs;
     obs->model = m;
 
+    for (i = 0; i < nexclude; ++i) {
+        if (strcasecmp(exclude[i].otname, "ALL") == 0)
+            exclude[i].otid = -1;
+        else
+            exclude[i].otid = obstype_getid(obs->nobstypes, obs->obstypes, exclude[i].otname, 1);
+    }
+
     enkf_printf("  reading observations:\n");
     for (i = 0; i < nmeta; i++)
-        obs_add(obs, m, &meta[i]);
+        obs_add(obs, m, &meta[i], nexclude, exclude);
     obs_markbadbatches(obs);
-    obsprm_destroy(nmeta, meta);
+    obsprm_destroy(nmeta, meta, nexclude, exclude);
     enkf_printtime("  ");
     enkf_printf("  compacting obs:");
     obs_compact(obs);

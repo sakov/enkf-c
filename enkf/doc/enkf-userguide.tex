@@ -39,7 +39,7 @@
 
 \begin{document}
 
-\title{EnKF-C user guide\\{\normalsize version 2.4.0}}
+\title{EnKF-C user guide\\{\normalsize version 2.5.0}}
 
 \author{Pavel Sakov}
 \date{June 19, 2014 -- \today}
@@ -1005,6 +1005,9 @@ Each section specifies the observation type, input files, reader and, possibly, 
     ...
 
   [ <more of the above blocks> ]
+
+  [ EXCLUDE   = { <observation type> | ALL } <lon1> <lon2> <lat1> <lat2> ]
+    ...
 \end{Verbatim}
 Observation files can be defined using wildcards ``*'' and ``?''.
 Missing a file is reported in the log and is not considered to be a fatal error.
@@ -1021,12 +1024,15 @@ The observation time only matters if the observation type is specified to be ``a
 In this case the model estimation for the observation is made by using model state at the appropriate time.
 Otherwise, observations are assumed to be made at the time of assimilation, regardless of the actual observation time.
 
+It is possible to specify regions with no observations (if, for example, the updated model becomes unstable at some location).
+This is done with entries \verb|EXCLUDE|.
+
 Note that there can be multiple blocks with the same product.
 This enables custom treatment of some specific data.
 For example, the following entries override observation error for Geosat (files with prefix \verb|g1_|) on 23 May 2006:
 \begin{Verbatim}[frame=single,fontsize=\footnotesize]
 # set observation error for Geosat to 7cm
-PRODUCT == RADS
+PRODUCT = RADS
 TYPE = SLA
 READER = scattered
 PARAMETER VARNAME = sla
@@ -1036,7 +1042,7 @@ FILE = /short/p93/pxs599/obs/RADS/2006/g?_20060523.nc
 ERROR_STD = 0.07
 
 # use default errors for other altimeters
-PRODUCT == RADS
+PRODUCT = RADS
 TYPE = SLA
 READER = scattered
 PARAMETER VARNAME = sla

@@ -120,6 +120,7 @@ void obs_addtype(observations* obs, obstype* src)
     ot->nbadbatch = -1;
     ot->nrange = -1;
     ot->nthinned = -1;
+    ot->nexcluded = -1;
 
     obs->nobstypes++;
 }
@@ -426,6 +427,7 @@ void obs_calcstats(observations* obs)
     obs->nshallow = 0;
     obs->nrange = 0;
     obs->nthinned = 0;
+    obs->nexcluded = 0;
     for (i = 0; i < obs->nobstypes; ++i) {
         obstype* ot = &obs->obstypes[i];
 
@@ -439,6 +441,7 @@ void obs_calcstats(observations* obs)
         ot->nbadbatch = 0;
         ot->nrange = 0;
         ot->nthinned = 0;
+        ot->nexcluded = 0;
         ot->time_min = DBL_MAX;
         ot->time_max = -DBL_MAX;
     }
@@ -475,6 +478,9 @@ void obs_calcstats(observations* obs)
         } else if (o->status == STATUS_THINNED) {
             obs->nthinned++;
             ot->nthinned++;
+        } else if (o->status == STATUS_EXCLUDED) {
+            obs->nexcluded++;
+            ot->nexcluded++;
         }
 
         if (o->time < ot->time_min)
@@ -521,7 +527,7 @@ void obs_read(observations* obs, char fname[])
     if (ncw_att_exists(ncid, NC_GLOBAL, "DA_DAY"))
         ncw_get_att_double(ncid, NC_GLOBAL, "DA_DAY", &da_time);
     if (!enkf_noobsdatecheck && !isnan(da_time) && fabs(obs->da_time - da_time) > 1e-6)
-        enkf_quit("\"observations.nc\" from a different cycle");
+        enkf_quit("observation data file \"%s\" from a different cycle");
 
     ncw_inq_dimid(ncid, "nobs", dimid_nobs);
     ncw_inq_dimlen(ncid, dimid_nobs[0], &nobs);
@@ -917,6 +923,8 @@ void obs_write(observations* obs, char fname[])
     ncw_put_att_int(ncid, varid_status, "STATUS_OUTSIDEOBSWINDOW", 1, &i);
     i = STATUS_THINNED;
     ncw_put_att_int(ncid, varid_status, "STATUS_THINNED", 1, &i);
+    i = STATUS_EXCLUDED;
+    ncw_put_att_int(ncid, varid_status, "STATUS_EXCLUDED", 1, &i);
     ncw_def_var(ncid, "aux", NC_INT, 1, dimid_nobs, &varid_aux);
     ncw_put_att_text(ncid, varid_aux, "long_name", "auxiliary information");
     ncw_put_att_text(ncid, varid_aux, "description", "for primary observations - the ID of the superobservation it is collated into; for superobservations - the number of primary observations collated");

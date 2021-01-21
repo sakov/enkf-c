@@ -1,3 +1,7 @@
+v2.5.0
+   PS 15012021
+   -- Added entry EXCLUDE to observation data parameter file format to specify
+      regions with no observations.
 v2.4.0
    PS 15012021
    -- Added parameter BATCHNAME for the variable to be used as batch ID to
@@ -321,7 +325,7 @@ v1.113.0
 v1.112.5
    PS 07042020
    -- In obs_read() corrected missed initialisation of obs->data in the case
-      -DUSE_DHMEM.
+      -DUSE_SHMEM.
 v1.112.4
    PS 07042020
    -- A few minor changes in grid.c.
@@ -1182,7 +1186,7 @@ v1.85.7
       qcflag handling related.
 v1.85.6
    PS 06092018
-   -- Corrected descroiption of the reader in the header of reader_cmems.c.
+   -- Corrected description of the reader in the header of reader_cmems.c.
 v1.85.5
    PS 05092018
    -- Corrected reader_cmems_standard() to handle case of no data of specified
@@ -1439,7 +1443,7 @@ v1.76.4
       Thanks to Paul Sandery for the report.
 v1.76.3
    PS 01052018
-   -- Corrected error message in reader_xyh_gridded(). 
+   -- Corrected error message in reader_xyh_gridded().
       Thanks to Paul Sandery for the report.
 v1.76.2
    PS 30042018
