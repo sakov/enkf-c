@@ -1,3 +1,9 @@
+v2.5.2
+   PS 28012021
+   -- Added missed #include <stdlib.h> in global.c that caused compilation error
+      on some systems.
+   -- Corrected "double* plobs" to "int* plobs" in transforms.c that somehow
+      seems not to have caused problems.
 v2.5.1
    PS 15012021
    -- A minor correction to v2.5.0.

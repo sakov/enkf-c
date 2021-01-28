@@ -13,6 +13,7 @@
  *
   *****************************************************************************/
 
+#include <stdlib.h>
 #include "definitions.h"
 
 int nprocesses = 1;

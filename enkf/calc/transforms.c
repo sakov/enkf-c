@@ -35,7 +35,7 @@ void* storage = NULL;
 int ploc_allocated2 = 0;
 int* lobs = NULL;
 double* lcoeffs = NULL;
-double* plobs = NULL;
+int* plobs = NULL;
 double* sloc = NULL;
 #endif
 
