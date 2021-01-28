@@ -1575,6 +1575,8 @@ void obs_destroykdtrees(observations* obs)
         obs->sm_comm_wins_kd = NULL;
     }
 #endif
+    free(obs->loctrees);
+    obs->loctrees = NULL;
 }
 #endif
 

@@ -1,3 +1,6 @@
+v2.5.3
+   PS 28012021i
+   -- A technicality in destroying observation kd-trees.
 v2.5.2
    PS 28012021
    -- Added missed #include <stdlib.h> in global.c that caused compilation error
