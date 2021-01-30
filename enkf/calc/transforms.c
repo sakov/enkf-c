@@ -876,9 +876,9 @@ void das_calctransforms(dasystem* das)
         if (das->mode == MODE_ENKF || das->mode == MODE_HYBRID) {
             free(Tj);
             free(T);
-        } else if (das->mode == MODE_ENOI) {
-            free(wj);
         }
+        free(wj);
+
 #if defined(MPI)
         /*
          * merge stats for the report
