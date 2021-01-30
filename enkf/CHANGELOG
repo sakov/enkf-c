@@ -1,3 +1,8 @@
+v2.5.5
+   PS 30012021
+   -- Replaced in definitions.h 2 #undef(...) by #undef ...
+   -- Corrected size in MPI_Recv() das_calctransforms() for mode = Hybrid.
+      Somehow the wrong (larger) size worked without crashes...
 v2.5.4
    PS 30012021
    -- Added missing free() in das_calctransforms().

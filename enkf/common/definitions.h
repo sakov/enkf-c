@@ -154,11 +154,11 @@ extern int* node_comm_ranks;
 #endif
 #endif
 #if defined(TW_VIAFILE) && !defined(MPI)
-#undef(TW_VIAFILE)
+#undef TW_VIAFILE
 #endif
 #if defined(SHUFFLE_ROWS)
 #if !defined(MPI) || defined(TW_VIAFILE)
-#undef(SHUFFLE_ROWS)
+#undef SHUFFLE_ROWS
 #endif
 #endif
 #endif                          /* ENKF_CALC */

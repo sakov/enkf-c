@@ -704,7 +704,7 @@ void das_calctransforms(dasystem* das)
                          * (recall that my_number_of_iterations <=
                          * number_of_iterations[0]) 
                          */
-                        ierror = MPI_Recv(Tj[0][0], ni * nmem * nmem, MPI_FLOAT, r, first_iteration[r] + jj, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+                        ierror = MPI_Recv(Tj[0][0], ni * nmem_dynamic * nmem, MPI_FLOAT, r, first_iteration[r] + jj, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
                         assert(ierror == MPI_SUCCESS);
                         ierror = MPI_Recv(wj[0], ni * nmem, MPI_FLOAT, r, first_iteration[r] + jj, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
                         assert(ierror == MPI_SUCCESS);
