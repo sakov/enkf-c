@@ -1,3 +1,11 @@
+v2.5.6
+   PS 01022021
+   -- A couple of changes in transforms.c related with MINIMISE_ALLOC flag:
+      - Removed redundant definition of plobs and sloc at the top of the file.
+        (It seems that those have not caused damage.)
+      - Removed explicit calls of calc_G() and calc_GT_etkf() with M set to
+        NULL in case when MINIMISE_ALLOC is undefined , as M is initialised to
+        NULL in this case.
 v2.5.5
    PS 30012021
    -- Replaced in definitions.h 2 #undef(...) by #undef ...

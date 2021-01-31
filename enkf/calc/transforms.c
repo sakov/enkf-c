@@ -32,11 +32,10 @@
 #define PLOC_INC 1000
 int ploc_allocated1 = 0;
 void* storage = NULL;
+
 int ploc_allocated2 = 0;
 int* lobs = NULL;
 double* lcoeffs = NULL;
-int* plobs = NULL;
-double* sloc = NULL;
 #endif
 
 /**
@@ -502,12 +501,11 @@ void das_calctransforms(dasystem* das)
                 int* plobs = NULL;
                 double** Sloc = NULL;
                 double** G = NULL;
+                double** M = NULL;
 
 #if !defined(MINIMISE_ALLOC)
                 int* lobs = NULL;
                 double* lcoeffs = NULL;
-#else
-                double** M = NULL;
 #endif
                 int e, o;
 
@@ -575,19 +573,11 @@ void das_calctransforms(dasystem* das)
                     sloc[o] = das->s_f[lobs[o]] * lcoeffs[o];
 
                 if (das->mode == MODE_ENOI || das->scheme == SCHEME_DENKF) {
-#if defined(MINIMISE_ALLOC)
                     calc_G(nmem, ploc, M, Sloc, i, j, G);
-#else
-                    calc_G(nmem, ploc, NULL, Sloc, i, j, G);
-#endif
                     if (das->mode == MODE_ENKF || das->mode == MODE_HYBRID)
                         calc_T_denkf(nmem, ploc, G, Sloc, T);
                 } else if (das->scheme == SCHEME_ETKF)
-#if defined(MINIMISE_ALLOC)
                     calc_GT_etkf(nmem, ploc, M, Sloc, i, j, G, T);
-#else
-                    calc_GT_etkf(nmem, ploc, NULL, Sloc, i, j, G, T);
-#endif
                 else
                     enkf_quit("programming error");
 

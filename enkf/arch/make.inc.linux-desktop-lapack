@@ -18,7 +18,7 @@ LD_PATH =
 
 LIB_NC = -lnetcdf -lhdf5 -lhdf5_hl
 LIB_LAPACK = -llapack -lblas -lgfortran
-LIB_M = -lm /usr/local/lib64/libdmalloc.a
+LIB_M = -lm
 
 # which compiler/flags to use without MPI
 # choose gcc if you do not have clang
@@ -29,4 +29,4 @@ CFLAGS = -g -pedantic -Wall -std=c99 -D_GNU_SOURCE -O2
 # which compiler/flags to use with MPI
 #
 CCMPI = OMPI_MPICC=$(CC) mpicc
-CFLAGSMPI = -g -pedantic -Wall -std=c99 -D_GNU_SOURCE -DMPI #-O2
+CFLAGSMPI = -g -pedantic -Wall -std=c99 -D_GNU_SOURCE -DMPI -O2
