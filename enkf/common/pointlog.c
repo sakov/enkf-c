@@ -379,7 +379,7 @@ void plog_definestatevars(dasystem* das)
         for (vid = 0; vid < nvar; ++vid) {
             int gid = model_getvargridid(das->m, vid);
             char* varname = model_getvarname(das->m, vid);
-            char gridstr[MAXSTRLEN];
+            char gridstr[NC_MAX_NAME - 2];
             char varname_an[NC_MAX_NAME];
             int varid, varid_an;
             int nk;
