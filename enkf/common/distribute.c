@@ -46,12 +46,12 @@ int* last_iteration = NULL;
  * @param i1 Start of the interval
  * @param i2 End of the interval
  * @param nproc Number of processes (CPUs) to be be used
- * @param rank ID of the "native" process
+ * @param myrank ID of the process
  * @param prefix Prefix for log printing; NULL to print no log.
  * Note that `nprocesses' and `rank' are supposed to be external (global) 
  * variables.
  */
-void distribute_iterations(int i1, int i2, int nproc, int rank, char prefix[])
+void distribute_iterations(int i1, int i2, int nproc, int myrank, char prefix[])
 {
     int n, npp, i;
 
@@ -118,9 +118,9 @@ void distribute_iterations(int i1, int i2, int nproc, int rank, char prefix[])
         last_iteration[i] = first_iteration[i] + number_of_iterations[i] - 1;
     }
 
-    my_first_iteration = first_iteration[rank];
-    my_last_iteration = last_iteration[rank];
-    my_number_of_iterations = number_of_iterations[rank];
+    my_first_iteration = first_iteration[myrank];
+    my_last_iteration = last_iteration[myrank];
+    my_number_of_iterations = number_of_iterations[myrank];
 }
 
 /**

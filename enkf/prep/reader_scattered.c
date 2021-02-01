@@ -321,13 +321,13 @@ void reader_scattered(char* fname, int fid, obsmeta* meta, grid* g, observations
      */
     get_qcflags(meta, &nqcflagvars, &qcflagvarnames, &qcflagmasks);
     if (nqcflagvars > 0) {
-        int varid = -1;
+        int flagid = -1;
 
         qcflag = alloc2d(nqcflagvars, nobs, sizeof(int32_t));
         for (i = 0; i < nqcflagvars; ++i) {
-            ncw_inq_varid(ncid, qcflagvarnames[i], &varid);
-            ncw_check_vardims(ncid, varid, 1, &nobs);
-            ncw_get_var_uint(ncid, varid, qcflag[i]);
+            ncw_inq_varid(ncid, qcflagvarnames[i], &flagid);
+            ncw_check_vardims(ncid, flagid, 1, &nobs);
+            ncw_get_var_uint(ncid, flagid, qcflag[i]);
         }
     }
 

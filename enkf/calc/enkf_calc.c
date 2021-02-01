@@ -228,7 +228,7 @@ static observations* obs_create_fromsingleob(enkfprm* prm, dasystem* das)
     observations* obs = obs_create();
     observation* o = singleob;
     int vid = -1;
-    void* grid = NULL;
+    void* g = NULL;
 
     enkf_printf("  reading observation type specs from \"%s\":\n", prm->obstypeprm);
     obstypes_read(prm, prm->obstypeprm, &obs->nobstypes, &obs->obstypes);
@@ -239,7 +239,7 @@ static observations* obs_create_fromsingleob(enkfprm* prm, dasystem* das)
     o->type = obstype_getid(obs->nobstypes, obs->obstypes, singleobtype, 1);
 
     vid = model_getvarid(m, obs->obstypes[o->type].varnames[0], 1);
-    grid = model_getvargrid(m, vid);
+    g = model_getvargrid(m, vid);
 
     obs->obstypes[o->type].gridid = model_getvargridid(das->m, vid);
 
@@ -255,7 +255,7 @@ static observations* obs_create_fromsingleob(enkfprm* prm, dasystem* das)
         if (!singleob_ijk)
             o->depth = 0.0;
         else
-            o->depth = grid_getsurflayerid(grid);
+            o->depth = grid_getsurflayerid(g);
     }
 
     if (!singleob_ijk) {
@@ -276,7 +276,7 @@ static observations* obs_create_fromsingleob(enkfprm* prm, dasystem* das)
             model_fk2z(m, vid, (int) (o->fi + EPS_IJ), (int) (o->fj + EPS_IJ), o->fk, &o->depth);
 
         o->status = STATUS_OK;
-        grid_getsize(grid, &ni, &nj, &nk);
+        grid_getsize(g, &ni, &nj, &nk);
 
         if (o->fi < 0.0 || o->fi > (double) (ni - 1) || o->fj < 0.0 || o->fj > (double) (nj - 1) || o->fk < 0.0 || o->fk > (double) (nk - 1))
             o->status = STATUS_OUTSIDEGRID;

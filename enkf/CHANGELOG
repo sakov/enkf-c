@@ -1,3 +1,6 @@
+v2.5.7
+   PS 01022022
+   -- Mainly cosmetics, eliminated some shadowing.
 v2.5.6
    PS 01022021
    -- A couple of changes in transforms.c related with MINIMISE_ALLOC flag:

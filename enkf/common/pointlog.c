@@ -395,17 +395,15 @@ void plog_definestatevars(dasystem* das)
                 snprintf(varname_an, NC_MAX_NAME, "%s_inc", varname);
 
             {
-                char fname[MAXSTRLEN];
+                char memfname[MAXSTRLEN];
 
-                das_getmemberfname(das, varname, 1, fname);
-                nk = ncu_getnlevels(fname, varname);
+                das_getmemberfname(das, varname, 1, memfname);
+                nk = ncu_getnlevels(memfname, varname);
             }
             if (nk > 1) {
-                char gridstr[SMALLSTRLEN];
                 char nkname[NC_MAX_NAME];
                 int dimids[2];
 
-                get_gridstr(das, gid, gridstr);
                 snprintf(nkname, NC_MAX_NAME, "nk%s", gridstr);
                 if (!ncw_dim_exists(ncid, nkname))
                     ncw_def_dim(ncid, nkname, nk, &dimids[0]);
@@ -716,7 +714,6 @@ void plog_assemblestatevars(dasystem* das)
     for (fid = my_first_iteration; fid <= my_last_iteration; ++fid) {
         field* f = &fields[fid];
         char fname[MAXSTRLEN];
-        int plogid;
 
         for (plogid = 0; plogid < das->nplog; ++plogid) {
             get_plogtilefname(plogid, f, fname);

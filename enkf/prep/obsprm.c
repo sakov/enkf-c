@@ -206,7 +206,7 @@ void obsprm_read(char fname[], int* nmeta, obsmeta** meta, int* nexclude, obsreg
      * print summary 
      */
     for (i = 0; i < *nmeta; ++i) {
-        obsmeta* m = &(*meta)[i];
+        m = &(*meta)[i];
 
         enkf_printf("    PRODUCT = %s\n", m->product);
         if (m->reader == NULL) {

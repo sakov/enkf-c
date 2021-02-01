@@ -588,11 +588,11 @@ double model_getlonbase(model* m, int vid)
  */
 float** model_getdepth(model* m, int vid, int musthave)
 {
-    void* grid = m->grids[m->vars[vid].gridid];
-    float** depth = grid_getdepth(grid);
+    void* g = m->grids[m->vars[vid].gridid];
+    float** depth = grid_getdepth(g);
 
     if (musthave && depth == NULL)
-        enkf_quit("DEPTHVARNAME not specified for grid \"%s\"", grid_getname(grid));
+        enkf_quit("DEPTHVARNAME not specified for grid \"%s\"", grid_getname(g));
 
     return depth;
 }
@@ -622,9 +622,9 @@ int model_xy2fij(model* m, int vid, double x, double y, double* fi, double* fj)
  */
 int model_fij2xy(model* m, int vid, double fi, double fj, double* x, double* y)
 {
-    void* grid = m->grids[m->vars[vid].gridid];
+    void* g = m->grids[m->vars[vid].gridid];
 
-    grid_fij2xy(grid, fi, fj, x, y);
+    grid_fij2xy(g, fi, fj, x, y);
 
     if (isnan(*x + *y))
         return STATUS_OUTSIDEGRID;
@@ -635,9 +635,9 @@ int model_fij2xy(model* m, int vid, double fi, double fj, double* x, double* y)
  */
 int model_ij2xy(model* m, int vid, int i, int j, double* x, double* y)
 {
-    void* grid = m->grids[m->vars[vid].gridid];
+    void* g = m->grids[m->vars[vid].gridid];
 
-    grid_ij2xy(grid, i, j, x, y);
+    grid_ij2xy(g, i, j, x, y);
 
     if (isnan(*x + *y))
         return STATUS_OUTSIDEGRID;

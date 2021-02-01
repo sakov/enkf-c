@@ -462,10 +462,10 @@ void ncw_inq_var(int ncid, int varid, char varname[], nc_type* xtype, int* ndims
     int status = nc_inq_var(ncid, varid, varname, xtype, ndims, dimids, natts);
 
     if (status != NC_NOERR) {
-        char varname[NC_MAX_NAME] = STR_UNKNOWN;
+        char varname2[NC_MAX_NAME] = STR_UNKNOWN;
 
-        ncw_inq_varname(ncid, varid, varname);
-        quit("\"%s\": nc_inq_var(): failed for varid = %d (varname = \"%s\"): %s", ncw_get_path(ncid), varid, varname, nc_strerror(status));
+        ncw_inq_varname(ncid, varid, varname2);
+        quit("\"%s\": nc_inq_var(): failed for varid = %d (varname = \"%s\"): %s", ncw_get_path(ncid), varid, varname2, nc_strerror(status));
     }
 }
 

@@ -343,7 +343,7 @@ void obs_add(observations* obs, model* m, obsmeta* meta, int nexclude, obsregion
      * add specified errors 
      */
     if (obs->nobs - nobs0 > 0 && meta->nestds > 0) {
-        int i, o;
+        int o;
 
         for (i = 0; i < meta->nestds; ++i) {
             metastd* estd = &meta->estds[i];
@@ -465,7 +465,6 @@ void obs_add(observations* obs, model* m, obsmeta* meta, int nexclude, obsregion
     if (obs->nobs - nobs0 > 0) {
         double day_min = DBL_MAX;
         double day_max = -DBL_MAX;
-        int i;
 
         for (i = nobs0; i < obs->nobs; ++i) {
             observation* o = &obs->data[i];

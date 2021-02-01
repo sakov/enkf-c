@@ -31,7 +31,6 @@
 #define EPS_ZERO 1.0e-5
 
 struct gxy_curv {
-    void* grid;                 /* parent grid */
     char* name;
     int ni;
     int nj;
@@ -46,7 +45,7 @@ struct gxy_curv {
 
 /**
  */
-gxy_curv* gxy_curv_create(void* grid, int ni, int nj, double** x, double** y, int** mask)
+gxy_curv* gxy_curv_create(void* g, int ni, int nj, double** x, double** y, int** mask)
 {
     char name[MAXSTRLEN];
     gxy_curv* gxy = malloc(sizeof(gxy_curv));
@@ -54,7 +53,7 @@ gxy_curv* gxy_curv_create(void* grid, int ni, int nj, double** x, double** y, in
 
     assert(x != NULL && y != NULL);
 
-    snprintf(name, MAXSTRLEN - 4, "%s_XY", grid_getname(grid));
+    snprintf(name, MAXSTRLEN - 4, "%s_XY", grid_getname(g));
 
     gxy->name = strdup(name);
     gxy->ni = ni;
@@ -82,7 +81,6 @@ gxy_curv* gxy_curv_create(void* grid, int ni, int nj, double** x, double** y, in
         size = kd_getstoragesize(gxy->nodetreeXY, nnodes);
         if (sm_comm_rank == 0) {
             void* storage = NULL;
-            int ierror;
 
             assert(sizeof(MPI_Aint) == sizeof(size_t));
             ierror = MPI_Win_allocate_shared(size, sizeof(double), MPI_INFO_NULL, sm_comm, &storage, &gxy->sm_comm_win);

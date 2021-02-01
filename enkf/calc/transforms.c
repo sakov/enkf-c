@@ -341,10 +341,10 @@ void das_calctransforms(dasystem* das)
     das_standardise(das);
 
     for (gid = 0; gid < ngrid; ++gid) {
-        void* grid = model_getgridbyid(m, gid);
-        char* gridname = grid_getname(grid);
-        double sfactor = grid_getsfactor(grid);
-        int stride = grid_getstride(grid);
+        void* g = model_getgridbyid(m, gid);
+        char* gridname = grid_getname(g);
+        double sfactor = grid_getsfactor(g);
+        int stride = grid_getstride(g);
 
         int mni, mnj;
         int nj, ni;
@@ -394,7 +394,7 @@ void das_calctransforms(dasystem* das)
 
         enkf_printf("    calculating transforms for %s:\n", gridname);
 
-        grid_getsize(grid, &mni, &mnj, NULL);
+        grid_getsize(g, &mni, &mnj, NULL);
 
         /*
          * work out how to cycle j 
@@ -514,12 +514,12 @@ void das_calctransforms(dasystem* das)
                 {
                     double lon, lat;
 
-                    grid_ij2xy(grid, i, j, &lon, &lat);
+                    grid_ij2xy(g, i, j, &lon, &lat);
 
 #if defined(MINIMISE_ALLOC)
-                    obs_findlocal(obs, lon, lat, grid_getdomainname(grid), &ploc, &lobs, &lcoeffs, &ploc_allocated2);
+                    obs_findlocal(obs, lon, lat, grid_getdomainname(g), &ploc, &lobs, &lcoeffs, &ploc_allocated2);
 #else
-                    obs_findlocal(obs, lon, lat, grid_getdomainname(grid), &ploc, &lobs, &lcoeffs);
+                    obs_findlocal(obs, lon, lat, grid_getdomainname(g), &ploc, &lobs, &lcoeffs);
 #endif
                     assert(ploc >= 0 && ploc <= obs->nobs);
                 }
@@ -858,7 +858,7 @@ void das_calctransforms(dasystem* das)
         if (rank == 0) {
             char fname_stats[MAXSTRLEN];
 
-            das_getfname_stats(das, grid, fname_stats);
+            das_getfname_stats(das, g, fname_stats);
 
             nc_writediag(das, fname_stats, obs->nobstypes, nj, ni, stride, nlobs, dfs, srf, pnlobs, pdfs, psrf);
         }
@@ -966,8 +966,11 @@ void das_calcpointlogtransforms(dasystem* das)
 
     for (plogid = 0; plogid < das->nplog; ++plogid) {
         pointlog* plog = &das->plogs[plogid];
+
+#if !defined(MINIMISE_ALLOC)
         int* lobs = NULL;
         double* lcoeffs = NULL;
+#endif
         int ploc = 0;
 
         enkf_printf("    calculating transforms for log point (%.3f,%.3f):", plog->lon, plog->lat);
@@ -989,6 +992,8 @@ void das_calcpointlogtransforms(dasystem* das)
         if (ploc > 0) {
             free(lobs);
             free(lcoeffs);
+            lobs = NULL;
+            lcoeffs = NULL;
         }
 
         /*
@@ -999,9 +1004,6 @@ void das_calcpointlogtransforms(dasystem* das)
             int i = (int) (plog->fi[gid] + 0.5);
             int j = (int) (plog->fj[gid] + 0.5);
             double sfactor = grid_getsfactor(g);
-            int* lobs = NULL;
-            double* lcoeffs = NULL;
-            int ploc = 0;
             double* sloc = NULL;
             double** Sloc = NULL;
             double** G = NULL;
@@ -1009,6 +1011,7 @@ void das_calcpointlogtransforms(dasystem* das)
             if (plog->gridid >= 0 && plog->gridid != gid)
                 continue;
 
+            ploc = 0;
 #if defined(MINIMISE_ALLOC)
             obs_findlocal(obs, plog->lon, plog->lat, grid_getdomainname(g), &ploc, &lobs, &lcoeffs, NULL);
 #else
@@ -1061,6 +1064,8 @@ void das_calcpointlogtransforms(dasystem* das)
                 free(Sloc);
                 free(lobs);
                 free(lcoeffs);
+                lobs = NULL;
+                lcoeffs = NULL;
             }
         }
     }

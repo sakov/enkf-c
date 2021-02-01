@@ -200,7 +200,7 @@ observations* obs_create_fromprm(enkfprm* prm)
         f = enkf_fopen(FNAME_BADBATCHES, "r");
         line = 0;
         while (fgets(buf, MAXSTRLEN, f) != NULL) {
-            char obstype[MAXSTRLEN];
+            char otname[MAXSTRLEN];
             badbatch* bb;
             keydata key;
 
@@ -208,16 +208,16 @@ observations* obs_create_fromprm(enkfprm* prm)
             if (buf[0] == '#')
                 continue;
             bb = malloc(sizeof(badbatch));
-            if (sscanf(buf, "%s %s %d %d", obstype, bb->fname, &bb->fid, &bb->batch) != 4)
-                 enkf_quit("%s, l.%d: wrong bad batch specification (expected \"%s %s %d %d\"\n", FNAME_BADBATCHES, line);
+            if (sscanf(buf, "%s %s %d %d", otname, bb->fname, &bb->fid, &bb->batch) != 4)
+                enkf_quit("%s, l.%d: wrong bad batch specification (expected \"%s %s %d %d\"\n", FNAME_BADBATCHES, line);
 
-            bb->obstypeid = obstype_getid(obs->nobstypes, obs->obstypes, obstype, 1);
+            bb->obstypeid = obstype_getid(obs->nobstypes, obs->obstypes, otname, 1);
 
             key.key_int[0] = bb->batch;
             key.key_short[2] = bb->obstypeid;
             key.key_short[3] = bb->fid;
             ht_insert(obs->badbatches, &key, bb);
-            enkf_printf("    %s %s %d %d\n", obstype, bb->fname, bb->fid, bb->batch);
+            enkf_printf("    %s %s %d %d\n", otname, bb->fname, bb->fid, bb->batch);
         }
         fclose(f);
     }
@@ -623,15 +623,15 @@ void obs_read(observations* obs, char fname[])
             assert(typeid == typeid_read);
 
             if (ot->logapplied) {
-                char attname[NC_MAX_NAME];
-                char attval[MAXSTRLEN];
+                char logattname[NC_MAX_NAME];
+                char logattval[MAXSTRLEN];
 
-                snprintf(attname, NC_MAX_NAME, "%s:LOGAPPLIED", ot->name);
-                if (!ncw_att_exists(ncid, varid_type, attname))
-                    enkf_quit("%s: variable = \"type\": expected attribute \"%s\" to be present for a log-transformed obs. type", fname, attname);
-                ncw_get_att_text(ncid, varid_type, attname, attval);
-                if (strncmp(attval, "true", 4) != 0)
-                    enkf_quit("%s: variable = \"type\": expected attribute \"%s\" to have value \"true\" a log-transformed obs. type", fname, attname);
+                snprintf(logattname, NC_MAX_NAME, "%s:LOGAPPLIED", ot->name);
+                if (!ncw_att_exists(ncid, varid_type, logattname))
+                    enkf_quit("%s: variable = \"type\": expected attribute \"%s\" to be present for a log-transformed obs. type", fname, logattname);
+                ncw_get_att_text(ncid, varid_type, logattname, logattval);
+                if (strncmp(logattval, "true", 4) != 0)
+                    enkf_quit("%s: variable = \"type\": expected attribute \"%s\" to have value \"true\" a log-transformed obs. type", fname, logattname);
             }
         }
     }
@@ -642,16 +642,16 @@ void obs_read(observations* obs, char fname[])
     ncw_inq_varnatts(ncid, varid_product, &natts);
     for (i = 0; i < natts; ++i) {
         char name[NC_MAX_NAME];
-        nc_type type;
+        nc_type nctype;
         size_t len;
 
         ncw_inq_attname(ncid, varid_product, i, name);
-        ncw_inq_att(ncid, varid_product, name, &type, &len);
-        if (type == NC_INT && len == 1) {
-            int id;
+        ncw_inq_att(ncid, varid_product, name, &nctype, &len);
+        if (nctype == NC_INT && len == 1) {
+            int productid;
 
-            ncw_get_att_int(ncid, varid_product, name, &id);
-            st_add(obs->products, name, id);
+            ncw_get_att_int(ncid, varid_product, name, &productid);
+            st_add(obs->products, name, productid);
         }
     }
 
@@ -661,16 +661,16 @@ void obs_read(observations* obs, char fname[])
     ncw_inq_varnatts(ncid, varid_instrument, &natts);
     for (i = 0; i < natts; ++i) {
         char name[NC_MAX_NAME];
-        nc_type type;
+        nc_type nctype;
         size_t len;
 
         ncw_inq_attname(ncid, varid_instrument, i, name);
-        ncw_inq_att(ncid, varid_instrument, name, &type, &len);
-        if (type == NC_INT && len == 1) {
-            int id;
+        ncw_inq_att(ncid, varid_instrument, name, &nctype, &len);
+        if (nctype == NC_INT && len == 1) {
+            int instid;
 
-            ncw_get_att_int(ncid, varid_instrument, name, &id);
-            st_add(obs->instruments, name, id);
+            ncw_get_att_int(ncid, varid_instrument, name, &instid);
+            st_add(obs->instruments, name, instid);
         }
     }
 
@@ -682,16 +682,16 @@ void obs_read(observations* obs, char fname[])
         char name[NC_MAX_NAME];
         char attstr[MAXSTRLEN];
         size_t len;
-        int id;
+        int fileid;
 
         ncw_inq_attname(ncid, varid_fid, i, name);
-        if (!str2int(name, &id))
+        if (!str2int(name, &fileid))
             continue;
         ncw_inq_attlen(ncid, varid_fid, name, &len);
         assert(len < MAXSTRLEN);
         ncw_get_att_text(ncid, varid_fid, name, attstr);
         attstr[len] = 0;
-        st_add_ifabsent(obs->datafiles, attstr, id);
+        st_add_ifabsent(obs->datafiles, attstr, fileid);
     }
 
 #if defined(USE_SHMEM)
@@ -1489,7 +1489,6 @@ void obs_createkdtrees(observations* obs)
             size = kd_getstoragesize(*tree, nobs);
             if (sm_comm_rank == 0) {
                 void* storage = NULL;
-                int ierror;
 
                 assert(sizeof(MPI_Aint) == sizeof(size_t));
                 ierror = MPI_Win_allocate_shared(size, sizeof(double), MPI_INFO_NULL, sm_comm, &storage, sm_comm_win);

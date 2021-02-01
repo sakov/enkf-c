@@ -355,54 +355,54 @@ void gridprm_create(char* fname, int* ngrid, gridprm** prm)
     fclose(f);
 
     for (i = 0; i < *ngrid; ++i) {
-        gridprm* now = &(*prm)[i];
+        gridprm* gprm = &(*prm)[i];
 
-        if (now->vtype == NULL)
-            enkf_quit("%s: VTYPE not specified for grid \"%s\"", fname, now->name);
-        if (now->fname == NULL)
-            enkf_quit("%s: DATA not specified for grid \"%s\"", fname, now->name);
-        if (now->domainname == NULL)
-            now->domainname = strdup("Default");
-        if (strcasecmp(now->vtype, "NONE") == 0);
-        else if (strcasecmp(now->vtype, "Z") == 0) {
-            if (now->zvarname == NULL)
-                enkf_quit("%s: %s: ZVARNAME must be specified for Z grids", fname, now->name);
-        } else if (strcasecmp(now->vtype, "SIGMA") == 0) {
-            if (now->cvarname == NULL)
-                enkf_quit("%s: %s: CVARNAME must be specified for sigma grids", fname, now->name);
-        } else if (strcasecmp(now->vtype, "HYBRID") == 0) {
-            if (now->avarname == NULL)
-                enkf_quit("%s: %s: AVARNAME must be specified for hybrid grids", fname, now->name);
-            if (now->bvarname == NULL)
-                enkf_quit("%s: %s: BVARNAME must be specified for hybrid grids", fname, now->name);
-            if (now->p1varname == NULL)
-                enkf_quit("%s: %s: P1VARNAME must be specified for hybrid grids", fname, now->name);
-            if (now->p2varname == NULL)
-                enkf_quit("%s: %s: P2VARNAME must be specified for hybrid grids", fname, now->name);
+        if (gprm->vtype == NULL)
+            enkf_quit("%s: VTYPE not specified for grid \"%s\"", fname, gprm->name);
+        if (gprm->fname == NULL)
+            enkf_quit("%s: DATA not specified for grid \"%s\"", fname, gprm->name);
+        if (gprm->domainname == NULL)
+            gprm->domainname = strdup("Default");
+        if (strcasecmp(gprm->vtype, "NONE") == 0);
+        else if (strcasecmp(gprm->vtype, "Z") == 0) {
+            if (gprm->zvarname == NULL)
+                enkf_quit("%s: %s: ZVARNAME must be specified for Z grids", fname, gprm->name);
+        } else if (strcasecmp(gprm->vtype, "SIGMA") == 0) {
+            if (gprm->cvarname == NULL)
+                enkf_quit("%s: %s: CVARNAME must be specified for sigma grids", fname, gprm->name);
+        } else if (strcasecmp(gprm->vtype, "HYBRID") == 0) {
+            if (gprm->avarname == NULL)
+                enkf_quit("%s: %s: AVARNAME must be specified for hybrid grids", fname, gprm->name);
+            if (gprm->bvarname == NULL)
+                enkf_quit("%s: %s: BVARNAME must be specified for hybrid grids", fname, gprm->name);
+            if (gprm->p1varname == NULL)
+                enkf_quit("%s: %s: P1VARNAME must be specified for hybrid grids", fname, gprm->name);
+            if (gprm->p2varname == NULL)
+                enkf_quit("%s: %s: P2VARNAME must be specified for hybrid grids", fname, gprm->name);
         } else
-            enkf_quit("vertical type \"%s\" specified for grid \"%s\" is unknown", now->vtype, now->name);
-        if (now->xvarname == NULL)
-            enkf_quit("%s: XVARNAME not specified for grid \"%s\"", fname, now->name);
-        if (now->yvarname == NULL)
-            enkf_quit("%s: YVARNAME not specified for grid \"%s\"", fname, now->name);
-        if (strcasecmp(now->vtype, "NONE") != 0) {
-            if (now->vdirection == NULL)
-                now->vdirection = strdup("FROMSURF");
-            if (now->nzints == 0) {
-                now->nzints = 3;
-                now->zints = malloc(now->nzints * sizeof(zint));
-                now->zints[0].z1 = 0.0;
-                now->zints[0].z2 = DEPTH_SHALLOW;
-                now->zints[1].z1 = DEPTH_SHALLOW;
-                now->zints[1].z2 = DEPTH_DEEP;
-                now->zints[2].z1 = DEPTH_DEEP;
-                now->zints[2].z2 = DEPTH_MAX;
-            } else if (now->nzints < 0)
-                now->nzints = 0;
+            enkf_quit("vertical type \"%s\" specified for grid \"%s\" is unknown", gprm->vtype, gprm->name);
+        if (gprm->xvarname == NULL)
+            enkf_quit("%s: XVARNAME not specified for grid \"%s\"", fname, gprm->name);
+        if (gprm->yvarname == NULL)
+            enkf_quit("%s: YVARNAME not specified for grid \"%s\"", fname, gprm->name);
+        if (strcasecmp(gprm->vtype, "NONE") != 0) {
+            if (gprm->vdirection == NULL)
+                gprm->vdirection = strdup("FROMSURF");
+            if (gprm->nzints == 0) {
+                gprm->nzints = 3;
+                gprm->zints = malloc(gprm->nzints * sizeof(zint));
+                gprm->zints[0].z1 = 0.0;
+                gprm->zints[0].z2 = DEPTH_SHALLOW;
+                gprm->zints[1].z1 = DEPTH_SHALLOW;
+                gprm->zints[1].z2 = DEPTH_DEEP;
+                gprm->zints[2].z1 = DEPTH_DEEP;
+                gprm->zints[2].z2 = DEPTH_MAX;
+            } else if (gprm->nzints < 0)
+                gprm->nzints = 0;
         } else
-            now->zints = 0;
-        if (!isfinite(now->sfactor) || now->sfactor <= 0.0)
-            enkf_quit("%s: SFACTOR = %.3g\n", now->sfactor);
+            gprm->zints = 0;
+        if (!isfinite(gprm->sfactor) || gprm->sfactor <= 0.0)
+            enkf_quit("%s: SFACTOR = %.3g\n", gprm->sfactor);
     }
 }
 

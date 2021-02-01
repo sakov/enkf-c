@@ -100,9 +100,9 @@ static void interpolate_3d_obs(model* m, observations* allobs, int nobs, int obs
 {
     int otid = allobs->data[obsids[0]].type;
     int mvid = model_getvarid(m, allobs->obstypes[otid].varnames[0], 1);
-    void* grid = model_getvargrid(m, mvid);
-    int ksurf = grid_getsurflayerid(grid);
-    int periodic_i = grid_isperiodic_i(grid);
+    void* g = model_getvargrid(m, mvid);
+    int ksurf = grid_getsurflayerid(g);
+    int periodic_i = grid_isperiodic_i(g);
     int** nlevels = model_getnumlevels(m, mvid);
     int ni, nj, nk;
     int i;

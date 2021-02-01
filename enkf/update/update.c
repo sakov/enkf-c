@@ -81,12 +81,12 @@ static void das_updatefields(dasystem* das, int nfields, void** fieldbuffer, fie
     int nmem = das->nmem;
     int nmem_dynamic = das->nmem_dynamic;
 
-    void* grid = model_getvargrid(m, fields[0].varid);
-    int gridid = grid_getid(grid);
-    int stride = grid_getstride(grid);
-    int** nlevels = grid_getnumlevels(grid);
-    int surfk = grid_getsurflayerid(grid);
-    int periodic_i = grid_isperiodic_i(grid);
+    void* g = model_getvargrid(m, fields[0].varid);
+    int gridid = grid_getid(g);
+    int stride = grid_getstride(g);
+    int** nlevels = grid_getnumlevels(g);
+    int surfk = grid_getsurflayerid(g);
+    int periodic_i = grid_isperiodic_i(g);
     int writeinflation = das->updatespec & UPDATE_DOINFLATION;
 
     /*
@@ -118,7 +118,7 @@ static void das_updatefields(dasystem* das, int nfields, void** fieldbuffer, fie
 
     assert(das->mode == MODE_ENKF || das->mode == MODE_HYBRID);
 
-    grid_getsize(grid, &mni, &mnj, NULL);
+    grid_getsize(g, &mni, &mnj, NULL);
 
     das_getfname_transforms(das, gridid, fname);
 
@@ -440,7 +440,11 @@ static void das_updatefields(dasystem* das, int nfields, void** fieldbuffer, fie
     }                           /* for jj */
 
     ncw_close(ncid);
-    free(Tj);
+
+    if (writeinflation)
+        free(infl);
+    free(v_a);
+    free(v_f);
     if (stride > 1) {
         free(Tjj);
         free(Tjj1);
@@ -449,10 +453,8 @@ static void das_updatefields(dasystem* das, int nfields, void** fieldbuffer, fie
         free(wjj1);
         free(wjj2);
     }
-    if (writeinflation)
-        free(infl);
-    free(v_a);
-    free(v_f);
+    free(wj);
+    free(Tj);
 
     /*
      * "randomise" ("propagate") fields if required
@@ -464,7 +466,7 @@ static void das_updatefields(dasystem* das, int nfields, void** fieldbuffer, fie
             /*
              * (for now -- for 2D variables only) 
              */
-            assert(fields[fid].level == grid_getsurflayerid(grid));
+            assert(fields[fid].level == grid_getsurflayerid(g));
 
             addnoise(das, varid, fieldbuffer[fid]);
         }
@@ -478,12 +480,12 @@ static void das_updatebg(dasystem* das, int nfields, void** fieldbuffer, field f
     model* m = das->m;
     int nmem = das->nmem;
 
-    void* grid = model_getvargrid(m, fields[0].varid);
-    int gridid = grid_getid(grid);
-    int stride = grid_getstride(grid);
-    int** nlevels = grid_getnumlevels(grid);
-    int surfk = grid_getsurflayerid(grid);
-    int periodic_i = grid_isperiodic_i(grid);
+    void* g = model_getvargrid(m, fields[0].varid);
+    int gridid = grid_getid(g);
+    int stride = grid_getstride(g);
+    int** nlevels = grid_getnumlevels(g);
+    int surfk = grid_getsurflayerid(g);
+    int periodic_i = grid_isperiodic_i(g);
 
     char fname[MAXSTRLEN];
     int ncid;
@@ -507,7 +509,7 @@ static void das_updatebg(dasystem* das, int nfields, void** fieldbuffer, field f
 
     assert(das->mode == MODE_ENOI);
 
-    grid_getsize(grid, &mni, &mnj, NULL);
+    grid_getsize(g, &mni, &mnj, NULL);
 
     das_getfname_transforms(das, gridid, fname);
 
@@ -1218,18 +1220,18 @@ void das_update(dasystem* das)
     }
 
     for (gid = 0; gid < ngrid; ++gid) {
-        void* grid = model_getgridbyid(m, gid);
+        void* g = model_getgridbyid(m, gid);
         int nfields = 0;
         field* fields = NULL;
         void** fieldbuffer = NULL;
         int mni, mnj;
-        int fid, i;
+        int fid;
 
-        enkf_printf("    processing fields for %s:\n", grid_getname(grid));
+        enkf_printf("    processing fields for %s:\n", grid_getname(g));
 
         enkf_printtime("      ");
 
-        grid_getsize(grid, &mni, &mnj, NULL);
+        grid_getsize(g, &mni, &mnj, NULL);
 
 #if defined(MPI)
         MPI_Barrier(MPI_COMM_WORLD);
@@ -1264,7 +1266,6 @@ void das_update(dasystem* das)
             int bufid = (fid - my_first_iteration) % das->fieldbufsize;
             field* f = &fields[fid];
             char fname[MAXSTRLEN];
-            int e;
 
             if (enkf_verbose) {
                 printf("      %-8s %-3d (%d: %d: %.1f%%)\n", f->varname, f->level, rank, fid, 100.0 * (double) (fid - my_first_iteration + 1) / (double) (my_last_iteration - my_first_iteration + 1));

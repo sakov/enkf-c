@@ -481,7 +481,6 @@ enkfprm* enkfprm_read(char fname[])
                 enkf_quit("%s: LOCWEIGHT not specified for multi-scale localisation", fname);
         } else {
             double sum = 0.0;
-            int i;
 
             for (i = 0; i < prm->nlocrad; ++i)
                 sum += prm->locweight[i];

@@ -347,7 +347,7 @@ void das_writevcorrs(dasystem* das)
     double* var0 = NULL;
     float** v = NULL;
     double* cor = NULL;
-    int ni, nj, nij = -1;
+    int ni0 = -1, nj0 = -1, nij0 = -1;
     int fid;
 
     enkf_printtime("  ");
@@ -392,6 +392,7 @@ void das_writevcorrs(dasystem* das)
         char* varname = f->varname;
         int dimids[2];
         int ksurf;
+        int ni, nj, nij = nij0;
         int e, k, i;
         char fname_src[MAXSTRLEN];
         char fname_tile[MAXSTRLEN];
@@ -413,8 +414,8 @@ void das_writevcorrs(dasystem* das)
              * calculate anomalies and scaled variance at surface
              */
             model_getvargridsize(m, f->varid, &ni, &nj, NULL);
-            if (ni * nj != nij) {
-                nij = ni * nj;
+            nij = ni * nj;
+            if (ni != ni0 || nj != nj0) {
                 if (v != NULL) {
                     free(v0);
                     free(var0);
@@ -454,6 +455,9 @@ void das_writevcorrs(dasystem* das)
                     var0[i] += (double) (v0[e][i] * v0[e][i]);
             }
             varname0 = varname;
+            ni0 = ni;
+            nj0 = nj;
+            nij0 = ni * nj;
         }
 
         /*
@@ -522,7 +526,7 @@ void das_writevcorrs(dasystem* das)
         for (fid = 0; fid < nfields; ++fid) {
             field* f = &fields[fid];
             int ni, nj;
-            float* v = NULL;
+            float* vv = NULL;
             char fname_tile[MAXSTRLEN];
             int ncid_tile, vid_tile;
 
@@ -534,18 +538,18 @@ void das_writevcorrs(dasystem* das)
                     continue;
             }
             model_getvargridsize(m, f->varid, &ni, &nj, NULL);
-            v = malloc(ni * nj * sizeof(float));
+            vv = malloc(ni * nj * sizeof(float));
 
             snprintf(fname_tile, MAXSTRLEN, "%s/vcorr_%s-%03d.nc", DIRNAME_TMP, f->varname, f->level);
 
             ncw_open(fname_tile, NC_NOWRITE, &ncid_tile);
             ncw_inq_varid(ncid_tile, f->varname, &vid_tile);
-            ncw_get_var_float(ncid_tile, vid_tile, v);
+            ncw_get_var_float(ncid_tile, vid_tile, vv);
             ncw_close(ncid_tile);
             file_delete(fname_tile);
 
-            model_writefield(m, FNAME_VERTCORR, f->varname, f->level, v, 1);
-            free(v);
+            model_writefield(m, FNAME_VERTCORR, f->varname, f->level, vv, 1);
+            free(vv);
         }
     }
     free(fields);

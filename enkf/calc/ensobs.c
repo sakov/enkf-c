@@ -51,11 +51,14 @@ void das_getHE(dasystem* das)
     size_t nmem_alloc = (das->mode == MODE_ENOI) ? nmem + 1 : nmem;
     size_t i, e;
 
+#if defined(MPI)
+    int ierror;
+#endif
+
 #if defined(USE_SHMEM)
     float* SS = NULL;
     float* SSt = NULL;
     MPI_Aint size;
-    int ierror;
 #endif
 
     das->s_mode = S_MODE_HE_f;
@@ -293,7 +296,6 @@ void das_getHE(dasystem* das)
         int* recvcounts = calloc(nprocesses, sizeof(int));
         int* displs = calloc(nprocesses, sizeof(int));
         MPI_Datatype mpitype_vec_nobs;
-        int ierror;
 
 #if defined(USE_SHMEM)
         int ii;
@@ -1193,9 +1195,9 @@ static void update_HE(dasystem* das)
      */
 
     for (gid = 0, o = my_first_iteration; gid < ngrid && o <= my_last_iteration; ++gid) {
-        void* grid = model_getgridbyid(m, gid);
-        int periodic_i = grid_isperiodic_i(grid);
-        int stride = grid_getstride(grid);
+        void* g = model_getgridbyid(m, gid);
+        int periodic_i = grid_isperiodic_i(g);
+        int stride = grid_getstride(g);
 
         char fname[MAXSTRLEN];
         int ncid;
@@ -1238,7 +1240,7 @@ static void update_HE(dasystem* das)
         if (periodic_i)
             iiter[ni] = iiter[ni - 1] + stride;
 
-        grid_getsize(grid, &mni, &mnj, NULL);
+        grid_getsize(g, &mni, &mnj, NULL);
 
         start[0] = 0;
         start[1] = 0;
@@ -1541,9 +1543,9 @@ static void update_Hx(dasystem* das)
      */
 
     for (gid = 0, o = my_first_iteration; gid < ngrid && o <= my_last_iteration; ++gid) {
-        void* grid = model_getgridbyid(m, gid);
-        int periodic_i = grid_isperiodic_i(grid);
-        int stride = grid_getstride(grid);
+        void* g = model_getgridbyid(m, gid);
+        int periodic_i = grid_isperiodic_i(g);
+        int stride = grid_getstride(g);
 
         char fname[MAXSTRLEN];
         int ncid;
@@ -1583,7 +1585,7 @@ static void update_Hx(dasystem* das)
         if (periodic_i)
             iiter[ni] = iiter[ni - 1] + stride;
 
-        grid_getsize(grid, &mni, &mnj, NULL);
+        grid_getsize(g, &mni, &mnj, NULL);
 
         start[0] = 0;
         start[1] = 0;
