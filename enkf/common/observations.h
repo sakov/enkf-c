@@ -140,11 +140,7 @@ void obs_printob(observations* obs, int id);
 void obs_createkdtrees(observations* obs);
 void obs_destroykdtrees(observations* obs);
 
-#if defined(MINIMISE_ALLOC)
 void obs_findlocal(observations* obs, double lon, double lat, char* dimainname, int* n, int** ids, double** lcoeffs, int* ploc_allocated);
-#else
-void obs_findlocal(observations* obs, double lon, double lat, char* domainname, int* n, int** ids, double** lcoeffs);
-#endif
 #endif
 
 #define _OBSERVATIONS_H

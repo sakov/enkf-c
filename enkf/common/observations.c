@@ -1582,11 +1582,7 @@ void obs_destroykdtrees(observations* obs)
 #if defined(ENKF_CALC)
 /**
  */
-#if defined(MINIMISE_ALLOC)
 void obs_findlocal(observations* obs, double lon, double lat, char* domainname, int* n, int** ids, double** lcoeffs, int* ploc_allocated)
-#else
-void obs_findlocal(observations* obs, double lon, double lat, char* domainname, int* n, int** ids, double** lcoeffs)
-#endif
 {
     double ll[2] = { lon, lat };
     double xyz[3];
@@ -1629,7 +1625,6 @@ void obs_findlocal(observations* obs, double lon, double lat, char* domainname, 
         for (iloc = 0; iloc < ot->nlobsmax && (id = kdset_readnext(set, NULL)) != SIZE_MAX; ++i, ++iloc) {
             size_t id_orig = kd_getnodedata(tree, id);
 
-#if defined(MINIMISE_ALLOC)
             if (ploc_allocated != NULL) {
                 if (i >= *ploc_allocated) {
                     *ploc_allocated += PLOC_INC;
@@ -1642,12 +1637,6 @@ void obs_findlocal(observations* obs, double lon, double lat, char* domainname, 
                     *lcoeffs = realloc(*lcoeffs, (i + PLOC_INC) * sizeof(double));
                 }
             }
-#else
-            if (i % PLOC_INC == 0) {
-                *ids = realloc(*ids, (i + PLOC_INC) * sizeof(int));
-                *lcoeffs = realloc(*lcoeffs, (i + PLOC_INC) * sizeof(double));
-            }
-#endif
             (*ids)[i] = obsids[id_orig];
         }
         kdset_free(set);

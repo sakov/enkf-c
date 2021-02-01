@@ -519,7 +519,7 @@ void das_calctransforms(dasystem* das)
 #if defined(MINIMISE_ALLOC)
                     obs_findlocal(obs, lon, lat, grid_getdomainname(g), &ploc, &lobs, &lcoeffs, &ploc_allocated2);
 #else
-                    obs_findlocal(obs, lon, lat, grid_getdomainname(g), &ploc, &lobs, &lcoeffs);
+                    obs_findlocal(obs, lon, lat, grid_getdomainname(g), &ploc, &lobs, &lcoeffs, NULL);
 #endif
                     assert(ploc >= 0 && ploc <= obs->nobs);
                 }
