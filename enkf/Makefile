@@ -7,7 +7,6 @@ PREPCALC_FLAGS =
 # Select flags for CALC from the following list (default = none):
 #
 # -DSHUFFLE_ROWS
-# -DHE_VIASHMEM
 # -DOBS_SHUFFLE
 # -DMINIMISE_ALLOC
 # -DUSE_SHMEM

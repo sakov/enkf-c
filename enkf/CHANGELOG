@@ -1,3 +1,7 @@
+v2.5.9
+   PS 01022022
+   -- Checked (and made a few minor changes) that CALC and UPDATE work without
+      MPI on a single CPU.
 v2.5.8
    PS 01022022
    -- Cosmetics

@@ -132,7 +132,7 @@ struct grid {
     int vtype;                  /* vertical type */
 
     void* gridnodes_xy;         /* (the structure is defined by `htype') */
-    double lonbase;             /* (lon range = [lonbase, lonbase + 360)] */
+    double lonbase;             /* (lon range = [lonbase, lonbase + 360]) */
 
     void* gridnodes_z;
 

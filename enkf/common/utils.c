@@ -205,6 +205,10 @@ void enkf_init(int* argc, char*** argv)
     assert(size == sizeof(int));
     MPI_Type_size(MPI_FLOAT, &size);
     assert(size == sizeof(float));
+#else
+    if (*argc == 2 && strcmp((*argv)[1], "--version") == 0)
+        return;
+    printf("  rank = %d, PID = %d\n", rank, getpid());
 #endif
 
     ncw_set_quitfn(enkf_quit);
@@ -1279,7 +1283,6 @@ void kd_printinfo(kdtree* tree, char* offset)
 }
 #endif
 
-#if defined MPI
 #include <memory.h>
 
 /**
@@ -1340,9 +1343,14 @@ static int get_cluster_memory_usage_kb(size_t* vmrss_per_process, size_t* vmsize
     if (ret_code != 0)
         enkf_quit("could not gather memory usage: %s\n", strerror(ret_code));
 
+#if defined(MPI)
     MPI_Gather(&vmrss_kb, 1, MPI_UNSIGNED_LONG, vmrss_per_process, 1, MPI_UNSIGNED_LONG, root, MPI_COMM_WORLD);
 
     MPI_Gather(&vmsize_kb, 1, MPI_UNSIGNED_LONG, vmsize_per_process, 1, MPI_UNSIGNED_LONG, root, MPI_COMM_WORLD);
+#else
+    vmrss_per_process[0] = vmrss_kb;
+    vmsize_per_process[0] = vmsize_kb;
+#endif
 
     return 0;
 }
@@ -1372,4 +1380,3 @@ void print_memory_usage()
             enkf_printf("    VmRSS = %zu kB, VmSize = %zu kB\n", vmrss_per_process[0], vmsize_per_process[0]);
     }
 }
-#endif

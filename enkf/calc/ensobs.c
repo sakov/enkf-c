@@ -347,7 +347,7 @@ void das_getHE(dasystem* das)
     if (sm_comm_rank == 0) {
 #endif
         if (das->mode == MODE_ENOI) {
-            enkf_printf("    subtracting ensemble mean:\n", size);
+            enkf_printf("    subtracting ensemble mean:\n");
             /*
              * subtract ensemble mean; add background
              */
@@ -386,7 +386,7 @@ void das_getHE(dasystem* das)
             double k_d = (nmem_d > 1) ? sqrt((double) (nmem - 1) / (double) (nmem_d - 1)) : 0.0;
             double k_s = sqrt(das->gamma * (double) (nmem - 1) / (double) (nmem_s - 1));
 
-            enkf_printf("    scaling:\n", size);
+            enkf_printf("    scaling:\n");
             /*
              * calculate dynamic ensemble mean
              */

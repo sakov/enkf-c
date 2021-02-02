@@ -736,9 +736,9 @@ void das_calctransforms(dasystem* das)
             }
 #else                           /* no MPI */
             if (das->mode == MODE_ENKF || das->mode == MODE_HYBRID)
-                nc_writetransforms(ncid, jpool[jj], ni, varid_T, Tj[0][0], varid_w, wj[0]);
+                nc_writetransforms(das, ncid, jpool[jj], ni, varid_T, Tj[0][0], varid_w, wj[0]);
             else if (das->mode == MODE_ENOI)
-                nc_writetransforms(ncid, jpool[jj], ni, -1, NULL, varid_w, wj[0]);
+                nc_writetransforms(das, ncid, jpool[jj], ni, -1, NULL, varid_w, wj[0]);
 #endif                          /* if defined(MPI) */
         }                       /* for jj */
 
