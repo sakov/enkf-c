@@ -622,6 +622,10 @@ void das_calctransforms(dasystem* das)
                         pdfs[ot][jjj][ii] = 0.0;
                         psrf[ot][jjj][ii] = 0.0;
                     } else {
+                        /*
+                         * it is used below that local observations in array
+                         * plobs are continuous by observation type
+                         */
 #if 0
                         double** pS = alloc2d(nmem, p, sizeof(double));
                         double** pG = &G[plobs[0]];

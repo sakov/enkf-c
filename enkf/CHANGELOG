@@ -1,7 +1,11 @@
+v2.5.10
+   PS 09022022
+   -- Fixed a defect in H_subsurf_lowmem() -- thanks to Joerg Henrichs for
+      finding it.
 v2.5.9
    PS 01022022
    -- Checked (and made a few minor changes) that CALC and UPDATE work without
-      MPI on a single CPU.
+      being compiled with -DMPI (on a single CPU).
 v2.5.8
    PS 01022022
    -- Cosmetics
