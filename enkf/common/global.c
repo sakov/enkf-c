@@ -43,7 +43,6 @@ int* node_comm_ranks = NULL;
 int enkf_obstype = OBSTYPE_VALUE;
 int enkf_exitaction = EXITACTION_DEFAULT;
 int enkf_verbose = 1;
-int enkf_nomeanupdate = 0;
 int enkf_fstatsonly = 0;
 int enkf_noobsdatecheck = 0;
 int enkf_considersubgridvar = 0;

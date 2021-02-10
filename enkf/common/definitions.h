@@ -168,7 +168,6 @@ extern int enkf_exitaction;
 extern int enkf_verbose;
 extern int enkf_separateout;
 extern int enkf_directwrite;
-extern int enkf_nomeanupdate;
 extern int enkf_fstatsonly;
 extern int enkf_noobsdatecheck;
 extern int enkf_considersubgridvar;

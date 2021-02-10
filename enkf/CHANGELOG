@@ -1,3 +1,6 @@
+v2.6.1
+   PS 11022021
+   -- in CALC removed command line option "--no-mean-update".
 v2.6.0
    PS 11022021
    -- Removed SFACTOR (spread factor) from grid structure and elsewhere.

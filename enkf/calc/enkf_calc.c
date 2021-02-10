@@ -50,8 +50,6 @@ static void usage()
     enkf_printf("      calculate and print forecast observation stats only\n");
     enkf_printf("  --ignore-no-obs\n");
     enkf_printf("      proceed even if there are no observations\n");
-    enkf_printf("  --no-mean-update\n");
-    enkf_printf("      update ensemble anomalies only\n");
     enkf_printf("  --point-logs-only\n");
     enkf_printf("      skip calculating transforms for the whole grid and observation stats\n");
     enkf_printf("  --print-batch-stats\n");
@@ -116,10 +114,6 @@ static void parse_commandline(int argc, char* argv[], char** fname_prm, char** f
             exit(0);
         } else if (strcmp(argv[i], "--ignore-no-obs") == 0) {
             ignorenoobs = 1;
-            i++;
-            continue;
-        } else if (strcmp(argv[i], "--no-mean-update") == 0) {
-            enkf_nomeanupdate = 1;
             i++;
             continue;
         } else if (strcmp(argv[i], "--print-batch-stats") == 0) {
