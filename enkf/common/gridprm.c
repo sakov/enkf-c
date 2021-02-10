@@ -69,7 +69,6 @@ void gridprm_create(char* fname, int* ngrid, gridprm** prm)
             *prm = realloc(*prm, sizeof(gridprm) * (*ngrid));
             now = &(*prm)[*ngrid - 1];
             memset(now, 0, sizeof(gridprm));
-            now->sfactor = 1.0;
             if ((token = strtok(NULL, seps)) == NULL)
                 enkf_quit("%s, l.%d: NAME not specified", fname, line);
             else
@@ -220,13 +219,6 @@ void gridprm_create(char* fname, int* ngrid, gridprm** prm)
                 enkf_quit("%s, l.%d: DEPTHVARNAME specified twice", fname, line);
             else
                 now->depthvarname = strdup(token);
-        } else if (strcasecmp(token, "SFACTOR") == 0) {
-            if ((token = strtok(NULL, seps)) == NULL)
-                enkf_quit("%s, l.%d: SFACTOR not specified", fname, line);
-            if (now->sfactor != 1.0)
-                enkf_quit("%s, l.%d: SFACTOR specified twice", fname, line);
-            if (!str2double(token, &now->sfactor))
-                enkf_quit("%s, l.%d: could not convert \"%s\" to double", fname, line, token);
         } else if (strcasecmp(token, "STRIDE") == 0) {
             if ((token = strtok(NULL, seps)) == NULL)
                 enkf_quit("%s, l.%d: STRIDE not specified", fname, line);
@@ -401,8 +393,6 @@ void gridprm_create(char* fname, int* ngrid, gridprm** prm)
                 gprm->nzints = 0;
         } else
             gprm->zints = 0;
-        if (!isfinite(gprm->sfactor) || gprm->sfactor <= 0.0)
-            enkf_quit("%s: SFACTOR = %.3g\n", gprm->sfactor);
     }
 }
 
@@ -505,8 +495,6 @@ void gridprm_print(gridprm* prm, char offset[])
         enkf_printf("%s  STRIDE = %d\n", offset, prm->stride);
     if (prm->sob_stride != 0)
         enkf_printf("%s  SOBSTRIDE = %d\n", offset, prm->sob_stride);
-    if (prm->sfactor != 1.0)
-        enkf_printf("%s  SFACTOR = \"%.f\"\n", offset, prm->sfactor);
     if (prm->nzints != 0) {
         enkf_printf("%s  ZSTATINTS = ", offset);
         for (i = 0; i < prm->nzints; ++i)

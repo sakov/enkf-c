@@ -50,7 +50,6 @@ int** grid_getnumlevels(grid* g);
 double grid_getlonbase(grid* g);
 int grid_getstride(grid* g);
 void grid_setstride(grid* g, int stride);
-double grid_getsfactor(grid* g);
 void grid_getzints(grid* g, int* nzints, zint* zints[]);
 char* grid_getdomainname(grid* g);
 

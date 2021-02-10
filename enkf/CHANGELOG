@@ -1,3 +1,6 @@
+v2.6.0
+   PS 11022021
+   -- Removed SFACTOR (spread factor) from grid structure and elsewhere.
 v2.5.11
    PS 10022021
    -- Moving "badbatches.out" to "badbatches.out.used" after reading badbatches

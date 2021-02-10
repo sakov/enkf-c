@@ -150,13 +150,6 @@ struct grid {
     int stride;
 
     /*
-     * "Spread factor", normally set to 1. Introduced to adjust relative spread
-     * of the ocean and atmospheric parts in climate models. Applies to all
-     * variables of the grid.
-     */
-    double sfactor;
-
-    /*
      * Vertical intervals for observation statistics
      */
     int nzints;
@@ -963,7 +956,6 @@ grid* grid_create(void* p, int id)
     g->vtype = gridprm_getvtype(prm);
     if (prm->stride != 0)
         g->stride = prm->stride;
-    g->sfactor = prm->sfactor;
     g->nzints = prm->nzints;
     if (prm->nzints > 0) {
         g->zints = malloc(g->nzints * sizeof(zint));
@@ -1311,8 +1303,6 @@ void grid_print(grid* g, char offset[])
         enkf_quit("not implemented");
     if (g->stride != 1)
         enkf_printf("%s  STRIDE = %d\n", offset, g->stride);
-    if (g->sfactor != 1.0)
-        enkf_printf("%s  SFACTOR = %f\n", offset, g->sfactor);
 #if defined(ENKF_PREP) || defined(ENKF_CALC)
     if (g->htype == GRIDHTYPE_CURVILINEAR)
         kd_printinfo(gxy_curv_gettree(g->gridnodes_xy), "      ");
@@ -1355,7 +1345,6 @@ void grid_describeprm(void)
     enkf_printf("    P2VARNAME        = <P2 variable name>                 (hybrid)\n");
     enkf_printf("  [ STRIDE           = <stride for ensemble transforms> ] (1*)\n");
     enkf_printf("  [ SOBSTRIDE        = <stride for superobing> ]          (1*)\n");
-    enkf_printf("  [ SFACTOR          = <spread factor> ]                  (1.0*)\n");
     enkf_printf("  [ ZSTATINTS        = [<z1> <z2>] ... ]\n");
     enkf_printf("\n");
     enkf_printf("  [ <more of the above blocks> ]\n");
@@ -1508,13 +1497,6 @@ int grid_getstride(grid* g)
 void grid_setstride(grid* g, int stride)
 {
     g->stride = stride;
-}
-
-/**
- */
-double grid_getsfactor(grid* g)
-{
-    return g->sfactor;
 }
 
 /**

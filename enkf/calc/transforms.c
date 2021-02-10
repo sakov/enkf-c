@@ -343,7 +343,6 @@ void das_calctransforms(dasystem* das)
     for (gid = 0; gid < ngrid; ++gid) {
         void* g = model_getgridbyid(m, gid);
         char* gridname = grid_getname(g);
-        double sfactor = grid_getsfactor(g);
         int stride = grid_getstride(g);
 
         int mni, mnj;
@@ -567,7 +566,7 @@ void das_calctransforms(dasystem* das)
                     double* Sloce = Sloc[e];
 
                     for (o = 0; o < ploc; ++o)
-                        Sloce[o] = (double) Se[lobs[o]] * lcoeffs[o] * sfactor;
+                        Sloce[o] = (double) Se[lobs[o]] * lcoeffs[o];
                 }
                 for (o = 0; o < ploc; ++o)
                     sloc[o] = das->s_f[lobs[o]] * lcoeffs[o];
@@ -1007,7 +1006,6 @@ void das_calcpointlogtransforms(dasystem* das)
             void* g = model_getgridbyid(m, gid);
             int i = (int) (plog->fi[gid] + 0.5);
             int j = (int) (plog->fj[gid] + 0.5);
-            double sfactor = grid_getsfactor(g);
             double* sloc = NULL;
             double** Sloc = NULL;
             double** G = NULL;
@@ -1039,7 +1037,7 @@ void das_calcpointlogtransforms(dasystem* das)
                     double* Sloce = Sloc[e];
 
                     for (o = 0; o < ploc; ++o)
-                        Sloce[o] = (double) Se[lobs[o]] * lcoeffs[o] * sfactor;
+                        Sloce[o] = (double) Se[lobs[o]] * lcoeffs[o];
                 }
                 for (o = 0; o < ploc; ++o)
                     sloc[o] = das->s_f[lobs[o]] * lcoeffs[o];

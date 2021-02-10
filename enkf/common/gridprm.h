@@ -66,7 +66,6 @@ typedef struct {
      */
     int stride;
     int sob_stride;
-    double sfactor;
 
     /*
      * Vertical intervals for observation statistics
