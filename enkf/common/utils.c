@@ -544,7 +544,7 @@ int file_exists(char* fname)
 
 /**
  */
-void file_delete(char* fname)
+void file_delete(char fname[])
 {
     int status = -1;
 
@@ -553,6 +553,20 @@ void file_delete(char* fname)
         int errno_saved = errno;
 
         enkf_quit("could not delete file \"%s\": %s", fname, strerror(errno_saved));
+    }
+}
+
+/**
+ */
+void file_rename(char oldname[], char newname[])
+{
+    int status = -1;
+
+    status = rename(oldname, newname);
+    if (status != 0) {
+        int errno_saved = errno;
+
+        enkf_quit("could not rename file \"%s\" to \"%s\": %s", oldname, newname, strerror(errno_saved));
     }
 }
 

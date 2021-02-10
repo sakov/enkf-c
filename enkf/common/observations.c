@@ -220,6 +220,14 @@ observations* obs_create_fromprm(enkfprm* prm)
             enkf_printf("    %s %s %d %d\n", otname, bb->fname, bb->fid, bb->batch);
         }
         fclose(f);
+
+        {
+            char fname[MAXSTRLEN];
+
+            snprintf(fname, MAXSTRLEN, "%s.used", FNAME_BADBATCHES);
+            enkf_printf("  moving \"%s\" to \"%s\"\n", FNAME_BADBATCHES, fname);
+            file_rename(FNAME_BADBATCHES, fname);
+        }
     }
 #endif
 

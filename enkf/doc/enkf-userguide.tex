@@ -39,7 +39,7 @@
 
 \begin{document}
 
-\title{EnKF-C user guide\\{\normalsize version 2.5.0}}
+\title{EnKF-C user guide\\{\normalsize version 2.5.11}}
 
 \author{Pavel Sakov}
 \date{June 19, 2014 -- \today}
@@ -1166,6 +1166,7 @@ Therefore, the workflow for detecting and eliminating bad batches of observation
 \item remove \verb|observations.nc| and \verb|observations-orig.nc|;
 \item calculate analysis in a ``normal'' way by running \verb|enkf_prep|, \verb|enkf_calc| and \verb|enkf_update|.
 \end{enumerate}
+In the second pass of PREP the file \verb|badbatches.out| is renamed to \verb|badbatches.out.used|.
 
 \subsubsection{Readers}
 
