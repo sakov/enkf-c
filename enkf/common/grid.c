@@ -945,7 +945,7 @@ grid* grid_create(void* p, int id, void** grids)
     grid* g = calloc(1, sizeof(grid));
     char* hfname;
     char* vfname;
-    int ncid_h, ncid_v;
+    int ncid_h = -1, ncid_v = -1;
     int varid_x, varid_y;
     int ndims_x, ndims_y;
     size_t ni, nj, nk;
@@ -984,8 +984,6 @@ grid* grid_create(void* p, int id, void** grids)
                 g->htype = othergrid->htype;
                 g->gridnodes_xy = othergrid->gridnodes_xy;
                 g->lonbase = othergrid->lonbase;
-                g->numlevels = othergrid->numlevels;
-                g->depth = othergrid->depth;
                 break;
             }
         }
@@ -1048,6 +1046,10 @@ grid* grid_create(void* p, int id, void** grids)
     } else
         enkf_quit("%s: could not determine the horizontal grid type", hfname);
 
+  vertical:
+    if (ncid_h < 0)
+        ncw_open(hfname, NC_NOWRITE, &ncid_h);
+
     if (prm->depthvarname != NULL) {
         size_t dimlen[2] = { nj, ni };
 
@@ -1056,6 +1058,7 @@ grid* grid_create(void* p, int id, void** grids)
         ncw_check_vardims(ncid_h, varid_depth, 2, dimlen);
         ncu_readvarfloat(ncid_h, varid_depth, ni * nj, g->depth[0]);
     }
+
     if (prm->levelvarname != NULL) {
         size_t dimlen[2] = { nj, ni };
 
@@ -1079,7 +1082,6 @@ grid* grid_create(void* p, int id, void** grids)
 
     ncw_close(ncid_h);
 
-  vertical:
     /*
      * set vertical grid
      */

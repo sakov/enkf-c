@@ -1,3 +1,7 @@
+v2.7.1
+   PS 11022021
+   -- A correction to v2.7.0 made after realising that grids with common
+      horizontal grid may have different vertical types.
 v2.7.0
    PS 11022021
    -- Added possibility to specify common horizontal grid for different grids.
