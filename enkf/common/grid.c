@@ -1631,7 +1631,10 @@ int grid_z2fk(grid* g, double fi, double fj, double z, double* fk)
         gz_sigma_z2fk(g, fi, fj, z, fk);
     else if (g->vtype == GRIDVTYPE_HYBRID)
         gz_hybrid_z2fk(g, fi, fj, z, fk);
-    else
+    else if (g->vtype == GRIDVTYPE_NONE) {
+	*fk = 0.0;
+	return STATUS_OK;
+    } else
         enkf_quit("not implemented");
 
     if (isnan(*fk))

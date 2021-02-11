@@ -158,7 +158,7 @@ static void das_setnmem(dasystem* das)
 static void get_gridstr(dasystem* das, int gid, char str[])
 {
     if (model_getngrid(das->m) == 1)
-        strcpy(str, "");
+        str[0] = 0;
     else
         sprintf(str, "-%d", gid);
 }
@@ -431,11 +431,12 @@ void das_getfields(dasystem* das, int gridid, int* nfields, field** fields)
 
     for (vid = 0; vid < nvar; ++vid) {
         int vargridid = model_getvargridid(m, vid);
+	int varaliasid = grid_getaliasid(model_getgridbyid(m, vargridid));
         char fname[MAXSTRLEN];
         char* varname = model_getvarname(m, vid);
         int nk, k;
 
-        if (gridid >= 0 && vargridid != gridid && vargridid != aliasid)
+        if (gridid >= 0 && vargridid != gridid && varaliasid != gridid)
             continue;
 
         das_getmemberfname(das, varname, 1, fname);

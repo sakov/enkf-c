@@ -1,3 +1,7 @@
+v2.7.3
+   PS 11022021
+   -- A fix in das_getfields() in case of horizontal grid aliasing.
+   -- A correction in grid_z2fk() for GRIDVTYPE_NONE.
 v2.7.2
    PS 11022021
    -- Changed grid parameter file settings for horizontal grid aliasing.
