@@ -39,7 +39,7 @@
 
 \begin{document}
 
-\title{EnKF-C user guide\\{\normalsize version 2.7.0}}
+\title{EnKF-C user guide\\{\normalsize version 2.7.2}}
 
 \author{Pavel Sakov}
 \date{June 19, 2014 -- \today}
@@ -845,16 +845,15 @@ It also contains variable names for the depth and for number of layers in a vert
 
     NAME             = <name> [ PREP | CALC ]
   [ DOMAIN           = <domain name> ]
+    DATA             = <data file name>
     (either)
-      DATA           = <data file name>
+      XVARNAME       = <X variable name>
+      YVARNAME       = <Y variable name>
     (or)
-      HDATA          = { <data file name> | <grid name> }
-      VDATA          = <data file name>
+      HGRIDFROM      = <grid name>
     (end either)
     VTYPE            = { z | sigma | hybrid | none }
   [ VDIR             = { fromsurf* | tosurf } ]
-    XVARNAME         = <X variable name>
-    YVARNAME         = <Y variable name>
     (if vtype = z)
       ZVARNAME       = <Z variable name>
     [ ZCVARNAME      = <ZC variable name> ]
@@ -885,7 +884,7 @@ It also contains variable names for the depth and for number of layers in a vert
 \end{Verbatim}
 
 The code is supposed to automatically identify the type of horizontal grid used, while the type of the vertical grid has to be specified explicitly.
-If some grid (say, grid A) has the same horizontal grid as other grid (grid B), the code can be notified of this by entering name of grid A in the field \verb|HDATA| for grid B (or vice versa).
+If some grid (say, grid A) has the same horizontal grid as other grid (grid B), the code can be notified of this by entering name of grid A in the field \verb|HGRIDFROM| for grid B (or vice versa).
 This saves memory, grid initialisation time, and uses transforms calculated for grid A for all variables defined on grid B.
 
 \subsubsection{Horizontal grids}

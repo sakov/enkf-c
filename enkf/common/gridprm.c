@@ -122,20 +122,13 @@ void gridprm_create(char* fname, int* ngrid, gridprm** prm)
                 enkf_quit("%s, l.%d: DATA specified twice", fname, line);
             else
                 now->fname = strdup(token);
-        } else if (strcasecmp(token, "HDATA") == 0) {
+        } else if (strcasecmp(token, "HGRIDFROM") == 0) {
             if ((token = strtok(NULL, seps)) == NULL)
-                enkf_quit("%s, l.%d: HDATA not specified", fname, line);
-            else if (now->hfname != NULL)
-                enkf_quit("%s, l.%d: HDATA specified twice", fname, line);
+                enkf_quit("%s, l.%d: HGRIDFROM not specified", fname, line);
+            else if (now->aliasname != NULL)
+                enkf_quit("%s, l.%d: HGRIDFROM specified twice", fname, line);
             else
-                now->hfname = strdup(token);
-        } else if (strcasecmp(token, "VDATA") == 0) {
-            if ((token = strtok(NULL, seps)) == NULL)
-                enkf_quit("%s, l.%d: VDATA not specified", fname, line);
-            else if (now->vfname != NULL)
-                enkf_quit("%s, l.%d: VDATA specified twice", fname, line);
-            else
-                now->vfname = strdup(token);
+                now->aliasname = strdup(token);
         } else if (strcasecmp(token, "XVARNAME") == 0) {
             if ((token = strtok(NULL, seps)) == NULL)
                 enkf_quit("%s, l.%d: XVARNAME not specified", fname, line);
@@ -366,17 +359,10 @@ void gridprm_create(char* fname, int* ngrid, gridprm** prm)
 
         if (gprm->vtype == NULL)
             enkf_quit("%s: VTYPE not specified for grid \"%s\"", fname, gprm->name);
-        if (gprm->fname == NULL) {
-            if (gprm->hfname == NULL && gprm->vfname == NULL)
-                enkf_quit("%s: DATA not specified for grid \"%s\"", fname, gprm->name);
-            else if (gprm->hfname == NULL)
-                enkf_quit("%s: HDATA not specified for grid \"%s\"", fname, gprm->name);
-            else
-                enkf_quit("%s: VDATA not specified for grid \"%s\"", fname, gprm->name);
-        } else {
-            if (gprm->hfname != NULL || gprm->vfname != NULL)
-                enkf_quit("%s: %s: either DATA or both HDATA and VDATA must be defined for a grid", fname, gprm->name);
-        }
+        if (gprm->fname == NULL)
+            enkf_quit("%s: DATA not specified for grid \"%s\"", fname, gprm->name);
+        if (gprm->aliasname != NULL && (gprm->xvarname != NULL || gprm->yvarname != NULL))
+            enkf_quit("%s: %s: either HGRIDFROM or XVARNAME and YVARNAME should be specified", fname, gprm->name);
         if (gprm->domainname == NULL)
             gprm->domainname = strdup("Default");
         if (strcasecmp(gprm->vtype, "NONE") == 0);
@@ -397,9 +383,9 @@ void gridprm_create(char* fname, int* ngrid, gridprm** prm)
                 enkf_quit("%s: %s: P2VARNAME must be specified for hybrid grids", fname, gprm->name);
         } else
             enkf_quit("vertical type \"%s\" specified for grid \"%s\" is unknown", gprm->vtype, gprm->name);
-        if (gprm->xvarname == NULL)
+        if (gprm->aliasname == NULL && gprm->xvarname == NULL)
             enkf_quit("%s: XVARNAME not specified for grid \"%s\"", fname, gprm->name);
-        if (gprm->yvarname == NULL)
+        if (gprm->aliasname == NULL && gprm->yvarname == NULL)
             enkf_quit("%s: YVARNAME not specified for grid \"%s\"", fname, gprm->name);
         if (strcasecmp(gprm->vtype, "NONE") != 0) {
             if (gprm->vdirection == NULL)
@@ -431,14 +417,13 @@ void gridprm_destroy(int ngrid, gridprm prm[])
 
         free(now->prmfname);
         free(now->name);
-        if (now->fname != NULL)
-            free(now->fname);
+        free(now->fname);
+        if (now->aliasname != NULL)
+            free(now->aliasname);
         else {
-            free(now->hfname);
-            free(now->vfname);
+            free(now->xvarname);
+            free(now->yvarname);
         }
-        free(now->xvarname);
-        free(now->yvarname);
         if (now->vtype != NULL)
             free(now->vtype);
         if (now->zvarname != NULL)
@@ -479,12 +464,7 @@ void gridprm_print(gridprm* prm, char offset[])
     enkf_printf("%sgrid prm info:\n", offset);
     enkf_printf("%s  NAME = \"%s\"\n", offset, prm->name);
     enkf_printf("%s  DOMAIN = %s\n", offset, prm->domainname);
-    if (prm->fname != NULL)
-        enkf_printf("%s  DATA = \"%s\"\n", offset, prm->fname);
-    else {
-        enkf_printf("%s  HDATA = \"%s\"\n", offset, prm->hfname);
-        enkf_printf("%s  VDATA = \"%s\"\n", offset, prm->vfname);
-    }
+    enkf_printf("%s  DATA = \"%s\"\n", offset, prm->fname);
     enkf_printf("%s  VTYPE = \"%s\"\n", offset, prm->vtype);
     if (strcasecmp(prm->vtype, "NONE") == 0);
     else if (strcasecmp(prm->vtype, "Z") == 0) {
@@ -524,8 +504,11 @@ void gridprm_print(gridprm* prm, char offset[])
         enkf_printf("%s  %s = \"%s\"\n", offset, prm->levelvarnameentry, prm->levelvarname);
     if (prm->vdirection != NULL)
         enkf_printf("%s  VDIR = \"%s\"\n", offset, prm->vdirection);
-    enkf_printf("%s  XVARNAME = \"%s\"\n", offset, prm->xvarname);
-    enkf_printf("%s  YVARNAME = \"%s\"\n", offset, prm->yvarname);
+    if (prm->xvarname != NULL) {
+        enkf_printf("%s  XVARNAME = \"%s\"\n", offset, prm->xvarname);
+        enkf_printf("%s  YVARNAME = \"%s\"\n", offset, prm->yvarname);
+    } else if (prm->aliasname != NULL)
+        enkf_printf("%s  HGRIDFROM = \"%s\"\n", offset, prm->aliasname);
     if (prm->stride != 0)
         enkf_printf("%s  STRIDE = %d\n", offset, prm->stride);
     if (prm->sob_stride != 0)

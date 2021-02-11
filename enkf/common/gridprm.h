@@ -20,11 +20,10 @@ typedef struct {
     char* name;
     char* fname;
 
-    char* hfname;
+    char* aliasname;
     char* xvarname;
     char* yvarname;
 
-    char* vfname;
     char* vtype;
     /*
      * Z stuff: zvarname and zcvarname hold the names of the layer centre
