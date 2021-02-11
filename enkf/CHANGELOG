@@ -1,3 +1,9 @@
+v2.7.0
+   PS 11022021
+   -- Added possibility to specify common horizontal grid for different grids.
+      This saves memory, reduces initialisation time, and uses transforms
+      calculated on the common grid for all variables defined on common
+      horizontal grids.
 v2.6.1
    PS 11022021
    -- in CALC removed command line option "--no-mean-update".

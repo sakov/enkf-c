@@ -128,6 +128,7 @@ struct grid {
     void* das;
     char* name;
     int id;
+    int aliasid;
     int htype;                  /* horizontal type */
     int vtype;                  /* vertical type */
 
@@ -938,12 +939,13 @@ static void grid_sethgrid(grid* g, int htype, int ni, int nj, void* x, void* y)
 
 /**
  */
-grid* grid_create(void* p, int id)
+grid* grid_create(void* p, int id, void** grids)
 {
     gridprm* prm = (gridprm*) p;
     grid* g = calloc(1, sizeof(grid));
-    char* fname = prm->fname;
-    int ncid;
+    char* hfname;
+    char* vfname;
+    int ncid_h, ncid_v;
     int varid_x, varid_y;
     int ndims_x, ndims_y;
     size_t ni, nj, nk;
@@ -952,6 +954,7 @@ grid* grid_create(void* p, int id)
     g->das = NULL;
     g->name = strdup(prm->name);
     g->id = id;
+    g->aliasid = -1;
     g->domainname = strdup(prm->domainname);    /* ("Default" by default) */
     g->vtype = gridprm_getvtype(prm);
     if (prm->stride != 0)
@@ -962,35 +965,64 @@ grid* grid_create(void* p, int id)
         memcpy(g->zints, prm->zints, g->nzints * sizeof(zint));
     }
 
-    ncw_open(fname, NC_NOWRITE, &ncid);
-    ncw_inq_varid(ncid, prm->xvarname, &varid_x);
-    ncw_inq_varndims(ncid, varid_x, &ndims_x);
-    ncw_inq_varid(ncid, prm->yvarname, &varid_y);
-    ncw_inq_varndims(ncid, varid_y, &ndims_y);
+    if (prm->fname != NULL) {
+        hfname = prm->fname;
+        vfname = prm->fname;
+    } else {
+        hfname = prm->vfname;
+        vfname = prm->vfname;
+    }
+
+    if (!file_exists(hfname)) {
+        int i;
+
+        for (i = 0; i < id; ++i) {
+            grid* othergrid = (grid*) grids[i];
+
+            if (strcmp(othergrid->name, hfname) == 0) {
+                g->aliasid = othergrid->id;
+                g->htype = othergrid->htype;
+                g->gridnodes_xy = othergrid->gridnodes_xy;
+                g->lonbase = othergrid->lonbase;
+                g->numlevels = othergrid->numlevels;
+                g->depth = othergrid->depth;
+                break;
+            }
+        }
+        if (i == id)
+            enkf_quit("%s: %s: no NetCDF file or grid \"%s\" found\n", prm->prmfname, prm->name, hfname);
+        goto vertical;
+    }
 
     /*
      * set horizontal grid
      */
+    ncw_open(hfname, NC_NOWRITE, &ncid_h);
+    ncw_inq_varid(ncid_h, prm->xvarname, &varid_x);
+    ncw_inq_varndims(ncid_h, varid_x, &ndims_x);
+    ncw_inq_varid(ncid_h, prm->yvarname, &varid_y);
+    ncw_inq_varndims(ncid_h, varid_y, &ndims_y);
+
     if (ndims_x == 1 && ndims_y == 1) {
         double* x;
         double* y;
 
-        ncw_inq_vardims(ncid, varid_x, 1, NULL, &ni);
-        ncw_inq_vardims(ncid, varid_y, 1, NULL, &nj);
+        ncw_inq_vardims(ncid_h, varid_x, 1, NULL, &ni);
+        ncw_inq_vardims(ncid_h, varid_y, 1, NULL, &nj);
 
         x = malloc(ni * sizeof(double));
         y = malloc(nj * sizeof(double));
 
-        ncu_readvardouble(ncid, varid_x, ni, x);
-        ncu_readvardouble(ncid, varid_y, nj, y);
+        ncu_readvardouble(ncid_h, varid_x, ni, x);
+        ncu_readvardouble(ncid_h, varid_y, nj, y);
 
         grid_sethgrid(g, GRIDHTYPE_LATLON, ni, nj, x, y);
     } else if (ndims_x == 2 && ndims_y == 2) {
 #if defined(ENKF_UPDATE)
         size_t dimlen[2];
 
-        ncw_inq_vardims(ncid, varid_x, 2, NULL, dimlen);
-        ncw_check_vardims(ncid, varid_y, 2, dimlen);
+        ncw_inq_vardims(ncid_h, varid_x, 2, NULL, dimlen);
+        ncw_check_vardims(ncid_h, varid_y, 2, dimlen);
         nj = dimlen[0];
         ni = dimlen[1];
 
@@ -1000,33 +1032,58 @@ grid* grid_create(void* p, int id)
         double** y;
         size_t dimlen[2];
 
-        ncw_inq_vardims(ncid, varid_x, 2, NULL, dimlen);
-        ncw_check_vardims(ncid, varid_y, 2, dimlen);
+        ncw_inq_vardims(ncid_h, varid_x, 2, NULL, dimlen);
+        ncw_check_vardims(ncid_h, varid_y, 2, dimlen);
         nj = dimlen[0];
         ni = dimlen[1];
 
         x = alloc2d(nj, ni, sizeof(double));
         y = alloc2d(nj, ni, sizeof(double));
 
-        ncu_readvardouble(ncid, varid_x, ni * nj, x[0]);
-        ncu_readvardouble(ncid, varid_y, ni * nj, y[0]);
+        ncu_readvardouble(ncid_h, varid_x, ni * nj, x[0]);
+        ncu_readvardouble(ncid_h, varid_y, ni * nj, y[0]);
 
         grid_sethgrid(g, GRIDHTYPE_CURVILINEAR, ni, nj, x, y);
 #endif
     } else
-        enkf_quit("%s: could not determine the horizontal grid type", fname);
+        enkf_quit("%s: could not determine the horizontal grid type", hfname);
 
-    /*
-     * set vertical grid
-     */
     if (prm->depthvarname != NULL) {
         size_t dimlen[2] = { nj, ni };
 
         g->depth = alloc2d(nj, ni, sizeof(float));
-        ncw_inq_varid(ncid, prm->depthvarname, &varid_depth);
-        ncw_check_vardims(ncid, varid_depth, 2, dimlen);
-        ncu_readvarfloat(ncid, varid_depth, ni * nj, g->depth[0]);
+        ncw_inq_varid(ncid_h, prm->depthvarname, &varid_depth);
+        ncw_check_vardims(ncid_h, varid_depth, 2, dimlen);
+        ncu_readvarfloat(ncid_h, varid_depth, ni * nj, g->depth[0]);
     }
+    if (prm->levelvarname != NULL) {
+        size_t dimlen[2] = { nj, ni };
+
+        g->numlevels = alloc2d(nj, ni, sizeof(int));
+        ncw_inq_varid(ncid_h, prm->levelvarname, &varid_numlevels);
+        ncw_check_varndims(ncid_h, varid_numlevels, 2);
+        ncw_check_vardims(ncid_h, varid_numlevels, 2, dimlen);
+        ncw_get_var_int(ncid_h, varid_numlevels, g->numlevels[0]);
+        if (g->vtype == GRIDVTYPE_SIGMA || g->vtype == GRIDVTYPE_HYBRID) {
+            int* numlevels = g->numlevels[0];
+            int i;
+
+            for (i = 0; i < ni * nj; ++i) {
+                if (numlevels[i] == 0)
+                    continue;
+                else
+                    numlevels[i] = nk;
+            }
+        }
+    }
+
+    ncw_close(ncid_h);
+
+  vertical:
+    /*
+     * set vertical grid
+     */
+    ncw_open(vfname, NC_NOWRITE, &ncid_v);
     if (g->vtype == GRIDVTYPE_NONE);
     else if (g->vtype == GRIDVTYPE_Z) {
         int varid;
@@ -1034,19 +1091,19 @@ grid* grid_create(void* p, int id)
         double* zc = NULL;
         size_t nkc = 0;
 
-        ncw_inq_varid(ncid, prm->zvarname, &varid);
-        ncw_inq_vardims(ncid, varid, 1, NULL, &nk);
+        ncw_inq_varid(ncid_v, prm->zvarname, &varid);
+        ncw_inq_vardims(ncid_v, varid, 1, NULL, &nk);
         z = malloc(nk * sizeof(double));
-        ncu_readvardouble(ncid, varid, nk, z);
+        ncu_readvardouble(ncid_v, varid, nk, z);
         if (prm->zcvarname != NULL) {
-            ncw_inq_varid(ncid, prm->zcvarname, &varid);
-            ncw_inq_vardims(ncid, varid, 1, NULL, &nkc);
+            ncw_inq_varid(ncid_v, prm->zcvarname, &varid);
+            ncw_inq_vardims(ncid_v, varid, 1, NULL, &nkc);
             /*
              * (nkc = nk in MOM)
              */
             assert(nkc == nk || nkc == nk + 1);
             zc = malloc(nkc * sizeof(double));
-            ncu_readvardouble(ncid, varid, nkc, zc);
+            ncu_readvardouble(ncid_v, varid, nkc, zc);
         }
         g->gridnodes_z = gz_z_create(g, nk, z, nkc, zc, prm->vdirection);
         if (zc != NULL)
@@ -1059,36 +1116,36 @@ grid* grid_create(void* p, int id)
         double* sc = NULL;
         double hc = 0.0;
 
-        ncw_inq_varid(ncid, prm->cvarname, &varid);
-        ncw_inq_vardims(ncid, varid, 1, NULL, &nk);
+        ncw_inq_varid(ncid_v, prm->cvarname, &varid);
+        ncw_inq_vardims(ncid_v, varid, 1, NULL, &nk);
         ct = malloc(nk * sizeof(double));
-        ncu_readvardouble(ncid, varid, nk, ct);
+        ncu_readvardouble(ncid_v, varid, nk, ct);
         if (prm->ccvarname != NULL) {
             size_t nkc = nk + 1;
 
-            ncw_inq_varid(ncid, prm->ccvarname, &varid);
-            ncw_check_vardims(ncid, varid, 1, &nkc);
+            ncw_inq_varid(ncid_v, prm->ccvarname, &varid);
+            ncw_check_vardims(ncid_v, varid, 1, &nkc);
             cc = malloc(nkc * sizeof(double));
-            ncu_readvardouble(ncid, varid, nkc, cc);
+            ncu_readvardouble(ncid_v, varid, nkc, cc);
         }
         if (prm->hcvarname != NULL) {
-            ncw_inq_varid(ncid, prm->hcvarname, &varid);
-            ncw_check_varndims(ncid, varid, 0);
-            ncu_readvardouble(ncid, varid, 1, &hc);
+            ncw_inq_varid(ncid_v, prm->hcvarname, &varid);
+            ncw_check_varndims(ncid_v, varid, 0);
+            ncu_readvardouble(ncid_v, varid, 1, &hc);
         }
         if (prm->svarname != NULL) {
             st = malloc(nk * sizeof(double));
-            ncw_inq_varid(ncid, prm->svarname, &varid);
-            ncw_check_vardims(ncid, varid, 1, &nk);
-            ncu_readvardouble(ncid, varid, nk, st);
+            ncw_inq_varid(ncid_v, prm->svarname, &varid);
+            ncw_check_vardims(ncid_v, varid, 1, &nk);
+            ncu_readvardouble(ncid_v, varid, nk, st);
         }
         if (prm->scvarname != NULL) {
             size_t nkc = nk + 1;
 
             sc = malloc((nk + 1) * sizeof(double));
-            ncw_inq_varid(ncid, prm->scvarname, &varid);
-            ncw_check_vardims(ncid, varid, 1, &nkc);
-            ncu_readvardouble(ncid, varid, nkc, sc);
+            ncw_inq_varid(ncid_v, prm->scvarname, &varid);
+            ncw_check_vardims(ncid_v, varid, 1, &nkc);
+            ncu_readvardouble(ncid_v, varid, nkc, sc);
         }
 
         g->gridnodes_z = gz_sigma_create(g, ni, nj, nk, st, sc, ct, cc, hc, prm->vdirection);
@@ -1102,67 +1159,47 @@ grid* grid_create(void* p, int id)
         int varid;
         size_t dimlen[2];
 
-        ncw_inq_varid(ncid, prm->avarname, &varid);
-        ncw_inq_vardims(ncid, varid, 1, NULL, &nk);
+        ncw_inq_varid(ncid_v, prm->avarname, &varid);
+        ncw_inq_vardims(ncid_v, varid, 1, NULL, &nk);
         a = malloc(nk * sizeof(double));
-        ncu_readvardouble(ncid, varid, nk, a);
+        ncu_readvardouble(ncid_v, varid, nk, a);
 
-        ncw_inq_varid(ncid, prm->bvarname, &varid);
-        ncw_check_vardims(ncid, varid, 1, &nk);
+        ncw_inq_varid(ncid_v, prm->bvarname, &varid);
+        ncw_check_vardims(ncid_v, varid, 1, &nk);
         b = malloc(nk * sizeof(double));
-        ncu_readvardouble(ncid, varid, nk, b);
+        ncu_readvardouble(ncid_v, varid, nk, b);
 
         if (prm->acvarname != NULL) {
             size_t nkc = nk + 1;
 
             assert(prm->bcvarname != NULL);
 
-            ncw_inq_varid(ncid, prm->acvarname, &varid);
-            ncw_check_vardims(ncid, varid, 1, &nkc);
+            ncw_inq_varid(ncid_v, prm->acvarname, &varid);
+            ncw_check_vardims(ncid_v, varid, 1, &nkc);
             ac = malloc(nkc * sizeof(double));
-            ncu_readvardouble(ncid, varid, nkc, ac);
+            ncu_readvardouble(ncid_v, varid, nkc, ac);
 
-            ncw_inq_varid(ncid, prm->bcvarname, &varid);
-            ncw_check_vardims(ncid, varid, 1, &nkc);
+            ncw_inq_varid(ncid_v, prm->bcvarname, &varid);
+            ncw_check_vardims(ncid_v, varid, 1, &nkc);
             bc = malloc(nkc * sizeof(double));
-            ncu_readvardouble(ncid, varid, nkc, bc);
+            ncu_readvardouble(ncid_v, varid, nkc, bc);
         }
 
-        ncw_inq_varid(ncid, prm->p1varname, &varid);
+        ncw_inq_varid(ncid_h, prm->p1varname, &varid);
         dimlen[0] = nj;
         dimlen[1] = ni;
-        ncw_check_vardims(ncid, varid, 2, dimlen);
-        ncu_readvarfloat(ncid, varid, ni * nj, p1[0]);
+        ncw_check_vardims(ncid_h, varid, 2, dimlen);
+        ncu_readvarfloat(ncid_h, varid, ni * nj, p1[0]);
 
-        ncw_inq_varid(ncid, prm->p2varname, &varid);
-        ncw_check_vardims(ncid, varid, 2, dimlen);
-        ncu_readvarfloat(ncid, varid, ni * nj, p2[0]);
+        ncw_inq_varid(ncid_h, prm->p2varname, &varid);
+        ncw_check_vardims(ncid_h, varid, 2, dimlen);
+        ncu_readvarfloat(ncid_h, varid, ni * nj, p2[0]);
 
         g->gridnodes_z = gz_hybrid_create(ni, nj, nk, a, b, ac, bc, p1, p2, prm->vdirection);
     } else
         enkf_quit("not implemented");
 
-    if (prm->levelvarname != NULL) {
-        size_t dimlen[2] = { nj, ni };
-
-        g->numlevels = alloc2d(nj, ni, sizeof(int));
-        ncw_inq_varid(ncid, prm->levelvarname, &varid_numlevels);
-        ncw_check_varndims(ncid, varid_numlevels, 2);
-        ncw_check_vardims(ncid, varid_numlevels, 2, dimlen);
-        ncw_get_var_int(ncid, varid_numlevels, g->numlevels[0]);
-        if (g->vtype == GRIDVTYPE_SIGMA || g->vtype == GRIDVTYPE_HYBRID) {
-            int* numlevels = g->numlevels[0];
-            int i;
-
-            for (i = 0; i < ni * nj; ++i) {
-                if (numlevels[i] == 0)
-                    continue;
-                else
-                    numlevels[i] = nk;
-            }
-        }
-    }
-    ncw_close(ncid);
+    ncw_close(ncid_v);
 
     if (g->numlevels == NULL) {
         g->numlevels = alloc2d(nj, ni, sizeof(int));
@@ -1208,16 +1245,22 @@ void grid_destroy(grid* g)
 {
     free(g->name);
     free(g->domainname);
-    if (g->htype == GRIDHTYPE_NONE)
-        free(g->gridnodes_xy);
-    else if (g->htype == GRIDHTYPE_LATLON)
-        gxy_simple_destroy(g->gridnodes_xy);
+    if (g->aliasid < 0) {
+        if (g->htype == GRIDHTYPE_NONE)
+            free(g->gridnodes_xy);
+        else if (g->htype == GRIDHTYPE_LATLON)
+            gxy_simple_destroy(g->gridnodes_xy);
 #if defined(ENKF_PREP) || defined(ENKF_CALC)
-    else if (g->htype == GRIDHTYPE_CURVILINEAR)
-        gxy_curv_destroy(g->gridnodes_xy);
+        else if (g->htype == GRIDHTYPE_CURVILINEAR)
+            gxy_curv_destroy(g->gridnodes_xy);
 #endif
-    else
-        enkf_quit("programming_error");
+        else
+            enkf_quit("programming_error");
+        if (g->numlevels != NULL)
+            free(g->numlevels);
+        if (g->depth != NULL)
+            free(g->depth);
+    }
     if (g->gridnodes_z != NULL) {
         if (g->vtype == GRIDVTYPE_Z)
             gz_z_destroy(g->gridnodes_z);
@@ -1228,10 +1271,6 @@ void grid_destroy(grid* g)
         else
             enkf_quit("not implemented");
     }
-    if (g->numlevels != NULL)
-        free(g->numlevels);
-    if (g->depth != NULL)
-        free(g->depth);
     if (g->nzints > 0)
         free(g->zints);
 #if defined(ENKF_CALC)
@@ -1322,27 +1361,38 @@ void grid_describeprm(void)
     enkf_printf("\n");
     enkf_printf("    NAME             = <name> [ PREP | CALC ]\n");
     enkf_printf("  [ DOMAIN           = <domain name> ]\n");
-    enkf_printf("    VTYPE            = { z | sigma | hybrid }\n");
+    enkf_printf("    (either)\n");
+    enkf_printf("      DATA           = <data file name>\n");
+    enkf_printf("    (or)\n");
+    enkf_printf("      HDATA          = { <data file name> | <grid name> }\n");
+    enkf_printf("      VDATA          = <data file name>\n");
+    enkf_printf("    (end either)\n");
+    enkf_printf("    VTYPE            = { z | sigma | hybrid | none }\n");
     enkf_printf("  [ VDIR             = { fromsurf* | tosurf } ]\n");
-    enkf_printf("    DATA             = <data file name>\n");
     enkf_printf("    XVARNAME         = <X variable name>\n");
     enkf_printf("    YVARNAME         = <Y variable name>\n");
-    enkf_printf("    ZVARNAME         = <Z variable name>                  (z)\n");
-    enkf_printf("  [ ZCVARNAME        = <ZC variable name> ]               (z)\n");
-    enkf_printf("    CVARNAME         = <Cs_rho variable name>             (sigma)\n");
-    enkf_printf("  [ CCVARNAME        = <Cs_w variable name> ]             (sigma)\n");
-    enkf_printf("  [ SVARNAME         = <s_rho variable name> ]            (uniform*) (sigma)\n");
-    enkf_printf("  [ SCVARNAME        = <s_w variable name> ]              (uniform*) (sigma)\n");
-    enkf_printf("  [ HCVARNAME        = <hc variable name> ]               (0.0*) (sigma)\n");
-    enkf_printf("  [ DEPTHVARNAME     = <depth variable name> ]            (z | sigma)\n");
-    enkf_printf("  [ NUMLEVELSVARNAME = <# of levels variable name> ]      (z)\n");
-    enkf_printf("  [ MASKVARNAME      = <land mask variable name> ]        (sigma | hybrid)\n");
-    enkf_printf("    AVARNAME         = <A variable name>                  (hybrid)\n");
-    enkf_printf("    BVARNAME         = <B variable name>                  (hybrid)\n");
-    enkf_printf("  [ ACVARNAME        = <AC variable name> ]               (hybrid)\n");
-    enkf_printf("  [ BCVARNAME        = <BC variable name> ]               (hybrid)\n");
-    enkf_printf("    P1VARNAME        = <P1 variable name>                 (hybrid)\n");
-    enkf_printf("    P2VARNAME        = <P2 variable name>                 (hybrid)\n");
+    enkf_printf("    (if vtype = z)\n");
+    enkf_printf("      ZVARNAME       = <Z variable name>\n");
+    enkf_printf("    [ ZCVARNAME      = <ZC variable name> ]\n");
+    enkf_printf("    [ NUMLEVELSVARNAME = <# of levels variable name> ]\n");
+    enkf_printf("    [ DEPTHVARNAME   = <depth variable name> ]\n");
+    enkf_printf("    (else if vtype = sigma)\n");
+    enkf_printf("      CVARNAME       = <Cs_rho variable name>\n");
+    enkf_printf("    [ CCVARNAME      = <Cs_w variable name> ]\n");
+    enkf_printf("    [ SVARNAME       = <s_rho variable name> ]            (uniform*)\n");
+    enkf_printf("    [ SCVARNAME      = <s_w variable name> ]              (uniform*)\n");
+    enkf_printf("    [ HCVARNAME      = <hc variable name> ]               (0.0*)\n");
+    enkf_printf("    [ DEPTHVARNAME   = <depth variable name> ]\n");
+    enkf_printf("    [ MASKVARNAME    = <land mask variable name> ]\n");
+    enkf_printf("    (else if vtype = hybrid)\n");
+    enkf_printf("      AVARNAME       = <A variable name>\n");
+    enkf_printf("      BVARNAME       = <B variable name>\n");
+    enkf_printf("    [ ACVARNAME      = <AC variable name> ]\n");
+    enkf_printf("    [ BCVARNAME      = <BC variable name> ]\n");
+    enkf_printf("      P1VARNAME      = <P1 variable name>\n");
+    enkf_printf("      P2VARNAME      = <P2 variable name>\n");
+    enkf_printf("    [ MASKVARNAME    = <land mask variable name> ]\n");
+    enkf_printf("    (end if)\n");
     enkf_printf("  [ STRIDE           = <stride for ensemble transforms> ] (1*)\n");
     enkf_printf("  [ SOBSTRIDE        = <stride for superobing> ]          (1*)\n");
     enkf_printf("  [ ZSTATINTS        = [<z1> <z2>] ... ]\n");
@@ -1828,7 +1878,7 @@ void grids_create(char gprmfname[], int stride, int* ngrid, void*** grids)
     for (i = 0; i < n; ++i) {
         grid* g = NULL;
 
-        g = grid_create(&gprm[i], i);
+        g = grid_create(&gprm[i], i, *grids);
         grids_addgrid(ngrid, grids, g);
 
         if (grid_getstride(g) == 0)
@@ -1876,6 +1926,13 @@ int grids_destroygxytrees(int ngrid, void** grids)
 char* grid_getdomainname(grid* g)
 {
     return g->domainname;
+}
+
+/**
+ */
+int grid_getaliasid(grid* g)
+{
+    return g->aliasid;
 }
 
 #if defined(ENKF_CALC)

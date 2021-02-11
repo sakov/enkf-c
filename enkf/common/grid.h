@@ -34,7 +34,7 @@ typedef struct {
 struct grid;
 typedef struct grid grid;
 
-grid* grid_create(void* prm, int id);
+grid* grid_create(void* prm, int id, void** grids);
 void grid_destroy(grid* g);
 void grid_print(grid* g, char offset[]);
 void grid_describeprm(void);
@@ -52,6 +52,7 @@ int grid_getstride(grid* g);
 void grid_setstride(grid* g, int stride);
 void grid_getzints(grid* g, int* nzints, zint* zints[]);
 char* grid_getdomainname(grid* g);
+int grid_getaliasid(grid* g);
 
 int grid_xy2fij(grid* g, double x, double y, double* fi, double* fj);
 int grid_z2fk(grid* g, double fi, double fj, double z, double* fk);

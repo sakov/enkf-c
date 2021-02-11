@@ -382,6 +382,9 @@ void das_calctransforms(dasystem* das)
         int* jpool = NULL;
         int i, j, ii, jj, ot, jjj;
 
+        if (grid_getaliasid(g) >= 0)
+            continue;
+
         /*
          * skip this grid if there are no model variables associated with it
          */

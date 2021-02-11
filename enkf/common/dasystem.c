@@ -420,17 +420,22 @@ void das_getfields(dasystem* das, int gridid, int* nfields, field** fields)
 {
     model* m = das->m;
     int nvar = model_getnvar(m);
+    int aliasid = (gridid >= 0) ? grid_getaliasid(model_getgridbyid(m, gridid)) : -1;
     int vid;
 
     assert(*nfields == 0);
     assert(*fields == NULL);
 
+    if (gridid >= 0 && aliasid >= 0)
+        return;
+
     for (vid = 0; vid < nvar; ++vid) {
+        int vargridid = model_getvargridid(m, vid);
         char fname[MAXSTRLEN];
         char* varname = model_getvarname(m, vid);
         int nk, k;
 
-        if (gridid >= 0 && model_getvargridid(m, vid) != gridid)
+        if (gridid >= 0 && vargridid != gridid && vargridid != aliasid)
             continue;
 
         das_getmemberfname(das, varname, 1, fname);
@@ -466,8 +471,11 @@ void das_getfname_transforms(dasystem* das, int gridid, char fname[])
 {
     if (model_getngrid(das->m) == 1)
         snprintf(fname, MAXSTRLEN, "%s.nc", FNAMEPREFIX_TRANSFORMS);
-    else
-        snprintf(fname, MAXSTRLEN, "%s-%d.nc", FNAMEPREFIX_TRANSFORMS, gridid);
+    else {
+        int aliasid = grid_getaliasid(model_getgridbyid(das->m, gridid));
+
+        snprintf(fname, MAXSTRLEN, "%s-%d.nc", FNAMEPREFIX_TRANSFORMS, (aliasid >= 0) ? aliasid : gridid);
+    }
 }
 
 /**

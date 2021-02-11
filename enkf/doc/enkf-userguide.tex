@@ -39,7 +39,7 @@
 
 \begin{document}
 
-\title{EnKF-C user guide\\{\normalsize version 2.6.1}}
+\title{EnKF-C user guide\\{\normalsize version 2.7.0}}
 
 \author{Pavel Sakov}
 \date{June 19, 2014 -- \today}
@@ -845,27 +845,38 @@ It also contains variable names for the depth and for number of layers in a vert
 
     NAME             = <name> [ PREP | CALC ]
   [ DOMAIN           = <domain name> ]
-    VTYPE            = { z | sigma | hybrid }
+    (either)
+      DATA           = <data file name>
+    (or)
+      HDATA          = { <data file name> | <grid name> }
+      VDATA          = <data file name>
+    (end either)
+    VTYPE            = { z | sigma | hybrid | none }
   [ VDIR             = { fromsurf* | tosurf } ]
-    DATA             = <data file name>
     XVARNAME         = <X variable name>
     YVARNAME         = <Y variable name>
-    ZVARNAME         = <Z variable name>                  (z)
-  [ ZCVARNAME        = <ZC variable name> ]               (z)
-    CVARNAME         = <Cs_rho variable name>             (sigma)
-  [ CCVARNAME        = <Cs_w variable name> ]             (sigma)
-  [ SVARNAME         = <s_rho variable name> ]            (uniform*) (sigma)
-  [ SCVARNAME        = <s_w variable name> ]              (uniform*) (sigma)
-  [ HCVARNAME        = <hc variable name> ]               (0.0*) (sigma)
-  [ DEPTHVARNAME     = <depth variable name> ]            (z | sigma)
-  [ NUMLEVELSVARNAME = <# of levels variable name> ]      (z)
-  [ MASKVARNAME      = <land mask variable name> ]        (sigma | hybrid)
-    AVARNAME         = <A variable name>                  (hybrid)
-    BVARNAME         = <B variable name>                  (hybrid)
-  [ ACVARNAME        = <AC variable name> ]               (hybrid)
-  [ BCVARNAME        = <BC variable name> ]               (hybrid)
-    P1VARNAME        = <P1 variable name>                 (hybrid)
-    P2VARNAME        = <P2 variable name>                 (hybrid)
+    (if vtype = z)
+      ZVARNAME       = <Z variable name>
+    [ ZCVARNAME      = <ZC variable name> ]
+    [ NUMLEVELSVARNAME = <# of levels variable name> ]
+    [ DEPTHVARNAME   = <depth variable name> ]
+    (else if vtype = sigma)
+      CVARNAME       = <Cs_rho variable name>
+    [ CCVARNAME      = <Cs_w variable name> ]
+    [ SVARNAME       = <s_rho variable name> ]            (uniform*)
+    [ SCVARNAME      = <s_w variable name> ]              (uniform*)
+    [ HCVARNAME      = <hc variable name> ]               (0.0*)
+    [ DEPTHVARNAME   = <depth variable name> ]
+    [ MASKVARNAME    = <land mask variable name> ]
+    (else if vtype = hybrid)
+      AVARNAME       = <A variable name>
+      BVARNAME       = <B variable name>
+    [ ACVARNAME      = <AC variable name> ]
+    [ BCVARNAME      = <BC variable name> ]
+      P1VARNAME      = <P1 variable name>
+      P2VARNAME      = <P2 variable name>
+    [ MASKVARNAME    = <land mask variable name> ]
+    (end if)
   [ STRIDE           = <stride for ensemble transforms> ] (1*)
   [ SOBSTRIDE        = <stride for superobing> ]          (1*)
   [ ZSTATINTS        = [<z1> <z2>] ... ]
@@ -874,6 +885,8 @@ It also contains variable names for the depth and for number of layers in a vert
 \end{Verbatim}
 
 The code is supposed to automatically identify the type of horizontal grid used, while the type of the vertical grid has to be specified explicitly.
+If some grid (say, grid A) has the same horizontal grid as other grid (grid B), the code can be notified of this by entering name of grid A in the field \verb|HDATA| for grid B (or vice versa).
+This saves memory, grid initialisation time, and uses transforms calculated for grid A for all variables defined on grid B.
 
 \subsubsection{Horizontal grids}
 \label{sec:hgrid}

@@ -208,7 +208,8 @@ void enkf_init(int* argc, char*** argv)
 #else
     if (*argc == 2 && strcmp((*argv)[1], "--version") == 0)
         return;
-    printf("  rank = %d, PID = %d\n", rank, getpid());
+    if (enkf_verbose > 1)
+        printf("  rank = %d, PID = %d\n", rank, getpid());
 #endif
 
     ncw_set_quitfn(enkf_quit);
