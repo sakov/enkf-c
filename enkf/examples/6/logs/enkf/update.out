@@ -1,0 +1,180 @@
+  MPI: initialised 2 process(es)
+  running UPDATE for EnKF-C version 2.7.3:
+    command = "./enkf_update --calculate-spread --write-inflation --output-increment enkf.prm"
+    dir = "/home/pavel/src/enkf-c/trunk/enkf/examples/6"
+  2021-02-18 11:28:03
+  reading system specs from "enkf.prm":
+    MODE = EnKF
+    SCHEME = DEnKF
+    MODEL PRM = "model.prm"
+    GRID PRM = "grid.prm"
+    OBS TYPES PRM = "obstypes.prm"
+    OBS PRM = "obs.prm"
+    DATE = "6565.5 days since 1990-01-01"
+    ENSEMBLE DIR = "ensemble_6565"
+    ENSEMBLE SIZE = 96
+    RFACTOR BASE = 2.0
+    INFLATION BASE = 1.1000
+    INFLATION MODE = CAPPED, MAX RATIO = 1.00
+    KFACTOR = 999.0
+      LOCRAD  = 200
+      LOCWEIGHT =  1
+    STRIDE = 3
+    FIELDBUFFERSIZE = 4
+    REGION Global: x = [0.0, 360.0], y = [-90.0, 90.0]
+    POINTLOG 156.000 -32.000 
+    NCFORMAT = NETCDF4
+    NCCOMPRESSION = 0
+    EnKF flags:
+      enkf_exitaction  = [SEGFAULT]
+      enkf_obstype     = [VALUE]
+    enkf_update compile flags:
+      NCW_SKIPSINGLE   = [-]
+      DEFLATE_ALL      = [-]
+  update specs:
+    do model fields  = [+]
+    do spread        = [+]
+    do pointlogs     = [+]
+    output increment = [+]
+    separate output  = [+]
+  initialising the system:
+    grid prm info:
+      NAME = "t-grid"
+      DOMAIN = Default
+      DATA = "conf4/grid_spec.nc"
+      VTYPE = "none"
+      DEPTHVARNAME = "depth_t"
+      MASKVARNAME = "num_levels"
+      XVARNAME = "lont"
+      YVARNAME = "latt"
+    grid info:
+      hor type = LATLON
+      periodic by X = no
+      dims = 100 x 100 x 1
+      longitude range = [0.000, 360.000]
+      v type = NONE
+      STRIDE = 0
+    grid prm info:
+      NAME = "t-grid2"
+      DOMAIN = Default
+      DATA = "conf4/grid_spec.nc"
+      VTYPE = "z"
+      ZVARNAME = "zt"
+      ZCVARNAME = <none>
+      DEPTHVARNAME = "depth_t"
+      NUMLEVELSVARNAME = "num_levels"
+      VDIR = "FROMSURF"
+      HGRIDFROM = "t-grid"
+      ZSTATINTS = [0 50] [50 500] [500 9999] 
+    grid info:
+      hor type = LATLON
+      periodic by X = no
+      dims = 100 x 100 x 2
+      longitude range = [0.000, 360.000]
+      v type = Z
+      v dir = FROMSURF
+      STRIDE = 0
+    grid prm info:
+      NAME = "c-grid"
+      DOMAIN = Default
+      DATA = "conf4/grid_spec.nc"
+      VTYPE = "z"
+      ZVARNAME = "zt"
+      ZCVARNAME = <none>
+      NUMLEVELSVARNAME = "num_levels"
+      VDIR = "FROMSURF"
+      XVARNAME = "lonc"
+      YVARNAME = "latc"
+      ZSTATINTS = [0 50] [50 500] [500 9999] 
+    grid info:
+      hor type = LATLON
+      periodic by X = no
+      dims = 100 x 100 x 2
+      longitude range = [0.000, 360.000]
+      v type = Z
+      v dir = FROMSURF
+      STRIDE = 0
+  model info:
+    name = Tasman
+    5 variables:
+      eta_t:
+        grid = "t-grid"
+        inflation = 1.100 1.00
+      temp:
+        grid = "t-grid2"
+        inflation = 1.100 1.00
+      salt:
+        grid = "t-grid2"
+        inflation = 1.100 1.00
+      u:
+        grid = "c-grid"
+        inflation = 1.100 1.00
+      v:
+        grid = "c-grid"
+        inflation = 1.100 1.00
+  setting the ensemble size:
+    96 members
+  initialising pointlogs:
+    pointlog (156.000, -32.000):
+      t-grid: (i, j) = (49.500, 49.500)
+      t-grid2: (i, j) = (49.500, 49.500)
+      c-grid: (i, j) = (49.000, 49.000)
+  updating the ensemble:
+    allocating disk space for spread:
+    allocating disk space for inflation:
+    defining state variables in point logs:
+    distributing 96 iterations:
+      2 processes get 48 iterations each
+    2021-02-18 11:28:03
+    allocating disk space for analysis:................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................
+    processing fields for t-grid:
+      2021-02-18 11:28:03
+      5 fields
+      distributing 5 iterations:
+        2 processes get 3 or 2 iterations
+      eta_t    0   (0: 0: 33.3%)
+      salt     0   (1: 3: 50.0%)
+      temp     0   (0: 1: 66.7%)
+      salt     1   (1: 4: 100.0%)
+      temp     1   (0: 2: 100.0%)
+    processing fields for c-grid:
+      2021-02-18 11:28:04
+      4 fields
+      distributing 4 iterations:
+        2 processes get 2 iterations each
+      u        0   (0: 0: 50.0%)
+      v        0   (1: 2: 50.0%)
+      u        1   (0: 1: 100.0%)
+      v        1   (1: 3: 100.0%)
+  2021-02-18 11:28:05
+  assembling analysis:
+    distributing 96 iterations:
+      2 processes get 48 iterations each
+    eta_t:................................................
+    temp:................................................
+    salt:................................................
+    u:................................................
+    v:................................................
+  2021-02-18 11:28:06
+  assembling spread:
+    eta_t:.
+    temp:..
+    salt:..
+    u:..
+    v:..
+  2021-02-18 11:28:06
+  assembling inflation:
+    eta_t:.
+    temp:..
+    salt:..
+    u:..
+    v:..
+  2021-02-18 11:28:06
+  assembling state variables in point logs:
+    distributing 1 iterations:
+      1 processes get 1 iteration, 1 processes get 0 iterations
+    deleting tiles:
+      distributing 9 iterations:
+        2 processes get 5 or 4 iterations
+  2021-02-18 11:28:07
+  finished

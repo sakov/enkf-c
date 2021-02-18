@@ -39,13 +39,14 @@ Also, the following auxiliary files will be created:
   -- observation.nc - full information in observation space (for
      superobservations)
   -- obervations-orig.nc - original observations
-  -- X5.nc - 2D array of ensemble transforms
+  -- transforms.nc - 2D array of ensemble transforms T (EnKF) and coefficients
+     w (EnKF and EnOI) -- see sec. 3.3 of the User Guide.
   -- enkf_diag.nc - data on observation impact
   -- inflation.nc - the actual inflation for each state element
   -- spread.nc - ensemble spread
   -- prep.out, calc.out, update.out - log files
-  -- pointlog_30,50.nc - full information about state and analysis in point
-     (i,j) = (30,50)
+  -- pointlog_156.000,-32.000.nc - full information about state and analysis in point
+     (lon, lat) = (156.0, -32.0)
 
 TESTING ENOI
 
@@ -72,7 +73,7 @@ enkf_calc and enkf_post "cheaply" (without re-calculating transforms for the
 whole grid and re-updating the analysis) and investigate what happened.
 
 Run "make enkf", then "make pointlogs" to add a couple of additional point logs
-in locations (50, 50) and (70, 50).
+in locations (152.0, -36.0) and (160.0, -29.0).
 
 TESTING GLOBAL ENKF ANALYSIS
 

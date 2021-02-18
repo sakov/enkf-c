@@ -169,6 +169,7 @@ void plog_create(dasystem* das, int plogid, int ploc, int* lobs, double* lcoeffs
      */
     for (gid = 0; gid < ngrid; ++gid) {
         grid* g = model_getgridbyid(das->m, gid);
+        int aliasid = grid_getaliasid(g);
         char varname[NC_MAX_NAME];
         int vid_grid;
         int ni, nj, nk;
@@ -183,6 +184,8 @@ void plog_create(dasystem* das, int plogid, int ploc, int* lobs, double* lcoeffs
         snprintf(varname, SMALLSTRLEN - 1, "grid%s", gridstr);
         ncw_def_var(ncid, varname, NC_INT, 0, NULL, &vid_grid);
         ncw_put_att_int(ncid, vid_grid, "id", 1, &gid);
+        if (aliasid >= 0)
+            ncw_put_att_int(ncid, vid_grid, "hid", 1, &aliasid);
         ncw_put_att_text(ncid, vid_grid, "name", grid_getname(g));
         ncw_put_att_text(ncid, vid_grid, "domain", grid_getdomainname(g));
         ncw_put_att_double(ncid, vid_grid, "fi", 1, &plog->fi[gid]);

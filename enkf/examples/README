@@ -29,3 +29,7 @@ Example 4:
 Example 5:
 
   Demonstrates use of two different observation types for SST observations.
+
+Example 6:
+
+  Sharing horizontal grid between grids.

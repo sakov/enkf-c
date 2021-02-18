@@ -1,0 +1,10 @@
+This example demonstrates sharing horizontal grid between grids.
+
+This setting can be quite useful in earth models when different domains (e.g.
+ocean, sea ice, atmosphere) can be on the same horizontal grid. It saves memory
+and avoids redundant computation of ensemble transforms in CALC.
+
+In this particular case eta_t, on one hand, and temp and salt, on another hand, 
+are put on different grids that share the same horizontal grid. Note that there
+are no transforms-1.nc and enkf_diag-1.nc files after CALC, as those would be
+equivalent to transforms-0.nc and enkf_diag-0.nc.

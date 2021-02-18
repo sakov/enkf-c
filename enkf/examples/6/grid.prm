@@ -1,0 +1,23 @@
+NAME = t-grid
+VTYPE = none
+DATA = conf4/grid_spec.nc
+XVARNAME = lont
+YVARNAME = latt
+DEPTHVARNAME = depth_t
+MASKVARNAME = num_levels
+
+NAME = t-grid2
+VTYPE = z
+DATA = conf4/grid_spec.nc
+HGRIDFROM = t-grid
+ZVARNAME = zt
+DEPTHVARNAME = depth_t
+NUMLEVELSVARNAME = num_levels
+
+NAME = c-grid
+VTYPE = z
+DATA = conf4/grid_spec.nc
+XVARNAME = lonc
+YVARNAME = latc
+ZVARNAME = zt
+NUMLEVELSVARNAME = num_levels
