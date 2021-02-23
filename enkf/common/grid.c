@@ -1280,23 +1280,26 @@ void grid_print(grid* g, char offset[])
         return;
 
     enkf_printf("%sgrid info:\n", offset);
-    switch (g->htype) {
-    case GRIDHTYPE_LATLON:
-        enkf_printf("%s  hor type = LATLON\n", offset);
-        enkf_printf("%s  periodic by X = %s\n", offset, grid_isperiodic_i(g) ? "yes" : "no");
-        break;
-    case GRIDHTYPE_CURVILINEAR:
-        enkf_printf("%s  hor type = CURVILINEAR\n", offset);
-        break;
-    default:
-        enkf_printf("%s  h type = NONE\n", offset);
-    }
-    grid_getsize(g, &ni, &nj, &nk);
-    enkf_printf("%s  dims = %d x %d x %d\n", offset, ni, nj, nk);
-    if (!isnan(g->lonbase))
-        enkf_printf("%s  longitude range = [%.3f, %.3f]\n", offset, g->lonbase, g->lonbase + 360.0);
-    else
-        enkf_printf("%s  longitude range = any\n", offset);
+    if (g->aliasid < 0) {
+        switch (g->htype) {
+        case GRIDHTYPE_LATLON:
+            enkf_printf("%s  hor type = LATLON\n", offset);
+            enkf_printf("%s  periodic by X = %s\n", offset, grid_isperiodic_i(g) ? "yes" : "no");
+            break;
+        case GRIDHTYPE_CURVILINEAR:
+            enkf_printf("%s  hor type = CURVILINEAR\n", offset);
+            break;
+        default:
+            enkf_printf("%s  h type = NONE\n", offset);
+        }
+        grid_getsize(g, &ni, &nj, &nk);
+        enkf_printf("%s  dims = %d x %d x %d\n", offset, ni, nj, nk);
+        if (!isnan(g->lonbase))
+            enkf_printf("%s  longitude range = [%.3f, %.3f]\n", offset, g->lonbase, g->lonbase + 360.0);
+        else
+            enkf_printf("%s  longitude range = any\n", offset);
+    } else
+        enkf_printf("%s  horizontal grid -- aliased to grid #%d\n", offset, g->aliasid);
     switch (g->vtype) {
     case GRIDVTYPE_NONE:
         enkf_printf("%s  v type = NONE\n", offset);
