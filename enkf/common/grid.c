@@ -1332,7 +1332,7 @@ void grid_print(grid* g, char offset[])
     if (g->stride != 1)
         enkf_printf("%s  STRIDE = %d\n", offset, g->stride);
 #if defined(ENKF_PREP) || defined(ENKF_CALC)
-    if (g->htype == GRIDHTYPE_CURVILINEAR)
+    if (g->htype == GRIDHTYPE_CURVILINEAR && g->aliasid < 0)
         kd_printinfo(gxy_curv_gettree(g->gridnodes_xy), "      ");
 #endif
 #if defined(ENKF_CALC)
