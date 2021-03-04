@@ -1,3 +1,8 @@
+v2.7.7
+   PS 05032021
+   -- Modified obs_findlocal() so that the found observations are only sorted
+      by distance if there is a limit on the number of local obs. (parameter
+      NLOBSMAX). Thanks to Joerg Henrichs for the profiling info.
 v2.7.6
    PS 04032021
    -- Modified transforms.c to make -DTW_VIAFILE working for EnOI.

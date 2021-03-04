@@ -18,6 +18,7 @@
 #include <string.h>
 #include <math.h>
 #include <float.h>
+#include <limits.h>
 #include <assert.h>
 #include <stdint.h>
 #include "ncw.h"
@@ -1629,7 +1630,7 @@ void obs_findlocal(observations* obs, double lon, double lat, char* domainname, 
                 continue;
         }
 
-        set = kd_findnodeswithinrange(tree, xyz, obstype_getmaxlocrad(ot), 1);
+        set = kd_findnodeswithinrange(tree, xyz, obstype_getmaxlocrad(ot), (ot->nlobsmax == INT_MAX) ? 0 : 1);
         for (iloc = 0; iloc < ot->nlobsmax && (id = kdset_readnext(set, NULL)) != SIZE_MAX; ++i, ++iloc) {
             size_t id_orig = kd_getnodedata(tree, id);
 
