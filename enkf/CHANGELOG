@@ -1,3 +1,7 @@
+v2.7.8
+   PS 09032021
+   -- Modified kdtree.[ch] to reduce the number of allocations. Modified the
+      associated and range searches in obs_findlocal() and evaluate_2d_obs().
 v2.7.7
    PS 05032021
    -- Modified obs_findlocal() so that the found observations are only sorted

@@ -39,7 +39,7 @@
 
 \begin{document}
 
-\title{EnKF-C user guide\\{\normalsize version 2.7.2}}
+\title{EnKF-C user guide\\{\normalsize version 2.7.8}}
 
 \author{Pavel Sakov}
 \date{June 19, 2014 -- \today}
@@ -1735,6 +1735,7 @@ To compensate this in a system with horizontal localisation one has to change th
 From v1.77.0 it is possible to limit the maximal number of local observations of each observation type via the entry \verb|NLOBSMAX| in the main parameter file (sec.~\ref{sec:mainprm}).
 This common setting can be overriden for particular observation types in the observation types parameter file (sec.~\ref{sec:obstypesprm}).
 Note that using this setting can result in discontinuity of the analysis because the set of observations used for local analyses in adjacent grid cells can change in a discontinuous way.
+Also, it forces sorting of the local observations, which can substantially increase the search time.
 Therefore the general advise is to avoid using this functionality except perhaps interpolation oriented products.
 
 \section{Point logs}

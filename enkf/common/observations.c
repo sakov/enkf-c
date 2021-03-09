@@ -1434,15 +1434,6 @@ void obs_printob(observations* obs, int i)
 #if defined(ENKF_CALC)
 /**
  */
-static double distance(double xyz1[3], double xyz2[3])
-{
-    return sqrt((xyz1[0] - xyz2[0]) * (xyz1[0] - xyz2[0]) + (xyz1[1] - xyz2[1]) * (xyz1[1] - xyz2[1]) + (xyz1[2] - xyz2[2]) * (xyz1[2] - xyz2[2]));
-}
-#endif
-
-#if defined(ENKF_CALC)
-/**
- */
 void obs_createkdtrees(observations* obs)
 {
     int otid;
@@ -1464,7 +1455,7 @@ void obs_createkdtrees(observations* obs)
         int* obsids = NULL;
 
 #if defined(OBS_SHUFFLE)
-        int* ids = NULL;
+        size_t* ids = NULL;
 #endif
         int i;
 
@@ -1482,7 +1473,7 @@ void obs_createkdtrees(observations* obs)
         assert(*tree == NULL);
 
 #if defined(OBS_SHUFFLE)
-        ids = malloc(nobs * sizeof(int));
+        ids = malloc(nobs * sizeof(size_t));
         for (i = 0; i < nobs; ++i)
             ids[i] = i;
         shuffle(nobs, ids);
@@ -1596,7 +1587,7 @@ void obs_findlocal(observations* obs, double lon, double lat, char* domainname, 
     double ll[2] = { lon, lat };
     double xyz[3];
     int otid;
-    int i, ntot, ngood;
+    int i;
 
     ll2xyz(ll, xyz);
 
@@ -1609,8 +1600,8 @@ void obs_findlocal(observations* obs, double lon, double lat, char* domainname, 
         obstype* ot = &obs->obstypes[otid];
         kdtree* tree = obs->loctrees[otid];
         int* obsids = obs->obsids[otid];
-        kdset* set = NULL;
-        size_t id;
+        size_t nloc;
+	kdresult* results;
         int iloc;
 
         if (ot->nobs == 0 || ot->statsonly)
@@ -1630,9 +1621,15 @@ void obs_findlocal(observations* obs, double lon, double lat, char* domainname, 
                 continue;
         }
 
-        set = kd_findnodeswithinrange(tree, xyz, obstype_getmaxlocrad(ot), (ot->nlobsmax == INT_MAX) ? 0 : 1);
-        for (iloc = 0; iloc < ot->nlobsmax && (id = kdset_readnext(set, NULL)) != SIZE_MAX; ++i, ++iloc) {
-            size_t id_orig = kd_getnodedata(tree, id);
+        kd_findnodeswithinrange(tree, xyz, obstype_getmaxlocrad(ot), (ot->nlobsmax == INT_MAX) ? 0 : 1, &nloc, &results);
+        if (nloc > ot->nlobsmax)
+            nloc = ot->nlobsmax;
+        for (iloc = 0; iloc < nloc; ++iloc) {
+            size_t id_orig = kd_getnodedata(tree, results[iloc].id);
+	    observation* o = &obs->data[obsids[id_orig]];
+
+	    if (o->status != STATUS_OK)
+		continue;
 
             if (ploc_allocated != NULL) {
                 if (i >= *ploc_allocated) {
@@ -1647,36 +1644,10 @@ void obs_findlocal(observations* obs, double lon, double lat, char* domainname, 
                 }
             }
             (*ids)[i] = obsids[id_orig];
+	    (*lcoeffs)[i] = obstype_calclcoeff(ot, sqrt(results[iloc].dist));
+	    i++;
         }
-        kdset_free(set);
     }
-
-    /*
-     * compact the result, calculate taper coefficients
-     */
-    ntot = i;
-    for (i = 0, ngood = 0; i < ntot; ++i) {
-        int id = (*ids)[i];
-        observation* o = &obs->data[id];
-        double ll2[2] = { o->lon, o->lat };
-        double xyz2[3];
-
-        if (o->status != STATUS_OK)
-            continue;
-
-        ll2xyz(ll2, xyz2);
-        (*ids)[ngood] = id;
-        (*lcoeffs)[ngood] = obstype_calclcoeff(&obs->obstypes[o->type], distance(xyz, xyz2));
-        ngood++;
-    }
-    *n = ngood;
-#if defined (MINIMISE_ALLOC)
-    if (ploc_allocated == NULL && ngood == 0 && *ids != NULL) {
-#else
-    if (ngood == 0 && *ids != NULL) {
-#endif
-        free(*ids);
-        free(*lcoeffs);
-    }
+    *n = i;
 }
 #endif

@@ -7,9 +7,11 @@
  * Author:      Pavel Sakov
  *
  * Description: KD-tree code.  Initially derived from the code by John
- *              Tsiombikas (see the tail of the file). The main changes concern
- *              (1) using continuous block of memory and (2) making it possible
- *              to pre-allocate memory externally to permit using shared memory.
+ *              Tsiombikas (see the tail of the file). This implementation is
+ *              driven by the needs of large scale geophysical data
+ *              assimilation systems. The main changes concern (1) using
+ *              continuous block of memory and (2) making it possible to
+ *              pre-allocate memory externally to permit using shared memory.
  *
  * Revisions:   23/11/2018 PS:
  *              - Replaced individual allocations of "resnode" in the linked
@@ -24,6 +26,12 @@
  *              27/3/2020 PS:
  *              - Added  kd_getstoragesize(), kd_setstorage(), and
  *                kd_syncsize().
+ *              6/3/2020 PS:
+ *              - A number of changes for range search targeting large systems;
+ *                in particular, to minimise the number of memory allocations
+ *                for multiple repeated searches. The results are now stored
+ *                within the tree to re-use the allocated memory and are only
+ *                deallocated in the destructor.
  *
  *****************************************************************************/
 
@@ -39,9 +47,8 @@
 #include "kdtree.h"
 
 #define NALLOCSTART 1024
-#define KDSET_BLOCKSIZE 1024
-#define KDSET_NBLOCKS_INC 10
 #define NDIMMAX 3
+#define RES_INC 4096
 
 typedef struct {
     size_t id;
@@ -63,24 +70,10 @@ struct kdtree {
     double* min;
     double* max;
     int external_storage;
-};
 
-struct resnode;
-typedef struct resnode resnode;
-
-struct resnode {
-    size_t id;
-    double dist;
-    resnode* next;
-};
-
-struct kdset {
-    resnode* root;
-    resnode* toread;
-    size_t size;
-    int beingread;
-    int nblocks;
-    resnode** blocks;
+    size_t nresults;
+    size_t nresults_allocated;
+    kdresult* results;
 };
 
 /**
@@ -125,6 +118,10 @@ kdtree* kd_create(char* name, size_t ndim)
         tree->max[i] = -DBL_MAX;
     }
 
+    tree->nresults = 0;
+    tree->nresults_allocated = 0;
+    tree->results = NULL;
+
     return tree;
 }
 
@@ -135,6 +132,8 @@ void kd_destroy(kdtree* tree)
     if (tree->nallocated > 0 && !tree->external_storage)
         free(tree->nodes);
     free(tree->name);
+    if (tree->nresults_allocated > 0)
+	free(tree->results);
     free(tree);
 }
 
@@ -449,43 +448,24 @@ static double disttohyperrect(int ndim, const double* min, const double* max, co
 
 /**
  */
-static void _kdset_insert(kdset* set, size_t id, double dist, int ordered)
+static void _insertresult(kdtree* tree, size_t id, double dist)
 {
-    resnode* res;
+    kdresult* res;
 
-    if (set->size % KDSET_BLOCKSIZE == 0) {
-        if (set->nblocks % KDSET_NBLOCKS_INC == 0)
-            set->blocks = realloc(set->blocks, (set->nblocks + KDSET_NBLOCKS_INC) * sizeof(resnode*));
-        set->blocks[set->nblocks] = calloc(KDSET_BLOCKSIZE, sizeof(resnode));
-        set->nblocks++;
+    if (tree->nresults >= tree->nresults_allocated) {
+        tree->nresults_allocated += RES_INC;
+        tree->results = realloc(tree->results, tree->nresults_allocated * sizeof(kdresult));
     }
 
-    res = &set->blocks[set->nblocks - 1][set->size % KDSET_BLOCKSIZE];
+    res = &tree->results[tree->nresults];
     res->id = id;
     res->dist = dist;
-
-    if (set->root == NULL) {
-        set->root = res;
-    } else if (ordered && set->root->dist > res->dist) {
-        resnode* tmp = set->root;
-
-        set->root = res;
-        set->root->next = tmp;
-    } else {
-        resnode* now = set->root;
-
-        if (ordered)
-            while (now->next != NULL && now->next->dist < dist)
-                now = now->next;
-        res->next = now->next;
-        now->next = res;
-    }
-    set->size++;
+    tree->nresults++;
 }
 
 /**
  */
-static void _kd_findnodeswithinrange(const kdtree* tree, int id, const double* coords, double range, kdset* set, int ordered)
+static void _kd_findnodeswithinrange(kdtree* tree, int id, const double* coords, double range)
 {
     int ndim = tree->ndim;
     kdnode* node;
@@ -503,23 +483,40 @@ static void _kd_findnodeswithinrange(const kdtree* tree, int id, const double* c
         dist += (nodecoords[i] - coords[i]) * (nodecoords[i] - coords[i]);
 
     if (dist <= range * range)
-        _kdset_insert(set, id, dist, ordered);
+        _insertresult(tree, id, dist);
 
     dx = coords[node->dir] - nodecoords[node->dir];
-    _kd_findnodeswithinrange(tree, dx <= 0.0 ? node->left : node->right, coords, range, set, ordered);
+    _kd_findnodeswithinrange(tree, dx <= 0.0 ? node->left : node->right, coords, range);
     if (fabs(dx) < range)
-        _kd_findnodeswithinrange(tree, dx <= 0.0 ? node->right : node->left, coords, range, set, ordered);
+        _kd_findnodeswithinrange(tree, dx <= 0.0 ? node->right : node->left, coords, range);
 }
 
 /**
  */
-kdset* kd_findnodeswithinrange(const kdtree* tree, const double* coords, double range, int ordered)
+static int cmp_res(const void* p1, const void* p2)
 {
-    kdset* rset = calloc(1, sizeof(kdset));
+    kdresult* n1 = (kdresult*) p1;
+    kdresult* n2 = (kdresult*) p2;
 
-    _kd_findnodeswithinrange(tree, 0, coords, range, rset, ordered);
+    if (n1->dist > n2->dist)
+        return 1;
+    else if (n1->dist < n2->dist)
+        return -1;
+    return 0;
+}
 
-    return rset;
+/**
+ */
+void kd_findnodeswithinrange(kdtree* tree, const double* coords, double range, int ordered, size_t* nresults, kdresult** results)
+{
+    tree->nresults = 0;
+    _kd_findnodeswithinrange(tree, 0, coords, range);
+
+    if (ordered)
+        qsort(tree->results, tree->nresults, sizeof(kdresult), cmp_res);
+
+    *nresults = tree->nresults;
+    *results = tree->results;
 }
 
 /**
@@ -626,61 +623,6 @@ size_t kd_findnearestnode(const kdtree* tree, const double* coords)
     _kd_findnearestnode(tree, 0, coords, &result, &dist, minmax);
 
     return result;
-}
-
-/**
- */
-void kdset_free(kdset* set)
-{
-    int i;
-
-    if (set == NULL)
-        return;
-    for (i = 0; i < set->nblocks; ++i)
-        free(set->blocks[i]);
-    free(set->blocks);
-    free(set);
-}
-
-/**
- */
-size_t kdset_getsize(const kdset* set)
-{
-    return set->size;
-}
-
-/** Reads the next result.
- * @param set - (input) the set of results
- * @param dist - (output) the distance to the next node (or NAN)
- * @return - the ID of the next node (or SIZE MAX)
- */
-size_t kdset_readnext(kdset* set, double* dist)
-{
-    size_t id;
-
-    if (set == NULL || set->root == NULL) {
-        if (dist != NULL)
-            *dist = NAN;
-        return SIZE_MAX;
-    }
-
-    if (set->beingread == 0) {
-        set->beingread = 1;
-        set->toread = set->root;
-    }
-
-    if (set->toread == NULL) {
-        if (dist != NULL)
-            *dist = NAN;
-        return SIZE_MAX;
-    }
-
-    if (dist != NULL)
-        *dist = sqrt(set->toread->dist);
-    id = set->toread->id;
-    set->toread = set->toread->next;
-
-    return id;
 }
 
 /** Get coordinates of the node.
@@ -956,7 +898,6 @@ int main(int argc, char* argv[])
     int dosort = 0;
 
     kdtree* tree = NULL;
-    kdset* set = NULL;
     double dist;
     int i;
 
@@ -1022,41 +963,46 @@ int main(int argc, char* argv[])
         }
         fflush(stdout);
     } else {
-        size_t id;
+        size_t nresults;
+	kdresult* results;
+        size_t i;
 
         /*
          * find nodes within range
          */
-        printf("  nodes within r < %.3g%s", range, (isll) ? "km" : "");
+        printf("  nodes within r < %.3g%s:\n", range, (isll) ? "km" : "");
         fflush(stdout);
-        set = kd_findnodeswithinrange(tree, coords, range, dosort);
-        printf("    %zu points found:\n", kdset_getsize(set));
-        if (kdset_getsize(set) > 0)
+        kd_findnodeswithinrange(tree, coords, range, dosort, &nresults, &results);
+        printf("    %zu points found:\n", nresults);
+        if (nresults > 0)
             printf("       X        Y       ID      DIST\n");
-        for (; (id = kdset_readnext(set, &dist)) < SIZE_MAX;) {
-            double* rescoords = kd_getnodecoords(tree, id);
-            double rescoordsout[NDIMMAX];
+        for (i = 0; i < nresults; ++i) {
+            size_t id = results[i].id;
+	    double dist = sqrt(results[i].dist);
+	    double* coords = kd_getnodecoords(tree, id);
+	    int idim;
 
             if (isll) {
-                double lat = asin(rescoords[2] / REARTH);
-                double lon = atan2(rescoords[1] / REARTH, rescoords[0] / REARTH);
+                double lat = asin(coords[2] / REARTH);
+                double lon = atan2(coords[1] / REARTH, coords[0] / REARTH);
 
-                rescoordsout[0] = lon / INVRAD;
-                rescoordsout[1] = lat / INVRAD;
+                coords[0] = lon / INVRAD;
+                coords[1] = lat / INVRAD;
             }
+
             printf("  ");
-            for (i = 0; i < ndim; ++i)
-                printf("%8.3f ", rescoordsout[i]);
+            for (idim = 0; idim < ndim; ++idim)
+                printf("%8.3f ", coords[idim]);
             printf("%8zu ", kd_getnodedata(tree, id));
             printf("%8.3f\n", dist);
         }
     }
 
-    kdset_free(set);
-    kd_destroy(tree);
     for (i = 0; i < nsrc; ++i)
         free(srcs[i]);
     free(srcs);
+
+    kd_destroy(tree);
 
     return 0;
 }

@@ -2,10 +2,10 @@
   Using MPI-3 shared memory:
     sm_comm size = 2
     node_comm size = 1
-  running CALC for EnKF-C version 2.4.0:
+  running CALC for EnKF-C version 2.7.8:
     command = "./enkf_calc enkf-global.prm"
     dir = "/home/pavel/src/enkf-c/trunk/enkf/examples/1"
-  2021-01-18 21:45:26
+  2021-03-08 09:41:40
   reading system specs from "enkf-global.prm":
     MODE = EnKF
     SCHEME = DEnKF
@@ -35,7 +35,7 @@
       SHUFFLE_ROWS     = [-]
       USE_SHMEM        = [+]
       MINIMISE_ALLOC   = [+]
-      OBS_SHUFFLE      = [-]
+      OBS_SHUFFLE      = [+]
       TW_VIAFILE       = [-]
       INTERNAL_QSORT_R = [-]
       DEFLATE_ALL      = [-]
@@ -135,12 +135,12 @@
     pointlog (156.000, -32.000):
       t-grid: (i, j) = (49.500, 49.500)
   reading observations from "observations.nc":
-    10228 observations
-    allocating 1227360 bytes for array of observations
+    10220 observations
+    allocating 1226400 bytes for array of observations
     creating kd-trees for observations:
       kdtree "SLA":
-        660 nodes
-        42288 bytes
+        652 nodes
+        41776 bytes
       kdtree "SST":
         9554 nodes
         611504 bytes
@@ -151,9 +151,9 @@
         7 nodes
         496 bytes
   calculating ensemble observations:
-  2021-01-18 21:45:26
-    allocating 3927552 bytes for HE array:
-    allocating 3927552 bytes for HE^T array:
+  2021-03-08 09:41:40
+    allocating 3924480 bytes for HE array:
+    allocating 3924480 bytes for HE^T array:
     distributing 96 iterations:
       2 processes get 48 iterations each
     SLA ................................................
@@ -161,7 +161,7 @@
     TEM ................................................
     SAL ................................................
   writing forecast innovations and spread to "observations.nc":
-  2021-01-18 21:45:26
+  2021-03-08 09:41:42
   moderating observations:
     observations substantially modified:
       SLA          0 (0.0%)
@@ -171,7 +171,7 @@
       total        0 (0.0%)
   writing modified obs errors to "observations.nc":
   calculating transforms:
-  2021-01-18 21:45:26
+  2021-03-08 09:41:42
     calculating transforms for t-grid:
       distributing 1 iterations:
         1 processes get 1 iteration, 1 processes get 0 iterations
@@ -182,28 +182,28 @@
     writing stats to "enkf_diag.nc":
     summary stats on t-grid:
       # of local analyses = 1
-      average # of local obs = 10228.0
+      average # of local obs = 10220.0
       # of inversions in obs space = 0
       # of inversions in ens space = 1
   writing point logs:
-    calculating transforms for log point (156.000,-32.000): 10228 obs
+    calculating transforms for log point (156.000,-32.000): 10220 obs
     writing log for point (156.000,-32.000) on grid "t-grid":
   calculating analysed observations:
-  2021-01-18 21:45:27
+  2021-03-08 09:41:43
     sorting obs by ij:
-    2021-01-18 21:45:27
+    2021-03-08 09:41:43
     updating HE:
-    distributing 10228 iterations:
-      2 processes get 5114 iterations each
-    2021-01-18 21:45:27
+    distributing 10220 iterations:
+      2 processes get 5110 iterations each
+    2021-03-08 09:41:43
   adding analysis innovations and spread to "observations.nc":
   printing observation statistics:
     region obs.type   # obs.  |for.inn.| |an.inn.|   for.inn.   an.inn.  for.spread  an.spread
     ------------------------------------------------------------------------------------------
     Global
-           SLA           660   0.0766     0.0727     0.0216     0.0187     0.0386     0.0213  
-             j1          274    0.073     0.0809     0.0226     0.0257     0.0434     0.0239  
-             n1          386   0.0791      0.067     0.0208     0.0137     0.0352     0.0194  
+           SLA           652   0.0769     0.0731     0.0218     0.0191     0.0387     0.0213  
+             j1          272   0.0731      0.081     0.0228      0.026     0.0434     0.0239  
+             n1          380   0.0797     0.0674     0.0211     0.0142     0.0353     0.0194  
            SST          9554    0.456      0.443     -0.148     -0.158      0.352      0.194  
              ESACCI     8386    0.457       0.44     -0.128     -0.134      0.354      0.195  
              WindSat    1168    0.451      0.459      -0.29     -0.324      0.343      0.189  
@@ -217,5 +217,5 @@
              0-50m         2   0.0881      0.106     0.0739      0.106     0.0225     0.0124  
              50-500m       5   0.0723     0.0899     0.0469     0.0899      0.032     0.0176  
              500-9999m     0     -nan       -nan       -nan       -nan       -nan       -nan  
-  2021-01-18 21:45:27
+  2021-03-08 09:41:43
   finished

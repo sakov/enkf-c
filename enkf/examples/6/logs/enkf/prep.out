@@ -1,7 +1,7 @@
-  running PREP for EnKF-C version 2.7.3:
+  running PREP for EnKF-C version 2.7.8:
     command = "./enkf_prep enkf.prm"
     dir = "/home/pavel/src/enkf-c/trunk/enkf/examples/6"
-  2021-02-18 11:27:27
+  2021-03-09 11:28:33
   reading prep specs from "enkf.prm":
     MODE = EnKF
     SCHEME = DEnKF
@@ -88,10 +88,7 @@
       HGRIDFROM = "t-grid"
       ZSTATINTS = [0 50] [50 500] [500 9999] 
     grid info:
-      hor type = LATLON
-      periodic by X = no
-      dims = 100 x 100 x 2
-      longitude range = [0.000, 360.000]
+      horizontal grid -- aliased to grid #0
       v type = Z
       v dir = FROMSURF
       STRIDE = 0
@@ -627,26 +624,26 @@
       setting error_std to 0.1
       min day = -4.000
       max day = -2.000
-  2021-02-18 11:27:27
+  2021-03-09 11:28:33
   compacting obs:
-  2021-02-18 11:27:27
+  2021-03-09 11:28:33
   superobing:
-    10228 superobservations
-  2021-02-18 11:27:27
+    10220 superobservations
+  2021-03-09 11:28:33
   writing superobservations to "observations.nc":
   reading super-observations from disk:
-    10228 observations
-    allocating 1227360 bytes for array of observations
-  2021-02-18 11:27:27
+    10220 observations
+    allocating 1226400 bytes for array of observations
+  2021-03-09 11:28:33
   checking for superobs on land:
     all good
   printing observation summary:
     type    #used    #dropped #out_grd #out_obs #out_wnd #land    #shallow #badbatch#badvalue#thinned #excluded#superobs
     -----------------------------------------------------------------------------------------------------------
-    SLA     969      1        0        0        0        0        1        0        0        0        0        660     
+    SLA     969      1        0        0        0        0        1        0        0        0        0        652     
     SST     156669   0        0        0        0        0        0        0        0        0        0        9554    
     TEM     184      104      104      0        0        0        0        0        0        0        0        7       
     SAL     184      104      104      0        0        0        0        0        0        0        0        7       
-    total   158006   209      208      0        0        0        1        0        0        0        0        10228   
-  2021-02-18 11:27:27
+    total   158006   209      208      0        0        0        1        0        0        0        0        10220   
+  2021-03-09 11:28:33
   finished

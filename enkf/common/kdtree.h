@@ -22,8 +22,10 @@ extern long int seed_rand48;
 struct kdtree;
 typedef struct kdtree kdtree;
 
-struct kdset;
-typedef struct kdset kdset;
+typedef struct {
+    size_t id;
+    double dist;
+} kdresult;
 
 /*
  * basic procedures
@@ -55,15 +57,8 @@ size_t kd_getnodedata(const kdtree* tree, size_t id);
 /*
  * searches
  */
-kdset* kd_findnodeswithinrange(const kdtree* tree, const double* coords, double range, int ordered);
+void kd_findnodeswithinrange(kdtree* tree, const double* coords, double range, int ordered, size_t* n, kdresult** results);
 size_t kd_findnearestnode(const kdtree* tree, const double* coords);
-
-/*
- * search results
- */
-size_t kdset_readnext(kdset* set, double* dist);
-size_t kdset_getsize(const kdset* set);
-void kdset_free(kdset* set);
 
 #define _KDTREE_H_
 #endif                          /* _KDTREE_H_ */

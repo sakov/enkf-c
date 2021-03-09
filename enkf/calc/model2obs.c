@@ -31,7 +31,6 @@
 
 #define EPSMULT (float) 1.000001
 #define EPS_IJ 0.01
-#define FOOTPRINT_INC 1000
 
 /**
  */
@@ -58,23 +57,17 @@ static void evaluate_2d_obs(model* m, observations* allobs, int nobs, int obsids
             kdtree* tree = grid_gettreeXYZ(g, 1);
             double ll[2] = { o->lon, o->lat };
             double xyz[3];
-            kdset* set = NULL;
-            int ncells = 0;
-            size_t* ids = NULL;
-            size_t id;
+            size_t ncells = 0;
+            kdresult* results = NULL;
 
             ll2xyz(ll, xyz);
-            set = kd_findnodeswithinrange(tree, xyz, o->footprint, 0);
-            if (kdset_getsize(set) > 0) {
-                while ((id = kdset_readnext(set, NULL)) != SIZE_MAX) {
-                    int id_orig = kd_getnodedata(tree, id);
+            kd_findnodeswithinrange(tree, xyz, o->footprint, 0, &ncells, &results);
+            if (ncells > 0) {
+		size_t* ids = malloc(ncells * sizeof(size_t));
+                size_t iloc;
 
-                    if (ncells % FOOTPRINT_INC == 0)
-                        ids = realloc(ids, (ncells + FOOTPRINT_INC) * sizeof(size_t));
-                    ids[ncells] = id_orig;
-                    ncells++;
-                }
-                kdset_free(set);
+                for (iloc = 0; iloc < ncells; ++iloc)
+                    ids[iloc] = kd_getnodedata(tree, results[iloc].id);
                 out[ii] = average2d(ncells, ids, v);
                 free(ids);
             } else {

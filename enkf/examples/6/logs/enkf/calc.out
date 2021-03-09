@@ -2,10 +2,10 @@
   Using MPI-3 shared memory:
     sm_comm size = 2
     node_comm size = 1
-  running CALC for EnKF-C version 2.7.3:
+  running CALC for EnKF-C version 2.7.8:
     command = "./enkf_calc enkf.prm"
     dir = "/home/pavel/src/enkf-c/trunk/enkf/examples/6"
-  2021-02-18 11:27:27
+  2021-03-09 11:28:33
   reading system specs from "enkf.prm":
     MODE = EnKF
     SCHEME = DEnKF
@@ -35,7 +35,7 @@
       SHUFFLE_ROWS     = [-]
       USE_SHMEM        = [+]
       MINIMISE_ALLOC   = [+]
-      OBS_SHUFFLE      = [-]
+      OBS_SHUFFLE      = [+]
       TW_VIAFILE       = [-]
       INTERNAL_QSORT_R = [-]
       DEFLATE_ALL      = [-]
@@ -119,10 +119,7 @@
       HGRIDFROM = "t-grid"
       ZSTATINTS = [0 50] [50 500] [500 9999] 
     grid info:
-      hor type = LATLON
-      periodic by X = no
-      dims = 100 x 100 x 2
-      longitude range = [0.000, 360.000]
+      horizontal grid -- aliased to grid #0
       v type = Z
       v dir = FROMSURF
       STRIDE = 0
@@ -172,12 +169,12 @@
       t-grid2: (i, j) = (49.500, 49.500)
       c-grid: (i, j) = (49.000, 49.000)
   reading observations from "observations.nc":
-    10228 observations
-    allocating 1227360 bytes for array of observations
+    10220 observations
+    allocating 1226400 bytes for array of observations
     creating kd-trees for observations:
       kdtree "SLA":
-        660 nodes
-        42288 bytes
+        652 nodes
+        41776 bytes
       kdtree "SST":
         9554 nodes
         611504 bytes
@@ -188,9 +185,9 @@
         7 nodes
         496 bytes
   calculating ensemble observations:
-  2021-02-18 11:27:27
-    allocating 3927552 bytes for HE array:
-    allocating 3927552 bytes for HE^T array:
+  2021-03-09 11:28:33
+    allocating 3924480 bytes for HE array:
+    allocating 3924480 bytes for HE^T array:
     distributing 96 iterations:
       2 processes get 48 iterations each
     SLA ................................................
@@ -198,7 +195,7 @@
     TEM ................................................
     SAL ................................................
   writing forecast innovations and spread to "observations.nc":
-  2021-02-18 11:27:27
+  2021-03-09 11:28:33
   moderating observations:
     observations substantially modified:
       SLA          0 (0.0%)
@@ -208,7 +205,7 @@
       total        0 (0.0%)
   writing modified obs errors to "observations.nc":
   calculating transforms:
-  2021-02-18 11:27:27
+  2021-03-09 11:28:34
     calculating transforms for t-grid:
       distributing 34 iterations:
         2 processes get 17 iterations each
@@ -252,16 +249,16 @@
     writing stats to "enkf_diag-0.nc":
     summary stats on t-grid:
       # of local analyses = 1156
-      average # of local obs = 1050.2
+      average # of local obs = 1049.4
       # of inversions in obs space = 47
       # of inversions in ens space = 1109
     calculating transforms for c-grid:
       distributing 34 iterations:
         2 processes get 17 iterations each
       creating empty file "transforms-2.nc":
+        j = 3 (1: 17: 5.9%)
       main cycle for c-grid (34 x 34 local analyses):
         j = 0 (0: 0: 5.9%)
-        j = 3 (1: 17: 5.9%)
         j = 9 (1: 18: 11.8%)
         j = 6 (0: 1: 11.8%)
         j = 15 (1: 19: 17.6%)
@@ -298,7 +295,7 @@
     writing stats to "enkf_diag-2.nc":
     summary stats on c-grid:
       # of local analyses = 1156
-      average # of local obs = 1053.4
+      average # of local obs = 1052.6
       # of inversions in obs space = 46
       # of inversions in ens space = 1110
   writing point logs:
@@ -307,21 +304,21 @@
     writing log for point (156.000,-32.000) on grid "t-grid2":
     writing log for point (156.000,-32.000) on grid "c-grid":
   calculating analysed observations:
-  2021-02-18 11:28:02
+  2021-03-09 11:29:08
     sorting obs by ij:
-    2021-02-18 11:28:02
+    2021-03-09 11:29:08
     updating HE:
-    distributing 10228 iterations:
-      2 processes get 5114 iterations each
-    2021-02-18 11:28:03
+    distributing 10220 iterations:
+      2 processes get 5110 iterations each
+    2021-03-09 11:29:08
   adding analysis innovations and spread to "observations.nc":
   printing observation statistics:
     region obs.type   # obs.  |for.inn.| |an.inn.|   for.inn.   an.inn.  for.spread  an.spread
     ------------------------------------------------------------------------------------------
     Global
-           SLA           660   0.0766     0.0307     0.0216     0.0002     0.0386     0.0232  
-             j1          274    0.073     0.0269     0.0226  -0.000123     0.0434     0.0257  
-             n1          386   0.0791     0.0334     0.0208    0.00043     0.0352     0.0214  
+           SLA           652   0.0769     0.0306     0.0218   0.000273     0.0387     0.0232  
+             j1          272   0.0731     0.0267     0.0228   4.59e-05     0.0434     0.0257  
+             n1          380   0.0797     0.0334     0.0211   0.000436     0.0353     0.0214  
            SST          9554    0.456      0.205     -0.148    -0.0423      0.352      0.212  
              ESACCI     8386    0.457       0.18     -0.128    -0.0232      0.354      0.212  
              WindSat    1168    0.451       0.38      -0.29     -0.179      0.343      0.205  
@@ -335,5 +332,5 @@
              0-50m         2   0.0881      0.115     0.0739      0.072     0.0225     0.0157  
              50-500m       5   0.0723     0.0782     0.0469     0.0355      0.032     0.0223  
              500-9999m     0     -nan       -nan       -nan       -nan       -nan       -nan  
-  2021-02-18 11:28:03
+  2021-03-09 11:29:08
   finished
