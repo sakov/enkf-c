@@ -1601,7 +1601,7 @@ void obs_findlocal(observations* obs, double lon, double lat, char* domainname, 
         kdtree* tree = obs->loctrees[otid];
         int* obsids = obs->obsids[otid];
         size_t nloc;
-	kdresult* results;
+        kdresult* results;
         int iloc;
 
         if (ot->nobs == 0 || ot->statsonly)
@@ -1626,10 +1626,10 @@ void obs_findlocal(observations* obs, double lon, double lat, char* domainname, 
             nloc = ot->nlobsmax;
         for (iloc = 0; iloc < nloc; ++iloc) {
             size_t id_orig = kd_getnodedata(tree, results[iloc].id);
-	    observation* o = &obs->data[obsids[id_orig]];
+            observation* o = &obs->data[obsids[id_orig]];
 
-	    if (o->status != STATUS_OK)
-		continue;
+            if (o->status != STATUS_OK)
+                continue;
 
             if (ploc_allocated != NULL) {
                 if (i >= *ploc_allocated) {
@@ -1644,8 +1644,8 @@ void obs_findlocal(observations* obs, double lon, double lat, char* domainname, 
                 }
             }
             (*ids)[i] = obsids[id_orig];
-	    (*lcoeffs)[i] = obstype_calclcoeff(ot, sqrt(results[iloc].dist));
-	    i++;
+            (*lcoeffs)[i] = obstype_calclcoeff(ot, sqrt(results[iloc].distsq));
+            i++;
         }
     }
     *n = i;

@@ -133,7 +133,7 @@ void kd_destroy(kdtree* tree)
         free(tree->nodes);
     free(tree->name);
     if (tree->nresults_allocated > 0)
-	free(tree->results);
+        free(tree->results);
     free(tree);
 }
 
@@ -448,7 +448,7 @@ static double disttohyperrect(int ndim, const double* min, const double* max, co
 
 /**
  */
-static void _insertresult(kdtree* tree, size_t id, double dist)
+static void _insertresult(kdtree* tree, size_t id, double distsq)
 {
     kdresult* res;
 
@@ -459,7 +459,7 @@ static void _insertresult(kdtree* tree, size_t id, double dist)
 
     res = &tree->results[tree->nresults];
     res->id = id;
-    res->dist = dist;
+    res->distsq = distsq;
     tree->nresults++;
 }
 
@@ -470,7 +470,7 @@ static void _kd_findnodeswithinrange(kdtree* tree, int id, const double* coords,
     int ndim = tree->ndim;
     kdnode* node;
     double* nodecoords;
-    double dist, dx;
+    double distsq, dx;
     int i;
 
     if (id < 0)
@@ -479,11 +479,11 @@ static void _kd_findnodeswithinrange(kdtree* tree, int id, const double* coords,
     node = &tree->nodes[id];
     nodecoords = &tree->coords[node->id * ndim];
 
-    for (i = 0, dist = 0.0; i < ndim; i++)
-        dist += (nodecoords[i] - coords[i]) * (nodecoords[i] - coords[i]);
+    for (i = 0, distsq = 0.0; i < ndim; i++)
+        distsq += (nodecoords[i] - coords[i]) * (nodecoords[i] - coords[i]);
 
-    if (dist <= range * range)
-        _insertresult(tree, id, dist);
+    if (distsq <= range * range)
+        _insertresult(tree, id, distsq);
 
     dx = coords[node->dir] - nodecoords[node->dir];
     _kd_findnodeswithinrange(tree, dx <= 0.0 ? node->left : node->right, coords, range);
@@ -495,19 +495,19 @@ static void _kd_findnodeswithinrange(kdtree* tree, int id, const double* coords,
  */
 static int cmp_res(const void* p1, const void* p2)
 {
-    kdresult* n1 = (kdresult*) p1;
-    kdresult* n2 = (kdresult*) p2;
+    kdresult* n1 = (kdresult *) p1;
+    kdresult* n2 = (kdresult *) p2;
 
-    if (n1->dist > n2->dist)
+    if (n1->distsq > n2->distsq)
         return 1;
-    else if (n1->dist < n2->dist)
+    else if (n1->distsq < n2->distsq)
         return -1;
     return 0;
 }
 
 /**
  */
-void kd_findnodeswithinrange(kdtree* tree, const double* coords, double range, int ordered, size_t* nresults, kdresult** results)
+void kd_findnodeswithinrange(kdtree* tree, const double* coords, double range, int ordered, size_t* nresults, kdresult ** results)
 {
     tree->nresults = 0;
     _kd_findnodeswithinrange(tree, 0, coords, range);
@@ -964,7 +964,7 @@ int main(int argc, char* argv[])
         fflush(stdout);
     } else {
         size_t nresults;
-	kdresult* results;
+        kdresult* results;
         size_t i;
 
         /*
@@ -978,9 +978,9 @@ int main(int argc, char* argv[])
             printf("       X        Y       ID      DIST\n");
         for (i = 0; i < nresults; ++i) {
             size_t id = results[i].id;
-	    double dist = sqrt(results[i].dist);
-	    double* coords = kd_getnodecoords(tree, id);
-	    int idim;
+            double dist = sqrt(results[i].dist);
+            double* coords = kd_getnodecoords(tree, id);
+            int idim;
 
             if (isll) {
                 double lat = asin(coords[2] / REARTH);

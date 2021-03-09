@@ -63,7 +63,7 @@ static void evaluate_2d_obs(model* m, observations* allobs, int nobs, int obsids
             ll2xyz(ll, xyz);
             kd_findnodeswithinrange(tree, xyz, o->footprint, 0, &ncells, &results);
             if (ncells > 0) {
-		size_t* ids = malloc(ncells * sizeof(size_t));
+                size_t* ids = malloc(ncells * sizeof(size_t));
                 size_t iloc;
 
                 for (iloc = 0; iloc < ncells; ++iloc)

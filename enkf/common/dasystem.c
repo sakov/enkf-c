@@ -431,7 +431,7 @@ void das_getfields(dasystem* das, int gridid, int* nfields, field** fields)
 
     for (vid = 0; vid < nvar; ++vid) {
         int vargridid = model_getvargridid(m, vid);
-	int varaliasid = grid_getaliasid(model_getgridbyid(m, vargridid));
+        int varaliasid = grid_getaliasid(model_getgridbyid(m, vargridid));
         char fname[MAXSTRLEN];
         char* varname = model_getvarname(m, vid);
         int nk, k;

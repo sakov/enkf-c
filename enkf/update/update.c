@@ -1227,13 +1227,13 @@ void das_update(dasystem* das)
         int mni, mnj;
         int fid;
 
-	/*
-	 * (just to avoid the log message below)
-	 */
-	if (grid_getaliasid(g) >= 0)
-	    continue;
+        /*
+         * (just to avoid the log message below)
+         */
+        if (grid_getaliasid(g) >= 0)
+            continue;
 
-	enkf_printf("    processing fields for %s:\n", grid_getname(g));
+        enkf_printf("    processing fields for %s:\n", grid_getname(g));
 
         enkf_printtime("      ");
 
