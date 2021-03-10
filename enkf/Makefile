@@ -175,7 +175,7 @@ clean:
 	rm -f bin/*
 
 indent:
-	indent -T FILE -T field -T dasystem -T model -T variable -T kdtree -T kdnode -T kdset -T resnode -T modeldata -T grid -T gridprm -T gxy_simple -T gxy_curv -T gz_simple -T gz_sigma -T gz_hybrid -T gxy_curv -T stringtable -T tm -T obsmeta -T metastd -T metapar -T obsreader_entry -T H_entry -T model_entry -T enkfprm -T gnll -T rangeentry -T observation -T obstype -T observations -T pointlog -T region -T obsdomain -T zint -T calcstats -T hashtable -T ht_bucket -T badbatchspec -T nctype2str -T nc_type -T size_t -T otdesc -T obsregion -T uint32_t -T uint16_t */*.[ch]
+	indent -T FILE -T field -T dasystem -T model -T variable -T kdtree -T kdnode -T kdresult -T modeldata -T grid -T gridprm -T gxy_simple -T gxy_curv -T gz_simple -T gz_sigma -T gz_hybrid -T gxy_curv -T stringtable -T tm -T obsmeta -T metastd -T metapar -T obsreader_entry -T H_entry -T model_entry -T enkfprm -T gnll -T rangeentry -T observation -T obstype -T observations -T pointlog -T region -T obsdomain -T zint -T calcstats -T hashtable -T ht_bucket -T badbatchspec -T nctype2str -T nc_type -T size_t -T otdesc -T obsregion -T uint32_t -T uint16_t */*.[ch]
 	rm -f `find . -name "*.*~"`
 
 # following are 3 convenience targets for compiling particular binaries

@@ -433,17 +433,17 @@ size_t kd_getstoragesize(const kdtree* tree, size_t nnodes)
  */
 static double disttohyperrect(int ndim, const double* min, const double* max, const double* coords)
 {
-    double dist = 0.0;
+    double distsq = 0.0;
     int i;
 
     for (i = 0; i < ndim; ++i) {
         if (coords[i] < min[i])
-            dist += (min[i] - coords[i]) * (min[i] - coords[i]);
+            distsq += (min[i] - coords[i]) * (min[i] - coords[i]);
         else if (coords[i] > max[i])
-            dist += (max[i] - coords[i]) * (max[i] - coords[i]);
+            distsq += (max[i] - coords[i]) * (max[i] - coords[i]);
     }
 
-    return dist;
+    return distsq;
 }
 
 /**
@@ -495,8 +495,8 @@ static void _kd_findnodeswithinrange(kdtree* tree, int id, const double* coords,
  */
 static int cmp_res(const void* p1, const void* p2)
 {
-    kdresult* n1 = (kdresult *) p1;
-    kdresult* n2 = (kdresult *) p2;
+    kdresult* n1 = (kdresult*) p1;
+    kdresult* n2 = (kdresult*) p2;
 
     if (n1->distsq > n2->distsq)
         return 1;
@@ -507,7 +507,7 @@ static int cmp_res(const void* p1, const void* p2)
 
 /**
  */
-void kd_findnodeswithinrange(kdtree* tree, const double* coords, double range, int ordered, size_t* nresults, kdresult ** results)
+void kd_findnodeswithinrange(kdtree* tree, const double* coords, double range, int ordered, size_t* nresults, kdresult** results)
 {
     tree->nresults = 0;
     _kd_findnodeswithinrange(tree, 0, coords, range);
@@ -521,7 +521,7 @@ void kd_findnodeswithinrange(kdtree* tree, const double* coords, double range, i
 
 /**
  */
-static void _kd_findnearestnode(const kdtree* tree, const size_t nodeid, const double* coords, size_t* result, double* resdist, double* minmax)
+static void _kd_findnearestnode(const kdtree* tree, const size_t nodeid, const double* coords, size_t* result, double* resdistsq, double* minmax)
 {
     int ndim = tree->ndim;
     kdnode* node = &tree->nodes[nodeid];
@@ -531,7 +531,7 @@ static void _kd_findnearestnode(const kdtree* tree, const size_t nodeid, const d
     size_t nearer_subtree, farther_subtree;
     double* nearer_hyperrect_coord;
     double* farther_hyperrect_coord;
-    double dist;
+    double distsq;
     int i;
 
     if (left) {
@@ -556,7 +556,7 @@ static void _kd_findnearestnode(const kdtree* tree, const size_t nodeid, const d
         /*
          * recurse down into nearer subtree 
          */
-        _kd_findnearestnode(tree, nearer_subtree, coords, result, resdist, minmax);
+        _kd_findnearestnode(tree, nearer_subtree, coords, result, resdistsq, minmax);
         /*
          * undo the slice 
          */
@@ -567,11 +567,11 @@ static void _kd_findnearestnode(const kdtree* tree, const size_t nodeid, const d
      * check the distance of the point at the current node, compare it with
      * the best so far 
      */
-    for (i = 0, dist = 0.0; i < ndim; ++i)
-        dist += (nodecoords[i] - coords[i]) * (nodecoords[i] - coords[i]);
-    if (dist <= *resdist) {
+    for (i = 0, distsq = 0.0; i < ndim; ++i)
+        distsq += (nodecoords[i] - coords[i]) * (nodecoords[i] - coords[i]);
+    if (distsq <= *resdistsq) {
         *result = nodeid;
-        *resdist = dist;
+        *resdistsq = distsq;
     }
 
     if (farther_subtree != SIZE_MAX) {
@@ -586,11 +586,11 @@ static void _kd_findnearestnode(const kdtree* tree, const size_t nodeid, const d
          * of the hyperrect and see if it's closer than our minimum distance
          * in result_dist_sq. 
          */
-        if (disttohyperrect(ndim, minmax, &minmax[ndim], coords) < *resdist)
+        if (disttohyperrect(ndim, minmax, &minmax[ndim], coords) < *resdistsq)
             /*
              * recurse down into farther subtree 
              */
-            _kd_findnearestnode(tree, farther_subtree, coords, result, resdist, minmax);
+            _kd_findnearestnode(tree, farther_subtree, coords, result, resdistsq, minmax);
         /*
          * undo the slice 
          */
@@ -608,19 +608,19 @@ size_t kd_findnearestnode(const kdtree* tree, const double* coords)
     int ndim = tree->ndim;
     double minmax[NDIMMAX * 2];
     size_t result;
-    double dist;
+    double distsq;
     int i;
 
     for (i = 0; i < ndim * 2; ++i)
         minmax[i] = tree->min[i];
 
-    for (i = 0, dist = 0.0; i < ndim; ++i)
-        dist += (tree->coords[i] - coords[i]) * (tree->coords[i] - coords[i]);
+    for (i = 0, distsq = 0.0; i < ndim; ++i)
+        distsq += (tree->coords[i] - coords[i]) * (tree->coords[i] - coords[i]);
 
     /*
      * search for the nearest neighbour recursively 
      */
-    _kd_findnearestnode(tree, 0, coords, &result, &dist, minmax);
+    _kd_findnearestnode(tree, 0, coords, &result, &distsq, minmax);
 
     return result;
 }

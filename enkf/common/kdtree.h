@@ -57,7 +57,7 @@ size_t kd_getnodedata(const kdtree* tree, size_t id);
 /*
  * searches
  */
-void kd_findnodeswithinrange(kdtree* tree, const double* coords, double range, int ordered, size_t* n, kdresult ** results);
+void kd_findnodeswithinrange(kdtree* tree, const double* coords, double range, int ordered, size_t* n, kdresult** results);
 size_t kd_findnearestnode(const kdtree* tree, const double* coords);
 
 #define _KDTREE_H_
