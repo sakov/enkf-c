@@ -350,6 +350,7 @@ void obs_destroy(observations* obs)
     free(obs);
 }
 
+#if defined(ENKF_PREP)
 /**
  */
 void obs_checkalloc(observations* obs)
@@ -362,6 +363,7 @@ void obs_checkalloc(observations* obs)
         memset(&obs->data[obs->nobs], 0, NOBS_INC * sizeof(observation));
     }
 }
+#endif
 
 #if defined(ENKF_PREP)
 /**
@@ -831,6 +833,7 @@ void obs_read(observations* obs, char fname[])
     obs_calcstats(obs);
 }
 
+#if defined(ENKF_PREP)
 /**
  */
 void obs_write(observations* obs, char fname[])
@@ -1077,7 +1080,9 @@ void obs_write(observations* obs, char fname[])
     MPI_Barrier(MPI_COMM_WORLD);
 #endif
 }
+#endif
 
+#if defined(ENKF_PREP)
 /**
  */
 void obs_writeaux(observations* obs, char fname[])
@@ -1108,7 +1113,9 @@ void obs_writeaux(observations* obs, char fname[])
     ncw_close(ncid);
     free(aux);
 }
+#endif
 
+#if defined(ENKF_CALC)
 /**
  */
 int obs_modifiederrors_alreadywritten(observations* obs, char fname[])
@@ -1122,6 +1129,7 @@ int obs_modifiederrors_alreadywritten(observations* obs, char fname[])
 
     return iswritten;
 }
+#endif
 
 #if defined(ENKF_PREP)
 /**
@@ -1362,6 +1370,7 @@ void obs_superob(observations* obs, __compar_d_fn_t cmp_obs, observations** sobs
 }
 #endif
 
+#if defined (ENKF_CALC)
 /**
  */
 void obs_find_bytype(observations* obs, int type, int* nobs, int** obsids)
@@ -1390,7 +1399,9 @@ void obs_find_bytype(observations* obs, int type, int* nobs, int** obsids)
         *obsids = NULL;
     }
 }
+#endif
 
+#if defined (ENKF_CALC)
 /**
  */
 void obs_find_bytypeandtime(observations* obs, int type, int time, int* nobs, int** obsids)
@@ -1420,6 +1431,7 @@ void obs_find_bytypeandtime(observations* obs, int type, int time, int* nobs, in
         *obsids = NULL;
     }
 }
+#endif
 
 /**
  */
@@ -1432,7 +1444,9 @@ void obs_printob(observations* obs, int i)
 }
 
 #if defined(ENKF_CALC)
-/**
+/** Create kd-trees for (3D locations of) observations of each type. If
+ ** (USE_SHMEM) then put them on core #0 of each compute node and access from
+ ** other cores using shared memory machinery of MPI-3.
  */
 void obs_createkdtrees(observations* obs)
 {
@@ -1580,7 +1594,23 @@ void obs_destroykdtrees(observations* obs)
 #endif
 
 #if defined(ENKF_CALC)
-/**
+/** For each observation type find observations within localisation radius from
+ ** the specified location (lon,lat) and calculate the corresponding taper
+ ** coefficients. If there is a limit on the number of local observations then
+ ** sort observations according to distance and keep the specified number of the
+ ** closest observations. If *ploc_allocated in NULL then allocate arrays of
+ ** observation ids and taper coefficients, if not -- then assume that these
+ ** arrays are pre-allocated.
+ * @param obs - observations
+ * @param lon - longitude
+ * @param lat - latitude
+ * @param domainname - the domain
+ * @param n - number of local obs. found
+ * @param ids - array of the local obs. ids
+ * @param lcoeffs - array of taper coefficients
+ * @ploc_allocated - (pointer to) the number of local observations the output
+ *                   arrays have been pre-allocated for; not preallocated if
+ *                   NULL
  */
 void obs_findlocal(observations* obs, double lon, double lat, char* domainname, int* n, int** ids, double** lcoeffs, int* ploc_allocated)
 {
@@ -1607,6 +1637,10 @@ void obs_findlocal(observations* obs, double lon, double lat, char* domainname, 
         if (ot->nobs == 0 || ot->statsonly)
             continue;
 
+        /*
+         * check whether observations of this type are visible from the
+         * specified domain
+         */
         if (domainname != NULL && ot->ndomains > 0) {
             /*
              * (if ot->ndomains = 0 then observations of this type are visible
