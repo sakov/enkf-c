@@ -240,7 +240,7 @@ void obs_add(observations* obs, model* m, obsmeta* meta, int nexclude, obsregion
             }
             if (depth != NULL) {
                 o->model_depth = (double) interpolate2d(o->fi, o->fj, ni, nj, depth, numlevels, isperiodic_i);
-                if (!isfinite(o->model_depth) || o->model_depth == 0) {
+                if (!isfinite(o->model_depth) || o->model_depth == 0 || o->depth > o->model_depth) {
                     o->status = STATUS_LAND;
                     nland++;
                     continue;

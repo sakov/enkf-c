@@ -1,3 +1,7 @@
+v2.7.9
+   PS 18032021
+   -- A subtle defect, fixed by adding a check in obs_add() that the obs. depth
+      does not exceed the model depth. Thanks to Terry O'Kane for the report.
 v2.7.8
    PS 09032021
    -- Modified kdtree.[ch] to reduce the number of allocations. Modified the
