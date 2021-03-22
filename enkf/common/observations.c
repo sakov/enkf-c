@@ -843,30 +843,9 @@ void obs_write(observations* obs, char fname[])
 
     int ncid;
     int dimid_nobs[1];
-    int varid_type, varid_product, varid_instrument, varid_id, varid_idorig, varid_fid, varid_batch, varid_value, varid_estd, varid_footprint, varid_lon, varid_lat, varid_depth, varid_mdepth, varid_fi, varid_fj, varid_fk, varid_time, varid_status, varid_aux;
-
-    int* id;
-    int* id_orig;
-    short int* type;
-    short int* product;
-    short int* instrument;
-    short int* fid;
-    int* batch;
-    double* value;
-    double* estd;
-    double* footprint = NULL;
-    double* lon;
-    double* lat;
-    double* depth;
-    double* model_depth;
-    double* fi;
-    double* fj;
-    double* fk;
-    double* time;
-    int* status;
-    int* aux;
-
-    int i, ii;
+    int varid_id, varid_idorig, varid_type, varid_product, varid_instrument, varid_fid, varid_batch, varid_value, varid_estd, varid_footprint, varid_lon, varid_lat, varid_depth, varid_mdepth, varid_fi, varid_fj, varid_fk, varid_time, varid_status, varid_aux;
+    void* v;
+    int i;
 
     if (rank != 0)
         return;
@@ -976,109 +955,97 @@ void obs_write(observations* obs, char fname[])
         return;
     }
 
-    id = malloc(nobs * sizeof(int));
-    id_orig = malloc(nobs * sizeof(int));
-    type = malloc(nobs * sizeof(short int));
-    product = malloc(nobs * sizeof(short int));
-    instrument = malloc(nobs * sizeof(short int));
-    fid = malloc(nobs * sizeof(short int));
-    batch = malloc(nobs * sizeof(int));
-    value = malloc(nobs * sizeof(double));
-    estd = malloc(nobs * sizeof(double));
-    if (obs->has_nonpointobs)
-        footprint = malloc(nobs * sizeof(footprint));
-    lon = malloc(nobs * sizeof(double));
-    lat = malloc(nobs * sizeof(double));
-    depth = malloc(nobs * sizeof(double));
-    model_depth = malloc(nobs * sizeof(double));
-    fi = malloc(nobs * sizeof(double));
-    fj = malloc(nobs * sizeof(double));
-    fk = malloc(nobs * sizeof(double));
-    time = malloc(nobs * sizeof(double));
-    status = malloc(nobs * sizeof(int));
-    aux = malloc(nobs * sizeof(int));
-
-    for (i = 0, ii = 0; i < obs->nobs; ++i) {
+    for (i = 0; i < obs->nobs; ++i) {
         observation* o = &obs->data[i];
 
-        if (!isfinite(o->value) || fabs(o->value) > FLT_MAX || !isfinite((float) o->value))
-            enkf_quit("bad value");
-
-        type[ii] = o->type;
-        product[ii] = o->product;
-        instrument[ii] = o->instrument;
-        id[ii] = o->id;
-        fid[ii] = o->fid;
-        batch[ii] = o->batch;
-        /*
-         * id of the first ob contributed to this sob 
-         */
-        id_orig[ii] = o->id_orig;
-        value[ii] = o->value;
-        estd[ii] = o->estd;
-        if (obs->has_nonpointobs)
-            footprint[ii] = o->footprint;
-        lon[ii] = o->lon;
-        lat[ii] = o->lat;
-        depth[ii] = o->depth;
-        model_depth[ii] = o->model_depth;
-        fi[ii] = o->fi;
-        fj[ii] = o->fj;
-        fk[ii] = o->fk;
-        time[ii] = o->time;
-        status[ii] = o->status;
-        aux[ii] = o->aux;
-        ii++;
+        if (!isfinite(o->value) || fabs(o->value) > FLT_MAX || !isfinite((float) o->value)) {
+            obs_printob(obs, i);
+            enkf_quit("obs_write(): bad value");
+        }
     }
-    assert(ii == nobs);
 
-    ncw_put_var_int(ncid, varid_id, id);
-    ncw_put_var_int(ncid, varid_idorig, id_orig);
-    ncw_put_var_short(ncid, varid_type, type);
-    ncw_put_var_short(ncid, varid_product, product);
-    ncw_put_var_short(ncid, varid_instrument, instrument);
-    ncw_put_var_short(ncid, varid_fid, fid);
-    ncw_put_var_int(ncid, varid_batch, batch);
-    ncw_put_var_double(ncid, varid_value, value);
-    ncw_put_var_double(ncid, varid_estd, estd);
-    if (obs->has_nonpointobs)
-        ncw_put_var_double(ncid, varid_footprint, footprint);
-    ncw_put_var_double(ncid, varid_lon, lon);
-    ncw_put_var_double(ncid, varid_lat, lat);
-    ncw_put_var_double(ncid, varid_depth, depth);
-    ncw_put_var_double(ncid, varid_mdepth, model_depth);
-    ncw_put_var_double(ncid, varid_fi, fi);
-    ncw_put_var_double(ncid, varid_fj, fj);
-    ncw_put_var_double(ncid, varid_fk, fk);
-    ncw_put_var_double(ncid, varid_time, time);
-    ncw_put_var_int(ncid, varid_status, status);
-    ncw_put_var_int(ncid, varid_aux, aux);
+    v = malloc(nobs * ((sizeof(float) >= sizeof(int)) ? sizeof(float) : sizeof(int)));
+
+    for (i = 0; i < obs->nobs; ++i)
+        ((int*) v)[i] = obs->data[i].id;
+    ncw_put_var(ncid, varid_id, v);
+
+    for (i = 0; i < obs->nobs; ++i)
+        ((int*) v)[i] = obs->data[i].id_orig;
+    ncw_put_var(ncid, varid_idorig, v);
+
+    for (i = 0; i < obs->nobs; ++i)
+        ((short int*) v)[i] = obs->data[i].type;
+    ncw_put_var(ncid, varid_type, v);
+
+    for (i = 0; i < obs->nobs; ++i)
+        ((short int*) v)[i] = obs->data[i].product;
+    ncw_put_var(ncid, varid_product, v);
+
+    for (i = 0; i < obs->nobs; ++i)
+        ((short int*) v)[i] = obs->data[i].instrument;
+    ncw_put_var(ncid, varid_instrument, v);
+
+    for (i = 0; i < obs->nobs; ++i)
+        ((short int*) v)[i] = obs->data[i].fid;
+    ncw_put_var(ncid, varid_fid, v);
+
+    for (i = 0; i < obs->nobs; ++i)
+        ((float*) v)[i] = (float) obs->data[i].value;
+    ncw_put_var(ncid, varid_value, v);
+
+    for (i = 0; i < obs->nobs; ++i)
+        ((float*) v)[i] = (float) obs->data[i].estd;
+    ncw_put_var(ncid, varid_estd, v);
+
+    if (obs->has_nonpointobs) {
+        for (i = 0; i < obs->nobs; ++i)
+            ((float*) v)[i] = (float) obs->data[i].footprint;
+        ncw_put_var(ncid, varid_footprint, v);
+    }
+
+    for (i = 0; i < obs->nobs; ++i)
+        ((float*) v)[i] = (float) obs->data[i].lon;
+    ncw_put_var(ncid, varid_lon, v);
+
+    for (i = 0; i < obs->nobs; ++i)
+        ((float*) v)[i] = (float) obs->data[i].lat;
+    ncw_put_var(ncid, varid_lat, v);
+
+    for (i = 0; i < obs->nobs; ++i)
+        ((float*) v)[i] = (float) obs->data[i].depth;
+    ncw_put_var(ncid, varid_depth, v);
+
+    for (i = 0; i < obs->nobs; ++i)
+        ((float*) v)[i] = (float) obs->data[i].model_depth;
+    ncw_put_var(ncid, varid_mdepth, v);
+
+    for (i = 0; i < obs->nobs; ++i)
+        ((float*) v)[i] = (float) obs->data[i].fi;
+    ncw_put_var(ncid, varid_fi, v);
+
+    for (i = 0; i < obs->nobs; ++i)
+        ((float*) v)[i] = (float) obs->data[i].fj;
+    ncw_put_var(ncid, varid_fj, v);
+
+    for (i = 0; i < obs->nobs; ++i)
+        ((float*) v)[i] = (float) obs->data[i].fk;
+    ncw_put_var(ncid, varid_fk, v);
+
+    for (i = 0; i < obs->nobs; ++i)
+        ((float*) v)[i] = (float) obs->data[i].time;
+    ncw_put_var(ncid, varid_time, v);
+
+    for (i = 0; i < obs->nobs; ++i)
+        ((char*) v)[i] = obs->data[i].status;
+    ncw_put_var(ncid, varid_status, v);
+
+    for (i = 0; i < obs->nobs; ++i)
+        ((int*) v)[i] = obs->data[i].aux;
+    ncw_put_var(ncid, varid_aux, v);
 
     ncw_close(ncid);
-    free(type);
-    free(product);
-    free(instrument);
-    free(id);
-    free(id_orig);
-    free(fid);
-    free(batch);
-    free(value);
-    free(estd);
-    if (obs->has_nonpointobs)
-        free(footprint);
-    free(lon);
-    free(lat);
-    free(depth);
-    free(model_depth);
-    free(fi);
-    free(fj);
-    free(fk);
-    free(time);
-    free(status);
-    free(aux);
-#if defined(MPI)
-    MPI_Barrier(MPI_COMM_WORLD);
-#endif
+    free(v);
 }
 #endif
 

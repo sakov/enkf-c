@@ -1,3 +1,6 @@
+v2.7.10
+   PS 22032021
+   -- Modified obs_write() to reduce memory footprint of PREP.
 v2.7.9
    PS 18032021
    -- A subtle defect, fixed by adding a check in obs_add() that the obs. depth
