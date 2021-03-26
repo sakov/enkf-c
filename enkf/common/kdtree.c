@@ -978,7 +978,7 @@ int main(int argc, char* argv[])
             printf("       X        Y       ID      DIST\n");
         for (i = 0; i < nresults; ++i) {
             size_t id = results[i].id;
-            double dist = sqrt(results[i].dist);
+            double dist = sqrt(results[i].distsq);
             double* coords = kd_getnodecoords(tree, id);
             int idim;
 
