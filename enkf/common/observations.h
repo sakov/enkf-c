@@ -38,27 +38,27 @@ typedef struct {
      * this observation
      */
     int id_orig;
+    short int status;           /* 0 = OK */
     short int type;
     short int product;
     short int instrument;
     short int fid;
     int batch;
-    double value;
-    double estd;
-    double footprint;
-    double lon;
-    double lat;
-    double depth;
-    double model_depth;
-    double fi;
-    double fj;
-    double fk;
-    double time;
-    int status;                 /* 0 = OK */
+    float value;
+    float estd;
+    float footprint;
+    float lon;
+    float lat;
+    float depth;
+    float model_depth;
+    float fi;
+    float fj;
+    float fk;
+    float time;
     /*
      * auxiliary information:
-     *  - # of obs for a sob
-     *  - sob id for the original ob
+     *  - for a supoerob -- # of obs collated
+     *  - for an original observation -- sob id
      */
     int aux;
 } observation;

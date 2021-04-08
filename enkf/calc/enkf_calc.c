@@ -139,18 +139,18 @@ static void parse_commandline(int argc, char* argv[], char** fname_prm, char** f
             i++;
             if (i >= argc)
                 usage();
-            if (!str2double(argv[i], &singleob->lon))
-                enkf_quit("command line: could not convert \"%s\" to double\n", argv[i]);
+            if (!str2float(argv[i], &singleob->lon))
+                enkf_quit("command line: could not convert \"%s\" to float\n", argv[i]);
             i++;
             if (i >= argc)
                 usage();
-            if (!str2double(argv[i], &singleob->lat))
-                enkf_quit("command line: could not convert \"%s\" to double\n", argv[i]);
+            if (!str2float(argv[i], &singleob->lat))
+                enkf_quit("command line: could not convert \"%s\" to float\n", argv[i]);
             i++;
             if (i >= argc)
                 usage();
-            if (!str2double(argv[i], &singleob->depth))
-                enkf_quit("command line: could not convert \"%s\" to double", argv[i]);
+            if (!str2float(argv[i], &singleob->depth))
+                enkf_quit("command line: could not convert \"%s\" to float", argv[i]);
             i++;
             if (i >= argc)
                 usage();
@@ -158,13 +158,13 @@ static void parse_commandline(int argc, char* argv[], char** fname_prm, char** f
             i++;
             if (i >= argc)
                 usage();
-            if (!str2double(argv[i], &singleob->value))
-                enkf_quit("command line: could not convert \"%s\" to double", argv[i]);
+            if (!str2float(argv[i], &singleob->value))
+                enkf_quit("command line: could not convert \"%s\" to float", argv[i]);
             i++;
             if (i >= argc)
                 usage();
-            if (!str2double(argv[i], &singleob->estd))
-                enkf_quit("command line: could not convert \"%s\" to double", argv[i]);
+            if (!str2float(argv[i], &singleob->estd))
+                enkf_quit("command line: could not convert \"%s\" to float", argv[i]);
             i++;
             continue;
         } else if (strcmp(argv[i], "--use-existing-transforms") == 0) {
@@ -253,9 +253,9 @@ static observations* obs_create_fromsingleob(enkfprm* prm, dasystem* das)
     }
 
     if (!singleob_ijk) {
-        o->status = model_xy2fij(m, vid, o->lon, o->lat, &o->fi, &o->fj);
+        o->status = model_xy2fij_f(m, vid, o->lon, o->lat, &o->fi, &o->fj);
         if (o->status == STATUS_OK)
-            o->status = model_z2fk(m, vid, o->fi, o->fj, o->depth, &o->fk);
+            o->status = model_z2fk_f(m, vid, o->fi, o->fj, o->depth, &o->fk);
         else
             o->fk = NAN;
     } else {
@@ -264,15 +264,25 @@ static observations* obs_create_fromsingleob(enkfprm* prm, dasystem* das)
 
         o->fi = o->lon;
         o->fj = o->lat;
-        model_ij2xy(m, vid, (int) (o->fi + EPS_IJ), (int) (o->fj + EPS_IJ), &o->lon, &o->lat);
+        {
+            double lon_d, lat_d;
+
+            model_ij2xy(m, vid, (int) (o->fi + EPS_IJ), (int) (o->fj + EPS_IJ), &lon_d, &lat_d);
+            o->lon = (float) lon_d;
+            o->lat = (float) lat_d;
+        }
         o->fk = o->depth;
-        if (o->fk != 0.0)
-            model_fk2z(m, vid, (int) (o->fi + EPS_IJ), (int) (o->fj + EPS_IJ), o->fk, &o->depth);
+        if (o->fk != 0.0) {
+            double depth_d;
+
+            model_fk2z(m, vid, (int) (o->fi + EPS_IJ), (int) (o->fj + EPS_IJ), o->fk, &depth_d);
+            o->depth = (float) depth_d;
+        }
 
         o->status = STATUS_OK;
         grid_getsize(g, &ni, &nj, &nk);
 
-        if (o->fi < 0.0 || o->fi > (double) (ni - 1) || o->fj < 0.0 || o->fj > (double) (nj - 1) || o->fk < 0.0 || o->fk > (double) (nk - 1))
+        if (o->fi < 0.0 || o->fi > (float) (ni - 1) || o->fj < 0.0 || o->fj > (float) (nj - 1) || o->fk < 0.0 || o->fk > (float) (nk - 1))
             o->status = STATUS_OUTSIDEGRID;
         else {
             int i1 = floor(o->fi);

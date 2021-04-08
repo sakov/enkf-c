@@ -1578,7 +1578,7 @@ int grid_xy2fij(grid* g, double x, double y, double* fi, double* fj)
      * This procedure is used to map observations within a grid. The observation
      * will then be possibly collated (superobed) and stored in observations.nc.
      * In particular, the fractional grid coordinates of the observation will be
-     * stored as NC_FLOAT. This onse in a lifetime causes a mismatch between i1,
+     * stored as NC_FLOAT. This once in a lifetime causes a mismatch between i1,
      * i2, j1, j2 values below obtained from double precision coordinates and
      * those obtained from single precision ccordinates and then used for
      * getting the forecast observation values by interpolating the
@@ -1612,6 +1612,17 @@ int grid_xy2fij(grid* g, double x, double y, double* fi, double* fj)
         return STATUS_LAND;
     }
     return STATUS_OK;
+}
+
+int grid_xy2fij_f(grid* g, double x, double y, float* fi, float* fj)
+{
+    double fi_d, fj_d;
+    int status = grid_xy2fij(g, x, y, &fi_d, &fj_d);
+
+    *fi = (float) fi_d;
+    *fj = (float) fj_d;
+
+    return status;
 }
 
 /**
@@ -1681,6 +1692,18 @@ int grid_z2fk(grid* g, double fi, double fj, double z, double* fk)
     }
 
     return STATUS_OK;
+}
+
+/**
+ */
+int grid_z2fk_f(grid* g, double fi, double fj, double z, float* fk)
+{
+    double fk_d;
+    int status = grid_z2fk(g, fi, fj, z, &fk_d);
+
+    *fk = (float) fk_d;
+
+    return status;
 }
 
 /**

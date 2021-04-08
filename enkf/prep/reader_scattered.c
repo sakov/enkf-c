@@ -386,11 +386,11 @@ void reader_scattered(char* fname, int fid, obsmeta* meta, grid* g, observations
         o->lon = lon[i];
         o->lat = lat[i];
         o->depth = (z != NULL) ? z[i] : zvalue;
-        o->status = grid_xy2fij(g, o->lon, o->lat, &o->fi, &o->fj);
+        o->status = grid_xy2fij_f(g, o->lon, o->lat, &o->fi, &o->fj);
         if (!obs->allobs && o->status == STATUS_OUTSIDEGRID)
             continue;
         if (o->status == STATUS_OK)
-            o->status = grid_z2fk(g, o->fi, o->fj, o->depth, &o->fk);
+            o->status = grid_z2fk_f(g, o->fi, o->fj, o->depth, &o->fk);
         else
             o->fk = NAN;
         o->model_depth = NAN;   /* set in obs_add() */

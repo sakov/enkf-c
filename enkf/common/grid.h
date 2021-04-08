@@ -60,6 +60,9 @@ void grid_fij2xy(grid* g, double fi, double fj, double* x, double* y);
 void grid_ij2xy(grid* g, int i, int j, double* x, double* y);
 int grid_fk2z(grid* g, int i, int j, double fk, double* z);
 
+int grid_xy2fij_f(grid* g, double x, double y, float* fi, float* fj);
+int grid_z2fk_f(grid* g, double fi, double fj, double z, float* fk);
+
 #if defined(ENKF_CALC)
 kdtree* grid_gettreeXYZ(grid* g, int createifnull);
 void grid_destroytreeXYZ(grid* g);

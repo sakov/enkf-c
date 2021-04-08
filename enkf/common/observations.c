@@ -29,7 +29,7 @@
 #define NOBSTYPES_INC 10
 #define PLOC_INC 10000
 #define HT_SIZE 500
-#define EPSD 1.0e-10
+#define EPSF 1.0e-5
 
 typedef struct {
     int obstypeid;
@@ -507,31 +507,7 @@ void obs_read(observations* obs, char fname[])
 {
     int ncid;
     double da_time = NAN;
-    int dimid_nobs[1];
     size_t nobs;
-    int varid_type, varid_product, varid_instrument, varid_id, varid_idorig, varid_fid, varid_batch, varid_value, varid_estd, varid_footprint, varid_lon, varid_lat, varid_depth, varid_mdepth, varid_fi, varid_fj, varid_fk, varid_time, varid_status, varid_aux;
-    int* id = NULL;
-    int* id_orig = NULL;
-    short int* type = NULL;
-    short int* product = NULL;
-    short int* instrument = NULL;
-    short int* fid = NULL;
-    int* batch = NULL;
-    double* value = NULL;
-    double* estd = NULL;
-    double* footprint = NULL;
-    double* lon = NULL;
-    double* lat = NULL;
-    double* depth = NULL;
-    double* model_depth = NULL;
-    double* fi = NULL;
-    double* fj = NULL;
-    double* fk = NULL;
-    double* time = NULL;
-    int* status = NULL;
-    int* aux = NULL;
-    int natts;
-    int i;
 
     ncw_open(fname, NC_NOWRITE, &ncid);
 
@@ -540,8 +516,12 @@ void obs_read(observations* obs, char fname[])
     if (!enkf_noobsdatecheck && !isnan(da_time) && fabs(obs->da_time - da_time) > 1e-6)
         enkf_quit("observation data file \"%s\" from a different cycle");
 
-    ncw_inq_dimid(ncid, "nobs", dimid_nobs);
-    ncw_inq_dimlen(ncid, dimid_nobs[0], &nobs);
+    {
+        int dimid_nobs[1];
+
+        ncw_inq_dimid(ncid, "nobs", dimid_nobs);
+        ncw_inq_dimlen(ncid, dimid_nobs[0], &nobs);
+    }
 
     obs->nobs = nobs;
     enkf_printf("    %zu observations\n", nobs);
@@ -579,257 +559,254 @@ void obs_read(observations* obs, char fname[])
     assert(obs->data != NULL);
 #endif
 
-    ncw_inq_varid(ncid, "type", &varid_type);
-    ncw_inq_varid(ncid, "product", &varid_product);
-    ncw_inq_varid(ncid, "instrument", &varid_instrument);
-    ncw_inq_varid(ncid, "id", &varid_id);
-    ncw_inq_varid(ncid, "id_orig", &varid_idorig);
-    ncw_inq_varid(ncid, "fid", &varid_fid);
-    ncw_inq_varid(ncid, "batch", &varid_batch);
-    ncw_inq_varid(ncid, "value", &varid_value);
-    ncw_inq_varid(ncid, "estd", &varid_estd);
-    if (ncw_var_exists(ncid, "footprint")) {
-        ncw_inq_varid(ncid, "footprint", &varid_footprint);
-        obs->has_nonpointobs = 1;
-    }
-    ncw_inq_varid(ncid, "lon", &varid_lon);
-    ncw_inq_varid(ncid, "lat", &varid_lat);
-    ncw_inq_varid(ncid, "depth", &varid_depth);
-    ncw_inq_varid(ncid, "model_depth", &varid_mdepth);
-    ncw_inq_varid(ncid, "fi", &varid_fi);
-    ncw_inq_varid(ncid, "fj", &varid_fj);
-    ncw_inq_varid(ncid, "fk", &varid_fk);
-    ncw_inq_varid(ncid, "time", &varid_time);
-    ncw_inq_varid(ncid, "status", &varid_status);
-    ncw_inq_varid(ncid, "aux", &varid_aux);
+    {
+        int varid, natts, i;
 
-    /*
-     * date
-     */
-    if (obs->datestr == NULL) {
-        size_t len = 0;
+        /*
+         * check consistency of "type" attributes
+         */
+        ncw_inq_varid(ncid, "type", &varid);
+        ncw_inq_varnatts(ncid, varid, &natts);
+        for (i = 0; i < natts; ++i) {
+            char attname[NC_MAX_NAME];
+            int typeid;
 
-        ncw_inq_attlen(ncid, varid_time, "units", &len);
-        obs->datestr = malloc(len + 1);
-        ncw_get_att_text(ncid, varid_time, "units", obs->datestr);
-        obs->datestr[len] = 0;
-    }
+            ncw_inq_attname(ncid, varid, i, attname);
+            typeid = obstype_getid(obs->nobstypes, obs->obstypes, attname, 0);
+            if (typeid >= 0) {
+                obstype* ot = &obs->obstypes[typeid];
+                int typeid_read;
 
-    /*
-     * type (basically, just a check)
-     */
-    ncw_inq_varnatts(ncid, varid_type, &natts);
-    for (i = 0; i < natts; ++i) {
-        char attname[NC_MAX_NAME];
-        int typeid;
+                ncw_check_attlen(ncid, varid, attname, 1);
+                ncw_get_att_int(ncid, varid, attname, &typeid_read);
+                assert(typeid == typeid_read);
 
-        ncw_inq_attname(ncid, varid_type, i, attname);
-        typeid = obstype_getid(obs->nobstypes, obs->obstypes, attname, 0);
-        if (typeid >= 0) {
-            obstype* ot = &obs->obstypes[typeid];
-            int typeid_read;
+                if (ot->logapplied) {
+                    char logattname[NC_MAX_NAME];
+                    char logattval[MAXSTRLEN];
 
-            ncw_check_attlen(ncid, varid_type, attname, 1);
-            ncw_get_att_int(ncid, varid_type, attname, &typeid_read);
-            assert(typeid == typeid_read);
-
-            if (ot->logapplied) {
-                char logattname[NC_MAX_NAME];
-                char logattval[MAXSTRLEN];
-
-                snprintf(logattname, NC_MAX_NAME, "%s:LOGAPPLIED", ot->name);
-                if (!ncw_att_exists(ncid, varid_type, logattname))
-                    enkf_quit("%s: variable = \"type\": expected attribute \"%s\" to be present for a log-transformed obs. type", fname, logattname);
-                ncw_get_att_text(ncid, varid_type, logattname, logattval);
-                if (strncmp(logattval, "true", 4) != 0)
-                    enkf_quit("%s: variable = \"type\": expected attribute \"%s\" to have value \"true\" a log-transformed obs. type", fname, logattname);
+                    snprintf(logattname, NC_MAX_NAME, "%s:LOGAPPLIED", ot->name);
+                    if (!ncw_att_exists(ncid, varid, logattname))
+                        enkf_quit("%s: variable = \"type\": expected attribute \"%s\" to be present for a log-transformed obs. type", fname, logattname);
+                    ncw_get_att_text(ncid, varid, logattname, logattval);
+                    if (strncmp(logattval, "true", 4) != 0)
+                        enkf_quit("%s: variable = \"type\": expected attribute \"%s\" to have value \"true\" a log-transformed obs. type", fname, logattname);
+                }
             }
         }
-    }
 
-    /*
-     * product 
-     */
-    ncw_inq_varnatts(ncid, varid_product, &natts);
-    for (i = 0; i < natts; ++i) {
-        char name[NC_MAX_NAME];
-        nc_type nctype;
-        size_t len;
+        /*
+         * fill product stringtable
+         */
+        ncw_inq_varid(ncid, "product", &varid);
+        ncw_inq_varnatts(ncid, varid, &natts);
+        for (i = 0; i < natts; ++i) {
+            char name[NC_MAX_NAME];
+            nc_type nctype;
+            size_t len;
 
-        ncw_inq_attname(ncid, varid_product, i, name);
-        ncw_inq_att(ncid, varid_product, name, &nctype, &len);
-        if (nctype == NC_INT && len == 1) {
-            int productid;
+            ncw_inq_attname(ncid, varid, i, name);
+            ncw_inq_att(ncid, varid, name, &nctype, &len);
+            if (nctype == NC_INT && len == 1) {
+                int productid;
 
-            ncw_get_att_int(ncid, varid_product, name, &productid);
-            st_add(obs->products, name, productid);
+                ncw_get_att_int(ncid, varid, name, &productid);
+                st_add(obs->products, name, productid);
+            }
         }
-    }
 
-    /*
-     * instrument 
-     */
-    ncw_inq_varnatts(ncid, varid_instrument, &natts);
-    for (i = 0; i < natts; ++i) {
-        char name[NC_MAX_NAME];
-        nc_type nctype;
-        size_t len;
+        /*
+         * fill instrument stringtable
+         */
+        ncw_inq_varid(ncid, "instrument", &varid);
+        ncw_inq_varnatts(ncid, varid, &natts);
+        for (i = 0; i < natts; ++i) {
+            char name[NC_MAX_NAME];
+            nc_type nctype;
+            size_t len;
 
-        ncw_inq_attname(ncid, varid_instrument, i, name);
-        ncw_inq_att(ncid, varid_instrument, name, &nctype, &len);
-        if (nctype == NC_INT && len == 1) {
-            int instid;
+            ncw_inq_attname(ncid, varid, i, name);
+            ncw_inq_att(ncid, varid, name, &nctype, &len);
+            if (nctype == NC_INT && len == 1) {
+                int instid;
 
-            ncw_get_att_int(ncid, varid_instrument, name, &instid);
-            st_add(obs->instruments, name, instid);
+                ncw_get_att_int(ncid, varid, name, &instid);
+                st_add(obs->instruments, name, instid);
+            }
         }
-    }
 
-    /*
-     * datafiles
-     */
-    ncw_inq_varnatts(ncid, varid_fid, &natts);
-    for (i = 0; i < natts; ++i) {
-        char name[NC_MAX_NAME];
-        char attstr[MAXSTRLEN];
-        size_t len;
-        int fileid;
+        /*
+         * fill datafile stringtable
+         */
+        ncw_inq_varid(ncid, "fid", &varid);
+        ncw_inq_varnatts(ncid, varid, &natts);
+        for (i = 0; i < natts; ++i) {
+            char name[NC_MAX_NAME];
+            char attstr[MAXSTRLEN];
+            size_t len;
+            int fileid;
 
-        ncw_inq_attname(ncid, varid_fid, i, name);
-        if (!str2int(name, &fileid))
-            continue;
-        ncw_inq_attlen(ncid, varid_fid, name, &len);
-        assert(len < MAXSTRLEN);
-        ncw_get_att_text(ncid, varid_fid, name, attstr);
-        attstr[len] = 0;
-        st_add_ifabsent(obs->datafiles, attstr, fileid);
+            ncw_inq_attname(ncid, varid, i, name);
+            if (!str2int(name, &fileid))
+                continue;
+            ncw_inq_attlen(ncid, varid, name, &len);
+            assert(len < MAXSTRLEN);
+            ncw_get_att_text(ncid, varid, name, attstr);
+            attstr[len] = 0;
+            st_add_ifabsent(obs->datafiles, attstr, fileid);
+        }
+
+        /*
+         * get time units
+         */
+        ncw_inq_varid(ncid, "time", &varid);
+        if (obs->datestr == NULL) {
+            size_t len = 0;
+
+            ncw_inq_attlen(ncid, varid, "units", &len);
+            obs->datestr = malloc(len + 1);
+            ncw_get_att_text(ncid, varid, "units", obs->datestr);
+            obs->datestr[len] = 0;
+        }
     }
 
 #if defined(USE_SHMEM)
     if (sm_comm_rank == 0) {
 #endif
-        id = malloc(nobs * sizeof(int));
-        id_orig = malloc(nobs * sizeof(int));
-        type = malloc(nobs * sizeof(short int));
-        product = malloc(nobs * sizeof(short int));
-        instrument = malloc(nobs * sizeof(short int));
-        fid = malloc(nobs * sizeof(short int));
-        batch = malloc(nobs * sizeof(int));
-        value = malloc(nobs * sizeof(double));
-        estd = malloc(nobs * sizeof(double));
-        if (obs->has_nonpointobs)
-            footprint = malloc(nobs * sizeof(double));
-        lon = malloc(nobs * sizeof(double));
-        lat = malloc(nobs * sizeof(double));
-        depth = malloc(nobs * sizeof(double));
-        model_depth = malloc(nobs * sizeof(double));
-        fi = malloc(nobs * sizeof(double));
-        fj = malloc(nobs * sizeof(double));
-        fk = malloc(nobs * sizeof(double));
-        time = malloc(nobs * sizeof(double));
-        status = malloc(nobs * sizeof(int));
-        aux = malloc(nobs * sizeof(int));
+        void* v = NULL;
+        int varid, i;
 
-        ncw_get_var_int(ncid, varid_id, id);
-        ncw_get_var_int(ncid, varid_idorig, id_orig);
-        ncw_get_var_short(ncid, varid_type, type);
-        ncw_get_var_short(ncid, varid_product, product);
-        ncw_get_var_short(ncid, varid_instrument, instrument);
-        ncw_get_var_short(ncid, varid_fid, fid);
-        ncw_get_var_int(ncid, varid_batch, batch);
-        ncw_get_var_double(ncid, varid_value, value);
-        ncw_get_var_double(ncid, varid_estd, estd);
-        if (obs->has_nonpointobs)
-            ncw_get_var_double(ncid, varid_footprint, footprint);
-        ncw_get_var_double(ncid, varid_lon, lon);
-        ncw_get_var_double(ncid, varid_lat, lat);
-        ncw_get_var_double(ncid, varid_depth, depth);
-        ncw_get_var_double(ncid, varid_mdepth, model_depth);
-        ncw_get_var_double(ncid, varid_fi, fi);
-        ncw_get_var_double(ncid, varid_fj, fj);
-        ncw_get_var_double(ncid, varid_fk, fk);
-        ncw_get_var_double(ncid, varid_time, time);
-        ncw_get_var_int(ncid, varid_status, status);
-        ncw_get_var_int(ncid, varid_aux, aux);
+        v = malloc(nobs * ((sizeof(float) >= sizeof(int)) ? sizeof(float) : sizeof(int)));
+
+        ncw_inq_varid(ncid, "id", &varid);
+        ncw_get_var_int(ncid, varid, v);
+        for (i = 0; i < (int) nobs; ++i)
+            obs->data[i].id = ((int*) v)[i];
+
+        ncw_inq_varid(ncid, "id_orig", &varid);
+        ncw_get_var_int(ncid, varid, v);
+        for (i = 0; i < (int) nobs; ++i)
+            obs->data[i].id_orig = ((int*) v)[i];
+
+        ncw_inq_varid(ncid, "status", &varid);
+        ncw_get_var_short(ncid, varid, v);
+        for (i = 0; i < (int) nobs; ++i)
+            obs->data[i].status = ((short int*) v)[i];
+
+        ncw_inq_varid(ncid, "type", &varid);
+        ncw_get_var_short(ncid, varid, v);
+        for (i = 0; i < (int) nobs; ++i)
+            obs->data[i].type = ((short int*) v)[i];
+
+        ncw_inq_varid(ncid, "product", &varid);
+        ncw_get_var_short(ncid, varid, v);
+        for (i = 0; i < (int) nobs; ++i)
+            obs->data[i].product = ((short int*) v)[i];
+
+        ncw_inq_varid(ncid, "instrument", &varid);
+        ncw_get_var_short(ncid, varid, v);
+        for (i = 0; i < (int) nobs; ++i)
+            obs->data[i].instrument = ((short int*) v)[i];
+
+        ncw_inq_varid(ncid, "fid", &varid);
+        ncw_get_var_short(ncid, varid, v);
+        for (i = 0; i < (int) nobs; ++i)
+            obs->data[i].fid = ((short int*) v)[i];
+
+        ncw_inq_varid(ncid, "batch", &varid);
+        ncw_get_var_int(ncid, varid, v);
+        for (i = 0; i < (int) nobs; ++i)
+            obs->data[i].batch = ((int*) v)[i];
+
+        ncw_inq_varid(ncid, "value", &varid);
+        ncw_get_var_float(ncid, varid, v);
+        for (i = 0; i < (int) nobs; ++i)
+            obs->data[i].value = ((float*) v)[i];
+
+        ncw_inq_varid(ncid, "estd", &varid);
+        ncw_get_var_float(ncid, varid, v);
+        for (i = 0; i < (int) nobs; ++i)
+            obs->data[i].estd = ((float*) v)[i];
+
+        if (ncw_var_exists(ncid, "footprint")) {
+            obs->has_nonpointobs = 1;
+            ncw_inq_varid(ncid, "footprint", &varid);
+            ncw_get_var_float(ncid, varid, v);
+            for (i = 0; i < (int) nobs; ++i)
+                obs->data[i].footprint = ((float*) v)[i];
+        }
+
+        ncw_inq_varid(ncid, "lon", &varid);
+        ncw_get_var_float(ncid, varid, v);
+        for (i = 0; i < (int) nobs; ++i)
+            obs->data[i].lon = ((float*) v)[i];
+
+        ncw_inq_varid(ncid, "lat", &varid);
+        ncw_get_var_float(ncid, varid, v);
+        for (i = 0; i < (int) nobs; ++i)
+            obs->data[i].lat = ((float*) v)[i];
+
+        ncw_inq_varid(ncid, "depth", &varid);
+        ncw_get_var_float(ncid, varid, v);
+        for (i = 0; i < (int) nobs; ++i)
+            obs->data[i].depth = ((float*) v)[i];
+
+        ncw_inq_varid(ncid, "model_depth", &varid);
+        ncw_get_var_float(ncid, varid, v);
+        for (i = 0; i < (int) nobs; ++i)
+            obs->data[i].model_depth = ((float*) v)[i];
+
+        ncw_inq_varid(ncid, "fi", &varid);
+        ncw_get_var_float(ncid, varid, v);
+        for (i = 0; i < (int) nobs; ++i)
+            obs->data[i].fi = ((float*) v)[i];
+
+        ncw_inq_varid(ncid, "fj", &varid);
+        ncw_get_var_float(ncid, varid, v);
+        for (i = 0; i < (int) nobs; ++i)
+            obs->data[i].fj = ((float*) v)[i];
+
+        ncw_inq_varid(ncid, "fk", &varid);
+        ncw_get_var_float(ncid, varid, v);
+        for (i = 0; i < (int) nobs; ++i)
+            obs->data[i].fk = ((float*) v)[i];
+
+        ncw_inq_varid(ncid, "time", &varid);
+        ncw_get_var_float(ncid, varid, v);
+        for (i = 0; i < (int) nobs; ++i)
+            obs->data[i].time = ((float*) v)[i];
+
+        ncw_inq_varid(ncid, "aux", &varid);
+        ncw_get_var_int(ncid, varid, v);
+        for (i = 0; i < (int) nobs; ++i)
+            obs->data[i].aux = ((int*) v)[i];
+
+        free(v);
+
+        /*
+         * if because of the roundup error time gets outside the allowed
+         * range, then correct it
+         */
+        for (i = 0; i < (int) nobs; ++i) {
+            observation* o = &obs->data[i];
+            obstype* ot = &obs->obstypes[o->type];
+
+            if (o->time <= ot->obswindow_min)
+                o->time = ot->obswindow_min + EPSF;
+            else if (o->time >= ot->obswindow_max)
+                o->time = ot->obswindow_max - EPSF;
+        }
 #if defined(USE_SHMEM)
     }
 #endif
 
     ncw_close(ncid);
 
-#if defined(USE_SHMEM)
-    if (sm_comm_rank == 0) {
-#endif
-        for (i = 0; i < (int) nobs; ++i) {
-            observation* o = &obs->data[i];
-
-            o->type = type[i];
-            o->product = product[i];
-            o->instrument = instrument[i];
-            o->id = id[i];
-            o->id_orig = id_orig[i];
-            o->fid = fid[i];
-            o->batch = batch[i];
-            o->value = value[i];
-            o->estd = estd[i];
-            if (obs->has_nonpointobs)
-                o->footprint = footprint[i];
-            o->lon = lon[i];
-            o->lat = lat[i];
-            o->depth = depth[i];
-            o->model_depth = model_depth[i];
-            o->fi = fi[i];
-            o->fj = fj[i];
-            o->fk = fk[i];
-            /*
-             * if because of the roundup error time gets outside the allowed
-             * range, then correct it
-             */
-            {
-                obstype* ot = &obs->obstypes[o->type];
-
-                if (time[i] <= ot->obswindow_min)
-                    o->time = ot->obswindow_min + EPSD;
-                else if (time[i] >= ot->obswindow_max)
-                    o->time = ot->obswindow_max - EPSD;
-                else
-                    o->time = time[i];
-            }
-            o->time = time[i];
-            o->status = status[i];
-            o->aux = aux[i];
-        }
-
-        free(type);
-        free(product);
-        free(instrument);
-        free(id);
-        free(id_orig);
-        free(fid);
-        free(batch);
-        free(value);
-        free(estd);
-        if (obs->has_nonpointobs)
-            free(footprint);
-        free(lon);
-        free(lat);
-        free(depth);
-        free(model_depth);
-        free(fi);
-        free(fj);
-        free(fk);
-        free(time);
-        free(status);
-        free(aux);
-#if defined(USE_SHMEM)
-    }
-#endif
 #if defined(MPI)
     MPI_Barrier(MPI_COMM_WORLD);
 #endif
 
   finish:
-
     obs_calcstats(obs);
 }
 
@@ -991,49 +968,49 @@ void obs_write(observations* obs, char fname[])
     ncw_put_var(ncid, varid_fid, v);
 
     for (i = 0; i < obs->nobs; ++i)
-        ((float*) v)[i] = (float) obs->data[i].value;
+        ((float*) v)[i] = obs->data[i].value;
     ncw_put_var(ncid, varid_value, v);
 
     for (i = 0; i < obs->nobs; ++i)
-        ((float*) v)[i] = (float) obs->data[i].estd;
+        ((float*) v)[i] = obs->data[i].estd;
     ncw_put_var(ncid, varid_estd, v);
 
     if (obs->has_nonpointobs) {
         for (i = 0; i < obs->nobs; ++i)
-            ((float*) v)[i] = (float) obs->data[i].footprint;
+            ((float*) v)[i] = obs->data[i].footprint;
         ncw_put_var(ncid, varid_footprint, v);
     }
 
     for (i = 0; i < obs->nobs; ++i)
-        ((float*) v)[i] = (float) obs->data[i].lon;
+        ((float*) v)[i] = obs->data[i].lon;
     ncw_put_var(ncid, varid_lon, v);
 
     for (i = 0; i < obs->nobs; ++i)
-        ((float*) v)[i] = (float) obs->data[i].lat;
+        ((float*) v)[i] = obs->data[i].lat;
     ncw_put_var(ncid, varid_lat, v);
 
     for (i = 0; i < obs->nobs; ++i)
-        ((float*) v)[i] = (float) obs->data[i].depth;
+        ((float*) v)[i] = obs->data[i].depth;
     ncw_put_var(ncid, varid_depth, v);
 
     for (i = 0; i < obs->nobs; ++i)
-        ((float*) v)[i] = (float) obs->data[i].model_depth;
+        ((float*) v)[i] = obs->data[i].model_depth;
     ncw_put_var(ncid, varid_mdepth, v);
 
     for (i = 0; i < obs->nobs; ++i)
-        ((float*) v)[i] = (float) obs->data[i].fi;
+        ((float*) v)[i] = obs->data[i].fi;
     ncw_put_var(ncid, varid_fi, v);
 
     for (i = 0; i < obs->nobs; ++i)
-        ((float*) v)[i] = (float) obs->data[i].fj;
+        ((float*) v)[i] = obs->data[i].fj;
     ncw_put_var(ncid, varid_fj, v);
 
     for (i = 0; i < obs->nobs; ++i)
-        ((float*) v)[i] = (float) obs->data[i].fk;
+        ((float*) v)[i] = obs->data[i].fk;
     ncw_put_var(ncid, varid_fk, v);
 
     for (i = 0; i < obs->nobs; ++i)
-        ((float*) v)[i] = (float) obs->data[i].time;
+        ((float*) v)[i] = obs->data[i].time;
     ncw_put_var(ncid, varid_time, v);
 
     for (i = 0; i < obs->nobs; ++i)

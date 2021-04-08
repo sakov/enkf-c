@@ -620,6 +620,13 @@ int model_xy2fij(model* m, int vid, double x, double y, double* fi, double* fj)
 
 /**
  */
+int model_xy2fij_f(model* m, int vid, double x, double y, float* fi, float* fj)
+{
+    return grid_xy2fij_f(m->grids[m->vars[vid].gridid], x, y, fi, fj);
+}
+
+/**
+ */
 int model_fij2xy(model* m, int vid, double fi, double fj, double* x, double* y)
 {
     void* g = m->grids[m->vars[vid].gridid];
@@ -649,6 +656,13 @@ int model_ij2xy(model* m, int vid, int i, int j, double* x, double* y)
 int model_z2fk(model* m, int vid, double fi, double fj, double z, double* fk)
 {
     return grid_z2fk(m->grids[m->vars[vid].gridid], fi, fj, z, fk);
+}
+
+/**
+ */
+int model_z2fk_f(model* m, int vid, double fi, double fj, double z, float* fk)
+{
+    return grid_z2fk_f(m->grids[m->vars[vid].gridid], fi, fj, z, fk);
 }
 
 /**

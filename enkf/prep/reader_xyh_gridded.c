@@ -320,14 +320,25 @@ void reader_xyh_gridded(char* fname, int fid, obsmeta* meta, grid* gdst, observa
                     else
                         o->estd = (std[ii] > estd[ii]) ? std[ii] : estd[ii];
                 }
-                grid_ij2xy(gsrc, i, j, &o->lon, &o->lat);
+                {
+                    double lon_d, lat_d;
+
+                    grid_ij2xy(gsrc, i, j, &lon_d, &lat_d);
+                    o->lon = (float) lon_d;
+                    o->lat = (float) lat_d;
+                }
                 assert(isfinite(o->lon + o->lat));
-                o->status = grid_xy2fij(gdst, o->lon, o->lat, &o->fi, &o->fj);
+                o->status = grid_xy2fij_f(gdst, o->lon, o->lat, &o->fi, &o->fj);
                 if (!obs->allobs && o->status == STATUS_OUTSIDEGRID)
                     continue;
-                o->status = grid_fk2z(gsrc, i, j, (double) k, &o->depth);
+                {
+                    double depth_d;
+
+                    o->status = grid_fk2z(gsrc, i, j, (double) k, &depth_d);
+                    o->depth = (float) depth_d;
+                }
                 if (o->status == STATUS_OK)
-                    o->status = grid_z2fk(gdst, o->fi, o->fj, o->depth, &o->fk);
+                    o->status = grid_z2fk_f(gdst, o->fi, o->fj, o->depth, &o->fk);
                 else
                     o->fk = NAN;
                 o->model_depth = NAN;   /* set in obs_add() */

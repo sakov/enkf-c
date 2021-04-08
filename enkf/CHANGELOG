@@ -1,3 +1,9 @@
+v2.7.11
+   PS 08042021
+   -- In `struct observation' changed "double" fields to "float". This is
+      consistent with the format of "observations.nc" and reduces memory
+      footprint of the observation array.
+   -- Modified obs_read() to reduce memory footprint during reading.
 v2.7.10
    PS 22032021
    -- Modified obs_write() to reduce memory footprint of PREP.
