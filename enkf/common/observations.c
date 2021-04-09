@@ -396,8 +396,6 @@ void obs_compact(observations* obs)
         obs->data[i].id_orig = obs->data[i].id;
         obs->data[i].id = i;
     }
-    enkf_printf("\n");
-    enkf_flush();
     obs->compacted = 1;
 }
 #endif

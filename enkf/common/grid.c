@@ -1245,11 +1245,11 @@ void grid_destroy(grid* g)
 #endif
         else
             enkf_quit("programming_error");
-        if (g->numlevels != NULL)
-            free(g->numlevels);
-        if (g->depth != NULL)
-            free(g->depth);
     }
+    if (g->numlevels != NULL)
+        free(g->numlevels);
+    if (g->depth != NULL)
+        free(g->depth);
     if (g->gridnodes_z != NULL) {
         if (g->vtype == GRIDVTYPE_Z)
             gz_z_destroy(g->gridnodes_z);

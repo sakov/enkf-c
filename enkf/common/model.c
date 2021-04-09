@@ -729,7 +729,7 @@ void model_writefield(model* m, char fname[], char varname[], int k, float* v, i
             v[i] = exp10(v[i]);
     }
 
-    ncu_writefield(fname, varname, k, ni, nj, nk, v);
+    ncu_writefield(fname, varname, (k >= 0) ? k : 0, ni, nj, (k >= 0) ? nk : 1, v);
 }
 
 /**
@@ -750,5 +750,5 @@ void model_writefieldas(model* m, char fname[], char varname[], char varnameas[]
             v[i] = exp10(v[i]);
     }
 
-    ncu_writefield(fname, varname, k, ni, nj, nk, v);
+    ncu_writefield(fname, varname, (k >= 0) ? k : 0, ni, nj, (k >= 0) ? nk : 1, v);
 }

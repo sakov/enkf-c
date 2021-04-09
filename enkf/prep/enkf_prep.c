@@ -311,7 +311,7 @@ int main(int argc, char* argv[])
     obs_markbadbatches(obs);
     obsprm_destroy(nmeta, meta, nexclude, exclude);
     enkf_printtime("  ");
-    enkf_printf("  compacting obs:");
+    enkf_printf("  compacting obs:\n");
     obs_compact(obs);
     obs_calcstats(obs);
 
@@ -324,13 +324,6 @@ int main(int argc, char* argv[])
             goto finalise;
 
         enkf_printtime("  ");
-        enkf_printf("  writing superobservations to \"%s\":\n", FNAME_SOBS);
-        obs_write(sobs, FNAME_SOBS);
-        free(sobs->data);
-        enkf_printf("  reading super-observations from disk:\n");
-        obs_read(sobs, FNAME_SOBS);
-
-        enkf_printtime("  ");
         enkf_printf("  checking for superobs on land:\n");
         if (obs_checkforland(sobs, m)) {
             obs_compact(sobs);
@@ -341,11 +334,12 @@ int main(int argc, char* argv[])
             enkf_printf("    deleted %d observation(s)\n", sobs->nobs - i);
             sobs->nobs = i;
             obs_calcstats(sobs);
-            enkf_printf("  re-writing good superobservations to \"%s\":\n", FNAME_SOBS);
-            file_delete(FNAME_SOBS);
-            obs_write(sobs, FNAME_SOBS);
         } else
             enkf_printf("    all good\n");
+
+        enkf_printtime("  ");
+        enkf_printf("  writing superobservations to \"%s\":\n", FNAME_SOBS);
+        obs_write(sobs, FNAME_SOBS);
     } else {
         observation* data = malloc(obs->ngood * sizeof(observation));
 

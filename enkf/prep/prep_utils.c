@@ -555,9 +555,10 @@ void print_obsstats(observations* obs, observations* sobs)
     enkf_printf("    total   %-8d %-8d %-8d %-8d %-8d %-8d %-8d %-8d %-8d %-8d %-8d %-8d\n", obs->ngood, obs->nobs - obs->ngood, obs->noutside_grid, obs->noutside_obsdomain, obs->noutside_obswindow, obs->nland, obs->nshallow, obs->nbadbatch, obs->nrange, obs->nthinned, obs->nexcluded, sobs->nobs);
 }
 
-#define NLONNAMES 3
+#define NLONNAMES 4
 char* LONNAMES[] = { "lon",
     "longitude",
+    "Longitude",
     "LONGITUDE"
 };
 
@@ -578,9 +579,10 @@ char* get_lonname(int ncid, char* lonname)
     return NULL;
 }
 
-#define NLATNAMES 3
+#define NLATNAMES 4
 static char* LATNAMES[] = { "lat",
     "latitude",
+    "Latitude",
     "LATITUDE"
 };
 
@@ -601,9 +603,10 @@ char* get_latname(int ncid, char* latname)
     return NULL;
 }
 
-#define NZNAMES 3
+#define NZNAMES 4
 static char* ZNAMES[] = { "z",
     "depth",
+    "Depth",
     "DEPTH"
 };
 

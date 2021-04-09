@@ -1457,6 +1457,7 @@ This smoothness allows one to reduce the computational load in CALC by calculati
 The value of the stride is defined by the \verb|STRIDE| entry in the main parameter file and can be overwritten for a particular grid in the grid parameter file.
 
 \subsection{Adaptive moderation of observations}
+\label{sec:kfactor}
 
 One of the standard QC procedures in DA is the so called background check, when an observation is compared with the forecast and discarded if the innovation magnitude exceeds some specified threshold.
 The downside of this approach is that it can not distinguish between situations of an outlier, big model error (e.g. because of an error in forcing), or model divergence.
@@ -1699,7 +1700,8 @@ Following are the main parameters for DAS tuning in EnKF-C:
 \begin{itemize}
 \item R-factors;
 \item inflation magnitudes;
-\item localisation radii.
+\item localisation radii;
+\item K-factor.
 \end{itemize}
 
 The R-factors can be defined for each observation type.
@@ -1737,6 +1739,9 @@ This common setting can be overriden for particular observation types in the obs
 Note that using this setting can result in discontinuity of the analysis because the set of observations used for local analyses in adjacent grid cells can change in a discontinuous way.
 Also, it forces sorting of the local observations, which can substantially increase the search time.
 Therefore the general advise is to avoid using this functionality except perhaps interpolation oriented products.
+
+The adaptive moderation of observation impact with the K-factor (sec. \ref{sec:kfactor}) is normally fairly non-intrusive, while can be essential for robust performance in situations with large innovations.
+We suggest setting \verb|KFACTOR = 2| as default, and reducing it to 1 if the analysis turns out not balanced enough.
 
 \section{Point logs}
 \label{sec:pointlogs}

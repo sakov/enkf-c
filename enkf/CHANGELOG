@@ -1,3 +1,10 @@
+v2.7.12
+   PS 09042021
+   -- Eliminated redundant now (since v2.7.11) read/write of observations.nc
+      in enkf_prep.c:main().
+   -- A minor modification of the lookout lists of names for depth/lon/lat in
+      prep_utils.c.
+   -- A minor fix in grid_destroy().
 v2.7.11
    PS 08042021
    -- In `struct observation' changed "double" fields to "float". This is
