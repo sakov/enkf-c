@@ -818,7 +818,7 @@ void obs_write(observations* obs, char fname[])
 
     int ncid;
     int dimid_nobs[1];
-    int varid_id, varid_idorig, varid_type, varid_product, varid_instrument, varid_fid, varid_batch, varid_value, varid_estd, varid_footprint, varid_lon, varid_lat, varid_depth, varid_mdepth, varid_fi, varid_fj, varid_fk, varid_time, varid_status, varid_aux;
+    int varid;
     void* v;
     int i;
 
@@ -832,94 +832,152 @@ void obs_write(observations* obs, char fname[])
     ncw_put_att_double(ncid, NC_GLOBAL, "DA_DAY", 1, &obs->da_time);
 
     ncw_def_dim(ncid, "nobs", nobs, dimid_nobs);
-    ncw_def_var(ncid, "id", NC_INT, 1, dimid_nobs, &varid_id);
-    ncw_put_att_text(ncid, varid_id, "long_name", "observation ID");
-    ncw_def_var(ncid, "id_orig", NC_INT, 1, dimid_nobs, &varid_idorig);
-    ncw_put_att_text(ncid, varid_idorig, "long_name", "original observation ID");
-    ncw_put_att_text(ncid, varid_idorig, "description", "for primary observations - the serial number of the primary observation during the reading of data files; for superobs - the original ID of the very first observation collated into this observation");
-    ncw_def_var(ncid, "type", NC_SHORT, 1, dimid_nobs, &varid_type);
-    ncw_put_att_text(ncid, varid_type, "long_name", "observation type ID");
-    ncw_def_var(ncid, "product", NC_SHORT, 1, dimid_nobs, &varid_product);
-    ncw_put_att_text(ncid, varid_product, "long_name", "observation product ID");
-    ncw_def_var(ncid, "instrument", NC_SHORT, 1, dimid_nobs, &varid_instrument);
-    ncw_put_att_text(ncid, varid_instrument, "long_name", "observation instrument ID");
-    ncw_def_var(ncid, "fid", NC_SHORT, 1, dimid_nobs, &varid_fid);
-    ncw_put_att_text(ncid, varid_fid, "long_name", "observation data file ID");
-    ncw_def_var(ncid, "batch", NC_INT, 1, dimid_nobs, &varid_batch);
-    ncw_put_att_text(ncid, varid_batch, "long_name", "observation batch ID");
-    ncw_def_var(ncid, "value", NC_FLOAT, 1, dimid_nobs, &varid_value);
-    ncw_put_att_text(ncid, varid_value, "long_name", "observation value");
-    ncw_def_var(ncid, "estd", NC_FLOAT, 1, dimid_nobs, &varid_estd);
-    ncw_put_att_text(ncid, varid_estd, "long_name", "standard deviation of observation error used in DA");
-    if (obs->has_nonpointobs)
-        ncw_def_var(ncid, "footprint", NC_FLOAT, 1, dimid_nobs, &varid_footprint);
-    ncw_def_var(ncid, "lon", NC_FLOAT, 1, dimid_nobs, &varid_lon);
-    ncw_put_att_text(ncid, varid_lon, "long_name", "observation longitude");
-    ncw_def_var(ncid, "lat", NC_FLOAT, 1, dimid_nobs, &varid_lat);
-    ncw_put_att_text(ncid, varid_lat, "long_name", "observation latitude");
-    ncw_def_var(ncid, "depth", NC_FLOAT, 1, dimid_nobs, &varid_depth);
-    ncw_put_att_text(ncid, varid_depth, "long_name", "observation depth/height");
-    ncw_def_var(ncid, "model_depth", NC_FLOAT, 1, dimid_nobs, &varid_mdepth);
-    ncw_put_att_text(ncid, varid_mdepth, "long_name", "model bottom depth at the observation location");
-    ncw_def_var(ncid, "fi", NC_FLOAT, 1, dimid_nobs, &varid_fi);
-    ncw_put_att_text(ncid, varid_fi, "long_name", "fractional grid index i of the observation");
-    ncw_def_var(ncid, "fj", NC_FLOAT, 1, dimid_nobs, &varid_fj);
-    ncw_put_att_text(ncid, varid_fj, "long_name", "fractional grid index j of the observation");
-    ncw_def_var(ncid, "fk", NC_FLOAT, 1, dimid_nobs, &varid_fk);
-    ncw_put_att_text(ncid, varid_fk, "long_name", "fractional grid index k of the observation");
-    ncw_def_var(ncid, "time", NC_FLOAT, 1, dimid_nobs, &varid_time);
-    ncw_put_att_text(ncid, varid_time, "long_name", "observation time");
-    ncw_def_var(ncid, "status", NC_BYTE, 1, dimid_nobs, &varid_status);
-    ncw_put_att_text(ncid, varid_status, "long_name", "observation status");
-    i = STATUS_OK;
-    ncw_put_att_int(ncid, varid_status, "STATUS_OK", 1, &i);
-    i = STATUS_OUTSIDEGRID;
-    ncw_put_att_int(ncid, varid_status, "STATUS_OUTSIDEGRID", 1, &i);
-    i = STATUS_LAND;
-    ncw_put_att_int(ncid, varid_status, "STATUS_LAND", 1, &i);
-    i = STATUS_SHALLOW;
-    ncw_put_att_int(ncid, varid_status, "STATUS_SHALLOW", 1, &i);
-    i = STATUS_RANGE;
-    ncw_put_att_int(ncid, varid_status, "STATUS_RANGE", 1, &i);
-    i = STATUS_BADBATCH;
-    ncw_put_att_int(ncid, varid_status, "STATUS_BADBATCH", 1, &i);
-    i = STATUS_OUTSIDEOBSDOMAIN;
-    ncw_put_att_int(ncid, varid_status, "STATUS_OUTSIDEOBSDOMAIN", 1, &i);
-    i = STATUS_OUTSIDEOBSWINDOW;
-    ncw_put_att_int(ncid, varid_status, "STATUS_OUTSIDEOBSWINDOW", 1, &i);
-    i = STATUS_THINNED;
-    ncw_put_att_int(ncid, varid_status, "STATUS_THINNED", 1, &i);
-    i = STATUS_EXCLUDED;
-    ncw_put_att_int(ncid, varid_status, "STATUS_EXCLUDED", 1, &i);
-    ncw_def_var(ncid, "aux", NC_INT, 1, dimid_nobs, &varid_aux);
-    ncw_put_att_text(ncid, varid_aux, "long_name", "auxiliary information");
-    ncw_put_att_text(ncid, varid_aux, "description", "for primary observations - the ID of the superobservation it is collated into; for superobservations - the number of primary observations collated");
-    snprintf(tunits, MAXSTRLEN, "days from %s", obs->datestr);
-    ncw_put_att_text(ncid, varid_time, "units", tunits);
-
+    /*
+     * id
+     */
+    ncw_def_var(ncid, "id", NC_INT, 1, dimid_nobs, &varid);
+    ncw_put_att_text(ncid, varid, "long_name", "observation ID");
+    /*
+     * id_orig
+     */
+    ncw_def_var(ncid, "id_orig", NC_INT, 1, dimid_nobs, &varid);
+    ncw_put_att_text(ncid, varid, "long_name", "original observation ID");
+    ncw_put_att_text(ncid, varid, "description", "for primary observations - the serial number of the primary observation during the reading of data files; for superobs - the original ID of the very first observation collated into this observation");
+    /*
+     * type
+     */
+    ncw_def_var(ncid, "type", NC_SHORT, 1, dimid_nobs, &varid);
+    ncw_put_att_text(ncid, varid, "long_name", "observation type ID");
     for (i = 0; i < obs->nobstypes; ++i) {
-        ncw_put_att_int(ncid, varid_type, obs->obstypes[i].name, 1, &i);
+        ncw_put_att_int(ncid, varid, obs->obstypes[i].name, 1, &i);
         if (obs->obstypes[i].logapplied) {
             char attname[NC_MAX_NAME];
 
             snprintf(attname, NC_MAX_NAME, "%s:LOGAPPLIED", obs->obstypes[i].name);
-            ncw_put_att_text(ncid, varid_type, attname, "true");
+            ncw_put_att_text(ncid, varid, attname, "true");
         }
     }
-
+    /*
+     * product
+     */
+    ncw_def_var(ncid, "product", NC_SHORT, 1, dimid_nobs, &varid);
+    ncw_put_att_text(ncid, varid, "long_name", "observation product ID");
     for (i = 0; i < st_getsize(obs->products); ++i)
-        ncw_put_att_int(ncid, varid_product, st_findstringbyindex(obs->products, i), 1, &i);
-
+        ncw_put_att_int(ncid, varid, st_findstringbyindex(obs->products, i), 1, &i);
+    /*
+     * instrument
+     */
+    ncw_def_var(ncid, "instrument", NC_SHORT, 1, dimid_nobs, &varid);
+    ncw_put_att_text(ncid, varid, "long_name", "observation instrument ID");
     for (i = 0; i < st_getsize(obs->instruments); ++i)
-        ncw_put_att_int(ncid, varid_instrument, st_findstringbyindex(obs->instruments, i), 1, &i);
-
+        ncw_put_att_int(ncid, varid, st_findstringbyindex(obs->instruments, i), 1, &i);
+    /*
+     * fid
+     */
+    ncw_def_var(ncid, "fid", NC_SHORT, 1, dimid_nobs, &varid);
+    ncw_put_att_text(ncid, varid, "long_name", "observation data file ID");
     for (i = 0; i < st_getsize(obs->datafiles); ++i) {
         char attname[NC_MAX_NAME];
         char* datafile = st_findstringbyindex(obs->datafiles, i);
 
         snprintf(attname, NC_MAX_NAME, "%d", i);
-        ncw_put_att_text(ncid, varid_fid, attname, datafile);
+        ncw_put_att_text(ncid, varid, attname, datafile);
     }
+    /*
+     * batch
+     */
+    ncw_def_var(ncid, "batch", NC_INT, 1, dimid_nobs, &varid);
+    ncw_put_att_text(ncid, varid, "long_name", "observation batch ID");
+    /*
+     * vallue
+     */
+    ncw_def_var(ncid, "value", NC_FLOAT, 1, dimid_nobs, &varid);
+    ncw_put_att_text(ncid, varid, "long_name", "observation value");
+    /*
+     * estd
+     */
+    ncw_def_var(ncid, "estd", NC_FLOAT, 1, dimid_nobs, &varid);
+    ncw_put_att_text(ncid, varid, "long_name", "standard deviation of observation error used in DA");
+    /*
+     * footprint
+     */
+    if (obs->has_nonpointobs) {
+        ncw_def_var(ncid, "footprint", NC_FLOAT, 1, dimid_nobs, &varid);
+        ncw_put_att_text(ncid, varid, "long_name", "observation footprint in km");
+    }
+    /*
+     * lon
+     */
+    ncw_def_var(ncid, "lon", NC_FLOAT, 1, dimid_nobs, &varid);
+    ncw_put_att_text(ncid, varid, "long_name", "observation longitude");
+    /*
+     * lat
+     */
+    ncw_def_var(ncid, "lat", NC_FLOAT, 1, dimid_nobs, &varid);
+    ncw_put_att_text(ncid, varid, "long_name", "observation latitude");
+    /*
+     * depth
+     */
+    ncw_def_var(ncid, "depth", NC_FLOAT, 1, dimid_nobs, &varid);
+    ncw_put_att_text(ncid, varid, "long_name", "observation depth/height");
+    /*
+     * model_depth
+     */
+    ncw_def_var(ncid, "model_depth", NC_FLOAT, 1, dimid_nobs, &varid);
+    ncw_put_att_text(ncid, varid, "long_name", "model bottom depth at the observation location");
+    /*
+     * fi
+     */
+    ncw_def_var(ncid, "fi", NC_FLOAT, 1, dimid_nobs, &varid);
+    ncw_put_att_text(ncid, varid, "long_name", "fractional grid index i of the observation");
+    /*
+     * fj
+     */
+    ncw_def_var(ncid, "fj", NC_FLOAT, 1, dimid_nobs, &varid);
+    ncw_put_att_text(ncid, varid, "long_name", "fractional grid index j of the observation");
+    /*
+     * fk
+     */
+    ncw_def_var(ncid, "fk", NC_FLOAT, 1, dimid_nobs, &varid);
+    ncw_put_att_text(ncid, varid, "long_name", "fractional grid index k of the observation");
+    /*
+     * time
+     */
+    ncw_def_var(ncid, "time", NC_FLOAT, 1, dimid_nobs, &varid);
+    ncw_put_att_text(ncid, varid, "long_name", "observation time");
+    snprintf(tunits, MAXSTRLEN, "days from %s", obs->datestr);
+    ncw_put_att_text(ncid, varid, "units", tunits);
+    /*
+     * status
+     */
+    ncw_def_var(ncid, "status", NC_BYTE, 1, dimid_nobs, &varid);
+    ncw_put_att_text(ncid, varid, "long_name", "observation status");
+    i = STATUS_OK;
+    ncw_put_att_int(ncid, varid, "STATUS_OK", 1, &i);
+    i = STATUS_OUTSIDEGRID;
+    ncw_put_att_int(ncid, varid, "STATUS_OUTSIDEGRID", 1, &i);
+    i = STATUS_LAND;
+    ncw_put_att_int(ncid, varid, "STATUS_LAND", 1, &i);
+    i = STATUS_SHALLOW;
+    ncw_put_att_int(ncid, varid, "STATUS_SHALLOW", 1, &i);
+    i = STATUS_RANGE;
+    ncw_put_att_int(ncid, varid, "STATUS_RANGE", 1, &i);
+    i = STATUS_BADBATCH;
+    ncw_put_att_int(ncid, varid, "STATUS_BADBATCH", 1, &i);
+    i = STATUS_OUTSIDEOBSDOMAIN;
+    ncw_put_att_int(ncid, varid, "STATUS_OUTSIDEOBSDOMAIN", 1, &i);
+    i = STATUS_OUTSIDEOBSWINDOW;
+    ncw_put_att_int(ncid, varid, "STATUS_OUTSIDEOBSWINDOW", 1, &i);
+    i = STATUS_THINNED;
+    ncw_put_att_int(ncid, varid, "STATUS_THINNED", 1, &i);
+    i = STATUS_EXCLUDED;
+    ncw_put_att_int(ncid, varid, "STATUS_EXCLUDED", 1, &i);
+    /*
+     * aux
+     */
+    ncw_def_var(ncid, "aux", NC_INT, 1, dimid_nobs, &varid);
+    ncw_put_att_text(ncid, varid, "long_name", "auxiliary information");
+    ncw_put_att_text(ncid, varid, "description", "for primary observations - the ID of the superobservation it is collated into; for superobservations - the number of primary observations collated");
 
     if (obs->nccompression > 0)
         ncw_def_deflate(ncid, 0, 1, obs->nccompression);
@@ -941,83 +999,107 @@ void obs_write(observations* obs, char fname[])
 
     v = malloc(nobs * ((sizeof(float) >= sizeof(int)) ? sizeof(float) : sizeof(int)));
 
+    ncw_inq_varid(ncid, "id", &varid);
     for (i = 0; i < obs->nobs; ++i)
         ((int*) v)[i] = obs->data[i].id;
-    ncw_put_var(ncid, varid_id, v);
+    ncw_put_var(ncid, varid, v);
 
+    ncw_inq_varid(ncid, "id_orig", &varid);
     for (i = 0; i < obs->nobs; ++i)
         ((int*) v)[i] = obs->data[i].id_orig;
-    ncw_put_var(ncid, varid_idorig, v);
+    ncw_put_var(ncid, varid, v);
 
+    ncw_inq_varid(ncid, "type", &varid);
     for (i = 0; i < obs->nobs; ++i)
         ((short int*) v)[i] = obs->data[i].type;
-    ncw_put_var(ncid, varid_type, v);
+    ncw_put_var(ncid, varid, v);
 
+    ncw_inq_varid(ncid, "product", &varid);
     for (i = 0; i < obs->nobs; ++i)
         ((short int*) v)[i] = obs->data[i].product;
-    ncw_put_var(ncid, varid_product, v);
+    ncw_put_var(ncid, varid, v);
 
+    ncw_inq_varid(ncid, "instrument", &varid);
     for (i = 0; i < obs->nobs; ++i)
         ((short int*) v)[i] = obs->data[i].instrument;
-    ncw_put_var(ncid, varid_instrument, v);
+    ncw_put_var(ncid, varid, v);
 
+    ncw_inq_varid(ncid, "fid", &varid);
     for (i = 0; i < obs->nobs; ++i)
         ((short int*) v)[i] = obs->data[i].fid;
-    ncw_put_var(ncid, varid_fid, v);
+    ncw_put_var(ncid, varid, v);
 
+    ncw_inq_varid(ncid, "batch", &varid);
+    for (i = 0; i < obs->nobs; ++i)
+        ((int*) v)[i] = obs->data[i].batch;
+    ncw_put_var(ncid, varid, v);
+
+    ncw_inq_varid(ncid, "value", &varid);
     for (i = 0; i < obs->nobs; ++i)
         ((float*) v)[i] = obs->data[i].value;
-    ncw_put_var(ncid, varid_value, v);
+    ncw_put_var(ncid, varid, v);
 
+    ncw_inq_varid(ncid, "estd", &varid);
     for (i = 0; i < obs->nobs; ++i)
         ((float*) v)[i] = obs->data[i].estd;
-    ncw_put_var(ncid, varid_estd, v);
+    ncw_put_var(ncid, varid, v);
 
     if (obs->has_nonpointobs) {
+        ncw_inq_varid(ncid, "footprint", &varid);
         for (i = 0; i < obs->nobs; ++i)
             ((float*) v)[i] = obs->data[i].footprint;
-        ncw_put_var(ncid, varid_footprint, v);
+        ncw_put_var(ncid, varid, v);
     }
 
+    ncw_inq_varid(ncid, "lon", &varid);
     for (i = 0; i < obs->nobs; ++i)
         ((float*) v)[i] = obs->data[i].lon;
-    ncw_put_var(ncid, varid_lon, v);
+    ncw_put_var(ncid, varid, v);
 
+    ncw_inq_varid(ncid, "lat", &varid);
     for (i = 0; i < obs->nobs; ++i)
         ((float*) v)[i] = obs->data[i].lat;
-    ncw_put_var(ncid, varid_lat, v);
+    ncw_put_var(ncid, varid, v);
 
+    ncw_inq_varid(ncid, "depth", &varid);
     for (i = 0; i < obs->nobs; ++i)
         ((float*) v)[i] = obs->data[i].depth;
-    ncw_put_var(ncid, varid_depth, v);
+    ncw_put_var(ncid, varid, v);
 
+    ncw_inq_varid(ncid, "model_depth", &varid);
     for (i = 0; i < obs->nobs; ++i)
         ((float*) v)[i] = obs->data[i].model_depth;
-    ncw_put_var(ncid, varid_mdepth, v);
+    ncw_put_var(ncid, varid, v);
 
+    ncw_inq_varid(ncid, "fi", &varid);
     for (i = 0; i < obs->nobs; ++i)
         ((float*) v)[i] = obs->data[i].fi;
-    ncw_put_var(ncid, varid_fi, v);
+    ncw_put_var(ncid, varid, v);
 
+    ncw_inq_varid(ncid, "fj", &varid);
     for (i = 0; i < obs->nobs; ++i)
         ((float*) v)[i] = obs->data[i].fj;
-    ncw_put_var(ncid, varid_fj, v);
+    ncw_put_var(ncid, varid, v);
 
+    ncw_inq_varid(ncid, "fk", &varid);
     for (i = 0; i < obs->nobs; ++i)
         ((float*) v)[i] = obs->data[i].fk;
-    ncw_put_var(ncid, varid_fk, v);
+    ncw_put_var(ncid, varid, v);
 
+    ncw_inq_varid(ncid, "time", &varid);
     for (i = 0; i < obs->nobs; ++i)
         ((float*) v)[i] = obs->data[i].time;
-    ncw_put_var(ncid, varid_time, v);
+    ncw_put_var(ncid, varid, v);
 
+    ncw_inq_varid(ncid, "status", &varid);
     for (i = 0; i < obs->nobs; ++i)
         ((char*) v)[i] = obs->data[i].status;
-    ncw_put_var(ncid, varid_status, v);
+    ncw_put_var(ncid, varid, v);
 
+    ncw_inq_varid(ncid, "aux", &varid);
     for (i = 0; i < obs->nobs; ++i)
         ((int*) v)[i] = obs->data[i].aux;
-    ncw_put_var(ncid, varid_aux, v);
+    ncw_put_var(ncid, varid, v);
 
     ncw_close(ncid);
     free(v);
@@ -1540,7 +1622,7 @@ void obs_destroykdtrees(observations* obs)
  ** the specified location (lon,lat) and calculate the corresponding taper
  ** coefficients. If there is a limit on the number of local observations then
  ** sort observations according to distance and keep the specified number of the
- ** closest observations. If *ploc_allocated in NULL then allocate arrays of
+ ** closest observations. If *ploc_allocated is NULL then allocate arrays of
  ** observation ids and taper coefficients, if not -- then assume that these
  ** arrays are pre-allocated.
  * @param obs - observations

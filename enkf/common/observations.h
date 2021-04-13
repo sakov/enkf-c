@@ -57,7 +57,7 @@ typedef struct {
     float time;
     /*
      * auxiliary information:
-     *  - for a supoerob -- # of obs collated
+     *  - for a superob -- # of obs collated
      *  - for an original observation -- sob id
      */
     int aux;
@@ -127,20 +127,18 @@ void obs_markbadbatches(observations* obs);
 void obs_read(observations* obs, char fname[]);
 void obs_write(observations* obs, char fname[]);
 void obs_writeaux(observations* obs, char fname[]);
-int obs_modifiederrors_alreadywritten(observations* obs, char fname[]);
-
-#if defined(ENKF_PREP)
-void obs_superob(observations* obs, __compar_d_fn_t cmp_obs, observations** sobs, int sobid, int do_thin);
-#endif
 void obs_find_bytype(observations* obs, int type, int* nobs, int** obsids);
 void obs_find_bytypeandtime(observations* obs, int type, int time, int* nobs, int** obsids);
 void obs_printob(observations* obs, int id);
 
+#if defined(ENKF_PREP)
+void obs_superob(observations* obs, __compar_d_fn_t cmp_obs, observations** sobs, int sobid, int do_thin);
+#endif
 #if defined(ENKF_CALC)
 void obs_createkdtrees(observations* obs);
 void obs_destroykdtrees(observations* obs);
-
 void obs_findlocal(observations* obs, double lon, double lat, char* dimainname, int* n, int** ids, double** lcoeffs, int* ploc_allocated);
+int obs_modifiederrors_alreadywritten(observations* obs, char fname[]);
 #endif
 
 #define _OBSERVATIONS_H
