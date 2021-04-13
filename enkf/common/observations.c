@@ -844,6 +844,31 @@ void obs_write(observations* obs, char fname[])
     ncw_put_att_text(ncid, varid, "long_name", "original observation ID");
     ncw_put_att_text(ncid, varid, "description", "for primary observations - the serial number of the primary observation during the reading of data files; for superobs - the original ID of the very first observation collated into this observation");
     /*
+     * status
+     */
+    ncw_def_var(ncid, "status", NC_BYTE, 1, dimid_nobs, &varid);
+    ncw_put_att_text(ncid, varid, "long_name", "observation status");
+    i = STATUS_OK;
+    ncw_put_att_int(ncid, varid, "STATUS_OK", 1, &i);
+    i = STATUS_OUTSIDEGRID;
+    ncw_put_att_int(ncid, varid, "STATUS_OUTSIDEGRID", 1, &i);
+    i = STATUS_LAND;
+    ncw_put_att_int(ncid, varid, "STATUS_LAND", 1, &i);
+    i = STATUS_SHALLOW;
+    ncw_put_att_int(ncid, varid, "STATUS_SHALLOW", 1, &i);
+    i = STATUS_RANGE;
+    ncw_put_att_int(ncid, varid, "STATUS_RANGE", 1, &i);
+    i = STATUS_BADBATCH;
+    ncw_put_att_int(ncid, varid, "STATUS_BADBATCH", 1, &i);
+    i = STATUS_OUTSIDEOBSDOMAIN;
+    ncw_put_att_int(ncid, varid, "STATUS_OUTSIDEOBSDOMAIN", 1, &i);
+    i = STATUS_OUTSIDEOBSWINDOW;
+    ncw_put_att_int(ncid, varid, "STATUS_OUTSIDEOBSWINDOW", 1, &i);
+    i = STATUS_THINNED;
+    ncw_put_att_int(ncid, varid, "STATUS_THINNED", 1, &i);
+    i = STATUS_EXCLUDED;
+    ncw_put_att_int(ncid, varid, "STATUS_EXCLUDED", 1, &i);
+    /*
      * type
      */
     ncw_def_var(ncid, "type", NC_SHORT, 1, dimid_nobs, &varid);
@@ -948,31 +973,6 @@ void obs_write(observations* obs, char fname[])
     snprintf(tunits, MAXSTRLEN, "days from %s", obs->datestr);
     ncw_put_att_text(ncid, varid, "units", tunits);
     /*
-     * status
-     */
-    ncw_def_var(ncid, "status", NC_BYTE, 1, dimid_nobs, &varid);
-    ncw_put_att_text(ncid, varid, "long_name", "observation status");
-    i = STATUS_OK;
-    ncw_put_att_int(ncid, varid, "STATUS_OK", 1, &i);
-    i = STATUS_OUTSIDEGRID;
-    ncw_put_att_int(ncid, varid, "STATUS_OUTSIDEGRID", 1, &i);
-    i = STATUS_LAND;
-    ncw_put_att_int(ncid, varid, "STATUS_LAND", 1, &i);
-    i = STATUS_SHALLOW;
-    ncw_put_att_int(ncid, varid, "STATUS_SHALLOW", 1, &i);
-    i = STATUS_RANGE;
-    ncw_put_att_int(ncid, varid, "STATUS_RANGE", 1, &i);
-    i = STATUS_BADBATCH;
-    ncw_put_att_int(ncid, varid, "STATUS_BADBATCH", 1, &i);
-    i = STATUS_OUTSIDEOBSDOMAIN;
-    ncw_put_att_int(ncid, varid, "STATUS_OUTSIDEOBSDOMAIN", 1, &i);
-    i = STATUS_OUTSIDEOBSWINDOW;
-    ncw_put_att_int(ncid, varid, "STATUS_OUTSIDEOBSWINDOW", 1, &i);
-    i = STATUS_THINNED;
-    ncw_put_att_int(ncid, varid, "STATUS_THINNED", 1, &i);
-    i = STATUS_EXCLUDED;
-    ncw_put_att_int(ncid, varid, "STATUS_EXCLUDED", 1, &i);
-    /*
      * aux
      */
     ncw_def_var(ncid, "aux", NC_INT, 1, dimid_nobs, &varid);
@@ -1002,53 +1002,58 @@ void obs_write(observations* obs, char fname[])
     ncw_inq_varid(ncid, "id", &varid);
     for (i = 0; i < obs->nobs; ++i)
         ((int*) v)[i] = obs->data[i].id;
-    ncw_put_var(ncid, varid, v);
+    ncw_put_var_int(ncid, varid, v);
 
     ncw_inq_varid(ncid, "id_orig", &varid);
     for (i = 0; i < obs->nobs; ++i)
         ((int*) v)[i] = obs->data[i].id_orig;
-    ncw_put_var(ncid, varid, v);
+    ncw_put_var_int(ncid, varid, v);
+
+    ncw_inq_varid(ncid, "status", &varid);
+    for (i = 0; i < obs->nobs; ++i)
+        ((unsigned char*) v)[i] = obs->data[i].status;
+    ncw_put_var_uchar(ncid, varid, v);
 
     ncw_inq_varid(ncid, "type", &varid);
     for (i = 0; i < obs->nobs; ++i)
         ((short int*) v)[i] = obs->data[i].type;
-    ncw_put_var(ncid, varid, v);
+    ncw_put_var_short(ncid, varid, v);
 
     ncw_inq_varid(ncid, "product", &varid);
     for (i = 0; i < obs->nobs; ++i)
         ((short int*) v)[i] = obs->data[i].product;
-    ncw_put_var(ncid, varid, v);
+    ncw_put_var_short(ncid, varid, v);
 
     ncw_inq_varid(ncid, "instrument", &varid);
     for (i = 0; i < obs->nobs; ++i)
         ((short int*) v)[i] = obs->data[i].instrument;
-    ncw_put_var(ncid, varid, v);
+    ncw_put_var_short(ncid, varid, v);
 
     ncw_inq_varid(ncid, "fid", &varid);
     for (i = 0; i < obs->nobs; ++i)
         ((short int*) v)[i] = obs->data[i].fid;
-    ncw_put_var(ncid, varid, v);
+    ncw_put_var_short(ncid, varid, v);
 
     ncw_inq_varid(ncid, "batch", &varid);
     for (i = 0; i < obs->nobs; ++i)
         ((int*) v)[i] = obs->data[i].batch;
-    ncw_put_var(ncid, varid, v);
+    ncw_put_var_int(ncid, varid, v);
 
     ncw_inq_varid(ncid, "value", &varid);
     for (i = 0; i < obs->nobs; ++i)
         ((float*) v)[i] = obs->data[i].value;
-    ncw_put_var(ncid, varid, v);
+    ncw_put_var_float(ncid, varid, v);
 
     ncw_inq_varid(ncid, "estd", &varid);
     for (i = 0; i < obs->nobs; ++i)
         ((float*) v)[i] = obs->data[i].estd;
-    ncw_put_var(ncid, varid, v);
+    ncw_put_var_float(ncid, varid, v);
 
     if (obs->has_nonpointobs) {
         ncw_inq_varid(ncid, "footprint", &varid);
         for (i = 0; i < obs->nobs; ++i)
             ((float*) v)[i] = obs->data[i].footprint;
-        ncw_put_var(ncid, varid, v);
+        ncw_put_var_float(ncid, varid, v);
     }
 
     ncw_inq_varid(ncid, "lon", &varid);
@@ -1059,47 +1064,42 @@ void obs_write(observations* obs, char fname[])
     ncw_inq_varid(ncid, "lat", &varid);
     for (i = 0; i < obs->nobs; ++i)
         ((float*) v)[i] = obs->data[i].lat;
-    ncw_put_var(ncid, varid, v);
+    ncw_put_var_float(ncid, varid, v);
 
     ncw_inq_varid(ncid, "depth", &varid);
     for (i = 0; i < obs->nobs; ++i)
         ((float*) v)[i] = obs->data[i].depth;
-    ncw_put_var(ncid, varid, v);
+    ncw_put_var_float(ncid, varid, v);
 
     ncw_inq_varid(ncid, "model_depth", &varid);
     for (i = 0; i < obs->nobs; ++i)
         ((float*) v)[i] = obs->data[i].model_depth;
-    ncw_put_var(ncid, varid, v);
+    ncw_put_var_float(ncid, varid, v);
 
     ncw_inq_varid(ncid, "fi", &varid);
     for (i = 0; i < obs->nobs; ++i)
         ((float*) v)[i] = obs->data[i].fi;
-    ncw_put_var(ncid, varid, v);
+    ncw_put_var_float(ncid, varid, v);
 
     ncw_inq_varid(ncid, "fj", &varid);
     for (i = 0; i < obs->nobs; ++i)
         ((float*) v)[i] = obs->data[i].fj;
-    ncw_put_var(ncid, varid, v);
+    ncw_put_var_float(ncid, varid, v);
 
     ncw_inq_varid(ncid, "fk", &varid);
     for (i = 0; i < obs->nobs; ++i)
         ((float*) v)[i] = obs->data[i].fk;
-    ncw_put_var(ncid, varid, v);
+    ncw_put_var_float(ncid, varid, v);
 
     ncw_inq_varid(ncid, "time", &varid);
     for (i = 0; i < obs->nobs; ++i)
         ((float*) v)[i] = obs->data[i].time;
-    ncw_put_var(ncid, varid, v);
-
-    ncw_inq_varid(ncid, "status", &varid);
-    for (i = 0; i < obs->nobs; ++i)
-        ((char*) v)[i] = obs->data[i].status;
-    ncw_put_var(ncid, varid, v);
+    ncw_put_var_float(ncid, varid, v);
 
     ncw_inq_varid(ncid, "aux", &varid);
     for (i = 0; i < obs->nobs; ++i)
         ((int*) v)[i] = obs->data[i].aux;
-    ncw_put_var(ncid, varid, v);
+    ncw_put_var_int(ncid, varid, v);
 
     ncw_close(ncid);
     free(v);

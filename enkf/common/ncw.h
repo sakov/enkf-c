@@ -70,6 +70,7 @@ void ncw_rename_var(int ncid, const char oldname[], const char newname[]);
 void ncw_def_var_deflate(int ncid, int varid, int shuffle, int deflate, int deflate_level);
 void ncw_put_var(int ncid, int varid, const void* v);
 void ncw_put_var_text(int ncid, int varid, const char v[]);
+void ncw_put_var_schar(int ncid, int varid, const signed char v[]);
 void ncw_put_var_uchar(int ncid, int varid, const unsigned char v[]);
 void ncw_put_var_short(int ncid, int varid, const short int v[]);
 void ncw_put_var_ushort(int ncid, int varid, const unsigned short int v[]);
