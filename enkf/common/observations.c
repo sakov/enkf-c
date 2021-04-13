@@ -1059,7 +1059,7 @@ void obs_write(observations* obs, char fname[])
     ncw_inq_varid(ncid, "lon", &varid);
     for (i = 0; i < obs->nobs; ++i)
         ((float*) v)[i] = obs->data[i].lon;
-    ncw_put_var(ncid, varid, v);
+    ncw_put_var_float(ncid, varid, v);
 
     ncw_inq_varid(ncid, "lat", &varid);
     for (i = 0; i < obs->nobs; ++i)
