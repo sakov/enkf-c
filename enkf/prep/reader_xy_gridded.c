@@ -181,7 +181,6 @@ void reader_xy_gridded(char* fname, int fid, obsmeta* meta, grid* g, observation
     var = malloc(nij * sizeof(float));
     ncu_readvarfloat(ncid, varid, nij, var);
 
-
     /*
      * longitude
      */

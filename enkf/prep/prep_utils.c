@@ -69,7 +69,7 @@ static void readobs(obsmeta* meta, model* m, obsread_fn reader, observations* ob
         fid = st_add_ifabsent(obs->datafiles, fnames[i], -1);
         reader(fnames[i], fid, meta, g, obs);
 
-        enkf_printf("        # good obs = %d\n", obs->nobs - nobs0);
+        enkf_printf("        # obs added = %d\n", obs->nobs - nobs0);
         enkf_flush();
         free(fnames[i]);
     }

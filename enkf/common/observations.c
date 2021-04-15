@@ -366,35 +366,34 @@ void obs_checkalloc(observations* obs)
 #endif
 
 #if defined(ENKF_PREP)
-/**
- */
-static int comp_obsstatus(const void* p1, const void* p2)
-{
-    observation* m1 = (observation*) p1;
-    observation* m2 = (observation*) p2;
-
-    if (m1->status > m2->status)
-        return 1;
-    if (m1->status < m2->status)
-        return -1;
-    return 0;
-}
-
 /** Move good observations to the head of the observation array.
  */
 void obs_compact(observations* obs)
 {
-    int i;
+    int i, ii;
 
     if (obs->compacted)
         return;
 
     enkf_flush();
     assert(STATUS_OK == 0);
-    qsort(obs->data, obs->nobs, sizeof(observation), comp_obsstatus);
-    for (i = 0; i < obs->nobs; ++i) {
+
+    for (i = 0; i < obs->nobs; ++i)
         obs->data[i].id_orig = obs->data[i].id;
+
+    for (i = 0, ii = obs->nobs - 1; i < ii; ++i) {
+        observation tmp;
+
+        if (obs->data[i].status == 0)
+            continue;
+        while (obs->data[ii].status != 0 && ii > i)
+            ii--;
+        tmp = obs->data[i];
+        obs->data[i] = obs->data[ii];
+        obs->data[ii] = tmp;
         obs->data[i].id = i;
+        obs->data[ii].id = ii;
+        ii--;
     }
     obs->compacted = 1;
 }
