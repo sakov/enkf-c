@@ -72,9 +72,9 @@ void reader_amsr2_standard(char* fname, int fid, obsmeta* meta, grid* g, observa
 
     ncw_inq_dimid(ncid, "nobs", &dimid_nobs);
     ncw_inq_dimlen(ncid, dimid_nobs, &nobs_local);
-    enkf_printf("        nobs = %u\n", (unsigned int) nobs_local);
 
     if (nobs_local == 0) {
+        enkf_printf("        nobs = %u\n", (unsigned int) nobs_local);
         ncw_close(ncid);
         return;
     }
