@@ -136,11 +136,16 @@
 extern int nprocesses;
 extern int rank;
 
-#if defined(ENKF_CALC)
-#if defined(USE_SHMEM)
-#if !defined(MPI)
+#if !defined(ENKF_CALC) || ! defined(MPI)
 #undef USE_SHMEM
-#else
+#undef TW_VIAFILE
+#undef SHUFFLE_ROWS
+#endif
+#if defined(TW_VIAFILE)
+#undef SHUFFLE_ROWS
+#endif
+
+#if defined(USE_SHMEM)
 extern MPI_Comm sm_comm;
 extern MPI_Win sm_comm_win_S;
 extern MPI_Win* sm_comm_win_gridnodesXY;
@@ -152,16 +157,6 @@ extern int node_comm_rank;
 extern int node_comm_size;
 extern int* node_comm_ranks;
 #endif
-#endif
-#if defined(TW_VIAFILE) && !defined(MPI)
-#undef TW_VIAFILE
-#endif
-#if defined(SHUFFLE_ROWS)
-#if !defined(MPI) || defined(TW_VIAFILE)
-#undef SHUFFLE_ROWS
-#endif
-#endif
-#endif                          /* ENKF_CALC */
 
 extern int enkf_obstype;
 extern int enkf_exitaction;

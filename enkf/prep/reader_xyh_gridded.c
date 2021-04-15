@@ -116,7 +116,6 @@ void reader_xyh_gridded(char* fname, int fid, obsmeta* meta, grid* gdst, observa
 
     int ncid;
     int ndim;
-    int varid_var = -1, varid_npoints = -1, varid_std = -1, varid_estd = -1, varid_batch = -1;
     float* var = NULL;
     double var_estd = NAN;
     short* npoints = NULL;
@@ -126,6 +125,7 @@ void reader_xyh_gridded(char* fname, int fid, obsmeta* meta, grid* gdst, observa
     uint32_t** qcflag = NULL;
     size_t ntime = 0;
     double* time = NULL;
+    int varid;
     size_t i, j, k, nobs_read;
 
     for (i = 0; i < meta->npars; ++i) {
@@ -173,13 +173,14 @@ void reader_xyh_gridded(char* fname, int fid, obsmeta* meta, grid* gdst, observa
     nijk = nij * nk;
 
     ncw_open(fname, NC_NOWRITE, &ncid);
-    ncw_inq_varid(ncid, varname, &varid_var);
-    ncw_inq_varndims(ncid, varid_var, &ndim);
+
+    ncw_inq_varid(ncid, varname, &varid);
+    ncw_inq_varndims(ncid, varid, &ndim);
     {
         int dimid[4];
         size_t dimlen[4];
 
-        ncw_inq_vardimid(ncid, varid_var, dimid);
+        ncw_inq_vardimid(ncid, varid, dimid);
         for (i = 0; i < ndim; ++i)
             ncw_inq_dimlen(ncid, dimid[i], &dimlen[i]);
         if (ndim == 4) {
@@ -192,67 +193,68 @@ void reader_xyh_gridded(char* fname, int fid, obsmeta* meta, grid* gdst, observa
             enkf_quit("dimension mismatch between grid \"%s\" (%d x %d x %d) and variable \"%s\" in \"%s\" (%d x %d x %d)", gridname, ni, nj, nk, varname, fname, dimlen[ndim - 1], dimlen[ndim - 2], dimlen[ndim - 3]);
     }
 
-    /*
-     * main variable
-     */
     var = malloc(nijk * sizeof(float));
-    ncu_readvarfloat(ncid, varid_var, nijk, var);
-    ncw_get_var_float(ncid, varid_var, var);
+    ncu_readvarfloat(ncid, varid, nijk, var);
 
     /*
      * npoints
      */
+    varid = -1;
     if (npointsname != NULL)
-        ncw_inq_varid(ncid, npointsname, &varid_npoints);
+        ncw_inq_varid(ncid, npointsname, &varid);
     else if (ncw_var_exists(ncid, "npoints"))
-        ncw_inq_varid(ncid, "npoints", &varid_npoints);
-    if (varid_npoints >= 0) {
+        ncw_inq_varid(ncid, "npoints", &varid);
+    if (varid >= 0) {
         npoints = malloc(nijk * sizeof(short));
-        ncw_get_var_short(ncid, varid_npoints, npoints);
+        ncw_get_var_short(ncid, varid, npoints);
     }
 
     /*
      * std
      */
+    varid = -1;
     if (stdname != NULL)
-        ncw_inq_varid(ncid, stdname, &varid_std);
+        ncw_inq_varid(ncid, stdname, &varid);
     else if (ncw_var_exists(ncid, "std"))
-        ncw_inq_varid(ncid, "std", &varid_std);
-    if (varid_std >= 0) {
+        ncw_inq_varid(ncid, "std", &varid);
+    if (varid >= 0) {
         std = malloc(nijk * sizeof(float));
-        ncu_readvarfloat(ncid, varid_std, nijk, std);
+        ncu_readvarfloat(ncid, varid, nijk, std);
     }
 
     /*
      * etsd
      */
+    varid = -1;
     if (estdname != NULL)
-        ncw_inq_varid(ncid, estdname, &varid_estd);
+        ncw_inq_varid(ncid, estdname, &varid);
     else if (ncw_var_exists(ncid, "error_std"))
-        ncw_inq_varid(ncid, "error_std", &varid_estd);
-    if (varid_estd >= 0) {
+        ncw_inq_varid(ncid, "error_std", &varid);
+    if (varid >= 0) {
         estd = malloc(nijk * sizeof(float));
-        ncu_readvarfloat(ncid, varid_estd, nijk, estd);
+        ncu_readvarfloat(ncid, varid, nijk, estd);
     }
 
     if (std == NULL && estd == NULL) {
-        if (ncw_att_exists(ncid, varid_var, "error_std")) {
-            ncw_check_attlen(ncid, varid_var, "error_std", 1);
-            ncw_get_att_double(ncid, varid_var, "error_std", &var_estd);
+        ncw_inq_varid(ncid, varname, &varid);
+        if (ncw_att_exists(ncid, varid, "error_std")) {
+            ncw_check_attlen(ncid, varid, "error_std", 1);
+            ncw_get_att_double(ncid, varid, "error_std", &var_estd);
         }
     }
 
     /*
      * batch
      */
+    varid = -1;
     if (batchname != NULL)
-        ncw_inq_varid(ncid, batchname, &varid_batch);
+        ncw_inq_varid(ncid, batchname, &varid);
     else if (ncw_var_exists(ncid, "batch"))
-        ncw_inq_varid(ncid, "batch", &varid_batch);
-    if (varid_batch >= 0) {
-        ncw_check_varsize(ncid, varid_batch, nijk);
+        ncw_inq_varid(ncid, "batch", &varid);
+    if (varid >= 0) {
+        ncw_check_varsize(ncid, varid, nijk);
         batch = malloc(nijk * sizeof(int));
-        ncw_get_var_int(ncid, varid_batch, batch);
+        ncw_get_var_int(ncid, varid, batch);
     }
 
     /*
@@ -260,8 +262,6 @@ void reader_xyh_gridded(char* fname, int fid, obsmeta* meta, grid* gdst, observa
      */
     get_qcflags(meta, &nqcflagvars, &qcflagvarnames, &qcflagmasks);
     if (nqcflagvars > 0) {
-        int varid = -1;
-
         qcflag = alloc2d(nqcflagvars, nijk, sizeof(int32_t));
         for (i = 0; i < nqcflagvars; ++i) {
             ncw_inq_varid(ncid, qcflagvarnames[i], &varid);

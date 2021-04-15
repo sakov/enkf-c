@@ -110,13 +110,11 @@ void reader_xyz_gridded(char* fname, int fid, obsmeta* meta, grid* g, observatio
     int iscurv = -1, zndim = -1;
     int ndim_var, ndim_xy;
     size_t dimlen_var[4], dimlen_xy[2], dimlen_z[3];
-    size_t ni = 0, nj = 0, nk = 0, nij = 0, nijk = 0, nijk_var = -1;
-    int varid_lon = -1, varid_lat = -1, varid_z = -1;
+    size_t ni = 0, nj = 0, nk = 0, nij = 0, nijk = 0;
     double* lon = NULL;
     double* lat = NULL;
     float* z = NULL;
 
-    int varid_var = -1, varid_npoints = -1, varid_std = -1, varid_estd = -1, varid_batch = -1;
     float* var = NULL;
     double var_estd = NAN;
     short* npoints = NULL;
@@ -126,6 +124,7 @@ void reader_xyz_gridded(char* fname, int fid, obsmeta* meta, grid* g, observatio
     uint32_t** qcflag = NULL;
     size_t ntime = 0;
     double* time = NULL;
+    int varid;
     size_t i, nobs_read;
 
     for (i = 0; i < meta->npars; ++i) {
@@ -167,33 +166,39 @@ void reader_xyz_gridded(char* fname, int fid, obsmeta* meta, grid* g, observatio
         enkf_printf("        VARNAME = %s\n", varname);
 
     ncw_open(fname, NC_NOWRITE, &ncid);
+
     /*
-     * main variable dims
+     * main variable
      */
-    ncw_inq_varid(ncid, varname, &varid_var);
-    ncw_inq_vardims(ncid, varid_var, 4, &ndim_var, dimlen_var);
+    ncw_inq_varid(ncid, varname, &varid);
+    ncw_inq_vardims(ncid, varid, 4, &ndim_var, dimlen_var);
     if (ndim_var == 4) {
         if (dimlen_var[0] != 1)
             enkf_quit("reader_xyz_gridded(): %s: %s: %d records (currently only one record is allowed)", fname, varname, dimlen_var[0]);
-        nijk_var = dimlen_var[3] * dimlen_var[2] * dimlen_var[1];
+        nijk = dimlen_var[3] * dimlen_var[2] * dimlen_var[1];
+        nij = dimlen_var[3] * dimlen_var[2];
     } else if (ndim_var == 3) {
-        if (ncw_var_hasunlimdim(ncid, varid_var))
+        if (ncw_var_hasunlimdim(ncid, varid))
             enkf_quit("reader_xyz_gridded(): %s: %s: not enough spatial dimensions (must be 3)", fname, varname);
-        nijk_var = dimlen_var[2] * dimlen_var[1] * dimlen_var[0];
+        nijk = dimlen_var[2] * dimlen_var[1] * dimlen_var[0];
+        nij = dimlen_var[2] * dimlen_var[1];
     } else
         enkf_quit("reader_xyz_gridded(): %s: %s: %d dimensions (must be 3 or 4 with only one record)", fname, varname, ndim_var);
 
+    var = malloc(nijk * sizeof(float));
+    ncu_readvarfloat(ncid, varid, nijk, var);
+
     /*
-     * longitude dims
+     * longitude
      */
     lonname = get_lonname(ncid, lonname);
     if (lonname != NULL) {
         enkf_printf("        LONNAME = %s\n", lonname);
-        ncw_inq_varid(ncid, lonname, &varid_lon);
+        ncw_inq_varid(ncid, lonname, &varid);
     } else
         enkf_quit("reader_xyz_gridded(): %s: could not find longitude variable", fname);
 
-    ncw_inq_vardims(ncid, varid_lon, 2, &ndim_xy, dimlen_xy);
+    ncw_inq_vardims(ncid, varid, 2, &ndim_xy, dimlen_xy);
     if (ndim_xy == 1) {
         iscurv = 0;
         ni = dimlen_xy[0];
@@ -204,29 +209,51 @@ void reader_xyz_gridded(char* fname, int fid, obsmeta* meta, grid* g, observatio
     } else
         enkf_quit("reader_xyz_gridded(): %s: coordinate variable \"%s\" has neither 1 or 2 dimensions", fname, lonname);
 
+    if (iscurv == 0) {
+        lon = malloc(ni * sizeof(double));
+        ncu_readvardouble(ncid, varid, ni, lon);
+    } else {
+        lon = malloc(nij * sizeof(double));
+        ncu_readvardouble(ncid, varid, nij, lon);
+    }
+
+    /*
+     * latitude
+     */
     latname = get_latname(ncid, latname);
     if (latname != NULL) {
         enkf_printf("        LATNAME = %s\n", latname);
-        ncw_inq_varid(ncid, latname, &varid_lat);
+        ncw_inq_varid(ncid, latname, &varid);
     } else
         enkf_quit("reader_xyz_gridded(): %s: could not find latitude variable", fname);
-    if (ndim_xy == 1)
-        ncw_inq_vardims(ncid, varid_lat, 1, &ndim_xy, &nj);
+    if (iscurv == 0) {
+        ncw_check_varndims(ncid, varid, 1);
+        ncw_inq_vardims(ncid, varid, 1, NULL, &nj);
+    } else
+        ncw_check_vardims(ncid, varid, 2, dimlen_xy);
+
+    if (ni * nj != nij)
+        enkf_quit("reader_xyz_gridded(): %s: dimensions of variable \"%s\" do not match coordinate dimensions", fname, varname);
+
+    if (iscurv == 0) {
+        lat = malloc(nj * sizeof(double));
+        ncu_readvardouble(ncid, varid, nj, lat);
+    } else {
+        lat = malloc(nij * sizeof(double));
+        ncu_readvardouble(ncid, varid, nij, lat);
+    }
 
     /*
-     * latitude dims
+     * z
      */
     zname = get_zname(ncid, zname);
     if (zname != NULL) {
         enkf_printf("        ZNAME = %s\n", zname);
-        ncw_inq_varid(ncid, zname, &varid_z);
+        ncw_inq_varid(ncid, zname, &varid);
     } else
         enkf_quit("reader_xyz_gridded(): %s: could not find Z variable", fname);
 
-    /*
-     * z dims
-     */
-    ncw_inq_vardims(ncid, varid_z, 3, &zndim, dimlen_z);
+    ncw_inq_vardims(ncid, varid, 3, &zndim, dimlen_z);
     if (zndim == 1)
         nk = dimlen_z[0];
     else if (zndim == 3)
@@ -235,102 +262,78 @@ void reader_xyz_gridded(char* fname, int fid, obsmeta* meta, grid* g, observatio
         enkf_quit("reader_xyz_gridded(): %s: %s (the vertical coordinate): %d-dimensional; supposed to be either 1- or 3-dimensional only", fname, zname, zndim);
 
     enkf_printf("        (ni, nj, nk) = (%u, %u, %u)\n", ni, nj, nk);
-    nijk = ni * nj * nk;
-    nij = ni * nj;
-
-    if (nijk != nijk_var)
+    if (ni * nj * nk != nijk)
         enkf_quit("reader_xyz_gridded(): %s: dimensions of variable \"%s\" do not match coordinate dimensions", fname, varname);
     if (dimlen_var[ndim_var - 1] != ni)
         enkf_quit("reader_xyz_gridded(): %s: %s: longitude must be the inner coordinate", fname, varname);
 
-    /*
-     * lon/lat
-     */
-    if (iscurv == 0) {
-        lon = malloc(ni * sizeof(double));
-        ncu_readvardouble(ncid, varid_lon, ni, lon);
-
-        lat = malloc(nj * sizeof(double));
-        ncu_readvardouble(ncid, varid_lat, nj, lat);
-    } else {
-        lon = malloc(nij * sizeof(double));
-        ncu_readvardouble(ncid, varid_lon, nij, lon);
-
-        lat = malloc(nij * sizeof(double));
-        ncu_readvardouble(ncid, varid_lat, nij, lat);
-    }
-
-    /*
-     * z
-     */
     if (zndim == 1) {
         z = malloc(nk * sizeof(float));
-        ncu_readvarfloat(ncid, varid_z, nk, z);
+        ncu_readvarfloat(ncid, varid, nk, z);
     } else if (zndim == 3) {
         z = malloc(nijk * sizeof(float));
-        ncu_readvarfloat(ncid, varid_z, nijk, z);
+        ncu_readvarfloat(ncid, varid, nijk, z);
     }
-
-    /*
-     * main variable
-     */
-    var = malloc(nijk * sizeof(float));
-    ncu_readvarfloat(ncid, varid_var, nijk, var);
 
     /*
      * npoints
      */
+    varid = -1;
     if (npointsname != NULL)
-        ncw_inq_varid(ncid, npointsname, &varid_npoints);
+        ncw_inq_varid(ncid, npointsname, &varid);
     else if (ncw_var_exists(ncid, "npoints"))
-        ncw_inq_varid(ncid, "npoints", &varid_npoints);
-    if (varid_npoints >= 0) {
+        ncw_inq_varid(ncid, "npoints", &varid);
+    if (varid >= 0) {
         npoints = malloc(nijk * sizeof(short));
-        ncw_get_var_short(ncid, varid_npoints, npoints);
+        ncw_get_var_short(ncid, varid, npoints);
     }
 
     /*
      * std
      */
+    varid = -1;
     if (stdname != NULL)
-        ncw_inq_varid(ncid, stdname, &varid_std);
+        ncw_inq_varid(ncid, stdname, &varid);
     else if (ncw_var_exists(ncid, "std"))
-        ncw_inq_varid(ncid, "std", &varid_std);
-    if (varid_std >= 0) {
+        ncw_inq_varid(ncid, "std", &varid);
+    if (varid >= 0) {
         std = malloc(nijk * sizeof(float));
-        ncu_readvarfloat(ncid, varid_std, nijk, std);
+        ncu_readvarfloat(ncid, varid, nijk, std);
     }
 
     /*
      * estd
      */
+    varid = -1;
     if (estdname != NULL)
-        ncw_inq_varid(ncid, estdname, &varid_estd);
+        ncw_inq_varid(ncid, estdname, &varid);
     else if (ncw_var_exists(ncid, "error_std"))
-        ncw_inq_varid(ncid, "error_std", &varid_estd);
-    if (varid_estd >= 0) {
+        ncw_inq_varid(ncid, "error_std", &varid);
+    if (varid >= 0) {
         estd = malloc(nijk * sizeof(float));
-        ncu_readvarfloat(ncid, varid_estd, nijk, estd);
+        ncu_readvarfloat(ncid, varid, nijk, estd);
     }
 
     if (std == NULL && estd == NULL) {
-        if (ncw_att_exists(ncid, varid_var, "error_std")) {
-            ncw_check_attlen(ncid, varid_var, "error_std", 1);
-            ncw_get_att_double(ncid, varid_var, "error_std", &var_estd);
+        ncw_inq_varid(ncid, varname, &varid);
+        if (ncw_att_exists(ncid, varid, "error_std")) {
+            ncw_check_attlen(ncid, varid, "error_std", 1);
+            ncw_get_att_double(ncid, varid, "error_std", &var_estd);
         }
     }
 
     /*
      * batch
      */
+    varid = -1;
     if (batchname != NULL)
-        ncw_inq_varid(ncid, batchname, &varid_batch);
+        ncw_inq_varid(ncid, batchname, &varid);
     else if (ncw_var_exists(ncid, "batch"))
-        ncw_inq_varid(ncid, "batch", &varid_batch);
-    if (varid_batch >= 0) {
-        ncw_check_varsize(ncid, varid_batch, nijk);
+        ncw_inq_varid(ncid, "batch", &varid);
+    if (varid >= 0) {
+        ncw_check_varsize(ncid, varid, nijk);
         batch = malloc(nijk * sizeof(int));
-        ncw_get_var_int(ncid, varid_batch, batch);
+        ncw_get_var_int(ncid, varid, batch);
     }
 
     /*
@@ -338,11 +341,10 @@ void reader_xyz_gridded(char* fname, int fid, obsmeta* meta, grid* g, observatio
      */
     get_qcflags(meta, &nqcflagvars, &qcflagvarnames, &qcflagmasks);
     if (nqcflagvars > 0) {
-        int varid = -1;
-
         qcflag = alloc2d(nqcflagvars, nijk, sizeof(int32_t));
         for (i = 0; i < nqcflagvars; ++i) {
             ncw_inq_varid(ncid, qcflagvarnames[i], &varid);
+            ncw_check_varsize(ncid, varid, nijk);
             ncw_get_var_uint(ncid, varid, qcflag[i]);
         }
     }

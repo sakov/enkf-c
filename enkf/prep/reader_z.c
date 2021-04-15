@@ -98,7 +98,6 @@ void reader_z(char* fname, int fid, obsmeta* meta, grid* g, observations* obs)
 
     int ncid;
     size_t nobs = 0;
-    int varid;
     double lon = NAN;
     double lat = NAN;
     double* var = NULL;
@@ -108,6 +107,7 @@ void reader_z(char* fname, int fid, obsmeta* meta, grid* g, observations* obs)
     uint32_t** qcflag = NULL;
     size_t ntime = 0;
     double* time = NULL;
+    int varid;
     int i, nobs_read;
 
     for (i = 0; i < meta->npars; ++i) {

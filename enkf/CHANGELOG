@@ -1,3 +1,7 @@
+v2.7.14
+   PS 15042021
+   -- A number of supposedly cosmetic changes in generic readers.
+   -- Simplified checks of definitions for CALC in definitions.h.
 v2.7.13
    PS 13042021
    -- Added writing obs. batch to obs_write() missed in v2.7.10.
