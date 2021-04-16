@@ -65,12 +65,22 @@ struct kdtree {
     size_t ndim;
     size_t nnodes;
     size_t nallocated;
+    int external_storage;
+
+    /*
+     * The following data is maintained as a continuous block in memory.
+     * It can be pre-allocated and shared between tree instances.
+     */
     kdnode* nodes;
     double* coords;
     double* min;
     double* max;
-    int external_storage;
 
+    /*
+     * The search framework is designed to minimise the number of allocations
+     * over multiple searches to reduce memory fragmentation by parallel
+     * processes.
+     */
     size_t nresults;
     size_t nresults_allocated;
     kdresult* results;
@@ -369,7 +379,8 @@ void kd_setstorage(kdtree* tree, size_t n, void* storage, int ismaster)
     tree->external_storage = 1;
 }
 
-/**
+/** Synchronise the number of nodes with that put into the tree (perhaps by
+ ** another process).
  */
 void kd_syncsize(kdtree* tree)
 {
@@ -377,7 +388,7 @@ void kd_syncsize(kdtree* tree)
     tree->nnodes = tree->nallocated;
 }
 
-/**
+/** Reduce allocated memory to the actual tree size.
  */
 void kd_finalise(kdtree* tree)
 {
@@ -418,8 +429,8 @@ char* kd_getname(const kdtree* tree)
     return tree->name;
 }
 
-/** get the memory size necessary for the tree for the current tree
- *  (nnodes = 0) or for the tree with `nnodes' nodes
+/** Get the memory size necessary for the tree with `nnodes' nodes. If nnodes =
+ ** 0 then return the memory size of the current tree.
  */
 size_t kd_getstoragesize(const kdtree* tree, size_t nnodes)
 {
