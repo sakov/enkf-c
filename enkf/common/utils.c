@@ -201,7 +201,7 @@ void enkf_init(int* argc, char*** argv)
     }
     MPI_Barrier(MPI_COMM_WORLD);
 
-    MPI_Type_size(MPI_INTEGER, &size);
+    MPI_Type_size(MPI_INT, &size);
     assert(size == sizeof(int));
     MPI_Type_size(MPI_FLOAT, &size);
     assert(size == sizeof(float));

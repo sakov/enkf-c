@@ -487,7 +487,7 @@ void das_calctransforms(dasystem* das)
         }
 #if defined(MPI)
         {
-            int ierror = MPI_Bcast(jpool, nj, MPI_INTEGER, 0, MPI_COMM_WORLD);
+            int ierror = MPI_Bcast(jpool, nj, MPI_INT, 0, MPI_COMM_WORLD);
 
             assert(ierror == MPI_SUCCESS);
         }
