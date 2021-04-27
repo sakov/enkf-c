@@ -6,7 +6,9 @@ v.2.8.0
       remains "no", it should be safe to set it to "yes", although this will
       somewhat increase the mapping time and the required memory. One can
       investigate how essential it is in particular circumstances by comparing
-      the number of rejected obs. with different settings of this flag.
+      the number of rejected obs. with different settings of this flag. Thanks
+      to Yumeng Chen and NERSC ocean modelling group for the bug report and
+      the suggestion how to fix it.
 v2.7.15
    PS 15042021
    -- Rewrote obs_compact(). It scales linearly now instead of Nlog(N) before.
