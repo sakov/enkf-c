@@ -32,6 +32,7 @@
 
 struct gxy_curv {
     char* name;
+    int geographic;
     int ni;
     int nj;
     double** x;
@@ -45,26 +46,44 @@ struct gxy_curv {
 
 /**
  */
-gxy_curv* gxy_curv_create(void* g, int ni, int nj, double** x, double** y, int** mask)
+gxy_curv* gxy_curv_create(void* g, int ni, int nj, double** x, double** y, int** mask, int geographic)
 {
     char name[MAXSTRLEN];
     gxy_curv* gxy = malloc(sizeof(gxy_curv));
-    double* nodecoords[2];
+    double* nodecoords[3];
 
     assert(x != NULL && y != NULL);
 
     snprintf(name, MAXSTRLEN - 4, "%s_XY", grid_getname(g));
 
     gxy->name = strdup(name);
+    gxy->geographic = geographic;
     gxy->ni = ni;
     gxy->nj = nj;
     gxy->x = x;
     gxy->y = y;
     gxy->sign = 0;
 
-    nodecoords[0] = x[0];
-    nodecoords[1] = y[0];
-    gxy->nodetreeXY = kd_create(name, 2);
+    if (!geographic) {
+        nodecoords[0] = x[0];
+        nodecoords[1] = y[0];
+        gxy->nodetreeXY = kd_create(name, 2);
+    } else {
+        int i, c;
+
+        for (c = 0; c < 3; ++c)
+            nodecoords[c] = malloc(ni * nj * sizeof(double));
+
+        for (i = 0; i < ni * nj; ++i) {
+            double ll[2] = { x[0][i], y[0][i] };
+            double xyz[3];
+
+            ll2xyz(ll, xyz);
+            for (c = 0; c < 3; ++c)
+                nodecoords[c][i] = xyz[c];
+        }
+        gxy->nodetreeXY = kd_create(name, 3);
+    }
 #if defined(USE_SHMEM)
     {
         MPI_Aint size;
@@ -106,6 +125,12 @@ gxy_curv* gxy_curv_create(void* g, int ni, int nj, double** x, double** y, int**
 #else
     kd_insertnodes(gxy->nodetreeXY, ni * nj, nodecoords, NULL, (mask != NULL) ? mask[0] : NULL, 1);
 #endif
+
+    if (geographic) {
+        free(nodecoords[0]);
+        free(nodecoords[1]);
+        free(nodecoords[2]);
+    }
 
     return gxy;
 }
@@ -216,18 +241,26 @@ static int incell(double x, double y, double* px, double* py)
 static int gxy_curv_xy2ij(gxy_curv* gxy, double x, double y, int* iout, int* jout)
 {
     double* minmax;
-    double pos[2];
+    double pos[3];
     size_t nearest;
     size_t id;
     int i, j, i1, i2, j1, j2;
     double px[4], py[4];
 
     minmax = kd_getminmax(gxy->nodetreeXY);
-    if (x < minmax[0] || y < minmax[1] || x > minmax[2] || y > minmax[3])
-        return 0;
+    if (!gxy->geographic) {
+        pos[0] = x;
+        pos[1] = y;
+        if (x < minmax[0] || y < minmax[1] || x > minmax[2] || y > minmax[3])
+            return 0;
+    } else {
+        double ll[2] = { x, y };
 
-    pos[0] = x;
-    pos[1] = y;
+        ll2xyz(ll, pos);
+        if (pos[0] < minmax[0] || pos[1] < minmax[1] || pos[0] > minmax[3] || pos[1] > minmax[4])
+            return 0;
+    }
+
     /*
      * this is a rather expensive call, O(log N)
      */

@@ -476,8 +476,8 @@ void obstypes_describeprm(void)
     enkf_printf("\n");
     enkf_printf("    NAME        = <name>\n");
     enkf_printf("  [ DOMAINS     = <domain name> ... ]\n");
-    enkf_printf("    ISSURFACE   = {0 | 1}\n");
-    enkf_printf("  [ STATSONLY   = {0* | 1} ]\n");
+    enkf_printf("    ISSURFACE   = {yes | no}\n");
+    enkf_printf("  [ STATSONLY   = {yes | no*} ]\n");
     enkf_printf("    VAR         = <model variable name> ...\n");
     enkf_printf("  [ ALIAS       = <variable name used in file names> ]   (VAR*)\n");
     enkf_printf("  [ OFFSET      = <file name> <variable name> ]          (none*)\n");
@@ -491,7 +491,7 @@ void obstypes_describeprm(void)
     enkf_printf("  [ NLOBSMAX    = <max. allowed number of local obs.> ]  (inf*)\n");
     enkf_printf("  [ ERROR_STD_MIN = <min. allowed superob error> ]       (0*)\n");
     enkf_printf("  [ SOBSTRIDE   = <stride for superobing> ]              (1*)\n");
-    enkf_printf("  [ PERMIT_LOCATION_BASED_THINNING = <yes | no> ]        (yes*)\n");
+    enkf_printf("  [ PERMIT_LOCATION_BASED_THINNING = {yes* | no} ]\n");
     enkf_printf("  [ MINVALUE    = <minimal allowed value> ]              (-inf*)\n");
     enkf_printf("  [ MAXVALUE    = <maximal allowed value> ]              (+inf*)\n");
     enkf_printf("  [ XMIN        = <minimal allowed X coordinate> ]       (-inf*)\n");

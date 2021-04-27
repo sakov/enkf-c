@@ -131,6 +131,7 @@ struct grid {
     int aliasid;
     int htype;                  /* horizontal type */
     int vtype;                  /* vertical type */
+    int geographic;             /* flag */
 
     void* gridnodes_xy;         /* (the structure is defined by `htype') */
     double lonbase;             /* (lon range = [lonbase, lonbase + 360]) */
@@ -928,7 +929,7 @@ static void grid_sethgrid(grid* g, int htype, int ni, int nj, void* x, void* y)
         g->gridnodes_xy = gxy_simple_create(ni, nj, x, y);
 #if defined(ENKF_PREP) || defined(ENKF_CALC)
     else if (htype == GRIDHTYPE_CURVILINEAR)
-        g->gridnodes_xy = gxy_curv_create(g, ni, nj, x, y, g->numlevels);
+        g->gridnodes_xy = gxy_curv_create(g, ni, nj, x, y, g->numlevels, g->geographic);
 #endif
     else
         enkf_quit("programming error");
@@ -956,6 +957,7 @@ grid* grid_create(void* p, int id, void** grids)
     g->aliasid = -1;
     g->domainname = strdup(prm->domainname);    /* ("Default" by default) */
     g->vtype = gridprm_getvtype(prm);
+    g->geographic = prm->geographic;
     if (prm->stride != 0)
         g->stride = prm->stride;
     g->nzints = prm->nzints;
@@ -1362,6 +1364,7 @@ void grid_describeprm(void)
     enkf_printf("    (end either)\n");
     enkf_printf("    VTYPE            = { z | sigma | hybrid | none }\n");
     enkf_printf("  [ VDIR             = { fromsurf* | tosurf } ]\n");
+    enkf_printf("  [ GEOGRAPHIC       = { Y | N* } ]\n");
     enkf_printf("    (if vtype = z)\n");
     enkf_printf("      ZVARNAME       = <Z variable name>\n");
     enkf_printf("    [ ZCVARNAME      = <ZC variable name> ]\n");

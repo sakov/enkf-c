@@ -25,6 +25,8 @@ typedef struct {
     char* yvarname;
 
     char* vtype;
+    int geographic;             /* flag */
+
     /*
      * Z stuff: zvarname and zcvarname hold the names of the layer centre
      * and layer corner corrdinate variable.

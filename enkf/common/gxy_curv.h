@@ -17,7 +17,7 @@
 struct gxy_curv;
 typedef struct gxy_curv gxy_curv;
 
-gxy_curv* gxy_curv_create(void* grid, int ni, int nj, double** x, double** y, int** mask);
+gxy_curv* gxy_curv_create(void* grid, int ni, int nj, double** x, double** y, int** mask, int geographic);
 void gxy_curv_destroy(gxy_curv* gxy);
 int gxy_curv_destroykdtree(gxy_curv* gxy);
 double** gxy_curv_getx(gxy_curv* gxy);

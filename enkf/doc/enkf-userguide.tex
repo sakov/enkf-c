@@ -39,7 +39,7 @@
 
 \begin{document}
 
-\title{EnKF-C user guide\\{\normalsize version 2.7.8}}
+\title{EnKF-C user guide\\{\normalsize version 2.8.0}}
 
 \author{Pavel Sakov}
 \date{June 19, 2014 -- \today}
@@ -854,6 +854,7 @@ It also contains variable names for the depth and for number of layers in a vert
     (end either)
     VTYPE            = { z | sigma | hybrid | none }
   [ VDIR             = { fromsurf* | tosurf } ]
+  [ GEOGRAPHIC       = { yes | no* } ]
     (if vtype = z)
       ZVARNAME       = <Z variable name>
     [ ZCVARNAME      = <ZC variable name> ]
@@ -901,6 +902,10 @@ For rectangular grids the code tries to determine and handle periodicity in X di
 
 Note that the code does not detect and therefore can not take advantage of periodic curvilinear grids; because of that, it does not map (skips) observations in cells connecting the grid edges.
 
+The flag \verb|GEOGRAPHIC| introduced in v2.8.0 if set to ``yes'' internally communicates to the code that the grid nodes are defined in geographic coordinates and sets grid rendering to be performed in cartesian coordinates.
+This can be essential in polar regions because of the skewness of grid cells in geographic coordinates there (it can cause failures of the mapping algorithm).
+The user can investigate the necessity of setting this flag to ``yes'' by comparing the numbers of accepted/rejected observations with and without it.
+
 \subsubsection{Vertical grids}
 
 The vertical coordinates are used for mapping the depth/height (pressure) of non-surface observations to fractional layer index.
@@ -941,8 +946,8 @@ The optional parameters include the R-factor and localisation radius for the typ
 
     NAME        = <name>
   [ DOMAINS     = <domain name> ... ]
-    ISSURFACE   = {0 | 1}
-  [ STATSONLY   = {0* | 1} ]
+    ISSURFACE   = {yes | no}
+  [ STATSONLY   = {yes | no*} ]
     VAR         = <model variable name> ...
   [ ALIAS       = <variable name used in file names> ]   (VAR*)
   [ OFFSET      = <file name> <variable name> ]          (none*)

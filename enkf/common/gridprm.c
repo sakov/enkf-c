@@ -129,6 +129,11 @@ void gridprm_create(char* fname, int* ngrid, gridprm** prm)
                 enkf_quit("%s, l.%d: HGRIDFROM specified twice", fname, line);
             else
                 now->aliasname = strdup(token);
+        } else if (strcasecmp(token, "GEOGRAPHIC") == 0) {
+            if ((token = strtok(NULL, seps)) == NULL)
+                enkf_quit("%s, l.%d: GEOGRAPHIC not specified", fname, line);
+            if (!str2bool(token, &now->geographic))
+                enkf_quit("%s, l.%d: could not convert \"%s\" to boolean", fname, line, token);
         } else if (strcasecmp(token, "XVARNAME") == 0) {
             if ((token = strtok(NULL, seps)) == NULL)
                 enkf_quit("%s, l.%d: XVARNAME not specified", fname, line);
@@ -466,6 +471,8 @@ void gridprm_print(gridprm* prm, char offset[])
     enkf_printf("%s  DOMAIN = %s\n", offset, prm->domainname);
     enkf_printf("%s  DATA = \"%s\"\n", offset, prm->fname);
     enkf_printf("%s  VTYPE = \"%s\"\n", offset, prm->vtype);
+    enkf_printf("%s  VDIR = %s\n", offset, prm->vdirection);
+    enkf_printf("%s  GEOGRAPHIC = %s\n", offset, (prm->geographic) ? "yes" : "no");
     if (strcasecmp(prm->vtype, "NONE") == 0);
     else if (strcasecmp(prm->vtype, "Z") == 0) {
         enkf_printf("%s  ZVARNAME = \"%s\"\n", offset, prm->zvarname);

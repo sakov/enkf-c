@@ -1,3 +1,12 @@
+v.2.8.0
+   PS 27042021
+   -- Added flag "geographic" to obstypes parameter file. It is introduced to
+      deal with failures of the mapping algorithm in areas where the grid cells
+      in lon/lat are highly skewed (e.g. in polar regions). While the default
+      remains "no", it should be safe to set it to "yes", although this will
+      somewhat increase the mapping time and the required memory. One can
+      investigate how essential it is in particular circumstances by comparing
+      the number of rejected obs. with different settings of this flag.
 v2.7.15
    PS 15042021
    -- Rewrote obs_compact(). It scales linearly now instead of Nlog(N) before.
