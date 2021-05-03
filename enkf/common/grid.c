@@ -1290,6 +1290,7 @@ void grid_print(grid* g, char offset[])
             break;
         case GRIDHTYPE_CURVILINEAR:
             enkf_printf("%s  hor type = CURVILINEAR\n", offset);
+            enkf_printf("%s  geographic = %s\n", (g->geographic) ? "yes" : "no");
             break;
         default:
             enkf_printf("%s  h type = NONE\n", offset);
@@ -1364,7 +1365,7 @@ void grid_describeprm(void)
     enkf_printf("    (end either)\n");
     enkf_printf("    VTYPE            = { z | sigma | hybrid | none }\n");
     enkf_printf("  [ VDIR             = { fromsurf* | tosurf } ]\n");
-    enkf_printf("  [ GEOGRAPHIC       = { Y | N* } ]\n");
+    enkf_printf("  [ GEOGRAPHIC       = { yes* | no } ]\n");
     enkf_printf("    (if vtype = z)\n");
     enkf_printf("      ZVARNAME       = <Z variable name>\n");
     enkf_printf("    [ ZCVARNAME      = <ZC variable name> ]\n");

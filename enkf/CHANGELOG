@@ -1,6 +1,10 @@
+v.2.8.1
+   PS 04052021
+   -- Changed default value for the flag "geographic" in the grid parameter file
+      from "no" to "yes".
 v.2.8.0
    PS 27042021
-   -- Added flag "geographic" to obstypes parameter file. It is introduced to
+   -- Added flag "geographic" to grid parameter file. It is introduced to
       deal with failures of the mapping algorithm in areas where the grid cells
       in lon/lat are highly skewed (e.g. in polar regions). While the default
       remains "no", it should be safe to set it to "yes", although this will

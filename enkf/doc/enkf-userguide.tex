@@ -39,7 +39,7 @@
 
 \begin{document}
 
-\title{EnKF-C user guide\\{\normalsize version 2.8.0}}
+\title{EnKF-C user guide\\{\normalsize version 2.8.1}}
 
 \author{Pavel Sakov}
 \date{June 19, 2014 -- \today}
@@ -854,7 +854,7 @@ It also contains variable names for the depth and for number of layers in a vert
     (end either)
     VTYPE            = { z | sigma | hybrid | none }
   [ VDIR             = { fromsurf* | tosurf } ]
-  [ GEOGRAPHIC       = { yes | no* } ]
+  [ GEOGRAPHIC       = { yes* | no } ]
     (if vtype = z)
       ZVARNAME       = <Z variable name>
     [ ZCVARNAME      = <ZC variable name> ]

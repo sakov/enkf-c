@@ -70,6 +70,7 @@ void gridprm_create(char* fname, int* ngrid, gridprm** prm)
             now = &(*prm)[*ngrid - 1];
             memset(now, 0, sizeof(gridprm));
             now->prmfname = strdup(fname);
+            now->geographic = 1;
             if ((token = strtok(NULL, seps)) == NULL)
                 enkf_quit("%s, l.%d: NAME not specified", fname, line);
             else
