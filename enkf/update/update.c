@@ -963,9 +963,6 @@ static void das_assemblebg(dasystem* das)
     int nvar = model_getnvar(m);
     int i;
 
-#if defined(MPI)
-    MPI_Barrier(MPI_COMM_WORLD);
-#endif
     if (rank > 0)
         return;
 

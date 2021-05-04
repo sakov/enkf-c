@@ -162,6 +162,9 @@ void das_assemblespread(dasystem* das)
     int nvar = model_getnvar(m);
     int i;
 
+    if (rank > 0)
+        return;
+
     for (i = 0; i < nvar; ++i) {
         char* varname = model_getvarname(m, i);
         char varname_an[NC_MAX_NAME];
@@ -188,7 +191,6 @@ void das_assemblespread(dasystem* das)
             else
                 getfieldfname(DIRNAME_TMP, "spread", varname, grid_getsurflayerid(model_getvargrid(m, i)), fname_src);
             ncw_open(fname_src, NC_NOWRITE, &ncid_src);
-
             ncw_inq_varid(ncid_src, varname, &vid);
             ncw_get_var_float(ncid_src, vid, v);
             ncw_close(ncid_src);
@@ -297,6 +299,9 @@ void das_assembleinflation(dasystem* das)
     int i;
 
     assert(das->mode == MODE_ENKF || das->mode == MODE_HYBRID);
+
+    if (rank > 0)
+        return;
 
     for (i = 0; i < nvar; ++i) {
         char* varname = model_getvarname(m, i);
