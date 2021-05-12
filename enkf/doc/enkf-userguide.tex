@@ -1762,7 +1762,7 @@ POINTLOG 94.3 134.1
 POINTLOG 78.39 111.7
 \end{Verbatim}
 Here the information will be saved for points with geographic coordinates (94.3,134.1), (78.39, 111.7) in files \verb|pointlog_94.300,134.100.nc|, \verb|pointlog_78.390,111.700.nc|, and so on.
-By default the ensemble trsansforms and all forecast and analysis state variables existing at these locations are saved; however, if an optional grid name is specified as the third paramater of the \verb|POINTLOG| entry, e.g.
+By default the ensemble trsansforms and all forecast and analysis state variables existing at these locations are saved; however, if an optional grid name is specified as the third parameter of the \verb|POINTLOG| entry, e.g.
 \begin{Verbatim}
 POINTLOG 94.3 134.1 t-grid
 \end{Verbatim}
@@ -1903,8 +1903,9 @@ An example of using this functionality is available by running \verb|make stats|
 It is possible to estimate and correct bias for a model variable with the EnKF by generating and using an ensemble of bias fields.
 These bias fields need to be subtracted from the corresponding observation forecasts.
 This is accomplished by specifying a secondary variable in the observation type entry \verb|VAR| and by passing the name of this variable to the corresponding observation (H-) functions, which need to take care for subtracting the bias from the model forecasts.
-As of v1.98.0, there are two such H-functions: \verb|H_surf_biased()| identified by entry ``biased'' in observation types paramater file, and \verb|H_subsurf_wsurfbias()|, identified by entry ``wsurfbias''.
-(The latter applies surface bias field to the mixed layer.)
+As of v1.98.0, there are two such H-functions: \verb|H_surf_biased()| identified by entry ``biased'' in observation types parameter file, and \verb|H_subsurf_wsurfbias()|, identified by entry ``wsurfbias''.
+The latter applies surface bias field to the mixed layer, which is defined as the layer where the variable involved deviates within specified threshold from the surface value.
+(In the case of SST bias the common value for the MLD threshold is 0.2\,K.)
 
 Because bias fields are usually assumed to persist (not change) during propagation, one may need to make specific settings for their inflation to avoid their collapse (loss of spread) over time.
 Another possibility is to introduce a ``forgetting'' stochastic model for bias fields, for example:
