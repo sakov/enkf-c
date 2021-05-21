@@ -42,6 +42,10 @@
 #define EPS_IJ 1.0e-3
 #define EPS_Z 1.0e-3
 
+#define GRIDHTYPE_NONE 0
+#define GRIDHTYPE_LATLON 1
+#define GRIDHTYPE_CURVILINEAR 2
+
 #define GRIDVDIR_NONE 0
 #define GRIDVDIR_FROMSURF 0
 #define GRIDVDIR_TOSURF 1

@@ -172,6 +172,8 @@ static int _kd_insertnode(kdtree* tree, size_t* id, const double* coords, size_t
     return _kd_insertnode(tree, (coords[node->dir] < tree->coords[node->id * ndim + node->dir]) ? &node->left : &node->right, coords, data, new_dir);
 }
 
+/**
+ */
 static void _kd_changealloc(kdtree* tree, size_t nallocated)
 {
     int ndim = tree->ndim;

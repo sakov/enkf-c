@@ -1,3 +1,8 @@
+v.2.8.2
+   PS 21052021
+   -- Modified island() to fix a subtle defect that resulted in (very rare)
+      misses of land obs in obs_checkforland(). Thanks to Paul Sandery for
+      reporting the problem.
 v.2.8.1
    PS 04052021
    -- Changed default value for the flag "geographic" in the grid parameter file

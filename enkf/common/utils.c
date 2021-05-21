@@ -1037,7 +1037,12 @@ int island(double fi, double fj, double fk, int ni, int nj, int ksurf, int** num
     int i2 = (int) ceil(fi);
     int j1 = (int) floor(fj);
     int j2 = (int) ceil(fj);
-    int k = (ksurf == 0) ? ceil(fk) : ceil((double) ksurf - fk);
+    int k;
+
+    if (ceil(fk) != floor(fk))
+        k = (ksurf == 0) ? ceil(fk) : ksurf - ceil(fk);
+    else
+        k = (ksurf == 0) ? ceil(fk) + 1 : ksurf - ceil(fk) - 1;
 
     if (i1 == -1)
         i1 = (periodic_i) ? ni - 1 : i2;

@@ -1,4 +1,4 @@
-NP_CALC = 2 
+NP_CALC = 2
 NP_UPDATE = 2
 
 enkf: clean enkf-prep enkf-calc enkf-update
