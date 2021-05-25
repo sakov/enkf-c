@@ -1294,7 +1294,7 @@ void grid_print(grid* g, char offset[])
             break;
         case GRIDHTYPE_CURVILINEAR:
             enkf_printf("%s  hor type = CURVILINEAR\n", offset);
-            enkf_printf("%s  geographic = %s\n", (g->geographic) ? "yes" : "no");
+            enkf_printf("%s  geographic = %s\n", offset, (g->geographic) ? "yes" : "no");
             break;
         default:
             enkf_printf("%s  h type = NONE\n", offset);

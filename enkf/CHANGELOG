@@ -1,3 +1,6 @@
+v.2.8.3
+   PS 26052021
+   -- Fixed defect in printing "geographic" flag in grid_print().
 v.2.8.2
    PS 21052021
    -- Modified island() to fix a subtle defect that resulted in (very rare)
