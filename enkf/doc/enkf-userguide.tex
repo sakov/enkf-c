@@ -436,17 +436,23 @@ also known as the ensemble transform Kalman filter, or ETKF \citep{bis01a}.
 {
   \scriptsize
   {\bf Correction.} The Andrews' solution turns out to be right only for diagonal $\mb R$.
-  The correct solution is given by \citet[][eq.\,25]{boc16a}:
+  The correct solution of form (\ref{andrews}) can be obtained from (\ref{etkf}) by using the identity $\mb M^{-1/2} = \mb I - (\mb M + \mb M^{1/2})^{-1}(\mb M - \mb I)$:
   \setlength{\abovedisplayskip}{1pt}
   \setlength{\belowdisplayskip}{3pt}
   \begin{subequations}
     \label{bocquet}
     \begin{align}
       \mb T_R &= \mb I - \left(\mb M_m + \mb M_m^{1/2}\right)^{-1} \mb S\T \mb S\\
+      \label{bocquet-p}
       &= \mb I - \mb S\T \left(\mb M_p + \mb M_p^{1/2}\right)^{-1} \mb S,
     \end{align}
  \end{subequations}
-where $\mb M_m \equiv \mb I + \mb S\T \mb S$, $\mb M_p \equiv \mb I + \mb S \mb S\T$, $\mb S \equiv \mb R^{-1/2} \mb H \mb A^f / (m - 1)^{1/2}$.
+  where $\mb M_m \equiv \mb I + \mb S\T \mb S$, $\mb M_p \equiv \mb I + \mb S \mb S\T$, $\mb S \equiv \mb R^{-1/2} \mb H \mb A^f / (m - 1)^{1/2}$ \citep{boc16a}.
+  (\ref{bocquet-p}) can be written as
+  \begin{align*}
+    \mb T_R = \mb I - \frac{1}{m-1} (\mb H \mb A^f)\T \hat{\mb M}^{-1/2} \left(\hat{\mb M}^{1/2} + \mb R^{1/2}\right)^{-1} \mb H \mb A^f,
+  \end{align*}
+  where $\hat{\mb M}^{1/2} \equiv \mb R^{1/2} (\mb R^{-1/2} \mb M \mb R^{-1/2})^{1/2}$.
 }
 
 Equations (\ref{T-right1}, \ref{etkf}, \ref{bocquet}) yield algebraically different expressions for the (unique) symmetric right-multiplied solution.
