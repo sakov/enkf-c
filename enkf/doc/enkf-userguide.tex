@@ -433,7 +433,23 @@ also known as the ensemble transform Kalman filter, or ETKF \citep{bis01a}.
   where $\mb M \equiv \mb H \mb P^f \mb H\T + \mb R$.
 }
 
-Equations (\ref{T-right1}, \ref{etkf}, \ref{andrews}) yield algebraically different expressions for the (unique) symmetric right-multiplied solution.
+{
+  \scriptsize
+  {\bf Correction.} The Andrews' solution turns out to be right only for diagonal $\mb R$.
+  The correct solution is given by \citet[][eq.\,25]{boc16a}:
+  \setlength{\abovedisplayskip}{1pt}
+  \setlength{\belowdisplayskip}{3pt}
+  \begin{subequations}
+    \label{bocquet}
+    \begin{align}
+      \mb T_R &= \mb I - \left(\mb M_m + \mb M_m^{1/2}\right)^{-1} \mb S\T \mb S\\
+      &= \mb I - \mb S\T \left(\mb M_p + \mb M_p^{1/2}\right)^{-1} \mb S,
+    \end{align}
+ \end{subequations}
+where $\mb M_m \equiv \mb I + \mb S\T \mb S$, $\mb M_p \equiv \mb I + \mb S \mb S\T$, $\mb S \equiv \mb R^{-1/2} \mb H \mb A^f / (m - 1)^{1/2}$.
+}
+
+Equations (\ref{T-right1}, \ref{etkf}, \ref{bocquet}) yield algebraically different expressions for the (unique) symmetric right-multiplied solution.
 Apart from being the only symmetric solution, it also represents the minimum distance solution for the ensemble anomalies: its ensemble of analysed anomalies is closer to the ensemble of forecast anomalies with the inverse forecast (or analysis) covariance as the metric than any other ensemble of analysed anomalies given by (\ref{TR-all}) \citep{ott03a}.
 This means that in the above sense the symmetric right-multiplied solution preserves the identities of ensemble members during analysis in the best possible way.
 
