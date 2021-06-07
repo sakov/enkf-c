@@ -1,19 +1,19 @@
 /******************************************************************************
  *
- * File:        reader_xyz_gridded.c        
+ * File:        reader_gridded_xy.c        
  *
- * Created:     25/08/2017
+ * Created:     08/03/2017
  *
  * Author:      Pavel Sakov
  *              Bureau of Meteorology
  *
- * Description: Generic reader for 3D gridded observations.
+ * Description: Generic reader for gridded surface observations.
  *                It currently assumes the following:
- *              - there is only one data record (3D field);
- *              - longitude is the inner coordinate, Z the outer.
- *                Similarly to reader_xy_gridded(), there are a number of
- *              parameters that must (++) or can be specified if they differ
- *              from the default value (+). Some parameters are optional (-):
+ *              - there is only one data record (2D field);
+ *              - longitude is the inner ("fast") coordinate of the variable.
+ *                There are a number of parameters that must (++) or can be
+ *              specified if they differ from the default value (+). Some
+ *              parameters are optional (-):
  *              - VARNAME (++)
  *              - TIMENAME ("*[tT][iI][mM][eE]*") (+)
  *              - or TIMENAMES (when time = base_time + offset) (+)
@@ -22,12 +22,11 @@
  *                  a data mask n = 0
  *              - LONNAME ("lon" | "longitude") (+)
  *              - LATNAME ("lat" | "latitude") (+)
- *              - ZNAME ("z") (+)
  *              - STDNAME ("std") (-)
  *                  internal variability of the collated data
  *              - ESTDNAME ("error_std") (-)
  *                  error STD; if absent then needs to be specified externally
- *                  in the oobservation data parameter file
+ *                  in the observation data parameter file
  *              - BATCHNAME ("batch") (-)
  *                  name of the variable used for batch ID
  *              - VARSHIFT (-)
@@ -87,17 +86,19 @@
 
 /**
  */
-void reader_xyz_gridded(char* fname, int fid, obsmeta* meta, grid* g, observations* obs)
+void reader_gridded_xy(char* fname, int fid, obsmeta* meta, grid* g, observations* obs)
 {
+    int ksurf = grid_getsurflayerid(g);
     char* varname = NULL;
     char* lonname = NULL;
     char* latname = NULL;
-    char* zname = NULL;
     char* npointsname = NULL;
     char* stdname = NULL;
     char* estdname = NULL;
     char* batchname = NULL;
     char instrument[MAXSTRLEN] = "";
+    int ndim_var, ndim_xy;
+    size_t dimlen_var[3], dimlen_xy[2];
     int nqcflagvars = 0;
     char** qcflagvarnames = NULL;
     uint32_t* qcflagmasks = NULL;
@@ -107,14 +108,10 @@ void reader_xyz_gridded(char* fname, int fid, obsmeta* meta, grid* g, observatio
     int typeid = -1;
 
     int ncid;
-    int iscurv = -1, zndim = -1;
-    int ndim_var, ndim_xy;
-    size_t dimlen_var[4], dimlen_xy[2], dimlen_z[3];
-    size_t ni = 0, nj = 0, nk = 0, nij = 0, nijk = 0;
+    int iscurv = -1;
+    size_t ni = 0, nj = 0, nij = 0;
     double* lon = NULL;
     double* lat = NULL;
-    float* z = NULL;
-
     float* var = NULL;
     double var_estd = NAN;
     short* npoints = NULL;
@@ -136,8 +133,6 @@ void reader_xyz_gridded(char* fname, int fid, obsmeta* meta, grid* g, observatio
             lonname = meta->pars[i].value;
         else if (strcasecmp(meta->pars[i].name, "LATNAME") == 0)
             latname = meta->pars[i].value;
-        else if (strcasecmp(meta->pars[i].name, "ZNAME") == 0)
-            zname = meta->pars[i].value;
         else if (strcasecmp(meta->pars[i].name, "STDNAME") == 0)
             stdname = meta->pars[i].value;
         else if (strcasecmp(meta->pars[i].name, "ESTDNAME") == 0)
@@ -161,7 +156,7 @@ void reader_xyz_gridded(char* fname, int fid, obsmeta* meta, grid* g, observatio
     }
 
     if (varname == NULL)
-        enkf_quit("reader_xyz_gridded(): %s: VARNAME not specified", fname);
+        enkf_quit("reader_xy_gridded(): %s: VARNAME not specified", fname);
     else
         enkf_printf("        VARNAME = %s\n", varname);
 
@@ -171,22 +166,20 @@ void reader_xyz_gridded(char* fname, int fid, obsmeta* meta, grid* g, observatio
      * main variable
      */
     ncw_inq_varid(ncid, varname, &varid);
-    ncw_inq_vardims(ncid, varid, 4, &ndim_var, dimlen_var);
-    if (ndim_var == 4) {
+    ncw_inq_vardims(ncid, varid, 3, &ndim_var, dimlen_var);
+    if (ndim_var == 3) {
         if (dimlen_var[0] != 1)
-            enkf_quit("reader_xyz_gridded(): %s: %s: %d records (currently only one record is allowed)", fname, varname, dimlen_var[0]);
-        nijk = dimlen_var[3] * dimlen_var[2] * dimlen_var[1];
-        nij = dimlen_var[3] * dimlen_var[2];
-    } else if (ndim_var == 3) {
+            enkf_quit("reader_xy_gridded(): %s: %s: %d records (currently only one is allowed)", fname, varname, dimlen_var[0]);
+        nij = dimlen_var[1] * dimlen_var[2];
+    } else if (ndim_var == 2) {
         if (ncw_var_hasunlimdim(ncid, varid))
-            enkf_quit("reader_xyz_gridded(): %s: %s: not enough spatial dimensions (must be 3)", fname, varname);
-        nijk = dimlen_var[2] * dimlen_var[1] * dimlen_var[0];
-        nij = dimlen_var[2] * dimlen_var[1];
-    } else
-        enkf_quit("reader_xyz_gridded(): %s: %s: %d dimensions (must be 3 or 4 with only one record)", fname, varname, ndim_var);
+            enkf_quit("reader_xy_gridded(): %s: %s: not enough spatial dimensions (must be 2)", fname, varname);
+        nij = dimlen_var[0] * dimlen_var[1];
+    } else if (ndim_var != 2)
+        enkf_quit("reader_xy_gridded(): %s: %s: %d dimensions (must be either 2 or 3 with only one record)", fname, varname, ndim_var);
 
-    var = malloc(nijk * sizeof(float));
-    ncu_readvarfloat(ncid, varid, nijk, var);
+    var = malloc(nij * sizeof(float));
+    ncu_readvarfloat(ncid, varid, nij, var);
 
     /*
      * longitude
@@ -196,8 +189,7 @@ void reader_xyz_gridded(char* fname, int fid, obsmeta* meta, grid* g, observatio
         enkf_printf("        LONNAME = %s\n", lonname);
         ncw_inq_varid(ncid, lonname, &varid);
     } else
-        enkf_quit("reader_xyz_gridded(): %s: could not find longitude variable", fname);
-
+        enkf_quit("reader_xy_gridded(): %s: could not find longitude variable", fname);
     ncw_inq_vardims(ncid, varid, 2, &ndim_xy, dimlen_xy);
     if (ndim_xy == 1) {
         iscurv = 0;
@@ -207,7 +199,7 @@ void reader_xyz_gridded(char* fname, int fid, obsmeta* meta, grid* g, observatio
         ni = dimlen_xy[1];
         nj = dimlen_xy[0];
     } else
-        enkf_quit("reader_xyz_gridded(): %s: coordinate variable \"%s\" has neither 1 or 2 dimensions", fname, lonname);
+        enkf_quit("reader_xy_gridded(): %s: coordinate variable \"%s\" has neither 1 or 2 dimensions", fname, lonname);
 
     if (iscurv == 0) {
         lon = malloc(ni * sizeof(double));
@@ -232,8 +224,11 @@ void reader_xyz_gridded(char* fname, int fid, obsmeta* meta, grid* g, observatio
     } else
         ncw_check_vardims(ncid, varid, 2, dimlen_xy);
 
+    enkf_printf("        (ni, nj) = (%u, %u)\n", ni, nj);
     if (ni * nj != nij)
-        enkf_quit("reader_xyz_gridded(): %s: dimensions of variable \"%s\" do not match coordinate dimensions", fname, varname);
+        enkf_quit("reader_xy_gridded(): %s: dimensions of variable \"%s\" do not match coordinate dimensions", fname, varname);
+    if (dimlen_var[ndim_var - 1] != ni)
+        enkf_quit("reader_xy_gridded(): %s: %s: longitude must be the inner coordinate", fname, varname);
 
     if (iscurv == 0) {
         lat = malloc(nj * sizeof(double));
@@ -241,38 +236,6 @@ void reader_xyz_gridded(char* fname, int fid, obsmeta* meta, grid* g, observatio
     } else {
         lat = malloc(nij * sizeof(double));
         ncu_readvardouble(ncid, varid, nij, lat);
-    }
-
-    /*
-     * z
-     */
-    zname = get_zname(ncid, zname);
-    if (zname != NULL) {
-        enkf_printf("        ZNAME = %s\n", zname);
-        ncw_inq_varid(ncid, zname, &varid);
-    } else
-        enkf_quit("reader_xyz_gridded(): %s: could not find Z variable", fname);
-
-    ncw_inq_vardims(ncid, varid, 3, &zndim, dimlen_z);
-    if (zndim == 1)
-        nk = dimlen_z[0];
-    else if (zndim == 3)
-        nk = dimlen_z[0];
-    else
-        enkf_quit("reader_xyz_gridded(): %s: %s (the vertical coordinate): %d-dimensional; supposed to be either 1- or 3-dimensional only", fname, zname, zndim);
-
-    enkf_printf("        (ni, nj, nk) = (%u, %u, %u)\n", ni, nj, nk);
-    if (ni * nj * nk != nijk)
-        enkf_quit("reader_xyz_gridded(): %s: dimensions of variable \"%s\" do not match coordinate dimensions", fname, varname);
-    if (dimlen_var[ndim_var - 1] != ni)
-        enkf_quit("reader_xyz_gridded(): %s: %s: longitude must be the inner coordinate", fname, varname);
-
-    if (zndim == 1) {
-        z = malloc(nk * sizeof(float));
-        ncu_readvarfloat(ncid, varid, nk, z);
-    } else if (zndim == 3) {
-        z = malloc(nijk * sizeof(float));
-        ncu_readvarfloat(ncid, varid, nijk, z);
     }
 
     /*
@@ -284,7 +247,7 @@ void reader_xyz_gridded(char* fname, int fid, obsmeta* meta, grid* g, observatio
     else if (ncw_var_exists(ncid, "npoints"))
         ncw_inq_varid(ncid, "npoints", &varid);
     if (varid >= 0) {
-        npoints = malloc(nijk * sizeof(short));
+        npoints = malloc(nij * sizeof(short));
         ncw_get_var_short(ncid, varid, npoints);
     }
 
@@ -297,8 +260,8 @@ void reader_xyz_gridded(char* fname, int fid, obsmeta* meta, grid* g, observatio
     else if (ncw_var_exists(ncid, "std"))
         ncw_inq_varid(ncid, "std", &varid);
     if (varid >= 0) {
-        std = malloc(nijk * sizeof(float));
-        ncu_readvarfloat(ncid, varid, nijk, std);
+        std = malloc(nij * sizeof(float));
+        ncu_readvarfloat(ncid, varid, nij, std);
     }
 
     /*
@@ -310,8 +273,8 @@ void reader_xyz_gridded(char* fname, int fid, obsmeta* meta, grid* g, observatio
     else if (ncw_var_exists(ncid, "error_std"))
         ncw_inq_varid(ncid, "error_std", &varid);
     if (varid >= 0) {
-        estd = malloc(nijk * sizeof(float));
-        ncu_readvarfloat(ncid, varid, nijk, estd);
+        estd = malloc(nij * sizeof(float));
+        ncu_readvarfloat(ncid, varid, nij, estd);
     }
 
     if (std == NULL && estd == NULL) {
@@ -331,20 +294,20 @@ void reader_xyz_gridded(char* fname, int fid, obsmeta* meta, grid* g, observatio
     else if (ncw_var_exists(ncid, "batch"))
         ncw_inq_varid(ncid, "batch", &varid);
     if (varid >= 0) {
-        ncw_check_varsize(ncid, varid, nijk);
-        batch = malloc(nijk * sizeof(int));
+        ncw_check_varsize(ncid, varid, nij);
+        batch = malloc(nij * sizeof(int));
         ncw_get_var_int(ncid, varid, batch);
     }
 
     /*
-     * qcflag
+     * qcflags
      */
     get_qcflags(meta, &nqcflagvars, &qcflagvarnames, &qcflagmasks);
     if (nqcflagvars > 0) {
-        qcflag = alloc2d(nqcflagvars, nijk, sizeof(int32_t));
+        qcflag = alloc2d(nqcflagvars, nij, sizeof(int32_t));
         for (i = 0; i < nqcflagvars; ++i) {
             ncw_inq_varid(ncid, qcflagvarnames[i], &varid);
-            ncw_check_varsize(ncid, varid, nijk);
+            ncw_check_varsize(ncid, varid, nij);
             ncw_get_var_uint(ncid, varid, qcflag[i]);
         }
     }
@@ -353,7 +316,7 @@ void reader_xyz_gridded(char* fname, int fid, obsmeta* meta, grid* g, observatio
      * time
      */
     get_time(meta, ncid, &ntime, &time);
-    assert(ntime == nijk || ntime <= 1);
+    assert(ntime == nij || ntime <= 1);
 
     /*
      * instrument
@@ -368,12 +331,11 @@ void reader_xyz_gridded(char* fname, int fid, obsmeta* meta, grid* g, observatio
     assert(productid >= 0);
     typeid = obstype_getid(obs->nobstypes, obs->obstypes, meta->type, 1);
     nobs_read = 0;
-    for (i = 0; i < nijk; ++i) {
-        int ij = i % nij;
+    for (i = 0; i < nij; ++i) {
         observation* o;
         int ii;
 
-        if ((npoints != NULL && npoints[i] == 0) || isnan(var[i]) || (std != NULL && isnan(std[i])) || (estd != NULL && isnan(estd[i])) || (ntime == nijk && isnan(time[i])))
+        if ((npoints != NULL && npoints[i] == 0) || isnan(var[i]) || (std != NULL && isnan(std[i])) || (estd != NULL && isnan(estd[i])) || (ntime == nij && isnan(time[i])))
             continue;
         for (ii = 0; ii < nqcflagvars; ++ii)
             if (!((1 << qcflag[ii][i]) & qcflagmasks[ii]))
@@ -384,7 +346,6 @@ void reader_xyz_gridded(char* fname, int fid, obsmeta* meta, grid* g, observatio
         o = &obs->data[obs->nobs];
 
         o->product = productid;
-        assert(o->product >= 0);
         o->type = typeid;
         o->instrument = instid;
         o->id = obs->nobs;
@@ -400,20 +361,17 @@ void reader_xyz_gridded(char* fname, int fid, obsmeta* meta, grid* g, observatio
                 o->estd = (std[i] > estd[i]) ? std[i] : estd[i];
         }
         if (iscurv == 0) {
-            o->lon = lon[ij % ni];
-            o->lat = lat[ij / ni];
+            o->lon = lon[i % ni];
+            o->lat = lat[i / ni];
         } else {
-            o->lon = lon[ij];
-            o->lat = lat[ij];
+            o->lon = lon[i];
+            o->lat = lat[i];
         }
+        o->depth = 0.0;
+        o->fk = (double) ksurf;
         o->status = grid_xy2fij_f(g, o->lon, o->lat, &o->fi, &o->fj);
         if (!obs->allobs && o->status == STATUS_OUTSIDEGRID)
             continue;
-        o->depth = (zndim == 1) ? z[i / nij] : z[i];
-        if (o->status == STATUS_OK)
-            o->status = grid_z2fk_f(g, o->fi, o->fj, o->depth, &o->fk);
-        else
-            o->fk = NAN;
         o->model_depth = NAN;   /* set in obs_add() */
         if (ntime > 0)
             o->time = (ntime == 1) ? time[0] : time[i];
@@ -430,7 +388,6 @@ void reader_xyz_gridded(char* fname, int fid, obsmeta* meta, grid* g, observatio
 
     free(lon);
     free(lat);
-    free(z);
     free(var);
     if (std != NULL)
         free(std);
@@ -447,4 +404,66 @@ void reader_xyz_gridded(char* fname, int fid, obsmeta* meta, grid* g, observatio
         free(qcflagmasks);
         free(qcflag);
     }
+}
+
+/**
+ */
+void reader_gridded_xy_describe(void)
+{
+   enkf_printf("\n  Generic reader \"gridded_xy\" reads 2D gridded data. There are\n\
+  a number of parameters that must (marked below with \"++\"), can (\"+\"), or\n\
+  may (\"-\") be specified in the corresponding section of the observation data\n\
+  parameter file. The names in brackets represent the default names checked in\n\
+  the abscence of the entry for the parameter.\n\
+\n\
+  Each parameter needs to be entered as follows:\n\
+    PARAMETER <name> = <value> ...\n\
+\n\
+  Parameters:\n\
+    - VARNAME (++)\n\
+    - TIMENAME (\"*[tT][iI][mM][eE]*\") (+)\n\
+    - or TIMENAMES (when time = base_time + offset) (+)\n\
+    - LONNAME (\"lon\" | \"longitude\") (+)\n\
+    - LATNAME (\"lat\" | \"latitude\") (+)\n\
+    - NPOINTSNAME (\"npoints\") (-)\n\
+        number of collated points for each datum; used basically as a data mask\n\
+        when n = 0\n\
+    - STDNAME (\"std\") (-)\n\
+        dispersion of the collated data\n\
+    - ESTDNAME (\"error_std\") (-)\n\
+        error STD; if absent then needs to be specified in the corresponding\n\
+        section of the observation data parameter file\n\
+    - BATCHNAME (\"batch\") (-)\n\
+        name of the variable used for batch ID (e.g. \"pass\" for SLA)\n\
+  Parameters common to all readers:\n\
+    - VARSHIFT (-)\n\
+        data offset to be added (e.g. -273.15 to convert from K to C)\n\
+    - FOOTRPINT (-)\n\
+        footprint of observations in km\n\
+    - MINDEPTH (-)\n\
+        minimal allowed depth\n\
+    - MAXDEPTH (-)\n\
+        maximal allowed depth\n\
+    - INSTRUMENT (-)\n\
+        instrument string that will be used for calculating instrument stats\n\
+        (overrides the global attribute \"instrument\" in the data file)\n\
+    - QCFLAGNAME (-)\n\
+        name of the QC flag variable, possible values 0 <= qcflag <= 31\n\
+    - QCFLAGVALS (-)\n\
+        the list of allowed values of QC flag variable\n\
+    - THIN (-)\n\
+        data thinning ratio (only one out of each consequitive <THIN> values is\n\
+        read\n\
+  Note: it is possible to have multiple entries of QCFLAGNAME and QCFLAGVALS\n\
+  combination, e.g.:\n\
+    PARAMETER QCFLAGNAME = TEMP_quality_control\n\
+    PARAMETER QCFLAGVALS = 1\n\
+    PARAMETER QCFLAGNAME = DEPTH_quality_control\n\
+    PARAMETER QCFLAGVALS = 1\n\
+    PARAMETER QCFLAGNAME = LONGITUDE_quality_control\n\
+    PARAMETER QCFLAGVALS = 1,8\n\
+    PARAMETER QCFLAGNAME = LATITUDE_quality_control\n\
+    PARAMETER QCFLAGVALS = 1,8\n\
+  An observation is considered valid if each of the specified flags takes a\n\
+  permitted value.\n");
 }

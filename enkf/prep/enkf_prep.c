@@ -75,8 +75,12 @@ static void usage()
     enkf_printf("      increase error of superobservations according to subgrid variability\n");
     enkf_printf("  --describe-prm-format [main|model|grid|obstypes|obsdata]\n");
     enkf_printf("      describe format of a parameter file and exit\n");
+    enkf_printf("  --describe-reader <reader>\n");
+    enkf_printf("      decribe reader and exit\n");
     enkf_printf("  --describe-superob <sob #>\n");
     enkf_printf("      print composition of this superobservation and exit\n");
+    enkf_printf("  --list-readers\n");
+    enkf_printf("      list available readers and exit\n");
     enkf_printf("  --log-all-obs\n");
     enkf_printf("      write all obs to %s (default: obs within model domain only)\n", FNAME_OBS);
     enkf_printf("  --no-superobing\n");
@@ -133,14 +137,23 @@ static void parse_commandline(int argc, char* argv[], char** fname)
             } else
                 enkfprm_describeprm();
             exit(0);
+        } else if (strcmp(argv[i], "--describe-reader") == 0) {
+            i++;
+            if (i >= argc)
+                enkf_quit("usage: reader name not found");
+            describe_reader(argv[i]);
+            exit(0);
         } else if (strcmp(argv[i], "--describe-superob") == 0) {
             i++;
             if (i >= argc)
-                usage();
+                enkf_quit("usage: superob ID not found");
             if (!str2int(argv[i], &describe_superob_id))
                 enkf_quit("usage: could not convert \"%s\" to integer", argv[i]);
             i++;
             continue;
+        } else if (strcmp(argv[i], "--list-readers") == 0) {
+            list_readers();
+            exit(0);
         } else if (strcmp(argv[i], "--log-all-obs") == 0) {
             log_all_obs = 1;
             i++;

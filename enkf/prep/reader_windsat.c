@@ -30,7 +30,7 @@
 
 /**
  */
-void reader_windsat_standard(char* fname, int fid, obsmeta* meta, grid* g, observations* obs)
+void reader_windsat(char* fname, int fid, obsmeta* meta, grid* g, observations* obs)
 {
     int ksurf = grid_getsurflayerid(g);
     int ncid;
@@ -149,4 +149,10 @@ void reader_windsat_standard(char* fname, int fid, obsmeta* meta, grid* g, obser
     free(sst);
     free(error_std);
     free(time);
+}
+
+/**
+ */
+void reader_windsat_describe(void)
+{
 }

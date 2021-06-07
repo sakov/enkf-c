@@ -55,7 +55,7 @@ static int cmp_lonlat(const void* p1, const void* p2)
 
 /**
  */
-void reader_mmt_standard(char* fname, int fid, obsmeta* meta, grid* g, observations* obs)
+void reader_mmt(char* fname, int fid, obsmeta* meta, grid* g, observations* obs)
 {
     stringtable* st_exclude = NULL;
     int ncid;
@@ -261,4 +261,10 @@ void reader_mmt_standard(char* fname, int fid, obsmeta* meta, grid* g, observati
   noprofiles:
     if (st_exclude != NULL)
         st_destroy(st_exclude);
+}
+
+/**
+ */
+void reader_mmt_describe(void)
+{
 }

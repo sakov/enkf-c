@@ -299,3 +299,67 @@ void reader_z(char* fname, int fid, obsmeta* meta, grid* g, observations* obs)
         free(qcflag);
     }
 }
+
+/**
+ */
+void reader_z_describe(void)
+{
+    enkf_printf("\n  Generic reader \"z\" reads data of a single profile. It currently assumes\n\
+  the following:\n\
+    - longitude and latitude are either 0-dimensional variables or 1-dimensional\n\
+      variables of size 1;\n\
+    - time is either 0-dimensional, 1-dimensional of size 1, or 1-dimensional of\n\
+      full size (nz);\n\
+    - profile variables are either 1-dimensional or 3-4 dimensional with dummy\n\
+      dimensions of size 1 (yes, this has little sense, but some providers do\n\
+      use such formats)\n\
+\n\
+  There are a number of parameters that must (marked below with \"++\"), can\n\
+  (\"+\"), or may (\"-\") be specified in the corresponding section of the\n\
+  observation data parameter file. The names in brackets represent the default\n\
+  names checked in the abscence of the entry for the parameter. Each parameter\n\
+  needs to be entered as follows:\n\
+    PARAMETER <name> = <value> ...\n\
+\n\
+  Parameters specific to the reader:\n\
+    - VARNAME (++)\n\
+    - TIMENAME (\"*[tT][iI][mM][eE]*\") (+)\n\
+    - or TIMENAMES (when time = base_time + offset) (+)\n\
+    - LONNAME (\"lon\" | \"longitude\") (+)\n\
+    - LATNAME (\"lat\" | \"latitude\") (+)\n\
+    - ZNAME (\"z\")\n\
+    - ESTDNAME (\"error_std\") (-)\n\
+        error STD; if absent then needs to be specified in the corresponding\n\
+        section of the observation data parameter file\n\
+  Parameters common to all readers:\n\
+    - VARSHIFT (-)\n\
+        data offset to be added (e.g. -273.15 to convert from K to C)\n\
+    - FOOTRPINT (-)\n\
+        footprint of observations in km\n\
+    - MINDEPTH (-)\n\
+        minimal allowed depth\n\
+    - MAXDEPTH (-)\n\
+        maximal allowed depth\n\
+    - INSTRUMENT (-)\n\
+        instrument string that will be used for calculating instrument stats\n\
+        (overrides the global attribute \"instrument\" in the data file)\n\
+    - QCFLAGNAME (-)\n\
+        name of the QC flag variable, possible values 0 <= qcflag <= 31\n\
+    - QCFLAGVALS (-)\n\
+        the list of allowed values of QC flag variable\n\
+    - THIN (-)\n\
+        data thinning ratio (only one out of each consequitive <THIN> values is\n\
+        read\n\
+  Note: it is possible to have multiple entries of QCFLAGNAME and QCFLAGVALS\n\
+  combination, e.g.:\n\
+    PARAMETER QCFLAGNAME = TEMP_quality_control\n\
+    PARAMETER QCFLAGVALS = 1\n\
+    PARAMETER QCFLAGNAME = DEPTH_quality_control\n\
+    PARAMETER QCFLAGVALS = 1\n\
+    PARAMETER QCFLAGNAME = LONGITUDE_quality_control\n\
+    PARAMETER QCFLAGVALS = 1,8\n\
+    PARAMETER QCFLAGNAME = LATITUDE_quality_control\n\
+    PARAMETER QCFLAGVALS = 1,8\n\
+  An observation is considered valid if each of the specified flags takes a\n\
+  permitted value.\n");
+}

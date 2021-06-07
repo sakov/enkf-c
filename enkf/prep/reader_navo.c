@@ -35,7 +35,7 @@
 
 /**
  */
-void reader_navo_standard(char* fname, int fid, obsmeta* meta, grid* g, observations* obs)
+void reader_navo(char* fname, int fid, obsmeta* meta, grid* g, observations* obs)
 {
     int ksurf = grid_getsurflayerid(g);
     int addbias = ADDBIAS_DEF;
@@ -160,4 +160,10 @@ void reader_navo_standard(char* fname, int fid, obsmeta* meta, grid* g, observat
         free(sstb);
     free(error_std);
     free(time);
+}
+
+/**
+ */
+void reader_navo_describe(void)
+{
 }

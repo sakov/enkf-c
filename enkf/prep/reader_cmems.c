@@ -107,7 +107,7 @@ static int allmissing(int ncid, char varname[])
 
 /**
  */
-void reader_cmems_standard(char* fname, int fid, obsmeta* meta, grid* g, observations* obs)
+void reader_cmems(char* fname, int fid, obsmeta* meta, grid* g, observations* obs)
 {
     stringtable* st_exclude = NULL;
     int ncid;
@@ -411,4 +411,10 @@ void reader_cmems_standard(char* fname, int fid, obsmeta* meta, grid* g, observa
   noprofiles:
     if (st_exclude != NULL)
         st_destroy(st_exclude);
+}
+
+/**
+ */
+void reader_cmems_describe(void)
+{
 }

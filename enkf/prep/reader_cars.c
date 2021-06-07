@@ -53,7 +53,7 @@ static int cmp_lonlat(const void* p1, const void* p2)
 
 /**
  */
-void reader_cars_standard(char* fname, int fid, obsmeta* meta, grid* g, observations* obs)
+void reader_cars(char* fname, int fid, obsmeta* meta, grid* g, observations* obs)
 {
     int ncid;
     int dimid_nprof, dimid_nz = -1;
@@ -226,4 +226,10 @@ void reader_cars_standard(char* fname, int fid, obsmeta* meta, grid* g, observat
     free(v);
     free(z);
     free(type);
+}
+
+/**
+ */
+void reader_cars_describe(void)
+{
 }

@@ -39,7 +39,7 @@
 
 \begin{document}
 
-\title{EnKF-C user guide\\{\normalsize version 2.8.1}}
+\title{EnKF-C user guide\\{\normalsize version 2.9.0}}
 
 \author{Pavel Sakov}
 \date{June 19, 2014 -- \today}
@@ -1117,18 +1117,24 @@ It has the following usage and options:
 >./bin/enkf_prep
   Usage: enkf_prep <prm file> [<options>]
   Options:
+  --allow-logspace-with-static-ens
+      confirm that static ensemble is conditioned for using log space
   --consider-subgrid-variability
       increase error of superobservations according to subgrid variability
   --describe-prm-format [main|model|grid|obstypes|obsdata]
       describe format of a parameter file and exit
+  --describe-reader <reader>
+      decribe reader and exit
   --describe-superob <sob #>
       print composition of this superobservation and exit
+  --list-readers
+      list available readers and exit
   --log-all-obs
       write all obs to observations-orig.nc (default: obs within model domain only)
   --no-superobing
-  --superob-across-batches
-  --superob-across-instruments
+  --no-superobing-across-batches
   --no-thinning
+  --superob-across-instruments
   --write-orig-obs
   --version
       print version and exit
@@ -1213,9 +1219,9 @@ The function of data readers is to read observations in specified files and pars
 Users are encouraged to use generic readers:
 \begin{Verbatim}
 reader_scattered
-reader_xy_gridded
-reader_xyz_gridded
-reader_xyh_gridded
+reader_gridded_xy
+reader_gridded_xyz
+reader_gridded_xyh
 reader_z
 \end{Verbatim}
 
@@ -1245,60 +1251,71 @@ The generic parameters include:
 \item{\verb|THIN|} -- data thinning ratio.
 \end{description}
 
-The custom parameters are described (along with the generic parameters) in the headers of the source code for the readers.
-Following is the description of the reader \verb|scattered| from \verb|reader_scattered.c|:
+The custom parameters can be learned by running \verb|enkf_prep --describe-reader <reader name>|, and the reader name list can printed by \verb|enkf_prep --list-readers|.
+Following is the description of the reader \verb|scattered|:
 \begin{Verbatim}
- *                There are a number of parameters that must (++) or can be
- *              specified if they differ from the default value (+). Some
- *              parameters are optional (-):
- *              - VARNAME (++)
- *              - TIMENAME ("*[tT][iI][mM][eE]*") (+)
- *              - or TIMENAMES (when time = base_time + offset) (+)
- *              - LONNAME ("lon" | "longitude") (+)
- *              - LATNAME ("lat" | "latitude") (+)
- *              - ZNAME ("z") | ZVALUE (+)
- *              - STDNAME ("std") (-)
- *                  internal variability of the collated data
- *              - ESTDNAME ("error_std") (-)
- *                  error STD; if absent then needs to be specified externally
- *                  in the observation data parameter file
- *              - BATCHNAME ("batch") (-)
- *                  name of the variable used for batch ID
- *              - VARSHIFT (-)
- *                  data offset to be added
- *              - FOOTRPINT (-)
- *                  footprint of observations in km
- *              - MINDEPTH (-)
- *                  minimal allowed depth
- *              - MAXDEPTH (-)
- *                  maximal allowed depth
- *              - INSTRUMENT (-)
- *                  instrument string that will be used for calculating
- *                  instrument stats
- *              - ADDVAR (-)
- *                  name of the variable to be added to the main variable
- *                  (can be repeated)
- *              - SUBVAR (-)
- *                  name of the variable to be subtracted from the main variable
- *                  (can be repeated)
- *              - QCFLAGNAME (-)
- *                  name of the QC flag variable, 0 <= qcflag <= 31
- *              - QCFLAGVALS (-)
- *                  the list of allowed values of QC flag variable
- *              - THIN (-)
- *                  data thinning ratio
- *              Note: it is possible to have multiple entries of QCFLAGNAME and
- *                QCFLAGVALS combination, e.g.:
- *                  PARAMETER QCFLAGNAME = TEMP_quality_control
- *                  PARAMETER QCFLAGVALS = 1
- *                  PARAMETER QCFLAGNAME = DEPTH_quality_control
- *                  PARAMETER QCFLAGVALS = 1
- *                  PARAMETER QCFLAGNAME = LONGITUDE_quality_control
- *                  PARAMETER QCFLAGVALS = 1,8
- *                  PARAMETER QCFLAGNAME = LATITUDE_quality_control
- *                  PARAMETER QCFLAGVALS = 1,8
- *                An observation is considered valid if each of the specified
- *                flags takes a permitted value.
+>./bin/enkf_prep --describe-reader scattered
+
+  Generic reader "scattered" reads 2D or 3D scattered point data.
+
+  There are a number of parameters that must (marked below with "++"), can
+  ("+"), or may ("-") be specified in the corresponding section of the
+  observation data parameter file. The names in brackets represent the default
+  names checked in the abscence of the entry for the parameter. Each parameter
+  needs to be entered as follows:
+    PARAMETER <name> = <value> ...
+
+  Parameters specific to the reader:\n\
+    - VARNAME (++)
+    - TIMENAME ("*[tT][iI][mM][eE]*") (+)
+    - or TIMENAMES (when time = base_time + offset) (+)
+    - LONNAME ("lon" | "longitude") (+)
+    - LATNAME ("lat" | "latitude") (+)
+    - ZNAME ("z") | ZVALUE (+)
+        "ZNAME" is needed for 3D data, "ZVALUE" for 2D data (can be NaN)
+    - STDNAME ("std") (-)
+        dispersion of the collated data
+    - ESTDNAME ("error_std") (-)
+        error STD; if absent then needs to be specified in the corresponding
+        section of the observation data parameter file
+    - BATCHNAME ("batch") (-)
+        name of the variable used for batch ID (e.g. "pass" for SLA)
+    - ADDVAR (-)
+        name of the variable to be added to the main variable (can be repeated)
+    - SUBVAR (-)
+        name of the variable to be subtracted from the main variable (can be
+        repeated)
+  Parameters common to all readers:\n\
+    - VARSHIFT (-)
+        data offset to be added (e.g. -273.15 to convert from K to C)
+    - FOOTRPINT (-)
+        footprint of observations in km
+    - MINDEPTH (-)
+        minimal allowed depth
+    - MAXDEPTH (-)
+        maximal allowed depth
+    - INSTRUMENT (-)
+        instrument string that will be used for calculating instrument stats
+        (overrides the global attribute "instrument" in the data file)
+    - QCFLAGNAME (-)
+        name of the QC flag variable, possible values 0 <= qcflag <= 31
+    - QCFLAGVALS (-)
+        the list of allowed values of QC flag variable
+    - THIN (-)
+        data thinning ratio (only one out of each consequitive <THIN> values is
+        read
+  Note: it is possible to have multiple entries of QCFLAGNAME and QCFLAGVALS
+  combination, e.g.:
+    PARAMETER QCFLAGNAME = TEMP_quality_control
+    PARAMETER QCFLAGVALS = 1
+    PARAMETER QCFLAGNAME = DEPTH_quality_control
+    PARAMETER QCFLAGVALS = 1
+    PARAMETER QCFLAGNAME = LONGITUDE_quality_control
+    PARAMETER QCFLAGVALS = 1,8
+    PARAMETER QCFLAGNAME = LATITUDE_quality_control
+    PARAMETER QCFLAGVALS = 1,8
+  An observation is considered valid if each of the specified flags takes a
+  permitted value.
 \end{Verbatim}
 
 \subsection{Superobing}

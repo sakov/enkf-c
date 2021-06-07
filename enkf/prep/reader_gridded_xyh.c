@@ -13,56 +13,8 @@
  *                p[k] = a[k] + b[k] * (p1 - p2),
  *
  *              where p(k) -- z coordinate (pressure) at the middle of layer k.
- *              The grid must be defined in the grid parameter file.
- *
  *              Unlike other readers this one requires the (hybrid) data grid
  *              to be defined in the grid parameter file.
- *
- *              It is currently assumed that there is only one data record
- *              (a 3D field).
- *
- *              Similarly to reader_xy_gridded(), there are a number of
- *              parameters that must (++) or can be specified if they differ
- *              from the default value (+). Some parameters are optional (-):
- *              - VARNAME (++)
- *              - GRIDNAME (++)
- *              - TIMENAME ("*[tT][iI][mM][eE]*") (+)
- *              - or TIMENAMES (when time = base_time + offset) (+)
- *              - NPOINTSNAME ("npoints") (-)
- *                  number of collated points for each datum; used basically as
- *                  a data mask n = 0
- *              - STDNAME ("std") (-)
- *                  internal variability of the collated data
- *              - ESTDNAME ("error_std") (-)
- *                  error STD; if absent then needs to be specified externally
- *                  in the oobservation data parameter file
- *              - BATCHNAME ("batch") (-)
- *                  name of the variable used for batch ID
- *              - VARSHIFT (-)
- *                  data offset to be added
- *              - MINDEPTH (-)
- *                  minimal allowed depth
- *              - MAXDEPTH (-)
- *                  maximal allowed depth
- *              - INSTRUMENT (-)
- *                  instrument string that will be used for calculating
- *                  instrument stats
- *              - QCFLAGNAME (-)
- *                  name of the QC flag variable, 0 <= qcflag <= 31
- *              - QCFLAGVALS (-)
- *                  the list of allowed values of QC flag variable
- *              Note: it is possible to have multiple entries of QCFLAGNAME and
- *                QCFLAGVALS combination, e.g.:
- *                  PARAMETER QCFLAGNAME = TEMP_quality_control
- *                  PARAMETER QCFLAGVALS = 1
- *                  PARAMETER QCFLAGNAME = DEPTH_quality_control
- *                  PARAMETER QCFLAGVALS = 1
- *                  PARAMETER QCFLAGNAME = LONGITUDE_quality_control
- *                  PARAMETER QCFLAGVALS = 1,8
- *                  PARAMETER QCFLAGNAME = LATITUDE_quality_control
- *                  PARAMETER QCFLAGVALS = 1,8
- *                An observation is considered valid if each of the specified
- *                flags takes a permitted value.
  *
  * Revisions:   PS 6/7/2018
  *                Added parameters QCFLAGNAME and QCFLAGVALS. The latter is
@@ -91,7 +43,7 @@
 
 /**
  */
-void reader_xyh_gridded(char* fname, int fid, obsmeta* meta, grid* gdst, observations* obs)
+void reader_gridded_xyh(char* fname, int fid, obsmeta* meta, grid* gdst, observations* obs)
 {
     char* varname = NULL;
     char* gridname = NULL;
@@ -373,4 +325,77 @@ void reader_xyh_gridded(char* fname, int fid, obsmeta* meta, grid* gdst, observa
         free(qcflagmasks);
         free(qcflag);
     }
+}
+
+/**
+ */
+void reader_gridded_xyh_describe(void)
+{
+    enkf_printf("\n  Generic reader \"gridded_xyh\" reads 3D gridded data with hybrid\n\
+  vertical coordinate. It assumes\n\
+\n\
+    p[k] = a[k] + b[k] * (p1 - p2),\n\
+\n\
+  where p(k) is z coordinate (pressure) at the middle of layer k, p1 - surface\n\
+  pressure, and p2 - top pressure, see\n\
+  https://journals.ametsoc.org/doi/pdf/10.1175/2008MWR2537.1 for details. The\n\
+  grid must be defined in the grid parameter file.\n\
+\n\
+  There are a number of parameters that must (marked below with \"++\"), can\n\
+  (\"+\"), or may (\"-\") be specified in the corresponding section of the\n\
+  observation data parameter file. The names in brackets represent the default\n\
+  names checked in the abscence of the entry for the parameter. Each parameter\n\
+  needs to be entered as follows:\n\
+    PARAMETER <name> = <value> ...\n\
+\n\
+  Parameters specific to the reader:\n\
+    - VARNAME (++)\n\
+    - GRIDNAME (++)\n\
+    - TIMENAME (\"*[tT][iI][mM][eE]*\") (+)\n\
+    - or TIMENAMES (when time = base_time + offset) (+)\n\
+    - LONNAME (\"lon\" | \"longitude\") (+)\n\
+    - LATNAME (\"lat\" | \"latitude\") (+)\n\
+    - NPOINTSNAME (\"npoints\") (-)\n\
+        number of collated points for each datum; used basically as a data mask\n\
+        when n = 0\n\
+    - ZNAME (\"z\") | ZVALUE (+)\n\
+        \"ZNAME\" is needed for 3D data, \"ZVALUE\" for 2D data (can be NaN)\n\
+    - STDNAME (\"std\") (-)\n\
+        dispersion of the collated data\n\
+    - ESTDNAME (\"error_std\") (-)\n\
+        error STD; if absent then needs to be specified in the corresponding\n\
+        section of the observation data parameter file\n\
+    - BATCHNAME (\"batch\") (-)\n\
+        name of the variable used for batch ID (e.g. \"pass\" for SLA)\n\
+  Parameters common to all readers:\n\
+    - VARSHIFT (-)\n\
+        data offset to be added (e.g. -273.15 to convert from K to C)\n\
+    - FOOTRPINT (-)\n\
+        footprint of observations in km\n\
+    - MINDEPTH (-)\n\
+        minimal allowed depth\n\
+    - MAXDEPTH (-)\n\
+        maximal allowed depth\n\
+    - INSTRUMENT (-)\n\
+        instrument string that will be used for calculating instrument stats\n\
+        (overrides the global attribute \"instrument\" in the data file)\n\
+    - QCFLAGNAME (-)\n\
+        name of the QC flag variable, possible values 0 <= qcflag <= 31\n\
+    - QCFLAGVALS (-)\n\
+        the list of allowed values of QC flag variable\n\
+    - THIN (-)\n\
+        data thinning ratio (only one out of each consequitive <THIN> values is\n\
+        read\n\
+  Note: it is possible to have multiple entries of QCFLAGNAME and QCFLAGVALS\n\
+  combination, e.g.:\n\
+    PARAMETER QCFLAGNAME = TEMP_quality_control\n\
+    PARAMETER QCFLAGVALS = 1\n\
+    PARAMETER QCFLAGNAME = DEPTH_quality_control\n\
+    PARAMETER QCFLAGVALS = 1\n\
+    PARAMETER QCFLAGNAME = LONGITUDE_quality_control\n\
+    PARAMETER QCFLAGVALS = 1,8\n\
+    PARAMETER QCFLAGNAME = LATITUDE_quality_control\n\
+    PARAMETER QCFLAGVALS = 1,8\n\
+  An observation is considered valid if each of the specified flags takes a\n\
+  permitted value.\n");
 }

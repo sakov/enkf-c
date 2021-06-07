@@ -25,6 +25,8 @@ char* get_zname(int ncid, char* zname);
 int get_insttag(int ncid, char* varname, char* insttag);
 void get_qcflags(obsmeta* meta, int* nqcflags, char*** qcflagname, uint32_t** qcflagvals);
 void get_time(obsmeta* meta, int ncid, size_t* size, double** time);
+void list_readers(void);
+void describe_reader(char readertag[]);
 
 #define _PREP_UTILS_H
 #endif

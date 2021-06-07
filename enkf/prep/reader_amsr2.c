@@ -33,7 +33,7 @@
 
 /**
  */
-void reader_amsr2_standard(char* fname, int fid, obsmeta* meta, grid* g, observations* obs)
+void reader_amsr2(char* fname, int fid, obsmeta* meta, grid* g, observations* obs)
 {
     int ksurf = grid_getsurflayerid(g);
     int addbias = ADDBIAS_DEF;
@@ -161,4 +161,10 @@ void reader_amsr2_standard(char* fname, int fid, obsmeta* meta, grid* g, observa
     free(time);
     if (addbias)
         free(sstb);
+}
+
+/**
+ */
+void reader_amsr2_describe(void)
+{
 }

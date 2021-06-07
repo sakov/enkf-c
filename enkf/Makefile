@@ -82,9 +82,9 @@ prep/reader_amsr2.c\
 prep/reader_amsre.c\
 prep/reader_h8.c\
 prep/reader_scattered.c\
-prep/reader_xy_gridded.c\
-prep/reader_xyz_gridded.c\
-prep/reader_xyh_gridded.c\
+prep/reader_gridded_xy.c\
+prep/reader_gridded_xyz.c\
+prep/reader_gridded_xyh.c\
 prep/reader_cmems.c\
 prep/reader_z.c\
 prep/enkf_prep.c

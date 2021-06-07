@@ -7,58 +7,7 @@
  * Author:      Pavel Sakov
  *              Bureau of Meteorology
  *
- * Description: Generic reader for scattered 3D observations.
- *                There are a number of parameters that must (++) or can be
- *              specified if they differ from the default value (+). Some
- *              parameters are optional (-):
- *              - VARNAME (++)
- *              - TIMENAME ("*[tT][iI][mM][eE]*") (+)
- *              - or TIMENAMES (when time = base_time + offset) (+)
- *              - LONNAME ("lon" | "longitude") (+)
- *              - LATNAME ("lat" | "latitude") (+)
- *              - ZNAME ("z") | ZVALUE (+)
- *              - STDNAME ("std") (-)
- *                  internal variability of the collated data
- *              - ESTDNAME ("error_std") (-)
- *                  error STD; if absent then needs to be specified externally
- *                  in the oobservation data parameter file
- *              - BATCHNAME ("batch") (-)
- *                  name of the variable used for batch ID
- *              - VARSHIFT (-)
- *                  data offset to be added
- *              - FOOTRPINT (-)
- *                  footprint of observations in km
- *              - MINDEPTH (-)
- *                  minimal allowed depth
- *              - MAXDEPTH (-)
- *                  maximal allowed depth
- *              - INSTRUMENT (-)
- *                  instrument string that will be used for calculating
- *                  instrument stats
- *              - ADDVAR (-)
- *                  name of the variable to be added to the main variable
- *                  (can be repeated)
- *              - SUBVAR (-)
- *                  name of the variable to be subtracted from the main variable
- *                  (can be repeated)
- *              - QCFLAGNAME (-)
- *                  name of the QC flag variable, 0 <= qcflag <= 31
- *              - QCFLAGVALS (-)
- *                  the list of allowed values of QC flag variable
- *              - THIN (-)
- *                  data thinning ratio
- *              Note: it is possible to have multiple entries of QCFLAGNAME and
- *                QCFLAGVALS combination, e.g.:
- *                  PARAMETER QCFLAGNAME = TEMP_quality_control
- *                  PARAMETER QCFLAGVALS = 1
- *                  PARAMETER QCFLAGNAME = DEPTH_quality_control
- *                  PARAMETER QCFLAGVALS = 1
- *                  PARAMETER QCFLAGNAME = LONGITUDE_quality_control
- *                  PARAMETER QCFLAGVALS = 1,8
- *                  PARAMETER QCFLAGNAME = LATITUDE_quality_control
- *                  PARAMETER QCFLAGVALS = 1,8
- *                An observation is considered valid if each of the specified
- *                flags takes a permitted value.
+ * Description: Generic reader for scattered 2D or 3D observations.
  *
  * Revisions:   PS 4/7/2018
  *                Added parameters QCFLAGNAME and QCFLAGVALS. The latter is
@@ -106,6 +55,7 @@ void reader_scattered(char* fname, int fid, obsmeta* meta, grid* g, observations
     char* latname = NULL;
     char* zname = NULL;
     double zvalue = NAN;
+    int zvalueentered = 0;
     char* stdname = NULL;
     char* estdname = NULL;
     char* batchname = NULL;
@@ -145,7 +95,7 @@ void reader_scattered(char* fname, int fid, obsmeta* meta, grid* g, observations
         else if (strcasecmp(meta->pars[i].name, "LATNAME") == 0)
             latname = meta->pars[i].value;
         else if (strcasecmp(meta->pars[i].name, "ZNAME") == 0) {
-            if (!isnan(zvalue))
+            if (zvalueentered)
                 enkf_quit("reader_scattered(): can not simultaneously specify ZNAME and ZVALUE");
             zname = meta->pars[i].value;
         } else if (strcasecmp(meta->pars[i].name, "ZVALUE") == 0) {
@@ -153,6 +103,7 @@ void reader_scattered(char* fname, int fid, obsmeta* meta, grid* g, observations
                 enkf_quit("reader_scattered(): can not simultaneously specify ZNAME and ZVALUE");
             if (!str2double(meta->pars[i].value, &zvalue))
                 enkf_quit("observation prm file: can not convert ZVALUE = \"%s\" to double\n", meta->pars[i].value);
+            zvalueentered = 1;
         } else if (strcasecmp(meta->pars[i].name, "STDNAME") == 0)
             stdname = meta->pars[i].value;
         else if (strcasecmp(meta->pars[i].name, "ESTDNAME") == 0)
@@ -254,7 +205,7 @@ void reader_scattered(char* fname, int fid, obsmeta* meta, grid* g, observations
     /*
      * z
      */
-    if (isnan(zvalue)) {
+    if (!zvalueentered) {
         zname = get_zname(ncid, zname);
         if (zname != NULL) {
             enkf_printf("        ZNAME = %s\n", zname);
@@ -387,7 +338,7 @@ void reader_scattered(char* fname, int fid, obsmeta* meta, grid* g, observations
         o->status = grid_xy2fij_f(g, o->lon, o->lat, &o->fi, &o->fj);
         if (!obs->allobs && o->status == STATUS_OUTSIDEGRID)
             continue;
-        if (o->status == STATUS_OK)
+        if (o->status == STATUS_OK && isfinite(o->depth))
             o->status = grid_z2fk_f(g, o->fi, o->fj, o->depth, &o->fk);
         else
             o->fk = NAN;
@@ -429,4 +380,70 @@ void reader_scattered(char* fname, int fid, obsmeta* meta, grid* g, observations
         }
         free(addvars);
     }
+}
+
+/**
+ */
+void reader_scattered_describe(void)
+{
+    enkf_printf("\n  Generic reader \"scattered\" reads 2D or 3D scattered point data.\n\
+\n\
+  There are a number of parameters that must (marked below with \"++\"), can\n\
+  (\"+\"), or may (\"-\") be specified in the corresponding section of the\n\
+  observation data parameter file. The names in brackets represent the default\n\
+  names checked in the abscence of the entry for the parameter. Each parameter\n\
+  needs to be entered as follows:\n\
+    PARAMETER <name> = <value> ...\n\
+\n\
+  Parameters specific to the reader:\n\
+    - VARNAME (++)\n\
+    - TIMENAME (\"*[tT][iI][mM][eE]*\") (+)\n\
+    - or TIMENAMES (when time = base_time + offset) (+)\n\
+    - LONNAME (\"lon\" | \"longitude\") (+)\n\
+    - LATNAME (\"lat\" | \"latitude\") (+)\n\
+    - ZNAME (\"z\") | ZVALUE (+)\n\
+        \"ZNAME\" is needed for 3D data, \"ZVALUE\" for 2D data (can be NaN)\n\
+    - STDNAME (\"std\") (-)\n\
+        dispersion of the collated data\n\
+    - ESTDNAME (\"error_std\") (-)\n\
+        error STD; if absent then needs to be specified in the corresponding\n\
+        section of the observation data parameter file\n\
+    - BATCHNAME (\"batch\") (-)\n\
+        name of the variable used for batch ID (e.g. \"pass\" for SLA)\n\
+    - ADDVAR (-)\n\
+        name of the variable to be added to the main variable (can be repeated)\n\
+    - SUBVAR (-)\n\
+        name of the variable to be subtracted from the main variable (can be\n\
+        repeated)\n\
+  Parameters common to all readers:\n\
+    - VARSHIFT (-)\n\
+        data offset to be added (e.g. -273.15 to convert from K to C)\n\
+    - FOOTRPINT (-)\n\
+        footprint of observations in km\n\
+    - MINDEPTH (-)\n\
+        minimal allowed depth\n\
+    - MAXDEPTH (-)\n\
+        maximal allowed depth\n\
+    - INSTRUMENT (-)\n\
+        instrument string that will be used for calculating instrument stats\n\
+        (overrides the global attribute \"instrument\" in the data file)\n\
+    - QCFLAGNAME (-)\n\
+        name of the QC flag variable, possible values 0 <= qcflag <= 31\n\
+    - QCFLAGVALS (-)\n\
+        the list of allowed values of QC flag variable\n\
+    - THIN (-)\n\
+        data thinning ratio (only one out of each consequitive <THIN> values is\n\
+        read\n\
+  Note: it is possible to have multiple entries of QCFLAGNAME and QCFLAGVALS\n\
+  combination, e.g.:\n\
+    PARAMETER QCFLAGNAME = TEMP_quality_control\n\
+    PARAMETER QCFLAGVALS = 1\n\
+    PARAMETER QCFLAGNAME = DEPTH_quality_control\n\
+    PARAMETER QCFLAGVALS = 1\n\
+    PARAMETER QCFLAGNAME = LONGITUDE_quality_control\n\
+    PARAMETER QCFLAGVALS = 1,8\n\
+    PARAMETER QCFLAGNAME = LATITUDE_quality_control\n\
+    PARAMETER QCFLAGVALS = 1,8\n\
+  An observation is considered valid if each of the specified flags takes a\n\
+  permitted value.\n");
 }

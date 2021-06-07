@@ -43,7 +43,11 @@ static int obs_badob(observations* obs, int i)
 
     if (o->status != STATUS_OK)
         return 0;
-    if (o->type < 0 || o->product < 0 || o->instrument < 0 || o->fid < 0 || o->batch < 0 || !isfinite(o->value) || fabs(o->value) > MAXOBSVAL || isnan(o->estd) || o->estd <= 0.0 || !isfinite(o->fi) || !isfinite(o->fj) || !isfinite(o->fk) || !isfinite(o->lon) || !isfinite(o->lat) || !isfinite(o->depth))
+    /*
+     * Note: in preparation for implementing vertical localisation it is now
+     * allowed to have undefined values (NaNs) for o->depth and o->fk.
+     */
+    if (o->type < 0 || o->product < 0 || o->instrument < 0 || o->fid < 0 || o->batch < 0 || !isfinite(o->value) || fabs(o->value) > MAXOBSVAL || isnan(o->estd) || o->estd <= 0.0 || !isfinite(o->fi) || !isfinite(o->fj) || !isfinite(o->lon) || !isfinite(o->lat))
         return 1;
     return 0;
 }

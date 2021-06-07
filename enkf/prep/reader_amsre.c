@@ -38,7 +38,7 @@
 
 /**
  */
-void reader_amsre_standard(char* fname, int fid, obsmeta* meta, grid* g, observations* obs)
+void reader_amsre(char* fname, int fid, obsmeta* meta, grid* g, observations* obs)
 {
     int ksurf = grid_getsurflayerid(g);
     double minwind = MINWIND_DEF;
@@ -208,4 +208,52 @@ void reader_amsre_standard(char* fname, int fid, obsmeta* meta, grid* g, observa
     free(wind_d);
     free(time_a);
     free(time_d);
+}
+
+/**
+ */
+void reader_amsre_describe(void)
+{
+    enkf_printf("\n  Reader \"amsre\" reads SST data from AMSR-E radiometer as pre-processed\n\
+in-house by BoM.\n\
+\n\
+  There are a number of parameters that must (marked below with \"++\"), can\n\
+  (\"+\"), or may (\"-\") be specified in the corresponding section of the\n\
+  observation data parameter file. The names in brackets represent the default\n\
+  names checked in the abscence of the entry for the parameter. Each parameter\n\
+  needs to be entered as follows:\n\
+    PARAMETER <name> = <value> ...\n\
+\n\
+  Parameters specific to the reader:\n\
+    - MINWIND (-)\n\
+        minimal allowed value of surface wind velocity\n\
+    - ORBITS (\"ALL\" | \"DESCENDING\" | \"ASCENDING\") (-)\n\
+  Parameters common to all readers:\n\
+    - VARSHIFT (-)\n\
+        data offset to be added (e.g. -273.15 to convert from K to C)\n\
+    - FOOTRPINT (-)\n\
+        footprint of observations in km\n\
+    - MINDEPTH (-)\n\
+        minimal allowed depth\n\
+    - MAXDEPTH (-)\n\
+        maximal allowed depth\n\
+    - QCFLAGNAME (-)\n\
+        name of the QC flag variable, possible values 0 <= qcflag <= 31\n\
+    - QCFLAGVALS (-)\n\
+        the list of allowed values of QC flag variable\n\
+    - THIN (-)\n\
+        data thinning ratio (only one out of each consequitive <THIN> values is\n\
+        read\n\
+  Note: it is possible to have multiple entries of QCFLAGNAME and QCFLAGVALS\n\
+  combination, e.g.:\n\
+    PARAMETER QCFLAGNAME = TEMP_quality_control\n\
+    PARAMETER QCFLAGVALS = 1\n\
+    PARAMETER QCFLAGNAME = DEPTH_quality_control\n\
+    PARAMETER QCFLAGVALS = 1\n\
+    PARAMETER QCFLAGNAME = LONGITUDE_quality_control\n\
+    PARAMETER QCFLAGVALS = 1,8\n\
+    PARAMETER QCFLAGNAME = LATITUDE_quality_control\n\
+    PARAMETER QCFLAGVALS = 1,8\n\
+  An observation is considered valid if each of the specified flags takes a\n\
+  permitted value.\n");
 }

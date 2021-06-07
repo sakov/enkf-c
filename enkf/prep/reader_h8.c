@@ -32,7 +32,7 @@
 
 /**
  */
-void reader_h8_standard(char* fname, int fid, obsmeta* meta, grid* g, observations* obs)
+void reader_h8(char* fname, int fid, obsmeta* meta, grid* g, observations* obs)
 {
     int ksurf = grid_getsurflayerid(g);
     int ncid;
@@ -163,4 +163,10 @@ void reader_h8_standard(char* fname, int fid, obsmeta* meta, grid* g, observatio
     free(sst);
     free(time);
     free(time2);
+}
+
+/**
+ */
+void reader_h8_describe(void)
+{
 }
