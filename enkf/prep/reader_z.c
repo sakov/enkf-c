@@ -8,53 +8,8 @@
  *              Bureau of Meteorology
  *
  * Description: Generic reader for observations in a single profile.
- *                It currently assumes the following:
- *                - longitude and latitude are either 0-dimensional
- *                  variables or 1-dimensional variables of size 1;
- *                - time is either 0-dimensional, 1-dimensional of size 1, or
- *                  1-dimensional of full size (nz).
- *                - profile variables are either 1-dimensional or 3-4
- *                  dimensional with dummy dimensions of size 1 (yes, this has
- *                  little sense, but some providers do use such formats)
- *                There are a number of parameters that must (++) or can be
- *              specified if they differ from the default value (+). Some
- *              parameters are optional (-):
- *              - VARNAME (++)
- *              - TIMENAME ("*[tT][iI][mM][eE]*") (+)
- *              - or TIMENAMES (when time = base_time + offset) (+)
- *              - LONNAME ("lon" | "longitude") (+)
- *              - LATNAME ("lat" | "latitude") (+)
- *              - ZNAME ("z") (+)
- *              - ESTDNAME ("error_std") (-)
- *                  error STD; if absent then needs to be specified externally
- *                  in the observation data parameter file
- *              - VARSHIFT (-)
- *                  data offset to be added
- *              - FOOTRPINT (-)
- *                  footprint of observations in km
- *              - MINDEPTH (-)
- *                  minimal allowed depth
- *              - MAXDEPTH (-)
- *                  maximal allowed depth
- *              - INSTRUMENT (-)
- *                  instrument string that will be used for calculating
- *                  instrument stats
- *              - QCFLAGNAME (-)
- *                  name of the QC flag variable, 0 <= qcflag <= 31
- *              - QCFLAGVALS (-)
- *                  the list of allowed values of QC flag variable
- *              Note: it is possible to have multiple entries of QCFLAGNAME and
- *                QCFLAGVALS combination, e.g.:
- *                  PARAMETER QCFLAGNAME = TEMP_quality_control
- *                  PARAMETER QCFLAGVALS = 1
- *                  PARAMETER QCFLAGNAME = DEPTH_quality_control
- *                  PARAMETER QCFLAGVALS = 1
- *                  PARAMETER QCFLAGNAME = LONGITUDE_quality_control
- *                  PARAMETER QCFLAGVALS = 1,8
- *                  PARAMETER QCFLAGNAME = LATITUDE_quality_control
- *                  PARAMETER QCFLAGVALS = 1,8
- *                An observation is considered valid if each of the specified
- *                flags takes a permitted value.
+ *
+ * Revisions:
  *
  *****************************************************************************/
 
@@ -321,7 +276,7 @@ void reader_z_describe(void)
   needs to be entered as follows:\n\
     PARAMETER <name> = <value> ...\n\
 \n\
-  Parameters specific to the reader:\n\
+  Parameters common to generic readers:\n\
     - VARNAME (++)\n\
     - TIMENAME (\"*[tT][iI][mM][eE]*\") (+)\n\
     - or TIMENAMES (when time = base_time + offset) (+)\n\
@@ -331,6 +286,25 @@ void reader_z_describe(void)
     - ESTDNAME (\"error_std\") (-)\n\
         error STD; if absent then needs to be specified in the corresponding\n\
         section of the observation data parameter file\n\
+    - INSTRUMENT (-)\n\
+        instrument string that will be used for calculating instrument stats\n\
+        (overrides the global attribute \"instrument\" in the data file)\n\
+    - QCFLAGNAME (-)\n\
+        name of the QC flag variable, possible values 0 <= qcflag <= 31\n\
+    - QCFLAGVALS (-)\n\
+        the list of allowed values of QC flag variable\n\
+        Note: it is possible to have multiple entries of QCFLAGNAME and\n\
+        QCFLAGVALS combination, e.g.:\n\
+          PARAMETER QCFLAGNAME = TEMP_quality_control\n\
+          PARAMETER QCFLAGVALS = 1\n\
+          PARAMETER QCFLAGNAME = DEPTH_quality_control\n\
+          PARAMETER QCFLAGVALS = 1\n\
+          PARAMETER QCFLAGNAME = LONGITUDE_quality_control\n\
+          PARAMETER QCFLAGVALS = 1,8\n\
+          PARAMETER QCFLAGNAME = LATITUDE_quality_control\n\
+          PARAMETER QCFLAGVALS = 1,8\n\
+        An observation is considered valid if each of the specified flags takes\n\
+        a permitted value.\n\
   Parameters common to all readers:\n\
     - VARSHIFT (-)\n\
         data offset to be added (e.g. -273.15 to convert from K to C)\n\
@@ -340,26 +314,7 @@ void reader_z_describe(void)
         minimal allowed depth\n\
     - MAXDEPTH (-)\n\
         maximal allowed depth\n\
-    - INSTRUMENT (-)\n\
-        instrument string that will be used for calculating instrument stats\n\
-        (overrides the global attribute \"instrument\" in the data file)\n\
-    - QCFLAGNAME (-)\n\
-        name of the QC flag variable, possible values 0 <= qcflag <= 31\n\
-    - QCFLAGVALS (-)\n\
-        the list of allowed values of QC flag variable\n\
     - THIN (-)\n\
         data thinning ratio (only one out of each consequitive <THIN> values is\n\
-        read\n\
-  Note: it is possible to have multiple entries of QCFLAGNAME and QCFLAGVALS\n\
-  combination, e.g.:\n\
-    PARAMETER QCFLAGNAME = TEMP_quality_control\n\
-    PARAMETER QCFLAGVALS = 1\n\
-    PARAMETER QCFLAGNAME = DEPTH_quality_control\n\
-    PARAMETER QCFLAGVALS = 1\n\
-    PARAMETER QCFLAGNAME = LONGITUDE_quality_control\n\
-    PARAMETER QCFLAGVALS = 1,8\n\
-    PARAMETER QCFLAGNAME = LATITUDE_quality_control\n\
-    PARAMETER QCFLAGVALS = 1,8\n\
-  An observation is considered valid if each of the specified flags takes a\n\
-  permitted value.\n");
+        read\n");
 }

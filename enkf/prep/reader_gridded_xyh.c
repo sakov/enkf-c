@@ -348,18 +348,10 @@ void reader_gridded_xyh_describe(void)
   needs to be entered as follows:\n\
     PARAMETER <name> = <value> ...\n\
 \n\
-  Parameters specific to the reader:\n\
+  Parameters common to generic readers:\n\
     - VARNAME (++)\n\
-    - GRIDNAME (++)\n\
     - TIMENAME (\"*[tT][iI][mM][eE]*\") (+)\n\
     - or TIMENAMES (when time = base_time + offset) (+)\n\
-    - LONNAME (\"lon\" | \"longitude\") (+)\n\
-    - LATNAME (\"lat\" | \"latitude\") (+)\n\
-    - NPOINTSNAME (\"npoints\") (-)\n\
-        number of collated points for each datum; used basically as a data mask\n\
-        when n = 0\n\
-    - ZNAME (\"z\") | ZVALUE (+)\n\
-        \"ZNAME\" is needed for 3D data, \"ZVALUE\" for 2D data (can be NaN)\n\
     - STDNAME (\"std\") (-)\n\
         dispersion of the collated data\n\
     - ESTDNAME (\"error_std\") (-)\n\
@@ -367,6 +359,30 @@ void reader_gridded_xyh_describe(void)
         section of the observation data parameter file\n\
     - BATCHNAME (\"batch\") (-)\n\
         name of the variable used for batch ID (e.g. \"pass\" for SLA)\n\
+    - INSTRUMENT (-)\n\
+        instrument string that will be used for calculating instrument stats\n\
+        (overrides the global attribute \"instrument\" in the data file)\n\
+    - QCFLAGNAME (-)\n\
+        name of the QC flag variable, possible values 0 <= qcflag <= 31\n\
+    - QCFLAGVALS (-)\n\
+        the list of allowed values of QC flag variable\n\
+        Note: it is possible to have multiple entries of QCFLAGNAME and\n\
+        QCFLAGVALS combination, e.g.:\n\
+          PARAMETER QCFLAGNAME = TEMP_quality_control\n\
+          PARAMETER QCFLAGVALS = 1\n\
+          PARAMETER QCFLAGNAME = DEPTH_quality_control\n\
+          PARAMETER QCFLAGVALS = 1\n\
+          PARAMETER QCFLAGNAME = LONGITUDE_quality_control\n\
+          PARAMETER QCFLAGVALS = 1,8\n\
+          PARAMETER QCFLAGNAME = LATITUDE_quality_control\n\
+          PARAMETER QCFLAGVALS = 1,8\n\
+        An observation is considered valid if each of the specified flags takes\n\
+        a permitted value.\n\
+  Parameters specific to the reader:\n\
+    - GRIDNAME (++)\n\
+    - NPOINTSNAME (\"npoints\") (-)\n\
+        number of collated points for each datum; used basically as a data mask\n\
+        when n = 0\n\
   Parameters common to all readers:\n\
     - VARSHIFT (-)\n\
         data offset to be added (e.g. -273.15 to convert from K to C)\n\
@@ -376,26 +392,7 @@ void reader_gridded_xyh_describe(void)
         minimal allowed depth\n\
     - MAXDEPTH (-)\n\
         maximal allowed depth\n\
-    - INSTRUMENT (-)\n\
-        instrument string that will be used for calculating instrument stats\n\
-        (overrides the global attribute \"instrument\" in the data file)\n\
-    - QCFLAGNAME (-)\n\
-        name of the QC flag variable, possible values 0 <= qcflag <= 31\n\
-    - QCFLAGVALS (-)\n\
-        the list of allowed values of QC flag variable\n\
     - THIN (-)\n\
         data thinning ratio (only one out of each consequitive <THIN> values is\n\
-        read\n\
-  Note: it is possible to have multiple entries of QCFLAGNAME and QCFLAGVALS\n\
-  combination, e.g.:\n\
-    PARAMETER QCFLAGNAME = TEMP_quality_control\n\
-    PARAMETER QCFLAGVALS = 1\n\
-    PARAMETER QCFLAGNAME = DEPTH_quality_control\n\
-    PARAMETER QCFLAGVALS = 1\n\
-    PARAMETER QCFLAGNAME = LONGITUDE_quality_control\n\
-    PARAMETER QCFLAGVALS = 1,8\n\
-    PARAMETER QCFLAGNAME = LATITUDE_quality_control\n\
-    PARAMETER QCFLAGVALS = 1,8\n\
-  An observation is considered valid if each of the specified flags takes a\n\
-  permitted value.\n");
+        read\n");
 }

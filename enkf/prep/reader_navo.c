@@ -166,4 +166,31 @@ void reader_navo(char* fname, int fid, obsmeta* meta, grid* g, observations* obs
  */
 void reader_navo_describe(void)
 {
+    enkf_printf("\n  Reader \"navo\" reads SST data from NAVO as pre-processed\n\
+in-house by BoM.\n\
+  After changes in NAVO pre-processing in OceanMAPS 3.4 this reader became\n\
+  redundant as it is replaced by generic reader \"scattered\".\n\
+\n\
+  There are a number of parameters that must (marked below with \"++\"), can\n\
+  (\"+\"), or may (\"-\") be specified in the corresponding section of the\n\
+  observation data parameter file. The names in brackets represent the default\n\
+  names checked in the abscence of the entry for the parameter. Each parameter\n\
+  needs to be entered as follows:\n\
+    PARAMETER <name> = <value> ...\n\
+\n\
+  Parameters specific to the reader:\n\
+    - ADDBIAS (-)\n\
+        reverses bias correction\n\
+  Parameters common to all readers:\n\
+    - VARSHIFT (-)\n\
+        data offset to be added (e.g. -273.15 to convert from K to C)\n\
+    - FOOTRPINT (-)\n\
+        footprint of observations in km\n\
+    - MINDEPTH (-)\n\
+        minimal allowed depth\n\
+    - MAXDEPTH (-)\n\
+        maximal allowed depth\n\
+    - THIN (-)\n\
+        data thinning ratio (only one out of each consequitive <THIN> values is\n\
+        read\n");
 }

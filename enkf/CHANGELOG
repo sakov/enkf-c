@@ -1,6 +1,10 @@
+v.2.9.1
+   PS 08062021
+   -- Completed reader descriptions available by "--describe-reader" in PREP.
+   -- Introduced parameter ZVALUE for reader "gridded_xy".
 v.2.9.0
    PS 07062021
-   -- Made a correction in the user guide RE adrews' solution (1.27).
+   -- Made a correction in the user guide RE andrews' solution (1.27).
    -- Made sure that reader "scattered" can be run with ZVALUE = NaN.
    -- Added 2 new options for PREP: "--list-readers" and "--describe-reader".
    -- Started to put up descriptions for readers, and so far done generic

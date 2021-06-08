@@ -237,23 +237,7 @@ in-house by BoM.\n\
         minimal allowed depth\n\
     - MAXDEPTH (-)\n\
         maximal allowed depth\n\
-    - QCFLAGNAME (-)\n\
-        name of the QC flag variable, possible values 0 <= qcflag <= 31\n\
-    - QCFLAGVALS (-)\n\
-        the list of allowed values of QC flag variable\n\
     - THIN (-)\n\
         data thinning ratio (only one out of each consequitive <THIN> values is\n\
-        read\n\
-  Note: it is possible to have multiple entries of QCFLAGNAME and QCFLAGVALS\n\
-  combination, e.g.:\n\
-    PARAMETER QCFLAGNAME = TEMP_quality_control\n\
-    PARAMETER QCFLAGVALS = 1\n\
-    PARAMETER QCFLAGNAME = DEPTH_quality_control\n\
-    PARAMETER QCFLAGVALS = 1\n\
-    PARAMETER QCFLAGNAME = LONGITUDE_quality_control\n\
-    PARAMETER QCFLAGVALS = 1,8\n\
-    PARAMETER QCFLAGNAME = LATITUDE_quality_control\n\
-    PARAMETER QCFLAGVALS = 1,8\n\
-  An observation is considered valid if each of the specified flags takes a\n\
-  permitted value.\n");
+        read\n");
 }

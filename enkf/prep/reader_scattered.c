@@ -395,7 +395,7 @@ void reader_scattered_describe(void)
   needs to be entered as follows:\n\
     PARAMETER <name> = <value> ...\n\
 \n\
-  Parameters specific to the reader:\n\
+  Parameters common to generic readers:\n\
     - VARNAME (++)\n\
     - TIMENAME (\"*[tT][iI][mM][eE]*\") (+)\n\
     - or TIMENAMES (when time = base_time + offset) (+)\n\
@@ -410,6 +410,26 @@ void reader_scattered_describe(void)
         section of the observation data parameter file\n\
     - BATCHNAME (\"batch\") (-)\n\
         name of the variable used for batch ID (e.g. \"pass\" for SLA)\n\
+    - INSTRUMENT (-)\n\
+        instrument string that will be used for calculating instrument stats\n\
+        (overrides the global attribute \"instrument\" in the data file)\n\
+    - QCFLAGNAME (-)\n\
+        name of the QC flag variable, possible values 0 <= qcflag <= 31\n\
+    - QCFLAGVALS (-)\n\
+        the list of allowed values of QC flag variable\n\
+        Note: it is possible to have multiple entries of QCFLAGNAME and\n\
+        QCFLAGVALS combination, e.g.:\n\
+          PARAMETER QCFLAGNAME = TEMP_quality_control\n\
+          PARAMETER QCFLAGVALS = 1\n\
+          PARAMETER QCFLAGNAME = DEPTH_quality_control\n\
+          PARAMETER QCFLAGVALS = 1\n\
+          PARAMETER QCFLAGNAME = LONGITUDE_quality_control\n\
+          PARAMETER QCFLAGVALS = 1,8\n\
+          PARAMETER QCFLAGNAME = LATITUDE_quality_control\n\
+          PARAMETER QCFLAGVALS = 1,8\n\
+        An observation is considered valid if each of the specified flags takes\n\
+        a permitted value.\n\
+  Parameters specific to the reader:\n\
     - ADDVAR (-)\n\
         name of the variable to be added to the main variable (can be repeated)\n\
     - SUBVAR (-)\n\
@@ -424,26 +444,7 @@ void reader_scattered_describe(void)
         minimal allowed depth\n\
     - MAXDEPTH (-)\n\
         maximal allowed depth\n\
-    - INSTRUMENT (-)\n\
-        instrument string that will be used for calculating instrument stats\n\
-        (overrides the global attribute \"instrument\" in the data file)\n\
-    - QCFLAGNAME (-)\n\
-        name of the QC flag variable, possible values 0 <= qcflag <= 31\n\
-    - QCFLAGVALS (-)\n\
-        the list of allowed values of QC flag variable\n\
     - THIN (-)\n\
         data thinning ratio (only one out of each consequitive <THIN> values is\n\
-        read\n\
-  Note: it is possible to have multiple entries of QCFLAGNAME and QCFLAGVALS\n\
-  combination, e.g.:\n\
-    PARAMETER QCFLAGNAME = TEMP_quality_control\n\
-    PARAMETER QCFLAGVALS = 1\n\
-    PARAMETER QCFLAGNAME = DEPTH_quality_control\n\
-    PARAMETER QCFLAGVALS = 1\n\
-    PARAMETER QCFLAGNAME = LONGITUDE_quality_control\n\
-    PARAMETER QCFLAGVALS = 1,8\n\
-    PARAMETER QCFLAGNAME = LATITUDE_quality_control\n\
-    PARAMETER QCFLAGVALS = 1,8\n\
-  An observation is considered valid if each of the specified flags takes a\n\
-  permitted value.\n");
+        read\n");
 }

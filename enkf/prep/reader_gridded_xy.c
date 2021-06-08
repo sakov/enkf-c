@@ -92,6 +92,8 @@ void reader_gridded_xy(char* fname, int fid, obsmeta* meta, grid* g, observation
     char* varname = NULL;
     char* lonname = NULL;
     char* latname = NULL;
+    double zvalue = NAN;
+    int zvalueentered = 0;
     char* npointsname = NULL;
     char* stdname = NULL;
     char* estdname = NULL;
@@ -133,7 +135,11 @@ void reader_gridded_xy(char* fname, int fid, obsmeta* meta, grid* g, observation
             lonname = meta->pars[i].value;
         else if (strcasecmp(meta->pars[i].name, "LATNAME") == 0)
             latname = meta->pars[i].value;
-        else if (strcasecmp(meta->pars[i].name, "STDNAME") == 0)
+        else if (strcasecmp(meta->pars[i].name, "ZVALUE") == 0) {
+            if (!str2double(meta->pars[i].value, &zvalue))
+                enkf_quit("observation prm file: can not convert ZVALUE = \"%s\" to double\n", meta->pars[i].value);
+            zvalueentered = 1;
+        } else if (strcasecmp(meta->pars[i].name, "STDNAME") == 0)
             stdname = meta->pars[i].value;
         else if (strcasecmp(meta->pars[i].name, "ESTDNAME") == 0)
             estdname = meta->pars[i].value;
@@ -367,11 +373,19 @@ void reader_gridded_xy(char* fname, int fid, obsmeta* meta, grid* g, observation
             o->lon = lon[i];
             o->lat = lat[i];
         }
-        o->depth = 0.0;
-        o->fk = (double) ksurf;
         o->status = grid_xy2fij_f(g, o->lon, o->lat, &o->fi, &o->fj);
         if (!obs->allobs && o->status == STATUS_OUTSIDEGRID)
             continue;
+        if (zvalueentered) {
+            o->depth = zvalue;
+            if (isfinite(zvalue))
+                o->status = grid_z2fk_f(g, o->fi, o->fj, o->depth, &o->fk);
+            else
+                o->fk = NAN;
+        } else {
+            o->depth = 0.0;
+            o->fk = (double) ksurf;
+        }
         o->model_depth = NAN;   /* set in obs_add() */
         if (ntime > 0)
             o->time = (ntime == 1) ? time[0] : time[i];
@@ -419,15 +433,12 @@ void reader_gridded_xy_describe(void)
   Each parameter needs to be entered as follows:\n\
     PARAMETER <name> = <value> ...\n\
 \n\
-  Parameters:\n\
+  Parameters common to generic readers:\n\
     - VARNAME (++)\n\
     - TIMENAME (\"*[tT][iI][mM][eE]*\") (+)\n\
     - or TIMENAMES (when time = base_time + offset) (+)\n\
     - LONNAME (\"lon\" | \"longitude\") (+)\n\
     - LATNAME (\"lat\" | \"latitude\") (+)\n\
-    - NPOINTSNAME (\"npoints\") (-)\n\
-        number of collated points for each datum; used basically as a data mask\n\
-        when n = 0\n\
     - STDNAME (\"std\") (-)\n\
         dispersion of the collated data\n\
     - ESTDNAME (\"error_std\") (-)\n\
@@ -435,6 +446,31 @@ void reader_gridded_xy_describe(void)
         section of the observation data parameter file\n\
     - BATCHNAME (\"batch\") (-)\n\
         name of the variable used for batch ID (e.g. \"pass\" for SLA)\n\
+    - INSTRUMENT (-)\n\
+        instrument string that will be used for calculating instrument stats\n\
+        (overrides the global attribute \"instrument\" in the data file)\n\
+    - QCFLAGNAME (-)\n\
+        name of the QC flag variable, possible values 0 <= qcflag <= 31\n\
+    - QCFLAGVALS (-)\n\
+        the list of allowed values of QC flag variable\n\
+        Note: it is possible to have multiple entries of QCFLAGNAME and\n\
+        QCFLAGVALS combination, e.g.:\n\
+          PARAMETER QCFLAGNAME = TEMP_quality_control\n\
+          PARAMETER QCFLAGVALS = 1\n\
+          PARAMETER QCFLAGNAME = DEPTH_quality_control\n\
+          PARAMETER QCFLAGVALS = 1\n\
+          PARAMETER QCFLAGNAME = LONGITUDE_quality_control\n\
+          PARAMETER QCFLAGVALS = 1,8\n\
+          PARAMETER QCFLAGNAME = LATITUDE_quality_control\n\
+          PARAMETER QCFLAGVALS = 1,8\n\
+        An observation is considered valid if each of the specified flags takes\n\
+        a permitted value.\n\
+  Parameters specific to the reader:\n\
+    - ZVALUE (0) (+)\n\
+        height/depth (can be NaN)\n\
+    - NPOINTSNAME (\"npoints\") (-)\n\
+        number of collated points for each datum; used basically as a data mask\n\
+        when n = 0\n\
   Parameters common to all readers:\n\
     - VARSHIFT (-)\n\
         data offset to be added (e.g. -273.15 to convert from K to C)\n\
@@ -444,26 +480,7 @@ void reader_gridded_xy_describe(void)
         minimal allowed depth\n\
     - MAXDEPTH (-)\n\
         maximal allowed depth\n\
-    - INSTRUMENT (-)\n\
-        instrument string that will be used for calculating instrument stats\n\
-        (overrides the global attribute \"instrument\" in the data file)\n\
-    - QCFLAGNAME (-)\n\
-        name of the QC flag variable, possible values 0 <= qcflag <= 31\n\
-    - QCFLAGVALS (-)\n\
-        the list of allowed values of QC flag variable\n\
     - THIN (-)\n\
         data thinning ratio (only one out of each consequitive <THIN> values is\n\
-        read\n\
-  Note: it is possible to have multiple entries of QCFLAGNAME and QCFLAGVALS\n\
-  combination, e.g.:\n\
-    PARAMETER QCFLAGNAME = TEMP_quality_control\n\
-    PARAMETER QCFLAGVALS = 1\n\
-    PARAMETER QCFLAGNAME = DEPTH_quality_control\n\
-    PARAMETER QCFLAGVALS = 1\n\
-    PARAMETER QCFLAGNAME = LONGITUDE_quality_control\n\
-    PARAMETER QCFLAGVALS = 1,8\n\
-    PARAMETER QCFLAGNAME = LATITUDE_quality_control\n\
-    PARAMETER QCFLAGVALS = 1,8\n\
-  An observation is considered valid if each of the specified flags takes a\n\
-  permitted value.\n");
+        read\n");
 }
