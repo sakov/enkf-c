@@ -4,7 +4,7 @@ v.2.9.1
    -- Introduced parameter ZVALUE for reader "gridded_xy".
 v.2.9.0
    PS 07062021
-   -- Made a correction in the user guide RE andrews' solution (1.27).
+   -- Made a correction in the user guide RE andrews' solution (1.28).
    -- Made sure that reader "scattered" can be run with ZVALUE = NaN.
    -- Added 2 new options for PREP: "--list-readers" and "--describe-reader".
    -- Started to put up descriptions for readers, and so far done generic
@@ -24,7 +24,7 @@ v.2.9.0
 	xyz_gridded -> gridded_xyz
 	xyh_gridded -> gridded_xyh
 
-      TO USERS -- apologiers for the inconvenience (you will need to change the
+      TO USERS -- apologiers for the inconvenience (one will need to edit the
       observation data parameter files after this update).
 v.2.8.3
    PS 26052021
