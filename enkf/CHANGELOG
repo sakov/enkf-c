@@ -9,8 +9,8 @@ v.2.9.0
    -- Added 2 new options for PREP: "--list-readers" and "--describe-reader".
    -- Started to put up descriptions for readers, and so far done generic
       readers.
-   -- Changed most names for readers. For custom readers the readers are no
-      longer called "standard", but rather by the provider names:
+   -- Changed names for most readers. The custom readers are no longer called
+      "standard", but rather by the provider names:
         navo
         windsat
         cars
@@ -24,7 +24,7 @@ v.2.9.0
 	xyz_gridded -> gridded_xyz
 	xyh_gridded -> gridded_xyh
 
-      TO USERS -- apologiers for the inconvenience (one will need to edit the
+      TO USERS -- apologies for the inconvenience (one will need to edit the
       observation data parameter files after this update).
 v.2.8.3
    PS 26052021
