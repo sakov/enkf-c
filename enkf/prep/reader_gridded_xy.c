@@ -11,54 +11,6 @@
  *                It currently assumes the following:
  *              - there is only one data record (2D field);
  *              - longitude is the inner ("fast") coordinate of the variable.
- *                There are a number of parameters that must (++) or can be
- *              specified if they differ from the default value (+). Some
- *              parameters are optional (-):
- *              - VARNAME (++)
- *              - TIMENAME ("*[tT][iI][mM][eE]*") (+)
- *              - or TIMENAMES (when time = base_time + offset) (+)
- *              - NPOINTSNAME ("npoints") (-)
- *                  number of collated points for each datum; used basically as
- *                  a data mask n = 0
- *              - LONNAME ("lon" | "longitude") (+)
- *              - LATNAME ("lat" | "latitude") (+)
- *              - STDNAME ("std") (-)
- *                  internal variability of the collated data
- *              - ESTDNAME ("error_std") (-)
- *                  error STD; if absent then needs to be specified externally
- *                  in the observation data parameter file
- *              - BATCHNAME ("batch") (-)
- *                  name of the variable used for batch ID
- *              - VARSHIFT (-)
- *                  data offset to be added
- *              - FOOTRPINT (-)
- *                  footprint of observations in km
- *              - MINDEPTH (-)
- *                  minimal allowed depth
- *              - MAXDEPTH (-)
- *                  maximal allowed depth
- *              - INSTRUMENT (-)
- *                  instrument string that will be used for calculating
- *                  instrument stats
- *              - QCFLAGNAME (-)
- *                  name of the QC flag variable, 0 <= qcflag <= 31
- *              - QCFLAGVALS (-)
- *                  the list of allowed values of QC flag variable
- *              - THIN (-)
- *                  data thinning ratio
- *              Note: it is possible to have multiple entries of QCFLAGNAME and
- *                QCFLAGVALS combination, e.g.:
- *                  PARAMETER QCFLAGNAME = TEMP_quality_control
- *                  PARAMETER QCFLAGVALS = 1
- *                  PARAMETER QCFLAGNAME = DEPTH_quality_control
- *                  PARAMETER QCFLAGVALS = 1
- *                  PARAMETER QCFLAGNAME = LONGITUDE_quality_control
- *                  PARAMETER QCFLAGVALS = 1,8
- *                  PARAMETER QCFLAGNAME = LATITUDE_quality_control
- *                  PARAMETER QCFLAGVALS = 1,8
- *                An observation is considered valid if each of the specified
- *                flags takes a permitted value.
- *
  * Revisions:   PS 6/7/2018
  *                Added parameters QCFLAGNAME and QCFLAGVALS. The latter is
  *                supposed to contain a list of allowed flag values.
@@ -424,13 +376,17 @@ void reader_gridded_xy(char* fname, int fid, obsmeta* meta, grid* g, observation
  */
 void reader_gridded_xy_describe(void)
 {
-   enkf_printf("\n  Generic reader \"gridded_xy\" reads 2D gridded data. There are\n\
-  a number of parameters that must (marked below with \"++\"), can (\"+\"), or\n\
-  may (\"-\") be specified in the corresponding section of the observation data\n\
-  parameter file. The names in brackets represent the default names checked in\n\
-  the abscence of the entry for the parameter.\n\
+   enkf_printf("\n  Generic reader \"gridded_xy\" reads 2D gridded data. It can handle either\n\
+  curvilinear or geographically rectangular grids. In the latter case the\n\
+  coordinates can be represented by 1D variables; longitude is assumed to be\n\
+  the inner (\"fast\") coordinate. Currently there can be only 1 time record in\n\
+  a data file.\n\
 \n\
-  Each parameter needs to be entered as follows:\n\
+  There are a number of parameters that must (marked below with \"++\"), can\n\
+  (\"+\"), or may (\"-\") be specified in the corresponding section of the\n\
+  observation data parameter file. The names in brackets represent the default\n\
+  names checked in the abscence of the entry for the parameter. Each parameter\n\
+  needs to be entered as follows:\n\
     PARAMETER <name> = <value> ...\n\
 \n\
   Parameters common to generic readers:\n\

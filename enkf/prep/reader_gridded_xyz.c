@@ -402,7 +402,11 @@ void reader_gridded_xyz(char* fname, int fid, obsmeta* meta, grid* g, observatio
  */
 void reader_gridded_xyz_describe(void)
 {
-    enkf_printf("\n  Generic reader \"gridded_xyz\" reads 3D gridded data.\n\
+    enkf_printf("\n  Generic reader \"gridded_xyz\" reads 3D gridded data. It can handle either\n\
+  curvilinear or geographically rectangular grids. In the latter case the\n\
+  coordinates can be represented by 1D variables; longitude is assumed to be\n\
+  the inner (\"fast\") coordinate, followed by latitude, and then depth\n\
+  (height). Currently there can be only 1 time record in a data file.\n\
 \n\
   There are a number of parameters that must (marked below with \"++\"), can\n\
   (\"+\"), or may (\"-\") be specified in the corresponding section of the\n\
