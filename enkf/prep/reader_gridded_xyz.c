@@ -417,11 +417,11 @@ void reader_gridded_xyz_describe(void)
 \n\
   Parameters common to generic readers:\n\
     - VARNAME (++)\n\
-    - TIMENAME (\"*[tT][iI][mM][eE]*\") (+)\n\
+    - TIMENAME (\"t\" | \"[tT]ime\" | \"TIME\") (+)\n\
     - or TIMENAMES (when time = base_time + offset) (+)\n\
     - LONNAME (\"lon\" | \"longitude\") (+)\n\
     - LATNAME (\"lat\" | \"latitude\") (+)\n\
-    - ZNAME (\"z\")\n\
+    - ZNAME (\"z\" | \"[dD]epth\" | \"DEPTH\") (+)\n\
     - STDNAME (\"std\") (-)\n\
         dispersion of the collated data\n\
     - ESTDNAME (\"error_std\") (-)\n\

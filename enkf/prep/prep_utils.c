@@ -631,11 +631,18 @@ char* get_zname(int ncid, char* zname)
     return NULL;
 }
 
+#define NTNAMES 4
+static char* TNAMES[] = { "t",
+    "time",
+    "Time",
+    "TIME"
+};
+
 /**
  */
 static void get_timenames(int ncid, int* varids, char** timenames)
 {
-    int i, nfound, nvar;
+    int i, nfound;
 
     if (timenames[0] != NULL) {
         if (timenames[1] != NULL)
@@ -643,17 +650,12 @@ static void get_timenames(int ncid, int* varids, char** timenames)
         ncw_inq_varid(ncid, timenames[0], &varids[0]);
         nfound = (timenames[1] == NULL) ? 1 : 2;
     } else {
-        ncw_inq_nvars(ncid, &nvar);
-        for (i = 0, nfound = 0; i < nvar; ++i) {
-            char varname[NC_MAX_NAME];
-
-            ncw_inq_varname(ncid, i, varname);
-            if (strncasecmp(varname, "time", MAXSTRLEN - 1) == 0) {
-                if (nfound == 1)
-                    enkf_quit("%s: more than 1 possible time variables found: %s, %s. Use entry TIMENAMES to specify offset and difference time variable names", ncw_get_path(ncid), timenames[0], varname);
-                varids[nfound] = i;
-                timenames[nfound] = strdup(varname);
-                nfound++;
+        for (i = 0, nfound = 0; i < NTNAMES; ++i) {
+            if (ncw_var_exists(ncid, TNAMES[i])) {
+                ncw_inq_varid(ncid, TNAMES[i], &varids[0]);
+                timenames[0] = strdup(TNAMES[i]);
+                nfound = 1;
+                break;
             }
         }
     }

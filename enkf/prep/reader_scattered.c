@@ -397,11 +397,11 @@ void reader_scattered_describe(void)
 \n\
   Parameters common to generic readers:\n\
     - VARNAME (++)\n\
-    - TIMENAME (\"*[tT][iI][mM][eE]*\") (+)\n\
+    - TIMENAME (\"t\" | \"[tT]ime\" | \"TIME\") (+)\n\
     - or TIMENAMES (when time = base_time + offset) (+)\n\
-    - LONNAME (\"lon\" | \"longitude\") (+)\n\
-    - LATNAME (\"lat\" | \"latitude\") (+)\n\
-    - ZNAME (\"z\") | ZVALUE (+)\n\
+    - LONNAME (\"lon\" | \"[lL]ongitude\" | \"LONGITUDE\") (+)\n\
+    - LATNAME (\"lat\" | \"[lL]atitude\" | \"LATITUDE\") (+)\n\
+    - ZNAME (\"z\" | \"[dD]epth\" | \"DEPTH\") | ZVALUE (+)\n\
         \"ZNAME\" is needed for 3D data, \"ZVALUE\" for 2D data (can be NaN)\n\
     - STDNAME (\"std\") (-)\n\
         dispersion of the collated data\n\

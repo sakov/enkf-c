@@ -278,11 +278,11 @@ void reader_z_describe(void)
 \n\
   Parameters common to generic readers:\n\
     - VARNAME (++)\n\
-    - TIMENAME (\"*[tT][iI][mM][eE]*\") (+)\n\
+    - TIMENAME (\"t\" | \"[tT]ime\" | \"TIME\") (+)\n\
     - or TIMENAMES (when time = base_time + offset) (+)\n\
-    - LONNAME (\"lon\" | \"longitude\") (+)\n\
-    - LATNAME (\"lat\" | \"latitude\") (+)\n\
-    - ZNAME (\"z\")\n\
+    - LONNAME (\"lon\" | \"[lL]ongitude\" | \"LONGITUDE\") (+)\n\
+    - LATNAME (\"lat\" | \"[lL]atitude\" | \"LATITUDE\") (+)\n\
+    - ZNAME (\"z\" | \"[dD]epth\" | \"DEPTH\") (+)\n\
     - ESTDNAME (\"error_std\") (-)\n\
         error STD; if absent then needs to be specified in the corresponding\n\
         section of the observation data parameter file\n\

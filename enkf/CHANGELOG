@@ -1,3 +1,7 @@
+v.2.9.2
+   PS 09062021
+   -- Simplified get_timenames(); synced this with descriptions of generic
+      readers.
 v.2.9.1
    PS 08062021
    -- Completed reader descriptions available by "--describe-reader" in PREP.

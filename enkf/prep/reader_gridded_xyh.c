@@ -350,7 +350,7 @@ void reader_gridded_xyh_describe(void)
 \n\
   Parameters common to generic readers:\n\
     - VARNAME (++)\n\
-    - TIMENAME (\"*[tT][iI][mM][eE]*\") (+)\n\
+    - TIMENAME (\"t\" | \"[tT]ime\" | \"TIME\") (+)\n\
     - or TIMENAMES (when time = base_time + offset) (+)\n\
     - STDNAME (\"std\") (-)\n\
         dispersion of the collated data\n\
