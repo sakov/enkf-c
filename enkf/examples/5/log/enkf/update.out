@@ -1,8 +1,8 @@
   MPI: initialised 2 process(es)
-  running UPDATE for EnKF-C version 2.7.8:
+  running UPDATE for EnKF-C version 2.9.3:
     command = "./enkf_update --calculate-spread --write-inflation enkf.prm"
     dir = "/home/pavel/src/enkf-c/trunk/enkf/examples/5"
-  2021-03-09 11:27:28
+  2021-06-16 08:45:56
   reading system specs from "enkf.prm":
     MODE = EnKF
     SCHEME = DEnKF
@@ -42,6 +42,8 @@
       DOMAIN = Default
       DATA = "conf/grid_spec.nc"
       VTYPE = "z"
+      VDIR = FROMSURF
+      GEOGRAPHIC = yes
       ZVARNAME = "zt"
       ZCVARNAME = <none>
       DEPTHVARNAME = "depth_t"
@@ -87,23 +89,23 @@
     defining state variables in point logs:
     distributing 96 iterations:
       2 processes get 48 iterations each
-    2021-03-09 11:27:28
+    2021-06-16 08:45:56
     allocating disk space for analysis:................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................
     processing fields for t-grid:
-      2021-03-09 11:27:28
+      2021-06-16 08:45:56
       9 fields
       distributing 9 iterations:
         2 processes get 5 or 4 iterations
-      eta_t    0   (0: 0: 20.0%)
       u        0   (1: 5: 25.0%)
-      u        1   (1: 6: 50.0%)
+      eta_t    0   (0: 0: 20.0%)
       temp     0   (0: 1: 40.0%)
-      v        0   (1: 7: 75.0%)
+      u        1   (1: 6: 50.0%)
       temp     1   (0: 2: 60.0%)
+      v        0   (1: 7: 75.0%)
       v        1   (1: 8: 100.0%)
       salt     0   (0: 3: 80.0%)
       salt     1   (0: 4: 100.0%)
-  2021-03-09 11:27:30
+  2021-06-16 08:45:58
   assembling analysis:
     distributing 96 iterations:
       2 processes get 48 iterations each
@@ -112,26 +114,26 @@
     salt:................................................
     u:................................................
     v:................................................
-  2021-03-09 11:27:32
+  2021-06-16 08:45:59
   assembling spread:
     eta_t:.
     temp:..
     salt:..
     u:..
     v:..
-  2021-03-09 11:27:33
+  2021-06-16 08:45:59
   assembling inflation:
     eta_t:.
     temp:..
     salt:..
     u:..
     v:..
-  2021-03-09 11:27:33
+  2021-06-16 08:45:59
   assembling state variables in point logs:
     distributing 1 iterations:
       1 processes get 1 iteration, 1 processes get 0 iterations
     deleting tiles:
       distributing 9 iterations:
         2 processes get 5 or 4 iterations
-  2021-03-09 11:27:33
+  2021-06-16 08:45:59
   finished

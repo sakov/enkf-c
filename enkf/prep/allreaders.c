@@ -82,7 +82,8 @@ static void describe_readers(void)
         if (strcmp(allreaders[i].product, "ANY") == 0)
             enkf_printf("    %-9s %s\n", anystr, allreaders[i].reader);
         else
-            enkf_printf("    %-9s %s\n", allreaders[i].product, allreaders[i].reader);}
+            enkf_printf("    %-9s %s\n", allreaders[i].product, allreaders[i].reader);
+}
 
 /**
  */

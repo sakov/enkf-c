@@ -39,7 +39,7 @@
 
 \begin{document}
 
-\title{EnKF-C user guide\\{\normalsize version 2.9.1}}
+\title{EnKF-C user guide\\{\normalsize version 2.9.3}}
 
 \author{Pavel Sakov}
 \date{June 19, 2014 -- \today}
@@ -517,6 +517,34 @@ In contrast, the ETKF (\ref{TR-ETKF}) requires calculation of the inverse square
 Then, one can use expression (\ref{G-m}) for $\mb G$ and calculate both inversion in it and inverse square root in (\ref{TR-ETKF}) from the same singular value decomposition (SVD).
 This makes the DEnKF somewhat more numerically effective because, firstly, one can exploit situations when $p < m$ to invert a matrix of lower dimension and, secondly, it requires only matrix inversion, which can be done via Cholesky decomposition instead of SVD.
 
+\subsection{Ensemble reduction}
+\label{sec:reduction}
+
+There are a number of EnKF extensions, such as EnKF-EnOI hybrid (sec.~\ref{sec:hybrid-theory}), that use a larger ensemble for analysis than for forecast.
+These extensions require ensemble reduction after analysis.
+EnKF-C uses the following approach.
+
+If it is possible to write the ETM as
+\begin{align}
+  \label{downT}
+  \mb T_R = \mb I + \mathcal F(\mb S) \, \mb S,
+\end{align}
+where $\mathcal F(\cdot)$ is some function and $\mb S$ are the standardised ensemble observations (\ref{S}), then the analysed ensemble can be downsized as follows:
+\begin{align}
+  \label{downscaling}
+  \mb E^{a} = (\mb x^f + \mb A^f \mb w) \, \mb 1\T + \mb A\suptxt{actual} + \mb A^f \, \mathcal F(\mb S) \, \mb S\suptxt{actual},
+\end{align}
+where $\mb A^f$ and $\mb A\suptxt{actual}$ are the full (expanded) and actual forecast ensemble anomalies, $\mb S$ and $\mb S\suptxt{actual}$ -- the full and actual standardised ensemble observation anomalies.
+
+ETMs for both the DEnKF and ETKF schemes used in EnKF-C can be represented in the form (\ref{downT}).
+For the DEnKF it is given by (\ref{TR-DEnKF}), and for the ETKF by (\ref{bocquet}).
+
+Note that in the case when the expanded forecast ensemble contains the actual forecast ensemble the above approach is equivalent to using truncated ETM; however, (\ref{downscaling}) can also be interpreted as using left multiplied ETM calculated with the expanded ensemble,
+\begin{align*}
+  \mb A^a = \mb T_L(\mb S) \, \mb A\suptxt{actual},
+\end{align*}
+and is therefore applicable to more general cases.
+
 \section{Localisation}
 
 Localisation is a necessary attribute of the EnKF systems with large-scale models, aimed at overcoming the rank deficiency of the ensemble.
@@ -658,30 +686,14 @@ where $m = m\subtxt{dyn} + m\subtxt{stat}$, so that
 \end{align*}
 
 The combined forecast ensemble anomalies (\ref{hybrid_combined}) have larger ensemble size than that of the dynamic ensemble; hence there arises a problem of ensemble reduction to obtain the analysed dynamic ensemble of size $m\subtxt{dyn}$.
-There are a number of approaches to this problem.
-Perhaps the easiest one to implement is to use members of the analysed ensemble corresponding to the members of the dynamic forecast ensemble:
-\begin{align*}
-  (\mb E\suptxt{dyn})^a = \mb E^f \mb X_5(1 : m, 1 : m\subtxt{dyn}).
-\end{align*}
-The forecast ensemble $\mb E^f$ is built from the combined forecast ensemble anomalies (\ref{hybrid_combined}):
+EnKF-C takes the approach described by (\ref{downscaling}) in sec.~\ref{sec:reduction}:
 \begin{align}
-  \mb E^f = \mb x^f \mb 1\T + \mb A^f,
+  (\mb E\suptxt{dyn})^a = (\mb x^f + \mb A^f \mb w) \mb 1\T + \mb A\suptxt{dyn} + \left(\frac{m\subtxt{dyn} - 1}{m - 1}\right)^{1/2} \mathcal F(\mb S) \, \mb S\suptxt{dyn},
 \end{align}
-where the forecast state $\mb x^f$ is assumed to be equal to the mean of the dynamic ensemble only:
+where
 \begin{align}
-\mb x^f \equiv \frac{1}{m\subtxt{dyn}} \mb E\suptxt{dyn}.
+\mb x^f \equiv \frac{1}{m\subtxt{dyn}} (\mb E\suptxt{dyn})^f \mb 1.
 \end{align}
-
-Finally, note that in absence of observations $\mb X_5 = \mb I$, $(\mb E\suptxt{dyn})^a = \mb E^f(:, 1 : m\subtxt{dyn})$, and according to (\ref{hybrid_combined})
-\begin{align*}
-  (\mb A\suptxt{dyn})^a = \left(\frac{m - 1}{m\subtxt{dyn} - 1}\right)^{1/2}\mb A\suptxt{dyn},
-\end{align*}
-while for correct cycling of the system one needs $(\mb A\suptxt{dyn})^a = \mb A\suptxt{dyn}$.
-Therefore, it is necessary to scale $(\mb A\suptxt{dyn})^a$ as follows:
-\begin{align}
-  (\mb E\suptxt{dyn})^a = (\mb x^f + \mb A^f \mb w) \mb 1\T + \left(\frac{m\subtxt{dyn} - 1}{m - 1}\right)^{1/2} \mb A^f \mb T(1 : m, 1 : m\subtxt{dyn}).
-\end{align}
-This is the approach used in EnKF-C.
 
 \chapter{EnKF-C}
 \label{ch:enkf-c}

@@ -1,19 +1,19 @@
   running PREP for EnKF-C version 2.9.3:
-    command = "./enkf_prep enoi.prm"
+    command = "./enkf_prep enkf.prm"
     dir = "/home/pavel/src/enkf-c/trunk/enkf/examples/1"
-  2021-06-16 08:29:45
-  reading prep specs from "enoi.prm":
-    MODE = EnOI
+  2021-06-16 08:33:50
+  reading prep specs from "enkf.prm":
+    MODE = EnKF
+    SCHEME = ETKF
     MODEL PRM = "model.prm"
     GRID PRM = "grid.prm"
     OBS TYPES PRM = "obstypes.prm"
     OBS PRM = "obs.prm"
     DATE = "6565.5 days since 1990-01-01"
-    BGDIR = "background_6565"
-    ENSEMBLE DIR = "ensemble_static"
-    ENSEMBLE SIZE = 144
-    RFACTOR BASE = 1.0
-    INFLATION BASE = 1.0000
+    ENSEMBLE DIR = "ensemble_6565"
+    ENSEMBLE SIZE = 96
+    RFACTOR BASE = 2.0
+    INFLATION BASE = 1.1000
     INFLATION MODE = CAPPED, MAX RATIO = 1.00
     KFACTOR = 999.0
       LOCRAD  = 200
@@ -24,7 +24,7 @@
     NCFORMAT = NETCDF4
     NCCOMPRESSION = 0
     EnKF flags:
-      enkf_exitaction  = [BACKTRACE]
+      enkf_exitaction  = [SEGFAULT]
       enkf_obstype     = [VALUE]
     enkf_prep compile flags:
       INTERNAL_QSORT_R = [-]
@@ -87,19 +87,19 @@
     5 variables:
       eta_t:
         grid = "t-grid"
-        inflation = 1.000 1.00
+        inflation = 1.100 1.00
       temp:
         grid = "t-grid"
-        inflation = 1.000 1.00
+        inflation = 1.100 1.00
       salt:
         grid = "t-grid"
-        inflation = 1.000 1.00
+        inflation = 1.100 1.00
       u:
         grid = "t-grid"
-        inflation = 1.000 1.00
+        inflation = 1.100 1.00
       v:
         grid = "t-grid"
-        inflation = 1.000 1.00
+        inflation = 1.100 1.00
   reading observation type specs from "obstypes.prm":
     NAME = SLA
     ISSURFACE = 1
@@ -112,7 +112,7 @@
       ASYNCHRONOUS = no
       LOCRAD  = 200
       LOCWEIGHT =  1
-      RFACTOR = 1
+      RFACTOR = 2
       PERMIT_LOCATION_BASED_THINNING = YES
     NAME = SST
     ISSURFACE = 1
@@ -124,7 +124,7 @@
       ASYNCHRONOUS = no
       LOCRAD  = 200
       LOCWEIGHT =  1
-      RFACTOR = 16
+      RFACTOR = 32
       PERMIT_LOCATION_BASED_THINNING = NO
     NAME = TEM
     ISSURFACE = 0
@@ -136,7 +136,7 @@
       ASYNCHRONOUS = no
       LOCRAD  = 800
       LOCWEIGHT =  1
-      RFACTOR = 4
+      RFACTOR = 8
       PERMIT_LOCATION_BASED_THINNING = YES
     NAME = SAL
     ISSURFACE = 0
@@ -148,7 +148,7 @@
       ASYNCHRONOUS = no
       LOCRAD  = 800
       LOCWEIGHT =  1
-      RFACTOR = 4
+      RFACTOR = 8
       PERMIT_LOCATION_BASED_THINNING = YES
   reading observations:
     PRODUCT = RADS, TYPE = SLA, reader = scattered
@@ -594,15 +594,15 @@
       setting error_std to 0.1
       min day = -4.000
       max day = -2.000
-  2021-06-16 08:29:45
+  2021-06-16 08:33:51
   compacting obs:
-  2021-06-16 08:29:45
+  2021-06-16 08:33:51
   superobing:
     10220 superobservations
-  2021-06-16 08:29:45
+  2021-06-16 08:33:51
   checking for superobs on land:
     all good
-  2021-06-16 08:29:45
+  2021-06-16 08:33:51
   writing superobservations to "observations.nc":
   printing observation summary:
     type    #used    #dropped #out_grd #out_obs #out_wnd #land    #shallow #badbatch#badvalue#thinned #excluded#superobs
@@ -612,5 +612,5 @@
     TEM     184      104      104      0        0        0        0        0        0        0        0        7       
     SAL     184      104      104      0        0        0        0        0        0        0        0        7       
     total   158006   209      208      0        0        0        1        0        0        0        0        10220   
-  2021-06-16 08:29:45
+  2021-06-16 08:33:51
   finished

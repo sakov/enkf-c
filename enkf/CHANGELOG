@@ -1,3 +1,9 @@
+v.2.9.3
+   -- Modified das_calctransforms() for the ETKF. The calculations are now
+      done in observation space when the number of obs. is smaller than the
+      ensemble size (p < m).
+   -- Synced das_calcpointlogtransforms() with das_calctransforms() (it now
+      writes w and T rather than X5).
 v.2.9.2
    PS 09062021
    -- Simplified get_timenames(); synced this with descriptions of generic

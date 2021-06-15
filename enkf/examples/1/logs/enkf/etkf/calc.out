@@ -3,21 +3,21 @@
     sm_comm size = 2
     node_comm size = 1
   running CALC for EnKF-C version 2.9.3:
-    command = "./enkf_calc enoi.prm"
-    dir = "/home/pavel/src/enkf-c/trunk/enkf/examples/6"
-  2021-06-16 08:48:54
-  reading system specs from "enoi.prm":
-    MODE = EnOI
+    command = "./enkf_calc enkf.prm"
+    dir = "/home/pavel/src/enkf-c/trunk/enkf/examples/1"
+  2021-06-16 08:33:51
+  reading system specs from "enkf.prm":
+    MODE = EnKF
+    SCHEME = ETKF
     MODEL PRM = "model.prm"
     GRID PRM = "grid.prm"
     OBS TYPES PRM = "obstypes.prm"
     OBS PRM = "obs.prm"
     DATE = "6565.5 days since 1990-01-01"
-    BGDIR = "background_6565"
-    ENSEMBLE DIR = "ensemble_static"
-    ENSEMBLE SIZE = 144
-    RFACTOR BASE = 1.0
-    INFLATION BASE = 1.0000
+    ENSEMBLE DIR = "ensemble_6565"
+    ENSEMBLE SIZE = 96
+    RFACTOR BASE = 2.0
+    INFLATION BASE = 1.1000
     INFLATION MODE = CAPPED, MAX RATIO = 1.00
     KFACTOR = 999.0
       LOCRAD  = 200
@@ -29,7 +29,7 @@
     NCFORMAT = NETCDF4
     NCCOMPRESSION = 0
     EnKF flags:
-      enkf_exitaction  = [BACKTRACE]
+      enkf_exitaction  = [SEGFAULT]
       enkf_obstype     = [VALUE]
     enkf_calc compile flags:
       SHUFFLE_ROWS     = [-]
@@ -52,7 +52,7 @@
       ASYNCHRONOUS = no
       LOCRAD  = 200
       LOCWEIGHT =  1
-      RFACTOR = 1
+      RFACTOR = 2
       PERMIT_LOCATION_BASED_THINNING = YES
     NAME = SST
     ISSURFACE = 1
@@ -64,7 +64,7 @@
       ASYNCHRONOUS = no
       LOCRAD  = 200
       LOCWEIGHT =  1
-      RFACTOR = 16
+      RFACTOR = 32
       PERMIT_LOCATION_BASED_THINNING = NO
     NAME = TEM
     ISSURFACE = 0
@@ -76,7 +76,7 @@
       ASYNCHRONOUS = no
       LOCRAD  = 800
       LOCWEIGHT =  1
-      RFACTOR = 4
+      RFACTOR = 8
       PERMIT_LOCATION_BASED_THINNING = YES
     NAME = SAL
     ISSURFACE = 0
@@ -88,30 +88,12 @@
       ASYNCHRONOUS = no
       LOCRAD  = 800
       LOCWEIGHT =  1
-      RFACTOR = 4
+      RFACTOR = 8
       PERMIT_LOCATION_BASED_THINNING = YES
     grid prm info:
       NAME = "t-grid"
       DOMAIN = Default
-      DATA = "conf4/grid_spec.nc"
-      VTYPE = "none"
-      VDIR = (null)
-      GEOGRAPHIC = yes
-      DEPTHVARNAME = "depth_t"
-      MASKVARNAME = "num_levels"
-      XVARNAME = "lont"
-      YVARNAME = "latt"
-    grid info:
-      hor type = LATLON
-      periodic by X = no
-      dims = 100 x 100 x 1
-      longitude range = [0.000, 360.000]
-      v type = NONE
-      STRIDE = 0
-    grid prm info:
-      NAME = "t-grid2"
-      DOMAIN = Default
-      DATA = "conf4/grid_spec.nc"
+      DATA = "conf/grid_spec.nc"
       VTYPE = "z"
       VDIR = FROMSURF
       GEOGRAPHIC = yes
@@ -120,26 +102,8 @@
       DEPTHVARNAME = "depth_t"
       NUMLEVELSVARNAME = "num_levels"
       VDIR = "FROMSURF"
-      HGRIDFROM = "t-grid"
-      ZSTATINTS = [0 50] [50 500] [500 9999] 
-    grid info:
-      horizontal grid -- aliased to grid #0
-      v type = Z
-      v dir = FROMSURF
-      STRIDE = 0
-    grid prm info:
-      NAME = "c-grid"
-      DOMAIN = Default
-      DATA = "conf4/grid_spec.nc"
-      VTYPE = "z"
-      VDIR = FROMSURF
-      GEOGRAPHIC = yes
-      ZVARNAME = "zt"
-      ZCVARNAME = <none>
-      NUMLEVELSVARNAME = "num_levels"
-      VDIR = "FROMSURF"
-      XVARNAME = "lonc"
-      YVARNAME = "latc"
+      XVARNAME = "lon"
+      YVARNAME = "lat"
       ZSTATINTS = [0 50] [50 500] [500 9999] 
     grid info:
       hor type = LATLON
@@ -154,26 +118,24 @@
     5 variables:
       eta_t:
         grid = "t-grid"
-        inflation = 1.000 1.00
+        inflation = 1.100 1.00
       temp:
-        grid = "t-grid2"
-        inflation = 1.000 1.00
+        grid = "t-grid"
+        inflation = 1.100 1.00
       salt:
-        grid = "t-grid2"
-        inflation = 1.000 1.00
+        grid = "t-grid"
+        inflation = 1.100 1.00
       u:
-        grid = "c-grid"
-        inflation = 1.000 1.00
+        grid = "t-grid"
+        inflation = 1.100 1.00
       v:
-        grid = "c-grid"
-        inflation = 1.000 1.00
+        grid = "t-grid"
+        inflation = 1.100 1.00
   setting the ensemble size:
-    144 members
+    96 members
   initialising pointlogs:
     pointlog (156.000, -32.000):
       t-grid: (i, j) = (49.500, 49.500)
-      t-grid2: (i, j) = (49.500, 49.500)
-      c-grid: (i, j) = (49.000, 49.000)
   reading observations from "observations.nc":
     10220 observations
     allocating 735840 bytes for array of observations
@@ -191,18 +153,17 @@
         7 nodes
         496 bytes
   calculating ensemble observations:
-  2021-06-16 08:48:54
-    allocating 5927600 bytes for HE array:
-    allocating 5886720 bytes for HE^T array:
-    distributing 144 iterations:
-      2 processes get 72 iterations each
-    SLA +........................................................................
-    SST +........................................................................
-    TEM +........................................................................
-    SAL +........................................................................
-    subtracting ensemble mean:
+  2021-06-16 08:33:51
+    allocating 3924480 bytes for HE array:
+    allocating 3924480 bytes for HE^T array:
+    distributing 96 iterations:
+      2 processes get 48 iterations each
+    SLA ................................................
+    SST ................................................
+    TEM ................................................
+    SAL ................................................
   writing forecast innovations and spread to "observations.nc":
-  2021-06-16 08:48:54
+  2021-06-16 08:33:51
   moderating observations:
     observations substantially modified:
       SLA          0 (0.0%)
@@ -212,11 +173,11 @@
       total        0 (0.0%)
   writing modified obs errors to "observations.nc":
   calculating transforms:
-  2021-06-16 08:48:54
+  2021-06-16 08:33:51
     calculating transforms for t-grid:
       distributing 34 iterations:
         2 processes get 17 iterations each
-      creating empty file "transforms-0.nc":
+      creating empty file "transforms.nc":
       main cycle for t-grid (34 x 34 local analyses):
         j = 0 (0: 0: 5.9%)
         j = 3 (1: 17: 5.9%)
@@ -253,91 +214,43 @@
         j = 99 (1: 33: 100.0%)
         j = 96 (0: 16: 100.0%)
     finished calculating transforms for t-grid
-    writing stats to "enkf_diag-0.nc":
+    writing stats to "enkf_diag.nc":
     summary stats on t-grid:
       # of local analyses = 1156
       average # of local obs = 1049.4
-      # of inversions in obs space = 57
-      # of inversions in ens space = 1099
-    calculating transforms for c-grid:
-      distributing 34 iterations:
-        2 processes get 17 iterations each
-      creating empty file "transforms-2.nc":
-      main cycle for c-grid (34 x 34 local analyses):
-        j = 3 (1: 17: 5.9%)
-        j = 0 (0: 0: 5.9%)
-        j = 9 (1: 18: 11.8%)
-        j = 6 (0: 1: 11.8%)
-        j = 15 (1: 19: 17.6%)
-        j = 12 (0: 2: 17.6%)
-        j = 21 (1: 20: 23.5%)
-        j = 18 (0: 3: 23.5%)
-        j = 24 (0: 4: 29.4%)
-        j = 27 (1: 21: 29.4%)
-        j = 33 (1: 22: 35.3%)
-        j = 30 (0: 5: 35.3%)
-        j = 39 (1: 23: 41.2%)
-        j = 36 (0: 6: 41.2%)
-        j = 45 (1: 24: 47.1%)
-        j = 42 (0: 7: 47.1%)
-        j = 51 (1: 25: 52.9%)
-        j = 48 (0: 8: 52.9%)
-        j = 57 (1: 26: 58.8%)
-        j = 54 (0: 9: 58.8%)
-        j = 63 (1: 27: 64.7%)
-        j = 60 (0: 10: 64.7%)
-        j = 69 (1: 28: 70.6%)
-        j = 66 (0: 11: 70.6%)
-        j = 75 (1: 29: 76.5%)
-        j = 72 (0: 12: 76.5%)
-        j = 81 (1: 30: 82.4%)
-        j = 78 (0: 13: 82.4%)
-        j = 87 (1: 31: 88.2%)
-        j = 84 (0: 14: 88.2%)
-        j = 93 (1: 32: 94.1%)
-        j = 90 (0: 15: 94.1%)
-        j = 99 (1: 33: 100.0%)
-        j = 96 (0: 16: 100.0%)
-    finished calculating transforms for c-grid
-    writing stats to "enkf_diag-2.nc":
-    summary stats on c-grid:
-      # of local analyses = 1156
-      average # of local obs = 1052.6
-      # of inversions in obs space = 56
-      # of inversions in ens space = 1100
+      # of inversions in obs space = 47
+      # of inversions in ens space = 1109
   writing point logs:
     calculating transforms for log point (156.000,-32.000): 1444 obs
     writing log for point (156.000,-32.000) on grid "t-grid":
-    writing log for point (156.000,-32.000) on grid "t-grid2":
-    writing log for point (156.000,-32.000) on grid "c-grid":
   calculating analysed observations:
-  2021-06-16 08:49:44
+  2021-06-16 08:34:16
     sorting obs by ij:
-    2021-06-16 08:49:44
-    updating Hx:
+    2021-06-16 08:34:16
+    updating HE:
     distributing 10220 iterations:
       2 processes get 5110 iterations each
-    2021-06-16 08:49:44
+    2021-06-16 08:34:16
   adding analysis innovations and spread to "observations.nc":
   printing observation statistics:
     region obs.type   # obs.  |for.inn.| |an.inn.|   for.inn.   an.inn.  for.spread  an.spread
     ------------------------------------------------------------------------------------------
     Global
-           SLA           652   0.0769     0.0253     0.0218   8.48e-05     0.0271     0.0271  
-             j1          272   0.0731     0.0219     0.0228   0.000927     0.0297     0.0297  
-             n1          380   0.0797     0.0277     0.0211  -0.000518     0.0253     0.0253  
-           SST          9554    0.456      0.186     -0.148    -0.0319      0.415      0.415  
-             ESACCI     8386    0.457      0.158     -0.128    -0.0127      0.416      0.416  
-             WindSat    1168    0.451       0.38      -0.29      -0.17      0.413      0.413  
-           TEM             7     1.01      0.952      0.512      0.873      0.296      0.296  
-             ARGO          7     1.01      0.952      0.512      0.873      0.296      0.296  
-             0-50m         2     1.47       2.42       1.47       2.42      0.305      0.305  
-             50-500m       5    0.832      0.366      0.129      0.255      0.293      0.293  
+           SLA           652   0.0769     0.0306     0.0218   0.000273     0.0387     0.0113  
+             j1          272   0.0731     0.0267     0.0228   4.59e-05     0.0434     0.0115  
+             n1          380   0.0797     0.0334     0.0211   0.000436     0.0353     0.0112  
+           SST          9554    0.456      0.205     -0.148    -0.0423      0.352     0.0986  
+             ESACCI     8386    0.457       0.18     -0.128    -0.0232      0.354     0.0995  
+             WindSat    1168    0.451       0.38      -0.29     -0.179      0.343     0.0927  
+           TEM             7     1.01      0.983      0.512      0.706      0.318      0.119  
+             ARGO          7     1.01      0.983      0.512      0.706      0.318      0.119  
+             0-50m         2     1.47       2.33       1.47       2.33      0.321     0.0732  
+             50-500m       5    0.832      0.444      0.129     0.0554      0.316      0.138  
              500-9999m     0     -nan       -nan       -nan       -nan       -nan       -nan  
-           SAL             7   0.0768     0.0834     0.0546     0.0549     0.0231     0.0231  
-             ARGO          7   0.0768     0.0834     0.0546     0.0549     0.0231     0.0231  
-             0-50m         2   0.0881      0.104     0.0739      0.078     0.0193     0.0193  
-             50-500m       5   0.0723     0.0751     0.0469     0.0457     0.0246     0.0246  
+           SAL             7   0.0768     0.0887     0.0546     0.0459     0.0293     0.0155  
+             ARGO          7   0.0768     0.0887     0.0546     0.0459     0.0293     0.0155  
+             0-50m         2   0.0881      0.115     0.0739      0.072     0.0225     0.0118  
+             50-500m       5   0.0723     0.0782     0.0469     0.0355      0.032     0.0169  
              500-9999m     0     -nan       -nan       -nan       -nan       -nan       -nan  
-  2021-06-16 08:49:45
+  2021-06-16 08:34:16
   finished

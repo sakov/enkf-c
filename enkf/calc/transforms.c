@@ -590,16 +590,15 @@ void das_calctransforms(dasystem* das)
                 for (o = 0; o < ploc; ++o)
                     sloc[o] = das->s_f[lobs[o]] * lcoeffs[o];
 
-                if (das->mode == MODE_ENOI || das->scheme == SCHEME_DENKF) {
-                    calc_G(nmem, ploc, M, Sloc, i, j, G);
-                    if (das->mode == MODE_ENKF || das->mode == MODE_HYBRID)
-                        calc_T_denkf(nmem, ploc, G, Sloc, T);
-                } else if (das->scheme == SCHEME_ETKF)
-                    calc_GT_etkf(nmem, ploc, M, Sloc, i, j, G, T);
-                else
+                if (das->mode == MODE_ENOI) {
+                    calc_G(nmem, ploc, M, Sloc, G);
+                    calc_w(nmem, ploc, G, sloc, w);
+                } else if (das->scheme == SCHEME_DENKF) {
+                    calc_wT_denkf(nmem, nmem_dynamic, ploc, sloc, Sloc, Sloc, M, G, w, T);
+                } else if (das->scheme == SCHEME_ETKF) {
+                    calc_wT_etkf(nmem, nmem_dynamic, ploc, sloc, Sloc, Sloc, M, G, w, T);
+                } else
                     enkf_quit("programming error");
-
-                calc_w(nmem, ploc, G, sloc, w);
 
                 if (das->mode == MODE_ENKF || das->mode == MODE_HYBRID) {
                     int e1, e2;
@@ -975,16 +974,17 @@ void das_calcpointlogtransforms(dasystem* das)
 {
     model* m = das->m;
     int nmem = das->nmem;
-    double* w = malloc(nmem * sizeof(double));
+    int nmem_dynamic = das->nmem_dynamic;
     observations* obs = das->obs;
-    double** X5 = NULL;
+    double* w = malloc(nmem * sizeof(double));
+    double** T = NULL;
     int plogid, e, o, gid;
 
     if (das->s_mode == S_MODE_HA_f)
         das_standardise(das);
 
     if (das->mode == MODE_ENKF || das->mode == MODE_HYBRID)
-        X5 = alloc2d(nmem, nmem, sizeof(double));
+        T = alloc2d(nmem, nmem, sizeof(double));
 
     for (plogid = 0; plogid < das->nplog; ++plogid) {
         pointlog* plog = &das->plogs[plogid];
@@ -1023,8 +1023,6 @@ void das_calcpointlogtransforms(dasystem* das)
          */
         for (gid = 0; gid < model_getngrid(m); ++gid) {
             void* g = model_getgridbyid(m, gid);
-            int i = (int) (plog->fi[gid] + 0.5);
-            int j = (int) (plog->fj[gid] + 0.5);
             double* sloc = NULL;
             double** Sloc = NULL;
             double** G = NULL;
@@ -1039,17 +1037,18 @@ void das_calcpointlogtransforms(dasystem* das)
             obs_findlocal(obs, plog->lon, plog->lat, grid_getdomainname(g), &ploc, &lobs, &lcoeffs);
 #endif
 
-            if (X5 != NULL)
-                memset(X5[0], 0, nmem * nmem * sizeof(double));
+            if (T != NULL)
+                memset(T[0], 0, nmem * nmem * sizeof(double));
 
             if (ploc == 0) {
-                if (das->mode == MODE_ENKF || das->mode == MODE_HYBRID)
+                memset(w, 0, nmem * sizeof(double));
+                if (T != NULL)
                     for (e = 0; e < nmem; ++e)
-                        X5[e][e] = 1.0;
+                        T[e][e] = 1.0;
             } else {
                 Sloc = alloc2d(nmem, ploc, sizeof(double));
-                sloc = malloc(ploc * sizeof(double));
                 G = alloc2d(ploc, nmem, sizeof(double));
+                sloc = malloc(ploc * sizeof(double));
 
                 for (e = 0; e < nmem; ++e) {
                     float* Se = das->S[e];
@@ -1061,22 +1060,32 @@ void das_calcpointlogtransforms(dasystem* das)
                 for (o = 0; o < ploc; ++o)
                     sloc[o] = das->s_f[lobs[o]] * lcoeffs[o];
 
-                if (das->mode == MODE_ENOI || das->scheme == SCHEME_DENKF) {
-                    calc_G(nmem, ploc, NULL, Sloc, i, j, G);
-                    if (das->mode == MODE_ENKF || das->mode == MODE_HYBRID)
-                        calc_T_denkf(nmem, ploc, G, Sloc, X5);
-                } else if (das->scheme == SCHEME_ETKF)
-                    calc_GT_etkf(nmem, ploc, NULL, Sloc, i, j, G, X5);
-                else
+                if (das->mode == MODE_ENOI) {
+                    calc_G(nmem, ploc, NULL, Sloc, G);
+                    calc_w(nmem, ploc, G, sloc, w);
+                } else if (das->scheme == SCHEME_DENKF) {
+                    calc_wT_denkf(nmem, nmem_dynamic, ploc, sloc, Sloc, Sloc, NULL, G, w, T);
+                } else if (das->scheme == SCHEME_ETKF) {
+                    calc_wT_etkf(nmem, nmem_dynamic, ploc, sloc, Sloc, Sloc, NULL, G, w, T);
+                } else
                     enkf_quit("programming error");
 
-                calc_w(nmem, ploc, G, sloc, w);
-                if (das->mode == MODE_ENKF || das->mode == MODE_HYBRID)
-                    calc_X5(nmem, das->alpha, w, X5);
+                if (das->mode == MODE_ENKF || das->mode == MODE_HYBRID) {
+                    int e1, e2;
+
+                    for (e1 = 0; e1 < nmem_dynamic; ++e1) {
+                        double* Ti = T[e1];
+
+                        Ti[e1] -= 1.0;
+                        for (e2 = 0; e2 < nmem; ++e2)
+                            Ti[e2] *= das->alpha;
+                        Ti[e1] += 1.0;
+                    }
+                }
             }
 
             enkf_printf("    writing log for point (%.3f,%.3f) on grid \"%s\":", plog->lon, plog->lat, grid_getname(g));
-            plog_writetransform(das, plogid, gid, ploc, sloc, (ploc == 0) ? NULL : Sloc[0], (das->mode == MODE_ENKF || das->mode == MODE_HYBRID) ? X5[0] : w);
+            plog_writetransform(das, plogid, gid, ploc, sloc, (ploc == 0) ? NULL : Sloc[0], w, (T != NULL) ? T[0] : NULL);
             enkf_printf("\n");
 
             if (ploc > 0) {
@@ -1091,7 +1100,7 @@ void das_calcpointlogtransforms(dasystem* das)
         }
     }
 
-    if (das->mode == MODE_ENKF || das->mode == MODE_HYBRID)
-        free(X5);
+    if (T != NULL)
+        free(T);
     free(w);
 }

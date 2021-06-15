@@ -294,7 +294,7 @@ void plog_create(dasystem* das, int plogid, int ploc, int* lobs, double* lcoeffs
 /** Creates a point log file and writes ensemble observations, transforms, and
  * accompanying information.
  */
-void plog_writetransform(dasystem* das, int plogid, int gid, int ploc, double* s, double* S, double* transform)
+void plog_writetransform(dasystem* das, int plogid, int gid, int ploc, double* s, double* S, double* w, double* T)
 {
     pointlog* plog = &das->plogs[plogid];
     char* gridname = grid_getname(model_getgridbyid(das->m, gid));
@@ -303,7 +303,7 @@ void plog_writetransform(dasystem* das, int plogid, int gid, int ploc, double* s
     int ncid;
     int dimids[3];
     char name[NC_MAX_NAME];
-    int vid_S, vid_s, vid_transform;
+    int vid_S, vid_s, vid_w, vid_T;
     char gridstr[SMALLSTRLEN];
 
     assert(das->s_mode == S_MODE_S_f);
@@ -331,28 +331,31 @@ void plog_writetransform(dasystem* das, int plogid, int gid, int ploc, double* s
         snprintf(name, NC_MAX_NAME, "S%s", gridstr);
         ncw_def_var(ncid, name, NC_FLOAT, 2, &dimids[1], &vid_S);
     }
-    if (das->mode == MODE_ENKF || das->mode == MODE_HYBRID) {
-        char attstr[MAXSTRLEN];
-
-        snprintf(name, NC_MAX_NAME, "X5%s", gridstr);
-        ncw_def_var(ncid, name, NC_DOUBLE, 2, dimids, &vid_transform);
-        snprintf(attstr, MAXSTRLEN, "ensemble transform calculated for location (fi,fj)=(%.3f,%.3f) on grid %d (\"%s\")", plog->fi[gid], plog->fj[gid], gid, gridname);
-        ncw_put_att_text(ncid, vid_transform, "long_name", attstr);
-    } else if (das->mode == MODE_ENOI) {
+    {
         char attstr[MAXSTRLEN];
         char varname[NC_MAX_NAME];
 
         snprintf(varname, NC_MAX_NAME, "w%s", gridstr);
-        ncw_def_var(ncid, varname, NC_DOUBLE, 1, &dimids[1], &vid_transform);
-        snprintf(attstr, MAXSTRLEN, "ensemble coefficients calculated for location (fi,fj)=(%.3f,%.3f) on grid %d (\"%s\")", plog->fi[gid], plog->fj[gid], gid, gridname);
-        ncw_put_att_text(ncid, vid_transform, "long_name", attstr);
+        ncw_def_var(ncid, varname, NC_DOUBLE, 1, &dimids[1], &vid_w);
+        snprintf(attstr, MAXSTRLEN, "ensemble coefficients for location (fi,fj)=(%.3f,%.3f) on grid %d (\"%s\")", plog->fi[gid], plog->fj[gid], gid, gridname);
+        ncw_put_att_text(ncid, vid_w, "long_name", attstr);
+    }
+    if (T != NULL) {
+        char attstr[MAXSTRLEN];
+
+        snprintf(name, NC_MAX_NAME, "T%s", gridstr);
+        ncw_def_var(ncid, name, NC_DOUBLE, 2, dimids, &vid_T);
+        snprintf(attstr, MAXSTRLEN, "ensemble anomalies transform for location (fi,fj)=(%.3f,%.3f) on grid %d (\"%s\")", plog->fi[gid], plog->fj[gid], gid, gridname);
+        ncw_put_att_text(ncid, vid_T, "long_name", attstr);
     }
     ncw_enddef(ncid);
 
     if (ploc > 0) {
         ncw_put_var_double(ncid, vid_s, s);
         ncw_put_var_double(ncid, vid_S, S);
-        ncw_put_var_double(ncid, vid_transform, transform);
+        ncw_put_var_double(ncid, vid_w, w);
+        if (T != NULL)
+            ncw_put_var_double(ncid, vid_T, T);
     }
 
     ncw_close(ncid);

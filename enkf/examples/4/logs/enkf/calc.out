@@ -2,10 +2,10 @@
   Using MPI-3 shared memory:
     sm_comm size = 2
     node_comm size = 1
-  running CALC for EnKF-C version 2.7.8:
+  running CALC for EnKF-C version 2.9.3:
     command = "./enkf_calc enkf.prm"
     dir = "/home/pavel/src/enkf-c/trunk/enkf/examples/4"
-  2021-03-09 11:24:54
+  2021-06-16 08:42:02
   reading system specs from "enkf.prm":
     MODE = EnKF
     SCHEME = DEnKF
@@ -35,7 +35,7 @@
       SHUFFLE_ROWS     = [-]
       USE_SHMEM        = [+]
       MINIMISE_ALLOC   = [+]
-      OBS_SHUFFLE      = [+]
+      OBS_SHUFFLE      = [-]
       TW_VIAFILE       = [-]
       INTERNAL_QSORT_R = [-]
       DEFLATE_ALL      = [-]
@@ -95,6 +95,8 @@
       DOMAIN = Default
       DATA = "conf4/grid_spec.nc"
       VTYPE = "z"
+      VDIR = FROMSURF
+      GEOGRAPHIC = yes
       ZVARNAME = "zt"
       ZCVARNAME = <none>
       DEPTHVARNAME = "depth_t"
@@ -116,6 +118,8 @@
       DOMAIN = Default
       DATA = "conf4/grid_spec.nc"
       VTYPE = "z"
+      VDIR = FROMSURF
+      GEOGRAPHIC = yes
       ZVARNAME = "zt"
       ZCVARNAME = <none>
       NUMLEVELSVARNAME = "num_levels"
@@ -157,7 +161,7 @@
       c-grid: (i, j) = (49.000, 49.000)
   reading observations from "observations.nc":
     10220 observations
-    allocating 1226400 bytes for array of observations
+    allocating 735840 bytes for array of observations
     creating kd-trees for observations:
       kdtree "SLA":
         652 nodes
@@ -172,7 +176,7 @@
         7 nodes
         496 bytes
   calculating ensemble observations:
-  2021-03-09 11:24:54
+  2021-06-16 08:42:03
     allocating 3924480 bytes for HE array:
     allocating 3924480 bytes for HE^T array:
     distributing 96 iterations:
@@ -182,7 +186,7 @@
     TEM ................................................
     SAL ................................................
   writing forecast innovations and spread to "observations.nc":
-  2021-03-09 11:24:54
+  2021-06-16 08:42:03
   moderating observations:
     observations substantially modified:
       SLA          0 (0.0%)
@@ -192,7 +196,7 @@
       total        0 (0.0%)
   writing modified obs errors to "observations.nc":
   calculating transforms:
-  2021-03-09 11:24:54
+  2021-06-16 08:42:03
     calculating transforms for t-grid:
       distributing 34 iterations:
         2 processes get 17 iterations each
@@ -224,8 +228,8 @@
         j = 66 (0: 11: 70.6%)
         j = 75 (1: 29: 76.5%)
         j = 72 (0: 12: 76.5%)
-        j = 78 (0: 13: 82.4%)
         j = 81 (1: 30: 82.4%)
+        j = 78 (0: 13: 82.4%)
         j = 87 (1: 31: 88.2%)
         j = 84 (0: 14: 88.2%)
         j = 93 (1: 32: 94.1%)
@@ -243,9 +247,9 @@
       distributing 34 iterations:
         2 processes get 17 iterations each
       creating empty file "transforms-1.nc":
-        j = 3 (1: 17: 5.9%)
       main cycle for c-grid (34 x 34 local analyses):
         j = 0 (0: 0: 5.9%)
+        j = 3 (1: 17: 5.9%)
         j = 9 (1: 18: 11.8%)
         j = 6 (0: 1: 11.8%)
         j = 15 (1: 19: 17.6%)
@@ -290,13 +294,13 @@
     writing log for point (156.000,-32.000) on grid "t-grid":
     writing log for point (156.000,-32.000) on grid "c-grid":
   calculating analysed observations:
-  2021-03-09 11:25:29
+  2021-06-16 08:42:36
     sorting obs by ij:
-    2021-03-09 11:25:29
+    2021-06-16 08:42:36
     updating HE:
     distributing 10220 iterations:
       2 processes get 5110 iterations each
-    2021-03-09 11:25:29
+    2021-06-16 08:42:36
   adding analysis innovations and spread to "observations.nc":
   printing observation statistics:
     region obs.type   # obs.  |for.inn.| |an.inn.|   for.inn.   an.inn.  for.spread  an.spread
@@ -318,5 +322,5 @@
              0-50m         2   0.0881      0.115     0.0739      0.072     0.0225     0.0157  
              50-500m       5   0.0723     0.0782     0.0469     0.0355      0.032     0.0223  
              500-9999m     0     -nan       -nan       -nan       -nan       -nan       -nan  
-  2021-03-09 11:25:29
+  2021-06-16 08:42:36
   finished

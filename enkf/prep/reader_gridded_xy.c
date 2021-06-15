@@ -376,7 +376,7 @@ void reader_gridded_xy(char* fname, int fid, obsmeta* meta, grid* g, observation
  */
 void reader_gridded_xy_describe(void)
 {
-   enkf_printf("\n  Generic reader \"gridded_xy\" reads 2D gridded data. It can handle either\n\
+    enkf_printf("\n  Generic reader \"gridded_xy\" reads 2D gridded data. It can handle either\n\
   curvilinear or geographically rectangular grids. In the latter case the\n\
   coordinates can be represented by 1D variables; longitude is assumed to be\n\
   the inner (\"fast\") coordinate. Currently there can be only 1 time record in\n\
