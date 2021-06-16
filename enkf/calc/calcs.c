@@ -97,32 +97,32 @@ double traceprod(int transposeA, int transposeB, int m, int n, double** A, doubl
 
 /** Calculates inverse of a symmetric matrix via Cholesky decomposition.
  * @param m - matrix size
- * @param S - input: matrix; output: S^-1
+ * @param M - input: m x m matrix; output: M^-1
  */
-static void invm(int m, double** S)
+static void invm(int m, double** M)
 {
     char uplo = 'U';
     int lapack_info;
     int i, j;
 
-    dpotrf_(&uplo, &m, S[0], &m, &lapack_info);
+    dpotrf_(&uplo, &m, M[0], &m, &lapack_info);
     if (lapack_info != 0)
         /*
          * the failures of these procedured below are extremely rare, basically
          * unheard of, so we do not bother to elaborate
          */
         enkf_quit("dpotrf(): lapack_info = %d", lapack_info);
-    dpotri_(&uplo, &m, S[0], &m, &lapack_info);
+    dpotri_(&uplo, &m, M[0], &m, &lapack_info);
     if (lapack_info != 0)
         enkf_quit("dpotri(): lapack_info = %d", lapack_info);
 #if 0
     for (j = 1; j < m; ++j)
         for (i = 0; i < j; ++i)
-            S[i][j] = S[j][i];
+            M[i][j] = M[j][i];
 #else
     for (j = 1; j < m; ++j) {
-        double* colj_rowi = S[j];
-        double* rowj_coli = &S[0][j];
+        double* colj_rowi = M[j];
+        double* rowj_coli = &M[0][j];
 
         for (i = 0; i < j; ++i, colj_rowi++, rowj_coli += m)
             *rowj_coli = *colj_rowi;
@@ -177,6 +177,12 @@ static void calc_Minv(int p, int m, double** S, double** M)
 }
 
 /** Calculates G = inv(I + S' * S) * S' = S' * inv(I + S * S').
+ * @param m - ensemble size
+ * @param p - number of obs.
+ * @param Min - storage space for M of size >= n x n x sizeof(double),
+ *              n = min(m, p); or NULL
+ * @param S - p x m matrix of normalised ensemble observation anomalies
+ * @param G - output, m x p
  */
 void calc_G(int m, int p, double** Min, double** S, double** G)
 {
@@ -212,18 +218,23 @@ void calc_G(int m, int p, double** Min, double** S, double** G)
         free(M);
 }
 
-/** Calculates T = I - 1/2 * G * S.
+/** Calculates ETM for the DEnKF, T = I - 1/2 * G * S.
+ * @param m - full (expanded) ensemble size
+ * @param mout - actual (dynamic) ensemble size
+ * @param p - number of observations
+ * @param G - m x p matrix, G = inv(I + S' * S) * S' = S' * inv(I + S * S')
+ * @param S - p x m matrix of normalised ensemble observation anomalies
+ * @param T - output ETM, m x m
  */
 static void calc_T_denkf(int m, int mout, int p, double** G, double** S, double** T)
 {
-    double a, b;
+    double a = -0.5;
+    double b = 0.0;
     int i;
 
     /*
      * T <- -1/2 * G * S 
      */
-    a = -0.5;
-    b = 0.0;
     dgemm_(&noT, &noT, &m, &mout, &p, &a, G[0], &m, S[0], &p, &b, T[0], &m);
 
     /*
@@ -233,13 +244,17 @@ static void calc_T_denkf(int m, int mout, int p, double** G, double** S, double*
         T[i][i] += 1.0;
 }
 
-/** Calculates w = G * s.
+/** Calculates increment coefficients w = G * s.
+ * @param m - ensemble size = size(G, 1) 
+ * @param p - number of obs. = size(G, 2)
+ * @param G - m x p matrix, G = inv(I + S' * S) * S' = S' * inv(I + S * S').
+ * @param s - normalised innovations
  */
 void calc_w(int m, int p, double** G, double* s, double* w)
 {
     double a = 1.0;
-    int inc = 1;
     double b = 0.0;
+    int inc = 1;
 
     dgemv_(&noT, &m, &p, &a, G[0], &m, s, &inc, &b, w, &inc);
 }
@@ -394,120 +409,4 @@ void calc_wT_etkf(int m, int mout, int p, double* s, double** S, double** Sa, do
 
     if (Min == NULL)
         free(M);
-}
-
-/*
- * Below are now redundant procedures (on the way out).
- */
-
-/** Calculates inverse _and_ inverse square root of a square matrix via SVD.
- * @param m - matrix size
- * @param S - input: matrix; output: S^-1
- * @param D - output: S^-1/2
- *
- * Note: the actual space allocated for S has to be [2 * m + 11][m]; the
- * surplus is used for work arrays and matrices.
- */
-static void invsqrtm2(int m, double** S, double** D)
-{
-    double** U = &S[m];
-    double* sigmas = S[2 * m];
-    double* work = S[2 * m + 1];
-    int lwork = 10 * m;
-    char specU = 'A';           /* all M columns of U are returned in array U 
-                                 */
-    char specV = 'N';           /* no rows of V**T are computed */
-    int lapack_info;
-    double a = 1.0;
-    double b = 0.0;
-    int i, j;
-
-    dgesvd_(&specU, &specV, &m, &m, S[0], &m, sigmas, U[0], &m, NULL, &m, work, &lwork, &lapack_info);
-    if (lapack_info != 0)
-        /*
-         * the failures are extremely rare so we do not bother to elaborate
-         */
-        enkf_quit("dgesvd(): lapack_info = %d", lapack_info);
-
-    for (i = 0; i < m; ++i) {
-        double* Ui = U[i];
-        double s = sqrt(sqrt(sigmas[i]));
-
-        for (j = 0; j < m; ++j)
-            Ui[j] /= s;
-    }
-    dgemm_(&noT, &doT, &m, &m, &m, &a, U[0], &m, U[0], &m, &b, D[0], &m);
-
-    for (i = 0; i < m; ++i) {
-        double* Ui = U[i];
-        double s = sqrt(sqrt(sigmas[i]));
-
-        for (j = 0; j < m; ++j)
-            Ui[j] /= s;
-    }
-    dgemm_(&noT, &doT, &m, &m, &m, &a, U[0], &m, U[0], &m, &b, S[0], &m);
-}
-
-/** Calculates G = inv(I + S' * S) * S' and T = (I + S' * S)^-1/2.
- */
-void calc_GT_etkf(int m, int p, double** Min, double** S, double** G, double** T)
-{
-    double** M;
-    int i;
-
-    /*
-     * dgemm stuff 
-     */
-    double a = 1.0;
-    double b = 0.0;
-
-    M = (Min != NULL) ? cast2d(Min, 2 * m + 11, m, sizeof(double)) : alloc2d(2 * m + 11, m, sizeof(double));
-    /*
-     * M = S' * S 
-     */
-    dgemm_(&doT, &noT, &m, &m, &p, &a, S[0], &p, S[0], &p, &b, M[0], &m);
-
-    /*
-     * M = I + S' * S
-     */
-    for (i = 0; i < m; ++i)
-        M[i][i] += 1.0;
-
-    invsqrtm2(m, M, T);         /* M = M^-1, T = M^-1/2 */
-
-    /*
-     * G = inv(I + S * S') * S'
-     */
-    dgemm_(&noT, &doT, &m, &p, &m, &a, M[0], &m, S[0], &p, &b, G[0], &m);
-
-    if (Min == NULL)
-        free(M);
-}
-
-/** Calculates X5 = w * 1' + I + alpha * (T - I).
- * @param m - full ensemble size
- * @param mout - actual ensemble size (m_dynamic for hybrid mode)
- * @param alpha - relaxation parameter (0 <= alpha <= 1; 
- *        alpha = 1 -- no relaxation, alpha = 0 -- no anomalies update)
- * @param w[m] - weights
- * @param X5[m][m] - input: T, output: X5
- */
-void calc_X5(int m, int mout, double alpha, double* w, double** X5)
-{
-    int i, j;
-
-    /*
-     * X5 = w * 1^T + I + alpha * (T - I)
-     */
-    for (i = 0; i < mout; ++i) {
-        double* X5i = X5[i];
-
-        X5i[i] -= 1.0;
-        for (j = 0; j < m; ++j)
-            X5i[j] *= alpha;
-        X5i[i] += 1.0;
-
-        for (j = 0; j < m; ++j)
-            X5i[j] += w[j];
-    }
 }
