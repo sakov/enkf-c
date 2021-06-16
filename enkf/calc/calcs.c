@@ -260,183 +260,121 @@ void calc_wT_denkf(int m, int mout, int p, double* s, double** S, double** Sa, d
  */
 void calc_wT_etkf(int m, int mout, int p, double* s, double** S, double** Sa, double** Min, double** G, double* w, double** T)
 {
-    if (p < m) {
-        double** M = (Min != NULL) ? cast2d(Min, 2 * p + 11, p, sizeof(double)) : alloc2d(2 * p + 11, p, sizeof(double));
-        double** U = &M[p];
+    int n = (p < m) ? p : m;
 
-        double* sigmas = M[2 * p];
-        double* work = M[2 * p + 1];
+    double** M = (Min != NULL) ? cast2d(Min, 2 * n + 11, n, sizeof(double)) : alloc2d(2 * n + 11, n, sizeof(double));
+    double** U = &M[n];
+    double* sigmas = M[2 * n];
+    double a = 1.0;
+    double b = 0.0;
+    int lapack_info;
+    int i;
 
-        int lwork = 10 * p;
+    if (p < m)
+        /*
+         * Mp = S * S' 
+         */
+        dgemm_(&noT, &doT, &p, &p, &m, &a, S[0], &p, S[0], &p, &b, M[0], &p);
+    else
+        /*
+         * Mm = S' * S 
+         */
+        dgemm_(&doT, &noT, &m, &m, &p, &a, S[0], &p, S[0], &p, &b, M[0], &m);
+    /*
+     * Mp = I + S * S' or Mm = I + S' * S
+     */
+    for (i = 0; i < n; ++i)
+        M[i][i] += 1.0;
+
+    /*
+     * svd(M): Mp or Mm = U * diag(sigmas) * U'
+     */
+    {
+        double* work = M[2 * n + 1];
+        int lwork = 10 * n;
         char specU = 'A';       /* all M columns of U are returned in array U 
                                  */
         char specV = 'N';       /* no rows of V**T are computed */
-        double a = 1.0;
-        double b = 0.0;
-        int lapack_info;
-        int i;
 
-        /*
-         * M = S * S' 
-         */
-        dgemm_(&noT, &doT, &p, &p, &m, &a, S[0], &p, S[0], &p, &b, M[0], &p);
-        /*
-         * M = I + S * S'
-         */
-        for (i = 0; i < p; ++i)
-            M[i][i] += 1.0;
-
-        /*
-         * svd(M): M = U * diag(sigmas) * U'
-         */
-        dgesvd_(&specU, &specV, &p, &p, M[0], &p, sigmas, U[0], &p, NULL, &p, work, &lwork, &lapack_info);
+        dgesvd_(&specU, &specV, &n, &n, M[0], &n, sigmas, U[0], &n, NULL, &n, work, &lwork, &lapack_info);
         if (lapack_info != 0)
             /*
              * the failures are extremely rare so we do not bother to elaborate
              */
             enkf_quit("dgesvd(): lapack_info = %d", lapack_info);
+    }
 
-        /*
-         * calculate Mp = (M + M^1/2)^-1 and store in M
-         */
-        for (i = 0; i < p; ++i) {
-            double* Ui = U[i];
-            double s = sqrt(sigmas[i] + sqrt(sigmas[i]));
-            int j;
+    /*
+     * calculate (Mp + Mp^1/2)^-1 or (Mm + Mm^1/2)^-1 and store in M
+     */
+    for (i = 0; i < n; ++i) {
+        double* Ui = U[i];
+        double s = sqrt(sigmas[i] + sqrt(sigmas[i]));
+        int j;
 
-            for (j = 0; j < p; ++j)
-                Ui[j] /= s;
-        }
-        dgemm_(&noT, &doT, &p, &p, &p, &a, U[0], &p, U[0], &p, &b, M[0], &p);
+        for (j = 0; j < n; ++j)
+            Ui[j] /= s;
+    }
+    dgemm_(&noT, &doT, &n, &n, &n, &a, U[0], &n, U[0], &n, &b, M[0], &n);
+
+    if (p < m)
         /*
          * calculate S' * (Mp + Mp^1/2)^-1 and store in G
          */
         dgemm_(&doT, &noT, &m, &p, &p, &a, S[0], &p, M[0], &p, &b, G[0], &m);
-        /*
-         * calculate S' * (Mp + Mp^1/2)^-1 * Sa and store in T
-         */
-        dgemm_(&noT, &noT, &m, &mout, &p, &a, G[0], &m, Sa[0], &p, &b, T[0], &m);
-        /*
-         * calculate T = I - S' * (Mp + Mp^1/2)^-1 * Sa
-         */
-        for (i = 0; i < mout; ++i) {
-            double* Ti = T[i];
-            int j;
-
-            for (j = 0; j < m; ++j)
-                Ti[j] = -Ti[j];
-            Ti[i] += 1.0;
-        }
-
-        /*
-         * calculate M^-1 and store in M
-         */
-        for (i = 0; i < p; ++i) {
-            double* Ui = U[i];
-            double s = sqrt(1.0 + 1.0 / sqrt(sigmas[i]));
-            int j;
-
-            for (j = 0; j < p; ++j)
-                Ui[j] *= s;
-        }
-        dgemm_(&noT, &doT, &p, &p, &p, &a, U[0], &p, U[0], &p, &b, M[0], &p);
-        /*
-         * calculate G = S' * (I + S * S')^-1
-         */
-        dgemm_(&doT, &noT, &m, &p, &p, &a, S[0], &p, M[0], &p, &b, G[0], &m);
-
-        if (Min == NULL)
-            free(M);
-    } else {
-        double** M = (Min != NULL) ? cast2d(Min, 2 * m + 11, m, sizeof(double)) : alloc2d(2 * m + 11, m, sizeof(double));
-        double** U = &M[m];
-        double* sigmas = M[2 * m];
-        double* work = M[2 * m + 1];
-
-        int lwork = 10 * m;
-        char specU = 'A';       /* all M columns of U are returned in array U 
-                                 * no rows of V**T are computed */
-        char specV = 'N';       /* no rows of V**T are computed */
-        double a = 1.0;
-        double b = 0.0;
-        int lapack_info;
-        int i;
-
-        /*
-         * M = S' * S 
-         */
-        dgemm_(&doT, &noT, &m, &m, &p, &a, S[0], &p, S[0], &p, &b, M[0], &m);
-
-        /*
-         * M = I + S' * S
-         */
-        for (i = 0; i < m; ++i)
-            M[i][i] += 1.0;
-
-        /*
-         * svd(M): M = U * diag(sigmas) * U'
-         */
-        dgesvd_(&specU, &specV, &m, &m, M[0], &m, sigmas, U[0], &m, NULL, &m, work, &lwork, &lapack_info);
-        if (lapack_info != 0)
-            /*
-             * the failures are extremely rare so we do not bother to elaborate
-             */
-            enkf_quit("dgesvd(): lapack_info = %d", lapack_info);
-
-        /*
-         * calculate Mm = (M + M^1/2)^-1 and store in M
-         */
-        for (i = 0; i < m; ++i) {
-            double* Ui = U[i];
-            double s = sqrt(sigmas[i] + sqrt(sigmas[i]));
-            int j;
-
-            for (j = 0; j < m; ++j)
-                Ui[j] /= s;
-        }
-        dgemm_(&noT, &doT, &m, &m, &m, &a, U[0], &m, U[0], &m, &b, M[0], &m);
+    else
         /*
          * calculate (Mm + Mm^1/2)^-1 * S' and store in G
          */
         dgemm_(&noT, &doT, &m, &p, &m, &a, M[0], &m, S[0], &p, &b, G[0], &m);
-        /*
-         * calculate (Mm + Mm^1/2)^-1 * S' * Sa and store in T
-         */
-        dgemm_(&noT, &noT, &m, &mout, &p, &a, G[0], &m, Sa[0], &p, &b, T[0], &m);
-        /*
-         * calculate T = I - (Mm + Mm^1/2)^-1 * S' * Sa
-         */
-        for (i = 0; i < mout; ++i) {
-            double* Ti = T[i];
-            int j;
+    /*
+     * calculate S' * (Mp + Mp^1/2)^-1 * Sa or (Mm + Mm^1/2)^-1 * S' * Sa
+     * and store in T
+     */
+    dgemm_(&noT, &noT, &m, &mout, &p, &a, G[0], &m, Sa[0], &p, &b, T[0], &m);
+    /*
+     * calculate T = I - (Mm + Mm^1/2)^-1 * S' * Sa
+     */
+    for (i = 0; i < mout; ++i) {
+        double* Ti = T[i];
+        int j;
 
-            for (j = 0; j < m; ++j)
-                Ti[j] = -Ti[j];
-            Ti[i] += 1.0;
-        }
+        for (j = 0; j < m; ++j)
+            Ti[j] = -Ti[j];
+        Ti[i] += 1.0;
+    }
 
+    /*
+     * calculate M^-1 and store in M
+     */
+    for (i = 0; i < n; ++i) {
+        double* Ui = U[i];
+        double s = sqrt(1.0 + 1.0 / sqrt(sigmas[i]));
+        int j;
+
+        for (j = 0; j < n; ++j)
+            Ui[j] *= s;
+    }
+    dgemm_(&noT, &doT, &n, &n, &n, &a, U[0], &n, U[0], &n, &b, M[0], &n);
+
+    /*
+     * calculate G
+     */
+    if (p < m)
         /*
-         * calculate M^-1 and store in M
+         * calculate G = S' * (I + S * S')^-1
          */
-        for (i = 0; i < m; ++i) {
-            double* Ui = U[i];
-            double s = sqrt(1.0 + 1.0 / sqrt(sigmas[i]));
-            int j;
-
-            for (j = 0; j < m; ++j)
-                Ui[j] *= s;
-        }
-        dgemm_(&noT, &doT, &m, &m, &m, &a, U[0], &m, U[0], &m, &b, M[0], &m);
+        dgemm_(&doT, &noT, &m, &p, &p, &a, S[0], &p, M[0], &p, &b, G[0], &m);
+    else
         /*
          * calculate G = (I + S' * S)^-1 * S'
          */
         dgemm_(&noT, &doT, &m, &p, &m, &a, M[0], &m, S[0], &p, &b, G[0], &m);
 
-        if (Min == NULL)
-            free(M);
-    }
-
     calc_w(m, p, G, s, w);
+
+    if (Min == NULL)
+        free(M);
 }
 
 /*

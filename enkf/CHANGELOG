@@ -1,4 +1,8 @@
+v.2.9.4
+   PS 16062021
+   -- Refurbished calc_wT_etkf().
 v.2.9.3
+   PS 16062021
    -- Modified das_calctransforms() for the ETKF. The calculations are now
       done in observation space when the number of obs. is smaller than the
       ensemble size (p < m).
