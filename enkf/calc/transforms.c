@@ -603,6 +603,9 @@ void das_calctransforms(dasystem* das)
                 if (das->mode == MODE_ENKF || das->mode == MODE_HYBRID) {
                     int e1, e2;
 
+                    /*
+                     * incorporate "relaxation to prior" T = I + alpha * (T - I)
+                     */
                     for (e1 = 0; e1 < nmem_dynamic; ++e1) {
                         double* Ti = T[e1];
 
@@ -619,6 +622,9 @@ void das_calctransforms(dasystem* das)
                         for (e2 = 0; e2 < nmem; ++e2)
                             Tj[ii][e1][e2] = (float) T[e1][e2];
                 }
+                /*
+                 * convert w to float and store in wj 
+                 */
                 for (e = 0; e < nmem; ++e)
                     wj[ii][e] = (float) w[e];
 
@@ -671,7 +677,7 @@ void das_calctransforms(dasystem* das)
                     }
                 }
 
-                if (ploc > nmem)
+                if (ploc >= nmem)
                     stats.n_inv_ens++;
                 else
                     stats.n_inv_obs++;
