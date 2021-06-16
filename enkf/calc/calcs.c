@@ -176,54 +176,6 @@ static void calc_Minv(int p, int m, double** S, double** M)
     }
 }
 
-/** Calculates inverse _and_ inverse square root of a square matrix via SVD.
- * @param m - matrix size
- * @param S - input: matrix; output: S^-1
- * @param D - output: S^-1/2
- *
- * Note: the actual space allocated for S has to be [2 * m + 11][m]; the
- * surplus is used for work arrays and matrices.
- */
-static void invsqrtm2(int m, double** S, double** D)
-{
-    double** U = &S[m];
-    double* sigmas = S[2 * m];
-    double* work = S[2 * m + 1];
-    int lwork = 10 * m;
-    char specU = 'A';           /* all M columns of U are returned in array U 
-                                 */
-    char specV = 'N';           /* no rows of V**T are computed */
-    int lapack_info;
-    double a = 1.0;
-    double b = 0.0;
-    int i, j;
-
-    dgesvd_(&specU, &specV, &m, &m, S[0], &m, sigmas, U[0], &m, NULL, &m, work, &lwork, &lapack_info);
-    if (lapack_info != 0)
-        /*
-         * the failures are extremely rare so we do not bother to elaborate
-         */
-        enkf_quit("dgesvd(): lapack_info = %d", lapack_info);
-
-    for (i = 0; i < m; ++i) {
-        double* Ui = U[i];
-        double s = sqrt(sqrt(sigmas[i]));
-
-        for (j = 0; j < m; ++j)
-            Ui[j] /= s;
-    }
-    dgemm_(&noT, &doT, &m, &m, &m, &a, U[0], &m, U[0], &m, &b, D[0], &m);
-
-    for (i = 0; i < m; ++i) {
-        double* Ui = U[i];
-        double s = sqrt(sqrt(sigmas[i]));
-
-        for (j = 0; j < m; ++j)
-            Ui[j] /= s;
-    }
-    dgemm_(&noT, &doT, &m, &m, &m, &a, U[0], &m, U[0], &m, &b, S[0], &m);
-}
-
 /** Calculates G = inv(I + S' * S) * S' = S' * inv(I + S * S').
  */
 void calc_G(int m, int p, double** Min, double** S, double** G)
@@ -323,10 +275,6 @@ void calc_wT_etkf(int m, int mout, int p, double* s, double** S, double** Sa, do
         double b = 0.0;
         int lapack_info;
         int i;
-
-        M = cast2d(M, 2 * p + 11, p, sizeof(double));
-        U = &M[p];
-        work = M[2 * p + 1];
 
         /*
          * M = S * S' 
@@ -494,6 +442,54 @@ void calc_wT_etkf(int m, int mout, int p, double* s, double** S, double** Sa, do
 /*
  * Below are now redundant procedures (on the way out).
  */
+
+/** Calculates inverse _and_ inverse square root of a square matrix via SVD.
+ * @param m - matrix size
+ * @param S - input: matrix; output: S^-1
+ * @param D - output: S^-1/2
+ *
+ * Note: the actual space allocated for S has to be [2 * m + 11][m]; the
+ * surplus is used for work arrays and matrices.
+ */
+static void invsqrtm2(int m, double** S, double** D)
+{
+    double** U = &S[m];
+    double* sigmas = S[2 * m];
+    double* work = S[2 * m + 1];
+    int lwork = 10 * m;
+    char specU = 'A';           /* all M columns of U are returned in array U 
+                                 */
+    char specV = 'N';           /* no rows of V**T are computed */
+    int lapack_info;
+    double a = 1.0;
+    double b = 0.0;
+    int i, j;
+
+    dgesvd_(&specU, &specV, &m, &m, S[0], &m, sigmas, U[0], &m, NULL, &m, work, &lwork, &lapack_info);
+    if (lapack_info != 0)
+        /*
+         * the failures are extremely rare so we do not bother to elaborate
+         */
+        enkf_quit("dgesvd(): lapack_info = %d", lapack_info);
+
+    for (i = 0; i < m; ++i) {
+        double* Ui = U[i];
+        double s = sqrt(sqrt(sigmas[i]));
+
+        for (j = 0; j < m; ++j)
+            Ui[j] /= s;
+    }
+    dgemm_(&noT, &doT, &m, &m, &m, &a, U[0], &m, U[0], &m, &b, D[0], &m);
+
+    for (i = 0; i < m; ++i) {
+        double* Ui = U[i];
+        double s = sqrt(sqrt(sigmas[i]));
+
+        for (j = 0; j < m; ++j)
+            Ui[j] /= s;
+    }
+    dgemm_(&noT, &doT, &m, &m, &m, &a, U[0], &m, U[0], &m, &b, S[0], &m);
+}
 
 /** Calculates G = inv(I + S' * S) * S' and T = (I + S' * S)^-1/2.
  */
