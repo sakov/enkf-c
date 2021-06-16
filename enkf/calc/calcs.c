@@ -176,7 +176,8 @@ static void calc_Minv(int p, int m, double** S, double** M)
     }
 }
 
-/** Calculates G = inv(I + S' * S) * S' = S' * inv(I + S * S').
+/** Calculates G = inv(I + S' * S) * S' = S' * inv(I + S * S'), eqs. (1.37)
+ ** and (1.38) of the User Guide.
  * @param m - ensemble size
  * @param p - number of obs.
  * @param Min - storage space for M of size >= n x n x sizeof(double),
@@ -218,7 +219,8 @@ void calc_G(int m, int p, double** Min, double** S, double** G)
         free(M);
 }
 
-/** Calculates ETM for the DEnKF, T = I - 1/2 * G * S.
+/** Calculates ETM for the DEnKF, T = I - 1/2 * G * S, eq. (1.36) of the User
+ ** Guide.
  * @param m - full (expanded) ensemble size
  * @param mout - actual (dynamic) ensemble size
  * @param p - number of observations
@@ -244,7 +246,7 @@ static void calc_T_denkf(int m, int mout, int p, double** G, double** S, double*
         T[i][i] += 1.0;
 }
 
-/** Calculates increment coefficients w = G * s.
+/** Calculates increment coefficients w = G * s, eq. (1.34) of the User Guide.
  * @param m - ensemble size = size(G, 1) 
  * @param p - number of obs. = size(G, 2)
  * @param G - m x p matrix, G = inv(I + S' * S) * S' = S' * inv(I + S * S').
@@ -259,7 +261,7 @@ void calc_w(int m, int p, double** G, double* s, double* w)
     dgemv_(&noT, &m, &p, &a, G[0], &m, s, &inc, &b, w, &inc);
 }
 
-/** Calculate ensemble transform for the DEnKF.
+/** Calculate ensemble transform for the DEnKF, eq. (1.36) of the User Guide.
  * @param m - full ensemble size
  * @param mout - actual (dynamic) ensemble size
  * @param p - (local) number of obs
@@ -280,7 +282,7 @@ void calc_wT_denkf(int m, int mout, int p, double* s, double** S, double** Sa, d
     calc_w(m, p, G, s, w);
 }
 
-/** Calculate ensemble transform for the ETKF.
+/** Calculate ensemble transform for the ETKF, eqs. (1.29) of the User Guide.
  * @param m - full ensemble size
  * @param mout - actual (dynamic) ensemble size
  * @param p - (local) number of obs
@@ -307,12 +309,12 @@ void calc_wT_etkf(int m, int mout, int p, double* s, double** S, double** Sa, do
 
     if (p < m)
         /*
-         * Mp = S * S' 
+         * calculate S * S' and store in M
          */
         dgemm_(&noT, &doT, &p, &p, &m, &a, S[0], &p, S[0], &p, &b, M[0], &p);
     else
         /*
-         * Mm = S' * S 
+         * calculate S' * S and store in M
          */
         dgemm_(&doT, &noT, &m, &m, &p, &a, S[0], &p, S[0], &p, &b, M[0], &m);
     /*
@@ -371,6 +373,7 @@ void calc_wT_etkf(int m, int mout, int p, double* s, double** S, double** Sa, do
     dgemm_(&noT, &noT, &m, &mout, &p, &a, G[0], &m, Sa[0], &p, &b, T[0], &m);
     /*
      * calculate T = I - (Mm + Mm^1/2)^-1 * S' * Sa
+     *             = I - S' * (Mp + Mp^1/2)^-1 * Sa
      */
     for (i = 0; i < mout; ++i) {
         double* Ti = T[i];
