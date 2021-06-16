@@ -212,6 +212,27 @@ void calc_G(int m, int p, double** Min, double** S, double** G)
         free(M);
 }
 
+/** Calculates T = I - 1/2 * G * S.
+ */
+static void calc_T_denkf(int m, int mout, int p, double** G, double** S, double** T)
+{
+    double a, b;
+    int i;
+
+    /*
+     * T <- -1/2 * G * S 
+     */
+    a = -0.5;
+    b = 0.0;
+    dgemm_(&noT, &noT, &m, &mout, &p, &a, G[0], &m, S[0], &p, &b, T[0], &m);
+
+    /*
+     * T = I - 1/2 * G * S
+     */
+    for (i = 0; i < mout; ++i)
+        T[i][i] += 1.0;
+}
+
 /** Calculates w = G * s.
  */
 void calc_w(int m, int p, double** G, double* s, double* w)
@@ -267,7 +288,6 @@ void calc_wT_etkf(int m, int mout, int p, double* s, double** S, double** Sa, do
     double* sigmas = M[2 * n];
     double a = 1.0;
     double b = 0.0;
-    int lapack_info;
     int i;
 
     if (p < m)
@@ -295,6 +315,7 @@ void calc_wT_etkf(int m, int mout, int p, double* s, double** S, double** Sa, do
         char specU = 'A';       /* all M columns of U are returned in array U 
                                  */
         char specV = 'N';       /* no rows of V**T are computed */
+        int lapack_info;
 
         dgesvd_(&specU, &specV, &n, &n, M[0], &n, sigmas, U[0], &n, NULL, &n, work, &lwork, &lapack_info);
         if (lapack_info != 0)
@@ -357,9 +378,6 @@ void calc_wT_etkf(int m, int mout, int p, double* s, double** S, double** Sa, do
     }
     dgemm_(&noT, &doT, &n, &n, &n, &a, U[0], &n, U[0], &n, &b, M[0], &n);
 
-    /*
-     * calculate G
-     */
     if (p < m)
         /*
          * calculate G = S' * (I + S * S')^-1
@@ -463,27 +481,6 @@ void calc_GT_etkf(int m, int p, double** Min, double** S, double** G, double** T
 
     if (Min == NULL)
         free(M);
-}
-
-/** Calculates T = I - 1/2 * G * S.
- */
-void calc_T_denkf(int m, int mout, int p, double** G, double** S, double** T)
-{
-    double a, b;
-    int i;
-
-    /*
-     * T <- -1/2 * G * S 
-     */
-    a = -0.5;
-    b = 0.0;
-    dgemm_(&noT, &noT, &m, &mout, &p, &a, G[0], &m, S[0], &p, &b, T[0], &m);
-
-    /*
-     * T = I - 1/2 * G * S
-     */
-    for (i = 0; i < mout; ++i)
-        T[i][i] += 1.0;
 }
 
 /** Calculates X5 = w * 1' + I + alpha * (T - I).

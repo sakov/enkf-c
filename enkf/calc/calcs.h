@@ -24,7 +24,6 @@ void calc_wT_etkf(int m, int mout, int p, double* s, double** S, double** Sa, do
 /*
  * redundant
  */
-void calc_T_denkf(int m, int mout, int p, double** G, double** S, double** T);
 void calc_GT_etkf(int m, int p, double** Min, double** S, double** G, double** T);
 void calc_X5(int m, int mout, double alpha, double* w, double** X5);
 
