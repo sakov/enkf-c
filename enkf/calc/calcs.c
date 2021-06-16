@@ -255,8 +255,8 @@ void calc_w(int m, int p, double** G, double* s, double* w)
  *             (for hybrid systems), or different from S (for modulated systems)
  * @param M - storage for intermediate matrix M (can be NULL)
  * @param G - storage for intermediate matrix G
- * @return w - mean update coefficients
- * @return T - ensemble anomalies transform matrix
+ * @param w - (output) mean update coefficients
+ * @param T - (output) ensemble anomalies transform matrix
  */
 void calc_wT_denkf(int m, int mout, int p, double* s, double** S, double** Sa, double** M, double** G, double* w, double** T)
 {
@@ -276,8 +276,8 @@ void calc_wT_denkf(int m, int mout, int p, double* s, double** S, double** Sa, d
  *             (for hybrid systems), or different from S (for modulated systems)
  * @param M - storage for intermediate matrix M (can be NULL)
  * @param G - storage for intermediate matrix G
- * @return w - mean update coefficients
- * @return T - ensemble anomalies transform matrix
+ * @param w - (output) mean update coefficients
+ * @param T - (output) ensemble anomalies transform matrix
  */
 void calc_wT_etkf(int m, int mout, int p, double* s, double** S, double** Sa, double** Min, double** G, double* w, double** T)
 {
@@ -348,6 +348,7 @@ void calc_wT_etkf(int m, int mout, int p, double* s, double** S, double** Sa, do
          * calculate (Mm + Mm^1/2)^-1 * S' and store in G
          */
         dgemm_(&noT, &doT, &m, &p, &m, &a, M[0], &m, S[0], &p, &b, G[0], &m);
+
     /*
      * calculate S' * (Mp + Mp^1/2)^-1 * Sa or (Mm + Mm^1/2)^-1 * S' * Sa
      * and store in T
