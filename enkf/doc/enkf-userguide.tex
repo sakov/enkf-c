@@ -688,12 +688,17 @@ where $m = m\subtxt{dyn} + m\subtxt{stat}$, so that
 The combined forecast ensemble anomalies (\ref{hybrid_combined}) have larger ensemble size than that of the dynamic ensemble; hence there arises a problem of ensemble reduction to obtain the analysed dynamic ensemble of size $m\subtxt{dyn}$.
 EnKF-C takes the approach described by (\ref{downscaling}) in sec.~\ref{sec:reduction}:
 \begin{align}
+  \label{hybrid_update}
   (\mb E\suptxt{dyn})^a = (\mb x^f + \mb A^f \mb w) \mb 1\T + \mb A\suptxt{dyn} + \left(\frac{m\subtxt{dyn} - 1}{m - 1}\right)^{1/2} \mathcal F(\mb S) \, \mb S\suptxt{dyn},
 \end{align}
 where
 \begin{align}
 \mb x^f \equiv \frac{1}{m\subtxt{dyn}} (\mb E\suptxt{dyn})^f \mb 1.
 \end{align}
+This is equivalent to using truncated ETM, 
+\begin{align*}
+  (\mb A\suptxt{dyn})^a = \left(\frac{m\subtxt{dyn} - 1}{m - 1}\right)^{1/2} \mb A^f \mb T(:, 1 : m\subtxt{dyn}).
+\end{align*}
 
 \chapter{EnKF-C}
 \label{ch:enkf-c}

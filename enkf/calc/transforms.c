@@ -7,7 +7,7 @@
  * Author:      Pavel Sakov
  *              Bureau of Meteorology
  *
- * Description: Contains procedures for calculating ensemble transforms.
+ * Description: Calculating and saving ensemble transforms.
  *
  * Revisions:
  *
@@ -313,8 +313,7 @@ static void prepare_calcs(size_t ploc, size_t nmem, double** sloc, int** plobs, 
         size += ploc_allocated1 * nmem * sizeof(double) + ploc_allocated1 * sizeof(void*);
         /*
          * M [nmem * 2 + 11][nmem] (the surplus is used for work arrays and
-         * matrices in invsqrtm2() for scheme = ETKF, and just wasted for scheme
-         * = DEnKF)
+         * matrices in calc_wT_etkf()
          */
         size += nmem * (2 * nmem + 11) * sizeof(double) + (2 * nmem + 11) * sizeof(void*);
 
