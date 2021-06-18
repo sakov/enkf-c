@@ -36,6 +36,7 @@ static char noT = 'N';
  * @param A          - n x m matrix (A[m][n]) (after transposition)
  * @param B          - m x n matrix (B[n][m]) (after transposition)
  * @param iscompact  - whether A and B are allocated as continuous blocks
+ * @return           - trace(op(A) * op(B))
  */
 double traceprod(int transposeA, int transposeB, int m, int n, double** A, double** B, int iscompact)
 {
@@ -367,22 +368,18 @@ void calc_wT_etkf(int m, int mout, int p, double* s, double** S, double** Sa, do
         dgemm_(&noT, &doT, &m, &p, &m, &a, M[0], &m, S[0], &p, &b, G[0], &m);
 
     /*
-     * calculate S' * (Mp + Mp^1/2)^-1 * Sa or (Mm + Mm^1/2)^-1 * S' * Sa
+     * calculate -S' * (Mp + Mp^1/2)^-1 * Sa or -(Mm + Mm^1/2)^-1 * S' * Sa
      * and store in T
      */
+    a = -1.0;
     dgemm_(&noT, &noT, &m, &mout, &p, &a, G[0], &m, Sa[0], &p, &b, T[0], &m);
+    a = 1.0;
     /*
      * calculate T = I - (Mm + Mm^1/2)^-1 * S' * Sa
      *             = I - S' * (Mp + Mp^1/2)^-1 * Sa
      */
-    for (i = 0; i < mout; ++i) {
-        double* Ti = T[i];
-        int j;
-
-        for (j = 0; j < m; ++j)
-            Ti[j] = -Ti[j];
-        Ti[i] += 1.0;
-    }
+    for (i = 0; i < mout; ++i)
+        T[i][i] += 1.0;
 
     /*
      * calculate M^-1 and store in M
