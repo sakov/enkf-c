@@ -1,3 +1,7 @@
+v.2.9.6
+   PS 20062021
+   -- Added missing creating DIRNAME_TMP when running UPDATE with
+      "--calculate-vertical-correlations-only".
 v.2.9.5
    PS 18062021
    -- A cosmetic change in calc_wT_etkf().

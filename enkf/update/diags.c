@@ -387,6 +387,12 @@ void das_writevcorrs(dasystem* das)
         ncw_close(ncid_dst);
     }
 
+    if (rank == 0)
+        dir_createifabsent(DIRNAME_TMP);
+#if defined(MPI)
+    MPI_Barrier(MPI_COMM_WORLD);
+#endif
+
     das_getfields(das, -1 /* for all grids */ , &nfields, &fields);
     distribute_iterations(0, nfields - 1, nprocesses, rank, "    ");
     enkf_printf("    calculating:");
