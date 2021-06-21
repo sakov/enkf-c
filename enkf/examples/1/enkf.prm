@@ -1,5 +1,5 @@
 MODE = EnKF
-SCHEME = ETKF
+SCHEME = EnKF
 
 MODEL = model.prm
 GRID = grid.prm
