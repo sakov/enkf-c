@@ -35,6 +35,7 @@ int file_exists(char fname[]);
 void file_rename(char oldname[], char newname[]);
 int dir_createifabsent(char dirname[]);
 void dir_rmifexists(char dirname[]);
+void dir_rmallifexists(char dirname[]);
 int str2double(char token[], double* value);
 int str2float(char* token, float* value);
 int str2int(char* token, int* value);

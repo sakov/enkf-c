@@ -1,4 +1,8 @@
 v.2.9.6
+   PS 24062021
+   -- In enkf_init(): in CALC: remove .enkftmp directory with content if it
+      exists.
+v.2.9.6
    PS 20062021
    -- Added missing creating DIRNAME_TMP when running UPDATE with
       "--calculate-vertical-correlations-only".

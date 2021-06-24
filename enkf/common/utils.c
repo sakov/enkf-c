@@ -32,6 +32,7 @@
 #include <sys/types.h>
 #include <stdint.h>
 #include <glob.h>
+#include <ftw.h>
 #include "ncw.h"
 #include "ncutils.h"
 #include "definitions.h"
@@ -197,9 +198,8 @@ void enkf_init(int* argc, char*** argv)
             printf("  MPI: rank = %d, PID = %d\n", rank, getpid());
             fflush(NULL);
         }
-#endif
+#endif                          /* USE_SHMEM */
     }
-    MPI_Barrier(MPI_COMM_WORLD);
 
     MPI_Type_size(MPI_INT, &size);
     assert(size == sizeof(int));
@@ -210,6 +210,12 @@ void enkf_init(int* argc, char*** argv)
         return;
     if (enkf_verbose > 1)
         printf("  rank = %d, PID = %d\n", rank, getpid());
+#endif                          /* MPI */
+
+    if (rank == 0)
+        dir_rmallifexists(DIRNAME_TMP);
+#if defined(MPI)
+    MPI_Barrier(MPI_COMM_WORLD);
 #endif
 
     ncw_set_quitfn(enkf_quit);
@@ -615,7 +621,30 @@ void dir_rmifexists(char dirname[])
     if (status != 0) {
         int errno_saved = errno;
 
-        enkf_quit("could not remove directory \"%s\": %s", dirname, strerror(errno_saved));
+        enkf_quit("dir_rmifexists(): \"%s\": %s", dirname, strerror(errno_saved));
+    }
+}
+
+/**
+ */
+static int rmentry(const char* entry, const struct stat* sb, int typeflag, struct FTW* ftwbuf)
+{
+    return remove(entry);
+}
+
+/**
+ */
+void dir_rmallifexists(char dirname[])
+{
+    int status;
+
+    if (!dir_exists(dirname))
+        return;
+    status = nftw(dirname, rmentry, 64, FTW_DEPTH | FTW_PHYS);
+    if (status != 0) {
+        int errno_saved = errno;
+
+        enkf_quit("dir_rmallifexists(): \"%s\": %s", dirname, strerror(errno_saved));
     }
 }
 
