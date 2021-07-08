@@ -1,4 +1,8 @@
-v.2.9.6
+v.2.9.8
+   PS 08072021
+   -- Fixed number of arguments of obs_findlocal() in
+      das_calcpointlogtransforms() when compiled without -DMINIMISE_ALLOC.
+v.2.9.7
    PS 24062021
    -- In enkf_init(): in CALC: remove .enkftmp directory with content if it
       exists.

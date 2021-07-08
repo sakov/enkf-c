@@ -1005,11 +1005,7 @@ void das_calcpointlogtransforms(dasystem* das)
         /*
          * find all (for all domains) local obs
          */
-#if defined(MINIMISE_ALLOC)
         obs_findlocal(obs, plog->lon, plog->lat, NULL, &ploc, &lobs, &lcoeffs, NULL);
-#else
-        obs_findlocal(obs, plog->lon, plog->lat, NULL, &ploc, &lobs, &lcoeffs);
-#endif
         assert(ploc >= 0 && ploc <= obs->nobs);
         enkf_printf(" %d obs\n", ploc);
         /*
@@ -1036,11 +1032,7 @@ void das_calcpointlogtransforms(dasystem* das)
                 continue;
 
             ploc = 0;
-#if defined(MINIMISE_ALLOC)
             obs_findlocal(obs, plog->lon, plog->lat, grid_getdomainname(g), &ploc, &lobs, &lcoeffs, NULL);
-#else
-            obs_findlocal(obs, plog->lon, plog->lat, grid_getdomainname(g), &ploc, &lobs, &lcoeffs);
-#endif
 
             if (T != NULL)
                 memset(T[0], 0, nmem * nmem * sizeof(double));

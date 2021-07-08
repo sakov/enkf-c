@@ -670,7 +670,7 @@ By EnOI/EnKF hybrid we understand formulation in which forecast state error cova
 where
 \begin{align*}
   & \mb P\suptxt{dyn} = \frac{1}{m\subtxt{dyn} - 1}\mb A\suptxt{dyn} (\mb A\suptxt{dyn})\T,\\
-  & \mb P\suptxt{stat} = \frac{1}{m\subtxt{stat} - 1}\mb A\suptxt{stat} (\mb A\suptxt{stat})\T,\\
+  & \mb P\suptxt{stat} = \frac{1}{m\subtxt{stat} - 1}\mb A\suptxt{stat} (\mb A\suptxt{stat})\T,
 \end{align*}
 where $\mb A\suptxt{dyn}$ is the ensemble of dynamic anomalies of size $m\subtxt{dyn}$, and $\mb A\suptxt{stat}$ is the ensemble of static anomalies of size $m\subtxt{stat}$.
 The added static covariance can be assumed to represent the model error covariance (matrices $\mb Q_i$ in (\ref{L-nonl}) and $\mb Q_{k+1}$ in (\ref{prop-P})).
