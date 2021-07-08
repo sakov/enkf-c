@@ -1,3 +1,9 @@
+v.2.9.9
+   PS 08072021
+   -- Fixed a major defect in grid_create() that manifested regularly (but not
+      always) in systems using sigma vertical coordinates, resulting in error
+      message "no point to continue" in CALC. Not sure when it was introduced,
+      probably not very long ago. Thanks to Sindre Fritzner for the report.
 v.2.9.8
    PS 08072021
    -- Fixed number of arguments of obs_findlocal() in

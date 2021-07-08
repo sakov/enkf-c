@@ -30,6 +30,7 @@
 #include <math.h>
 #include <float.h>
 #include <string.h>
+#include <stdint.h>
 #include "ncw.h"
 #include "ncutils.h"
 #include "definitions.h"
@@ -952,7 +953,7 @@ grid* grid_create(void* p, int id, void** grids)
     int ncid;
     int varid_x, varid_y;
     int ndims_x, ndims_y;
-    size_t ni, nj, nk;
+    size_t ni = SIZE_MAX, nj = SIZE_MAX, nk = SIZE_MAX;
     int varid_depth, varid_numlevels;
 
     g->das = NULL;
@@ -1053,27 +1054,6 @@ grid* grid_create(void* p, int id, void** grids)
         ncw_inq_varid(ncid, prm->depthvarname, &varid_depth);
         ncw_check_vardims(ncid, varid_depth, 2, dimlen);
         ncu_readvarfloat(ncid, varid_depth, ni * nj, g->depth[0]);
-    }
-
-    if (prm->levelvarname != NULL) {
-        size_t dimlen[2] = { nj, ni };
-
-        g->numlevels = alloc2d(nj, ni, sizeof(int));
-        ncw_inq_varid(ncid, prm->levelvarname, &varid_numlevels);
-        ncw_check_varndims(ncid, varid_numlevels, 2);
-        ncw_check_vardims(ncid, varid_numlevels, 2, dimlen);
-        ncw_get_var_int(ncid, varid_numlevels, g->numlevels[0]);
-        if (g->vtype == GRIDVTYPE_SIGMA || g->vtype == GRIDVTYPE_HYBRID) {
-            int* numlevels = g->numlevels[0];
-            int i;
-
-            for (i = 0; i < ni * nj; ++i) {
-                if (numlevels[i] == 0)
-                    continue;
-                else
-                    numlevels[i] = nk;
-            }
-        }
     }
 
     /*
@@ -1193,6 +1173,27 @@ grid* grid_create(void* p, int id, void** grids)
         g->gridnodes_z = gz_hybrid_create(ni, nj, nk, a, b, ac, bc, p1, p2, prm->vdirection);
     } else
         enkf_quit("not implemented");
+
+    if (prm->levelvarname != NULL) {
+        size_t dimlen[2] = { nj, ni };
+
+        g->numlevels = alloc2d(nj, ni, sizeof(int));
+        ncw_inq_varid(ncid, prm->levelvarname, &varid_numlevels);
+        ncw_check_varndims(ncid, varid_numlevels, 2);
+        ncw_check_vardims(ncid, varid_numlevels, 2, dimlen);
+        ncw_get_var_int(ncid, varid_numlevels, g->numlevels[0]);
+        if (g->vtype == GRIDVTYPE_SIGMA || g->vtype == GRIDVTYPE_HYBRID) {
+            int* numlevels = g->numlevels[0];
+            int i;
+
+            for (i = 0; i < ni * nj; ++i) {
+                if (numlevels[i] == 0)
+                    continue;
+                else
+                    numlevels[i] = nk;
+            }
+        }
+    }
 
     ncw_close(ncid);
 
