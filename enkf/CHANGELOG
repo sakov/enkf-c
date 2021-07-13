@@ -1,3 +1,8 @@
+v.2.9.10
+   PS 14072021
+   -- Reversed v.2.9.7 as it has potentially unexpected effect of interfering
+      with other instances of CALC and UPDATE run in the enkf work directory.
+   -- For CALC and UPDATE -- exit with error if ".enkftmp" exists.
 v.2.9.9
    PS 08072021
    -- Fixed a major defect in grid_create() that manifested regularly (but not
