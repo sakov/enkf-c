@@ -212,10 +212,9 @@ void enkf_init(int* argc, char*** argv)
         printf("  rank = %d, PID = %d\n", rank, getpid());
 #endif                          /* MPI */
 
-#if defined(MPI)
+#if (defined(ENKF_CALC) && defined(TW_VIAFILE)) || defined(ENKF_UPDATE)
     if (rank == 0 && file_exists(DIRNAME_TMP))
         enkf_quit("directory \"%s\" already exists", DIRNAME_TMP);
-    MPI_Barrier(MPI_COMM_WORLD);
 #endif
 
     ncw_set_quitfn(enkf_quit);
