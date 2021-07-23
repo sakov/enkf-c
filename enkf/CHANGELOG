@@ -1,3 +1,6 @@
+v.2.9.13
+   PS 23072021
+   -- In readers "cars"."mmmt", "cmems" -- skip values that are !finite().
 v.2.9.12
    PS 23072021
    -- In obs_write() allow !isfinite(o->value) if o->status != STATUS_OK.

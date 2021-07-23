@@ -310,7 +310,7 @@ void reader_cmems(char* fname, int fid, obsmeta* meta, grid* g, observations* ob
             observation* o;
             int qcflagint;
 
-            if (fabs(v[p][i] - missval) < EPS || v[p][i] < validmin || v[p][i] > validmax)
+            if (!isfinite(v[p][i]) || fabs(v[p][i] - missval) < EPS || v[p][i] < validmin || v[p][i] > validmax)
                 continue;
             if (isnan(z[p][i]) || z[p][i] < 0.0)
                 continue;

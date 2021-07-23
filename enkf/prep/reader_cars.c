@@ -161,7 +161,7 @@ void reader_cars(char* fname, int fid, obsmeta* meta, grid* g, observations* obs
         for (i = 0; i < (int) nz; ++i) {
             observation* o;
 
-            if (fabs(v[p][i] - missval) < EPS || v[p][i] < validmin || v[p][i] > validmax)
+            if (!isfinite(v[p][i]) || fabs(v[p][i] - missval) < EPS || v[p][i] < validmin || v[p][i] > validmax)
                 continue;
             if (z[p][i] < 0.0)
                 continue;
