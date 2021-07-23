@@ -990,7 +990,7 @@ void obs_write(observations* obs, char fname[])
     for (i = 0; i < obs->nobs; ++i) {
         observation* o = &obs->data[i];
 
-        if (!isfinite(o->value) || fabs(o->value) > FLT_MAX || !isfinite((float) o->value)) {
+        if (o->status == STATUS_OK && !isfinite(o->value)) {
             obs_printob(obs, i);
             enkf_quit("obs_write(): bad value");
         }

@@ -1,3 +1,6 @@
+v.2.9.12
+   PS 23072021
+   -- In obs_write() allow !isfinite(o->value) if o->status != STATUS_OK.
 v.2.9.11
    PS 23072021
    -- Moving "badbatches.out" to "badbatches.out.used" (introduced in v2.5.11)
