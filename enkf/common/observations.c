@@ -222,7 +222,7 @@ observations* obs_create_fromprm(enkfprm* prm)
         }
         fclose(f);
 
-        {
+        if (!enkf_fstatsonly) {
             char fname[MAXSTRLEN];
 
             snprintf(fname, MAXSTRLEN, "%s.used", FNAME_BADBATCHES);
