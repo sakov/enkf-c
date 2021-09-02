@@ -97,12 +97,11 @@ typedef struct {
     char** domainnames;
 } obstype;
 
+void obstypes_destroy(int n, obstype* types);
+int obstype_getid(int n, obstype types[], char* name, int hastosucceed);
 void obstypes_read(enkfprm* prm, char fname[], int* n, obstype** types);
 void obstypes_describeprm(void);
 void obstypes_set(int n, obstype* types, model* m);
-void obstypes_destroy(int n, obstype* types);
-
-int obstype_getid(int n, obstype types[], char* name, int hastosucceed);
 double obstype_calclcoeff(obstype* type, double dist);
 double obstype_getmaxlocrad(obstype* type);
 

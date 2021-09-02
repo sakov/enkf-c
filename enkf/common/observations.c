@@ -173,6 +173,7 @@ observations* obs_create(void)
     return obs;
 }
 
+#if defined(ENKF_PREP) || defined(ENKF_CALC)
 /**
  */
 observations* obs_create_fromprm(enkfprm* prm)
@@ -250,6 +251,7 @@ observations* obs_create_fromprm(enkfprm* prm)
 
     return obs;
 }
+#endif
 
 #if defined(ENKF_PREP)
 /**
@@ -556,14 +558,17 @@ void obs_read(observations* obs, char fname[])
     assert(obs->data != NULL);
 #endif
 
+    /*
+     * "type"
+     */
     {
         int varid, natts, i;
 
+        ncw_inq_varid(ncid, "type", &varid);
+        ncw_inq_varnatts(ncid, varid, &natts);
         /*
          * check consistency of "type" attributes
          */
-        ncw_inq_varid(ncid, "type", &varid);
-        ncw_inq_varnatts(ncid, varid, &natts);
         for (i = 0; i < natts; ++i) {
             char attname[NC_MAX_NAME];
             int typeid;
@@ -593,7 +598,7 @@ void obs_read(observations* obs, char fname[])
         }
 
         /*
-         * fill product stringtable
+         * "product"
          */
         ncw_inq_varid(ncid, "product", &varid);
         ncw_inq_varnatts(ncid, varid, &natts);
@@ -613,7 +618,7 @@ void obs_read(observations* obs, char fname[])
         }
 
         /*
-         * fill instrument stringtable
+         * "instrument"
          */
         ncw_inq_varid(ncid, "instrument", &varid);
         ncw_inq_varnatts(ncid, varid, &natts);
@@ -1463,7 +1468,7 @@ void obs_printob(observations* obs, int i)
     observation* o = &obs->data[i];
 
     enkf_printf("type = %s, product = %s, instrument = %s, datafile = %s, id = %d, original id = %d, batch = %d, value = %.3g, estd = %.3g, footprint = %.3g, ", obs->obstypes[o->type].name, st_findstringbyindex(obs->products, o->product), st_findstringbyindex(obs->instruments, o->instrument), st_findstringbyindex(obs->datafiles, o->fid), o->id, o->id_orig, (int) o->batch, o->value, o->estd, o->footprint);
-    enkf_printf("lon = %.3f, lat = %.3f, depth = %.1f, model_depth = %.1f, fi = %.3f, fj = %.3f, fk = %.3f, day = %.3g, status = %d\n", o->lon, o->lat, o->depth, o->model_depth, o->fi, o->fj, o->fk, o->time, o->status);
+    enkf_printf("lon = %.3f, lat = %.3f, depth = %.1f, model_depth = %.1f, fi = %.3f, fj = %.3f, fk = %.3f, time = %.3g, status = %d\n", o->lon, o->lat, o->depth, o->model_depth, o->fi, o->fj, o->fk, o->time, o->status);
 }
 
 #if defined(ENKF_CALC)
