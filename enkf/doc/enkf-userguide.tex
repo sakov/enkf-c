@@ -450,11 +450,12 @@ commonly known as the ensemble transform Kalman filter, or ETKF \citep{bis01a}.
   where $\mb M_m \equiv \mb I + \mb S\T \mb S$, $\mb M_p \equiv \mb I + \mb S \mb S\T$, $\mb S \equiv \mb R^{-1/2} \mb H \mb A^f / (m - 1)^{1/2}$ \citep{boc16a}.
 
   (\ref{bocquet-p}) can be written as
-  \begin{align*}
+  \begin{align}
+    \label{andrews-correct}
     \mb T_R = \mb I - \frac{1}{m-1} (\mb H \mb A^f)\T \hat{\mb M}^{-1/2} \left(\hat{\mb M}^{1/2} + \mb R^{1/2}\right)^{-1} \mb H \mb A^f,
-  \end{align*}
-  where $\hat{\mb M}^{1/2} \equiv \mb R^{1/2} (\mb R^{-1/2} \mb M \mb R^{-1/2})^{1/2}$,
-  which concides with the Andrews' solution (\ref{andrews}) if $\hat{\mb M}^{1/2} = \mb M^{1/2}$, which is the case for diagonal $\mb R$.
+  \end{align}
+  where $\hat{\mb M}^{1/2} \equiv \mb R^{1/2} (\mb R^{-1/2} \mb M \mb R^{-1/2})^{1/2}$.
+(\ref{andrews-correct}) concides with the Andrews' solution (\ref{andrews}) if $\hat{\mb M}^{1/2} = \mb M^{1/2}$, which is the case for diagonal $\mb R$.
 }
 
 Equations (\ref{T-right1}, \ref{etkf}, \ref{bocquet}) yield algebraically different expressions for the (unique) symmetric right-multiplied solution.
