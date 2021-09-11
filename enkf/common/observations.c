@@ -1225,9 +1225,19 @@ void obs_superob(observations* obs, __compar_d_fn_t cmp_obs, observations** sobs
             while (i22 <= i2) {
                 while (i22 + 1 <= i2 && cmp_xyz(&data[i11], &data[i22 + 1]) == 0)
                     i22++;
-                for (ii = i11 + 1; ii <= i22; ++ii) {
-                    data[ii].status = STATUS_THINNED;
-                    nthinned++;
+                /*
+                 * replace the value of the kept observation by the average
+                 * of the batch
+                 */
+                if (i22 > i11) {
+                    float sum = data[i11].value;
+
+                    for (ii = i11 + 1; ii <= i22; ++ii) {
+                        data[ii].status = STATUS_THINNED;
+                        sum += data[ii].value;
+                        nthinned++;
+                    }
+                    data[i11].value = sum / (float) (i22 - i11 + 1);
                 }
                 i22++;
                 i11 = i22;
@@ -1246,11 +1256,6 @@ void obs_superob(observations* obs, __compar_d_fn_t cmp_obs, observations** sobs
                 obs_printob(obs, i);
             }
         }
-
-        so = &sdata[nsobs];
-        o = &data[i1];
-
-        assert(o->status == STATUS_OK);
 
         if (!enkf_considersubgridvar)
             subvar = 0.0;
@@ -1273,6 +1278,10 @@ void obs_superob(observations* obs, __compar_d_fn_t cmp_obs, observations** sobs
          */
         for (ii = i1; ii <= i2; ++ii)
             data[ii].aux = nsobs;
+
+        o = &data[i1];
+        assert(o->status == STATUS_OK);
+        so = &sdata[nsobs];
 
         so->type = o->type;
         so->product = o->product;

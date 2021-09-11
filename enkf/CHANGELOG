@@ -1,3 +1,7 @@
+v.2.9.15
+   PS 11092021
+   -- In obs_superob(): when thinning observations with identical positions --
+      replace the value of the kept observation with the average of the batch.
 v.2.9.14
    PS 02092021
    -- Cosmetic changes.
