@@ -1,3 +1,6 @@
+v.2.9.16
+   PS 16092021
+   -- enkf_printversion(): changed printing "EnKF" to "EnKF-C".
 v.2.9.15
    PS 11092021
    -- In obs_superob(): when thinning observations with identical positions --

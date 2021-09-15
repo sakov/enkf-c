@@ -389,7 +389,7 @@ void enkf_printflags(const char offset[])
  */
 void enkf_printversion(void)
 {
-    enkf_printf("  EnKF version %s\n", ENKF_VERSION);
+    enkf_printf("  EnKF-C version %s\n", ENKF_VERSION);
     enkf_printcompileflags("  ");
 }
 
