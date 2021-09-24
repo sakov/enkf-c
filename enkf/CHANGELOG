@@ -1,3 +1,9 @@
+v.2.9.17
+   -- in das_updatefields() and das_updatebg() -- set all state vector elements
+      outside grid to zero (this was the case only when outputing the
+      increments).
+   -- in taper_gc() -- set taper to zero when it is negative because of the
+      round-off error.
 v.2.9.16
    PS 16092021
    -- enkf_printversion(): changed printing "EnKF" to "EnKF-C".

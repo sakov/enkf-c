@@ -1198,7 +1198,7 @@ float interpolate3d(double fi, double fj, double fk, int ni, int nj, int nk, int
  */
 double taper_gc(double x)
 {
-    double x2, x3;
+    double x2, x3, f;
 
     assert(x >= 0 && x <= 1.0 + 1.0e-8);
 
@@ -1209,8 +1209,11 @@ double taper_gc(double x)
     x2 = x * x;
     x3 = x2 * x;
     if (x < 1.0)
-        return 1.0 + x2 * (-x3 / 4.0 + x2 / 2.0) + x3 * (5.0 / 8.0) - x2 * (5.0 / 3.0);
-    return x2 * (x3 / 12.0 - x2 / 2.0) + x3 * (5.0 / 8.0) + x2 * (5.0 / 3.0) - x * 5.0 + 4.0 - (2.0 / 3.0) / x;
+        f = 1.0 + x2 * (-x3 / 4.0 + x2 / 2.0) + x3 * (5.0 / 8.0) - x2 * (5.0 / 3.0);
+    else
+        f = x2 * (x3 / 12.0 - x2 / 2.0) + x3 * (5.0 / 8.0) + x2 * (5.0 / 3.0) - x * 5.0 + 4.0 - (2.0 / 3.0) / x;
+
+    return (f >= 0.0) ? f : 0.0;
 }
 
 /** Converts from geographic to cartesian coordinates.

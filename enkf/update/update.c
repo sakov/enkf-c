@@ -276,19 +276,18 @@ static void das_updatefields(dasystem* das, int nfields, void** fieldbuffer, fie
                      */
                     if (surfk == 0) {
                         if (nlevels[j][i] <= f->level) {
-                            if (das->updatespec & UPDATE_OUTPUTINC)
-                                for (e = 0; e < nmem; ++e)
-                                    vvv[e][j][i] = 0.0f;
+                            for (e = 0; e < nmem; ++e)
+                                vvv[e][j][i] = 0.0f;
                             continue;
                         }
                     } else {
                         if (nlevels[j][i] <= surfk - f->level) {
-                            if (das->updatespec & UPDATE_OUTPUTINC)
-                                for (e = 0; e < nmem; ++e)
-                                    vvv[e][j][i] = 0.0f;
+                            for (e = 0; e < nmem; ++e)
+                                vvv[e][j][i] = 0.0f;
                             continue;
                         }
                     }
+
                     /*
                      * Assume that if |value| > MAXOBSVAL, then it is filled
                      * with the missing value.
@@ -302,9 +301,8 @@ static void das_updatefields(dasystem* das, int nfields, void** fieldbuffer, fie
                         if (!isfinite(vvv[e][j][i]) || fabsf(vvv[e][j][i]) > (float) MAXOBSVAL)
                             break;
                     if (e < nmem) {
-                        if (das->updatespec & UPDATE_OUTPUTINC)
-                            for (e = 0; e < nmem; ++e)
-                                vvv[e][j][i] = 0.0f;
+                        for (e = 0; e < nmem; ++e)
+                            vvv[e][j][i] = 0.0f;
                         continue;
                     }
 
@@ -611,14 +609,12 @@ static void das_updatebg(dasystem* das, int nfields, void** fieldbuffer, field f
 
                     if (surfk == 0) {
                         if (nlevels[j][i] <= f->level) {
-                            if (das->updatespec & UPDATE_OUTPUTINC)
-                                vvv[nmem][j][i] = 0.0f;
+                            vvv[nmem][j][i] = 0.0f;
                             continue;
                         }
                     } else {
                         if (nlevels[j][i] <= surfk - f->level) {
-                            if (das->updatespec & UPDATE_OUTPUTINC)
-                                vvv[nmem][j][i] = 0.0f;
+                            vvv[nmem][j][i] = 0.0f;
                             continue;
                         }
                     }
@@ -627,16 +623,14 @@ static void das_updatebg(dasystem* das, int nfields, void** fieldbuffer, field f
                      * with the missing value 
                      */
                     if (fabsf(vvv[nmem][j][i]) > (float) MAXOBSVAL) {
-                        if (das->updatespec & UPDATE_OUTPUTINC)
-                            vvv[nmem][j][i] = 0.0f;
+                        vvv[nmem][j][i] = 0.0f;
                         continue;
                     }
                     for (e = 0; e < nmem; ++e)
                         if (fabsf(vvv[e][j][i]) > (float) MAXOBSVAL)
                             break;
                     if (e < nmem) {
-                        if (das->updatespec & UPDATE_OUTPUTINC)
-                            vvv[nmem][j][i] = 0.0f;
+                        vvv[nmem][j][i] = 0.0f;
                         continue;
                     }
 
