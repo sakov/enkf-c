@@ -969,13 +969,9 @@ static void das_assemblebg(dasystem* das)
         float* v = NULL;
 
         enkf_printf("    %s:", varname);
-        das_getbgfname(das, varname, fname_dst);
-        nlev = ncu_getnlevels(fname_dst, varname);
         strncpy(varname_dst, varname, NC_MAX_NAME - 1);
 
-        model_getvargridsize(m, i, &ni, &nj, NULL);
-        v = malloc(ni * nj * sizeof(float));
-
+        das_getbgfname(das, varname, fname_dst);
         if (das->updatespec & UPDATE_SEPARATEOUTPUT) {
             if (!(das->updatespec & UPDATE_OUTPUTINC))
                 strncat(fname_dst, ".analysis", MAXSTRLEN - 1);
@@ -988,6 +984,10 @@ static void das_assemblebg(dasystem* das)
                 strncat(varname_dst, "_inc", NC_MAX_NAME - 1);
         }
 
+        model_getvargridsize(m, i, &ni, &nj, NULL);
+        v = malloc(ni * nj * sizeof(float));
+
+        nlev = ncu_getnlevels(fname_dst, varname);
         for (k = 0; k < nlev; ++k) {
             char fname_src[MAXSTRLEN];
             int ncid_src, vid_src;
@@ -1174,8 +1174,6 @@ void das_update(dasystem* das)
                         int vid_f;
 
                         das_getbgfname(das, varname, fname_f);
-                        ncw_open(fname_f, NC_NOWRITE, &ncid_f);
-
                         strncpy(fname_a, fname_f, MAXSTRLEN);
                         if (!(das->updatespec & UPDATE_OUTPUTINC))
                             strncat(fname_a, ".analysis", MAXSTRLEN - 1);
@@ -1192,6 +1190,10 @@ void das_update(dasystem* das)
                             ncw_redef(ncid_a);
                         } else
                             ncw_create(fname_a, NC_CLOBBER | das->ncformat, &ncid_a);
+
+                        if (!file_exists(fname_f) && (das->updatespec & UPDATE_OUTPUTINC))
+                            das_getmemberfname(das, varname, 1, fname_f);
+                        ncw_open(fname_f, NC_NOWRITE, &ncid_f);
                         ncw_inq_varid(ncid_f, varname, &vid_f);
                         ncw_copy_vardef(ncid_f, vid_f, ncid_a);
                         if (das->nccompression > 0)
@@ -1288,7 +1290,7 @@ void das_update(dasystem* das)
              * read the background to write it to pointlogs, regardless of
              * whether output is increment or analysis
              */
-            if (das->mode == MODE_ENOI && (das->updatespec & (UPDATE_DOFIELDS | UPDATE_DOANALYSISSPREAD | UPDATE_DOPLOGSAN | UPDATE_DOINFLATION))) {
+            if (das->mode == MODE_ENOI && (((das->updatespec & UPDATE_DOFIELDS) && !(das->updatespec & UPDATE_OUTPUTINC)) || (das->updatespec & UPDATE_DOPLOGSAN))) {
                 das_getbgfname(das, f->varname, fname);
                 model_readfield(das->m, fname, f->varname, f->level, ((float***) fieldbuffer[bufid])[das->nmem][0], 0);
             }

@@ -1,3 +1,9 @@
+v.2.9.20
+   PS 03112021
+   -- A few changes in update.c to make sure that no background is needed in
+      ENOI mode if UPDATE is run with "--output-increment" and there are no
+      pointlogs. This simplifies calculating increments in single observation
+      experiments.
 v.2.9.19
    PS 02112021
    -- Removed duplicate free(zc) in grid_create(). Thanks to Jeremy Silver for
@@ -26,7 +32,7 @@ v.2.9.14
    -- Cosmetic changes.
 v.2.9.13
    PS 23072021
-   -- In readers "cars"."mmmt", "cmems" -- skip values that are !finite().
+   -- In readers "cars", "mmt", "cmems" -- skip values that are !finite().
 v.2.9.12
    PS 23072021
    -- In obs_write() allow !isfinite(o->value) if o->status != STATUS_OK.
