@@ -1081,8 +1081,6 @@ grid* grid_create(void* p, int id, void** grids)
             ncu_readvardouble(ncid, varid, nkc, zc);
         }
         g->gridnodes_z = gz_z_create(g, nk, z, nkc, zc, prm->vdirection);
-        if (zc != NULL)
-            free(zc);
     } else if (g->vtype == GRIDVTYPE_SIGMA) {
         int varid;
         double* ct = NULL;

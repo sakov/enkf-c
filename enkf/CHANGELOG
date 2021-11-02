@@ -1,3 +1,7 @@
+v.2.9.19
+   PS 02112021
+   -- Removed duplicate free(zc) in grid_create(). Thanks to Jeremy Silver for
+      reporting.
 v.2.9.18
    PS 02112021
    -- In tunits_convert() fixed the sign of correction caused by non-zero time
