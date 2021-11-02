@@ -532,7 +532,7 @@ void tunits_convert(char* tunits, double* tunits_multiple, double* tunits_offset
         if (!str2int(token, &s))
             enkf_quit("could not convert \"%s\" to time units", tunits);
 
-    *tunits_offset = (double) daydiff(year, month, day, BASEYEAR, BASEMONTH, BASEDAY) - (double) h / 24.0 - (double) m / 1440.0 - (double) s / 86400.0;
+    *tunits_offset = (double) daydiff(year, month, day, BASEYEAR, BASEMONTH, BASEDAY) + (double) h / 24.0 + (double) m / 1440.0 + (double) s / 86400.0;
 }
 
 /**
