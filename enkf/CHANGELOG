@@ -1,3 +1,8 @@
+v.2.9.21
+   PS 03112021
+   -- In das_calctransforms() fixed missed setting of w to 0 when (ploc == 0)
+      and (das->mode == MODE_ENKF || das->mode == MODE_HYBRID). Thanks to Jeremy
+      Silver for the bug report.
 v.2.9.20
    PS 03112021
    -- A few changes in update.c to make sure that no background is needed in

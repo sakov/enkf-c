@@ -553,8 +553,8 @@ void das_calctransforms(dasystem* das)
                         memset(Tj[ii][0], 0, nmem_dynamic * nmem * sizeof(float));
                         for (e = 0; e < nmem_dynamic; ++e)
                             Tj[ii][e][e] = (float) 1.0;
-                    } else if (das->mode == MODE_ENOI)
-                        memset(wj[ii], 0, nmem * sizeof(float));
+                    }
+                    memset(wj[ii], 0, nmem * sizeof(float));
 
                     nlobs[jjj][ii] = 0;
                     dfs[jjj][ii] = 0.0;
