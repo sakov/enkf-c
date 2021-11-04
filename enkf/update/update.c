@@ -1184,7 +1184,6 @@ void das_update(dasystem* das)
                             ncw_open(fname_a, NC_WRITE, &ncid_a);
                             if (ncw_var_exists(ncid_a, varname)) {
                                 ncw_close(ncid_a);
-                                ncw_close(ncid_f);
                                 continue;
                             }
                             ncw_redef(ncid_a);
