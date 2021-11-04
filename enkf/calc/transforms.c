@@ -546,10 +546,7 @@ void das_calctransforms(dasystem* das)
                 stats.ncell++;
 
                 if (ploc == 0) {
-                    if (das->mode == MODE_ENKF || das->mode == MODE_HYBRID) {
-                        /*
-                         * set T = I 
-                         */
+                    if (T != NULL) {
                         memset(Tj[ii][0], 0, nmem_dynamic * nmem * sizeof(float));
                         for (e = 0; e < nmem_dynamic; ++e)
                             Tj[ii][e][e] = (float) 1.0;
@@ -1034,14 +1031,13 @@ void das_calcpointlogtransforms(dasystem* das)
             ploc = 0;
             obs_findlocal(obs, plog->lon, plog->lat, grid_getdomainname(g), &ploc, &lobs, &lcoeffs, NULL);
 
-            if (T != NULL)
-                memset(T[0], 0, nmem * nmem * sizeof(double));
-
             if (ploc == 0) {
                 memset(w, 0, nmem * sizeof(double));
-                if (T != NULL)
+                if (T != NULL) {
+                    memset(T[0], 0, nmem * nmem * sizeof(double));
                     for (e = 0; e < nmem; ++e)
                         T[e][e] = 1.0;
+                }
             } else {
                 Sloc = alloc2d(nmem, ploc, sizeof(double));
                 G = alloc2d(ploc, nmem, sizeof(double));

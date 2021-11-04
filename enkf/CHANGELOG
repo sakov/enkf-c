@@ -1,3 +1,6 @@
+v.2.9.22
+   PS 04112021
+   -- A few supposedly cosmetic changes in transforms.c.
 v.2.9.21
    PS 03112021
    -- In das_calctransforms() fixed missed setting of w to 0 when (ploc == 0)
