@@ -1197,8 +1197,6 @@ void obs_superob(observations* obs, __compar_d_fn_t cmp_obs, observations** sobs
     observation* sdata = NULL;
     int has_nonpointobs = 0;
 
-    qsort_r(obs->data, obs->ngood, sizeof(observation), cmp_obs, obs);
-
     while (i2 < obs->ngood) {
         observation* so;
         observation* o;

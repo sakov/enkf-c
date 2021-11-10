@@ -1,3 +1,6 @@
+v.2.9.24
+   PS 11112021
+   -- Minor changes in PREP to get timing on sorting and actual superobing.
 v.2.9.23
    PS 04112021
    -- In das_update() removed an extra ncw_close() occurred in v2.9.20

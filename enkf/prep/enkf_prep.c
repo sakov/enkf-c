@@ -330,7 +330,12 @@ int main(int argc, char* argv[])
 
     if (do_superob) {
         enkf_printtime("  ");
+        enkf_printf("  sorting:\n");
+        enkf_flush();
+        qsort_r(obs->data, obs->ngood, sizeof(observation), cmp_obs, obs);
+        enkf_printtime("  ");
         enkf_printf("  superobing:\n");
+        enkf_flush();
         obs_superob(obs, cmp_obs, &sobs, describe_superob_id, do_thin);
 
         if (describe_superob_id >= 0)
@@ -338,6 +343,7 @@ int main(int argc, char* argv[])
 
         enkf_printtime("  ");
         enkf_printf("  checking for superobs on land:\n");
+        enkf_flush();
         if (obs_checkforland(sobs, m)) {
             obs_compact(sobs);
             for (i = 0; i < sobs->nobs; ++i)
