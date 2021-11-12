@@ -1,3 +1,6 @@
+v.2.9.25
+   PS 12112021
+   -- Added sec. 2.9.1 "On the asynchronous DA in a hybrid system" to the User Guide.
 v.2.9.24
    PS 11112021
    -- Minor changes in PREP to get timing on sorting and actual superobing.
@@ -40,7 +43,8 @@ v.2.9.16
 v.2.9.15
    PS 11092021
    -- In obs_superob(): when thinning observations with identical positions --
-      replace the value of the kept observation with the average of the batch.
+	replace the value of the kept observation with the average of the batch rather
+	than with the first observation in the batch.
 v.2.9.14
    PS 02092021
    -- Cosmetic changes.

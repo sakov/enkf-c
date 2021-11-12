@@ -39,7 +39,7 @@
 
 \begin{document}
 
-\title{EnKF-C user guide\\{\normalsize version 2.9.3}}
+\title{EnKF-C user guide\\{\normalsize version 2.9.25}}
 
 \author{Pavel Sakov}
 \date{June 19, 2014 -- \today}
@@ -1757,6 +1757,13 @@ The forecast and analysis ensemble spread fields written by UPDATE when specifyi
 In contrast, the vertical correlations (UPDATE options \verb|--calculate-vertical-correlations| and \verb|--calculate-vertical-correlations-only|) are calculated using the full ensemble.
 
 Note that setting \verb|GAMMA = 0| makes the hybrid system formally equivalent to the EnKF (but not numerically, because of the roundoff errors), while setting \verb|ENSSIZE_DYNAMIC = 1| makes it formally equivalent to the EnOI.
+
+\subsection{On the asynchronous DA in a hybrid system}
+
+In a hybrid system the ensemble observation anomalies for the static part of the ensemble are calculated from the static ensemble, i.e. without considering observation time.
+To form the full ensemble observations they are then added to the corresponding ensemble mean observations from the dynamic ensemble.
+If the ensemble observations of the dynamic ensemble are asynchronous then the ensemble mean is also asynchronous.
+Therefore, the static part of the ensemble functions similarly to an FGAT EnOI system, while the dynamic part functions as an asynchronous EnKF.
 
 \section{DA tuning}
 \label{sec:datuning}

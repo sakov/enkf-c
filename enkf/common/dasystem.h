@@ -40,7 +40,7 @@ typedef struct {
     int scheme;
     double alpha;               /* moderating multiple */
     char* ensdir;
-    char* ensdir2;              /* static ens. for mode = MODE_STATIC */
+    char* ensdir2;              /* static ens. for mode = MODE_HYBRID */
     char* bgdir;
 
     int nmem;                   /* total size of the ensemble */
