@@ -1,3 +1,7 @@
+v.2.9.26
+   PS 16112021
+   -- Fixed defect in obs_create_fromprm(). (Surprised it has not manifested
+      before.) Thanks to Paul Sandery for the report.
 v.2.9.25
    PS 12112021
    -- Added sec. 2.9.1 "On the asynchronous DA in a hybrid system" to the User Guide.

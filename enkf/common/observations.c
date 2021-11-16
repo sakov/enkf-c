@@ -236,7 +236,7 @@ observations* obs_create_fromprm(enkfprm* prm)
     {
         int otid;
 
-        for (otid = 0; otid <= obs->nobstypes; ++otid) {
+        for (otid = 0; otid < obs->nobstypes; ++otid) {
             obstype* ot = &obs->obstypes[otid];
 
             if (isnan(ot->obswindow_min))
