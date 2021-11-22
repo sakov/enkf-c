@@ -39,7 +39,7 @@
 
 \begin{document}
 
-\title{EnKF-C user guide\\{\normalsize version 2.9.25}}
+\title{EnKF-C user guide\\{\normalsize version 2.9.27}}
 
 \author{Pavel Sakov}
 \date{June 19, 2014 -- \today}
@@ -1268,7 +1268,7 @@ The generic parameters include:
 \item{\verb|MAXDEPTH|} -- maximal allowed model depth;
 \item{\verb|FOOTPRINT|} -- the radius in km of the horizontal footprint;
 \item{\verb|VARSHIFT|} -- data offset;
-\item{\verb|THIN|} -- data thinning ratio.
+\item{\verb|STRIDE|} -- stride interval.
 \end{description}
 
 The custom parameters can be learned by running \verb|enkf_prep --describe-reader <reader name>|, and the reader name list can printed by \verb|enkf_prep --list-readers|.
@@ -1334,9 +1334,8 @@ Following is the description of the reader \verb|scattered|:
         minimal allowed depth
     - MAXDEPTH (-)
         maximal allowed depth
-    - THIN (-)
-        data thinning ratio (only one out of each consequitive <THIN> values is
-        read
+    - STRIDE (-)
+        stride interval.
 \end{Verbatim}
 
 \subsection{Superobing}

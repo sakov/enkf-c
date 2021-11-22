@@ -293,9 +293,8 @@ produced in-house by BoM.\n\
         name of the QC flag variable, possible values 0 <= qcflag <= 31\n\
     - QCFLAGVALS (-)\n\
         the list of allowed values of QC flag variable\n\
-    - THIN (-)\n\
-        data thinning ratio (only one out of each consequitive <THIN> values is\n\
-        read\n\
+    - STRIDE (-)\n\
+        stride interval\n\
   Note: it is possible to have multiple entries of QCFLAGNAME and QCFLAGVALS\n\
   combination, e.g.:\n\
     PARAMETER QCFLAGNAME = TEMP_quality_control\n\

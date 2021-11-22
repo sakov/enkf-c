@@ -1,3 +1,7 @@
+v.2.9.27
+   PS 22112021
+   -- Replaced common reader parameter THIN by more intuitive STRIDE.
+      (Backward compatible.)
 v.2.9.26
    PS 16112021
    -- Fixed defect in obs_create_fromprm(). (Surprised it has not manifested

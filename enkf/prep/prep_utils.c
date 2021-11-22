@@ -101,7 +101,7 @@ void obs_add(observations* obs, model* m, obsmeta* meta, int nexclude, obsregion
     double maxdepth = NAN;
     double footprint = 0.0;
     double varshift = 0.0;
-    int thin = 0;
+    int stride = 0;
     obsread_fn reader;
     int i, ngood, npars;
 
@@ -149,8 +149,21 @@ void obs_add(observations* obs, model* m, obsmeta* meta, int nexclude, obsregion
                 meta->pars[i].name = NULL;
                 meta->pars[i].value = NULL;
             }
-        } else if (strcasecmp(meta->pars[i].name, "THIN") == 0) {
-            if (!str2int(meta->pars[i].value, &thin))
+        } else if (strcasecmp(meta->pars[i].name, "STRIDE") == 0) {
+            if (!str2int(meta->pars[i].value, &stride))
+                enkf_quit("observation prm file: can not convert STRIDE = \"%s\" to double\n", meta->pars[i].value);
+            else {
+                free(meta->pars[i].name);
+                free(meta->pars[i].value);
+                meta->pars[i].name = NULL;
+                meta->pars[i].value = NULL;
+            }
+        }
+        /*
+         * for historic compatibility 
+         */
+        else if (strcasecmp(meta->pars[i].name, "THIN") == 0) {
+            if (!str2int(meta->pars[i].value, &stride))
                 enkf_quit("observation prm file: can not convert THIN = \"%s\" to double\n", meta->pars[i].value);
             else {
                 free(meta->pars[i].name);
@@ -270,7 +283,7 @@ void obs_add(observations* obs, model* m, obsmeta* meta, int nexclude, obsregion
                     nshallow++;
                 }
             }
-            if (thin > 1 && i % thin != 0) {
+            if (stride > 1 && i % stride != 0) {
                 o->status = STATUS_THINNED;
                 nthin++;
                 continue;
