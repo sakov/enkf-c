@@ -1996,34 +1996,36 @@ When APPLYLOG is specified, the ensemble spread and ensemble vertical correlatio
 \section{System issues}
 
 \subsection{Compiler flags}
+\label{sec:flags}
 
 Following is a brief description of the compiler flags in EnKF-C.
 
 \begin{description}
-\item{\verb|INTERNAL_QSORT_R|} (\verb|enkf_prep|, \verb|enkf_calc|)
+\item{\verb|INTERNAL_QSORT_R|} (PREP, CALC)
   Uses internal code for \verb|qsort_r()|.
   Has to be defined for compiling on Mac OS platforms.
-\item{\verb|SHUFFLE_ROWS|} (\verb|enkf_calc|)
+\item{\verb|SHUFFLE_ROWS|} (CALC)
   Supposed to produce more latitudinally uniform load between CPUs.
   Currently, because transforms for each row of the grid are sent to the master process for writing, this option effectively makes no difference to performance, I believe.
-\item{\verb|USE_SHMEM|} (\verb|enkf_calc|)
-  Uses shared memory for storing ensemble observations, which much reduces the memory footprint in CALC.
-  From v1.110.0 also uses shared memory for storing grid K-D trees and observation K-D trees.
-  Requires MPI-3.
+\item{\verb|USE_SHMEM|} (CALC)
+  Uses shared memory for storing ensemble observations.
+  This functionality requires MPI-3.
+  It reduces the memory footprint by storing one instance of large objects per compute node.
+  From v1.110.0 EnKF-C also uses shared memory for storing grid K-D trees and observation K-D trees, and from v1.111.11 -- for storing the observation array.
   This is a default option, but can be unset, particularly for smaller systems, when memory is not an issue.
-\item{\verb|MINIMISE_ALLOC|} (\verb|enkf_calc|)
+\item{\verb|MINIMISE_ALLOC|} (CALC)
   Pre-allocates arrays in CALC to reduce potential problems with memory fragmentation.
   This is a default option from v1.103.0.
-\item{\verb|OBS_SHUFFLE|} (\verb|enkf_calc|)
+\item{\verb|OBS_SHUFFLE|} (CALC)
   Randomly shuffles observations before parsing them into K-D trees.
   Potentially this can substantially improve performance in the case of spatially ordered observations (not verified).
-\item{\verb|TW_VIAFILE|} (\verb|enkf_calc|)
+\item{\verb|TW_VIAFILE|} (CALC)
   Communicate ensemble transforms via files.
   Use this option if MPI communication becomes clogged.
-\item{\verb|DEFLATE_ALL|} (\verb|enkf_calc|, \verb|enkf_update|)
+\item{\verb|DEFLATE_ALL|} (CALC, UPDATE)
   Apply specified NetCDF deflation to all NetCDF files, including ensemble transforms, spread, inflation, and various tiles.
   This can save some disk space, but slows down i/o.
-\item{\verb|NCW_SKIPSINGLE|} (\verb|enkf_update|)
+\item{\verb|NCW_SKIPSINGLE|} (UPDATE)
   Skips ``normal'' (not unlimited) ``inner'' dimensions of length one when copying definitions of variables from one NetCDF file to another.
 \end{description}
 
@@ -2056,13 +2058,12 @@ The following table lists the most memory-wise important objects.
   {\scriptsize$^{(4)}$\,with \verb|STRIDE| = 3}
 }
 
-The memory footprint of PREP is defined by the size of the \verb|observation| structure array and, in some cases, by curvilinear grids.
+The memory footprint of PREP is defined by the size of the (original, before superobing) \verb|observation| structure array and, in some cases, by the size of curvilinear grids.
 The memory usage by curvilinear grids is much reduced by parsing them into K-D trees (default from v1.101.4; the only option since v1.106.0) rather than into binary trees.
-Because PREP is not parallelised (mainly due to lack of robust parallel analogue of \verb|qsort| procedure), in practice its memory footprint is rarely a problem.
+Because PREP is not parallelised (mainly due to lack of robust and efficient parallel analogue of \verb|qsort| procedure), in practice its memory footprint is rarely a problem.
 
 The footprint of CALC is mainly defined by the size of ensemble observations $\mathcal H(\mb E)$.
-From version 1.74, it has been substantially reduced for multi-core CPUs by storing only one instance of ensemble observations per compute node.
-This involves using the shared memory and requires MPI-3.
+From version 1.74, it has been substantially reduced for multi-core CPUs by storing only one instance of this array per compute node, with further developments in v1.110.0 and v1.111.11 (see sec. \ref{sec:flags} on \verb|USE_SHMEM| for details).
 
 For the EnKF, the footprint of UPDATE is mainly defined by the size of the array of simultaneously updated horizontal model fields.
 The number of simultaneously updated fields is defined by parameter \verb|FIELDBUFFERSIZE|.
@@ -2080,12 +2081,12 @@ If the system is set to generate core dumps, they can indeed be used for investi
 
 Compiling EnKF-C requires the following external libraries:
 \begin{itemize}
-\item netcdf;
+\item netcdf (along with hdf5);
 \item lapack (or mkl\_rt);
 \item openmpi;
 \end{itemize}
 
-EnKF-C also relies on \verb|qsort_r()|, which may be lacking in older systems.
+EnKF-C also relies on \verb|qsort_r()|, which may be lacking in some systems.
 In such cases use compile flag \verb|-DINTERNAL_QSORT_R| to activate the internal version of this procedure.
 
 Notes:

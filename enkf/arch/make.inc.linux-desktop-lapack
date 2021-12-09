@@ -9,14 +9,14 @@
 #   blas -- if not bundled with lapack
 #
 # It may also be necessary to add a few minor tweaks. For example, on OpenSUSE
-# desktops one may need to make a couple softlinks, e.g.
-#   >ln -s /usr/lib64/lapack/liblapack.so.3.5.0 /usr/lib64/liblapack.so
-#   >ln -s /usr/lib64/blas/libblas.so.3.5.0 /usr/lib64/libblas.so
-# and add /usr/lib64/mpi/gcc/openmpi/bin to $PATH.
+# desktops one may need to make a few softlinks, e.g.
+#   >ln -s /usr/lib64/lapack/liblapack.so.3.9.0 /usr/lib64/liblapack.so
+#   >ln -s /usr/lib64/blas/libblas.so.3.9.0 /usr/lib64/libblas.so
+#   >ln -s /usr/lib64/mpi/gcc/openmpi4/bin/mpicc /usr/bin/mpicc
 
 LD_PATH =
 
-LIB_NC = -lnetcdf -lhdf5 -lhdf5_hl
+LIB_NC = -lnetcdf -lhdf5
 LIB_LAPACK = -llapack -lblas -lgfortran
 LIB_M = -lm
 
