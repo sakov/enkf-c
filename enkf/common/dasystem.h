@@ -131,7 +131,6 @@ void das_moderateobs(dasystem* das);
 void das_calcbatchstats(dasystem* das, int doprint);
 void das_printobsstats(dasystem* das, int use_rmsd);
 void das_printfobsstats(dasystem* das, int use_rmsd);
-void das_readobs(dasystem* das, char fname[]);
 void das_standardise(dasystem* das);
 void das_destandardise(dasystem* das);
 void das_update(dasystem* das);

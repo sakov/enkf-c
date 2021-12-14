@@ -1681,9 +1681,13 @@ It has the following usage and options:
 >./bin/enkf_update
   Usage: enkf_update <prm file> [<options>]
   Options:
+  --allow-logspace-with-static-ens
+      confirm that static ensemble is conditioned for using log space
   --calculate-spread
-      calculate ensemble spread and write to spread.nc
+      calculate forecast and analysis ensemble spread and write to spread.nc
   --calculate-forecast-spread
+      calculate forecast ensemble spread and write to spread.nc
+  --calculate-forecast-spread-only
       calculate forecast ensemble spread only and write to spread.nc
   --calculate-vertical-correlations
       calculate correlation coefficients between surface and other layers of
@@ -1699,7 +1703,7 @@ It has the following usage and options:
   --leave-tiles
       do not delete tiles
   --no-fields-write
-      do not write analysis fields
+      do not write analysis fields (only diagnostic data)
   --no-update
       exclude tasks that require ensemble update
   --output-increment
@@ -1808,7 +1812,7 @@ To compensate this in a system with horizontal localisation one has to change th
 From v1.77.0 it is possible to limit the maximal number of local observations of each observation type via the entry \verb|NLOBSMAX| in the main parameter file (sec.~\ref{sec:mainprm}).
 This common setting can be overriden for particular observation types in the observation types parameter file (sec.~\ref{sec:obstypesprm}).
 Note that using this setting can result in discontinuity of the analysis because the set of observations used for local analyses in adjacent grid cells can change in a discontinuous way.
-Also, it forces sorting of the local observations, which can substantially increase the search time.
+Also, it forces sorting of the local observations by distance in CALC, which can substantially increase the search time.
 Therefore the general advise is to avoid using this functionality except perhaps interpolation oriented products.
 
 The adaptive moderation of observation impact with the K-factor (sec. \ref{sec:kfactor}) is normally fairly non-intrusive, while can be essential for robust performance in situations with large innovations.

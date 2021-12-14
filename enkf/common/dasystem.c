@@ -305,7 +305,7 @@ dasystem* das_create(enkfprm* prm)
                 if (das->updatespec & UPDATE_DOPLOGSAN) {
                     char fname[MAXSTRLEN];
                     int ncid, varid;
-                    char gridstr[SMALLSTRLEN];
+                    char gridstr[SHORTSTRLEN];
                     char varname[NC_MAX_NAME];
 
                     das_getfname_plog(das, dst, fname);

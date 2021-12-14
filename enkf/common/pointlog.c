@@ -175,13 +175,13 @@ void plog_create(dasystem* das, int plogid, int ploc, int* lobs, double* lcoeffs
         int ni, nj, nk;
         float** depths;
         float depth = NAN;
-        char gridstr[SMALLSTRLEN - 5];
+        char gridstr[SHORTSTRLEN - 5];
 
         if (plog->gridid >= 0 && plog->gridid != gid)
             continue;
 
         get_gridstr(das, gid, gridstr);
-        snprintf(varname, SMALLSTRLEN - 1, "grid%s", gridstr);
+        snprintf(varname, SHORTSTRLEN - 1, "grid%s", gridstr);
         ncw_def_var(ncid, varname, NC_INT, 0, NULL, &vid_grid);
         ncw_put_att_int(ncid, vid_grid, "id", 1, &gid);
         if (aliasid >= 0)
@@ -304,7 +304,7 @@ void plog_writetransform(dasystem* das, int plogid, int gid, int ploc, double* s
     int dimids[3];
     char name[NC_MAX_NAME];
     int vid_S, vid_s, vid_w, vid_T;
-    char gridstr[SMALLSTRLEN];
+    char gridstr[SHORTSTRLEN];
 
     assert(das->s_mode == S_MODE_S_f);
 

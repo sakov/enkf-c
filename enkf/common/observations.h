@@ -54,7 +54,7 @@ typedef struct {
     float fi;
     float fj;
     float fk;
-    float time;
+    float time;                 /* fractional days since analysis time */
     /*
      * auxiliary information:
      *  - for a superob -- # of obs collated

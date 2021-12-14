@@ -20,7 +20,7 @@
 #endif
 
 #define MAXSTRLEN 2048
-#define SMALLSTRLEN 128
+#define SHORTSTRLEN 128
 /*
  * Memory allocation increment for observations. One might increase it for
  * large systems and possibly reduce for small systems.
@@ -43,7 +43,6 @@
 #define FNAME_BADBATCHES "badbatches.out"
 #define FNAME_INFLATION "inflation.nc"
 #define FNAME_VERTCORR "vcorr.nc"
-#define FNAME_HE "HE.nc"
 
 #define DIRNAME_TMP ".enkftmp"
 
@@ -56,7 +55,7 @@
 #define STATUS_OUTSIDEOBSDOMAIN 6
 #define STATUS_OUTSIDEOBSWINDOW 7
 #define STATUS_THINNED 8
-#define STATUS_EXCLUDED 9
+#define STATUS_EXCLUDED 9       /* excluded by location in obs. prm file */
 
 #define MODE_NONE 0
 #define MODE_ENKF 1

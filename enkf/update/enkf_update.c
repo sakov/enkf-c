@@ -32,8 +32,9 @@ static void usage()
     enkf_printf("  --allow-logspace-with-static-ens\n");
     enkf_printf("      confirm that static ensemble is conditioned for using log space\n");
     enkf_printf("  --calculate-spread\n");
-    enkf_printf("      calculate ensemble spread and write to %s\n", FNAME_SPREAD);
+    enkf_printf("      calculate forecast and analysis ensemble spread and write to %s\n", FNAME_SPREAD);
     enkf_printf("  --calculate-forecast-spread\n");
+    enkf_printf("      calculate forecast ensemble spread and write to %s\n", FNAME_SPREAD);
     enkf_printf("  --calculate-forecast-spread-only\n");
     enkf_printf("      calculate forecast ensemble spread only and write to %s\n", FNAME_SPREAD);
     enkf_printf("  --calculate-vertical-correlations\n");
