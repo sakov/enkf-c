@@ -11,7 +11,7 @@
  *
  * Description:    An expandable array of strings.
  *
- * Revisions:      12/2012 PS: Changed prefixes "stringtable_" to "st_"None
+ * Revisions:      12/2012 PS: Changed prefixes "stringtable_" to "st_"
  *
  *****************************************************************************/
 

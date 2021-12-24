@@ -28,11 +28,6 @@
 #include "prep_utils.h"
 
 /*
- * put all obs into observations-orig.nc (default = only obs within the grid)
- */
-int log_all_obs = 0;
-
-/*
  * describe this superobservation and exit (-1 = normal workflow)
  */
 int describe_superob_id = -1;
@@ -48,12 +43,15 @@ int do_superob = 1;
 int do_superob_acrossinst = 0;
 
 /*
- * superobing across batches can be switched on
+ * superobing across batches can be switched off
  */
 int do_superob_acrossbatches = 1;
 
 /*
- * writing of the original obs can be swithched off
+ * writing of the original obs can be swithched on
+ * 0 = do not write
+ * 1 = write original obs within model domain
+ * 2 = write all original obs
  */
 int write_orig_obs = 0;
 
@@ -88,6 +86,9 @@ static void usage()
     enkf_printf("  --no-thinning\n");
     enkf_printf("  --superob-across-instruments\n");
     enkf_printf("  --write-orig-obs\n");
+    enkf_printf("      write original obs within model domain to %s\n", FNAME_OBS);
+    enkf_printf("  --write-all-orig-obs\n");
+    enkf_printf("      write all original obs to %s\n", FNAME_OBS);
     enkf_printf("  --version\n");
     enkf_printf("      print version and exit\n");
 
@@ -154,10 +155,6 @@ static void parse_commandline(int argc, char* argv[], char** fname)
         } else if (strcmp(argv[i], "--list-readers") == 0) {
             list_readers();
             exit(0);
-        } else if (strcmp(argv[i], "--log-all-obs") == 0) {
-            log_all_obs = 1;
-            i++;
-            continue;
         } else if (strcmp(argv[i], "--no-superobing") == 0) {
             do_superob = 0;
             i++;
@@ -176,6 +173,10 @@ static void parse_commandline(int argc, char* argv[], char** fname)
             continue;
         } else if (strcmp(argv[i], "--write-orig-obs") == 0) {
             write_orig_obs = 1;
+            i++;
+            continue;
+        } else if (strcmp(argv[i], "--write-all-orig-obs") == 0) {
+            write_orig_obs = 2;
             i++;
             continue;
         } else if (strcmp(argv[i], "--version") == 0) {
@@ -308,7 +309,7 @@ int main(int argc, char* argv[])
     m = model_create(prm);
     obs = obs_create_fromprm(prm);
     obstypes_set(obs->nobstypes, obs->obstypes, m);
-    obs->allobs = log_all_obs;
+    obs->allobs = (write_orig_obs == 2) ? 1 : 0;
     obs->model = m;
 
     for (i = 0; i < nexclude; ++i) {

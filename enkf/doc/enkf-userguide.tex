@@ -39,7 +39,7 @@
 
 \begin{document}
 
-\title{EnKF-C user guide\\{\normalsize version 2.9.27}}
+\title{EnKF-C user guide\\{\normalsize version 2.10.0}}
 
 \author{Pavel Sakov}
 \date{June 19, 2014 -- \today}
@@ -1149,13 +1149,14 @@ It has the following usage and options:
       print composition of this superobservation and exit
   --list-readers
       list available readers and exit
-  --log-all-obs
-      write all obs to observations-orig.nc (default: obs within model domain only)
   --no-superobing
   --no-superobing-across-batches
   --no-thinning
   --superob-across-instruments
   --write-orig-obs
+      write original obs within model domain to observations-orig.nc
+  --write-all-orig-obs
+      write all original obs to observations-orig.nc
   --version
       print version and exit
 \end{Verbatim}
