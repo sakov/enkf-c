@@ -784,29 +784,33 @@ static double z2fk_basic(int n, double* zt, double* zc, double z)
             imid = (i1 + i2) / 2;
             if (imid == i1)
                 break;
-            if (z > zt[imid])
+            if (z > zc[imid])
                 i1 = imid;
             else
                 i2 = imid;
         }
-        if (z < zc[i1 + 1])
-            return (double) i1 + 0.5 * (z - zt[i1]) / (zc[i1 + 1] - zt[i1]);
+        if (z > zc[i2])
+            i1++;
+        if (z < zt[i1])
+            return (double) i1 + 0.5 * (z - zt[i1]) / (zt[i1] - zc[i1]);
         else
-            return (double) i1 + 0.5 + 0.5 * (z - zc[i1 + 1]) / (zt[i1 + 1] - zc[i1 + 1]);
+            return (double) i1 + 0.5 * (z - zt[i1]) / (zc[i1 + 1] - zt[i1]);
     } else {
         while (1) {
             imid = (i1 + i2) / 2;
             if (imid == i1)
                 break;
-            if (z > zt[imid])
+            if (z > zc[imid])
                 i2 = imid;
             else
                 i1 = imid;
         }
-        if (z > zc[i1 + 1])
-            return (double) i1 + 0.5 * (z - zt[i1]) / (zc[i1 + 1] - zt[i1]);
+        if (z < zc[i2])
+            i1++;
+        if (z > zt[i1])
+            return (double) i1 + 0.5 * (z - zt[i1]) / (zt[i1] - zc[i1]);
         else
-            return (double) i1 + 0.5 + 0.5 * (z - zc[i1 + 1]) / (zt[i1 + 1] - zc[i1 + 1]);
+            return (double) i1 + 0.5 * (z - zt[i1]) / (zc[i1 + 1] - zt[i1]);
     }
 }
 
