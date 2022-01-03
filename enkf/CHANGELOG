@@ -1,3 +1,8 @@
+v.2.10.1
+   PS 04012022
+   -- Two corrections, in island() and z2fk_basic(), to fix (fairly rare)
+      failures of CALC in ROMS systems with error messages "no point to
+      continue".
 v.2.10.0
    PS 24122021
    -- In prep option "--log-all-obs" became "write-all-orig-obs".

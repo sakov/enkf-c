@@ -766,13 +766,13 @@ static double z2fk_basic(int n, double* zt, double* zc, double z)
     ascending = (zt[n - 1] > zt[0]) ? 1 : 0;
 
     if (ascending) {
-        if (z < zc[0])
-            return 0.0;
+        if (z <= zc[0])
+            return -0.5;
         if (z > zc[n])
             return NAN;
     } else {
-        if (z < zc[n])
-            return 0.0;
+        if (z <= zc[n])
+            return (double) n - 0.5;
         if (z > zc[0])
             return NAN;
     }
