@@ -667,9 +667,13 @@ int model_z2fk_f(model* m, int vid, double fi, double fj, double z, float* fk)
 
 /**
  */
-int model_fk2z(model* m, int vid, int i, int j, double fk, double* z)
+double model_fk2z(model* m, int vid, int i, int j, double fk)
 {
-    return grid_fk2z(m->grids[m->vars[vid].gridid], i, j, fk, z);
+    double z;
+
+    (void) grid_fk2z(m->grids[m->vars[vid].gridid], i, j, fk, &z);
+
+    return z;
 }
 
 /**

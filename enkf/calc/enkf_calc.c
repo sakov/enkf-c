@@ -272,12 +272,8 @@ static observations* obs_create_fromsingleob(enkfprm* prm, dasystem* das)
             o->lat = (float) lat_d;
         }
         o->fk = o->depth;
-        if (o->fk != 0.0) {
-            double depth_d;
-
-            model_fk2z(m, vid, (int) (o->fi + EPS_IJ), (int) (o->fj + EPS_IJ), o->fk, &depth_d);
-            o->depth = (float) depth_d;
-        }
+        if (o->fk != 0.0)
+            o->depth = (float) model_fk2z(m, vid, (int) (o->fi + EPS_IJ), (int) (o->fj + EPS_IJ), o->fk);
 
         o->status = STATUS_OK;
         grid_getsize(g, &ni, &nj, &nk);

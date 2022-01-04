@@ -538,7 +538,7 @@ void das_calcmld(dasystem* das, obstype* ot, float*** src, float** dst)
             }
             if (kk == nlevels[j][i])
                 fk = (double) k;
-            (void) model_fk2z(m, mvid, i, j, fk, &z);
+            z = model_fk2z(m, mvid, i, j, fk);
             dst[j][i] = (float) z;
         }
     }

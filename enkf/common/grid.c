@@ -21,6 +21,7 @@
  *              15/06/2018 PS Added st and sc arrays to struct gz_sigma to hold
  *                the possibly stretched sigma coordinates of layers, and
  *                modified the rest of the code accordingly
+ *              04/01/2022 PS Introduced fk2z_basic().
  *
  *****************************************************************************/
 
@@ -758,6 +759,17 @@ static void gs_xy2fij(void* p, double x, double y, double* fi, double* fj)
 }
 
 /** Maps vertical coordinate to fractional cell index.
+ * Both zt and zc are assumed monotonous. zt[i] maps to (double) i, zc[i] maps
+ * to (i - 0.5) for ascending arrays, and to (i + 0.5) for descending arrays.
+ * More generally, the fractional indices are calculated by linear interpolation
+ * of indices in the interval betweenn the points in arrays zt and zc closest to
+ * z. z values above surface are considered to be at surface, z values below
+ * bottom are mapped to NaN.
+ * @param n Number of layers
+ * @param zt Coordinates of layer centres [n]
+ * @param zc Coordinates of layer edges [n + 1]
+ * @param z Depth/height
+ * @return Fractional layer index
  */
 static double z2fk_basic(int n, double* zt, double* zc, double z)
 {
@@ -1761,6 +1773,33 @@ void grid_ij2xy(grid* g, int i, int j, double* x, double* y)
         enkf_quit("programming error");
 }
 
+/** Maps fractional index to vertical coordinate.
+ * @param n Number of layers
+ * @param zt Coordinates of layer centres [n]
+ * @param zc Coordinates of layer edges [n + 1]
+ * @param fk Fractional layer index
+ * @return z
+ */
+static double fk2z_basic(int n, double* zt, double* zc, double fk)
+{
+    int k;
+    double dk;
+
+    fk += 0.5;
+
+    if (fk <= 0.0)
+        return zc[0];
+    if (fk >= n)
+        return zc[n];
+
+    k = (int) floor(fk);
+    dk = fk - (double) k;
+    if (dk < 0.5)
+        return zc[k] + dk * (zt[k] - zc[k]) / 0.5;
+    else
+        return zt[k] + (dk - 0.5) * (zc[k + 1] - zt[k]) / 0.5;
+}
+
 /**
  */
 int grid_fk2z(grid* g, int i, int j, double fk, double* z)
@@ -1773,26 +1812,10 @@ int grid_fk2z(grid* g, int i, int j, double fk, double* z)
         return STATUS_OUTSIDEGRID;
     }
 
-    fk += 0.5;
-
     if (g->vtype == GRIDVTYPE_Z) {
         gz_z* gz = g->gridnodes_z;
-        double* zc = gz->zc;
-        int nt = gz->nk;
 
-        if (fk <= 0.0)
-            *z = zc[0];
-        else if (fk >= nt)
-            *z = zc[nt];
-        else {
-            int k = (int) floor(fk);
-            double dk = fk - (double) k;
-
-            if (dk < 0.5)
-                *z = gz->zc[k] + dk * (gz->zt[k] - gz->zc[k]) / 0.5;
-            else
-                *z = gz->zt[k] + (dk - 0.5) * (gz->zc[k + 1] - gz->zt[k]) / 0.5;
-        }
+        *z = fk2z_basic(gz->nk, gz->zt, gz->zc, fk);
     } else if (g->vtype == GRIDVTYPE_SIGMA) {
         gz_sigma* gz = (gz_sigma*) g->gridnodes_z;
         double h;
@@ -1817,49 +1840,24 @@ int grid_fk2z(grid* g, int i, int j, double fk, double* z)
             }
         }
 
-        if (fk <= 0.0)
-            *z = gz->zc[0];
-        else if (fk >= gz->nk)
-            *z = gz->zc[gz->nk];
-        else {
-            int k = (int) floor(fk);
-            double dk = fk - (double) k;
-
-            if (dk < 0.5)
-                *z = gz->zc[k] + dk * (gz->zt[k] - gz->zc[k]) / 0.5;
-            else
-                *z = gz->zt[k] + (dk - 0.5) * (gz->zc[k + 1] - gz->zt[k]) / 0.5;
-        }
+        *z = fk2z_basic(gz->nk, gz->zt, gz->zc, fk);
     } else if (g->vtype == GRIDVTYPE_HYBRID) {
         gz_hybrid* gz = (gz_hybrid*) g->gridnodes_z;
-        int nk = gz->nk;
 
         if (isnan(gz->fi_prev) || fabs((double) i - gz->fi_prev) > EPS_IJ || fabs((double) j - gz->fj_prev) > EPS_IJ) {
             double p1 = gz->p1[j][i];
             double p2 = gz->p2[j][i];
             int k;
 
-            for (k = 0; k < nk; ++k)
+            for (k = 0; k < gz->nk; ++k)
                 gz->pt[k] = gz->at[k] + gz->bt[k] * (p1 - p2);
-            for (k = 0; k <= nk; ++k)
+            for (k = 0; k <= gz->nk; ++k)
                 gz->pc[k] = gz->ac[k] + gz->bc[k] * (p1 - p2);
             gz->fi_prev = (double) i;
             gz->fj_prev = (double) j;
         }
 
-        if (fk <= 0.0)
-            *z = gz->pc[0];
-        else if (fk >= nk)
-            *z = gz->pc[nk];
-        else {
-            int k = (int) floor(fk);
-            double dk = fk - (double) k;
-
-            if (dk < 0.5)
-                *z = gz->pc[k] + dk * (gz->pt[k] - gz->pc[k]) / 0.5;
-            else
-                *z = gz->pt[k] + (dk - 0.5) * (gz->pc[k + 1] - gz->pt[k]) / 0.5;
-        }
+        *z = fk2z_basic(gz->nk, gz->pt, gz->pc, fk);
     } else
         enkf_quit("programming error");
 
@@ -1869,7 +1867,6 @@ int grid_fk2z(grid* g, int i, int j, double fk, double* z)
     }
 
     return STATUS_OK;
-
 }
 
 /**
