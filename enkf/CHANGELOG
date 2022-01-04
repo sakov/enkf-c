@@ -1,3 +1,6 @@
+v.2.10.3
+   PS 04012022
+   -- (Almost) cosmetic modification of z2fk_basic().
 v.2.10.2
    PS 04012022
    -- Corrected z2fk_basic(). (Looks good now.)

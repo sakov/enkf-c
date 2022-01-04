@@ -763,7 +763,7 @@ static double z2fk_basic(int n, double* zt, double* zc, double z)
 {
     int ascending, i1, i2, imid;
 
-    ascending = (zt[n - 1] > zt[0]) ? 1 : 0;
+    ascending = (zc[n] > zc[0]) ? 1 : 0;
 
     if (ascending) {
         if (z <= zc[0])
@@ -778,7 +778,7 @@ static double z2fk_basic(int n, double* zt, double* zc, double z)
     }
 
     i1 = 0;
-    i2 = n - 1;
+    i2 = n;
     if (ascending) {
         while (1) {
             imid = (i1 + i2) / 2;
