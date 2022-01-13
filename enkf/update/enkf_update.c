@@ -48,8 +48,6 @@ static void usage()
     enkf_printf("      write fields directly to the output file (default: write to tiles first)\n");
     enkf_printf("  --joint-output\n");
     enkf_printf("      append analyses to forecast files (default: write to separate files)\n");
-    enkf_printf("  --leave-tiles\n");
-    enkf_printf("      do not delete tiles\n");
     enkf_printf("  --no-fields-write\n");
     enkf_printf("      do not write analysis fields (only diagnostic data)\n");
     enkf_printf("  --no-update\n");
@@ -130,10 +128,6 @@ static void parse_commandline(int argc, char* argv[], char** fname, int* updates
             *updatespec &= ~UPDATE_SEPARATEOUTPUT;
             i++;
             continue;
-        } else if (strcmp(argv[i], "--leave-tiles") == 0) {
-            *updatespec |= UPDATE_LEAVETILES;
-            i++;
-            continue;
         } else if (strcmp(argv[i], "--no-fields-write") == 0) {
             *updatespec &= ~UPDATE_DOFIELDS;
             i++;
@@ -184,8 +178,6 @@ static void describe_updatespec(int updatespec)
     enkf_printf("    do pointlogs     = %s\n", (updatespec & UPDATE_DOSPREAD) ? "[+]" : "[-]");
     if (updatespec & UPDATE_DIRECTWRITE)
         enkf_printf("    direct write     = [+]\n");
-    if (!(updatespec & UPDATE_DIRECTWRITE) && updatespec & UPDATE_LEAVETILES)
-        enkf_printf("    leave tiles      = [+]\n");
     if (updatespec & UPDATE_DOFIELDS) {
         if (updatespec & UPDATE_OUTPUTINC)
             enkf_printf("    output increment = [+]\n");

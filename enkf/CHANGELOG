@@ -1,3 +1,10 @@
+v.2.11.0
+   PS 14012022
+   -- Write all tiles to .enkftmp; remove all tiles after assembling.
+v.2.10.5
+   PS 14012022
+   -- For struct gz_sigma -- added (missed) setting of fi_prev and fj_prev in
+      gz_sigma_z2fk() and grid_fk2z().
 v.2.10.4
    PS 04012022
    -- Introduced fk2z_basic(); made a few related trivial changes.

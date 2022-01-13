@@ -39,7 +39,7 @@
 
 \begin{document}
 
-\title{EnKF-C user guide\\{\normalsize version 2.10.0}}
+\title{EnKF-C user guide\\{\normalsize version 2.11.0}}
 
 \author{Pavel Sakov}
 \date{June 19, 2014 -- \today}
@@ -1701,8 +1701,6 @@ It has the following usage and options:
       write fields directly to the output file (default: write to tiles first)
   --joint-output
       append analyses to forecast files (default: write to separate files)
-  --leave-tiles
-      do not delete tiles
   --no-fields-write
       do not write analysis fields (only diagnostic data)
   --no-update
@@ -1719,7 +1717,6 @@ The option \verb|--joint-output| tells UPDATE to append analyses to the correspo
 By default the analyses are written to separate files, using the same variable names as the forecast files, but with an extra suffix \verb|.analysis| or \verb|.increment| added to the file name, depending on whether the analysis or increment is written.
 
 By default, UPDATE first writes each updated horizontal field of the model to a separate file (referred to here as a tile), and then concatenates these fields into analysis files.
-The tiles are removed after writing the analysis files; one may save time for allocating them on disk in the next cycle by leaving them on disk by using option \verb|--leave-tiles|.
 This approach is somewhat less effective than direct writing to analysis files (without intermediate tiles), but, unfortunately, the direct writing is generally not reliable due to parallel I/O issues with NetCDF.
 Note that in some cases it proved to be possible to obtain robust performance with direct write using ``classic'' or ``64-bit-offset'' NetCDF formats.
 

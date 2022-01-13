@@ -861,6 +861,8 @@ static void gz_sigma_z2fk(void* p, double fi, double fj, double z, double* fk)
             for (i = 0; i <= gz->nk; ++i)
                 gz->zc[i] = h * gz->cc[i];
         }
+        gz->fi_prev = fi;
+        gz->fj_prev = fj;
     }
 
     *fk = z2fk_basic(gz->nk, gz->zt, gz->zc, z);
@@ -1838,6 +1840,8 @@ int grid_fk2z(grid* g, int i, int j, double fk, double* z)
                 for (k = 0; k <= gz->nk; ++k)
                     gz->zc[k] = h * gz->cc[k];
             }
+            gz->fi_prev = (double) i;
+            gz->fj_prev = (double) j;
         }
 
         *z = fk2z_basic(gz->nk, gz->zt, gz->zc, fk);

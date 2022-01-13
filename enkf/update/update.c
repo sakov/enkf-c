@@ -722,7 +722,7 @@ static void das_writefields_toassemble(dasystem* das, int nfields, void** fieldb
     for (i = 0; i < nfields; ++i) {
         field* f = &fields[i];
 
-        getfieldfname(das->ensdir, "ens", f->varname, f->level, fname);
+        getfieldfname(DIRNAME_TMP, "ens", f->varname, f->level, fname);
 
         if (!file_exists(fname) || !ncw_file_opens(fname, NC_WRITE)) {
             int ncid;
@@ -817,7 +817,7 @@ static void das_writebg_toassemble(dasystem* das, int nfields, void** fieldbuffe
     for (i = 0; i < nfields; ++i) {
         field* f = &fields[i];
 
-        getfieldfname(das->bgdir, "bg", f->varname, f->level, fname);
+        getfieldfname(DIRNAME_TMP, "bg", f->varname, f->level, fname);
 
         if (!file_exists(fname)) {
             int ncid;
@@ -904,9 +904,9 @@ static void das_assemblemembers(dasystem* das)
                 size_t count[3] = { 1, nj, ni };
 
                 if (nlev > 1)
-                    getfieldfname(das->ensdir, "ens", varname, k, fname_src);
+                    getfieldfname(DIRNAME_TMP, "ens", varname, k, fname_src);
                 else
-                    getfieldfname(das->ensdir, "ens", varname, grid_getsurflayerid(model_getvargrid(m, i)), fname_src);
+                    getfieldfname(DIRNAME_TMP, "ens", varname, grid_getsurflayerid(model_getvargrid(m, i)), fname_src);
                 ncw_open(fname_src, NC_NOWRITE, &ncid_src);
                 ncw_inq_varid(ncid_src, varname, &vid_src);
                 ncw_get_vara_float(ncid_src, vid_src, start, count, v);
@@ -926,11 +926,11 @@ static void das_assemblemembers(dasystem* das)
 #if defined(MPI)
     MPI_Barrier(MPI_COMM_WORLD);
 #endif
-
+    
     /*
      * remove tiles 
      */
-    if (!(das->updatespec & UPDATE_LEAVETILES) && rank == 0) {
+    if (rank == 0) {
         for (i = 0; i < nvar; ++i) {
             char* varname = model_getvarname(m, i);
             char fname[MAXSTRLEN];
@@ -940,9 +940,9 @@ static void das_assemblemembers(dasystem* das)
             nlev = ncu_getnlevels(fname, varname);
             for (k = 0; k < nlev; ++k) {
                 if (nlev > 1)
-                    getfieldfname(das->ensdir, "ens", varname, k, fname);
+                    getfieldfname(DIRNAME_TMP, "ens", varname, k, fname);
                 else
-                    getfieldfname(das->ensdir, "ens", varname, grid_getsurflayerid(model_getvargrid(m, i)), fname);
+                    getfieldfname(DIRNAME_TMP, "ens", varname, grid_getsurflayerid(model_getvargrid(m, i)), fname);
                 file_delete(fname);
             }
         }
@@ -993,17 +993,16 @@ static void das_assemblebg(dasystem* das)
             int ncid_src, vid_src;
 
             if (nlev > 1)
-                getfieldfname(das->bgdir, "bg", varname, k, fname_src);
+                getfieldfname(DIRNAME_TMP, "bg", varname, k, fname_src);
             else
-                getfieldfname(das->bgdir, "bg", varname, grid_getsurflayerid(model_getvargrid(m, i)), fname_src);
+                getfieldfname(DIRNAME_TMP, "bg", varname, grid_getsurflayerid(model_getvargrid(m, i)), fname_src);
             ncw_open(fname_src, NC_NOWRITE, &ncid_src);
             ncw_inq_varid(ncid_src, varname, &vid_src);
             ncw_get_var_float(ncid_src, vid_src, v);
             ncw_close(ncid_src);
 
             model_writefield(m, fname_dst, varname_dst, k, v, 0);
-            if (!(das->updatespec & UPDATE_LEAVETILES))
-                file_delete(fname_src);
+            file_delete(fname_src);
 
             enkf_printf(".");
         }
