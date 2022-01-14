@@ -1,6 +1,7 @@
 v.2.11.0
    PS 14012022
-   -- Write all tiles to .enkftmp; remove all tiles after assembling.
+   -- In UPDATE -- write all tiles to .enkftmp; remove all tiles after
+      assembling. Eliminated redundant option "--leave-tiles".
 v.2.10.5
    PS 14012022
    -- For struct gz_sigma -- added (missed) setting of fi_prev and fj_prev in
