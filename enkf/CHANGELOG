@@ -1,8 +1,6 @@
 v.2.11.1
    PS 17012022
-   -- Fixed defect in grid_create() -- wrong order of arguments in gz_z_z2fk()
-      when setting numlevels mask from depth (when native numlevels is not
-      specified).
+   -- In gz_z_z2fk() eliminated redundant arguments.
 v.2.11.0
    PS 14012022
    -- In UPDATE -- write all tiles to .enkftmp; remove all tiles after

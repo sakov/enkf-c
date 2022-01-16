@@ -828,7 +828,7 @@ static double z2fk_basic(int n, double* zt, double* zc, double z)
 
 /**
  */
-static void gz_z_z2fk(void* p, double fi, double fj, double z, double* fk)
+static void gz_z_z2fk(void* p, double z, double* fk)
 {
     grid* g = (grid*) p;
     gz_z* gz = g->gridnodes_z;
@@ -1232,7 +1232,7 @@ grid* grid_create(void* p, int id, void** grids)
                         double fk = NAN;
 
                         if (depth > 0.0) {
-                            gz_z_z2fk(g, i, j, depth, &fk);
+                            gz_z_z2fk(g, depth, &fk);
                             g->numlevels[j][i] = ceil(fk + 0.5);
                         }
                     }
@@ -1665,7 +1665,7 @@ int grid_z2fk(grid* g, double fi, double fj, double z, double* fk)
     }
 
     if (g->vtype == GRIDVTYPE_Z)
-        gz_z_z2fk(g, fi, fj, z, fk);
+        gz_z_z2fk(g, z, fk);
     else if (g->vtype == GRIDVTYPE_SIGMA)
         gz_sigma_z2fk(g, fi, fj, z, fk);
     else if (g->vtype == GRIDVTYPE_HYBRID)
