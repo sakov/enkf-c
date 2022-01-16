@@ -1232,7 +1232,7 @@ grid* grid_create(void* p, int id, void** grids)
                         double fk = NAN;
 
                         if (depth > 0.0) {
-                            gz_z_z2fk(g, j, i, depth, &fk);
+                            gz_z_z2fk(g, i, j, depth, &fk);
                             g->numlevels[j][i] = ceil(fk + 0.5);
                         }
                     }
