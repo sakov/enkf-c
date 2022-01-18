@@ -1,3 +1,8 @@
+v.2.11.2
+   PS 17012022
+   -- In plog_create(), plog_writestatevars_direct(), and
+      plog_writestatevars_toassemble() replaced plog->fj[fid] by (correct)
+      plog->fj[gid].
 v.2.11.1
    PS 17012022
    -- In gz_z_z2fk() eliminated redundant arguments.

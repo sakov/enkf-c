@@ -498,7 +498,7 @@ static void plog_writestatevars_direct(dasystem* das, int nfields, void** fieldb
 
             if (plog->gridid >= 0 && plog->gridid != gid)
                 continue;
-            if (isnan(plog->fi[gid] + plog->fj[fid]))
+            if (isnan(plog->fi[gid] + plog->fj[gid]))
                 continue;
 
             v_src = (float***) fieldbuffer[fid];
@@ -572,7 +572,7 @@ static void plog_writestatevars_toassemble(dasystem* das, int nfields, void** fi
 
             if (plog->gridid >= 0 && plog->gridid != gid)
                 continue;
-            if (isnan(plog->fi[gid] + plog->fj[fid]))
+            if (isnan(plog->fi[gid] + plog->fj[gid]))
                 continue;
 
             snprintf(fname, MAXSTRLEN, "%s/pointlog-%d_%s-%03d.nc", DIRNAME_TMP, plogid, f->varname, f->level);
