@@ -31,7 +31,7 @@
 #include <errno.h>
 #include "ncw.h"
 
-const char ncw_version[] = "2.27.0";
+const char ncw_version[] = "2.28.0";
 
 /* This macro is substituted in error messages instead of the name of a
  * variable in cases when the name could not be found by the variable id.
@@ -390,7 +390,7 @@ void ncw_def_dim(int ncid, const char dimname[], size_t len, int* dimid)
     int status = nc_def_dim(ncid, dimname, len, dimid);
 
     if (status != NC_NOERR)
-        quit("\"%s\": nc_def_dim(): failed for dimname = \"%s\", dimlen = %d: %s", ncw_get_path(ncid), dimname, len, nc_strerror(status));
+        quit("\"%s\": nc_def_dim(): failed for dimname = \"%s\", dimlen = %zu: %s", ncw_get_path(ncid), dimname, len, nc_strerror(status));
 }
 
 void ncw_inq_dimid(int ncid, const char dimname[], int* dimid)
@@ -1805,7 +1805,7 @@ void ncw_find_vars(int ncid, int ndims, const int dims[], const char attname[], 
                         continue;
                     aval = calloc(alen, ncw_sizeof(atype));
                     if (aval == NULL)
-                        quit("\"%s\": ncw_find_vars(): could not allocate memory for attribute = \"%s\", type = %s, length = %d, varid = %d (varname = \"%s\"): %s", ncw_get_path(ncid), aname, ncw_nctype2str(atype), alen, vid, (vid == NC_GLOBAL) ? "NC_GLOBAL" : varname, strerror(errno));
+                        quit("\"%s\": ncw_find_vars(): could not allocate memory for attribute = \"%s\", type = %s, length = %zu, varid = %d (varname = \"%s\"): %s", ncw_get_path(ncid), aname, ncw_nctype2str(atype), alen, vid, (vid == NC_GLOBAL) ? "NC_GLOBAL" : varname, strerror(errno));
                     ncw_get_att_text(ncid, vid, attname, aval);
                     if (memcmp(attval, aval, alen * sizeof(atype)) == 0) {
                         free(aval);
@@ -2202,7 +2202,7 @@ void ncw_check_vardims(int ncid, int varid, int ndims, size_t dimlen[])
 
             ncw_inq_varname(ncid, varid, varname);
             ncw_inq_dimname(ncid, dimids[i], dimname);
-            quit("\"%s\": ncw_check_vardims(): dimension %d of variable \"%s\" is supposed to have length %d; its actual length is %d", ncw_get_path(ncid), dimname, varname, dimlen[i], dimlen_actual);
+            quit("\"%s\": ncw_check_vardims(): dimension \"%s\" of variable \"%s\" is supposed to have length %zu; its actual length is %zu", ncw_get_path(ncid), dimname, varname, dimlen[i], dimlen_actual);
         }
     }
 }
@@ -2229,7 +2229,7 @@ void ncw_check_varsize(int ncid, int varid, size_t size)
         char varname[NC_MAX_NAME] = "STR_UNKNOWN";
 
         ncw_inq_varname(ncid, varid, varname);
-        quit("\"%s\": ncw_check_varsize(): total size of variable \"%s\" is supposed to be %d; its actual size is %d", ncw_get_path(ncid), varname, size, size_actual);
+        quit("\"%s\": ncw_check_varsize(): total size of variable \"%s\" is supposed to be %zu; its actual size is %zu", ncw_get_path(ncid), varname, size, size_actual);
     }
 }
 
