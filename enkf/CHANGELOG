@@ -1,3 +1,7 @@
+v.2.11.4
+   PS 31012022
+   -- Corrected checking the length of the add_offset attribute in
+      ncu_readvardouble() and ncu_readvarfloat().
 v.2.11.3
    PS 28012022
    -- Fixed printing of lengths (%zu instead of %d for size_t) in ncw.c.
