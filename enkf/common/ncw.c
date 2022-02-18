@@ -31,7 +31,7 @@
 #include <errno.h>
 #include "ncw.h"
 
-const char ncw_version[] = "2.28.0";
+const char ncw_version[] = "2.29.0";
 
 /* This macro is substituted in error messages instead of the name of a
  * variable in cases when the name could not be found by the variable id.
@@ -2205,6 +2205,27 @@ void ncw_check_vardims(int ncid, int varid, int ndims, size_t dimlen[])
             quit("\"%s\": ncw_check_vardims(): dimension \"%s\" of variable \"%s\" is supposed to have length %zu; its actual length is %zu", ncw_get_path(ncid), dimname, varname, dimlen[i], dimlen_actual);
         }
     }
+}
+
+/**
+ */
+size_t ncw_get_varsize(int ncid, int varid)
+{
+    int ndims;
+    int dimids[NC_MAX_DIMS];
+    size_t size = 1;
+    int i;
+
+    ncw_inq_varndims(ncid, varid, &ndims);
+    ncw_inq_vardimid(ncid, varid, dimids);
+    for (i = 0; i < ndims; ++i) {
+        size_t dimlen;
+
+        ncw_inq_dimlen(ncid, dimids[i], &dimlen);
+        size *= dimlen;
+    }
+
+    return size;
 }
 
 /** Check that the variable has a certain number of elements.

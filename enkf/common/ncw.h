@@ -155,6 +155,7 @@ int ncw_dim_exists(int ncid, const char dimname[]);
 int ncw_att_exists2(int ncid, int varid, const char attname[]);
 
 void ncw_def_var_as(int ncid, const char oldvarname[], const char newvarname[]);
+size_t ncw_get_varsize(int ncid, int varid);
 void ncw_get_var_double_record(int ncid, int varid, int r, double v[]);
 void ncw_get_var_float_record(int ncid, int varid, int r, float v[]);
 void ncw_put_var_double_record(int ncid, int varid, int r, double v[]);

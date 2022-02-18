@@ -91,8 +91,9 @@ v.2.9.16
 v.2.9.15
    PS 11092021
    -- In obs_superob(): when thinning observations with identical positions --
-	replace the value of the kept observation with the average of the batch rather
-	than with the first observation in the batch.
+	replace the value of the kept observation with the average of the batch
+	rather than with the first observation in the batch.
+      Note: this changes examples/5/log/enkf/calc.out.
 v.2.9.14
    PS 02092021
    -- Cosmetic changes.
