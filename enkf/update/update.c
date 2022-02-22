@@ -869,6 +869,7 @@ static void das_assemblemembers(dasystem* das)
 
     for (i = 0; i < nvar; ++i) {
         char* varname = model_getvarname(m, i);
+        grid* g = model_getvargrid(m, i);
         char varname_dst[NC_MAX_NAME];
         char fname_dst[MAXSTRLEN];
         int nlev, k;
@@ -880,7 +881,7 @@ static void das_assemblemembers(dasystem* das)
         nlev = ncu_getnlevels(fname_dst, varname);
         strncpy(varname_dst, varname, NC_MAX_NAME - 1);
 
-        model_getvargridsize(m, i, &ni, &nj, NULL);
+        grid_getsize(g, &ni, &nj, NULL);
         v = malloc(ni * nj * sizeof(float));
 
         for (e = my_first_iteration; e <= my_last_iteration; ++e) {
@@ -903,10 +904,7 @@ static void das_assemblemembers(dasystem* das)
                 size_t start[3] = { e, 0, 0 };
                 size_t count[3] = { 1, nj, ni };
 
-                if (nlev > 1)
-                    getfieldfname(DIRNAME_TMP, "ens", varname, k, fname_src);
-                else
-                    getfieldfname(DIRNAME_TMP, "ens", varname, grid_getsurflayerid(model_getvargrid(m, i)), fname_src);
+                getfieldfname(DIRNAME_TMP, "ens", varname, (nlev > 1) ? k : grid_getsurflayerid(g), fname_src);
                 ncw_open(fname_src, NC_NOWRITE, &ncid_src);
                 ncw_inq_varid(ncid_src, varname, &vid_src);
                 ncw_get_vara_float(ncid_src, vid_src, start, count, v);
