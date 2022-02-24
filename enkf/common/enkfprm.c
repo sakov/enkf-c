@@ -693,7 +693,7 @@ void enkfprm_describeprm(void)
     enkf_printf("    ENSDIR          = <ensemble directory>                   (except MODE = ENOI and\n");
     enkf_printf("                                                             --forecast-stats-only)\n");
     enkf_printf("  [ ENSDIR_STATIC   = <static ensemble directory> ]          (MODE = HYBRID)\n");
-    enkf_printf("  [ ENSSIZE         = <ensemble size> ]                      (<full>*)\n");
+    enkf_printf("  [ ENSSIZE         = <total ensemble size> ]                (<full>*)\n");
     enkf_printf("  [ ENSSIZE_DYNAMIC = <size of dynamic ensemble> ]           (<full>*) (MODE = HYBRID)\n");
     enkf_printf("  [ ENSSIZE_STATIC  = <size of static ensemble> ]            (<full>*) (MODE = HYBRID)\n");
     enkf_printf("    BGDIR           = <background directory>                 (MODE = ENOI)\n");
