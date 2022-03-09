@@ -569,7 +569,7 @@ void obs_read(observations* obs, char fname[])
         /*
          * check consistency of "type" attributes
          */
-        for (i = 0, ntypes_read = 0; i < natts; ++i) {
+        for (i = 0, nobstypes_read = 0; i < natts; ++i) {
             char attname[NC_MAX_NAME];
             int typeid;
 
