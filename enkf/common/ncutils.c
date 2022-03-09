@@ -126,7 +126,7 @@ void ncu_readfield(char fname[], char varname[], int k, int ni, int nj, int nk, 
         if (!hasrecorddim) {
             if (dimlen[0] != nk && !(dimlen[0] == 1 && (k == 0 || k == nk - 1)))
                 quit("\"%s\": vertical dimension of variable \"%s\" (nk = %d) does not match grid dimension (nk = %d)", fname, varname, dimlen[0], nk);
-            start[0] = k;
+            start[0] = (dimlen[0] == 1) ? 0 : k;
             start[1] = 0;
             start[2] = 0;
             count[0] = 1;
