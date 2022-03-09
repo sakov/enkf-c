@@ -566,6 +566,8 @@ void obs_read(observations* obs, char fname[])
 
         ncw_inq_varid(ncid, "type", &varid);
         ncw_inq_varnatts(ncid, varid, &natts);
+        if (natts != obs->nobstypes)
+            enkf_quit("number of observation types in observations.nc = %d does not match that in the observation types parameter file = %d", natts, obs->nobstypes);
         /*
          * check consistency of "type" attributes
          */

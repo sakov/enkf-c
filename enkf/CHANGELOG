@@ -1,3 +1,10 @@
+v.2.11.7
+   PS 09032022
+   -- In obs_read() added check that the number of observation types in
+      observations.nc matchs that in the obstypes parameter file.
+v.2.11.6
+   PS 04032022
+   -- Change in enkfprm.c.
 v.2.11.5
    PS 23022022
    -- Cosmetic changes in das_assemblemembers().
