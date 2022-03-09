@@ -562,16 +562,14 @@ void obs_read(observations* obs, char fname[])
      * "type"
      */
     {
-        int varid, natts, i;
+        int varid, natts, i, nobstypes_read;
 
         ncw_inq_varid(ncid, "type", &varid);
         ncw_inq_varnatts(ncid, varid, &natts);
-        if (natts != obs->nobstypes)
-            enkf_quit("number of observation types in observations.nc = %d does not match that in the observation types parameter file = %d", natts, obs->nobstypes);
         /*
          * check consistency of "type" attributes
          */
-        for (i = 0; i < natts; ++i) {
+        for (i = 0, ntypes_read = 0; i < natts; ++i) {
             char attname[NC_MAX_NAME];
             int typeid;
 
@@ -584,6 +582,7 @@ void obs_read(observations* obs, char fname[])
                 ncw_check_attlen(ncid, varid, attname, 1);
                 ncw_get_att_int(ncid, varid, attname, &typeid_read);
                 assert(typeid == typeid_read);
+                nobstypes_read++;
 
                 if (ot->logapplied) {
                     char logattname[NC_MAX_NAME];
@@ -598,6 +597,8 @@ void obs_read(observations* obs, char fname[])
                 }
             }
         }
+        if (nobstypes_read != obs->nobstypes)
+            enkf_quit("number of observation types in observations.nc = %d does not match that in the observation types parameter file = %d", nobstypes_read, obs->nobstypes);
 
         /*
          * "product"
