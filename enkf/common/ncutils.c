@@ -68,7 +68,7 @@ int ncu_getnlevels(char fname[], char varname[])
     ncw_close(ncid);
 
     if (ndims > 4)
-        quit("%s: %s: EnKF-C does not know how to handle more than 4-dimensional variables\n", fname, varname);
+        quit("%s: %s: do not know how to handle more than 4-dimensional variables\n", fname, varname);
     if (ndims == 4) {
         if (!hasrecorddim)
             quit("%s: %s: expect an unlimited dimension to be present for a 4-dimensional variable\n", fname, varname);
@@ -957,8 +957,7 @@ void ncu_read3dfield(char* fname, char* varname, int ni, int nj, int nk, float* 
     ncw_close(ncid);
 }
 
-/** Tries to determine the number of physical dimensions of a variable (total
- ** number of dimensions less 1 if there is an unlimited dimension).
+/** Tries to determine the number of physical dimensions of a variable.
  */
 int ncu_getnD(char fname[], char varname[])
 {
@@ -966,19 +965,19 @@ int ncu_getnD(char fname[], char varname[])
     int varid;
     int ndims;
     size_t dimlen[4];
-    int hasrecorddim;
+    int i;
 
     ncw_open(fname, NC_NOWRITE, &ncid);
     ncw_inq_varid(ncid, varname, &varid);
     ncw_inq_vardims(ncid, varid, 4, &ndims, dimlen);
     if (ndims > 4)
-        quit("%s: %s: do not know how to read a %d-dimensional variable", fname, varname, ndims);
-    hasrecorddim = (ncw_var_hasunlimdim(ncid, varid) || dimlen[0] == 1);
-    ncw_close(ncid);
+        quit("%s: %s: do not know how to treat a %d-dimensional variable", fname, varname, ndims);
 
-    ndims -= hasrecorddim;
+    for (i = ncw_var_hasunlimdim(ncid, varid) ? 1 : 0; i < ndims; ++i)
+        if (dimlen[i] > 1)
+            break;
 
-    return ndims;
+    return ndims - i;
 }
 
 /**

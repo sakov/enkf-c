@@ -924,7 +924,7 @@ static void das_assemblemembers(dasystem* das)
 #if defined(MPI)
     MPI_Barrier(MPI_COMM_WORLD);
 #endif
-    
+
     /*
      * remove tiles 
      */

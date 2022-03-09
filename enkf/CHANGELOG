@@ -1,3 +1,7 @@
+v.2.11.10
+   PS 10032022
+   -- Modified ncu_getnD() to skip the unlimited dimension and all head
+      dimensions of size 1.
 v.2.11.9
    PS 10032022
    -- A fairly minor correction in ncu_readfield().
