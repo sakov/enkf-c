@@ -1,3 +1,6 @@
+v.2.11.11
+   -- In das_create() replaced assert() that the pointlog file exists by
+      message with filename from enkf_quit().
 v.2.11.10
    PS 10032022
    -- Modified ncu_getnD() to skip the unlimited dimension and all head

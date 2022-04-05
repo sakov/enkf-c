@@ -309,7 +309,8 @@ dasystem* das_create(enkfprm* prm)
                     char varname[NC_MAX_NAME];
 
                     das_getfname_plog(das, dst, fname);
-                    assert(file_exists(fname));
+                    if (!file_exists(fname))
+                        enkf_quit("file \"%s\" not found", fname);
 
                     ncw_open(fname, NC_NOWRITE, &ncid);
                     get_gridstr(das, gid, gridstr);
