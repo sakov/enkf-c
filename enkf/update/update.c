@@ -300,10 +300,15 @@ static void das_updatefields(dasystem* das, int nfields, void** fieldbuffer, fie
                     for (e = 0; e < nmem; ++e)
                         if (!isfinite(vvv[e][j][i]) || fabsf(vvv[e][j][i]) > (float) MAXOBSVAL)
                             break;
-                    if (e < nmem) {
+                    if (e < nmem_dynamic) {
                         for (e = 0; e < nmem; ++e)
                             vvv[e][j][i] = 0.0f;
                         continue;
+                    } else if (e < nmem) {
+                        for (e = nmem_dynamic; e < nmem; ++e)
+                            vvv[e][j][i] = 0.0f;
+                        if (nmem_dynamic == 0)
+                            continue;
                     }
 
                     for (e = 0; e < nmem; ++e)

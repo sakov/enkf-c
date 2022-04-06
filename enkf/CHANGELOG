@@ -1,3 +1,10 @@
+v.2.11.12
+   -- In das_updatefields(): the cell values for the whole ensemble were set
+      to zero if a bad value is found for any ensemble member. Modified
+      this to be true only if the bad value is found in the dynamic ensemble;
+      if a bad value is found in the static ensemble -- set the static ensemble
+      members to zero and continue in a normal way. This is supposed to handle
+      situations when in hybrid systems the static ensemble has flaky land mask.
 v.2.11.11
    -- In das_create() replaced assert() that the pointlog file exists by
       message with filename from enkf_quit().
