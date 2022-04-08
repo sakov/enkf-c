@@ -1,3 +1,6 @@
+v.2.11.13
+   -- In grid_create() added a fix for an aliased grid (entry HGRIDFROM)
+      necessary for it to read the numlevels/landmask data.
 v.2.11.12
    -- In das_updatefields(): the cell values for the whole ensemble were set
       to zero if a bad value is found for any ensemble member. Modified

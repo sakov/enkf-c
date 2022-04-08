@@ -1005,6 +1005,14 @@ grid* grid_create(void* p, int id, void** grids)
                 g->htype = othergrid->htype;
                 g->gridnodes_xy = othergrid->gridnodes_xy;
                 g->lonbase = othergrid->lonbase;
+
+                {
+                    int ni2, nj2;
+
+                    grid_getsize(g, &ni2, &nj2, NULL);
+                    ni = ni2;
+                    nj = nj2;
+                }
                 break;
             }
         }
