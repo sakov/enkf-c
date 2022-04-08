@@ -10,7 +10,6 @@ DATE = 6565.5 days since 1990-01-01
 
 ENSDIR = ensemble_6565
 ENSDIR_STATIC = ensemble_static
-ENSSIZE_STATIC = 143
 GAMMA = 0
 
 INFLATION = 1.1
