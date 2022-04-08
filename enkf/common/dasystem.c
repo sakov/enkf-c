@@ -137,7 +137,7 @@ static void das_setnmem(dasystem* das)
     if (nmem == das->nmem_dynamic)
         enkf_quit("das_setnmem(): could not find \"%s\"", fname);
     if (das->nmem_static >= 0 && nmem > das->nmem_dynamic + das->nmem_static)
-        enkf_printf("    %d static members found on disk; ignoring excess to specified static ensemble size = %d\n", nmem, das->nmem_static);
+        enkf_printf("    %d static members found on disk; ignoring excess to specified static ensemble size = %d\n", nmem - das->nmem_dynamic, das->nmem_static);
     if (das->nmem_static >= 0 && nmem < das->nmem_dynamic + das->nmem_static)
         enkf_quit("das_setnmem(): could not find \"%s\"", fname);
     if (das->nmem_static < 0)

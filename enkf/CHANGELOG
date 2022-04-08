@@ -1,3 +1,6 @@
+v.2.11.14
+   -- In das_setnmem() -- fixed reported static ensemble size in hybrid systems
+      when its specified size is smaller than the available one.
 v.2.11.13
    -- In grid_create() added a fix for an aliased grid (entry HGRIDFROM)
       necessary for it to read the numlevels/landmask data.
