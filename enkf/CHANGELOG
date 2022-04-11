@@ -1,3 +1,7 @@
+v.2.11.15
+   -- Modified enkf_printf() to print regardless of rank if enkf_verbose < 0.
+   -- In ensobs.c and model2obs.c -- when a bad forecast observation detected --
+      print observation info regardless of rank.
 v.2.11.14
    -- In das_setnmem() -- fixed reported static ensemble size in hybrid systems
       when its specified size is smaller than the available one.

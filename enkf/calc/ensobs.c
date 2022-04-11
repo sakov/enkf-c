@@ -554,6 +554,7 @@ void das_calcinnandspread(dasystem* das)
             das->s_f[o] = m->value - das->s_f[o];
             if (!isfinite(das->s_f[o]) || fabs(das->s_f[o]) > STATE_BIGNUM) {
                 enkf_flush();
+                enkf_verbose = -1;      /* force printing regardless of rank */
                 enkf_printf("\n  obs # %d: ", o);
                 obs_printob(obs, o);
                 enkf_quit("obs # %d: y - Hx_f = %.3g, no point to continue", o, das->s_f[o]);
@@ -616,6 +617,7 @@ void das_calcinnandspread(dasystem* das)
             das->s_a[o] = m->value - das->s_a[o];
             if (!isfinite(das->s_a[o]) || fabs(das->s_a[o]) > STATE_BIGNUM) {
                 enkf_flush();
+                enkf_verbose = -1;      /* force printing regardless of rank */
                 enkf_printf("\n  obs # %d: ", o);
                 obs_printob(obs, o);
                 enkf_quit("obs # %d: y - Hx_a = %d, no point to continue", o);

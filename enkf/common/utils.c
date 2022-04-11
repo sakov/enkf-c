@@ -258,7 +258,7 @@ int enkf_printf(const char* format, ...)
     va_list args;
     int status = 0;
 
-    if (enkf_verbose && rank == 0) {
+    if (enkf_verbose < 0 || (enkf_verbose && rank == 0)) {
         va_start(args, format);
         status = vprintf(format, args);
         va_end(args);

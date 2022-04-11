@@ -1007,7 +1007,7 @@ grid* grid_create(void* p, int id, void** grids)
                 g->lonbase = othergrid->lonbase;
 
                 {
-                    int ni2, nj2;
+                    int ni2 = -1, nj2 = -1;
 
                     grid_getsize(g, &ni2, &nj2, NULL);
                     ni = ni2;
