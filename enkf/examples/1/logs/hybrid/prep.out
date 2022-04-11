@@ -1,7 +1,7 @@
-  running PREP for EnKF-C version 2.9.3:
+  running PREP for EnKF-C version 2.11.15:
     command = "./enkf_prep enkf.prm"
     dir = "/home/pavel/src/enkf-c/trunk/enkf/examples/1"
-  2021-06-15 15:37:16
+  2022-04-11 12:17:26
   reading prep specs from "enkf.prm":
     MODE = EnKF
     SCHEME = DEnKF
@@ -594,15 +594,17 @@
       setting error_std to 0.1
       min day = -4.000
       max day = -2.000
-  2021-06-15 15:37:16
+  2022-04-11 12:17:27
   compacting obs:
-  2021-06-15 15:37:16
+  2022-04-11 12:17:27
+  sorting:
+  2022-04-11 12:17:27
   superobing:
     10220 superobservations
-  2021-06-15 15:37:16
+  2022-04-11 12:17:27
   checking for superobs on land:
     all good
-  2021-06-15 15:37:16
+  2022-04-11 12:17:27
   writing superobservations to "observations.nc":
   printing observation summary:
     type    #used    #dropped #out_grd #out_obs #out_wnd #land    #shallow #badbatch#badvalue#thinned #excluded#superobs
@@ -612,5 +614,5 @@
     TEM     184      104      104      0        0        0        0        0        0        0        0        7       
     SAL     184      104      104      0        0        0        0        0        0        0        0        7       
     total   158006   209      208      0        0        0        1        0        0        0        0        10220   
-  2021-06-15 15:37:16
+  2022-04-11 12:17:27
   finished
