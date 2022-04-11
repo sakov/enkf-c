@@ -248,38 +248,37 @@ void gridprm_create(char* fname, int* ngrid, gridprm** prm)
             if (!str2int(token, &now->sob_stride))
                 enkf_quit("%s, l.%d: could not convert SOBSTRIDE value", fname, line);
         } else if (now->levelvarnameentry != NULL && strcasecmp(token, now->levelvarnameentry) == 0) {
+            int skip = 0;
+            char* levelvarname;
+
             if ((token = strtok(NULL, seps)) == NULL)
                 enkf_printf("%s, l.%d: \"%s\" not specified", fname, line, now->levelvarnameentry);
-            else if (now->levelvarname != NULL)
-                enkf_quit("%s, l.%d: \"%s\" specified twice", fname, line, now->levelvarnameentry);
-            else
-                now->levelvarname = strdup(token);
-            {
-                int found = 1;
-
-                while ((token = strtok(NULL, seps)) != NULL) {
-                    found = 0;
+            levelvarname = strdup(token);
+            while ((token = strtok(NULL, seps)) != NULL) {
+                skip = 1;
 #if defined(ENKF_PREP)
-                    if (strcasecmp("PREP", token) == 0) {
-                        found = 1;
-                        break;
-                    }
+                if (strcasecmp("PREP", token) == 0) {
+                    skip = 0;
+                    break;
+                }
 #elif defined(ENKF_CALC)
-                    if (strcasecmp("CALC", token) == 0) {
-                        found = 1;
-                        break;
-                    }
+                if (strcasecmp("CALC", token) == 0) {
+                    skip = 0;
+                    break;
+                }
 #elif defined(ENKF_UPDATE)
-                    if (strcasecmp("UPDATE", token) == 0) {
-                        found = 1;
-                        break;
-                    }
+                if (strcasecmp("UPDATE", token) == 0) {
+                    skip = 0;
+                    break;
+                }
 #endif
-                }
-                if (!found) {
-                    free(now->levelvarname);
-                    now->levelvarname = NULL;
-                }
+            }
+            if (skip)
+                free(levelvarname);
+            else {
+                if (now->levelvarname != NULL)
+                    enkf_quit("%s, l.%d: \"%s\" specified twice", fname, line, now->levelvarnameentry);
+                now->levelvarname = levelvarname;
             }
         } else if (strncasecmp(token, "VDIR", 4) == 0) {
             if (now->vdirection != NULL)

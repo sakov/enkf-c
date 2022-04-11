@@ -1,4 +1,8 @@
+v.2.11.17
+   PS 12042022
+   -- Corrected v2.11.16.
 v.2.11.16
+   PS 11042022
    -- Modified gridprm_create(): one can now add qualifiers to the mask variable
       name entry (NUMLEVELSVARNAME for Z grids, MASKVARNAME for other grids).
       The qualifiers are supposed to be either PREP, CALC, or UPDATE or their
@@ -7,16 +11,20 @@ v.2.11.16
       providing an easy way of using different mask names for different stages.
       (Which may be useful for hybrid systems.)
 v.2.11.15
+   PS 11042022
    -- Modified enkf_printf() to print regardless of rank if enkf_verbose < 0.
    -- In ensobs.c and model2obs.c -- when a bad forecast observation detected --
       print observation info regardless of rank.
 v.2.11.14
+   PS 08042022
    -- In das_setnmem() -- fixed reported static ensemble size in hybrid systems
       when its specified size is smaller than the available one.
 v.2.11.13
+   PS 08042022
    -- In grid_create() added a fix for an aliased grid (entry HGRIDFROM)
       necessary for it to read the numlevels/landmask data.
 v.2.11.12
+   PS 07042022
    -- In das_updatefields(): the cell values for the whole ensemble were set
       to zero if a bad value is found for any ensemble member. Modified
       this to be true only if the bad value is found in the dynamic ensemble;
@@ -24,6 +32,7 @@ v.2.11.12
       members to zero and continue in a normal way. This is supposed to handle
       situations when in hybrid systems the static ensemble has flaky land mask.
 v.2.11.11
+   PS 05042022
    -- In das_create() replaced assert() that the pointlog file exists by
       message with filename from enkf_quit().
 v.2.11.10
