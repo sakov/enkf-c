@@ -254,6 +254,33 @@ void gridprm_create(char* fname, int* ngrid, gridprm** prm)
                 enkf_quit("%s, l.%d: \"%s\" specified twice", fname, line, now->levelvarnameentry);
             else
                 now->levelvarname = strdup(token);
+            {
+                int found = 1;
+
+                while ((token = strtok(NULL, seps)) != NULL) {
+                    found = 0;
+#if defined(ENKF_PREP)
+                    if (strcasecmp("PREP", token) == 0) {
+                        found = 1;
+                        break;
+                    }
+#elif defined(ENKF_CALC)
+                    if (strcasecmp("CALC", token) == 0) {
+                        found = 1;
+                        break;
+                    }
+#elif defined(ENKF_UPDATE)
+                    if (strcasecmp("UPDATE", token) == 0) {
+                        found = 1;
+                        break;
+                    }
+#endif
+                }
+                if (!found) {
+                    free(now->levelvarname);
+                    now->levelvarname = NULL;
+                }
+            }
         } else if (strncasecmp(token, "VDIR", 4) == 0) {
             if (now->vdirection != NULL)
                 enkf_quit("%s, l.%d: VDIR specified twice", fname, line);

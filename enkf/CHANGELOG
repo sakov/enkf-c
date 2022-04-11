@@ -1,3 +1,11 @@
+v.2.11.16
+   -- Modified gridprm_create(): one can now add qualifiers to the mask variable
+      name entry (NUMLEVELSVARNAME for Z grids, MASKVARNAME for other grids).
+      The qualifiers are supposed to be either PREP, CALC, or UPDATE or their
+      combination. If a qualifier is presented then the entry is considered
+      valid only if a qualifier with the stage name is found. This is aimed at
+      providing an easy way of using different mask names for different stages.
+      (Which may be useful for hybrid systems.)
 v.2.11.15
    -- Modified enkf_printf() to print regardless of rank if enkf_verbose < 0.
    -- In ensobs.c and model2obs.c -- when a bad forecast observation detected --
