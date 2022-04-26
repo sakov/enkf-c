@@ -428,7 +428,7 @@ Copernicus Marine Environment Monitoring Service.\n\
     PARAMETER <name> = <value> ...\n\
 \n\
   Parameters specific to the reader:\n\
-    - QCFLAGVALS (1) (-)\n\
+    - QCFLAGVALS (-)\n\
         the list of allowed values of QC flag variable\n\
         Note: the name of the QC flag variable is set by the code after\n\
         determining the name of the principal variable\n\
