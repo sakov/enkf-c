@@ -1,3 +1,10 @@
+v.2.11.19
+   PS 30042022
+   -- Fixed defect in "lowmem" H-function.
+v.2.11.18
+   PS 26042022
+   -- Fixed defect in obsprm.c, now allows multiple entries of "parameter
+      EXCLUDEINST".
 v.2.11.17
    PS 12042022
    -- Corrected v2.11.16.
