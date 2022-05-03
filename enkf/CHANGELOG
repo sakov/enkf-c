@@ -1,3 +1,7 @@
+v.2.11.20
+   PS 03052022
+   -- In das_writefields_toassemble() removed redundant (since v.2.11.0) code
+      for the case if tile exists.
 v.2.11.19
    PS 30042022
    -- Fixed defect in "lowmem" H-function.
