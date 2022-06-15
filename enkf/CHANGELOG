@@ -1,3 +1,6 @@
+v.2.11.21
+   PS 15062022
+   -- Fixed defect in ncw_find_vars().
 v.2.11.20
    PS 03052022
    -- In das_writefields_toassemble() removed redundant (since v.2.11.0) code

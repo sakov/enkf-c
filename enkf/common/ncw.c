@@ -31,7 +31,7 @@
 #include <errno.h>
 #include "ncw.h"
 
-const char ncw_version[] = "2.29.0";
+const char ncw_version[] = "2.29.1";
 
 /* This macro is substituted in error messages instead of the name of a
  * variable in cases when the name could not be found by the variable id.
@@ -1831,7 +1831,7 @@ void ncw_find_vars(int ncid, int ndims, const int dims[], const char attname[], 
             *vids = malloc(nallocated * sizeof(int));
         } else if (*nvars == nallocated) {
             nallocated *= 2;
-            *vids = realloc(vids, nallocated * sizeof(int));
+            *vids = realloc(*vids, nallocated * sizeof(int));
         }
 
         (*vids)[*nvars] = vid;
