@@ -86,6 +86,8 @@ typedef struct {
     int s_mode;
 
     double kfactor;
+
+    int strict_time_matching;
 #endif
 #if defined(USE_SHMEM)
     MPI_Win sm_comm_win_S;

@@ -197,6 +197,16 @@ dasystem* das_create(enkfprm* prm)
     }
 #if defined(ENKF_CALC)
     das->obs = obs_create_fromprm(prm);
+    if (das->strict_time_matching) {
+        int otid;
+
+        for (otid = 0; otid < das->obs->nobstypes; ++otid) {
+            obstype* ot = &das->obs->obstypes[otid];
+
+            if (ot->isasync && ot->async_tname == NULL)
+                enkf_quit("%s: %s: time variable name must be defined for asynchronously assimilated observation types with \"--strict-time-matching\"; see description of entry ASYNC by \"enkf_calc --describe-prm-format obstypes\"", prm->obstypeprm, ot->name);
+        }
+    }
 #endif
 
     das->m = model_create(prm);
@@ -579,7 +589,11 @@ int das_getmemberfname_async(dasystem* das, obstype* ot, int mem, int t, char fn
     snprintf(fname, MAXSTRLEN, "%s/mem%03d_%s_%d.nc", ensdir, mem, alias, t);
     if (!file_exists(fname)) {
         snprintf(fname, MAXSTRLEN, "%s/mem%03d_%s.nc", ensdir, mem, varname);
-        return 0;
+        if (!das->strict_time_matching)
+            return 0;
+        /*
+         * otherwhile the time of the model dump will be checked below
+         */
     }
     /*
      * if the time variable name has been specified for the obs. type -- verify
@@ -626,7 +640,11 @@ int das_getbgfname_async(dasystem* das, obstype* ot, int t, char fname[])
     snprintf(fname, MAXSTRLEN, "%s/bg_%s_%d.nc", bgdir, alias, t);
     if (!file_exists(fname)) {
         snprintf(fname, MAXSTRLEN, "%s/bg_%s.nc", bgdir, varname);
-        return 0;
+        if (!das->strict_time_matching)
+            return 0;
+        /*
+         * otherwhile the time of the model dump will be checked below
+         */
     }
     /*
      * if the time variable name has been specified for the obs. type -- verify

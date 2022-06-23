@@ -39,7 +39,7 @@
 
 \begin{document}
 
-\title{EnKF-C user guide\\{\normalsize version 2.11.0}}
+\title{EnKF-C user guide\\{\normalsize version 2.13.0}}
 
 \author{Pavel Sakov}
 \date{June 19, 2014 -- \today}
@@ -1451,6 +1451,11 @@ ASYNCHRONOUS 0.25 E Time
 <...>
 \end{Verbatim}
 
+Note that if the model dump associated with a particular time bin is not found, then the corresponding restart file is used; i.e. the observations from this time bin are assimilated sychronously.
+This behaviour can be disallowed by running CALC with option \verb|--strict-time-matching|.
+Using this option requires specifying the name of the time variable in model dumps with the entry \verb|ASYNC| of the observation types parameter file.
+The strict time matching permits skipping the model dump associated with a time bin only if there is a single time bin for the observation type, and its centre matches the time of the restart dump.
+
 \section{CALC}
 
 CALC is the second stage of data assimilation in EnKF-C.
@@ -1478,6 +1483,9 @@ It has the following usage and options:
       assimilate single observation with these parameters
   --single-observation-ijk <fi> <fj> <fk> <type> <inn> <std>
       assimilate single observation with these parameters
+  --strict-time-matching
+      when assimilating asynchronously -- check that the time of model dumps
+      matches centres of the corresponding time bins
   --use-existing-transforms
       skip calculating ensemble transforms; use existing transforms*.nc files
   --use-rmsd-for-obsstats

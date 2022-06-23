@@ -365,8 +365,8 @@ void H_subsurf_lowmem(dasystem* das, int nobs, int obsids[], char fname[], int m
          * (interpolate)
          */
         src[k1] = src1;
-	if (k2 < nk)
-	    src[k2] = src2;
+        if (k2 < nk)
+            src[k2] = src2;
         if (offset_data != NULL) {
             int k;
 

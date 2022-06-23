@@ -1,3 +1,8 @@
+v.2.13.0
+   PS 23062022
+   -- Added option "--strict-time-matching" to CALC. It ensures that for
+      observation types assimilated asynchronously the time of model dumps
+      matches that of the centres of the time bins.
 v.2.11.21
    PS 15062022
    -- Fixed defect in ncw_find_vars().
