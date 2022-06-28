@@ -1,3 +1,6 @@
+v.2.13.1
+   PS 28062022
+   -- Modified reader_mmt.c to reject profiles with all valid obs. equal to 0.
 v.2.13.0
    PS 23062022
    -- Added option "--strict-time-matching" to CALC. It ensures that for

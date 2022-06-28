@@ -175,6 +175,23 @@ void reader_mmt(char* fname, int fid, obsmeta* meta, grid* g, observations* obs)
         if (st_exclude != NULL && st_findindexbystring(st_exclude, inststr) >= 0)
             continue;
 
+        /*
+         * skip profiles with all values equal to 0
+         */
+        {
+            int nzero = 0;
+
+            for (i = 0; i < (int) nz; ++i)
+                if (v[p][i] == 0.0)
+                    nzero++;
+                else if ((isfinite(v[p][i])) && fabs(v[p][i] - missval) > EPS)
+                    break;
+            if (i == (int) nz && nzero > 0) {
+                enkf_printf("          profile # %d has no valid obs.\n", p);
+                continue;
+            }
+        }
+
         for (i = 0; i < (int) nz; ++i) {
             observation* o;
 
