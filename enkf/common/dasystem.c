@@ -589,7 +589,7 @@ int das_getmemberfname_async(dasystem* das, obstype* ot, int mem, int t, char fn
     snprintf(fname, MAXSTRLEN, "%s/mem%03d_%s_%d.nc", ensdir, mem, alias, t);
     if (!file_exists(fname)) {
         snprintf(fname, MAXSTRLEN, "%s/mem%03d_%s.nc", ensdir, mem, varname);
-        if (!das->strict_time_matching)
+        if (!das->strict_time_matching || das->mode == MODE_ENOI)
             return 0;
         /*
          * otherwhile the time of the model dump will be checked below
