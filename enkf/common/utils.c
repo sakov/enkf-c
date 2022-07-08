@@ -912,11 +912,11 @@ double date2day(char strdate[])
 
     strncpy(buf, strdate, MAXSTRLEN - 1);
     if ((token = strtok(buf, seps)) == NULL)
-        enkf_quit("could not understand date \"%s\"", strdate);
+        enkf_quit("date2day(): could not understand date \"%s\"", strdate);
     if (!str2double(token, &day))
-        enkf_quit("could not convert date \"%s\" to double", token);
+        enkf_quit("date2day(): \"%s\": could not convert \"%s\" to double", strdate, token);
     if ((token = strtok(NULL, seps2)) == NULL)
-        enkf_quit("could not understand date \"%s\"", strdate);
+        enkf_quit("date2day(): could not understand date \"%s\"", strdate);
     tunits_convert(token, &multiple, &offset);
     day = day * multiple + offset;
 

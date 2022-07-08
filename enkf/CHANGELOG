@@ -1,3 +1,6 @@
+v.2.13.3
+   PS 08072022
+   -- Improved error message in date2day().
 v.2.13.2
    PS 08072022
    -- Corrected a defect in das_getmemberfname_async() that prevented running
