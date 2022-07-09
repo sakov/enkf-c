@@ -902,7 +902,7 @@ void* copy3d(void*** src, size_t nk, size_t nj, size_t ni, size_t unitsize)
 
 /**
  */
-double date2day(char strdate[])
+double date2day(char* fname, char* strdate)
 {
     char buf[MAXSTRLEN];
     char* token;
@@ -912,11 +912,11 @@ double date2day(char strdate[])
 
     strncpy(buf, strdate, MAXSTRLEN - 1);
     if ((token = strtok(buf, seps)) == NULL)
-        enkf_quit("date2day(): could not understand date \"%s\"", strdate);
+        enkf_quit("%s: date2day(): could not understand date \"%s\"", fname, strdate);
     if (!str2double(token, &day))
-        enkf_quit("date2day(): \"%s\": could not convert \"%s\" to double", strdate, token);
+        enkf_quit("%s: date2day(): \"%s\": could not convert \"%s\" to double", fname, strdate, token);
     if ((token = strtok(NULL, seps2)) == NULL)
-        enkf_quit("date2day(): could not understand date \"%s\"", strdate);
+        enkf_quit("%s: %s: date2day(): could not understand date \"%s\"", fname, strdate);
     tunits_convert(token, &multiple, &offset);
     day = day * multiple + offset;
 

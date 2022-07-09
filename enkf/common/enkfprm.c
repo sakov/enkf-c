@@ -625,11 +625,11 @@ void enkfprm_print(enkfprm* prm, char offset[])
             enkf_printf("%sKFACTOR = %.1f\n", offset, prm->kfactor);
         else
             enkf_printf("%sKFACTOR = n/a\n", offset);
-        enkf_printf("      LOCRAD  =");
+        enkf_printf("%sLOCRAD  =", offset);
         for (i = 0; i < prm->nlocrad; ++i)
             enkf_printf(" %.3g", prm->locrad[i]);
         enkf_printf("\n");
-        enkf_printf("      LOCWEIGHT = ");
+        enkf_printf("%sLOCWEIGHT = ", offset);
         for (i = 0; i < prm->nlocrad; ++i)
             enkf_printf(" %.3g", prm->locweight[i]);
         enkf_printf("\n");

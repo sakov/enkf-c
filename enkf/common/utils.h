@@ -45,7 +45,7 @@ void* cast2d(void* p, size_t nj, size_t ni, size_t unitsize);
 void* copy2d(void** src, size_t nj, size_t ni, size_t unitsize);
 void* alloc3d(size_t n3, size_t nj, size_t ni, size_t unitsize);
 void* copy3d(void*** src, size_t nk, size_t nj, size_t ni, size_t unitsize);
-double date2day(char strdate[]);
+double date2day(char* fname, char* strdate);
 int get_tshift(double reltime, double tstep, int centred);
 void print_matrix_double(int n, int m, double** A, char offset[]);
 void print_matrix_float(int n, int m, float** A, char offset[]);

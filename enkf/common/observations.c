@@ -188,7 +188,7 @@ observations* obs_create_fromprm(enkfprm* prm)
     obstypes_read(prm, prm->obstypeprm, &obs->nobstypes, &obs->obstypes);
 
 #if defined(ENKF_PREP)
-    obs->da_time = date2day(prm->date);
+    obs->da_time = date2day(prm->fname, prm->date);
     obs->datestr = strdup(prm->date);
 
     if (file_exists(FNAME_BADBATCHES)) {
