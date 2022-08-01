@@ -39,7 +39,7 @@
 
 \begin{document}
 
-\title{EnKF-C user guide\\{\normalsize version 2.13.0}}
+\title{EnKF-C user guide\\{\normalsize version 2.13.5}}
 
 \author{Pavel Sakov}
 \date{June 19, 2014 -- \today}
@@ -1270,6 +1270,10 @@ The generic parameters include:
 \item{\verb|FOOTPRINT|} -- the radius in km of the horizontal footprint;
 \item{\verb|VARSHIFT|} -- data offset;
 \item{\verb|STRIDE|} -- stride interval.
+\item{\verb|YMIN|} -- minimal allowed latitude;
+\item{\verb|YMAX|} -- maximal allowed latitudedepth;
+\item{\verb|ZMIN|} -- minimal allowed depth;
+\item{\verb|ZMAX|} -- maximal allowed depth;
 \end{description}
 
 The custom parameters can be learned by running \verb|enkf_prep --describe-reader <reader name>|, and the reader name list can printed by \verb|enkf_prep --list-readers|.
@@ -1332,11 +1336,19 @@ Following is the description of the reader \verb|scattered|:
     - FOOTRPINT (-)
         footprint of observations in km
     - MINDEPTH (-)
-        minimal allowed depth
+        minimal allowed model depth
     - MAXDEPTH (-)
-        maximal allowed depth
+        maximal allowed model depth
     - STRIDE (-)
         stride interval.
+    - YMIN (-)
+        minimal allowed latitude
+    - YMAX (-)
+        maximal allowed latitude
+    - ZMIN (-)
+        minimal allowed depth
+    - ZMAX (-)
+        maximal allowed depth
 \end{Verbatim}
 
 \subsection{Superobing}

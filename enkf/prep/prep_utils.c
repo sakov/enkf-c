@@ -80,7 +80,7 @@ static void readobs(obsmeta* meta, model* m, obsread_fn reader, observations* ob
     free(fnames);
 }
 
-/** Add observations from a certain provider.
+/** Add observations from a section in observation data parameter file.
  *  This procedure contains generic/common operations done after reading the
  *  data.
  */
@@ -99,6 +99,10 @@ void obs_add(observations* obs, model* m, obsmeta* meta, int nexclude, obsregion
 
     double mindepth = NAN;
     double maxdepth = NAN;
+    double zmin = NAN;
+    double zmax = NAN;
+    double ymin = NAN;
+    double ymax = NAN;
     double footprint = 0.0;
     double varshift = 0.0;
     int stride = 0;
@@ -125,6 +129,42 @@ void obs_add(observations* obs, model* m, obsmeta* meta, int nexclude, obsregion
         } else if (strcasecmp(meta->pars[i].name, "MAXDEPTH") == 0) {
             if (!str2double(meta->pars[i].value, &maxdepth))
                 enkf_quit("observation prm file: can not convert MAXDEPTH = \"%s\" to double\n", meta->pars[i].value);
+            else {
+                free(meta->pars[i].name);
+                free(meta->pars[i].value);
+                meta->pars[i].name = NULL;
+                meta->pars[i].value = NULL;
+            }
+        } else if (strcasecmp(meta->pars[i].name, "ZMIN") == 0 || strcasecmp(meta->pars[i].name, "MINDEPTH") == 0) {
+            if (!str2double(meta->pars[i].value, &zmin))
+                enkf_quit("observation prm file: can not convert ZMIN = \"%s\" to double\n", meta->pars[i].value);
+            else {
+                free(meta->pars[i].name);
+                free(meta->pars[i].value);
+                meta->pars[i].name = NULL;
+                meta->pars[i].value = NULL;
+            }
+        } else if (strcasecmp(meta->pars[i].name, "ZMAX") == 0 || strcasecmp(meta->pars[i].name, "MAXDEPTH") == 0) {
+            if (!str2double(meta->pars[i].value, &zmax))
+                enkf_quit("observation prm file: can not convert ZMAX = \"%s\" to double\n", meta->pars[i].value);
+            else {
+                free(meta->pars[i].name);
+                free(meta->pars[i].value);
+                meta->pars[i].name = NULL;
+                meta->pars[i].value = NULL;
+            }
+        } else if (strcasecmp(meta->pars[i].name, "YMIN") == 0) {
+            if (!str2double(meta->pars[i].value, &ymin))
+                enkf_quit("observation prm file: can not convert YMIN = \"%s\" to double\n", meta->pars[i].value);
+            else {
+                free(meta->pars[i].name);
+                free(meta->pars[i].value);
+                meta->pars[i].name = NULL;
+                meta->pars[i].value = NULL;
+            }
+        } else if (strcasecmp(meta->pars[i].name, "YMAX") == 0) {
+            if (!str2double(meta->pars[i].value, &ymax))
+                enkf_quit("observation prm file: can not convert YMAX = \"%s\" to double\n", meta->pars[i].value);
             else {
                 free(meta->pars[i].name);
                 free(meta->pars[i].value);
@@ -160,7 +200,7 @@ void obs_add(observations* obs, model* m, obsmeta* meta, int nexclude, obsregion
             }
         }
         /*
-         * for historic compatibility 
+         * for historic compatibility
          */
         else if (strcasecmp(meta->pars[i].name, "THIN") == 0) {
             if (!str2int(meta->pars[i].value, &stride))
@@ -250,7 +290,7 @@ void obs_add(observations* obs, model* m, obsmeta* meta, int nexclude, obsregion
                 nmax++;
                 continue;
             }
-            if (o->lon <= ot->xmin || o->lon >= ot->xmax || o->lat <= ot->ymin || o->lat >= ot->ymax || o->depth < ot->zmin || o->depth > ot->zmax) {
+            if (o->lon <= ot->xmin || o->lon >= ot->xmax || o->lat <= ot->ymin || o->lat >= ot->ymax || o->depth < ot->zmin || o->depth > ot->zmax || o->lat <= ymin || o->lat >= ymax || o->depth <= zmin || o->depth >= zmax) {
                 o->status = STATUS_OUTSIDEOBSDOMAIN;
                 noutod++;
                 continue;
@@ -269,7 +309,7 @@ void obs_add(observations* obs, model* m, obsmeta* meta, int nexclude, obsregion
             }
             if (isfinite(mindepth)) {
                 if (depth == NULL)
-                    enkf_quit("MINDEPTH specified for the obs reader, but no depth specified for grid \"%s\"", grid_getname(g));
+                    enkf_quit("ZMIN specified for the obs reader, but no depth specified for grid \"%s\"", grid_getname(g));
                 if (o->model_depth < mindepth || !isfinite(o->model_depth)) {
                     o->status = STATUS_SHALLOW;
                     nshallow++;
@@ -277,7 +317,7 @@ void obs_add(observations* obs, model* m, obsmeta* meta, int nexclude, obsregion
             }
             if (isfinite(maxdepth)) {
                 if (depth == NULL)
-                    enkf_quit("MAXDEPTH specified for the obs reader, but no depth specified for grid \"%s\"", grid_getname(g));
+                    enkf_quit("ZMAX specified for the obs reader, but no depth specified for grid \"%s\"", grid_getname(g));
                 if (o->model_depth > maxdepth || !isfinite(o->model_depth)) {
                     o->status = STATUS_SHALLOW;
                     nshallow++;
@@ -357,7 +397,7 @@ void obs_add(observations* obs, model* m, obsmeta* meta, int nexclude, obsregion
         enkf_quit("%s: observation error must be specified explicitly for observations of type associated with log-transformed model variables", ot->name);
 
     /*
-     * add specified errors 
+     * add specified errors
      */
     if (obs->nobs - nobs0 > 0 && meta->nestds > 0) {
         int o;
@@ -477,7 +517,7 @@ void obs_add(observations* obs, model* m, obsmeta* meta, int nexclude, obsregion
     }
 
     /*
-     * report time range 
+     * report time range
      */
     if (obs->nobs - nobs0 > 0) {
         double day_min = DBL_MAX;
@@ -878,4 +918,29 @@ void get_qcflags(obsmeta* meta, int* nqcflagvars, char*** qcflagvarnames, uint32
             (*nqcflagvars)++;
         }
     }
+}
+
+/**
+ */
+void describe_commonreaderparams(void)
+{
+    enkf_printf("  Parameters common to all readers:\n\
+    - VARSHIFT (-)\n\
+        data offset to be added (e.g. -273.15 to convert from K to C)\n\
+    - FOOTRPINT (-)\n\
+        footprint of observations in km\n\
+    - MINDEPTH (-)\n\
+        minimal allowed model depth\n\
+    - MAXDEPTH (-)\n\
+        maximal allowed model depth\n\
+    - STRIDE (-)\n\
+        stride interval\n\
+    - YMIN (-)\n\
+        minimal allowed latitude\n\
+    - YMAX (-)\n\
+        maximal allowed latitude\n\
+    - ZMIN (-)\n\
+        minimal allowed depth\n\
+    - ZMAX (-)\n\
+        maximal allowed depth\n");
 }

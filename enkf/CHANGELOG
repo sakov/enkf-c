@@ -1,3 +1,6 @@
+v.2.13.5
+   PS 01082022
+   -- Added new common reader paramaters YMIN, YMAX, ZMIN, ZMAX.
 v.2.13.4
    PS 10072022
    -- Further improved error messages in date2day().

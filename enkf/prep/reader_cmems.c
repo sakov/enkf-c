@@ -433,16 +433,6 @@ Copernicus Marine Environment Monitoring Service.\n\
         Note: the name of the QC flag variable is set by the code after\n\
         determining the name of the principal variable\n\
     - EXCLUDEINST (-)\n\
-        instrument in format \"WMO*\" to be skipped\n\
-  Parameters common to all readers:\n\
-    - VARSHIFT (-)\n\
-        data offset to be added (e.g. -273.15 to convert from K to C)\n\
-    - FOOTRPINT (-)\n\
-        footprint of observations in km\n\
-    - MINDEPTH (-)\n\
-        minimal allowed depth\n\
-    - MAXDEPTH (-)\n\
-        maximal allowed depth\n\
-    - STRIDE (-)\n\
-        stride interval\n");
+        instrument in format \"WMO*\" to be skipped\n");
+    describe_commonreaderparams();
 }

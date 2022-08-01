@@ -434,16 +434,6 @@ void reader_scattered_describe(void)
         name of the variable to be added to the main variable (can be repeated)\n\
     - SUBVAR (-)\n\
         name of the variable to be subtracted from the main variable (can be\n\
-        repeated)\n\
-  Parameters common to all readers:\n\
-    - VARSHIFT (-)\n\
-        data offset to be added (e.g. -273.15 to convert from K to C)\n\
-    - FOOTRPINT (-)\n\
-        footprint of observations in km\n\
-    - MINDEPTH (-)\n\
-        minimal allowed depth\n\
-    - MAXDEPTH (-)\n\
-        maximal allowed depth\n\
-    - STRIDE (-)\n\
-        stride interval\n");
+        repeated)\n");
+    describe_commonreaderparams();
 }

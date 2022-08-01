@@ -324,7 +324,7 @@ void obsprm_describeprm(void)
     enkf_printf("    3. * denotes the default value\n");
     enkf_printf("    4. < ... > denotes a description of an entry\n");
     enkf_printf("    5. ... denotes repeating the previous item an arbitrary number of times\n");
-    enkf_printf("    6. There are a number of generic (applicable to all readers) parameters:\n");
-    enkf_printf("       MINDEPTH, MAXDEPTH, FOOTPRINT, VARSHIFT, STRIDE.\n");
+    enkf_printf("    6. Use \"--list-readers\" to list available readers\n");
+    enkf_printf("    7. Use \"--describe-reader <reader>\" to list available parameters\n");
     enkf_printf("\n");
 }

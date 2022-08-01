@@ -179,16 +179,6 @@ in-house by BoM.\n\
 \n\
   Parameters specific to the reader:\n\
     - ADDBIAS (-)\n\
-        reverses bias correction\n\
-  Parameters common to all readers:\n\
-    - VARSHIFT (-)\n\
-        data offset to be added (e.g. -273.15 to convert from K to C)\n\
-    - FOOTRPINT (-)\n\
-        footprint of observations in km\n\
-    - MINDEPTH (-)\n\
-        minimal allowed depth\n\
-    - MAXDEPTH (-)\n\
-        maximal allowed depth\n\
-    - STRIDE (-)\n\
-        stride interval\n");
+        reverses bias correction\n");
+    describe_commonreaderparams();
 }

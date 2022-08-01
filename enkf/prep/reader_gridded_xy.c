@@ -426,16 +426,6 @@ void reader_gridded_xy_describe(void)
         height/depth (can be NaN)\n\
     - NPOINTSNAME (\"npoints\") (-)\n\
         number of collated points for each datum; used basically as a data mask\n\
-        when n = 0\n\
-  Parameters common to all readers:\n\
-    - VARSHIFT (-)\n\
-        data offset to be added (e.g. -273.15 to convert from K to C)\n\
-    - FOOTRPINT (-)\n\
-        footprint of observations in km\n\
-    - MINDEPTH (-)\n\
-        minimal allowed depth\n\
-    - MAXDEPTH (-)\n\
-        maximal allowed depth\n\
-    - STRIDE (-)\n\
-        stride interval\n");
+        when n = 0\n");
+    describe_commonreaderparams();
 }

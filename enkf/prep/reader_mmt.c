@@ -297,21 +297,10 @@ produced in-house by BoM.\n\
   Parameters specific to the reader:\n\
     - EXCLUDEINST (-)\n\
         instrument in format \"WMO*\" to be skipped\n\
-  Parameters common to all readers:\n\
-    - VARSHIFT (-)\n\
-        data offset to be added (e.g. -273.15 to convert from K to C)\n\
-    - FOOTRPINT (-)\n\
-        footprint of observations in km\n\
-    - MINDEPTH (-)\n\
-        minimal allowed depth\n\
-    - MAXDEPTH (-)\n\
-        maximal allowed depth\n\
     - QCFLAGNAME (-)\n\
         name of the QC flag variable, possible values 0 <= qcflag <= 31\n\
     - QCFLAGVALS (-)\n\
         the list of allowed values of QC flag variable\n\
-    - STRIDE (-)\n\
-        stride interval\n\
   Note: it is possible to have multiple entries of QCFLAGNAME and QCFLAGVALS\n\
   combination, e.g.:\n\
     PARAMETER QCFLAGNAME = TEMP_quality_control\n\
@@ -324,4 +313,5 @@ produced in-house by BoM.\n\
     PARAMETER QCFLAGVALS = 1,8\n\
   An observation is considered valid if each of the specified flags takes a\n\
   permitted value.\n");
+    describe_commonreaderparams();
 }
