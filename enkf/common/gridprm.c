@@ -164,7 +164,7 @@ void gridprm_create(char* fname, int* ngrid, gridprm** prm)
             if (now->vtype == NULL)
                 enkf_quit("%s, l.%d: VTYPE must be set first", fname, line);
             if (strcasecmp(now->vtype, "Z") != 0)
-                enkf_quit("%s, l.%d: VTYPE must be set to \"Z\" for entry ZVARNAME (currently \"%s\")", fname, line, now->vtype);
+                enkf_quit("%s, l.%d: VTYPE must be set to \"Z\" for entry ZCVARNAME (currently \"%s\")", fname, line, now->vtype);
             if ((token = strtok(NULL, seps)) == NULL)
                 enkf_quit("%s, l.%d: ZCVARNAME not specified", fname, line);
             else if (now->zcvarname != NULL)

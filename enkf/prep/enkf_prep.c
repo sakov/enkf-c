@@ -305,8 +305,9 @@ int main(int argc, char* argv[])
     enkf_printf("  reading observation specs from \"%s\":\n", prm->obsprm);
     obsprm_read(prm->obsprm, &nmeta, &meta, &nexclude, &exclude);
 
-    enkf_printf("  creating model and observations:\n");
+    enkf_printf("  creating model:\n");
     m = model_create(prm);
+    enkf_printf("  creating observations:\n");
     obs = obs_create_fromprm(prm);
     obstypes_set(obs->nobstypes, obs->obstypes, m);
     obs->allobs = (write_orig_obs == 2) ? 1 : 0;
