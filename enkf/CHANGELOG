@@ -1,3 +1,6 @@
+v.2.13.7
+   PS 15092022
+   -- Optimised inflation calculation in das_updatefields().
 v.2.13.6
    PS 31082022
    -- Cosmetic fixes.

@@ -359,47 +359,27 @@ static void das_updatefields(dasystem* das, int nfields, void** fieldbuffer, fie
 
                         for (e = 0; e < nmem_dynamic; ++e)
                             v_a[e] /= k_d;
-                        for (e = 0; e < nmem; ++e)
+                        for (e = 0; e < nmem_dynamic; ++e)
                             v_f[e] /= k_d;
                     }
 
                     /*
-                     * E^a = A^a + x^a * 1^T
+                     * calculate inflation
                      */
-                    for (e = 0; e < nmem_dynamic; ++e)
-                        v_a[e] += v1_a;
-
-                    /*
-                     * E^f = A^f + x^f * 1^T
-                     */
-                    for (e = 0; e < nmem; ++e)
-                        v_f[e] += v1_f;
-
                     if (!isnan(inf_ratio)) {
                         double v2_f = 0.0;
                         double v2_a = 0.0;
-                        double var_a, var_f;
 
                         for (e = 0; e < nmem_dynamic; ++e) {
-                            double ve = (double) v_f[e];
-
-                            v2_f += ve * ve;
+                            v2_f += v_f[e] * v_f[e];
+                            v2_a += v_a[e] * v_a[e];
                         }
-                        var_f = v2_f / (double) nmem_dynamic - v1_f * v1_f;
-
-                        for (e = 0; e < nmem_dynamic; ++e) {
-                            double ve = (double) v_a[e];
-
-                            v2_a += ve * ve;
-                        }
-                        var_a = v2_a / (double) nmem_dynamic - v1_a * v1_a;
-
-                        if (var_a > 0.0) {
+                        if (v2_a > 0.0) {
                             /*
                              * (Normal case.) Limit inflation by inf_ratio of
                              * the magnitude of spread reduction.
                              */
-                            inflation = (float) (sqrt(var_f / var_a) * inf_ratio + 1.0 - inf_ratio);
+                            inflation = (float) (sqrt(v2_f / v2_a) * inf_ratio + 1.0 - inf_ratio);
                             if (inflation >= inflation0)
                                 inflation = inflation0;
                         }
@@ -410,7 +390,19 @@ static void das_updatefields(dasystem* das, int nfields, void** fieldbuffer, fie
                      */
                     if (inflation - 1.0f > EPSF)
                         for (e = 0; e < nmem_dynamic; ++e)
-                            v_a[e] = (v_a[e] - (float) v1_a) * inflation + (float) v1_a;
+                            v_a[e] = v_a[e] * inflation;
+
+                    /*
+                     * E^a = A^a + x^a * 1^T
+                     */
+                    for (e = 0; e < nmem_dynamic; ++e)
+                        v_a[e] += v1_a;
+
+                    /*
+                     * E^f = A^f + x^f * 1^T
+                     */
+                    for (e = 0; e < nmem_dynamic; ++e)
+                        v_f[e] += v1_f;
 
                     if (!(das->updatespec & UPDATE_OUTPUTINC))
                         for (e = 0; e < nmem_dynamic; ++e)
