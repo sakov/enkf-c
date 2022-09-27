@@ -1,3 +1,8 @@
+v.2.13.9
+   PS 28092022
+   -- Updated ncw.[ch] to v2.29.2. The main change is in ncw_copy_vardef() --
+      it now sets chunking by the horizontal layer of the model
+      (1, ..., 1, nj, ni).
 v.2.13.8
    PS 28092022
    -- In the diagnostic output "inflation.nc" replaced values < 1 by the actual

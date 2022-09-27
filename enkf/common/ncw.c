@@ -31,7 +31,7 @@
 #include <errno.h>
 #include "ncw.h"
 
-const char ncw_version[] = "2.29.1";
+const char ncw_version[] = "2.29.2";
 
 /* This macro is substituted in error messages instead of the name of a
  * variable in cases when the name could not be found by the variable id.
@@ -449,6 +449,30 @@ void ncw_def_var(int ncid, const char varname[], nc_type xtype, int ndims, const
         quit("\"%s\": nc_def_var(): failed for varname = \"%s\", vartype = %s, ndims = %d, dimids = %s: %s", ncw_get_path(ncid), varname, ncw_nctype2str(xtype), ndims, uint2str(ndims, (const unsigned int*) dimids), nc_strerror(status));
 }
 
+void ncw_def_var_deflate(int ncid, int varid, int shuffle, int deflate, int deflate_level)
+{
+    int status = nc_def_var_deflate(ncid, varid, shuffle, deflate, deflate_level);
+
+    if (status != NC_NOERR) {
+        char varname[NC_MAX_NAME] = "STR_UNKNOWN";
+
+        _ncw_inq_varname(ncid, varid, varname);
+        quit("\"%s\": ncw_def_var_deflate(): failed for varid = %d (varname = \"%s\"): %s", ncw_get_path(ncid), varid, varname, nc_strerror(status));
+    }
+}
+
+void ncw_def_var_fill(int ncid, int varid, int nofill, void* fillvalue)
+{
+    int status = nc_def_var_fill(ncid, varid, nofill, fillvalue);
+
+    if (status != NC_NOERR) {
+        char varname[NC_MAX_NAME] = "STR_UNKNOWN";
+
+        _ncw_inq_varname(ncid, varid, varname);
+        quit("\"%s\": ncw_def_var_fill(): failed for varid = %d (varname = \"%s\"): %s", ncw_get_path(ncid), varid, varname, nc_strerror(status));
+    }
+}
+
 void ncw_inq_varid(int ncid, const char varname[], int* varid)
 {
     int status = nc_inq_varid(ncid, varname, varid);
@@ -541,6 +565,18 @@ void ncw_inq_varsize(int ncid, int varid, size_t* size)
     }
 }
 
+void ncw_inq_var_deflate(int ncid, int varid, int* shuffle, int* deflate, int* deflate_level)
+{
+    int status = nc_inq_var_deflate(ncid, varid, shuffle, deflate, deflate_level);
+
+    if (status != NC_NOERR) {
+        char varname[NC_MAX_NAME] = STR_UNKNOWN;
+
+        ncw_inq_varname(ncid, varid, varname);
+        quit("\"%s\": nc_inq_var_delate(): failed for varid = %d (varname = \"%s\"): %s", ncw_get_path(ncid), varid, varname, nc_strerror(status));
+    }
+}
+
 void ncw_inq_var_fill(int ncid, int varid, int* nofill, void* fillvalue)
 {
     int status = nc_inq_var_fill(ncid, varid, nofill, fillvalue);
@@ -563,18 +599,6 @@ void ncw_rename_var(int ncid, const char oldname[], const char newname[])
 
     if (status != NC_NOERR)
         quit("\"%s\": nc_rename_var(): failed for varid = %d (oldname = \"%s\", newname = \"%s\"): %s", ncw_get_path(ncid), varid, oldname, newname, nc_strerror(status));
-}
-
-void ncw_def_var_deflate(int ncid, int varid, int shuffle, int deflate, int deflate_level)
-{
-    int status = nc_def_var_deflate(ncid, varid, shuffle, deflate, deflate_level);
-
-    if (status != NC_NOERR) {
-        char varname[NC_MAX_NAME] = "STR_UNKNOWN";
-
-        _ncw_inq_varname(ncid, varid, varname);
-        quit("\"%s\": ncw_def_var_deflate(): failed for varid = %d (varname = \"%s\"): %s", ncw_get_path(ncid), varid, varname, nc_strerror(status));
-    }
 }
 
 void ncw_put_var(int ncid, int varid, const void* v)
@@ -1561,6 +1585,38 @@ int ncw_copy_vardef(int ncid_src, int vid_src, int ncid_dst)
 
     ncw_def_var(ncid_dst, varname, type, ndims, dimids_dst, &vid_dst);
     ncw_copy_atts(ncid_src, vid_src, ncid_dst, vid_dst);
+    if (1 == 0) {
+        int shuffle, deflate, deflate_level;
+
+        ncw_inq_var_deflate(ncid_src, vid_src, &shuffle, &deflate, &deflate_level);
+        ncw_def_var_deflate(ncid_dst, vid_dst, shuffle, deflate, deflate_level);
+    }
+    {
+        int nofill, fillvalue[4];
+
+        ncw_inq_var_fill(ncid_src, vid_src, &nofill, fillvalue);
+        ncw_def_var_fill(ncid_dst, vid_dst, nofill, fillvalue);
+    }
+    if (ndims >= 2) {
+        size_t dimlen[NC_MAX_DIMS];
+        size_t cachesize, cachesize_needed;
+        float preemption;
+        size_t chunksize[NC_MAX_DIMS];
+        int i;
+
+        ncw_inq_vardims(ncid_dst, vid_dst, NC_MAX_DIMS, &ndims, dimlen);
+        if (dimlen[ndims - 1] > 1 && dimlen[ndims - 2] > 1 && dimlen[ndims - 1] * dimlen[ndims - 2] > 512 * 512) {
+            cachesize_needed = dimlen[ndims - 1] * dimlen[ndims - 2] * ncw_sizeof(type);
+            nc_get_chunk_cache(&cachesize, NULL, &preemption);
+            if (cachesize < cachesize_needed)
+                nc_set_var_chunk_cache(ncid_dst, vid_dst, cachesize_needed, 1, preemption);
+            chunksize[ndims - 1] = dimlen[ndims - 1];
+            chunksize[ndims - 2] = dimlen[ndims - 2];
+            for (i = ndims - 3; i >= 0; i--)
+                chunksize[i] = 1;
+            nc_def_var_chunking(ncid_dst, vid_dst, NC_CHUNKED, chunksize);
+        }
+    }
 
     if (status == NC_NOERR)
         nc_enddef(ncid_dst);
