@@ -1,3 +1,7 @@
+v.2.13.8
+   PS 28092022
+   -- In the diagnostic output "inflation.nc" replaced values < 1 by the actual
+      inflation value for these elements = 1.
 v.2.13.7
    PS 15092022
    -- Optimised inflation calculation in das_updatefields().

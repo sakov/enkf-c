@@ -391,6 +391,8 @@ static void das_updatefields(dasystem* das, int nfields, void** fieldbuffer, fie
                     if (inflation - 1.0f > EPSF)
                         for (e = 0; e < nmem_dynamic; ++e)
                             v_a[e] = v_a[e] * inflation;
+                    else
+                        inflation = 1.0f;
 
                     /*
                      * E^a = A^a + x^a * 1^T
