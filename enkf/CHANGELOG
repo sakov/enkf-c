@@ -1,3 +1,7 @@
+v.2.13.10
+   PS 28092022
+   -- Slightly (I think) modified readfield() and writefield() regarding
+      treatment of fill value.
 v.2.13.9
    PS 28092022
    -- Updated ncw.[ch] to v2.29.2. The main change is in ncw_copy_vardef() --
