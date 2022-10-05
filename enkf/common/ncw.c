@@ -1585,7 +1585,7 @@ int ncw_copy_vardef(int ncid_src, int vid_src, int ncid_dst)
 
     ncw_def_var(ncid_dst, varname, type, ndims, dimids_dst, &vid_dst);
     ncw_copy_atts(ncid_src, vid_src, ncid_dst, vid_dst);
-    if (1 == 0) {
+    {
         int shuffle, deflate, deflate_level;
 
         ncw_inq_var_deflate(ncid_src, vid_src, &shuffle, &deflate, &deflate_level);
