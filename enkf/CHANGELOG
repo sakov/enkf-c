@@ -1,8 +1,6 @@
 v.2.13.11
    PS 06102022
-   -- ncw_copy_vardef() now copies deflation settings. In EnKF/AOM2-01 system
-      this increased spread calculation time from 160s to 296s, but reduced
-      spread file size from 12.5 GB to 5.3 GB.
+   -- ncw_copy_vardef() now copies deflation settings.
 v.2.13.10
    PS 28092022
    -- Slightly (I think) modified readfield() and writefield() regarding
