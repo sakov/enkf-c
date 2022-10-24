@@ -557,7 +557,7 @@ void das_calcinnandspread(dasystem* das)
                 enkf_verbose = -1;      /* force printing regardless of rank */
                 enkf_printf("\n  obs # %d: ", o);
                 obs_printob(obs, o);
-                enkf_quit("obs # %d: y - Hx_f = %.3g, no point to continue", o, das->s_f[o]);
+                enkf_quit("obs # %d: y - Hx_f = %.3g, no point to continue; likely issues with MPI3 implementation; with small and medium-size systems - try compiling without -DUSE_SHMEM flag", o, das->s_f[o]);
             }
         }
 
@@ -620,7 +620,7 @@ void das_calcinnandspread(dasystem* das)
                 enkf_verbose = -1;      /* force printing regardless of rank */
                 enkf_printf("\n  obs # %d: ", o);
                 obs_printob(obs, o);
-                enkf_quit("obs # %d: y - Hx_a = %.3g, no point to continue", o, das->s_a[o]);
+                enkf_quit("obs # %d: y - Hx_a = %.3g, no point to continue; likely issues with MPI3 implementation; with small and medium-size systems - try compiling without -DUSE_SHMEM flag", o, das->s_a[o]);
             }
         }
 
