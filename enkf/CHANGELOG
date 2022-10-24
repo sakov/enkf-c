@@ -1,3 +1,6 @@
+v.2.13.12
+   PS 24102022
+   -- Fixed a minor defect das_calcinnandspread().
 v.2.13.11
    PS 06102022
    -- ncw_copy_vardef() now copies deflation settings.

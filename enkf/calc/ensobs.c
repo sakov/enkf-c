@@ -620,7 +620,7 @@ void das_calcinnandspread(dasystem* das)
                 enkf_verbose = -1;      /* force printing regardless of rank */
                 enkf_printf("\n  obs # %d: ", o);
                 obs_printob(obs, o);
-                enkf_quit("obs # %d: y - Hx_a = %d, no point to continue", o);
+                enkf_quit("obs # %d: y - Hx_a = %.3g, no point to continue", o, das->s_a[o]);
             }
         }
 
