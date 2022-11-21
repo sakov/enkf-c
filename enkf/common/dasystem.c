@@ -674,7 +674,7 @@ int das_getbgfname_async(dasystem* das, obstype* ot, int t, char fname[])
             if (!ot->async_centred)
                 correcttime += 0.5 * ot->async_tstep;
             if (fabs(time - correcttime) > TEPS)
-                enkf_quit("%s: \"s\" = %f; expected %f\n", fname, ot->async_tname, time, correcttime);
+                enkf_quit("das_getbgfname_async(): %s: \"%s\" = %f; expected %f\n", fname, ot->async_tname, time, correcttime);
         }
     }
     return 1;

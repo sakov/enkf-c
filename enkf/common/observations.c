@@ -512,8 +512,11 @@ void obs_read(observations* obs, char fname[])
 
     if (ncw_att_exists(ncid, NC_GLOBAL, "DA_DAY"))
         ncw_get_att_double(ncid, NC_GLOBAL, "DA_DAY", &da_time);
-    if (!enkf_noobsdatecheck && !isnan(da_time) && fabs(obs->da_time - da_time) > 1e-6)
-        enkf_quit("observation data file \"%s\" from a different cycle");
+    if (!enkf_noobsdatecheck && !isnan(da_time)) {
+        obs->da_time = da_time;
+        if (fabs(obs->da_time - da_time) > 1e-6)
+            enkf_quit("observation data file \"%s\" from a different cycle", fname);
+    }
 
     {
         int dimid_nobs[1];

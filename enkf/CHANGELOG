@@ -1,3 +1,6 @@
+v.2.13.13
+   PS 21112022
+   -- A couple of changes to improve time handling.
 v.2.13.12
    PS 24102022
    -- Fixed a minor defect das_calcinnandspread().
