@@ -1,3 +1,9 @@
+v.2.13.14
+   PS 25112022
+   Modified das_getmemberfname_async() and das_getbgfname_async() to exit
+   with error when running CALC with --strict-time-matching if the file
+   with correct time index is not found (rather than trying to use the member/
+   background if it has the right time).
 v.2.13.13
    PS 21112022
    -- A couple of changes to improve time handling.

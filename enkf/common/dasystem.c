@@ -588,9 +588,11 @@ int das_getmemberfname_async(dasystem* das, obstype* ot, int mem, int t, char fn
 
     snprintf(fname, MAXSTRLEN, "%s/mem%03d_%s_%d.nc", ensdir, mem, alias, t);
     if (!file_exists(fname)) {
-        snprintf(fname, MAXSTRLEN, "%s/mem%03d_%s.nc", ensdir, mem, varname);
         if (!das->strict_time_matching || das->mode == MODE_ENOI)
             return 0;
+        if (das->strict_time_matching)
+            enkf_quit("could not find file \"%s\", which is necessary to proceed with asynchronous DA for \"%s\" and \"--strict-time-matching\"\n", fname, ot->name);
+        snprintf(fname, MAXSTRLEN, "%s/mem%03d_%s.nc", ensdir, mem, varname);
         /*
          * otherwhile the time of the model dump will be checked below
          */
@@ -623,7 +625,7 @@ int das_getmemberfname_async(dasystem* das, obstype* ot, int mem, int t, char fn
             if (!ot->async_centred)
                 correcttime += 0.5 * ot->async_tstep;
             if (fabs(time - correcttime) > TEPS)
-                enkf_quit("%s: \"s\" = %f; expected %f\n", fname, ot->async_tname, time, correcttime);
+                enkf_quit("%s: \"%s\" = %f; expected %f for time interval %d\n", fname, ot->async_tname, time, correcttime, t);
         }
     }
     return 1;
@@ -639,6 +641,8 @@ int das_getbgfname_async(dasystem* das, obstype* ot, int t, char fname[])
 
     snprintf(fname, MAXSTRLEN, "%s/bg_%s_%d.nc", bgdir, alias, t);
     if (!file_exists(fname)) {
+        if (das->strict_time_matching)
+            enkf_quit("could not find file \"%s\", which is necessary to proceed with asynchronous DA for \"%s\" and \"--strict-time-matching\"\n", fname, ot->name);
         snprintf(fname, MAXSTRLEN, "%s/bg_%s.nc", bgdir, varname);
         if (!das->strict_time_matching)
             return 0;
@@ -674,7 +678,7 @@ int das_getbgfname_async(dasystem* das, obstype* ot, int t, char fname[])
             if (!ot->async_centred)
                 correcttime += 0.5 * ot->async_tstep;
             if (fabs(time - correcttime) > TEPS)
-                enkf_quit("das_getbgfname_async(): %s: \"%s\" = %f; expected %f\n", fname, ot->async_tname, time, correcttime);
+                enkf_quit("das_getbgfname_async(): %s: \"%s\" = %f; expected %f for time interval %d\n", fname, ot->async_tname, time, correcttime, time);
         }
     }
     return 1;
