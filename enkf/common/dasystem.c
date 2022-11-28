@@ -588,18 +588,14 @@ int das_getmemberfname_async(dasystem* das, obstype* ot, int mem, int t, char fn
 
     snprintf(fname, MAXSTRLEN, "%s/mem%03d_%s_%d.nc", ensdir, mem, alias, t);
     if (!file_exists(fname)) {
-        if (!das->strict_time_matching || das->mode == MODE_ENOI)
-            return 0;
         if (das->strict_time_matching)
-            enkf_quit("could not find file \"%s\", which is necessary to proceed with asynchronous DA for \"%s\" and \"--strict-time-matching\"\n", fname, ot->name);
+            enkf_quit("could not find file \"%s\", which is necessary to proceed because (1) asynchronous DA is set on for \"%s\" and (2) \"--strict-time-matching\" is used\n", fname, ot->name);
         snprintf(fname, MAXSTRLEN, "%s/mem%03d_%s.nc", ensdir, mem, varname);
-        /*
-         * otherwhile the time of the model dump will be checked below
-         */
+        return 0;
     }
+
     /*
-     * if the time variable name has been specified for the obs. type -- verify
-     * that the time is right for the interval t
+     * verify time
      */
     if (ot->async_tname != NULL) {
         int ncid, vid;
@@ -642,17 +638,12 @@ int das_getbgfname_async(dasystem* das, obstype* ot, int t, char fname[])
     snprintf(fname, MAXSTRLEN, "%s/bg_%s_%d.nc", bgdir, alias, t);
     if (!file_exists(fname)) {
         if (das->strict_time_matching)
-            enkf_quit("could not find file \"%s\", which is necessary to proceed with asynchronous DA for \"%s\" and \"--strict-time-matching\"\n", fname, ot->name);
+            enkf_quit("could not find file \"%s\", which is necessary to proceed because (1) asynchronous DA is set on for \"%s\" and (2) \"--strict-time-matching\" is used\n", fname, ot->name);
         snprintf(fname, MAXSTRLEN, "%s/bg_%s.nc", bgdir, varname);
-        if (!das->strict_time_matching)
-            return 0;
-        /*
-         * otherwhile the time of the model dump will be checked below
-         */
+        return 0;
     }
     /*
-     * if the time variable name has been specified for the obs. type -- verify
-     * that the time is right for the interval t
+     * verify time
      */
     if (ot->async_tname != NULL) {
         int ncid, vid;
