@@ -222,7 +222,7 @@ void das_getHE(dasystem* das)
 #endif
                     if (!enkf_fstatsonly) {
                         for (e = my_first_iteration; e <= my_last_iteration; ++e) {
-                            das_getmemberfname(das, ot->alias, e + 1, fname);
+                            das_getmemberfname(das, ot->varnames[0], e + 1, fname);
                             H(das, nobs_tomap, obsids, fname, e + 1, INT_MAX, das->S[e]);
                             enkf_printf(".");
                             fflush(stdout);
@@ -266,9 +266,15 @@ void das_getHE(dasystem* das)
 #if defined(USE_SHMEM)
                 }
 #endif
-            }
-
-            if (das->mode == MODE_ENKF || das->mode == MODE_HYBRID || !enkf_fstatsonly) {
+                if (!enkf_fstatsonly) {
+                    for (e = my_first_iteration; e <= my_last_iteration; ++e) {
+                        das_getmemberfname(das, ot->varnames[0], e + 1, fname);
+                        H(das, nobs_tomap, obsids, fname, e + 1, INT_MAX, das->S[e]);
+                        enkf_printf(".");
+                        fflush(stdout);
+                    }
+                }
+            } else {
                 for (e = my_first_iteration; e <= my_last_iteration; ++e) {
                     das_getmemberfname(das, ot->alias, e + 1, fname);
                     H(das, nobs_tomap, obsids, fname, e + 1, INT_MAX, das->S[e]);
