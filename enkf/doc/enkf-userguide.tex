@@ -39,7 +39,7 @@
 
 \begin{document}
 
-\title{EnKF-C user guide\\{\normalsize version 2.13.5}}
+\title{EnKF-C user guide\\{\normalsize version 2.13.17}}
 
 \author{Pavel Sakov}
 \date{June 19, 2014 -- \today}
@@ -996,7 +996,7 @@ The optional parameters include the R-factor and localisation radius for the typ
   [ MLD_VARNAME = <model varname> ]                      (none*)
   [ MLD_THRESH  = <threshold> ]                          (NaN*)
   [ HFUNCTION   = <H function name> ]                    (standard*)
-  [ ASYNC       = <time interval> [c*|e [time varname]]] (0*)
+  [ ASYNC       = <time interval> [centre*|endpoint [time varname]]] (0*)
   [ LOCRAD      = <loc. radius in km> ... ]
   [ LOCWEIGHT   = <loc. weight> ... ]                    (# LOCRAD > 1)
   [ RFACTOR     = <rfactor> ]                            (1*)
@@ -1386,11 +1386,11 @@ ASYNC = 1
 The above means that SST observations are considered to be asynchronous with time bins of 1 day.
 If, for example, the assimilation time is specified as ``6085.5 days since 1990-01-01'', then the interval 0 is centred (by default) at the time of assimilation, i.e. will be from day 6080.0 to day 6081.0; interval -1 -- from day 6079.0 to day 6080.0, interval 1 -- from day 6081.0 to day 6082.0, and so on.
 It is possible to shift the asynchronous intervals so that not the centre but the start of interval 0 is located at the time of assimilation.
-In this case one needs to add qualifier ``e'' after the length of the interval, i.e.
+In this case one needs to add qualifier ``endpoint'' after the length of the interval, i.e.
 \begin{Verbatim}[frame=single,fontsize=\footnotesize]
 NAME = SST
 (...)
-ASYNC = 1 e
+ASYNC = 1 endpoint
 (...)
 \end{Verbatim}
 The interval 0 will then be from day 6085.5 to day 6086.5.
@@ -1448,7 +1448,7 @@ ISSURFACE = no
 \end{figure}
 
 From version 1.101.0 the code can check whether the time of the model dump used to calculate forecast observations matches the time of the (centre of the) corresponding observation window.
-To activate this check, one needs to add the name of the time variable in the model dump after the timing qualifier ``c'' or ``e''.
+To activate this check, one needs to add the name of the time variable in the model dump after the timing qualifier ``centre'' or ``endpoint''.
 For the example above the first two sections of the observation types parameter file would the look as follows:
 \begin{Verbatim}[frame=single,fontsize=\footnotesize]
 NAME = SLA
@@ -1466,6 +1466,7 @@ ASYNCHRONOUS 0.25 E Time
 Note that if the model dump associated with a particular time bin is not found, then the corresponding restart file is used; i.e. the observations from this time bin are assimilated sychronously.
 This behaviour can be disallowed by running CALC with option \verb|--strict-time-matching|.
 Using this option requires specifying the name of the time variable in model dumps with the entry \verb|ASYNC| of the observation types parameter file.
+It is strongly encouraged to use this option when possible.
 The strict time matching permits skipping the model dump associated with a time bin only if there is a single time bin for the observation type, and its centre matches the time of the restart dump.
 
 \section{CALC}

@@ -1,3 +1,8 @@
+v.2.13.17
+   PS 01122022
+   Cosmetic change: changed qualifiers for the time binning intervals in the
+   obstypes parameter file from "c" and "e" to "centre" and "endpoint". The
+   one-letter entries will continue to work.
 v.2.13.16
    PS 28112022
    Completed the previous development.
