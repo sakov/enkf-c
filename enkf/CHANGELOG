@@ -1,3 +1,8 @@
+v.2.13.18
+   PS 12122022
+   Two technical modifications:
+   -- in ncw_copy_vardata()
+   -- in str2bool()
 v.2.13.17
    PS 01122022
    Cosmetic change: changed qualifiers for the time binning intervals in the

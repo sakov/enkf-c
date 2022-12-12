@@ -716,9 +716,9 @@ int str2int(char* token, int* value)
  */
 int str2bool(char* token, int* value)
 {
-    if (token[0] == 'y' || token[0] == 'Y')
+    if (token[0] == 'y' || token[0] == 'Y' || token[0] == 't' || token[0] == 'T')
         *value = 1;
-    else if (token[0] == 'n' || token[0] == 'N')
+    else if (token[0] == 'n' || token[0] == 'N' || token[0] == 'f' || token[0] == 'F')
         *value = 0;
     else if (!str2int(token, value))
         return 0;

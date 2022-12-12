@@ -31,7 +31,7 @@
 #include <errno.h>
 #include "ncw.h"
 
-const char ncw_version[] = "2.29.2";
+const char ncw_version[] = "2.29.3";
 
 /* This macro is substituted in error messages instead of the name of a
  * variable in cases when the name could not be found by the variable id.
@@ -1635,9 +1635,10 @@ int ncw_copy_vardef(int ncid_src, int vid_src, int ncid_dst)
 void ncw_copy_vardata(int ncid_src, int vid_src, int ncid_dst)
 {
     char varname[NC_MAX_NAME] = STR_UNKNOWN;
-    nc_type type;
     int ndims;
-    size_t dimlens[NC_MAX_DIMS];
+    size_t count[NC_MAX_DIMS];
+    size_t start[NC_MAX_DIMS];
+    nc_type type;
     void* data = NULL;
     int vid_dst = -1;
     int size;
@@ -1647,40 +1648,22 @@ void ncw_copy_vardata(int ncid_src, int vid_src, int ncid_dst)
     status = nc_enddef(ncid_dst);
 
     ncw_inq_varname(ncid_src, vid_src, varname);
-    ncw_inq_vardims(ncid_src, vid_src, NC_MAX_DIMS, &ndims, dimlens);
+    ncw_inq_vardims(ncid_src, vid_src, NC_MAX_DIMS, &ndims, count);
     size = 1;
-    for (i = 0; i < ndims; ++i)
-        size *= dimlens[i];
-    ncw_inq_vartype(ncid_src, vid_src, &type);
+    for (i = 0; i < ndims; ++i) {
+        size *= count[i];
+        start[i] = 0;
+    }
     ncw_inq_varid(ncid_dst, varname, &vid_dst);
 
+    ncw_inq_vartype(ncid_src, vid_src, &type);
     size *= ncw_sizeof(type);
     data = malloc(size);
-    switch (type) {
-    case NC_BYTE:
-    case NC_CHAR:
-        ncw_get_var_text(ncid_src, vid_src, data);
-        ncw_put_var_text(ncid_dst, vid_dst, data);
-        break;
-    case NC_SHORT:
-        ncw_get_var_short(ncid_src, vid_src, data);
-        ncw_put_var_short(ncid_dst, vid_dst, data);
-        break;
-    case NC_INT:
-        ncw_get_var_int(ncid_src, vid_src, data);
-        ncw_put_var_int(ncid_dst, vid_dst, data);
-        break;
-    case NC_FLOAT:
-        ncw_get_var_float(ncid_src, vid_src, data);
-        ncw_put_var_float(ncid_dst, vid_dst, data);
-        break;
-    case NC_DOUBLE:
-        ncw_get_var_double(ncid_src, vid_src, data);
-        ncw_put_var_double(ncid_dst, vid_dst, data);
-        break;
-    default:
-        quit("\"%s\": ncw_copy_vardata(): variable = \"%s\": unknown data type \"%s\"", ncw_nctype2str(type));
-    }
+    ncw_get_var(ncid_src, vid_src, data);
+    /*
+     * nc_put_vara() is more reliable than nc_put_var() for record variables
+     */
+    ncw_put_vara(ncid_dst, vid_dst, start, count, data);
     free(data);
 
     if (status == NC_NOERR)
