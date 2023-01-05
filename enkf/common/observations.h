@@ -123,7 +123,6 @@ void obs_addtype(observations* obs, obstype* src);
 void obs_compact(observations* obs);
 void obs_inorder(observations* obs);
 void obs_calcstats(observations* obs);
-void obs_markbadbatches(observations* obs);
 void obs_read(observations* obs, char fname[]);
 void obs_write(observations* obs, char fname[]);
 void obs_writeaux(observations* obs, char fname[]);
@@ -139,6 +138,8 @@ void obs_createkdtrees(observations* obs);
 void obs_destroykdtrees(observations* obs);
 void obs_findlocal(observations* obs, double lon, double lat, char* dimainname, int* n, int** ids, double** lcoeffs, int* ploc_allocated);
 int obs_modifiederrors_alreadywritten(observations* obs, char fname[]);
+void obs_markbadbatches(observations* obs, hashtable* badbatches);
+void obs_writeobsstatus(observations* obs, char fname[]);
 #endif
 
 #define _OBSERVATIONS_H

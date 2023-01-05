@@ -183,55 +183,11 @@ observations* obs_create_fromprm(enkfprm* prm)
     obs->products = st_create("products");
     obs->instruments = st_create("instruments");
     obs->datafiles = st_create("datafiles");
-
-    enkf_printf("  reading observation type specs from \"%s\":\n", prm->obstypeprm);
-    obstypes_read(prm, prm->obstypeprm, &obs->nobstypes, &obs->obstypes);
-
-#if defined(ENKF_PREP)
     obs->da_time = date2day(prm->fname, prm->date);
     obs->datestr = strdup(prm->date);
 
-    if (file_exists(FNAME_BADBATCHES)) {
-        FILE* f = NULL;
-        char buf[MAXSTRLEN];
-        int line;
-
-        enkf_printf("  reading bad batches:\n");
-
-        obs->badbatches = ht_create_i1s2(HT_SIZE);
-        f = enkf_fopen(FNAME_BADBATCHES, "r");
-        line = 0;
-        while (fgets(buf, MAXSTRLEN, f) != NULL) {
-            char otname[MAXSTRLEN];
-            badbatch* bb;
-            keydata key;
-
-            line++;
-            if (buf[0] == '#')
-                continue;
-            bb = malloc(sizeof(badbatch));
-            if (sscanf(buf, "%s %s %d %d", otname, bb->fname, &bb->fid, &bb->batch) != 4)
-                enkf_quit("%s, l.%d: wrong bad batch specification (expected \"%s %s %d %d\"\n", FNAME_BADBATCHES, line);
-
-            bb->obstypeid = obstype_getid(obs->nobstypes, obs->obstypes, otname, 1);
-
-            key.key_int[0] = bb->batch;
-            key.key_short[2] = bb->obstypeid;
-            key.key_short[3] = bb->fid;
-            ht_insert(obs->badbatches, &key, bb);
-            enkf_printf("    %s %s %d %d\n", otname, bb->fname, bb->fid, bb->batch);
-        }
-        fclose(f);
-
-        if (!enkf_fstatsonly) {
-            char fname[MAXSTRLEN];
-
-            snprintf(fname, MAXSTRLEN, "%s.used", FNAME_BADBATCHES);
-            enkf_printf("  moving \"%s\" to \"%s\"\n", FNAME_BADBATCHES, fname);
-            file_rename(FNAME_BADBATCHES, fname);
-        }
-    }
-#endif
+    enkf_printf("  reading observation type specs from \"%s\":\n", prm->obstypeprm);
+    obstypes_read(prm, prm->obstypeprm, &obs->nobstypes, &obs->obstypes);
 
     {
         int otid;
@@ -250,40 +206,6 @@ observations* obs_create_fromprm(enkfprm* prm)
     obs->nccompression = prm->nccompression;
 
     return obs;
-}
-#endif
-
-#if defined(ENKF_PREP)
-/**
- */
-#define BYTE_PER_SHORT 2
-#define BYTE_PER_INT 4
-void obs_markbadbatches(observations* obs)
-{
-    int i;
-
-    assert(BYTE_PER_SHORT == sizeof(short));
-    assert(BYTE_PER_INT == sizeof(int));
-
-    if (obs->badbatches == NULL || ht_getnentries(obs->badbatches) == 0)
-        return;
-
-    for (i = 0; i < obs->nobs; ++i) {
-        observation* o = &obs->data[i];
-        keydata key;
-        badbatch* bb;
-
-        key.key_int[0] = o->batch;
-        key.key_short[2] = o->type;
-        key.key_short[3] = o->fid;
-        bb = ht_find(obs->badbatches, &key);
-
-        if (bb != NULL && bb->obstypeid == o->type) {
-            if (strcmp(bb->fname, st_findstringbyindex(obs->datafiles, o->fid)) != 0)
-                enkf_quit("bad batch processing: file name for fid = %d in \"%s\" does not match the data file name. Check that \"%s\" is the right file.", o->fid, FNAME_BADBATCHES, FNAME_BADBATCHES);
-            o->status = STATUS_BADBATCH;
-        }
-    }
 }
 #endif
 
@@ -1724,5 +1646,68 @@ void obs_findlocal(observations* obs, double lon, double lat, char* domainname, 
         }
     }
     *n = i;
+}
+#endif
+
+#if defined(ENKF_CALC)
+#define BYTE_PER_SHORT 2
+#define BYTE_PER_INT 4
+/**
+ */
+void obs_markbadbatches(observations* obs, hashtable* badbatches)
+{
+    int i;
+
+    assert(BYTE_PER_SHORT == sizeof(short));
+    assert(BYTE_PER_INT == sizeof(int));
+
+    if (badbatches == NULL)
+        return;
+
+    for (i = 0; i < obs->nobs; ++i) {
+        observation* o = &obs->data[i];
+        int key_int[2] = { -1, -1 };
+        short* key_short = (short*) key_int;
+
+        key_int[0] = o->batch;
+        key_short[2] = o->type;
+        key_short[3] = o->fid;
+
+        if (ht_find(badbatches, key_int) != NULL)
+            o->status = STATUS_BADBATCH;
+    }
+}
+#endif
+
+#if defined(ENKF_CALC)
+/**
+ */
+void obs_writeobsstatus(observations* obs, char fname[])
+{
+    int ncid;
+    int dimid_nobs[1];
+    size_t nobs;
+    int varid;
+    unsigned char* v;
+    int o;
+
+    if (obs->nobs == 0)
+        return;
+    if (rank != 0)
+        return;
+
+    ncw_open(fname, NC_WRITE, &ncid);
+    ncw_inq_dimid(ncid, "nobs", dimid_nobs);
+    ncw_inq_dimlen(ncid, dimid_nobs[0], &nobs);
+    assert(nobs == obs->nobs);
+
+    v = malloc(nobs);
+    for (o = 0; o < (int) nobs; ++o)
+        v[o] = obs->data[o].status;
+    ncw_inq_varid(ncid, "status", &varid);
+    ncw_put_var_uchar(ncid, varid, v);
+    free(v);
+
+    ncw_close(ncid);
 }
 #endif

@@ -532,33 +532,19 @@ void das_printfobsstats(dasystem* das, int use_rmsd)
     free(nobs_inst);
 }
 
-/** Calculate and print global biases for each batch of observations.
+/**
  */
-void das_calcbatchstats(dasystem* das, int doprint)
+hashtable* das_getbatches(dasystem* das)
 {
     observations* obs = das->obs;
-    hashtable* ht = ht_create_i1s2(HT_SIZE);
+    hashtable* batches = ht_create_i1s2(HT_SIZE);
     int key[2] = { -1, -1 };
     short* keys = (short*) key;
-    int* nbatches = calloc(obs->nobstypes, sizeof(int));
-    int n, i;
+    int* nbatch = calloc(obs->nobstypes, sizeof(int));
+    int nbatch_total, i;
 
-    /*
-     * per batch data
-     */
-    double* inn_f_abs;
-    double* inn_f;
-    observation** oo;
-    int* nobs;
-
-    das_destandardise(das);
-    if (rank != 0)
-        return;
-
-    /*
-     * calculate the number of batches
-     */
-    n = 0;
+    enkf_printf("  identifying observation batches:\n");
+    nbatch_total = 0;
     for (i = 0; i < obs->nobs; ++i) {
         observation* o = &obs->data[i];
 
@@ -578,99 +564,158 @@ void das_calcbatchstats(dasystem* das, int doprint)
         keys[2] = o->type;
         keys[3] = o->fid;
 
-        if (ht_find(ht, key) != NULL)
+        if (ht_find(batches, key) != NULL)
             continue;
 
-        ht_insert(ht, key, o);
-        nbatches[o->type]++;
+        ht_insert(batches, key, o);
+
+        nbatch[o->type]++;
+        nbatch_total++;
     }
 
-    n = ht_getnentries(ht);
-    enkf_printf("  number of batches:\n");
     for (i = 0; i < obs->nobstypes; ++i)
-        enkf_printf("    %6s  %4d\n", obs->obstypes[i].name, nbatches[i]);
-    enkf_printf("    total:  %4d\n", n);
+        enkf_printf("    %-6s  %-4d\n", obs->obstypes[i].name, nbatch[i]);
+    enkf_printf("    total:  %-4d\n", nbatch_total);
 
-    if (n > 0) {
-        inn_f_abs = calloc(n, sizeof(double));
-        inn_f = calloc(n, sizeof(double));
-        oo = calloc(n, sizeof(observation*));
-        nobs = calloc(n, sizeof(int));
+    free(nbatch);
 
-        for (i = 0; i < obs->nobs; ++i) {
-            observation* o = &obs->data[i];
-            int id;
+    return batches;
+}
 
-            if (o->status != STATUS_OK)
-                continue;
+/** (1) Calculate mean innovation and mean absolute innovation for each batch
+ ** (2) Write those to FNAME_BATCHES
+ ** (3) Detect bad batches
+ ** (4) Write those to FNAME_BADBATCHES
+ * @param das - dasystem 
+ * @param batches - hash table with batches returned by das_getbatches()
+ * @return - hash table with bad batches
+ */
+hashtable* das_processbatches(dasystem* das, hashtable* batches)
+{
+    observations* obs = das->obs;
+    int nbatch = ht_getnentries(batches);
+    hashtable* badbatches = NULL;
+    int i;
 
-            if (o->fid < 0 || o->batch < 0)
-                continue;
+    /*
+     * batch stats
+     */
+    double* inn_f_abs;
+    double* inn_f;
+    observation** oo;
+    int* nobs;
 
-            key[0] = o->batch;
-            keys[2] = o->type;
-            keys[3] = o->fid;
+    if (rank != 0 || nbatch == 0)
+        return badbatches;
 
-            id = ht_findid(ht, key);
-            assert(id >= 0);
+    inn_f_abs = calloc(nbatch, sizeof(double));
+    inn_f = calloc(nbatch, sizeof(double));
+    oo = calloc(nbatch, sizeof(observation*));
+    nobs = calloc(nbatch, sizeof(int));
 
-            inn_f_abs[id] += fabs(das->s_f[i]);
-            inn_f[id] += das->s_f[i];
-            nobs[id]++;
+    /*
+     * get batch stats
+     */
+    for (i = 0; i < obs->nobs; ++i) {
+        observation* o = &obs->data[i];
+        int key_int[2];
+        short* key_short = (short*) key_int;
+        int id;
 
-            if (oo[id] == NULL)
-                oo[id] = ht_find(ht, key);
+        if (o->status != STATUS_OK)
+            continue;
+
+        if (o->fid < 0 || o->batch < 0)
+            continue;
+
+        key_int[0] = o->batch;
+        key_short[2] = o->type;
+        key_short[3] = o->fid;
+
+        id = ht_findid(batches, key_int);
+        assert(id >= 0);
+
+        inn_f_abs[id] += fabs(das->s_f[i]);
+        inn_f[id] += das->s_f[i];
+        nobs[id]++;
+
+        if (oo[id] == NULL)
+            oo[id] = ht_find(batches, key_int);
+    }
+    for (i = 0; i < nbatch; ++i) {
+        inn_f_abs[i] /= (double) nobs[i];
+        inn_f[i] /= (double) nobs[i];
+    }
+
+    /*
+     * write batch stats to FNAME_BATCHES
+     */
+    if (rank == 0) {
+        FILE* f = enkf_fopen(FNAME_BATCHES, "w");
+
+        fprintf(f, "     id  obs.type  fid  batch  #obs.   |for.inn.|  for.inn. fname\n");
+        for (i = 0; i < nbatch; ++i) {
+            observation* o = oo[i];
+            char* fname = st_findstringbyindex(obs->datafiles, o->fid);
+
+            fprintf(f, "%7d    %-7s %-4d  %-4d   %-6d %7.3f  %9.3f   %s\n", i, obs->obstypes[o->type].name, o->fid, o->batch, nobs[i], inn_f_abs[i], inn_f[i], fname);
         }
+        fclose(f);
+    }
 
-        for (i = 0; i < n; ++i) {
-            inn_f_abs[i] /= (double) nobs[i];
-            inn_f[i] /= (double) nobs[i];
+    /*
+     * detect bad batches and write thier stats to FNAME_BADBATCHES
+     */
+    if (das->nbadbatchspecs > 0) {
+        FILE* f = NULL;
+        int* nbadbatch = calloc(obs->nobstypes, sizeof(int));
+
+        enkf_printf("  detecting bad batches:\n");
+        badbatches = ht_create_i1s2(HT_SIZE / 10);
+        if (rank == 0) {
+            f = enkf_fopen(FNAME_BADBATCHES, "w");
+            fprintf(f, "     id  obs.type  fid  batch  #obs.   |for.inn.|  for.inn. fname\n");
         }
+        for (i = 0; i < nbatch; ++i) {
+            observation* o = oo[i];
+            int j;
 
-        /*
-         * print batch stats
-         */
-        if (doprint) {
-            enkf_printf("  batch statistics:\n");
-            enkf_printf("     id  obs.type  fid  batch  # obs.  |for.inn.|  for.inn.\n");
-            for (i = 0; i < n; ++i) {
-                observation* o = oo[i];
+            for (j = 0; j < das->nbadbatchspecs; ++j) {
+                badbatchspec* bb = &das->badbatchspecs[j];
 
-                enkf_printf("%7d    %-7s %-4d  %-5d   %-5d %8.3f  %9.3f\n", i, obs->obstypes[o->type].name, o->fid, o->batch, nobs[i], inn_f_abs[i], inn_f[i]);
-            }
-        }
+                if (strcmp(bb->obstype, obs->obstypes[o->type].name) == 0 && nobs[i] >= bb->minnobs && (fabs(inn_f[i]) >= bb->maxbias || inn_f_abs[i] >= bb->maxmad)) {
+                    int key_int[2];
+                    short* key_short = (short*) key_int;
 
-        /*
-         * identify and report bad batches
-         */
-        if (das->nbadbatchspecs > 0) {
-            FILE* f = enkf_fopen(FNAME_BADBATCHES, "w");
+                    key_int[0] = o->batch;
+                    key_short[2] = o->type;
+                    key_short[3] = o->fid;
+                    ht_insert(badbatches, key_int, o);
 
-            enkf_printf("  bad batches:\n");
-            for (i = 0; i < n; ++i) {
-                observation* o = oo[i];
-                int j;
+                    nbadbatch[o->type]++;
 
-                for (j = 0; j < das->nbadbatchspecs; ++j) {
-                    badbatchspec* bb = &das->badbatchspecs[j];
-
-                    if (strcmp(bb->obstype, obs->obstypes[o->type].name) == 0 && nobs[i] >= bb->minnobs && (fabs(inn_f[i]) >= bb->maxbias || inn_f_abs[i] >= bb->maxmad)) {
+                    if (rank == 0) {
                         char* fname = st_findstringbyindex(obs->datafiles, o->fid);
 
-                        enkf_printf("    %s %s %d %d %.3f %.3f\n", bb->obstype, fname, o->fid, o->batch, inn_f[i], inn_f_abs[i]);
-                        fprintf(f, "%s %s %d %d %.3f %.3f\n", bb->obstype, fname, o->fid, o->batch, inn_f[i], inn_f_abs[i]);
+                        fprintf(f, "%7d    %-7s %-4d  %-4d   %-6d %7.3f  %9.3f   %s\n", i, obs->obstypes[o->type].name, o->fid, o->batch, nobs[i], inn_f_abs[i], inn_f[i], fname);
                     }
                 }
             }
-            fclose(f);
         }
+        if (rank == 0)
+            fclose(f);
 
-        free(inn_f_abs);
-        free(inn_f);
-        free(oo);
-        free(nobs);
+        for (i = 0; i < obs->nobstypes; ++i)
+            enkf_printf("    %-6s  %-4d\n", obs->obstypes[i].name, nbadbatch[i]);
+        enkf_printf("    total:  %-4d\n", ht_getnentries(badbatches));
+
+        free(nbadbatch);
     }
 
-    ht_destroy(ht);
-    free(nbatches);
+    free(inn_f_abs);
+    free(inn_f);
+    free(oo);
+    free(nobs);
+
+    return badbatches;
 }

@@ -39,7 +39,7 @@
 
 \begin{document}
 
-\title{EnKF-C user guide\\{\normalsize version 2.13.17}}
+\title{EnKF-C user guide\\{\normalsize version 2.15.0}}
 
 \author{Pavel Sakov}
 \date{June 19, 2014 -- \today}
@@ -1207,7 +1207,8 @@ The corresponding field in the \verb|measurement| structure is supposed to be fi
 \subsubsection{Batches}
 
 An observation can be attributed to one of the groups called ``batches'', such as altimeter passes, Argo profiles etc., to enable detection and discarding of bad batches.
-Programmatically, to switch on quality control (QC) capabilities associated with observation batches, the observation batch ID needs to be set by the corresponding observation reader.
+A unique batch of observations is defined by (1) observation type; (2) observation data file; and (3) ``batch'' identifier set by the observation reader.
+With generic readers the batch identifier can be set to a variable in the data file via parameter \verb|BATCHNAME|; the custom readers set it internally.
 
 A batch of observations is considered bad if either its mean innovation or mean absolute innovation exceed specified thresholds.
 Specifications for bad batches can be set in the parameter file as follows:
@@ -1220,18 +1221,11 @@ BADBATCHES = SAL 1.5 2 0
 The above entry means that any batch of observations of type SLA (typically, an orbit) containing more than 500 observations and having either mean innovation greater than 0.06 (meter) in magnitude or mean absolute innovation greater than 0.10 is considered to be bad.
 Similarly, a TEM batch (typically, a profile) is considered bad if the mean innovation exceeds 4 (degrees) or the mean absolute innovation exceeds 5 (degrees).
 The parameter file can have an arbitrary number of such entries.
-Information about bad batches is written by \verb|enkf_calc| to the file \verb|badbatches.out|.
-When \verb|enkf_prep| detects the presence of such file, it marks the corresponding observations as bad.
 
-Therefore, the workflow for detecting and eliminating bad batches of observations is as follows:
-\begin{enumerate}
-\item specify bad batches in the parameter file;
-\item make a pilot run of \verb|enkf_prep|;
-\item run \verb|enkf_calc| with the flag \verb|--forecast-stats-only|;
-\item remove \verb|observations.nc| and \verb|observations-orig.nc|;
-\item calculate analysis in a ``normal'' way by running \verb|enkf_prep|, \verb|enkf_calc| and \verb|enkf_update|.
-\end{enumerate}
-In the second pass of PREP the file \verb|badbatches.out| is renamed to \verb|badbatches.out.used|.
+The bad batches are identified and removed from further processing by CALC.
+From version 2.15.0 this no longer requires two passes of PREP and CALC.
+Information about the detected bad batches is written by \verb|enkf_calc| to the file \verb|badobsbatches.txt|.
+Note that for observations from bad batches the value of variable \verb|status| in \verb|observations.nc| is set by CALC to \verb|STATUS_BADBATCH| (currently 5).
 
 \subsubsection{Readers}
 
@@ -1488,8 +1482,6 @@ It has the following usage and options:
       proceed even if there are no observations
   --point-logs-only
       skip calculating transforms for the whole grid and observation stats
-  --print-batch-stats
-       calculate and print global biases for each batch of observations
   --print-memory-usage
       print memory usage by each process
   --single-observation-xyz <lon> <lat> <depth> <type> <inn> <std>

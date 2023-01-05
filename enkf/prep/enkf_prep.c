@@ -323,7 +323,6 @@ int main(int argc, char* argv[])
     enkf_printf("  reading observations:\n");
     for (i = 0; i < nmeta; i++)
         obs_add(obs, m, &meta[i], nexclude, exclude);
-    obs_markbadbatches(obs);
     obsprm_destroy(nmeta, meta, nexclude, exclude);
     enkf_printtime("  ");
     enkf_printf("  compacting obs:\n");

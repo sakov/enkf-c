@@ -1,3 +1,17 @@
+v.2.15.0
+   PS 05012023
+   -- Implemented detection and elimination of bad observation batches
+      (background check) in a single pass.
+
+   One implication is that such observations are now marked with status =
+   STATUS_BADBATCH (currently = 5) in observations.nc. That is,
+   observations.nc no longer contains good observations only.
+
+   The basic batch statistics is written by CALC to obsbatches.txt, and that for
+   bad batches to badobsbatches.txt. Accordingly, there is no longer option
+   "--print-batch-stats".
+
+   The analysed bad obs. in observations.nc (Hx_a) are set to NaN.
 v.2.13.18
    PS 12122022
    Two technical modifications:

@@ -1235,6 +1235,8 @@ static void update_HE(dasystem* das)
 
         if (gid < obs->obstypes[obs->data[o].type].gridid)
             continue;
+        if (obs->data[o].status != STATUS_OK)
+            continue;
 
         das_getfname_transforms(das, gid, fname);
         ncw_open(fname, NC_NOWRITE, &ncid);
@@ -1511,6 +1513,11 @@ static void update_HE(dasystem* das)
             for (o = 0; o < nobs; ++o)
                 das->S[e][o] = das->St[o][e];
 #endif
+    if (rank == 0)
+        for (o = 0; o < nobs; ++o)
+            if (obs->data[o].status != STATUS_OK)
+                for (e = 0; e < nmem; ++e)
+                    das->S[e][o] = NAN;
 
     free(HEo_a);
 #if !defined(USE_SHMEM)

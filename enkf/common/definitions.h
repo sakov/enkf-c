@@ -40,7 +40,8 @@
 #define FNAMEPREFIX_PLOG "pointlog"
 #define FNAME_SPREAD "spread.nc"
 #define FNAME_HE "HE.nc"
-#define FNAME_BADBATCHES "badbatches.out"
+#define FNAME_BATCHES "obsbatches.txt"
+#define FNAME_BADBATCHES "badobsbatches.txt"
 #define FNAME_INFLATION "inflation.nc"
 #define FNAME_VERTCORR "vcorr.nc"
 
