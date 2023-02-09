@@ -43,9 +43,6 @@ void das_allocatespread(dasystem* das, char fname[])
     if (rank != 0)
         return;
 
-    if (file_exists(fname))
-        return;
-
     ncw_create(fname, NC_CLOBBER | das->ncformat, &ncid);
     for (vid = 0; vid < nvar; ++vid) {
         char* varname_src = model_getvarname(m, vid);

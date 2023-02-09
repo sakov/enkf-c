@@ -664,7 +664,7 @@ hashtable* das_processbatches(dasystem* das, hashtable* batches)
     }
 
     /*
-     * detect bad batches and write thier stats to FNAME_BADBATCHES
+     * detect bad batches and write their stats to FNAME_BADBATCHES
      */
     if (das->nbadbatchspecs > 0) {
         FILE* f = NULL;

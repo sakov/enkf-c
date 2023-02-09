@@ -33,6 +33,8 @@ static void usage()
     enkf_printf("      confirm that static ensemble is conditioned for using log space\n");
     enkf_printf("  --calculate-spread\n");
     enkf_printf("      calculate forecast and analysis ensemble spread and write to %s\n", FNAME_SPREAD);
+    enkf_printf("  --calculate-spread-only\n");
+    enkf_printf("      calculate forecast and analysis ensemble spread only and write to %s\n", FNAME_SPREAD);
     enkf_printf("  --calculate-forecast-spread\n");
     enkf_printf("      calculate forecast ensemble spread and write to %s\n", FNAME_SPREAD);
     enkf_printf("  --calculate-forecast-spread-only\n");
@@ -69,6 +71,7 @@ static void parse_commandline(int argc, char* argv[], char** fname, int* updates
     int no_update = 0;
     int vcorrs_only = 0;
     int fspread_only = 0;
+    int spread_only = 0;
     int i;
 
     if (argc < 2)
@@ -91,12 +94,15 @@ static void parse_commandline(int argc, char* argv[], char** fname, int* updates
             *updatespec |= (UPDATE_DOFORECASTSPREAD | UPDATE_DOANALYSISSPREAD);
             i++;
             continue;
+        } else if (strcmp(argv[i], "--calculate-spread-only") == 0) {
+            spread_only = 1;
+            i++;
+            continue;
         } else if (strcmp(argv[i], "--calculate-forecast-spread") == 0) {
             *updatespec |= UPDATE_DOFORECASTSPREAD;
             i++;
             continue;
         } else if (strcmp(argv[i], "--calculate-forecast-spread-only") == 0) {
-            *updatespec |= UPDATE_DOFORECASTSPREAD;
             fspread_only = 1;
             i++;
             continue;
@@ -160,12 +166,17 @@ static void parse_commandline(int argc, char* argv[], char** fname, int* updates
     if (*fname == NULL)
         enkf_quit("command line: parameter file not specified");
 
+    if (vcorrs_only + fspread_only + spread_only > 1)
+        enkf_quit("more than one argument with \"only\"");
+
     if (no_update)
         *updatespec &= ~UPDATE_NEEDAN;
     if (vcorrs_only)
         *updatespec = UPDATE_DOVERTCORRS;
     if (fspread_only)
         *updatespec = UPDATE_DOFORECASTSPREAD;
+    if (spread_only)
+        *updatespec = (UPDATE_DOFORECASTSPREAD | UPDATE_DOANALYSISSPREAD);
 }
 
 /**
