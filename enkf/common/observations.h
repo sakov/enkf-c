@@ -51,8 +51,24 @@ typedef struct {
     float lat;
     float depth;
     float model_depth;
-    float fi;
-    float fj;
+    /*
+     * The fractional grid coordinates fij and fk are used for 2D and 3D
+     * bilinear interpolation. fij refers to the horizontal grids, and fk - to
+     * the vertical ones.
+     *
+     * In regard to fij: for "normal" structured grids it is easier and more
+     * economical to define these as "float fi; float fj;"; the floats can be
+     * used because the grid sizes are moderate enough to have enough precision
+     * for the fractional parts. But for unstructured grids the integral part
+     * contains the vertex index (while the fractional part holds the
+     * barycentric coordinate), which can potentially be of order 10^6-10^7.
+     * Therefore we use doubles to maintain sufficient precision for
+     * the fractional parts.
+     *
+     * For obs. on structured grids fi = fij[0], fj = fij[1], fij[2] = NaN.
+     * For obs. on unstructured grids fi0 = fij[0], fi1 = fij[1], fi2 = fij[2].
+     */
+    double fij[3];
     float fk;
     float time;                 /* fractional days since analysis time */
     /*

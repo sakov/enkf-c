@@ -118,7 +118,7 @@ model* model_create(enkfprm* prm)
     char* modelprm = prm->modelprm;
     int i;
 
-    grids_create(prm->gridprm, prm->stride, &m->ngrid, &m->grids);
+    grids_create(prm, &m->ngrid, &m->grids);
 
     assert(m->ngrid > 0);
 
@@ -311,7 +311,7 @@ void model_destroy(model* m)
 #if defined(ENKF_CALC)
 int model_destroygxytrees(model* m)
 {
-    return grids_destroygxytrees(m->ngrid, m->grids);
+    return grids_destroyhtrees(m->ngrid, m->grids);
 }
 #endif
 
@@ -613,68 +613,58 @@ int model_getdomainid(model* m, char* domainname)
 
 /**
  */
-int model_xy2fij(model* m, int vid, double x, double y, double* fi, double* fj)
+#if defined(ENKF_PREP) || defined(ENKF_CALC)
+int model_xy2fij(model* m, int vid, double x, double y, double* fij)
 {
-    return grid_xy2fij(m->grids[m->vars[vid].gridid], x, y, fi, fj);
+    return grid_xy2fij(m->grids[m->vars[vid].gridid], x, y, fij);
 }
+#endif
 
 /**
  */
-int model_xy2fij_f(model* m, int vid, double x, double y, float* fi, float* fj)
-{
-    return grid_xy2fij_f(m->grids[m->vars[vid].gridid], x, y, fi, fj);
-}
-
-/**
- */
-int model_fij2xy(model* m, int vid, double fi, double fj, double* x, double* y)
+#if defined(ENKF_PREP) || defined(ENKF_CALC)
+int model_ij2xy(model* m, int vid, int* ij, double* x, double* y)
 {
     void* g = m->grids[m->vars[vid].gridid];
 
-    grid_fij2xy(g, fi, fj, x, y);
+    grid_ij2xy(g, ij, x, y);
 
     if (isnan(*x + *y))
         return STATUS_OUTSIDEGRID;
     return STATUS_OK;
 }
+#endif
 
 /**
  */
-int model_ij2xy(model* m, int vid, int i, int j, double* x, double* y)
+#if defined(ENKF_PREP) || defined(ENKF_CALC)
+int model_z2fk(model* m, int vid, double* fij, double z, double* fk)
 {
-    void* g = m->grids[m->vars[vid].gridid];
-
-    grid_ij2xy(g, i, j, x, y);
-
-    if (isnan(*x + *y))
-        return STATUS_OUTSIDEGRID;
-    return STATUS_OK;
+    return grid_z2fk(m->grids[m->vars[vid].gridid], fij, z, fk);
 }
+#endif
 
 /**
  */
-int model_z2fk(model* m, int vid, double fi, double fj, double z, double* fk)
+#if defined(ENKF_PREP) || defined(ENKF_CALC)
+int model_z2fk_f(model* m, int vid, double* fij, double z, float* fk)
 {
-    return grid_z2fk(m->grids[m->vars[vid].gridid], fi, fj, z, fk);
+    return grid_z2fk_f(m->grids[m->vars[vid].gridid], fij, z, fk);
 }
+#endif
 
 /**
  */
-int model_z2fk_f(model* m, int vid, double fi, double fj, double z, float* fk)
-{
-    return grid_z2fk_f(m->grids[m->vars[vid].gridid], fi, fj, z, fk);
-}
-
-/**
- */
-double model_fk2z(model* m, int vid, int i, int j, double fk)
+#if defined(ENKF_PREP) || defined(ENKF_CALC)
+double model_fk2z(model* m, int vid, int* ij, double fk)
 {
     double z;
 
-    (void) grid_fk2z(m->grids[m->vars[vid].gridid], i, j, fk, &z);
+    (void) grid_fk2z(m->grids[m->vars[vid].gridid], ij, fk, &z);
 
     return z;
 }
+#endif
 
 /**
  */
@@ -707,7 +697,7 @@ void model_read3dfield(model* m, char fname[], char varname[], float* v, int ign
     ncu_read3dfield(fname, varname, ni, nj, nk, v);
 
     if (m->vars[mvid].applylog && !ignorelog) {
-        size_t nijk = (size_t) ni * nj * nk;
+        size_t nijk = (size_t) ((nj > 0) ? ni * nj * nk : ni * nk);
         size_t i;
 
         for (i = 0; i < nijk; ++i)
@@ -726,7 +716,7 @@ void model_writefield(model* m, char fname[], char varname[], int k, float* v, i
     assert(k < nk);
 
     if (m->vars[mvid].applylog && !ignorelog) {
-        size_t nij = (size_t) ni * nj;
+        size_t nij = (size_t) ((nj > 0) ? ni * nj : ni);
         size_t i;
 
         for (i = 0; i < nij; ++i)
@@ -747,7 +737,7 @@ void model_writefieldas(model* m, char fname[], char varname[], char varnameas[]
     assert(k < nk);
 
     if (m->vars[mvid].applylog && !ignorelog) {
-        size_t nij = (size_t) ni * nj;
+        size_t nij = (size_t) ((nj > 0) ? ni * nj : ni);
         size_t i;
 
         for (i = 0; i < nij; ++i)

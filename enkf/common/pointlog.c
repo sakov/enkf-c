@@ -22,6 +22,7 @@
 #include "distribute.h"
 #include "utils.h"
 #include "ncutils.h"
+#include "grid.h"
 #include "dasystem.h"
 #include "pointlog.h"
 #include "version.h"
@@ -43,8 +44,7 @@ void plogs_add(int* nplog, pointlog** plogs, double lon, double lat, char* gridn
     plog->lat = lat;
     plog->gridid = -1;
     plog->gridname = (gridname != NULL) ? strdup(gridname) : NULL;
-    plog->fi = NULL;
-    plog->fj = NULL;
+    plog->fij = NULL;
     (*nplog)++;
 }
 
@@ -59,10 +59,8 @@ void plogs_destroy(int nplog, pointlog plogs[])
 
         if (plog->gridname != NULL)
             free(plog->gridname);
-        if (plog->fi != NULL) {
-            free(plog->fi);
-            free(plog->fj);
-        }
+        if (plog->fij != NULL)
+            free(plog->fij);
     }
     if (nplog > 0)
         free(plogs);
@@ -95,13 +93,14 @@ void plog_create(dasystem* das, int plogid, int ploc, int* lobs, double* lcoeffs
     float* odepth;
     float* oval;
     float* oestd;
-    float* ofi;
-    float* ofj;
+    float* ofij0;
+    float* ofij1;
+    float* ofij2;
     float* ofk;
     int* otype;
     int* oinst;
     float* otime;
-    int vid_ids, vid_lcoeffs, vid_lon, vid_lat, vid_depth, vid_val, vid_estd, vid_fi, vid_fj, vid_fk, vid_type, vid_inst, vid_time;
+    int vid_ids, vid_lcoeffs, vid_lon, vid_lat, vid_depth, vid_val, vid_estd, vid_fij0, vid_fij1, vid_fij2, vid_fk, vid_type, vid_inst, vid_time;
     char tunits[MAXSTRLEN];
     int otid, gid, iid;
 
@@ -123,8 +122,9 @@ void plog_create(dasystem* das, int plogid, int ploc, int* lobs, double* lcoeffs
     ncw_def_var(ncid, "depth", NC_FLOAT, 1, &dimid, &vid_depth);
     ncw_def_var(ncid, "obs_val", NC_FLOAT, 1, &dimid, &vid_val);
     ncw_def_var(ncid, "obs_estd", NC_FLOAT, 1, &dimid, &vid_estd);
-    ncw_def_var(ncid, "obs_fi", NC_FLOAT, 1, &dimid, &vid_fi);
-    ncw_def_var(ncid, "obs_fj", NC_FLOAT, 1, &dimid, &vid_fj);
+    ncw_def_var(ncid, "obs_fij0", NC_FLOAT, 1, &dimid, &vid_fij0);
+    ncw_def_var(ncid, "obs_fij1", NC_FLOAT, 1, &dimid, &vid_fij1);
+    ncw_def_var(ncid, "obs_fij2", NC_FLOAT, 1, &dimid, &vid_fij2);
     ncw_def_var(ncid, "obs_fk", NC_FLOAT, 1, &dimid, &vid_fk);
     ncw_def_var(ncid, "obs_type", NC_INT, 1, &dimid, &vid_type);
     ncw_def_var(ncid, "obs_inst", NC_INT, 1, &dimid, &vid_inst);
@@ -173,8 +173,7 @@ void plog_create(dasystem* das, int plogid, int ploc, int* lobs, double* lcoeffs
         char varname[NC_MAX_NAME];
         int vid_grid;
         int ni, nj, nk;
-        float** depths;
-        float depth = NAN;
+        float depth;
         char gridstr[SHORTSTRLEN - 5];
 
         if (plog->gridid >= 0 && plog->gridid != gid)
@@ -188,15 +187,17 @@ void plog_create(dasystem* das, int plogid, int ploc, int* lobs, double* lcoeffs
             ncw_put_att_int(ncid, vid_grid, "hid", 1, &aliasid);
         ncw_put_att_text(ncid, vid_grid, "name", grid_getname(g));
         ncw_put_att_text(ncid, vid_grid, "domain", grid_getdomainname(g));
-        ncw_put_att_double(ncid, vid_grid, "fi", 1, &plog->fi[gid]);
-        ncw_put_att_double(ncid, vid_grid, "fj", 1, &plog->fj[gid]);
+        if (grid_isstructured(g)) {
+            ncw_put_att_double(ncid, vid_grid, "fi", 1, &plog->fij[gid][0]);
+            ncw_put_att_double(ncid, vid_grid, "fj", 1, &plog->fij[gid][1]);
+        } else {
+            ncw_put_att_double(ncid, vid_grid, "fi0", 1, &plog->fij[gid][0]);
+            ncw_put_att_double(ncid, vid_grid, "fi1", 1, &plog->fij[gid][1]);
+            ncw_put_att_double(ncid, vid_grid, "fi2", 1, &plog->fij[gid][2]);
+        }
         grid_getsize(g, &ni, &nj, &nk);
         ncw_put_att_int(ncid, vid_grid, "nk", 1, &nk);
-        depths = grid_getdepth(g);
-        if (depths != NULL && !isnan(plog->fi[gid] + plog->fj[gid]))
-            depth = interpolate2d(plog->fi[gid], plog->fj[gid], ni, nj, depths, grid_getnumlevels(g), grid_isperiodic_i(g));
-        else
-            depth = NAN;
+        depth = grid_interpolate2d(g, plog->fij[gid], grid_getdepth(g));
         ncw_put_att_float(ncid, vid_grid, "model_depth", 1, &depth);
     }
 
@@ -240,8 +241,9 @@ void plog_create(dasystem* das, int plogid, int ploc, int* lobs, double* lcoeffs
         odepth = malloc(ploc * sizeof(float));
         oval = malloc(ploc * sizeof(float));
         oestd = malloc(ploc * sizeof(float));
-        ofi = malloc(ploc * sizeof(float));
-        ofj = malloc(ploc * sizeof(float));
+        ofij0 = malloc(ploc * sizeof(float));
+        ofij1 = malloc(ploc * sizeof(float));
+        ofij2 = malloc(ploc * sizeof(float));
         ofk = malloc(ploc * sizeof(float));
         otype = malloc(ploc * sizeof(int));
         oinst = malloc(ploc * sizeof(int));
@@ -255,8 +257,9 @@ void plog_create(dasystem* das, int plogid, int ploc, int* lobs, double* lcoeffs
             odepth[oid] = o->depth;
             oval[oid] = o->value;
             oestd[oid] = o->estd;
-            ofi[oid] = o->fi;
-            ofj[oid] = o->fj;
+            ofij0[oid] = o->fij[0];
+            ofij1[oid] = o->fij[1];
+            ofij2[oid] = o->fij[2];
             ofk[oid] = o->fk;
             otype[oid] = o->type;
             oinst[oid] = o->instrument;
@@ -268,8 +271,9 @@ void plog_create(dasystem* das, int plogid, int ploc, int* lobs, double* lcoeffs
         ncw_put_var_float(ncid, vid_depth, odepth);
         ncw_put_var_float(ncid, vid_val, oval);
         ncw_put_var_float(ncid, vid_estd, oestd);
-        ncw_put_var_float(ncid, vid_fi, ofi);
-        ncw_put_var_float(ncid, vid_fj, ofj);
+        ncw_put_var_float(ncid, vid_fij0, ofij0);
+        ncw_put_var_float(ncid, vid_fij1, ofij1);
+        ncw_put_var_float(ncid, vid_fij2, ofij2);
         ncw_put_var_float(ncid, vid_fk, ofk);
         ncw_put_var_int(ncid, vid_type, otype);
         ncw_put_var_int(ncid, vid_inst, oinst);
@@ -280,8 +284,9 @@ void plog_create(dasystem* das, int plogid, int ploc, int* lobs, double* lcoeffs
         free(odepth);
         free(oval);
         free(oestd);
-        free(ofi);
-        free(ofj);
+        free(ofij0);
+        free(ofij1);
+        free(ofij2);
         free(ofk);
         free(otype);
         free(oinst);
@@ -297,7 +302,8 @@ void plog_create(dasystem* das, int plogid, int ploc, int* lobs, double* lcoeffs
 void plog_writetransform(dasystem* das, int plogid, int gid, int ploc, double* s, double* S, double* w, double* T)
 {
     pointlog* plog = &das->plogs[plogid];
-    char* gridname = grid_getname(model_getgridbyid(das->m, gid));
+    grid* g = model_getgridbyid(das->m, gid);
+    char* gridname = grid_getname(g);
 
     char fname[MAXSTRLEN];
     int ncid;
@@ -337,7 +343,10 @@ void plog_writetransform(dasystem* das, int plogid, int gid, int ploc, double* s
 
         snprintf(varname, NC_MAX_NAME, "w%s", gridstr);
         ncw_def_var(ncid, varname, NC_DOUBLE, 1, &dimids[1], &vid_w);
-        snprintf(attstr, MAXSTRLEN, "ensemble coefficients for location (fi,fj)=(%.3f,%.3f) on grid %d (\"%s\")", plog->fi[gid], plog->fj[gid], gid, gridname);
+        if (grid_isstructured(g))
+            snprintf(attstr, MAXSTRLEN, "ensemble coefficients for location (fi,fj)=(%.3f,%.3f) on grid %d (\"%s\")", plog->fij[gid][0], plog->fij[gid][1], gid, gridname);
+        else
+            snprintf(attstr, MAXSTRLEN, "ensemble coefficients for location (fi0,fi1,fi2)=(%.3f,%.3f,%.3f) on grid %d (\"%s\")", plog->fij[gid][0], plog->fij[gid][1], plog->fij[gid][2], gid, gridname);
         ncw_put_att_text(ncid, vid_w, "long_name", attstr);
     }
     if (T != NULL) {
@@ -345,7 +354,10 @@ void plog_writetransform(dasystem* das, int plogid, int gid, int ploc, double* s
 
         snprintf(name, NC_MAX_NAME, "T%s", gridstr);
         ncw_def_var(ncid, name, NC_DOUBLE, 2, dimids, &vid_T);
-        snprintf(attstr, MAXSTRLEN, "ensemble anomalies transform for location (fi,fj)=(%.3f,%.3f) on grid %d (\"%s\")", plog->fi[gid], plog->fj[gid], gid, gridname);
+        if (grid_isstructured(g))
+            snprintf(attstr, MAXSTRLEN, "ensemble anomalies transform for location (fi,fj)=(%.3f,%.3f) on grid %d (\"%s\")", plog->fij[gid][0], plog->fij[gid][1], gid, gridname);
+        else
+            snprintf(attstr, MAXSTRLEN, "ensemble anomalies transform for location (fi0,fi1,fi2)=(%.3f,%.3f,%.3f) on grid %d (\"%s\")", plog->fij[gid][0], plog->fij[gid][1], plog->fij[gid][2], gid, gridname);
         ncw_put_att_text(ncid, vid_T, "long_name", attstr);
     }
     ncw_enddef(ncid);
@@ -384,6 +396,7 @@ void plog_definestatevars(dasystem* das)
 
         for (vid = 0; vid < nvar; ++vid) {
             int gid = model_getvargridid(das->m, vid);
+            grid* g = model_getgridbyid(das->m, gid);
             char* varname = model_getvarname(das->m, vid);
             char gridstr[NC_MAX_NAME - 2];
             char varname_an[NC_MAX_NAME];
@@ -404,7 +417,7 @@ void plog_definestatevars(dasystem* das)
                 char memfname[MAXSTRLEN];
 
                 das_getmemberfname(das, varname, 1, memfname);
-                nk = ncu_getnlevels(memfname, varname);
+                nk = ncu_getnlevels(memfname, varname, grid_isstructured(g));
             }
             if (nk > 1) {
                 char nkname[NC_MAX_NAME];
@@ -490,25 +503,21 @@ static void plog_writestatevars_direct(dasystem* das, int nfields, void** fieldb
             field* f = &fields[fid];
             grid* g = model_getvargrid(das->m, f->varid);
             int gid = grid_getid(g);
-            int** mask = model_getnumlevels(das->m, f->varid);
-            int periodic_i = grid_isperiodic_i(g);
             char varname[NC_MAX_NAME];
             int vid, ndims;
-            int ni, nj;
 
             if (plog->gridid >= 0 && plog->gridid != gid)
                 continue;
-            if (isnan(plog->fi[gid] + plog->fj[gid]))
+            if (isnan(plog->fij[gid][0] + plog->fij[gid][1]))
                 continue;
 
             v_src = (float***) fieldbuffer[fid];
-            grid_getsize(g, &ni, &nj, NULL);
 
             if (das->mode == MODE_ENKF || das->mode == MODE_HYBRID) {
                 for (e = 0; e < das->nmem; ++e)
-                    v[e] = interpolate2d(plog->fi[gid], plog->fj[gid], ni, nj, v_src[e], mask, periodic_i);
+                    v[e] = grid_interpolate2d(g, plog->fij[gid], v_src[e]);
             } else if (das->mode == MODE_ENOI) {
-                float bg = interpolate2d(plog->fi[gid], plog->fj[gid], ni, nj, v_src[das->nmem], mask, periodic_i);
+                float bg = grid_interpolate2d(g, plog->fij[gid], v_src[das->nmem]);
 
                 if (isanalysis && (das->updatespec & UPDATE_OUTPUTINC)) {
                     /*
@@ -518,7 +527,7 @@ static void plog_writestatevars_direct(dasystem* das, int nfields, void** fieldb
                         v[e] = bg;
                 } else {
                     for (e = 0; e < das->nmem; ++e)
-                        v[e] = bg + interpolate2d(plog->fi[gid], plog->fj[gid], ni, nj, v_src[e], mask, periodic_i);
+                        v[e] = bg + grid_interpolate2d(g, plog->fij[gid], v_src[e]);
                 }
             }
 
@@ -555,16 +564,12 @@ static void plog_writestatevars_toassemble(dasystem* das, int nfields, void** fi
         field* f = &fields[fid];
         grid* g = model_getvargrid(das->m, f->varid);
         int gid = grid_getid(g);
-        int** mask = model_getnumlevels(das->m, f->varid);
-        int periodic_i = grid_isperiodic_i(g);
         char fname[MAXSTRLEN];
         int ncid, dimid;
         int plogid;
-        int ni, nj;
         int e;
 
         v_src = (float***) fieldbuffer[fid];
-        grid_getsize(g, &ni, &nj, NULL);
 
         for (plogid = 0; plogid < das->nplog; ++plogid) {
             pointlog* plog = &das->plogs[plogid];
@@ -572,7 +577,7 @@ static void plog_writestatevars_toassemble(dasystem* das, int nfields, void** fi
 
             if (plog->gridid >= 0 && plog->gridid != gid)
                 continue;
-            if (isnan(plog->fi[gid] + plog->fj[gid]))
+            if (isnan(plog->fij[gid][0] + plog->fij[gid][1]))
                 continue;
 
             snprintf(fname, MAXSTRLEN, "%s/pointlog-%d_%s-%03d.nc", DIRNAME_TMP, plogid, f->varname, f->level);
@@ -595,9 +600,9 @@ static void plog_writestatevars_toassemble(dasystem* das, int nfields, void** fi
 
             if (das->mode == MODE_ENKF || das->mode == MODE_HYBRID) {
                 for (e = 0; e < das->nmem; ++e)
-                    v[e] = interpolate2d(plog->fi[gid], plog->fj[gid], ni, nj, v_src[e], mask, periodic_i);
+                    v[e] = grid_interpolate2d(g, plog->fij[gid], v_src[e]);
             } else if (das->mode == MODE_ENOI) {
-                float bg = interpolate2d(plog->fi[gid], plog->fj[gid], ni, nj, v_src[das->nmem], mask, periodic_i);
+                float bg = grid_interpolate2d(g, plog->fij[gid], v_src[das->nmem]);
 
                 if (isanalysis && (das->updatespec & UPDATE_OUTPUTINC)) {
                     /*
@@ -607,7 +612,7 @@ static void plog_writestatevars_toassemble(dasystem* das, int nfields, void** fi
                         v[e] = bg;
                 } else {
                     for (e = 0; e < das->nmem; ++e)
-                        v[e] = bg + interpolate2d(plog->fi[gid], plog->fj[gid], ni, nj, v_src[e], mask, periodic_i);
+                        v[e] = bg + grid_interpolate2d(g, plog->fij[gid], v_src[e]);
                 }
             }
 

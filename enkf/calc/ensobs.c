@@ -873,15 +873,15 @@ static int cmp_obs_byij(const void* p1, const void* p2, void* p)
     if (gid1 < gid2)
         return -1;
 
-    i1 = (int) floor(o1->fj + 0.5);
-    i2 = (int) floor(o2->fj + 0.5);
+    i1 = (int) floor(o1->fij[1] + 0.5);
+    i2 = (int) floor(o2->fij[1] + 0.5);
     if (i1 > i2)
         return 1;
     if (i1 < i2)
         return -1;
 
-    i1 = (int) floor(o1->fi + 0.5);
-    i2 = (int) floor(o2->fi + 0.5);
+    i1 = (int) floor(o1->fij[0] + 0.5);
+    i2 = (int) floor(o2->fij[0] + 0.5);
     if (i1 > i2)
         return 1;
     if (i1 < i2)
@@ -1212,6 +1212,7 @@ static void update_HE(dasystem* das)
         void* g = model_getgridbyid(m, gid);
         int periodic_i = grid_isperiodic_i(g);
         int stride = grid_getstride(g);
+        int joffset = 1;
 
         char fname[MAXSTRLEN];
         int ncid;
@@ -1257,6 +1258,14 @@ static void update_HE(dasystem* das)
             iiter[ni] = iiter[ni - 1] + stride;
 
         grid_getsize(g, &mni, &mnj, NULL);
+        /*
+         * a treatment for unstructured grids
+         */
+        if (mnj <= 0) {
+            mnj = mni;
+            mni = 1;
+            joffset = 0;
+        }
 
         start[0] = 0;
         start[1] = 0;
@@ -1287,7 +1296,7 @@ static void update_HE(dasystem* das)
         for (jj = 0, j = 0; jj < nj; ++jj) {
             for (stepj = 0; stepj < stride && j < mnj; ++stepj, ++j) {
 
-                if ((int) (obs->data[o].fj + 0.5) / stride > jj + 1)
+                if ((int) (obs->data[o].fij[joffset] + 0.5) / stride > jj + 1)
                     continue;
 
                 if (stride == 1) {
@@ -1376,7 +1385,7 @@ static void update_HE(dasystem* das)
                 if (o > my_last_iteration)
                     break;
 
-                for (; o <= my_last_iteration && (int) (obs->data[o].fj + 0.5) == j; ++o) {
+                for (; o <= my_last_iteration && (int) (obs->data[o].fij[joffset] + 0.5) == j; ++o) {
                     float inflation0 = NAN;
                     double inf_ratio = NAN;
                     float inflation = NAN;
@@ -1384,9 +1393,15 @@ static void update_HE(dasystem* das)
 
                     model_getvarinflation(m, obs->obstypes[obs->data[o].type].vid, &inflation0, &inf_ratio);
 
-                    i = (int) (obs->data[o].fi + 0.5);
-                    if (i == mni)
-                        i--;
+                    if (joffset == 1) {
+                        /*
+                         * "normal" (structured) grid
+                         */
+                        i = (int) (obs->data[o].fij[0] + 0.5);
+                        if (i == mni)
+                            i--;
+                    } else
+                        i = 0;
 #if defined(USE_SHMEM)
                     HEo_f = das->St[o];
 #else
@@ -1567,6 +1582,7 @@ static void update_Hx(dasystem* das)
         void* g = model_getgridbyid(m, gid);
         int periodic_i = grid_isperiodic_i(g);
         int stride = grid_getstride(g);
+        int joffset = 1;
 
         char fname[MAXSTRLEN];
         int ncid;
@@ -1607,6 +1623,14 @@ static void update_Hx(dasystem* das)
             iiter[ni] = iiter[ni - 1] + stride;
 
         grid_getsize(g, &mni, &mnj, NULL);
+        /*
+         * a treatment for unstructured grids
+         */
+        if (mnj <= 0) {
+            mnj = mni;
+            mni = 1;
+            joffset = 0;
+        }
 
         start[0] = 0;
         start[1] = 0;
@@ -1629,7 +1653,7 @@ static void update_Hx(dasystem* das)
         for (jj = 0, j = 0; jj < nj; ++jj) {
             for (stepj = 0; stepj < stride && j < mnj; ++stepj, ++j) {
 
-                if ((int) (obs->data[o].fj + 0.5) / stride > jj + 1)
+                if ((int) (obs->data[o].fij[joffset] + 0.5) / stride > jj + 1)
                     continue;
 
                 if (stride == 1) {
@@ -1696,7 +1720,7 @@ static void update_Hx(dasystem* das)
                 if (o > my_last_iteration)
                     break;
 
-                for (; o <= my_last_iteration && (int) (obs->data[o].fj + 0.5) == j; ++o) {
+                for (; o <= my_last_iteration && (int) (obs->data[o].fij[joffset] + 0.5) == j; ++o) {
                     double dHx = 0.0;
                     double Hx = 0.0;
 
@@ -1709,9 +1733,15 @@ static void update_Hx(dasystem* das)
 #endif
                     Hx /= (double) nmem;
 
-                    i = (int) (obs->data[o].fi + 0.5);
-                    if (i == mni)
-                        i--;
+                    if (joffset == 1) {
+                        /*
+                         * "normal" (structured) grid
+                         */
+                        i = (int) (obs->data[o].fij[0] + 0.5);
+                        if (i == mni)
+                            i--;
+                    } else
+                        i = 0;
                     /*
                      * HE(i, :) += HA(i, :) * b * 1' 
                      */

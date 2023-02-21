@@ -298,19 +298,26 @@ dasystem* das_create(enkfprm* prm)
                 dst->gridid = -1;
             }
 
-            dst->fi = malloc(ngrid * sizeof(double));
-            dst->fj = malloc(ngrid * sizeof(double));
+            dst->fij = alloc2d(ngrid, 3, sizeof(double));
             for (gid = 0; gid < model_getngrid(das->m); ++gid) {
                 grid* g = model_getgridbyid(das->m, gid);
 
                 if (dst->gridid >= 0 && dst->gridid != gid) {
-                    dst->fi[gid] = NAN;
-                    dst->fj[gid] = NAN;
+                    dst->fij[gid][0] = NAN;
+                    dst->fij[gid][1] = NAN;
+                    dst->fij[gid][2] = NAN;
                     continue;
                 }
 #if defined(ENKF_CALC)
-                if (grid_xy2fij(g, src->lon, src->lat, &dst->fi[gid], &dst->fj[gid]) != STATUS_OK && gid == dst->gridid)
-                    enkf_printf("  WARNING: %s: POINTLOG %f %f: point outside the grid \"%s\"\n", das->prmfname, dst->lon, dst->lat, dst->gridname);
+                {
+                    double fij[3] = { NAN, NAN, NAN };
+
+                    if (grid_xy2fij(g, src->lon, src->lat, fij) != STATUS_OK && gid == dst->gridid)
+                        enkf_printf("  WARNING: %s: POINTLOG %f %f: point outside the grid \"%s\"\n", das->prmfname, dst->lon, dst->lat, dst->gridname);
+                    dst->fij[gid][0] = fij[0];
+                    dst->fij[gid][1] = fij[1];
+                    dst->fij[gid][2] = fij[2];
+                }
 #elif defined(ENKF_UPDATE)
                 if (das->updatespec & UPDATE_DOPLOGSAN) {
                     char fname[MAXSTRLEN];
@@ -326,19 +333,27 @@ dasystem* das_create(enkfprm* prm)
                     get_gridstr(das, gid, gridstr);
                     snprintf(varname, NC_MAX_NAME, "grid%s", gridstr);
                     ncw_inq_varid(ncid, varname, &varid);
-                    ncw_get_att_double(ncid, varid, "fi", &dst->fi[gid]);
-                    ncw_get_att_double(ncid, varid, "fj", &dst->fj[gid]);
+                    if (ncw_att_exists(ncid, varid, "fi")) {
+                        ncw_get_att_double(ncid, varid, "fi", &dst->fij[gid][0]);
+                        ncw_get_att_double(ncid, varid, "fj", &dst->fij[gid][1]);
+                    } else {
+                        ncw_get_att_double(ncid, varid, "fi0", &dst->fij[gid][0]);
+                        ncw_get_att_double(ncid, varid, "fi1", &dst->fij[gid][1]);
+                    }
                     ncw_close(ncid);
-                    if (isnan(dst->fi[gid] + dst->fj[gid]) && gid == dst->gridid)
+                    if (isnan(dst->fij[gid][0] + dst->fij[gid][1]) && gid == dst->gridid)
                         enkf_printf("  WARNING: %s: POINTLOG %f %f: point outside the grid \"%s\"\n", das->prmfname, dst->lon, dst->lat, dst->gridname);
                 }
 #else
                 enkf_quit("programming error");
 #endif
-                enkf_printf("      %s: (i, j) = (%.3f, %.3f)\n", grid_getname(g), dst->fi[gid], dst->fj[gid]);
+                if (grid_isstructured(g))
+                    enkf_printf("      %s: (i, j) = (%.3f, %.3f)\n", grid_getname(g), dst->fij[gid][0], dst->fij[gid][1]);
+                else
+                    enkf_printf("      %s: (i0, i1, i2) = (%.3f, %.3f, %.3f)\n", grid_getname(g), dst->fij[gid][0], dst->fij[gid][1], dst->fij[gid][2]);
             }
             for (gid = 0; gid < model_getngrid(das->m); ++gid)
-                if (!isnan(dst->fi[gid] + dst->fj[gid]))
+                if (!isnan(dst->fij[gid][0] + dst->fij[gid][1]))
                     break;
             if (gid == model_getngrid(das->m))
                 enkf_quit("%s: POINTLOG %f %f: point outside all grids\n", das->prmfname, dst->lon, dst->lat);
@@ -425,33 +440,43 @@ void das_destroy(dasystem* das)
         dir_rmifexists(DIRNAME_TMP);
 }
 
-/** Looks for all horizontal fields of the model to be updated.
+/** Looks for all horizontal fields of the model on a specified grid to be
+ ** updated.
+ * @param das - das structure
+ * @param gridid - grid ID (< 0 = all grids)
+ * @param nfields - (out) number of fields
+ * @param fields - (out) ields
  */
 void das_getfields(dasystem* das, int gridid, int* nfields, field** fields)
 {
     model* m = das->m;
     int nvar = model_getnvar(m);
-    int aliasid = (gridid >= 0) ? grid_getaliasid(model_getgridbyid(m, gridid)) : -1;
     int vid;
 
     assert(*nfields == 0);
     assert(*fields == NULL);
 
-    if (gridid >= 0 && aliasid >= 0)
+    if (gridid >= 0 && grid_getaliasid(model_getgridbyid(m, gridid)) >= 0)
         return;
 
     for (vid = 0; vid < nvar; ++vid) {
         int vargridid = model_getvargridid(m, vid);
-        int varaliasid = grid_getaliasid(model_getgridbyid(m, vargridid));
-        char fname[MAXSTRLEN];
+        grid* g = model_getgridbyid(m, vargridid);
+        int varaliasid = grid_getaliasid(g);
         char* varname = model_getvarname(m, vid);
-        int nk, k;
+        char fname[MAXSTRLEN];
+        int nj;
+        int nk, nkgrid, k;
 
         if (gridid >= 0 && vargridid != gridid && varaliasid != gridid)
             continue;
 
+        grid_getsize(g, NULL, &nj, &nkgrid);
+
         das_getmemberfname(das, varname, 1, fname);
-        nk = ncu_getnlevels(fname, varname);
+        nk = ncu_getnlevels(fname, varname, nj > 0);
+        if (nk > 1 && nk != nkgrid)
+            enkf_quit("%s: %s: variable nk = %d, grid nk = %d: the number of levels for a variable is supposed to be either that of the grid or 1", fname, grid_getname(g), nk, nkgrid);
         for (k = 0; k < nk; ++k) {
             field* f;
 
@@ -465,6 +490,7 @@ void das_getfields(dasystem* das, int gridid, int* nfields, field** fields)
                 f->level = k;
             else
                 f->level = grid_getsurflayerid(model_getvargrid(m, vid));
+            f->structured = nj > 0;
             (*nfields)++;
         }
     }
@@ -510,6 +536,7 @@ void das_getfname_plog(dasystem* das, pointlog* plog, char fname[])
 /** Calculates the mixed layer depth for consistent application of the SST bias
  ** correction.
  */
+#if defined(ENKF_PREP) || defined(ENKF_CALC)
 void das_calcmld(dasystem* das, obstype* ot, float*** src, float** dst)
 {
     model* m = das->m;
@@ -549,11 +576,16 @@ void das_calcmld(dasystem* das, obstype* ot, float*** src, float** dst)
             }
             if (kk == nlevels[j][i])
                 fk = (double) k;
-            z = model_fk2z(m, mvid, i, j, fk);
+            {
+                int ij[2] = { i, j };
+
+                z = model_fk2z(m, mvid, ij, fk);
+            }
             dst[j][i] = (float) z;
         }
     }
 }
+#endif
 
 /**
  */
@@ -621,7 +653,7 @@ int das_getmemberfname_async(dasystem* das, obstype* ot, int mem, int t, char fn
             if (!ot->async_centred)
                 correcttime += 0.5 * ot->async_tstep;
             if (fabs(time - correcttime) > TEPS)
-                enkf_quit("%s: \"%s\" = %f; expected %f for time interval %d\n", fname, ot->async_tname, time, correcttime, t);
+                enkf_quit("%s: \"s\" = %f; expected %f\n", fname, ot->async_tname, time, correcttime);
         }
     }
     return 1;
@@ -669,7 +701,7 @@ int das_getbgfname_async(dasystem* das, obstype* ot, int t, char fname[])
             if (!ot->async_centred)
                 correcttime += 0.5 * ot->async_tstep;
             if (fabs(time - correcttime) > TEPS)
-                enkf_quit("das_getbgfname_async(): %s: \"%s\" = %f; expected %f for time interval %d\n", fname, ot->async_tname, time, correcttime, time);
+                enkf_quit("das_getbgfname_async(): %s: \"%s\" = %f; expected %f\n", fname, ot->async_tname, time, correcttime);
         }
     }
     return 1;

@@ -70,6 +70,8 @@ struct enkfprm {
     double* locweight;
     int nlobsmax;
     int stride;
+    int nzints;
+    zint* zints;
     int sob_stride;
     int fieldbufsize;
     int nregions;

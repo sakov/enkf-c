@@ -355,12 +355,12 @@ void reader_gridded_xyz(char* fname, int fid, obsmeta* meta, grid* g, observatio
             o->lon = lon[ij];
             o->lat = lat[ij];
         }
-        o->status = grid_xy2fij_f(g, o->lon, o->lat, &o->fi, &o->fj);
+        o->status = grid_xy2fij(g, o->lon, o->lat, o->fij);
         if (!obs->allobs && o->status == STATUS_OUTSIDEGRID)
             continue;
         o->depth = (zndim == 1) ? z[i / nij] : z[i];
         if (o->status == STATUS_OK)
-            o->status = grid_z2fk_f(g, o->fi, o->fj, o->depth, &o->fk);
+            o->status = grid_z2fk_f(g, o->fij, o->depth, &o->fk);
         else
             o->fk = NAN;
         o->model_depth = NAN;   /* set in obs_add() */

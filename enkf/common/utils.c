@@ -986,8 +986,11 @@ void print_vector_float(int n, float* a, char offset[])
 
 /**
  */
-float interpolate2d(double fi, double fj, int ni, int nj, float** v, int** mask, int periodic_i)
+float interpolate2d_structured(double* fij, int ni, int nj, float** v, int** mask, int periodic_i)
 {
+    double fi = fij[0];
+    double fj = fij[1];
+
     int i1 = (int) floor(fi);
     double wi1 = ceil(fi) - fi;
     int i2 = (int) ceil(fi);
@@ -1007,7 +1010,7 @@ float interpolate2d(double fi, double fj, int ni, int nj, float** v, int** mask,
 
     /*
      * Note that this section should be consistent with the similar section in 
-     * model_xy2fij().
+     * grid_xy2fij().
      */
     if (i1 == -1)
         i1 = (periodic_i) ? ni - 1 : i2;
@@ -1040,67 +1043,60 @@ float interpolate2d(double fi, double fj, int ni, int nj, float** v, int** mask,
         sum += v[j2][i2] * ww;
         w += ww;
     }
-    sum = sum / w;
+    sum /= w;
 
     return (float) sum;
 }
 
-float average2d(int n, size_t* ids, float** v)
+/**
+ */
+float interpolate2d_unstructured(double* fi, float* v, int* mask)
+{
+    double sum = 0.0, w = 0.0;
+    int id;
+
+    for (id = 0; id < 3; ++id) {
+        int ii = (int) fi[id];
+
+        if (mask[ii]) {
+            double ww = fi[id] - floor(fi[id]);
+
+            sum += ww * v[(int) fi[id]];
+            w += ww;
+        }
+    }
+    sum /= w;
+
+    return (float) sum;
+}
+
+/**
+ */
+float average(int n, size_t* ids, float* v)
 {
     double sum = 0.0;
-    float* v0 = v[0];
     int i;
 
     for (i = 0; i < n; ++i)
-        sum += v0[ids[i]];
+        sum += v[ids[i]];
 
     return (float) (sum / (double) n);
-}
-
-/** A part of interpolate2d() that looks at mask in adjacent nodes only.
- */
-int island(double fi, double fj, double fk, int ni, int nj, int ksurf, int** numlevels, int periodic_i)
-{
-    int i1 = (int) floor(fi);
-    int i2 = (int) ceil(fi);
-    int j1 = (int) floor(fj);
-    int j2 = (int) ceil(fj);
-    int k;
-
-    if (ceil(fk) != floor(fk))
-        k = (ksurf == 0) ? ceil(fk) : ksurf - floor(fk);
-    else
-        k = (ksurf == 0) ? ceil(fk) + 1 : ksurf - floor(fk) + 1;
-
-    if (i1 == -1)
-        i1 = (periodic_i) ? ni - 1 : i2;
-    if (i2 == ni)
-        i2 = (periodic_i) ? 0 : i1;
-    if (j1 == -1)
-        j1 = j2;
-    if (j2 == nj)
-        j2 = j1;
-
-    if (k == 0)
-        return numlevels[j1][i1] == 0 && numlevels[j1][i2] == 0 && numlevels[j2][i1] == 0 && numlevels[j2][i2] == 0;
-    else
-        return numlevels[j1][i1] < k && numlevels[j1][i2] < k && numlevels[j2][i1] < k && numlevels[j2][i2] < k;
 }
 
 /** Linearly interpolates a 3D field to fractional coordinates in index space.
  *  Assumes that integer k indices correspond to layer centres. E.g. for 
  *  fk = 1.2 the vertical weights are 0.8 of layer 1 and 0.2 of layer 2.
  */
-float interpolate3d(double fi, double fj, double fk, int ni, int nj, int nk, int ktop, float*** v, int** nlevels, int periodic_i)
+float interpolate3d_structured(double* fij, double fk, int ni, int nj, int nk, int ktop, float*** v, int** nlevels, int periodic_i)
 {
-    int i1 = (int) floor(fi);
-    double wi1 = ceil(fi) - fi;
-    int i2 = (int) ceil(fi);
-    double wi2 = fi - floor(fi);
-    int j1 = (int) floor(fj);
-    double wj1 = ceil(fj) - fj;
-    int j2 = (int) ceil(fj);
-    double wj2 = fj - floor(fj);
+    int i1 = (int) floor(fij[0]);
+    double wi1 = ceil(fij[0]) - fij[0];
+    int i2 = (int) ceil(fij[0]);
+    double wi2 = fij[0] - floor(fij[0]);
+    int j1 = (int) floor(fij[1]);
+    double wj1 = ceil(fij[1]) - fij[1];
+    int j2 = (int) ceil(fij[1]);
+    double wj2 = fij[1] - floor(fij[1]);
     int k1, k2;
     int k1top, k2top;           /* layer number from the top */
     double wk1, wk2;
@@ -1134,7 +1130,7 @@ float interpolate3d(double fi, double fj, double fk, int ni, int nj, int nk, int
 
     /*
      * Note that this section should be consistent with the similar section in 
-     * model_xy2fij().
+     * grid_xy2fij().
      */
     if (i1 == -1)
         i1 = (periodic_i) ? ni - 1 : i2;
@@ -1188,6 +1184,58 @@ float interpolate3d(double fi, double fj, double fk, int ni, int nj, int nk, int
         w += ww;
     }
     sum = sum / w;
+
+    return (float) sum;
+}
+
+/**
+ */
+float interpolate3d_unstructured(double* fi, double fk, int nk, int ktop, float** v, int* nlevels)
+{
+    double sum = 0.0;
+    double w = 0.0;
+    int k1, k2;
+    int k1top, k2top;           /* layer number from the top */
+    double wk1, wk2;
+    int id;
+
+    assert(ktop == 0 || ktop == nk - 1);
+
+    /*
+     * It is assumed that -0.5 <= fk <= nk - 0.5; so, when -0.5 <= fk <= 0 or
+     * nk - 1 <= fk <= nk - 0.5 -- do not interpolate, take the layer value.
+     */
+    if (fk < 0.0)
+        fk = 0.0;
+    if (fk > (double) (nk - 1))
+        fk = (double) (nk - 1);
+    k1 = (int) floor(fk);
+    k1top = abs(ktop - k1);
+    wk1 = ceil(fk) - fk;
+    k2 = (int) ceil(fk);
+    k2top = abs(ktop - k2);
+    wk2 = fk - floor(fk);
+
+    for (id = 0; id < 3; ++id) {
+        int ii = (int) fi[id];
+
+        if (nlevels[ii] > k1top) {
+            double wi = fi[id] - floor(fi[id]);
+            double ww = wi * wk1;
+
+            sum += ww * v[k1][(int) fi[id]];
+            w += ww;
+        }
+        if (nlevels[ii] > k2top) {
+            double wi = fi[id] - floor(fi[id]);
+            double ww = wi * wk2;
+
+            sum += ww * v[k2][(int) fi[id]];
+            w += ww;
+        }
+    }
+
+    sum /= w;
 
     return (float) sum;
 }
@@ -1313,6 +1361,8 @@ void kd_printinfo(kdtree* tree, char* offset)
     size_t nalloc;
 
     if (rank != 0)
+        return;
+    if (tree == NULL)
         return;
 
     nnode = kd_getsize(tree);

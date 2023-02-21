@@ -25,7 +25,7 @@ void ncu_set_quitfn(ncu_quit_fn quit_fn);
 /*
  * model variable information
  */
-int ncu_getnlevels(char fname[], char varname[]);
+int ncu_getnlevels(char fname[], char varname[], int isstructured);
 int ncu_getnD(char fname[], char varname[]);
 
 /*
@@ -39,7 +39,7 @@ void ncu_readvardouble(int ncid, int varid, size_t n, double v[]);
  */
 void ncu_readfield(char fname[], char varname[], int k, int ni, int nj, int nk, float* v);
 void ncu_writefield(char fname[], char varname[], int k, int ni, int nj, int nk, float* v);
-void ncu_writerow(char fname[], char varname[], int k, int j, float* v);
+void ncu_writerow(char fname[], char varname[], int k, int j, int ni, int nj, int nk, float* v);
 void ncu_read3dfield(char fname[], char varname[], int ni, int nj, int nk, float* v);
 
 #define _NCUTILS_H

@@ -32,6 +32,7 @@ typedef struct {
     int varid;
     char varname[NC_MAX_NAME];
     int level;
+    int structured;
 } field;
 
 typedef struct {

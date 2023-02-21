@@ -251,15 +251,15 @@ static int cmp_obs(const void* p1, const void* p2, void* p)
      */
     offset = (double) (stride % 2) / 2.0;
 
-    i1 = (int) floor(o1->fi + offset) / stride;
-    i2 = (int) floor(o2->fi + offset) / stride;
+    i1 = (int) floor(o1->fij[0] + offset) / stride;
+    i2 = (int) floor(o2->fij[0] + offset) / stride;
     if (i1 > i2)
         return 1;
     if (i1 < i2)
         return -1;
 
-    i1 = (int) floor(o1->fj + offset) / stride;
-    i2 = (int) floor(o2->fj + offset) / stride;
+    i1 = (int) floor(o1->fij[1] + offset) / stride;
+    i2 = (int) floor(o2->fij[1] + offset) / stride;
     if (i1 > i2)
         return 1;
     if (i1 < i2)
@@ -305,9 +305,8 @@ int main(int argc, char* argv[])
     enkf_printf("  reading observation specs from \"%s\":\n", prm->obsprm);
     obsprm_read(prm->obsprm, &nmeta, &meta, &nexclude, &exclude);
 
-    enkf_printf("  creating model:\n");
+    enkf_printf("  creating model and observations:\n");
     m = model_create(prm);
-    enkf_printf("  creating observations:\n");
     obs = obs_create_fromprm(prm);
     obstypes_set(obs->nobstypes, obs->obstypes, m);
     obs->allobs = (write_orig_obs == 2) ? 1 : 0;
@@ -352,8 +351,8 @@ int main(int argc, char* argv[])
                     break;
             assert(i != sobs->nobs);
             enkf_printf("    deleted %d observation(s)\n", sobs->nobs - i);
-            sobs->nobs = i;
             obs_calcstats(sobs);
+            sobs->nobs = i;
         } else
             enkf_printf("    all good\n");
 

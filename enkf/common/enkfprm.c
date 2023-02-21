@@ -337,6 +337,26 @@ enkfprm* enkfprm_read(char fname[])
                 enkf_quit("%s, l.%d: STRIDE specified twice", fname, line);
             if (!str2int(token, &prm->stride))
                 enkf_quit("%s, l.%d: could not convert STRIDE value", fname, line);
+        } else if (strcasecmp(token, "ZSTATINTS") == 0) {
+            char zseps[] = " =\t\n[](){}";
+
+            while ((token = strtok(NULL, zseps)) != NULL) {
+                if (prm->nzints % NINC == 0)
+                    prm->zints = realloc(prm->zints, (prm->nzints + NINC) * sizeof(zint));
+                if (!str2double(token, &prm->zints[prm->nzints].z1))
+                    enkf_quit("%s, l.%d: could not convert \"%s\" to double", fname, line, token);
+                if ((token = strtok(NULL, zseps)) == NULL)
+                    enkf_quit("%s, l.%d: maximal depth/height for an interval not specified", fname, line);
+                if (!str2double(token, &prm->zints[prm->nzints].z2))
+                    enkf_quit("%s, l.%d: could not convert \"%s\" to double", fname, line, token);
+                prm->nzints++;
+            }
+            /*
+             * a temporal setting, to indicate that an empty range has been
+             * entered (as opposed to no entry)
+             */
+            if (prm->nzints == 0)
+                prm->nzints = -1;
         } else if (strcasecmp(token, "SOBSTRIDE") == 0) {
             if ((token = strtok(NULL, seps)) == NULL)
                 enkf_quit("%s, l.%d: SOBSTRIDE not specified", fname, line);
@@ -551,6 +571,8 @@ void enkfprm_destroy(enkfprm* prm)
 
         free(prm->badbatchspecs);
     }
+    if (prm->nzints > 0)
+        free(prm->zints);
 
     free(prm);
 }
@@ -660,6 +682,12 @@ void enkfprm_print(enkfprm* prm, char offset[])
 
         enkf_printf("%sBADBATCHES = %s %.3f %.3f %d\n", offset, bb->obstype, bb->maxbias, bb->maxmad, bb->minnobs);
     }
+    if (prm->nzints != 0) {
+        enkf_printf("%s  ZSTATINTS = ", offset);
+        for (i = 0; i < prm->nzints; ++i)
+            enkf_printf("[%.0f %.0f] ", prm->zints[i].z1, prm->zints[i].z2);
+        enkf_printf("\n");
+    }
     if (prm->ncformat == NC_CLASSIC_MODEL)
         enkf_printf("%sNCFORMAT = CLASSIC\n", offset);
     else if (prm->ncformat == NC_64BIT_OFFSET)
@@ -699,7 +727,6 @@ void enkfprm_describeprm(void)
     enkf_printf("    BGDIR           = <background directory>                 (MODE = ENOI)\n");
     enkf_printf("  [ KFACTOR         = <kfactor> ]                            (NaN*)\n");
     enkf_printf("  [ RFACTOR         = <rfactor> ]                            (1*)\n");
-    enkf_printf("    ...\n");
     enkf_printf("    LOCRAD          = <loc. radius in km> ...\n");
     enkf_printf("    LOCWEIGHT       = <loc. weight> ...                      (# LOCRAD > 1)\n");
     enkf_printf("  [ NLOBSMAX        = <max. number of local obs. of each type> ]\n");
@@ -707,16 +734,16 @@ void enkfprm_describeprm(void)
     enkf_printf("  [ SOBSTRIDE       = <stride for superobing> ]              (1*)\n");
     enkf_printf("  [ FIELDBUFFERSIZE = <fieldbuffersize> ]                    (1*)\n");
     enkf_printf("  [ INFLATION       = <inflation> [ <VALUE>* | PLAIN ]       (1*)\n");
-    enkf_printf("    ...\n");
     enkf_printf("  [ REGION          = <name> <lon1> <lon2> <lat1> <lat2>\n");
     enkf_printf("    ...\n");
     enkf_printf("  [ POINTLOG        <lon> <lat> [grid name]]\n");
     enkf_printf("    ...\n");
     enkf_printf("  [ EXITACTION      = { BACKTRACE* | SEGFAULT } ]\n");
     enkf_printf("  [ BADBATCHES      = <obstype> <max. bias> <max. mad> <min # obs.> ]\n");
+    enkf_printf("    ...\n");
+    enkf_printf("  [ ZSTATINTS       = [<z1> <z2>] ... ]\n");
     enkf_printf("  [ NCFORMAT        = { CLASSIC | 64BIT | NETCDF4 } ]        (NETCDF4*)\n");
     enkf_printf("  [ NCCOMPRESSION   = <compression level> ]                  (0*)\n");
-    enkf_printf("    ...\n");
     enkf_printf("\n");
     enkf_printf("  Notes:\n");
     enkf_printf("    1. { ... | ... | ... } denotes the list of possible choices\n");

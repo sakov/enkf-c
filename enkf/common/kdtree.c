@@ -744,7 +744,7 @@ static void kd_readfile(kdtree* tree, char* fname, int ndimin)
             if ((token = strtok((i == 0) ? buf : NULL, seps)) == NULL)
                 break;
             if (!str2double(token, &point[i]))
-                break;
+                 break;
         }
         if (i < ndimin)
             continue;
@@ -767,6 +767,7 @@ static void kd_readfile(kdtree* tree, char* fname, int ndimin)
 
         for (i = 0; i < ndim; ++i)
             coords[i][npoints] = point[i];
+
         npoints++;
     }
     if (f != stdin)

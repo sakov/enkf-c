@@ -1,4 +1,4 @@
-v.2.17.1
+v.2.18.1dev
    PS 21022023
    -- Exit with error if during UPDATE the stride is different to that in the
       transform file.
@@ -6,13 +6,13 @@ v.2.17.1
       <var>_inc when UPDATE is run with "--output-increment" because in that
       case the spread is calculated for increments rather than for analysed
       variables.
-v.2.17.0
+v.2.18.0dev
    PS 09022023
    -- Added UPDATE option "--calculate-spread-only" to calculate forecast and
       ensemble spread without updating the ensemble. Note that it will still
       do the full update without saving the analysis (rather than reading
       the analysis when available).
-v.2.15.0
+v.2.16.0dev
    PS 05012023
    -- Implemented detection and elimination of bad observation batches
       (background check) in a single pass.
@@ -26,168 +26,88 @@ v.2.15.0
    "--print-batch-stats".
 
    The analysed bad obs. in observations.nc (Hx_a) are set to NaN.
-v.2.13.18
+v.2.14.12dev
    PS 12122022
    Two technical modifications:
    -- in ncw_copy_vardata()
    -- in str2bool()
-v.2.13.17
+v.2.14.11dev
    PS 01122022
    Cosmetic change: changed qualifiers for the time binning intervals in the
    obstypes parameter file from "c" and "e" to "centre" and "endpoint". The
    one-letter entries will continue to work.
-v.2.13.16
+v.2.14.10dev
    PS 28112022
    Completed the previous development.
-v.2.13.15
+v.2.14.9dev
    PS 28112022
    Streamlined code RE asynchronous DA. Modest changes, affected
    das_getmemberfname_async(), das_getbgfname_async(), and das_getHE().
-v.2.13.14
-   PS 25112022
-   Modified das_getmemberfname_async() and das_getbgfname_async() to exit
-   with error when running CALC with --strict-time-matching if the file
-   with correct time index is not found (rather than trying to use the member/
-   background if it has the right time).
-v.2.13.13
+v.2.14.8dev
    PS 21112022
    -- A couple of changes to improve time handling.
-v.2.13.12
+v.2.14.7dev
    PS 24102022
    -- Fixed a minor defect das_calcinnandspread().
-v.2.13.11
+2.14.6dev
    PS 06102022
    -- ncw_copy_vardef() now copies deflation settings.
-v.2.13.10
+2.14.5dev
    PS 28092022
    -- Slightly (I think) modified readfield() and writefield() regarding
       treatment of fill value.
-v.2.13.9
+2.14.4dev
    PS 28092022
    -- Updated ncw.[ch] to v2.29.2. The main change is in ncw_copy_vardef() --
       it now sets chunking by the horizontal layer of the model
       (1, ..., 1, nj, ni).
-v.2.13.8
+2.14.3dev
    PS 28092022
    -- In the diagnostic output "inflation.nc" replaced values < 1 by the actual
       inflation value for these elements = 1.
-v.2.13.7
+2.14.2dev
    PS 15092022
    -- Optimised inflation calculation in das_updatefields().
-v.2.13.6
+2.14.1dev
    PS 31082022
-   -- Cosmetic fixes.
-v.2.13.5
-   PS 01082022
-   -- Added new common reader paramaters YMIN, YMAX, ZMIN, ZMAX.
-v.2.13.4
-   PS 10072022
-   -- Further improved error messages in date2day().
-v.2.13.3
-   PS 08072022
-   -- Improved error messages in date2day().
-v.2.13.2
-   PS 08072022
-   -- Corrected a defect in das_getmemberfname_async() that prevented running
-      CALC for MODE = ENOI with --strict-time-matching.
-v.2.13.1
-   PS 28062022
-   -- Modified reader_mmt.c to reject profiles with all valid obs. equal to 0.
-v.2.13.0
-   PS 23062022
-   -- Added option "--strict-time-matching" to CALC. It ensures that for
-      observation types assimilated asynchronously the time of model dumps
-      matches that of the centres of the time bins.
-v.2.11.21
-   PS 15062022
-   -- Fixed defect in ncw_find_vars().
-v.2.11.20
-   PS 03052022
-   -- In das_writefields_toassemble() removed redundant (since v.2.11.0) code
-      for the case if tile exists.
-v.2.11.19
-   PS 30042022
-   -- Fixed defect in "lowmem" H-function.
-v.2.11.18
-   PS 26042022
-   -- Fixed defect in obsprm.c, now allows multiple entries of "parameter
-      EXCLUDEINST".
-v.2.11.17
-   PS 12042022
-   -- Corrected v2.11.16.
-v.2.11.16
-   PS 11042022
-   -- Modified gridprm_create(): one can now add qualifiers to the mask variable
-      name entry (NUMLEVELSVARNAME for Z grids, MASKVARNAME for other grids).
-      The qualifiers are supposed to be either PREP, CALC, or UPDATE or their
-      combination. If a qualifier is presented then the entry is considered
-      valid only if a qualifier with the stage name is found. This is aimed at
-      providing an easy way of using different mask names for different stages.
-      (Which may be useful for hybrid systems.)
-v.2.11.15
-   PS 11042022
-   -- Modified enkf_printf() to print regardless of rank if enkf_verbose < 0.
-   -- In ensobs.c and model2obs.c -- when a bad forecast observation detected --
-      print observation info regardless of rank.
-v.2.11.14
-   PS 08042022
-   -- In das_setnmem() -- fixed reported static ensemble size in hybrid systems
-      when its specified size is smaller than the available one.
-v.2.11.13
-   PS 08042022
-   -- In grid_create() added a fix for an aliased grid (entry HGRIDFROM)
-      necessary for it to read the numlevels/landmask data.
-v.2.11.12
-   PS 07042022
-   -- In das_updatefields(): the cell values for the whole ensemble were set
-      to zero if a bad value is found for any ensemble member. Modified
-      this to be true only if the bad value is found in the dynamic ensemble;
-      if a bad value is found in the static ensemble -- set the static ensemble
-      members to zero and continue in a normal way. This is supposed to handle
-      situations when in hybrid systems the static ensemble has flaky land mask.
-v.2.11.11
-   PS 05042022
-   -- In das_create() replaced assert() that the pointlog file exists by
-      message with filename from enkf_quit().
-v.2.11.10
-   PS 10032022
-   -- Modified ncu_getnD() to skip the unlimited dimension and all head
-      dimensions of size 1.
-v.2.11.9
-   PS 10032022
-   -- A fairly minor correction in ncu_readfield().
-v.2.11.8
-   PS 09032022
-   -- Corrected v.2.11.7.
-v.2.11.7
-   PS 09032022
-   -- In obs_read() added check that the number of observation types in
-      observations.nc matchs that in the obstypes parameter file.
-v.2.11.6
-   PS 04032022
-   -- Change in enkfprm.c.
-v.2.11.5
-   PS 23022022
-   -- Cosmetic changes in das_assemblemembers().
-v.2.11.4
-   PS 31012022
-   -- Corrected checking the length of the add_offset attribute in
-      ncu_readvardouble() and ncu_readvarfloat().
-v.2.11.3
-   PS 28012022
-   -- Fixed printing of lengths (%zu instead of %d for size_t) in ncw.c.
-v.2.11.2
-   PS 17012022
-   -- In plog_create(), plog_writestatevars_direct(), and
-      plog_writestatevars_toassemble() replaced plog->fj[fid] by (correct)
-      plog->fj[gid].
-v.2.11.1
-   PS 17012022
-   -- In gz_z_z2fk() eliminated redundant arguments.
+   -- Further work with 2.14.0dev to get it through simple tests with VTYPE =
+      NUMERIC.
+2.14.0dev
+   PS 30082022
+   -- Added vertical grid type NUMERIC.
+2.12.34dev
+   PS 10082022
+   -- Added possibility to define vertical intervals for innovation statistics
+      common for all grids in the (top level) enkf parameter file.
+2.12.33dev
+   Mirrors v.2.13.5.
+2.12.32dev
+   Mirrors v.2.13.4.
+2.12.31dev
+   Mirrors v.2.13.3.
+2.12.30dev
+   Mirrors v.2.13.2.
+2.12.29dev
+   Mirrors v.2.13.1.
+2.12.28dev
+   Fixed average2d() (now average()) for the unstructured case.
+2.12.26dev
+   Mirrors v.2.13.0.
+2.12.17dev-2.12.25dev
+   PS Mirror the trunk developments.
+2.12.0dev-2.12.17dev
+   PS 14012022
+   -- In "struct observation" replaced fields "float fi" and "float fj" by
+      "double fij[3]". In "xy2fij" functions replaced arguments "double* fi,
+      double* fj" by "double* fij".
+   -- Created new directory "grid" with grid related code.
+   -- Separated code related to horizontal and vertical grids in files
+      hgrid.[ch] and vgrid.[ch].
+   -- Added unstructured grids as a new horizontal grid type, with the new code
+     in grid/gxy_unstr.[ch] and grid/triangulation.[ch].
 v.2.11.0
    PS 14012022
-   -- In UPDATE -- write all tiles to .enkftmp; remove all tiles after
-      assembling. Eliminated redundant option "--leave-tiles".
+   -- Write all tiles to .enkftmp; remove all tiles after assembling.
 v.2.10.5
    PS 14012022
    -- For struct gz_sigma -- added (missed) setting of fi_prev and fj_prev in
@@ -262,9 +182,8 @@ v.2.9.16
 v.2.9.15
    PS 11092021
    -- In obs_superob(): when thinning observations with identical positions --
-	replace the value of the kept observation with the average of the batch
-	rather than with the first observation in the batch.
-      Note: this changes examples/5/log/enkf/calc.out.
+	replace the value of the kept observation with the average of the batch rather
+	than with the first observation in the batch.
 v.2.9.14
    PS 02092021
    -- Cosmetic changes.

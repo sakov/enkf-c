@@ -405,6 +405,13 @@ void das_calctransforms(dasystem* das)
         enkf_printf("    calculating transforms for %s:\n", gridname);
 
         grid_getsize(g, &mni, &mnj, NULL);
+        /*
+         * a treatment for unstructured grids
+         */
+        if (mnj <= 0) {
+            mnj = mni;
+            mni = 1;
+        }
 
         /*
          * work out how to cycle j 
@@ -529,9 +536,18 @@ void das_calctransforms(dasystem* das)
                 i = iiter[ii];
 
                 {
+                    int ij[2] = { i, j };
                     double lon, lat;
 
-                    grid_ij2xy(g, i, j, &lon, &lat);
+                    /*
+                     * for unstructured grids -- restore the natural order
+                     */
+                    if (mni == 1) {
+                        ij[0] = j;
+                        ij[1] = 0;
+                    }
+
+                    grid_ij2xy(g, ij, &lon, &lat);
 
 #if defined(MINIMISE_ALLOC)
                     obs_findlocal(obs, lon, lat, grid_getdomainname(g), &ploc, &lobs, &lcoeffs, &ploc_allocated2);
@@ -1077,7 +1093,7 @@ void das_calcpointlogtransforms(dasystem* das)
                 }
             }
 
-            enkf_printf("    writing log for point (%.3f,%.3f) on grid \"%s\":", plog->lon, plog->lat, grid_getname(g));
+            enkf_printf("    writing transforms for point (%.3f,%.3f) on grid \"%s\":", plog->lon, plog->lat, grid_getname(g));
             plog_writetransform(das, plogid, gid, ploc, sloc, (ploc == 0) ? NULL : Sloc[0], w, (T != NULL) ? T[0] : NULL);
             enkf_printf("\n");
 

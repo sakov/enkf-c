@@ -523,7 +523,10 @@ void obstypes_set(int n, obstype* types, model* m)
     for (i = 0; i < n; ++i) {
         obstype* ot = &types[i];
         int mvid = model_getvarid(m, types[i].varnames[0], 1);
+        int ni, nj, nk;
         int j;
+
+        model_getvargridsize(m, mvid, &ni, &nj, &nk);
 
         ot->logapplied = model_getvarislog(m, mvid);
         ot->vid = mvid;
@@ -532,6 +535,12 @@ void obstypes_set(int n, obstype* types, model* m)
             for (j = 0; j < ot->ndomains; ++j)
                 if (model_getdomainid(m, ot->domainnames[j]) < 0)
                     enkf_quit("OBSTYPE = %s: no grid is associated with domain \"%s\"\n", ot->name, ot->domainnames[j]);
+
+        /*
+         * sob stride can only be 1 for unstructured grids
+         */
+        if (nj == 0 && ot->sob_stride > 1)
+            enkf_quit("  obstype \"%s\": superobing stride (\"SOBSTRIDE\") = %d can only be 1 on unstructured grids", ot->name, ot->sob_stride);
 
 #if defined(ENKF_CALC)
         if (ot->offset_fname != NULL) {
@@ -545,37 +554,49 @@ void obstypes_set(int n, obstype* types, model* m)
 
             ncw_open(ot->offset_fname, NC_NOWRITE, &ncid);
             ncw_inq_varid(ncid, ot->offset_varname, &varid);
-            if (ncu_getnD(ot->offset_fname, ot->offset_varname) == 1) {
-                int nk;
-                float* v = NULL;
+            if (nj > 0) {
+                if (ncu_getnD(ot->offset_fname, ot->offset_varname) == 1) {
+                    float* v = NULL;
 
-                if (ot->issurface)
-                    enkf_quit("%s: 1D offset is not allowed for a 2D observation type", ot->name);
-                model_getvargridsize(m, mvid, NULL, NULL, &nk);
-                v = malloc(nk * sizeof(float));
-                ncu_readvarfloat(ncid, varid, nk, v);
-                model_adddata(m, tag, mvid, ALLOCTYPE_1D, v);
-            } else if (ncu_getnD(ot->offset_fname, ot->offset_varname) == 2) {
-                int ni, nj;
-                float** v = NULL;
+                    if (ot->issurface)
+                        enkf_quit("%s: 1D offset is not allowed for a 2D observation type", ot->name);
+                    ncw_check_varsize(ncid, varid, nk);
+                    v = malloc(nk * sizeof(float));
+                    ncu_readvarfloat(ncid, varid, nk, v);
+                    model_adddata(m, tag, mvid, ALLOCTYPE_1D, v);
+                } else if (ncu_getnD(ot->offset_fname, ot->offset_varname) == 2) {
+                    float** v = NULL;
 
-                model_getvargridsize(m, mvid, &ni, &nj, NULL);
-                v = alloc2d(nj, ni, sizeof(float));
-                ncu_readvarfloat(ncid, varid, ni * nj, v[0]);
-                model_adddata(m, tag, mvid, ALLOCTYPE_2D, v);
-            } else if (ncu_getnD(ot->offset_fname, ot->offset_varname) == 3) {
-                float*** v = NULL;
-                int ni, nj, nk;
+                    v = alloc2d(nj, ni, sizeof(float));
+                    ncu_readvarfloat(ncid, varid, ni * nj, v[0]);
+                    model_adddata(m, tag, mvid, ALLOCTYPE_2D, v);
+                } else if (ncu_getnD(ot->offset_fname, ot->offset_varname) == 3) {
+                    float*** v = NULL;
 
-                if (ot->issurface)
-                    enkf_quit("%s: 3D offset is not allowed for a 2D observation type", ot->name);
-                model_getvargridsize(m, mvid, &ni, &nj, &nk);
-                v = alloc3d(nk, nj, ni, sizeof(float));
-                ncu_readvarfloat(ncid, varid, ni * nj * nk, v[0][0]);
-                model_adddata(m, tag, mvid, ALLOCTYPE_3D, v);
-            } else
-                enkf_quit("programming error");
+                    if (ot->issurface)
+                        enkf_quit("%s: 3D offset is not allowed for a 2D observation type", ot->name);
+                    v = alloc3d(nk, nj, ni, sizeof(float));
+                    ncu_readvarfloat(ncid, varid, ni * nj * nk, v[0][0]);
+                    model_adddata(m, tag, mvid, ALLOCTYPE_3D, v);
+                } else
+                    enkf_quit("programming error");
+            } else {
+                if (ncu_getnD(ot->offset_fname, ot->offset_varname) == 1) {
+                    float* v = NULL;
 
+                    ncw_check_varsize(ncid, varid, ni);
+                    v = malloc(ni * sizeof(float));
+                    ncu_readvarfloat(ncid, varid, ni, v);
+                    model_adddata(m, tag, mvid, ALLOCTYPE_1D, v);
+                } else if (ncu_getnD(ot->offset_fname, ot->offset_varname) == 2) {
+                    float** v = NULL;
+
+                    v = alloc2d(nk, ni, sizeof(float));
+                    ncu_readvarfloat(ncid, varid, ni * nk, v[0]);
+                    model_adddata(m, tag, mvid, ALLOCTYPE_2D, v);
+                } else
+                    enkf_quit("programming error");
+            }
             ncw_close(ncid);
         }
 #endif

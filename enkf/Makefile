@@ -31,7 +31,7 @@ MPISTATUS_UPDATE = MPI
 
 include ./make.inc
 
-INCS_COMMON = -I./common
+INCS_COMMON = -I./common -I./grid
 LIBS_COMMON = $(LD_PATH) $(LIB_NC) $(LIB_M)
 
 LIBS_PREP =
@@ -46,9 +46,9 @@ common/global.c\
 common/utils.c\
 common/ncutils.c\
 common/enkfprm.c\
-common/grid.c\
-common/gridprm.c\
 common/model.c\
+grid/grid.c\
+grid/gridprm.c\
 
 HDR_COMMON =\
 common/ncw.h\
@@ -58,18 +58,23 @@ common/definitions.h\
 common/utils.h\
 common/ncutils.h\
 common/enkfprm.h\
-common/grid.h\
-common/gridprm.h\
-common/model.h
+common/model.h\
+grid/grid.h\
+grid/gridprm.h
 
 SRC_PREP =\
 common/hash.c\
 common/kdtree.c\
-common/gxy_curv.c\
-prep/prep_utils.c\
-prep/obsprm.c\
 common/obstypes.c\
 common/observations.c\
+grid/triangulation.c\
+grid/gxy_rect.c\
+grid/gxy_curv.c\
+grid/gxy_unstr.c\
+grid/vgrid.c\
+grid/hgrid.c\
+prep/prep_utils.c\
+prep/obsprm.c\
 prep/allreaders.c\
 prep/reader_navo.c\
 prep/reader_windsat.c\
@@ -89,22 +94,32 @@ prep/enkf_prep.c
 HDR_PREP =\
 common/hash.h\
 common/kdtree.h\
-common/gxy_curv.h\
-prep/prep_utils.h\
-prep/obsprm.h\
 common/obstypes.h\
 common/observations.h\
+grid/triangulation.h\
+grid/gxy_rect.h\
+grid/gxy_curv.h\
+grid/gxy_unstr.h\
+grid/vgrid.h\
+grid/hgrid.h\
+prep/prep_utils.h\
+prep/obsprm.h\
 prep/allreaders.h
 
 SRC_CALC =\
 common/hash.c\
 common/distribute.c\
-common/gxy_curv.c\
 common/kdtree.c\
 common/pointlog.c\
 common/obstypes.c\
 common/observations.c\
 common/dasystem.c\
+grid/triangulation.c\
+grid/gxy_unstr.c\
+grid/gxy_rect.c\
+grid/gxy_curv.c\
+grid/vgrid.c\
+grid/hgrid.c\
 calc/obsstats.c\
 calc/allhs.c\
 calc/model2obs.c\
@@ -116,12 +131,17 @@ calc/enkf_calc.c
 HDR_CALC =\
 common/hash.h\
 common/distribute.h\
-common/gxy_curv.h\
 common/pointlog.h\
 common/dasystem.h\
 common/kdtree.h\
 common/obstypes.h\
 common/observations.h\
+grid/triangulation.h\
+grid/gxy_rect.h\
+grid/gxy_curv.h\
+grid/gxy_unstr.h\
+grid/vgrid.h\
+grid/hgrid.h\
 calc/allhs.h\
 calc/model2obs.h\
 calc/calcs.h
@@ -131,6 +151,9 @@ common/hash.c\
 common/distribute.c\
 common/pointlog.c\
 common/dasystem.c\
+grid/gxy_rect.c\
+grid/vgrid.c\
+grid/hgrid.c\
 update/update.c\
 update/diags.c\
 update/enkf_update.c
@@ -138,6 +161,8 @@ update/enkf_update.c
 HDR_UPDATE =\
 common/hash.h\
 common/distribute.h\
+grid/vgrid.h\
+grid/hgrid.h\
 common/pointlog.h\
 common/dasystem.h\
 update/diags.h
@@ -172,7 +197,7 @@ clean:
 	rm -f bin/*
 
 indent:
-	indent -T FILE -T field -T dasystem -T model -T variable -T kdtree -T kdnode -T kdresult -T modeldata -T grid -T gridprm -T gxy_simple -T gxy_curv -T gz_simple -T gz_sigma -T gz_hybrid -T gxy_curv -T stringtable -T tm -T obsmeta -T metastd -T metapar -T obsreader_entry -T H_entry -T model_entry -T enkfprm -T gnll -T rangeentry -T observation -T obstype -T observations -T pointlog -T region -T obsdomain -T zint -T calcstats -T hashtable -T ht_bucket -T badbatchspec -T nctype2str -T nc_type -T size_t -T otdesc -T obsregion -T uint32_t -T uint16_t */*.[ch]
+	indent -T FILE -T uint32_t -T uint16_t -T badbatchspec -T region -T obsregion -T zint -T field -T dasystem -T model -T variable -T modeldata -T gridprm -T grid -T vgrid -T hgrid -T gxy_1d -T gxy_2d -T gxy_rect -T gxy_curv -T gxy_unstr -T point -T triangle -T triangle_neighbours -T triangulation -T gz_z -T gz_sigma -T gz_hybrid -T gz_numeric -T obsmeta -T metastd -T metapar -T obsreader_entry -T H_entry -T model_entry -T enkfprm -T observation -T obstype -T observations -T otdesc -T pointlog -T calcstats -T stringtable -T kdtree -T kdnode -T kdresult -T hashtable -T ht_bucket -T nctype2str -T nc_type -T size_t -T tm */*.[ch]
 	rm -f `find . -name "*.*~"`
 
 # following are 3 convenience targets for compiling particular binaries

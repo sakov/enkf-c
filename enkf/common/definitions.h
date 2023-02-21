@@ -187,6 +187,10 @@ typedef struct {
     double x1, x2, y1, y2;
 } obsregion;
 
+typedef struct {
+    double z1, z2;
+} zint;
+
 struct pointlog;
 typedef struct pointlog pointlog;
 

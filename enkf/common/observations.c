@@ -604,9 +604,15 @@ void obs_read(observations* obs, char fname[])
     if (sm_comm_rank == 0) {
 #endif
         void* v = NULL;
+        int structuredonly = ncw_var_exists(ncid, "fi");
+
+        ;
         int varid, i;
 
-        v = malloc(nobs * ((sizeof(float) >= sizeof(int)) ? sizeof(float) : sizeof(int)));
+        if (structuredonly)
+            v = malloc(nobs * ((sizeof(float) >= sizeof(int)) ? sizeof(float) : sizeof(int)));
+        else
+            v = malloc(nobs * sizeof(double));
 
         ncw_inq_varid(ncid, "id", &varid);
         ncw_get_var_int(ncid, varid, v);
@@ -686,15 +692,32 @@ void obs_read(observations* obs, char fname[])
         for (i = 0; i < (int) nobs; ++i)
             obs->data[i].model_depth = ((float*) v)[i];
 
-        ncw_inq_varid(ncid, "fi", &varid);
-        ncw_get_var_float(ncid, varid, v);
-        for (i = 0; i < (int) nobs; ++i)
-            obs->data[i].fi = ((float*) v)[i];
+        if (structuredonly) {
+            ncw_inq_varid(ncid, "fi", &varid);
+            ncw_get_var_float(ncid, varid, v);
+            for (i = 0; i < (int) nobs; ++i)
+                obs->data[i].fij[0] = ((float*) v)[i];
 
-        ncw_inq_varid(ncid, "fj", &varid);
-        ncw_get_var_float(ncid, varid, v);
-        for (i = 0; i < (int) nobs; ++i)
-            obs->data[i].fj = ((float*) v)[i];
+            ncw_inq_varid(ncid, "fj", &varid);
+            ncw_get_var_float(ncid, varid, v);
+            for (i = 0; i < (int) nobs; ++i)
+                obs->data[i].fij[1] = ((float*) v)[i];
+        } else {
+            ncw_inq_varid(ncid, "fi0", &varid);
+            ncw_get_var_double(ncid, varid, v);
+            for (i = 0; i < (int) nobs; ++i)
+                obs->data[i].fij[0] = ((double*) v)[i];
+
+            ncw_inq_varid(ncid, "fi1", &varid);
+            ncw_get_var_double(ncid, varid, v);
+            for (i = 0; i < (int) nobs; ++i)
+                obs->data[i].fij[1] = ((double*) v)[i];
+
+            ncw_inq_varid(ncid, "fi2", &varid);
+            ncw_get_var_double(ncid, varid, v);
+            for (i = 0; i < (int) nobs; ++i)
+                obs->data[i].fij[2] = ((double*) v)[i];
+        }
 
         ncw_inq_varid(ncid, "fk", &varid);
         ncw_get_var_float(ncid, varid, v);
@@ -747,6 +770,7 @@ void obs_write(observations* obs, char fname[])
 {
     int nobs = obs->nobs;
     char tunits[MAXSTRLEN];
+    int structuredonly = 1;
 
     int ncid;
     int dimid_nobs[1];
@@ -756,6 +780,12 @@ void obs_write(observations* obs, char fname[])
 
     if (rank != 0)
         return;
+
+    for (i = 0; i < obs->nobs; ++i)
+        if (!isnan(obs->data[i].fij[2])) {
+            structuredonly = 0;
+            break;
+        }
 
     if (file_exists(fname))
         enkf_quit("file \"%s\" already exists", fname);
@@ -882,16 +912,34 @@ void obs_write(observations* obs, char fname[])
      */
     ncw_def_var(ncid, "model_depth", NC_FLOAT, 1, dimid_nobs, &varid);
     ncw_put_att_text(ncid, varid, "long_name", "model bottom depth at the observation location");
-    /*
-     * fi
-     */
-    ncw_def_var(ncid, "fi", NC_FLOAT, 1, dimid_nobs, &varid);
-    ncw_put_att_text(ncid, varid, "long_name", "fractional grid index i of the observation");
-    /*
-     * fj
-     */
-    ncw_def_var(ncid, "fj", NC_FLOAT, 1, dimid_nobs, &varid);
-    ncw_put_att_text(ncid, varid, "long_name", "fractional grid index j of the observation");
+    if (structuredonly) {
+        /*
+         * fi
+         */
+        ncw_def_var(ncid, "fi", NC_FLOAT, 1, dimid_nobs, &varid);
+        ncw_put_att_text(ncid, varid, "long_name", "fractional grid index i of the observation");
+        /*
+         * fj
+         */
+        ncw_def_var(ncid, "fj", NC_FLOAT, 1, dimid_nobs, &varid);
+        ncw_put_att_text(ncid, varid, "long_name", "fractional grid index j of the observation");
+    } else {
+        /*
+         * fi0
+         */
+        ncw_def_var(ncid, "fi0", NC_DOUBLE, 1, dimid_nobs, &varid);
+        ncw_put_att_text(ncid, varid, "long_name", "fractional grid index i0 (i) of the observation");
+        /*
+         * fi1
+         */
+        ncw_def_var(ncid, "fi1", NC_DOUBLE, 1, dimid_nobs, &varid);
+        ncw_put_att_text(ncid, varid, "long_name", "fractional grid index i1 (j) of the observation");
+        /*
+         * fi2
+         */
+        ncw_def_var(ncid, "fi2", NC_DOUBLE, 1, dimid_nobs, &varid);
+        ncw_put_att_text(ncid, varid, "long_name", "fractional grid index i2 of the observation");
+    }
     /*
      * fk
      */
@@ -929,7 +977,10 @@ void obs_write(observations* obs, char fname[])
         }
     }
 
-    v = malloc(nobs * ((sizeof(float) >= sizeof(int)) ? sizeof(float) : sizeof(int)));
+    if (structuredonly)
+        v = malloc(nobs * ((sizeof(float) >= sizeof(int)) ? sizeof(float) : sizeof(int)));
+    else
+        v = malloc(nobs * sizeof(double));
 
     ncw_inq_varid(ncid, "id", &varid);
     for (i = 0; i < obs->nobs; ++i)
@@ -1008,15 +1059,32 @@ void obs_write(observations* obs, char fname[])
         ((float*) v)[i] = obs->data[i].model_depth;
     ncw_put_var_float(ncid, varid, v);
 
-    ncw_inq_varid(ncid, "fi", &varid);
-    for (i = 0; i < obs->nobs; ++i)
-        ((float*) v)[i] = obs->data[i].fi;
-    ncw_put_var_float(ncid, varid, v);
+    if (structuredonly) {
+        ncw_inq_varid(ncid, "fi", &varid);
+        for (i = 0; i < obs->nobs; ++i)
+            ((float*) v)[i] = obs->data[i].fij[0];
+        ncw_put_var_float(ncid, varid, v);
 
-    ncw_inq_varid(ncid, "fj", &varid);
-    for (i = 0; i < obs->nobs; ++i)
-        ((float*) v)[i] = obs->data[i].fj;
-    ncw_put_var_float(ncid, varid, v);
+        ncw_inq_varid(ncid, "fj", &varid);
+        for (i = 0; i < obs->nobs; ++i)
+            ((float*) v)[i] = obs->data[i].fij[1];
+        ncw_put_var_float(ncid, varid, v);
+    } else {
+        ncw_inq_varid(ncid, "fi0", &varid);
+        for (i = 0; i < obs->nobs; ++i)
+            ((double*) v)[i] = obs->data[i].fij[0];
+        ncw_put_var_double(ncid, varid, v);
+
+        ncw_inq_varid(ncid, "fi1", &varid);
+        for (i = 0; i < obs->nobs; ++i)
+            ((double*) v)[i] = obs->data[i].fij[1];
+        ncw_put_var_double(ncid, varid, v);
+
+        ncw_inq_varid(ncid, "fi2", &varid);
+        for (i = 0; i < obs->nobs; ++i)
+            ((double*) v)[i] = obs->data[i].fij[2];
+        ncw_put_var_double(ncid, varid, v);
+    }
 
     ncw_inq_varid(ncid, "fk", &varid);
     for (i = 0; i < obs->nobs; ++i)
@@ -1229,8 +1297,9 @@ void obs_superob(observations* obs, __compar_d_fn_t cmp_obs, observations** sobs
         so->lat = o->lat;
         so->depth = o->depth;
         so->model_depth = o->model_depth;
-        so->fi = o->fi;
-        so->fj = o->fj;
+        so->fij[0] = o->fij[0];
+        so->fij[1] = o->fij[1];
+        so->fij[2] = o->fij[2];
         so->fk = o->fk;
         so->time = o->time;
         so->status = o->status;
@@ -1261,8 +1330,9 @@ void obs_superob(observations* obs, __compar_d_fn_t cmp_obs, observations** sobs
             so->lat = so->lat * so->estd + o->lat / evar;
             so->depth = so->depth * so->estd + o->depth / evar;
             so->model_depth = so->model_depth * so->estd + o->model_depth / evar;
-            so->fi = so->fi * so->estd + o->fi / evar;
-            so->fj = so->fj * so->estd + o->fj / evar;
+            so->fij[0] = so->fij[0] * so->estd + o->fij[0] / evar;
+            so->fij[1] = so->fij[1] * so->estd + o->fij[1] / evar;
+            so->fij[2] = so->fij[2] * so->estd + o->fij[2] / evar;
             so->fk = so->fk * so->estd + o->fk / evar;
             so->time = so->time * so->estd + o->time / evar;
 
@@ -1273,8 +1343,9 @@ void obs_superob(observations* obs, __compar_d_fn_t cmp_obs, observations** sobs
             so->lat /= so->estd;
             so->depth /= so->estd;
             so->model_depth /= so->estd;
-            so->fi /= so->estd;
-            so->fj /= so->estd;
+            so->fij[0] /= so->estd;
+            so->fij[1] /= so->estd;
+            so->fij[2] /= so->estd;
             so->fk /= so->estd;
             so->time /= so->estd;
             so->aux++;
@@ -1402,8 +1473,12 @@ void obs_printob(observations* obs, int i)
 {
     observation* o = &obs->data[i];
 
-    enkf_printf("type = %s, product = %s, instrument = %s, datafile = %s, id = %d, original id = %d, batch = %d, value = %.3g, estd = %.3g, footprint = %.3g, ", obs->obstypes[o->type].name, st_findstringbyindex(obs->products, o->product), st_findstringbyindex(obs->instruments, o->instrument), st_findstringbyindex(obs->datafiles, o->fid), o->id, o->id_orig, (int) o->batch, o->value, o->estd, o->footprint);
-    enkf_printf("lon = %.3f, lat = %.3f, depth = %.1f, model_depth = %.1f, fi = %.3f, fj = %.3f, fk = %.3f, time = %.3g, status = %d\n", o->lon, o->lat, o->depth, o->model_depth, o->fi, o->fj, o->fk, o->time, o->status);
+    enkf_printf("type = %s, product = %s, instrument = %s, datafile = %s, id = %d, original id = %d, batch = %d, value = %.3g, estd = %.3g, footprint = %.3g, lon = %.3f, lat = %.3f, depth = %.1f, model_depth = %.1f, ", obs->obstypes[o->type].name, st_findstringbyindex(obs->products, o->product), st_findstringbyindex(obs->instruments, o->instrument), st_findstringbyindex(obs->datafiles, o->fid), o->id, o->id_orig, (int) o->batch, o->value, o->estd, o->footprint, o->lon, o->lat, o->depth, o->model_depth);
+    if (!isfinite(o->fij[2]))
+        enkf_printf("fi = %.3f, fj = %.3f, ", o->fij[0], o->fij[1]);
+    else
+        enkf_printf("fi0 = %.3f, fi1 = %.3f, fi2 = %.3f, ", o->fij[0], o->fij[1], o->fij[2]);
+    enkf_printf("fk = %.3f, time = %.3g, status = %d\n", o->fk, o->time, o->status);
 }
 
 #if defined(ENKF_CALC)

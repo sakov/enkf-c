@@ -143,7 +143,7 @@ void reader_amsr2(char* fname, int fid, obsmeta* meta, grid* g, observations* ob
         o->lat = lat[i];
         o->depth = 0.0;
         o->fk = (double) ksurf;
-        o->status = grid_xy2fij_f(g, o->lon, o->lat, &o->fi, &o->fj);
+        o->status = grid_xy2fij(g, o->lon, o->lat, o->fij);
         if (!obs->allobs && o->status == STATUS_OUTSIDEGRID)
             continue;
         o->model_depth = NAN;   /* set in obs_add() */

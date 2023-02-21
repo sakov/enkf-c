@@ -26,7 +26,6 @@
 #define EPS_IJ 1.0e-6
 
 observation* singleob = NULL;
-int singleob_ijk = 1;
 char* singleobtype = NULL;
 int ignorenoobs = 0;
 int use_rmsd = 0;
@@ -54,9 +53,7 @@ static void usage()
     enkf_printf("      skip calculating transforms for the whole grid and observation stats\n");
     enkf_printf("  --print-memory-usage\n");
     enkf_printf("      print memory usage by each process\n");
-    enkf_printf("  --single-observation-xyz <lon> <lat> <depth> <type> <inn> <std>\n");
-    enkf_printf("      assimilate single observation with these parameters\n");
-    enkf_printf("  --single-observation-ijk <fi> <fj> <fk> <type> <inn> <std>\n");
+    enkf_printf("  --single-observation <lon> <lat> <depth> <type> <inn> <std>\n");
     enkf_printf("      assimilate single observation with these parameters\n");
     enkf_printf("  --strict-time-matching\n");
     enkf_printf("      when assimilating asynchronously -- check that the time of model dumps\n");
@@ -125,13 +122,7 @@ static void parse_commandline(int argc, char* argv[], char** fname_prm, char** f
             plogs_only = 1;
             i++;
             continue;
-        } else if (strncmp(argv[i], "--single-observation", strlen("--single-observation")) == 0) {
-            if (strcmp(argv[i], "--single-observation-xyz") == 0)
-                singleob_ijk = 0;
-            else if (strcmp(argv[i], "--single-observation-ijk") == 0)
-                singleob_ijk = 1;
-            else
-                enkf_quit("command line: option \"%s\" not recognised", argv[i]);
+        } else if (strcmp(argv[i], "--single-observation") == 0) {
             singleob = calloc(1, sizeof(observation));
             i++;
             if (i >= argc)
@@ -203,13 +194,13 @@ static void parse_commandline(int argc, char* argv[], char** fname_prm, char** f
     }
 
     if (singleob != NULL && enkf_fstatsonly != 0)
-        enkf_quit("command line: \"--forecast-stats-only\" is not compatible with \"--single-observation-ijk\" or \"--single-observation-xyz\"");
+        enkf_quit("command line: \"--forecast-stats-only\" is not compatible with \"--single-observation\"");
     if (*fname_obs != NULL && singleob != NULL)
-        enkf_quit("command line: \"--use-these-obs\" is not compatible with \"--single-observation-ijk\" or \"--single-observation-xyz\"");
+        enkf_quit("command line: \"--use-these-obs\" is not compatible with \"--single-observation\"");
     if (plogs_only != 0 && enkf_fstatsonly != 0)
         enkf_quit("command line: \"--point-logs-only\" is not compatible with \"--forecast-stats-only\"");
     if (plogs_only != 0 && singleob != NULL)
-        enkf_quit("command line: \"--point-logs-only\" is not compatible with \"--single-observation-ijk\" or \"--single-observation-xyz\"");
+        enkf_quit("command line: \"--point-logs-only\" is not compatible with \"--single-observation\"");
 
     if (*fname_prm == NULL)
         enkf_quit("command line: parameter file not specified");
@@ -246,53 +237,14 @@ static observations* obs_create_fromsingleob(enkfprm* prm, dasystem* das)
     obs->nobs = 1;
     obs->data = o;
 
-    if (obs->obstypes[o->type].issurface) {
-        if (!singleob_ijk)
-            o->depth = 0.0;
-        else
-            o->depth = grid_getsurflayerid(g);
-    }
+    if (obs->obstypes[o->type].issurface)
+        o->depth = 0.0;
 
-    if (!singleob_ijk) {
-        o->status = model_xy2fij_f(m, vid, o->lon, o->lat, &o->fi, &o->fj);
-        if (o->status == STATUS_OK)
-            o->status = model_z2fk_f(m, vid, o->fi, o->fj, o->depth, &o->fk);
-        else
-            o->fk = NAN;
-    } else {
-        int ni, nj, nk;
-        int** nlevels = model_getnumlevels(m, vid);
-
-        o->fi = o->lon;
-        o->fj = o->lat;
-        {
-            double lon_d, lat_d;
-
-            model_ij2xy(m, vid, (int) (o->fi + EPS_IJ), (int) (o->fj + EPS_IJ), &lon_d, &lat_d);
-            o->lon = (float) lon_d;
-            o->lat = (float) lat_d;
-        }
-        o->fk = o->depth;
-        if (o->fk != 0.0)
-            o->depth = (float) model_fk2z(m, vid, (int) (o->fi + EPS_IJ), (int) (o->fj + EPS_IJ), o->fk);
-
-        o->status = STATUS_OK;
-        grid_getsize(g, &ni, &nj, &nk);
-
-        if (o->fi < 0.0 || o->fi > (float) (ni - 1) || o->fj < 0.0 || o->fj > (float) (nj - 1) || o->fk < 0.0 || o->fk > (float) (nk - 1))
-            o->status = STATUS_OUTSIDEGRID;
-        else {
-            int i1 = floor(o->fi);
-            int i2 = ceil(o->fi);
-            int j1 = floor(o->fj);
-            int j2 = ceil(o->fj);
-            int k1p1 = floor(o->fk) + 1;
-
-            if (nlevels[j1][i1] < k1p1 && nlevels[j1][i2] < k1p1 && nlevels[j2][i1] < k1p1 && nlevels[j2][i2] < k1p1)
-                o->status = STATUS_LAND;
-        }
-    }
-
+    o->status = model_xy2fij(m, vid, o->lon, o->lat, o->fij);
+    if (o->status == STATUS_OK)
+        o->status = model_z2fk_f(m, vid, o->fij, o->depth, &o->fk);
+    else
+        o->fk = NAN;
     if (o->status != STATUS_OK)
         enkf_quit("command line: could not map the observation");
 
@@ -302,8 +254,14 @@ static observations* obs_create_fromsingleob(enkfprm* prm, dasystem* das)
     enkf_printf("    estd = %.3f\n", singleob->estd);
     enkf_printf("    lon  = %.3f\n", o->lon);
     enkf_printf("    lon  = %.3f\n", o->lat);
-    enkf_printf("    i    = %.3f\n", o->fi);
-    enkf_printf("    j    = %.3f\n", o->fj);
+    if (grid_isstructured(g)) {
+        enkf_printf("    i    = %.3f\n", o->fij[0]);
+        enkf_printf("    j    = %.3f\n", o->fij[1]);
+    } else {
+        enkf_printf("    i0   = %.3f\n", o->fij[0]);
+        enkf_printf("    i1   = %.3f\n", o->fij[1]);
+        enkf_printf("    i2   = %.3f\n", o->fij[2]);
+    }
     if (!obs->obstypes[o->type].issurface)
         enkf_printf("    k    = %.3f\n", o->fk);
 

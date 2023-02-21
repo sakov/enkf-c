@@ -221,11 +221,11 @@ void reader_z(char* fname, int fid, obsmeta* meta, grid* g, observations* obs)
         o->lon = lon;
         o->lat = lat;
         o->depth = z[i];
-        o->status = grid_xy2fij_f(g, o->lon, o->lat, &o->fi, &o->fj);
+        o->status = grid_xy2fij(g, o->lon, o->lat, o->fij);
         if (!obs->allobs && o->status == STATUS_OUTSIDEGRID)
             continue;
         if (o->status == STATUS_OK)
-            o->status = grid_z2fk_f(g, o->fi, o->fj, o->depth, &o->fk);
+            o->status = grid_z2fk_f(g, o->fij, o->depth, &o->fk);
         else
             o->fk = NAN;
         o->model_depth = NAN;   /* set in obs_add() */

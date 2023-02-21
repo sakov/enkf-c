@@ -39,7 +39,7 @@
 
 \begin{document}
 
-\title{EnKF-C user guide\\{\normalsize version 2.17.0}}
+\title{EnKF-C user guide\\{\normalsize version 2.18.0dev}}
 
 \author{Pavel Sakov}
 \date{June 19, 2014 -- \today}
@@ -90,7 +90,7 @@ Following are its other main features:
 \item model-agnostic;
 \item can conduct DA either in EnKF, ensemble optimal interpolation (EnOI), or hybrid EnKF/EnOI modes;
 \item permits multiple model grids;
-\item can handle rectangular or curvilinear horizontal grids, z, sigma or hybrid vertical coordinates.
+\item can handle rectangular, curvilinear, or unstructured horizontal grids, z, sigma or hybrid vertical coordinates.
 \end{itemize}
 
 EnKF-C is available from \url{https://github.com/sakov/enkf-c}.
@@ -105,7 +105,7 @@ Section~\ref{ch:enkf} overviews the basics of the EnKF; section~\ref{ch:enkf-c} 
 Following is the list of main pre-requisites and limitations resulted from the design and algorithmic solutions adopted in EnKF-C:
 \begin{itemize}
 \item the model is assumed to be layered, so that the horizontal and vertical grids are independent of each other;
-\item horizontal grids are assumed to be structured quadrilateral;
+\item horizontal grids are assumed to be structured quadrilateral or unstructured;
 \item the model output is assumed to be in NetCDF format, with $(x, y, z)$ dimension order (meaning $z$ is the ``slowest'', ``most outward'' variable);
 \item the forecast observations are calculated off-line (outside the model) only;
 \item there is no vertical localisation, so that one typically needs an ensemble of about 100 rather than 40 members.
@@ -813,7 +813,6 @@ Its format is described by running \verb|enkf_prep|, \verb|enkf_calc| or \verb|e
     BGDIR           = <background directory>                 (MODE = ENOI)
   [ KFACTOR         = <kfactor> ]                            (NaN*)
   [ RFACTOR         = <rfactor> ]                            (1*)
-    ...
     LOCRAD          = <loc. radius in km> ...
     LOCWEIGHT       = <loc. weight> ...                      (# LOCRAD > 1)
   [ NLOBSMAX        = <max. number of local obs. of each type> ]
@@ -821,16 +820,15 @@ Its format is described by running \verb|enkf_prep|, \verb|enkf_calc| or \verb|e
   [ SOBSTRIDE       = <stride for superobing> ]              (1*)
   [ FIELDBUFFERSIZE = <fieldbuffersize> ]                    (1*)
   [ INFLATION       = <inflation> [ <VALUE>* | PLAIN ]       (1*)
-    ...
   [ REGION          = <name> <lon1> <lon2> <lat1> <lat2>
     ...
   [ POINTLOG        <lon> <lat> [grid name]]
     ...
   [ EXITACTION      = { BACKTRACE* | SEGFAULT } ]
   [ BADBATCHES      = <obstype> <max. bias> <max. mad> <min # obs.> ]
+    ...
   [ NCFORMAT        = { CLASSIC | 64BIT | NETCDF4 } ]        (64BIT*)
   [ NCCOMPRESSION   = <compression level> ]                  (0*)
-    ...
 
   Notes:
     1. { ... | ... | ... } denotes the list of possible choices
@@ -889,12 +887,17 @@ It also contains variable names for the depth and for number of layers in a vert
   [ DOMAIN           = <domain name> ]
     DATA             = <data file name>
     (either)
+      HTYPE          = { rect | curv | unstr }
       XVARNAME       = <X variable name>
       YVARNAME       = <Y variable name>
+      (if htype = unstr)
+      [ TRIVARNAME    = <triangle vertice IDS variable name> ]
+      [ TRINEIVARNAME = <triangle neighbour IDS variable name> ]
+      (end if)
     (or)
       HGRIDFROM      = <grid name>
     (end either)
-    VTYPE            = { z | sigma | hybrid | none }
+    VTYPE            = { z | sigma | hybrid | numeric | none }
   [ VDIR             = { fromsurf* | tosurf } ]
   [ GEOGRAPHIC       = { yes* | no } ]
     (if vtype = z)
@@ -918,7 +921,12 @@ It also contains variable names for the depth and for number of layers in a vert
       P1VARNAME      = <P1 variable name>
       P2VARNAME      = <P2 variable name>
     [ MASKVARNAME    = <land mask variable name> ]
-    (end if)
+    (else if vtype = numeric)
+      ZVARNAME       = <Z variable name>
+    [ ZCVARNAME      = <ZC variable name> ]
+    [ NUMLEVELSVARNAME = <land mask variable name> ]
+    [ DEPTHVARNAME   = <depth variable name> ]
+     (end if)
   [ STRIDE           = <stride for ensemble transforms> ] (1*)
   [ SOBSTRIDE        = <stride for superobing> ]          (1*)
   [ ZSTATINTS        = [<z1> <z2>] ... ]
@@ -926,7 +934,8 @@ It also contains variable names for the depth and for number of layers in a vert
   [ <more of the above blocks> ]
 \end{Verbatim}
 
-The code is supposed to automatically identify the type of horizontal grid used, while the type of the vertical grid has to be specified explicitly.
+While the code is supposed to automatically identify the type of horizontal grid used, it can also be specified explicitly.
+The type of the vertical grid has to be specified.
 If some grid (say, grid A) has the same horizontal grid as other grid (grid B), the code can be notified of this by entering name of grid A in the field \verb|HGRIDFROM| for grid B (or vice versa).
 This saves memory, grid initialisation time, and uses transforms calculated for grid A for all variables defined on grid B.
 
@@ -935,11 +944,13 @@ This saves memory, grid initialisation time, and uses transforms calculated for 
 
 At the moment, EnKF-C supports 3 main types of horizontal grids:
 \begin{itemize}
-\item equidistant rectangular grids aligned with physical coordinates;
-\item non-equidistant rectangular grids aligned with physical coordinates;
-\item quadrilateral grids.
+\item rectangular quadrilateral grids aligned with physical coordinates;
+\item curvilinear quadrilateral grids;
+\item unstructured grids.
 \end{itemize}
-The grid is assumed to be rectangular if grid node coordinates depend on one dimension, and quadrilateral (curvilinear) if they depend on two dimensions.
+A grid is assumed to be rectangular if grid node coordinates depend on one dimension, and the coordinate dimensions differ for X and Y coordinates.
+A grid is assumed to be curvilinear if the grid node coordinates depend on two dimensions.
+A grid is assumed to be unstructured if grid node coordinates depend on the same dimension for X and Y coordinates.
 For rectangular grids the code tries to determine and handle periodicity in X direction.
 
 Note that the code does not detect and therefore can not take advantage of periodic curvilinear grids; because of that, it does not map (skips) observations in cells connecting the grid edges.
@@ -947,6 +958,9 @@ Note that the code does not detect and therefore can not take advantage of perio
 The flag \verb|GEOGRAPHIC| introduced in v2.8.0 if set to ``yes'' internally communicates to the code that the grid nodes are defined in geographic coordinates and sets grid rendering to be performed in cartesian coordinates.
 This can be essential in polar regions because of the skewness of grid cells in geographic coordinates there (it can cause failures of the mapping algorithm).
 The user can investigate the necessity of setting this flag to ``yes'' by comparing the numbers of accepted/rejected observations with and without it.
+
+For unstructured grids associated with observed variables it is necessary to specify triangulation details: vertice IDs and neighbour triangle IDs.
+For unstructured grids stride can be equal to 1 only (i.e. ensemble transforms must be calculated in each grid node).
 
 \subsubsection{Vertical grids}
 
@@ -969,6 +983,9 @@ The hybrid $\sigma$-$p$ grids are implemented as described in \url{https://journ
 One needs to specify the $A$ (\verb|AVARNAME|) and $B$ (\verb|BVARNAME|) arrays for layer centres as well as the top and surface pressure (\verb|P1VARNAME| and \verb|P2VARNAME|).
 One can also specify optional $A$ and $B$ arrays for layer corners (\verb|ACVARNAME|, \verb|BCVARNAME|).
 The entry \verb|DEPTHVARNAME| needs only to be specified for variables with non-surface observations.
+
+Vertical grid type numeric is supposed to handle general situations described by 3D arrays of layer depths.
+Grids of this type are defined by specifying variable with cell centres depth coordinates (entry \verb|ZVARNAME|) and (optionally) variable with cell boundaries depth coordinates (entry \verb|ZCVARNAME|).
 
 By default, the code assumes that the surface is at layer 0.
 If this is not the case, one needs to describe it explicitly by the entry \verb|VDIR = TOSURF|; otherwise the surface ensemble or background observations will not be calculated correctly.
@@ -1565,7 +1582,8 @@ This statistics is provided for each region defined in the main parameter file (
 By default, EnKF-C defines one statistical region ``Global'' with domain $[x_1,x_2] = [-999,999], [y_1,y_2] = [-999,999]$.
 
 In addition, for 3D observations CALC also calculates observation statistics in specified depth intervals.
-These intervals can be set via the entry \verb|ZSTATINTS| in the grid parameter file; by default, three intervals are defined: \verb|[0 DEPTH_SHALLOW]|, \verb|[DEPTH_SHALLOW DEPTH_DEEP]|, and \verb|[DEPTH_DEEP DEPTH_MAX]|, where \verb|DEPTH_SHALLOW|, \verb|DEPTH_DEEP| and \verb|DEPTH_MAX| are the macros defined in \verb|common/definitions.h|.
+These intervals can be set via the entry \verb|ZSTATINTS| in the main parameter file or (specific for a particular grid) in the grid parameter file.
+By default, three intervals are defined: \verb|[0 DEPTH_SHALLOW]|, \verb|[DEPTH_SHALLOW DEPTH_DEEP]|, and \verb|[DEPTH_DEEP DEPTH_MAX]|, where \verb|DEPTH_SHALLOW|, \verb|DEPTH_DEEP| and \verb|DEPTH_MAX| are the macros defined in \verb|common/definitions.h|.
 
 Following is an example of innovation statistics written to the log (standard output) of \verb|enkf_calc|:
 \begin{Verbatim}[frame=single,fontsize=\footnotesize]

@@ -38,7 +38,7 @@
 
 /**
  */
-static void addnoise(dasystem* das, int varid, float*** v)
+static void addnoise(dasystem* das, int varid, void* v)
 {
     model* m = das->m;
     double deflation = model_getvardeflation(m, varid);
@@ -62,11 +62,20 @@ static void addnoise(dasystem* das, int varid, float*** v)
 
     mult = (float) (sqrt(1.0 - deflation * deflation) * sigma);
     model_getvargridsize(m, varid, &ni, &nj, NULL);
-    for (e = 0; e < das->nmem; ++e) {
-        float* vv = v[e][0];
+    if (nj > 0) {
+        for (e = 0; e < das->nmem; ++e) {
+            float* vv = ((float***) v)[e][0];
 
-        for (i = 0; i < ni * nj; ++i)
-            vv[i] = vv[i] * (float) deflation + mult * random[e];
+            for (i = 0; i < ni * nj; ++i)
+                vv[i] = vv[i] * (float) deflation + mult * random[e];
+        }
+    } else {
+        for (e = 0; e < das->nmem; ++e) {
+            float* vv = ((float**) v)[e];
+
+            for (i = 0; i < ni; ++i)
+                vv[i] = vv[i] * (float) deflation + mult * random[e];
+        }
     }
 
     free(random);
@@ -84,10 +93,11 @@ static void das_updatefields(dasystem* das, int nfields, void** fieldbuffer, fie
     void* g = model_getvargrid(m, fields[0].varid);
     int gridid = grid_getid(g);
     int stride = grid_getstride(g);
-    int** nlevels = grid_getnumlevels(g);
+    void* nlevels = grid_getnumlevels(g);
     int surfk = grid_getsurflayerid(g);
     int periodic_i = grid_isperiodic_i(g);
     int writeinflation = das->updatespec & UPDATE_DOINFLATION;
+    int structured = 1;
 
     /*
      * T
@@ -108,7 +118,7 @@ static void das_updatefields(dasystem* das, int nfields, void** fieldbuffer, fie
 
     float* v_f = NULL;          /* v_f = E_f(i, :) */
     float* v_a = NULL;          /* v_a = E_a(i, :) */
-    float* infl = NULL;
+    void* infl = NULL;
 
     int mni, mnj;
     int ni, nj;
@@ -119,6 +129,14 @@ static void das_updatefields(dasystem* das, int nfields, void** fieldbuffer, fie
     assert(das->mode == MODE_ENKF || das->mode == MODE_HYBRID);
 
     grid_getsize(g, &mni, &mnj, NULL);
+    /*
+     * a treatment for unstructured grids
+     */
+    if (mnj <= 0) {
+        mnj = mni;
+        mni = 1;
+        structured = 0;
+    }
 
     das_getfname_transforms(das, gridid, fname);
 
@@ -162,7 +180,7 @@ static void das_updatefields(dasystem* das, int nfields, void** fieldbuffer, fie
     v_f = malloc(nmem * sizeof(float));
     v_a = malloc(nmem_dynamic * sizeof(float));
     if (writeinflation)
-        infl = malloc(mni * sizeof(float));
+        infl = (structured) ? malloc(mni * sizeof(float)) : alloc2d(nfields, mnj, sizeof(float));
 
     /*
      * jj, ii are the indices of the subsampled grid; i, j are the indices
@@ -267,7 +285,7 @@ static void das_updatefields(dasystem* das, int nfields, void** fieldbuffer, fie
                 double inf_ratio = NAN;
 
                 model_getvarinflation(m, f->varid, &inflation0, &inf_ratio);
-                if (writeinflation)
+                if (writeinflation && structured)
                     memset(infl, 0, mni * sizeof(float));
 
                 for (i = 0; i < mni; ++i) {
@@ -281,17 +299,33 @@ static void das_updatefields(dasystem* das, int nfields, void** fieldbuffer, fie
                      * modify as soon as we encounter a Z model with layers
                      * counted up from the bottom.
                      */
-                    if (surfk == 0) {
-                        if (nlevels[j][i] <= f->level) {
-                            for (e = 0; e < nmem; ++e)
-                                vvv[e][j][i] = 0.0f;
-                            continue;
+                    if (structured == 1) {
+                        if (surfk == 0) {
+                            if (((int**) nlevels)[j][i] <= f->level) {
+                                for (e = 0; e < nmem; ++e)
+                                    ((float***) vvv)[e][j][i] = 0.0f;
+                                continue;
+                            }
+                        } else {
+                            if (((int**) nlevels)[j][i] <= surfk - f->level) {
+                                for (e = 0; e < nmem; ++e)
+                                    ((float***) vvv)[e][j][i] = 0.0f;
+                                continue;
+                            }
                         }
                     } else {
-                        if (nlevels[j][i] <= surfk - f->level) {
-                            for (e = 0; e < nmem; ++e)
-                                vvv[e][j][i] = 0.0f;
-                            continue;
+                        if (surfk == 0) {
+                            if (((int*) nlevels)[j] <= f->level) {
+                                for (e = 0; e < nmem; ++e)
+                                    ((float**) vvv)[e][j] = 0.0f;
+                                continue;
+                            }
+                        } else {
+                            if (((int*) nlevels)[j] <= surfk - f->level) {
+                                for (e = 0; e < nmem; ++e)
+                                    ((float**) vvv)[e][j] = 0.0f;
+                                continue;
+                            }
                         }
                     }
 
@@ -304,22 +338,41 @@ static void das_updatefields(dasystem* das, int nfields, void** fieldbuffer, fie
                      * otherwise it may be a bit tiresome to handle all
                      * variations.) 
                      */
-                    for (e = 0; e < nmem; ++e)
-                        if (!isfinite(vvv[e][j][i]) || fabsf(vvv[e][j][i]) > (float) MAXOBSVAL)
-                            break;
-                    if (e < nmem_dynamic) {
+                    if (structured == 1) {
                         for (e = 0; e < nmem; ++e)
-                            vvv[e][j][i] = 0.0f;
-                        continue;
-                    } else if (e < nmem) {
-                        for (e = nmem_dynamic; e < nmem; ++e)
-                            vvv[e][j][i] = 0.0f;
-                        if (nmem_dynamic == 0)
+                            if (!isfinite(((float***) vvv)[e][j][i]) || fabsf(((float***) vvv)[e][j][i]) > (float) MAXOBSVAL)
+                                break;
+                        if (e < nmem_dynamic) {
+                            for (e = 0; e < nmem; ++e)
+                                vvv[e][j][i] = 0.0f;
                             continue;
-                    }
+                        } else if (e < nmem) {
+                            for (e = nmem_dynamic; e < nmem; ++e)
+                                vvv[e][j][i] = 0.0f;
+                            if (nmem_dynamic == 0)
+                                continue;
+                        }
 
-                    for (e = 0; e < nmem; ++e)
-                        v_f[e] = vvv[e][j][i];
+                        for (e = 0; e < nmem; ++e)
+                            v_f[e] = ((float***) vvv)[e][j][i];
+                    } else {
+                        for (e = 0; e < nmem; ++e)
+                            if (!isfinite(((float**) vvv)[e][j]) || fabsf(((float**) vvv)[e][j]) > (float) MAXOBSVAL)
+                                break;
+                        if (e < nmem_dynamic) {
+                            for (e = 0; e < nmem; ++e)
+                                ((float**) vvv)[e][j] = 0.0f;
+                            continue;
+                        } else if (e < nmem) {
+                            for (e = nmem_dynamic; e < nmem; ++e)
+                                ((float**) vvv)[e][j] = 0.0f;
+                            if (nmem_dynamic == 0)
+                                continue;
+                        }
+
+                        for (e = 0; e < nmem; ++e)
+                            v_f[e] = ((float**) vvv)[e][j];
+                    }
 
                     /*
                      * E^a(i, :) = E^f(i, :) * X5
@@ -413,35 +466,67 @@ static void das_updatefields(dasystem* das, int nfields, void** fieldbuffer, fie
                     for (e = 0; e < nmem_dynamic; ++e)
                         v_f[e] += v1_f;
 
-                    if (!(das->updatespec & UPDATE_OUTPUTINC))
-                        for (e = 0; e < nmem_dynamic; ++e)
-                            vvv[e][j][i] = v_a[e];
-                    else {
-                        if (!applylog)
+                    if (structured == 1) {
+                        if (!(das->updatespec & UPDATE_OUTPUTINC))
                             for (e = 0; e < nmem_dynamic; ++e)
-                                vvv[e][j][i] = v_a[e] - v_f[e];
-                        else
-                            for (e = 0; e < nmem_dynamic; ++e) {
-                                if (!isnormal(v_f[e]))
-                                    vvv[e][j][i] = 0.0;
-                                else
-                                    /*
-                                     * it is necessary to take care that in this
-                                     * case (--output-increment) the variable
-                                     * is not transformed again during writing
-                                     */
-                                    vvv[e][j][i] = exp10(v_a[e]) - exp10(v_f[e]);
-                            }
+                                ((float***) vvv)[e][j][i] = v_a[e];
+                        else {
+                            if (!applylog)
+                                for (e = 0; e < nmem_dynamic; ++e)
+                                    ((float***) vvv)[e][j][i] = v_a[e] - v_f[e];
+                            else
+                                for (e = 0; e < nmem_dynamic; ++e) {
+                                    if (!isnormal(v_f[e]))
+                                        ((float***) vvv)[e][j][i] = 0.0;
+                                    else
+                                        /*
+                                         * it is necessary to take care that in
+                                         * this case (--output-increment) the
+                                         * variable is not transformed again
+                                         * during writing
+                                         */
+                                        ((float***) vvv)[e][j][i] = exp10(v_a[e]) - exp10(v_f[e]);
+                                }
+                        }
+                    } else {
+                        if (!(das->updatespec & UPDATE_OUTPUTINC))
+                            for (e = 0; e < nmem_dynamic; ++e)
+                                ((float**) vvv)[e][j] = v_a[e];
+                        else {
+                            if (!applylog)
+                                for (e = 0; e < nmem_dynamic; ++e)
+                                    ((float**) vvv)[e][j] = v_a[e] - v_f[e];
+                            else
+                                for (e = 0; e < nmem_dynamic; ++e) {
+                                    if (!isnormal(v_f[e]))
+                                        ((float**) vvv)[e][j] = 0.0;
+                                    else
+                                        /*
+                                         * it is necessary to take care that in
+                                         * this case (--output-increment) the
+                                         * variable is not transformed again
+                                         * during writing
+                                         */
+                                        ((float**) vvv)[e][j] = exp10(v_a[e]) - exp10(v_f[e]);
+                                }
+                        }
                     }
 
-                    if (writeinflation)
-                        infl[i] = inflation;
+                    if (writeinflation) {
+                        if (structured)
+                            ((float*) infl)[i] = inflation;
+                        else
+                            ((float**) infl)[fid][j] = inflation;
+                    }
                 }               /* for i */
-                if (writeinflation)
+                if (writeinflation && structured)
                     das_writeinflation(das, f, j, infl);
             }                   /* for fid */
         }                       /* for stepj */
     }                           /* for jj */
+    if (writeinflation && !structured)
+        for (fid = 0; fid < nfields; ++fid)
+            das_writeinflation(das, &fields[fid], -1, ((float**) infl)[fid]);
 
     ncw_close(ncid);
 
@@ -487,9 +572,10 @@ static void das_updatebg(dasystem* das, int nfields, void** fieldbuffer, field f
     void* g = model_getvargrid(m, fields[0].varid);
     int gridid = grid_getid(g);
     int stride = grid_getstride(g);
-    int** nlevels = grid_getnumlevels(g);
+    void* nlevels = grid_getnumlevels(g);
     int surfk = grid_getsurflayerid(g);
     int periodic_i = grid_isperiodic_i(g);
+    int structured = 1;
 
     char fname[MAXSTRLEN];
     int ncid;
@@ -608,48 +694,90 @@ static void das_updatebg(dasystem* das, int nfields, void** fieldbuffer, field f
 
             for (fid = 0; fid < nfields; ++fid) {
                 field* f = &fields[fid];
-                float*** vvv = (float***) fieldbuffer[fid];
+                void* vvv = fieldbuffer[fid];
 
                 for (i = 0; i < mni; ++i) {
                     float xmean = 0.0f;
 
-                    if (surfk == 0) {
-                        if (nlevels[j][i] <= f->level) {
-                            vvv[nmem][j][i] = 0.0f;
+                    if (structured == 1) {
+                        if (surfk == 0) {
+                            if (((int**) nlevels)[j][i] <= f->level) {
+                                ((float***) vvv)[nmem][j][i] = 0.0f;
+                                continue;
+                            }
+                        } else {
+                            if (((int**) nlevels)[j][i] <= surfk - f->level) {
+                                ((float***) vvv)[nmem][j][i] = 0.0f;
+                                continue;
+                            }
+                        }
+                        /*
+                         * assume that if |value| > MAXOBSVAL, then it is filled
+                         * with the missing value 
+                         */
+                        if (fabsf(((float***) vvv)[nmem][j][i]) > (float) MAXOBSVAL) {
+                            ((float***) vvv)[nmem][j][i] = 0.0f;
                             continue;
                         }
+                        for (e = 0; e < nmem; ++e)
+                            if (fabsf(((float***) vvv)[e][j][i]) > (float) MAXOBSVAL)
+                                break;
+                        if (e < nmem) {
+                            ((float***) vvv)[nmem][j][i] = 0.0f;
+                            continue;
+                        }
+
+                        for (e = 0; e < nmem; ++e)
+                            xmean += ((float***) vvv)[e][j][i];
+                        xmean /= (float) nmem;
+
+                        /*
+                         * (the case das->updatespec & UPDATE_OUTPUTINC > 0 is
+                         * handled by setting vvv[nmem][][] to zero in
+                         * das_update())
+                         */
+                        for (e = 0; e < nmem; ++e)
+                            ((float***) vvv)[nmem][j][i] += (((float***) vvv)[e][j][i] - xmean) * wj[i][e];
                     } else {
-                        if (nlevels[j][i] <= surfk - f->level) {
-                            vvv[nmem][j][i] = 0.0f;
+                        if (surfk == 0) {
+                            if (((int*) nlevels)[j] <= f->level) {
+                                ((float**) vvv)[nmem][j] = 0.0f;
+                                continue;
+                            }
+                        } else {
+                            if (((int*) nlevels)[j] <= surfk - f->level) {
+                                ((float**) vvv)[nmem][j] = 0.0f;
+                                continue;
+                            }
+                        }
+                        /*
+                         * assume that if |value| > MAXOBSVAL, then it is filled
+                         * with the missing value 
+                         */
+                        if (fabsf(((float**) vvv)[nmem][j]) > (float) MAXOBSVAL) {
+                            ((float**) vvv)[nmem][j] = 0.0f;
                             continue;
                         }
-                    }
-                    /*
-                     * assume that if |value| > MAXOBSVAL, then it is filled
-                     * with the missing value 
-                     */
-                    if (fabsf(vvv[nmem][j][i]) > (float) MAXOBSVAL) {
-                        vvv[nmem][j][i] = 0.0f;
-                        continue;
-                    }
-                    for (e = 0; e < nmem; ++e)
-                        if (fabsf(vvv[e][j][i]) > (float) MAXOBSVAL)
-                            break;
-                    if (e < nmem) {
-                        vvv[nmem][j][i] = 0.0f;
-                        continue;
-                    }
+                        for (e = 0; e < nmem; ++e)
+                            if (fabsf(((float**) vvv)[e][j]) > (float) MAXOBSVAL)
+                                break;
+                        if (e < nmem) {
+                            ((float**) vvv)[nmem][j] = 0.0f;
+                            continue;
+                        }
 
-                    for (e = 0; e < nmem; ++e)
-                        xmean += vvv[e][j][i];
-                    xmean /= (float) nmem;
+                        for (e = 0; e < nmem; ++e)
+                            xmean += ((float**) vvv)[e][j];
+                        xmean /= (float) nmem;
 
-                    /*
-                     * (the case das->updatespec & UPDATE_OUTPUTINC > 0 is
-                     * handled by setting vvv[nmem][][] to zero in das_update())
-                     */
-                    for (e = 0; e < nmem; ++e)
-                        vvv[nmem][j][i] += (vvv[e][j][i] - xmean) * wj[i][e];
+                        /*
+                         * (the case das->updatespec & UPDATE_OUTPUTINC > 0 is
+                         * handled by setting vvv[nmem][][] to zero in
+                         * das_update())
+                         */
+                        for (e = 0; e < nmem; ++e)
+                            ((float**) vvv)[nmem][j] += (((float**) vvv)[e][j] - xmean) * wj[j][e];
+                    }
                 }
             }
         }                       /* for stepj */
@@ -690,7 +818,7 @@ static void das_writefields_direct(dasystem* das, int nfields, void** fieldbuffe
                 char fname[MAXSTRLEN];
 
                 das_getmemberfname(das, f->varname, e + 1, fname);
-                model_writefieldas(das->m, fname, varname, f->varname, f->level, ((float***) fieldbuffer[i])[e][0], 0);
+                model_writefieldas(das->m, fname, varname, f->varname, f->level, (f->structured) ? ((float***) fieldbuffer[i])[e][0] : ((float**) fieldbuffer[i])[e], 0);
             }
         }
     } else {
@@ -703,10 +831,10 @@ static void das_writefields_direct(dasystem* das, int nfields, void** fieldbuffe
                 das_getmemberfname(das, f->varname, e + 1, fname);
                 if (!(das->updatespec & UPDATE_OUTPUTINC)) {
                     strncat(fname, ".analysis", MAXSTRLEN - 1);
-                    model_writefield(das->m, fname, f->varname, f->level, ((float***) fieldbuffer[i])[e][0], 0);
+                    model_writefield(das->m, fname, f->varname, f->level, (f->structured) ? ((float***) fieldbuffer[i])[e][0] : ((float**) fieldbuffer[i])[e], 0);
                 } else {
                     strncat(fname, ".increment", MAXSTRLEN - 1);
-                    model_writefield(das->m, fname, f->varname, f->level, ((float***) fieldbuffer[i])[e][0], 1);
+                    model_writefield(das->m, fname, f->varname, f->level, (f->structured) ? ((float***) fieldbuffer[i])[e][0] : ((float**) fieldbuffer[i])[e], 1);
                 }
             }
         }
@@ -735,15 +863,20 @@ static void das_writefields_toassemble(dasystem* das, int nfields, void** fieldb
 
         ncw_create(fname, NC_CLOBBER | das->ncformat, &ncid);
         ncw_def_dim(ncid, "m", das->nmem, &dimids[0]);
-        ncw_def_dim(ncid, "nj", nj, &dimids[1]);
-        ncw_def_dim(ncid, "ni", ni, &dimids[2]);
-        ncw_def_var(ncid, f->varname, NC_FLOAT, 3, dimids, &vid);
+        if (f->structured) {
+            ncw_def_dim(ncid, "nj", nj, &dimids[1]);
+            ncw_def_dim(ncid, "ni", ni, &dimids[2]);
+            ncw_def_var(ncid, f->varname, NC_FLOAT, 3, dimids, &vid);
+        } else {
+            ncw_def_dim(ncid, "ni", ni, &dimids[1]);
+            ncw_def_var(ncid, f->varname, NC_FLOAT, 2, dimids, &vid);
+        }
 #if defined(DEFLATE_ALL)
         if (das->nccompression > 0)
             ncw_def_deflate(ncid, 0, 1, das->nccompression);
 #endif
         ncw_enddef(ncid);
-        ncw_put_var_float(ncid, vid, ((float***) fieldbuffer[i])[0][0]);
+        ncw_put_var_float(ncid, vid, (f->structured) ? ((float***) fieldbuffer[i])[0][0] : ((float**) fieldbuffer[i])[0]);
         ncw_close(ncid);
     }
 }
@@ -782,7 +915,7 @@ static void das_writebg_direct(dasystem* das, int nfields, void** fieldbuffer, f
                 strncat(varname, "_an", NC_MAX_NAME - 1);
             else
                 strncat(varname, "_inc", NC_MAX_NAME - 1);
-            model_writefield(m, fname, varname, f->level, ((float***) fieldbuffer[i])[das->nmem][0], 0);
+            model_writefield(m, fname, varname, f->level, (f->structured) ? ((float***) fieldbuffer[i])[das->nmem][0] : ((float**) fieldbuffer[i])[das->nmem], 0);
         }
     } else {
         for (i = 0; i < nfields; ++i) {
@@ -794,7 +927,7 @@ static void das_writebg_direct(dasystem* das, int nfields, void** fieldbuffer, f
                 strncat(fname, ".analysis", MAXSTRLEN - 1);
             else
                 strncat(fname, ".increment", MAXSTRLEN - 1);
-            model_writefield(m, fname, f->varname, f->level, ((float***) fieldbuffer[i])[das->nmem][0], 0);
+            model_writefield(m, fname, f->varname, f->level, (f->structured) ? ((float***) fieldbuffer[i])[das->nmem][0] : ((float**) fieldbuffer[i])[das->nmem], 0);
         }
     }
 }
@@ -820,9 +953,14 @@ static void das_writebg_toassemble(dasystem* das, int nfields, void** fieldbuffe
             int vid;
 
             ncw_create(fname, NC_CLOBBER | das->ncformat, &ncid);
-            ncw_def_dim(ncid, "nj", nj, &dimids[0]);
-            ncw_def_dim(ncid, "ni", ni, &dimids[1]);
-            ncw_def_var(ncid, f->varname, NC_FLOAT, 2, dimids, &vid);
+            if (f->structured) {
+                ncw_def_dim(ncid, "nj", nj, &dimids[0]);
+                ncw_def_dim(ncid, "ni", ni, &dimids[1]);
+                ncw_def_var(ncid, f->varname, NC_FLOAT, 2, dimids, &vid);
+            } else {
+                ncw_def_dim(ncid, "ni", ni, &dimids[0]);
+                ncw_def_var(ncid, f->varname, NC_FLOAT, 1, dimids, &vid);
+            }
 #if defined(DEFLATE_ALL)
             if (das->nccompression > 0)
                 ncw_def_deflate(ncid, 0, 1, das->nccompression);
@@ -834,7 +972,7 @@ static void das_writebg_toassemble(dasystem* das, int nfields, void** fieldbuffe
          * ignorelog = 1 here, as it will be handled during assembling if
          * necessary
          */
-        model_writefield(das->m, fname, f->varname, f->level, ((float***) fieldbuffer[i])[das->nmem][0], 1);
+        model_writefield(das->m, fname, f->varname, f->level, (f->structured) ? ((float***) fieldbuffer[i])[das->nmem][0] : ((float**) fieldbuffer[i])[das->nmem], 1);
     }
 }
 
@@ -873,11 +1011,15 @@ static void das_assemblemembers(dasystem* das)
 
         enkf_printf("    %s:", varname);
         das_getmemberfname(das, varname, 1, fname_dst);
-        nlev = ncu_getnlevels(fname_dst, varname);
         strncpy(varname_dst, varname, NC_MAX_NAME - 1);
 
         grid_getsize(g, &ni, &nj, NULL);
-        v = malloc(ni * nj * sizeof(float));
+        if (nj > 0)
+            v = malloc(ni * nj * sizeof(float));
+        else
+            v = malloc(ni * sizeof(float));
+
+        nlev = ncu_getnlevels(fname_dst, varname, nj > 0);
 
         for (e = my_first_iteration; e <= my_last_iteration; ++e) {
             das_getmemberfname(das, varname, e + 1, fname_dst);
@@ -898,6 +1040,9 @@ static void das_assemblemembers(dasystem* das)
                 int ncid_src, vid_src;
                 size_t start[3] = { e, 0, 0 };
                 size_t count[3] = { 1, nj, ni };
+
+                if (nj <= 0)
+                    count[1] = ni;
 
                 getfieldfname(DIRNAME_TMP, "ens", varname, (nlev > 1) ? k : grid_getsurflayerid(g), fname_src);
                 ncw_open(fname_src, NC_NOWRITE, &ncid_src);
@@ -926,16 +1071,14 @@ static void das_assemblemembers(dasystem* das)
     if (rank == 0) {
         for (i = 0; i < nvar; ++i) {
             char* varname = model_getvarname(m, i);
+            grid* g = model_getvargrid(m, i);
             char fname[MAXSTRLEN];
             int nlev, k;
 
             das_getmemberfname(das, varname, 1, fname);
-            nlev = ncu_getnlevels(fname, varname);
+            nlev = ncu_getnlevels(fname, varname, grid_isstructured(g));
             for (k = 0; k < nlev; ++k) {
-                if (nlev > 1)
-                    getfieldfname(DIRNAME_TMP, "ens", varname, k, fname);
-                else
-                    getfieldfname(DIRNAME_TMP, "ens", varname, grid_getsurflayerid(model_getvargrid(m, i)), fname);
+                getfieldfname(DIRNAME_TMP, "ens", varname, (nlev == 1) ? grid_getsurflayerid(g) : k, fname);
                 file_delete(fname);
             }
         }
@@ -978,17 +1121,17 @@ static void das_assemblebg(dasystem* das)
         }
 
         model_getvargridsize(m, i, &ni, &nj, NULL);
-        v = malloc(ni * nj * sizeof(float));
+        if (nj > 0)
+            v = malloc(ni * nj * sizeof(float));
+        else
+            v = malloc(ni * sizeof(float));
 
-        nlev = ncu_getnlevels(fname_dst, varname);
+        nlev = ncu_getnlevels(fname_dst, varname, nj > 0);
         for (k = 0; k < nlev; ++k) {
             char fname_src[MAXSTRLEN];
             int ncid_src, vid_src;
 
-            if (nlev > 1)
-                getfieldfname(DIRNAME_TMP, "bg", varname, k, fname_src);
-            else
-                getfieldfname(DIRNAME_TMP, "bg", varname, grid_getsurflayerid(model_getvargrid(m, i)), fname_src);
+            getfieldfname(DIRNAME_TMP, "bg", varname, k, fname_src);
             ncw_open(fname_src, NC_NOWRITE, &ncid_src);
             ncw_inq_varid(ncid_src, varname, &vid_src);
             ncw_get_var_float(ncid_src, vid_src, v);
@@ -1238,19 +1381,36 @@ void das_update(dasystem* das)
             continue;
 
         fieldbuffer = malloc(das->fieldbufsize * sizeof(void*));
-        if (das->mode == MODE_ENKF) {
-            for (i = 0; i < das->fieldbufsize; ++i)
-                fieldbuffer[i] = alloc3d(das->nmem, mnj, mni, sizeof(float));
-        } else if (das->mode == MODE_ENOI) {
-            for (i = 0; i < das->fieldbufsize; ++i)
-                fieldbuffer[i] = alloc3d(das->nmem + 1, mnj, mni, sizeof(float));
-        } else if (das->mode == MODE_HYBRID) {
-            /*
-             * allocate two additional members to calculate ensemble mean with
-             * double precision
-             */
-            for (i = 0; i < das->fieldbufsize; ++i)
-                fieldbuffer[i] = alloc3d(das->nmem + 2, mnj, mni, sizeof(float));
+        if (mnj > 0) {
+            if (das->mode == MODE_ENKF) {
+                for (i = 0; i < das->fieldbufsize; ++i)
+                    fieldbuffer[i] = alloc3d(das->nmem, mnj, mni, sizeof(float));
+            } else if (das->mode == MODE_ENOI) {
+                for (i = 0; i < das->fieldbufsize; ++i)
+                    fieldbuffer[i] = alloc3d(das->nmem + 1, mnj, mni, sizeof(float));
+            } else if (das->mode == MODE_HYBRID) {
+                /*
+                 * allocate two additional members to calculate ensemble mean
+                 * with double precision
+                 */
+                for (i = 0; i < das->fieldbufsize; ++i)
+                    fieldbuffer[i] = alloc3d(das->nmem + 2, mnj, mni, sizeof(float));
+            }
+        } else {
+            if (das->mode == MODE_ENKF) {
+                for (i = 0; i < das->fieldbufsize; ++i)
+                    fieldbuffer[i] = alloc2d(das->nmem, mni, sizeof(float));
+            } else if (das->mode == MODE_ENOI) {
+                for (i = 0; i < das->fieldbufsize; ++i)
+                    fieldbuffer[i] = alloc2d(das->nmem + 1, mni, sizeof(float));
+            } else if (das->mode == MODE_HYBRID) {
+                /*
+                 * allocate two additional members to calculate ensemble mean
+                 * with double precision
+                 */
+                for (i = 0; i < das->fieldbufsize; ++i)
+                    fieldbuffer[i] = alloc2d(das->nmem + 2, mni, sizeof(float));
+            }
         }
         for (fid = my_first_iteration; fid <= my_last_iteration; ++fid) {
             int bufid = (fid - my_first_iteration) % das->fieldbufsize;
@@ -1266,15 +1426,16 @@ void das_update(dasystem* das)
                 int masklog = das_isstatic(das, e + 1);
 
                 das_getmemberfname(das, f->varname, e + 1, fname);
-                model_readfield(das->m, fname, f->varname, f->level, ((float***) fieldbuffer[bufid])[e][0], masklog);
+                model_readfield(das->m, fname, f->varname, f->level, (f->structured) ? ((float***) fieldbuffer[bufid])[e][0] : ((float**) fieldbuffer[bufid])[e], masklog);
             }
 
             if (das->mode == MODE_HYBRID) {
                 float* v[das->nmem + 1];
 
                 for (e = 0; e < das->nmem + 1; ++e)
-                    v[e] = ((float***) fieldbuffer[bufid])[e][0];
-                das_sethybridensemble(das, mni * mnj, v);
+                    v[e] = (f->structured) ? ((float***) fieldbuffer[bufid])[e][0] : ((float**) fieldbuffer[bufid])[e];
+
+                das_sethybridensemble(das, (f->structured) ? mni * mnj : mni, v);
             }
 
             /*
@@ -1283,7 +1444,7 @@ void das_update(dasystem* das)
              */
             if (das->mode == MODE_ENOI && (((das->updatespec & UPDATE_DOFIELDS) && !(das->updatespec & UPDATE_OUTPUTINC)) || (das->updatespec & UPDATE_DOPLOGSAN))) {
                 das_getbgfname(das, f->varname, fname);
-                model_readfield(das->m, fname, f->varname, f->level, ((float***) fieldbuffer[bufid])[das->nmem][0], 0);
+                model_readfield(das->m, fname, f->varname, f->level, (f->structured) ? ((float***) fieldbuffer[bufid])[das->nmem][0] : ((float**) fieldbuffer[bufid])[das->nmem], 0);
             }
 
             if (bufid == das->fieldbufsize - 1 || fid == my_last_iteration) {

@@ -53,7 +53,7 @@ void ncu_set_quitfn(ncu_quit_fn quitfn)
 
 /**
  */
-int ncu_getnlevels(char fname[], char varname[])
+int ncu_getnlevels(char fname[], char varname[], int isstructured)
 {
     int ncid;
     int varid;
@@ -67,17 +67,31 @@ int ncu_getnlevels(char fname[], char varname[])
     hasrecorddim = (ncw_var_hasunlimdim(ncid, varid) || dimlen[0] == 1);
     ncw_close(ncid);
 
-    if (ndims > 4)
-        quit("%s: %s: do not know how to handle more than 4-dimensional variables\n", fname, varname);
-    if (ndims == 4) {
-        if (!hasrecorddim)
-            quit("%s: %s: expect an unlimited dimension to be present for a 4-dimensional variable\n", fname, varname);
-        return (int) dimlen[1];
+    if (isstructured) {
+        if (ndims > 4)
+            quit("%s: %s: do not know how to handle more than 4-dimensional variables\n", fname, varname);
+        if (ndims == 4) {
+            if (!hasrecorddim)
+                quit("%s: %s: expect an unlimited dimension to be present for a 4-dimensional variable\n", fname, varname);
+            return (int) dimlen[1];
+        }
+        if (ndims == 3)
+            return (hasrecorddim) ? 1 : (int) dimlen[0];
+        if (ndims == 2)
+            return (hasrecorddim) ? 0 : 1;
+    } else {
+        if (ndims > 3)
+            quit("%s: %s: EnKF-C does not know how to handle more than 3-dimensional variables on unstructured grids\n", fname, varname);
+        if (ndims == 3) {
+            if (!hasrecorddim)
+                quit("%s: %s: expect an unlimited dimension to be present for a 3-dimensional variable on unstructured grid\n", fname, varname);
+            return (int) dimlen[1];
+        }
+        if (ndims == 2)
+            return (hasrecorddim) ? 1 : (int) dimlen[0];
+        if (ndims == 1)
+            return (hasrecorddim) ? 0 : 1;
     }
-    if (ndims == 3)
-        return (hasrecorddim) ? 1 : (int) dimlen[0];
-    if (ndims == 2)
-        return (hasrecorddim) ? 0 : 1;
 
     return 0;
 }
@@ -101,18 +115,23 @@ void ncu_readfield(char fname[], char varname[], int k, int ni, int nj, int nk, 
     hasrecorddim = ncw_var_hasunlimdim(ncid, varid);
     if (hasrecorddim)
         if (dimlen[0] == 0)
-            quit("%s: %s: empty record dimension", fname, varname);
+            quit("ncu_readfield(): \"%s\": %s: empty record dimension", fname, varname);
 
     if (ndims == 4) {
+        if (nj == 0) {
+            quit("ncu_readfield(): \"%s\": %s: expected positive \"j\" dimension for a 4-dimensional variable\n", fname, varname);
+        }
         if (!hasrecorddim && dimlen[0] != 1)
-            quit("%s: %s: for a 4-dimensional variable expected the first dimension to be either unlimited or of length 1\n", fname, varname);
+            quit("ncu_readfield(): \"%s\": %s: for a 4-dimensional variable expected the first dimension to be either unlimited or of length 1\n", fname, varname);
         start[0] = dimlen[0] - 1;
         if (dimlen[1] != nk) {
             if (dimlen[1] != 1)
-                quit("\"%s\": vertical dimension of variable \"%s\" (nk = %d) does not match grid dimension (nk = %d)", fname, varname, dimlen[1], nk);
+                quit("ncu_readfield(): \"%s\": vertical dimension of variable \"%s\" (nk = %d) does not match grid dimension (nk = %d)", fname, varname, dimlen[1], nk);
             else
                 k = 0;          /* ignore k */
         }
+        if (dimlen[3] != ni || dimlen[2] != nj)
+            quit("ncu_readfield(): \"%s\": horizontal dimensions of variable \"%s\" (ni = %d, nj = %d) do not match grid dimensions (ni = %d, nj = %d)", fname, varname, dimlen[3], dimlen[2], ni, nj);
         start[1] = k;
         start[2] = 0;
         start[3] = 0;
@@ -120,45 +139,95 @@ void ncu_readfield(char fname[], char varname[], int k, int ni, int nj, int nk, 
         count[1] = 1;
         count[2] = dimlen[2];
         count[3] = dimlen[3];
-        if (dimlen[3] != ni || dimlen[2] != nj)
-            quit("\"%s\": horizontal dimensions of variable \"%s\" (ni = %d, nj = %d) do not match grid dimensions (ni = %d, nj = %d)", fname, varname, dimlen[3], dimlen[2], ni, nj);
     } else if (ndims == 3) {
-        if (!hasrecorddim) {
-            if (dimlen[0] != nk && !(dimlen[0] == 1 && (k == 0 || k == nk - 1)))
-                quit("\"%s\": vertical dimension of variable \"%s\" (nk = %d) does not match grid dimension (nk = %d)", fname, varname, dimlen[0], nk);
-            start[0] = (dimlen[0] == 1) ? 0 : k;
-            start[1] = 0;
+        if (nj > 0) {
+            if (!hasrecorddim) {
+                if (dimlen[0] != nk && !(dimlen[0] == 1 && (k == 0 || k == nk - 1)))
+                    quit("ncu_readfield(): \"%s\": vertical dimension of variable \"%s\" (nk = %d) does not match grid dimension (nk = %d)", fname, varname, dimlen[0], nk);
+                start[0] = (dimlen[0] == 1) ? 0 : k;
+                start[1] = 0;
+                start[2] = 0;
+                count[0] = 1;
+                count[1] = dimlen[1];
+                count[2] = dimlen[2];
+            } else {
+                /*
+                 * ignore k in this case
+                 */
+                start[0] = dimlen[0] - 1;
+                start[1] = 0;
+                start[2] = 0;
+                count[0] = 1;
+                count[1] = dimlen[1];
+                count[2] = dimlen[2];
+            }
+            if (dimlen[2] != ni || dimlen[1] != nj)
+                quit("ncu_readfield(): \"%s\": horizontal dimensions of variable \"%s\" (ni = %d, nj = %d) do not match grid dimensions (ni = %d, nj = %d)", fname, varname, dimlen[2], dimlen[1], ni, nj);
+        } else {
+            if (!hasrecorddim && dimlen[0] != 1)
+                quit("ncu_readfield(): \"%s\": %s: for a 3-dimensional variable on unstructured horizontal grid expected the first dimension to be either unlimited or of length 1\n", fname, varname);
+            start[0] = dimlen[0] - 1;
+            if (dimlen[1] != nk) {
+                if (dimlen[1] != 1)
+                    quit("ncu_readfield(): \"%s\": vertical dimension of variable \"%s\" (nk = %d) does not match grid dimension (nk = %d)", fname, varname, dimlen[1], nk);
+                else
+                    k = 0;      /* ignore k */
+            }
+            if (dimlen[2] != ni)
+                quit("ncu_readfield(): \"%s\": horizontal dimension of variable \"%s\" (ni = %d) does not match grid dimension (ni = %d)", fname, varname, dimlen[2], ni);
+            start[1] = k;
             start[2] = 0;
             count[0] = 1;
-            count[1] = dimlen[1];
+            count[1] = 1;
             count[2] = dimlen[2];
+        }
+    } else if (ndims == 2) {
+        if (nj > 0) {
+            if (hasrecorddim)
+                quit("ncu_readfield(): %s: can not read layer from a 1D variable \"%s\"", fname, varname);
+            /*
+             * ignore k
+             */
+            start[0] = 0;
+            start[1] = 0;
+            count[0] = dimlen[0];
+            count[1] = dimlen[1];
+            if (dimlen[1] != ni || dimlen[0] != nj)
+                quit("ncu_readfield(): \"%s\": horizontal dimensions of variable \"%s\" (ni = %d, nj = %d) do not match grid dimensions (ni = %d, nj = %d)", fname, varname, dimlen[1], dimlen[0], ni, nj);
         } else {
+            if (!hasrecorddim) {
+                if (dimlen[0] != nk && !(dimlen[0] == 1 && (k == 0 || k == nk - 1)))
+                    quit("ncu_readfield(): \"%s\": vertical dimension of variable \"%s\" (nk = %d) does not match grid dimension (nk = %d)", fname, varname, dimlen[0], nk);
+                start[0] = k;
+                start[1] = 0;
+                count[0] = 1;
+                count[1] = dimlen[1];
+            } else {
+                /*
+                 * ignore k in this case
+                 */
+                start[0] = dimlen[0] - 1;
+                start[1] = 0;
+                count[0] = 1;
+                count[1] = dimlen[1];
+            }
+            if (dimlen[1] != ni)
+                quit("ncu_readfield(): \"%s\": horizontal dimension of variable \"%s\" (ni = %d) does not match grid dimension (ni = %d)", fname, varname, dimlen[1], ni);
+        }
+    } else if (ndims == 1) {
+        if (nj > 0) {
+            quit("ncu_readfield(): %s: can not read 2D field for \"%s\": # of dimensions = %d", fname, varname, ndims);
+        } else {
+            if (hasrecorddim)
+                quit("ncu_readfield(): %s: can not read layer from a 0D variable \"%s\"", fname, varname);
             /*
              * ignore k in this case
              */
-            start[0] = dimlen[0] - 1;
-            start[1] = 0;
-            start[2] = 0;
-            count[0] = 1;
-            count[1] = dimlen[1];
-            count[2] = dimlen[2];
+            start[0] = 0;
+            count[0] = dimlen[0];
         }
-        if (dimlen[2] != ni || dimlen[1] != nj)
-            quit("\"%s\": horizontal dimensions of variable \"%s\" (ni = %d, nj = %d) do not match grid dimensions (ni = %d, nj = %d)", fname, varname, dimlen[2], dimlen[1], ni, nj);
-    } else if (ndims == 2) {
-        if (hasrecorddim)
-            quit("%s: can not read a layer from a 1D variable \"%s\"", fname, varname);
-        /*
-         * ignore k
-         */
-        start[0] = 0;
-        start[1] = 0;
-        count[0] = dimlen[0];
-        count[1] = dimlen[1];
-        if (dimlen[1] != ni || dimlen[0] != nj)
-            quit("\"%s\": horizontal dimensions of variable \"%s\" (ni = %d, nj = %d) do not match grid dimensions (ni = %d, nj = %d)", fname, varname, dimlen[1], dimlen[0], ni, nj);
     } else
-        quit("%s: can not read 2D field for \"%s\": # of dimensions = %d", fname, varname, ndims);
+        quit("ncu_readfield(): %s: can not read 2D field for \"%s\": # of dimensions = %d", fname, varname, ndims);
 
     ncw_get_vara_float(ncid, varid, start, count, v);
 
@@ -421,11 +490,13 @@ void ncu_writefield(char fname[], char varname[], int k, int ni, int nj, int nk,
     hasrecorddim = ncw_var_hasunlimdim(ncid, varid);
 
     if (ndims == 4) {
+        if (nj == 0)
+            quit("ncu_writefield(): \"%s\": %s: expected positive \"j\" dimension for a 4-dimensional variable\n", fname, varname);
         if (!hasrecorddim && dimlen[0] != 1)
-            quit("%s: %s: for a 4-dimensional variable expected the first dimension to be either unlimited or of length 1\n", fname, varname);
+            quit("ncu_writefield(): \"%s\": %s: for a 4-dimensional variable expected the first dimension to be either unlimited or of length 1\n", fname, varname);
         start[0] = (dimlen[0] == 0) ? 0 : dimlen[0] - 1;
         if (dimlen[1] != nk)
-            quit("\"%s\": vertical dimension of variable \"%s\" (nk = %d) does not match grid dimension (nk = %d)", fname, varname, dimlen[1], nk);
+            quit("ncu_writefield(): \"%s\": vertical dimension of variable \"%s\" (nk = %d) does not match grid dimension (nk = %d)", fname, varname, dimlen[1], nk);
         start[1] = k;
         start[2] = 0;
         start[3] = 0;
@@ -434,44 +505,96 @@ void ncu_writefield(char fname[], char varname[], int k, int ni, int nj, int nk,
         count[2] = dimlen[2];
         count[3] = dimlen[3];
         if (dimlen[3] != ni || dimlen[2] != nj)
-            quit("\"%s\": horizontal dimensions of variable \"%s\" (ni = %d, nj = %d) do not match grid dimensions (ni = %d, nj = %d)", fname, varname, dimlen[3], dimlen[2], ni, nj);
+            quit("ncu_writefield(): \"%s\": horizontal dimensions of variable \"%s\" (ni = %d, nj = %d) do not match grid dimensions (ni = %d, nj = %d)", fname, varname, dimlen[3], dimlen[2], ni, nj);
     } else if (ndims == 3) {
-        if (!hasrecorddim) {
-            if (dimlen[0] != nk && !(dimlen[0] == 1 && (k == 0 || k == nk - 1)))
-                quit("\"%s\": vertical dimension of variable \"%s\" (nk = %d) does not match grid dimension (nk = %d)", fname, varname, dimlen[0], nk);
-            start[0] = k;
-            start[1] = 0;
-            start[2] = 0;
-            count[0] = 1;
-            count[1] = dimlen[1];
-            count[2] = dimlen[2];
+        if (nj > 0) {
+            if (!hasrecorddim) {
+                if (dimlen[0] != nk && !(dimlen[0] == 1 && (k == 0 || k == nk - 1)))
+                    quit("ncu_writefield(): \"%s\": vertical dimension of variable \"%s\" (nk = %d) does not match grid dimension (nk = %d)", fname, varname, dimlen[0], nk);
+                start[0] = k;
+                start[1] = 0;
+                start[2] = 0;
+                count[0] = 1;
+                count[1] = dimlen[1];
+                count[2] = dimlen[2];
+            } else {
+                /*
+                 * 2D variable, ignore k
+                 */
+                start[0] = (dimlen[0] == 0) ? 0 : dimlen[0] - 1;
+                start[1] = 0;
+                start[2] = 0;
+                count[0] = 1;
+                count[1] = dimlen[1];
+                count[2] = dimlen[2];
+            }
+            if (dimlen[2] != ni || dimlen[1] != nj)
+                quit("ncu_writefield(): \"%s\": horizontal dimensions of variable \"%s\" (ni = %d, nj = %d) do not match grid dimensions (ni = %d, nj = %d)", fname, varname, dimlen[2], dimlen[1], ni, nj);
         } else {
-            /*
-             * 2D variable, ignore k
-             */
+            if (!hasrecorddim && dimlen[0] != 1)
+                quit("ncu_writefield(): \"%s\": %s: for a 3-dimensional variable on unstructured horizontal grid expected the first dimension to be either unlimited or of length 1\n", fname, varname);
             start[0] = (dimlen[0] == 0) ? 0 : dimlen[0] - 1;
-            start[1] = 0;
+            if (dimlen[1] != nk) {
+                if (dimlen[1] != 1)
+                    quit("ncu_writefield(): \"%s\": vertical dimension of variable \"%s\" (nk = %d) does not match grid dimension (nk = %d)", fname, varname, dimlen[1], nk);
+                else
+                    k = 0;      /* ignore k */
+            }
+            if (dimlen[2] != ni)
+                quit("ncu_writefield(): \"%s\": horizontal dimension of variable \"%s\" (ni = %d) does not match grid dimension (ni = %d)", fname, varname, dimlen[2], ni);
+            start[1] = k;
             start[2] = 0;
             count[0] = 1;
-            count[1] = dimlen[1];
+            count[1] = 1;
             count[2] = dimlen[2];
         }
-        if (dimlen[2] != ni || dimlen[1] != nj)
-            quit("\"%s\": horizontal dimensions of variable \"%s\" (ni = %d, nj = %d) do not match grid dimensions (ni = %d, nj = %d)", fname, varname, dimlen[2], dimlen[1], ni, nj);
     } else if (ndims == 2) {
-        if (hasrecorddim)
-            quit("%s: can not write a layer from a 1D variable \"%s\"", fname, varname);
-        /*
-         * ignore k
-         */
-        start[0] = 0;
-        start[1] = 0;
-        count[0] = dimlen[0];
-        count[1] = dimlen[1];
-        if (dimlen[1] != ni || dimlen[0] != nj)
-            quit("\"%s\": horizontal dimensions of variable \"%s\" (ni = %d, nj = %d) do not match grid dimensions (ni = %d, nj = %d)", fname, varname, dimlen[1], dimlen[0], ni, nj);
+        if (nj > 0) {
+            if (hasrecorddim)
+                quit("ncu_writefield(): \"%s\": can not write a layer to a 1D variable \"%s\"", fname, varname);
+            /*
+             * ignore k
+             */
+            start[0] = 0;
+            start[1] = 0;
+            count[0] = dimlen[0];
+            count[1] = dimlen[1];
+            if (dimlen[1] != ni || dimlen[0] != nj)
+                quit("ncu_writefield(): \"%s\": horizontal dimensions of variable \"%s\" (ni = %d, nj = %d) do not match grid dimensions (ni = %d, nj = %d)", fname, varname, dimlen[1], dimlen[0], ni, nj);
+        } else {
+            if (!hasrecorddim) {
+                if (dimlen[0] != nk && !(dimlen[0] == 1 && (k == 0 || k == nk - 1)))
+                    quit("ncu_writefield(): \"%s\": vertical dimension of variable \"%s\" (nk = %d) does not match grid dimension (nk = %d)", fname, varname, dimlen[0], nk);
+                start[0] = k;
+                start[1] = 0;
+                count[0] = 1;
+                count[1] = dimlen[1];
+            } else {
+                /*
+                 * ignore k in this case
+                 */
+                start[0] = (dimlen[0] == 0) ? 0 : dimlen[0] - 1;
+                start[1] = 0;
+                count[0] = 1;
+                count[1] = dimlen[1];
+            }
+            if (dimlen[1] != ni)
+                quit("ncu_writefield(): \"%s\": horizontal dimension of variable \"%s\" (ni = %d) does not match grid dimension (ni = %d)", fname, varname, dimlen[1], ni);
+        }
+    } else if (ndims == 1) {
+        if (nj > 0) {
+            quit("ncu_writefield(): %s: can not write 2D field for \"%s\": # of dimensions = %d", fname, varname, ndims);
+        } else {
+            if (hasrecorddim)
+                quit("ncu_writefield(): %s: can not write layer to a 0D variable \"%s\"", fname, varname);
+            /*
+             * ignore k in this case
+             */
+            start[0] = 0;
+            count[0] = dimlen[0];
+        }
     } else
-        quit("%s: can not write 2D field for \"%s\": # of dimensions = %d", fname, varname, ndims);
+        quit("ncu_writefield(): \"%s\": can not write 2D field for \"%s\": # of dimensions = %d", fname, varname, ndims);
 
     n = 1;
     for (i = 0; i < ndims; ++i)
@@ -548,7 +671,7 @@ void ncu_writefield(char fname[], char varname[], int k, int ni, int nj, int nk,
 /** Writes one row of a horizontal field (layer) for a variable to a NetCDF
  *  file.
  */
-void ncu_writerow(char fname[], char varname[], int k, int j, float* v)
+void ncu_writerow(char fname[], char varname[], int k, int j, int ni, int nj, int nk, float* v)
 {
     int ncid;
     int varid;
@@ -564,11 +687,13 @@ void ncu_writerow(char fname[], char varname[], int k, int j, float* v)
     hasrecorddim = ncw_var_hasunlimdim(ncid, varid);
 
     if (ndims == 4) {
+        if (nj == 0)
+            quit("ncu_writerow(): \"%s\": %s: expected positive \"j\" dimension for a 4-dimensional variable\n", fname, varname);
         if (!hasrecorddim && dimlen[0] != 1)
             quit("%s: %s: for a 4-dimensional variable expected the first dimension to be either unlimited or of length 1\n", fname, varname);
-        if (k >= dimlen[1])
-            quit("%s: %s: the length of dimension 1 (%d) is not sufficient to read layer %d", fname, varname, dimlen[1], k);
         start[0] = (dimlen[0] == 0) ? 0 : dimlen[0] - 1;
+        if (dimlen[1] != nk)
+            quit("ncu_writerow(): \"%s\": vertical dimension of variable \"%s\" (nk = %d) does not match grid dimension (nk = %d)", fname, varname, dimlen[1], nk);
         start[1] = k;
         start[2] = j;
         start[3] = 0;
@@ -576,35 +701,95 @@ void ncu_writerow(char fname[], char varname[], int k, int j, float* v)
         count[1] = 1;
         count[2] = 1;
         count[3] = dimlen[3];
+        if (dimlen[3] != ni || dimlen[2] != nj)
+            quit("ncu_writerow(): \"%s\": horizontal dimensions of variable \"%s\" (ni = %d, nj = %d) do not match grid dimensions (ni = %d, nj = %d)", fname, varname, dimlen[3], dimlen[2], ni, nj);
     } else if (ndims == 3) {
-        if (!hasrecorddim) {
-            assert(k < dimlen[0]);
-            start[0] = k;
-            start[1] = j;
-            start[2] = 0;
-            count[0] = 1;
-            count[1] = 1;
-            count[2] = dimlen[2];
+        if (nj > 0) {
+            if (!hasrecorddim) {
+                if (dimlen[0] != nk && !(dimlen[0] == 1 && (k == 0 || k == nk - 1)))
+                    quit("ncu_writerow(): \"%s\": vertical dimension of variable \"%s\" (nk = %d) does not match grid dimension (nk = %d)", fname, varname, dimlen[0], nk);
+                start[0] = k;
+                start[1] = j;
+                start[2] = 0;
+                count[0] = 1;
+                count[1] = 1;
+                count[2] = dimlen[2];
+            } else {
+                /*
+                 * 2D variable, ignore k
+                 */
+                start[0] = (dimlen[0] == 0) ? 0 : dimlen[0] - 1;
+                start[1] = j;
+                start[2] = 0;
+                count[0] = 1;
+                count[1] = 1;
+                count[2] = dimlen[2];
+            }
+            if (dimlen[2] != ni || dimlen[1] != nj)
+                quit("ncu_writerow(): \"%s\": horizontal dimensions of variable \"%s\" (ni = %d, nj = %d) do not match grid dimensions (ni = %d, nj = %d)", fname, varname, dimlen[2], dimlen[1], ni, nj);
         } else {
-            /*
-             * 2D variable, ignore k
-             */
+            if (!hasrecorddim && dimlen[0] != 1)
+                quit("ncu_writerow(): \"%s\": %s: for a 3-dimensional variable on unstructured horizontal grid expected the first dimension to be either unlimited or of length 1\n", fname, varname);
             start[0] = (dimlen[0] == 0) ? 0 : dimlen[0] - 1;
-            start[1] = j;
-            start[2] = 0;
+            if (dimlen[1] != nk) {
+                if (dimlen[1] != 1)
+                    quit("ncu_writerow(): \"%s\": vertical dimension of variable \"%s\" (nk = %d) does not match grid dimension (nk = %d)", fname, varname, dimlen[1], nk);
+                else
+                    k = 0;      /* ignore k */
+            }
+            if (dimlen[2] != ni)
+                quit("ncu_writerow(): \"%s\": horizontal dimension of variable \"%s\" (ni = %d) does not match grid dimension (ni = %d)", fname, varname, dimlen[2], ni);
+            start[1] = k;
+            start[2] = j;
             count[0] = 1;
             count[1] = 1;
-            count[2] = dimlen[2];
+            count[2] = 1;
         }
     } else if (ndims == 2) {
-        if (hasrecorddim)
-            quit("%s: can not write a row %d to a 1D variable \"%s\"", fname, j, varname);
-        if (k > 0)
-            quit("%s: can not write layer %d row %d to a 2D variable \"%s\"", fname, k, j, varname);
-        start[0] = j;
-        start[1] = 0;
-        count[0] = 1;
-        count[1] = dimlen[1];
+        if (nj > 0) {
+            if (hasrecorddim)
+                quit("%s: can not write a row %d to a 1D variable \"%s\"", fname, j, varname);
+            /*
+             * ignore k
+             */
+            start[0] = j;
+            start[1] = 0;
+            count[0] = 1;
+            count[1] = dimlen[1];
+            if (dimlen[1] != ni || dimlen[0] != nj)
+                quit("ncu_writerow(): \"%s\": horizontal dimensions of variable \"%s\" (ni = %d, nj = %d) do not match grid dimensions (ni = %d, nj = %d)", fname, varname, dimlen[1], dimlen[0], ni, nj);
+        } else {
+            if (!hasrecorddim) {
+                if (dimlen[0] != nk && !(dimlen[0] == 1 && (k == 0 || k == nk - 1)))
+                    quit("ncu_writerow(): \"%s\": vertical dimension of variable \"%s\" (nk = %d) does not match grid dimension (nk = %d)", fname, varname, dimlen[0], nk);
+                start[0] = k;
+                start[1] = j;
+                count[0] = 1;
+                count[1] = 1;
+            } else {
+                /*
+                 * ignore k in this case
+                 */
+                start[0] = (dimlen[0] == 0) ? 0 : dimlen[0] - 1;
+                start[1] = j;
+                count[0] = 1;
+                count[1] = 1;
+            }
+            if (dimlen[1] != ni)
+                quit("ncu_writerow(): \"%s\": horizontal dimension of variable \"%s\" (ni = %d) does not match grid dimension (ni = %d)", fname, varname, dimlen[1], ni);
+        }
+    } else if (ndims == 1) {
+        if (nj > 0) {
+            quit("ncu_writerow(): %s: can not write 2D field for \"%s\": # of dimensions = %d", fname, varname, ndims);
+        } else {
+            if (hasrecorddim)
+                quit("ncu_writerow(): %s: can not write layer to a 0D variable \"%s\"", fname, varname);
+            /*
+             * ignore k in this case
+             */
+            start[0] = j;
+            count[0] = 1;
+        }
     } else
         quit("%s: can not write a row to 2D field for \"%s\": # of dimensions = %d", fname, varname, ndims);
 
@@ -1366,7 +1551,7 @@ void ncu_readvarfloat(int ncid, int varid, size_t n, float v[])
     if (ncw_att_exists(ncid, varid, "add_offset")) {
         float add_offset;
 
-        ncw_check_attlen(ncid, varid, "add_offset", 1);
+        ncw_check_attlen(ncid, varid, "scale_factor", 1);
         ncw_get_att_float(ncid, varid, "add_offset", &add_offset);
         for (i = 0; i < n; ++i)
             v[i] += add_offset;

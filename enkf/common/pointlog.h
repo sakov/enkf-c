@@ -27,10 +27,10 @@ struct pointlog {
      */
     char* gridname;
     /*
-     * arrays of [ngrid] fractional grid indices corresponding to model.grids[]
+     * arrays of fractional grid indices [ngrid][3] corresponding to
+     * model.grids[]
      */
-    double* fi;
-    double* fj;
+    double** fij;
 };
 
 void plogs_add(int* nplog, pointlog** plogs, double lon, double lat, char* gridname);

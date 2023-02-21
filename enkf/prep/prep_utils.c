@@ -47,7 +47,7 @@ static int obs_badob(observations* obs, int i)
      * Note: in preparation for implementing vertical localisation it is now
      * allowed to have undefined values (NaNs) for o->depth and o->fk.
      */
-    if (o->type < 0 || o->product < 0 || o->instrument < 0 || o->fid < 0 || o->batch < 0 || !isfinite(o->value) || fabs(o->value) > MAXOBSVAL || isnan(o->estd) || o->estd <= 0.0 || !isfinite(o->fi) || !isfinite(o->fj) || !isfinite(o->lon) || !isfinite(o->lat))
+    if (o->type < 0 || o->product < 0 || o->instrument < 0 || o->fid < 0 || o->batch < 0 || !isfinite(o->value) || fabs(o->value) > MAXOBSVAL || isnan(o->estd) || o->estd <= 0.0 || !isfinite(o->fij[0]) || !isfinite(o->fij[1]) || !isfinite(o->lon) || !isfinite(o->lat))
         return 1;
     return 0;
 }
@@ -80,7 +80,7 @@ static void readobs(obsmeta* meta, model* m, obsread_fn reader, observations* ob
     free(fnames);
 }
 
-/** Add observations from a section in observation data parameter file.
+/** Add observations from a certain provider.
  *  This procedure contains generic/common operations done after reading the
  *  data.
  */
@@ -92,10 +92,6 @@ void obs_add(observations* obs, model* m, obsmeta* meta, int nexclude, obsregion
     int applylog = model_getvarislog(m, model_getvarid(m, ot->varnames[0], 1));
 
     grid* g = model_getgridbyid(m, ot->gridid);
-    float** depth = grid_getdepth(g);
-    int** numlevels = grid_getnumlevels(g);
-    int isperiodic_i = grid_isperiodic_i(g);
-    double lonbase = grid_getlonbase(g);
 
     double mindepth = NAN;
     double maxdepth = NAN;
@@ -200,7 +196,7 @@ void obs_add(observations* obs, model* m, obsmeta* meta, int nexclude, obsregion
             }
         }
         /*
-         * for historic compatibility
+         * for historic compatibility 
          */
         else if (strcasecmp(meta->pars[i].name, "THIN") == 0) {
             if (!str2int(meta->pars[i].value, &stride))
@@ -229,15 +225,19 @@ void obs_add(observations* obs, model* m, obsmeta* meta, int nexclude, obsregion
     reader = get_obsreadfn(meta);
     readobs(meta, m, reader, obs);      /* add the data to obs */
 
-    if (!isnan(lonbase)) {
-        for (i = nobs0; i < obs->nobs; ++i) {
-            observation* o = &obs->data[i];
+    {
+        double lonbase = grid_getlonbase(g);
 
-            o->id_orig = i;
-            if (o->lon < lonbase)
-                o->lon += 360.0;
-            else if (o->lon >= lonbase + 360.0)
-                o->lon -= 360.0;
+        if (!isnan(lonbase)) {
+            for (i = nobs0; i < obs->nobs; ++i) {
+                observation* o = &obs->data[i];
+
+                o->id_orig = i;
+                if (o->lon < lonbase)
+                    o->lon += 360.0;
+                else if (o->lon >= lonbase + 360.0)
+                    o->lon -= 360.0;
+            }
         }
     }
 
@@ -254,11 +254,9 @@ void obs_add(observations* obs, model* m, obsmeta* meta, int nexclude, obsregion
         int nshallow = 0;
         int nthin = 0;
         int nexcluded = 0;
-        int ni, nj, ksurf, n;
+        int n;
 
         enkf_printf("      id = %d - %d\n", nobs0, obs->nobs - 1);
-        grid_getsize(g, &ni, &nj, NULL);
-        ksurf = grid_getsurflayerid(g);
         for (i = nobs0; i < obs->nobs; ++i) {
             observation* o = &obs->data[i];
 
@@ -295,29 +293,33 @@ void obs_add(observations* obs, model* m, obsmeta* meta, int nexclude, obsregion
                 noutod++;
                 continue;
             }
-            if (depth != NULL) {
-                o->model_depth = (double) interpolate2d(o->fi, o->fj, ni, nj, depth, numlevels, isperiodic_i);
-                if (!isfinite(o->model_depth) || o->model_depth == 0 || o->depth > o->model_depth) {
+            {
+                void* depth = grid_getdepth(g);
+
+                if (depth != NULL) {
+                    o->model_depth = grid_interpolate2d(g, o->fij, depth);
+                    if (!isfinite(o->model_depth) || o->model_depth == 0 || o->depth > o->model_depth) {
+                        o->status = STATUS_LAND;
+                        nland++;
+                        continue;
+                    }
+                } else if (grid_island(g, o->fij, o->fk)) {
                     o->status = STATUS_LAND;
                     nland++;
                     continue;
                 }
-            } else if (island(o->fi, o->fj, o->fk, ni, nj, ksurf, numlevels, isperiodic_i)) {
-                o->status = STATUS_LAND;
-                nland++;
-                continue;
             }
             if (isfinite(mindepth)) {
-                if (depth == NULL)
-                    enkf_quit("ZMIN specified for the obs reader, but no depth specified for grid \"%s\"", grid_getname(g));
+                if (grid_getdepth(g) == NULL)
+                    enkf_quit("MINDEPTH specified for the obs reader, but no depth specified for grid \"%s\"", grid_getname(g));
                 if (o->model_depth < mindepth || !isfinite(o->model_depth)) {
                     o->status = STATUS_SHALLOW;
                     nshallow++;
                 }
             }
             if (isfinite(maxdepth)) {
-                if (depth == NULL)
-                    enkf_quit("ZMAX specified for the obs reader, but no depth specified for grid \"%s\"", grid_getname(g));
+                if (grid_getdepth(g) == NULL)
+                    enkf_quit("MAXDEPTH specified for the obs reader, but no depth specified for grid \"%s\"", grid_getname(g));
                 if (o->model_depth > maxdepth || !isfinite(o->model_depth)) {
                     o->status = STATUS_SHALLOW;
                     nshallow++;
@@ -397,7 +399,7 @@ void obs_add(observations* obs, model* m, obsmeta* meta, int nexclude, obsregion
         enkf_quit("%s: observation error must be specified explicitly for observations of type associated with log-transformed model variables", ot->name);
 
     /*
-     * add specified errors
+     * add specified errors 
      */
     if (obs->nobs - nobs0 > 0 && meta->nestds > 0) {
         int o;
@@ -459,9 +461,15 @@ void obs_add(observations* obs, model* m, obsmeta* meta, int nexclude, obsregion
                 grid_getsize(g, &ni, &nj, &nk);
 
                 if (ot->issurface) {
-                    float** v = alloc2d(nj, ni, sizeof(float));
+                    void* v;
 
-                    ncu_readfield(fname, estd->varname, 0, ni, nj, nk, v[0]);
+                    if (grid_isstructured(g)) {
+                        v = alloc2d(nj, ni, sizeof(float));
+                        ncu_readfield(fname, estd->varname, 0, ni, nj, nk, ((float**) v)[0]);
+                    } else {
+                        v = calloc(ni, sizeof(float));
+                        ncu_readfield(fname, estd->varname, 0, ni, 0, nk, v);
+                    }
                     for (o = nobs0; o < obs->nobs; ++o) {
                         observation* oo = &obs->data[o];
                         float vv;
@@ -469,7 +477,7 @@ void obs_add(observations* obs, model* m, obsmeta* meta, int nexclude, obsregion
                         if (oo->status != STATUS_OK)
                             continue;
 
-                        vv = (float) interpolate2d(oo->fi, oo->fj, ni, nj, v, numlevels, isperiodic_i);
+                        vv = grid_interpolate2d(g, oo->fij, v);
                         if (estd->op == ARITHMETIC_EQ)
                             oo->estd = vv;
                         else if (estd->op == ARITHMETIC_PLUS)
@@ -485,10 +493,15 @@ void obs_add(observations* obs, model* m, obsmeta* meta, int nexclude, obsregion
                     }
                     free(v);
                 } else {
-                    float*** v = alloc3d(nk, nj, ni, sizeof(float));
-                    int ksurf = grid_getsurflayerid(g);
+                    void* v;
 
-                    ncu_read3dfield(fname, estd->varname, ni, nj, nk, v[0][0]);
+                    if (grid_isstructured(g)) {
+                        v = alloc3d(nk, nj, ni, sizeof(float));
+                        ncu_read3dfield(fname, estd->varname, ni, nj, nk, ((float***) v)[0][0]);
+                    } else {
+                        v = alloc2d(nk, ni, sizeof(float));
+                        ncu_read3dfield(fname, estd->varname, ni, 0, nk, ((float**) v)[0]);
+                    }
                     for (o = nobs0; o < obs->nobs; ++o) {
                         observation* oo = &obs->data[o];
                         float vv;
@@ -496,7 +509,7 @@ void obs_add(observations* obs, model* m, obsmeta* meta, int nexclude, obsregion
                         if (oo->status != STATUS_OK)
                             continue;
 
-                        vv = (float) interpolate3d(oo->fi, oo->fj, oo->fk, ni, nj, nk, ksurf, v, numlevels, isperiodic_i);
+                        vv = (float) grid_interpolate3d(g, oo->fij, oo->fk, v);
                         if (estd->op == ARITHMETIC_EQ)
                             oo->estd = vv;
                         else if (estd->op == ARITHMETIC_PLUS)
@@ -517,7 +530,7 @@ void obs_add(observations* obs, model* m, obsmeta* meta, int nexclude, obsregion
     }
 
     /*
-     * report time range
+     * report time range 
      */
     if (obs->nobs - nobs0 > 0) {
         double day_min = DBL_MAX;
@@ -558,9 +571,9 @@ void obs_add(observations* obs, model* m, obsmeta* meta, int nexclude, obsregion
 int obs_checkforland(observations* obs, model* m)
 {
     int hasland = 0;
-    int ni = -1, nj = -1, ksurf = -1, isperiodic = -1;
-    int** numlevels = NULL;
-    int type_prev, i;
+    grid* g = NULL;
+    int type_prev;
+    int i;
 
     for (i = 0, type_prev = -1; i < obs->nobs; ++i) {
         observation* o = &obs->data[i];
@@ -568,15 +581,11 @@ int obs_checkforland(observations* obs, model* m)
         if (o->type != type_prev) {
             obstype* ot = &obs->obstypes[o->type];
             int vid = model_getvarid(m, ot->varnames[0], 1);
-            grid* g = model_getvargrid(m, vid);
 
-            grid_getsize(g, &ni, &nj, NULL);
-            ksurf = grid_getsurflayerid(g);
-            numlevels = grid_getnumlevels(g);
-            isperiodic = grid_isperiodic_i(g);
+            g = model_getvargrid(m, vid);
         }
 
-        if (island(o->fi, o->fj, o->fk, ni, nj, ksurf, numlevels, isperiodic)) {
+        if (grid_island(g, o->fij, o->fk)) {
             o->status = STATUS_LAND;
             hasland = 1;
         }

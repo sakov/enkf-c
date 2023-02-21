@@ -325,13 +325,13 @@ void reader_gridded_xy(char* fname, int fid, obsmeta* meta, grid* g, observation
             o->lon = lon[i];
             o->lat = lat[i];
         }
-        o->status = grid_xy2fij_f(g, o->lon, o->lat, &o->fi, &o->fj);
+        o->status = grid_xy2fij(g, o->lon, o->lat, o->fij);
         if (!obs->allobs && o->status == STATUS_OUTSIDEGRID)
             continue;
         if (zvalueentered) {
             o->depth = zvalue;
             if (isfinite(zvalue))
-                o->status = grid_z2fk_f(g, o->fi, o->fj, o->depth, &o->fk);
+                o->status = grid_z2fk_f(g, o->fij, o->depth, &o->fk);
             else
                 o->fk = NAN;
         } else {

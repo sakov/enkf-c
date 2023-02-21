@@ -54,13 +54,11 @@ float** model_getdepth(model* m, int vid, int musthave);
 int** model_getnumlevels(model* m, int vid);
 int model_getdomainid(model* m, char* domainname);
 
-int model_xy2fij(model* m, int vid, double x, double y, double* fi, double* fj);
-int model_xy2fij_f(model* m, int vid, double x, double y, float* fi, float* fj);
-int model_fij2xy(model* m, int vid, double fi, double fj, double* x, double* y);
-int model_ij2xy(model* m, int vid, int i, int j, double* x, double* y);
-int model_z2fk(model* m, int vid, double fi, double fj, double z, double* fk);
-int model_z2fk_f(model* m, int vid, double fi, double fj, double z, float* fk);
-double model_fk2z(model* m, int vid, int i, int j, double fk);
+int model_xy2fij(model* m, int vid, double x, double y, double* fij);
+int model_ij2xy(model* m, int vid, int* i, double* x, double* y);
+int model_z2fk(model* m, int vid, double* fij, double z, double* fk);
+int model_z2fk_f(model* m, int vid, double* fij, double z, float* fk);
+double model_fk2z(model* m, int vid, int* ij, double fk);
 void model_readfield(model* m, char fname[], char varname[], int k, float* v, int ignorelog);
 void model_read3dfield(model* m, char fname[], char varname[], float* v, int ignorelog);
 void model_writefield(model* m, char fname[], char varname[], int k, float* v, int ignorelog);

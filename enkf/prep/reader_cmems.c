@@ -340,11 +340,11 @@ void reader_cmems(char* fname, int fid, obsmeta* meta, grid* g, observations* ob
             o->lon = lon[p];
             o->lat = lat[p];
             o->depth = z[p][i];
-            o->status = grid_xy2fij_f(g, o->lon, o->lat, &o->fi, &o->fj);
+            o->status = grid_xy2fij(g, o->lon, o->lat, o->fij);
             if (!obs->allobs && o->status == STATUS_OUTSIDEGRID)
                 break;
             if (o->status == STATUS_OK)
-                o->status = grid_z2fk_f(g, o->fi, o->fj, o->depth, &o->fk);
+                o->status = grid_z2fk_f(g, o->fij, o->depth, &o->fk);
             else
                 o->fk = NAN;
             o->model_depth = NAN;       /* set in obs_add() */
@@ -428,7 +428,7 @@ Copernicus Marine Environment Monitoring Service.\n\
     PARAMETER <name> = <value> ...\n\
 \n\
   Parameters specific to the reader:\n\
-    - QCFLAGVALS (-)\n\
+    - QCFLAGVALS (1) (-)\n\
         the list of allowed values of QC flag variable\n\
         Note: the name of the QC flag variable is set by the code after\n\
         determining the name of the principal variable\n\

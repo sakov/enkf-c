@@ -242,6 +242,8 @@ void reader_gridded_xyh(char* fname, int fid, obsmeta* meta, grid* gdst, observa
     nobs_read = 0;
     for (i = 0; i < ni; ++i) {
         for (j = 0; j < nj; ++j) {
+            int ij[2] = { i, j };
+
             for (k = 0; k < nk; ++k) {
                 int ii = k * nij + j * ni + i;
                 observation* o;
@@ -275,22 +277,22 @@ void reader_gridded_xyh(char* fname, int fid, obsmeta* meta, grid* gdst, observa
                 {
                     double lon_d, lat_d;
 
-                    grid_ij2xy(gsrc, i, j, &lon_d, &lat_d);
+                    grid_ij2xy(gsrc, ij, &lon_d, &lat_d);
                     o->lon = (float) lon_d;
                     o->lat = (float) lat_d;
                 }
                 assert(isfinite(o->lon + o->lat));
-                o->status = grid_xy2fij_f(gdst, o->lon, o->lat, &o->fi, &o->fj);
+                o->status = grid_xy2fij(gdst, o->lon, o->lat, o->fij);
                 if (!obs->allobs && o->status == STATUS_OUTSIDEGRID)
                     continue;
                 {
                     double depth_d;
 
-                    o->status = grid_fk2z(gsrc, i, j, (double) k, &depth_d);
+                    o->status = grid_fk2z(gsrc, ij, (double) k, &depth_d);
                     o->depth = (float) depth_d;
                 }
                 if (o->status == STATUS_OK)
-                    o->status = grid_z2fk_f(gdst, o->fi, o->fj, o->depth, &o->fk);
+                    o->status = grid_z2fk_f(gdst, o->fij, o->depth, &o->fk);
                 else
                     o->fk = NAN;
                 o->model_depth = NAN;   /* set in obs_add() */
