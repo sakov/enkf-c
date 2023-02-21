@@ -56,7 +56,10 @@ void das_allocatespread(dasystem* das, char fname[])
             char varname_dst[NC_MAX_NAME];
 
             strcpy(varname_dst, varname_src);
-            strncat(varname_dst, "_an", NC_MAX_NAME - 1);
+            if (das->updatespec & UPDATE_OUTPUTINC)
+                strncat(varname_dst, "_inc", NC_MAX_NAME - 1);
+            else
+                strncat(varname_dst, "_an", NC_MAX_NAME - 1);
             ncw_def_var_as(ncid, varname_src, varname_dst);
         }
         ncw_close(ncid_src);
@@ -72,28 +75,23 @@ void das_allocatespread(dasystem* das, char fname[])
  */
 void das_writespread(dasystem* das, int nfields, void** fieldbuffer, field fields[], int isanalysis)
 {
-    char fname[MAXSTRLEN];
     model* m = das->m;
     int nmem = (das->mode == MODE_HYBRID && isanalysis) ? das->nmem_dynamic : das->nmem;
-    int ni, nj, nk;
+    int ni, nj;
     int fid, e, i, nij;
     double* v1 = NULL;
     double* v2 = NULL;
-    float*** v_src = NULL;
 
-    if (das->updatespec & UPDATE_DIRECTWRITE)
-        strcpy(fname, FNAME_SPREAD);
-
-    model_getvargridsize(m, fields[0].varid, &ni, &nj, &nk);
+    model_getvargridsize(m, fields[0].varid, &ni, &nj, NULL);
     nij = ni * nj;
     v1 = malloc(nij * sizeof(double));
     v2 = malloc(nij * sizeof(double));
 
     for (fid = 0; fid < nfields; ++fid) {
         field* f = &fields[fid];
+        float*** v_src = (float***) fieldbuffer[fid];
         char varname[NC_MAX_NAME];
 
-        v_src = (float***) fieldbuffer[fid];
         memset(v1, 0, nij * sizeof(double));
         memset(v2, 0, nij * sizeof(double));
 
@@ -115,11 +113,15 @@ void das_writespread(dasystem* das, int nfields, void** fieldbuffer, field field
         }
 
         strncpy(varname, f->varname, NC_MAX_NAME - 1);
-        if (isanalysis)
-            strncat(varname, "_an", NC_MAX_NAME - 1);
+        if (isanalysis) {
+            if (das->updatespec & UPDATE_OUTPUTINC)
+                strncat(varname, "_inc", NC_MAX_NAME - 1);
+            else
+                strncat(varname, "_an", NC_MAX_NAME - 1);
+        }
 
-        if (!(das->updatespec & UPDATE_DIRECTWRITE)) {  /* create file for *
-                                                         * this field */
+        if (!(das->updatespec & UPDATE_DIRECTWRITE)) {
+            char fname[MAXSTRLEN];
             int ncid, vid;
             int dimids[2];
 
@@ -142,7 +144,7 @@ void das_writespread(dasystem* das, int nfields, void** fieldbuffer, field field
             for (i = 0; i < nij; ++i)
                 v[i] = (float) v2[i];
 
-            model_writefieldas(m, fname, varname, f->varname, f->level, v, 1);
+            model_writefieldas(m, FNAME_SPREAD, varname, f->varname, f->level, v, 1);
             free(v);
         }
     }
@@ -164,21 +166,15 @@ void das_assemblespread(dasystem* das)
 
     for (i = 0; i < nvar; ++i) {
         char* varname = model_getvarname(m, i);
-        char varname_an[NC_MAX_NAME];
-        int nlev, k;
+        int nlev = ncu_getnlevels(FNAME_SPREAD, varname);
         int ni, nj;
-        float* v = NULL;
-
-        enkf_printf("    %s:", varname);
-        nlev = ncu_getnlevels(FNAME_SPREAD, varname);
-        if ((das->mode == MODE_ENKF || das->mode == MODE_HYBRID) && das->updatespec & UPDATE_DOANALYSISSPREAD) {
-            strncpy(varname_an, varname, NC_MAX_NAME - 1);
-            strncat(varname_an, "_an", NC_MAX_NAME - 1);
-        }
+        float* v;
+        int k;
 
         model_getvargridsize(m, i, &ni, &nj, NULL);
         v = malloc(ni * nj * sizeof(float));
 
+        enkf_printf("    %s:", varname);
         for (k = 0; k < nlev; ++k) {
             char fname_src[MAXSTRLEN];
             int ncid_src, vid;
@@ -194,8 +190,26 @@ void das_assemblespread(dasystem* das)
             file_delete(fname_src);
 
             model_writefield(m, FNAME_SPREAD, varname, k, v, 1);
+            enkf_printf(".");
+            enkf_flush();
+        }
+        enkf_printf("\n");
+        enkf_flush();
 
-            if ((das->mode == MODE_ENKF || das->mode == MODE_HYBRID) && das->updatespec & UPDATE_DOANALYSISSPREAD) {
+        if ((das->mode == MODE_ENKF || das->mode == MODE_HYBRID) && das->updatespec & UPDATE_DOANALYSISSPREAD) {
+            char varname_an[NC_MAX_NAME];
+
+            strncpy(varname_an, varname, NC_MAX_NAME - 1);
+            if (das->updatespec & UPDATE_OUTPUTINC)
+                strncat(varname_an, "_inc", NC_MAX_NAME - 1);
+            else
+                strncat(varname_an, "_an", NC_MAX_NAME - 1);
+
+            enkf_printf("    %s:", varname_an);
+            for (k = 0; k < nlev; ++k) {
+                char fname_src[MAXSTRLEN];
+                int ncid_src, vid;
+
                 if (nlev > 1)
                     getfieldfname(DIRNAME_TMP, "spread", varname_an, k, fname_src);
                 else
@@ -207,12 +221,13 @@ void das_assemblespread(dasystem* das)
                 file_delete(fname_src);
 
                 model_writefieldas(m, FNAME_SPREAD, varname_an, varname, k, v, 1);
+                enkf_printf(".");
+                enkf_flush();
             }
-
-            enkf_printf(".");
         }
-        free(v);
         enkf_printf("\n");
+        enkf_flush();
+        free(v);
     }
 }
 

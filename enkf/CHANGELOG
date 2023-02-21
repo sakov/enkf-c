@@ -1,3 +1,11 @@
+v.2.17.1
+   PS 21022023
+   -- Exit with error if during UPDATE the stride is different to that in the
+      transform file.
+   -- Changed analysis variable names in the spread file from <var>_an to
+      <var>_inc when UPDATE is run with "--output-increment" because in that
+      case the spread is calculated for increments rather than for analysed
+      variables.
 v.2.17.0
    PS 09022023
    -- Added UPDATE option "--calculate-spread-only" to calculate forecast and

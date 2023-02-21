@@ -126,6 +126,13 @@ static void das_updatefields(dasystem* das, int nfields, void** fieldbuffer, fie
     ncw_inq_varid(ncid, "T", &varid_T);
     ncw_inq_varid(ncid, "w", &varid_w);
     ncw_inq_vardims(ncid, varid_T, 4, NULL, dimlens);
+    if (rank == 0) {
+        int stride_transforms;
+
+        ncw_get_att_int(ncid, NC_GLOBAL, "stride", &stride_transforms);
+        if (stride_transforms != stride)
+            enkf_quit("grid \"%s\": stride = %d is not equal to the stride of transforms = %d", grid_getname(g), stride, stride_transforms);
+    }
     nj = dimlens[0];
     ni = dimlens[1];
 
