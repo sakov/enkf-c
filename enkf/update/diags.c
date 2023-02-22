@@ -230,9 +230,9 @@ void das_assemblespread(dasystem* das)
                 enkf_printf(".");
                 enkf_flush();
             }
+            enkf_printf("\n");
+            enkf_flush();
         }
-        enkf_printf("\n");
-        enkf_flush();
         free(v);
     }
 }

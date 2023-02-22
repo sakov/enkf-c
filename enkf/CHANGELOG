@@ -1,3 +1,6 @@
+v2.19.1
+   PS 22022023
+   -- Cosmetic change of diags.c to improve UPDATE log.
 v2.19.0
    PS 22022023
    -- Moved branch "unstructured" into master; deleted some leftovers.
