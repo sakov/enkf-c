@@ -11,7 +11,7 @@ Following are its other main features:
 
 - permits multiple model grids;
 
-- can handle rectangular or curvilinear horizontal grids, z, sigma or hybrid vertical grids.
+- can handle rectangular, curvilinear, or unstructured horizontal grids, z, sigma or hybrid vertical grids.
 
 **EnKF-C** is coded for simplicity, scalability and robustness. To handle as large systems as possible it uses shared memory capabilities of MPI-3. Here is a snapshot of ensemble spread of sea surface temperature from the 96-member EnKF ocean forecasting system with MOM5 based OFAM3 model (51 x 1500 x 3600 grid), assimilating about 14M super-observations at each 3-day cycle.
 
