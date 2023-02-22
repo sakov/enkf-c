@@ -1,3 +1,6 @@
+v2.19.3
+   PS 22022023
+   -- In enkf_diag*.nc - added global attributes describing observation types.
 v2.19.2
    PS 22022023
    -- Updated logs in examples.

@@ -239,6 +239,7 @@ static void nc_writediag(dasystem* das, char fname[], int nobstypes, int nj, int
     int ncid;
     int dimids[3];
     int varid_nlobs, varid_dfs, varid_srf, varid_pnlobs, varid_pdfs, varid_psrf;
+    int i;
 
     assert(rank == 0);
 
@@ -247,13 +248,15 @@ static void nc_writediag(dasystem* das, char fname[], int nobstypes, int nj, int
     ncw_def_dim(ncid, "nobstypes", nobstypes, &dimids[0]);
     ncw_def_dim(ncid, "nj", nj, &dimids[1]);
     ncw_def_dim(ncid, "ni", ni, &dimids[2]);
-    ncw_put_att_int(ncid, NC_GLOBAL, "stride", 1, &stride);
     ncw_def_var(ncid, "nlobs", NC_INT, 2, &dimids[1], &varid_nlobs);
     ncw_def_var(ncid, "dfs", NC_FLOAT, 2, &dimids[1], &varid_dfs);
     ncw_def_var(ncid, "srf", NC_FLOAT, 2, &dimids[1], &varid_srf);
     ncw_def_var(ncid, "pnlobs", NC_INT, 3, dimids, &varid_pnlobs);
     ncw_def_var(ncid, "pdfs", NC_FLOAT, 3, dimids, &varid_pdfs);
     ncw_def_var(ncid, "psrf", NC_FLOAT, 3, dimids, &varid_psrf);
+    ncw_put_att_int(ncid, NC_GLOBAL, "stride", 1, &stride);
+    for (i = 0; i < das->obs->nobstypes; ++i)
+        ncw_put_att_int(ncid, NC_GLOBAL, das->obs->obstypes[i].name, 1, &i);
     if (das->nccompression > 0)
         ncw_def_deflate(ncid, 0, 1, das->nccompression);
     ncw_enddef(ncid);
