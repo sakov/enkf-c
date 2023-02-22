@@ -1,7 +1,7 @@
-  running PREP for EnKF-C version 2.9.3:
+  running PREP for EnKF-C version 2.19.1:
     command = "./enkf_prep enkf.prm"
     dir = "/home/pavel/src/enkf-c/trunk/enkf/examples/2"
-  2021-06-16 08:40:11
+  2023-02-22 11:47:18
   reading prep specs from "enkf.prm":
     MODE = EnKF
     SCHEME = DEnKF
@@ -16,8 +16,8 @@
     INFLATION BASE = 1.1000
     INFLATION MODE = CAPPED, MAX RATIO = 1.00
     KFACTOR = 999.0
-      LOCRAD  = 200
-      LOCWEIGHT =  1
+    LOCRAD  = 200
+    LOCWEIGHT =  1
     STRIDE = 3
     FIELDBUFFERSIZE = 4
     REGION Global: x = [0.0, 360.0], y = [-90.0, 90.0]
@@ -61,7 +61,7 @@
   creating model and observations:
     grid prm info:
       NAME = "t-grid"
-      DOMAIN = Default
+      DOMAIN = ALL
       DATA = "conf2/grid_spec.nc"
       VTYPE = "z"
       VDIR = FROMSURF
@@ -75,16 +75,16 @@
       YVARNAME = "lat"
       ZSTATINTS = [0 50] [50 500] [500 9999] 
     grid info:
-      hor type = CURVILINEAR
-      geographic = yes
-      dims = 100 x 100 x 2
+      size = 100 x 100 x 2
+      h type = CURVILINEAR
+      geographic = no
       longitude range = [0.000, 360.000]
-      v type = Z
-      v dir = FROMSURF
-      STRIDE = 0
       kdtree "t-grid_XY":
         10000 nodes
         640048 bytes
+      v type = Z
+      v dir = FROMSURF
+      STRIDE = 0
   model info:
     name = Tasman
     5 variables:
@@ -597,15 +597,17 @@
       setting error_std to 0.1
       min day = -4.000
       max day = -2.000
-  2021-06-16 08:40:12
+  2023-02-22 11:47:18
   compacting obs:
-  2021-06-16 08:40:12
+  2023-02-22 11:47:18
+  sorting:
+  2023-02-22 11:47:18
   superobing:
     10220 superobservations
-  2021-06-16 08:40:12
+  2023-02-22 11:47:18
   checking for superobs on land:
     all good
-  2021-06-16 08:40:12
+  2023-02-22 11:47:18
   writing superobservations to "observations.nc":
   printing observation summary:
     type    #used    #dropped #out_grd #out_obs #out_wnd #land    #shallow #badbatch#badvalue#thinned #excluded#superobs
@@ -615,5 +617,5 @@
     TEM     184      104      104      0        0        0        0        0        0        0        0        7       
     SAL     184      104      104      0        0        0        0        0        0        0        0        7       
     total   158006   209      208      0        0        0        1        0        0        0        0        10220   
-  2021-06-16 08:40:12
+  2023-02-22 11:47:18
   finished

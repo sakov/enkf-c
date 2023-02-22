@@ -1,8 +1,8 @@
   MPI: initialised 2 process(es)
-  running UPDATE for EnKF-C version 2.9.3:
+  running UPDATE for EnKF-C version 2.19.1:
     command = "./enkf_update --output-increment singleob.prm"
     dir = "/home/pavel/src/enkf-c/trunk/enkf/examples/1"
-  2021-06-16 08:32:46
+  2023-02-22 11:45:12
   reading system specs from "singleob.prm":
     MODE = EnOI
     MODEL PRM = "model.prm"
@@ -17,8 +17,8 @@
     INFLATION BASE = 1.0000
     INFLATION MODE = CAPPED, MAX RATIO = 1.00
     KFACTOR = 999.0
-      LOCRAD  = 500
-      LOCWEIGHT =  1
+    LOCRAD  = 500
+    LOCWEIGHT =  1
     STRIDE = 3
     FIELDBUFFERSIZE = 4
     REGION Global: x = [0.0, 360.0], y = [-90.0, 90.0]
@@ -40,7 +40,7 @@
   initialising the system:
     grid prm info:
       NAME = "t-grid"
-      DOMAIN = Default
+      DOMAIN = ALL
       DATA = "conf/grid_spec.nc"
       VTYPE = "z"
       VDIR = FROMSURF
@@ -54,10 +54,10 @@
       YVARNAME = "lat"
       ZSTATINTS = [0 50] [50 500] [500 9999] 
     grid info:
-      hor type = LATLON
+      size = 100 x 100 x 2
+      h type = RECTANGULAR
       periodic by X = no
-      dims = 100 x 100 x 2
-      longitude range = [0.000, 360.000]
+      longitude range = any
       v type = Z
       v dir = FROMSURF
       STRIDE = 0
@@ -86,35 +86,35 @@
       t-grid: (i, j) = (49.500, 49.500)
   updating the model state:
     defining state variables in point logs:
-    2021-06-16 08:32:46
+    2023-02-22 11:45:12
     allocating disk space for analysis:.....
     processing fields for t-grid:
-      2021-06-16 08:32:46
+      2023-02-22 11:45:12
       9 fields
       distributing 9 iterations:
         2 processes get 5 or 4 iterations
-      eta_t    0   (0: 0: 20.0%)
       u        0   (1: 5: 25.0%)
+      eta_t    0   (0: 0: 20.0%)
       u        1   (1: 6: 50.0%)
-      temp     0   (0: 1: 40.0%)
       v        0   (1: 7: 75.0%)
-      temp     1   (0: 2: 60.0%)
       v        1   (1: 8: 100.0%)
+      temp     0   (0: 1: 40.0%)
+      temp     1   (0: 2: 60.0%)
       salt     0   (0: 3: 80.0%)
       salt     1   (0: 4: 100.0%)
-  2021-06-16 08:32:47
+  2023-02-22 11:45:13
   assembling analysis:
     eta_t:.
     temp:..
     salt:..
     u:..
     v:..
-  2021-06-16 08:32:47
+  2023-02-22 11:45:13
   assembling state variables in point logs:
     distributing 1 iterations:
       1 processes get 1 iteration, 1 processes get 0 iterations
     deleting tiles:
       distributing 9 iterations:
         2 processes get 5 or 4 iterations
-  2021-06-16 08:32:47
+  2023-02-22 11:45:13
   finished

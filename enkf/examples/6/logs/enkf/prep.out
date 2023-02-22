@@ -1,7 +1,7 @@
-  running PREP for EnKF-C version 2.9.3:
+  running PREP for EnKF-C version 2.19.1:
     command = "./enkf_prep enkf.prm"
     dir = "/home/pavel/src/enkf-c/trunk/enkf/examples/6"
-  2021-06-16 08:47:42
+  2023-02-22 12:52:03
   reading prep specs from "enkf.prm":
     MODE = EnKF
     SCHEME = DEnKF
@@ -16,8 +16,8 @@
     INFLATION BASE = 1.1000
     INFLATION MODE = CAPPED, MAX RATIO = 1.00
     KFACTOR = 999.0
-      LOCRAD  = 200
-      LOCWEIGHT =  1
+    LOCRAD  = 200
+    LOCWEIGHT =  1
     STRIDE = 3
     FIELDBUFFERSIZE = 4
     REGION Global: x = [0.0, 360.0], y = [-90.0, 90.0]
@@ -61,25 +61,27 @@
   creating model and observations:
     grid prm info:
       NAME = "t-grid"
-      DOMAIN = Default
+      DOMAIN = ALL
       DATA = "conf4/grid_spec.nc"
       VTYPE = "none"
-      VDIR = (null)
+      VDIR = FROMSURF
       GEOGRAPHIC = yes
       DEPTHVARNAME = "depth_t"
       MASKVARNAME = "num_levels"
+      VDIR = "FROMSURF"
       XVARNAME = "lont"
       YVARNAME = "latt"
     grid info:
-      hor type = LATLON
+      size = 100 x 100 x 1
+      h type = RECTANGULAR
       periodic by X = no
-      dims = 100 x 100 x 1
       longitude range = [0.000, 360.000]
       v type = NONE
+      v dir = FROMSURF
       STRIDE = 0
     grid prm info:
       NAME = "t-grid2"
-      DOMAIN = Default
+      DOMAIN = ALL
       DATA = "conf4/grid_spec.nc"
       VTYPE = "z"
       VDIR = FROMSURF
@@ -92,13 +94,14 @@
       HGRIDFROM = "t-grid"
       ZSTATINTS = [0 50] [50 500] [500 9999] 
     grid info:
+      size = 100 x 100 x 2
       horizontal grid -- aliased to grid #0
       v type = Z
       v dir = FROMSURF
       STRIDE = 0
     grid prm info:
       NAME = "c-grid"
-      DOMAIN = Default
+      DOMAIN = ALL
       DATA = "conf4/grid_spec.nc"
       VTYPE = "z"
       VDIR = FROMSURF
@@ -111,9 +114,9 @@
       YVARNAME = "latc"
       ZSTATINTS = [0 50] [50 500] [500 9999] 
     grid info:
-      hor type = LATLON
+      size = 100 x 100 x 2
+      h type = RECTANGULAR
       periodic by X = no
-      dims = 100 x 100 x 2
       longitude range = [0.000, 360.000]
       v type = Z
       v dir = FROMSURF
@@ -630,15 +633,17 @@
       setting error_std to 0.1
       min day = -4.000
       max day = -2.000
-  2021-06-16 08:47:42
+  2023-02-22 12:52:03
   compacting obs:
-  2021-06-16 08:47:42
+  2023-02-22 12:52:03
+  sorting:
+  2023-02-22 12:52:03
   superobing:
     10220 superobservations
-  2021-06-16 08:47:42
+  2023-02-22 12:52:03
   checking for superobs on land:
     all good
-  2021-06-16 08:47:42
+  2023-02-22 12:52:03
   writing superobservations to "observations.nc":
   printing observation summary:
     type    #used    #dropped #out_grd #out_obs #out_wnd #land    #shallow #badbatch#badvalue#thinned #excluded#superobs
@@ -648,5 +653,5 @@
     TEM     184      104      104      0        0        0        0        0        0        0        0        7       
     SAL     184      104      104      0        0        0        0        0        0        0        0        7       
     total   158006   209      208      0        0        0        1        0        0        0        0        10220   
-  2021-06-16 08:47:42
+  2023-02-22 12:52:03
   finished

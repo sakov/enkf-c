@@ -2,10 +2,10 @@
   Using MPI-3 shared memory:
     sm_comm size = 2
     node_comm size = 1
-  running CALC for EnKF-C version 2.9.3:
+  running CALC for EnKF-C version 2.19.1:
     command = "./enkf_calc enkf.prm"
     dir = "/home/pavel/src/enkf-c/trunk/enkf/examples/6"
-  2021-06-16 08:47:42
+  2023-02-22 12:52:03
   reading system specs from "enkf.prm":
     MODE = EnKF
     SCHEME = DEnKF
@@ -20,8 +20,8 @@
     INFLATION BASE = 1.1000
     INFLATION MODE = CAPPED, MAX RATIO = 1.00
     KFACTOR = 999.0
-      LOCRAD  = 200
-      LOCWEIGHT =  1
+    LOCRAD  = 200
+    LOCWEIGHT =  1
     STRIDE = 3
     FIELDBUFFERSIZE = 4
     REGION Global: x = [0.0, 360.0], y = [-90.0, 90.0]
@@ -92,25 +92,27 @@
       PERMIT_LOCATION_BASED_THINNING = YES
     grid prm info:
       NAME = "t-grid"
-      DOMAIN = Default
+      DOMAIN = ALL
       DATA = "conf4/grid_spec.nc"
       VTYPE = "none"
-      VDIR = (null)
+      VDIR = FROMSURF
       GEOGRAPHIC = yes
       DEPTHVARNAME = "depth_t"
       MASKVARNAME = "num_levels"
+      VDIR = "FROMSURF"
       XVARNAME = "lont"
       YVARNAME = "latt"
     grid info:
-      hor type = LATLON
+      size = 100 x 100 x 1
+      h type = RECTANGULAR
       periodic by X = no
-      dims = 100 x 100 x 1
       longitude range = [0.000, 360.000]
       v type = NONE
+      v dir = FROMSURF
       STRIDE = 0
     grid prm info:
       NAME = "t-grid2"
-      DOMAIN = Default
+      DOMAIN = ALL
       DATA = "conf4/grid_spec.nc"
       VTYPE = "z"
       VDIR = FROMSURF
@@ -123,13 +125,14 @@
       HGRIDFROM = "t-grid"
       ZSTATINTS = [0 50] [50 500] [500 9999] 
     grid info:
+      size = 100 x 100 x 2
       horizontal grid -- aliased to grid #0
       v type = Z
       v dir = FROMSURF
       STRIDE = 0
     grid prm info:
       NAME = "c-grid"
-      DOMAIN = Default
+      DOMAIN = ALL
       DATA = "conf4/grid_spec.nc"
       VTYPE = "z"
       VDIR = FROMSURF
@@ -142,9 +145,9 @@
       YVARNAME = "latc"
       ZSTATINTS = [0 50] [50 500] [500 9999] 
     grid info:
-      hor type = LATLON
+      size = 100 x 100 x 2
+      h type = RECTANGULAR
       periodic by X = no
-      dims = 100 x 100 x 2
       longitude range = [0.000, 360.000]
       v type = Z
       v dir = FROMSURF
@@ -176,7 +179,7 @@
       c-grid: (i, j) = (49.000, 49.000)
   reading observations from "observations.nc":
     10220 observations
-    allocating 735840 bytes for array of observations
+    allocating 981120 bytes for array of observations
     creating kd-trees for observations:
       kdtree "SLA":
         652 nodes
@@ -191,7 +194,7 @@
         7 nodes
         496 bytes
   calculating ensemble observations:
-  2021-06-16 08:47:42
+  2023-02-22 12:52:03
     allocating 3924480 bytes for HE array:
     allocating 3924480 bytes for HE^T array:
     distributing 96 iterations:
@@ -201,7 +204,13 @@
     TEM ................................................
     SAL ................................................
   writing forecast innovations and spread to "observations.nc":
-  2021-06-16 08:47:43
+  2023-02-22 12:52:04
+  identifying observation batches:
+    SLA     9   
+    SST     27  
+    TEM     5   
+    SAL     5   
+    total:  46  
   moderating observations:
     observations substantially modified:
       SLA          0 (0.0%)
@@ -211,14 +220,14 @@
       total        0 (0.0%)
   writing modified obs errors to "observations.nc":
   calculating transforms:
-  2021-06-16 08:47:43
+  2023-02-22 12:52:04
     calculating transforms for t-grid:
       distributing 34 iterations:
         2 processes get 17 iterations each
       creating empty file "transforms-0.nc":
+        j = 3 (1: 17: 5.9%)
       main cycle for t-grid (34 x 34 local analyses):
         j = 0 (0: 0: 5.9%)
-        j = 3 (1: 17: 5.9%)
         j = 9 (1: 18: 11.8%)
         j = 6 (0: 1: 11.8%)
         j = 15 (1: 19: 17.6%)
@@ -306,17 +315,17 @@
       # of inversions in ens space = 1110
   writing point logs:
     calculating transforms for log point (156.000,-32.000): 1444 obs
-    writing log for point (156.000,-32.000) on grid "t-grid":
-    writing log for point (156.000,-32.000) on grid "t-grid2":
-    writing log for point (156.000,-32.000) on grid "c-grid":
+    writing transforms for point (156.000,-32.000) on grid "t-grid":
+    writing transforms for point (156.000,-32.000) on grid "t-grid2":
+    writing transforms for point (156.000,-32.000) on grid "c-grid":
   calculating analysed observations:
-  2021-06-16 08:48:15
+  2023-02-22 12:52:38
     sorting obs by ij:
-    2021-06-16 08:48:15
+    2023-02-22 12:52:38
     updating HE:
     distributing 10220 iterations:
       2 processes get 5110 iterations each
-    2021-06-16 08:48:16
+    2023-02-22 12:52:39
   adding analysis innovations and spread to "observations.nc":
   printing observation statistics:
     region obs.type   # obs.  |for.inn.| |an.inn.|   for.inn.   an.inn.  for.spread  an.spread
@@ -338,5 +347,5 @@
              0-50m         2   0.0881      0.115     0.0739      0.072     0.0225     0.0157  
              50-500m       5   0.0723     0.0782     0.0469     0.0355      0.032     0.0223  
              500-9999m     0     -nan       -nan       -nan       -nan       -nan       -nan  
-  2021-06-16 08:48:16
+  2023-02-22 12:52:39
   finished

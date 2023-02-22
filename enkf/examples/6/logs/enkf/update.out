@@ -1,8 +1,8 @@
   MPI: initialised 2 process(es)
-  running UPDATE for EnKF-C version 2.9.3:
+  running UPDATE for EnKF-C version 2.19.1:
     command = "./enkf_update --calculate-spread --write-inflation --output-increment enkf.prm"
     dir = "/home/pavel/src/enkf-c/trunk/enkf/examples/6"
-  2021-06-16 08:48:16
+  2023-02-22 12:52:41
   reading system specs from "enkf.prm":
     MODE = EnKF
     SCHEME = DEnKF
@@ -17,8 +17,8 @@
     INFLATION BASE = 1.1000
     INFLATION MODE = CAPPED, MAX RATIO = 1.00
     KFACTOR = 999.0
-      LOCRAD  = 200
-      LOCWEIGHT =  1
+    LOCRAD  = 200
+    LOCWEIGHT =  1
     STRIDE = 3
     FIELDBUFFERSIZE = 4
     REGION Global: x = [0.0, 360.0], y = [-90.0, 90.0]
@@ -40,25 +40,27 @@
   initialising the system:
     grid prm info:
       NAME = "t-grid"
-      DOMAIN = Default
+      DOMAIN = ALL
       DATA = "conf4/grid_spec.nc"
       VTYPE = "none"
-      VDIR = (null)
+      VDIR = FROMSURF
       GEOGRAPHIC = yes
       DEPTHVARNAME = "depth_t"
       MASKVARNAME = "num_levels"
+      VDIR = "FROMSURF"
       XVARNAME = "lont"
       YVARNAME = "latt"
     grid info:
-      hor type = LATLON
+      size = 100 x 100 x 1
+      h type = RECTANGULAR
       periodic by X = no
-      dims = 100 x 100 x 1
-      longitude range = [0.000, 360.000]
+      longitude range = any
       v type = NONE
+      v dir = FROMSURF
       STRIDE = 0
     grid prm info:
       NAME = "t-grid2"
-      DOMAIN = Default
+      DOMAIN = ALL
       DATA = "conf4/grid_spec.nc"
       VTYPE = "z"
       VDIR = FROMSURF
@@ -71,13 +73,14 @@
       HGRIDFROM = "t-grid"
       ZSTATINTS = [0 50] [50 500] [500 9999] 
     grid info:
+      size = 100 x 100 x 2
       horizontal grid -- aliased to grid #0
       v type = Z
       v dir = FROMSURF
       STRIDE = 0
     grid prm info:
       NAME = "c-grid"
-      DOMAIN = Default
+      DOMAIN = ALL
       DATA = "conf4/grid_spec.nc"
       VTYPE = "z"
       VDIR = FROMSURF
@@ -90,10 +93,10 @@
       YVARNAME = "latc"
       ZSTATINTS = [0 50] [50 500] [500 9999] 
     grid info:
-      hor type = LATLON
+      size = 100 x 100 x 2
+      h type = RECTANGULAR
       periodic by X = no
-      dims = 100 x 100 x 2
-      longitude range = [0.000, 360.000]
+      longitude range = any
       v type = Z
       v dir = FROMSURF
       STRIDE = 0
@@ -128,20 +131,20 @@
     defining state variables in point logs:
     distributing 96 iterations:
       2 processes get 48 iterations each
-    2021-06-16 08:48:16
+    2023-02-22 12:52:41
     allocating disk space for analysis:................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................
     processing fields for t-grid:
-      2021-06-16 08:48:16
+      2023-02-22 12:52:45
       5 fields
       distributing 5 iterations:
         2 processes get 3 or 2 iterations
       eta_t    0   (0: 0: 33.3%)
       salt     0   (1: 3: 50.0%)
       temp     0   (0: 1: 66.7%)
-      salt     1   (1: 4: 100.0%)
       temp     1   (0: 2: 100.0%)
+      salt     1   (1: 4: 100.0%)
     processing fields for c-grid:
-      2021-06-16 08:48:17
+      2023-02-22 12:52:47
       4 fields
       distributing 4 iterations:
         2 processes get 2 iterations each
@@ -149,7 +152,7 @@
       v        0   (1: 2: 50.0%)
       u        1   (0: 1: 100.0%)
       v        1   (1: 3: 100.0%)
-  2021-06-16 08:48:18
+  2023-02-22 12:52:49
   assembling analysis:
     distributing 96 iterations:
       2 processes get 48 iterations each
@@ -158,26 +161,31 @@
     salt:................................................
     u:................................................
     v:................................................
-  2021-06-16 08:48:19
+  2023-02-22 12:52:52
   assembling spread:
     eta_t:.
+    eta_t_inc:.
     temp:..
+    temp_inc:..
     salt:..
+    salt_inc:..
     u:..
+    u_inc:..
     v:..
-  2021-06-16 08:48:19
+    v_inc:..
+  2023-02-22 12:52:52
   assembling inflation:
     eta_t:.
     temp:..
     salt:..
     u:..
     v:..
-  2021-06-16 08:48:19
+  2023-02-22 12:52:52
   assembling state variables in point logs:
     distributing 1 iterations:
       1 processes get 1 iteration, 1 processes get 0 iterations
     deleting tiles:
       distributing 9 iterations:
         2 processes get 5 or 4 iterations
-  2021-06-16 08:48:19
+  2023-02-22 12:52:52
   finished

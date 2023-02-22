@@ -1,3 +1,7 @@
+v2.19.2
+   PS 22022023
+   -- Updated logs in examples.
+   -- Changed vgrid.c to get through example 6.
 v2.19.1
    PS 22022023
    -- Cosmetic change of diags.c to improve UPDATE log.

@@ -1,8 +1,8 @@
   MPI: initialised 2 process(es)
-  running UPDATE for EnKF-C version 2.9.3:
+  running UPDATE for EnKF-C version 2.19.1:
     command = "./enkf_update --no-fields-write pointlogs.prm"
     dir = "/home/pavel/src/enkf-c/trunk/enkf/examples/1"
-  2021-06-15 15:35:45
+  2023-02-22 11:37:12
   reading system specs from "pointlogs.prm":
     MODE = EnKF
     SCHEME = DEnKF
@@ -17,8 +17,8 @@
     INFLATION BASE = 1.1000
     INFLATION MODE = CAPPED, MAX RATIO = 1.00
     KFACTOR = 999.0
-      LOCRAD  = 200
-      LOCWEIGHT =  1
+    LOCRAD  = 200
+    LOCWEIGHT =  1
     STRIDE = 3
     FIELDBUFFERSIZE = 4
     REGION Global: x = [0.0, 360.0], y = [-90.0, 90.0]
@@ -40,7 +40,7 @@
   initialising the system:
     grid prm info:
       NAME = "t-grid"
-      DOMAIN = Default
+      DOMAIN = ALL
       DATA = "conf/grid_spec.nc"
       VTYPE = "z"
       VDIR = FROMSURF
@@ -54,10 +54,10 @@
       YVARNAME = "lat"
       ZSTATINTS = [0 50] [50 500] [500 9999] 
     grid info:
-      hor type = LATLON
+      size = 100 x 100 x 2
+      h type = RECTANGULAR
       periodic by X = no
-      dims = 100 x 100 x 2
-      longitude range = [0.000, 360.000]
+      longitude range = any
       v type = Z
       v dir = FROMSURF
       STRIDE = 0
@@ -91,7 +91,7 @@
   updating the ensemble:
     defining state variables in point logs:
     processing fields for t-grid:
-      2021-06-15 15:35:45
+      2023-02-22 11:37:12
       9 fields
       distributing 9 iterations:
         2 processes get 5 or 4 iterations
@@ -99,18 +99,18 @@
       u        0   (1: 5: 25.0%)
       temp     0   (0: 1: 40.0%)
       u        1   (1: 6: 50.0%)
-      v        0   (1: 7: 75.0%)
       temp     1   (0: 2: 60.0%)
-      v        1   (1: 8: 100.0%)
+      v        0   (1: 7: 75.0%)
       salt     0   (0: 3: 80.0%)
+      v        1   (1: 8: 100.0%)
       salt     1   (0: 4: 100.0%)
       (skip writing the fields)
-  2021-06-15 15:35:47
+  2023-02-22 11:37:13
   assembling state variables in point logs:
     distributing 3 iterations:
       2 processes get 2 or 1 iterations
     deleting tiles:
       distributing 9 iterations:
         2 processes get 5 or 4 iterations
-  2021-06-15 15:35:47
+  2023-02-22 11:37:13
   finished

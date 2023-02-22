@@ -40,7 +40,7 @@ stats-calc: enkf_calc observations.nc conf background_6565
 	nice -n +19 mpirun -np $(NP_CALC) ./enkf_calc --forecast-stats-only stats.prm 2>&1 | tee calc.out
 
 singleob-calc: enkf_calc ensemble_static
-	nice -n +19 mpirun -np $(NP_CALC) ./enkf_calc --single-observation-ijk 35 55 0 SST 0.5 0.5 singleob.prm 2>&1 | tee calc.out
+	nice -n +19 mpirun -np $(NP_CALC) ./enkf_calc --single-observation 156.0 -32.0 0 SST 0.5 0.5 singleob.prm 2>&1 | tee calc.out
 
 singleob-update: enkf_update ensemble_static
 	nice -n +19 mpirun -np $(NP_UPDATE) ./enkf_update --output-increment singleob.prm 2>&1 | tee update.out

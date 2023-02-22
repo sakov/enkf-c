@@ -2,10 +2,10 @@
   Using MPI-3 shared memory:
     sm_comm size = 2
     node_comm size = 1
-  running CALC for EnKF-C version 2.9.3:
+  running CALC for EnKF-C version 2.19.1:
     command = "./enkf_calc --point-logs-only pointlogs.prm"
     dir = "/home/pavel/src/enkf-c/trunk/enkf/examples/1"
-  2021-06-15 15:35:45
+  2023-02-22 11:37:12
   reading system specs from "pointlogs.prm":
     MODE = EnKF
     SCHEME = DEnKF
@@ -20,8 +20,8 @@
     INFLATION BASE = 1.1000
     INFLATION MODE = CAPPED, MAX RATIO = 1.00
     KFACTOR = 999.0
-      LOCRAD  = 200
-      LOCWEIGHT =  1
+    LOCRAD  = 200
+    LOCWEIGHT =  1
     STRIDE = 3
     FIELDBUFFERSIZE = 4
     REGION Global: x = [0.0, 360.0], y = [-90.0, 90.0]
@@ -94,7 +94,7 @@
       PERMIT_LOCATION_BASED_THINNING = YES
     grid prm info:
       NAME = "t-grid"
-      DOMAIN = Default
+      DOMAIN = ALL
       DATA = "conf/grid_spec.nc"
       VTYPE = "z"
       VDIR = FROMSURF
@@ -108,9 +108,9 @@
       YVARNAME = "lat"
       ZSTATINTS = [0 50] [50 500] [500 9999] 
     grid info:
-      hor type = LATLON
+      size = 100 x 100 x 2
+      h type = RECTANGULAR
       periodic by X = no
-      dims = 100 x 100 x 2
       longitude range = [0.000, 360.000]
       v type = Z
       v dir = FROMSURF
@@ -144,7 +144,7 @@
       t-grid: (i, j) = (9.500, 9.500)
   reading observations from "observations.nc":
     10220 observations
-    allocating 735840 bytes for array of observations
+    allocating 981120 bytes for array of observations
     creating kd-trees for observations:
       kdtree "SLA":
         652 nodes
@@ -159,7 +159,7 @@
         7 nodes
         496 bytes
   calculating ensemble observations:
-  2021-06-15 15:35:45
+  2023-02-22 11:37:12
     allocating 3924480 bytes for HE array:
     allocating 3924480 bytes for HE^T array:
     distributing 96 iterations:
@@ -169,16 +169,22 @@
     TEM ................................................
     SAL ................................................
   writing forecast innovations and spread to "observations.nc":
-  2021-06-15 15:35:45
+  2023-02-22 11:37:12
     Hx_f already added to "observations.nc" (skipping)
+  identifying observation batches:
+    SLA     9   
+    SST     27  
+    TEM     5   
+    SAL     5   
+    total:  46  
   moderating observations:
     already done
   writing point logs:
     calculating transforms for log point (156.000,-32.000): 1444 obs
-    writing log for point (156.000,-32.000) on grid "t-grid":
+    writing transforms for point (156.000,-32.000) on grid "t-grid":
     calculating transforms for log point (160.000,-29.000): 1214 obs
-    writing log for point (160.000,-29.000) on grid "t-grid":
+    writing transforms for point (160.000,-29.000) on grid "t-grid":
     calculating transforms for log point (152.000,-36.000): 808 obs
-    writing log for point (152.000,-36.000) on grid "t-grid":
-  2021-06-15 15:35:45
+    writing transforms for point (152.000,-36.000) on grid "t-grid":
+  2023-02-22 11:37:12
   finished

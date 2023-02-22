@@ -502,8 +502,10 @@ vgrid* vgrid_create(void* p, void* g)
 
     ncw_open(prm->fname, NC_NOWRITE, &ncid);
 
-    if (vg->type == GRIDVTYPE_NONE);
-    else if (vg->type == GRIDVTYPE_Z) {
+    if (vg->type == GRIDVTYPE_NONE) {
+        nk = 1;
+        prm->vdirection = strdup("FROMSURF");
+    } else if (vg->type == GRIDVTYPE_Z) {
         int varid;
         double* z = NULL;
         double* zc = NULL;
@@ -760,7 +762,9 @@ void vgrid_destroy(vgrid* vg)
 {
     if (vg == NULL)
         return;
-    if (vg->type == GRIDVTYPE_Z)
+    if (vg->type == GRIDVTYPE_NONE)
+        ;
+    else if (vg->type == GRIDVTYPE_Z)
         gz_z_destroy(vg->gz);
     else if (vg->type == GRIDVTYPE_SIGMA)
         gz_sigma_destroy(vg->gz);

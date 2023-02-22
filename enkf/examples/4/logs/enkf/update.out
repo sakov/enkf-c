@@ -1,8 +1,8 @@
   MPI: initialised 2 process(es)
-  running UPDATE for EnKF-C version 2.9.3:
+  running UPDATE for EnKF-C version 2.19.1:
     command = "./enkf_update --calculate-spread --write-inflation enkf.prm"
     dir = "/home/pavel/src/enkf-c/trunk/enkf/examples/4"
-  2021-06-16 08:42:36
+  2023-02-22 11:49:23
   reading system specs from "enkf.prm":
     MODE = EnKF
     SCHEME = DEnKF
@@ -17,8 +17,8 @@
     INFLATION BASE = 1.1000
     INFLATION MODE = CAPPED, MAX RATIO = 1.00
     KFACTOR = 999.0
-      LOCRAD  = 200
-      LOCWEIGHT =  1
+    LOCRAD  = 200
+    LOCWEIGHT =  1
     STRIDE = 3
     FIELDBUFFERSIZE = 4
     REGION Global: x = [0.0, 360.0], y = [-90.0, 90.0]
@@ -39,7 +39,7 @@
   initialising the system:
     grid prm info:
       NAME = "t-grid"
-      DOMAIN = Default
+      DOMAIN = ALL
       DATA = "conf4/grid_spec.nc"
       VTYPE = "z"
       VDIR = FROMSURF
@@ -53,16 +53,16 @@
       YVARNAME = "latt"
       ZSTATINTS = [0 50] [50 500] [500 9999] 
     grid info:
-      hor type = LATLON
+      size = 100 x 100 x 2
+      h type = RECTANGULAR
       periodic by X = no
-      dims = 100 x 100 x 2
-      longitude range = [0.000, 360.000]
+      longitude range = any
       v type = Z
       v dir = FROMSURF
       STRIDE = 0
     grid prm info:
       NAME = "c-grid"
-      DOMAIN = Default
+      DOMAIN = ALL
       DATA = "conf4/grid_spec.nc"
       VTYPE = "z"
       VDIR = FROMSURF
@@ -75,10 +75,10 @@
       YVARNAME = "latc"
       ZSTATINTS = [0 50] [50 500] [500 9999] 
     grid info:
-      hor type = LATLON
+      size = 100 x 100 x 2
+      h type = RECTANGULAR
       periodic by X = no
-      dims = 100 x 100 x 2
-      longitude range = [0.000, 360.000]
+      longitude range = any
       v type = Z
       v dir = FROMSURF
       STRIDE = 0
@@ -112,20 +112,20 @@
     defining state variables in point logs:
     distributing 96 iterations:
       2 processes get 48 iterations each
-    2021-06-16 08:42:36
+    2023-02-22 11:49:23
     allocating disk space for analysis:................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................
     processing fields for t-grid:
-      2021-06-16 08:42:36
+      2023-02-22 11:49:24
       5 fields
       distributing 5 iterations:
         2 processes get 3 or 2 iterations
-      salt     0   (1: 3: 50.0%)
       eta_t    0   (0: 0: 33.3%)
+      salt     0   (1: 3: 50.0%)
       temp     0   (0: 1: 66.7%)
       salt     1   (1: 4: 100.0%)
       temp     1   (0: 2: 100.0%)
     processing fields for c-grid:
-      2021-06-16 08:42:37
+      2023-02-22 11:49:25
       4 fields
       distributing 4 iterations:
         2 processes get 2 iterations each
@@ -133,7 +133,7 @@
       v        0   (1: 2: 50.0%)
       v        1   (1: 3: 100.0%)
       u        1   (0: 1: 100.0%)
-  2021-06-16 08:42:38
+  2023-02-22 11:49:28
   assembling analysis:
     distributing 96 iterations:
       2 processes get 48 iterations each
@@ -142,26 +142,31 @@
     salt:................................................
     u:................................................
     v:................................................
-  2021-06-16 08:42:39
+  2023-02-22 11:49:29
   assembling spread:
     eta_t:.
+    eta_t_an:.
     temp:..
+    temp_an:..
     salt:..
+    salt_an:..
     u:..
+    u_an:..
     v:..
-  2021-06-16 08:42:39
+    v_an:..
+  2023-02-22 11:49:29
   assembling inflation:
     eta_t:.
     temp:..
     salt:..
     u:..
     v:..
-  2021-06-16 08:42:39
+  2023-02-22 11:49:29
   assembling state variables in point logs:
     distributing 1 iterations:
       1 processes get 1 iteration, 1 processes get 0 iterations
     deleting tiles:
       distributing 9 iterations:
         2 processes get 5 or 4 iterations
-  2021-06-16 08:42:39
+  2023-02-22 11:49:29
   finished
