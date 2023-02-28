@@ -486,10 +486,7 @@ void das_getfields(dasystem* das, int gridid, int* nfields, field** fields)
             f->id = *nfields;
             f->varid = vid;
             strcpy(f->varname, varname);
-            if (nk > 1)
-                f->level = k;
-            else
-                f->level = grid_getsurflayerid(model_getvargrid(m, vid));
+            f->level = k;
             f->structured = nj > 0;
             (*nfields)++;
         }

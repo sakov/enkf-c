@@ -1044,7 +1044,7 @@ static void das_assemblemembers(dasystem* das)
                 if (nj <= 0)
                     count[1] = ni;
 
-                getfieldfname(DIRNAME_TMP, "ens", varname, (nlev > 1) ? k : grid_getsurflayerid(g), fname_src);
+                getfieldfname(DIRNAME_TMP, "ens", varname, k, fname_src);
                 ncw_open(fname_src, NC_NOWRITE, &ncid_src);
                 ncw_inq_varid(ncid_src, varname, &vid_src);
                 ncw_get_vara_float(ncid_src, vid_src, start, count, v);
@@ -1078,7 +1078,7 @@ static void das_assemblemembers(dasystem* das)
             das_getmemberfname(das, varname, 1, fname);
             nlev = ncu_getnlevels(fname, varname, grid_isstructured(g));
             for (k = 0; k < nlev; ++k) {
-                getfieldfname(DIRNAME_TMP, "ens", varname, (nlev == 1) ? grid_getsurflayerid(g) : k, fname);
+                getfieldfname(DIRNAME_TMP, "ens", varname, k, fname);
                 file_delete(fname);
             }
         }
