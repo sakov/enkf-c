@@ -433,13 +433,14 @@ void plog_definestatevars(dasystem* das)
                 else if (das->mode == MODE_ENKF || das->mode == MODE_HYBRID)
                     ncw_inq_dimid(ncid, "m2", &dimids[1]);
 
-                if (!ncw_var_exists(ncid, varname)) {
+                if (!ncw_var_exists(ncid, varname))
                     ncw_def_var(ncid, varname, NC_FLOAT, 2, dimids, &varid);
-                    if (das->updatespec | UPDATE_DOPLOGSAN)
-                        ncw_def_var(ncid, varname_an, NC_FLOAT, 2, dimids, &varid_an);
-                } else {
+                else
                     ncw_inq_varid(ncid, varname, &varid);
-                    if (das->updatespec | UPDATE_DOPLOGSAN)
+                if (das->updatespec | UPDATE_DOPLOGSAN) {
+                    if (!ncw_var_exists(ncid, varname_an))
+                        ncw_def_var(ncid, varname_an, NC_FLOAT, 2, dimids, &varid_an);
+                    else
                         ncw_inq_varid(ncid, varname_an, &varid_an);
                 }
             } else {
@@ -449,13 +450,14 @@ void plog_definestatevars(dasystem* das)
                     ncw_inq_dimid(ncid, "m", &dimid);
                 else if (das->mode == MODE_ENKF || das->mode == MODE_HYBRID)
                     ncw_inq_dimid(ncid, "m2", &dimid);
-                if (!ncw_var_exists(ncid, varname)) {
+                if (!ncw_var_exists(ncid, varname))
                     ncw_def_var(ncid, varname, NC_FLOAT, 1, &dimid, &varid);
-                    if (das->updatespec | UPDATE_DOPLOGSAN)
-                        ncw_def_var(ncid, varname_an, NC_FLOAT, 1, &dimid, &varid_an);
-                } else {
+                else
                     ncw_inq_varid(ncid, varname, &varid);
-                    if (das->updatespec | UPDATE_DOPLOGSAN)
+                if (das->updatespec | UPDATE_DOPLOGSAN) {
+                    if (!ncw_var_exists(ncid, varname_an))
+                        ncw_def_var(ncid, varname_an, NC_FLOAT, 1, &dimid, &varid);
+                    else
                         ncw_inq_varid(ncid, varname_an, &varid_an);
                 }
             }

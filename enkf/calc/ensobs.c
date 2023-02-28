@@ -1236,7 +1236,7 @@ static void update_HE(dasystem* das)
 
         if (gid < obs->obstypes[obs->data[o].type].gridid)
             continue;
-        if (obs->data[o].status != STATUS_OK)
+        if (!grid_isstructured(g))
             continue;
 
         das_getfname_transforms(das, gid, fname);
@@ -1258,14 +1258,6 @@ static void update_HE(dasystem* das)
             iiter[ni] = iiter[ni - 1] + stride;
 
         grid_getsize(g, &mni, &mnj, NULL);
-        /*
-         * a treatment for unstructured grids
-         */
-        if (mnj <= 0) {
-            mnj = mni;
-            mni = 1;
-            joffset = 0;
-        }
 
         start[0] = 0;
         start[1] = 0;
@@ -1390,6 +1382,9 @@ static void update_HE(dasystem* das)
                     double inf_ratio = NAN;
                     float inflation = NAN;
                     double v1_f, v1_a;
+
+                    if (obs->data[o].status != STATUS_OK)
+                        continue;
 
                     model_getvarinflation(m, obs->obstypes[obs->data[o].type].vid, &inflation0, &inf_ratio);
 
@@ -1602,6 +1597,8 @@ static void update_Hx(dasystem* das)
 
         if (gid < obs->obstypes[obs->data[o].type].gridid)
             continue;
+        if (!grid_isstructured(g))
+            continue;
 
         das_getfname_transforms(das, gid, fname);
 
@@ -1623,14 +1620,6 @@ static void update_Hx(dasystem* das)
             iiter[ni] = iiter[ni - 1] + stride;
 
         grid_getsize(g, &mni, &mnj, NULL);
-        /*
-         * a treatment for unstructured grids
-         */
-        if (mnj <= 0) {
-            mnj = mni;
-            mni = 1;
-            joffset = 0;
-        }
 
         start[0] = 0;
         start[1] = 0;
@@ -1723,6 +1712,9 @@ static void update_Hx(dasystem* das)
                 for (; o <= my_last_iteration && (int) (obs->data[o].fij[joffset] + 0.5) == j; ++o) {
                     double dHx = 0.0;
                     double Hx = 0.0;
+
+                    if (obs->data[o].status != STATUS_OK)
+                        continue;
 
 #if defined(USE_SHMEM)
                     for (e = 0; e < nmem; ++e)

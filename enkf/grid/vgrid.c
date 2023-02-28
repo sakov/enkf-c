@@ -762,8 +762,7 @@ void vgrid_destroy(vgrid* vg)
 {
     if (vg == NULL)
         return;
-    if (vg->type == GRIDVTYPE_NONE)
-        ;
+    if (vg->type == GRIDVTYPE_NONE);
     else if (vg->type == GRIDVTYPE_Z)
         gz_z_destroy(vg->gz);
     else if (vg->type == GRIDVTYPE_SIGMA)

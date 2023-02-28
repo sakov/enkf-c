@@ -407,21 +407,27 @@ int main(int argc, char* argv[])
         obs_destroykdtrees(das->obs);
 
         if (!plogs_only) {
-            /*
-             * the following is an optional bit - updating ensemble observations
-             * and generating report 
-             */
-            enkf_printf("  calculating analysed observations:\n");
-            enkf_printtime("  ");
-            das_updateHE(das);
+            if (!model_hasunstructured(das->m)) {
+                /*
+                 * the following is an optional bit - updating ensemble
+                 * observations and generating report 
+                 */
+                enkf_printf("  calculating analysed observations:\n");
+                enkf_printtime("  ");
+                das_updateHE(das);
 
-            if (singleob == NULL) {
-                enkf_printf("  adding analysis innovations and spread to \"%s\":\n", fname_obs);
-                das_writeanalysisobs(das, fname_obs);
+                if (singleob == NULL) {
+                    enkf_printf("  adding analysis innovations and spread to \"%s\":\n", fname_obs);
+                    das_writeanalysisobs(das, fname_obs);
+                }
+
+                enkf_printf("  printing observation statistics:\n");
+                das_printobsstats(das, use_rmsd);
+            } else {
+                enkf_printf("  (skipping calculating analysed observations because of presence of unstructured grids)\n");
+                enkf_printf("  printing observation statistics:\n");
+                das_printfobsstats(das, use_rmsd);
             }
-
-            enkf_printf("  printing observation statistics:\n");
-            das_printobsstats(das, use_rmsd);
         }
     } else {
         enkf_printf("  printing observation statistics:\n");

@@ -53,6 +53,7 @@ double model_getlonbase(model* m, int vid);
 float** model_getdepth(model* m, int vid, int musthave);
 int** model_getnumlevels(model* m, int vid);
 int model_getdomainid(model* m, char* domainname);
+int model_hasunstructured(model* m);
 
 int model_xy2fij(model* m, int vid, double x, double y, double* fij);
 int model_ij2xy(model* m, int vid, int* i, double* x, double* y);

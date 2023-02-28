@@ -613,6 +613,19 @@ int model_getdomainid(model* m, char* domainname)
 
 /**
  */
+int model_hasunstructured(model* m)
+{
+    int i;
+
+    for (i = 0; i < m->ngrid; ++i)
+        if (!grid_isstructured(m->grids[i]))
+            return 1;
+
+    return 0;
+}
+
+/**
+ */
 #if defined(ENKF_PREP) || defined(ENKF_CALC)
 int model_xy2fij(model* m, int vid, double x, double y, double* fij)
 {
