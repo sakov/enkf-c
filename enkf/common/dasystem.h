@@ -31,6 +31,7 @@ typedef struct {
     int id;
     int varid;
     char varname[NC_MAX_NAME];
+    int issurfacevar;
     int level;
     int structured;
 } field;

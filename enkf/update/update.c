@@ -307,7 +307,7 @@ static void das_updatefields(dasystem* das, int nfields, void** fieldbuffer, fie
                                 continue;
                             }
                         } else {
-                            if (((int**) nlevels)[j][i] <= surfk - f->level) {
+                            if (((int**) nlevels)[j][i] <= ((f->issurfacevar) ? 1 : surfk - f->level)) {
                                 for (e = 0; e < nmem; ++e)
                                     ((float***) vvv)[e][j][i] = 0.0f;
                                 continue;
@@ -321,7 +321,7 @@ static void das_updatefields(dasystem* das, int nfields, void** fieldbuffer, fie
                                 continue;
                             }
                         } else {
-                            if (((int*) nlevels)[j] <= surfk - f->level) {
+                            if (((int*) nlevels)[j] <= ((f->issurfacevar) ? 1 : surfk - f->level)) {
                                 for (e = 0; e < nmem; ++e)
                                     ((float**) vvv)[e][j] = 0.0f;
                                 continue;
@@ -600,6 +600,14 @@ static void das_updatebg(dasystem* das, int nfields, void** fieldbuffer, field f
     assert(das->mode == MODE_ENOI);
 
     grid_getsize(g, &mni, &mnj, NULL);
+    /*
+     * a treatment for unstructured grids
+     */
+    if (mnj <= 0) {
+        mnj = mni;
+        mni = 1;
+        structured = 0;
+    }
 
     das_getfname_transforms(das, gridid, fname);
 
@@ -706,7 +714,7 @@ static void das_updatebg(dasystem* das, int nfields, void** fieldbuffer, field f
                                 continue;
                             }
                         } else {
-                            if (((int**) nlevels)[j][i] <= surfk - f->level) {
+                            if (((int**) nlevels)[j][i] <= ((f->issurfacevar) ? 1 : surfk - f->level)) {
                                 ((float***) vvv)[nmem][j][i] = 0.0f;
                                 continue;
                             }
@@ -745,7 +753,7 @@ static void das_updatebg(dasystem* das, int nfields, void** fieldbuffer, field f
                                 continue;
                             }
                         } else {
-                            if (((int*) nlevels)[j] <= surfk - f->level) {
+                            if (((int*) nlevels)[j] <= ((f->issurfacevar) ? 1 : surfk - f->level)) {
                                 ((float**) vvv)[nmem][j] = 0.0f;
                                 continue;
                             }
@@ -776,7 +784,7 @@ static void das_updatebg(dasystem* das, int nfields, void** fieldbuffer, field f
                          * das_update())
                          */
                         for (e = 0; e < nmem; ++e)
-                            ((float**) vvv)[nmem][j] += (((float**) vvv)[e][j] - xmean) * wj[j][e];
+                            ((float**) vvv)[nmem][j] += (((float**) vvv)[e][j] - xmean) * wj[0][e];
                     }
                 }
             }

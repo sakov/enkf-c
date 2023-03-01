@@ -485,6 +485,7 @@ void das_getfields(dasystem* das, int gridid, int* nfields, field** fields)
             f = &(*fields)[*nfields];
             f->id = *nfields;
             f->varid = vid;
+            f->issurfacevar = (nk == 1);
             strcpy(f->varname, varname);
             f->level = k;
             f->structured = nj > 0;
