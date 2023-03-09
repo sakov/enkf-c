@@ -1,3 +1,9 @@
+v2.19.7
+   PS 09032023
+   -- Corrected an inconsistency in CALC on unstructured grids that causes
+      hanging up when run on multiple CPUs.
+   -- Corrected an inconsistency in das_assemblespread() in the case of grids
+      with surface layer id != 0.
 v2.19.6
    PS 28022023
    -- Corrected defect in das_updatebg() for unstructured grids.

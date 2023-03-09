@@ -319,10 +319,10 @@ void das_printfobsstats(dasystem* das, int use_rmsd)
     int* nobs_inst;
     double (*func) (double) = (use_rmsd) ? fsquare : fabs;
 
+    das_destandardise(das);
+
     if (rank != 0)
         return;
-
-    das_destandardise(das);
 
     ni = st_getsize(obs->instruments);
     inn_f_inst = malloc((ni + 1) * sizeof(double));

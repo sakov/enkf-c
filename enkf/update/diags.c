@@ -191,7 +191,7 @@ void das_assemblespread(dasystem* das)
             char fname_src[MAXSTRLEN];
             int ncid_src, vid;
 
-            getfieldfname(DIRNAME_TMP, "spread", varname, (nlev > 1) ? k : grid_getsurflayerid(g), fname_src);
+            getfieldfname(DIRNAME_TMP, "spread", varname, k, fname_src);
             ncw_open(fname_src, NC_NOWRITE, &ncid_src);
             ncw_inq_varid(ncid_src, varname, &vid);
             ncw_get_var_float(ncid_src, vid, v);
