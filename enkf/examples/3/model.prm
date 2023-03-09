@@ -1,0 +1,13 @@
+name = compas
+
+var = eta
+grid = t-grid
+
+var = salt
+grid = t-grid
+
+var = temp
+grid = t-grid
+
+var = u1
+grid = c-grid

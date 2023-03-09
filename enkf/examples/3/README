@@ -1,0 +1,14 @@
+This is an example with an structured grid. It has been put up as a code test
+only, with not much physical sense. The initial ensemble is constructed from 19
+consequitive daily average dumps from COMPAS model developed ny CSIRO. The
+background is a reduced restart from COMPAS with basic model variables only.
+The grid data file contains a couple of additional variables necessary for
+the grid handling: triangles_t, neighbours_t, triangles_c, and neighbours_c.
+These can be output by COMPAS, but in the example were constructed using
+separate triangulation software.
+
+To run this example download
+
+https://github.com/sakov/enkf-c/releases/download/data/example3-data.tar.gz
+
+(59 MB) and unpack in this directory, then (after compiling EnKF-C) run "make".

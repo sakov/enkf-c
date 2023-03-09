@@ -1,0 +1,20 @@
+name = t-grid
+data = conf/grid.nc
+xvarname = x_t
+yvarname = y_t
+vtype = z
+vdir = tosurf
+zvarname = z_t
+depthvarname = depth
+trivarname = triangles_t
+trineivarname = neighbours_t
+
+name = c-grid
+data = conf/grid.nc
+xvarname = x_c
+yvarname = y_c
+vtype = z
+vdir = tosurf
+zvarname = z_t
+trivarname = triangles_c
+trineivarname = neighbours_c
