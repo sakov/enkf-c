@@ -22,6 +22,12 @@ extern long int seed_rand48;
 struct kdtree;
 typedef struct kdtree kdtree;
 
+/* It is possible to set the quit procedure. By default, the internal procedure
+ * is used.
+ */
+typedef void (*kd_quit_fn) (char* format, ...);
+void kd_set_quitfn(kd_quit_fn quit_fn);
+
 typedef struct {
     size_t id;
     double distsq;

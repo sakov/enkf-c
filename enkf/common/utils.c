@@ -35,6 +35,7 @@
 #include <ftw.h>
 #include "ncw.h"
 #include "ncutils.h"
+#include "triangulation.h"
 #include "definitions.h"
 #include "version.h"
 #include "utils.h"
@@ -219,6 +220,12 @@ void enkf_init(int* argc, char*** argv)
 
     ncw_set_quitfn(enkf_quit);
     ncu_set_quitfn(enkf_quit);
+#if defined(ENKF_CALC)
+    kd_set_quitfn(enkf_quit);
+#endif
+#if defined(ENKF_PREP) || defined(ENKF_CALC)
+    triangulation_set_quitfn(enkf_quit);
+#endif
 
     /*
      * initialise the random number generator to a random state for each cpu

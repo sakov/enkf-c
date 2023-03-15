@@ -1,3 +1,6 @@
+v2.19.9
+   PS 15032023
+   -- "kd" and "triangulation" now use enkf_quit() as a quit function.
 v2.19.8
    PS 09032023
    -- Added example 3 with an unstructured grid.

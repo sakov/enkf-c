@@ -30,9 +30,12 @@
 #include "ncw.h"
 #include "triangulation.h"
 
+static void quit_def(char* format, ...);
+static triangulation_quit_fn quit = quit_def;
+
 /**
  */
-static void quit(char* format, ...)
+static void quit_def(char* format, ...)
 {
     va_list args;
 
@@ -45,6 +48,13 @@ static void quit(char* format, ...)
     fprintf(stderr, "\n\n");
     fflush(NULL);
     exit(1);
+}
+
+/**
+ */
+void triangulation_set_quitfn(triangulation_quit_fn quit_fn)
+{
+    quit = quit_fn;
 }
 
 /**

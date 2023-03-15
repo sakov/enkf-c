@@ -28,8 +28,8 @@
 
 extern const char ncw_version[];
 
-/* It is possible to set the quit procedure to match the required standards.
- * By default, the internal quit procedure is used.
+/* It is possible to set the quit procedure. By default, the internal procedure
+ * is used.
  */
 typedef void (*ncw_quit_fn) (char* format, ...);
 void ncw_set_quitfn(ncw_quit_fn quit_fn);

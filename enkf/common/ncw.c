@@ -63,6 +63,11 @@ static void quit_def(char* format, ...)
     exit(1);
 }
 
+void ncw_set_quitfn(ncw_quit_fn quitfn)
+{
+    quit = quitfn;
+}
+
 char* ncw_get_path(int ncid)
 {
     char* path = NULL;
@@ -277,13 +282,6 @@ static struct nctype2str {
     {NC_DOUBLE, "NC_DOUBLE"}
 };
 /* *INDENT-ON* */
-
-/** Sets the quit function.
- */
-void ncw_set_quitfn(ncw_quit_fn quitfn)
-{
-    quit = quitfn;
-}
 
 void ncw_create(const char fname[], int mode, int* ncid)
 {

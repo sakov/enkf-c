@@ -57,6 +57,12 @@ typedef struct {
 #endif
 } triangulation;
 
+/* It is possible to set the quit procedure. By default, the internal procedure
+ * is used.
+ */
+typedef void (*triangulation_quit_fn) (char* format, ...);
+void triangulation_set_quitfn(triangulation_quit_fn quit_fn);
+
 triangulation* triangulation_read(char* fname, char* name_x, char* name_y, char* name_tri, char* name_neigh);
 void triangulation_destroy(triangulation* d);
 void triangulation_getpoints(triangulation* d, int* npoint, point** points);

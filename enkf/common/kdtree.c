@@ -86,9 +86,12 @@ struct kdtree {
     kdresult* results;
 };
 
+static void quit_def(char* format, ...);
+static kd_quit_fn quit = quit_def;
+
 /**
  */
-static void quit(char* format, ...)
+static void quit_def(char* format, ...)
 {
     va_list args;
 
@@ -105,13 +108,20 @@ static void quit(char* format, ...)
 
 /**
  */
+void kd_set_quitfn(kd_quit_fn quit_fn)
+{
+    quit = quit_fn;
+}
+
+/**
+ */
 kdtree* kd_create(char* name, size_t ndim)
 {
     kdtree* tree;
     int i;
 
     if (ndim > NDIMMAX)
-        quit("ndim = %d, NDIMMAX = %d", ndim, NDIMMAX);
+        quit("kd_create(): ndim = %d, NDIMMAX = %d", ndim, NDIMMAX);
     tree = malloc(sizeof(kdtree));
     tree->name = strdup(name);
     tree->ndim = ndim;
@@ -646,7 +656,7 @@ size_t kd_findnearestnode(const kdtree* tree, const double* coords)
 double* kd_getnodecoords(const kdtree* tree, size_t id)
 {
     if (id >= tree->nnodes)
-        quit("id = %zu >= tree size = %zu", id, tree->nnodes);
+        quit(" kd_getnodecoords(): id = %zu >= tree size = %zu", id, tree->nnodes);
 
     return &tree->coords[id * tree->ndim];
 }
@@ -656,7 +666,7 @@ double* kd_getnodecoords(const kdtree* tree, size_t id)
 size_t kd_getnodedata(const kdtree* tree, size_t id)
 {
     if (id >= tree->nnodes)
-        quit("id = %zu >= tree size = %zu", id, tree->nnodes);
+        quit("kd_getnodedata(): id = %zu >= tree size = %zu", id, tree->nnodes);
 
     return (int) tree->nodes[id].data;
 }
@@ -717,7 +727,7 @@ static void kd_readfile(kdtree* tree, char* fname, int ndimin)
     int i;
 
     if (ndim < 1 || ndim > NDIMMAX)
-        quit("no. of dimensions = %d; expected 1 <= ndim <= %d", ndim, NDIMMAX);
+        quit("kd_readfile(): no. of dimensions = %d; expected 1 <= ndim <= %d", ndim, NDIMMAX);
     if (fname == NULL)
         f = stdin;
     else {
@@ -726,7 +736,7 @@ static void kd_readfile(kdtree* tree, char* fname, int ndimin)
         else {
             f = fopen(fname, "r");
             if (f == NULL)
-                quit("%s: %s", fname, strerror(errno));
+                quit("kd_readfile(): %s: %s", fname, strerror(errno));
         }
     }
 
@@ -772,7 +782,7 @@ static void kd_readfile(kdtree* tree, char* fname, int ndimin)
     }
     if (f != stdin)
         if (fclose(f) != 0)
-            quit("%s: %s", fname, strerror(errno));
+            quit("kd_readfile(): %s: %s", fname, strerror(errno));
 
     kd_insertnodes(tree, npoints, coords, NULL, NULL, 1);
 
