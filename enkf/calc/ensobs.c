@@ -873,20 +873,44 @@ static int cmp_obs_byij(const void* p1, const void* p2, void* p)
     if (gid1 < gid2)
         return -1;
 
-    i1 = (int) floor(o1->fij[1] + 0.5);
-    i2 = (int) floor(o2->fij[1] + 0.5);
+    if (grid_isstructured(model_getgridbyid(das->m, gid1))) {
+        i1 = (int) floor(o1->fij[1] + 0.5);
+        i2 = (int) floor(o2->fij[1] + 0.5);
+        if (i1 > i2)
+            return 1;
+        if (i1 < i2)
+            return -1;
+
+        i1 = (int) floor(o1->fij[0] + 0.5);
+        i2 = (int) floor(o2->fij[0] + 0.5);
+    } else {
+        double ii0, ii1, ii2;
+        double ff0, ff1, ff2;
+
+        /*
+         * use ID of the vertex with largest barycentric coordinate value
+         */
+        ff0 = modf(o1->fij[0], &ii0);
+        ff1 = modf(o1->fij[1], &ii1);
+        ff2 = modf(o1->fij[2], &ii2);
+        if (ff0 > ff1)
+            i1 = (ff0 > ff2) ? (int) ii0 : (int) ii2;
+        else
+            i1 = (ff1 > ff2) ? (int) ii1 : (int) ii2;
+
+        ff0 = modf(o2->fij[0], &ii0);
+        ff1 = modf(o2->fij[1], &ii1);
+        ff2 = modf(o2->fij[2], &ii2);
+        if (ff0 > ff1)
+            i2 = (ff0 > ff2) ? (int) ii0 : (int) ii2;
+        else
+            i2 = (ff1 > ff2) ? (int) ii1 : (int) ii2;
+    }
+
     if (i1 > i2)
         return 1;
     if (i1 < i2)
         return -1;
-
-    i1 = (int) floor(o1->fij[0] + 0.5);
-    i2 = (int) floor(o2->fij[0] + 0.5);
-    if (i1 > i2)
-        return 1;
-    if (i1 < i2)
-        return -1;
-
     return 0;
 }
 
@@ -1158,6 +1182,513 @@ static void gather_St(dasystem* das)
 }
 #endif
 
+/**
+ */
+static void update_HE_structured(dasystem* das, int gid, int* oid)
+{
+    void* g = model_getgridbyid(das->m, gid);
+    int periodic_i = grid_isperiodic_i(g);
+    int stride = grid_getstride(g);
+
+    int nmem = das->nmem;
+    int nmem_dynamic = das->nmem_dynamic;
+    observations* obs = das->obs;
+
+    char fname[MAXSTRLEN];
+    int ncid;
+    int varid_T, varid_w;
+    size_t dimlens[4];
+    size_t start[4], count[4];
+    float*** Tj = NULL;
+    float*** Tjj = NULL;
+    float*** Tjj1 = NULL;
+    float*** Tjj2 = NULL;
+    float** wj = NULL;
+    float** wjj = NULL;
+    float** wjj1 = NULL;
+    float** wjj2 = NULL;
+
+    float* HEo_f;
+    float* HEo_a;
+
+    int ni, nj, mni, mnj;
+    int* iiter;
+    int* jiter;
+    int ii, jj, i, j;
+    int stepj, stepi;
+    int e;
+
+    if (gid < obs->obstypes[obs->data[*oid].type].gridid)
+        return;
+    if (!grid_isstructured(g))
+        enkf_quit("profgramming error");
+
+#if !defined(USE_SHMEM)
+    HEo_f = malloc(nmem * sizeof(float));
+#endif
+    HEo_a = malloc(nmem * sizeof(float));
+
+    das_getfname_transforms(das, gid, fname);
+    ncw_open(fname, NC_NOWRITE, &ncid);
+    ncw_inq_varid(ncid, "T", &varid_T);
+    ncw_inq_varid(ncid, "w", &varid_w);
+    ncw_inq_vardims(ncid, varid_T, 4, NULL, dimlens);
+    nj = dimlens[0];
+    ni = dimlens[1];
+    assert(dimlens[2] == nmem_dynamic);
+    assert(dimlens[3] == nmem);
+
+    jiter = malloc((nj + 1) * sizeof(int));     /* "+ 1" to handle periodic
+                                                 * grids */
+    iiter = malloc((ni + 1) * sizeof(int));
+    for (j = 0, i = 0; j < nj; ++j, i += stride)
+        jiter[j] = i;
+    for (i = 0, j = 0; i < ni; ++i, j += stride)
+        iiter[i] = j;
+    if (periodic_i)
+        iiter[ni] = iiter[ni - 1] + stride;
+
+    grid_getsize(g, &mni, &mnj, NULL);
+
+    start[0] = 0;
+    start[1] = 0;
+    start[2] = 0;
+    start[3] = 0;
+    count[0] = 1;
+    count[1] = ni;
+    count[2] = nmem_dynamic;
+    count[3] = nmem;
+    Tj = alloc3d(mni, nmem_dynamic, nmem, sizeof(float));
+    wj = alloc2d(mni, nmem, sizeof(float));
+    if (stride > 1) {
+        Tjj = alloc3d(ni, nmem_dynamic, nmem, sizeof(float));
+        Tjj1 = alloc3d(ni, nmem_dynamic, nmem, sizeof(float));
+        Tjj2 = alloc3d(ni, nmem_dynamic, nmem, sizeof(float));
+        ncw_get_vara_float(ncid, varid_T, start, count, Tjj2[0][0]);
+        wjj = alloc2d(ni, nmem, sizeof(float));
+        wjj1 = alloc2d(ni, nmem, sizeof(float));
+        wjj2 = alloc2d(ni, nmem, sizeof(float));
+        count[2] = nmem;
+        ncw_get_vara_float(ncid, varid_w, start, count, wjj2[0]);
+    }
+
+    /*
+     * jj, ii are the indices of the subsampled grid; i, j are the indices
+     * of the model grid 
+     */
+    for (jj = 0, j = 0; jj < nj; ++jj) {
+        for (stepj = 0; stepj < stride && j < mnj; ++stepj, ++j) {
+
+            if ((int) (obs->data[*oid].fij[1] + 0.5) / stride > jj + 1)
+                continue;
+
+            if (stride == 1) {
+                /*
+                 * no interpolation necessary; simply read the ETMs for the
+                 * j-th row from disk 
+                 */
+                start[0] = j;
+                count[2] = nmem_dynamic;
+                ncw_get_vara_float(ncid, varid_T, start, count, Tj[0][0]);
+                count[2] = nmem;
+                ncw_get_vara_float(ncid, varid_w, start, count, wj[0]);
+            } else {
+                /*
+                 * the following code interpolates the ETM back to the
+                 * original grid, first by j, and then by i 
+                 */
+                if (stepj == 0) {
+                    memcpy(Tjj[0][0], Tjj2[0][0], ni * nmem_dynamic * nmem * sizeof(float));
+                    memcpy(Tjj1[0][0], Tjj2[0][0], ni * nmem_dynamic * nmem * sizeof(float));
+                    memcpy(wjj[0], wjj2[0], ni * nmem * sizeof(float));
+                    memcpy(wjj1[0], wjj2[0], ni * nmem * sizeof(float));
+                    if (jj < nj - 1) {
+                        start[0] = (jj + 1) % nj;
+                        count[2] = nmem_dynamic;
+                        ncw_get_vara_float(ncid, varid_T, start, count, Tjj2[0][0]);
+                        count[2] = nmem;
+                        ncw_get_vara_float(ncid, varid_w, start, count, wjj2[0]);
+                    }
+                } else {
+                    float weight2 = (float) stepj / stride;
+                    float weight1 = (float) 1.0 - weight2;
+
+                    for (ii = 0; ii < ni; ++ii) {
+                        float* Tjjii = Tjj[ii][0];
+                        float* Tjj1ii = Tjj1[ii][0];
+                        float* Tjj2ii = Tjj2[ii][0];
+                        float* wjjii = wjj[ii];
+                        float* wjj1ii = wjj1[ii];
+                        float* wjj2ii = wjj2[ii];
+
+                        for (e = 0; e < nmem_dynamic * nmem; ++e)
+                            Tjjii[e] = Tjj1ii[e] * weight1 + Tjj2ii[e] * weight2;
+                        for (e = 0; e < nmem; ++e)
+                            wjjii[e] = wjj1ii[e] * weight1 + wjj2ii[e] * weight2;
+                    }
+                }
+
+                for (ii = 0, i = 0; ii < ni; ++ii) {
+                    for (stepi = 0; stepi < stride && i < mni; ++stepi, ++i) {
+                        if (stepi == 0) {
+                            memcpy(Tj[i][0], Tjj[ii][0], nmem_dynamic * nmem * sizeof(float));
+                            memcpy(wj[i], wjj[ii], nmem * sizeof(float));
+                        } else {
+                            float weight2 = (float) stepi / stride;
+                            float weight1 = (float) 1.0 - weight2;
+                            float* Tjjii1 = Tjj[ii][0];
+                            float* Tji = Tj[i][0];
+                            float* Tjjii2;
+                            float* wjjii1 = wjj[ii];
+                            float* wji = wj[i];
+                            float* wjjii2;
+
+                            if (ii < ni - 1) {
+                                Tjjii2 = Tjj[ii + 1][0];
+                                wjjii2 = wjj[ii + 1];
+                            } else {
+                                Tjjii2 = Tjj[(periodic_i) ? (ii + 1) % ni : ii][0];
+                                wjjii2 = wjj[(periodic_i) ? (ii + 1) % ni : ii];
+                            }
+                            for (e = 0; e < nmem_dynamic * nmem; ++e)
+                                Tji[e] = Tjjii1[e] * weight1 + Tjjii2[e] * weight2;
+                            for (e = 0; e < nmem; ++e)
+                                wji[e] = wjjii1[e] * weight1 + wjjii2[e] * weight2;
+                        }
+                    }
+                }
+            }                   /* stride != 1 */
+
+            /*
+             * (at this stage Tj should contain the array of mni T matrices
+             * for the j-th row of the grid, and wj should contain the
+             * array of mni vectors for the j-th row of the grid)
+             */
+
+            if (*oid > my_last_iteration)
+                break;
+
+            for (; *oid <= my_last_iteration && (int) (obs->data[*oid].fij[1] + 0.5) == j; ++(*oid)) {
+                float inflation0 = NAN;
+                double inf_ratio = NAN;
+                float inflation = NAN;
+                double v1_f, v1_a;
+
+                if (obs->data[*oid].status != STATUS_OK)
+                    continue;
+
+                model_getvarinflation(das->m, obs->obstypes[obs->data[*oid].type].vid, &inflation0, &inf_ratio);
+
+                i = (int) (obs->data[*oid].fij[0] + 0.5);
+                if (i == mni)
+                    i--;
+#if defined(USE_SHMEM)
+                HEo_f = das->St[*oid];
+#else
+                for (e = 0; e < nmem; ++e)
+                    HEo_f[e] = das->S[e][*oid];
+#endif
+
+                /*
+                 * HE^a(o, :) = HE^f(o, :) * X5
+                 *            = Hx^f(o) * 1^T + HA^f(o, :) * (w * 1^T + T)
+                 */
+
+                /*
+                 * Hx^f
+                 */
+                for (e = 0, v1_f = 0.0; e < nmem_dynamic; ++e)
+                    v1_f += HEo_f[e];
+                v1_f /= (double) nmem_dynamic;
+
+                /*
+                 * HA^f = HE^f - Hx^f * 1^T
+                 */
+                for (e = 0; e < nmem; ++e)
+                    HEo_f[e] -= v1_f;
+                /*
+                 * HA^a = HA^f * T
+                 */
+                {
+                    char do_T = 'T';
+                    float alpha = 1.0f;
+                    float beta = 0.0f;
+                    int inc = 1;
+
+                    sgemv_(&do_T, &nmem, &nmem_dynamic, &alpha, Tj[i][0], &nmem, HEo_f, &inc, &beta, HEo_a, &inc);
+                }
+                /*
+                 * dHx = dHx^a - dHx^f
+                 */
+                for (e = 0, v1_a = 0.0; e < nmem; ++e)
+                    v1_a += HEo_f[e] * wj[i][e];
+                /*
+                 * Hx^a = Hx^f + dHx
+                 */
+                v1_a += v1_f;
+                /*
+                 * HE^a = HA^a + x^a * 1^T
+                 */
+                for (e = 0; e < nmem_dynamic; ++e)
+                    HEo_a[e] += v1_a;
+
+                /*
+                 * HE^f = HA^f + Hx^f
+                 */
+                for (e = 0; e < nmem; ++e)
+                    HEo_f[e] += v1_f;
+
+                if (!isnan(inf_ratio)) {
+                    double v2_f = 0.0;
+                    double v2_a = 0.0;
+                    double var_a, var_f;
+
+                    for (e = 0; e < nmem_dynamic; ++e) {
+                        double ve = (double) HEo_f[e];
+
+                        v2_f += ve * ve;
+                    }
+                    var_f = v2_f / (double) nmem_dynamic - v1_f * v1_f;
+
+                    for (e = 0; e < nmem_dynamic; ++e) {
+                        double ve = (double) HEo_a[e];
+
+                        v2_a += ve * ve;
+                    }
+                    var_a = v2_a / (double) nmem_dynamic - v1_a * v1_a;
+
+                    if (var_a > 0.0) {
+                        /*
+                         * (Normal case.) Limit inflation by inf_ratio of
+                         * the magnitude of spread reduction.
+                         */
+                        inflation = (float) (sqrt(var_f / var_a) * inf_ratio + 1.0 - inf_ratio);
+                        if (inflation >= inflation0)
+                            inflation = inflation0;
+                    }
+                } else
+                    inflation = inflation0;
+
+                /*
+                 * applying inflation:
+                 */
+                if (fabsf(inflation - 1.0f) > EPSF)
+                    for (e = 0; e < nmem_dynamic; ++e)
+                        HEo_a[e] = (HEo_a[e] - (float) v1_a) * inflation + v1_a;
+
+#if defined(USE_SHMEM)
+                for (e = 0; e < nmem_dynamic; ++e)
+                    das->St[*oid][e] = HEo_a[e];
+                for (e = nmem_dynamic; e < nmem; ++e)
+                    das->St[*oid][e] += v1_a - v1_f;
+#else
+                for (e = 0; e < nmem_dynamic; ++e)
+                    das->S[e][*oid] = HEo_a[e];
+                for (e = nmem_dynamic; e < nmem; ++e)
+                    das->S[e][*oid] += v1_a - v1_f;
+#endif
+            }
+        }                       /* for stepj */
+    }                           /* for jj */
+
+    ncw_close(ncid);
+
+    free(iiter);
+    free(jiter);
+    free(Tj);
+    free(wj);
+    if (stride > 1) {
+        free(Tjj);
+        free(Tjj1);
+        free(Tjj2);
+        free(wjj);
+        free(wjj1);
+        free(wjj2);
+    }
+    free(HEo_a);
+#if !defined(USE_SHMEM)
+    free(HEo_f);
+#endif
+}
+
+/**
+ */
+static void update_HE_unstructured(dasystem* das, int gid, int* oid)
+{
+    observations* obs = das->obs;
+    int nmem = das->nmem;
+    int nmem_dynamic = das->nmem_dynamic;
+    char fname[MAXSTRLEN];
+    int ncid;
+    int varid_T, varid_w;
+    float** T;
+    float* w;
+    float* HEo_f;
+    float* HEo_a;
+    int j_prev;
+
+#if !defined(USE_SHMEM)
+    HEo_f = malloc(nmem * sizeof(float));
+#endif
+    HEo_a = malloc(nmem * sizeof(float));
+
+    das_getfname_transforms(das, gid, fname);
+    ncw_open(fname, NC_NOWRITE, &ncid);
+    ncw_inq_varid(ncid, "T", &varid_T);
+    ncw_inq_varid(ncid, "w", &varid_w);
+
+    T = alloc2d(nmem_dynamic, nmem, sizeof(float));
+    w = malloc(nmem * sizeof(float));
+
+    for (j_prev = -1; *oid <= my_last_iteration; ++(*oid)) {
+        observation* o = &obs->data[*oid];
+        int j;
+        int e;
+
+        float inflation0 = NAN;
+        double inf_ratio = NAN;
+        float inflation = NAN;
+        double v1_f, v1_a;
+
+        if (gid < obs->obstypes[o->type].gridid)
+            goto finish;
+        if (obs->data[*oid].status != STATUS_OK)
+            continue;
+        {
+            double ii0, ii1, ii2;
+            double ff0, ff1, ff2;
+
+            ff0 = modf(o->fij[0], &ii0);
+            ff1 = modf(o->fij[1], &ii1);
+            ff2 = modf(o->fij[2], &ii2);
+            if (ff0 > ff1)
+                j = (ff0 > ff2) ? (int) ii0 : (int) ii2;
+            else
+                j = (ff1 > ff2) ? (int) ii1 : (int) ii2;
+        }
+        if (j != j_prev) {
+            size_t count[4] = { 1, 1, nmem_dynamic, nmem };
+            size_t start[4] = { j, 0, 0, 0 };
+
+            ncw_get_vara_float(ncid, varid_T, start, count, T[0]);
+            count[2] = nmem;
+            ncw_get_vara_float(ncid, varid_w, start, count, w);
+            j_prev = j;
+        }
+
+        model_getvarinflation(das->m, obs->obstypes[obs->data[*oid].type].vid, &inflation0, &inf_ratio);
+#if defined(USE_SHMEM)
+        HEo_f = das->St[*oid];
+#else
+        for (e = 0; e < nmem; ++e)
+            HEo_f[e] = das->S[e][*oid];
+#endif
+
+        /*
+         * Hx^f
+         */
+        for (e = 0, v1_f = 0.0; e < nmem_dynamic; ++e)
+            v1_f += HEo_f[e];
+        v1_f /= (double) nmem_dynamic;
+
+        /*
+         * HA^f = HE^f - Hx^f * 1^T
+         */
+        for (e = 0; e < nmem; ++e)
+            HEo_f[e] -= v1_f;
+        /*
+         * HA^a = HA^f * T
+         */
+        {
+            char do_T = 'T';
+            float alpha = 1.0f;
+            float beta = 0.0f;
+            int inc = 1;
+
+            sgemv_(&do_T, &nmem, &nmem_dynamic, &alpha, T[0], &nmem, HEo_f, &inc, &beta, HEo_a, &inc);
+        }
+        /*
+         * dHx = dHx^a - dHx^f
+         */
+        for (e = 0, v1_a = 0.0; e < nmem; ++e)
+            v1_a += HEo_f[e] * w[e];
+        /*
+         * Hx^a = Hx^f + dHx
+         */
+        v1_a += v1_f;
+        /*
+         * HE^a = HA^a + x^a * 1^T
+         */
+        for (e = 0; e < nmem_dynamic; ++e)
+            HEo_a[e] += v1_a;
+
+        /*
+         * HE^f = HA^f + Hx^f
+         */
+        for (e = 0; e < nmem; ++e)
+            HEo_f[e] += v1_f;
+
+        if (!isnan(inf_ratio)) {
+            double v2_f = 0.0;
+            double v2_a = 0.0;
+            double var_a, var_f;
+
+            for (e = 0; e < nmem_dynamic; ++e) {
+                double ve = (double) HEo_f[e];
+
+                v2_f += ve * ve;
+            }
+            var_f = v2_f / (double) nmem_dynamic - v1_f * v1_f;
+
+            for (e = 0; e < nmem_dynamic; ++e) {
+                double ve = (double) HEo_a[e];
+
+                v2_a += ve * ve;
+            }
+            var_a = v2_a / (double) nmem_dynamic - v1_a * v1_a;
+
+            if (var_a > 0.0) {
+                /*
+                 * (Normal case.) Limit inflation by inf_ratio of
+                 * the magnitude of spread reduction.
+                 */
+                inflation = (float) (sqrt(var_f / var_a) * inf_ratio + 1.0 - inf_ratio);
+                if (inflation >= inflation0)
+                    inflation = inflation0;
+            }
+        } else
+            inflation = inflation0;
+
+        /*
+         * applying inflation:
+         */
+        if (fabsf(inflation - 1.0f) > EPSF)
+            for (e = 0; e < nmem_dynamic; ++e)
+                HEo_a[e] = (HEo_a[e] - (float) v1_a) * inflation + v1_a;
+
+#if defined(USE_SHMEM)
+        for (e = 0; e < nmem_dynamic; ++e)
+            das->St[*oid][e] = HEo_a[e];
+        for (e = nmem_dynamic; e < nmem; ++e)
+            das->St[*oid][e] += v1_a - v1_f;
+#else
+        for (e = 0; e < nmem_dynamic; ++e)
+            das->S[e][*oid] = HEo_a[e];
+        for (e = nmem_dynamic; e < nmem; ++e)
+            das->S[e][*oid] += v1_a - v1_f;
+#endif
+    }
+
+  finish:
+    ncw_close(ncid);
+    free(w);
+    free(T);
+    free(HEo_a);
+#if !defined(USE_SHMEM)
+    free(HEo_f);
+#endif
+}
+
 /** Updates ensemble observations by applying X5.
  *
  * Both update_HE() and update_Hx() use transforms calculated for (int) fj,
@@ -1166,20 +1697,10 @@ static void gather_St(dasystem* das)
  */
 static void update_HE(dasystem* das)
 {
-    model* m = das->m;
-    int ngrid = model_getngrid(m);
+    int ngrid = model_getngrid(das->m);
     int nmem = das->nmem;
-    int nmem_dynamic = das->nmem_dynamic;
-    int gid;
-    observations* obs = das->obs;
-    int nobs = obs->nobs;
-    int e, o;
-    float* HEo_f;
-    float* HEo_a;
-    char do_T = 'T';
-    float alpha = 1.0f;
-    float beta = 0.0f;
-    int inc = 1;
+    int nobs = das->obs->nobs;
+    int gid, e, o;
 
     enkf_printf("    updating HE:\n");
     assert(das->s_mode == S_MODE_HE_f);
@@ -1199,322 +1720,12 @@ static void update_HE(dasystem* das)
     my_last_iteration = nobs - 1;
 #endif
 
-#if !defined(USE_SHMEM)
-    HEo_f = malloc(nmem * sizeof(float));
-#endif
-    HEo_a = malloc(nmem * sizeof(float));
-    /*
-     * the following code for interpolation of X5 essentially coincides with
-     * that in das_updatefields() 
-     */
-
     for (gid = 0, o = my_first_iteration; gid < ngrid && o <= my_last_iteration; ++gid) {
-        void* g = model_getgridbyid(m, gid);
-        int periodic_i = grid_isperiodic_i(g);
-        int stride = grid_getstride(g);
-        int joffset = 1;
-
-        char fname[MAXSTRLEN];
-        int ncid;
-        int varid_T, varid_w;
-        size_t dimlens[4];
-        size_t start[4], count[4];
-        float*** Tj = NULL;
-        float*** Tjj = NULL;
-        float*** Tjj1 = NULL;
-        float*** Tjj2 = NULL;
-        float** wj = NULL;
-        float** wjj = NULL;
-        float** wjj1 = NULL;
-        float** wjj2 = NULL;
-
-        int mni, mnj;
-        int* iiter;
-        int* jiter;
-        int i, j, ni, nj;
-        int jj, stepj, ii, stepi;
-
-        if (gid < obs->obstypes[obs->data[o].type].gridid)
-            continue;
-        if (!grid_isstructured(g))
-            continue;
-
-        das_getfname_transforms(das, gid, fname);
-        ncw_open(fname, NC_NOWRITE, &ncid);
-        ncw_inq_varid(ncid, "T", &varid_T);
-        ncw_inq_varid(ncid, "w", &varid_w);
-        ncw_inq_vardims(ncid, varid_T, 4, NULL, dimlens);
-        nj = dimlens[0];
-        ni = dimlens[1];
-
-        jiter = malloc((nj + 1) * sizeof(int)); /* "+ 1" to handle periodic
-                                                 * grids */
-        iiter = malloc((ni + 1) * sizeof(int));
-        for (j = 0, i = 0; j < nj; ++j, i += stride)
-            jiter[j] = i;
-        for (i = 0, j = 0; i < ni; ++i, j += stride)
-            iiter[i] = j;
-        if (periodic_i)
-            iiter[ni] = iiter[ni - 1] + stride;
-
-        grid_getsize(g, &mni, &mnj, NULL);
-
-        start[0] = 0;
-        start[1] = 0;
-        start[2] = 0;
-        start[3] = 0;
-        count[0] = 1;
-        count[1] = ni;
-        count[2] = nmem_dynamic;
-        count[3] = nmem;
-        Tj = alloc3d(mni, nmem_dynamic, nmem, sizeof(float));
-        wj = alloc2d(mni, nmem, sizeof(float));
-        if (stride > 1) {
-            Tjj = alloc3d(ni, nmem_dynamic, nmem, sizeof(float));
-            Tjj1 = alloc3d(ni, nmem_dynamic, nmem, sizeof(float));
-            Tjj2 = alloc3d(ni, nmem_dynamic, nmem, sizeof(float));
-            ncw_get_vara_float(ncid, varid_T, start, count, Tjj2[0][0]);
-            wjj = alloc2d(ni, nmem, sizeof(float));
-            wjj1 = alloc2d(ni, nmem, sizeof(float));
-            wjj2 = alloc2d(ni, nmem, sizeof(float));
-            count[2] = nmem;
-            ncw_get_vara_float(ncid, varid_w, start, count, wjj2[0]);
-        }
-
-        /*
-         * jj, ii are the indices of the subsampled grid; i, j are the indices
-         * of the model grid 
-         */
-        for (jj = 0, j = 0; jj < nj; ++jj) {
-            for (stepj = 0; stepj < stride && j < mnj; ++stepj, ++j) {
-
-                if ((int) (obs->data[o].fij[joffset] + 0.5) / stride > jj + 1)
-                    continue;
-
-                if (stride == 1) {
-                    /*
-                     * no interpolation necessary; simply read the ETMs for the
-                     * j-th row from disk 
-                     */
-                    start[0] = j;
-                    count[2] = nmem_dynamic;
-                    ncw_get_vara_float(ncid, varid_T, start, count, Tj[0][0]);
-                    count[2] = nmem;
-                    ncw_get_vara_float(ncid, varid_w, start, count, wj[0]);
-                } else {
-                    /*
-                     * the following code interpolates the ETM back to the
-                     * original grid, first by j, and then by i 
-                     */
-                    if (stepj == 0) {
-                        memcpy(Tjj[0][0], Tjj2[0][0], ni * nmem_dynamic * nmem * sizeof(float));
-                        memcpy(Tjj1[0][0], Tjj2[0][0], ni * nmem_dynamic * nmem * sizeof(float));
-                        memcpy(wjj[0], wjj2[0], ni * nmem * sizeof(float));
-                        memcpy(wjj1[0], wjj2[0], ni * nmem * sizeof(float));
-                        if (jj < nj - 1) {
-                            start[0] = (jj + 1) % nj;
-                            count[2] = nmem_dynamic;
-                            ncw_get_vara_float(ncid, varid_T, start, count, Tjj2[0][0]);
-                            count[2] = nmem;
-                            ncw_get_vara_float(ncid, varid_w, start, count, wjj2[0]);
-                        }
-                    } else {
-                        float weight2 = (float) stepj / stride;
-                        float weight1 = (float) 1.0 - weight2;
-
-                        for (ii = 0; ii < ni; ++ii) {
-                            float* Tjjii = Tjj[ii][0];
-                            float* Tjj1ii = Tjj1[ii][0];
-                            float* Tjj2ii = Tjj2[ii][0];
-                            float* wjjii = wjj[ii];
-                            float* wjj1ii = wjj1[ii];
-                            float* wjj2ii = wjj2[ii];
-
-                            for (e = 0; e < nmem_dynamic * nmem; ++e)
-                                Tjjii[e] = Tjj1ii[e] * weight1 + Tjj2ii[e] * weight2;
-                            for (e = 0; e < nmem; ++e)
-                                wjjii[e] = wjj1ii[e] * weight1 + wjj2ii[e] * weight2;
-                        }
-                    }
-
-                    for (ii = 0, i = 0; ii < ni; ++ii) {
-                        for (stepi = 0; stepi < stride && i < mni; ++stepi, ++i) {
-                            if (stepi == 0) {
-                                memcpy(Tj[i][0], Tjj[ii][0], nmem_dynamic * nmem * sizeof(float));
-                                memcpy(wj[i], wjj[ii], nmem * sizeof(float));
-                            } else {
-                                float weight2 = (float) stepi / stride;
-                                float weight1 = (float) 1.0 - weight2;
-                                float* Tjjii1 = Tjj[ii][0];
-                                float* Tji = Tj[i][0];
-                                float* Tjjii2;
-                                float* wjjii1 = wjj[ii];
-                                float* wji = wj[i];
-                                float* wjjii2;
-
-                                if (ii < ni - 1) {
-                                    Tjjii2 = Tjj[ii + 1][0];
-                                    wjjii2 = wjj[ii + 1];
-                                } else {
-                                    Tjjii2 = Tjj[(periodic_i) ? (ii + 1) % ni : ii][0];
-                                    wjjii2 = wjj[(periodic_i) ? (ii + 1) % ni : ii];
-                                }
-                                for (e = 0; e < nmem_dynamic * nmem; ++e)
-                                    Tji[e] = Tjjii1[e] * weight1 + Tjjii2[e] * weight2;
-                                for (e = 0; e < nmem; ++e)
-                                    wji[e] = wjjii1[e] * weight1 + wjjii2[e] * weight2;
-                            }
-                        }
-                    }
-                }               /* stride != 1 */
-
-                /*
-                 * (at this stage Tj should contain the array of mni T matrices
-                 * for the j-th row of the grid, and wj should contain the
-                 * array of mni vectors for the j-th row of the grid)
-                 */
-
-                if (o > my_last_iteration)
-                    break;
-
-                for (; o <= my_last_iteration && (int) (obs->data[o].fij[joffset] + 0.5) == j; ++o) {
-                    float inflation0 = NAN;
-                    double inf_ratio = NAN;
-                    float inflation = NAN;
-                    double v1_f, v1_a;
-
-                    if (obs->data[o].status != STATUS_OK)
-                        continue;
-
-                    model_getvarinflation(m, obs->obstypes[obs->data[o].type].vid, &inflation0, &inf_ratio);
-
-                    if (joffset == 1) {
-                        /*
-                         * "normal" (structured) grid
-                         */
-                        i = (int) (obs->data[o].fij[0] + 0.5);
-                        if (i == mni)
-                            i--;
-                    } else
-                        i = 0;
-#if defined(USE_SHMEM)
-                    HEo_f = das->St[o];
-#else
-                    for (e = 0; e < nmem; ++e)
-                        HEo_f[e] = das->S[e][o];
-#endif
-
-                    /*
-                     * HE^a(o, :) = HE^f(o, :) * X5
-                     *            = Hx^f(o) * 1^T + HA^f(o, :) * (w * 1^T + T)
-                     */
-
-                    /*
-                     * Hx^f
-                     */
-                    for (e = 0, v1_f = 0.0; e < nmem_dynamic; ++e)
-                        v1_f += HEo_f[e];
-                    v1_f /= (double) nmem_dynamic;
-
-                    /*
-                     * HA^f = HE^f - Hx^f * 1^T
-                     */
-                    for (e = 0; e < nmem; ++e)
-                        HEo_f[e] -= v1_f;
-                    /*
-                     * HA^a = HA^f * T
-                     */
-                    sgemv_(&do_T, &nmem, &nmem_dynamic, &alpha, Tj[i][0], &nmem, HEo_f, &inc, &beta, HEo_a, &inc);
-                    /*
-                     * dHx = dHx^a - dHx^f
-                     */
-                    for (e = 0, v1_a = 0.0; e < nmem; ++e)
-                        v1_a += HEo_f[e] * wj[i][e];
-                    /*
-                     * Hx^a = Hx^f + dHx
-                     */
-                    v1_a += v1_f;
-                    /*
-                     * HE^a = HA^a + x^a * 1^T
-                     */
-                    for (e = 0; e < nmem_dynamic; ++e)
-                        HEo_a[e] += v1_a;
-
-                    /*
-                     * HE^f = HA^f + Hx^f
-                     */
-                    for (e = 0; e < nmem; ++e)
-                        HEo_f[e] += v1_f;
-
-                    if (!isnan(inf_ratio)) {
-                        double v2_f = 0.0;
-                        double v2_a = 0.0;
-                        double var_a, var_f;
-
-                        for (e = 0; e < nmem_dynamic; ++e) {
-                            double ve = (double) HEo_f[e];
-
-                            v2_f += ve * ve;
-                        }
-                        var_f = v2_f / (double) nmem_dynamic - v1_f * v1_f;
-
-                        for (e = 0; e < nmem_dynamic; ++e) {
-                            double ve = (double) HEo_a[e];
-
-                            v2_a += ve * ve;
-                        }
-                        var_a = v2_a / (double) nmem_dynamic - v1_a * v1_a;
-
-                        if (var_a > 0.0) {
-                            /*
-                             * (Normal case.) Limit inflation by inf_ratio of
-                             * the magnitude of spread reduction.
-                             */
-                            inflation = (float) (sqrt(var_f / var_a) * inf_ratio + 1.0 - inf_ratio);
-                            if (inflation >= inflation0)
-                                inflation = inflation0;
-                        }
-                    } else
-                        inflation = inflation0;
-
-                    /*
-                     * applying inflation:
-                     */
-                    if (fabsf(inflation - 1.0f) > EPSF)
-                        for (e = 0; e < nmem_dynamic; ++e)
-                            HEo_a[e] = (HEo_a[e] - (float) v1_a) * inflation + v1_a;
-
-#if defined(USE_SHMEM)
-                    for (e = 0; e < nmem_dynamic; ++e)
-                        das->St[o][e] = HEo_a[e];
-                    for (e = nmem_dynamic; e < nmem; ++e)
-                        das->St[o][e] += v1_a - v1_f;
-#else
-                    for (e = 0; e < nmem_dynamic; ++e)
-                        das->S[e][o] = HEo_a[e];
-                    for (e = nmem_dynamic; e < nmem; ++e)
-                        das->S[e][o] += v1_a - v1_f;
-#endif
-                }
-            }                   /* for stepj */
-        }                       /* for jj */
-
-        ncw_close(ncid);
-
-        free(iiter);
-        free(jiter);
-        free(Tj);
-        free(wj);
-        if (stride > 1) {
-            free(Tjj);
-            free(Tjj1);
-            free(Tjj2);
-            free(wjj);
-            free(wjj1);
-            free(wjj2);
-        }
-    }                           /* for gid */
-
+        if (grid_isstructured(model_getgridbyid(das->m, gid)))
+            update_HE_structured(das, gid, &o);
+        else
+            update_HE_unstructured(das, gid, &o);
+    }
 #if defined(USE_SHMEM)
     gather_St(das);
 
@@ -1525,30 +1736,285 @@ static void update_HE(dasystem* das)
 #endif
     if (rank == 0)
         for (o = 0; o < nobs; ++o)
-            if (obs->data[o].status != STATUS_OK)
+            if (das->obs->data[o].status != STATUS_OK)
                 for (e = 0; e < nmem; ++e)
                     das->S[e][o] = NAN;
 
-    free(HEo_a);
-#if !defined(USE_SHMEM)
-    free(HEo_f);
-#endif
-
   finish:
     das->s_mode = S_MODE_HE_a;
-}                               /* update_HE() */
+}
+
+/**
+ */
+static void update_Hx_structured(dasystem* das, int gid, int* oid)
+{
+    void* g = model_getgridbyid(das->m, gid);
+    int periodic_i = grid_isperiodic_i(g);
+    int stride = grid_getstride(g);
+
+    int nmem = das->nmem;
+    observations* obs = das->obs;
+
+    char fname[MAXSTRLEN];
+    int ncid;
+    int varid;
+    size_t dimlens[3];
+    size_t start[3], count[3];
+    float** wj = NULL;
+    float** wjj = NULL;
+    float** wjj1 = NULL;
+    float** wjj2 = NULL;
+
+    int ni, nj, mni, mnj;
+    int* iiter;
+    int* jiter;
+    int ii, jj, i, j;
+    int stepj, stepi;
+    int e;
+
+    if (gid < obs->obstypes[obs->data[*oid].type].gridid)
+        return;
+    if (!grid_isstructured(g))
+        enkf_quit("profgramming error");
+
+    das_getfname_transforms(das, gid, fname);
+    ncw_open(fname, NC_NOWRITE, &ncid);
+    ncw_inq_varid(ncid, "w", &varid);
+    ncw_inq_vardims(ncid, varid, 3, NULL, dimlens);
+    nj = dimlens[0];
+    ni = dimlens[1];
+    assert(dimlens[2] == nmem);
+
+    jiter = malloc((nj + 1) * sizeof(int));     /* "+ 1" to handle periodic
+                                                 * grids */
+    iiter = malloc((ni + 1) * sizeof(int));
+    for (j = 0, i = 0; j < nj; ++j, i += stride)
+        jiter[j] = i;
+    for (i = 0, j = 0; i < ni; ++i, j += stride)
+        iiter[i] = j;
+    if (periodic_i)
+        iiter[ni] = iiter[ni - 1] + stride;
+
+    grid_getsize(g, &mni, &mnj, NULL);
+
+    start[0] = 0;
+    start[1] = 0;
+    start[2] = 0;
+    count[0] = 1;
+    count[1] = ni;
+    count[2] = nmem;
+    wj = alloc2d(mni, nmem, sizeof(float));
+    if (stride > 1) {
+        wjj = alloc2d(ni, nmem, sizeof(float));
+        wjj1 = alloc2d(ni, nmem, sizeof(float));
+        wjj2 = alloc2d(ni, nmem, sizeof(float));
+        ncw_get_vara_float(ncid, varid, start, count, wjj2[0]);
+    }
+
+    /*
+     * jj, ii are the indices of the subsampled grid; i, j are the indices
+     * of the model grid 
+     */
+    for (jj = 0, j = 0; jj < nj; ++jj) {
+        for (stepj = 0; stepj < stride && j < mnj; ++stepj, ++j) {
+
+            if ((int) (obs->data[*oid].fij[1] + 0.5) / stride > jj + 1)
+                continue;
+
+            if (stride == 1) {
+                /*
+                 * no interpolation necessary; simply read the ETMs for the
+                 * j-th row from disk 
+                 */
+                start[0] = j;
+                ncw_get_vara_float(ncid, varid, start, count, wj[0]);
+            } else {
+                /*
+                 * the following code interpolates the ETM back to the
+                 * original grid, first by j, and then by i 
+                 */
+                if (stepj == 0) {
+                    memcpy(wjj[0], wjj2[0], ni * nmem * sizeof(float));
+                    memcpy(wjj1[0], wjj2[0], ni * nmem * sizeof(float));
+                    if (jj < nj - 1) {
+                        start[0] = (jj + 1) % nj;
+                        ncw_get_vara_float(ncid, varid, start, count, wjj2[0]);
+                    }
+                } else {
+                    float weight2 = (float) stepj / stride;
+                    float weight1 = (float) 1.0 - weight2;
+
+                    for (ii = 0; ii < ni; ++ii) {
+                        float* wjjii = wjj[ii];
+                        float* wjj1ii = wjj1[ii];
+                        float* wjj2ii = wjj2[ii];
+
+                        for (e = 0; e < nmem; ++e)
+                            wjjii[e] = wjj1ii[e] * weight1 + wjj2ii[e] * weight2;
+                    }
+                }
+
+                for (ii = 0, i = 0; ii < ni; ++ii) {
+                    for (stepi = 0; stepi < stride && i < mni; ++stepi, ++i) {
+                        if (stepi == 0)
+                            memcpy(wj[i], wjj[ii], nmem * sizeof(float));
+                        else {
+                            float weight2 = (float) stepi / stride;
+                            float weight1 = (float) 1.0 - weight2;
+                            float* wjjii1 = wjj[ii];
+                            float* wji = wj[i];
+                            float* wjjii2;
+
+                            if (ii < ni - 1)
+                                wjjii2 = wjj[ii + 1];
+                            else
+                                wjjii2 = wjj[(periodic_i) ? (ii + 1) % ni : ii];
+
+                            for (e = 0; e < nmem; ++e)
+                                wji[e] = wjjii1[e] * weight1 + wjjii2[e] * weight2;
+                        }
+                    }
+                }
+            }                   /* stride != 1 */
+
+            /*
+             * (at this stage wj should contain the array of mni vectors for
+             * the j-th row of the grid) 
+             */
+
+            if (*oid > my_last_iteration)
+                break;
+
+            for (; *oid <= my_last_iteration && (int) (obs->data[*oid].fij[1] + 0.5) == j; ++(*oid)) {
+                double dHx = 0.0;
+                double Hx = 0.0;
+
+                if (obs->data[*oid].status != STATUS_OK)
+                    continue;
+
+#if defined(USE_SHMEM)
+                for (e = 0; e < nmem; ++e)
+                    Hx += das->St[*oid][e];
+#else
+                for (e = 0; e < nmem; ++e)
+                    Hx += das->S[e][*oid];
+#endif
+                Hx /= (double) nmem;
+
+                i = (int) (obs->data[*oid].fij[0] + 0.5);
+                if (i == mni)
+                    i--;
+                /*
+                 * HE(i, :) += HA(i, :) * b * 1' 
+                 */
+#if defined(USE_SHMEM)
+                for (e = 0; e < nmem; ++e)
+                    dHx += (das->St[*oid][e] - Hx) * wj[i][e];
+                for (e = 0; e < nmem; ++e)
+                    das->St[*oid][e] += dHx;
+#else
+                for (e = 0; e < nmem; ++e)
+                    dHx += (das->S[e][*oid] - Hx) * wj[i][e];
+                for (e = 0; e < nmem; ++e)
+                    das->S[e][*oid] += dHx;
+#endif
+            }
+        }                       /* for stepj */
+    }                           /* for jj */
+
+    ncw_close(ncid);
+
+    free(iiter);
+    free(jiter);
+    free(wj);
+    if (stride > 1) {
+        free(wjj);
+        free(wjj1);
+        free(wjj2);
+    }
+}
+
+/**
+ */
+static void update_Hx_unstructured(dasystem* das, int gid, int* oid)
+{
+    observations* obs = das->obs;
+    int nmem = das->nmem;
+    char fname[MAXSTRLEN];
+    int ncid;
+    int varid_w;
+    float* w;
+    int j_prev;
+
+    das_getfname_transforms(das, gid, fname);
+    ncw_open(fname, NC_NOWRITE, &ncid);
+    ncw_inq_varid(ncid, "w", &varid_w);
+
+    w = malloc(nmem * sizeof(float));
+    for (j_prev = -1; *oid <= my_last_iteration; ++(*oid)) {
+        observation* o = &obs->data[*oid];
+        double dHx = 0.0;
+        double Hx = 0.0;
+        int j;
+        int e;
+
+        if (gid < obs->obstypes[o->type].gridid)
+            goto finish;
+        if (obs->data[*oid].status != STATUS_OK)
+            continue;
+        {
+            double ii0, ii1, ii2;
+            double ff0, ff1, ff2;
+
+            ff0 = modf(o->fij[0], &ii0);
+            ff1 = modf(o->fij[1], &ii1);
+            ff2 = modf(o->fij[2], &ii2);
+            if (ff0 > ff1)
+                j = (ff0 > ff2) ? (int) ii0 : (int) ii2;
+            else
+                j = (ff1 > ff2) ? (int) ii1 : (int) ii2;
+        }
+        if (j != j_prev) {
+            size_t count[3] = { 1, 1, nmem };
+            size_t start[3] = { j, 0, 0 };
+
+            ncw_get_vara_float(ncid, varid_w, start, count, w);
+            j_prev = j;
+        }
+#if defined(USE_SHMEM)
+        for (e = 0; e < nmem; ++e)
+            Hx += das->St[*oid][e];
+#else
+        for (e = 0; e < nmem; ++e)
+            Hx += das->S[e][*oid];
+#endif
+        Hx /= (double) nmem;
+
+#if defined(USE_SHMEM)
+        for (e = 0; e < nmem; ++e)
+            dHx += (das->St[*oid][e] - Hx) * w[e];
+        for (e = 0; e < nmem; ++e)
+            das->St[*oid][e] += dHx;
+#else
+        for (e = 0; e < nmem; ++e)
+            dHx += (das->S[e][*oid] - Hx) * w[e];
+        for (e = 0; e < nmem; ++e)
+            das->S[e][*oid] += dHx;
+#endif
+    }
+  finish:
+    ncw_close(ncid);
+    free(w);
+}
 
 /**
  */
 static void update_Hx(dasystem* das)
 {
-    model* m = das->m;
-    int ngrid = model_getngrid(m);
+    int ngrid = model_getngrid(das->m);
     int nmem = das->nmem;
-    int gid;
-    observations* obs = das->obs;
-    int nobs = obs->nobs;
-    int e, o;
+    int nobs = das->obs->nobs;
+    int gid, e, o;
 
     enkf_printf("    updating Hx:\n");
     assert(das->s_mode == S_MODE_HE_f);
@@ -1568,202 +2034,12 @@ static void update_Hx(dasystem* das)
     my_last_iteration = nobs - 1;
 #endif
 
-    /*
-     * the following code for interpolation of w essentially coincides with
-     * that in das_updatebg() 
-     */
-
     for (gid = 0, o = my_first_iteration; gid < ngrid && o <= my_last_iteration; ++gid) {
-        void* g = model_getgridbyid(m, gid);
-        int periodic_i = grid_isperiodic_i(g);
-        int stride = grid_getstride(g);
-        int joffset = 1;
-
-        char fname[MAXSTRLEN];
-        int ncid;
-        int varid;
-        size_t dimlens[3];
-        size_t start[3], count[3];
-        float** wj = NULL;
-        float** wjj = NULL;
-        float** wjj1 = NULL;
-        float** wjj2 = NULL;
-
-        int mni, mnj;
-        int* iiter;
-        int* jiter;
-        int i, j, ni, nj;
-        int jj, stepj, ii, stepi;
-
-        if (gid < obs->obstypes[obs->data[o].type].gridid)
-            continue;
-        if (!grid_isstructured(g))
-            continue;
-
-        das_getfname_transforms(das, gid, fname);
-
-        ncw_open(fname, NC_NOWRITE, &ncid);
-        ncw_inq_varid(ncid, "w", &varid);
-        ncw_inq_vardims(ncid, varid, 3, NULL, dimlens);
-        ni = dimlens[1];
-        nj = dimlens[0];
-        assert((int) dimlens[2] == nmem);
-
-        jiter = malloc((nj + 1) * sizeof(int)); /* "+ 1" to handle periodic
-                                                 * grids */
-        iiter = malloc((ni + 1) * sizeof(int));
-        for (j = 0, i = 0; j < nj; ++j, i += stride)
-            jiter[j] = i;
-        for (i = 0, j = 0; i < ni; ++i, j += stride)
-            iiter[i] = j;
-        if (periodic_i)
-            iiter[ni] = iiter[ni - 1] + stride;
-
-        grid_getsize(g, &mni, &mnj, NULL);
-
-        start[0] = 0;
-        start[1] = 0;
-        start[2] = 0;
-        count[0] = 1;
-        count[1] = ni;
-        count[2] = nmem;
-        wj = alloc2d(mni, nmem, sizeof(float));
-        if (stride > 1) {
-            wjj = alloc2d(ni, nmem, sizeof(float));
-            wjj1 = alloc2d(ni, nmem, sizeof(float));
-            wjj2 = alloc2d(ni, nmem, sizeof(float));
-            ncw_get_vara_float(ncid, varid, start, count, wjj2[0]);
-        }
-
-        /*
-         * jj, ii are the indices of the subsampled grid; i, j are the indices
-         * of the model grid 
-         */
-        for (jj = 0, j = 0; jj < nj; ++jj) {
-            for (stepj = 0; stepj < stride && j < mnj; ++stepj, ++j) {
-
-                if ((int) (obs->data[o].fij[joffset] + 0.5) / stride > jj + 1)
-                    continue;
-
-                if (stride == 1) {
-                    /*
-                     * no interpolation necessary; simply read the ETMs for the
-                     * j-th row from disk 
-                     */
-                    start[0] = j;
-                    ncw_get_vara_float(ncid, varid, start, count, wj[0]);
-                } else {
-                    /*
-                     * the following code interpolates the ETM back to the
-                     * original grid, first by j, and then by i 
-                     */
-                    if (stepj == 0) {
-                        memcpy(wjj[0], wjj2[0], ni * nmem * sizeof(float));
-                        memcpy(wjj1[0], wjj2[0], ni * nmem * sizeof(float));
-                        if (jj < nj - 1) {
-                            start[0] = (jj + 1) % nj;
-                            ncw_get_vara_float(ncid, varid, start, count, wjj2[0]);
-                        }
-                    } else {
-                        float weight2 = (float) stepj / stride;
-                        float weight1 = (float) 1.0 - weight2;
-
-                        for (ii = 0; ii < ni; ++ii) {
-                            float* wjjii = wjj[ii];
-                            float* wjj1ii = wjj1[ii];
-                            float* wjj2ii = wjj2[ii];
-
-                            for (e = 0; e < nmem; ++e)
-                                wjjii[e] = wjj1ii[e] * weight1 + wjj2ii[e] * weight2;
-                        }
-                    }
-
-                    for (ii = 0, i = 0; ii < ni; ++ii) {
-                        for (stepi = 0; stepi < stride && i < mni; ++stepi, ++i) {
-                            if (stepi == 0)
-                                memcpy(wj[i], wjj[ii], nmem * sizeof(float));
-                            else {
-                                float weight2 = (float) stepi / stride;
-                                float weight1 = (float) 1.0 - weight2;
-                                float* wjjii1 = wjj[ii];
-                                float* wji = wj[i];
-                                float* wjjii2;
-
-                                if (ii < ni - 1)
-                                    wjjii2 = wjj[ii + 1];
-                                else
-                                    wjjii2 = wjj[(periodic_i) ? (ii + 1) % ni : ii];
-
-                                for (e = 0; e < nmem; ++e)
-                                    wji[e] = wjjii1[e] * weight1 + wjjii2[e] * weight2;
-                            }
-                        }
-                    }
-                }               /* stride != 1 */
-
-                /*
-                 * (at this stage wj should contain the array of mni vectors for
-                 * the j-th row of the grid) 
-                 */
-
-                if (o > my_last_iteration)
-                    break;
-
-                for (; o <= my_last_iteration && (int) (obs->data[o].fij[joffset] + 0.5) == j; ++o) {
-                    double dHx = 0.0;
-                    double Hx = 0.0;
-
-                    if (obs->data[o].status != STATUS_OK)
-                        continue;
-
-#if defined(USE_SHMEM)
-                    for (e = 0; e < nmem; ++e)
-                        Hx += das->St[o][e];
-#else
-                    for (e = 0; e < nmem; ++e)
-                        Hx += das->S[e][o];
-#endif
-                    Hx /= (double) nmem;
-
-                    if (joffset == 1) {
-                        /*
-                         * "normal" (structured) grid
-                         */
-                        i = (int) (obs->data[o].fij[0] + 0.5);
-                        if (i == mni)
-                            i--;
-                    } else
-                        i = 0;
-                    /*
-                     * HE(i, :) += HA(i, :) * b * 1' 
-                     */
-#if defined(USE_SHMEM)
-                    for (e = 0; e < nmem; ++e)
-                        dHx += (das->St[o][e] - Hx) * wj[i][e];
-                    for (e = 0; e < nmem; ++e)
-                        das->St[o][e] += dHx;
-#else
-                    for (e = 0; e < nmem; ++e)
-                        dHx += (das->S[e][o] - Hx) * wj[i][e];
-                    for (e = 0; e < nmem; ++e)
-                        das->S[e][o] += dHx;
-#endif
-                }
-            }                   /* for stepj */
-        }                       /* for jj */
-
-        ncw_close(ncid);
-
-        free(iiter);
-        free(jiter);
-        free(wj);
-        if (stride > 1) {
-            free(wjj);
-            free(wjj1);
-            free(wjj2);
-        }
-    }                           /* for gid */
-
+        if (grid_isstructured(model_getgridbyid(das->m, gid)))
+            update_Hx_structured(das, gid, &o);
+        else
+            update_Hx_unstructured(das, gid, &o);
+    }
 #if defined(USE_SHMEM)
     gather_St(das);
 
@@ -1772,10 +2048,15 @@ static void update_Hx(dasystem* das)
             for (o = 0; o < nobs; ++o)
                 das->S[e][o] = das->St[o][e];
 #endif
+    if (rank == 0)
+        for (o = 0; o < nobs; ++o)
+            if (das->obs->data[o].status != STATUS_OK)
+                for (e = 0; e < nmem; ++e)
+                    das->S[e][o] = NAN;
 
   finish:
     das->s_mode = S_MODE_HE_a;
-}                               /* update_Hx() */
+}
 
 /**
  */
