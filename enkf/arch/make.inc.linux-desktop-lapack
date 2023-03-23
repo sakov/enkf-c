@@ -17,6 +17,8 @@
 LD_PATH =
 
 LIB_NC = -lnetcdf -lhdf5
+# on Ubuntu the above may look as follows:
+# LIB_NC = -lnetcdf -lhdf5_serial -lhdf5_serial_hl
 LIB_LAPACK = -llapack -lblas -lgfortran
 LIB_M = -lm
 
