@@ -297,7 +297,10 @@ void obs_add(observations* obs, model* m, obsmeta* meta, int nexclude, obsregion
                 void* depth = grid_getdepth(g);
 
                 if (depth != NULL) {
-                    o->model_depth = grid_interpolate2d(g, o->fij, depth);
+                    /*
+                     * need fabsf() here because some models have negative depths
+                     */
+                    o->model_depth = fabsf(grid_interpolate2d(g, o->fij, depth));
                     if (!isfinite(o->model_depth) || o->model_depth == 0 || o->depth > o->model_depth) {
                         o->status = STATUS_LAND;
                         nland++;

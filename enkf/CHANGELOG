@@ -1,3 +1,7 @@
+v2.19.11
+   PS 24032023
+   -- In obs_add() fixed the depth check for models with negative z coordinate (and hence
+      negative depths). Thanks to Paul Sandery for the bug report.
 v2.19.10
    PS 22032023
       This update concerns mainly calculating analysed obs. on unstructured
