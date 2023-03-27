@@ -1,3 +1,8 @@
+v2.19.12
+   PS 29032023
+   -- Further to v2.19.6 -- corrected assembling of spread and inflation in the
+      case of grids with surface layer id != 0. Thanks to Paul Sandery for the
+      bug report.
 v2.19.11
    PS 24032023
    -- In obs_add() fixed the depth check for models with negative z coordinate (and hence
