@@ -555,8 +555,6 @@ static void das_updatefields(dasystem* das, int nfields, void** fieldbuffer, fie
             /*
              * (for now -- for 2D variables only) 
              */
-            assert(fields[fid].level == grid_getsurflayerid(g));
-
             addnoise(das, varid, fieldbuffer[fid]);
         }
     }

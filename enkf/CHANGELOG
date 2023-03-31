@@ -1,3 +1,9 @@
+v2.19.13
+   PS31032023
+   -- In das_updatefields() -- removed assertion in section that performed
+      randomising (entry RANDOMISE in model.prm): it became inconsistent with
+      the current treatment of field->level for 2D variables on grids with
+      surface layer ID != 0. Thanks to Paul Sandery for the bug report.
 v2.19.12
    PS 29032023
    -- Further to v2.19.6 -- corrected assembling of spread and inflation in the
@@ -5,8 +11,8 @@ v2.19.12
       bug report.
 v2.19.11
    PS 24032023
-   -- In obs_add() fixed the depth check for models with negative z coordinate (and hence
-      negative depths). Thanks to Paul Sandery for the bug report.
+   -- In obs_add() fixed the depth check for models with negative z coordinate
+      (and hence negative depths). Thanks to Paul Sandery for the bug report.
 v2.19.10
    PS 22032023
       This update concerns mainly calculating analysed obs. on unstructured
@@ -16,7 +22,8 @@ v2.19.10
       update_HE_unstructured().
    -- Split update_Hx() into update_Hx_structured() and
       update_Hx_unstructured().
-   -- Modified cmp_obs_byij() to sort by 
+   -- Modified cmp_obs_byij() for unstructrured grids -- sort by the index of
+      the vertex with the largest barycentric coordinate.
    -- Undid bypassing of calculating analysed obs in CALC from v2.19.4.
    Note: updating HE/Hx on unstructured grids uses transforms T and/or coeffs w
       for the vertice with the largest barycentric coordinate. This is
