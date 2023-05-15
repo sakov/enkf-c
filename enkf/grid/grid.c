@@ -647,10 +647,14 @@ int grid_island(grid* g, double* fij, double fk)
         int** numlevels = g->numlevels;
         int k;
 
-        if (ceil(fk) != floor(fk))
-            k = (ksurf == 0) ? ceil(fk) : ksurf - floor(fk);
-        else
-            k = (ksurf == 0) ? ceil(fk) + 1 : ksurf - floor(fk) + 1;
+        if (isnan(fk))
+            k = ksurf;
+        else {
+            if (ceil(fk) != floor(fk))
+                k = (ksurf == 0) ? ceil(fk) : ksurf - floor(fk);
+            else
+                k = (ksurf == 0) ? ceil(fk) + 1 : ksurf - floor(fk) + 1;
+        }
 
         if (i1 == -1)
             i1 = (g->hgrid->periodic_i) ? g->hgrid->ni - 1 : i2;

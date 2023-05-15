@@ -1,3 +1,7 @@
+v2.19.14
+   PS 16052023
+   -- Corrected grid_island() to handle fk = NAN (for obs. with no vertical
+      coordinate).
 v2.19.13
    PS31032023
    -- In das_updatefields() -- removed assertion in section that performed
