@@ -121,6 +121,7 @@ static gz_z* gz_z_create(char* gname, int nk, double* z, int nkc, double* zc, ch
 
     gz->zt = z;
     gz->nk = nk;
+    gz->sign_changed = 0;
     /*
      * check monotonicity
      */

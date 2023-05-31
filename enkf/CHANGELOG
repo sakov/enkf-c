@@ -1,3 +1,8 @@
+v2.19.15
+   PS 16052031
+   -- Fixed non-initialised variable in gz_z_create() -- thanks to Prasanth
+      Divarkan for reporting the inconsistency.
+   -- Removed redundant entry in grid.h.
 v2.19.14
    PS 16052023
    -- Corrected grid_island() to handle fk = NAN (for obs. with no vertical

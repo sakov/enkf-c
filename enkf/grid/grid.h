@@ -50,7 +50,6 @@ typedef struct grid grid;
 
 grid* grid_create(void* prm, int id, void** grids);
 void grid_destroy(grid* g);
-grid* setdepth(grid* g, void* depth);
 
 void* grid_getvgrid(grid* g);
 int grid_gethtype(grid* g);
