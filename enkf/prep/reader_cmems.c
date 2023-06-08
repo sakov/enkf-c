@@ -36,6 +36,7 @@
 #include <assert.h>
 #include <float.h>
 #include "ncw.h"
+#include "ncutils.h"
 #include "definitions.h"
 #include "utils.h"
 #include "obsprm.h"
@@ -76,7 +77,6 @@ static int allmissing(int ncid, char varname[])
     int varid;
     int ndims;
     size_t dimlen[2];
-    double missval;
     double* v = NULL;
     int status = 1;
     int n, i;
@@ -84,19 +84,13 @@ static int allmissing(int ncid, char varname[])
     if (!ncw_var_exists(ncid, varname))
         return 1;
     ncw_inq_varid(ncid, varname, &varid);
-    if (ncw_att_exists(ncid, varid, "_FillValue"))
-        ncw_get_att_double(ncid, varid, "_FillValue", &missval);
-    else if (ncw_att_exists(ncid, varid, "missing_value"))
-        ncw_get_att_double(ncid, varid, "missing_value", &missval);
-    else
-        return 0;
     ncw_inq_vardims(ncid, varid, 2, &ndims, dimlen);
     n = dimlen[0] * dimlen[1];
     assert(ndims == 2);
     v = malloc(n * sizeof(double));
-    ncw_get_var_double(ncid, varid, v);
+    ncu_readvardouble(ncid, varid, n, v);
     for (i = 0; i < n; ++i)
-        if (fabs(v[i] - missval) > EPS) {
+        if (isfinite(v[i])) {
             status = 0;
             break;
         }
@@ -216,7 +210,7 @@ void reader_cmems(char* fname, int fid, obsmeta* meta, grid* g, observations* ob
             else if (ncw_att_exists(ncid, varid, "missing_value"))
                 ncw_get_att_double(ncid, varid, "missing_value", &zmissval[i]);
             zall[i] = malloc(nprof * nz * sizeof(double));
-            ncw_get_var_double(ncid, varid, zall[i]);
+            ncu_readvardouble(ncid, varid, nprof * nz, zall[i]);
         }
 
         for (i = 0; i < nprof * nz; ++i) {
@@ -271,7 +265,7 @@ void reader_cmems(char* fname, int fid, obsmeta* meta, grid* g, observations* ob
     } else
         enkf_quit("observation type \"%s\" not handled for CMEMS product", meta->type);
     v = alloc2d(nprof, nz, sizeof(double));
-    ncw_get_var_double(ncid, varid, v[0]);
+    ncu_readvardouble(ncid, varid, nz * nprof, v[0]);
     ncw_get_att_double(ncid, varid, "_FillValue", &missval);
     qcflag = alloc2d(nprof, nz, sizeof(char));
     ncw_get_var_text(ncid, varid_qc, qcflag[0]);

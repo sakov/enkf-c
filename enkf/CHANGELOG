@@ -1,3 +1,10 @@
+v2.20.0
+   PS 08062023
+   -- Removed reader_h8.c. The pre-processed obs. from the new dataset by BoM
+      are read by generic reader "scattered".
+   -- Removed reader_cars.c. The CARS dataset is much inferior to CORA.
+   -- Upgraded reader "cmems" to read the latest version of CORA, which contains
+      packed profile data.
 v2.19.15
    PS 16052031
    -- Fixed non-initialised variable in gz_z_create() -- thanks to Prasanth

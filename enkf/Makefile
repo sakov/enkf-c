@@ -78,11 +78,9 @@ prep/obsprm.c\
 prep/allreaders.c\
 prep/reader_navo.c\
 prep/reader_windsat.c\
-prep/reader_cars.c\
 prep/reader_mmt.c\
 prep/reader_amsr2.c\
 prep/reader_amsre.c\
-prep/reader_h8.c\
 prep/reader_scattered.c\
 prep/reader_gridded_xy.c\
 prep/reader_gridded_xyz.c\
