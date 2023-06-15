@@ -816,7 +816,7 @@ void get_time(obsmeta* meta, int ncid, size_t* size, double** time)
         tunits_convert(tunits, &tunits_multiple, &tunits_offset);
     ncw_inq_varsize(ncid, varids[0], size);
     assert(*size > 0);
-    *time = malloc(*size * sizeof(size_t));
+    *time = malloc(*size * sizeof(double));
     ncu_readvardouble(ncid, varids[0], *size, *time);
     for (i = 0; i < *size; ++i)
         (*time)[i] = (*time)[i] * tunits_multiple + tunits_offset;

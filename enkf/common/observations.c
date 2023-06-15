@@ -1224,14 +1224,17 @@ void obs_superob(observations* obs, __compar_d_fn_t cmp_obs, observations** sobs
                  * of the batch
                  */
                 if (i22 > i11) {
-                    float sum = data[i11].value;
+                    float sum_value = data[i11].value;
+                    float sum_depth = data[i11].depth;
 
                     for (ii = i11 + 1; ii <= i22; ++ii) {
                         data[ii].status = STATUS_THINNED;
-                        sum += data[ii].value;
+                        sum_value += data[ii].value;
+                        sum_depth += data[ii].depth;
                         nthinned++;
                     }
-                    data[i11].value = sum / (float) (i22 - i11 + 1);
+                    data[i11].value = sum_value / (float) (i22 - i11 + 1);
+                    data[i11].depth = sum_depth / (float) (i22 - i11 + 1);
                 }
                 i22++;
                 i11 = i22;

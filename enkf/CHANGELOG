@@ -1,3 +1,11 @@
+v2.21.0
+   PS 15062023
+   -- Modified position based thinning during superobing: along with value
+      averaging for the batch it now also averages the depth.
+   -- In get_time() replaced incorrect sizeof(size_t) by sizeof(double).
+      Luckily, they are equal on most systems.
+   -- Made a few cosmetic changes in obsstats.c.
+   -- Restored reader_cars.c -- it is needed for examples.
 v2.20.0
    PS 08062023
    -- Removed reader_h8.c. The pre-processed obs. from the new dataset by BoM

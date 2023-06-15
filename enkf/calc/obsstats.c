@@ -538,8 +538,8 @@ hashtable* das_getbatches(dasystem* das)
 {
     observations* obs = das->obs;
     hashtable* batches = ht_create_i1s2(HT_SIZE);
-    int key[2] = { -1, -1 };
-    short* keys = (short*) key;
+    int key_int[2] = { -1, -1 };
+    short* key_short = (short*) key_int;
     int* nbatch = calloc(obs->nobstypes, sizeof(int));
     int nbatch_total, i;
 
@@ -554,20 +554,20 @@ hashtable* das_getbatches(dasystem* das)
         if (o->fid < 0 || o->batch < 0) /* this superob is not "clean" */
             continue;
 
-        if (o->batch == key[0] && o->type == keys[2] && o->fid == keys[3])
+        if (o->batch == key_int[0] && o->type == key_short[2] && o->fid == key_short[3])
             /*
              * this superob is from the same batch as previous 
              */
             continue;
 
-        key[0] = o->batch;
-        keys[2] = o->type;
-        keys[3] = o->fid;
+        key_int[0] = o->batch;
+        key_short[2] = o->type;
+        key_short[3] = o->fid;
 
-        if (ht_find(batches, key) != NULL)
+        if (ht_find(batches, key_int) != NULL)
             continue;
 
-        ht_insert(batches, key, o);
+        ht_insert(batches, key_int, o);
 
         nbatch[o->type]++;
         nbatch_total++;

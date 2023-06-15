@@ -42,6 +42,7 @@ obsreader_entry allreaders[] = {
     {"ANY", "z", reader_z, reader_z_describe},
     {"NAVO", "navo", reader_navo, reader_navo_describe},
     {"WINDSAT", "windsat", reader_windsat, reader_windsat_describe},
+    {"CARS", "cars", reader_cars, reader_cars_describe},
     {"MMT", "mmt", reader_mmt, reader_mmt_describe},
     {"AMSR2", "amsr2", reader_amsr2, reader_amsr2_describe},
     {"AMSRE", "amsre", reader_amsre, reader_amsre_describe},
