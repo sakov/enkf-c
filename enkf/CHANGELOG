@@ -1,3 +1,6 @@
+v2.21.1
+   PS 16062023
+   -- A minor improvement in obs_superob().
 v2.21.0
    PS 15062023
    -- Modified position based thinning during superobing: along with value
