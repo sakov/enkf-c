@@ -1,3 +1,6 @@
+v2.21.2
+   PS 16062023
+   -- Further to v2.21.0 - added averaging of fk.
 v2.21.1
    PS 16062023
    -- A minor improvement in obs_superob().
