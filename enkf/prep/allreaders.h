@@ -33,7 +33,6 @@ void reader_z(char* fname, int fid, obsmeta* meta, grid* g, observations* obs);
  */
 void reader_navo(char* fname, int fid, obsmeta* meta, grid* g, observations* obs);
 void reader_windsat(char* fname, int fid, obsmeta* meta, grid* g, observations* obs);
-void reader_cars(char* fname, int fid, obsmeta* meta, grid* g, observations* obs);
 void reader_mmt(char* fname, int fid, obsmeta* meta, grid* g, observations* obs);
 void reader_amsr2(char* fname, int fid, obsmeta* meta, grid* g, observations* obs);
 void reader_amsre(char* fname, int fid, obsmeta* meta, grid* g, observations* obs);
@@ -46,7 +45,6 @@ void reader_gridded_xyh_describe(void);
 void reader_z_describe(void);
 void reader_navo_describe(void);
 void reader_windsat_describe(void);
-void reader_cars_describe(void);
 void reader_mmt_describe(void);
 void reader_amsr2_describe(void);
 void reader_amsre_describe(void);

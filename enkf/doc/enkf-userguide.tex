@@ -39,7 +39,7 @@
 
 \begin{document}
 
-\title{EnKF-C user guide\\{\normalsize version 2.19.1}}
+\title{EnKF-C user guide\\{\normalsize version 2.21.3}}
 
 \author{Pavel Sakov}
 \date{June 19, 2014 -- \today}
@@ -1869,15 +1869,16 @@ POINTLOG 94.3 134.1 t-grid
 \end{Verbatim}
 then only transforms and variables for this grid are saved.
 
-Following is an example of point log file header (file \verb|pointlog_156.000,-32.000.nc| from example~4):
+Following is an example of point log file header (file \verb|pointlog_156.000,-32.000.nc| from example~4 after running \verb|make enkf|):
 \begin{Verbatim}[frame=single,fontsize=\footnotesize]
 netcdf pointlog_156.000\,-32.000 {
 dimensions:
         m1 = 96 ;
         m2 = 96 ;
-        p = 1444 ;
-        p-0 = 1444 ;
-        p-1 = 1444 ;
+        p-0 = 1473 ;
+        p-1 = 1473 ;
+        nk-0 = 2 ;
+        nk-1 = 2 ;
 variables:
         int obs_ids(p) ;
         float lcoeffs(p) ;
@@ -1886,8 +1887,9 @@ variables:
         float depth(p) ;
         float obs_val(p) ;
         float obs_estd(p) ;
-        float obs_fi(p) ;
-        float obs_fj(p) ;
+        float obs_fij0(p) ;
+        float obs_fij1(p) ;
+        float obs_fij2(p) ;
         float obs_fk(p) ;
         int obs_type(p) ;
                 obs_type:SLA = 0 ;
@@ -1915,17 +1917,15 @@ variables:
                 obs_inst:n1 = 1 ;                                                                              
                 obs_inst:ESACCI = 2 ;                                                                          
                 obs_inst:WindSat = 3 ;                                                                         
-                obs_inst:ARGO = 4 ;                                                                            
-                obs_inst:CTD = 5 ;
-                obs_inst:TAO = 6 ;
-                obs_inst:PIRATA = 7 ;
-                obs_inst:CARS62 = 8 ;
+                obs_inst:WMO851 = 4 ;
+                obs_inst:WMO846 = 5 ;
+                obs_inst:WMO999 = 6 ;
         float obs_time(p) ;
                 obs_time:units = "days from days from 6565.5 days since 1990-01-01" ;
         int grid-0 ;
                 grid-0:id = 0 ;
                 grid-0:name = "t-grid" ;
-                grid-0:domain = "Default" ;
+                grid-0:domain = "ALL" ;
                 grid-0:fi = 49.5 ;
                 grid-0:fj = 49.5 ;
                 grid-0:nk = 2 ;
@@ -1933,25 +1933,27 @@ variables:
         int grid-1 ;
                 grid-1:id = 1 ;
                 grid-1:name = "c-grid" ;
-                grid-1:domain = "Default" ;
+                grid-1:domain = "ALL" ;
                 grid-1:fi = 48.9999694824219 ;
                 grid-1:fj = 49.0000076293945 ;
                 grid-1:nk = 2 ;
                 grid-1:model_depth = NaNf ;
         float s-0(p-0) ;
         float S-0(m2, p-0) ;
-        double X5-0(m1, m2) ;
-                X5-0:long_name = "ensemble transform calculated for location
-                     (fi,fj)=(49.500,49.500) on grid 0 (\"t-grid\")" ;
+        double w-0(m2) ;
+                w-0:long_name = "ensemble coefficients for location (fi,fj)=(49.500,49.500) on grid 0 (\"t-grid\")" ;
+        double T-0(m1, m2) ;
+                T-0:long_name = "ensemble anomalies transform for location (fi,fj)=(49.500,49.500) on grid 0 (\"t-grid\")" ;
         float s-1(p-1) ;
         float S-1(m2, p-1) ;
-        double X5-1(m1, m2) ;
-                X5-1:long_name = "ensemble transform calculated for location
-                     (fi,fj)=(49.000,49.000) on grid 1 (\"c-grid\")" ;
+        double w-1(m2) ;
+                w-1:long_name = "ensemble coefficients for location (fi,fj)=(49.000,49.000) on grid 1 (\"c-grid\")" ;
+        double T-1(m1, m2) ;
+                T-1:long_name = "ensemble anomalies transform for location (fi,fj)=(49.000,49.000) on grid 1 (\"c-grid\")" ;
         float eta_t(m2) ;
-                eta_t:gridid = 0 ;
-                eta_t:INFLATION = 1.1f, 1.f ;
         float eta_t_an(m2) ;
+                eta_t_an:gridid = 0 ;
+                eta_t_an:INFLATION = 1.1f, 1.f ;
         float temp(nk-0, m2) ;
                 temp:gridid = 0 ;
                 temp:INFLATION = 1.1f, 1.f ;
@@ -1970,13 +1972,14 @@ variables:
         float v_an(nk-1, m2) ;
 
 // global attributes:
-                :version = "2.0.17" ;
+                :version = "2.21.3" ;
                 :lon = 156. ;
                 :lat = -32. ;
                 :MODE = "EnKF" ;
                 :SCHEME = "DEnKF" ;
                 :ALPHA = 1. ;
                 :ngrids = 2 ;
+                :output = "analysis" ;
 }
 \end{Verbatim}
 

@@ -1,8 +1,8 @@
   MPI: initialised 2 process(es)
-  running UPDATE for EnKF-C version 2.19.1:
+  running UPDATE for EnKF-C version 2.21.3:
     command = "./enkf_update --calculate-spread --write-inflation --output-increment enkf-global.prm"
     dir = "/home/pavel/src/enkf-c/trunk/enkf/examples/1"
-  2023-02-22 11:38:51
+  2023-06-21 10:42:10
   reading system specs from "enkf-global.prm":
     MODE = EnKF
     SCHEME = DEnKF
@@ -90,15 +90,15 @@
     defining state variables in point logs:
     distributing 96 iterations:
       2 processes get 48 iterations each
-    2023-02-22 11:38:51
+    2023-06-21 10:42:10
     allocating disk space for analysis:................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................
     processing fields for t-grid:
-      2023-02-22 11:38:52
+      2023-06-21 10:42:10
       9 fields
       distributing 9 iterations:
         2 processes get 5 or 4 iterations
-      eta_t    0   (0: 0: 20.0%)
       u        0   (1: 5: 25.0%)
+      eta_t    0   (0: 0: 20.0%)
       temp     0   (0: 1: 40.0%)
       u        1   (1: 6: 50.0%)
       temp     1   (0: 2: 60.0%)
@@ -106,7 +106,7 @@
       salt     0   (0: 3: 80.0%)
       v        1   (1: 8: 100.0%)
       salt     1   (0: 4: 100.0%)
-  2023-02-22 11:38:54
+  2023-06-21 10:42:11
   assembling analysis:
     distributing 96 iterations:
       2 processes get 48 iterations each
@@ -115,7 +115,7 @@
     salt:................................................
     u:................................................
     v:................................................
-  2023-02-22 11:38:54
+  2023-06-21 10:42:14
   assembling spread:
     eta_t:.
     eta_t_inc:.
@@ -127,19 +127,19 @@
     u_inc:..
     v:..
     v_inc:..
-  2023-02-22 11:38:55
+  2023-06-21 10:42:14
   assembling inflation:
     eta_t:.
     temp:..
     salt:..
     u:..
     v:..
-  2023-02-22 11:38:55
+  2023-06-21 10:42:14
   assembling state variables in point logs:
     distributing 1 iterations:
       1 processes get 1 iteration, 1 processes get 0 iterations
     deleting tiles:
       distributing 9 iterations:
         2 processes get 5 or 4 iterations
-  2023-02-22 11:38:55
+  2023-06-21 10:42:14
   finished

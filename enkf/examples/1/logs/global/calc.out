@@ -2,10 +2,10 @@
   Using MPI-3 shared memory:
     sm_comm size = 2
     node_comm size = 1
-  running CALC for EnKF-C version 2.19.1:
+  running CALC for EnKF-C version 2.21.3:
     command = "./enkf_calc enkf-global.prm"
     dir = "/home/pavel/src/enkf-c/trunk/enkf/examples/1"
-  2023-02-22 11:38:50
+  2023-06-21 10:42:09
   reading system specs from "enkf-global.prm":
     MODE = EnKF
     SCHEME = DEnKF
@@ -137,8 +137,8 @@
     pointlog (156.000, -32.000):
       t-grid: (i, j) = (49.500, 49.500)
   reading observations from "observations.nc":
-    10220 observations
-    allocating 981120 bytes for array of observations
+    10249 observations
+    allocating 983904 bytes for array of observations
     creating kd-trees for observations:
       kdtree "SLA":
         652 nodes
@@ -147,15 +147,15 @@
         9554 nodes
         611504 bytes
       kdtree "TEM":
-        7 nodes
-        496 bytes
+        38 nodes
+        2480 bytes
       kdtree "SAL":
-        7 nodes
-        496 bytes
+        5 nodes
+        368 bytes
   calculating ensemble observations:
-  2023-02-22 11:38:50
-    allocating 3924480 bytes for HE array:
-    allocating 3924480 bytes for HE^T array:
+  2023-06-21 10:42:09
+    allocating 3935616 bytes for HE array:
+    allocating 3935616 bytes for HE^T array:
     distributing 96 iterations:
       2 processes get 48 iterations each
     SLA ................................................
@@ -163,13 +163,13 @@
     TEM ................................................
     SAL ................................................
   writing forecast innovations and spread to "observations.nc":
-  2023-02-22 11:38:50
+  2023-06-21 10:42:09
   identifying observation batches:
     SLA     9   
     SST     27  
-    TEM     5   
-    SAL     5   
-    total:  46  
+    TEM     12  
+    SAL     4   
+    total:  52  
   moderating observations:
     observations substantially modified:
       SLA          0 (0.0%)
@@ -179,7 +179,7 @@
       total        0 (0.0%)
   writing modified obs errors to "observations.nc":
   calculating transforms:
-  2023-02-22 11:38:50
+  2023-06-21 10:42:09
     calculating transforms for t-grid:
       distributing 1 iterations:
         1 processes get 1 iteration, 1 processes get 0 iterations
@@ -190,20 +190,20 @@
     writing stats to "enkf_diag.nc":
     summary stats on t-grid:
       # of local analyses = 1
-      average # of local obs = 10220.0
+      average # of local obs = 10249.0
       # of inversions in obs space = 0
       # of inversions in ens space = 1
   writing point logs:
-    calculating transforms for log point (156.000,-32.000): 10220 obs
+    calculating transforms for log point (156.000,-32.000): 10249 obs
     writing transforms for point (156.000,-32.000) on grid "t-grid":
   calculating analysed observations:
-  2023-02-22 11:38:51
+  2023-06-21 10:42:09
     sorting obs by ij:
-    2023-02-22 11:38:51
+    2023-06-21 10:42:09
     updating HE:
-    distributing 10220 iterations:
-      2 processes get 5110 iterations each
-    2023-02-22 11:38:51
+    distributing 10249 iterations:
+      2 processes get 5125 or 5124 iterations
+    2023-06-21 10:42:10
   adding analysis innovations and spread to "observations.nc":
   printing observation statistics:
     region obs.type   # obs.  |for.inn.| |an.inn.|   for.inn.   an.inn.  for.spread  an.spread
@@ -211,19 +211,22 @@
     Global
            SLA           652   0.0769     0.0731     0.0218     0.0191     0.0387     0.0213  
              j1          272   0.0731      0.081     0.0228      0.026     0.0434     0.0239  
-             n1          380   0.0797     0.0674     0.0211     0.0142     0.0353     0.0194  
+             n1          380   0.0797     0.0675     0.0211     0.0142     0.0353     0.0194  
            SST          9554    0.456      0.443     -0.148     -0.158      0.352      0.194  
              ESACCI     8386    0.457       0.44     -0.128     -0.134      0.354      0.195  
              WindSat    1168    0.451      0.459      -0.29     -0.324      0.343      0.189  
-           TEM             7     1.01       1.13      0.512      0.859      0.318      0.175  
-             ARGO          7     1.01       1.13      0.512      0.859      0.318      0.175  
-             0-50m         2     1.47       2.03       1.47       2.03      0.321      0.177  
-             50-500m       5    0.832      0.763      0.129      0.389      0.316      0.174  
+           TEM            38    0.395      0.397      0.062      0.103      0.292      0.161  
+             WMO851        3    0.817      0.919      0.817      0.919      0.283      0.156  
+             WMO846        2     1.36       1.55     -0.158      0.642      0.447      0.246  
+             WMO999       33    0.298      0.279     0.0067   -0.00333      0.283      0.156  
+             0-50m        34    0.324      0.336     0.0417     0.0612      0.288      0.158  
+             50-500m       4    0.991      0.916      0.234      0.462      0.326      0.179  
              500-9999m     0     -nan       -nan       -nan       -nan       -nan       -nan  
-           SAL             7   0.0768     0.0944     0.0546     0.0944     0.0293     0.0161  
-             ARGO          7   0.0768     0.0944     0.0546     0.0944     0.0293     0.0161  
-             0-50m         2   0.0881      0.106     0.0739      0.106     0.0225     0.0124  
-             50-500m       5   0.0723     0.0899     0.0469     0.0899      0.032     0.0176  
+           SAL             5    0.101       0.11      0.075       0.11      0.031     0.0171  
+             WMO851        3    0.113      0.106     0.0713      0.106     0.0322     0.0177  
+             WMO846        2   0.0841      0.115     0.0806      0.115     0.0292     0.0161  
+             0-50m         1    0.165      0.181      0.165      0.181     0.0228     0.0126  
+             50-500m       4   0.0853     0.0918     0.0526     0.0918     0.0331     0.0182  
              500-9999m     0     -nan       -nan       -nan       -nan       -nan       -nan  
-  2023-02-22 11:38:51
+  2023-06-21 10:42:10
   finished

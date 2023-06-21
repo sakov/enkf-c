@@ -1,8 +1,8 @@
   MPI: initialised 2 process(es)
-  running UPDATE for EnKF-C version 2.19.1:
+  running UPDATE for EnKF-C version 2.21.3:
     command = "./enkf_update --calculate-spread enoi.prm"
     dir = "/home/pavel/src/enkf-c/trunk/enkf/examples/4"
-  2023-02-22 11:50:36
+  2023-06-21 10:50:04
   reading system specs from "enoi.prm":
     MODE = EnOI
     MODEL PRM = "model.prm"
@@ -109,10 +109,10 @@
   updating the model state:
     allocating disk space for spread:
     defining state variables in point logs:
-    2023-02-22 11:50:36
-    allocating disk space for analysis:
+    2023-06-21 10:50:04
+    allocating disk space for analysis:.....
     processing fields for t-grid:
-      2023-02-22 11:50:36
+      2023-06-21 10:50:04
       5 fields
       distributing 5 iterations:
         2 processes get 3 or 2 iterations
@@ -122,34 +122,34 @@
       salt     1   (1: 4: 100.0%)
       temp     1   (0: 2: 100.0%)
     processing fields for c-grid:
-      2023-02-22 11:50:37
+      2023-06-21 10:50:04
       4 fields
       distributing 4 iterations:
         2 processes get 2 iterations each
-      v        0   (1: 2: 50.0%)
       u        0   (0: 0: 50.0%)
+      v        0   (1: 2: 50.0%)
       u        1   (0: 1: 100.0%)
       v        1   (1: 3: 100.0%)
-  2023-02-22 11:50:38
+  2023-06-21 10:50:04
   assembling analysis:
     eta_t:.
     temp:..
     salt:..
     u:..
     v:..
-  2023-02-22 11:50:38
+  2023-06-21 10:50:04
   assembling spread:
     eta_t:.
     temp:..
     salt:..
     u:..
     v:..
-  2023-02-22 11:50:38
+  2023-06-21 10:50:04
   assembling state variables in point logs:
     distributing 1 iterations:
       1 processes get 1 iteration, 1 processes get 0 iterations
     deleting tiles:
       distributing 9 iterations:
         2 processes get 5 or 4 iterations
-  2023-02-22 11:50:38
+  2023-06-21 10:50:04
   finished
