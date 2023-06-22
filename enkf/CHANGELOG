@@ -1,3 +1,8 @@
+-
+   PS 23062023
+   -- Corrected data for example 1 (also used in examples 2,4,5) available from
+      https://github.com/sakov/enkf-c/releases/download/data/
+      example1-data-v3.tar.gz (CORA data should be in subdirectory "2007").
 v2.21.3
    PS 21062023
    -- Removed read_cars.c.
