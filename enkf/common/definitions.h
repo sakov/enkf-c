@@ -112,6 +112,9 @@
 #define UPDATE_DOPLOGS          (UPDATE_DOPLOGSFC | UPDATE_DOPLOGSAN)
 #define UPDATE_NEEDAN           (UPDATE_DOFIELDS | UPDATE_DOANALYSISSPREAD | UPDATE_DOINFLATION | UPDATE_DOPLOGSAN)
 
+#define THIN_XYZ 1
+#define THIN_XY  2
+
 /*
  * the default vertical split for 3D fields in obs stats
  */

@@ -1,3 +1,12 @@
+v2.22.0
+   PS 24062023
+   -- Added PREP option "--thin-vertically". Currently, during superobing
+      the observations with identical locations are thinned by default. This
+      aims to prevent excessive impact from high-frequency instruments such as
+      moorings. The new option extends thinning to observations with identical
+      horizontal positions only, e.g. Argo profiles. The intension is to prevent
+      considering observations within essentially the same parsel of water as
+      independent.
 -
    PS 23062023
    -- Corrected data for example 1 (also used in examples 2,4,5) available from

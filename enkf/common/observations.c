@@ -1184,6 +1184,28 @@ static int cmp_xyz(const void* p1, const void* p2)
 
 /**
  */
+static int cmp_xy(const void* p1, const void* p2)
+{
+    observation* o1 = (observation*) p1;
+    observation* o2 = (observation*) p2;
+
+    if (o1->lon > o2->lon)
+        return 1;
+    else if (o1->lon < o2->lon)
+        return -1;
+    else if (o1->lat > o2->lat)
+        return 1;
+    else if (o1->lat < o2->lat)
+        return -1;
+    else if (o1->instrument > o2->instrument)
+        return 1;
+    else if (o1->instrument < o2->instrument)
+        return -1;
+    return 0;
+}
+
+/**
+ */
 void obs_superob(observations* obs, __compar_d_fn_t cmp_obs, observations** sobs, int sobid, int do_thin)
 {
     int i1 = 0, i2 = 0;
@@ -1214,30 +1236,43 @@ void obs_superob(observations* obs, __compar_d_fn_t cmp_obs, observations** sobs
         if (i2 > i1 && do_thin && obs->obstypes[data[i1].type].can_thin) {
             int i11 = i1;
             int i22 = i1;
+            int (*cmp)(const void*, const void*) = (do_thin == THIN_XYZ) ? cmp_xyz : cmp_xy;
 
-            qsort(&data[i1], i2 - i1 + 1, sizeof(observation), cmp_xyz);
+            qsort(&data[i1], i2 - i1 + 1, sizeof(observation), cmp);
             while (i22 <= i2) {
-                while (i22 + 1 <= i2 && cmp_xyz(&data[i11], &data[i22 + 1]) == 0)
+                while (i22 + 1 <= i2 && cmp(&data[i11], &data[i22 + 1]) == 0)
                     i22++;
                 /*
                  * replace the value of the kept observation by the average
                  * of the batch
                  */
                 if (i22 > i11) {
-                    float sum_value = data[i11].value;
-                    float sum_depth = data[i11].depth;
-                    float sum_fk = data[i11].fk;
+                    if (do_thin == THIN_XYZ) {
+                        float sum_value = data[i11].value;
 
-                    for (ii = i11 + 1; ii <= i22; ++ii) {
-                        data[ii].status = STATUS_THINNED;
-                        sum_value += data[ii].value;
-                        sum_depth += data[ii].depth;
-                        sum_fk += data[ii].fk;
-                        nthinned++;
-                    }
-                    data[i11].value = sum_value / (float) (i22 - i11 + 1);
-                    data[i11].depth = sum_depth / (float) (i22 - i11 + 1);
-                    data[i11].fk = sum_fk / (float) (i22 - i11 + 1);
+                        for (ii = i11 + 1; ii <= i22; ++ii) {
+                            data[ii].status = STATUS_THINNED;
+                            sum_value += data[ii].value;
+                            nthinned++;
+                        }
+                        data[i11].value = sum_value / (float) (i22 - i11 + 1);
+                    } else if (do_thin == THIN_XY) {
+                        float sum_value = data[i11].value;
+                        float sum_depth = data[i11].depth;
+                        float sum_fk = data[i11].fk;
+
+                        for (ii = i11 + 1; ii <= i22; ++ii) {
+                            data[ii].status = STATUS_THINNED;
+                            sum_value += data[ii].value;
+                            sum_depth += data[ii].depth;
+                            sum_fk += data[ii].fk;
+                            nthinned++;
+                        }
+                        data[i11].value = sum_value / (float) (i22 - i11 + 1);
+                        data[i11].depth = sum_depth / (float) (i22 - i11 + 1);
+                        data[i11].fk = sum_fk / (float) (i22 - i11 + 1);
+                    } else
+                        enkf_quit("programming error");
                 }
                 i22++;
                 i11 = i22;
