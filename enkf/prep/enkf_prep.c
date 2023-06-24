@@ -59,7 +59,7 @@ int write_orig_obs = 0;
  * thinning of obs with identical positions in the same time window can be
  * switched off
  */
-int do_thin = 1;
+int do_thin = THIN_XYZ;
 
 /**
  */
@@ -85,6 +85,8 @@ static void usage()
     enkf_printf("  --no-superobing-across-batches\n");
     enkf_printf("  --no-thinning\n");
     enkf_printf("  --superob-across-instruments\n");
+    enkf_printf("  --thin-vertically\n");
+    enkf_printf("      allow thinning of obs with different depth\n");
     enkf_printf("  --write-orig-obs\n");
     enkf_printf("      write original obs within model domain to %s\n", FNAME_OBS);
     enkf_printf("  --write-all-orig-obs\n");
@@ -169,6 +171,10 @@ static void parse_commandline(int argc, char* argv[], char** fname)
             continue;
         } else if (strcmp(argv[i], "--superob-across-instruments") == 0) {
             do_superob_acrossinst = 1;
+            i++;
+            continue;
+        } else if (strcmp(argv[i], "--thin-vertically") == 0) {
+            do_thin = THIN_XY;
             i++;
             continue;
         } else if (strcmp(argv[i], "--write-orig-obs") == 0) {
