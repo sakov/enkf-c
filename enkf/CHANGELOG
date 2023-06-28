@@ -1,3 +1,6 @@
+v2.22.1
+   PS 28062023
+   -- Added optional parameters ADDVAR and SUBVAR to reader "gridded_xy".
 v2.22.0
    PS 24062023
    -- Added PREP option "--thin-vertically". Currently, during superobing

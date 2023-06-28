@@ -1236,7 +1236,7 @@ void obs_superob(observations* obs, __compar_d_fn_t cmp_obs, observations** sobs
         if (i2 > i1 && do_thin && obs->obstypes[data[i1].type].can_thin) {
             int i11 = i1;
             int i22 = i1;
-            int (*cmp)(const void*, const void*) = (do_thin == THIN_XYZ) ? cmp_xyz : cmp_xy;
+            int (*cmp) (const void*, const void*) = (do_thin == THIN_XYZ) ? cmp_xyz : cmp_xy;
 
             qsort(&data[i1], i2 - i1 + 1, sizeof(observation), cmp);
             while (i22 <= i2) {

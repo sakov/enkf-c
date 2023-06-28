@@ -33,6 +33,16 @@
 #include "prep_utils.h"
 #include "allreaders.h"
 
+#define NADDVAR_INC 1
+#define ADDVAR_ACTION_ADD 0
+#define ADDVAR_ACTION_SUB 1
+
+typedef struct {
+    char* varname;
+    int action;
+    float* v;
+} addvar;
+
 #define TYPE_DOUBLE 0
 #define TYPE_SHORT 1
 
@@ -56,6 +66,9 @@ void reader_gridded_xy(char* fname, int fid, obsmeta* meta, grid* g, observation
     int nqcflagvars = 0;
     char** qcflagvarnames = NULL;
     uint32_t* qcflagmasks = NULL;
+
+    int naddvar = 0;
+    addvar* addvars = NULL;
 
     int instid = -1;
     int productid = -1;
@@ -109,7 +122,25 @@ void reader_gridded_xy(char* fname, int fid, obsmeta* meta, grid* g, observation
              * QCFLAGNAME and QCFLAGVALS are dealt with separately
              */
             ;
-        else
+        else if (strcasecmp(meta->pars[i].name, "ADDVAR") == 0) {
+            if (naddvar % NADDVAR_INC == 0) {
+                addvars = realloc(addvars, (naddvar + NADDVAR_INC) * sizeof(addvar));
+                addvars[naddvar].varname = strdup(meta->pars[i].value);
+                addvars[naddvar].action = ADDVAR_ACTION_ADD;
+                addvars[naddvar].v = NULL;
+                enkf_printf("      ADDVAR = %s\n", addvars[naddvar].varname);
+                naddvar++;
+            }
+        } else if (strcasecmp(meta->pars[i].name, "SUBVAR") == 0) {
+            if (naddvar % NADDVAR_INC == 0) {
+                addvars = realloc(addvars, (naddvar + NADDVAR_INC) * sizeof(addvar));
+                addvars[naddvar].varname = strdup(meta->pars[i].value);
+                addvars[naddvar].action = ADDVAR_ACTION_SUB;
+                addvars[naddvar].v = NULL;
+                enkf_printf("      SUBVAR = %s\n", addvars[naddvar].varname);
+                naddvar++;
+            }
+        } else
             enkf_quit("unknown PARAMETER \"%s\"\n", meta->pars[i].name);
     }
 
@@ -138,6 +169,23 @@ void reader_gridded_xy(char* fname, int fid, obsmeta* meta, grid* g, observation
 
     var = malloc(nij * sizeof(float));
     ncu_readvarfloat(ncid, varid, nij, var);
+
+    /*
+     * add variables
+     */
+    for (i = 0; i < naddvar; ++i) {
+        addvar* a = &addvars[i];
+
+        ncw_inq_varid(ncid, a->varname, &varid);
+        a->v = malloc(nij * sizeof(float));
+        ncu_readvarfloat(ncid, varid, nij, a->v);
+        if (a->action == ADDVAR_ACTION_SUB) {
+            int ii;
+
+            for (ii = 0; ii < nij; ++ii)
+                a->v[ii] = -a->v[ii];
+        }
+    }
 
     /*
      * longitude
@@ -310,6 +358,8 @@ void reader_gridded_xy(char* fname, int fid, obsmeta* meta, grid* g, observation
         o->fid = fid;
         o->batch = (batch == NULL) ? 0 : batch[i];
         o->value = (double) var[i];
+        for (ii = 0; ii < naddvar; ++ii)
+            o->value += addvars[ii].v[i];
         if (estd == NULL)
             o->estd = var_estd;
         else {
@@ -370,6 +420,13 @@ void reader_gridded_xy(char* fname, int fid, obsmeta* meta, grid* g, observation
         free(qcflagmasks);
         free(qcflag);
     }
+    if (naddvar > 0) {
+        for (i = 0; i < naddvar; ++i) {
+            free(addvars[i].varname);
+            free(addvars[i].v);
+        }
+        free(addvars);
+    }
 }
 
 /**
@@ -426,6 +483,10 @@ void reader_gridded_xy_describe(void)
         height/depth (can be NaN)\n\
     - NPOINTSNAME (\"npoints\") (-)\n\
         number of collated points for each datum; used basically as a data mask\n\
-        when n = 0\n");
+        when n = 0\n\
+    - ADDVAR (-)\n\
+        name of the variable to be added to the main variable (can be repeated)\n\
+    - SUBVAR (-)\n\
+        name of the variable to be subtracted from the main variable (can be repeated)\n");
     describe_commonreaderparams();
 }
