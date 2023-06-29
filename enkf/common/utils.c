@@ -43,6 +43,7 @@
 #define FILE_FIND_INC 10
 #define EPS_DOUBLE 4.0e-15
 #define EPS_FLOAT  1.0e-7
+#define EPS_FIJ 1.0e-4
 #define BACKTRACE_SIZE 50
 
 long int seed_rand48 = 0;
@@ -995,20 +996,28 @@ void print_vector_float(int n, float* a, char offset[])
  */
 float interpolate2d_structured(double* fij, int ni, int nj, float** v, int** mask, int periodic_i)
 {
+    int i1, i2, j1, j2;
+    double wi1, wi2, wj1, wj2;
+    double sum, w, ww;
+
     double fi = fij[0];
     double fj = fij[1];
+   /*
+     * (very rarely) superobs need to be fixed because of the round-off errors
+     */
+    if (fi >= (double) ni)
+        fi = (double) ni - EPS_FLOAT;
+    if (fj >= (double) nj)
+        fij[1] = (double) nj - EPS_FLOAT;
 
-    int i1 = (int) floor(fi);
-    double wi1 = ceil(fi) - fi;
-    int i2 = (int) ceil(fi);
-    double wi2 = fi - floor(fi);
-    int j1 = (int) floor(fj);
-    double wj1 = ceil(fj) - fj;
-    int j2 = (int) ceil(fj);
-    double wj2 = fj - floor(fj);
-    double sum = 0.0;
-    double w = 0.0;
-    double ww;
+    i1 = (int) floor(fi);
+    wi1 = ceil(fi) - fi;
+    i2 = (int) ceil(fi);
+    wi2 = fi - floor(fi);
+    j1 = (int) floor(fj);
+    wj1 = ceil(fj) - fj;
+    j2 = (int) ceil(fj);
+    wj2 = fj - floor(fj);
 
     if (i1 == i2)
         wi1 = 1.0;
@@ -1030,6 +1039,8 @@ float interpolate2d_structured(double* fij, int ni, int nj, float** v, int** mas
 
     assert(i1 >= 0 && i2 < ni && j1 >= 0 && j2 < nj);
 
+    sum = 0.0;
+    w = 0.0;
     if (mask[j1][i1]) {
         ww = wj1 * wi1;
         sum += v[j1][i1] * ww;
@@ -1096,20 +1107,29 @@ float average(int n, size_t* ids, float* v)
  */
 float interpolate3d_structured(double* fij, double fk, int ni, int nj, int nk, int ktop, float*** v, int** nlevels, int periodic_i)
 {
-    int i1 = (int) floor(fij[0]);
-    double wi1 = ceil(fij[0]) - fij[0];
-    int i2 = (int) ceil(fij[0]);
-    double wi2 = fij[0] - floor(fij[0]);
-    int j1 = (int) floor(fij[1]);
-    double wj1 = ceil(fij[1]) - fij[1];
-    int j2 = (int) ceil(fij[1]);
-    double wj2 = fij[1] - floor(fij[1]);
-    int k1, k2;
+    int i1, i2, j1, j2, k1, k2;
+    double wi1, wi2, wj1, wj2, wk1, wk2;
     int k1top, k2top;           /* layer number from the top */
-    double wk1, wk2;
-    double sum = 0.0;
-    double w = 0.0;
-    double ww;
+    double sum, w, ww;
+
+    double fi = fij[0];
+    double fj = fij[1];
+   /*
+     * (very rarely) superobs need to be fixed because of the round-off errors
+     */
+    if (fi > (double) ni)
+        fi = (double) ni - EPS_FLOAT;
+    if (fj >= (double) nj)
+        fij[1] = (double) nj - EPS_FLOAT;
+   
+    i1 = (int) floor(fi);
+    wi1 = ceil(fi) - fi;
+    i2 = (int) ceil(fi);
+    wi2 = fi - floor(fi);
+    j1 = (int) floor(fj);
+    wj1 = ceil(fj) - fj;
+    j2 = (int) ceil(fj);
+    wj2 = fj - floor(fj);
 
     assert(ktop == 0 || ktop == nk - 1);
 
@@ -1150,6 +1170,8 @@ float interpolate3d_structured(double* fij, double fk, int ni, int nj, int nk, i
 
     assert(i1 >= 0 && i2 < ni && j1 >= 0 && j2 < nj && k1 >= 0 && k2 < nk);
 
+    sum = 0.0;
+    w = 0.0;
     if (nlevels[j1][i1] > k1top) {
         ww = wj1 * wi1 * wk1;
         sum += v[k1][j1][i1] * ww;

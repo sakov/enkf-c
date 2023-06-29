@@ -1,3 +1,7 @@
+v2.22.2
+   PS 29062023
+   -- Modified interpolate2d_structured() and interpolate3d_structured() to
+      take care of a rare exception caused by round-off during superobing.
 v2.22.1
    PS 28062023
    -- Added optional parameters ADDVAR and SUBVAR to reader "gridded_xy".
