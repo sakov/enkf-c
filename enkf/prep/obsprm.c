@@ -46,9 +46,10 @@ static void obsmeta_addfname(obsmeta* meta, char fname[])
 void obsprm_read(char fname[], int* nmeta, obsmeta** meta, int* nexclude, obsregion** exclude)
 {
     FILE* f = NULL;
-    char buf[MAXSTRLEN];
-    int line;
+    char* buf = NULL;
+    size_t bufsize = 0;
     obsmeta* m = NULL;
+    int line;
     int i, j;
 
     *nmeta = 0;
@@ -60,7 +61,7 @@ void obsprm_read(char fname[], int* nmeta, obsmeta** meta, int* nexclude, obsreg
     f = enkf_fopen(fname, "r");
 
     line = 0;
-    while (fgets(buf, MAXSTRLEN, f) != NULL) {
+    while (getline(&buf, &bufsize, f) >= 0) {
         char seps[] = " =\t\n";
         char* token;
 
@@ -201,6 +202,8 @@ void obsprm_read(char fname[], int* nmeta, obsmeta** meta, int* nexclude, obsreg
     }
 
     fclose(f);
+    if (buf != NULL)
+        free(buf);
 
     /*
      * print summary 

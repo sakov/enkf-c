@@ -395,13 +395,13 @@ void reader_cmems(char* fname, int fid, obsmeta* meta, grid* g, observations* ob
 
     free(time);
     free(v);
-    free(z);
     free(qcflag);
     free(insttype);
   nodata:
     free(lon);
     free(lat);
     free(status);
+    free(z);
   noprofiles:
     if (st_exclude != NULL)
         st_destroy(st_exclude);

@@ -19,7 +19,7 @@
 #include "dmalloc.h"
 #endif
 
-#define MAXSTRLEN 2048
+#define MAXSTRLEN 4096
 #define SHORTSTRLEN 128
 /*
  * Memory allocation increment for observations. One might increase it for

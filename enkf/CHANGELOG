@@ -1,3 +1,13 @@
+v2.22.3
+   PS 30062023
+   -- Following POSIX suggestion increased MAXSTRLEN from 2048 to 4096.
+   -- Modified obsprm_read(): replaced gets() by getline() to enable reading
+      unlimited lines (paths can become really long in some operational
+      settings).
+   -- Corrected reader_cmems.c to free "z" when there is no good data in the
+      file.
+   -- Corrected two small glitches in interpolate2d_structured() and
+      interpolate3d_structured().
 v2.22.2
    PS 29062023
    -- Modified interpolate2d_structured() and interpolate3d_structured() to
