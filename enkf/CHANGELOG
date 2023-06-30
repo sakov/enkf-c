@@ -1,3 +1,7 @@
+v2.22.4
+   PS 30062023
+   -- A couple of minor technical fixes in triangulation.h and enkf_calc.c to
+      make it possible run CALC with no MPI.
 v2.22.3
    PS 30062023
    -- Following POSIX suggestion increased MAXSTRLEN from 2048 to 4096.

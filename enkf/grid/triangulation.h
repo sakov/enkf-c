@@ -20,6 +20,10 @@
 #if !defined(_TRIANGULATION_H)
 #define _TRIANGULATION_H
 
+#if !defined(MPI)
+#undef USE_SHMEM
+#endif
+
 #if defined(USE_SHMEM)
 #include <mpi.h>
 extern MPI_Comm sm_comm;
