@@ -302,9 +302,6 @@ void obs_compact(observations* obs)
     enkf_flush();
     assert(STATUS_OK == 0);
 
-    for (i = 0; i < obs->nobs; ++i)
-        obs->data[i].id_orig = obs->data[i].id;
-
     for (i = 0, ii = obs->nobs - 1; i < ii; ++i) {
         observation tmp;
 

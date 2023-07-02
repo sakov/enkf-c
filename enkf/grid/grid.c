@@ -629,7 +629,7 @@ void grid_ij2xy(grid* g, int* ij, double* x, double* y)
 
 /**
  */
-#if defined(ENKF_PREP) || defined(ENKF_CALC)
+#if defined(ENKF_PREP)
 /** Check whether a point in grid space can be considered watered for
  ** interpolation purposes. The answer is positive if at least one of
  ** (generally) 8 corner nodes of the 3D grid cell the point belongs to is

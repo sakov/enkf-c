@@ -1,3 +1,7 @@
+v2.22.5
+   PS 03072023
+   -- Removed setting id_orig to id in obs_compact(). (It clearly looks wrong,
+      and I have no recollection why it might be there.)
 v2.22.4
    PS 30062023
    -- A couple of minor technical fixes in triangulation.h and enkf_calc.c to
