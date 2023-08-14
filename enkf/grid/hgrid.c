@@ -119,6 +119,7 @@ hgrid* hgrid_create(void* p, void* g)
     hg->type = gridprm_gethtype(prm);
     hg->parent = g;
     hg->lonbase = NAN;
+    hg->geographic = prm->geographic;
 
     ncw_open(prm->fname, NC_NOWRITE, &ncid);
 

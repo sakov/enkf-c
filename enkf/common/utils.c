@@ -1002,7 +1002,8 @@ float interpolate2d_structured(double* fij, int ni, int nj, float** v, int** mas
 
     double fi = fij[0];
     double fj = fij[1];
-   /*
+
+    /*
      * (very rarely) superobs need to be fixed because of the round-off errors
      */
     if (fi >= (double) ni)
@@ -1114,14 +1115,15 @@ float interpolate3d_structured(double* fij, double fk, int ni, int nj, int nk, i
 
     double fi = fij[0];
     double fj = fij[1];
-   /*
+
+    /*
      * (very rarely) superobs need to be fixed because of the round-off errors
      */
     if (fi > (double) ni)
         fi = (double) ni - EPS_FLOAT;
     if (fj >= (double) nj)
         fj = (double) nj - EPS_FLOAT;
-   
+
     i1 = (int) floor(fi);
     wi1 = ceil(fi) - fi;
     i2 = (int) ceil(fi);

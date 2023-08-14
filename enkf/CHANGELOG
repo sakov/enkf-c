@@ -1,3 +1,10 @@
+v2.22.6
+   PS 14082023
+   -- In hgrid_create() added passing flag "geographic" from grid parameter file
+      to grid structure. Missing this bit was a serious defect introduced into
+      the master branch in v2.19.0 when the grid code was replaced by that from
+      the development branch. It did manifest for systems with rectandular
+      grids. Thanks to Marina Duran Moro for the bug report.
 v2.22.5
    PS 03072023
    -- Removed setting id_orig to id in obs_compact(). (It clearly looks wrong,
