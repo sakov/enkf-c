@@ -31,6 +31,7 @@ int gxy_curv_getnj(gxy_curv* gxy);
 int gxy_curv_xy2fij(gxy_curv* gxy, double x, double y, double* fij);
 int gxy_curv_fij2xy(gxy_curv* gxy, double fi, double fj, double* x, double* y);
 kdtree* gxy_curv_gettree(gxy_curv* gxy);
+int gxy_curv_isgeographic(gxy_curv* gxy);
 
 #define _GXY_CURV_H
 #endif

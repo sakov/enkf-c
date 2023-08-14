@@ -1,3 +1,10 @@
+v2.22.7
+   PS 15082023
+   -- Fixed handling of "geographic" flag in curvilinear grids. (Was not really
+      fixed in v2.22.6.) The actual issue was not passing the flag (which was
+      fine except printing the grid summary), but using kd-tree for getting
+      min and max longitude: in case of gepgraphic = 1 the tree contains
+      cartesian coordinates...
 v2.22.6
    PS 14082023
    -- In hgrid_create() added passing flag "geographic" from grid parameter file

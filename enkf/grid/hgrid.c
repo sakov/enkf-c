@@ -90,10 +90,24 @@ static void hgrid_setlonbase(hgrid* hg)
             xmax = x[ni - 1];
     } else if (hg->type == GRIDHTYPE_CURVILINEAR) {
         gxy_curv* gxy = (gxy_curv*) hg->gxy;
-        double* minmax = kd_getminmax(gxy_curv_gettree(gxy));
 
-        xmin = minmax[0];
-        xmax = minmax[2];
+        if (!gxy_curv_isgeographic(gxy)) {
+            double* minmax = kd_getminmax(gxy_curv_gettree(gxy));
+
+            xmin = minmax[0];
+            xmax = minmax[2];
+        } else {
+            int i;
+            int nij = gxy_curv_getni(gxy) * gxy_curv_getnj(gxy);
+            double* x = gxy_curv_getx(gxy)[0];
+
+            for (i = 0; i < nij; ++i) {
+                if (x[i] < xmin)
+                    xmin = x[i];
+                if (x[i] > xmax)
+                    xmax = x[i];
+            }
+        }
     } else if (hg->type == GRIDHTYPE_UNSTRUCTURED)
         triangulation_getminmax(gxy_unstr_gettriangulation(hg->gxy), &xmin, &xmax, NULL, NULL);
 
@@ -119,7 +133,6 @@ hgrid* hgrid_create(void* p, void* g)
     hg->type = gridprm_gethtype(prm);
     hg->parent = g;
     hg->lonbase = NAN;
-    hg->geographic = prm->geographic;
 
     ncw_open(prm->fname, NC_NOWRITE, &ncid);
 
@@ -304,7 +317,9 @@ void hgrid_describe(hgrid* hg, char* offset)
         break;
     case GRIDHTYPE_CURVILINEAR:
         enkf_printf("%s  h type = CURVILINEAR\n", offset);
-        enkf_printf("%s  geographic = %s\n", offset, (hg->geographic) ? "yes" : "no");
+#if defined(ENKF_PREP) || defined(ENKF_CALC)
+        enkf_printf("%s  geographic = %s\n", offset, (gxy_curv_isgeographic(hg->gxy)) ? "yes" : "no");
+#endif
         break;
     case GRIDHTYPE_UNSTRUCTURED:
         enkf_printf("%s  h type = UNSTRUCTURED\n", offset);

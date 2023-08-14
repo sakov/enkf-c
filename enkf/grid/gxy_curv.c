@@ -482,3 +482,10 @@ kdtree* gxy_curv_gettree(gxy_curv* gxy)
 {
     return gxy->nodetreeXY;
 }
+
+/**
+ */
+int gxy_curv_isgeographic(gxy_curv* gxy)
+{
+    return gxy->geographic;
+}

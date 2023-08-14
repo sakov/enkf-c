@@ -23,7 +23,6 @@ typedef struct {
     int ni;
     int nj;
     double lonbase;             /* (lon range = [lonbase, lonbase + 360]) */
-    int geographic;             /* flag */
     int periodic_i;
     void* gxy;
 #if defined(ENKF_CALC)
