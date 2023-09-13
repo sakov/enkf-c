@@ -349,7 +349,7 @@ int main(int argc, char* argv[])
     /*
      * calculate stats for observation batches and write to FNAME_BATCHES
      */
-#if defined(MPI)
+#if defined(USE_SHMEM)
     if (singleob == NULL && das->obs->nobs > 0 && sm_comm_rank == 0) {
 #else
     if (singleob == NULL && das->obs->nobs > 0) {
