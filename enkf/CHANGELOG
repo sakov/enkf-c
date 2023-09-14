@@ -1,6 +1,6 @@
 v2.22.8
    PS 13092023
-   -- A minor fix in enkf_calc.c to permit clean compiling with no MPI.
+   -- A minor fix in enkf_calc.c to permit clean compiling without -DUSE_SHMEM.
 v2.22.7
    PS 15082023
    -- Fixed handling of "geographic" flag in curvilinear grids. (Was not really
