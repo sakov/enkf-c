@@ -312,6 +312,9 @@ void das_getHE(dasystem* das)
 #if defined(USE_SHMEM)
         int ii;
 #endif
+        enkf_printf("  gathering:\n");
+        enkf_printtime("  ");
+        enkf_flush();
 
         ierror = MPI_Type_contiguous(nobs, MPI_FLOAT, &mpitype_vec_nobs);
         assert(ierror == MPI_SUCCESS);
@@ -398,7 +401,8 @@ void das_getHE(dasystem* das)
             double k_d = (nmem_d > 1) ? sqrt((double) (nmem - 1) / (double) (nmem_d - 1)) : 0.0;
             double k_s = sqrt(das->gamma * (double) (nmem - 1) / (double) (nmem_s - 1));
 
-            enkf_printf("    scaling:\n");
+            enkf_printf("  scaling:\n");
+            enkf_printtime("  ");
             /*
              * calculate dynamic ensemble mean
              */

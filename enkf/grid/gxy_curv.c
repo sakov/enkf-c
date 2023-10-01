@@ -423,6 +423,10 @@ int gxy_curv_xy2fij(gxy_curv* gxy, double x, double y, double* fij)
         else if (v >= 1.0)
             v = 1.0 - EPS;
 
+        if ((int) ((double) i + u) > i)
+            u = u - EPS;
+        if ((int) ((double) j + v) > j)
+            v = v - EPS;
         assert((int) ((double) i + u) == i);
         assert((int) ((double) j + v) == j);
 
