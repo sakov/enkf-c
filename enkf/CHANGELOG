@@ -1,4 +1,7 @@
 v2.22.9
+   PS 01101961
+   -- A minor tweak in gxy_curv_xy2fij().
+   -- Minor changes in log from CALC.
 v2.22.8
    PS 13092023
    -- A minor fix in enkf_calc.c to permit clean compiling without -DUSE_SHMEM.
