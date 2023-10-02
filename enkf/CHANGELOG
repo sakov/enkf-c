@@ -1,3 +1,8 @@
+v2.22.10
+   PS 02101961
+   -- Clobber analysis file in das_update() (previously used the existing file
+      when possible).
+   -- Moved barrier das_update() to improve log.
 v2.22.9
    PS 01101961
    -- A minor tweak in gxy_curv_xy2fij().
