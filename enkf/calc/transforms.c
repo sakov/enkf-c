@@ -57,10 +57,20 @@ static void nc_createtransforms(dasystem* das, int gridid, size_t nj, size_t ni,
         ncw_def_dim(*ncid, "m_dyn", das->nmem_dynamic, &dimids[2]);
         ncw_def_dim(*ncid, "m", das->nmem, &dimids[3]);
         ncw_def_var(*ncid, "T", NC_FLOAT, 4, dimids, varid_T);
+        {
+            size_t chunksize[4] = {1, ni, das->nmem_dynamic, das->nmem};
+
+            nc_def_var_chunking(*ncid, *varid_T, NC_CHUNKED, chunksize);
+        }
         dimids[2] = dimids[3];
     } else
         ncw_def_dim(*ncid, "m", das->nmem, &dimids[2]);
     ncw_def_var(*ncid, "w", NC_FLOAT, 3, dimids, varid_w);
+    {
+        size_t chunksize[3] = {1, ni, das->nmem};
+
+        nc_def_var_chunking(*ncid, *varid_w, NC_CHUNKED, chunksize);
+    }
     ncw_put_att_int(*ncid, NC_GLOBAL, "stride", 1, &stride);
     ncw_put_att_text(*ncid, NC_GLOBAL, "grid_name", grid_getname(model_getgridbyid(das->m, gridid)));
 #if defined(DEFLATE_ALL)
