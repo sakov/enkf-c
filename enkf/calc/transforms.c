@@ -1056,6 +1056,8 @@ void das_calcpointlogtransforms(dasystem* das)
 
             if (plog->gridid >= 0 && plog->gridid != gid)
                 continue;
+            if (grid_getaliasid(g) >= 0)
+                continue;
 
             ploc = 0;
             obs_findlocal(obs, plog->lon, plog->lat, grid_getdomainname(g), &ploc, &lobs, &lcoeffs, NULL);

@@ -1,10 +1,14 @@
+v2.22.11
+   PS 12102023
+   -- In das_calcpointlogtransforms() - skip aliased grids, similar to
+      das_calctransforms().
 v2.22.10
-   PS 02101961
+   PS 02102023
    -- Clobber analysis file in das_update() (previously used the existing file
       when possible).
    -- Moved barrier das_update() to improve log.
 v2.22.9
-   PS 01101961
+   PS 01102023
    -- A minor tweak in gxy_curv_xy2fij().
    -- Minor changes in log from CALC.
 v2.22.8
