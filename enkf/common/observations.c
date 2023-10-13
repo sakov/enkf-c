@@ -1451,6 +1451,9 @@ void obs_find_bytype(observations* obs, int type, int* nobs, int** obsids)
 {
     int i;
 
+    /*
+     * it is likely that this check can be safely removed
+     */
     if (!enkf_fstatsonly)
         assert(obs->obstypes[type].nobs == obs->obstypes[type].ngood);
 
@@ -1483,6 +1486,9 @@ void obs_find_bytypeandtime(observations* obs, int type, int time, int* nobs, in
     obstype* ot = &obs->obstypes[type];
     int i;
 
+    /*
+     * it is likely that this check can be safely removed
+     */
     if (!enkf_fstatsonly)
         assert(ot->nobs == ot->ngood);
 
