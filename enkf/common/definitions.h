@@ -57,6 +57,7 @@
 #define STATUS_OUTSIDEOBSWINDOW 7
 #define STATUS_THINNED 8
 #define STATUS_EXCLUDED 9       /* excluded by location in obs. prm file */
+#define STATUS_BADFC 10         /* bad forecast */
 
 #define MODE_NONE 0
 #define MODE_ENKF 1

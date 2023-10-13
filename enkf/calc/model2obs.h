@@ -17,6 +17,8 @@
 
 #include "dasystem.h"
 
+extern int skip_bad_fc_obs;
+
 void H_surf_standard(dasystem* das, int nobs, int obsids[], char fname[], int mem, int t, float dst[]);
 void H_surf_biased(dasystem* das, int nobs, int obsids[], char fname[], int mem, int t, float dst[]);
 void H_subsurf_standard(dasystem* das, int nobs, int obsids[], char fname[], int mem, int t, float dst[]);

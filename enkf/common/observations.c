@@ -827,6 +827,8 @@ void obs_write(observations* obs, char fname[])
     ncw_put_att_int(ncid, varid, "STATUS_THINNED", 1, &i);
     i = STATUS_EXCLUDED;
     ncw_put_att_int(ncid, varid, "STATUS_EXCLUDED", 1, &i);
+    i = STATUS_BADFC;
+    ncw_put_att_int(ncid, varid, "STATUS_BADFC", 1, &i);
     /*
      * type
      */
@@ -1227,7 +1229,7 @@ void obs_superob(observations* obs, __compar_d_fn_t cmp_obs, observations** sobs
             i2++;
 
         /*
-         * thin observations with identical positions (these are supposedly
+         * Thin observations with identical positions (these are supposedly
          * coming from high-frequency instruments)
          */
         if (i2 > i1 && do_thin && obs->obstypes[data[i1].type].can_thin) {

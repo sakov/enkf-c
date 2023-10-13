@@ -1,3 +1,10 @@
+v2.23.0
+   PS 13102023
+   -- Added option "-skip-bad-forecast-obs" to CALC. This is done specially for
+      NEMO, which turns to be able to write some fill values into watered cells
+      for time average outputs. Note that normally each case of error with "no
+      point to continue" message has a good reason behind it and should be
+      investigated and fixed properly.
 v2.22.11
    PS 12102023
    -- In das_calcpointlogtransforms() - skip aliased grids, similar to

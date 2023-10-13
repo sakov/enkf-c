@@ -34,6 +34,7 @@ int skip_transforms = 0;
 int print_mem = 0;
 int write_HE = 0;
 int strict_time_matching = 0;
+int skip_bad_fc_obs = 0;
 
 /**
  */
@@ -55,6 +56,8 @@ static void usage()
     enkf_printf("      print memory usage by each process\n");
     enkf_printf("  --single-observation <lon> <lat> <depth> <type> <inn> <std>\n");
     enkf_printf("      assimilate single observation with these parameters\n");
+    enkf_printf("  --skip-bad-forecast-obs\n");
+    enkf_printf("      skip observations with invalid forecasts\n");
     enkf_printf("  --strict-time-matching\n");
     enkf_printf("      when assimilating asynchronously -- check that the time of model dumps\n");
     enkf_printf("      matches centres of the corresponding time bins\n");
@@ -153,6 +156,10 @@ static void parse_commandline(int argc, char* argv[], char** fname_prm, char** f
                 usage();
             if (!str2float(argv[i], &singleob->estd))
                 enkf_quit("command line: could not convert \"%s\" to float", argv[i]);
+            i++;
+            continue;
+        } else if (strcmp(argv[i], "--skip-bad-forecast-obs") == 0) {
+            skip_bad_fc_obs = 1;
             i++;
             continue;
         } else if (strcmp(argv[i], "--strict-time-matching") == 0) {
