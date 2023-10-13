@@ -1,3 +1,6 @@
+v2.23.1
+   PS 13102023
+   -- Added two calls of obs_calcstats() in CALC for general consistency.
 v2.23.0
    PS 13102023
    -- Added option "-skip-bad-forecast-obs" to CALC. This is done specially for

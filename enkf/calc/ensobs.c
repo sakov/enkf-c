@@ -358,6 +358,9 @@ void das_getHE(dasystem* das)
     }
 #endif
 
+    if (skip_bad_fc_obs)
+        obs_calcstats(obs);
+
 #if defined(USE_SHMEM)
     if (sm_comm_rank == 0) {
 #endif

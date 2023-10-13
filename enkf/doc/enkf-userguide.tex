@@ -39,7 +39,7 @@
 
 \begin{document}
 
-\title{EnKF-C user guide\\{\normalsize version 2.21.3}}
+\title{EnKF-C user guide\\{\normalsize version 2.23.1}}
 
 \author{Pavel Sakov}
 \date{June 19, 2014 -- \today}
@@ -1491,6 +1491,8 @@ It has the following usage and options:
 >./bin/enkf_calc 
   Usage: enkf_calc <prm file> [<options>]
   Options:
+  --allow-logspace-with-static-ens
+      confirm that static ensemble is conditioned for using log space
   --describe-prm-format [main|model|grid|obstypes]
       describe format of a parameter file and exit
   --forecast-stats-only
@@ -1501,10 +1503,10 @@ It has the following usage and options:
       skip calculating transforms for the whole grid and observation stats
   --print-memory-usage
       print memory usage by each process
-  --single-observation-xyz <lon> <lat> <depth> <type> <inn> <std>
+  --single-observation <lon> <lat> <depth> <type> <inn> <std>
       assimilate single observation with these parameters
-  --single-observation-ijk <fi> <fj> <fk> <type> <inn> <std>
-      assimilate single observation with these parameters
+  --skip-bad-forecast-obs
+      skip observations with invalid forecasts
   --strict-time-matching
       when assimilating asynchronously -- check that the time of model dumps
       matches centres of the corresponding time bins
@@ -1524,8 +1526,7 @@ It has the following usage and options:
 The option \verb|--forecast-stats-only| can be used for quick calculation of the innovation statistics for a given background (or ensemble).
 This can be used, for example, for obtaining the persistence statistics, that is, the innovation statistics for the previous analysis.
 
-The options \verb|--single-observation-xyz| and \verb|--single-observation-ijk| provide an easy way to conduct the so called single observation experiments, with the observation coordinates provided either in spatial or grid coordinates, correspondingly.
-Parameter \verb|<value>| defines innovation rather than the observation value.
+The option \verb|--single-observation| provides an easy way to conduct the so called single observation experiments.
 Normally, this experiments would be conducted in the EnOI mode, calculating increment (option \verb|--output-increment| of \verb|enkf_update|) rather than analysis.
 When run in the EnKF mode, the increment (or analysis, depending on specifications) for each member is calculated.
 

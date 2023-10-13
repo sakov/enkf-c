@@ -72,6 +72,7 @@ typedef struct {
     int nland;
     int nshallow;
     int nbadbatch;
+    int nbadfc;
     int nrange;
     int nsubgrid;
     int nthinned;

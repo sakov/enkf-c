@@ -119,6 +119,7 @@ void obs_addtype(observations* obs, obstype* src)
     ot->nland = -1;
     ot->nshallow = -1;
     ot->nbadbatch = -1;
+    ot->nbadfc = -1;
     ot->nrange = -1;
     ot->nthinned = -1;
     ot->nexcluded = -1;
@@ -353,6 +354,7 @@ void obs_calcstats(observations* obs)
     obs->noutside_obswindow = 0;
     obs->nland = 0;
     obs->nbadbatch = 0;
+    obs->nbadfc = 0;
     obs->nshallow = 0;
     obs->nrange = 0;
     obs->nthinned = 0;
@@ -368,6 +370,7 @@ void obs_calcstats(observations* obs)
         ot->nland = 0;
         ot->nshallow = 0;
         ot->nbadbatch = 0;
+        ot->nbadfc = 0;
         ot->nrange = 0;
         ot->nthinned = 0;
         ot->nexcluded = 0;
@@ -401,7 +404,10 @@ void obs_calcstats(observations* obs)
         } else if (o->status == STATUS_BADBATCH) {
             obs->nbadbatch++;
             ot->nbadbatch++;
-        } else if (o->status == STATUS_RANGE) {
+        } else if (o->status == STATUS_BADFC) {
+            obs->nbadfc++;
+            ot->nbadfc++;
+         } else if (o->status == STATUS_RANGE) {
             obs->nrange++;
             ot->nrange++;
         } else if (o->status == STATUS_THINNED) {
@@ -1797,6 +1803,7 @@ void obs_markbadbatches(observations* obs, hashtable* badbatches)
         if (ht_find(badbatches, key_int) != NULL)
             o->status = STATUS_BADBATCH;
     }
+    obs_calcstats(obs);
 }
 #endif
 

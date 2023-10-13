@@ -82,6 +82,7 @@ static void obstype_new(obstype* type, int i, char* name)
     type->nland = 0;
     type->nshallow = 0;
     type->nbadbatch = 0;
+    type->nbadfc = 0;
     type->nrange = 0;
     type->nthinned = 0;
     type->nsubgrid = 0;
