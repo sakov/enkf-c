@@ -33,6 +33,9 @@
 #include <stdint.h>
 #include <glob.h>
 #include <ftw.h>
+#if defined(MPI)
+#include <mpi.h>
+#endif
 #include "ncw.h"
 #include "ncutils.h"
 #include "triangulation.h"
