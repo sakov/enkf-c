@@ -36,6 +36,9 @@
 #include "ncw.h"
 #include "ncutils.h"
 #include "triangulation.h"
+#if defined(ENKF_UPDATE) && defined(MPI) && defined(UNBALANCED)
+#include "mpiqueue.h"
+#endif
 #include "definitions.h"
 #include "version.h"
 #include "utils.h"

@@ -27,7 +27,9 @@
 #include "definitions.h"
 #include "utils.h"
 #include "ncutils.h"
+#if defined(MPI) && defined(UNBALANCED)
 #include "mpiqueue.h"
+#endif
 #include "distribute.h"
 #include "grid.h"
 #include "lapack.h"
