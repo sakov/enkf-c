@@ -227,6 +227,9 @@ void enkf_init(int* argc, char*** argv)
 #if defined(ENKF_PREP) || defined(ENKF_CALC)
     triangulation_set_quitfn(enkf_quit);
 #endif
+#if defined(ENKF_UPDATE) && defined(MPI) && defined(UNBALANCED)
+    mpiqueue_setquitfn(enkf_quit);
+#endif
 
     /*
      * initialise the random number generator to a random state for each cpu
