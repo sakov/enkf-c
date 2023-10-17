@@ -1,3 +1,12 @@
+v2.24.0
+   PS 18102023
+   -- Added a new compile option -DUNBALANCED to UPDATE. With this option
+      during update the fields are not distributed evenly to CPUs, but
+      get assigned to CPUS on "as it goes" basis.
+      When compiled with -DUNBALANCED:
+      (1) the settings for FIELDBUFFERSIZE may need some tuning, perhaps try
+      setting it to 1 for starters;
+      (2) one CPU works as master during calculation of the updated fields.
 v2.23.2
    PS 13102023
    -- Added log report about skipped observations with bad forecast values.

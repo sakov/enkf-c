@@ -18,6 +18,7 @@ CALC_FLAGS = -DUSE_SHMEM -DMINIMISE_ALLOC
 #
 # -DNCW_SKIPSINGLE
 # -DDEFLATE_ALL
+# -DUNBALANCED
 UPDATE_FLAGS =
 
 # Set MPI status of EnKF-C programs either to "" or "MPI".
@@ -147,6 +148,7 @@ calc/calcs.h
 SRC_UPDATE =\
 common/hash.c\
 common/distribute.c\
+common/mpiqueue.c\
 common/pointlog.c\
 common/dasystem.c\
 grid/gxy_rect.c\
@@ -159,6 +161,7 @@ update/enkf_update.c
 HDR_UPDATE =\
 common/hash.h\
 common/distribute.h\
+common/mpiqueue.h\
 grid/vgrid.h\
 grid/hgrid.h\
 common/pointlog.h\
@@ -195,7 +198,7 @@ clean:
 	rm -f bin/*
 
 indent:
-	indent -T FILE -T uint32_t -T uint16_t -T badbatchspec -T region -T obsregion -T zint -T field -T dasystem -T model -T variable -T modeldata -T gridprm -T grid -T vgrid -T hgrid -T gxy_1d -T gxy_2d -T gxy_rect -T gxy_curv -T gxy_unstr -T point -T triangle -T triangle_neighbours -T triangulation -T gz_z -T gz_sigma -T gz_hybrid -T gz_numeric -T obsmeta -T metastd -T metapar -T obsreader_entry -T H_entry -T model_entry -T enkfprm -T observation -T obstype -T observations -T otdesc -T pointlog -T calcstats -T stringtable -T kdtree -T kdnode -T kdresult -T hashtable -T ht_bucket -T nctype2str -T nc_type -T size_t -T tm */*.[ch]
+	indent -T FILE -T uint32_t -T uint16_t -T badbatchspec -T region -T obsregion -T zint -T field -T dasystem -T model -T variable -T modeldata -T gridprm -T grid -T vgrid -T hgrid -T gxy_1d -T gxy_2d -T gxy_rect -T gxy_curv -T gxy_unstr -T point -T triangle -T triangle_neighbours -T triangulation -T gz_z -T gz_sigma -T gz_hybrid -T gz_numeric -T obsmeta -T metastd -T metapar -T obsreader_entry -T H_entry -T model_entry -T enkfprm -T observation -T obstype -T observations -T otdesc -T pointlog -T calcstats -T stringtable -T kdtree -T kdnode -T kdresult -T hashtable -T ht_bucket -T nctype2str -T nc_type -T size_t -T tm -T mpiqueue */*.[ch]
 	rm -f `find . -name "*.*~"`
 
 # following are 3 convenience targets for compiling particular binaries

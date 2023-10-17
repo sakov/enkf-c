@@ -363,7 +363,6 @@ void das_getHE(dasystem* das)
         if (rank == 0 && obs->nbadfc > 0)
             enkf_printf("      %d observations skipped because of bad forecast values\n", obs->nbadfc);
     }
-
 #if defined(USE_SHMEM)
     if (sm_comm_rank == 0) {
 #endif

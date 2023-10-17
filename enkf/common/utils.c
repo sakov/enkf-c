@@ -367,6 +367,11 @@ void enkf_printcompileflags(const char offset[])
 #else
     enkf_printf("%s  NCW_SKIPSINGLE   = [-]\n", offset);
 #endif
+#if defined(UNBALANCED)
+    enkf_printf("%s  UNBALANCED       = [+]\n", offset);
+#else
+    enkf_printf("%s  UNBALANCED       = [-]\n", offset);
+#endif
 #endif                          /* ENKF_UPDATE */
 #if defined(ENKF_CALC) || defined(ENKF_UPDATE)
 #if defined(DEFLATE_ALL)

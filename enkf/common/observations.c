@@ -407,7 +407,7 @@ void obs_calcstats(observations* obs)
         } else if (o->status == STATUS_BADFC) {
             obs->nbadfc++;
             ot->nbadfc++;
-         } else if (o->status == STATUS_RANGE) {
+        } else if (o->status == STATUS_RANGE) {
             obs->nrange++;
             ot->nrange++;
         } else if (o->status == STATUS_THINNED) {
