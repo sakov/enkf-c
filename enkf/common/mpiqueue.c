@@ -131,7 +131,6 @@ void mpiqueue_manage(mpiqueue* queue)
                 break;
         if (jobid == queue->njob)
             continue;
-
         MPI_Send(&jobid, 1, MPI_INT, status.MPI_SOURCE, 0, queue->communicator);
         queue->jobstatus[jobid] = MPIQUEUE_JOBSTATUS_ASSIGNED;
     }
@@ -218,7 +217,6 @@ int main(int argc, char* argv[])
         quit("could not convert \"%s\" to int", argv[1]);
 
     MPI_Init(&argc, &argv);
-
     queue = mpiqueue_create(MPI_COMM_WORLD, N);
 
     if (mpiqueue_getrank(queue) == 0)
