@@ -58,6 +58,8 @@ mpiqueue* mpiqueue_create(MPI_Comm communicator, int njob)
 {
     mpiqueue* queue = malloc(sizeof(mpiqueue));
 
+    if (njob <= 0)
+        quit("mpiqueue_create(): njob = %d; (should be > 0)", njob);
     queue->communicator = communicator;
     MPI_Comm_rank(communicator, &queue->rank);
     MPI_Comm_size(communicator, &queue->nprocesses);
@@ -65,20 +67,23 @@ mpiqueue* mpiqueue_create(MPI_Comm communicator, int njob)
         quit("nprocesses = %d; (should be > 1)", queue->nprocesses);
     queue->njob = njob;
     if (queue->rank == 0) {
-        int i;
+        int jobid;
 
         queue->jobstatus = malloc(njob * sizeof(int));
-        for (i = 0; i < njob; ++i)
-            queue->jobstatus[i] = MPIQUEUE_JOBSTATUS_TOASSIGN;
+        for (jobid = 0; jobid < njob; ++jobid)
+            queue->jobstatus[jobid] = MPIQUEUE_JOBSTATUS_TOASSIGN;
     } else
         queue->jobstatus = NULL;
 
+    /*
+     * assign first batch of jobs
+     */
     if (queue->rank == 0) {
-        int i, p;
+        int jobid, p;
 
-        for (p = 1, i = 0; p < queue->nprocesses; ++p, ++i) {
-            MPI_Send(&i, 1, MPI_INT, p, 0, queue->communicator);
-            queue->jobstatus[i] = MPIQUEUE_JOBSTATUS_ASSIGNED;
+        for (p = 1, jobid = 0; p < queue->nprocesses && jobid < njob; ++p, ++jobid) {
+            MPI_Send(&jobid, 1, MPI_INT, p, 0, queue->communicator);
+            queue->jobstatus[jobid] = MPIQUEUE_JOBSTATUS_ASSIGNED;
         }
     }
 
@@ -94,21 +99,6 @@ int mpiqueue_getrank(mpiqueue* queue)
 
 /**
  */
-void mpiqueue_init(mpiqueue* queue)
-{
-    int i, p;
-
-    if (queue->rank != 0)
-        return;
-
-    for (p = 1, i = 0; p < queue->nprocesses; ++p, ++i) {
-        MPI_Send(&i, 1, MPI_INT, p, 0, queue->communicator);
-        queue->jobstatus[i] = MPIQUEUE_JOBSTATUS_ASSIGNED;
-    }
-}
-
-/**
- */
 void mpiqueue_manage(mpiqueue* queue)
 {
     if (queue->rank != 0)
@@ -116,16 +106,17 @@ void mpiqueue_manage(mpiqueue* queue)
 
     while (1) {
         MPI_Status status;
-        int p, jobid;
+        int jobid;
 
-        for (p = 0; p < queue->njob; ++p)
-            if (queue->jobstatus[p] != MPIQUEUE_JOBSTATUS_DONE)
+        for (jobid = 0; jobid < queue->njob; ++jobid)
+            if (queue->jobstatus[jobid] != MPIQUEUE_JOBSTATUS_DONE)
                 break;
-        if (p == queue->njob) {
-            int i = -1;
+        if (jobid == queue->njob) {
+            int finished = -1;
+            int p;
 
             for (p = 1; p < queue->nprocesses; ++p)
-                MPI_Send(&i, 1, MPI_INT, p, 0, queue->communicator);
+                MPI_Send(&finished, 1, MPI_INT, p, 0, queue->communicator);
             return;
         }
 

@@ -1,3 +1,6 @@
+v2.24.1
+   PS 18102023
+   -- Some fixes in mpiqueue.c.
 v2.24.0
    PS 18102023
    -- Added a new compile option -DUNBALANCED to UPDATE. With this option
