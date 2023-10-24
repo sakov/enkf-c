@@ -128,8 +128,9 @@ static void nc_createtransformstile(dasystem* das, int gridid, int ni, int* ncid
     das_getfname_transformstile(das, gridid, rank, fname);
 
     ncw_create(fname, NC_CLOBBER | NC_NOFILL | das->ncformat, ncid);
-    ncw_def_dim(*ncid, "nj", my_number_of_iterations, &dimids[0]);
+    ncw_def_dim(*ncid, "nj", NC_UNLIMITED, &dimids[0]);
     ncw_def_dim(*ncid, "ni", ni, &dimids[1]);
+    ncw_def_var(*ncid, "j", NC_INT, 1, &dimids[0], NULL);
     if (das->mode == MODE_ENKF || das->mode == MODE_HYBRID) {
         ncw_def_dim(*ncid, "m_dyn", das->nmem_dynamic, &dimids[2]);
         ncw_def_dim(*ncid, "m", das->nmem, &dimids[3]);
@@ -138,7 +139,6 @@ static void nc_createtransformstile(dasystem* das, int gridid, int ni, int* ncid
     } else
         ncw_def_dim(*ncid, "m", das->nmem, &dimids[2]);
     ncw_def_var(*ncid, "w", NC_FLOAT, 3, dimids, varid_w);
-    ncw_put_att_int(*ncid, NC_GLOBAL, "j1", 1, &my_first_iteration);
 #if defined(DEFLATE_ALL)
     if (das->nccompression > 0)
         ncw_def_deflate(*ncid, 0, 1, das->nccompression);
@@ -151,8 +151,10 @@ static void nc_createtransformstile(dasystem* das, int gridid, int ni, int* ncid
 static void nc_writetransformstile(dasystem* das, int iter, int ni, float* Tj, float* wj, int ncid, int varid_T, int varid_w)
 {
     size_t start[4], count[4];
+    int nr = ncw_inq_nrecords(ncid);
+    int varid_j;
 
-    start[0] = iter;
+    start[0] = nr;
     start[1] = 0;
     start[2] = 0;
     start[3] = 0;
@@ -167,16 +169,21 @@ static void nc_writetransformstile(dasystem* das, int iter, int ni, float* Tj, f
 
     count[2] = das->nmem;
     ncw_put_vara_float(ncid, varid_w, start, count, wj);
+
+    ncw_inq_varid(ncid, "j", &varid_j);
+    ncw_put_vara_int(ncid, varid_j, start, count, &iter);
 }
 
 static void nc_assembletransforms(dasystem* das, int gridid, size_t nj, size_t ni, int stride)
 {
     char fname[MAXSTRLEN];
     int ncid, varid_T, varid_w;
-    int r;
+    int p;
     float* v_T = NULL;
     float* v_w = NULL;
+    int* v_j = NULL;
     int doT = (das->mode == MODE_ENKF || das->mode == MODE_HYBRID);
+    int nr_max = 0;
 
     assert(rank == 0);
 
@@ -185,42 +192,53 @@ static void nc_assembletransforms(dasystem* das, int gridid, size_t nj, size_t n
 
     enkf_printf("      assembling \"%s\":", fname);
 
-    if (doT)
-        v_T = malloc(ni * number_of_iterations[0] * das->nmem_dynamic * das->nmem * sizeof(float));
-    v_w = malloc(ni * number_of_iterations[0] * das->nmem * sizeof(float));
-
-    for (r = 0; r < nprocesses; ++r) {
+    for (p = 0; p < nprocesses; ++p) {
         char fname_tile[MAXSTRLEN];
         int ncid_tile;
-        int varid_T_tile, varid_w_tile;
+        int varid_T_tile, varid_w_tile, varid_j_tile;
         size_t start[4], count[4];
+        int nr, r;
 
-        das_getfname_transformstile(das, gridid, r, fname_tile);
+        das_getfname_transformstile(das, gridid, p, fname_tile);
 
         ncw_open(fname_tile, NC_NOWRITE, &ncid_tile);
+        nr = ncw_inq_nrecords(ncid_tile);
+        if (nr == 0)
+            continue;
+        if (nr > nr_max) {
+            if (doT)
+                v_T = realloc(v_T, nr * ni * das->nmem_dynamic * das->nmem * sizeof(float));
+            v_w = realloc(v_w, nr * ni * das->nmem * sizeof(float));
+            v_j = realloc(v_j, nr * sizeof(int));
+            nr_max = nr;
+        }
         if (doT) {
             ncw_inq_varid(ncid_tile, "T", &varid_T_tile);
-            ncu_readvarfloat(ncid_tile, varid_T_tile, ni * number_of_iterations[r] * das->nmem * das->nmem_dynamic, v_T);
+            ncu_readvarfloat(ncid_tile, varid_T_tile, nr * ni * das->nmem * das->nmem_dynamic, v_T);
         }
         ncw_inq_varid(ncid_tile, "w", &varid_w_tile);
-        ncu_readvarfloat(ncid_tile, varid_w_tile, ni * number_of_iterations[r] * das->nmem, v_w);
+        ncu_readvarfloat(ncid_tile, varid_w_tile, nr * ni * das->nmem, v_w);
+        ncw_inq_varid(ncid_tile, "j", &varid_j_tile);
+        ncw_get_var_int(ncid_tile, varid_j_tile, v_j);
         ncw_close(ncid_tile);
         file_delete(fname_tile);
 
-        start[0] = first_iteration[r];
-        start[1] = 0;
-        start[2] = 0;
-        start[3] = 0;
+        for (r = 0; r < nr; ++r) {
+            start[0] = v_j[r];
+            start[1] = 0;
+            start[2] = 0;
+            start[3] = 0;
 
-        count[0] = number_of_iterations[r];
-        count[1] = ni;
-        count[2] = das->nmem_dynamic;
-        count[3] = das->nmem;
+            count[0] = 1;
+            count[1] = ni;
+            count[2] = das->nmem_dynamic;
+            count[3] = das->nmem;
 
-        if (doT)
-            ncw_put_vara_float(ncid, varid_T, start, count, v_T);
-        count[2] = das->nmem;
-        ncw_put_vara_float(ncid, varid_w, start, count, v_w);
+            if (doT)
+                ncw_put_vara_float(ncid, varid_T, start, count, &v_T[r * ni * das->nmem * das->nmem_dynamic]);
+            count[2] = das->nmem;
+            ncw_put_vara_float(ncid, varid_w, start, count, &v_w[r * ni * das->nmem]);
+        }
         enkf_printf(".");
         enkf_flush();
     }
@@ -231,6 +249,7 @@ static void nc_assembletransforms(dasystem* das, int gridid, size_t nj, size_t n
     if (doT)
         free(v_T);
     free(v_w);
+    free(v_j);
 }
 #endif
 
@@ -520,6 +539,11 @@ void das_calctransforms(dasystem* das)
         MPI_Barrier(MPI_COMM_WORLD);    /* (to sync the logs) */
 #endif
         for (jj = my_first_iteration; jj <= my_last_iteration; ++jj) {
+            /*
+             * j is "j" index at the actual (physical) grid (0 to mnj);
+             * jpool[jj] is "j" index at the (strided) transforms subrid (0 to
+             * nj)
+             */
             j = jiter[jpool[jj]];
             if (enkf_verbose)
                 printf("        j = %d (%d: %d: %.1f%%)\n", j, rank, jj, 100.0 * (double) (jj - my_first_iteration + 1) / (double) my_number_of_iterations);
@@ -754,7 +778,7 @@ void das_calctransforms(dasystem* das)
                     }
                 }
 #else                           /* TW_VIAFILE */
-                nc_writetransformstile(das, jj - my_first_iteration, ni, Tj[0][0], wj[0], ncid, varid_T, varid_w);
+                nc_writetransformstile(das, jpool[jj], ni, Tj[0][0], wj[0], ncid, varid_T, varid_w);
 #endif
             } else if (das->mode == MODE_ENOI) {
 #if !defined(TW_VIAFILE)
@@ -787,7 +811,7 @@ void das_calctransforms(dasystem* das)
                     }
                 }
 #else                           /* TW_VIAFILE */
-                nc_writetransformstile(das, jj - my_first_iteration, ni, NULL, wj[0], ncid, -1, varid_w);
+                nc_writetransformstile(das, jpool[jj], ni, NULL, wj[0], ncid, -1, varid_w);
 #endif
             }
 #else                           /* no MPI */

@@ -27,7 +27,7 @@
 #include "definitions.h"
 #include "utils.h"
 #include "ncutils.h"
-#if defined(MPI) && defined(UNBALANCED)
+#if defined(MPI) && defined(USE_MPIQUEUE)
 #include "mpiqueue.h"
 #endif
 #include "distribute.h"
@@ -1001,7 +1001,7 @@ static void das_assemblemembers(dasystem* das)
 {
     model* m = das->m;
     int nvar = model_getnvar(m);
-    int i, e;
+    int i;
 
 #if defined(MPI)
     MPI_Barrier(MPI_COMM_WORLD);
@@ -1017,6 +1017,7 @@ static void das_assemblemembers(dasystem* das)
         int nlev, k;
         int ni, nj;
         float* v = NULL;
+        int e;
 
         enkf_printf("    %s:", varname);
         das_getmemberfname(das, varname, 1, fname_dst);
@@ -1162,10 +1163,11 @@ static void das_assemblebg(dasystem* das)
 void das_update(dasystem* das)
 {
     model* m = das->m;
-    int ngrid = model_getngrid(m);
     int nvar = model_getnvar(m);
+#if !defined(USE_MPIQUEUE)
+    int ngrid = model_getngrid(m);
     int gid;
-    int i, e;
+#endif
 
 #if defined(MPI)
     MPI_Barrier(MPI_COMM_WORLD);
@@ -1201,6 +1203,8 @@ void das_update(dasystem* das)
         dir_createifabsent(DIRNAME_TMP);
     if (das->updatespec & UPDATE_DOFIELDS) {
         if (das->mode == MODE_ENKF || das->mode == MODE_HYBRID) {
+            int i, e;
+                
             distribute_iterations(0, das->nmem_dynamic - 1, nprocesses, rank, "    ");
 
             enkf_printtime("    ");
@@ -1272,6 +1276,8 @@ void das_update(dasystem* das)
 #endif
             enkf_printf("\n");
         } else if (das->mode == MODE_ENOI) {
+            int i;
+            
             if (rank == 0) {
                 enkf_printtime("    ");
                 enkf_printf("    allocating disk space for analysis:");
@@ -1345,197 +1351,197 @@ void das_update(dasystem* das)
             }
         }
     }
-#if defined(MPI) && defined(UNBALANCED)
-    /*
-     * This variant of update targets systems
-     * (1) with a dozen CPUs or more (because one CPU works as a master)
-     * (2) with unbalanced fields
-     */
-    for (gid = 0; gid < ngrid; ++gid) {
-        void* g = model_getgridbyid(m, gid);
+#if defined(MPI) && defined(USE_MPIQUEUE)
+    {
         int nfields = 0;
         field* fields = NULL;
-        field* fieldstowrite = NULL;
         mpiqueue* queue = NULL;
-        void** fieldbuffer = NULL;
-        int mni, mnj;
-        int fid;
 
-        /*
-         * (just to avoid the log message below)
-         */
-        if (grid_getaliasid(g) >= 0)
-            continue;
-
-#if defined(MPI)
-        MPI_Barrier(MPI_COMM_WORLD);
-#endif
-        enkf_printf("    processing fields for %s:\n", grid_getname(g));
-        enkf_printtime("      ");
-
-        grid_getsize(g, &mni, &mnj, NULL);
-
-        das_getfields(das, gid, &nfields, &fields);
-        enkf_printf("      %d fields\n", nfields);
-
-        if (nfields == 0)
-            continue;
-
-        fieldstowrite = malloc(das->fieldbufsize * sizeof(field));
-
+        das_getfields(das, -1, &nfields, &fields);
         queue = mpiqueue_create(MPI_COMM_WORLD, nfields);
 
         if (mpiqueue_getrank(queue) == 0)
             mpiqueue_manage(queue);
         else {
-            int iteration;
+            void** fieldbuffer = calloc(das->fieldbufsize, sizeof(void*));
+            field* fieldstowrite = malloc(das->fieldbufsize * sizeof(field));
+            int bufid = 0;
+            int gridid_storage = -1;
+            int gridid_buf;
+            int fid;
+            int i, e;
 
-            fieldbuffer = malloc(das->fieldbufsize * sizeof(void*));
-            if (mnj > 0) {
-                if (das->mode == MODE_ENKF) {
-                    for (i = 0; i < das->fieldbufsize; ++i)
-                        fieldbuffer[i] = alloc3d(das->nmem, mnj, mni, sizeof(float));
-                } else if (das->mode == MODE_ENOI) {
-                    for (i = 0; i < das->fieldbufsize; ++i)
-                        fieldbuffer[i] = alloc3d(das->nmem + 1, mnj, mni, sizeof(float));
-                } else if (das->mode == MODE_HYBRID) {
-                    /*
-                     * allocate two additional members to calculate ensemble mean
-                     * with double precision
-                     */
-                    for (i = 0; i < das->fieldbufsize; ++i)
-                        fieldbuffer[i] = alloc3d(das->nmem + 2, mnj, mni, sizeof(float));
-                }
-            } else {
-                if (das->mode == MODE_ENKF) {
-                    for (i = 0; i < das->fieldbufsize; ++i)
-                        fieldbuffer[i] = alloc2d(das->nmem, mni, sizeof(float));
-                } else if (das->mode == MODE_ENOI) {
-                    for (i = 0; i < das->fieldbufsize; ++i)
-                        fieldbuffer[i] = alloc2d(das->nmem + 1, mni, sizeof(float));
-                } else if (das->mode == MODE_HYBRID) {
-                    /*
-                     * allocate two additional members to calculate ensemble mean
-                     * with double precision
-                     */
-                    for (i = 0; i < das->fieldbufsize; ++i)
-                        fieldbuffer[i] = alloc2d(das->nmem + 2, mni, sizeof(float));
-                }
-            }
-
-            for (iteration = 0; 1; ++iteration) {
-                int bufid = iteration % das->fieldbufsize;
+            while (1) {
                 field* f;
-                char fname[MAXSTRLEN];
+                int gridid_field;
 
-                fid = mpiqueue_getjobid(queue);
-                if (fid >= 0) {
-                    f = &fields[fid];
-                    fieldstowrite[bufid] = fields[fid];
+                fid = mpiqueue_getjob(queue);
+                if (fid < 0) {
+                    if (bufid > 0) {
+                        bufid--;
+                        goto doupdate;
+                    } else
+                        goto finish;
+                }
 
-                    if (enkf_verbose) {
-                        printf("      %-8s %-3d (%d: %d: %.1f%%)\n", f->varname, f->level, rank, fid, 100.0 * (double) (fid + 1) / (double) nfields);
-                        fflush(stdout);
-                    }
+                f = &fields[fid];
+                gridid_field = model_getvargridid(das->m, f->varid);
 
-                    for (e = 0; e < das->nmem; ++e) {
-                        int masklog = das_isstatic(das, e + 1);
-
-                        das_getmemberfname(das, f->varname, e + 1, fname);
-                        model_readfield(das->m, fname, f->varname, f->level, (f->structured) ? ((float***) fieldbuffer[bufid])[e][0] : ((float**) fieldbuffer[bufid])[e], masklog);
-                    }
-
-                    if (das->mode == MODE_HYBRID) {
-                        float* v[das->nmem + 1];
-
-                        for (e = 0; e < das->nmem + 1; ++e)
-                            v[e] = (f->structured) ? ((float***) fieldbuffer[bufid])[e][0] : ((float**) fieldbuffer[bufid])[e];
-
-                        das_sethybridensemble(das, (f->structured) ? mni * mnj : mni, v);
-                    }
-
-                    /*
-                     * read the background to write it to pointlogs, regardless of
-                     * whether output is increment or analysis
-                     */
-                    if (das->mode == MODE_ENOI && (((das->updatespec & UPDATE_DOFIELDS) && !(das->updatespec & UPDATE_OUTPUTINC)) || (das->updatespec & UPDATE_DOPLOGSAN))) {
-                        das_getbgfname(das, f->varname, fname);
-                        model_readfield(das->m, fname, f->varname, f->level, (f->structured) ? ((float***) fieldbuffer[bufid])[das->nmem][0] : ((float**) fieldbuffer[bufid])[das->nmem], 0);
-                    }
-                    mpiqueue_reportjobid(queue, fid);
-                } else
+                if (bufid == 0) {
+                    gridid_buf = gridid_field;
+                } else if (gridid_field != gridid_buf) {
+                    mpiqueue_rejectjob(queue, fid);
                     bufid--;
+                    goto doupdate;
+                }
+                /*
+                 * if new grid -- allocate storage for fields
+                 */
+                if (gridid_buf != gridid_storage) {
+                    grid* g = model_getgridbyid(m, gridid_field);
+                    int mni, mnj;
 
-                if (bufid >= 0 && (bufid == das->fieldbufsize - 1 || fid < 0)) {
-                    /*
-                     * write forecast spread
-                     */
-                    if (das->updatespec & UPDATE_DOFORECASTSPREAD)
-                        das_writespread(das, bufid + 1, fieldbuffer, fieldstowrite, 0);
-
-                    /*
-                     * write forecast variables to point logs
-                     */
-                    if (das->updatespec & UPDATE_DOPLOGSFC)
-                        plog_writestatevars(das, bufid + 1, fieldbuffer, fieldstowrite, 0);
-
-                    /*
-                     * now set the background to 0 if output is increment
-                     */
-                    if (das->mode == MODE_ENOI && (das->updatespec & UPDATE_OUTPUTINC)) {
-                        int ii;
-
-                        for (ii = 0; ii <= bufid; ++ii)
-                            memset(((float***) fieldbuffer[ii])[das->nmem][0], 0, mni * mnj * sizeof(float));
-                    }
-
-                    if (das->updatespec & (UPDATE_DOFIELDS | UPDATE_DOANALYSISSPREAD | UPDATE_DOPLOGSAN | UPDATE_DOINFLATION)) {
-                        if (das->mode == MODE_ENKF || das->mode == MODE_HYBRID) {
-                            das_updatefields(das, bufid + 1, fieldbuffer, fieldstowrite);
-                            if (das->updatespec & UPDATE_DOFIELDS)
-                                das_writefields(das, bufid + 1, fieldbuffer, fieldstowrite);
-                        } else if (das->mode == MODE_ENOI) {
-                            if (das->updatespec & (UPDATE_DOFIELDS | UPDATE_DOPLOGSAN))
-                                das_updatebg(das, bufid + 1, fieldbuffer, fieldstowrite);
-                            if (das->updatespec & UPDATE_DOFIELDS)
-                                das_writebg(das, bufid + 1, fieldbuffer, fieldstowrite);
+                    grid_getsize(g, &mni, &mnj, NULL);
+                    for (i = 0; i < das->fieldbufsize; ++i)
+                        if (fieldbuffer[i] != NULL)
+                            free(fieldbuffer[i]);
+                    if (mnj > 0) {
+                        for (i = 0; i < das->fieldbufsize; ++i) {
+                            if (das->mode == MODE_ENKF)
+                                fieldbuffer[i] = alloc3d(das->nmem, mnj, mni, sizeof(float));
+                            else if (das->mode == MODE_ENOI)
+                                fieldbuffer[i] = alloc3d(das->nmem + 1, mnj, mni, sizeof(float));
+                            else if (das->mode == MODE_HYBRID)
+                                /*
+                                 * allocate two additional members to calculate
+                                 * ensemble mean with double precision
+                                 */
+                                fieldbuffer[i] = alloc3d(das->nmem + 2, mnj, mni, sizeof(float));
+                        }
+                    } else {
+                        for (i = 0; i < das->fieldbufsize; ++i) {
+                            if (das->mode == MODE_ENKF)
+                                fieldbuffer[i] = alloc2d(das->nmem, mni, sizeof(float));
+                            else if (das->mode == MODE_ENOI)
+                                fieldbuffer[i] = alloc2d(das->nmem + 1, mni, sizeof(float));
+                            else if (das->mode == MODE_HYBRID)
+                                /*
+                                 * allocate two additional members to calculate
+                                 * ensemble mean with double precision
+                                 */
+                                fieldbuffer[i] = alloc2d(das->nmem + 2, mni, sizeof(float));
                         }
                     }
-
-                    /*
-                     * write analysis spread
-                     */
-                    if (bufid >= 0 && das->updatespec & UPDATE_DOANALYSISSPREAD && (das->mode == MODE_ENKF || das->mode == MODE_HYBRID))
-                        das_writespread(das, bufid + 1, fieldbuffer, fieldstowrite, 1);
-                    /*
-                     * write analysis variables to point logs
-                     */
-                    if (bufid >= 0 && das->updatespec & UPDATE_DOPLOGSAN)
-                        plog_writestatevars(das, bufid + 1, fieldbuffer, fieldstowrite, 1);
+                    gridid_storage = gridid_buf;
                 }
+                /*
+                 * read ensemble of fields
+                 */
+                if (enkf_verbose) {
+                    printf("      %-8s %-3d (%d: %d: %.1f%%)\n", f->varname, f->level, rank, fid, 100.0 * (double) (fid + 1) / (double) nfields);
+                    fflush(stdout);
+                }
+                for (e = 0; e < das->nmem; ++e) {
+                    char fname[MAXSTRLEN];
+                    int masklog = das_isstatic(das, e + 1);
+
+                    das_getmemberfname(das, f->varname, e + 1, fname);
+                    model_readfield(das->m, fname, f->varname, f->level, (f->structured) ? ((float***) fieldbuffer[bufid])[e][0] : ((float**) fieldbuffer[bufid])[e], masklog);
+                }
+                if (das->mode == MODE_HYBRID) {
+                    float* v[das->nmem + 1];
+                    int mni, mnj;
+
+                    model_getvargridsize(das->m, f->varid, &mni, &mnj, NULL);
+                    for (e = 0; e < das->nmem + 1; ++e)
+                        v[e] = (f->structured) ? ((float***) fieldbuffer[bufid])[e][0] : ((float**) fieldbuffer[bufid])[e];
+
+                    das_sethybridensemble(das, (f->structured) ? mni * mnj : mni, v);
+                }
+                /*
+                 * read the background to write it to pointlogs, regardless
+                 * of whether output is increment or analysis
+                 */
+                if (das->mode == MODE_ENOI && (((das->updatespec & UPDATE_DOFIELDS) && !(das->updatespec & UPDATE_OUTPUTINC)) || (das->updatespec & UPDATE_DOPLOGSAN))) {
+                    char fname[MAXSTRLEN];
+
+                    das_getbgfname(das, f->varname, fname);
+                    model_readfield(das->m, fname, f->varname, f->level, (f->structured) ? ((float***) fieldbuffer[bufid])[das->nmem][0] : ((float**) fieldbuffer[bufid])[das->nmem], 0);
+                }
+
+                fieldstowrite[bufid] = fields[fid];
+                mpiqueue_reportjob(queue, fid);
+
+                if (bufid < das->fieldbufsize - 1) {
+                    bufid++;
+                    continue;
+                }
+
+              doupdate:
+                /*
+                 * write forecast spread
+                 */
+                if (das->updatespec & UPDATE_DOFORECASTSPREAD)
+                    das_writespread(das, bufid + 1, fieldbuffer, fieldstowrite, 0);
+                /*
+                 * write forecast variables to point logs
+                 */
+                if (das->updatespec & UPDATE_DOPLOGSFC)
+                    plog_writestatevars(das, bufid + 1, fieldbuffer, fieldstowrite, 0);
+                /*
+                 * set the background to 0 if output is increment
+                 */
+                if (das->mode == MODE_ENOI && (das->updatespec & UPDATE_OUTPUTINC)) {
+                    int mni, mnj;
+                    int ii;
+
+                    model_getvargridsize(das->m, f->varid, &mni, &mnj, NULL);
+                    for (ii = 0; ii <= bufid; ++ii)
+                        memset(((float***) fieldbuffer[ii])[das->nmem][0], 0, mni * mnj * sizeof(float));
+                }
+                if (das->updatespec & (UPDATE_DOFIELDS | UPDATE_DOANALYSISSPREAD | UPDATE_DOPLOGSAN | UPDATE_DOINFLATION)) {
+                    if (das->mode == MODE_ENKF || das->mode == MODE_HYBRID) {
+                        das_updatefields(das, bufid + 1, fieldbuffer, fieldstowrite);
+                        if (das->updatespec & UPDATE_DOFIELDS)
+                            das_writefields(das, bufid + 1, fieldbuffer, fieldstowrite);
+                    } else if (das->mode == MODE_ENOI) {
+                        if (das->updatespec & (UPDATE_DOFIELDS | UPDATE_DOPLOGSAN))
+                            das_updatebg(das, bufid + 1, fieldbuffer, fieldstowrite);
+                        if (das->updatespec & UPDATE_DOFIELDS)
+                            das_writebg(das, bufid + 1, fieldbuffer, fieldstowrite);
+                    }
+                }
+                /*
+                 * write analysis spread
+                 */
+                if (bufid >= 0 && das->updatespec & UPDATE_DOANALYSISSPREAD && (das->mode == MODE_ENKF || das->mode == MODE_HYBRID))
+                    das_writespread(das, bufid + 1, fieldbuffer, fieldstowrite, 1);
+                /*
+                 * write analysis variables to point logs
+                 */
+                if (bufid >= 0 && das->updatespec & UPDATE_DOPLOGSAN)
+                    plog_writestatevars(das, bufid + 1, fieldbuffer, fieldstowrite, 1);
                 if (fid < 0)
                     break;
-            }                   /* for iteration */
-            for (i = 0; i < das->fieldbufsize; ++i)
-                free(fieldbuffer[i]);
-            free(fieldbuffer);
-        }                       /* rank > 0 */
-        enkf_flush();
+                bufid = 0;
+            }                   /* while mpiqueue_getjob() */
 
-        if (mpiqueue_getrank(queue) > 0) {
+          finish:
+            for (i = 0; i < das->fieldbufsize; ++i)
+                if (fieldbuffer[i] != NULL)
+                    free(fieldbuffer[i]);
             free(fieldstowrite);
-            free(fields);
-        }
-        mpiqueue_destroy(queue);
-    }                           /* for gid */
-#else                           /* !defined(UNBALANCED) || !defined(MPI) */
+            free(fieldbuffer);
+        }                       /* if (worker) */
+    }
+#else                           /* !defined(MPI) || !defined(USE_MPIQUEUE) */
     for (gid = 0; gid < ngrid; ++gid) {
         void* g = model_getgridbyid(m, gid);
         int nfields = 0;
         field* fields = NULL;
         void** fieldbuffer = NULL;
         int mni, mnj;
-        int fid;
+        int i, fid;
 
         /*
          * (just to avoid the log message below)
@@ -1598,6 +1604,7 @@ void das_update(dasystem* das)
             int bufid = (fid - my_first_iteration) % das->fieldbufsize;
             field* f = &fields[fid];
             char fname[MAXSTRLEN];
+            int e;
 
             if (enkf_verbose) {
                 printf("      %-8s %-3d (%d: %d: %.1f%%)\n", f->varname, f->level, rank, fid, 100.0 * (double) (fid - my_first_iteration + 1) / (double) (my_last_iteration - my_first_iteration + 1));
@@ -1689,7 +1696,7 @@ void das_update(dasystem* das)
 
         enkf_flush();
     }                           /* for gid */
-#endif                          /* !defined(UNBALANCED) || !defined(MPI) */
+#endif                          /* !defined(MPI) || !defined(USE_MPIQUEUE) */
 
 #if defined(MPI)
     MPI_Barrier(MPI_COMM_WORLD);

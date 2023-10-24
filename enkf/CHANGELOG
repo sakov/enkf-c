@@ -1,3 +1,14 @@
+v2.24.2
+   PS 18102023
+   -- Replaced compile option -DUNBALANCED in UPDATE by -DUSE_MPIQUEUE. It is
+      not a default yet for safety reasons, but everyone is encouraged to
+      use it.
+   -- With -DUSE_MPIQUEUE UPDATE now processes fields from all grids in a
+      single queue, without barriers between grids.
+   -- A few edits in mpiqueue[.[ch] including adding mpiqueue_rejectjob().
+   -- In Makefile added target "tar".
+   -- Modified CALC code in the case with -DTW_VIAFILE to write tiles with
+      arbitrary set of layers (preparing for mpiqueue).
 v2.24.1
    PS 18102023
    -- Some fixes in mpiqueue.c.
@@ -10,6 +21,7 @@ v2.24.0
       (1) the settings for FIELDBUFFERSIZE may need some tuning, perhaps try
       setting it to 1 for starters;
       (2) one CPU works as master during calculation of the updated fields.
+   -- Added files common/mpiqueue.h and common/mpiqueue.c.
 v2.23.2
    PS 13102023
    -- Added log report about skipped observations with bad forecast values.

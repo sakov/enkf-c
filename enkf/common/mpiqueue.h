@@ -24,10 +24,11 @@ typedef void (*mpiqueue_quit_fn) (char* format, ...);
 void mpiqueue_setquitfn(mpiqueue_quit_fn quit_fn);
 
 mpiqueue* mpiqueue_create(MPI_Comm communicator, int njob);
+void mpiqueue_destroy(mpiqueue* queue);
 int mpiqueue_getrank(mpiqueue* queue);
 void mpiqueue_manage(mpiqueue* queue);
-int mpiqueue_getjobid(mpiqueue* queue);
-void mpiqueue_reportjobid(mpiqueue* queue, int jobid);
-void mpiqueue_destroy(mpiqueue* queue);
+int mpiqueue_getjob(mpiqueue* queue);
+void mpiqueue_reportjob(mpiqueue* queue, int jobid);
+void mpiqueue_rejectjob(mpiqueue* queue, int jobid);
 
 #endif                          /* _MPIQUEUEH */

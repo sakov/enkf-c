@@ -12,13 +12,13 @@ PREPCALC_FLAGS =
 # -DUSE_SHMEM
 # -DTW_VIAFILE
 # -DDEFLATE_ALL
-CALC_FLAGS = -DUSE_SHMEM -DMINIMISE_ALLOC
+CALC_FLAGS = -DUSE_SHMEM -DMINIMISE_ALLOC -DTW_VIAFILE
 
 # Select flags for UPDATE
 #
 # -DNCW_SKIPSINGLE
 # -DDEFLATE_ALL
-# -DUNBALANCED
+# -DUSE_MPIQUEUE
 UPDATE_FLAGS =
 
 # Set MPI status of EnKF-C programs either to "" or "MPI".
@@ -175,6 +175,8 @@ bin/enkf_update
 
 ALL = $(PROGRAMS)
 
+VERSION := $(shell grep ENKF_VERSION common/version.c | awk -F '"' '{print $$2}')
+
 default: $(PROGRAMS)
 
 all: $(ALL)
@@ -200,6 +202,9 @@ clean:
 indent:
 	indent -T FILE -T uint32_t -T uint16_t -T badbatchspec -T region -T obsregion -T zint -T field -T dasystem -T model -T variable -T modeldata -T gridprm -T grid -T vgrid -T hgrid -T gxy_1d -T gxy_2d -T gxy_rect -T gxy_curv -T gxy_unstr -T point -T triangle -T triangle_neighbours -T triangulation -T gz_z -T gz_sigma -T gz_hybrid -T gz_numeric -T obsmeta -T metastd -T metapar -T obsreader_entry -T H_entry -T model_entry -T enkfprm -T observation -T obstype -T observations -T otdesc -T pointlog -T calcstats -T stringtable -T kdtree -T kdnode -T kdresult -T hashtable -T ht_bucket -T nctype2str -T nc_type -T size_t -T tm -T mpiqueue */*.[ch]
 	rm -f `find . -name "*.*~"`
+
+tar:
+	cd ..; tar --exclude=examples --exclude=bin -czvf enkf-c-v$(VERSION).tar.gz enkf; echo "  ->../enkf-c-v$(VERSION).tar.gz"
 
 # following are 3 convenience targets for compiling particular binaries
 

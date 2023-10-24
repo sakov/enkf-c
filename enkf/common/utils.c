@@ -39,7 +39,7 @@
 #include "ncw.h"
 #include "ncutils.h"
 #include "triangulation.h"
-#if defined(ENKF_UPDATE) && defined(MPI) && defined(UNBALANCED)
+#if defined(ENKF_UPDATE) && defined(MPI) && defined(USE_MPIQUEUE)
 #include "mpiqueue.h"
 #endif
 #include "definitions.h"
@@ -233,7 +233,7 @@ void enkf_init(int* argc, char*** argv)
 #if defined(ENKF_PREP) || defined(ENKF_CALC)
     triangulation_set_quitfn(enkf_quit);
 #endif
-#if defined(ENKF_UPDATE) && defined(MPI) && defined(UNBALANCED)
+#if defined(ENKF_UPDATE) && defined(MPI) && defined(USE_MPIQUEUE)
     mpiqueue_setquitfn(enkf_quit);
 #endif
 
@@ -376,10 +376,10 @@ void enkf_printcompileflags(const char offset[])
 #else
     enkf_printf("%s  NCW_SKIPSINGLE   = [-]\n", offset);
 #endif
-#if defined(UNBALANCED)
-    enkf_printf("%s  UNBALANCED       = [+]\n", offset);
+#if defined(USE_MPIQUEUE)
+    enkf_printf("%s  USE_MPIQUEUE     = [+]\n", offset);
 #else
-    enkf_printf("%s  UNBALANCED       = [-]\n", offset);
+    enkf_printf("%s  USE_MPIQUEUE     = [-]\n", offset);
 #endif
 #endif                          /* ENKF_UPDATE */
 #if defined(ENKF_CALC) || defined(ENKF_UPDATE)
