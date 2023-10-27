@@ -1164,6 +1164,7 @@ void das_update(dasystem* das)
 {
     model* m = das->m;
     int nvar = model_getnvar(m);
+
 #if !defined(USE_MPIQUEUE)
     int ngrid = model_getngrid(m);
     int gid;
@@ -1204,7 +1205,7 @@ void das_update(dasystem* das)
     if (das->updatespec & UPDATE_DOFIELDS) {
         if (das->mode == MODE_ENKF || das->mode == MODE_HYBRID) {
             int i, e;
-                
+
             distribute_iterations(0, das->nmem_dynamic - 1, nprocesses, rank, "    ");
 
             enkf_printtime("    ");
@@ -1277,7 +1278,7 @@ void das_update(dasystem* das)
             enkf_printf("\n");
         } else if (das->mode == MODE_ENOI) {
             int i;
-            
+
             if (rank == 0) {
                 enkf_printtime("    ");
                 enkf_printf("    allocating disk space for analysis:");
@@ -1381,7 +1382,7 @@ void das_update(dasystem* das)
                         bufid--;
                         goto doupdate;
                     } else
-                        goto finish;
+                        break;
                 }
 
                 f = &fields[fid];
@@ -1521,12 +1522,12 @@ void das_update(dasystem* das)
                  */
                 if (bufid >= 0 && das->updatespec & UPDATE_DOPLOGSAN)
                     plog_writestatevars(das, bufid + 1, fieldbuffer, fieldstowrite, 1);
+
                 if (fid < 0)
                     break;
                 bufid = 0;
-            }                   /* while mpiqueue_getjob() */
+            }                   /* while (1) */
 
-          finish:
             for (i = 0; i < das->fieldbufsize; ++i)
                 if (fieldbuffer[i] != NULL)
                     free(fieldbuffer[i]);

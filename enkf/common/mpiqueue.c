@@ -62,7 +62,7 @@ static void quit_def(char* format, ...)
  */
 mpiqueue* mpiqueue_create(MPI_Comm communicator, int njob)
 {
-    mpiqueue* queue = malloc(sizeof(mpiqueue));
+    mpiqueue* queue = calloc(1, sizeof(mpiqueue));
 
     if (njob <= 0)
         quit("mpiqueue_create(): njob = %d; (should be > 0)", njob);
@@ -79,13 +79,11 @@ mpiqueue* mpiqueue_create(MPI_Comm communicator, int njob)
         for (jobid = 0; jobid < njob; ++jobid)
             queue->jobstatus[jobid] = MPIQUEUE_JOBSTATUS_TOASSIGN;
         queue->mystatus = MPIQUEUE_WORKERSTATUS_NA;
-
         queue->workerstatus = malloc(queue->nprocesses * sizeof(int));
         queue->workerstatus[0] = MPIQUEUE_WORKERSTATUS_NA;
         for (p = 1; p < queue->nprocesses; ++p)
             queue->workerstatus[p] = MPIQUEUE_WORKERSTATUS_WAITING;
     } else {
-        queue->jobstatus = NULL;
         queue->mystatus = MPIQUEUE_WORKERSTATUS_WAITING;
     }
 
@@ -103,6 +101,17 @@ mpiqueue* mpiqueue_create(MPI_Comm communicator, int njob)
     }
 
     return queue;
+}
+
+/**
+ */
+void mpiqueue_destroy(mpiqueue* queue)
+{
+    if (queue->rank == 0) {
+        free(queue->jobstatus);
+        free(queue->workerstatus);
+    }
+    free(queue);
 }
 
 /**
@@ -129,6 +138,9 @@ void mpiqueue_manage(mpiqueue* queue)
         if (jobid == queue->njob) {
             int finished = -1;
 
+            /*
+             * send completion signal
+             */
             for (p = 1; p < queue->nprocesses; ++p)
                 MPI_Send(&finished, 1, MPI_INT, p, 0, queue->communicator);
             return;
@@ -161,7 +173,13 @@ void mpiqueue_manage(mpiqueue* queue)
         for (j = 0; j < queue->nprocesses - 1; ++j, p = p % (queue->nprocesses - 1) + 1)
             if (queue->workerstatus[p] == MPIQUEUE_WORKERSTATUS_WAITING)
                 break;
-        MPI_Send(&jobid, 1, MPI_INT, p, 0, queue->communicator);
+        {
+            MPI_Request request;
+
+            MPI_Isend(&jobid, 1, MPI_INT, p, 0, queue->communicator, &request);
+            queue->workerstatus[p] = MPIQUEUE_WORKERSTATUS_WORKING;
+            MPI_Request_free(&request);
+        }
         queue->jobstatus[jobid] = MPIQUEUE_JOBSTATUS_ASSIGNED;
     }
 }
@@ -202,17 +220,6 @@ void mpiqueue_rejectjob(mpiqueue* queue, int jobid)
         quit("mpiqueue_reportjobid(): called from master");
     MPI_Send(&jobid, 1, MPI_INT, 0, MPIQUEUE_JOBTAG_REJECT, queue->communicator);
     queue->mystatus = MPIQUEUE_WORKERSTATUS_WAITING;
-}
-
-/**
- */
-void mpiqueue_destroy(mpiqueue* queue)
-{
-    if (queue->rank == 0) {
-        free(queue->jobstatus);
-        free(queue->workerstatus);
-    }
-    free(queue);
 }
 
 /**
@@ -258,10 +265,14 @@ static void dojob(int rank, int jobid, int taskid)
     size_t answer;
     int i;
 
-    answer = 1;
-    for (i = 2; i <= jobid; ++i)
-        answer *= i;
-    printf("  task %d: I am #%d: %d! = %zu\n", taskid, rank, jobid, answer);
+    if (jobid <= 20) {
+        answer = 1;
+        for (i = 2; i <= jobid; ++i)
+            answer *= i;
+        printf("  task %d: I am #%d: %d! = %zu\n", taskid, rank, jobid, answer);
+    } else
+        printf("  task %d: I am #%d: %d! = N/A (overflow)\n", taskid, rank, jobid);
+
     fflush(stdout);
 }
 
