@@ -516,16 +516,6 @@ void das_getfname_transforms(dasystem* das, int gridid, char fname[])
 
 /**
  */
-void das_getfname_stats(dasystem* das, void* g, char fname[])
-{
-    if (model_getngrid(das->m) == 1)
-        snprintf(fname, MAXSTRLEN, "%s.nc", FNAMEPREFIX_DIAG);
-    else
-        snprintf(fname, MAXSTRLEN, "%s-%d.nc", FNAMEPREFIX_DIAG, grid_getid(g));
-}
-
-/**
- */
 void das_getfname_plog(dasystem* das, pointlog* plog, char fname[])
 {
     snprintf(fname, MAXSTRLEN, "%s_%.3f,%.3f.nc", FNAMEPREFIX_PLOG, plog->lon, plog->lat);

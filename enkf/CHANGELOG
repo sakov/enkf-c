@@ -1,3 +1,10 @@
+v2.25.0
+   PS 04112023
+   -- Implemented -DUSE_MPIQUEUE for CALC. This option can be particularly
+      usefule in case of computationally unbalanced rows in the grid when
+      calculating local transforms. Similarly to introducing this option for
+      UPDATE in v2.24.2, it is not a default yet for safety reasons, but
+      everyone is encouraged to use it.
 v2.24.3
    PS 27102023
    -- Replaced blocking MPI_Send() by non-blocking MPI_ISend() in mpiqueue.c.

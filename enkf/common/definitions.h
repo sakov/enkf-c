@@ -139,13 +139,21 @@
 extern int nprocesses;
 extern int rank;
 
-#if !defined(ENKF_CALC) || ! defined(MPI)
+#if !defined(ENKF_CALC) || !defined(MPI)
 #undef USE_SHMEM
 #undef TW_VIAFILE
 #undef SHUFFLE_ROWS
 #endif
 #if defined(TW_VIAFILE)
 #undef SHUFFLE_ROWS
+#endif
+#if !defined(MPI)
+#undef USE_MPIQUEUE
+#endif
+#if defined(ENKF_CALC) || defined(USE_MPIQUEUE)
+#if !defined(TW_VIAFILE)
+#define TW_VIAFILE
+#endif
 #endif
 
 #if defined(USE_SHMEM)

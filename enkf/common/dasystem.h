@@ -142,7 +142,6 @@ void das_update(dasystem* das);
 void das_updateHE(dasystem* das);
 
 void das_getfname_transforms(dasystem* das, int gridid, char fname[]);
-void das_getfname_stats(dasystem* das, void* grid, char fname[]);
 void das_getfname_plog(dasystem* das, pointlog* plog, char fname[]);
 
 void das_calcmld(dasystem* das, obstype* ot, float*** src, float** dst);

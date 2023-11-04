@@ -12,7 +12,8 @@ PREPCALC_FLAGS =
 # -DUSE_SHMEM
 # -DTW_VIAFILE
 # -DDEFLATE_ALL
-CALC_FLAGS = -DUSE_SHMEM -DMINIMISE_ALLOC -DTW_VIAFILE
+# -DUSE_MPIQUEUE
+CALC_FLAGS = -DUSE_SHMEM -DMINIMISE_ALLOC
 
 # Select flags for UPDATE
 #
@@ -108,6 +109,7 @@ prep/allreaders.h
 SRC_CALC =\
 common/hash.c\
 common/distribute.c\
+common/mpiqueue.c\
 common/kdtree.c\
 common/pointlog.c\
 common/obstypes.c\
@@ -129,10 +131,11 @@ calc/enkf_calc.c
 
 HDR_CALC =\
 common/hash.h\
+common/kdtree.h\
 common/distribute.h\
+common/mpiqueue.h\
 common/pointlog.h\
 common/dasystem.h\
-common/kdtree.h\
 common/obstypes.h\
 common/observations.h\
 grid/triangulation.h\

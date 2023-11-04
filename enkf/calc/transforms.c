@@ -22,6 +22,9 @@
 #include "distribute.h"
 #include "utils.h"
 #include "ncutils.h"
+#if defined(MPI) && defined(USE_MPIQUEUE)
+#include "mpiqueue.h"
+#endif
 #include "calcs.h"
 #include "dasystem.h"
 #include "pointlog.h"
@@ -38,56 +41,72 @@ int* lobs = NULL;
 double* lcoeffs = NULL;
 #endif
 
+typedef struct {
+    long long int nlobs_sum;
+    int nlobs_max;
+    int n_inv_obs;
+    int n_inv_ens;
+    int ncell;
+} calcstats;
+
 /**
  */
-static void nc_createtransforms(dasystem* das, int gridid, size_t nj, size_t ni, int stride, int* ncid, int* varid_T, int* varid_w)
+static void nc_createtransforms(dasystem* das, int gridid, size_t nj, size_t ni, int stride)
 {
     char fname[MAXSTRLEN];
+    int ncid;
     int dimids[4];
+    int varid_T, varid_w;
 
     assert(rank == 0);
 
     das_getfname_transforms(das, gridid, fname);
     enkf_printf("      creating empty file \"%s\":\n", fname);
     enkf_flush();
-    ncw_create(fname, NC_CLOBBER | NC_NOFILL | das->ncformat, ncid);
-    ncw_def_dim(*ncid, "nj", nj, &dimids[0]);
-    ncw_def_dim(*ncid, "ni", ni, &dimids[1]);
+    ncw_create(fname, NC_CLOBBER | NC_NOFILL | das->ncformat, &ncid);
+    ncw_def_dim(ncid, "nj", nj, &dimids[0]);
+    ncw_def_dim(ncid, "ni", ni, &dimids[1]);
     if (das->mode == MODE_ENKF || das->mode == MODE_HYBRID) {
-        ncw_def_dim(*ncid, "m_dyn", das->nmem_dynamic, &dimids[2]);
-        ncw_def_dim(*ncid, "m", das->nmem, &dimids[3]);
-        ncw_def_var(*ncid, "T", NC_FLOAT, 4, dimids, varid_T);
+        ncw_def_dim(ncid, "m_dyn", das->nmem_dynamic, &dimids[2]);
+        ncw_def_dim(ncid, "m", das->nmem, &dimids[3]);
+        ncw_def_var(ncid, "T", NC_FLOAT, 4, dimids, &varid_T);
         {
             size_t chunksize[4] = { 1, ni, das->nmem_dynamic, das->nmem };
 
-            nc_def_var_chunking(*ncid, *varid_T, NC_CHUNKED, chunksize);
+            nc_def_var_chunking(ncid, varid_T, NC_CHUNKED, chunksize);
         }
         dimids[2] = dimids[3];
     } else
-        ncw_def_dim(*ncid, "m", das->nmem, &dimids[2]);
-    ncw_def_var(*ncid, "w", NC_FLOAT, 3, dimids, varid_w);
+        ncw_def_dim(ncid, "m", das->nmem, &dimids[2]);
+    ncw_def_var(ncid, "w", NC_FLOAT, 3, dimids, &varid_w);
     {
         size_t chunksize[3] = { 1, ni, das->nmem };
 
-        nc_def_var_chunking(*ncid, *varid_w, NC_CHUNKED, chunksize);
+        nc_def_var_chunking(ncid, varid_w, NC_CHUNKED, chunksize);
     }
-    ncw_put_att_int(*ncid, NC_GLOBAL, "stride", 1, &stride);
-    ncw_put_att_text(*ncid, NC_GLOBAL, "grid_name", grid_getname(model_getgridbyid(das->m, gridid)));
+    ncw_put_att_int(ncid, NC_GLOBAL, "stride", 1, &stride);
+    ncw_put_att_text(ncid, NC_GLOBAL, "grid_name", grid_getname(model_getgridbyid(das->m, gridid)));
 #if defined(DEFLATE_ALL)
     if (das->nccompression > 0)
-        ncw_def_deflate(*ncid, 0, 1, das->nccompression);
+        ncw_def_deflate(ncid, 0, 1, das->nccompression);
 #endif
-    ncw_enddef(*ncid);
+    ncw_close(ncid);
 }
 
 #if !defined(TW_VIAFILE)
 /**
  */
-static void nc_writetransforms(dasystem* das, int ncid, int j, int ni, int varid_T, float* Tj, int varid_w, float* wj)
+static void nc_writetransforms(dasystem* das, int gridid, int j, int ni, float* Tj, float* wj)
 {
+    char fname[MAXSTRLEN];
+    int ncid;
+    int varid_T, varid_w;
     size_t start[4], count[4];
 
     assert(rank == 0);
+
+    das_getfname_transforms(das, gridid, fname);
+    ncw_open(fname, NC_WRITE, &ncid);
 
     start[0] = j;
     start[1] = 0;
@@ -99,11 +118,16 @@ static void nc_writetransforms(dasystem* das, int ncid, int j, int ni, int varid
     count[2] = das->nmem_dynamic;
     count[3] = das->nmem;
 
-    if (Tj != NULL)
+    if (Tj != NULL) {
+        ncw_inq_varid(ncid, "T", &varid_T);
         ncw_put_vara_float(ncid, varid_T, start, count, Tj);
+    }
 
+    ncw_inq_varid(ncid, "w", &varid_w);
     count[2] = das->nmem;
     ncw_put_vara_float(ncid, varid_w, start, count, wj);
+
+    ncw_close(ncid);
 }
 #endif
 
@@ -112,48 +136,53 @@ static void nc_writetransforms(dasystem* das, int ncid, int j, int ni, int varid
  */
 static void das_getfname_transformstile(dasystem* das, int gridid, int r, char fname[])
 {
-    if (model_getngrid(das->m) == 1)
-        snprintf(fname, MAXSTRLEN, "%s/%s-%03d.nc", DIRNAME_TMP, FNAMEPREFIX_TRANSFORMS, r);
-    else
-        snprintf(fname, MAXSTRLEN, "%s/%s-%d-%03d.nc", DIRNAME_TMP, FNAMEPREFIX_TRANSFORMS, gridid, r);
+    snprintf(fname, MAXSTRLEN, "%s/%s-%d-%03d.nc", DIRNAME_TMP, FNAMEPREFIX_TRANSFORMS, gridid, r);
 }
 
 /**
  */
-static void nc_createtransformstile(dasystem* das, int gridid, int ni, int* ncid, int* varid_T, int* varid_w)
+static void nc_createtransformstile(dasystem* das, int gridid, int ni)
 {
     char fname[MAXSTRLEN];
+    int ncid;
+    int varid_T, varid_w;
     int dimids[4];
 
     das_getfname_transformstile(das, gridid, rank, fname);
 
-    ncw_create(fname, NC_CLOBBER | NC_NOFILL | das->ncformat, ncid);
-    ncw_def_dim(*ncid, "nj", NC_UNLIMITED, &dimids[0]);
-    ncw_def_dim(*ncid, "ni", ni, &dimids[1]);
-    ncw_def_var(*ncid, "j", NC_INT, 1, &dimids[0], NULL);
+    ncw_create(fname, NC_CLOBBER | NC_NOFILL | das->ncformat, &ncid);
+    ncw_def_dim(ncid, "nj", NC_UNLIMITED, &dimids[0]);
+    ncw_def_dim(ncid, "ni", ni, &dimids[1]);
+    ncw_def_var(ncid, "j", NC_INT, 1, &dimids[0], NULL);
     if (das->mode == MODE_ENKF || das->mode == MODE_HYBRID) {
-        ncw_def_dim(*ncid, "m_dyn", das->nmem_dynamic, &dimids[2]);
-        ncw_def_dim(*ncid, "m", das->nmem, &dimids[3]);
-        ncw_def_var(*ncid, "T", NC_FLOAT, 4, dimids, varid_T);
+        ncw_def_dim(ncid, "m_dyn", das->nmem_dynamic, &dimids[2]);
+        ncw_def_dim(ncid, "m", das->nmem, &dimids[3]);
+        ncw_def_var(ncid, "T", NC_FLOAT, 4, dimids, &varid_T);
         dimids[2] = dimids[3];
     } else
-        ncw_def_dim(*ncid, "m", das->nmem, &dimids[2]);
-    ncw_def_var(*ncid, "w", NC_FLOAT, 3, dimids, varid_w);
+        ncw_def_dim(ncid, "m", das->nmem, &dimids[2]);
+    ncw_def_var(ncid, "w", NC_FLOAT, 3, dimids, &varid_w);
 #if defined(DEFLATE_ALL)
     if (das->nccompression > 0)
-        ncw_def_deflate(*ncid, 0, 1, das->nccompression);
+        ncw_def_deflate(ncid, 0, 1, das->nccompression);
 #endif
-    ncw_enddef(*ncid);
+    ncw_close(ncid);
 }
 
 /**
  */
-static void nc_writetransformstile(dasystem* das, int iter, int ni, float* Tj, float* wj, int ncid, int varid_T, int varid_w)
+static void nc_writetransformstile(dasystem* das, int gridid, int iter, int ni, float* Tj, float* wj)
 {
+    char fname[MAXSTRLEN];
+    int ncid;
+    int varid_T, varid_w, varid_j;
     size_t start[4], count[4];
-    int nr = ncw_inq_nrecords(ncid);
-    int varid_j;
+    int nr;
 
+    das_getfname_transformstile(das, gridid, rank, fname);
+    ncw_open(fname, NC_WRITE, &ncid);
+
+    nr = ncw_inq_nrecords(ncid);
     start[0] = nr;
     start[1] = 0;
     start[2] = 0;
@@ -164,14 +193,18 @@ static void nc_writetransformstile(dasystem* das, int iter, int ni, float* Tj, f
     count[2] = das->nmem_dynamic;
     count[3] = das->nmem;
 
-    if (Tj != NULL)
+    if (Tj != NULL) {
+        ncw_inq_varid(ncid, "T", &varid_T);
         ncw_put_vara_float(ncid, varid_T, start, count, Tj);
+    }
 
+    ncw_inq_varid(ncid, "w", &varid_w);
     count[2] = das->nmem;
     ncw_put_vara_float(ncid, varid_w, start, count, wj);
 
     ncw_inq_varid(ncid, "j", &varid_j);
     ncw_put_vara_int(ncid, varid_j, start, count, &iter);
+    ncw_close(ncid);
 }
 
 static void nc_assembletransforms(dasystem* das, int gridid, size_t nj, size_t ni, int stride)
@@ -188,7 +221,11 @@ static void nc_assembletransforms(dasystem* das, int gridid, size_t nj, size_t n
     assert(rank == 0);
 
     das_getfname_transforms(das, gridid, fname);
-    nc_createtransforms(das, gridid, nj, ni, stride, &ncid, (doT) ? &varid_T : NULL, &varid_w);
+    nc_createtransforms(das, gridid, nj, ni, stride);
+    ncw_open(fname, NC_WRITE, &ncid);
+    if (doT)
+        ncw_inq_varid(ncid, "T", &varid_T);
+    ncw_inq_varid(ncid, "w", &varid_w);
 
     enkf_printf("      assembling \"%s\":", fname);
 
@@ -200,6 +237,8 @@ static void nc_assembletransforms(dasystem* das, int gridid, size_t nj, size_t n
         int nr, r;
 
         das_getfname_transformstile(das, gridid, p, fname_tile);
+        if (!file_exists(fname_tile))
+            continue;
 
         ncw_open(fname_tile, NC_NOWRITE, &ncid_tile);
         nr = ncw_inq_nrecords(ncid_tile);
@@ -251,16 +290,178 @@ static void nc_assembletransforms(dasystem* das, int gridid, size_t nj, size_t n
     free(v_w);
     free(v_j);
 }
+#endif                          /* TW_VIAFILE */
+
+#if defined(USE_MPIQUEUE)
+/**
+ */
+static void das_getfname_diagtile(dasystem* das, int gridid, int r, char fname[])
+{
+    snprintf(fname, MAXSTRLEN, "%s/%s-%d-%03d.nc", DIRNAME_TMP, FNAMEPREFIX_DIAG, gridid, r);
+}
+
+/**
+ */
+static void nc_creatediagtile(dasystem* das, int gridid, int ni)
+{
+    char fname[MAXSTRLEN];
+    int ncid;
+    int dimids[2];
+
+    das_getfname_diagtile(das, gridid, rank, fname);
+    ncw_create(fname, NC_CLOBBER | das->ncformat, &ncid);
+    ncw_def_dim(ncid, "nj", NC_UNLIMITED, &dimids[0]);
+    ncw_def_dim(ncid, "ndata", ni * (das->obs->nobstypes + 1), &dimids[1]);
+    ncw_def_var(ncid, "j", NC_INT, 1, &dimids[0], NULL);
+    ncw_def_var(ncid, "pnlobs", NC_INT, 2, &dimids[0], NULL);
+    ncw_def_var(ncid, "pdfs", NC_FLOAT, 2, &dimids[0], NULL);
+    ncw_def_var(ncid, "psrf", NC_FLOAT, 2, &dimids[0], NULL);
+    ncw_close(ncid);
+}
+
+/**
+ */
+static void nc_writediagtile(dasystem* das, int gridid, int ni, int j, int*** pnlobs, float*** pdfs, float*** psrf)
+{
+    char fname[MAXSTRLEN];
+    int ncid;
+    size_t start[2], count[2];
+    int varid, nr;
+
+    das_getfname_diagtile(das, gridid, rank, fname);
+    ncw_open(fname, NC_WRITE | das->ncformat, &ncid);
+
+    nr = ncw_inq_nrecords(ncid);
+    start[0] = nr;
+    start[1] = 0;
+
+    count[0] = 1;
+    count[1] = ni * (das->obs->nobstypes + 1);
+
+    ncw_inq_varid(ncid, "j", &varid);
+    ncw_put_vara_int(ncid, varid, start, count, &j);
+
+    ncw_inq_varid(ncid, "pnlobs", &varid);
+    ncw_put_vara_int(ncid, varid, start, count, pnlobs[0][0]);
+
+    ncw_inq_varid(ncid, "pdfs", &varid);
+    ncw_put_vara_float(ncid, varid, start, count, pdfs[0][0]);
+
+    ncw_inq_varid(ncid, "psrf", &varid);
+    ncw_put_vara_float(ncid, varid, start, count, psrf[0][0]);
+
+    ncw_close(ncid);
+}
 #endif
 
-typedef struct {
-    long long int nlobs_sum;
-    int nlobs_max;
-    int n_inv_obs;
-    int n_inv_ens;
-    int ncell;
-} calcstats;
+/**
+ */
+static void das_getfname_diag(dasystem* das, int gridid, char fname[])
+{
+    if (model_getngrid(das->m) == 1)
+        snprintf(fname, MAXSTRLEN, "%s.nc", FNAMEPREFIX_DIAG);
+    else
+        snprintf(fname, MAXSTRLEN, "%s-%d.nc", FNAMEPREFIX_DIAG, gridid);
+}
 
+#if defined(USE_MPIQUEUE)
+/**
+ */
+void nc_assemblediag(dasystem* das, int gridid, int nj, int ni, int stride)
+{
+    int nobstypes = das->obs->nobstypes;
+    char fname[MAXSTRLEN];
+    int ncid;
+    int dimids[3];
+    int varid_nlobs, varid_dfs, varid_srf, varid_pnlobs, varid_pdfs, varid_psrf;
+    size_t start[3], count[3];
+    int p, otid;
+    int** pnlobs;
+    float** pdfs;
+    float** psrf;
+
+    assert(rank == 0);
+
+    das_getfname_diag(das, gridid, fname);
+    ncw_create(fname, NC_CLOBBER | das->ncformat, &ncid);
+
+    ncw_def_dim(ncid, "nobstypes", nobstypes, &dimids[0]);
+    ncw_def_dim(ncid, "nj", nj, &dimids[1]);
+    ncw_def_dim(ncid, "ni", ni, &dimids[2]);
+    ncw_def_var(ncid, "nlobs", NC_INT, 2, &dimids[1], &varid_nlobs);
+    ncw_def_var(ncid, "dfs", NC_FLOAT, 2, &dimids[1], &varid_dfs);
+    ncw_def_var(ncid, "srf", NC_FLOAT, 2, &dimids[1], &varid_srf);
+    ncw_def_var(ncid, "pnlobs", NC_INT, 3, dimids, &varid_pnlobs);
+    ncw_def_var(ncid, "pdfs", NC_FLOAT, 3, dimids, &varid_pdfs);
+    ncw_def_var(ncid, "psrf", NC_FLOAT, 3, dimids, &varid_psrf);
+    ncw_put_att_int(ncid, NC_GLOBAL, "stride", 1, &stride);
+    for (otid = 0; otid < das->obs->nobstypes; ++otid)
+        ncw_put_att_int(ncid, NC_GLOBAL, das->obs->obstypes[otid].name, 1, &otid);
+    ncw_enddef(ncid);
+
+    pnlobs = alloc2d(nobstypes + 1, ni, sizeof(int));
+    pdfs = alloc2d(nobstypes + 1, ni, sizeof(float));
+    psrf = alloc2d(nobstypes + 1, ni, sizeof(float));
+
+    enkf_printf("      assembling \"%s\":", fname);
+
+    for (p = 1; p < nprocesses; ++p) {
+        char fname_tile[MAXSTRLEN];
+        int ncid_tile;
+        int nr, r, j;
+        int varid_j_tile, varid_pnlobs_tile, varid_pdfs_tile, varid_psrf_tile;
+
+        das_getfname_diagtile(das, gridid, p, fname_tile);
+        if (!file_exists(fname_tile))
+            continue;
+        ncw_open(fname_tile, NC_NOWRITE, &ncid_tile);
+        ncw_inq_varid(ncid_tile, "j", &varid_j_tile);
+        ncw_inq_varid(ncid_tile, "pnlobs", &varid_pnlobs_tile);
+        ncw_inq_varid(ncid_tile, "pdfs", &varid_pdfs_tile);
+        ncw_inq_varid(ncid_tile, "psrf", &varid_psrf_tile);
+        nr = ncw_inq_nrecords(ncid_tile);
+        if (nr == 0)
+            continue;
+        for (r = 0; r < nr; ++r) {
+            start[0] = r;
+            start[1] = 0;
+            count[0] = 1;
+            count[1] = (nobstypes + 1) * ni;
+
+            ncw_get_vara_int(ncid_tile, varid_j_tile, start, count, &j);
+            ncw_get_vara_int(ncid_tile, varid_pnlobs_tile, start, count, pnlobs[0]);
+            ncw_get_vara_float(ncid_tile, varid_pdfs_tile, start, count, pdfs[0]);
+            ncw_get_vara_float(ncid_tile, varid_psrf_tile, start, count, psrf[0]);
+
+            start[0] = 0;
+            start[1] = j;
+            start[2] = 0;
+            count[0] = nobstypes;
+            count[1] = 1;
+            count[2] = ni;
+            ncw_put_vara_int(ncid, varid_nlobs, &start[1], &count[1], pnlobs[nobstypes]);
+            ncw_put_vara_float(ncid, varid_dfs, &start[1], &count[1], pdfs[nobstypes]);
+            ncw_put_vara_float(ncid, varid_srf, &start[1], &count[1], psrf[nobstypes]);
+
+            ncw_put_vara_int(ncid, varid_pnlobs, start, count, pnlobs[0]);
+            ncw_put_vara_float(ncid, varid_pdfs, start, count, pdfs[0]);
+            ncw_put_vara_float(ncid, varid_psrf, start, count, psrf[0]);
+        }
+        ncw_close(ncid_tile);
+        file_delete(fname_tile);
+
+        enkf_printf(".");
+        enkf_flush();
+    }
+    ncw_close(ncid);
+    enkf_printf("\n");
+    enkf_flush();
+
+    free(pnlobs);
+    free(pdfs);
+    free(psrf);
+}
+#else
 /**
  */
 static void nc_writediag(dasystem* das, char fname[], int nobstypes, int nj, int ni, int stride, int** nlobs, float** dfs, float** srf, int*** pnlobs, float*** pdfs, float*** psrf)
@@ -299,6 +500,7 @@ static void nc_writediag(dasystem* das, char fname[], int nobstypes, int nj, int
 
     ncw_close(ncid);
 }
+#endif
 
 #if !defined(TW_VIAFILE)
 #if !defined(SHUFFLE_ROWS)
@@ -365,6 +567,8 @@ static void prepare_calcs(size_t ploc, size_t nmem, double** sloc, int** plobs, 
 }
 #endif
 
+#if defined(MPI) && defined(USE_MPIQUEUE)
+
 /** The central DA procedure, where the actual transforms are calculated.
  */
 void das_calctransforms(dasystem* das)
@@ -390,12 +594,405 @@ void das_calctransforms(dasystem* das)
         int* jiter = NULL;
         int* iiter = NULL;
 
+        mpiqueue* queue = NULL;
+
         /*
-         * ids of/in transform file
+         * transforms 
          */
-        int ncid = -1;
-        int varid_T = -1;
-        int varid_w = -1;
+        float*** Tj = NULL;     /* T for one grid row [ni][m x m] */
+        double** T = NULL;      /* T for one grid cell [m][m] */
+
+        /*
+         * coeffs 
+         */
+        float** wj = NULL;
+
+        /*
+         * stats 
+         */
+        calcstats stats = { 0, 0, 0, 0, 0 };
+        int*** pnlobs = NULL;
+        float*** pdfs = NULL;
+        float*** psrf = NULL;
+
+        int i, j, ii, jj, ot;
+
+        if (grid_getaliasid(g) >= 0)
+            continue;
+
+        /*
+         * skip this grid if there are no model variables associated with it
+         */
+        for (i = 0; i < model_getnvar(m); ++i)
+            if (model_getvargridid(m, i) == gid)
+                break;
+        if (i == model_getnvar(m))
+            continue;
+
+        enkf_printf("    calculating transforms for %s:\n", gridname);
+
+        grid_getsize(g, &mni, &mnj, NULL);
+        /*
+         * a treatment for unstructured grids
+         */
+        if (mnj <= 0) {
+            mnj = mni;
+            mni = 1;
+        }
+
+        /*
+         * work out how to cycle j 
+         */
+        nj = (mnj - 1) / stride + 1;
+        jiter = malloc(nj * sizeof(int));
+        for (j = 0, i = 0; j < nj; ++j, i += stride)
+            jiter[j] = i;
+        ni = (mni - 1) / stride + 1;
+        iiter = malloc(ni * sizeof(int));
+        for (i = 0, j = 0; i < ni; ++i, j += stride)
+            iiter[i] = j;
+
+        enkf_printf("      main cycle for %s (%d x %d local analyses):\n", gridname, nj, ni);
+        enkf_flush();
+        if (rank == 0)
+            dir_createifabsent(DIRNAME_TMP);
+        MPI_Barrier(MPI_COMM_WORLD);
+
+        queue = mpiqueue_create(MPI_COMM_WORLD, nj);
+        if (rank == 0)
+            mpiqueue_manage(queue);
+        else {
+            if (das->mode == MODE_ENKF || das->mode == MODE_HYBRID) {
+                Tj = alloc3d(ni, nmem_dynamic, nmem, sizeof(float));
+                T = alloc2d(nmem, nmem, sizeof(double));
+            }
+            wj = alloc2d(ni, nmem, sizeof(float));
+
+            pnlobs = alloc3d(obs->nobstypes + 1, 1, ni, sizeof(int));
+            pdfs = alloc3d(obs->nobstypes + 1, 1, ni, sizeof(float));
+            psrf = alloc3d(obs->nobstypes + 1, 1, ni, sizeof(float));
+
+            nc_createtransformstile(das, gid, ni);
+            nc_creatediagtile(das, gid, ni);
+
+            while ((jj = mpiqueue_getjob(queue)) >= 0) {
+                /*
+                 * j is "j" index of the actual (physical) grid (0 to mnj);
+                 * jj is "j" index of the (strided) transforms subrid (0 to nj)
+                 */
+                j = jiter[jj];
+                if (enkf_verbose)
+                    printf("        j = %d (%d: %d: %.1f%%)\n", j, rank, jj, 100.0 * (double) jj / (double) nj);
+                fflush(stdout);
+
+                for (ii = 0; ii < ni; ++ii) {
+                    int ploc = 0;       /* `nlobs' already engaged, using
+                                         * another name */
+
+                    double* sloc = NULL;
+                    int* plobs = NULL;
+                    double** Sloc = NULL;
+                    double** G = NULL;
+                    double** M = NULL;
+
+#if !defined(MINIMISE_ALLOC)
+                    int* lobs = NULL;
+                    double* lcoeffs = NULL;
+#endif
+                    int e, o;
+
+                    i = iiter[ii];
+
+                    {
+                        int ij[2] = { i, j };
+                        double lon, lat;
+
+                        /*
+                         * for unstructured grids -- restore the natural order
+                         */
+                        if (mni == 1) {
+                            ij[0] = j;
+                            ij[1] = 0;
+                        }
+
+                        grid_ij2xy(g, ij, &lon, &lat);
+
+#if defined(MINIMISE_ALLOC)
+                        obs_findlocal(obs, lon, lat, grid_getdomainname(g), &ploc, &lobs, &lcoeffs, &ploc_allocated2);
+#else
+                        obs_findlocal(obs, lon, lat, grid_getdomainname(g), &ploc, &lobs, &lcoeffs, NULL);
+#endif
+                        assert(ploc >= 0 && ploc <= obs->nobs);
+                    }
+                    if (ploc > stats.nlobs_max)
+                        stats.nlobs_max = ploc;
+                    stats.nlobs_sum += ploc;
+                    stats.ncell++;
+
+                    if (ploc == 0) {
+                        if (T != NULL) {
+                            memset(Tj[ii][0], 0, nmem_dynamic * nmem * sizeof(float));
+                            for (e = 0; e < nmem_dynamic; ++e)
+                                Tj[ii][e][e] = (float) 1.0;
+                        }
+                        memset(wj[ii], 0, nmem * sizeof(float));
+
+                        for (ot = 0; ot <= obs->nobstypes; ot++) {
+                            pnlobs[ot][0][ii] = 0;
+                            pdfs[ot][0][ii] = 0.0;
+                            psrf[ot][0][ii] = 0.0;
+                        }
+                        continue;
+                    }
+#if defined(MINIMISE_ALLOC)
+                    /*
+                     * prepare_calcs() sets Sloc, G and M matrices while trying
+                     * to minimise the number of dynamic allocations
+                     */
+                    prepare_calcs(ploc, nmem, &sloc, &plobs, &Sloc, &G, &M);
+#else
+                    Sloc = alloc2d(nmem, ploc, sizeof(double));
+                    G = alloc2d(ploc, nmem, sizeof(double));
+                    sloc = malloc(ploc * sizeof(double));
+                    plobs = malloc(ploc * sizeof(int));
+#endif
+
+                    for (e = 0; e < nmem; ++e) {
+                        float* Se = das->S[e];
+                        double* Sloce = Sloc[e];
+
+                        for (o = 0; o < ploc; ++o)
+                            Sloce[o] = (double) Se[lobs[o]] * lcoeffs[o];
+                    }
+                    for (o = 0; o < ploc; ++o)
+                        sloc[o] = das->s_f[lobs[o]] * lcoeffs[o];
+
+                    if (das->mode == MODE_ENOI) {
+                        calc_G(nmem, ploc, M, Sloc, G);
+                        calc_w(nmem, ploc, G, sloc, w);
+                    } else if (das->scheme == SCHEME_DENKF) {
+                        calc_wT_denkf(nmem, nmem_dynamic, ploc, sloc, Sloc, Sloc, M, G, w, T);
+                    } else if (das->scheme == SCHEME_ETKF) {
+                        calc_wT_etkf(nmem, nmem_dynamic, ploc, sloc, Sloc, Sloc, M, G, w, T);
+                    } else
+                        enkf_quit("programming error");
+
+                    if (das->mode == MODE_ENKF || das->mode == MODE_HYBRID) {
+                        int e1, e2;
+
+                        /*
+                         * incorporate "relaxation to prior"
+                         * T = I + alpha * (T - I)
+                         */
+                        for (e1 = 0; e1 < nmem_dynamic; ++e1) {
+                            double* Ti = T[e1];
+
+                            Ti[e1] -= 1.0;
+                            for (e2 = 0; e2 < nmem; ++e2)
+                                Ti[e2] *= das->alpha;
+                            Ti[e1] += 1.0;
+                        }
+
+                        /*
+                         * convert T to float and store in Tj 
+                         */
+                        for (e1 = 0; e1 < nmem_dynamic; ++e1)
+                            for (e2 = 0; e2 < nmem; ++e2)
+                                Tj[ii][e1][e2] = (float) T[e1][e2];
+                    }
+                    /*
+                     * convert w to float and store in wj 
+                     */
+                    for (e = 0; e < nmem; ++e)
+                        wj[ii][e] = (float) w[e];
+
+                    pnlobs[obs->nobstypes][0][ii] = ploc;       /* (ploc > 0
+                                                                 * here) */
+                    pdfs[obs->nobstypes][0][ii] = traceprod(0, 0, ploc, nmem, G, Sloc, 1);
+                    psrf[obs->nobstypes][0][ii] = sqrt(traceprod(0, 1, nmem, ploc, Sloc, Sloc, 1) / pdfs[obs->nobstypes][0][ii]) - 1.0;
+                    for (ot = 0; ot < obs->nobstypes; ++ot) {
+                        int p = 0;
+
+                        for (o = 0; o < ploc; ++o) {
+                            if (obs->data[lobs[o]].type == ot) {
+                                plobs[p] = o;
+                                p++;
+                            }
+                        }
+                        pnlobs[ot][0][ii] = p;
+                        if (p == 0) {
+                            pdfs[ot][0][ii] = 0.0;
+                            psrf[ot][0][ii] = 0.0;
+                        } else {
+                            /*
+                             * it is used below that local observations in array
+                             * plobs are continuous by observation type
+                             */
+#if 0
+                            double** pS = alloc2d(nmem, p, sizeof(double));
+                            double** pG = &G[plobs[0]];
+
+                            for (e = 0; e < nmem; ++e)
+                                for (o = 0; o < p; ++o)
+                                    pS[e][o] = Sloc[e][plobs[o]];
+                            pdfs[ot][0][ii] = traceprod(0, 0, p, nmem, pG, pS, 1);
+                            if (pdfs[ot][0][ii] > DFS_MIN)
+                                psrf[ot][0][ii] = sqrt(traceprod(0, 1, nmem, p, pS, pS, 1) / pdfs[ot][0][ii]) - 1.0;
+                            else
+                                psrf[ot][0][ii] = 0.0;
+#else
+                            double** pS = malloc(nmem * sizeof(double*));
+                            double** pG = &G[plobs[0]];
+
+                            for (e = 0; e < nmem; ++e)
+                                pS[e] = &Sloc[e][plobs[0]];
+                            pdfs[ot][0][ii] = traceprod(0, 0, p, nmem, pG, pS, 0);
+                            if (pdfs[ot][0][ii] > DFS_MIN)
+                                psrf[ot][0][ii] = sqrt(traceprod(0, 1, nmem, p, pS, pS, 0) / pdfs[ot][0][ii]) - 1.0;
+                            else
+                                psrf[ot][0][ii] = 0.0;
+#endif
+                            free(pS);
+                        }
+                    }
+
+                    if (ploc >= nmem)
+                        stats.n_inv_ens++;
+                    else
+                        stats.n_inv_obs++;
+
+#if !defined(MINIMISE_ALLOC)
+                    free(G);
+                    free(Sloc);
+                    free(sloc);
+                    free(plobs);
+                    free(lobs);
+                    free(lcoeffs);
+#endif
+                }               /* for ii */
+
+                if (das->mode == MODE_ENKF || das->mode == MODE_HYBRID)
+                    nc_writetransformstile(das, gid, jj, ni, Tj[0][0], wj[0]);
+                else if (das->mode == MODE_ENOI)
+                    nc_writetransformstile(das, gid, jj, ni, NULL, wj[0]);
+                nc_writediagtile(das, gid, ni, jj, pnlobs, pdfs, psrf);
+
+                mpiqueue_reportjob(queue, jj);
+            }                   /* while (jj >= 0) */
+            free(pnlobs);
+            free(pdfs);
+            free(psrf);
+        }                       /* rank > 0 */
+        mpiqueue_destroy(queue);
+
+        MPI_Barrier(MPI_COMM_WORLD);
+        if (rank == 0) {
+            nc_assembletransforms(das, gid, nj, ni, stride);
+            nc_assemblediag(das, gid, nj, ni, stride);
+            dir_rmifexists(DIRNAME_TMP);
+        }
+        enkf_printf("    finished calculating transforms for %s\n", gridname);
+        enkf_flush();
+        MPI_Barrier(MPI_COMM_WORLD);
+
+        if (das->mode == MODE_ENKF || das->mode == MODE_HYBRID) {
+            free(Tj);
+            free(T);
+        }
+        free(wj);
+
+#if defined(MPI)
+        /*
+         * merge stats for the report
+         */
+        if (rank > 0) {
+            if (my_number_of_iterations > 0) {
+                int ierror = MPI_Send(&stats, sizeof(stats) / sizeof(int), MPI_INT, 0, 99, MPI_COMM_WORLD);
+
+                assert(ierror == MPI_SUCCESS);
+            }
+        } else {
+            int r;
+
+            for (r = 1; r < nprocesses; ++r) {
+                calcstats morestats;
+                int ierror;
+
+                if (number_of_iterations[r] == 0)
+                    continue;
+
+                ierror = MPI_Recv(&morestats, sizeof(stats) / sizeof(int), MPI_INT, r, 99, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+                assert(ierror == MPI_SUCCESS);
+
+                stats.nlobs_sum += morestats.nlobs_sum;
+                if (morestats.nlobs_max > stats.nlobs_max)
+                    stats.nlobs_max = morestats.nlobs_max;
+                stats.n_inv_obs += morestats.n_inv_obs;
+                stats.n_inv_ens += morestats.n_inv_ens;
+                stats.ncell += morestats.ncell;
+            }
+        }
+#endif
+
+        enkf_printf("    summary stats on %s:\n", gridname);
+
+        enkf_printf("      # of local analyses = %d\n", stats.ncell);
+        enkf_printf("      average # of local obs = %.1f\n", (double) stats.nlobs_sum / (double) stats.ncell);
+        enkf_printf("      # of inversions in obs space = %d\n", stats.n_inv_obs);
+        enkf_printf("      # of inversions in ens space = %d\n", stats.n_inv_ens);
+        enkf_printf("");
+
+        free(jiter);
+        free(iiter);
+    }                           /* for gid */
+
+    /*
+     * (this block can be put outside the grid loop because the storage sizes
+     * do not depend on the grid size)
+     */
+#if defined(MINIMISE_ALLOC)
+    if (storage != NULL) {
+        free(storage);
+        storage = NULL;
+        ploc_allocated1 = 0;
+    }
+    if (lobs != NULL) {
+        free(lobs);
+        free(lcoeffs);
+        lobs = NULL;
+        lcoeffs = NULL;
+        ploc_allocated2 = 0;
+    }
+#endif
+    free(w);
+}
+
+#else                           /* !defined(USE_MPIQUEUE) || ! deined(MPI) */
+
+/** The central DA procedure, where the actual transforms are calculated.
+ */
+void das_calctransforms(dasystem* das)
+{
+    model* m = das->m;
+    int nmem = das->nmem;
+    int nmem_dynamic = das->nmem_dynamic;
+    double* w = malloc(nmem * sizeof(double));
+    observations* obs = das->obs;
+    int ngrid = model_getngrid(m);
+    int gid;
+
+    assert(das->s_mode == S_MODE_HA_f);
+    das_standardise(das);
+
+    for (gid = 0; gid < ngrid; ++gid) {
+        void* g = model_getgridbyid(m, gid);
+        char* gridname = grid_getname(g);
+        int stride = grid_getstride(g);
+
+        int mni, mnj;
+        int nj, ni;
+        int* jiter = NULL;
+        int* iiter = NULL;
 
         /*
          * transforms 
@@ -462,24 +1059,24 @@ void das_calctransforms(dasystem* das)
         if (das->mode == MODE_ENKF || das->mode == MODE_HYBRID) {
 #if !defined(TW_VIAFILE)
             if (rank == 0)
-                nc_createtransforms(das, gid, nj, ni, stride, &ncid, &varid_T, &varid_w);
+                nc_createtransforms(das, gid, nj, ni, stride);
 #else
             if (rank == 0)
                 dir_createifabsent(DIRNAME_TMP);
             MPI_Barrier(MPI_COMM_WORLD);
-            nc_createtransformstile(das, gid, ni, &ncid, &varid_T, &varid_w);
+            nc_createtransformstile(das, gid, ni);
 #endif
             Tj = alloc3d(ni, nmem_dynamic, nmem, sizeof(float));
             T = alloc2d(nmem, nmem, sizeof(double));
         } else if (das->mode == MODE_ENOI) {
 #if !defined(TW_VIAFILE)
             if (rank == 0)
-                nc_createtransforms(das, gid, nj, ni, stride, &ncid, NULL, &varid_w);
+                nc_createtransforms(das, gid, nj, ni, stride);
 #else
             if (rank == 0)
                 dir_createifabsent(DIRNAME_TMP);
             MPI_Barrier(MPI_COMM_WORLD);
-            nc_createtransformstile(das, gid, ni, &ncid, NULL, &varid_w);
+            nc_createtransformstile(das, gid, ni);
 #endif
         } else
             enkf_quit("programming error");
@@ -540,8 +1137,8 @@ void das_calctransforms(dasystem* das)
 #endif
         for (jj = my_first_iteration; jj <= my_last_iteration; ++jj) {
             /*
-             * j is "j" index at the actual (physical) grid (0 to mnj);
-             * jpool[jj] is "j" index at the (strided) transforms subrid (0 to
+             * j is "j" index of the actual (physical) grid (0 to mnj);
+             * jpool[jj] is "j" index of the (strided) transforms subrid (0 to
              * nj)
              */
             j = jiter[jpool[jj]];
@@ -759,7 +1356,7 @@ void das_calctransforms(dasystem* das)
                     /*
                      * write own results 
                      */
-                    nc_writetransforms(das, ncid, jpool[jj], ni, varid_T, Tj[0][0], varid_w, wj[0]);
+                    nc_writetransforms(das, gid, jpool[jj], ni, Tj[0][0], wj[0]);
                     /*
                      * collect and write results from slaves 
                      */
@@ -774,11 +1371,11 @@ void das_calctransforms(dasystem* das)
                         assert(ierror == MPI_SUCCESS);
                         ierror = MPI_Recv(wj[0], ni * nmem, MPI_FLOAT, r, first_iteration[r] + jj, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
                         assert(ierror == MPI_SUCCESS);
-                        nc_writetransforms(das, ncid, jpool[first_iteration[r] + jj], ni, varid_T, Tj[0][0], varid_w, wj[0]);
+                        nc_writetransforms(das, gid, jpool[first_iteration[r] + jj], ni, Tj[0][0], wj[0]);
                     }
                 }
 #else                           /* TW_VIAFILE */
-                nc_writetransformstile(das, jpool[jj], ni, Tj[0][0], wj[0], ncid, varid_T, varid_w);
+                nc_writetransformstile(das, gid, jpool[jj], ni, Tj[0][0], wj[0]);
 #endif
             } else if (das->mode == MODE_ENOI) {
 #if !defined(TW_VIAFILE)
@@ -794,7 +1391,7 @@ void das_calctransforms(dasystem* das)
                     /*
                      * write own results 
                      */
-                    nc_writetransforms(das, ncid, jpool[jj], ni, -1, NULL, varid_w, wj[0]);
+                    nc_writetransforms(das, gid, jpool[jj], ni, NULL, wj[0]);
                     /*
                      * collect and write results from slaves 
                      */
@@ -807,26 +1404,22 @@ void das_calctransforms(dasystem* das)
                          */
                         ierror = MPI_Recv(wj[0], ni * nmem, MPI_FLOAT, r, first_iteration[r] + jj, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
                         assert(ierror == MPI_SUCCESS);
-                        nc_writetransforms(das, ncid, jpool[first_iteration[r] + jj], ni, -1, NULL, varid_w, wj[0]);
+                        nc_writetransforms(das, gid, jpool[first_iteration[r] + jj], ni, NULL, wj[0]);
                     }
                 }
 #else                           /* TW_VIAFILE */
-                nc_writetransformstile(das, jpool[jj], ni, NULL, wj[0], ncid, -1, varid_w);
+                nc_writetransformstile(das, gid, jpool[jj], ni, NULL, wj[0]);
 #endif
             }
 #else                           /* no MPI */
             if (das->mode == MODE_ENKF || das->mode == MODE_HYBRID)
-                nc_writetransforms(das, ncid, jpool[jj], ni, varid_T, Tj[0][0], varid_w, wj[0]);
+                nc_writetransforms(das, gid, jpool[jj], ni, Tj[0][0], wj[0]);
             else if (das->mode == MODE_ENOI)
-                nc_writetransforms(das, ncid, jpool[jj], ni, -1, NULL, varid_w, wj[0]);
+                nc_writetransforms(das, gid, jpool[jj], ni, NULL, wj[0]);
 #endif                          /* if defined(MPI) */
         }                       /* for jj */
 
-#if !defined(TW_VIAFILE)
-        if (rank == 0)
-            ncw_close(ncid);
-#else
-        ncw_close(ncid);
+#if defined(TW_VIAFILE)
         MPI_Barrier(MPI_COMM_WORLD);
         if (rank == 0) {
             nc_assembletransforms(das, gid, nj, ni, stride);
@@ -932,11 +1525,11 @@ void das_calctransforms(dasystem* das)
         }                       /* rank == 0 */
 #endif                          /* MPI */
         if (rank == 0) {
-            char fname_stats[MAXSTRLEN];
+            char fname_diag[MAXSTRLEN];
 
-            das_getfname_stats(das, g, fname_stats);
+            das_getfname_diag(das, gid, fname_diag);
 
-            nc_writediag(das, fname_stats, obs->nobstypes, nj, ni, stride, nlobs, dfs, srf, pnlobs, pdfs, psrf);
+            nc_writediag(das, fname_diag, obs->nobstypes, nj, ni, stride, nlobs, dfs, srf, pnlobs, pdfs, psrf);
         }
 
         if (das->mode == MODE_ENKF || das->mode == MODE_HYBRID) {
@@ -1019,6 +1612,8 @@ void das_calctransforms(dasystem* das)
 #endif
     free(w);
 }
+
+#endif
 
 /** Calculates transforms for pointlogs. This is done separately from
  * das_calctransfroms() to avoid interpolation related problems. At the moment
