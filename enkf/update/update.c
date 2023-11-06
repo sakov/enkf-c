@@ -27,7 +27,7 @@
 #include "definitions.h"
 #include "utils.h"
 #include "ncutils.h"
-#if defined(MPI) && defined(USE_MPIQUEUE)
+#if defined(USE_MPIQUEUE)
 #include "mpiqueue.h"
 #endif
 #include "distribute.h"
@@ -1352,7 +1352,7 @@ void das_update(dasystem* das)
             }
         }
     }
-#if defined(MPI) && defined(USE_MPIQUEUE)
+#if defined(USE_MPIQUEUE)
     {
         int nfields = 0;
         field* fields = NULL;
@@ -1535,7 +1535,7 @@ void das_update(dasystem* das)
             free(fieldbuffer);
         }                       /* if (worker) */
     }
-#else                           /* !defined(MPI) || !defined(USE_MPIQUEUE) */
+#else                           /* !defined(USE_MPIQUEUE) */
     for (gid = 0; gid < ngrid; ++gid) {
         void* g = model_getgridbyid(m, gid);
         int nfields = 0;
@@ -1697,7 +1697,7 @@ void das_update(dasystem* das)
 
         enkf_flush();
     }                           /* for gid */
-#endif                          /* !defined(MPI) || !defined(USE_MPIQUEUE) */
+#endif                          /* USE_MPIQUEUE */
 
 #if defined(MPI)
     MPI_Barrier(MPI_COMM_WORLD);

@@ -22,7 +22,7 @@
 #include "distribute.h"
 #include "utils.h"
 #include "ncutils.h"
-#if defined(MPI) && defined(USE_MPIQUEUE)
+#if defined(USE_MPIQUEUE)
 #include "mpiqueue.h"
 #endif
 #include "calcs.h"
@@ -207,6 +207,8 @@ static void nc_writetransformstile(dasystem* das, int gridid, int iter, int ni, 
     ncw_close(ncid);
 }
 
+/**
+ */
 static void nc_assembletransforms(dasystem* das, int gridid, size_t nj, size_t ni, int stride)
 {
     char fname[MAXSTRLEN];
@@ -461,7 +463,7 @@ void nc_assemblediag(dasystem* das, int gridid, int nj, int ni, int stride)
     free(pdfs);
     free(psrf);
 }
-#else
+#else                           /* ! defined(USE_MPIQUEUE) */
 /**
  */
 static void nc_writediag(dasystem* das, char fname[], int nobstypes, int nj, int ni, int stride, int** nlobs, float** dfs, float** srf, int*** pnlobs, float*** pdfs, float*** psrf)
@@ -567,7 +569,7 @@ static void prepare_calcs(size_t ploc, size_t nmem, double** sloc, int** plobs, 
 }
 #endif
 
-#if defined(MPI) && defined(USE_MPIQUEUE)
+#if defined(USE_MPIQUEUE)
 
 /** The central DA procedure, where the actual transforms are calculated.
  */
@@ -967,7 +969,7 @@ void das_calctransforms(dasystem* das)
     free(w);
 }
 
-#else                           /* !defined(USE_MPIQUEUE) || ! deined(MPI) */
+#else                           /* !defined(USE_MPIQUEUE) */
 
 /** The central DA procedure, where the actual transforms are calculated.
  */
