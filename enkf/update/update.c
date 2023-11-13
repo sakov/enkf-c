@@ -1258,7 +1258,17 @@ void das_update(dasystem* das)
                             strncat(fname_a, ".analysis", MAXSTRLEN - 1);
                         else
                             strncat(fname_a, ".increment", MAXSTRLEN - 1);
-                        ncw_create(fname_a, NC_CLOBBER | das->ncformat, &ncid_a);
+                        if (file_exists(fname_a)) {
+                            ncw_open(fname_a, NC_WRITE, &ncid_a);
+                            if (ncw_var_exists(ncid_a, varname)) {
+                                ncw_close(ncid_a);
+                                ncw_close(ncid_f);
+                                continue;
+                            }
+                            ncw_redef(ncid_a);
+                        } else
+                            ncw_create(fname_a, NC_CLOBBER | das->ncformat, &ncid_a);
+
                         ncw_inq_varid(ncid_f, varname, &vid_f);
                         ncw_copy_vardef(ncid_f, vid_f, ncid_a);
                         if (das->nccompression > 0)
