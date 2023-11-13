@@ -177,10 +177,10 @@ void mpiqueue_manage(mpiqueue* queue)
             MPI_Request request;
 
             MPI_Isend(&jobid, 1, MPI_INT, p, 0, queue->communicator, &request);
-            queue->workerstatus[p] = MPIQUEUE_WORKERSTATUS_WORKING;
             MPI_Request_free(&request);
         }
         queue->jobstatus[jobid] = MPIQUEUE_JOBSTATUS_ASSIGNED;
+        queue->workerstatus[p] = MPIQUEUE_WORKERSTATUS_WORKING;
     }
 }
 
@@ -361,3 +361,4 @@ int main(int argc, char* argv[])
     return 0;
 }
 #endif                          /* MPIQUEUE_TEST */
+

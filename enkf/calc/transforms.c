@@ -1065,7 +1065,9 @@ void das_calctransforms(dasystem* das)
 #else
             if (rank == 0)
                 dir_createifabsent(DIRNAME_TMP);
+#if defined(MPI)
             MPI_Barrier(MPI_COMM_WORLD);
+#endif
             nc_createtransformstile(das, gid, ni);
 #endif
             Tj = alloc3d(ni, nmem_dynamic, nmem, sizeof(float));
@@ -1077,7 +1079,9 @@ void das_calctransforms(dasystem* das)
 #else
             if (rank == 0)
                 dir_createifabsent(DIRNAME_TMP);
+#if defined(MPI)
             MPI_Barrier(MPI_COMM_WORLD);
+#endif
             nc_createtransformstile(das, gid, ni);
 #endif
         } else
@@ -1422,7 +1426,9 @@ void das_calctransforms(dasystem* das)
         }                       /* for jj */
 
 #if defined(TW_VIAFILE)
+#if defined(MPI)
         MPI_Barrier(MPI_COMM_WORLD);
+#endif
         if (rank == 0) {
             nc_assembletransforms(das, gid, nj, ni, stride);
             dir_rmifexists(DIRNAME_TMP);

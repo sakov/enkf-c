@@ -150,7 +150,7 @@ extern int rank;
 #if !defined(MPI)
 #undef USE_MPIQUEUE
 #endif
-#if defined(ENKF_CALC) || defined(USE_MPIQUEUE)
+#if defined(ENKF_CALC) && defined(USE_MPIQUEUE)
 #if !defined(TW_VIAFILE)
 #define TW_VIAFILE
 #endif

@@ -1,3 +1,6 @@
+v2.25.3
+   PS 13112023
+   -- Fixed a few #ifs for calculating CALC with no MPI.
 v2.25.2
    PS 13112023
    -- Reverted p.1 (clobber the analysis file) of v2.22.10. Preserving the
@@ -8,7 +11,7 @@ v2.25.1
 v2.25.0
    PS 04112023
    -- Implemented -DUSE_MPIQUEUE for CALC. This option can be particularly
-      usefule in case of computationally unbalanced rows in the grid when
+      useful in case of computationally unbalanced rows in the grid when
       calculating local transforms. Similarly to introducing this option for
       UPDATE in v2.24.2, it is not a default yet for safety reasons, but
       everyone is encouraged to use it.
