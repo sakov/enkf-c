@@ -39,7 +39,7 @@
 
 \begin{document}
 
-\title{EnKF-C user guide\\{\normalsize version 2.23.1}}
+\title{EnKF-C user guide\\{\normalsize version 2.25.3}}
 
 \author{Pavel Sakov}
 \date{June 19, 2014 -- \today}
@@ -1654,6 +1654,7 @@ In the course of its work CALC routinely calculates two metrics for assessing th
 where $\mathrm{tr}(\cdot)$ is the trace function.
 The values of these metrics for each local analysis, calculated both for all observations and for observations of each type only, are written to file \verb|enkf_diag.nc|.
 Note that the in EnKF-C DFS and SRF are calculated from the above expressions and represent theoretical values for the EnKF analysis; they coincide with the actual DFS and SRF values only for the ETKF, but not for the DEnKF, which is an approximation of the KF (and indeed not for the EnOI, which is not even an approximation).
+Also note that although the partial DFS and SRF for particular observation types are useful indicators of the impact of the corresponding observations, they are not fully consistent in the sense that these impacts are not independent of each other.
 
 In the EnKF context DFS is a useful indicator of potential rank problems.
 Normally, it should not exceed a fraction (a half, or better, a quarter) of the ensemble size per the characteristic time of the error growth.
@@ -2001,6 +2002,7 @@ To get the innovation statistics one needs to:
 \end{itemize}
 The results will be written to the log of \verb|enkf_calc|. 
 An example of using this functionality is available by running \verb|make stats| in \verb|examples/1| (see sec.~\ref{example1}).
+Note that on some machines parallel processing of multiple cycles may require compiling CALC with no \verb|\-DMPI| flag; otherwise the jobs may be assigned to the same CPUs.
 
 \section{Bias correction}
 \label{sec:bias}
@@ -2063,7 +2065,11 @@ Following is a brief description of the compiler flags in EnKF-C.
   Use this option if MPI communication becomes clogged.
 \item{\verb|DEFLATE_ALL|} (CALC, UPDATE)
   Apply specified NetCDF deflation to all NetCDF files, including ensemble transforms, spread, inflation, and various tiles.
-  This can save some disk space, but slows down i/o.
+  This can save some disk space, but slows down i/o, particularly assembling.
+\item{\verb|USE_MPIQUEUE|} (CALC, UPDATE)
+  Distributes jobs in the main cycle to workers on ``as it goes'' basis rather than by assigning pre-defined number of iterations.
+  This is particularly useful if the jobs are unbalanced.
+  (In CALC a single job is calculating transforms for a row of a horizontal grid; in UPDATE it is applying transforms to the ensemble of horizontal fields at a specific level.)
 \item{\verb|NCW_SKIPSINGLE|} (UPDATE)
   Skips ``normal'' (not unlimited) ``inner'' dimensions of length one when copying definitions of variables from one NetCDF file to another.
 \end{description}

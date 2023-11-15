@@ -7,7 +7,7 @@
  * Author:      Pavel Sakov
  *
  * Description: Code for MPI job queue. Process with rank 0 manages the queue,
- *              other processes do the jobs. See main() for example.
+ *              the remaining CPUs do the jobs. See main() for example.
  *
  * Revisions:   
  *
