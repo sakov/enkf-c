@@ -1,3 +1,8 @@
+v2.25.4
+   PS 13112023
+   -- Fixed a defect in das_updatefields() manifested in models with the 0th
+      level at bottom and the last layer at surface. Thanks to Roger Scott for
+      the report.
 v2.25.3
    PS 13112023
    -- Fixed a few #ifs for calculating CALC with no MPI.

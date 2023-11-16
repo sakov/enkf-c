@@ -310,7 +310,7 @@ static void das_updatefields(dasystem* das, int nfields, void** fieldbuffer, fie
                                 continue;
                             }
                         } else {
-                            if (((int**) nlevels)[j][i] <= ((f->issurfacevar) ? 1 : surfk - f->level)) {
+                            if (((int**) nlevels)[j][i] <= ((f->issurfacevar) ? 0 : surfk - f->level)) {
                                 for (e = 0; e < nmem; ++e)
                                     ((float***) vvv)[e][j][i] = 0.0f;
                                 continue;
@@ -324,7 +324,7 @@ static void das_updatefields(dasystem* das, int nfields, void** fieldbuffer, fie
                                 continue;
                             }
                         } else {
-                            if (((int*) nlevels)[j] <= ((f->issurfacevar) ? 1 : surfk - f->level)) {
+                            if (((int*) nlevels)[j] <= ((f->issurfacevar) ? 0 : surfk - f->level)) {
                                 for (e = 0; e < nmem; ++e)
                                     ((float**) vvv)[e][j] = 0.0f;
                                 continue;
