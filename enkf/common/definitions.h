@@ -154,6 +154,9 @@ extern int rank;
 #if !defined(TW_VIAFILE)
 #define TW_VIAFILE
 #endif
+#if defined(SHUFFLE_ROWS)
+#undef SHUFFLE_ROWS
+#endif
 #endif
 
 #if defined(USE_SHMEM)

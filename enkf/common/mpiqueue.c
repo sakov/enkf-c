@@ -169,6 +169,9 @@ void mpiqueue_manage(mpiqueue* queue)
          * next to the one reported, to avoid locks when a CPU rejects a
          * certain job but gets it assigned over and over again.
          */
+        /*
+         * (skip the master -- CPU #0)
+         */
         p = status.MPI_SOURCE % (queue->nprocesses - 1) + 1;
         for (j = 0; j < queue->nprocesses - 1; ++j, p = p % (queue->nprocesses - 1) + 1)
             if (queue->workerstatus[p] == MPIQUEUE_WORKERSTATUS_WAITING)
