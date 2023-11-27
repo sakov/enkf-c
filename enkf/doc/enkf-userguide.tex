@@ -39,7 +39,7 @@
 
 \begin{document}
 
-\title{EnKF-C user guide\\{\normalsize version 2.25.3}}
+\title{EnKF-C user guide\\{\normalsize version 2.25.0}}
 
 \author{Pavel Sakov}
 \date{June 19, 2014 -- \today}
@@ -2171,6 +2171,14 @@ One way to reduce it is to run superobing on a virtual coarser horizontal grid b
 
 This can happen with large systems when the MPI communication becomes clogged.
 Recompile CALC with flag \verb|-DTW_VIAFILE| to communicate transforms via filesystem.
+
+\item{\bf CALC takes longer than expected when ``calculating ensemble observations''.}
+
+Make sure that model output is chunked by horizontal layers.
+
+\item{\bf In the main cycles of CALC and UPDATE some CPUs finish quickly (display 100\,\%), while other continue for much longer.}
+
+The jobs look unbalanced, try compiling with flag \verb|-DUSE_MPIQUEUE|.
 
 \item{\bf In UPDATE I am getting error \\``\verb|<...> "spread.nc": <...> NC_UNLIMITED size already in use|''.}
 
