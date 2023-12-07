@@ -1,3 +1,13 @@
+v2.26.0
+   PS 08122023
+   -- Upgraded reader "z" (prep/reader_z.c) to handle multiple profiles. It
+      seems now quite close to replicate output of readers "mmt" and "cmems".
+      This code is still alpha, be careful!
+      The changes in obsprm.c are to permit multiple entries for some parameters
+      in reader "z", and multiple entries are necessary to (almost) replicate
+      reader "cmems".
+   -- The modification of reader "cmems" is probably an overkill, it does not
+      seem to make any difference.
 v2.25.5
    PS 17112023
    -- Added time units "millisec". (Yes, some people do use it.)

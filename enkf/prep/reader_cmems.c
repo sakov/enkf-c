@@ -77,7 +77,7 @@ static int allmissing(int ncid, char varname[])
     int varid;
     int ndims;
     size_t dimlen[2];
-    double* v = NULL;
+    nc_type type;
     int status = 1;
     int n, i;
 
@@ -87,15 +87,33 @@ static int allmissing(int ncid, char varname[])
     ncw_inq_vardims(ncid, varid, 2, &ndims, dimlen);
     n = dimlen[0] * dimlen[1];
     assert(ndims == 2);
-    v = malloc(n * sizeof(double));
-    ncu_readvardouble(ncid, varid, n, v);
-    for (i = 0; i < n; ++i)
-        if (isfinite(v[i])) {
-            status = 0;
-            break;
-        }
+    ncw_inq_vartype(ncid, varid, &type);
+    if (type != NC_CHAR) {
+        double* v = malloc(n * sizeof(double));
 
-    free(v);
+        ncu_readvardouble(ncid, varid, n, v);
+        for (i = 0; i < n; ++i)
+            if (isfinite(v[i])) {
+                status = 0;
+                break;
+            }
+        free(v);
+    } else {
+        char* v = malloc(n);
+        int nofill;
+        char fillval;
+
+        ncw_get_var(ncid, varid, v);
+        ncw_inq_var_fill(ncid, varid, &nofill, &fillval);
+        if (nofill == 0)
+            for (i = 0; i < n; ++i)
+                if (v[i] != fillval) {
+                    status = 0;
+                    break;
+                }
+        free(v);
+    }
+
     return status;
 }
 
@@ -236,7 +254,10 @@ void reader_cmems(char* fname, int fid, obsmeta* meta, grid* g, observations* ob
         if (!allmissing(ncid, "TEMP_ADJUSTED")) {
             enkf_printf("        reading TEMP_ADJUSTED\n");
             ncw_inq_varid(ncid, "TEMP_ADJUSTED", &varid);
-            ncw_inq_varid(ncid, "TEMP_ADJUSTED_QC", &varid_qc);
+            if (!allmissing(ncid, "TEMP_ADJUSTED_QC"))
+                ncw_inq_varid(ncid, "TEMP_ADJUSTED_QC", &varid_qc);
+            else
+                ncw_inq_varid(ncid, "TEMP_QC", &varid_qc);
         } else if (!allmissing(ncid, "TEMP")) {
             enkf_printf("        reading TEMP\n");
             ncw_inq_varid(ncid, "TEMP", &varid);
@@ -252,7 +273,10 @@ void reader_cmems(char* fname, int fid, obsmeta* meta, grid* g, observations* ob
         if (!allmissing(ncid, "PSAL_ADJUSTED")) {
             enkf_printf("        reading PSAL_ADJUSTED\n");
             ncw_inq_varid(ncid, "PSAL_ADJUSTED", &varid);
-            ncw_inq_varid(ncid, "PSAL_ADJUSTED_QC", &varid_qc);
+            if (!allmissing(ncid, "PSAL_ADJUSTED_QC"))
+                ncw_inq_varid(ncid, "PSAL_ADJUSTED_QC", &varid_qc);
+            else
+                ncw_inq_varid(ncid, "PSAL_QC", &varid_qc);
         } else if (!allmissing(ncid, "PSAL")) {
             enkf_printf("        reading PSAL\n");
             ncw_inq_varid(ncid, "PSAL", &varid);
