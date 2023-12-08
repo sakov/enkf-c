@@ -65,8 +65,7 @@ static int allmissing(int ncid, char varname[])
         return 1;
     ncw_inq_varid(ncid, varname, &varid);
     ncw_inq_vardims(ncid, varid, 2, &ndims, dimlen);
-    n = dimlen[0] * dimlen[1];
-    assert(ndims == 2);
+    n = (ndims == 1) ? dimlen[0] : dimlen[0] * dimlen[1];
     ncw_inq_vartype(ncid, varid, &type);
     if (type != NC_CHAR) {
         double* v = malloc(n * sizeof(double));

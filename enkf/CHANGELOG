@@ -1,4 +1,7 @@
-v2.26.0
+v2.26.1
+   PS 08122023
+   -- A bug fixed in reader "z".
+ v2.26.0
    PS 08122023
    -- Upgraded reader "z" (prep/reader_z.c) to handle multiple profiles. It
       seems now quite close to replicate output of readers "mmt" and "cmems".
