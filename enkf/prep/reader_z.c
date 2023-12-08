@@ -186,8 +186,15 @@ void reader_z(char* fname, int fid, obsmeta* meta, grid* g, observations* obs)
     } else
         enkf_printf("        VARNAME = %s\n", varname);
 
+    /*
+     * main variable
+     */
     ncw_inq_varid(ncid, varname, &varid);
-    {
+    ncw_inq_varsize(ncid, varid, &nobs);
+    if (nobs == 1) {
+        nprof = 1;
+        nz = 1;
+    } else {
         int ndims, ndims_actual;
         size_t dimlen[4];
         int d;
@@ -197,9 +204,10 @@ void reader_z(char* fname, int fid, obsmeta* meta, grid* g, observations* obs)
             if (dimlen[d] > 1)
                 ndims_actual++;
         }
-        if (ndims_actual == 1)
+        if (ndims_actual == 1) {
+            nz = dimlen[0];
             nprof = 1;
-        else if (ndims_actual == 2) {
+        } else if (ndims_actual == 2) {
             for (d = 0; d < ndims; ++d) {
                 if (dimlen[d] > 1) {
                     if (nprof == 0)
@@ -209,16 +217,10 @@ void reader_z(char* fname, int fid, obsmeta* meta, grid* g, observations* obs)
                 }
             }
         }
+        assert(nobs == nprof * nz);
     }
     enkf_printf("        # profiles = %u\n", (unsigned int) nprof);
     enkf_printf("        # levels = %u\n", (unsigned int) nz);
-
-    status = calloc(nprof, sizeof(int));
-    nobs = nprof * nz;
-
-    /*
-     * main variable
-     */
     var = alloc2d(nprof, nz, sizeof(double));
     ncu_readvardouble(ncid, varid, nobs, var[0]);
 
@@ -248,11 +250,22 @@ void reader_z(char* fname, int fid, obsmeta* meta, grid* g, observations* obs)
     /*
      * z
      */
-    if (st_znames == NULL)
-        enkf_quit("reader_z(): ZNAME not specified\n");
-    if (st_getsize(st_znames) == 0) {
-        enkf_printf("%s: no valid Z data, skipping\n", fname);
-        goto finish;
+    if (st_znames == NULL || st_getsize(st_znames) == 0) {
+        char* zname = NULL;
+
+        zname = get_zname(ncid, zname);
+        if (zname == NULL) {
+            if (st_znames == NULL)
+                enkf_quit("reader_z(): ZNAME not specified and no suitable candidate found\n");
+            else {
+                enkf_printf("%s: no valid Z data, skipping\n", fname);
+                goto finish;
+            }
+        }
+
+        if (st_znames == NULL)
+            st_znames = st_create("znames");
+        st_add(st_znames, zname, -1);
     }
     {
         int nznames = st_getsize(st_znames);
@@ -340,16 +353,18 @@ void reader_z(char* fname, int fid, obsmeta* meta, grid* g, observations* obs)
             ncw_inq_vartype(ncid, varid, &type);
             if (type != NC_CHAR) {
                 if (ndims == 1) {
-                    /*
-                     * flag for profile
-                     */
-                    assert(dimlen[0] == nprof);
-                    ncw_get_var_uint(ncid, varid, qcflagi[0]);
-                    for (p = 0; p < nprof; ++p)
-                        qcflagi[p][0] = qcflagi[0][p];
-                    for (p = 0; p < nprof; ++p)
-                        for (k = 1; k < nz; ++k)
-                            qcflagi[p][k] = qcflagi[p][0];
+                    if (nprof > 1) {
+                        /*
+                         * flag for profile
+                         */
+                        assert(dimlen[0] == nprof);
+                        ncw_get_var_uint(ncid, varid, qcflagi[0]);
+                        for (p = 0; p < nprof; ++p)
+                            qcflagi[p][0] = qcflagi[0][p];
+                        for (p = 0; p < nprof; ++p)
+                            for (k = 1; k < nz; ++k)
+                                qcflagi[p][k] = qcflagi[p][0];
+                    }
                 } else if (ndims == 2) {
                     /*
                      * flag for each ob.
@@ -426,6 +441,7 @@ void reader_z(char* fname, int fid, obsmeta* meta, grid* g, observations* obs)
 
     nobs_read = 0;
     npexcluded = 0;
+    status = calloc(nprof, sizeof(int));
     for (p = 0, i = 0; p < (int) nprof; ++p) {
         if (instruments != NULL && st_exclude != NULL && st_findindexbystring(st_exclude, instruments[p]) >= 0) {
             npexcluded++;
@@ -547,6 +563,8 @@ void reader_z(char* fname, int fid, obsmeta* meta, grid* g, observations* obs)
         free(instruments);
     if (st_exclude != NULL)
         st_destroy(st_exclude);
+    if (status != NULL)
+        free(status);
 }
 
 /**
