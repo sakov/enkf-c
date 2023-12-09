@@ -191,31 +191,25 @@ void reader_z(char* fname, int fid, obsmeta* meta, grid* g, observations* obs)
      */
     ncw_inq_varid(ncid, varname, &varid);
     ncw_inq_varsize(ncid, varid, &nobs);
-    if (nobs == 1) {
+    if (nobs == 0) {
+        enkf_printf("        no observations found\n");
+        goto finish;
+    } else if (nobs == 1) {
         nprof = 1;
         nz = 1;
     } else {
-        int ndims, ndims_actual;
+        int ndims;
         size_t dimlen[4];
-        int d;
 
         ncw_inq_vardims(ncid, varid, 4, &ndims, dimlen);
-        for (d = 0, ndims_actual = 0; d < ndims; ++d) {
-            if (dimlen[d] > 1)
-                ndims_actual++;
-        }
-        if (ndims_actual == 1) {
+        if (ndims == 1) {
             nz = dimlen[0];
             nprof = 1;
-        } else if (ndims_actual == 2) {
-            for (d = 0; d < ndims; ++d) {
-                if (dimlen[d] > 1) {
-                    if (nprof == 0)
-                        nprof = dimlen[d];
-                    else
-                        nz = dimlen[d];
-                }
-            }
+        } else if (ndims >= 2) {
+            for (i = 2; i <= ndims; ++i)
+                assert(dimlen[i] == 1);
+            nprof = dimlen[0];
+            nz = dimlen[1];
         }
         assert(nobs == nprof * nz);
     }
@@ -571,15 +565,14 @@ void reader_z(char* fname, int fid, obsmeta* meta, grid* g, observations* obs)
  */
 void reader_z_describe(void)
 {
-    enkf_printf("\n  Generic reader \"z\" reads profile data. It currently assumes\n\
-  the following:\n\
-    - longitude and latitude are either 0-dimensional variables or 1-dimensional\n\
-      variables of size (nprof);\n\
-    - time is either 0-dimensional, 1-dimensional of size 1, or 1-dimensional of\n\
-      size (nprof), or 1-dimensional of size (nprof * nz);\n\
-    - profile variables are either 1-dimensional or 2-dimensional, or 3-4\n\
-      dimensional with dummy dimensions of size 1 (yes, this has little sense,\n\
-      but some providers do use such formats)\n\
+    enkf_printf("\n  Generic reader \"z\" reads profile data. It currently assumes the following:\n\
+    - longitude and latitude are either 0-dimensional or 1-dimensional of size\n\
+      [nprof];\n\
+    - time is either 0- or 1-dimensional of size 1, or 1-dimensional of size\n\
+      [nprof], or 1-dimensional of size [nprof * nz], or 2-dimensional of size\n\
+      [nprof][nz];\n\
+    - profile variables are either 1-dimensional of size [nz] or 2-dimensional\n\
+      of size [nprof][nz]\n\
 \n\
   There are a number of parameters that must (marked below with \"++\"), can\n\
   (\"+\"), or may (\"-\") be specified in the corresponding section of the\n\
@@ -590,7 +583,7 @@ void reader_z_describe(void)
 \n\
   Parameters common to generic readers:\n\
     - VARNAME (++)\n\
-        multiple entries are possible; in that case the first valid entry is used\n\
+        multiple entries are possible; in the first valid entry is used\n\
     - TIMENAME (\"t\" | \"[tT]ime\" | \"TIME\") (+)\n\
     - or TIMENAMES (when time = base_time + offset) (+)\n\
     - LONNAME (\"lon\" | \"[lL]ongitude\" | \"LONGITUDE\") (+)\n\
