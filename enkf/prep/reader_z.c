@@ -193,6 +193,7 @@ void reader_z(char* fname, int fid, obsmeta* meta, grid* g, observations* obs)
     ncw_inq_varsize(ncid, varid, &nobs);
     if (nobs == 0) {
         enkf_printf("        no observations found\n");
+        ncw_close(ncid);
         goto finish;
     } else if (nobs == 1) {
         nprof = 1;
@@ -253,6 +254,7 @@ void reader_z(char* fname, int fid, obsmeta* meta, grid* g, observations* obs)
                 enkf_quit("reader_z(): ZNAME not specified and no suitable candidate found\n");
             else {
                 enkf_printf("%s: no valid Z data, skipping\n", fname);
+                ncw_close(ncid);
                 goto finish;
             }
         }
