@@ -207,7 +207,7 @@ void reader_z(char* fname, int fid, obsmeta* meta, grid* g, observations* obs)
             nz = dimlen[0];
             nprof = 1;
         } else if (ndims >= 2) {
-            for (i = 2; i <= ndims; ++i)
+            for (i = 2; i < ndims; ++i)
                 assert(dimlen[i] == 1);
             nprof = dimlen[0];
             nz = dimlen[1];
@@ -422,7 +422,10 @@ void reader_z(char* fname, int fid, obsmeta* meta, grid* g, observations* obs)
             for (ii = dimlen[1] - 1; ii >= 0; --ii)
                 if (tmp[i][ii] != ' ')
                     break;
-            strncpy(instruments[i], tmp[i], ii + 1);
+            if (ii >= 0)
+                strncpy(instruments[i], tmp[i], ii + 1);
+            else
+                strncpy(instruments[i], "NA", dimlen[1] + 1);
         }
         free(tmp);
     }
