@@ -13,6 +13,10 @@
  *
  *****************************************************************************/
 
+#if !defined(MPI)
+typedef int make_iso_compilers_happy;
+#else
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <stdarg.h>
@@ -364,3 +368,4 @@ int main(int argc, char* argv[])
     return 0;
 }
 #endif                          /* MPIQUEUE_TEST */
+#endif                          /* MPI */

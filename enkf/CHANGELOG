@@ -1,3 +1,6 @@
+v2.26.6
+   PS 12122023
+   -- Added an #endif in mpiqueue.c to permit compiling with no -DMPI .
 v2.26.5
    PS 11122023
    -- A couple of fixes in reader_z.c. 
