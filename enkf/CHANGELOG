@@ -1,3 +1,6 @@
+v2.26.7
+   PS 1i2122023
+   - Eliminated warning from clang. (Cosmetics.)
 v2.26.6
    PS 12122023
    -- Added an #endif in mpiqueue.c to permit compiling with no -DMPI .

@@ -495,7 +495,7 @@ vgrid* vgrid_create(void* p, void* g)
     gridprm* prm = p;
     vgrid* vg;
     int ncid;
-    size_t nk;
+    size_t nk = 0;
 
     vg = calloc(1, sizeof(vgrid));
     vg->parent = g;

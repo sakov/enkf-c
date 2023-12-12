@@ -63,7 +63,7 @@ int do_thin = THIN_XYZ;
 
 /**
  */
-static void usage()
+static void usage(void)
 {
     enkf_printf("  Usage: enkf_prep <prm file> [<options>]\n");
     enkf_printf("  Options:\n");

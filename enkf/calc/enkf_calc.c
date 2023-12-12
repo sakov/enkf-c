@@ -38,7 +38,7 @@ int skip_bad_fc_obs = 0;
 
 /**
  */
-static void usage()
+static void usage(void)
 {
     enkf_printf("  Usage: enkf_calc <prm file> [<options>]\n");
     enkf_printf("  Options:\n");

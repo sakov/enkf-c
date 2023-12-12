@@ -25,7 +25,7 @@
 
 /**
  */
-static void usage()
+static void usage(void)
 {
     enkf_printf("  Usage: enkf_update <prm file> [<options>]\n");
     enkf_printf("  Options:\n");

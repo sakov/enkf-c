@@ -59,7 +59,7 @@ void triangulation_set_quitfn(triangulation_quit_fn quit_fn)
 
 /**
  */
-static triangulation* triangulation_create()
+static triangulation* triangulation_create(void)
 {
     triangulation* d = calloc(1, sizeof(triangulation));
 

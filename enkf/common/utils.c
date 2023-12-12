@@ -1453,7 +1453,7 @@ static int get_memory_usage_kb(size_t* vmrss_kb, size_t* vmsize_kb)
     /*
      * (dummy if to avoid warning from GCC) 
      */
-    if (fread(buffer, sizeof(char), to_read, procfile));
+    (void) fread(buffer, sizeof(char), to_read, procfile);
     fclose(procfile);
 
     int found_vmrss = 0;
@@ -1510,7 +1510,7 @@ static int get_cluster_memory_usage_kb(size_t* vmrss_per_process, size_t* vmsize
 
 /**
  */
-void print_memory_usage()
+void print_memory_usage(void)
 {
     size_t vmrss_per_process[nprocesses];
     size_t vmsize_per_process[nprocesses];

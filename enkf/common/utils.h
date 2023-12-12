@@ -65,7 +65,7 @@ int inloninterval(double lon, double lon1, double lon2);
 void shuffle(size_t n, size_t ids[]);
 void kd_printinfo(kdtree* tree, char* offset);
 
-void print_memory_usage();
+void print_memory_usage(void);
 
 #if defined(ENKF_PREP)
 #if defined(INTERNAL_QSORT_R)
