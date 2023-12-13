@@ -46,7 +46,6 @@
 #include "prep_utils.h"
 #include "allreaders.h"
 
-#define EPS 1.0e-6
 #define WMO_INSTSIZE 4
 #define QCFLAGVALS_DEF 2        /* 0b00000000000000000000000000000010
                                  * corresponds to QCFLAG = 1 */
@@ -135,7 +134,6 @@ void reader_cmems(char* fname, int fid, obsmeta* meta, grid* g, observations* ob
     uint32_t qcflagvals = QCFLAGVALS_DEF;
     int qcflagcounts[QCFLAGVALMAX + 1];
     double* time;
-    double missval;
     double validmin = DBL_MAX;
     double validmax = -DBL_MAX;
     char* insttype;
@@ -211,7 +209,6 @@ void reader_cmems(char* fname, int fid, obsmeta* meta, grid* g, observations* ob
     z = alloc2d(nprof, nz, sizeof(double));
     {
         double* zall[4] = { NULL, NULL, NULL, NULL };
-        double zmissval[4] = { DBL_MAX, DBL_MAX, DBL_MAX, DBL_MAX };
         char znames[4][20] = { "DEPH_ADJUSTED",
             "PRES_ADJUSTED",
             "DEPH",
@@ -223,10 +220,6 @@ void reader_cmems(char* fname, int fid, obsmeta* meta, grid* g, observations* ob
             if (!ncw_var_exists(ncid, znames[i]))
                 continue;
             ncw_inq_varid(ncid, znames[i], &varid);
-            if (ncw_att_exists(ncid, varid, "_FillValue"))
-                ncw_get_att_double(ncid, varid, "_FillValue", &zmissval[i]);
-            else if (ncw_att_exists(ncid, varid, "missing_value"))
-                ncw_get_att_double(ncid, varid, "missing_value", &zmissval[i]);
             zall[i] = malloc(nprof * nz * sizeof(double));
             ncu_readvardouble(ncid, varid, nprof * nz, zall[i]);
         }
@@ -235,13 +228,10 @@ void reader_cmems(char* fname, int fid, obsmeta* meta, grid* g, observations* ob
             for (j = 0; j < 4; ++j) {
                 if (zall[j] == NULL)
                     continue;
-                if (fabs(zall[j][i] - zmissval[j]) > EPS)
+                if (isfinite(zall[j][i]))
                     break;
             }
-            if (j < 4)
-                z[0][i] = zall[j][i];
-            else
-                z[0][i] = NAN;
+            z[0][i] = (j < 4) ? zall[j][i] : NAN;
         }
         for (i = 0; i < 4; ++i)
             if (zall[i] != NULL)
@@ -290,7 +280,6 @@ void reader_cmems(char* fname, int fid, obsmeta* meta, grid* g, observations* ob
         enkf_quit("observation type \"%s\" not handled for CMEMS product", meta->type);
     v = alloc2d(nprof, nz, sizeof(double));
     ncu_readvardouble(ncid, varid, nz * nprof, v[0]);
-    ncw_get_att_double(ncid, varid, "_FillValue", &missval);
     qcflag = alloc2d(nprof, nz, sizeof(char));
     ncw_get_var_text(ncid, varid_qc, qcflag[0]);
 
@@ -328,7 +317,7 @@ void reader_cmems(char* fname, int fid, obsmeta* meta, grid* g, observations* ob
             observation* o;
             int qcflagint;
 
-            if (!isfinite(v[p][i]) || fabs(v[p][i] - missval) < EPS || v[p][i] < validmin || v[p][i] > validmax)
+            if (isnan(v[p][i]) || v[p][i] < validmin || v[p][i] > validmax)
                 continue;
             if (isnan(z[p][i]) || z[p][i] < 0.0)
                 continue;

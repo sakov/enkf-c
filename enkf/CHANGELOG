@@ -1,6 +1,10 @@
+v2.26.8
+   PS 132122023
+   - Simplified reader_cmems.c, taking advantage of internal checks in
+     ncu_readvardouble().
 v2.26.7
-   PS 1i2122023
-   - Eliminated warning from clang. (Cosmetics.)
+   PS 132122023
+   - Eliminated warnings from clang. (Cosmetics.)
 v2.26.6
    PS 12122023
    -- Added an #endif in mpiqueue.c to permit compiling with no -DMPI .
