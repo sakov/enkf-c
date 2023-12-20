@@ -456,12 +456,13 @@ void plog_definestatevars(dasystem* das)
                     ncw_inq_varid(ncid, varname, &varid);
                 if (das->updatespec | UPDATE_DOPLOGSAN) {
                     if (!ncw_var_exists(ncid, varname_an))
-                        ncw_def_var(ncid, varname_an, NC_FLOAT, 1, &dimid, &varid);
+                        ncw_def_var(ncid, varname_an, NC_FLOAT, 1, &dimid, &varid_an);
                     else
                         ncw_inq_varid(ncid, varname_an, &varid_an);
                 }
             }
             ncw_put_att_int(ncid, varid, "gridid", 1, &gid);
+            ncw_put_att_int(ncid, varid_an, "gridid", 1, &gid);
 
             if (das->mode == MODE_ENKF || das->mode == MODE_HYBRID) {
                 float inflation[2];
@@ -469,7 +470,7 @@ void plog_definestatevars(dasystem* das)
 
                 model_getvarinflation(das->m, vid, &inflation[0], &tmp);
                 inflation[1] = (float) tmp;
-                ncw_put_att_float(ncid, varid, "INFLATION", 2, inflation);
+                ncw_put_att_float(ncid, varid_an, "INFLATION", 2, inflation);
             }
         }
         /*

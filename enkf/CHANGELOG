@@ -1,3 +1,6 @@
+v2.26.9
+   PS 202122023
+   -- Fixed attributes "gridid" and "INFLATION" in pointlogs.
 v2.26.8
    PS 132122023
    - Simplified reader_cmems.c, taking advantage of internal checks in
