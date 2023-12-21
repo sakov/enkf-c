@@ -74,7 +74,7 @@ mpiqueue* mpiqueue_create(MPI_Comm communicator, int njob)
     MPI_Comm_rank(communicator, &queue->rank);
     MPI_Comm_size(communicator, &queue->nprocesses);
     if (queue->nprocesses < 2)
-        quit("nprocesses = %d; (should be > 1)", queue->nprocesses);
+        quit("mpiqueue_create(): nprocesses = %d; (should be > 1)", queue->nprocesses);
     queue->njob = njob;
     if (queue->rank == 0) {
         int jobid, p;

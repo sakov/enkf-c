@@ -432,11 +432,12 @@ void plog_definestatevars(dasystem* das)
                     ncw_inq_dimid(ncid, "m", &dimids[1]);
                 else if (das->mode == MODE_ENKF || das->mode == MODE_HYBRID)
                     ncw_inq_dimid(ncid, "m2", &dimids[1]);
-
                 if (!ncw_var_exists(ncid, varname))
                     ncw_def_var(ncid, varname, NC_FLOAT, 2, dimids, &varid);
                 else
                     ncw_inq_varid(ncid, varname, &varid);
+
+                ncw_inq_dimid(ncid, "m1", &dimids[1]);
                 if (das->updatespec | UPDATE_DOPLOGSAN) {
                     if (!ncw_var_exists(ncid, varname_an))
                         ncw_def_var(ncid, varname_an, NC_FLOAT, 2, dimids, &varid_an);
@@ -454,6 +455,9 @@ void plog_definestatevars(dasystem* das)
                     ncw_def_var(ncid, varname, NC_FLOAT, 1, &dimid, &varid);
                 else
                     ncw_inq_varid(ncid, varname, &varid);
+
+                if (das->mode == MODE_ENKF || das->mode == MODE_HYBRID)
+                    ncw_inq_dimid(ncid, "m1", &dimid);
                 if (das->updatespec | UPDATE_DOPLOGSAN) {
                     if (!ncw_var_exists(ncid, varname_an))
                         ncw_def_var(ncid, varname_an, NC_FLOAT, 1, &dimid, &varid_an);
@@ -490,7 +494,7 @@ static void plog_writestatevars_direct(dasystem* das, int nfields, void** fieldb
     float*** v_src = NULL;
     float* v = NULL;
     size_t start[2] = { 0, 0 };
-    size_t count[2] = { 1, das->nmem };
+    size_t count[2] = { 1, (!isanalysis) ? das->nmem : das->nmem_dynamic };
 
     v = malloc(das->nmem * sizeof(float));
 
@@ -517,7 +521,7 @@ static void plog_writestatevars_direct(dasystem* das, int nfields, void** fieldb
             v_src = (float***) fieldbuffer[fid];
 
             if (das->mode == MODE_ENKF || das->mode == MODE_HYBRID) {
-                for (e = 0; e < das->nmem; ++e)
+                for (e = 0; e < ((!isanalysis) ? das->nmem : das->nmem_dynamic); ++e)
                     v[e] = grid_interpolate2d(g, plog->fij[gid], v_src[e]);
             } else if (das->mode == MODE_ENOI) {
                 float bg = grid_interpolate2d(g, plog->fij[gid], v_src[das->nmem]);
@@ -591,8 +595,12 @@ static void plog_writestatevars_toassemble(dasystem* das, int nfields, void** fi
                 ncw_def_dim(ncid, "m", das->nmem, &dimid);
             } else {
                 ncw_open(fname, NC_WRITE, &ncid);
-                ncw_inq_dimid(ncid, "m", &dimid);
-                ncw_redef(ncid);
+                if (das->mode == MODE_HYBRID)
+                    ncw_def_dim(ncid, "m_dynamic", das->nmem_dynamic, &dimid);
+                else {
+                    ncw_inq_dimid(ncid, "m", &dimid);
+                    ncw_redef(ncid);
+                }
             }
 
             snprintf(varname, NC_MAX_NAME, "%s", f->varname);
@@ -602,7 +610,7 @@ static void plog_writestatevars_toassemble(dasystem* das, int nfields, void** fi
             ncw_enddef(ncid);
 
             if (das->mode == MODE_ENKF || das->mode == MODE_HYBRID) {
-                for (e = 0; e < das->nmem; ++e)
+                for (e = 0; e < ((!isanalysis) ? das->nmem : das->nmem_dynamic); ++e)
                     v[e] = grid_interpolate2d(g, plog->fij[gid], v_src[e]);
             } else if (das->mode == MODE_ENOI) {
                 float bg = grid_interpolate2d(g, plog->fij[gid], v_src[das->nmem]);
@@ -672,8 +680,6 @@ void plog_assemblestatevars(dasystem* das)
         pointlog* plog = &das->plogs[plogid];
         char fname_dst[MAXSTRLEN];
         int ncid_dst;
-        size_t start[2] = { 0, 0 };
-        size_t count[2] = { 1, das->nmem };
 
         das_getfname_plog(das, plog, fname_dst);
         ncw_open(fname_dst, NC_WRITE, &ncid_dst);
@@ -712,7 +718,11 @@ void plog_assemblestatevars(dasystem* das)
                 if (ndims_dst == 1)
                     ncw_put_var_float(ncid_dst, vid_dst, v);
                 else if (ndims_dst == 2) {
-                    start[0] = f->level;
+                    size_t start[2] = { f->level, 0 };
+                    size_t count[2] = { 1, das->nmem };
+
+                    if (ii == 1 && das->mode == MODE_HYBRID)
+                        count[1] = das->nmem_dynamic;
                     ncw_put_vara_float(ncid_dst, vid_dst, start, count, v);
                 }
             }
