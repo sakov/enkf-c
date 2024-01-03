@@ -1,12 +1,17 @@
+v2.26.10
+   PS 21122023
+   -- Corrected handling of static/dynamic ensemble sizes in pointlogs. Full
+      ensemble is written for forecast variables, and dynamic ensemble only is
+      written for analysed variables.
 v2.26.9
-   PS 202122023
+   PS 20122023
    -- Fixed attributes "gridid" and "INFLATION" in pointlogs.
 v2.26.8
-   PS 132122023
+   PS 13122023
    - Simplified reader_cmems.c, taking advantage of internal checks in
      ncu_readvardouble().
 v2.26.7
-   PS 132122023
+   PS 13122023
    - Eliminated warnings from clang. (Cosmetics.)
 v2.26.6
    PS 12122023
