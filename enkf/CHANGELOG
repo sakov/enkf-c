@@ -1,6 +1,6 @@
 v2.26.11
    PS 10012024
-   -- Improved (I hope) mpiqueue_manage(). (Feel good.)
+   -- Improved (hopefully) mpiqueue_manage().
 v2.26.10
    PS 21122023
    -- Corrected handling of static/dynamic ensemble sizes in pointlogs. Full
