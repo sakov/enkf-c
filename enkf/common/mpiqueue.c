@@ -137,17 +137,22 @@ void mpiqueue_manage(mpiqueue* queue)
         int jobid, j, p;
 
         for (jobid = 0; jobid < queue->njob; ++jobid)
-            if (queue->jobstatus[jobid] != MPIQUEUE_JOBSTATUS_DONE)
+            if (queue->jobstatus[jobid] != MPIQUEUE_JOBSTATUS_DONE && queue->jobstatus[jobid] != MPIQUEUE_JOBSTATUS_ASSIGNED)
                 break;
         if (jobid == queue->njob) {
-            int finished = -1;
+            for (jobid = 0; jobid < queue->njob; ++jobid)
+                if (queue->jobstatus[jobid] != MPIQUEUE_JOBSTATUS_DONE)
+                    break;
+            if (jobid == queue->njob) {
+                int finished = -1;
 
-            /*
-             * send completion signal
-             */
-            for (p = 1; p < queue->nprocesses; ++p)
-                MPI_Send(&finished, 1, MPI_INT, p, 0, queue->communicator);
-            return;
+                /*
+                 * send completion signal
+                 */
+                for (p = 1; p < queue->nprocesses; ++p)
+                    MPI_Send(&finished, 1, MPI_INT, p, 0, queue->communicator);
+                return;
+            }
         }
 
         MPI_Probe(MPI_ANY_SOURCE, MPI_ANY_TAG, queue->communicator, &status);
