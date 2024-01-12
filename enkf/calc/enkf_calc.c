@@ -383,21 +383,14 @@ int main(int argc, char* argv[])
         MPI_Barrier(MPI_COMM_WORLD);
 #endif
         if (singleob == NULL) {
-            int done;
-
             enkf_printf("  moderating observations:\n");
-            done = obs_modifiederrors_alreadywritten(das->obs, fname_obs);
 #if defined(MPI)
             MPI_Barrier(MPI_COMM_WORLD);
 #endif
-            if (done)
-                enkf_printf("    already done\n");
-            else {
-                das_moderateobs(das);
-                enkf_printf("  writing modified obs errors to \"%s\":\n", fname_obs);
-                if (rank == 0)
-                    das_writemoderatedobs(das, fname_obs);
-            }
+            das_moderateobs(das);
+            enkf_printf("  writing modified obs errors to \"%s\":\n", fname_obs);
+            if (rank == 0)
+                das_writemoderatedobs(das, fname_obs);
         }
 
         if (!plogs_only && !skip_transforms) {

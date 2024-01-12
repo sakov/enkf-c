@@ -136,25 +136,28 @@ void mpiqueue_manage(mpiqueue* queue)
         MPI_Status status;
         int jobid, j, p;
 
+        /*
+         * check whether all jobs are completed
+         */
         for (jobid = 0; jobid < queue->njob; ++jobid)
-            if (queue->jobstatus[jobid] != MPIQUEUE_JOBSTATUS_DONE && queue->jobstatus[jobid] != MPIQUEUE_JOBSTATUS_ASSIGNED)
+            if (queue->jobstatus[jobid] != MPIQUEUE_JOBSTATUS_DONE)
                 break;
+        /*
+         * if yes -- send finish signal to all workers and exit
+         */
         if (jobid == queue->njob) {
-            for (jobid = 0; jobid < queue->njob; ++jobid)
-                if (queue->jobstatus[jobid] != MPIQUEUE_JOBSTATUS_DONE)
-                    break;
-            if (jobid == queue->njob) {
-                int finished = -1;
+            int finished = -1;
 
-                /*
-                 * send completion signal
-                 */
-                for (p = 1; p < queue->nprocesses; ++p)
-                    MPI_Send(&finished, 1, MPI_INT, p, 0, queue->communicator);
-                return;
-            }
+            /*
+             * send completion signal
+             */
+            for (p = 1; p < queue->nprocesses; ++p)
+                MPI_Send(&finished, 1, MPI_INT, p, 0, queue->communicator);
+            return;
         }
-
+        /*
+         * if no -- wait for a message from workers
+         */
         MPI_Probe(MPI_ANY_SOURCE, MPI_ANY_TAG, queue->communicator, &status);
         MPI_Recv(&jobid, 1, MPI_INT, status.MPI_SOURCE, MPI_ANY_TAG, queue->communicator, MPI_STATUS_IGNORE);
         if (jobid < 0 || jobid >= queue->njob)

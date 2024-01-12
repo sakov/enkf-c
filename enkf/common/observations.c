@@ -608,9 +608,8 @@ void obs_read(observations* obs, char fname[])
 #endif
         void* v = NULL;
         int structuredonly = ncw_var_exists(ncid, "fi");
-
-        ;
-        int varid, i;
+        int varid;
+        size_t i;
 
         if (structuredonly)
             v = malloc(nobs * ((sizeof(float) >= sizeof(int)) ? sizeof(float) : sizeof(int)));
@@ -619,122 +618,125 @@ void obs_read(observations* obs, char fname[])
 
         ncw_inq_varid(ncid, "id", &varid);
         ncw_get_var_int(ncid, varid, v);
-        for (i = 0; i < (int) nobs; ++i)
+        for (i = 0; i < nobs; ++i)
             obs->data[i].id = ((int*) v)[i];
 
         ncw_inq_varid(ncid, "id_orig", &varid);
         ncw_get_var_int(ncid, varid, v);
-        for (i = 0; i < (int) nobs; ++i)
+        for (i = 0; i < nobs; ++i)
             obs->data[i].id_orig = ((int*) v)[i];
 
         ncw_inq_varid(ncid, "status", &varid);
         ncw_get_var_short(ncid, varid, v);
-        for (i = 0; i < (int) nobs; ++i)
+        for (i = 0; i < nobs; ++i)
             obs->data[i].status = ((short int*) v)[i];
 
         ncw_inq_varid(ncid, "type", &varid);
         ncw_get_var_short(ncid, varid, v);
-        for (i = 0; i < (int) nobs; ++i)
+        for (i = 0; i < nobs; ++i)
             obs->data[i].type = ((short int*) v)[i];
 
         ncw_inq_varid(ncid, "product", &varid);
         ncw_get_var_short(ncid, varid, v);
-        for (i = 0; i < (int) nobs; ++i)
+        for (i = 0; i < nobs; ++i)
             obs->data[i].product = ((short int*) v)[i];
 
         ncw_inq_varid(ncid, "instrument", &varid);
         ncw_get_var_short(ncid, varid, v);
-        for (i = 0; i < (int) nobs; ++i)
+        for (i = 0; i < nobs; ++i)
             obs->data[i].instrument = ((short int*) v)[i];
 
         ncw_inq_varid(ncid, "fid", &varid);
         ncw_get_var_short(ncid, varid, v);
-        for (i = 0; i < (int) nobs; ++i)
+        for (i = 0; i < nobs; ++i)
             obs->data[i].fid = ((short int*) v)[i];
 
         ncw_inq_varid(ncid, "batch", &varid);
         ncw_get_var_int(ncid, varid, v);
-        for (i = 0; i < (int) nobs; ++i)
+        for (i = 0; i < nobs; ++i)
             obs->data[i].batch = ((int*) v)[i];
 
         ncw_inq_varid(ncid, "value", &varid);
         ncw_get_var_float(ncid, varid, v);
-        for (i = 0; i < (int) nobs; ++i)
+        for (i = 0; i < nobs; ++i)
             obs->data[i].value = ((float*) v)[i];
 
-        ncw_inq_varid(ncid, "estd", &varid);
+        if (!ncw_var_exists(ncid, "estd_orig"))
+            ncw_inq_varid(ncid, "estd", &varid);
+        else
+            ncw_inq_varid(ncid, "estd_orig", &varid);
         ncw_get_var_float(ncid, varid, v);
-        for (i = 0; i < (int) nobs; ++i)
+        for (i = 0; i < nobs; ++i)
             obs->data[i].estd = ((float*) v)[i];
 
         if (ncw_var_exists(ncid, "footprint")) {
             obs->has_nonpointobs = 1;
             ncw_inq_varid(ncid, "footprint", &varid);
             ncw_get_var_float(ncid, varid, v);
-            for (i = 0; i < (int) nobs; ++i)
+            for (i = 0; i < nobs; ++i)
                 obs->data[i].footprint = ((float*) v)[i];
         }
 
         ncw_inq_varid(ncid, "lon", &varid);
         ncw_get_var_float(ncid, varid, v);
-        for (i = 0; i < (int) nobs; ++i)
+        for (i = 0; i < nobs; ++i)
             obs->data[i].lon = ((float*) v)[i];
 
         ncw_inq_varid(ncid, "lat", &varid);
         ncw_get_var_float(ncid, varid, v);
-        for (i = 0; i < (int) nobs; ++i)
+        for (i = 0; i < nobs; ++i)
             obs->data[i].lat = ((float*) v)[i];
 
         ncw_inq_varid(ncid, "depth", &varid);
         ncw_get_var_float(ncid, varid, v);
-        for (i = 0; i < (int) nobs; ++i)
+        for (i = 0; i < nobs; ++i)
             obs->data[i].depth = ((float*) v)[i];
 
         ncw_inq_varid(ncid, "model_depth", &varid);
         ncw_get_var_float(ncid, varid, v);
-        for (i = 0; i < (int) nobs; ++i)
+        for (i = 0; i < nobs; ++i)
             obs->data[i].model_depth = ((float*) v)[i];
 
         if (structuredonly) {
             ncw_inq_varid(ncid, "fi", &varid);
             ncw_get_var_float(ncid, varid, v);
-            for (i = 0; i < (int) nobs; ++i)
+            for (i = 0; i < nobs; ++i)
                 obs->data[i].fij[0] = ((float*) v)[i];
 
             ncw_inq_varid(ncid, "fj", &varid);
             ncw_get_var_float(ncid, varid, v);
-            for (i = 0; i < (int) nobs; ++i)
+            for (i = 0; i < nobs; ++i)
                 obs->data[i].fij[1] = ((float*) v)[i];
         } else {
             ncw_inq_varid(ncid, "fi0", &varid);
             ncw_get_var_double(ncid, varid, v);
-            for (i = 0; i < (int) nobs; ++i)
+            for (i = 0; i < nobs; ++i)
                 obs->data[i].fij[0] = ((double*) v)[i];
 
             ncw_inq_varid(ncid, "fi1", &varid);
             ncw_get_var_double(ncid, varid, v);
-            for (i = 0; i < (int) nobs; ++i)
+            for (i = 0; i < nobs; ++i)
                 obs->data[i].fij[1] = ((double*) v)[i];
 
             ncw_inq_varid(ncid, "fi2", &varid);
             ncw_get_var_double(ncid, varid, v);
-            for (i = 0; i < (int) nobs; ++i)
+            for (i = 0; i < nobs; ++i)
                 obs->data[i].fij[2] = ((double*) v)[i];
         }
 
         ncw_inq_varid(ncid, "fk", &varid);
         ncw_get_var_float(ncid, varid, v);
-        for (i = 0; i < (int) nobs; ++i)
+        for (i = 0; i < nobs; ++i)
             obs->data[i].fk = ((float*) v)[i];
 
         ncw_inq_varid(ncid, "time", &varid);
         ncw_get_var_float(ncid, varid, v);
-        for (i = 0; i < (int) nobs; ++i)
+        for (i = 0; i < nobs; ++i)
             obs->data[i].time = ((float*) v)[i];
 
         ncw_inq_varid(ncid, "aux", &varid);
         ncw_get_var_int(ncid, varid, v);
-        for (i = 0; i < (int) nobs; ++i)
+        for (i = 0; i < nobs; ++i)
             obs->data[i].aux = ((int*) v)[i];
 
         free(v);
@@ -743,7 +745,7 @@ void obs_read(observations* obs, char fname[])
          * if because of the roundup error time gets outside the allowed
          * range, then correct it
          */
-        for (i = 0; i < (int) nobs; ++i) {
+        for (i = 0; i < nobs; ++i) {
             observation* o = &obs->data[i];
             obstype* ot = &obs->obstypes[o->type];
 
@@ -763,6 +765,17 @@ void obs_read(observations* obs, char fname[])
 #endif
 
   finish:
+    /*
+     * clearing STATUS_BADBATCH is necessary for replicating the original run
+     * of CALC for repeat runs
+     */
+    {
+        size_t i;
+
+        for (i = 0; i < nobs; ++i)
+            if (obs->data[i].status == STATUS_BADBATCH)
+                obs->data[i].status = STATUS_OK;
+    }
     obs_calcstats(obs);
 }
 

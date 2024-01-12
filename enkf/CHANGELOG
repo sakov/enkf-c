@@ -1,3 +1,10 @@
+v2.26.12
+   PS 10012024
+   -- Reverted the change in v2.26.11 (which was useless upon consideration).
+   -- Made changes in enkf_read(), enkf_calc.c:main(), das_writemoderatedobs()
+      aimed at reproducing the original results of CALC after repeats. There
+      are still minor numerical differences, probably related to conversions
+      float <-> double at i/o from/to observations.nc.
 v2.26.11
    PS 10012024
    -- Improved (hopefully) mpiqueue_manage().

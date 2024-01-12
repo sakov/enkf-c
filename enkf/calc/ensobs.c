@@ -782,29 +782,28 @@ void das_writemoderatedobs(dasystem* das, char fname[])
         return;
 
     ncw_open(fname, NC_WRITE, &ncid);
-    assert(!ncw_var_exists(ncid, "estd_orig"));
     ncw_inq_dimid(ncid, "nobs", dimid_nobs);
     ncw_inq_dimlen(ncid, dimid_nobs[0], &nobs);
+    if (!ncw_var_exists(ncid, "estd_orig")) {
+        ncw_get_att_double(ncid, NC_GLOBAL, "DA_DAY", &da_time);
+        if (!enkf_noobsdatecheck && (isnan(da_time) || fabs(das->obs->da_time - da_time) > 1e-6))
+            enkf_quit("\"observations.nc\" from a different cycle");
 
-    ncw_get_att_double(ncid, NC_GLOBAL, "DA_DAY", &da_time);
-    if (!enkf_noobsdatecheck && (isnan(da_time) || fabs(das->obs->da_time - da_time) > 1e-6))
-        enkf_quit("\"observations.nc\" from a different cycle");
-
-    ncw_redef(ncid);
-    ncw_rename_var(ncid, "estd", "estd_orig");
-    ncw_inq_varid(ncid, "estd_orig", &varid_estdorig);
-    ncw_del_att(ncid, varid_estdorig, "long_name");
-    ncw_put_att_text(ncid, varid_estdorig, "long_name", "standard deviation of observation error after superobing (before applying KF-QC)");
-    ncw_def_var(ncid, "estd", NC_FLOAT, 1, dimid_nobs, &varid_estd);
-    ncw_put_att_text(ncid, varid_estd, "long_name", "standard deviation of observation error used in DA");
-    ncw_enddef(ncid);
+        ncw_redef(ncid);
+        ncw_rename_var(ncid, "estd", "estd_orig");
+        ncw_inq_varid(ncid, "estd_orig", &varid_estdorig);
+        ncw_del_att(ncid, varid_estdorig, "long_name");
+        ncw_put_att_text(ncid, varid_estdorig, "long_name", "standard deviation of observation error after superobing (before applying KF-QC)");
+        ncw_def_var(ncid, "estd", NC_FLOAT, 1, dimid_nobs, &varid_estd);
+        ncw_put_att_text(ncid, varid_estd, "long_name", "standard deviation of observation error used in DA");
+        ncw_enddef(ncid);
+    } else
+        ncw_inq_varid(ncid, "estd", &varid_estd);
 
     estd = malloc(nobs * sizeof(double));
-
     for (i = 0; i < (int) nobs; ++i)
         estd[i] = das->obs->data[i].estd;
     ncw_put_var_double(ncid, varid_estd, estd);
-
     free(estd);
 
     ncw_close(ncid);
