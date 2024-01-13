@@ -229,7 +229,7 @@ void mpiqueue_reportjob(mpiqueue* queue, int jobid)
         quit("mpiqueue_reportjobid(): called from master");
     if (queue->mystatus != MPIQUEUE_WORKERSTATUS_WORKING)
         quit("mpiqueue_reportjobid(): worker #%d: reporting completion of job #%d without being assigned", queue->rank, jobid);
-    MPI_Send(&jobid, 1, MPI_INT, 0, 0, queue->communicator);
+    MPI_Send(&jobid, 1, MPI_INT, 0, MPIQUEUE_JOBTAG_OK, queue->communicator);
     queue->mystatus = MPIQUEUE_WORKERSTATUS_WAITING;
 }
 
