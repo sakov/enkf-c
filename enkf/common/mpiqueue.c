@@ -160,6 +160,9 @@ void mpiqueue_manage(mpiqueue* queue)
          */
         MPI_Probe(MPI_ANY_SOURCE, MPI_ANY_TAG, queue->communicator, &status);
         MPI_Recv(&jobid, 1, MPI_INT, status.MPI_SOURCE, MPI_ANY_TAG, queue->communicator, MPI_STATUS_IGNORE);
+        /*
+         * some bookkeeping
+         */
         if (jobid < 0 || jobid >= queue->njob)
             quit("jobid = %d (needs to be 0 <= jobid <= %d\n", jobid, queue->njob - 1);
         if (status.MPI_TAG == MPIQUEUE_JOBTAG_OK)
@@ -168,6 +171,9 @@ void mpiqueue_manage(mpiqueue* queue)
             queue->jobstatus[jobid] = MPIQUEUE_JOBSTATUS_TOASSIGN;
         queue->workerstatus[status.MPI_SOURCE] = MPIQUEUE_WORKERSTATUS_WAITING;
 
+        /*
+         * find a job to be assigned
+         */
         jobid = (jobid + 1) % queue->njob;
         for (j = 0; j < queue->njob; ++j, jobid = (jobid + 1) % queue->njob)
             if (queue->jobstatus[jobid] == MPIQUEUE_JOBSTATUS_TOASSIGN)
