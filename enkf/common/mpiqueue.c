@@ -27,7 +27,7 @@ typedef int make_iso_compilers_happy;
 #define MPIQUEUE_JOBSTATUS_ASSIGNED 1
 #define MPIQUEUE_JOBSTATUS_DONE 2
 
-#define MPIQUEUE_WORKERSTATUS_NA -1
+#define MPIQUEUE_WORKERSTATUS_MANAGING -1
 #define MPIQUEUE_WORKERSTATUS_WAITING 0
 #define MPIQUEUE_WORKERSTATUS_WORKING 1
 
@@ -87,9 +87,9 @@ mpiqueue* mpiqueue_create(MPI_Comm communicator, int njob)
         queue->jobstatus = malloc(njob * sizeof(int));
         for (jobid = 0; jobid < njob; ++jobid)
             queue->jobstatus[jobid] = MPIQUEUE_JOBSTATUS_TOASSIGN;
-        queue->mystatus = MPIQUEUE_WORKERSTATUS_NA;
+        queue->mystatus = MPIQUEUE_WORKERSTATUS_MANAGING;
         queue->workerstatus = malloc(queue->nprocesses * sizeof(int));
-        queue->workerstatus[0] = MPIQUEUE_WORKERSTATUS_NA;
+        queue->workerstatus[0] = MPIQUEUE_WORKERSTATUS_MANAGING;
         for (p = 1; p < queue->nprocesses; ++p)
             queue->workerstatus[p] = MPIQUEUE_WORKERSTATUS_WAITING;
     } else {
