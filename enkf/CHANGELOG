@@ -1,3 +1,6 @@
+v2.26.13
+   PS 16012024
+   -- Cosmetic changes in mpiqueue.c.
 v2.26.12
    PS 10012024
    -- Reverted the change in v2.26.11 (which was useless upon consideration).

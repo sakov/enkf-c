@@ -26,11 +26,16 @@ typedef int make_iso_compilers_happy;
 #define MPIQUEUE_JOBSTATUS_TOASSIGN 0
 #define MPIQUEUE_JOBSTATUS_ASSIGNED 1
 #define MPIQUEUE_JOBSTATUS_DONE 2
+
 #define MPIQUEUE_WORKERSTATUS_NA -1
 #define MPIQUEUE_WORKERSTATUS_WAITING 0
 #define MPIQUEUE_WORKERSTATUS_WORKING 1
-#define MPIQUEUE_JOBTAG_OK 0
-#define MPIQUEUE_JOBTAG_REJECT 1
+
+#define MPIQUEUE_JOBTAG_ACCEPTED 0
+#define MPIQUEUE_JOBTAG_REJECTED 1
+#define MPIQUEUE_JOBTAG_DONE 2
+
+#define MPIQUEUE_DEFAULTTAG 0
 
 struct mpiqueue {
     MPI_Comm communicator;
@@ -98,7 +103,7 @@ mpiqueue* mpiqueue_create(MPI_Comm communicator, int njob)
         int jobid, p;
 
         for (p = 1, jobid = 0; p < queue->nprocesses && jobid < njob; ++p, ++jobid) {
-            MPI_Send(&jobid, 1, MPI_INT, p, MPIQUEUE_JOBTAG_OK, queue->communicator);
+            MPI_Send(&jobid, 1, MPI_INT, p, MPIQUEUE_DEFAULTTAG, queue->communicator);
             queue->jobstatus[jobid] = MPIQUEUE_JOBSTATUS_ASSIGNED;
             queue->workerstatus[p] = MPIQUEUE_WORKERSTATUS_WORKING;
         }
@@ -152,7 +157,7 @@ void mpiqueue_manage(mpiqueue* queue)
              * send completion signal
              */
             for (p = 1; p < queue->nprocesses; ++p)
-                MPI_Send(&finished, 1, MPI_INT, p, 0, queue->communicator);
+                MPI_Send(&finished, 1, MPI_INT, p, MPIQUEUE_DEFAULTTAG, queue->communicator);
             return;
         }
         /*
@@ -165,9 +170,9 @@ void mpiqueue_manage(mpiqueue* queue)
          */
         if (jobid < 0 || jobid >= queue->njob)
             quit("jobid = %d (needs to be 0 <= jobid <= %d\n", jobid, queue->njob - 1);
-        if (status.MPI_TAG == MPIQUEUE_JOBTAG_OK)
+        if (status.MPI_TAG == MPIQUEUE_JOBTAG_DONE)
             queue->jobstatus[jobid] = MPIQUEUE_JOBSTATUS_DONE;
-        else if (status.MPI_TAG == MPIQUEUE_JOBTAG_REJECT)
+        else if (status.MPI_TAG == MPIQUEUE_JOBTAG_REJECTED)
             queue->jobstatus[jobid] = MPIQUEUE_JOBSTATUS_TOASSIGN;
         queue->workerstatus[status.MPI_SOURCE] = MPIQUEUE_WORKERSTATUS_WAITING;
 
@@ -182,10 +187,10 @@ void mpiqueue_manage(mpiqueue* queue)
             continue;
 
         /*
-         * Because MPI_Probe() returned, there is at least one CPU waiting for
-         * a new assignment. But we look for a spare CPU starting from the CPU
-         * next to the one reported, to avoid locks when a CPU rejects a
-         * certain job but gets it assigned over and over again.
+         * Assign the job. Because MPI_Probe() returned, there is at least one
+         * CPU waiting for a new assignment. But we look for a spare CPU
+         * starting from the CPU next to the one reported, to avoid locks when
+         * a CPU rejects a certain job but gets it assigned over and over again.
          */
         /*
          * (skip the master -- CPU #0)
@@ -197,7 +202,7 @@ void mpiqueue_manage(mpiqueue* queue)
         {
             MPI_Request request;
 
-            MPI_Isend(&jobid, 1, MPI_INT, p, 0, queue->communicator, &request);
+            MPI_Isend(&jobid, 1, MPI_INT, p, MPIQUEUE_DEFAULTTAG, queue->communicator, &request);
             MPI_Request_free(&request);
         }
         queue->jobstatus[jobid] = MPIQUEUE_JOBSTATUS_ASSIGNED;
@@ -229,7 +234,7 @@ void mpiqueue_reportjob(mpiqueue* queue, int jobid)
         quit("mpiqueue_reportjobid(): called from master");
     if (queue->mystatus != MPIQUEUE_WORKERSTATUS_WORKING)
         quit("mpiqueue_reportjobid(): worker #%d: reporting completion of job #%d without being assigned", queue->rank, jobid);
-    MPI_Send(&jobid, 1, MPI_INT, 0, MPIQUEUE_JOBTAG_OK, queue->communicator);
+    MPI_Send(&jobid, 1, MPI_INT, 0, MPIQUEUE_JOBTAG_DONE, queue->communicator);
     queue->mystatus = MPIQUEUE_WORKERSTATUS_WAITING;
 }
 
@@ -239,7 +244,7 @@ void mpiqueue_rejectjob(mpiqueue* queue, int jobid)
 {
     if (queue->rank == 0)
         quit("mpiqueue_reportjobid(): called from master");
-    MPI_Send(&jobid, 1, MPI_INT, 0, MPIQUEUE_JOBTAG_REJECT, queue->communicator);
+    MPI_Send(&jobid, 1, MPI_INT, 0, MPIQUEUE_JOBTAG_REJECTED, queue->communicator);
     queue->mystatus = MPIQUEUE_WORKERSTATUS_WAITING;
 }
 
