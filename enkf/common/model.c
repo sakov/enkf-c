@@ -329,14 +329,16 @@ void model_print(model* m, char offset[])
 
         enkf_printf("%s    %s:\n", offset, v->name);
         enkf_printf("%s      grid = \"%s\"\n", offset, grid_getname(model_getgridbyid(m, v->gridid)));
+#if defined(ENKF_UPDATE)
         if (isnan(v->inf_ratio))
             enkf_printf("%s      inflation = %.3f PLAIN\n", offset, v->inflation);
         else
             enkf_printf("%s      inflation = %.3f %.2f\n", offset, v->inflation, v->inf_ratio);
-        if (v->applylog)
-            enkf_printf("%s      applylog = true\n", offset);
         if (!isnan(v->deflation))
             enkf_printf("%s      randomise: deflation = %.3f, sigma = %.3f\n", offset, v->deflation, v->sigma);
+#endif
+        if (v->applylog)
+            enkf_printf("%s      applylog = true\n", offset);
     }
     if (m->ndata > 0) {
         enkf_printf("%s  %d modeldata:\n", offset, m->ndata);

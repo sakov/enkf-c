@@ -73,7 +73,7 @@ void das_allocatespread(dasystem* das, char fname[])
 
 /**
  */
-void das_writespread(dasystem* das, int nfields, void** fieldbuffer, field fields[], int isanalysis)
+void das_writespread_inupdate(dasystem* das, int nfields, void** fieldbuffer, field fields[], int isanalysis)
 {
     char fname[MAXSTRLEN];
     model* m = das->m;
@@ -394,7 +394,7 @@ void das_writevcorrs(dasystem* das)
     int fid;
 
     enkf_printtime("  ");
-    enkf_printf("  writing vertical correlations:\n");
+    enkf_printf("  calculating vertical correlations with top layer:\n");
 
     /*
      * allocate disk space
@@ -538,7 +538,7 @@ void das_writevcorrs(dasystem* das)
             for (e = 0; e < das->nmem; ++e)
                 cor[i] += (double) (v[e][i] * v0[e][i]);
             cor[i] /= sqrt(var * var0[i]);
-            if (!isnormal(cor[i]))
+            if (!isfinite(cor[i]))
                 cor[i] = 0.0;
         }
 
@@ -572,12 +572,13 @@ void das_writevcorrs(dasystem* das)
     MPI_Barrier(MPI_COMM_WORLD);
 #endif
     enkf_printf("\n");
+    enkf_flush();
 
     /*
      * assemble tiles
      */
     enkf_printtime("    ");
-    enkf_printf("    assembling:\n");
+    enkf_printf("    assembling %s:", FNAME_VERTCORR);
     if (rank == 0) {
         for (fid = 0; fid < nfields; ++fid) {
             field* f = &fields[fid];
@@ -606,13 +607,405 @@ void das_writevcorrs(dasystem* das)
             ncw_get_var_float(ncid_tile, vid_tile, vv);
             ncw_close(ncid_tile);
             file_delete(fname_tile);
+            enkf_printf(".");
+            enkf_flush();
 
             model_writefield(m, FNAME_VERTCORR, f->varname, f->level, vv, 1);
             free(vv);
         }
     }
+    enkf_printf("\n");
+    enkf_flush();
+
+    free(fields);
+}
+
+/** Calculates and writes to disk 3D field of correlation coefficients between
+ ** specified layer of a 3D variable and all layers of 3D variables on the
+ ** same horizontal grid.
+ */
+void das_writevcorrs_with(dasystem* das, char* varname, int level, int docorr)
+{
+    model* m = das->m;
+    int varid = model_getvarid(m, varname, 1);
+    grid* g = model_getvargrid(m, varid);
+    int gridid = grid_getid(g);
+    void* nlevels = grid_getnumlevels(g);
+    char fname_dst[MAXSTRLEN];
+    int nfields = 0;
+    field* fields = NULL;
+    int fid0 = -1;
+    float** v0 = NULL;
+    double* var0 = NULL;
+    float** v = NULL;
+    double* cor = NULL;
+    int ni, nj, nij;
+    int fid, e, i;
+
+    enkf_printtime("  ");
+    if (docorr) {
+        snprintf(fname_dst, MAXSTRLEN, "%s-%s-%d.nc", FNAMEPREFIX_VERTCORRWITH, varname, level);
+        enkf_printf("  calculating vertical correlations with %s, level %d:\n", varname, level);
+    } else {
+        snprintf(fname_dst, MAXSTRLEN, "%s-%s-%d.nc", FNAMEPREFIX_VERTCOVWITH, varname, level);
+        enkf_printf("  calculating vertical covariances with %s, level %d:\n", varname, level);
+    }
+    
+    grid_getsize(g, &ni, &nj, NULL);
+    nij = (nj > 0) ? ni * nj : ni;
+
+    das_getfields(das, gridid, &nfields, &fields);
+    /*
+     * find primary field
+     */
+    for (fid = 0; fid < nfields; ++fid) {
+        field* f = &fields[fid];
+
+        if (strcmp(f->varname, varname) == 0 && f->level == level)
+            break;
+    }
+    if (fid == nfields)
+        enkf_quit("das_writevcorrs_with(): invalid specs: no field with variable name = \"%s\" and level = %d\n", varname, level);
+    fid0 = fid;
+    /*
+     * Read primary field.
+     * For mode = MODE_HYBRID allocate two additional members to
+     * calculate ensemble mean with double precision
+     */
+    v0 = alloc2d((das->mode == MODE_HYBRID) ? das->nmem + 2 : das->nmem, nij, sizeof(float));
+    for (e = 0; e < das->nmem; ++e) {
+        int masklog = das_isstatic(das, e + 1);
+        char fname[MAXSTRLEN];
+
+        das_getmemberfname(das, varname, e + 1, fname);
+        model_readfield(das->m, fname, varname, fields[fid0].level, v0[e], masklog);
+    }
+    if (das->mode == MODE_HYBRID)
+        das_sethybridensemble(das, nij, v0);
+    var0 = calloc(nij, sizeof(double));
+    for (i = 0; i < nij; ++i) {
+        double vmean = 0.0;
+
+        for (e = 0; e < das->nmem; ++e)
+            vmean += (double) v0[e][i];
+        vmean /= (double) das->nmem;
+        for (e = 0; e < das->nmem; ++e)
+            v0[e][i] -= (float) vmean;
+        var0[i] = 0.0;
+        for (e = 0; e < das->nmem; ++e)
+            var0[i] += (double) (v0[e][i] * v0[e][i]);
+    }
+
+    /*
+     * allocate disk space
+     */
+    if (rank == 0) {
+        int ncid_dst;
+
+        ncw_create(fname_dst, NC_CLOBBER | das->ncformat, &ncid_dst);
+        for (fid = 0; fid < nfields; ++fid) {
+            field* f = &fields[fid];
+            char fname_src[MAXSTRLEN];
+            int ncid_src, varid_src;
+
+            if (f->level != 0)
+                continue;
+            das_getmemberfname(das, f->varname, 1, fname_src);
+            ncw_open(fname_src, NC_NOWRITE, &ncid_src);
+            ncw_inq_varid(ncid_src, f->varname, &varid_src);
+            ncw_copy_vardef(ncid_src, varid_src, ncid_dst);
+            ncw_close(ncid_src);
+        }
+#if defined(DEFLATE_ALL)
+        if (das->nccompression > 0)
+            ncw_def_deflate(ncid_dst, 0, 1, das->nccompression);
+#endif
+        ncw_close(ncid_dst);
+    }
+
+    if (rank == 0)
+        dir_createifabsent(DIRNAME_TMP);
+#if defined(MPI)
+    MPI_Barrier(MPI_COMM_WORLD);
+#endif
+
+    v = alloc2d((das->mode == MODE_HYBRID) ? das->nmem + 2 : das->nmem, nij, sizeof(float));
+    cor = calloc(nij, sizeof(double));
+    distribute_iterations(0, nfields - 1, nprocesses, rank, "    ");
+    enkf_printf("    calculating:");
+    enkf_flush();
+
+    for (fid = my_first_iteration; fid <= my_last_iteration; ++fid) {
+        field* f = &fields[fid];
+        char fname_src[MAXSTRLEN];
+        char fname_tile[MAXSTRLEN];
+        int ncid_tile, vid_tile;
+        int dimids[2];
+
+        for (e = 0; e < das->nmem; ++e) {
+            int masklog = das_isstatic(das, e + 1);
+
+            das_getmemberfname(das, f->varname, e + 1, fname_src);
+            model_readfield(das->m, fname_src, f->varname, f->level, v[e], masklog);
+        }
+        if (das->mode == MODE_HYBRID)
+            das_sethybridensemble(das, nij, v);
+        for (i = 0; i < nij; ++i) {
+            double vmean = 0.0;
+            double var = 0.0;
+
+            cor[i] = 0.0;
+            if (((int**) nlevels)[0][i] == 0)
+                continue;
+
+            for (e = 0; e < das->nmem; ++e)
+                vmean += (double) v[e][i];
+            vmean /= (double) das->nmem;
+            for (e = 0; e < das->nmem; ++e)
+                v[e][i] -= (float) vmean;
+            for (e = 0; e < das->nmem; ++e)
+                var += (double) (v[e][i] * v[e][i]);
+            for (e = 0; e < das->nmem; ++e)
+                cor[i] += (double) (v[e][i] * v0[e][i]);
+            if (docorr)
+                cor[i] /= sqrt(var * var0[i]);
+            else
+                cor[i] /= (double) (das->nmem - 1);
+            if (!isfinite(cor[i]))
+                cor[i] = 0.0;
+        }
+
+        snprintf(fname_tile, MAXSTRLEN, "%s/vcorr-%s-%s-%03d.nc", DIRNAME_TMP, varname, f->varname, f->level);
+        ncw_create(fname_tile, NC_CLOBBER | das->ncformat, &ncid_tile);
+        if (nj > 0) {
+            ncw_def_dim(ncid_tile, "nj", nj, &dimids[0]);
+            ncw_def_dim(ncid_tile, "ni", ni, &dimids[1]);
+            ncw_def_var(ncid_tile, f->varname, NC_FLOAT, 2, dimids, &vid_tile);
+        } else {
+            ncw_def_dim(ncid_tile, "ni", ni, &dimids[0]);
+            ncw_def_var(ncid_tile, f->varname, NC_FLOAT, 1, dimids, &vid_tile);
+        }
+#if defined(DEFLATE_ALL)
+        if (das->nccompression > 0)
+            ncw_def_deflate(ncid_tile, 0, 1, das->nccompression);
+#endif
+        ncw_enddef(ncid_tile);
+        ncw_put_var_double(ncid_tile, vid_tile, cor);
+        ncw_close(ncid_tile);
+        enkf_printf(".");
+        enkf_flush();
+    }
+#if defined(MPI)
+    MPI_Barrier(MPI_COMM_WORLD);
+#endif
+    enkf_printf("\n");
+    enkf_flush();
+
+    free(v0);
+    free(var0);
+    free(v);
+    free(cor);
+
+    /*
+     * assemble tiles
+     */
+    enkf_printtime("    ");
+    enkf_printf("    assembling %s:", fname_dst);
+    if (rank == 0) {
+        float* vv = malloc(nij * sizeof(float));
+
+        for (fid = 0; fid < nfields; ++fid) {
+            field* f = &fields[fid];
+            char fname_tile[MAXSTRLEN];
+            int ncid_tile, vid_tile;
+
+            snprintf(fname_tile, MAXSTRLEN, "%s/vcorr-%s-%s-%03d.nc", DIRNAME_TMP, varname, f->varname, f->level);
+
+            ncw_open(fname_tile, NC_NOWRITE, &ncid_tile);
+            ncw_inq_varid(ncid_tile, f->varname, &vid_tile);
+            ncw_get_var_float(ncid_tile, vid_tile, vv);
+            ncw_close(ncid_tile);
+            file_delete(fname_tile);
+
+            model_writefield(m, fname_dst, f->varname, f->level, vv, 1);
+            enkf_printf(".");
+            enkf_flush();
+        }
+        free(vv);
+    }
+    enkf_printf("\n");
+    enkf_flush();
+
     free(fields);
 #if defined(MPI)
     MPI_Barrier(MPI_COMM_WORLD);
 #endif
+}
+
+/**
+ */
+void das_writespread(dasystem* das)
+{
+    model* m = das->m;
+    int nvar = model_getnvar(m);
+    int nfields = 0;
+    field* fields = NULL;
+    int ni_prev = -1, nj_prev = -1, nij = -1;
+    float** v = NULL;
+    double* std = NULL;
+    int fid;
+
+    enkf_printtime("  ");
+    enkf_printf("  calculating ensemble spread:\n");
+    /*
+     * allocate disk space
+     */
+    if (rank == 0) {
+        int ncid_dst;
+        int mvid;
+
+        ncw_create(FNAME_SPREAD, NC_CLOBBER | das->ncformat, &ncid_dst);
+        for (mvid = 0; mvid < nvar; ++mvid) {
+            char* varname = model_getvarname(m, mvid);
+            char fname_src[MAXSTRLEN];
+            int ncid_src, varid_src;
+
+            das_getmemberfname(das, varname, 1, fname_src);
+            ncw_open(fname_src, NC_NOWRITE, &ncid_src);
+            ncw_inq_varid(ncid_src, varname, &varid_src);
+            ncw_copy_vardef(ncid_src, varid_src, ncid_dst);
+            ncw_close(ncid_src);
+        }
+#if defined(DEFLATE_ALL)
+        if (das->nccompression > 0)
+            ncw_def_deflate(ncid_dst, 0, 1, das->nccompression);
+#endif
+        ncw_close(ncid_dst);
+    }
+
+    if (rank == 0)
+        dir_createifabsent(DIRNAME_TMP);
+#if defined(MPI)
+    MPI_Barrier(MPI_COMM_WORLD);
+#endif
+    
+    das_getfields(das, -1 /* for all grids */ , &nfields, &fields);
+    distribute_iterations(0, nfields - 1, nprocesses, rank, "    ");
+    enkf_printf("    calculating:");
+    enkf_flush();
+
+    for (fid = my_first_iteration; fid <= my_last_iteration; ++fid) {
+        field* f = &fields[fid];
+        char* varname = f->varname;
+        grid* g = model_getvargrid(m, f->varid);
+        void* nlevels = grid_getnumlevels(g);
+        int ni, nj;
+        int dimids[2];
+        int e, i;
+        char fname_tile[MAXSTRLEN];
+        int ncid_tile, vid_tile;
+
+        grid_getsize(g, &ni, &nj, NULL);
+        if (ni != ni_prev || nj != nj_prev) {
+            nij = (nj > 0) ? ni * nj : ni;
+            if (v != NULL) {
+                free(v);
+                free(std);
+            }
+            v = alloc2d((das->mode == MODE_HYBRID) ? das->nmem + 2 : das->nmem, nij, sizeof(float));
+            std = calloc(nij, sizeof(double));
+        }
+        for (e = 0; e < das->nmem; ++e) {
+            int masklog = das_isstatic(das, e + 1);
+            char fname[MAXSTRLEN];
+
+            das_getmemberfname(das, varname, e + 1, fname);
+            model_readfield(das->m, fname, f->varname, f->level, v[e], masklog);
+        }
+        if (das->mode == MODE_HYBRID)
+            das_sethybridensemble(das, nij, v);
+        for (i = 0; i < nij; ++i) {
+            double vmean = 0.0;
+
+            if (((int**) nlevels)[0][i] == 0)
+                continue;
+            for (e = 0; e < das->nmem; ++e)
+                vmean += (double) v[e][i];
+            vmean /= (double) das->nmem;
+            std[i] = 0.0;
+            for (e = 0; e < das->nmem; ++e)
+                std[i] += (double) (v[e][i] * v[e][i]);
+            std[i] = std[i] / (double) das->nmem - vmean * vmean;
+            std[i] = (std[i] < 0.0) ? 0.0 : sqrt(std[i]);
+            if (fabs(vmean) > (double) MAXOBSVAL)
+                std[i] = 0.0;
+        }
+        
+        snprintf(fname_tile, MAXSTRLEN, "%s/spread_%s-%03d.nc", DIRNAME_TMP, f->varname, f->level);
+        ncw_create(fname_tile, NC_CLOBBER | das->ncformat, &ncid_tile);
+        if (nj > 0) {
+            ncw_def_dim(ncid_tile, "nj", nj, &dimids[0]);
+            ncw_def_dim(ncid_tile, "ni", ni, &dimids[1]);
+            ncw_def_var(ncid_tile, varname, NC_FLOAT, 2, dimids, &vid_tile);
+        } else {
+            ncw_def_dim(ncid_tile, "ni", ni, &dimids[0]);
+            ncw_def_var(ncid_tile, varname, NC_FLOAT, 1, dimids, &vid_tile);
+        }
+#if defined(DEFLATE_ALL)
+        if (das->nccompression > 0)
+            ncw_def_deflate(ncid_tile, 0, 1, das->nccompression);
+#endif
+        ncw_enddef(ncid_tile);
+        ncw_put_var_double(ncid_tile, vid_tile, std);
+        ncw_close(ncid_tile);
+        enkf_printf(".");
+        enkf_flush();
+    }
+    if (v != NULL) {
+        free(v);
+        free(std);
+    }
+#if defined(MPI)
+    MPI_Barrier(MPI_COMM_WORLD);
+#endif
+    enkf_printf("\n");
+    enkf_flush();
+        
+    /*
+     * assemble tiles
+     */
+    enkf_printtime("    ");
+    enkf_printf("    assembling %s:", FNAME_SPREAD);
+    if (rank == 0) {
+        for (fid = 0; fid < nfields; ++fid) {
+            field* f = &fields[fid];
+            int ni, nj;
+            float* vv = NULL;
+            char fname_tile[MAXSTRLEN];
+            int ncid_tile, vid_tile;
+
+            model_getvargridsize(m, f->varid, &ni, &nj, NULL);
+            if (nj > 0)
+                vv = malloc(ni * nj * sizeof(float));
+            else
+                vv = malloc(ni * sizeof(float));
+
+            snprintf(fname_tile, MAXSTRLEN, "%s/spread_%s-%03d.nc", DIRNAME_TMP, f->varname, f->level);
+
+            ncw_open(fname_tile, NC_NOWRITE, &ncid_tile);
+            ncw_inq_varid(ncid_tile, f->varname, &vid_tile);
+            ncw_get_var_float(ncid_tile, vid_tile, vv);
+            ncw_close(ncid_tile);
+            file_delete(fname_tile);
+            enkf_printf(".");
+            enkf_flush();
+
+            model_writefield(m, FNAME_SPREAD, f->varname, f->level, vv, 1);
+            free(vv);
+        }
+    }
+    enkf_printf("\n");
+    enkf_flush();
+
+    free(fields);
 }

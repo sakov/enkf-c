@@ -173,8 +173,6 @@ dasystem* das_create(enkfprm* prm)
 #endif
 {
     dasystem* das = calloc(1, sizeof(dasystem));
-    int ngrid;
-    int i;
 
 #if defined(ENKF_UPDATE)
     das->updatespec = updatespec;
@@ -256,26 +254,31 @@ dasystem* das_create(enkfprm* prm)
      */
 #if defined(ENKF_CALC)
     das->nregions = prm->nregions;
-    if (das->nregions > 0)
+    if (das->nregions > 0) {
+        int i;
+        
         das->regions = malloc(das->nregions * sizeof(region));
-    else
+        for (i = 0; i < das->nregions; ++i) {
+            region* dst = &das->regions[i];
+            region* src = &prm->regions[i];
+            
+            dst->name = strdup(src->name);
+            dst->x1 = src->x1;
+            dst->x2 = src->x2;
+            dst->y1 = src->y1;
+            dst->y2 = src->y2;
+        }
+    } else
         das->regions = NULL;
-    for (i = 0; i < das->nregions; ++i) {
-        region* dst = &das->regions[i];
-        region* src = &prm->regions[i];
-
-        dst->name = strdup(src->name);
-        dst->x1 = src->x1;
-        dst->x2 = src->x2;
-        dst->y1 = src->y1;
-        dst->y2 = src->y2;
-    }
 #endif
 
     /*
      * initialise pointlogs
      */
-    if (enkf_doplogs) {
+#if defined(ENKF_CALC) || defined(ENKF_UPDATE)    
+    if (enkf_doplogs && prm->nplog > 0) {
+        int ngrid, i;
+        
         enkf_printf("  initialising pointlogs:\n");
         das->plogs = malloc(sizeof(pointlog) * prm->nplog);
         das->nplog = prm->nplog;
@@ -359,6 +362,7 @@ dasystem* das_create(enkfprm* prm)
                 enkf_quit("%s: POINTLOG %f %f: point outside all grids\n", das->prmfname, dst->lon, dst->lat);
         }
     }
+#endif
 
     /*
      * initialise badbatches
@@ -366,6 +370,8 @@ dasystem* das_create(enkfprm* prm)
 #if defined(ENKF_CALC)
     das->nbadbatchspecs = prm->nbadbatchspecs;
     if (das->nbadbatchspecs > 0) {
+        int i;
+        
         das->badbatchspecs = malloc(das->nbadbatchspecs * sizeof(badbatchspec));
         for (i = 0; i < das->nbadbatchspecs; ++i) {
             badbatchspec* src = &prm->badbatchspecs[i];
@@ -390,8 +396,6 @@ dasystem* das_create(enkfprm* prm)
  */
 void das_destroy(dasystem* das)
 {
-    int i;
-
     free(das->prmfname);
     free(das->ensdir);
     if (das->bgdir != NULL)
@@ -423,12 +427,18 @@ void das_destroy(dasystem* das)
         free(das->St);
 #endif
     if (das->nregions > 0) {
+        int i;
+
         for (i = 0; i < das->nregions; ++i)
             free(das->regions[i].name);
         free(das->regions);
     }
+#if defined(ENKF_CALC) || defined(ENKF_UPDATE)
     plogs_destroy(das->nplog, das->plogs);
+#endif
     if (das->nbadbatchspecs > 0) {
+        int i;
+        
         for (i = 0; i < das->nbadbatchspecs; ++i)
             free(das->badbatchspecs[i].obstype);
 

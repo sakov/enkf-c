@@ -44,6 +44,8 @@
 #define FNAME_BADBATCHES "badobsbatches.txt"
 #define FNAME_INFLATION "inflation.nc"
 #define FNAME_VERTCORR "vcorr.nc"
+#define FNAMEPREFIX_VERTCORRWITH "vcorr"
+#define FNAMEPREFIX_VERTCOVWITH "vcov"
 
 #define DIRNAME_TMP ".enkftmp"
 
@@ -102,12 +104,11 @@
 #define UPDATE_DOFORECASTSPREAD (1 << 1)
 #define UPDATE_DOANALYSISSPREAD (1 << 2)
 #define UPDATE_DOINFLATION      (1 << 3)
-#define UPDATE_DOVERTCORRS      (1 << 4)
-#define UPDATE_DOPLOGSFC        (1 << 5)
-#define UPDATE_DOPLOGSAN        (1 << 6)
-#define UPDATE_OUTPUTINC        (1 << 7)
-#define UPDATE_SEPARATEOUTPUT   (1 << 8)
-#define UPDATE_DIRECTWRITE      (1 << 9)
+#define UPDATE_DOPLOGSFC        (1 << 4)
+#define UPDATE_DOPLOGSAN        (1 << 5)
+#define UPDATE_OUTPUTINC        (1 << 6)
+#define UPDATE_SEPARATEOUTPUT   (1 << 7)
+#define UPDATE_DIRECTWRITE      (1 << 8)
 #define UPDATE_DEFAULT          (UPDATE_DOFIELDS | UPDATE_DOPLOGS | UPDATE_SEPARATEOUTPUT)
 #define UPDATE_DOSPREAD         (UPDATE_DOFORECASTSPREAD | UPDATE_DOANALYSISSPREAD)
 #define UPDATE_DOPLOGS          (UPDATE_DOPLOGSFC | UPDATE_DOPLOGSAN)

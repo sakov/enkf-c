@@ -333,6 +333,8 @@ void enkf_printcompileflags(const char offset[])
     enkf_printf("%senkf_calc compile flags:\n", offset);
 #elif defined(ENKF_UPDATE)
     enkf_printf("%senkf_update compile flags:\n", offset);
+#elif defined(ENKF_DIAG)
+    enkf_printf("%senkf_diag compile flags:\n", offset);
 #else
     enkf_quit("programming error");
 #endif

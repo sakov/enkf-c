@@ -35,7 +35,6 @@
 #include "lapack.h"
 #include "dasystem.h"
 #include "pointlog.h"
-#include "diags.h"
 
 #define EPSF 1.0e-6f
 
@@ -1493,7 +1492,7 @@ void das_update(dasystem* das)
                  * write forecast spread
                  */
                 if (das->updatespec & UPDATE_DOFORECASTSPREAD)
-                    das_writespread(das, bufid + 1, fieldbuffer, fieldstowrite, 0);
+                    das_writespread_inupdate(das, bufid + 1, fieldbuffer, fieldstowrite, 0);
                 /*
                  * write forecast variables to point logs
                  */
@@ -1526,7 +1525,7 @@ void das_update(dasystem* das)
                  * write analysis spread
                  */
                 if (bufid >= 0 && das->updatespec & UPDATE_DOANALYSISSPREAD && (das->mode == MODE_ENKF || das->mode == MODE_HYBRID))
-                    das_writespread(das, bufid + 1, fieldbuffer, fieldstowrite, 1);
+                    das_writespread_inupdate(das, bufid + 1, fieldbuffer, fieldstowrite, 1);
                 /*
                  * write analysis variables to point logs
                  */

@@ -39,11 +39,6 @@ static void usage(void)
     enkf_printf("      calculate forecast ensemble spread and write to %s\n", FNAME_SPREAD);
     enkf_printf("  --calculate-forecast-spread-only\n");
     enkf_printf("      calculate forecast ensemble spread only and write to %s\n", FNAME_SPREAD);
-    enkf_printf("  --calculate-vertical-correlations\n");
-    enkf_printf("      calculate correlation coefficients between surface and other layers of\n");
-    enkf_printf("      3D variables and write to %s\n", FNAME_VERTCORR);
-    enkf_printf("  --calculate-vertical-correlations-only\n");
-    enkf_printf("      as above, but exclude other (normally performed) jobs\n");
     enkf_printf("  --describe-prm-format [main|model|grid]\n");
     enkf_printf("      describe format of a parameter file and exit\n");
     enkf_printf("  --direct-write\n");
@@ -106,13 +101,6 @@ static void parse_commandline(int argc, char* argv[], char** fname, int* updates
             fspread_only = 1;
             i++;
             continue;
-        } else if (strcmp(argv[i], "--calculate-vertical-correlations") == 0) {
-            *updatespec |= UPDATE_DOVERTCORRS;
-            i++;
-        } else if (strcmp(argv[i], "--calculate-vertical-correlations-only") == 0) {
-            *updatespec |= UPDATE_DOVERTCORRS;
-            vcorrs_only = 1;
-            i++;
         } else if (strcmp(argv[i], "--describe-prm-format") == 0) {
             if (i < argc - 1) {
                 if (strcmp(argv[i + 1], "main") == 0)
@@ -160,19 +148,17 @@ static void parse_commandline(int argc, char* argv[], char** fname, int* updates
             enkf_printversion();
             exit(0);
         } else
-            enkf_quit("command line: option \"%s\" not recognised", argv[i]);
+            enkf_quit("parse_commandline(): option \"%s\" not recognised", argv[i]);
     }
 
     if (*fname == NULL)
-        enkf_quit("command line: parameter file not specified");
+        enkf_quit("parse_commandline(): parameter file not specified");
 
     if (vcorrs_only + fspread_only + spread_only > 1)
         enkf_quit("more than one argument with \"only\"");
 
     if (no_update)
         *updatespec &= ~UPDATE_NEEDAN;
-    if (vcorrs_only)
-        *updatespec = UPDATE_DOVERTCORRS;
     if (fspread_only)
         *updatespec = UPDATE_DOFORECASTSPREAD;
     if (spread_only)
@@ -184,15 +170,15 @@ static void parse_commandline(int argc, char* argv[], char** fname, int* updates
 static void describe_updatespec(int updatespec)
 {
     enkf_printf("  update specs:\n");
-    enkf_printf("    do model fields  = %s\n", (updatespec & UPDATE_DOFIELDS) ? "[+]" : "[-]");
-    enkf_printf("    do spread        = %s\n", (updatespec & UPDATE_DOSPREAD) ? "[+]" : "[-]");
-    enkf_printf("    do pointlogs     = %s\n", (updatespec & UPDATE_DOSPREAD) ? "[+]" : "[-]");
+    enkf_printf("    do model fields   = %s\n", (updatespec & UPDATE_DOFIELDS) ? "[+]" : "[-]");
+    enkf_printf("    do spread         = %s\n", (updatespec & UPDATE_DOSPREAD) ? "[+]" : "[-]");
+    enkf_printf("    do pointlogs      = %s\n", (updatespec & UPDATE_DOPLOGS) ? "[+]" : "[-]");
     if (updatespec & UPDATE_DIRECTWRITE)
-        enkf_printf("    direct write     = [+]\n");
+        enkf_printf("    direct write      = [+]\n");
     if (updatespec & UPDATE_DOFIELDS) {
         if (updatespec & UPDATE_OUTPUTINC)
-            enkf_printf("    output increment = [+]\n");
-        enkf_printf("    separate output  = %s\n", (updatespec & UPDATE_SEPARATEOUTPUT) ? "[+]" : "[-]");
+            enkf_printf("    output increment  = [+]\n");
+        enkf_printf("    separate output   = %s\n", (updatespec & UPDATE_SEPARATEOUTPUT) ? "[+]" : "[-]");
     }
 }
 
@@ -236,7 +222,7 @@ int main(int argc, char* argv[])
         enkf_doplogs = 1;
 
     describe_updatespec(updatespec);
-    if ((updatespec & (UPDATE_DOFIELDS | UPDATE_DOSPREAD | UPDATE_DOPLOGS | UPDATE_DOINFLATION | UPDATE_DOVERTCORRS)) == 0)
+    if ((updatespec & (UPDATE_DOFIELDS | UPDATE_DOSPREAD | UPDATE_DOPLOGS | UPDATE_DOINFLATION)) == 0)
         enkf_quit("nothing to do");
 
     enkf_printf("  initialising the system:\n");
@@ -258,9 +244,6 @@ int main(int argc, char* argv[])
         das_update(das);
         enkf_flush();
     }
-
-    if (das->updatespec & UPDATE_DOVERTCORRS)
-        das_writevcorrs(das);
 
     das_destroy(das);
 

@@ -32,6 +32,13 @@
 #include "gxy_unstr.h"
 #include "hgrid.h"
 
+/*
+ * for DIAG the grid stuff is the same as for UPDATE
+ */
+#if defined(ENKF_DIAG)
+#define ENKF_UPDATE
+#endif
+
 struct gxy_1d {
     int n;
 };
