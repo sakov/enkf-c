@@ -39,14 +39,13 @@ static void usage(void)
     enkf_printf("      3D variables and write to %s\n", FNAME_VERTCORR);
     enkf_printf("  --calculate-vertical-correlations-with <varname1> <layer1>\n");
     enkf_printf("    [<varname2> <layer2>] [...]\n");
-    enkf_printf("      calculate correlation coefficients between specified layer of a 3D\n");
-    enkf_printf("      variable and all layers of 3D variables on the same horizontal grid\n");
-    enkf_printf("      and write to %s-<varname>-<layer>.nc\n", FNAMEPREFIX_VERTCORRWITH);
+    enkf_printf("      calculate correlation coefficients between specified field (a layer of\n");
+    enkf_printf("      a variable) and all other fields on the same horizontal grid and\n");
+    enkf_printf("      write to %s-<varname>-<layer>.nc\n", FNAMEPREFIX_VERTCORRWITH);
     enkf_printf("  --calculate-vertical-covariances-with <varname1> <layer1>\n");
     enkf_printf("    [<varname2> <layer2>] [...]\n");
-    enkf_printf("      calculate covariances between specified layer of a 3D\n");
-    enkf_printf("      variable and all layers of 3D variables on the same horizontal grid\n");
-    enkf_printf("      and write to %s-<varname>-<layer>.nc\n", FNAMEPREFIX_VERTCOVWITH);
+    enkf_printf("      calculate covariances between specified field and all other fields\n");
+    enkf_printf("      on the same horizontal grid and write to %s-<varname>-<layer>.nc\n", FNAMEPREFIX_VERTCOVWITH);
     enkf_printf("  --version\n");
     enkf_printf("      print version and exit\n");
 
@@ -58,7 +57,7 @@ static void usage(void)
 static void parse_commandline(int argc, char* argv[], char** fname, int* dospread, int* dovcorrs, int* nvcorrwith, char*** vcorrwith, int** kvcorrwith, int* nvcovwith, char*** vcovwith, int** kvcovwith)
 {
     int i;
-    
+
     if (argc < 2)
         usage();
 
@@ -119,7 +118,7 @@ static void parse_commandline(int argc, char* argv[], char** fname, int* dosprea
         } else
             enkf_quit("parse_commandline(): option \"%s\" not recognised", argv[i]);
     }
-    
+
     if (*fname == NULL)
         enkf_quit("parse_commandline(): parameter file not specified");
 }
@@ -184,7 +183,7 @@ int main(int argc, char* argv[])
         free(kvcovwith);
     }
 
- finish:
+  finish:
     enkf_finish();
 
     return 0;
