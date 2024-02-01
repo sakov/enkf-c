@@ -650,7 +650,7 @@ void das_writevcorrs_with(dasystem* das, char* varname, int level, int docorr)
         snprintf(fname_dst, MAXSTRLEN, "%s-%s-%d.nc", FNAMEPREFIX_VERTCOVWITH, varname, level);
         enkf_printf("  calculating vertical covariances with %s, level %d:\n", varname, level);
     }
-    
+
     grid_getsize(g, &ni, &nj, NULL);
     nij = (nj > 0) ? ni * nj : ni;
 
@@ -888,7 +888,7 @@ void das_writespread(dasystem* das)
 #if defined(MPI)
     MPI_Barrier(MPI_COMM_WORLD);
 #endif
-    
+
     das_getfields(das, -1 /* for all grids */ , &nfields, &fields);
     distribute_iterations(0, nfields - 1, nprocesses, rank, "    ");
     enkf_printf("    calculating:");
@@ -940,7 +940,7 @@ void das_writespread(dasystem* das)
             if (fabs(vmean) > (double) MAXOBSVAL)
                 std[i] = 0.0;
         }
-        
+
         snprintf(fname_tile, MAXSTRLEN, "%s/spread_%s-%03d.nc", DIRNAME_TMP, f->varname, f->level);
         ncw_create(fname_tile, NC_CLOBBER | das->ncformat, &ncid_tile);
         if (nj > 0) {
@@ -970,7 +970,7 @@ void das_writespread(dasystem* das)
 #endif
     enkf_printf("\n");
     enkf_flush();
-        
+
     /*
      * assemble tiles
      */

@@ -377,7 +377,7 @@ void enkf_printcompileflags(const char offset[])
     enkf_printf("%s  INTERNAL_QSORT_R = [-]\n", offset);
 #endif
 #endif
-#if defined(ENKF_UPDATE)
+#if defined(ENKF_UPDATE) || defined(ENKF_DIAG)
 #if defined(NCW_SKIPSINGLE)
     enkf_printf("%s  NCW_SKIPSINGLE   = [+]\n", offset);
 #else
