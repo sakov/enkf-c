@@ -1,3 +1,7 @@
+v2.27.1
+   PS 02022024
+   -- For each stage (PREP, CALC, UPDATE, DIAG) excluded reporting irrelevant
+      parameter from logs.
 v2.27.0
    PS 31012024
    -- Introduced a new binary enkf_diag. It is supposed to calculate diagnostics

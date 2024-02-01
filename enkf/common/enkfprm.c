@@ -581,6 +581,7 @@ void enkfprm_destroy(enkfprm* prm)
  */
 void enkfprm_print(enkfprm* prm, char offset[])
 {
+#if defined(ENKF_CALC) || defined(ENKF_UPDATE)
     int i;
 
     if (prm->mode == MODE_NONE)
@@ -601,9 +602,10 @@ void enkfprm_print(enkfprm* prm, char offset[])
         if (1.0 - prm->alpha > 1.0e-6)
             enkf_printf("%s  ALPHA = %.3g\n", offset, prm->alpha);
     }
+#endif
     enkf_printf("%sMODEL PRM = \"%s\"\n", offset, prm->modelprm);
     enkf_printf("%sGRID PRM = \"%s\"\n", offset, prm->gridprm);
-
+#if defined(ENKF_PREP) || defined(ENKF_CALC)
     enkf_printf("%sOBS TYPES PRM = \"%s\"\n", offset, prm->obstypeprm);
     enkf_printf("%sOBS PRM = \"%s\"\n", offset, prm->obsprm);
     enkf_printf("%sDATE = \"%s\"\n", offset, prm->date);
@@ -611,6 +613,7 @@ void enkfprm_print(enkfprm* prm, char offset[])
         enkf_printf("%sWINDOWMIN = %.3f\n", offset, prm->obswindow_min);
         enkf_printf("%sWINDOWMAX = %.3f\n", offset, prm->obswindow_max);
     }
+#endif
     if (prm->mode == MODE_ENOI)
         enkf_printf("%sBGDIR = \"%s\"\n", offset, prm->bgdir);
     if (prm->mode == MODE_ENKF || (prm->mode == MODE_ENOI && !enkf_fstatsonly)) {
@@ -637,12 +640,17 @@ void enkfprm_print(enkfprm* prm, char offset[])
         enkf_printf("%sGAMMA = %.3f\n", offset, prm->gamma);
     }
     if (!enkf_fstatsonly) {
+#if defined(ENKF_CALC)
         enkf_printf("%sRFACTOR BASE = %.1f\n", offset, prm->rfactor_base);
+#endif
+#if defined(ENKF_UPDATE)
         enkf_printf("%sINFLATION BASE = %.4f\n", offset, prm->inflation);
         if (!isnan(prm->inf_ratio))
             enkf_printf("%sINFLATION MODE = CAPPED, MAX RATIO = %.2f\n", offset, prm->inf_ratio);
         else
             enkf_printf("%sINFLATION MODE = PLAIN\n", offset);
+#endif
+#if defined(ENKF_CALC)
         if (isfinite(prm->kfactor))
             enkf_printf("%sKFACTOR = %.1f\n", offset, prm->kfactor);
         else
@@ -657,17 +665,26 @@ void enkfprm_print(enkfprm* prm, char offset[])
         enkf_printf("\n");
         if (prm->nlobsmax != INT_MAX)
             enkf_printf("%sNLOBSMAX = %d\n", offset, prm->nlobsmax);
+#endif
+#if defined(ENKF_CALC) || defined(ENKF_UPDATE)
         enkf_printf("%sSTRIDE = %d\n", offset, prm->stride);
+#endif
+#if defined(ENKF_PREP)
         if (prm->sob_stride != 1)
             enkf_printf("%sSOBSTRIDE = %d\n", offset, prm->sob_stride);
+#endif
+#if defined(ENKF_UPDATE)
         enkf_printf("%sFIELDBUFFERSIZE = %d\n", offset, prm->fieldbufsize);
+#endif
     }
+#if defined(ENKF_CALC)
     for (i = 0; i < prm->nregions; ++i) {
         region* r = &prm->regions[i];
 
         enkf_printf("%sREGION %s: x = [%.1f, %.1f], y = [%.1f, %.1f]", offset, r->name, r->x1, r->x2, r->y1, r->y2);
         enkf_printf("\n");
     }
+#endif
 #if defined(ENKF_CALC) || defined(ENKF_UPDATE)
     if (!enkf_fstatsonly) {
         for (i = 0; i < prm->nplog; ++i) {
@@ -677,6 +694,7 @@ void enkfprm_print(enkfprm* prm, char offset[])
         }
     }
 #endif
+#if defined(ENKF_CALC)
     for (i = 0; i < prm->nbadbatchspecs; ++i) {
         badbatchspec* bb = &prm->badbatchspecs[i];
 
@@ -688,6 +706,7 @@ void enkfprm_print(enkfprm* prm, char offset[])
             enkf_printf("[%.0f %.0f] ", prm->zints[i].z1, prm->zints[i].z2);
         enkf_printf("\n");
     }
+#endif
     if (prm->ncformat == NC_CLASSIC_MODEL)
         enkf_printf("%sNCFORMAT = CLASSIC\n", offset);
     else if (prm->ncformat == NC_64BIT_OFFSET)
