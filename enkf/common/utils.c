@@ -1455,7 +1455,7 @@ static int get_memory_usage_kb(size_t* vmrss_kb, size_t* vmsize_kb)
     /*
      * (dummy if to avoid warning from GCC) 
      */
-    (void) fread(buffer, sizeof(char), to_read, procfile);
+    if (fread(buffer, sizeof(char), to_read, procfile));
     fclose(procfile);
 
     int found_vmrss = 0;

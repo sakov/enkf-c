@@ -605,6 +605,7 @@ void enkfprm_print(enkfprm* prm, char offset[])
 #endif
     enkf_printf("%sMODEL PRM = \"%s\"\n", offset, prm->modelprm);
     enkf_printf("%sGRID PRM = \"%s\"\n", offset, prm->gridprm);
+
 #if defined(ENKF_PREP) || defined(ENKF_CALC)
     enkf_printf("%sOBS TYPES PRM = \"%s\"\n", offset, prm->obstypeprm);
     enkf_printf("%sOBS PRM = \"%s\"\n", offset, prm->obsprm);
