@@ -322,7 +322,18 @@ void reader_gridded_xy(char* fname, int fid, obsmeta* meta, grid* g, observation
      * time
      */
     get_time(meta, ncid, &ntime, &time);
-    assert(ntime == nij || ntime <= 1);
+    assert(ntime == nij || ntime == nj || ntime <= 1);
+    if (ntime == nj) {
+        double* tmp = calloc(nij, sizeof(double));
+        size_t j, ij;
+
+        for (j = 0, ij = 0; j < nj; ++j)
+            for (i = 0; i < ni; ++i, ++ij)
+                tmp[ij] = time[j];
+        free(time);
+        time = tmp;
+        ntime = nij;
+    }
 
     /*
      * instrument

@@ -1,3 +1,8 @@
+v2.27.2
+   PS 13022024
+   -- A couple of modifications for ingesting L3 data from SWOT with reader
+      gridded_xy: handling time[nj] rather than time[nj][ni] or time[1]; and
+      handling time units "microseconds from" (LOL).
 v2.27.1
    PS 02022024
    -- For each stage (PREP, CALC, UPDATE, DIAG) excluded reporting irrelevant
