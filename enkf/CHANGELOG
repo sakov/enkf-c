@@ -1,3 +1,7 @@
+v2.27.3
+   PS 23022024
+   -- A minor fix in ncw_copy_vardata(). (Necessary for variable of very large
+      size.)
 v2.27.2
    PS 13022024
    -- A couple of modifications for ingesting L3 data from SWOT with reader

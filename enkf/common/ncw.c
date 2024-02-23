@@ -31,7 +31,7 @@
 #include <errno.h>
 #include "ncw.h"
 
-const char ncw_version[] = "2.29.3";
+const char ncw_version[] = "2.29.4";
 
 /* This macro is substituted in error messages instead of the name of a
  * variable in cases when the name could not be found by the variable id.
@@ -1639,7 +1639,7 @@ void ncw_copy_vardata(int ncid_src, int vid_src, int ncid_dst)
     nc_type type;
     void* data = NULL;
     int vid_dst = -1;
-    int size;
+    size_t size;
     int status;
     int i;
 
