@@ -237,7 +237,7 @@ indent:
 tar:
 	cd ..; tar --exclude=examples --exclude=bin -czvf enkf-c-v$(VERSION).tar.gz enkf; echo "  ->../enkf-c-v$(VERSION).tar.gz"
 
-# following are 3 convenience targets for compiling particular binaries
+# following are 4 convenience targets for compiling particular binaries
 
 .PHONY: prep
 prep:
