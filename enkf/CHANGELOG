@@ -1,3 +1,11 @@
+v2.27.4
+   PS 05032024
+   -- In ncw.c introduced a global flag "ncw_chunkbylayers" (1 by default) to
+      enable avoiding setting chunking by layers (e.g. when manipulating
+      with NEMO ice restart, which requires to preserve chunking by tiles).
+   -- Moved setting/copying of "special" NetCDF attributes from
+      ncw_copy_vardef() to ncw_copy_atts() for e.g. re-gridding situations, when
+      definition can not be completely mirrored.
 v2.27.3
    PS 23022024
    -- A minor fix in ncw_copy_vardata(). (Necessary for variable of very large

@@ -384,7 +384,7 @@ void enkf_printcompileflags(const char offset[])
     enkf_printf("%s  NCW_SKIPSINGLE   = [-]\n", offset);
 #endif
 #endif
-#if defined(ENKF_UPDATE) 
+#if defined(ENKF_UPDATE)
 #if defined(USE_MPIQUEUE)
     enkf_printf("%s  USE_MPIQUEUE     = [+]\n", offset);
 #else

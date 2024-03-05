@@ -31,7 +31,15 @@
 #include <errno.h>
 #include "ncw.h"
 
-const char ncw_version[] = "2.29.4";
+const char ncw_version[] = "2.30.0";
+
+/*
+ * A flag -- whether ncw_copy_vardef() (re-)defines chunking by layers.
+ * Generally, "1" is a good setting for geophysical applications, but sometimes
+ * the existing chunking needs to be preserved; then set ncw_chunkbylayers to 0
+ * before calling ncw_copy_vardef() or ncw_copy_var()).
+ */
+int ncw_chunkbylayers = 1;
 
 /* This macro is substituted in error messages instead of the name of a
  * variable in cases when the name could not be found by the variable id.
@@ -1583,38 +1591,6 @@ int ncw_copy_vardef(int ncid_src, int vid_src, int ncid_dst)
 
     ncw_def_var(ncid_dst, varname, type, ndims, dimids_dst, &vid_dst);
     ncw_copy_atts(ncid_src, vid_src, ncid_dst, vid_dst);
-    {
-        int shuffle, deflate, deflate_level;
-
-        ncw_inq_var_deflate(ncid_src, vid_src, &shuffle, &deflate, &deflate_level);
-        ncw_def_var_deflate(ncid_dst, vid_dst, shuffle, deflate, deflate_level);
-    }
-    {
-        int nofill, fillvalue[4];
-
-        ncw_inq_var_fill(ncid_src, vid_src, &nofill, fillvalue);
-        ncw_def_var_fill(ncid_dst, vid_dst, nofill, fillvalue);
-    }
-    if (ndims >= 2) {
-        size_t dimlen[NC_MAX_DIMS];
-        size_t cachesize, cachesize_needed;
-        float preemption;
-        size_t chunksize[NC_MAX_DIMS];
-        int i;
-
-        ncw_inq_vardims(ncid_dst, vid_dst, NC_MAX_DIMS, &ndims, dimlen);
-        if (dimlen[ndims - 1] > 1 && dimlen[ndims - 2] > 1 && dimlen[ndims - 1] * dimlen[ndims - 2] > 512 * 512) {
-            cachesize_needed = dimlen[ndims - 1] * dimlen[ndims - 2] * ncw_sizeof(type);
-            nc_get_chunk_cache(&cachesize, NULL, &preemption);
-            if (cachesize < cachesize_needed)
-                nc_set_var_chunk_cache(ncid_dst, vid_dst, cachesize_needed, 1, preemption);
-            chunksize[ndims - 1] = dimlen[ndims - 1];
-            chunksize[ndims - 2] = dimlen[ndims - 2];
-            for (i = ndims - 3; i >= 0; i--)
-                chunksize[i] = 1;
-            nc_def_var_chunking(ncid_dst, vid_dst, NC_CHUNKED, chunksize);
-        }
-    }
 
     if (status == NC_NOERR)
         nc_enddef(ncid_dst);
@@ -1990,6 +1966,7 @@ void ncw_copy_atts(int ncid_src, int varid_src, int ncid_dst, int varid_dst)
     char varname_dst[NC_MAX_NAME] = STR_UNKNOWN;
     int status;
     int natts;
+    int format;
     int i;
 
     _ncw_inq_varname(ncid_src, varid_src, varname_src);
@@ -2002,6 +1979,56 @@ void ncw_copy_atts(int ncid_src, int varid_src, int ncid_dst, int varid_dst)
         ncw_inq_attname(ncid_src, varid_src, i, attname);
         if ((status = nc_copy_att(ncid_src, varid_src, attname, ncid_dst, varid_dst)) != NC_NOERR)
             quit("\"%s\": -> %s:  nc_copy_att(): failed for varid_in = %d (varname = \"%s\"), attname = \"%s\", varid_dst = %d, (varname = \"%s\"): %s", ncw_get_path(ncid_src), ncw_get_path(ncid_dst), varid_src, varname_src, attname, varid_dst, varname_dst, nc_strerror(status));
+    }
+
+    /*
+     * no special attributes for CLASSIC or 64BIT_OFFSET formats
+     */
+    ncw_inq_format(ncid_dst, &format);
+    if (format == NC_FORMAT_CLASSIC || format == NC_FORMAT_64BIT_OFFSET)
+        return;
+    /*
+     * copy/set special atts
+     */
+    {
+        int shuffle, deflate, deflate_level;
+
+        ncw_inq_var_deflate(ncid_src, varid_src, &shuffle, &deflate, &deflate_level);
+        ncw_def_var_deflate(ncid_dst, varid_dst, shuffle, deflate, deflate_level);
+    }
+    {
+        int nofill, fillvalue[4];
+
+        ncw_inq_var_fill(ncid_src, varid_src, &nofill, fillvalue);
+        ncw_def_var_fill(ncid_dst, varid_dst, nofill, fillvalue);
+    }
+    if (ncw_chunkbylayers) {
+        int ndims;
+
+        ncw_inq_varndims(ncid_src, varid_src, &ndims);
+        if (ndims >= 2) {
+            size_t dimlen[NC_MAX_DIMS];
+            size_t cachesize, cachesize_needed;
+            float preemption;
+            size_t chunksize[NC_MAX_DIMS];
+            int i;
+
+            ncw_inq_vardims(ncid_dst, varid_dst, NC_MAX_DIMS, &ndims, dimlen);
+            if (dimlen[ndims - 1] > 1 && dimlen[ndims - 2] > 1 && dimlen[ndims - 1] * dimlen[ndims - 2] > 512 * 512) {
+                nc_type type;
+
+                ncw_inq_vartype(ncid_src, varid_src, &type);
+                cachesize_needed = dimlen[ndims - 1] * dimlen[ndims - 2] * ncw_sizeof(type);
+                nc_get_chunk_cache(&cachesize, NULL, &preemption);
+                if (cachesize < cachesize_needed)
+                    nc_set_var_chunk_cache(ncid_dst, varid_dst, cachesize_needed, 1, preemption);
+                chunksize[ndims - 1] = dimlen[ndims - 1];
+                chunksize[ndims - 2] = dimlen[ndims - 2];
+                for (i = ndims - 3; i >= 0; i--)
+                    chunksize[i] = 1;
+                nc_def_var_chunking(ncid_dst, varid_dst, NC_CHUNKED, chunksize);
+            }
+        }
     }
 }
 

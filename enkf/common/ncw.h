@@ -27,6 +27,7 @@
 #include <netcdf.h>
 
 extern const char ncw_version[];
+extern int ncw_chunkbylayers;
 
 /* It is possible to set the quit procedure. By default, the internal procedure
  * is used.
