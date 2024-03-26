@@ -22,7 +22,7 @@ enkf-calc: enkf_calc observations.nc conf ensemble_6565
 	nice -n +19 mpirun -np $(NP_CALC) ./enkf_calc enkf.prm 2>&1 | tee calc.out
 
 enkf-update: enkf_update transforms.nc conf ensemble_6565
-	nice -n +19 mpirun -np $(NP_UPDATE) ./enkf_update --calculate-spread --write-inflation --calculate-vertical-correlations --output-increment enkf.prm 2>&1 | tee update.out
+	nice -n +19 mpirun -np $(NP_UPDATE) ./enkf_update --calculate-spread --write-inflation --output-increment enkf.prm 2>&1 | tee update.out
 
 enoi-prep: enkf_prep conf obs enoi.prm
 	./enkf_prep enoi.prm 2>&1 | tee prep.out
@@ -68,7 +68,7 @@ hybrid-calc: enkf_calc observations.nc conf ensemble_6565 ensemble_static
 	nice -n +19 mpirun -np $(NP_CALC) ./enkf_calc hybrid.prm 2>&1 | tee calc.out
 
 hybrid-update: enkf_update transforms.nc conf ensemble_6565 ensemble_static
-	nice -n +19 mpirun -np $(NP_UPDATE) ./enkf_update --calculate-spread --write-inflation --calculate-vertical-correlations --output-increment hybrid.prm 2>&1 | tee update.out
+	nice -n +19 mpirun -np $(NP_UPDATE) ./enkf_update --calculate-spread --write-inflation --output-increment hybrid.prm 2>&1 | tee update.out
 
 enkf_prep:
 	cp ../../bin/enkf_prep .
