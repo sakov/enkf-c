@@ -305,7 +305,7 @@ dasystem* das_create(enkfprm* prm)
             for (gid = 0; gid < model_getngrid(das->m); ++gid) {
                 grid* g = model_getgridbyid(das->m, gid);
 
-                if (dst->gridid >= 0 && dst->gridid != gid) {
+                if (grid_isempty(g) || (dst->gridid >= 0 && dst->gridid != gid)) {
                     dst->fij[gid][0] = NAN;
                     dst->fij[gid][1] = NAN;
                     dst->fij[gid][2] = NAN;

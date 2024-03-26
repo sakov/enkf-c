@@ -27,11 +27,12 @@
  *     grid->hgrid->nj = 0, which may be used as a test for a grid being
  *     structured.
  */
-#define GRIDHTYPE_1D 1
-#define GRIDHTYPE_2D 2
-#define GRIDHTYPE_RECTANGULAR 3
-#define GRIDHTYPE_CURVILINEAR 4
-#define GRIDHTYPE_UNSTRUCTURED 5
+#define GRIDHTYPE_NONE 1
+#define GRIDHTYPE_1D 2
+#define GRIDHTYPE_2D 3
+#define GRIDHTYPE_RECTANGULAR 4
+#define GRIDHTYPE_CURVILINEAR 5
+#define GRIDHTYPE_UNSTRUCTURED 6
 
 #define GRIDVTYPE_UNDEFINED 0
 /*
@@ -54,6 +55,7 @@ void grid_destroy(grid* g);
 void* grid_getvgrid(grid* g);
 int grid_gethtype(grid* g);
 int grid_getvtype(grid* g);
+int grid_isempty(grid* g);
 void* grid_getdepth(grid* g);
 
 void grid_print(grid* g, char offset[]);

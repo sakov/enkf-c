@@ -1697,6 +1697,54 @@ void obs_destroykdtrees(observations* obs)
 #endif
 
 #if defined(ENKF_CALC)
+/**
+ */
+static void obs_getglobal(observations* obs, char* domainname, int* n, int** ids, double** lcoeffs, int* ploc_allocated)
+{
+    int otid;
+
+    for (otid = 0; otid < obs->nobstypes; ++otid) {
+        obstype* ot = &obs->obstypes[otid];
+        int* obsids = obs->obsids[otid];
+        int i;
+
+        if (ot->nobs == 0 || ot->statsonly)
+            continue;
+        /*
+         * check whether observations of this type are visible from the
+         * specified domain
+         */
+        if (domainname != NULL && ot->ndomains > 0) {
+            /*
+             * (if ot->ndomains = 0 then observations of this type are visible
+             * from all grids)
+             */
+            int d;
+
+            for (d = 0; d < ot->ndomains; ++d)
+                if (strcasecmp(domainname, ot->domainnames[d]) == 0)
+                    break;
+            if (d == ot->ndomains)
+                continue;
+        }
+        if (ploc_allocated != NULL) {
+            if (*n + ot->nobs >= *ploc_allocated) {
+                *ploc_allocated = *n + ot->nobs;
+                *ids = realloc(*ids, *ploc_allocated * sizeof(int));
+                *lcoeffs = realloc(*lcoeffs, *ploc_allocated * sizeof(double));
+            }
+        } else {
+            *ids = realloc(*ids, (*n + ot->nobs) * sizeof(int));
+            *lcoeffs = realloc(*lcoeffs, (*n + ot->nobs) * sizeof(double));
+        }
+
+        for (i = 0; i < ot->nobs; ++i, ++(*n)) {
+            (*ids)[*n] = obsids[i];
+            (*lcoeffs)[*n] = 1.0;
+        }
+    }
+}
+
 /** For each observation type find observations within localisation radius from
  ** the specified location (lon,lat) and calculate the corresponding taper
  ** coefficients. If there is a limit on the number of local observations then
@@ -1722,10 +1770,22 @@ void obs_findlocal(observations* obs, double lon, double lat, char* domainname, 
     int otid;
     int i;
 
-    ll2xyz(ll, xyz);
-
     if (obs->nobstypes == 0)
         return;
+
+    /*
+     * This is supposed to happen if horizontal grid has type GRIDHTYPE_NONE.
+     * The treatment could be very simple (just adding all obs), but it is
+     * still necessary to check each obs. type if it belongs to the grid's
+     * domain.
+     */
+    if (isnan(lon + lat)) {
+        obs_getglobal(obs, domainname, n, ids, lcoeffs, ploc_allocated);
+        return;
+    }
+
+    ll2xyz(ll, xyz);
+
     if (obs->loctrees == NULL)
         obs_createkdtrees(obs);
 

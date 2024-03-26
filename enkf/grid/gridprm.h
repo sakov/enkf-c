@@ -20,7 +20,7 @@
 typedef struct {
     char* prmfname;
     char* name;
-    char* fname;
+    char* gdatafname;
 
     char* aliasname;
     char* htype;

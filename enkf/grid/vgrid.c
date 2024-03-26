@@ -501,12 +501,16 @@ vgrid* vgrid_create(void* p, void* g)
     vg->parent = g;
     vg->type = gridprm_getvtype(prm);
 
-    ncw_open(prm->fname, NC_NOWRITE, &ncid);
-
     if (vg->type == GRIDVTYPE_NONE) {
-        nk = 1;
-        prm->vdirection = strdup("FROMSURF");
-    } else if (vg->type == GRIDVTYPE_Z) {
+        vg->nk = 1;
+        vg->direction = GRIDVDIR_FROMSURF;
+
+        return vg;
+    }
+
+    ncw_open(prm->gdatafname, NC_NOWRITE, &ncid);
+
+    if (vg->type == GRIDVTYPE_Z) {
         int varid;
         double* z = NULL;
         double* zc = NULL;
@@ -641,7 +645,7 @@ vgrid* vgrid_create(void* p, void* g)
          */
         ncw_inq_varid(ncid, prm->zvarname, &varid);
         if (ncw_var_hasunlimdim(ncid, varid))
-            enkf_quit("%s: %s: %s: can not have unlimited dimension", prm->fname, prm->name, prm->zvarname);
+            enkf_quit("%s: %s: %s: can not have unlimited dimension", prm->gdatafname, prm->name, prm->zvarname);
         ncw_inq_vardims(ncid, varid, 3, &ndimt, dimlent);
         nk = dimlent[0];
         if (ndimt == 3) {
@@ -655,14 +659,14 @@ vgrid* vgrid_create(void* p, void* g)
             zt = alloc2d(dimlent[0], dimlent[1], sizeof(float));
             ncw_get_var_float(ncid, varid, ((float**) zt)[0]);
         } else
-            enkf_quit("%s: %s: %s: can not have single dimension", prm->fname, prm->name, prm->zvarname);
+            enkf_quit("%s: %s: %s: can not have single dimension", prm->gdatafname, prm->name, prm->zvarname);
 
         {
             int ni2, nj2;
 
             grid_getsize(g, &ni2, &nj2, NULL);
             if (ni != ni2 || nj != nj2)
-                enkf_quit("%s: %s: horizontal dimension of variable \"%s\" must be equal to that of the grid", prm->fname, prm->name, prm->zvarname);
+                enkf_quit("%s: %s: horizontal dimension of variable \"%s\" must be equal to that of the grid", prm->gdatafname, prm->name, prm->zvarname);
         }
 
         /*
@@ -671,7 +675,7 @@ vgrid* vgrid_create(void* p, void* g)
         if (prm->zcvarname != NULL) {
             ncw_inq_varid(ncid, prm->zcvarname, &varid);
             if (ncw_var_hasunlimdim(ncid, varid))
-                enkf_quit("%s: %s: %s: can not have unlimited dimension", prm->fname, prm->name, prm->zcvarname);
+                enkf_quit("%s: %s: %s: can not have unlimited dimension", prm->gdatafname, prm->name, prm->zcvarname);
             ncw_inq_vardims(ncid, varid, 3, &ndimc, dimlenc);
             if (dimlenc[0] == nk) {
                 dimlenc[0]++;
@@ -679,9 +683,9 @@ vgrid* vgrid_create(void* p, void* g)
                     kc_offset = 1;
             }
             if (dimlenc[0] != nk + 1)
-                enkf_quit("%s: %s: %s: vertical dimension must be equal or larger by one than that of \"%s\"", prm->fname, prm->name, prm->zcvarname, prm->zvarname);
+                enkf_quit("%s: %s: %s: vertical dimension must be equal or larger by one than that of \"%s\"", prm->gdatafname, prm->name, prm->zcvarname, prm->zvarname);
             if (ndimc != ndimt)
-                enkf_quit("%s: %s: \"%s\" and \"%s\" must have equal number of dimensions", prm->fname, prm->name, prm->zcvarname, prm->zvarname);
+                enkf_quit("%s: %s: \"%s\" and \"%s\" must have equal number of dimensions", prm->gdatafname, prm->name, prm->zcvarname, prm->zvarname);
             if (ndimc == 3) {
                 zc = alloc3d(dimlenc[0], dimlenc[1], dimlenc[2], sizeof(float));
                 ncw_get_var_float(ncid, varid, ((float***) zc)[kc_offset][0]);
@@ -689,7 +693,7 @@ vgrid* vgrid_create(void* p, void* g)
                 zc = alloc2d(dimlenc[0], dimlenc[1], sizeof(float));
                 ncw_get_var_float(ncid, varid, ((float**) zc)[kc_offset]);
             } else
-                enkf_quit("%s: %s: %s: can not have single dimension", prm->fname, prm->name, prm->zcvarname);
+                enkf_quit("%s: %s: %s: can not have single dimension", prm->gdatafname, prm->name, prm->zcvarname);
         }
 
         vg->gz = gz_numeric_create(ni, nj, nk, prm->vdirection, zt, zc);

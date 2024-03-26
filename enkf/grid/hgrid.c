@@ -141,7 +141,15 @@ hgrid* hgrid_create(void* p, void* g)
     hg->parent = g;
     hg->lonbase = NAN;
 
-    ncw_open(prm->fname, NC_NOWRITE, &ncid);
+    if (hg->type == GRIDHTYPE_NONE) {
+        hg->ni = 1;
+        hg->nj = 1;
+        hg->gxy = NULL;
+
+        return hg;
+    }
+
+    ncw_open(prm->gdatafname, NC_NOWRITE, &ncid);
 
     ncw_inq_varid(ncid, prm->xvarname, &varid_x);
     ncw_inq_varndims(ncid, varid_x, &ndims_x);
@@ -185,7 +193,7 @@ hgrid* hgrid_create(void* p, void* g)
             hg->type = GRIDHTYPE_1D;
             hg->gxy = gxy_1d_create(ni);
 #else
-            triangulation* d = triangulation_read(prm->fname, prm->xvarname, prm->yvarname, prm->trivarname, prm->neivarname);
+            triangulation* d = triangulation_read(prm->gdatafname, prm->xvarname, prm->yvarname, prm->trivarname, prm->neivarname);
 
             hg->gxy = gxy_unstr_create(g, d);
             ni = d->npoints;
@@ -423,7 +431,10 @@ int hgrid_xy2fij(hgrid* hg, void* mask, double x, double y, double* fij)
 #if defined(ENKF_PREP) || defined(ENKF_CALC)
 void hgrid_ij2xy(hgrid* hg, int* ij, double* x, double* y)
 {
-    if (hg->type == GRIDHTYPE_RECTANGULAR) {
+    if (hg->type == GRIDHTYPE_NONE) {
+        *x = NAN;
+        *y = NAN;
+    } else if (hg->type == GRIDHTYPE_RECTANGULAR) {
         int i = ij[0];
         int j = ij[1];
 

@@ -39,7 +39,7 @@
 
 \begin{document}
 
-\title{EnKF-C user guide\\{\normalsize version 2.25.5}}
+\title{EnKF-C user guide\\{\normalsize version 2.28.0}}
 
 \author{Pavel Sakov}
 \date{June 19, 2014 -- \today}
@@ -887,7 +887,7 @@ It also contains variable names for the depth and for number of layers in a vert
   [ DOMAIN           = <domain name> ]
     DATA             = <data file name>
     (either)
-      HTYPE          = { rect | curv | unstr }
+      HTYPE          = { rect | curv | unstr | none }
       XVARNAME       = <X variable name>
       YVARNAME       = <Y variable name>
       (if htype = unstr)
@@ -989,6 +989,19 @@ Grids of this type are defined by specifying variable with cell centres depth co
 
 By default, the code assumes that the surface is at layer 0.
 If this is not the case, one needs to describe it explicitly by the entry \verb|VDIR = TOSURF|; otherwise the surface ensemble or background observations will not be calculated correctly.
+
+\subsubsection{``Empty'' grids}
+
+``Empty'' grids have been introduced in version 2.28.0 to simplify estimation of global scalar parameters.
+In the KF context a model paramater is simply an unobserved model variable.
+In EnKF-C model variables are defined in the model parameter file; each model variable must be associated with a grid defined in the grid parameter file.
+``Empty'' grids are used to be associated with global model paramaters and are defined by specifying their vertical and horizontal types as ``none'', e.g.
+\begin{Verbatim}[frame=single,fontsize=\footnotesize]
+  NAME = param-grid
+  VTYPE = none
+  HTYPE = none
+\end{Verbatim}
+Note that like ``normal'' grids, the empty grids can be associated with particular domains (see sec.~\ref{sec:domains}) to be updated from observations of certain types only.
 
 \subsection{Observation types parameter file}
 \label{sec:obstypesprm}
@@ -1247,18 +1260,26 @@ Note that for observations from bad batches the value of variable \verb|status| 
 \subsubsection{Readers}
 
 The function of data readers is to read observations in specified files and parse them sequentially into \verb|struct observation| defined in \verb|common/observations.h|.
-
-Users are encouraged to use generic readers:
+Following is the list of available readers:
 \begin{Verbatim}
-reader_scattered
-reader_gridded_xy
-reader_gridded_xyz
-reader_gridded_xyh
-reader_z
+>bin/enkf_prep --list-readers
+  generic readers:
+    scattered
+    gridded_xy
+    gridded_xyz
+    gridded_xyh
+    z
+  custom readers:
+    navo
+    windsat
+    mmt
+    amsr2
+    amsre
+    cmems
 \end{Verbatim}
 
-When this is not possible, one may have to develop custom readers.
-The available readers are listed by the variable \verb|allreaders| defined in \verb|prep/allreaders.c|.
+Users are encouraged to use generic readers.
+When this is not possible, one may either modify (or put a request to modify) a generic reader, or develop a custom reader.
 
 Each reader can be specified in the observation data parameter file with an arbitrary number of parameters.
 For example, the following section changes the default minimal depth for using altimetry observations to 150\,m:
@@ -1282,12 +1303,12 @@ The generic parameters include:
 \item{\verb|VARSHIFT|} -- data offset;
 \item{\verb|STRIDE|} -- stride interval.
 \item{\verb|YMIN|} -- minimal allowed latitude;
-\item{\verb|YMAX|} -- maximal allowed latitudedepth;
+\item{\verb|YMAX|} -- maximal allowed latitude;
 \item{\verb|ZMIN|} -- minimal allowed depth;
 \item{\verb|ZMAX|} -- maximal allowed depth;
 \end{description}
 
-The custom parameters can be learned by running \verb|enkf_prep --describe-reader <reader name>|, and the reader name list can printed by \verb|enkf_prep --list-readers|.
+The custom parameters can be learned by running \verb|enkf_prep --describe-reader <reader name>|.
 Following is the description of the reader \verb|scattered|:
 \begin{Verbatim}
 >./bin/enkf_prep --describe-reader scattered
@@ -1725,11 +1746,6 @@ It has the following usage and options:
       calculate forecast ensemble spread and write to spread.nc
   --calculate-forecast-spread-only
       calculate forecast ensemble spread only and write to spread.nc
-  --calculate-vertical-correlations
-      calculate correlation coefficients between surface and other layers of
-      3D variables and write to vcorr.nc
-  --calculate-vertical-correlations-only
-      as above, but exclude other (normally performed) jobs
   --describe-prm-format [main|model|grid]
       describe format of a parameter file and exit
   --direct-write
@@ -1800,6 +1816,34 @@ In a hybrid system the ensemble observation anomalies for the static part of the
 To form the full ensemble observations they are then added to the corresponding ensemble mean observations from the dynamic ensemble.
 If the ensemble observations of the dynamic ensemble are asynchronous then the ensemble mean is also asynchronous.
 Therefore, the static part of the ensemble functions similarly to an FGAT EnOI system, while the dynamic part functions as an asynchronous EnKF.
+
+\section{Ensemble diagnostics}
+\label{sec:diag}
+
+In version 2.27.0 a new binary \verb|enkf_diag| has been added to EnKF-C.
+It aims at calculating various ensemble diagnostics outside the context of DA cycling.
+It has the following usage and options:
+\begin{Verbatim}[frame=single,fontsize=\footnotesize]
+>./bin/enkf_diag
+  Usage: enkf_diag <prm file> [<options>]
+  Options:
+  --calculate-spread
+      calculate ensemble spread and write to spread.nc
+  --calculate-vertical-correlations
+      calculate correlation coefficients between surface and other layers of
+      3D variables and write to vcorr.nc
+  --calculate-vertical-correlations-with <varname1> <layer1>
+    [<varname2> <layer2>] [...]
+      calculate correlation coefficients between specified field (a layer of
+      a variable) and all other fields on the same horizontal grid and
+      write to vcorr-<varname>-<layer>.nc
+  --calculate-vertical-covariances-with <varname1> <layer1>
+    [<varname2> <layer2>] [...]
+      calculate covariances between specified field and all other fields
+      on the same horizontal grid and write to vcov-<varname>-<layer>.nc
+  --version
+      print version and exit
+\end{Verbatim}
 
 \section{DA tuning}
 \label{sec:datuning}

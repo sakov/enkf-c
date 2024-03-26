@@ -50,6 +50,7 @@ typedef struct {
 } gridhtype_entry;
 
 gridhtype_entry allgridhtypeentries[] = {
+    {"NONE", GRIDHTYPE_NONE},
     {"RECT", GRIDHTYPE_RECTANGULAR},
     {"CURV", GRIDHTYPE_CURVILINEAR},
     {"UNSTRUCTURED", GRIDHTYPE_UNSTRUCTURED}
@@ -124,10 +125,10 @@ void gridprm_create(enkfprm* eprm, int* ngrid, gridprm** prm)
         if (strcasecmp(token, "DATA") == 0) {
             if ((token = strtok(NULL, seps)) == NULL)
                 enkf_quit("%s, l.%d: DATA not specified", fname, line);
-            else if (now->fname != NULL)
+            else if (now->gdatafname != NULL)
                 enkf_quit("%s, l.%d: DATA specified twice", fname, line);
             else
-                now->fname = strdup(token);
+                now->gdatafname = strdup(token);
         } else if (strcasecmp(token, "HTYPE") == 0) {
             if ((token = strtok(NULL, seps)) == NULL)
                 enkf_quit("%s, l.%d: HTYPE not specified", fname, line);
@@ -434,16 +435,20 @@ void gridprm_create(enkfprm* eprm, int* ngrid, gridprm** prm)
 
     for (i = 0; i < *ngrid; ++i) {
         gridprm* gprm = &(*prm)[i];
+        int isempty;
 
         if (gprm->vtype == NULL)
             enkf_quit("%s: VTYPE not specified for grid \"%s\"", fname, gprm->name);
-        if (gprm->fname == NULL)
+        isempty = (gprm->htype != NULL && strcasecmp(gprm->htype, "NONE") == 0) && strcasecmp(gprm->vtype, "NONE") == 0;
+
+        if (gprm->gdatafname == NULL && !isempty)
             enkf_quit("%s: DATA not specified for grid \"%s\"", fname, gprm->name);
+        if (gprm->gdatafname != NULL && isempty)
+            enkf_quit("%s: DATA specified for empty grid \"%s\" (both \"htype\" and \"vtype\" are set to \"none\")", fname, gprm->name);
         if (gprm->aliasname != NULL && (gprm->xvarname != NULL || gprm->yvarname != NULL))
             enkf_quit("%s: %s: either HGRIDFROM or XVARNAME and YVARNAME should be specified", fname, gprm->name);
         if (gprm->domainname == NULL)
             gprm->domainname = strdup("ALL");
-        if (strcasecmp(gprm->vtype, "NONE") == 0);
         else if (strcasecmp(gprm->vtype, "Z") == 0) {
             if (gprm->zvarname == NULL)
                 enkf_quit("%s: %s: ZVARNAME must be specified for Z grids", fname, gprm->name);
@@ -464,9 +469,9 @@ void gridprm_create(enkfprm* eprm, int* ngrid, gridprm** prm)
                 enkf_quit("%s: %s: ZVARNAME must be specified for numeric grids", fname, gprm->name);
         } else
             enkf_quit("vertical type \"%s\" specified for grid \"%s\" is unknown", gprm->vtype, gprm->name);
-        if (gprm->aliasname == NULL && gprm->xvarname == NULL)
+        if (gprm->aliasname == NULL && gprm->xvarname == NULL && !isempty)
             enkf_quit("%s: XVARNAME not specified for grid \"%s\"", fname, gprm->name);
-        if (gprm->aliasname == NULL && gprm->yvarname == NULL)
+        if (gprm->aliasname == NULL && gprm->yvarname == NULL && !isempty)
             enkf_quit("%s: YVARNAME not specified for grid \"%s\"", fname, gprm->name);
         if (gprm->aliasname == NULL && (gprm->trivarname == NULL || gprm->neivarname == NULL) && (gprm->trivarname != NULL || gprm->neivarname != NULL))
             enkf_quit("%s: grid \"%s\": both TRIVARNAME and TRINEIVARNAME must be specified or omitted", fname, gprm->name);
@@ -514,7 +519,7 @@ void gridprm_destroy(int ngrid, gridprm prm[])
 
         free(now->prmfname);
         free(now->name);
-        free(now->fname);
+        free(now->gdatafname);
         if (now->aliasname != NULL)
             free(now->aliasname);
         else {
@@ -567,7 +572,7 @@ void gridprm_print(gridprm* prm, char offset[])
     enkf_printf("%sgrid prm info:\n", offset);
     enkf_printf("%s  NAME = \"%s\"\n", offset, prm->name);
     enkf_printf("%s  DOMAIN = %s\n", offset, prm->domainname);
-    enkf_printf("%s  DATA = \"%s\"\n", offset, prm->fname);
+    enkf_printf("%s  DATA = \"%s\"\n", offset, prm->gdatafname);
     enkf_printf("%s  VTYPE = \"%s\"\n", offset, prm->vtype);
     enkf_printf("%s  VDIR = %s\n", offset, prm->vdirection);
     enkf_printf("%s  GEOGRAPHIC = %s\n", offset, (prm->geographic) ? "yes" : "no");

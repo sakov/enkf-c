@@ -1,3 +1,16 @@
+v2.28.0
+   PS 26032024
+   -- Introduced "empty" grids to simplify estimation of global scalar
+      parameters. Each such parameter can be associated with an "empty"
+      grid defined by specifying their vertical and horizontal types as
+      ``none'', e.g.
+      <BEGIN>
+        NAME = param-grid
+        VTYPE = none
+        HTYPE = none
+      <END>
+      Note that like ``normal'' grids, the empty grids can be associated with
+      particular domains to be updated from observations of certain types only.
 v2.27.5
    PS 26032024
    -- In examples/1/Makefile for targets enkf-update and hybrid-update --

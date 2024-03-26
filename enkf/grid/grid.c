@@ -124,10 +124,10 @@ grid* grid_create(void* p, int id, void** grids)
      * set depth data
      */
     if (prm->depthvarname != NULL) {
-        int htype = grid_gethtype(g);
+        int htype = g->hgrid->type;
         int ncid, varid;
 
-        ncw_open(prm->fname, NC_NOWRITE, &ncid);
+        ncw_open(prm->gdatafname, NC_NOWRITE, &ncid);
         ncw_inq_varid(ncid, prm->depthvarname, &varid);
         if (htype == GRIDHTYPE_RECTANGULAR || htype == GRIDHTYPE_CURVILINEAR || htype == GRIDHTYPE_2D) {
             int ni, nj;
@@ -176,11 +176,11 @@ grid* grid_create(void* p, int id, void** grids)
      * set 3D mask
      */
     if (prm->levelvarname != NULL) {
-        int htype = grid_gethtype(g);
-        int vtype = grid_getvtype(g);
+        int htype = g->hgrid->type;
+        int vtype = g->vgrid->type;
         int ncid, varid;
 
-        ncw_open(prm->fname, NC_NOWRITE, &ncid);
+        ncw_open(prm->gdatafname, NC_NOWRITE, &ncid);
         ncw_inq_varid(ncid, prm->levelvarname, &varid);
         if (htype == GRIDHTYPE_RECTANGULAR || htype == GRIDHTYPE_CURVILINEAR || htype == GRIDHTYPE_2D) {
             int ni, nj, nk;
@@ -233,8 +233,8 @@ grid* grid_create(void* p, int id, void** grids)
      * set 3D mask if still necessary
      */
     if (g->numlevels == NULL) {
-        int htype = grid_gethtype(g);
-        int vtype = grid_getvtype(g);
+        int htype = g->hgrid->type;
+        int vtype = g->vgrid->type;
 
         if (htype == GRIDHTYPE_RECTANGULAR || htype == GRIDHTYPE_CURVILINEAR || htype == GRIDHTYPE_2D) {
             int** numlevels;
@@ -296,7 +296,7 @@ grid* grid_create(void* p, int id, void** grids)
                 }
             }
             g->numlevels = numlevels;
-        } else
+        } else if (vtype != GRIDVTYPE_NONE)
             enkf_quit("programming error");
     }
 
@@ -352,6 +352,13 @@ int grid_getvtype(grid* g)
 
 /**
  */
+int grid_isempty(grid* g)
+{
+    return g->vgrid->type == GRIDVTYPE_NONE && g->hgrid->type == GRIDHTYPE_NONE;
+}
+
+/**
+ */
 void* grid_getdepth(grid* g)
 {
     return g->depth;
@@ -395,7 +402,7 @@ void grid_describeprm(void)
     enkf_printf("  [ DOMAIN           = <domain name> ]\n");
     enkf_printf("    DATA             = <data file name>\n");
     enkf_printf("    (either)\n");
-    enkf_printf("      HTYPE          = { rect | curv | unstr }\n");
+    enkf_printf("      HTYPE          = { rect | curv | unstr | none }\n");
     enkf_printf("      XVARNAME       = <X variable name>\n");
     enkf_printf("      YVARNAME       = <Y variable name>\n");
     enkf_printf("      (if htype = unstr)\n");
@@ -748,7 +755,7 @@ int grid_isperiodic_i(grid* g)
  */
 int grid_isstructured(grid* g)
 {
-    if (g->hgrid->type == GRIDHTYPE_RECTANGULAR || g->hgrid->type == GRIDHTYPE_CURVILINEAR || g->hgrid->type == GRIDHTYPE_2D)
+    if (g->hgrid->type == GRIDHTYPE_RECTANGULAR || g->hgrid->type == GRIDHTYPE_CURVILINEAR || g->hgrid->type == GRIDHTYPE_2D || g->hgrid->type == GRIDHTYPE_NONE)
         return 1;
     if (g->hgrid->type == GRIDHTYPE_UNSTRUCTURED || g->hgrid->type == GRIDHTYPE_1D)
         return 0;
