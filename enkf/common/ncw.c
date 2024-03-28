@@ -31,7 +31,7 @@
 #include <errno.h>
 #include "ncw.h"
 
-const char ncw_version[] = "2.30.0";
+const char ncw_version[] = "2.30.1";
 
 /*
  * A flag -- whether ncw_copy_vardef() (re-)defines chunking by layers.
@@ -1985,7 +1985,7 @@ void ncw_copy_atts(int ncid_src, int varid_src, int ncid_dst, int varid_dst)
      * no special attributes for CLASSIC or 64BIT_OFFSET formats
      */
     ncw_inq_format(ncid_dst, &format);
-    if (format == NC_FORMAT_CLASSIC || format == NC_FORMAT_64BIT_OFFSET)
+    if (format == NC_FORMAT_CLASSIC || format == NC_FORMAT_64BIT_OFFSET || varid_src == NC_GLOBAL)
         return;
     /*
      * copy/set special atts
