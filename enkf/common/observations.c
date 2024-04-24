@@ -1420,7 +1420,7 @@ void obs_superob(observations* obs, __compar_d_fn_t cmp_obs, observations** sobs
         if (lon_max - lon_min > 180.0) {
             /*
              * (there is a possibility of merging observations separated by
-             * more than 360 degrees in longitude) 
+             * about 360 degrees in longitude) 
              */
             so->lon = 0.0;
             for (ii = i1; ii <= i2; ++ii) {
@@ -1432,8 +1432,10 @@ void obs_superob(observations* obs, __compar_d_fn_t cmp_obs, observations** sobs
                 so->lon += o->lon / evar;
             }
             so->lon /= so->estd;
-            if (so->lon < 0.0)
-                so->lon += 360.0;
+            /*
+             * the above block should produce valid longitude, but does not
+             * guarantee that the final lon/lot will be within the grid
+             */
         }
         so->estd = sqrt(1.0 / so->estd);
         if (so->estd < obs->obstypes[so->type].estdmin)
