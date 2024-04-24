@@ -1423,7 +1423,7 @@ void obs_superob(observations* obs, __compar_d_fn_t cmp_obs, observations** sobs
              * more than 360 degrees in longitude) 
              */
             so->lon = 0.0;
-            for (ii = i1; ii < i2; ++ii) {
+            for (ii = i1; ii <= i2; ++ii) {
                 o = &data[ii];
                 if (o->lon - lon_min > 180.0)
                     o->lon -= 360.0;
@@ -1431,7 +1431,7 @@ void obs_superob(observations* obs, __compar_d_fn_t cmp_obs, observations** sobs
                 evar = (subvar > evar) ? subvar : evar;
                 so->lon += o->lon / evar;
             }
-            so->lon *= so->estd;
+            so->lon /= so->estd;
             if (so->lon < 0.0)
                 so->lon += 360.0;
         }

@@ -1,3 +1,11 @@
+v2.28.1
+   PS 24042024
+   -- In obs_superob() fixed a piece of code that supposed to take care about
+      averaging longitudes of the superobed observations when the longitude
+      range of these obs. exceeded 180 degrees. It did not work at all but has
+      not manifested so far because the geographic coordinates of superobs are
+      not used in the following analysis, they are just saved in
+      observations.nc.
 v2.28.0
    PS 26032024
    -- Introduced "empty" grids to simplify estimation of global scalar
