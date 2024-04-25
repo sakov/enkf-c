@@ -232,7 +232,6 @@ void obs_add(observations* obs, model* m, obsmeta* meta, int nexclude, obsregion
             for (i = nobs0; i < obs->nobs; ++i) {
                 observation* o = &obs->data[i];
 
-                o->id_orig = i;
                 if (o->lon < lonbase)
                     o->lon += 360.0;
                 else if (o->lon >= lonbase + 360.0)

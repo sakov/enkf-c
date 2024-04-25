@@ -135,6 +135,7 @@ void reader_amsr2(char* fname, int fid, obsmeta* meta, grid* g, observations* ob
         o->type = obstype_getid(obs->nobstypes, obs->obstypes, meta->type, 1);
         o->instrument = st_add_ifabsent(obs->instruments, "AMSR-2", -1);
         o->id = obs->nobs;
+        o->id_orig = i;
         o->fid = fid;
         o->batch = 0;
         o->value = (addbias) ? sst[i] + sstb[i] : sst[i];

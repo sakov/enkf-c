@@ -78,7 +78,7 @@ void reader_gridded_xyh(char* fname, int fid, obsmeta* meta, grid* gdst, observa
     size_t ntime = 0;
     double* time = NULL;
     int varid;
-    size_t i, j, k, nobs_read;
+    size_t i, j, k, nobs_read, id;
 
     for (i = 0; i < meta->npars; ++i) {
         if (strcasecmp(meta->pars[i].name, "VARNAME") == 0)
@@ -240,11 +240,11 @@ void reader_gridded_xyh(char* fname, int fid, obsmeta* meta, grid* gdst, observa
     assert(productid >= 0);
     typeid = obstype_getid(obs->nobstypes, obs->obstypes, meta->type, 1);
     nobs_read = 0;
-    for (i = 0; i < ni; ++i) {
+    for (i = 0, id = 0; i < ni; ++i) {
         for (j = 0; j < nj; ++j) {
             int ij[2] = { i, j };
 
-            for (k = 0; k < nk; ++k) {
+            for (k = 0; k < nk; ++k, ++id) {
                 int ii = k * nij + j * ni + i;
                 observation* o;
                 int qcid;
@@ -263,6 +263,7 @@ void reader_gridded_xyh(char* fname, int fid, obsmeta* meta, grid* gdst, observa
                 o->type = typeid;
                 o->instrument = instid;
                 o->id = obs->nobs;
+                o->id_orig = id;
                 o->fid = fid;
                 o->batch = (batch == NULL) ? 0 : batch[ii];
                 o->value = (double) var[ii];

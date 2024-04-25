@@ -468,6 +468,7 @@ void reader_z(char* fname, int fid, obsmeta* meta, grid* g, observations* obs)
             else
                 o->instrument = st_add_ifabsent(obs->instruments, instruments[p], -1);
             o->id = obs->nobs;
+            o->id_orig = i;
             o->fid = fid;
             o->batch = p;
             o->value = (double) var[p][k];

@@ -140,7 +140,7 @@ void reader_cmems(char* fname, int fid, obsmeta* meta, grid* g, observations* ob
     char buf[MAXSTRLEN];
     double tunits_multiple, tunits_offset;
     int npexcluded;
-    int p, i, nobs_read;
+    int p, i, nobs_read, id;
 
     for (i = 0; i < meta->npars; ++i) {
         if (strcasecmp(meta->pars[i].name, "EXCLUDEINST") == 0) {
@@ -298,7 +298,7 @@ void reader_cmems(char* fname, int fid, obsmeta* meta, grid* g, observations* ob
     npexcluded = 0;
     memset(qcflagcounts, 0, (QCFLAGVALMAX + 1) * sizeof(int));
     nobs_read = 0;
-    for (p = 0; p < (int) nprof; ++p) {
+    for (p = 0, id = 0; p < (int) nprof; ++p) {
         char inststr[MAXSTRLEN];
         int instnum;
 
@@ -313,7 +313,7 @@ void reader_cmems(char* fname, int fid, obsmeta* meta, grid* g, observations* ob
             continue;
         }
 
-        for (i = 0; i < (int) nz; ++i) {
+        for (i = 0; i < (int) nz; ++i, ++id) {
             observation* o;
             int qcflagint;
 
@@ -340,6 +340,7 @@ void reader_cmems(char* fname, int fid, obsmeta* meta, grid* g, observations* ob
             o->type = obstype_getid(obs->nobstypes, obs->obstypes, meta->type, 1);
             o->instrument = st_add_ifabsent(obs->instruments, inststr, -1);
             o->id = obs->nobs;
+            o->id_orig = id;
             o->fid = fid;
             o->batch = p;
             o->value = v[p][i];

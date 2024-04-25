@@ -1,3 +1,8 @@
+v2.28.2
+   PS 25042024
+   -- "id_orig" in "struct observation" is now assigned to the serial number of
+       the observation in the data file. For a superobservation it is assigned
+       to "id_orig" of the very first observation merged.
 v2.28.1
    PS 24042024
    -- In obs_superob() fixed a piece of code that supposed to take care about
