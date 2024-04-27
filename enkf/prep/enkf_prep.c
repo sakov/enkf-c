@@ -251,25 +251,42 @@ static int cmp_obs(const void* p1, const void* p2, void* p)
         return 0;
     }
 
-    /*
-     * The offset below is supposed to align the superobservation cell
-     * boundaries with the cell boundaries.
-     */
-    offset = (double) (stride % 2) / 2.0;
+    if (isnan(o1->fij[2])) {    /* structured grid */
+        /*
+         * The offset below is supposed to align the superobservation cell
+         * boundaries with the cell boundaries.
+         */
+        offset = (double) (stride % 2) / 2.0;
 
-    i1 = (int) floor(o1->fij[0] + offset) / stride;
-    i2 = (int) floor(o2->fij[0] + offset) / stride;
-    if (i1 > i2)
-        return 1;
-    if (i1 < i2)
-        return -1;
+        i1 = (int) floor(o1->fij[0] + offset) / stride;
+        i2 = (int) floor(o2->fij[0] + offset) / stride;
+        if (i1 > i2)
+            return 1;
+        if (i1 < i2)
+            return -1;
 
-    i1 = (int) floor(o1->fij[1] + offset) / stride;
-    i2 = (int) floor(o2->fij[1] + offset) / stride;
-    if (i1 > i2)
-        return 1;
-    if (i1 < i2)
-        return -1;
+        i1 = (int) floor(o1->fij[1] + offset) / stride;
+        i2 = (int) floor(o2->fij[1] + offset) / stride;
+        if (i1 > i2)
+            return 1;
+        if (i1 < i2)
+            return -1;
+    } else {                    /* unstructured grid */
+        int i;
+
+        /*
+         * if points belong to the same triangle then vertex ids (the integer
+         * parts of fij[0]@3) are the same for each vertex
+         */
+        for (i = 0; i < 3; ++i) {
+            i1 = (int) floor(o1->fij[i]);
+            i2 = (int) floor(o2->fij[i]);
+            if (i1 > i2)
+                return 1;
+            if (i1 < i2)
+                return -1;
+        }
+    }
 
     i1 = (int) floor(o1->fk + 0.5);
     i2 = (int) floor(o2->fk + 0.5);
