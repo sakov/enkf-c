@@ -75,7 +75,7 @@ void reader_mmt(char* fname, int fid, obsmeta* meta, grid* g, observations* obs)
     double validmax = -DBL_MAX;
     char* type;
     double tunits_multiple, tunits_offset;
-    int p, i, nobs_read;
+    int p, i, nobs_read, id;
 
     for (i = 0; i < meta->npars; ++i) {
         if (strcasecmp(meta->pars[i].name, "EXCLUDEINST") == 0) {
@@ -162,7 +162,7 @@ void reader_mmt(char* fname, int fid, obsmeta* meta, grid* g, observations* obs)
     ncw_close(ncid);
 
     nobs_read = 0;
-    for (p = 0; p < (int) nprof; ++p) {
+    for (p = 0, id = 0; p < (int) nprof; ++p) {
         char inststr[MAXSTRLEN];
         int instnum;
 
@@ -188,11 +188,12 @@ void reader_mmt(char* fname, int fid, obsmeta* meta, grid* g, observations* obs)
                     break;
             if (i == (int) nz && nzero > 0) {
                 enkf_printf("          profile # %d has no valid obs.\n", p);
+                id += nz;
                 continue;
             }
         }
 
-        for (i = 0; i < (int) nz; ++i) {
+        for (i = 0; i < (int) nz; ++i, ++id) {
             observation* o;
 
             if (!isfinite(v[p][i]) || fabs(v[p][i] - missval) < EPS || v[p][i] < validmin || v[p][i] > validmax)
@@ -211,6 +212,7 @@ void reader_mmt(char* fname, int fid, obsmeta* meta, grid* g, observations* obs)
             o->type = obstype_getid(obs->nobstypes, obs->obstypes, meta->type, 1);
             o->instrument = st_add_ifabsent(obs->instruments, inststr, -1);
             o->id = obs->nobs;
+            o->id_orig = id;
             o->fid = fid;
             o->batch = p;
             o->value = v[p][i];

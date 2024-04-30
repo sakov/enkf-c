@@ -157,12 +157,13 @@ void reader_amsre(char* fname, int fid, obsmeta* meta, grid* g, observations* ob
         double** data = (channel == 0) ? sst_a : sst_d;
         double** wind = (channel == 0) ? wind_a : wind_d;
         double** time = (channel == 0) ? time_a : time_d;
+        int id;
 
         if ((orbits == ORBITS_DESCENDING && channel == 0) || (orbits == ORBITS_ASCENDING && channel == 1))
             continue;
 
-        for (j = 0; j < (int) nj; ++j) {
-            for (i = 0; i < (int) ni; ++i) {
+        for (j = 0, id = 0; j < (int) nj; ++j) {
+            for (i = 0; i < (int) ni; ++i, ++id) {
                 observation* o;
 
                 if (fabs(data[j][i]) > MAXOBSVAL)
@@ -179,6 +180,7 @@ void reader_amsre(char* fname, int fid, obsmeta* meta, grid* g, observations* ob
                 o->type = obstype_getid(obs->nobstypes, obs->obstypes, meta->type, 1);
                 o->instrument = st_add_ifabsent(obs->instruments, "AMSRE", -1);
                 o->id = obs->nobs;
+                o->id_orig = id;
                 o->fid = fid;
                 o->batch = channel;
                 o->value = data[j][i];

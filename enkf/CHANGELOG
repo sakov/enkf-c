@@ -1,3 +1,32 @@
+v2.28.5
+   PS 30042024
+   -- Substantially modified reader "cmems". It now uses TEMP_ADJUSTED or
+      TEMP, PSAL_ADJUSTED or PSAL based on whether individual profiles have
+      valid data, with preference given to adjusted variables. In the previous
+      version the selection was done on file basis, and a lot of valid profiles
+      were discarded if, for example, there were a few valid adjusted profiles
+      and a lot of non-adjusted profiles in a file.
+   -- Some cosmetic changes in the PREP log: added "Section summary" title at
+      the end of each data section.
+v2.28.4
+   PS 28042024
+   -- A (hopefully, final) correction for superobing on unstructured grids.
+v2.28.3
+   PS 26042024
+   -- A correction for superobing on unstructured grids.
+v2.28.2
+   PS 25042024
+   -- "id_orig" in "struct observation" is now assigned to the serial number of
+       the observation in the data file. For a superobservation it is assigned
+       to "id_orig" of the very first observation merged.
+v2.28.1
+   PS 24042024
+   -- In obs_superob() fixed a piece of code that supposed to take care about
+      averaging longitudes of the superobed observations when the longitude
+      range of these obs. exceeded 180 degrees. It did not work at all but has
+      not manifested so far because the geographic coordinates of superobs are
+      not used in the following analysis, they are just saved in
+      observations.nc.
 v2.28.0
    PS 26032024
    -- Introduced "empty" grids to simplify estimation of global scalar

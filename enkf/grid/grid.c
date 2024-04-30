@@ -717,9 +717,9 @@ float grid_interpolate2d(grid* g, double* fij, void* v)
 
         grid_getsize(g, &ni, &nj, NULL);
         return interpolate2d_structured(fij, ni, nj, v, g->numlevels, g->hgrid->periodic_i);
-    } else if (g->hgrid->type == GRIDHTYPE_UNSTRUCTURED) {
+    } else if (g->hgrid->type == GRIDHTYPE_UNSTRUCTURED)
         return interpolate2d_unstructured(fij, v, g->numlevels);
-    } else
+    else
         enkf_quit("programming error");
 
     return NAN;

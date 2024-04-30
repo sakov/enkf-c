@@ -366,6 +366,7 @@ void reader_gridded_xy(char* fname, int fid, obsmeta* meta, grid* g, observation
         o->type = typeid;
         o->instrument = instid;
         o->id = obs->nobs;
+        o->id_orig = i;
         o->fid = fid;
         o->batch = (batch == NULL) ? 0 : batch[i];
         o->value = (double) var[i];

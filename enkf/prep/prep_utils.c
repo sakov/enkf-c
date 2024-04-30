@@ -232,7 +232,6 @@ void obs_add(observations* obs, model* m, obsmeta* meta, int nexclude, obsregion
             for (i = nobs0; i < obs->nobs; ++i) {
                 observation* o = &obs->data[i];
 
-                o->id_orig = i;
                 if (o->lon < lonbase)
                     o->lon += 360.0;
                 else if (o->lon >= lonbase + 360.0)
@@ -240,6 +239,8 @@ void obs_add(observations* obs, model* m, obsmeta* meta, int nexclude, obsregion
             }
         }
     }
+
+    enkf_printf("      Section summary:\n", meta->product, meta->type, meta->reader);
 
     /*
      * common checks
@@ -256,7 +257,7 @@ void obs_add(observations* obs, model* m, obsmeta* meta, int nexclude, obsregion
         int nexcluded = 0;
         int n;
 
-        enkf_printf("      id = %d - %d\n", nobs0, obs->nobs - 1);
+        enkf_printf("        id = %d - %d\n", nobs0, obs->nobs - 1);
         for (i = nobs0; i < obs->nobs; ++i) {
             observation* o = &obs->data[i];
 
@@ -372,31 +373,58 @@ void obs_add(observations* obs, model* m, obsmeta* meta, int nexclude, obsregion
         }
 
         if (noutow > 0)
-            enkf_printf("        %d observations outside obs. window\n", noutow);
+            enkf_printf("          %d observations outside obs. window\n", noutow);
         if (noutod > 0)
-            enkf_printf("        %d obbservations outside obs. domain\n", noutod);
+            enkf_printf("          %d obbservations outside obs. domain\n", noutod);
         if (ninf > 0)
-            enkf_printf("        %d observations not finite\n", ninf);
+            enkf_printf("          %d observations not finite\n", ninf);
         if (nmin > 0)
-            enkf_printf("        %d observations below allowed minimum of %.4g\n", nmin, ot->allowed_min);
+            enkf_printf("          %d observations below allowed minimum of %.4g\n", nmin, ot->allowed_min);
         if (nmax > 0)
-            enkf_printf("        %d observations above allowed maximum of %.4g\n", nmax, ot->allowed_max);
+            enkf_printf("          %d observations above allowed maximum of %.4g\n", nmax, ot->allowed_max);
         if (nland > 0)
-            enkf_printf("        %d observations on land\n", nland);
+            enkf_printf("          %d observations on land\n", nland);
         if (nshallow > 0)
-            enkf_printf("        %d observations in shallow areas\n", nshallow);
+            enkf_printf("          %d observations in shallow areas\n", nshallow);
         if (nthin > 0)
-            enkf_printf("        %d observations thinned\n", nthin);
+            enkf_printf("          %d observations thinned\n", nthin);
         if (nexcluded > 0)
-            enkf_printf("        %d observations in excluded regions\n", nexcluded);
+            enkf_printf("          %d observations in excluded regions\n", nexcluded);
     }
 
     obs->compacted = 0;
-    enkf_printf("      total %d observations\n", obs->nobs - nobs0);
+    enkf_printf("        total %d observations\n", obs->nobs - nobs0);
     for (ngood = 0, i = nobs0; i < obs->nobs; ++i)
         if (obs->data[i].status == STATUS_OK)
             ngood++;
-    enkf_printf("      %d valid observations\n", ngood);
+    enkf_printf("        %d valid observations\n", ngood);
+
+    /*
+     * report time range 
+     */
+    if (obs->nobs - nobs0 > 0) {
+        double day_min = DBL_MAX;
+        double day_max = -DBL_MAX;
+
+        for (i = nobs0; i < obs->nobs; ++i) {
+            observation* o = &obs->data[i];
+
+            if (!isnan(o->time))
+                o->time -= obs->da_time;
+            else
+                o->time = 0.0;
+            if (o->status != STATUS_OK)
+                continue;
+            if (o->time < day_min)
+                day_min = o->time;
+            if (o->time > day_max)
+                day_max = o->time;
+        }
+        if (day_min <= day_max) {
+            enkf_printf("        min day = %.3f\n", day_min);
+            enkf_printf("        max day = %.3f\n", day_max);
+        }
+    }
 
     if (obs->nobs - nobs0 > 0 && applylog && meta->nestds == 0)
         enkf_quit("%s: observation error must be specified explicitly for observations of type associated with log-transformed model variables", ot->name);
@@ -529,33 +557,6 @@ void obs_add(observations* obs, model* m, obsmeta* meta, int nexclude, obsregion
                     free(v);
                 }
             }
-        }
-    }
-
-    /*
-     * report time range 
-     */
-    if (obs->nobs - nobs0 > 0) {
-        double day_min = DBL_MAX;
-        double day_max = -DBL_MAX;
-
-        for (i = nobs0; i < obs->nobs; ++i) {
-            observation* o = &obs->data[i];
-
-            if (!isnan(o->time))
-                o->time -= obs->da_time;
-            else
-                o->time = 0.0;
-            if (o->status != STATUS_OK)
-                continue;
-            if (o->time < day_min)
-                day_min = o->time;
-            if (o->time > day_max)
-                day_max = o->time;
-        }
-        if (day_min <= day_max) {
-            enkf_printf("      min day = %.3f\n", day_min);
-            enkf_printf("      max day = %.3f\n", day_max);
         }
     }
     fflush(stdout);

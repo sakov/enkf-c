@@ -372,6 +372,13 @@ int hgrid_xy2fij(hgrid* hg, void* mask, double x, double y, double* fij)
     if (hg->type == GRIDHTYPE_RECTANGULAR || hg->type == GRIDHTYPE_CURVILINEAR) {
         int i1, i2, j1, j2;
 
+        /*
+         * fij[2] is redundant for structured grids. isnan(fij[2]) is used as
+         * a test for structured/unstrctured grids in cmp_obs() in
+         * enkf_prep.c:main().
+         */
+        fij[2] = NAN;
+
         if (hg->type == GRIDHTYPE_RECTANGULAR) {
             gxy_rect_xy2fij(hg->gxy, x, y, fij);
         } else if (hg->type == GRIDHTYPE_CURVILINEAR)
@@ -417,7 +424,7 @@ int hgrid_xy2fij(hgrid* hg, void* mask, double x, double y, double* fij)
         if (numlevels[(int) fij[0]] == 0 && numlevels[(int) fij[1]] == 0 && numlevels[(int) fij[2]] == 0) {
             fij[0] = NAN;
             fij[1] = NAN;
-            fij[3] = NAN;
+            fij[2] = NAN;
             return STATUS_LAND;
         }
     } else

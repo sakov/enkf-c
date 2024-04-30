@@ -820,7 +820,7 @@ void obs_write(observations* obs, char fname[])
      */
     ncw_def_var(ncid, "id_orig", NC_INT, 1, dimid_nobs, &varid);
     ncw_put_att_text(ncid, varid, "long_name", "original observation ID");
-    ncw_put_att_text(ncid, varid, "description", "for primary observations - the serial number of the primary observation during the reading of data files; for superobs - the original ID of the very first observation collated into this observation");
+    ncw_put_att_text(ncid, varid, "description", "for primary observations - the serial number of the primary observation in the data file; for superobs - the original ID of the very first observation collated into this observation");
     /*
      * status
      */
@@ -1419,11 +1419,12 @@ void obs_superob(observations* obs, __compar_d_fn_t cmp_obs, observations** sobs
 
         if (lon_max - lon_min > 180.0) {
             /*
-             * (there is a possibility of merging observations separated by
-             * more than 360 degrees in longitude) 
+             * This block handles merging of observations separated by about 360
+             * degrees in longitude. It should produce a valid longitude, but
+             * does not guarantee that it will be within the grid.
              */
             so->lon = 0.0;
-            for (ii = i1; ii < i2; ++ii) {
+            for (ii = i1; ii <= i2; ++ii) {
                 o = &data[ii];
                 if (o->lon - lon_min > 180.0)
                     o->lon -= 360.0;
@@ -1431,9 +1432,7 @@ void obs_superob(observations* obs, __compar_d_fn_t cmp_obs, observations** sobs
                 evar = (subvar > evar) ? subvar : evar;
                 so->lon += o->lon / evar;
             }
-            so->lon *= so->estd;
-            if (so->lon < 0.0)
-                so->lon += 360.0;
+            so->lon /= so->estd;
         }
         so->estd = sqrt(1.0 / so->estd);
         if (so->estd < obs->obstypes[so->type].estdmin)

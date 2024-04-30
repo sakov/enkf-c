@@ -60,7 +60,7 @@ typedef struct {
      * economical to define these as "float fi; float fj;"; the floats can be
      * used because the grid sizes are moderate enough to have enough precision
      * for the fractional parts. But for unstructured grids the integral part
-     * contains the vertex index (while the fractional part holds the
+     * contains the vertex id (while the fractional part holds the
      * barycentric coordinate), which can potentially be of order 10^6-10^7.
      * Therefore we use doubles to maintain sufficient precision for
      * the fractional parts.
