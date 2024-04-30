@@ -12,8 +12,7 @@
  * Description: Specific grid types are handled via field `gxy' of `hgrid'.
  *
  * Revisions:
- *
- *****************************************************************************/
+ * *****************************************************************************/
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -127,6 +126,8 @@ static void hgrid_setlonbase(hgrid* hg)
 }
 #endif
 
+/**
+ */
 hgrid* hgrid_create(void* p, void* g)
 {
     gridprm* prm = p;
