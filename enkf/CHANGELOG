@@ -1,3 +1,13 @@
+v2.28.5
+   PS 30042024
+   -- Substantially modified reader "cmems". It now uses TEMP_ADJUSTED or
+      TEMP, PSAL_ADJUSTED or PSAL based on whether individual profiles have
+      valid data, with preference given to adjusted variables. In the previous
+      version the selection was done on file basis, and a lot of valid profiles
+      were discarded if, for example, there were a few valid adjusted profiles
+      and a lot of non-adjusted profiles in a file.
+   -- Some cosmetic changes in the PREP log: added "Section summary" title at
+      the end of each data section.
 v2.28.4
    PS 28042024
    -- A (hopefully, final) correction for superobing on unstructured grids.

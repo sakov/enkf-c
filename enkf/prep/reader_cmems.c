@@ -118,19 +118,32 @@ static int allmissing(int ncid, char varname[])
 
 /**
  */
+static int datamissing(double* v, int n)
+{
+    int i;
+
+    for (i = 0; i < n; ++i)
+        if (isfinite(v[i]))
+            return 0;
+    return 1;
+}
+
+/**
+ */
 void reader_cmems(char* fname, int fid, obsmeta* meta, grid* g, observations* obs)
 {
     stringtable* st_exclude = NULL;
-    int ncid;
+    int ncid, varid;
     int dimid_nprof, dimid_nz;
     size_t nprof, nz;
-    int* status;
+    int* status_prof;
     double* lon;
     double* lat;
-    int varid, varid_qc = -1;
     double** z;
-    double** v;
-    char** qcflag;
+    double** v_adj = NULL;
+    char** qcflag_adj = NULL;
+    double** v_nonadj = NULL;
+    char** qcflag_nonadj = NULL;
     uint32_t qcflagvals = QCFLAGVALS_DEF;
     int qcflagcounts[QCFLAGVALMAX + 1];
     double* time;
@@ -140,7 +153,7 @@ void reader_cmems(char* fname, int fid, obsmeta* meta, grid* g, observations* ob
     char buf[MAXSTRLEN];
     double tunits_multiple, tunits_offset;
     int npexcluded;
-    int p, i, nobs_read, id;
+    int p, i, nobs_read, id, nprof_adj, nprof_nonadj;
 
     for (i = 0; i < meta->npars; ++i) {
         if (strcasecmp(meta->pars[i].name, "EXCLUDEINST") == 0) {
@@ -176,8 +189,9 @@ void reader_cmems(char* fname, int fid, obsmeta* meta, grid* g, observations* ob
             enkf_quit("unknown PARAMETER \"%s\"\n", meta->pars[i].name);
     }
     if (st_exclude != NULL) {
-        enkf_printf("        exluding instruments:");
+        enkf_printf("        excluding instruments:");
         st_printentries(st_exclude, " ");
+        enkf_printf("\n");
     }
 
     if (meta->nestds == 0)
@@ -193,7 +207,7 @@ void reader_cmems(char* fname, int fid, obsmeta* meta, grid* g, observations* ob
         ncw_close(ncid);
         goto noprofiles;
     }
-    status = calloc(nprof, sizeof(int));
+    status_prof = calloc(nprof, sizeof(int));
 
     ncw_inq_varid(ncid, "LONGITUDE", &varid);
     lon = malloc(nprof * sizeof(double));
@@ -242,17 +256,22 @@ void reader_cmems(char* fname, int fid, obsmeta* meta, grid* g, observations* ob
         validmin = -2.0;
         validmax = 40.0;
         if (!allmissing(ncid, "TEMP_ADJUSTED")) {
-            enkf_printf("        reading TEMP_ADJUSTED\n");
             ncw_inq_varid(ncid, "TEMP_ADJUSTED", &varid);
-            if (!allmissing(ncid, "TEMP_ADJUSTED_QC"))
-                ncw_inq_varid(ncid, "TEMP_ADJUSTED_QC", &varid_qc);
-            else
-                ncw_inq_varid(ncid, "TEMP_QC", &varid_qc);
-        } else if (!allmissing(ncid, "TEMP")) {
-            enkf_printf("        reading TEMP\n");
+            v_adj = alloc2d(nprof, nz, sizeof(double));
+            ncu_readvardouble(ncid, varid, nz * nprof, v_adj[0]);
+            ncw_inq_varid(ncid, "TEMP_ADJUSTED_QC", &varid);
+            qcflag_adj = alloc2d(nprof, nz, sizeof(char));
+            ncw_get_var_text(ncid, varid, qcflag_adj[0]);
+        }
+        if (!allmissing(ncid, "TEMP")) {
             ncw_inq_varid(ncid, "TEMP", &varid);
-            ncw_inq_varid(ncid, "TEMP_QC", &varid_qc);
-        } else {
+            v_nonadj = alloc2d(nprof, nz, sizeof(double));
+            ncu_readvardouble(ncid, varid, nz * nprof, v_nonadj[0]);
+            ncw_inq_varid(ncid, "TEMP_QC", &varid);
+            qcflag_nonadj = alloc2d(nprof, nz, sizeof(char));
+            ncw_get_var_text(ncid, varid, qcflag_nonadj[0]);
+        }
+        if (v_adj == NULL && v_nonadj == NULL) {
             enkf_printf("        no data of specified type\n");
             ncw_close(ncid);
             goto nodata;
@@ -261,27 +280,28 @@ void reader_cmems(char* fname, int fid, obsmeta* meta, grid* g, observations* ob
         validmin = 0;
         validmax = 50.0;
         if (!allmissing(ncid, "PSAL_ADJUSTED")) {
-            enkf_printf("        reading PSAL_ADJUSTED\n");
             ncw_inq_varid(ncid, "PSAL_ADJUSTED", &varid);
-            if (!allmissing(ncid, "PSAL_ADJUSTED_QC"))
-                ncw_inq_varid(ncid, "PSAL_ADJUSTED_QC", &varid_qc);
-            else
-                ncw_inq_varid(ncid, "PSAL_QC", &varid_qc);
-        } else if (!allmissing(ncid, "PSAL")) {
-            enkf_printf("        reading PSAL\n");
+            v_adj = alloc2d(nprof, nz, sizeof(double));
+            ncu_readvardouble(ncid, varid, nz * nprof, v_adj[0]);
+            ncw_inq_varid(ncid, "PSAL_ADJUSTED_QC", &varid);
+            qcflag_adj = alloc2d(nprof, nz, sizeof(char));
+            ncw_get_var_text(ncid, varid, qcflag_adj[0]);
+        }
+        if (!allmissing(ncid, "PSAL")) {
             ncw_inq_varid(ncid, "PSAL", &varid);
-            ncw_inq_varid(ncid, "PSAL_QC", &varid_qc);
-        } else {
+            v_nonadj = alloc2d(nprof, nz, sizeof(double));
+            ncu_readvardouble(ncid, varid, nz * nprof, v_nonadj[0]);
+            ncw_inq_varid(ncid, "PSAL_QC", &varid);
+            qcflag_nonadj = alloc2d(nprof, nz, sizeof(char));
+            ncw_get_var_text(ncid, varid, qcflag_nonadj[0]);
+        }
+        if (v_adj == NULL && v_nonadj == NULL) {
             enkf_printf("        no data of specified type\n");
             ncw_close(ncid);
             goto nodata;
         }
     } else
         enkf_quit("observation type \"%s\" not handled for CMEMS product", meta->type);
-    v = alloc2d(nprof, nz, sizeof(double));
-    ncu_readvardouble(ncid, varid, nz * nprof, v[0]);
-    qcflag = alloc2d(nprof, nz, sizeof(char));
-    ncw_get_var_text(ncid, varid_qc, qcflag[0]);
 
     ncw_inq_varid(ncid, "JULD", &varid);
     ncw_get_att_text(ncid, varid, "units", buf);
@@ -298,31 +318,54 @@ void reader_cmems(char* fname, int fid, obsmeta* meta, grid* g, observations* ob
     npexcluded = 0;
     memset(qcflagcounts, 0, (QCFLAGVALMAX + 1) * sizeof(int));
     nobs_read = 0;
+    nprof_adj = 0;
+    nprof_nonadj = 0;
     for (p = 0, id = 0; p < (int) nprof; ++p) {
+        double* v;
+        char* qcflag;
         char inststr[MAXSTRLEN];
-        int instnum;
 
-        strncpy(inststr, &insttype[p * WMO_INSTSIZE], 4);
-        inststr[4] = 0;
-        if (!str2int(inststr, &instnum))
-            instnum = 999;
-        snprintf(inststr, MAXSTRLEN, "WMO%03d", instnum);
+        {
+            int instnum;
 
-        if (st_exclude != NULL && st_findindexbystring(st_exclude, inststr) >= 0) {
-            npexcluded++;
-            continue;
+            strncpy(inststr, &insttype[p * WMO_INSTSIZE], 4);
+            inststr[4] = 0;
+            if (!str2int(inststr, &instnum))
+                instnum = 999;
+            snprintf(inststr, MAXSTRLEN, "WMO%03d", instnum);
+
+            if (st_exclude != NULL && st_findindexbystring(st_exclude, inststr) >= 0) {
+                npexcluded++;
+                id += nz;
+                continue;
+            }
+        }
+
+        {
+            if (v_adj != NULL && !datamissing(v_adj[p], nz)) {
+                v = v_adj[p];
+                qcflag = qcflag_adj[p];
+                nprof_adj++;
+            } else if (v_nonadj != NULL && !datamissing(v_nonadj[p], nz)) {
+                v = v_nonadj[p];
+                qcflag = qcflag_nonadj[p];
+                nprof_nonadj++;
+            } else {
+                id += nz;
+                continue;
+            }
         }
 
         for (i = 0; i < (int) nz; ++i, ++id) {
             observation* o;
             int qcflagint;
 
-            if (isnan(v[p][i]) || v[p][i] < validmin || v[p][i] > validmax)
+            if (isnan(v[i]) || v[i] < validmin || v[i] > validmax)
                 continue;
             if (isnan(z[p][i]) || z[p][i] < 0.0)
                 continue;
             {
-                qcflagint = (int) qcflag[p][i] - (int) '0';
+                qcflagint = (int) qcflag[i] - (int) '0';
                 if (qcflagint < 0 || qcflagint > QCFLAGVALMAX)  /* impossible 
                                                                  */
                     continue;
@@ -343,7 +386,7 @@ void reader_cmems(char* fname, int fid, obsmeta* meta, grid* g, observations* ob
             o->id_orig = id;
             o->fid = fid;
             o->batch = p;
-            o->value = v[p][i];
+            o->value = v[i];
             o->estd = 0.0;
             o->lon = lon[p];
             o->lat = lat[p];
@@ -359,13 +402,17 @@ void reader_cmems(char* fname, int fid, obsmeta* meta, grid* g, observations* ob
             o->time = time[p] * tunits_multiple + tunits_offset;
             o->aux = -1;
             if (o->status == STATUS_OK)
-                status[p] = 1;
+                status_prof[p] = 1;
 
             obs->nobs++;
         }
     }
     if (npexcluded > 0)
         enkf_printf("        # profiles excluded by inst. type = %d\n", npexcluded);
+    if (nprof_adj > 0 && nprof_adj != nprof)
+        enkf_printf("        processed %d adjusted profiles\n", nprof_adj);
+    if (nprof_nonadj > 0 && nprof_nonadj != nprof)
+        enkf_printf("        processed %d non-adjusted profiles\n", nprof_nonadj);
 
     /*
      * get the number of unique profile locations
@@ -376,7 +423,7 @@ void reader_cmems(char* fname, int fid, obsmeta* meta, grid* g, observations* ob
 
         ngood = 0;
         for (i = 0; i < nprof; ++i) {
-            if (status[i] == 0)
+            if (status_prof[i] == 0)
                 continue;
             lonlat[ngood * 2] = lon[i];
             lonlat[ngood * 2 + 1] = lat[i];
@@ -408,13 +455,19 @@ void reader_cmems(char* fname, int fid, obsmeta* meta, grid* g, observations* ob
     }
 
     free(time);
-    free(v);
-    free(qcflag);
+    if (v_adj != NULL) {
+        free(v_adj);
+        free(qcflag_adj);
+    }
+    if (v_nonadj != NULL) {
+        free(v_nonadj);
+        free(qcflag_nonadj);
+    }
     free(insttype);
   nodata:
     free(lon);
     free(lat);
-    free(status);
+    free(status_prof);
     free(z);
   noprofiles:
     if (st_exclude != NULL)
