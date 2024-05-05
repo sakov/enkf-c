@@ -1,9 +1,8 @@
-  running PREP for EnKF-C version 2.21.3:
+  running PREP for EnKF-C version 2.28.6:
     command = "./enkf_prep enoi.prm"
-    dir = "/home/pavel/src/enkf-c/trunk/enkf/examples/2"
-  2023-06-21 10:44:09
+    dir = "/home/599/pxs599/tmp/enkf-c/enkf/examples/2"
+  2024-05-05 14:36:43
   reading prep specs from "enoi.prm":
-    MODE = EnOI
     MODEL PRM = "model.prm"
     GRID PRM = "grid.prm"
     OBS TYPES PRM = "obstypes.prm"
@@ -12,15 +11,6 @@
     BGDIR = "background_6565"
     ENSEMBLE DIR = "ensemble_static"
     ENSEMBLE SIZE = 144
-    RFACTOR BASE = 1.0
-    INFLATION BASE = 1.0000
-    INFLATION MODE = CAPPED, MAX RATIO = 1.00
-    KFACTOR = 999.0
-    LOCRAD  = 200
-    LOCWEIGHT =  1
-    STRIDE = 3
-    FIELDBUFFERSIZE = 4
-    REGION Global: x = [0.0, 360.0], y = [-90.0, 90.0]
     NCFORMAT = NETCDF4
     NCCOMPRESSION = 0
     EnKF flags:
@@ -77,7 +67,7 @@
     grid info:
       size = 100 x 100 x 2
       h type = CURVILINEAR
-      geographic = no
+      geographic = yes
       longitude range = [0.000, 360.000]
       kdtree "t-grid_XY":
         10000 nodes
@@ -90,19 +80,14 @@
     5 variables:
       eta_t:
         grid = "t-grid"
-        inflation = 1.000 1.00
       temp:
         grid = "t-grid"
-        inflation = 1.000 1.00
       salt:
         grid = "t-grid"
-        inflation = 1.000 1.00
       u:
         grid = "t-grid"
-        inflation = 1.000 1.00
       v:
         grid = "t-grid"
-        inflation = 1.000 1.00
   reading observation type specs from "obstypes.prm":
     NAME = SLA
     ISSURFACE = 1
@@ -191,12 +176,13 @@
         LATNAME = lat
         nobs = 296
         # obs added = 292
-      id = 0 - 969
-        1 observations in shallow areas
-      total 970 observations
-      969 valid observations
-      min day = -4.264
-      max day = -0.540
+      Section summary:
+        id = 0 - 969
+          1 observations in shallow areas
+        total 970 observations
+        969 valid observations
+        min day = -4.264
+        max day = -0.540
     PRODUCT = ESACCI, TYPE = SST, reader = scattered
       reading obs/ESACCI/2007/20071219-ESACCI-L3C-SSTdepth-AATSR-01-1d.nc:
         VARNAME = sst
@@ -504,11 +490,12 @@
         LATNAME = lat
         nobs = 8570
         # obs added = 8202
-      id = 970 - 156470
-      total 155501 observations
-      155501 valid observations
-      min day = -4.330
-      max day = 0.437
+      Section summary:
+        id = 970 - 156470
+        total 155501 observations
+        155501 valid observations
+        min day = -4.330
+        max day = 0.437
     PRODUCT = WindSat, TYPE = SST, reader = windsat
       reading obs/WINDSAT/2007/windsat_20071219.nc:
         nobs = 320738
@@ -518,16 +505,16 @@
         nobs = 29534
         nobs = 29534
         # obs added = 0
-      id = 156471 - 157638
-      total 1168 observations
-      1168 valid observations
-      min day = -4.000
-      max day = -4.000
+      Section summary:
+        id = 156471 - 157638
+        total 1168 observations
+        1168 valid observations
+        min day = -4.000
+        max day = -4.000
     PRODUCT = CMEMS, TYPE = TEM, reader = cmems
       reading obs/CORA52/2007/CO_DMQCGL01_20071219_PR_PF.nc:
         # profiles = 3
         # levels = 967
-        reading TEMP_ADJUSTED
         # profiles with data to process = 2
         # unique locations = 2
         nobs = 126
@@ -537,27 +524,28 @@
       reading obs/CORA52/2007/CO_DMQCGL01_20071219_TS_DB.nc:
         # profiles = 45
         # levels = 45
-        reading TEMP_ADJUSTED
-        # profiles with data to process = 22
-        # unique locations = 22
-        nobs = 22
+        processed 22 adjusted profiles
+        processed 23 non-adjusted profiles
+        # profiles with data to process = 45
+        # unique locations = 39
+        nobs = 45
         # of processed obs by quality flags:
-          1: 22 obs
-        # obs added = 22
+          1: 45 obs
+        # obs added = 45
       reading obs/CORA52/2007/CO_DMQCGL01_20071219_TS_MO.nc:
         # profiles = 96
         # levels = 60
-        reading TEMP_ADJUSTED
-        # profiles with data to process = 48
-        # unique locations = 1
-        nobs = 48
+        processed 48 adjusted profiles
+        processed 48 non-adjusted profiles
+        # profiles with data to process = 96
+        # unique locations = 2
+        nobs = 96
         # of processed obs by quality flags:
-          1: 48 obs
-        # obs added = 48
+          1: 96 obs
+        # obs added = 96
       reading obs/CORA52/2007/CO_DMQCGL01_20071220_PR_PF.nc:
         # profiles = 1
         # levels = 952
-        reading TEMP_ADJUSTED
         # profiles with data to process = 1
         nobs = 56
         # of processed obs by quality flags:
@@ -566,27 +554,28 @@
       reading obs/CORA52/2007/CO_DMQCGL01_20071220_TS_DB.nc:
         # profiles = 37
         # levels = 33
-        reading TEMP_ADJUSTED
-        # profiles with data to process = 16
-        # unique locations = 16
-        nobs = 16
+        processed 16 adjusted profiles
+        processed 21 non-adjusted profiles
+        # profiles with data to process = 37
+        # unique locations = 33
+        nobs = 37
         # of processed obs by quality flags:
-          1: 16 obs
-        # obs added = 16
+          1: 37 obs
+        # obs added = 37
       reading obs/CORA52/2007/CO_DMQCGL01_20071220_TS_MO.nc:
         # profiles = 96
         # levels = 60
-        reading TEMP_ADJUSTED
-        # profiles with data to process = 48
-        # unique locations = 1
-        nobs = 48
+        processed 48 adjusted profiles
+        processed 48 non-adjusted profiles
+        # profiles with data to process = 96
+        # unique locations = 2
+        nobs = 96
         # of processed obs by quality flags:
-          1: 48 obs
-        # obs added = 48
+          1: 96 obs
+        # obs added = 96
       reading obs/CORA52/2007/CO_DMQCGL01_20071221_PR_PF.nc:
         # profiles = 1
         # levels = 974
-        reading TEMP_ADJUSTED
         # profiles with data to process = 1
         nobs = 56
         # of processed obs by quality flags:
@@ -595,74 +584,80 @@
       reading obs/CORA52/2007/CO_DMQCGL01_20071221_TS_DB.nc:
         # profiles = 38
         # levels = 48
-        reading TEMP_ADJUSTED
-        # profiles with data to process = 16
-        # unique locations = 16
-        nobs = 16
+        processed 16 adjusted profiles
+        processed 22 non-adjusted profiles
+        # profiles with data to process = 38
+        # unique locations = 33
+        nobs = 38
         # of processed obs by quality flags:
-          1: 16 obs
-        # obs added = 16
+          1: 38 obs
+        # obs added = 38
       reading obs/CORA52/2007/CO_DMQCGL01_20071221_TS_MO.nc:
         # profiles = 96
         # levels = 60
-        reading TEMP_ADJUSTED
-        # profiles with data to process = 48
-        # unique locations = 1
-        nobs = 48
+        processed 48 adjusted profiles
+        processed 48 non-adjusted profiles
+        # profiles with data to process = 96
+        # unique locations = 2
+        nobs = 96
         # of processed obs by quality flags:
-          1: 48 obs
-        # obs added = 48
+          1: 96 obs
+        # obs added = 96
       reading obs/CORA52/2007/CO_DMQCGL01_20071222_TS_DB.nc:
         # profiles = 43
         # levels = 48
-        reading TEMP_ADJUSTED
-        # profiles with data to process = 21
-        # unique locations = 21
-        nobs = 21
+        processed 21 adjusted profiles
+        processed 22 non-adjusted profiles
+        # profiles with data to process = 43
+        # unique locations = 36
+        nobs = 43
         # of processed obs by quality flags:
-          1: 21 obs
-        # obs added = 21
+          1: 43 obs
+        # obs added = 43
       reading obs/CORA52/2007/CO_DMQCGL01_20071222_TS_MO.nc:
         # profiles = 96
         # levels = 60
-        reading TEMP_ADJUSTED
-        # profiles with data to process = 48
-        # unique locations = 1
-        nobs = 48
+        processed 48 adjusted profiles
+        processed 48 non-adjusted profiles
+        # profiles with data to process = 96
+        # unique locations = 2
+        nobs = 96
         # of processed obs by quality flags:
-          1: 48 obs
-        # obs added = 48
+          1: 96 obs
+        # obs added = 96
       reading obs/CORA52/2007/CO_DMQCGL01_20071223_TS_DB.nc:
         # profiles = 45
         # levels = 33
-        reading TEMP_ADJUSTED
-        # profiles with data to process = 23
-        # unique locations = 23
-        nobs = 23
+        processed 23 adjusted profiles
+        processed 22 non-adjusted profiles
+        # profiles with data to process = 45
+        # unique locations = 42
+        nobs = 45
         # of processed obs by quality flags:
-          1: 23 obs
-        # obs added = 23
+          1: 45 obs
+        # obs added = 45
       reading obs/CORA52/2007/CO_DMQCGL01_20071223_TS_MO.nc:
         # profiles = 96
         # levels = 60
-        reading TEMP_ADJUSTED
-        # profiles with data to process = 48
-        # unique locations = 1
-        nobs = 48
+        processed 48 adjusted profiles
+        processed 48 non-adjusted profiles
+        # profiles with data to process = 96
+        # unique locations = 2
+        nobs = 96
         # of processed obs by quality flags:
-          1: 48 obs
-        # obs added = 48
-      id = 157639 - 158214
-      total 576 observations
-      481 valid observations
+          1: 96 obs
+        # obs added = 96
+      Section summary:
+        id = 157639 - 158564
+        total 926 observations
+        831 valid observations
+        min day = -4.500
+        max day = 0.479
       setting error_std to 0.4
-      min day = -4.500
-      max day = 0.479
     PRODUCT = CMEMS, TYPE = SAL, reader = cmems
       reading obs/CORA52/2007/CO_DMQCGL01_20071219_PR_PF.nc:
         # profiles = 3
         # levels = 967
-        reading PSAL_ADJUSTED
         # profiles with data to process = 2
         # unique locations = 2
         nobs = 126
@@ -682,7 +677,6 @@
       reading obs/CORA52/2007/CO_DMQCGL01_20071220_PR_PF.nc:
         # profiles = 1
         # levels = 952
-        reading PSAL_ADJUSTED
         # profiles with data to process = 1
         nobs = 56
         # of processed obs by quality flags:
@@ -701,7 +695,6 @@
       reading obs/CORA52/2007/CO_DMQCGL01_20071221_PR_PF.nc:
         # profiles = 1
         # levels = 974
-        reading PSAL_ADJUSTED
         # profiles with data to process = 1
         nobs = 56
         # of processed obs by quality flags:
@@ -737,32 +730,33 @@
         # levels = 60
         no data of specified type
         # obs added = 0
-      id = 158215 - 158452
-      total 238 observations
-      143 valid observations
+      Section summary:
+        id = 158565 - 158802
+        total 238 observations
+        143 valid observations
+        min day = -3.733
+        max day = -1.742
       setting error_std to 0.075
-      min day = -3.733
-      max day = -1.742
-  2023-06-21 10:44:09
+  2024-05-05 14:36:44
   compacting obs:
-  2023-06-21 10:44:09
+  2024-05-05 14:36:44
   sorting:
-  2023-06-21 10:44:10
+  2024-05-05 14:36:44
   superobing:
-    239 observations thinned
-    10249 superobservations
-  2023-06-21 10:44:10
+    504 observations thinned
+    10250 superobservations
+  2024-05-05 14:36:44
   checking for superobs on land:
     all good
-  2023-06-21 10:44:10
+  2024-05-05 14:36:44
   writing superobservations to "observations.nc":
   printing observation summary:
     type    #used    #dropped #out_grd #out_obs #out_wnd #land    #shallow #badbatch#badvalue#thinned #excluded#superobs
     -----------------------------------------------------------------------------------------------------------
     SLA     969      1        0        0        0        0        1        0        0        0        0        652     
     SST     156669   0        0        0        0        0        0        0        0        0        0        9554    
-    TEM     242      334      95       0        0        0        0        0        0        239      0        38      
+    TEM     327      599      95       0        0        0        0        0        0        504      0        39      
     SAL     143      95       95       0        0        0        0        0        0        0        0        5       
-    total   158023   430      190      0        0        0        1        0        0        239      0        10249   
-  2023-06-21 10:44:10
+    total   158108   695      190      0        0        0        1        0        0        504      0        10250   
+  2024-05-05 14:36:44
   finished

@@ -1,5 +1,5 @@
-NP_CALC = 2
-NP_UPDATE = 2
+NP_CALC = 4
+NP_UPDATE = 4
 
 enoi: clean enoi-prep enoi-calc enoi-update
 

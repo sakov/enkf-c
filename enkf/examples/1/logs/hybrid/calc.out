@@ -1,11 +1,11 @@
-  MPI: initialised 2 process(es)
+  MPI: initialised 4 process(es)
   Using MPI-3 shared memory:
-    sm_comm size = 2
+    sm_comm size = 4
     node_comm size = 1
-  running CALC for EnKF-C version 2.21.3:
+  running CALC for EnKF-C version 2.28.6:
     command = "./enkf_calc hybrid.prm"
-    dir = "/home/pavel/src/enkf-c/trunk/enkf/examples/1"
-  2023-06-21 10:40:08
+    dir = "/home/599/pxs599/tmp/enkf-c/enkf/examples/1"
+  2024-05-05 14:34:50
   reading system specs from "hybrid.prm":
     MODE = Hybrid
     SCHEME = DEnKF
@@ -21,13 +21,10 @@
     STATIC ENSEMBLE SIZE = <FULL>
     GAMMA = 0.250
     RFACTOR BASE = 2.0
-    INFLATION BASE = 1.1000
-    INFLATION MODE = CAPPED, MAX RATIO = 1.00
     KFACTOR = 999.0
     LOCRAD  = 200
     LOCWEIGHT =  1
     STRIDE = 3
-    FIELDBUFFERSIZE = 4
     REGION Global: x = [0.0, 360.0], y = [-90.0, 90.0]
     POINTLOG 156.000 -32.000 
     NCFORMAT = NETCDF4
@@ -40,7 +37,8 @@
       USE_SHMEM        = [+]
       MINIMISE_ALLOC   = [+]
       OBS_SHUFFLE      = [-]
-      TW_VIAFILE       = [-]
+      TW_VIAFILE       = [+]
+      USE_MPIQUEUE     = [+]
       INTERNAL_QSORT_R = [-]
       DEFLATE_ALL      = [-]
   initialising the system:
@@ -122,19 +120,14 @@
     5 variables:
       eta_t:
         grid = "t-grid"
-        inflation = 1.100 1.00
       temp:
         grid = "t-grid"
-        inflation = 1.100 1.00
       salt:
         grid = "t-grid"
-        inflation = 1.100 1.00
       u:
         grid = "t-grid"
-        inflation = 1.100 1.00
       v:
         grid = "t-grid"
-        inflation = 1.100 1.00
   setting the ensemble size:
     96 dynamic members
     144 static members
@@ -142,8 +135,8 @@
     pointlog (156.000, -32.000):
       t-grid: (i, j) = (49.500, 49.500)
   reading observations from "observations.nc":
-    10249 observations
-    allocating 983904 bytes for array of observations
+    10250 observations
+    allocating 984000 bytes for array of observations
     creating kd-trees for observations:
       kdtree "SLA":
         652 nodes
@@ -152,30 +145,35 @@
         9554 nodes
         611504 bytes
       kdtree "TEM":
-        38 nodes
-        2480 bytes
+        39 nodes
+        2544 bytes
       kdtree "SAL":
         5 nodes
         368 bytes
   calculating ensemble observations:
-  2023-06-21 10:40:08
-    allocating 9839040 bytes for HE array:
-    allocating 9839040 bytes for HE^T array:
+  2024-05-05 14:34:50
+    allocating 9840000 bytes for HE array:
+    allocating 9840000 bytes for HE^T array:
     distributing 240 iterations:
-      2 processes get 120 iterations each
-    SLA ........................................................................................................................
-    SST ........................................................................................................................
-    TEM ........................................................................................................................
-    SAL ........................................................................................................................
-    scaling:
+      4 processes get 60 iterations each
+    SLA ............................................................
+    SST ............................................................
+    TEM ............................................................
+    SAL ............................................................
+  gathering:
+  2024-05-05 14:34:51
+  scaling:
+  2024-05-05 14:34:51
+  calculating innovations and spread:
+  2024-05-05 14:34:51
   writing forecast innovations and spread to "observations.nc":
-  2023-06-21 10:40:09
+  2024-05-05 14:34:51
   identifying observation batches:
     SLA     9   
     SST     27  
-    TEM     12  
+    TEM     10  
     SAL     4   
-    total:  52  
+    total:  50  
   moderating observations:
     observations substantially modified:
       SLA          0 (0.0%)
@@ -185,87 +183,86 @@
       total        0 (0.0%)
   writing modified obs errors to "observations.nc":
   calculating transforms:
-  2023-06-21 10:40:09
+  2024-05-05 14:34:51
     calculating transforms for t-grid:
-      distributing 34 iterations:
-        2 processes get 17 iterations each
-      creating empty file "transforms.nc":
       main cycle for t-grid (34 x 34 local analyses):
-        j = 3 (1: 17: 5.9%)
-        j = 0 (0: 0: 5.9%)
-        j = 9 (1: 18: 11.8%)
-        j = 6 (0: 1: 11.8%)
-        j = 15 (1: 19: 17.6%)
-        j = 12 (0: 2: 17.6%)
-        j = 21 (1: 20: 23.5%)
-        j = 18 (0: 3: 23.5%)
-        j = 27 (1: 21: 29.4%)
-        j = 24 (0: 4: 29.4%)
-        j = 33 (1: 22: 35.3%)
-        j = 30 (0: 5: 35.3%)
-        j = 39 (1: 23: 41.2%)
-        j = 36 (0: 6: 41.2%)
-        j = 45 (1: 24: 47.1%)
-        j = 42 (0: 7: 47.1%)
-        j = 51 (1: 25: 52.9%)
-        j = 48 (0: 8: 52.9%)
-        j = 57 (1: 26: 58.8%)
-        j = 54 (0: 9: 58.8%)
-        j = 63 (1: 27: 64.7%)
-        j = 60 (0: 10: 64.7%)
-        j = 69 (1: 28: 70.6%)
-        j = 66 (0: 11: 70.6%)
-        j = 75 (1: 29: 76.5%)
-        j = 72 (0: 12: 76.5%)
-        j = 81 (1: 30: 82.4%)
-        j = 78 (0: 13: 82.4%)
-        j = 87 (1: 31: 88.2%)
-        j = 84 (0: 14: 88.2%)
-        j = 93 (1: 32: 94.1%)
-        j = 90 (0: 15: 94.1%)
-        j = 99 (1: 33: 100.0%)
-        j = 96 (0: 16: 100.0%)
+        j = 6 (3: 2: 5.9%)
+        j = 3 (2: 1: 2.9%)
+        j = 0 (1: 0: 0.0%)
+        j = 9 (1: 3: 8.8%)
+        j = 12 (2: 4: 11.8%)
+        j = 15 (3: 5: 14.7%)
+        j = 18 (1: 6: 17.6%)
+        j = 21 (2: 7: 20.6%)
+        j = 24 (3: 8: 23.5%)
+        j = 27 (1: 9: 26.5%)
+        j = 30 (2: 10: 29.4%)
+        j = 33 (3: 11: 32.4%)
+        j = 36 (1: 12: 35.3%)
+        j = 39 (2: 13: 38.2%)
+        j = 42 (3: 14: 41.2%)
+        j = 45 (1: 15: 44.1%)
+        j = 48 (2: 16: 47.1%)
+        j = 51 (3: 17: 50.0%)
+        j = 54 (1: 18: 52.9%)
+        j = 57 (2: 19: 55.9%)
+        j = 60 (3: 20: 58.8%)
+        j = 63 (1: 21: 61.8%)
+        j = 66 (2: 22: 64.7%)
+        j = 69 (3: 23: 67.6%)
+        j = 72 (1: 24: 70.6%)
+        j = 75 (2: 25: 73.5%)
+        j = 78 (3: 26: 76.5%)
+        j = 81 (1: 27: 79.4%)
+        j = 84 (2: 28: 82.4%)
+        j = 87 (3: 29: 85.3%)
+        j = 90 (1: 30: 88.2%)
+        j = 93 (2: 31: 91.2%)
+        j = 96 (3: 32: 94.1%)
+        j = 99 (1: 33: 97.1%)
+      creating empty file "transforms.nc":
+      assembling "transforms.nc":...
+      assembling "enkf_diag.nc":...
     finished calculating transforms for t-grid
-    writing stats to "enkf_diag.nc":
     summary stats on t-grid:
       # of local analyses = 1156
-      average # of local obs = 1073.4
+      average # of local obs = 1074.1
       # of inversions in obs space = 76
       # of inversions in ens space = 1080
   writing point logs:
-    calculating transforms for log point (156.000,-32.000): 1473 obs
+    calculating transforms for log point (156.000,-32.000): 1474 obs
     writing transforms for point (156.000,-32.000) on grid "t-grid":
   calculating analysed observations:
-  2023-06-21 10:41:32
+  2024-05-05 14:34:56
     sorting obs by ij:
-    2023-06-21 10:41:32
+    2024-05-05 14:34:56
     updating HE:
-    distributing 10249 iterations:
-      2 processes get 5125 or 5124 iterations
-    2023-06-21 10:41:32
+    distributing 10250 iterations:
+      4 processes get 2563 or 2562 iterations
+    2024-05-05 14:34:56
   adding analysis innovations and spread to "observations.nc":
   printing observation statistics:
     region obs.type   # obs.  |for.inn.| |an.inn.|   for.inn.   an.inn.  for.spread  an.spread
     ------------------------------------------------------------------------------------------
     Global
-           SLA           652   0.0769     0.0262     0.0218  -0.000503     0.0413      0.027  
-             j1          272   0.0731     0.0228     0.0228   6.96e-05     0.0463     0.0298  
-             n1          380   0.0797     0.0286     0.0211  -0.000914     0.0377      0.025  
+           SLA           652   0.0769     0.0262     0.0218   -0.00048     0.0413      0.027  
+             j1          272   0.0731     0.0229     0.0228   0.000103     0.0463     0.0298  
+             n1          380   0.0797     0.0286     0.0211  -0.000898     0.0377      0.025  
            SST          9554    0.456      0.188     -0.148    -0.0334      0.419      0.302  
              ESACCI     8386    0.457      0.161     -0.128    -0.0144      0.421      0.303  
              WindSat    1168    0.451      0.379      -0.29      -0.17      0.411      0.297  
-           TEM            38    0.395      0.338      0.062     0.0655      0.379       0.29  
+           TEM            39    0.387       0.33     0.0609     0.0678      0.373      0.286  
              WMO851        3    0.817       0.34      0.817       0.34      0.328      0.245  
              WMO846        2     1.36       1.55     -0.158       1.14       0.47      0.294  
-             WMO999       33    0.298      0.264     0.0067    -0.0245      0.378      0.293  
-             0-50m        34    0.324      0.336     0.0417     0.0553      0.381      0.293  
-             50-500m       4    0.991      0.357      0.234      0.152      0.365      0.258  
+             WMO999       34    0.292      0.257    0.00707    -0.0194      0.372      0.289  
+             0-50m        35    0.318      0.327     0.0411      0.058      0.374      0.289  
+             50-500m       4    0.991      0.356      0.234      0.153      0.365      0.258  
              500-9999m     0     -nan       -nan       -nan       -nan       -nan       -nan  
-           SAL             5    0.101     0.0953      0.075      0.064     0.0334     0.0242  
-             WMO851        3    0.113     0.0754     0.0713     0.0232      0.035     0.0259  
+           SAL             5    0.101     0.0954      0.075     0.0641     0.0334     0.0242  
+             WMO851        3    0.113     0.0753     0.0713     0.0232      0.035     0.0259  
              WMO846        2   0.0841      0.125     0.0806      0.125     0.0312     0.0217  
              0-50m         1    0.165      0.182      0.165      0.182     0.0247     0.0177  
-             50-500m       4   0.0853     0.0737     0.0526     0.0345     0.0356     0.0259  
+             50-500m       4   0.0853     0.0737     0.0526     0.0346     0.0356     0.0259  
              500-9999m     0     -nan       -nan       -nan       -nan       -nan       -nan  
-  2023-06-21 10:41:32
+  2024-05-05 14:34:56
   finished
