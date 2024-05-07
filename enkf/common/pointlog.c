@@ -437,7 +437,8 @@ void plog_definestatevars(dasystem* das)
                 else
                     ncw_inq_varid(ncid, varname, &varid);
 
-                ncw_inq_dimid(ncid, "m1", &dimids[1]);
+                if (das->mode == MODE_ENKF || das->mode == MODE_HYBRID)
+                    ncw_inq_dimid(ncid, "m1", &dimids[1]);
                 if (das->updatespec | UPDATE_DOPLOGSAN) {
                     if (!ncw_var_exists(ncid, varname_an))
                         ncw_def_var(ncid, varname_an, NC_FLOAT, 2, dimids, &varid_an);

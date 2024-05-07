@@ -1,3 +1,35 @@
+v2.29.1
+   PS 07052024
+   -- Added handling the new grid type in hgrid_gettreeXYZ().
+v2.29.0
+   PS 07052024
+   -- Added grid/gxy_curv2.[ch]. This code handles geographic curvilinear grids
+      using stereographic projections. It is supposed to be indifferent to grid
+      singularities in lon/lat (such as discontinuity in node latitudes on ORCA
+      grids). It applies to curvilinear grids only and can be activated for a
+      grid by setting "GEOGRAPHIC = 2" in its section in the grid parameter
+      file.
+      For now, this code should be considered experimental.
+v2.28.7
+   PS 07052024
+   -- Fixed a potentially disruptive code in gxy_curv_xy2fij(). It could
+      manifest when in singular grids (e.g. when there are discontinuities
+      in longitude between adjacent grid nodes, like in ORCA grids). The "fix"
+      returns failure for the mapping attempt, avoiding potential NANs during
+      HE calculation.
+v2.28.6
+   PS 05052024
+   -- Fixed defects in nc_assembletransforms() and nc_assemblediag() manifested
+      when the number of CPUs exceeded the number of tiles (e.g. when running
+      "make global" in examples/1).
+   -- Fixed a (fairly recent) defect in plog_definestatevars() manifested in
+      EnOI systems.
+   -- Because the default compile settings for CALC and UPDATE now include
+      -DUSE_MPIQUEUE: increased the number of CPUs in examples from 2 to 4.
+      (Otherwise with 1 CPU being the manager calculations are done on 1 CPU
+      only.)
+   -- Updated all logs in examples, mainly because the number of TEM obs
+      has increased with the improved "cmems" reader for CORA datasets.
 v2.28.5
    PS 30042024
    -- Substantially modified reader "cmems". It now uses TEMP_ADJUSTED or

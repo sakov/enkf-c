@@ -80,11 +80,7 @@ grid* grid_create(void* p, int id, void** grids)
     g->id = id;
     g->aliasid = -1;
     g->domainname = strdup(prm->domainname);    /* ("ALL" by default) */
-    if (prm->stride != 0) {
-        if (g->hgrid->type == GRIDHTYPE_UNSTRUCTURED && prm->stride != 1)
-            enkf_quit("grid \"%s\": for unstructured grids STRIDE can be equal to 1 only", g->name);
-        g->stride = prm->stride;
-    }
+    g->stride = prm->stride;
     g->nzints = prm->nzints;
     if (prm->nzints > 0) {
         g->zints = malloc(g->nzints * sizeof(zint));
@@ -112,8 +108,14 @@ grid* grid_create(void* p, int id, void** grids)
         if (i == id)
             enkf_quit("%s: %s: no NetCDF file or grid \"%s\" found\n", prm->prmfname, prm->name, prm->aliasname);
     }
+
+#if 0
+    if (g->hgrid->type == GRIDHTYPE_UNSTRUCTURED && prm->stride != 1)
+        enkf_quit("grid \"%s\": for unstructured grids STRIDE can be equal to 1 only", g->name);
+#else
     if (g->hgrid->type == GRIDHTYPE_UNSTRUCTURED || g->hgrid->type == GRIDHTYPE_1D)
         g->stride = 1;
+#endif
 
     /*
      * set vertical grid
@@ -129,7 +131,7 @@ grid* grid_create(void* p, int id, void** grids)
 
         ncw_open(prm->gdatafname, NC_NOWRITE, &ncid);
         ncw_inq_varid(ncid, prm->depthvarname, &varid);
-        if (htype == GRIDHTYPE_RECTANGULAR || htype == GRIDHTYPE_CURVILINEAR || htype == GRIDHTYPE_2D) {
+        if (htype == GRIDHTYPE_RECTANGULAR || htype == GRIDHTYPE_CURVILINEAR || htype == GRIDHTYPE_CURVILINEAR2 || htype == GRIDHTYPE_2D) {
             int ni, nj;
             float** depth;
 
@@ -182,7 +184,7 @@ grid* grid_create(void* p, int id, void** grids)
 
         ncw_open(prm->gdatafname, NC_NOWRITE, &ncid);
         ncw_inq_varid(ncid, prm->levelvarname, &varid);
-        if (htype == GRIDHTYPE_RECTANGULAR || htype == GRIDHTYPE_CURVILINEAR || htype == GRIDHTYPE_2D) {
+        if (htype == GRIDHTYPE_RECTANGULAR || htype == GRIDHTYPE_CURVILINEAR || htype == GRIDHTYPE_CURVILINEAR2 || htype == GRIDHTYPE_2D) {
             int ni, nj, nk;
             int** numlevels;
 
@@ -236,7 +238,7 @@ grid* grid_create(void* p, int id, void** grids)
         int htype = g->hgrid->type;
         int vtype = g->vgrid->type;
 
-        if (htype == GRIDHTYPE_RECTANGULAR || htype == GRIDHTYPE_CURVILINEAR || htype == GRIDHTYPE_2D) {
+        if (htype == GRIDHTYPE_RECTANGULAR || htype == GRIDHTYPE_CURVILINEAR || htype == GRIDHTYPE_CURVILINEAR2 || htype == GRIDHTYPE_2D) {
             int** numlevels;
             int ni, nj, nk;
             int i, j;
@@ -550,7 +552,7 @@ int grid_z2fk(grid* g, double* fij, double z, double* fk)
      * Check depth for z-grid.
      */
     if (vtype == GRIDVTYPE_Z && fij != NULL) {
-        if (htype == GRIDHTYPE_RECTANGULAR || htype == GRIDHTYPE_CURVILINEAR) {
+        if (htype == GRIDHTYPE_RECTANGULAR || htype == GRIDHTYPE_CURVILINEAR || htype == GRIDHTYPE_CURVILINEAR2) {
             int** numlevels = g->numlevels;
             int ksurf = grid_getsurflayerid(g);
             int i1 = floor(fij[0]);
@@ -645,7 +647,7 @@ void grid_ij2xy(grid* g, int* ij, double* x, double* y)
  */
 int grid_island(grid* g, double* fij, double fk)
 {
-    if (g->hgrid->type == GRIDHTYPE_RECTANGULAR || g->hgrid->type == GRIDHTYPE_CURVILINEAR) {
+    if (g->hgrid->type == GRIDHTYPE_RECTANGULAR || g->hgrid->type == GRIDHTYPE_CURVILINEAR || g->hgrid->type == GRIDHTYPE_CURVILINEAR2) {
         int i1 = (int) floor(fij[0]);
         int i2 = (int) ceil(fij[0]);
         int j1 = (int) floor(fij[1]);
@@ -712,7 +714,7 @@ float grid_interpolate2d(grid* g, double* fij, void* v)
     if (v == NULL)
         return NAN;
 
-    if (g->hgrid->type == GRIDHTYPE_RECTANGULAR || g->hgrid->type == GRIDHTYPE_CURVILINEAR || g->hgrid->type == GRIDHTYPE_2D) {
+    if (g->hgrid->type == GRIDHTYPE_RECTANGULAR || g->hgrid->type == GRIDHTYPE_CURVILINEAR || g->hgrid->type == GRIDHTYPE_CURVILINEAR2 || g->hgrid->type == GRIDHTYPE_2D) {
         int ni, nj;
 
         grid_getsize(g, &ni, &nj, NULL);
@@ -733,7 +735,7 @@ float grid_interpolate3d(grid* g, double* fij, float fk, void* v)
     if (v == NULL)
         return NAN;
 
-    if (g->hgrid->type == GRIDHTYPE_RECTANGULAR || g->hgrid->type == GRIDHTYPE_CURVILINEAR)
+    if (g->hgrid->type == GRIDHTYPE_RECTANGULAR || g->hgrid->type == GRIDHTYPE_CURVILINEAR || g->hgrid->type == GRIDHTYPE_CURVILINEAR2)
         return interpolate3d_structured(fij, (double) fk, g->hgrid->ni, g->hgrid->nj, g->vgrid->nk, grid_getsurflayerid(g), v, g->numlevels, g->hgrid->periodic_i);
     else if (g->hgrid->type == GRIDHTYPE_UNSTRUCTURED)
         return interpolate3d_unstructured(fij, (double) fk, g->vgrid->nk, grid_getsurflayerid(g), v, g->numlevels);
@@ -755,7 +757,7 @@ int grid_isperiodic_i(grid* g)
  */
 int grid_isstructured(grid* g)
 {
-    if (g->hgrid->type == GRIDHTYPE_RECTANGULAR || g->hgrid->type == GRIDHTYPE_CURVILINEAR || g->hgrid->type == GRIDHTYPE_2D || g->hgrid->type == GRIDHTYPE_NONE)
+    if (g->hgrid->type == GRIDHTYPE_RECTANGULAR || g->hgrid->type == GRIDHTYPE_CURVILINEAR || g->hgrid->type == GRIDHTYPE_CURVILINEAR2 || g->hgrid->type == GRIDHTYPE_2D || g->hgrid->type == GRIDHTYPE_NONE)
         return 1;
     if (g->hgrid->type == GRIDHTYPE_UNSTRUCTURED || g->hgrid->type == GRIDHTYPE_1D)
         return 0;

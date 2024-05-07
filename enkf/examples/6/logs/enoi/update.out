@@ -1,27 +1,19 @@
-  MPI: initialised 2 process(es)
-  running UPDATE for EnKF-C version 2.9.3:
+  MPI: initialised 4 process(es)
+  running UPDATE for EnKF-C version 2.28.6:
     command = "./enkf_update --calculate-spread enoi.prm"
-    dir = "/home/pavel/src/enkf-c/trunk/enkf/examples/6"
-  2021-06-16 08:49:45
+    dir = "/home/599/pxs599/tmp/enkf-c/enkf/examples/6"
+  2024-05-05 14:46:48
   reading system specs from "enoi.prm":
     MODE = EnOI
     MODEL PRM = "model.prm"
     GRID PRM = "grid.prm"
-    OBS TYPES PRM = "obstypes.prm"
-    OBS PRM = "obs.prm"
-    DATE = "6565.5 days since 1990-01-01"
     BGDIR = "background_6565"
     ENSEMBLE DIR = "ensemble_static"
     ENSEMBLE SIZE = 144
-    RFACTOR BASE = 1.0
     INFLATION BASE = 1.0000
     INFLATION MODE = CAPPED, MAX RATIO = 1.00
-    KFACTOR = 999.0
-      LOCRAD  = 200
-      LOCWEIGHT =  1
     STRIDE = 3
     FIELDBUFFERSIZE = 4
-    REGION Global: x = [0.0, 360.0], y = [-90.0, 90.0]
     POINTLOG 156.000 -32.000 
     NCFORMAT = NETCDF4
     NCCOMPRESSION = 0
@@ -30,16 +22,17 @@
       enkf_obstype     = [VALUE]
     enkf_update compile flags:
       NCW_SKIPSINGLE   = [-]
+      USE_MPIQUEUE     = [+]
       DEFLATE_ALL      = [-]
   update specs:
-    do model fields  = [+]
-    do spread        = [+]
-    do pointlogs     = [+]
-    separate output  = [+]
+    do model fields   = [+]
+    do spread         = [+]
+    do pointlogs      = [+]
+    separate output   = [+]
   initialising the system:
     grid prm info:
       NAME = "t-grid"
-      DOMAIN = Default
+      DOMAIN = ALL
       DATA = "conf4/grid_spec.nc"
       VTYPE = "none"
       VDIR = (null)
@@ -49,15 +42,16 @@
       XVARNAME = "lont"
       YVARNAME = "latt"
     grid info:
-      hor type = LATLON
+      size = 100 x 100 x 1
+      h type = RECTANGULAR
       periodic by X = no
-      dims = 100 x 100 x 1
-      longitude range = [0.000, 360.000]
+      longitude range = any
       v type = NONE
+      v dir = FROMSURF
       STRIDE = 0
     grid prm info:
       NAME = "t-grid2"
-      DOMAIN = Default
+      DOMAIN = ALL
       DATA = "conf4/grid_spec.nc"
       VTYPE = "z"
       VDIR = FROMSURF
@@ -70,13 +64,14 @@
       HGRIDFROM = "t-grid"
       ZSTATINTS = [0 50] [50 500] [500 9999] 
     grid info:
+      size = 100 x 100 x 2
       horizontal grid -- aliased to grid #0
       v type = Z
       v dir = FROMSURF
       STRIDE = 0
     grid prm info:
       NAME = "c-grid"
-      DOMAIN = Default
+      DOMAIN = ALL
       DATA = "conf4/grid_spec.nc"
       VTYPE = "z"
       VDIR = FROMSURF
@@ -89,10 +84,10 @@
       YVARNAME = "latc"
       ZSTATINTS = [0 50] [50 500] [500 9999] 
     grid info:
-      hor type = LATLON
+      size = 100 x 100 x 2
+      h type = RECTANGULAR
       periodic by X = no
-      dims = 100 x 100 x 2
-      longitude range = [0.000, 360.000]
+      longitude range = any
       v type = Z
       v dir = FROMSURF
       STRIDE = 0
@@ -124,47 +119,37 @@
   updating the model state:
     allocating disk space for spread:
     defining state variables in point logs:
-    2021-06-16 08:49:45
-    allocating disk space for analysis:.....
-    processing fields for t-grid:
-      2021-06-16 08:49:45
-      5 fields
-      distributing 5 iterations:
-        2 processes get 3 or 2 iterations
-      salt     0   (1: 3: 50.0%)
-      eta_t    0   (0: 0: 33.3%)
-      salt     1   (1: 4: 100.0%)
-      temp     0   (0: 1: 66.7%)
-      temp     1   (0: 2: 100.0%)
-    processing fields for c-grid:
-      2021-06-16 08:49:45
-      4 fields
-      distributing 4 iterations:
-        2 processes get 2 iterations each
-      v        0   (1: 2: 50.0%)
-      u        0   (0: 0: 50.0%)
-      v        1   (1: 3: 100.0%)
-      u        1   (0: 1: 100.0%)
-  2021-06-16 08:49:45
+    2024-05-05 14:46:48
+    allocating disk space for analysis:
+      eta_t    0   (1: 0: 11.1%)
+      temp     0   (2: 1: 22.2%)
+      temp     1   (3: 2: 33.3%)
+      salt     0   (2: 3: 44.4%)
+      salt     1   (3: 4: 55.6%)
+      u        0   (1: 5: 66.7%)
+      u        1   (1: 6: 77.8%)
+      v        0   (2: 7: 88.9%)
+      v        1   (3: 8: 100.0%)
+  2024-05-05 14:46:49
   assembling analysis:
     eta_t:.
     temp:..
     salt:..
     u:..
     v:..
-  2021-06-16 08:49:45
+  2024-05-05 14:46:49
   assembling spread:
     eta_t:.
     temp:..
     salt:..
     u:..
     v:..
-  2021-06-16 08:49:45
+  2024-05-05 14:46:49
   assembling state variables in point logs:
     distributing 1 iterations:
-      1 processes get 1 iteration, 1 processes get 0 iterations
+      1 processes get 1 iteration, 3 processes get 0 iterations
     deleting tiles:
       distributing 9 iterations:
-        2 processes get 5 or 4 iterations
-  2021-06-16 08:49:45
+        4 processes get 3 or 2 iterations
+  2024-05-05 14:46:49
   finished

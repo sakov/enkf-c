@@ -1,9 +1,8 @@
-  running PREP for EnKF-C version 2.21.3:
+  running PREP for EnKF-C version 2.28.6:
     command = "./enkf_prep enoi.prm"
-    dir = "/home/pavel/src/enkf-c/trunk/enkf/examples/3"
-  2023-06-21 10:47:25
+    dir = "/home/599/pxs599/tmp/enkf-c/enkf/examples/3"
+  2024-05-05 14:37:10
   reading prep specs from "enoi.prm":
-    MODE = EnOI
     MODEL PRM = "model.prm"
     GRID PRM = "grid.prm"
     OBS TYPES PRM = "obstypes.prm"
@@ -14,15 +13,6 @@
     BGDIR = "background"
     ENSEMBLE DIR = "ensemble"
     ENSEMBLE SIZE = <FULL>
-    RFACTOR BASE = 1.0
-    INFLATION BASE = 1.0000
-    INFLATION MODE = CAPPED, MAX RATIO = 1.00
-    KFACTOR = n/a
-    LOCRAD  = 100
-    LOCWEIGHT =  1
-    STRIDE = 1
-    FIELDBUFFERSIZE = 1
-    REGION Global: x = [0.0, 360.0], y = [-90.0, 90.0]
     NCFORMAT = NETCDF4
     NCCOMPRESSION = 0
     EnKF flags:
@@ -97,16 +87,12 @@
     4 variables:
       eta:
         grid = "t-grid"
-        inflation = 1.000 1.00
       salt:
         grid = "t-grid"
-        inflation = 1.000 1.00
       temp:
         grid = "t-grid"
-        inflation = 1.000 1.00
       u1:
         grid = "c-grid"
-        inflation = 1.000 1.00
   reading observation type specs from "obstypes.prm":
     NAME = SLA
     ISSURFACE = 1
@@ -171,12 +157,13 @@
         LATNAME = lat
         nobs = 6
         # obs added = 5
-      id = 0 - 16
-        12 observations outside obs. window
-      total 17 observations
-      5 valid observations
-      min day = -1.517
-      max day = -1.517
+      Section summary:
+        id = 0 - 16
+          12 observations outside obs. window
+        total 17 observations
+        5 valid observations
+        min day = -1.517
+        max day = -1.517
     PRODUCT = ESACCI, TYPE = SST, reader = scattered
       reading obs/20071219-ESACCI-L3C-SSTdepth-AVHRRMTA-03-1d.nc:
         VARNAME = sst
@@ -202,31 +189,32 @@
         LATNAME = lat
         nobs = 10
         # obs added = 10
-      id = 17 - 61
-        10 observations outside obs. window
-      total 45 observations
-      35 valid observations
-      min day = -2.966
-      max day = -0.548
-  2023-06-21 10:47:25
+      Section summary:
+        id = 17 - 61
+          10 observations outside obs. window
+        total 45 observations
+        35 valid observations
+        min day = -2.966
+        max day = -0.548
+  2024-05-05 14:37:10
   compacting obs:
-  2023-06-21 10:47:25
+  2024-05-05 14:37:10
   sorting:
-  2023-06-21 10:47:25
+  2024-05-05 14:37:10
   superobing:
-    35 superobservations
-  2023-06-21 10:47:25
+    34 superobservations
+  2024-05-05 14:37:10
   checking for superobs on land:
     all good
-  2023-06-21 10:47:25
+  2024-05-05 14:37:10
   writing superobservations to "observations.nc":
   printing observation summary:
     type    #used    #dropped #out_grd #out_obs #out_wnd #land    #shallow #badbatch#badvalue#thinned #excluded#superobs
     -----------------------------------------------------------------------------------------------------------
     SLA     5        12       0        0        12       0        0        0        0        0        0        5       
-    SST     35       10       0        0        10       0        0        0        0        0        0        30      
+    SST     35       10       0        0        10       0        0        0        0        0        0        29      
     TEM     0        0        0        0        0        0        0        0        0        0        0        0       
     SAL     0        0        0        0        0        0        0        0        0        0        0        0       
-    total   40       22       0        0        22       0        0        0        0        0        0        35      
-  2023-06-21 10:47:25
+    total   40       22       0        0        22       0        0        0        0        0        0        34      
+  2024-05-05 14:37:10
   finished

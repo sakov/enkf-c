@@ -76,6 +76,7 @@ common/observations.c\
 grid/triangulation.c\
 grid/gxy_rect.c\
 grid/gxy_curv.c\
+grid/gxy_curv2.c\
 grid/gxy_unstr.c\
 grid/vgrid.c\
 grid/hgrid.c\
@@ -103,6 +104,7 @@ common/observations.h\
 grid/triangulation.h\
 grid/gxy_rect.h\
 grid/gxy_curv.h\
+grid/gxy_curv2.h\
 grid/gxy_unstr.h\
 grid/vgrid.h\
 grid/hgrid.h\
@@ -123,6 +125,7 @@ grid/triangulation.c\
 grid/gxy_unstr.c\
 grid/gxy_rect.c\
 grid/gxy_curv.c\
+grid/gxy_curv2.c\
 grid/vgrid.c\
 grid/hgrid.c\
 calc/obsstats.c\
@@ -145,6 +148,7 @@ common/observations.h\
 grid/triangulation.h\
 grid/gxy_rect.h\
 grid/gxy_curv.h\
+grid/gxy_curv2.h\
 grid/gxy_unstr.h\
 grid/vgrid.h\
 grid/hgrid.h\
@@ -231,7 +235,7 @@ clean:
 	rm -f bin/*
 
 indent:
-	indent -T FILE -T uint32_t -T uint16_t -T badbatchspec -T region -T obsregion -T zint -T field -T dasystem -T model -T variable -T modeldata -T gridprm -T grid -T vgrid -T hgrid -T gxy_1d -T gxy_2d -T gxy_rect -T gxy_curv -T gxy_unstr -T point -T triangle -T triangle_neighbours -T triangulation -T gz_z -T gz_sigma -T gz_hybrid -T gz_numeric -T obsmeta -T metastd -T metapar -T obsreader_entry -T H_entry -T model_entry -T enkfprm -T observation -T obstype -T observations -T otdesc -T pointlog -T calcstats -T stringtable -T kdtree -T kdnode -T kdresult -T hashtable -T ht_bucket -T nctype2str -T nc_type -T size_t -T tm -T mpiqueue */*.[ch]
+	indent -T FILE -T uint32_t -T uint16_t -T badbatchspec -T region -T obsregion -T zint -T field -T dasystem -T model -T variable -T modeldata -T gridprm -T grid -T vgrid -T hgrid -T gxy_1d -T gxy_2d -T gxy_rect -T gxy_curv -T gxy_curv2 -T gxy_unstr -T point -T triangle -T triangle_neighbours -T triangulation -T gz_z -T gz_sigma -T gz_hybrid -T gz_numeric -T obsmeta -T metastd -T metapar -T obsreader_entry -T H_entry -T model_entry -T enkfprm -T observation -T obstype -T observations -T otdesc -T pointlog -T calcstats -T stringtable -T kdtree -T kdnode -T kdresult -T hashtable -T ht_bucket -T nctype2str -T nc_type -T size_t -T tm -T mpiqueue */*.[ch]
 	rm -f `find . -name "*.*~"`
 
 tar:

@@ -53,6 +53,7 @@ gridhtype_entry allgridhtypeentries[] = {
     {"NONE", GRIDHTYPE_NONE},
     {"RECT", GRIDHTYPE_RECTANGULAR},
     {"CURV", GRIDHTYPE_CURVILINEAR},
+    {"CURV2", GRIDHTYPE_CURVILINEAR2},
     {"UNSTRUCTURED", GRIDHTYPE_UNSTRUCTURED}
 };
 
@@ -166,7 +167,7 @@ void gridprm_create(enkfprm* eprm, int* ngrid, gridprm** prm)
         } else if (strcasecmp(token, "GEOGRAPHIC") == 0) {
             if ((token = strtok(NULL, seps)) == NULL)
                 enkf_quit("%s, l.%d: GEOGRAPHIC not specified", fname, line);
-            if (!str2bool(token, &now->geographic))
+            if (!str2int(token, &now->geographic) && !str2bool(token, &now->geographic))
                 enkf_quit("%s, l.%d: could not convert \"%s\" to boolean", fname, line, token);
         } else if (strcasecmp(token, "XVARNAME") == 0) {
             if ((token = strtok(NULL, seps)) == NULL)

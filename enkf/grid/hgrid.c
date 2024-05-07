@@ -28,6 +28,7 @@
 #include "gridprm.h"
 #include "gxy_rect.h"
 #include "gxy_curv.h"
+#include "gxy_curv2.h"
 #include "gxy_unstr.h"
 #include "hgrid.h"
 
@@ -114,6 +115,12 @@ static void hgrid_setlonbase(hgrid* hg)
                     xmax = x[i];
             }
         }
+    } else if (hg->type == GRIDHTYPE_CURVILINEAR2) {
+        /*
+         * nothing to do, I guess
+         */
+        hg->lonbase = NAN;
+        return;
     } else if (hg->type == GRIDHTYPE_UNSTRUCTURED)
         triangulation_getminmax(gxy_unstr_gettriangulation(hg->gxy), &xmin, &xmax, NULL, NULL);
 
@@ -140,6 +147,7 @@ hgrid* hgrid_create(void* p, void* g)
     hg = calloc(1, sizeof(hgrid));
     hg->type = gridprm_gethtype(prm);
     hg->parent = g;
+    hg->geographic = prm->geographic;
     hg->lonbase = NAN;
 
     if (hg->type == GRIDHTYPE_NONE) {
@@ -205,9 +213,9 @@ hgrid* hgrid_create(void* p, void* g)
 #if defined(ENKF_UPDATE)
             hg->type = GRIDHTYPE_2D;
 #else
-            hg->type = GRIDHTYPE_CURVILINEAR;
+            hg->type = (prm->geographic < 2) ? GRIDHTYPE_CURVILINEAR : GRIDHTYPE_CURVILINEAR2;
 #endif
-        } else if (hg->type != GRIDHTYPE_RECTANGULAR && hg->type != GRIDHTYPE_CURVILINEAR)
+        } else if (hg->type != GRIDHTYPE_RECTANGULAR && hg->type != GRIDHTYPE_CURVILINEAR && hg->type != GRIDHTYPE_CURVILINEAR2)
             enkf_quit("%s: grid \"%s\": 2-dimensional coordinates are only possible for HTYPE = CURV or HTYPE = RECT", prm->prmfname, prm->name);
 
         if (hg->type == GRIDHTYPE_2D) {
@@ -262,7 +270,10 @@ hgrid* hgrid_create(void* p, void* g)
                 hg->periodic_i = gxy_rect_getperiodic_i(hg->gxy);
             } else {
 #if defined(ENKF_PREP) || defined(ENKF_CALC)
-                hg->gxy = gxy_curv_create(g, ni, nj, x, y, grid_getnumlevels(g), prm->geographic);
+                if (prm->geographic < 2)
+                    hg->gxy = gxy_curv_create(g, ni, nj, x, y, grid_getnumlevels(g), prm->geographic);
+                else
+                    hg->gxy = gxy_curv2_create(g, ni, nj, x, y, grid_getnumlevels(g));
 #else
                 enkf_quit("programming error");
 #endif
@@ -290,10 +301,12 @@ void hgrid_destroy(hgrid* hg)
 #if defined(ENKF_PREP) || defined(ENKF_CALC)
     else if (hg->type == GRIDHTYPE_CURVILINEAR)
         gxy_curv_destroy(hg->gxy);
+    else if (hg->type == GRIDHTYPE_CURVILINEAR2)
+        gxy_curv2_destroy(hg->gxy);
     else if (hg->type == GRIDHTYPE_UNSTRUCTURED)
         gxy_unstr_destroy(hg->gxy);
 #else
-    else if (hg->type == GRIDHTYPE_CURVILINEAR || hg->type == GRIDHTYPE_UNSTRUCTURED)
+    else if (hg->type == GRIDHTYPE_CURVILINEAR || hg->type == GRIDHTYPE_CURVILINEAR2 || hg->type == GRIDHTYPE_UNSTRUCTURED)
         enkf_quit("programming error");
 #endif
 #if defined(ENKF_CALC)
@@ -305,11 +318,14 @@ void hgrid_destroy(hgrid* hg)
 
 /**
  */
-#if defined(ENKF_PREP) || defined(ENKF_CALC)
+#if defined(ENKF_CALC)
 int hgrid_destroynodetree(hgrid* hg)
 {
     if (hg->type == GRIDHTYPE_CURVILINEAR) {
         gxy_curv_destroykdtree(hg->gxy);
+        return 1;
+    } else if (hg->type == GRIDHTYPE_CURVILINEAR2) {
+        gxy_curv2_destroykdtree(hg->gxy);
         return 1;
     }
     return 0;
@@ -333,6 +349,8 @@ void hgrid_describe(hgrid* hg, char* offset)
         break;
     case GRIDHTYPE_CURVILINEAR:
         enkf_printf("%s  h type = CURVILINEAR\n", offset);
+    case GRIDHTYPE_CURVILINEAR2:
+        enkf_printf("%s  h type = CURVILINEAR2\n", offset);
 #if defined(ENKF_PREP) || defined(ENKF_CALC)
         enkf_printf("%s  geographic = %s\n", offset, (gxy_curv_isgeographic(hg->gxy)) ? "yes" : "no");
 #endif
@@ -369,7 +387,7 @@ int hgrid_xy2fij(hgrid* hg, void* mask, double x, double y, double* fij)
             x -= 360.0;
     }
 
-    if (hg->type == GRIDHTYPE_RECTANGULAR || hg->type == GRIDHTYPE_CURVILINEAR) {
+    if (hg->type == GRIDHTYPE_RECTANGULAR || hg->type == GRIDHTYPE_CURVILINEAR || hg->type == GRIDHTYPE_CURVILINEAR2) {
         int i1, i2, j1, j2;
 
         /*
@@ -379,10 +397,12 @@ int hgrid_xy2fij(hgrid* hg, void* mask, double x, double y, double* fij)
          */
         fij[2] = NAN;
 
-        if (hg->type == GRIDHTYPE_RECTANGULAR) {
+        if (hg->type == GRIDHTYPE_RECTANGULAR)
             gxy_rect_xy2fij(hg->gxy, x, y, fij);
-        } else if (hg->type == GRIDHTYPE_CURVILINEAR)
+        else if (hg->type == GRIDHTYPE_CURVILINEAR)
             (void) gxy_curv_xy2fij(hg->gxy, x, y, fij);
+        else if (hg->type == GRIDHTYPE_CURVILINEAR2)
+            (void) gxy_curv2_xy2fij(hg->gxy, x, y, fij);
         if (isnan(fij[0] + fij[1]))
             return STATUS_OUTSIDEGRID;
 
@@ -464,6 +484,17 @@ void hgrid_ij2xy(hgrid* hg, int* ij, double* x, double* y)
             *x = gxy_curv_getx(hg->gxy)[j][i];
             *y = gxy_curv_gety(hg->gxy)[j][i];
         }
+    } else if (hg->type == GRIDHTYPE_CURVILINEAR2) {
+        int i = ij[0];
+        int j = ij[1];
+
+        if (i < 0 || j < 0 || i >= hg->ni || j >= hg->nj) {
+            *x = NAN;
+            *y = NAN;
+        } else {
+            *x = gxy_curv2_getx(hg->gxy)[j][i];
+            *y = gxy_curv2_gety(hg->gxy)[j][i];
+        }
     } else if (hg->type == GRIDHTYPE_UNSTRUCTURED) {
         point* p = gxy_unstr_getpoint(hg->gxy, ij[0]);
 
@@ -521,6 +552,31 @@ kdtree* hgrid_gettreeXYZ(hgrid* hg, int createifnull)
     } else if (hg->type == GRIDHTYPE_CURVILINEAR) {
         double** x = gxy_curv_getx(hg->gxy);
         double** y = gxy_curv_gety(hg->gxy);
+        int** numlevels = grid_getnumlevels(hg->parent);
+        size_t* ids;
+        size_t ii, n;
+
+        ids = malloc(hg->ni * hg->nj * sizeof(size_t));
+
+        for (ii = 0, n = 0; ii < hg->ni * hg->nj; ++ii) {
+            if (numlevels[0][ii] == 0 || isnan(x[0][ii]))
+                continue;
+            ids[n] = ii;
+            n++;
+        }
+        shuffle(n, ids);
+        for (ii = 0; ii < n; ++ii) {
+            double ll[2], xyz[3];
+
+            ll[0] = x[0][ids[ii]];
+            ll[1] = y[0][ids[ii]];
+            ll2xyz(ll, xyz);
+            kd_insertnode(tree, xyz, ids[ii]);
+        }
+        free(ids);
+    } else if (hg->type == GRIDHTYPE_CURVILINEAR2) {
+        double** x = gxy_curv2_getx(hg->gxy);
+        double** y = gxy_curv2_gety(hg->gxy);
         int** numlevels = grid_getnumlevels(hg->parent);
         size_t* ids;
         size_t ii, n;

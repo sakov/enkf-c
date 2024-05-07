@@ -1416,7 +1416,7 @@ ASYNC = 1
 (...)
 \end{Verbatim}
 The above means that SST observations are considered to be asynchronous with time bins of 1 day.
-If, for example, the assimilation time is specified as ``6085.5 days since 1990-01-01'', then the interval 0 is centred (by default) at the time of assimilation, i.e. will be from day 6080.0 to day 6081.0; interval -1 -- from day 6079.0 to day 6080.0, interval 1 -- from day 6081.0 to day 6082.0, and so on.
+If, for example, the assimilation time is specified as ``6085.5 days since 1990-01-01'', then the interval 0 is centred (by default) at the time of assimilation, i.e. will be from day 6085.0 to day 6086.0; interval -1 -- from day 6084.0 to day 6085.0, interval 1 -- from day 6086.0 to day 6087.0, and so on.
 It is possible to shift the asynchronous intervals so that not the centre but the start of interval 0 is located at the time of assimilation.
 In this case one needs to add qualifier ``endpoint'' after the length of the interval, i.e.
 \begin{Verbatim}[frame=single,fontsize=\footnotesize]

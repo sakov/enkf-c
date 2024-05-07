@@ -244,8 +244,11 @@ static void nc_assembletransforms(dasystem* das, int gridid, size_t nj, size_t n
 
         ncw_open(fname_tile, NC_NOWRITE, &ncid_tile);
         nr = ncw_inq_nrecords(ncid_tile);
-        if (nr == 0)
+        if (nr == 0) {
+            ncw_close(ncid_tile);
+            file_delete(fname_tile);
             continue;
+        }
         if (nr > nr_max) {
             if (doT)
                 v_T = realloc(v_T, nr * ni * das->nmem_dynamic * das->nmem * sizeof(float));
@@ -416,14 +419,18 @@ void nc_assemblediag(dasystem* das, int gridid, int nj, int ni, int stride)
         das_getfname_diagtile(das, gridid, p, fname_tile);
         if (!file_exists(fname_tile))
             continue;
+
         ncw_open(fname_tile, NC_NOWRITE, &ncid_tile);
         ncw_inq_varid(ncid_tile, "j", &varid_j_tile);
         ncw_inq_varid(ncid_tile, "pnlobs", &varid_pnlobs_tile);
         ncw_inq_varid(ncid_tile, "pdfs", &varid_pdfs_tile);
         ncw_inq_varid(ncid_tile, "psrf", &varid_psrf_tile);
         nr = ncw_inq_nrecords(ncid_tile);
-        if (nr == 0)
+        if (nr == 0) {
+            ncw_close(ncid_tile);
+            file_delete(fname_tile);
             continue;
+        }
         for (r = 0; r < nr; ++r) {
             start[0] = r;
             start[1] = 0;
