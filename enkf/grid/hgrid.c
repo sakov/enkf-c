@@ -147,7 +147,6 @@ hgrid* hgrid_create(void* p, void* g)
     hg = calloc(1, sizeof(hgrid));
     hg->type = gridprm_gethtype(prm);
     hg->parent = g;
-    hg->geographic = prm->geographic;
     hg->lonbase = NAN;
 
     if (hg->type == GRIDHTYPE_NONE) {

@@ -417,7 +417,7 @@ int gxy_curv2_xy2fij(gxy_curv2* gxy, double x, double y, double* fij)
         else {
             if (gxy->sign[proj] == 0) {
                 gxy->sign[proj] = calc_branch(gxy, proj, x, y);
-                if (gxy->sign == 0)
+                if (gxy->sign[proj] == 0)
                     return 0;   /* failed */
             }
             u = (-B + gxy->sign[proj] * sqrt(B * B - 4.0 * A * C)) / (2.0 * A);

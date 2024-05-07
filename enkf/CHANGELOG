@@ -1,3 +1,6 @@
+v2.29.2
+   PS 07052024
+   -- Fixed two simple compile errors.
 v2.29.1
    PS 07052024
    -- Added handling the new grid type in hgrid_gettreeXYZ().
