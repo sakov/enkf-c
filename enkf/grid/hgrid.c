@@ -146,6 +146,7 @@ hgrid* hgrid_create(void* p, void* g)
     hg = calloc(1, sizeof(hgrid));
     hg->type = gridprm_gethtype(prm);
     hg->parent = g;
+    hg->geographic = prm->geographic;
     hg->lonbase = NAN;
 
     if (hg->type == GRIDHTYPE_NONE) {
@@ -550,6 +551,31 @@ kdtree* hgrid_gettreeXYZ(hgrid* hg, int createifnull)
     } else if (hg->type == GRIDHTYPE_CURVILINEAR) {
         double** x = gxy_curv_getx(hg->gxy);
         double** y = gxy_curv_gety(hg->gxy);
+        int** numlevels = grid_getnumlevels(hg->parent);
+        size_t* ids;
+        size_t ii, n;
+
+        ids = malloc(hg->ni * hg->nj * sizeof(size_t));
+
+        for (ii = 0, n = 0; ii < hg->ni * hg->nj; ++ii) {
+            if (numlevels[0][ii] == 0 || isnan(x[0][ii]))
+                continue;
+            ids[n] = ii;
+            n++;
+        }
+        shuffle(n, ids);
+        for (ii = 0; ii < n; ++ii) {
+            double ll[2], xyz[3];
+
+            ll[0] = x[0][ids[ii]];
+            ll[1] = y[0][ids[ii]];
+            ll2xyz(ll, xyz);
+            kd_insertnode(tree, xyz, ids[ii]);
+        }
+        free(ids);
+    } else if (hg->type == GRIDHTYPE_CURVILINEAR2) {
+        double** x = gxy_curv2_getx(hg->gxy);
+        double** y = gxy_curv2_gety(hg->gxy);
         int** numlevels = grid_getnumlevels(hg->parent);
         size_t* ids;
         size_t ii, n;
