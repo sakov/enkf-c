@@ -1,3 +1,10 @@
+v2.28.7
+   PS 07052024
+   -- Fixed a potentially disruptive code in gxy_curv_xy2fij(). It could
+      manifest when in singular grids (e.g. when there are discontinuities
+      in longitude between adjacent grid nodes, like in ORCA grids). The "fix"
+      returns failure for the mapping attempt, avoiding potential NANs during
+      HE calculation.
 v2.28.6
    PS 05052024
    -- Fixed defects in nc_assembletransforms() and nc_assemblediag() manifested

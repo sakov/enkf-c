@@ -414,6 +414,13 @@ int gxy_curv_xy2fij(gxy_curv* gxy, double x, double y, double* fij)
         d2 = e * u + g;
         v = (fabs(d2) > fabs(d1)) ? (y - f * u - h) / d2 : (x - b * u - d) / d1;
 
+        /*
+         * this can happen e.g. when there is a singularity (longitude
+         * discontinuity) in this cell
+         */
+        if (hypot(u - 0.5, v - 0.5) > 1)
+            return 0;
+
         if (u < 0.0)
             u = 0.0;
         else if (u >= 1.0)

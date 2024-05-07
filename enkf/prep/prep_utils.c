@@ -240,7 +240,7 @@ void obs_add(observations* obs, model* m, obsmeta* meta, int nexclude, obsregion
         }
     }
 
-    enkf_printf("      Section summary:\n", meta->product, meta->type, meta->reader);
+    enkf_printf("      section summary:\n", meta->product, meta->type, meta->reader);
 
     /*
      * common checks
