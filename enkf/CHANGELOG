@@ -1,3 +1,12 @@
+v2.29.0
+   PS 07052024
+   -- Added grid/gxy_curv2.[ch]. This code handles geographic curvilinear grids
+      using stereographic projections. It is supposed to be indifferent to grid
+      singularities in lon/lat (such as discontinuity in node latitudes on ORCA
+      grids). It applies to curvilinear grids only and can be activated for a
+      grid by setting "GEOGRAPHIC = 2" in its section in the grid parameter
+      file.
+      For now, this code should be considered experimental.
 v2.28.7
    PS 07052024
    -- Fixed a potentially disruptive code in gxy_curv_xy2fij(). It could

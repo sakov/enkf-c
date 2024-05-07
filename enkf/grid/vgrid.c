@@ -898,7 +898,7 @@ static void gz_sigma_z2fk(vgrid* vg, double* fij, double z, double* fk)
     if (depth == NULL)
         enkf_quit("%s: DEPTHVARNAME must be entered for SIGMA grids to assimilate subsurface obs", grid_getname(g));
 
-    if (htype == GRIDHTYPE_RECTANGULAR || htype == GRIDHTYPE_CURVILINEAR) {
+    if (htype == GRIDHTYPE_RECTANGULAR || htype == GRIDHTYPE_CURVILINEAR || htype == GRIDHTYPE_CURVILINEAR2) {
         if (isnan(gz->fij_prev[0]) || fabs(fij[0] - gz->fij_prev[0]) > EPS_IJ || fabs(fij[1] - gz->fij_prev[1]) > EPS_IJ) {
             double h = (double) grid_interpolate2d(g, fij, depth);
             int i;
@@ -950,7 +950,7 @@ static void gz_hybrid_z2fk(vgrid* vg, double* fij, double z, double* fk)
     gz_hybrid* gz = vg->gz;
     int htype = grid_gethtype(g);
 
-    if (htype == GRIDHTYPE_RECTANGULAR || htype == GRIDHTYPE_CURVILINEAR) {
+    if (htype == GRIDHTYPE_RECTANGULAR || htype == GRIDHTYPE_CURVILINEAR || htype == GRIDHTYPE_CURVILINEAR2) {
         if (isnan(gz->fij_prev[0]) || fabs(fij[0] - gz->fij_prev[0]) > EPS_IJ || fabs(fij[1] - gz->fij_prev[1]) > EPS_IJ) {
             double p1 = grid_interpolate2d(g, fij, gz->p1);
             double p2 = grid_interpolate2d(g, fij, gz->p2);
@@ -992,7 +992,7 @@ static void gz_numeric_z2fk(vgrid* vg, double* fij, double z, double* fk)
     void* g = vg->parent;
     int htype = grid_gethtype(g);
 
-    if (htype == GRIDHTYPE_RECTANGULAR || htype == GRIDHTYPE_CURVILINEAR) {
+    if (htype == GRIDHTYPE_RECTANGULAR || htype == GRIDHTYPE_CURVILINEAR || htype == GRIDHTYPE_CURVILINEAR2) {
         if (isnan(gz->fij_prev[0]) || fabs(fij[0] - gz->fij_prev[0]) > EPS_IJ || fabs(fij[1] - gz->fij_prev[1]) > EPS_IJ) {
             int k;
 
@@ -1074,7 +1074,7 @@ int grid_fk2z(grid* g, int* ij, double fk, double* z)
     int htype = grid_gethtype(g);
     int vtype = grid_getvtype(g);
 
-    if (htype == GRIDHTYPE_RECTANGULAR || htype == GRIDHTYPE_CURVILINEAR) {
+    if (htype == GRIDHTYPE_RECTANGULAR || htype == GRIDHTYPE_CURVILINEAR || htype == GRIDHTYPE_CURVILINEAR2) {
         int i = ij[0];
         int j = ij[1];
         int ni, nj;
