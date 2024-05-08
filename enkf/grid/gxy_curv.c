@@ -193,7 +193,7 @@ int gxy_curv_getnj(gxy_curv* gxy)
  ** ..., (px[3], py[3])}. Based on Algorithm 1 from Symmetry 2018, 10, 477;
  ** doi:10.3390/sym10100477.
  */
-static int incell(double x, double y, double* px, double* py)
+int incell(double x, double y, double* px, double* py)
 {
     int count, i, i1;
     double v1, v2, u1, u2, f;

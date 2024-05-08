@@ -8,8 +8,8 @@
  *              Bureau of Meteorology
  *
  * Purpose:     Handles geographic curvilinear grids using stereographic
- *              projections. This code is supposed to be indifferent to
- *              grid singularities in lon/lat (such as discontinuity in node
+ *              projections. This code is supposed to provide robust handling
+ *              for grids with  singularities in lon/lat (such as discontinuity in node
  *              latitudes on ORCA grids).
  *
  * Description: Derived from gxy_curv.c.
@@ -38,15 +38,14 @@
  * projections (SGPs). (By North SGP we call the projection from the North Pole
  * onto the plane tangent at the South Pole.)
  *
- * A point is mapped using the NSGP for points in the Southern hemisphere, and
- * SSGP for points in the Northern hemisphere. This settings targets global
- * grids, and is likely to be somewhat excessive for local grids.
+ * A point is mapped using the NSGP for points in the southern hemisphere, and
+ * SSGP for points in the northern hemisphere. This design with two projections
+ * targets global grids, and is likely to be somewhat excessive for local grids.
  *
  * Compared to "gxy_curv", "gxy_curv2" uses quite a bit more memory. In
  * addition to the original lon/lat grid coordinates (necessary for ij2xy
- * mappings) it also needs to carry two Kd-trees for the two projections,
- * and grid cordinates in both projections. Speed-wise it should be as good as
- * "gxy_curv".
+ * mappings) it also needs to carry two Kd-trees and two arrays of grid
+ * cordinates. Speed-wise it should be as good as the original "gxy_curv".
  */
 
 struct gxy_curv2 {
@@ -206,51 +205,6 @@ double** gxy_curv2_gety(gxy_curv2* gxy)
     return gxy->y_orig;
 }
 
-/** Test whether the point (x, y) is inside quadrilateral {(px[0], py[0]),
- ** ..., (px[3], py[3])}. Based on Algorithm 1 from Symmetry 2018, 10, 477;
- ** doi:10.3390/sym10100477.
- */
-static int incell(double x, double y, double* px, double* py)
-{
-    int count, i, i1;
-    double v1, v2, u1, u2, f;
-
-    for (i = 0, count = 0; i < 4; ++i) {
-        i1 = (i + 1) % 4;
-        v1 = py[i] - y;
-        v2 = py[i1] - y;
-        if ((v1 < 0.0 && v2 < 0.0) || (v1 > 0.0 && v2 > 0.0))
-            continue;
-        u1 = px[i] - x;
-        u2 = px[i1] - x;
-        f = u1 * v2 - u2 * v1;
-        if (v2 > 0.0 && v1 <= 0.0) {
-            if (f > 0.0)
-                count++;
-            else if (f == 0.0)
-                return 1;
-        } else if (v1 > 0.0 && v2 <= 0.0) {
-            if (f < 0.0)
-                count++;
-            else if (f == 0.0)
-                return 1;
-        } else if (v2 == 0.0 && v1 < 0.0) {
-            if (f == 0.0)
-                return 1;
-        } else if (v1 == 0.0 && v2 < 0.0) {
-            if (f == 0.0)
-                return 1;
-        } else if (v1 == 0.0 && v2 == 0.0) {
-            if (u2 <= 0.0 && u1 >= 0.0)
-                return 1;
-            else if (u1 <= 0.0 && u2 >= 0.0)
-                return 1;
-        }
-    }
-
-    return count % 2;
-}
-
 /** This function is called only from gxy_curv2_xy2fij(); x and y are assumed
  ** to be already in sterographic projection
  */
@@ -398,9 +352,14 @@ int gxy_curv2_xy2fij(gxy_curv2* gxy, double x, double y, double* fij)
     fij[0] = NAN;
     fij[1] = NAN;
 
-    proj = (y < 0.0) ? 0 : 1;
     ll[0] = x;
-    ll[1] = (y < 0.0) ? y : -y;
+    if (y < 0.0) {
+        proj = 0;
+        ll[1] = y;
+    } else {
+        proj = 1;
+        ll[1] = -y;
+    }
 
     ll2xyz(ll, pos);
     x = pos[0] / (REARTH - pos[2]);
