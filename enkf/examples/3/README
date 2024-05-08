@@ -1,4 +1,4 @@
-This is an example with an structured grid. It has been put up as a code test
+This is an example with an unstructured grid. It has been put up as a code test
 only, with not much physical sense. The initial ensemble is constructed from 19
 consequitive daily average dumps from COMPAS model developed ny CSIRO. The
 background is a reduced restart from COMPAS with basic model variables only.
