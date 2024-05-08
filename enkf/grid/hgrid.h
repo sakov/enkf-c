@@ -33,7 +33,7 @@ typedef struct {
     double lonbase;
     /*
      * flag - whether the grid is periodic in I direction
-     * at the moment can be != 0 for rectangular grids only
+     * at the moment can be != 0 for rectangular geographic grids only
      */
     int periodic_i;
     void* gxy;
