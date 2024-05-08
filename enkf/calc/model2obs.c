@@ -52,12 +52,17 @@ static void evaluate_2d_obs(model* m, observations* allobs, int nobs, int obsids
         else {
             kdtree* tree = grid_gettreeXYZ(g, 1);
             double ll[2] = { o->lon, o->lat };
-            double xyz[3];
             size_t ncells = 0;
             kdresult* results = NULL;
 
-            ll2xyz(ll, xyz);
-            kd_findnodeswithinrange(tree, xyz, o->footprint, 0, &ncells, &results);
+            if (grid_isgeographic(g)) {
+                double xyz[3];
+
+                ll2xyz(ll, xyz);
+                kd_findnodeswithinrange(tree, xyz, o->footprint, 0, &ncells, &results);
+            } else
+                kd_findnodeswithinrange(tree, ll, o->footprint, 0, &ncells, &results);
+
             if (ncells > 0) {
                 size_t* ids = malloc(ncells * sizeof(size_t));
                 size_t iloc;

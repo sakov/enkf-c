@@ -768,6 +768,13 @@ int grid_isstructured(grid* g)
 
 /**
  */
+int grid_isgeographic(grid* g)
+{
+    return g->hgrid->geographic;
+}
+
+/**
+ */
 static void grids_addgrid(int* ngrid, void*** grids, void* g)
 {
     if (*ngrid % GRID_INC == 0)

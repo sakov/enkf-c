@@ -153,7 +153,7 @@ void obs_superob(observations* obs, __compar_d_fn_t cmp_obs, observations** sobs
 #if defined(ENKF_CALC)
 void obs_createkdtrees(observations* obs);
 void obs_destroykdtrees(observations* obs);
-void obs_findlocal(observations* obs, double lon, double lat, char* dimainname, int* n, int** ids, double** lcoeffs, int* ploc_allocated);
+void obs_findlocal(observations* obs, double lon, double lat, int geographic, char* dimainname, int* n, int** ids, double** lcoeffs, int* ploc_allocated);
 int obs_modifiederrors_alreadywritten(observations* obs, char fname[]);
 void obs_markbadbatches(observations* obs, hashtable* badbatches);
 void obs_writeobsstatus(observations* obs, char fname[]);

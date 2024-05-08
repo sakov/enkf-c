@@ -727,9 +727,9 @@ void das_calctransforms(dasystem* das)
                         grid_ij2xy(g, ij, &lon, &lat);
 
 #if defined(MINIMISE_ALLOC)
-                        obs_findlocal(obs, lon, lat, grid_getdomainname(g), &ploc, &lobs, &lcoeffs, &ploc_allocated2);
+                        obs_findlocal(obs, lon, lat, grid_isgeographic(g), grid_getdomainname(g), &ploc, &lobs, &lcoeffs, &ploc_allocated2);
 #else
-                        obs_findlocal(obs, lon, lat, grid_getdomainname(g), &ploc, &lobs, &lcoeffs, NULL);
+                        obs_findlocal(obs, lon, lat, grid_isgeographic(g), grid_getdomainname(g), &ploc, &lobs, &lcoeffs, NULL);
 #endif
                         assert(ploc >= 0 && ploc <= obs->nobs);
                     }
@@ -1643,6 +1643,7 @@ void das_calcpointlogtransforms(dasystem* das)
     observations* obs = das->obs;
     double* w = malloc(nmem * sizeof(double));
     double** T = NULL;
+    int geographic = grid_isgeographic(model_getgridbyid(m, 0));
     int plogid, e, o, gid;
 
     if (das->s_mode == S_MODE_HA_f)
@@ -1665,7 +1666,7 @@ void das_calcpointlogtransforms(dasystem* das)
         /*
          * find all (for all domains) local obs
          */
-        obs_findlocal(obs, plog->lon, plog->lat, NULL, &ploc, &lobs, &lcoeffs, NULL);
+        obs_findlocal(obs, plog->lon, plog->lat, geographic, NULL, &ploc, &lobs, &lcoeffs, NULL);
         assert(ploc >= 0 && ploc <= obs->nobs);
         enkf_printf(" %d obs\n", ploc);
         /*
@@ -1694,7 +1695,7 @@ void das_calcpointlogtransforms(dasystem* das)
                 continue;
 
             ploc = 0;
-            obs_findlocal(obs, plog->lon, plog->lat, grid_getdomainname(g), &ploc, &lobs, &lcoeffs, NULL);
+            obs_findlocal(obs, plog->lon, plog->lat, geographic, grid_getdomainname(g), &ploc, &lobs, &lcoeffs, NULL);
 
             if (ploc == 0) {
                 memset(w, 0, nmem * sizeof(double));

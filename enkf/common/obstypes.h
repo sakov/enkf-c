@@ -44,6 +44,7 @@ typedef struct {
 
     int vid;
     int gridid;
+    int geographic;
 
     /*
      * Stride for superobing. "0" means to use the common value defined in

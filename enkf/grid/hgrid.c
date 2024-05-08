@@ -531,14 +531,22 @@ kdtree* hgrid_gettreeXYZ(hgrid* hg, int createifnull)
             n++;
         }
         shuffle(n, ids);
-        for (ii = 0; ii < n; ++ii) {
-            int id = ids[ii];
-            double ll[2], xyz[3];
+        if (hg->geographic) {
+            for (ii = 0; ii < n; ++ii) {
+                int id = ids[ii];
+                double ll[2] = { x[id % hg->ni], y[id / hg->ni] };
+                double xyz[3];
 
-            ll[0] = x[id % hg->ni];
-            ll[1] = y[id / hg->ni];
-            ll2xyz(ll, xyz);
-            kd_insertnode(tree, xyz, ids[ii]);
+                ll2xyz(ll, xyz);
+                kd_insertnode(tree, xyz, id);
+            }
+        } else {
+            for (ii = 0; ii < n; ++ii) {
+                int id = ids[ii];
+                double ll[2] = { x[id % hg->ni], y[id / hg->ni] };
+
+                kd_insertnode(tree, ll, id);
+            }
         }
         free(ids);
     } else if (hg->type == GRIDHTYPE_CURVILINEAR) {
@@ -557,13 +565,22 @@ kdtree* hgrid_gettreeXYZ(hgrid* hg, int createifnull)
             n++;
         }
         shuffle(n, ids);
-        for (ii = 0; ii < n; ++ii) {
-            double ll[2], xyz[3];
+        if (hg->geographic) {
+            for (ii = 0; ii < n; ++ii) {
+                int id = ids[ii];
+                double ll[2] = { x[0][id], y[0][id] };
+                double xyz[3];
 
-            ll[0] = x[0][ids[ii]];
-            ll[1] = y[0][ids[ii]];
-            ll2xyz(ll, xyz);
-            kd_insertnode(tree, xyz, ids[ii]);
+                ll2xyz(ll, xyz);
+                kd_insertnode(tree, xyz, id);
+            }
+        } else {
+            for (ii = 0; ii < n; ++ii) {
+                int id = ids[ii];
+                double ll[2] = { x[0][id], y[0][id] };
+
+                kd_insertnode(tree, ll, id);
+            }
         }
         free(ids);
     } else if (hg->type == GRIDHTYPE_CURVILINEAR2) {
@@ -583,12 +600,13 @@ kdtree* hgrid_gettreeXYZ(hgrid* hg, int createifnull)
         }
         shuffle(n, ids);
         for (ii = 0; ii < n; ++ii) {
+            int id = ids[ii];
             double ll[2], xyz[3];
 
-            ll[0] = x[0][ids[ii]];
-            ll[1] = y[0][ids[ii]];
+            ll[0] = x[0][id];
+            ll[1] = y[0][id];
             ll2xyz(ll, xyz);
-            kd_insertnode(tree, xyz, ids[ii]);
+            kd_insertnode(tree, xyz, id);
         }
         free(ids);
     } else if (hg->type == GRIDHTYPE_UNSTRUCTURED) {
@@ -605,13 +623,24 @@ kdtree* hgrid_gettreeXYZ(hgrid* hg, int createifnull)
             n++;
         }
         shuffle(n, ids);
-        for (ii = 0; ii < n; ++ii) {
-            point* p = gxy_unstr_getpoint(hg->gxy, ids[ii]);
-            double ll[2] = { p->x, p->y };
-            double xyz[3];
+        if (hg->geographic) {
+            for (ii = 0; ii < n; ++ii) {
+                int id = ids[ii];
+                point* p = gxy_unstr_getpoint(hg->gxy, id);
+                double ll[2] = { p->x, p->y };
+                double xyz[3];
 
-            ll2xyz(ll, xyz);
-            kd_insertnode(tree, xyz, ids[ii]);
+                ll2xyz(ll, xyz);
+                kd_insertnode(tree, xyz, id);
+            }
+        } else {
+            for (ii = 0; ii < n; ++ii) {
+                int id = ids[ii];
+                point* p = gxy_unstr_getpoint(hg->gxy, id);
+                double ll[2] = { p->x, p->y };
+
+                kd_insertnode(tree, ll, id);
+            }
         }
         free(ids);
     } else

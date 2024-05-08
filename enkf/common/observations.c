@@ -1637,14 +1637,23 @@ void obs_createkdtrees(observations* obs)
                 observation* o = &obs->data[obsids[i]];
 #endif
                 double ll[2] = { o->lon, o->lat };
-                double xyz[3];
 
-                ll2xyz(ll, xyz);
+                if (ot->geographic) {
+                    double xyz[3];
+
+                    ll2xyz(ll, xyz);
 #if defined(OBS_SHUFFLE)
-                kd_insertnode(*tree, xyz, id);
+                    kd_insertnode(*tree, xyz, id);
 #else
-                kd_insertnode(*tree, xyz, i);
+                    kd_insertnode(*tree, xyz, i);
 #endif
+                } else {
+#if defined(OBS_SHUFFLE)
+                    kd_insertnode(*tree, ll, id);
+#else
+                    kd_insertnode(*tree, ll, i);
+#endif
+                }
             }
 #if defined(USE_SHMEM)
         } else
@@ -1762,9 +1771,8 @@ static void obs_getglobal(observations* obs, char* domainname, int* n, int** ids
  *                   arrays have been pre-allocated for; not preallocated if
  *                   NULL
  */
-void obs_findlocal(observations* obs, double lon, double lat, char* domainname, int* n, int** ids, double** lcoeffs, int* ploc_allocated)
+void obs_findlocal(observations* obs, double lon, double lat, int geographic, char* domainname, int* n, int** ids, double** lcoeffs, int* ploc_allocated)
 {
-    double ll[2] = { lon, lat };
     double xyz[3];
     int otid;
     int i;
@@ -1783,7 +1791,15 @@ void obs_findlocal(observations* obs, double lon, double lat, char* domainname, 
         return;
     }
 
-    ll2xyz(ll, xyz);
+    if (geographic) {
+        double ll[2] = { lon, lat };
+
+        ll2xyz(ll, xyz);
+    } else {
+        xyz[0] = lon;
+        xyz[1] = lat;
+        xyz[2] = NAN;
+    }
 
     if (obs->loctrees == NULL)
         obs_createkdtrees(obs);

@@ -532,6 +532,7 @@ void obstypes_set(int n, obstype* types, model* m)
         ot->logapplied = model_getvarislog(m, mvid);
         ot->vid = mvid;
         ot->gridid = model_getvargridid(m, mvid);
+        ot->geographic = grid_isgeographic(model_getgridbyid(m, ot->gridid));
         if (ot->ndomains > 0)
             for (j = 0; j < ot->ndomains; ++j)
                 if (model_getdomainid(m, ot->domainnames[j]) < 0)

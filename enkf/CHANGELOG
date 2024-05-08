@@ -1,3 +1,6 @@
+v2.29.4
+   PS 08052024
+   -- For all calls to ll2xyz(): made sure to bypass it when (geographic == 0).
 v2.29.3
    PS 08052024
    -- Conducted some straightforward harmonisation of the horizontal grid
