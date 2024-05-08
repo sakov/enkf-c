@@ -23,17 +23,17 @@
 #include <math.h>
 #include <assert.h>
 #include "utils.h"
+#include "hgrid.h"
 #include "gxy_rect.h"
 
 #define EPS_LON 1.0e-3
 
 struct gxy_rect {
+    hgrid* parent;
     int ni;
     int nj;
-    int periodic_i;
     int regular_x;
     int regular_y;
-    double lonbase;
 
     double* x;
     double* y;
@@ -43,13 +43,15 @@ struct gxy_rect {
 
 /**
  */
-gxy_rect* gxy_rect_create(void* g, int ni, int nj, double* x, double* y)
+gxy_rect* gxy_rect_create(hgrid* hg, int ni, int nj, double* x, double* y)
 {
     gxy_rect* gxy = malloc(sizeof(gxy_rect));
     int i, ascending;
     double dx, dy;
 
     assert(ni >= 2 && nj >= 2);
+
+    gxy->parent = hg;
 
     /*
      * x
@@ -61,16 +63,19 @@ gxy_rect* gxy_rect_create(void* g, int ni, int nj, double* x, double* y)
     for (i = 1; i < ni + 1; ++i)
         gxy->xc[i] = 2 * x[i - 1] - gxy->xc[i - 1];
 
-    if (fabs(fmod(gxy->x[ni - 1] - gxy->x[0] + EPS_LON / 2.0, 360.0)) < EPS_LON)
-        gxy->periodic_i = 1;    /* closed grid */
-    else if (fabs(fmod(2.0 * gxy->x[ni - 1] - gxy->x[ni - 2] - gxy->x[0] + EPS_LON / 2.0, 360.0)) < EPS_LON) {
-        gxy->periodic_i = 2;    /* non-closed grid (used e.g. by MOM) */
-        gxy->x = realloc(gxy->x, (ni + 1) * sizeof(double));
-        gxy->x[ni] = 2.0 * gxy->x[ni - 1] - gxy->x[ni - 2];
-        gxy->xc = realloc(gxy->xc, (ni + 2) * sizeof(double));
-        gxy->xc[ni + 1] = 2.0 * gxy->xc[ni] - gxy->xc[ni - 1];
+    if (hg->geographic) {
+        if (fabs(fmod(gxy->x[ni - 1] - gxy->x[0] + EPS_LON / 2.0, 360.0)) < EPS_LON)
+            hg->periodic_i = 1; /* closed grid */
+        else if (fabs(fmod(2.0 * gxy->x[ni - 1] - gxy->x[ni - 2] - gxy->x[0] + EPS_LON / 2.0, 360.0)) < EPS_LON) {
+            hg->periodic_i = 2; /* non-closed grid (used e.g. by MOM) */
+            gxy->x = realloc(gxy->x, (ni + 1) * sizeof(double));
+            gxy->x[ni] = 2.0 * gxy->x[ni - 1] - gxy->x[ni - 2];
+            gxy->xc = realloc(gxy->xc, (ni + 2) * sizeof(double));
+            gxy->xc[ni + 1] = 2.0 * gxy->xc[ni] - gxy->xc[ni - 1];
+        } else
+            hg->periodic_i = 0;
     } else
-        gxy->periodic_i = 0;
+        hg->periodic_i = 0;
 
     dx = (gxy->x[ni - 1] - gxy->x[0]) / (double) (ni - 1);
     for (i = 1; i < (int) ni; ++i)
@@ -149,13 +154,6 @@ int gxy_rect_getnj(gxy_rect* gxy)
 
 /**
  */
-int gxy_rect_getperiodic_i(gxy_rect* gxy)
-{
-    return gxy->periodic_i;
-}
-
-/**
- */
 static double fi2x(int n, double* v, double fi, int periodic)
 {
     double ifrac;
@@ -189,7 +187,7 @@ static double fi2x(int n, double* v, double fi, int periodic)
  */
 void gxy_rect_fij2xy(gxy_rect* gxy, double fi, double fj, double* x, double* y)
 {
-    *x = fi2x(gxy->ni, gxy->x, fi, gxy->periodic_i);
+    *x = fi2x(gxy->ni, gxy->x, fi, gxy->parent->periodic_i);
     *y = fi2x(gxy->nj, gxy->y, fj, 0);
 }
 
@@ -301,9 +299,9 @@ static double x2fi_irreg(int n, double v[], double vb[], double x, int periodic,
 void gxy_rect_xy2fij(gxy_rect* gxy, double x, double y, double* fij)
 {
     if (gxy->regular_x)
-        fij[0] = x2fi_reg(gxy->ni, gxy->x, x, gxy->periodic_i);
+        fij[0] = x2fi_reg(gxy->ni, gxy->x, x, gxy->parent->periodic_i);
     else
-        fij[0] = x2fi_irreg(gxy->ni, gxy->x, gxy->xc, x, gxy->periodic_i, gxy->lonbase);
+        fij[0] = x2fi_irreg(gxy->ni, gxy->x, gxy->xc, x, gxy->parent->periodic_i, gxy->parent->lonbase);
     if (gxy->regular_y)
         fij[1] = x2fi_reg(gxy->nj, gxy->y, y, 0);
     else

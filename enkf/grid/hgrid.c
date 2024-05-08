@@ -24,13 +24,13 @@
 #include "utils.h"
 #include "ncw.h"
 #include "ncutils.h"
-#include "grid.h"
 #include "gridprm.h"
+#include "grid.h"
+#include "hgrid.h"
 #include "gxy_rect.h"
 #include "gxy_curv.h"
 #include "gxy_curv2.h"
 #include "gxy_unstr.h"
-#include "hgrid.h"
 
 /*
  * for DIAG the grid stuff is the same as for UPDATE
@@ -79,12 +79,15 @@ static void hgrid_setlonbase(hgrid* hg)
     double xmin = DBL_MAX;
     double xmax = -DBL_MAX;
 
+    if (!hg->geographic)
+        return;
+
     if (hg->type == GRIDHTYPE_RECTANGULAR) {
         gxy_rect* gxy = hg->gxy;
         double* x = gxy_rect_getx(gxy);
         int ni = gxy_rect_getni(gxy);
 
-        if (gxy_rect_getperiodic_i(gxy) == 2)   /* periodic non-closed grid */
+        if (hg->periodic_i == 2)        /* periodic non-closed grid */
             ni++;
 
         if (xmin > x[0])
@@ -97,23 +100,14 @@ static void hgrid_setlonbase(hgrid* hg)
             xmax = x[ni - 1];
     } else if (hg->type == GRIDHTYPE_CURVILINEAR) {
         gxy_curv* gxy = (gxy_curv*) hg->gxy;
+        double* x = gxy_curv_getx(gxy)[0];
+        int i;
 
-        if (!gxy_curv_isgeographic(gxy)) {
-            double* minmax = kd_getminmax(gxy_curv_gettree(gxy));
-
-            xmin = minmax[0];
-            xmax = minmax[2];
-        } else {
-            int i;
-            int nij = gxy_curv_getni(gxy) * gxy_curv_getnj(gxy);
-            double* x = gxy_curv_getx(gxy)[0];
-
-            for (i = 0; i < nij; ++i) {
-                if (x[i] < xmin)
-                    xmin = x[i];
-                if (x[i] > xmax)
-                    xmax = x[i];
-            }
+        for (i = 0; i < hg->ni * hg->nj; ++i) {
+            if (x[i] < xmin)
+                xmin = x[i];
+            if (x[i] > xmax)
+                xmax = x[i];
         }
     } else if (hg->type == GRIDHTYPE_CURVILINEAR2) {
         /*
@@ -148,6 +142,7 @@ hgrid* hgrid_create(void* p, void* g)
     hg->type = gridprm_gethtype(prm);
     hg->parent = g;
     hg->lonbase = NAN;
+    hg->geographic = prm->geographic;
 
     if (hg->type == GRIDHTYPE_NONE) {
         hg->ni = 1;
@@ -188,8 +183,7 @@ hgrid* hgrid_create(void* p, void* g)
             ncu_readvardouble(ncid, varid_x, ni, x);
             ncu_readvardouble(ncid, varid_y, nj, y);
 
-            hg->gxy = gxy_rect_create(g, ni, nj, x, y);
-            hg->periodic_i = gxy_rect_getperiodic_i(hg->gxy);
+            hg->gxy = gxy_rect_create(hg, ni, nj, x, y);
         } else {
             if (hg->type == GRIDHTYPE_UNDEFINED)
                 hg->type = GRIDHTYPE_UNSTRUCTURED;
@@ -203,7 +197,7 @@ hgrid* hgrid_create(void* p, void* g)
 #else
             triangulation* d = triangulation_read(prm->gdatafname, prm->xvarname, prm->yvarname, prm->trivarname, prm->neivarname);
 
-            hg->gxy = gxy_unstr_create(g, d);
+            hg->gxy = gxy_unstr_create(d);
             ni = d->npoints;
 #endif
         }
@@ -265,14 +259,13 @@ hgrid* hgrid_create(void* p, void* g)
                     yy[j] = y[j][0];
                 free(x);
                 free(y);
-                hg->gxy = gxy_rect_create(g, ni, nj, xx, yy);
-                hg->periodic_i = gxy_rect_getperiodic_i(hg->gxy);
+                hg->gxy = gxy_rect_create(hg, ni, nj, xx, yy);
             } else {
 #if defined(ENKF_PREP) || defined(ENKF_CALC)
                 if (prm->geographic < 2)
-                    hg->gxy = gxy_curv_create(g, ni, nj, x, y, grid_getnumlevels(g), prm->geographic);
+                    hg->gxy = gxy_curv_create(hg, ni, nj, x, y, grid_getnumlevels(g));
                 else
-                    hg->gxy = gxy_curv2_create(g, ni, nj, x, y, grid_getnumlevels(g));
+                    hg->gxy = gxy_curv2_create(hg, ni, nj, x, y, grid_getnumlevels(g));
 #else
                 enkf_quit("programming error");
 #endif
@@ -344,14 +337,14 @@ void hgrid_describe(hgrid* hg, char* offset)
         break;
     case GRIDHTYPE_RECTANGULAR:
         enkf_printf("%s  h type = RECTANGULAR\n", offset);
-        enkf_printf("%s  periodic by X = %s\n", offset, (gxy_rect_getperiodic_i(hg->gxy)) ? "yes" : "no");
+        enkf_printf("%s  periodic by X = %s\n", offset, (hg->periodic_i) ? "yes" : "no");
         break;
     case GRIDHTYPE_CURVILINEAR:
         enkf_printf("%s  h type = CURVILINEAR\n", offset);
     case GRIDHTYPE_CURVILINEAR2:
         enkf_printf("%s  h type = CURVILINEAR2\n", offset);
 #if defined(ENKF_PREP) || defined(ENKF_CALC)
-        enkf_printf("%s  geographic = %s\n", offset, (gxy_curv_isgeographic(hg->gxy)) ? "yes" : "no");
+        enkf_printf("%s  geographic = %s\n", offset, (hg->geographic) ? "yes" : "no");
 #endif
         break;
     case GRIDHTYPE_UNSTRUCTURED:

@@ -1,3 +1,7 @@
+v2.29.3
+   PS 08052024
+   -- Conducted some straightforward harmonisation of the horizontal grid
+      structures. Not supposed to affect running the code.
 v2.29.2
    PS 07052024
    -- Fixed two simple compile errors.

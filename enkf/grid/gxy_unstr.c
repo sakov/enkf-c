@@ -29,7 +29,7 @@ struct gxy_unstr {
 
 /**
  */
-gxy_unstr* gxy_unstr_create(void* grid, triangulation* d)
+gxy_unstr* gxy_unstr_create(triangulation* d)
 {
     gxy_unstr* gxy = malloc(sizeof(gxy_unstr));
 

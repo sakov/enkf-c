@@ -27,21 +27,38 @@
 #include "definitions.h"
 #include "utils.h"
 #include "grid.h"
+#include "hgrid.h"
 #include "gxy_curv2.h"
 
 #define EPS 1.0e-8
 #define EPS_ZERO 1.0e-5
 
+/*
+ * "gxy_curv2" projects grids to the "North" and "South" stereographic
+ * projections (SGPs). (By North SGP we call the projection from the North Pole
+ * onto the plane tangent at the South Pole.)
+ *
+ * A point is mapped using the NSGP for points in the Southern hemisphere, and
+ * SSGP for points in the Northern hemisphere. This settings targets global
+ * grids, and is likely to be somewhat excessive for local grids.
+ *
+ * Compared to "gxy_curv", "gxy_curv2" uses quite a bit more memory. In
+ * addition to the original lon/lat grid coordinates (necessary for ij2xy
+ * mappings) it also needs to carry two Kd-trees for the two projections,
+ * and grid cordinates in both projections. Speed-wise it should be as good as
+ * "gxy_curv".
+ */
+
 struct gxy_curv2 {
-    char* name;
+    hgrid* parent;
     int ni;
     int nj;
     double** x_orig;
     double** y_orig;
     /*
      * every field below is duplicated for two projections:
-     * [0] is related to sterographic projection from the North Pole;
-     * [1] - from the South Pole
+     * [0] is related to the North SGP;
+     * [1] - to the South SGP
      */
     double** x[2];
     double** y[2];
@@ -54,20 +71,19 @@ struct gxy_curv2 {
 
 /**
  */
-gxy_curv2* gxy_curv2_create(void* g, int ni, int nj, double** x, double** y, int** mask)
+gxy_curv2* gxy_curv2_create(hgrid* hg, int ni, int nj, double** x, double** y, int** mask)
 {
-    char name[MAXSTRLEN];
+    char kdname[MAXSTRLEN];
     gxy_curv2* gxy = calloc(sizeof(gxy_curv2), 1);
     int proj;
 
-    snprintf(name, MAXSTRLEN - 4, "%s_XY2", grid_getname(g));
-
-    gxy->name = strdup(name);
+    gxy->parent = hg;
     gxy->ni = ni;
     gxy->nj = nj;
     gxy->x_orig = x;
     gxy->y_orig = y;
 
+    snprintf(kdname, MAXSTRLEN - 4, "%s_XY2", grid_getname(hg->parent));
     for (proj = 0; proj < 2; ++proj) {
         double* nodecoords[2];
         int i;
@@ -86,7 +102,7 @@ gxy_curv2* gxy_curv2_create(void* g, int ni, int nj, double** x, double** y, int
             nodecoords[0][i] = xyz[0] / (REARTH - xyz[2]);
             nodecoords[1][i] = xyz[1] / (REARTH - xyz[2]);
         }
-        gxy->nodetreeXY[proj] = kd_create(name, 2);
+        gxy->nodetreeXY[proj] = kd_create(kdname, 2);
 #if defined(USE_SHMEM)
         {
             MPI_Aint size;
@@ -170,7 +186,6 @@ void gxy_curv2_destroy(gxy_curv2* gxy)
     if (gxy == NULL)
         return;
 
-    free(gxy->name);
     free(gxy->x_orig);
     free(gxy->y_orig);
     gxy_curv2_destroykdtree(gxy);

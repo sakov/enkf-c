@@ -22,7 +22,19 @@ typedef struct {
     int type;
     int ni;
     int nj;
-    double lonbase;             /* (lon range = [lonbase, lonbase + 360]) */
+    /*
+     * flag - whether the grid cordinates are lon/lat
+     */
+    int geographic;
+    /*
+     * longitude range = [lonbase, lonbase + 360]
+     * NAN if not relevant for the grid
+     */
+    double lonbase;
+    /*
+     * flag - whether the grid is periodic in I direction
+     * at the moment can be != 0 for rectangular grids only
+     */
     int periodic_i;
     void* gxy;
 #if defined(ENKF_CALC)
@@ -42,7 +54,6 @@ typedef struct gxy_2d gxy_2d;
 hgrid* hgrid_create(void* prm, void* grid);
 void hgrid_destroy(hgrid* hg);
 void hgrid_describe(hgrid* hg, char* offset);
-int hgrid_getperiodic_i(hgrid* hg);
 
 #if defined(ENKF_PREP) || defined(ENKF_CALC)
 int hgrid_destroynodetree(hgrid* hg);

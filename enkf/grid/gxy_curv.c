@@ -26,14 +26,14 @@
 #include "definitions.h"
 #include "utils.h"
 #include "grid.h"
+#include "hgrid.h"
 #include "gxy_curv.h"
 
 #define EPS 1.0e-8
 #define EPS_ZERO 1.0e-5
 
 struct gxy_curv {
-    char* name;
-    int geographic;
+    hgrid* parent;
     int ni;
     int nj;
     double** x;
@@ -47,28 +47,26 @@ struct gxy_curv {
 
 /**
  */
-gxy_curv* gxy_curv_create(void* g, int ni, int nj, double** x, double** y, int** mask, int geographic)
+gxy_curv* gxy_curv_create(hgrid* hg, int ni, int nj, double** x, double** y, int** mask)
 {
-    char name[MAXSTRLEN];
     gxy_curv* gxy = malloc(sizeof(gxy_curv));
+    char kdname[MAXSTRLEN];
     double* nodecoords[3];
 
     assert(x != NULL && y != NULL);
 
-    snprintf(name, MAXSTRLEN - 4, "%s_XY", grid_getname(g));
-
-    gxy->name = strdup(name);
-    gxy->geographic = geographic;
+    hg->parent = hg;
     gxy->ni = ni;
     gxy->nj = nj;
     gxy->x = x;
     gxy->y = y;
     gxy->sign = 0;
 
-    if (!geographic) {
+    snprintf(kdname, MAXSTRLEN - 4, "%s_XY", grid_getname(hg->parent));
+    if (!hg->geographic) {
         nodecoords[0] = x[0];
         nodecoords[1] = y[0];
-        gxy->nodetreeXY = kd_create(name, 2);
+        gxy->nodetreeXY = kd_create(kdname, 2);
     } else {
         int i, c;
 
@@ -83,7 +81,7 @@ gxy_curv* gxy_curv_create(void* g, int ni, int nj, double** x, double** y, int**
             for (c = 0; c < 3; ++c)
                 nodecoords[c][i] = xyz[c];
         }
-        gxy->nodetreeXY = kd_create(name, 3);
+        gxy->nodetreeXY = kd_create(kdname, 3);
     }
 #if defined(USE_SHMEM)
     {
@@ -127,7 +125,7 @@ gxy_curv* gxy_curv_create(void* g, int ni, int nj, double** x, double** y, int**
     kd_insertnodes(gxy->nodetreeXY, ni * nj, nodecoords, NULL, (mask != NULL) ? mask[0] : NULL, 1);
 #endif
 
-    if (geographic) {
+    if (hg->geographic) {
         free(nodecoords[0]);
         free(nodecoords[1]);
         free(nodecoords[2]);
@@ -157,7 +155,6 @@ void gxy_curv_destroy(gxy_curv* gxy)
     if (gxy == NULL)
         return;
 
-    free(gxy->name);
     free(gxy->x);
     free(gxy->y);
     gxy_curv_destroykdtree(gxy);
@@ -249,7 +246,7 @@ static int gxy_curv_xy2ij(gxy_curv* gxy, double x, double y, int* iout, int* jou
     double px[4], py[4];
 
     minmax = kd_getminmax(gxy->nodetreeXY);
-    if (!gxy->geographic) {
+    if (!gxy->parent->geographic) {
         pos[0] = x;
         pos[1] = y;
         if (x < minmax[0] || y < minmax[1] || x > minmax[2] || y > minmax[3])
@@ -492,11 +489,4 @@ int gxy_curv_fij2xy(gxy_curv* gxy, double fi, double fj, double* x, double* y)
 kdtree* gxy_curv_gettree(gxy_curv* gxy)
 {
     return gxy->nodetreeXY;
-}
-
-/**
- */
-int gxy_curv_isgeographic(gxy_curv* gxy)
-{
-    return gxy->geographic;
 }

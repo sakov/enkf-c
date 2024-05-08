@@ -22,7 +22,7 @@
 struct gxy_unstr;
 typedef struct gxy_unstr gxy_unstr;
 
-gxy_unstr* gxy_unstr_create(void* grid, triangulation* d);
+gxy_unstr* gxy_unstr_create(triangulation* d);
 void gxy_unstr_destroy(gxy_unstr* gxy);
 triangulation* gxy_unstr_gettriangulation(gxy_unstr* gxy);
 point* gxy_unstr_getpoint(gxy_unstr* gxy, int i);
