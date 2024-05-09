@@ -1332,8 +1332,8 @@ void ll2xyz(double in[2], double out[3])
     double lat = in[1] * DEG2RAD;
     double coslat = cos(lat);
 
-    out[0] = REARTH * sin(lon) * coslat;
-    out[1] = REARTH * cos(lon) * coslat;
+    out[0] = REARTH * cos(lon) * coslat;
+    out[1] = REARTH * sin(lon) * coslat;
     out[2] = REARTH * sin(lat);
 }
 

@@ -134,18 +134,16 @@ gxy_curv* gxy_curv_create(hgrid* hg, int ni, int nj, double** x, double** y, int
     return gxy;
 }
 
-int gxy_curv_destroykdtree(gxy_curv* gxy)
+void gxy_curv_destroykdtree(gxy_curv* gxy)
 {
     if (gxy->nodetreeXY == NULL)
-        return 0;
+        return;
     kd_destroy(gxy->nodetreeXY);
     gxy->nodetreeXY = NULL;
 #if defined(USE_SHMEM)
     MPI_Win_free(&gxy->sm_comm_win);
     assert(gxy->sm_comm_win == MPI_WIN_NULL);
 #endif
-
-    return 1;
 }
 
 /**

@@ -32,6 +32,7 @@
 
 #define EPS 1.0e-8
 #define EPS_ZERO 1.0e-5
+#define USE_LL2XYZ 0
 
 /*
  * "gxy_curv2" projects grids to the "North" and "South" stereographic
@@ -85,7 +86,7 @@ gxy_curv2* gxy_curv2_create(hgrid* hg, int ni, int nj, double** x, double** y, i
     snprintf(kdname, MAXSTRLEN - 4, "%s_XY2", grid_getname(hg->parent));
     for (proj = 0; proj < 2; ++proj) {
         double* nodecoords[2];
-        int i;
+        int sign, i;
 
         gxy->x[proj] = alloc2d(nj, ni, sizeof(double));
         gxy->y[proj] = alloc2d(nj, ni, sizeof(double));
@@ -93,14 +94,25 @@ gxy_curv2* gxy_curv2_create(hgrid* hg, int ni, int nj, double** x, double** y, i
         nodecoords[0] = gxy->x[proj][0];
         nodecoords[1] = gxy->y[proj][0];
 
+        sign = (proj == 0) ? 1 : -1;
+#if USE_LL2XYZ
         for (i = 0; i < ni * nj; ++i) {
-            double ll[2] = { x[0][i], (proj == 0) ? y[0][i] : -y[0][i] };
+            double ll[2] = { x[0][i], y[0][i] * sign };
             double xyz[3];
 
             ll2xyz(ll, xyz);
             nodecoords[0][i] = xyz[0] / (REARTH - xyz[2]);
             nodecoords[1][i] = xyz[1] / (REARTH - xyz[2]);
         }
+#else
+        for (i = 0; i < ni * nj; ++i) {
+            double r = 1.0 / tan(M_PI_4 - sign * DEG2RAD * y[0][i] / 2.0);
+            double phi = DEG2RAD * x[0][i];
+
+            nodecoords[0][i] = r * cos(phi);
+            nodecoords[1][i] = r * sin(phi);
+        }
+#endif
         gxy->nodetreeXY[proj] = kd_create(kdname, 2);
 #if defined(USE_SHMEM)
         {
@@ -151,9 +163,12 @@ gxy_curv2* gxy_curv2_create(hgrid* hg, int ni, int nj, double** x, double** y, i
 
 /**
  */
-int gxy_curv2_destroykdtree(gxy_curv2* gxy)
+void gxy_curv2_destroykdtree(gxy_curv2* gxy)
 {
     int proj;
+
+    if (gxy->x[0] == NULL)
+        return;
 
     for (proj = 0; proj < 2; ++proj) {
         /*
@@ -165,8 +180,6 @@ int gxy_curv2_destroykdtree(gxy_curv2* gxy)
         free(gxy->y[proj]);
         gxy->y[proj] = NULL;
 
-        if (gxy->nodetreeXY[proj] == NULL)
-            continue;
         kd_destroy(gxy->nodetreeXY[proj]);
         gxy->nodetreeXY[proj] = NULL;
 #if defined(USE_SHMEM)
@@ -174,8 +187,6 @@ int gxy_curv2_destroykdtree(gxy_curv2* gxy)
         assert(gxy->sm_comm_win[proj] == MPI_WIN_NULL);
 #endif
     }
-
-    return 1;
 }
 
 /**
@@ -346,24 +357,32 @@ int gxy_curv2_xy2fij(gxy_curv2* gxy, double x, double y, double* fij)
     double** gx;
     double** gy;
     int proj;
-    double ll[2], pos[3];
     int i, j;
 
     fij[0] = NAN;
     fij[1] = NAN;
 
-    ll[0] = x;
-    if (y < 0.0) {
-        proj = 0;
-        ll[1] = y;
-    } else {
-        proj = 1;
-        ll[1] = -y;
-    }
+    proj = (y < 0.0) ? 0 : 1;
 
-    ll2xyz(ll, pos);
-    x = pos[0] / (REARTH - pos[2]);
-    y = pos[1] / (REARTH - pos[2]);
+#if USE_LL2XYZ
+    {
+        double ll[2] = { x, -fabs(y) };
+        double pos[3];
+
+        ll2xyz(ll, pos);
+
+        x = pos[0] / (REARTH - pos[2]);
+        y = pos[1] / (REARTH - pos[2]);
+    }
+#else
+    {
+        double r = 1.0 / tan(M_PI_4 + DEG2RAD * fabs(y) / 2.0);
+        double phi = DEG2RAD * x;
+
+        x = r * cos(phi);
+        y = r * sin(phi);
+    }
+#endif
 
     if (gxy_curv2_xy2ij(gxy, proj, x, y, &i, &j) == 0)
         return 0;               /* failed */
