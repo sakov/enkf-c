@@ -1,3 +1,6 @@
+v2.29.6
+   PS 10052024
+   -- Fixed typo in gxy_curb_create().
 v2.29.5
    PS 09052024
    -- Minor changes in curvilinear grid code.

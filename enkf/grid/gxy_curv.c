@@ -55,7 +55,7 @@ gxy_curv* gxy_curv_create(hgrid* hg, int ni, int nj, double** x, double** y, int
 
     assert(x != NULL && y != NULL);
 
-    hg->parent = hg;
+    gxy->parent = hg;
     gxy->ni = ni;
     gxy->nj = nj;
     gxy->x = x;
