@@ -1,3 +1,9 @@
+v2.29.7
+   PS 13052024
+   -- Upgraded reader "cmems" to handle a possibly wrong "scale_factor" for
+      depth variables. (Observed for DEPH in files *_PR_GL.nc. Thanks to
+      Yonghong Yin for the report.)
+   -- Corrected defect in hgrid_describe().
 v2.29.6
    PS 10052024
    -- Fixed typo in gxy_curb_create().

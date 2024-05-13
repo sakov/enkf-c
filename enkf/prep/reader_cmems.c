@@ -128,6 +128,34 @@ static int datamissing(double* v, int n)
     return 1;
 }
 
+/** this procedure eliminates data that has wrong scale_factor of 0.001
+ ** instead of 1
+ */
+static void verify_depth(double* z, int n)
+{
+    int ngood, i, isbad;
+    
+    for (i = 0; i < n; ++i)
+        if (!isfinite(z[i]))
+            break;
+    ngood = i;
+    
+    /*
+     * if profile has only one level, assume it is a drifter and let it through
+     */
+    isbad = 0;
+    for (i = 1; i < ngood; ++i)
+        if (z[i] - z[i - 1] < 0.01) {
+            isbad = 1;
+            break;
+        }
+
+    if (isbad)
+        ngood = 0;
+    for (i = ngood; i < n; ++i)
+        z[i] = NAN;
+}
+
 /**
  */
 void reader_cmems(char* fname, int fid, obsmeta* meta, grid* g, observations* obs)
@@ -225,8 +253,8 @@ void reader_cmems(char* fname, int fid, obsmeta* meta, grid* g, observations* ob
         double* zall[4] = { NULL, NULL, NULL, NULL };
         char znames[4][20] = { "DEPH_ADJUSTED",
             "PRES_ADJUSTED",
-            "DEPH",
-            "PRES"
+            "PRES",
+            "DEPH"
         };
         int j;
 
@@ -236,7 +264,10 @@ void reader_cmems(char* fname, int fid, obsmeta* meta, grid* g, observations* ob
             ncw_inq_varid(ncid, znames[i], &varid);
             zall[i] = malloc(nprof * nz * sizeof(double));
             ncu_readvardouble(ncid, varid, nprof * nz, zall[i]);
+            for (p = 0; p < nprof; ++p)
+                verify_depth(&zall[i][nz * p], nz);
         }
+
 
         for (i = 0; i < nprof * nz; ++i) {
             for (j = 0; j < 4; ++j) {
