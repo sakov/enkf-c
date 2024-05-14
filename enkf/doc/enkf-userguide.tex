@@ -39,7 +39,7 @@
 
 \begin{document}
 
-\title{EnKF-C user guide\\{\normalsize version 2.28.0}}
+\title{EnKF-C user guide\\{\normalsize version 2.30.0}}
 
 \author{Pavel Sakov}
 \date{June 19, 2014 -- \today}
@@ -1300,6 +1300,7 @@ The generic parameters include:
 \item{\verb|MINDEPTH|} -- minimal allowed model depth;
 \item{\verb|MAXDEPTH|} -- maximal allowed model depth;
 \item{\verb|FOOTPRINT|} -- the radius in km of the horizontal footprint;
+\item{\verb|VARSCALE|} -- data scale;
 \item{\verb|VARSHIFT|} -- data offset;
 \item{\verb|STRIDE|} -- stride interval.
 \item{\verb|YMIN|} -- minimal allowed latitude;
@@ -1363,6 +1364,8 @@ Following is the description of the reader \verb|scattered|:
         name of the variable to be subtracted from the main variable (can be
         repeated)
   Parameters common to all readers:
+    - VARSCALE (-)
+        scale factor (applied before VARSHIFT)
     - VARSHIFT (-)
         data offset to be added (e.g. -273.15 to convert from K to C)
     - FOOTRPINT (-)

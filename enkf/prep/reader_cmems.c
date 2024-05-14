@@ -134,12 +134,12 @@ static int datamissing(double* v, int n)
 static void verify_depth(double* z, int n)
 {
     int ngood, i, isbad;
-    
+
     for (i = 0; i < n; ++i)
         if (!isfinite(z[i]))
             break;
     ngood = i;
-    
+
     /*
      * if profile has only one level, assume it is a drifter and let it through
      */
@@ -267,7 +267,6 @@ void reader_cmems(char* fname, int fid, obsmeta* meta, grid* g, observations* ob
             for (p = 0; p < nprof; ++p)
                 verify_depth(&zall[i][nz * p], nz);
         }
-
 
         for (i = 0; i < nprof * nz; ++i) {
             for (j = 0; j < 4; ++j) {

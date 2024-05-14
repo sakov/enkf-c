@@ -101,6 +101,7 @@ void obs_add(observations* obs, model* m, obsmeta* meta, int nexclude, obsregion
     double ymax = NAN;
     double footprint = 0.0;
     double varshift = 0.0;
+    double varscale = 1.0;
     int stride = 0;
     obsread_fn reader;
     int i, ngood, npars;
@@ -179,6 +180,15 @@ void obs_add(observations* obs, model* m, obsmeta* meta, int nexclude, obsregion
         } else if (strcasecmp(meta->pars[i].name, "VARSHIFT") == 0) {
             if (!str2double(meta->pars[i].value, &varshift))
                 enkf_quit("observation prm file: can not convert VARSHIFT = \"%s\" to double\n", meta->pars[i].value);
+            else {
+                free(meta->pars[i].name);
+                free(meta->pars[i].value);
+                meta->pars[i].name = NULL;
+                meta->pars[i].value = NULL;
+            }
+        } else if (strcasecmp(meta->pars[i].name, "VARSCALE") == 0) {
+            if (!str2double(meta->pars[i].value, &varscale))
+                enkf_quit("observation prm file: can not convert VARSCALE = \"%s\" to double\n", meta->pars[i].value);
             else {
                 free(meta->pars[i].name);
                 free(meta->pars[i].value);
@@ -273,6 +283,7 @@ void obs_add(observations* obs, model* m, obsmeta* meta, int nexclude, obsregion
                 noutow++;
                 continue;
             }
+            o->value *= varscale;
             o->value += varshift;
             if (!isfinite(o->value)) {
                 o->status = STATUS_RANGE;
@@ -938,6 +949,8 @@ void get_qcflags(obsmeta* meta, int* nqcflagvars, char*** qcflagvarnames, uint32
 void describe_commonreaderparams(void)
 {
     enkf_printf("  Parameters common to all readers:\n\
+    - VARSCALE (-)\n\
+        scale factor (applied before VARSHIFT)\n\
     - VARSHIFT (-)\n\
         data offset to be added (e.g. -273.15 to convert from K to C)\n\
     - FOOTRPINT (-)\n\
