@@ -1,3 +1,8 @@
+v2.29.8
+   PS 13052024
+   Corrected defect in ncu_readfloat() and ncu_readdouble() that might manifest
+   in situations when the size of the type of the variable was equal to that
+   of NC_FLOAT or NC_DOUBLE.
 v2.29.7
    PS 13052024
    -- Upgraded reader "cmems" to handle a possibly wrong "scale_factor" for

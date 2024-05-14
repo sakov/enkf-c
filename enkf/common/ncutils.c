@@ -1193,7 +1193,7 @@ void ncu_readvarfloat(int ncid, int varid, size_t n, float v[])
             ncw_check_attlen(ncid, varid, attname, 1);
 
             if (vv == NULL) {
-                if (typesize != sizeof(float)) {
+                if (vartype != NC_FLOAT) {
                     vv = malloc(n * typesize);
                     ncw_get_var(ncid, varid, vv);
                 } else
@@ -1581,7 +1581,7 @@ void ncu_readvardouble(int ncid, int varid, size_t n, double v[])
             ncw_check_attlen(ncid, varid, attname, 1);
 
             if (vv == NULL) {
-                if (typesize != sizeof(double)) {
+                if (vartype != NC_DOUBLE) {
                     vv = malloc(n * typesize);
                     ncw_get_var(ncid, varid, vv);
                 } else
