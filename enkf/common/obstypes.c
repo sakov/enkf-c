@@ -62,6 +62,7 @@ static void obstype_new(obstype* type, int i, char* name)
     type->locrad = NULL;
     type->locweight = NULL;
     type->rfactor = 1.0;
+    type->errordoublingtime = NAN;
     type->nlobsmax = -1;
     type->estdmin = 0.0;
     type->can_thin = 1;
@@ -156,6 +157,8 @@ static void obstype_print(obstype* type)
         enkf_printf(" %.3g", type->locweight[i]);
     enkf_printf("\n");
     enkf_printf("      RFACTOR = %.3g\n", type->rfactor);
+    if (isfinite(type->errordoublingtime))
+        enkf_printf("      ERROR_DOUBLING_TIME = %.3f\n", type->errordoublingtime);
     if (type->nlobsmax != INT_MAX)
         enkf_printf("      NLOBSMAX = %d\n", type->nlobsmax);
     if (type->estdmin > 0.0)
@@ -338,6 +341,11 @@ void obstypes_read(enkfprm* prm, char fname[], int* n, obstype** types)
                 enkf_quit("%s, l.%d: RFACTOR not specified", fname, line);
             if (!str2double(token, &now->rfactor))
                 enkf_quit("%s, l.%d: could not convert \"%s\" to double", fname, line, token);
+        } else if (strcasecmp(token, "ERROR_DOUBLING_TIME") == 0) {
+            if ((token = strtok(NULL, seps)) == NULL)
+                enkf_quit("%s, l.%d: ERROR_DOUBLING_TIME not specified", fname, line);
+            if (!str2double(token, &now->errordoublingtime))
+                enkf_quit("%s, l.%d: could not convert \"%s\" to double", fname, line, token);
         } else if (strcasecmp(token, "NLOBSMAX") == 0) {
             if ((token = strtok(NULL, seps)) == NULL)
                 enkf_quit("%s, l.%d: NLOBSMAX not specified", fname, line);
@@ -489,6 +497,7 @@ void obstypes_describeprm(void)
     enkf_printf("  [ LOCRAD      = <loc. radius in km> ... ]\n");
     enkf_printf("  [ LOCWEIGHT   = <loc. weight> ... ]                    (# LOCRAD > 1)\n");
     enkf_printf("  [ RFACTOR     = <rfactor> ]                            (1*)\n");
+    enkf_printf("  [ ERROR_DOUBLING_TIME = <time in days> ]               (inf*)\n");
     enkf_printf("  [ NLOBSMAX    = <max. allowed number of local obs.> ]  (inf*)\n");
     enkf_printf("  [ ERROR_STD_MIN = <min. allowed superob error> ]       (0*)\n");
     enkf_printf("  [ SOBSTRIDE   = <stride for superobing> ]              (1*)\n");

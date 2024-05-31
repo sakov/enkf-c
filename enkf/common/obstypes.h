@@ -39,6 +39,7 @@ typedef struct {
     double* locrad;
     double* locweight;
     double rfactor;
+    double errordoublingtime;
     int nlobsmax;
     double estdmin;
 

@@ -383,6 +383,14 @@ void obs_add(observations* obs, model* m, obsmeta* meta, int nexclude, obsregion
             }
         }
 
+        if (isfinite(ot->errordoublingtime)) {
+            for (i = nobs0; i < obs->nobs; ++i) {
+                observation* o = &obs->data[i];
+
+                o->estd *= powf(2.0f, fabs(o->time) / (float) ot->errordoublingtime);
+            }
+        }
+
         if (noutow > 0)
             enkf_printf("          %d observations outside obs. window\n", noutow);
         if (noutod > 0)
