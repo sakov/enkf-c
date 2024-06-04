@@ -53,9 +53,8 @@ void kd_syncsize(kdtree* tree);
  * tree information
  */
 char* kd_getname(const kdtree* tree);
-size_t kd_getsize(kdtree* tree);
-size_t kd_getnalloc(kdtree* tree);
-size_t kd_getndim(kdtree* tree);
+size_t kd_getsize(const kdtree* tree);
+size_t kd_getnalloc(const kdtree* tree);
 double* kd_getminmax(const kdtree* tree);
 double* kd_getnodecoords(const kdtree* tree, size_t id);
 size_t kd_getnodedata(const kdtree* tree, size_t id);

@@ -13,6 +13,38 @@
  *              continuous block of memory and (2) making it possible to
  *              pre-allocate memory externally to permit using shared memory.
  *
+ *              The standard use is as follows:
+ *
+ *              kdtree* tree = kdtree_create(<name>, <ndim>);
+ *              kd_insertnodes(tree, ..., 1);
+ *              [ or kd_insertnode(tree, ...); ]
+ *              < more of above>
+ *              [ kd_finalise(tree); ] // to minimise memory
+ *              < searches with kd_findnodeswithinrange(tree, ...)
+ *                or kd_findnearestnode(tree, ...) >
+ *              kd_destroy(tree);
+ *
+ *              To put into shared memory:
+ *
+ *              kdtree* tree = kdtree_create(<name>, <ndim>);
+ *              size_t size = kd_getstoragesize(tree, nnodes);
+ *              if (sm_comm_rank == 0) { // on master
+ *                   void* storage = NULL;
+ *                   MPI_Win_allocate_shared(size, sizeof(double), MPI_INFO_NULL, sm_comm, &storage, &sm_comm_win);
+ *                   kd_setstorage(tree, nnodes, storage, 1);
+ *                   kd_insertnodes(tree, ..., 1);
+ *              } else { // on slaves
+ *                   void* storage = NULL;
+ *                   MPI_Win_allocate_shared(0, sizeof(double), MPI_INFO_NULL, sm_comm, &storage, &sm_comm_win);
+ *                   kd_setstorage(tree, nnodes, storage, 0);
+ *                   kd_syncsize(gxy->nodetreeXY);
+ *              }
+ *              MPI_Win_fence(0, sm_comm_win);
+ *              MPI_Barrier(sm_comm);
+ *              < various searches>
+ *              kd_destroy(tree);
+ *              MPI_Win_free(&sm_comm_win);
+ *
  * Revisions:   23/11/2018 PS:
  *              - Replaced individual allocations of "resnode" in the linked
  *                list structure in _kdset_insert() by allocations of blocks of
@@ -415,23 +447,16 @@ void kd_finalise(kdtree* tree)
 
 /**
  */
-size_t kd_getsize(kdtree* tree)
+size_t kd_getsize(const kdtree* tree)
 {
     return tree->nnodes;
 }
 
 /**
  */
-size_t kd_getnalloc(kdtree* tree)
+size_t kd_getnalloc(const kdtree* tree)
 {
     return tree->nallocated;
-}
-
-/**
- */
-size_t kd_getnodesize(kdtree* tree)
-{
-    return sizeof(kdnode) + tree->ndim * sizeof(double);
 }
 
 /**
