@@ -1595,7 +1595,7 @@ void obs_createkdtrees(observations* obs)
         shuffle(nobs, ids);
 #endif
 
-        *tree = kd_create(ot->name, 3);
+        *tree = kd_create(ot->name, (ot->geographic)? 3 : 2);
 #if defined(USE_SHMEM)
         {
             MPI_Win* sm_comm_win = &obs->sm_comm_wins_kd[otid];

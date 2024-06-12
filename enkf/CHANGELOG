@@ -1,3 +1,7 @@
+v2.31.2
+   PS 13062024
+   -- In obs_createkdtrees() corrected the tree dimension to 2 when the
+      corresponding model variable is not on geographic grid.
 v2.31.1
    PS 13062024
    -- In transforms.c corrected calls to obs_findlocal() in the case
