@@ -1,3 +1,7 @@
+v2.31.1
+   PS 13062024
+   -- In transforms.c corrected calls to obs_findlocal() in the case
+      !defined(USE_MPIQUEUE).
 v2.31.0
    PS 31052024
    -- Added observation type parameter ERROR_DOUBLING_TIME, in days from
