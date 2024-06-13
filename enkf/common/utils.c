@@ -234,6 +234,8 @@ void enkf_init(int* argc, char*** argv)
     triangulation_set_quitfn(enkf_quit);
 #endif
 #if defined(MPI) && defined(USE_MPIQUEUE)
+    if (nprocesses == 1)
+        enkf_quit("\"mpiqueue\" can not be used on a single CPU; run on more than one CPU or recompile without -DUSE_MPIQUEUE flag");
     mpiqueue_setquitfn(enkf_quit);
 #endif
 
@@ -950,10 +952,16 @@ double date2day(char* fname, char* strdate)
         enkf_quit("%s: date2day(): could not understand date \"%s\"", fname, strdate);
     if (!str2double(token, &day))
         enkf_quit("%s: date2day(): \"%s\": could not convert \"%s\" to double", fname, strdate, token);
-    if ((token = strtok(NULL, seps2)) == NULL)
-        enkf_quit("%s: %s: date2day(): could not understand date \"%s\"", fname, strdate);
-    tunits_convert(token, &multiple, &offset);
-    day = day * multiple + offset;
+    if ((token = strtok(NULL, seps2)) == NULL) {
+#if 0
+        enkf_quit("%s: %s: date2day(): could not understand date \"%s\"", fname, strdat);
+#else
+        enkf_geophysical = 0;
+#endif
+    } else {
+        tunits_convert(token, &multiple, &offset);
+        day = day * multiple + offset;
+    }
 
     return day;
 }

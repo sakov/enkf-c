@@ -38,7 +38,7 @@ static void enkfprm_check(enkfprm* prm)
     if (prm->obsprm == NULL)
         enkf_quit("%s: OBS not specified", prm->fname);
     if (prm->date == NULL)
-        enkf_quit("%s: DATE not specified", prm->fname);
+        enkf_quit("%s: TIME not specified", prm->fname);
 #endif
     if (prm->modelprm == NULL)
         enkf_quit("%s: MODEL not specified", prm->fname);
@@ -181,13 +181,13 @@ enkfprm* enkfprm_read(char fname[])
                 enkf_quit("%s, l.%d: ALPHA not specified", fname, line);
             else if (!str2double(token, &prm->alpha))
                 enkf_quit("%s, l.%d: could not convert \"%s\" to double", fname, line, token);
-        } else if (strcasecmp(token, "DATE") == 0) {
+        } else if (strcasecmp(token, "TIME") == 0 || strcasecmp(token, "DATE") == 0) {
             char seps_date[] = "=\n";
 
             if ((token = strtok(NULL, seps_date)) == NULL)
-                enkf_quit("%s, l.%d: DATE not specified", fname, line);
+                enkf_quit("%s, l.%d: TIME not specified", fname, line);
             else if (prm->date != NULL)
-                enkf_quit("%s, l.%d: DATE specified twice", fname, line);
+                enkf_quit("%s, l.%d: TIME specified twice", fname, line);
             else {
                 while (*token == ' ')
                     token++;
@@ -583,7 +583,19 @@ void enkfprm_print(enkfprm* prm, char offset[])
 {
 #if defined(ENKF_CALC) || defined(ENKF_UPDATE)
     int i;
+#endif
 
+#if defined(ENKF_PREP) || defined(ENKF_CALC)
+    enkf_printf("%sTIME = \"%s\"\n", offset, prm->date);
+#endif
+#if defined(ENKF_PREP)
+    if (!isnan(prm->obswindow_min)) {
+        enkf_printf("%sWINDOWMIN = %.3f\n", offset, prm->obswindow_min);
+        enkf_printf("%sWINDOWMAX = %.3f\n", offset, prm->obswindow_max);
+    }
+#endif
+
+#if defined(ENKF_CALC) || defined(ENKF_UPDATE)
     if (prm->mode == MODE_NONE)
         enkf_printf("%sMODE = NONE\n", offset);
     else if (prm->mode == MODE_ENKF)
@@ -609,11 +621,6 @@ void enkfprm_print(enkfprm* prm, char offset[])
 #if defined(ENKF_PREP) || defined(ENKF_CALC)
     enkf_printf("%sOBS TYPES PRM = \"%s\"\n", offset, prm->obstypeprm);
     enkf_printf("%sOBS PRM = \"%s\"\n", offset, prm->obsprm);
-    enkf_printf("%sDATE = \"%s\"\n", offset, prm->date);
-    if (!isnan(prm->obswindow_min)) {
-        enkf_printf("%sWINDOWMIN = %.3f\n", offset, prm->obswindow_min);
-        enkf_printf("%sWINDOWMAX = %.3f\n", offset, prm->obswindow_max);
-    }
 #endif
     if (prm->mode == MODE_ENOI)
         enkf_printf("%sBGDIR = \"%s\"\n", offset, prm->bgdir);
@@ -727,6 +734,9 @@ void enkfprm_describeprm(void)
     enkf_printf("\n");
     enkf_printf("  Main parameter file format:\n");
     enkf_printf("\n");
+    enkf_printf("    TIME            = {<# days since YYYY-MM-DD> | <value>}\n");
+    enkf_printf("  [ WINDOWMIN       = <start of obs window in days from analysis> ] (-inf*)\n");
+    enkf_printf("  [ WINDOWMAX       = <end of obs window in days from analysis> ]   (+inf*)\n");
     enkf_printf("    MODE            = { ENKF | ENOI | HYBRID }\n");
     enkf_printf("  [ SCHEME          = { DENKF* | ETKF } ]                    (MODE = ENKF or HYBRID)\n");
     enkf_printf("  [ ALPHA           = <alpha> ]                              (1*) (MODE = ENKF or HYBRID)\n");
@@ -735,9 +745,6 @@ void enkfprm_describeprm(void)
     enkf_printf("    GRID            = <grid prm file>\n");
     enkf_printf("    OBSTYPES        = <obs. types prm file>\n");
     enkf_printf("    OBS             = <obs. data prm file>\n");
-    enkf_printf("    DATE            = <day of analysis>\n");
-    enkf_printf("  [ WINDOWMIN       = <start of obs window in days from analysis> ] (-inf*)\n");
-    enkf_printf("  [ WINDOWMAX       = <end of obs window in days from analysis> ]   (+inf*)\n");
     enkf_printf("    ENSDIR          = <ensemble directory>                   (except MODE = ENOI and\n");
     enkf_printf("                                                             --forecast-stats-only)\n");
     enkf_printf("  [ ENSDIR_STATIC   = <static ensemble directory> ]          (MODE = HYBRID)\n");
@@ -772,5 +779,8 @@ void enkfprm_describeprm(void)
     enkf_printf("    4. * denotes the default value\n");
     enkf_printf("    5. < ... > denotes a description of an entry\n");
     enkf_printf("    6. ... denotes repeating the previous item an arbitrary number of times\n");
+    enkf_printf("    7. Depending on the context, some of the entries may be redundant\n");
+    enkf_printf("    8. TIME entry is also a flag for geophysical/non-geophysical system,\n");
+    enkf_printf("       depending on the presence of \"days since\"\n");
     enkf_printf("\n");
 }

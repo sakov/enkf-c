@@ -39,7 +39,7 @@
 
 \begin{document}
 
-\title{EnKF-C user guide\\{\normalsize version 2.30.0}}
+\title{EnKF-C user guide\\{\normalsize version 2.32.0}}
 
 \author{Pavel Sakov}
 \date{June 19, 2014 -- \today}
@@ -793,17 +793,17 @@ Its format is described by running \verb|enkf_prep|, \verb|enkf_calc| or \verb|e
 
   Main parameter file format:
 
+    TIME            = {<# days since YYYY-MM-DD> | <value>}
+  [ WINDOWMIN       = <start of obs window in days from analysis> ] (-inf*)
+  [ WINDOWMAX       = <end of obs window in days from analysis> ]   (+inf*)
     MODE            = { ENKF | ENOI | HYBRID }
-    MODEL           = <model prm file>
   [ SCHEME          = { DENKF* | ETKF } ]                    (MODE = ENKF or HYBRID)
   [ ALPHA           = <alpha> ]                              (1*) (MODE = ENKF or HYBRID)
     GAMMA           = <gamma>                                (MODE = HYBRID)
+    MODEL           = <model prm file>
     GRID            = <grid prm file>
     OBSTYPES        = <obs. types prm file>
     OBS             = <obs. data prm file>
-    DATE            = <day of analysis>
-  [ WINDOWMIN       = <start of obs window in days from analysis> ] (-inf*)
-  [ WINDOWMAX       = <end of obs window in days from analysis> ]   (+inf*)
     ENSDIR          = <ensemble directory>                   (except MODE = ENOI and
                                                              --forecast-stats-only)
   [ ENSDIR_STATIC   = <static ensemble directory> ]          (MODE = HYBRID)
@@ -827,7 +827,8 @@ Its format is described by running \verb|enkf_prep|, \verb|enkf_calc| or \verb|e
   [ EXITACTION      = { BACKTRACE* | SEGFAULT } ]
   [ BADBATCHES      = <obstype> <max. bias> <max. mad> <min # obs.> ]
     ...
-  [ NCFORMAT        = { CLASSIC | 64BIT | NETCDF4 } ]        (64BIT*)
+  [ ZSTATINTS       = [<z1> <z2>] ... ]
+  [ NCFORMAT        = { CLASSIC | 64BIT | NETCDF4 } ]        (NETCDF4*)
   [ NCCOMPRESSION   = <compression level> ]                  (0*)
 
   Notes:
@@ -837,7 +838,13 @@ Its format is described by running \verb|enkf_prep|, \verb|enkf_calc| or \verb|e
     4. * denotes the default value
     5. < ... > denotes a description of an entry
     6. ... denotes repeating the previous item an arbitrary number of times
+    7. Depending on the context, some of the entries may be redundant
+    8. TIME entry is also a flag for geophysical/non-geophysical system,
+       depending on the presence of "days since"
 \end{Verbatim}
+The \verb|TIME| entry also serves as a switch between geophysical/non-geophysical system.
+For geophysical systems the coordinates are assumed to be geographic longitude and latitude (unless \verb|GEOGRAPHIC = 0| is specified for a grid); the time is assumed to be dimensional, in some physical units; and the localisation radii is assumed to be in kilometers.
+For non-geophysical systems all the above are assumed to be non-dimensional, and the grid is assumed to be on a plane.
 
 \subsubsection{Global analysis}
 
@@ -899,7 +906,7 @@ It also contains variable names for the depth and for number of layers in a vert
     (end either)
     VTYPE            = { z | sigma | hybrid | numeric | none }
   [ VDIR             = { fromsurf* | tosurf } ]
-  [ GEOGRAPHIC       = { yes* | no } ]
+  [ GEOGRAPHIC       = { 0 | 1* | 2 } ]
     (if vtype = z)
       ZVARNAME       = <Z variable name>
     [ ZCVARNAME      = <ZC variable name> ]
@@ -955,9 +962,13 @@ For rectangular grids the code tries to determine and handle periodicity in X di
 
 Note that the code does not detect and therefore can not take advantage of periodic curvilinear grids; because of that, it does not map (skips) observations in cells connecting the grid edges.
 
-The flag \verb|GEOGRAPHIC| introduced in v2.8.0 if set to ``yes'' internally communicates to the code that the grid nodes are defined in geographic coordinates and sets grid rendering to be performed in cartesian coordinates.
+The flag \verb|GEOGRAPHIC| introduced in v2.8.0 if set to ``1'' internally communicates to the code that the grid nodes are defined in geographic coordinates and sets grid rendering to be performed in 3D cartesian coordinates.
 This can be essential in polar regions because of the skewness of grid cells in geographic coordinates there (it can cause failures of the mapping algorithm).
 The user can investigate the necessity of setting this flag to ``yes'' by comparing the numbers of accepted/rejected observations with and without it.
+
+If the flag \verb|GEOGRAPHIC| is set to ``0'' then the grid is assumed to be on a plane and grid coordinates are assumed to be non-dimensional; the localisation radii for the corresponding observation types need to be specified accordingly.
+
+The flag \verb|GEOGRAPHIC| set to ``2'' treats grid coordinates similarly to that for the flag set to ``1'', but different rendering procedures are used, which may turn out more robust for e.g. grids with artificial discontinuities in longitude.
 
 For unstructured grids associated with observed variables it is necessary to specify triangulation details: vertice IDs and neighbour triangle IDs.
 For unstructured grids stride can be equal to 1 only (i.e. ensemble transforms must be calculated in each grid node).

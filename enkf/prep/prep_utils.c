@@ -829,11 +829,16 @@ void get_time(obsmeta* meta, int ncid, size_t* size, double** time)
         ncu_readvardouble(ncid, varids[1], 1, &offset);
         tunits_offset = offset * tunits_multiple + tunits_offset;
     }
-    ncw_get_att_text(ncid, varids[0], "units", tunits);
-    if (timenames[1] != NULL)
-        tunits_multiple = tunits2days(tunits);
-    else
-        tunits_convert(tunits, &tunits_multiple, &tunits_offset);
+    if (enkf_geophysical) {
+        ncw_get_att_text(ncid, varids[0], "units", tunits);
+        if (timenames[1] != NULL)
+            tunits_multiple = tunits2days(tunits);
+        else
+            tunits_convert(tunits, &tunits_multiple, &tunits_offset);
+    } else {
+        tunits_multiple = 1.0;
+        tunits_offset = 0.0;
+    }
     ncw_inq_varsize(ncid, varids[0], size);
     assert(*size > 0);
     *time = malloc(*size * sizeof(double));

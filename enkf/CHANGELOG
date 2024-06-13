@@ -1,3 +1,10 @@
+v2.32.0
+   PS 13062024
+   -- Changed entry "DATE" in the main paramater file to "TIME" ("DATE" is also
+      allowed for backward compatibility).
+   -- Introduced global flag "enkf_geophysical" to make it possible using EnKF-C
+      with toy models; 1 by default. It is set to 0 if TIME entry does not
+      contain the units part (e.g. "days since ...").
 v2.31.2
    PS 13062024
    -- In obs_createkdtrees() corrected the tree dimension to 2 when the

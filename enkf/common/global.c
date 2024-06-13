@@ -40,6 +40,7 @@ int node_comm_size = 0;
 int* node_comm_ranks = NULL;
 #endif
 
+int enkf_geophysical = 1;
 int enkf_obstype = OBSTYPE_VALUE;
 int enkf_exitaction = EXITACTION_DEFAULT;
 int enkf_verbose = 1;

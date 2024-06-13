@@ -183,6 +183,7 @@ extern int enkf_noobsdatecheck;
 extern int enkf_considersubgridvar;
 extern int enkf_doplogs;
 extern int enkf_allowenoilog;
+extern int enkf_geophysical;
 extern int print_mem;
 
 typedef struct {
