@@ -234,8 +234,6 @@ void enkf_init(int* argc, char*** argv)
     triangulation_set_quitfn(enkf_quit);
 #endif
 #if defined(MPI) && defined(USE_MPIQUEUE)
-    if (nprocesses == 1)
-        enkf_quit("\"mpiqueue\" can not be used on a single CPU; run on more than one CPU or recompile without -DUSE_MPIQUEUE flag");
     mpiqueue_setquitfn(enkf_quit);
 #endif
 
