@@ -94,6 +94,7 @@ prep/reader_gridded_xyz.c\
 prep/reader_gridded_xyh.c\
 prep/reader_cmems.c\
 prep/reader_z.c\
+prep/reader_en4.c\
 prep/enkf_prep.c
 
 HDR_PREP =\

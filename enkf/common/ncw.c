@@ -31,7 +31,7 @@
 #include <errno.h>
 #include "ncw.h"
 
-const char ncw_version[] = "2.30.1";
+const char ncw_version[] = "2.31.0";
 
 /*
  * A flag -- whether ncw_copy_vardef() (re-)defines chunking by layers.
@@ -2120,6 +2120,36 @@ void ncw_get_var_float_record(int ncid, int varid, int r, float v[])
     }
 }
 
+/** Reads one record of a variable.
+ * @param ncid NetCDF file id
+ * @param varid ID of the variable
+ * @param r Record number
+ * @param v The data
+ */
+void ncw_get_var_int_record(int ncid, int varid, int r, int v[])
+{
+    int ndims;
+    size_t dimlen[NC_MAX_VAR_DIMS];
+    size_t start[NC_MAX_VAR_DIMS];
+    int i;
+    int status;
+
+    ncw_inq_vardims(ncid, varid, NC_MAX_DIMS, &ndims, dimlen);
+    start[0] = r;               /* this record */
+    dimlen[0] = 1;              /* one record only */
+    for (i = 1; i < ndims; ++i)
+        start[i] = 0;
+
+    status = nc_get_vara_int(ncid, varid, start, dimlen, v);
+
+    if (status != 0) {
+        char varname[NC_MAX_NAME] = "STR_UNKNOWN";
+
+        ncw_inq_varname(ncid, varid, varname);
+        quit("\"%s\": ncw_get_var_int_record(): failed to read record (outer dim) %d for \"%s\": %s", ncw_get_path(ncid), r, varname, nc_strerror(status));
+    }
+}
+
 /** Writes one record of a variable.
  * @param ncid NetCDF file id
  * @param varid ID of the variable
@@ -2177,6 +2207,36 @@ void ncw_put_var_float_record(int ncid, int varid, int r, float v[])
 
         ncw_inq_varname(ncid, varid, varname);
         quit("\"%s\": ncw_put_var_float_record(): failed to read record (outer dim) %d for \"%s\": %s", ncw_get_path(ncid), r, varname, nc_strerror(status));
+    }
+}
+
+/** Writes one record of a variable.
+ * @param ncid NetCDF file id
+ * @param varid ID of the variable
+ * @param r Record number
+ * @param v The data
+ */
+void ncw_put_var_int_record(int ncid, int varid, int r, int v[])
+{
+    int ndims;
+    size_t dimlen[NC_MAX_VAR_DIMS];
+    size_t start[NC_MAX_VAR_DIMS];
+    int i;
+    int status;
+
+    ncw_inq_vardims(ncid, varid, NC_MAX_DIMS, &ndims, dimlen);
+    start[0] = r;               /* this record */
+    dimlen[0] = 1;              /* one record only */
+    for (i = 1; i < ndims; ++i)
+        start[i] = 0;
+
+    status = nc_put_vara_int(ncid, varid, start, dimlen, v);
+
+    if (status != 0) {
+        char varname[NC_MAX_NAME] = "STR_UNKNOWN";
+
+        ncw_inq_varname(ncid, varid, varname);
+        quit("\"%s\": ncw_put_var_int_record(): failed to read record (outer dim) %d for \"%s\": %s", ncw_get_path(ncid), r, varname, nc_strerror(status));
     }
 }
 

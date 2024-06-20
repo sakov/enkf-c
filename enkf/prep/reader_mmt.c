@@ -7,7 +7,15 @@
  * Author:      Pavel Sakov
  *              Bureau of Meteorology
  *
- * Description:
+ * Description: Reader for in-situ temperature and salinity profile data from
+ *              MMT dataset produced by BoM.
+ *
+ *              Optional parameters:
+ *              - EXCLUDEINST
+ *                  WMO instrument type id to be skipped, one entry (one line)
+ *                  per instrument, e.g.
+ *                  PARAMETER EXCLUDEINST = WMO995 # marine mammals
+ *                  PARAMETER EXCLUDEINST = WMO999 # unknown
  *
  * Revisions:
  *
@@ -25,6 +33,7 @@
 #include "ncw.h"
 #include "definitions.h"
 #include "utils.h"
+#include "ncutils.h"
 #include "obsprm.h"
 #include "grid.h"
 #include "model.h"
@@ -32,7 +41,6 @@
 #include "prep_utils.h"
 #include "allreaders.h"
 
-#define EPS 1.0e-6
 #define WMO_INSTSIZE 4
 
 /**
@@ -58,11 +66,10 @@ static int cmp_lonlat(const void* p1, const void* p2)
 void reader_mmt(char* fname, int fid, obsmeta* meta, grid* g, observations* obs)
 {
     stringtable* st_exclude = NULL;
-    int ncid;
+    int ncid, varid;
     int dimid_nprof, dimid_nz;
     size_t nprof, nz;
-    int varid;
-    int* status = NULL;
+    int* status;
     double* lon;
     double* lat;
     double** z;
@@ -70,9 +77,6 @@ void reader_mmt(char* fname, int fid, obsmeta* meta, grid* g, observations* obs)
     double* time;
     char tunits[MAXSTRLEN];
     int** qc = NULL;
-    double missval;
-    double validmin = DBL_MAX;
-    double validmax = -DBL_MAX;
     char* type;
     double tunits_multiple, tunits_offset;
     int p, i, nobs_read, id;
@@ -108,33 +112,28 @@ void reader_mmt(char* fname, int fid, obsmeta* meta, grid* g, observations* obs)
 
     ncw_inq_varid(ncid, "LONGITUDE", &varid);
     lon = malloc(nprof * sizeof(double));
-    ncw_get_var_double(ncid, varid, lon);
+    ncu_readvardouble(ncid, varid, nprof, lon);
 
     ncw_inq_varid(ncid, "LATITUDE", &varid);
     lat = malloc(nprof * sizeof(double));
-    ncw_get_var_double(ncid, varid, lat);
+    ncu_readvardouble(ncid, varid, nprof, lat);
 
     ncw_inq_varid(ncid, "PRES_BLUELINK", &varid);
     z = alloc2d(nprof, nz, sizeof(double));
-    ncw_get_var_double(ncid, varid, z[0]);
+    ncu_readvardouble(ncid, varid, nprof * nz, z[0]);
 
-    if (strncmp(meta->type, "TEM", 3) == 0) {
-        validmin = -2.0;
-        validmax = 40.0;
+    if (strncmp(meta->type, "TEM", 3) == 0)
         ncw_inq_varid(ncid, "TEMP_BLUELINK", &varid);
-    } else if (strncmp(meta->type, "SAL", 3) == 0) {
-        validmin = 0;
-        validmax = 50.0;
+    else if (strncmp(meta->type, "SAL", 3) == 0)
         ncw_inq_varid(ncid, "PSAL_BLUELINK", &varid);
-    } else
+    else
         enkf_quit("observation type \"%s\" not handled for MMT product", meta->type);
     v = alloc2d(nprof, nz, sizeof(double));
-    ncw_get_var_double(ncid, varid, v[0]);
-    ncw_get_att_double(ncid, varid, "_FillValue", &missval);
+    ncu_readvardouble(ncid, varid, nprof * nz, v[0]);
 
     ncw_inq_varid(ncid, "JULD", &varid);
     time = malloc(nprof * sizeof(double));
-    ncw_get_var_double(ncid, varid, time);
+    ncu_readvardouble(ncid, varid, nprof, time);
     ncw_get_att_text(ncid, varid, "units", tunits);
     tunits_convert(tunits, &tunits_multiple, &tunits_offset);
 
@@ -184,7 +183,7 @@ void reader_mmt(char* fname, int fid, obsmeta* meta, grid* g, observations* obs)
             for (i = 0; i < (int) nz; ++i)
                 if (v[p][i] == 0.0)
                     nzero++;
-                else if ((isfinite(v[p][i])) && fabs(v[p][i] - missval) > EPS)
+                else if (isfinite(v[p][i]))
                     break;
             if (i == (int) nz && nzero > 0) {
                 enkf_printf("          profile # %d has no valid obs.\n", p);
@@ -196,7 +195,7 @@ void reader_mmt(char* fname, int fid, obsmeta* meta, grid* g, observations* obs)
         for (i = 0; i < (int) nz; ++i, ++id) {
             observation* o;
 
-            if (!isfinite(v[p][i]) || fabs(v[p][i] - missval) < EPS || v[p][i] < validmin || v[p][i] > validmax)
+            if (!isfinite(v[p][i]))
                 continue;
             if (z[p][i] < 0.0)
                 continue;
@@ -298,22 +297,6 @@ produced in-house by BoM.\n\
 \n\
   Parameters specific to the reader:\n\
     - EXCLUDEINST (-)\n\
-        instrument in format \"WMO*\" to be skipped\n\
-    - QCFLAGNAME (-)\n\
-        name of the QC flag variable, possible values 0 <= qcflag <= 31\n\
-    - QCFLAGVALS (-)\n\
-        the list of allowed values of QC flag variable\n\
-  Note: it is possible to have multiple entries of QCFLAGNAME and QCFLAGVALS\n\
-  combination, e.g.:\n\
-    PARAMETER QCFLAGNAME = TEMP_quality_control\n\
-    PARAMETER QCFLAGVALS = 1\n\
-    PARAMETER QCFLAGNAME = DEPTH_quality_control\n\
-    PARAMETER QCFLAGVALS = 1\n\
-    PARAMETER QCFLAGNAME = LONGITUDE_quality_control\n\
-    PARAMETER QCFLAGVALS = 1,8\n\
-    PARAMETER QCFLAGNAME = LATITUDE_quality_control\n\
-    PARAMETER QCFLAGVALS = 1,8\n\
-  An observation is considered valid if each of the specified flags takes a\n\
-  permitted value.\n");
+        instrument in format \"WMO*\" to be skipped\n");
     describe_commonreaderparams();
 }

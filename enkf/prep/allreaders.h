@@ -37,6 +37,7 @@ void reader_mmt(char* fname, int fid, obsmeta* meta, grid* g, observations* obs)
 void reader_amsr2(char* fname, int fid, obsmeta* meta, grid* g, observations* obs);
 void reader_amsre(char* fname, int fid, obsmeta* meta, grid* g, observations* obs);
 void reader_cmems(char* fname, int fid, obsmeta* meta, grid* g, observations* obs);
+void reader_en4(char* fname, int fid, obsmeta* meta, grid* g, observations* obs);
 
 void reader_scattered_describe(void);
 void reader_gridded_xy_describe(void);
@@ -49,6 +50,7 @@ void reader_mmt_describe(void);
 void reader_amsr2_describe(void);
 void reader_amsre_describe(void);
 void reader_cmems_describe(void);
+void reader_en4_describe(void);
 
 #define _ALLREADERS_H
 #endif

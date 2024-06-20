@@ -1,6 +1,11 @@
+v2.33.0
+   PS 20062024
+   -- Added reader "en4" for EN4 in-situ profile dataset. Thanks to Yonghong
+      Yin for the initial code.
+   -- Come cosmetic changes to mmt reader.
 v2.32.0
    PS 13062024
-   -- Changed entry "DATE" in the main paramater file to "TIME" ("DATE" is also
+   -- Changed entry "DATE" in the main parameter file to "TIME" ("DATE" is also
       allowed for backward compatibility).
    -- Introduced global flag "enkf_geophysical" to make it possible using EnKF-C
       with toy models; 1 by default. It is set to 0 if TIME entry does not

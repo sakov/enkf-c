@@ -161,8 +161,10 @@ void ncw_def_var_as(int ncid, const char oldvarname[], const char newvarname[]);
 size_t ncw_get_varsize(int ncid, int varid);
 void ncw_get_var_double_record(int ncid, int varid, int r, double v[]);
 void ncw_get_var_float_record(int ncid, int varid, int r, float v[]);
+void ncw_get_var_int_record(int ncid, int varid, int r, int v[]);
 void ncw_put_var_double_record(int ncid, int varid, int r, double v[]);
 void ncw_put_var_float_record(int ncid, int varid, int r, float v[]);
+void ncw_put_var_int_record(int ncid, int varid, int r, int v[]);
 
 void ncw_check_attlen(int ncid, int varid, const char attname[], size_t len);
 void ncw_check_dimlen(int ncid, const char dimname[], size_t len);

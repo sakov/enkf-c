@@ -45,7 +45,8 @@ obsreader_entry allreaders[] = {
     {"MMT", "mmt", reader_mmt, reader_mmt_describe},
     {"AMSR2", "amsr2", reader_amsr2, reader_amsr2_describe},
     {"AMSRE", "amsre", reader_amsre, reader_amsre_describe},
-    {"CMEMS", "cmems", reader_cmems, reader_cmems_describe}
+    {"CMEMS", "cmems", reader_cmems, reader_cmems_describe},
+    {"EN4", "en4", reader_en4, reader_en4_describe}
 };
 
 /**
