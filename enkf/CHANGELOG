@@ -1,3 +1,12 @@
+v2.33.2
+   PS 25062024
+   -- In obs_write() and obs_read() in case (structuredonly) changed storage
+      format for fi and fj from NC_FLOAT to NC_DOUBLE, similarly to the general
+      case. Reason: encounterred a case when a superobservation was formed
+      by a number of valid obs. and turned out to be very close to the cell
+      boundary. It passed test by obs_checkforland() in PREP, but when read by
+      CALC due to round-up turned out to be exactly on the cell boundary and
+      returned NaN when estimating the forecast ob.
 v2.33.1
    PS 20062024
    -- Moved error message about attempting running mpiqueue on 1 CPU from

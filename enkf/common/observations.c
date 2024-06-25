@@ -611,10 +611,7 @@ void obs_read(observations* obs, char fname[])
         int varid;
         size_t i;
 
-        if (structuredonly)
-            v = malloc(nobs * ((sizeof(float) >= sizeof(int)) ? sizeof(float) : sizeof(int)));
-        else
-            v = malloc(nobs * sizeof(double));
+        v = malloc(nobs * sizeof(double));
 
         ncw_inq_varid(ncid, "id", &varid);
         ncw_get_var_int(ncid, varid, v);
@@ -699,14 +696,14 @@ void obs_read(observations* obs, char fname[])
 
         if (structuredonly) {
             ncw_inq_varid(ncid, "fi", &varid);
-            ncw_get_var_float(ncid, varid, v);
+            ncw_get_var_double(ncid, varid, v);
             for (i = 0; i < nobs; ++i)
-                obs->data[i].fij[0] = ((float*) v)[i];
+                obs->data[i].fij[0] = ((double*) v)[i];
 
             ncw_inq_varid(ncid, "fj", &varid);
-            ncw_get_var_float(ncid, varid, v);
+            ncw_get_var_double(ncid, varid, v);
             for (i = 0; i < nobs; ++i)
-                obs->data[i].fij[1] = ((float*) v)[i];
+                obs->data[i].fij[1] = ((double*) v)[i];
         } else {
             ncw_inq_varid(ncid, "fi0", &varid);
             ncw_get_var_double(ncid, varid, v);
@@ -934,12 +931,12 @@ void obs_write(observations* obs, char fname[])
         /*
          * fi
          */
-        ncw_def_var(ncid, "fi", NC_FLOAT, 1, dimid_nobs, &varid);
+        ncw_def_var(ncid, "fi", NC_DOUBLE, 1, dimid_nobs, &varid);
         ncw_put_att_text(ncid, varid, "long_name", "fractional grid index i of the observation");
         /*
          * fj
          */
-        ncw_def_var(ncid, "fj", NC_FLOAT, 1, dimid_nobs, &varid);
+        ncw_def_var(ncid, "fj", NC_DOUBLE, 1, dimid_nobs, &varid);
         ncw_put_att_text(ncid, varid, "long_name", "fractional grid index j of the observation");
     } else {
         /*
@@ -995,10 +992,7 @@ void obs_write(observations* obs, char fname[])
         }
     }
 
-    if (structuredonly)
-        v = malloc(nobs * ((sizeof(float) >= sizeof(int)) ? sizeof(float) : sizeof(int)));
-    else
-        v = malloc(nobs * sizeof(double));
+    v = malloc(nobs * sizeof(double));
 
     ncw_inq_varid(ncid, "id", &varid);
     for (i = 0; i < obs->nobs; ++i)
@@ -1080,13 +1074,13 @@ void obs_write(observations* obs, char fname[])
     if (structuredonly) {
         ncw_inq_varid(ncid, "fi", &varid);
         for (i = 0; i < obs->nobs; ++i)
-            ((float*) v)[i] = obs->data[i].fij[0];
-        ncw_put_var_float(ncid, varid, v);
+            ((double*) v)[i] = obs->data[i].fij[0];
+        ncw_put_var_double(ncid, varid, v);
 
         ncw_inq_varid(ncid, "fj", &varid);
         for (i = 0; i < obs->nobs; ++i)
-            ((float*) v)[i] = obs->data[i].fij[1];
-        ncw_put_var_float(ncid, varid, v);
+            ((double*) v)[i] = obs->data[i].fij[1];
+        ncw_put_var_double(ncid, varid, v);
     } else {
         ncw_inq_varid(ncid, "fi0", &varid);
         for (i = 0; i < obs->nobs; ++i)
