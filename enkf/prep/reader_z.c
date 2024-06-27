@@ -130,7 +130,7 @@ void reader_z(char* fname, int fid, obsmeta* meta, grid* g, observations* obs)
     double** z = NULL;
     double var_estd = NAN;
     double** estd = NULL;
-    uint32_t*** qcflag = NULL;
+    int32_t*** qcflag = NULL;
     size_t ntime = 0;
     double* time = NULL;
     int varid;
@@ -339,7 +339,7 @@ void reader_z(char* fname, int fid, obsmeta* meta, grid* g, observations* obs)
     if (nqcflagvars > 0) {
         qcflag = alloc3d(nqcflagvars, nprof, nz, sizeof(int32_t));
         for (i = 0; i < nqcflagvars; ++i) {
-            uint32_t** qcflagi = qcflag[i];
+            int32_t** qcflagi = qcflag[i];
             int ndims;
             size_t dimlen[2];
             nc_type type;
@@ -354,15 +354,7 @@ void reader_z(char* fname, int fid, obsmeta* meta, grid* g, observations* obs)
                          * flag for profile
                          */
                         assert(dimlen[0] == nprof);
-                        /*
-                         * ncw_get_var_int() is used below because some datasets
-                         * use signed types for quality flags and set _FillValue
-                         * to a negative number. This should not be a problem
-                         * because negative values are converted to very large
-                         * unsigned integers, which results in skipping the
-                         * corresponding data.
-                         */
-                        ncw_get_var_int(ncid, varid, (int32_t *) qcflagi[0]);
+                        ncw_get_var_int(ncid, varid, qcflagi[0]);
                         for (p = 0; p < nprof; ++p)
                             qcflagi[p][0] = qcflagi[0][p];
                         for (p = 0; p < nprof; ++p)
@@ -375,10 +367,7 @@ void reader_z(char* fname, int fid, obsmeta* meta, grid* g, observations* obs)
                      */
                     assert(dimlen[0] == nprof && dimlen[1] == nz);
                     ncw_check_varsize(ncid, varid, nobs);
-                    /*
-                     * see the comment about ncw_get_var_int() above
-                     */
-                    ncw_get_var_int(ncid, varid, (int32_t *) qcflagi[0]);
+                    ncw_get_var_int(ncid, varid, qcflagi[0]);
                 }
                 ncw_inq_vartype(ncid, varid, &type);
             } else {
@@ -465,7 +454,7 @@ void reader_z(char* fname, int fid, obsmeta* meta, grid* g, observations* obs)
             if (isnan(var[p][k]) || (estd != NULL && isnan(estd[p][k])) || (ntime == nobs && isnan(time[i])) || (ntime == nprof && isnan(time[p])))
                 continue;
             for (ii = 0; ii < nqcflagvars; ++ii)
-                if (!((1 << qcflag[ii][p][k]) & qcflagmasks[ii]))
+                if (qcflag[ii][p][k] < 0 || qcflag[ii][p][k] > 31 || !((1 << qcflag[ii][p][k]) & qcflagmasks[ii]))
                     goto nextob;
 
             nobs_read++;

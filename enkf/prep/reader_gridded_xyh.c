@@ -74,7 +74,7 @@ void reader_gridded_xyh(char* fname, int fid, obsmeta* meta, grid* gdst, observa
     float* std = NULL;
     float* estd = NULL;
     int* batch = NULL;
-    uint32_t** qcflag = NULL;
+    int32_t** qcflag = NULL;
     size_t ntime = 0;
     double* time = NULL;
     int varid;
@@ -217,7 +217,7 @@ void reader_gridded_xyh(char* fname, int fid, obsmeta* meta, grid* gdst, observa
         qcflag = alloc2d(nqcflagvars, nijk, sizeof(int32_t));
         for (i = 0; i < nqcflagvars; ++i) {
             ncw_inq_varid(ncid, qcflagvarnames[i], &varid);
-            ncw_get_var_uint(ncid, varid, qcflag[i]);
+            ncw_get_var_int(ncid, varid, qcflag[i]);
         }
     }
 
@@ -252,7 +252,7 @@ void reader_gridded_xyh(char* fname, int fid, obsmeta* meta, grid* gdst, observa
                 if ((npoints != NULL && npoints[ii] == 0) || isnan(var[ii]) || (std != NULL && isnan(std[ii])) || (estd != NULL && isnan(estd[ii])) || (ntime == nijk && isnan(time[ii])))
                     continue;
                 for (qcid = 0; qcid < nqcflagvars; ++qcid)
-                    if (!((1 << qcflag[qcid][ii]) & qcflagmasks[qcid]))
+                    if (qcflag[qcid][ii] < 0 || qcflag[qcid][ii] > 31 || !((1 << qcflag[qcid][ii]) & qcflagmasks[qcid]))
                         goto nextob;
 
                 nobs_read++;
