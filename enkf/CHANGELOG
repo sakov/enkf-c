@@ -1,3 +1,9 @@
+v2.33.3
+   PS 27062024
+   In reader_z() in the "qcflag" section replaced two instances of
+   ncw_get_var_uint() by ncw_get_var_int() to handle use of signed variables
+   for QC flag. (Perhaps, this needs to be done in other generic readers as
+   well.)
 v2.33.2
    PS 25062024
    -- In obs_write() and obs_read() in case (structuredonly) changed storage

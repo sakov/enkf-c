@@ -670,7 +670,7 @@ void das_calctransforms(dasystem* das)
         if (nprocesses == 1)
             enkf_quit("\"mpiqueue\" can not be used on a single CPU; run on more than one CPU or recompile without -DUSE_MPIQUEUE flag");
         queue = mpiqueue_create(MPI_COMM_WORLD, nj);
-        
+
         if (rank == 0)
             mpiqueue_manage(queue);
         else {
