@@ -79,6 +79,7 @@ void reader_mmt(char* fname, int fid, obsmeta* meta, grid* g, observations* obs)
     int** qc = NULL;
     char* type;
     double tunits_multiple, tunits_offset;
+    int npexcluded;
     int p, i, nobs_read, id;
 
     for (i = 0; i < meta->npars; ++i) {
@@ -160,6 +161,7 @@ void reader_mmt(char* fname, int fid, obsmeta* meta, grid* g, observations* obs)
 
     ncw_close(ncid);
 
+    npexcluded = 0;
     nobs_read = 0;
     for (p = 0, id = 0; p < (int) nprof; ++p) {
         char inststr[MAXSTRLEN];
@@ -171,8 +173,11 @@ void reader_mmt(char* fname, int fid, obsmeta* meta, grid* g, observations* obs)
             instnum = 999;
         snprintf(inststr, MAXSTRLEN, "WMO%03d", instnum);
 
-        if (st_exclude != NULL && st_findindexbystring(st_exclude, inststr) >= 0)
+        if (st_exclude != NULL && st_findindexbystring(st_exclude, inststr) >= 0) {
+            npexcluded++;
+            i += nz;
             continue;
+        }
 
         /*
          * skip profiles with all values equal to 0
@@ -235,6 +240,8 @@ void reader_mmt(char* fname, int fid, obsmeta* meta, grid* g, observations* obs)
             obs->nobs++;
         }
     }
+    if (npexcluded > 0)
+        enkf_printf("        # profiles excluded by inst. type = %d\n", npexcluded);
     enkf_printf("        nobs = %d\n", nobs_read);
 
     /*

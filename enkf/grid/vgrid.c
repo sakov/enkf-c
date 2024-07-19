@@ -1033,6 +1033,8 @@ void vgrid_z2fk(vgrid* vg, double* fij, double z, double* fk)
         gz_hybrid_z2fk(vg, fij, z, fk);
     else if (vg->type == GRIDVTYPE_NUMERIC)
         gz_numeric_z2fk(vg, fij, z, fk);
+    else if (vg->type == GRIDVTYPE_NONE)
+        *fk = INFINITY;         /* not NAN to pass the check in grid_z2fk() */
     else
         enkf_quit("programming error");
 }

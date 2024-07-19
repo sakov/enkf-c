@@ -444,6 +444,7 @@ void reader_z(char* fname, int fid, obsmeta* meta, grid* g, observations* obs)
     for (p = 0, i = 0; p < (int) nprof; ++p) {
         if (instruments != NULL && st_exclude != NULL && st_findindexbystring(st_exclude, instruments[p]) >= 0) {
             npexcluded++;
+            i += nz;
             continue;
         }
 
