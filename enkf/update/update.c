@@ -1653,7 +1653,7 @@ void das_update(dasystem* das)
                  * write forecast spread
                  */
                 if (das->updatespec & UPDATE_DOFORECASTSPREAD)
-                    das_writespread(das, bufid + 1, fieldbuffer, &fields[fid - bufid], 0);
+                    das_writespread_inupdate(das, bufid + 1, fieldbuffer, &fields[fid - bufid], 0);
 
                 /*
                  * write forecast variables to point logs
@@ -1692,7 +1692,7 @@ void das_update(dasystem* das)
                  * write analysis spread
                  */
                 if (das->updatespec & UPDATE_DOANALYSISSPREAD && (das->mode == MODE_ENKF || das->mode == MODE_HYBRID))
-                    das_writespread(das, bufid + 1, fieldbuffer, &fields[fid - bufid], 1);
+                    das_writespread_inupdate(das, bufid + 1, fieldbuffer, &fields[fid - bufid], 1);
                 /*
                  * write analysis variables to point logs
                  */

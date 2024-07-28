@@ -1,3 +1,9 @@
+v2.33.6
+   PS 28072024
+   -- In das_update() replaced overlooked das_writespread() by
+      das_writespread_inupdate(), manifested when compiled without
+      -DUSE_MPIQUEUE.
+   -- Modified H_subsurf_standard() to allow 2D offsets.
 v2.33.5
    PS 19072024
    A few minor changes:

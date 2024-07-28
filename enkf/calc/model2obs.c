@@ -286,6 +286,13 @@ void H_subsurf_standard(dasystem* das, int nobs, int obsids[], char fname[], int
 
                 for (ijk = 0; ijk < (size_t) ni * nj * nk; ++ijk)
                     src0[ijk] -= offset0[ijk];
+            } else if (model_getdataalloctype(m, tag_offset) == ALLOCTYPE_2D) {
+                float* offset0 = ((float**) offset_data)[0];
+                size_t ijk, ij, k;
+
+                for (k = 0, ijk = 0; k < nk; ++k)
+                    for (ij = 0; ij < (size_t) ni * nj; ++ij, ++ijk)
+                        src0[ijk] -= offset0[ij];
             } else if (model_getdataalloctype(m, tag_offset) == ALLOCTYPE_1D) {
                 size_t ij, k;
 
@@ -293,11 +300,11 @@ void H_subsurf_standard(dasystem* das, int nobs, int obsids[], char fname[], int
                     float* srck = ((float***) src)[k][0];
                     float offsetk = ((float*) offset_data)[k];
 
-                    for (ij = 0; ij < ni * nj; ++ij)
+                    for (ij = 0; ij < (size_t) ni * nj; ++ij)
                         srck[ij] -= offsetk;
                 }
             } else
-                enkf_quit("obstype = %s: offset variable must be either 3D or 1D for a 3D observation type on structured grid", ot->name);
+                enkf_quit("obstype = %s: offset variable type must be either 1D, 2D, or 3D for a 3D observation type on structured grid", ot->name);
         }
     } else {
         src = alloc2d(nk, ni, sizeof(float));
