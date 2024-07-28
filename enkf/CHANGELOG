@@ -1,5 +1,9 @@
 v2.33.6
    PS 28072024
+   -- A minor modification in obstypes_read() to skip reading the rest of the
+      entry ASYNCHRONOUS when it is set to NO.
+v2.33.7
+   PS 28072024
    -- In das_update() replaced overlooked das_writespread() by
       das_writespread_inupdate(), manifested when compiled without
       -DUSE_MPIQUEUE.

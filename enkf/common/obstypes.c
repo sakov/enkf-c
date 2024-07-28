@@ -291,7 +291,7 @@ void obstypes_read(enkfprm* prm, char fname[], int* n, obstype** types)
                 now->isasync = 0;
             else if (now->async_tstep < 0.0)
                 enkf_quit("%s, l.%d: negative length of asynchronous time interval", fname, line);
-            if ((token = strtok(NULL, seps)) != NULL) {
+            if (now->isasync && (token = strtok(NULL, seps)) != NULL) {
                 if (token[0] == 'c' || token[0] == 'C')
                     now->async_centred = 1;
                 else if (token[0] == 'e' || token[0] == 'E')
