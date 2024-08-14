@@ -2,9 +2,10 @@ v2.33.8
    PS 14082024
    -- ncu_readvarfloat() and ncu_readvardouble(): fixed mismatch between
       allocation and deallocation conditions (could lead to memory leak).
-  -- ncu_readfield() and ncu_read3dfield(): read into native type if
-     (vartype != NC_FLOAT), not if (typesize != ncw_sizeof(NC_FLOAT)) used
-     before. The old condition could lead to wrong treatment of fill values etc.
+   -- ncu_readfield() and ncu_read3dfield(): read into native type if
+      (vartype != NC_FLOAT), not if (typesize != ncw_sizeof(NC_FLOAT)) used
+      before. The old condition could lead to wrong treatment of fill values
+      etc.
 v2.33.7
    PS 28072024
    -- A minor modification in obstypes_read() to skip reading the rest of the
