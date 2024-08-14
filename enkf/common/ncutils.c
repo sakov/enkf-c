@@ -244,7 +244,7 @@ void ncu_readfield(char fname[], char varname[], int k, int ni, int nj, int nk, 
 
         ncw_inq_vartype(ncid, varid, &vartype);
         typesize = ncw_sizeof(vartype);
-        if (typesize != sizeof(float)) {
+        if (vartype != NC_FLOAT) {
             vv = malloc(n * typesize);
             ncw_get_vara(ncid, varid, start, count, vv);
         } else
@@ -447,7 +447,7 @@ void ncu_readfield(char fname[], char varname[], int k, int ni, int nj, int nk, 
                 quit("programming error");
         }
 
-        if (typesize != sizeof(float))
+        if (vartype != NC_FLOAT)
             free(vv);
     }
 
@@ -920,7 +920,7 @@ void ncu_read3dfield(char* fname, char* varname, int ni, int nj, int nk, float* 
 
         ncw_inq_vartype(ncid, varid, &vartype);
         typesize = ncw_sizeof(vartype);
-        if (typesize != sizeof(float)) {
+        if (vartype != NC_FLOAT) {
             vv = malloc(n * typesize);
             ncw_get_vara(ncid, varid, start, count, vv);
         } else
@@ -1123,7 +1123,7 @@ void ncu_read3dfield(char* fname, char* varname, int ni, int nj, int nk, float* 
                 quit("programming error");
         }
 
-        if (typesize != sizeof(float))
+        if (vartype != NC_FLOAT)
             free(vv);
     }
 
@@ -1537,7 +1537,7 @@ void ncu_readvarfloat(int ncid, int varid, size_t n, float v[])
         } else
             quit("programming error");
     }
-    if (vv != NULL && typesize != sizeof(float))
+    if (vv != NULL && vartype != NC_FLOAT)
         free(vv);
 
     if (ncw_att_exists(ncid, varid, "scale_factor")) {
@@ -1925,7 +1925,7 @@ void ncu_readvardouble(int ncid, int varid, size_t n, double v[])
         } else
             quit("programming error");
     }
-    if (vv != NULL && typesize != sizeof(double))
+    if (vv != NULL && vartype != NC_DOUBLE)
         free(vv);
 
     if (ncw_att_exists(ncid, varid, "scale_factor")) {
