@@ -31,7 +31,7 @@
 #include <errno.h>
 #include "ncw.h"
 
-const char ncw_version[] = "2.31.0";
+const char ncw_version[] = "2.31.1";
 
 /*
  * A flag -- whether ncw_copy_vardef() (re-)defines chunking by layers.
@@ -2045,19 +2045,12 @@ void ncw_def_var_as(int ncid, const char oldvarname[], const char newvarname[])
     int ndims;
     int dimids[NC_MAX_DIMS];
     int natts;
-    int i;
 
     ncw_inq_varid(ncid, oldvarname, &oldvarid);
     ncw_inq_var(ncid, oldvarid, NULL, &type, &ndims, dimids, &natts);
 
     ncw_def_var(ncid, newvarname, type, ndims, dimids, &newvarid);
-
-    for (i = 0; i < natts; ++i) {
-        char attname[NC_MAX_NAME] = STR_UNKNOWN;
-
-        ncw_inq_attname(ncid, oldvarid, i, attname);
-        ncw_copy_att(ncid, oldvarid, attname, ncid, newvarid);
-    }
+    ncw_copy_atts(ncid, oldvarid, ncid, newvarid);
 }
 
 /** Reads one record of a variable.
