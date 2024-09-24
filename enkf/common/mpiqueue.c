@@ -199,12 +199,8 @@ void mpiqueue_manage(mpiqueue* queue)
         for (j = 0; j < queue->nprocesses - 1; ++j, p = p % (queue->nprocesses - 1) + 1)
             if (queue->workerstatus[p] == MPIQUEUE_WORKERSTATUS_WAITING)
                 break;
-        {
-            MPI_Request request;
 
-            MPI_Isend(&jobid, 1, MPI_INT, p, MPIQUEUE_DEFAULTTAG, queue->communicator, &request);
-            MPI_Request_free(&request);
-        }
+        MPI_Send(&jobid, 1, MPI_INT, p, MPIQUEUE_DEFAULTTAG, queue->communicator);
         queue->jobstatus[jobid] = MPIQUEUE_JOBSTATUS_ASSIGNED;
         queue->workerstatus[p] = MPIQUEUE_WORKERSTATUS_WORKING;
     }

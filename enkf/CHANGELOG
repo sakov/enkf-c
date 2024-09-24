@@ -1,3 +1,8 @@
+v2.33.10
+   PS 24092024
+   -- In mpiqueue_manage() replaced MPI_Isend() by MPI_Send(). This eliminates
+      MPI communication defects in CALC (resulting in hanging up) with NEMO on
+      ORCA12.
 v2.33.9
    PS 15082024
    -- Modified ncw_def_var_as() to call ncw_copy_atts() rather than just copying

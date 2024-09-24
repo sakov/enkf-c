@@ -2044,10 +2044,9 @@ void ncw_def_var_as(int ncid, const char oldvarname[], const char newvarname[])
     nc_type type;
     int ndims;
     int dimids[NC_MAX_DIMS];
-    int natts;
 
     ncw_inq_varid(ncid, oldvarname, &oldvarid);
-    ncw_inq_var(ncid, oldvarid, NULL, &type, &ndims, dimids, &natts);
+    ncw_inq_var(ncid, oldvarid, NULL, &type, &ndims, dimids, NULL);
 
     ncw_def_var(ncid, newvarname, type, ndims, dimids, &newvarid);
     ncw_copy_atts(ncid, oldvarid, ncid, newvarid);
