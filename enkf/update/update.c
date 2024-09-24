@@ -1371,6 +1371,7 @@ void das_update(dasystem* das)
         if (nprocesses == 1)
             enkf_quit("\"mpiqueue\" can not be used on a single CPU; run on more than one CPU or recompile without -DUSE_MPIQUEUE flag");
         queue = mpiqueue_create(MPI_COMM_WORLD, nfields);
+        enkf_printf("    updating fields using %d processes:\n", nprocesses);
 
         if (mpiqueue_getrank(queue) == 0)
             mpiqueue_manage(queue);
