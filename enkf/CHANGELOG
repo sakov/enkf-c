@@ -1,3 +1,11 @@
+v2.33.12
+   PS 18102024
+   -- Added ncw_get_var_float_fixerange() and ncw_get_vara_float_fixerange()
+      to bypass NC_ERANGE NetCDF errors ("numeric conversion not
+      representable") when reading data of type NC_DOUBLE.
+   -- Replaced ncw_get_vara_float() by ncw_get_vara_float_fixerange() in
+      ncu_readfield(); and ncw_get_var_float() by ncw_get_var_float_fixerange()
+      in ncu_readvarfloat().
 v2.33.11
    PS 26092024
    -- Corrected a bad defect in gz_numeric_create() in the case of numeric
