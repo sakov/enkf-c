@@ -1019,6 +1019,7 @@ static void das_assemblemembers(dasystem* das)
         int e;
 
         enkf_printf("    %s:", varname);
+        enkf_flush();
         das_getmemberfname(das, varname, 1, fname_dst);
         strncpy(varname_dst, varname, NC_MAX_NAME - 1);
 
@@ -1065,6 +1066,7 @@ static void das_assemblemembers(dasystem* das)
                     model_writefield(m, fname_dst, varname_dst, k, v, 1);
             }
             enkf_printf(".");
+            enkf_flush();
         }
         free(v);
         enkf_printf("\n");
