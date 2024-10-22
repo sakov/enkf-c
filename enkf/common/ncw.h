@@ -118,6 +118,7 @@ void ncw_put_att_float(int ncid, int varid, const char attname[], size_t len, co
 void ncw_put_att_double(int ncid, int varid, const char attname[], size_t len, const double v[]);
 void ncw_inq_attname(int ncid, int varid, int attrid, char attname[]);
 void ncw_inq_att(int ncid, int varid, const char attname[], nc_type* xtype, size_t* len);
+void ncw_inq_atttype(int ncid, int varid, const char attname[], nc_type* xtype);
 void ncw_inq_attlen(int ncid, int varid, const char attname[], size_t* len);
 void ncw_copy_att(int ncid_src, int varid_src, const char attname[], int ncid_dst, int varid_dst);
 void ncw_rename_att(int ncid, int varid, const char oldname[], const char newname[]);

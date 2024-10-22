@@ -33,7 +33,7 @@
 #include <errno.h>
 #include "ncw.h"
 
-const char ncw_version[] = "2.31.3";
+const char ncw_version[] = "2.31.4";
 
 /*
  * A flag -- whether ncw_copy_vardef() (re-)defines chunking by layers.
@@ -860,7 +860,7 @@ void ncw_get_var_float_fixerange(int ncid, int varid, float v[])
     ncw_inq_vartype(ncid, varid, &type);
     if (status != NC_ERANGE || type != NC_DOUBLE) {
         char varname[NC_MAX_NAME] = STR_UNKNOWN;
-            
+
         ncw_inq_varname(ncid, varid, varname);
         quit("\"%s\": nc_get_var_float(): failed for varid = %d (varname = \"%s\"): %s", ncw_get_path(ncid), varid, varname, nc_strerror(status));
     }
@@ -869,7 +869,7 @@ void ncw_get_var_float_fixerange(int ncid, int varid, float v[])
         size_t size = ncw_get_varsize(ncid, varid);
         double* vv = malloc(size * sizeof(double));
         size_t i;
-        
+
         ncw_get_var_double(ncid, varid, vv);
         for (i = 0; i < size; ++i)
             if (!isfinite(vv[i]) || vv[i] < -FLT_MAX || vv[i] > FLT_MAX)
@@ -1101,7 +1101,7 @@ void ncw_get_vara_float_fixerange(int ncid, int varid, const size_t start[], con
         size = 1;
         for (i = 0; i < ndim; ++i)
             size *= count[i];
-        
+
         vv = malloc(size * sizeof(double));
         ncw_get_vara_double(ncid, varid, start, count, vv);
         for (i = 0; i < size; ++i)
@@ -1280,6 +1280,18 @@ void ncw_inq_attlen(int ncid, int varid, const char attname[], size_t* len)
 
         _ncw_inq_varname(ncid, varid, varname);
         quit("\"%s\": nc_inq_attlen(): failed for varid = %d (varname = \"%s\"), attname = \"%s\": %s", ncw_get_path(ncid), varid, varname, attname, nc_strerror(status));
+    }
+}
+
+void ncw_inq_atttype(int ncid, int varid, const char attname[], nc_type* xtype)
+{
+    int status = nc_inq_atttype(ncid, varid, attname, xtype);
+
+    if (status != NC_NOERR) {
+        char varname[NC_MAX_NAME] = STR_UNKNOWN;
+
+        _ncw_inq_varname(ncid, varid, varname);
+        quit("\"%s\": nc_inq_atttype(): failed for varid = %d (varname = \"%s\"), attname = \"%s\": %s", ncw_get_path(ncid), varid, varname, attname, nc_strerror(status));
     }
 }
 
@@ -2069,9 +2081,23 @@ void ncw_copy_atts(int ncid_src, int varid_src, int ncid_dst, int varid_dst)
         ncw_def_var_deflate(ncid_dst, varid_dst, shuffle, deflate, deflate_level);
     }
     {
-        int nofill, fillvalue[4];
+        int nofill, fillvalue[8];
 
         ncw_inq_var_fill(ncid_src, varid_src, &nofill, fillvalue);
+
+        /*
+         * This section aleviates the problem that may occur when converting
+         * NC_DOUBLE variable to NC_FLOAT: NC_FILL_DOUBLE casts to 0 in that
+         * case.
+         */
+        if (!nofill) {
+            void* tmp = fillvalue;
+            nc_type type_dst;
+
+            ncw_inq_vartype(ncid_dst, varid_dst, &type_dst);
+            if (type_dst == NC_FLOAT && ((float*) tmp)[0] == 0.0)
+                ((float*) tmp)[0] = NC_FILL_FLOAT;
+        }
         ncw_def_var_fill(ncid_dst, varid_dst, nofill, fillvalue);
     }
     if (ncw_chunkbylayers) {
