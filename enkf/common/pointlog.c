@@ -676,7 +676,7 @@ void plog_assemblestatevars(dasystem* das)
     MPI_Barrier(MPI_COMM_WORLD);
 #endif
 
-    distribute_iterations(0, das->nplog - 1, nprocesses, rank, "    ");
+    distribute_iterations(0, das->nplog - 1, nprocesses, "    ");
     for (plogid = my_first_iteration; plogid <= my_last_iteration; ++plogid) {
         pointlog* plog = &das->plogs[plogid];
         char fname_dst[MAXSTRLEN];
@@ -735,7 +735,7 @@ void plog_assemblestatevars(dasystem* das)
     MPI_Barrier(MPI_COMM_WORLD);
 #endif
     enkf_printf("    deleting tiles:\n");
-    distribute_iterations(0, nfields - 1, nprocesses, rank, "      ");
+    distribute_iterations(0, nfields - 1, nprocesses, "      ");
     for (fid = my_first_iteration; fid <= my_last_iteration; ++fid) {
         field* f = &fields[fid];
         char fname[MAXSTRLEN];

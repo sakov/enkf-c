@@ -1006,7 +1006,7 @@ static void das_assemblemembers(dasystem* das)
     MPI_Barrier(MPI_COMM_WORLD);
 #endif
 
-    distribute_iterations(0, das->nmem_dynamic - 1, nprocesses, rank, "    ");
+    distribute_iterations(0, das->nmem_dynamic - 1, nprocesses, "    ");
 
     for (i = 0; i < nvar; ++i) {
         char* varname = model_getvarname(m, i);
@@ -1207,7 +1207,7 @@ void das_update(dasystem* das)
         if (das->mode == MODE_ENKF || das->mode == MODE_HYBRID) {
             int i, e;
 
-            distribute_iterations(0, das->nmem_dynamic - 1, nprocesses, rank, "    ");
+            distribute_iterations(0, das->nmem_dynamic - 1, nprocesses, "    ");
 
             enkf_printtime("    ");
             enkf_printf("    allocating disk space for analysis:");
@@ -1578,7 +1578,7 @@ void das_update(dasystem* das)
         if (nfields == 0)
             continue;
 
-        distribute_iterations(0, nfields - 1, nprocesses, rank, "      ");
+        distribute_iterations(0, nfields - 1, nprocesses, "      ");
 
         if (my_first_iteration > my_last_iteration)
             continue;
