@@ -7,7 +7,10 @@
  * Author:      Pavel Sakov
  *
  * Description: Code for MPI job queue. Process with rank 0 manages the queue,
- *              the remaining CPUs do the jobs. See main() for example.
+ *              the remaining CPUs do the jobs. See main() for an example.
+ *
+ *              In contrast to distribute_iterations(), mpiqueue assigns
+ *              jobs from the pool to CPUs on one-by-one basis.
  *
  * Revisions:   
  *

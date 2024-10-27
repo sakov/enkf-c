@@ -13,7 +13,7 @@
  *              (2) the process ID and the number of available processes are
  *                  stored in global variables `rank' and `nprocesses'.
  *
- *              The interations in the interval [i1, i2] are distributed between
+ *              The iterations in the interval [i1, i2] are distributed between
  *              `nproc' processes (nproc <= nprocesses) with IDs
  *               0 <= rank < nproc.
  *
