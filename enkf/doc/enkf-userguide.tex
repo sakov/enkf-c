@@ -1195,7 +1195,7 @@ It has the following usage and options:
   --no-thinning
   --superob-across-instruments
   --write-orig-obs
-      write original obs within model domain to observations-orig.nc
+      write original obs within model extent to observations-orig.nc
   --write-all-orig-obs
       write all original obs to observations-orig.nc
   --version
@@ -1615,7 +1615,7 @@ Setting $\alpha = 0$ results in no update of the ensemble anomalies, while $\alp
 
 In its course CALC calculates some basic innovation statistics: number of observations, mean absolute forecast innovation, mean absolute analysis innovation, mean forecast innovation, mean analysis innovation, mean forecast ensemble spread, and mean analysis ensemble spread.
 This statistics is provided for each region defined in the main parameter file (sec.~\ref{sec:mainprm}), as well as for each time slot defined for asynchronous DA, and for each instrument.
-By default, EnKF-C defines one statistical region ``Global'' with domain $[x_1,x_2] = [-999,999], [y_1,y_2] = [-999,999]$.
+By default, EnKF-C defines one statistical region ``Global'' with extent $[x_1,x_2] = [-999,999], [y_1,y_2] = [-999,999]$.
 
 In addition, for 3D observations CALC also calculates observation statistics in specified depth intervals.
 These intervals can be set via the entry \verb|ZSTATINTS| in the main parameter file or (specific for a particular grid) in the grid parameter file.
