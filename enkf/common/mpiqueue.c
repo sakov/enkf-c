@@ -7,7 +7,10 @@
  * Author:      Pavel Sakov
  *
  * Description: Code for MPI job queue. Process with rank 0 manages the queue,
- *              the remaining CPUs do the jobs. See main() for example.
+ *              the remaining CPUs do the jobs. See main() for an example.
+ *
+ *              In contrast to distribute_iterations(), mpiqueue assigns
+ *              jobs from the pool to CPUs on one-by-one basis.
  *
  * Revisions:   
  *
@@ -199,12 +202,8 @@ void mpiqueue_manage(mpiqueue* queue)
         for (j = 0; j < queue->nprocesses - 1; ++j, p = p % (queue->nprocesses - 1) + 1)
             if (queue->workerstatus[p] == MPIQUEUE_WORKERSTATUS_WAITING)
                 break;
-        {
-            MPI_Request request;
 
-            MPI_Isend(&jobid, 1, MPI_INT, p, MPIQUEUE_DEFAULTTAG, queue->communicator, &request);
-            MPI_Request_free(&request);
-        }
+        MPI_Send(&jobid, 1, MPI_INT, p, MPIQUEUE_DEFAULTTAG, queue->communicator);
         queue->jobstatus[jobid] = MPIQUEUE_JOBSTATUS_ASSIGNED;
         queue->workerstatus[p] = MPIQUEUE_WORKERSTATUS_WORKING;
     }

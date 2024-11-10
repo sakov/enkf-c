@@ -433,7 +433,7 @@ void das_writevcorrs(dasystem* das)
 #endif
 
     das_getfields(das, -1 /* for all grids */ , &nfields, &fields);
-    distribute_iterations(0, nfields - 1, nprocesses, rank, "    ");
+    distribute_iterations(0, nfields - 1, nprocesses, "    ");
     enkf_printf("    calculating:");
     enkf_flush();
 
@@ -731,7 +731,7 @@ void das_writevcorrs_with(dasystem* das, char* varname, int level, int docorr)
 
     v = alloc2d((das->mode == MODE_HYBRID) ? das->nmem + 2 : das->nmem, nij, sizeof(float));
     cor = calloc(nij, sizeof(double));
-    distribute_iterations(0, nfields - 1, nprocesses, rank, "    ");
+    distribute_iterations(0, nfields - 1, nprocesses, "    ");
     enkf_printf("    calculating:");
     enkf_flush();
 
@@ -890,7 +890,7 @@ void das_writespread(dasystem* das)
 #endif
 
     das_getfields(das, -1 /* for all grids */ , &nfields, &fields);
-    distribute_iterations(0, nfields - 1, nprocesses, rank, "    ");
+    distribute_iterations(0, nfields - 1, nprocesses, "    ");
     enkf_printf("    calculating:");
     enkf_flush();
 

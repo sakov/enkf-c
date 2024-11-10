@@ -456,7 +456,7 @@ static gz_numeric* gz_numeric_create(int ni, int nj, int nk, char* direction, vo
         } else {
             int i, k;
 
-            zc = alloc2d(nk + 1, ni, sizeof(float));
+            gz->zc = alloc2d(nk + 1, ni, sizeof(float));
             if (gz->direction == GRIDVDIR_FROMSURF) {
                 for (k = 1; k <= nk; ++k) {
                     float* zc2d = ((float**) gz->zc)[k];

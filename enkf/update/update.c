@@ -1006,7 +1006,7 @@ static void das_assemblemembers(dasystem* das)
     MPI_Barrier(MPI_COMM_WORLD);
 #endif
 
-    distribute_iterations(0, das->nmem_dynamic - 1, nprocesses, rank, "    ");
+    distribute_iterations(0, das->nmem_dynamic - 1, nprocesses, "    ");
 
     for (i = 0; i < nvar; ++i) {
         char* varname = model_getvarname(m, i);
@@ -1019,6 +1019,7 @@ static void das_assemblemembers(dasystem* das)
         int e;
 
         enkf_printf("    %s:", varname);
+        enkf_flush();
         das_getmemberfname(das, varname, 1, fname_dst);
         strncpy(varname_dst, varname, NC_MAX_NAME - 1);
 
@@ -1065,6 +1066,7 @@ static void das_assemblemembers(dasystem* das)
                     model_writefield(m, fname_dst, varname_dst, k, v, 1);
             }
             enkf_printf(".");
+            enkf_flush();
         }
         free(v);
         enkf_printf("\n");
@@ -1205,7 +1207,7 @@ void das_update(dasystem* das)
         if (das->mode == MODE_ENKF || das->mode == MODE_HYBRID) {
             int i, e;
 
-            distribute_iterations(0, das->nmem_dynamic - 1, nprocesses, rank, "    ");
+            distribute_iterations(0, das->nmem_dynamic - 1, nprocesses, "    ");
 
             enkf_printtime("    ");
             enkf_printf("    allocating disk space for analysis:");
@@ -1371,6 +1373,7 @@ void das_update(dasystem* das)
         if (nprocesses == 1)
             enkf_quit("\"mpiqueue\" can not be used on a single CPU; run on more than one CPU or recompile without -DUSE_MPIQUEUE flag");
         queue = mpiqueue_create(MPI_COMM_WORLD, nfields);
+        enkf_printf("    updating %d fields using %d processes:\n", nfields, nprocesses);
 
         if (mpiqueue_getrank(queue) == 0)
             mpiqueue_manage(queue);
@@ -1575,7 +1578,7 @@ void das_update(dasystem* das)
         if (nfields == 0)
             continue;
 
-        distribute_iterations(0, nfields - 1, nprocesses, rank, "      ");
+        distribute_iterations(0, nfields - 1, nprocesses, "      ");
 
         if (my_first_iteration > my_last_iteration)
             continue;

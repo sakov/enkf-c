@@ -157,7 +157,7 @@ void das_getHE(dasystem* das)
         print_memory_usage();
 #endif
 
-    distribute_iterations(0, nmem - 1, nprocesses, rank, "    ");
+    distribute_iterations(0, nmem - 1, nprocesses, "    ");
 
     if (das->mode == MODE_ENOI) {
 #if defined(USE_SHMEM)
@@ -1718,7 +1718,7 @@ static void update_HE(dasystem* das)
 
 #if defined(USE_SHMEM)
     {
-        distribute_iterations(0, nobs - 1, sm_comm_size, rank, "    ");
+        distribute_iterations(0, nobs - 1, sm_comm_size, "    ");
         for (e = 0; e < nmem; ++e)
             for (o = my_first_iteration; o <= my_last_iteration; ++o)
                 das->St[o][e] = das->S[e][o];
@@ -2032,7 +2032,7 @@ static void update_Hx(dasystem* das)
 
 #if defined(USE_SHMEM)
     {
-        distribute_iterations(0, nobs - 1, sm_comm_size, rank, "    ");
+        distribute_iterations(0, nobs - 1, sm_comm_size, "    ");
         for (e = 0; e < nmem; ++e)
             for (o = my_first_iteration; o <= my_last_iteration; ++o)
                 das->St[o][e] = das->S[e][o];
