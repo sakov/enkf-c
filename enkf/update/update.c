@@ -294,13 +294,6 @@ static void das_updatefields(dasystem* das, int nfields, void** fieldbuffer, fie
                     float inflation = inflation0;
                     double v1_f, v1_a;
 
-                    /*
-                     * For now we assume that layers are counted down from the
-                     * surface. (This is not so in ROMS, but there the number
-                     * of layers is always the same.) This will be easy to
-                     * modify as soon as we encounter a Z model with layers
-                     * counted up from the bottom.
-                     */
                     if (structured == 1) {
                         if (surfk == 0) {
                             if (((int**) nlevels)[j][i] <= f->level) {
