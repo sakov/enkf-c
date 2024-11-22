@@ -22,7 +22,7 @@ extern int* number_of_iterations;
 extern int* first_iteration;
 extern int* last_iteration;
 
-void distribute_iterations(int i1, int i2, int nproc, char prefix[]);
+void distribute_iterations(int i1, int i2, int nslot, char prefix[]);
 void distribute_free(void);
 
 #define _DISTRIBUTE_H

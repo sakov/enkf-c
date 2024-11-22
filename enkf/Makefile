@@ -1,3 +1,6 @@
+# The compile flags are described in section 2.16.1 of EnKF-C user guide
+# available from enkf-c/enkf/doc/enkf-userguide.pdf.
+
 # Select flags common for PREP and CALC from the following list
 # (default = none):
 #
@@ -13,6 +16,10 @@ PREPCALC_FLAGS =
 # -DTW_VIAFILE
 # -DDEFLATE_ALL
 # -DUSE_MPIQUEUE
+#
+# NOTE: When using just a few CPUs remove "-DUSE_MPIQUEUE". (This will also
+#       remove automatic definition of -DTW_VIAFILE in definitions.h.)
+#
 CALC_FLAGS = -DUSE_SHMEM -DMINIMISE_ALLOC -DUSE_MPIQUEUE
 
 # Select flags for UPDATE
@@ -20,6 +27,10 @@ CALC_FLAGS = -DUSE_SHMEM -DMINIMISE_ALLOC -DUSE_MPIQUEUE
 # -DNCW_SKIPSINGLE
 # -DDEFLATE_ALL
 # -DUSE_MPIQUEUE
+#
+# NOTE: when using just a few CPUs remove "-DUSE_MPIQUEUE". (This will also
+#       remove automatic definition of -DTW_VIAFILE in definitions.h.)
+#
 UPDATE_FLAGS = -DUSE_MPIQUEUE
 
 DIAG_FLAGS =
