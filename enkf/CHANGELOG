@@ -1,3 +1,11 @@
+v2.33.16
+   PS 26112014
+   -- In ensobs.c: introduced flag HEUPDATE_ONFIRSTSMCOMM, currently set to 1.
+      It switches between updating HE/Hx on all slots or only on slots belonging
+      to the first shared memory communicator. It turned out that either way
+      it makes little difference on the time taken, so for now it is set to run
+      the old way. Note: running gather_St() seems redundant in that case and is
+      no longer performed.
 v2.33.15
    PS 22112024
    -- A few cosmetic changes in distribute.c.

@@ -38,6 +38,7 @@
 #include "allhs.h"
 #include "dasystem.h"
 
+#define HEUPDATE_ONFIRSTSMCOMM 1
 #define EPSF 1.0e-6f
 
 /**
@@ -1151,7 +1152,7 @@ static void das_sortobs_byid(dasystem* das)
     das->sort_mode = OBS_SORTMODE_ID;
 }
 
-#if defined(USE_SHMEM)
+#if defined(USE_SHMEM) && ! HEUPDATE_ONFIRSTSMCOMM
 /**
  */
 static void gather_St(dasystem* das)
@@ -1718,7 +1719,11 @@ static void update_HE(dasystem* das)
 
 #if defined(USE_SHMEM)
     {
+#if HEUPDATE_ONFIRSTSMCOMM
         distribute_iterations(0, nobs - 1, sm_comm_size, "    ");
+#else
+        distribute_iterations(0, nobs - 1, nprocesses, "    ");
+#endif
         for (e = 0; e < nmem; ++e)
             for (o = my_first_iteration; o <= my_last_iteration; ++o)
                 das->St[o][e] = das->S[e][o];
@@ -1735,7 +1740,9 @@ static void update_HE(dasystem* das)
             update_HE_unstructured(das, gid, &o);
     }
 #if defined(USE_SHMEM)
+#if ! HEUPDATE_ONFIRSTSMCOMM
     gather_St(das);
+#endif
 
     if (rank == 0)
         for (e = 0; e < nmem; ++e)
@@ -2032,7 +2039,11 @@ static void update_Hx(dasystem* das)
 
 #if defined(USE_SHMEM)
     {
+#if HEUPDATE_ONFIRSTSMCOMM
         distribute_iterations(0, nobs - 1, sm_comm_size, "    ");
+#else
+        distribute_iterations(0, nobs - 1, nprocesses, "    ");
+#endif
         for (e = 0; e < nmem; ++e)
             for (o = my_first_iteration; o <= my_last_iteration; ++o)
                 das->St[o][e] = das->S[e][o];
@@ -2049,7 +2060,9 @@ static void update_Hx(dasystem* das)
             update_Hx_unstructured(das, gid, &o);
     }
 #if defined(USE_SHMEM)
+#if ! HEUPDATE_ONFIRSTSMCOMM
     gather_St(das);
+#endif
 
     if (rank == 0)
         for (e = 0; e < nmem; ++e)

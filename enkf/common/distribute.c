@@ -108,7 +108,7 @@ void distribute_iterations(int i1, int i2, int nslot, char prefix[])
     my_first_iteration = first_iteration[rank];
     my_last_iteration = last_iteration[rank];
     my_number_of_iterations = number_of_iterations[rank];
-    
+
     if (prefix != NULL) {
         if (nslot == 1)
             enkf_printf("%s  1 process gets %d iterations\n", prefix, ii);
