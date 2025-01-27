@@ -553,7 +553,7 @@ and is therefore applicable to more general cases.
 Localisation is a necessary attribute of the EnKF systems with large-scale models, aimed at overcoming the rank deficiency of the ensemble.
 It can also be seen as aimed at reducing spurious long range correlations occurring due to the finite size of the ensemble; or at limiting the impact of distant observations because of the unreliability of the corresponding covariances.
 
-There are two common localisation methods for the EnKF -- covariance localisation \citep[CL,][]{ham01b, hou01a}, also known as covariance filtering, and local analysis \citep[LA,][]{eve03a, ott03a}.
+There are two common localisation methods for the EnKF -- covariance localisation \citep[CL,][]{ham01b, hou01a}, also known as covariance filtering, and local analysis \citep[LA,][]{hou98a, eve03a, ott03a}.
 Although CL may have advantages in certain situations (non-local observations, ``strong'' assimilation), in practice the two methods produce similar results \citep{sak11a}.
 For algorithmic reasons EnKF-C uses LA.
 
