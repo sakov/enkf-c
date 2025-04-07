@@ -1,3 +1,7 @@
+v2.33.17
+   PS 07042015
+   -- Modified parse_commandline() in enkf_diag.c to handle missing layer
+      number.
 v2.33.16
    PS 26112014
    -- In ensobs.c: introduced flag HEUPDATE_ONFIRSTSMCOMM, currently set to 1.

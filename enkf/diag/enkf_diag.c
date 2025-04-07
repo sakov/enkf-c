@@ -85,7 +85,7 @@ static void parse_commandline(int argc, char* argv[], char** fname, int* dosprea
                 }
                 (*vcorrwith)[*nvcorrwith] = argv[i];
                 i++;
-                if (argv[i][0] == '-')
+                if (i == argc || argv[i][0] == '-')
                     enkf_quit("parse_commandline(): expected layer ID after variable name \"%s\"", (*vcorrwith)[*nvcorrwith]);
                 if (!str2int(argv[i], &(*kvcorrwith)[*nvcorrwith]))
                     enkf_quit("parse_commandline(): could no convert \"%s\" to int", argv[i][0]);
@@ -103,7 +103,7 @@ static void parse_commandline(int argc, char* argv[], char** fname, int* dosprea
                 }
                 (*vcovwith)[*nvcovwith] = argv[i];
                 i++;
-                if (argv[i][0] == '-')
+                if (i == argc || argv[i][0] == '-')
                     enkf_quit("parse_commandline(): expected layer ID after variable name \"%s\"", (*vcovwith)[*nvcovwith]);
                 if (!str2int(argv[i], &(*kvcovwith)[*nvcovwith]))
                     enkf_quit("parse_commandline(): could no convert \"%s\" to int", argv[i][0]);

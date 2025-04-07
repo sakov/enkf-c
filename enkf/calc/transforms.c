@@ -577,6 +577,11 @@ static void prepare_calcs(size_t ploc, size_t nmem, double** sloc, int** plobs, 
 #endif
 
 #if defined(USE_MPIQUEUE)
+/*
+ * Generally, this is a preferred way of calculating the updates because it
+ * reduces idle periods occuring when some of the rows are processed much faster
+ * than others.
+ */
 
 /** The central DA procedure, where the actual transforms are calculated.
  */

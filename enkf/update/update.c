@@ -1357,6 +1357,11 @@ void das_update(dasystem* das)
         }
     }
 #if defined(USE_MPIQUEUE)
+    /*
+     * This is a preferred way of updating the fields because the queue includes
+     * all fields (on all grids). This eliminates the idle periods that arise
+     * when distributing fields on a grid-by-grid basis.
+     */
     {
         int nfields = 0;
         field* fields = NULL;
