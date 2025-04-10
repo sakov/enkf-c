@@ -1,9 +1,16 @@
+v2.34.0
+   PS 11042025
+   -- ENKF_DIAG: added a new option "--calculate-vertical-sensitivities-with".
+      It calculates s = \sigma_{xy} / \sigma_{yy}, so that s * dy gives the
+      increment of x for a given increment of y.
 v2.33.17
-   PS 07042015
-   -- Modified parse_commandline() in enkf_diag.c to handle missing layer
-      number.
+   PS 07042025
+   -- Modified parse_commandline() in enkf_diag.c to exit with a proper message
+      if the layer number is missing after options
+      "--calculate-vertical-correlations-with" and
+      "--calculate-vertical-covariances-with".
 v2.33.16
-   PS 26112014
+   PS 26112024
    -- In ensobs.c: introduced flag HEUPDATE_ONFIRSTSMCOMM, currently set to 1.
       It switches between updating HE/Hx on all slots or only on slots belonging
       to the first shared memory communicator. It turned out that either way

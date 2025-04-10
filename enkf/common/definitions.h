@@ -46,6 +46,7 @@
 #define FNAME_VERTCORR "vcorr.nc"
 #define FNAMEPREFIX_VERTCORRWITH "vcorr"
 #define FNAMEPREFIX_VERTCOVWITH "vcov"
+#define FNAMEPREFIX_VERTSENSWITH "vsens"
 
 #define DIRNAME_TMP ".enkftmp"
 

@@ -46,6 +46,10 @@ static void usage(void)
     enkf_printf("    [<varname2> <layer2>] [...]\n");
     enkf_printf("      calculate covariances between specified field and all other fields\n");
     enkf_printf("      on the same horizontal grid and write to %s-<varname>-<layer>.nc\n", FNAMEPREFIX_VERTCOVWITH);
+    enkf_printf("  --calculate-vertical-sensitivities-with <varname1> <layer1>\n");
+    enkf_printf("    [<varname2> <layer2>] [...]\n");
+    enkf_printf("      calculate sensitivities between specified field and all other fields\n");
+    enkf_printf("      on the same horizontal grid and write to %s-<varname>-<layer>.nc\n", FNAMEPREFIX_VERTCOVWITH);
     enkf_printf("  --version\n");
     enkf_printf("      print version and exit\n");
 
@@ -54,7 +58,7 @@ static void usage(void)
 
 /**
  */
-static void parse_commandline(int argc, char* argv[], char** fname, int* dospread, int* dovcorrs, int* nvcorrwith, char*** vcorrwith, int** kvcorrwith, int* nvcovwith, char*** vcovwith, int** kvcovwith)
+static void parse_commandline(int argc, char* argv[], char** fname, int* dospread, int* dovcorrs, int* nvcorrwith, char*** vcorrwith, int** kvcorrwith, int* nvcovwith, char*** vcovwith, int** kvcovwith, int* nvsenswith, char*** vsenswith, int** kvsenswith)
 {
     int i;
 
@@ -112,6 +116,24 @@ static void parse_commandline(int argc, char* argv[], char** fname, int* dosprea
             }
             if (*nvcovwith == 0)
                 enkf_quit("parse_commandline(): no variable name and layer ID found after \"--calculate-vertical-covariances-with\"");
+        } else if (strcmp(argv[i], "--calculate-vertical-sensitivities-with") == 0) {
+            i++;
+            while (i < argc && argv[i][0] != '-') {
+                if (*nvsenswith % NINC == 0) {
+                    *vsenswith = realloc(*vsenswith, (*nvsenswith + NINC) * sizeof(void*));
+                    *kvsenswith = realloc(*kvsenswith, (*nvsenswith + NINC) * sizeof(int));
+                }
+                (*vsenswith)[*nvsenswith] = argv[i];
+                i++;
+                if (i == argc || argv[i][0] == '-')
+                    enkf_quit("parse_commandline(): expected layer ID after variable name \"%s\"", (*vsenswith)[*nvsenswith]);
+                if (!str2int(argv[i], &(*kvsenswith)[*nvsenswith]))
+                    enkf_quit("parse_commandline(): could no convert \"%s\" to int", argv[i][0]);
+                i++;
+                (*nvsenswith)++;
+            }
+            if (*nvsenswith == 0)
+                enkf_quit("parse_commandline(): no variable name and layer ID found after \"--calculate-vertical-sensitivities-with\"");
         } else if (strcmp(argv[i], "--version") == 0) {
             enkf_printversion();
             exit(0);
@@ -136,19 +158,22 @@ int main(int argc, char* argv[])
     int nvcovwith = 0;
     char** vcovwith = NULL;
     int* kvcovwith = NULL;
+    int nvsenswith = 0;
+    char** vsenswith = NULL;
+    int* kvsenswith = NULL;
     enkfprm* prm = NULL;
     dasystem* das = NULL;
     int i;
 
     enkf_init(&argc, &argv);
 
-    parse_commandline(argc, argv, &fname_prm, &dospread, &dovcorrs, &nvcorrwith, &vcorrwith, &kvcorrwith, &nvcovwith, &vcovwith, &kvcovwith);
+    parse_commandline(argc, argv, &fname_prm, &dospread, &dovcorrs, &nvcorrwith, &vcorrwith, &kvcorrwith, &nvcovwith, &vcovwith, &kvcovwith, &nvsenswith, &vsenswith, &kvsenswith);
 
     enkf_printf("  running DIAG for EnKF-C version %s:\n", ENKF_VERSION);
     print_commandinfo(argc, argv);
     enkf_printtime("  ");
 
-    if (dospread == 0 && dovcorrs == 0 && nvcorrwith == 0 && nvcovwith == 0) {
+    if (dospread == 0 && dovcorrs == 0 && nvcorrwith == 0 && nvcovwith == 0 && nvsenswith == 0) {
         enkf_printf("  nothing to do\n");
         goto finish;
     }
@@ -168,10 +193,13 @@ int main(int argc, char* argv[])
         das_writevcorrs(das);
 
     for (i = 0; i < nvcorrwith; ++i)
-        das_writevcorrs_with(das, vcorrwith[i], kvcorrwith[i], 1);
+        das_writevcorrs_with(das, vcorrwith[i], kvcorrwith[i], CALC_CORR);
 
     for (i = 0; i < nvcovwith; ++i)
-        das_writevcorrs_with(das, vcovwith[i], kvcovwith[i], 0);
+        das_writevcorrs_with(das, vcovwith[i], kvcovwith[i], CALC_COV);
+
+    for (i = 0; i < nvsenswith; ++i)
+        das_writevcorrs_with(das, vsenswith[i], kvsenswith[i], CALC_SENS);
 
     das_destroy(das);
     if (nvcorrwith > 0) {

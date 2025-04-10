@@ -15,9 +15,13 @@
 
 #if !defined(_DIAGS_H)
 
+#define CALC_COV 0
+#define CALC_CORR 1
+#define CALC_SENS 2
+
 void das_writespread(dasystem* das);
 void das_writevcorrs(dasystem* das);
-void das_writevcorrs_with(dasystem* das, char* varname, int level, int docorr);
+void das_writevcorrs_with(dasystem* das, char* varname, int level, int calctype);
 
 #define _DIAGS_H
 #endif

@@ -39,7 +39,7 @@
 
 \begin{document}
 
-\title{EnKF-C user guide\\{\normalsize version 2.32.0}}
+\title{EnKF-C user guide\\{\normalsize version 2.34.0}}
 
 \author{Pavel Sakov}
 \date{June 19, 2014 -- \today}
@@ -1855,9 +1855,14 @@ It has the following usage and options:
     [<varname2> <layer2>] [...]
       calculate covariances between specified field and all other fields
       on the same horizontal grid and write to vcov-<varname>-<layer>.nc
+  --calculate-vertical-sensitivities-with <varname1> <layer1>
+    [<varname2> <layer2>] [...]
+      calculate sensitivities between specified field and all other fields
+      on the same horizontal grid and write to vcov-<varname>-<layer>.nc
   --version
       print version and exit
 \end{Verbatim}
+While most of the options above are straightforward, we note that the option ``--calculate-vertical-sensitivities-with'' calculates the ratio $s_{xy} = \sigma_{x,y} / \sigma_{y,y}$, where $\sigma_{x,y}$ is the covariance between $x$ and $y$, and $\sigma_{y,y}$ is the variance of $y$, so that the increment of $x$ is related to the increment of $y$ as $\Delta x = s_{xy} \Delta y$ \citep[see e.g.][eq.\,5]{and03a}.
 
 \section{DA tuning}
 \label{sec:datuning}

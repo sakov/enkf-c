@@ -29,6 +29,7 @@
 #include "ncutils.h"
 #include "model.h"
 #include "dasystem.h"
+#include "diags.h"
 
 /** Allocates disk space for ensemble spread.
  */
@@ -624,7 +625,7 @@ void das_writevcorrs(dasystem* das)
  ** specified layer of a 3D variable and all layers of 3D variables on the
  ** same horizontal grid.
  */
-void das_writevcorrs_with(dasystem* das, char* varname, int level, int docorr)
+void das_writevcorrs_with(dasystem* das, char* varname, int level, int calctype)
 {
     model* m = das->m;
     int varid = model_getvarid(m, varname, 1);
@@ -643,13 +644,17 @@ void das_writevcorrs_with(dasystem* das, char* varname, int level, int docorr)
     int fid, e, i;
 
     enkf_printtime("  ");
-    if (docorr) {
+    if (calctype == CALC_CORR) {
         snprintf(fname_dst, MAXSTRLEN, "%s-%s-%d.nc", FNAMEPREFIX_VERTCORRWITH, varname, level);
         enkf_printf("  calculating vertical correlations with %s, level %d:\n", varname, level);
-    } else {
+    } else if (calctype == CALC_COV) {
         snprintf(fname_dst, MAXSTRLEN, "%s-%s-%d.nc", FNAMEPREFIX_VERTCOVWITH, varname, level);
         enkf_printf("  calculating vertical covariances with %s, level %d:\n", varname, level);
-    }
+    } else if (calctype == CALC_SENS) {
+        snprintf(fname_dst, MAXSTRLEN, "%s-%s-%d.nc", FNAMEPREFIX_VERTSENSWITH, varname, level);
+        enkf_printf("  calculating vertical sensitivities with %s, level %d:\n", varname, level);
+    } else
+        enkf_quit("programming error");
 
     grid_getsize(g, &ni, &nj, NULL);
     nij = (nj > 0) ? ni * nj : ni;
@@ -767,8 +772,10 @@ void das_writevcorrs_with(dasystem* das, char* varname, int level, int docorr)
                 var += (double) (v[e][i] * v[e][i]);
             for (e = 0; e < das->nmem; ++e)
                 cor[i] += (double) (v[e][i] * v0[e][i]);
-            if (docorr)
+            if (calctype == CALC_CORR)
                 cor[i] /= sqrt(var * var0[i]);
+            else if (calctype == CALC_SENS)
+                cor[i] /= var0[i];
             else
                 cor[i] /= (double) (das->nmem - 1);
             if (!isfinite(cor[i]))
