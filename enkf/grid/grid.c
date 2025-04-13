@@ -527,6 +527,8 @@ void grid_getzints(grid* g, int* nzints, zint* zints[])
 #if defined(ENKF_PREP) || defined (ENKF_CALC)
 int grid_xy2fij(grid* g, double x, double y, double* fij)
 {
+    if (!isfinite(x) || !isfinite(y))
+        return STATUS_OUTSIDEGRID;
     return hgrid_xy2fij(g->hgrid, g->numlevels, x, y, fij);
 }
 #endif

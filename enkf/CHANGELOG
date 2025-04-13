@@ -1,3 +1,6 @@
+v2.34.1
+   PS 13042025
+   -- In grid_xy2fij() added a check on inputs being finite.
 v2.34.0
    PS 11042025
    -- ENKF_DIAG: added a new option "--calculate-vertical-sensitivities-with".
