@@ -135,6 +135,18 @@ void plog_create(dasystem* das, int plogid, int ploc, int* lobs, double* lcoeffs
     /*
      * observation types
      */
+    /*
+     * first write type IDs
+     */
+    for (otid = 0; otid < obs->nobstypes; ++otid) {
+       if (obs->obstypes[otid].statsonly)
+            continue;
+
+        ncw_put_att_int(ncid, vid_type, obs->obstypes[otid].name, 1, &otid);
+    }
+    /*
+     * now write type related settings
+     */
     for (otid = 0; otid < obs->nobstypes; ++otid) {
         char name[NC_MAX_NAME];
         char domains[MAXSTRLEN];
@@ -143,7 +155,6 @@ void plog_create(dasystem* das, int plogid, int ploc, int* lobs, double* lcoeffs
         if (obs->obstypes[otid].statsonly)
             continue;
 
-        ncw_put_att_int(ncid, vid_type, obs->obstypes[otid].name, 1, &otid);
         snprintf(name, NC_MAX_NAME, "RFACTOR_%s", obs->obstypes[otid].name);
         ncw_put_att_double(ncid, vid_type, name, 1, &obs->obstypes[otid].rfactor);
         snprintf(name, NC_MAX_NAME, "LOCRAD_%s", obs->obstypes[otid].name);

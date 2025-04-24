@@ -1,3 +1,8 @@
+v2.34.2
+   PS 24042025
+   -- In plog_create() changed the order of attributes for observation types
+      (variable "type"): first write the type IDs, and then all other type
+      settings.
 v2.34.1
    PS 13042025
    -- In grid_xy2fij() added a check on inputs being finite.
