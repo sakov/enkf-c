@@ -139,7 +139,7 @@ void plog_create(dasystem* das, int plogid, int ploc, int* lobs, double* lcoeffs
      * first write type IDs
      */
     for (otid = 0; otid < obs->nobstypes; ++otid) {
-       if (obs->obstypes[otid].statsonly)
+        if (obs->obstypes[otid].statsonly)
             continue;
 
         ncw_put_att_int(ncid, vid_type, obs->obstypes[otid].name, 1, &otid);
@@ -550,6 +550,28 @@ static void plog_writestatevars_direct(dasystem* das, int nfields, void** fieldb
                 }
             }
 
+            if (das->mode == MODE_HYBRID) {
+                /*
+                 * undo scaling of the ensemble anomalies
+                 */
+                int nmem = das->nmem;
+                int nmem_d = das->nmem_dynamic;
+                int nmem_s = das->nmem_static;
+                double k_d = (nmem_d > 1) ? sqrt((double) (nmem - 1) / (double) (nmem_d - 1)) : 0.0;
+                double k_s = sqrt(das->gamma * (double) (nmem - 1) / (double) (nmem_s - 1));
+                double vmean;
+                int e;
+
+                vmean = 0.0;
+                for (e = 0; e < nmem_d; ++e)
+                    vmean += v[e];
+                vmean /= (double) nmem_d;
+                for (e = 0; e < nmem_d; ++e)
+                    v[e] = (v[e] - vmean) / k_d + vmean;
+                for (e = nmem_d; e < nmem; ++e)
+                    v[e] = (v[e] - vmean) / k_s + vmean;
+            }
+
             snprintf(varname, NC_MAX_NAME, "%s", f->varname);
             if (isanalysis)
                 strncat(varname, !(das->updatespec & UPDATE_OUTPUTINC) ? "_an" : "_inc", NC_MAX_NAME - 4);
@@ -637,6 +659,28 @@ static void plog_writestatevars_toassemble(dasystem* das, int nfields, void** fi
                     for (e = 0; e < das->nmem; ++e)
                         v[e] = bg + grid_interpolate2d(g, plog->fij[gid], v_src[e]);
                 }
+            }
+
+            if (das->mode == MODE_HYBRID) {
+                /*
+                 * undo scaling of the ensemble anomalies
+                 */
+                int nmem = das->nmem;
+                int nmem_d = das->nmem_dynamic;
+                int nmem_s = das->nmem_static;
+                double k_d = (nmem_d > 1) ? sqrt((double) (nmem - 1) / (double) (nmem_d - 1)) : 0.0;
+                double k_s = sqrt(das->gamma * (double) (nmem - 1) / (double) (nmem_s - 1));
+                double vmean;
+                int e;
+
+                vmean = 0.0;
+                for (e = 0; e < nmem_d; ++e)
+                    vmean += v[e];
+                vmean /= (double) nmem_d;
+                for (e = 0; e < nmem_d; ++e)
+                    v[e] = (v[e] - vmean) / k_d + vmean;
+                for (e = nmem_d; e < nmem; ++e)
+                    v[e] = (v[e] - vmean) / k_s + vmean;
             }
 
             ncw_put_var_float(ncid, vid, v);

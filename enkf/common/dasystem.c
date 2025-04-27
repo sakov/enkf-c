@@ -322,7 +322,7 @@ dasystem* das_create(enkfprm* prm)
                     dst->fij[gid][2] = fij[2];
                 }
 #elif defined(ENKF_UPDATE)
-                if (das->updatespec & UPDATE_DOPLOGSAN) {
+                {
                     char fname[MAXSTRLEN];
                     int ncid, varid;
                     char gridstr[SHORTSTRLEN];

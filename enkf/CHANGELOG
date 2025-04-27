@@ -1,3 +1,8 @@
+v2.34.3
+   PS 28042025
+   -- In plog_writestatevars_direct() and plog_writestatevars_toassemble() --
+      if (das->mode == MODE_HYBRID) -- undo the scaling of the hybrid ensemble
+      to write the actual values.
 v2.34.2
    PS 24042025
    -- In plog_create() changed the order of attributes for observation types
