@@ -39,7 +39,7 @@
 
 \begin{document}
 
-\title{EnKF-C user guide\\{\normalsize version 2.34.0}}
+\title{EnKF-C user guide\\{\normalsize version 2.34.3}}
 
 \author{Pavel Sakov}
 \date{June 19, 2014 -- \today}
@@ -1958,33 +1958,31 @@ variables:
         float obs_fk(p) ;
         int obs_type(p) ;
                 obs_type:SLA = 0 ;
+                obs_type:SST = 1 ;
+                obs_type:TEM = 2 ;
+                obs_type:SAL = 3 ;
                 obs_type:RFACTOR_SLA = 2. ;
                 obs_type:LOCRAD_SLA = 200. ;
                 obs_type:WEIGHT_SLA = 1. ;
                 obs_type:GRIDID_SLA = 0 ;
-                obs_type:SST = 1 ;
-                obs_type:RFACTOR_SST = 4. ;
+                obs_type:RFACTOR_SST = 32. ;
                 obs_type:LOCRAD_SST = 200. ;
                 obs_type:WEIGHT_SST = 1. ;
                 obs_type:GRIDID_SST = 0 ;
-                obs_type:TEM = 2 ;
                 obs_type:RFACTOR_TEM = 8. ;
                 obs_type:LOCRAD_TEM = 800. ;
                 obs_type:WEIGHT_TEM = 1. ;
                 obs_type:GRIDID_TEM = 0 ;
-                obs_type:SAL = 3 ;
                 obs_type:RFACTOR_SAL = 8. ;
-                obs_type:LOCRAD_SAL = 800. ;                                                                   
-                obs_type:WEIGHT_SAL = 1. ;                                                                     
-                obs_type:GRIDID_SAL = 0 ;                                                                      
-        int obs_inst(p) ;                                                                                      
-                obs_inst:j1 = 0 ;                                                                              
-                obs_inst:n1 = 1 ;                                                                              
-                obs_inst:ESACCI = 2 ;                                                                          
-                obs_inst:WindSat = 3 ;                                                                         
+                obs_type:LOCRAD_SAL = 800. ;
+                obs_type:WEIGHT_SAL = 1. ;
+                obs_type:GRIDID_SAL = 0 ;
+        int obs_inst(p) ;                                                                       obs_inst:j1 = 0 ;
+                obs_inst:n1 = 1 ;
+                obs_inst:ESACCI = 2 ;
+                obs_inst:WindSat = 3 ;
                 obs_inst:WMO851 = 4 ;
                 obs_inst:WMO846 = 5 ;
-                obs_inst:WMO999 = 6 ;
         float obs_time(p) ;
                 obs_time:units = "days from days from 6565.5 days since 1990-01-01" ;
         int grid-0 ;
