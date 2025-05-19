@@ -1,3 +1,6 @@
+v2.34.4
+   PS 19052025
+   -- A few cosmetic changes in das_updatefields() and das_updatebg().
 v2.34.3
    PS 28042025
    -- In plog_writestatevars_direct() and plog_writestatevars_toassemble() --

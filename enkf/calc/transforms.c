@@ -578,9 +578,9 @@ static void prepare_calcs(size_t ploc, size_t nmem, double** sloc, int** plobs, 
 
 #if defined(USE_MPIQUEUE)
 /*
- * Generally, this is a preferred way of calculating the updates because it
- * reduces idle periods occuring when some of the rows are processed much faster
- * than others.
+ * Using mpiqueue is a preferred way of calculating transforms because it
+ * processes rows on one-by-one basis and therefore reduces idle periods that
+ * occur otherwise.
  */
 
 /** The central DA procedure, where the actual transforms are calculated.

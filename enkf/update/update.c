@@ -278,14 +278,15 @@ static void das_updatefields(dasystem* das, int nfields, void** fieldbuffer, fie
             for (fid = 0; fid < nfields; ++fid) {
                 field* f = &fields[fid];
                 int applylog = model_getvarislog(m, f->varid);
-                float*** vvv = (float***) fieldbuffer[fid];
                 char do_T = 'T';
                 float alpha = 1.0f;
                 int inc = 1;
                 float beta = 0.0f;
                 float inflation0 = NAN;
                 double inf_ratio = NAN;
-
+                float*** vvv = (structured) ? fieldbuffer[fid] : NULL;
+                float** vv = (structured) ? NULL : fieldbuffer[fid];
+                
                 model_getvarinflation(m, f->varid, &inflation0, &inf_ratio);
                 if (writeinflation && structured)
                     memset(infl, 0, mni * sizeof(float));
@@ -294,17 +295,17 @@ static void das_updatefields(dasystem* das, int nfields, void** fieldbuffer, fie
                     float inflation = inflation0;
                     double v1_f, v1_a;
 
-                    if (structured == 1) {
+                    if (structured) {
                         if (surfk == 0) {
                             if (((int**) nlevels)[j][i] <= f->level) {
                                 for (e = 0; e < nmem; ++e)
-                                    ((float***) vvv)[e][j][i] = 0.0f;
+                                    vvv[e][j][i] = 0.0f;
                                 continue;
                             }
                         } else {
                             if (((int**) nlevels)[j][i] <= ((f->issurfacevar) ? 0 : surfk - f->level)) {
                                 for (e = 0; e < nmem; ++e)
-                                    ((float***) vvv)[e][j][i] = 0.0f;
+                                    vvv[e][j][i] = 0.0f;
                                 continue;
                             }
                         }
@@ -312,13 +313,13 @@ static void das_updatefields(dasystem* das, int nfields, void** fieldbuffer, fie
                         if (surfk == 0) {
                             if (((int*) nlevels)[j] <= f->level) {
                                 for (e = 0; e < nmem; ++e)
-                                    ((float**) vvv)[e][j] = 0.0f;
+                                    vv[e][j] = 0.0f;
                                 continue;
                             }
                         } else {
                             if (((int*) nlevels)[j] <= ((f->issurfacevar) ? 0 : surfk - f->level)) {
                                 for (e = 0; e < nmem; ++e)
-                                    ((float**) vvv)[e][j] = 0.0f;
+                                    vv[e][j] = 0.0f;
                                 continue;
                             }
                         }
@@ -333,9 +334,9 @@ static void das_updatefields(dasystem* das, int nfields, void** fieldbuffer, fie
                      * otherwise it may be a bit tiresome to handle all
                      * variations.) 
                      */
-                    if (structured == 1) {
+                    if (structured) {
                         for (e = 0; e < nmem; ++e)
-                            if (!isfinite(((float***) vvv)[e][j][i]) || fabsf(((float***) vvv)[e][j][i]) > (float) MAXOBSVAL)
+                            if (!isfinite(vvv[e][j][i]) || fabsf(vvv[e][j][i]) > (float) MAXOBSVAL)
                                 break;
                         if (e < nmem_dynamic) {
                             for (e = 0; e < nmem; ++e)
@@ -349,24 +350,24 @@ static void das_updatefields(dasystem* das, int nfields, void** fieldbuffer, fie
                         }
 
                         for (e = 0; e < nmem; ++e)
-                            v_f[e] = ((float***) vvv)[e][j][i];
+                            v_f[e] = vvv[e][j][i];
                     } else {
                         for (e = 0; e < nmem; ++e)
-                            if (!isfinite(((float**) vvv)[e][j]) || fabsf(((float**) vvv)[e][j]) > (float) MAXOBSVAL)
+                            if (!isfinite(vv[e][j]) || fabsf(vv[e][j]) > (float) MAXOBSVAL)
                                 break;
                         if (e < nmem_dynamic) {
                             for (e = 0; e < nmem; ++e)
-                                ((float**) vvv)[e][j] = 0.0f;
+                                vv[e][j] = 0.0f;
                             continue;
                         } else if (e < nmem) {
                             for (e = nmem_dynamic; e < nmem; ++e)
-                                ((float**) vvv)[e][j] = 0.0f;
+                                vv[e][j] = 0.0f;
                             if (nmem_dynamic == 0)
                                 continue;
                         }
 
                         for (e = 0; e < nmem; ++e)
-                            v_f[e] = ((float**) vvv)[e][j];
+                            v_f[e] = vv[e][j];
                     }
 
                     /*
@@ -461,18 +462,18 @@ static void das_updatefields(dasystem* das, int nfields, void** fieldbuffer, fie
                     for (e = 0; e < nmem_dynamic; ++e)
                         v_f[e] += v1_f;
 
-                    if (structured == 1) {
+                    if (structured) {
                         if (!(das->updatespec & UPDATE_OUTPUTINC))
                             for (e = 0; e < nmem_dynamic; ++e)
-                                ((float***) vvv)[e][j][i] = v_a[e];
+                                vvv[e][j][i] = v_a[e];
                         else {
                             if (!applylog)
                                 for (e = 0; e < nmem_dynamic; ++e)
-                                    ((float***) vvv)[e][j][i] = v_a[e] - v_f[e];
+                                    vvv[e][j][i] = v_a[e] - v_f[e];
                             else
                                 for (e = 0; e < nmem_dynamic; ++e) {
                                     if (!isnormal(v_f[e]))
-                                        ((float***) vvv)[e][j][i] = 0.0;
+                                        vvv[e][j][i] = 0.0;
                                     else
                                         /*
                                          * it is necessary to take care that in
@@ -480,21 +481,21 @@ static void das_updatefields(dasystem* das, int nfields, void** fieldbuffer, fie
                                          * variable is not transformed again
                                          * during writing
                                          */
-                                        ((float***) vvv)[e][j][i] = exp10(v_a[e]) - exp10(v_f[e]);
+                                        vvv[e][j][i] = exp10(v_a[e]) - exp10(v_f[e]);
                                 }
                         }
                     } else {
                         if (!(das->updatespec & UPDATE_OUTPUTINC))
                             for (e = 0; e < nmem_dynamic; ++e)
-                                ((float**) vvv)[e][j] = v_a[e];
+                                vv[e][j] = v_a[e];
                         else {
                             if (!applylog)
                                 for (e = 0; e < nmem_dynamic; ++e)
-                                    ((float**) vvv)[e][j] = v_a[e] - v_f[e];
+                                    vv[e][j] = v_a[e] - v_f[e];
                             else
                                 for (e = 0; e < nmem_dynamic; ++e) {
                                     if (!isnormal(v_f[e]))
-                                        ((float**) vvv)[e][j] = 0.0;
+                                        vv[e][j] = 0.0;
                                     else
                                         /*
                                          * it is necessary to take care that in
@@ -502,7 +503,7 @@ static void das_updatefields(dasystem* das, int nfields, void** fieldbuffer, fie
                                          * variable is not transformed again
                                          * during writing
                                          */
-                                        ((float**) vvv)[e][j] = exp10(v_a[e]) - exp10(v_f[e]);
+                                        vv[e][j] = exp10(v_a[e]) - exp10(v_f[e]);
                                 }
                         }
                     }
@@ -693,22 +694,26 @@ static void das_updatebg(dasystem* das, int nfields, void** fieldbuffer, field f
              * the j-th row of the grid) 
              */
 
+            /*
+             * update the j-th row of the background
+             */
             for (fid = 0; fid < nfields; ++fid) {
                 field* f = &fields[fid];
-                void* vvv = fieldbuffer[fid];
+                float*** vvv = (structured) ? fieldbuffer[fid] : NULL;
+                float** vv = (structured) ? NULL : fieldbuffer[fid];
 
                 for (i = 0; i < mni; ++i) {
                     float xmean = 0.0f;
 
-                    if (structured == 1) {
+                    if (structured) {
                         if (surfk == 0) {
                             if (((int**) nlevels)[j][i] <= f->level) {
-                                ((float***) vvv)[nmem][j][i] = 0.0f;
+                                vvv[nmem][j][i] = 0.0f;
                                 continue;
                             }
                         } else {
                             if (((int**) nlevels)[j][i] <= ((f->issurfacevar) ? 1 : surfk - f->level)) {
-                                ((float***) vvv)[nmem][j][i] = 0.0f;
+                                vvv[nmem][j][i] = 0.0f;
                                 continue;
                             }
                         }
@@ -716,20 +721,20 @@ static void das_updatebg(dasystem* das, int nfields, void** fieldbuffer, field f
                          * assume that if |value| > MAXOBSVAL, then it is filled
                          * with the missing value 
                          */
-                        if (fabsf(((float***) vvv)[nmem][j][i]) > (float) MAXOBSVAL) {
-                            ((float***) vvv)[nmem][j][i] = 0.0f;
+                        if (fabsf(vvv[nmem][j][i]) > (float) MAXOBSVAL) {
+                            vvv[nmem][j][i] = 0.0f;
                             continue;
                         }
                         for (e = 0; e < nmem; ++e)
-                            if (fabsf(((float***) vvv)[e][j][i]) > (float) MAXOBSVAL)
+                            if (fabsf(vvv[e][j][i]) > (float) MAXOBSVAL)
                                 break;
                         if (e < nmem) {
-                            ((float***) vvv)[nmem][j][i] = 0.0f;
+                            vvv[nmem][j][i] = 0.0f;
                             continue;
                         }
 
                         for (e = 0; e < nmem; ++e)
-                            xmean += ((float***) vvv)[e][j][i];
+                            xmean += vvv[e][j][i];
                         xmean /= (float) nmem;
 
                         /*
@@ -738,16 +743,16 @@ static void das_updatebg(dasystem* das, int nfields, void** fieldbuffer, field f
                          * das_update())
                          */
                         for (e = 0; e < nmem; ++e)
-                            ((float***) vvv)[nmem][j][i] += (((float***) vvv)[e][j][i] - xmean) * wj[i][e];
+                            vvv[nmem][j][i] += (vvv[e][j][i] - xmean) * wj[i][e];
                     } else {
                         if (surfk == 0) {
                             if (((int*) nlevels)[j] <= f->level) {
-                                ((float**) vvv)[nmem][j] = 0.0f;
+                                vv[nmem][j] = 0.0f;
                                 continue;
                             }
                         } else {
                             if (((int*) nlevels)[j] <= ((f->issurfacevar) ? 1 : surfk - f->level)) {
-                                ((float**) vvv)[nmem][j] = 0.0f;
+                                vv[nmem][j] = 0.0f;
                                 continue;
                             }
                         }
@@ -755,20 +760,20 @@ static void das_updatebg(dasystem* das, int nfields, void** fieldbuffer, field f
                          * assume that if |value| > MAXOBSVAL, then it is filled
                          * with the missing value 
                          */
-                        if (fabsf(((float**) vvv)[nmem][j]) > (float) MAXOBSVAL) {
-                            ((float**) vvv)[nmem][j] = 0.0f;
+                        if (vv[nmem][j] > (float) MAXOBSVAL) {
+                            vv[nmem][j] = 0.0f;
                             continue;
                         }
                         for (e = 0; e < nmem; ++e)
-                            if (fabsf(((float**) vvv)[e][j]) > (float) MAXOBSVAL)
+                            if (vv[e][j] > (float) MAXOBSVAL)
                                 break;
                         if (e < nmem) {
-                            ((float**) vvv)[nmem][j] = 0.0f;
+                            vv[nmem][j] = 0.0f;
                             continue;
                         }
 
                         for (e = 0; e < nmem; ++e)
-                            xmean += ((float**) vvv)[e][j];
+                            xmean += vv[e][j];
                         xmean /= (float) nmem;
 
                         /*
@@ -777,7 +782,7 @@ static void das_updatebg(dasystem* das, int nfields, void** fieldbuffer, field f
                          * das_update())
                          */
                         for (e = 0; e < nmem; ++e)
-                            ((float**) vvv)[nmem][j] += (((float**) vvv)[e][j] - xmean) * wj[0][e];
+                            vv[nmem][j] += (vv[e][j] - xmean) * wj[0][e];
                     }
                 }
             }
@@ -1358,9 +1363,9 @@ void das_update(dasystem* das)
     }
 #if defined(USE_MPIQUEUE)
     /*
-     * This is a preferred way of updating the fields because the queue includes
-     * all fields (on all grids). This eliminates the idle periods that arise
-     * when distributing fields on a grid-by-grid basis.
+     * Using mpiqueue is a preferred way of updating the fields because it
+     * processes all fields (on all grids) on one-by-one basis and therefore
+     * reduces idle periods that occur otherwise.
      */
     {
         int nfields = 0;
