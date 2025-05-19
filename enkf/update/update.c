@@ -278,15 +278,11 @@ static void das_updatefields(dasystem* das, int nfields, void** fieldbuffer, fie
             for (fid = 0; fid < nfields; ++fid) {
                 field* f = &fields[fid];
                 int applylog = model_getvarislog(m, f->varid);
-                char do_T = 'T';
-                float alpha = 1.0f;
-                int inc = 1;
-                float beta = 0.0f;
                 float inflation0 = NAN;
                 double inf_ratio = NAN;
                 float*** vvv = (structured) ? fieldbuffer[fid] : NULL;
                 float** vv = (structured) ? NULL : fieldbuffer[fid];
-                
+
                 model_getvarinflation(m, f->varid, &inflation0, &inf_ratio);
                 if (writeinflation && structured)
                     memset(infl, 0, mni * sizeof(float));
@@ -390,7 +386,14 @@ static void das_updatefields(dasystem* das, int nfields, void** fieldbuffer, fie
                     /*
                      * A^a = A^f * T
                      */
-                    sgemv_(&do_T, &nmem, &nmem_dynamic, &alpha, Tj[i], &nmem, v_f, &inc, &beta, v_a, &inc);
+                    {
+                        char do_T = 'T';
+                        float alpha = 1.0f;
+                        float beta = 0.0f;
+                        int inc = 1;
+
+                        sgemv_(&do_T, &nmem, &nmem_dynamic, &alpha, Tj[i], &nmem, v_f, &inc, &beta, v_a, &inc);
+                    }
 
                     /*
                      * dx = x^a - x^f
