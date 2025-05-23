@@ -463,6 +463,7 @@ void nc_assemblediag(dasystem* das, int gridid, int nj, int ni, int stride)
         enkf_flush();
     }
     ncw_close(ncid);
+    enkf_writeinfo(fname);
     enkf_printf("\n");
     enkf_flush();
 

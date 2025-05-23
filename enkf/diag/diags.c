@@ -158,6 +158,9 @@ void das_writespread_inupdate(dasystem* das, int nfields, void** fieldbuffer, fi
         }
     }
 
+    if (das->updatespec & UPDATE_DIRECTWRITE)
+        enkf_writeinfo(FNAME_SPREAD);
+
     free(v1);
     free(v2);
 }
@@ -236,6 +239,7 @@ void das_assemblespread(dasystem* das)
         }
         free(v);
     }
+    enkf_writeinfo(FNAME_SPREAD);
 }
 
 /** Allocates disk space for inflation magnitudes.
@@ -326,6 +330,9 @@ void das_writeinflation(dasystem* das, field* f, int j, float* v)
             ncw_close(ncid);
         }
     }
+
+    if (das->updatespec & UPDATE_DIRECTWRITE)
+        enkf_writeinfo(FNAME_INFLATION);
 }
 
 /**
@@ -373,6 +380,7 @@ void das_assembleinflation(dasystem* das)
             enkf_printf(".");
         }
         free(v);
+        enkf_writeinfo(FNAME_INFLATION);
         enkf_printf("\n");
     }
 }
@@ -617,6 +625,7 @@ void das_writevcorrs(dasystem* das)
     }
     enkf_printf("\n");
     enkf_flush();
+    enkf_writeinfo(FNAME_VERTCORR);
 
     free(fields);
 }
@@ -842,6 +851,7 @@ void das_writevcorrs_with(dasystem* das, char* varname, int level, int calctype)
     }
     enkf_printf("\n");
     enkf_flush();
+    enkf_writeinfo(fname_dst);
 
     free(fields);
 #if defined(MPI)
@@ -1013,6 +1023,7 @@ void das_writespread(dasystem* das)
     }
     enkf_printf("\n");
     enkf_flush();
+    enkf_writeinfo(FNAME_SPREAD);
 
     free(fields);
 }

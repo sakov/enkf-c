@@ -1114,6 +1114,9 @@ void obs_write(observations* obs, char fname[])
     ncw_put_var_int(ncid, varid, v);
 
     ncw_close(ncid);
+
+    enkf_writeinfo(fname);
+
     free(v);
 }
 #endif

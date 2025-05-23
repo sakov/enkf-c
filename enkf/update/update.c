@@ -1380,6 +1380,8 @@ void das_update(dasystem* das)
             enkf_quit("\"mpiqueue\" can not be used on a single CPU; run on more than one CPU or recompile without -DUSE_MPIQUEUE flag");
         queue = mpiqueue_create(MPI_COMM_WORLD, nfields);
         enkf_printf("    updating %d fields using %d processes:\n", nfields, nprocesses);
+        enkf_flush();
+        MPI_Barrier(MPI_COMM_WORLD);
 
         if (mpiqueue_getrank(queue) == 0)
             mpiqueue_manage(queue);
@@ -1580,6 +1582,10 @@ void das_update(dasystem* das)
 
         das_getfields(das, gid, &nfields, &fields);
         enkf_printf("      %d fields\n", nfields);
+        enkf_flush();
+#if defined(MPI)
+        MPI_Barrier(MPI_COMM_WORLD);
+#endif
 
         if (nfields == 0)
             continue;

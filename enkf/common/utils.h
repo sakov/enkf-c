@@ -66,6 +66,9 @@ void shuffle(size_t n, size_t ids[]);
 void kd_printinfo(kdtree* tree, char* offset);
 
 void print_memory_usage(void);
+void print_memory_avail(void);
+
+void enkf_writeinfo(char* fname);
 
 #if defined(ENKF_PREP)
 #if defined(INTERNAL_QSORT_R)

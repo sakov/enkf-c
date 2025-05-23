@@ -495,6 +495,7 @@ void plog_definestatevars(dasystem* das)
          */
         ncw_put_att_text(ncid, NC_GLOBAL, "output", (das->updatespec & UPDATE_OUTPUTINC) ? "increment" : "analysis");
         ncw_close(ncid);
+        enkf_writeinfo(fname);
     }
 }
 
@@ -784,6 +785,7 @@ void plog_assemblestatevars(dasystem* das)
             }
         }
         ncw_close(ncid_dst);
+        enkf_writeinfo(fname_dst);
     }
 
 #if defined(MPI)

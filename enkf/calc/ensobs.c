@@ -154,8 +154,10 @@ void das_getHE(dasystem* das)
 
     MPI_Barrier(sm_comm);
 
-    if (print_mem)
+    if (print_mem) {
         print_memory_usage();
+        print_memory_avail();
+    }
 #endif
 
     distribute_iterations(0, nmem - 1, nprocesses, "    ");

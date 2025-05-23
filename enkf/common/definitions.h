@@ -187,6 +187,9 @@ extern int enkf_allowenoilog;
 extern int enkf_geophysical;
 extern int print_mem;
 
+extern char* enkf_cmd;
+extern char* enkf_cwd;
+
 typedef struct {
     char* name;
     double x1, x2, y1, y2;

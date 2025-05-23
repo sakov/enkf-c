@@ -120,6 +120,33 @@ static void randomise_rand48(void)
 
 /**
  */
+static char* get_command(int argc, char* argv[])
+{
+    char* cmd = NULL;
+    int len = 0;
+    int i;
+
+    len = strlen(argv[0]);
+    for (i = 1; i < argc; ++i)
+        len += strlen(argv[i]) + 1;
+    len++;
+
+    cmd = malloc(len);
+    strcpy(cmd, argv[0]);
+    len = strlen(argv[0]);
+    for (i = 1; i < argc; ++i) {
+        cmd[len] = ' ';
+        len++;
+        strcpy(&cmd[len], argv[i]);
+        len += strlen(argv[i]);
+    }
+    cmd[len] = 0;
+
+    return cmd;
+}
+
+/**
+ */
 void enkf_init(int* argc, char*** argv)
 {
 #if defined(MPI)
@@ -241,6 +268,9 @@ void enkf_init(int* argc, char*** argv)
      * initialise the random number generator to a random state for each cpu
      */
     randomise_rand48();
+
+    enkf_cmd = get_command(*argc, *argv);
+    enkf_cwd = getcwd(NULL, 0);
 }
 
 /**
@@ -261,6 +291,10 @@ void enkf_finish(void)
         free(node_comm_ranks);
 #endif
     enkf_printtime("  ");
+    if (enkf_cmd != NULL)
+        free(enkf_cmd);
+    if (enkf_cwd != NULL)
+        free(enkf_cwd);
     enkf_printf("  finished\n");
     enkf_flush();
 #if defined(MPI)
@@ -1543,5 +1577,40 @@ void print_memory_usage(void)
             enkf_printf("    total: VmRSS = %zu kB, VmSize = %zu kB\n", vmrss, vmsize);
         } else
             enkf_printf("    VmRSS = %zu kB, VmSize = %zu kB\n", vmrss_per_process[0], vmsize_per_process[0]);
+    }
+}
+
+/**
+ */
+void print_memory_avail(void)
+{
+    if (rank == 0) {
+        size_t npage = sysconf(_SC_PHYS_PAGES);
+        size_t page_size = sysconf(_SC_PAGESIZE);
+
+        enkf_printf("  available RAM per node:\n");
+        enkf_printf("    no. pages = %zu\n", npage);
+        enkf_printf("    page size = %zu\n", page_size);
+        enkf_printf("    total = %zu\n", npage * page_size);
+#if defined(USE_SHMEM)
+        enkf_printf("    (%zu bytes per core)\n", npage * page_size / sm_comm_size);
+#endif
+    }
+}
+
+/**
+ */
+void enkf_writeinfo(char* fname)
+{
+    if (rank == 0) {
+        int ncid;
+
+        ncw_open(fname, NC_WRITE, &ncid);
+        if (!ncw_att_exists(ncid, NC_GLOBAL, "EnKF-C version")) {
+            ncw_put_att_text(ncid, NC_GLOBAL, "EnKF-C version", ENKF_VERSION);
+            ncw_put_att_text(ncid, NC_GLOBAL, "command", enkf_cmd);
+            ncw_put_att_text(ncid, NC_GLOBAL, "wdir", enkf_cwd);
+        }
+        ncw_close(ncid);
     }
 }

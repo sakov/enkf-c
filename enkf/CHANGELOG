@@ -1,3 +1,10 @@
+v2.35.0
+   PS 23052025
+   -- Added a new procedure enkf_writeinfo() to utils.c. It copies two new
+      global variables "enkf_cmd" and "enkf_cwd" as well as the EnKF-C version
+      as global attributes to a NetCDF file.
+   -- Added writing the above info to observations.nc, enkf_diag*.nc, pointlogs,
+      and all diagnostic outputs created by enkf_update or enkf_diag.
 v2.34.4
    PS 19052025
    -- A few cosmetic changes in das_updatefields() and das_updatebg().
