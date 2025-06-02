@@ -515,10 +515,10 @@ void obs_add(observations* obs, model* m, obsmeta* meta, int nexclude, obsregion
 
                     if (grid_isstructured(g)) {
                         v = alloc2d(nj, ni, sizeof(float));
-                        ncu_readfield(fname, estd->varname, 0, ni, nj, nk, ((float**) v)[0]);
+                        ncu_readfield(fname, estd->varname, -1, 0, ni, nj, nk, ((float**) v)[0]);
                     } else {
                         v = calloc(ni, sizeof(float));
-                        ncu_readfield(fname, estd->varname, 0, ni, 0, nk, v);
+                        ncu_readfield(fname, estd->varname, -1, 0, ni, 0, nk, v);
                     }
                     for (o = nobs0; o < obs->nobs; ++o) {
                         observation* oo = &obs->data[o];

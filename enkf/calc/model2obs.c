@@ -124,7 +124,7 @@ static void interpolate_3d_obs(model* m, observations* allobs, int nobs, int obs
 
 /**
  */
-void H_surf_standard(dasystem* das, int nobs, int obsids[], char fname[], int mem, int t, float dst[])
+void H_surf_standard(dasystem* das, int nobs, int obsids[], char fname[], int r, int mem, int t, float dst[])
 {
     model* m = das->m;
     observations* allobs = das->obs;
@@ -144,7 +144,7 @@ void H_surf_standard(dasystem* das, int nobs, int obsids[], char fname[], int me
         float** offset;
 
         src = alloc2d(nj, ni, sizeof(float));
-        model_readfield(m, fname, ot->varnames[0], ksurf, ((float**) src)[0], masklog);
+        model_readfield_multirecord(m, fname, ot->varnames[0], r, ksurf, ((float**) src)[0], masklog);
 
         snprintf(tag_offset, MAXSTRLEN, "%s:OFFSET", ot->name);
         offset = model_getdata(m, tag_offset);
@@ -161,7 +161,7 @@ void H_surf_standard(dasystem* das, int nobs, int obsids[], char fname[], int me
         float* offset;
 
         src = calloc(ni, sizeof(float));
-        model_readfield(m, fname, ot->varnames[0], ksurf, src, masklog);
+        model_readfield_multirecord(m, fname, ot->varnames[0], r, ksurf, src, masklog);
 
         snprintf(tag_offset, MAXSTRLEN, "%s:OFFSET", ot->name);
         offset = model_getdata(m, tag_offset);
@@ -181,7 +181,7 @@ void H_surf_standard(dasystem* das, int nobs, int obsids[], char fname[], int me
 
 /**
  */
-void H_surf_biased(dasystem* das, int nobs, int obsids[], char fname[], int mem, int t, float dst[])
+void H_surf_biased(dasystem* das, int nobs, int obsids[], char fname[], int r, int mem, int t, float dst[])
 {
     model* m = das->m;
     observations* allobs = das->obs;
@@ -219,7 +219,7 @@ void H_surf_biased(dasystem* das, int nobs, int obsids[], char fname[], int mem,
         src0 = src;
     }
 
-    model_readfield(m, fname, ot->varnames[0], ksurf, src0, masklog);
+    model_readfield_multirecord(m, fname, ot->varnames[0], r, ksurf, src0, masklog);
 
     snprintf(tag_offset, MAXSTRLEN, "%s:OFFSET", allobs->obstypes[allobs->data[obsids[0]].type].name);
     offset = model_getdata(m, tag_offset);
@@ -251,7 +251,7 @@ void H_surf_biased(dasystem* das, int nobs, int obsids[], char fname[], int mem,
 
 /**
  */
-void H_subsurf_standard(dasystem* das, int nobs, int obsids[], char fname[], int mem, int t, float dst[])
+void H_subsurf_standard(dasystem* das, int nobs, int obsids[], char fname[], int r, int mem, int t, float dst[])
 {
     model* m = das->m;
     observations* allobs = das->obs;
@@ -275,7 +275,7 @@ void H_subsurf_standard(dasystem* das, int nobs, int obsids[], char fname[], int
         if (nk > 1)
             model_read3dfield(m, fname, ot->varnames[0], src0, masklog);
         else if (nk == 1)
-            model_readfield(m, fname, ot->varnames[0], 0, src0, masklog);
+            model_readfield_multirecord(m, fname, ot->varnames[0], r, 0, src0, masklog);
 
         snprintf(tag_offset, MAXSTRLEN, "%s:OFFSET", allobs->obstypes[allobs->data[obsids[0]].type].name);
         offset_data = model_getdata(m, tag_offset);
@@ -313,7 +313,7 @@ void H_subsurf_standard(dasystem* das, int nobs, int obsids[], char fname[], int
         if (nk > 1)
             model_read3dfield(m, fname, ot->varnames[0], src0, masklog);
         else if (nk == 1)
-            model_readfield(m, fname, ot->varnames[0], 0, src0, masklog);
+            model_readfield_multirecord(m, fname, ot->varnames[0], r, 0, src0, masklog);
 
         snprintf(tag_offset, MAXSTRLEN, "%s:OFFSET", allobs->obstypes[allobs->data[obsids[0]].type].name);
         offset_data = model_getdata(m, tag_offset);
@@ -362,7 +362,7 @@ static int cmp_obs_byfk(const void* p1, const void* p2, void* p)
  ** field. Instead, it proceeds by keeping in memory two layers at a time and
  ** interpolating observations in between these layers.
  */
-void H_subsurf_lowmem(dasystem* das, int nobs, int obsids[], char fname[], int mem, int t, float dst[])
+void H_subsurf_lowmem(dasystem* das, int nobs, int obsids[], char fname[], int r, int mem, int t, float dst[])
 {
     model* m = das->m;
     observations* allobs = das->obs;
@@ -382,7 +382,7 @@ void H_subsurf_lowmem(dasystem* das, int nobs, int obsids[], char fname[], int m
     model_getvargridsize(m, mvid, &ni, &nj, &nk);
 
     if (nk == 1) {
-        H_subsurf_standard(das, nobs, obsids, fname, mem, t, dst);
+        H_subsurf_standard(das, nobs, obsids, fname, r, mem, t, dst);
         return;
     }
 
@@ -426,12 +426,12 @@ void H_subsurf_lowmem(dasystem* das, int nobs, int obsids[], char fname[], int m
             k1_now = k1;
         }
         if (k1_now != k1) {
-            model_readfield(m, fname, ot->varnames[0], k1, (nj > 0) ? ((float**) src1)[0] : src1, masklog);
+            model_readfield_multirecord(m, fname, ot->varnames[0], r, k1, (nj > 0) ? ((float**) src1)[0] : src1, masklog);
             k1_now = k1;
             k1_isnew = 1;
         }
         if (k2 < nk) {
-            model_readfield(m, fname, ot->varnames[0], k2, (nj > 0) ? ((float**) src2)[0] : src2, masklog);
+            model_readfield_multirecord(m, fname, ot->varnames[0], r, k2, (nj > 0) ? ((float**) src2)[0] : src2, masklog);
             k2_now = k2;
         }
 
@@ -492,7 +492,7 @@ static double mldtaper(double mld, double z)
 
 /** Projects surface bias into subsurface based on the mixed layer depth.
  */
-void H_subsurf_wsurfbias(dasystem* das, int nobs, int obsids[], char fname[], int mem, int t, float dst[])
+void H_subsurf_wsurfbias(dasystem* das, int nobs, int obsids[], char fname[], int r, int mem, int t, float dst[])
 {
     model* m = das->m;
     observations* allobs = das->obs;
@@ -534,7 +534,7 @@ void H_subsurf_wsurfbias(dasystem* das, int nobs, int obsids[], char fname[], in
     if (nk > 1)
         model_read3dfield(m, fname, ot->varnames[0], src[0][0], masklog);
     else if (nk == 1)
-        model_readfield(m, fname, ot->varnames[0], 0, src[0][0], masklog);
+        model_readfield_multirecord(m, fname, ot->varnames[0], r, 0, src[0][0], masklog);
 
     snprintf(tag_offset, MAXSTRLEN, "%s:OFFSET", ot->name);
     offset_data = model_getdata(m, tag_offset);
@@ -638,7 +638,7 @@ void H_subsurf_wsurfbias(dasystem* das, int nobs, int obsids[], char fname[], in
 
 /** Sum up the estimates over layers.
  */
-void H_vertsum(dasystem* das, int nobs, int obsids[], char fname[], int mem, int t, float dst[])
+void H_vertsum(dasystem* das, int nobs, int obsids[], char fname[], int r, int mem, int t, float dst[])
 {
     model* m = das->m;
     observations* allobs = das->obs;
@@ -678,11 +678,11 @@ void H_vertsum(dasystem* das, int nobs, int obsids[], char fname[], int mem, int
         srcsum0 = srcsum;
     }
 
-    model_readfield(m, fname, ot->varnames[0], 0, srcsum0, 0);
+    model_readfield_multirecord(m, fname, ot->varnames[0], r, 0, srcsum0, 0);
     for (k = 1; k < nk; ++k) {
         size_t nij = (nj > 0) ? ni * nj : ni;
 
-        model_readfield(m, fname, ot->varnames[0], k, src0, 0);
+        model_readfield_multirecord(m, fname, ot->varnames[0], r, k, src0, 0);
         for (i = 0; i < nij; i++)
             srcsum0[i] += src0[i];
     }
@@ -713,7 +713,7 @@ void H_vertsum(dasystem* das, int nobs, int obsids[], char fname[], int mem, int
 
 /** Calculate weighted average of estimates over layers.
  */
-void H_vertwavg(dasystem* das, int nobs, int obsids[], char fname[], int mem, int t, float dst[])
+void H_vertwavg(dasystem* das, int nobs, int obsids[], char fname[], int r, int mem, int t, float dst[])
 {
     model* m = das->m;
     observations* allobs = das->obs;
@@ -756,9 +756,9 @@ void H_vertwavg(dasystem* das, int nobs, int obsids[], char fname[], int mem, in
     /*
      * get sum of weights 
      */
-    model_readfield(m, fname, ot->varnames[1], 0, sumw, 0);
+    model_readfield_multirecord(m, fname, ot->varnames[1], r, 0, sumw, 0);
     for (k = 1; k < nk; ++k) {
-        model_readfield(m, fname, ot->varnames[1], k, w, 0);
+        model_readfield_multirecord(m, fname, ot->varnames[1], r, k, w, 0);
         for (i = 0; i < (size_t) nij; i++)
             sumw[i] += w[i];
     }
@@ -769,8 +769,8 @@ void H_vertwavg(dasystem* das, int nobs, int obsids[], char fname[], int mem, in
     for (k = 0; k < nk; ++k) {
         float* sum0 = (nj > 0) ? sum : ((float**) sum)[0];
 
-        model_readfield(m, fname, ot->varnames[0], k, src, 0);
-        model_readfield(m, fname, ot->varnames[1], k, w, 0);
+        model_readfield_multirecord(m, fname, ot->varnames[0], r, k, src, 0);
+        model_readfield_multirecord(m, fname, ot->varnames[1], r, k, w, 0);
         for (i = 0; i < (size_t) nij; i++) {
             double v = src[i] * w[i] / sumw[i];
 

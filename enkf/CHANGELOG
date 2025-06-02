@@ -1,3 +1,15 @@
+v2.36.0
+   PS 01062025
+   -- Made it possible get forecast obs. from model dumps with multiple records.
+      The dumps should be either with single record or with multiple records
+      covering the whole observation window. In the latter case for each time
+      interval the code will find and use the record with time closest to that
+      of the interval. Instead of the suffix "_<interval ID>" used for the
+      dumps with single record the dumps with multiple records should have
+      suffix "_#", i.e. have name "mem<mem ID as %03d>_<varname>_#.nc.
+   -- Added argument "r" to ncu_readfield(). Set it to "-1" to ignore or use
+      the very first record.
+   -- Added model_readfield_multirecord() with an extra argument "r".
 v2.35.0
    PS 23052025
    -- Added a new procedure enkf_writeinfo() to utils.c. It copies two new

@@ -158,7 +158,7 @@ void plog_writestatevars(dasystem* das, int nfields, void** fieldbuffer, field* 
 void plog_assemblestatevars(dasystem* das);
 
 void das_getmemberfname(dasystem* das, char varname[], int mem, char fname[]);
-int das_getmemberfname_async(dasystem* das, obstype* ot, int mem, int t, char fname[]);
+int das_getmemberfname_async(dasystem* das, obstype* ot, int mem, int t, char fname[], int* r);
 void das_getbgfname(dasystem* das, char varname[], char fname[]);
 int das_getbgfname_async(dasystem* das, obstype* ot, int t, char fname[]);
 void das_sethybridensemble(dasystem* das, int nij, float** v);

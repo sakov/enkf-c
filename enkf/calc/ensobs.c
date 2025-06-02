@@ -212,7 +212,7 @@ void das_getHE(dasystem* das)
                         if (enkf_obstype == OBSTYPE_VALUE) {
                             int success = das_getbgfname_async(das, ot, t, fname);
 
-                            H(das, nobs_tomap, obsids, fname, -1, t, Hx);
+                            H(das, nobs_tomap, obsids, fname, -1, -1, t, Hx);
                             enkf_printf((success) ? "A" : "S");
                             fflush(stdout);
                         } else if (enkf_obstype == OBSTYPE_INNOVATION) {
@@ -226,16 +226,17 @@ void das_getHE(dasystem* das)
                     if (!enkf_fstatsonly) {
                         for (e = my_first_iteration; e <= my_last_iteration; ++e) {
                             das_getmemberfname(das, ot->varnames[0], e + 1, fname);
-                            H(das, nobs_tomap, obsids, fname, e + 1, INT_MAX, das->S[e]);
+                            H(das, nobs_tomap, obsids, fname, -1, e + 1, INT_MAX, das->S[e]);
                             enkf_printf(".");
                             fflush(stdout);
                         }
                     }
                 } else {
                     for (e = my_first_iteration; e <= my_last_iteration; ++e) {
-                        int success = das_getmemberfname_async(das, ot, e + 1, t, fname);
+                        int r;
+                        int success = das_getmemberfname_async(das, ot, e + 1, t, fname, &r);
 
-                        H(das, nobs_tomap, obsids, fname, e + 1, t, das->S[e]);
+                        H(das, nobs_tomap, obsids, fname, r, e + 1, t, das->S[e]);
                         enkf_printf((success) ? "a" : "s");
                         fflush(stdout);
                     }
@@ -258,7 +259,7 @@ void das_getHE(dasystem* das)
 #endif
                     if (enkf_obstype == OBSTYPE_VALUE) {
                         das_getbgfname(das, ot->alias, fname);
-                        H(das, nobs_tomap, obsids, fname, -1, INT_MAX, Hx);
+                        H(das, nobs_tomap, obsids, fname, -1, -1, INT_MAX, Hx);
                         enkf_printf("+");
                         fflush(stdout);
                     } else if (enkf_obstype == OBSTYPE_INNOVATION) {
@@ -272,7 +273,7 @@ void das_getHE(dasystem* das)
                 if (!enkf_fstatsonly) {
                     for (e = my_first_iteration; e <= my_last_iteration; ++e) {
                         das_getmemberfname(das, ot->varnames[0], e + 1, fname);
-                        H(das, nobs_tomap, obsids, fname, e + 1, INT_MAX, das->S[e]);
+                        H(das, nobs_tomap, obsids, fname, -1, e + 1, INT_MAX, das->S[e]);
                         enkf_printf(".");
                         fflush(stdout);
                     }
@@ -280,7 +281,7 @@ void das_getHE(dasystem* das)
             } else {
                 for (e = my_first_iteration; e <= my_last_iteration; ++e) {
                     das_getmemberfname(das, ot->alias, e + 1, fname);
-                    H(das, nobs_tomap, obsids, fname, e + 1, INT_MAX, das->S[e]);
+                    H(das, nobs_tomap, obsids, fname, -1, e + 1, INT_MAX, das->S[e]);
                     enkf_printf(".");
                     fflush(stdout);
                 }
