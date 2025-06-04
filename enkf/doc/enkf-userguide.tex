@@ -39,7 +39,7 @@
 
 \begin{document}
 
-\title{EnKF-C user guide\\{\normalsize version 2.34.3}}
+\title{EnKF-C user guide\\{\normalsize version 2.36.0}}
 
 \author{Pavel Sakov}
 \date{June 19, 2014 -- \today}
@@ -1514,6 +1514,10 @@ This behaviour can be disallowed by running CALC with option \verb|--strict-time
 Using this option requires specifying the name of the time variable in model dumps with the entry \verb|ASYNC| of the observation types parameter file.
 It is strongly encouraged to use this option when possible.
 The strict time matching permits skipping the model dump associated with a time bin only if there is a single time bin for the observation type, and its centre matches the time of the restart dump.
+
+From version 2.36.0 it is possible to consolidate model dumps used for calculating forecast observations for an observation type for each time interval in the observation window in a single file with multiple time records.
+Such multi-record files should have name \spverb|mem<xxx>_<variable name>_#.nc|.
+For each time binning interval the code finds and uses the record with time matching the interval time.
 
 \section{CALC}
 
