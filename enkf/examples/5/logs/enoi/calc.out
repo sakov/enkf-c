@@ -2,17 +2,17 @@
   Using MPI-3 shared memory:
     sm_comm size = 4
     node_comm size = 1
-  running CALC for EnKF-C version 2.28.6:
+  running CALC for EnKF-C version 2.36.0:
     command = "./enkf_calc enoi.prm"
-    dir = "/home/599/pxs599/tmp/enkf-c/enkf/examples/5"
-  2024-05-05 14:44:58
+    dir = "/home/599/pxs599/src/enkf-c/enkf/examples/5"
+  2025-06-05 10:31:06
   reading system specs from "enoi.prm":
+    TIME = "6565.5 days since 1990-01-01"
     MODE = EnOI
     MODEL PRM = "model.prm"
     GRID PRM = "grid.prm"
     OBS TYPES PRM = "obstypes.prm"
     OBS PRM = "obs.prm"
-    DATE = "6565.5 days since 1990-01-01"
     BGDIR = "background_6565"
     ENSEMBLE DIR = "ensemble_static"
     ENSEMBLE SIZE = 144
@@ -106,7 +106,7 @@
       DATA = "conf/grid_spec.nc"
       VTYPE = "z"
       VDIR = FROMSURF
-      GEOGRAPHIC = yes
+      GEOGRAPHIC = 1
       ZVARNAME = "zt"
       ZCVARNAME = <none>
       DEPTHVARNAME = "depth_t"
@@ -142,8 +142,8 @@
     pointlog (156.000, -32.000):
       t-grid: (i, j) = (49.500, 49.500)
   reading observations from "observations.nc":
-    10250 observations
-    allocating 984000 bytes for array of observations
+    10216 observations
+    allocating 980736 bytes for array of observations
     creating kd-trees for observations:
       kdtree "SLA":
         652 nodes
@@ -155,15 +155,15 @@
         1168 nodes
         74800 bytes
       kdtree "TEM":
-        39 nodes
-        2544 bytes
+        5 nodes
+        368 bytes
       kdtree "SAL":
         5 nodes
         368 bytes
   calculating ensemble observations:
-  2024-05-05 14:44:58
-    allocating 5945000 bytes for HE array:
-    allocating 5904000 bytes for HE^T array:
+  2025-06-05 10:31:06
+    allocating 5925280 bytes for HE array:
+    allocating 5884416 bytes for HE^T array:
     distributing 144 iterations:
       4 processes get 36 iterations each
     SLA +....................................
@@ -172,19 +172,19 @@
     TEM +....................................
     SAL +....................................
   gathering:
-  2024-05-05 14:44:58
+  2025-06-05 10:31:06
     subtracting ensemble mean:
   calculating innovations and spread:
-  2024-05-05 14:44:58
+  2025-06-05 10:31:06
   writing forecast innovations and spread to "observations.nc":
-  2024-05-05 14:44:58
+  2025-06-05 10:31:06
   identifying observation batches:
     SLA     9   
     SST     29  
     SST2    1   
-    TEM     10  
+    TEM     4   
     SAL     4   
-    total:  53  
+    total:  47  
   moderating observations:
     observations substantially modified:
       SLA          0 (0.0%)
@@ -195,12 +195,12 @@
       total        0 (0.0%)
   writing modified obs errors to "observations.nc":
   calculating transforms:
-  2024-05-05 14:44:58
+  2025-06-05 10:31:06
     calculating transforms for t-grid:
       main cycle for t-grid (34 x 34 local analyses):
         j = 0 (1: 0: 0.0%)
-        j = 3 (2: 1: 2.9%)
         j = 6 (3: 2: 5.9%)
+        j = 3 (2: 1: 2.9%)
         j = 9 (1: 3: 8.8%)
         j = 12 (2: 4: 11.8%)
         j = 15 (3: 5: 14.7%)
@@ -228,8 +228,8 @@
         j = 81 (1: 27: 79.4%)
         j = 84 (2: 28: 82.4%)
         j = 87 (3: 29: 85.3%)
-        j = 90 (1: 30: 88.2%)
-        j = 93 (2: 31: 91.2%)
+        j = 90 (2: 30: 88.2%)
+        j = 93 (1: 31: 91.2%)
         j = 96 (3: 32: 94.1%)
         j = 99 (3: 33: 97.1%)
       creating empty file "transforms.nc":
@@ -238,44 +238,43 @@
     finished calculating transforms for t-grid
     summary stats on t-grid:
       # of local analyses = 1156
-      average # of local obs = 1074.0
-      # of inversions in obs space = 55
-      # of inversions in ens space = 1101
+      average # of local obs = 1045.7
+      # of inversions in obs space = 58
+      # of inversions in ens space = 1098
   writing point logs:
-    calculating transforms for log point (156.000,-32.000): 1474 obs
+    calculating transforms for log point (156.000,-32.000): 1440 obs
     writing transforms for point (156.000,-32.000) on grid "t-grid":
   calculating analysed observations:
-  2024-05-05 14:45:00
+  2025-06-05 10:31:08
     sorting obs by ij:
-    2024-05-05 14:45:00
+    2025-06-05 10:31:08
     updating Hx:
-    distributing 10250 iterations:
-      4 processes get 2563 or 2562 iterations
-    2024-05-05 14:45:00
+    distributing 10216 iterations:
+      4 processes get 2554 iterations each
+    2025-06-05 10:31:08
   adding analysis innovations and spread to "observations.nc":
   printing observation statistics:
     region obs.type   # obs.  |for.inn.| |an.inn.|   for.inn.   an.inn.  for.spread  an.spread
     ------------------------------------------------------------------------------------------
     Global
-           SLA           652   0.0769     0.0279     0.0218   0.000809     0.0271     0.0271  
-             j1          272   0.0731     0.0231     0.0228    0.00202     0.0297     0.0297  
-             n1          380   0.0797     0.0313     0.0211  -5.75e-05     0.0253     0.0253  
-           SST          8386    0.437       0.13     -0.123   -0.00435      0.416      0.416  
-             ESACCI     8386    0.437       0.13     -0.123   -0.00435      0.416      0.416  
+           SLA           652   0.0769     0.0278     0.0218   0.000715     0.0271     0.0271  
+             j1          272   0.0731     0.0231     0.0228     0.0019     0.0297     0.0297  
+             n1          380   0.0797     0.0311     0.0211  -0.000135     0.0253     0.0253  
+           SST          8386    0.437       0.13     -0.123   -0.00437      0.416      0.416  
+             ESACCI     8386    0.437       0.13     -0.123   -0.00437      0.416      0.416  
            SST2          1168    0.451      0.356      -0.29     -0.152      0.413      0.413  
              WindSat    1168    0.451      0.356      -0.29     -0.152      0.413      0.413  
-           TEM            39    0.387      0.318     0.0609     0.0778      0.452      0.452  
-             WMO851        3    0.817      0.467      0.817      0.467      0.304      0.304  
+           TEM             5     1.03      0.814      0.427       0.69        0.3        0.3  
+             WMO851        3    0.817      0.464      0.817      0.464      0.304      0.304  
              WMO846        2     1.36       1.34     -0.158       1.03      0.294      0.294  
-             WMO999       34    0.292      0.245    0.00707    -0.0125      0.474      0.474  
-             0-50m        35    0.318      0.305     0.0411     0.0555       0.47       0.47  
-             50-500m       4    0.991      0.428      0.234      0.273      0.298      0.298  
+             0-50m         1      1.2       2.37        1.2       2.37      0.306      0.306  
+             50-500m       4    0.991      0.426      0.234      0.271      0.298      0.298  
              500-9999m     0     -nan       -nan       -nan       -nan       -nan       -nan  
-           SAL             5    0.101      0.099      0.075     0.0711     0.0242     0.0242  
-             WMO851        3    0.113     0.0843     0.0713     0.0379      0.026      0.026  
+           SAL             5    0.101      0.099      0.075     0.0713     0.0242     0.0242  
+             WMO851        3    0.113     0.0843     0.0713     0.0381      0.026      0.026  
              WMO846        2   0.0841      0.121     0.0806      0.121     0.0216     0.0216  
              0-50m         1    0.165      0.186      0.165      0.186     0.0188     0.0188  
-             50-500m       4   0.0853     0.0773     0.0526     0.0425     0.0256     0.0256  
+             50-500m       4   0.0853     0.0772     0.0526     0.0425     0.0256     0.0256  
              500-9999m     0     -nan       -nan       -nan       -nan       -nan       -nan  
-  2024-05-05 14:45:00
+  2025-06-05 10:31:08
   finished

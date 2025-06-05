@@ -38,5 +38,5 @@ conf obs ensemble_6565 ensemble_static background_6565 enkf.prm enoi.prm model.p
 	ln -s ../1/$@ .
 
 clean:
-	@rm -f transforms*.nc enkf_diag*.nc badbatches.txt observations*.nc *.out ensemble_6565/*.analysis* ensemble_6565/*.increment* ensemble_6565/*-???.nc background_6565/*.analysis* background_6565/*.increment* ensemble_6565/ens_*-???.nc background_6565/bg_*-???.nc *.nc enkf_* conf enkf.prm enoi.prm model.prm grid.prm ensemble_6565 obs ensemble_6565 ensemble_static background_6565
+	@rm -f transforms*.nc enkf_diag*.nc obsbatches.txt badobsbatches.txt observations*.nc *.out ensemble_6565/*.analysis* ensemble_6565/*.increment* ensemble_6565/*-???.nc background_6565/*.analysis* background_6565/*.increment* ensemble_6565/ens_*-???.nc background_6565/bg_*-???.nc *.nc enkf_* conf enkf.prm enoi.prm model.prm grid.prm ensemble_6565 obs ensemble_6565 ensemble_static background_6565
 	@rm -rf .enkftmp

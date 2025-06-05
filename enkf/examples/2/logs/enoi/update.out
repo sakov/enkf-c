@@ -1,8 +1,8 @@
   MPI: initialised 4 process(es)
-  running UPDATE for EnKF-C version 2.28.6:
+  running UPDATE for EnKF-C version 2.36.0:
     command = "./enkf_update --calculate-spread enoi.prm"
-    dir = "/home/599/pxs599/tmp/enkf-c/enkf/examples/2"
-  2024-05-05 14:36:48
+    dir = "/home/599/pxs599/src/enkf-c/enkf/examples/2"
+  2025-06-05 10:16:15
   reading system specs from "enoi.prm":
     MODE = EnOI
     MODEL PRM = "model.prm"
@@ -36,7 +36,7 @@
       DATA = "conf2/grid_spec.nc"
       VTYPE = "z"
       VDIR = FROMSURF
-      GEOGRAPHIC = yes
+      GEOGRAPHIC = 1
       ZVARNAME = "zt"
       ZCVARNAME = <none>
       DEPTHVARNAME = "depth_t"
@@ -78,10 +78,11 @@
   updating the model state:
     allocating disk space for spread:
     defining state variables in point logs:
-    2024-05-05 14:36:49
+    2025-06-05 10:16:16
     allocating disk space for analysis:.....
-      eta_t    0   (1: 0: 11.1%)
+    updating 9 fields using 4 processes:
       temp     0   (2: 1: 22.2%)
+      eta_t    0   (1: 0: 11.1%)
       temp     1   (3: 2: 33.3%)
       salt     0   (1: 3: 44.4%)
       salt     1   (2: 4: 55.6%)
@@ -89,26 +90,26 @@
       u        1   (1: 6: 77.8%)
       v        0   (2: 7: 88.9%)
       v        1   (3: 8: 100.0%)
-  2024-05-05 14:36:49
+  2025-06-05 10:16:16
   assembling analysis:
     eta_t:.
     temp:..
     salt:..
     u:..
     v:..
-  2024-05-05 14:36:49
+  2025-06-05 10:16:17
   assembling spread:
     eta_t:.
     temp:..
     salt:..
     u:..
     v:..
-  2024-05-05 14:36:50
+  2025-06-05 10:16:17
   assembling state variables in point logs:
     distributing 1 iterations:
       1 processes get 1 iteration, 3 processes get 0 iterations
     deleting tiles:
       distributing 9 iterations:
         4 processes get 3 or 2 iterations
-  2024-05-05 14:36:50
+  2025-06-05 10:16:17
   finished

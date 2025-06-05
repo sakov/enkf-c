@@ -79,9 +79,16 @@ TESTING GLOBAL ENKF ANALYSIS
 Setting "LOCRAD 1e6" and "STRIDE 999999" effectively results in conducting a
 global analysis. Run "make global" to test.
 
-TESTING HYBRID covariance.
+TESTING HYBRID (EnKF+EnOI) SETTINGS
 
 Run "make hybrid".
+
+TESTING GENERATING ADDITIONAL POINTLOGS
+
+First run "make enkf", then (without cleaning) "make pointlogs". Notice two
+additional pointlog files pointlog_152.000,-36.000.nc and
+pointlog_160.000,-29.000.nc; compare calc-pointlogs.out and update-pointlogs.out
+with those in logs/pointlogs.
 
 --
 
@@ -101,6 +108,8 @@ spread.nc - spread of the corresponding ensemble
 pointlog_156.000,-32.000.nc -- point log with exaustive DA information for
 location (lon,lat) = (156,-32)
 inflation.nc -- inflation used for each state element
+obsbatches.txt -- observation batches
+badobsbatches.txt -- discarded observation batches
 pointlog_152.000,-36.000.nc, pointlog_160.000,-29.000.nc -- two additional
 point logs generated when running "make pointlogs"
 

@@ -1,13 +1,13 @@
-  running PREP for EnKF-C version 2.28.6:
+  running PREP for EnKF-C version 2.36.0:
     command = "./enkf_prep stats.prm"
-    dir = "/home/599/pxs599/tmp/enkf-c/enkf/examples/1"
-  2024-05-05 14:35:48
+    dir = "/home/599/pxs599/src/enkf-c/enkf/examples/1"
+  2025-06-05 10:14:46
   reading prep specs from "stats.prm":
+    TIME = "6565.5 days since 1990-01-01"
     MODEL PRM = "model.prm"
     GRID PRM = "grid.prm"
     OBS TYPES PRM = "obstypes.prm"
     OBS PRM = "obs.prm"
-    DATE = "6565.5 days since 1990-01-01"
     BGDIR = "background_6565"
     ENSEMBLE DIR = "(null)"
     ENSEMBLE SIZE = <FULL>
@@ -55,7 +55,7 @@
       DATA = "conf/grid_spec.nc"
       VTYPE = "z"
       VDIR = FROMSURF
-      GEOGRAPHIC = yes
+      GEOGRAPHIC = 1
       ZVARNAME = "zt"
       ZCVARNAME = <none>
       DEPTHVARNAME = "depth_t"
@@ -173,7 +173,7 @@
         LATNAME = lat
         nobs = 296
         # obs added = 292
-      Section summary:
+      section summary:
         id = 0 - 969
           1 observations in shallow areas
         total 970 observations
@@ -487,7 +487,7 @@
         LATNAME = lat
         nobs = 8570
         # obs added = 8202
-      Section summary:
+      section summary:
         id = 970 - 156470
         total 155501 observations
         155501 valid observations
@@ -502,7 +502,7 @@
         nobs = 29534
         nobs = 29534
         # obs added = 0
-      Section summary:
+      section summary:
         id = 156471 - 157638
         total 1168 observations
         1168 valid observations
@@ -523,23 +523,15 @@
         # levels = 45
         processed 22 adjusted profiles
         processed 23 non-adjusted profiles
-        # profiles with data to process = 45
-        # unique locations = 39
-        nobs = 45
-        # of processed obs by quality flags:
-          1: 45 obs
-        # obs added = 45
+        nobs = 0
+        # obs added = 0
       reading obs/CORA52/2007/CO_DMQCGL01_20071219_TS_MO.nc:
         # profiles = 96
         # levels = 60
         processed 48 adjusted profiles
         processed 48 non-adjusted profiles
-        # profiles with data to process = 96
-        # unique locations = 2
-        nobs = 96
-        # of processed obs by quality flags:
-          1: 96 obs
-        # obs added = 96
+        nobs = 0
+        # obs added = 0
       reading obs/CORA52/2007/CO_DMQCGL01_20071220_PR_PF.nc:
         # profiles = 1
         # levels = 952
@@ -553,23 +545,15 @@
         # levels = 33
         processed 16 adjusted profiles
         processed 21 non-adjusted profiles
-        # profiles with data to process = 37
-        # unique locations = 33
-        nobs = 37
-        # of processed obs by quality flags:
-          1: 37 obs
-        # obs added = 37
+        nobs = 0
+        # obs added = 0
       reading obs/CORA52/2007/CO_DMQCGL01_20071220_TS_MO.nc:
         # profiles = 96
         # levels = 60
         processed 48 adjusted profiles
         processed 48 non-adjusted profiles
-        # profiles with data to process = 96
-        # unique locations = 2
-        nobs = 96
-        # of processed obs by quality flags:
-          1: 96 obs
-        # obs added = 96
+        nobs = 0
+        # obs added = 0
       reading obs/CORA52/2007/CO_DMQCGL01_20071221_PR_PF.nc:
         # profiles = 1
         # levels = 974
@@ -583,73 +567,49 @@
         # levels = 48
         processed 16 adjusted profiles
         processed 22 non-adjusted profiles
-        # profiles with data to process = 38
-        # unique locations = 33
-        nobs = 38
-        # of processed obs by quality flags:
-          1: 38 obs
-        # obs added = 38
+        nobs = 0
+        # obs added = 0
       reading obs/CORA52/2007/CO_DMQCGL01_20071221_TS_MO.nc:
         # profiles = 96
         # levels = 60
         processed 48 adjusted profiles
         processed 48 non-adjusted profiles
-        # profiles with data to process = 96
-        # unique locations = 2
-        nobs = 96
-        # of processed obs by quality flags:
-          1: 96 obs
-        # obs added = 96
+        nobs = 0
+        # obs added = 0
       reading obs/CORA52/2007/CO_DMQCGL01_20071222_TS_DB.nc:
         # profiles = 43
         # levels = 48
         processed 21 adjusted profiles
         processed 22 non-adjusted profiles
-        # profiles with data to process = 43
-        # unique locations = 36
-        nobs = 43
-        # of processed obs by quality flags:
-          1: 43 obs
-        # obs added = 43
+        nobs = 0
+        # obs added = 0
       reading obs/CORA52/2007/CO_DMQCGL01_20071222_TS_MO.nc:
         # profiles = 96
         # levels = 60
         processed 48 adjusted profiles
         processed 48 non-adjusted profiles
-        # profiles with data to process = 96
-        # unique locations = 2
-        nobs = 96
-        # of processed obs by quality flags:
-          1: 96 obs
-        # obs added = 96
+        nobs = 0
+        # obs added = 0
       reading obs/CORA52/2007/CO_DMQCGL01_20071223_TS_DB.nc:
         # profiles = 45
         # levels = 33
         processed 23 adjusted profiles
         processed 22 non-adjusted profiles
-        # profiles with data to process = 45
-        # unique locations = 42
-        nobs = 45
-        # of processed obs by quality flags:
-          1: 45 obs
-        # obs added = 45
+        nobs = 0
+        # obs added = 0
       reading obs/CORA52/2007/CO_DMQCGL01_20071223_TS_MO.nc:
         # profiles = 96
         # levels = 60
         processed 48 adjusted profiles
         processed 48 non-adjusted profiles
-        # profiles with data to process = 96
-        # unique locations = 2
-        nobs = 96
-        # of processed obs by quality flags:
-          1: 96 obs
-        # obs added = 96
-      Section summary:
-        id = 157639 - 158564
-        total 926 observations
-        831 valid observations
-        min day = -4.500
-        max day = 0.479
+        nobs = 0
+        # obs added = 0
+      section summary:
+        id = 157639 - 157876
+        total 238 observations
+        143 valid observations
+        min day = -3.733
+        max day = -1.742
       setting error_std to 0.4
     PRODUCT = CMEMS, TYPE = SAL, reader = cmems
       reading obs/CORA52/2007/CO_DMQCGL01_20071219_PR_PF.nc:
@@ -727,33 +687,32 @@
         # levels = 60
         no data of specified type
         # obs added = 0
-      Section summary:
-        id = 158565 - 158802
+      section summary:
+        id = 157877 - 158114
         total 238 observations
         143 valid observations
         min day = -3.733
         max day = -1.742
       setting error_std to 0.075
-  2024-05-05 14:35:49
+  2025-06-05 10:14:47
   compacting obs:
-  2024-05-05 14:35:49
+  2025-06-05 10:14:47
   sorting:
-  2024-05-05 14:35:49
+  2025-06-05 10:14:47
   superobing:
-    504 observations thinned
-    10250 superobservations
-  2024-05-05 14:35:49
+    10216 superobservations
+  2025-06-05 10:14:47
   checking for superobs on land:
     all good
-  2024-05-05 14:35:49
+  2025-06-05 10:14:47
   writing superobservations to "observations.nc":
   printing observation summary:
     type    #used    #dropped #out_grd #out_obs #out_wnd #land    #shallow #badbatch#badvalue#thinned #excluded#superobs
     -----------------------------------------------------------------------------------------------------------
     SLA     969      1        0        0        0        0        1        0        0        0        0        652     
     SST     156669   0        0        0        0        0        0        0        0        0        0        9554    
-    TEM     327      599      95       0        0        0        0        0        0        504      0        39      
+    TEM     143      95       95       0        0        0        0        0        0        0        0        5       
     SAL     143      95       95       0        0        0        0        0        0        0        0        5       
-    total   158108   695      190      0        0        0        1        0        0        504      0        10250   
-  2024-05-05 14:35:49
+    total   157924   191      190      0        0        0        1        0        0        0        0        10216   
+  2025-06-05 10:14:47
   finished

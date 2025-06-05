@@ -1,8 +1,8 @@
   MPI: initialised 4 process(es)
-  running UPDATE for EnKF-C version 2.28.6:
+  running UPDATE for EnKF-C version 2.36.0:
     command = "./enkf_update --no-fields-write pointlogs.prm"
-    dir = "/home/599/pxs599/tmp/enkf-c/enkf/examples/1"
-  2024-05-05 14:26:40
+    dir = "/home/599/pxs599/src/enkf-c/enkf/examples/1"
+  2025-06-05 10:03:56
   reading system specs from "pointlogs.prm":
     MODE = EnKF
     SCHEME = DEnKF
@@ -37,7 +37,7 @@
       DATA = "conf/grid_spec.nc"
       VTYPE = "z"
       VDIR = FROMSURF
-      GEOGRAPHIC = yes
+      GEOGRAPHIC = 1
       ZVARNAME = "zt"
       ZCVARNAME = <none>
       DEPTHVARNAME = "depth_t"
@@ -83,21 +83,22 @@
       t-grid: (i, j) = (9.500, 9.500)
   updating the ensemble:
     defining state variables in point logs:
-      eta_t    0   (1: 0: 11.1%)
+    updating 9 fields using 4 processes:
       temp     0   (2: 1: 22.2%)
       temp     1   (3: 2: 33.3%)
+      eta_t    0   (1: 0: 11.1%)
       salt     0   (1: 3: 44.4%)
-      salt     1   (2: 4: 55.6%)
-      u        0   (3: 5: 66.7%)
-      u        1   (2: 6: 77.8%)
-      v        0   (1: 7: 88.9%)
-      v        1   (3: 8: 100.0%)
-  2024-05-05 14:26:42
+      salt     1   (3: 4: 55.6%)
+      u        0   (2: 5: 66.7%)
+      u        1   (1: 6: 77.8%)
+      v        0   (3: 7: 88.9%)
+      v        1   (2: 8: 100.0%)
+  2025-06-05 10:03:58
   assembling state variables in point logs:
     distributing 3 iterations:
       3 processes get 1 iteration, 1 processes get 0 iterations
     deleting tiles:
       distributing 9 iterations:
         4 processes get 3 or 2 iterations
-  2024-05-05 14:26:42
+  2025-06-05 10:03:58
   finished
