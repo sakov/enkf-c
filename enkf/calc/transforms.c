@@ -1072,7 +1072,7 @@ void das_calctransforms(dasystem* das)
         for (i = 0, j = 0; i < ni; ++i, j += stride)
             iiter[i] = j;
 
-        distribute_iterations(0, nj - 1, nprocesses, rank, "      ");
+        distribute_iterations(0, nj - 1, nprocesses, "      ");
 
         if (das->mode == MODE_ENKF || das->mode == MODE_HYBRID) {
 #if !defined(TW_VIAFILE)

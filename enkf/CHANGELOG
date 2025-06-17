@@ -1,3 +1,7 @@
+v2.36.1
+   PS 17062025
+   -- Corrected call to distribute_iterations() at l.1075 in transforms.c
+      for the case with no -DUSE_MPIQUEUE.
 v2.36.0
    PS 01062025
    -- Made it possible get forecast obs. from model dumps with multiple records.
