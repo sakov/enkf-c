@@ -924,20 +924,15 @@ void das_calctransforms(dasystem* das)
          * merge stats for the report
          */
         if (rank > 0) {
-            if (my_number_of_iterations > 0) {
-                int ierror = MPI_Send(&stats, sizeof(stats) / sizeof(int), MPI_INT, 0, 99, MPI_COMM_WORLD);
+            int ierror = MPI_Send(&stats, sizeof(stats) / sizeof(int), MPI_INT, 0, 99, MPI_COMM_WORLD);
 
-                assert(ierror == MPI_SUCCESS);
-            }
+            assert(ierror == MPI_SUCCESS);
         } else {
             int r;
 
             for (r = 1; r < nprocesses; ++r) {
                 calcstats morestats;
                 int ierror;
-
-                if (number_of_iterations[r] == 0)
-                    continue;
 
                 ierror = MPI_Recv(&morestats, sizeof(stats) / sizeof(int), MPI_INT, r, 99, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
                 assert(ierror == MPI_SUCCESS);

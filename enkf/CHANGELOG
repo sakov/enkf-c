@@ -1,3 +1,6 @@
+v2.36.2
+   PS 17062025
+   -- Fixed a defect in calc_transforms() that activated in the case nobs = 0.
 v2.36.1
    PS 17062025
    -- Corrected call to distribute_iterations() at l.1075 in transforms.c
