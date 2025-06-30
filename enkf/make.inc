@@ -1,1 +1,1 @@
-arch/make.inc.linux-desktop-lapack
+arch/make.inc.linux-server-mkl

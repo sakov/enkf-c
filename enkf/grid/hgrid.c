@@ -35,7 +35,7 @@
 /*
  * for DIAG the grid stuff is the same as for UPDATE
  */
-#if defined(ENKF_DIAG)
+#if defined(ENS_DIAG)
 #define ENKF_UPDATE
 #endif
 

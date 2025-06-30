@@ -1,3 +1,12 @@
+v2.37.0
+   PS 30062025
+   -- Renamed diag/enkf_diag.c to diag/ens_diag.c; bin/enkf_diag to
+      bin/ens_diag.
+   -- In ens_diag.c added option "--describe-prm-format" to parse_commandline().
+   -- Added enkfprm_describeprm_ensdiag() to enkfprm.[ch] to decribe simplified
+      parameter file format for ens_diag.
+   -- In enkf_prep.c, enkf_calc.c, enkf_update.c, ens_diag.c moved enkf_init()
+      after parse_commandline().
 v2.36.2
    PS 17062025
    -- Fixed a defect in calc_transforms() that activated in the case nobs = 0.
@@ -89,7 +98,7 @@ v2.33.10
 v2.33.9
    PS 15082024
    -- Modified ncw_def_var_as() to call ncw_copy_atts() rather than just copying
-      non-special atttributes in a cycle.
+      non-special attributes in a cycle.
    -- Updated "indent" section of Makefile; there are some cosmetic changes
       associated with re-indenting in ncutils.c.
 v2.33.8

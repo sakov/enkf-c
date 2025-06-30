@@ -784,3 +784,33 @@ void enkfprm_describeprm(void)
     enkf_printf("       depending on the presence of \"days since\"\n");
     enkf_printf("\n");
 }
+
+/**
+ */
+void enkfprm_describeprm_ensdiag(void)
+{
+    enkf_printf("\n");
+    enkf_printf("  Main parameter file format:\n");
+    enkf_printf("\n");
+    enkf_printf("    MODE            = { ENKF | ENOI | HYBRID }\n");
+    enkf_printf("    GAMMA           = <gamma>                       (MODE = HYBRID)\n");
+    enkf_printf("    MODEL           = <model prm file>\n");
+    enkf_printf("    GRID            = <grid prm file>\n");
+    enkf_printf("    ENSDIR          = <ensemble directory>\n");
+    enkf_printf("  [ ENSDIR_STATIC   = <static ensemble directory> ] (MODE = HYBRID)\n");
+    enkf_printf("  [ ENSSIZE         = <total ensemble size> ]       (<full>*)\n");
+    enkf_printf("  [ ENSSIZE_DYNAMIC = <size of dynamic ensemble> ]  (<full>*) (MODE = HYBRID)\n");
+    enkf_printf("  [ ENSSIZE_STATIC  = <size of static ensemble> ]   (<full>*) (MODE = HYBRID)\n");
+    enkf_printf("  [ FIELDBUFFERSIZE = <fieldbuffersize> ]           (1*)\n");
+    enkf_printf("  [ NCCOMPRESSION   = <compression level> ]         (0*)\n");
+    enkf_printf("\n");
+    enkf_printf("  Notes:\n");
+    enkf_printf("    1. { ... | ... | ... } denotes the list of possible choices\n");
+    enkf_printf("    2. [ ... ] denotes an optional input\n");
+    enkf_printf("    3. ( ... ) is a note\n");
+    enkf_printf("    4. * denotes the default value\n");
+    enkf_printf("    5. < ... > denotes a description of an entry\n");
+    enkf_printf("    6. ... denotes repeating the previous item an arbitrary number of times\n");
+    enkf_printf("    7. Depending on the context, some of the entries may be redundant\n");
+    enkf_printf("\n");
+}

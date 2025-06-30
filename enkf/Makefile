@@ -199,7 +199,7 @@ grid/gxy_rect.c\
 grid/vgrid.c\
 grid/hgrid.c\
 diag/diags.c\
-diag/enkf_diag.c
+diag/ens_diag.c
 
 HDR_DIAG =\
 common/hash.h\
@@ -213,7 +213,7 @@ PROGRAMS =\
 bin/enkf_prep\
 bin/enkf_calc\
 bin/enkf_update\
-bin/enkf_diag
+bin/ens_diag
 
 ALL = $(PROGRAMS)
 
@@ -238,10 +238,10 @@ bin/enkf_update: $(SRC_UPDATE) $(SRC_COMMON) $(HDR_UPDATE) $(HDR_COMMON)
 	@mkdir -p bin
 	${CC${MPISTATUS_UPDATE}} -o bin/enkf_update -DENKF_UPDATE $(UPDATE_FLAGS) $(CFLAGS$(MPISTATUS_UPDATE)) $(INCS_COMMON) $(SRC_UPDATE) $(SRC_COMMON) $(LIBS_UPDATE) $(LIBS_COMMON)
 
-bin/enkf_diag: $(SRC_DIAG) $(SRC_COMMON) $(HDR_DIAG) $(HDR_COMMON)
+bin/ens_diag: $(SRC_DIAG) $(SRC_COMMON) $(HDR_DIAG) $(HDR_COMMON)
 	@echo
 	@mkdir -p bin
-	${CC${MPISTATUS_DIAG}} -o bin/enkf_diag -DENKF_DIAG $(DIAG_FLAGS) $(CFLAGS$(MPISTATUS_UPDATE)) $(INCS_COMMON) $(SRC_DIAG) $(SRC_COMMON) $(LIBS_DIAG) $(LIBS_COMMON)
+	${CC${MPISTATUS_DIAG}} -o bin/ens_diag -DENS_DIAG $(DIAG_FLAGS) $(CFLAGS$(MPISTATUS_UPDATE)) $(INCS_COMMON) $(SRC_DIAG) $(SRC_COMMON) $(LIBS_DIAG) $(LIBS_COMMON)
 
 clean:
 	rm -f bin/*
@@ -272,5 +272,5 @@ update:
 
 .PHONY: diag
 diag:
-	@rm -f bin/enkf_diag
-	@$(MAKE) --no-print-directory bin/enkf_diag
+	@rm -f bin/ens_diag
+	@$(MAKE) --no-print-directory bin/ens_diag

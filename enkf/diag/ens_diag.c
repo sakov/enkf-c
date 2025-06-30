@@ -1,6 +1,6 @@
 /******************************************************************************
  *
- * File:        enkf_diag.c        
+ * File:        ens_diag.c        
  *
  * Created:     30/01/2024
  *
@@ -9,7 +9,7 @@
  *
  * Description: Performs various diagnostics of the ensemble.
  *
- * Revisions:
+ * Revisions:   30/06/2024 Renamed from enkf_diag.c to ens_diag.c.
  *
  *****************************************************************************/
 
@@ -30,7 +30,7 @@
  */
 static void usage(void)
 {
-    enkf_printf("  Usage: enkf_diag <prm file> [<options>]\n");
+    enkf_printf("  Usage: ens_diag <prm file> [<options>]\n");
     enkf_printf("  Options:\n");
     enkf_printf("  --calculate-spread\n");
     enkf_printf("      calculate ensemble spread and write to %s\n", FNAME_SPREAD);
@@ -50,6 +50,8 @@ static void usage(void)
     enkf_printf("    [<varname2> <layer2>] [...]\n");
     enkf_printf("      calculate sensitivities between specified field and all other fields\n");
     enkf_printf("      on the same horizontal grid and write to %s-<varname>-<layer>.nc\n", FNAMEPREFIX_VERTCOVWITH);
+    enkf_printf("  --describe-prm-format [main|model|grid]\n");
+    enkf_printf("      describe format of a parameter file and exit\n");
     enkf_printf("  --version\n");
     enkf_printf("      print version and exit\n");
 
@@ -137,6 +139,19 @@ static void parse_commandline(int argc, char* argv[], char** fname, int* dosprea
         } else if (strcmp(argv[i], "--version") == 0) {
             enkf_printversion();
             exit(0);
+        } else if (strcmp(argv[i], "--describe-prm-format") == 0) {
+            if (i < argc - 1) {
+                if (strcmp(argv[i + 1], "main") == 0)
+                    enkfprm_describeprm_ensdiag();
+                else if (strcmp(argv[i + 1], "model") == 0)
+                    model_describeprm();
+                else if (strcmp(argv[i + 1], "grid") == 0)
+                    grid_describeprm();
+                else
+                    usage();
+            } else
+                enkfprm_describeprm_ensdiag();
+            exit(0);
         } else
             enkf_quit("parse_commandline(): option \"%s\" not recognised", argv[i]);
     }
@@ -165,9 +180,9 @@ int main(int argc, char* argv[])
     dasystem* das = NULL;
     int i;
 
-    enkf_init(&argc, &argv);
-
     parse_commandline(argc, argv, &fname_prm, &dospread, &dovcorrs, &nvcorrwith, &vcorrwith, &kvcorrwith, &nvcovwith, &vcovwith, &kvcovwith, &nvsenswith, &vsenswith, &kvsenswith);
+
+    enkf_init(&argc, &argv);
 
     enkf_printf("  running DIAG for EnKF-C version %s:\n", ENKF_VERSION);
     print_commandinfo(argc, argv);

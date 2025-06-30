@@ -313,9 +313,9 @@ int main(int argc, char* argv[])
     observations* sobs = NULL;
     int i;
 
-    enkf_init(&argc, &argv);
-
     parse_commandline(argc, argv, &fname_prm);
+
+    enkf_init(&argc, &argv);
 
     enkf_printf("  running PREP for EnKF-C version %s:\n", ENKF_VERSION);
     print_commandinfo(argc, argv);

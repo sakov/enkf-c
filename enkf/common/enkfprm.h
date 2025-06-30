@@ -89,6 +89,7 @@ enkfprm* enkfprm_read(char fname[]);
 void enkfprm_destroy(enkfprm* prm);
 void enkfprm_print(enkfprm* prm, char offset[]);
 void enkfprm_describeprm(void);
+void enkfprm_describeprm_ensdiag(void);
 
 #define _ENKFPRM_H
 #endif

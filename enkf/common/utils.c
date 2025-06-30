@@ -367,8 +367,8 @@ void enkf_printcompileflags(const char offset[])
     enkf_printf("%senkf_calc compile flags:\n", offset);
 #elif defined(ENKF_UPDATE)
     enkf_printf("%senkf_update compile flags:\n", offset);
-#elif defined(ENKF_DIAG)
-    enkf_printf("%senkf_diag compile flags:\n", offset);
+#elif defined(ENS_DIAG)
+    enkf_printf("%sens_diag compile flags:\n", offset);
 #else
     enkf_quit("programming error");
 #endif
@@ -411,7 +411,7 @@ void enkf_printcompileflags(const char offset[])
     enkf_printf("%s  INTERNAL_QSORT_R = [-]\n", offset);
 #endif
 #endif
-#if defined(ENKF_UPDATE) || defined(ENKF_DIAG)
+#if defined(ENKF_UPDATE) || defined(ENS_DIAG)
 #if defined(NCW_SKIPSINGLE)
     enkf_printf("%s  NCW_SKIPSINGLE   = [+]\n", offset);
 #else
