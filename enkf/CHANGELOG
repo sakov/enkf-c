@@ -1,3 +1,8 @@
+v2.37.1
+   PS 04072025
+   -- Fixed several inconsistencies in read3dfield() in the case of
+      unstructured grid.
+   -- A few cosmetic changes in error messages in ncutils.c.
 v2.37.0
    PS 30062025
    -- Renamed diag/enkf_diag.c to diag/ens_diag.c; bin/enkf_diag to
