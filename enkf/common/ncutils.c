@@ -610,7 +610,7 @@ void ncu_writefield(char fname[], char varname[], int k, int ni, int nj, int nk,
             count[0] = dimlen[0];
         }
     } else
-        quit("ncu_writefield(): \"%s\": can not write 2D field for \"%s\": # of dimensions = %d", fname, varname, ndims);
+        quit("ncu_writefield(): %s: %s: can not write 2D field: # of dimensions = %d", fname, varname, ndims);
 
     n = 1;
     for (i = 0; i < ndims; ++i)

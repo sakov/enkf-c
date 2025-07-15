@@ -8,10 +8,10 @@
  *
  * Description: KD-tree code.  Initially derived from the code by John
  *              Tsiombikas (see the tail of the file). This implementation is
- *              driven by the needs of large scale geophysical data
- *              assimilation systems. The main changes concern (1) using
- *              continuous block of memory and (2) making it possible to
- *              pre-allocate memory externally to permit using shared memory.
+ *              driven by needs of large scale geophysical data assimilation
+ *              systems. The main changes concern (1) using continuous block of
+ *              memory and (2) ability to pre-allocate memory. This makes it
+ *              possible placing the tree into shared memory.
  *
  *              The standard use is as follows:
  *
@@ -37,7 +37,7 @@
  *                   void* storage = NULL;
  *                   MPI_Win_allocate_shared(0, sizeof(double), MPI_INFO_NULL, sm_comm, &storage, &sm_comm_win);
  *                   kd_setstorage(tree, nnodes, storage, 0);
- *                   kd_syncsize(gxy->nodetreeXY);
+ *                   kd_syncsize(tree);
  *              }
  *              MPI_Win_fence(0, sm_comm_win);
  *              MPI_Barrier(sm_comm);
