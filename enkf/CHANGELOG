@@ -1,3 +1,7 @@
+v2.37.2
+   PS 12082025
+   -- Modified thinning in obs_superob() so that the retained observation has
+      not only value but also time set to the lot average.
 v2.37.1
    PS 04072025
    -- Fixed several inconsistencies in read3dfield() in the case of

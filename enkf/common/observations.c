@@ -1264,26 +1264,32 @@ void obs_superob(observations* obs, __compar_d_fn_t cmp_obs, observations** sobs
                 if (i22 > i11) {
                     if (do_thin == THIN_XYZ) {
                         float sum_value = data[i11].value;
+                        float sum_time = data[i11].time;
 
                         for (ii = i11 + 1; ii <= i22; ++ii) {
                             data[ii].status = STATUS_THINNED;
                             sum_value += data[ii].value;
+                            sum_time += data[ii].time;
                             nthinned++;
                         }
                         data[i11].value = sum_value / (float) (i22 - i11 + 1);
+                        data[i11].time = sum_time / (float) (i22 - i11 + 1);
                     } else if (do_thin == THIN_XY) {
                         float sum_value = data[i11].value;
+                        float sum_time = data[i11].time;
                         float sum_depth = data[i11].depth;
                         float sum_fk = data[i11].fk;
 
                         for (ii = i11 + 1; ii <= i22; ++ii) {
                             data[ii].status = STATUS_THINNED;
                             sum_value += data[ii].value;
+                            sum_time += data[ii].time;
                             sum_depth += data[ii].depth;
                             sum_fk += data[ii].fk;
                             nthinned++;
                         }
                         data[i11].value = sum_value / (float) (i22 - i11 + 1);
+                        data[i11].time = sum_time / (float) (i22 - i11 + 1);
                         data[i11].depth = sum_depth / (float) (i22 - i11 + 1);
                         data[i11].fk = sum_fk / (float) (i22 - i11 + 1);
                     } else

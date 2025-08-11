@@ -841,9 +841,8 @@ static void usage(void)
     printf("    -h          -- describe this program\n");
     printf("    -n <ndim>   -- number of dimensions\n");
     printf("    -p <coords> -- <ndim> coordinates of the point to search around\n");
-    printf("    -r <range>  -- radius to search within\n");
+    printf("    -r <range>  -- radius to search within, in km\n");
     printf("    -s          -- sort results\n");
-    printf("                   <range> in km\n");
 
     exit(0);
 }
