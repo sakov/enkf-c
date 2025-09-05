@@ -850,7 +850,7 @@ static void das_writefields_direct(dasystem* das, int nfields, void** fieldbuffe
     }
 }
 
-/** This is the main procedure for parallel settings. It writes each
+/** This is the main writing procedure for parallel settings. It writes each
  * horizontal layer (in parallel) to a separate file ("tile"). The tiles are
  * "assembled" later by a single process.
  */

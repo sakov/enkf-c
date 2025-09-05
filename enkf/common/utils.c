@@ -1216,6 +1216,8 @@ float interpolate3d_structured(double* fij, double fk, int ni, int nj, int nk, i
     k2 = (int) ceil(fk);
     k2top = abs(ktop - k2);
     wk2 = fk - floor(fk);
+    if (wk1 == 0.0 && wk2 == 0.0)
+        wk1 = 1.0;
 
     if (i1 == i2)
         wi1 = 1.0;
@@ -1313,6 +1315,8 @@ float interpolate3d_unstructured(double* fi, double fk, int nk, int ktop, float*
     k2 = (int) ceil(fk);
     k2top = abs(ktop - k2);
     wk2 = fk - floor(fk);
+    if (wk1 == 0.0 && wk2 == 0.0)
+        wk1 = 1.0;
 
     for (id = 0; id < 3; ++id) {
         int ii = (int) fi[id];

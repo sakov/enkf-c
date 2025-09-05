@@ -1,3 +1,7 @@
+v2.37.3
+   PS 05092025
+   -- Fixed a very rare bug in interpolate3d_structured() and
+      interpolate3d_unstructured(). Thanks to Paul Sandery for the report.
 v2.37.2
    PS 12082025
    -- Modified thinning in obs_superob() so that the retained observation has
