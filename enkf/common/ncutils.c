@@ -1583,7 +1583,7 @@ void ncu_readvarfloat(int ncid, int varid, size_t n, float v[])
         } else
             quit("programming error");
     }
-    if (vv != NULL && vartype != NC_FLOAT)
+    if (vv != NULL && typesize != sizeof(float))
         free(vv);
 
     if (ncw_att_exists(ncid, varid, "scale_factor")) {
@@ -1971,7 +1971,7 @@ void ncu_readvardouble(int ncid, int varid, size_t n, double v[])
         } else
             quit("programming error");
     }
-    if (vv != NULL && vartype != NC_DOUBLE)
+    if (vv != NULL && typesize != sizeof(double))
         free(vv);
 
     if (ncw_att_exists(ncid, varid, "scale_factor")) {

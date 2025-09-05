@@ -1,3 +1,8 @@
+v2.37.4
+   PS 05092025
+   -- Fixed a defect in ncu_readvardouble() that showed up reading SWOT data
+      with grdded_xy reader. Also fixed a similar defect in ncu_readvarfloat().
+      Thanks to Paul Sandery for the report.
 v2.37.3
    PS 05092025
    -- Fixed a very rare bug in interpolate3d_structured() and
