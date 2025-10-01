@@ -210,9 +210,10 @@ void das_getHE(dasystem* das)
                     if (sm_comm_rank == 0) {
 #endif
                         if (enkf_obstype == OBSTYPE_VALUE) {
-                            int success = das_getbgfname_async(das, ot, t, fname);
+                            int r;
+                            int success = das_getbgfname_async(das, ot, t, fname, &r);
 
-                            H(das, nobs_tomap, obsids, fname, -1, -1, t, Hx);
+                            H(das, nobs_tomap, obsids, fname, r, -1, t, Hx);
                             enkf_printf((success) ? "A" : "S");
                             fflush(stdout);
                         } else if (enkf_obstype == OBSTYPE_INNOVATION) {
