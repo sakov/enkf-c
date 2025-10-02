@@ -9,8 +9,7 @@
  *
  * Purpose:     Handles geographic curvilinear grids using stereographic
  *              projections. This code is supposed to provide robust handling
- *              for grids with  singularities in lon/lat (such as discontinuity in node
- *              latitudes on ORCA grids).
+ *              for grids with  singularities in lon/lat (such as ORCA grids).
  *
  * Description: Derived from gxy_curv.c.
  *
