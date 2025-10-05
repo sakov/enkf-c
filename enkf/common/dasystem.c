@@ -603,35 +603,40 @@ void das_getbgfname(dasystem* das, char varname[], char fname[])
 }
 
 #if defined(ENKF_CALC)
-/**
- */
-int das_getmemberfname_async(dasystem* das, obstype* ot, int mem, int t, char fname[], int* r)
+
+static int getfname_async(dasystem* das, obstype* ot, int mem, int t, char fname[], int* r)
 {
     char* alias = ot->alias;
     char* varname = ot->varnames[0];
-    char* ensdir = das->ensdir;
+    char* dir = (mem > 0) ? das->ensdir : das->bgdir;
 
     *r = -1;
 
-    if (das->mode == MODE_HYBRID && das->nmem_dynamic >= 0 && mem > das->nmem_dynamic) {
-        snprintf(fname, MAXSTRLEN, "%s/mem%03d_%s.nc", das->ensdir2, mem - das->nmem_dynamic, varname);
-        return 0;
-    }
+    if (mem > 0)
+        snprintf(fname, MAXSTRLEN, "%s/mem%03d_%s_%d.nc", dir, mem, alias, t);
+    else
+        snprintf(fname, MAXSTRLEN, "%s/bg_%s_%d.nc", dir, alias, t);
 
-    snprintf(fname, MAXSTRLEN, "%s/mem%03d_%s_%d.nc", ensdir, mem, alias, t);
     if (!file_exists(fname)) {
         char fname2[MAXSTRLEN];
 
-        snprintf(fname2, MAXSTRLEN, "%s/mem%03d_%s_#.nc", ensdir, mem, alias);
+        if (mem > 0)
+            snprintf(fname2, MAXSTRLEN, "%s/mem%03d_%s_#.nc", dir, mem, alias);
+        else
+            snprintf(fname2, MAXSTRLEN, "%s/bg_%s_#.nc", dir, alias);
+            
         if (!file_exists(fname2)) {
             if (das->strict_time_matching)
                 enkf_quit("could not find file \"%s\" or \"%s\", which is necessary to proceed because (1) asynchronous DA is set on for \"%s\" and (2) \"--strict-time-matching\" is used\n", fname, fname2, ot->name);
-            snprintf(fname, MAXSTRLEN, "%s/mem%03d_%s.nc", ensdir, mem, varname);
+            if (mem > 0)
+                snprintf(fname, MAXSTRLEN, "%s/mem%03d_%s.nc", dir, mem, varname);
+            else
+                snprintf(fname, MAXSTRLEN, "%s/bg_%s.nc", dir, varname);
+                
             return 0;
         } else
             strncpy(fname, fname2, MAXSTRLEN);
     }
-
     /*
      * verify time
      */
@@ -683,74 +688,24 @@ int das_getmemberfname_async(dasystem* das, obstype* ot, int mem, int t, char fn
 
 /**
  */
-int das_getbgfname_async(dasystem* das, obstype* ot, int t, char fname[], int* r)
+int das_getmemberfname_async(dasystem* das, obstype* ot, int mem, int t, char fname[], int* r)
 {
-    char* alias = ot->alias;
-    char* varname = ot->varnames[0];
-    char* bgdir = das->bgdir;
-
     *r = -1;
 
-    snprintf(fname, MAXSTRLEN, "%s/bg_%s_%d.nc", bgdir, alias, t);
-    if (!file_exists(fname)) {
-        char fname2[MAXSTRLEN];
-
-        snprintf(fname2, MAXSTRLEN, "%s/bg_%s_#.nc", bgdir, alias);
-        if (!file_exists(fname2)) {
-            if (das->strict_time_matching)
-                enkf_quit("could not find file \"%s\" or \"%s\", which is necessary to proceed because (1) asynchronous DA is set on for \"%s\" and (2) \"--strict-time-matching\" is used\n", fname, fname2, ot->name);
-            snprintf(fname, MAXSTRLEN, "%s/bg_%s.nc", bgdir, varname);
-            return 0;
-        } else
-            strncpy(fname, fname2, MAXSTRLEN);
+    if (das->mode == MODE_HYBRID && das->nmem_dynamic >= 0 && mem > das->nmem_dynamic) {
+        snprintf(fname, MAXSTRLEN, "%s/mem%03d_%s.nc", das->ensdir2, mem - das->nmem_dynamic, ot->varnames[0]);
+        return 0;
     }
-    /*
-     * verify time
-     */
-    if (ot->async_tname != NULL) {
-        int ncid, vid;
-        size_t vsize;
-        double* time;
-        char tunits[MAXSTRLEN];
-        size_t attlen;
-        double tunits_multiple, tunits_offset;
-        double correcttime;
-        int i;
 
-        ncw_open(fname, NC_NOWRITE, &ncid);
-        if (!ncw_var_exists(ncid, ot->async_tname))
-            enkf_quit("%s: found no time variable \"%s\" specified for observation type \"%s\"", fname, ot->async_tname, ot->name);
-        ncw_inq_varid(ncid, ot->async_tname, &vid);
-        ncw_check_varndims(ncid, vid, 1);
-        ncw_inq_varsize(ncid, vid, &vsize);
+    return getfname_async(das, ot, mem, t, fname, r);
+}
 
-        time = malloc(vsize * sizeof(double));
-        ncw_get_var_double(ncid, vid, time);
-
-        ncw_inq_attlen(ncid, vid, "units", &attlen);
-        assert(attlen <= MAXSTRLEN);
-        ncw_get_att_text(ncid, vid, "units", tunits);
-        tunits_convert(tunits, &tunits_multiple, &tunits_offset);
-
-        correcttime = das->obs->da_time + t * ot->async_tstep;
-        if (!ot->async_centred)
-            correcttime += 0.5 * ot->async_tstep;
-
-        for (i = 0; i < vsize; ++i) {
-            time[i] = time[i] * tunits_multiple + tunits_offset;
-            if (fabs(time[i] - correcttime) < TEPS)
-                break;
-        }
-        if (i >= vsize) {
-            if (vsize == 1)
-                enkf_quit("%s: \"s\" = %f; expected %f\n", fname, ot->async_tname, time, correcttime);
-            else
-                enkf_quit("%s: time variable \"%s\" has no matching value for asynchronous interval %d (needed time = %f)\n", fname, ot->async_tname, t, correcttime);
-        }
-        free(time);
-        *r = i;
-    }
-    return 1;
+/**
+ */
+int das_getbgfname_async(dasystem* das, obstype* ot, int t, char fname[], int* r)
+{
+    *r = -1;
+    return getfname_async(das, ot, -1, t, fname, r);
 }
 #endif
 

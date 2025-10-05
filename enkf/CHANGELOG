@@ -1,3 +1,7 @@
+v2.37.7
+   PS 05102025
+   -- Moved repeated code in das_getmemberfname_async() and
+      das_getbgfname_async() to getfname_async().
 v2.37.6
    PS 01102025
    -- Mirrored development of v2.36.0 for EnOI mode.
