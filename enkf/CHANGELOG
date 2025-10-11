@@ -1,3 +1,6 @@
+v2.37.8
+   PS 10102025
+   -- Fixed defect in ncu_readfield() that affected reading 2D variables.
 v2.37.7
    PS 05102025
    -- Moved repeated code in das_getmemberfname_async() and
