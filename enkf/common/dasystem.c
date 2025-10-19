@@ -624,7 +624,7 @@ static int getfname_async(dasystem* das, obstype* ot, int mem, int t, char fname
             snprintf(fname2, MAXSTRLEN, "%s/mem%03d_%s_#.nc", dir, mem, alias);
         else
             snprintf(fname2, MAXSTRLEN, "%s/bg_%s_#.nc", dir, alias);
-            
+
         if (!file_exists(fname2)) {
             if (das->strict_time_matching)
                 enkf_quit("could not find file \"%s\" or \"%s\", which is necessary to proceed because (1) asynchronous DA is set on for \"%s\" and (2) \"--strict-time-matching\" is used\n", fname, fname2, ot->name);
@@ -632,7 +632,7 @@ static int getfname_async(dasystem* das, obstype* ot, int mem, int t, char fname
                 snprintf(fname, MAXSTRLEN, "%s/mem%03d_%s.nc", dir, mem, varname);
             else
                 snprintf(fname, MAXSTRLEN, "%s/bg_%s.nc", dir, varname);
-                
+
             return 0;
         } else
             strncpy(fname, fname2, MAXSTRLEN);

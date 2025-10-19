@@ -106,6 +106,8 @@ void reader_z(char* fname, int fid, obsmeta* meta, grid* g, observations* obs)
     char* latname = NULL;
     stringtable* st_znames = NULL;
     char* estdname = NULL;
+    char* instattname = NULL;
+    char* instprefix = NULL;
     char instrument[MAXSTRLEN] = "";
     char** instruments = NULL;
     int* status = NULL;
@@ -392,6 +394,24 @@ void reader_z(char* fname, int fid, obsmeta* meta, grid* g, observations* obs)
     /*
      * instrument
      */
+    if (strlen(instrument) == 0) {
+        if (instattname != NULL)
+            ncw_get_att_text(ncid, NC_GLOBAL, instattname, instrument);
+        else if (!get_insttag(ncid, varname, instrument))
+            strncpy(instrument, meta->product, MAXSTRLEN - 1);
+        if (instrument != NULL && instprefix != NULL) {
+            int len_p = strlen(instprefix);
+            int len_i = strlen(instrument);
+            int ii;
+
+            assert(len_p + len_i < MAXSTRLEN);
+            for (ii = len_i - 1; ii >= 0; --ii)
+                instrument[ii + len_p] = instrument[ii];
+            for (ii = 0; ii < len_p; ++ii)
+                instrument[ii] = instprefix[ii];
+            instrument[len_p + len_i] = 0;
+        }
+    }
     if (!ncw_var_exists(ncid, instrument)) {
         /*
          * use parameter INSTRUMENT as the instrument tag
@@ -579,48 +599,7 @@ void reader_z_describe(void)
       [nprof], or 1-dimensional of size [nprof * nz], or 2-dimensional of size\n\
       [nprof][nz];\n\
     - profile variables are either 1-dimensional of size [nz] or 2-dimensional\n\
-      of size [nprof][nz]\n\
-\n\
-  There are a number of parameters that must (marked below with \"++\"), can\n\
-  (\"+\"), or may (\"-\") be specified in the corresponding section of the\n\
-  observation data parameter file. The names in brackets represent the default\n\
-  names checked in the abscence of the entry for the parameter. Each parameter\n\
-  needs to be entered as follows:\n\
-    PARAMETER <name> = <value> ...\n\
-\n\
-  Parameters common to generic readers:\n\
-    - VARNAME (++)\n\
-        multiple entries are possible; in the first valid entry is used\n\
-    - TIMENAME (\"t\" | \"[tT]ime\" | \"TIME\") (+)\n\
-    - or TIMENAMES (when time = base_time + offset) (+)\n\
-    - LONNAME (\"lon\" | \"[lL]ongitude\" | \"LONGITUDE\") (+)\n\
-    - LATNAME (\"lat\" | \"[lL]atitude\" | \"LATITUDE\") (+)\n\
-    - ZNAME (\"z\" | \"[dD]epth\" | \"DEPTH\") (+)\n\
-        multiple entries are possible; for each profile the first valid entry is\n\
-        used\n\
-    - ESTDNAME (\"error_std\") (-)\n\
-        error STD; if absent then needs to be specified in the corresponding\n\
-        section of the observation data parameter file\n\
-    - INSTRUMENT (-)\n\
-        either text variable [nprof][len] with instrument tag for each profile\n\
-        or (if absent) the instrument tag that will be used for calculating\n\
-        instrument stats (overrides the global attribute \"instrument\" in the\n\
-        data file)\n\
-    - QCFLAGNAME (-)\n\
-        name of the QC flag variable, possible values 0 <= qcflag <= 31\n\
-    - QCFLAGVALS (-)\n\
-        the list of allowed values of QC flag variable\n\
-        Note: it is possible to have multiple entries of QCFLAGNAME and\n\
-        QCFLAGVALS combination, e.g.:\n\
-          PARAMETER QCFLAGNAME = TEMP_quality_control\n\
-          PARAMETER QCFLAGVALS = 1\n\
-          PARAMETER QCFLAGNAME = DEPTH_quality_control\n\
-          PARAMETER QCFLAGVALS = 1\n\
-          PARAMETER QCFLAGNAME = LONGITUDE_quality_control\n\
-          PARAMETER QCFLAGVALS = 1,8\n\
-          PARAMETER QCFLAGNAME = LATITUDE_quality_control\n\
-          PARAMETER QCFLAGVALS = 1,8\n\
-        An observation is considered valid if each of the specified flags takes\n\
-        a permitted value.\n");
+      of size [nprof][nz]\n");
+    describe_commongenericreaderparams();
     describe_commonreaderparams();
 }

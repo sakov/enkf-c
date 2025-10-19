@@ -28,6 +28,7 @@ void get_time(obsmeta* meta, int ncid, size_t* size, double** time);
 void list_readers(void);
 void describe_reader(char readertag[]);
 void describe_commonreaderparams(void);
+void describe_commongenericreaderparams(void);
 
 #define _PREP_UTILS_H
 #endif

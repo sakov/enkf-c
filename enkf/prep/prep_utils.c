@@ -983,3 +983,56 @@ void describe_commonreaderparams(void)
     - ZMAX (-)\n\
         maximal allowed depth\n");
 }
+
+/**
+ */
+void describe_commongenericreaderparams(void)
+{
+    enkf_printf("\n\
+  There are a number of parameters that must (marked below with \"+\") or may (\"-\")\n\
+  be specified in the corresponding section of the observation data parameter file.\n\
+  For non-specified parameters a list of default variable names will be checked and\n\
+  the first matching variable will be used as the paramater value.\n\
+\n\
+  Each parameter needs to be entered as follows:\n\
+    PARAMETER <name> = <value> ...\n\
+\n\
+  Parameters common to generic readers:\n\
+    - VARNAME (+)\n\
+    - TIMENAME (+) (\"t\" | \"[tT]ime\" | \"TIME\")\n\
+    - or TIMENAMES (+) (when time = base_time + offset)\n\
+    - LONNAME (+) (\"lon\" | \"[lL]ongitude\" | \"LONGITUDE\")\n\
+    - LATNAME (+) (\"lat\" | \"[lL]atitude\" | \"LATITUDE\")\n\
+    - ZNAME (+) (\"z\" | \"[dD]epth\" | \"DEPTH\") | ZVALUE (+)\n\
+        \"ZNAME\" is needed for 3D data, \"ZVALUE\" for 2D data (can be NaN)\n\
+    - STDNAME (-) (\"std\")\n\
+        dispersion of the collated data\n\
+    - ESTDNAME (-) (\"error_std\")\n\
+        error STD; if absent then needs to be specified in the corresponding\n\
+        section of the observation data parameter file\n\
+    - BATCHNAME (-) (\"batch\")\n\
+        name of the variable used for batch ID (e.g. \"pass\" for SLA)\n\
+    - INSTRUMENT (-)\n\
+        instrument string that will be used for calculating instrument stats\n\
+        (overrides the global attribute \"instrument\" in the data file)\n\
+    - INSTATTNAME (-)\n\
+        name of the global attribute for the instrument string\n\
+    - INSTPREFIX (-)\n\
+        prefix that will be added in front of the instrument string\n\
+    - QCFLAGNAME (-)\n\
+        name of the QC flag variable, possible values 0 <= qcflag <= 31\n\
+    - QCFLAGVALS (-)\n\
+        the list of allowed values of QC flag variable\n\
+        Note: it is possible to have multiple entries of QCFLAGNAME and\n\
+        QCFLAGVALS combination, e.g.:\n\
+          PARAMETER QCFLAGNAME = TEMP_quality_control\n\
+          PARAMETER QCFLAGVALS = 1\n\
+          PARAMETER QCFLAGNAME = DEPTH_quality_control\n\
+          PARAMETER QCFLAGVALS = 1\n\
+          PARAMETER QCFLAGNAME = LONGITUDE_quality_control\n\
+          PARAMETER QCFLAGVALS = 1,8\n\
+          PARAMETER QCFLAGNAME = LATITUDE_quality_control\n\
+          PARAMETER QCFLAGVALS = 1,8\n\
+        An observation is considered valid if each of the specified flags takes\n\
+        a permitted value.\n");
+}

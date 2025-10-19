@@ -1,3 +1,11 @@
+v2.38.0
+   PS 19102025
+   -- Added new parameters to generic readers:
+        INSTATTNAME - name of the global attribute for the instrument string;
+        INSTPREFIX - prefix that will be added in front of the instrument
+        string.
+   -- Moved description of common parameters for generic readers to
+      describe_commongenericreaderparams().
 v2.37.8
    PS 10102025
    -- Fixed defect in ncu_readfield() that affected reading 2D variables.
