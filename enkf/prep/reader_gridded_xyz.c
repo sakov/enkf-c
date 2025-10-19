@@ -314,7 +314,7 @@ void reader_gridded_xyz(char* fname, int fid, obsmeta* meta, grid* g, observatio
             ncw_get_att_text(ncid, NC_GLOBAL, instattname, instrument);
         else if (!get_insttag(ncid, varname, instrument))
             strncpy(instrument, meta->product, MAXSTRLEN - 1);
-        if (instrument != NULL && instprefix != NULL) {
+        if (strlen(instrument) > 0 && instprefix != NULL) {
             int len_p = strlen(instprefix);
             int len_i = strlen(instrument);
             int ii;
