@@ -79,8 +79,6 @@ static void usage(void)
     enkf_printf("      print composition of this superobservation and exit\n");
     enkf_printf("  --list-readers\n");
     enkf_printf("      list available readers and exit\n");
-    enkf_printf("  --log-all-obs\n");
-    enkf_printf("      write all obs to %s (default: obs within model domain only)\n", FNAME_OBS);
     enkf_printf("  --no-superobing\n");
     enkf_printf("  --no-superobing-across-batches\n");
     enkf_printf("  --no-thinning\n");

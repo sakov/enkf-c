@@ -1,6 +1,6 @@
-v2.38.1
-   PS 19102025
-   -- Correcting a minor bug in modifications in v2.38.0.
+v2.38.2
+   PS 20102025
+   -- Removed redundant PREP option "--log-all-obs" from usage().
 v2.38.0
    PS 19102025
    -- Added new parameters to generic readers:
