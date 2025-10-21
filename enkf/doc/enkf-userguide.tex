@@ -39,7 +39,7 @@
 
 \begin{document}
 
-\title{EnKF-C user guide\\{\normalsize version 2.37.0}}
+\title{EnKF-C user guide\\{\normalsize version 2.39.0}}
 
 \author{Pavel Sakov}
 \date{June 19, 2014 -- \today}
@@ -1037,14 +1037,15 @@ The optional parameters include the R-factor and localisation radius for the typ
   [ MLD_VARNAME = <model varname> ]                      (none*)
   [ MLD_THRESH  = <threshold> ]                          (NaN*)
   [ HFUNCTION   = <H function name> ]                    (standard*)
-  [ ASYNC       = <time interval> [centre*|endpoint [time varname]]] (0*)
+  [ ASYNC       = <time interval> [{centre* | endpoint} [time varname]]] (0*)
   [ LOCRAD      = <loc. radius in km> ... ]
   [ LOCWEIGHT   = <loc. weight> ... ]                    (# LOCRAD > 1)
   [ RFACTOR     = <rfactor> ]                            (1*)
+  [ ERROR_DOUBLING_TIME = <time in days> ]               (inf*)
   [ NLOBSMAX    = <max. allowed number of local obs.> ]  (inf*)
   [ ERROR_STD_MIN = <min. allowed superob error> ]       (0*)
   [ SOBSTRIDE   = <stride for superobing> ]              (1*)
-  [ PERMIT_LOCATION_BASED_THINNING = <yes | no> ]        (yes*)
+  [ PERMIT_LOCATION_BASED_THINNING = {yes* | no} ]
   [ MINVALUE    = <minimal allowed value> ]              (-inf*)
   [ MAXVALUE    = <maximal allowed value> ]              (+inf*)
   [ XMIN        = <minimal allowed X coordinate> ]       (-inf*)
@@ -1194,6 +1195,8 @@ It has the following usage and options:
   --no-superobing-across-batches
   --no-thinning
   --superob-across-instruments
+  --thin-vertically
+      allow thinning of obs with different depth
   --write-orig-obs
       write original obs within model extent to observations-orig.nc
   --write-all-orig-obs
@@ -1318,7 +1321,9 @@ The generic parameters include:
 \item{\verb|YMAX|} -- maximal allowed latitude;
 \item{\verb|ZMIN|} -- minimal allowed depth;
 \item{\verb|ZMAX|} -- maximal allowed depth;
+\item{\verb|LOCATION_BASED_THINNING_TYPE|} -- type of location based thinning (\verb/XYZ* | XY | CELL | NILL/).
 \end{description}
+Specified parameters apply to observations defined in the corresponding section of observation data parameter file.
 
 The custom parameters can be learned by running \verb|enkf_prep --describe-reader <reader name>|.
 Following is the description of the reader \verb|scattered|:
@@ -1395,6 +1400,8 @@ Following is the description of the reader \verb|scattered|:
         minimal allowed depth
     - ZMAX (-)
         maximal allowed depth
+    - LOCATION_BASED_THINNING_TYPE
+        XYZ* | XY | CELL | NIL
 \end{Verbatim}
 
 \subsection{Superobing}
@@ -1416,8 +1423,10 @@ The product and instrument fields of the superobservation are set either to thos
 Command line parameter \verb|--consider-subgrid-variability| switches on considering the subgrid variability by calculating standard deviation of the merged observations $\sigma\!_{sub}$ and using $\sigma\!_{obs} = \max(\sigma\!_{obs}, \sigma\!_{sub})$.
 The calculation of $\sigma\!_{sub}$ is currently done in a rather crude way, assuming equal weights for all merged observations.
 
-Note that during superobing EnKF-C by default thins observations with identical positions, assuming that those must been obtained from high-frequency instruments (e.g. moorings).
-This thinning can be switched off by the command line parameter \verb|--no-thinning|, or for observations of a particular data type only by adding flag \verb|PERMIT_LOCATION_BASED_THINNING = no| to the corresponding section in the observation types parameter file.
+Note that during superobing EnKF-C thins observations with identical positions, assuming that those must been obtained from high-frequency instruments (e.g. moorings).
+The thinning involves replacing the corresponding batch of observations by batch average values.
+The type of thinning can be set by parameter \verb| LOCATION_BASED_THINNING_TYPE| in observation data parameter file and can be set to ``XYZ'' (thinning observations with coinciding X,Y,Z coordinates), ``XY'' (coinciding X,Y coordinates only), ``CELL'' (all observations within cell), or ``NILL'' (no thinning).
+The location based thinning can be switched off by the command line parameter \verb|--no-thinning|, or for observations of a particular data type only by adding flag \verb|PERMIT_LOCATION_BASED_THINNING = no| in the corresponding section in the observation types parameter file.
 
 \subsection{Asynchronous DA / FGAT}
 \label{sec:async}

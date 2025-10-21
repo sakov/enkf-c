@@ -169,6 +169,8 @@ observations* obs_create(void)
     obs->nccompression = 0;
 #if defined(ENKF_PREP)
     obs->model = NULL;
+
+    obs->location_based_thinning_type = NULL;
 #endif
 
     return obs;
@@ -272,6 +274,10 @@ void obs_destroy(observations* obs)
         ht_process(obs->badbatches, free);
         ht_destroy(obs->badbatches);
     }
+#if defined(ENKF_PREP)
+    if (obs->location_based_thinning_type != NULL)
+        free(obs->location_based_thinning_type);
+#endif
     free(obs);
 }
 
@@ -1249,20 +1255,33 @@ void obs_superob(observations* obs, __compar_d_fn_t cmp_obs, observations** sobs
          * coming from high-frequency instruments)
          */
         if (i2 > i1 && do_thin && obs->obstypes[data[i1].type].can_thin) {
+            int thinningtype = obs->location_based_thinning_type[data[i1].section];
             int i11 = i1;
             int i22 = i1;
-            int (*cmp) (const void*, const void*) = (do_thin == THIN_XYZ) ? cmp_xyz : cmp_xy;
+            int (*cmp) (const void*, const void*) = NULL;
 
-            qsort(&data[i1], i2 - i1 + 1, sizeof(observation), cmp);
+            if (thinningtype == LOCATIONTHINNINGTYPE_XYZ)
+                cmp = cmp_xyz;
+            else if (thinningtype == LOCATIONTHINNINGTYPE_XY)
+                cmp = cmp_xy;
+            else if (thinningtype == LOCATIONTHINNINGTYPE_CELL)
+                cmp = NULL;
+            else if (thinningtype == LOCATIONTHINNINGTYPE_NIL)
+                goto end_thinning;
+            else
+                enkf_quit("programming error");
+
+            if (cmp != NULL)
+                qsort(&data[i1], i2 - i1 + 1, sizeof(observation), cmp);
             while (i22 <= i2) {
-                while (i22 + 1 <= i2 && cmp(&data[i11], &data[i22 + 1]) == 0)
+                while (i22 + 1 <= i2 && (cmp == NULL || cmp(&data[i11], &data[i22 + 1]) == 0))
                     i22++;
                 /*
                  * replace the value of the kept observation by the average
                  * of the batch
                  */
                 if (i22 > i11) {
-                    if (do_thin == THIN_XYZ) {
+                    if (thinningtype == LOCATIONTHINNINGTYPE_XYZ) {
                         float sum_value = data[i11].value;
                         float sum_time = data[i11].time;
 
@@ -1274,7 +1293,7 @@ void obs_superob(observations* obs, __compar_d_fn_t cmp_obs, observations** sobs
                         }
                         data[i11].value = sum_value / (float) (i22 - i11 + 1);
                         data[i11].time = sum_time / (float) (i22 - i11 + 1);
-                    } else if (do_thin == THIN_XY) {
+                    } else if (thinningtype == LOCATIONTHINNINGTYPE_XY) {
                         float sum_value = data[i11].value;
                         float sum_time = data[i11].time;
                         float sum_depth = data[i11].depth;
@@ -1292,6 +1311,39 @@ void obs_superob(observations* obs, __compar_d_fn_t cmp_obs, observations** sobs
                         data[i11].time = sum_time / (float) (i22 - i11 + 1);
                         data[i11].depth = sum_depth / (float) (i22 - i11 + 1);
                         data[i11].fk = sum_fk / (float) (i22 - i11 + 1);
+                    } else if (thinningtype == LOCATIONTHINNINGTYPE_CELL) {
+                        float sum_value = data[i11].value;
+                        float sum_time = data[i11].time;
+                        float sum_depth = data[i11].depth;
+                        float sum_fk = data[i11].fk;
+                        float sum_lon = data[i11].lon;
+                        float sum_lat = data[i11].lat;
+                        float sum_fij0 = data[i11].fij[0];
+                        float sum_fij1 = data[i11].fij[1];
+                        float sum_fij2 = data[i11].fij[2];
+
+                        for (ii = i11 + 1; ii <= i22; ++ii) {
+                            data[ii].status = STATUS_THINNED;
+                            sum_value += data[ii].value;
+                            sum_time += data[ii].time;
+                            sum_depth += data[ii].depth;
+                            sum_fk += data[ii].fk;
+                            sum_lon += data[ii].lon;
+                            sum_lat += data[ii].lat;
+                            sum_fij0 += data[ii].fij[0];
+                            sum_fij1 += data[ii].fij[1];
+                            sum_fij2 += data[ii].fij[2];
+                            nthinned++;
+                        }
+                        data[i11].value = sum_value / (float) (i22 - i11 + 1);
+                        data[i11].time = sum_time / (float) (i22 - i11 + 1);
+                        data[i11].depth = sum_depth / (float) (i22 - i11 + 1);
+                        data[i11].fk = sum_fk / (float) (i22 - i11 + 1);
+                        data[i11].lon = sum_lon / (float) (i22 - i11 + 1);
+                        data[i11].lat = sum_lat / (float) (i22 - i11 + 1);
+                        data[i11].fij[0] = sum_fij0 / (float) (i22 - i11 + 1);
+                        data[i11].fij[1] = sum_fij1 / (float) (i22 - i11 + 1);
+                        data[i11].fij[2] = sum_fij2 / (float) (i22 - i11 + 1);
                     } else
                         enkf_quit("programming error");
                 }
@@ -1299,6 +1351,7 @@ void obs_superob(observations* obs, __compar_d_fn_t cmp_obs, observations** sobs
                 i11 = i22;
             }
         }
+      end_thinning:
 
         if (nsobs % NOBS_INC == 0)
             sdata = realloc(sdata, (nsobs + NOBS_INC) * sizeof(observation));

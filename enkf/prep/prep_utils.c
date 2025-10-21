@@ -67,13 +67,15 @@ static void readobs(obsmeta* meta, model* m, obsread_fn reader, observations* ob
     get_obsfiles(meta, &nfiles, &fnames);
     for (i = 0; i < nfiles; ++i) {
         int nobs0 = obs->nobs;
-        int fid;
+        int fid, j;
 
         enkf_printf("      reading %s:\n", fnames[i]);
         fid = st_add_ifabsent(obs->datafiles, fnames[i], -1);
         reader(fnames[i], fid, meta, g, obs);
 
         enkf_printf("        # obs added = %d\n", obs->nobs - nobs0);
+        for (j = nobs0; j < obs->nobs; ++j)
+            obs->data[j].section = meta->id;
         enkf_flush();
         free(fnames[i]);
     }
@@ -206,7 +208,7 @@ void obs_add(observations* obs, model* m, obsmeta* meta, int nexclude, obsregion
             }
         }
         /*
-         * for historic compatibility 
+         * for historic compatibility; now use "STRIDE" instead of "THIN"
          */
         else if (strcasecmp(meta->pars[i].name, "THIN") == 0) {
             if (!str2int(meta->pars[i].value, &stride))
@@ -216,6 +218,21 @@ void obs_add(observations* obs, model* m, obsmeta* meta, int nexclude, obsregion
                 free(meta->pars[i].value);
                 meta->pars[i].name = NULL;
                 meta->pars[i].value = NULL;
+            }
+        } else if (strcasecmp(meta->pars[i].name, "LOCATION_BASED_THINNING_TYPE") == 0) {
+            if (strcasecmp(meta->pars[i].value, "XY") == 0)
+                obs->location_based_thinning_type[meta->id] = LOCATIONTHINNINGTYPE_XY;
+            else if (strcasecmp(meta->pars[i].value, "XYZ") == 0)
+                obs->location_based_thinning_type[meta->id] = LOCATIONTHINNINGTYPE_XYZ;
+            else if (strcasecmp(meta->pars[i].value, "CELL") == 0)
+                obs->location_based_thinning_type[meta->id] = LOCATIONTHINNINGTYPE_CELL;
+            else {
+                int value;
+
+                if (str2bool(meta->pars[i].value, &value) && value == 0)
+                    obs->location_based_thinning_type[meta->id] = LOCATIONTHINNINGTYPE_NIL;
+                else
+                    enkf_quit("reader_scattered(): LOCATION_BASED_THINNING_TYPE: unknown thinning type \"%s\"", meta->pars[i].value);
             }
         }
     }
@@ -1034,5 +1051,7 @@ void describe_commongenericreaderparams(void)
           PARAMETER QCFLAGNAME = LATITUDE_quality_control\n\
           PARAMETER QCFLAGVALS = 1,8\n\
         An observation is considered valid if each of the specified flags takes\n\
-        a permitted value.\n");
+        a permitted value.\n\
+    - LOCATION_BASED_THINNING_TYPE\n\
+        XYZ* | XY | CELL | NIL\n");
 }

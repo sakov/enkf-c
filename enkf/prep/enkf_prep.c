@@ -56,10 +56,11 @@ int do_superob_acrossbatches = 1;
 int write_orig_obs = 0;
 
 /*
- * thinning of obs with identical positions in the same time window can be
- * switched off
+ * Location based thinning is specified for each section of the observation data
+ * parameter file. (Default = thin data with exactly the same X,Y,Z
+ * coordinates.) This option turns off location based thinning in all data.
  */
-int do_thin = THIN_XYZ;
+int do_thin = 1;
 
 /**
  */
@@ -169,10 +170,6 @@ static void parse_commandline(int argc, char* argv[], char** fname)
             continue;
         } else if (strcmp(argv[i], "--superob-across-instruments") == 0) {
             do_superob_acrossinst = 1;
-            i++;
-            continue;
-        } else if (strcmp(argv[i], "--thin-vertically") == 0) {
-            do_thin = THIN_XY;
             i++;
             continue;
         } else if (strcmp(argv[i], "--write-orig-obs") == 0) {
@@ -333,6 +330,16 @@ int main(int argc, char* argv[])
     obs->allobs = (write_orig_obs == 2) ? 1 : 0;
     obs->model = m;
 
+    /*
+     * set location based thinning to default
+     */
+    obs->location_based_thinning_type = malloc(nmeta * sizeof(int));
+    for (i = 0; i < nmeta; ++i)
+        obs->location_based_thinning_type[i] = LOCATIONTHINNINGTYPE_DEFAULT;
+
+    /*
+     * set observation types for excluded regions
+     */
     for (i = 0; i < nexclude; ++i) {
         if (strcasecmp(exclude[i].otname, "ALL") == 0)
             exclude[i].otid = -1;

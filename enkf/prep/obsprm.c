@@ -77,6 +77,7 @@ void obsprm_read(char fname[], int* nmeta, obsmeta** meta, int* nexclude, obsreg
             *meta = realloc(*meta, (*nmeta + 1) * sizeof(obsmeta));
             m = &(*meta)[*nmeta];
             obsmeta_init(m);
+            m->id = *nmeta;
             m->prmfname = strdup(fname);
             m->product = strdup(token);
             (*nmeta)++;

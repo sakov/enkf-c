@@ -99,12 +99,17 @@ void reader_gridded_xyz(char* fname, int fid, obsmeta* meta, grid* g, observatio
             strncpy(instrument, meta->pars[i].value, MAXSTRLEN - 1);
         else if (strcasecmp(meta->pars[i].name, "TIMENAME") == 0 || strcasecmp(meta->pars[i].name, "TIMENAMES") == 0)
             /*
-             * TIMENAME and TIMENAMES are dealt with separately
+             * TIMENAME and TIMENAMES are dealt with later
              */
             ;
         else if (strcasecmp(meta->pars[i].name, "QCFLAGNAME") == 0 || strcasecmp(meta->pars[i].name, "QCFLAGVARNAME") == 0 || strcasecmp(meta->pars[i].name, "QCFLAGVALS") == 0)
             /*
-             * QCFLAGNAME and QCFLAGVALS are dealt with separately
+             * QCFLAGNAME and QCFLAGVALS are dealt with later
+             */
+            ;
+        else if (strcasecmp(meta->pars[i].name, "LOCATION_BASED_THINNING_TYPE") == 0)
+            /*
+             * LOCATION_BASED_THINNING_TYPE is dealt with outside
              */
             ;
         else

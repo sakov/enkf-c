@@ -1,3 +1,12 @@
+v2.39.0
+   PS 21102025
+   -- Moved specification of location based observation thinning to observation
+      data parameter file. The specified thinning type applies to all
+      observations from the section it is defined in. The possible types are
+      "XYZ" (default), "XY", "CELL", and "NIL". Note that CELL is a new option.
+      It replaces all collated observations in a model cell by their average
+      (including location) while using observation error from the very first
+      observation in the batch.
 v2.38.2
    PS 20102025
    -- Removed redundant PREP option "--log-all-obs" from usage().

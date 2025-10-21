@@ -38,6 +38,7 @@ typedef struct {
 } metapar;
 
 typedef struct {
+    int id;
     char* prmfname;
     char* product;
     char* reader;

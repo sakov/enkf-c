@@ -115,8 +115,20 @@
 #define UPDATE_DOPLOGS          (UPDATE_DOPLOGSFC | UPDATE_DOPLOGSAN)
 #define UPDATE_NEEDAN           (UPDATE_DOFIELDS | UPDATE_DOANALYSISSPREAD | UPDATE_DOINFLATION | UPDATE_DOPLOGSAN)
 
-#define THIN_XYZ 1
-#define THIN_XY  2
+/*
+ * Location based thinning is conducted during superobing. It is applied to
+ * batches of obs. to be collated. (Therefore, by default it does not apply to
+ * obs. from different files, instruments, batches, time intervals, model
+ * cells.) The type of thinning is specified in sections of observation data
+ * parameter file and applies to the corresponding data.
+ */
+#define LOCATIONTHINNINGTYPE_NIL 0      /* no location based thinning */
+#define LOCATIONTHINNINGTYPE_XYZ 1      /* obs with exactly the same X,Y,Z
+                                         * coords */
+#define LOCATIONTHINNINGTYPE_XY  2      /* obs with exactly the same X,Y
+                                         * coords */
+#define LOCATIONTHINNINGTYPE_CELL 3     /* obs within cell */
+#define LOCATIONTHINNINGTYPE_DEFAULT  LOCATIONTHINNINGTYPE_XYZ
 
 /*
  * the default vertical split for 3D fields in obs stats

@@ -77,6 +77,9 @@ typedef struct {
      *  - for an original observation -- sob id
      */
     int aux;
+#if defined(ENKF_PREP)
+    short int section;
+#endif
 } observation;
 
 typedef struct {
@@ -127,6 +130,7 @@ typedef struct {
     int nccompression;
 
 #if defined(ENKF_PREP)
+    int* location_based_thinning_type;  /* [datafiles->n] */
     void* model;
 #endif
 } observations;
