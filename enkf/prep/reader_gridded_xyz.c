@@ -36,7 +36,7 @@
 
 /**
  */
-void reader_gridded_xyz(char* fname, int fid, obsmeta* meta, grid* g, observations* obs)
+void reader_gridded_xyz(char* fname, int fid, obssection* section, grid* g, observations* obs)
 {
     char* varname = NULL;
     char* lonname = NULL;
@@ -78,42 +78,42 @@ void reader_gridded_xyz(char* fname, int fid, obsmeta* meta, grid* g, observatio
     int varid;
     size_t i, nobs_read;
 
-    for (i = 0; i < meta->npars; ++i) {
-        if (strcasecmp(meta->pars[i].name, "VARNAME") == 0)
-            varname = meta->pars[i].value;
-        else if (strcasecmp(meta->pars[i].name, "NPOINTSNAME") == 0)
-            npointsname = meta->pars[i].value;
-        else if (strcasecmp(meta->pars[i].name, "LONNAME") == 0)
-            lonname = meta->pars[i].value;
-        else if (strcasecmp(meta->pars[i].name, "LATNAME") == 0)
-            latname = meta->pars[i].value;
-        else if (strcasecmp(meta->pars[i].name, "ZNAME") == 0)
-            zname = meta->pars[i].value;
-        else if (strcasecmp(meta->pars[i].name, "STDNAME") == 0)
-            stdname = meta->pars[i].value;
-        else if (strcasecmp(meta->pars[i].name, "ESTDNAME") == 0)
-            estdname = meta->pars[i].value;
-        else if (strcasecmp(meta->pars[i].name, "BATCHNAME") == 0)
-            batchname = meta->pars[i].value;
-        else if (strcasecmp(meta->pars[i].name, "INSTRUMENT") == 0)
-            strncpy(instrument, meta->pars[i].value, MAXSTRLEN - 1);
-        else if (strcasecmp(meta->pars[i].name, "TIMENAME") == 0 || strcasecmp(meta->pars[i].name, "TIMENAMES") == 0)
+    for (i = 0; i < section->npars; ++i) {
+        if (strcasecmp(section->pars[i].name, "VARNAME") == 0)
+            varname = section->pars[i].value;
+        else if (strcasecmp(section->pars[i].name, "NPOINTSNAME") == 0)
+            npointsname = section->pars[i].value;
+        else if (strcasecmp(section->pars[i].name, "LONNAME") == 0)
+            lonname = section->pars[i].value;
+        else if (strcasecmp(section->pars[i].name, "LATNAME") == 0)
+            latname = section->pars[i].value;
+        else if (strcasecmp(section->pars[i].name, "ZNAME") == 0)
+            zname = section->pars[i].value;
+        else if (strcasecmp(section->pars[i].name, "STDNAME") == 0)
+            stdname = section->pars[i].value;
+        else if (strcasecmp(section->pars[i].name, "ESTDNAME") == 0)
+            estdname = section->pars[i].value;
+        else if (strcasecmp(section->pars[i].name, "BATCHNAME") == 0)
+            batchname = section->pars[i].value;
+        else if (strcasecmp(section->pars[i].name, "INSTRUMENT") == 0)
+            strncpy(instrument, section->pars[i].value, MAXSTRLEN - 1);
+        else if (strcasecmp(section->pars[i].name, "TIMENAME") == 0 || strcasecmp(section->pars[i].name, "TIMENAMES") == 0)
             /*
              * TIMENAME and TIMENAMES are dealt with later
              */
             ;
-        else if (strcasecmp(meta->pars[i].name, "QCFLAGNAME") == 0 || strcasecmp(meta->pars[i].name, "QCFLAGVARNAME") == 0 || strcasecmp(meta->pars[i].name, "QCFLAGVALS") == 0)
+        else if (strcasecmp(section->pars[i].name, "QCFLAGNAME") == 0 || strcasecmp(section->pars[i].name, "QCFLAGVARNAME") == 0 || strcasecmp(section->pars[i].name, "QCFLAGVALS") == 0)
             /*
              * QCFLAGNAME and QCFLAGVALS are dealt with later
              */
             ;
-        else if (strcasecmp(meta->pars[i].name, "LOCATION_BASED_THINNING_TYPE") == 0)
+        else if (strcasecmp(section->pars[i].name, "LOCATION_BASED_THINNING_TYPE") == 0)
             /*
              * LOCATION_BASED_THINNING_TYPE is dealt with outside
              */
             ;
         else
-            enkf_quit("unknown PARAMETER \"%s\"\n", meta->pars[i].name);
+            enkf_quit("unknown PARAMETER \"%s\"\n", section->pars[i].name);
     }
 
     if (varname == NULL)
@@ -295,7 +295,7 @@ void reader_gridded_xyz(char* fname, int fid, obsmeta* meta, grid* g, observatio
     /*
      * qcflag
      */
-    get_qcflags(meta, &nqcflagvars, &qcflagvarnames, &qcflagmasks);
+    get_qcflags(section, &nqcflagvars, &qcflagvarnames, &qcflagmasks);
     if (nqcflagvars > 0) {
         qcflag = alloc2d(nqcflagvars, nijk, sizeof(int32_t));
         for (i = 0; i < nqcflagvars; ++i) {
@@ -308,7 +308,7 @@ void reader_gridded_xyz(char* fname, int fid, obsmeta* meta, grid* g, observatio
     /*
      * time
      */
-    get_time(meta, ncid, &ntime, &time);
+    get_time(section, ncid, &ntime, &time);
     assert(ntime == nijk || ntime <= 1);
 
     /*
@@ -318,7 +318,7 @@ void reader_gridded_xyz(char* fname, int fid, obsmeta* meta, grid* g, observatio
         if (instattname != NULL)
             ncw_get_att_text(ncid, NC_GLOBAL, instattname, instrument);
         else if (!get_insttag(ncid, varname, instrument))
-            strncpy(instrument, meta->product, MAXSTRLEN - 1);
+            strncpy(instrument, section->product, MAXSTRLEN - 1);
         if (strlen(instrument) > 0 && instprefix != NULL) {
             int len_p = strlen(instprefix);
             int len_i = strlen(instrument);
@@ -335,9 +335,9 @@ void reader_gridded_xyz(char* fname, int fid, obsmeta* meta, grid* g, observatio
     ncw_close(ncid);
 
     instid = st_add_ifabsent(obs->instruments, instrument, -1);
-    productid = st_findindexbystring(obs->products, meta->product);
+    productid = st_findindexbystring(obs->products, section->product);
     assert(productid >= 0);
-    typeid = obstype_getid(obs->nobstypes, obs->obstypes, meta->type, 1);
+    typeid = obstype_getid(obs->nobstypes, obs->obstypes, section->type, 1);
     nobs_read = 0;
     for (i = 0; i < nijk; ++i) {
         int ij = i % nij;

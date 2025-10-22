@@ -11,7 +11,10 @@
  *
  * Revisions:
  *
- *****************************************************************************/
+ * Note: this reader is outdated and no longer used operationally. Use generic
+ * readers (e.g. gridded_xy) instead.
+ *
+*****************************************************************************/
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -30,7 +33,7 @@
 
 /**
  */
-void reader_windsat(char* fname, int fid, obsmeta* meta, grid* g, observations* obs)
+void reader_windsat(char* fname, int fid, obssection* section, grid* g, observations* obs)
 {
     int ksurf = grid_getsurflayerid(g);
     int ncid;
@@ -49,8 +52,8 @@ void reader_windsat(char* fname, int fid, obsmeta* meta, grid* g, observations* 
     char* basename;
     int i, nobs_read;
 
-    for (i = 0; i < meta->npars; ++i)
-        enkf_quit("unknown PARAMETER \"%s\"\n", meta->pars[i].name);
+    for (i = 0; i < section->npars; ++i)
+        enkf_quit("unknown PARAMETER \"%s\"\n", section->pars[i].name);
 
     basename = strrchr(fname, '/');
     if (basename == NULL)
@@ -120,9 +123,9 @@ void reader_windsat(char* fname, int fid, obsmeta* meta, grid* g, observations* 
         obs_checkalloc(obs);
         o = &obs->data[obs->nobs];
 
-        o->product = st_findindexbystring(obs->products, meta->product);
+        o->product = st_findindexbystring(obs->products, section->product);
         assert(o->product >= 0);
-        o->type = obstype_getid(obs->nobstypes, obs->obstypes, meta->type, 1);
+        o->type = obstype_getid(obs->nobstypes, obs->obstypes, section->type, 1);
         o->instrument = st_add_ifabsent(obs->instruments, "WindSat", -1);
         o->id = obs->nobs;
         o->id_orig = i;

@@ -48,7 +48,7 @@ typedef struct {
 
 /**
  */
-void reader_gridded_xy(char* fname, int fid, obsmeta* meta, grid* g, observations* obs)
+void reader_gridded_xy(char* fname, int fid, obssection* section, grid* g, observations* obs)
 {
     int ksurf = grid_getsurflayerid(g);
     char* varname = NULL;
@@ -93,57 +93,62 @@ void reader_gridded_xy(char* fname, int fid, obsmeta* meta, grid* g, observation
     int varid;
     size_t i, nobs_read;
 
-    for (i = 0; i < meta->npars; ++i) {
-        if (strcasecmp(meta->pars[i].name, "VARNAME") == 0)
-            varname = meta->pars[i].value;
-        else if (strcasecmp(meta->pars[i].name, "NPOINTSNAME") == 0)
-            npointsname = meta->pars[i].value;
-        else if (strcasecmp(meta->pars[i].name, "LONNAME") == 0)
-            lonname = meta->pars[i].value;
-        else if (strcasecmp(meta->pars[i].name, "LATNAME") == 0)
-            latname = meta->pars[i].value;
-        else if (strcasecmp(meta->pars[i].name, "ZVALUE") == 0) {
-            if (!str2double(meta->pars[i].value, &zvalue))
-                enkf_quit("observation prm file: can not convert ZVALUE = \"%s\" to double\n", meta->pars[i].value);
+    for (i = 0; i < section->npars; ++i) {
+        if (strcasecmp(section->pars[i].name, "VARNAME") == 0)
+            varname = section->pars[i].value;
+        else if (strcasecmp(section->pars[i].name, "NPOINTSNAME") == 0)
+            npointsname = section->pars[i].value;
+        else if (strcasecmp(section->pars[i].name, "LONNAME") == 0)
+            lonname = section->pars[i].value;
+        else if (strcasecmp(section->pars[i].name, "LATNAME") == 0)
+            latname = section->pars[i].value;
+        else if (strcasecmp(section->pars[i].name, "ZVALUE") == 0) {
+            if (!str2double(section->pars[i].value, &zvalue))
+                enkf_quit("observation prm file: can not convert ZVALUE = \"%s\" to double\n", section->pars[i].value);
             zvalueentered = 1;
-        } else if (strcasecmp(meta->pars[i].name, "STDNAME") == 0)
-            stdname = meta->pars[i].value;
-        else if (strcasecmp(meta->pars[i].name, "ESTDNAME") == 0)
-            estdname = meta->pars[i].value;
-        else if (strcasecmp(meta->pars[i].name, "BATCHNAME") == 0)
-            batchname = meta->pars[i].value;
-        else if (strcasecmp(meta->pars[i].name, "INSTRUMENT") == 0)
-            strncpy(instrument, meta->pars[i].value, MAXSTRLEN - 1);
-        else if (strcasecmp(meta->pars[i].name, "TIMENAME") == 0 || strcasecmp(meta->pars[i].name, "TIMENAMES") == 0)
+        } else if (strcasecmp(section->pars[i].name, "STDNAME") == 0)
+            stdname = section->pars[i].value;
+        else if (strcasecmp(section->pars[i].name, "ESTDNAME") == 0)
+            estdname = section->pars[i].value;
+        else if (strcasecmp(section->pars[i].name, "BATCHNAME") == 0)
+            batchname = section->pars[i].value;
+        else if (strcasecmp(section->pars[i].name, "INSTRUMENT") == 0)
+            strncpy(instrument, section->pars[i].value, MAXSTRLEN - 1);
+        else if (strcasecmp(section->pars[i].name, "TIMENAME") == 0 || strcasecmp(section->pars[i].name, "TIMENAMES") == 0)
             /*
-             * TIMENAME and TIMENAMES are dealt with separately
+             * TIMENAME and TIMENAMES are dealt with later
              */
             ;
-        else if (strcasecmp(meta->pars[i].name, "QCFLAGNAME") == 0 || strcasecmp(meta->pars[i].name, "QCFLAGVARNAME") == 0 || strcasecmp(meta->pars[i].name, "QCFLAGVALS") == 0)
+        else if (strcasecmp(section->pars[i].name, "QCFLAGNAME") == 0 || strcasecmp(section->pars[i].name, "QCFLAGVARNAME") == 0 || strcasecmp(section->pars[i].name, "QCFLAGVALS") == 0)
             /*
-             * QCFLAGNAME and QCFLAGVALS are dealt with separately
+             * QCFLAGNAME and QCFLAGVALS are dealt with later
              */
             ;
-        else if (strcasecmp(meta->pars[i].name, "ADDVAR") == 0) {
+        else if (strcasecmp(section->pars[i].name, "LOCATION_BASED_THINNING_TYPE") == 0)
+            /*
+             * LOCATION_BASED_THINNING_TYPE is dealt with outside
+             */
+            ;
+        else if (strcasecmp(section->pars[i].name, "ADDVAR") == 0) {
             if (naddvar % NADDVAR_INC == 0) {
                 addvars = realloc(addvars, (naddvar + NADDVAR_INC) * sizeof(addvar));
-                addvars[naddvar].varname = strdup(meta->pars[i].value);
+                addvars[naddvar].varname = strdup(section->pars[i].value);
                 addvars[naddvar].action = ADDVAR_ACTION_ADD;
                 addvars[naddvar].v = NULL;
                 enkf_printf("      ADDVAR = %s\n", addvars[naddvar].varname);
                 naddvar++;
             }
-        } else if (strcasecmp(meta->pars[i].name, "SUBVAR") == 0) {
+        } else if (strcasecmp(section->pars[i].name, "SUBVAR") == 0) {
             if (naddvar % NADDVAR_INC == 0) {
                 addvars = realloc(addvars, (naddvar + NADDVAR_INC) * sizeof(addvar));
-                addvars[naddvar].varname = strdup(meta->pars[i].value);
+                addvars[naddvar].varname = strdup(section->pars[i].value);
                 addvars[naddvar].action = ADDVAR_ACTION_SUB;
                 addvars[naddvar].v = NULL;
                 enkf_printf("      SUBVAR = %s\n", addvars[naddvar].varname);
                 naddvar++;
             }
         } else
-            enkf_quit("unknown PARAMETER \"%s\"\n", meta->pars[i].name);
+            enkf_quit("unknown PARAMETER \"%s\"\n", section->pars[i].name);
     }
 
     if (varname == NULL)
@@ -310,7 +315,7 @@ void reader_gridded_xy(char* fname, int fid, obsmeta* meta, grid* g, observation
     /*
      * qcflags
      */
-    get_qcflags(meta, &nqcflagvars, &qcflagvarnames, &qcflagmasks);
+    get_qcflags(section, &nqcflagvars, &qcflagvarnames, &qcflagmasks);
     if (nqcflagvars > 0) {
         qcflag = alloc2d(nqcflagvars, nij, sizeof(int32_t));
         for (i = 0; i < nqcflagvars; ++i) {
@@ -323,7 +328,7 @@ void reader_gridded_xy(char* fname, int fid, obsmeta* meta, grid* g, observation
     /*
      * time
      */
-    get_time(meta, ncid, &ntime, &time);
+    get_time(section, ncid, &ntime, &time);
     assert(ntime == nij || ntime == nj || ntime <= 1);
     if (ntime == nj) {
         double* tmp = calloc(nij, sizeof(double));
@@ -344,7 +349,7 @@ void reader_gridded_xy(char* fname, int fid, obsmeta* meta, grid* g, observation
         if (instattname != NULL)
             ncw_get_att_text(ncid, NC_GLOBAL, instattname, instrument);
         else if (!get_insttag(ncid, varname, instrument))
-            strncpy(instrument, meta->product, MAXSTRLEN - 1);
+            strncpy(instrument, section->product, MAXSTRLEN - 1);
         if (strlen(instrument) > 0 && instprefix != NULL) {
             int len_p = strlen(instprefix);
             int len_i = strlen(instrument);
@@ -361,9 +366,9 @@ void reader_gridded_xy(char* fname, int fid, obsmeta* meta, grid* g, observation
     ncw_close(ncid);
 
     instid = st_add_ifabsent(obs->instruments, instrument, -1);
-    productid = st_findindexbystring(obs->products, meta->product);
+    productid = st_findindexbystring(obs->products, section->product);
     assert(productid >= 0);
-    typeid = obstype_getid(obs->nobstypes, obs->obstypes, meta->type, 1);
+    typeid = obstype_getid(obs->nobstypes, obs->obstypes, section->type, 1);
     nobs_read = 0;
     for (i = 0; i < nij; ++i) {
         observation* o;

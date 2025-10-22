@@ -1095,11 +1095,11 @@ Each section specifies the observation type, input files, reader and, possibly, 
   Observation data parameter file format:
 
     PRODUCT   = <product>
-    READER    = <reader>
-  [ PARAMETER <name> = <value> ]
-    ...
     TYPE      = <observation type>
+    READER    = <reader>
     FILE      = <data file wildcard> 
+    ...
+  [ PARAMETER <name> = <value> ]
     ...
   [ ERROR_STD = { <value> | <data file> <varname> } [ EQ* | PL | MU | MI | MA ] ]
     ...

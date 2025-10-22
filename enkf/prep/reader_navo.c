@@ -15,7 +15,10 @@
  *
  * Revisions:
  *
- *****************************************************************************/
+ * Note: this reader is outdated and no longer used operationally. Use generic
+ * readers (e.g. gridded_xy) instead.
+ *
+*****************************************************************************/
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -35,7 +38,7 @@
 
 /**
  */
-void reader_navo(char* fname, int fid, obsmeta* meta, grid* g, observations* obs)
+void reader_navo(char* fname, int fid, obssection* section, grid* g, observations* obs)
 {
     int ksurf = grid_getsurflayerid(g);
     int addbias = ADDBIAS_DEF;
@@ -56,11 +59,11 @@ void reader_navo(char* fname, int fid, obsmeta* meta, grid* g, observations* obs
     char* basename;
     int i, nobs_read;
 
-    for (i = 0; i < meta->npars; ++i) {
-        if (strcasecmp(meta->pars[i].name, "ADDBIAS") == 0)
-            addbias = (istrue(meta->pars[i].value)) ? 1 : 0;
+    for (i = 0; i < section->npars; ++i) {
+        if (strcasecmp(section->pars[i].name, "ADDBIAS") == 0)
+            addbias = (istrue(section->pars[i].value)) ? 1 : 0;
         else
-            enkf_quit("unknown PARAMETER \"%s\"\n", meta->pars[i].name);
+            enkf_quit("unknown PARAMETER \"%s\"\n", section->pars[i].name);
     }
     enkf_printf("        ADDBIAS = %s\n", (addbias) ? "YES" : "NO");
 
@@ -129,9 +132,9 @@ void reader_navo(char* fname, int fid, obsmeta* meta, grid* g, observations* obs
         o = &obs->data[obs->nobs];
 
         nobs_read++;
-        o->product = st_findindexbystring(obs->products, meta->product);
+        o->product = st_findindexbystring(obs->products, section->product);
         assert(o->product >= 0);
-        o->type = obstype_getid(obs->nobstypes, obs->obstypes, meta->type, 1);
+        o->type = obstype_getid(obs->nobstypes, obs->obstypes, section->type, 1);
         o->instrument = st_add_ifabsent(obs->instruments, "AVHRR", -1);
         o->id = obs->nobs;
         o->id_orig = i;

@@ -30,12 +30,12 @@ typedef struct {
     int op;
     void* data;                 /* double[1] or char* */
     char* varname;              /* only needed if data = char* */
-} metastd;
+} std_entry;
 
 typedef struct {
     char* name;
     char* value;
-} metapar;
+} par_entry;
 
 typedef struct {
     int id;
@@ -49,16 +49,16 @@ typedef struct {
      * variables for specifying observation error
      */
     int nestds;
-    metastd* estds;
+    std_entry* estds;
     /*
      * extra parameters
      */
     int npars;
-    metapar* pars;
-} obsmeta;
+    par_entry* pars;
+} obssection;
 
-void obsprm_read(char fname[], int* nmeta, obsmeta** meta, int* nexclude, obsregion** exclude);
-void obsprm_destroy(int nmeta, obsmeta meta[], int nexclude, obsregion* exclude);
+void obsprm_read(char fname[], int* nsection, obssection** sections, int* nexclude, obsregion** exclude);
+void obsprm_destroy(int nsection, obssection sections[], int nexclude, obsregion* exclude);
 void obsprm_describeprm(void);
 
 #define _OBSPRM_H

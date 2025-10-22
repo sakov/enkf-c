@@ -11,6 +11,9 @@
  *
  * Revisions:  
  *
+ * Note: this reader is outdated and no longer used operationally. Use generic
+ * readers (e.g. gridded_xy) instead.
+ *
  *****************************************************************************/
 
 #include <stdlib.h>
@@ -38,7 +41,7 @@
 
 /**
  */
-void reader_amsre(char* fname, int fid, obsmeta* meta, grid* g, observations* obs)
+void reader_amsre(char* fname, int fid, obssection* section, grid* g, observations* obs)
 {
     int ksurf = grid_getsurflayerid(g);
     double minwind = MINWIND_DEF;
@@ -63,21 +66,21 @@ void reader_amsre(char* fname, int fid, obsmeta* meta, grid* g, observations* ob
     int i, j, nobs_read;
     int channel;
 
-    for (i = 0; i < meta->npars; ++i) {
-        if (strcasecmp(meta->pars[i].name, "MINWIND") == 0) {
-            if (!str2double(meta->pars[i].value, &minwind))
-                enkf_quit("%s: can not convert MINWIND = \"%s\" to double\n", meta->prmfname, meta->pars[i].value);
-        } else if (strcasecmp(meta->pars[i].name, "ORBITS") == 0) {
-            if (strcasecmp(meta->pars[i].value, "ALL") == 0)
+    for (i = 0; i < section->npars; ++i) {
+        if (strcasecmp(section->pars[i].name, "MINWIND") == 0) {
+            if (!str2double(section->pars[i].value, &minwind))
+                enkf_quit("%s: can not convert MINWIND = \"%s\" to double\n", section->prmfname, section->pars[i].value);
+        } else if (strcasecmp(section->pars[i].name, "ORBITS") == 0) {
+            if (strcasecmp(section->pars[i].value, "ALL") == 0)
                 orbits = ORBITS_ALL;
-            else if (strcasecmp(meta->pars[i].value, "DESCENDING") == 0)
+            else if (strcasecmp(section->pars[i].value, "DESCENDING") == 0)
                 orbits = ORBITS_DESCENDING;
-            else if (strcasecmp(meta->pars[i].value, "ASCENDING") == 0)
+            else if (strcasecmp(section->pars[i].value, "ASCENDING") == 0)
                 orbits = ORBITS_ASCENDING;
             else
-                enkf_quit("%s: parameter \"ORBITS\": value \"%s\" not understood: expected either \"ALL\", \"DESCENDING\", or \"ASCENDING\"\n", meta->prmfname, meta->pars[i].value);
+                enkf_quit("%s: parameter \"ORBITS\": value \"%s\" not understood: expected either \"ALL\", \"DESCENDING\", or \"ASCENDING\"\n", section->prmfname, section->pars[i].value);
         } else
-            enkf_quit("unknown PARAMETER \"%s\"\n", meta->pars[i].name);
+            enkf_quit("unknown PARAMETER \"%s\"\n", section->pars[i].name);
     }
     enkf_printf("        MINWIND = %.0f\n", minwind);
     enkf_printf("        ORBITS = ");
@@ -175,9 +178,9 @@ void reader_amsre(char* fname, int fid, obsmeta* meta, grid* g, observations* ob
                 obs_checkalloc(obs);
                 o = &obs->data[obs->nobs];
 
-                o->product = st_findindexbystring(obs->products, meta->product);
+                o->product = st_findindexbystring(obs->products, section->product);
                 assert(o->product >= 0);
-                o->type = obstype_getid(obs->nobstypes, obs->obstypes, meta->type, 1);
+                o->type = obstype_getid(obs->nobstypes, obs->obstypes, section->type, 1);
                 o->instrument = st_add_ifabsent(obs->instruments, "AMSRE", -1);
                 o->id = obs->nobs;
                 o->id_orig = id;

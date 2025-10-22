@@ -1,4 +1,7 @@
 v2.39.0
+   PS 22102025
+   -- (cosmetic) Changes names of some structures and variables in PREP.
+v2.39.0
    PS 21102025
    -- Moved specification of location based observation thinning to observation
       data parameter file. The specified thinning type applies to all

@@ -86,18 +86,18 @@ static void describe_readers(void)
 
 /**
  */
-obsread_fn get_obsreadfn(obsmeta* m)
+obsread_fn get_obsreadfn(obssection* section)
 {
     int nreaders = sizeof(allreaders) / sizeof(obsreader_entry);
     int i;
 
     for (i = 0; i < nreaders; ++i)
-        if ((strcmp(allreaders[i].product, "ANY") == 0 || strcasecmp(m->product, allreaders[i].product) == 0) && strcmp(m->reader, allreaders[i].reader) == 0)
+        if ((strcmp(allreaders[i].product, "ANY") == 0 || strcasecmp(section->product, allreaders[i].product) == 0) && strcmp(section->reader, allreaders[i].reader) == 0)
             return allreaders[i].readfn;
 
-    enkf_printf("\n\n  ERROR: no observation reader \"%s\" for product \"%s\"\n\n", m->reader, m->product);
+    enkf_printf("\n\n  ERROR: no observation reader \"%s\" for product \"%s\"\n\n", section->reader, section->product);
     describe_readers();
-    enkf_quit("bailing out", m->product);
+    enkf_quit("bailing out", section->product);
     return NULL;
 }
 

@@ -54,9 +54,9 @@ static int obs_badob(observations* obs, int i)
 
 /**
  */
-static void readobs(obsmeta* meta, model* m, obsread_fn reader, observations* obs)
+static void readobs(obssection* section, model* m, obsread_fn reader, observations* obs)
 {
-    int otid = obstype_getid(obs->nobstypes, obs->obstypes, meta->type, 1);
+    int otid = obstype_getid(obs->nobstypes, obs->obstypes, section->type, 1);
     obstype* ot = &obs->obstypes[otid];
     grid* g = model_getgridbyid(m, ot->gridid);
     int nfiles;
@@ -64,18 +64,18 @@ static void readobs(obsmeta* meta, model* m, obsread_fn reader, observations* ob
     int i;
 
     nfiles = 0;
-    get_obsfiles(meta, &nfiles, &fnames);
+    get_obsfiles(section, &nfiles, &fnames);
     for (i = 0; i < nfiles; ++i) {
         int nobs0 = obs->nobs;
         int fid, j;
 
         enkf_printf("      reading %s:\n", fnames[i]);
         fid = st_add_ifabsent(obs->datafiles, fnames[i], -1);
-        reader(fnames[i], fid, meta, g, obs);
+        reader(fnames[i], fid, section, g, obs);
 
         enkf_printf("        # obs added = %d\n", obs->nobs - nobs0);
         for (j = nobs0; j < obs->nobs; ++j)
-            obs->data[j].section = meta->id;
+            obs->data[j].section = section->id;
         enkf_flush();
         free(fnames[i]);
     }
@@ -86,10 +86,10 @@ static void readobs(obsmeta* meta, model* m, obsread_fn reader, observations* ob
  *  This procedure contains generic/common operations done after reading the
  *  data.
  */
-void obs_add(observations* obs, model* m, obsmeta* meta, int nexclude, obsregion* exclude)
+void obs_add(observations* obs, model* m, obssection* section, int nexclude, obsregion* exclude)
 {
     int nobs0 = obs->nobs;
-    int otid = obstype_getid(obs->nobstypes, obs->obstypes, meta->type, 1);
+    int otid = obstype_getid(obs->nobstypes, obs->obstypes, section->type, 1);
     obstype* ot = &obs->obstypes[otid];
     int applylog = model_getvarislog(m, model_getvarid(m, ot->varnames[0], 1));
 
@@ -108,131 +108,131 @@ void obs_add(observations* obs, model* m, obsmeta* meta, int nexclude, obsregion
     obsread_fn reader;
     int i, ngood, npars;
 
-    enkf_printf("    PRODUCT = %s, TYPE = %s, reader = %s\n", meta->product, meta->type, meta->reader);
-    st_add_ifabsent(obs->products, meta->product, -1);
+    enkf_printf("    PRODUCT = %s, TYPE = %s, reader = %s\n", section->product, section->type, section->reader);
+    st_add_ifabsent(obs->products, section->product, -1);
 
     /*
      * search for and take notice of parameters common for all readers, and
      * remove them from the parameter list
      */
-    for (i = 0; i < meta->npars; ++i) {
-        if (strcasecmp(meta->pars[i].name, "MINDEPTH") == 0) {
-            if (!str2double(meta->pars[i].value, &mindepth))
-                enkf_quit("observation prm file: can not convert MINDEPTH = \"%s\" to double\n", meta->pars[i].value);
+    for (i = 0; i < section->npars; ++i) {
+        if (strcasecmp(section->pars[i].name, "MINDEPTH") == 0) {
+            if (!str2double(section->pars[i].value, &mindepth))
+                enkf_quit("observation prm file: can not convert MINDEPTH = \"%s\" to double\n", section->pars[i].value);
             else {
-                free(meta->pars[i].name);
-                free(meta->pars[i].value);
-                meta->pars[i].name = NULL;
-                meta->pars[i].value = NULL;
+                free(section->pars[i].name);
+                free(section->pars[i].value);
+                section->pars[i].name = NULL;
+                section->pars[i].value = NULL;
             }
-        } else if (strcasecmp(meta->pars[i].name, "MAXDEPTH") == 0) {
-            if (!str2double(meta->pars[i].value, &maxdepth))
-                enkf_quit("observation prm file: can not convert MAXDEPTH = \"%s\" to double\n", meta->pars[i].value);
+        } else if (strcasecmp(section->pars[i].name, "MAXDEPTH") == 0) {
+            if (!str2double(section->pars[i].value, &maxdepth))
+                enkf_quit("observation prm file: can not convert MAXDEPTH = \"%s\" to double\n", section->pars[i].value);
             else {
-                free(meta->pars[i].name);
-                free(meta->pars[i].value);
-                meta->pars[i].name = NULL;
-                meta->pars[i].value = NULL;
+                free(section->pars[i].name);
+                free(section->pars[i].value);
+                section->pars[i].name = NULL;
+                section->pars[i].value = NULL;
             }
-        } else if (strcasecmp(meta->pars[i].name, "ZMIN") == 0 || strcasecmp(meta->pars[i].name, "MINDEPTH") == 0) {
-            if (!str2double(meta->pars[i].value, &zmin))
-                enkf_quit("observation prm file: can not convert ZMIN = \"%s\" to double\n", meta->pars[i].value);
+        } else if (strcasecmp(section->pars[i].name, "ZMIN") == 0 || strcasecmp(section->pars[i].name, "MINDEPTH") == 0) {
+            if (!str2double(section->pars[i].value, &zmin))
+                enkf_quit("observation prm file: can not convert ZMIN = \"%s\" to double\n", section->pars[i].value);
             else {
-                free(meta->pars[i].name);
-                free(meta->pars[i].value);
-                meta->pars[i].name = NULL;
-                meta->pars[i].value = NULL;
+                free(section->pars[i].name);
+                free(section->pars[i].value);
+                section->pars[i].name = NULL;
+                section->pars[i].value = NULL;
             }
-        } else if (strcasecmp(meta->pars[i].name, "ZMAX") == 0 || strcasecmp(meta->pars[i].name, "MAXDEPTH") == 0) {
-            if (!str2double(meta->pars[i].value, &zmax))
-                enkf_quit("observation prm file: can not convert ZMAX = \"%s\" to double\n", meta->pars[i].value);
+        } else if (strcasecmp(section->pars[i].name, "ZMAX") == 0 || strcasecmp(section->pars[i].name, "MAXDEPTH") == 0) {
+            if (!str2double(section->pars[i].value, &zmax))
+                enkf_quit("observation prm file: can not convert ZMAX = \"%s\" to double\n", section->pars[i].value);
             else {
-                free(meta->pars[i].name);
-                free(meta->pars[i].value);
-                meta->pars[i].name = NULL;
-                meta->pars[i].value = NULL;
+                free(section->pars[i].name);
+                free(section->pars[i].value);
+                section->pars[i].name = NULL;
+                section->pars[i].value = NULL;
             }
-        } else if (strcasecmp(meta->pars[i].name, "YMIN") == 0) {
-            if (!str2double(meta->pars[i].value, &ymin))
-                enkf_quit("observation prm file: can not convert YMIN = \"%s\" to double\n", meta->pars[i].value);
+        } else if (strcasecmp(section->pars[i].name, "YMIN") == 0) {
+            if (!str2double(section->pars[i].value, &ymin))
+                enkf_quit("observation prm file: can not convert YMIN = \"%s\" to double\n", section->pars[i].value);
             else {
-                free(meta->pars[i].name);
-                free(meta->pars[i].value);
-                meta->pars[i].name = NULL;
-                meta->pars[i].value = NULL;
+                free(section->pars[i].name);
+                free(section->pars[i].value);
+                section->pars[i].name = NULL;
+                section->pars[i].value = NULL;
             }
-        } else if (strcasecmp(meta->pars[i].name, "YMAX") == 0) {
-            if (!str2double(meta->pars[i].value, &ymax))
-                enkf_quit("observation prm file: can not convert YMAX = \"%s\" to double\n", meta->pars[i].value);
+        } else if (strcasecmp(section->pars[i].name, "YMAX") == 0) {
+            if (!str2double(section->pars[i].value, &ymax))
+                enkf_quit("observation prm file: can not convert YMAX = \"%s\" to double\n", section->pars[i].value);
             else {
-                free(meta->pars[i].name);
-                free(meta->pars[i].value);
-                meta->pars[i].name = NULL;
-                meta->pars[i].value = NULL;
+                free(section->pars[i].name);
+                free(section->pars[i].value);
+                section->pars[i].name = NULL;
+                section->pars[i].value = NULL;
             }
-        } else if (strcasecmp(meta->pars[i].name, "FOOTPRINT") == 0) {
-            if (!str2double(meta->pars[i].value, &footprint))
-                enkf_quit("observation prm file: can not convert FOOTPRINT = \"%s\" to double\n", meta->pars[i].value);
+        } else if (strcasecmp(section->pars[i].name, "FOOTPRINT") == 0) {
+            if (!str2double(section->pars[i].value, &footprint))
+                enkf_quit("observation prm file: can not convert FOOTPRINT = \"%s\" to double\n", section->pars[i].value);
             else {
-                free(meta->pars[i].name);
-                free(meta->pars[i].value);
-                meta->pars[i].name = NULL;
-                meta->pars[i].value = NULL;
+                free(section->pars[i].name);
+                free(section->pars[i].value);
+                section->pars[i].name = NULL;
+                section->pars[i].value = NULL;
             }
-        } else if (strcasecmp(meta->pars[i].name, "VARSHIFT") == 0) {
-            if (!str2double(meta->pars[i].value, &varshift))
-                enkf_quit("observation prm file: can not convert VARSHIFT = \"%s\" to double\n", meta->pars[i].value);
+        } else if (strcasecmp(section->pars[i].name, "VARSHIFT") == 0) {
+            if (!str2double(section->pars[i].value, &varshift))
+                enkf_quit("observation prm file: can not convert VARSHIFT = \"%s\" to double\n", section->pars[i].value);
             else {
-                free(meta->pars[i].name);
-                free(meta->pars[i].value);
-                meta->pars[i].name = NULL;
-                meta->pars[i].value = NULL;
+                free(section->pars[i].name);
+                free(section->pars[i].value);
+                section->pars[i].name = NULL;
+                section->pars[i].value = NULL;
             }
-        } else if (strcasecmp(meta->pars[i].name, "VARSCALE") == 0) {
-            if (!str2double(meta->pars[i].value, &varscale))
-                enkf_quit("observation prm file: can not convert VARSCALE = \"%s\" to double\n", meta->pars[i].value);
+        } else if (strcasecmp(section->pars[i].name, "VARSCALE") == 0) {
+            if (!str2double(section->pars[i].value, &varscale))
+                enkf_quit("observation prm file: can not convert VARSCALE = \"%s\" to double\n", section->pars[i].value);
             else {
-                free(meta->pars[i].name);
-                free(meta->pars[i].value);
-                meta->pars[i].name = NULL;
-                meta->pars[i].value = NULL;
+                free(section->pars[i].name);
+                free(section->pars[i].value);
+                section->pars[i].name = NULL;
+                section->pars[i].value = NULL;
             }
-        } else if (strcasecmp(meta->pars[i].name, "STRIDE") == 0) {
-            if (!str2int(meta->pars[i].value, &stride))
-                enkf_quit("observation prm file: can not convert STRIDE = \"%s\" to double\n", meta->pars[i].value);
+        } else if (strcasecmp(section->pars[i].name, "STRIDE") == 0) {
+            if (!str2int(section->pars[i].value, &stride))
+                enkf_quit("observation prm file: can not convert STRIDE = \"%s\" to double\n", section->pars[i].value);
             else {
-                free(meta->pars[i].name);
-                free(meta->pars[i].value);
-                meta->pars[i].name = NULL;
-                meta->pars[i].value = NULL;
+                free(section->pars[i].name);
+                free(section->pars[i].value);
+                section->pars[i].name = NULL;
+                section->pars[i].value = NULL;
             }
         }
         /*
          * for historic compatibility; now use "STRIDE" instead of "THIN"
          */
-        else if (strcasecmp(meta->pars[i].name, "THIN") == 0) {
-            if (!str2int(meta->pars[i].value, &stride))
-                enkf_quit("observation prm file: can not convert THIN = \"%s\" to double\n", meta->pars[i].value);
+        else if (strcasecmp(section->pars[i].name, "THIN") == 0) {
+            if (!str2int(section->pars[i].value, &stride))
+                enkf_quit("observation prm file: can not convert THIN = \"%s\" to double\n", section->pars[i].value);
             else {
-                free(meta->pars[i].name);
-                free(meta->pars[i].value);
-                meta->pars[i].name = NULL;
-                meta->pars[i].value = NULL;
+                free(section->pars[i].name);
+                free(section->pars[i].value);
+                section->pars[i].name = NULL;
+                section->pars[i].value = NULL;
             }
-        } else if (strcasecmp(meta->pars[i].name, "LOCATION_BASED_THINNING_TYPE") == 0) {
-            if (strcasecmp(meta->pars[i].value, "XY") == 0)
-                obs->location_based_thinning_type[meta->id] = LOCATIONTHINNINGTYPE_XY;
-            else if (strcasecmp(meta->pars[i].value, "XYZ") == 0)
-                obs->location_based_thinning_type[meta->id] = LOCATIONTHINNINGTYPE_XYZ;
-            else if (strcasecmp(meta->pars[i].value, "CELL") == 0)
-                obs->location_based_thinning_type[meta->id] = LOCATIONTHINNINGTYPE_CELL;
+        } else if (strcasecmp(section->pars[i].name, "LOCATION_BASED_THINNING_TYPE") == 0) {
+            if (strcasecmp(section->pars[i].value, "XY") == 0)
+                obs->location_based_thinning_type[section->id] = LOCATIONTHINNINGTYPE_XY;
+            else if (strcasecmp(section->pars[i].value, "XYZ") == 0)
+                obs->location_based_thinning_type[section->id] = LOCATIONTHINNINGTYPE_XYZ;
+            else if (strcasecmp(section->pars[i].value, "CELL") == 0)
+                obs->location_based_thinning_type[section->id] = LOCATIONTHINNINGTYPE_CELL;
             else {
                 int value;
 
-                if (str2bool(meta->pars[i].value, &value) && value == 0)
-                    obs->location_based_thinning_type[meta->id] = LOCATIONTHINNINGTYPE_NIL;
+                if (str2bool(section->pars[i].value, &value) && value == 0)
+                    obs->location_based_thinning_type[section->id] = LOCATIONTHINNINGTYPE_NIL;
                 else
-                    enkf_quit("reader_scattered(): LOCATION_BASED_THINNING_TYPE: unknown thinning type \"%s\"", meta->pars[i].value);
+                    enkf_quit("reader_scattered(): LOCATION_BASED_THINNING_TYPE: unknown thinning type \"%s\"", section->pars[i].value);
             }
         }
     }
@@ -240,17 +240,17 @@ void obs_add(observations* obs, model* m, obsmeta* meta, int nexclude, obsregion
      * compact parameters
      */
     npars = 0;
-    for (i = 0; i < meta->npars; ++i) {
-        if (meta->pars[i].name != NULL) {
-            meta->pars[npars].name = meta->pars[i].name;
-            meta->pars[npars].value = meta->pars[i].value;
+    for (i = 0; i < section->npars; ++i) {
+        if (section->pars[i].name != NULL) {
+            section->pars[npars].name = section->pars[i].name;
+            section->pars[npars].value = section->pars[i].value;
             npars++;
         }
     }
-    meta->npars = npars;
+    section->npars = npars;
 
-    reader = get_obsreadfn(meta);
-    readobs(meta, m, reader, obs);      /* add the data to obs */
+    reader = get_obsreadfn(section);
+    readobs(section, m, reader, obs);      /* add the data to obs */
 
     {
         double lonbase = grid_getlonbase(g);
@@ -267,7 +267,7 @@ void obs_add(observations* obs, model* m, obsmeta* meta, int nexclude, obsregion
         }
     }
 
-    enkf_printf("      section summary:\n", meta->product, meta->type, meta->reader);
+    enkf_printf("      section summary:\n", section->product, section->type, section->reader);
 
     /*
      * common checks
@@ -462,17 +462,17 @@ void obs_add(observations* obs, model* m, obsmeta* meta, int nexclude, obsregion
         }
     }
 
-    if (obs->nobs - nobs0 > 0 && applylog && meta->nestds == 0)
+    if (obs->nobs - nobs0 > 0 && applylog && section->nestds == 0)
         enkf_quit("%s: observation error must be specified explicitly for observations of type associated with log-transformed model variables", ot->name);
 
     /*
      * add specified errors 
      */
-    if (obs->nobs - nobs0 > 0 && meta->nestds > 0) {
+    if (obs->nobs - nobs0 > 0 && section->nestds > 0) {
         int o;
 
-        for (i = 0; i < meta->nestds; ++i) {
-            metastd* estd = &meta->estds[i];
+        for (i = 0; i < section->nestds; ++i) {
+            std_entry* estd = &section->estds[i];
 
             if (estd->type == STDTYPE_VALUE) {
                 double v = ((double*) estd->data)[0];
@@ -637,12 +637,12 @@ int obs_checkforland(observations* obs, model* m)
 
 /**
  */
-void get_obsfiles(obsmeta* meta, int* nfiles, char*** fnames)
+void get_obsfiles(obssection* section, int* nfiles, char*** fnames)
 {
     int i;
 
-    for (i = 0; i < meta->nfiles; ++i)
-        find_files(meta->fnames[i], nfiles, fnames);
+    for (i = 0; i < section->nfiles; ++i)
+        find_files(section->fnames[i], nfiles, fnames);
 }
 
 /**
@@ -808,12 +808,12 @@ static double tunits2days(char* tunits)
 
 /** Reads observation time. Can handle compound time represented as sum of
  ** a base time (of size 1) and offset time.
- * @param meta - meta data for the block of observations
+ * @param section - section data for the block of observations
  * @param ncid - input data file
  * @param size - output: length of the time vector
  * @param time - output: time vector
  */
-void get_time(obsmeta* meta, int ncid, size_t* size, double** time)
+void get_time(obssection* section, int ncid, size_t* size, double** time)
 {
     char* timenames[2] = { NULL, NULL };
     int varids[2] = { -1, -1 };
@@ -821,16 +821,16 @@ void get_time(obsmeta* meta, int ncid, size_t* size, double** time)
     double tunits_multiple = NAN, tunits_offset = 0.0;
     int i;
 
-    for (i = 0; i < meta->npars; ++i) {
-        if (strcasecmp(meta->pars[i].name, "TIMENAME") == 0)
-            timenames[0] = strdup(meta->pars[i].value);
-        else if (strcasecmp(meta->pars[i].name, "TIMENAMES") == 0) {
+    for (i = 0; i < section->npars; ++i) {
+        if (strcasecmp(section->pars[i].name, "TIMENAME") == 0)
+            timenames[0] = strdup(section->pars[i].value);
+        else if (strcasecmp(section->pars[i].name, "TIMENAMES") == 0) {
             char seps[] = " ,";
             char* token;
 
-            token = strtok(meta->pars[i].value, seps);
+            token = strtok(section->pars[i].value, seps);
             if (token == NULL)
-                enkf_quit("%s: no entries found after TIMENAMES", meta->prmfname);
+                enkf_quit("%s: no entries found after TIMENAMES", section->prmfname);
             timenames[0] = strdup(token);
             token = strtok(NULL, seps);
             if (token != NULL)
@@ -919,7 +919,7 @@ int get_insttag(int ncid, char* varname, char* insttag)
 
 /**
  */
-void get_qcflags(obsmeta* meta, int* nqcflagvars, char*** qcflagvarnames, uint32_t** qcflagmasks)
+void get_qcflags(obssection* section, int* nqcflagvars, char*** qcflagvarnames, uint32_t** qcflagmasks)
 {
     int i;
 
@@ -927,27 +927,27 @@ void get_qcflags(obsmeta* meta, int* nqcflagvars, char*** qcflagvarnames, uint32
     assert(*qcflagvarnames == NULL);
     assert(*qcflagmasks == NULL);
 
-    for (i = 0; i < meta->npars; ++i) {
-        if (strcasecmp(meta->pars[i].name, "QCFLAGVARNAME") == 0 || strcasecmp(meta->pars[i].name, "QCFLAGNAME") == 0) {
+    for (i = 0; i < section->npars; ++i) {
+        if (strcasecmp(section->pars[i].name, "QCFLAGVARNAME") == 0 || strcasecmp(section->pars[i].name, "QCFLAGNAME") == 0) {
             if (*nqcflagvars % NINC == 0)
                 *qcflagvarnames = realloc(*qcflagvarnames, (*nqcflagvars + NINC) * sizeof(char*));
-            (*qcflagvarnames)[*nqcflagvars] = meta->pars[i].value;
+            (*qcflagvarnames)[*nqcflagvars] = section->pars[i].value;
 
             /*
              * make sure that the entry "QCFLAGVARNAME" or "QCFLAGNAME" is
              * followed by "QCFLAGVALS"
              */
-            if (meta->npars == i + 1 || strcasecmp(meta->pars[i + 1].name, "QCFLAGVALS") != 0)
-                enkf_quit("%s: parameter \"%s\" must be followed by parameter \"QCFLAGVALS\"\n", meta->prmfname, meta->pars[i].name);
-        } else if (strcasecmp(meta->pars[i].name, "QCFLAGVALS") == 0) {
+            if (section->npars == i + 1 || strcasecmp(section->pars[i + 1].name, "QCFLAGVALS") != 0)
+                enkf_quit("%s: parameter \"%s\" must be followed by parameter \"QCFLAGVALS\"\n", section->prmfname, section->pars[i].name);
+        } else if (strcasecmp(section->pars[i].name, "QCFLAGVALS") == 0) {
             char seps[] = " ,";
-            char* line = meta->pars[i].value;
+            char* line = section->pars[i].value;
             char* token;
             int val;
             int ii;
 
-            if (i == 0 || (strcasecmp(meta->pars[i - 1].name, "QCFLAGVARNAME") != 0 && strcasecmp(meta->pars[i - 1].name, "QCFLAGNAME") != 0))
-                enkf_quit("%s: parameter \"QCFLAGVALS\" must be preceeded by parameter \"QCFLAGVARNAME\"\n", meta->prmfname);
+            if (i == 0 || (strcasecmp(section->pars[i - 1].name, "QCFLAGVARNAME") != 0 && strcasecmp(section->pars[i - 1].name, "QCFLAGNAME") != 0))
+                enkf_quit("%s: parameter \"QCFLAGVALS\" must be preceeded by parameter \"QCFLAGVARNAME\"\n", section->prmfname);
 
             if (*nqcflagvars % NINC == 0)
                 *qcflagmasks = realloc(*qcflagmasks, (*nqcflagvars + NINC) * sizeof(uint32_t));
@@ -955,14 +955,14 @@ void get_qcflags(obsmeta* meta, int* nqcflagvars, char*** qcflagvarnames, uint32
             (*qcflagmasks)[*nqcflagvars] = 0;
             while ((token = strtok(line, seps)) != NULL) {
                 if (!str2int(token, &val))
-                    enkf_quit("%s: could not convert QCFLAGVALS entry \"%s\" to integer", meta->prmfname, token);
+                    enkf_quit("%s: could not convert QCFLAGVALS entry \"%s\" to integer", section->prmfname, token);
                 if (val < 0 || val > 31)
-                    enkf_quit("%s: QCFLAGVALS entry = %d (supposed to be in [0,31] interval", meta->prmfname, val);
+                    enkf_quit("%s: QCFLAGVALS entry = %d (supposed to be in [0,31] interval", section->prmfname, val);
                 (*qcflagmasks)[*nqcflagvars] |= 1 << val;
                 line = NULL;
             }
             if ((*qcflagmasks)[*nqcflagvars] == 0)
-                enkf_quit("%s: no valid flag entries found after QCFLAGVALS\n", meta->prmfname);
+                enkf_quit("%s: no valid flag entries found after QCFLAGVALS\n", section->prmfname);
             enkf_printf("        QCFLAGVARNAME = %s\n", (*qcflagvarnames)[*nqcflagvars]);
             enkf_printf("        QCFLAG values used =");
             for (ii = 0; ii <= QCFLAGVALMAX; ++ii)

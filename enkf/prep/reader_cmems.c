@@ -130,7 +130,7 @@ static int datamissing(double* v, int n)
 
 /**
  */
-void reader_cmems(char* fname, int fid, obsmeta* meta, grid* g, observations* obs)
+void reader_cmems(char* fname, int fid, obssection* section, grid* g, observations* obs)
 {
     stringtable* st_exclude = NULL;
     int ncid, varid;
@@ -155,38 +155,38 @@ void reader_cmems(char* fname, int fid, obsmeta* meta, grid* g, observations* ob
     int npexcluded;
     int p, i, nobs_read, id, nprof_adj, nprof_nonadj;
 
-    for (i = 0; i < meta->npars; ++i) {
-        if (strcasecmp(meta->pars[i].name, "EXCLUDEINST") == 0) {
+    for (i = 0; i < section->npars; ++i) {
+        if (strcasecmp(section->pars[i].name, "EXCLUDEINST") == 0) {
             if (st_exclude == NULL)
                 st_exclude = st_create("exclude");
-            st_add(st_exclude, meta->pars[i].value, -1);
-        } else if (strcasecmp(meta->pars[i].name, "QCFLAGVALS") == 0) {
+            st_add(st_exclude, section->pars[i].value, -1);
+        } else if (strcasecmp(section->pars[i].name, "QCFLAGVALS") == 0) {
             char seps[] = " ,";
-            char* line = strdup(meta->pars[i].value);
+            char* line = strdup(section->pars[i].value);
             char* token;
             int val;
 
-            assert(meta->pars[i].value != NULL);        /* (supposed to be
+            assert(section->pars[i].value != NULL);        /* (supposed to be
                                                          * impossible) */
             qcflagvals = 0;
             while ((token = strtok(line, seps)) != NULL) {
                 if (!str2int(token, &val))
-                    enkf_quit("%s: could not convert QCFLAGVALS entry \"%s\" to integer", meta->prmfname, token);
+                    enkf_quit("%s: could not convert QCFLAGVALS entry \"%s\" to integer", section->prmfname, token);
                 if (val < 0 || val > QCFLAGVALMAX)
-                    enkf_quit("%s: QCFLAGVALS entry = %d (supposed to be in [0,%d] interval", meta->prmfname, val, QCFLAGVALMAX);
+                    enkf_quit("%s: QCFLAGVALS entry = %d (supposed to be in [0,%d] interval", section->prmfname, val, QCFLAGVALMAX);
                 qcflagvals |= 1 << val;
                 line = NULL;
             }
             free(line);
             if (qcflagvals == 0)
-                enkf_quit("%s: no valid flag entries found after QCFLAGVALS\n", meta->prmfname);
+                enkf_quit("%s: no valid flag entries found after QCFLAGVALS\n", section->prmfname);
             enkf_printf("        QCFLAGS used =");
             for (i = 0; i <= QCFLAGVALMAX; ++i)
                 if (qcflagvals & (1 << i))
                     enkf_printf(" %d", i);
             enkf_printf("\n");
         } else
-            enkf_quit("unknown PARAMETER \"%s\"\n", meta->pars[i].name);
+            enkf_quit("unknown PARAMETER \"%s\"\n", section->pars[i].name);
     }
     if (st_exclude != NULL) {
         enkf_printf("        excluding instruments:");
@@ -194,8 +194,8 @@ void reader_cmems(char* fname, int fid, obsmeta* meta, grid* g, observations* ob
         enkf_printf("\n");
     }
 
-    if (meta->nestds == 0)
-        enkf_quit("ERROR_STD is necessary but not specified for product \"%s\"", meta->product);
+    if (section->nestds == 0)
+        enkf_quit("ERROR_STD is necessary but not specified for product \"%s\"", section->product);
 
     ncw_open(fname, NC_NOWRITE, &ncid);
 
@@ -269,7 +269,7 @@ void reader_cmems(char* fname, int fid, obsmeta* meta, grid* g, observations* ob
             }
     }
 
-    if (strncmp(meta->type, "TEM", 3) == 0) {
+    if (strncmp(section->type, "TEM", 3) == 0) {
         validmin = -2.0;
         validmax = 40.0;
         if (!allmissing(ncid, "TEMP_ADJUSTED")) {
@@ -293,7 +293,7 @@ void reader_cmems(char* fname, int fid, obsmeta* meta, grid* g, observations* ob
             ncw_close(ncid);
             goto nodata;
         }
-    } else if (strncmp(meta->type, "SAL", 3) == 0) {
+    } else if (strncmp(section->type, "SAL", 3) == 0) {
         validmin = 0;
         validmax = 50.0;
         if (!allmissing(ncid, "PSAL_ADJUSTED")) {
@@ -318,7 +318,7 @@ void reader_cmems(char* fname, int fid, obsmeta* meta, grid* g, observations* ob
             goto nodata;
         }
     } else
-        enkf_quit("observation type \"%s\" not handled for CMEMS product", meta->type);
+        enkf_quit("observation type \"%s\" not handled for CMEMS product", section->type);
 
     ncw_inq_varid(ncid, "JULD", &varid);
     ncw_get_att_text(ncid, varid, "units", buf);
@@ -395,9 +395,9 @@ void reader_cmems(char* fname, int fid, obsmeta* meta, grid* g, observations* ob
             obs_checkalloc(obs);
             o = &obs->data[obs->nobs];
 
-            o->product = st_findindexbystring(obs->products, meta->product);
+            o->product = st_findindexbystring(obs->products, section->product);
             assert(o->product >= 0);
-            o->type = obstype_getid(obs->nobstypes, obs->obstypes, meta->type, 1);
+            o->type = obstype_getid(obs->nobstypes, obs->obstypes, section->type, 1);
             o->instrument = st_add_ifabsent(obs->instruments, inststr, -1);
             o->id = obs->nobs;
             o->id_orig = id;

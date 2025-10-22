@@ -64,7 +64,7 @@ static int cmp_lonlat(const void* p1, const void* p2)
 
 /**
  */
-void reader_en4(char* fname, int fid, obsmeta* meta, grid* g, observations* obs)
+void reader_en4(char* fname, int fid, obssection* section, grid* g, observations* obs)
 {
     stringtable* st_exclude = NULL;
     int ncid, varid;
@@ -83,17 +83,17 @@ void reader_en4(char* fname, int fid, obsmeta* meta, grid* g, observations* obs)
     int npexcluded;
     int p, i, nobs_read, id;
 
-    for (i = 0; i < meta->npars; ++i) {
-        if (strcasecmp(meta->pars[i].name, "EXCLUDEINST") == 0) {
+    for (i = 0; i < section->npars; ++i) {
+        if (strcasecmp(section->pars[i].name, "EXCLUDEINST") == 0) {
             if (st_exclude == NULL)
                 st_exclude = st_create("exclude");
-            st_add(st_exclude, meta->pars[i].value, -1);
+            st_add(st_exclude, section->pars[i].value, -1);
         } else
-            enkf_quit("unknown PARAMETER \"%s\"\n", meta->pars[i].name);
+            enkf_quit("unknown PARAMETER \"%s\"\n", section->pars[i].name);
     }
 
-    if (meta->nestds == 0)
-        enkf_quit("ERROR_STD is necessary but not specified for product \"%s\"", meta->product);
+    if (section->nestds == 0)
+        enkf_quit("ERROR_STD is necessary but not specified for product \"%s\"", section->product);
 
     ncw_open(fname, NC_NOWRITE, &ncid);
 
@@ -124,12 +124,12 @@ void reader_en4(char* fname, int fid, obsmeta* meta, grid* g, observations* obs)
     z = alloc2d(nprof, nz, sizeof(double));
     ncu_readvardouble(ncid, varid, nprof * nz, z[0]);
 
-    if (strncmp(meta->type, "TEM", 3) == 0)
+    if (strncmp(section->type, "TEM", 3) == 0)
         ncw_inq_varid(ncid, "POTM_CORRECTED", &varid);
-    else if (strncmp(meta->type, "SAL", 3) == 0)
+    else if (strncmp(section->type, "SAL", 3) == 0)
         ncw_inq_varid(ncid, "PSAL_CORRECTED", &varid);
     else
-        enkf_quit("observation type \"%s\" not handled for EN4 product", meta->type);
+        enkf_quit("observation type \"%s\" not handled for EN4 product", section->type);
     v = alloc2d(nprof, nz, sizeof(double));
     ncu_readvardouble(ncid, varid, nprof * nz, v[0]);
 
@@ -140,9 +140,9 @@ void reader_en4(char* fname, int fid, obsmeta* meta, grid* g, observations* obs)
     tunits_convert(tunits, &tunits_multiple, &tunits_offset);
 
     varid = -1;
-    if (strncmp(meta->type, "TEM", 3) == 0)
+    if (strncmp(section->type, "TEM", 3) == 0)
         ncw_inq_varid(ncid, "POTM_CORRECTED_QC", &varid);
-    else if (strncmp(meta->type, "SAL", 3) == 0)
+    else if (strncmp(section->type, "SAL", 3) == 0)
         ncw_inq_varid(ncid, "PSAL_CORRECTED_QC", &varid);
     if (varid >= 0) {
         qc = alloc2d(nprof, nz, sizeof(char));
@@ -205,9 +205,9 @@ void reader_en4(char* fname, int fid, obsmeta* meta, grid* g, observations* obs)
             obs_checkalloc(obs);
             o = &obs->data[obs->nobs];
 
-            o->product = st_findindexbystring(obs->products, meta->product);
+            o->product = st_findindexbystring(obs->products, section->product);
             assert(o->product >= 0);
-            o->type = obstype_getid(obs->nobstypes, obs->obstypes, meta->type, 1);
+            o->type = obstype_getid(obs->nobstypes, obs->obstypes, section->type, 1);
             o->instrument = st_add_ifabsent(obs->instruments, inststr, -1);
             o->id = obs->nobs;
             o->id_orig = id;
