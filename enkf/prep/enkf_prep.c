@@ -84,8 +84,6 @@ static void usage(void)
     enkf_printf("  --no-superobing-across-batches\n");
     enkf_printf("  --no-thinning\n");
     enkf_printf("  --superob-across-instruments\n");
-    enkf_printf("  --thin-vertically\n");
-    enkf_printf("      allow thinning of obs with different depth\n");
     enkf_printf("  --write-orig-obs\n");
     enkf_printf("      write original obs within model domain to %s\n", FNAME_OBS);
     enkf_printf("  --write-all-orig-obs\n");

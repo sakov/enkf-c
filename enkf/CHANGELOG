@@ -1,4 +1,7 @@
-v2.39.0
+v2.39.2
+   PS 23102025
+   -- Elimiated redundant option "--thin-vertically" from the PREP usage.
+v2.39.1
    PS 22102025
    -- (cosmetic) Changes names of some structures and variables in PREP.
 v2.39.0
