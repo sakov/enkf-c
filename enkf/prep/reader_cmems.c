@@ -166,7 +166,7 @@ void reader_cmems(char* fname, int fid, obssection* section, grid* g, observatio
             char* token;
             int val;
 
-            assert(section->pars[i].value != NULL);        /* (supposed to be
+            assert(section->pars[i].value != NULL);     /* (supposed to be *
                                                          * impossible) */
             qcflagvals = 0;
             while ((token = strtok(line, seps)) != NULL) {

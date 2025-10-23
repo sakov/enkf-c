@@ -304,6 +304,6 @@ produced in-house by BoM.\n\
 \n\
   Parameters specific to the reader:\n\
     - EXCLUDEINST (-)\n\
-        instrument in format \"WMO*\" to be skipped\n");
+        tag of the instrument to be skipped in format \"WMO*\" (can be repeated)\n");
     describe_commonreaderparams();
 }

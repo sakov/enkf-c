@@ -250,7 +250,7 @@ void obs_add(observations* obs, model* m, obssection* section, int nexclude, obs
     section->npars = npars;
 
     reader = get_obsreadfn(section);
-    readobs(section, m, reader, obs);      /* add the data to obs */
+    readobs(section, m, reader, obs);   /* add the data to obs */
 
     {
         double lonbase = grid_getlonbase(g);
@@ -878,7 +878,8 @@ static char* INSTNAMES[] = { "instrument",
     "PLATFORM"
 };
 
-/**
+/** Try getting the instrument tag from a number of default attributes, first
+ ** for the specified variable (if not NULL), and then global
  */
 int get_insttag(int ncid, char* varname, char* insttag)
 {

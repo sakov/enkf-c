@@ -1,3 +1,9 @@
+v2.39.3
+   PS 24102025
+   -- Fixed a few minor things for reader "z". This includes specifying
+      BATCHNAME for the sake of consistency with other generic readers. By
+      default the observation batch ID is set to the profile ID in the file,
+      which normally does the job.
 v2.39.2
    PS 23102025
    -- Elimiated redundant option "--thin-vertically" from the PREP usage.
