@@ -113,9 +113,8 @@ void ncu_readfield(char fname[], char varname[], int r, int k, int ni, int nj, i
     ncw_inq_varid(ncid, varname, &varid);
     ncw_inq_vardims(ncid, varid, 4, &ndims, dimlen);
     hasrecorddim = ncw_var_hasunlimdim(ncid, varid);
-    if (hasrecorddim)
-        if (dimlen[0] == 0)
-            quit("ncu_readfield(): \"%s\": %s: empty record dimension", fname, varname);
+    if (hasrecorddim && dimlen[0] == 0)
+        quit("ncu_readfield(): \"%s\": %s: empty record dimension", fname, varname);
 
     if (ndims == 4) {
         if (r < 0) {
@@ -876,7 +875,7 @@ void ncu_writerow(char fname[], char varname[], int k, int j, int ni, int nj, in
 
 /**
  */
-void ncu_read3dfield(char* fname, char* varname, int ni, int nj, int nk, float* v)
+void ncu_read3dfield(char* fname, char* varname, int r, int ni, int nj, int nk, float* v)
 {
     int ncid;
     int varid;
@@ -890,21 +889,20 @@ void ncu_read3dfield(char* fname, char* varname, int ni, int nj, int nk, float* 
     ncw_inq_varid(ncid, varname, &varid);
     ncw_inq_vardims(ncid, varid, 4, &ndims, dimlen);
     hasrecorddim = ncw_var_hasunlimdim(ncid, varid);
-    if (hasrecorddim) {
-        if (dimlen[0] == 0)
-            quit("ncu_read3dfield(): %s: %s: empty record dimension", fname, varname);
-        if (dimlen[0] > 1)
-            quit("ncu_read3dfield(): %s: %s:  not supposed to have multiple records", fname, varname);
-    }
+    if (hasrecorddim && dimlen[0] == 0)
+        quit("ncu_read3dfield(): %s: %s: empty record dimension", fname, varname);
 
     if (ndims == 4) {
-        if (!hasrecorddim && dimlen[0] != 1)
-            quit("ncu_read3dfield(): %s: %s: for a 4-dimensional variable expected the first dimension to be either unlimited or of length 1\n", fname, varname);
+        if (r < 0) {
+            if (dimlen[0] > 1)
+                quit("ncu_read3dfield(): \"%s\": %s: not supposed to have multiple records", fname, varname);
+            r = 0;
+        }
+        if (r >= dimlen[0])
+            quit("ncu_read3dfield(): \"%s\": %s: can not read record %d (nr = %zu)", fname, varname, r, dimlen[0]);
         if (nj == 0)            /* unstructured grid */
-            quit("ncu_read3dfield(): \"%s\": %s: expected positive \"j\" dimension for a 4-dimensional variable", fname, varname);
-        if (dimlen[0] > 1)
-            quit("ncu_read3dfield(): %s: %s:  not supposed to have multiple records", fname, varname);
-        start[0] = 0;
+            quit("ncu_read3dfield(): \"%s\": %s: too many dimensions for an unstructured grid", fname, varname);
+        start[0] = r;
         start[1] = 0;
         start[2] = 0;
         start[3] = 0;
@@ -918,21 +916,25 @@ void ncu_read3dfield(char* fname, char* varname, int ni, int nj, int nk, float* 
         if (nj > 0) {
             if (hasrecorddim)
                 quit("ncu_read3dfield(): %s: %s: can not read 3D field because the variable is only 2D", fname, varname);
+            if (r > 0)
+                quit("ncu_read3dfield(): %s: %s: can not read 3D record %d because the variable has only 3 dimensions", fname, varname, r);
+            if (dimlen[2] != ni || dimlen[1] != nj || dimlen[0] != nk)
+                quit("ncu_read3dfield(): %s: %s: horizontal dimensions (ni = %d, nj = %d, nk = %d) do not match grid dimensions (ni = %d, nj = %d, nk = %d)", fname, varname, dimlen[2], dimlen[1], dimlen[0], ni, nj, nk);
             start[0] = 0;
             start[1] = 0;
             start[2] = 0;
             count[0] = dimlen[0];
             count[1] = dimlen[1];
             count[2] = dimlen[2];
-            if (dimlen[2] != ni || dimlen[1] != nj || dimlen[0] != nk)
-                quit("ncu_read3dfield(): %s: %s: horizontal dimensions (ni = %d, nj = %d, nk = %d) do not match grid dimensions (ni = %d, nj = %d, nk = %d)", fname, varname, dimlen[2], dimlen[1], dimlen[0], ni, nj, nk);
         } else {
-            /*
-             * assume the first dimension is the record one, unlimited or not
-             */
-            if (dimlen[0] != 1)
-                quit("ncu_read3dfield(): %s: %s:  not supposed to have multiple records", fname, varname);
-            start[0] = 0;
+            if (r < 0) {
+                if (dimlen[0] > 1)
+                    quit("ncu_read3dfield(): \"%s\": %s: (unstructured grid): not supposed to have multiple records", fname, varname);
+                r = 0;
+            }
+            if (r >= dimlen[0])
+                quit("ncu_read3dfield(): \"%s\": %s: (unstructured grid): can not read record %d (nr = %zu)", fname, varname, r, dimlen[0]);
+            start[0] = r;
             start[1] = 0;
             start[2] = 0;
             count[0] = 1;
@@ -940,11 +942,21 @@ void ncu_read3dfield(char* fname, char* varname, int ni, int nj, int nk, float* 
             count[2] = dimlen[2];
         }
     } else if (ndims == 2) {
+        if (hasrecorddim)
+            quit("ncu_read3dfield(): %s: %s: can not read 3D field: too few dimensions", fname, varname);
+        if (r > 0)
+            quit("ncu_read3dfield(): %s: %s: can not read 3D record %d: too few dimensions", fname, varname, r);
+        if (nj > 0 && nk > 0)
+            quit("ncu_read3dfield(): %s: %s: can not read 3D field: too few dimensions", fname, varname);
         start[0] = 0;
         start[1] = 0;
         count[0] = dimlen[0];
         count[1] = dimlen[1];
     } else if (ndims == 1) {
+        if (hasrecorddim)
+            quit("ncu_read3dfield(): %s: %s: can not read 3D field: too few dimensions", fname, varname);
+        if (r > 0)
+            quit("ncu_read3dfield(): %s: %s: can not read 3D record %d: too few dimensions", fname, varname, r);
         if (nj > 0)
             quit("ncu_read3dfield(): %s: %s: can not read 3D field: # of dimensions = %d", fname, varname, ndims);
         start[0] = 0;

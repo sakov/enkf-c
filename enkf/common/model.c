@@ -703,13 +703,13 @@ void model_readfield(model* m, char fname[], char varname[], int r, int k, float
 
 /**
  */
-void model_read3dfield(model* m, char fname[], char varname[], float* v, int ignorelog)
+void model_read3dfield(model* m, char fname[], char varname[], int r, float* v, int ignorelog)
 {
     int ni, nj, nk;
     int mvid = model_getvarid(m, varname, 1);
 
     model_getvargridsize(m, mvid, &ni, &nj, &nk);
-    ncu_read3dfield(fname, varname, ni, nj, nk, v);
+    ncu_read3dfield(fname, varname, r, ni, nj, nk, v);
 
     if (m->vars[mvid].applylog && !ignorelog) {
         size_t nijk = (size_t) ((nj > 0) ? ni * nj * nk : ni * nk);

@@ -564,10 +564,10 @@ void obs_add(observations* obs, model* m, obssection* section, int nexclude, obs
 
                     if (grid_isstructured(g)) {
                         v = alloc3d(nk, nj, ni, sizeof(float));
-                        ncu_read3dfield(fname, estd->varname, ni, nj, nk, ((float***) v)[0][0]);
+                        ncu_read3dfield(fname, estd->varname, -1, ni, nj, nk, ((float***) v)[0][0]);
                     } else {
                         v = alloc2d(nk, ni, sizeof(float));
-                        ncu_read3dfield(fname, estd->varname, ni, 0, nk, ((float**) v)[0]);
+                        ncu_read3dfield(fname, estd->varname, -1, ni, 0, nk, ((float**) v)[0]);
                     }
                     for (o = nobs0; o < obs->nobs; ++o) {
                         observation* oo = &obs->data[o];

@@ -273,7 +273,7 @@ void H_subsurf_standard(dasystem* das, int nobs, int obsids[], char fname[], int
         src0 = ((float***) src)[0][0];
 
         if (nk > 1)
-            model_read3dfield(m, fname, ot->varnames[0], src0, masklog);
+            model_read3dfield(m, fname, ot->varnames[0], r, src0, masklog);
         else if (nk == 1)
             model_readfield(m, fname, ot->varnames[0], r, 0, src0, masklog);
 
@@ -311,7 +311,7 @@ void H_subsurf_standard(dasystem* das, int nobs, int obsids[], char fname[], int
         src0 = ((float**) src)[0];
 
         if (nk > 1)
-            model_read3dfield(m, fname, ot->varnames[0], src0, masklog);
+            model_read3dfield(m, fname, ot->varnames[0], r, src0, masklog);
         else if (nk == 1)
             model_readfield(m, fname, ot->varnames[0], r, 0, src0, masklog);
 
@@ -532,7 +532,7 @@ void H_subsurf_wsurfbias(dasystem* das, int nobs, int obsids[], char fname[], in
      * this part is similar to H_subsurf_standard()
      */
     if (nk > 1)
-        model_read3dfield(m, fname, ot->varnames[0], src[0][0], masklog);
+        model_read3dfield(m, fname, ot->varnames[0], r, src[0][0], masklog);
     else if (nk == 1)
         model_readfield(m, fname, ot->varnames[0], r, 0, src[0][0], masklog);
 
