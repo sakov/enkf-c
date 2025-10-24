@@ -144,7 +144,7 @@ void H_surf_standard(dasystem* das, int nobs, int obsids[], char fname[], int r,
         float** offset;
 
         src = alloc2d(nj, ni, sizeof(float));
-        model_readfield_multirecord(m, fname, ot->varnames[0], r, ksurf, ((float**) src)[0], masklog);
+        model_readfield(m, fname, ot->varnames[0], r, ksurf, ((float**) src)[0], masklog);
 
         snprintf(tag_offset, MAXSTRLEN, "%s:OFFSET", ot->name);
         offset = model_getdata(m, tag_offset);
@@ -161,7 +161,7 @@ void H_surf_standard(dasystem* das, int nobs, int obsids[], char fname[], int r,
         float* offset;
 
         src = calloc(ni, sizeof(float));
-        model_readfield_multirecord(m, fname, ot->varnames[0], r, ksurf, src, masklog);
+        model_readfield(m, fname, ot->varnames[0], r, ksurf, src, masklog);
 
         snprintf(tag_offset, MAXSTRLEN, "%s:OFFSET", ot->name);
         offset = model_getdata(m, tag_offset);
@@ -219,7 +219,7 @@ void H_surf_biased(dasystem* das, int nobs, int obsids[], char fname[], int r, i
         src0 = src;
     }
 
-    model_readfield_multirecord(m, fname, ot->varnames[0], r, ksurf, src0, masklog);
+    model_readfield(m, fname, ot->varnames[0], r, ksurf, src0, masklog);
 
     snprintf(tag_offset, MAXSTRLEN, "%s:OFFSET", allobs->obstypes[allobs->data[obsids[0]].type].name);
     offset = model_getdata(m, tag_offset);
@@ -237,7 +237,7 @@ void H_surf_biased(dasystem* das, int nobs, int obsids[], char fname[], int r, i
             das_getmemberfname(das, ot->varnames[1], mem, fname2);
         else if (das->mode == MODE_ENOI)
             das_getbgfname(das, ot->varnames[1], fname2);
-        model_readfield(m, fname2, ot->varnames[1], ksurf, bias, das->mode == MODE_ENOI ? 1 : 0);
+        model_readfield(m, fname2, ot->varnames[1], -1, ksurf, bias, das->mode == MODE_ENOI ? 1 : 0);
 
         for (i = 0; i < nv; ++i)
             src0[i] -= bias[i];
@@ -275,7 +275,7 @@ void H_subsurf_standard(dasystem* das, int nobs, int obsids[], char fname[], int
         if (nk > 1)
             model_read3dfield(m, fname, ot->varnames[0], src0, masklog);
         else if (nk == 1)
-            model_readfield_multirecord(m, fname, ot->varnames[0], r, 0, src0, masklog);
+            model_readfield(m, fname, ot->varnames[0], r, 0, src0, masklog);
 
         snprintf(tag_offset, MAXSTRLEN, "%s:OFFSET", allobs->obstypes[allobs->data[obsids[0]].type].name);
         offset_data = model_getdata(m, tag_offset);
@@ -313,7 +313,7 @@ void H_subsurf_standard(dasystem* das, int nobs, int obsids[], char fname[], int
         if (nk > 1)
             model_read3dfield(m, fname, ot->varnames[0], src0, masklog);
         else if (nk == 1)
-            model_readfield_multirecord(m, fname, ot->varnames[0], r, 0, src0, masklog);
+            model_readfield(m, fname, ot->varnames[0], r, 0, src0, masklog);
 
         snprintf(tag_offset, MAXSTRLEN, "%s:OFFSET", allobs->obstypes[allobs->data[obsids[0]].type].name);
         offset_data = model_getdata(m, tag_offset);
@@ -426,12 +426,12 @@ void H_subsurf_lowmem(dasystem* das, int nobs, int obsids[], char fname[], int r
             k1_now = k1;
         }
         if (k1_now != k1) {
-            model_readfield_multirecord(m, fname, ot->varnames[0], r, k1, (nj > 0) ? ((float**) src1)[0] : src1, masklog);
+            model_readfield(m, fname, ot->varnames[0], r, k1, (nj > 0) ? ((float**) src1)[0] : src1, masklog);
             k1_now = k1;
             k1_isnew = 1;
         }
         if (k2 < nk) {
-            model_readfield_multirecord(m, fname, ot->varnames[0], r, k2, (nj > 0) ? ((float**) src2)[0] : src2, masklog);
+            model_readfield(m, fname, ot->varnames[0], r, k2, (nj > 0) ? ((float**) src2)[0] : src2, masklog);
             k2_now = k2;
         }
 
@@ -534,7 +534,7 @@ void H_subsurf_wsurfbias(dasystem* das, int nobs, int obsids[], char fname[], in
     if (nk > 1)
         model_read3dfield(m, fname, ot->varnames[0], src[0][0], masklog);
     else if (nk == 1)
-        model_readfield_multirecord(m, fname, ot->varnames[0], r, 0, src[0][0], masklog);
+        model_readfield(m, fname, ot->varnames[0], r, 0, src[0][0], masklog);
 
     snprintf(tag_offset, MAXSTRLEN, "%s:OFFSET", ot->name);
     offset_data = model_getdata(m, tag_offset);
@@ -572,7 +572,7 @@ void H_subsurf_wsurfbias(dasystem* das, int nobs, int obsids[], char fname[], in
         else if (das->mode == MODE_ENOI)
             das_getbgfname(das, ot->varnames[1], fname2);
         assert(ncu_getnD(fname2, ot->varnames[1]) == 2);
-        model_readfield(m, fname2, ot->varnames[1], 0, bias[0], das->mode == MODE_ENOI ? 1 : 0);
+        model_readfield(m, fname2, ot->varnames[1], -1, 0, bias[0], das->mode == MODE_ENOI ? 1 : 0);
 
         if (isnan(ot->mld_threshold) && ot->mld_varname == NULL)
             enkf_quit("\"MLD_THRESH\" or \"MLD_VARNAME\" must be specified for observation type \"%s\" to use H function \"wsurfbias\"", ot->name);
@@ -588,7 +588,7 @@ void H_subsurf_wsurfbias(dasystem* das, int nobs, int obsids[], char fname[], in
                 das_getmemberfname(das, ot->mld_varname, mem, fname_mld);
             else if (das->mode == MODE_ENOI)
                 das_getbgfname(das, ot->mld_varname, fname_mld);
-            model_readfield(m, fname_mld, ot->mld_varname, 0, mld[0], das->mode == MODE_ENOI ? 1 : 0);
+            model_readfield(m, fname_mld, ot->mld_varname, -1, 0, mld[0], das->mode == MODE_ENOI ? 1 : 0);
         } else {
             if (das->mode == MODE_ENKF || das->mode == MODE_HYBRID)
                 das_calcmld(das, ot, src, mld);
@@ -678,11 +678,11 @@ void H_vertsum(dasystem* das, int nobs, int obsids[], char fname[], int r, int m
         srcsum0 = srcsum;
     }
 
-    model_readfield_multirecord(m, fname, ot->varnames[0], r, 0, srcsum0, 0);
+    model_readfield(m, fname, ot->varnames[0], r, 0, srcsum0, 0);
     for (k = 1; k < nk; ++k) {
         size_t nij = (nj > 0) ? ni * nj : ni;
 
-        model_readfield_multirecord(m, fname, ot->varnames[0], r, k, src0, 0);
+        model_readfield(m, fname, ot->varnames[0], r, k, src0, 0);
         for (i = 0; i < nij; i++)
             srcsum0[i] += src0[i];
     }
@@ -756,9 +756,9 @@ void H_vertwavg(dasystem* das, int nobs, int obsids[], char fname[], int r, int 
     /*
      * get sum of weights 
      */
-    model_readfield_multirecord(m, fname, ot->varnames[1], r, 0, sumw, 0);
+    model_readfield(m, fname, ot->varnames[1], r, 0, sumw, 0);
     for (k = 1; k < nk; ++k) {
-        model_readfield_multirecord(m, fname, ot->varnames[1], r, k, w, 0);
+        model_readfield(m, fname, ot->varnames[1], r, k, w, 0);
         for (i = 0; i < (size_t) nij; i++)
             sumw[i] += w[i];
     }
@@ -769,8 +769,8 @@ void H_vertwavg(dasystem* das, int nobs, int obsids[], char fname[], int r, int 
     for (k = 0; k < nk; ++k) {
         float* sum0 = (nj > 0) ? sum : ((float**) sum)[0];
 
-        model_readfield_multirecord(m, fname, ot->varnames[0], r, k, src, 0);
-        model_readfield_multirecord(m, fname, ot->varnames[1], r, k, w, 0);
+        model_readfield(m, fname, ot->varnames[0], r, k, src, 0);
+        model_readfield(m, fname, ot->varnames[1], r, k, w, 0);
         for (i = 0; i < (size_t) nij; i++) {
             double v = src[i] * w[i] / sumw[i];
 

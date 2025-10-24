@@ -498,7 +498,7 @@ void das_writevcorrs(dasystem* das)
                 char fname[MAXSTRLEN];
 
                 das_getmemberfname(das, varname, e + 1, fname);
-                model_readfield(das->m, fname, varname, ksurf, v0[e], masklog);
+                model_readfield(das->m, fname, varname, -1, ksurf, v0[e], masklog);
             }
             if (das->mode == MODE_HYBRID)
                 das_sethybridensemble(das, nij, v0);
@@ -528,7 +528,7 @@ void das_writevcorrs(dasystem* das)
             int masklog = das_isstatic(das, e + 1);
 
             das_getmemberfname(das, varname, e + 1, fname_src);
-            model_readfield(das->m, fname_src, varname, k, v[e], masklog);
+            model_readfield(das->m, fname_src, varname, -1, k, v[e], masklog);
         }
         if (das->mode == MODE_HYBRID)
             das_sethybridensemble(das, nij, v);
@@ -692,7 +692,7 @@ void das_writevcorrs_with(dasystem* das, char* varname, int level, int calctype)
         char fname[MAXSTRLEN];
 
         das_getmemberfname(das, varname, e + 1, fname);
-        model_readfield(das->m, fname, varname, fields[fid0].level, v0[e], masklog);
+        model_readfield(das->m, fname, varname, -1, fields[fid0].level, v0[e], masklog);
     }
     if (das->mode == MODE_HYBRID)
         das_sethybridensemble(das, nij, v0);
@@ -760,7 +760,7 @@ void das_writevcorrs_with(dasystem* das, char* varname, int level, int calctype)
             int masklog = das_isstatic(das, e + 1);
 
             das_getmemberfname(das, f->varname, e + 1, fname_src);
-            model_readfield(das->m, fname_src, f->varname, f->level, v[e], masklog);
+            model_readfield(das->m, fname_src, f->varname, -1, f->level, v[e], masklog);
         }
         if (das->mode == MODE_HYBRID)
             das_sethybridensemble(das, nij, v);
@@ -937,7 +937,7 @@ void das_writespread(dasystem* das)
             char fname[MAXSTRLEN];
 
             das_getmemberfname(das, varname, e + 1, fname);
-            model_readfield(das->m, fname, f->varname, f->level, v[e], masklog);
+            model_readfield(das->m, fname, f->varname, -1, f->level, v[e], masklog);
         }
         if (das->mode == MODE_HYBRID)
             das_sethybridensemble(das, nij, v);

@@ -1469,7 +1469,7 @@ void das_update(dasystem* das)
                     int masklog = das_isstatic(das, e + 1);
 
                     das_getmemberfname(das, f->varname, e + 1, fname);
-                    model_readfield(das->m, fname, f->varname, f->level, (f->structured) ? ((float***) fieldbuffer[bufid])[e][0] : ((float**) fieldbuffer[bufid])[e], masklog);
+                    model_readfield(das->m, fname, f->varname, -1, f->level, (f->structured) ? ((float***) fieldbuffer[bufid])[e][0] : ((float**) fieldbuffer[bufid])[e], masklog);
                 }
                 if (das->mode == MODE_HYBRID) {
                     float* v[das->nmem + 1];
@@ -1489,7 +1489,7 @@ void das_update(dasystem* das)
                     char fname[MAXSTRLEN];
 
                     das_getbgfname(das, f->varname, fname);
-                    model_readfield(das->m, fname, f->varname, f->level, (f->structured) ? ((float***) fieldbuffer[bufid])[das->nmem][0] : ((float**) fieldbuffer[bufid])[das->nmem], 0);
+                    model_readfield(das->m, fname, f->varname, -1, f->level, (f->structured) ? ((float***) fieldbuffer[bufid])[das->nmem][0] : ((float**) fieldbuffer[bufid])[das->nmem], 0);
                 }
 
                 fieldstowrite[bufid] = fields[fid];

@@ -1,3 +1,7 @@
+v2.39.4
+   PS 24102025
+   -- Merged model_readfield_multirecord() and model_readfield() into
+      model_readfield().
 v2.39.3
    PS 24102025
    -- Fixed a few minor things for reader "z". This includes specifying

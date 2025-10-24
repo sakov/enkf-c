@@ -683,27 +683,7 @@ double model_fk2z(model* m, int vid, int* ij, double fk)
 
 /**
  */
-void model_readfield(model* m, char fname[], char varname[], int k, float* v, int ignorelog)
-{
-    int ni, nj, nk;
-    int mvid = model_getvarid(m, varname, 1);
-
-    model_getvargridsize(m, mvid, &ni, &nj, &nk);
-    assert(k < nk);
-    ncu_readfield(fname, varname, -1, k, ni, nj, nk, v);
-
-    if (m->vars[mvid].applylog && !ignorelog) {
-        size_t nij = ni * nj;
-        size_t i;
-
-        for (i = 0; i < nij; ++i)
-            v[i] = log10(v[i]);
-    }
-}
-
-/**
- */
-void model_readfield_multirecord(model* m, char fname[], char varname[], int r, int k, float* v, int ignorelog)
+void model_readfield(model* m, char fname[], char varname[], int r, int k, float* v, int ignorelog)
 {
     int ni, nj, nk;
     int mvid = model_getvarid(m, varname, 1);
