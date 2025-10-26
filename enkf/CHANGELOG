@@ -1,3 +1,6 @@
+v2.39.6
+   PS 27102025
+   -- Added record number to reports about invalid forecast obs. in model2obs.c.
 v2.39.5
    PS 24102025
    -- Modified ncu_read3dfield() to handle multi-record data. Uopdated H

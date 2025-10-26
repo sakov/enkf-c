@@ -34,7 +34,7 @@
 
 /**
  */
-static void evaluate_2d_obs(model* m, observations* allobs, int nobs, int obsids[], char fname[], void* v, float out[])
+static void evaluate_2d_obs(model* m, observations* allobs, int nobs, int obsids[], char fname[], int r, void* v, float out[])
 {
     int otid = allobs->data[obsids[0]].type;
     int mvid = model_getvarid(m, allobs->obstypes[otid].varnames[0], 1);
@@ -85,7 +85,7 @@ static void evaluate_2d_obs(model* m, observations* allobs, int nobs, int obsids
                 enkf_verbose = -1;      /* force printing regardless of rank */
                 enkf_printf("\n  obs # %d: ", ii);
                 obs_printob(allobs, ii);
-                enkf_quit("obs # %d: forecast = %.3g for \"%s\"; no point to continue", ii, out[ii], fname);
+                enkf_quit("obs # %d: forecast = %.3g in \"%s\", record %d; no point to continue", ii, out[ii], fname, r);
             } else
                 o->status = STATUS_BADFC;
         }
@@ -94,7 +94,7 @@ static void evaluate_2d_obs(model* m, observations* allobs, int nobs, int obsids
 
 /**
  */
-static void interpolate_3d_obs(model* m, observations* allobs, int nobs, int obsids[], char fname[], float*** v, float out[])
+static void interpolate_3d_obs(model* m, observations* allobs, int nobs, int obsids[], char fname[], int r, float*** v, float out[])
 {
     int otid = allobs->data[obsids[0]].type;
     int mvid = model_getvarid(m, allobs->obstypes[otid].varnames[0], 1);
@@ -115,7 +115,7 @@ static void interpolate_3d_obs(model* m, observations* allobs, int nobs, int obs
                 enkf_verbose = -1;      /* force printing regardless of rank */
                 enkf_printf("\n  obs # %d: ", ii);
                 obs_printob(allobs, ii);
-                enkf_quit("obs # %d: forecast = %.3g in \"%s\"; no point to continue", ii, out[ii], fname);
+                enkf_quit("obs # %d: forecast = %.3g in \"%s\", record %d; no point to continue", ii, out[ii], fname, r);
             } else
                 o->status = STATUS_BADFC;
         }
@@ -174,7 +174,7 @@ void H_surf_standard(dasystem* das, int nobs, int obsids[], char fname[], int r,
         }
     }
 
-    evaluate_2d_obs(m, allobs, nobs, obsids, fname, src, dst);
+    evaluate_2d_obs(m, allobs, nobs, obsids, fname, r, src, dst);
 
     free(src);
 }
@@ -244,7 +244,7 @@ void H_surf_biased(dasystem* das, int nobs, int obsids[], char fname[], int r, i
         free(bias);
     }
 
-    evaluate_2d_obs(m, allobs, nobs, obsids, fname, src, dst);
+    evaluate_2d_obs(m, allobs, nobs, obsids, fname, r, src, dst);
 
     free(src);
 }
@@ -339,7 +339,7 @@ void H_subsurf_standard(dasystem* das, int nobs, int obsids[], char fname[], int
         }
     }
 
-    interpolate_3d_obs(m, allobs, nobs, obsids, fname, src, dst);
+    interpolate_3d_obs(m, allobs, nobs, obsids, fname, r, src, dst);
     free(src);
 }
 
@@ -464,7 +464,7 @@ void H_subsurf_lowmem(dasystem* das, int nobs, int obsids[], char fname[], int r
                 }
             }
         }
-        interpolate_3d_obs(m, allobs, i2 - i1 + 1, &obsids[i1], fname, src, dst);
+        interpolate_3d_obs(m, allobs, i2 - i1 + 1, &obsids[i1], fname, r, src, dst);
 
         i1 = i2 + 1;
     }
@@ -560,7 +560,7 @@ void H_subsurf_wsurfbias(dasystem* das, int nobs, int obsids[], char fname[], in
             enkf_quit("obstype = %s: offset variable must be either 3D or 1D for a 3D observation type", ot->name);
     }
 
-    interpolate_3d_obs(m, allobs, nobs, obsids, fname, src, dst);
+    interpolate_3d_obs(m, allobs, nobs, obsids, fname, r, src, dst);
 
     /*
      * now correct for surface bias
@@ -707,7 +707,7 @@ void H_vertsum(dasystem* das, int nobs, int obsids[], char fname[], int r, int m
             srcsum0[i] -= offset0[i];
     }
 
-    evaluate_2d_obs(m, allobs, nobs, obsids, fname, srcsum, dst);
+    evaluate_2d_obs(m, allobs, nobs, obsids, fname, r, srcsum, dst);
     free(srcsum);
 }
 
@@ -796,6 +796,6 @@ void H_vertwavg(dasystem* das, int nobs, int obsids[], char fname[], int r, int 
             sum0[i] -= offset0[i];
     }
 
-    evaluate_2d_obs(m, allobs, nobs, obsids, fname, sum, dst);
+    evaluate_2d_obs(m, allobs, nobs, obsids, fname, r, sum, dst);
     free(sum);
 }
