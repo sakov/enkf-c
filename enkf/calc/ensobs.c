@@ -363,7 +363,23 @@ void das_getHE(dasystem* das)
     }
 #endif
 
+    /*
+     * sync bad fc obs by setting their status in shared memory
+     */
     if (skip_bad_fc_obs) {
+#if defined(USE_SHMEM)
+        if (sm_comm_rank == 0) {
+            for (e = 0; e < nmem; ++e) {
+                float* Se = das->S[e];
+
+                for (i = 0; i < nobs; ++i)
+                    if (isnan(Se[i]))
+                        obs->data[i].status = STATUS_BADFC;
+            }
+        }
+        MPI_Win_fence(0, das->sm_comm_win_S);
+        MPI_Barrier(sm_comm);
+#endif
         obs_calcstats(obs);
         if (rank == 0 && obs->nbadfc > 0)
             enkf_printf("    %d observations skipped because of bad forecast values\n", obs->nbadfc);
@@ -641,7 +657,7 @@ void das_calcinnandspread(dasystem* das)
                 continue;
             das->std_a[o] = sqrt(das->std_a[o] / (double) (nmem - 1));
             das->s_a[o] = m->value - das->s_a[o];
-            if (!isfinite(das->s_a[o]) || fabs(das->s_a[o]) > STATE_BIGNUM) {
+            if ((!isfinite(das->s_a[o]) || fabs(das->s_a[o]) > STATE_BIGNUM)) {
                 enkf_flush();
                 enkf_verbose = -1;      /* force printing regardless of rank */
                 enkf_printf("\n  obs # %d: ", o);

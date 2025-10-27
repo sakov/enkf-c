@@ -557,6 +557,12 @@ static int cmp_res(const void* p1, const void* p2)
  */
 void kd_findnodeswithinrange(kdtree* tree, const double* coords, double range, int ordered, size_t* nresults, kdresult** results)
 {
+    if (tree == NULL) {
+        *nresults = 0;
+        *results = NULL;
+        return;
+    }
+
     tree->nresults = 0;
     _kd_findnodeswithinrange(tree, 0, coords, range);
 

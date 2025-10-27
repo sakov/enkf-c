@@ -342,6 +342,7 @@ int main(int argc, char* argv[])
     das_getHE(das);
     if (write_HE)
         das_writeHE(das);
+
     enkf_printf("  calculating innovations and spread:\n");
     enkf_printtime("  ");
     das_calcinnandspread(das);

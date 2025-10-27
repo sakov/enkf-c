@@ -1,3 +1,16 @@
+v2.39.8
+   PS 27102025
+   -- Continued handling CALC option --skip-bad-forecast-obs: added syncing
+      status of bad forecast obs between nodes of shared memory communicator
+      via "obs" array.
+v2.39.7
+   PS 27102025
+   -- Modified kd_findnodeswithinrange() to return nresults = 0 when
+      tree = NULL.
+   -- In observations.nc removed two assertions ot->nobs == ot->ngood that
+      prevented running CALC with --skip-bad-forecast-obs and some bad fc obs.
+   -- For the above case in das_calcinnandspread() added check that obs. status
+      is STATUS_OK.
 v2.39.6
    PS 27102025
    -- Added record number to reports about invalid forecast obs. in model2obs.c.

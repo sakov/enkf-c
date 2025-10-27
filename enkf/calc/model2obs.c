@@ -87,7 +87,7 @@ static void evaluate_2d_obs(model* m, observations* allobs, int nobs, int obsids
                 obs_printob(allobs, ii);
                 enkf_quit("obs # %d: forecast = %.3g in \"%s\", record %d; no point to continue", ii, out[ii], fname, r);
             } else
-                o->status = STATUS_BADFC;
+                out[ii] = NAN;
         }
     }
 }
@@ -117,7 +117,7 @@ static void interpolate_3d_obs(model* m, observations* allobs, int nobs, int obs
                 obs_printob(allobs, ii);
                 enkf_quit("obs # %d: forecast = %.3g in \"%s\", record %d; no point to continue", ii, out[ii], fname, r);
             } else
-                o->status = STATUS_BADFC;
+                out[ii] = NAN;
         }
     }
 }
