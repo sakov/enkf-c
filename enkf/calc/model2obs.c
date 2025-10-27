@@ -85,7 +85,7 @@ static void evaluate_2d_obs(model* m, observations* allobs, int nobs, int obsids
                 enkf_verbose = -1;      /* force printing regardless of rank */
                 enkf_printf("\n  obs # %d: ", ii);
                 obs_printob(allobs, ii);
-                enkf_quit("obs # %d: forecast = %.3g in \"%s\", record %d; no point to continue", ii, out[ii], fname, r);
+                enkf_quit("obs # %d: forecast = %.3g in \"%s\", record %d; no point to continue. You can either investigate and fix the problem or put it under carpet by running CALC with \"--skip-bad-forecast-obs\"", ii, out[ii], fname, r);
             } else
                 out[ii] = NAN;
         }
@@ -115,7 +115,7 @@ static void interpolate_3d_obs(model* m, observations* allobs, int nobs, int obs
                 enkf_verbose = -1;      /* force printing regardless of rank */
                 enkf_printf("\n  obs # %d: ", ii);
                 obs_printob(allobs, ii);
-                enkf_quit("obs # %d: forecast = %.3g in \"%s\", record %d; no point to continue", ii, out[ii], fname, r);
+                enkf_quit("obs # %d: forecast = %.3g in \"%s\", record %d; no point to continue. You can either investigate and fix the problem or put it under carpet by running CALC with \"--skip-bad-forecast-obs\"", ii, out[ii], fname, r);
             } else
                 out[ii] = NAN;
         }

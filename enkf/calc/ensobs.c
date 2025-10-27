@@ -364,11 +364,15 @@ void das_getHE(dasystem* das)
 #endif
 
     /*
-     * sync bad fc obs by setting their status in shared memory
+     * Set status of bad forecast obs to STATUS_BADFC. (CALC must be run with
+     * "--skip-bad-forecast-obs" to get to this point.) When using shared memory
+     * this also consolidates bad obs found by different CPUs by setting their
+     * status in common object das->obs.
      */
     if (skip_bad_fc_obs) {
 #if defined(USE_SHMEM)
         if (sm_comm_rank == 0) {
+#endif
             for (e = 0; e < nmem; ++e) {
                 float* Se = das->S[e];
 
@@ -376,6 +380,7 @@ void das_getHE(dasystem* das)
                     if (isnan(Se[i]))
                         obs->data[i].status = STATUS_BADFC;
             }
+#if defined(USE_SHMEM)
         }
         MPI_Win_fence(0, das->sm_comm_win_S);
         MPI_Barrier(sm_comm);
@@ -599,7 +604,7 @@ void das_calcinnandspread(dasystem* das)
                 enkf_verbose = -1;      /* force printing regardless of rank */
                 enkf_printf("\n  obs # %d: ", o);
                 obs_printob(obs, o);
-                enkf_quit("obs # %d: y - Hx_f = %.3g, no point to continue; likely issues with MPI3 implementation; with small and medium-size systems - try compiling without -DUSE_SHMEM flag", o, das->s_f[o]);
+                enkf_quit("obs # %d: y - Hx_f = %.3g, no point to continue. There are either issues with MPI3 implementation or a programming error. With small and medium-size systems - try compiling without -DUSE_SHMEM flag", o, das->s_f[o]);
             }
         }
 
@@ -662,7 +667,7 @@ void das_calcinnandspread(dasystem* das)
                 enkf_verbose = -1;      /* force printing regardless of rank */
                 enkf_printf("\n  obs # %d: ", o);
                 obs_printob(obs, o);
-                enkf_quit("obs # %d: y - Hx_a = %.3g, no point to continue; likely issues with MPI3 implementation; with small and medium-size systems - try compiling without -DUSE_SHMEM flag", o, das->s_a[o]);
+                enkf_quit("obs # %d: y - Hx_a = %.3g, no point to continue. There are either issues with MPI3 implementation or a programming error. With small and medium-size systems - try compiling without -DUSE_SHMEM flag", o, das->s_a[o]);
             }
         }
 

@@ -1,3 +1,9 @@
+v2.39.9
+   PS 28102025
+   -- A correction to v2.39.8 in das_getHE() for the case of compiling CALC
+      without -DUSE_SHMEM.
+   -- In model2obs.c added possible options to error message in case of bad fc
+      obs.
 v2.39.8
    PS 27102025
    -- Continued handling CALC option --skip-bad-forecast-obs: added syncing
