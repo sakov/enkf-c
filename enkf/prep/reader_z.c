@@ -374,11 +374,36 @@ void reader_z(char* fname, int fid, obssection* section, grid* g, observations* 
                 for (k = 1; k < nz; ++k)
                     batch[p][k] = batch[p][0];
         } else if (ndims == 2) {
-            /*
-             * batch is for each ob.
-             */
-            assert(dimlen[0] == nprof && dimlen[1] == nz);
-            ncw_get_var_int(ncid, varid, batch[0]);
+            nc_type type;
+
+            assert(dimlen[0] == nprof);
+            ncw_inq_vartype(ncid, varid, &type);
+            if (type != NC_CHAR) {
+                /*
+                 * batch specified for each observation in profile
+                 */
+                assert(dimlen[1] == nz);
+                ncw_get_var_int(ncid, varid, batch[0]);
+            } else {
+                /*
+                 * batch specified for each profile but strored in text format
+                 */
+                char** data = alloc2d(dimlen[0], dimlen[1], 1);
+                char* entry = malloc(dimlen[1] + 1);
+
+                ncw_get_var_text(ncid, varid, data[0]);
+                for (p = 0; p < nprof; ++p) {
+                    strncpy(entry, data[p], dimlen[1]);
+                    entry[dimlen[1]] = 0;
+                    if (!str2int(entry, batch[p]))
+                        enkf_quit("%s: %s: could not convert \"%s\" to int", fname, (batchname != NULL) ? batchname : "batch", entry);
+                }
+                for (p = 0; p < nprof; ++p)
+                    for (k = 1; k < nz; ++k)
+                        batch[p][k] = batch[p][0];
+                free(entry);
+                free(data);
+            }
         }
     }
 

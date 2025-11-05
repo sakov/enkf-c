@@ -1,3 +1,8 @@
+v2.39.10
+   PS 05112025
+   -- Upgraded reader "z" to handle batch data formatted as an array of strings.
+   -- Added missing code for handling parameters INSTATTNAME and INSTPREFIX in
+      generic readers "gridded_xyz", "gridded_xyh", "gridded_xy".
 v2.39.9
    PS 28102025
    -- A correction to v2.39.8 in das_getHE() for the case of compiling CALC

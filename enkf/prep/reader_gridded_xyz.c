@@ -95,6 +95,10 @@ void reader_gridded_xyz(char* fname, int fid, obssection* section, grid* g, obse
             estdname = section->pars[i].value;
         else if (strcasecmp(section->pars[i].name, "BATCHNAME") == 0)
             batchname = section->pars[i].value;
+        else if (strcasecmp(section->pars[i].name, "INSTATTNAME") == 0)
+            instattname = section->pars[i].value;
+        else if (strcasecmp(section->pars[i].name, "INSTPREFIX") == 0)
+            instprefix = section->pars[i].value;
         else if (strcasecmp(section->pars[i].name, "INSTRUMENT") == 0)
             strncpy(instrument, section->pars[i].value, MAXSTRLEN - 1);
         else if (strcasecmp(section->pars[i].name, "TIMENAME") == 0 || strcasecmp(section->pars[i].name, "TIMENAMES") == 0)
