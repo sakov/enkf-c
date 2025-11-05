@@ -200,9 +200,11 @@ model* model_create(enkfprm* prm)
                 if ((token = strtok(NULL, seps)) == NULL)
                     enkf_quit("%s, l.%d: APPLYLOG value not specified", modelprm, line);
                 now->applylog = istrue(token) ? 1 : 0;
+#if !defined(ENKF_PREP)                
                 if (now->applylog && prm->mode != MODE_ENKF && !enkf_allowenoilog)
 
                     enkf_quit("%s, l.%d: to use APPLYLOG in EnOI or Hybrid modes the static ensemble must be in log space. If you are aware of this and wish to proceed use command line option \"--allow-logspace-with-static-ens\"", modelprm, line);
+#endif
             } else if (strcasecmp(token, "RANDOMISE") == 0 || strcasecmp(token, "RANDOMIZE") == 0) {
                 if (!isnan(now->deflation))
                     enkf_quit("%s, l.%d: randomisation multiple already specified for \"%s\"", modelprm, line, now->name);

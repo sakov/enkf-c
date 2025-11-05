@@ -39,7 +39,7 @@
 
 \begin{document}
 
-\title{EnKF-C user guide\\{\normalsize version 2.39.0}}
+\title{EnKF-C user guide\\{\normalsize version 2.39.11}}
 
 \author{Pavel Sakov}
 \date{June 19, 2014 -- \today}
@@ -1179,8 +1179,6 @@ It has the following usage and options:
 >./bin/enkf_prep
   Usage: enkf_prep <prm file> [<options>]
   Options:
-  --allow-logspace-with-static-ens
-      confirm that static ensemble is conditioned for using log space
   --consider-subgrid-variability
       increase error of superobservations according to subgrid variability
   --describe-prm-format [main|model|grid|obstypes|obsdata]
@@ -1290,7 +1288,7 @@ Following is the list of available readers:
     cmems
 \end{Verbatim}
 
-Users are encouraged to use generic readers.
+Users are encouraged to use generic rather than custom readers.
 When this is not possible, one may either modify (or put a request to modify) a generic reader, or develop a custom reader.
 
 Each reader can be specified in the observation data parameter file with an arbitrary number of parameters.

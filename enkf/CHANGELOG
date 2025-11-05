@@ -1,3 +1,7 @@
+v2.39.11
+   PS 06112025
+   -- Removed option "--allow-logspace-with-static-ens" from PREP. (PREP does
+      not read any ensemble data.)
 v2.39.10
    PS 05112025
    -- Upgraded reader "z" to handle batch data formatted as an array of strings.

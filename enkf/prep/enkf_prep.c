@@ -68,8 +68,6 @@ static void usage(void)
 {
     enkf_printf("  Usage: enkf_prep <prm file> [<options>]\n");
     enkf_printf("  Options:\n");
-    enkf_printf("  --allow-logspace-with-static-ens\n");
-    enkf_printf("      confirm that static ensemble is conditioned for using log space\n");
     enkf_printf("  --consider-subgrid-variability\n");
     enkf_printf("      increase error of superobservations according to subgrid variability\n");
     enkf_printf("  --describe-prm-format [main|model|grid|obstypes|obsdata]\n");
@@ -112,10 +110,6 @@ static void parse_commandline(int argc, char* argv[], char** fname)
                 continue;
             } else
                 usage();
-        } else if (strcmp(argv[i], "--allow-logspace-with-static-ens") == 0) {
-            enkf_allowenoilog = 1;
-            i++;
-            continue;
         } else if (strcmp(argv[i], "--consider-subgrid-variability") == 0) {
             enkf_considersubgridvar = 1;
             i++;
