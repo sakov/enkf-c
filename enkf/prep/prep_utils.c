@@ -59,8 +59,9 @@ static void readobs(obssection* section, model* m, obsread_fn reader, observatio
     int otid = obstype_getid(obs->nobstypes, obs->obstypes, section->type, 1);
     obstype* ot = &obs->obstypes[otid];
     grid* g = model_getgridbyid(m, ot->gridid);
-    int nfiles;
+    int nfiles = 0;
     char** fnames = NULL;
+    int hasobs = 0;
     int i;
 
     nfiles = 0;
@@ -74,12 +75,17 @@ static void readobs(obssection* section, model* m, obsread_fn reader, observatio
         reader(fnames[i], fid, section, g, obs);
 
         enkf_printf("        # obs added = %d\n", obs->nobs - nobs0);
+        if (obs->nobs > nobs0)
+            hasobs = 1;
         for (j = nobs0; j < obs->nobs; ++j)
             obs->data[j].section = section->id;
         enkf_flush();
         free(fnames[i]);
     }
     free(fnames);
+
+    if (section->mandatory && !hasobs)
+        enkf_quit("no observations (unset MANDATORY = yes for this section to proceed)");
 }
 
 /** Add observations from a certain provider.

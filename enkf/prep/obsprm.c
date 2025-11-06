@@ -167,6 +167,11 @@ void obsprm_read(char fname[], int* nsection, obssection** sections, int* nexclu
             else
                 enkf_quit("%s, l.%d:, unknown operation", fname, line);
             section->nestds++;
+        } else if (strcasecmp(token, "MANDATORY") == 0) {
+            if ((token = strtok(NULL, seps)) == NULL)
+                enkf_quit("%s, l.%d: TYPE not specified", fname, line);
+            if (!str2bool(token, &section->mandatory))
+                enkf_quit("%s, l.%d: could not convert \"%s\" to boolean", fname, line, token);
         } else if (strcasecmp(token, "PARAMETER") == 0) {
             par_entry* now = NULL;
             int p;
@@ -250,6 +255,8 @@ void obsprm_read(char fname[], int* nsection, obssection** sections, int* nexclu
             else if (std->type == STDTYPE_FILE)
                 enkf_printf("      ERROR_STD = %s %s, operation = %s\n", (char*) std->data, std->varname, operstr);
         }
+        if (section->mandatory)
+            enkf_printf("      MANDATORY = yes\n");
         for (j = 0; j < section->npars; ++j)
             enkf_printf("      PARAMETER %s = %s\n", section->pars[j].name, section->pars[j].value);
     }
@@ -319,9 +326,10 @@ void obsprm_describeprm(void)
     enkf_printf("    READER    = <reader>\n");
     enkf_printf("    FILE      = <data file wildcard> \n");
     enkf_printf("    ...\n");
-    enkf_printf("  [ PARAMETER <name> = <value> ]\n");
-    enkf_printf("    ...\n");
     enkf_printf("  [ ERROR_STD = { <value> | <data file> <varname> } [ EQ* | PL | MU | MI | MA ] ]\n");
+    enkf_printf("    ...\n");
+    enkf_printf("  [ MANDATORY = {yes | no*} ]\n");
+    enkf_printf("  [ PARAMETER <name> = <value> ]\n");
     enkf_printf("    ...\n");
     enkf_printf("\n");
     enkf_printf("  [ <more of the above blocks> ]\n");

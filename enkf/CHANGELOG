@@ -1,3 +1,7 @@
+v2.40.0
+   PS 07112025
+   -- Added entry MANDATORY for sections in observation data parameter file.
+      It is flag for whether a section has to yield observations; 0 by default.
 v2.39.11
    PS 06112025
    -- Removed option "--allow-logspace-with-static-ens" from PREP. (PREP does
@@ -31,7 +35,7 @@ v2.39.6
    -- Added record number to reports about invalid forecast obs. in model2obs.c.
 v2.39.5
    PS 24102025
-   -- Modified ncu_read3dfield() to handle multi-record data. Uopdated H
+   -- Modified ncu_read3dfield() to handle multi-record data. Updated H
       functions in model2obs.c.
 v2.39.4
    PS 24102025

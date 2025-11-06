@@ -190,9 +190,8 @@ static int cmp_obs(const void* p1, const void* p2, void* p)
     observation* o1 = (observation*) p1;
     observation* o2 = (observation*) p2;
     observations* obs = (observations*) p;
-    obstype* ot;
-    int stride;
-    double offset;
+    obstype* ot = &obs->obstypes[o1->type];
+    int stride = ot->sob_stride;
     int i1, i2;
 
     if (o1->type > o2->type)
@@ -214,7 +213,6 @@ static int cmp_obs(const void* p1, const void* p2, void* p)
             return -1;
     }
 
-    ot = &obs->obstypes[o1->type];
     if (ot->isasync) {
         i1 = get_tshift(o1->time, ot->async_tstep, ot->async_centred);
         i2 = get_tshift(o2->time, ot->async_tstep, ot->async_centred);
@@ -229,7 +227,6 @@ static int cmp_obs(const void* p1, const void* p2, void* p)
     else if (o1->footprint < o2->footprint)
         return -1;
 
-    stride = ot->sob_stride;
     if (stride == 0) {          /* no superobing on this grid */
         if (o1->id > o2->id)
             return 1;
@@ -243,7 +240,7 @@ static int cmp_obs(const void* p1, const void* p2, void* p)
          * The offset below is supposed to align the superobservation cell
          * boundaries with the cell boundaries.
          */
-        offset = (double) (stride % 2) / 2.0;
+        double offset = (double) (stride % 2) / 2.0;
 
         i1 = (int) floor(o1->fij[0] + offset) / stride;
         i2 = (int) floor(o2->fij[0] + offset) / stride;

@@ -55,6 +55,10 @@ typedef struct {
      */
     int npars;
     par_entry* pars;
+    /*
+     * whether to stop if there are no observations
+     */
+    int mandatory;
 } obssection;
 
 void obsprm_read(char fname[], int* nsection, obssection** sections, int* nexclude, obsregion** exclude);
