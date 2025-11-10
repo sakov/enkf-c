@@ -80,7 +80,7 @@ static void get_gridstr(dasystem* das, int gid, char str[])
 
 /** Create a pointlog file and write local obs to it.
  */
-void plog_create(dasystem* das, int plogid, int ploc, int* lobs, double* lcoeffs)
+void das_createplog(dasystem* das, int plogid, int ploc, int* lobs, double* lcoeffs)
 {
     pointlog* plog = &das->plogs[plogid];
     observations* obs = das->obs;
@@ -310,7 +310,7 @@ void plog_create(dasystem* das, int plogid, int ploc, int* lobs, double* lcoeffs
 /** Creates a point log file and writes ensemble observations, transforms, and
  * accompanying information.
  */
-void plog_writetransform(dasystem* das, int plogid, int gid, int ploc, double* s, double* S, double* w, double* T)
+void das_writeplogtransform(dasystem* das, int plogid, int gid, int ploc, double* s, double* S, double* w, double* T)
 {
     pointlog* plog = &das->plogs[plogid];
     grid* g = model_getgridbyid(das->m, gid);
@@ -388,18 +388,20 @@ void plog_writetransform(dasystem* das, int plogid, int gid, int ploc, double* s
 #if defined(ENKF_UPDATE)
 /**
  */
-void plog_definestatevars(dasystem* das)
+void plogs_definestatevars(dasystem* das)
 {
     int nvar = model_getnvar(das->m);
-    int vid, plogid;
+    int plogid;
 
+    if (rank != 0)
+        return;
     if (das->nplog == 0)
         return;
 
     for (plogid = 0; plogid < das->nplog; ++plogid) {
         pointlog* plog = &das->plogs[plogid];
         char fname[MAXSTRLEN];
-        int ncid;
+        int ncid, vid;
 
         das_getfname_plog(das, plog, fname);
         ncw_open(fname, NC_WRITE, &ncid);
@@ -490,7 +492,7 @@ void plog_definestatevars(dasystem* das)
             }
         }
         /*
-         * (putting this attribute should have been done in plog_create(),
+         * (putting this attribute should have been done in das_createplog(),
          * but it is called in CALC, which knows nothing about das->updatespec)
          */
         ncw_put_att_text(ncid, NC_GLOBAL, "output", (das->updatespec & UPDATE_OUTPUTINC) ? "increment" : "analysis");
@@ -694,7 +696,7 @@ static void plog_writestatevars_toassemble(dasystem* das, int nfields, void** fi
 
 /**
  */
-void plog_writestatevars(dasystem* das, int nfields, void** fieldbuffer, field* fields, int isanalysis)
+void plogs_writestatevars(dasystem* das, int nfields, void** fieldbuffer, field* fields, int isanalysis)
 {
     if (das->nplog == 0)
         return;
@@ -714,7 +716,7 @@ static void get_plogtilefname(int plogid, field* f, char fname[])
 
 /**
  */
-void plog_assemblestatevars(dasystem* das)
+void plogs_assemblestatevars(dasystem* das)
 {
     float* v = NULL;
     int nfields = 0;

@@ -19,6 +19,7 @@
 #include "observations.h"
 #include "model.h"
 
+#if defined(ENKF_CALC)
 #define S_MODE_NONE 0
 #define S_MODE_HE_f 1
 #define S_MODE_HA_f 2
@@ -26,7 +27,9 @@
 #define S_MODE_HE_a 4
 #define S_MODE_HA_a 5
 #define S_MODE_S_a  6
+#endif
 
+#if defined(ENKF_UPDATE) || defined(ENS_DIAG)
 typedef struct {
     int id;
     int varid;
@@ -35,12 +38,13 @@ typedef struct {
     int level;
     int structured;
 } field;
+#endif
 
 typedef struct {
     char* prmfname;
     int mode;
     int scheme;
-    double alpha;               /* moderating multiple */
+    double alpha;               /* relaxation to prior spread coefficient */
     char* ensdir;
     char* ensdir2;              /* static ens. for mode = MODE_HYBRID */
     char* bgdir;
@@ -51,6 +55,9 @@ typedef struct {
     double gamma;               /* mixing coefficient: P = P_d + gamma P_s */
 
     model* m;
+
+    int nplog;
+    pointlog* plogs;
 
 #if defined(ENKF_CALC)
     observations* obs;
@@ -71,7 +78,7 @@ typedef struct {
      * copied, instead it is modified when transferred between states. The
      * states of `s' and 'S' are described by `s_mode':
      *
-     *   s_mode      s_f, s_a and S      S contains    S relates to
+     *   s_mode      s_f, s_a and S      S contains    S related to
      *               are standardised    anomalies     forecast
      * S_MODE_HE_f         no                no           yes
      * S_MODE_HA_f         no                yes          yes
@@ -90,52 +97,45 @@ typedef struct {
     double kfactor;
 
     int strict_time_matching;
-#endif
+
+    int nbadbatchspecs;
+    badbatchspec* badbatchspecs;
+
+    int nregions;
+    region* regions;
+
 #if defined(USE_SHMEM)
     MPI_Win sm_comm_win_S;
     MPI_Win sm_comm_win_St;
     float** St;                 /* (S transposed) */
 #endif
+#endif
+
+#if defined(ENKF_UPDATE)
     int fieldbufsize;
-
-    int nregions;
-    region* regions;
-
-    int nplog;
-    pointlog* plogs;
-
-    int nbadbatchspecs;
-    badbatchspec* badbatchspecs;
-
     int updatespec;             /* binary flags */
+#endif
 
     int ncformat;
     int nccompression;
 } dasystem;
 
-#if defined(ENKF_UPDATE)
-dasystem* das_create(enkfprm* prm, int updatespec);
-#else
+#if defined(ENKF_CALC) || defined(ENS_DIAG)
 dasystem* das_create(enkfprm* prm);
+#elif defined(ENKF_UPDATE)
+dasystem* das_create(enkfprm* prm, int updatespec);
 #endif
 void das_destroy(dasystem* das);
 
+#if defined(ENKF_CALC)
 void das_getHE(dasystem* das);
 void das_writeHE(dasystem* das);
 void das_writeanalysisobs(dasystem* das, char fname[]);
 void das_writeforecastobs(dasystem* das, char fname[]);
 void das_writemoderatedobs(dasystem* das, char fname[]);
-void das_allocateinflation(dasystem* das, char fname[]);
-void das_writeinflation(dasystem* das, field* f, int j, float* v);
-void das_assembleinflation(dasystem* das);
-void das_allocatespread(dasystem* das, char fname[]);
-void das_writespread_inupdate(dasystem* das, int nfields, void** fieldbuffer, field fields[], int isanalysis);
-void das_assemblespread(dasystem* das);
 void das_calcinnandspread(dasystem* das);
 void das_calctransforms(dasystem* das);
 void das_calcpointlogtransforms(dasystem* das);
-void das_getfields(dasystem* das, int gridid, int* nfield, field** fields);
-void getfieldfname(char* dir, char* prefix, char* varname, int level, char* fname);
 void das_moderateobs(dasystem* das);
 hashtable* das_getbatches(dasystem* das);
 hashtable* das_processbatches(dasystem* das, hashtable* batches);
@@ -143,26 +143,34 @@ void das_printobsstats(dasystem* das, int use_rmsd);
 void das_printfobsstats(dasystem* das, int use_rmsd);
 void das_standardise(dasystem* das);
 void das_destandardise(dasystem* das);
-void das_update(dasystem* das);
 void das_updateHE(dasystem* das);
+void das_calcmld(dasystem* das, obstype* ot, float*** src, float** dst);
+void das_createplog(dasystem* das, int plogid, int ploc, int* lobs, double* lcoeffs);
+void das_writeplogtransform(dasystem* das, int plogid, int gid, int ploc, double* s, double* S, double* w, double* T);
+#endif
+#if defined(ENKF_UPDATE) || defined(ENS_DIAG)
+void das_getfields(dasystem* das, int gridid, int* nfield, field** fields);
+void getfieldfname(char* dir, char* prefix, char* varname, int level, char* fname);
+#endif
+#if defined(ENKF_UPDATE)
+void das_update(dasystem* das);
+void das_allocatespread(dasystem* das);
+void das_writespread(dasystem* das, int nfields, void** fieldbuffer, field fields[], int isanalysis);
+void das_assemblespread(dasystem* das);
+void das_allocateinflation(dasystem* das, char fname[]);
+void das_writeinflation(dasystem* das, field* f, int j, float* v);
+void das_assembleinflation(dasystem* das);
+#endif
+void das_sethybridensemble(dasystem* das, int nij, float** v);
+int das_isstatic(dasystem* das, int mem);
 
 void das_getfname_transforms(dasystem* das, int gridid, char fname[]);
 void das_getfname_plog(dasystem* das, pointlog* plog, char fname[]);
-
-void das_calcmld(dasystem* das, obstype* ot, float*** src, float** dst);
-
-void plog_create(dasystem* das, int plogid, int ploc, int* lobs, double* lcoeffs);
-void plog_writetransform(dasystem* das, int plogid, int gid, int ploc, double* s, double* S, double* w, double* T);
-void plog_definestatevars(dasystem* das);
-void plog_writestatevars(dasystem* das, int nfields, void** fieldbuffer, field* fields, int isanalysis);
-void plog_assemblestatevars(dasystem* das);
 
 void das_getmemberfname(dasystem* das, char varname[], int mem, char fname[]);
 int das_getmemberfname_async(dasystem* das, obstype* ot, int mem, int t, char fname[], int* r);
 void das_getbgfname(dasystem* das, char varname[], char fname[]);
 int das_getbgfname_async(dasystem* das, obstype* ot, int t, char fname[], int* r);
-void das_sethybridensemble(dasystem* das, int nij, float** v);
-int das_isstatic(dasystem* das, int mem);
 
 #define _DASYSTEM_H
 #endif

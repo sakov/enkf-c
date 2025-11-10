@@ -239,15 +239,16 @@ dasystem* das_create(enkfprm* prm)
     } else {
         das->kfactor = NAN;
     }
-#endif
 #if defined(USE_SHMEM)
     das->sm_comm_win_S = MPI_WIN_NULL;
     das->sm_comm_win_St = MPI_WIN_NULL;
     das->S = NULL;
     das->St = NULL;
 #endif
-    if (!enkf_fstatsonly)
-        das->fieldbufsize = prm->fieldbufsize;
+#endif
+#if defined(ENKF_UPDATE)
+    das->fieldbufsize = prm->fieldbufsize;
+#endif
 
     /*
      * initialise regions
@@ -426,6 +427,7 @@ void das_destroy(dasystem* das)
     if (das->St != NULL)
         free(das->St);
 #endif
+#if defined(ENKF_CALC)
     if (das->nregions > 0) {
         int i;
 
@@ -433,9 +435,6 @@ void das_destroy(dasystem* das)
             free(das->regions[i].name);
         free(das->regions);
     }
-#if defined(ENKF_CALC) || defined(ENKF_UPDATE)
-    plogs_destroy(das->nplog, das->plogs);
-#endif
     if (das->nbadbatchspecs > 0) {
         int i;
 
@@ -444,12 +443,18 @@ void das_destroy(dasystem* das)
 
         free(das->badbatchspecs);
     }
+#endif
+#if defined(ENKF_CALC) || defined(ENKF_UPDATE)
+    plogs_destroy(das->nplog, das->plogs);
+#endif
+
     free(das);
     distribute_free();
     if (rank == 0)
         dir_rmifexists(DIRNAME_TMP);
 }
 
+#if defined(ENKF_UPDATE) || defined(ENS_DIAG)
 /** Looks for all horizontal fields of the model on a specified grid to be
  ** updated.
  * @param das - das structure
@@ -510,6 +515,7 @@ void getfieldfname(char* dir, char* prefix, char* varname, int level, char* fnam
 {
     snprintf(fname, MAXSTRLEN, "%s/%s_%s-%03d.nc", dir, prefix, varname, level);
 }
+#endif
 
 /**
  */
@@ -524,12 +530,14 @@ void das_getfname_transforms(dasystem* das, int gridid, char fname[])
     }
 }
 
+#if defined(ENKF_CALC) || defined(ENKF_UPDATE)
 /**
  */
 void das_getfname_plog(dasystem* das, pointlog* plog, char fname[])
 {
     snprintf(fname, MAXSTRLEN, "%s_%.3f,%.3f.nc", FNAMEPREFIX_PLOG, plog->lon, plog->lat);
 }
+#endif
 
 /** Calculates the mixed layer depth for consistent application of the SST bias
  ** correction.

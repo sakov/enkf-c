@@ -31,9 +31,10 @@
 #include "dasystem.h"
 #include "diags.h"
 
+#if defined(ENKF_UPDATE)
 /** Allocates disk space for ensemble spread.
  */
-void das_allocatespread(dasystem* das, char fname[])
+void das_allocatespread(dasystem* das)
 {
     model* m = das->m;
     int nvar = model_getnvar(m);
@@ -44,7 +45,7 @@ void das_allocatespread(dasystem* das, char fname[])
     if (rank != 0)
         return;
 
-    ncw_create(fname, NC_CLOBBER | das->ncformat, &ncid);
+    ncw_create(FNAME_SPREAD, NC_CLOBBER | das->ncformat, &ncid);
     for (vid = 0; vid < nvar; ++vid) {
         char* varname_src = model_getvarname(m, vid);
         int varid_src;
@@ -71,10 +72,12 @@ void das_allocatespread(dasystem* das, char fname[])
 #endif
     ncw_close(ncid);
 }
+#endif
 
+#if defined(ENKF_UPDATE)
 /**
  */
-void das_writespread_inupdate(dasystem* das, int nfields, void** fieldbuffer, field fields[], int isanalysis)
+void das_writespread(dasystem* das, int nfields, void** fieldbuffer, field fields[], int isanalysis)
 {
     char fname[MAXSTRLEN];
     model* m = das->m;
@@ -164,7 +167,9 @@ void das_writespread_inupdate(dasystem* das, int nfields, void** fieldbuffer, fi
     free(v1);
     free(v2);
 }
+#endif
 
+#if defined(ENKF_UPDATE)
 /**
  */
 void das_assemblespread(dasystem* das)
@@ -241,6 +246,7 @@ void das_assemblespread(dasystem* das)
     }
     enkf_writeinfo(FNAME_SPREAD);
 }
+#endif
 
 /** Allocates disk space for inflation magnitudes.
  */
@@ -273,6 +279,7 @@ void das_allocateinflation(dasystem* das, char fname[])
     ncw_close(ncid);
 }
 
+#if defined(ENKF_UPDATE)
 /**
  */
 void das_writeinflation(dasystem* das, field* f, int j, float* v)
@@ -384,6 +391,7 @@ void das_assembleinflation(dasystem* das)
         enkf_printf("\n");
     }
 }
+#endif
 
 /** Calculates and writes to disk 3D field of correlation coefficients between
  ** surface and other layers of 3D variables.
@@ -859,6 +867,7 @@ void das_writevcorrs_with(dasystem* das, char* varname, int level, int calctype)
 #endif
 }
 
+#if defined(ENS_DIAG)
 /**
  */
 void das_writespread(dasystem* das)
@@ -1027,3 +1036,4 @@ void das_writespread(dasystem* das)
 
     free(fields);
 }
+#endif

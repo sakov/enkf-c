@@ -23,7 +23,10 @@
 #include "ncw.h"
 #include "definitions.h"
 #include "utils.h"
+#if defined(ENKF_CALC) || defined(ENKF_UPDATE)
+#include "dasystem.h"
 #include "pointlog.h"
+#endif
 #include "enkfprm.h"
 
 #define NINC 10

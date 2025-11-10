@@ -19,7 +19,9 @@
 #define CALC_CORR 1
 #define CALC_SENS 2
 
+#if defined(ENS_DIAG)
 void das_writespread(dasystem* das);
+#endif
 void das_writevcorrs(dasystem* das);
 void das_writevcorrs_with(dasystem* das, char* varname, int level, int calctype);
 

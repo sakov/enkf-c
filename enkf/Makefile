@@ -172,8 +172,8 @@ SRC_UPDATE =\
 common/hash.c\
 common/distribute.c\
 common/mpiqueue.c\
-common/pointlog.c\
 common/dasystem.c\
+common/pointlog.c\
 grid/gxy_rect.c\
 grid/vgrid.c\
 grid/hgrid.c\

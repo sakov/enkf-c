@@ -1,3 +1,7 @@
+v2.40.1
+   PS 11112025
+   -- A bit of cosmetic reshuffling, mainly concerning dasystem.h, and related
+      stuff.
 v2.40.0
    PS 07112025
    -- Added entry MANDATORY for sections in observation data parameter file.

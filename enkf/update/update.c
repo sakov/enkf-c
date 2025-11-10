@@ -83,8 +83,8 @@ static void addnoise(dasystem* das, int varid, void* v)
     free(random);
 }
 
-/** Updates `nfield' fields read into `fieldbuffer' with `X5'. Applies
- * variable-dependent inflation to each field.
+/** Updates `nfield' fields read into `fieldbuffer' by applying transforms `X5'.
+ ** Applies variable-dependent inflation to each field.
  */
 static void das_updatefields(dasystem* das, int nfields, void** fieldbuffer, field fields[])
 {
@@ -1179,7 +1179,7 @@ void das_update(dasystem* das)
 
     if (das->updatespec & UPDATE_DOSPREAD && rank == 0) {
         enkf_printf("    allocating disk space for spread:");
-        das_allocatespread(das, FNAME_SPREAD);
+        das_allocatespread(das);
         enkf_printf("\n");
         enkf_flush();
         if (rank == 0 && !(das->updatespec & UPDATE_DIRECTWRITE))
@@ -1197,7 +1197,7 @@ void das_update(dasystem* das)
 
     if (das->updatespec & UPDATE_DOPLOGS && rank == 0) {
         enkf_printf("    defining state variables in point logs:");
-        plog_definestatevars(das);
+        plogs_definestatevars(das);
         enkf_printf("\n");
         enkf_flush();
     }
@@ -1505,12 +1505,12 @@ void das_update(dasystem* das)
                  * write forecast spread
                  */
                 if (das->updatespec & UPDATE_DOFORECASTSPREAD)
-                    das_writespread_inupdate(das, bufid + 1, fieldbuffer, fieldstowrite, 0);
+                    das_writespread(das, bufid + 1, fieldbuffer, fieldstowrite, 0);
                 /*
                  * write forecast variables to point logs
                  */
                 if (das->updatespec & UPDATE_DOPLOGSFC)
-                    plog_writestatevars(das, bufid + 1, fieldbuffer, fieldstowrite, 0);
+                    plogs_writestatevars(das, bufid + 1, fieldbuffer, fieldstowrite, 0);
                 /*
                  * set the background to 0 if output is increment
                  */
@@ -1538,12 +1538,12 @@ void das_update(dasystem* das)
                  * write analysis spread
                  */
                 if (bufid >= 0 && das->updatespec & UPDATE_DOANALYSISSPREAD && (das->mode == MODE_ENKF || das->mode == MODE_HYBRID))
-                    das_writespread_inupdate(das, bufid + 1, fieldbuffer, fieldstowrite, 1);
+                    das_writespread(das, bufid + 1, fieldbuffer, fieldstowrite, 1);
                 /*
                  * write analysis variables to point logs
                  */
                 if (bufid >= 0 && das->updatespec & UPDATE_DOPLOGSAN)
-                    plog_writestatevars(das, bufid + 1, fieldbuffer, fieldstowrite, 1);
+                    plogs_writestatevars(das, bufid + 1, fieldbuffer, fieldstowrite, 1);
 
                 if (fid < 0)
                     break;
@@ -1668,7 +1668,7 @@ void das_update(dasystem* das)
                  * write forecast spread
                  */
                 if (das->updatespec & UPDATE_DOFORECASTSPREAD)
-                    das_writespread_inupdate(das, bufid + 1, fieldbuffer, &fields[fid - bufid], 0);
+                    das_writespread(das, bufid + 1, fieldbuffer, &fields[fid - bufid], 0);
 
                 /*
                  * write forecast variables to point logs
@@ -1707,7 +1707,7 @@ void das_update(dasystem* das)
                  * write analysis spread
                  */
                 if (das->updatespec & UPDATE_DOANALYSISSPREAD && (das->mode == MODE_ENKF || das->mode == MODE_HYBRID))
-                    das_writespread_inupdate(das, bufid + 1, fieldbuffer, &fields[fid - bufid], 1);
+                    das_writespread(das, bufid + 1, fieldbuffer, &fields[fid - bufid], 1);
                 /*
                  * write analysis variables to point logs
                  */
@@ -1750,7 +1750,7 @@ void das_update(dasystem* das)
         if (das->updatespec & UPDATE_DOPLOGS) {
             enkf_printtime("  ");
             enkf_printf("  assembling state variables in point logs:\n");
-            plog_assemblestatevars(das);
+            plogs_assemblestatevars(das);
         }
     }
 #if defined(MPI)

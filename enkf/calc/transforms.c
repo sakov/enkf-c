@@ -1676,7 +1676,7 @@ void das_calcpointlogtransforms(dasystem* das)
         /*
          * create a pointlog output file and write all local obs to it
          */
-        plog_create(das, plogid, ploc, lobs, lcoeffs);
+        das_createplog(das, plogid, ploc, lobs, lcoeffs);
         if (ploc > 0) {
             free(lobs);
             free(lcoeffs);
@@ -1748,7 +1748,7 @@ void das_calcpointlogtransforms(dasystem* das)
             }
 
             enkf_printf("    writing transforms for point (%.3f,%.3f) on grid \"%s\":", plog->lon, plog->lat, grid_getname(g));
-            plog_writetransform(das, plogid, gid, ploc, sloc, (ploc == 0) ? NULL : Sloc[0], w, (T != NULL) ? T[0] : NULL);
+            das_writeplogtransform(das, plogid, gid, ploc, sloc, (ploc == 0) ? NULL : Sloc[0], w, (T != NULL) ? T[0] : NULL);
             enkf_printf("\n");
 
             if (ploc > 0) {

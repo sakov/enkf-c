@@ -36,5 +36,11 @@ struct pointlog {
 void plogs_add(int* nplog, pointlog** plogs, double lon, double lat, char* gridname);
 void plogs_destroy(int nplog, pointlog plogs[]);
 
+#if defined(ENKF_UPDATE)
+void plogs_definestatevars(dasystem* das);
+void plogs_writestatevars(dasystem* das, int nfields, void** fieldbuffer, field* fields, int isanalysis);
+void plogs_assemblestatevars(dasystem* das);
+#endif
+
 #define _POINTLOG_H
 #endif
