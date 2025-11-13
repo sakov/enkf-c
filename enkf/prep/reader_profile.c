@@ -1,6 +1,6 @@
 /******************************************************************************
  *
- * File:        reader_z.c        
+ * File:        reader_profile.c        
  *
  * Created:     25/06/2019
  *
@@ -10,6 +10,7 @@
  * Description: Generic reader for observations in a single profile.
  *
  * Revisions:   08/12/2023 PS: Modified to handle multiple profiles.
+ *              12/11/2025 PS: Renamed this reader from "z" to "profile".
  *
  *****************************************************************************/
 
@@ -98,7 +99,7 @@ static int allmissing(int ncid, char varname[])
 
 /**
  */
-void reader_z(char* fname, int fid, obssection* section, grid* g, observations* obs)
+void reader_profile(char* fname, int fid, obssection* section, grid* g, observations* obs)
 {
     char* varname = NULL;
     int varname_specified = 0;
@@ -666,9 +667,9 @@ void reader_z(char* fname, int fid, obssection* section, grid* g, observations* 
 
 /**
  */
-void reader_z_describe(void)
+void reader_profile_describe(void)
 {
-    enkf_printf("\n  Generic reader \"z\" reads profile data. It currently assumes the following:\n\
+    enkf_printf("\n  Generic reader \"profile\" reads profile data. It currently assumes the following:\n\
     - longitude and latitude are either 0-dimensional or 1-dimensional of size\n\
       [nprof];\n\
     - time is either 0- or 1-dimensional of size 1, or 1-dimensional of size\n\

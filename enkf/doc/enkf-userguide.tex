@@ -1,3 +1,4 @@
+
 \documentclass[11pt]{report}
 \usepackage{natbib}
 \usepackage{bibentry}
@@ -39,7 +40,7 @@
 
 \begin{document}
 
-\title{EnKF-C user guide\\{\normalsize version 2.40.0}}
+\title{EnKF-C user guide\\{\normalsize version 2.40.2}}
 
 \author{Pavel Sakov}
 \date{June 19, 2014 -- \today}
@@ -1137,7 +1138,7 @@ PRODUCT = RADS
 TYPE = SLA
 READER = scattered
 PARAMETER VARNAME = sla
-PARAMETER ZVALUE = 0
+PARAMETER ZVALUE = NaN
 PARAMETER MINDEPTH = 100
 FILE = /short/p93/pxs599/obs/RADS/2006/g?_20060523.nc
 ERROR_STD = 0.07
@@ -1147,7 +1148,7 @@ PRODUCT = RADS
 TYPE = SLA
 READER = scattered
 PARAMETER VARNAME = sla
-PARAMETER ZVALUE = 0
+PARAMETER ZVALUE = NaN
 PARAMETER MINDEPTH = 100
 file = /short/p93/pxs599/obs/RADS/2006/[!g]?_20060523.nc
 \end{Verbatim}
@@ -1227,7 +1228,7 @@ TYPE = SLA
 READER = scattered
 PARAMETER VARNAME = sla
 PARAMETER BATCHNAME = pass
-PARAMETER ZVALUE = 0
+PARAMETER ZVALUE = NaN
 PARAMETER MINDEPTH = 100
 FILE = obs/RADS/2007/??_200712{19,20,21,22,23}.nc
 
@@ -1279,7 +1280,7 @@ Following is the list of available readers:
     gridded_xy
     gridded_xyz
     gridded_xyh
-    z
+    profile
   custom readers:
     navo
     windsat
@@ -1293,14 +1294,14 @@ Users are encouraged to use generic rather than custom readers.
 When this is not possible, one may either modify (or put a request to modify) a generic reader, or develop a custom reader.
 
 Each reader can be specified in the observation data parameter file with an arbitrary number of parameters.
-For example, the following section changes the default minimal depth for using altimetry observations to 150\,m:
+For example, the following section sets the default minimal depth for SLA observations to 150\,m:
 \begin{Verbatim}
 (...)
 PRODUCT == RADS
 TYPE = SLA
 READER = scattered
 PARAMETER VARNAME = sla
-PARAMETER ZVALUE = 0
+PARAMETER ZVALUE = NaN
 PARAMETER MINDEPTH = 150
 (...)
 \end{Verbatim}
@@ -2312,7 +2313,9 @@ Paul Sandery was the first user of this code (apart from the author), and his en
   LA &-& local analysis \\
   QC &-& quality control \\
   SDAS &-& state of data assimilation system \\
+  SLA &-& sea level anomalies\\
   SRF &-& spread reduction factor \\
+  SST &-& sea surface temperature\\
   SVD &-& singular value decomposition \\
 \end{tabular}
 

@@ -17,7 +17,7 @@
 
 typedef void (*obsread_fn) (char* fname, int fid, obssection* section, grid* g, observations* obs);
 
-obsread_fn get_obsreadfn(obssection* m);
+obsread_fn get_obsreadfn(obssection* section);
 
 /*
  * generic readers
@@ -26,7 +26,7 @@ void reader_scattered(char* fname, int fid, obssection* section, grid* g, observ
 void reader_gridded_xy(char* fname, int fid, obssection* section, grid* g, observations* obs);
 void reader_gridded_xyz(char* fname, int fid, obssection* section, grid* g, observations* obs);
 void reader_gridded_xyh(char* fname, int fid, obssection* section, grid* g, observations* obs);
-void reader_z(char* fname, int fid, obssection* section, grid* g, observations* obs);
+void reader_profile(char* fname, int fid, obssection* section, grid* g, observations* obs);
 
 /*
  * readers for particular products
@@ -43,7 +43,7 @@ void reader_scattered_describe(void);
 void reader_gridded_xy_describe(void);
 void reader_gridded_xyz_describe(void);
 void reader_gridded_xyh_describe(void);
-void reader_z_describe(void);
+void reader_profile_describe(void);
 void reader_navo_describe(void);
 void reader_windsat_describe(void);
 void reader_mmt_describe(void);

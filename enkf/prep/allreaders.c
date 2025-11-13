@@ -39,7 +39,8 @@ obsreader_entry allreaders[] = {
     {"ANY", "gridded_xy", reader_gridded_xy, reader_gridded_xy_describe},
     {"ANY", "gridded_xyz", reader_gridded_xyz, reader_gridded_xyz_describe},
     {"ANY", "gridded_xyh", reader_gridded_xyh, reader_gridded_xyh_describe},
-    {"ANY", "z", reader_z, reader_z_describe},
+    {"ANY", "profile", reader_profile, reader_profile_describe},
+    {"ANY", "z", reader_profile, reader_profile_describe},
     {"NAVO", "navo", reader_navo, reader_navo_describe},
     {"WINDSAT", "windsat", reader_windsat, reader_windsat_describe},
     {"MMT", "mmt", reader_mmt, reader_mmt_describe},
@@ -58,7 +59,7 @@ void list_readers(void)
 
     enkf_printf("  generic readers:\n");
     for (i = 0; i < nreaders; ++i)
-        if (strcmp(allreaders[i].product, "ANY") == 0)
+        if (strcmp(allreaders[i].product, "ANY") == 0 && strcmp(allreaders[i].reader, "z") != 0)
             enkf_printf("    %s\n", allreaders[i].reader);
     enkf_printf("  custom readers:\n");
     for (i = 0; i < nreaders; ++i)
