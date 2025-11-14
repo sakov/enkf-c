@@ -1376,6 +1376,8 @@ void das_update(dasystem* das)
         mpiqueue* queue = NULL;
 
         das_getfields(das, -1, &nfields, &fields);
+        if (nfields == 0)
+            enkf_quit("nothing to do: nfields = 0");
         if (nprocesses == 1)
             enkf_quit("\"mpiqueue\" can not be used on a single CPU; run on more than one CPU or recompile without -DUSE_MPIQUEUE flag");
         queue = mpiqueue_create(MPI_COMM_WORLD, nfields);
@@ -1556,6 +1558,8 @@ void das_update(dasystem* das)
             free(fieldstowrite);
             free(fieldbuffer);
         }                       /* if (worker) */
+        mpiqueue_destroy(queue);
+        free(fields);
     }
 #else                           /* !defined(USE_MPIQUEUE) */
     for (gid = 0; gid < ngrid; ++gid) {
@@ -1581,6 +1585,8 @@ void das_update(dasystem* das)
         grid_getsize(g, &mni, &mnj, NULL);
 
         das_getfields(das, gid, &nfields, &fields);
+        if (nfields == 0)
+            enkf_quit("nothing to do: nfields = 0");
         enkf_printf("      %d fields\n", nfields);
         enkf_flush();
 #if defined(MPI)
@@ -1642,7 +1648,7 @@ void das_update(dasystem* das)
                 int masklog = das_isstatic(das, e + 1);
 
                 das_getmemberfname(das, f->varname, e + 1, fname);
-                model_readfield(das->m, fname, f->varname, f->level, (f->structured) ? ((float***) fieldbuffer[bufid])[e][0] : ((float**) fieldbuffer[bufid])[e], masklog);
+                model_readfield(das->m, fname, f->varname, -1, f->level, (f->structured) ? ((float***) fieldbuffer[bufid])[e][0] : ((float**) fieldbuffer[bufid])[e], masklog);
             }
 
             if (das->mode == MODE_HYBRID) {
@@ -1660,7 +1666,7 @@ void das_update(dasystem* das)
              */
             if (das->mode == MODE_ENOI && (((das->updatespec & UPDATE_DOFIELDS) && !(das->updatespec & UPDATE_OUTPUTINC)) || (das->updatespec & UPDATE_DOPLOGSAN))) {
                 das_getbgfname(das, f->varname, fname);
-                model_readfield(das->m, fname, f->varname, f->level, (f->structured) ? ((float***) fieldbuffer[bufid])[das->nmem][0] : ((float**) fieldbuffer[bufid])[das->nmem], 0);
+                model_readfield(das->m, fname, f->varname, -1, f->level, (f->structured) ? ((float***) fieldbuffer[bufid])[das->nmem][0] : ((float**) fieldbuffer[bufid])[das->nmem], 0);
             }
 
             if (bufid == das->fieldbufsize - 1 || fid == my_last_iteration) {
@@ -1674,7 +1680,7 @@ void das_update(dasystem* das)
                  * write forecast variables to point logs
                  */
                 if (das->updatespec & UPDATE_DOPLOGSFC)
-                    plog_writestatevars(das, bufid + 1, fieldbuffer, &fields[fid - bufid], 0);
+                    plogs_writestatevars(das, bufid + 1, fieldbuffer, &fields[fid - bufid], 0);
 
                 /*
                  * now set the background to 0 if output is increment
@@ -1712,7 +1718,7 @@ void das_update(dasystem* das)
                  * write analysis variables to point logs
                  */
                 if (das->updatespec & UPDATE_DOPLOGSAN)
-                    plog_writestatevars(das, bufid + 1, fieldbuffer, &fields[fid - bufid], 1);
+                    plogs_writestatevars(das, bufid + 1, fieldbuffer, &fields[fid - bufid], 1);
             }
         }                       /* for fid */
 

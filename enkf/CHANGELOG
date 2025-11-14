@@ -1,3 +1,6 @@
+v2.40.3
+   PS 14112025
+   -- A couple of minor fixes in update.c.
 v2.40.2
    PS 13112025
    -- Changed name of generic reader "z" to "profile". (The old name still can
