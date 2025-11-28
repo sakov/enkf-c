@@ -43,9 +43,10 @@
  */
 #define GRIDVTYPE_NONE 1
 #define GRIDVTYPE_Z 2
-#define GRIDVTYPE_SIGMA 3
-#define GRIDVTYPE_HYBRID 4
-#define GRIDVTYPE_NUMERIC 5
+#define GRIDVTYPE_ZT 3
+#define GRIDVTYPE_SIGMA 4
+#define GRIDVTYPE_HYBRID 5
+#define GRIDVTYPE_NUMERIC 6
 
 struct grid;
 typedef struct grid grid;

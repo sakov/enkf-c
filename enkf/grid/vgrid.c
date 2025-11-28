@@ -40,6 +40,13 @@ typedef struct {
     double* zc;
 } gz_z;
 
+typedef struct {
+    int nk;
+    int direction;
+    int sign_changed;
+    double* zt;
+} gz_zt;
+
 /*
  * This structure manages the "new" ROMS vertical coordinate as described in
  * https://www.myroms.org/wiki/Vertical_S-coordinate, Eq. 2 and by Shchepetkin
@@ -188,6 +195,52 @@ static gz_z* gz_z_create(char* gname, int nk, double* z, int nkc, double* zc, ch
         assert(gz->zt[0] >= gz->zt[nk - 1] && gz->zc[0] > gz->zc[nk]);
     for (i = 0; i < nk; ++i)
         assert((gz->zt[i] - gz->zc[i]) * (gz->zc[i + 1] - gz->zt[i]) > 0.0);
+
+    return gz;
+}
+
+/**
+ */
+static gz_zt* gz_zt_create(char* gname, int nk, double* z, char* direction)
+{
+    gz_zt* gz = malloc(sizeof(gz_zt));
+    int i;
+
+    if (strncasecmp(direction, "FROMSURF", 8) == 0)
+        gz->direction = GRIDVDIR_FROMSURF;
+    else if (strncasecmp(direction, "TOSURF", 6) == 0)
+        gz->direction = GRIDVDIR_TOSURF;
+    else
+        enkf_quit("programming error");
+
+    gz->zt = z;
+    gz->nk = nk;
+    gz->sign_changed = 0;
+    /*
+     * check monotonicity
+     */
+    for (i = 0; i < nk - 2; ++i)
+        if ((z[i + 1] - z[i]) * (z[i + 2] - z[i + 1]) < 0.0)
+            enkf_quit("%s: non-monotonic Z grid", gname);
+    /*
+     * change sign if negative
+     */
+    {
+        double sum = 0.0;
+
+        for (i = 0; i < nk; ++i)
+            sum += z[i];
+        if (sum < 0.0) {
+            gz->sign_changed = 1;
+            for (i = 0; i < nk; ++i)
+                z[i] = -z[i];
+        }
+    }
+
+    if (gz->direction == GRIDVDIR_FROMSURF)
+        assert(gz->zt[0] <= gz->zt[nk - 1]);
+    else if (gz->direction == GRIDVDIR_TOSURF)
+        assert(gz->zt[0] >= gz->zt[nk - 1]);
 
     return gz;
 }
@@ -530,7 +583,16 @@ vgrid* vgrid_create(void* p, void* g)
             zc = malloc(nkc * sizeof(double));
             ncu_readvardouble(ncid, varid, nkc, zc);
         }
-        vg->gz = gz_z_create(prm->name, nk, z, nkc, zc, prm->vdirection);
+        vg->gz = gz_z_create(prm->name, nk, z, nkc, zc, prm->vdirection); }
+    else if (vg->type == GRIDVTYPE_ZT) {
+        int varid;
+        double* z = NULL;
+
+        ncw_inq_varid(ncid, prm->zvarname, &varid);
+        ncw_inq_vardims(ncid, varid, 1, NULL, &nk);
+        z = malloc(nk * sizeof(double));
+        ncu_readvardouble(ncid, varid, nk, z);
+        vg->gz = gz_zt_create(prm->name, nk, z, prm->vdirection);
     } else if (vg->type == GRIDVTYPE_SIGMA) {
         int varid;
         double* ct = NULL;
@@ -724,6 +786,14 @@ static void gz_z_destroy(gz_z* gz)
 
 /**
  */
+static void gz_zt_destroy(gz_zt* gz)
+{
+    free(gz->zt);
+    free(gz);
+}
+
+/**
+ */
 static void gz_sigma_destroy(gz_sigma* gz)
 {
     free(gz->ct);
@@ -770,6 +840,8 @@ void vgrid_destroy(vgrid* vg)
     if (vg->type == GRIDVTYPE_NONE);
     else if (vg->type == GRIDVTYPE_Z)
         gz_z_destroy(vg->gz);
+    else if (vg->type == GRIDVTYPE_ZT)
+        gz_zt_destroy(vg->gz);
     else if (vg->type == GRIDVTYPE_SIGMA)
         gz_sigma_destroy(vg->gz);
     else if (vg->type == GRIDVTYPE_HYBRID)
@@ -791,6 +863,9 @@ void vgrid_describe(vgrid* vg, char* offset)
         break;
     case GRIDVTYPE_Z:
         enkf_printf("%s  v type = Z\n", offset);
+        break;
+    case GRIDVTYPE_ZT:
+        enkf_printf("%s  v type = ZT\n", offset);
         break;
     case GRIDVTYPE_SIGMA:
         enkf_printf("%s  v type = SIGMA\n", offset);
@@ -884,6 +959,56 @@ static void gz_z_z2fk(vgrid* vg, double z, double* fk)
     gz_z* gz = vg->gz;
 
     *fk = z2fk_basic(gz->nk, gz->zt, gz->zc, z);
+}
+
+/**
+ */
+static void gz_zt_z2fk(vgrid* vg, double z, double* fk)
+{
+    gz_zt* gz = vg->gz;
+    int n = gz ->nk;
+    double* zt = gz->zt;
+    
+    int ascending = (zt[n - 1] > zt[0]) ? 1 : 0;
+    int i1 = 0;
+    int i2 = n - 1;
+    int imid;
+
+    if (ascending) {
+        if (z <= zt[0])
+            *fk = (z - zt[0]) / (zt[1] - zt[0]);
+        else if (z >= zt[n - 1])
+            *fk = n - 1 + (z - zt[n - 1]) / (zt[n - 1] - zt[n - 2]);
+        else {
+            while (1) {
+                imid = (i1 + i2) / 2;
+                if (imid == i1)
+                    break;
+                if (z > zt[imid])
+                    i1 = imid;
+                else
+                    i2 = imid;
+            }
+            *fk = i1 + (z - zt[i1]) / (zt[i1 + 1] - zt[i1]);
+        }
+    } else {
+        if (z >= zt[0])
+            *fk = (z - zt[0]) / (zt[1] - zt[0]);
+        else if (z <= zt[n - 1])
+            *fk = n - 1 + (z - zt[n - 1]) / (zt[n - 1] - zt[n - 2]);
+        else {
+            while (1) {
+                imid = (i1 + i2) / 2;
+                if (imid == i1)
+                    break;
+                if (z > zt[imid])
+                    i2 = imid;
+                else
+                    i1 = imid;
+            }
+            *fk = i1 + (z - zt[i1]) / (zt[i1 + 1] - zt[i1]);
+        }
+    }
 }
 
 /**
@@ -1027,6 +1152,8 @@ void vgrid_z2fk(vgrid* vg, double* fij, double z, double* fk)
 {
     if (vg->type == GRIDVTYPE_Z)
         gz_z_z2fk(vg, z, fk);
+    else if (vg->type == GRIDVTYPE_ZT)
+        gz_zt_z2fk(vg, z, fk);
     else if (vg->type == GRIDVTYPE_SIGMA)
         gz_sigma_z2fk(vg, fij, z, fk);
     else if (vg->type == GRIDVTYPE_HYBRID)
@@ -1066,11 +1193,21 @@ static double fk2z_basic(int n, double* zt, double* zc, double fk)
     else
         return zt[k] + (dk - 0.5) * (zc[k + 1] - zt[k]) / 0.5;
 }
-#endif
+
+static double gzt_fk2z(int n, double* zt, double fk)
+{
+    int k;
+
+    if (fk <= 0.0)
+        return zt[0] + fk * (zt[1] - zt[0]);
+    else if (fk >= (double) (n - 1))
+        return zt[n - 1] + (fk - (double)(n - 1)) * (zt[n - 1] - zt[n - 2]);
+    k = fk;
+    return zt[k] + (fk - (double) k) * (zt[k + 1] - zt[k]);
+}
 
 /**
  */
-#if defined(ENKF_PREP) || defined(ENKF_CALC)
 int grid_fk2z(grid* g, int* ij, double fk, double* z)
 {
     int htype = grid_gethtype(g);
@@ -1091,6 +1228,10 @@ int grid_fk2z(grid* g, int* ij, double fk, double* z)
             gz_z* gz = ((vgrid*) grid_getvgrid(g))->gz;
 
             *z = fk2z_basic(gz->nk, gz->zt, gz->zc, fk);
+        } else if (vtype == GRIDVTYPE_ZT) {
+            gz_zt* gz = ((vgrid*) grid_getvgrid(g))->gz;
+
+            *z = gzt_fk2z(gz->nk, gz->zt, fk);
         } else if (vtype == GRIDVTYPE_SIGMA) {
             gz_sigma* gz = ((vgrid*) grid_getvgrid(g))->gz;
             double h;

@@ -1,3 +1,11 @@
+v2.41.0
+   PS 28112025
+   -- Added vertical grid type "ZT". Unlike for "Z" grid, where the fractional
+      vertical index is assumed to be equal k + 0.5 at the boundary between
+      layers k and k + 1 (and, accordingly, the interpolated value at this
+      boundary is the average of values in layers k and k + 1), the vertical
+      index changes linearly with depth between the middle of layer k and the
+      middle of layer k + 1.
 v2.40.3
    PS 14112025
    -- A couple of minor fixes in update.c.

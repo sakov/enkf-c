@@ -37,6 +37,7 @@ typedef struct {
 gridvtype_entry allgridvtypeentries[] = {
     {"NONE", GRIDVTYPE_NONE, "MASKVARNAME"},
     {"Z", GRIDVTYPE_Z, "NUMLEVELSVARNAME"},
+    {"ZT", GRIDVTYPE_ZT, "NUMLEVELSVARNAME"},
     {"SIGMA", GRIDVTYPE_SIGMA, "MASKVARNAME"},
     {"HYBRID", GRIDVTYPE_HYBRID, "MASKVARNAME"},
     {"NUMERIC", GRIDVTYPE_NUMERIC, "NUMLEVELSVARNAME"}
@@ -186,8 +187,8 @@ void gridprm_create(enkfprm* eprm, int* ngrid, gridprm** prm)
         } else if (strcasecmp(token, "ZVARNAME") == 0) {
             if (now->vtype == NULL)
                 enkf_quit("%s, l.%d: VTYPE must be set first", fname, line);
-            if (strcasecmp(now->vtype, "Z") != 0 && strcasecmp(now->vtype, "NUMERIC") != 0)
-                enkf_quit("%s, l.%d: VTYPE must be set to \"Z\" or \"NUMERIC\" for entry ZVARNAME (currently \"%s\")", fname, line, now->vtype);
+            if (strcasecmp(now->vtype, "Z") != 0 && strcasecmp(now->vtype, "ZT") != 0 && strcasecmp(now->vtype, "NUMERIC") != 0)
+                enkf_quit("%s, l.%d: VTYPE must be set to \"Z\", \"ZT\", or \"NUMERIC\" for entry ZVARNAME (currently \"%s\")", fname, line, now->vtype);
             if ((token = strtok(NULL, seps)) == NULL)
                 enkf_quit("%s, l.%d: ZVARNAME not specified", fname, line);
             else if (now->zvarname != NULL)
@@ -584,6 +585,8 @@ void gridprm_print(gridprm* prm, char offset[])
             enkf_printf("%s  ZCVARNAME = \"%s\"\n", offset, prm->zcvarname);
         else
             enkf_printf("%s  ZCVARNAME = <none>\n", offset);
+    } else if (strcasecmp(prm->vtype, "ZT") == 0) {
+        enkf_printf("%s  ZVARNAME = \"%s\"\n", offset, prm->zvarname);
     } else if (strcasecmp(prm->vtype, "SIGMA") == 0) {
         enkf_printf("%s  CVARNAME = \"%s\"\n", offset, prm->cvarname);
         if (prm->ccvarname != NULL)
