@@ -812,39 +812,19 @@ static void das_writefields_direct(dasystem* das, int nfields, void** fieldbuffe
 {
     int i, e;
 
-    if (!(das->updatespec & UPDATE_SEPARATEOUTPUT)) {
-        for (i = 0; i < nfields; ++i) {
-            field* f = &fields[i];
-            char varname[NC_MAX_NAME];
+    for (i = 0; i < nfields; ++i) {
+        field* f = &fields[i];
 
-            strncpy(varname, f->varname, NC_MAX_NAME - 1);
-            if (!(das->updatespec & UPDATE_OUTPUTINC))
-                strncat(varname, "_an", NC_MAX_NAME - 1);
-            else
-                strncat(varname, "_inc", NC_MAX_NAME - 1);
+        for (e = 0; e < das->nmem_dynamic; ++e) {
+            char fname[MAXSTRLEN];
 
-            for (e = 0; e < das->nmem_dynamic; ++e) {
-                char fname[MAXSTRLEN];
-
-                das_getmemberfname(das, f->varname, e + 1, fname);
-                model_writefieldas(das->m, fname, varname, f->varname, f->level, (f->structured) ? ((float***) fieldbuffer[i])[e][0] : ((float**) fieldbuffer[i])[e], 0);
-            }
-        }
-    } else {
-        for (i = 0; i < nfields; ++i) {
-            field* f = &fields[i];
-
-            for (e = 0; e < das->nmem_dynamic; ++e) {
-                char fname[MAXSTRLEN];
-
-                das_getmemberfname(das, f->varname, e + 1, fname);
-                if (!(das->updatespec & UPDATE_OUTPUTINC)) {
-                    strncat(fname, ".analysis", MAXSTRLEN - 1);
-                    model_writefield(das->m, fname, f->varname, f->level, (f->structured) ? ((float***) fieldbuffer[i])[e][0] : ((float**) fieldbuffer[i])[e], 0);
-                } else {
-                    strncat(fname, ".increment", MAXSTRLEN - 1);
-                    model_writefield(das->m, fname, f->varname, f->level, (f->structured) ? ((float***) fieldbuffer[i])[e][0] : ((float**) fieldbuffer[i])[e], 1);
-                }
+            das_getmemberfname(das, f->varname, e + 1, fname);
+            if (!(das->updatespec & UPDATE_OUTPUTINC)) {
+                strncat(fname, ".analysis", MAXSTRLEN - 1);
+                model_writefield(das->m, fname, f->varname, f->level, (f->structured) ? ((float***) fieldbuffer[i])[e][0] : ((float**) fieldbuffer[i])[e], 0);
+            } else {
+                strncat(fname, ".increment", MAXSTRLEN - 1);
+                model_writefield(das->m, fname, f->varname, f->level, (f->structured) ? ((float***) fieldbuffer[i])[e][0] : ((float**) fieldbuffer[i])[e], 1);
             }
         }
     }
@@ -912,32 +892,16 @@ static void das_writebg_direct(dasystem* das, int nfields, void** fieldbuffer, f
 
     model_getvargridsize(m, fields[0].varid, &ni, &nj, NULL);
 
-    if (!(das->updatespec & UPDATE_SEPARATEOUTPUT)) {
-        for (i = 0; i < nfields; ++i) {
-            field* f = &fields[i];
-            char varname[NC_MAX_NAME];
-            char fname[MAXSTRLEN];
+    for (i = 0; i < nfields; ++i) {
+        field* f = &fields[i];
+        char fname[MAXSTRLEN];
 
-            das_getbgfname(das, f->varname, fname);
-            strncpy(varname, f->varname, NC_MAX_NAME - 1);
-            if (!(das->updatespec & UPDATE_OUTPUTINC))
-                strncat(varname, "_an", NC_MAX_NAME - 1);
-            else
-                strncat(varname, "_inc", NC_MAX_NAME - 1);
-            model_writefield(m, fname, varname, f->level, (f->structured) ? ((float***) fieldbuffer[i])[das->nmem][0] : ((float**) fieldbuffer[i])[das->nmem], 0);
-        }
-    } else {
-        for (i = 0; i < nfields; ++i) {
-            field* f = &fields[i];
-            char fname[MAXSTRLEN];
-
-            das_getbgfname(das, f->varname, fname);
-            if (!(das->updatespec & UPDATE_OUTPUTINC))
-                strncat(fname, ".analysis", MAXSTRLEN - 1);
-            else
-                strncat(fname, ".increment", MAXSTRLEN - 1);
-            model_writefield(m, fname, f->varname, f->level, (f->structured) ? ((float***) fieldbuffer[i])[das->nmem][0] : ((float**) fieldbuffer[i])[das->nmem], 0);
-        }
+        das_getbgfname(das, f->varname, fname);
+        if (!(das->updatespec & UPDATE_OUTPUTINC))
+            strncat(fname, ".analysis", MAXSTRLEN - 1);
+        else
+            strncat(fname, ".increment", MAXSTRLEN - 1);
+        model_writefield(m, fname, f->varname, f->level, (f->structured) ? ((float***) fieldbuffer[i])[das->nmem][0] : ((float**) fieldbuffer[i])[das->nmem], 0);
     }
 }
 
@@ -1034,17 +998,10 @@ static void das_assemblemembers(dasystem* das)
 
         for (e = my_first_iteration; e <= my_last_iteration; ++e) {
             das_getmemberfname(das, varname, e + 1, fname_dst);
-            if (das->updatespec & UPDATE_SEPARATEOUTPUT) {
-                if (!(das->updatespec & UPDATE_OUTPUTINC))
-                    strncat(fname_dst, ".analysis", MAXSTRLEN - 1);
-                else
-                    strncat(fname_dst, ".increment", MAXSTRLEN - 1);
-            } else {
-                if (!(das->updatespec & UPDATE_OUTPUTINC))
-                    strncat(varname_dst, "_an", NC_MAX_NAME - 1);
-                else
-                    strncat(varname_dst, "_inc", NC_MAX_NAME - 1);
-            }
+            if (!(das->updatespec & UPDATE_OUTPUTINC))
+                strncat(fname_dst, ".analysis", MAXSTRLEN - 1);
+            else
+                strncat(fname_dst, ".increment", MAXSTRLEN - 1);
 
             for (k = 0; k < nlev; ++k) {
                 char fname_src[MAXSTRLEN];
@@ -1120,17 +1077,10 @@ static void das_assemblebg(dasystem* das)
         strncpy(varname_dst, varname, NC_MAX_NAME - 1);
 
         das_getbgfname(das, varname, fname_dst);
-        if (das->updatespec & UPDATE_SEPARATEOUTPUT) {
-            if (!(das->updatespec & UPDATE_OUTPUTINC))
-                strncat(fname_dst, ".analysis", MAXSTRLEN - 1);
-            else
-                strncat(fname_dst, ".increment", MAXSTRLEN - 1);
-        } else {
-            if (!(das->updatespec & UPDATE_OUTPUTINC))
-                strncat(varname_dst, "_an", NC_MAX_NAME - 1);
-            else
-                strncat(varname_dst, "_inc", NC_MAX_NAME - 1);
-        }
+        if (!(das->updatespec & UPDATE_OUTPUTINC))
+            strncat(fname_dst, ".analysis", MAXSTRLEN - 1);
+        else
+            strncat(fname_dst, ".increment", MAXSTRLEN - 1);
 
         model_getvargridsize(m, i, &ni, &nj, NULL);
         if (nj > 0)
@@ -1216,71 +1166,42 @@ void das_update(dasystem* das)
 #if defined(MPI)
             MPI_Barrier(MPI_COMM_WORLD);
 #endif
-            if (!(das->updatespec & UPDATE_SEPARATEOUTPUT)) {
-                for (i = 0; i < nvar; ++i) {
-                    for (e = my_first_iteration; e <= my_last_iteration; ++e) {
-                        char* varname_src = model_getvarname(m, i);
-                        char fname[MAXSTRLEN];
-                        int ncid;
-                        char varname_dst[NC_MAX_NAME];
+            for (i = 0; i < nvar; ++i) {
+                char* varname = model_getvarname(m, i);
 
-                        strncpy(varname_dst, varname_src, NC_MAX_NAME - 1);
-                        if (!(das->updatespec & UPDATE_OUTPUTINC))
-                            strncat(varname_dst, "_an", NC_MAX_NAME - 1);
-                        else
-                            strncat(varname_dst, "_inc", NC_MAX_NAME - 1);
+                for (e = my_first_iteration; e <= my_last_iteration; ++e) {
+                    char fname_f[MAXSTRLEN], fname_a[MAXSTRLEN];
+                    int ncid_f, ncid_a;
+                    int vid_f;
 
-                        das_getmemberfname(das, varname_src, e + 1, fname);
-                        ncw_open(fname, NC_WRITE, &ncid);
-                        if (!ncw_var_exists(ncid, varname_dst)) {
-                            ncw_redef(ncid);
-                            ncw_def_var_as(ncid, varname_src, varname_dst);
+                    das_getmemberfname(das, varname, e + 1, fname_f);
+                    ncw_open(fname_f, NC_NOWRITE, &ncid_f);
+
+                    strncpy(fname_a, fname_f, MAXSTRLEN);
+                    if (!(das->updatespec & UPDATE_OUTPUTINC))
+                        strncat(fname_a, ".analysis", MAXSTRLEN - 1);
+                    else
+                        strncat(fname_a, ".increment", MAXSTRLEN - 1);
+                    if (file_exists(fname_a)) {
+                        ncw_open(fname_a, NC_WRITE, &ncid_a);
+                        if (ncw_var_exists(ncid_a, varname)) {
+                            ncw_close(ncid_a);
+                            ncw_close(ncid_f);
+                            continue;
                         }
-                        ncw_close(ncid);
-                        if (enkf_verbose) {
-                            printf(".");
-                            fflush(stdout);
-                        }
-                    }
-                }
-            } else {
-                for (i = 0; i < nvar; ++i) {
-                    char* varname = model_getvarname(m, i);
+                        ncw_redef(ncid_a);
+                    } else
+                        ncw_create(fname_a, NC_CLOBBER | das->ncformat, &ncid_a);
 
-                    for (e = my_first_iteration; e <= my_last_iteration; ++e) {
-                        char fname_f[MAXSTRLEN], fname_a[MAXSTRLEN];
-                        int ncid_f, ncid_a;
-                        int vid_f;
-
-                        das_getmemberfname(das, varname, e + 1, fname_f);
-                        ncw_open(fname_f, NC_NOWRITE, &ncid_f);
-
-                        strncpy(fname_a, fname_f, MAXSTRLEN);
-                        if (!(das->updatespec & UPDATE_OUTPUTINC))
-                            strncat(fname_a, ".analysis", MAXSTRLEN - 1);
-                        else
-                            strncat(fname_a, ".increment", MAXSTRLEN - 1);
-                        if (file_exists(fname_a)) {
-                            ncw_open(fname_a, NC_WRITE, &ncid_a);
-                            if (ncw_var_exists(ncid_a, varname)) {
-                                ncw_close(ncid_a);
-                                ncw_close(ncid_f);
-                                continue;
-                            }
-                            ncw_redef(ncid_a);
-                        } else
-                            ncw_create(fname_a, NC_CLOBBER | das->ncformat, &ncid_a);
-
-                        ncw_inq_varid(ncid_f, varname, &vid_f);
-                        ncw_copy_vardef(ncid_f, vid_f, ncid_a);
-                        if (das->nccompression > 0)
-                            ncw_def_deflate(ncid_a, 0, 1, das->nccompression);
-                        ncw_close(ncid_a);
-                        ncw_close(ncid_f);
-                        if (enkf_verbose) {
-                            printf(".");
-                            fflush(stdout);
-                        }
+                    ncw_inq_varid(ncid_f, varname, &vid_f);
+                    ncw_copy_vardef(ncid_f, vid_f, ncid_a);
+                    if (das->nccompression > 0)
+                        ncw_def_deflate(ncid_a, 0, 1, das->nccompression);
+                    ncw_close(ncid_a);
+                    ncw_close(ncid_f);
+                    if (enkf_verbose) {
+                        printf(".");
+                        fflush(stdout);
                     }
                 }
             }
@@ -1296,67 +1217,41 @@ void das_update(dasystem* das)
                 enkf_printf("    allocating disk space for analysis:");
                 enkf_flush();
 
-                if (!(das->updatespec & UPDATE_SEPARATEOUTPUT)) {
-                    for (i = 0; i < nvar; ++i) {
-                        char* varname_src = model_getvarname(m, i);
-                        char fname[MAXSTRLEN];
-                        int ncid;
-                        char varname_dst[NC_MAX_NAME];
+                for (i = 0; i < nvar; ++i) {
+                    char* varname = model_getvarname(m, i);
+                    char fname_f[MAXSTRLEN], fname_a[MAXSTRLEN];
+                    int ncid_f, ncid_a;
+                    int vid_f;
 
-                        strncpy(varname_dst, varname_src, NC_MAX_NAME - 1);
-                        if (!(das->updatespec & UPDATE_OUTPUTINC))
-                            strncat(varname_dst, "_an", NC_MAX_NAME - 1);
-                        else
-                            strncat(varname_dst, "_inc", NC_MAX_NAME - 1);
-                        das_getbgfname(das, varname_src, fname);
-                        ncw_open(fname, NC_WRITE, &ncid);
-                        if (!ncw_var_exists(ncid, varname_dst)) {
-                            ncw_redef(ncid);
-                            ncw_def_var_as(ncid, varname_src, varname_dst);
+                    das_getbgfname(das, varname, fname_f);
+                    strncpy(fname_a, fname_f, MAXSTRLEN);
+                    if (!(das->updatespec & UPDATE_OUTPUTINC))
+                        strncat(fname_a, ".analysis", MAXSTRLEN - 1);
+                    else
+                        strncat(fname_a, ".increment", MAXSTRLEN - 1);
+
+                    if (file_exists(fname_a)) {
+                        ncw_open(fname_a, NC_WRITE, &ncid_a);
+                        if (ncw_var_exists(ncid_a, varname)) {
+                            ncw_close(ncid_a);
+                            continue;
                         }
-                        ncw_close(ncid);
-                        if (enkf_verbose) {
-                            printf(".");
-                            fflush(stdout);
-                        }
-                    }
-                } else {
-                    for (i = 0; i < nvar; ++i) {
-                        char* varname = model_getvarname(m, i);
-                        char fname_f[MAXSTRLEN], fname_a[MAXSTRLEN];
-                        int ncid_f, ncid_a;
-                        int vid_f;
+                        ncw_redef(ncid_a);
+                    } else
+                        ncw_create(fname_a, NC_CLOBBER | das->ncformat, &ncid_a);
 
-                        das_getbgfname(das, varname, fname_f);
-                        strncpy(fname_a, fname_f, MAXSTRLEN);
-                        if (!(das->updatespec & UPDATE_OUTPUTINC))
-                            strncat(fname_a, ".analysis", MAXSTRLEN - 1);
-                        else
-                            strncat(fname_a, ".increment", MAXSTRLEN - 1);
-
-                        if (file_exists(fname_a)) {
-                            ncw_open(fname_a, NC_WRITE, &ncid_a);
-                            if (ncw_var_exists(ncid_a, varname)) {
-                                ncw_close(ncid_a);
-                                continue;
-                            }
-                            ncw_redef(ncid_a);
-                        } else
-                            ncw_create(fname_a, NC_CLOBBER | das->ncformat, &ncid_a);
-
-                        if (!file_exists(fname_f) && (das->updatespec & UPDATE_OUTPUTINC))
-                            das_getmemberfname(das, varname, 1, fname_f);
-                        ncw_open(fname_f, NC_NOWRITE, &ncid_f);
-                        ncw_inq_varid(ncid_f, varname, &vid_f);
-                        ncw_copy_vardef(ncid_f, vid_f, ncid_a);
-                        if (das->nccompression > 0)
-                            ncw_def_deflate(ncid_a, 0, 1, das->nccompression);
-                        ncw_close(ncid_a);
-                        ncw_close(ncid_f);
-                        if (enkf_verbose) {
-                            printf(".");
-                            fflush(stdout);
-                        }
+                    if (!file_exists(fname_f) && (das->updatespec & UPDATE_OUTPUTINC))
+                        das_getmemberfname(das, varname, 1, fname_f);
+                    ncw_open(fname_f, NC_NOWRITE, &ncid_f);
+                    ncw_inq_varid(ncid_f, varname, &vid_f);
+                    ncw_copy_vardef(ncid_f, vid_f, ncid_a);
+                    if (das->nccompression > 0)
+                        ncw_def_deflate(ncid_a, 0, 1, das->nccompression);
+                    ncw_close(ncid_a);
+                    ncw_close(ncid_f);
+                    if (enkf_verbose) {
+                        printf(".");
+                        fflush(stdout);
                     }
                 }
 

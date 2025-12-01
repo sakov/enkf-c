@@ -93,7 +93,7 @@
 #define OBS_SORTMODE_ID 0
 #define OBS_SORTMODE_IJ 1
 
-#define STATE_BIGNUM 1.0e3
+#define STATE_BIGNUM 1.0e4
 #define STD_BIG 1.0e10
 
 #define ALLOCTYPE_NONE -1
@@ -108,9 +108,8 @@
 #define UPDATE_DOPLOGSFC        (1 << 4)
 #define UPDATE_DOPLOGSAN        (1 << 5)
 #define UPDATE_OUTPUTINC        (1 << 6)
-#define UPDATE_SEPARATEOUTPUT   (1 << 7)
-#define UPDATE_DIRECTWRITE      (1 << 8)
-#define UPDATE_DEFAULT          (UPDATE_DOFIELDS | UPDATE_DOPLOGS | UPDATE_SEPARATEOUTPUT)
+#define UPDATE_DIRECTWRITE      (1 << 7)
+#define UPDATE_DEFAULT          (UPDATE_DOFIELDS | UPDATE_DOPLOGS)
 #define UPDATE_DOSPREAD         (UPDATE_DOFORECASTSPREAD | UPDATE_DOANALYSISSPREAD)
 #define UPDATE_DOPLOGS          (UPDATE_DOPLOGSFC | UPDATE_DOPLOGSAN)
 #define UPDATE_NEEDAN           (UPDATE_DOFIELDS | UPDATE_DOANALYSISSPREAD | UPDATE_DOINFLATION | UPDATE_DOPLOGSAN)
@@ -138,10 +137,9 @@
 #define DEPTH_MAX 9999.0
 
 /* 
- *it is assumed that if |value| > MAXOBSVAL, then it is filled with the
- * missing value
+ *it is assumed that if model |value| > MAXOBSVAL, then it is invalid (NaN)
  */
-#define MAXOBSVAL 9000.0
+#define MAXOBSVAL 999999.0
 
 #define REARTH 6371.0
 #define DEG2RAD (M_PI / 180.0)

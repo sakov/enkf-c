@@ -1,3 +1,12 @@
+v2.42.0
+   PS 02122025
+   -- Removed UPDATE option "--joint-output". Firstly, one should avoid
+      modifying restarts because of the associated i/o risks, and secondly,
+      in the case of restarts containing multiple updated variables there are
+      risks associated with parallel NetCDF writing.
+   -- Modified das_assemblemembers() to paralellise over all output files rather
+      than only over files for a specific variable. For a prototype of OceanMAPS
+      v5.0 this reduced the assembly time from 498s to 214s.
 v2.41.0
    PS 28112025
    -- Added vertical grid type "ZT". Unlike for "Z" grid, where the fractional

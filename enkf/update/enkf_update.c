@@ -43,8 +43,6 @@ static void usage(void)
     enkf_printf("      describe format of a parameter file and exit\n");
     enkf_printf("  --direct-write\n");
     enkf_printf("      write fields directly to the output file (default: write to tiles first)\n");
-    enkf_printf("  --joint-output\n");
-    enkf_printf("      append analyses to forecast files (default: write to separate files)\n");
     enkf_printf("  --no-fields-write\n");
     enkf_printf("      do not write analysis fields (only diagnostic data)\n");
     enkf_printf("  --no-update\n");
@@ -52,7 +50,7 @@ static void usage(void)
     enkf_printf("  --output-increment\n");
     enkf_printf("      output analysis increment (default: output analysis)\n");
     enkf_printf("  --write-inflation\n");
-    enkf_printf("      write adaptive inflation magnitudes to %s\n", FNAME_INFLATION);
+    enkf_printf("      write capped inflation magnitudes to %s\n", FNAME_INFLATION);
     enkf_printf("  --version\n");
     enkf_printf("      print version and exit\n");
 
@@ -118,10 +116,6 @@ static void parse_commandline(int argc, char* argv[], char** fname, int* updates
             *updatespec |= UPDATE_DIRECTWRITE;
             i++;
             continue;
-        } else if (strcmp(argv[i], "--joint-output") == 0) {
-            *updatespec &= ~UPDATE_SEPARATEOUTPUT;
-            i++;
-            continue;
         } else if (strcmp(argv[i], "--no-fields-write") == 0) {
             *updatespec &= ~UPDATE_DOFIELDS;
             i++;
@@ -178,7 +172,6 @@ static void describe_updatespec(int updatespec)
     if (updatespec & UPDATE_DOFIELDS) {
         if (updatespec & UPDATE_OUTPUTINC)
             enkf_printf("    output increment  = [+]\n");
-        enkf_printf("    separate output   = %s\n", (updatespec & UPDATE_SEPARATEOUTPUT) ? "[+]" : "[-]");
     }
 }
 
