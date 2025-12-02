@@ -193,7 +193,7 @@ void ncu_readfield(char fname[], char varname[], int r, int k, int ni, int nj, i
             start[1] = k;
             start[2] = 0;
             count[0] = 1;
-            count[1] = dimlen[1];
+            count[1] = 1;
             count[2] = dimlen[2];
         }
     } else if (ndims == 2) {
@@ -560,7 +560,7 @@ void ncu_writefield(char fname[], char varname[], int k, int ni, int nj, int nk,
             start[1] = k;
             start[2] = 0;
             count[0] = 1;
-            count[1] = dimlen[1];
+            count[1] = 1;
             count[2] = dimlen[2];
         }
     } else if (ndims == 2) {
