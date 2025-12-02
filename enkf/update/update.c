@@ -959,6 +959,7 @@ static void das_writebg(dasystem* das, int nfields, void** fieldbuffer, field fi
         das_writebg_toassemble(das, nfields, fieldbuffer, fields);
 }
 
+# if 0
 /**
  */
 static void das_assemblemembers(dasystem* das)
@@ -1053,6 +1054,100 @@ static void das_assemblemembers(dasystem* das)
         }
     }
 }
+# else
+/**
+ */
+static void das_assemblemembers(dasystem* das)
+{
+    model* m = das->m;
+    int nvar = model_getnvar(m);
+    int nf, fid;
+
+    fflush(stdout);
+#if defined(MPI)
+    MPI_Barrier(MPI_COMM_WORLD);
+#endif
+
+    nf = nvar * das->nmem_dynamic;
+    distribute_iterations(0, nf - 1, nprocesses, "    ");
+
+    for (fid = my_first_iteration; fid <= my_last_iteration; ++fid) {
+        int e = fid % das->nmem_dynamic;
+        int vid = fid / das->nmem_dynamic;
+        char* varname = model_getvarname(m, vid);
+        grid* g = model_getvargrid(m, vid);
+        char varname_dst[NC_MAX_NAME];
+        char fname_dst[MAXSTRLEN];
+        int nlev, k;
+        int ni, nj;
+        float* v = NULL;
+
+        das_getmemberfname(das, varname, e + 1, fname_dst);
+        nlev = ncu_getnlevels(fname_dst, varname, nj > 0);
+        strncpy(varname_dst, varname, NC_MAX_NAME - 1);
+
+        if (!(das->updatespec & UPDATE_OUTPUTINC))
+            strncat(fname_dst, ".analysis", MAXSTRLEN - 1);
+        else
+            strncat(fname_dst, ".increment", MAXSTRLEN - 1);
+
+        grid_getsize(g, &ni, &nj, NULL);
+        if (nj > 0)
+            v = malloc(ni * nj * sizeof(float));
+        else
+            v = malloc(ni * sizeof(float));
+
+        for (k = 0; k < nlev; ++k) {
+            char fname_src[MAXSTRLEN];
+            int ncid_src, vid_src;
+            size_t start[3] = { e, 0, 0 };
+            size_t count[3] = { 1, nj, ni };
+
+            if (nj <= 0)
+                count[1] = ni;
+
+            getfieldfname(DIRNAME_TMP, "ens", varname, k, fname_src);
+            ncw_open(fname_src, NC_NOWRITE, &ncid_src);
+            ncw_inq_varid(ncid_src, varname, &vid_src);
+            ncw_get_vara_float(ncid_src, vid_src, start, count, v);
+            ncw_close(ncid_src);
+
+            if (!(das->updatespec & UPDATE_OUTPUTINC))
+                model_writefield(m, fname_dst, varname_dst, k, v, 0);
+            else
+                model_writefield(m, fname_dst, varname_dst, k, v, 1);
+        }
+        printf(".");
+        fflush(stdout);
+        free(v);
+    }
+#if defined(MPI)
+    MPI_Barrier(MPI_COMM_WORLD);
+#endif
+    enkf_printf("\n");
+
+    /*
+     * remove tiles 
+     */
+    if (rank == 0) {
+        int i;
+
+        for (i = 0; i < nvar; ++i) {
+            char* varname = model_getvarname(m, i);
+            grid* g = model_getvargrid(m, i);
+            char fname[MAXSTRLEN];
+            int nlev, k;
+
+            das_getmemberfname(das, varname, 1, fname);
+            nlev = ncu_getnlevels(fname, varname, grid_isstructured(g));
+            for (k = 0; k < nlev; ++k) {
+                getfieldfname(DIRNAME_TMP, "ens", varname, k, fname);
+                file_delete(fname);
+            }
+        }
+    }
+}
+#endif
 
 /**
  */
