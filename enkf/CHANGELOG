@@ -1,3 +1,6 @@
+v2.42.2
+   PS 03122025
+   -- Fixed defect in das_assemblemembers() introduced in v2.42.0.
 v2.42.1
    PS 02122025
    -- Fixed two recently introduced defects in ncutils.c manifested with
