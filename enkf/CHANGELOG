@@ -1,3 +1,8 @@
+v2.42.3
+   PS 04122025
+   -- In das_writefields_toassemble() corrected the written ensemble size from
+      "nmem" to "nmem_dynamic". For hybrid systems this reduces the size of
+      written tiles by a substantial factor.
 v2.42.2
    PS 03122025
    -- Fixed defect in das_assemblemembers() introduced in v2.42.0.

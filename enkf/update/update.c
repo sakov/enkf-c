@@ -851,7 +851,7 @@ static void das_writefields_toassemble(dasystem* das, int nfields, void** fieldb
         getfieldfname(DIRNAME_TMP, "ens", f->varname, f->level, fname);
 
         ncw_create(fname, NC_CLOBBER | das->ncformat, &ncid);
-        ncw_def_dim(ncid, "m", das->nmem, &dimids[0]);
+        ncw_def_dim(ncid, "m", das->nmem_dynamic, &dimids[0]);
         if (f->structured) {
             ncw_def_dim(ncid, "nj", nj, &dimids[1]);
             ncw_def_dim(ncid, "ni", ni, &dimids[2]);
