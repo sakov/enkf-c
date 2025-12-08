@@ -1,3 +1,8 @@
+v2.42.4
+   PS 08122025
+   -- Fixed defect in das_getHE() manifested when running CALC in ENOI mode with
+      "--skip-bad-forecast-obs" (a recent option introduced in v2.39.7,v2.39.8).
+      Thanks to Dan Boettger for the report.
 v2.42.3
    PS 04122025
    -- In das_writefields_toassemble() corrected the written ensemble size from

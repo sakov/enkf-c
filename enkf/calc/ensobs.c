@@ -373,13 +373,19 @@ void das_getHE(dasystem* das)
 #if defined(USE_SHMEM)
         if (sm_comm_rank == 0) {
 #endif
-            for (e = 0; e < nmem; ++e) {
-                float* Se = das->S[e];
+            if (!enkf_fstatsonly) {
+                for (e = 0; e < nmem; ++e) {
+                    float* Se = das->S[e];
 
-                for (i = 0; i < nobs; ++i)
-                    if (isnan(Se[i]))
-                        obs->data[i].status = STATUS_BADFC;
+                    for (i = 0; i < nobs; ++i)
+                        if (isnan(Se[i]))
+                            obs->data[i].status = STATUS_BADFC;
+                }
             }
+            if (das->mode == MODE_ENOI)
+                for (i = 0; i < nobs; ++i)
+                    if (isnan(Hx[i]))
+                        obs->data[i].status = STATUS_BADFC;
 #if defined(USE_SHMEM)
         }
         MPI_Win_fence(0, das->sm_comm_win_S);

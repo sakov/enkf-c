@@ -583,8 +583,8 @@ vgrid* vgrid_create(void* p, void* g)
             zc = malloc(nkc * sizeof(double));
             ncu_readvardouble(ncid, varid, nkc, zc);
         }
-        vg->gz = gz_z_create(prm->name, nk, z, nkc, zc, prm->vdirection); }
-    else if (vg->type == GRIDVTYPE_ZT) {
+        vg->gz = gz_z_create(prm->name, nk, z, nkc, zc, prm->vdirection);
+    } else if (vg->type == GRIDVTYPE_ZT) {
         int varid;
         double* z = NULL;
 
@@ -966,9 +966,9 @@ static void gz_z_z2fk(vgrid* vg, double z, double* fk)
 static void gz_zt_z2fk(vgrid* vg, double z, double* fk)
 {
     gz_zt* gz = vg->gz;
-    int n = gz ->nk;
+    int n = gz->nk;
     double* zt = gz->zt;
-    
+
     int ascending = (zt[n - 1] > zt[0]) ? 1 : 0;
     int i1 = 0;
     int i2 = n - 1;
@@ -1201,7 +1201,7 @@ static double gzt_fk2z(int n, double* zt, double fk)
     if (fk <= 0.0)
         return zt[0] + fk * (zt[1] - zt[0]);
     else if (fk >= (double) (n - 1))
-        return zt[n - 1] + (fk - (double)(n - 1)) * (zt[n - 1] - zt[n - 2]);
+        return zt[n - 1] + (fk - (double) (n - 1)) * (zt[n - 1] - zt[n - 2]);
     k = fk;
     return zt[k] + (fk - (double) k) * (zt[k + 1] - zt[k]);
 }
