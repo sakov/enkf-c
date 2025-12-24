@@ -74,6 +74,7 @@ struct enkfprm {
     zint* zints;
     int sob_stride;
     int fieldbufsize;
+    int nfieldsplit;
     int nregions;
     region* regions;
     int nplog;

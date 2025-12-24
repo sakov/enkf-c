@@ -61,6 +61,7 @@ int model_z2fk(model* m, int vid, double* fij, double z, double* fk);
 int model_z2fk_f(model* m, int vid, double* fij, double z, float* fk);
 double model_fk2z(model* m, int vid, int* ij, double fk);
 void model_readfield(model* m, char fname[], char varname[], int r, int k, float* v, int ignorelog);
+void model_readfield_part(model* m, char fname[], char varname[], int r, int k, int j1, int j2, float* v, int ignorelog);
 void model_read3dfield(model* m, char fname[], char varname[], int r, float* v, int ignorelog);
 void model_writefield(model* m, char fname[], char varname[], int k, float* v, int ignorelog);
 void model_writefieldas(model* m, char fname[], char varname[], char varnameas[], int k, float* v, int ignorelog);

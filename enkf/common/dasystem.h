@@ -36,7 +36,9 @@ typedef struct {
     char varname[NC_MAX_NAME];
     int issurfacevar;
     int level;
-    int structured;
+    int isstructured;
+    int splitid;
+    int j1, j2;
 } field;
 #endif
 
@@ -114,7 +116,10 @@ typedef struct {
 #if defined(ENKF_UPDATE)
     int fieldbufsize;
     int updatespec;             /* binary flags */
+    int haveanalysis;           /* flag */
 #endif
+
+    int nfieldsplit;
 
     int ncformat;
     int nccompression;
@@ -148,19 +153,7 @@ void das_calcmld(dasystem* das, obstype* ot, float*** src, float** dst);
 void das_createplog(dasystem* das, int plogid, int ploc, int* lobs, double* lcoeffs);
 void das_writeplogtransform(dasystem* das, int plogid, int gid, int ploc, double* s, double* S, double* w, double* T);
 #endif
-#if defined(ENKF_UPDATE) || defined(ENS_DIAG)
-void das_getfields(dasystem* das, int gridid, int* nfield, field** fields);
-void getfieldfname(char* dir, char* prefix, char* varname, int level, char* fname);
-#endif
-#if defined(ENKF_UPDATE)
-void das_update(dasystem* das);
-void das_allocatespread(dasystem* das);
-void das_writespread(dasystem* das, int nfields, void** fieldbuffer, field fields[], int isanalysis);
-void das_assemblespread(dasystem* das);
-void das_allocateinflation(dasystem* das, char fname[]);
-void das_writeinflation(dasystem* das, field* f, int j, float* v);
-void das_assembleinflation(dasystem* das);
-#endif
+
 void das_sethybridensemble(dasystem* das, int nij, float** v);
 int das_isstatic(dasystem* das, int mem);
 
@@ -171,6 +164,23 @@ void das_getmemberfname(dasystem* das, char varname[], int mem, char fname[]);
 int das_getmemberfname_async(dasystem* das, obstype* ot, int mem, int t, char fname[], int* r);
 void das_getbgfname(dasystem* das, char varname[], char fname[]);
 int das_getbgfname_async(dasystem* das, obstype* ot, int t, char fname[], int* r);
+
+#if defined(ENKF_UPDATE) || defined(ENS_DIAG)
+void das_getfields(dasystem* das, int gridid, int* nfield, field** fields);
+void getfieldfname(char* dir, char* prefix, char* varname, int level, char* fname);
+void gettilefname(char* dir, char* prefix, field* f, char* fname);
+#endif
+
+#if defined(ENKF_UPDATE)
+void das_update(dasystem* das);
+
+void das_allocatedst(dasystem* das, char rootname[]);
+void das_preassemble(dasystem* das, char rootname[]);
+void das_assemble(dasystem* das, char rootname[]);
+
+void das_writespread(dasystem* das, int nfields, void** fieldbuffer, field fields[]);
+void das_writeinflation(dasystem* das, field* f, int j, float* v);
+#endif
 
 #define _DASYSTEM_H
 #endif

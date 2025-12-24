@@ -38,6 +38,7 @@ void ncu_readvardouble(int ncid, int varid, size_t n, double v[]);
  * model r/w procedures
  */
 void ncu_readfield(char fname[], char varname[], int r, int k, int ni, int nj, int nk, float* v);
+void ncu_readfield_part(char fname[], char varname[], int r, int k, int j1, int j2, int ni, int nj, int nk, float* v);
 void ncu_writefield(char fname[], char varname[], int k, int ni, int nj, int nk, float* v);
 void ncu_writerow(char fname[], char varname[], int k, int j, int ni, int nj, int nk, float* v);
 void ncu_read3dfield(char fname[], char varname[], int r, int ni, int nj, int nk, float* v);

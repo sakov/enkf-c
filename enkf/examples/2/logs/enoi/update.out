@@ -1,8 +1,8 @@
   MPI: initialised 4 process(es)
-  running UPDATE for EnKF-C version 2.36.0:
+  running UPDATE for EnKF-C version 2.43.0:
     command = "./enkf_update --calculate-spread enoi.prm"
-    dir = "/home/599/pxs599/src/enkf-c/enkf/examples/2"
-  2025-06-05 10:16:15
+    dir = "/home/599/pxs599/src/enkf-c.fieldsplit/enkf/examples/2"
+  2025-12-24 08:33:45
   reading system specs from "enoi.prm":
     MODE = EnOI
     MODEL PRM = "model.prm"
@@ -14,6 +14,7 @@
     INFLATION MODE = CAPPED, MAX RATIO = 1.00
     STRIDE = 3
     FIELDBUFFERSIZE = 4
+    FIELDSPLIT = 1
     POINTLOG 156.000 -32.000 
     NCFORMAT = NETCDF4
     NCCOMPRESSION = 0
@@ -28,7 +29,6 @@
     do model fields   = [+]
     do spread         = [+]
     do pointlogs      = [+]
-    separate output   = [+]
   initialising the system:
     grid prm info:
       NAME = "t-grid"
@@ -75,41 +75,59 @@
   initialising pointlogs:
     pointlog (156.000, -32.000):
       t-grid: (i, j) = (49.500, 49.500)
-  updating the model state:
-    allocating disk space for spread:
-    defining state variables in point logs:
-    2025-06-05 10:16:16
-    allocating disk space for analysis:.....
+  defining state variables in point logs:
+  writing forecast variables to point logs:
+    2025-12-24 08:33:45
+    distributing 144 iterations:
+      4 processes get 36 iterations each
+    eta_t:....................................
+    temp:........................................................................
+    salt:........................................................................
+    u:........................................................................
+    v:........................................................................
+    eta_t:.
+    temp:..
+    salt:..
+    u:..
+    v:..
+  allocating disk space for spread:
+    2025-12-24 08:33:46
+  updating model state:
+    2025-12-24 08:33:46
+    allocating disk space for analysis:
+      2025-12-24 08:33:46
+      .....
     updating 9 fields using 4 processes:
-      temp     0   (2: 1: 22.2%)
-      eta_t    0   (1: 0: 11.1%)
-      temp     1   (3: 2: 33.3%)
-      salt     0   (1: 3: 44.4%)
-      salt     1   (2: 4: 55.6%)
-      u        0   (3: 5: 66.7%)
-      u        1   (1: 6: 77.8%)
-      v        0   (2: 7: 88.9%)
-      v        1   (3: 8: 100.0%)
-  2025-06-05 10:16:16
-  assembling analysis:
+      2025-12-24 08:33:46
+      eta_t  0   (1: 0: 11.1%)
+      temp   0   (2: 1: 22.2%)
+      temp   1   (3: 2: 33.3%)
+      salt   0   (1: 3: 44.4%)
+      salt   1   (2: 4: 55.6%)
+      u      0   (3: 5: 66.7%)
+      u      1   (1: 6: 77.8%)
+      v      0   (2: 7: 88.9%)
+      v      1   (3: 8: 100.0%)
+  assembling bg:
+    2025-12-24 08:33:47
     eta_t:.
     temp:..
     salt:..
     u:..
     v:..
-  2025-06-05 10:16:17
   assembling spread:
+    2025-12-24 08:33:47
     eta_t:.
     temp:..
     salt:..
     u:..
     v:..
-  2025-06-05 10:16:17
-  assembling state variables in point logs:
-    distributing 1 iterations:
-      1 processes get 1 iteration, 3 processes get 0 iterations
-    deleting tiles:
-      distributing 9 iterations:
-        4 processes get 3 or 2 iterations
-  2025-06-05 10:16:17
+  writing analysed variables to point logs:
+  2025-12-24 08:33:47
+    eta_t:.
+    temp:..
+    salt:..
+    u:..
+    v:..
+  2025-12-24 08:33:47
   finished

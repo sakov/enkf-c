@@ -40,7 +40,7 @@
 
 \begin{document}
 
-\title{EnKF-C user guide\\{\normalsize version 2.40.2}}
+\title{EnKF-C user guide\\{\normalsize version 2.43.0}}
 
 \author{Pavel Sakov}
 \date{June 19, 2014 -- \today}
@@ -720,7 +720,8 @@ The local transforms are independent of each other and can be calculated in para
 
 \section{The workflow}
 
-EnKF-C conducts data assimilation in three stages: PREP, CALC and UPDATE.
+EnKF-C conducts data assimilation in three stages: PREP, CALC, and UPDATE, by running executables \verb|enkf_prep|, \verb|enkf_calc|, and \verb|enkf_update|, correspondingly.
+EnKF-C also provides \verb|ens_diag| for calculating a number of ensemble diagnostic variables.
 
 PREP preprocesses observations so that they are ready for DA.
 It has the following stages:
@@ -730,8 +731,8 @@ It has the following stages:
 \item write superobservations to \verb|observations.nc|.
 \end{itemize}
 
-PREP does not need to access the model state; it only needs to access the model grid.
-(Note that for some types of vertical coordinates the vertical model grid depends on the state.)
+PREP does not need to access the model state; it only accesses the model grid.
+(Note that for some types of vertical coordinates the vertical model grid may depend on the state.)
 
 CALC calculates ensemble transforms for updating the forecast ensemble of model states (EnKF) or the background model state (EnOI) in the following steps:
 \begin{itemize}
@@ -843,7 +844,7 @@ Its format is described by running \verb|enkf_prep|, \verb|enkf_calc| or \verb|e
     8. TIME entry is also a flag for geophysical/non-geophysical system,
        depending on the presence of "days since"
 \end{Verbatim}
-The \verb|TIME| entry also serves as a switch between geophysical/non-geophysical system.
+The \verb|TIME| entry also serves as a switch between geophysical and non-geophysical systems.
 For geophysical systems the coordinates are assumed to be geographic longitude and latitude (unless \verb|GEOGRAPHIC = 0| is specified for a grid); the time is assumed to be dimensional, in some physical units; and the localisation radii is assumed to be in kilometers.
 For non-geophysical systems all the above are assumed to be non-dimensional, and the grid is assumed to be on a plane.
 
@@ -855,7 +856,7 @@ This is demonstrated by target ``global'' in example 1.
 \subsection{Model parameter file}
 \label{sec:modelprm}
 
-The model parameter file mainly describes the composition of the state vector by listing the model variables and specifying the associated grids.
+The model parameter file describes the composition of the state vector by listing the model variables and specifying the associated grids.
 
 \begin{Verbatim}[frame=single,fontsize=\footnotesize]
 >./bin/enkf_prep --describe-prm-format model
@@ -874,10 +875,10 @@ The model parameter file mainly describes the composition of the state vector by
 
 Each model variable is described in a block started by the entry for the variable name.
 The inflation parameters for a variable, if specified, override the common values set in the main parameter file (sec.~\ref{sec:capping}).
-The option APPLYLOG makes it possible to conduct assimilation in log space (sec.~\ref{sec:logspace}), and RANDOMISE -- to specify a ``forgetting'' model for the variable (sec.~\ref{sec:bias}).
+The option APPLYLOG makes it possible to conduct assimilation in log space (sec.~\ref{sec:logspace}), and RANDOMISE -- to specify parameters of ``forgetting'' model for the variable (sec.~\ref{sec:bias}).
 
 EnKF-C permits using multiple model grids.
-In this case each model variable must be associated with one of the grids defined in the grid parameter file.
+Each model variable must be associated with one of the grids defined in the grid parameter file.
 See \verb|examples/4| for an example.
 
 \subsection{Grid parameter file}
@@ -905,7 +906,7 @@ It also contains variable names for the depth and for number of layers in a vert
     (or)
       HGRIDFROM      = <grid name>
     (end either)
-    VTYPE            = { z | sigma | hybrid | numeric | none }
+    VTYPE            = { z | zt | sigma | hybrid | numeric | none }
   [ VDIR             = { fromsurf* | tosurf } ]
   [ GEOGRAPHIC       = { 0 | 1* | 2 } ]
     (if vtype = z)
@@ -942,7 +943,7 @@ It also contains variable names for the depth and for number of layers in a vert
   [ <more of the above blocks> ]
 \end{Verbatim}
 
-While the code is supposed to automatically identify the type of horizontal grid used, it can also be specified explicitly.
+While the code is supposed to automatically identify the types of horizontal grids used, they can also be specified explicitly.
 The type of the vertical grid has to be specified.
 If some grid (say, grid A) has the same horizontal grid as other grid (grid B), the code can be notified of this by entering name of grid A in the field \verb|HGRIDFROM| for grid B (or vice versa).
 This saves memory, grid initialisation time, and uses transforms calculated for grid A for all variables defined on grid B.
@@ -952,7 +953,7 @@ This saves memory, grid initialisation time, and uses transforms calculated for 
 
 At the moment, EnKF-C supports 3 main types of horizontal grids:
 \begin{itemize}
-\item rectangular quadrilateral grids aligned with physical coordinates;
+\item rectangular quadrilateral grids aligned with geographic or cartesian coordinates;
 \item curvilinear quadrilateral grids;
 \item unstructured grids.
 \end{itemize}
@@ -963,13 +964,15 @@ For rectangular grids the code tries to determine and handle periodicity in X di
 
 Note that the code does not detect and therefore can not take advantage of periodic curvilinear grids; because of that, it does not map (skips) observations in cells connecting the grid edges.
 
-The flag \verb|GEOGRAPHIC| introduced in v2.8.0 if set to ``1'' internally communicates to the code that the grid nodes are defined in geographic coordinates and sets grid rendering to be performed in 3D cartesian coordinates.
-This can be essential in polar regions because of the skewness of grid cells in geographic coordinates there (it can cause failures of the mapping algorithm).
-The user can investigate the necessity of setting this flag to ``yes'' by comparing the numbers of accepted/rejected observations with and without it.
+The flag \verb|GEOGRAPHIC| was introduced in v2.8.0.
+When set to ``1'' (``yes'', ``true''), it communicates to the code that the grid nodes are defined in geographic coordinates.
+In that case the grid is rendered using 3D cartesian coordinates; otherwise it is rendered in 2D geographic or cartesian coordinates, which is somewhat less expensive.
+The more strict 3D rendering can be essential in polar regions because of the skewness of grid cells in geographic coordinates there, which can cause failures of the mapping algorithm.
+One can investigate the necessity of setting this flag to ``1'' by comparing the number of accepted/rejected observations with and without it.
 
 If the flag \verb|GEOGRAPHIC| is set to ``0'' then the grid is assumed to be on a plane and grid coordinates are assumed to be non-dimensional; the localisation radii for the corresponding observation types need to be specified accordingly.
 
-The flag \verb|GEOGRAPHIC| set to ``2'' treats grid coordinates similarly to that for the flag set to ``1'', but different rendering procedures are used, which may turn out more robust for e.g. grids with artificial discontinuities in longitude.
+The flag \verb|GEOGRAPHIC| set to ``2'' treats grid coordinates similarly to that for ``1'' but switches to more robust rendering procedures (based on sterographic projections) and is advised to be used e.g. for grids with artificial discontinuities.
 
 For unstructured grids associated with observed variables it is necessary to specify triangulation details: vertice IDs and neighbour triangle IDs.
 For unstructured grids stride can be equal to 1 only (i.e. ensemble transforms must be calculated in each grid node).
@@ -980,7 +983,7 @@ The vertical coordinates are used for mapping the depth/height (pressure) of non
 The observation depth or height are assumed to be positive.
 
 The type of the vertical grid is defined by entry \verb|VTYPE| in the grid parameter file.
-EnKF-C supports 3 types of vertical grids: $Z$ (``z''); $\sigma$ (``sigma''); and hybrid $\sigma$-$p$ ($\sigma$ - pressure, ``hybrid'').
+EnKF-C supports the following types of vertical grids: ``z'' ($Z$); ``zt''; ``sigma'' ($\sigma$); ``hybrid'' ($\sigma-p$), and ``numeric''.
 It is also possible to define a purely horizontal (two-dimensional) grid by defining its vertical type as ``none''.
 
 For $Z$ grids one needs to define vertical coordinates of layer centres (entry \verb|ZVARNAME|) and (optionally) the coordinates of layer corners (\verb|ZCVARNAME|).
@@ -996,11 +999,15 @@ One needs to specify the $A$ (\verb|AVARNAME|) and $B$ (\verb|BVARNAME|) arrays 
 One can also specify optional $A$ and $B$ arrays for layer corners (\verb|ACVARNAME|, \verb|BCVARNAME|).
 The entry \verb|DEPTHVARNAME| needs only to be specified for variables with non-surface observations.
 
-Vertical grid type numeric is supposed to handle general situations described by 3D arrays of layer depths.
+Vertical grid type ``numeric'' is supposed to handle general situations described by 3D arrays of layer depths.
 Grids of this type are defined by specifying variable with cell centres depth coordinates (entry \verb|ZVARNAME|) and (optionally) variable with cell boundaries depth coordinates (entry \verb|ZCVARNAME|).
 
 By default, the code assumes that the surface is at layer 0.
 If this is not the case, one needs to describe it explicitly by the entry \verb|VDIR = TOSURF|; otherwise the surface ensemble or background observations will not be calculated correctly.
+
+The vertical interpolation is performed linearly assuming constant gradients within layers.
+This means that at the boundary between layers the variables have middle value between those at the adjacent layer centres.
+This rule applies to vertical grids of all types but ``zt'', for which vertical interpolation assumes constant gradients between layer centres.
 
 \subsubsection{``Empty'' grids}
 
@@ -1157,10 +1164,16 @@ file = /short/p93/pxs599/obs/RADS/2006/[!g]?_20060523.nc
 \label{sec:filenames}
 
 EnKF-C assumes that the ensemble and background file names have some predefined formats.
-The file name for member \verb|mid| and model variable \verb|varname| is assumed to be \spverb|sprintf("mem%03d_%s.nc", mid, varname)|.
-The background file (EnOI only) for variable \verb|varname| is assumed to be \spverb|sprintf("bg_%s.nc", varname)|.
-The above names are used for reading forecast states for synchronous DA and for writing analyses, in the case if the analyses are appended to forecasts (true by default).
-For asynchronous DA the member and background file names for the time slot \verb|t| are assumed to be \spverb|sprintf("mem%03d_%s_%d.nc", mid, varname, t)| and \spverb|sprintf("bg_%s_%d.nc", varname, t)|, correspondingly.
+The file name for ensemble member \verb|memberid| containing model variable \verb|varname| is assumed to be \spverb|sprintf("mem%03d_%s.nc", memberid, varname)|.
+This file typically represents the model restart (EnKF) or ensemble anomaly (EnOI).
+
+For the EnOI the background (forecast restart) file for variable \verb|varname| is assumed to be \spverb|sprintf("bg_%s.nc", varname)|.
+
+The analysis restart file names are created by concatenating the above forecast restart names and a suffix, either``.analysis'' or ``.increment'', depending on the output of UPDATE.
+
+For asynchronous DA the model output file names for the time slot \verb|t| are assumed to be \spverb|sprintf("mem%03d_%s_%d.nc", memberid, varname, t)| and \spverb|sprintf("bg_%s_%d.nc", varname, t)|, correspondingly.
+It is also possible to have model outputs concatenated over the observation window into a single multi-record file, in which case it is assumed to be either \spverb|sprintf("mem%03d_%s_#.nc", memberid, varname)| (EnKF) or \spverb|sprintf("bg_%s_#.nc", varname)|.
+(See sec.~\ref{sec:async}.)
 
 There are possible situations when the surface field and 3D field of the same variable have different asynchronous settings.
 For example, the sea surface temperature (SST) may have asynchronous time intervals of 0.25 days, while for the subsurface temperature these may be set to 1 day.
@@ -1764,19 +1777,11 @@ It has the following usage and options:
   --allow-logspace-with-static-ens
       confirm that static ensemble is conditioned for using log space
   --calculate-spread
-      calculate forecast and analysis ensemble spread and write to spread.nc
-  --calculate-spread-only
-      calculate forecast and analysis ensemble spread only and write to spread.nc
-  --calculate-forecast-spread
       calculate forecast ensemble spread and write to spread.nc
-  --calculate-forecast-spread-only
-      calculate forecast ensemble spread only and write to spread.nc
   --describe-prm-format [main|model|grid]
       describe format of a parameter file and exit
   --direct-write
       write fields directly to the output file (default: write to tiles first)
-  --joint-output
-      append analyses to forecast files (default: write to separate files)
   --no-fields-write
       do not write analysis fields (only diagnostic data)
   --no-update
@@ -1784,17 +1789,22 @@ It has the following usage and options:
   --output-increment
       output analysis increment (default: output analysis)
   --write-inflation
-      write adaptive inflation magnitudes to inflation.nc
+      write capped inflation magnitudes to inflation.nc
   --version
       print version and exit
 \end{Verbatim}
 
-The option \verb|--joint-output| tells UPDATE to append analyses to the corresponding forecast files, using new variable names constructed by concatenating the forecast variable names and suffix \verb|_an|.
-By default the analyses are written to separate files, using the same variable names as the forecast files, but with an extra suffix \verb|.analysis| or \verb|.increment| added to the file name, depending on whether the analysis or increment is written.
+The analysed restarts are written to separate files using the same names as the forecast files but with an extra suffix \verb|.analysis| or \verb|.increment| (sec.~{sec:filenames}), depending on whether the analysis or analysis increment is written.
 
-By default, UPDATE first writes each updated horizontal field of the model to a separate file (referred to here as a tile), and then concatenates these fields into analysis files.
+By default, UPDATE first writes each updated horizontal field of the model to a separate file, and then concatenates these fields into analysis files.
 This approach is somewhat less effective than direct writing to analysis files (without intermediate tiles), but, unfortunately, the direct writing is generally not reliable due to parallel I/O issues with NetCDF.
 Note that in some cases it proved to be possible to obtain robust performance with direct write using ``classic'' or ``64-bit-offset'' NetCDF formats.
+
+Updating a horizontal field requires reading the full ensemble into memory.
+This may require large avilable memory, particularly with very large models.
+From version 2.43.0 it is possible to calculate analyses on fractions of a horizontal field, which may provide better scalalbility.
+This option is specified by parameter FIELDSPLIT of the main paramater file.
+When FIELDPLIT is set to a number greater than one, an additional stage of combining outputs on these fractional tiles into full fields is conducted.
 
 \subsection{Capping of inflation}
 \label{sec:capping}

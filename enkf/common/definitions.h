@@ -15,10 +15,6 @@
 
 #if !defined(_DEFINITIONS_H)
 
-#ifdef DMALLOC
-#include "dmalloc.h"
-#endif
-
 #define MAXSTRLEN 4096
 #define SHORTSTRLEN 128
 /*
@@ -49,6 +45,9 @@
 #define FNAMEPREFIX_VERTSENSWITH "vsens"
 
 #define DIRNAME_TMP ".enkftmp"
+
+#define ROOTNAME_INFLATION "inflation"
+#define ROOTNAME_SPREAD "spread"
 
 #define STATUS_OK 0             /* do not change */
 #define STATUS_OUTSIDEGRID 1
@@ -102,17 +101,15 @@
 #define ALLOCTYPE_3D    2
 
 #define UPDATE_DOFIELDS         (1 << 0)
-#define UPDATE_DOFORECASTSPREAD (1 << 1)
-#define UPDATE_DOANALYSISSPREAD (1 << 2)
-#define UPDATE_DOINFLATION      (1 << 3)
-#define UPDATE_DOPLOGSFC        (1 << 4)
-#define UPDATE_DOPLOGSAN        (1 << 5)
-#define UPDATE_OUTPUTINC        (1 << 6)
-#define UPDATE_DIRECTWRITE      (1 << 7)
+#define UPDATE_DOSPREAD         (1 << 1)
+#define UPDATE_DOINFLATION      (1 << 2)
+#define UPDATE_DOPLOGSFC        (1 << 3)
+#define UPDATE_DOPLOGSAN        (1 << 4)
+#define UPDATE_OUTPUTINC        (1 << 5)
+#define UPDATE_DIRECTWRITE      (1 << 6)
 #define UPDATE_DEFAULT          (UPDATE_DOFIELDS | UPDATE_DOPLOGS)
-#define UPDATE_DOSPREAD         (UPDATE_DOFORECASTSPREAD | UPDATE_DOANALYSISSPREAD)
 #define UPDATE_DOPLOGS          (UPDATE_DOPLOGSFC | UPDATE_DOPLOGSAN)
-#define UPDATE_NEEDAN           (UPDATE_DOFIELDS | UPDATE_DOANALYSISSPREAD | UPDATE_DOINFLATION | UPDATE_DOPLOGSAN)
+#define UPDATE_NEEDAN           (UPDATE_DOFIELDS | UPDATE_DOINFLATION)
 
 /*
  * Location based thinning is conducted during superobing. It is applied to
@@ -192,7 +189,6 @@ extern int enkf_directwrite;
 extern int enkf_fstatsonly;
 extern int enkf_noobsdatecheck;
 extern int enkf_considersubgridvar;
-extern int enkf_doplogs;
 extern int enkf_allowenoilog;
 extern int enkf_geophysical;
 extern int print_mem;

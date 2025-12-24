@@ -1,3 +1,34 @@
+v2.43.0
+   PS 24122025
+      A major update, mainly related with introduction of FIELDSPLIT entry.
+      Defects are possible and likely due to the scale of changes.
+   -- Added entry FIELDSPLIT in the main parameter file. When specified, UPDATE
+      is performed on fractions of horizontal field rathe than on the whole
+      field. This targets very large systems when the size of ensemble of
+      horizontal fields in memory (ens. size x ni x nj x 4) becomes a
+      performance issue. The walkaround comes at a cost but still reduces the
+      time of UPDATE for a hybrid EnKF/EnOI system (24 + 144 members) with
+      1/12-degree NEMO model on 312 CPUs (using 96 CPUs to increase memory per
+      CPU) from 24+ minutes to 17+ minutes (using all 312 CPUs with
+      FIELDSPLIT = 4).
+   -- Specifying FIELDSPLIT > 1 can only be done with FIELDBUFFERSIZE = 1.
+      This is logical because FIELDSPLIT deals with situations of too large
+      ensemble of fields, while FIELDBUFFERSIZE increases the number of
+      simultaneously read fields by a CPU.
+   -- When specified FIELDSPLIT > 1 an additional stage called "preassembly"
+      is conducted, which assembles fractional field ensembles into full
+      field ensembles.
+   -- Removed UPDATE option --joint-output. It is safer and more logical to
+      keep analysis and forecast apart.
+   -- Removed UPDATE options --calculate-spread-only,
+      --calculate-forecast-spread, --calculate-forecast-spread-only. The only
+      option related to spread is --calculate-spread, which calculates the
+      forecast spread. For analysis spread use ens_diag on the analysed
+      ensemble.
+   -- Pointlogs are now calculated outside the main update cycle by direct
+      interpolation from the forecast and analysis ensembles. This is a slower
+      approach but the previous one does not work on fractional fields.
+   -- Writing inflation and spread are now done by the same procedures.
 v2.42.4
    PS 08122025
    -- Fixed defect in das_getHE() manifested when running CALC in ENOI mode with

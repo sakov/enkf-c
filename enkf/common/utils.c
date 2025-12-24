@@ -1158,6 +1158,107 @@ float interpolate2d_unstructured(double* fi, float* v, int* mask)
 
 /**
  */
+void interpolate2d_column_structured(double* fij, int ni, int nj, int nk, int ktop, float*** src, int** nlevels, int periodic_i, float* dst)
+{
+    double fi = fij[0];
+    double fj = fij[1];
+    int i1, i2, j1, j2;
+    double wi1, wi2, wj1, wj2;
+    int k;
+
+    /*
+     * (very rarely) superobs need to be fixed because of the round-off errors
+     */
+    if (fi > (double) ni)
+        fi = (double) ni - EPS_FLOAT;
+    if (fj >= (double) nj)
+        fj = (double) nj - EPS_FLOAT;
+
+    i1 = (int) floor(fi);
+    wi1 = ceil(fi) - fi;
+    i2 = (int) ceil(fi);
+    wi2 = fi - floor(fi);
+    j1 = (int) floor(fj);
+    wj1 = ceil(fj) - fj;
+    j2 = (int) ceil(fj);
+    wj2 = fj - floor(fj);
+
+    if (i1 == i2)
+        wi1 = 1.0;
+    if (j1 == j2)
+        wj1 = 1.0;
+
+    if (i1 == -1)
+        i1 = (periodic_i) ? ni - 1 : i2;
+    if (i2 == ni)
+        i2 = (periodic_i) ? 0 : i1;
+    if (j1 == -1)
+        j1 = j2;
+    if (j2 == nj)
+        j2 = j1;
+
+    assert(i1 >= 0 && i2 < ni && j1 >= 0 && j2 < nj);
+    assert(ktop == 0 || ktop == nk - 1);
+
+    for (k = 0; k < nk; ++k) {
+        int kk = (ktop == 0) ? k : ktop - k;
+        double sum = 0.0, w = 0.0;
+        double ww;
+
+        if (nlevels[j1][i1] > kk) {
+            ww = wj1 * wi1;
+            sum += src[k][j1][i1] * ww;
+            w += ww;
+        }
+        if (nlevels[j1][i2] > kk) {
+            ww = wj1 * wi2;
+            sum += src[k][j1][i2] * ww;
+            w += ww;
+        }
+        if (nlevels[j2][i1] > kk) {
+            ww = wj2 * wi1;
+            sum += src[k][j2][i1] * ww;
+            w += ww;
+        }
+        if (nlevels[j2][i2] > kk) {
+            ww = wj2 * wi2;
+            sum += src[k][j2][i2] * ww;
+            w += ww;
+        }
+        dst[k] = sum / w;
+    }
+}
+
+/**
+ */
+void interpolate2d_column_unstructured(double* fi, int nk, int ktop, float** src, int* nlevels, float* dst)
+{
+    int k;
+
+    assert(ktop == 0 || ktop == nk - 1);
+
+    for (k = 0; k < nk; ++k) {
+        int kk = (ktop == 0) ? k : ktop - k;
+        double sum = 0.0, w = 0.0;
+        int id;
+
+        for (id = 0; id < 3; ++id) {
+            int ii = (int) fi[id];
+
+            if (nlevels[ii] > kk) {
+                double ww = fi[id] - floor(fi[id]);
+
+                sum += ww * src[k][(int) fi[id]];
+                w += ww;
+            }
+        }
+
+        dst[k] = sum / w;
+    }
+}
+
+/**
+ */
 float average(int n, size_t* ids, float* v)
 {
     double sum = 0.0;

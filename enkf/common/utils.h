@@ -55,6 +55,8 @@ float interpolate2d_structured(double* fij, int ni, int nj, float** v, int** mas
 float interpolate2d_unstructured(double* fi, float* v, int* mask);
 float interpolate3d_structured(double* fij, double fk, int ni, int nj, int nk, int ktop, float*** v, int** nlevels, int periodic_i);
 float interpolate3d_unstructured(double* fi, double fk, int nk, int ktop, float** v, int* nlevels);
+void interpolate2d_column_structured(double* fij, int ni, int nj, int nk, int ktop, float*** src, int** nlevels, int periodic_i, float* dst);
+void interpolate2d_column_unstructured(double* fi, int nk, int ktop, float** src, int* nlevels, float* dst);
 float average(int n, size_t* ids, float* v);
 double taper_gc(double x);
 void ll2xyz(double in[2], double out[3]);

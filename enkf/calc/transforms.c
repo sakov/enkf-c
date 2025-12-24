@@ -64,8 +64,8 @@ static void nc_createtransforms(dasystem* das, int gridid, size_t nj, size_t ni,
     enkf_printf("      creating empty file \"%s\":\n", fname);
     enkf_flush();
     ncw_create(fname, NC_CLOBBER | NC_NOFILL | das->ncformat, &ncid);
-    ncw_def_dim(ncid, "nj", nj, &dimids[0]);
-    ncw_def_dim(ncid, "ni", ni, &dimids[1]);
+    ncw_def_dim(ncid, "j", nj, &dimids[0]);
+    ncw_def_dim(ncid, "i", ni, &dimids[1]);
     if (das->mode == MODE_ENKF || das->mode == MODE_HYBRID) {
         ncw_def_dim(ncid, "m_dyn", das->nmem_dynamic, &dimids[2]);
         ncw_def_dim(ncid, "m", das->nmem, &dimids[3]);
@@ -151,8 +151,8 @@ static void nc_createtransformstile(dasystem* das, int gridid, int ni)
     das_getfname_transformstile(das, gridid, rank, fname);
 
     ncw_create(fname, NC_CLOBBER | NC_NOFILL | das->ncformat, &ncid);
-    ncw_def_dim(ncid, "nj", NC_UNLIMITED, &dimids[0]);
-    ncw_def_dim(ncid, "ni", ni, &dimids[1]);
+    ncw_def_dim(ncid, "j", NC_UNLIMITED, &dimids[0]);
+    ncw_def_dim(ncid, "i", ni, &dimids[1]);
     ncw_def_var(ncid, "j", NC_INT, 1, &dimids[0], NULL);
     if (das->mode == MODE_ENKF || das->mode == MODE_HYBRID) {
         ncw_def_dim(ncid, "m_dyn", das->nmem_dynamic, &dimids[2]);
@@ -315,7 +315,7 @@ static void nc_creatediagtile(dasystem* das, int gridid, int ni)
 
     das_getfname_diagtile(das, gridid, rank, fname);
     ncw_create(fname, NC_CLOBBER | das->ncformat, &ncid);
-    ncw_def_dim(ncid, "nj", NC_UNLIMITED, &dimids[0]);
+    ncw_def_dim(ncid, "j", NC_UNLIMITED, &dimids[0]);
     ncw_def_dim(ncid, "ndata", ni * (das->obs->nobstypes + 1), &dimids[1]);
     ncw_def_var(ncid, "j", NC_INT, 1, &dimids[0], NULL);
     ncw_def_var(ncid, "pnlobs", NC_INT, 2, &dimids[0], NULL);
@@ -391,8 +391,8 @@ void nc_assemblediag(dasystem* das, int gridid, int nj, int ni, int stride)
     ncw_create(fname, NC_CLOBBER | das->ncformat, &ncid);
 
     ncw_def_dim(ncid, "nobstypes", nobstypes, &dimids[0]);
-    ncw_def_dim(ncid, "nj", nj, &dimids[1]);
-    ncw_def_dim(ncid, "ni", ni, &dimids[2]);
+    ncw_def_dim(ncid, "j", nj, &dimids[1]);
+    ncw_def_dim(ncid, "i", ni, &dimids[2]);
     ncw_def_var(ncid, "nlobs", NC_INT, 2, &dimids[1], &varid_nlobs);
     ncw_def_var(ncid, "dfs", NC_FLOAT, 2, &dimids[1], &varid_dfs);
     ncw_def_var(ncid, "srf", NC_FLOAT, 2, &dimids[1], &varid_srf);
@@ -486,8 +486,8 @@ static void nc_writediag(dasystem* das, char fname[], int nobstypes, int nj, int
     enkf_printf("    writing stats to \"%s\":\n", fname);
     ncw_create(fname, NC_CLOBBER | das->ncformat, &ncid);
     ncw_def_dim(ncid, "nobstypes", nobstypes, &dimids[0]);
-    ncw_def_dim(ncid, "nj", nj, &dimids[1]);
-    ncw_def_dim(ncid, "ni", ni, &dimids[2]);
+    ncw_def_dim(ncid, "j", nj, &dimids[1]);
+    ncw_def_dim(ncid, "i", ni, &dimids[2]);
     ncw_def_var(ncid, "nlobs", NC_INT, 2, &dimids[1], &varid_nlobs);
     ncw_def_var(ncid, "dfs", NC_FLOAT, 2, &dimids[1], &varid_dfs);
     ncw_def_var(ncid, "srf", NC_FLOAT, 2, &dimids[1], &varid_srf);

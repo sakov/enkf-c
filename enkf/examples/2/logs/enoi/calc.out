@@ -2,10 +2,10 @@
   Using MPI-3 shared memory:
     sm_comm size = 4
     node_comm size = 1
-  running CALC for EnKF-C version 2.36.0:
+  running CALC for EnKF-C version 2.43.0:
     command = "./enkf_calc enoi.prm"
-    dir = "/home/599/pxs599/src/enkf-c/enkf/examples/2"
-  2025-06-05 10:16:12
+    dir = "/home/599/pxs599/src/enkf-c.fieldsplit/enkf/examples/2"
+  2025-12-24 08:33:42
   reading system specs from "enoi.prm":
     TIME = "6565.5 days since 1990-01-01"
     MODE = EnOI
@@ -149,7 +149,7 @@
         5 nodes
         368 bytes
   calculating ensemble observations:
-  2025-06-05 10:16:12
+  2025-12-24 08:33:43
     allocating 5925280 bytes for HE array:
     allocating 5884416 bytes for HE^T array:
     distributing 144 iterations:
@@ -159,12 +159,12 @@
     TEM +....................................
     SAL +....................................
   gathering:
-  2025-06-05 10:16:13
+  2025-12-24 08:33:43
     subtracting ensemble mean:
   calculating innovations and spread:
-  2025-06-05 10:16:13
+  2025-12-24 08:33:43
   writing forecast innovations and spread to "observations.nc":
-  2025-06-05 10:16:13
+  2025-12-24 08:33:43
   identifying observation batches:
     SLA     9   
     SST     27  
@@ -180,43 +180,43 @@
       total        0 (0.0%)
   writing modified obs errors to "observations.nc":
   calculating transforms:
-  2025-06-05 10:16:13
+  2025-12-24 08:33:43
     calculating transforms for t-grid:
       main cycle for t-grid (34 x 34 local analyses):
         j = 6 (3: 2: 5.9%)
         j = 3 (2: 1: 2.9%)
         j = 0 (1: 0: 0.0%)
         j = 9 (1: 3: 8.8%)
-        j = 12 (3: 4: 11.8%)
-        j = 15 (2: 5: 14.7%)
+        j = 12 (2: 4: 11.8%)
+        j = 15 (3: 5: 14.7%)
         j = 18 (1: 6: 17.6%)
-        j = 21 (3: 7: 20.6%)
-        j = 24 (2: 8: 23.5%)
+        j = 21 (2: 7: 20.6%)
+        j = 24 (3: 8: 23.5%)
         j = 27 (1: 9: 26.5%)
-        j = 30 (3: 10: 29.4%)
-        j = 33 (2: 11: 32.4%)
+        j = 30 (2: 10: 29.4%)
+        j = 33 (3: 11: 32.4%)
         j = 36 (1: 12: 35.3%)
-        j = 39 (3: 13: 38.2%)
-        j = 42 (2: 14: 41.2%)
+        j = 39 (2: 13: 38.2%)
+        j = 42 (3: 14: 41.2%)
         j = 45 (1: 15: 44.1%)
-        j = 48 (3: 16: 47.1%)
-        j = 51 (2: 17: 50.0%)
+        j = 48 (2: 16: 47.1%)
+        j = 51 (3: 17: 50.0%)
         j = 54 (1: 18: 52.9%)
-        j = 57 (3: 19: 55.9%)
-        j = 60 (2: 20: 58.8%)
+        j = 57 (2: 19: 55.9%)
+        j = 60 (3: 20: 58.8%)
         j = 63 (1: 21: 61.8%)
-        j = 66 (3: 22: 64.7%)
-        j = 69 (2: 23: 67.6%)
+        j = 66 (2: 22: 64.7%)
+        j = 69 (3: 23: 67.6%)
         j = 72 (1: 24: 70.6%)
-        j = 78 (3: 26: 76.5%)
         j = 75 (2: 25: 73.5%)
+        j = 78 (3: 26: 76.5%)
         j = 81 (1: 27: 79.4%)
         j = 84 (2: 28: 82.4%)
         j = 87 (3: 29: 85.3%)
         j = 90 (1: 30: 88.2%)
-        j = 93 (3: 31: 91.2%)
-        j = 96 (2: 32: 94.1%)
-        j = 99 (1: 33: 97.1%)
+        j = 93 (2: 31: 91.2%)
+        j = 96 (3: 32: 94.1%)
+        j = 99 (3: 33: 97.1%)
       creating empty file "transforms.nc":
       assembling "transforms.nc":...
       assembling "enkf_diag.nc":...
@@ -230,13 +230,13 @@
     calculating transforms for log point (156.000,-32.000): 1440 obs
     writing transforms for point (156.000,-32.000) on grid "t-grid":
   calculating analysed observations:
-  2025-06-05 10:16:14
+  2025-12-24 08:33:44
     sorting obs by ij:
-    2025-06-05 10:16:14
+    2025-12-24 08:33:44
     updating Hx:
     distributing 10216 iterations:
       4 processes get 2554 iterations each
-    2025-06-05 10:16:14
+    2025-12-24 08:33:44
   adding analysis innovations and spread to "observations.nc":
   printing observation statistics:
     region obs.type   # obs.  |for.inn.| |an.inn.|   for.inn.   an.inn.  for.spread  an.spread
@@ -260,5 +260,5 @@
              0-50m         1    0.165      0.183      0.165      0.183     0.0188     0.0188  
              50-500m       4   0.0853     0.0759     0.0526     0.0429     0.0256     0.0256  
              500-9999m     0     -nan       -nan       -nan       -nan       -nan       -nan  
-  2025-06-05 10:16:14
+  2025-12-24 08:33:44
   finished

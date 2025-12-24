@@ -39,7 +39,7 @@
 #include "pointlog.h"
 
 #define NPLOGS_INC 10
-#define NFIELDS_INC 100
+#define NFIELD_INC 200
 #define MPIIDOFFSET 10000
 #define TEPS 1.0e-3
 
@@ -248,6 +248,13 @@ dasystem* das_create(enkfprm* prm)
 #endif
 #if defined(ENKF_UPDATE)
     das->fieldbufsize = prm->fieldbufsize;
+    das->haveanalysis = 1;
+#endif
+    das->nfieldsplit = prm->nfieldsplit;
+
+#if defined(ENKF_UPDATE)
+    if (updatespec & UPDATE_DIRECTWRITE && das->nfieldsplit > 1)
+        enkf_quit("can not specify FIELDSPLIT > 1 with direct write");
 #endif
 
     /*
@@ -277,7 +284,7 @@ dasystem* das_create(enkfprm* prm)
      * initialise pointlogs
      */
 #if defined(ENKF_CALC) || defined(ENKF_UPDATE)
-    if (enkf_doplogs && prm->nplog > 0) {
+    if (prm->nplog > 0 && !enkf_fstatsonly) {
         int ngrid, i;
 
         enkf_printf("  initialising pointlogs:\n");
@@ -477,34 +484,76 @@ void das_getfields(dasystem* das, int gridid, int* nfields, field** fields)
     for (vid = 0; vid < nvar; ++vid) {
         int vargridid = model_getvargridid(m, vid);
         grid* g = model_getgridbyid(m, vargridid);
+        int isstructured = grid_isstructured(g);
         int varaliasid = grid_getaliasid(g);
         char* varname = model_getvarname(m, vid);
         char fname[MAXSTRLEN];
-        int nj;
-        int nk, nkgrid, k;
+        int ni, nj;
+        int nk, nkgrid, k, splitid;
 
         if (gridid >= 0 && vargridid != gridid && varaliasid != gridid)
             continue;
 
-        grid_getsize(g, NULL, &nj, &nkgrid);
+        grid_getsize(g, &ni, &nj, &nkgrid);
 
         das_getmemberfname(das, varname, 1, fname);
-        nk = ncu_getnlevels(fname, varname, nj > 0);
+        nk = ncu_getnlevels(fname, varname, isstructured);
         if (nk > 1 && nk != nkgrid)
             enkf_quit("%s: %s: variable nk = %d, grid nk = %d: the number of levels for a variable is supposed to be either that of the grid or 1", fname, grid_getname(g), nk, nkgrid);
         for (k = 0; k < nk; ++k) {
-            field* f;
+            for (splitid = 0; splitid < das->nfieldsplit; ++splitid) {
+                field* f;
 
-            if (*nfields % NFIELDS_INC == 0)
-                *fields = realloc(*fields, (*nfields + NFIELDS_INC) * sizeof(field));
-            f = &(*fields)[*nfields];
-            f->id = *nfields;
-            f->varid = vid;
-            f->issurfacevar = (nk == 1);
-            strcpy(f->varname, varname);
-            f->level = k;
-            f->structured = nj > 0;
-            (*nfields)++;
+                if (*nfields % NFIELD_INC == 0)
+                    *fields = realloc(*fields, (*nfields + NFIELD_INC) * sizeof(field));
+                f = &(*fields)[*nfields];
+                f->id = *nfields;
+                f->varid = vid;
+                f->issurfacevar = (nk == 1);
+                strcpy(f->varname, varname);
+                f->level = k;
+                f->isstructured = isstructured;
+                if (das->nfieldsplit <= 1) {
+                    f->j1 = 0;
+                    f->j2 = (isstructured) ? nj - 1 : ni - 1;
+                    f->splitid = -1;
+                } else {
+                    /*
+                     * split segment [0, nj - 1] evenly in subsegments
+                     * so that each subsegment contains integral number of
+                     * elementary segments of length `stride' except, possibly,
+                     * the last subsegment
+                     */
+                    int stride = grid_getstride(g);
+                    int nstride, ave, rem, s1, s2;
+
+                    f->splitid = splitid;
+
+                    if (!isstructured)
+                        nj = ni;
+
+                    nstride = (nj + stride - 1) / stride;
+                    if (nstride < das->nfieldsplit)
+                        enkf_quit("can not split fields for variable \"%s\" along \"j\" index into %d tiles (entry FIELDSPLIT): either nj = %d is too small or stride = %d too large (need (nj + stride - 1) / stride >= ntile", f->varname, das->nfieldsplit, nj, stride);
+                    ave = nstride / das->nfieldsplit;
+                    rem = nstride % das->nfieldsplit;
+                    s1 = ave * splitid + ((splitid < rem) ? splitid : rem);
+                    s2 = s1 + ave - 1;
+                    if (rem > splitid)
+                        s2 += 1;
+                    f->j1 = s1 * stride;
+                    if (f->j1 >= nj)
+                        /*
+                         * this is possible with global analysis when stride
+                         * can be set artificially large
+                         */
+                        continue;
+                    f->j2 = (s2 + 1) * stride - 1;
+                    if (f->j2 > nj - 1)
+                        f->j2 = nj - 1;
+                }
+                (*nfields)++;
+            }
         }
     }
 }
@@ -514,6 +563,16 @@ void das_getfields(dasystem* das, int gridid, int* nfields, field** fields)
 void getfieldfname(char* dir, char* prefix, char* varname, int level, char* fname)
 {
     snprintf(fname, MAXSTRLEN, "%s/%s_%s-%03d.nc", dir, prefix, varname, level);
+}
+
+/**
+ */
+void gettilefname(char* dir, char* prefix, field* f, char* fname)
+{
+    if (f->splitid >= 0)
+        snprintf(fname, MAXSTRLEN, "%s/%s_%s-%03d-%d.nc", dir, prefix, f->varname, f->level, f->splitid);
+    else
+        snprintf(fname, MAXSTRLEN, "%s/%s_%s-%03d.nc", dir, prefix, f->varname, f->level);
 }
 #endif
 

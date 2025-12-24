@@ -432,51 +432,58 @@ void plogs_definestatevars(dasystem* das)
                 das_getmemberfname(das, varname, 1, memfname);
                 nk = ncu_getnlevels(memfname, varname, grid_isstructured(g));
             }
-            if (nk > 1) {
+            {
                 char nkname[NC_MAX_NAME];
                 int dimids[2];
 
                 snprintf(nkname, NC_MAX_NAME, "nk%s", gridstr);
-                if (!ncw_dim_exists(ncid, nkname))
-                    ncw_def_dim(ncid, nkname, nk, &dimids[0]);
-                else
-                    ncw_inq_dimid(ncid, nkname, &dimids[0]);
+                if (nk > 1) {
+                    if (!ncw_dim_exists(ncid, nkname))
+                        ncw_def_dim(ncid, nkname, nk, &dimids[0]);
+                    else
+                        ncw_inq_dimid(ncid, nkname, &dimids[0]);
+                }
                 if (das->mode == MODE_ENOI)
                     ncw_inq_dimid(ncid, "m", &dimids[1]);
                 else if (das->mode == MODE_ENKF || das->mode == MODE_HYBRID)
                     ncw_inq_dimid(ncid, "m2", &dimids[1]);
-                if (!ncw_var_exists(ncid, varname))
-                    ncw_def_var(ncid, varname, NC_FLOAT, 2, dimids, &varid);
-                else
+                if (!ncw_var_exists(ncid, varname)) {
+                    if (nk > 1)
+                        ncw_def_var(ncid, varname, NC_FLOAT, 2, dimids, &varid);
+                    else
+                        ncw_def_var(ncid, varname, NC_FLOAT, 1, &dimids[1], &varid);
+                } else
                     ncw_inq_varid(ncid, varname, &varid);
 
                 if (das->mode == MODE_ENKF || das->mode == MODE_HYBRID)
                     ncw_inq_dimid(ncid, "m1", &dimids[1]);
-                if (das->updatespec | UPDATE_DOPLOGSAN) {
-                    if (!ncw_var_exists(ncid, varname_an))
-                        ncw_def_var(ncid, varname_an, NC_FLOAT, 2, dimids, &varid_an);
-                    else
+                if ((das->updatespec & UPDATE_DOPLOGSAN) || das->haveanalysis) {
+                    if (!ncw_var_exists(ncid, varname_an)) {
+                        if (nk > 1) {
+                            if (das->mode == MODE_ENKF || das->mode == MODE_HYBRID)
+                                ncw_def_var(ncid, varname_an, NC_FLOAT, 2, dimids, &varid_an);
+                            else if (das->mode == MODE_ENOI)
+                                ncw_def_var(ncid, varname_an, NC_FLOAT, 1, dimids, &varid_an);
+                        } else {
+                            if (das->mode == MODE_ENKF || das->mode == MODE_HYBRID)
+                                ncw_def_var(ncid, varname_an, NC_FLOAT, 1, &dimids[1], &varid_an);
+                            else if (das->mode == MODE_ENOI)
+                                ncw_def_var(ncid, varname_an, NC_FLOAT, 0, NULL, &varid_an);
+                        }
+                    } else
                         ncw_inq_varid(ncid, varname_an, &varid_an);
                 }
-            } else {
-                int dimid;
 
-                if (das->mode == MODE_ENOI)
-                    ncw_inq_dimid(ncid, "m", &dimid);
-                else if (das->mode == MODE_ENKF || das->mode == MODE_HYBRID)
-                    ncw_inq_dimid(ncid, "m2", &dimid);
-                if (!ncw_var_exists(ncid, varname))
-                    ncw_def_var(ncid, varname, NC_FLOAT, 1, &dimid, &varid);
-                else
-                    ncw_inq_varid(ncid, varname, &varid);
+                if (das->mode == MODE_ENOI) {
+                    char varname_bg[NC_MAX_NAME];
+                    int varid_bg;
 
-                if (das->mode == MODE_ENKF || das->mode == MODE_HYBRID)
-                    ncw_inq_dimid(ncid, "m1", &dimid);
-                if (das->updatespec | UPDATE_DOPLOGSAN) {
-                    if (!ncw_var_exists(ncid, varname_an))
-                        ncw_def_var(ncid, varname_an, NC_FLOAT, 1, &dimid, &varid_an);
+                    snprintf(varname_bg, NC_MAX_NAME, "%s_bg", varname);
+                    if (!ncw_var_exists(ncid, varname_bg))
+                        ncw_def_var(ncid, varname_bg, NC_FLOAT, (nk > 1) ? 1 : 0, (nk > 1) ? dimids : NULL, &varid_bg);
                     else
-                        ncw_inq_varid(ncid, varname_an, &varid_an);
+                        ncw_inq_varid(ncid, varname_bg, &varid_bg);
+                    ncw_put_att_int(ncid, varid_bg, "gridid", 1, &gid);
                 }
             }
             ncw_put_att_int(ncid, varid, "gridid", 1, &gid);
@@ -501,312 +508,218 @@ void plogs_definestatevars(dasystem* das)
     }
 }
 
-/** Writes state variables directly to the pointlogs (without tiles).
- */
-static void plog_writestatevars_direct(dasystem* das, int nfields, void** fieldbuffer, field* fields, int isanalysis)
+static void plogs_writeens(dasystem* das, int isanalysis)
 {
-    int p, fid, e;
-    float*** v_src = NULL;
-    float* v = NULL;
-    size_t start[2] = { 0, 0 };
-    size_t count[2] = { 1, (!isanalysis) ? das->nmem : das->nmem_dynamic };
+    model* m = das->m;
+    int nvar = model_getnvar(m);
+    int nmem = das->nmem;
+    int vid, plogid;
 
-    v = malloc(das->nmem * sizeof(float));
+    if (das->nplog == 0)
+        return;
+    if (isanalysis && das->mode == MODE_ENOI)
+        return;
 
-    for (p = 0; p < das->nplog; ++p) {
-        pointlog* plog = &das->plogs[p];
-        char fname[MAXSTRLEN];
-        int ncid;
+    if (isanalysis && (das->mode == MODE_ENKF || das->mode == MODE_HYBRID))
+        nmem = das->nmem_dynamic;
 
-        das_getfname_plog(das, plog, fname);
-        ncw_open(fname, NC_WRITE, &ncid);
+    distribute_iterations(0, nmem - 1, nprocesses, "    ");
+    for (vid = 0; vid < nvar; ++vid) {
+        char* varname = model_getvarname(m, vid);
+        grid* g = model_getvargrid(m, vid);
+        int gid = grid_getid(g);
+        float*** dst = NULL;
+        float** src = NULL;
+        int ni, nj, nk, e;
 
-        for (fid = 0; fid < nfields; ++fid) {
-            field* f = &fields[fid];
-            grid* g = model_getvargrid(das->m, f->varid);
-            int gid = grid_getid(g);
-            char varname[NC_MAX_NAME];
-            int vid, ndims;
+        enkf_printf("    %s:", varname);
 
-            if (plog->gridid >= 0 && plog->gridid != gid)
-                continue;
-            if (isnan(plog->fij[gid][0] + plog->fij[gid][1]))
-                continue;
+        model_getvargridsize(m, vid, &ni, &nj, NULL);
+        {
+            char memfname[MAXSTRLEN];
 
-            v_src = (float***) fieldbuffer[fid];
+            das_getmemberfname(das, varname, 1, memfname);
+            nk = ncu_getnlevels(memfname, varname, nj > 0);
+        }
+        if (my_number_of_iterations > 0) {
+            dst = alloc3d(das->nplog, (rank == 0) ? nmem : my_number_of_iterations, nk, sizeof(float));
+            src = alloc2d((nj > 0) ? nj : 1, ni, sizeof(float));
+        }
 
-            if (das->mode == MODE_ENKF || das->mode == MODE_HYBRID) {
-                for (e = 0; e < ((!isanalysis) ? das->nmem : das->nmem_dynamic); ++e)
-                    v[e] = grid_interpolate2d(g, plog->fij[gid], v_src[e]);
-            } else if (das->mode == MODE_ENOI) {
-                float bg = grid_interpolate2d(g, plog->fij[gid], v_src[das->nmem]);
+        for (e = my_first_iteration; e <= my_last_iteration; ++e) {
+            char fname_src[MAXSTRLEN];
+            int k;
 
-                if (isanalysis && (das->updatespec & UPDATE_OUTPUTINC)) {
-                    /*
-                     * same increments for all ensemble members
-                     */
-                    for (e = 0; e < das->nmem; ++e)
-                        v[e] = bg;
-                } else {
-                    for (e = 0; e < das->nmem; ++e)
-                        v[e] = bg + grid_interpolate2d(g, plog->fij[gid], v_src[e]);
+            das_getmemberfname(das, varname, e + 1, fname_src);
+            if (isanalysis) {
+                if ((das->updatespec & UPDATE_OUTPUTINC))
+                    strncat(fname_src, ".increment", MAXSTRLEN - 1);
+                else
+                    strncat(fname_src, ".analysis", MAXSTRLEN - 1);
+            }
+
+            for (k = 0; k < nk; ++k) {
+                model_readfield(m, fname_src, varname, 0, (nk > 1) ? k : -1, src[0], 1);
+                for (plogid = 0; plogid < das->nplog; ++plogid) {
+                    pointlog* plog = &das->plogs[plogid];
+
+                    if (plog->gridid >= 0 && plog->gridid != gid)
+                        continue;
+                    if (isnan(plog->fij[gid][0] + plog->fij[gid][1]))
+                        continue;
+
+                    dst[plogid][e - my_first_iteration][k] = grid_interpolate2d(g, plog->fij[gid], src);
                 }
-            }
-
-            if (das->mode == MODE_HYBRID) {
-                /*
-                 * undo scaling of the ensemble anomalies
-                 */
-                int nmem = das->nmem;
-                int nmem_d = das->nmem_dynamic;
-                int nmem_s = das->nmem_static;
-                double k_d = (nmem_d > 1) ? sqrt((double) (nmem - 1) / (double) (nmem_d - 1)) : 0.0;
-                double k_s = sqrt(das->gamma * (double) (nmem - 1) / (double) (nmem_s - 1));
-                double vmean;
-                int e;
-
-                vmean = 0.0;
-                for (e = 0; e < nmem_d; ++e)
-                    vmean += v[e];
-                vmean /= (double) nmem_d;
-                for (e = 0; e < nmem_d; ++e)
-                    v[e] = (v[e] - vmean) / k_d + vmean;
-                for (e = nmem_d; e < nmem; ++e)
-                    v[e] = (v[e] - vmean) / k_s + vmean;
-            }
-
-            snprintf(varname, NC_MAX_NAME, "%s", f->varname);
-            if (isanalysis)
-                strncat(varname, !(das->updatespec & UPDATE_OUTPUTINC) ? "_an" : "_inc", NC_MAX_NAME - 4);
-            ncw_inq_varid(ncid, varname, &vid);
-            ncw_inq_varndims(ncid, vid, &ndims);
-            if (ndims == 1)
-                ncw_put_var_float(ncid, vid, v);
-            else if (ndims == 2) {
-                start[0] = f->level;
-                ncw_put_vara_float(ncid, vid, start, count, v);
+                enkf_printf(".");
+                enkf_flush();
             }
         }
 
-        ncw_close(ncid);
-    }
+#if defined(MPI)
+        if (nprocesses > 1) {
+            int* recvcounts = NULL;
+            int* displs = NULL;
+            int p;
 
-    free(v);
+            if (rank == 0) {
+                recvcounts = malloc(nprocesses * sizeof(int));
+                displs = malloc(nprocesses * sizeof(int));
+                for (p = 0; p < nprocesses; ++p)
+                    recvcounts[p] = number_of_iterations[p] * nk;
+                displs[0] = 0;
+                for (p = 1; p < nprocesses; ++p)
+                    displs[p] = displs[p - 1] + recvcounts[p];
+            }
+
+            for (plogid = 0; plogid < das->nplog; ++plogid) {
+                MPI_Gatherv((my_number_of_iterations > 0) ? dst[plogid][0] : NULL, my_number_of_iterations * nk, MPI_FLOAT, (my_number_of_iterations > 0) ? dst[plogid][0] : NULL, recvcounts, displs, MPI_FLOAT, 0, MPI_COMM_WORLD);
+            }
+
+            if (rank == 0) {
+                free(displs);
+                free(recvcounts);
+            }
+        }
+        if (rank == 0) {
+            float** dst2 = alloc2d(nk, nmem, sizeof(float));
+
+            for (plogid = 0; plogid < das->nplog; ++plogid) {
+                pointlog* plog = &das->plogs[plogid];
+                float** dst1 = dst[plogid];
+                char fname_dst[MAXSTRLEN];
+                int ncid_dst, vid_dst;
+                int k;
+
+                for (k = 0; k < nk; ++k)
+                    for (e = 0; e < nmem; ++e)
+                        dst2[k][e] = dst1[e][k];
+
+                das_getfname_plog(das, plog, fname_dst);
+                ncw_open(fname_dst, NC_WRITE, &ncid_dst);
+                if (!isanalysis)
+                    ncw_inq_varid(ncid_dst, varname, &vid_dst);
+                else {
+                    char varname_dst[MAXSTRLEN];
+
+                    strncpy(varname_dst, varname, MAXSTRLEN - 1);
+                    strncat(varname_dst, !(das->updatespec & UPDATE_OUTPUTINC) ? "_an" : "_inc", NC_MAX_NAME - 5);
+                    ncw_inq_varid(ncid_dst, varname_dst, &vid_dst);
+                }
+                ncw_put_var_float(ncid_dst, vid_dst, dst2[0]);
+                ncw_close(ncid_dst);
+            }
+
+            free(dst2);
+        }
+#endif
+        if (src != NULL)
+            free(src);
+        if (dst != NULL)
+            free(dst);
+        enkf_printf("\n");
+        enkf_flush();
+    }
 }
 
-/** Writes state variables to tiles that are to be assembled into the pointlogs
- *  later.
- */
-static void plog_writestatevars_toassemble(dasystem* das, int nfields, void** fieldbuffer, field* fields, int isanalysis)
+static void plogs_writebg(dasystem* das, int isanalysis)
 {
-    float* v = malloc(das->nmem * sizeof(float));
-    float*** v_src = NULL;
-    int vid;
-    int fid;
+    model* m = das->m;
+    int nvar = model_getnvar(m);
+    int vid, plogid;
 
-    for (fid = 0; fid < nfields; ++fid) {
-        field* f = &fields[fid];
-        grid* g = model_getvargrid(das->m, f->varid);
+    if (das->nplog == 0)
+        return;
+    if (rank != 0 || das->mode != MODE_ENOI)
+        return;
+
+    for (vid = 0; vid < nvar; ++vid) {
+        char* varname = model_getvarname(m, vid);
+        grid* g = model_getvargrid(m, vid);
         int gid = grid_getid(g);
-        char fname[MAXSTRLEN];
-        int ncid, dimid;
-        int plogid;
-        int e;
+        float** dst = NULL;
+        float** src = NULL;
+        char fname_src[MAXSTRLEN];
+        char varname_dst[MAXSTRLEN];
+        char fname_dst[MAXSTRLEN];
+        int ni, nj, nk, k;
 
-        v_src = (float***) fieldbuffer[fid];
+        enkf_printf("    %s:", varname);
+
+        model_getvargridsize(m, vid, &ni, &nj, NULL);
+        das_getbgfname(das, varname, fname_src);
+        nk = ncu_getnlevels(fname_src, varname, nj > 0);
+
+        dst = alloc2d(das->nplog, nk, sizeof(float));
+        src = alloc2d((nj > 0) ? nj : 1, ni, sizeof(float));
+
+        if (!isanalysis)
+            snprintf(varname_dst, MAXSTRLEN, "%s_bg", varname);
+        else {
+            snprintf(varname_dst, MAXSTRLEN, "%s_%s", varname, (das->updatespec & UPDATE_OUTPUTINC) ? "inc" : "an");
+            if ((das->updatespec & UPDATE_OUTPUTINC))
+                strncat(fname_src, ".increment", MAXSTRLEN - 1);
+            else
+                strncat(fname_src, ".analysis", MAXSTRLEN - 1);
+        }
+
+        for (k = 0; k < nk; ++k) {
+            model_readfield(m, fname_src, varname, 0, (nk > 1) ? k : -1, src[0], 1);
+            for (plogid = 0; plogid < das->nplog; ++plogid) {
+                pointlog* plog = &das->plogs[plogid];
+
+                if (plog->gridid >= 0 && plog->gridid != gid)
+                    continue;
+                if (isnan(plog->fij[gid][0] + plog->fij[gid][1]))
+                    continue;
+
+                dst[plogid][k] = grid_interpolate2d(g, plog->fij[gid], src);
+            }
+            enkf_printf(".");
+            enkf_flush();
+        }
 
         for (plogid = 0; plogid < das->nplog; ++plogid) {
             pointlog* plog = &das->plogs[plogid];
-            char varname[NC_MAX_NAME];
+            int ncid_dst, vid_dst;
 
-            if (plog->gridid >= 0 && plog->gridid != gid)
-                continue;
-            if (isnan(plog->fij[gid][0] + plog->fij[gid][1]))
-                continue;
-
-            snprintf(fname, MAXSTRLEN, "%s/pointlog-%d_%s-%03d.nc", DIRNAME_TMP, plogid, f->varname, f->level);
-            if (!isanalysis) {
-                ncw_create(fname, NC_CLOBBER | das->ncformat, &ncid);
-                if (das->nccompression > 0)
-                    ncw_def_deflate(ncid, 0, 1, das->nccompression);
-                ncw_def_dim(ncid, "m", das->nmem, &dimid);
-            } else {
-                ncw_open(fname, NC_WRITE, &ncid);
-                if (das->mode == MODE_HYBRID)
-                    ncw_def_dim(ncid, "m_dynamic", das->nmem_dynamic, &dimid);
-                else {
-                    ncw_inq_dimid(ncid, "m", &dimid);
-                    ncw_redef(ncid);
-                }
-            }
-
-            snprintf(varname, NC_MAX_NAME, "%s", f->varname);
-            if (isanalysis)
-                strncat(varname, !(das->updatespec & UPDATE_OUTPUTINC) ? "_an" : "_inc", NC_MAX_NAME - 4);
-            ncw_def_var(ncid, varname, NC_FLOAT, 1, &dimid, &vid);
-            ncw_enddef(ncid);
-
-            if (das->mode == MODE_ENKF || das->mode == MODE_HYBRID) {
-                for (e = 0; e < ((!isanalysis) ? das->nmem : das->nmem_dynamic); ++e)
-                    v[e] = grid_interpolate2d(g, plog->fij[gid], v_src[e]);
-            } else if (das->mode == MODE_ENOI) {
-                float bg = grid_interpolate2d(g, plog->fij[gid], v_src[das->nmem]);
-
-                if (isanalysis && (das->updatespec & UPDATE_OUTPUTINC)) {
-                    /*
-                     * same increments for all ensemble members
-                     */
-                    for (e = 0; e < das->nmem; ++e)
-                        v[e] = bg;
-                } else {
-                    for (e = 0; e < das->nmem; ++e)
-                        v[e] = bg + grid_interpolate2d(g, plog->fij[gid], v_src[e]);
-                }
-            }
-
-            if (das->mode == MODE_HYBRID) {
-                /*
-                 * undo scaling of the ensemble anomalies
-                 */
-                int nmem = das->nmem;
-                int nmem_d = das->nmem_dynamic;
-                int nmem_s = das->nmem_static;
-                double k_d = (nmem_d > 1) ? sqrt((double) (nmem - 1) / (double) (nmem_d - 1)) : 0.0;
-                double k_s = sqrt(das->gamma * (double) (nmem - 1) / (double) (nmem_s - 1));
-                double vmean;
-                int e;
-
-                vmean = 0.0;
-                for (e = 0; e < nmem_d; ++e)
-                    vmean += v[e];
-                vmean /= (double) nmem_d;
-                for (e = 0; e < nmem_d; ++e)
-                    v[e] = (v[e] - vmean) / k_d + vmean;
-                for (e = nmem_d; e < nmem; ++e)
-                    v[e] = (v[e] - vmean) / k_s + vmean;
-            }
-
-            ncw_put_var_float(ncid, vid, v);
-            ncw_close(ncid);
+            das_getfname_plog(das, plog, fname_dst);
+            ncw_open(fname_dst, NC_WRITE, &ncid_dst);
+            ncw_inq_varid(ncid_dst, varname_dst, &vid_dst);
+            ncw_put_var_float(ncid_dst, vid_dst, dst[plogid]);
+            ncw_close(ncid_dst);
         }
+
+        free(src);
+        free(dst);
+        enkf_printf("\n");
+        enkf_flush();
     }
-
-    free(v);
 }
 
-/**
- */
-void plogs_writestatevars(dasystem* das, int nfields, void** fieldbuffer, field* fields, int isanalysis)
+void plogs_writestatevars(dasystem* das, int isanalysis)
 {
-    if (das->nplog == 0)
-        return;
-
-    if (das->updatespec & UPDATE_DIRECTWRITE)
-        plog_writestatevars_direct(das, nfields, fieldbuffer, fields, isanalysis);
-    else
-        plog_writestatevars_toassemble(das, nfields, fieldbuffer, fields, isanalysis);
+    plogs_writeens(das, isanalysis);
+    if (das->mode == MODE_ENOI && rank == 0)
+        plogs_writebg(das, isanalysis);
 }
-
-/**
- */
-static void get_plogtilefname(int plogid, field* f, char fname[])
-{
-    snprintf(fname, MAXSTRLEN, "%s/pointlog-%d_%s-%03d.nc", DIRNAME_TMP, plogid, f->varname, f->level);
-}
-
-/**
- */
-void plogs_assemblestatevars(dasystem* das)
-{
-    float* v = NULL;
-    int nfields = 0;
-    field* fields = NULL;
-    int plogid, fid;
-
-    if (das->nplog == 0)
-        return;
-
-    v = malloc(das->nmem * sizeof(float));
-
-    das_getfields(das, -1, &nfields, &fields);
-
-#if defined(MPI)
-    MPI_Barrier(MPI_COMM_WORLD);
-#endif
-
-    distribute_iterations(0, das->nplog - 1, nprocesses, "    ");
-    for (plogid = my_first_iteration; plogid <= my_last_iteration; ++plogid) {
-        pointlog* plog = &das->plogs[plogid];
-        char fname_dst[MAXSTRLEN];
-        int ncid_dst;
-
-        das_getfname_plog(das, plog, fname_dst);
-        ncw_open(fname_dst, NC_WRITE, &ncid_dst);
-
-        for (fid = 0; fid < nfields; ++fid) {
-            field* f = &fields[fid];
-            int gid = model_getvargridid(das->m, f->varid);
-            char fname_src[MAXSTRLEN];
-            int ii;
-
-            if (plog->gridid >= 0 && plog->gridid != gid)
-                continue;
-
-            get_plogtilefname(plogid, f, fname_src);
-            if (!file_exists(fname_src))
-                continue;
-
-            for (ii = 0; ii < 2; ++ii) {
-                char varname[NC_MAX_NAME];
-                int ncid_src, vid_src, vid_dst, ndims_dst;
-
-                snprintf(varname, NC_MAX_NAME, "%s", f->varname);
-                if (ii == 1) {
-                    if (!(das->updatespec & UPDATE_DOPLOGSAN))
-                        continue;
-                    strncat(varname, !(das->updatespec & UPDATE_OUTPUTINC) ? "_an" : "_inc", NC_MAX_NAME - 4);
-                }
-
-                ncw_open(fname_src, NC_NOWRITE, &ncid_src);
-                ncw_inq_varid(ncid_src, varname, &vid_src);
-                ncw_get_var_float(ncid_src, vid_src, v);
-                ncw_close(ncid_src);
-
-                ncw_inq_varid(ncid_dst, varname, &vid_dst);
-                ncw_inq_varndims(ncid_dst, vid_dst, &ndims_dst);
-                if (ndims_dst == 1)
-                    ncw_put_var_float(ncid_dst, vid_dst, v);
-                else if (ndims_dst == 2) {
-                    size_t start[2] = { f->level, 0 };
-                    size_t count[2] = { 1, das->nmem };
-
-                    if (ii == 1 && das->mode == MODE_HYBRID)
-                        count[1] = das->nmem_dynamic;
-                    ncw_put_vara_float(ncid_dst, vid_dst, start, count, v);
-                }
-            }
-        }
-        ncw_close(ncid_dst);
-        enkf_writeinfo(fname_dst);
-    }
-
-#if defined(MPI)
-    MPI_Barrier(MPI_COMM_WORLD);
-#endif
-    enkf_printf("    deleting tiles:\n");
-    distribute_iterations(0, nfields - 1, nprocesses, "      ");
-    for (fid = my_first_iteration; fid <= my_last_iteration; ++fid) {
-        field* f = &fields[fid];
-        char fname[MAXSTRLEN];
-
-        for (plogid = 0; plogid < das->nplog; ++plogid) {
-            get_plogtilefname(plogid, f, fname);
-            if (file_exists(fname))
-                file_delete(fname);
-        }
-    }
-
-    free(v);
-    free(fields);
-}
-#endif
+#endif                          /* ENKF_UPDATE */

@@ -52,7 +52,7 @@ pointlogs-calc: enkf_calc observations.nc conf ensemble_6565 transforms.nc
 	nice -n +19 mpirun -np $(NP_CALC) ./enkf_calc --point-logs-only pointlogs.prm 2>&1 | tee calc-pointlogs.out
 
 pointlogs-update: enkf_update transforms.nc conf ensemble_6565
-	nice -n +19 mpirun -np $(NP_UPDATE) ./enkf_update --no-fields-write pointlogs.prm 2>&1 | tee update-pointlogs.out
+	nice -n +19 mpirun -np $(NP_UPDATE) ./enkf_update --no-update --output-increment pointlogs.prm 2>&1 | tee update-pointlogs.out
 
 enkf-calc-global: enkf_calc observations.nc conf ensemble_6565
 	nice -n +19 mpirun -np $(NP_CALC) ./enkf_calc enkf-global.prm 2>&1 | tee calc.out

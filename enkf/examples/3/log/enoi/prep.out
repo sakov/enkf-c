@@ -1,7 +1,7 @@
-  running PREP for EnKF-C version 2.36.0:
+  running PREP for EnKF-C version 2.43.0:
     command = "./enkf_prep enoi.prm"
-    dir = "/home/599/pxs599/src/enkf-c/enkf/examples/3"
-  2025-06-05 10:20:34
+    dir = "/home/599/pxs599/src/enkf-c.fieldsplit/enkf/examples/3"
+  2025-12-24 08:34:05
   reading prep specs from "enoi.prm":
     TIME = "6565.5 days since 1990-01-01"
     WINDOWMIN = -3.000
@@ -196,17 +196,17 @@
         35 valid observations
         min day = -2.966
         max day = -0.548
-  2025-06-05 10:20:34
+  2025-12-24 08:34:05
   compacting obs:
-  2025-06-05 10:20:34
+  2025-12-24 08:34:05
   sorting:
-  2025-06-05 10:20:34
+  2025-12-24 08:34:05
   superobing:
     34 superobservations
-  2025-06-05 10:20:34
+  2025-12-24 08:34:05
   checking for superobs on land:
     all good
-  2025-06-05 10:20:34
+  2025-12-24 08:34:05
   writing superobservations to "observations.nc":
   printing observation summary:
     type    #used    #dropped #out_grd #out_obs #out_wnd #land    #shallow #badbatch#badvalue#thinned #excluded#superobs
@@ -216,5 +216,5 @@
     TEM     0        0        0        0        0        0        0        0        0        0        0        0       
     SAL     0        0        0        0        0        0        0        0        0        0        0        0       
     total   40       22       0        0        22       0        0        0        0        0        0        34      
-  2025-06-05 10:20:34
+  2025-12-24 08:34:05
   finished

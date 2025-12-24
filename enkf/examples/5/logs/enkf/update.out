@@ -1,8 +1,8 @@
   MPI: initialised 4 process(es)
-  running UPDATE for EnKF-C version 2.36.0:
+  running UPDATE for EnKF-C version 2.43.0:
     command = "./enkf_update --calculate-spread --write-inflation enkf.prm"
-    dir = "/home/599/pxs599/src/enkf-c/enkf/examples/5"
-  2025-06-05 10:30:18
+    dir = "/home/599/pxs599/src/enkf-c.fieldsplit/enkf/examples/5"
+  2025-12-24 08:38:39
   reading system specs from "enkf.prm":
     MODE = EnKF
     SCHEME = DEnKF
@@ -14,6 +14,7 @@
     INFLATION MODE = CAPPED, MAX RATIO = 1.00
     STRIDE = 3
     FIELDBUFFERSIZE = 4
+    FIELDSPLIT = 1
     POINTLOG 156.000 -32.000 
     NCFORMAT = NETCDF4
     NCCOMPRESSION = 0
@@ -28,7 +29,6 @@
     do model fields   = [+]
     do spread         = [+]
     do pointlogs      = [+]
-    separate output   = [+]
   initialising the system:
     grid prm info:
       NAME = "t-grid"
@@ -76,58 +76,65 @@
   initialising pointlogs:
     pointlog (156.000, -32.000):
       t-grid: (i, j) = (49.500, 49.500)
-  updating the ensemble:
-    allocating disk space for spread:
-    allocating disk space for inflation:
-    defining state variables in point logs:
-    distributing 96 iterations:
-      4 processes get 24 iterations each
-    2025-06-05 10:30:19
-    allocating disk space for analysis:................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................
-    updating 9 fields using 4 processes:
-      temp     0   (2: 1: 22.2%)
-      temp     1   (3: 2: 33.3%)
-      eta_t    0   (1: 0: 11.1%)
-      salt     0   (3: 3: 44.4%)
-      salt     1   (2: 4: 55.6%)
-      u        0   (1: 5: 66.7%)
-      u        1   (3: 6: 77.8%)
-      v        0   (2: 7: 88.9%)
-      v        1   (1: 8: 100.0%)
-  2025-06-05 10:30:21
-  assembling analysis:
+  defining state variables in point logs:
+  writing forecast variables to point logs:
+    2025-12-24 08:38:39
     distributing 96 iterations:
       4 processes get 24 iterations each
     eta_t:........................
-    temp:........................
-    salt:........................
-    u:........................
-    v:........................
-  2025-06-05 10:30:23
+    temp:................................................
+    salt:................................................
+    u:................................................
+    v:................................................
+  allocating disk space for spread:
+    2025-12-24 08:38:39
+  updating ensemble:
+    2025-12-24 08:38:39
+    allocating disk space for inflation:
+      2025-12-24 08:38:39
+    allocating disk space for analysis:
+      2025-12-24 08:38:39
+      distributing 96 iterations:
+        4 processes get 24 iterations each
+      ........................................................................................................................
+    updating 9 fields using 4 processes:
+      2025-12-24 08:38:40
+      temp   1   (3: 2: 33.3%)
+      eta_t  0   (1: 0: 11.1%)
+      temp   0   (2: 1: 22.2%)
+      salt   0   (1: 3: 44.4%)
+      salt   1   (2: 4: 55.6%)
+      u      0   (3: 5: 66.7%)
+      u      1   (1: 6: 77.8%)
+      v      0   (2: 7: 88.9%)
+      v      1   (3: 8: 100.0%)
+  assembling members:
+    2025-12-24 08:38:42
+    distributing 480 iterations:
+      4 processes get 120 iterations each
+    ........................................................................................................................
   assembling spread:
+    2025-12-24 08:38:44
     eta_t:.
-    eta_t_an:.
     temp:..
-    temp_an:..
     salt:..
-    salt_an:..
     u:..
-    u_an:..
     v:..
-    v_an:..
-  2025-06-05 10:30:23
   assembling inflation:
+    2025-12-24 08:38:44
     eta_t:.
     temp:..
     salt:..
     u:..
     v:..
-  2025-06-05 10:30:24
-  assembling state variables in point logs:
-    distributing 1 iterations:
-      1 processes get 1 iteration, 3 processes get 0 iterations
-    deleting tiles:
-      distributing 9 iterations:
-        4 processes get 3 or 2 iterations
-  2025-06-05 10:30:24
+  writing analysed variables to point logs:
+  2025-12-24 08:38:44
+    distributing 96 iterations:
+      4 processes get 24 iterations each
+    eta_t:........................
+    temp:................................................
+    salt:................................................
+    u:................................................
+    v:................................................
+  2025-12-24 08:38:46
   finished

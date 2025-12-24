@@ -188,7 +188,9 @@ void H_surf_biased(dasystem* das, int nobs, int obsids[], char fname[], int r, i
     int otid = allobs->data[obsids[0]].type;
     obstype* ot = &allobs->obstypes[otid];
     int mvid = model_getvarid(m, ot->varnames[0], 1);
-    int ksurf = grid_getsurflayerid(model_getvargrid(m, mvid));
+    grid* g = model_getvargrid(m, mvid);
+    int isstructured = grid_isstructured(g);
+    int ksurf = grid_getsurflayerid(g);
     int masklog = das_isstatic(das, mem);
     int ni, nj, nv;
     void* src = NULL;
@@ -209,7 +211,7 @@ void H_surf_biased(dasystem* das, int nobs, int obsids[], char fname[], int r, i
     }
 
     model_getvargridsize(m, mvid, &ni, &nj, NULL);
-    if (nj > 0) {
+    if (isstructured) {
         nv = ni * nj;
         src = alloc2d(nj, ni, sizeof(float));
         src0 = ((float**) src)[0];
@@ -224,7 +226,7 @@ void H_surf_biased(dasystem* das, int nobs, int obsids[], char fname[], int r, i
     snprintf(tag_offset, MAXSTRLEN, "%s:OFFSET", allobs->obstypes[allobs->data[obsids[0]].type].name);
     offset = model_getdata(m, tag_offset);
     if (offset != NULL) {
-        float* offset0 = (nj > 0) ? ((float**) offset)[0] : offset;
+        float* offset0 = (isstructured) ? ((float**) offset)[0] : offset;
 
         assert(model_getdataalloctype(m, tag_offset) == ALLOCTYPE_2D);
         for (i = 0; i < nv; ++i)
@@ -645,6 +647,8 @@ void H_vertsum(dasystem* das, int nobs, int obsids[], char fname[], int r, int m
     int otid = allobs->data[obsids[0]].type;
     obstype* ot = &allobs->obstypes[otid];
     int mvid = model_getvarid(m, ot->varnames[0], 1);
+    grid* g = model_getvargrid(m, mvid);
+    int isstructured = grid_isstructured(g);
     int ni, nj, nk;
     void* src = NULL;
     void* srcsum = NULL;
@@ -658,7 +662,7 @@ void H_vertsum(dasystem* das, int nobs, int obsids[], char fname[], int r, int m
         enkf_quit("%s: H-function \"vertsum\" can not be specified for model variables with APPLYLOG = 1", ot->name);
 
     {
-        int vtype = grid_getvtype(model_getvargrid(m, mvid));
+        int vtype = grid_getvtype(g);
 
         if (vtype != GRIDVTYPE_SIGMA && vtype != GRIDVTYPE_HYBRID)
             enkf_quit("obstype = %s: H-function \"vertsum\" can only be used for variables on either sigma or hybrid vertical grids", ot->name);
@@ -666,7 +670,7 @@ void H_vertsum(dasystem* das, int nobs, int obsids[], char fname[], int r, int m
 
     assert(ot->nvar == 1);      /* should we care? */
     model_getvargridsize(m, mvid, &ni, &nj, &nk);
-    if (nj > 0) {
+    if (isstructured) {
         src = alloc2d(nj, ni, sizeof(float));
         srcsum = alloc2d(nj, ni, sizeof(float));
         src0 = ((float**) src)[0];
@@ -680,7 +684,7 @@ void H_vertsum(dasystem* das, int nobs, int obsids[], char fname[], int r, int m
 
     model_readfield(m, fname, ot->varnames[0], r, 0, srcsum0, 0);
     for (k = 1; k < nk; ++k) {
-        size_t nij = (nj > 0) ? ni * nj : ni;
+        size_t nij = (isstructured) ? ni * nj : ni;
 
         model_readfield(m, fname, ot->varnames[0], r, k, src0, 0);
         for (i = 0; i < nij; i++)
@@ -692,10 +696,10 @@ void H_vertsum(dasystem* das, int nobs, int obsids[], char fname[], int r, int m
     snprintf(tag_offset, MAXSTRLEN, "%s:OFFSET", allobs->obstypes[allobs->data[obsids[0]].type].name);
     offset_data = model_getdata(m, tag_offset);
     if (offset_data != NULL) {
-        float* offset0 = (nj > 0) ? ((float**) offset_data)[0] : offset_data;
-        size_t nij = (nj > 0) ? ni * nj : ni;
+        float* offset0 = (isstructured) ? ((float**) offset_data)[0] : offset_data;
+        size_t nij = (isstructured) ? ni * nj : ni;
 
-        if (nj > 0) {
+        if (isstructured) {
             if (model_getdataalloctype(m, tag_offset) != ALLOCTYPE_2D)
                 enkf_quit("obstype = %s: offset variable must be 2D to be used in H-function \"vertsum\" (for structured grids)", ot->name);
         } else {

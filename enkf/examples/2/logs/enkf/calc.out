@@ -2,10 +2,10 @@
   Using MPI-3 shared memory:
     sm_comm size = 4
     node_comm size = 1
-  running CALC for EnKF-C version 2.36.0:
+  running CALC for EnKF-C version 2.43.0:
     command = "./enkf_calc enkf.prm"
-    dir = "/home/599/pxs599/src/enkf-c/enkf/examples/2"
-  2025-06-05 10:15:36
+    dir = "/home/599/pxs599/src/enkf-c.fieldsplit/enkf/examples/2"
+  2025-12-24 08:33:15
   reading system specs from "enkf.prm":
     TIME = "6565.5 days since 1990-01-01"
     MODE = EnKF
@@ -149,7 +149,7 @@
         5 nodes
         368 bytes
   calculating ensemble observations:
-  2025-06-05 10:15:37
+  2025-12-24 08:33:16
     allocating 3922944 bytes for HE array:
     allocating 3922944 bytes for HE^T array:
     distributing 96 iterations:
@@ -159,11 +159,11 @@
     TEM ........................
     SAL ........................
   gathering:
-  2025-06-05 10:15:37
+  2025-12-24 08:33:16
   calculating innovations and spread:
-  2025-06-05 10:15:37
+  2025-12-24 08:33:16
   writing forecast innovations and spread to "observations.nc":
-  2025-06-05 10:15:37
+  2025-12-24 08:33:16
   identifying observation batches:
     SLA     9   
     SST     27  
@@ -179,11 +179,11 @@
       total        0 (0.0%)
   writing modified obs errors to "observations.nc":
   calculating transforms:
-  2025-06-05 10:15:37
+  2025-12-24 08:33:16
     calculating transforms for t-grid:
       main cycle for t-grid (34 x 34 local analyses):
-        j = 6 (3: 2: 5.9%)
         j = 3 (2: 1: 2.9%)
+        j = 6 (3: 2: 5.9%)
         j = 0 (1: 0: 0.0%)
         j = 9 (1: 3: 8.8%)
         j = 12 (2: 4: 11.8%)
@@ -204,18 +204,18 @@
         j = 57 (2: 19: 55.9%)
         j = 60 (3: 20: 58.8%)
         j = 63 (1: 21: 61.8%)
-        j = 66 (3: 22: 64.7%)
-        j = 69 (2: 23: 67.6%)
+        j = 66 (2: 22: 64.7%)
+        j = 69 (3: 23: 67.6%)
         j = 72 (1: 24: 70.6%)
-        j = 75 (3: 25: 73.5%)
-        j = 78 (2: 26: 76.5%)
+        j = 75 (2: 25: 73.5%)
+        j = 78 (3: 26: 76.5%)
         j = 81 (1: 27: 79.4%)
         j = 84 (2: 28: 82.4%)
         j = 87 (3: 29: 85.3%)
-        j = 90 (2: 30: 88.2%)
-        j = 93 (1: 31: 91.2%)
+        j = 90 (1: 30: 88.2%)
+        j = 93 (2: 31: 91.2%)
         j = 96 (3: 32: 94.1%)
-        j = 99 (2: 33: 97.1%)
+        j = 99 (1: 33: 97.1%)
       creating empty file "transforms.nc":
       assembling "transforms.nc":...
       assembling "enkf_diag.nc":...
@@ -229,13 +229,13 @@
     calculating transforms for log point (156.000,-32.000): 1440 obs
     writing transforms for point (156.000,-32.000) on grid "t-grid":
   calculating analysed observations:
-  2025-06-05 10:15:39
+  2025-12-24 08:33:17
     sorting obs by ij:
-    2025-06-05 10:15:39
+    2025-12-24 08:33:17
     updating HE:
     distributing 10216 iterations:
       4 processes get 2554 iterations each
-    2025-06-05 10:15:39
+    2025-12-24 08:33:17
   adding analysis innovations and spread to "observations.nc":
   printing observation statistics:
     region obs.type   # obs.  |for.inn.| |an.inn.|   for.inn.   an.inn.  for.spread  an.spread
@@ -259,5 +259,5 @@
              0-50m         1    0.165      0.189      0.165      0.189     0.0228      0.015  
              50-500m       4   0.0853     0.0814     0.0526     0.0317     0.0331     0.0223  
              500-9999m     0     -nan       -nan       -nan       -nan       -nan       -nan  
-  2025-06-05 10:15:39
+  2025-12-24 08:33:17
   finished

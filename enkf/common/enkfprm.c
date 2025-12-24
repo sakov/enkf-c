@@ -95,6 +95,14 @@ static void enkfprm_check(enkfprm* prm)
     if (prm->nlocrad == 0 && !enkf_fstatsonly)
         enkf_quit("%s: LOCRAD not specified", prm->fname);
 #endif
+#if defined(ENKF_UPDATE)
+    if (prm->fieldbufsize > 1 && prm->nfieldsplit > 1)
+        enkf_quit("%s: it is only possible to set either FIELDSPLIT or FIELDBUFFERSIZE greater than 1", prm->fname);
+#endif
+#if defined(ENS_DIAG)
+    if (prm->nfieldsplit != 1)
+        enkf_quit("%s: FIELDSPLIT = %d can only be set to 1 for ens_diag", prm->fname, prm->nfieldsplit);
+#endif
     if (prm->ncformat != NC_CLASSIC_MODEL && prm->ncformat != NC_64BIT_OFFSET && prm->ncformat != NC_NETCDF4)
         enkf_quit("programming error");
     if (prm->nccompression > 0 && prm->ncformat != NC_NETCDF4)
@@ -141,6 +149,7 @@ enkfprm* enkfprm_read(char fname[])
     prm->stride = 1;
     prm->sob_stride = 1;
     prm->fieldbufsize = 1;
+    prm->nfieldsplit = 1;
     prm->ncformat = NETCDF_FORMAT;
     prm->nccompression = 0;
 
@@ -374,6 +383,13 @@ enkfprm* enkfprm_read(char fname[])
                 enkf_quit("%s, l.%d: FIELDBUFFERSIZE specified twice", fname, line);
             if (!str2int(token, &prm->fieldbufsize))
                 enkf_quit("%s, l.%d: could not convert FIELDBUFFERSIZE value", fname, line);
+        } else if (strcasecmp(token, "FIELDSPLIT") == 0) {
+            if ((token = strtok(NULL, seps)) == NULL)
+                enkf_quit("%s, l.%d: FIELDSPLIT not specified", fname, line);
+            if (prm->nfieldsplit != 1)
+                enkf_quit("%s, l.%d: FIELDSPLIT specified twice", fname, line);
+            if (!str2int(token, &prm->nfieldsplit))
+                enkf_quit("%s, l.%d: could not convert FIELDSPLIT value", fname, line);
         } else if (strcasecmp(token, "INFLATION") == 0) {
             if ((token = strtok(NULL, seps)) == NULL)
                 enkf_quit("%s, l.%d: INFLATION not specified", fname, line);
@@ -533,7 +549,8 @@ enkfprm* enkfprm_read(char fname[])
     }
 
     fclose(f);
-    enkfprm_check(prm);
+    if (rank == 0)
+        enkfprm_check(prm);
 
     return prm;
 }
@@ -686,6 +703,7 @@ void enkfprm_print(enkfprm* prm, char offset[])
 #endif
 #if defined(ENKF_UPDATE)
         enkf_printf("%sFIELDBUFFERSIZE = %d\n", offset, prm->fieldbufsize);
+        enkf_printf("%sFIELDSPLIT = %d\n", offset, prm->nfieldsplit);
 #endif
     }
 #if defined(ENKF_CALC)
@@ -762,7 +780,8 @@ void enkfprm_describeprm(void)
     enkf_printf("  [ NLOBSMAX        = <max. number of local obs. of each type> ]\n");
     enkf_printf("  [ STRIDE          = <stride for ensemble transforms> ]     (1*)\n");
     enkf_printf("  [ SOBSTRIDE       = <stride for superobing> ]              (1*)\n");
-    enkf_printf("  [ FIELDBUFFERSIZE = <fieldbuffersize> ]                    (1*)\n");
+    enkf_printf("  [ FIELDBUFFERSIZE = <field buffer size> ]                  (1*)\n");
+    enkf_printf("  [ FIELDSPLIT      = <field split factor> ]                 (1*)\n");
     enkf_printf("  [ INFLATION       = <inflation> [ <VALUE>* | PLAIN ]       (1*)\n");
     enkf_printf("  [ REGION          = <name> <lon1> <lon2> <lat1> <lat2>\n");
     enkf_printf("    ...\n");
@@ -804,7 +823,8 @@ void enkfprm_describeprm_ensdiag(void)
     enkf_printf("  [ ENSSIZE         = <total ensemble size> ]       (<full>*)\n");
     enkf_printf("  [ ENSSIZE_DYNAMIC = <size of dynamic ensemble> ]  (<full>*) (MODE = HYBRID)\n");
     enkf_printf("  [ ENSSIZE_STATIC  = <size of static ensemble> ]   (<full>*) (MODE = HYBRID)\n");
-    enkf_printf("  [ FIELDBUFFERSIZE = <fieldbuffersize> ]           (1*)\n");
+    enkf_printf("  [ FIELDBUFFERSIZE = <field buffer size> ]         (1*)\n");
+    enkf_printf("  [ FIELDSPLIT      = <field split factor> ]        (1*)\n");
     enkf_printf("  [ NCCOMPRESSION   = <compression level> ]         (0*)\n");
     enkf_printf("\n");
     enkf_printf("  Notes:\n");

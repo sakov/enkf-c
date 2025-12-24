@@ -31,59 +31,63 @@
 #include "dasystem.h"
 #include "diags.h"
 
+#define NTILE_INC 400
+
 #if defined(ENKF_UPDATE)
-/** Allocates disk space for ensemble spread.
+/** Allocates disk space for a file with information on the ensemble.
+ ** The kind of information is supposed to be described by `rootname'.
+ ** Currently this can be either ROOTNAME_SPREAD ("spread") or
+ ** ROOTNAME_INFLATION ("inflation").
  */
-void das_allocatespread(dasystem* das)
+void das_allocatedst(dasystem* das, char rootname[])
 {
     model* m = das->m;
     int nvar = model_getnvar(m);
-    char fname_src[MAXSTRLEN];
-    int ncid, ncid_src;
+    char fname_dst[MAXSTRLEN];
+    int ncid_dst;
     int vid;
 
     if (rank != 0)
         return;
 
-    ncw_create(FNAME_SPREAD, NC_CLOBBER | das->ncformat, &ncid);
+    snprintf(fname_dst, MAXSTRLEN, "%s.nc", rootname);
+    ncw_create(fname_dst, NC_CLOBBER | das->ncformat, &ncid_dst);
+
     for (vid = 0; vid < nvar; ++vid) {
         char* varname_src = model_getvarname(m, vid);
+        char fname_src[MAXSTRLEN];
+        int ncid_src;
         int varid_src;
 
         das_getmemberfname(das, varname_src, 1, fname_src);
         ncw_open(fname_src, NC_NOWRITE, &ncid_src);
         ncw_inq_varid(ncid_src, varname_src, &varid_src);
-        ncw_copy_vardef(ncid_src, varid_src, ncid);
-        if ((das->mode == MODE_ENKF || das->mode == MODE_HYBRID) && das->updatespec & UPDATE_DOANALYSISSPREAD) {
-            char varname_dst[NC_MAX_NAME];
-
-            strcpy(varname_dst, varname_src);
-            if (das->updatespec & UPDATE_OUTPUTINC)
-                strncat(varname_dst, "_inc", NC_MAX_NAME - 1);
-            else
-                strncat(varname_dst, "_an", NC_MAX_NAME - 1);
-            ncw_def_var_as(ncid, varname_src, varname_dst);
-        }
+        ncw_copy_vardef(ncid_src, varid_src, ncid_dst);
         ncw_close(ncid_src);
     }
 #if defined(DEFLATE_ALL)
     if (das->nccompression > 0)
-        ncw_def_deflate(ncid, 0, 1, das->nccompression);
+        ncw_def_deflate(ncid_dst, 0, 1, das->nccompression);
 #endif
-    ncw_close(ncid);
+    ncw_close(ncid_dst);
 }
 #endif
 
 #if defined(ENKF_UPDATE)
 /**
  */
-void das_writespread(dasystem* das, int nfields, void** fieldbuffer, field fields[], int isanalysis)
+void das_writespread(dasystem* das, int nfields, void** fieldbuffer, field fields[])
 {
+    /*
+     * note that (das->nfieldsplit > 1 && nfields > 1) = 0
+     */
     char fname[MAXSTRLEN];
     model* m = das->m;
     grid* g = model_getvargrid(m, fields[0].varid);
-    int nmem = (das->mode == MODE_HYBRID && isanalysis) ? das->nmem_dynamic : das->nmem;
-    int ni, nj;
+    int isstructured = grid_isstructured(g);
+    int nmem = das->nmem;
+    int nj_tile = fields[0].j2 - fields[0].j1 + 1;
+    int ni;
     int fid, e, i, nij;
     double* v1 = NULL;
     double* v2 = NULL;
@@ -91,21 +95,20 @@ void das_writespread(dasystem* das, int nfields, void** fieldbuffer, field field
     if (das->updatespec & UPDATE_DIRECTWRITE)
         strcpy(fname, FNAME_SPREAD);
 
-    grid_getsize(g, &ni, &nj, NULL);
-    nij = (nj > 0) ? ni * nj : ni;
+    grid_getsize(g, &ni, NULL, NULL);
+    nij = (isstructured) ? ni * nj_tile : nj_tile;
     v1 = malloc(nij * sizeof(double));
     v2 = malloc(nij * sizeof(double));
 
     for (fid = 0; fid < nfields; ++fid) {
         field* f = &fields[fid];
         void* v_src = fieldbuffer[fid];
-        char varname[NC_MAX_NAME];
 
         memset(v1, 0, nij * sizeof(double));
         memset(v2, 0, nij * sizeof(double));
 
         for (e = 0; e < nmem; ++e) {
-            float* v = (nj > 0) ? ((float***) v_src)[e][0] : ((float**) v_src)[e];
+            float* v = (isstructured) ? ((float***) v_src)[e][0] : ((float**) v_src)[e];
 
             for (i = 0; i < nij; ++i) {
                 v1[i] += v[i];
@@ -121,27 +124,19 @@ void das_writespread(dasystem* das, int nfields, void** fieldbuffer, field field
                 v2[i] = 0.0;
         }
 
-        strncpy(varname, f->varname, NC_MAX_NAME - 1);
-        if (isanalysis) {
-            if (das->updatespec & UPDATE_OUTPUTINC)
-                strncat(varname, "_inc", NC_MAX_NAME - 1);
-            else
-                strncat(varname, "_an", NC_MAX_NAME - 1);
-        }
-
         if (!(das->updatespec & UPDATE_DIRECTWRITE)) {
             int ncid, vid;
             int dimids[2];
 
-            getfieldfname(DIRNAME_TMP, "spread", varname, f->level, fname);
+            gettilefname(DIRNAME_TMP, "spread", f, fname);
             ncw_create(fname, NC_CLOBBER | das->ncformat, &ncid);
-            if (nj > 0) {
-                ncw_def_dim(ncid, "nj", nj, &dimids[0]);
-                ncw_def_dim(ncid, "ni", ni, &dimids[1]);
-                ncw_def_var(ncid, varname, NC_FLOAT, 2, dimids, &vid);
+            if (isstructured) {
+                ncw_def_dim(ncid, "j", nj_tile, &dimids[0]);
+                ncw_def_dim(ncid, "i", ni, &dimids[1]);
+                ncw_def_var(ncid, f->varname, NC_FLOAT, 2, dimids, &vid);
             } else {
-                ncw_def_dim(ncid, "ni", ni, &dimids[0]);
-                ncw_def_var(ncid, varname, NC_FLOAT, 1, dimids, &vid);
+                ncw_def_dim(ncid, "i", nj_tile, &dimids[0]);
+                ncw_def_var(ncid, f->varname, NC_FLOAT, 1, dimids, &vid);
             }
 #if defined(DEFLATE_ALL)
             if (das->nccompression > 0)
@@ -156,7 +151,7 @@ void das_writespread(dasystem* das, int nfields, void** fieldbuffer, field field
             for (i = 0; i < nij; ++i)
                 v[i] = (float) v2[i];
 
-            model_writefieldas(m, FNAME_SPREAD, varname, f->varname, f->level, v, 1);
+            model_writefield(m, FNAME_SPREAD, f->varname, f->level, v, 1);
             free(v);
         }
     }
@@ -172,112 +167,166 @@ void das_writespread(dasystem* das, int nfields, void** fieldbuffer, field field
 #if defined(ENKF_UPDATE)
 /**
  */
-void das_assemblespread(dasystem* das)
+void das_preassemble(dasystem* das, char rootname[])
+{
+    int ntile = 0;
+    field* tiles = NULL;
+    int nfield = 0;
+    int* fids = NULL;
+    int tid, fid;
+
+    das_getfields(das, -1, &ntile, &tiles);
+
+    for (tid = 0, nfield = 0; tid < ntile; ++tid) {
+        field* f = &tiles[tid];
+
+        if (f->splitid == 0) {
+            if (nfield % NTILE_INC == 0)
+                fids = realloc(fids, (nfield + NTILE_INC) * sizeof(int));
+            fids[nfield] = tid;
+            nfield++;
+        }
+    }
+
+    enkf_printf("    %d tiles -> %d fields\n", ntile, nfield);
+    distribute_iterations(0, nfield - 1, nprocesses, "    ");
+    enkf_printf("    ");
+    enkf_flush();
+    MPI_Barrier(MPI_COMM_WORLD);
+
+    for (fid = my_first_iteration; fid <= my_last_iteration; ++fid) {
+        field* f0 = &tiles[fids[fid]];
+        void* vout = NULL;
+        char fname_dst[MAXSTRLEN];
+        int splitid;
+        int ni, nj;
+
+        getfieldfname(DIRNAME_TMP, rootname, f0->varname, f0->level, fname_dst);
+        if (file_exists(fname_dst))
+            enkf_quit("assembled file \"%s\" already exists", fname_dst);
+
+        model_getvargridsize(das->m, f0->varid, &ni, &nj, NULL);
+        if (f0->isstructured)
+            vout = alloc2d(nj, ni, sizeof(float));
+        else
+            vout = calloc(ni, sizeof(float));
+
+        for (splitid = 0; splitid < das->nfieldsplit; ++splitid) {
+            field* f = &tiles[fids[fid] + splitid];
+            int njj = f->j2 - f->j1 + 1;
+            char fname_src[MAXSTRLEN];
+            int ncid_src, vid_src;
+
+            gettilefname(DIRNAME_TMP, rootname, f, fname_src);
+            ncw_open(fname_src, NC_NOWRITE, &ncid_src);
+            ncw_inq_varid(ncid_src, f->varname, &vid_src);
+
+            if (f->isstructured) {
+                float** vin = alloc2d(njj, ni, sizeof(float));
+
+                ncw_get_var_float(ncid_src, vid_src, vin[0]);
+                memcpy(((float**) vout)[f->j1], vin[0], njj * ni * sizeof(float));
+                free(vin);
+            } else {
+                float* vin = calloc(njj, sizeof(float));
+
+                ncw_get_var_float(ncid_src, vid_src, vin);
+                memcpy(&((float*) vout)[f->j1], vin, njj * sizeof(float));
+                free(vin);
+            }
+            ncw_close(ncid_src);
+            file_delete(fname_src);
+        }
+
+        {
+            int ncid, vid, dimids[2];
+
+            ncw_create(fname_dst, NC_CLOBBER | das->ncformat, &ncid);
+            if (f0->isstructured) {
+                ncw_def_dim(ncid, "j", nj, &dimids[0]);
+                ncw_def_dim(ncid, "i", ni, &dimids[1]);
+                ncw_def_var(ncid, f0->varname, NC_FLOAT, 2, dimids, &vid);
+            } else {
+                ncw_def_dim(ncid, "i", ni, &dimids[0]);
+                ncw_def_var(ncid, f0->varname, NC_FLOAT, 1, dimids, &vid);
+            }
+#if defined(DEFLATE_ALL)
+            if (das->nccompression > 0)
+                ncw_def_deflate(ncid, 0, 1, das->nccompression);
+#endif
+            ncw_enddef(ncid);
+            ncw_put_var_float(ncid, vid, (f0->isstructured) ? ((float**) vout)[0] : vout);
+            ncw_close(ncid);
+        }
+        printf(".");
+        fflush(stdout);
+        free(vout);
+    }
+    if (tiles != NULL)
+        free(tiles);
+    if (fids != NULL)
+        free(fids);
+#if defined(MPI)
+    MPI_Barrier(MPI_COMM_WORLD);
+#endif
+    enkf_printf("\n");
+    enkf_flush();
+}
+
+/**
+ */
+void das_assemble(dasystem* das, char rootname[])
 {
     model* m = das->m;
     int nvar = model_getnvar(m);
+    char fname[MAXSTRLEN];
     int i;
 
     if (rank > 0)
         return;
 
+    snprintf(fname, MAXSTRLEN, "%s.nc", rootname);
+
     for (i = 0; i < nvar; ++i) {
         char* varname = model_getvarname(m, i);
         grid* g = model_getvargrid(m, i);
+        int isstructured = grid_isstructured(g);
         float* v = NULL;
         int ni, nj;
         int nlev, k;
 
         grid_getsize(g, &ni, &nj, NULL);
-        if (nj > 0)
+        if (isstructured)
             v = malloc(ni * nj * sizeof(float));
         else
             v = malloc(ni * sizeof(float));
 
         enkf_printf("    %s:", varname);
-        nlev = ncu_getnlevels(FNAME_SPREAD, varname, nj > 0);
+        nlev = ncu_getnlevels(fname, varname, isstructured);
         for (k = 0; k < nlev; ++k) {
             char fname_src[MAXSTRLEN];
             int ncid_src, vid;
 
-            getfieldfname(DIRNAME_TMP, "spread", varname, k, fname_src);
+            getfieldfname(DIRNAME_TMP, rootname, varname, k, fname_src);
             ncw_open(fname_src, NC_NOWRITE, &ncid_src);
             ncw_inq_varid(ncid_src, varname, &vid);
             ncw_get_var_float(ncid_src, vid, v);
             ncw_close(ncid_src);
             file_delete(fname_src);
 
-            model_writefield(m, FNAME_SPREAD, varname, k, v, 1);
+            model_writefield(m, fname, varname, k, v, 1);
             enkf_printf(".");
             enkf_flush();
         }
         enkf_printf("\n");
         enkf_flush();
-
-        if ((das->mode == MODE_ENKF || das->mode == MODE_HYBRID) && das->updatespec & UPDATE_DOANALYSISSPREAD) {
-            char varname_an[NC_MAX_NAME];
-
-            strncpy(varname_an, varname, NC_MAX_NAME - 1);
-            if (das->updatespec & UPDATE_OUTPUTINC)
-                strncat(varname_an, "_inc", NC_MAX_NAME - 1);
-            else
-                strncat(varname_an, "_an", NC_MAX_NAME - 1);
-
-            enkf_printf("    %s:", varname_an);
-            for (k = 0; k < nlev; ++k) {
-                char fname_src[MAXSTRLEN];
-                int ncid_src, vid;
-
-                getfieldfname(DIRNAME_TMP, "spread", varname_an, k, fname_src);
-                ncw_open(fname_src, NC_NOWRITE, &ncid_src);
-                ncw_inq_varid(ncid_src, varname_an, &vid);
-                ncw_get_var_float(ncid_src, vid, v);
-                ncw_close(ncid_src);
-                file_delete(fname_src);
-
-                model_writefieldas(m, FNAME_SPREAD, varname_an, varname, k, v, 1);
-                enkf_printf(".");
-                enkf_flush();
-            }
-            enkf_printf("\n");
-            enkf_flush();
-        }
         free(v);
     }
-    enkf_writeinfo(FNAME_SPREAD);
+    enkf_flush();
+
+    enkf_writeinfo(fname);
 }
 #endif
-
-/** Allocates disk space for inflation magnitudes.
- */
-void das_allocateinflation(dasystem* das, char fname[])
-{
-    model* m = das->m;
-    int nvar = model_getnvar(m);
-    char fname_src[MAXSTRLEN];
-    int ncid, ncid_src;
-    int vid;
-
-    if (rank != 0)
-        return;
-
-    ncw_create(fname, NC_CLOBBER | das->ncformat, &ncid);
-    for (vid = 0; vid < nvar; ++vid) {
-        char* varname_src = model_getvarname(m, vid);
-        int varid_src;
-
-        das_getmemberfname(das, varname_src, 1, fname_src);
-        ncw_open(fname_src, NC_NOWRITE, &ncid_src);
-        ncw_inq_varid(ncid_src, varname_src, &varid_src);
-        ncw_copy_vardef(ncid_src, varid_src, ncid);
-        ncw_close(ncid_src);
-    }
-#if defined(DEFLATE_ALL)
-    if (das->nccompression > 0)
-        ncw_def_deflate(ncid, 0, 1, das->nccompression);
-#endif
-    ncw_close(ncid);
-}
 
 #if defined(ENKF_UPDATE)
 /**
@@ -294,102 +343,52 @@ void das_writeinflation(dasystem* das, field* f, int j, float* v)
         if (das->updatespec & UPDATE_DIRECTWRITE)
             ncu_writerow(FNAME_INFLATION, f->varname, f->level, j, ni, nj, nk, v);
         else {
+            int nj_tile = f->j2 - f->j1 + 1;
             char fname[MAXSTRLEN];
             int ncid;
 
-            getfieldfname(DIRNAME_TMP, "inflation", f->varname, f->level, fname);
+            gettilefname(DIRNAME_TMP, ROOTNAME_INFLATION, f, fname);
             if (j == 0) {
                 int dimids[2];
 
                 ncw_create(fname, NC_CLOBBER | das->ncformat, &ncid);
-                ncw_def_dim(ncid, "nj", nj, &dimids[0]);
-                ncw_def_dim(ncid, "ni", ni, &dimids[1]);
+                ncw_def_dim(ncid, "j", nj_tile, &dimids[0]);
+                ncw_def_dim(ncid, "i", ni, &dimids[1]);
                 ncw_def_var(ncid, f->varname, NC_FLOAT, 2, dimids, NULL);
 #if defined(DEFLATE_ALL)
                 if (das->nccompression > 0)
                     ncw_def_deflate(ncid, 0, 1, das->nccompression);
 #endif
                 ncw_enddef(ncid);
-            } else
-                ncw_open(fname, NC_WRITE, &ncid);
+                ncw_close(ncid);
+            }
 
-            ncu_writerow(fname, f->varname, 0, j, ni, nj, nk, v);
-            ncw_close(ncid);
+            ncu_writerow(fname, f->varname, 0, j, ni, nj_tile, nk, v);
         }
     } else {
         if (das->updatespec & UPDATE_DIRECTWRITE)
             ncu_writefield(FNAME_INFLATION, f->varname, f->level, ni, nj, nk, v);
         else {
+            int nj_tile = f->j2 - f->j1 + 1;
             char fname[MAXSTRLEN];
-            int ncid;
-            int dimid;
+            int ncid, dimid, vid;
 
-            getfieldfname(DIRNAME_TMP, "inflation", f->varname, f->level, fname);
+            getfieldfname(DIRNAME_TMP, ROOTNAME_INFLATION, f->varname, f->level, fname);
             ncw_create(fname, NC_CLOBBER | das->ncformat, &ncid);
-            ncw_def_dim(ncid, "ni", ni, &dimid);
-            ncw_def_var(ncid, f->varname, NC_FLOAT, 1, &dimid, NULL);
+            ncw_def_dim(ncid, "i", nj_tile, &dimid);
+            ncw_def_var(ncid, f->varname, NC_FLOAT, 1, &dimid, &vid);
 #if defined(DEFLATE_ALL)
             if (das->nccompression > 0)
                 ncw_def_deflate(ncid, 0, 1, das->nccompression);
 #endif
             ncw_enddef(ncid);
-            ncu_writefield(fname, f->varname, 0, ni, nj, nk, v);
+            ncw_put_var_float(ncid, vid, v);
             ncw_close(ncid);
         }
     }
 
     if (das->updatespec & UPDATE_DIRECTWRITE)
         enkf_writeinfo(FNAME_INFLATION);
-}
-
-/**
- */
-void das_assembleinflation(dasystem* das)
-{
-    model* m = das->m;
-    int nvar = model_getnvar(m);
-    int i;
-
-    assert(das->mode == MODE_ENKF || das->mode == MODE_HYBRID);
-
-    if (rank > 0)
-        return;
-
-    for (i = 0; i < nvar; ++i) {
-        char* varname = model_getvarname(m, i);
-        grid* g = model_getvargrid(m, i);
-        int nlev, k;
-        int ni, nj, nk;
-        float* v = NULL;
-
-        enkf_printf("    %s:", varname);
-
-        grid_getsize(g, &ni, &nj, &nk);
-        if (nj > 0)
-            v = malloc(ni * nj * sizeof(float));
-        else
-            v = malloc(ni * sizeof(float));
-        nlev = ncu_getnlevels(FNAME_INFLATION, varname, nj > 0);
-
-        for (k = 0; k < nlev; ++k) {
-            char fname_src[MAXSTRLEN];
-            int ncid_src, vid;
-
-            getfieldfname(DIRNAME_TMP, "inflation", varname, k, fname_src);
-            ncw_open(fname_src, NC_NOWRITE, &ncid_src);
-            ncw_inq_varid(ncid_src, varname, &vid);
-            ncw_get_var_float(ncid_src, vid, v);
-            ncw_close(ncid_src);
-
-            model_writefield(m, FNAME_INFLATION, varname, k, v, 1);
-            file_delete(fname_src);
-
-            enkf_printf(".");
-        }
-        free(v);
-        enkf_writeinfo(FNAME_INFLATION);
-        enkf_printf("\n");
-    }
 }
 #endif
 
@@ -470,7 +469,7 @@ void das_writevcorrs(dasystem* das)
             char fname[MAXSTRLEN];
 
             das_getmemberfname(das, varname, 1, fname);
-            if (ncu_getnlevels(fname, varname, f->structured) <= 1)
+            if (ncu_getnlevels(fname, varname, f->isstructured) <= 1)
                 continue;
         }
 
@@ -482,7 +481,7 @@ void das_writevcorrs(dasystem* das)
              * calculate anomalies and scaled variance at surface
              */
             grid_getsize(g, &ni, &nj, NULL);
-            nij = (nj > 0) ? ni * nj : ni;
+            nij = (f->isstructured) ? ni * nj : ni;
             if (ni != ni0 || nj != nj0) {
                 if (v != NULL) {
                     free(v0);
@@ -561,12 +560,12 @@ void das_writevcorrs(dasystem* das)
 
         snprintf(fname_tile, MAXSTRLEN, "%s/vcorr_%s-%03d.nc", DIRNAME_TMP, varname, k);
         ncw_create(fname_tile, NC_CLOBBER | das->ncformat, &ncid_tile);
-        if (nj > 0) {
-            ncw_def_dim(ncid_tile, "nj", nj, &dimids[0]);
-            ncw_def_dim(ncid_tile, "ni", ni, &dimids[1]);
+        if (f->isstructured) {
+            ncw_def_dim(ncid_tile, "j", nj, &dimids[0]);
+            ncw_def_dim(ncid_tile, "i", ni, &dimids[1]);
             ncw_def_var(ncid_tile, varname, NC_FLOAT, 2, dimids, &vid_tile);
         } else {
-            ncw_def_dim(ncid_tile, "ni", ni, &dimids[0]);
+            ncw_def_dim(ncid_tile, "i", ni, &dimids[0]);
             ncw_def_var(ncid_tile, varname, NC_FLOAT, 1, dimids, &vid_tile);
         }
 #if defined(DEFLATE_ALL)
@@ -608,11 +607,11 @@ void das_writevcorrs(dasystem* das)
                 char fname[MAXSTRLEN];
 
                 das_getmemberfname(das, f->varname, 1, fname);
-                if (ncu_getnlevels(fname, f->varname, f->structured) <= 1)
+                if (ncu_getnlevels(fname, f->varname, f->isstructured) <= 1)
                     continue;
             }
             model_getvargridsize(m, f->varid, &ni, &nj, NULL);
-            if (nj > 0)
+            if (f->isstructured)
                 vv = malloc(ni * nj * sizeof(float));
             else
                 vv = malloc(ni * sizeof(float));
@@ -647,6 +646,7 @@ void das_writevcorrs_with(dasystem* das, char* varname, int level, int calctype)
     model* m = das->m;
     int varid = model_getvarid(m, varname, 1);
     grid* g = model_getvargrid(m, varid);
+    int isstructured = grid_isstructured(g);
     int gridid = grid_getid(g);
     void* nlevels = grid_getnumlevels(g);
     char fname_dst[MAXSTRLEN];
@@ -674,7 +674,7 @@ void das_writevcorrs_with(dasystem* das, char* varname, int level, int calctype)
         enkf_quit("programming error");
 
     grid_getsize(g, &ni, &nj, NULL);
-    nij = (nj > 0) ? ni * nj : ni;
+    nij = (isstructured) ? ni * nj : ni;
 
     das_getfields(das, gridid, &nfields, &fields);
     /*
@@ -801,12 +801,12 @@ void das_writevcorrs_with(dasystem* das, char* varname, int level, int calctype)
 
         snprintf(fname_tile, MAXSTRLEN, "%s/vcorr-%s-%s-%03d.nc", DIRNAME_TMP, varname, f->varname, f->level);
         ncw_create(fname_tile, NC_CLOBBER | das->ncformat, &ncid_tile);
-        if (nj > 0) {
-            ncw_def_dim(ncid_tile, "nj", nj, &dimids[0]);
-            ncw_def_dim(ncid_tile, "ni", ni, &dimids[1]);
+        if (f->isstructured) {
+            ncw_def_dim(ncid_tile, "j", nj, &dimids[0]);
+            ncw_def_dim(ncid_tile, "i", ni, &dimids[1]);
             ncw_def_var(ncid_tile, f->varname, NC_FLOAT, 2, dimids, &vid_tile);
         } else {
-            ncw_def_dim(ncid_tile, "ni", ni, &dimids[0]);
+            ncw_def_dim(ncid_tile, "i", ni, &dimids[0]);
             ncw_def_var(ncid_tile, f->varname, NC_FLOAT, 1, dimids, &vid_tile);
         }
 #if defined(DEFLATE_ALL)
@@ -933,7 +933,7 @@ void das_writespread(dasystem* das)
 
         grid_getsize(g, &ni, &nj, NULL);
         if (ni != ni_prev || nj != nj_prev) {
-            nij = (nj > 0) ? ni * nj : ni;
+            nij = (f->isstructured) ? ni * nj : ni;
             if (v != NULL) {
                 free(v);
                 free(std);
@@ -969,12 +969,12 @@ void das_writespread(dasystem* das)
 
         snprintf(fname_tile, MAXSTRLEN, "%s/spread_%s-%03d.nc", DIRNAME_TMP, f->varname, f->level);
         ncw_create(fname_tile, NC_CLOBBER | das->ncformat, &ncid_tile);
-        if (nj > 0) {
-            ncw_def_dim(ncid_tile, "nj", nj, &dimids[0]);
-            ncw_def_dim(ncid_tile, "ni", ni, &dimids[1]);
+        if (f->isstructured) {
+            ncw_def_dim(ncid_tile, "j", nj, &dimids[0]);
+            ncw_def_dim(ncid_tile, "i", ni, &dimids[1]);
             ncw_def_var(ncid_tile, varname, NC_FLOAT, 2, dimids, &vid_tile);
         } else {
-            ncw_def_dim(ncid_tile, "ni", ni, &dimids[0]);
+            ncw_def_dim(ncid_tile, "i", ni, &dimids[0]);
             ncw_def_var(ncid_tile, varname, NC_FLOAT, 1, dimids, &vid_tile);
         }
 #if defined(DEFLATE_ALL)
@@ -1011,7 +1011,7 @@ void das_writespread(dasystem* das)
             int ncid_tile, vid_tile;
 
             model_getvargridsize(m, f->varid, &ni, &nj, NULL);
-            if (nj > 0)
+            if (f->isstructured)
                 vv = malloc(ni * nj * sizeof(float));
             else
                 vv = malloc(ni * sizeof(float));

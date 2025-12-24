@@ -22,6 +22,7 @@
 #include "utils.h"
 #include "enkfprm.h"
 #include "dasystem.h"
+#include "pointlog.h"
 
 /**
  */
@@ -32,13 +33,7 @@ static void usage(void)
     enkf_printf("  --allow-logspace-with-static-ens\n");
     enkf_printf("      confirm that static ensemble is conditioned for using log space\n");
     enkf_printf("  --calculate-spread\n");
-    enkf_printf("      calculate forecast and analysis ensemble spread and write to %s\n", FNAME_SPREAD);
-    enkf_printf("  --calculate-spread-only\n");
-    enkf_printf("      calculate forecast and analysis ensemble spread only and write to %s\n", FNAME_SPREAD);
-    enkf_printf("  --calculate-forecast-spread\n");
     enkf_printf("      calculate forecast ensemble spread and write to %s\n", FNAME_SPREAD);
-    enkf_printf("  --calculate-forecast-spread-only\n");
-    enkf_printf("      calculate forecast ensemble spread only and write to %s\n", FNAME_SPREAD);
     enkf_printf("  --describe-prm-format [main|model|grid]\n");
     enkf_printf("      describe format of a parameter file and exit\n");
     enkf_printf("  --direct-write\n");
@@ -62,9 +57,6 @@ static void usage(void)
 static void parse_commandline(int argc, char* argv[], char** fname, int* updatespec)
 {
     int no_update = 0;
-    int vcorrs_only = 0;
-    int fspread_only = 0;
-    int spread_only = 0;
     int i;
 
     if (argc < 2)
@@ -84,19 +76,7 @@ static void parse_commandline(int argc, char* argv[], char** fname, int* updates
             i++;
             continue;
         } else if (strcmp(argv[i], "--calculate-spread") == 0) {
-            *updatespec |= (UPDATE_DOFORECASTSPREAD | UPDATE_DOANALYSISSPREAD);
-            i++;
-            continue;
-        } else if (strcmp(argv[i], "--calculate-spread-only") == 0) {
-            spread_only = 1;
-            i++;
-            continue;
-        } else if (strcmp(argv[i], "--calculate-forecast-spread") == 0) {
-            *updatespec |= UPDATE_DOFORECASTSPREAD;
-            i++;
-            continue;
-        } else if (strcmp(argv[i], "--calculate-forecast-spread-only") == 0) {
-            fspread_only = 1;
+            *updatespec |= (UPDATE_DOSPREAD);
             i++;
             continue;
         } else if (strcmp(argv[i], "--describe-prm-format") == 0) {
@@ -148,15 +128,11 @@ static void parse_commandline(int argc, char* argv[], char** fname, int* updates
     if (*fname == NULL)
         enkf_quit("parse_commandline(): parameter file not specified");
 
-    if (vcorrs_only + fspread_only + spread_only > 1)
-        enkf_quit("more than one argument with \"only\"");
-
-    if (no_update)
+    if (no_update) {
         *updatespec &= ~UPDATE_NEEDAN;
-    if (fspread_only)
-        *updatespec = UPDATE_DOFORECASTSPREAD;
-    if (spread_only)
-        *updatespec = (UPDATE_DOFORECASTSPREAD | UPDATE_DOANALYSISSPREAD);
+        *updatespec &= ~UPDATE_DOPLOGSAN;
+        *updatespec &= ~UPDATE_DOINFLATION;
+    }
 }
 
 /**
@@ -211,8 +187,6 @@ int main(int argc, char* argv[])
     }
     if (prm->nplog == 0)
         updatespec &= ~UPDATE_DOPLOGS;
-    if (updatespec & UPDATE_DOPLOGS)
-        enkf_doplogs = 1;
 
     describe_updatespec(updatespec);
     if ((updatespec & (UPDATE_DOFIELDS | UPDATE_DOSPREAD | UPDATE_DOPLOGS | UPDATE_DOINFLATION)) == 0)
@@ -222,18 +196,45 @@ int main(int argc, char* argv[])
     das = das_create(prm, updatespec);
     enkfprm_destroy(prm);
 
-    if (das->updatespec & (UPDATE_DOFIELDS | UPDATE_DOSPREAD | UPDATE_DOPLOGS | UPDATE_DOINFLATION)) {
+#if defined(MPI)
+    MPI_Barrier(MPI_COMM_WORLD);
+#endif
+    if (das->updatespec & UPDATE_DOPLOGS && rank == 0) {
+        enkf_printf("  defining state variables in point logs:");
+        plogs_definestatevars(das);
+        enkf_printf("\n");
+        enkf_flush();
+        dir_createifabsent(DIRNAME_TMP);
+    }
+
+    if (das->updatespec & UPDATE_DOPLOGSFC) {
+        enkf_printf("  writing forecast variables to point logs:\n");
+        enkf_printtime("    ");
+        plogs_writestatevars(das, 0);
+    }
+
+    if (das->updatespec & UPDATE_DOSPREAD && rank == 0) {
+        enkf_printf("  allocating disk space for spread:\n");
+        enkf_printtime("    ");
+        das_allocatedst(das, ROOTNAME_SPREAD);
+        enkf_flush();
+        if (rank == 0 && !(das->updatespec & UPDATE_DIRECTWRITE))
+            dir_createifabsent(DIRNAME_TMP);
+    }
+
+    if (das->updatespec & (UPDATE_DOFIELDS | UPDATE_DOPLOGSAN | UPDATE_DOINFLATION)) {
         if (das->mode == MODE_ENKF) {
             if (updatespec & UPDATE_NEEDAN)
-                enkf_printf("  updating the ensemble:\n");
+                enkf_printf("  updating ensemble:\n");
             else
-                enkf_printf("  processing the ensemble:\n");
+                enkf_printf("  processing ensemble:\n");
         } else if (das->mode == MODE_ENOI) {
             if (updatespec & UPDATE_NEEDAN)
-                enkf_printf("  updating the model state:\n");
+                enkf_printf("  updating model state:\n");
             else
-                enkf_printf("  processing the model state and/or ensemble:\n");
+                enkf_printf("  processing model state and/or ensemble:\n");
         }
+        enkf_printtime("    ");
         das_update(das);
         enkf_flush();
     }
