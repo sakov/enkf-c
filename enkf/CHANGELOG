@@ -1,3 +1,10 @@
+v2.43.1
+   PS 25122025
+   -- Added realloc2d() to reduce number of allocations in situations with
+      multiple calls to alloc2d().
+   -- Replaced calls to alloc2d() by calls to realloc2d() in das_preassemble().
+   -- Corrected checks in *alloc*() functions in utils.c (the arguments used to
+      be int but are now size_t, while checks were still on <= 0).
 v2.43.0
    PS 24122025
       A major update, mainly related with introduction of FIELDSPLIT entry.

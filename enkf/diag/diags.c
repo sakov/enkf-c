@@ -173,6 +173,8 @@ void das_preassemble(dasystem* das, char rootname[])
     field* tiles = NULL;
     int nfield = 0;
     int* fids = NULL;
+    void* vout = NULL;
+    void* vin = NULL;
     int tid, fid;
 
     das_getfields(das, -1, &ntile, &tiles);
@@ -196,7 +198,6 @@ void das_preassemble(dasystem* das, char rootname[])
 
     for (fid = my_first_iteration; fid <= my_last_iteration; ++fid) {
         field* f0 = &tiles[fids[fid]];
-        void* vout = NULL;
         char fname_dst[MAXSTRLEN];
         int splitid;
         int ni, nj;
@@ -207,9 +208,9 @@ void das_preassemble(dasystem* das, char rootname[])
 
         model_getvargridsize(das->m, f0->varid, &ni, &nj, NULL);
         if (f0->isstructured)
-            vout = alloc2d(nj, ni, sizeof(float));
+            vout = realloc2d(vout, nj, ni, sizeof(float));
         else
-            vout = calloc(ni, sizeof(float));
+            vout = realloc(vout, ni * sizeof(float));
 
         for (splitid = 0; splitid < das->nfieldsplit; ++splitid) {
             field* f = &tiles[fids[fid] + splitid];
@@ -222,17 +223,13 @@ void das_preassemble(dasystem* das, char rootname[])
             ncw_inq_varid(ncid_src, f->varname, &vid_src);
 
             if (f->isstructured) {
-                float** vin = alloc2d(njj, ni, sizeof(float));
-
-                ncw_get_var_float(ncid_src, vid_src, vin[0]);
-                memcpy(((float**) vout)[f->j1], vin[0], njj * ni * sizeof(float));
-                free(vin);
+                vin = realloc2d(vin, njj, ni, sizeof(float));
+                ncw_get_var_float(ncid_src, vid_src, ((float**) vin)[0]);
+                memcpy(((float**) vout)[f->j1], ((float**) vin)[0], njj * ni * sizeof(float));
             } else {
-                float* vin = calloc(njj, sizeof(float));
-
+                vin = realloc(vin, njj * sizeof(float));
                 ncw_get_var_float(ncid_src, vid_src, vin);
                 memcpy(&((float*) vout)[f->j1], vin, njj * sizeof(float));
-                free(vin);
             }
             ncw_close(ncid_src);
             file_delete(fname_src);
@@ -260,8 +257,11 @@ void das_preassemble(dasystem* das, char rootname[])
         }
         printf(".");
         fflush(stdout);
-        free(vout);
     }
+    if (vin != NULL)
+        free(vin);
+    if (vout != NULL)
+        free(vout);
     if (tiles != NULL)
         free(tiles);
     if (fids != NULL)
@@ -279,6 +279,7 @@ void das_assemble(dasystem* das, char rootname[])
 {
     model* m = das->m;
     int nvar = model_getnvar(m);
+    float* v = NULL;
     char fname[MAXSTRLEN];
     int i;
 
@@ -297,9 +298,9 @@ void das_assemble(dasystem* das, char rootname[])
 
         grid_getsize(g, &ni, &nj, NULL);
         if (isstructured)
-            v = malloc(ni * nj * sizeof(float));
+            v = realloc(v, ni * nj * sizeof(float));
         else
-            v = malloc(ni * sizeof(float));
+            v = realloc(v, ni * sizeof(float));
 
         enkf_printf("    %s:", varname);
         nlev = ncu_getnlevels(fname, varname, isstructured);
@@ -320,9 +321,10 @@ void das_assemble(dasystem* das, char rootname[])
         }
         enkf_printf("\n");
         enkf_flush();
-        free(v);
     }
     enkf_flush();
+    if (v != NULL)
+        free(v);
 
     enkf_writeinfo(fname);
 }

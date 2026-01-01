@@ -41,6 +41,7 @@ int str2float(char* token, float* value);
 int str2int(char* token, int* value);
 int str2bool(char* token, int* value);
 void* alloc2d(size_t nj, size_t ni, size_t unitsize);
+void* realloc2d(void* prev, size_t nj, size_t ni, size_t unitsize);
 void* cast2d(void* p, size_t nj, size_t ni, size_t unitsize);
 void* copy2d(void** src, size_t nj, size_t ni, size_t unitsize);
 void* alloc3d(size_t nk, size_t nj, size_t ni, size_t unitsize);
@@ -55,8 +56,6 @@ float interpolate2d_structured(double* fij, int ni, int nj, float** v, int** mas
 float interpolate2d_unstructured(double* fi, float* v, int* mask);
 float interpolate3d_structured(double* fij, double fk, int ni, int nj, int nk, int ktop, float*** v, int** nlevels, int periodic_i);
 float interpolate3d_unstructured(double* fi, double fk, int nk, int ktop, float** v, int* nlevels);
-void interpolate2d_column_structured(double* fij, int ni, int nj, int nk, int ktop, float*** src, int** nlevels, int periodic_i, float* dst);
-void interpolate2d_column_unstructured(double* fi, int nk, int ktop, float** src, int* nlevels, float* dst);
 float average(int n, size_t* ids, float* v);
 double taper_gc(double x);
 void ll2xyz(double in[2], double out[3]);

@@ -89,7 +89,6 @@ int grid_isstructured(grid* g);
 int grid_isgeographic(grid* g);
 float grid_interpolate2d(grid* g, double* fij, void* v);
 float grid_interpolate3d(grid* g, double* fij, float fk, void* v);
-void grid_interpolate2d_column(grid* g, double* fij, void* src, float* dst);
 
 #if defined(ENKF_CALC)
 kdtree* grid_gettreeXYZ(grid* g, int createifnull);

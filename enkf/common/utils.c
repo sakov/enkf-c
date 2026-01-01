@@ -812,14 +812,53 @@ void* alloc2d(size_t nj, size_t ni, size_t unitsize)
     void** pp;
     int i;
 
-    if (ni <= 0 || nj <= 0)
-        enkf_quit("alloc2d(): invalid size (nj = %d, ni = %d)", nj, ni);
+    if (ni == 0 || nj == 0 || unitsize == 0)
+        enkf_quit("alloc2d(): invalid size (nj = %zt, ni = %zt, unitsize = %zt)", nj, ni, unitsize);
+    if (SIZE_MAX / nj / sizeof(void*) == 0 || SIZE_MAX / nj / ni / unitsize == 0 || nj * sizeof(void*) > SIZE_MAX - nj * ni * unitsize)
+        enkf_quit("alloc2d: allocation size overflow: nj = %zt, ni = %zt, unitsize = %zt", nj, ni, unitsize);
 
     size = nj * sizeof(void*) + nj * ni * unitsize;
     if ((p = malloc(size)) == NULL) {
         int errno_saved = errno;
 
         enkf_quit("alloc2d(): %s", strerror(errno_saved));
+    }
+    memset(p, 0, size);
+
+    pp = p;
+    p = &((size_t*) p)[nj];
+    for (i = 0; i < nj; ++i)
+        pp[i] = &((char*) p)[i * ni * unitsize];
+
+    return pp;
+}
+
+/** Similar to alloc2d except that it tries to fit the matrix into previously
+ ** allocated storage.
+ *
+ * @param prev Previous storage
+ * @param nj Dimension 2
+ * @param ni Dimension 1
+ * @param unitsize Size of one matrix element in bytes
+ * @return Matrix
+ */
+void* realloc2d(void* prev, size_t nj, size_t ni, size_t unitsize)
+{
+    size_t size;
+    void* p;
+    void** pp;
+    int i;
+
+    if (ni == 0 || nj == 0 || unitsize == 0)
+        enkf_quit("realloc2d(): invalid size (nj = %zt, ni = %zt, unitsize = %zt)", nj, ni, unitsize);
+    if (SIZE_MAX / nj / sizeof(void*) == 0 || SIZE_MAX / nj / ni / unitsize == 0 || nj * sizeof(void*) > SIZE_MAX - nj * ni * unitsize)
+        enkf_quit("realloc2d: allocation size overflow: nj = %zt, ni = %zt, unitsize = %zt", nj, ni, unitsize);
+
+    size = nj * sizeof(void*) + nj * ni * unitsize;
+    if ((p = realloc(prev, size)) == NULL) {
+        int errno_saved = errno;
+
+        enkf_quit("realloc2d(): %s", strerror(errno_saved));
     }
     memset(p, 0, size);
 
@@ -845,8 +884,10 @@ void* cast2d(void* p, size_t nj, size_t ni, size_t unitsize)
     void** pp;
     int i;
 
-    if (ni <= 0 || nj <= 0)
-        enkf_quit("alloc2d(): invalid size (nj = %d, ni = %d)", nj, ni);
+    if (ni == 0 || nj == 0)
+        enkf_quit("cast2d(): invalid size (nj = %zt, ni = %zt, unitsize = %zt)", nj, ni, unitsize);
+    if (SIZE_MAX / nj / sizeof(void*) == 0 || SIZE_MAX / nj / ni / unitsize == 0 || nj * sizeof(void*) > SIZE_MAX - nj * ni * unitsize)
+        enkf_quit("cast2d: allocation size overflow: nj = %zt, ni = %zt, unitsize = %zt", nj, ni, unitsize);
 
     size = nj * sizeof(void*) + nj * ni * unitsize;
     memset(p, 0, size);
@@ -873,8 +914,10 @@ void* copy2d(void** src, size_t nj, size_t ni, size_t unitsize)
     void** pp;
     size_t i;
 
-    if (ni <= 0 || nj <= 0)
-        enkf_quit("copy2d(): invalid size (nj = %d, ni = %d)", nj, ni);
+    if (ni == 0 || nj == 0)
+        enkf_quit("copy2d(): invalid size (nj = %zt, ni = %zt, unitsize = %zt)", nj, ni, unitsize);
+    if (SIZE_MAX / nj / sizeof(void*) == 0 || SIZE_MAX / nj / ni / unitsize == 0 || nj * sizeof(void*) > SIZE_MAX - nj * ni * unitsize)
+        enkf_quit("copy2d: allocation size overflow: nj = %zt, ni = %zt, unitsize = %zt", nj, ni, unitsize);
 
     size = nj * ni * unitsize + nj * sizeof(void*);
     if ((p = malloc(size)) == NULL) {
@@ -909,8 +952,10 @@ void* alloc3d(size_t nk, size_t nj, size_t ni, size_t unitsize)
     void*** ppp;
     size_t i;
 
-    if (nk <= 0 || nj <= 0 || ni <= 0)
-        enkf_quit("alloc3d(): invalid size (nk = %d, nj = %d, ni = %d)", nk, nj, ni);
+    if (nk == 0 || nj == 0 || ni == 0 || unitsize == 0)
+        enkf_quit("alloc3d(): invalid size (nk = %zt, nj = %zt, ni = %zt, unitsize = %zt)", nk, nj, ni, unitsize);
+    if (SIZE_MAX / nk / (nj + 1) / sizeof(void*) == 0 || SIZE_MAX / nk / nj / ni / unitsize == 0 || nk * (nj + 1) * sizeof(void*) > SIZE_MAX - nk * nj * ni * unitsize)
+        enkf_quit("alloc3d: allocation size overflow: nk = %zt, nj = %zt, ni = %zt, unitsize = %zt", nk, nj, ni, unitsize);
 
     size = nk * (nj + 1) * sizeof(void*) + nk * nj * ni * unitsize;
     if ((p = malloc(size)) == NULL) {
@@ -947,8 +992,10 @@ void* copy3d(void*** src, size_t nk, size_t nj, size_t ni, size_t unitsize)
     void*** ppp;
     int i;
 
-    if (nk <= 0 || nj <= 0 || ni <= 0)
-        enkf_quit("copy3d(): invalid size (nk = %d, nj = %d, ni = %d)", nk, nj, ni);
+    if (nk == 0 || nj == 0 || ni == 0 || unitsize == 0)
+        enkf_quit("copy3d(): invalid size (nk = %zt, nj = %zt, ni = %zt, unitsize = %zt)", nk, nj, ni, unitsize);
+    if (SIZE_MAX / nk / (nj + 1) / sizeof(void*) == 0 || SIZE_MAX / nk / nj / ni / unitsize == 0 || nk * (nj + 1) * sizeof(void*) > SIZE_MAX - nk * nj * ni * unitsize)
+        enkf_quit("copy3d: allocation size overflow: nk = %zt, nj = %zt, ni = %zt, unitsize = %zt", nk, nj, ni, unitsize);
 
     size = nk * (nj + 1) * sizeof(void*) + nk * nj * ni * unitsize;
     if ((p = malloc(size)) == NULL) {
@@ -1154,107 +1201,6 @@ float interpolate2d_unstructured(double* fi, float* v, int* mask)
     sum /= w;
 
     return (float) sum;
-}
-
-/**
- */
-void interpolate2d_column_structured(double* fij, int ni, int nj, int nk, int ktop, float*** src, int** nlevels, int periodic_i, float* dst)
-{
-    double fi = fij[0];
-    double fj = fij[1];
-    int i1, i2, j1, j2;
-    double wi1, wi2, wj1, wj2;
-    int k;
-
-    /*
-     * (very rarely) superobs need to be fixed because of the round-off errors
-     */
-    if (fi > (double) ni)
-        fi = (double) ni - EPS_FLOAT;
-    if (fj >= (double) nj)
-        fj = (double) nj - EPS_FLOAT;
-
-    i1 = (int) floor(fi);
-    wi1 = ceil(fi) - fi;
-    i2 = (int) ceil(fi);
-    wi2 = fi - floor(fi);
-    j1 = (int) floor(fj);
-    wj1 = ceil(fj) - fj;
-    j2 = (int) ceil(fj);
-    wj2 = fj - floor(fj);
-
-    if (i1 == i2)
-        wi1 = 1.0;
-    if (j1 == j2)
-        wj1 = 1.0;
-
-    if (i1 == -1)
-        i1 = (periodic_i) ? ni - 1 : i2;
-    if (i2 == ni)
-        i2 = (periodic_i) ? 0 : i1;
-    if (j1 == -1)
-        j1 = j2;
-    if (j2 == nj)
-        j2 = j1;
-
-    assert(i1 >= 0 && i2 < ni && j1 >= 0 && j2 < nj);
-    assert(ktop == 0 || ktop == nk - 1);
-
-    for (k = 0; k < nk; ++k) {
-        int kk = (ktop == 0) ? k : ktop - k;
-        double sum = 0.0, w = 0.0;
-        double ww;
-
-        if (nlevels[j1][i1] > kk) {
-            ww = wj1 * wi1;
-            sum += src[k][j1][i1] * ww;
-            w += ww;
-        }
-        if (nlevels[j1][i2] > kk) {
-            ww = wj1 * wi2;
-            sum += src[k][j1][i2] * ww;
-            w += ww;
-        }
-        if (nlevels[j2][i1] > kk) {
-            ww = wj2 * wi1;
-            sum += src[k][j2][i1] * ww;
-            w += ww;
-        }
-        if (nlevels[j2][i2] > kk) {
-            ww = wj2 * wi2;
-            sum += src[k][j2][i2] * ww;
-            w += ww;
-        }
-        dst[k] = sum / w;
-    }
-}
-
-/**
- */
-void interpolate2d_column_unstructured(double* fi, int nk, int ktop, float** src, int* nlevels, float* dst)
-{
-    int k;
-
-    assert(ktop == 0 || ktop == nk - 1);
-
-    for (k = 0; k < nk; ++k) {
-        int kk = (ktop == 0) ? k : ktop - k;
-        double sum = 0.0, w = 0.0;
-        int id;
-
-        for (id = 0; id < 3; ++id) {
-            int ii = (int) fi[id];
-
-            if (nlevels[ii] > kk) {
-                double ww = fi[id] - floor(fi[id]);
-
-                sum += ww * src[k][(int) fi[id]];
-                w += ww;
-            }
-        }
-
-        dst[k] = sum / w;
-    }
 }
 
 /**

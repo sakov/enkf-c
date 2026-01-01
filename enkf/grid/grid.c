@@ -751,23 +751,6 @@ float grid_interpolate3d(grid* g, double* fij, float fk, void* v)
 
 /**
  */
-void grid_interpolate2d_column(grid* g, double* fij, void* src, float* dst)
-{
-    if (src == NULL)
-        return;
-
-    if (g->hgrid->type == GRIDHTYPE_RECTANGULAR || g->hgrid->type == GRIDHTYPE_CURVILINEAR || g->hgrid->type == GRIDHTYPE_CURVILINEAR2 || g->hgrid->type == GRIDHTYPE_2D)
-        interpolate2d_column_structured(fij, g->hgrid->ni, g->hgrid->nj, g->vgrid->nk, grid_getsurflayerid(g), src, g->numlevels, g->hgrid->periodic_i, dst);
-
-    else if (g->hgrid->type == GRIDHTYPE_UNSTRUCTURED)
-        interpolate2d_column_unstructured(fij, g->vgrid->nk, grid_getsurflayerid(g), src, g->numlevels, dst);
-
-    else
-        enkf_quit("programming error");
-}
-
-/**
- */
 int grid_isperiodic_i(grid* g)
 {
     return g->hgrid->periodic_i;
