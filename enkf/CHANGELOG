@@ -1,3 +1,6 @@
+v2.43.2
+   PS 05012025
+   -- Cosmetic changes.
 v2.43.1
    PS 25122025
    -- Added realloc2d() to reduce number of allocations in situations with

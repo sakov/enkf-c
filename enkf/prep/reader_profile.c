@@ -7,7 +7,7 @@
  * Author:      Pavel Sakov
  *              Bureau of Meteorology
  *
- * Description: Generic reader for observations in a single profile.
+ * Description: Generic reader for profile observations.
  *
  * Revisions:   08/12/2023 PS: Modified to handle multiple profiles.
  *              12/11/2025 PS: Renamed this reader from "z" to "profile".

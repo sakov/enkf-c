@@ -40,7 +40,7 @@
 
 \begin{document}
 
-\title{EnKF-C user guide\\{\normalsize version 2.43.0}}
+\title{EnKF-C user guide\\{\normalsize version 2.43.2}}
 
 \author{Pavel Sakov}
 \date{June 19, 2014 -- \today}
@@ -748,11 +748,11 @@ Apart from this main mode of operation, CALC can also be used for calculating th
 
 UPDATE updates the ensemble (EnKF) or the background (EnOI) using the transforms calculated by CALC, along with a number of specified diagnostics, such as the ensemble spread, inflation, or vertical correlations of subsurface fields with the surface field.
 
-The principle diagram of EnKF-C workflow is shown in Fig.~\ref{fig:calcupdate}.
+The principle diagram of EnKF-C workflow in EnKF mode is shown in Fig.~\ref{fig:calcupdate}.
 \begin{figure}
   \centering
   \includegraphics[width = 0.99\textwidth]{plots/enkfc.pdf}
-  \caption{The principle diagram of EnKF-C workflow.}
+  \caption{The principle diagram of EnKF-C workflow in EnKF mode.}
   \label{fig:calcupdate}
 \end{figure}
 

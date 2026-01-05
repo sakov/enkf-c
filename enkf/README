@@ -9,9 +9,6 @@ Create "make.inc" for your architecture (have a look at examples in `arch'
 directory), then run "make". This should create executables bin/enkf_prep,
 bin/enkf_calc and bin/enkf_update.
 
-Note: EnKF-C is known to perform reliably when compiled with GCC and linked
-with openmpi.
-
 DEPENDENCIES
 
 clang or gcc
@@ -48,6 +45,12 @@ BibTeX entry:
   publisher = {arXiv},
   year = {2014},
 }
+
+NOTES
+
+1. EnKF-C is known to perform reliably when compiled with GCC and linked
+with openmpi.
+2. For best peformance model dumps should chunked by layers.
 
 CONTACT
 

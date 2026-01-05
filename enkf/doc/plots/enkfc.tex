@@ -17,53 +17,73 @@
 \begin{tikzpicture}
 \Huge
 
-\node (frens) [transparent, draw, minimum width = \minnodewidth] {\begin{tabular}{c}Forecast restart ensemble\\$\mb E^f$\end{tabular}};
-\node (fensd) [transform shape, draw, fill = blue!20, fit = {(frens) ($(frens.center) + (0, 40mm)$)}, minimum width = \minnodewidth] {\begin{tabular}{c}Forecast ensemble dumps\\ at different times\\ \\\end{tabular}};
-\node (frens) [draw, fill = blue!40, minimum width = \minnodewidth] {\begin{tabular}{c}Forecast restart ensemble\\$\mb E^f$\end{tabular}};
-\node (origin) [transparent, left = 2cm of fensd] {};
-\node (obs) [draw, fill = gray!40, left = of origin, minimum width = \minnodewidth] {\begin{tabular}{c}Observations\\$\mb y$\end{tabular}};
-\node (add1) [circle, draw, minimum width = \minrad, above = 2cm of origin] {CALC};
-\node (ensobs) [draw, fill = green!30, above = 1cm of add1, minimum width = \minnodewidth] {\begin{tabular}{c} Forecast ensemble observations\\$\mathcal H \circ \mathcal M (\mb E^f)$\end{tabular}};
+\node (ens_r_a_prev) [draw, fill = red!40, minimum width = \minnodewidth] {\begin{tabular}{c}Analysed restart ensemble at previous cycle\\$\mb E^a_{i-1}$\end{tabular}};
 
-\draw[->, thick] (obs) to [in = -90, out = 0] (add1.south);
-\draw[-, thick] (fensd) to [in = -90, out = 180] (add1.south);
-\draw[-, thick] (add1.south) to (add1);
-\draw[->, thick] (add1) to (ensobs);
+\node (model) [circle, draw, minimum width = \minrad, right = 2cm of ens_r_a_prev] {$\mathcal M$};
 
-\node (add21) [circle, transparent, minimum width = \minrad, above = 1cm of ensobs] {CALC};
-\node (grids) [transparent, above = 1cm of add21, minimum width = 1.5cm, minimum height = 1.5cm] {Grids};
+\draw[->, thick] (ens_r_a_prev) -- (model);
 
-\node (transforms) [draw, fill = magenta!30, above = 1cm of grids, minimum width = \minnodewidth] {\begin{tabular}{c}Arrays of local ensemble transforms\\$\mb X_5$-0, $\mb X_5$-1, \dots \end{tabular}};
+\node (ens_o_f_now) [draw, fill = blue!20, minimum width = \minnodewidth, below right  = -4cm and 2 cm of model] {Ensemble model outputs};
 
-\draw[-, thick] (add21.north) to (grids.south);
-\draw[->, thick] (ensobs) to (add21.south);
-\draw[->, thick] (grids.south) to ([out = 90, in = 90, xshift = -5mm] transforms.south);
-\draw[->, thick] (grids.south) to ([out = 90, in = 90] transforms.south);
-\draw[->, thick] (grids.south) to ([out = 90, in = 90, xshift = 5mm] transforms.south);
-\node (grids) [draw, fill = cyan!30, above = 1cm of add21, minimum width = 1.5cm, minimum height = 1.5cm] {Grids};
-\draw[->, dotted] (grids.south) to ([out = 90, in = 90, xshift = -5mm] transforms.south);
-\draw[->, dotted] (grids.south) to ([out = 90, in = 90] transforms.south);
-\draw[->, dotted] (grids.south) to ([out = 90, in = 90, xshift = 5mm] transforms.south);
-\node (add21) [circle, draw, fill = white, minimum width = \minrad, above = 1cm of ensobs] {CALC};
-\draw[->, thick] (obs) to [out = 90, in = -90] ([xshift = -8mm] ensobs.west) to [out = 90, in = 180] (add21);
+\node (ens_r_f_now) [draw, fill = blue!40, minimum width = \minnodewidth, below right  = -1.5cm and 2 cm of model] {\begin{tabular}{c}Forecast restart ensemble\\$\mb E^f_i$\end{tabular}};
 
-\node (add2) [circle, draw, minimum width = \minrad, right = 2cm of fensd] {UPDATE};
-\draw[-, thick] (frens.east) to [out = 0, in = 180] (add2.west);
+\draw[->, thick] (model) to [in = 180, out = 0] (ens_o_f_now);
+\draw[->, thick] (model) to [in = 180, out = 0] (ens_r_f_now);
 
-\node (arens) [draw, fill = red!40, minimum width = \minnodewidth, right = 1cm of add2] {\begin{tabular}{c}Analysed restart ensemble\\$\mb E^a$\end{tabular}};
-\draw[->, thick] (add2) to (arens);
+\node (obs_raw) [draw, fill = gray!40, below right = -8cm and -15cm of ens_r_a_prev] {Raw observations};
 
-\node (add3) [circle, draw, minimum width = \minrad] at (ensobs -| add2) {CALC};
-\draw[->, thick] (transforms.east) to [out = 0, in = 180] (add3.west);
-\draw[-, thick] (ensobs.east) to [out = 0, in = 180] (add3.west);
+\node (prep) [circle, draw, minimum width = \minrad, right = 2cm of obs_raw] {PREP};
 
-\node (aensobs) [draw, fill = yellow!30, right = 1cm of add3, minimum width = \minnodewidth] {\begin{tabular}{c} Analysed ensemble observations\\$\mathcal H \circ \mathcal M (\mb E^a)$\end{tabular}};
-\draw[->, thick] (add3) to (aensobs);
+\draw[->, thick] (obs_raw) to [in = 180, out = 0] (prep);
 
-\draw[->, thick] (transforms.east) to [out = 0, in = 90] ([xshift = -1.2cm, yshift = -6cm] add3.west) to [out = -90, in = 180] (add2.west);
+\node (grids) [draw, fill = cyan!30, minimum width = \minnodewidth, above = 2cm of prep] {\begin{tabular}{c}Grids\\Grid-0, Grid-1, $\dots$\end{tabular}};
 
-\node (prep) [circle, draw, minimum width = \minrad, below = 1cm of obs] {PREP};
-\draw[->, thick] (prep) to (obs);
+\draw[->, thick] (grids) -- (prep);
+
+\node (obs) [draw, fill = gray!40, right = 2 of prep] {Parsed observations};
+
+\draw[->, thick] (prep) -- (obs);
+
+\node (calc) [circle, draw, minimum width = \minrad] at (obs -| ens_o_f_now) {CALC};
+
+\draw[->, thick] (obs) -- (calc);
+\draw[->, thick] (ens_o_f_now) -- (calc);
+% redrawing to put on the top of arrow
+\node (ens_o_f_now) [draw, fill = blue!20, minimum width = \minnodewidth, below right  = -4cm and 2 cm of model] {Ensemble model outputs};
+
+\node (ensobs_f) [draw, fill = green!30, above = 1.5cm of calc, minimum width = \minnodewidth] {\begin{tabular}{c} Forecast ensemble observations\\$\mathcal H \circ \mathcal M (\mb E^f_i)$\end{tabular}};
+
+\draw[->, thick] (calc) -- (ensobs_f);
+
+\node (calc2) [circle, draw, minimum width = \minrad, above = 2cm of ensobs_f]  {CALC};
+
+\draw[->, thick] (ensobs_f) -- (calc2);
+\draw[->, thick] (grids) to [out = 0, in = 180] (calc2);
+\draw[->, thick] (obs) to [out = 90, in = -145] (calc2);
+
+\node (transforms) [draw, fill = magenta!30, above = 2cm of calc2, minimum width = \minnodewidth] {\begin{tabular}{c}Arrays of local ensemble transforms\\$\mb X_5$-0, $\mb X_5$-1, \dots \end{tabular}};
+
+\draw[->, thick] (calc2.north) to ([out = 90, in = 90, xshift = -5mm] transforms.south);
+\draw[->, thick] (calc2.north) to ([out = 90, in = 90] transforms.south);
+\draw[->, thick] (calc2.north) to ([out = 90, in = 90, xshift = 5mm] transforms.south);
+
+\node (calc3) [circle, draw, minimum width = \minrad, right = 2cm of ensobs_f]  {CALC};
+
+\draw[->, thick] (ensobs_f) -- (calc3);
+\draw[->, thick] (transforms) to [out = 0, in = 90] (calc3);
+
+\node (ensobs_a) [draw, fill = yellow!30, right = 1cm of calc3, minimum width = \minnodewidth] {\begin{tabular}{c} Analysed ensemble observations\\$\mathcal H \circ \mathcal M (\mb E^a_i)$\end{tabular}};
+
+\draw[->, thick] (calc3) to (ensobs_a);
+
+\node (update) [circle, draw, minimum width = \minrad, right = 2cm of ens_r_f_now]  {UPDATE};
+
+\draw[->, thick] (ens_r_f_now) to (update);
+\draw[->, thick] (transforms) to [out = 0, in = 145] (update);
+
+\node (ens_r_a_now) [draw, fill = red!40, minimum width = \minnodewidth, right = 2cm of update] {\begin{tabular}{c}Analysed restart ensemble\\$\mb E^a_i$\end{tabular}};
+
+\draw[->, thick] (update) to (ens_r_a_now);
 
 \end{tikzpicture}
 \end{document}
