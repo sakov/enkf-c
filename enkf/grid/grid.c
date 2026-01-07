@@ -404,7 +404,7 @@ void grid_describeprm(void)
     enkf_printf("  [ DOMAIN           = <domain name> ]\n");
     enkf_printf("    DATA             = <data file name>\n");
     enkf_printf("    (either)\n");
-    enkf_printf("      HTYPE          = { rect | curv | unstr | none }\n");
+    enkf_printf("    [ HTYPE          = { rect | curv | unstr | none } ]\n");
     enkf_printf("      XVARNAME       = <X variable name>\n");
     enkf_printf("      YVARNAME       = <Y variable name>\n");
     enkf_printf("      (if htype = unstr)\n");

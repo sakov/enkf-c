@@ -744,9 +744,9 @@ CALC calculates ensemble transforms for updating the forecast ensemble of model 
 \item calculate observation impact metrics DFS and SRF (sec.~\ref{sec:impact}) and save them to \verb|enkf_diag.nc|;
 \item at specified horizontal locations save the model state ensemble, observations, transforms/weights, and DA settings to pointlog files (sec.~\ref{sec:pointlogs}).
 \end{itemize}
-Apart from this main mode of operation, CALC can also be used for calculating the forecast innovations, or operate in the single observation experiment mode.
+Apart from this main mode of operation, CALC can also be used for calculating forecast innovations, or operate in the single observation experiment mode.
 
-UPDATE updates the ensemble (EnKF) or the background (EnOI) using the transforms calculated by CALC, along with a number of specified diagnostics, such as the ensemble spread, inflation, or vertical correlations of subsurface fields with the surface field.
+UPDATE updates the ensemble (EnKF) or the background (EnOI) using the transforms calculated by CALC, along with a number of specified diagnostics, such as the ensemble spread and inflation.
 
 The principle diagram of EnKF-C workflow in EnKF mode is shown in Fig.~\ref{fig:calcupdate}.
 \begin{figure}
@@ -896,7 +896,7 @@ It also contains variable names for the depth and for number of layers in a vert
   [ DOMAIN           = <domain name> ]
     DATA             = <data file name>
     (either)
-      HTYPE          = { rect | curv | unstr | none }
+    [ HTYPE          = { rect | curv | unstr | none } ]
       XVARNAME       = <X variable name>
       YVARNAME       = <Y variable name>
       (if htype = unstr)
@@ -945,7 +945,7 @@ It also contains variable names for the depth and for number of layers in a vert
 
 While the code is supposed to automatically identify the types of horizontal grids used, they can also be specified explicitly.
 The type of the vertical grid has to be specified.
-If some grid (say, grid A) has the same horizontal grid as other grid (grid B), the code can be notified of this by entering name of grid A in the field \verb|HGRIDFROM| for grid B (or vice versa).
+If some grid (say, grid A) has the same horizontal grid as another grid (grid B), the code can be notified of this by entering name of grid A in the field \verb|HGRIDFROM| for grid B (or vice versa).
 This saves memory, grid initialisation time, and uses transforms calculated for grid A for all variables defined on grid B.
 
 \subsubsection{Horizontal grids}
@@ -1627,6 +1627,7 @@ where $\sigma_{obs}$ is the observation error standard deviation, $\sigma_f$ -- 
 Tests with small models show that setting the $K \ge 2$ makes a marginal impact (if any) on performance of weakly suboptimal systems, while still can be quite beneficial in stressful situations.
 
 \subsection{Moderation of spread reduction}
+\label{sec:rps}
 
 The moderating parameter $\alpha \in (0, 1]$ specified in the main parameter file via the entry \verb|ALPHA| allows one to reduce the contraction of ensemble during assimilation, while leaving the increment unchanged (``relaxation to prior spread'', \citealt{zha04a}, eq.~5).
 It modifies the right multiplied ensemble transform matrix as
@@ -1839,9 +1840,10 @@ The common inflation settings in the main parameter file can be overwritten by s
 From v2.0.0 EnKF-C makes it possible using hybrid state error covariance by combining covariances from the EnKF ensemble and an ensemble of static anomalies (sec.~\ref{sec:hybrid-theory}).
 This option is activated by specifying \verb|METHOD = HYBRID| in the main parameter file, the directory of the static ensemble, and the mixing coefficient \verb|GAMMA| (see sec.~\ref{sec:mainprm}).
 
-When the method is set to ``hybrid'', the forecast ensemble spread written in the innovation statistics summary at the end of CALC is that of the combined ensemble (\ref{hybrid_combined}), but the analysis innovation spread is that of the dynamic ensemble only.
-The forecast and analysis ensemble spread fields written by UPDATE when specifying options \verb|--calculate-spread|, \verb|--calculate-forecast-spread|, and \verb|--calculate-forecast-spread-only| are calculated using the dynamic ensemble anomalies only.
-In contrast, the vertical correlations (UPDATE options \verb|--calculate-vertical-correlations| and \verb|--calculate-vertical-correlations-only|) are calculated using the full ensemble.
+When the method is set to ``hybrid'', the ensemble spread written in the innovation statistics summary at the end of CALC is that of the combined ensemble (\ref{hybrid_combined}).
+Similarly, the ensemble spread fields calculated during UPDATE by specifying option \verb|--calculate-spread| is the ensemble spread of the combined ensemble.
+To calculate spread of dynamic ensemble only one needs to set \verb|MODE = EnKF|.
+To calculate innovation statistics with forecast ensemble spread of the dynamic ensemble only one needs to set \verb|MODE = EnKF| and rerun CALC with option ``--forecast-stats-only''.
 
 Note that setting \verb|GAMMA = 0| makes the hybrid system formally equivalent to the EnKF (but not numerically, because of the roundoff errors), while setting \verb|ENSSIZE_DYNAMIC = 1| makes it formally equivalent to the EnOI.
 
@@ -1855,7 +1857,7 @@ Therefore, the static part of the ensemble functions similarly to an FGAT EnOI s
 \section{Ensemble diagnostics}
 \label{sec:diag}
 
-In version 2.27.0 a new binary \verb|enkf_diag| was added to EnKF-C; from v.2.37.0 it is called \verb|ens_diag|.
+Starting from version 2.27.0 a new binary \verb|enkf_diag| was added to EnKF-C; from v.2.37.0 it is called \verb|ens_diag|.
 It aims at calculating various ensemble diagnostics outside the context of DA cycling.
 It has the following usage and options:
 \begin{Verbatim}[frame=single,fontsize=\footnotesize]
@@ -1895,10 +1897,12 @@ other executables in EnKF-C.
 
 Following are the main parameters for DAS tuning in EnKF-C:
 \begin{itemize}
-\item R-factors;
-\item inflation magnitudes;
-\item localisation radii;
-\item K-factor.
+\item R-factors (sec.~\ref{sec:obstypesprm});
+\item localisation radii (sec.~\ref{sec:obstypesprm});
+\item inflation magnitudes (sec.~\ref{sec:modelprm},\ref{sec:capping});
+\item K-factor (sec.~\ref{sec:kfactor});
+\item magnitude of relaxation to prior spread (parameter \verb|ALPHA|, sec.~\ref{sec:rps});
+  \item scaling of static covariance (parameter \verb|GAMMA|, sec.~\ref{sec:hybrid-enkfc}.
 \end{itemize}
 
 The R-factors can be defined for each observation type.
