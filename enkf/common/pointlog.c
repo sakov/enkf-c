@@ -221,7 +221,6 @@ void das_createplog(dasystem* das, int plogid, int ploc, int* lobs, double* lcoe
     /*
      * global atts
      */
-    ncw_put_att_text(ncid, NC_GLOBAL, "version", ENKF_VERSION);
     ncw_put_att_double(ncid, NC_GLOBAL, "lon", 1, &plog->lon);
     ncw_put_att_double(ncid, NC_GLOBAL, "lat", 1, &plog->lat);
     if (das->mode == MODE_ENKF || das->mode == MODE_HYBRID) {

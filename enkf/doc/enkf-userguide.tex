@@ -40,7 +40,7 @@
 
 \begin{document}
 
-\title{EnKF-C user guide\\{\normalsize version 2.43.2}}
+\title{EnKF-C user guide\\{\normalsize version 2.43.3}}
 
 \author{Pavel Sakov}
 \date{June 19, 2014 -- \today}
@@ -1750,13 +1750,13 @@ In the course of its work CALC routinely calculates two metrics for assessing th
 \end{align*}
 where $\mathrm{tr}(\cdot)$ is the trace function.
 The values of these metrics for each local analysis, calculated both for all observations and for observations of each type only, are written to file \verb|enkf_diag.nc|.
-Note that the in EnKF-C DFS and SRF are calculated from the above expressions and represent theoretical values for the EnKF analysis; they coincide with the actual DFS and SRF values only for the ETKF, but not for the DEnKF, which is an approximation of the KF (and indeed not for the EnOI, which is not even an approximation).
+Note that in EnKF-C DFS and SRF are calculated from the above expressions and represent theoretical values for the EnKF analysis; they coincide with the actual DFS and SRF values only for the ETKF, but not for the DEnKF, which is an approximation of the KF (and indeed not for the EnOI, which is not even an approximation).
 Also note that although the partial DFS and SRF for particular observation types are useful indicators of the impact of the corresponding observations, they are not fully consistent in the sense that these impacts are not independent of each other.
 
 In the EnKF context DFS is a useful indicator of potential rank problems.
 Normally, it should not exceed a fraction (a half, or better, a quarter) of the ensemble size per the characteristic time of the error growth.
 SRF shows the ``strength'' of DA.
-``Strong'' DA implies a close to optimal system, which indeed never happens in practice.
+``Strong'' DA requires a nearly optimal system (otherwise it produces large artefacts and imbalances), which indeed never happens in practice.
 Therefore, ideally, SRF should be small (below 1, on average).
 
 \subsection{Multiple model grids}
@@ -2005,111 +2005,120 @@ Following is an example of point log file header (file \verb|pointlog_156.000,-3
 \begin{Verbatim}[frame=single,fontsize=\footnotesize]
 netcdf pointlog_156.000\,-32.000 {
 dimensions:
-        m1 = 96 ;
-        m2 = 96 ;
-        p-0 = 1473 ;
-        p-1 = 1473 ;
-        nk-0 = 2 ;
-        nk-1 = 2 ;
+	m1 = 96 ;
+	m2 = 96 ;
+	p = 1440 ;
+	p-0 = 1440 ;
+	p-1 = 1440 ;
+	nk-0 = 2 ;
+	nk-1 = 2 ;
 variables:
-        int obs_ids(p) ;
-        float lcoeffs(p) ;
-        float lon(p) ;
-        float lat(p) ;
-        float depth(p) ;
-        float obs_val(p) ;
-        float obs_estd(p) ;
-        float obs_fij0(p) ;
-        float obs_fij1(p) ;
-        float obs_fij2(p) ;
-        float obs_fk(p) ;
-        int obs_type(p) ;
-                obs_type:SLA = 0 ;
-                obs_type:SST = 1 ;
-                obs_type:TEM = 2 ;
-                obs_type:SAL = 3 ;
-                obs_type:RFACTOR_SLA = 2. ;
-                obs_type:LOCRAD_SLA = 200. ;
-                obs_type:WEIGHT_SLA = 1. ;
-                obs_type:GRIDID_SLA = 0 ;
-                obs_type:RFACTOR_SST = 32. ;
-                obs_type:LOCRAD_SST = 200. ;
-                obs_type:WEIGHT_SST = 1. ;
-                obs_type:GRIDID_SST = 0 ;
-                obs_type:RFACTOR_TEM = 8. ;
-                obs_type:LOCRAD_TEM = 800. ;
-                obs_type:WEIGHT_TEM = 1. ;
-                obs_type:GRIDID_TEM = 0 ;
-                obs_type:RFACTOR_SAL = 8. ;
-                obs_type:LOCRAD_SAL = 800. ;
-                obs_type:WEIGHT_SAL = 1. ;
-                obs_type:GRIDID_SAL = 0 ;
-        int obs_inst(p) ;                                                                       obs_inst:j1 = 0 ;
-                obs_inst:n1 = 1 ;
-                obs_inst:ESACCI = 2 ;
-                obs_inst:WindSat = 3 ;
-                obs_inst:WMO851 = 4 ;
-                obs_inst:WMO846 = 5 ;
-        float obs_time(p) ;
-                obs_time:units = "days from days from 6565.5 days since 1990-01-01" ;
-        int grid-0 ;
-                grid-0:id = 0 ;
-                grid-0:name = "t-grid" ;
-                grid-0:domain = "ALL" ;
-                grid-0:fi = 49.5 ;
-                grid-0:fj = 49.5 ;
-                grid-0:nk = 2 ;
-                grid-0:model_depth = 4642.25f ;
-        int grid-1 ;
-                grid-1:id = 1 ;
-                grid-1:name = "c-grid" ;
-                grid-1:domain = "ALL" ;
-                grid-1:fi = 48.9999694824219 ;
-                grid-1:fj = 49.0000076293945 ;
-                grid-1:nk = 2 ;
-                grid-1:model_depth = NaNf ;
-        float s-0(p-0) ;
-        float S-0(m2, p-0) ;
-        double w-0(m2) ;
-                w-0:long_name = "ensemble coefficients for location (fi,fj)=(49.500,49.500) on grid 0 (\"t-grid\")" ;
-        double T-0(m1, m2) ;
-                T-0:long_name = "ensemble anomalies transform for location (fi,fj)=(49.500,49.500) on grid 0 (\"t-grid\")" ;
-        float s-1(p-1) ;
-        float S-1(m2, p-1) ;
-        double w-1(m2) ;
-                w-1:long_name = "ensemble coefficients for location (fi,fj)=(49.000,49.000) on grid 1 (\"c-grid\")" ;
-        double T-1(m1, m2) ;
-                T-1:long_name = "ensemble anomalies transform for location (fi,fj)=(49.000,49.000) on grid 1 (\"c-grid\")" ;
-        float eta_t(m2) ;
-        float eta_t_an(m2) ;
-                eta_t_an:gridid = 0 ;
-                eta_t_an:INFLATION = 1.1f, 1.f ;
-        float temp(nk-0, m2) ;
-                temp:gridid = 0 ;
-                temp:INFLATION = 1.1f, 1.f ;
-        float temp_an(nk-0, m2) ;
-        float salt(nk-0, m2) ;
-                salt:gridid = 0 ;
-                salt:INFLATION = 1.1f, 1.f ;
-        float salt_an(nk-0, m2) ;
-        float u(nk-1, m2) ;
-                u:gridid = 1 ;
-                u:INFLATION = 1.1f, 1.f ;
-        float u_an(nk-1, m2) ;
-        float v(nk-1, m2) ;
-                v:gridid = 1 ;
-                v:INFLATION = 1.1f, 1.f ;
-        float v_an(nk-1, m2) ;
+	int obs_ids(p) ;
+	float lcoeffs(p) ;
+	float lon(p) ;
+	float lat(p) ;
+	float depth(p) ;
+	float obs_val(p) ;
+	float obs_estd(p) ;
+	float obs_fij0(p) ;
+	float obs_fij1(p) ;
+	float obs_fij2(p) ;
+	float obs_fk(p) ;
+	int obs_type(p) ;
+		obs_type:SLA = 0 ;
+		obs_type:SST = 1 ;
+		obs_type:TEM = 2 ;
+		obs_type:SAL = 3 ;
+		obs_type:RFACTOR_SLA = 2. ;
+		obs_type:LOCRAD_SLA = 200. ;
+		obs_type:WEIGHT_SLA = 1. ;
+		obs_type:GRIDID_SLA = 0 ;
+		obs_type:RFACTOR_SST = 32. ;
+		obs_type:LOCRAD_SST = 200. ;
+		obs_type:WEIGHT_SST = 1. ;
+		obs_type:GRIDID_SST = 0 ;
+		obs_type:RFACTOR_TEM = 8. ;
+		obs_type:LOCRAD_TEM = 800. ;
+		obs_type:WEIGHT_TEM = 1. ;
+		obs_type:GRIDID_TEM = 0 ;
+		obs_type:RFACTOR_SAL = 8. ;
+		obs_type:LOCRAD_SAL = 800. ;
+		obs_type:WEIGHT_SAL = 1. ;
+		obs_type:GRIDID_SAL = 0 ;
+	int obs_inst(p) ;
+		obs_inst:j1 = 0 ;
+		obs_inst:n1 = 1 ;
+		obs_inst:ESACCI = 2 ;
+		obs_inst:WindSat = 3 ;
+		obs_inst:WMO851 = 4 ;
+		obs_inst:WMO846 = 5 ;
+	float obs_time(p) ;
+		obs_time:units = "days from 6565.5 days since 1990-01-01" ;
+	int grid-0 ;
+		grid-0:id = 0 ;
+		grid-0:name = "t-grid" ;
+		grid-0:domain = "ALL" ;
+		grid-0:fi = 49.5 ;
+		grid-0:fj = 49.5 ;
+		grid-0:nk = 2 ;
+		grid-0:model_depth = 4642.25f ;
+	int grid-1 ;
+		grid-1:id = 1 ;
+		grid-1:name = "c-grid" ;
+		grid-1:domain = "ALL" ;
+		grid-1:fi = 48.9999691741445 ;
+		grid-1:fj = 49.0000077064579 ;
+		grid-1:nk = 2 ;
+		grid-1:model_depth = NaNf ;
+	float s-0(p-0) ;
+	float S-0(m2, p-0) ;
+	double w-0(m2) ;
+		w-0:long_name = "ensemble coefficients for location (fi,fj)=(49.500,49.500) on grid 0 (\"t-grid\")" ;
+	double T-0(m1, m2) ;
+		T-0:long_name = "ensemble anomalies transform for location (fi,fj)=(49.500,49.500) on grid 0 (\"t-grid\")" ;
+	float s-1(p-1) ;
+	float S-1(m2, p-1) ;
+	double w-1(m2) ;
+		w-1:long_name = "ensemble coefficients for location (fi,fj)=(49.000,49.000) on grid 1 (\"c-grid\")" ;
+	double T-1(m1, m2) ;
+		T-1:long_name = "ensemble anomalies transform for location (fi,fj)=(49.000,49.000) on grid 1 (\"c-grid\")" ;
+	float eta_t(m2) ;
+		eta_t:gridid = 0 ;
+	float eta_t_an(m1) ;
+		eta_t_an:gridid = 0 ;
+		eta_t_an:INFLATION = 1.1f, 1.f ;
+	float temp(nk-0, m2) ;
+		temp:gridid = 0 ;
+	float temp_an(nk-0, m1) ;
+		temp_an:gridid = 0 ;
+		temp_an:INFLATION = 1.1f, 1.f ;
+	float salt(nk-0, m2) ;
+		salt:gridid = 0 ;
+	float salt_an(nk-0, m1) ;
+		salt_an:gridid = 0 ;
+		salt_an:INFLATION = 1.1f, 1.f ;
+	float u(nk-1, m2) ;
+		u:gridid = 1 ;
+	float u_an(nk-1, m1) ;
+		u_an:gridid = 1 ;
+		u_an:INFLATION = 1.1f, 1.f ;
+	float v(nk-1, m2) ;
+		v:gridid = 1 ;
+	float v_an(nk-1, m1) ;
+		v_an:gridid = 1 ;
+		v_an:INFLATION = 1.1f, 1.f ;
 
 // global attributes:
-                :version = "2.21.3" ;
-                :lon = 156. ;
-                :lat = -32. ;
-                :MODE = "EnKF" ;
-                :SCHEME = "DEnKF" ;
-                :ALPHA = 1. ;
-                :ngrids = 2 ;
-                :output = "analysis" ;
+		:lon = 156. ;
+		:lat = -32. ;
+		:MODE = "EnKF" ;
+		:SCHEME = "DEnKF" ;
+		:ALPHA = 1. ;
+		:ngrids = 2 ;
+		:output = "analysis" ;
+		:EnKF-C\ version = "2.43.3" ;
+		:command = "./enkf_update --calculate-spread --write-inflation enkf.prm" ;
+		:wdir = "/home/599/pxs599/src/enkf-c/enkf/examples/4" ;
 }
 \end{Verbatim}
 
