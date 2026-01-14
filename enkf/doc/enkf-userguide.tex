@@ -312,6 +312,7 @@ In the linear case (i.e. for affine model and observation operators) redrawing o
 In this section we will give a brief overview of solutions for the EnKF analysis, and then describe the particular schemes used in EnKF-C.
 
 \subsection{Overview}
+\label{sec:enkf-overview}
 
 In the ``baseline'' EnKF (full-rank ensemble, no localisation) the analysed SDAS matches that of the KF, although the algebraic side is indeed different.
 The update of the ensemble mean is generally straightforward, in accordance with that in the KF (\ref{kf-an-x}).
@@ -1171,8 +1172,9 @@ For the EnOI the background (forecast restart) file for variable \verb|varname| 
 
 The analysis restart file names are created by concatenating the above forecast restart names and a suffix, either``.analysis'' or ``.increment'', depending on the output of UPDATE.
 
-For asynchronous DA the model output file names for the time slot \verb|t| are assumed to be \spverb|sprintf("mem%03d_%s_%d.nc", memberid, varname, t)| and \spverb|sprintf("bg_%s_%d.nc", varname, t)|, correspondingly.
-It is also possible to have model outputs concatenated over the observation window into a single multi-record file, in which case it is assumed to be either \spverb|sprintf("mem%03d_%s_#.nc", memberid, varname)| (EnKF) or \spverb|sprintf("bg_%s_#.nc", varname)|.
+For asynchronous DA the model output file names for the time slot \verb|t| are assumed to be \\\spverb|sprintf("mem%03d_%s_%d.nc", memberid, varname, t)| (EnKF) and \spverb|sprintf("bg_%s_%d.nc", varname, t)| (EnOI).
+It is also possible to have model outputs concatenated into a single multi-record file, in which case it is assumed to be either \spverb|sprintf("mem%03d_%s_#.nc", memberid, varname)| (EnKF) or \spverb|sprintf("bg_%s_#.nc", varname)|.
+In this case EnKF-C will identify the record to be used by its time.
 (See sec.~\ref{sec:async}.)
 
 There are possible situations when the surface field and 3D field of the same variable have different asynchronous settings.
@@ -1602,29 +1604,64 @@ NAME = SLA
 HFUNCTION = standard
 ...
 \end{Verbatim}
-The available functions for each observation type are specified by the variable \verb|allhentries| in \verb|calc/allhs.c|.
-The ``standard'' functions do normally perform 2D or 3D linear interpolation from the corner model grid nodes for the cell containing the observation.
+The available functions for each observation type are specified by the variable \verb|allhentries| in \verb|calc/allhs.c|:
+\begin{Verbatim}
+typedef struct {
+    int issurface;
+    char* H_tag;
+    H_fn H;
+} H_entry;
+
+H_entry allhentries[] = {
+    {1, "standard", H_surf_standard},
+    {1, "biased", H_surf_biased},
+    {0, "standard", H_subsurf_standard},
+    {0, "wsurfbias", H_subsurf_wsurfbias},
+    {0, "lowmem", H_subsurf_lowmem},
+    /*
+     * (the corresponding observation type can be entered either as
+     * "issurface = 1" or "issurface = 0")
+     */
+    {1, "vertsum", H_vertsum},
+    {0, "vertsum", H_vertsum},
+    {1, "vertwavg", H_vertwavg},
+    {0, "vertwavg", H_vertwavg}
+};
+\end{Verbatim}
+
+H-functions ``standard'' are used by default.
+They perform 2D or 3D linear interpolation on the model grid associated with the observation type.
+
+Function ``lowmem'' can be used instead of ``normal'' for observation types associated with 3D model variables in situations with very large models.
+Unlike ``normal'' it does not read the whole 3D dump for a variable but proceeds by reading only two layers at a time.
+
+Function ``biased'' targets 2D variables corrected for bias.
+Function ``wsurfbias'' was developed to offset the values of temperature in the mixed layer by the value of SST bias.
+
+Function ``vertsum'' is used to assimilate observations corresponding to the sum of a model variable over all layers (such as the total sea-ice concentration).
+It can be used only for variables on sigma or hybrid grids.
+Function ``vertwavg'' matches observations with a weighted sum of a model variable in all model layers.
 
 \subsection{Interpolation of ensemble transforms}
 
-Local ensemble transforms $\mb X_5$ (EnKF) or local ensemble weights $\mb w$ (EnOI) represent smooth fields with the characteristic spatial variability scale of the localisation radius.
-This smoothness allows one to reduce the computational load in CALC by calculating local transforms or weights on a subgrid with a specified stride only, and using linearly interpolated transforms or weights in the intermediate grid cells \citep{yan09a}.
-The value of the stride is defined by the \verb|STRIDE| entry in the main parameter file and can be overwritten for a particular grid in the grid parameter file.
+Local ensemble transforms $\mb X_5$ (EnKF) or ensemble weights $\mb w$ (EnOI) (sec. \ref{sec:enkf-overview}) represent smooth fields with the characteristic spatial variability scale of the localisation radius.
+This makes it possible to reduce the computational load in CALC by calculating local transforms or weights on a subgrid with specified stride and then linearly interpolating the transforms or weights in the intermediate grid cells \citep{yan09a}.
+The value of the stride is defined by the entry \verb|STRIDE| in the main parameter file and can be overwritten for a particular grid in the grid parameter file.
 
 \subsection{Adaptive moderation of observations}
 \label{sec:kfactor}
 
-One of the standard QC procedures in DA is the so called background check, when an observation is compared with the forecast and discarded if the innovation magnitude exceeds some specified threshold.
+One of the standard QC procedures in DA is the so called background check, when an observation is compared with the forecast and discarded if the innovation magnitude exceeds some threshold.
 The downside of this approach is that it can not distinguish between situations of an outlier, big model error (e.g. because of an error in forcing), or model divergence.
 While one probably would like to discard an outlier, it is usually desirable to make use of valid observations, although, perhaps, with a reduced impact, to avoid ``over-stressing'' the model.
-In EnKF-C this is achieved by adaptive moderation of the observation impact by restricting the magnitude of the increment from a given observation in observation space by $K$ times magnitude of the spread of the forecast ensemble \citep{sak17a}.
+In EnKF-C this is achieved by adaptive moderation of the observation impact by restricting the magnitude of the increment from a given observation in observation space by $K$ times magnitude of the forecast ensemble spread \citep{sak17a}.
 
 Specifically, the adaptive moderation of the observation impact is conducted by smoothly increasing the observation error depending on the magnitude of innovation as follows:
 \begin{align*}
   \sigma^2_{obs} \leftarrow \left[(\sigma_{f}^2 + \sigma_{obs}^2)^2 + \sigma_f^2 \, d^2 / K^2\right]^{1/2} - \sigma_f^2,
 \end{align*}
 where $\sigma_{obs}$ is the observation error standard deviation, $\sigma_f$ -- forecast ensemble spread, $d$ -- innovation, and $K$ -- the so called K-factor defined in the main parameter file (sec. \ref{sec:mainprm}).
-Tests with small models show that setting the $K \ge 2$ makes a marginal impact (if any) on performance of weakly suboptimal systems, while still can be quite beneficial in stressful situations.
+Tests with small models show that setting the $K \ge 2$ makes a marginal impact (if any) on performance of weakly suboptimal systems, while it still can be quite beneficial in situations with large innovations.
 
 \subsection{Moderation of spread reduction}
 \label{sec:rps}
