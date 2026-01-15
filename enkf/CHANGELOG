@@ -26,8 +26,8 @@ v2.43.0
       FIELDSPLIT = 4).
    -- Specifying FIELDSPLIT > 1 can only be done with FIELDBUFFERSIZE = 1.
       This is logical because FIELDSPLIT deals with situations of too large
-      ensemble of fields, while FIELDBUFFERSIZE increases the number of
-      simultaneously read fields by a CPU.
+      size of the ensemble of fields, while FIELDBUFFERSIZE increases the number
+      of simultaneously read fields by a CPU.
    -- When specified FIELDSPLIT > 1 an additional stage called "preassembly"
       is conducted, which assembles fractional field ensembles into full
       field ensembles.
