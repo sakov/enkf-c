@@ -39,7 +39,7 @@
 
 \begin{document}
 
-\title{EnKF-C user guide\\{\normalsize version 2.43.3}}
+\title{EnKF-C user guide\\{\normalsize version 2.43.4}}
 
 \author{Pavel Sakov}
 \date{June 19, 2014 -- \today}
@@ -102,7 +102,7 @@ Section~\ref{ch:enkf} overviews the basics of the EnKF; section~\ref{ch:enkf-c} 
 
 \section*{Pre-requisites and limitations}
 
-Following is the list of main pre-requisites and limitations resulted from the design and algorithmic solutions adopted in EnKF-C:
+Following is the list of main prerequisites and limitations resulting from the design and algorithmic solutions adopted in EnKF-C:
 \begin{itemize}
 \item the model is assumed to be layered, so that the horizontal and vertical grids are independent of each other;
 \item horizontal grids are assumed to be structured quadrilateral or unstructured;
@@ -117,7 +117,7 @@ Following is the list of main pre-requisites and limitations resulted from the d
 \section{Kalman filter}
 
 The Kalman filter (KF) is the underlying concept behind the EnKF.
-It is rather simple if formulated as the recursive least squares.
+It is rather simple if formulated as recursive least squares.
 
 Consider the global (in time) nonlinear minimisation problem
 \begin{align}
@@ -184,7 +184,7 @@ where
 \end{subequations}
 This solution is known as the Kalman filter \citep[KF,][]{kal60}.
 Equations (\ref{kf-for}) describe advancing the system in time and represent the stage commonly called ``forecast'', while equations (\ref{kf-an}) describe assimilation of observations and represent the stage called ``analysis''.
-The superscripts $f$ and $a$ are used hereafter to refer to the forecast and analysis variables, correspondingly.
+The superscripts $f$ and $a$ are used hereafter to refer to the forecast and analysis variables, respectively.
 The forecast and analysis model state estimates $\mb x^f$ and $\mb x^a$ are commonly called (simply) forecast and analysis.
 Matrix $\mb K$ is called Kalman gain.
 
@@ -220,9 +220,9 @@ in which case it is called the extended Kalman filter (EKF).
 \section{EnKF}
 
 The standard form of the KF (\ref{kf-for}, \ref{kf-an}) is not necessarily the most convenient or suitable one in practice.
-The corresponding algorithms can be prone to loosing the positive definiteness of the state error covariance $\mb P$ due to round-up errors; and more importantly, explicit use of $\mb P$ makes these algorithms non-scalable in regard to the model state dimension.
+The corresponding algorithms can be prone to losing the positive definiteness of the state error covariance $\mb P$ due to rounding errors; and more importantly, explicit use of $\mb P$ makes these algorithms non-scalable in regard to the model state dimension.
 
-Both these immediate problems can be addressed with the ensemble Kalman filter, or the EnKF.
+Both these immediate problems can be addressed with the ensemble Kalman filter (EnKF).
 In the EnKF the SDAS is carried by an ensemble of $m$ model states $\mb E$, which can be split into ensemble mean and ensemble anomalies:
 \begin{align}
   \label{sdas-enkf}
@@ -308,7 +308,7 @@ In the linear case (i.e. for affine model and observation operators) redrawing o
 
 \section{EnKF analysis}
 
-In this section we will give a brief overview of solutions for the EnKF analysis, and then describe the particular schemes used in EnKF-C.
+In this section we will give a brief overview of solutions for EnKF analysis and describe the particular schemes used in EnKF-C.
 
 \subsection{Overview}
 \label{sec:enkf-overview}
@@ -436,7 +436,7 @@ commonly known as the ensemble transform Kalman filter, or ETKF \citep{bis01a}.
 
 {
   \scriptsize
-  {\bf Correction.} The Andrews' solution turns out to be right only for diagonal $\mb R$.
+  {\bf Correction.} The Andrews' solution turns out to be valid only for diagonal $\mb R$.
   The correct solution of form (\ref{andrews}) can be obtained from (\ref{etkf}) by using identity $\mb M^{-1/2} = \mb I - (\mb M + \mb M^{1/2})^{-1}(\mb M - \mb I)$:
   \setlength{\abovedisplayskip}{1pt}
   \setlength{\belowdisplayskip}{3pt}
@@ -583,7 +583,7 @@ EnKF-C uses the popular polynomial taper function by \citet{gas99a}, which has a
 \section{Asynchronous DA}
 
 Observations assimilated at each cycle in the KF are assumed to be made simultaneously at the time of assimilation.
-In such cases observations and DA method are referred to as \emph{synchronous}.
+In such cases, observations and DA method are referred to as \emph{synchronous}.
 In reality, observations assimilated at a given cycle are made over some period of time called ``data assimilation window'' (DAW).
 If the DA method accounts for the time of observations, observations and DA method are referred to as \emph{asynchronous}.
 
@@ -724,7 +724,7 @@ EnKF-C conducts data assimilation in three stages: PREP, CALC, and UPDATE, by ru
 EnKF-C also provides \verb|ens_diag| for calculating a number of ensemble diagnostic variables.
 
 PREP preprocesses observations so that they are ready for DA.
-It has the following stages:
+It has the following steps:
 \begin{itemize}
 \item read original observations and convert them into a vector of structure \verb|observation|;
 \item collate them into superobservations;
@@ -759,7 +759,7 @@ The principle diagram of EnKF-C workflow in EnKF mode is shown in Fig.~\ref{fig:
 \section{Starting up: example 1}
 \label{example1}
 
-It may be a good idea to start getting familiar with the system by running the example in \verb|examples/1|.
+You may find it helpful to start getting familiar with the system by running the example in \verb|examples/1|.
 The example has been put up based on runs of the regional EnKF and EnOI reanalysis systems for Tasman Sea developed by Bureau of Meteorology. 
 It allows one to conduct a single assimilation for 23 December 2007 (day 6565 since 1 January 1990) with either EnKF or EnOI.
 To reduce the size of the system, the model state has been stripped down to two vertical levels and $100 \times 100$ horizontal grid.
@@ -788,7 +788,7 @@ Running EnKF-C binaries with \verb|--describe-prm-format| in the command line pr
 \subsection{Main parameter file}
 \label{sec:mainprm}
 
-The main parameter file specifies the main parameters of DA and 4 other parameter files.
+The main parameter file specifies the main parameters of DA and four other parameter files.
 Its format is described by running \verb|enkf_prep|, \verb|enkf_calc| or \verb|enkf_update| with option \verb|--describe-prm-format|:
 \begin{Verbatim}[frame=single,fontsize=\footnotesize]
 >./bin/enkf_prep --describe-prm-format
@@ -962,7 +962,7 @@ A grid is assumed to be curvilinear if the grid node coordinates depend on two d
 A grid is assumed to be unstructured if grid node coordinates depend on the same dimension for X and Y coordinates.
 For rectangular grids the code tries to determine and handle periodicity in X direction.
 
-Note that the code does not detect and therefore can not take advantage of periodic curvilinear grids; because of that, it does not map (skips) observations in cells connecting the grid edges.
+Note that the code does not detect and therefore cannot take advantage of periodic curvilinear grids; because of that, it does not map (skips) observations in cells connecting the grid edges.
 
 The flag \verb|GEOGRAPHIC| was introduced in v2.8.0.
 When set to ``1'' (``yes'', ``true''), it communicates to the code that the grid nodes are defined in geographic coordinates.
@@ -1430,7 +1430,7 @@ Setting \verb|SOBSTRIDE = 0| switches superobing off.
 
 The observations are merged by averaging their values, coordinates and times with weights inversely proportional to the observation error variance.
 The observation error variance of a superobservation is set to the inverse of the sum of inverse observation error variances of the merged observations.
-The product and instrument fields of the superobservation are set either to those of the merged observations or to -1, depending on whether the merged observations have the same values for these fields or not.
+The product and instrument fields of the superobservation are set either to those of the merged observations or to -1, depending on whether the merged observations have identical values for these fields or not.
 
 Command line parameter \verb|--consider-subgrid-variability| switches on considering the subgrid variability by calculating standard deviation of the merged observations $\sigma\!_{sub}$ and using $\sigma\!_{obs} = \max(\sigma\!_{obs}, \sigma\!_{sub})$.
 The calculation of $\sigma\!_{sub}$ is currently done in a rather crude way, assuming equal weights for all merged observations.
@@ -1478,7 +1478,7 @@ This can be tracked from the CALC log file, e.g.:
     TEM ......
     SAL ......
 \end{Verbatim}
-The entries ``a'' mean that the observations are assimilated asynchronously and the files and the corresponding (by name) files have been found.
+The entries ``a'' mean that the observations are assimilated asynchronously and the corresponding files have been found.
 These entries would be replaced by ``s'' if the observations were assimilated synchronously because of lacking the corresponding files.
 The vertical lines indicate the time slots for asynchronous DA; in the above example the DAW has 5 time slots.
 The entries ``.'' indicate calculating ensemble observations for synchronous observations.
@@ -1665,7 +1665,7 @@ Tests with small models show that setting the $K \ge 2$ makes a marginal impact 
 \subsection{Moderation of spread reduction}
 \label{sec:rps}
 
-The moderating parameter $\alpha \in (0, 1]$ specified in the main parameter file via the entry \verb|ALPHA| allows one to reduce the contraction of ensemble during assimilation, while leaving the increment unchanged (``relaxation to prior spread'', \citealt{zha04a}, eq.~5).
+The moderating parameter $\alpha \in (0, 1]$ specified in the main parameter file via the entry \verb|ALPHA| allows one to reduce the contraction of ensemble during assimilation, while leaving the increment unchanged (``relaxation to prior spread'', RPS, \citealt{zha04a}, eq.~5).
 It modifies the right multiplied ensemble transform matrix as
 \begin{align*}
   \mb T_R \leftarrow \mb I + \alpha (\mb T_R - \mb I).
@@ -1768,7 +1768,7 @@ These transforms are then used for updating the model variables defined on the c
 
 By default, all local observations for a given grid node contribute to the corresponding ensemble transform.
 Sometimes it is desirable to disconnect observations of certain type from contributing to transforms on particular grids.
-For example, it may be desirable in climate systems to disregard observations of the sea surface height in updating the atmospheric variables.
+For example, it may be desirable in climate systems to disregard observations of the sea surface height (SSH) in updating the atmospheric variables.
 The concept of ``domains'' introduced in v1.89.0 provides a mechanism for handling such situations within a single analysis.
 It works as follows.
 Each grid can be associated with a certain domain via the optional entry \verb|DOMAIN| in the grid parameter file.
@@ -2129,7 +2129,7 @@ In this case to get the local observations on this grid one needs to filter out 
 \section{Use of innovation statistics for model validation}
 
 EnKF-C can calculate innovation statistics for validating a model against observations only, without data assimilation.
-The pre-requisites are (i) observations and (ii) model dump readable by the code, and possibly (iii) auxiliary files for projecting the model state to observation space (e.g. grid specs and mean SSH).
+The prerequisites are (i) observations and (ii) model dump readable by the code, and possibly (iii) auxiliary files for projecting the model state to observation space (e.g. grid specs and mean SSH).
 To get the innovation statistics one needs to:
 \begin{itemize}
 \item set up the parameter files in a normal way (\verb|MODE = EnOI|), omitting the ensemble directory and assimilation related parameters;
@@ -2230,7 +2230,7 @@ The following table lists the most memory-wise important objects.
     observation K-D trees$^3$ & 0.85\,GB & 2\,GB & & \textbullet &\\
     one 3D model field & 1\,GB & 4.6\,GB & & \textbullet &\\
     ensemble of one horizontal field & 2\,GB & 10\,GB & & & \textbullet\\
-    transform array (I/O, EnKF only) & 22\,GB$^5$& 29\,GB$^5$ & & & \textbullet\\
+    transform array (file) & 22\,GB$^5$ ($\times$ 2)& 29\,GB$^5$ ($\times$ 3) & & & \textbullet\\
     \hline
   \end{tabular}\\[1mm]
   {\scriptsize$^{(1)}$\,for EnKF/OFAM3 system ($3600 \times 1500 \times 51$ grid, 96 members, $5\cdot 10^7$ observations, $1.3 \cdot 10^7$ super-observations)}\\
@@ -2313,6 +2313,179 @@ Try compiling UPDATE with flag \verb|-DNCW_SKIPSINGLE|.
 
 \end{enumerate}
 
+\chapter{Setting up a DA system}
+
+This chapter lists the main steps for setting up a geophysical ensemble DA (forecasting) system.
+Specifically, it concerns (but not limited to) ocean DA systems.
+
+A DA system is built based on a geophysical model.
+Normally, a running model is sufficient for setting up a DA system with EnKF-C.
+
+\section{Initial considerations}
+
+Typical ocean DA systems aim at constraining mesoscale circulation because the available amount of observations and quality of ocean models make it impossible to reliably constrain smaller scales.
+Considering that (1) the characteristic error doubling time at mesoscale is of order of a month; (2) unlike variational DA, there is no need for large observation windows in ensemble DA; but (3) smaller cycle lengths incur additional computational overheads, the reasonable DA cycle lengths in ocean DA systems are somewhere between a day and a week.
+
+\section{EnKF systems}
+\label{sec:enkf_systems}
+
+\begin{enumerate}
+
+\item{Decide on the ensemble size.}
+
+  In our experience, best performance is achieved with hybrid systems, which also allow smaller ensembles than pure EnKF systems.
+  For a pure EnKF system, a typical recommended ensemble size is about 100, although often it can be reduced without substantial deterioration in performance.
+  
+\item{Create initial ensemble.}
+
+  For the EnKF one needs a ``wide'' initial ensemble such that, ideally, the true system state at the initial time might be considered as a sample from it.
+  The detailed composition of the initial EnKF ensemble is not important because it will be ``forgotten'' after the spin-up.
+  
+  In the context of ocean forecasting the initial ensemble can be created by conducting a long model run (hindcast) and saving model restarts around the time of the year (season) of the initial time.
+  The length of this hindcast can be from about 5 to 30 years or more, typically about 10 years.
+  The number of model restarts (ensemble members) saved each year is determined by achieving the desired ensemble size.
+  Note that if the system is supposed to run with randomly perturbed forcing then it is possible to duplicate some members as they quickly diverge after starting the system.
+
+  A challenging part of the initial hindcast is to obtain possibly larger subsurface variability.
+  Typically, the subsurface states of ocean models are substantially different from the true state; therefore larger subsurface variability is important for quicker reduction of initial biases (which can take years).
+  Larger subsurface variability can be obtained by longer initial hundcasts; by conducting several hindcasts initialised from different ocean state products; and by perturbing mixing and advection settings.
+
+\item{Decide on the Mean Dynamic Topography (MDT) product.}
+
+  For global systems it normally should be one of the available products that is or can be used in calculating sea level anomaly (SLA) observations.
+  For systems with local area models (LAMs) it should be the product used in the system providing the open boundary conditions.
+
+  In some cases the model can be substantially biased about MDT estimates.
+  Thes biases project on subsurface state and can cause significant drifts and biases.
+  In these cases it may be necessary to use the native MDT calculated as the average sea level during the initial hindcast.
+
+\item{Choose observation time binning, localisation radii and R-factors.}
+
+  Generally, it is preferable to use time-average model outputs for calculating forecast observations.
+  The time intervals chosen for particular model variables should be based on the their temporal variability. 
+  Ocean circulation at mesoscale evolves very slowly.
+  Therefore, the timing for assimilating SLA, temperature and salinity (T and S) observations is not really critical.
+  It seems natural to calculate forecast observations using daily average model outputs but it is also possible to use longer intervals or assimilate synchronously using model restarts.
+
+  In contrast, SST exhibits a strong diurnal (daily) cycle.
+  Therefore, SST needs to be matched against model outputs on a sub-daily scale.
+  Further on, because it is impossible today to reliably model the daytime SST, one needs (1) to restrict assimilation of SST observations to nighttime only and (2) to ensure that no daytime model SST is contributing to the forecast observations.
+  Once resticted to nighttime, the SST observations will be matched in DA with SST from the closest in time model dump.
+  It is reasonable to use 1- or 2-hour time intervals for SST model outputs.
+
+  Localisation radii and R-factors should be chosen to provide robust inversions in local analyses and sensible increments.
+  The same concerns the magnitude of K-factor (sec.~\ref{sec:kfactor}).
+
+\item{Choose moderation settings.}
+
+  The values of multiplicative inflation and magnitude of RPS (secs.~\ref{sec:capping},\ref{sec:rps}) are set to ensure robust evolution of the DAS, with as small adjustments to the KF (no inflation, no relaxation) as possible.
+  To minimise long-term damage from multiplicative inflation it is important to keep it minimal and cap for each element of the state vector by the magnitude of spread reduction (sec.~\ref{sec:capping}).
+  (Capped inflation is a default setting in EnKF-C.)
+  See section~\ref{sec:da-settings-example} for an example of setings from an operational global ocean forecasting system.
+
+\item {DA cycle design.}
+
+  This involves positioning of observation window relative to analysis.
+  For EnKF systems it is rather straightforward.
+  Assuming that the system is optimal enough, asynchronous DA should work well for an asymmetric cycle (when the analysis is not centred about the observation window).
+  In practice, centred observation window may yield somewhat better performance but it is unlikely to be justified by 1.5x increase of the cost of model propagation, which typically constitutes 90--95\,\% of the total cost of the EnKF. 
+  Therefore, it is natural to set observation window to the interval from previous to current analysis.
+
+\item{Spin-up of the system}
+ 
+  The system starts from an unconstrained state; therefore, the initial corrections are expected to be rather unbalanced.
+  A practical way to spin-up the system is to increase the supposedly optimal R-factors by a large multiple and gradually reduce it in the first several cycles.
+  For example, one can use the multiples $2^{7-i}$ for cycle $i, i = 0,\dots,6$ for the first 7 cycles.
+
+\item{Correct the initial state}
+
+  The initial state is represented by the ensemble average of the initial ensemble generated from a long run of the free model.
+  This initial state can be substantially biased about SLA, T and S observations.
+  In this case it is a good idea to correct it (i.e. subtract the global mean bias from ensemble fields for T and S and add to MDT for SSH); otherwhile it can take a long time (of order of a year) to get it reduced by DA.
+  
+\end{enumerate}
+
+\section{EnOI}
+
+\begin{enumerate}
+  
+\item{Create static ensemble.}
+
+  Unlike the inital ensemble for an EnKF system, which gets ``forgotten'' over time, the static ensemble in an EnOI system does not evolve and therefore continuosly affects the performance of the system.
+  Because of its static nature, it cannot represent the ``errors of the day'' and should aim at representing large scale variability.
+
+  The EnOI ensemble is created based on a long model run.
+  In contrast to the EnKF, the main outputs should be not model restarts but time average fields for the updated variables.
+  The ensemble should not contain long term trends including seasonal trends.
+  This can be accomplished by generating ensemble members as the difference between time averaged model fields over two time windows of different width centered about each other.
+  The particular lengths of these windows can be optimised depending on the model resolution and domain.
+  Typically, for ocean forecasting, the inner window can be from 1-2 days to a week, and the outer window from 1-2 weeks to 1-3 months.
+  In practice, it is convenient to save 1-day model average fields during the hindcast and then generate the ensemble based on this output.
+
+  The size of the static ensemble can be typically about 200.
+  Larger ensembles start affecting the cost of matrix inversions (that scale as the size of the matrix cubed) while bringing diminishing benefits for the system performance.
+
+  Note that for ocean EnKF systems it is desirable to exclude the atmospheric component of SSH (``inverse barometer'') from the saved fields; otherwise the ensemble SSH anomalies would contain this extra variability, which negatively affects the balances between model fields in the ensemble.
+  (Although the suggested way of calculating ensemble anomalies as the difference of time average in two centred windows can largely eliminate the atmospheric variability in SSH.)
+  
+\item {DA cycle design.}
+
+  The EnOI is essentially an interpolation technique and, as such, produces increments for the centre of the observation window.
+  Further, because EnOI systems propagate only one instance of the model, the cost of model propagation is not as critical as for the EnKF.
+  It is therefore natural to centre the observation window about the analysis time.
+
+  With FGAT approach this means that at each DA cycle the model needs to be propagated for the half of DA cycle to the start of the next observation window and then further for the full cycle to the end of the observaiton window, i.e. for 1.5 DA cycle in total.
+  The model needs to save restart at the time of the next analysis, i.e. after propagating for 1.0 DA cycle.
+
+\item {DA settings.}
+
+  Generally, EnOI systems reach best performance with somewhat stronger fit to observations than EnKF systems (with smaller R-factors and larger localisation radii than in EnKF systems with ensembles of similar spread).
+  Note that the ensemble spread depends on the ensemble generation technique and  settings, which involves additional tuning by means of a multiple to R-factors.
+  
+\end{enumerate}
+
+\section{Hybrid EnKF/EnOI}
+
+Today hybrid EnKF/EnOI systems represent the state-of-the art in the ensemble based ocean forecasting.
+For example, OceanMAPS v4.0 and v4.1 are global (75\,S to 75\,N) eddy resolving (0.1$^\circ$) ocean forecasting systems run by Australian Bureau of Meteorology.
+They are hybrid systems with 48 dynamic and 144 static ensemble members.
+These systems considerably outperform otherwise similar EnKF systems with 96 ensemble members at half of their computational cost.
+
+Setting up a hybrid system involves the following steps.
+
+\begin{enumerate}
+
+\item {Generate static and dynamic ensemble.}
+
+  Follow steps described in the previous sections for generating EnKF and EnOI ensembles.
+
+\item{Decide on the scaling coefficient \verb|GAMMA| of the static ensemble.}
+
+  In practice OceanMAPS does not show much sensitivity to \verb|GAMMA|.
+
+\item{DA cycle design.}
+
+  It seems natural to follow the design described for the EnKF.
+  In situations when computing expenses are not an issue it is also possible to use observation window symmetric about analysis.
+
+\end{enumerate}
+
+\subsection{Settings in OceanMAPS v4.1}
+\label{sec:da-settings-example}
+
+\begin{tabular}{ll}
+  \bf Ensemble size: & 48 dynamic members, 144 static members\\
+  \bf Cycle length: & 1\,d\\
+  \bf Observation window: & $[-1, 0]$\,d about analysis\\
+  \bf Observation binning: & SLA 1\,d, SST 2\,h, T 1\,d, S 1\,d\\
+  \bf R-factors: & SLA 4.5, SST 48, T 18, S 18\\
+  \bf Loc. support radii (km): & SLA 175, SST 150, T 450, S 450\\
+  \bf ALPHA: & 0.70\\
+  \bf GAMMA: & 0.25\\
+  \bf Inflation: & 1.02 1\\
+  \bf K-factor: & 2\\
+\end{tabular}
+
 \chapter*{Acknowledgements}
 \addcontentsline{toc}{chapter}{Acknowledgments}
 
@@ -2357,10 +2530,11 @@ Used in data assimilation:\\[2mm]
   KS &-& Kalman smoother \\
   LA &-& local analysis \\
   QC &-& quality control \\
+  RPS &-& relaxation to prior spread \\
   SDAS &-& state of data assimilation system \\
-  SLA &-& sea level anomalies\\
+  SLA &-& sea level anomalies \\
   SRF &-& spread reduction factor \\
-  SST &-& sea surface temperature\\
+  SST &-& sea surface temperature \\
   SVD &-& singular value decomposition \\
 \end{tabular}
 
@@ -2369,7 +2543,10 @@ Used in ocean modelling:\\[2mm]
   LAM &-& local area model \\
   MDT &-& mean dynamic topography \\
   MLD &-& mixed layer depth \\
+  SIC &-& sea-ice concentration \\
+  SIT &-& sea-ice thickness \\
   SLA &-& sea level anomaly \\
+  SSH &-& sea surface height \\
   SST &-& sea surface temperature\\
 \end{tabular}
 
