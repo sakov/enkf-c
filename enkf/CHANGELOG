@@ -1,3 +1,8 @@
+v2.34.5
+   PS 06032025
+   -- A minor correction in obsprm.c that allows one to have a PARAMETER entry
+      before specifying TYPE. (Note that this may reduce functionality of
+      reader "z".)
 v2.43.4
    PS 10022025
    -- Added chapter 3 "Setting up a DA system" to the User Guide.

@@ -190,7 +190,7 @@ void obsprm_read(char fname[], int* nsection, obssection** sections, int* nexclu
              * parameters, such as e.g. VARNAME and ZNAME -- the first one found
              * in the data file will be used
              */
-            if (strcasecmp(section->reader, "z") != 0) {
+            if (section->reader != NULL && strcasecmp(section->reader, "z") != 0) {
                 if (strcasecmp(token, "QCFLAGNAME") != 0 && strcasecmp(token, "QCFLAGVARNAME") != 0 && strcasecmp(token, "QCFLAGVALS") != 0 && strcasecmp(token, "EXCLUDEINST") != 0) {
                     for (p = 0; p < section->npars; ++p) {
                         if (strncasecmp(token, section->pars[p].name, MAXSTRLEN - 1) == 0)
