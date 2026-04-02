@@ -63,6 +63,7 @@ struct gxy_curv2 {
     double** y[2];
     int sign[2];
     kdtree* nodetreeXY[2];
+    size_t nnodes, kdsize;      /* for logging */
 #if defined(USE_SHMEM)
     MPI_Win sm_comm_win[2];
 #endif
@@ -83,6 +84,21 @@ gxy_curv2* gxy_curv2_create(hgrid* hg, int ni, int nj, double** x, double** y, i
     gxy->y_orig = y;
 
     snprintf(kdname, MAXSTRLEN - 4, "%s_XY2", grid_getname(hg->parent));
+
+    for (proj = 0; proj < 2; ++proj)
+        gxy->nodetreeXY[proj] = kd_create(kdname, 2);
+
+    if (mask == NULL)
+        gxy->nnodes = ni * nj;
+    else {
+        int i;
+
+        for (i = 0, gxy->nnodes = 0; i < ni * nj; ++i)
+            if (mask[i] != 0)
+                gxy->nnodes++;
+    }
+    gxy->kdsize = kd_getstoragesize(gxy->nodetreeXY[0], gxy->nnodes);
+
     for (proj = 0; proj < 2; ++proj) {
         double* nodecoords[2];
         int sign, i;
@@ -112,29 +128,17 @@ gxy_curv2* gxy_curv2_create(hgrid* hg, int ni, int nj, double** x, double** y, i
             nodecoords[1][i] = r * sin(phi);
         }
 #endif
-        gxy->nodetreeXY[proj] = kd_create(kdname, 2);
 #if defined(USE_SHMEM)
         {
-            MPI_Aint size;
             int ierror;
-            size_t nnodes;
-
-            if (mask == NULL)
-                nnodes = ni * nj;
-            else
-                for (i = 0, nnodes = 0; i < ni * nj; ++i)
-                    if (mask[i] != 0)
-                        nnodes++;
-
-            size = kd_getstoragesize(gxy->nodetreeXY[proj], nnodes);
 
             if (sm_comm_rank == 0) {
                 void* storage = NULL;
 
                 assert(sizeof(MPI_Aint) == sizeof(size_t));
-                ierror = MPI_Win_allocate_shared(size, sizeof(double), MPI_INFO_NULL, sm_comm, &storage, &gxy->sm_comm_win[proj]);
+                ierror = MPI_Win_allocate_shared(gxy->kdsize, sizeof(double), MPI_INFO_NULL, sm_comm, &storage, &gxy->sm_comm_win[proj]);
                 assert(ierror == MPI_SUCCESS);
-                kd_setstorage(gxy->nodetreeXY[proj], nnodes, storage, 1);
+                kd_setstorage(gxy->nodetreeXY[proj], gxy->nnodes, storage, 1);
                 kd_insertnodes(gxy->nodetreeXY[proj], ni * nj, nodecoords, NULL, (mask != NULL) ? mask[0] : NULL, 1);
             } else {
                 MPI_Aint my_size;
@@ -145,8 +149,8 @@ gxy_curv2* gxy_curv2_create(hgrid* hg, int ni, int nj, double** x, double** y, i
                 assert(ierror == MPI_SUCCESS);
                 ierror = MPI_Win_shared_query(gxy->sm_comm_win[proj], 0, &my_size, &disp_unit, &storage);
                 assert(ierror == MPI_SUCCESS);
-                assert(my_size = size);
-                kd_setstorage(gxy->nodetreeXY[proj], nnodes, storage, 0);
+                assert(my_size = gxy->kdsize);
+                kd_setstorage(gxy->nodetreeXY[proj], gxy->nnodes, storage, 0);
                 kd_syncsize(gxy->nodetreeXY[proj]);
             }
             MPI_Win_fence(0, gxy->sm_comm_win[proj]);
@@ -439,4 +443,15 @@ int gxy_curv2_xy2fij(gxy_curv2* gxy, double x, double y, double* fij)
     }
 
     return 1;
+}
+
+/**
+ */
+void gxy_curv2_printkdtreesize(gxy_curv2* gxy, char* offset)
+{
+#if defined(USE_SHMEM)
+    enkf_printf("%s  2 KD trees: %zu nodes, %zu bytes each (in SHMEM)\n", offset, gxy->nnodes, gxy->kdsize);
+#else
+    enkf_printf("%s  2 KD trees: %zu nodes, %zu bytes each\n", offset, gxy->nnodes, gxy->kdsize);
+#endif
 }

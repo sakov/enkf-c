@@ -1,16 +1,19 @@
+v2.34.6
+   PS 02042026
+   -- A few changes in logging regarding shared memory allocations.
 v2.34.5
-   PS 06032025
+   PS 06032026
    -- A minor correction in obsprm.c that allows one to have a PARAMETER entry
       before specifying TYPE. (Note that this may reduce functionality of
       reader "z".)
 v2.43.4
-   PS 10022025
+   PS 10022026
    -- Added chapter 3 "Setting up a DA system" to the User Guide.
 v2.43.3
-   PS 14012025
+   PS 14012026
    -- Cosmetic changes.
 v2.43.2
-   PS 05012025
+   PS 05012026
    -- Cosmetic changes.
 v2.43.1
    PS 25122025

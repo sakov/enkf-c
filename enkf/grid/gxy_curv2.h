@@ -27,6 +27,7 @@ double** gxy_curv2_getx(gxy_curv2* gxy);
 double** gxy_curv2_gety(gxy_curv2* gxy);
 int gxy_curv2_xy2fij(gxy_curv2* gxy, double x, double y, double* fij);
 int incell(double x, double y, double* px, double* py);
+void gxy_curv2_printkdtreesize(gxy_curv2* gxy, char* offset);
 
 #define _GXY_CURV2_H
 #endif

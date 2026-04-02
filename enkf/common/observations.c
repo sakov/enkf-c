@@ -463,8 +463,11 @@ void obs_read(observations* obs, char fname[])
         ncw_close(ncid);
         goto finish;
     }
-
+#if defined(USE_SHMEM)
+    enkf_printf("    allocating %zu bytes for array of observations (in SHMEM)\n", nobs * sizeof(observation));
+#else
     enkf_printf("    allocating %zu bytes for array of observations\n", nobs * sizeof(observation));
+#endif
 #if defined(USE_SHMEM)
     {
         MPI_Aint size;

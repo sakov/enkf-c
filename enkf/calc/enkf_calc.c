@@ -324,8 +324,11 @@ int main(int argc, char* argv[])
             enkf_printf("  (destroyed grid kd-trees)\n");
             print_memory_usage();
         }
-
+#if defined(USE_SHMEM)
+    enkf_printf("    creating kd-trees for observations (in SHMEM):\n");
+#else
     enkf_printf("    creating kd-trees for observations:\n");
+#endif
     obs_createkdtrees(das->obs);
 
     if (print_mem)

@@ -343,10 +343,14 @@ void hgrid_describe(hgrid* hg, char* offset)
         enkf_printf("%s  h type = CURVILINEAR\n", offset);
 #if defined(ENKF_PREP) || defined(ENKF_CALC)
         enkf_printf("%s  geographic = %s\n", offset, (hg->geographic) ? "yes" : "no");
+        gxy_curv_printkdtreesize(hg->gxy, offset);
 #endif
         break;
     case GRIDHTYPE_CURVILINEAR2:
         enkf_printf("%s  h type = CURVILINEAR2\n", offset);
+#if defined(ENKF_PREP) || defined(ENKF_CALC)
+        gxy_curv2_printkdtreesize(hg->gxy, offset);
+#endif
         break;
     case GRIDHTYPE_UNSTRUCTURED:
         enkf_printf("%s  h type = UNSTRUCTURED\n", offset);

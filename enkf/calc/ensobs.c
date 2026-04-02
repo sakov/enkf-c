@@ -71,6 +71,7 @@ void das_getHE(dasystem* das)
      */
     assert(das->S == NULL);
 #if !defined(USE_SHMEM)
+    enkf_printf("    allocating %zu bytes for HE array:\n", nmem_alloc * nobs * sizeof(float));
     das->S = alloc2d(nmem_alloc, nobs, sizeof(float));
     /*
      * HE (das->S) is filled independently for different observation types and
@@ -86,7 +87,7 @@ void das_getHE(dasystem* das)
      * Allocate das->S in shared memory on each compute node. Allocate the
      * whole block on CPU with sm_comm_rank = 0.
      */
-    enkf_printf("    allocating %zu bytes for HE array:\n", size);
+    enkf_printf("    allocating %zu bytes for HE array (in SHMEM):\n", size);
 
     ierror = MPI_Win_allocate_shared((sm_comm_rank == 0) ? size : 0, sizeof(float), MPI_INFO_NULL, sm_comm, &SS, &das->sm_comm_win_S);
     assert(ierror == MPI_SUCCESS);
