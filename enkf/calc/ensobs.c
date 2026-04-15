@@ -127,7 +127,7 @@ void das_getHE(dasystem* das)
      */
     if (!enkf_fstatsonly) {
         size = nmem * nobs * sizeof(float);
-        enkf_printf("    allocating %zu bytes for HE^T array:\n", size);
+        enkf_printf("    allocating %zu bytes for HE^T array (in SHMEM):\n", size);
 
         ierror = MPI_Win_allocate_shared((sm_comm_rank == 0) ? size : 0, sizeof(float), MPI_INFO_NULL, sm_comm, &SSt, &das->sm_comm_win_St);
         assert(ierror == MPI_SUCCESS);

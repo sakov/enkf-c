@@ -75,6 +75,11 @@ grid* grid_create(void* p, int id, void** grids)
     gridprm* prm = (gridprm*) p;
     grid* g = calloc(1, sizeof(grid));
 
+    /*
+     * print settings to log
+     */
+    gridprm_print(prm, "    ");
+
     g->das = NULL;
     g->name = strdup(prm->name);
     g->id = id;
@@ -303,9 +308,8 @@ grid* grid_create(void* p, int id, void** grids)
     }
 
     /*
-     * print settings and results to log
+     * print grid info to log
      */
-    gridprm_print(prm, "    ");
     grid_print(g, "    ");
 
     return g;
