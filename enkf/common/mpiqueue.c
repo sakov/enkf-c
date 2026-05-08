@@ -99,19 +99,6 @@ mpiqueue* mpiqueue_create(MPI_Comm communicator, int njob)
         queue->mystatus = MPIQUEUE_WORKERSTATUS_WAITING;
     }
 
-    /*
-     * assign first batch of jobs
-     */
-    if (queue->rank == 0) {
-        int jobid, p;
-
-        for (p = 1, jobid = 0; p < queue->nprocesses && jobid < njob; ++p, ++jobid) {
-            MPI_Send(&jobid, 1, MPI_INT, p, MPIQUEUE_DEFAULTTAG, queue->communicator);
-            queue->jobstatus[jobid] = MPIQUEUE_JOBSTATUS_ASSIGNED;
-            queue->workerstatus[p] = MPIQUEUE_WORKERSTATUS_WORKING;
-        }
-    }
-
     return queue;
 }
 
@@ -137,12 +124,26 @@ int mpiqueue_getrank(mpiqueue* queue)
  */
 void mpiqueue_manage(mpiqueue* queue)
 {
+    int jobid, p;
+
     if (queue->rank != 0)
         quit("mpiqueue_manage(): rank = %d (requires rank = 0)\n", queue->rank);
 
+    /*
+     * assign jobs
+     */
+    if (queue->rank == 0) {
+
+        for (p = 1, jobid = 0; p < queue->nprocesses && jobid < queue->njob; ++p, ++jobid) {
+            MPI_Send(&jobid, 1, MPI_INT, p, MPIQUEUE_DEFAULTTAG, queue->communicator);
+            queue->jobstatus[jobid] = MPIQUEUE_JOBSTATUS_ASSIGNED;
+            queue->workerstatus[p] = MPIQUEUE_WORKERSTATUS_WORKING;
+        }
+    }
+
     while (1) {
         MPI_Status status;
-        int jobid, j, p;
+        int j;
 
         /*
          * check whether all jobs are completed
@@ -352,25 +353,13 @@ int main(int argc, char* argv[])
      * but only allow even CPUs calculate factorial for even n,
      * odd CPUs calculate factorial for odd n
      */
-
-    /*
-     * This check is specific to Task 2. It needs to be done before running
-     * mpiqueue_create() to avoid error messsages from MPI caused by mismatches
-     * in send/recv on exit.
-     */
-    {
-        int world_size, world_rank;
-
-        MPI_Comm_rank(MPI_COMM_WORLD, &world_rank);
-        MPI_Comm_size(MPI_COMM_WORLD, &world_size);
-        if (world_size < 3) {
-            if (world_rank == 0)
-                printf("\n  task 2: need NCPU >= 3, bailing out\n");
-            goto finish;
-        }
-    }
     queue = mpiqueue_create(MPI_COMM_WORLD, N + 1);
     rank = mpiqueue_getrank(queue);
+    if (queue->nprocesses < 3) {
+        if (queue->rank == 0)
+            printf("\n  task 2: need NCPU >= 3, bailing out\n");
+        goto finish;
+    }
     if (rank == 0) {
         printf("\n  task 2:\n");
         printf("    calculate n! for n = 0...%d\n", N);
@@ -395,7 +384,7 @@ int main(int argc, char* argv[])
     }
     mpiqueue_destroy(queue);
 
- finish:
+  finish:
 
     MPI_Finalize();
 

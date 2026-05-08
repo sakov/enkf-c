@@ -1,3 +1,11 @@
+v2.34.7
+   PS 08052026
+   -- Modified mpiqueue.c. The change is supposed to improve the code
+      consistency but has no implications for EnKF-C.
+      (It is now possible to cleanly destroy the queue before starting running
+      the jobs. In the previous version destroying the queue right after
+      creation resulted in a host of MPI errors because of unmatched
+      sends/receives.)
 v2.34.6
    PS 02042026
    -- A few changes in logging regarding shared memory allocations.
