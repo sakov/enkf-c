@@ -6,11 +6,11 @@
  *
  * Author:      Pavel Sakov
  *
- * Description: Code for MPI job queue. Process with rank 0 manages the queue,
- *              the remaining CPUs do the jobs. See main() for an example.
- *
- *              In contrast to distribute_iterations(), mpiqueue assigns
- *              jobs from the pool to CPUs on one-by-one basis.
+ * Description: Implements a dynamic load balancing queue for MPI tasks. This
+ *              design effectively manages pools of jobs with irregular
+ *              computational weights by using Rank 0 as a dedicated manager and
+ *              the remaining processes as workers. Usage examples are provided
+ *              in main().
  *
  * Revisions:   
  *
@@ -254,7 +254,7 @@ void mpiqueue_setquitfn(mpiqueue_quit_fn quit_fn)
     quit = quit_fn;
 }
 
-#if defined MPIQUEUE_TEST
+#if defined(MPIQUEUE_TEST)
 /**
  */
 #include <limits.h>
@@ -319,7 +319,7 @@ int main(int argc, char* argv[])
     MPI_Init(&argc, &argv);
 
     /*
-     * jobs: calculate n! for n = 0 ... N
+     * Task 1: calculate n! for n = 0 ... N
      */
     queue = mpiqueue_create(MPI_COMM_WORLD, N + 1);
     rank = mpiqueue_getrank(queue);
@@ -348,13 +348,28 @@ int main(int argc, char* argv[])
     usleep(100);
 
     /*
-     * jobs: calculate n! for n = 0...N
+     * Task 2: calculate n! for n = 0...N
      * but only allow even CPUs calculate factorial for even n,
      * odd CPUs calculate factorial for odd n
      */
+
+    /*
+     * This check is specific to Task 2. It needs to be done before running
+     * mpiqueue_create() to avoid error messsages from MPI caused by mismatches
+     * in send/recv on exit.
+     */
+    {
+        int world_size, world_rank;
+
+        MPI_Comm_rank(MPI_COMM_WORLD, &world_rank);
+        MPI_Comm_size(MPI_COMM_WORLD, &world_size);
+        if (world_size < 3) {
+            if (world_rank == 0)
+                printf("\n  task 2: need NCPU >= 3, bailing out\n");
+            goto finish;
+        }
+    }
     queue = mpiqueue_create(MPI_COMM_WORLD, N + 1);
-    if (queue->nprocesses < 3)
-        goto finish;
     rank = mpiqueue_getrank(queue);
     if (rank == 0) {
         printf("\n  task 2:\n");
@@ -378,8 +393,9 @@ int main(int argc, char* argv[])
             mpiqueue_reportjob(queue, jobid);
         }
     }
-  finish:
     mpiqueue_destroy(queue);
+
+ finish:
 
     MPI_Finalize();
 
