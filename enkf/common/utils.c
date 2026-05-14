@@ -834,7 +834,8 @@ void* alloc2d(size_t nj, size_t ni, size_t unitsize)
 }
 
 /** Similar to alloc2d except that it tries to fit the matrix into previously
- ** allocated storage.
+ ** allocated storage. Note that unlike realloc() the previous data is not
+ ** copied.
  *
  * @param prev Previous storage
  * @param nj Dimension 2

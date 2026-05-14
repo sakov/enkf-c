@@ -1,3 +1,7 @@
+v2.34.8
+   PS 14052026
+   -- Modified obsprm_read() to permit "=" in observation file names.
+   -- Several cosmetic changes.
 v2.34.7
    PS 08052026
    -- Modified mpiqueue.c. The change is supposed to improve the code

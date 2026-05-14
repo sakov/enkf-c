@@ -95,9 +95,8 @@ mpiqueue* mpiqueue_create(MPI_Comm communicator, int njob)
         queue->workerstatus[0] = MPIQUEUE_WORKERSTATUS_MANAGING;
         for (p = 1; p < queue->nprocesses; ++p)
             queue->workerstatus[p] = MPIQUEUE_WORKERSTATUS_WAITING;
-    } else {
+    } else
         queue->mystatus = MPIQUEUE_WORKERSTATUS_WAITING;
-    }
 
     return queue;
 }
@@ -259,6 +258,8 @@ void mpiqueue_setquitfn(mpiqueue_quit_fn quit_fn)
 /**
  */
 #include <limits.h>
+#include <stdint.h>
+#include <float.h>
 #include <unistd.h>
 
 /**
@@ -289,16 +290,30 @@ static int str2int(char* token, int* value)
 static void dojob(int rank, int jobid, int taskid)
 {
     size_t answer;
+    double answer_double;
     int i;
 
-    if (jobid <= 20) {
-        answer = 1;
-        for (i = 2; i <= jobid; ++i)
-            answer *= i;
+    answer = 1;
+    for (i = 2; i <= jobid && SIZE_MAX / i >= answer; ++i)
+        answer *= i;
+    if (i > jobid) {
         printf("  task %d: I am #%d: %d! = %zu\n", taskid, rank, jobid, answer);
-    } else
-        printf("  task %d: I am #%d: %d! = N/A (overflow)\n", taskid, rank, jobid);
+        goto finish;
+    }
 
+    /*
+     * treat size_t overflow by using double
+     */
+    answer_double = answer;
+    for (; i <= jobid && DBL_MAX / i >= answer_double; ++i)
+        answer_double *= i;
+
+    if (i <= jobid)
+        printf("  task %d: I am #%d: %d! = N/A (overflow)\n", taskid, rank, jobid);
+    else
+        printf("  task %d: I am #%d: %d! = %.17g\n", taskid, rank, jobid, answer_double);
+
+  finish:
     fflush(stdout);
 }
 
