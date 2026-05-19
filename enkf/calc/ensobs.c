@@ -1034,8 +1034,10 @@ static void das_sortobs_byij(dasystem* das)
     if (das->s_f != NULL) {
         double* s = calloc(obs->nobs, sizeof(double));
 
-        for (o = 0; o < obs->nobs; ++o)
+        for (o = 0; o < obs->nobs; ++o) {
+            assert((unsigned) obs->data[o].id < (unsigned) obs->nobs);
             s[o] = das->s_f[obs->data[o].id];
+        }
         memcpy(das->s_f, s, obs->nobs * sizeof(double));
 
         for (o = 0; o < obs->nobs; ++o)
@@ -1048,8 +1050,10 @@ static void das_sortobs_byij(dasystem* das)
     if (das->s_a != NULL) {
         double* s = calloc(obs->nobs, sizeof(double));
 
-        for (o = 0; o < obs->nobs; ++o)
+        for (o = 0; o < obs->nobs; ++o) {
+            assert((unsigned) obs->data[o].id < (unsigned) obs->nobs);
             s[o] = das->s_a[obs->data[o].id];
+        }
         memcpy(das->s_a, s, obs->nobs * sizeof(double));
 
         for (o = 0; o < obs->nobs; ++o)
@@ -1067,8 +1071,10 @@ static void das_sortobs_byij(dasystem* das)
         for (e = 0; e < das->nmem; ++e) {
             float* Se = das->S[e];
 
-            for (o = 0; o < obs->nobs; ++o)
+            for (o = 0; o < obs->nobs; ++o) {
+                assert((unsigned) obs->data[o].id < (unsigned) obs->nobs);
                 S[o] = Se[obs->data[o].id];
+            }
             memcpy(Se, S, obs->nobs * sizeof(float));
         }
         free(S);
