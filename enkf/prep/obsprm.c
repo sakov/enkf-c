@@ -125,11 +125,15 @@ void obsprm_read(char fname[], int* nsection, obssection** sections, int* nexclu
                 enkf_quit("%s, l.%d: TYPE not specified", fname, line);
             section->type = strdup(token);
         } else if (strcasecmp(token, "FILE") == 0) {
-            char seps2[] = " \t\n";
+            char* entry = token + strlen(token) + 1;
 
-            if ((token = strtok(NULL, seps2)) == NULL)
+            while (*entry != '\0' && (*entry == ' ' || *entry == '=' || *entry == '\t' || *entry == '\n'))
+                entry++;
+            
+            if (entry == NULL)
                 enkf_quit("%s, l.%d: FILE not specified", fname, line);
-            obssection_addfname(section, token);
+            entry[strcspn(entry, "\r\n")] = '\0';
+            obssection_addfname(section, entry);
         } else if (strcasecmp(token, "ERROR_STD") == 0) {
             std_entry* now = NULL;
             double std;

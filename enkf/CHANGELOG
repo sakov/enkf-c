@@ -1,3 +1,6 @@
+v2.34.10
+   PS 19052026
+   -- Corrected bug in enkfprm.c introduced in v2.34.8.
 v2.34.9
    PS 19052026
    -- Changed several "=" by "==" in recent assertions.
