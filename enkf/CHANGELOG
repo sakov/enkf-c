@@ -1,3 +1,8 @@
+v2.34.9
+   PS 19052026
+   -- Changed several "=" by "==" in recent assertions.
+   -- Removed "-lgfortran" in make.inc.linux-desktop-lapack (no longer needed
+      in openSUSE-Tumbleweed)
 v2.34.8
    PS 14052026
    -- Modified obsprm_read() to permit "=" in observation file names.

@@ -1666,7 +1666,7 @@ void obs_createkdtrees(observations* obs)
                 assert(ierror == MPI_SUCCESS);
                 ierror = MPI_Win_shared_query(*sm_comm_win, 0, &my_size, &disp_unit, &storage);
                 assert(ierror == MPI_SUCCESS);
-                assert(my_size = size);
+                assert(my_size == size);
                 kd_setstorage(*tree, nobs, storage, 0);
             }
         }

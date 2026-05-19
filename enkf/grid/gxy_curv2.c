@@ -149,7 +149,7 @@ gxy_curv2* gxy_curv2_create(hgrid* hg, int ni, int nj, double** x, double** y, i
                 assert(ierror == MPI_SUCCESS);
                 ierror = MPI_Win_shared_query(gxy->sm_comm_win[proj], 0, &my_size, &disp_unit, &storage);
                 assert(ierror == MPI_SUCCESS);
-                assert(my_size = gxy->kdsize);
+                assert(my_size == gxy->kdsize);
                 kd_setstorage(gxy->nodetreeXY[proj], gxy->nnodes, storage, 0);
                 kd_syncsize(gxy->nodetreeXY[proj]);
             }

@@ -126,7 +126,7 @@ triangulation* triangulation_read(char* fname, char* name_x, char* name_y, char*
             assert(ierror == MPI_SUCCESS);
             ierror = MPI_Win_shared_query(d->sm_win_tridata, 0, &my_size, &disp_unit, &storage);
             assert(ierror == MPI_SUCCESS);
-            assert(my_size = storagesize);
+            assert(my_size == storagesize);
         }
     }
 #else
