@@ -1,3 +1,11 @@
+v2.34.11
+   PS 20052026
+   -- Modified utils.c:find_files() to exit with error if no files are found
+      for a template. (The check for existence is supposed to be made outside
+      of PREP when generating observation data parameter file.) Please let me
+      know if you find this inconvenient.
+   -- A minor modification of enkf_quit() not to report the rank when running
+      on a single CPU.
 v2.34.10
    PS 19052026
    -- Corrected bug in enkfprm.c introduced in v2.34.8.

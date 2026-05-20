@@ -62,7 +62,10 @@ void enkf_quit(char* format, ...)
 
     fflush(stdout);
 
-    fprintf(stderr, "\n\n  ERROR: enkf: CPU #%d: ", rank);
+    if (nprocesses > 1)
+        fprintf(stderr, "\n\n  ERROR: enkf: CPU #%d: ", rank);
+    else
+        fprintf(stderr, "\n\n  ERROR: enkf: ");
     va_start(args, format);
     vfprintf(stderr, format, args);
     va_end(args);
@@ -488,7 +491,8 @@ void find_files(char* template, int* nfiles, char*** fnames)
         *fnames = realloc(*fnames, (*nfiles + 1) * sizeof(void*));
         (*fnames)[*nfiles] = strdup(template);
         *nfiles += 1;
-    }
+    } else
+        enkf_quit("%s: no such files", template);
 }
 
 /*
