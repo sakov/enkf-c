@@ -1557,6 +1557,9 @@ void das_update(dasystem* das)
     int gid;
 #endif
 
+    if (rank == 0 && !(das->updatespec & UPDATE_DIRECTWRITE))
+        dir_createifabsent(DIRNAME_TMP);
+
 #if defined(MPI)
     MPI_Barrier(MPI_COMM_WORLD);
 #endif
@@ -1567,8 +1570,6 @@ void das_update(dasystem* das)
         enkf_printtime("      ");
         das_allocatedst(das, ROOTNAME_INFLATION);
         enkf_flush();
-        if (rank == 0 && !(das->updatespec & UPDATE_DIRECTWRITE))
-            dir_createifabsent(DIRNAME_TMP);
     }
 
     if (das->updatespec & UPDATE_DOFIELDS) {

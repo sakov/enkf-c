@@ -129,7 +129,7 @@ void obsprm_read(char fname[], int* nsection, obssection** sections, int* nexclu
 
             while (*entry != '\0' && (*entry == ' ' || *entry == '=' || *entry == '\t' || *entry == '\n'))
                 entry++;
-            
+
             if (entry == NULL)
                 enkf_quit("%s, l.%d: FILE not specified", fname, line);
             entry[strcspn(entry, "\r\n")] = '\0';

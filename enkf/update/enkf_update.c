@@ -204,7 +204,6 @@ int main(int argc, char* argv[])
         plogs_definestatevars(das);
         enkf_printf("\n");
         enkf_flush();
-        dir_createifabsent(DIRNAME_TMP);
     }
 
     if (das->updatespec & UPDATE_DOPLOGSFC) {
@@ -218,8 +217,6 @@ int main(int argc, char* argv[])
         enkf_printtime("    ");
         das_allocatedst(das, ROOTNAME_SPREAD);
         enkf_flush();
-        if (rank == 0 && !(das->updatespec & UPDATE_DIRECTWRITE))
-            dir_createifabsent(DIRNAME_TMP);
     }
 
     if (das->updatespec & (UPDATE_DOFIELDS | UPDATE_DOPLOGSAN | UPDATE_DOINFLATION)) {
