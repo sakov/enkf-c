@@ -28,7 +28,6 @@
 
 #define NOBSTYPES_INC 10
 #define PLOC_INC 10000
-#define HT_SIZE 500
 #define EPSF 1.0e-5
 
 typedef struct {
@@ -37,11 +36,6 @@ typedef struct {
     int fid;
     int batch;
 } badbatch;
-
-typedef union {
-    int key_int[2];
-    short int key_short[4];
-} keydata;
 
 /**
  */

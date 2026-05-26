@@ -345,6 +345,11 @@ int main(int argc, char* argv[])
     obs_compact(obs);
     obs_calcstats(obs);
 
+    if (write_orig_obs && describe_superob_id < 0) {
+        enkf_printf("  writing observations to \"%s\":\n", FNAME_OBS);
+        obs_write(obs, FNAME_OBS);
+    }
+
     if (do_superob) {
         enkf_printtime("  ");
         enkf_printf("  sorting:\n");
@@ -376,51 +381,39 @@ int main(int argc, char* argv[])
         enkf_printtime("  ");
         enkf_printf("  writing superobservations to \"%s\":\n", FNAME_SOBS);
         obs_write(sobs, FNAME_SOBS);
-    } else {
-        observation* data = malloc(obs->ngood * sizeof(observation));
+        
+        /*
+         * write superob indices to the file with original observations 
+         */
+        if (write_orig_obs)
+            obs_writeaux(obs, FNAME_OBS);
 
-        memcpy(data, obs->data, obs->ngood * sizeof(observation));
-        sobs = obs_create_fromdata(obs, obs->ngood, data);
-        obs_write(sobs, FNAME_SOBS);
-        goto finalise;
-    }
+        if (enkf_considersubgridvar) {
+            int firsttime = 1;
 
-    if (write_orig_obs && describe_superob_id < 0) {
-        enkf_printf("  writing observations to \"%s\":\n", FNAME_OBS);
-        obs_write(obs, FNAME_OBS);
-    }
+            for (i = 0; i < sobs->nobstypes; ++i) {
+                obstype* ot = &sobs->obstypes[i];
 
-    /*
-     * write superob indices to the file with original observations 
-     */
-    if (write_orig_obs && describe_superob_id < 0 && do_superob)
-        obs_writeaux(obs, FNAME_OBS);
-
-    if (enkf_considersubgridvar) {
-        int firsttime = 1;
-
-        for (i = 0; i < sobs->nobstypes; ++i) {
-            obstype* ot = &sobs->obstypes[i];
-
-            if (ot->nsubgrid > 0) {
-                if (firsttime) {
-                    enkf_printf("  # obs with increased error due to subgrid variability:\n");
-                    firsttime = 0;
+                if (ot->nsubgrid > 0) {
+                    if (firsttime) {
+                        enkf_printf("  # obs with increased error due to subgrid variability:\n");
+                        firsttime = 0;
+                    }
+                    enkf_printf("    %s %d (%.2f%%)\n", ot->name, ot->nsubgrid, (double) ot->nsubgrid / (double) ot->ngood * 100.0);
                 }
-                enkf_printf("    %s %d (%.2f%%)\n", ot->name, ot->nsubgrid, (double) ot->nsubgrid / (double) ot->ngood * 100.0);
             }
         }
-    }
+    } else
+        obs_write(obs, FNAME_SOBS);
+
+    enkf_printf("  printing observation summary:\n");
+    print_obsstats(obs, sobs);
 
   finalise:
 
-    if (describe_superob_id < 0) {
-        enkf_printf("  printing observation summary:\n");
-        print_obsstats(obs, sobs);
-    }
-
+    if (sobs != NULL)
+        obs_destroy(sobs);
     obs_destroy(obs);
-    obs_destroy(sobs);
     model_destroy(m);
     enkfprm_destroy(prm);
 

@@ -657,6 +657,9 @@ void print_obsstats(observations* obs, observations* sobs)
 {
     int i;
 
+    if (sobs == NULL)
+        sobs = obs;
+
     enkf_printf("    type    #used    #dropped #out_grd #out_obs #out_wnd #land    #shallow #badbatch#badvalue#thinned #excluded#superobs\n");
     enkf_printf("    -----------------------------------------------------------------------------------------------------------\n");
     for (i = 0; i < obs->nobstypes; ++i) {
