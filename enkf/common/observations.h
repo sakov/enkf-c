@@ -24,6 +24,23 @@
 #include "model.h"
 #include "obstypes.h"
 
+#if defined(ENKF_PREP)
+/*
+ * Location based thinning is conducted during superobing. It is applied to
+ * batches of obs. to be collated. (Therefore, by default it does not apply to
+ * obs. from different files, instruments, batches, time intervals, model
+ * cells.) The type of thinning is specified in sections of observation data
+ * parameter file and applies to the corresponding data.
+ */
+#define LOCATIONTHINNINGTYPE_NIL 0      /* no location based thinning */
+#define LOCATIONTHINNINGTYPE_XYZ 1      /* obs with exactly the same X,Y,Z
+                                         * coords */
+#define LOCATIONTHINNINGTYPE_XY  2      /* obs with exactly the same X,Y
+                                         * coords */
+#define LOCATIONTHINNINGTYPE_CELL 3     /* obs within cell */
+#define LOCATIONTHINNINGTYPE_DEFAULT  LOCATIONTHINNINGTYPE_XYZ
+#endif
+
 /*
  * (we keep the integer types signed for compatibility with netcdf 3)
  */

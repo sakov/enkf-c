@@ -18,8 +18,8 @@
 #define MAXSTRLEN 4096
 #define SHORTSTRLEN 128
 /*
- * Memory allocation increment for observations. One might increase it for
- * large systems and possibly reduce for small systems.
+ * Initial memory allocation increment for observations. One might increase it
+ * for large systems and possibly reduce for small systems.
  */
 #define NOBS_INC 500000
 
@@ -66,12 +66,12 @@
 #define MODE_ENOI 2
 #define MODE_HYBRID 3
 
-#define ALPHA_DEFAULT 1.0
-
 #define SCHEME_NONE 0
 #define SCHEME_DENKF 1
 #define SCHEME_ETKF 2
 #define SCHEME_DEFAULT SCHEME_DENKF
+
+#define ALPHA_DEFAULT 1.0       /* 1.0 = no relaxation to prior spread */
 
 #define EXITACTION_BACKTRACE 0
 #define EXITACTION_SEGFAULT 1
@@ -88,12 +88,6 @@
  * Use of this limiter can be overriden by using qualifier PLAIN for inflation.
  */
 #define INFRATIO_DEFAULT 1.0
-
-#define OBS_SORTMODE_ID 0
-#define OBS_SORTMODE_IJ 1
-
-#define STATE_BIGNUM 1.0e4
-#define STD_BIG 1.0e10
 
 #define ALLOCTYPE_NONE -1
 #define ALLOCTYPE_1D    0
@@ -112,21 +106,6 @@
 #define UPDATE_NEEDAN           (UPDATE_DOFIELDS | UPDATE_DOINFLATION)
 
 /*
- * Location based thinning is conducted during superobing. It is applied to
- * batches of obs. to be collated. (Therefore, by default it does not apply to
- * obs. from different files, instruments, batches, time intervals, model
- * cells.) The type of thinning is specified in sections of observation data
- * parameter file and applies to the corresponding data.
- */
-#define LOCATIONTHINNINGTYPE_NIL 0      /* no location based thinning */
-#define LOCATIONTHINNINGTYPE_XYZ 1      /* obs with exactly the same X,Y,Z
-                                         * coords */
-#define LOCATIONTHINNINGTYPE_XY  2      /* obs with exactly the same X,Y
-                                         * coords */
-#define LOCATIONTHINNINGTYPE_CELL 3     /* obs within cell */
-#define LOCATIONTHINNINGTYPE_DEFAULT  LOCATIONTHINNINGTYPE_XYZ
-
-/*
  * the default vertical split for 3D fields in obs stats
  */
 #define DEPTH_SHALLOW 50.0
@@ -134,7 +113,8 @@
 #define DEPTH_MAX 9999.0
 
 /* 
- *it is assumed that if model |value| > MAXOBSVAL, then it is invalid (NaN)
+ *it is assumed that if model or observation |value| > MAXOBSVAL, then it is
+ * invalid (NaN)
  */
 #define MAXOBSVAL 999999.0
 

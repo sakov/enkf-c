@@ -79,7 +79,7 @@ static void evaluate_2d_obs(model* m, observations* allobs, int nobs, int obsids
                 enkf_quit("obs # %d: it seems that the grid is too coarse to handle footprint = %f for observations of type \"%s\"; you need to set the footprint to zero (or remove the entry)", ii, o->footprint, ot->name);
             }
         }
-        if (!isfinite(out[ii]) || fabs(out[ii]) > STATE_BIGNUM) {
+        if (!isfinite(out[ii]) || fabs(out[ii]) > MAXOBSVAL) {
             if (!skip_bad_fc_obs) {
                 enkf_flush();
                 enkf_verbose = -1;      /* force printing regardless of rank */
@@ -109,7 +109,7 @@ static void interpolate_3d_obs(model* m, observations* allobs, int nobs, int obs
         assert(isnan(out[ii]));
         out[ii] = grid_interpolate3d(g, o->fij, o->fk, v);
 
-        if (!isfinite(out[ii]) || fabs(out[ii]) > STATE_BIGNUM) {
+        if (!isfinite(out[ii]) || fabs(out[ii]) > MAXOBSVAL) {
             if (!skip_bad_fc_obs) {
                 enkf_flush();
                 enkf_verbose = -1;      /* force printing regardless of rank */

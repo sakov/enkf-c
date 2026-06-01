@@ -27,6 +27,9 @@
 #define S_MODE_HE_a 4
 #define S_MODE_HA_a 5
 #define S_MODE_S_a  6
+
+#define OBS_SORTMODE_ID 0
+#define OBS_SORTMODE_IJ 1
 #endif
 
 #if defined(ENKF_UPDATE) || defined(ENS_DIAG)

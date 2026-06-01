@@ -281,11 +281,13 @@ void obs_destroy(observations* obs)
 void obs_checkalloc(observations* obs)
 {
     if (obs->nobs == obs->nallocated) {
-        obs->data = realloc(obs->data, (obs->nobs + NOBS_INC) * sizeof(observation));
+        int ninc = (obs->nobs / 4 > NOBS_INC) ? obs->nobs / 4 : NOBS_INC;
+
+        obs->data = realloc(obs->data, (obs->nobs + ninc) * sizeof(observation));
         if (obs->data == NULL)
             enkf_quit("obs_checkalloc(): not enough memory");
-        obs->nallocated += NOBS_INC;
-        memset(&obs->data[obs->nobs], 0, NOBS_INC * sizeof(observation));
+        obs->nallocated += ninc;
+        memset(&obs->data[obs->nobs], 0, ninc * sizeof(observation));
     }
 }
 #endif
