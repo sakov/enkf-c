@@ -1,3 +1,10 @@
+v2.44.0
+   PS 04052026
+   -- In prep/obsprm.c and prep/prep_utils.c -- added an option to exclude
+      observations of a certain type in a region specified by grid mask. The
+      immediate purpose is to run an experiment when all SST obs except those
+      from Himawari-9 are excluded in the H9 support region.
+   -- A number of cosmetic changes.
 v2.43.14
    PS 01062026
    -- A bit of cleanup of definitions.

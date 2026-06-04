@@ -7,7 +7,11 @@
  * Author:      Pavel Sakov
  *              Bureau of Meteorology
  *
- * Description:
+ * Description: The main program for PREP.
+ *
+ *              PREP reads observations into a uniform array, conducts
+ *              super-obing and writes prepared observations to observations.nc.
+ *              See EnKF-C User Guide for details.
  *
  * Revisions:
   *****************************************************************************/
@@ -381,7 +385,7 @@ int main(int argc, char* argv[])
         enkf_printtime("  ");
         enkf_printf("  writing superobservations to \"%s\":\n", FNAME_SOBS);
         obs_write(sobs, FNAME_SOBS);
-        
+
         /*
          * write superob indices to the file with original observations 
          */

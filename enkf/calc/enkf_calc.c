@@ -7,7 +7,12 @@
  * Author:      Pavel Sakov
  *              Bureau of Meteorology
  *
- * Description:
+ * Description: The main program for CALC.
+ *
+ *              CALC calculates ensemble transforms used in UPDATE for updating
+ *              model fields. It also does a number of auxiliary tasks including
+ *              calculating observation statistics. See EnKF-C User Guide for
+ *              details.
  *
  * Revisions:
  *

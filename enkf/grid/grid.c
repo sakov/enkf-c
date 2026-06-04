@@ -344,6 +344,13 @@ void* grid_getvgrid(grid* g)
 
 /**
  */
+void* grid_gethgrid(grid* g)
+{
+    return g->hgrid;
+}
+
+/**
+ */
 int grid_gethtype(grid* g)
 {
     return g->hgrid->type;

@@ -18,6 +18,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
+#include "ncw.h"
 #include "definitions.h"
 #include "utils.h"
 #include "obsprm.h"
@@ -95,20 +96,41 @@ void obsprm_read(char fname[], int* nsection, obssection** sections, int* nexclu
             r->otname = strdup(token);
             if ((token = strtok(NULL, seps)) == NULL)
                 enkf_quit("%s, l.%d: minimal longitude not specified", fname, line);
-            if (!str2double(token, &r->x1))
-                enkf_quit("%s, l.%d: could not convert \"%s\" to double", fname, line, token);
-            if ((token = strtok(NULL, seps)) == NULL)
-                enkf_quit("%s, l.%d: maximal longitude not specified", fname, line);
-            if (!str2double(token, &r->x2))
-                enkf_quit("%s, l.%d: could not convert \"%s\" to double", fname, line, token);
-            if ((token = strtok(NULL, seps)) == NULL)
-                enkf_quit("%s, l.%d: minimal latitude not specified", fname, line);
-            if (!str2double(token, &r->y1))
-                enkf_quit("%s, l.%d: could not convert \"%s\" to double", fname, line, token);
-            if ((token = strtok(NULL, seps)) == NULL)
-                enkf_quit("%s, l.%d: maximal latitude not specified", fname, line);
-            if (!str2double(token, &r->y2))
-                enkf_quit("%s, l.%d: could not convert \"%s\" to double", fname, line, token);
+            if (!str2double(token, &r->x1)) {
+                int ncid, status;
+
+                if (!file_exists(token))
+                    enkf_quit("%s, l.%d: could not convert \"%s\" to double or find such file", fname, line, token);
+                status = nc_open(token, NC_NOWRITE, &ncid);
+                if (status != NC_NOERR)
+                    enkf_quit("%s, l.%d: %s: not a NetCDF file\n", fname, line, token);
+                r->maskfname = strdup(token);
+                if ((token = strtok(NULL, seps)) == NULL)
+                    enkf_quit("%s, l.%d: could not find variable name after \"%s\"", fname, line, r->maskfname);
+                if (!ncw_var_exists(ncid, token))
+                    enkf_quit("%s, l.%d: %s: could not find variable \"%s\"", fname, line, r->maskfname, token);
+                ncw_close(ncid);
+                r->maskvarname = strdup(token);
+                r->x1 = NAN;
+                r->x2 = NAN;
+                r->y1 = NAN;
+                r->y2 = NAN;
+            } else {
+                if ((token = strtok(NULL, seps)) == NULL)
+                    enkf_quit("%s, l.%d: maximal longitude not specified", fname, line);
+                if (!str2double(token, &r->x2))
+                    enkf_quit("%s, l.%d: could not convert \"%s\" to double", fname, line, token);
+                if ((token = strtok(NULL, seps)) == NULL)
+                    enkf_quit("%s, l.%d: minimal latitude not specified", fname, line);
+                if (!str2double(token, &r->y1))
+                    enkf_quit("%s, l.%d: could not convert \"%s\" to double", fname, line, token);
+                if ((token = strtok(NULL, seps)) == NULL)
+                    enkf_quit("%s, l.%d: maximal latitude not specified", fname, line);
+                if (!str2double(token, &r->y2))
+                    enkf_quit("%s, l.%d: could not convert \"%s\" to double", fname, line, token);
+                r->maskfname = NULL;
+                r->maskvarname = NULL;
+            }
             (*nexclude)++;
             continue;
         }
@@ -270,7 +292,10 @@ void obsprm_read(char fname[], int* nsection, obssection** sections, int* nexclu
     for (i = 0; i < *nexclude; ++i) {
         obsregion* r = &(*exclude)[i];
 
-        enkf_printf("    EXCLUDE: TYPE = %s, %.3f <= lon <= %.3f, %.3f <= lat <= %.3f\n", r->otname, r->x1, r->x2, r->y1, r->y2);
+        if (r->maskfname == NULL)
+            enkf_printf("    EXCLUDE: TYPE = %s, %.3f <= lon <= %.3f, %.3f <= lat <= %.3f\n", r->otname, r->x1, r->x2, r->y1, r->y2);
+        else
+            enkf_printf("    EXCLUDE: TYPE = %s, MASK = %s %s\n", r->otname, r->maskfname, r->maskvarname);
     }
 }
 
@@ -314,8 +339,15 @@ void obsprm_destroy(int nsection, obssection sections[], int nexclude, obsregion
     if (sections != NULL)
         free(sections);
 
-    for (i = 0; i < nexclude; ++i)
-        free(exclude[i].otname);
+    for (i = 0; i < nexclude; ++i) {
+        obsregion* r = &exclude[i];
+
+        free(r->otname);
+        if (r->maskfname != NULL) {
+            free(r->maskfname);
+            free(r->maskvarname);
+        }
+    }
     if (exclude != NULL)
         free(exclude);
 }
@@ -340,7 +372,8 @@ void obsprm_describeprm(void)
     enkf_printf("\n");
     enkf_printf("  [ <more of the above blocks> ]\n");
     enkf_printf("\n");
-    enkf_printf("  [ EXCLUDE   = { <observation type> | ALL } <lon1> <lon2> <lat1> <lat2> ]\n");
+    enkf_printf("  [ EXCLUDE   = { <observation type> | ALL } <lon1> <lon2> <lat1> <lat2>\n");
+    enkf_printf("                | <observation type> <mask file> <varname>]\n");
     enkf_printf("    ...\n");
     enkf_printf("\n");
     enkf_printf("  Notes:\n");

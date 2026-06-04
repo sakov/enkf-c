@@ -7,10 +7,12 @@
  * Author:      Pavel Sakov
  *              Bureau of Meteorology
  *
- * Description: The code to update model fields using ensmeble transforms
- *              calculated by CALC. It also does a number of auxiliary tasks
- *              such as calculating and writing ensemble spread, inflation,
- *              point logs etc.
+ * Description: The main program for UPDATE.
+ *
+ *              UPDATE updates model fields using ensemble transforms calculated
+ *              in CALC. It also does a number of auxiliary tasks such as
+ *              calculating and writing ensemble spread, inflation, point logs
+ *              etc. See EnKF-C User Guide for details.
  *
  * Revisions:   PS 15/07/2019: Moved procedures related to spread, inflation,
  *                and vertical correlations to diag.c.

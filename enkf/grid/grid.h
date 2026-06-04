@@ -55,6 +55,8 @@ grid* grid_create(void* prm, int id, void** grids);
 void grid_destroy(grid* g);
 
 void* grid_getvgrid(grid* g);
+void* grid_gethgrid(grid* g);
+
 int grid_gethtype(grid* g);
 int grid_getvtype(grid* g);
 int grid_isempty(grid* g);
@@ -67,8 +69,6 @@ void grid_getsize(grid* g, int* ni, int* nj, int* nk);
 int grid_getsurflayerid(grid* g);
 char* grid_getname(grid* g);
 int grid_getid(grid* g);
-int grid_gethtype(grid* g);
-int grid_getvtype(grid* g);
 void* grid_getnumlevels(grid* g);
 double grid_getlonbase(grid* g);
 int grid_getstride(grid* g);
