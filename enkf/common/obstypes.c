@@ -94,6 +94,8 @@ static void obstype_new(obstype* type, int i, char* name)
     type->time_max = -DBL_MAX;
     type->ndomains = 0;
     type->domainnames = NULL;
+    type->nexclude = 0;
+    type->exclude = NULL;
 }
 
 /**
@@ -172,6 +174,15 @@ static void obstype_print(obstype* type)
     if (type->sob_stride != 1)
         enkf_printf("      SOB_STRIDE = %d\n", type->sob_stride);
     enkf_printf("      PERMIT_LOCATION_BASED_THINNING = %s\n", (type->can_thin) ? "YES" : "NO");
+
+    for (i = 0; i < type->nexclude; ++i) {
+        obsregion* r = &type->exclude[i];
+
+        if (r->maskfname == NULL)
+            enkf_printf("    EXCLUDE: %.3f <= lon <= %.3f, %.3f <= lat <= %.3f\n", r->x1, r->x2, r->y1, r->y2);
+        else
+            enkf_printf("    EXCLUDE: MASK = %s %s\n", r->maskfname, r->maskvarname);
+    }
 }
 
 /**
@@ -183,6 +194,13 @@ void obstypes_read(enkfprm* prm, char fname[], int* n, obstype** types)
     int line;
     obstype* now = NULL;
     int i;
+
+    /*
+     * exclude regions for all observation types
+     * (these are entered outside particular observation type blocks)
+     */
+    int nexclude = 0;
+    obsregion* exclude = NULL;
 
     assert(*n == 0);
 
@@ -207,6 +225,60 @@ void obstypes_read(enkfprm* prm, char fname[], int* n, obstype** types)
             now = &(*types)[*n];
             obstype_new(now, *n, token);
             (*n)++;
+            continue;
+        } else if (strcasecmp(token, "EXCLUDE") == 0) {
+            obsregion* r = NULL;
+
+            if (now == NULL) {
+                if (nexclude % NINC == 0)
+                    exclude = realloc(exclude, (nexclude + NINC) * sizeof(obsregion));
+                r = &exclude[nexclude];
+            } else {
+                if (now->nexclude % NINC == 0)
+                    now->exclude = realloc(now->exclude, (now->nexclude + NINC) * sizeof(obsregion));
+                r = &now->exclude[now->nexclude];
+            }
+            if ((token = strtok(NULL, seps)) == NULL)
+                enkf_quit("%s, l.%d: exclude region not specified", fname, line);
+            if (!str2double(token, &r->x1)) {
+                int ncid, status;
+
+                if (!file_exists(token))
+                    enkf_quit("%s, l.%d: could not convert \"%s\" to double or find such file", fname, line, token);
+                status = nc_open(token, NC_NOWRITE, &ncid);
+                if (status != NC_NOERR)
+                    enkf_quit("%s, l.%d: %s: not a NetCDF file\n", fname, line, token);
+                r->maskfname = strdup(token);
+                if ((token = strtok(NULL, seps)) == NULL)
+                    enkf_quit("%s, l.%d: could not find variable name after \"%s\"", fname, line, r->maskfname);
+                if (!ncw_var_exists(ncid, token))
+                    enkf_quit("%s, l.%d: %s: could not find variable \"%s\"", fname, line, r->maskfname, token);
+                ncw_close(ncid);
+                r->maskvarname = strdup(token);
+                r->x1 = NAN;
+                r->x2 = NAN;
+                r->y1 = NAN;
+                r->y2 = NAN;
+            } else {
+                if ((token = strtok(NULL, seps)) == NULL)
+                    enkf_quit("%s, l.%d: maximal longitude not specified", fname, line);
+                if (!str2double(token, &r->x2))
+                    enkf_quit("%s, l.%d: could not convert \"%s\" to double", fname, line, token);
+                if ((token = strtok(NULL, seps)) == NULL)
+                    enkf_quit("%s, l.%d: minimal latitude not specified", fname, line);
+                if (!str2double(token, &r->y1))
+                    enkf_quit("%s, l.%d: could not convert \"%s\" to double", fname, line, token);
+                if ((token = strtok(NULL, seps)) == NULL)
+                    enkf_quit("%s, l.%d: maximal latitude not specified", fname, line);
+                if (!str2double(token, &r->y2))
+                    enkf_quit("%s, l.%d: could not convert \"%s\" to double", fname, line, token);
+                r->maskfname = NULL;
+                r->maskvarname = NULL;
+            }
+            if (now == NULL)
+                nexclude++;
+            else
+                now->nexclude++;
             continue;
         }
 
@@ -468,6 +540,39 @@ void obstypes_read(enkfprm* prm, char fname[], int* n, obstype** types)
             type->nlobsmax = prm->nlobsmax;
         if (type->sob_stride < 0)
             type->sob_stride = prm->sob_stride;
+        /*
+         * add common exclude regions to each observation type
+         */
+        if (nexclude > 0) {
+            int j;
+
+            type->nexclude = nexclude;
+            type->exclude = realloc(type->exclude, (type->nexclude + nexclude) * sizeof(obsregion));
+            for (j = 0; j < nexclude; ++j) {
+                obsregion* src = &exclude[j];
+                obsregion* dst = &type->exclude[type->nexclude + j];
+
+                /*
+                 * (these have either valid values or NaNs)
+                 */
+                dst->x1 = src->x1;
+                dst->x2 = src->x2;
+                dst->y1 = src->y1;
+                dst->y2 = src->y2;
+                if (src->maskfname != NULL) {
+                    dst->maskfname = strdup(src->maskfname);
+                    dst->maskvarname = strdup(src->maskvarname);
+                }
+            }
+            type->nexclude += nexclude;
+        }
+    }
+    if (nexclude > 0) {
+        for (i = 0; i < nexclude; ++i) {
+            free(exclude[i].maskfname);
+            free(exclude[i].maskvarname);
+        }
+        free(exclude);
     }
 
     for (i = 0; i < *n; ++i) {
@@ -512,8 +617,11 @@ void obstypes_describeprm(void)
     enkf_printf("  [ ZMAX        = <maximal allowed Z coordinate> ]       (+inf*)\n");
     enkf_printf("  [ WINDOWMIN   = <start of obs window in days from analysis> ] (-inf*)\n");
     enkf_printf("  [ WINDOWMAX   = <end of obs window in days from analysis> ]   (+inf*)\n");
+    enkf_printf("  [ EXCLUDE     = <lon1> <lon2> <lat1> <lat2> | <mask file> <varname>]\n");
+    enkf_printf("    ...\n");
     enkf_printf("\n");
     enkf_printf("  [ <more of the above blocks> ]\n");
+    enkf_printf("  [ EXCLUDE     = <lon1> <lon2> <lat1> <lat2> | <mask file> <varname>]\n");
     enkf_printf("\n");
     enkf_printf("  Notes:\n");
     enkf_printf("    1. { ... | ... | ... } denotes the list of possible choices\n");
@@ -646,6 +754,13 @@ void obstypes_destroy(int n, obstype* types)
             for (j = 0; j < ot->ndomains; ++j)
                 free(ot->domainnames[j]);
             free(ot->domainnames);
+        }
+        if (ot->nexclude > 0) {
+            for (i = 0; i < ot->nexclude; ++i) {
+                free(ot->exclude[i].maskfname);
+                free(ot->exclude[i].maskvarname);
+            }
+            free(ot->exclude);
         }
     }
 

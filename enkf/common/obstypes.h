@@ -15,6 +15,17 @@
 
 #if !defined(_OBSTYPES_H)
 
+/*
+ * An obsregion is defined either by lon/lat rectangle or by mask file/variable
+ * with mask on the grid of the model variable the observation type of the
+ * obsregion is associated with.
+ */
+typedef struct {
+    double x1, x2, y1, y2;
+    char* maskfname;
+    char* maskvarname;
+} obsregion;
+
 typedef struct {
     int id;
     char* name;
@@ -98,6 +109,12 @@ typedef struct {
      */
     int ndomains;
     char** domainnames;
+
+    /*
+     * regions where observations are ignored
+     */
+    int nexclude;
+    obsregion* exclude;
 } obstype;
 
 void obstypes_destroy(int n, obstype* types);

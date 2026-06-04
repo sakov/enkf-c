@@ -295,8 +295,6 @@ int main(int argc, char* argv[])
     model* m;
     int nsection = 0;
     obssection* sections = NULL;
-    int nexclude = 0;
-    obsregion* exclude = NULL;
     observations* obs = NULL;
     observations* sobs = NULL;
     int i;
@@ -314,7 +312,7 @@ int main(int argc, char* argv[])
     enkfprm_print(prm, "    ");
 
     enkf_printf("  reading observation specs from \"%s\":\n", prm->obsprm);
-    obsprm_read(prm->obsprm, &nsection, &sections, &nexclude, &exclude);
+    obsprm_read(prm->obsprm, &nsection, &sections);
 
     enkf_printf("  creating model and observations:\n");
     m = model_create(prm);
@@ -330,20 +328,10 @@ int main(int argc, char* argv[])
     for (i = 0; i < nsection; ++i)
         obs->location_based_thinning_type[i] = LOCATIONTHINNINGTYPE_DEFAULT;
 
-    /*
-     * set observation types for excluded regions
-     */
-    for (i = 0; i < nexclude; ++i) {
-        if (strcasecmp(exclude[i].otname, "ALL") == 0)
-            exclude[i].otid = -1;
-        else
-            exclude[i].otid = obstype_getid(obs->nobstypes, obs->obstypes, exclude[i].otname, 1);
-    }
-
     enkf_printf("  reading observations:\n");
     for (i = 0; i < nsection; i++)
-        obs_add(obs, m, &sections[i], nexclude, exclude);
-    obsprm_destroy(nsection, sections, nexclude, exclude);
+        obs_add(obs, m, &sections[i]);
+    obsprm_destroy(nsection, sections);
     enkf_printtime("  ");
     enkf_printf("  compacting obs:\n");
     obs_compact(obs);

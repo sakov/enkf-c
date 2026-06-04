@@ -61,8 +61,8 @@ typedef struct {
     int mandatory;
 } obssection;
 
-void obsprm_read(char fname[], int* nsection, obssection** sections, int* nexclude, obsregion** exclude);
-void obsprm_destroy(int nsection, obssection sections[], int nexclude, obsregion* exclude);
+void obsprm_read(char fname[], int* nsection, obssection** sections);
+void obsprm_destroy(int nsection, obssection sections[]);
 void obsprm_describeprm(void);
 
 #define _OBSPRM_H

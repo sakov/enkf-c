@@ -92,7 +92,7 @@ static void readobs(obssection* section, model* m, obsread_fn reader, observatio
  *  This procedure contains generic/common operations done after reading the
  *  data.
  */
-void obs_add(observations* obs, model* m, obssection* section, int nexclude, obsregion* exclude)
+void obs_add(observations* obs, model* m, obssection* section)
 {
     int nobs0 = obs->nobs;
     int otid = obstype_getid(obs->nobstypes, obs->obstypes, section->type, 1);
@@ -375,59 +375,55 @@ void obs_add(observations* obs, model* m, obssection* section, int nexclude, obs
                 o->footprint = 0.0;
         }
 
-        for (n = 0; n < nexclude; ++n) {
-            obsregion* r = &exclude[n];
+        for (n = 0; n < ot->nexclude; ++n) {
+            obsregion* r = &ot->exclude[n];
 
             if (r->maskfname == NULL) {
-                if (r->otid == -1 || r->otid == otid) {
+                for (i = nobs0; i < obs->nobs; ++i) {
+                    observation* o = &obs->data[i];
+
+                    if (o->status != STATUS_OK)
+                        continue;
+                    if (o->lon >= r->x1 && o->lon <= r->x2 && o->lat >= r->y1 && o->lat <= r->y2) {
+                        o->status = STATUS_EXCLUDED;
+                        nexcluded++;
+                    }
+                }
+            } else {
+                int mvid = model_getvarid(m, obs->obstypes[otid].varnames[0], 1);
+                int* mask = NULL;
+                int ncid, varid;
+                int ni, nj;
+
+                ncw_open(r->maskfname, NC_NOWRITE, &ncid);
+                ncw_inq_varid(ncid, r->maskvarname, &varid);
+
+                model_getvargridsize(m, mvid, &ni, &nj, NULL);
+                if (nj > 0) {
+                    int nij = ni * nj;
+
+                    ncw_check_varsize(ncid, varid, nij);
+                    mask = malloc(nij * sizeof(int));
+                    ncw_get_var_int(ncid, varid, mask);
+
                     for (i = nobs0; i < obs->nobs; ++i) {
                         observation* o = &obs->data[i];
+                        int ii;
 
                         if (o->status != STATUS_OK)
                             continue;
-                        if (o->lon >= r->x1 && o->lon <= r->x2 && o->lat >= r->y1 && o->lat <= r->y2) {
+                        ii = (int) o->fij[1] * ni + (int) o->fij[0];
+                        if (ii == nij)
+                            ii--;
+                        if (mask[(int) o->fij[1] * ni + (int) o->fij[0]] != 0) {
                             o->status = STATUS_EXCLUDED;
                             nexcluded++;
                         }
                     }
-                }
-            } else {
-                if (r->otid == otid) {
-                    int mvid = model_getvarid(m, obs->obstypes[otid].varnames[0], 1);
-                    int* mask = NULL;
-                    int ncid, varid;
-                    int ni, nj;
-
-                    ncw_open(r->maskfname, NC_NOWRITE, &ncid);
-                    ncw_inq_varid(ncid, r->maskvarname, &varid);
-
-                    model_getvargridsize(m, mvid, &ni, &nj, NULL);
-                    if (nj > 0) {
-                        int nij = ni * nj;
-
-                        ncw_check_varsize(ncid, varid, nij);
-                        mask = malloc(nij * sizeof(int));
-                        ncw_get_var_int(ncid, varid, mask);
-
-                        for (i = nobs0; i < obs->nobs; ++i) {
-                            observation* o = &obs->data[i];
-                            int ii;
-
-                            if (o->status != STATUS_OK)
-                                continue;
-                            ii = (int) o->fij[1] * ni + (int) o->fij[0];
-                            if (ii == nij)
-                                ii--;
-                            if (mask[(int) o->fij[1] * ni + (int) o->fij[0]] != 0) {
-                                o->status = STATUS_EXCLUDED;
-                                nexcluded++;
-                            }
-                        }
-                    } else
-                        enkf_quit("region mask not implmented for unstructured grids");
-                    ncw_close(ncid);
-                    free(mask);
-                }
+                } else
+                    enkf_quit("region mask not implmented for unstructured grids");
+                ncw_close(ncid);
+                free(mask);
             }
         }
 

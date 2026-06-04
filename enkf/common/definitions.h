@@ -188,19 +188,6 @@ typedef struct {
     int minnobs;
 } badbatchspec;
 
-/*
- * An obsregion is defined either by lon/lat rectangle or by mask file/variable
- * with mask on the grid of the model variable the observation type of the
- * obsregion is associated with.
- */
-typedef struct {
-    char* otname;
-    int otid;
-    double x1, x2, y1, y2;
-    char* maskfname;
-    char* maskvarname;
-} obsregion;
-
 typedef struct {
     double z1, z2;
 } zint;
