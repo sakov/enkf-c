@@ -1,9 +1,12 @@
+v2.45.1
+   PS 05052026
+   -- Corrected defect in v2.45.0.
 v2.45.0
-   PS 04052026
+   PS 04062026
    -- Moved specification of observation "exclude" regions from obsdata
       parameter file to obstypes parameter file.
 v2.44.0
-   PS 04052026
+   PS 04062026
    -- In prep/obsprm.c and prep/prep_utils.c -- added an option to exclude
       observations of a certain type in a region specified by grid mask. The
       immediate purpose is to run an experiment when all SST obs except those

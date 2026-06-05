@@ -757,8 +757,12 @@ void obstypes_destroy(int n, obstype* types)
         }
         if (ot->nexclude > 0) {
             for (i = 0; i < ot->nexclude; ++i) {
-                free(ot->exclude[i].maskfname);
-                free(ot->exclude[i].maskvarname);
+                obsregion* r = &ot->exclude[i];
+
+                if (r->maskfname != NULL) {
+                    free(r->maskfname);
+                    free(r->maskvarname);
+                }
             }
             free(ot->exclude);
         }
