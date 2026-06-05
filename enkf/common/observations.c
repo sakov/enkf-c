@@ -47,6 +47,7 @@ void obs_addtype(observations* obs, obstype* src)
     if (obs->nobstypes % NOBSTYPES_INC == 0)
         obs->obstypes = realloc(obs->obstypes, (obs->nobstypes + NOBSTYPES_INC) * sizeof(obstype));
     ot = &obs->obstypes[obs->nobstypes];
+    
     ot->id = obs->nobstypes;
     ot->name = strdup(src->name);
     ot->issurface = src->issurface;
@@ -102,6 +103,25 @@ void obs_addtype(observations* obs, obstype* src)
 
     ot->nsubgrid = src->nsubgrid;
     ot->nmodified = 0;
+
+    ot->nexclude = src->nexclude;
+    ot->exclude = (ot->nexclude > 0) ? malloc(ot->nexclude * sizeof(obsregion)) : NULL;
+    for (i = 0; i < ot->nexclude; ++i) {
+        obsregion* r_src = &src->exclude[i];
+        obsregion* r_dst = &ot->exclude[i];
+
+        /*
+         * (these have either valid values or NaNs)
+         */
+        r_dst->x1 = r_src->x1;
+        r_dst->x2 = r_src->x2;
+        r_dst->y1 = r_src->y1;
+        r_dst->y2 = r_src->y2;
+        if (r_src->maskfname != NULL) {
+            r_dst->maskfname = strdup(r_src->maskfname);
+            r_dst->maskvarname = strdup(r_src->maskvarname);
+        }
+    }
     /*
      * (these fields are set by obs_calcstats())
      */
