@@ -146,8 +146,7 @@ static void obstype_print(obstype* type)
     enkf_printf("      ASYNCHRONOUS = %s", (type->isasync) ? "yes" : "no");
     if (type->isasync) {
         enkf_printf(", DT = %.3f (%s)", type->async_tstep, (type->async_centred) ? "centre-aligned" : "corner-aligned");
-        if (type->async_tname != NULL)
-            enkf_printf(", TNAME = %s", type->async_tname);
+        enkf_printf(", TNAME = %s", type->async_tname);
     }
     enkf_printf("\n");
     enkf_printf("      LOCRAD  =");
@@ -354,25 +353,31 @@ void obstypes_read(enkfprm* prm, char fname[], int* n, obstype** types)
             if (!str2double(token, &now->allowed_max))
                 enkf_quit("%s, l.%d: could not convert \"%s\" to double", fname, line, token);
         } else if (strncasecmp(token, "ASYNC", 5) == 0) {
-            now->isasync = 1;
             if ((token = strtok(NULL, seps)) == NULL)
                 enkf_quit("%s, l.%d: ASYNC time interval not specified", fname, line);
-            if (!str2double(token, &now->async_tstep))
-                enkf_quit("%s, l.%d: could not convert \"%s\" to double", fname, line, token);
-            if (now->async_tstep == 0.0)
-                now->isasync = 0;
-            else if (now->async_tstep < 0.0)
-                enkf_quit("%s, l.%d: negative length of asynchronous time interval", fname, line);
-            if (now->isasync && (token = strtok(NULL, seps)) != NULL) {
-                if (token[0] == 'c' || token[0] == 'C')
-                    now->async_centred = 1;
-                else if (token[0] == 'e' || token[0] == 'E')
-                    now->async_centred = 0;
-                else
-                    enkf_quit("%s, l.%d: the asynchronous intervals can be either \"c\" (centre-aligned) or \"e\" (endpoint-aligned)", fname, line);
-                if ((token = strtok(NULL, seps)) != NULL)
-                    now->async_tname = strdup(token);
+            now->isasync = 1;
+            /*
+             * expect either a valid time interval or a boolean value = false
+             */
+            if (!str2double(token, &now->async_tstep) || now->async_tstep == 0.0) {
+                if (!str2bool(token, &now->isasync) || now->isasync)
+                    enkf_quit("%s, l.%d: could not convert \"%s\" to double or interpret as \"false\"", fname, line, token);
+                if (!now->isasync)
+                    continue;
             }
+            if (now->async_tstep < 0.0)
+                enkf_quit("%s, l.%d: negative length of time binning interval", fname, line);
+            if ((token = strtok(NULL, seps)) == NULL)
+                enkf_quit("%s, l.%d: time binning interval alignment not specified", fname, line);
+            if (token[0] == 'c' || token[0] == 'C')
+                now->async_centred = 1;
+            else if (token[0] == 'e' || token[0] == 'E')
+                now->async_centred = 0;
+            else
+                enkf_quit("%s, l.%d: the time binning intervals can be either \"c\" (centre-aligned) or \"e\" (endpoint-aligned) with analysis time", fname, line);
+            if ((token = strtok(NULL, seps)) == NULL)
+                enkf_quit("%s, l.%d: time name not specified", fname, line);
+            now->async_tname = strdup(token);
         } else if (strcasecmp(token, "LOCRAD") == 0) {
             int sid = 0;
 
@@ -598,7 +603,7 @@ void obstypes_describeprm(void)
     enkf_printf("  [ MLD_VARNAME = <model varname> ]                      (none*)\n");
     enkf_printf("  [ MLD_THRESH  = <threshold> ]                          (NaN*)\n");
     enkf_printf("  [ HFUNCTION   = <H function name> ]                    (standard*)\n");
-    enkf_printf("  [ ASYNC       = <time interval> [{centre* | endpoint} [time varname]]] (0*)\n");
+    enkf_printf("  [ ASYNC       = {<time interval> {centre | endpoint} <time varname>} | {no|false|0} (0*)\n");
     enkf_printf("  [ LOCRAD      = <loc. radius in km> ... ]\n");
     enkf_printf("  [ LOCWEIGHT   = <loc. weight> ... ]                    (# LOCRAD > 1)\n");
     enkf_printf("  [ RFACTOR     = <rfactor> ]                            (1*)\n");

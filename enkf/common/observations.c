@@ -47,7 +47,7 @@ void obs_addtype(observations* obs, obstype* src)
     if (obs->nobstypes % NOBSTYPES_INC == 0)
         obs->obstypes = realloc(obs->obstypes, (obs->nobstypes + NOBSTYPES_INC) * sizeof(obstype));
     ot = &obs->obstypes[obs->nobstypes];
-    
+
     ot->id = obs->nobstypes;
     ot->name = strdup(src->name);
     ot->issurface = src->issurface;

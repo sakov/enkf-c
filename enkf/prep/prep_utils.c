@@ -683,7 +683,8 @@ void get_obsfiles(obssection* section, int* nfiles, char*** fnames)
     int i;
 
     for (i = 0; i < section->nfiles; ++i)
-        find_files(section->fnames[i], nfiles, fnames);
+        if (!find_files(section->fnames[i], nfiles, fnames))
+            enkf_quit("no files \"%s\" found", section->fnames[i]);
 }
 
 /**

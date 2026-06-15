@@ -463,10 +463,11 @@ void enkf_printversion(void)
 
 /** Find files matching the template using glob.
  */
-void find_files(char* template, int* nfiles, char*** fnames)
+int find_files(char* template, int* nfiles, char*** fnames)
 {
-    glob_t gl;
+    int nfiles0 = *nfiles;
     int status;
+    glob_t gl;
 
     status = glob(template, GLOB_BRACE | GLOB_PERIOD | GLOB_TILDE_CHECK, NULL, &gl);
     if (status == GLOB_NOSPACE || status == GLOB_ABORTED || status == GLOB_ERR) {
@@ -491,8 +492,9 @@ void find_files(char* template, int* nfiles, char*** fnames)
         *fnames = realloc(*fnames, (*nfiles + 1) * sizeof(void*));
         (*fnames)[*nfiles] = strdup(template);
         *nfiles += 1;
-    } else
-        enkf_quit("%s: no such files", template);
+    }
+
+    return (*nfiles > nfiles0) ? 1 : 0;
 }
 
 /*

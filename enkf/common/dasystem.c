@@ -195,16 +195,6 @@ dasystem* das_create(enkfprm* prm)
     }
 #if defined(ENKF_CALC)
     das->obs = obs_create_fromprm(prm);
-    if (das->strict_time_matching) {
-        int otid;
-
-        for (otid = 0; otid < das->obs->nobstypes; ++otid) {
-            obstype* ot = &das->obs->obstypes[otid];
-
-            if (ot->isasync && ot->async_tname == NULL)
-                enkf_quit("%s: %s: time variable name must be defined for asynchronously assimilated observation types with \"--strict-time-matching\"; see description of entry ASYNC by \"enkf_calc --describe-prm-format obstypes\"", prm->obstypeprm, ot->name);
-        }
-    }
 #endif
 
     das->m = model_create(prm);
@@ -671,43 +661,41 @@ void das_getbgfname(dasystem* das, char varname[], char fname[])
 
 #if defined(ENKF_CALC)
 
-static int getfname_async(dasystem* das, obstype* ot, int mem, int t, char fname[], int* r)
+/** Finds file/record for calculating forecast obs.
+ */
+static void getfname_async(dasystem* das, obstype* ot, int mem, int t, char fname[], int* r)
 {
     char* alias = ot->alias;
-    char* varname = ot->varnames[0];
     char* dir = (mem > 0) ? das->ensdir : das->bgdir;
-
-    *r = -1;
+    int nf = 0;
+    char** fnames = NULL;
+    char fname1[MAXSTRLEN];
+    char fname2[MAXSTRLEN];
+    int f;
 
     if (mem > 0)
-        snprintf(fname, MAXSTRLEN, "%s/mem%03d_%s_%d.nc", dir, mem, alias, t);
+        snprintf(fname1, MAXSTRLEN, "%s/mem%03d_%s_%d.nc", dir, mem, alias, t);
     else
-        snprintf(fname, MAXSTRLEN, "%s/bg_%s_%d.nc", dir, alias, t);
+        snprintf(fname1, MAXSTRLEN, "%s/bg_%s_%d.nc", dir, alias, t);
 
-    if (!file_exists(fname)) {
-        char fname2[MAXSTRLEN];
-
-        if (mem > 0)
-            snprintf(fname2, MAXSTRLEN, "%s/mem%03d_%s_#.nc", dir, mem, alias);
-        else
-            snprintf(fname2, MAXSTRLEN, "%s/bg_%s_#.nc", dir, alias);
-
-        if (!file_exists(fname2)) {
-            if (das->strict_time_matching)
-                enkf_quit("could not find file \"%s\" or \"%s\", which is necessary to proceed because (1) asynchronous DA is set on for \"%s\" and (2) \"--strict-time-matching\" is used\n", fname, fname2, ot->name);
-            if (mem > 0)
-                snprintf(fname, MAXSTRLEN, "%s/mem%03d_%s.nc", dir, mem, varname);
-            else
-                snprintf(fname, MAXSTRLEN, "%s/bg_%s.nc", dir, varname);
-
-            return 0;
-        } else
-            strncpy(fname, fname2, MAXSTRLEN);
+    if (file_exists(fname1)) {
+        nf = 1;
+        fnames = malloc(sizeof(void*));
+        fnames[0] = strdup(fname1);
+        fname1[0] = '\0';
+        goto checktime;
     }
-    /*
-     * verify time
-     */
-    if (ot->async_tname != NULL) {
+
+    if (mem > 0)
+        snprintf(fname2, MAXSTRLEN, "%s/mem%03d_%s_#*.nc", dir, mem, alias);
+    else
+        snprintf(fname2, MAXSTRLEN, "%s/bg_%s_#*.nc", dir, alias);
+
+    if (!find_files(fname2, &nf, &fnames))
+        enkf_quit("could not find file \"%s\" or \"%s\" to match binned observations of type \"%s\"\n", fname1, fname2, ot->name);
+
+  checktime:
+    for (f = 0; f < nf; ++f) {
         int ncid, vid;
         size_t vsize;
         double* time;
@@ -717,7 +705,7 @@ static int getfname_async(dasystem* das, obstype* ot, int mem, int t, char fname
         double correcttime;
         int i;
 
-        ncw_open(fname, NC_NOWRITE, &ncid);
+        ncw_open(fnames[f], NC_NOWRITE, &ncid);
         if (!ncw_var_exists(ncid, ot->async_tname))
             enkf_quit("%s: found no time variable \"%s\" specified for observation type \"%s\"", fname, ot->async_tname, ot->name);
         ncw_inq_varid(ncid, ot->async_tname, &vid);
@@ -738,19 +726,22 @@ static int getfname_async(dasystem* das, obstype* ot, int mem, int t, char fname
 
         for (i = 0; i < vsize; ++i) {
             time[i] = time[i] * tunits_multiple + tunits_offset;
-            if (fabs(time[i] - correcttime) < TEPS)
-                break;
+            if (fabs(time[i] - correcttime) < TEPS) {
+                *r = i;
+                free(time);
+                goto finish;
+            }
         }
-        if (i >= vsize) {
-            if (vsize == 1)
-                enkf_quit("%s: \"s\" = %f; expected %f\n", fname, ot->async_tname, time, correcttime);
-            else
-                enkf_quit("%s: time variable \"%s\" has no matching value for asynchronous interval %d (needed time = %f)\n", fname, ot->async_tname, t, correcttime);
-        }
-        free(time);
-        *r = i;
     }
-    return 1;
+
+  finish:
+
+    if (f >= nf)
+        enkf_quit("%s: could not match time for time binning interval %d\n", (fname1[0] == '\0') ? fnames[0] : fname2, t);
+    strcpy(fname, fnames[f]);
+    for (f = 0; f < nf; ++f)
+        free(fnames[f]);
+    free(fnames);
 }
 
 /**
@@ -764,15 +755,15 @@ int das_getmemberfname_async(dasystem* das, obstype* ot, int mem, int t, char fn
         return 0;
     }
 
-    return getfname_async(das, ot, mem, t, fname, r);
+    getfname_async(das, ot, mem, t, fname, r);
+    return 1;
 }
 
 /**
  */
-int das_getbgfname_async(dasystem* das, obstype* ot, int t, char fname[], int* r)
+void das_getbgfname_async(dasystem* das, obstype* ot, int t, char fname[], int* r)
 {
-    *r = -1;
-    return getfname_async(das, ot, -1, t, fname, r);
+    getfname_async(das, ot, -1, t, fname, r);
 }
 #endif
 

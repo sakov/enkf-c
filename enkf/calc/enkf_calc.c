@@ -38,7 +38,6 @@ int plogs_only = 0;
 int skip_transforms = 0;
 int print_mem = 0;
 int write_HE = 0;
-int strict_time_matching = 0;
 int skip_bad_fc_obs = 0;
 
 /**
@@ -63,9 +62,6 @@ static void usage(void)
     enkf_printf("      assimilate single observation with these parameters\n");
     enkf_printf("  --skip-bad-forecast-obs\n");
     enkf_printf("      skip observations with invalid forecasts\n");
-    enkf_printf("  --strict-time-matching\n");
-    enkf_printf("      when assimilating asynchronously -- check that the time of model dumps\n");
-    enkf_printf("      matches centres of the corresponding time bins\n");
     enkf_printf("  --use-existing-transforms\n");
     enkf_printf("      skip calculating ensemble transforms; use existing transforms*.nc files\n");
     enkf_printf("  --use-rmsd-for-obsstats\n");
@@ -165,10 +161,6 @@ static void parse_commandline(int argc, char* argv[], char** fname_prm, char** f
             continue;
         } else if (strcmp(argv[i], "--skip-bad-forecast-obs") == 0) {
             skip_bad_fc_obs = 1;
-            i++;
-            continue;
-        } else if (strcmp(argv[i], "--strict-time-matching") == 0) {
-            strict_time_matching = 1;
             i++;
             continue;
         } else if (strcmp(argv[i], "--use-existing-transforms") == 0) {
@@ -304,7 +296,6 @@ int main(int argc, char* argv[])
 
     enkf_printf("  initialising the system:\n");
     das = das_create(prm);
-    das->strict_time_matching = strict_time_matching;
 
     if (print_mem)
         print_memory_usage();

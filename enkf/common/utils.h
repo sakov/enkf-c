@@ -28,7 +28,7 @@ void enkf_printtime(const char offset[]);
 void enkf_printcompileflags(const char offset[]);
 void enkf_printflags(const char offset[]);
 void enkf_printversion(void);
-void find_files(char template[], int* nfiles, char*** fnames);
+int find_files(char template[], int* nfiles, char*** fnames);
 void tunits_convert(char tunits[], double* tunits_multiple, double* tunits_offset);
 void file_delete(char fname[]);
 int file_exists(char fname[]);

@@ -101,8 +101,6 @@ typedef struct {
 
     double kfactor;
 
-    int strict_time_matching;
-
     int nbadbatchspecs;
     badbatchspec* badbatchspecs;
 
@@ -166,7 +164,7 @@ void das_getfname_plog(dasystem* das, pointlog* plog, char fname[]);
 void das_getmemberfname(dasystem* das, char varname[], int mem, char fname[]);
 int das_getmemberfname_async(dasystem* das, obstype* ot, int mem, int t, char fname[], int* r);
 void das_getbgfname(dasystem* das, char varname[], char fname[]);
-int das_getbgfname_async(dasystem* das, obstype* ot, int t, char fname[], int* r);
+void das_getbgfname_async(dasystem* das, obstype* ot, int t, char fname[], int* r);
 
 #if defined(ENKF_UPDATE) || defined(ENS_DIAG)
 void das_getfields(dasystem* das, int gridid, int* nfield, field** fields);
