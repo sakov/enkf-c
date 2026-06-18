@@ -32,7 +32,7 @@
 #include <assert.h>
 #include <float.h>
 #include "ncw.h"
-#include "definitions.h"
+#include "global.h"
 #include "utils.h"
 #include "ncutils.h"
 #include "obsprm.h"

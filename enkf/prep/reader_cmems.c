@@ -37,7 +37,7 @@
 #include <float.h>
 #include "ncw.h"
 #include "ncutils.h"
-#include "definitions.h"
+#include "global.h"
 #include "utils.h"
 #include "obsprm.h"
 #include "grid.h"

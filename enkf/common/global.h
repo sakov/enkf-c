@@ -1,6 +1,6 @@
 /******************************************************************************
  *
- * File:        definitions.h        
+ * File:        global.h        
  *
  * Created:     12/2012
  *
@@ -9,7 +9,7 @@
  *
  * Description:
  *
- * Revisions:
+ * Revisions:   18/06/2026 PS: Changed file name from definitions.h to global.h
  *
  *****************************************************************************/
 

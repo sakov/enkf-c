@@ -22,7 +22,7 @@
 #include <assert.h>
 #include <math.h>
 #include "version.h"
-#include "definitions.h"
+#include "global.h"
 #include "utils.h"
 #include "enkfprm.h"
 #include "obsprm.h"

@@ -22,7 +22,7 @@
 #include "stringtable.h"
 #include "ncw.h"
 #include "kdtree.h"
-#include "definitions.h"
+#include "global.h"
 #include "utils.h"
 #include "ncutils.h"
 #include "obsprm.h"

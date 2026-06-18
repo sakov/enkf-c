@@ -22,7 +22,7 @@
 #include <math.h>
 #include <assert.h>
 #include "ncw.h"
-#include "definitions.h"
+#include "global.h"
 #include "utils.h"
 #include "obsprm.h"
 #include "model.h"

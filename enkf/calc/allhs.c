@@ -16,7 +16,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "definitions.h"
+#include "global.h"
 #include "utils.h"
 #include "model2obs.h"
 #include "allhs.h"

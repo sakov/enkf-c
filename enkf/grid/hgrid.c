@@ -20,7 +20,7 @@
 #include <math.h>
 #include <assert.h>
 #include <float.h>
-#include "definitions.h"
+#include "global.h"
 #include "utils.h"
 #include "ncw.h"
 #include "ncutils.h"

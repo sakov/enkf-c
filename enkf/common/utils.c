@@ -37,12 +37,12 @@
 #include <mpi.h>
 #endif
 #include "ncw.h"
+#include "global.h"
 #include "ncutils.h"
 #include "triangulation.h"
 #if defined(MPI) && defined(USE_MPIQUEUE)
 #include "mpiqueue.h"
 #endif
-#include "definitions.h"
 #include "version.h"
 #include "utils.h"
 
@@ -561,6 +561,9 @@ void tunits_convert(char* tunits, double* tunits_multiple, double* tunits_offset
     char* token;
     char seps_date[] = " -\n";
     char seps_time[] = " :\n";
+    char tunits_orig[MAXSTRLEN];
+
+    strncpy(tunits_orig, tunits, MAXSTRLEN - 1);
 
     if (strncasecmp(tunits, "fraction of a ", 14) == 0)
         tunits += 14;
@@ -576,36 +579,36 @@ void tunits_convert(char* tunits, double* tunits_multiple, double* tunits_offset
     else if (strncasecmp(tunits, "day", 3) == 0)
         *tunits_multiple = 1.0;
     else
-        enkf_quit("can not interpret time units \"%s\"", tunits);
+        enkf_quit("can not interpret time units \"%s\"", tunits_orig);
 
     startdate = strstr(tunits, "since");
     if (startdate == NULL)
-        enkf_quit("can not interpret time units \"%s\"", tunits);
+        enkf_quit("can not interpret time units \"%s\"", tunits_orig);
     startdate += strlen("since ");
     if ((token = strtok(startdate, seps_date)) == NULL)
-        enkf_quit("can not interpret time units \"%s\"", tunits);
+        enkf_quit("can not interpret time units \"%s\"", tunits_orig);
     if (!str2int(token, &year))
-        enkf_quit("could not convert \"%s\" to time units", tunits);
+        enkf_quit("could not convert \"%s\" to time units", tunits_orig);
     if ((token = strtok(NULL, seps_date)) == NULL)
-        enkf_quit("can not interpret time units \"%s\"", tunits);
+        enkf_quit("can not interpret time units \"%s\"", tunits_orig);
     if (!str2int(token, &month))
-        enkf_quit("could not convert \"%s\" to time units", tunits);
+        enkf_quit("could not convert \"%s\" to time units", tunits_orig);
     if ((token = strtok(NULL, seps_date)) == NULL)
-        enkf_quit("can not interpret time units \"%s\"", tunits);
+        enkf_quit("can not interpret time units \"%s\"", tunits_orig);
     if (!str2int(token, &day))
-        enkf_quit("could not convert \"%s\" to time units", tunits);
+        enkf_quit("could not convert \"%s\" to time units", tunits_orig);
     h = 0;
     m = 0;
     s = 0;
     if ((token = strtok(NULL, seps_time)) != NULL)
         if (!str2int(token, &h))
-            enkf_quit("could not convert \"%s\" to time units", tunits);
+            enkf_quit("could not convert \"%s\" to time units", tunits_orig);
     if ((token = strtok(NULL, seps_time)) != NULL)
         if (!str2int(token, &m))
-            enkf_quit("could not convert \"%s\" to time units", tunits);
+            enkf_quit("could not convert \"%s\" to time units", tunits_orig);
     if ((token = strtok(NULL, seps_time)) != NULL)
         if (!str2int(token, &s))
-            enkf_quit("could not convert \"%s\" to time units", tunits);
+            enkf_quit("could not convert \"%s\" to time units", tunits_orig);
 
     *tunits_offset = (double) daydiff(year, month, day, BASEYEAR, BASEMONTH, BASEDAY) + (double) h / 24.0 + (double) m / 1440.0 + (double) s / 86400.0;
 }

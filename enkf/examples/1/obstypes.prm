@@ -15,6 +15,7 @@ MINVALUE = -2.0
 MAXVALUE = 42.0
 # Increase rfactor for SST to avoid overfitting.
 RFACTOR = 16
+EXCLUDE mask.nc mask
 
 NAME = TEM
 ISSURFACE = 0

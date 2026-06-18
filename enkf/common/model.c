@@ -19,7 +19,7 @@
 #include <math.h>
 #include <assert.h>
 #include "stringtable.h"
-#include "definitions.h"
+#include "global.h"
 #include "utils.h"
 #include "ncutils.h"
 #include "grid.h"

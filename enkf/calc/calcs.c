@@ -18,7 +18,7 @@
 #include <math.h>
 #include <string.h>
 #include <assert.h>
-#include "definitions.h"
+#include "global.h"
 #include "lapack.h"
 #include "utils.h"
 #include "calcs.h"

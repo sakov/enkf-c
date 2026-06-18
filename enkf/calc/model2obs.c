@@ -22,7 +22,7 @@
 #include <float.h>
 #include <limits.h>
 #include "ncw.h"
-#include "definitions.h"
+#include "global.h"
 #include "utils.h"
 #include "ncutils.h"
 #include "observations.h"

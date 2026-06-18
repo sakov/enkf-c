@@ -18,7 +18,7 @@
 #include <assert.h>
 #include <string.h>
 #include <math.h>
-#include "definitions.h"
+#include "global.h"
 #include "distribute.h"
 #include "utils.h"
 #include "ncutils.h"

@@ -14,7 +14,7 @@
   *****************************************************************************/
 
 #include <stdlib.h>
-#include "definitions.h"
+#include "global.h"
 
 int nprocesses = 1;
 int rank = 0;

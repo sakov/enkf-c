@@ -18,7 +18,7 @@ PREPCALC_FLAGS =
 # -DUSE_MPIQUEUE
 #
 # NOTE: When using just a few CPUs remove "-DUSE_MPIQUEUE". (This will also
-#       remove automatic definition of -DTW_VIAFILE in definitions.h.)
+#       remove automatic definition of -DTW_VIAFILE in global.h.)
 #
 CALC_FLAGS = -DUSE_SHMEM -DMINIMISE_ALLOC -DUSE_MPIQUEUE
 
@@ -29,7 +29,7 @@ CALC_FLAGS = -DUSE_SHMEM -DMINIMISE_ALLOC -DUSE_MPIQUEUE
 # -DUSE_MPIQUEUE
 #
 # NOTE: when using just a few CPUs remove "-DUSE_MPIQUEUE". (This will also
-#       remove automatic definition of -DTW_VIAFILE in definitions.h.)
+#       remove automatic definition of -DTW_VIAFILE in global.h.)
 #
 UPDATE_FLAGS = -DUSE_MPIQUEUE
 
@@ -71,7 +71,7 @@ HDR_COMMON =\
 common/ncw.h\
 common/stringtable.h\
 common/version.h\
-common/definitions.h\
+common/global.h\
 common/utils.h\
 common/ncutils.h\
 common/enkfprm.h\

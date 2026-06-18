@@ -24,7 +24,7 @@
 #include <assert.h>
 #include "ncw.h"
 #include "distribute.h"
-#include "definitions.h"
+#include "global.h"
 #include "utils.h"
 #include "ncutils.h"
 #include "model.h"

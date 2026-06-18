@@ -26,8 +26,8 @@
 #include <math.h>
 #include <assert.h>
 #include "ncw.h"
+#include "global.h"
 #include "ncutils.h"
-#include "definitions.h"
 #include "utils.h"
 #include "obsprm.h"
 #include "model.h"

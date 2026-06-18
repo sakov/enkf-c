@@ -19,7 +19,7 @@
 #include <assert.h>
 #include <limits.h>
 #include <math.h>
-#include "definitions.h"
+#include "global.h"
 #include "utils.h"
 #include "hash.h"
 #include "grid.h"

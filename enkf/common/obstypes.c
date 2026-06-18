@@ -23,7 +23,7 @@
 #include <math.h>
 #include <limits.h>
 #include "kdtree.h"
-#include "definitions.h"
+#include "global.h"
 #include "utils.h"
 #include "ncw.h"
 #include "ncutils.h"

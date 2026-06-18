@@ -20,7 +20,7 @@
 #include <string.h>
 #include <assert.h>
 #include <math.h>
-#include "definitions.h"
+#include "global.h"
 #include "grid.h"
 #include "enkfprm.h"
 #include "gridprm.h"

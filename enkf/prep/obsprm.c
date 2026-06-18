@@ -19,7 +19,7 @@
 #include <string.h>
 #include <math.h>
 #include "ncw.h"
-#include "definitions.h"
+#include "global.h"
 #include "utils.h"
 #include "obsprm.h"
 

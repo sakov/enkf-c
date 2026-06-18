@@ -29,7 +29,7 @@
 #include <limits.h>
 #include "ncw.h"
 #include "hash.h"
-#include "definitions.h"
+#include "global.h"
 #include "utils.h"
 #include "ncutils.h"
 #include "distribute.h"

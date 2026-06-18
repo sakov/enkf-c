@@ -23,7 +23,7 @@
 #include <math.h>
 #include <assert.h>
 #include "kdtree.h"
-#include "definitions.h"
+#include "global.h"
 #include "utils.h"
 #include "grid.h"
 #include "hgrid.h"

@@ -24,7 +24,7 @@
 #include <stdint.h>
 #include "ncw.h"
 #include "ncutils.h"
-#include "definitions.h"
+#include "global.h"
 #include "utils.h"
 #include "grid.h"
 #include "vgrid.h"

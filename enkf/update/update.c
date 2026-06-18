@@ -26,7 +26,7 @@
 #include <limits.h>
 #include <math.h>
 #include <time.h>
-#include "definitions.h"
+#include "global.h"
 #include "utils.h"
 #include "ncutils.h"
 #if defined(USE_MPIQUEUE)

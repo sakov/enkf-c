@@ -31,7 +31,7 @@
 #include <math.h>
 #include "distribute.h"
 #include "lapack.h"
-#include "definitions.h"
+#include "global.h"
 #include "utils.h"
 #include "grid.h"
 #include "model2obs.h"

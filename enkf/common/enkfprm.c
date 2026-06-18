@@ -21,7 +21,7 @@
 #include <limits.h>
 #include <assert.h>
 #include "ncw.h"
-#include "definitions.h"
+#include "global.h"
 #include "utils.h"
 #if defined(ENKF_CALC) || defined(ENKF_UPDATE)
 #include "dasystem.h"
@@ -35,8 +35,10 @@
  */
 static void enkfprm_check(enkfprm* prm)
 {
+#if !defined(ENKF_PREP)
     if (prm->mode == MODE_NONE)
         enkf_quit("%s: MODE not specified", prm->fname);
+#endif
 #if defined(ENKF_PREP)
     if (prm->obsprm == NULL)
         enkf_quit("%s: OBS not specified", prm->fname);

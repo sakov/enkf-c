@@ -1,3 +1,8 @@
+v2.46.1
+   PS 18052026
+   -- A minor correction of error message in tunits_convert().
+   -- Changed file name definitions.h to global.h because the term "definition"
+      (along with "declaration") has a specific meaning in C.
 v2.46.0
    PS 15052026
       Two changes, one concerning options for model output file names for
@@ -9,22 +14,22 @@ v2.46.0
       the second number is the id of the time binning interval, with the
       interval at analysis time having id = 0. The second (later) option looks
       for files with names <ensdir>/mem%03d_<var>_#.nc. These files were
-      supposed to accumulate all time records for the variable. This second
-      option is now modified to <ensdir>/mem%03d_<var>_#*.nc, where all records
-      in files matching this template are investigated for having the right
-      time.
+      supposed to contain all necessary time records for the variable. This
+      second option is now modified to <ensdir>/mem%03d_<var>_#*.nc, where all
+      records in files matching this template are investigated for having the
+      right time.
         This allows one to use model outputs aggregated in daily files. These
       files can be named (linked to) e.g. <ensdir>/mem%03d_<var>_#%d.nc, where
       the second number can be e.g. the day of the cycle.
    -- When an observation type is declared as "asynchronous", the corresponding
       model outputs with the right time MUST exist now. Compared to previous
       versions this is equivalent of running CALC with "--strict-time-matching".
-      The option "--strict-time-matching" is eliminated now although will not
-      generate an error when entered.
+      The option "--strict-time-matching" is eliminated although will not
+      generate error when entered.
         The practical implications are that if previously the same obstypes
-      parameter file could be used both for the analysis and persistence
-      calculation, the entries "ASYNCHRONOUS" must be removed or replaced by
-      "ASYNCHRONOUS NO" now.
+      parameter file could be used both for the analysis and in persistence
+      calculation, now the entries "ASYNCHRONOUS" must be removed or replaced by
+      "ASYNCHRONOUS NO" when calculating persistence.
 v2.45.2
    PS 05052026
    -- Another minor correction for v2.45.0.
