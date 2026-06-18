@@ -17,8 +17,9 @@ KFACTOR = 999
 LOCRAD = 200
 
 STRIDE = 3
-#FIELDBUFFERSIZE = 4
-FIELDSPLIT = 4
+# leave one of the following two lines
+FIELDBUFFERSIZE = 4
+#FIELDSPLIT = 4
 
 REGION Global   0   360   -90     90
 
