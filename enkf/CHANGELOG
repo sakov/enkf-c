@@ -1,3 +1,13 @@
+v2.47.0
+   PS 24062026
+   -- Corrected calculation of partial DFS and SRF (pdfs and psrf) in
+      das_calctransforms(). Previously when calculating G = S'(1 + S S')^-1
+      the global S was used inside brackets to save an inversion. This often
+      works OK but not quite because when assimilating SWOT data as a separate
+      observation type one could see SWOT swaths in psrf for standard SLA.
+      In 1/12-degree nemo system with 33M super-observations this increased
+      the time for calculating transforms from about 11 minutes to 13.5
+      minutes (with overall time for CALC of about 34 minutes).
 v2.46.1
    PS 18052026
    -- A minor correction of error message in tunits_convert().

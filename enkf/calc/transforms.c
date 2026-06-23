@@ -535,6 +535,8 @@ static void group_iterations(int n, int ids[])
  */
 static void prepare_calcs(size_t ploc, size_t nmem, double** sloc, int** plobs, double*** Sloc, double*** G, double*** M)
 {
+    double** Sloc2;
+
     if (ploc > ploc_allocated1) {
         size_t size;
 
@@ -549,6 +551,11 @@ static void prepare_calcs(size_t ploc, size_t nmem, double** sloc, int** plobs, 
         size += ploc_allocated1 * sizeof(int);
         /*
          * Sloc [nmem][ploc]
+         */
+        size += ploc_allocated1 * nmem * sizeof(double) + nmem * sizeof(void*);
+        /*
+         * reserve memory for a copy of Sloc to store pS during calculation of
+         * pdfs and psrf
          */
         size += ploc_allocated1 * nmem * sizeof(double) + nmem * sizeof(void*);
         /*
@@ -572,7 +579,8 @@ static void prepare_calcs(size_t ploc, size_t nmem, double** sloc, int** plobs, 
     *sloc = storage;
     *plobs = (void*) &(*sloc)[ploc];
     *Sloc = cast2d(&(*plobs)[ploc], nmem, ploc, sizeof(double));
-    *G = cast2d(&(*Sloc)[0][nmem * ploc], ploc, nmem, sizeof(double));
+    Sloc2 = cast2d(&(*Sloc)[0][nmem * ploc], nmem, ploc, sizeof(double));
+    *G = cast2d(&Sloc2[0][nmem * ploc], ploc, nmem, sizeof(double));
     *M = (void*) &(*G)[0][nmem * ploc];
 }
 #endif
@@ -824,53 +832,41 @@ void das_calctransforms(dasystem* das)
                     for (e = 0; e < nmem; ++e)
                         wj[ii][e] = (float) w[e];
 
-                    pnlobs[obs->nobstypes][0][ii] = ploc;       /* (ploc > 0
-                                                                 * here) */
+                    pnlobs[obs->nobstypes][0][ii] = ploc;
                     pdfs[obs->nobstypes][0][ii] = traceprod(0, 0, ploc, nmem, G, Sloc, 1);
                     psrf[obs->nobstypes][0][ii] = sqrt(traceprod(0, 1, nmem, ploc, Sloc, Sloc, 1) / pdfs[obs->nobstypes][0][ii]) - 1.0;
                     for (ot = 0; ot < obs->nobstypes; ++ot) {
-                        int p = 0;
+                        int ploc_ot = 0;
 
                         for (o = 0; o < ploc; ++o) {
                             if (obs->data[lobs[o]].type == ot) {
-                                plobs[p] = o;
-                                p++;
+                                plobs[ploc_ot] = o;
+                                ploc_ot++;
                             }
                         }
-                        pnlobs[ot][0][ii] = p;
-                        if (p == 0) {
+                        pnlobs[ot][0][ii] = ploc_ot;
+                        if (ploc_ot == 0) {
                             pdfs[ot][0][ii] = 0.0;
                             psrf[ot][0][ii] = 0.0;
                         } else {
-                            /*
-                             * it is used below that local observations in array
-                             * plobs are continuous by observation type
-                             */
-#if 0
-                            double** pS = alloc2d(nmem, p, sizeof(double));
-                            double** pG = &G[plobs[0]];
-
-                            for (e = 0; e < nmem; ++e)
-                                for (o = 0; o < p; ++o)
-                                    pS[e][o] = Sloc[e][plobs[o]];
-                            pdfs[ot][0][ii] = traceprod(0, 0, p, nmem, pG, pS, 1);
-                            if (pdfs[ot][0][ii] > DFS_MIN)
-                                psrf[ot][0][ii] = sqrt(traceprod(0, 1, nmem, p, pS, pS, 1) / pdfs[ot][0][ii]) - 1.0;
-                            else
-                                psrf[ot][0][ii] = 0.0;
+#if defined(MINIMISE_ALLOC)
+                            double** pS = cast2d(&Sloc[0][nmem * ploc], nmem, ploc_ot, sizeof(double));
 #else
-                            double** pS = malloc(nmem * sizeof(double*));
-                            double** pG = &G[plobs[0]];
+                            double** pS = alloc2d(nmem, ploc_ot, sizeof(double));
+#endif
 
                             for (e = 0; e < nmem; ++e)
-                                pS[e] = &Sloc[e][plobs[0]];
-                            pdfs[ot][0][ii] = traceprod(0, 0, p, nmem, pG, pS, 0);
+                                for (o = 0; o < ploc_ot; ++o)
+                                    pS[e][o] = Sloc[e][plobs[o]];
+                            calc_G(nmem, ploc_ot, M, pS, G);
+                            pdfs[ot][0][ii] = traceprod(0, 0, ploc_ot, nmem, G, pS, 1);
                             if (pdfs[ot][0][ii] > DFS_MIN)
-                                psrf[ot][0][ii] = sqrt(traceprod(0, 1, nmem, p, pS, pS, 0) / pdfs[ot][0][ii]) - 1.0;
+                                psrf[ot][0][ii] = sqrt(traceprod(0, 1, nmem, ploc_ot, pS, pS, 1) / pdfs[ot][0][ii]) - 1.0;
                             else
                                 psrf[ot][0][ii] = 0.0;
-#endif
+#if !defined(MINIMISE_ALLOC)
                             free(pS);
+#endif
                         }
                     }
 

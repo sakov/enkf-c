@@ -211,7 +211,7 @@ void calc_G(int m, int p, double** Min, double** S, double** G)
         calc_Minv(p, m, S, M);
 
         /*
-         * G = inv(I + S * S') * S'
+         * G = inv(I + S' * S) * S'
          */
         dgemm_(&noT, &doT, &m, &p, &m, &a, M[0], &m, S[0], &p, &b, G[0], &m);
     }
