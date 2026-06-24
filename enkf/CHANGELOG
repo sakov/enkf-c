@@ -1,3 +1,8 @@
+v2.47.1
+   PS 24062026
+   -- Semi-cosmetic changes in alloc2d(), realloc2d(), cast2d(), copy2d(),
+      alloc3d(), copy3d() to increase robustness and portability (particularly
+      to prevent modern compilers from playing some optimisation tricks).
 v2.47.0
    PS 24062026
    -- Corrected calculation of partial DFS and SRF (pdfs and psrf) in

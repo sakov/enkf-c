@@ -817,29 +817,30 @@ int str2bool(char* token, int* value)
 void* alloc2d(size_t nj, size_t ni, size_t unitsize)
 {
     size_t size;
-    void* p;
-    void** pp;
-    int i;
+    char* storage;
+    char* data;
+    void** matrix;
+    size_t i;
 
     if (ni == 0 || nj == 0 || unitsize == 0)
-        enkf_quit("alloc2d(): invalid size (nj = %zt, ni = %zt, unitsize = %zt)", nj, ni, unitsize);
+        enkf_quit("alloc2d(): invalid size (nj = %zu, ni = %zu, unitsize = %zu)", nj, ni, unitsize);
     if (SIZE_MAX / nj / sizeof(void*) == 0 || SIZE_MAX / nj / ni / unitsize == 0 || nj * sizeof(void*) > SIZE_MAX - nj * ni * unitsize)
-        enkf_quit("alloc2d: allocation size overflow: nj = %zt, ni = %zt, unitsize = %zt", nj, ni, unitsize);
+        enkf_quit("alloc2d: allocation size overflow: nj = %zu, ni = %zu, unitsize = %zu", nj, ni, unitsize);
 
     size = nj * sizeof(void*) + nj * ni * unitsize;
-    if ((p = malloc(size)) == NULL) {
+    if ((storage = malloc(size)) == NULL) {
         int errno_saved = errno;
 
         enkf_quit("alloc2d(): %s", strerror(errno_saved));
     }
-    memset(p, 0, size);
+    memset(storage, 0, size);
 
-    pp = p;
-    p = &((size_t*) p)[nj];
+    matrix = (void**) storage;
+    data = storage + nj * sizeof(void*);
     for (i = 0; i < nj; ++i)
-        pp[i] = &((char*) p)[i * ni * unitsize];
+        matrix[i] = data + i * ni * unitsize;
 
-    return pp;
+    return matrix;
 }
 
 /** Similar to alloc2d except that it tries to fit the matrix into previously
@@ -855,29 +856,30 @@ void* alloc2d(size_t nj, size_t ni, size_t unitsize)
 void* realloc2d(void* prev, size_t nj, size_t ni, size_t unitsize)
 {
     size_t size;
-    void* p;
-    void** pp;
-    int i;
+    char* storage;
+    char* data;
+    void** matrix;
+    size_t i;
 
     if (ni == 0 || nj == 0 || unitsize == 0)
-        enkf_quit("realloc2d(): invalid size (nj = %zt, ni = %zt, unitsize = %zt)", nj, ni, unitsize);
+        enkf_quit("realloc2d(): invalid size (nj = %zu, ni = %zu, unitsize = %zu)", nj, ni, unitsize);
     if (SIZE_MAX / nj / sizeof(void*) == 0 || SIZE_MAX / nj / ni / unitsize == 0 || nj * sizeof(void*) > SIZE_MAX - nj * ni * unitsize)
-        enkf_quit("realloc2d: allocation size overflow: nj = %zt, ni = %zt, unitsize = %zt", nj, ni, unitsize);
+        enkf_quit("realloc2d: allocation size overflow: nj = %zu, ni = %zu, unitsize = %zu", nj, ni, unitsize);
 
     size = nj * sizeof(void*) + nj * ni * unitsize;
-    if ((p = realloc(prev, size)) == NULL) {
+    if ((storage = realloc(prev, size)) == NULL) {
         int errno_saved = errno;
 
         enkf_quit("realloc2d(): %s", strerror(errno_saved));
     }
-    memset(p, 0, size);
+    memset(storage, 0, size);
 
-    pp = p;
-    p = &((size_t*) p)[nj];
+    matrix = (void**) storage;
+    data = storage + nj * sizeof(void*);
     for (i = 0; i < nj; ++i)
-        pp[i] = &((char*) p)[i * ni * unitsize];
+        matrix[i] = data + i * ni * unitsize;
 
-    return pp;
+    return matrix;
 }
 
 /** Casts an ni x nj matrix onto a pre-allocated storage and fills it with
@@ -890,24 +892,26 @@ void* realloc2d(void* prev, size_t nj, size_t ni, size_t unitsize)
  */
 void* cast2d(void* p, size_t nj, size_t ni, size_t unitsize)
 {
+    char* storage = p;
+    char* data;
     size_t size;
-    void** pp;
-    int i;
+    void** matrix;
+    size_t i;
 
-    if (ni == 0 || nj == 0)
-        enkf_quit("cast2d(): invalid size (nj = %zt, ni = %zt, unitsize = %zt)", nj, ni, unitsize);
+    if (ni == 0 || nj == 0 || unitsize == 0)
+        enkf_quit("cast2d(): invalid size (nj = %zu, ni = %zu, unitsize = %zu)", nj, ni, unitsize);
     if (SIZE_MAX / nj / sizeof(void*) == 0 || SIZE_MAX / nj / ni / unitsize == 0 || nj * sizeof(void*) > SIZE_MAX - nj * ni * unitsize)
-        enkf_quit("cast2d: allocation size overflow: nj = %zt, ni = %zt, unitsize = %zt", nj, ni, unitsize);
+        enkf_quit("cast2d: allocation size overflow: nj = %zu, ni = %zu, unitsize = %zu", nj, ni, unitsize);
 
     size = nj * sizeof(void*) + nj * ni * unitsize;
-    memset(p, 0, size);
+    memset(storage, 0, size);
 
-    pp = p;
-    p = &((size_t*) p)[nj];
+    matrix = (void**) storage;
+    data = storage + nj * sizeof(void*);
     for (i = 0; i < nj; ++i)
-        pp[i] = &((char*) p)[i * ni * unitsize];
+        matrix[i] = data + i * ni * unitsize;
 
-    return pp;
+    return matrix;
 }
 
 /** Copies 2D matrix.
@@ -920,29 +924,30 @@ void* cast2d(void* p, size_t nj, size_t ni, size_t unitsize)
 void* copy2d(void** src, size_t nj, size_t ni, size_t unitsize)
 {
     size_t size;
-    void* p;
-    void** pp;
+    char* storage;
+    char* data;
+    void** matrix;
     size_t i;
 
-    if (ni == 0 || nj == 0)
-        enkf_quit("copy2d(): invalid size (nj = %zt, ni = %zt, unitsize = %zt)", nj, ni, unitsize);
+    if (ni == 0 || nj == 0 || unitsize == 0)
+        enkf_quit("copy2d(): invalid size (nj = %zu, ni = %zu, unitsize = %zu)", nj, ni, unitsize);
     if (SIZE_MAX / nj / sizeof(void*) == 0 || SIZE_MAX / nj / ni / unitsize == 0 || nj * sizeof(void*) > SIZE_MAX - nj * ni * unitsize)
-        enkf_quit("copy2d: allocation size overflow: nj = %zt, ni = %zt, unitsize = %zt", nj, ni, unitsize);
+        enkf_quit("copy2d: allocation size overflow: nj = %zu, ni = %zu, unitsize = %zu", nj, ni, unitsize);
 
     size = nj * ni * unitsize + nj * sizeof(void*);
-    if ((p = malloc(size)) == NULL) {
+    if ((storage = malloc(size)) == NULL) {
         int errno_saved = errno;
 
         enkf_quit("copy2d(): %s", strerror(errno_saved));
     }
 
-    pp = p;
-    p = &((size_t*) p)[nj];
+    matrix = (void**) storage;
+    data = storage + nj * sizeof(void*);
     for (i = 0; i < nj; ++i)
-        pp[i] = &((char*) p)[i * ni * unitsize];
-    memcpy(p, src[0], nj * ni * unitsize);
+        matrix[i] = data + i * ni * unitsize;
+    memcpy(matrix[0], src[0], nj * ni * unitsize);
 
-    return pp;
+    return matrix;
 }
 
 /** Allocates ni x nj x nk matrix of something and fills it with zeros. An
@@ -957,33 +962,34 @@ void* copy2d(void** src, size_t nj, size_t ni, size_t unitsize)
 void* alloc3d(size_t nk, size_t nj, size_t ni, size_t unitsize)
 {
     size_t size;
-    void* p;
-    void** pp;
-    void*** ppp;
+    char* storage;
+    char* data;
+    void*** matrix;
+    void** submatrix;
     size_t i;
 
     if (nk == 0 || nj == 0 || ni == 0 || unitsize == 0)
-        enkf_quit("alloc3d(): invalid size (nk = %zt, nj = %zt, ni = %zt, unitsize = %zt)", nk, nj, ni, unitsize);
+        enkf_quit("alloc3d(): invalid size (nk = %zu, nj = %zu, ni = %zu, unitsize = %zu)", nk, nj, ni, unitsize);
     if (SIZE_MAX / nk / (nj + 1) / sizeof(void*) == 0 || SIZE_MAX / nk / nj / ni / unitsize == 0 || nk * (nj + 1) * sizeof(void*) > SIZE_MAX - nk * nj * ni * unitsize)
-        enkf_quit("alloc3d: allocation size overflow: nk = %zt, nj = %zt, ni = %zt, unitsize = %zt", nk, nj, ni, unitsize);
+        enkf_quit("alloc3d: allocation size overflow: nk = %zu, nj = %zu, ni = %zu, unitsize = %zu", nk, nj, ni, unitsize);
 
     size = nk * (nj + 1) * sizeof(void*) + nk * nj * ni * unitsize;
-    if ((p = malloc(size)) == NULL) {
+    if ((storage = malloc(size)) == NULL) {
         int errno_saved = errno;
 
         enkf_quit("alloc3d(): %s", strerror(errno_saved));
     }
-    memset(p, 0, size);
+    memset(storage, 0, size);
 
-    ppp = p;
-    pp = &((void**) p)[nk];
-    p = &((size_t*) p)[nk + nk * nj];
+    matrix = (void***) storage;
+    submatrix = (void**) (storage + nk * sizeof(void*));
     for (i = 0; i < nk; ++i)
-        ppp[i] = &pp[i * nj];
+        matrix[i] = &submatrix[i * nj];
+    data = storage + nk * sizeof(void*) + nk * nj * sizeof(void*);
     for (i = 0; i < nk * nj; ++i)
-        pp[i] = &((char*) p)[i * ni * unitsize];
+        submatrix[i] = data + i * ni * unitsize;
 
-    return ppp;
+    return matrix;
 }
 
 /** Copies nk x nj x ni array of something.
@@ -997,33 +1003,34 @@ void* alloc3d(size_t nk, size_t nj, size_t ni, size_t unitsize)
 void* copy3d(void*** src, size_t nk, size_t nj, size_t ni, size_t unitsize)
 {
     size_t size;
-    void* p;
-    void** pp;
-    void*** ppp;
-    int i;
+    char* storage;
+    char* data;
+    void*** matrix;
+    void** submatrix;
+    size_t i;
 
     if (nk == 0 || nj == 0 || ni == 0 || unitsize == 0)
-        enkf_quit("copy3d(): invalid size (nk = %zt, nj = %zt, ni = %zt, unitsize = %zt)", nk, nj, ni, unitsize);
+        enkf_quit("alloc3d(): invalid size (nk = %zu, nj = %zu, ni = %zu, unitsize = %zu)", nk, nj, ni, unitsize);
     if (SIZE_MAX / nk / (nj + 1) / sizeof(void*) == 0 || SIZE_MAX / nk / nj / ni / unitsize == 0 || nk * (nj + 1) * sizeof(void*) > SIZE_MAX - nk * nj * ni * unitsize)
-        enkf_quit("copy3d: allocation size overflow: nk = %zt, nj = %zt, ni = %zt, unitsize = %zt", nk, nj, ni, unitsize);
+        enkf_quit("alloc3d: allocation size overflow: nk = %zu, nj = %zu, ni = %zu, unitsize = %zu", nk, nj, ni, unitsize);
 
     size = nk * (nj + 1) * sizeof(void*) + nk * nj * ni * unitsize;
-    if ((p = malloc(size)) == NULL) {
+    if ((storage = malloc(size)) == NULL) {
         int errno_saved = errno;
 
         enkf_quit("copy3d(): %s", strerror(errno_saved));
     }
 
-    ppp = p;
-    pp = &((void**) p)[nk];
-    p = &((size_t*) p)[nk + nk * nj];
-    for (i = 0; i < nk; i++)
-        ppp[i] = &pp[i * nj];
-    for (i = 0; i < nk * nj; i++)
-        pp[i] = &((char*) p)[i * ni * unitsize];
-    memcpy(p, src[0][0], nk * nj * unitsize);
+    matrix = (void***) storage;
+    submatrix = (void**) (storage + nk * sizeof(void*));
+    for (i = 0; i < nk; ++i)
+        matrix[i] = &submatrix[i * nj];
+    data = storage + nk * sizeof(void*) + nk * nj * sizeof(void*);
+    for (i = 0; i < nk * nj; ++i)
+        submatrix[i] = data + i * ni * unitsize;
+    memcpy(data, src[0][0], nk * nj * ni * unitsize);
 
-    return ppp;
+    return matrix;
 }
 
 /**
