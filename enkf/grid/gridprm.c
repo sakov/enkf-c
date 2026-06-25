@@ -571,6 +571,9 @@ void gridprm_print(gridprm* prm, char offset[])
 {
     int i;
 
+    if (rank != 0)
+        return;
+
     enkf_printf("%sgrid prm info:\n", offset);
     enkf_printf("%s  NAME = \"%s\"\n", offset, prm->name);
     enkf_printf("%s  DOMAIN = %s\n", offset, prm->domainname);
@@ -646,6 +649,7 @@ void gridprm_print(gridprm* prm, char offset[])
             enkf_printf("[%.0f %.0f] ", prm->zints[i].z1, prm->zints[i].z2);
         enkf_printf("\n");
     }
+    enkf_flush();
 }
 
 /**

@@ -1,3 +1,6 @@
+v2.47.2
+   PS 25062026
+   -- Multiple minor changes.
 v2.47.1
    PS 24062026
    -- Semi-cosmetic changes in alloc2d(), realloc2d(), cast2d(), copy2d(),

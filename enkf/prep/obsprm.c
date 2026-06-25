@@ -44,6 +44,54 @@ static void obssection_addfname(obssection* section, char fname[])
 
 /**
  */
+static void obsprm_print(char fname[], int nsection, obssection* sections)
+{
+    int i, j;
+    
+    for (i = 0; i < nsection; ++i) {
+        obssection* section = &sections[i];
+
+        enkf_printf("    PRODUCT = %s\n", section->product);
+        if (section->reader == NULL) {
+            section->reader = strdup("standard");
+            enkf_printf("      (assumed) READER = %s\n", section->reader);
+        } else
+            enkf_printf("      READER = %s\n", section->reader);
+        if (section->type == NULL)
+            enkf_quit("%s: observation type not specified for product \"%s\"", fname, section->product);
+        enkf_printf("      TYPE = %s\n", section->type);
+        for (j = 0; j < section->nfiles; ++j)
+            enkf_printf("        File: %s\n", section->fnames[j]);
+        for (j = 0; j < section->nestds; ++j) {
+            char operstr[MAXSTRLEN] = "";
+            std_entry* std = &section->estds[j];
+
+            if (std->op == ARITHMETIC_EQ)
+                strcpy(operstr, "EQUAL");
+            else if (std->op == ARITHMETIC_PLUS)
+                strcpy(operstr, "PLUS");
+            else if (std->op == ARITHMETIC_MULT)
+                strcpy(operstr, "MULT");
+            else if (std->op == ARITHMETIC_MIN)
+                strcpy(operstr, "MIN");
+            else if (std->op == ARITHMETIC_MAX)
+                strcpy(operstr, "MAX");
+
+            if (std->type == STDTYPE_VALUE)
+                enkf_printf("      ERROR_STD = %.3g, operation = %s\n", ((double*) std->data)[0], operstr);
+            else if (std->type == STDTYPE_FILE)
+                enkf_printf("      ERROR_STD = %s %s, operation = %s\n", (char*) std->data, std->varname, operstr);
+        }
+        if (section->mandatory)
+            enkf_printf("      MANDATORY = yes\n");
+        for (j = 0; j < section->npars; ++j)
+            enkf_printf("      PARAMETER %s = %s\n", section->pars[j].name, section->pars[j].value);
+    }
+    
+}
+
+/**
+ */
 void obsprm_read(char fname[], int* nsection, obssection** sections)
 {
     FILE* f = NULL;
@@ -51,7 +99,6 @@ void obsprm_read(char fname[], int* nsection, obssection** sections)
     size_t bufsize = 0;
     obssection* section = NULL;
     int line;
-    int i, j;
 
     *nsection = 0;
     *sections = NULL;
@@ -196,45 +243,7 @@ void obsprm_read(char fname[], int* nsection, obssection** sections)
     /*
      * print summary 
      */
-    for (i = 0; i < *nsection; ++i) {
-        section = &(*sections)[i];
-
-        enkf_printf("    PRODUCT = %s\n", section->product);
-        if (section->reader == NULL) {
-            section->reader = strdup("standard");
-            enkf_printf("      (assumed) READER = %s\n", section->reader);
-        } else
-            enkf_printf("      READER = %s\n", section->reader);
-        if (section->type == NULL)
-            enkf_quit("%s: observation type not specified for product \"%s\"", fname, section->product);
-        enkf_printf("      TYPE = %s\n", section->type);
-        for (j = 0; j < section->nfiles; ++j)
-            enkf_printf("        File: %s\n", section->fnames[j]);
-        for (j = 0; j < section->nestds; ++j) {
-            char operstr[MAXSTRLEN] = "";
-            std_entry* std = &section->estds[j];
-
-            if (std->op == ARITHMETIC_EQ)
-                strcpy(operstr, "EQUAL");
-            else if (std->op == ARITHMETIC_PLUS)
-                strcpy(operstr, "PLUS");
-            else if (std->op == ARITHMETIC_MULT)
-                strcpy(operstr, "MULT");
-            else if (std->op == ARITHMETIC_MIN)
-                strcpy(operstr, "MIN");
-            else if (std->op == ARITHMETIC_MAX)
-                strcpy(operstr, "MAX");
-
-            if (std->type == STDTYPE_VALUE)
-                enkf_printf("      ERROR_STD = %.3g, operation = %s\n", ((double*) std->data)[0], operstr);
-            else if (std->type == STDTYPE_FILE)
-                enkf_printf("      ERROR_STD = %s %s, operation = %s\n", (char*) std->data, std->varname, operstr);
-        }
-        if (section->mandatory)
-            enkf_printf("      MANDATORY = yes\n");
-        for (j = 0; j < section->npars; ++j)
-            enkf_printf("      PARAMETER %s = %s\n", section->pars[j].name, section->pars[j].value);
-    }
+    obsprm_print(fname, *nsection, *sections);
 }
 
 /**

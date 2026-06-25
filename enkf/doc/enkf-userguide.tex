@@ -39,7 +39,7 @@
 
 \begin{document}
 
-\title{EnKF-C user guide\\{\normalsize version 2.46.0}}
+\title{EnKF-C user guide\\{\normalsize version 2.47.2}}
 
 \author{Pavel Sakov}
 \date{June 19, 2014 -- \today}
@@ -1744,12 +1744,14 @@ In the course of its work CALC routinely calculates two metrics for assessing th
   & \mathrm{SRF} = \sqrt{\frac{\mathrm{tr}(\mb H \mb P^f \mb H\T \mb R^{-1})}{\mathrm{tr}(\mb H \mb P^a \mb H\T \mb R^{-1})}} - 1 = \sqrt{\frac{\mathrm{tr}(\mb S\T \mb S)}{\mathrm{tr}(\mb G \mb S)}} - 1,
 \end{align*}
 where $\mathrm{tr}(\cdot)$ is the trace function.
-The values of these metrics for each local analysis, calculated both for all observations and for observations of each type only, are written to file \verb|enkf_diag.nc|.
-Note that in EnKF-C DFS and SRF are calculated from the above expressions and represent theoretical values for the EnKF analysis; they coincide with the actual DFS and SRF values only for the ETKF, but not for the DEnKF, which is an approximation of the KF (and indeed not for the EnOI, which is not even an approximation).
-Also note that although the partial DFS and SRF for particular observation types are useful indicators of the impact of the corresponding observations, they are not fully consistent in the sense that these impacts are not independent of each other.
+The values of these metrics for each local analysis, calculated both for all observations and for observations of each type only, are written to files \verb|enkf_diag[-<grid ID>].nc| (variables \verb|dfs|, \verb|srf|, \verb|pdfs|, and \verb|psrf|).
+
+Note that in EnKF-C DFS and SRF are calculated from the above expressions and represent theoretical values for the EnKF analysis; they coincide with the actual DFS and SRF values only for vanilla ETKF (i.e. ETKF with no inflation or relaxation to prior), but still are useful metrics for assessing the impact of observations in practice.
 
 In the EnKF context DFS is a useful indicator of potential rank problems.
-Normally, it should not exceed a fraction (a half, or better, a quarter) of the ensemble size per the characteristic time of the error growth.
+Normally, DFS calculated for assimilating observations over the characteristic time of the error growth should not exceed a fraction (a half, or better, a quarter) of the ensemble size.
+(Note that DFS from consequitive cycles is not additive.)
+
 SRF shows the ``strength'' of DA.
 ``Strong'' DA requires a nearly optimal system (otherwise it produces large artefacts and imbalances), which indeed never happens in practice.
 Therefore, ideally, SRF should be small (below 1, on average).

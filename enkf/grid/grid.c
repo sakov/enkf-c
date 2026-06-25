@@ -402,6 +402,7 @@ void grid_print(grid* g, char offset[])
     if (g->hgrid->nodetreeXYZ != NULL)
         kd_printinfo(g->hgrid->nodetreeXYZ, "      ");
 #endif
+    enkf_flush();
 }
 
 /**

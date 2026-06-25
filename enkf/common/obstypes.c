@@ -121,6 +121,9 @@ static void obstype_print(obstype* type)
 {
     int i;
 
+    if (rank != 0)
+        return;
+
     enkf_printf("    NAME = %s\n", type->name);
     if (type->ndomains > 0) {
         enkf_printf("    DOMAINS =");
@@ -145,7 +148,7 @@ static void obstype_print(obstype* type)
     enkf_printf("      ALLOWED MAX = %.3g\n", type->allowed_max);
     enkf_printf("      ASYNCHRONOUS = %s", (type->isasync) ? "yes" : "no");
     if (type->isasync) {
-        enkf_printf(", DT = %.3f (%s)", type->async_tstep, (type->async_centred) ? "centre-aligned" : "corner-aligned");
+        enkf_printf(", DT = %.3f (%s)", type->async_tstep, (type->async_centred) ? "centre-aligned" : "endpoint-aligned");
         enkf_printf(", TNAME = %s", type->async_tname);
     }
     enkf_printf("\n");

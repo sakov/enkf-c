@@ -51,3 +51,4 @@ int enkf_allowenoilog = 0;
 
 char* enkf_cmd = NULL;
 char* enkf_cwd = NULL;
+char* enkf_time = NULL;

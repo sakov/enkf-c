@@ -274,6 +274,16 @@ void enkf_init(int* argc, char*** argv)
 
     enkf_cmd = get_command(*argc, *argv);
     enkf_cwd = getcwd(NULL, 0);
+    {
+        time_t t;
+        struct tm tm;
+        char timestr[MAXSTRLEN];
+        
+        t = time(NULL);
+        tm = *localtime(&t);
+        snprintf(timestr, MAXSTRLEN, "%04d-%02d-%02d %02d:%02d:%02d", tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday, tm.tm_hour, tm.tm_min, tm.tm_sec);
+        enkf_time = strdup(timestr);
+    }
 }
 
 /**
@@ -298,6 +308,8 @@ void enkf_finish(void)
         free(enkf_cmd);
     if (enkf_cwd != NULL)
         free(enkf_cwd);
+    if (enkf_time != NULL)
+        free(enkf_time);
     enkf_printf("  finished\n");
     enkf_flush();
 #if defined(MPI)
@@ -992,7 +1004,7 @@ void* alloc3d(size_t nk, size_t nj, size_t ni, size_t unitsize)
     return matrix;
 }
 
-/** Copies nk x nj x ni array of something.
+/** Copies nk x nj x ni array of something. See alloc3d() for details.
  * @param src Source matrix
  * @param nk Dimension 3
  * @param nj Dimension 2
@@ -1678,6 +1690,7 @@ void enkf_writeinfo(char* fname)
             ncw_put_att_text(ncid, NC_GLOBAL, "EnKF-C version", ENKF_VERSION);
             ncw_put_att_text(ncid, NC_GLOBAL, "command", enkf_cmd);
             ncw_put_att_text(ncid, NC_GLOBAL, "wdir", enkf_cwd);
+            ncw_put_att_text(ncid, NC_GLOBAL, "command time", enkf_time);
         }
         ncw_close(ncid);
     }
