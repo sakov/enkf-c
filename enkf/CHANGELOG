@@ -1,3 +1,16 @@
+v2.47.3
+   PS 29062026
+   -- Unified "m1" and "m2" dimensions as "m" in pointlog files for mode =
+      MODE_ENKF.
+   -- Added description of dimensions in pointlog files using variable
+      "dimension_reference" as container.
+   -- Modified names for observation related variables in pointlog files to
+      start with prefix "obs_"; added "long_name" attributes.
+   -- Added "long_name" and "comment" attributes to variables in enkf_diag
+      files.
+   -- Modified enkf_writeinfo() so that UPDATE would not overwrite in
+      pointlog files global attribute "command" written by CALC.
+   -- Added target "hybrid" in example 4.
 v2.47.2
    PS 25062026
    -- Multiple minor changes.

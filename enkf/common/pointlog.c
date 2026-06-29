@@ -85,6 +85,7 @@ void das_createplog(dasystem* das, int plogid, int ploc, int* lobs, double* lcoe
     pointlog* plog = &das->plogs[plogid];
     observations* obs = das->obs;
     int ngrid = model_getngrid(das->m);
+    int hasunstructured = model_hasunstructured(das->m);
     char fname[MAXSTRLEN];
     int ncid;
     int dimid;
@@ -95,12 +96,12 @@ void das_createplog(dasystem* das, int plogid, int ploc, int* lobs, double* lcoe
     float* oestd;
     float* ofij0;
     float* ofij1;
-    float* ofij2;
+    float* ofij2 = NULL;
     float* ofk;
     int* otype;
     int* oinst;
     float* otime;
-    int vid_ids, vid_lcoeffs, vid_lon, vid_lat, vid_depth, vid_val, vid_estd, vid_fij0, vid_fij1, vid_fij2, vid_fk, vid_type, vid_inst, vid_time;
+    int vid_dims, vid_ids, vid_lcoeffs, vid_lon, vid_lat, vid_depth, vid_val, vid_estd, vid_fij0, vid_fij1, vid_fij2, vid_fk, vid_type, vid_inst, vid_time;
     char tunits[MAXSTRLEN];
     int otid, gid, iid;
 
@@ -108,27 +109,57 @@ void das_createplog(dasystem* das, int plogid, int ploc, int* lobs, double* lcoe
 
     das_getfname_plog(das, plog, fname);
     ncw_create(fname, NC_CLOBBER | das->ncformat, &ncid);
-    if (das->mode == MODE_ENOI)
+    if (das->mode == MODE_ENOI || das->mode == MODE_ENKF)
         ncw_def_dim(ncid, "m", das->nmem, NULL);
-    else if (das->mode == MODE_ENKF || das->mode == MODE_HYBRID) {
+    else if (das->mode == MODE_HYBRID) {
         ncw_def_dim(ncid, "m1", das->nmem_dynamic, NULL);
         ncw_def_dim(ncid, "m2", das->nmem, NULL);
     }
     ncw_def_dim(ncid, "p", ploc, &dimid);
+
+    ncw_def_var(ncid, "dimension_reference", NC_CHAR, 0, NULL, &vid_dims);
+    if (das->mode == MODE_ENOI || das->mode == MODE_ENKF)
+        ncw_put_att_text(ncid, vid_dims, "m", "ensemble size");
+    else {
+        ncw_put_att_text(ncid, vid_dims, "m1", "size of dynamic ensemble");
+        ncw_put_att_text(ncid, vid_dims, "m2", "total size of ensemble");
+    }
+    ncw_put_att_text(ncid, vid_dims, "p", "total number of observations");
+    
     ncw_def_var(ncid, "obs_ids", NC_INT, 1, &dimid, &vid_ids);
-    ncw_def_var(ncid, "lcoeffs", NC_FLOAT, 1, &dimid, &vid_lcoeffs);
-    ncw_def_var(ncid, "lon", NC_FLOAT, 1, &dimid, &vid_lon);
-    ncw_def_var(ncid, "lat", NC_FLOAT, 1, &dimid, &vid_lat);
-    ncw_def_var(ncid, "depth", NC_FLOAT, 1, &dimid, &vid_depth);
+    ncw_put_att_text(ncid, vid_ids, "long_name", "observation ID in observations.nc");
+    ncw_def_var(ncid, "obs_lcoeffs", NC_FLOAT, 1, &dimid, &vid_lcoeffs);
+    ncw_put_att_text(ncid, vid_lcoeffs, "long_name", "observation tapering coefficient");
+    ncw_def_var(ncid, "obs_lon", NC_FLOAT, 1, &dimid, &vid_lon);
+    ncw_put_att_text(ncid, vid_lon, "long_name", "observation longitude");
+    ncw_def_var(ncid, "obs_lat", NC_FLOAT, 1, &dimid, &vid_lat);
+    ncw_put_att_text(ncid, vid_lat, "long_name", "observation latitude");
+    ncw_def_var(ncid, "obs_depth", NC_FLOAT, 1, &dimid, &vid_depth);
+    ncw_put_att_text(ncid, vid_depth, "long_name", "observation depth");
     ncw_def_var(ncid, "obs_val", NC_FLOAT, 1, &dimid, &vid_val);
+    ncw_put_att_text(ncid, vid_val, "long_name", "observation value");
     ncw_def_var(ncid, "obs_estd", NC_FLOAT, 1, &dimid, &vid_estd);
-    ncw_def_var(ncid, "obs_fij0", NC_FLOAT, 1, &dimid, &vid_fij0);
-    ncw_def_var(ncid, "obs_fij1", NC_FLOAT, 1, &dimid, &vid_fij1);
-    ncw_def_var(ncid, "obs_fij2", NC_FLOAT, 1, &dimid, &vid_fij2);
+    if (hasunstructured) {
+        ncw_def_var(ncid, "obs_fij0", NC_FLOAT, 1, &dimid, &vid_fij0);
+        ncw_put_att_text(ncid, vid_fij0, "long_name", "observation fractional grid index");
+        ncw_def_var(ncid, "obs_fij1", NC_FLOAT, 1, &dimid, &vid_fij1);
+        ncw_put_att_text(ncid, vid_fij1, "long_name", "observation fractional grid index");
+        ncw_def_var(ncid, "obs_fij2", NC_FLOAT, 1, &dimid, &vid_fij2);
+        ncw_put_att_text(ncid, vid_fij2, "long_name", "observation fractional grid index");
+    } else {
+        ncw_def_var(ncid, "obs_fi", NC_FLOAT, 1, &dimid, &vid_fij0);
+        ncw_put_att_text(ncid, vid_fij0, "long_name", "observation fractional grid index i");
+        ncw_def_var(ncid, "obs_fj", NC_FLOAT, 1, &dimid, &vid_fij1);
+        ncw_put_att_text(ncid, vid_fij1, "long_name", "observation fractional grid index j");
+    }
     ncw_def_var(ncid, "obs_fk", NC_FLOAT, 1, &dimid, &vid_fk);
+    ncw_put_att_text(ncid, vid_fk, "long_name", "observation fractional grid index k");
     ncw_def_var(ncid, "obs_type", NC_INT, 1, &dimid, &vid_type);
+    ncw_put_att_text(ncid, vid_type, "long_name", "observation type ID");
     ncw_def_var(ncid, "obs_inst", NC_INT, 1, &dimid, &vid_inst);
+    ncw_put_att_text(ncid, vid_inst, "long_name", "observation instrument ID");
     ncw_def_var(ncid, "obs_time", NC_FLOAT, 1, &dimid, &vid_time);
+    ncw_put_att_text(ncid, vid_time, "long_name", "observation time");
     snprintf(tunits, MAXSTRLEN, "days from %s", obs->datestr);
     ncw_put_att_text(ncid, vid_time, "units", tunits);
 
@@ -253,7 +284,8 @@ void das_createplog(dasystem* das, int plogid, int ploc, int* lobs, double* lcoe
         oestd = malloc(ploc * sizeof(float));
         ofij0 = malloc(ploc * sizeof(float));
         ofij1 = malloc(ploc * sizeof(float));
-        ofij2 = malloc(ploc * sizeof(float));
+        if (hasunstructured)
+            ofij2 = malloc(ploc * sizeof(float));
         ofk = malloc(ploc * sizeof(float));
         otype = malloc(ploc * sizeof(int));
         oinst = malloc(ploc * sizeof(int));
@@ -269,7 +301,8 @@ void das_createplog(dasystem* das, int plogid, int ploc, int* lobs, double* lcoe
             oestd[oid] = o->estd;
             ofij0[oid] = o->fij[0];
             ofij1[oid] = o->fij[1];
-            ofij2[oid] = o->fij[2];
+            if (hasunstructured)
+                ofij2[oid] = o->fij[2];
             ofk[oid] = o->fk;
             otype[oid] = o->type;
             oinst[oid] = o->instrument;
@@ -283,7 +316,8 @@ void das_createplog(dasystem* das, int plogid, int ploc, int* lobs, double* lcoe
         ncw_put_var_float(ncid, vid_estd, oestd);
         ncw_put_var_float(ncid, vid_fij0, ofij0);
         ncw_put_var_float(ncid, vid_fij1, ofij1);
-        ncw_put_var_float(ncid, vid_fij2, ofij2);
+        if (hasunstructured)
+            ncw_put_var_float(ncid, vid_fij2, ofij2);
         ncw_put_var_float(ncid, vid_fk, ofk);
         ncw_put_var_int(ncid, vid_type, otype);
         ncw_put_var_int(ncid, vid_inst, oinst);
@@ -296,7 +330,8 @@ void das_createplog(dasystem* das, int plogid, int ploc, int* lobs, double* lcoe
         free(oestd);
         free(ofij0);
         free(ofij1);
-        free(ofij2);
+        if (ofij2 != NULL)
+            free(ofij2);
         free(ofk);
         free(otype);
         free(oinst);
@@ -304,6 +339,7 @@ void das_createplog(dasystem* das, int plogid, int ploc, int* lobs, double* lcoe
     }
 
     ncw_close(ncid);
+    enkf_writeinfo(fname);
 }
 
 /** Creates a point log file and writes ensemble observations, transforms, and
@@ -331,32 +367,39 @@ void das_writeplogtransform(dasystem* das, int plogid, int gid, int ploc, double
     ncw_redef(ncid);
     if (das->mode == MODE_ENOI)
         ncw_inq_dimid(ncid, "m", &dimids[1]);
-    else if (das->mode == MODE_ENKF || das->mode == MODE_HYBRID) {
+    else if (das->mode == MODE_ENKF) {
+        ncw_inq_dimid(ncid, "m", &dimids[0]);
+        ncw_inq_dimid(ncid, "m", &dimids[1]);
+    } else if (das->mode == MODE_HYBRID) {
         ncw_inq_dimid(ncid, "m1", &dimids[0]);
         ncw_inq_dimid(ncid, "m2", &dimids[1]);
     }
 
     if (ploc > 0) {
         snprintf(name, NC_MAX_NAME, "p%s", gridstr);
-        if (!ncw_dim_exists(ncid, name))
+        if (!ncw_dim_exists(ncid, name)) {
+            char attstr[MAXSTRLEN];
+            int vid_dims;
+
             ncw_def_dim(ncid, name, ploc, &dimids[2]);
-        else
+            ncw_inq_varid(ncid, "dimension_reference", &vid_dims);
+            snprintf(attstr, MAXSTRLEN, "number of observations on grid %d", gid);
+            ncw_put_att_text(ncid, vid_dims, name, attstr);
+        } else
             ncw_inq_dimid(ncid, name, &dimids[2]);
         snprintf(name, NC_MAX_NAME, "s%s", gridstr);
         ncw_def_var(ncid, name, NC_FLOAT, 1, &dimids[2], &vid_s);
+        ncw_put_att_text(ncid, vid_s, "long_name", "standardised innovation");
         snprintf(name, NC_MAX_NAME, "S%s", gridstr);
         ncw_def_var(ncid, name, NC_FLOAT, 2, &dimids[1], &vid_S);
+        ncw_put_att_text(ncid, vid_s, "long_name", "standardised observation anomalies");
     }
     {
         char attstr[MAXSTRLEN];
-        char varname[NC_MAX_NAME];
 
-        snprintf(varname, NC_MAX_NAME, "w%s", gridstr);
-        ncw_def_var(ncid, varname, NC_DOUBLE, 1, &dimids[1], &vid_w);
-        if (grid_isstructured(g))
-            snprintf(attstr, MAXSTRLEN, "ensemble coefficients for location (fi,fj)=(%.3f,%.3f) on grid %d (\"%s\")", plog->fij[gid][0], plog->fij[gid][1], gid, gridname);
-        else
-            snprintf(attstr, MAXSTRLEN, "ensemble coefficients for location (fi0,fi1,fi2)=(%.3f,%.3f,%.3f) on grid %d (\"%s\")", plog->fij[gid][0], plog->fij[gid][1], plog->fij[gid][2], gid, gridname);
+        snprintf(name, NC_MAX_NAME, "w%s", gridstr);
+        ncw_def_var(ncid, name, NC_DOUBLE, 1, &dimids[1], &vid_w);
+        snprintf(attstr, MAXSTRLEN, "increment coefficients on grid %d (\"%s\")", gid, gridname);
         ncw_put_att_text(ncid, vid_w, "long_name", attstr);
     }
     if (T != NULL) {
@@ -364,11 +407,7 @@ void das_writeplogtransform(dasystem* das, int plogid, int gid, int ploc, double
 
         snprintf(name, NC_MAX_NAME, "T%s", gridstr);
         ncw_def_var(ncid, name, NC_DOUBLE, 2, dimids, &vid_T);
-        if (grid_isstructured(g))
-            snprintf(attstr, MAXSTRLEN, "ensemble anomalies transform for location (fi,fj)=(%.3f,%.3f) on grid %d (\"%s\")", plog->fij[gid][0], plog->fij[gid][1], gid, gridname);
-        else
-            snprintf(attstr, MAXSTRLEN, "ensemble anomalies transform for location (fi0,fi1,fi2)=(%.3f,%.3f,%.3f) on grid %d (\"%s\")", plog->fij[gid][0], plog->fij[gid][1], plog->fij[gid][2], gid, gridname);
-        ncw_put_att_text(ncid, vid_T, "long_name", attstr);
+        snprintf(attstr, MAXSTRLEN, "ensemble anomalies transform on grid %d (\"%s\")", gid, gridname);
     }
     ncw_enddef(ncid);
 
@@ -437,14 +476,20 @@ void plogs_definestatevars(dasystem* das)
 
                 snprintf(nkname, NC_MAX_NAME, "nk%s", gridstr);
                 if (nk > 1) {
-                    if (!ncw_dim_exists(ncid, nkname))
+                    if (!ncw_dim_exists(ncid, nkname)) {
+                        char attstr[MAXSTRLEN];
+                        int vid_dims;
+
                         ncw_def_dim(ncid, nkname, nk, &dimids[0]);
-                    else
+                        ncw_inq_varid(ncid, "dimension_reference", &vid_dims);
+                        snprintf(attstr, MAXSTRLEN, "number of layers in grid %d", gid);
+                        ncw_put_att_text(ncid, vid_dims, nkname, attstr);
+                    } else
                         ncw_inq_dimid(ncid, nkname, &dimids[0]);
                 }
-                if (das->mode == MODE_ENOI)
+                if (das->mode == MODE_ENOI || das->mode == MODE_ENKF)
                     ncw_inq_dimid(ncid, "m", &dimids[1]);
-                else if (das->mode == MODE_ENKF || das->mode == MODE_HYBRID)
+                else if (das->mode == MODE_HYBRID)
                     ncw_inq_dimid(ncid, "m2", &dimids[1]);
                 if (!ncw_var_exists(ncid, varname)) {
                     if (nk > 1)
@@ -454,7 +499,7 @@ void plogs_definestatevars(dasystem* das)
                 } else
                     ncw_inq_varid(ncid, varname, &varid);
 
-                if (das->mode == MODE_ENKF || das->mode == MODE_HYBRID)
+                if (das->mode == MODE_HYBRID)
                     ncw_inq_dimid(ncid, "m1", &dimids[1]);
                 if ((das->updatespec & UPDATE_DOPLOGSAN) || das->haveanalysis) {
                     if (!ncw_var_exists(ncid, varname_an)) {

@@ -394,11 +394,19 @@ void nc_assemblediag(dasystem* das, int gridid, int nj, int ni, int stride)
     ncw_def_dim(ncid, "j", nj, &dimids[1]);
     ncw_def_dim(ncid, "i", ni, &dimids[2]);
     ncw_def_var(ncid, "nlobs", NC_INT, 2, &dimids[1], &varid_nlobs);
+    ncw_put_att_text(ncid, varid_nlobs, "long_name", "number of local observations");
     ncw_def_var(ncid, "dfs", NC_FLOAT, 2, &dimids[1], &varid_dfs);
+    ncw_put_att_text(ncid, varid_dfs, "long_name", "local DFS (Degrees of Freedom for Signal)");
+    ncw_put_att_text(ncid, varid_dfs, "comment", "DFS = trace(KH) for vanilla KF");
     ncw_def_var(ncid, "srf", NC_FLOAT, 2, &dimids[1], &varid_srf);
+    ncw_put_att_text(ncid, varid_srf, "long_name", "local SRF (Spread Reduction Factor)");
+    ncw_put_att_text(ncid, varid_srf, "comment", "SRF = (forecast spread / analysis spread) - 1 for vanilla ETKF");
     ncw_def_var(ncid, "pnlobs", NC_INT, 3, dimids, &varid_pnlobs);
+    ncw_put_att_text(ncid, varid_pnlobs, "long_name", "partial number of local observations");
     ncw_def_var(ncid, "pdfs", NC_FLOAT, 3, dimids, &varid_pdfs);
+    ncw_put_att_text(ncid, varid_pdfs, "long_name", "partial local DFS");
     ncw_def_var(ncid, "psrf", NC_FLOAT, 3, dimids, &varid_psrf);
+    ncw_put_att_text(ncid, varid_psrf, "long_name", "partial local SRF");
     ncw_put_att_int(ncid, NC_GLOBAL, "stride", 1, &stride);
     for (otid = 0; otid < das->obs->nobstypes; ++otid)
         ncw_put_att_int(ncid, NC_GLOBAL, das->obs->obstypes[otid].name, 1, &otid);

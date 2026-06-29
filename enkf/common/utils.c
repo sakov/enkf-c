@@ -1686,12 +1686,23 @@ void enkf_writeinfo(char* fname)
         int ncid;
 
         ncw_open(fname, NC_WRITE, &ncid);
-        if (!ncw_att_exists(ncid, NC_GLOBAL, "EnKF-C version")) {
+        if (!ncw_att_exists(ncid, NC_GLOBAL, "EnKF-C version"))
             ncw_put_att_text(ncid, NC_GLOBAL, "EnKF-C version", ENKF_VERSION);
-            ncw_put_att_text(ncid, NC_GLOBAL, "command", enkf_cmd);
+        if (!ncw_att_exists(ncid, NC_GLOBAL, "wdir"))
             ncw_put_att_text(ncid, NC_GLOBAL, "wdir", enkf_cwd);
-            ncw_put_att_text(ncid, NC_GLOBAL, "command time", enkf_time);
-        }
+#if defined(ENKF_PREP)
+        ncw_put_att_text(ncid, NC_GLOBAL, "PREP command", enkf_cmd);
+        ncw_put_att_text(ncid, NC_GLOBAL, "PREP start time", enkf_time);
+#elif defined(ENKF_CALC)
+        ncw_put_att_text(ncid, NC_GLOBAL, "CALC command", enkf_cmd);
+        ncw_put_att_text(ncid, NC_GLOBAL, "CALC start time", enkf_time);
+#elif defined(ENKF_UPDATE)
+        ncw_put_att_text(ncid, NC_GLOBAL, "UPDATE command", enkf_cmd);
+        ncw_put_att_text(ncid, NC_GLOBAL, "UPDATE start time", enkf_time);
+#elif defined(ENS_DIAG)
+        ncw_put_att_text(ncid, NC_GLOBAL, "DIAG command", enkf_cmd);
+        ncw_put_att_text(ncid, NC_GLOBAL, "DIAG start time", enkf_time);
+#endif
         ncw_close(ncid);
     }
 }

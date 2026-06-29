@@ -3,6 +3,8 @@ NP_UPDATE = 4
 
 enkf: clean enkf-prep enkf-calc enkf-update
 
+hybrid: clean hybrid-prep hybrid-calc hybrid-update
+
 enoi: clean enoi-prep enoi-calc enoi-update
 
 enkf-prep: enkf_prep conf obs prm
@@ -13,6 +15,15 @@ enkf-calc: enkf_calc observations.nc conf ensemble_6565
 
 enkf-update: enkf_update transforms-0.nc transforms-1.nc conf ensemble_6565
 	nice -n +19 mpirun -np $(NP_UPDATE) ./enkf_update --calculate-spread --write-inflation enkf.prm 2>&1 | tee update.out
+
+hybrid-prep: enkf_prep conf obs prm
+	./enkf_prep hybrid.prm 2>&1 | tee prep.out
+
+hybrid-calc: enkf_calc observations.nc conf ensemble_6565 ensemble_static
+	nice -n +19 mpirun -np $(NP_CALC) ./enkf_calc hybrid.prm 2>&1 | tee calc.out
+
+hybrid-update: enkf_update transforms-0.nc transforms-1.nc conf ensemble_6565
+	nice -n +19 mpirun -np $(NP_UPDATE) ./enkf_update --calculate-spread --write-inflation hybrid.prm 2>&1 | tee update.out
 
 enoi-prep: enkf_prep conf obs prm
 	./enkf_prep enoi.prm 2>&1 | tee prep.out
@@ -32,7 +43,7 @@ enkf_calc:
 enkf_update:
 	cp ../../bin/enkf_update .
 
-prm: enkf.prm enoi.prm obstypes.prm obs.prm
+prm: enkf.prm enoi.prm hybrid.prm obstypes.prm obs.prm
 
 conf obs ensemble_6565 ensemble_static background_6565 enkf.prm enoi.prm obstypes.prm obs.prm:
 	ln -s ../1/$@ .
