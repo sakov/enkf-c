@@ -45,7 +45,7 @@ enkf_update:
 
 prm: enkf.prm enoi.prm hybrid.prm obstypes.prm obs.prm
 
-conf obs ensemble_6565 ensemble_static background_6565 enkf.prm enoi.prm obstypes.prm obs.prm:
+conf obs ensemble_6565 ensemble_static background_6565 enkf.prm enoi.prm hybrid.prm obstypes.prm obs.prm:
 	ln -s ../1/$@ .
 
 clean:
