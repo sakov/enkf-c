@@ -1,3 +1,7 @@
+v2.47.4
+   PS 09072026
+   -- A couple of corrections in transforms related attributes in pointlog
+      files.
 v2.47.3
    PS 29062026
    -- Unified "m1" and "m2" dimensions as "m" in pointlog files for mode =

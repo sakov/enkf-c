@@ -47,7 +47,7 @@ static void obssection_addfname(obssection* section, char fname[])
 static void obsprm_print(char fname[], int nsection, obssection* sections)
 {
     int i, j;
-    
+
     for (i = 0; i < nsection; ++i) {
         obssection* section = &sections[i];
 
@@ -87,7 +87,7 @@ static void obsprm_print(char fname[], int nsection, obssection* sections)
         for (j = 0; j < section->npars; ++j)
             enkf_printf("      PARAMETER %s = %s\n", section->pars[j].name, section->pars[j].value);
     }
-    
+
 }
 
 /**

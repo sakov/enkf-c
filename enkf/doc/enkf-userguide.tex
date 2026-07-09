@@ -39,7 +39,7 @@
 
 \begin{document}
 
-\title{EnKF-C user guide\\{\normalsize version 2.47.2}}
+\title{EnKF-C user guide\\{\normalsize version 2.47.4}}
 
 \author{Pavel Sakov}
 \date{June 19, 2014 -- \today}
@@ -2003,25 +2003,42 @@ Following is an example of point log file header (file \verb|pointlog_156.000,-3
 netcdf pointlog_156.000\,-32.000 {
 dimensions:
 	m1 = 96 ;
-	m2 = 96 ;
+	m2 = 240 ;
 	p = 1440 ;
-	p-0 = 1440 ;
-	p-1 = 1440 ;
-	nk-0 = 2 ;
-	nk-1 = 2 ;
+	p0 = 1440 ;
+	p1 = 1440 ;
+	nk0 = 2 ;
+	nk1 = 2 ;
 variables:
+	char dimension_reference ;
+		dimension_reference:m1 = "size of dynamic ensemble" ;
+		dimension_reference:m2 = "total size of ensemble" ;
+		dimension_reference:p = "total number of observations" ;
+		dimension_reference:p0 = "number of observations on grid 0" ;
+		dimension_reference:p1 = "number of observations on grid 1" ;
+		dimension_reference:nk0 = "number of layers in grid 0" ;
+		dimension_reference:nk1 = "number of layers in grid 1" ;
 	int obs_ids(p) ;
-	float lcoeffs(p) ;
-	float lon(p) ;
-	float lat(p) ;
-	float depth(p) ;
+		obs_ids:long_name = "observation ID in observations.nc" ;
+	float obs_lcoeffs(p) ;
+		obs_lcoeffs:long_name = "observation tapering coefficient" ;
+	float obs_lon(p) ;
+		obs_lon:long_name = "observation longitude" ;
+	float obs_lat(p) ;
+		obs_lat:long_name = "observation latitude" ;
+	float obs_depth(p) ;
+		obs_depth:long_name = "observation depth" ;
 	float obs_val(p) ;
+		obs_val:long_name = "observation value" ;
 	float obs_estd(p) ;
-	float obs_fij0(p) ;
-	float obs_fij1(p) ;
-	float obs_fij2(p) ;
+	float obs_fi(p) ;
+		obs_fi:long_name = "observation fractional grid index i" ;
+	float obs_fj(p) ;
+		obs_fj:long_name = "observation fractional grid index j" ;
 	float obs_fk(p) ;
+		obs_fk:long_name = "observation fractional grid index k" ;
 	int obs_type(p) ;
+		obs_type:long_name = "observation type ID" ;
 		obs_type:SLA = 0 ;
 		obs_type:SST = 1 ;
 		obs_type:TEM = 2 ;
@@ -2043,6 +2060,7 @@ variables:
 		obs_type:WEIGHT_SAL = 1. ;
 		obs_type:GRIDID_SAL = 0 ;
 	int obs_inst(p) ;
+		obs_inst:long_name = "observation instrument ID" ;
 		obs_inst:j1 = 0 ;
 		obs_inst:n1 = 1 ;
 		obs_inst:ESACCI = 2 ;
@@ -2050,6 +2068,7 @@ variables:
 		obs_inst:WMO851 = 4 ;
 		obs_inst:WMO846 = 5 ;
 	float obs_time(p) ;
+		obs_time:long_name = "observation time" ;
 		obs_time:units = "days from 6565.5 days since 1990-01-01" ;
 	int grid-0 ;
 		grid-0:id = 0 ;
@@ -2067,55 +2086,63 @@ variables:
 		grid-1:fj = 49.0000077064579 ;
 		grid-1:nk = 2 ;
 		grid-1:model_depth = NaNf ;
-	float s-0(p-0) ;
-	float S-0(m2, p-0) ;
-	double w-0(m2) ;
-		w-0:long_name = "ensemble coefficients for location (fi,fj)=(49.500,49.500) on grid 0 (\"t-grid\")" ;
-	double T-0(m1, m2) ;
-		T-0:long_name = "ensemble anomalies transform for location (fi,fj)=(49.500,49.500) on grid 0 (\"t-grid\")" ;
-	float s-1(p-1) ;
-	float S-1(m2, p-1) ;
-	double w-1(m2) ;
-		w-1:long_name = "ensemble coefficients for location (fi,fj)=(49.000,49.000) on grid 1 (\"c-grid\")" ;
-	double T-1(m1, m2) ;
-		T-1:long_name = "ensemble anomalies transform for location (fi,fj)=(49.000,49.000) on grid 1 (\"c-grid\")" ;
+	float s0(p0) ;
+		s0:long_name = "standardised innovation on grid 0" ;
+	float S0(m2, p0) ;
+		S0:long_name = "standardised ensemble observation anomalies on grid 0" ;
+	double w0(m2) ;
+		w0:long_name = "increment coefficients on grid 0" ;
+	double T0(m1, m2) ;
+		T0:long_name = "ensemble anomalies transform on grid 0" ;
+	float s1(p1) ;
+		s1:long_name = "standardised innovation on grid 1" ;
+	float S1(m2, p1) ;
+		S1:long_name = "standardised ensemble observation anomalies on grid 1" ;
+	double w1(m2) ;
+		w1:long_name = "increment coefficients on grid 1" ;
+	double T1(m1, m2) ;
+		T1:long_name = "ensemble anomalies transform on grid 1" ;
 	float eta_t(m2) ;
 		eta_t:gridid = 0 ;
 	float eta_t_an(m1) ;
 		eta_t_an:gridid = 0 ;
 		eta_t_an:INFLATION = 1.1f, 1.f ;
-	float temp(nk-0, m2) ;
+	float temp(nk0, m2) ;
 		temp:gridid = 0 ;
-	float temp_an(nk-0, m1) ;
+	float temp_an(nk0, m1) ;
 		temp_an:gridid = 0 ;
 		temp_an:INFLATION = 1.1f, 1.f ;
-	float salt(nk-0, m2) ;
+	float salt(nk0, m2) ;
 		salt:gridid = 0 ;
-	float salt_an(nk-0, m1) ;
+	float salt_an(nk0, m1) ;
 		salt_an:gridid = 0 ;
 		salt_an:INFLATION = 1.1f, 1.f ;
-	float u(nk-1, m2) ;
+	float u(nk1, m2) ;
 		u:gridid = 1 ;
-	float u_an(nk-1, m1) ;
+	float u_an(nk1, m1) ;
 		u_an:gridid = 1 ;
 		u_an:INFLATION = 1.1f, 1.f ;
-	float v(nk-1, m2) ;
+	float v(nk1, m2) ;
 		v:gridid = 1 ;
-	float v_an(nk-1, m1) ;
+	float v_an(nk1, m1) ;
 		v_an:gridid = 1 ;
 		v_an:INFLATION = 1.1f, 1.f ;
 
 // global attributes:
 		:lon = 156. ;
 		:lat = -32. ;
-		:MODE = "EnKF" ;
+		:MODE = "Hybrid" ;
 		:SCHEME = "DEnKF" ;
 		:ALPHA = 1. ;
+		:GAMMA = 0.25 ;
 		:ngrids = 2 ;
-		:output = "analysis" ;
-		:EnKF-C\ version = "2.43.3" ;
-		:command = "./enkf_update --calculate-spread --write-inflation enkf.prm" ;
+		:EnKF-C\ version = "2.47.4" ;
 		:wdir = "/home/599/pxs599/src/enkf-c/enkf/examples/4" ;
+		:CALC\ command = "./enkf_calc hybrid.prm" ;
+		:CALC\ start\ time = "2026-07-09 14:28:24" ;
+		:output = "analysis" ;
+		:UPDATE\ command = "./enkf_update --calculate-spread --write-inflation hybrid.prm" ;
+		:UPDATE\ start\ time = "2026-07-09 14:28:41" ;
 }
 \end{Verbatim}
 

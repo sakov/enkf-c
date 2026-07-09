@@ -125,7 +125,7 @@ void das_createplog(dasystem* das, int plogid, int ploc, int* lobs, double* lcoe
         ncw_put_att_text(ncid, vid_dims, "m2", "total size of ensemble");
     }
     ncw_put_att_text(ncid, vid_dims, "p", "total number of observations");
-    
+
     ncw_def_var(ncid, "obs_ids", NC_INT, 1, &dimid, &vid_ids);
     ncw_put_att_text(ncid, vid_ids, "long_name", "observation ID in observations.nc");
     ncw_def_var(ncid, "obs_lcoeffs", NC_FLOAT, 1, &dimid, &vid_lcoeffs);
@@ -348,8 +348,7 @@ void das_createplog(dasystem* das, int plogid, int ploc, int* lobs, double* lcoe
 void das_writeplogtransform(dasystem* das, int plogid, int gid, int ploc, double* s, double* S, double* w, double* T)
 {
     pointlog* plog = &das->plogs[plogid];
-    grid* g = model_getgridbyid(das->m, gid);
-    char* gridname = grid_getname(g);
+    int ngrid = model_getngrid(das->m);
 
     char fname[MAXSTRLEN];
     int ncid;
@@ -357,6 +356,7 @@ void das_writeplogtransform(dasystem* das, int plogid, int gid, int ploc, double
     char name[NC_MAX_NAME];
     int vid_S, vid_s, vid_w, vid_T;
     char gridstr[SHORTSTRLEN];
+    char attstr[MAXSTRLEN];
 
     assert(das->s_mode == S_MODE_S_f);
 
@@ -376,9 +376,8 @@ void das_writeplogtransform(dasystem* das, int plogid, int gid, int ploc, double
     }
 
     if (ploc > 0) {
-        snprintf(name, NC_MAX_NAME, "p%s", gridstr);
+        snprintf(name, NC_MAX_NAME, "p%d", gid);
         if (!ncw_dim_exists(ncid, name)) {
-            char attstr[MAXSTRLEN];
             int vid_dims;
 
             ncw_def_dim(ncid, name, ploc, &dimids[2]);
@@ -387,27 +386,44 @@ void das_writeplogtransform(dasystem* das, int plogid, int gid, int ploc, double
             ncw_put_att_text(ncid, vid_dims, name, attstr);
         } else
             ncw_inq_dimid(ncid, name, &dimids[2]);
-        snprintf(name, NC_MAX_NAME, "s%s", gridstr);
-        ncw_def_var(ncid, name, NC_FLOAT, 1, &dimids[2], &vid_s);
-        ncw_put_att_text(ncid, vid_s, "long_name", "standardised innovation");
-        snprintf(name, NC_MAX_NAME, "S%s", gridstr);
-        ncw_def_var(ncid, name, NC_FLOAT, 2, &dimids[1], &vid_S);
-        ncw_put_att_text(ncid, vid_s, "long_name", "standardised observation anomalies");
-    }
-    {
-        char attstr[MAXSTRLEN];
 
-        snprintf(name, NC_MAX_NAME, "w%s", gridstr);
-        ncw_def_var(ncid, name, NC_DOUBLE, 1, &dimids[1], &vid_w);
-        snprintf(attstr, MAXSTRLEN, "increment coefficients on grid %d (\"%s\")", gid, gridname);
+        snprintf(name, NC_MAX_NAME, "s%d", gid);
+        ncw_def_var(ncid, name, NC_FLOAT, 1, &dimids[2], &vid_s);
+        if (ngrid == 1) {
+            ncw_put_att_text(ncid, vid_s, "long_name", "standardised innovation");
+        } else {
+            snprintf(attstr, NC_MAX_NAME, "standardised innovation on grid %d", gid);
+            ncw_put_att_text(ncid, vid_s, "long_name", attstr);
+        }
+
+        snprintf(name, NC_MAX_NAME, "S%d", gid);
+        ncw_def_var(ncid, name, NC_FLOAT, 2, &dimids[1], &vid_S);
+        if (ngrid == 1) {
+            ncw_put_att_text(ncid, vid_S, "long_name", "standardised ensemble observation anomalies");
+        } else {
+            snprintf(attstr, NC_MAX_NAME, "standardised ensemble observation anomalies on grid %d", gid);
+            ncw_put_att_text(ncid, vid_S, "long_name", attstr);
+        }
+    }
+
+    snprintf(name, NC_MAX_NAME, "w%d", gid);
+    ncw_def_var(ncid, name, NC_DOUBLE, 1, &dimids[1], &vid_w);
+    if (ngrid == 1) {
+        ncw_put_att_text(ncid, vid_w, "long_name", "increment coefficients");
+    } else {
+        snprintf(attstr, MAXSTRLEN, "increment coefficients on grid %d", gid);
         ncw_put_att_text(ncid, vid_w, "long_name", attstr);
     }
-    if (T != NULL) {
-        char attstr[MAXSTRLEN];
 
-        snprintf(name, NC_MAX_NAME, "T%s", gridstr);
+    if (T != NULL) {
+        snprintf(name, NC_MAX_NAME, "T%d", gid);
         ncw_def_var(ncid, name, NC_DOUBLE, 2, dimids, &vid_T);
-        snprintf(attstr, MAXSTRLEN, "ensemble anomalies transform on grid %d (\"%s\")", gid, gridname);
+        if (ngrid == 1) {
+            ncw_put_att_text(ncid, vid_T, "long_name", "ensemble anomalies transform");
+        } else {
+            snprintf(attstr, MAXSTRLEN, "ensemble anomalies transform on grid %d", gid);
+            ncw_put_att_text(ncid, vid_T, "long_name", attstr);
+        }
     }
     ncw_enddef(ncid);
 
@@ -429,6 +445,7 @@ void das_writeplogtransform(dasystem* das, int plogid, int gid, int ploc, double
 void plogs_definestatevars(dasystem* das)
 {
     int nvar = model_getnvar(das->m);
+    int ngrid = model_getngrid(das->m);
     int plogid;
 
     if (rank != 0)
@@ -474,16 +491,21 @@ void plogs_definestatevars(dasystem* das)
                 char nkname[NC_MAX_NAME];
                 int dimids[2];
 
-                snprintf(nkname, NC_MAX_NAME, "nk%s", gridstr);
+                snprintf(nkname, NC_MAX_NAME, "nk%d", gid);
                 if (nk > 1) {
                     if (!ncw_dim_exists(ncid, nkname)) {
-                        char attstr[MAXSTRLEN];
                         int vid_dims;
 
                         ncw_def_dim(ncid, nkname, nk, &dimids[0]);
                         ncw_inq_varid(ncid, "dimension_reference", &vid_dims);
-                        snprintf(attstr, MAXSTRLEN, "number of layers in grid %d", gid);
-                        ncw_put_att_text(ncid, vid_dims, nkname, attstr);
+                        if (ngrid == 1) {
+                            ncw_put_att_text(ncid, vid_dims, nkname, "number of layers");
+                        } else {
+                            char attstr[MAXSTRLEN];
+
+                            snprintf(attstr, MAXSTRLEN, "number of layers in grid %d", gid);
+                            ncw_put_att_text(ncid, vid_dims, nkname, attstr);
+                        }
                     } else
                         ncw_inq_dimid(ncid, nkname, &dimids[0]);
                 }
