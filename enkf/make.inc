@@ -1,1 +1,1 @@
-arch/make.inc.linux-server-mkl
+arch/make.inc.linux-mkl

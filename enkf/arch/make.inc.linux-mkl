@@ -1,0 +1,37 @@
+# This is an example of the system-dependent part of the Makefile for a Linux
+# server with Intel's MKL library used instead of LAPACK (yes, it is faster).
+#
+# On a cluster/server, one typically needs to load environment modules:
+#
+#   module load openmpi gcc hdf5 netcdf intel-mkl
+#
+# On a standalone desktop (e.g., openSUSE), manually install Intel MKL and 
+# link the runtime, threading, core, and hardware dispatch layers directly 
+# into the system library path to avoid broken Intel environment scripts:
+#
+#   sudo ln -sf /opt/intel/oneapi/mkl/2026.1/lib/libmkl_rt.so /lib64/
+#   sudo ln -sf /opt/intel/oneapi/mkl/2026.1/lib/libmkl_rt.so.3 /lib64/
+#   sudo ln -sf /opt/intel/oneapi/mkl/2026.1/lib/libmkl_intel_lp64.so.3 /lib64/
+#   sudo ln -sf /opt/intel/oneapi/mkl/2026.1/lib/libmkl_gnu_thread.so.3 /lib64/
+#   sudo ln -sf /opt/intel/oneapi/mkl/2026.1/lib/libmkl_core.so.3 /lib64/
+#   sudo ln -sf /opt/intel/oneapi/compiler/2026.1/opt/compiler/lib/libiomp5.so /lib64/
+#   sudo ln -sf /opt/intel/oneapi/mkl/2026.1/lib/libmkl_def.so.3 /lib64/
+#   sudo ldconfig
+#
+# Note: Ensure local openSUSE MPI paths (PATH and LD_LIBRARY_PATH) are 
+# prioritized in ~/.bashrc to stop MKL from overriding native OpenMPI.
+
+LIB_NC = -lnetcdf
+LIB_LAPACK = -lmkl_rt -lgomp
+LIB_M = -lm
+
+# which compiler/flags to use without MPI
+#
+CC = gcc
+CFLAGS = -g -Wall -pedantic -std=c99 -D_GNU_SOURCE -O2 -march=native
+
+# which compiler/flags to use with MPI
+#
+export OMPI_MPICC = $(CC)
+CCMPI = mpicc
+CFLAGSMPI = -g -Wall -pedantic -std=c99 -D_GNU_SOURCE -DMPI -O2 -march=native

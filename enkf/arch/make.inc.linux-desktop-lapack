@@ -1,16 +1,17 @@
 # This is an example of the system-dependent part of the Makefile for a Linux
-# desktop. You need to install the following packages (components):
+# desktop using standard LAPACK/BLAS libraries. (This is a much slower option 
+# than using Intel's MKL libraries instead.)
+#
+# You will need the following packages installed (via zypper, apt, etc.):
 #
 #   gcc (or clang)
-#   openmpi 
-#   netcdf
-#   hdf5
-#   lapack
-#   blas -- if not bundled with lapack
+#   openmpi-devel
+#   netcdf-devel
+#   hdf5-devel
+#   lapack-devel
+#   blas-devel -- if not bundled with lapack
 
-LD_PATH =
-
-LIB_NC = -lnetcdf -lhdf5
+LIB_NC = -lnetcdf
 # on Ubuntu the above may look as follows:
 # LIB_NC = -lnetcdf -lhdf5_serial -lhdf5_serial_hl
 LIB_LAPACK = -llapack -lblas
@@ -18,12 +19,12 @@ LIB_LAPACK = -llapack -lblas
 LIB_M = -lm
 
 # which compiler/flags to use without MPI
-# choose gcc if you do not have clang
 #
 CC = gcc
-CFLAGS = -g -pedantic -Wall -std=c99 -D_GNU_SOURCE -O2
+CFLAGS = -g -pedantic -Wall -std=c99 -D_GNU_SOURCE -O2 -march=native
 
 # which compiler/flags to use with MPI
 #
-CCMPI = OMPI_MPICC=$(CC) mpicc
-CFLAGSMPI = -g -pedantic -Wall -std=c99 -D_GNU_SOURCE -DMPI -O2
+export OMPI_MPICC = $(CC)
+CCMPI = mpicc
+CFLAGSMPI = -g -pedantic -Wall -std=c99 -D_GNU_SOURCE -DMPI -O2 -march=native

@@ -467,8 +467,8 @@ void plogs_definestatevars(dasystem* das)
             grid* g = model_getgridbyid(das->m, gid);
             char* varname = model_getvarname(das->m, vid);
             char gridstr[NC_MAX_NAME - 2];
-            char varname_an[NC_MAX_NAME];
-            int varid, varid_an;
+            char varname_an[NC_MAX_NAME] = "";
+            int varid, varid_an = -1;
             int nk;
 
             if (plog->gridid >= 0 && plog->gridid != gid)

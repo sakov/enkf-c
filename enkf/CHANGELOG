@@ -1,3 +1,10 @@
+v2.47.5
+   PS 23072026
+   -- Renamed arch/make.inc.linux-server-mkl -> arch/make.inc.linux-mkl and
+      edited it.
+   -- Slightly edited arch/make.inc.linux-desktop-lapack.
+   -- Cosmetically modified utils.c and pointlog.c to get rif of warnings
+      from icx (but by all means use gcc if possible).
 v2.47.4
    PS 09072026
    -- A couple of corrections in transforms related attributes in pointlog

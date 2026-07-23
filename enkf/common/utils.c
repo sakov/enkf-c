@@ -1574,13 +1574,14 @@ static int get_memory_usage_kb(size_t* vmrss_kb, size_t* vmsize_kb)
      */
     FILE* procfile = fopen("/proc/self/status", "r");
 
-    size_t to_read = 8192;
+    size_t to_read = 8192, dummy;
     char buffer[to_read];
 
     /*
-     * (dummy if to avoid warning from GCC) 
+     * (using dummy to avoid warnings from GCC) 
      */
-    if (fread(buffer, sizeof(char), to_read, procfile));
+    dummy = fread(buffer, sizeof(char), to_read, procfile);
+    (void) dummy;
     fclose(procfile);
 
     int found_vmrss = 0;
