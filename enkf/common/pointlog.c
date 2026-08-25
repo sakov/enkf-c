@@ -658,9 +658,11 @@ static void plogs_writeens(dasystem* das, int isanalysis)
             }
 
             for (plogid = 0; plogid < das->nplog; ++plogid) {
-                MPI_Gatherv((my_number_of_iterations > 0) ? dst[plogid][0] : NULL, my_number_of_iterations * nk, MPI_FLOAT, (my_number_of_iterations > 0) ? dst[plogid][0] : NULL, recvcounts, displs, MPI_FLOAT, 0, MPI_COMM_WORLD);
+                if (rank == 0)
+                    MPI_Gatherv(MPI_IN_PLACE, my_number_of_iterations * nk, MPI_FLOAT, dst[plogid][0], recvcounts, displs, MPI_FLOAT, 0, MPI_COMM_WORLD);
+                else
+                    MPI_Gatherv((my_number_of_iterations > 0) ? dst[plogid][0] : NULL, my_number_of_iterations * nk, MPI_FLOAT, NULL, NULL, NULL, MPI_FLOAT, 0, MPI_COMM_WORLD);
             }
-
             if (rank == 0) {
                 free(displs);
                 free(recvcounts);

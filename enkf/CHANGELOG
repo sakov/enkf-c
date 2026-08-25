@@ -1,3 +1,7 @@
+v2.47.6
+   PS 25082026
+   -- Corrected call to MPI_Gatherv() in pointlog.c that (correctly) triggerred
+      errors on some platforms. Thanks to Marina Duran Moro for the report.
 v2.47.5
    PS 23072026
    -- Renamed arch/make.inc.linux-server-mkl -> arch/make.inc.linux-mkl and
