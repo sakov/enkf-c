@@ -39,8 +39,6 @@ EnKF-C is developed natively for the GNU/Linux platform. To build the project:
 
 CODE INDENTATION
 ----------------
-CODE INDENTATION
-----------------
 To maintain the structural indentation style native to the EnKF-C code base:
 1. Get modified version of indent by downloading 
    https://github.com/sakov/enkf-c/releases/download/data/indent-2.2.8a-mod.tar.gz
