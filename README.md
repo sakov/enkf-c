@@ -41,6 +41,7 @@ EnKF-C is developed natively for the GNU/Linux platform. To build the project:
    * `bin/enkf_prep`
    * `bin/enkf_calc`
    * `bin/enkf_update`
+   * `bin/ens_diag`
 
 ## Code Indentation
 To maintain the structural indentation style native to the EnKF-C code base:
