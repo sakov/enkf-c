@@ -14,7 +14,7 @@ DEPENDENCIES
 ------------
 Ensure your environment has the following libraries and compilers installed 
 before building:
-* Compilers:         clang or gcc
+* Compilers:          clang or gcc
 * Parallel Computing: openmpi
 * Data Formats:       libnetcdf
 * Linear Algebra:     liblapack (or for optimized performance, Intel's MKL 
@@ -39,13 +39,13 @@ EnKF-C is developed natively for the GNU/Linux platform. To build the project:
 
 CODE INDENTATION
 ----------------
+CODE INDENTATION
+----------------
 To maintain the structural indentation style native to the EnKF-C code base:
-1. Download the modified indent tool configuration from the repository:
-   https://github.com
-2. Run the formatting rule from this directory (the style constraints are 
-   hardcoded into .indent.pro):
-   
-   make indent
+1. Get modified version of indent by downloading 
+   https://github.com/sakov/enkf-c/releases/download/data/indent-2.2.8a-mod.tar.gz
+2. Run "make indent" in this (enkf-c/enkf) directory (the style is encoded in
+   .indent.pro).
 
 STARTING UP
 -----------
