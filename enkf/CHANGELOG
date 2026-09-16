@@ -1,3 +1,6 @@
+v2.47.7
+   PS 16092026
+   -- Modified README.md and enkf/README.
 v2.47.6
    PS 25082026
    -- Corrected call to MPI_Gatherv() in pointlog.c that (correctly) triggerred

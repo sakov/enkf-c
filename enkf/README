@@ -1,60 +1,104 @@
-LICENSE:
-    EnKF-C is a public software. See LICENSE for details.
+================================================================================
+EnKF-C (Ensemble Kalman Filter in C)
+================================================================================
 
-COMPILING
+EnKF-C provides a compact, model-agnostic generic framework for off-line data 
+assimilation into large-scale layered geophysical models using the ensemble 
+Kalman filter.
 
-EnKF-C is developed for GNU/Linux platform.
-
-Create "make.inc" for your architecture (have a look at examples in `arch'
-directory), then run "make". This should create executables bin/enkf_prep,
-bin/enkf_calc and bin/enkf_update.
+LICENSE
+-------
+EnKF-C is public software. See the LICENSE file for details.
 
 DEPENDENCIES
+------------
+Ensure your environment has the following libraries and compilers installed 
+before building:
+* Compilers:         clang or gcc
+* Parallel Computing: openmpi
+* Data Formats:       libnetcdf
+* Linear Algebra:     liblapack (or for optimized performance, Intel's MKL 
+                      implementation: libmkl_rt)
 
-clang or gcc
-openmpi
-libnetcdf
-liblapack (or better the Intel's version -- libmkl_rt)
+COMPILING
+---------
+EnKF-C is developed natively for the GNU/Linux platform. To build the project:
 
-USER MANUAL
+1. Create a "make.inc" configuration file adapted to your architecture 
+   (refer to the templates available in the arch/ directory).
+2. Execute the compilation script from the command line:
+   
+   make
 
-See doc/enkf-userguide.pdf.
+3. Upon successful compilation, the following binaries will be generated in 
+   the bin/ directory:
+   * bin/enkf_prep
+   * bin/enkf_calc
+   * bin/enkf_update
+
+CODE INDENTATION
+----------------
+To maintain the structural indentation style native to the EnKF-C code base:
+1. Download the modified indent tool configuration from the repository:
+   https://github.com
+2. Run the formatting rule from this directory (the style constraints are 
+   hardcoded into .indent.pro):
+   
+   make indent
 
 STARTING UP
-
-Run example 1 - see examples/1/README for details.
-
-INDENTING
-
-To indent your code according to the EnKF-C style you need to (1) get modified
-version of indent by downloading https://github.com/sakov/enkf-c/releases/download/data/indent-2.2.8a-mod.tar.gz and (2) run "make indent" in this (enkf-c/trunk/enkf) directory (the style is encoded in .indent.pro).
-
-REFERRING
-
-Reference:
-
-  Sakov, P., 2014: EnKF-C user guide. URL http://arxiv.org/abs/1410.1233.
-
-BibTeX entry:
-
-@misc{enkf-c,
-  doi = {10.48550/ARXIV.1410.1233},
-  url = {https://arxiv.org/abs/1410.1233},
-  author = {Sakov, Pavel},
-  title = {{EnKF-C} user guide},
-  publisher = {arXiv},
-  year = {2014},
-}
+-----------
+* Run Example 1: Follow the setup steps explicitly detailed inside 
+  examples/1/README.
+* User Manual:   For a thorough technical manual and operational guide, open 
+  the comprehensive PDF documentation located at doc/enkf-userguide.pdf.
 
 NOTES
-
+-----
 1. EnKF-C is known to perform reliably when compiled with GCC and linked
-with openmpi v4.1.0.
-2. For best peformance model dumps should chunked by layers.
+   with openmpi v4.1.0.
+2. For best performance model dumps should be chunked by layers.
 
-CONTACT
 
-pavel.sakov@gmail.com
+================================================================================
+TROUBLESHOOTING & DESKTOP EXECUTION
+================================================================================
 
-Have fun,
-Pavel Sakov
+SUPPRESSING OPEN MPI 5 HARDWARE WARNINGS
+----------------------------------------
+When executing local test examples or assimilation pipelines on a personal 
+workstation or desktop computer using Open MPI 5, you may observe an aggressive 
+stream of hardware-related warnings printed to the terminal console. These 
+typically mention missing enterprise-scale cluster interconnects, fabric 
+drivers, or fabric managers (such as UCX, InfiniBand, or RoCE components).
+
+While these warnings are harmless on a local single-node architecture, they 
+significantly clutter runtime diagnostics. To restrict parallel process 
+communication to a quiet, local desktop sandbox environment, export the 
+following environment configurations in your active shell profile before 
+initiating standard binary runs:
+
+    # Force the robust legacy point-to-point management engine
+    export OMPI_MCA_pml=ob1
+
+    # Restrict network operations explicitly to self-loopback and basic TCP 
+    export OMPI_MCA_btl=self,tcp
+
+    # Prevent Open MPI from attempting to initiate UCX drivers for shared memory
+    export OMPI_MCA_osc="^ucx"
+
+!!! HPC ENVIRONMENT NOTICE !!!
+Do NOT include these parameter constraints in batch job-submission scripts 
+running EnKF-C on highly specialized distributed supercomputing systems or 
+computing clusters. Forcing legacy engines and basic TCP protocols will bypass 
+the high-speed network fabrics (like InfiniBand backbones) and introduce 
+immense communication bottlenecks into large ensemble cycles.
+
+
+================================================================================
+REFERENCE
+================================================================================
+
+Sakov, P., 2014: EnKF-C user guide. Technical Report, Bureau of Meteorology. 
+Available online from the EnKF-C arXiv Paper Repository: 
+https://arxiv.org
