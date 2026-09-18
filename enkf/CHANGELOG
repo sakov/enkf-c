@@ -1,3 +1,12 @@
+v2.47.9
+   PS 18092026
+   -- Rewrote section 1.3.4 "Ensemble reduction" of the User Guide, edited
+      section 1.6 "EnKF/EnOI hybrid. Thanks to Michael Haythorpe for spotting a
+      discrepancy in the earlier version.
+v2.47.8
+   PS 17092026
+   -- A couple of edits in section 1.7 (EnKF/EnOI hybrid) of the User Guide,
+      including correction of a typo in (1.55).
 v2.47.7
    PS 16092026
    -- Modified README.md and enkf/README.

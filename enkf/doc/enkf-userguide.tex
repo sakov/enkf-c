@@ -39,7 +39,7 @@
 
 \begin{document}
 
-\title{EnKF-C user guide\\{\normalsize version 2.47.4}}
+\title{EnKF-C user guide\\{\normalsize version 2.47.9}}
 
 \author{Pavel Sakov}
 \date{June 19, 2014 -- \today}
@@ -128,7 +128,7 @@ Consider the global (in time) nonlinear minimisation problem
   + \sum_{i = 2}^k \|\mb x_i - \mathcal M_i(\mb x_{i-1})\|^2_{(\mb Q_i)^{-1}}.
   \label{L-nonl}
 \end{align}
-Here $\{\mb x_i^a\}_{i=1}^k$ is a set of $k$ state vectors that minimise the cost function (\ref{L-nonl}); indices $i = 1,\dots,k$ correspond to a sequence of DA cycles, so that $\mb x_1$ is the estimated model state at the first cycle and $\mb x_k$ is the estimated model state at the last cycle; $\mb y_i$ are observation vectors; $\mathcal H_i$ are observation operators; $\mathcal M_i$ are model operators; $\mb P_1^f$ is the initial state error covariance; $\mb R_i$ are observation error covariances; $\mb Q_i$ are model error covariances; the norm notation $\|\mb x\|^2_{\mb B} \equiv \mb x\T \mb B \mb x$ is used; and $(\cdot)\T$ denotes matrix transposition.
+Here $\{\mb x_i^a\}_{i=1}^k$ is a set of $k$ state vectors that minimise the cost function \eqref{L-nonl}; indices $i = 1,\dots,k$ correspond to a sequence of DA cycles, so that $\mb x_1$ is the estimated model state at the first cycle and $\mb x_k$ is the estimated model state at the last cycle; $\mb y_i$ are observation vectors; $\mathcal H_i$ are observation operators; $\mathcal M_i$ are model operators; $\mb P_1^f$ is the initial state error covariance; $\mb R_i$ are observation error covariances; $\mb Q_i$ are model error covariances; the norm notation $\|\mb x\|^2_{\mb B} \equiv \mb x\T \mb B \mb x$ is used; and $(\cdot)\T$ denotes matrix transposition.
 
 The minimisation problem (\ref{min-nonl}, \ref{L-nonl}) is, generally, very complicated, but, luckily, has an exact solution in the \emph{linear} case; moreover, this solution is recursive.
 Namely, assume that $\mathcal M$ and $\mathcal H$ are affine:
@@ -142,7 +142,7 @@ Namely, assume that $\mathcal M$ and $\mathcal H$ are affine:
   \end{align}
 \end{subequations}
 where $\mb x^{(1)}, \mb x^{(2)}$ are arbitrary model states, and $\mb M_i,\, \mb H_i = \mathrm{Const}$.
-Then the cost function (\ref{L-nonl}) becomes quadratic and can be written in canonical form in regard to $\mb x_k$:
+Then the cost function \eqref{L-nonl} becomes quadratic and can be written in canonical form in regard to $\mb x_k$:
 \begin{align*}
    J_k(\mb x_1, \dots, \mb x_k) = \|\mb x_k - \mb x_k^a\|^2_{(\mb P_{k}^a)^{-1}} + \tilde{{J}}_{k-1}(\mb x_1,\dots,\mb x_{k-1}),
 \end{align*}
@@ -183,12 +183,12 @@ where
   \end{align}
 \end{subequations}
 This solution is known as the Kalman filter \citep[KF,][]{kal60}.
-Equations (\ref{kf-for}) describe advancing the system in time and represent the stage commonly called ``forecast'', while equations (\ref{kf-an}) describe assimilation of observations and represent the stage called ``analysis''.
+Equations \eqref{kf-for} describe advancing the system in time and represent the stage commonly called ``forecast'', while equations \eqref{kf-an} describe assimilation of observations and represent the stage called ``analysis''.
 The superscripts $f$ and $a$ are used hereafter to refer to the forecast and analysis variables, respectively.
 The forecast and analysis model state estimates $\mb x^f$ and $\mb x^a$ are commonly called (simply) forecast and analysis.
 Matrix $\mb K$ is called Kalman gain.
 
-The recursive character of the KF makes it possible to consider solving the minimisation problem (\ref{L-nonl}) as a sequence of forecasts and analyses, as shown in Fig.~\ref{fig:dacycle}.
+The recursive character of the KF makes it possible to consider solving the minimisation problem \eqref{L-nonl} as a sequence of forecasts and analyses, as shown in Fig.~\ref{fig:dacycle}.
 Together an assimilation and the following propagation (or a propagation and the following assimilation) are referred to as assimilation cycle.
 \begin{figure}
   \centering
@@ -206,7 +206,7 @@ There are a few things to be noted about the KF:
   \mb X_k = \{\mb x_k, \mb P_k\}.
 \end{align}
 \item The KF provides solution for the \emph{last} analysis, corresponding to $\mb x_k^a$ in ($\ref{min-nonl}$) (or, with a minor re-formulation, to the last forecast); finding the full (global in time) solution requires application of the Kalman \emph{smoother} (KS).
-Both the KF and KS can be derived by decomposition of the positive (semi)definite quadratic function (\ref{L-nonl}).
+Both the KF and KS can be derived by decomposition of the positive (semi)definite quadratic function \eqref{L-nonl}.
 \item Because the SDAS represents a (part of a) solution of the global least squares problem, it does not depend on the order in which observations are assimilated or on their grouping.
 \item Ditto, the SDAS does not depend on a linear non-singular transform of the model state in the sense that the forward and inverse transforms commute with the evolution of the DA system.
 \item Solution (\ref{kf-for}, \ref{kf-an}) can be \emph{used} in a nonlinear case by approximating
@@ -228,7 +228,7 @@ In the EnKF the SDAS is carried by an ensemble of $m$ model states $\mb E$, whic
   \label{sdas-enkf}
   \mb X = \{\mb E\} = \{\mb x, \mb A\}.
 \end{align}
-It is related to the SDAS of the KF (\ref{sdas}) as follows:
+It is related to the SDAS of the KF \eqref{sdas} as follows:
 \begin{subequations}
   \label{E}
   \begin{align}
@@ -241,7 +241,7 @@ It is related to the SDAS of the KF (\ref{sdas}) as follows:
   \end{align}
 \end{subequations}
 where $\mb 1$ is a vector with all elements equal to 1.
-The above means that the model state estimate is given by the ensemble mean, while the model state error covariance $\mb P$ is implicitly represented by the ensemble anomalies $\mb A$ via the factorisation (\ref{P}).
+The above means that the model state estimate is given by the ensemble mean, while the model state error covariance $\mb P$ is implicitly represented by the ensemble anomalies $\mb A$ via the factorisation \eqref{P}.
 
 Representing the state error covariance via ensemble anomalies yields a number of numerical benefits.
 In large-scale geophysical systems the state size ($\sim 10^5-10^9$) makes it impossible to store and manipulate the state error covariance $\mb P$ directly.
@@ -249,7 +249,7 @@ At the same time it is often/typically possible to represent essential variabili
 Further, using $\mb A$ ensures positive semidefiniteness of $\mb P$.
 
 Storing the SDAS via an ensemble of model states is the first essential feature of the EnKF.
-In theory, one could use it in an implementation of the KF along with explicitly calculated Jacobians $\mb M$ and $\mb H$ in equations (\ref{kf-for}) and (\ref{kf-an}).
+In theory, one could use it in an implementation of the KF along with explicitly calculated Jacobians $\mb M$ and $\mb H$ in equations \eqref{kf-for} and \eqref{kf-an}.
 The EnKF makes a further step and uses the ensemble form of the SDAS for a derivative-less formulation of the KF.
 Moreover, it approximates derivatives using ensemble of finite spread that characterises the estimated uncertainty in the state:
 \begin{subequations}
@@ -275,34 +275,34 @@ This formulation is not the only one possible; one might also use the finite dif
   \end{align}
 \end{subequations}
 In this form the filter represents a derivative-less ensemble formulation of the EKF.
-In practice the difference between the EnKF formulation (\ref{der-less-enkf}) and the EKF formulation (\ref{der-less-ekf}) is that the latter is more sensitive to small-scale variability and therefore more prone to instability, similar to the difference in behaviour of the Newton and secant methods.
+In practice the difference between the EnKF formulation \eqref{der-less-enkf} and the EKF formulation \eqref{der-less-ekf} is that the latter is more sensitive to small-scale variability and therefore more prone to instability, similar to the difference in behaviour of the Newton and secant methods.
 
 The forecast stage of the EnKF involves just propagating each ensemble member:
 \begin{align}
   \label{enkf-for}
   \mb E_i^f = \mathcal M_i(\mb E_{i-1}^a).
 \end{align}
-This is a remarkably simple equation compared to the KF forecast equations (\ref{kf-for}), even though the model error still needs to be accounted for in some way.
+This is a remarkably simple equation compared to the KF forecast equations \eqref{kf-for}, even though the model error still needs to be accounted for in some way.
 Because propagation of each ensemble member is independent from the other members, the forecast stage in the EnKF is naturally parallelisable.
 
-One way to handle model error in the EnKF is to include stochastic model error into the model operator in (\ref{enkf-for}).
+One way to handle model error in the EnKF is to include stochastic model error into the model operator in \eqref{enkf-for}.
 (This would make it different to the model operator in the KF, which is deterministic.)
 Another option is to use the multiplicative inflation.
 The third option is to mimic the treatment of model error in the KF, although this would require the ``rank reduction'' \citep[eq. 28]{ver97a} to prevent increasing the ensemble size.
 
-At the analysis stage one has to update the ensemble mean and ensemble anomalies to match (\ref{kf-an}).
+At the analysis stage one has to update the ensemble mean and ensemble anomalies to match \eqref{kf-an}.
 This involves handling ensemble as a whole, which is different to the forecast stage, when each ensemble member is propagated individually.
 
-Note that factorisation (\ref{P}) is not unique: if $\mb A$ satisfies (\ref{P}), then $\tilde {\mb A} = \mb A \mb U$, where $\mb U$ is an arbitrary orthonormal matrix $\mb U \mb U\T = \mb I$, also satisfies (\ref{P}).
+Note that factorisation \eqref{P} is not unique: if $\mb A$ satisfies \eqref{P}, then $\tilde {\mb A} = \mb A \mb U$, where $\mb U$ is an arbitrary orthonormal matrix $\mb U \mb U\T = \mb I$, also satisfies \eqref{P}.
 However, $\tilde{\mb A}$ should not only factorise $\mb P$, but also remain an ensemble anomalies matrix, $\tilde{\mb A} \mb 1 = \mb 0$.
 This requires an additional constraint $\mb U \mb 1 = \mb 1$.
-Summarising, if $\mb E = \mb x \mb 1\T + \mb A$ is an ensemble that satisfies (\ref{E}), then ensemble
+Summarising, if $\mb E = \mb x \mb 1\T + \mb A$ is an ensemble that satisfies \eqref{E}, then ensemble
 \begin{align}
   \label{redraw}
   \tilde{\mb E} = \mb x \mb 1\T + \mb A \mb U^p, \quad \mb U^p:\ \mb U^p (\mb U^p)\T = \mb I,\ \mb U^p \mb 1 = \mb 1
 \end{align}
-also satisfies (\ref{E}). 
-If $\mb E$ is full rank (i.e. $\mathrm{rank}(\mb E) = \mathrm{min}(m, n)$, where $n$ is the state dimension), then each unique $\mb U^p$ generates a unique ensemble, and (\ref{redraw}) describes all possible ensembles matching a given SDAS of the KF.
+also satisfies \eqref{E}. 
+If $\mb E$ is full rank (i.e. $\mathrm{rank}(\mb E) = \mathrm{min}(m, n)$, where $n$ is the state dimension), then each unique $\mb U^p$ generates a unique ensemble, and \eqref{redraw} describes all possible ensembles matching a given SDAS of the KF.
 Such transformation of the ensemble is called ensemble \emph{redrawing}.
 In the linear case (i.e. for affine model and observation operators) redrawing of the ensemble in the EnKF does not affect evolution of the underlying KF; and conversely, in the nonlinear case the redrawing does indeed affect evolution of the underlying KF.
 
@@ -314,7 +314,7 @@ In this section we will give a brief overview of solutions for EnKF analysis and
 \label{sec:enkf-overview}
 
 In the ``baseline'' EnKF (full-rank ensemble, no localisation) the analysed SDAS matches that of the KF, although the algebraic side is indeed different.
-The update of the ensemble mean is generally straightforward, in accordance with that in the KF (\ref{kf-an-x}).
+The update of the ensemble mean is generally straightforward, in accordance with that in the KF \eqref{kf-an-x}.
 The details may depend on the chosen algorithm to achieve better numerical efficiency (see sec.~\ref{sec:numerical}).
 
 The update of ensemble anomalies can be done either via a right-multiplied or left-multiplied (or post/pre-multiplied) transform of the ensemble anomalies:
@@ -329,7 +329,7 @@ or
 \end{align}
 $\mb T_L$ and $\mb T_R$ are referred to hereafter as left-multiplied and right-multiplied ensemble transform matrices (ETMs), respectively.
 Note that to preserve the ensemble mean $\mb T_R$ has to satisfy $\mb T_R \mb 1 = \alpha \mb 1$, where $\alpha$ is an arbitrary constant.
-It follows from (\ref{redraw}) that if $\mb T_R$ is a particular solution for the right-multiplied ETM, then (for a full rank ensemble) any other solution can be written as
+It follows from \eqref{redraw} that if $\mb T_R$ is a particular solution for the right-multiplied ETM, then (for a full rank ensemble) any other solution can be written as
 \begin{align}
   \label{TR-all}
   \tilde{\mb T}_R = \mb T_R \mb U^p, \quad \mb U^p:\ \mb U^p (\mb U^p)\T = \mb I,\ \mb U^p \mb 1 = \mb 1.
@@ -342,7 +342,7 @@ Similarly, the analysis increment can be represented as a linear combination of 
   \mb x^a = \mb x^f + \mb A^f \mb w.
 \end{align}
 
-Equations (\ref{T-right}) and (\ref{w}) can be combined into a single transform of the ensemble:
+Equations \eqref{T-right} and \eqref{w} can be combined into a single transform of the ensemble:
 \begin{align}
   \label{x5-def}
   & \mb E^a = \mb E^f \mb X_5,\\
@@ -351,7 +351,7 @@ Equations (\ref{T-right}) and (\ref{w}) can be combined into a single transform 
   = \frac{1}{m} \mb 1 \mb 1\T + \mb w \mb 1\T + \left( \mb I - \frac{1}{m} \mb 1 \mb 1\T \right) \mb T_R,
 \end{align}
 as $\mb 1\T \mb w = 0$. 
-When $\mb T_R:\ \mb T_R\T = \mb T_R,\ \mb T_R \mb 1 = \mb 1$ (which is the case for e.g. the ETKF and DEnKF), $\mb 1\T \mb T_R = \mb 1\T$, and (\ref{x5-raw}) simplifies to
+When $\mb T_R:\ \mb T_R\T = \mb T_R,\ \mb T_R \mb 1 = \mb 1$ (which is the case for e.g. the ETKF and DEnKF), $\mb 1\T \mb T_R = \mb 1\T$, and \eqref{x5-raw} simplifies to
 \begin{align}
   \label{x5}
   & \mb X_5 = \mb w \mb 1\T + \mb T_R.
@@ -360,7 +360,7 @@ The designation $\mb X_5$ is used for historic reasons, following \citet{eve03a}
 
 \subsection{Some schemes}
 
-As follows from the previous section, there are multiple solutions for the ETM that match the KF covariance update equation (\ref{kf-an-P}); however the particular solutions may have different properties in practice due to the DAS nonlinearity, their algorithmic convenience, or their robustness in suboptimal conditions.
+As follows from the previous section, there are multiple solutions for the ETM that match the KF covariance update equation \eqref{kf-an-P}; however the particular solutions may have different properties in practice due to the DAS nonlinearity, their algorithmic convenience, or their robustness in suboptimal conditions.
 This section provides some background for the schemes used in EnKF-C:
 \begin{itemize}
 \item ETKF;
@@ -369,7 +369,7 @@ This section provides some background for the schemes used in EnKF-C:
 
 \subsubsection{ETKF}
 
-It is easy to show using the definition of $\mb K$ (\ref{kf-K}) and matrix shift lemma (\ref{shift}) that 
+It is easy to show using the definition of $\mb K$ \eqref{kf-K} and matrix shift lemma \eqref{shift} that 
 \begin{align*}
     (\mb I - \mb K \mb H) \, \mb P^f = (\mb I - \mb K \mb H)^{1/2} \; \mb P^f \; (\mb I - \mb K \mb H)\TS,
 \end{align*}
@@ -391,7 +391,7 @@ By ``matrix shift lemma'' we refer to the following identity:
   \mathcal F(\mb A \mb B) \, \mb A = \mb A \, \mathcal F(\mb B \mb A),
 \end{align}
 where $\mathcal F$ is an arbitrary function expandable into Taylor series.
-Rewriting (\ref{T-left1a}) as
+Rewriting \eqref{T-left1a} as
 \begin{align*}
   \mb A^a = \left[ \mb I - \frac{1}{m-1} \mb A^f (\mb H \mb A^f)\T  (\mb H \mb P^f \mb H\T + \mb R)^{-1} \mb H \right]^{1/2} \mb A^f
 \end{align*}
@@ -399,7 +399,7 @@ and using the matrix shift lemma, we obtain:
 \begin{align*}
   \mb A^a = \mb A^f \left[ \mb I - \frac{1}{m-1} (\mb H \mb A^f)\T  (\mb H \mb P^f \mb H\T + \mb R)^{-1} \mb H \mb A^f \right]^{1/2}
 \end{align*}
-which yields the corresponding to (\ref{T-left1}) right-multiplied ETM:
+which yields the corresponding to \eqref{T-left1} right-multiplied ETM:
 \begin{align}
   \label{T-right1}
   \mb T_R = \left[ \mb I -  \frac{1}{m-1} (\mb H \mb A^f)\T  (\mb H \mb P^f \mb H\T + \mb R)^{-1} \mb H \mb A^f \right]^{1/2}
@@ -410,7 +410,7 @@ Applying the matrix inversion lemma
   \label{inv}
   (\mb A + \mb U \mb L \mb V)^{-1} = \mb A^{-1} - \mb A^{-1} \mb U (\mb L^{-1} + \mb V \mb A^{-1} \mb U)^{-1} \mb V \mb A^{-1},
 \end{align}
-(\ref{T-left1}) can be transformed to:
+\eqref{T-left1} can be transformed to:
 \begin{align}
   \label{T-left2}
   \mb T_L = (\mb I + \mb P^f \mb H\T \mb R^{-1} \mb H)^{-1/2}
@@ -424,7 +424,7 @@ commonly known as the ensemble transform Kalman filter, or ETKF \citep{bis01a}.
 
 {
   \scriptsize
-  {\bf Historic reference.} Another (and probably the first) solution for $\mb T_R$ equivalent to (\ref{T-right1}) and (\ref{etkf}) was found by \citet{and68a}:
+  {\bf Historic reference.} Another (and probably the first) solution for $\mb T_R$ equivalent to \eqref{T-right1} and \eqref{etkf} was found by \citet{and68a}:
   \setlength{\abovedisplayskip}{1pt}
   \setlength{\belowdisplayskip}{3pt}
   \begin{align}
@@ -437,7 +437,7 @@ commonly known as the ensemble transform Kalman filter, or ETKF \citep{bis01a}.
 {
   \scriptsize
   {\bf Correction.} The Andrews' solution turns out to be valid only for diagonal $\mb R$.
-  The correct solution of form (\ref{andrews}) can be obtained from (\ref{etkf}) by using identity $\mb M^{-1/2} = \mb I - (\mb M + \mb M^{1/2})^{-1}(\mb M - \mb I)$:
+  The correct solution of form \eqref{andrews} can be obtained from \eqref{etkf} by using identity $\mb M^{-1/2} = \mb I - (\mb M + \mb M^{1/2})^{-1}(\mb M - \mb I)$:
   \setlength{\abovedisplayskip}{1pt}
   \setlength{\belowdisplayskip}{3pt}
   \begin{subequations}
@@ -450,17 +450,17 @@ commonly known as the ensemble transform Kalman filter, or ETKF \citep{bis01a}.
  \end{subequations}
   where $\mb M_m \equiv \mb I + \mb S\T \mb S$, $\mb M_p \equiv \mb I + \mb S \mb S\T$, $\mb S \equiv \mb R^{-1/2} \mb H \mb A^f / (m - 1)^{1/2}$ \citep{boc16a}.
 
-  (\ref{bocquet-p}) can be written as
+  \eqref{bocquet-p} can be written as
   \begin{align}
     \label{andrews-correct}
     \mb T_R = \mb I - \frac{1}{m-1} (\mb H \mb A^f)\T \hat{\mb M}^{-1/2} \left(\hat{\mb M}^{1/2} + \mb R^{1/2}\right)^{-1} \mb H \mb A^f,
   \end{align}
   where $\hat{\mb M}^{1/2} \equiv \mb R^{1/2} (\mb R^{-1/2} \mb M \mb R^{-1/2})^{1/2}$.
-(\ref{andrews-correct}) coincides with the Andrews' solution (\ref{andrews}) if $\hat{\mb M}^{1/2} = \mb M^{1/2}$, which is the case for diagonal $\mb R$.
+\eqref{andrews-correct} coincides with the Andrews' solution \eqref{andrews} if $\hat{\mb M}^{1/2} = \mb M^{1/2}$, which is the case for diagonal $\mb R$.
 }
 
 Equations (\ref{T-right1}, \ref{etkf}, \ref{bocquet}) yield algebraically different expressions for the (unique) symmetric right-multiplied solution.
-Apart from being the only symmetric solution, it also represents the minimum distance solution for the ensemble anomalies: its ensemble of analysed anomalies is closer to the ensemble of forecast anomalies with the inverse forecast (or analysis) covariance as the metric than any other ensemble of analysed anomalies given by (\ref{TR-all}) \citep{ott03a}.
+Apart from being the only symmetric solution, it also represents the minimum distance solution for the ensemble anomalies: its ensemble of analysed anomalies is closer to the ensemble of forecast anomalies with the inverse forecast (or analysis) covariance as the metric than any other ensemble of analysed anomalies given by \eqref{TR-all} \citep{ott03a}.
 This means that in the above sense the symmetric right-multiplied solution preserves the identities of ensemble members during analysis in the best possible way.
 
 Note that while the left-multiplied solutions (\ref{T-left1}, \ref{T-left2}) correspond to the symmetric right-multiplied solution, they are not symmetric.
@@ -470,12 +470,12 @@ In a typical DAS with a large scale model one can expect $m = 100$, $p = 10^3-10
   m \ll p \ll n.
 \end{align}
 Therefore, considering the size of ETMs ($n \times n$ for left-multiplied ETMs and $m \times m$ for right-multiplied ETMs), only right-multiplied solutions are suitable for use with large scale models.
-The ETKF solution (\ref{etkf}) represents the most popular option due to its simple form and numerical effectiveness: for a diagonal $\mb R$, it only requires to calculate inverse square root of a symmetric $m \times m$ matrix.
-Also, along with the left-multiplied solution (\ref{T-left2}), it generally has better numerical properties than solutions (\ref{T-left1}) and (\ref{T-right1}) due to the fact that the inverse square root in it is calculated from the sum of a positive definite and a positive semi-definite matrices.
+The ETKF solution \eqref{etkf} represents the most popular option due to its simple form and numerical effectiveness: for a diagonal $\mb R$, it only requires to calculate inverse square root of a symmetric $m \times m$ matrix.
+Also, along with the left-multiplied solution \eqref{T-left2}, it generally has better numerical properties than solutions \eqref{T-left1} and \eqref{T-right1} due to the fact that the inverse square root in it is calculated from the sum of a positive definite and a positive semi-definite matrices.
 
 \subsubsection{DEnKF}
 
-Assuming that $\mb K \mb H$ is small in some sense, one can approximate solution (\ref{T-left1}) by expanding it into Taylor series about $\mb I$ and keeping the first two terms of the expansion:
+Assuming that $\mb K \mb H$ is small in some sense, one can approximate solution \eqref{T-left1} by expanding it into Taylor series about $\mb I$ and keeping the first two terms of the expansion:
 \begin{align}
   \label{denkf}
   \mb T_L = \mb I - \frac{1}{2} \mb K \mb H.
@@ -496,6 +496,7 @@ Instead of using the forecast ensemble observation anomalies $\mb H \mb A^f$ and
 \end{align}
 Then
 \begin{align}
+  \label{w}
   \mb w = \mb G \mb s;
 \end{align}
 for the ETKF
@@ -515,70 +516,57 @@ where
   \label{G-p}
   & = \mb S\T ( \mb I + \mb S \mb S\T)^{-1}.
 \end{align}
-Here (\ref{G-m}) involves inversion of an $m \times m$ matrix, while (\ref{G-p}) involves inversion of a $p \times p$ matrix.
+Here \eqref{G-m} involves inversion of an $m \times m$ matrix, while \eqref{G-p} involves inversion of a $p \times p$ matrix.
 Therefore, in the DEnKF it is possible to calculate $\mb w$ and $\mb T$ using a single inversion of either a $p \times p$ or $m \times m$ matrix, depending on the relation between the number of observations and the ensemble size.
-In contrast, the ETKF (\ref{TR-ETKF}) requires calculation of the inverse square root of an $m \times m$ matrix.
-Then, one can use expression (\ref{G-m}) for $\mb G$ and calculate both inversion in it and inverse square root in (\ref{TR-ETKF}) from the same singular value decomposition (SVD).
+In contrast, the ETKF \eqref{TR-ETKF} requires calculation of the inverse square root of an $m \times m$ matrix.
+Then, one can use expression \eqref{G-m} for $\mb G$ and calculate both inversion in it and inverse square root in \eqref{TR-ETKF} from the same singular value decomposition (SVD).
 This makes the DEnKF somewhat more numerically effective because, firstly, one can exploit situations when $p < m$ to invert a matrix of lower dimension and, secondly, it requires only matrix inversion, which can be done via Cholesky decomposition instead of SVD.
 
 \subsection{Ensemble reduction}
 \label{sec:reduction}
 
-There are a number of EnKF extensions, such as EnKF-EnOI hybrid (sec.~\ref{sec:hybrid-theory}), that use a larger ensemble for analysis than for forecast.
-These extensions require ensemble reduction after analysis.
-EnKF-C uses the following approach.
+A number of EnKF extensions, such as the EnKF/EnOI hybrid (Sec.~\ref{sec:hybrid-theory}), use a larger ensemble for analysis than for forecasting.
+These extensions require an ensemble reduction step following the analysis.
 
-If it is possible to write the ETM as
-\begin{align}
-  \label{downT}
-  \mb T_R = \mb I + \mathcal F(\mb S) \, \mb S,
-\end{align}
-where $\mathcal F(\cdot)$ is some function and $\mb S$ are the standardised ensemble observation anomalies (\ref{S}), then the analysed ensemble can be downsized as follows:
-\begin{align}
-  \label{downscaling}
-  \mb E^{a} = (\mb x^f + \mb A^f \mb w) \, \mb 1\T + \mb A\suptxt{actual} + \mb A^f \, \mathcal F(\mb S) \, \mb S\suptxt{actual},
-\end{align}
-where $\mb A^f$ and $\mb A\suptxt{actual}$ are the full (expanded) and actual forecast ensemble anomalies, $\mb S$ and $\mb S\suptxt{actual}$ -- the full and actual standardised ensemble observation anomalies.
-
-ETMs for both the DEnKF and ETKF schemes used in EnKF-C can be represented in the form (\ref{downT}).
-For the DEnKF it is given by (\ref{TR-DEnKF}), and for the ETKF by (\ref{bocquet}).
-
-Note that in the case when the expanded forecast ensemble contains the actual forecast ensemble the above approach is equivalent to using truncated ETM; however, (\ref{downscaling}) can also be interpreted as using left multiplied ETM calculated with the expanded ensemble,
+Assume an initial forecast ensemble $\mb E^f$ of size $m$ that can be partitioned into the ensemble average $\mb x^f$ and ensemble anomalies $\mb A^f$:
 \begin{align*}
-  \mb A^a = \mb T_L(\mb S) \, \mb A\suptxt{actual},
+  \mb E^f = \mb x^f \mb 1\T + \mb A^f.
 \end{align*}
-and is therefore applicable to more general cases.
-
-\section{Localisation}
-
-Localisation is a necessary attribute of the EnKF systems with large-scale models, aimed at overcoming the rank deficiency of the ensemble.
-It can also be seen as aimed at reducing spurious long range correlations occurring due to the finite size of the ensemble; or at limiting the impact of distant observations because of the unreliability of the corresponding covariances.
-
-There are two common localisation methods for the EnKF -- covariance localisation \citep[CL,][]{ham01b, hou01a}, also known as covariance filtering, and local analysis \citep[LA,][]{hou98a, eve03a, ott03a}.
-Although CL may have advantages in certain situations (non-local observations, ``strong'' assimilation), in practice the two methods produce similar results \citep{sak11a}.
-For algorithmic reasons EnKF-C uses LA.
-
-Instead of calculating the global ensemble transform $\mb X_5$, LA involves calculating local ensemble transforms $\ac{i}{\mb X}_5$ for each element $i$ of the state vector.
-This is done using local normalised ensemble observation anomalies $\ac{i}{\mb S}$ and local normalised innovation $\ac{i}{\mb s}$, obtained by tapering global $\mb S$ and $\mb s$:
-\begin{subequations}
-  \begin{align}
-    &\ac{i}{\mb s} \equiv \mb s \circ \ac{i}{\mb f},\\
-    &\ac{i}{\mb S} \equiv \mb S \circ (\ac{i}{\mb f} \, \mb 1\T),
-  \end{align}
-\end{subequations}
-where $\ac{i}{\mb f}$ is the vector of taper coefficients for element $i$, and $\mb A \circ \mb B$ denotes by-element, or Hadamard, or Schur product of matrices $\mb A$ and $\mb B$.
-We consider non-adaptive localisation only, when the taper coefficient is a function of locations of the state element $i$ (denoted as $\ac{i}{\mb r}$) and observation $o$ (denoted as $\ac{\{o\}}{\mb r}$): $\ac{i}{\mb f}_o = g(\ac{i}{\mb r}, \ac{\{o\}}{\mb r})$, where $g$ is the taper function.
-In layered geophysical models $g$ is often assumed to depend only on horizontal distance between these locations: 
+Further assume that these initial forecast anomalies are expanded into a larger ensemble of forecast anomalies $\tilde{\mb A}^f$ of size $\tilde{m} > m$:
+\begin{align*}
+  \mb A^f \to \tilde{\mb A}^f,
+\end{align*}
+which is subsequently used for the analysis.
+The analysis yields an expanded ensemble of anomalies $\tilde{\mb A}^a$, which must then be reduced to the initial size $m$:
+\begin{align*}
+  \tilde{\mb A}^a \to \mb A^a.
+\end{align*}
+A natural way to conduct this ensemble reduction can be formulated via the left-multiplied ensemble transform:
 \begin{align}
-  \label{hor}
-  \ac{i}{\mb f}_o = g(|\ac{i}{\ms \rho} - \ac{\{o\}}{\ms \rho}|),
+  \label{reduction_left}
+  \mb A^a = \tilde{\mb T}_L \mb A^f,
 \end{align}
-or on combination of horizontal and vertical distances, e.g.: $\ac{i}f_o = g_{xy}(|\ac{i}{\ms \rho} - \ac{\{o\}}{\ms \rho}|)g_z(|\ac{i}z - \ac{\{o\}}z|)$, where $\mb r = (\ms \rho, z)$, and $\ms \rho = (x, y)$.
-In the case (\ref{hor}) for a given set of observations the local ensemble transform $\ac{i}{\mb X}_5$ depends only on horizontal grid coordinates of the state element $\mb x_i$ and can be used for updating all state elements with the same horizontal grid coordinates.
-This is currently the only option in EnKF-C.
+where $\tilde{\mb T}_L$ is computed from the expanded forecast ensemble anomalies: $\tilde{\mb T}_L = \mb T_L(\tilde{\mb A}^f)$.
 
-Smooth taper functions have advantage over non-smooth functions (such as the boxcar, or step function) because they maintain the spatial continuity of the analysis.
-EnKF-C uses the popular polynomial taper function by \citet{gas99a}, which has a number of nice properties.
+To be computationally feasible in large-scale systems, this approach must be reformulated for an ensemble update utilizing a right-multiplied transform.
+This reformulation is straightforward if $\mb A^f$ is structurally embedded within $\tilde{\mb A}^f$.
+
+If the initial ensemble $\mb A^f$ forms a submatrix of $\tilde{\mb A}^f$ such that $\tilde{\mb A}^f = [\mb A^f, \dots]$, the reduction in \eqref{reduction_left} is equivalent to updating the expanded ensemble and then retaining its first $m$ members as the final updated ensemble.
+The equivalent operation for the right-multiplied transform update consists of truncating the transform matrix to its first $m$ columns: $\mb A^a = \tilde{\mb A}^f \tilde{\mb T}_R(:, 1:m)$.
+
+A simple generalization of this case is when a scalar multiple of $\mb A^f$ forms a submatrix of $\tilde{\mb A}^f$ such that
+\begin{align}
+  \tilde{\mb A}^f = [k \mb A^f, \dots].
+\end{align}
+In this case, \eqref{reduction_left} is equivalent to updating the expanded ensemble, retaining the first $m$ members of the expanded updated ensemble, and applying inverse scaling:
+\begin{align*}
+  \tilde{\mb T}_L \mb A^f = k^{-1} \tilde{\mb T}_L \tilde{\mb A}^f(:, 1 : m).
+\end{align*}
+The equivalent operation for the right-multiplied update involves truncating the transform matrix along with the scaling:
+\begin{align}
+  \label{reduction_right}
+  \mb A^a = k^{-1} \tilde{\mb A}^f \tilde{\mb T}_R(:, 1:m).
+\end{align}
 
 \section{Asynchronous DA}
 
@@ -598,8 +586,8 @@ It becomes
   \label{model-perf}
   &\mb x_{i+1} = \mathcal M(\mb x_i),\quad i = 1,\dots,k-1.
 \end{align}
-Compared to the original problem, the dimensionality of the solution is much reduced due to relations (\ref{model-perf}), which mean that the model state at any time can be found by propagating the initial state: $\mb x_2 = \mathcal M_2(\mb x_1),\ \mb x_3 = \mathcal M_3 \circ \mathcal M_2(\mb x_1), \dots$.
-The cost function (\ref{cost-perf}) can then be written as
+Compared to the original problem, the dimensionality of the solution is much reduced due to relations \eqref{model-perf}, which mean that the model state at any time can be found by propagating the initial state: $\mb x_2 = \mathcal M_2(\mb x_1),\ \mb x_3 = \mathcal M_3 \circ \mathcal M_2(\mb x_1), \dots$.
+The cost function \eqref{cost-perf} can then be written as
 \begin{align}
   \label{cost-async}
   J(\mb x_1)  = \|\mb x_1 - \mb x_1^f\|^2_{(\mb P^f)^{-1}} + \|\mb y - \mathcal H \circ \mathcal M(\mb x_1)\|^2_{\mb R^{-1}},
@@ -609,8 +597,8 @@ where observations $\mb y$ represent the augmented observation vector: $\mb y = 
 Note that usually only $\mathcal H$ is a function that depends on assimilated observations; now by introducing $\mathcal H \circ \mathcal M (\mb x) = \mathcal H[\mathcal M(\mb x)]$ we have to assume that $\mathcal M$ also depends on observations, propagating the initial state to the time of each observation.
 It is also possible to interpret $\mathcal M(\mb x$) as the \emph{trajectory} starting from $\mb x$, while $\mathcal H$ maps it to observations.
 
-Apart from the operator $\mathcal H \circ \mathcal M$, the cost function (\ref{cost-async}) has the same form as that for a single DA cycle with synchronous observations.
-Consequently, \emph{in the linear case} (\ref{lin}) one can use solutions for $\mb w$ and $\mb T$ from section~\ref{sec:numerical}, subject to extending definitions of $\mb s$ (\ref{s}) and $\mb S$ (\ref{S}) as follows:
+Apart from the operator $\mathcal H \circ \mathcal M$, the cost function \eqref{cost-async} has the same form as that for a single DA cycle with synchronous observations.
+Consequently, \emph{in the linear case} \eqref{lin} one can use solutions for $\mb w$ and $\mb T$ from section~\ref{sec:numerical}, subject to extending definitions of $\mb s$ \eqref{s} and $\mb S$ \eqref{S} as follows:
 \begin{align}
   \label{s-async}
   &\mb s = \mb R^{-1/2} \left[ \mb y - \mathcal H \circ \mathcal M (\mb x_1^f) \right] / \sqrt{m - 1},\\
@@ -621,7 +609,7 @@ where $\mb H \circ \mb M$ is the tangent linear operator of $\mathcal H \circ \m
 This means that to account for the time of observations in the EnKF one simply needs calculate innovation and forecast ensemble observation anomalies using ensemble at the time of each observation.
 There are no specific restrictions on $\mb R$, so that in theory observation errors can be correlated in time.
 
-The minimisation problem (\ref{min-perf}),(\ref{cost-async}) implies assimilation time $t = t_1$; however, in the linear case the standardised innovation and ensemble observation anomalies in form (\ref{s-async},\ref{S-async}) represent objects invariant to assimilation time: the reference to $\mb x_1$ is only needed to define forward operator $\mathcal H \circ \mathcal M$.
+The minimisation problem \eqref{min-perf},\eqref{cost-async} implies assimilation time $t = t_1$; however, in the linear case the standardised innovation and ensemble observation anomalies in form (\ref{s-async},\ref{S-async}) represent objects invariant to assimilation time: the reference to $\mb x_1$ is only needed to define forward operator $\mathcal H \circ \mathcal M$.
 Consequently, the ensemble transform $\mb X_5$ calculated from $\mb s$ and $\mb S$ can be applied to ensemble at any particular time to yield (the same) analysed trajectories for the ensemble members: $\mathcal M (\mb E) \, \mb X_5 = \mathcal M (\mb E \, \mb X_5)$.
 This time invariance of ensemble transforms can be used to update ensemble back in time using observations from future cycles without the need in backward model (\citealt[][sec.~6]{eve00a}, \citealt[][app.~D]{eve03a}).
 
@@ -629,7 +617,7 @@ This time invariance of ensemble transforms can be used to update ensemble back 
   \setlength{\abovedisplayskip}{2pt}
   \setlength{\belowdisplayskip}{2pt}
   \scriptsize
-  {\bf Note.} The background term $\|\mb x_1 - \mb x_1^f\|^2_{(\mb P^f)^{-1}}$ in (\ref{cost-async}) can be seen as accumulating the previous history of the system rather than characterising the initial uncertainty in the global problem.
+  {\bf Note.} The background term $\|\mb x_1 - \mb x_1^f\|^2_{(\mb P^f)^{-1}}$ in \eqref{cost-async} can be seen as accumulating the previous history of the system rather than characterising the initial uncertainty in the global problem.
   In this case it is natural to anchor it to the previous analysis:
   \begin{align}
     J(\mb x) = \|\mb x - \mb x^f\|^2_{(\mb P^f)^{-1}} + \|\mb y - \mathcal H \circ \mathcal M(\mb x)\|^2_{\mb R^{-1}}.
@@ -640,7 +628,7 @@ This time invariance of ensemble transforms can be used to update ensemble back 
   \begin{align*}
     &\mb x^a, \mb P^a: \ J(\mb x) = \|\mb x - \mb x^a\|^2_{(\mb P^a)^{-1}} + \mathrm{Const}.
   \end{align*}
-  This framework is a natural extension of the problem (\ref{min-nonl}) in the linear, perfect-model case to continuous time; and is convenient for iterative minimisation.\par
+  This framework is a natural extension of the problem \eqref{min-nonl} in the linear, perfect-model case to continuous time; and is convenient for iterative minimisation.\par
 }
 
 \section{EnOI}
@@ -661,14 +649,15 @@ It is an improvement on the optimal interpolation, which typically uses isotropi
 
 In contrast to the EnKF, due to the use of a static ensemble the EnOI avoids potential problems related to the ensemble spread; but at the same time it does critically depend on the ensemble, while the EnKF with a stochastic model typically ``forgets'' the initial ensemble over time.
 
-The EnOI can account for the time of observations by calculating innovation using forecast at observation time, as in (\ref{s-async}).
+The EnOI can account for the time of observations by calculating innovation using forecast at observation time, as in \eqref{s-async}.
 This approach is commonly known as ``first guess at appropriate time'', or FGAT.
 
-\section{EnOI/EnKF hybrid}
+\section{EnKF/EnOI hybrid}
 \label{sec:hybrid-theory}
 
-By EnOI/EnKF hybrid we understand formulation in which forecast state error covariance is equal to the sum of ``dynamic'' covariance carried by the EnKF ensemble, and ``static'' covariance carried by a pre-defined ensemble of anomalies:
+By EnKF/EnOI hybrid we understand formulation in which forecast state error covariance is equal to the sum of ``dynamic'' covariance carried by the EnKF ensemble, and ``static'' covariance carried by a pre-defined ensemble of anomalies:
 \begin{align}
+  \label{hybrid_covariance}
   \mb P^f = \mb P\suptxt{dyn} + \gamma \mb P\suptxt{stat},
 \end{align}
 where
@@ -677,7 +666,7 @@ where
   & \mb P\suptxt{stat} = \frac{1}{m\subtxt{stat} - 1}\mb A\suptxt{stat} (\mb A\suptxt{stat})\T,
 \end{align*}
 where $\mb A\suptxt{dyn}$ is the ensemble of dynamic anomalies of size $m\subtxt{dyn}$, and $\mb A\suptxt{stat}$ is the ensemble of static anomalies of size $m\subtxt{stat}$.
-The added static covariance can be assumed to represent the model error covariance (matrices $\mb Q_i$ in (\ref{L-nonl}) and $\mb Q_{k+1}$ in (\ref{prop-P})).
+The added static covariance can be assumed to represent the model error covariance (matrices $\mb Q_i$ in \eqref{L-nonl} and $\mb Q_{k+1}$ in \eqref{prop-P}).
 
 The forecast covariance $\mb P^f$ is then carried by the combined ensemble $\mb A^f$,
 \begin{align}
@@ -689,20 +678,13 @@ where $m = m\subtxt{dyn} + m\subtxt{stat}$, so that
   \mb P^f = \frac{1}{m - 1} \mb A^f (\mb A^f)\T.
 \end{align*}
 
-The combined forecast ensemble anomalies (\ref{hybrid_combined}) have larger ensemble size than that of the dynamic ensemble; hence there arises a problem of ensemble reduction to obtain the analysed dynamic ensemble of size $m\subtxt{dyn}$.
-EnKF-C takes the approach described by (\ref{downscaling}) in sec.~\ref{sec:reduction}:
+The combined forecast ensemble anomalies \eqref{hybrid_combined} have larger ensemble size than that of the dynamic ensemble; hence there arises a problem of ensemble reduction to obtain the analysed dynamic ensemble of size $m\subtxt{dyn}$.
+EnKF-C takes the approach described by \eqref{reduction_right} in sec.~\ref{sec:reduction}:
 \begin{align}
   \label{hybrid_update}
-  (\mb E\suptxt{dyn})^a = (\mb x^f + \mb A^f \mb w) \mb 1\T + \mb A\suptxt{dyn} + \left(\frac{m\subtxt{dyn} - 1}{m - 1}\right)^{1/2} \mathcal F(\mb S) \, \mb S\suptxt{dyn},
+  (\mb E\suptxt{dyn})^a = (\mb x^f + \mb A^f \mb w) \mb 1\T + \left(\frac{m\subtxt{dyn} - 1}{m - 1}\right)^{1/2} \mb A^f \mb T(:, 1 : m\subtxt{dyn}),
 \end{align}
-where
-\begin{align}
-\mb x^f \equiv \frac{1}{m\subtxt{dyn}} (\mb E\suptxt{dyn})^f \mb 1.
-\end{align}
-This is equivalent to using truncated ETM, 
-\begin{align*}
-  (\mb A\suptxt{dyn})^a = \left(\frac{m\subtxt{dyn} - 1}{m - 1}\right)^{1/2} \mb A^f \mb T(:, 1 : m\subtxt{dyn}).
-\end{align*}
+where $\mb x^f$ is the ensemble mean of the dynamic forecast ensemble, $\mb w$ are the ensemble mean update coefficients, and $\mb T$ is the right-multiplied ensemble transform matrix; both $\mb w$ and $\mb T$ computed using the expanded ensemble anomalies \eqref{hybrid_combined}.
 
 \chapter{EnKF-C}
 \label{ch:enkf-c}
@@ -1874,7 +1856,7 @@ The common inflation settings in the main parameter file can be overwritten by s
 From v2.0.0 EnKF-C makes it possible using hybrid state error covariance by combining covariances from the EnKF ensemble and an ensemble of static anomalies (sec.~\ref{sec:hybrid-theory}).
 This option is activated by specifying \verb|METHOD = HYBRID| in the main parameter file, the directory of the static ensemble, and the mixing coefficient \verb|GAMMA| (see sec.~\ref{sec:mainprm}).
 
-When the method is set to ``hybrid'', the ensemble spread written in the innovation statistics summary at the end of CALC is that of the combined ensemble (\ref{hybrid_combined}).
+When the method is set to ``hybrid'', the ensemble spread written in the innovation statistics summary at the end of CALC is that of the combined ensemble \eqref{hybrid_combined}.
 Similarly, the ensemble spread fields calculated during UPDATE by specifying option \verb|--calculate-spread| is the ensemble spread of the combined ensemble.
 To calculate spread of dynamic ensemble only one needs to set \verb|MODE = EnKF|.
 To calculate innovation statistics with forecast ensemble spread of the dynamic ensemble only one needs to set \verb|MODE = EnKF| and rerun CALC with option ``--forecast-stats-only''.
