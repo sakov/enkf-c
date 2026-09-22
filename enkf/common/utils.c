@@ -311,6 +311,8 @@ void enkf_finish(void)
         free(enkf_cwd);
     if (enkf_time != NULL)
         free(enkf_time);
+    if (enkf_analysistime != NULL)
+        free(enkf_analysistime);
     enkf_printf("  finished\n");
     enkf_flush();
 #if defined(MPI)
@@ -1690,6 +1692,8 @@ void enkf_writeinfo(char* fname)
         ncw_open(fname, NC_WRITE, &ncid);
         if (!ncw_att_exists(ncid, NC_GLOBAL, "EnKF-C version"))
             ncw_put_att_text(ncid, NC_GLOBAL, "EnKF-C version", ENKF_VERSION);
+        if (enkf_analysistime != NULL)
+            ncw_put_att_text(ncid, NC_GLOBAL, "analysis time", enkf_analysistime);
         if (!ncw_att_exists(ncid, NC_GLOBAL, "wdir"))
             ncw_put_att_text(ncid, NC_GLOBAL, "wdir", enkf_cwd);
 #if defined(ENKF_PREP)

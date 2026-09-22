@@ -42,7 +42,7 @@ static void enkfprm_check(enkfprm* prm)
 #if defined(ENKF_PREP)
     if (prm->obsprm == NULL)
         enkf_quit("%s: OBS not specified", prm->fname);
-    if (prm->date == NULL)
+    if (prm->time == NULL)
         enkf_quit("%s: TIME not specified", prm->fname);
 #endif
     if (prm->modelprm == NULL)
@@ -128,7 +128,7 @@ enkfprm* enkfprm_read(char fname[])
     prm->mode = MODE_NONE;
     prm->scheme = SCHEME_DEFAULT;
     prm->alpha = ALPHA_DEFAULT;
-    prm->date = NULL;
+    prm->time = NULL;
     prm->obswindow_min = NAN;
     prm->obswindow_max = NAN;
     prm->modelprm = NULL;
@@ -200,12 +200,12 @@ enkfprm* enkfprm_read(char fname[])
 
             if ((token = strtok(NULL, seps_date)) == NULL)
                 enkf_quit("%s, l.%d: TIME not specified", fname, line);
-            else if (prm->date != NULL)
+            else if (prm->time != NULL)
                 enkf_quit("%s, l.%d: TIME specified twice", fname, line);
             else {
                 while (*token == ' ')
                     token++;
-                prm->date = strdup(token);
+                prm->time = strdup(token);
             }
         } else if (strcasecmp(token, "WINDOWMIN") == 0) {
             if ((token = strtok(NULL, seps)) == NULL)
@@ -554,6 +554,9 @@ enkfprm* enkfprm_read(char fname[])
     if (rank == 0)
         enkfprm_check(prm);
 
+    if (prm->time != NULL)
+        enkf_analysistime = strdup(prm->time);
+
     return prm;
 }
 
@@ -569,7 +572,7 @@ void enkfprm_destroy(enkfprm* prm)
 
     free(prm->obstypeprm);
 
-    free(prm->date);
+    free(prm->time);
     free(prm->ensdir);
     if (prm->ensdir2 != NULL)
         free(prm->ensdir2);
@@ -608,7 +611,7 @@ void enkfprm_print(enkfprm* prm, char offset[])
 #endif
 
 #if defined(ENKF_PREP) || defined(ENKF_CALC)
-    enkf_printf("%sTIME = \"%s\"\n", offset, prm->date);
+    enkf_printf("%sTIME = \"%s\"\n", offset, prm->time);
 #endif
 #if defined(ENKF_PREP)
     if (!isnan(prm->obswindow_min)) {

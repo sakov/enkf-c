@@ -223,8 +223,8 @@ static observations* obs_create_fromsingleob(enkfprm* prm, dasystem* das)
     enkf_printf("  reading observation type specs from \"%s\":\n", prm->obstypeprm);
     obstypes_read(prm, prm->obstypeprm, &obs->nobstypes, &obs->obstypes);
 
-    obs->da_time = date2day(prm->fname, prm->date);
-    obs->datestr = strdup(prm->date);
+    obs->da_time = date2day(prm->fname, prm->time);
+    obs->datestr = strdup(prm->time);
 
     o->type = obstype_getid(obs->nobstypes, obs->obstypes, singleobtype, 1);
 

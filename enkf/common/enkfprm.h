@@ -20,7 +20,7 @@ struct enkfprm {
     int mode;
     int scheme;
     double alpha;
-    char* date;
+    char* time;                 /* analysis time */
     double obswindow_min;
     double obswindow_max;
 

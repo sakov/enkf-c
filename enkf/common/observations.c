@@ -200,8 +200,8 @@ observations* obs_create_fromprm(enkfprm* prm)
     obs->products = st_create("products");
     obs->instruments = st_create("instruments");
     obs->datafiles = st_create("datafiles");
-    obs->da_time = date2day(prm->fname, prm->date);
-    obs->datestr = strdup(prm->date);
+    obs->da_time = date2day(prm->fname, prm->time);
+    obs->datestr = strdup(prm->time);
 
     enkf_printf("  reading observation type specs from \"%s\":\n", prm->obstypeprm);
     obstypes_read(prm, prm->obstypeprm, &obs->nobstypes, &obs->obstypes);

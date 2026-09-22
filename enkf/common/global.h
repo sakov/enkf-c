@@ -176,6 +176,7 @@ extern int print_mem;
 extern char* enkf_cmd;
 extern char* enkf_cwd;
 extern char* enkf_time;
+extern char* enkf_analysistime;
 
 typedef struct {
     char* name;
