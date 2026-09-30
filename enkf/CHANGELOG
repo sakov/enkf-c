@@ -1,3 +1,8 @@
+v2.47.11
+   PS 30092026
+   -- Modified reader "scattered" to accept observations with "std" and "error_std" variables
+      or (specified corresponding variables) set to NaN if all values of the variable are NaNs.
+      (Ignore these variables in that case.)
 v2.47.10
    PS 22092026
    -- Added global attribute "analysis time" to outputs. Set as specified in the

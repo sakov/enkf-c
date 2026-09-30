@@ -48,6 +48,18 @@ typedef struct {
 
 /**
  */
+static int allmissing(int n, double v[])
+{
+    int i;
+
+    for (i = 0; i < n; ++i)
+        if (isfinite(v[i]))
+            return 0;
+    return 1;
+}
+
+/**
+ */
 void reader_scattered(char* fname, int fid, obssection* section, grid* g, observations* obs)
 {
     char* varname = NULL;
@@ -240,6 +252,10 @@ void reader_scattered(char* fname, int fid, obssection* section, grid* g, observ
         ncw_check_vardims(ncid, varid, 1, &nobs);
         std = malloc(nobs * sizeof(double));
         ncu_readvardouble(ncid, varid, nobs, std);
+        if (allmissing(nobs, std)) {
+            free(std);
+            std = NULL;
+        }
     }
 
     /*
@@ -254,6 +270,10 @@ void reader_scattered(char* fname, int fid, obssection* section, grid* g, observ
         ncw_check_vardims(ncid, varid, 1, &nobs);
         estd = malloc(nobs * sizeof(double));
         ncu_readvardouble(ncid, varid, nobs, estd);
+        if (allmissing(nobs, estd)) {
+            free(estd);
+            estd = NULL;
+        }
     }
 
     /*
