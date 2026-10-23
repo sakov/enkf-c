@@ -137,10 +137,9 @@ triangulation* triangulation_read(char* fname, char* name_x, char* name_y, char*
 
     d->points = storage;
 #if defined(USE_SHMEM)
-    if (sm_comm_rank == 0) {
-#else
-    {
+    if (sm_comm_rank == 0)
 #endif
+    {
         double* x = malloc(2 * np * sizeof(double));
         double* y = &x[np];
 
