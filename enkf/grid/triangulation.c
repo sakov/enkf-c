@@ -129,11 +129,13 @@ triangulation* triangulation_read(char* fname, char* name_x, char* name_y, char*
             assert(my_size == storagesize);
         }
     }
+    MPI_Win_fence(0, d->sm_win_tridata);
+    MPI_Barrier(sm_comm);
 #else
     storage = malloc(storagesize);
 #endif
-    d->points = storage;
 
+    d->points = storage;
 #if defined(USE_SHMEM)
     if (sm_comm_rank == 0) {
 #else
@@ -161,8 +163,14 @@ triangulation* triangulation_read(char* fname, char* name_x, char* name_y, char*
                 ncw_get_var(ncid, vid_nei, d->neighbours);
             }
         }
-        ncw_close(ncid);
     }
+#if defined(USE_SHMEM)
+    else {
+        d->triangles = (triangle*) &d->points[np];
+        d->neighbours = (triangle_neighbours*) &d->triangles[ntri];
+    }
+#endif
+    ncw_close(ncid);
 #if defined(USE_SHMEM)
     MPI_Win_fence(0, d->sm_win_tridata);
     MPI_Barrier(sm_comm);

@@ -402,7 +402,8 @@ void model_adddata(model* m, char tag[], int vid, int alloctype, void* data)
     m->ndata++;
 }
 
-/**
+/** If data with this tag already exists in model data, then replace it;
+ ** otherwise add.
  */
 void model_addorreplacedata(model* m, char tag[], int vid, int alloctype, void* data)
 {

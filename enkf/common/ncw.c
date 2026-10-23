@@ -33,7 +33,7 @@
 #include <errno.h>
 #include "ncw.h"
 
-const char ncw_version[] = "2.31.4";
+const char ncw_version[] = "2.31.5";
 
 /*
  * A flag -- whether ncw_copy_vardef() (re-)defines chunking by layers.
@@ -156,6 +156,26 @@ static char* uint2str(int n, const unsigned int v[])
             snprintf(next, STRBUFSIZE, "%d,", v[i]);
         else
             snprintf(next, STRBUFSIZE, "%d", v[i]);
+        assert(strlen(all) + strlen(next) + 2 < STRBUFSIZE);
+        strcat(all, next);
+    }
+    assert(strlen(all) + 2 < STRBUFSIZE);
+    strcat(all, ")");
+
+    return strdup(all);
+}
+
+static char* size_t2str(int n, const size_t v[])
+{
+    int i;
+    char all[STRBUFSIZE] = "(";
+    char next[STRBUFSIZE];
+
+    for (i = 0; i < n; ++i) {
+        if (i < n - 1)
+            snprintf(next, STRBUFSIZE, "%zu,", v[i]);
+        else
+            snprintf(next, STRBUFSIZE, "%zu", v[i]);
         assert(strlen(all) + strlen(next) + 2 < STRBUFSIZE);
         strcat(all, next);
     }
@@ -927,7 +947,7 @@ void ncw_put_vara_text(int ncid, int varid, const size_t start[], const size_t c
 
         ncw_inq_varname(ncid, varid, varname);
         ncw_inq_varndims(ncid, varid, &ndims);
-        quit("\"%s\": ncw_put_vara_text(): failed for varid = %d (varname = \"%s\"), start = %s, count = %s: %s", ncw_get_path(ncid), varid, varname, uint2str(ndims, (unsigned int*) start), uint2str(ndims, (unsigned int*) count), nc_strerror(status));
+        quit("\"%s\": ncw_put_vara_text(): failed for varid = %d (varname = \"%s\"), start = %s, count = %s: %s", ncw_get_path(ncid), varid, varname, size_t2str(ndims, start), size_t2str(ndims, count), nc_strerror(status));
     }
 }
 
@@ -941,7 +961,7 @@ void ncw_put_vara_short(int ncid, int varid, const size_t start[], const size_t 
 
         ncw_inq_varname(ncid, varid, varname);
         ncw_inq_varndims(ncid, varid, &ndims);
-        quit("\"%s\": ncw_put_vara_short(): failed for varid = %d (varname = \"%s\"), start = %s, count = %s: %s", ncw_get_path(ncid), varid, varname, uint2str(ndims, (unsigned int*) start), uint2str(ndims, (unsigned int*) count), nc_strerror(status));
+        quit("\"%s\": ncw_put_vara_short(): failed for varid = %d (varname = \"%s\"), start = %s, count = %s: %s", ncw_get_path(ncid), varid, varname, size_t2str(ndims, start), size_t2str(ndims, count), nc_strerror(status));
     }
 }
 
@@ -955,7 +975,7 @@ void ncw_put_vara_ushort(int ncid, int varid, const size_t start[], const size_t
 
         ncw_inq_varname(ncid, varid, varname);
         ncw_inq_varndims(ncid, varid, &ndims);
-        quit("\"%s\": ncw_put_vara_ushort(): failed for varid = %d (varname = \"%s\"), start = %s, count = %s: %s", ncw_get_path(ncid), varid, varname, uint2str(ndims, (unsigned int*) start), uint2str(ndims, (unsigned int*) count), nc_strerror(status));
+        quit("\"%s\": ncw_put_vara_ushort(): failed for varid = %d (varname = \"%s\"), start = %s, count = %s: %s", ncw_get_path(ncid), varid, varname, size_t2str(ndims, start), size_t2str(ndims, count), nc_strerror(status));
     }
 }
 
@@ -969,7 +989,7 @@ void ncw_put_vara_int(int ncid, int varid, const size_t start[], const size_t co
 
         ncw_inq_varname(ncid, varid, varname);
         ncw_inq_varndims(ncid, varid, &ndims);
-        quit("\"%s\": ncw_put_vara_int(): failed for varid = %d (varname = \"%s\"), start = %s, count = %s: %s", ncw_get_path(ncid), varid, varname, uint2str(ndims, (unsigned int*) start), uint2str(ndims, (unsigned int*) count), nc_strerror(status));
+        quit("\"%s\": ncw_put_vara_int(): failed for varid = %d (varname = \"%s\"), start = %s, count = %s: %s", ncw_get_path(ncid), varid, varname, size_t2str(ndims, start), size_t2str(ndims, count), nc_strerror(status));
     }
 }
 
@@ -983,7 +1003,7 @@ void ncw_put_vara_uint(int ncid, int varid, const size_t start[], const size_t c
 
         ncw_inq_varname(ncid, varid, varname);
         ncw_inq_varndims(ncid, varid, &ndims);
-        quit("\"%s\": ncw_put_vara_uint(): failed for varid = %d (varname = \"%s\"), start = %s, count = %s: %s", ncw_get_path(ncid), varid, varname, uint2str(ndims, (unsigned int*) start), uint2str(ndims, (unsigned int*) count), nc_strerror(status));
+        quit("\"%s\": ncw_put_vara_uint(): failed for varid = %d (varname = \"%s\"), start = %s, count = %s: %s", ncw_get_path(ncid), varid, varname, size_t2str(ndims, start), size_t2str(ndims, count), nc_strerror(status));
     }
 }
 
@@ -997,7 +1017,7 @@ void ncw_put_vara_float(int ncid, int varid, const size_t start[], const size_t 
 
         ncw_inq_varname(ncid, varid, varname);
         ncw_inq_varndims(ncid, varid, &ndims);
-        quit("\"%s\": ncw_put_vara_float(): failed for varid = %d (varname = \"%s\"), start = %s, count = %s: %s", ncw_get_path(ncid), varid, varname, uint2str(ndims, (unsigned int*) start), uint2str(ndims, (unsigned int*) count), nc_strerror(status));
+        quit("\"%s\": ncw_put_vara_float(): failed for varid = %d (varname = \"%s\"), start = %s, count = %s: %s", ncw_get_path(ncid), varid, varname, size_t2str(ndims, start), size_t2str(ndims, count), nc_strerror(status));
     }
 }
 
@@ -1011,7 +1031,7 @@ void ncw_put_vara_double(int ncid, int varid, const size_t start[], const size_t
 
         ncw_inq_varname(ncid, varid, varname);
         ncw_inq_varndims(ncid, varid, &ndims);
-        quit("\"%s\": nc_put_vara_double(): failed for varid = %d (varname = \"%s\"), start = %s, count = %s: %s", ncw_get_path(ncid), varid, varname, uint2str(ndims, (unsigned int*) start), uint2str(ndims, (unsigned int*) count), nc_strerror(status));
+        quit("\"%s\": nc_put_vara_double(): failed for varid = %d (varname = \"%s\"), start = %s, count = %s: %s", ncw_get_path(ncid), varid, varname, size_t2str(ndims, start), size_t2str(ndims, count), nc_strerror(status));
     }
 }
 

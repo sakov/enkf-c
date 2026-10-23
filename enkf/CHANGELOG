@@ -1,7 +1,13 @@
+v2.47.12
+   PS 23102026
+   -- In ncw.c added static char* size_t2str() to fix some error messages with
+      variables that were initially declared as int but later became size_t.
+   -- In triangulation.c fixed access to fields of triangulation that was
+      put into shared memory by nodes with sm_comm_rank != 0.
 v2.47.11
    PS 30092026
    -- Modified reader "scattered" to accept observations with "std" and "error_std" variables
-      or (specified corresponding variables) set to NaN if all values of the variable are NaNs.
+      (or specified corresponding variables) set to NaN if all values of the variable are NaNs.
       (Ignore these variables in that case.)
 v2.47.10
    PS 22092026
