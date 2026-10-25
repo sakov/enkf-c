@@ -21,6 +21,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include <assert.h>
 #include <math.h>
 #include "version.h"
 #include "global.h"
@@ -215,28 +216,20 @@ static void parse_commandline(int argc, char* argv[], char** fname_prm, char** f
 static observations* obs_create_fromsingleob(enkfprm* prm, dasystem* das)
 {
     model* m = das->m;
-    observations* obs = obs_create();
+    observations* obs = das->obs;
     observation* o = singleob;
-    int vid = -1;
     void* g = NULL;
 
     enkf_printf("  reading observation type specs from \"%s\":\n", prm->obstypeprm);
-    obstypes_read(prm, prm->obstypeprm, &obs->nobstypes, &obs->obstypes);
 
-    obs->da_time = date2day(prm->fname, prm->time);
-    obs->datestr = strdup(prm->time);
-
-    o->type = obstype_getid(obs->nobstypes, obs->obstypes, singleobtype, 1);
-
-    vid = model_getvarid(m, obs->obstypes[o->type].varnames[0], 1);
-    g = model_getvargrid(m, vid);
-
-    obs->obstypes[o->type].gridid = model_getvargridid(das->m, vid);
-
+    assert(st_getsize(obs->products) == 0);
     obs->products = st_create("products");
     st_add_ifabsent(obs->products, "Synthetic", -1);
     obs->instruments = st_create("instruments");
     st_add_ifabsent(obs->instruments, "Virtual", -1);
+
+    o->type = obstype_getid(obs->nobstypes, obs->obstypes, singleobtype, 1);
+    g = model_getgridbyid(m, obs->obstypes[o->type].gridid);
 
     obs->nobs = 1;
     obs->data = o;
@@ -244,9 +237,9 @@ static observations* obs_create_fromsingleob(enkfprm* prm, dasystem* das)
     if (obs->obstypes[o->type].issurface)
         o->depth = 0.0;
 
-    o->status = model_xy2fij(m, vid, o->lon, o->lat, o->fij);
+    o->status = grid_xy2fij(g, o->lon, o->lat, o->fij);
     if (o->status == STATUS_OK)
-        o->status = model_z2fk_f(m, vid, o->fij, o->depth, &o->fk);
+        o->status = grid_z2fk_f(g, o->fij, o->depth, &o->fk);
     else
         o->fk = NAN;
     if (o->status != STATUS_OK)

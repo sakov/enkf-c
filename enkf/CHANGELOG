@@ -1,3 +1,6 @@
+v2.47.14
+   PS 25102026
+   -- Changed obs_create_fromsingleob().
 v2.47.13
    PS 25102026
    -- In ensobs.c added several calls of MPI_Win_fence(). Not sure why they
