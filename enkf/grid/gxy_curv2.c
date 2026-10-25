@@ -154,7 +154,6 @@ gxy_curv2* gxy_curv2_create(hgrid* hg, int ni, int nj, double** x, double** y, i
                 kd_syncsize(gxy->nodetreeXY[proj]);
             }
             MPI_Win_fence(0, gxy->sm_comm_win[proj]);
-            MPI_Barrier(sm_comm);
         }
 #else
         kd_insertnodes(gxy->nodetreeXY[proj], ni * nj, nodecoords, NULL, (mask != NULL) ? mask[0] : NULL, 1);

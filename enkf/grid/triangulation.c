@@ -130,7 +130,6 @@ triangulation* triangulation_read(char* fname, char* name_x, char* name_y, char*
         }
     }
     MPI_Win_fence(0, d->sm_win_tridata);
-    MPI_Barrier(sm_comm);
 #else
     storage = malloc(storagesize);
 #endif
@@ -172,7 +171,6 @@ triangulation* triangulation_read(char* fname, char* name_x, char* name_y, char*
     ncw_close(ncid);
 #if defined(USE_SHMEM)
     MPI_Win_fence(0, d->sm_win_tridata);
-    MPI_Barrier(sm_comm);
 #endif
 
     d->xmin = DBL_MAX;

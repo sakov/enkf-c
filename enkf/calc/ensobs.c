@@ -100,8 +100,6 @@ void das_getHE(dasystem* das)
         assert(my_size == size);
         assert(disp_unit == sizeof(float));
     }
-    MPI_Win_fence(0, das->sm_comm_win_S);
-    MPI_Barrier(sm_comm);
     if (sm_comm_rank == 0) {
         /*
          * HE (das->S) is filled independently for different observation types
@@ -112,7 +110,6 @@ void das_getHE(dasystem* das)
             SS[i] = NAN;
     }
     MPI_Win_fence(0, das->sm_comm_win_S);
-    MPI_Barrier(sm_comm);
 
     /*
      * set addresses of column vectors of the 2D array das->S
@@ -143,7 +140,6 @@ void das_getHE(dasystem* das)
             assert(disp_unit == sizeof(float));
         }
         MPI_Win_fence(0, das->sm_comm_win_St);
-        MPI_Barrier(sm_comm);
 
         /*
          * set addresses of column vectors of the 2D array das->St
@@ -298,7 +294,6 @@ void das_getHE(dasystem* das)
     }                           /* for i (over obstypes) */
 #if defined(USE_SHMEM)
     MPI_Win_fence(0, das->sm_comm_win_S);
-    MPI_Barrier(sm_comm);
 #endif
 
     /*
@@ -355,7 +350,6 @@ void das_getHE(dasystem* das)
             assert(ierror == MPI_SUCCESS);
         }
         MPI_Win_fence(0, das->sm_comm_win_S);
-        MPI_Barrier(sm_comm);
 #endif
         ierror = MPI_Type_free(&mpitype_vec_nobs);
         assert(ierror == MPI_SUCCESS);
@@ -390,7 +384,6 @@ void das_getHE(dasystem* das)
 #if defined(USE_SHMEM)
         }
         MPI_Win_fence(0, das->sm_comm_win_S);
-        MPI_Barrier(sm_comm);
 #endif
         obs_calcstats(obs);
         if (rank == 0 && obs->nbadfc > 0)
@@ -487,7 +480,6 @@ void das_getHE(dasystem* das)
 #if defined(USE_SHMEM)
     }
     MPI_Win_fence(0, das->sm_comm_win_S);
-    MPI_Barrier(sm_comm);
 #endif
 
     /*
@@ -590,7 +582,6 @@ void das_calcinnandspread(dasystem* das)
 #if defined(USE_SHMEM)
         }
         MPI_Win_fence(0, das->sm_comm_win_S);
-        MPI_Barrier(sm_comm);
 #endif
         for (e = 0; e < nmem; ++e) {
             float* Se = das->S[e];
@@ -653,7 +644,6 @@ void das_calcinnandspread(dasystem* das)
 #if defined(USE_SHMEM)
         }
         MPI_Win_fence(0, das->sm_comm_win_S);
-        MPI_Barrier(sm_comm);
 #endif
         for (e = 0; e < nmem; ++e) {
             float* Se = das->S[e];
@@ -872,7 +862,6 @@ void das_standardise(dasystem* das)
         }
 #if defined(USE_SHMEM)
     MPI_Win_fence(0, das->sm_comm_win_S);
-    MPI_Barrier(sm_comm);
 #endif
     if (das->s_f != NULL) {
         for (i = 0; i < obs->nobs; ++i) {
@@ -984,7 +973,6 @@ void das_destandardise(dasystem* das)
         }
 #if defined(USE_SHMEM)
     MPI_Win_fence(0, das->sm_comm_win_S);
-    MPI_Barrier(sm_comm);
 #endif
     if (das->s_f != NULL) {
         for (i = 0; i < obs->nobs; ++i) {
@@ -1031,7 +1019,6 @@ static void das_sortobs_byij(dasystem* das)
         qsort_r(obs->data, obs->nobs, sizeof(observation), cmp_obs_byij, das);
 #if defined(USE_SHMEM)
     MPI_Win_fence(0, das->obs->sm_comm_win_data);
-    MPI_Barrier(sm_comm);
 #endif
 
     if (das->s_f != NULL) {
@@ -1078,7 +1065,6 @@ static void das_sortobs_byij(dasystem* das)
     }
 #if defined(USE_SHMEM)
     MPI_Win_fence(0, das->sm_comm_win_S);
-    MPI_Barrier(sm_comm);
 #endif
 
     das->sort_mode = OBS_SORTMODE_IJ;
@@ -1112,7 +1098,6 @@ static void das_changeSmode(dasystem* das, int mode_from, int mode_to)
             }
 #if defined(USE_SHMEM)
         MPI_Win_fence(0, das->sm_comm_win_S);
-        MPI_Barrier(sm_comm);
 #endif
     } else
         enkf_quit("das_changesmode(): transition from mode %d to mode %d is not handled yet\n", mode_from, mode_to);
@@ -1176,7 +1161,6 @@ static void das_sortobs_byid(dasystem* das)
     }
 #if defined(USE_SHMEM)
     MPI_Win_fence(0, das->sm_comm_win_S);
-    MPI_Barrier(sm_comm);
 #endif
 
     /*
@@ -1188,7 +1172,6 @@ static void das_sortobs_byid(dasystem* das)
         obs_inorder(obs);
 #if defined(USE_SHMEM)
     MPI_Win_fence(0, das->obs->sm_comm_win_data);
-    MPI_Barrier(sm_comm);
 #endif
 
     das->sort_mode = OBS_SORTMODE_ID;
@@ -1783,7 +1766,6 @@ static void update_HE(dasystem* das)
     }
 #if defined(USE_SHMEM)
     MPI_Win_fence(0, das->sm_comm_win_St);
-    MPI_Barrier(sm_comm);
 #if ! HEUPDATE_ONFIRSTSMCOMM
     gather_St(das);
 #endif

@@ -40,7 +40,6 @@
  *                   kd_syncsize(tree);
  *              }
  *              MPI_Win_fence(0, sm_comm_win);
- *              MPI_Barrier(sm_comm);
  *              < various searches>
  *              kd_destroy(tree);
  *              MPI_Win_free(&sm_comm_win);

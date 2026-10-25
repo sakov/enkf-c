@@ -1,3 +1,6 @@
+v2.47.15
+   PS 25102026
+   -- Removed MPI_Barrier() when it immediately followed MPI_Win_fence().
 v2.47.14
    PS 25102026
    -- Changed obs_create_fromsingleob().
