@@ -871,6 +871,7 @@ void das_standardise(dasystem* das)
             }
         }
 #if defined(USE_SHMEM)
+    MPI_Win_fence(0, das->sm_comm_win_S);
     MPI_Barrier(sm_comm);
 #endif
     if (das->s_f != NULL) {
@@ -982,6 +983,7 @@ void das_destandardise(dasystem* das)
             }
         }
 #if defined(USE_SHMEM)
+    MPI_Win_fence(0, das->sm_comm_win_S);
     MPI_Barrier(sm_comm);
 #endif
     if (das->s_f != NULL) {
@@ -1028,6 +1030,7 @@ static void das_sortobs_byij(dasystem* das)
 #endif
         qsort_r(obs->data, obs->nobs, sizeof(observation), cmp_obs_byij, das);
 #if defined(USE_SHMEM)
+    MPI_Win_fence(0, das->obs->sm_comm_win_data);
     MPI_Barrier(sm_comm);
 #endif
 
@@ -1074,6 +1077,7 @@ static void das_sortobs_byij(dasystem* das)
         free(S);
     }
 #if defined(USE_SHMEM)
+    MPI_Win_fence(0, das->sm_comm_win_S);
     MPI_Barrier(sm_comm);
 #endif
 
@@ -1107,6 +1111,7 @@ static void das_changeSmode(dasystem* das, int mode_from, int mode_to)
                     Se[o] += obs->data[o].value - das->s_f[o];
             }
 #if defined(USE_SHMEM)
+        MPI_Win_fence(0, das->sm_comm_win_S);
         MPI_Barrier(sm_comm);
 #endif
     } else
@@ -1169,6 +1174,10 @@ static void das_sortobs_byid(dasystem* das)
         }
         free(S);
     }
+#if defined(USE_SHMEM)
+    MPI_Win_fence(0, das->sm_comm_win_S);
+    MPI_Barrier(sm_comm);
+#endif
 
     /*
      * order obs back by id
@@ -1178,6 +1187,7 @@ static void das_sortobs_byid(dasystem* das)
 #endif
         obs_inorder(obs);
 #if defined(USE_SHMEM)
+    MPI_Win_fence(0, das->obs->sm_comm_win_data);
     MPI_Barrier(sm_comm);
 #endif
 
@@ -1772,6 +1782,8 @@ static void update_HE(dasystem* das)
             update_HE_unstructured(das, gid, &o);
     }
 #if defined(USE_SHMEM)
+    MPI_Win_fence(0, das->sm_comm_win_St);
+    MPI_Barrier(sm_comm);
 #if ! HEUPDATE_ONFIRSTSMCOMM
     gather_St(das);
 #endif
