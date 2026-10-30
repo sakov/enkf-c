@@ -4,6 +4,11 @@ v2.28.0
       enable multiple static ensembles. The main change involves eliminating the
       separate codebase for the EnOI mode. Both EnKF and EnOI modes are now just
       particular cases of the Hybrid mode.
+      Note: ENSDIR entry is no longer allowed for the Hybrid mode; it needs to
+      be changed to ENSDIR_DYNAMIC. Most of the code changes are in
+      transforms.c, ensobs.c, update.c, dasystem.c, pointlog.c, enkfprm.c
+      Also:
+   -- Some changes in handling --single-observation option in CALC.
 v2.47.15
    PS 25102026
    -- Removed MPI_Barrier() when it immediately followed MPI_Win_fence().
