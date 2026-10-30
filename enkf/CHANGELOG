@@ -1,3 +1,9 @@
+v2.28.0
+   PS 30102026
+      This is a very substantial update ahead of the planned development to
+      enable multiple static ensembles. The main change involves eliminating the
+      separate codebase for the EnOI mode. Both EnKF and EnOI modes are now just
+      particular cases of the Hybrid mode.
 v2.47.15
    PS 25102026
    -- Removed MPI_Barrier() when it immediately followed MPI_Win_fence().

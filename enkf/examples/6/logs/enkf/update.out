@@ -1,15 +1,15 @@
   MPI: initialised 4 process(es)
-  running UPDATE for EnKF-C version 2.43.0:
+  running UPDATE for EnKF-C version 2.48.0:
     command = "./enkf_update --calculate-spread --write-inflation --output-increment enkf.prm"
-    dir = "/home/599/pxs599/src/enkf-c.fieldsplit/enkf/examples/6"
-  2025-12-24 08:39:47
+    dir = "/home/599/pxs599/src/enkf-c/enkf/examples/6"
+  2026-10-30 18:43:04
   reading system specs from "enkf.prm":
     MODE = EnKF
     SCHEME = DEnKF
     MODEL PRM = "model.prm"
     GRID PRM = "grid.prm"
     ENSEMBLE DIR = "ensemble_6565"
-    ENSEMBLE SIZE = 96
+    ENSEMBLE SIZE = <FULL>
     INFLATION BASE = 1.1000
     INFLATION MODE = CAPPED, MAX RATIO = 1.00
     STRIDE = 3
@@ -111,7 +111,7 @@
         grid = "c-grid"
         inflation = 1.100 1.00
   setting the ensemble size:
-    96 members
+    96 dynamic members
   initialising pointlogs:
     pointlog (156.000, -32.000):
       t-grid: (i, j) = (49.500, 49.500)
@@ -119,7 +119,7 @@
       c-grid: (i, j) = (49.000, 49.000)
   defining state variables in point logs:
   writing forecast variables to point logs:
-    2025-12-24 08:39:47
+    2026-10-30 18:43:05
     distributing 96 iterations:
       4 processes get 24 iterations each
     eta_t:........................
@@ -128,48 +128,48 @@
     u:................................................
     v:................................................
   allocating disk space for spread:
-    2025-12-24 08:39:47
+    2026-10-30 18:43:05
   updating ensemble:
-    2025-12-24 08:39:47
+    2026-10-30 18:43:05
     allocating disk space for inflation:
-      2025-12-24 08:39:47
+      2026-10-30 18:43:05
     allocating disk space for analysis:
-      2025-12-24 08:39:47
+      2026-10-30 18:43:05
       distributing 96 iterations:
         4 processes get 24 iterations each
       ........................................................................................................................
     updating 9 fields using 4 processes:
-      2025-12-24 08:39:48
-      temp   1   (3: 2: 33.3%)
-      temp   0   (2: 1: 22.2%)
+      2026-10-30 18:43:05
       eta_t  0   (1: 0: 11.1%)
+      temp   0   (2: 1: 22.2%)
+      temp   1   (3: 2: 33.3%)
       salt   0   (2: 3: 44.4%)
-      salt   1   (1: 4: 55.6%)
-      u      1   (3: 6: 77.8%)
-      u      0   (3: 5: 66.7%)
+      salt   1   (3: 4: 55.6%)
+      u      0   (1: 5: 66.7%)
+      u      1   (1: 6: 77.8%)
+      v      1   (3: 8: 100.0%)
       v      0   (2: 7: 88.9%)
-      v      1   (1: 8: 100.0%)
   assembling members:
-    2025-12-24 08:39:50
+    2026-10-30 18:43:08
     distributing 480 iterations:
       4 processes get 120 iterations each
     ........................................................................................................................
   assembling spread:
-    2025-12-24 08:39:53
+    2026-10-30 18:43:11
     eta_t:.
     temp:..
     salt:..
     u:..
     v:..
   assembling inflation:
-    2025-12-24 08:39:53
+    2026-10-30 18:43:11
     eta_t:.
     temp:..
     salt:..
     u:..
     v:..
   writing analysed variables to point logs:
-  2025-12-24 08:39:53
+  2026-10-30 18:43:11
     distributing 96 iterations:
       4 processes get 24 iterations each
     eta_t:........................
@@ -177,5 +177,5 @@
     salt:................................................
     u:................................................
     v:................................................
-  2025-12-24 08:39:54
+  2026-10-30 18:43:13
   finished

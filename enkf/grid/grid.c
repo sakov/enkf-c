@@ -734,7 +734,11 @@ float grid_interpolate2d(grid* g, double* fij, void* v)
 
         grid_getsize(g, &ni, &nj, NULL);
         return interpolate2d_structured(fij, ni, nj, v, g->numlevels, g->hgrid->periodic_i);
-    } else if (g->hgrid->type == GRIDHTYPE_UNSTRUCTURED)
+    } else if (g->hgrid->type == GRIDHTYPE_UNSTRUCTURED || g->hgrid->type == GRIDHTYPE_1D)
+        /*
+         * it is assumed here that GRIDHTYPE_1D is used in UPDATE for handling unstructured
+         * grids to avoid creating the mapping machinery
+         */
         return interpolate2d_unstructured(fij, v, g->numlevels);
     else
         enkf_quit("programming error");

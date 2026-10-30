@@ -181,7 +181,7 @@ void H_surf_standard(dasystem* das, int nobs, int obsids[], char fname[], int r,
 
 /**
  */
-void H_surf_biased(dasystem* das, int nobs, int obsids[], char fname[], int r, int mem, int t, float dst[])
+void H_surf_biased(dasystem* das, int nobs, int obsids[], char fname[], int r, int memid, int t, float dst[])
 {
     model* m = das->m;
     observations* allobs = das->obs;
@@ -191,7 +191,7 @@ void H_surf_biased(dasystem* das, int nobs, int obsids[], char fname[], int r, i
     grid* g = model_getvargrid(m, mvid);
     int isstructured = grid_isstructured(g);
     int ksurf = grid_getsurflayerid(g);
-    int masklog = das_isstatic(das, mem);
+    int masklog = das_isstatic(das, memid);
     int ni, nj, nv;
     void* src = NULL;
     float* src0 = NULL;
@@ -233,13 +233,10 @@ void H_surf_biased(dasystem* das, int nobs, int obsids[], char fname[], int r, i
             src0[i] -= offset0[i];
     }
 
-    if (das->mode != MODE_HYBRID || mem <= das->nmem_dynamic) {
+    if (memid <= das->nmem_dynamic) {
         bias = malloc(nv * sizeof(float));
-        if (das->mode == MODE_ENKF || das->mode == MODE_HYBRID)
-            das_getmemberfname(das, ot->varnames[1], mem, fname2);
-        else if (das->mode == MODE_ENOI)
-            das_getbgfname(das, ot->varnames[1], fname2);
-        model_readfield(m, fname2, ot->varnames[1], -1, ksurf, bias, das->mode == MODE_ENOI ? 1 : 0);
+        das_getmemberfname(das, ot->varnames[1], memid, fname2);
+        model_readfield(m, fname2, ot->varnames[1], -1, ksurf, bias, (das->nmem_dynamic == 1) ? 1 : 0);
 
         for (i = 0; i < nv; ++i)
             src0[i] -= bias[i];
@@ -253,14 +250,14 @@ void H_surf_biased(dasystem* das, int nobs, int obsids[], char fname[], int r, i
 
 /**
  */
-void H_subsurf_standard(dasystem* das, int nobs, int obsids[], char fname[], int r, int mem, int t, float dst[])
+void H_subsurf_standard(dasystem* das, int nobs, int obsids[], char fname[], int r, int memid, int t, float dst[])
 {
     model* m = das->m;
     observations* allobs = das->obs;
     int otid = allobs->data[obsids[0]].type;
     obstype* ot = &allobs->obstypes[otid];
     int mvid = model_getvarid(m, ot->varnames[0], 1);
-    int masklog = das_isstatic(das, mem);
+    int masklog = das_isstatic(das, memid);
     int ni, nj, nk;
     void* src;
     float* src0;
@@ -364,14 +361,14 @@ static int cmp_obs_byfk(const void* p1, const void* p2, void* p)
  ** field. Instead, it proceeds by keeping in memory two layers at a time and
  ** interpolating observations in between these layers.
  */
-void H_subsurf_lowmem(dasystem* das, int nobs, int obsids[], char fname[], int r, int mem, int t, float dst[])
+void H_subsurf_lowmem(dasystem* das, int nobs, int obsids[], char fname[], int r, int memid, int t, float dst[])
 {
     model* m = das->m;
     observations* allobs = das->obs;
     int otid = allobs->data[obsids[0]].type;
     obstype* ot = &allobs->obstypes[otid];
     int mvid = model_getvarid(m, ot->varnames[0], 1);
-    int masklog = das_isstatic(das, mem);
+    int masklog = das_isstatic(das, memid);
     void* src1 = NULL;
     void* src2 = NULL;
     void* src = NULL;
@@ -384,7 +381,7 @@ void H_subsurf_lowmem(dasystem* das, int nobs, int obsids[], char fname[], int r
     model_getvargridsize(m, mvid, &ni, &nj, &nk);
 
     if (nk == 1) {
-        H_subsurf_standard(das, nobs, obsids, fname, r, mem, t, dst);
+        H_subsurf_standard(das, nobs, obsids, fname, r, memid, t, dst);
         return;
     }
 
@@ -494,7 +491,7 @@ static double mldtaper(double mld, double z)
 
 /** Projects surface bias into subsurface based on the mixed layer depth.
  */
-void H_subsurf_wsurfbias(dasystem* das, int nobs, int obsids[], char fname[], int r, int mem, int t, float dst[])
+void H_subsurf_wsurfbias(dasystem* das, int nobs, int obsids[], char fname[], int r, int memid, int t, float dst[])
 {
     model* m = das->m;
     observations* allobs = das->obs;
@@ -502,7 +499,7 @@ void H_subsurf_wsurfbias(dasystem* das, int nobs, int obsids[], char fname[], in
     obstype* ot = &allobs->obstypes[otid];
     int mvid = model_getvarid(m, ot->varnames[0], 1);
     grid* g = model_getvargrid(m, mvid);
-    int masklog = das_isstatic(das, mem);
+    int masklog = das_isstatic(das, memid);
 
     float*** src = NULL;
     int ni, nj, nk;
@@ -567,14 +564,11 @@ void H_subsurf_wsurfbias(dasystem* das, int nobs, int obsids[], char fname[], in
     /*
      * now correct for surface bias
      */
-    if (das->mode != MODE_HYBRID || mem <= das->nmem_dynamic) {
+    if (memid <= das->nmem_dynamic) {
         bias = alloc2d(nj, ni, sizeof(float));
-        if (das->mode == MODE_ENKF || das->mode == MODE_HYBRID)
-            das_getmemberfname(das, ot->varnames[1], mem, fname2);
-        else if (das->mode == MODE_ENOI)
-            das_getbgfname(das, ot->varnames[1], fname2);
+        das_getmemberfname(das, ot->varnames[1], memid, fname2);
         assert(ncu_getnD(fname2, ot->varnames[1]) == 2);
-        model_readfield(m, fname2, ot->varnames[1], -1, 0, bias[0], das->mode == MODE_ENOI ? 1 : 0);
+        model_readfield(m, fname2, ot->varnames[1], -1, 0, bias[0], memid > das->nmem_dynamic ? 1 : 0);
 
         if (isnan(ot->mld_threshold) && ot->mld_varname == NULL)
             enkf_quit("\"MLD_THRESH\" or \"MLD_VARNAME\" must be specified for observation type \"%s\" to use H function \"wsurfbias\"", ot->name);
@@ -586,25 +580,27 @@ void H_subsurf_wsurfbias(dasystem* das, int nobs, int obsids[], char fname[], in
 
             if (model_getvarid(m, ot->mld_varname, 0) < 0)
                 enkf_quit("\"MLD_VARNAME = %s\" for observation type \"%s\" does not exist among model variables", ot->mld_varname, ot->name);
-            if (das->mode == MODE_ENKF || das->mode == MODE_HYBRID)
-                das_getmemberfname(das, ot->mld_varname, mem, fname_mld);
-            else if (das->mode == MODE_ENOI)
-                das_getbgfname(das, ot->mld_varname, fname_mld);
-            model_readfield(m, fname_mld, ot->mld_varname, -1, 0, mld[0], das->mode == MODE_ENOI ? 1 : 0);
+            das_getmemberfname(das, ot->mld_varname, memid, fname_mld);
+            model_readfield(m, fname_mld, ot->mld_varname, -1, 0, mld[0], memid > das->nmem_dynamic ? 1 : 0);
         } else {
-            if (das->mode == MODE_ENKF || das->mode == MODE_HYBRID)
+            if (das->nmem_static == 0)
                 das_calcmld(das, ot, src, mld);
-            else if (das->mode == MODE_ENOI) {
+            else {
                 char tag[MAXSTRLEN];
 
+                /*
+                 * This approach assumes that the first member is processed
+                 * before static members. I put a stopper for now.
+                 */
+                enkf_quit("application of surface bias based on MLD is implemented MODE = ENKF only");
                 snprintf(tag, MAXSTRLEN, "%s:MLD", ot->name);
-                if (mem <= 0) { /* background */
+                if (memid <= das->nmem_dynamic) {
                     das_calcmld(das, ot, src, mld);
-                    model_addorreplacedata(m, tag, mvid, ALLOCTYPE_2D, mld);
-                } else          /* members */
+                    if (memid == 1)
+                        model_addorreplacedata(m, tag, mvid, ALLOCTYPE_2D, mld);
+                } else          /* static members */
                     mld = model_getdata(m, tag);
-            } else
-                enkf_quit("programming error");
+            }
         }
 
         {
@@ -640,7 +636,7 @@ void H_subsurf_wsurfbias(dasystem* das, int nobs, int obsids[], char fname[], in
 
 /** Sum up the estimates over layers.
  */
-void H_vertsum(dasystem* das, int nobs, int obsids[], char fname[], int r, int mem, int t, float dst[])
+void H_vertsum(dasystem* das, int nobs, int obsids[], char fname[], int r, int memid, int t, float dst[])
 {
     model* m = das->m;
     observations* allobs = das->obs;
@@ -717,7 +713,7 @@ void H_vertsum(dasystem* das, int nobs, int obsids[], char fname[], int r, int m
 
 /** Calculate weighted average of estimates over layers.
  */
-void H_vertwavg(dasystem* das, int nobs, int obsids[], char fname[], int r, int mem, int t, float dst[])
+void H_vertwavg(dasystem* das, int nobs, int obsids[], char fname[], int r, int memid, int t, float dst[])
 {
     model* m = das->m;
     observations* allobs = das->obs;

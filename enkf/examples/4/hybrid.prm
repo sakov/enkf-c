@@ -1,0 +1,27 @@
+MODE = Hybrid
+SCHEME = DEnKF
+
+MODEL = model.prm
+GRID = grid.prm
+OBSTYPES = obstypes.prm
+
+OBS = obs.prm
+DATE = 6565.5 days since 1990-01-01
+
+ENSDIR_DYNAMIC = ensemble_6565
+ENSDIR_STATIC = ensemble_static
+GAMMA = 0.25
+
+INFLATION = 1.1
+RFACTOR = 2
+KFACTOR = 999
+LOCRAD = 200
+
+STRIDE = 3
+FIELDBUFFERSIZE = 4
+
+REGION Global   0   360   -90     90
+
+POINTLOG 156 -32
+
+EXITACTION = SEGFAULT

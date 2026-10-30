@@ -1,0 +1,336 @@
+  MPI: initialised 4 process(es)
+  Using MPI-3 shared memory:
+    sm_comm size = 4
+    node_comm size = 1
+  running CALC for EnKF-C version 2.48.0:
+    command = "./enkf_calc hybrid.prm"
+    dir = "/home/599/pxs599/src/enkf-c/enkf/examples/4"
+  2026-10-30 18:46:12
+  reading system specs from "hybrid.prm":
+    TIME = "6565.5 days since 1990-01-01"
+    MODE = Hybrid
+    SCHEME = DEnKF
+    MODEL PRM = "model.prm"
+    GRID PRM = "grid.prm"
+    OBS TYPES PRM = "obstypes.prm"
+    OBS PRM = "obs.prm"
+    DYNAMIC ENSEMBLE DIR = "ensemble_6565"
+    DYNAMIC ENSEMBLE SIZE = <FULL>
+    STATIC ENSEMBLE DIR = "ensemble_static"
+    STATIC ENSEMBLE SIZE = <FULL>
+    COMBINED ENSEMBLE SIZE = <FULL>
+    GAMMA = 0.250
+    RFACTOR BASE = 2.0
+    KFACTOR = 999.0
+    LOCRAD  = 200
+    LOCWEIGHT =  1
+    STRIDE = 3
+    REGION Global: x = [0.0, 360.0], y = [-90.0, 90.0]
+    POINTLOG 156.000 -32.000 
+    NCFORMAT = NETCDF4
+    NCCOMPRESSION = 0
+    EnKF flags:
+      enkf_exitaction  = [SEGFAULT]
+      enkf_obstype     = [VALUE]
+    enkf_calc compile flags:
+      SHUFFLE_ROWS     = [-]
+      USE_SHMEM        = [+]
+      MINIMISE_ALLOC   = [+]
+      OBS_SHUFFLE      = [-]
+      TW_VIAFILE       = [+]
+      USE_MPIQUEUE     = [+]
+      INTERNAL_QSORT_R = [-]
+      DEFLATE_ALL      = [-]
+  initialising the system:
+  reading observation type specs from "obstypes.prm":
+    NAME = SLA
+    ISSURFACE = 1
+      VAR = eta_t
+      ID = 0
+      OFFSET = conf/eta_mean-bran.nc eta_t
+      HFUNCTION = standard
+      ALLOWED MIN = -1
+      ALLOWED MAX = 1
+      ASYNCHRONOUS = no
+      LOCRAD  = 200
+      LOCWEIGHT =  1
+      RFACTOR = 2
+      PERMIT_LOCATION_BASED_THINNING = YES
+    NAME = SST
+    ISSURFACE = 1
+      VAR = temp
+      ID = 1
+      HFUNCTION = standard
+      ALLOWED MIN = -2
+      ALLOWED MAX = 42
+      ASYNCHRONOUS = no
+      LOCRAD  = 200
+      LOCWEIGHT =  1
+      RFACTOR = 32
+      PERMIT_LOCATION_BASED_THINNING = NO
+    NAME = TEM
+    ISSURFACE = 0
+      VAR = temp
+      ID = 2
+      HFUNCTION = standard
+      ALLOWED MIN = -2
+      ALLOWED MAX = 42
+      ASYNCHRONOUS = no
+      LOCRAD  = 800
+      LOCWEIGHT =  1
+      RFACTOR = 8
+      PERMIT_LOCATION_BASED_THINNING = YES
+    NAME = SAL
+    ISSURFACE = 0
+      VAR = salt
+      ID = 3
+      HFUNCTION = standard
+      ALLOWED MIN = 28
+      ALLOWED MAX = 39
+      ASYNCHRONOUS = no
+      LOCRAD  = 800
+      LOCWEIGHT =  1
+      RFACTOR = 8
+      PERMIT_LOCATION_BASED_THINNING = YES
+    grid prm info:
+      NAME = "t-grid"
+      DOMAIN = ALL
+      DATA = "conf4/grid_spec.nc"
+      VTYPE = "z"
+      VDIR = FROMSURF
+      GEOGRAPHIC = 1
+      ZVARNAME = "zt"
+      ZCVARNAME = <none>
+      DEPTHVARNAME = "depth_t"
+      NUMLEVELSVARNAME = "num_levels"
+      VDIR = "FROMSURF"
+      XVARNAME = "lont"
+      YVARNAME = "latt"
+      ZSTATINTS = [0 50] [50 500] [500 9999] 
+    grid info:
+      size = 100 x 100 x 2
+      h type = RECTANGULAR
+      periodic by X = no
+      longitude range = [0.000, 360.000]
+      v type = Z
+      v dir = FROMSURF
+      STRIDE = 0
+    grid prm info:
+      NAME = "c-grid"
+      DOMAIN = ALL
+      DATA = "conf4/grid_spec.nc"
+      VTYPE = "z"
+      VDIR = FROMSURF
+      GEOGRAPHIC = 1
+      ZVARNAME = "zt"
+      ZCVARNAME = <none>
+      NUMLEVELSVARNAME = "num_levels"
+      VDIR = "FROMSURF"
+      XVARNAME = "lonc"
+      YVARNAME = "latc"
+      ZSTATINTS = [0 50] [50 500] [500 9999] 
+    grid info:
+      size = 100 x 100 x 2
+      h type = RECTANGULAR
+      periodic by X = no
+      longitude range = [0.000, 360.000]
+      v type = Z
+      v dir = FROMSURF
+      STRIDE = 0
+  model info:
+    name = Tasman
+    5 variables:
+      eta_t:
+        grid = "t-grid"
+      temp:
+        grid = "t-grid"
+      salt:
+        grid = "t-grid"
+      u:
+        grid = "c-grid"
+      v:
+        grid = "c-grid"
+  setting the ensemble size:
+    96 dynamic members
+    144 static members
+  initialising pointlogs:
+    pointlog (156.000, -32.000):
+      t-grid: (i, j) = (49.500, 49.500)
+      c-grid: (i, j) = (49.000, 49.000)
+  reading observations from "observations.nc":
+    10216 observations
+    allocating 980736 bytes for array of observations (in SHMEM)
+    creating kd-trees for observations (in SHMEM):
+      kdtree "SLA":
+        652 nodes
+        41776 bytes
+      kdtree "SST":
+        9554 nodes
+        611504 bytes
+      kdtree "TEM":
+        5 nodes
+        368 bytes
+      kdtree "SAL":
+        5 nodes
+        368 bytes
+  calculating ensemble observations:
+  2026-10-30 18:46:12
+    allocating 9807360 bytes for HE array (in SHMEM):
+    allocating 9807360 bytes for HE^T array (in SHMEM):
+    distributing 240 iterations:
+      4 processes get 60 iterations each
+    SLA ............................................................
+    SST ............................................................
+    TEM ............................................................
+    SAL ............................................................
+  gathering:
+  2026-10-30 18:46:13
+  scaling:
+  2026-10-30 18:46:13
+  calculating innovations and spread:
+  2026-10-30 18:46:13
+  writing forecast innovations and spread to "observations.nc":
+  2026-10-30 18:46:13
+  identifying observation batches:
+    SLA     9   
+    SST     27  
+    TEM     4   
+    SAL     4   
+    total:  44  
+  moderating observations:
+    observations substantially modified:
+      SLA          0 (0.0%)
+      SST          0 (0.0%)
+      TEM          0 (0.0%)
+      SAL          0 (0.0%)
+      total        0 (0.0%)
+  writing modified obs errors to "observations.nc":
+  calculating transforms:
+  2026-10-30 18:46:13
+    calculating transforms for t-grid:
+      main cycle for t-grid (34 x 34 local analyses):
+        j = 0 (1: 0: 0.0%)
+        j = 3 (2: 1: 2.9%)
+        j = 6 (3: 2: 5.9%)
+        j = 9 (1: 3: 8.8%)
+        j = 12 (2: 4: 11.8%)
+        j = 15 (3: 5: 14.7%)
+        j = 18 (1: 6: 17.6%)
+        j = 21 (2: 7: 20.6%)
+        j = 24 (3: 8: 23.5%)
+        j = 27 (1: 9: 26.5%)
+        j = 30 (2: 10: 29.4%)
+        j = 33 (3: 11: 32.4%)
+        j = 36 (1: 12: 35.3%)
+        j = 39 (2: 13: 38.2%)
+        j = 42 (3: 14: 41.2%)
+        j = 45 (2: 15: 44.1%)
+        j = 48 (1: 16: 47.1%)
+        j = 51 (3: 17: 50.0%)
+        j = 54 (2: 18: 52.9%)
+        j = 57 (1: 19: 55.9%)
+        j = 60 (3: 20: 58.8%)
+        j = 63 (2: 21: 61.8%)
+        j = 66 (1: 22: 64.7%)
+        j = 69 (3: 23: 67.6%)
+        j = 72 (1: 24: 70.6%)
+        j = 75 (2: 25: 73.5%)
+        j = 78 (3: 26: 76.5%)
+        j = 81 (2: 27: 79.4%)
+        j = 84 (1: 28: 82.4%)
+        j = 87 (3: 29: 85.3%)
+        j = 90 (2: 30: 88.2%)
+        j = 93 (3: 31: 91.2%)
+        j = 96 (1: 32: 94.1%)
+        j = 99 (1: 33: 97.1%)
+      creating empty file "transforms-0.nc":
+      assembling "transforms-0.nc":...
+      assembling "enkf_diag-0.nc":...
+    finished calculating transforms for t-grid
+    summary stats on t-grid:
+      # of local analyses = 1156
+      average # of local obs = 1045.8
+      # of inversions in obs space = 80
+      # of inversions in ens space = 1076
+    calculating transforms for c-grid:
+      main cycle for c-grid (34 x 34 local analyses):
+        j = 3 (2: 1: 2.9%)
+        j = 6 (3: 2: 5.9%)
+        j = 0 (1: 0: 0.0%)
+        j = 9 (1: 3: 8.8%)
+        j = 12 (2: 4: 11.8%)
+        j = 15 (3: 5: 14.7%)
+        j = 18 (1: 6: 17.6%)
+        j = 21 (2: 7: 20.6%)
+        j = 24 (3: 8: 23.5%)
+        j = 27 (1: 9: 26.5%)
+        j = 30 (2: 10: 29.4%)
+        j = 33 (3: 11: 32.4%)
+        j = 36 (2: 12: 35.3%)
+        j = 39 (1: 13: 38.2%)
+        j = 42 (3: 14: 41.2%)
+        j = 45 (2: 15: 44.1%)
+        j = 48 (1: 16: 47.1%)
+        j = 51 (3: 17: 50.0%)
+        j = 54 (2: 18: 52.9%)
+        j = 57 (1: 19: 55.9%)
+        j = 60 (3: 20: 58.8%)
+        j = 63 (2: 21: 61.8%)
+        j = 66 (1: 22: 64.7%)
+        j = 69 (3: 23: 67.6%)
+        j = 72 (2: 24: 70.6%)
+        j = 75 (1: 25: 73.5%)
+        j = 78 (3: 26: 76.5%)
+        j = 81 (2: 27: 79.4%)
+        j = 84 (1: 28: 82.4%)
+        j = 87 (3: 29: 85.3%)
+        j = 90 (3: 30: 88.2%)
+        j = 93 (2: 31: 91.2%)
+        j = 96 (1: 32: 94.1%)
+        j = 99 (2: 33: 97.1%)
+      creating empty file "transforms-1.nc":
+      assembling "transforms-1.nc":...
+      assembling "enkf_diag-1.nc":...
+    finished calculating transforms for c-grid
+    summary stats on c-grid:
+      # of local analyses = 1156
+      average # of local obs = 1048.9
+      # of inversions in obs space = 78
+      # of inversions in ens space = 1078
+  writing point logs:
+    calculating transforms for log point (156.000,-32.000): 1440 obs
+    writing transforms for point (156.000,-32.000) on grid "t-grid":
+    writing transforms for point (156.000,-32.000) on grid "c-grid":
+  calculating analysed observations:
+  2026-10-30 18:46:39
+    sorting obs by ij:
+    2026-10-30 18:46:39
+    updating HE:
+    distributing 10216 iterations:
+      4 processes get 2554 iterations each
+    2026-10-30 18:46:39
+  adding analysis innovations and spread to "observations.nc":
+  printing observation statistics:
+    region obs.type   # obs.  |for.inn.| |an.inn.|   for.inn.   an.inn.  for.spread  an.spread
+    ------------------------------------------------------------------------------------------
+    Global
+           SLA           652   0.0769     0.0261     0.0218  -0.000562     0.0413      0.027  
+             j1          272   0.0731     0.0228     0.0228   1.69e-05     0.0463     0.0298  
+             n1          380   0.0797     0.0285     0.0211  -0.000976     0.0377      0.025  
+           SST          9554    0.456      0.188     -0.148    -0.0333      0.419      0.302  
+             ESACCI     8386    0.457      0.161     -0.128    -0.0143      0.421      0.303  
+             WindSat    1168    0.451       0.38      -0.29     -0.169      0.411      0.297  
+           TEM             5     1.03      0.825      0.427      0.658      0.385      0.265  
+             WMO851        3    0.817       0.34      0.817       0.34      0.328      0.245  
+             WMO846        2     1.36       1.55     -0.158       1.14       0.47      0.294  
+             0-50m         1      1.2       2.69        1.2       2.69      0.464       0.29  
+             50-500m       4    0.991      0.359      0.234      0.151      0.365      0.258  
+             500-9999m     0     -nan       -nan       -nan       -nan       -nan       -nan  
+           SAL             5    0.101     0.0952      0.075     0.0639     0.0334     0.0242  
+             WMO851        3    0.113     0.0755     0.0713     0.0233      0.035      0.026  
+             WMO846        2   0.0841      0.125     0.0806      0.125     0.0312     0.0217  
+             0-50m         1    0.165      0.181      0.165      0.181     0.0247     0.0177  
+             50-500m       4   0.0853     0.0737     0.0526     0.0345     0.0356     0.0259  
+             500-9999m     0     -nan       -nan       -nan       -nan       -nan       -nan  
+  2026-10-30 18:46:39
+  finished

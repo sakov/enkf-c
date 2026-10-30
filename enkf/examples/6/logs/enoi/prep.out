@@ -1,16 +1,13 @@
-  running PREP for EnKF-C version 2.43.0:
+  running PREP for EnKF-C version 2.48.0:
     command = "./enkf_prep enoi.prm"
-    dir = "/home/599/pxs599/src/enkf-c.fieldsplit/enkf/examples/6"
-  2025-12-24 08:40:05
+    dir = "/home/599/pxs599/src/enkf-c/enkf/examples/6"
+  2026-10-30 18:43:28
   reading prep specs from "enoi.prm":
     TIME = "6565.5 days since 1990-01-01"
     MODEL PRM = "model.prm"
     GRID PRM = "grid.prm"
     OBS TYPES PRM = "obstypes.prm"
     OBS PRM = "obs.prm"
-    BGDIR = "background_6565"
-    ENSEMBLE DIR = "ensemble_static"
-    ENSEMBLE SIZE = 144
     NCFORMAT = NETCDF4
     NCCOMPRESSION = 0
     EnKF flags:
@@ -732,17 +729,17 @@
         min day = -3.733
         max day = -1.742
       setting error_std to 0.075
-  2025-12-24 08:40:06
+  2026-10-30 18:43:29
   compacting obs:
-  2025-12-24 08:40:06
+  2026-10-30 18:43:29
   sorting:
-  2025-12-24 08:40:06
+  2026-10-30 18:43:29
   superobing:
     10216 superobservations
-  2025-12-24 08:40:06
+  2026-10-30 18:43:29
   checking for superobs on land:
     all good
-  2025-12-24 08:40:06
+  2026-10-30 18:43:29
   writing superobservations to "observations.nc":
   printing observation summary:
     type    #used    #dropped #out_grd #out_obs #out_wnd #land    #shallow #badbatch#badvalue#thinned #excluded#superobs
@@ -752,5 +749,5 @@
     TEM     143      95       95       0        0        0        0        0        0        0        0        5       
     SAL     143      95       95       0        0        0        0        0        0        0        0        5       
     total   157924   191      190      0        0        0        1        0        0        0        0        10216   
-  2025-12-24 08:40:06
+  2026-10-30 18:43:29
   finished

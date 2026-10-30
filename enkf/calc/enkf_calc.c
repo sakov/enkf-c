@@ -206,6 +206,8 @@ static void parse_commandline(int argc, char* argv[], char** fname_prm, char** f
         enkf_quit("command line: \"--point-logs-only\" is not compatible with \"--forecast-stats-only\"");
     if (plogs_only != 0 && singleob != NULL)
         enkf_quit("command line: \"--point-logs-only\" is not compatible with \"--single-observation\"");
+    if (*fname_obs == NULL)
+        *fname_obs = strdup(FNAME_SOBS);
 
     if (*fname_prm == NULL)
         enkf_quit("command line: parameter file not specified");
@@ -213,20 +215,20 @@ static void parse_commandline(int argc, char* argv[], char** fname_prm, char** f
 
 /**
  */
-static observations* obs_create_fromsingleob(enkfprm* prm, dasystem* das)
+static observations* obs_create_fromsingleob(enkfprm* prm)
 {
-    model* m = das->m;
-    observations* obs = das->obs;
+    model* m = model_create(prm);
+    observations* obs = obs_create_fromprm(prm);
     observation* o = singleob;
     void* g = NULL;
 
     enkf_printf("  reading observation type specs from \"%s\":\n", prm->obstypeprm);
 
-    assert(st_getsize(obs->products) == 0);
-    obs->products = st_create("products");
     st_add_ifabsent(obs->products, "Synthetic", -1);
-    obs->instruments = st_create("instruments");
     st_add_ifabsent(obs->instruments, "Virtual", -1);
+
+    obstypes_set(obs->nobstypes, obs->obstypes, m);
+    obs->allobs = 0;
 
     o->type = obstype_getid(obs->nobstypes, obs->obstypes, singleobtype, 1);
     g = model_getgridbyid(m, obs->obstypes[o->type].gridid);
@@ -287,22 +289,22 @@ int main(int argc, char* argv[])
     prm = enkfprm_read(fname_prm);
     enkfprm_print(prm, "    ");
 
+    if (singleob != NULL) {
+        observations* obs = obs_create_fromsingleob(prm);
+
+        enkf_obstype = OBSTYPE_INNOVATION;
+        obs_write(obs, FNAME_SOBS);
+        obs_destroy(obs);
+    }
+
     enkf_printf("  initialising the system:\n");
     das = das_create(prm);
 
     if (print_mem)
         print_memory_usage();
 
-    if (singleob == NULL) {
-        if (fname_obs == NULL)
-            fname_obs = strdup(FNAME_SOBS);
-
-        enkf_printf("  reading observations from \"%s\":\n", fname_obs);
-        obs_read(das->obs, fname_obs);
-    } else {
-        das->obs = obs_create_fromsingleob(prm, das);
-        enkf_obstype = OBSTYPE_INNOVATION;
-    }
+    enkf_printf("  reading observations from \"%s\":\n", fname_obs);
+    obs_read(das->obs, fname_obs);
     enkfprm_destroy(prm);
 
     if (print_mem)
@@ -339,11 +341,9 @@ int main(int argc, char* argv[])
     if (print_mem)
         print_memory_usage();
 
-    if (singleob == NULL) {
-        enkf_printf("  writing forecast innovations and spread to \"%s\":\n", fname_obs);
-        enkf_printtime("  ");
-        das_writeforecastobs(das, fname_obs);
-    }
+    enkf_printf("  writing forecast innovations and spread to \"%s\":\n", fname_obs);
+    enkf_printtime("  ");
+    das_writeforecastobs(das, fname_obs);
 
     /*
      * calculate stats for observation batches and write to FNAME_BATCHES
@@ -411,10 +411,8 @@ int main(int argc, char* argv[])
             enkf_printtime("  ");
             das_updateHE(das);
 
-            if (singleob == NULL) {
-                enkf_printf("  adding analysis innovations and spread to \"%s\":\n", fname_obs);
-                das_writeanalysisobs(das, fname_obs);
-            }
+            enkf_printf("  adding analysis innovations and spread to \"%s\":\n", fname_obs);
+            das_writeanalysisobs(das, fname_obs);
 
             enkf_printf("  printing observation statistics:\n");
             das_printobsstats(das, use_rmsd);

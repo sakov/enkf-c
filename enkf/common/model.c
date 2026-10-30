@@ -236,25 +236,20 @@ model* model_create(enkfprm* prm)
     /*
      * set inflations
      */
-    {
-        for (i = 0; i < m->nvar; ++i)
-            if (isnan(m->vars[i].inflation)) {
-                m->vars[i].inflation = prm->inflation;
-                m->vars[i].inf_ratio = prm->inf_ratio;
-            }
-        prm->inflation = NAN;
-        prm->inf_ratio = NAN;
+    for (i = 0; i < m->nvar; ++i) {
+        if (isnan(m->vars[i].inflation)) {
+            m->vars[i].inflation = prm->inflation;
+            m->vars[i].inf_ratio = prm->inf_ratio;
+        }
     }
     /*
      * check randomisation parameters
      */
-    {
-        for (i = 0; i < m->nvar; ++i) {
-            if (isnan(m->vars[i].deflation))
-                continue;
-            if (m->vars[i].deflation < 0.0 || m->vars[i].deflation > 1.0)
-                enkf_quit("deflation = %.3g for variable \"%s\" (should be between 0 and 1)", m->vars[i].deflation, m->vars[i].name);
-        }
+    for (i = 0; i < m->nvar; ++i) {
+        if (isnan(m->vars[i].deflation))
+            continue;
+        if (m->vars[i].deflation < 0.0 || m->vars[i].deflation > 1.0)
+            enkf_quit("deflation = %.3g for variable \"%s\" (should be between 0 and 1)", m->vars[i].deflation, m->vars[i].name);
     }
 
     model_checkvars(m, modelprm);

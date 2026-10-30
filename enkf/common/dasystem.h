@@ -50,9 +50,8 @@ typedef struct {
     int mode;
     int scheme;
     double alpha;               /* relaxation to prior spread coefficient */
-    char* ensdir;
-    char* ensdir2;              /* static ens. for mode = MODE_HYBRID */
-    char* bgdir;
+    char* ensdir_dynamic;
+    char* ensdir_static;
 
     int nmem;                   /* total size of the ensemble */
     int nmem_dynamic;           /* size of the dynamic ensemble */
@@ -163,8 +162,6 @@ void das_getfname_plog(dasystem* das, pointlog* plog, char fname[]);
 
 void das_getmemberfname(dasystem* das, char varname[], int mem, char fname[]);
 int das_getmemberfname_async(dasystem* das, obstype* ot, int mem, int t, char fname[], int* r);
-void das_getbgfname(dasystem* das, char varname[], char fname[]);
-void das_getbgfname_async(dasystem* das, obstype* ot, int t, char fname[], int* r);
 
 #if defined(ENKF_UPDATE) || defined(ENS_DIAG)
 void das_getfields(dasystem* das, int gridid, int* nfield, field** fields);

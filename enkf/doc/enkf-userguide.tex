@@ -39,7 +39,7 @@
 
 \begin{document}
 
-\title{EnKF-C user guide\\{\normalsize version 2.47.10}}
+\title{EnKF-C user guide\\{\normalsize version 2.48.0}}
 
 \author{Pavel Sakov}
 \date{June 19, 2014 -- \today}
@@ -728,9 +728,9 @@ CALC calculates ensemble transforms for updating the forecast ensemble of model 
 \end{itemize}
 Apart from this main mode of operation, CALC can also be used for calculating forecast innovations, or operate in the single observation experiment mode.
 
-UPDATE updates the ensemble (EnKF) or the background (EnOI) using the transforms calculated by CALC, along with a number of specified diagnostics, such as the ensemble spread and inflation.
+UPDATE updates the ensemble (EnKF or Hobrid) or the background (EnOI) using the transforms calculated by CALC, along with a number of specified diagnostics, such as the ensemble spread and inflation.
 
-The principle diagram of EnKF-C workflow in EnKF mode is shown in Fig.~\ref{fig:calcupdate}.
+The principle diagram of EnKF-C workflow in the EnKF mode is shown in Fig.~\ref{fig:calcupdate}.
 \begin{figure}
   \centering
   \includegraphics[width = 0.99\textwidth]{plots/enkfc.pdf}
@@ -743,9 +743,23 @@ The principle diagram of EnKF-C workflow in EnKF mode is shown in Fig.~\ref{fig:
 
 You may find it helpful to start getting familiar with the system by running the example in \verb|examples/1|.
 The example has been put up based on runs of the regional EnKF and EnOI reanalysis systems for Tasman Sea developed by Bureau of Meteorology. 
-It allows one to conduct a single assimilation for 23 December 2007 (day 6565 since 1 January 1990) with either EnKF or EnOI.
+It allows one to conduct a single assimilation for 23 December 2007 (day 6565 since 1 January 1990) in either EnKF, EnOI, or Hybrid mode.
 To reduce the size of the system, the model state has been stripped down to two vertical levels and $100 \times 100$ horizontal grid.
 Due to its size (almost 80\,MB) the data for this example is available for download separately from the EnKF-C code -- see \verb|examples/1/README| for details.
+
+\section{Modes of operation}
+
+EnKF-C features three main operation modes: EnKF, EnOI, and Hybrid.
+Originally, the system only included the EnKF and EnOI modes, with the EnOI mode handled by a separate codebase.
+Later the EnKF mode was extended into the Hybrid mode.
+Starting from version 2.48.0, the separate codebase for EnOI was eliminated; both EnKF and EnOI modes are now just particular cases of the Hybrid mode.
+
+The EnKF mode assumes that the size of the static ensemble is zero, and the EnOI mode assumes that the size of the dynamic ensemble is one.
+Note that while numerically a Hybrid system with a single dynamic member is equivalent to an EnOI system with the same static ensemble and background, their naming conventions differ:
+\begin{itemize}
+\item{EnOI System: The background directory is specified by \verb|BGDIR| entry in the main parameter file, and the model files must use the \verb|bg_| prefix.}
+\item{Hybrid System: The dynamic member durectory is specified by the \verb|ENSDIR_DYNAMIC| entry, and the model files must use the \verb|mem001_| prefix.}
+\end{itemize}
 
 \section{Parameter files}
 
@@ -777,33 +791,42 @@ Its format is described by running \verb|enkf_prep|, \verb|enkf_calc| or \verb|e
 
   Main parameter file format:
 
-    TIME            = {<# days since YYYY-MM-DD> | <value>}
+    TIME            = {<#> days since <YYYY-MM-DD> | <value>}
   [ WINDOWMIN       = <start of obs window in days from analysis> ] (-inf*)
   [ WINDOWMAX       = <end of obs window in days from analysis> ]   (+inf*)
     MODE            = { ENKF | ENOI | HYBRID }
-  [ SCHEME          = { DENKF* | ETKF } ]                    (MODE = ENKF or HYBRID)
-  [ ALPHA           = <alpha> ]                              (1*) (MODE = ENKF or HYBRID)
-    GAMMA           = <gamma>                                (MODE = HYBRID)
     MODEL           = <model prm file>
     GRID            = <grid prm file>
     OBSTYPES        = <obs. types prm file>
     OBS             = <obs. data prm file>
-    ENSDIR          = <ensemble directory>                   (except MODE = ENOI and
-                                                             --forecast-stats-only)
-  [ ENSDIR_STATIC   = <static ensemble directory> ]          (MODE = HYBRID)
-  [ ENSSIZE         = <total ensemble size> ]                (<full>*)
-  [ ENSSIZE_DYNAMIC = <size of dynamic ensemble> ]           (<full>*) (MODE = HYBRID)
-  [ ENSSIZE_STATIC  = <size of static ensemble> ]            (<full>*) (MODE = HYBRID)
-    BGDIR           = <background directory>                 (MODE = ENOI)
-  [ KFACTOR         = <kfactor> ]                            (NaN*)
-  [ RFACTOR         = <rfactor> ]                            (1*)
+  (for MODE = ENKF:)
+      { ENSDIR | ENSDIR_DYNAMIC }   = <ensemble directory>
+    [ { ENSSIZE | ENSSIZE_DYNAMIC } = <ensemble size> ]         (<full>*)
+    [ SCHEME                        = { DENKF* | ETKF } ]
+    [ ALPHA                         = <alpha> ]                 (1*)
+  (for MODE = ENOI:)
+      { ENSDIR | ENSDIR_STATIC }    = <ensemble directory>
+    [ { ENSSIZE | ENSSIZE_STATIC }  = <ensemble size> ]         (<full>*)
+      { BGDIR | ENSDIR_DYNAMIC }    = <background directory>
+    [ GAMMA                         = <gamma> ]                 (<1*>)
+  (for MODE = HYBRID:)
+      ENSDIR_DYNAMIC                = <dynamic ensemble directory>
+    [ ENSSIZE_DYNAMIC               = <dynamic ensemble size> ] (<full>*)
+      ENSDIR_STATIC                 = <static ensemble directory>
+    [ ENSSIZE_STATIC                = <static ensemble size> ]  (<full>*)
+      GAMMA                         = <gamma>
+    [ SCHEME                        = { DENKF* | ETKF } ]
+    [ ALPHA                         = <alpha> ]                 (1*)
+  [ KFACTOR         = <kfactor> ]                               (NaN*)
+  [ RFACTOR         = <rfactor> ]                               (1*)
     LOCRAD          = <loc. radius in km> ...
-    LOCWEIGHT       = <loc. weight> ...                      (# LOCRAD > 1)
+    LOCWEIGHT       = <loc. weight> ...                         (# LOCRAD > 1)
   [ NLOBSMAX        = <max. number of local obs. of each type> ]
-  [ STRIDE          = <stride for ensemble transforms> ]     (1*)
-  [ SOBSTRIDE       = <stride for superobing> ]              (1*)
-  [ FIELDBUFFERSIZE = <fieldbuffersize> ]                    (1*)
-  [ INFLATION       = <inflation> [ <VALUE>* | PLAIN ]       (1*)
+  [ STRIDE          = <stride for ensemble transforms> ]        (1*)
+  [ SOBSTRIDE       = <stride for superobing> ]                 (1*)
+  [ FIELDBUFFERSIZE = <field buffer size> ]                     (1*)
+  [ FIELDSPLIT      = <field split factor> ]                    (1*)
+  [ INFLATION       = <inflation> [ <VALUE>* | PLAIN ]          (1*)
   [ REGION          = <name> <lon1> <lon2> <lat1> <lat2>
     ...
   [ POINTLOG        <lon> <lat> [grid name]]
@@ -812,8 +835,8 @@ Its format is described by running \verb|enkf_prep|, \verb|enkf_calc| or \verb|e
   [ BADBATCHES      = <obstype> <max. bias> <max. mad> <min # obs.> ]
     ...
   [ ZSTATINTS       = [<z1> <z2>] ... ]
-  [ NCFORMAT        = { CLASSIC | 64BIT | NETCDF4 } ]        (NETCDF4*)
-  [ NCCOMPRESSION   = <compression level> ]                  (0*)
+  [ NCFORMAT        = { CLASSIC | 64BIT | NETCDF4 } ]           (NETCDF4*)
+  [ NCCOMPRESSION   = <compression level> ]                     (0*)
 
   Notes:
     1. { ... | ... | ... } denotes the list of possible choices
@@ -822,8 +845,7 @@ Its format is described by running \verb|enkf_prep|, \verb|enkf_calc| or \verb|e
     4. * denotes the default value
     5. < ... > denotes a description of an entry
     6. ... denotes repeating the previous item an arbitrary number of times
-    7. Depending on the context, some of the entries may be redundant
-    8. TIME entry is also a flag for geophysical/non-geophysical system,
+    7. TIME entry is also a flag for geophysical/non-geophysical system,
        depending on the presence of "days since"
 \end{Verbatim}
 The \verb|TIME| entry also serves as a switch between geophysical and non-geophysical systems.
@@ -1715,7 +1737,7 @@ and for the EnOI -- by applying the appropriate local linear combination of the 
 \end{align*}
 
 CALC can be used for calculating forecast observation statistics only (via command line option \verb|--forecast-stats-only|), without calculating transforms (EnKF) of update coefficients (EnOI).
-In the EnKF mode this regime involves calculating the statistics for the ensemble observation spread (and therefore parsing of the forecast ensemble), while in the EnOI mode it only calculates the statistics for the forecast innovation (and therefore does not need to access the ensemble).
+In the EnKF or Hybrid modes this regime involves calculating the statistics for the ensemble observation spread (and therefore parsing of the forecast ensemble), while in the EnOI mode it only calculates the statistics for the forecast innovation (and therefore does not need to access the ensemble).
 
 \subsection{Impact of observations}
 \label{sec:impact}
@@ -1980,7 +2002,7 @@ POINTLOG 94.3 134.1 t-grid
 \end{Verbatim}
 then only transforms and variables for this grid are saved.
 
-Following is an example of point log file header (file \verb|pointlog_156.000,-32.000.nc| from example~4 after running \verb|make enkf|):
+Following is an example of point log file header (file \verb|pointlog_156.000,-32.000.nc| from example~4 after running \verb|make hybrid|):
 \begin{Verbatim}[frame=single,fontsize=\footnotesize]
 netcdf pointlog_156.000\,-32.000 {
 dimensions:

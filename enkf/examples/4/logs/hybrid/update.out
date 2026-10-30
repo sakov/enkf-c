@@ -1,0 +1,168 @@
+  MPI: initialised 4 process(es)
+  running UPDATE for EnKF-C version 2.48.0:
+    command = "./enkf_update --calculate-spread --write-inflation hybrid.prm"
+    dir = "/home/599/pxs599/src/enkf-c/enkf/examples/4"
+  2026-10-30 18:46:41
+  reading system specs from "hybrid.prm":
+    MODE = Hybrid
+    SCHEME = DEnKF
+    MODEL PRM = "model.prm"
+    GRID PRM = "grid.prm"
+    DYNAMIC ENSEMBLE DIR = "ensemble_6565"
+    DYNAMIC ENSEMBLE SIZE = <FULL>
+    STATIC ENSEMBLE DIR = "ensemble_static"
+    STATIC ENSEMBLE SIZE = <FULL>
+    COMBINED ENSEMBLE SIZE = <FULL>
+    GAMMA = 0.250
+    INFLATION BASE = 1.1000
+    INFLATION MODE = CAPPED, MAX RATIO = 1.00
+    STRIDE = 3
+    FIELDBUFFERSIZE = 4
+    FIELDSPLIT = 1
+    POINTLOG 156.000 -32.000 
+    NCFORMAT = NETCDF4
+    NCCOMPRESSION = 0
+    EnKF flags:
+      enkf_exitaction  = [SEGFAULT]
+      enkf_obstype     = [VALUE]
+    enkf_update compile flags:
+      NCW_SKIPSINGLE   = [-]
+      USE_MPIQUEUE     = [+]
+      DEFLATE_ALL      = [-]
+  update specs:
+    do model fields   = [+]
+    do spread         = [+]
+    do pointlogs      = [+]
+  initialising the system:
+    grid prm info:
+      NAME = "t-grid"
+      DOMAIN = ALL
+      DATA = "conf4/grid_spec.nc"
+      VTYPE = "z"
+      VDIR = FROMSURF
+      GEOGRAPHIC = 1
+      ZVARNAME = "zt"
+      ZCVARNAME = <none>
+      DEPTHVARNAME = "depth_t"
+      NUMLEVELSVARNAME = "num_levels"
+      VDIR = "FROMSURF"
+      XVARNAME = "lont"
+      YVARNAME = "latt"
+      ZSTATINTS = [0 50] [50 500] [500 9999] 
+    grid info:
+      size = 100 x 100 x 2
+      h type = RECTANGULAR
+      periodic by X = no
+      longitude range = any
+      v type = Z
+      v dir = FROMSURF
+      STRIDE = 0
+    grid prm info:
+      NAME = "c-grid"
+      DOMAIN = ALL
+      DATA = "conf4/grid_spec.nc"
+      VTYPE = "z"
+      VDIR = FROMSURF
+      GEOGRAPHIC = 1
+      ZVARNAME = "zt"
+      ZCVARNAME = <none>
+      NUMLEVELSVARNAME = "num_levels"
+      VDIR = "FROMSURF"
+      XVARNAME = "lonc"
+      YVARNAME = "latc"
+      ZSTATINTS = [0 50] [50 500] [500 9999] 
+    grid info:
+      size = 100 x 100 x 2
+      h type = RECTANGULAR
+      periodic by X = no
+      longitude range = any
+      v type = Z
+      v dir = FROMSURF
+      STRIDE = 0
+  model info:
+    name = Tasman
+    5 variables:
+      eta_t:
+        grid = "t-grid"
+        inflation = 1.100 1.00
+      temp:
+        grid = "t-grid"
+        inflation = 1.100 1.00
+      salt:
+        grid = "t-grid"
+        inflation = 1.100 1.00
+      u:
+        grid = "c-grid"
+        inflation = 1.100 1.00
+      v:
+        grid = "c-grid"
+        inflation = 1.100 1.00
+  setting the ensemble size:
+    96 dynamic members
+    144 static members
+  initialising pointlogs:
+    pointlog (156.000, -32.000):
+      t-grid: (i, j) = (49.500, 49.500)
+      c-grid: (i, j) = (49.000, 49.000)
+  defining state variables in point logs:
+  writing forecast variables to point logs:
+    2026-10-30 18:46:41
+    distributing 240 iterations:
+      4 processes get 60 iterations each
+    eta_t:............................................................
+    temp:........................................................................................................................
+    salt:........................................................................................................................
+    u:........................................................................................................................
+    v:........................................................................................................................
+  allocating disk space for spread:
+    2026-10-30 18:46:42
+  updating ensemble:
+    2026-10-30 18:46:42
+    allocating disk space for inflation:
+      2026-10-30 18:46:42
+    allocating disk space for analysis:
+      2026-10-30 18:46:42
+      distributing 96 iterations:
+        4 processes get 24 iterations each
+      ........................................................................................................................
+    updating 9 fields using 4 processes:
+      2026-10-30 18:46:43
+      eta_t  0   (1: 0: 11.1%)
+      temp   0   (2: 1: 22.2%)
+      temp   1   (3: 2: 33.3%)
+      salt   0   (2: 3: 44.4%)
+      salt   1   (3: 4: 55.6%)
+      u      1   (1: 6: 77.8%)
+      u      0   (1: 5: 66.7%)
+      v      0   (2: 7: 88.9%)
+      v      1   (3: 8: 100.0%)
+  assembling members:
+    2026-10-30 18:46:47
+    distributing 480 iterations:
+      4 processes get 120 iterations each
+    ........................................................................................................................
+  assembling spread:
+    2026-10-30 18:46:50
+    eta_t:.
+    temp:..
+    salt:..
+    u:..
+    v:..
+  assembling inflation:
+    2026-10-30 18:46:50
+    eta_t:.
+    temp:..
+    salt:..
+    u:..
+    v:..
+  writing analysed variables to point logs:
+  2026-10-30 18:46:50
+    distributing 96 iterations:
+      4 processes get 24 iterations each
+    eta_t:........................
+    temp:................................................
+    salt:................................................
+    u:................................................
+    v:................................................
+  2026-10-30 18:46:51
+  finished

@@ -29,15 +29,12 @@ struct enkfprm {
     char* obstypeprm;
     char* obsprm;
 
+    char* ensdir_dynamic;
     /*
-     * Ensemble directory for mode = MODE_ENKF or mode = MODE_ENOI. Directory of
-     * the dynamic ensemble for mode = MODE_HYBRID.
+     * directory of the static ensemble for mode = MODE_ENOI or
+     * mode = MODE_HYBRID
      */
-    char* ensdir;
-    /*
-     * directory of the static ensemble for mode = MODE_HYBRID
-     */
-    char* ensdir2;
+    char* ensdir_static;
     /*
      * total ensemble size
      */
@@ -54,8 +51,9 @@ struct enkfprm {
      * mixing coefficient for hybrid covariance
      */
     double gamma;
-    char* bgdir;
-
+    /*
+     * adaptive QC
+     */
     double kfactor;
     /*
      * Unlike other parameters defined in the main parameter file and obstypes
@@ -63,6 +61,7 @@ struct enkfprm {
      * but a COMMON MULTIPLE for rfactors defined for each observation type.
      */
     double rfactor_base;
+
     double inflation;
     double inf_ratio;
     int nlocrad;

@@ -66,18 +66,17 @@ static void nc_createtransforms(dasystem* das, int gridid, size_t nj, size_t ni,
     ncw_create(fname, NC_CLOBBER | NC_NOFILL | das->ncformat, &ncid);
     ncw_def_dim(ncid, "j", nj, &dimids[0]);
     ncw_def_dim(ncid, "i", ni, &dimids[1]);
-    if (das->mode == MODE_ENKF || das->mode == MODE_HYBRID) {
-        ncw_def_dim(ncid, "m_dyn", das->nmem_dynamic, &dimids[2]);
-        ncw_def_dim(ncid, "m", das->nmem, &dimids[3]);
+    ncw_def_dim(ncid, "m_dyn", das->nmem_dynamic, &dimids[2]);
+    ncw_def_dim(ncid, "m", das->nmem, &dimids[3]);
+    if (das->nmem_dynamic > 1) {
         ncw_def_var(ncid, "T", NC_FLOAT, 4, dimids, &varid_T);
         {
             size_t chunksize[4] = { 1, ni, das->nmem_dynamic, das->nmem };
 
             nc_def_var_chunking(ncid, varid_T, NC_CHUNKED, chunksize);
         }
-        dimids[2] = dimids[3];
-    } else
-        ncw_def_dim(ncid, "m", das->nmem, &dimids[2]);
+    }
+    dimids[2] = dimids[3];
     ncw_def_var(ncid, "w", NC_FLOAT, 3, dimids, &varid_w);
     {
         size_t chunksize[3] = { 1, ni, das->nmem };
@@ -154,13 +153,11 @@ static void nc_createtransformstile(dasystem* das, int gridid, int ni)
     ncw_def_dim(ncid, "j", NC_UNLIMITED, &dimids[0]);
     ncw_def_dim(ncid, "i", ni, &dimids[1]);
     ncw_def_var(ncid, "j", NC_INT, 1, &dimids[0], NULL);
-    if (das->mode == MODE_ENKF || das->mode == MODE_HYBRID) {
-        ncw_def_dim(ncid, "m_dyn", das->nmem_dynamic, &dimids[2]);
-        ncw_def_dim(ncid, "m", das->nmem, &dimids[3]);
+    ncw_def_dim(ncid, "m_dyn", das->nmem_dynamic, &dimids[2]);
+    ncw_def_dim(ncid, "m", das->nmem, &dimids[3]);
+    if (das->nmem_dynamic > 1)
         ncw_def_var(ncid, "T", NC_FLOAT, 4, dimids, &varid_T);
-        dimids[2] = dimids[3];
-    } else
-        ncw_def_dim(ncid, "m", das->nmem, &dimids[2]);
+    dimids[2] = dimids[3];
     ncw_def_var(ncid, "w", NC_FLOAT, 3, dimids, &varid_w);
 #if defined(DEFLATE_ALL)
     if (das->nccompression > 0)
@@ -217,7 +214,7 @@ static void nc_assembletransforms(dasystem* das, int gridid, size_t nj, size_t n
     float* v_T = NULL;
     float* v_w = NULL;
     int* v_j = NULL;
-    int doT = (das->mode == MODE_ENKF || das->mode == MODE_HYBRID);
+    int doT = (das->nmem_dynamic > 1);
     int nr_max = 0;
 
     assert(rank == 0);
@@ -696,7 +693,7 @@ void das_calctransforms(dasystem* das)
         if (rank == 0)
             mpiqueue_manage(queue);
         else {
-            if (das->mode == MODE_ENKF || das->mode == MODE_HYBRID) {
+            if (das->nmem_dynamic > 1) {
                 Tj = alloc3d(ni, nmem_dynamic, nmem, sizeof(float));
                 T = alloc2d(nmem, nmem, sizeof(double));
             }
@@ -745,7 +742,7 @@ void das_calctransforms(dasystem* das)
                          * for unstructured grids -- restore the natural order
                          */
                         if (mni == 1) {
-                            ij[0] = j;
+                            ij[0] = j;  /* point id */
                             ij[1] = 0;
                         }
 
@@ -764,7 +761,7 @@ void das_calctransforms(dasystem* das)
                     stats.ncell++;
 
                     if (ploc == 0) {
-                        if (T != NULL) {
+                        if (das->nmem_dynamic > 1) {
                             memset(Tj[ii][0], 0, nmem_dynamic * nmem * sizeof(float));
                             for (e = 0; e < nmem_dynamic; ++e)
                                 Tj[ii][e][e] = (float) 1.0;
@@ -801,7 +798,7 @@ void das_calctransforms(dasystem* das)
                     for (o = 0; o < ploc; ++o)
                         sloc[o] = das->s_f[lobs[o]] * lcoeffs[o];
 
-                    if (das->mode == MODE_ENOI) {
+                    if (das->nmem_dynamic == 1) {
                         calc_G(nmem, ploc, M, Sloc, G);
                         calc_w(nmem, ploc, G, sloc, w);
                     } else if (das->scheme == SCHEME_DENKF) {
@@ -811,7 +808,7 @@ void das_calctransforms(dasystem* das)
                     } else
                         enkf_quit("programming error");
 
-                    if (das->mode == MODE_ENKF || das->mode == MODE_HYBRID) {
+                    if (das->nmem_dynamic > 1) {
                         int e1, e2;
 
                         /*
@@ -893,9 +890,9 @@ void das_calctransforms(dasystem* das)
 #endif
                 }               /* for ii */
 
-                if (das->mode == MODE_ENKF || das->mode == MODE_HYBRID)
+                if (das->nmem_dynamic > 1)
                     nc_writetransformstile(das, gid, jj, ni, Tj[0][0], wj[0]);
-                else if (das->mode == MODE_ENOI)
+                else
                     nc_writetransformstile(das, gid, jj, ni, NULL, wj[0]);
                 nc_writediagtile(das, gid, ni, jj, pnlobs, pdfs, psrf);
 
@@ -917,7 +914,7 @@ void das_calctransforms(dasystem* das)
         enkf_flush();
         MPI_Barrier(MPI_COMM_WORLD);
 
-        if (das->mode == MODE_ENKF || das->mode == MODE_HYBRID) {
+        if (das->nmem_dynamic > 1) {
             free(Tj);
             free(T);
         }
@@ -1073,7 +1070,7 @@ void das_calctransforms(dasystem* das)
 
         distribute_iterations(0, nj - 1, nprocesses, "      ");
 
-        if (das->mode == MODE_ENKF || das->mode == MODE_HYBRID) {
+        if (das->nmem_dynamic > 1) {
 #if !defined(TW_VIAFILE)
             if (rank == 0)
                 nc_createtransforms(das, gid, nj, ni, stride);
@@ -1087,7 +1084,7 @@ void das_calctransforms(dasystem* das)
 #endif
             Tj = alloc3d(ni, nmem_dynamic, nmem, sizeof(float));
             T = alloc2d(nmem, nmem, sizeof(double));
-        } else if (das->mode == MODE_ENOI) {
+        } else {
 #if !defined(TW_VIAFILE)
             if (rank == 0)
                 nc_createtransforms(das, gid, nj, ni, stride);
@@ -1099,8 +1096,7 @@ void das_calctransforms(dasystem* das)
 #endif
             nc_createtransformstile(das, gid, ni);
 #endif
-        } else
-            enkf_quit("programming error");
+        }
         wj = alloc2d(ni, nmem, sizeof(float));
 
         if (rank == 0) {
@@ -1198,7 +1194,7 @@ void das_calctransforms(dasystem* das)
                      * for unstructured grids -- restore the natural order
                      */
                     if (mni == 1) {
-                        ij[0] = j;
+                        ij[0] = j;      /* triangle id */
                         ij[1] = 0;
                     }
 
@@ -1217,7 +1213,7 @@ void das_calctransforms(dasystem* das)
                 stats.ncell++;
 
                 if (ploc == 0) {
-                    if (T != NULL) {
+                    if (Tj != NULL) {
                         memset(Tj[ii][0], 0, nmem_dynamic * nmem * sizeof(float));
                         for (e = 0; e < nmem_dynamic; ++e)
                             Tj[ii][e][e] = (float) 1.0;
@@ -1257,7 +1253,7 @@ void das_calctransforms(dasystem* das)
                 for (o = 0; o < ploc; ++o)
                     sloc[o] = das->s_f[lobs[o]] * lcoeffs[o];
 
-                if (das->mode == MODE_ENOI) {
+                if (das->nmem_dynamic == 1) {
                     calc_G(nmem, ploc, M, Sloc, G);
                     calc_w(nmem, ploc, G, sloc, w);
                 } else if (das->scheme == SCHEME_DENKF) {
@@ -1267,7 +1263,7 @@ void das_calctransforms(dasystem* das)
                 } else
                     enkf_quit("programming error");
 
-                if (das->mode == MODE_ENKF || das->mode == MODE_HYBRID) {
+                if (das->nmem_dynamic > 1) {
                     int e1, e2;
 
                     /*
@@ -1360,7 +1356,7 @@ void das_calctransforms(dasystem* das)
             }                   /* for ii */
 
 #if defined(MPI)
-            if (das->mode == MODE_ENKF || das->mode == MODE_HYBRID) {
+            if (das->nmem_dynamic > 1) {
 #if !defined(TW_VIAFILE)
                 if (rank > 0) {
                     if (my_number_of_iterations > 0) {
@@ -1398,7 +1394,7 @@ void das_calctransforms(dasystem* das)
 #else                           /* TW_VIAFILE */
                 nc_writetransformstile(das, gid, jpool[jj], ni, Tj[0][0], wj[0]);
 #endif
-            } else if (das->mode == MODE_ENOI) {
+            } else {
 #if !defined(TW_VIAFILE)
                 if (rank > 0) {
                     if (my_number_of_iterations > 0) {
@@ -1433,9 +1429,9 @@ void das_calctransforms(dasystem* das)
 #endif
             }
 #else                           /* no MPI */
-            if (das->mode == MODE_ENKF || das->mode == MODE_HYBRID)
+            if (das->nmem_dynamic > 1)
                 nc_writetransforms(das, gid, jpool[jj], ni, Tj[0][0], wj[0]);
-            else if (das->mode == MODE_ENOI)
+            else
                 nc_writetransforms(das, gid, jpool[jj], ni, NULL, wj[0]);
 #endif                          /* if defined(MPI) */
         }                       /* for jj */
@@ -1555,7 +1551,7 @@ void das_calctransforms(dasystem* das)
             nc_writediag(das, fname_diag, obs->nobstypes, nj, ni, stride, nlobs, dfs, srf, pnlobs, pdfs, psrf);
         }
 
-        if (das->mode == MODE_ENKF || das->mode == MODE_HYBRID) {
+        if (das->nmem_dynamic > 1) {
             free(Tj);
             free(T);
         }
@@ -1657,7 +1653,7 @@ void das_calcpointlogtransforms(dasystem* das)
     if (das->s_mode == S_MODE_HA_f)
         das_standardise(das);
 
-    if (das->mode == MODE_ENKF || das->mode == MODE_HYBRID)
+    if (das->nmem_dynamic > 1)
         T = alloc2d(nmem, nmem, sizeof(double));
 
     for (plogid = 0; plogid < das->nplog; ++plogid) {
@@ -1727,7 +1723,7 @@ void das_calcpointlogtransforms(dasystem* das)
                 for (o = 0; o < ploc; ++o)
                     sloc[o] = das->s_f[lobs[o]] * lcoeffs[o];
 
-                if (das->mode == MODE_ENOI) {
+                if (das->nmem_dynamic == 1) {
                     calc_G(nmem, ploc, NULL, Sloc, G);
                     calc_w(nmem, ploc, G, sloc, w);
                 } else if (das->scheme == SCHEME_DENKF) {
@@ -1737,7 +1733,7 @@ void das_calcpointlogtransforms(dasystem* das)
                 } else
                     enkf_quit("programming error");
 
-                if (das->mode == MODE_ENKF || das->mode == MODE_HYBRID) {
+                if (das->nmem_dynamic > 1) {
                     int e1, e2;
 
                     for (e1 = 0; e1 < nmem_dynamic; ++e1) {

@@ -177,8 +177,8 @@ int main(int argc, char* argv[])
         updatespec |= UPDATE_DIRECTWRITE;
     }
     if (updatespec & UPDATE_DOINFLATION) {
-        if (prm->mode == MODE_ENOI) {
-            enkf_printf("  prm: mode = EnOI -> cancelling writing of inflation\n");
+        if (prm->enssize_dynamic == 1) {
+            enkf_printf("  prm: there is no dynamic ensemble -> cancelling writing of inflation\n");
             updatespec &= ~UPDATE_DOINFLATION;
         } else if (isnan(prm->inf_ratio)) {
             enkf_printf("  prm: inflation mode = plain -> cancelling writing of inflation\n");
@@ -220,16 +220,16 @@ int main(int argc, char* argv[])
     }
 
     if (das->updatespec & (UPDATE_DOFIELDS | UPDATE_DOPLOGSAN | UPDATE_DOINFLATION)) {
-        if (das->mode == MODE_ENKF) {
+        if (das->nmem_dynamic > 1) {
             if (updatespec & UPDATE_NEEDAN)
                 enkf_printf("  updating ensemble:\n");
             else
                 enkf_printf("  processing ensemble:\n");
-        } else if (das->mode == MODE_ENOI) {
+        } else {
             if (updatespec & UPDATE_NEEDAN)
                 enkf_printf("  updating model state:\n");
             else
-                enkf_printf("  processing model state and/or ensemble:\n");
+                enkf_printf("  processing model state:\n");
         }
         enkf_printtime("    ");
         das_update(das);

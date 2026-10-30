@@ -2,10 +2,10 @@
   Using MPI-3 shared memory:
     sm_comm size = 4
     node_comm size = 1
-  running CALC for EnKF-C version 2.43.0:
+  running CALC for EnKF-C version 2.48.0:
     command = "./enkf_calc --point-logs-only pointlogs.prm"
-    dir = "/home/599/pxs599/src/enkf-c.fieldsplit/enkf/examples/1"
-  2025-12-24 08:30:18
+    dir = "/home/599/pxs599/src/enkf-c/enkf/examples/1"
+  2026-10-30 18:29:02
   reading system specs from "pointlogs.prm":
     TIME = "6565.5 days since 1990-01-01"
     MODE = EnKF
@@ -15,7 +15,7 @@
     OBS TYPES PRM = "obstypes.prm"
     OBS PRM = "obs.prm"
     ENSEMBLE DIR = "ensemble_6565"
-    ENSEMBLE SIZE = 96
+    ENSEMBLE SIZE = <FULL>
     RFACTOR BASE = 2.0
     KFACTOR = 999.0
     LOCRAD  = 200
@@ -127,7 +127,7 @@
       v:
         grid = "t-grid"
   setting the ensemble size:
-    96 members
+    96 dynamic members
   initialising pointlogs:
     pointlog (156.000, -32.000):
       t-grid: (i, j) = (49.500, 49.500)
@@ -137,8 +137,8 @@
       t-grid: (i, j) = (9.500, 9.500)
   reading observations from "observations.nc":
     10216 observations
-    allocating 980736 bytes for array of observations
-    creating kd-trees for observations:
+    allocating 980736 bytes for array of observations (in SHMEM)
+    creating kd-trees for observations (in SHMEM):
       kdtree "SLA":
         652 nodes
         41776 bytes
@@ -152,9 +152,9 @@
         5 nodes
         368 bytes
   calculating ensemble observations:
-  2025-12-24 08:30:18
-    allocating 3922944 bytes for HE array:
-    allocating 3922944 bytes for HE^T array:
+  2026-10-30 18:29:02
+    allocating 3922944 bytes for HE array (in SHMEM):
+    allocating 3922944 bytes for HE^T array (in SHMEM):
     distributing 96 iterations:
       4 processes get 24 iterations each
     SLA ........................
@@ -162,11 +162,11 @@
     TEM ........................
     SAL ........................
   gathering:
-  2025-12-24 08:30:18
+  2026-10-30 18:29:02
   calculating innovations and spread:
-  2025-12-24 08:30:18
+  2026-10-30 18:29:02
   writing forecast innovations and spread to "observations.nc":
-  2025-12-24 08:30:18
+  2026-10-30 18:29:02
     Hx_f already added to "observations.nc" (skipping)
   identifying observation batches:
     SLA     9   
@@ -189,5 +189,5 @@
     writing transforms for point (160.000,-29.000) on grid "t-grid":
     calculating transforms for log point (152.000,-36.000): 808 obs
     writing transforms for point (152.000,-36.000) on grid "t-grid":
-  2025-12-24 08:30:18
+  2026-10-30 18:29:03
   finished

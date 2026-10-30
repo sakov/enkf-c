@@ -800,7 +800,7 @@ void obs_read(observations* obs, char fname[])
     obs_calcstats(obs);
 }
 
-#if defined(ENKF_PREP)
+#if defined(ENKF_PREP) || defined(ENKF_CALC)
 /**
  */
 void obs_write(observations* obs, char fname[])
@@ -1684,6 +1684,7 @@ void obs_createkdtrees(observations* obs)
                 assert(my_size == size);
                 kd_setstorage(*tree, nobs, storage, 0);
             }
+            MPI_Win_fence(0, *sm_comm_win);
         }
 #else
         kd_setstorage(*tree, nobs, NULL, -1);
@@ -1720,7 +1721,8 @@ void obs_createkdtrees(observations* obs)
 #if defined(USE_SHMEM)
         } else
             kd_syncsize(*tree);
-        MPI_Win_fence(0, obs->sm_comm_wins_kd[otid]);
+        if (obs->sm_comm_wins_kd[otid] != MPI_WIN_NULL)
+            MPI_Win_fence(0, obs->sm_comm_wins_kd[otid]);
 #endif
         kd_printinfo(*tree, "      ");
 

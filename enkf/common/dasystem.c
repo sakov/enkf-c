@@ -53,103 +53,76 @@ static void das_setnmem(dasystem* das)
     model* m = das->m;
     int nvar = model_getnvar(m);
     char fname[MAXSTRLEN];
-    int nmem_dynamic;
-    int nmem;
 
     assert(das->mode != MODE_NONE);
 
-    if (das->mode == MODE_ENOI && enkf_fstatsonly) {
-        das->nmem = 1;
-        return;
-    }
-
-    assert(das->ensdir != NULL);
-    if (das->mode == MODE_HYBRID)
-        assert(das->ensdir2 != NULL);
-
+    das->nmem = INT_MAX;
     /*
-     * set das->nmem_dynamic to -1 to enable scanning of das->ensdir
+     * get/check size of the dynamic ensemble
      */
-    nmem_dynamic = das->nmem_dynamic;
-    das->nmem_dynamic = -1;
+    {
+        int nmem_dynamic_save = das->nmem_dynamic;
+        int nmem_dynamic = 0;
 
-    nmem = 0;
-    while (1) {
-        int i;
+        das->nmem_dynamic = INT_MAX;
+        while (1) {
+            int i;
 
-        for (i = 0; i < nvar; ++i) {
-            das_getmemberfname(das, model_getvarname(m, i), nmem + 1, fname);
-            if (!file_exists(fname))
+            for (i = 0; i < nvar; ++i) {
+                das_getmemberfname(das, model_getvarname(m, i), nmem_dynamic + 1, fname);
+                if (!file_exists(fname))
+                    break;
+            }
+            if (i == nvar)
+                nmem_dynamic++;
+            else
                 break;
         }
-        if (i == nvar)
-            nmem++;
-        else
-            break;
-    }
-    if (nmem == 0)
-        enkf_quit("das_setnmem(): could not find \"%s\"", fname);
-
-    if (das->mode == MODE_ENOI || das->mode == MODE_ENKF) {
-        if (das->nmem > 0) {
-            if (nmem < das->nmem)
-                enkf_quit("das_setnmem(): could not find \"%s\"", fname);
-            if (nmem > das->nmem)
-                enkf_printf("    %d members found on disk; ignoring excess to specified ensemble size = %d\n", nmem, das->nmem);
+        if (nmem_dynamic == 0)
+            enkf_quit("das_setnmem(): could not find \"%s\"", fname);
+        if (nmem_dynamic_save > 0) {
+            if (nmem_dynamic < nmem_dynamic_save)
+                enkf_quit("%s: specified (%d) size of the dynamic ensemble exceeds the actual size (%d)", das->ensdir_dynamic, nmem_dynamic_save, nmem_dynamic);
+            else
+                das->nmem_dynamic = nmem_dynamic_save;
         } else
-            das->nmem = nmem;
-        if (nmem == 1)
-            enkf_quit("only 1 member found; need at least 2 members to continue");
-        if (das->mode == MODE_ENKF) {
-            das->nmem_dynamic = das->nmem;
-            das->nmem_static = 0;
-        }
-        if (das->mode == MODE_ENOI) {
-            das->nmem_static = das->nmem;
-            das->nmem_dynamic = 0;
-        }
-        return;
+            das->nmem_dynamic = nmem_dynamic;
     }
 
     /*
-     * das->mode = MODE_HYBRID
+     * get/check size of the static ensemble
      */
-    if (nmem_dynamic >= 0 && nmem > nmem_dynamic)
-        enkf_printf("    %d dynamic members found on disk; ignoring excess to specified dynamic ensemble size = %d\n", nmem, nmem_dynamic);
-    if (nmem_dynamic >= 0 && nmem < nmem_dynamic)
-        enkf_quit("das_setnmem(): could not find \"%s\"", fname);
-    das->nmem_dynamic = (nmem_dynamic < 0) ? nmem : nmem_dynamic;
-    nmem = das->nmem_dynamic;
+    if ((das->mode == MODE_ENOI && !enkf_fstatsonly) || das->mode == MODE_HYBRID) {
+        int nmem_static_save = das->nmem_static;
+        int nmem_static = 0;
 
-    while (1) {
-        int i;
+        das->nmem_static = INT_MAX;
+        while (1) {
+            int i;
 
-        for (i = 0; i < nvar; ++i) {
-            das_getmemberfname(das, model_getvarname(m, i), nmem + 1, fname);
-            if (!file_exists(fname))
+            for (i = 0; i < nvar; ++i) {
+                das_getmemberfname(das, model_getvarname(m, i), das->nmem_dynamic + nmem_static + 1, fname);
+                if (!file_exists(fname))
+                    break;
+            }
+            if (i == nvar)
+                nmem_static++;
+            else
                 break;
         }
-        if (i == nvar)
-            nmem++;
-        else
-            break;
-    }
-    if (nmem == das->nmem_dynamic)
-        enkf_quit("das_setnmem(): could not find \"%s\"", fname);
-    if (das->nmem_static >= 0 && nmem > das->nmem_dynamic + das->nmem_static)
-        enkf_printf("    %d static members found on disk; ignoring excess to specified static ensemble size = %d\n", nmem - das->nmem_dynamic, das->nmem_static);
-    if (das->nmem_static >= 0 && nmem < das->nmem_dynamic + das->nmem_static)
-        enkf_quit("das_setnmem(): could not find \"%s\"", fname);
-    if (das->nmem_static < 0)
-        das->nmem_static = nmem - das->nmem_dynamic;
-    das->nmem = das->nmem_dynamic + das->nmem_static;
+        if (nmem_static == 0)
+            enkf_quit("das_setnmem(): could not find \"%s\"", fname);
+        if (nmem_static_save > 0) {
+            if (nmem_static < nmem_static_save)
+                enkf_quit("    %s: actual static ensemble size (%d) is smaller than the specified size (%d)", das->ensdir_static, nmem_static, nmem_static_save);
+            enkf_printf("    available static ensemble size = %d\n", nmem_static);
+            das->nmem_static = nmem_static_save;
+        } else
+            das->nmem_static = nmem_static;
+    } else
+        das->nmem_static = 0;
 
-    if (das->nmem == 1)
-        enkf_quit("only 1 member found; need at least 2 members to continue");
-    if (das->nmem_dynamic == 1)
-        enkf_printf("    only 1 dynamic member found; effectively the system will run in EnOI mode");
-    if (das->nmem_static == 1)
-        enkf_quit("only 1 static member found; need at least 2 to continue");
+    das->nmem = das->nmem_dynamic + das->nmem_static;
 }
 
 #if defined(ENKF_UPDATE)
@@ -180,19 +153,14 @@ dasystem* das_create(enkfprm* prm)
     das->prmfname = strdup(prm->fname);
     das->mode = prm->mode;
     das->scheme = prm->scheme;
-    if (!(das->mode == MODE_ENOI && enkf_fstatsonly))
-        das->ensdir = strdup(prm->ensdir);
-    if (prm->ensdir2 != NULL)
-        das->ensdir2 = strdup(prm->ensdir2);
-    if (prm->bgdir != NULL)
-        das->bgdir = strdup(prm->bgdir);
+    das->ensdir_dynamic = strdup(prm->ensdir_dynamic);
+    if (prm->ensdir_static != NULL)
+        das->ensdir_static = strdup(prm->ensdir_static);
     das->alpha = prm->alpha;
     das->nmem = prm->enssize;
-    if (das->mode == MODE_HYBRID) {
-        das->nmem_dynamic = prm->enssize_dynamic;
-        das->nmem_static = prm->enssize_static;
-        das->gamma = prm->gamma;
-    }
+    das->nmem_dynamic = prm->enssize_dynamic;
+    das->nmem_static = prm->enssize_static;
+    das->gamma = (isfinite(prm->gamma)) ? prm->gamma : 1.0;
 #if defined(ENKF_CALC)
     das->obs = obs_create_fromprm(prm);
 #endif
@@ -211,19 +179,20 @@ dasystem* das_create(enkfprm* prm)
 
     enkf_printf("  setting the ensemble size:\n");
     das_setnmem(das);
-    if (das->mode != MODE_HYBRID)
-        enkf_printf("    %d member%s\n", das->nmem, das->nmem == 1 ? "" : "s");
-    else {
-        enkf_printf("    %d dynamic member%s\n", das->nmem_dynamic, das->nmem == 1 ? "" : "s");
+    if (das->mode == MODE_ENOI) {
+        enkf_printf("    1 background state\n");
         enkf_printf("    %d static member%s\n", das->nmem_static, das->nmem_static == 1 ? "" : "s");
+    } else {
+        enkf_printf("    %d dynamic member%s\n", das->nmem_dynamic, das->nmem == 1 ? "" : "s");
+        if (das->nmem_static > 0)
+            enkf_printf("    %d static member%s\n", das->nmem_static, das->nmem_static == 1 ? "" : "s");
     }
 
 #if defined(ENKF_CALC)
     if (das->nmem == 1 && !(das->mode == MODE_ENOI && enkf_fstatsonly))
         enkf_quit("CALC is not supposed to be run with 1-member ensemble");
-#endif
-
-#if defined(ENKF_CALC)
+    if (das->nmem_dynamic == 1 && isfinite(das->alpha))
+        das->alpha = NAN;
     if (!enkf_fstatsonly) {
         das->kfactor = prm->kfactor;
     } else {
@@ -340,6 +309,7 @@ dasystem* das_create(enkfprm* prm)
                     } else {
                         ncw_get_att_double(ncid, varid, "fi0", &dst->fij[gid][0]);
                         ncw_get_att_double(ncid, varid, "fi1", &dst->fij[gid][1]);
+                        ncw_get_att_double(ncid, varid, "fi2", &dst->fij[gid][2]);
                     }
                     ncw_close(ncid);
                     if (isnan(dst->fij[gid][0] + dst->fij[gid][1]) && gid == dst->gridid)
@@ -395,9 +365,9 @@ dasystem* das_create(enkfprm* prm)
 void das_destroy(dasystem* das)
 {
     free(das->prmfname);
-    free(das->ensdir);
-    if (das->bgdir != NULL)
-        free(das->bgdir);
+    free(das->ensdir_dynamic);
+    if (das->ensdir_static != NULL)
+        free(das->ensdir_static);
     model_destroy(das->m);
 #if defined(ENKF_CALC)
     obs_destroy(das->obs);
@@ -643,40 +613,39 @@ void das_calcmld(dasystem* das, obstype* ot, float*** src, float** dst)
 #endif
 
 /**
+ *  Note: memid starts from 1
  */
-void das_getmemberfname(dasystem* das, char varname[], int mem, char fname[])
+void das_getmemberfname(dasystem* das, char varname[], int memid, char fname[])
 {
-    if (das->mode == MODE_HYBRID && das->nmem_dynamic >= 0 && mem > das->nmem_dynamic)
-        snprintf(fname, MAXSTRLEN, "%s/mem%03d_%s.nc", das->ensdir2, mem - das->nmem_dynamic, varname);
-    else
-        snprintf(fname, MAXSTRLEN, "%s/mem%03d_%s.nc", das->ensdir, mem, varname);
-}
-
-/**
- */
-void das_getbgfname(dasystem* das, char varname[], char fname[])
-{
-    snprintf(fname, MAXSTRLEN, "%s/bg_%s.nc", das->bgdir, varname);
+    if (memid > das->nmem)
+        enkf_quit("requested ensemble member ID (%d) exceeds ensemble size (%d)", memid, das->nmem);
+    if (memid <= das->nmem_dynamic) {
+        if (das->mode == MODE_ENOI && memid == 1)
+            snprintf(fname, MAXSTRLEN, "%s/bg_%s.nc", das->ensdir_dynamic, varname);
+        else
+            snprintf(fname, MAXSTRLEN, "%s/mem%03d_%s.nc", das->ensdir_dynamic, memid, varname);
+    } else
+        snprintf(fname, MAXSTRLEN, "%s/mem%03d_%s.nc", das->ensdir_static, memid - das->nmem_dynamic, varname);
 }
 
 #if defined(ENKF_CALC)
 
 /** Finds file/record for calculating forecast obs.
  */
-static void getfname_async(dasystem* das, obstype* ot, int mem, int t, char fname[], int* r)
+static void getfname_async(dasystem* das, obstype* ot, int memid, int t, char fname[], int* r)
 {
     char* alias = ot->alias;
-    char* dir = (mem > 0) ? das->ensdir : das->bgdir;
+    char* dir = das->ensdir_dynamic;
     int nf = 0;
     char** fnames = NULL;
     char fname1[MAXSTRLEN];
     char fname2[MAXSTRLEN];
     int f;
 
-    if (mem > 0)
-        snprintf(fname1, MAXSTRLEN, "%s/mem%03d_%s_%d.nc", dir, mem, alias, t);
-    else
+    if (das->mode == MODE_ENOI && memid == 1)
         snprintf(fname1, MAXSTRLEN, "%s/bg_%s_%d.nc", dir, alias, t);
+    else
+        snprintf(fname1, MAXSTRLEN, "%s/mem%03d_%s_%d.nc", dir, memid, alias, t);
 
     if (file_exists(fname1)) {
         nf = 1;
@@ -686,10 +655,10 @@ static void getfname_async(dasystem* das, obstype* ot, int mem, int t, char fnam
         goto checktime;
     }
 
-    if (mem > 0)
-        snprintf(fname2, MAXSTRLEN, "%s/mem%03d_%s_#*.nc", dir, mem, alias);
-    else
+    if (das->mode == MODE_ENOI && memid == 1)
         snprintf(fname2, MAXSTRLEN, "%s/bg_%s_#*.nc", dir, alias);
+    else
+        snprintf(fname2, MAXSTRLEN, "%s/mem%03d_%s_#*.nc", dir, memid, alias);
 
     if (!find_files(fname2, &nf, &fnames))
         enkf_quit("could not find file \"%s\" or \"%s\" to match binned observations of type \"%s\"\n", fname1, fname2, ot->name);
@@ -746,24 +715,19 @@ static void getfname_async(dasystem* das, obstype* ot, int mem, int t, char fnam
 
 /**
  */
-int das_getmemberfname_async(dasystem* das, obstype* ot, int mem, int t, char fname[], int* r)
+int das_getmemberfname_async(dasystem* das, obstype* ot, int memid, int t, char fname[], int* r)
 {
     *r = -1;
 
-    if (das->mode == MODE_HYBRID && das->nmem_dynamic >= 0 && mem > das->nmem_dynamic) {
-        snprintf(fname, MAXSTRLEN, "%s/mem%03d_%s.nc", das->ensdir2, mem - das->nmem_dynamic, ot->varnames[0]);
+    if (memid > das->nmem)
+        enkf_quit("requested ensemble member ID (%d) exceeds ensemble size (%d)", memid, das->nmem);
+    if (memid > das->nmem_dynamic) {
+        snprintf(fname, MAXSTRLEN, "%s/mem%03d_%s.nc", das->ensdir_static, memid - das->nmem_dynamic, ot->varnames[0]);
         return 0;
     }
 
-    getfname_async(das, ot, mem, t, fname, r);
+    getfname_async(das, ot, memid, t, fname, r);
     return 1;
-}
-
-/**
- */
-void das_getbgfname_async(dasystem* das, obstype* ot, int t, char fname[], int* r)
-{
-    getfname_async(das, ot, -1, t, fname, r);
 }
 #endif
 
@@ -778,38 +742,40 @@ void das_sethybridensemble(dasystem* das, int nij, float** v)
     int nmem = das->nmem;
     int nmem_d = das->nmem_dynamic;
     int nmem_s = das->nmem_static;
-    double k_d = (nmem_d > 1) ? sqrt((double) (nmem - 1) / (double) (nmem_d - 1)) : 0.0;
-    double k_s = sqrt(das->gamma * (double) (nmem - 1) / (double) (nmem_s - 1));
+    double k_d, k_s;
     int i, e;
 
-    assert(das->mode == MODE_HYBRID);
+    assert(das->nmem_static > 0);
 
     /*
      * calculate dynamic ensemble mean
      */
-    memset(vmean, 0, nij * sizeof(double));
-    for (e = 0; e < nmem_d; ++e) {
-        float* ve = v[e];
+    if (nmem_d > 1) {
+        k_d = sqrt((double) (nmem - 2) / (double) (nmem_d - 1));
+        memset(vmean, 0, nij * sizeof(double));
+        for (e = 0; e < nmem_d; ++e) {
+            float* ve = v[e];
 
+            for (i = 0; i < nij; ++i)
+                vmean[i] += (double) ve[i];
+        }
         for (i = 0; i < nij; ++i)
-            vmean[i] += (double) ve[i];
-    }
-    for (i = 0; i < nij; ++i)
-        vmean[i] /= (double) nmem_d;
+            vmean[i] /= (double) nmem_d;
+        /*
+         * set dynamic members
+         */
+        for (e = 0; e < nmem_d; ++e) {
+            float* ve = v[e];
 
-    /*
-     * set dynamic members
-     */
-    for (e = 0; e < nmem_d; ++e) {
-        float* ve = v[e];
-
-        for (i = 0; i < nij; ++i)
-            ve[i] = (ve[i] - vmean[i]) * k_d + vmean[i];
+            for (i = 0; i < nij; ++i)
+                ve[i] = (ve[i] - vmean[i]) * k_d + vmean[i];
+        }
     }
 
     /*
      * set static members
      */
+    k_s = sqrt(das->gamma * (double) (nmem - 2) / (double) (nmem_s - 1));
     for (e = nmem_d; e < nmem; ++e) {
         float* ve = v[e];
 

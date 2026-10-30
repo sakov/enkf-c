@@ -2,10 +2,10 @@
   Using MPI-3 shared memory:
     sm_comm size = 4
     node_comm size = 1
-  running CALC for EnKF-C version 2.43.0:
+  running CALC for EnKF-C version 2.48.0:
     command = "./enkf_calc enkf-global.prm"
-    dir = "/home/599/pxs599/src/enkf-c.fieldsplit/enkf/examples/1"
-  2025-12-24 08:31:56
+    dir = "/home/599/pxs599/src/enkf-c/enkf/examples/1"
+  2026-10-30 18:30:56
   reading system specs from "enkf-global.prm":
     TIME = "6565.5 days since 1990-01-01"
     MODE = EnKF
@@ -15,7 +15,7 @@
     OBS TYPES PRM = "obstypes-global.prm"
     OBS PRM = "obs.prm"
     ENSEMBLE DIR = "ensemble_6565"
-    ENSEMBLE SIZE = 96
+    ENSEMBLE SIZE = <FULL>
     RFACTOR BASE = 2.0
     KFACTOR = 999.0
     LOCRAD  = 1e+06
@@ -125,14 +125,14 @@
       v:
         grid = "t-grid"
   setting the ensemble size:
-    96 members
+    96 dynamic members
   initialising pointlogs:
     pointlog (156.000, -32.000):
       t-grid: (i, j) = (49.500, 49.500)
   reading observations from "observations.nc":
     10216 observations
-    allocating 980736 bytes for array of observations
-    creating kd-trees for observations:
+    allocating 980736 bytes for array of observations (in SHMEM)
+    creating kd-trees for observations (in SHMEM):
       kdtree "SLA":
         652 nodes
         41776 bytes
@@ -146,9 +146,9 @@
         5 nodes
         368 bytes
   calculating ensemble observations:
-  2025-12-24 08:31:56
-    allocating 3922944 bytes for HE array:
-    allocating 3922944 bytes for HE^T array:
+  2026-10-30 18:30:56
+    allocating 3922944 bytes for HE array (in SHMEM):
+    allocating 3922944 bytes for HE^T array (in SHMEM):
     distributing 96 iterations:
       4 processes get 24 iterations each
     SLA ........................
@@ -156,11 +156,11 @@
     TEM ........................
     SAL ........................
   gathering:
-  2025-12-24 08:31:56
+  2026-10-30 18:30:56
   calculating innovations and spread:
-  2025-12-24 08:31:56
+  2026-10-30 18:30:56
   writing forecast innovations and spread to "observations.nc":
-  2025-12-24 08:31:56
+  2026-10-30 18:30:56
   identifying observation batches:
     SLA     9   
     SST     27  
@@ -176,7 +176,7 @@
       total        0 (0.0%)
   writing modified obs errors to "observations.nc":
   calculating transforms:
-  2025-12-24 08:31:56
+  2026-10-30 18:30:56
     calculating transforms for t-grid:
       main cycle for t-grid (1 x 1 local analyses):
         j = 0 (1: 0: 0.0%)
@@ -193,35 +193,35 @@
     calculating transforms for log point (156.000,-32.000): 10216 obs
     writing transforms for point (156.000,-32.000) on grid "t-grid":
   calculating analysed observations:
-  2025-12-24 08:31:56
+  2026-10-30 18:30:57
     sorting obs by ij:
-    2025-12-24 08:31:56
+    2026-10-30 18:30:57
     updating HE:
     distributing 10216 iterations:
       4 processes get 2554 iterations each
-    2025-12-24 08:31:56
+    2026-10-30 18:30:57
   adding analysis innovations and spread to "observations.nc":
   printing observation statistics:
     region obs.type   # obs.  |for.inn.| |an.inn.|   for.inn.   an.inn.  for.spread  an.spread
     ------------------------------------------------------------------------------------------
     Global
-           SLA           652   0.0769      0.078     0.0218     0.0226     0.0387     0.0328  
-             j1          272   0.0731     0.0808     0.0228      0.031     0.0434     0.0363  
-             n1          380   0.0797      0.076     0.0211     0.0166     0.0353     0.0303  
-           SST          9554    0.456      0.444     -0.148     -0.141      0.352      0.291  
-             ESACCI     8386    0.457      0.445     -0.128      -0.12      0.354      0.293  
-             WindSat    1168    0.451      0.434      -0.29     -0.293      0.343      0.275  
-           TEM             5     1.03       1.14      0.427      0.776      0.349      0.239  
-             WMO851        3    0.817      0.865      0.817      0.865      0.283      0.235  
+           SLA           652   0.0769     0.0731     0.0218     0.0191     0.0387     0.0213  
+             j1          272   0.0731      0.081     0.0228      0.026     0.0434     0.0239  
+             n1          380   0.0797     0.0674     0.0211     0.0142     0.0353     0.0194  
+           SST          9554    0.456      0.443     -0.148     -0.158      0.352      0.194  
+             ESACCI     8386    0.457       0.44     -0.128     -0.134      0.354      0.195  
+             WindSat    1168    0.451      0.459      -0.29     -0.324      0.343      0.189  
+           TEM             5     1.03       1.17      0.427      0.808      0.349      0.192  
+             WMO851        3    0.817      0.919      0.817      0.919      0.283      0.156  
              WMO846        2     1.36       1.55     -0.158      0.641      0.447      0.246  
              0-50m         1      1.2       2.19        1.2       2.19      0.438      0.241  
-             50-500m       4    0.991      0.876      0.234      0.422      0.326      0.239  
+             50-500m       4    0.991      0.916      0.234      0.462      0.326      0.179  
              500-9999m     0     -nan       -nan       -nan       -nan       -nan       -nan  
-           SAL             5    0.101      0.109      0.075     0.0992      0.031     0.0241  
-             WMO851        3    0.113      0.106     0.0713     0.0889     0.0322     0.0295  
+           SAL             5    0.101       0.11      0.075       0.11      0.031     0.0171  
+             WMO851        3    0.113      0.106     0.0713      0.106     0.0322     0.0177  
              WMO846        2   0.0841      0.115     0.0806      0.115     0.0292     0.0161  
              0-50m         1    0.165      0.181      0.165      0.181     0.0228     0.0126  
-             50-500m       4   0.0853     0.0915     0.0526     0.0788     0.0331      0.027  
+             50-500m       4   0.0853     0.0918     0.0526     0.0918     0.0331     0.0182  
              500-9999m     0     -nan       -nan       -nan       -nan       -nan       -nan  
-  2025-12-24 08:31:57
+  2026-10-30 18:30:57
   finished
