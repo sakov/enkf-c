@@ -36,13 +36,13 @@ struct enkfprm {
      */
     char* ensdir_static;
     /*
-     * total ensemble size
-     */
-    int enssize;
-    /*
      * size of the dynamic ensemble
      */
     int enssize_dynamic;
+    /*
+     * number of static ensembles
+     */
+    int nstatic;
     /*
      * size of the static ensemble
      */

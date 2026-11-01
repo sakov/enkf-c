@@ -157,7 +157,6 @@ dasystem* das_create(enkfprm* prm)
     if (prm->ensdir_static != NULL)
         das->ensdir_static = strdup(prm->ensdir_static);
     das->alpha = prm->alpha;
-    das->nmem = prm->enssize;
     das->nmem_dynamic = prm->enssize_dynamic;
     das->nmem_static = prm->enssize_static;
     das->gamma = (isfinite(prm->gamma)) ? prm->gamma : 1.0;

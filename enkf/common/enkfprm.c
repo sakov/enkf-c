@@ -54,7 +54,6 @@ static void enkfprm_check(enkfprm* prm)
         enkf_quit("%s: OBSTYPES not specified", prm->fname);
 #endif
 #if defined(ENKF_CALC) || defined(ENKF_UPDATE)
-    assert(prm->enssize == -1);
     if (prm->mode == MODE_ENKF) {
         if (prm->ensdir_dynamic == NULL)
             enkf_quit("%s: ENSDIR_DYNAMIC must be defined for MODE = EnKF", prm->fname);
@@ -128,7 +127,6 @@ enkfprm* enkfprm_read(char fname[])
 
     prm->obstypeprm = NULL;
     prm->obsprm = NULL;
-    prm->enssize = -1;
     prm->enssize_dynamic = -1;
     prm->enssize_static = -1;
     prm->gamma = 1.0;
@@ -671,16 +669,16 @@ void enkfprm_print(enkfprm* prm, char offset[])
 #if !defined(ENKF_PREP)
     if (prm->mode == MODE_ENKF) {
         enkf_printf("%sENSEMBLE DIR = \"%s\"\n", offset, prm->ensdir_dynamic);
-        if (prm->enssize > 0)
-            enkf_printf("%sENSEMBLE SIZE = %d\n", offset, prm->enssize);
+        if (prm->enssize_dynamic > 0)
+            enkf_printf("%sENSEMBLE SIZE = %d\n", offset, prm->enssize_dynamic);
         else
             enkf_printf("%sENSEMBLE SIZE = <FULL>\n", offset);
     } else if (prm->mode == MODE_ENOI) {
         enkf_printf("%sBGDIR = \"%s\"\n", offset, prm->ensdir_dynamic);
         if (!enkf_fstatsonly) {
             enkf_printf("%sENSEMBLE DIR = \"%s\"\n", offset, prm->ensdir_static);
-            if (prm->enssize > 0)
-                enkf_printf("%sENSEMBLE SIZE = %d\n", offset, prm->enssize);
+            if (prm->enssize_static > 0)
+                enkf_printf("%sENSEMBLE SIZE = %d\n", offset, prm->enssize_static);
             else
                 enkf_printf("%sENSEMBLE SIZE = <FULL>\n", offset);
         }
@@ -695,11 +693,6 @@ void enkfprm_print(enkfprm* prm, char offset[])
             enkf_printf("%sSTATIC ENSEMBLE SIZE = %d\n", offset, prm->enssize_static);
         else
             enkf_printf("%sSTATIC ENSEMBLE SIZE = <FULL>\n", offset);
-        if (prm->enssize >= 0)
-            enkf_printf("%sCOMBINED ENSEMBLE SIZE = %d\n", offset, prm->enssize);
-        else
-            enkf_printf("%sCOMBINED ENSEMBLE SIZE = <FULL>\n", offset);
-        enkf_printf("%sGAMMA = %.3f\n", offset, prm->gamma);
     }
 #endif
     if (!enkf_fstatsonly) {

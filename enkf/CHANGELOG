@@ -1,4 +1,7 @@
-v2.28.0
+v2.48.1
+   PS 02112026
+   -- Eliminated field "enssize" from struct enkfprm.
+v2.48.0
    PS 30102026
       This is a very substantial update ahead of the planned development to
       enable multiple static ensembles. The main change involves eliminating the
