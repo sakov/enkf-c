@@ -413,6 +413,7 @@ void das_getHE(dasystem* das)
                 for (i = 0; i < nobs; ++i)
                     Se[i] -= (float) ensmean[i];
             }
+            free(ensmean);
         }
 #if defined(USE_SHMEM)
     }

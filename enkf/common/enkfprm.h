@@ -40,10 +40,6 @@ struct enkfprm {
      */
     int enssize_dynamic;
     /*
-     * number of static ensembles
-     */
-    int nstatic;
-    /*
      * size of the static ensemble
      */
     int enssize_static;
