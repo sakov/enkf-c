@@ -1,0 +1,24 @@
+MODE = EnOI
+
+MODEL = model.prm
+GRID = grid.prm
+OBSTYPES = obstypes.prm
+
+OBS = obs.prm
+DATE = 6565.5 days since 1990-01-01
+
+BGDIR = background_6565
+ENSDIR = ensemble_static
+GAMMA = 0.5
+ENSDIR = ensemble_6565
+GAMMA = 0.5
+
+KFACTOR = 999
+LOCRAD = 200
+
+STRIDE = 3
+FIELDBUFFERSIZE = 4
+
+REGION Global   0   360   -90     90
+
+POINTLOG 156 -32

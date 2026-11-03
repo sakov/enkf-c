@@ -1,0 +1,142 @@
+  MPI: initialised 4 process(es)
+  running UPDATE for EnKF-C version 2.49.0:
+    command = "./enkf_update --calculate-spread --output-increment enoi2.prm"
+    dir = "/home/599/pxs599/src/enkf-c/enkf/examples/1"
+  2026-11-03 12:59:20
+  reading system specs from "enoi2.prm":
+    MODE = EnOI
+    MODEL PRM = "model.prm"
+    GRID PRM = "grid.prm"
+    BGDIR = "background_6565"
+    ensemble 0:
+      ENSEMBLE DIR = "ensemble_static"
+      ENSEMBLE SIZE = <FULL>
+      GAMMA = 0.500000
+    ensemble 1:
+      ENSEMBLE DIR = "ensemble_6565"
+      ENSEMBLE SIZE = <FULL>
+      GAMMA = 0.500000
+    INFLATION BASE = 1.0000
+    INFLATION MODE = CAPPED, MAX RATIO = 1.00
+    STRIDE = 3
+    FIELDBUFFERSIZE = 4
+    FIELDSPLIT = 1
+    POINTLOG 156.000 -32.000 
+    NCFORMAT = NETCDF4
+    NCCOMPRESSION = 0
+    EnKF flags:
+      enkf_exitaction  = [BACKTRACE]
+      enkf_obstype     = [VALUE]
+    enkf_update compile flags:
+      NCW_SKIPSINGLE   = [-]
+      USE_MPIQUEUE     = [+]
+      DEFLATE_ALL      = [-]
+  update specs:
+    do model fields   = [+]
+    do spread         = [+]
+    do pointlogs      = [+]
+    output increment  = [+]
+  initialising the system:
+    grid prm info:
+      NAME = "t-grid"
+      DOMAIN = ALL
+      DATA = "conf/grid_spec.nc"
+      VTYPE = "z"
+      VDIR = FROMSURF
+      GEOGRAPHIC = 1
+      ZVARNAME = "zt"
+      ZCVARNAME = <none>
+      DEPTHVARNAME = "depth_t"
+      NUMLEVELSVARNAME = "num_levels"
+      VDIR = "FROMSURF"
+      XVARNAME = "lon"
+      YVARNAME = "lat"
+      ZSTATINTS = [0 50] [50 500] [500 9999] 
+    grid info:
+      size = 100 x 100 x 2
+      h type = RECTANGULAR
+      periodic by X = no
+      longitude range = any
+      v type = Z
+      v dir = FROMSURF
+      STRIDE = 0
+  model info:
+    name = Tasman
+    5 variables:
+      eta_t:
+        grid = "t-grid"
+        inflation = 1.000 1.00
+      temp:
+        grid = "t-grid"
+        inflation = 1.000 1.00
+      salt:
+        grid = "t-grid"
+        inflation = 1.000 1.00
+      u:
+        grid = "t-grid"
+        inflation = 1.000 1.00
+      v:
+        grid = "t-grid"
+        inflation = 1.000 1.00
+  setting the ensemble size:
+    1 background state
+    static ensemble 0:
+      144 members
+    static ensemble 1:
+      96 members
+  initialising pointlogs:
+    pointlog (156.000, -32.000):
+      t-grid: (i, j) = (49.500, 49.500)
+  defining state variables in point logs:
+  writing forecast variables to point logs:
+    2026-11-03 12:59:21
+    distributing 241 iterations:
+      4 processes get 61 or 60 iterations
+    eta_t:.............................................................
+    temp:..........................................................................................................................
+    salt:..........................................................................................................................
+    u:..........................................................................................................................
+    v:..........................................................................................................................
+  allocating disk space for spread:
+    2026-11-03 12:59:26
+  updating model state:
+    2026-11-03 12:59:26
+    allocating disk space for analysis:
+      2026-11-03 12:59:26
+      distributing 1 iterations:
+        1 processes get 1 iteration, 3 processes get 0 iterations
+      .....
+    updating 9 fields using 4 processes:
+      2026-11-03 12:59:26
+      temp   1   (3: 2: 33.3%)
+      eta_t  0   (1: 0: 11.1%)
+      temp   0   (2: 1: 22.2%)
+      salt   0   (1: 3: 44.4%)
+      salt   1   (2: 4: 55.6%)
+      u      0   (3: 5: 66.7%)
+      u      1   (1: 6: 77.8%)
+      v      0   (3: 7: 88.9%)
+      v      1   (2: 8: 100.0%)
+  assembling bg:
+    2026-11-03 12:59:27
+    distributing 5 iterations:
+      4 processes get 2 or 1 iterations
+    ..
+  assembling spread:
+    2026-11-03 12:59:27
+    eta_t:.
+    temp:..
+    salt:..
+    u:..
+    v:..
+  writing analysed variables to point logs:
+  2026-11-03 12:59:27
+    distributing 1 iterations:
+      1 processes get 1 iteration, 3 processes get 0 iterations
+    eta_t:.
+    temp:..
+    salt:..
+    u:..
+    v:..
+  2026-11-03 12:59:28
+  finished

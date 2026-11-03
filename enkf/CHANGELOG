@@ -24,6 +24,8 @@ v2.49.0
 
           [ < more of static ensemble blocks > ]
       <...>
+   -- Added target "enoi2" to examples/1 as an example of EnOI setting with two
+      ensembles.
 v2.48.1
    PS 02112026
    -- Eliminated field "enssize" from struct enkfprm.

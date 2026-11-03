@@ -90,6 +90,13 @@ additional pointlog files pointlog_152.000,-36.000.nc and
 pointlog_160.000,-29.000.nc; compare calc-pointlogs.out and update-pointlogs.out
 with those in logs/pointlogs.
 
+TESTING ENOI WITH TWO STATIC ENSEMBLES
+
+This is just a technical test that uses covariance from the original static
+ensemble in ensemble_static and EnKF ensemble (treated as static) in
+ensemble_6565. (Note that EnKF-C subtracts ensemble mean from static ensembles,
+therefore the EnKF ensemble can be used "as is".) Run "make enoi2".
+
 --
 
 To clean up the analysis, run "make clean".
