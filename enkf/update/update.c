@@ -436,13 +436,13 @@ static void das_updatefields(dasystem* das, int nfield, void** fieldbuffer, fiel
                      * but the analysed ensemble should be conditioned so that
                      * it does not change in a no-obs. case.
                      */
-                    if (das->nmem_static > 0 && nmem_dynamic > 1) {
-                        double k_d = sqrt((double) (nmem - 1) / (double) (nmem_dynamic - 1));
+                    if (das->nstatic > 0 && nmem_dynamic > 1) {
+                        double k_d = sqrt((double) (nmem_dynamic - 1) / (double) (nmem - 1 - das->nstatic));
 
                         for (e = 0; e < nmem_dynamic; ++e)
-                            v_a[e] /= k_d;
+                            v_a[e] *= k_d;
                         for (e = 0; e < nmem_dynamic; ++e)
-                            v_f[e] /= k_d;
+                            v_f[e] *= k_d;
                     }
 
                     if (nmem_dynamic > 1) {
@@ -1160,6 +1160,7 @@ void das_update(dasystem* das)
                             // 
                             // 
                             // 
+                            // 
                             // isize, sizeof(float));
                             else
                                 /*
@@ -1177,6 +1178,7 @@ void das_update(dasystem* das)
                                 fieldbuffer[i] = alloc2d(das->nmem, isize, sizeof(float));
                             // else if (das->nmem_dynamic ==1)
                             // fieldbuffer[i] = alloc2d(das->nmem + 1, isize, 
+                            // 
                             // 
                             // 
                             // 
@@ -1210,7 +1212,7 @@ void das_update(dasystem* das)
                     das_getmemberfname(das, f->varname, e + 1, fname);
                     model_readfield_part(das->m, fname, f->varname, -1, f->level, f->j1, f->j2, (f->isstructured) ? ((float***) fieldbuffer[bufid])[e][0] : ((float**) fieldbuffer[bufid])[e], masklog);
                 }
-                if (das->nmem_static > 0) {
+                if (das->nstatic > 0) {
                     float** v = calloc(das->nmem + 1, sizeof(float*));
 
                     for (e = 0; e < das->nmem + 1; ++e)
@@ -1367,7 +1369,7 @@ void das_update(dasystem* das)
                     model_readfield_part(das->m, fname, f->varname, -1, f->level, f->j1, f->j2, (f->isstructured) ? ((float***) fieldbuffer[bufid])[e][0] : ((float**) fieldbuffer[bufid])[e], masklog);
                 }
 
-                if (das->nmem_static > 0) {
+                if (das->nstatic > 0) {
                     float* v[das->nmem + 1];
 
                     for (e = 0; e < das->nmem + 1; ++e)

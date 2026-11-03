@@ -258,8 +258,19 @@ void das_createplog(dasystem* das, int plogid, int ploc, int* lobs, double* lcoe
         ncw_put_att_text(ncid, NC_GLOBAL, "SCHEME", (das->scheme == SCHEME_DENKF) ? "DEnKF" : "ETKF");
         ncw_put_att_double(ncid, NC_GLOBAL, "ALPHA", 1, &das->alpha);
     }
-    if (das->nmem_static > 0)
-        ncw_put_att_double(ncid, NC_GLOBAL, "GAMMA", 1, &das->gamma);
+    if (das->nstatic == 1)
+        ncw_put_att_double(ncid, NC_GLOBAL, "GAMMA", 1, &das->gamma[0]);
+    else if (das->nstatic > 1) {
+        char attname[MAXSTRLEN];
+        int s;
+
+        for (s = 0; s < das->nstatic; ++s) {
+            snprintf(attname, MAXSTRLEN, "ENSSIZE_STATIC%d", s);
+            ncw_put_att_int(ncid, NC_GLOBAL, attname, 1, &das->nmem_static[s]);
+            snprintf(attname, MAXSTRLEN, "GAMMA%d", s);
+            ncw_put_att_double(ncid, NC_GLOBAL, attname, 1, &das->gamma[s]);
+        }
+    }
     ncw_put_att_int(ncid, NC_GLOBAL, "ngrids", 1, &ngrid);
 
     if (das->nccompression > 0)
@@ -517,7 +528,7 @@ void plogs_definestatevars(dasystem* das)
                 } else
                     ncw_inq_varid(ncid, varname, &varid);
 
-                if (das->nmem_static > 0)
+                if (das->nstatic > 0)
                     ncw_inq_dimid(ncid, "m1", &dimids[1]);
                 if ((das->updatespec & UPDATE_DOPLOGSAN) || das->haveanalysis) {
                     if (!ncw_var_exists(ncid, varname_an)) {

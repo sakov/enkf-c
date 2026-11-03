@@ -50,13 +50,16 @@ typedef struct {
     int mode;
     int scheme;
     double alpha;               /* relaxation to prior spread coefficient */
+
     char* ensdir_dynamic;
-    char* ensdir_static;
+    int nmem_dynamic;           /* size of the dynamic ensemble */
+
+    int nstatic;                /* number of static ensembles */
+    char** ensdir_static;
+    int* nmem_static;           /* sizes of the static ensembles */
+    double* gamma;              /* mixing coefficients: P = P_d + gamma P_s */
 
     int nmem;                   /* total size of the ensemble */
-    int nmem_dynamic;           /* size of the dynamic ensemble */
-    int nmem_static;            /* size of the static ensemble */
-    double gamma;               /* mixing coefficient: P = P_d + gamma P_s */
 
     model* m;
 

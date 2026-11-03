@@ -321,13 +321,12 @@ void das_getHE(dasystem* das)
 #if defined(USE_SHMEM)
     if (sm_comm_rank == 0) {
 #endif
-        if (das->nmem_static > 0) {
+        if (das->nstatic > 0) {
             double* ensmean_d = calloc(nobs, sizeof(double));
             double* ensmean_s = calloc(nobs, sizeof(double));
             int nmem_d = das->nmem_dynamic;
-            int nmem_s = das->nmem_static;
-            double k_d = (nmem_d > 1) ? sqrt((double) (nmem - 2) / (double) (nmem_d - 1)) : 0.0;
-            double k_s = sqrt(das->gamma * (double) (nmem - 2) / (double) (nmem_s - 1));
+            double k_d = (nmem_d > 1) ? sqrt((double) (nmem - das->nstatic - 1) / (double) (nmem_d - 1)) : 0.0;
+            int s;
 
             enkf_printf("  scaling:\n");
             enkf_printtime("  ");
@@ -373,25 +372,34 @@ void das_getHE(dasystem* das)
                 else
                     enkf_quit("programming error");
             }
-            /*
-             * calculate static ensemble mean
-             */
-            for (e = nmem_d; e < nmem; ++e) {
-                float* Se = das->S[e];
 
-                for (i = 0; i < nobs; ++i)
-                    ensmean_s[i] += Se[i];
-            }
-            for (i = 0; i < nobs; ++i)
-                ensmean_s[i] /= (double) nmem_s;
-            /*
-             * scale static ensemble anomalies and add dynamic ensemble mean
-             */
-            for (e = nmem_d; e < nmem; ++e) {
-                float* Se = das->S[e];
+            for (s = 0, e = nmem_d; s < das->nstatic; ++s) {
+                int nmem_s = das->nmem_static[s];
+                double k_s = sqrt(das->gamma[s] * (double) (nmem - das->nstatic - 1) / (double) (nmem_s - 1));
+                int ee;
 
+                /*
+                 * calculate static ensemble mean
+                 */
+                memset(ensmean_s, 0, nobs * sizeof(double));
+                for (ee = 0; ee < das->nmem_static[s]; ++ee, ++e) {
+                    float* Se = das->S[e];
+
+                    for (i = 0; i < nobs; ++i)
+                        ensmean_s[i] += Se[i];
+                }
                 for (i = 0; i < nobs; ++i)
-                    Se[i] = (Se[i] - ensmean_s[i]) * k_s + ensmean_d[i];
+                    ensmean_s[i] /= (double) nmem_s;
+                /*
+                 * scale static ensemble anomalies and add dynamic ensemble mean
+                 */
+                e -= das->nmem_static[s];
+                for (ee = 0; ee < das->nmem_static[s]; ++ee, ++e) {
+                    float* Se = das->S[e];
+
+                    for (i = 0; i < nobs; ++i)
+                        Se[i] = (Se[i] - ensmean_s[i]) * k_s + ensmean_d[i];
+                }
             }
             free(ensmean_d);
             free(ensmean_s);
@@ -454,7 +462,7 @@ void das_writeHE(dasystem* das)
     ncw_def_dim(ncid, "nmem", das->nmem, &dimids[0]);
     ncw_def_dim(ncid, "nobs", das->obs->nobs, &dimids[1]);
     ncw_def_var(ncid, "HE", NC_FLOAT, 2, dimids, &varid);
-    if (das->nmem_static > 0)
+    if (das->nstatic > 0)
         ncw_put_att_int(ncid, NC_GLOBAL, "nmem_dynamic", 1, &das->nmem_dynamic);
     if (das->nccompression > 0)
         ncw_def_deflate(ncid, 0, 1, das->nccompression);
@@ -473,7 +481,7 @@ void das_calcinnandspread(dasystem* das)
     observations* obs = das->obs;
     int nobs = obs->nobs;
     int nmem = das->nmem;
-    int nmem_m1 = (das->nmem_static == 0) ? nmem - 1 : nmem - 2;
+    int nmem_m1 = nmem - das->nstatic - 1;
     int e, o;
 
     if (nobs == 0)
@@ -787,10 +795,7 @@ void das_standardise(dasystem* das)
     if (obs->nobs == 0)
         goto finish;
 
-    if (das->nmem_static == 0)
-        mult = sqrt((double) (das->nmem - 1));
-    else
-        mult = sqrt((double) (das->nmem - 2));
+    mult = sqrt((double) (das->nmem - das->nstatic - 1));
 
 #if defined(USE_SHMEM)
     if (sm_comm_rank == 0)
@@ -901,10 +906,7 @@ void das_destandardise(dasystem* das)
     if (obs->nobs == 0)
         goto finish;
 
-    if (das->nmem_static == 0)
-        mult = sqrt((double) (das->nmem - 1));
-    else
-        mult = sqrt((double) (das->nmem - 2));
+    mult = sqrt((double) (das->nmem - das->nstatic - 1));
 
 #if defined(USE_SHMEM)
     if (sm_comm_rank == 0)

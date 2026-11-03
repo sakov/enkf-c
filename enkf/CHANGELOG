@@ -1,3 +1,29 @@
+v2.49.0
+   PS 03112026
+   -- Enable multiple static ensembles:
+      >bin/enkf_prep --describe-prm-format
+      <...>
+        (for MODE = ENOI:)
+            { BGDIR | ENSDIR_DYNAMIC }    = <background directory>
+
+            { ENSDIR | ENSDIR_STATIC }    = <ensemble directory>
+          [ { ENSSIZE | ENSSIZE_STATIC }  = <ensemble size> ]         (<full>*)
+          [ GAMMA                         = <gamma> ]                 (<1*>)
+
+          [ < more of static ensemble blocks > ]
+
+        (for MODE = HYBRID:)
+          [ SCHEME                        = { DENKF* | ETKF } ]
+          [ ALPHA                         = <alpha> ]                 (1*)
+            ENSDIR_DYNAMIC                = <dynamic ensemble directory>
+          [ ENSSIZE_DYNAMIC               = <dynamic ensemble size> ] (<full>*)
+
+            ENSDIR_STATIC                 = <static ensemble directory>
+          [ ENSSIZE_STATIC                = <static ensemble size> ]  (<full>*)
+            GAMMA                         = <gamma>
+
+          [ < more of static ensemble blocks > ]
+      <...>
 v2.48.1
    PS 02112026
    -- Eliminated field "enssize" from struct enkfprm.

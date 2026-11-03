@@ -60,28 +60,40 @@ static void enkfprm_check(enkfprm* prm)
         if (prm->enssize_dynamic == 0)
             enkf_quit("%s: ENSSIZE_DYNAMIC must be positive", prm->fname);
     } else if (prm->mode == MODE_ENOI) {
-        if (prm->ensdir_static == NULL && !enkf_fstatsonly)
+        if (prm->nstatic == 0 && !enkf_fstatsonly)
             enkf_quit("%s: ENSDIR_STATIC must be defined for MODE = EnOI (except when CALC is run with --fstats-only)", prm->fname);
         if (prm->enssize_dynamic >= 0 && prm->enssize_dynamic != 1)
             enkf_quit("%s: ENSSIZE_DYNAMIC can be set to 1 only for MODE = ENOI", prm->fname);
         prm->enssize_dynamic = 1;
         if (enkf_fstatsonly)
-            prm->enssize_static = 0;
-        if (isnan(prm->gamma))
-            prm->gamma = 1.0;
-        if (prm->gamma <= 0.0)
-            enkf_quit("%s: GAMMA must be positive", prm->fname);
+            prm->nstatic = 0;
+        {
+            int i;
+
+            for (i = 0; i < prm->nstatic; ++i) {
+                if (isnan(prm->gamma[i]))
+                    prm->gamma[i] = 1.0;
+                else if (prm->gamma[i] <= 0.0)
+                    enkf_quit("%s: GAMMA must be positive", prm->fname);
+            }
+        }
     } else if (prm->mode == MODE_HYBRID) {
         if (prm->ensdir_dynamic == NULL)
             enkf_quit("%s: ENSDIR_DYNAMIC must be defined for MODE = Hybrid", prm->fname);
-        if (prm->ensdir_static == NULL)
+        if (prm->nstatic == 0)
             enkf_quit("%s: ENSDIR_STATIC must be defined for MODE = Hybrid", prm->fname);
         if (prm->enssize_dynamic == 0)
             enkf_quit("%s: ENSSIZE_DYNAMIC must be positive", prm->fname);
-        if (isnan(prm->gamma))
-            enkf_quit("%s: GAMMA must be defined for MODE = HYBRID", prm->fname);
-        if (prm->gamma <= 0.0)
-            enkf_quit("%s: GAMMA must be positive", prm->fname);
+        {
+            int i;
+
+            for (i = 0; i < prm->nstatic; ++i) {
+                if (isnan(prm->gamma[i]))
+                    prm->gamma[i] = 1.0;
+                else if (prm->gamma[i] <= 0.0)
+                    enkf_quit("%s: GAMMA must be positive", prm->fname);
+            }
+        }
     }
 #endif
 #if defined(ENKF_CALC)
@@ -114,7 +126,7 @@ enkfprm* enkfprm_read(char fname[])
     int line;
     int i;
 
-    prm = calloc(1, sizeof(enkfprm));   /* everything is initialised to 0 */
+    prm = calloc(1, sizeof(enkfprm));
     prm->fname = fname;
     prm->mode = MODE_NONE;
     prm->scheme = SCHEME_DEFAULT;
@@ -127,9 +139,14 @@ enkfprm* enkfprm_read(char fname[])
 
     prm->obstypeprm = NULL;
     prm->obsprm = NULL;
+
+    prm->ensdir_dynamic = NULL;
     prm->enssize_dynamic = -1;
-    prm->enssize_static = -1;
-    prm->gamma = 1.0;
+    prm->nstatic = 0;
+    prm->ensdir_static = NULL;
+    prm->enssize_static = NULL;
+    prm->gamma = NULL;
+
     prm->kfactor = NAN;
     prm->rfactor_base = 1.0;
     prm->inflation = 1.0;
@@ -243,9 +260,21 @@ enkfprm* enkfprm_read(char fname[])
                     enkf_quit("%s, l.%d: ENSDIR (or ENSDIR_DYNAMIC) specified twice", fname, line);
                 prm->ensdir_dynamic = strdup(token);
             } else if (prm->mode == MODE_ENOI) {
-                if (prm->ensdir_static != NULL)
-                    enkf_quit("%s, l.%d: ENSDIR (or ENSDIR_STATIC) specified twice", fname, line);
-                prm->ensdir_static = strdup(token);
+                if (prm->nstatic % NINC == 0) {
+                    int i;
+
+                    prm->ensdir_static = realloc(prm->ensdir_static, (prm->nstatic + NINC) * sizeof(char*));
+                    prm->enssize_static = realloc(prm->enssize_static, (prm->nstatic + NINC) * sizeof(int));
+                    prm->gamma = realloc(prm->gamma, (prm->nstatic + NINC) * sizeof(double));
+
+                    for (i = prm->nstatic; i < prm->nstatic + NINC; ++i) {
+                        prm->ensdir_static[i] = NULL;
+                        prm->enssize_static[i] = -1;
+                        prm->gamma[i] = NAN;
+                    }
+                }
+                prm->ensdir_static[prm->nstatic] = strdup(token);
+                prm->nstatic++;
             } else if (prm->mode == MODE_HYBRID)
                 enkf_quit("using ENSDIR for MODE = HYBRID is ambiguous, use ENSDIR_DYNAMIC and ENSDIR_STATIC instead");
             else if (prm->mode == MODE_NONE)
@@ -260,11 +289,25 @@ enkfprm* enkfprm_read(char fname[])
             else
                 prm->ensdir_dynamic = strdup(token);
         } else if (strcasecmp(token, "ENSDIR_STATIC") == 0) {
+            if (prm->mode == MODE_ENKF)
+                enkf_quit("%s, l.%d: ENSDIR_STATIC cannot be specified for MODE = ENKF", fname, line);
             if ((token = strtok(NULL, seps)) == NULL)
                 enkf_quit("%s, l.%d: ENSDIR_STATIC not specified", fname, line);
-            else if (prm->ensdir_static != NULL)
-                enkf_quit("%s, l.%d: ENSDIR_STATIC specified twice", fname, line);
-            prm->ensdir_static = strdup(token);
+            if (prm->nstatic % NINC == 0) {
+                int i;
+
+                prm->ensdir_static = realloc(prm->ensdir_static, (prm->nstatic + NINC) * sizeof(char*));
+                prm->enssize_static = realloc(prm->enssize_static, (prm->nstatic + NINC) * sizeof(int));
+                prm->gamma = realloc(prm->gamma, (prm->nstatic + NINC) * sizeof(double));
+
+                for (i = prm->nstatic; i < prm->nstatic + NINC; ++i) {
+                    prm->ensdir_static[i] = NULL;
+                    prm->enssize_static[i] = -1;
+                    prm->gamma[i] = NAN;
+                }
+            }
+            prm->ensdir_static[prm->nstatic] = strdup(token);
+            prm->nstatic++;
         } else if (strcasecmp(token, "ENSSIZE") == 0) {
             if ((token = strtok(NULL, seps)) == NULL)
                 enkf_quit("%s, l.%d: ENSSIZE not specified", fname, line);
@@ -274,9 +317,11 @@ enkfprm* enkfprm_read(char fname[])
                 else if (!str2int(token, &prm->enssize_dynamic))
                     enkf_quit("%s, l.%d: could not convert ENSSIZE (or ENSSIZE_DYNAMIC) entry to int", fname, line);
             } else if (prm->mode == MODE_ENOI) {
-                if (prm->enssize_static >= 0)
-                    enkf_quit("%s, l.%d: ENSSIZE (or ENSSIZE_STATIC) specified twice", fname, line);
-                else if (!str2int(token, &prm->enssize_static))
+                if (prm->nstatic % NINC == 0)
+                    enkf_quit("%s, l.%d: ENSSIZE should be preceded by ENSDIR_STATIC in a block specifying static ensemble", fname, line);
+                if (prm->enssize_static[prm->nstatic - 1] >= 0)
+                    enkf_quit("%s, l.%d: ENSSIZE (or ENSSIZE_STATIC) specified twice for ensemble directory \"%s\"", fname, line, prm->ensdir_static[prm->nstatic - 1]);
+                else if (!str2int(token, &prm->enssize_static[prm->nstatic - 1]))
                     enkf_quit("%s, l.%d: could not convert ENSSIZE (or ENSSIZE_STATIC) entry to int", fname, line);
             } else if (prm->mode == MODE_HYBRID)
                 enkf_quit("using ENSSIZE for MODE = HYBRID is ambiguous, use ENSSIZE_DYNAMIC and ENSSIZE_STATIC instead");
@@ -292,16 +337,24 @@ enkfprm* enkfprm_read(char fname[])
             else if (!str2int(token, &prm->enssize_dynamic))
                 enkf_quit("%s, l.%d: could not convert ENSSIZE_DYNAMIC entry to int", fname, line);
         } else if (strcasecmp(token, "ENSSIZE_STATIC") == 0) {
+            if (prm->mode == MODE_ENKF)
+                enkf_quit("%s, l.%d: ENSSIZE_STATIC cannot be specified for MODE = ENKF", fname, line);
             if ((token = strtok(NULL, seps)) == NULL)
                 enkf_quit("%s, l.%d: ENSSIZE_STATIC not specified", fname, line);
-            else if (prm->enssize_static >= 0)
-                enkf_quit("%s, l.%d: ENSSIZE_STATIC specified twice", fname, line);
-            else if (!str2int(token, &prm->enssize_static))
+            if (prm->nstatic % NINC == 0)
+                enkf_quit("%s, l.%d: ENSSIZE_STATIC should be preceded by ENSDIR_STATIC in the block specifying a static ensemble", fname, line);
+            if (prm->enssize_static[prm->nstatic - 1] >= 0)
+                enkf_quit("%s, l.%d: ENSSIZE_STATIC specified twice for ensemble directory \"%s\"", fname, line, prm->ensdir_static[prm->nstatic - 1]);
+            if (!str2int(token, &prm->enssize_static[prm->nstatic - 1]))
                 enkf_quit("%s, l.%d: could not convert ENSSIZE_STATIC entry to int", fname, line);
         } else if (strcasecmp(token, "GAMMA") == 0) {
+            if (prm->mode == MODE_ENKF)
+                enkf_quit("%s, l.%d: GAMMA cannot be specified for MODE = ENKF", fname, line);
+            if (prm->nstatic % NINC == 0)
+                enkf_quit("%s, l.%d: GAMMA should be preceded by ENSDIR_STATIC in a block specifying static ensemble", fname, line);
             if ((token = strtok(NULL, seps)) == NULL)
                 enkf_quit("%s, l.%d: GAMMA not specified", fname, line);
-            else if (!str2double(token, &prm->gamma))
+            else if (!str2double(token, &prm->gamma[prm->nstatic - 1]))
                 enkf_quit("%s, l.%d: could not convert \"%s\" to double", fname, line, token);
         } else if (strcasecmp(token, "BGDIR") == 0) {
             if (prm->mode != MODE_ENOI)
@@ -593,8 +646,14 @@ void enkfprm_destroy(enkfprm* prm)
 
     free(prm->time);
     free(prm->ensdir_dynamic);
-    if (prm->ensdir_static != NULL)
+    for (i = 0; i < prm->nstatic; ++i)
+        if (prm->ensdir_static[i] != NULL)
+            free(prm->ensdir_static[i]);
+    if (prm->nstatic > 0) {
         free(prm->ensdir_static);
+        free(prm->enssize_static);
+        free(prm->gamma);
+    }
     if (prm->locrad != NULL)
         free(prm->locrad);
     if (prm->locweight != NULL)
@@ -623,7 +682,7 @@ void enkfprm_destroy(enkfprm* prm)
  */
 void enkfprm_print(enkfprm* prm, char offset[])
 {
-#if defined(ENKF_CALC) || defined(ENKF_UPDATE)
+#if !defined(ENKF_PREP)
     int i;
 #endif
 
@@ -676,11 +735,24 @@ void enkfprm_print(enkfprm* prm, char offset[])
     } else if (prm->mode == MODE_ENOI) {
         enkf_printf("%sBGDIR = \"%s\"\n", offset, prm->ensdir_dynamic);
         if (!enkf_fstatsonly) {
-            enkf_printf("%sENSEMBLE DIR = \"%s\"\n", offset, prm->ensdir_static);
-            if (prm->enssize_static > 0)
-                enkf_printf("%sENSEMBLE SIZE = %d\n", offset, prm->enssize_static);
-            else
-                enkf_printf("%sENSEMBLE SIZE = <FULL>\n", offset);
+            if (prm->nstatic == 1) {
+                enkf_printf("%sENSEMBLE DIR = \"%s\"\n", offset, prm->ensdir_static[0]);
+                if (prm->enssize_static[0] > 0)
+                    enkf_printf("%sENSEMBLE SIZE = %d\n", offset, prm->enssize_static[0]);
+                else
+                    enkf_printf("%sENSEMBLE SIZE = <FULL>\n", offset);
+                enkf_printf("%sGAMMA = %f\n", offset, prm->gamma[0]);
+            } else {
+                for (i = 0; i < prm->nstatic; ++i) {
+                    enkf_printf("%sensemble %d:\n", offset, i);
+                    enkf_printf("%s  ENSEMBLE DIR = \"%s\"\n", offset, prm->ensdir_static[i]);
+                    if (prm->enssize_static[i] > 0)
+                        enkf_printf("%s  ENSEMBLE SIZE = %d\n", offset, prm->enssize_static[i]);
+                    else
+                        enkf_printf("%s  ENSEMBLE SIZE = <FULL>\n", offset);
+                    enkf_printf("%s  GAMMA = %f\n", offset, prm->gamma[i]);
+                }
+            }
         }
     } else if (prm->mode == MODE_HYBRID) {
         enkf_printf("%sDYNAMIC ENSEMBLE DIR = \"%s\"\n", offset, prm->ensdir_dynamic);
@@ -688,11 +760,24 @@ void enkfprm_print(enkfprm* prm, char offset[])
             enkf_printf("%sDYNAMIC ENSEMBLE SIZE = %d\n", offset, prm->enssize_dynamic);
         else
             enkf_printf("%sDYNAMIC ENSEMBLE SIZE = <FULL>\n", offset);
-        enkf_printf("%sSTATIC ENSEMBLE DIR = \"%s\"\n", offset, prm->ensdir_static);
-        if (prm->enssize_static > 0)
-            enkf_printf("%sSTATIC ENSEMBLE SIZE = %d\n", offset, prm->enssize_static);
-        else
-            enkf_printf("%sSTATIC ENSEMBLE SIZE = <FULL>\n", offset);
+        if (prm->nstatic == 1) {
+            enkf_printf("%sSTATIC ENSEMBLE DIR = \"%s\"\n", offset, prm->ensdir_static[0]);
+            if (prm->enssize_static[0] > 0)
+                enkf_printf("%sSTATIC ENSEMBLE SIZE = %d\n", offset, prm->enssize_static[0]);
+            else
+                enkf_printf("%sSTATIC ENSEMBLE SIZE = <FULL>\n", offset);
+            enkf_printf("%sGAMMA = %f\n", offset, prm->gamma[0]);
+        } else {
+            for (i = 0; i < prm->nstatic; ++i) {
+                enkf_printf("%sstatic ensemble %d:\n", i);
+                enkf_printf("%s  ENSEMBLE DIR = \"%s\"\n", offset, prm->ensdir_static[i]);
+                if (prm->enssize_static[i] > 0)
+                    enkf_printf("%s  ENSEMBLE SIZE = %d\n", offset, prm->enssize_static[i]);
+                else
+                    enkf_printf("%s  ENSEMBLE SIZE = <FULL>\n", offset);
+                enkf_printf("%s  GAMMA = %f\n", offset, prm->gamma[i]);
+            }
+        }
     }
 #endif
     if (!enkf_fstatsonly) {
@@ -792,23 +877,31 @@ void enkfprm_describeprm(void)
     enkf_printf("    OBSTYPES        = <obs. types prm file>\n");
     enkf_printf("    OBS             = <obs. data prm file>\n");
     enkf_printf("  (for MODE = ENKF:)\n");
-    enkf_printf("      { ENSDIR | ENSDIR_DYNAMIC }   = <ensemble directory>\n");
-    enkf_printf("    [ { ENSSIZE | ENSSIZE_DYNAMIC } = <ensemble size> ]         (<full>*)\n");
     enkf_printf("    [ SCHEME                        = { DENKF* | ETKF } ]\n");
     enkf_printf("    [ ALPHA                         = <alpha> ]                 (1*)\n");
+    enkf_printf("      { ENSDIR | ENSDIR_DYNAMIC }   = <ensemble directory>\n");
+    enkf_printf("    [ { ENSSIZE | ENSSIZE_DYNAMIC } = <ensemble size> ]         (<full>*)\n");
     enkf_printf("  (for MODE = ENOI:)\n");
+    enkf_printf("      { BGDIR | ENSDIR_DYNAMIC }    = <background directory>\n");
+    enkf_printf("\n");
     enkf_printf("      { ENSDIR | ENSDIR_STATIC }    = <ensemble directory>\n");
     enkf_printf("    [ { ENSSIZE | ENSSIZE_STATIC }  = <ensemble size> ]         (<full>*)\n");
-    enkf_printf("      { BGDIR | ENSDIR_DYNAMIC }    = <background directory>\n");
     enkf_printf("    [ GAMMA                         = <gamma> ]                 (<1*>)\n");
+    enkf_printf("\n");
+    enkf_printf("    [ < more of static ensemble blocks > ]\n");
+    enkf_printf("\n");
     enkf_printf("  (for MODE = HYBRID:)\n");
+    enkf_printf("    [ SCHEME                        = { DENKF* | ETKF } ]\n");
+    enkf_printf("    [ ALPHA                         = <alpha> ]                 (1*)\n");
     enkf_printf("      ENSDIR_DYNAMIC                = <dynamic ensemble directory>\n");
     enkf_printf("    [ ENSSIZE_DYNAMIC               = <dynamic ensemble size> ] (<full>*)\n");
+    enkf_printf("\n");
     enkf_printf("      ENSDIR_STATIC                 = <static ensemble directory>\n");
     enkf_printf("    [ ENSSIZE_STATIC                = <static ensemble size> ]  (<full>*)\n");
     enkf_printf("      GAMMA                         = <gamma>\n");
-    enkf_printf("    [ SCHEME                        = { DENKF* | ETKF } ]\n");
-    enkf_printf("    [ ALPHA                         = <alpha> ]                 (1*)\n");
+    enkf_printf("\n");
+    enkf_printf("    [ < more of static ensemble blocks > ]\n");
+    enkf_printf("\n");
     enkf_printf("  [ KFACTOR         = <kfactor> ]                               (NaN*)\n");
     enkf_printf("  [ RFACTOR         = <rfactor> ]                               (1*)\n");
     enkf_printf("    LOCRAD          = <loc. radius in km> ...\n");
@@ -857,16 +950,24 @@ void enkfprm_describeprm_ensdiag(void)
     enkf_printf("      { ENSDIR | ENSDIR_DYNAMIC }   = <ensemble directory>\n");
     enkf_printf("    [ { ENSSIZE | ENSSIZE_DYNAMIC } = <ensemble size> ]      (<full>*)\n");
     enkf_printf("  (for MODE = ENOI:)\n");
+    enkf_printf("      { BGDIR | ENSDIR_DYNAMIC }    = <background directory>\n");
+    enkf_printf("\n");
     enkf_printf("      { ENSDIR | ENSDIR_STATIC }    = <ensemble directory>\n");
     enkf_printf("    [ { ENSSIZE | ENSSIZE_STATIC }  = <ensemble size> ]      (<full>*)\n");
-    enkf_printf("      { BGDIR | ENSDIR_DYNAMIC }    = <background directory>\n");
     enkf_printf("    [ GAMMA                         = <gamma> ]              (<1*>)\n");
+    enkf_printf("\n");
+    enkf_printf("    [ < more of static ensemble blocks > ]\n");
+    enkf_printf("\n");
     enkf_printf("  (for MODE = HYBRID:)\n");
     enkf_printf("      ENSDIR_DYNAMIC                = <dynamic ensemble directory>\n");
     enkf_printf("    [ ENSSIZE_DYNAMIC               = <dynamic ensemble size> ](<full>*)\n");
+    enkf_printf("\n");
     enkf_printf("      ENSDIR_STATIC                 = <static ensemble directory>\n");
     enkf_printf("    [ ENSSIZE_STATIC                = <static ensemble size> ] (<full>*)\n");
     enkf_printf("      GAMMA                         = <gamma>\n");
+    enkf_printf("\n");
+    enkf_printf("    [ < more of static ensemble blocks > ]\n");
+    enkf_printf("\n");
     enkf_printf("  [ FIELDBUFFERSIZE = <field buffer size> ]         (1*)\n");
     enkf_printf("  [ FIELDSPLIT      = <field split factor> ]        (1*)\n");
     enkf_printf("  [ NCCOMPRESSION   = <compression level> ]         (0*)\n");

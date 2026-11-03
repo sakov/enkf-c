@@ -39,7 +39,7 @@
 
 \begin{document}
 
-\title{EnKF-C user guide\\{\normalsize version 2.48.0}}
+\title{EnKF-C user guide\\{\normalsize version 2.49.0}}
 
 \author{Pavel Sakov}
 \date{June 19, 2014 -- \today}
@@ -671,18 +671,23 @@ The added static covariance can be assumed to represent the model error covarian
 The forecast covariance $\mb P^f$ is then carried by the combined ensemble $\mb A^f$:
 \begin{align}
   \label{hybrid_combined}
-  \mb A^f = \left[ \left(\frac{m - 1}{m\subtxt{dyn} - 1}\right)^{1/2} \mb A\suptxt{dyn}, \left(\gamma \frac{m - 1}{m\subtxt{stat} - 1}\right)^{1/2} \mb A\suptxt{stat} \right],
+  \mb A^f = \left[ \left(\frac{m - 2}{m\subtxt{dyn} - 1}\right)^{1/2} \mb A\suptxt{dyn}, \left(\gamma \frac{m - 2}{m\subtxt{stat} - 1}\right)^{1/2} \mb A\suptxt{stat} \right],
 \end{align}
 where $m = m\subtxt{dyn} + m\subtxt{stat}$, so that
-\begin{align*}
-  \mb P^f = \frac{1}{m - 1} \mb A^f (\mb A^f)\T.
-\end{align*}
+\begin{align}
+  \label{cov_combined}
+  \mb P^f = \frac{1}{m - 2} \mb A^f (\mb A^f)\T.
+\end{align}
+
+We use factor $m - 2$ instead of the usual $m - 1$ in \eqref{cov_combined} and, correspondingly, \eqref{hybrid_combined}, because the ensemble mean has been removed from each ensemble of anomalies in \eqref{hybrid_combined}.
+Therefore, the combined ensemble has two degrees of freedom removed instead of the usual one.
+Formally, this choice is immaterial to \eqref{hybrid_covariance}; however, it must match the factor used in standardisations \eqref{s}, \eqref{S}, where it should be applied.
 
 The combined forecast ensemble anomalies \eqref{hybrid_combined} have a larger ensemble size than that of the dynamic ensemble; hence there arises a problem of ensemble reduction to obtain the analysed dynamic ensemble of size $m\subtxt{dyn}$.
 EnKF-C takes the approach described in Section~\ref{sec:reduction}, leading to \eqref{reduction_right}:
 \begin{align}
   \label{hybrid_update}
-  (\mb E\suptxt{dyn})^a = (\mb x^f + \mb A^f \mb w) \mb 1\T + \left(\frac{m\subtxt{dyn} - 1}{m - 1}\right)^{1/2} \mb A^f \mb T(:, 1 : m\subtxt{dyn}),
+  (\mb E\suptxt{dyn})^a = (\mb x^f + \mb A^f \mb w) \mb 1\T + \left(\frac{m\subtxt{dyn} - 1}{m - 2}\right)^{1/2} \mb A^f \mb T(:, 1 : m\subtxt{dyn}),
 \end{align}
 where $\mb x^f$ is the ensemble mean of the dynamic forecast ensemble, $\mb w$ is a vector of ensemble mean update coefficients, and $\mb T$ is the right-multiplied ensemble transform matrix; both $\mb w$ and $\mb T$ are computed using the expanded ensemble anomalies \eqref{hybrid_combined}.
 
@@ -800,23 +805,31 @@ Its format is described by running \verb|enkf_prep|, \verb|enkf_calc| or \verb|e
     OBSTYPES        = <obs. types prm file>
     OBS             = <obs. data prm file>
   (for MODE = ENKF:)
-      { ENSDIR | ENSDIR_DYNAMIC }   = <ensemble directory>
-    [ { ENSSIZE | ENSSIZE_DYNAMIC } = <ensemble size> ]         (<full>*)
     [ SCHEME                        = { DENKF* | ETKF } ]
     [ ALPHA                         = <alpha> ]                 (1*)
+      { ENSDIR | ENSDIR_DYNAMIC }   = <ensemble directory>
+    [ { ENSSIZE | ENSSIZE_DYNAMIC } = <ensemble size> ]         (<full>*)
   (for MODE = ENOI:)
+      { BGDIR | ENSDIR_DYNAMIC }    = <background directory>
+
       { ENSDIR | ENSDIR_STATIC }    = <ensemble directory>
     [ { ENSSIZE | ENSSIZE_STATIC }  = <ensemble size> ]         (<full>*)
-      { BGDIR | ENSDIR_DYNAMIC }    = <background directory>
     [ GAMMA                         = <gamma> ]                 (<1*>)
+
+    [ < more of static ensemble blocks > ]
+
   (for MODE = HYBRID:)
+    [ SCHEME                        = { DENKF* | ETKF } ]
+    [ ALPHA                         = <alpha> ]                 (1*)
       ENSDIR_DYNAMIC                = <dynamic ensemble directory>
     [ ENSSIZE_DYNAMIC               = <dynamic ensemble size> ] (<full>*)
+
       ENSDIR_STATIC                 = <static ensemble directory>
     [ ENSSIZE_STATIC                = <static ensemble size> ]  (<full>*)
       GAMMA                         = <gamma>
-    [ SCHEME                        = { DENKF* | ETKF } ]
-    [ ALPHA                         = <alpha> ]                 (1*)
+
+    [ < more of static ensemble blocks > ]
+
   [ KFACTOR         = <kfactor> ]                               (NaN*)
   [ RFACTOR         = <rfactor> ]                               (1*)
     LOCRAD          = <loc. radius in km> ...
