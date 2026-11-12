@@ -202,8 +202,10 @@ dasystem* das_create(enkfprm* prm)
     das_setnmem(das);
     if (das->mode == MODE_ENOI)
         enkf_printf("    1 background state\n");
-    else
-        enkf_printf("    %d dynamic member%s\n", das->nmem_dynamic, das->nmem == 1 ? "" : "s");
+    else {
+        enkf_printf("    dynamic ensemble:\n");
+        enkf_printf("      %d member%s\n", das->nmem_dynamic, das->nmem == 1 ? "" : "s");
+    }
     if (das->mode == MODE_ENOI || das->mode == MODE_HYBRID) {
         if (das->nstatic == 1)
             enkf_printf("    %d static member%s\n", das->nmem_static[0], das->nmem_static[0] == 1 ? "" : "s");
@@ -677,7 +679,7 @@ void das_getmemberfname(dasystem* das, char varname[], int memid, char fname[])
 
 /** Finds file/record for calculating forecast obs.
  */
-static void getfname_async(dasystem* das, obstype* ot, int memid, int t, char fname[], int* r)
+int das_getmemberfname_async(dasystem* das, obstype* ot, int memid, int t, char fname[], int* r)
 {
     char* alias = ot->alias;
     char* dir = das->ensdir_dynamic;
@@ -687,6 +689,8 @@ static void getfname_async(dasystem* das, obstype* ot, int memid, int t, char fn
     char fname2[MAXSTRLEN];
     int f;
 
+    *r = -1;
+    
     if (das->mode == MODE_ENOI && memid == 1)
         snprintf(fname1, MAXSTRLEN, "%s/bg_%s_%d.nc", dir, alias, t);
     else
@@ -705,8 +709,21 @@ static void getfname_async(dasystem* das, obstype* ot, int memid, int t, char fn
     else
         snprintf(fname2, MAXSTRLEN, "%s/mem%03d_%s_#*.nc", dir, memid, alias);
 
-    if (!find_files(fname2, &nf, &fnames))
-        enkf_quit("could not find file \"%s\" or \"%s\" to match binned observations of type \"%s\"\n", fname1, fname2, ot->name);
+    if (!find_files(fname2, &nf, &fnames)) {
+        if (memid > das->nmem_dynamic) {
+            int s;
+
+            memid -= das->nmem_dynamic;
+            for (s = 0; s < das->nstatic; ++s) {
+                if (memid <= das->nmem_static[s])
+                    break;
+                memid -= das->nmem_static[s];
+            }
+            snprintf(fname, MAXSTRLEN, "%s/mem%03d_%s.nc", das->ensdir_static[s], memid, ot->varnames[0]);
+            return 0;
+        } else
+            enkf_quit("could not find file \"%s\" or \"%s\" to match binned observations of type \"%s\"\n", fname1, fname2, ot->name);
+    }
 
   checktime:
     for (f = 0; f < nf; ++f) {
@@ -756,30 +773,7 @@ static void getfname_async(dasystem* das, obstype* ot, int memid, int t, char fn
     for (f = 0; f < nf; ++f)
         free(fnames[f]);
     free(fnames);
-}
 
-/**
- */
-int das_getmemberfname_async(dasystem* das, obstype* ot, int memid, int t, char fname[], int* r)
-{
-    *r = -1;
-
-    if (memid > das->nmem)
-        enkf_quit("requested ensemble member ID (%d) exceeds ensemble size (%d)", memid, das->nmem);
-    if (memid > das->nmem_dynamic) {
-        int s;
-
-        memid -= das->nmem_dynamic;
-        for (s = 0; s < das->nstatic; ++s) {
-            if (memid <= das->nmem_static[s])
-                break;
-            memid -= das->nmem_static[s];
-        }
-        snprintf(fname, MAXSTRLEN, "%s/mem%03d_%s.nc", das->ensdir_static[s], memid, ot->varnames[0]);
-        return 0;
-    }
-
-    getfname_async(das, ot, memid, t, fname, r);
     return 1;
 }
 #endif

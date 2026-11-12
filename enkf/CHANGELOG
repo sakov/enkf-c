@@ -1,3 +1,10 @@
+v2.49.2
+   PS 12112026
+   -- Modified das_getmemberfname_async() to use asynchronous ensemble anomalies
+      for a static ensemble when available. (While the dynamic ensemble must
+      have asynchronous dumps for asynchronous observation data types, for
+      static ensembles it now optional.) The idea is to use this option when
+      a second (low-res) dynamic ensemble is treated as static.
 v2.49.1
    PS 12112026
    -- Fixed bug in printf() in enkfprm_print().
