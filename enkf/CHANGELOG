@@ -1,3 +1,6 @@
+v2.49.1
+   PS 12112026
+   -- Fixed bug in printf() in enkfprm_print().
 v2.49.0
    PS 03112026
    -- Enable multiple static ensembles:

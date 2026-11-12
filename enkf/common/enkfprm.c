@@ -769,7 +769,7 @@ void enkfprm_print(enkfprm* prm, char offset[])
             enkf_printf("%sGAMMA = %f\n", offset, prm->gamma[0]);
         } else {
             for (i = 0; i < prm->nstatic; ++i) {
-                enkf_printf("%sstatic ensemble %d:\n", i);
+                enkf_printf("%sstatic ensemble %d:\n", offset, i);
                 enkf_printf("%s  ENSEMBLE DIR = \"%s\"\n", offset, prm->ensdir_static[i]);
                 if (prm->enssize_static[i] > 0)
                     enkf_printf("%s  ENSEMBLE SIZE = %d\n", offset, prm->enssize_static[i]);
