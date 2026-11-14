@@ -50,15 +50,36 @@ typedef struct {
     int type;
 } gridhtype_entry;
 
+/*
+ * (tags are matched exactly, case-insensitive; several aliases are accepted)
+ */
 gridhtype_entry allgridhtypeentries[] = {
     {"NONE", GRIDHTYPE_NONE},
     {"RECT", GRIDHTYPE_RECTANGULAR},
+    {"RECTANGULAR", GRIDHTYPE_RECTANGULAR},
     {"CURV", GRIDHTYPE_CURVILINEAR},
+    {"CURVILINEAR", GRIDHTYPE_CURVILINEAR},
     {"CURV2", GRIDHTYPE_CURVILINEAR2},
+    {"CURVILINEAR2", GRIDHTYPE_CURVILINEAR2},
+    {"UNSTR", GRIDHTYPE_UNSTRUCTURED},
+    {"UNSTRUCT", GRIDHTYPE_UNSTRUCTURED},
     {"UNSTRUCTURED", GRIDHTYPE_UNSTRUCTURED}
 };
 
 int ngridhtypeentries = sizeof(allgridhtypeentries) / sizeof(gridhtype_entry);
+
+/**
+ */
+static int str2htype(char* str)
+{
+    int i;
+
+    for (i = 0; i < ngridhtypeentries; ++i)
+        if (strcasecmp(allgridhtypeentries[i].tag, str) == 0)
+            return allgridhtypeentries[i].type;
+
+    return GRIDHTYPE_UNDEFINED;
+}
 
 /**
  */
@@ -138,10 +159,7 @@ void gridprm_create(enkfprm* eprm, int* ngrid, gridprm** prm)
                 enkf_quit("%s, l.%d: HTYPE specified twice", fname, line);
             else
                 now->htype = strdup(token);
-            for (i = 0; i < ngridhtypeentries; ++i)
-                if (strncasecmp(allgridhtypeentries[i].tag, token, strlen(allgridhtypeentries[i].tag)) == 0)
-                    break;
-            if (i == ngridhtypeentries)
+            if (str2htype(token) == GRIDHTYPE_UNDEFINED)
                 enkf_quit("%s, l %d: HTYPE \"%s\" is unknown", fname, line, token);
         } else if (strcasecmp(token, "VTYPE") == 0) {
             if ((token = strtok(NULL, seps)) == NULL)
@@ -287,7 +305,7 @@ void gridprm_create(enkfprm* eprm, int* ngrid, gridprm** prm)
             char* levelvarname;
 
             if ((token = strtok(NULL, seps)) == NULL)
-                enkf_printf("%s, l.%d: \"%s\" not specified", fname, line, now->levelvarnameentry);
+                enkf_quit("%s, l.%d: \"%s\" not specified", fname, line, now->levelvarnameentry);
             levelvarname = strdup(token);
             while ((token = strtok(NULL, seps)) != NULL) {
                 skip = 1;
@@ -321,7 +339,7 @@ void gridprm_create(enkfprm* eprm, int* ngrid, gridprm** prm)
             if ((token = strtok(NULL, seps)) == NULL)
                 enkf_quit("%s, l.%d: VDIR not specified", fname, line);
             if (strncasecmp(token, "TOSURF", 6) != 0 && strncasecmp(token, "FROMSURF", 8) != 0)
-                enkf_quit("%s, l.%d: unknown entry for VDIR, fname, line");
+                enkf_quit("%s, l.%d: unknown entry \"%s\" for VDIR", fname, line, token);
             now->vdirection = strdup(token);
         } else if (strcasecmp(token, "AVARNAME") == 0) {
             if (now->vtype == NULL)
@@ -412,7 +430,7 @@ void gridprm_create(enkfprm* eprm, int* ngrid, gridprm** prm)
         } else if (strcasecmp(token, "DOMAIN") == 0) {
             if ((token = strtok(NULL, seps)) == NULL)
                 enkf_quit("%s, l.%d: DOMAIN not specified", fname, line);
-            else if (now->p1varname != NULL)
+            else if (now->domainname != NULL)
                 enkf_quit("%s, l.%d: DOMAIN specified twice", fname, line);
             else
                 now->domainname = strdup(token);
@@ -451,9 +469,9 @@ void gridprm_create(enkfprm* eprm, int* ngrid, gridprm** prm)
             enkf_quit("%s: %s: either HGRIDFROM or XVARNAME and YVARNAME should be specified", fname, gprm->name);
         if (gprm->domainname == NULL)
             gprm->domainname = strdup("ALL");
-        else if (strcasecmp(gprm->vtype, "Z") == 0) {
+        if (strcasecmp(gprm->vtype, "Z") == 0 || strcasecmp(gprm->vtype, "ZT") == 0) {
             if (gprm->zvarname == NULL)
-                enkf_quit("%s: %s: ZVARNAME must be specified for Z grids", fname, gprm->name);
+                enkf_quit("%s: %s: ZVARNAME must be specified for Z and ZT grids", fname, gprm->name);
         } else if (strcasecmp(gprm->vtype, "SIGMA") == 0) {
             if (gprm->cvarname == NULL)
                 enkf_quit("%s: %s: CVARNAME must be specified for sigma grids", fname, gprm->name);
@@ -466,10 +484,13 @@ void gridprm_create(enkfprm* eprm, int* ngrid, gridprm** prm)
                 enkf_quit("%s: %s: P1VARNAME must be specified for hybrid grids", fname, gprm->name);
             if (gprm->p2varname == NULL)
                 enkf_quit("%s: %s: P2VARNAME must be specified for hybrid grids", fname, gprm->name);
+            if ((gprm->acvarname == NULL) != (gprm->bcvarname == NULL))
+                enkf_quit("%s: %s: ACVARNAME and BCVARNAME must be either both specified or both omitted", fname, gprm->name);
         } else if (strcasecmp(gprm->vtype, "NUMERIC") == 0) {
             if (gprm->zvarname == NULL)
                 enkf_quit("%s: %s: ZVARNAME must be specified for numeric grids", fname, gprm->name);
-        } else
+        } else if (strcasecmp(gprm->vtype, "NONE") == 0);
+        else
             enkf_quit("vertical type \"%s\" specified for grid \"%s\" is unknown", gprm->vtype, gprm->name);
         if (gprm->aliasname == NULL && gprm->xvarname == NULL && !isempty)
             enkf_quit("%s: XVARNAME not specified for grid \"%s\"", fname, gprm->name);
@@ -498,15 +519,18 @@ void gridprm_create(enkfprm* eprm, int* ngrid, gridprm** prm)
                     gprm->zints[1].z2 = DEPTH_DEEP;
                     gprm->zints[2].z1 = DEPTH_DEEP;
                     gprm->zints[2].z2 = DEPTH_MAX;
-                } else {
+                } else if (eprm->nzints > 0) {
                     gprm->nzints = eprm->nzints;
                     gprm->zints = malloc(gprm->nzints * sizeof(zint));
                     memcpy(gprm->zints, eprm->zints, gprm->nzints * sizeof(zint));
                 }
             } else if (gprm->nzints < 0)
                 gprm->nzints = 0;
-        } else
-            gprm->zints = 0;
+        } else {
+            free(gprm->zints);
+            gprm->zints = NULL;
+            gprm->nzints = 0;
+        }
     }
 }
 
@@ -522,44 +546,31 @@ void gridprm_destroy(int ngrid, gridprm prm[])
         free(now->prmfname);
         free(now->name);
         free(now->gdatafname);
-        if (now->aliasname != NULL)
-            free(now->aliasname);
-        else {
-            free(now->xvarname);
-            free(now->yvarname);
-        }
-        if (now->vtype != NULL)
-            free(now->vtype);
-        if (now->htype != NULL)
-            free(now->htype);
-        if (now->zvarname != NULL)
-            free(now->zvarname);
-        if (now->zcvarname != NULL)
-            free(now->zcvarname);
-        if (now->hcvarname != NULL)
-            free(now->hcvarname);
-        if (now->depthvarname != NULL)
-            free(now->depthvarname);
-        if (now->vdirection != NULL)
-            free(now->vdirection);
-        if (now->avarname != NULL)
-            free(now->avarname);
-        if (now->bvarname != NULL)
-            free(now->bvarname);
-        if (now->p1varname != NULL)
-            free(now->p1varname);
-        if (now->p2varname != NULL)
-            free(now->p2varname);
-        if (now->levelvarnameentry != NULL) {
-            free(now->levelvarname);
-            free(now->levelvarnameentry);
-        }
-        if (now->nzints > 0)
-            free(now->zints);
-        if (now->trivarname != NULL)
-            free(now->trivarname);
-        if (now->neivarname != NULL)
-            free(now->neivarname);
+        free(now->aliasname);
+        free(now->htype);
+        free(now->xvarname);
+        free(now->yvarname);
+        free(now->vtype);
+        free(now->zvarname);
+        free(now->zcvarname);
+        free(now->svarname);
+        free(now->scvarname);
+        free(now->hcvarname);
+        free(now->cvarname);
+        free(now->ccvarname);
+        free(now->avarname);
+        free(now->bvarname);
+        free(now->acvarname);
+        free(now->bcvarname);
+        free(now->p1varname);
+        free(now->p2varname);
+        free(now->depthvarname);
+        free(now->levelvarnameentry);
+        free(now->levelvarname);
+        free(now->vdirection);
+        free(now->trivarname);
+        free(now->neivarname);
+        free(now->zints);
         free(now->domainname);
     }
     free(prm);
@@ -673,18 +684,14 @@ int gridprm_getvtype(gridprm* prm)
  */
 int gridprm_gethtype(gridprm* prm)
 {
-    int i;
+    int htype;
 
     if (prm->htype == NULL)
         return GRIDHTYPE_UNDEFINED;
 
-    for (i = 0; i < ngridhtypeentries; ++i) {
-        if (strcasecmp(prm->htype, allgridhtypeentries[i].tag) == 0)
-            return allgridhtypeentries[i].type;
-    }
-
-    if (i == ngridhtypeentries)
+    htype = str2htype(prm->htype);
+    if (htype == GRIDHTYPE_UNDEFINED)
         enkf_quit("%s: grid \"%s\": HTYPE \"%s\" is unknown", prm->prmfname, prm->name, prm->htype);
 
-    return GRIDHTYPE_UNDEFINED;
+    return htype;
 }

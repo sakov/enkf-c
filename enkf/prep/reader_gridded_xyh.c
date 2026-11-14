@@ -79,7 +79,7 @@ void reader_gridded_xyh(char* fname, int fid, obssection* section, grid* gdst, o
     size_t ntime = 0;
     double* time = NULL;
     int varid;
-    size_t i, j, k, nobs_read, id;
+    size_t i, j, k, nobs_read;
 
     for (i = 0; i < section->npars; ++i) {
         if (strcasecmp(section->pars[i].name, "VARNAME") == 0)
@@ -138,6 +138,8 @@ void reader_gridded_xyh(char* fname, int fid, obssection* section, grid* gdst, o
 
     ncw_inq_varid(ncid, varname, &varid);
     ncw_inq_varndims(ncid, varid, &ndim);
+    if (ndim != 3 && ndim != 4)
+        enkf_quit("reader_xyh_gridded(): %s: # dimensions = %d (must be 3 or 4 with a single record)", fname, ndim);
     {
         int dimid[4];
         size_t dimlen[4];
@@ -145,14 +147,11 @@ void reader_gridded_xyh(char* fname, int fid, obssection* section, grid* gdst, o
         ncw_inq_vardimid(ncid, varid, dimid);
         for (i = 0; i < ndim; ++i)
             ncw_inq_dimlen(ncid, dimid[i], &dimlen[i]);
-        if (ndim == 4) {
-            if (dimlen[0] != 1)
-                enkf_quit("reader_xyh_gridded(): %d records (currently only one record is allowed)", dimlen[0]);
-        } else if (ndim != 3)
-            enkf_quit("reader_xyh_gridded(): %s: # dimensions = %d (must be 3 or 4 with a single record)", fname, ndim);
+        if (ndim == 4 && dimlen[0] != 1)
+            enkf_quit("reader_xyh_gridded(): %s: %zu records (currently only one record is allowed)", fname, dimlen[0]);
 
         if (dimlen[ndim - 1] != ni || dimlen[ndim - 2] != nj || dimlen[ndim - 3] != nk)
-            enkf_quit("dimension mismatch between grid \"%s\" (%d x %d x %d) and variable \"%s\" in \"%s\" (%d x %d x %d)", gridname, ni, nj, nk, varname, fname, dimlen[ndim - 1], dimlen[ndim - 2], dimlen[ndim - 3]);
+            enkf_quit("dimension mismatch between grid \"%s\" (%d x %d x %d) and variable \"%s\" in \"%s\" (%zu x %zu x %zu)", gridname, ni, nj, nk, varname, fname, dimlen[ndim - 1], dimlen[ndim - 2], dimlen[ndim - 3]);
     }
 
     var = malloc(nijk * sizeof(float));
@@ -167,6 +166,7 @@ void reader_gridded_xyh(char* fname, int fid, obssection* section, grid* gdst, o
     else if (ncw_var_exists(ncid, "npoints"))
         ncw_inq_varid(ncid, "npoints", &varid);
     if (varid >= 0) {
+        ncw_check_varsize(ncid, varid, nijk);
         npoints = malloc(nijk * sizeof(short));
         ncw_get_var_short(ncid, varid, npoints);
     }
@@ -180,6 +180,7 @@ void reader_gridded_xyh(char* fname, int fid, obssection* section, grid* gdst, o
     else if (ncw_var_exists(ncid, "std"))
         ncw_inq_varid(ncid, "std", &varid);
     if (varid >= 0) {
+        ncw_check_varsize(ncid, varid, nijk);
         std = malloc(nijk * sizeof(float));
         ncu_readvarfloat(ncid, varid, nijk, std);
     }
@@ -193,11 +194,12 @@ void reader_gridded_xyh(char* fname, int fid, obssection* section, grid* gdst, o
     else if (ncw_var_exists(ncid, "error_std"))
         ncw_inq_varid(ncid, "error_std", &varid);
     if (varid >= 0) {
+        ncw_check_varsize(ncid, varid, nijk);
         estd = malloc(nijk * sizeof(float));
         ncu_readvarfloat(ncid, varid, nijk, estd);
     }
 
-    if (std == NULL && estd == NULL) {
+    if (estd == NULL) {
         ncw_inq_varid(ncid, varname, &varid);
         if (ncw_att_exists(ncid, varid, "error_std")) {
             ncw_check_attlen(ncid, varid, "error_std", 1);
@@ -227,6 +229,7 @@ void reader_gridded_xyh(char* fname, int fid, obssection* section, grid* gdst, o
         qcflag = alloc2d(nqcflagvars, nijk, sizeof(int32_t));
         for (i = 0; i < nqcflagvars; ++i) {
             ncw_inq_varid(ncid, qcflagvarnames[i], &varid);
+            ncw_check_varsize(ncid, varid, nijk);
             ncw_get_var_int(ncid, varid, qcflag[i]);
         }
     }
@@ -242,7 +245,7 @@ void reader_gridded_xyh(char* fname, int fid, obssection* section, grid* gdst, o
      */
     if (strlen(instrument) == 0) {
         if (instattname != NULL)
-            ncw_get_att_text(ncid, NC_GLOBAL, instattname, instrument);
+            ncw_get_att_text_n(ncid, NC_GLOBAL, instattname, instrument, sizeof(instrument));
         else if (!get_insttag(ncid, varname, instrument))
             strncpy(instrument, section->product, MAXSTRLEN - 1);
         if (strlen(instrument) > 0 && instprefix != NULL) {
@@ -265,11 +268,11 @@ void reader_gridded_xyh(char* fname, int fid, obssection* section, grid* gdst, o
     assert(productid >= 0);
     typeid = obstype_getid(obs->nobstypes, obs->obstypes, section->type, 1);
     nobs_read = 0;
-    for (i = 0, id = 0; i < ni; ++i) {
+    for (i = 0; i < ni; ++i) {
         for (j = 0; j < nj; ++j) {
             int ij[2] = { i, j };
 
-            for (k = 0; k < nk; ++k, ++id) {
+            for (k = 0; k < nk; ++k) {
                 int ii = k * nij + j * ni + i;
                 observation* o;
                 int qcid;
@@ -277,7 +280,7 @@ void reader_gridded_xyh(char* fname, int fid, obssection* section, grid* gdst, o
                 if ((npoints != NULL && npoints[ii] == 0) || isnan(var[ii]) || (std != NULL && isnan(std[ii])) || (estd != NULL && isnan(estd[ii])) || (ntime == nijk && isnan(time[ii])))
                     continue;
                 for (qcid = 0; qcid < nqcflagvars; ++qcid)
-                    if (qcflag[qcid][ii] < 0 || qcflag[qcid][ii] > 31 || !((1 << qcflag[qcid][ii]) & qcflagmasks[qcid]))
+                    if (qcflag[qcid][ii] < 0 || qcflag[qcid][ii] > 31 || !((1u << qcflag[qcid][ii]) & qcflagmasks[qcid]))
                         goto nextob;
 
                 nobs_read++;
@@ -288,18 +291,16 @@ void reader_gridded_xyh(char* fname, int fid, obssection* section, grid* gdst, o
                 o->type = typeid;
                 o->instrument = instid;
                 o->id = obs->nobs;
-                o->id_orig = id;
+                o->id_orig = ii;
                 o->fid = fid;
                 o->batch = (batch == NULL) ? 0 : batch[ii];
                 o->value = (double) var[ii];
-                if (estd == NULL)
-                    o->estd = var_estd;
-                else {
-                    if (std == NULL)
-                        o->estd = estd[ii];
-                    else
-                        o->estd = (std[ii] > estd[ii]) ? std[ii] : estd[ii];
-                }
+                o->estd = (estd == NULL) ? var_estd : estd[ii];
+                /*
+                 * std is the lower bound for estd (or estd if the latter is n/a)
+                 */
+                if (std != NULL && (isnan(o->estd) || std[ii] > o->estd))
+                    o->estd = std[ii];
                 {
                     double lon_d, lat_d;
 
@@ -313,9 +314,11 @@ void reader_gridded_xyh(char* fname, int fid, obssection* section, grid* gdst, o
                     continue;
                 {
                     double depth_d;
+                    int status = grid_fk2z(gsrc, ij, (double) k, &depth_d);
 
-                    o->status = grid_fk2z(gsrc, ij, (double) k, &depth_d);
                     o->depth = (float) depth_d;
+                    if (o->status == STATUS_OK)
+                        o->status = status;
                 }
                 if (o->status == STATUS_OK)
                     o->status = grid_z2fk_f(gdst, o->fij, o->depth, &o->fk);
@@ -335,7 +338,7 @@ void reader_gridded_xyh(char* fname, int fid, obssection* section, grid* gdst, o
             }
         }
     }
-    enkf_printf("        nobs = %d\n", nobs_read);
+    enkf_printf("        nobs = %zu\n", nobs_read);
 
     free(var);
     if (std != NULL)

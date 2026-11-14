@@ -1,0 +1,14 @@
+DATE = 6565.5 days since 1990-01-01
+
+MODE = EnOI
+BGDIR = background
+
+MODEL = model.prm
+GRID = grid.prm
+OBSTYPES = obstypes.prm
+
+OBS = obs.prm
+WINDOWMIN = -3.0
+WINDOWMAX = 0.0
+
+REGION Global 0 360 -90 90

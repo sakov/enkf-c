@@ -67,11 +67,17 @@ typedef struct {
     double* cc;
     double* st;
     double* sc;
-    void* depth;
 
     double fij_prev[3];
     double* zt;
     double* zc;
+
+    /*
+     * separate cache for grid_fk2z()
+     */
+    int ij_prev[2];
+    double* zt_fk2z;
+    double* zc_fk2z;
 } gz_sigma;
 
 /*
@@ -91,6 +97,13 @@ typedef struct {
     double fij_prev[3];
     double* pt;
     double* pc;
+
+    /*
+     * separate cache for grid_fk2z()
+     */
+    int ij_prev[2];
+    double* pt_fk2z;
+    double* pc_fk2z;
 } gz_hybrid;
 
 /*
@@ -112,6 +125,54 @@ typedef struct {
 
 #define EPSZ 0.001
 
+/** Builds coordinates of layer edges zc[nk + 1] from those of layer centres
+ ** zt[nk]. The surface edge is set to 0. All following edges are placed based
+ ** on specified layer centres. E.g. if zt = {0.5, 5} then zc = {0, 1, 9}.
+ */
+static void zt2zc(int nk, int direction, double* zt, double* zc)
+{
+    int k;
+
+    if (direction == GRIDVDIR_FROMSURF) {
+        zc[0] = 0.0;
+        for (k = 1; k <= nk; ++k)
+            zc[k] = 2.0 * zt[k - 1] - zc[k - 1];
+    } else {
+        zc[nk] = 0.0;
+        for (k = nk - 1; k >= 0; --k)
+            zc[k] = 2.0 * zt[k] - zc[k + 1];
+    }
+}
+
+/** Sets the surface edge when edges were specified on one side of each layer
+ ** only (the side away from the surface): it is set to 0 if 0 is on the
+ ** surface side of the surface layer centre, or reflected otherwise.
+ */
+static double zc_surface(double zt_surf, double zc_adjacent)
+{
+    if (zt_surf * (zc_adjacent - zt_surf) > 0.0)
+        return 0.0;
+    return 2.0 * zt_surf - zc_adjacent;
+}
+
+/** Checks that layer centres and edges are monotonic and consistent.
+ */
+static void check_zc(char* gname, char* what, int nk, int direction, double* zt, double* zc)
+{
+    int i;
+
+    if (direction == GRIDVDIR_FROMSURF) {
+        if (!(zt[0] <= zt[nk - 1] && zc[0] < zc[nk]))
+            enkf_quit("%s: %s: coordinates must increase from surface for VDIR = FROMSURF", gname, what);
+    } else {
+        if (!(zt[0] >= zt[nk - 1] && zc[0] > zc[nk]))
+            enkf_quit("%s: %s: coordinates must decrease towards surface for VDIR = TOSURF", gname, what);
+    }
+    for (i = 0; i < nk; ++i)
+        if (!((zt[i] - zc[i]) * (zc[i + 1] - zt[i]) > 0.0))
+            enkf_quit("%s: %s: layer centre %d is not strictly inside its layer edges (zt = %f, zc = %f, %f)", gname, what, i, zt[i], zc[i], zc[i + 1]);
+}
+
 /**
  */
 static gz_z* gz_z_create(char* gname, int nk, double* z, int nkc, double* zc, char* direction)
@@ -132,8 +193,8 @@ static gz_z* gz_z_create(char* gname, int nk, double* z, int nkc, double* zc, ch
     /*
      * check monotonicity
      */
-    for (i = 0; i < nk - 2; ++i)
-        if ((z[i + 1] - z[i]) * (z[i + 2] - z[i + 1]) < 0.0)
+    for (i = 0; i < nk - 1; ++i)
+        if ((z[i + 1] - z[i]) * (z[nk - 1] - z[0]) <= 0.0)
             enkf_quit("%s: non-monotonic Z grid", gname);
     /*
      * change sign if negative
@@ -150,51 +211,57 @@ static gz_z* gz_z_create(char* gname, int nk, double* z, int nkc, double* zc, ch
         }
     }
 
+    if ((gz->direction == GRIDVDIR_FROMSURF && z[0] == 0) || (gz->direction == GRIDVDIR_TOSURF && z[nk - 1] == 0))
+        enkf_quit("%s: the depth of surface layer must be non-zero", gname);
+
     gz->zc = malloc((nk + 1) * sizeof(double));
-    if (zc == NULL) {
-        if (gz->direction == GRIDVDIR_FROMSURF) {
-            gz->zc[0] = 0.0;
-            for (i = 1; i <= nk; ++i)
-                gz->zc[i] = 2.0 * z[i - 1] - gz->zc[i - 1];
-        } else {
-            gz->zc[nk] = 0.0;
-            for (i = nk - 1; i >= 0; --i)
-                gz->zc[i] = 2.0 * z[i] - gz->zc[i + 1];
+    if (zc == NULL)
+        zt2zc(nk, gz->direction, z, gz->zc);
+    else {
+        /*
+         * change sign if negative (before using zc)
+         */
+        {
+            double sum = 0.0;
+
+            for (i = 0; i < nkc; ++i)
+                sum += zc[i];
+            if (sum < 0.0) {
+                if (!gz->sign_changed)
+                    enkf_quit("%s: signs inconsistent in zt and zc vertical grids", gname);
+                for (i = 0; i < nkc; ++i)
+                    zc[i] = -zc[i];
+            } else if (gz->sign_changed)
+                enkf_quit("%s: signs inconsistent in zt and zc vertical grids", gname);
         }
-    } else {
-        if (nkc == nk) {        /* e.g. in MOM */
-            memcpy(gz->zc, zc, nk * sizeof(double));
-            gz->zc[nk] = 2.0 * z[nk - 1] - zc[nk - 1];
-        } else if (nkc == nk + 1)
+
+        if (nkc == nk + 1)
             memcpy(gz->zc, zc, nkc * sizeof(double));
+        else if (nkc == nk) {
+            /*
+             * (e.g. in MOM) edges are given on the side of each layer away
+             * from the surface (as for NUMERIC grids). For backward
+             * compatibility, edges on the surface side of each layer are
+             * still accepted for FROMSURF grids.
+             */
+            if (gz->direction == GRIDVDIR_FROMSURF) {
+                if (nk > 1 && (z[0] - zc[0]) * (z[nk - 1] - z[0]) > 0.0) {
+                    memcpy(gz->zc, zc, nk * sizeof(double));
+                    gz->zc[nk] = 2.0 * z[nk - 1] - zc[nk - 1];
+                } else {
+                    memcpy(&gz->zc[1], zc, nk * sizeof(double));
+                    gz->zc[0] = zc_surface(z[0], zc[0]);
+                }
+            } else {
+                memcpy(gz->zc, zc, nk * sizeof(double));
+                gz->zc[nk] = zc_surface(z[nk - 1], zc[nk - 1]);
+            }
+        } else
+            enkf_quit("%s: ZC vertical dimension (%d) must be equal to or larger by one than that of Z (%d)", gname, nkc, nk);
         free(zc);
     }
 
-    /*
-     * change sign if negative
-     */
-    if (zc != NULL) {
-        double sum = 0.0;
-
-        for (i = 0; i < nk; ++i)
-            sum += gz->zc[i];
-        if (sum < 0.0) {
-            if (!gz->sign_changed)
-                enkf_quit("%s: signs inconsistent in zt and zc vertical grids", gname);
-            for (i = 0; i < nk; ++i)
-                gz->zc[i] = -gz->zc[i];
-        } else {
-            if (gz->sign_changed)
-                enkf_quit("%s: signs inconsistent in zt and zc vertical grids", gname);
-        }
-    }
-
-    if (gz->direction == GRIDVDIR_FROMSURF)
-        assert(gz->zt[0] <= gz->zt[nk - 1] && gz->zc[0] < gz->zc[nk]);
-    else if (gz->direction == GRIDVDIR_TOSURF)
-        assert(gz->zt[0] >= gz->zt[nk - 1] && gz->zc[0] > gz->zc[nk]);
-    for (i = 0; i < nk; ++i)
-        assert((gz->zt[i] - gz->zc[i]) * (gz->zc[i + 1] - gz->zt[i]) > 0.0);
+    check_zc(gname, "Z grid", nk, gz->direction, gz->zt, gz->zc);
 
     return gz;
 }
@@ -219,8 +286,8 @@ static gz_zt* gz_zt_create(char* gname, int nk, double* z, char* direction)
     /*
      * check monotonicity
      */
-    for (i = 0; i < nk - 2; ++i)
-        if ((z[i + 1] - z[i]) * (z[i + 2] - z[i + 1]) < 0.0)
+    for (i = 0; i < nk - 1; ++i)
+        if ((z[i + 1] - z[i]) * (z[nk - 1] - z[0]) <= 0.0)
             enkf_quit("%s: non-monotonic Z grid", gname);
     /*
      * change sign if negative
@@ -237,17 +304,19 @@ static gz_zt* gz_zt_create(char* gname, int nk, double* z, char* direction)
         }
     }
 
-    if (gz->direction == GRIDVDIR_FROMSURF)
-        assert(gz->zt[0] <= gz->zt[nk - 1]);
-    else if (gz->direction == GRIDVDIR_TOSURF)
-        assert(gz->zt[0] >= gz->zt[nk - 1]);
+    if (nk < 2)
+        enkf_quit("%s: ZT grid must have at least 2 layers", gname);
+    if (gz->direction == GRIDVDIR_FROMSURF && gz->zt[0] > gz->zt[nk - 1])
+        enkf_quit("%s: ZT grid: coordinates must increase from surface for VDIR = FROMSURF", gname);
+    else if (gz->direction == GRIDVDIR_TOSURF && gz->zt[0] < gz->zt[nk - 1])
+        enkf_quit("%s: ZT grid: coordinates must decrease towards surface for VDIR = TOSURF", gname);
 
     return gz;
 }
 
 /**
  */
-static gz_sigma* gz_sigma_create(char* gname, int nk, double* st, double* sc, double* ct, double* cc, double hc, char* direction, void* depth)
+static gz_sigma* gz_sigma_create(char* gname, int nk, double* st, double* sc, double* ct, double* cc, double hc, char* direction)
 {
     gz_sigma* gz = malloc(sizeof(gz_sigma));
     int i;
@@ -305,20 +374,21 @@ static gz_sigma* gz_sigma_create(char* gname, int nk, double* st, double* sc, do
     if (cc == NULL) {
         if (ct[0] > ct[nk - 1]) {
             gz->cc[0] = 1.0;
-            gz->cc[nk - 1] = 0.0;
+            gz->cc[nk] = 0.0;
         } else {
             gz->cc[0] = 0.0;
-            gz->cc[nk - 1] = 1.0;
+            gz->cc[nk] = 1.0;
         }
         for (i = 1; i < nk; ++i)
             gz->cc[i] = (gz->ct[i - 1] + gz->ct[i]) / 2.0;
-        gz->cc[nk] = 2.0 * gz->ct[nk - 1] - gz->cc[nk - 1];
     }
 
     /*
      * read sigma arrays if necessary (assume uniform stretching by default)
      */
     if (st == NULL) {
+        if (sc != NULL)
+            enkf_quit("%s: SCVARNAME can only be used together with SVARNAME", gname);
         gz->st = malloc(nk * sizeof(double));
         if (gz->direction == GRIDVDIR_FROMSURF)
             for (i = 0; i < nk; ++i)
@@ -326,7 +396,6 @@ static gz_sigma* gz_sigma_create(char* gname, int nk, double* st, double* sc, do
         else
             for (i = 0; i < nk; ++i)
                 gz->st[i] = 1.0 - ((double) i + 0.5) / (double) gz->nk;
-        assert(sc == NULL);
         gz->sc = malloc((nk + 1) * sizeof(double));
         if (gz->direction == GRIDVDIR_FROMSURF)
             for (i = 0; i <= nk; ++i)
@@ -338,8 +407,7 @@ static gz_sigma* gz_sigma_create(char* gname, int nk, double* st, double* sc, do
         double sum = 0.0;
 
         gz->st = st;
-        assert(sc != NULL);
-        gz->sc = sc;
+        gz->sc = (sc != NULL) ? sc : malloc((nk + 1) * sizeof(double));
         /*
          * check monotonicity
          */
@@ -361,10 +429,10 @@ static gz_sigma* gz_sigma_create(char* gname, int nk, double* st, double* sc, do
     if (sc == NULL) {
         if (gz->st[0] > gz->st[nk - 1]) {
             gz->sc[0] = 1.0;
-            gz->sc[nk - 1] = 0.0;
+            gz->sc[nk] = 0.0;
         } else {
             gz->sc[0] = 0.0;
-            gz->sc[nk - 1] = 1.0;
+            gz->sc[nk] = 1.0;
         }
         for (i = 1; i < nk; ++i)
             gz->sc[i] = (gz->st[i - 1] + gz->st[i]) / 2.0;
@@ -390,20 +458,13 @@ static gz_sigma* gz_sigma_create(char* gname, int nk, double* st, double* sc, do
     gz->zt = malloc(nk * sizeof(double));
     gz->zc = malloc((nk + 1) * sizeof(double));
     gz->fij_prev[0] = NAN;
+    gz->zt_fk2z = malloc(nk * sizeof(double));
+    gz->zc_fk2z = malloc((nk + 1) * sizeof(double));
+    gz->ij_prev[0] = -1;
+    gz->ij_prev[1] = -1;
 
-    if (gz->direction == GRIDVDIR_FROMSURF) {
-        assert(gz->ct[0] <= gz->ct[nk - 1] && gz->cc[0] < gz->cc[nk]);
-        assert(gz->st[0] <= gz->st[nk - 1] && gz->sc[0] < gz->sc[nk]);
-    } else if (gz->direction == GRIDVDIR_TOSURF) {
-        assert(gz->ct[0] >= gz->ct[nk - 1] && gz->cc[0] > gz->cc[nk]);
-        assert(gz->st[0] >= gz->st[nk - 1] && gz->sc[0] > gz->sc[nk]);
-    }
-    for (i = 0; i < nk; ++i)
-        assert((gz->ct[i] - gz->cc[i]) * (gz->cc[i + 1] - gz->ct[i]) > 0.0);
-    for (i = 0; i < nk; ++i)
-        assert((gz->st[i] - gz->sc[i]) * (gz->sc[i + 1] - gz->st[i]) > 0.0);
-
-    gz->depth = depth;
+    check_zc(gname, "SIGMA grid (Cs_r, Cs_w)", nk, gz->direction, gz->ct, gz->cc);
+    check_zc(gname, "SIGMA grid (s_rho, s_w)", nk, gz->direction, gz->st, gz->sc);
 
     return gz;
 }
@@ -431,8 +492,8 @@ gz_hybrid* gz_hybrid_create(int nk, double* a, double* b, double* ac, double* bc
     if (ac != NULL) {
         assert(bc != NULL);
 
-        gz->ac = a;
-        gz->bc = b;
+        gz->ac = ac;
+        gz->bc = bc;
     } else {
         assert(bc == NULL);
 
@@ -460,15 +521,23 @@ gz_hybrid* gz_hybrid_create(int nk, double* a, double* b, double* ac, double* bc
     gz->pt = malloc(nk * sizeof(double));
     gz->pc = malloc((nk + 1) * sizeof(double));
     gz->fij_prev[0] = NAN;
+    gz->pt_fk2z = malloc(nk * sizeof(double));
+    gz->pc_fk2z = malloc((nk + 1) * sizeof(double));
+    gz->ij_prev[0] = -1;
+    gz->ij_prev[1] = -1;
 
     return gz;
 }
 
 /**
  */
-static gz_numeric* gz_numeric_create(int ni, int nj, int nk, char* direction, void* zt, void* zc)
+static gz_numeric* gz_numeric_create(int ni, int nj, int nk, char* direction, void* zt, void* zc, int zc_short)
 {
     gz_numeric* gz = malloc(sizeof(gz_numeric));
+    int nij = (nj > 0) ? ni * nj : ni;
+    float* zt0 = (nj > 0) ? ((float***) zt)[0][0] : ((float**) zt)[0];
+    float* zc0;
+    int ij, k;
 
     gz->ni = ni;
     gz->nj = nj;
@@ -480,56 +549,39 @@ static gz_numeric* gz_numeric_create(int ni, int nj, int nk, char* direction, vo
     else
         enkf_quit("programming error");
     gz->zt = zt;
-    if (zc != NULL)
+    if (zc != NULL) {
         gz->zc = zc;
-    else {
-        if (gz->nj > 0) {
-            int ij, k;
+        zc0 = (nj > 0) ? ((float***) zc)[0][0] : ((float**) zc)[0];
+        if (zc_short) {
+            /*
+             * edges were specified on the side of each layer away from the
+             * surface only; set the surface edge
+             */
+            int ks = (gz->direction == GRIDVDIR_FROMSURF) ? 0 : nk;
+            int ka = (gz->direction == GRIDVDIR_FROMSURF) ? 1 : nk - 1;
+            int kt = (gz->direction == GRIDVDIR_FROMSURF) ? 0 : nk - 1;
 
-            gz->zc = alloc3d(nk + 1, nj, ni, sizeof(float));
-            if (gz->direction == GRIDVDIR_FROMSURF) {
-                for (k = 1; k <= nk; ++k) {
-                    float* zc2d = ((float***) gz->zc)[k][0];
-                    float* zc2dm1 = ((float***) gz->zc)[k - 1][0];
-                    float* zt2dm1 = ((float***) gz->zt)[k - 1][0];
-
-                    for (ij = 0; ij < ni * nj; ++ij)
-                        zc2d[ij] = 2.0 * zt2dm1[ij] - zc2dm1[ij];
-                }
-            } else {
-                for (k = nk - 1; k >= 0; --k) {
-                    float* zc2d = ((float***) gz->zc)[k][0];
-                    float* zc2dp1 = ((float***) gz->zc)[k + 1][0];
-                    float* zt2d = ((float***) gz->zt)[k][0];
-
-                    for (ij = 0; ij < ni * nj; ++ij)
-                        zc2d[ij] = 2.0 * zt2d[ij] - zc2dp1[ij];
-                }
-            }
-        } else {
-            int i, k;
-
-            gz->zc = alloc2d(nk + 1, ni, sizeof(float));
-            if (gz->direction == GRIDVDIR_FROMSURF) {
-                for (k = 1; k <= nk; ++k) {
-                    float* zc2d = ((float**) gz->zc)[k];
-                    float* zc2dm1 = ((float**) gz->zc)[k - 1];
-                    float* zt2dm1 = ((float**) gz->zt)[k - 1];
-
-                    for (i = 0; i < ni; ++i)
-                        zc2d[i] = 2.0 * zt2dm1[i] - zc2dm1[i];
-                }
-            } else {
-                for (k = nk - 1; k >= 0; --k) {
-                    float* zc2d = ((float**) gz->zc)[k];
-                    float* zc2dp1 = ((float**) gz->zc)[k + 1];
-                    float* zt2d = ((float**) gz->zt)[k];
-
-                    for (i = 0; i < ni; ++i)
-                        zc2d[i] = 2.0 * zt2d[i] - zc2dp1[i];
-                }
-            }
+            for (ij = 0; ij < nij; ++ij)
+                zc0[ks * nij + ij] = (float) zc_surface(zt0[kt * nij + ij], zc0[ka * nij + ij]);
         }
+    } else {
+        double* zt1d = malloc(nk * sizeof(double));
+        double* zc1d = malloc((nk + 1) * sizeof(double));
+
+        if (nj > 0)
+            gz->zc = alloc3d(nk + 1, nj, ni, sizeof(float));
+        else
+            gz->zc = alloc2d(nk + 1, ni, sizeof(float));
+        zc0 = (nj > 0) ? ((float***) gz->zc)[0][0] : ((float**) gz->zc)[0];
+        for (ij = 0; ij < nij; ++ij) {
+            for (k = 0; k < nk; ++k)
+                zt1d[k] = zt0[k * nij + ij];
+            zt2zc(nk, gz->direction, zt1d, zc1d);
+            for (k = 0; k <= nk; ++k)
+                zc0[k * nij + ij] = (float) zc1d[k];
+        }
+        free(zt1d);
+        free(zc1d);
     }
 
     gz->zt1d = malloc(gz->nk * sizeof(double));
@@ -579,7 +631,8 @@ vgrid* vgrid_create(void* p, void* g)
             /*
              * (nkc = nk in MOM)
              */
-            assert(nkc == nk || nkc == nk + 1);
+            if (nkc != nk && nkc != nk + 1)
+                enkf_quit("%s: %s: %s: vertical dimension must be equal to or larger by one than that of \"%s\"", prm->gdatafname, prm->name, prm->zcvarname, prm->zvarname);
             zc = malloc(nkc * sizeof(double));
             ncu_readvardouble(ncid, varid, nkc, zc);
         }
@@ -633,7 +686,7 @@ vgrid* vgrid_create(void* p, void* g)
             ncu_readvardouble(ncid, varid, nkc, sc);
         }
 
-        vg->gz = gz_sigma_create(prm->name, nk, st, sc, ct, cc, hc, prm->vdirection, grid_getdepth(g));
+        vg->gz = gz_sigma_create(prm->name, nk, st, sc, ct, cc, hc, prm->vdirection);
     } else if (vg->type == GRIDVTYPE_HYBRID) {
         double* a = NULL;
         double* b = NULL;
@@ -669,7 +722,8 @@ vgrid* vgrid_create(void* p, void* g)
         if (prm->acvarname != NULL) {
             size_t nkc = nk + 1;
 
-            assert(prm->bcvarname != NULL);
+            if (prm->bcvarname == NULL)
+                enkf_quit("%s: %s: BCVARNAME must be specified together with ACVARNAME", prm->gdatafname, prm->name);
 
             ncw_inq_varid(ncid, prm->acvarname, &varid);
             ncw_check_vardims(ncid, varid, 1, &nkc);
@@ -682,14 +736,20 @@ vgrid* vgrid_create(void* p, void* g)
             ncu_readvardouble(ncid, varid, nkc, bc);
         }
 
+        if (prm->acvarname == NULL && prm->bcvarname != NULL)
+            enkf_quit("%s: %s: ACVARNAME must be specified together with BCVARNAME", prm->gdatafname, prm->name);
+
         ncw_inq_varid(ncid, prm->p1varname, &varid);
-        dimlen[0] = nj;
-        dimlen[1] = ni;
-        ncw_check_vardims(ncid, varid, 2, dimlen);
+        if (nj > 0) {
+            dimlen[0] = nj;
+            dimlen[1] = ni;
+        } else
+            dimlen[0] = ni;
+        ncw_check_vardims(ncid, varid, (nj > 0) ? 2 : 1, dimlen);
         ncu_readvarfloat(ncid, varid, nij, (nj > 0) ? ((float**) p1)[0] : p1);
 
         ncw_inq_varid(ncid, prm->p2varname, &varid);
-        ncw_check_vardims(ncid, varid, 2, dimlen);
+        ncw_check_vardims(ncid, varid, (nj > 0) ? 2 : 1, dimlen);
         ncu_readvarfloat(ncid, varid, nij, (nj > 0) ? ((float**) p2)[0] : p2);
 
         vg->gz = gz_hybrid_create(nk, a, b, ac, bc, p1, p2, prm->vdirection);
@@ -701,6 +761,7 @@ vgrid* vgrid_create(void* p, void* g)
         void* zt = NULL;
         void* zc = NULL;
         int kc_offset = 0;
+        int zc_short = 0;
 
         /*
          * zt
@@ -740,7 +801,11 @@ vgrid* vgrid_create(void* p, void* g)
                 enkf_quit("%s: %s: %s: can not have unlimited dimension", prm->gdatafname, prm->name, prm->zcvarname);
             ncw_inq_vardims(ncid, varid, 3, &ndimc, dimlenc);
             if (dimlenc[0] == nk) {
+                /*
+                 * edges on the side of each layer away from the surface
+                 */
                 dimlenc[0]++;
+                zc_short = 1;
                 if (strncasecmp(prm->vdirection, "FROMSURF", 8) == 0)
                     kc_offset = 1;
             }
@@ -748,6 +813,8 @@ vgrid* vgrid_create(void* p, void* g)
                 enkf_quit("%s: %s: %s: vertical dimension must be equal or larger by one than that of \"%s\"", prm->gdatafname, prm->name, prm->zcvarname, prm->zvarname);
             if (ndimc != ndimt)
                 enkf_quit("%s: %s: \"%s\" and \"%s\" must have equal number of dimensions", prm->gdatafname, prm->name, prm->zcvarname, prm->zvarname);
+            if (dimlenc[1] != dimlent[1] || (ndimc == 3 && dimlenc[2] != dimlent[2]))
+                enkf_quit("%s: %s: \"%s\" and \"%s\" must have equal horizontal dimensions", prm->gdatafname, prm->name, prm->zcvarname, prm->zvarname);
             if (ndimc == 3) {
                 zc = alloc3d(dimlenc[0], dimlenc[1], dimlenc[2], sizeof(float));
                 ncw_get_var_float(ncid, varid, ((float***) zc)[kc_offset][0]);
@@ -758,7 +825,7 @@ vgrid* vgrid_create(void* p, void* g)
                 enkf_quit("%s: %s: %s: can not have single dimension", prm->gdatafname, prm->name, prm->zcvarname);
         }
 
-        vg->gz = gz_numeric_create(ni, nj, nk, prm->vdirection, zt, zc);
+        vg->gz = gz_numeric_create(ni, nj, nk, prm->vdirection, zt, zc, zc_short);
     } else
         enkf_quit("programming error");
 
@@ -802,6 +869,8 @@ static void gz_sigma_destroy(gz_sigma* gz)
     free(gz->zc);
     free(gz->st);
     free(gz->sc);
+    free(gz->zt_fk2z);
+    free(gz->zc_fk2z);
     free(gz);
 }
 
@@ -817,6 +886,8 @@ static void gz_hybrid_destroy(gz_hybrid* gz)
     free(gz->p2);
     free(gz->pt);
     free(gz->pc);
+    free(gz->pt_fk2z);
+    free(gz->pc_fk2z);
     free(gz);
 }
 
@@ -1011,6 +1082,37 @@ static void gz_zt_z2fk(vgrid* vg, double z, double* fk)
     }
 }
 
+/** Calculates depths of layer centres and edges for a sigma grid.
+ */
+static void gz_sigma_calcz(gz_sigma* gz, double h, double* zt, double* zc)
+{
+    int i;
+
+    if (gz->hc != 0.0) {
+        for (i = 0; i < gz->nk; ++i)
+            zt[i] = h * (gz->hc * gz->st[i] + h * gz->ct[i]) / (gz->hc + h);
+        for (i = 0; i <= gz->nk; ++i)
+            zc[i] = h * (gz->hc * gz->sc[i] + h * gz->cc[i]) / (gz->hc + h);
+    } else {
+        for (i = 0; i < gz->nk; ++i)
+            zt[i] = h * gz->ct[i];
+        for (i = 0; i <= gz->nk; ++i)
+            zc[i] = h * gz->cc[i];
+    }
+}
+
+/** Calculates pressure of layer centres and edges for a hybrid grid.
+ */
+static void gz_hybrid_calcp(gz_hybrid* gz, double p1, double p2, double* pt, double* pc)
+{
+    int i;
+
+    for (i = 0; i < gz->nk; ++i)
+        pt[i] = gz->at[i] + gz->bt[i] * (p1 - p2);
+    for (i = 0; i <= gz->nk; ++i)
+        pc[i] = gz->ac[i] + gz->bc[i] * (p1 - p2);
+}
+
 /**
  */
 static void gz_sigma_z2fk(vgrid* vg, double* fij, double z, double* fk)
@@ -1026,38 +1128,16 @@ static void gz_sigma_z2fk(vgrid* vg, double* fij, double z, double* fk)
     if (htype == GRIDHTYPE_RECTANGULAR || htype == GRIDHTYPE_CURVILINEAR || htype == GRIDHTYPE_CURVILINEAR2) {
         if (isnan(gz->fij_prev[0]) || fabs(fij[0] - gz->fij_prev[0]) > EPS_IJ || fabs(fij[1] - gz->fij_prev[1]) > EPS_IJ) {
             double h = (double) grid_interpolate2d(g, fij, depth);
-            int i;
 
-            if (gz->hc != 0.0) {
-                for (i = 0; i < gz->nk; ++i)
-                    gz->zt[i] = h * (gz->hc * gz->st[i] + h * gz->ct[i]) / (gz->hc + h);
-                for (i = 0; i <= gz->nk; ++i)
-                    gz->zc[i] = h * (gz->hc * gz->sc[i] + h * gz->cc[i]) / (gz->hc + h);
-            } else {
-                for (i = 0; i < gz->nk; ++i)
-                    gz->zt[i] = h * gz->ct[i];
-                for (i = 0; i <= gz->nk; ++i)
-                    gz->zc[i] = h * gz->cc[i];
-            }
+            gz_sigma_calcz(gz, h, gz->zt, gz->zc);
             gz->fij_prev[0] = fij[0];
             gz->fij_prev[1] = fij[1];
         }
     } else if (htype == GRIDHTYPE_UNSTRUCTURED) {
         if (isnan(gz->fij_prev[0]) || fabs(fij[0] - gz->fij_prev[0]) > EPS_IJ || fabs(fij[1] - gz->fij_prev[1]) > EPS_IJ || fabs(fij[2] - gz->fij_prev[2]) > EPS_IJ) {
             double h = (double) grid_interpolate2d(g, fij, depth);
-            int i;
 
-            if (gz->hc != 0.0) {
-                for (i = 0; i < gz->nk; ++i)
-                    gz->zt[i] = h * (gz->hc * gz->st[i] + h * gz->ct[i]) / (gz->hc + h);
-                for (i = 0; i <= gz->nk; ++i)
-                    gz->zc[i] = h * (gz->hc * gz->sc[i] + h * gz->cc[i]) / (gz->hc + h);
-            } else {
-                for (i = 0; i < gz->nk; ++i)
-                    gz->zt[i] = h * gz->ct[i];
-                for (i = 0; i <= gz->nk; ++i)
-                    gz->zc[i] = h * gz->cc[i];
-            }
+            gz_sigma_calcz(gz, h, gz->zt, gz->zc);
             gz->fij_prev[0] = fij[0];
             gz->fij_prev[1] = fij[1];
             gz->fij_prev[2] = fij[2];
@@ -1079,13 +1159,8 @@ static void gz_hybrid_z2fk(vgrid* vg, double* fij, double z, double* fk)
         if (isnan(gz->fij_prev[0]) || fabs(fij[0] - gz->fij_prev[0]) > EPS_IJ || fabs(fij[1] - gz->fij_prev[1]) > EPS_IJ) {
             double p1 = grid_interpolate2d(g, fij, gz->p1);
             double p2 = grid_interpolate2d(g, fij, gz->p2);
-            int nk = gz->nk;
-            int i;
 
-            for (i = 0; i < nk; ++i)
-                gz->pt[i] = gz->at[i] + gz->bt[i] * (p1 - p2);
-            for (i = 0; i <= nk; ++i)
-                gz->pc[i] = gz->ac[i] + gz->bc[i] * (p1 - p2);
+            gz_hybrid_calcp(gz, p1, p2, gz->pt, gz->pc);
             gz->fij_prev[0] = fij[0];
             gz->fij_prev[1] = fij[1];
         }
@@ -1093,13 +1168,8 @@ static void gz_hybrid_z2fk(vgrid* vg, double* fij, double z, double* fk)
         if (isnan(gz->fij_prev[0]) || fabs(fij[0] - gz->fij_prev[0]) > EPS_IJ || fabs(fij[1] - gz->fij_prev[1]) > EPS_IJ || fabs(fij[2] - gz->fij_prev[2]) > EPS_IJ) {
             double p1 = grid_interpolate2d(g, fij, gz->p1);
             double p2 = grid_interpolate2d(g, fij, gz->p2);
-            int nk = gz->nk;
-            int i;
 
-            for (i = 0; i < nk; ++i)
-                gz->pt[i] = gz->at[i] + gz->bt[i] * (p1 - p2);
-            for (i = 0; i <= nk; ++i)
-                gz->pc[i] = gz->ac[i] + gz->bc[i] * (p1 - p2);
+            gz_hybrid_calcp(gz, p1, p2, gz->pt, gz->pc);
             gz->fij_prev[0] = fij[0];
             gz->fij_prev[1] = fij[1];
             gz->fij_prev[2] = fij[2];
@@ -1162,6 +1232,28 @@ void vgrid_z2fk(vgrid* vg, double* fij, double z, double* fk)
         gz_numeric_z2fk(vg, fij, z, fk);
     else if (vg->type == GRIDVTYPE_NONE)
         *fk = INFINITY;         /* not NAN to pass the check in grid_z2fk() */
+    else
+        enkf_quit("programming error");
+}
+
+/** Maps vertical coordinate to fractional layer index at horizontal node `ij'
+ ** (ij = j * ni + i for structured grids). Used for calculating the number of
+ ** levels from depth; not applicable to SIGMA and HYBRID grids.
+ */
+void vgrid_z2fk_node(vgrid* vg, int ij, double z, double* fk)
+{
+    if (vg->type == GRIDVTYPE_NUMERIC) {
+        gz_numeric* gz = vg->gz;
+        int k;
+
+        for (k = 0; k < gz->nk; ++k)
+            gz->zt1d[k] = (gz->nj > 0) ? ((float***) gz->zt)[k][0][ij] : ((float**) gz->zt)[k][ij];
+        for (k = 0; k <= gz->nk; ++k)
+            gz->zc1d[k] = (gz->nj > 0) ? ((float***) gz->zc)[k][0][ij] : ((float**) gz->zc)[k][ij];
+        gz->fij_prev[0] = NAN;  /* invalidate cache */
+        *fk = z2fk_basic(gz->nk, gz->zt1d, gz->zc1d, z);
+    } else if (vg->type == GRIDVTYPE_Z || vg->type == GRIDVTYPE_ZT || vg->type == GRIDVTYPE_NONE)
+        vgrid_z2fk(vg, NULL, z, fk);
     else
         enkf_quit("programming error");
 }
@@ -1234,48 +1326,28 @@ int grid_fk2z(grid* g, int* ij, double fk, double* z)
             *z = gzt_fk2z(gz->nk, gz->zt, fk);
         } else if (vtype == GRIDVTYPE_SIGMA) {
             gz_sigma* gz = ((vgrid*) grid_getvgrid(g))->gz;
-            double h;
+            float** depth = grid_getdepth(g);
 
-            if (gz->depth == NULL)
+            if (depth == NULL)
                 enkf_quit("%s: DEPTHVARNAME must be entered for SIGMA grids to assimilate subsurface obs", grid_getname(g));
-            h = ((float**) gz->depth)[j][i];
 
-            if (isnan(gz->fij_prev[0]) || fabs((double) i - gz->fij_prev[0]) > EPS_IJ || fabs((double) j - gz->fij_prev[1]) > EPS_IJ) {
-                int k;
-
-                if (gz->hc != 0.0) {
-                    for (k = 0; k < gz->nk; ++k)
-                        gz->zt[k] = h * (gz->hc * (1.0 - gz->st[k]) + h * gz->ct[k]) / (gz->hc + h);
-                    for (k = 0; k <= gz->nk; ++k)
-                        gz->zc[k] = h * (gz->hc * (1.0 - gz->sc[k]) + h * gz->cc[k]) / (gz->hc + h);
-                } else {
-                    for (k = 0; k < gz->nk; ++k)
-                        gz->zt[k] = h * gz->ct[k];
-                    for (k = 0; k <= gz->nk; ++k)
-                        gz->zc[k] = h * gz->cc[k];
-                }
-                gz->fij_prev[0] = (double) i;
-                gz->fij_prev[1] = (double) j;
+            if (gz->ij_prev[0] != i || gz->ij_prev[1] != j) {
+                gz_sigma_calcz(gz, depth[j][i], gz->zt_fk2z, gz->zc_fk2z);
+                gz->ij_prev[0] = i;
+                gz->ij_prev[1] = j;
             }
 
-            *z = fk2z_basic(gz->nk, gz->zt, gz->zc, fk);
+            *z = fk2z_basic(gz->nk, gz->zt_fk2z, gz->zc_fk2z, fk);
         } else if (vtype == GRIDVTYPE_HYBRID) {
             gz_hybrid* gz = ((vgrid*) grid_getvgrid(g))->gz;
 
-            if (isnan(gz->fij_prev[0]) || fabs((double) i - gz->fij_prev[0]) > EPS_IJ || fabs((double) j - gz->fij_prev[1]) > EPS_IJ) {
-                double p1 = ((float**) gz->p1)[j][i];
-                double p2 = ((float**) gz->p2)[j][i];
-                int k;
-
-                for (k = 0; k < gz->nk; ++k)
-                    gz->pt[k] = gz->at[k] + gz->bt[k] * (p1 - p2);
-                for (k = 0; k <= gz->nk; ++k)
-                    gz->pc[k] = gz->ac[k] + gz->bc[k] * (p1 - p2);
-                gz->fij_prev[0] = (double) i;
-                gz->fij_prev[1] = (double) j;
+            if (gz->ij_prev[0] != i || gz->ij_prev[1] != j) {
+                gz_hybrid_calcp(gz, ((float**) gz->p1)[j][i], ((float**) gz->p2)[j][i], gz->pt_fk2z, gz->pc_fk2z);
+                gz->ij_prev[0] = i;
+                gz->ij_prev[1] = j;
             }
 
-            *z = fk2z_basic(gz->nk, gz->pt, gz->pc, fk);
+            *z = fk2z_basic(gz->nk, gz->pt_fk2z, gz->pc_fk2z, fk);
         } else
             enkf_quit("programming error");
     } else if (htype == GRIDHTYPE_UNSTRUCTURED) {
@@ -1293,50 +1365,28 @@ int grid_fk2z(grid* g, int* ij, double fk, double* z)
             *z = fk2z_basic(gz->nk, gz->zt, gz->zc, fk);
         } else if (vtype == GRIDVTYPE_SIGMA) {
             gz_sigma* gz = ((vgrid*) grid_getvgrid(g))->gz;
-            double h;
+            float* depth = grid_getdepth(g);
 
-            if (gz->depth == NULL)
+            if (depth == NULL)
                 enkf_quit("%s: DEPTHVARNAME must be entered for SIGMA grids to assimilate subsurface obs", grid_getname(g));
-            h = ((float*) gz->depth)[i];
 
-            if (isnan(gz->fij_prev[0]) || fabs((double) i - gz->fij_prev[0]) > EPS_IJ) {
-                int k;
-
-                if (gz->hc != 0.0) {
-                    for (k = 0; k < gz->nk; ++k)
-                        gz->zt[k] = h * (gz->hc * (1.0 - gz->st[k]) + h * gz->ct[k]) / (gz->hc + h);
-                    for (k = 0; k <= gz->nk; ++k)
-                        gz->zc[k] = h * (gz->hc * (1.0 - gz->sc[k]) + h * gz->cc[k]) / (gz->hc + h);
-                } else {
-                    for (k = 0; k < gz->nk; ++k)
-                        gz->zt[k] = h * gz->ct[k];
-                    for (k = 0; k <= gz->nk; ++k)
-                        gz->zc[k] = h * gz->cc[k];
-                }
-                gz->fij_prev[0] = (double) i;
-                gz->fij_prev[1] = -1.0;
-                gz->fij_prev[2] = -1.0;
+            if (gz->ij_prev[0] != i || gz->ij_prev[1] != -1) {
+                gz_sigma_calcz(gz, depth[i], gz->zt_fk2z, gz->zc_fk2z);
+                gz->ij_prev[0] = i;
+                gz->ij_prev[1] = -1;
             }
 
-            *z = fk2z_basic(gz->nk, gz->zt, gz->zc, fk);
+            *z = fk2z_basic(gz->nk, gz->zt_fk2z, gz->zc_fk2z, fk);
         } else if (vtype == GRIDVTYPE_HYBRID) {
             gz_hybrid* gz = ((vgrid*) grid_getvgrid(g))->gz;
 
-            if (isnan(gz->fij_prev[0]) || fabs((double) i - gz->fij_prev[0]) > EPS_IJ || fabs(gz->fij_prev[1] + 1.0) > EPS_IJ || fabs(gz->fij_prev[2] + 1.0) > EPS_IJ) {
-                double p1 = ((float*) gz->p1)[i];
-                double p2 = ((float*) gz->p2)[i];
-                int k;
-
-                for (k = 0; k < gz->nk; ++k)
-                    gz->pt[k] = gz->at[k] + gz->bt[k] * (p1 - p2);
-                for (k = 0; k <= gz->nk; ++k)
-                    gz->pc[k] = gz->ac[k] + gz->bc[k] * (p1 - p2);
-                gz->fij_prev[0] = (double) i;
-                gz->fij_prev[1] = -1.0;
-                gz->fij_prev[2] = -1.0;
+            if (gz->ij_prev[0] != i || gz->ij_prev[1] != -1) {
+                gz_hybrid_calcp(gz, ((float*) gz->p1)[i], ((float*) gz->p2)[i], gz->pt_fk2z, gz->pc_fk2z);
+                gz->ij_prev[0] = i;
+                gz->ij_prev[1] = -1;
             }
 
-            *z = fk2z_basic(gz->nk, gz->pt, gz->pc, fk);
+            *z = fk2z_basic(gz->nk, gz->pt_fk2z, gz->pc_fk2z, fk);
         } else
             enkf_quit("programming error");
     }
@@ -1349,7 +1399,9 @@ int grid_fk2z(grid* g, int* ij, double fk, double* z)
  */
 int vgrid_signchanged(vgrid* vg)
 {
-    if (vg->type != GRIDVTYPE_Z)
-        return 0;
-    return ((gz_z*) vg->gz)->sign_changed;
+    if (vg->type == GRIDVTYPE_Z)
+        return ((gz_z*) vg->gz)->sign_changed;
+    else if (vg->type == GRIDVTYPE_ZT)
+        return ((gz_zt*) vg->gz)->sign_changed;
+    return 0;
 }

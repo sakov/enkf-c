@@ -90,7 +90,15 @@ void enkf_quit(char* format, ...)
     }
     fflush(NULL);               /* flush all streams */
 #if defined(MPI)
-    MPI_Abort(MPI_COMM_WORLD, 1);       /* kill all MPI jobs */
+    {
+        int mpi_initialised = 0;
+
+        MPI_Initialized(&mpi_initialised);
+        if (mpi_initialised)
+            MPI_Abort(MPI_COMM_WORLD, 1);       /* kill all MPI jobs */
+        else
+            exit(1);
+    }
 #else
     abort();                    /* raise SIGABRT for debugging */
 #endif
@@ -109,16 +117,37 @@ static void randomise_rand48(void)
     if (seed_rand48 != 0)
         return;
 
-    f = enkf_fopen(fname, "r");
+    /*
+     * The seed is the same on all CPUs: some code (e.g. shuffle() with
+     * SHUFFLE_ROWS) relies on identical random sequences on all CPUs.
+     */
+    if (rank == 0 && getenv("ENKF_SEED") != NULL) {
+        /*
+         * reproducible runs: take the seed from the environment
+         */
+        char* end = NULL;
 
-    status = fread(&seed_rand48, sizeof(seed_rand48), 1, f);
-    if (status != 1) {
-        int errno_saved = errno;
+        seed_rand48 = strtol(getenv("ENKF_SEED"), &end, 10);
+        if (end == getenv("ENKF_SEED") || *end != 0)
+            enkf_quit("randomise_rand48(): could not convert ENKF_SEED = \"%s\" to integer", getenv("ENKF_SEED"));
+        if (seed_rand48 == 0)
+            seed_rand48 = 1;
+    } else if (rank == 0) {
+        f = enkf_fopen(fname, "r");
+        status = fread(&seed_rand48, sizeof(seed_rand48), 1, f);
+        if (status != 1) {
+            int errno_saved = errno;
 
-        enkf_quit("randomise_rand48(): could not read from \"%s\": %s", fname, strerror(errno_saved));
+            enkf_quit("randomise_rand48(): could not read from \"%s\": %s", fname, strerror(errno_saved));
+        }
+        fclose(f);
+        if (seed_rand48 == 0)
+            seed_rand48 = 1;
     }
-    fclose(f);
-    srand(seed_rand48);
+#if defined(MPI)
+    MPI_Bcast(&seed_rand48, 1, MPI_LONG, 0, MPI_COMM_WORLD);
+#endif
+    srand48(seed_rand48);
 }
 
 /**
@@ -574,11 +603,12 @@ void tunits_convert(char* tunits, double* tunits_multiple, double* tunits_offset
     char* startdate;
     int year, month, day, h, m, s;
     char* token;
-    char seps_date[] = " -\n";
-    char seps_time[] = " :\n";
+    char seps_date[] = " -T\n";
+    char seps_time[] = " :Z\n";
     char tunits_orig[MAXSTRLEN];
 
     strncpy(tunits_orig, tunits, MAXSTRLEN - 1);
+    tunits_orig[MAXSTRLEN - 1] = 0;
 
     if (strncasecmp(tunits, "fraction of a ", 14) == 0)
         tunits += 14;
@@ -599,7 +629,7 @@ void tunits_convert(char* tunits, double* tunits_multiple, double* tunits_offset
     startdate = strstr(tunits, "since");
     if (startdate == NULL)
         enkf_quit("can not interpret time units \"%s\"", tunits_orig);
-    startdate += strlen("since ");
+    startdate += strlen("since");
     if ((token = strtok(startdate, seps_date)) == NULL)
         enkf_quit("can not interpret time units \"%s\"", tunits_orig);
     if (!str2int(token, &year))
@@ -1059,6 +1089,7 @@ double date2day(char* fname, char* strdate)
     double day, offset, multiple;
 
     strncpy(buf, strdate, MAXSTRLEN - 1);
+    buf[MAXSTRLEN - 1] = 0;
     if ((token = strtok(buf, seps)) == NULL)
         enkf_quit("%s: date2day(): could not understand date \"%s\"", fname, strdate);
     if (!str2double(token, &day))
@@ -1230,6 +1261,8 @@ float interpolate2d_unstructured(double* fi, float* v, int* mask)
             w += ww;
         }
     }
+    if (w == 0.0)
+        return NAN;
     sum /= w;
 
     return (float) sum;
@@ -1265,7 +1298,7 @@ float interpolate3d_structured(double* fij, double fk, int ni, int nj, int nk, i
     /*
      * (very rarely) superobs need to be fixed because of the round-off errors
      */
-    if (fi > (double) ni)
+    if (fi >= (double) ni)
         fi = (double) ni - EPS_FLOAT;
     if (fj >= (double) nj)
         fj = (double) nj - EPS_FLOAT;
@@ -1524,14 +1557,46 @@ void shuffle(size_t n, size_t ids[])
 {
     size_t i;
 
-    for (i = 0; i < n; ++i) {
-        size_t ii = (size_t) ((double) n * drand48());
-        size_t tmp = ids[i];
+    /*
+     * Fisher-Yates
+     */
+    for (i = n; i > 1; --i) {
+        size_t ii = (size_t) ((double) i * drand48());
+        size_t tmp;
 
-        ids[i] = ids[ii];
+        if (ii >= i)
+            ii = i - 1;
+        tmp = ids[i - 1];
+        ids[i - 1] = ids[ii];
         ids[ii] = tmp;
     }
 }
+
+#if defined(INTERNAL_QSORT_R)
+static enkf_compar_d_fn_t qsort_r_cmp = NULL;
+static void* qsort_r_p = NULL;
+
+/**
+ */
+static int qsort_r_wrapper(const void* p1, const void* p2)
+{
+    return qsort_r_cmp(p1, p2, qsort_r_p);
+}
+
+/**
+ */
+void enkf_qsort_r(void* base, size_t n, size_t width, enkf_compar_d_fn_t cmp, void* p)
+{
+    enkf_compar_d_fn_t cmp_prev = qsort_r_cmp;
+    void* p_prev = qsort_r_p;
+
+    qsort_r_cmp = cmp;
+    qsort_r_p = p;
+    qsort(base, n, width, qsort_r_wrapper);
+    qsort_r_cmp = cmp_prev;
+    qsort_r_p = p_prev;
+}
+#endif
 
 #if defined(ENKF_PREP) || defined(ENKF_CALC)
 /**
@@ -1576,14 +1641,13 @@ static int get_memory_usage_kb(size_t* vmrss_kb, size_t* vmsize_kb)
      */
     FILE* procfile = fopen("/proc/self/status", "r");
 
-    size_t to_read = 8192, dummy;
+    size_t to_read = 8192, nread;
     char buffer[to_read];
 
-    /*
-     * (using dummy to avoid warnings from GCC) 
-     */
-    dummy = fread(buffer, sizeof(char), to_read, procfile);
-    (void) dummy;
+    if (procfile == NULL)
+        return 1;
+    nread = fread(buffer, sizeof(char), to_read - 1, procfile);
+    buffer[nread] = 0;
     fclose(procfile);
 
     int found_vmrss = 0;
@@ -1624,7 +1688,7 @@ static int get_cluster_memory_usage_kb(size_t* vmrss_per_process, size_t* vmsize
     int ret_code = get_memory_usage_kb(&vmrss_kb, &vmsize_kb);
 
     if (ret_code != 0)
-        enkf_quit("could not gather memory usage: %s\n", strerror(ret_code));
+        enkf_quit("could not gather memory usage from /proc/self/status");
 
 #if defined(MPI)
     MPI_Gather(&vmrss_kb, 1, MPI_UNSIGNED_LONG, vmrss_per_process, 1, MPI_UNSIGNED_LONG, root, MPI_COMM_WORLD);

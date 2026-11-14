@@ -32,7 +32,11 @@ extern int ncw_chunkbylayers;
 /* It is possible to set the quit procedure. By default, the internal procedure
  * is used.
  */
+#if defined(__GNUC__)
+typedef void (*ncw_quit_fn) (char* format, ...) __attribute__ ((format(printf, 1, 2)));
+#else
 typedef void (*ncw_quit_fn) (char* format, ...);
+#endif
 void ncw_set_quitfn(ncw_quit_fn quit_fn);
 
 /* These procedures are the straightforward wrappers of the corresponding
@@ -125,6 +129,7 @@ void ncw_rename_att(int ncid, int varid, const char oldname[], const char newnam
 void ncw_del_att(int ncid, int varid, const char name[]);
 void ncw_get_att(int ncid, int varid, const char attname[], void* v);
 void ncw_get_att_text(int ncid, int varid, const char attname[], char v[]);
+void ncw_get_att_text_n(int ncid, int varid, const char attname[], char v[], size_t size);
 void ncw_get_att_schar(int ncid, int varid, const char attname[], signed char v[]);
 void ncw_get_att_short(int ncid, int varid, const char attname[], short int v[]);
 void ncw_get_att_int(int ncid, int varid, const char attname[], int v[]);

@@ -1,7 +1,8 @@
 This is an example for the EnKF-C package. It has been put up based on the runs
 of regional EnKF and EnOI reanalysis systems for Tasman Sea developed by Bureau
 of Meteorology. It allows one to conduct a single assimilation for 23 December 
-2007 (day 6565 since 1 January 1990) with either EnKF or EnOI.
+2007 (day 6565 since 1 January 1990) with either EnKF, EnOI or hybrid
+EnKF/EnOI.
 
 Note that to reduce the example size 
 (1) the grid has been reduced to 100 x 100 x 2
@@ -10,8 +11,8 @@ Note that to reduce the example size
 Because of (1) assimilation of subsurface observations (TEM and SAL observation
 types) is sort of funny, but is OK for testing purposes.
 
-enkf_calc and enkf_post are run on NP_CALC and NP_UPDATE CPUs (2 by default) --
-edit Makefile to change these settings.
+enkf_calc and enkf_update are run on NP_CALC and NP_UPDATE CPUs (4 by default)
+-- edit Makefile to change these settings.
 
 Examine Makefile to understand what happens and how for each particular target.
 
@@ -31,28 +32,31 @@ number of cores on your machine.
 TESTING ENKF
 
 To assimilate with the EnKF, run "make enkf".
-The analysed ensemble members will be of the form 
-ensemble_6565/mem<num>_<var>.nc.analysis, where <num> is the member id, between
+The analysis increments (the Makefile runs enkf_update with
+"--output-increment") will be of the form 
+ensemble_6565/mem<num>_<var>.nc.increment, where <num> is the member id, between
 001 and 096, and <var> is one of the state variables: eta_t, temp, salt, u or v.
+(Without "--output-increment" the analysed members are written to
+ensemble_6565/mem<num>_<var>.nc.analysis.)
 Also, the following auxiliary files will be created:
-  -- observation.nc - full information in observation space (for
+  -- observations.nc - full information in observation space (for
      superobservations)
-  -- obervations-orig.nc - original observations
   -- transforms.nc - 2D array of ensemble transforms T (EnKF) and coefficients
-     w (EnKF and EnOI) -- see sec. 3.3 of the User Guide.
+     w (EnKF and EnOI) -- see section "CALC" of the User Guide.
   -- enkf_diag.nc - data on observation impact
   -- inflation.nc - the actual inflation for each state element
   -- spread.nc - ensemble spread
+  -- obsbatches.txt - observation batches
   -- prep.out, calc.out, update.out - log files
-  -- pointlog_156.000,-32.000.nc - full information about state and analysis in point
-     (lon, lat) = (156.0, -32.0)
+  -- pointlog_156.000,-32.000.nc - full information about state and analysis in
+     point (lon, lat) = (156.0, -32.0)
 
 TESTING ENOI
 
-To assimilate with the EnOI, run "make enoi". The analysis will be of the form
-background/bg_<var>.nc.analysis. Also, auxiliary files similar those for the
-EnKF will be created except X5.nc, which is preplaced by w.nc - 2D array of
-update coefficients.
+To assimilate with the EnOI, run "make enoi". The analysis increments will be
+of the form background_6565/bg_<var>.nc.increment. Also, auxiliary files
+similar to those for the EnKF will be created (transforms.nc contains only
+coefficients w in this case).
 
 TESTING MODEL VALIDATION
 
@@ -62,17 +66,20 @@ printed to the log of enkf_calc.
 
 TESTING SINGLE OBSERVATION EXPERIMENT
 
-Run "make singleob". The results are in background_6565/*.increment.
+Run "make singleob". The results are in background_6565/*.increment. Note that
+enkf_calc overwrites observations.nc with the single observation in this mode.
 
 TESTING GENERATION OF ADDITIONAL POINTLOG FILES
 
 The idea is that if something goes wrong with DA at particular locations, one
 can add point logs at these locations in the main parameter file and re-run
-enkf_calc and enkf_post "cheaply" (without re-calculating transforms for the
+enkf_calc and enkf_update "cheaply" (without re-calculating transforms for the
 whole grid and re-updating the analysis) and investigate what happened.
 
-Run "make enkf", then "make pointlogs" to add a couple of additional point logs
-in locations (152.0, -36.0) and (160.0, -29.0).
+First run "make enkf", then (without cleaning) "make pointlogs". Notice two
+additional pointlog files pointlog_152.000,-36.000.nc and
+pointlog_160.000,-29.000.nc; compare calc-pointlogs.out and update-pointlogs.out
+with those in logs/pointlogs.
 
 TESTING GLOBAL ENKF ANALYSIS
 
@@ -82,13 +89,6 @@ global analysis. Run "make global" to test.
 TESTING HYBRID (EnKF+EnOI) SETTINGS
 
 Run "make hybrid".
-
-TESTING GENERATING ADDITIONAL POINTLOGS
-
-First run "make enkf", then (without cleaning) "make pointlogs". Notice two
-additional pointlog files pointlog_152.000,-36.000.nc and
-pointlog_160.000,-29.000.nc; compare calc-pointlogs.out and update-pointlogs.out
-with those in logs/pointlogs.
 
 TESTING ENOI WITH TWO STATIC ENSEMBLES
 
@@ -105,23 +105,27 @@ Apart from the EnKF/EnOI analyses, a number of auxiliary files are generated:
 
 prep.out - log file from enkf_prep
 calc.out - log file from enkf_calc
-post.out - log file from enkf_post
+update.out - log file from enkf_post
 observations.nc - pre-processed superobservations
-observations-orig-nc - pre-processed original observations
+observations-orig.nc - pre-processed original observations (only if enkf_prep
+  is run with "--write-orig-obs")
 enkf_diag.nc - observation impact file
-X5.nc - 2D array of local ensemble transforms (EnKF)
-w.nc - 2D array of local ensemble linear combination coefficients (EnOI)
+transforms.nc - 2D arrays of local ensemble transforms T (EnKF, hybrid) and
+  local ensemble linear combination coefficients w (all modes)
 spread.nc - spread of the corresponding ensemble
 pointlog_156.000,-32.000.nc -- point log with exaustive DA information for
 location (lon,lat) = (156,-32)
-inflation.nc -- inflation used for each state element
+inflation.nc -- inflation used for each state element (EnKF, hybrid)
 obsbatches.txt -- observation batches
-badobsbatches.txt -- discarded observation batches
+badobsbatches.txt -- discarded observation batches (only if BADBATCHES is
+  specified in the main parameter file)
 pointlog_152.000,-36.000.nc, pointlog_160.000,-29.000.nc -- two additional
 point logs generated when running "make pointlogs"
 
 If you suspect that something went wrong, you may compare your logs with those
-in the "logs" directory.
+in the "logs" directory. (Note that results involving random numbers vary from
+run to run unless environment variable ENKF_SEED is set, and that the logs may
+have been produced by an earlier version of EnKF-C.)
 
 NOTE: the 2-layer setting used has middle layer depths of 2.5 m and 
 255.8842 m. EnKF-C assumes the top layer thickness of 5 m and bottom layer 
@@ -130,7 +134,6 @@ purposes only; the actual model layer at 255m has upper and lower boundaries
 at 242.6595 and 269.109 m. For this reason and because of the vertical
 interpolation between layers to the depth of super observations the results of
 assimilating in-situ T and S can not be expected to be physically sensible.
-
 
 Have fun,
 Pavel Sakov

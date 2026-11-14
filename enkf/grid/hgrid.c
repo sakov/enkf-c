@@ -210,6 +210,10 @@ hgrid* hgrid_create(void* p, void* g)
 #endif
         } else if (hg->type != GRIDHTYPE_RECTANGULAR && hg->type != GRIDHTYPE_CURVILINEAR && hg->type != GRIDHTYPE_CURVILINEAR2)
             enkf_quit("%s: grid \"%s\": 2-dimensional coordinates are only possible for HTYPE = CURV or HTYPE = RECT", prm->prmfname, prm->name);
+#if defined(ENKF_UPDATE)
+        else if (hg->type == GRIDHTYPE_CURVILINEAR || hg->type == GRIDHTYPE_CURVILINEAR2)
+            hg->type = GRIDHTYPE_2D;
+#endif
 
         if (hg->type == GRIDHTYPE_2D) {
             size_t dimlen[2];
@@ -271,7 +275,8 @@ hgrid* hgrid_create(void* p, void* g)
 #endif
             }
         }
-    }
+    } else
+        enkf_quit("%s: grid \"%s\": unsupported combination of dimensions of X and Y coordinates (%d and %d); they must be either both 1-dimensional or both 2-dimensional", prm->prmfname, prm->name, ndims_x, ndims_y);
     ncw_close(ncid);
 
     hg->ni = ni;
@@ -301,6 +306,8 @@ void hgrid_destroy(hgrid* hg)
     else if (hg->type == GRIDHTYPE_CURVILINEAR || hg->type == GRIDHTYPE_CURVILINEAR2 || hg->type == GRIDHTYPE_UNSTRUCTURED)
         enkf_quit("programming error");
 #endif
+    else if (hg->type == GRIDHTYPE_1D || hg->type == GRIDHTYPE_2D)
+        free(hg->gxy);
 #if defined(ENKF_CALC)
     if (hg->nodetreeXYZ != NULL)
         kd_destroy(hg->nodetreeXYZ);
@@ -378,10 +385,11 @@ void hgrid_describe(hgrid* hg, char* offset)
 int hgrid_xy2fij(hgrid* hg, void* mask, double x, double y, double* fij)
 {
     if (!isnan(hg->lonbase)) {
+        x = hg->lonbase + fmod(x - hg->lonbase, 360.0);
         if (x < hg->lonbase)
             x += 360.0;
-        else if (x >= hg->lonbase + 360.0)
-            x -= 360.0;
+        if (x >= hg->lonbase + 360.0)   /* (rounding) */
+            x = hg->lonbase;
     }
 
     if (hg->type == GRIDHTYPE_RECTANGULAR || hg->type == GRIDHTYPE_CURVILINEAR || hg->type == GRIDHTYPE_CURVILINEAR2) {
@@ -538,7 +546,7 @@ kdtree* hgrid_gettreeXYZ(hgrid* hg, int createifnull)
         shuffle(n, ids);
         if (hg->geographic) {
             for (ii = 0; ii < n; ++ii) {
-                int id = ids[ii];
+                size_t id = ids[ii];
                 double ll[2] = { x[id % hg->ni], y[id / hg->ni] };
                 double xyz[3];
 
@@ -547,10 +555,10 @@ kdtree* hgrid_gettreeXYZ(hgrid* hg, int createifnull)
             }
         } else {
             for (ii = 0; ii < n; ++ii) {
-                int id = ids[ii];
-                double ll[2] = { x[id % hg->ni], y[id / hg->ni] };
+                size_t id = ids[ii];
+                double xyz[3] = { x[id % hg->ni], y[id / hg->ni], 0.0 };
 
-                kd_insertnode(tree, ll, id);
+                kd_insertnode(tree, xyz, id);
             }
         }
         free(ids);
@@ -572,7 +580,7 @@ kdtree* hgrid_gettreeXYZ(hgrid* hg, int createifnull)
         shuffle(n, ids);
         if (hg->geographic) {
             for (ii = 0; ii < n; ++ii) {
-                int id = ids[ii];
+                size_t id = ids[ii];
                 double ll[2] = { x[0][id], y[0][id] };
                 double xyz[3];
 
@@ -581,10 +589,10 @@ kdtree* hgrid_gettreeXYZ(hgrid* hg, int createifnull)
             }
         } else {
             for (ii = 0; ii < n; ++ii) {
-                int id = ids[ii];
-                double ll[2] = { x[0][id], y[0][id] };
+                size_t id = ids[ii];
+                double xyz[3] = { x[0][id], y[0][id], 0.0 };
 
-                kd_insertnode(tree, ll, id);
+                kd_insertnode(tree, xyz, id);
             }
         }
         free(ids);
@@ -605,7 +613,7 @@ kdtree* hgrid_gettreeXYZ(hgrid* hg, int createifnull)
         }
         shuffle(n, ids);
         for (ii = 0; ii < n; ++ii) {
-            int id = ids[ii];
+            size_t id = ids[ii];
             double ll[2], xyz[3];
 
             ll[0] = x[0][id];
@@ -630,7 +638,7 @@ kdtree* hgrid_gettreeXYZ(hgrid* hg, int createifnull)
         shuffle(n, ids);
         if (hg->geographic) {
             for (ii = 0; ii < n; ++ii) {
-                int id = ids[ii];
+                size_t id = ids[ii];
                 point* p = gxy_unstr_getpoint(hg->gxy, id);
                 double ll[2] = { p->x, p->y };
                 double xyz[3];
@@ -640,11 +648,11 @@ kdtree* hgrid_gettreeXYZ(hgrid* hg, int createifnull)
             }
         } else {
             for (ii = 0; ii < n; ++ii) {
-                int id = ids[ii];
+                size_t id = ids[ii];
                 point* p = gxy_unstr_getpoint(hg->gxy, id);
-                double ll[2] = { p->x, p->y };
+                double xyz[3] = { p->x, p->y, 0.0 };
 
-                kd_insertnode(tree, ll, id);
+                kd_insertnode(tree, xyz, id);
             }
         }
         free(ids);

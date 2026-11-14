@@ -32,6 +32,7 @@ vgrid* vgrid_create(void* gridprm, void* grid);
 void vgrid_destroy(vgrid* vg);
 void vgrid_describe(vgrid* vg, char* offset);
 void vgrid_z2fk(vgrid* vg, double* fij, double z, double* fk);
+void vgrid_z2fk_node(vgrid* vg, int ij, double z, double* fk);
 int vgrid_signchanged(vgrid* vg);
 
 #define _VGRID_H

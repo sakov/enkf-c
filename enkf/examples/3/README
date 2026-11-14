@@ -1,6 +1,6 @@
 This is an example with an unstructured grid. It has been put up as a code test
 only, with not much physical sense. The initial ensemble is constructed from 19
-consequitive daily average dumps from COMPAS model developed by CSIRO. The
+consecuitive daily average dumps from COMPAS model developed by CSIRO. The
 background is a reduced restart from COMPAS with basic model variables only.
 The grid data file contains a couple of additional variables necessary for
 the grid handling: triangles_t, neighbours_t, triangles_c, and neighbours_c.
@@ -14,4 +14,10 @@ To run this example download
 
 https://github.com/sakov/enkf-c/releases/download/data/example3-data.tar.gz
 
-(59 MB) and unpack in this directory, then (after compiling EnKF-C) run "make".
+(59 MB) and unpack in this directory, then (after compiling EnKF-C) run "make"
+(or "make enoi"). The analysis increments will be of the form
+background/bg_<var>.nc.increment; the transforms are written to transforms-0.nc
+and transforms-1.nc (two grids).
+
+Run "make stats" to calculate innovation statistics for the background only
+(without assimilation), using stats.prm.

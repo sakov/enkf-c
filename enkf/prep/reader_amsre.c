@@ -1,4 +1,4 @@
-      /******************************************************************************
+/******************************************************************************
  *
  * File:        reader_amsre.c        
  *
@@ -104,7 +104,7 @@ void reader_amsre(char* fname, int fid, obssection* section, grid* g, observatio
     ncw_inq_dimlen(ncid, dimid_ni, &ni);
     ncw_inq_dimid(ncid, "lat", &dimid_nj);
     ncw_inq_dimlen(ncid, dimid_nj, &nj);
-    enkf_printf("        (ni, nj) = (%u, %u)\n", ni, nj);
+    enkf_printf("        (ni, nj) = (%zu, %zu)\n", ni, nj);
 
     ncw_inq_varid(ncid, "lon", &varid_lon);
     lon = malloc(ni * sizeof(double));
@@ -138,8 +138,10 @@ void reader_amsre(char* fname, int fid, obssection* section, grid* g, observatio
     time_d = alloc2d(nj, ni, sizeof(double));
     ncw_get_var_double(ncid, varid_time_d, time_d[0]);
 
-    ncw_inq_attlen(ncid, varid_time_a, "units", &tunits_len);
-    ncw_get_att_text(ncid, varid_time_a, "units", tunits);
+    ncw_get_att_text_n(ncid, varid_time_a, "units", tunits, sizeof(tunits));
+    tunits_len = strlen(tunits);
+    if (strlen(basename) < 14)
+        enkf_quit("AMSRE reader: file name \"%s\" is too short to contain date", fname);
     basename[14] = 0;
     if (!str2int(&basename[12], &day))
         enkf_quit("AMSRE reader: could not convert file name \"%s\" to date", fname);

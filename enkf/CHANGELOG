@@ -1,3 +1,125 @@
+v2.50.0
+   14112026: The code has been audited by Claude. (Thanks to Paul Sandery for
+      running it.) Although there was no change in funcionality the version is
+      advanced from 2.49 to 2.50 due to the sheer number of changes.
+
+      Claude did an excellent job. Not only he fixed the technical
+      inconsistencies but also was able to work out the intentions behind the
+      pieces of code as well as the DA field specifics. Also, Claude thoroughly
+      followed the programming style employed in the package.
+
+      I accepted most of the proposed changes. One notable exception concerns
+      setting of vertical layer edges from layer depths for Z-grids. Claude
+      suggested to place them in the middle of the intervals between layer
+      centres; EnKF-C places then so that each layer centre is in the middle of
+      the interval between adjacent edges. E.g. for zt = {1, 9} EnKF-C sets
+      zc = {0, 2, 16}, while Claude suggested zc = {0, 5, 13}.
+
+      Another minor exception is to keep setting observation statistics values
+      to NaNs in absence of observations rather than setting them to zeros.
+      
+   Summary by Claude:
+      Repaired build of v2.49.0 following a code audit. Items marked [R] can
+      change numerical results compared to v2.49.0.
+   Common / DA core:
+   -- [R] Random number generator (drand48) is now seeded: from /dev/urandom
+      on rank 0 and broadcast, or from environment variable ENKF_SEED=<int>
+      for reproducible runs. Affects RANDOMISE, OBS_SHUFFLE, SHUFFLE_ROWS and
+      kd-tree insertion order. Unbiased Fisher-Yates shuffles.
+   -- [R] Static ensembles: UPDATE and ens_diag now centre static anomalies as
+      CALC does; EnOI UPDATE with static ensembles no longer uses an
+      uninitialised mean; member offsets for the 2nd and further static
+      ensembles fixed.
+   -- [R] Model prm: INFLATION = <v> now means capped inflation with ratio 1
+      (as in the main prm; previously plain); "PLAIN" accepted.
+   -- enkfprm_check() runs on all ranks; crash printing several static
+      ensembles fixed; ENSSIZE_STATIC/GAMMA must follow ENSDIR_STATIC (also for
+      the 10th, 20th... ensemble); STRIDE, SOBSTRIDE, FIELDBUFFERSIZE,
+      FIELDSPLIT must be >= 1; a 5th token in BADBATCHES is an error;
+      LOCWEIGHT with more entries than LOCRAD is an error; a repeated LOCRAD
+      overrides the previous one; empty ZSTATINTS fixed.
+   -- Global EXCLUDE merging and obstypes_destroy() fixed.
+   -- [R] NLOBSMAX is applied after filtering out invalid observations.
+   -- [R] Point logs: ensemble values correct for uneven member distribution;
+      written by non-MPI UPDATE; attributes no longer written as global ones.
+   -- [R] NetCDF: integer and ubyte masking with valid_*/_FillValue; fill
+      values in native type; packed outputs rounded; add_offset without
+      scale_factor; singleton-level reads; tunits: "since" at end, ISO 'T'
+      and trailing 'Z' accepted.
+   -- INTERNAL_QSORT_R: portable enkf_qsort_r(), now also used by CALC.
+   -- printf-format attributes added; many format, buffer-size and leak
+      fixes.
+   Grid:
+   -- HTYPE matched exactly with aliases rect/rectangular, curv/curvilinear,
+      curv2/curvilinear2, unstr/unstruct/unstructured, none. VTYPE checks no
+      longer depend on DOMAIN (DOMAIN works with all VTYPEs; mandatory entries
+      checked for all grids); ACVARNAME/BCVARNAME must come as a pair.
+   -- [R] Layer and cell edges built at midpoints (irregular z/numeric and
+      rectangular grids); outer half-cells of irregular non-periodic rect
+      grids rejected; periodicity with descending longitudes; strictly
+      monotonic coordinates required.
+   -- [R] ZC with nk values = edge on the side of each layer away from the
+      surface (surface edge = 0); FROMSURF z grids still accept surface-side
+      edges. Sign flip includes bottom edge.
+   -- [R] Sigma grids: depth used (grid_fk2z works), hc*st consistent; hybrid
+      grids use ACVARNAME/BCVARNAME; numlevels from depth fixed (NaN, TOSURF,
+      ZT, NUMERIC without NUMLEVELSVARNAME).
+   -- [R] Unstructured grids: triangle walk with exact fallback (obs behind
+      islands/in bays accepted); barycentric weights clamped; TRI/NEI must be
+      0-based integer (ntri, 3) arrays (checked).
+   -- Curvilinear grids: mask indexing, relative EPS, non-finite u/v; explicit
+      HTYPE curv/curv2 in UPDATE/ens_diag; XYZ kd-tree {x,y,0} on
+      non-geographic grids.
+   -- Grid SOBSTRIDE is still parsed but ignored.
+   PREP:
+   -- [R] ERROR_DOUBLING_TIME: estd *= 2^(|t - t_analysis| / T), applied after
+      ERROR_STD (previously absolute time; overflowed / was overwritten).
+   -- [R] QCFLAGVALS and TIMENAMES no longer corrupted after the first file of
+      a section; STRIDE thinning counted per section; ZMIN/ZMAX inclusive;
+      MINDEPTH/MAXDEPTH counted once; APPLYLOG obs == 1 accepted.
+   -- [R] Generic readers: error_std attribute used when only "std" is present;
+      estd = max(std, estd). Profile reader: per-profile estd/batch/QC fixed
+      (nprof > nz, nprof == 1). 3D ERROR_STD file for surface obs uses the
+      surface layer.
+   -- Default READER is "scattered" (was non-existent "standard");
+      LOCATION_BASED_THINNING_TYPE accepted by all readers; "profile" exempt
+      from duplicate-parameter check like "z"; FILE without argument detected;
+      PLATFORM attribute checked for instrument; id_orig fixed in
+      mmt/en4/cmems/xyh; cmems QCFLAGVALS print loop fixed.
+   -- [R] --write-orig-obs: "aux" in file order and remapped after land
+      removal; superob binning for negative fij.
+   CALC:
+   -- [R] Bad batches: marked on all ranks (previously still assimilated by
+      most ranks).
+   -- H_vertwavg crash fixed; wsurfbias leak and assert side effect fixed;
+      footprint queries on non-geographic grids.
+   -- [R] Multiple grids: HE update and analysis obs stats no longer mix grids;
+      SRF = 0 when DFS ~ 0.
+   -- EnOI --forecast-stats-only on np > 1 works; static ensemble with < 2
+      members is an error; barrier in single-observation mode.
+   -- USE_SHMEM: CALC quits unless MPI ranks are placed contiguously on nodes
+      (block placement, not --map-by node).
+   -- CALC quits if observations.nc DA_DAY differs from TIME.
+   -- SHUFFLE_ROWS heap overflow, MINIMISE_ALLOC alignment, MPI tags fixed.
+   UPDATE / ens_diag:
+   -- [R] Spread (--calculate-spread, ens_diag) normalised by m - N - 1 (EnKF:
+      m - 1 instead of m), two-pass double precision; EnOI ens_diag uses the
+      static ensemble scaling; vcov normalisation as spread.
+   -- [R] RANDOMISE: one field-wide perturbation per variable and dynamic
+      member (rank 0, broadcast); mean over dynamic members removed; land not
+      perturbed; 3D supported; applied before increments are formed; no
+      overflow with FIELDSPLIT.
+   -- [R] A bad static value sets only that member to the forecast mean.
+   -- [R] Log variables: masked points written as fill; increments at
+      forecast == 1 fixed. Periodic seam weights when ni % stride != 0.
+   -- Single-CPU UPDATE with FIELDSPLIT > 1 works; --direct-write with np > 1
+      refused for NETCDF4; APPLYLOG with FIELDSPLIT > 1 fixed; non-MPI build
+      compiles; unstructured inflation tiles; ens_diag on unstructured grids.
+   Build / examples:
+   -- Makefile: ens_diag uses MPISTATUS_DIAG; full header dependencies;
+      .PHONY.
+   -- examples/3/stats.prm added; examples/1 hybrid-prep uses hybrid.prm.
+   -- Documentation (User Guide, READMEs) updated.
 v2.49.2
    PS 12112026
    -- Modified das_getmemberfname_async() to use asynchronous ensemble anomalies

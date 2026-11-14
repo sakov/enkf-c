@@ -71,17 +71,15 @@ void print_memory_avail(void);
 
 void enkf_writeinfo(char* fname);
 
-#if defined(ENKF_PREP)
+/*
+ * Portable replacement for the GNU qsort_r() (for systems where it is absent
+ * or has a different signature). Not thread-safe.
+ */
 #if defined(INTERNAL_QSORT_R)
-typedef int (*__compar_d_fn_t) (const void*, const void*, void*);
-static inline void qsort_r(void* base, size_t n, size_t width, __compar_d_fn_t cmp, void* p)
-{
-    int nested_cmp(const void* a, const void* b) {
-        return cmp(a, b, p);
-    }
-    qsort(base, n, width, nested_cmp);
-}
-#endif
+typedef int (*enkf_compar_d_fn_t) (const void*, const void*, void*);
+void enkf_qsort_r(void* base, size_t n, size_t width, enkf_compar_d_fn_t cmp, void* p);
+
+#define qsort_r enkf_qsort_r
 #endif
 
 #define _UTILS_H

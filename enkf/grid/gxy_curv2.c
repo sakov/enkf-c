@@ -30,6 +30,9 @@
 #include "gxy_curv2.h"
 
 #define EPS 1.0e-8
+/*
+ * (relative to the cell size)
+ */
 #define EPS_ZERO 1.0e-5
 #define USE_LL2XYZ 0
 
@@ -94,7 +97,7 @@ gxy_curv2* gxy_curv2_create(hgrid* hg, int ni, int nj, double** x, double** y, i
         int i;
 
         for (i = 0, gxy->nnodes = 0; i < ni * nj; ++i)
-            if (mask[i] != 0)
+            if (mask[0][i] != 0)
                 gxy->nnodes++;
     }
     gxy->kdsize = kd_getstoragesize(gxy->nodetreeXY[0], gxy->nnodes);
@@ -321,7 +324,7 @@ static int calc_branch(gxy_curv2* gxy, int proj, double x, double y)
         /*
          * normally one checks A before calling calc_branch() 
          */
-        if (fabs(A) < EPS_ZERO)
+        if (fabs(A) < EPS_ZERO * (fabs(b) + fabs(c)) * (fabs(f) + fabs(g)))
             return 0;           /* failed */
 
         B = e * x - a * y + a * h - d * e + c * f - b * g;
@@ -330,7 +333,7 @@ static int calc_branch(gxy_curv2* gxy, int proj, double x, double y)
         for (k = 0; k < 2; ++k) {
             double u = (-B + sign * sqrt(B * B - 4.0 * A * C)) / (2.0 * A);
             double v_denom = a * u + c;
-            double v = (fabs(v_denom) < EPS_ZERO) ? (y - f * u - h) / (e * u + g) : (x - b * u - d) / v_denom;
+            double v = (fabs(v_denom) < EPS_ZERO * (fabs(b) + fabs(c))) ? (y - f * u - h) / (e * u + g) : (x - b * u - d) / v_denom;
 
             error[k] = 0.0;
 
@@ -407,7 +410,7 @@ int gxy_curv2_xy2fij(gxy_curv2* gxy, double x, double y, double* fij)
 
         double u, v, d1, d2;
 
-        if (fabs(A) < EPS_ZERO)
+        if (fabs(A) < EPS_ZERO * (fabs(b) + fabs(c)) * (fabs(f) + fabs(g)))
             u = -C / B * (1.0 + A * C / B / B);
         else {
             if (gxy->sign[proj] == 0) {
@@ -420,6 +423,9 @@ int gxy_curv2_xy2fij(gxy_curv2* gxy, double x, double y, double* fij)
         d1 = a * u + c;
         d2 = e * u + g;
         v = (fabs(d2) > fabs(d1)) ? (y - f * u - h) / d2 : (x - b * u - d) / d1;
+
+        if (!isfinite(u) || !isfinite(v))
+            return 0;
 
         if (u < 0.0)
             u = 0.0;

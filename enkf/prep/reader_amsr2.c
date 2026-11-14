@@ -110,8 +110,10 @@ void reader_amsr2(char* fname, int fid, obssection* section, grid* g, observatio
     ncw_inq_varid(ncid, "age", &varid_time);
     time = malloc(nobs_local * sizeof(double));
     ncw_get_var_double(ncid, varid_time, time);
-    ncw_inq_attlen(ncid, varid_time, "units", &tunits_len);
-    ncw_get_att_text(ncid, varid_time, "units", tunits);
+    ncw_get_att_text_n(ncid, varid_time, "units", tunits, sizeof(tunits));
+    tunits_len = strlen(tunits);
+    if (strlen(basename) < 14)
+        enkf_quit("AMSR2 reader: file name \"%s\" is too short to contain date", fname);
     basename[14] = 0;
     if (!str2int(&basename[12], &day))
         enkf_quit("AMSR2 reader: could not convert file name \"%s\" to date", fname);
@@ -156,7 +158,7 @@ void reader_amsr2(char* fname, int fid, obssection* section, grid* g, observatio
 
         obs->nobs++;
     }
-    enkf_printf("        nobs = %d\n", nobs_local);
+    enkf_printf("        nobs = %zu\n", nobs_local);
 
     free(lon);
     free(lat);

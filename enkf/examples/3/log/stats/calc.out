@@ -1,0 +1,184 @@
+  MPI: initialised 4 process(es)
+  Using MPI-3 shared memory:
+    sm_comm size = 4
+    node_comm size = 1
+  running CALC for EnKF-C version 2.50.0:
+    command = "./enkf_calc --forecast-stats-only stats.prm"
+    dir = "/home/599/pxs599/src/enkf-c/enkf/examples/3"
+  2026-11-14 14:34:15
+  reading system specs from "stats.prm":
+    TIME = "6565.5 days since 1990-01-01"
+    MODE = EnOI
+    MODEL PRM = "model.prm"
+    GRID PRM = "grid.prm"
+    OBS TYPES PRM = "obstypes.prm"
+    OBS PRM = "obs.prm"
+    BGDIR = "background"
+    REGION Global: x = [0.0, 360.0], y = [-90.0, 90.0]
+    NCFORMAT = NETCDF4
+    NCCOMPRESSION = 0
+    EnKF flags:
+      enkf_exitaction  = [BACKTRACE]
+      enkf_obstype     = [VALUE]
+    enkf_calc compile flags:
+      SHUFFLE_ROWS     = [-]
+      USE_SHMEM        = [+]
+      MINIMISE_ALLOC   = [+]
+      OBS_SHUFFLE      = [-]
+      TW_VIAFILE       = [+]
+      USE_MPIQUEUE     = [+]
+      INTERNAL_QSORT_R = [-]
+      DEFLATE_ALL      = [-]
+  initialising the system:
+  reading observation type specs from "obstypes.prm":
+    NAME = SLA
+    ISSURFACE = 1
+      VAR = eta
+      ID = 0
+      OFFSET = conf/msl.nc eta
+      HFUNCTION = standard
+      ALLOWED MIN = -1
+      ALLOWED MAX = 1
+      ASYNCHRONOUS = no
+      LOCRAD  =
+      LOCWEIGHT = 
+      RFACTOR = 1
+      PERMIT_LOCATION_BASED_THINNING = YES
+    NAME = SST
+    ISSURFACE = 1
+      VAR = temp
+      ID = 1
+      HFUNCTION = standard
+      ALLOWED MIN = -2
+      ALLOWED MAX = 42
+      ASYNCHRONOUS = no
+      LOCRAD  =
+      LOCWEIGHT = 
+      RFACTOR = 4
+      PERMIT_LOCATION_BASED_THINNING = NO
+    NAME = TEM
+    ISSURFACE = 0
+      VAR = temp
+      ID = 2
+      HFUNCTION = standard
+      ALLOWED MIN = -2
+      ALLOWED MAX = 42
+      ASYNCHRONOUS = no
+      LOCRAD  = 800
+      LOCWEIGHT =  1
+      RFACTOR = 4
+      PERMIT_LOCATION_BASED_THINNING = YES
+    NAME = SAL
+    ISSURFACE = 0
+      VAR = salt
+      ID = 3
+      HFUNCTION = standard
+      ALLOWED MIN = 28
+      ALLOWED MAX = 39
+      ASYNCHRONOUS = no
+      LOCRAD  = 800
+      LOCWEIGHT =  1
+      RFACTOR = 4
+      PERMIT_LOCATION_BASED_THINNING = YES
+    grid prm info:
+      NAME = "t-grid"
+      DOMAIN = ALL
+      DATA = "conf/grid.nc"
+      VTYPE = "z"
+      VDIR = tosurf
+      GEOGRAPHIC = 1
+      ZVARNAME = "z_t"
+      ZCVARNAME = <none>
+      DEPTHVARNAME = "depth"
+      VDIR = "tosurf"
+      HTYPE = "UNSTRUCTURED"
+      XVARNAME = "x_t"
+      YVARNAME = "y_t"
+      TRIVARNAME = "triangles_t"
+      TRINEIVARNAME = "neighbours_t"
+      ZSTATINTS = [0 50] [50 500] [500 9999] 
+    grid info:
+      size = 10072 x 0 x 34
+      h type = UNSTRUCTURED
+      longitude range = [0.000, 360.000]
+      v type = Z
+      v dir = TOSURF
+    grid prm info:
+      NAME = "c-grid"
+      DOMAIN = ALL
+      DATA = "conf/grid.nc"
+      VTYPE = "z"
+      VDIR = tosurf
+      GEOGRAPHIC = 1
+      ZVARNAME = "z_t"
+      ZCVARNAME = <none>
+      VDIR = "tosurf"
+      HTYPE = "UNSTRUCTURED"
+      XVARNAME = "x_c"
+      YVARNAME = "y_c"
+      TRIVARNAME = "triangles_c"
+      TRINEIVARNAME = "neighbours_c"
+      ZSTATINTS = [0 50] [50 500] [500 9999] 
+    grid info:
+      size = 30321 x 0 x 34
+      h type = UNSTRUCTURED
+      longitude range = [0.000, 360.000]
+      v type = Z
+      v dir = TOSURF
+  model info:
+    name = compas
+    4 variables:
+      eta:
+        grid = "t-grid"
+      salt:
+        grid = "t-grid"
+      temp:
+        grid = "t-grid"
+      u1:
+        grid = "c-grid"
+  setting the ensemble size:
+    1 background state
+  reading observations from "observations.nc":
+    34 observations
+    allocating 3264 bytes for array of observations (in SHMEM)
+    creating kd-trees for observations (in SHMEM):
+      kdtree "SLA":
+        5 nodes
+        368 bytes
+      kdtree "SST":
+        29 nodes
+        1904 bytes
+  calculating ensemble observations:
+  2026-11-14 14:34:15
+    allocating 136 bytes for HE array (in SHMEM):
+    distributing 1 iterations:
+      1 processes get 1 iteration, 3 processes get 0 iterations
+    SLA .
+    SST .
+    TEM 
+    SAL 
+  gathering:
+  2026-11-14 14:34:15
+  calculating innovations and spread:
+  2026-11-14 14:34:15
+  writing forecast innovations and spread to "observations.nc":
+  2026-11-14 14:34:15
+  identifying observation batches:
+    SLA     1   
+    SST     2   
+    TEM     0   
+    SAL     0   
+    total:  3   
+  printing observation statistics:
+    region obs.type   # obs.  |for.inn.| for.inn.
+    ---------------------------------------------
+    Global
+           SLA             5    0.215     -0.215  
+             n1            5    0.215     -0.215  
+           SST            29     1.04      -1.04  
+             AVHRRMTA      12    0.894     -0.894  
+             AATSR        17     1.15      -1.15  
+           TEM             0     -nan       -nan  
+           SAL             0     -nan       -nan  
+  2026-11-14 14:34:15
+  finished

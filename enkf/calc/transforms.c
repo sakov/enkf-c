@@ -31,8 +31,19 @@
 
 #define DFS_MIN 1.0e-6
 
+/*
+ * (fixed tags for sending transforms to the master; using the row index as a
+ * tag can exceed MPI_TAG_UB on large grids)
+ */
+#define TAG_T 7
+#define TAG_W 8
+
 #if defined(MINIMISE_ALLOC)
 #define PLOC_INC 1000
+/*
+ * size in bytes rounded up to keep the following doubles and pointers aligned
+ */
+#define ALIGNED_SIZE(n) (((n) + 15) / 16 * 16)
 int ploc_allocated1 = 0;
 void* storage = NULL;
 
@@ -522,12 +533,13 @@ static void nc_writediag(dasystem* das, char fname[], int nobstypes, int nj, int
 /** Distributes iterations in such a way that for any given i iterations # i 
  * for each process are grouped together.
  */
-static void group_iterations(int n, int ids[])
+static void group_iterations(size_t n, size_t ids[])
 {
-    int iter, r, i;
+    size_t i;
+    int iter, r;
 
     assert(first_iteration[0] == 0);
-    assert(last_iteration[nprocesses - 1] == n - 1);
+    assert((size_t) last_iteration[nprocesses - 1] == n - 1);
     for (iter = 0, i = 0; iter <= last_iteration[0]; ++iter)
         for (r = 0; r < nprocesses && i < n; ++r, ++i)
             ids[first_iteration[r] + iter] = i;
@@ -553,7 +565,7 @@ static void prepare_calcs(size_t ploc, size_t nmem, double** sloc, int** plobs, 
         /*
          * plobs [ploc]
          */
-        size += ploc_allocated1 * sizeof(int);
+        size += ALIGNED_SIZE(ploc_allocated1 * sizeof(int));
         /*
          * Sloc [nmem][ploc]
          */
@@ -583,7 +595,7 @@ static void prepare_calcs(size_t ploc, size_t nmem, double** sloc, int** plobs, 
 
     *sloc = storage;
     *plobs = (void*) &(*sloc)[ploc];
-    *Sloc = cast2d(&(*plobs)[ploc], nmem, ploc, sizeof(double));
+    *Sloc = cast2d((char*) (*plobs) + ALIGNED_SIZE(ploc * sizeof(int)), nmem, ploc, sizeof(double));
     Sloc2 = cast2d(&(*Sloc)[0][nmem * ploc], nmem, ploc, sizeof(double));
     *G = cast2d(&Sloc2[0][nmem * ploc], ploc, nmem, sizeof(double));
     *M = (void*) &(*G)[0][nmem * ploc];
@@ -839,7 +851,10 @@ void das_calctransforms(dasystem* das)
 
                     pnlobs[obs->nobstypes][0][ii] = ploc;
                     pdfs[obs->nobstypes][0][ii] = traceprod(0, 0, ploc, nmem, G, Sloc, 1);
-                    psrf[obs->nobstypes][0][ii] = sqrt(traceprod(0, 1, nmem, ploc, Sloc, Sloc, 1) / pdfs[obs->nobstypes][0][ii]) - 1.0;
+                    if (pdfs[obs->nobstypes][0][ii] > DFS_MIN)
+                        psrf[obs->nobstypes][0][ii] = sqrt(traceprod(0, 1, nmem, ploc, Sloc, Sloc, 1) / pdfs[obs->nobstypes][0][ii]) - 1.0;
+                    else
+                        psrf[obs->nobstypes][0][ii] = 0.0;
                     for (ot = 0; ot < obs->nobstypes; ++ot) {
                         int ploc_ot = 0;
 
@@ -951,10 +966,9 @@ void das_calctransforms(dasystem* das)
         enkf_printf("    summary stats on %s:\n", gridname);
 
         enkf_printf("      # of local analyses = %d\n", stats.ncell);
-        enkf_printf("      average # of local obs = %.1f\n", (double) stats.nlobs_sum / (double) stats.ncell);
+        enkf_printf("      average # of local obs = %.1f\n", (stats.ncell > 0) ? (double) stats.nlobs_sum / (double) stats.ncell : 0.0);
         enkf_printf("      # of inversions in obs space = %d\n", stats.n_inv_obs);
         enkf_printf("      # of inversions in ens space = %d\n", stats.n_inv_ens);
-        enkf_printf("");
 
         free(jiter);
         free(iiter);
@@ -1030,7 +1044,7 @@ void das_calctransforms(dasystem* das)
         float** srf = NULL;
         float*** psrf = NULL;
 
-        int* jpool = NULL;
+        size_t* jpool = NULL;
         int i, j, ii, jj, ot, jjj;
 
         if (grid_getaliasid(g) >= 0)
@@ -1115,7 +1129,7 @@ void das_calctransforms(dasystem* das)
             psrf = alloc3d(obs->nobstypes, my_number_of_iterations, ni, sizeof(float));
         }
 
-        jpool = malloc(nj * sizeof(int));
+        jpool = malloc(nj * sizeof(size_t));
         if (rank == 0) {
             for (j = 0; j < nj; ++j)
                 jpool[j] = j;
@@ -1139,7 +1153,7 @@ void das_calctransforms(dasystem* das)
         }
 #if defined(MPI)
         {
-            int ierror = MPI_Bcast(jpool, nj, MPI_INT, 0, MPI_COMM_WORLD);
+            int ierror = MPI_Bcast(jpool, nj * sizeof(size_t), MPI_BYTE, 0, MPI_COMM_WORLD);
 
             assert(ierror == MPI_SUCCESS);
         }
@@ -1293,7 +1307,10 @@ void das_calctransforms(dasystem* das)
 
                 nlobs[jjj][ii] = ploc;  /* (ploc > 0 here) */
                 dfs[jjj][ii] = traceprod(0, 0, ploc, nmem, G, Sloc, 1);
-                srf[jjj][ii] = sqrt(traceprod(0, 1, nmem, ploc, Sloc, Sloc, 1) / dfs[jjj][ii]) - 1.0;
+                if (dfs[jjj][ii] > DFS_MIN)
+                    srf[jjj][ii] = sqrt(traceprod(0, 1, nmem, ploc, Sloc, Sloc, 1) / dfs[jjj][ii]) - 1.0;
+                else
+                    srf[jjj][ii] = 0.0;
                 for (ot = 0; ot < obs->nobstypes; ++ot) {
                     int p = 0;
 
@@ -1362,9 +1379,9 @@ void das_calctransforms(dasystem* das)
                     if (my_number_of_iterations > 0) {
                         int ierror;
 
-                        ierror = MPI_Send(Tj[0][0], ni * nmem_dynamic * nmem, MPI_FLOAT, 0, jj, MPI_COMM_WORLD);
+                        ierror = MPI_Send(Tj[0][0], ni * nmem_dynamic * nmem, MPI_FLOAT, 0, TAG_T, MPI_COMM_WORLD);
                         assert(ierror == MPI_SUCCESS);
-                        ierror = MPI_Send(wj[0], ni * nmem, MPI_FLOAT, 0, jj, MPI_COMM_WORLD);
+                        ierror = MPI_Send(wj[0], ni * nmem, MPI_FLOAT, 0, TAG_W, MPI_COMM_WORLD);
                         assert(ierror == MPI_SUCCESS);
                     }
                 } else {
@@ -1384,9 +1401,9 @@ void das_calctransforms(dasystem* das)
                          * (recall that my_number_of_iterations <=
                          * number_of_iterations[0]) 
                          */
-                        ierror = MPI_Recv(Tj[0][0], ni * nmem_dynamic * nmem, MPI_FLOAT, r, first_iteration[r] + jj, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+                        ierror = MPI_Recv(Tj[0][0], ni * nmem_dynamic * nmem, MPI_FLOAT, r, TAG_T, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
                         assert(ierror == MPI_SUCCESS);
-                        ierror = MPI_Recv(wj[0], ni * nmem, MPI_FLOAT, r, first_iteration[r] + jj, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+                        ierror = MPI_Recv(wj[0], ni * nmem, MPI_FLOAT, r, TAG_W, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
                         assert(ierror == MPI_SUCCESS);
                         nc_writetransforms(das, gid, jpool[first_iteration[r] + jj], ni, Tj[0][0], wj[0]);
                     }
@@ -1398,7 +1415,7 @@ void das_calctransforms(dasystem* das)
 #if !defined(TW_VIAFILE)
                 if (rank > 0) {
                     if (my_number_of_iterations > 0) {
-                        int ierror = MPI_Send(wj[0], ni * nmem, MPI_FLOAT, 0, jj, MPI_COMM_WORLD);
+                        int ierror = MPI_Send(wj[0], ni * nmem, MPI_FLOAT, 0, TAG_W, MPI_COMM_WORLD);
 
                         assert(ierror == MPI_SUCCESS);
                     }
@@ -1419,7 +1436,7 @@ void das_calctransforms(dasystem* das)
                          * (recall that my_number_of_iterations <=
                          * number_of_iterations[0]) 
                          */
-                        ierror = MPI_Recv(wj[0], ni * nmem, MPI_FLOAT, r, first_iteration[r] + jj, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+                        ierror = MPI_Recv(wj[0], ni * nmem, MPI_FLOAT, r, TAG_W, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
                         assert(ierror == MPI_SUCCESS);
                         nc_writetransforms(das, gid, jpool[first_iteration[r] + jj], ni, NULL, wj[0]);
                     }
@@ -1593,10 +1610,9 @@ void das_calctransforms(dasystem* das)
         enkf_printf("    summary stats on %s:\n", gridname);
 
         enkf_printf("      # of local analyses = %d\n", stats.ncell);
-        enkf_printf("      average # of local obs = %.1f\n", (double) stats.nlobs_sum / (double) stats.ncell);
+        enkf_printf("      average # of local obs = %.1f\n", (stats.ncell > 0) ? (double) stats.nlobs_sum / (double) stats.ncell : 0.0);
         enkf_printf("      # of inversions in obs space = %d\n", stats.n_inv_obs);
         enkf_printf("      # of inversions in ens space = %d\n", stats.n_inv_ens);
-        enkf_printf("");
 
         if (my_number_of_iterations > 0) {
             free(nlobs);
@@ -1647,7 +1663,6 @@ void das_calcpointlogtransforms(dasystem* das)
     observations* obs = das->obs;
     double* w = malloc(nmem * sizeof(double));
     double** T = NULL;
-    int geographic = grid_isgeographic(model_getgridbyid(m, 0));
     int plogid, e, o, gid;
 
     if (das->s_mode == S_MODE_HA_f)
@@ -1664,6 +1679,7 @@ void das_calcpointlogtransforms(dasystem* das)
         double* lcoeffs = NULL;
 #endif
         int ploc = 0;
+        int geographic = grid_isgeographic(model_getgridbyid(m, (plog->gridid >= 0) ? plog->gridid : 0));
 
         enkf_printf("    calculating transforms for log point (%.3f,%.3f):", plog->lon, plog->lat);
 
@@ -1699,7 +1715,7 @@ void das_calcpointlogtransforms(dasystem* das)
                 continue;
 
             ploc = 0;
-            obs_findlocal(obs, plog->lon, plog->lat, geographic, grid_getdomainname(g), &ploc, &lobs, &lcoeffs, NULL);
+            obs_findlocal(obs, plog->lon, plog->lat, grid_isgeographic(g), grid_getdomainname(g), &ploc, &lobs, &lcoeffs, NULL);
 
             if (ploc == 0) {
                 memset(w, 0, nmem * sizeof(double));

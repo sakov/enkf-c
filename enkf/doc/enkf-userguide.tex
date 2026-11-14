@@ -39,7 +39,7 @@
 
 \begin{document}
 
-\title{EnKF-C user guide\\{\normalsize version 2.49.0}}
+\title{EnKF-C user guide\\{\normalsize version 2.50.0}}
 
 \author{Pavel Sakov}
 \date{June 19, 2014 -- \today}
@@ -496,7 +496,7 @@ Instead of using the forecast ensemble observation anomalies $\mb H \mb A^f$ and
 \end{align}
 Then
 \begin{align}
-  \label{w}
+  \label{w-Gs}
   \mb w = \mb G \mb s;
 \end{align}
 for the ETKF
@@ -518,9 +518,8 @@ where
 \end{align}
 Here \eqref{G-m} involves inversion of an $m \times m$ matrix, while \eqref{G-p} involves inversion of a $p \times p$ matrix.
 Therefore, in the DEnKF it is possible to calculate $\mb w$ and $\mb T$ using a single inversion of either a $p \times p$ or $m \times m$ matrix, depending on the relation between the number of observations and the ensemble size.
-In contrast, the ETKF \eqref{TR-ETKF} requires calculation of the inverse square root of an $m \times m$ matrix.
-Then, one can use expression \eqref{G-m} for $\mb G$ and calculate both inversion in it and inverse square root in \eqref{TR-ETKF} from the same singular value decomposition (SVD).
-This makes the DEnKF somewhat more numerically effective because, firstly, one can exploit situations when $p < m$ to invert a matrix of lower dimension and, secondly, it requires only matrix inversion, which can be done via Cholesky decomposition instead of SVD.
+The ETKF can exploit the smaller dimension in the same way by using form \eqref{bocquet} of \eqref{TR-ETKF}: EnKF-C calculates $\mb G$ and $\mb T_R = \mb I - (\mb M_m + \mb M_m^{1/2})^{-1} \mb S\T \mb S$ (or its $p \times p$ equivalent \eqref{bocquet-p}) from a single singular value decomposition (SVD) of either the $m \times m$ or the $p \times p$ matrix, whichever is smaller.
+Therefore both schemes benefit when $p < m$; the DEnKF is somewhat more numerically effective because it requires only matrix inversion, which can be done via Cholesky decomposition instead of SVD.
 
 \subsection{Ensemble reduction}
 \label{sec:reduction}
@@ -655,41 +654,49 @@ This approach is commonly known as ``first guess at appropriate time'', or FGAT.
 \section{EnKF/EnOI hybrid}
 \label{sec:hybrid-theory}
 
-By an EnKF/EnOI hybrid, we understand a formulation in which forecast state error covariance is equal to the sum of a ``dynamic'' covariance carried by the EnKF ensemble, and a ``static'' covariance carried by a predefined ensemble of anomalies:
+By an EnKF/EnOI hybrid, we understand a formulation in which forecast state error covariance is equal to the sum of a ``dynamic'' covariance carried by the EnKF ensemble, and a ``static'' covariance carried by one or more predefined ensembles of anomalies:
 \begin{align}
   \label{hybrid_covariance}
-  \mb P^f = \mb P\suptxt{dyn} + \gamma \mb P\suptxt{stat},
+  \mb P^f = \mb P\suptxt{dyn} + \sum_{s = 1}^N \gamma_s \mb P\suptxt{stat}_s,
 \end{align}
 where
 \begin{align*}
   & \mb P\suptxt{dyn} = \frac{1}{m\subtxt{dyn} - 1}\mb A\suptxt{dyn} (\mb A\suptxt{dyn})\T,\\
-  & \mb P\suptxt{stat} = \frac{1}{m\subtxt{stat} - 1}\mb A\suptxt{stat} (\mb A\suptxt{stat})\T,
+  & \mb P\suptxt{stat}_s = \frac{1}{m_s - 1}\mb A\suptxt{stat}_s (\mb A\suptxt{stat}_s)\T, \quad s = 1, \dots, N,
 \end{align*}
-where $\mb A\suptxt{dyn}$ is the ensemble of dynamic anomalies of size $m\subtxt{dyn}$, and $\mb A\suptxt{stat}$ is the ensemble of static anomalies of size $m\subtxt{stat}$.
+where $\mb A\suptxt{dyn}$ is the ensemble of dynamic anomalies of size $m\subtxt{dyn}$, $\mb A\suptxt{stat}_s$ is the $s$-th ensemble of static anomalies of size $m_s$, $N \ge 1$ is the number of static ensembles, and $\gamma_s > 0$ is the scaling coefficient of the $s$-th static ensemble.
+The static anomalies are obtained by subtracting the ensemble mean from each static ensemble.
 The added static covariance can be assumed to represent the model error covariance (matrices $\mb Q_i$ in \eqref{L-nonl} and $\mb Q_{k+1}$ in \eqref{prop-P}).
 
 The forecast covariance $\mb P^f$ is then carried by the combined ensemble $\mb A^f$:
 \begin{align}
   \label{hybrid_combined}
-  \mb A^f = \left[ \left(\frac{m - 2}{m\subtxt{dyn} - 1}\right)^{1/2} \mb A\suptxt{dyn}, \left(\gamma \frac{m - 2}{m\subtxt{stat} - 1}\right)^{1/2} \mb A\suptxt{stat} \right],
+  & \mb A^f = \left[ k\subtxt{dyn} \mb A\suptxt{dyn}, k_1 \mb A\suptxt{stat}_1, \dots, k_N \mb A\suptxt{stat}_N \right],\\
+  \nonumber
+  & k\subtxt{dyn} = \left(\frac{m - N - 1}{m\subtxt{dyn} - 1}\right)^{1/2}, \quad k_s = \left(\gamma_s \frac{m - N - 1}{m_s - 1}\right)^{1/2},
 \end{align}
-where $m = m\subtxt{dyn} + m\subtxt{stat}$, so that
+where $m = m\subtxt{dyn} + \sum_{s=1}^N m_s$, so that
 \begin{align}
   \label{cov_combined}
-  \mb P^f = \frac{1}{m - 2} \mb A^f (\mb A^f)\T.
+  \mb P^f = \frac{1}{m - N - 1} \mb A^f (\mb A^f)\T.
 \end{align}
 
-We use factor $m - 2$ instead of the usual $m - 1$ in \eqref{cov_combined} and, correspondingly, \eqref{hybrid_combined}, because the ensemble mean has been removed from each ensemble of anomalies in \eqref{hybrid_combined}.
-Therefore, the combined ensemble has two degrees of freedom removed instead of the usual one.
-Formally, this choice is immaterial to \eqref{hybrid_covariance}; however, it must match the factor used in standardisations \eqref{s}, \eqref{S}, where it should be applied.
+We use factor $m - N - 1$ instead of the usual $m - 1$ in \eqref{cov_combined} and, correspondingly, \eqref{hybrid_combined}, because the ensemble mean has been removed from each of the $N + 1$ ensembles of anomalies in \eqref{hybrid_combined}.
+Therefore, the combined ensemble has $N + 1$ degrees of freedom removed instead of the usual one (two for a single static ensemble).
+Formally, this choice is immaterial to \eqref{hybrid_covariance}; however, it must match the factor used in standardisations \eqref{s}, \eqref{S}, where it is applied: in EnKF-C $\sqrt{m - 1}$ in \eqref{s} and \eqref{S} is replaced by $\sqrt{m - N - 1}$.
+In the EnKF case ($N = 0$) all the above expressions reduce to the usual ones.
+
+The EnOI corresponds to the case $m\subtxt{dyn} = 1$: the single dynamic member is the background $\mb x^f$, there are no dynamic anomalies ($k\subtxt{dyn} = 0$), and $m - N - 1 = \sum_{s=1}^N (m_s - 1)$.
+For a single static ensemble with $\gamma_1 = 1$ this yields the ``plain'' EnOI with $\mb P^f = \mb P\suptxt{stat}_1$.
 
 The combined forecast ensemble anomalies \eqref{hybrid_combined} have a larger ensemble size than that of the dynamic ensemble; hence there arises a problem of ensemble reduction to obtain the analysed dynamic ensemble of size $m\subtxt{dyn}$.
 EnKF-C takes the approach described in Section~\ref{sec:reduction}, leading to \eqref{reduction_right}:
 \begin{align}
   \label{hybrid_update}
-  (\mb E\suptxt{dyn})^a = (\mb x^f + \mb A^f \mb w) \mb 1\T + \left(\frac{m\subtxt{dyn} - 1}{m - 2}\right)^{1/2} \mb A^f \mb T(:, 1 : m\subtxt{dyn}),
+  (\mb E\suptxt{dyn})^a = (\mb x^f + \mb A^f \mb w) \mb 1\T + \left(\frac{m\subtxt{dyn} - 1}{m - N - 1}\right)^{1/2} \mb A^f \mb T(:, 1 : m\subtxt{dyn}),
 \end{align}
 where $\mb x^f$ is the ensemble mean of the dynamic forecast ensemble, $\mb w$ is a vector of ensemble mean update coefficients, and $\mb T$ is the right-multiplied ensemble transform matrix; both $\mb w$ and $\mb T$ are computed using the expanded ensemble anomalies \eqref{hybrid_combined}.
+In the EnOI case only the first term of \eqref{hybrid_update} is used.
 
 \chapter{EnKF-C}
 \label{ch:enkf-c}
@@ -721,19 +728,19 @@ It has the following steps:
 PREP does not need to access the model state; it only accesses the model grid.
 (Note that for some types of vertical coordinates the vertical model grid may depend on the state.)
 
-CALC calculates ensemble transforms for updating the forecast ensemble of model states (EnKF) or the background model state (EnOI) in the following steps:
+CALC calculates ensemble transforms for updating the forecast ensemble of model states (EnKF, Hybrid) or the background model state (EnOI) in the following steps:
 \begin{itemize}
 \item read superobservations from \verb|observations.nc|;
 \item calculate ensemble of forecast observations $\mb H \mb E^f$ (EnKF) or ensemble of background observation anomalies $\mb H \mb A^f$ and background observations $\mb H \mb x^f$ (EnOI);
-\item for nodes with specified stride on each horizontal grid get local observations and calculate local ensemble transforms $\mb X_5$ (EnKF) or local background update coefficients $\mb w$ (EnOI);
+\item for nodes with specified stride on each horizontal grid get local observations and calculate local ensemble mean update coefficients $\mb w$ and (if the dynamic ensemble size $m\subtxt{dyn} > 1$) local ensemble anomalies transforms $\mb T$ (Sec.~\ref{sec:numerical});
 \item save these transforms to \verb|transforms.nc| (or \verb|transforms.nc-0|, \verb|transforms.nc-1|, ... in multi-grid case);
 \item calculate and report forecast and analysis innovation statistics;
-\item calculate observation impact metrics DFS and SRF (Sec.~\ref{sec:impact}) and save them to \verb|enkf_diag.nc|;
+\item calculate observation impact metrics DFS and SRF (Sec.~\ref{sec:impact}) and save them to \verb|enkf_diag.nc| (or \verb|enkf_diag-<grid ID>.nc| in multi-grid case);
 \item at specified horizontal locations save the model state ensemble, observations, transforms/weights, and DA settings to pointlog files (Sec.~\ref{sec:pointlogs}).
 \end{itemize}
 Apart from this main mode of operation, CALC can also be used for calculating forecast innovations, or operate in the single observation experiment mode.
 
-UPDATE updates the ensemble (EnKF or Hobrid) or the background (EnOI) using the transforms calculated by CALC, along with a number of specified diagnostics, such as the ensemble spread and inflation.
+UPDATE updates the ensemble (EnKF or Hybrid) or the background (EnOI) using the transforms calculated by CALC, along with a number of specified diagnostics, such as the ensemble spread and inflation.
 
 The principle diagram of EnKF-C workflow in the EnKF mode is shown in Fig.~\ref{fig:calcupdate}.
 \begin{figure}
@@ -763,7 +770,7 @@ The EnKF mode assumes that the size of the static ensemble is zero, and the EnOI
 Note that while numerically a Hybrid system with a single dynamic member is equivalent to an EnOI system with the same static ensemble and background, their naming conventions differ:
 \begin{itemize}
 \item{EnOI System: The background directory is specified by \verb|BGDIR| entry in the main parameter file, and the model files must use the \verb|bg_| prefix.}
-\item{Hybrid System: The dynamic member durectory is specified by the \verb|ENSDIR_DYNAMIC| entry, and the model files must use the \verb|mem001_| prefix.}
+\item{Hybrid System: The dynamic member directory is specified by the \verb|ENSDIR_DYNAMIC| entry, and the model files must use the \verb|mem001_| prefix.}
 \end{itemize}
 
 \section{Parameter files}
@@ -865,6 +872,22 @@ The \verb|TIME| entry also serves as a switch between geophysical and non-geophy
 For geophysical systems the coordinates are assumed to be geographic longitude and latitude (unless \verb|GEOGRAPHIC = 0| is specified for a grid); the time is assumed to be dimensional, in some physical units; and the localisation radii is assumed to be in kilometres.
 For non-geophysical systems all the above are assumed to be non-dimensional, and the grid is assumed to be on a plane.
 
+Some further details on the entries of the main parameter file:
+\begin{itemize}
+\item \verb|DATE| is accepted as a synonym of \verb|TIME| (and is used in the examples).
+\item \verb|MODE| must be specified before \verb|ENSDIR|, \verb|ENSSIZE| and \verb|BGDIR|, because the meaning of these entries depends on the mode.
+\item Each static ensemble is described by a block starting with \verb|ENSDIR_STATIC| (or \verb|ENSDIR| in the EnOI mode); the entries \verb|ENSSIZE_STATIC| (\verb|ENSSIZE| in the EnOI mode) and \verb|GAMMA| apply to the most recently specified static ensemble directory.
+  \verb|GAMMA| defaults to 1 in both EnOI and Hybrid modes (although the describe output above lists it as mandatory for the Hybrid mode) and must be positive.
+\item \verb|ENSSIZE_DYNAMIC| may only be set to 1 in the EnOI mode; \verb|SCHEME| and \verb|ALPHA| have no effect when the dynamic ensemble size is 1.
+\item \verb|ALPHA| must be in the interval $[0, 1]$.
+\item \verb|STRIDE|, \verb|SOBSTRIDE|, \verb|FIELDBUFFERSIZE| and \verb|FIELDSPLIT| must be $\ge 1$; \verb|FIELDBUFFERSIZE| $> 1$ and \verb|FIELDSPLIT| $> 1$ are mutually exclusive.
+\item \verb|INFLATION = <value>| is equivalent to \verb|INFLATION = <value> 1|, i.e. the default capping ratio is 1 (Sec.~\ref{sec:capping}).
+\item In \verb|REGION| names underscores are replaced by spaces. If no region is specified, a single region ``Global'' is defined.
+\item \verb|BADBATCHES| takes exactly four tokens (Sec.~\ref{sec:batches}).
+\item \verb|ZSTATINTS| defaults to the intervals $[0, 50]$, $[50, 500]$ and $[500, 9999]$; an empty entry (\verb|ZSTATINTS =|) means no depth intervals. Entry \verb|ZSTATINTS| in the grid parameter file overrides that in the main parameter file.
+\item \verb|NCCOMPRESSION| must be between 0 and 9 and requires \verb|NCFORMAT = NETCDF4|.
+\end{itemize}
+
 \subsubsection{Global analysis}
 
 It is possible to conduct global analysis by setting \verb|LOCRAD| and \verb|STRIDE| to large numbers.
@@ -892,7 +915,9 @@ The model parameter file describes the composition of the state vector by listin
 
 Each model variable is described in a block started by the entry for the variable name.
 The inflation parameters for a variable, if specified, override the common values set in the main parameter file (Sec.~\ref{sec:capping}).
-The option APPLYLOG makes it possible to conduct assimilation in log space (Sec.~\ref{sec:logspace}), and RANDOMISE -- to specify parameters of ``forgetting'' model for the variable (Sec.~\ref{sec:bias}).
+The convention is the same as in the main parameter file: \verb|INFLATION = <value>| means capped inflation with capping ratio 1, \verb|INFLATION = <value> <ratio>| -- capped inflation with the specified ratio, and \verb|INFLATION = <value> PLAIN| -- plain (uncapped) inflation.
+The option APPLYLOG (values \verb|1|, \verb|y|, \verb|yes|, \verb|t| or \verb|true| switch it on) makes it possible to conduct assimilation in log space (Sec.~\ref{sec:logspace}), and RANDOMISE (or RANDOMIZE) -- to specify parameters of ``forgetting'' model for the variable (Sec.~\ref{sec:bias}); the deflation must be between 0 and 1.
+Note that any entry starting with ``VAR'' is interpreted as \verb|VAR|, and that grid names are case-sensitive.
 
 EnKF-C permits using multiple model grids.
 Each model variable must be associated with one of the grids defined in the grid parameter file.
@@ -930,14 +955,15 @@ It also contains variable names for the depth and for number of layers in a vert
       ZVARNAME       = <Z variable name>
     [ ZCVARNAME      = <ZC variable name> ]
     [ NUMLEVELSVARNAME = <# of levels variable name> ]
-    [ DEPTHVARNAME   = <depth variable name> ]
+    (else if vtype = zt)
+      ZVARNAME       = <Z variable name>
+    [ NUMLEVELSVARNAME = <# of levels variable name> ]
     (else if vtype = sigma)
       CVARNAME       = <Cs_rho variable name>
     [ CCVARNAME      = <Cs_w variable name> ]
     [ SVARNAME       = <s_rho variable name> ]            (uniform*)
     [ SCVARNAME      = <s_w variable name> ]              (uniform*)
     [ HCVARNAME      = <hc variable name> ]               (0.0*)
-    [ DEPTHVARNAME   = <depth variable name> ]
     [ MASKVARNAME    = <land mask variable name> ]
     (else if vtype = hybrid)
       AVARNAME       = <A variable name>
@@ -950,9 +976,9 @@ It also contains variable names for the depth and for number of layers in a vert
     (else if vtype = numeric)
       ZVARNAME       = <Z variable name>
     [ ZCVARNAME      = <ZC variable name> ]
-    [ NUMLEVELSVARNAME = <land mask variable name> ]
-    [ DEPTHVARNAME   = <depth variable name> ]
-     (end if)
+    [ NUMLEVELSVARNAME = <# of levels variable name> ]
+    (end if)
+  [ DEPTHVARNAME   = <depth variable name> ]
   [ STRIDE           = <stride for ensemble transforms> ] (1*)
   [ SOBSTRIDE        = <stride for superobing> ]          (1*)
   [ ZSTATINTS        = [<z1> <z2>] ... ]
@@ -961,9 +987,20 @@ It also contains variable names for the depth and for number of layers in a vert
 \end{Verbatim}
 
 While the code is supposed to automatically identify the types of horizontal grids used, they can also be specified explicitly.
-The type of the vertical grid has to be specified.
+The following (case-insensitive) values of \verb|HTYPE| are accepted: \verb|rect| or \verb|rectangular|; \verb|curv| or \verb|curvilinear|; \verb|curv2| or \verb|curvilinear2| (curvilinear grid rendered using stereographic projections, chosen automatically for curvilinear grids with \verb|GEOGRAPHIC = 2|); \verb|unstr|, \verb|unstruct| or \verb|unstructured|; and \verb|none|.
+The type of the vertical grid has to be specified, and the entry \verb|VTYPE| must precede the entries describing the vertical coordinate.
 If some grid (say, grid A) has the same horizontal grid as another grid (grid B), the code can be notified of this by entering name of grid A in the field \verb|HGRIDFROM| for grid B (or vice versa).
 This saves memory, grid initialisation time, and uses transforms calculated for grid A for all variables defined on grid B.
+
+Further details:
+\begin{itemize}
+\item A qualifier \verb|PREP| or \verb|CALC| after the grid name (\verb|NAME = <name> PREP|) makes the grid visible only to PREP or only to CALC and UPDATE, respectively. This makes it possible, for example, to use simplified grid specifications in PREP.
+\item The entry for the number of levels / land mask depends on the vertical grid type: it is \verb|NUMLEVELSVARNAME| for ``z'', ``zt'' and ``numeric'' grids and \verb|MASKVARNAME| for ``sigma'', ``hybrid'' and ``none'' grids. This entry can be followed by qualifiers \verb|PREP|, \verb|CALC| and/or \verb|UPDATE| to restrict it to particular programs.
+\item \verb|DEPTHVARNAME| can be specified for grids of any vertical type.
+\item \verb|STRIDE| for a grid defaults to the \verb|STRIDE| in the main parameter file; on unstructured grids it is always 1.
+\item \verb|SOBSTRIDE| in the grid parameter file is read but currently ignored: the superobing stride is defined by \verb|SOBSTRIDE| in the observation types parameter file or, by default, in the main parameter file.
+\item \verb|ZSTATINTS| for a grid overrides that in the main parameter file (Sec.~\ref{sec:mainprm}).
+\end{itemize}
 
 \subsubsection{Horizontal grids}
 \label{sec:hgrid}
@@ -991,7 +1028,8 @@ If the flag \verb|GEOGRAPHIC| is set to ``0'' then the grid is assumed to be on 
 
 The flag \verb|GEOGRAPHIC| set to ``2'' treats grid coordinates similarly to that for ``1'' but switches to more robust rendering procedures (based on stereographic projections) and is advised to be used e.g. for grids with artificial discontinuities.
 
-For unstructured grids associated with observed variables it is necessary to specify triangulation details: vertex IDs and neighbour triangle IDs.
+For unstructured grids associated with observed variables it is necessary to specify triangulation details: vertex IDs (\verb|TRIVARNAME|) and neighbour triangle IDs (\verb|TRINEIVARNAME|).
+Both must be specified together, and both variables must be integer arrays of shape $(n_{tri}, 3)$ with 0-based indices (that is, vertex IDs between 0 and $n_{nodes} - 1$, and neighbour IDs between 0 and $n_{tri} - 1$, with a negative value for a missing neighbour); the code checks the type, shape and range of these arrays.
 For unstructured grids stride can be equal to 1 only (i.e. ensemble transforms must be calculated in each grid node).
 
 \subsubsection{Vertical grids}
@@ -1003,21 +1041,30 @@ The type of the vertical grid is defined by entry \verb|VTYPE| in the grid param
 EnKF-C supports the following types of vertical grids: ``z'' ($Z$); ``zt''; ``sigma'' ($\sigma$); ``hybrid'' ($\sigma-p$), and ``numeric''.
 It is also possible to define a purely horizontal (two-dimensional) grid by defining its vertical type as ``none''.
 
-For $Z$ grids one needs to define vertical coordinates of layer centres (entry \verb|ZVARNAME|) and (optionally) the coordinates of layer corners (\verb|ZCVARNAME|).
-If coordinates of layer corners are not specified they are built by the code assuming that the surface layer starts at $z = 0$.
+For $Z$ grids one needs to define vertical coordinates of layer centres (entry \verb|ZVARNAME|) and (optionally) the coordinates of layer boundaries (\verb|ZCVARNAME|).
+The layer centres must be strictly monotonic.
+If coordinates of layer boundaries are not specified they are built by the code so that the layer centres are in the middle of intervals between boundaries.
+The ZC variable can contain either $n_k + 1$ values (all layer boundaries) or $n_k$ values.
+In the latter case each value is taken to be the boundary of the corresponding layer on the side \emph{away from the surface} (as in MOM), and the surface boundary is set to $z = 0$.
+For backward compatibility, for $Z$ grids with \verb|VDIR = FROMSURF| $n_k$ values are interpreted as surface-side boundaries if the first value is on the surface side of the first layer centre.
+\verb|ZCVARNAME| cannot be specified for ``zt'' grids.
+
+For ``zt'' grids the layer boundaries are placed at the midpoints between the adjacent layer centres, assuming that the surface layer starts at $z = 0$ (provided that $z = 0$ is on the surface side of the surface layer centre), and extrapolating the bottom boundary by half of the distance between the two deepest layer centres.
+\verb|ZCVARNAME| cannot be specified for ``zt'' grids.
 
 For $\sigma$ grids the code implements the ``new'' vertical coordinate formulation from ROMS as described in \url{https://www.myroms.org/wiki/Vertical_S-coordinate}, Eq.~2 and elaborated by Shchepetkin in \url{https://www.myroms.org/forum/viewtopic.php?f=20&t=2189}.
 This formulation reduces to the ``standard'' $\sigma$ grid if the entry \verb|HCVARNAME| is not specified or if the corresponding variable in the grid file is set to zero.
-Similarly to $Z$ grid, one needs to define the vertical coordinates of layer centres (entry \verb|CSRVARNAME|) and (optionally) the coordinates of layer corners (entry \verb|CSWVARNAME|).
+Similarly to $Z$ grid, one needs to define the vertical coordinates of layer centres (entry \verb|CVARNAME|) and (optionally) the coordinates of layer corners (entry \verb|CCVARNAME|).
 From version 1.81.0 one can also specify variables for layer coordinates (which is used to be ``plain'' sigma, that is uniform) via entries \verb|SVARNAME| and \verb|SCVARNAME|.
 
 The hybrid $\sigma$-$p$ grids are implemented as described in \url{https://journals.ametsoc.org/doi/pdf/10.1175/2008MWR2537.1}.
 One needs to specify the $A$ (\verb|AVARNAME|) and $B$ (\verb|BVARNAME|) arrays for layer centres as well as the top and surface pressure (\verb|P1VARNAME| and \verb|P2VARNAME|).
-One can also specify optional $A$ and $B$ arrays for layer corners (\verb|ACVARNAME|, \verb|BCVARNAME|).
+One can also specify optional $A$ and $B$ arrays for layer corners (\verb|ACVARNAME|, \verb|BCVARNAME|); these must be specified together.
 The entry \verb|DEPTHVARNAME| needs only to be specified for variables with non-surface observations.
 
 Vertical grid type ``numeric'' is supposed to handle general situations described by 3D arrays of layer depths.
 Grids of this type are defined by specifying variable with cell centres depth coordinates (entry \verb|ZVARNAME|) and (optionally) variable with cell boundaries depth coordinates (entry \verb|ZCVARNAME|).
+The ZC variable must have the same horizontal dimensions as the Z variable and either $n_k + 1$ or $n_k$ layers; the latter case is treated in the same way as for $Z$ grids (boundaries on the side of each layer away from the surface).
 
 By default, the code assumes that the surface is at layer 0.
 If this is not the case, one needs to describe it explicitly by the entry \verb|VDIR = TOSURF|; otherwise the surface ensemble or background observations will not be calculated correctly.
@@ -1031,7 +1078,7 @@ This rule applies to vertical grids of all types but ``zt'', for which vertical 
 ``Empty'' grids have been introduced in version 2.28.0 to simplify estimation of global scalar parameters.
 In the KF context a model parameter is simply an unobserved model variable.
 In EnKF-C model variables are defined in the model parameter file; each model variable must be associated with a grid defined in the grid parameter file.
-``Empty'' grids are used to be associated with global model parameters and are defined by specifying their vertical and horizontal types as ``none'', e.g.
+``Empty'' grids are used to be associated with global model parameters and are defined by specifying their vertical and horizontal types as ``none'' (with no \verb|DATA| entry), e.g.
 \begin{Verbatim}[frame=single,fontsize=\footnotesize]
   NAME = param-grid
   VTYPE = none
@@ -1045,7 +1092,7 @@ Note that like ``normal'' grids, the empty grids can be associated with particul
 Observation types are the interface that connects model and observations.
 They are specified in a separate parameter file.
 Each observation type is described in a separate section identified by the entry \verb|NAME|.
-Apart from the type name, the section must contain the tag for the associated model variable and the tag for the associated observation operator.
+Apart from the type name, the section must contain the entries \verb|ISSURFACE| and \verb|VAR| (the associated model variable(s)); the observation operator (\verb|HFUNCTION|) is optional and defaults to ``standard'' (Sec.~\ref{sec:hfunctions}).
 The optional parameters include the R-factor and localisation radius for the type (Sec.~\ref{sec:datuning}), the allowed range, and spatial limits for the corresponding observations.
 \begin{Verbatim}[frame=single,fontsize=\footnotesize]
 >./bin/enkf_prep --describe-prm-format obstypes
@@ -1062,7 +1109,7 @@ The optional parameters include the R-factor and localisation radius for the typ
   [ MLD_VARNAME = <model varname> ]                      (none*)
   [ MLD_THRESH  = <threshold> ]                          (NaN*)
   [ HFUNCTION   = <H function name> ]                    (standard*)
-  [ ASYNC       = <time interval> [{centre* | endpoint} [time varname]]] (0*)
+  [ ASYNC       = {<time interval> {centre | endpoint} <time varname>} | {no|false|0} (0*)
   [ LOCRAD      = <loc. radius in km> ... ]
   [ LOCWEIGHT   = <loc. weight> ... ]                    (# LOCRAD > 1)
   [ RFACTOR     = <rfactor> ]                            (1*)
@@ -1082,7 +1129,7 @@ The optional parameters include the R-factor and localisation radius for the typ
   [ WINDOWMIN   = <start of obs window in days from analysis> ] (-inf*)
   [ WINDOWMAX   = <end of obs window in days from analysis> ]   (+inf*)
   [ EXCLUDE     = <lon1> <lon2> <lat1> <lat2> | <mask file> <varname>]
-  ...
+    ...
   
   [ <more of the above blocks> ]
   [ EXCLUDE     = <lon1> <lon2> <lat1> <lat2> | <mask file> <varname>]  
@@ -1090,11 +1137,15 @@ The optional parameters include the R-factor and localisation radius for the typ
 
 The tags for available observation operators are listed in array \verb|allhentries| in file \verb|calc/allhs.c|.
 
+The entry \verb|ASYNC| (Sec.~\ref{sec:async}) has the form \verb!ASYNC = <dt> {centre | endpoint} <time varname>! (the alignment can be abbreviated to \verb|c| or \verb|e|); there is no default alignment and the time variable name is mandatory.
+\verb|ASYNC = no| (or \verb|false|, \verb|0|) sets the type to be synchronous (the default).
+
 The \verb|OFFSET| entry may be used for adding the known model bias to observations, for example, to specify the mean dynamic topography (MDT) when assimilating sea level anomaly (SLA) observations.
 The dimension of the offset should match that of the corresponding model variable, except that it is possible to define (1D) layer-wise offsets for 3D model variables.
+\verb|OFFSET| cannot be used for observation types associated with log-transformed model variables (Sec.~\ref{sec:logspace}).
 
-The localisation radius for an observation type, if specified, overrides the
-common value from the main parameter file.
+The localisation radius (and \verb|NLOBSMAX|, \verb|SOBSTRIDE|) for an observation type, if specified, overrides the common value from the main parameter file.
+\verb|SOBSTRIDE| greater than 1 is not allowed for types associated with unstructured grids.
 The R-factors for each observation type are obtained by multiplying the common
 value by the observation type value.
 (More on localisation radius and R-factor in Section~\ref{sec:datuning}.)
@@ -1102,6 +1153,14 @@ value by the observation type value.
 The entries \verb|MLD_VARNAME| and \verb|MLD_THRESH| are used to calculate the model mixed layer depth for projecting the surface bias.
 
 \verb|WINDOWMIN| and \verb|WINDOWMAX| define the allowed temporal interval for this observation type relatively to the analysis day and override the corresponding common settings in the main parameter file.
+
+\verb|ERROR_DOUBLING_TIME| $T$ (in days) increases the observation error of each observation of this type according to the time distance from the analysis:
+$\sigma_{obs} \leftarrow \sigma_{obs} \, 2^{|t - t_a| / T}$, where $t$ is the observation time and $t_a$ is the analysis time.
+It is applied by PREP to the original observations after all \verb|ERROR_STD| entries in the observation data parameter file have been processed.
+
+The allowed observation domain is defined by \verb|XMIN|, \verb|XMAX|, \verb|YMIN|, \verb|YMAX| (observations on these bounds are discarded) and \verb|ZMIN|, \verb|ZMAX| (observations on these bounds are retained).
+
+\verb|DOMAINS| lists the names of grid domains (Sec.~\ref{sec:domains}) the observations of this type are visible from; by default (``ALL'') they are visible from all grids.
 
 It is possible to specify regions with no observations (if, for example, the updated model becomes unstable at some location).
 This is done with entries \verb|EXCLUDE|.
@@ -1119,7 +1178,8 @@ This allows one using custom observation windows for particular observation type
 
 In practice some of observations specified in the observation data parameter file can be outside the observation time window for the cycle.
 In this case the exact boundaries of the observation window can be specified by entries \verb|WINDOWMIN| and \verb|WINDOWMAX| in the main parameter file or (for specific observation types) observation types parameter file;
-observations with time outside interval \verb|[DATE-WINDOWMIN, DATE+WINDOWMAX)| will be discarded.
+observations with time outside interval \verb|[TIME+WINDOWMIN, TIME+WINDOWMAX)| will be discarded (note that \verb|WINDOWMIN| is normally negative).
+The window set for an observation type overrides that in the main parameter file.
 
 The observation parameter file contains an arbitrary number of sections identified by entries \verb|PRODUCT|.
 Each section specifies the observation type, input files, reader and, possibly, observation error:
@@ -1140,18 +1200,35 @@ Each section specifies the observation type, input files, reader and, possibly, 
     ...
 
   [ <more of the above blocks> ]
-    ...
+
+  Notes:
+    1. { ... | ... | ... } denotes the list of possible choices
+    2. [ ... ] denotes an optional input
+    3. * denotes the default value
+    4. < ... > denotes a description of an entry
+    5. ... denotes repeating the previous item an arbitrary number of times
+    6. Use "--list-readers" to list available readers
+    7. Use "--describe-reader <reader>" to list available parameters
 \end{Verbatim}
 Observation files can be defined using wildcards ``*'' and ``?''.
-Missing a file is reported in the log and is not considered to be a fatal error.
+A \verb|FILE| entry that does not match any existing file is considered to be a fatal error (since v2.43.11).
+If \verb|MANDATORY = yes| is specified, PREP also stops if the section yields no observations.
+
+If \verb|READER| is not specified, the reader ``scattered'' is used.
+Reader names are case-sensitive.
+Each \verb|PARAMETER| can only be specified once in a section, except for \verb|QCFLAGNAME|, \verb|QCFLAGVALS| and \verb|EXCLUDEINST| (and any parameter for the reader ``profile'').
 
 The line in the above example starting with \verb|ERROR_STD| specifies the observation error.
 It can contain either a number or a file name.
 In the case of entering the file name there also should be another entry in the same line specifying the name of the variable to be read.
-The variable should have the same dimension (2D or 3D) as the associated observation kind as described by the field \verb|issurface| in the array \verb|allkinds| in file \verb|common/obstypes.c| (Sec.~\ref{sec:obstypesprm}).
+The variable should be a 2D or 3D field on the grid of the observation type, depending on whether the observation type is a surface type or not (entry \verb|ISSURFACE| in the observation types parameter file, Sec.~\ref{sec:obstypesprm}); a 3D field is accepted for a surface type, in which case its surface layer is used.
+The field is interpolated to the observation locations.
 
 The line with observation error can also have another token specifying the type of operation to be conducted: \verb|EQUAL| ($\sigma_{tot} \leftarrow \sigma_{now}$, default), \verb|PLUS| ($\sigma_{tot} \leftarrow \sqrt{\sigma_{tot}^2 + \sigma_{now}^2}$), \verb|MULT| ($\sigma_{tot} \leftarrow \sigma_{tot} \sigma_{now}$), \verb|MIN| ($\sigma_{tot} = \max(\sigma_{tot}, \sigma_{now})$), or \verb|MAX| ($\sigma_{tot} = \min(\sigma_{tot}, \sigma_{now})$).
-There can be several error entries in a section in the observation parameter file.
+(Only the first two letters of the operation are checked: \verb|EQ|, \verb|PL|, \verb|MU|, \verb|MI|, \verb|MA|.)
+There can be several error entries in a section in the observation parameter file; they are applied in the order of their appearance.
+Error values must be non-negative.
+\verb|ERROR_STD| must be specified explicitly for observation types associated with log-transformed model variables (Sec.~\ref{sec:logspace}).
 
 The observation time only matters if the observation type is specified to be ``asynchronous'' (see Sec. \ref{sec:async}).
 In this case the model estimation for the observation is made by using model state at the appropriate time.
@@ -1186,15 +1263,16 @@ file = /short/p93/pxs599/obs/RADS/2006/[!g]?_20060523.nc
 
 EnKF-C assumes that the ensemble and background file names have some predefined formats.
 The file name \verb|fname| for ensemble member \verb|memberid| containing model variable \verb|varname| is assumed to be \spverb|sprintf(fname, "mem%03d_%s.nc", memberid, varname)|.
-This file typically represents the model restart (EnKF) or ensemble anomaly (EnOI).
+This file typically represents the model restart (EnKF, dynamic members) or ensemble anomaly (static members).
 
-For the EnOI the background (forecast restart) file for variable \verb|varname| is assumed to be \spverb|sprintf("bg_%s.nc", varname)|.
+For the EnOI the background (forecast restart) file for variable \verb|varname| is assumed to be \spverb|sprintf("bg_%s.nc", varname)| in the directory \verb|BGDIR|.
 
 The analysis restart file names are created by concatenating the above forecast restart names and a suffix, either``.analysis'' or ``.increment'', depending on the output of UPDATE.
 
-For asynchronous DA the model output file names for the time slot \verb|t| are assumed to be \\\spverb|sprintf("mem%03d_%s_%d.nc", memberid, varname, t)| (EnKF) and \spverb|sprintf("bg_%s_%d.nc", varname, t)| (EnOI).
-It is also possible to have model outputs concatenated into a single multi-record file, in which case it is assumed to be either \spverb|sprintf("mem%03d_%s_#.nc", memberid, varname)| (EnKF) or \spverb|sprintf("bg_%s_#.nc", varname)|.
+For asynchronous DA the model output file names for the time slot \verb|t| are assumed to be \\\spverb|sprintf("mem%03d_%s_%d.nc", memberid, alias, t)| (EnKF) and \spverb|sprintf("bg_%s_%d.nc", alias, t)| (EnOI), where \verb|alias| is the entry \verb|ALIAS| of the observation type (by default -- the first variable in the entry \verb|VAR|).
+It is also possible to have model outputs concatenated into a single multi-record file (or several such files), in which case their names are assumed to match either \spverb|sprintf("mem%03d_%s_#*.nc", memberid, alias)| (EnKF) or \spverb|sprintf("bg_%s_#*.nc", alias)| (EnOI), where ``*'' is an arbitrary string.
 In this case EnKF-C will identify the record to be used by its time.
+Asynchronous model outputs are looked up in the dynamic ensemble (background) directory only; static members are always read synchronously from \spverb|ENSDIR_STATIC/mem%03d_<alias>.nc|.
 (See Sec.~\ref{sec:async}.)
 
 There are possible situations when the surface field and 3D field of the same variable have different asynchronous settings.
@@ -1231,16 +1309,17 @@ It has the following usage and options:
   --no-thinning
   --superob-across-instruments
   --write-orig-obs
-      write original obs within model extent to observations-orig.nc
+      write original obs within model domain to observations-orig.nc
   --write-all-orig-obs
       write all original obs to observations-orig.nc
   --version
       print version and exit
 \end{Verbatim}
 
-\verb|enkf_prep| writes the preprocessed observations to file \verb|observatons.nc|.
-When run with command line argument \verb|--write-orig-obs|, it also writes the original (not superobed) observations to \verb|observatons-orig.nc|.
-By default, the original observations only involve observations within the corresponding model grids, but can include all observations by the command line argument \verb|--wrie-all-orig-obs|.
+\verb|enkf_prep| writes the preprocessed observations to file \verb|observations.nc|.
+When run with command line argument \verb|--write-orig-obs|, it also writes the original (not superobed) observations to \verb|observations-orig.nc|.
+By default, the original observations only involve observations within the corresponding model grids, but can include all observations by the command line argument \verb|--write-all-orig-obs|.
+In \verb|observations-orig.nc| the auxiliary variable \verb|aux| contains the ID of the superobservation in \verb|observations.nc| each original observation has been collated into ($-1$ for observations that did not make it into a superobservation).
 
 \subsection{Observation types, products, instruments, batches, readers}
 
@@ -1282,6 +1361,7 @@ The observational data in a product can be collected by a number of instruments.
 The corresponding field in the \verb|measurement| structure is supposed to be filled by the observation reader.
 
 \subsubsection{Batches}
+\label{sec:batches}
 
 An observation can be attributed to one of the groups called ``batches'', such as altimeter passes, Argo profiles etc., to enable detection and discarding of bad batches.
 A unique batch of observations is defined by (1) observation type; (2) observation data file; and (3) ``batch'' identifier set by the observation reader.
@@ -1295,13 +1375,13 @@ BADBATCHES = TEM 4 5 0
 BADBATCHES = SST 0.3 0.5 10000
 BADBATCHES = SAL 1.5 2 0
 \end{Verbatim}
-The above entry means that any batch of observations of type SLA (typically, an orbit) containing more than 500 observations and having either mean innovation greater than 0.06 (meter) in magnitude or mean absolute innovation greater than 0.10 is considered to be bad.
+The above entry means that any batch of observations of type SLA (typically, an orbit) containing at least 500 observations and having either mean innovation of at least 0.06 (meter) in magnitude or mean absolute innovation of at least 0.10 is considered to be bad.
 Similarly, a TEM batch (typically, a profile) is considered bad if the mean innovation exceeds 4 (degrees) or the mean absolute innovation exceeds 5 (degrees).
 The parameter file can have an arbitrary number of such entries.
 
 The bad batches are identified and removed from further processing by CALC.
 From version 2.15.0 this no longer requires two passes of PREP and CALC.
-Information about the detected bad batches is written by \verb|enkf_calc| to the file \verb|badobsbatches.txt|.
+Information about all observation batches is written by \verb|enkf_calc| to the file \verb|obsbatches.txt|, and about the detected bad batches -- to the file \verb|badobsbatches.txt|.
 Note that for observations from bad batches the value of variable \verb|status| in \verb|observations.nc| is set by CALC to \verb|STATUS_BADBATCH| (currently 5).
 
 \subsubsection{Readers}
@@ -1323,16 +1403,19 @@ Following is the list of available readers:
     amsr2
     amsre
     cmems
+    en4
 \end{Verbatim}
 
 Users are encouraged to use generic rather than custom readers.
 When this is not possible, one may either modify (or put a request to modify) a generic reader, or develop a custom reader.
+Note that reader names are case-sensitive, and that each custom reader can only be used with its own product (\verb|NAVO|, \verb|WINDSAT|, \verb|MMT|, \verb|AMSR2|, \verb|AMSRE|, \verb|CMEMS| or \verb|EN4|, matched case-insensitively), while generic readers can be used with any product.
+The reader ``profile'' can also be referred to as ``z''.
 
 Each reader can be specified in the observation data parameter file with an arbitrary number of parameters.
 For example, the following section sets the default minimal depth for SLA observations to 150\,m:
 \begin{Verbatim}
 (...)
-PRODUCT == RADS
+PRODUCT = RADS
 TYPE = SLA
 READER = scattered
 PARAMETER VARNAME = sla
@@ -1344,19 +1427,20 @@ PARAMETER MINDEPTH = 150
 Observation data parameters can be either generic (common for all readers), or custom (specific to specific readers or groups of readers).
 The generic parameters include:
 \begin{description}
-\item{\verb|MINDEPTH|} -- minimal allowed model depth;
-\item{\verb|MAXDEPTH|} -- maximal allowed model depth;
+\item{\verb|MINDEPTH|} -- minimal allowed \emph{model} depth at the observation location (requires \verb|DEPTHVARNAME| for the grid);
+\item{\verb|MAXDEPTH|} -- maximal allowed model depth (requires \verb|DEPTHVARNAME| for the grid);
 \item{\verb|FOOTPRINT|} -- the radius in km of the horizontal footprint;
 \item{\verb|VARSCALE|} -- data scale;
 \item{\verb|VARSHIFT|} -- data offset;
-\item{\verb|STRIDE|} -- stride interval.
-\item{\verb|YMIN|} -- minimal allowed latitude;
-\item{\verb|YMAX|} -- maximal allowed latitude;
-\item{\verb|ZMIN|} -- minimal allowed depth;
-\item{\verb|ZMAX|} -- maximal allowed depth;
-\item{\verb|LOCATION_BASED_THINNING_TYPE|} -- type of location based thinning (\verb/XYZ* | XY | CELL | NILL/).
+\item{\verb|STRIDE|} (or \verb|THIN|) -- stride interval: only every \verb|STRIDE|-th observation read in this section is retained;
+\item{\verb|YMIN|} -- minimal allowed latitude (exclusive);
+\item{\verb|YMAX|} -- maximal allowed latitude (exclusive);
+\item{\verb|ZMIN|} -- minimal allowed \emph{observation} depth (inclusive);
+\item{\verb|ZMAX|} -- maximal allowed observation depth (inclusive);
+\item{\verb|LOCATION_BASED_THINNING_TYPE|} -- type of location based thinning: \verb|XYZ| (default), \verb|XY|, \verb|CELL|, or \verb|0| (\verb|no|, \verb|false|) for no thinning (Sec.~\ref{sec:superobing}).
 \end{description}
 Specified parameters apply to observations defined in the corresponding section of observation data parameter file.
+These parameters can be used with any reader, including custom readers.
 
 The custom parameters can be learned by running \verb|enkf_prep --describe-reader <reader name>|.
 Following is the description of the reader \verb|scattered|:
@@ -1365,31 +1449,36 @@ Following is the description of the reader \verb|scattered|:
 
   Generic reader "scattered" reads 2D or 3D scattered point data.
 
-  There are a number of parameters that must (marked below with "++"), can
-  ("+"), or may ("-") be specified in the corresponding section of the
-  observation data parameter file. The names in brackets represent the default
-  names checked in the abscence of the entry for the parameter. Each parameter
-  needs to be entered as follows:
+  There are a number of parameters that must (marked below with "+") or may ("-")
+  be specified in the corresponding section of the observation data parameter file.
+  For non-specified parameters a list of default variable names will be checked and
+  the first matching variable will be used as the paramater value.
+
+  Each parameter needs to be entered as follows:
     PARAMETER <name> = <value> ...
 
   Parameters common to generic readers:
-    - VARNAME (++)
-    - TIMENAME ("*[tT][iI][mM][eE]*") (+)
-    - or TIMENAMES (when time = base_time + offset) (+)
-    - LONNAME ("lon" | "longitude") (+)
-    - LATNAME ("lat" | "latitude") (+)
-    - ZNAME ("z") | ZVALUE (+)
+    - VARNAME (+)
+    - TIMENAME (+) ("t" | "[tT]ime" | "TIME")
+    - or TIMENAMES (+) (when time = base_time + offset)
+    - LONNAME (+) ("lon" | "[lL]ongitude" | "LONGITUDE")
+    - LATNAME (+) ("lat" | "[lL]atitude" | "LATITUDE")
+    - ZNAME (+) ("z" | "[dD]epth" | "DEPTH") | ZVALUE (+)
         "ZNAME" is needed for 3D data, "ZVALUE" for 2D data (can be NaN)
-    - STDNAME ("std") (-)
+    - STDNAME (-) ("std")
         dispersion of the collated data
-    - ESTDNAME ("error_std") (-)
+    - ESTDNAME (-) ("error_std")
         error STD; if absent then needs to be specified in the corresponding
         section of the observation data parameter file
-    - BATCHNAME ("batch") (-)
+    - BATCHNAME (-) ("batch")
         name of the variable used for batch ID (e.g. "pass" for SLA)
     - INSTRUMENT (-)
         instrument string that will be used for calculating instrument stats
         (overrides the global attribute "instrument" in the data file)
+    - INSTATTNAME (-)
+        name of the global attribute for the instrument string
+    - INSTPREFIX (-)
+        prefix that will be added in front of the instrument string
     - QCFLAGNAME (-)
         name of the QC flag variable, possible values 0 <= qcflag <= 31
     - QCFLAGVALS (-)
@@ -1406,6 +1495,8 @@ Following is the description of the reader \verb|scattered|:
           PARAMETER QCFLAGVALS = 1,8
         An observation is considered valid if each of the specified flags takes
         a permitted value.
+    - LOCATION_BASED_THINNING_TYPE
+        XYZ* | XY | CELL | NIL
   Parameters specific to the reader:
     - ADDVAR (-)
         name of the variable to be added to the main variable (can be repeated)
@@ -1424,7 +1515,7 @@ Following is the description of the reader \verb|scattered|:
     - MAXDEPTH (-)
         maximal allowed model depth
     - STRIDE (-)
-        stride interval.
+        stride interval
     - YMIN (-)
         minimal allowed latitude
     - YMAX (-)
@@ -1433,38 +1524,59 @@ Following is the description of the reader \verb|scattered|:
         minimal allowed depth
     - ZMAX (-)
         maximal allowed depth
-    - LOCATION_BASED_THINNING_TYPE
-        XYZ* | XY | CELL | NIL
 \end{Verbatim}
 
+Some details on the generic readers:
+\begin{itemize}
+\item \verb|TIMENAMES = <offset variable>, <base time variable>| is used when the observation time is the sum of a base time (with units of the form ``\verb|<units> since <date>|'') and offsets (in days, hours or seconds).
+\item \verb|QCFLAGVALS| (values between 0 and 31) must immediately follow the corresponding \verb|QCFLAGNAME|.
+\item The instrument tag is taken from (in order of precedence): parameter \verb|INSTRUMENT|; the global attribute named by \verb|INSTATTNAME|; attributes ``instrument'' (or ``Instrument'', ``INSTRUMENT'', ``platform'', etc.) of the data variable or global attributes with such names; the product name. The prefix \verb|INSTPREFIX|, if specified, is added to the tag found in the data file.
+\item If the error variable (\verb|ESTDNAME|, by default \verb|error_std|) is absent, the observation error is taken from the attribute \verb|error_std| of the data variable, if present; otherwise it must be specified by \verb|ERROR_STD| in the observation data parameter file. If the dispersion variable (\verb|STDNAME|, by default \verb|std|) is present, the observation error is set to $\max(\sigma_{std}, \sigma_{error\_std})$.
+\end{itemize}
+
+The parameters listed above as ``common to generic readers'' differ somewhat between the generic readers (see the output of \verb|--describe-reader| for each reader):
+\begin{itemize}
+\item \verb|gridded_xy| reads 2D data and takes \verb|ZVALUE| (default 0) rather than \verb|ZNAME|; it also accepts \verb|NPOINTSNAME|, \verb|ADDVAR| and \verb|SUBVAR|;
+\item \verb|gridded_xyz| takes \verb|ZNAME| rather than \verb|ZVALUE| and accepts \verb|NPOINTSNAME|;
+\item \verb|gridded_xyh| requires \verb|GRIDNAME| (the name of the model grid the data is defined on, which is used instead of the longitude and latitude variables) and accepts \verb|NPOINTSNAME|;
+\item \verb|profile| accepts \verb|EXCLUDEINST| (can be repeated);
+\item \verb|ADDVAR| and \verb|SUBVAR| are only available in readers \verb|scattered| and \verb|gridded_xy|.
+\end{itemize}
+The custom readers have the following specific parameters: \verb|ADDBIAS| (\verb|amsr2|, \verb|navo|), \verb|MINWIND| and \verb|ORBITS| (\verb|amsre|), \verb|QCFLAGVALS| (\verb|cmems|).
+
 \subsection{Superobing}
+\label{sec:superobing}
 
 ``Superobing'' is the process of reduction of the number of observations by merging spatially close observations before their assimilation.
 EnKF-C merges observations if:
 \begin{itemize}
-\item they belong to the same model grid cell;
+\item they belong to the same model grid cell (or superobing cell, see below) and the same layer;
 \item are of the same type;
+\item are from the same instrument (unless PREP is run with \verb|--superob-across-instruments|);
+\item belong to the same batch (only if PREP is run with \verb|--no-superobing-across-batches|);
+\item have the same footprint;
 \item for asynchronous observations -- belong to the same time slot.
 \end{itemize}
-The horizontal size of superobing cells can be increased from the default of 1 model grid cell to $N \times N$ cells by setting \verb|SOBSTRIDE = <N>| in the parameter file; the vertical size is always equal to 1 layer.
-Setting \verb|SOBSTRIDE = 0| switches superobing off.
+The horizontal size of superobing cells can be increased from the default of 1 model grid cell to $N \times N$ cells by setting \verb|SOBSTRIDE = <N>| in the main parameter file or (for a particular observation type) in the observation types parameter file; the vertical size is always equal to 1 layer.
+\verb|SOBSTRIDE| must be $\ge 1$; superobing can be switched off by running PREP with \verb|--no-superobing|.
 
 The observations are merged by averaging their values, coordinates and times with weights inversely proportional to the observation error variance.
 The observation error variance of a superobservation is set to the inverse of the sum of inverse observation error variances of the merged observations.
 The product and instrument fields of the superobservation are set either to those of the merged observations or to -1, depending on whether the merged observations have identical values for these fields or not.
+(Because by default only observations from the same instrument are merged, the instrument of a superobservation can only be -1 with \verb|--superob-across-instruments|.)
 
 Command line parameter \verb|--consider-subgrid-variability| switches on considering the subgrid variability by calculating standard deviation of the merged observations $\sigma\!_{sub}$ and using $\sigma\!_{obs} = \max(\sigma\!_{obs}, \sigma\!_{sub})$.
 The calculation of $\sigma\!_{sub}$ is currently done in a rather crude way, assuming equal weights for all merged observations.
 
 Note that during superobing EnKF-C thins observations with identical positions, assuming that those must been obtained from high-frequency instruments (e.g. moorings).
 The thinning involves replacing the corresponding batch of observations by batch average values.
-The type of thinning can be set by parameter \verb| LOCATION_BASED_THINNING_TYPE| in observation data parameter file and can be set to ``XYZ'' (thinning observations with coinciding X,Y,Z coordinates), ``XY'' (coinciding X,Y coordinates only), ``CELL'' (all observations within cell), or ``NILL'' (no thinning).
+The type of thinning can be set by parameter \verb|LOCATION_BASED_THINNING_TYPE| in observation data parameter file and can be set to ``XYZ'' (thinning observations with coinciding X,Y,Z coordinates; default), ``XY'' (coinciding X,Y coordinates only), ``CELL'' (all observations within cell), or ``0'' (``no'', ``false''; no thinning).
 The location based thinning can be switched off by the command line parameter \verb|--no-thinning|, or for observations of a particular data type only by adding flag \verb|PERMIT_LOCATION_BASED_THINNING = no| in the corresponding section in the observation types parameter file.
 
 \section{CALC}
 
 CALC is the second stage of data assimilation in EnKF-C.
-It calculates 2D arrays of local ensemble transforms $\mb X_5$ (for EnKF) or coefficients $\mb w$ (for EnOI).
+It calculates 2D arrays of local ensemble mean update coefficients $\mb w$ and (for $m\subtxt{dyn} > 1$, i.e. for EnKF and Hybrid) ensemble anomalies transforms $\mb T$, which together define the local transforms $\mb X_5$ \eqref{x5}.
 
 The name of the binary for CALC is \verb|enkf_calc|.
 It has the following usage and options:
@@ -1507,6 +1619,20 @@ This can be used, for example, for obtaining the persistence statistics, that is
 The option \verb|--single-observation| provides an easy way to conduct the so called single observation experiments.
 Normally, this experiments would be conducted in the EnOI mode, calculating increment (option \verb|--output-increment| of \verb|enkf_update|) rather than analysis.
 When run in the EnKF mode, the increment (or analysis, depending on specifications) for each member is calculated.
+Note that in this mode CALC (over)writes \verb|observations.nc| with the single observation.
+\verb|--single-observation| cannot be combined with \verb|--forecast-stats-only|, \verb|--use-these-obs| or \verb|--point-logs-only|; \verb|--point-logs-only| cannot be combined with \verb|--forecast-stats-only|.
+CALC stops if the analysis time (\verb|DA_DAY|) recorded in \verb|observations.nc| differs from the time in the main parameter file; this check is skipped with \verb|--use-these-obs|.
+
+Apart from the transforms, CALC writes the following files:
+\begin{itemize}
+\item it adds to \verb|observations.nc| variables \verb|Hx_f| and \verb|std_f| (forecast observation ensemble mean and spread), \verb|Hx_a| and \verb|std_a| (the same for the analysis), and, if the K-factor is used (Sec.~\ref{sec:kfactor}), replaces \verb|estd| by the moderated observation error, keeping the original values in \verb|estd_orig|; it also updates variable \verb|status|;
+\item \verb|enkf_diag.nc| (or \verb|enkf_diag-<grid ID>.nc|) with the observation impact data (Sec.~\ref{sec:impact});
+\item \verb|obsbatches.txt| with statistics on observation batches and (if \verb|BADBATCHES| is specified) \verb|badobsbatches.txt| with the detected bad batches (Sec.~\ref{sec:batches});
+\item point logs (Sec.~\ref{sec:pointlogs});
+\item with \verb|--write-HE|, file \verb|HE.nc| with the ensemble observations (variable \verb|HE(nmem, nobs)|); in EnOI and Hybrid modes it contains the combined ensemble, that is, with the static anomalies scaled according to \eqref{hybrid_combined} and added to the dynamic ensemble mean (global attribute \verb|nmem_dynamic| gives the number of dynamic members).
+\end{itemize}
+During calculations CALC uses a temporary directory \verb|.enkftmp| (with the default compile flags); if this directory exists at start (e.g. after a crashed run), CALC quits and the directory needs to be removed manually.
+The same applies to UPDATE.
 
 Note that the calculated transforms \emph{do not} incorporate inflation.
 Inflation is applied during UPDATE according to specifications (Sec.~\ref{sec:capping}).
@@ -1514,7 +1640,7 @@ Inflation is applied during UPDATE according to specifications (Sec.~\ref{sec:ca
 \subsection{Observation functions}
 \label{sec:hfunctions}
 
-Model estimations for observations of each type are calculated using observation functions specified for this type by entry \verb|HFUNCTIONS| in the observation types parameter file, e.g.:
+Model estimations for observations of each type are calculated using observation functions specified for this type by entry \verb|HFUNCTION| in the observation types parameter file, e.g.:
 \begin{Verbatim}[frame=single,fontsize=\footnotesize]
 NAME = SLA
 ...
@@ -1549,15 +1675,18 @@ H_entry allhentries[] = {
 H-functions ``standard'' are used by default.
 They perform 2D or 3D linear interpolation on the model grid associated with the observation type.
 
-Function ``lowmem'' can be used instead of ``normal'' for observation types associated with 3D model variables in situations with very large models.
-Unlike ``normal'' it does not read the whole 3D dump for a variable but proceeds by reading only two layers at a time.
+Function ``lowmem'' can be used instead of ``standard'' for observation types associated with 3D model variables in situations with very large models.
+Unlike ``standard'' it does not read the whole 3D dump for a variable but proceeds by reading only two layers at a time.
 
-Function ``biased'' targets 2D variables corrected for bias.
+Function ``biased'' targets 2D variables corrected for bias; it requires a second variable (the bias field) in the entry \verb|VAR| of the observation type.
 Function ``wsurfbias'' was developed to offset the values of temperature in the mixed layer by the value of SST bias.
+It requires a second (2D) variable in the entry \verb|VAR| and either \verb|MLD_THRESH| or \verb|MLD_VARNAME| (but not both); it works on structured grids only, and with \verb|MLD_THRESH| it works in the EnKF mode only.
 
 Function ``vertsum'' is used to assimilate observations corresponding to the sum of a model variable over all layers (such as the total sea-ice concentration).
 It can be used only for variables on sigma or hybrid grids.
-Function ``vertwavg'' matches observations with a weighted sum of a model variable in all model layers.
+Function ``vertwavg'' matches observations with a weighted average of a model variable over all model layers; the weights are given by a second variable in the entry \verb|VAR|.
+(Currently only positive contributions to the weighted average are accounted for.)
+Functions ``vertsum'', ``vertwavg'' and ``wsurfbias'' cannot be used for log-transformed variables (\verb|APPLYLOG|).
 
 \subsection{Asynchronous DA / FGAT}
 \label{sec:async}
@@ -1566,46 +1695,51 @@ An observation type can be specified as ``asynchronous'' by specifying entry \ve
 \begin{Verbatim}[frame=single,fontsize=\footnotesize]
 NAME = SST
 (...)
-ASYNC = 1
+ASYNC = 1 centre time
 (...)
 \end{Verbatim}
-The above means that SST observations are considered to be asynchronous with time bins of 1 day.
-If, for example, the assimilation time is specified as ``6085.5 days since 1990-01-01'', then the interval 0 is centred (by default) at the time of assimilation, i.e. will be from day 6085.0 to day 6086.0; interval -1 -- from day 6084.0 to day 6085.0, interval 1 -- from day 6086.0 to day 6087.0, and so on.
+The above means that SST observations are considered to be asynchronous with time bins of 1 day, and that the model output time is stored in variable \verb|time| of the model output files.
+The second token (\verb|centre| or \verb|endpoint|, or simply \verb|c| or \verb|e|) specifies the alignment of the intervals relative to the analysis time and must be specified (there is no default); the third token specifies the name of the time variable in the model output files and is mandatory as well.
+If, for example, the assimilation time is specified as ``6085.5 days since 1990-01-01'', then with \verb|centre| alignment the interval 0 is centred at the time of assimilation, i.e. will be from day 6085.0 to day 6086.0; interval -1 -- from day 6084.0 to day 6085.0, interval 1 -- from day 6086.0 to day 6087.0, and so on.
 It is possible to shift the asynchronous intervals so that not the centre but the start of interval 0 is located at the time of assimilation.
-In this case one needs to add qualifier ``endpoint'' after the length of the interval, i.e.
+In this case one needs to use qualifier ``endpoint'' after the length of the interval, i.e.
 \begin{Verbatim}[frame=single,fontsize=\footnotesize]
 NAME = SST
 (...)
-ASYNC = 1 endpoint
+ASYNC = 1 endpoint time
 (...)
 \end{Verbatim}
 The interval 0 will then be from day 6085.5 to day 6086.5.
 
-The model dumps for each asynchronous interval are read from files with names \spverb|mem<xxx>_<variable name>_<time shift>.nc| in the ensemble directory (for the EnKF) or \spverb|bg_<variable name>_<time shift>.nc| in the background directory (for the EnOI).
-Here ``time shift'' is the interval ID (with the interval 0 being centred/starting at the observation time).
-If the corresponding members (or the background files, in the case of EnOI) are found, the observations are assimilated asynchronously; if they are not found, then the observations are assimilated synchronously.
+The model dumps for each asynchronous interval are read from files with names \spverb|mem<xxx>_<alias>_<time shift>.nc| in the dynamic ensemble directory (for the EnKF and Hybrid) or \spverb|bg_<alias>_<time shift>.nc| in the background directory (for the EnOI), or from multi-record files (see below); here \verb|<alias>| is the entry \verb|ALIAS| of the observation type, which defaults to the (first) model variable name.
+Here ``time shift'' is the interval ID (with the interval 0 being centred/starting at the analysis time).
+If the corresponding model outputs for a dynamic member (or the background, in the case of EnOI) cannot be found, CALC stops with an error.
+The members of static ensembles are always read synchronously (from \spverb|mem<xxx>_<alias>.nc| in the static ensemble directory, see Sec.~\ref{sec:hybrid-enkfc}).
 This can be tracked from the CALC log file, e.g.:
 \begin{Verbatim}[frame=single,fontsize=\footnotesize]
   calculating ensemble observations:
-  2014-03-22 06:28:28
-    ensemble size = 96
-    distributing iterations:
-      all processes get 6 iterations
-      process 0: 0 - 5
-    SST |aaaaaa|aaaaaa|aaaaaa|aaaaaa|aaaaaa
-    SLA |aaaaaa|aaaaaa|aaaaaa|aaaaaa|aaaaaa
-    TEM ......
-    SAL ......
+  2026-11-04 15:13:14
+    allocating 5602960128 bytes for HE array (in SHMEM):
+    allocating 5602960128 bytes for HE^T array (in SHMEM):
+    distributing 192 iterations:
+      52 processes get 4 or 3 iterations
+    SLA |aaaa|aaaa|aaaa
+    SST |aaaa|aaaa|aaaa|aaaa|aaaa|aaaa|aaaa|aaaa|aaaa|aaaa|aaaa|aaaa|aaaa|aaaa|aaaa|aaaa|aaaa|aaaa|aaaa|aaaa|aaaa|aaaa|aaaa|aaaa|aaaa|aaaa|aaaa|aaaa|aaaa|aaaa|aaaa|aaaa|aaaa|aaaa|aaaa|aaaa
+    TEM |aaaa|aaaa|aaaa
+    SAL |aaaa|aaaa|aaaa
+    SIC |aaaa|aaaa|aaaa
+    SLA2 |aaaa|aaaa|aaaa
+    SLA3 |aaaa|aaaa|aaaa
 \end{Verbatim}
 The entries ``a'' mean that the observations are assimilated asynchronously and the corresponding files have been found.
 These entries would be replaced by ``s'' if the observations were assimilated synchronously because of lacking the corresponding files.
-The vertical lines indicate the time slots for asynchronous DA; in the above example the DAW has 5 time slots.
-The entries ``.'' indicate calculating ensemble observations for synchronous observations.
-Note that only the master process is writing to the log here, which explains why there is only output from 6 members in the log above.
+(But in hybrid systems these members can be processed by workers and not manifested in the log printed by the master only.)
+The vertical lines indicate the time slots for asynchronous DA; in the above example the DAW has 36 time slots for SST and 3 time slots for other observation types.
+The entries ``.'' would indicate calculating synchronous ensemble observations.
 
 Fig.~\ref{fig:mom_timing} shows an example of observation timing in a MOM based ocean forecasting system with a 3-day assimilation cycle.
 In this system the ``fast'' SST data is assimilated asynchronously with 6\,h intervals using model fields averaged over these intervals; the slower SLA data is assimilated asynchronously with 24\,h intervals using daily model dumps; and in-situ T and S fields are assimilated synchronously.
-This is achieved with the following settings in the observation types parameter file:
+This is achieved with the following settings in the observation types parameter file (any entry name starting with ``ASYNC'', e.g. \verb|ASYNCHRONOUS|, is accepted):
 \begin{Verbatim}[frame=single,fontsize=\footnotesize]
 NAME = SLA
 VAR = eta_t
@@ -1633,7 +1767,7 @@ ISSURFACE = no
   \label{fig:mom_timing}
 \end{figure}
 
-When an observation type is set as ``asynchronous'', EnKF-C alignes the centres of the time-binning intervals across the observation window with the model output times.
+When an observation type is set as ``asynchronous'', EnKF-C aligns the centres of the time-binning intervals across the observation window with the model output times.
 
 The second token after \verb|ASYNCHRONOUS| specifies the interval duration in days.
 The third token specifies the alignment of these intervals relative to the analysis time, and the fourth token specifies the name of the time variable.
@@ -1646,19 +1780,23 @@ There are two alignment options the time binning intervals:
 
 Model outputs can be associated with the time binning intervals either {\bf directly} or via a {\bf time search}:
 \begin{enumerate}
-\item {\bf Direct association:} The interval ID is embedded directly into the file name. The model output must be written using the template \spverb|printf("%s/mem\%03d_%s_%d", ensdir, memberid, intervalid)|.
-The output time for interval $i$ must strictly satisfy $t_i = t_0 + i \, dt$, where $dt$ is the interval length.
-If a mismatch occurs between the interval the model output time, CALC will exit with error.
-\item {\bf Time search:} EnKF-C can also automatically locate the correct model output records by matching the interval times with the timestamps inside the files. To use this, write model outputs using the wildcard template \spverb|printf("%s/mem\%03d_%s_#*", ensdir, memberid, intervalid)|, where "*" represeins an arbitrary string.
+\item {\bf Direct association:} The interval ID is embedded directly into the file name. The model output must be written using the template \spverb|printf("%s/mem%03d_%s_%d.nc", ensdir, memberid, alias, intervalid)|.
+The output time for interval $i$ must strictly satisfy $t_i = t_0 + i \, dt$, where $dt$ is the interval length and $t_0$ is the analysis time (for \verb|centre| alignment) or the analysis time plus $dt/2$ (for \verb|endpoint| alignment).
+If a mismatch occurs between the interval and the model output time, CALC will exit with error.
+\item {\bf Time search:} EnKF-C can also automatically locate the correct model output records by matching the interval times with the timestamps inside the files. To use this, write model outputs using the wildcard template \spverb|printf("%s/mem%03d_%s_#*.nc", ensdir, memberid, alias)|, where "*" represents an arbitrary string.
 EnKF-C checks timestamps of all records matching this template and selects one with the correct time.
 If no matching record is found, CALC exits with error.
 \end{enumerate}
+(For the EnOI background the templates are \spverb|"%s/bg_%s_%d.nc"| and \spverb|"%s/bg_%s_#*.nc"|.)
 
 \subsection{Interpolation of ensemble transforms}
 
-Local ensemble transforms $\mb X_5$ (EnKF) or ensemble weights $\mb w$ (EnOI) (Sec. \ref{sec:enkf-overview}) represent smooth fields with the characteristic spatial variability scale of the localisation radius.
+Local ensemble transforms $\mb T$ and ensemble weights $\mb w$ (Sec. \ref{sec:enkf-overview}) represent smooth fields with the characteristic spatial variability scale of the localisation radius.
 This makes it possible to reduce the computational load in CALC by calculating local transforms or weights on a subgrid with specified stride and then linearly interpolating the transforms or weights in the intermediate grid cells \citep{yan09a}.
 The value of the stride is defined by the entry \verb|STRIDE| in the main parameter file and can be overwritten for a particular grid in the grid parameter file.
+
+The transforms are written to \verb|transforms.nc| (\verb|transforms-<id>.nc| for multiple grids).
+The file contains variable \verb|w(j, i, m)| for all modes and, if the dynamic ensemble size $m\subtxt{dyn} > 1$, variable \verb|T(j, i, m_dyn, m)|, where \verb|(j, i)| are the indices of the nodes of the strided grid; global attributes \verb|stride| and \verb|grid_name| specify the stride and the grid name.
 
 \subsection{Adaptive moderation of observations}
 \label{sec:kfactor}
@@ -1684,6 +1822,7 @@ It modifies the right multiplied ensemble transform matrix as
   \mb T_R \leftarrow \mb I + \alpha (\mb T_R - \mb I).
 \end{align*}
 Setting $\alpha = 0$ results in no update of the ensemble anomalies, while $\alpha = 1$ results in full update.
+RPS is only applied when the dynamic ensemble size is greater than 1.
 
 \subsection{Innovation statistics}
 
@@ -1693,7 +1832,7 @@ By default, EnKF-C defines one statistical region ``Global'' with extent $[x_1,x
 
 In addition, for 3D observations CALC also calculates observation statistics in specified depth intervals.
 These intervals can be set via the entry \verb|ZSTATINTS| in the main parameter file or (specific for a particular grid) in the grid parameter file.
-By default, three intervals are defined: \verb|[0 DEPTH_SHALLOW]|, \verb|[DEPTH_SHALLOW DEPTH_DEEP]|, and \verb|[DEPTH_DEEP DEPTH_MAX]|, where \verb|DEPTH_SHALLOW|, \verb|DEPTH_DEEP| and \verb|DEPTH_MAX| are the macros defined in \verb|common/definitions.h|.
+By default, three intervals are defined: \verb|[0 DEPTH_SHALLOW]|, \verb|[DEPTH_SHALLOW DEPTH_DEEP]|, and \verb|[DEPTH_DEEP DEPTH_MAX]|, where \verb|DEPTH_SHALLOW| = 50, \verb|DEPTH_DEEP| = 500 and \verb|DEPTH_MAX| = 9999 are the macros defined in \verb|common/global.h|.
 
 Following is an example of innovation statistics written to the log (standard output) of \verb|enkf_calc|:
 \begin{Verbatim}[frame=single,fontsize=\footnotesize]
@@ -1761,13 +1900,12 @@ In the course of its work CALC routinely calculates two metrics for assessing th
   & \mathrm{SRF} = \sqrt{\frac{\mathrm{tr}(\mb H \mb P^f \mb H\T \mb R^{-1})}{\mathrm{tr}(\mb H \mb P^a \mb H\T \mb R^{-1})}} - 1 = \sqrt{\frac{\mathrm{tr}(\mb S\T \mb S)}{\mathrm{tr}(\mb G \mb S)}} - 1,
 \end{align*}
 where $\mathrm{tr}(\cdot)$ is the trace function.
-The values of these metrics for each local analysis, calculated both for all observations and for observations of each type only, are written to files \verb|enkf_diag[-<grid ID>].nc| (variables \verb|dfs|, \verb|srf|, \verb|pdfs|, and \verb|psrf|).
+The values of these metrics for each local analysis, calculated both for all observations and for observations of each type only, are written to files \verb|enkf_diag[-<grid ID>].nc| (variables \verb|dfs|, \verb|srf|, \verb|pdfs|, and \verb|psrf|; the files also contain the number of local observations \verb|nlobs| and its partial (per observation type) values \verb|pnlobs|).
 
 Note that in EnKF-C DFS and SRF are calculated from the above expressions and represent theoretical values for the EnKF analysis; they coincide with the actual DFS and SRF values only for vanilla ETKF (i.e. ETKF with no inflation or relaxation to prior), but still are useful metrics for assessing the impact of observations in practice.
 
 In the EnKF context DFS is a useful indicator of potential rank problems.
 Normally, DFS calculated for assimilating observations over the characteristic time of the error growth should not exceed a fraction (a half, or better, a quarter) of the ensemble size.
-(Note that DFS from consequitive cycles is not additive.)
 
 SRF shows the ``strength'' of DA.
 ``Strong'' DA requires a nearly optimal system (otherwise it produces large artefacts and imbalances), which indeed never happens in practice.
@@ -1818,7 +1956,7 @@ Note that the weights are normalised so that their sum is equal to 1.
 \section{UPDATE}
 
 UPDATE is the third and final stage of data assimilation in EnKF-C.
-It updates the ensemble (EnKF) or the background (EnOI) by applying the transforms calculated by CALC.
+It updates the restart ensemble (EnKF, Hybrid) or the background (EnOI) by applying the transforms calculated by CALC.
 
 The name of the binary for UPDATE is \verb|enkf_update|.
 It has the following usage and options:
@@ -1846,17 +1984,27 @@ It has the following usage and options:
       print version and exit
 \end{Verbatim}
 
-The analysed restarts are written to separate files using the same names as the forecast files but with an extra suffix \verb|.analysis| or \verb|.increment| (Sec.~{sec:filenames}), depending on whether the analysis or analysis increment is written.
+The analysed restarts are written to separate files using the same names as the forecast files but with an extra suffix \verb|.analysis| or \verb|.increment| (Sec.~\ref{sec:filenames}), depending on whether the analysis or analysis increment is written.
 
-By default, UPDATE first writes each updated horizontal field of the model to a separate file, and then concatenates these fields into analysis files.
+By default, UPDATE first writes each updated horizontal field of the model to a separate file (``tile'') in the temporary directory \verb|.enkftmp|, and then concatenates these fields into analysis files.
 This approach is somewhat less effective than direct writing to analysis files (without intermediate tiles), but, unfortunately, the direct writing is generally not reliable due to parallel I/O issues with NetCDF.
 Note that in some cases it proved to be possible to obtain robust performance with direct write using ``classic'' or ``64-bit-offset'' NetCDF formats.
+Option \verb|--direct-write| with more than one process is refused for \verb|NCFORMAT = NETCDF4| (the default).
+When run on a single process UPDATE uses direct write by default, unless \verb|FIELDSPLIT| $> 1$.
+If the directory \verb|.enkftmp| exists at start, UPDATE quits.
+
+Notes on other options:
+\begin{itemize}
+\item \verb|--write-inflation| is silently cancelled when there is no dynamic ensemble (EnOI) or the inflation is \verb|PLAIN| in the main parameter file.
+\item \verb|--no-update| also cancels writing of the inflation and of the analysis to point logs.
+\end{itemize}
 
 Updating a horizontal field requires reading the full ensemble into memory.
 This may require large available memory, particularly with very large models.
 From version 2.43.0 it is possible to calculate analyses on fractions of a horizontal field, which may provide better scalability.
 This option is specified by parameter FIELDSPLIT of the main parameter file.
-When FIELDPLIT is set to a number greater than one, an additional stage of combining outputs on these fractional tiles into full fields is conducted.
+When FIELDSPLIT is set to a number greater than one, an additional stage of combining outputs on these fractional tiles into full fields is conducted.
+\verb|FIELDSPLIT| $> 1$ is incompatible with \verb|FIELDBUFFERSIZE| $> 1$ and with direct write; it is not supported by \verb|ens_diag|.
 
 \subsection{Capping of inflation}
 \label{sec:capping}
@@ -1883,20 +2031,22 @@ Capping inflation by the magnitude of reduction of the ensemble spread is the de
 \begin{Verbatim}
 INFLATION = 1.06 PLAIN
 \end{Verbatim}
-The common inflation settings in the main parameter file can be overwritten by settings for particular model variables specified in the model parameter file (Sec.~\ref{sec:modelprm}).
+The common inflation settings in the main parameter file can be overwritten by settings for particular model variables specified in the model parameter file (Sec.~\ref{sec:modelprm}), using the same syntax.
 
 \section{Hybrid covariance}
 \label{sec:hybrid-enkfc}
 
-From v2.0.0 EnKF-C makes it possible using hybrid state error covariance by combining covariances from the EnKF ensemble and an ensemble of static anomalies (Sec.~\ref{sec:hybrid-theory}).
-This option is activated by specifying \verb|METHOD = HYBRID| in the main parameter file, the directory of the static ensemble, and the mixing coefficient \verb|GAMMA| (see Sec.~\ref{sec:mainprm}).
+From v2.0.0 EnKF-C makes it possible using hybrid state error covariance by combining covariances from the EnKF ensemble and an ensemble of static anomalies (Sec.~\ref{sec:hybrid-theory}); from v2.49.0 several static ensembles can be used.
+This option is activated by specifying \verb|MODE = HYBRID| in the main parameter file, the directory of each static ensemble, and, for each static ensemble, the mixing coefficient \verb|GAMMA| (default 1; see Sec.~\ref{sec:mainprm}).
+The static anomalies are calculated by subtracting the mean of each static ensemble; therefore static ensembles do not need to be centred.
 
-When the method is set to ``hybrid'', the ensemble spread written in the innovation statistics summary at the end of CALC is that of the combined ensemble \eqref{hybrid_combined}.
-Similarly, the ensemble spread fields calculated during UPDATE by specifying option \verb|--calculate-spread| is the ensemble spread of the combined ensemble.
+When the mode is set to ``hybrid'', the ensemble spread written in the innovation statistics summary at the end of CALC is that of the combined ensemble \eqref{hybrid_combined}, normalised by $m - N - 1$ \eqref{cov_combined}.
+Similarly, the ensemble spread fields calculated during UPDATE by specifying option \verb|--calculate-spread| is the ensemble spread of the combined ensemble, with the same normalisation (for the EnKF this means normalisation by $m - 1$).
 To calculate spread of dynamic ensemble only one needs to set \verb|MODE = EnKF|.
 To calculate innovation statistics with forecast ensemble spread of the dynamic ensemble only one needs to set \verb|MODE = EnKF| and rerun CALC with option ``--forecast-stats-only''.
 
-Note that setting \verb|GAMMA = 0| makes the hybrid system formally equivalent to the EnKF (but not numerically, because of the roundoff errors), while setting \verb|ENSSIZE_DYNAMIC = 1| makes it formally equivalent to the EnOI.
+Note that \verb|GAMMA| must be positive (\verb|GAMMA = 0| is rejected; to switch off the static covariance use \verb|MODE = EnKF|), while setting \verb|ENSSIZE_DYNAMIC = 1| makes the hybrid system formally equivalent to the EnOI (each static ensemble must have at least 2 members).
+A static member value that is not valid at some grid point is replaced by the forecast mean (that is, this member has zero anomaly at this point).
 
 \subsection{On the asynchronous DA in a hybrid system}
 
@@ -1913,7 +2063,7 @@ It aims at calculating various ensemble diagnostics outside the context of DA cy
 It has the following usage and options:
 \begin{Verbatim}[frame=single,fontsize=\footnotesize]
 >./bin/ens_diag
-  Usage: enks_diag <prm file> [<options>]
+  Usage: ens_diag <prm file> [<options>]
   Options:
   --calculate-spread
       calculate ensemble spread and write to spread.nc
@@ -1932,16 +2082,18 @@ It has the following usage and options:
   --calculate-vertical-sensitivities-with <varname1> <layer1>
     [<varname2> <layer2>] [...]
       calculate sensitivities between specified field and all other fields
-      on the same horizontal grid and write to vcov-<varname>-<layer>.nc
+      on the same horizontal grid and write to vsens-<varname>-<layer>.nc
   --describe-prm-format [main|model|grid]
       describe format of a parameter file and exit
   --version
       print version and exit
 \end{Verbatim}
-While most of the options above are straightforward, we note that the option ``--calculate-vertical-sensitivities-with'' calculates the ratio $s_{xy} = \sigma_{x,y} / \sigma_{y,y}$, where $\sigma_{x,y}$ is the covariance between $x$ and $y$, and $\sigma_{y,y}$ is the variance of $y$, so that the increment of $x$ is related to the increment of $y$ as $\Delta x = s_{xy} \Delta y$ \citep[see e.g.][eq.\,5]{and03a}.
+While most of the options above are straightforward, we note that the spread and the covariances are normalised by $m - N - 1$ (Sec.~\ref{sec:hybrid-theory}), with static ensembles (in EnOI and Hybrid modes) treated in the same way as in CALC and UPDATE; and that the option ``--calculate-vertical-sensitivities-with'' calculates the ratio $s_{xy} = \sigma_{x,y} / \sigma_{y,y}$, where $\sigma_{x,y}$ is the covariance between $x$ and $y$, and $\sigma_{y,y}$ is the variance of $y$, so that the increment of $x$ is related to the increment of $y$ as $\Delta x = s_{xy} \Delta y$ \citep[see e.g.][eq.\,5]{and03a}.
 
 Note that \verb|ens_diag| can work with a much simpler parameter file than
 other executables in EnKF-C.
+It requires \verb|FIELDSPLIT = 1|.
+Because \verb|ens_diag| does not have option \verb|--allow-logspace-with-static-ens|, it currently cannot be run for model variables with \verb|APPLYLOG| in EnOI or Hybrid modes.
 
 \section{DA tuning}
 \label{sec:datuning}
@@ -1953,7 +2105,7 @@ Following are the main parameters for DAS tuning in EnKF-C:
 \item inflation magnitudes (Sec.~\ref{sec:modelprm},\ref{sec:capping});
 \item K-factor (Sec.~\ref{sec:kfactor});
 \item magnitude of relaxation to prior spread (parameter \verb|ALPHA|, Sec.~\ref{sec:rps});
-  \item scaling of static covariance (parameter \verb|GAMMA|, Sec.~\ref{sec:hybrid-enkfc}.
+  \item scaling of static covariance (parameter \verb|GAMMA|, Sec.~\ref{sec:hybrid-enkfc}).
 \end{itemize}
 
 The R-factors can be defined for each observation type.
@@ -1981,7 +2133,7 @@ By default EnKF-C applies adaptive capping of inflation (Sec.~\ref{sec:capping})
 Localisation radius is defined by the entry \verb|LOCRAD| in the parameter file.
 Specifically, this entry defines the support localisation radius (in km).
 This is different to the ``effective'' localisation radius, which is defined sometimes as $e^{1/2}\approx 1.65$ - folding distance.
-For the Gaspary and Cohn's taper function used in EnKF-C the effective radius is approximately 3.5 times smaller than the support radius.
+For the Gaspari and Cohn's taper function used in EnKF-C the effective radius is approximately 3.5 times smaller than the support radius.
 
 Increasing the localisation radius increases the number of local observations and hence the overall impact of observations.
 To compensate this in a system with horizontal localisation one has to change the R-factor as the square of the localisation radius.
@@ -2005,17 +2157,21 @@ Yet, it is usually feasible to save the model state and observations for a numbe
 EnKF-C provides capability of saving complete DA related information for specified horizontal locations in so called ``point logs''.
 The locations are specified in the main parameter file, e.g.:
 \begin{Verbatim}
-POINTLOG 94.3 134.1
-POINTLOG 78.39 111.7
+POINTLOG 154.3 -34.1
+POINTLOG 158.39 -31.7
 \end{Verbatim}
-Here the information will be saved for points with geographic coordinates (94.3,134.1), (78.39, 111.7) in files \verb|pointlog_94.300,134.100.nc|, \verb|pointlog_78.390,111.700.nc|, and so on.
-By default the ensemble trsansforms and all forecast and analysis state variables existing at these locations are saved; however, if an optional grid name is specified as the third parameter of the \verb|POINTLOG| entry, e.g.
+Here the information will be saved for points with geographic coordinates (154.3,-34.1), (158.39, -31.7) in files \verb|pointlog_154.300,-34.100.nc|, \verb|pointlog_158.390,-31.700.nc|, and so on.
+A point log location must be inside at least one of the model grids; otherwise CALC stops with an error.
+By default the ensemble transforms and all forecast and analysis state variables existing at these locations are saved; however, if an optional grid name is specified as the third parameter of the \verb|POINTLOG| entry, e.g.
 \begin{Verbatim}
-POINTLOG 94.3 134.1 t-grid
+POINTLOG 154.3 -34.1 t-grid
 \end{Verbatim}
 then only transforms and variables for this grid are saved.
 
-Following is an example of point log file header (file \verb|pointlog_156.000,-32.000.nc| from example~4 after running \verb|make hybrid|):
+Following is an example of point log file header (file \verb|pointlog_156.000,-32.000.nc| from example~4 after running \verb|make hybrid|).
+In the EnKF mode (no static ensembles) a single ensemble dimension \verb|m| is used instead of \verb|m1| and \verb|m2|.
+Attributes \verb|SCHEME| and \verb|ALPHA| are only written when the dynamic ensemble size is greater than 1; with more than one static ensemble the attribute \verb|GAMMA| is replaced by attributes \verb|ENSSIZE_STATIC<s>| and \verb|GAMMA<s>| for each static ensemble \verb|s| (counted from 0).
+For a grid defined with \verb|HGRIDFROM| the grid variable also has attribute \verb|hid| (the ID of the grid whose horizontal grid is used).
 \begin{Verbatim}[frame=single,fontsize=\footnotesize]
 netcdf pointlog_156.000\,-32.000 {
 dimensions:
@@ -2148,24 +2304,24 @@ variables:
 // global attributes:
 		:lon = 156. ;
 		:lat = -32. ;
-		:MODE = "Hybrid" ;
 		:SCHEME = "DEnKF" ;
 		:ALPHA = 1. ;
 		:GAMMA = 0.25 ;
 		:ngrids = 2 ;
-		:EnKF-C\ version = "2.47.4" ;
-		:wdir = "/home/599/pxs599/src/enkf-c/enkf/examples/4" ;
-		:CALC\ command = "./enkf_calc hybrid.prm" ;
-		:CALC\ start\ time = "2026-07-09 14:28:24" ;
-		:output = "analysis" ;
-		:UPDATE\ command = "./enkf_update --calculate-spread --write-inflation hybrid.prm" ;
-		:UPDATE\ start\ time = "2026-07-09 14:28:41" ;
+		:EnKF-C\ version = "2.50.0" ;
+n                :analysis\ time = "6565.5 days since 1990-01-01" ;
+                :wdir = "/home/599/pxs599/src/enkf-c/enkf/examples/4" ;
+                :CALC\ command = "./enkf_calc hybrid.prm" ;
+                :CALC\ start\ time = "2026-11-14 20:13:28" ;
+                :output = "analysis" ;
+                :UPDATE\ command = "./enkf_update --calculate-spread --write-inflation hybrid.prm" ;
+                :UPDATE\ start\ time = "2026-11-14 20:14:02" ;
 }
 \end{Verbatim}
 
 This data makes it possible to check DA algorithms by reproducing the ensemble transforms (for EnKF) or weights (for EnOI) calculated by EnKF-C from $\mb S$ and $\mb s$ according to Section~\ref{sec:numerical}; restore observations from $\mb s$ by using the corresponding R-factors and localisation coefficients; to monitor the ensemble spread for each model variable; calculate inflation applied to the analysed anomalies; calculate impacts of particular observations; and so on.
 
-Note that in a multi-domain setting (Sec.~\ref{sec:domains}) the number of local observations seen on a particular grid (e.g. \verb|p-0|) can be smaller than the total number of local observations $p$.
+Note that in a multi-domain setting (Sec.~\ref{sec:domains}) the number of local observations seen on a particular grid (e.g. \verb|p0|) can be smaller than the total number of local observations $p$.
 In this case to get the local observations on this grid one needs to filter out observations of types defined on domains other than the domain the grid belongs to.
 
 \section{Use of innovation statistics for model validation}
@@ -2180,7 +2336,7 @@ To get the innovation statistics one needs to:
 \end{itemize}
 The results will be written to the log of \verb|enkf_calc|. 
 An example of using this functionality is available by running \verb|make stats| in \verb|examples/1| (see Sec.~\ref{example1}).
-Note that on some machines parallel processing of multiple cycles may require compiling CALC with no \verb|\-DMPI| flag; otherwise the jobs may be assigned to the same CPUs.
+Note that on some machines parallel processing of multiple cycles may require compiling CALC with no \verb|-DMPI| flag (\verb|MPISTATUS_CALC =| in the Makefile); otherwise the jobs may be assigned to the same CPUs.
 
 \section{Bias correction}
 \label{sec:bias}
@@ -2197,15 +2353,20 @@ Another possibility is to introduce a ``forgetting'' stochastic model for bias f
 \begin{align*}
   \mb x_{i+1} = \lambda \, \mb x_i + (1 - \lambda^2)^{1/2} \ms \sigma,
 \end{align*}
-where $\lambda$ is the forgetting factor, $0 < \lambda < 1, \; 1 - \lambda \ll 1$, and $\ms \sigma \sim \sigma_0 N(0, 1)$, where $\sigma_0$ is the error standard deviation of $\mb x$.
-This can be specified for a model variable via entry \verb|RANDOMISE| in the corresponding section of the model parameter file (Sec.~\ref{sec:modelprm}).
+where $\lambda$ is the forgetting factor, $0 \le \lambda \le 1, \; 1 - \lambda \ll 1$, and $\ms \sigma \sim \sigma_0 N(0, 1)$, where $\sigma_0$ is the error standard deviation of $\mb x$.
+This can be specified for a model variable via entry \verb|RANDOMISE <lambda> <sigma_0>| in the corresponding section of the model parameter file (Sec.~\ref{sec:modelprm}).
+It is applied by UPDATE to the analysed dynamic ensemble members (before the increment is formed, so that it is also reflected in the output with \verb|--output-increment|).
+In the current implementation the random perturbation is a single (field-wide) value for each variable and dynamic member, the same for all grid points and layers; the mean of the perturbations over the dynamic ensemble is removed; and masked (land) points are not perturbed.
+The random numbers are generated on the master process (see Sec.~\ref{sec:seed} for reproducibility).
 
 \section{Assimilation in log space}
 \label{sec:logspace}
 
 The entry \verb|APPLYLOG| in the model parameter file makes it possible to conduct assimilation for a variable in log space.
 This means that a transform with log10 function will be applied to model values and observations before DA, and the inverse transform with pow10 will be applied after DA.
+The observations are log-transformed by PREP; observations with non-positive values are discarded.
 This option can be applied only for positive variables.
+For observation types associated with log-transformed variables the observation error must be specified explicitly in the observation data parameter file (entry \verb|ERROR_STD|, which is then interpreted in log space), and \verb|OFFSET| cannot be used.
 
 To apply log10/pow10 transforms in EnOI or Hybrid modes (\verb|MODE = ENOI| or \verb|MODE = HYBRID|) is only possible if the static ensemble is in logarithmic space.
 This must be confirmed by the user by using option \verb|--allow-logspace-with-static-ens|.
@@ -2218,37 +2379,47 @@ When APPLYLOG is specified, the ensemble spread and ensemble vertical correlatio
 \label{sec:flags}
 
 Following is a brief description of the compiler flags in EnKF-C.
+The flags are set in the \verb|Makefile| (variables \verb|PREPCALC_FLAGS|, \verb|CALC_FLAGS|, \verb|UPDATE_FLAGS| and \verb|DIAG_FLAGS|); the flags in effect for a binary are printed by running it with option \verb|--version|.
 
 \begin{description}
+\item{\verb|MPI|} (CALC, UPDATE, ens\_diag)
+  Builds the parallel (MPI) version of a program.
+  It is set via variables \verb|MPISTATUS_CALC|, \verb|MPISTATUS_UPDATE| and \verb|MPISTATUS_DIAG| in the Makefile (default: set); PREP is serial only.
 \item{\verb|INTERNAL_QSORT_R|} (PREP, CALC)
-  Uses internal code for \verb|qsort_r()|.
-  Has to be defined for compiling on Mac OS platforms.
-\item{\verb|SHUFFLE_ROWS|} (CALC)
+  Uses internal (portable) code for \verb|qsort_r()|.
+  Has to be defined for compiling on platforms without GNU \verb|qsort_r()| (e.g. Mac OS).
+  (In versions before 2.50.0 it only took effect for PREP.)
+\item{\verb|SHUFFLE_ROWS|} (CALC, MPI only)
   Supposed to produce more latitudinally uniform load between CPUs.
   Currently, because transforms for each row of the grid are sent to the master process for writing, this option effectively makes no difference to performance, I believe.
-\item{\verb|USE_SHMEM|} (CALC)
+  It is ignored when \verb|TW_VIAFILE| or \verb|USE_MPIQUEUE| is defined.
+\item{\verb|USE_SHMEM|} (CALC, MPI only)
   Uses shared memory for storing ensemble observations.
   This functionality requires MPI-3.
   It reduces the memory footprint by storing one instance of large objects per compute node.
   From v1.110.0 EnKF-C also uses shared memory for storing grid K-D trees and observation K-D trees, and from v1.111.11 -- for storing the observation array.
   This is a default option, but can be unset, particularly for smaller systems, when memory is not an issue.
+  This option requires that the MPI ranks on each compute node are contiguous (``block'' placement, e.g. \verb|mpirun --map-by core| or \verb|--map-by slot|, which is the default in most MPI implementations); CALC checks this at start and quits otherwise (e.g. with \verb|--map-by node|).
 \item{\verb|MINIMISE_ALLOC|} (CALC)
   Pre-allocates arrays in CALC to reduce potential problems with memory fragmentation.
   This is a default option from v1.103.0.
 \item{\verb|OBS_SHUFFLE|} (CALC)
   Randomly shuffles observations before parsing them into K-D trees.
   Potentially this can substantially improve performance in the case of spatially ordered observations (not verified).
-\item{\verb|TW_VIAFILE|} (CALC)
-  Communicate ensemble transforms via files.
+\item{\verb|TW_VIAFILE|} (CALC, MPI only)
+  Communicate ensemble transforms via files (in directory \verb|.enkftmp|).
   Use this option if MPI communication becomes clogged.
+  It is defined automatically when CALC is compiled with \verb|USE_MPIQUEUE|.
 \item{\verb|DEFLATE_ALL|} (CALC, UPDATE)
   Apply specified NetCDF deflation to all NetCDF files, including ensemble transforms, spread, inflation, and various tiles.
   This can save some disk space, but slows down i/o, particularly assembling.
-\item{\verb|USE_MPIQUEUE|} (CALC, UPDATE)
+\item{\verb|USE_MPIQUEUE|} (CALC, UPDATE, MPI only)
   Distributes jobs in the main cycle to workers on ``as it goes'' basis rather than by assigning predefined number of iterations.
   This is particularly useful if the jobs are unbalanced.
   (In CALC a single job is calculating transforms for a row of a horizontal grid; in UPDATE it is applying transforms to the ensemble of horizontal fields at a specific level.)
-\item{\verb|NCW_SKIPSINGLE|} (UPDATE)
+  This is a default option for both CALC and UPDATE; consider removing it when running on just a few CPUs.
+  In CALC it implies \verb|TW_VIAFILE| and cancels \verb|SHUFFLE_ROWS|.
+\item{\verb|NCW_SKIPSINGLE|} (UPDATE, ens\_diag)
   Skips ``normal'' (not unlimited) ``inner'' dimensions of length one when copying definitions of variables from one NetCDF file to another.
 \end{description}
 
@@ -2309,18 +2480,31 @@ If the system is set to generate core dumps, they can indeed be used for investi
 Compiling EnKF-C requires the following external libraries:
 \begin{itemize}
 \item netcdf (along with hdf5);
-\item lapack (or mkl\_rt);
-\item openmpi;
+\item lapack and blas (or mkl\_rt, which may also require \verb|-lgomp|);
+\item MPI (e.g. openmpi), for parallel CALC, UPDATE and ens\_diag.
 \end{itemize}
+The library settings are specified in file \verb|make.inc| (see the examples in directory \verb|arch|).
 
-EnKF-C also relies on \verb|qsort_r()|, which may be lacking in some systems.
+EnKF-C also relies on GNU \verb|qsort_r()|, which may be lacking (or have a different signature) in some systems.
 In such cases use compile flag \verb|-DINTERNAL_QSORT_R| to activate the internal version of this procedure.
 
 Notes:
 \vspace{-3mm}
 \begin{enumerate}
 \item Using Intel's version of Lapack library -- Intel Math Kernel Library -- can improve performance over Lapack compiled with gfortran.
+When running MKL with MPI, it is advisable to use a single thread per process (e.g. \verb|MKL_NUM_THREADS=1|).
 \end{enumerate}
+
+\subsection{Random numbers}
+\label{sec:seed}
+
+Random numbers are used by EnKF-C for randomisation of model variables (entry \verb|RANDOMISE| in the model parameter file, Sec.~\ref{sec:bias}), for shuffling observations and grid rows (compile flags \verb|OBS_SHUFFLE| and \verb|SHUFFLE_ROWS|), and for randomising the order of inserting nodes into K-D trees.
+By default the random number generator is seeded from \verb|/dev/urandom| on the master process, and the seed is broadcast to all processes; therefore these random elements differ from run to run.
+To make runs reproducible, set the environment variable \verb|ENKF_SEED| to an integer, e.g.
+\begin{Verbatim}
+  export ENKF_SEED=12345
+\end{Verbatim}
+which is then used as the seed (on all processes).
 
 \section{Possible problems / FAQ}
 
@@ -2328,15 +2512,18 @@ Notes:
 
 \item{\bf The code does not compile on OS X platform.}
 
-In some cases compiler can not find \verb|qsort_r()|.
+In some cases compiler can not find \verb|qsort_r()| (or definition of data type \verb|__compar_d_fn_t|), or finds a version with a different signature.
 Edit Makefile by adding \verb|-DINTERNAL_QSORT_R| to \verb|PREPCALC_FLAGS|.
+This replaces \verb|qsort_r()| by a portable internal implementation in both PREP and CALC, so that no other changes are needed.
 
-In other cases compiler can not find definition of data type \verb|__compar_d_fn_t|.
-Add line
-\begin{Verbatim}
-  typedef int (*__compar_d_fn_t) (const void*, const void*, void*);
-\end{Verbatim}
-to \verb|common/definitions.h|.
+\item{\bf CALC quits with ``USE\_SHMEM: MPI ranks on each compute node must be contiguous''.}
+
+The shared-memory code requires block placement of MPI ranks on compute nodes (Sec.~\ref{sec:flags}).
+Run \verb|mpirun| with block placement (e.g. \verb|--map-by core| or \verb|--map-by slot|) or recompile CALC without \verb|-DUSE_SHMEM|.
+
+\item{\bf CALC or UPDATE quits with ``directory .enkftmp already exists''.}
+
+This directory is left over by a previous (crashed or interrupted) run; remove it and rerun.
 
 \item{\bf CALC becomes too slow after increasing localisation radius}
 

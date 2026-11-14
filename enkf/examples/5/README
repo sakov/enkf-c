@@ -1,11 +1,13 @@
 This is example 5 for the EnKF-C package. It is equivalent to example 1 except
 that the SST observations are split into SST and SST2 observation types. The
-benefits include getting separate innovation statistics for each observation type
-and ability to monitor the effect of new observations on the innovations of the
-old ones.
+benefits include getting separate innovation statistics for each observation
+type and ability to monitor the effect of new observations on the innovations of
+the old ones.
 
-A similar outcome can often be achieved with the option
-"--no-superobing-across-instruments" in PREP.
+Note that by default PREP does not superob observations from different
+instruments (unless run with "--superob-across-instruments"), so that
+separate instrument statistics are also available without splitting the
+observation type.
 
 Another possible setting of this example is to add "STATSONLY = 1" to the
 section for SST2 in obstypes.prm. In this case the Windsat observations will not
@@ -25,4 +27,4 @@ ensemble_6565/mem<num>_<var>.nc.analysis, where <num> is the member id, between
 TESTING ENOI
 
 To assimilate with the EnOI, run "make enoi". The analysis will be of the form
-background/bg_<var>.nc.analysis.
+background_6565/bg_<var>.nc.analysis.

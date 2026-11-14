@@ -34,11 +34,16 @@ typedef int make_iso_compilers_happy;
 #define MPIQUEUE_WORKERSTATUS_WAITING 0
 #define MPIQUEUE_WORKERSTATUS_WORKING 1
 
-#define MPIQUEUE_JOBTAG_ACCEPTED 0
-#define MPIQUEUE_JOBTAG_REJECTED 1
-#define MPIQUEUE_JOBTAG_DONE 2
+/*
+ * (the queue uses its own duplicate of the communicator, so that its messages
+ * can not be mixed up with other messages; the tags are distinct for
+ * clarity)
+ */
+#define MPIQUEUE_JOBTAG_ACCEPTED 101
+#define MPIQUEUE_JOBTAG_REJECTED 102
+#define MPIQUEUE_JOBTAG_DONE 103
 
-#define MPIQUEUE_DEFAULTTAG 0
+#define MPIQUEUE_DEFAULTTAG 100
 
 struct mpiqueue {
     MPI_Comm communicator;
@@ -78,9 +83,9 @@ mpiqueue* mpiqueue_create(MPI_Comm communicator, int njob)
 
     if (njob <= 0)
         quit("mpiqueue_create(): njob = %d; (should be > 0)", njob);
-    queue->communicator = communicator;
-    MPI_Comm_rank(communicator, &queue->rank);
-    MPI_Comm_size(communicator, &queue->nprocesses);
+    MPI_Comm_dup(communicator, &queue->communicator);
+    MPI_Comm_rank(queue->communicator, &queue->rank);
+    MPI_Comm_size(queue->communicator, &queue->nprocesses);
     if (queue->nprocesses < 2)
         quit("mpiqueue_create(): nprocesses = %d; (should be > 1)", queue->nprocesses);
     queue->njob = njob;
@@ -109,6 +114,7 @@ void mpiqueue_destroy(mpiqueue* queue)
         free(queue->jobstatus);
         free(queue->workerstatus);
     }
+    MPI_Comm_free(&queue->communicator);
     free(queue);
 }
 
@@ -167,7 +173,7 @@ void mpiqueue_manage(mpiqueue* queue)
          * if no -- wait for a message from workers
          */
         MPI_Probe(MPI_ANY_SOURCE, MPI_ANY_TAG, queue->communicator, &status);
-        MPI_Recv(&jobid, 1, MPI_INT, status.MPI_SOURCE, MPI_ANY_TAG, queue->communicator, MPI_STATUS_IGNORE);
+        MPI_Recv(&jobid, 1, MPI_INT, status.MPI_SOURCE, status.MPI_TAG, queue->communicator, MPI_STATUS_IGNORE);
         /*
          * some bookkeeping
          */
@@ -219,7 +225,7 @@ int mpiqueue_getjob(mpiqueue* queue)
         quit("mpiqueue_getjobid(): called from process with rank = 0");
     if (queue->mystatus != MPIQUEUE_WORKERSTATUS_WAITING)
         quit("mpiqueue_getjobid(): worker #%d: requested new job without reporting completion of the previos one", queue->rank);
-    MPI_Recv(&jobid, 1, MPI_INT, 0, MPI_ANY_TAG, queue->communicator, MPI_STATUS_IGNORE);
+    MPI_Recv(&jobid, 1, MPI_INT, 0, MPIQUEUE_DEFAULTTAG, queue->communicator, MPI_STATUS_IGNORE);
     queue->mystatus = MPIQUEUE_WORKERSTATUS_WORKING;
 
     return jobid;

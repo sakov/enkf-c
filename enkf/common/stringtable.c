@@ -60,6 +60,13 @@ static void quit_def(char* format, ...)
     exit(1);
 }
 
+/** Sets the quit function.
+ */
+void st_set_quitfn(st_quit_fn quit_fn)
+{
+    quit = quit_fn;
+}
+
 /** Compare procedure for qsort(). Non-case-sensitive.
  * @param se1 Pointer to stringentry
  * @param se2 Pointer to stringentry
@@ -154,7 +161,14 @@ int st_getsize(stringtable* st)
  */
 void st_reset(stringtable* st)
 {
+    int i;
+
+    for (i = 0; i < st->n; ++i) {
+        free(st->se[i]->s);
+        free(st->se[i]);
+    }
     st->n = 0;
+    st->sorted = 0;
 }
 
 /** Adds an entry to a stringtable.

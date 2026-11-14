@@ -120,14 +120,26 @@ static void das_setnmem(dasystem* das)
                 enkf_quit("das_setnmem(): could not find \"%s\"", fname);
             if (nmem_static_save > 0) {
                 if (nmem_static < nmem_static_save)
-                    enkf_quit("    %s: actual static ensemble size (%d) is smaller than the specified size (%d)", das->ensdir_static, nmem_static, nmem_static_save);
+                    enkf_quit("    %s: actual static ensemble size (%d) is smaller than the specified size (%d)", das->ensdir_static[s], nmem_static, nmem_static_save);
                 enkf_printf("    available static ensemble size = %d\n", nmem_static);
                 das->nmem_static[s] = nmem_static_save;
+                /*
+                 * members of the next static ensemble are counted from the
+                 * specified rather than available size of this one
+                 */
+                nmem_total -= nmem_static - nmem_static_save;
             } else
                 das->nmem_static[s] = nmem_static;
         }
-    } else
-        das->nmem_static = 0;
+    } else {
+        int s;
+
+        /*
+         * (static ensembles are not used)
+         */
+        for (s = 0; s < das->nstatic; ++s)
+            das->nmem_static[s] = 0;
+    }
 
     {
         int s;
@@ -216,6 +228,9 @@ dasystem* das_create(enkfprm* prm)
                 enkf_printf("    static ensemble %d:\n", s);
                 enkf_printf("      %d member%s\n", das->nmem_static[s], das->nmem_static[s] == 1 ? "" : "s");
             }
+            for (s = 0; s < das->nstatic; ++s)
+                if (das->nmem_static[s] < 2)
+                    enkf_quit("static ensemble %d has %d member(s); at least 2 members are needed", s, das->nmem_static[s]);
         }
     }
 #if defined(ENKF_CALC)
@@ -690,7 +705,7 @@ int das_getmemberfname_async(dasystem* das, obstype* ot, int memid, int t, char 
     int f;
 
     *r = -1;
-    
+
     if (das->mode == MODE_ENOI && memid == 1)
         snprintf(fname1, MAXSTRLEN, "%s/bg_%s_%d.nc", dir, alias, t);
     else
@@ -731,14 +746,13 @@ int das_getmemberfname_async(dasystem* das, obstype* ot, int memid, int t, char 
         size_t vsize;
         double* time;
         char tunits[MAXSTRLEN];
-        size_t attlen;
         double tunits_multiple, tunits_offset;
         double correcttime;
         int i;
 
         ncw_open(fnames[f], NC_NOWRITE, &ncid);
         if (!ncw_var_exists(ncid, ot->async_tname))
-            enkf_quit("%s: found no time variable \"%s\" specified for observation type \"%s\"", fname, ot->async_tname, ot->name);
+            enkf_quit("%s: found no time variable \"%s\" specified for observation type \"%s\"", fnames[f], ot->async_tname, ot->name);
         ncw_inq_varid(ncid, ot->async_tname, &vid);
         ncw_check_varndims(ncid, vid, 1);
         ncw_inq_varsize(ncid, vid, &vsize);
@@ -746,9 +760,8 @@ int das_getmemberfname_async(dasystem* das, obstype* ot, int memid, int t, char 
         time = malloc(vsize * sizeof(double));
         ncw_get_var_double(ncid, vid, time);
 
-        ncw_inq_attlen(ncid, vid, "units", &attlen);
-        assert(attlen <= MAXSTRLEN);
-        ncw_get_att_text(ncid, vid, "units", tunits);
+        ncw_get_att_text_n(ncid, vid, "units", tunits, MAXSTRLEN);
+        ncw_close(ncid);
         tunits_convert(tunits, &tunits_multiple, &tunits_offset);
 
         correcttime = das->obs->da_time + t * ot->async_tstep;
@@ -759,13 +772,13 @@ int das_getmemberfname_async(dasystem* das, obstype* ot, int memid, int t, char 
             time[i] = time[i] * tunits_multiple + tunits_offset;
             if (fabs(time[i] - correcttime) < TEPS) {
                 *r = i;
-                free(time);
-                goto finish;
+                break;
             }
         }
+        free(time);
+        if (i < vsize)
+            break;
     }
-
-  finish:
 
     if (f >= nf)
         enkf_quit("%s: could not match time for time binning interval %d\n", (fname1[0] == '\0') ? fnames[0] : fname2, t);
@@ -782,10 +795,13 @@ int das_getmemberfname_async(dasystem* das, obstype* ot, int memid, int t, char 
  ** static ensemble anomalies.
  *  Note that the allocated size of v should be v[das->nmem + 2][nij] to make it
  *  possible calculating ensemble mean with double precision.
+ *  Static ensembles are centred (their mean is removed) in the same way as in
+ *  ensobs.c.
  */
 void das_sethybridensemble(dasystem* das, int nij, float** v)
 {
     double* vmean = (double*) v[das->nmem];
+    double* vmean_s = NULL;
     int nmem = das->nmem;
     int nmem_d = das->nmem_dynamic;
     double k_d;
@@ -816,23 +832,45 @@ void das_sethybridensemble(dasystem* das, int nij, float** v)
             for (i = 0; i < nij; ++i)
                 ve[i] = (ve[i] - vmean[i]) * k_d + vmean[i];
         }
+    } else {
+        float* v0 = v[0];
+
+        for (i = 0; i < nij; ++i)
+            vmean[i] = (double) v0[i];
     }
 
     /*
      * set static members
      */
+    vmean_s = malloc(nij * sizeof(double));
     for (s = 0, e = nmem_d; s < das->nstatic; ++s) {
         int nmem_s = das->nmem_static[s];
-        double k_s = sqrt(das->gamma[s] * (double) (nmem - das->nstatic - 1) / (double) (nmem_s - 1));
+        double k_s = (nmem_s > 1) ? sqrt(das->gamma[s] * (double) (nmem - das->nstatic - 1) / (double) (nmem_s - 1)) : 0.0;
         int ee;
 
-        for (ee = 0; ee < das->nmem_static[s]; ++ee, ++e) {
+        /*
+         * calculate static ensemble mean
+         */
+        memset(vmean_s, 0, nij * sizeof(double));
+        for (ee = 0; ee < nmem_s; ++ee) {
+            float* ve = v[e + ee];
+
+            for (i = 0; i < nij; ++i)
+                vmean_s[i] += (double) ve[i];
+        }
+        for (i = 0; i < nij; ++i)
+            vmean_s[i] /= (double) nmem_s;
+        /*
+         * scale static ensemble anomalies and add dynamic ensemble mean
+         */
+        for (ee = 0; ee < nmem_s; ++ee, ++e) {
             float* ve = v[e];
 
             for (i = 0; i < nij; ++i)
-                ve[i] = ve[i] * k_s + vmean[i];
+                ve[i] = (ve[i] - vmean_s[i]) * k_s + vmean[i];
         }
     }
+    free(vmean_s);
 }
 
 /** Return 1 if this member is static anomaly, 0 otherwise.

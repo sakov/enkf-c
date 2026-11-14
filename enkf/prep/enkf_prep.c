@@ -246,15 +246,15 @@ static int cmp_obs(const void* p1, const void* p2, void* p)
          */
         double offset = (double) (stride % 2) / 2.0;
 
-        i1 = (int) floor(o1->fij[0] + offset) / stride;
-        i2 = (int) floor(o2->fij[0] + offset) / stride;
+        i1 = (int) floor((o1->fij[0] + offset) / stride);
+        i2 = (int) floor((o2->fij[0] + offset) / stride);
         if (i1 > i2)
             return 1;
         if (i1 < i2)
             return -1;
 
-        i1 = (int) floor(o1->fij[1] + offset) / stride;
-        i2 = (int) floor(o2->fij[1] + offset) / stride;
+        i1 = (int) floor((o1->fij[1] + offset) / stride);
+        i2 = (int) floor((o2->fij[1] + offset) / stride);
         if (i1 > i2)
             return 1;
         if (i1 < i2)
@@ -276,6 +276,16 @@ static int cmp_obs(const void* p1, const void* p2, void* p)
         }
     }
 
+    /*
+     * fk can be NaN; put such obs after those with finite fk
+     */
+    if (isnan(o1->fk) || isnan(o2->fk)) {
+        if (!isnan(o1->fk))
+            return -1;
+        if (!isnan(o2->fk))
+            return 1;
+        return 0;
+    }
     i1 = (int) floor(o1->fk + 0.5);
     i2 = (int) floor(o2->fk + 0.5);
     if (i1 > i2)
@@ -343,6 +353,8 @@ int main(int argc, char* argv[])
     }
 
     if (do_superob) {
+        int ngood0 = obs->ngood;
+
         enkf_printtime("  ");
         enkf_printf("  sorting:\n");
         enkf_flush();
@@ -359,14 +371,41 @@ int main(int argc, char* argv[])
         enkf_printf("  checking for superobs on land:\n");
         enkf_flush();
         if (obs_checkforland(sobs, m)) {
+            int* aux = NULL;
+
+            /*
+             * temporarily store the original superob ids in "aux" to be able
+             * to remap the superob ids of the original obs after compaction
+             */
+            if (write_orig_obs) {
+                aux = malloc(sobs->nobs * sizeof(int));
+                for (i = 0; i < sobs->nobs; ++i) {
+                    aux[i] = sobs->data[i].aux;
+                    sobs->data[i].aux = i;
+                }
+            }
             obs_compact(sobs);
+            if (write_orig_obs) {
+                int* newids = malloc(sobs->nobs * sizeof(int));
+
+                for (i = 0; i < sobs->nobs; ++i) {
+                    int i0 = sobs->data[i].aux;
+
+                    newids[i0] = (sobs->data[i].status == STATUS_OK) ? i : -1;
+                    sobs->data[i].aux = aux[i0];
+                }
+                for (i = 0; i < ngood0; ++i)
+                    obs->data[i].aux = newids[obs->data[i].aux];
+                free(newids);
+                free(aux);
+            }
             for (i = 0; i < sobs->nobs; ++i)
                 if (sobs->data[i].status != STATUS_OK)
                     break;
             assert(i != sobs->nobs);
             enkf_printf("    deleted %d observation(s)\n", sobs->nobs - i);
-            obs_calcstats(sobs);
             sobs->nobs = i;
+            obs_calcstats(sobs);
         } else
             enkf_printf("    all good\n");
 
@@ -377,8 +416,16 @@ int main(int argc, char* argv[])
         /*
          * write superob indices to the file with original observations 
          */
-        if (write_orig_obs)
+        if (write_orig_obs) {
+            /*
+             * mark obs not merged into any superob, and restore the original
+             * order (the one written to FNAME_OBS)
+             */
+            for (i = ngood0; i < obs->nobs; ++i)
+                obs->data[i].aux = -1;
+            obs_inorder(obs);
             obs_writeaux(obs, FNAME_OBS);
+        }
 
         if (enkf_considersubgridvar) {
             int firsttime = 1;

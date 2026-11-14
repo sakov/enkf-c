@@ -17,4 +17,14 @@ ensemble_6565/mem<num>_<var>.nc.analysis, where <num> is the member id, between
 TESTING ENOI
 
 To assimilate with the EnOI, run "make enoi". The analysis will be of the form
-background/bg_<var>.nc.analysis.
+background_6565/bg_<var>.nc.analysis.
+
+TESTING HYBRID
+
+To assimilate with the hybrid EnKF/EnOI, run "make hybrid". The analysed
+dynamic ensemble members will be of the form
+ensemble_6565/mem<num>_<var>.nc.analysis.
+
+Note that with two grids the transforms are written to transforms-0.nc and
+transforms-1.nc, and the observation impact data to enkf_diag-0.nc and
+enkf_diag-1.nc.

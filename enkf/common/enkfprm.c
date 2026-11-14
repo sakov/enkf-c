@@ -31,39 +31,60 @@
 
 #define NINC 10
 
+/*
+ * enkfprm_check() runs on all ranks because it also normalises the parameters.
+ * The checks give identical results on all ranks, so only rank 0 reports and
+ * quits; the other ranks wait to be terminated by rank 0.
+ */
+static void enkfprm_waitforquit(void)
+{
+#if defined(MPI)
+    MPI_Barrier(MPI_COMM_WORLD);
+#endif
+    exit(1);
+}
+
+#define CHECK_QUIT(...) \
+    do { \
+        if (rank == 0) \
+            enkf_quit(__VA_ARGS__); \
+        else \
+            enkfprm_waitforquit(); \
+    } while (0)
+
 /**
  */
 static void enkfprm_check(enkfprm* prm)
 {
 #if !defined(ENKF_PREP)
     if (prm->mode == MODE_NONE)
-        enkf_quit("%s: MODE not specified", prm->fname);
+        CHECK_QUIT("%s: MODE not specified", prm->fname);
 #endif
 #if defined(ENKF_PREP)
     if (prm->obsprm == NULL)
-        enkf_quit("%s: OBS not specified", prm->fname);
+        CHECK_QUIT("%s: OBS not specified", prm->fname);
     if (prm->time == NULL)
-        enkf_quit("%s: TIME not specified", prm->fname);
+        CHECK_QUIT("%s: TIME not specified", prm->fname);
 #endif
     if (prm->modelprm == NULL)
-        enkf_quit("%s: MODEL not specified", prm->fname);
+        CHECK_QUIT("%s: MODEL not specified", prm->fname);
     if (prm->gridprm == NULL)
-        enkf_quit("%s: GRID not specified", prm->fname);
+        CHECK_QUIT("%s: GRID not specified", prm->fname);
 #if defined(ENKF_PREP) || defined(ENKF_CALC)
     if (prm->obstypeprm == NULL)
-        enkf_quit("%s: OBSTYPES not specified", prm->fname);
+        CHECK_QUIT("%s: OBSTYPES not specified", prm->fname);
 #endif
-#if defined(ENKF_CALC) || defined(ENKF_UPDATE)
+#if defined(ENKF_CALC) || defined(ENKF_UPDATE) || defined(ENS_DIAG)
     if (prm->mode == MODE_ENKF) {
         if (prm->ensdir_dynamic == NULL)
-            enkf_quit("%s: ENSDIR_DYNAMIC must be defined for MODE = EnKF", prm->fname);
+            CHECK_QUIT("%s: ENSDIR_DYNAMIC must be defined for MODE = EnKF", prm->fname);
         if (prm->enssize_dynamic == 0)
-            enkf_quit("%s: ENSSIZE_DYNAMIC must be positive", prm->fname);
+            CHECK_QUIT("%s: ENSSIZE_DYNAMIC must be positive", prm->fname);
     } else if (prm->mode == MODE_ENOI) {
         if (prm->nstatic == 0 && !enkf_fstatsonly)
-            enkf_quit("%s: ENSDIR_STATIC must be defined for MODE = EnOI (except when CALC is run with --fstats-only)", prm->fname);
+            CHECK_QUIT("%s: ENSDIR_STATIC must be defined for MODE = EnOI (except when CALC is run with --fstats-only)", prm->fname);
         if (prm->enssize_dynamic >= 0 && prm->enssize_dynamic != 1)
-            enkf_quit("%s: ENSSIZE_DYNAMIC can be set to 1 only for MODE = ENOI", prm->fname);
+            CHECK_QUIT("%s: ENSSIZE_DYNAMIC can be set to 1 only for MODE = ENOI", prm->fname);
         prm->enssize_dynamic = 1;
         if (enkf_fstatsonly)
             prm->nstatic = 0;
@@ -74,16 +95,16 @@ static void enkfprm_check(enkfprm* prm)
                 if (isnan(prm->gamma[i]))
                     prm->gamma[i] = 1.0;
                 else if (prm->gamma[i] <= 0.0)
-                    enkf_quit("%s: GAMMA must be positive", prm->fname);
+                    CHECK_QUIT("%s: GAMMA must be positive", prm->fname);
             }
         }
     } else if (prm->mode == MODE_HYBRID) {
         if (prm->ensdir_dynamic == NULL)
-            enkf_quit("%s: ENSDIR_DYNAMIC must be defined for MODE = Hybrid", prm->fname);
+            CHECK_QUIT("%s: ENSDIR_DYNAMIC must be defined for MODE = Hybrid", prm->fname);
         if (prm->nstatic == 0)
-            enkf_quit("%s: ENSDIR_STATIC must be defined for MODE = Hybrid", prm->fname);
+            CHECK_QUIT("%s: ENSDIR_STATIC must be defined for MODE = Hybrid", prm->fname);
         if (prm->enssize_dynamic == 0)
-            enkf_quit("%s: ENSSIZE_DYNAMIC must be positive", prm->fname);
+            CHECK_QUIT("%s: ENSSIZE_DYNAMIC must be positive", prm->fname);
         {
             int i;
 
@@ -91,29 +112,37 @@ static void enkfprm_check(enkfprm* prm)
                 if (isnan(prm->gamma[i]))
                     prm->gamma[i] = 1.0;
                 else if (prm->gamma[i] <= 0.0)
-                    enkf_quit("%s: GAMMA must be positive", prm->fname);
+                    CHECK_QUIT("%s: GAMMA must be positive", prm->fname);
             }
         }
     }
 #endif
 #if defined(ENKF_CALC)
     if (prm->nlocrad == 0 && !enkf_fstatsonly)
-        enkf_quit("%s: LOCRAD not specified", prm->fname);
+        CHECK_QUIT("%s: LOCRAD not specified", prm->fname);
 #endif
 #if defined(ENKF_UPDATE)
     if (prm->fieldbufsize > 1 && prm->nfieldsplit > 1)
-        enkf_quit("%s: it is only possible to set either FIELDSPLIT or FIELDBUFFERSIZE greater than 1", prm->fname);
+        CHECK_QUIT("%s: it is only possible to set either FIELDSPLIT or FIELDBUFFERSIZE greater than 1", prm->fname);
 #endif
 #if defined(ENS_DIAG)
     if (prm->nfieldsplit != 1)
-        enkf_quit("%s: FIELDSPLIT = %d can only be set to 1 for ens_diag", prm->fname, prm->nfieldsplit);
+        CHECK_QUIT("%s: FIELDSPLIT = %d can only be set to 1 for ens_diag", prm->fname, prm->nfieldsplit);
 #endif
+    if (prm->stride < 1)
+        CHECK_QUIT("%s: STRIDE = %d must be >= 1", prm->fname, prm->stride);
+    if (prm->sob_stride < 1)
+        CHECK_QUIT("%s: SOBSTRIDE = %d must be >= 1", prm->fname, prm->sob_stride);
+    if (prm->fieldbufsize < 1)
+        CHECK_QUIT("%s: FIELDBUFFERSIZE = %d must be >= 1", prm->fname, prm->fieldbufsize);
+    if (prm->nfieldsplit < 1)
+        CHECK_QUIT("%s: FIELDSPLIT = %d must be >= 1", prm->fname, prm->nfieldsplit);
     if (prm->ncformat != NC_CLASSIC_MODEL && prm->ncformat != NC_64BIT_OFFSET && prm->ncformat != NC_NETCDF4)
-        enkf_quit("programming error");
+        CHECK_QUIT("programming error");
     if (prm->nccompression > 0 && prm->ncformat != NC_NETCDF4)
-        enkf_quit("%s: NCFORMAT must be set to NETCDF4 when NCCOMPRESSION > 0\n", prm->fname);
+        CHECK_QUIT("%s: NCFORMAT must be set to NETCDF4 when NCCOMPRESSION > 0\n", prm->fname);
     if (prm->nccompression < 0 || prm->nccompression > 9)
-        enkf_quit("%s: NCCOMPRESSION must be in the interval between 0 and 9\n", prm->fname);
+        CHECK_QUIT("%s: NCCOMPRESSION must be in the interval between 0 and 9\n", prm->fname);
 }
 
 /**
@@ -317,7 +346,7 @@ enkfprm* enkfprm_read(char fname[])
                 else if (!str2int(token, &prm->enssize_dynamic))
                     enkf_quit("%s, l.%d: could not convert ENSSIZE (or ENSSIZE_DYNAMIC) entry to int", fname, line);
             } else if (prm->mode == MODE_ENOI) {
-                if (prm->nstatic % NINC == 0)
+                if (prm->nstatic == 0)
                     enkf_quit("%s, l.%d: ENSSIZE should be preceded by ENSDIR_STATIC in a block specifying static ensemble", fname, line);
                 if (prm->enssize_static[prm->nstatic - 1] >= 0)
                     enkf_quit("%s, l.%d: ENSSIZE (or ENSSIZE_STATIC) specified twice for ensemble directory \"%s\"", fname, line, prm->ensdir_static[prm->nstatic - 1]);
@@ -341,7 +370,7 @@ enkfprm* enkfprm_read(char fname[])
                 enkf_quit("%s, l.%d: ENSSIZE_STATIC cannot be specified for MODE = ENKF", fname, line);
             if ((token = strtok(NULL, seps)) == NULL)
                 enkf_quit("%s, l.%d: ENSSIZE_STATIC not specified", fname, line);
-            if (prm->nstatic % NINC == 0)
+            if (prm->nstatic == 0)
                 enkf_quit("%s, l.%d: ENSSIZE_STATIC should be preceded by ENSDIR_STATIC in the block specifying a static ensemble", fname, line);
             if (prm->enssize_static[prm->nstatic - 1] >= 0)
                 enkf_quit("%s, l.%d: ENSSIZE_STATIC specified twice for ensemble directory \"%s\"", fname, line, prm->ensdir_static[prm->nstatic - 1]);
@@ -350,7 +379,7 @@ enkfprm* enkfprm_read(char fname[])
         } else if (strcasecmp(token, "GAMMA") == 0) {
             if (prm->mode == MODE_ENKF)
                 enkf_quit("%s, l.%d: GAMMA cannot be specified for MODE = ENKF", fname, line);
-            if (prm->nstatic % NINC == 0)
+            if (prm->nstatic == 0)
                 enkf_quit("%s, l.%d: GAMMA should be preceded by ENSDIR_STATIC in a block specifying static ensemble", fname, line);
             if ((token = strtok(NULL, seps)) == NULL)
                 enkf_quit("%s, l.%d: GAMMA not specified", fname, line);
@@ -379,8 +408,14 @@ enkfprm* enkfprm_read(char fname[])
         } else if (strcasecmp(token, "LOCRAD") == 0) {
             int sid = 0;
 
-            if (prm->nlocrad > 0)
-                prm->locrad = malloc(sizeof(double) * prm->nlocrad);
+            /*
+             * a repeated LOCRAD entry overrides the previous one
+             */
+            free(prm->locrad);
+            prm->locrad = NULL;
+            free(prm->locweight);
+            prm->locweight = NULL;
+            prm->nlocrad = 0;
             while ((token = strtok(NULL, seps)) != NULL) {
                 if (prm->nlocrad == sid) {
                     prm->locrad = realloc(prm->locrad, sizeof(double) * (prm->nlocrad + 1));
@@ -390,8 +425,8 @@ enkfprm* enkfprm_read(char fname[])
                     enkf_quit("%s, l.%d: could not convert \"%s\" to double", fname, line, token);
                 sid++;
             }
-            if (prm->nlocrad > sid)
-                enkf_quit("%s, l.%d: LOCRAD not specified or its dimension does not match that of RFACTOR", fname, line);
+            if (prm->nlocrad == 0)
+                enkf_quit("%s, l.%d: LOCRAD not specified", fname, line);
         } else if (strcasecmp(token, "LOCWEIGHT") == 0) {
             int sid = 0;
 
@@ -401,10 +436,8 @@ enkfprm* enkfprm_read(char fname[])
             } else
                 enkf_quit("%s, l.%d: LOCRAD must be entered before LOCWEIGHT", fname, line);
             while ((token = strtok(NULL, seps)) != NULL) {
-                if (prm->nlocrad == sid) {
-                    prm->locweight = realloc(prm->locweight, sizeof(double) * (prm->nlocrad + 1));
-                    prm->nlocrad++;
-                }
+                if (sid >= prm->nlocrad)
+                    enkf_quit("%s, l.%d: LOCWEIGHT has more entries than LOCRAD", fname, line);
                 if (!str2double(token, &prm->locweight[sid]))
                     enkf_quit("%s, l.%d: could not convert \"%s\" to double", fname, line, token);
                 sid++;
@@ -426,6 +459,8 @@ enkfprm* enkfprm_read(char fname[])
         } else if (strcasecmp(token, "ZSTATINTS") == 0) {
             char zseps[] = " =\t\n[](){}";
 
+            if (prm->nzints < 0)
+                prm->nzints = 0;
             while ((token = strtok(NULL, zseps)) != NULL) {
                 if (prm->nzints % NINC == 0)
                     prm->zints = realloc(prm->zints, (prm->nzints + NINC) * sizeof(zint));
@@ -554,10 +589,8 @@ enkfprm* enkfprm_read(char fname[])
                 enkf_quit("%s, l.%d: minimal # obs. not defined", fname, line);
             if (!str2int(token, &prm->badbatchspecs[prm->nbadbatchspecs].minnobs))
                 enkf_quit("%s, l.%d: could not convert \"%s\" to int", fname, line, token);
-            if ((token = strtok(NULL, seps)) != NULL) {
-                if (!str2int(token, &prm->badbatchspecs[prm->nbadbatchspecs].minnobs))
-                    enkf_quit("%s, l.%d: could convert \"%s\" to integer", fname, line, token);
-            }
+            if ((token = strtok(NULL, seps)) != NULL && token[0] != '#')
+                enkf_quit("%s, l.%d: unexpected entry \"%s\" in BADBATCHES", fname, line, token);
             prm->nbadbatchspecs++;
         } else if (strcasecmp(token, "NCFORMAT") == 0) {
             if ((token = strtok(NULL, seps)) == NULL)
@@ -623,8 +656,7 @@ enkfprm* enkfprm_read(char fname[])
     }
 
     fclose(f);
-    if (rank == 0)
-        enkfprm_check(prm);
+    enkfprm_check(prm);
 
     if (prm->time != NULL)
         enkf_analysistime = strdup(prm->time);
@@ -672,8 +704,7 @@ void enkfprm_destroy(enkfprm* prm)
 
         free(prm->badbatchspecs);
     }
-    if (prm->nzints > 0)
-        free(prm->zints);
+    free(prm->zints);
 
     free(prm);
 }

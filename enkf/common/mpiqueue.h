@@ -20,7 +20,11 @@
 struct mpiqueue;
 typedef struct mpiqueue mpiqueue;
 
+#if defined(__GNUC__)
+typedef void (*mpiqueue_quit_fn) (char* format, ...) __attribute__ ((format(printf, 1, 2)));
+#else
 typedef void (*mpiqueue_quit_fn) (char* format, ...);
+#endif
 void mpiqueue_setquitfn(mpiqueue_quit_fn quit_fn);
 
 mpiqueue* mpiqueue_create(MPI_Comm communicator, int njob);

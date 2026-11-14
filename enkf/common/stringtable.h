@@ -19,7 +19,12 @@
 
 struct stringtable;
 typedef struct stringtable stringtable;
+
+#if defined(__GNUC__)
+typedef void (*st_quit_fn) (char* format, ...) __attribute__ ((format(printf, 1, 2)));
+#else
 typedef void (*st_quit_fn) (char* format, ...);
+#endif
 
 stringtable* st_create(char* name);
 void st_destroy(stringtable* st);

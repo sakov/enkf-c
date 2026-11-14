@@ -56,6 +56,17 @@ typedef struct {
     triangle* triangles;
     triangle_neighbours* neighbours;    /* for triangulation_xy2i() */
 
+    /*
+     * bucket grid for robust triangle search (built on demand, used when the
+     * walk in triangulation_xy2i() fails)
+     */
+    int nbx;
+    int nby;
+    double bdx;
+    double bdy;
+    size_t* bstart;
+    int* btris;
+
 #if defined(USE_SHMEM)
     MPI_Win sm_win_tridata;
 #endif
@@ -64,7 +75,11 @@ typedef struct {
 /* It is possible to set the quit procedure. By default, the internal procedure
  * is used.
  */
+#if defined(__GNUC__)
+typedef void (*triangulation_quit_fn) (char* format, ...) __attribute__ ((format(printf, 1, 2)));
+#else
 typedef void (*triangulation_quit_fn) (char* format, ...);
+#endif
 void triangulation_set_quitfn(triangulation_quit_fn quit_fn);
 
 triangulation* triangulation_read(char* fname, char* name_x, char* name_y, char* name_tri, char* name_neigh);

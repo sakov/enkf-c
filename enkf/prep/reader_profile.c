@@ -56,8 +56,7 @@ static int cmp_lonlat(const void* p1, const void* p2)
 static int allmissing(int ncid, char varname[])
 {
     int varid;
-    int ndims;
-    size_t dimlen[2];
+    size_t size;
     nc_type type;
     int status = 1;
     int n, i;
@@ -65,8 +64,8 @@ static int allmissing(int ncid, char varname[])
     if (!ncw_var_exists(ncid, varname))
         return 1;
     ncw_inq_varid(ncid, varname, &varid);
-    ncw_inq_vardims(ncid, varid, 2, &ndims, dimlen);
-    n = (ndims == 1) ? dimlen[0] : dimlen[0] * dimlen[1];
+    ncw_inq_varsize(ncid, varid, &size);
+    n = (int) size;
     ncw_inq_vartype(ncid, varid, &type);
     if (type != NC_CHAR) {
         double* v = malloc(n * sizeof(double));
@@ -95,6 +94,60 @@ static int allmissing(int ncid, char varname[])
     }
 
     return status;
+}
+
+/** Reads a variable defined either for each observation ([nprof][nz]) or for
+ ** each profile ([nprof]) into v[nprof][nz].
+ */
+static void readvar_double(int ncid, int varid, size_t nprof, size_t nz, double** v)
+{
+    size_t size;
+    int p, k;
+
+    ncw_inq_varsize(ncid, varid, &size);
+    if (size == nprof * nz)
+        ncu_readvardouble(ncid, varid, size, v[0]);
+    else if (size == nprof) {
+        ncu_readvardouble(ncid, varid, size, v[0]);
+        /*
+         * (go downwards to avoid overwriting unread values)
+         */
+        for (p = (int) nprof - 1; p >= 0; --p)
+            v[p][0] = v[0][p];
+        for (p = 0; p < (int) nprof; ++p)
+            for (k = 1; k < (int) nz; ++k)
+                v[p][k] = v[p][0];
+    } else {
+        char varname[NC_MAX_NAME + 1];
+
+        ncw_inq_varname(ncid, varid, varname);
+        enkf_quit("%s: %s: size = %zu; expected size = %zu (per observation) or %zu (per profile)", ncw_get_path(ncid), varname, size, nprof * nz, nprof);
+    }
+}
+
+/** Same as readvar_double(), but for int.
+ */
+static void readvar_int(int ncid, int varid, size_t nprof, size_t nz, int** v)
+{
+    size_t size;
+    int p, k;
+
+    ncw_inq_varsize(ncid, varid, &size);
+    if (size == nprof * nz)
+        ncw_get_var_int(ncid, varid, v[0]);
+    else if (size == nprof) {
+        ncw_get_var_int(ncid, varid, v[0]);
+        for (p = (int) nprof - 1; p >= 0; --p)
+            v[p][0] = v[0][p];
+        for (p = 0; p < (int) nprof; ++p)
+            for (k = 1; k < (int) nz; ++k)
+                v[p][k] = v[p][0];
+    } else {
+        char varname[NC_MAX_NAME + 1];
+
+        ncw_inq_varname(ncid, varid, varname);
+        enkf_quit("%s: %s: size = %zu; expected size = %zu (per observation) or %zu (per profile)", ncw_get_path(ncid), varname, size, nprof * nz, nprof);
+    }
 }
 
 /**
@@ -196,7 +249,7 @@ void reader_profile(char* fname, int fid, obssection* section, grid* g, observat
         if (varname_specified) {
             enkf_printf("        no data of specified type\n");
             ncw_close(ncid);
-            return;
+            goto finish;
         }
         enkf_quit("reader_z(): %s: VARNAME not specified", fname);
     } else
@@ -303,6 +356,7 @@ void reader_profile(char* fname, int fid, obssection* section, grid* g, observat
         }
         free(zall);
         st_destroy(st_znames);
+        st_znames = NULL;
     }
 
     /*
@@ -314,30 +368,11 @@ void reader_profile(char* fname, int fid, obssection* section, grid* g, observat
     else if (ncw_var_exists(ncid, "error_std"))
         ncw_inq_varid(ncid, "error_std", &varid);
     if (varid >= 0) {
-        int ndims;
-        size_t dimlen[2];
-
+        /*
+         * estd either per profile or for each ob.
+         */
         estd = alloc2d(nprof, nz, sizeof(double));
-
-        ncw_inq_vardims(ncid, varid, 2, &ndims, dimlen);
-        if (ndims == 1) {
-            /*
-             * estd per profile
-             */
-            assert(dimlen[0] == nprof);
-            ncu_readvardouble(ncid, varid, nprof, estd[0]);
-            for (p = 0; p < nprof; ++p)
-                estd[p][0] = estd[0][p];
-            for (p = 0; p < nprof; ++p)
-                for (k = 1; k < nz; ++k)
-                    estd[p][k] = estd[p][0];
-        } else if (ndims == 2) {
-            /*
-             * estd for each ob.
-             */
-            assert(dimlen[0] == nprof && dimlen[1] == nz);
-            ncu_readvardouble(ncid, varid, nobs, estd[0]);
-        }
+        readvar_double(ncid, varid, nprof, nz, estd);
     }
 
     if (estd == NULL) {
@@ -359,53 +394,39 @@ void reader_profile(char* fname, int fid, obssection* section, grid* g, observat
     if (varid >= 0) {
         int ndims;
         size_t dimlen[2];
+        nc_type type;
 
-        batch = alloc2d(nprof, nz, sizeof(double));
+        batch = alloc2d(nprof, nz, sizeof(int));
 
         ncw_inq_vardims(ncid, varid, 2, &ndims, dimlen);
-        if (ndims == 1) {
+        ncw_inq_vartype(ncid, varid, &type);
+        if (type != NC_CHAR)
             /*
-             * batch id per profile
+             * batch id either per profile or for each observation in profile
              */
+            readvar_int(ncid, varid, nprof, nz, batch);
+        else if (ndims == 2) {
+            /*
+             * batch specified for each profile but strored in text format
+             */
+            char** data = alloc2d(dimlen[0], dimlen[1], 1);
+            char* entry = malloc(dimlen[1] + 1);
+
             assert(dimlen[0] == nprof);
-            ncw_get_var_int(ncid, varid, batch[0]);
-            for (p = 0; p < nprof; ++p)
-                batch[p][0] = batch[0][p];
+            ncw_get_var_text(ncid, varid, data[0]);
+            for (p = 0; p < nprof; ++p) {
+                strncpy(entry, data[p], dimlen[1]);
+                entry[dimlen[1]] = 0;
+                if (!str2int(entry, batch[p]))
+                    enkf_quit("%s: %s: could not convert \"%s\" to int", fname, (batchname != NULL) ? batchname : "batch", entry);
+            }
             for (p = 0; p < nprof; ++p)
                 for (k = 1; k < nz; ++k)
                     batch[p][k] = batch[p][0];
-        } else if (ndims == 2) {
-            nc_type type;
-
-            assert(dimlen[0] == nprof);
-            ncw_inq_vartype(ncid, varid, &type);
-            if (type != NC_CHAR) {
-                /*
-                 * batch specified for each observation in profile
-                 */
-                assert(dimlen[1] == nz);
-                ncw_get_var_int(ncid, varid, batch[0]);
-            } else {
-                /*
-                 * batch specified for each profile but strored in text format
-                 */
-                char** data = alloc2d(dimlen[0], dimlen[1], 1);
-                char* entry = malloc(dimlen[1] + 1);
-
-                ncw_get_var_text(ncid, varid, data[0]);
-                for (p = 0; p < nprof; ++p) {
-                    strncpy(entry, data[p], dimlen[1]);
-                    entry[dimlen[1]] = 0;
-                    if (!str2int(entry, batch[p]))
-                        enkf_quit("%s: %s: could not convert \"%s\" to int", fname, (batchname != NULL) ? batchname : "batch", entry);
-                }
-                for (p = 0; p < nprof; ++p)
-                    for (k = 1; k < nz; ++k)
-                        batch[p][k] = batch[p][0];
-                free(entry);
-                free(data);
-            }
-        }
+            free(entry);
+            free(data);
+        } else
+            enkf_quit("%s: %s: expected 2 dimensions for a batch variable of type NC_CHAR", fname, (batchname != NULL) ? batchname : "batch");
     }
 
     /*
@@ -416,37 +437,16 @@ void reader_profile(char* fname, int fid, obssection* section, grid* g, observat
         qcflag = alloc3d(nqcflagvars, nprof, nz, sizeof(int32_t));
         for (i = 0; i < nqcflagvars; ++i) {
             int32_t** qcflagi = qcflag[i];
-            int ndims;
-            size_t dimlen[2];
             nc_type type;
 
             ncw_inq_varid(ncid, qcflagvarnames[i], &varid);
-            ncw_inq_vardims(ncid, varid, 2, &ndims, dimlen);
             ncw_inq_vartype(ncid, varid, &type);
-            if (type != NC_CHAR) {
-                if (ndims == 1) {
-                    if (nprof > 1) {
-                        /*
-                         * flag for profile
-                         */
-                        assert(dimlen[0] == nprof);
-                        ncw_get_var_int(ncid, varid, qcflagi[0]);
-                        for (p = 0; p < nprof; ++p)
-                            qcflagi[p][0] = qcflagi[0][p];
-                        for (p = 0; p < nprof; ++p)
-                            for (k = 1; k < nz; ++k)
-                                qcflagi[p][k] = qcflagi[p][0];
-                    }
-                } else if (ndims == 2) {
-                    /*
-                     * flag for each ob.
-                     */
-                    assert(dimlen[0] == nprof && dimlen[1] == nz);
-                    ncw_check_varsize(ncid, varid, nobs);
-                    ncw_get_var_int(ncid, varid, qcflagi[0]);
-                }
-                ncw_inq_vartype(ncid, varid, &type);
-            } else {
+            if (type != NC_CHAR)
+                /*
+                 * flag either for profile or for each ob.
+                 */
+                readvar_int(ncid, varid, nprof, nz, (int**) qcflagi);
+            else {
                 char* buf = NULL;
                 int o;
 
@@ -455,6 +455,7 @@ void reader_profile(char* fname, int fid, obssection* section, grid* g, observat
                 ncw_get_var_text(ncid, varid, buf);
                 for (o = 0; o < nobs; ++o)
                     qcflagi[0][o] = (uint32_t) buf[o] - (uint32_t) '0';
+                free(buf);
             }
         }
     }
@@ -474,7 +475,7 @@ void reader_profile(char* fname, int fid, obssection* section, grid* g, observat
      */
     if (strlen(instrument) == 0) {
         if (instattname != NULL)
-            ncw_get_att_text(ncid, NC_GLOBAL, instattname, instrument);
+            ncw_get_att_text_n(ncid, NC_GLOBAL, instattname, instrument, sizeof(instrument));
         else if (!get_insttag(ncid, varname, instrument))
             strncpy(instrument, section->product, MAXSTRLEN - 1);
         if (strlen(instrument) > 0 && instprefix != NULL) {
@@ -547,7 +548,7 @@ void reader_profile(char* fname, int fid, obssection* section, grid* g, observat
             if (isnan(var[p][k]) || (estd != NULL && isnan(estd[p][k])) || (ntime == nobs && isnan(time[i])) || (ntime == nprof && isnan(time[p])))
                 continue;
             for (ii = 0; ii < nqcflagvars; ++ii)
-                if (qcflag[ii][p][k] < 0 || qcflag[ii][p][k] > 31 || !((1 << qcflag[ii][p][k]) & qcflagmasks[ii]))
+                if (qcflag[ii][p][k] < 0 || qcflag[ii][p][k] > 31 || !((1u << qcflag[ii][p][k]) & qcflagmasks[ii]))
                     goto nextob;
 
             nobs_read++;
@@ -641,6 +642,8 @@ void reader_profile(char* fname, int fid, obssection* section, grid* g, observat
 
   finish:
 
+    if (st_znames != NULL)
+        st_destroy(st_znames);
     free(var);
     free(lon);
     free(lat);

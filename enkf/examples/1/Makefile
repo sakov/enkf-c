@@ -64,7 +64,7 @@ enkf-update-global: enkf_update transforms.nc conf ensemble_6565
 	rm -f ensemble_6565/mem*_*-???.nc
 
 hybrid-prep: enkf_prep conf obs hybrid.prm
-	./enkf_prep enkf.prm 2>&1 | tee prep.out
+	./enkf_prep hybrid.prm 2>&1 | tee prep.out
 
 hybrid-calc: enkf_calc observations.nc conf ensemble_6565 ensemble_static
 	nice -n +19 mpirun -np $(NP_CALC) ./enkf_calc hybrid.prm 2>&1 | tee calc.out

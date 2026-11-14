@@ -273,7 +273,8 @@ void* ht_delete(hashtable* table, void* key)
                  * node as above. 
                  */
                 (table->table)[val] = bucket->next;
-                table->nhash--;
+                if (bucket->next == NULL)
+                    table->nhash--;
             }
             free(bucket->key);
             free(bucket);

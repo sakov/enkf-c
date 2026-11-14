@@ -14,6 +14,7 @@
  *****************************************************************************/
 
 #include <stdlib.h>
+#include <limits.h>
 #include <stdio.h>
 #include <string.h>
 #include <float.h>
@@ -72,6 +73,8 @@ static void readobs(obssection* section, model* m, obsread_fn reader, observatio
 
         enkf_printf("      reading %s:\n", fnames[i]);
         fid = st_add_ifabsent(obs->datafiles, fnames[i], -1);
+        if (fid > SHRT_MAX)
+            enkf_quit("too many observation data files (> %d)", SHRT_MAX);
         reader(fnames[i], fid, section, g, obs);
 
         enkf_printf("        # obs added = %d\n", obs->nobs - nobs0);
@@ -140,7 +143,7 @@ void obs_add(observations* obs, model* m, obssection* section)
                 section->pars[i].name = NULL;
                 section->pars[i].value = NULL;
             }
-        } else if (strcasecmp(section->pars[i].name, "ZMIN") == 0 || strcasecmp(section->pars[i].name, "MINDEPTH") == 0) {
+        } else if (strcasecmp(section->pars[i].name, "ZMIN") == 0) {
             if (!str2double(section->pars[i].value, &zmin))
                 enkf_quit("observation prm file: can not convert ZMIN = \"%s\" to double\n", section->pars[i].value);
             else {
@@ -149,7 +152,7 @@ void obs_add(observations* obs, model* m, obssection* section)
                 section->pars[i].name = NULL;
                 section->pars[i].value = NULL;
             }
-        } else if (strcasecmp(section->pars[i].name, "ZMAX") == 0 || strcasecmp(section->pars[i].name, "MAXDEPTH") == 0) {
+        } else if (strcasecmp(section->pars[i].name, "ZMAX") == 0) {
             if (!str2double(section->pars[i].value, &zmax))
                 enkf_quit("observation prm file: can not convert ZMAX = \"%s\" to double\n", section->pars[i].value);
             else {
@@ -238,8 +241,12 @@ void obs_add(observations* obs, model* m, obssection* section)
                 if (str2bool(section->pars[i].value, &value) && value == 0)
                     obs->location_based_thinning_type[section->id] = LOCATIONTHINNINGTYPE_NIL;
                 else
-                    enkf_quit("reader_scattered(): LOCATION_BASED_THINNING_TYPE: unknown thinning type \"%s\"", section->pars[i].value);
+                    enkf_quit("%s: LOCATION_BASED_THINNING_TYPE: unknown thinning type \"%s\"", section->prmfname, section->pars[i].value);
             }
+            free(section->pars[i].name);
+            free(section->pars[i].value);
+            section->pars[i].name = NULL;
+            section->pars[i].value = NULL;
         }
     }
     /*
@@ -273,7 +280,7 @@ void obs_add(observations* obs, model* m, obssection* section)
         }
     }
 
-    enkf_printf("      section summary:\n", section->product, section->type, section->reader);
+    enkf_printf("      section summary:\n");
 
     /*
      * common checks
@@ -323,7 +330,7 @@ void obs_add(observations* obs, model* m, obssection* section)
                 nmax++;
                 continue;
             }
-            if (o->lon <= ot->xmin || o->lon >= ot->xmax || o->lat <= ot->ymin || o->lat >= ot->ymax || o->depth < ot->zmin || o->depth > ot->zmax || o->lat <= ymin || o->lat >= ymax || o->depth <= zmin || o->depth >= zmax) {
+            if (o->lon <= ot->xmin || o->lon >= ot->xmax || o->lat <= ot->ymin || o->lat >= ot->ymax || o->depth < ot->zmin || o->depth > ot->zmax || o->lat <= ymin || o->lat >= ymax || o->depth < zmin || o->depth > zmax) {
                 o->status = STATUS_OUTSIDEOBSDOMAIN;
                 noutod++;
                 continue;
@@ -353,6 +360,7 @@ void obs_add(observations* obs, model* m, obssection* section)
                 if (o->model_depth < mindepth || !isfinite(o->model_depth)) {
                     o->status = STATUS_SHALLOW;
                     nshallow++;
+                    continue;
                 }
             }
             if (isfinite(maxdepth)) {
@@ -361,9 +369,10 @@ void obs_add(observations* obs, model* m, obssection* section)
                 if (o->model_depth > maxdepth || !isfinite(o->model_depth)) {
                     o->status = STATUS_SHALLOW;
                     nshallow++;
+                    continue;
                 }
             }
-            if (stride > 1 && i % stride != 0) {
+            if (stride > 1 && (i - nobs0) % stride != 0) {
                 o->status = STATUS_THINNED;
                 nthin++;
                 continue;
@@ -408,14 +417,17 @@ void obs_add(observations* obs, model* m, obssection* section)
 
                     for (i = nobs0; i < obs->nobs; ++i) {
                         observation* o = &obs->data[i];
-                        int ii;
+                        int oi, oj;
 
                         if (o->status != STATUS_OK)
                             continue;
-                        ii = (int) o->fij[1] * ni + (int) o->fij[0];
-                        if (ii == nij)
-                            ii--;
-                        if (mask[(int) o->fij[1] * ni + (int) o->fij[0]] != 0) {
+                        oi = (int) o->fij[0];
+                        oj = (int) o->fij[1];
+                        if (oi == ni)
+                            oi--;
+                        if (oj == nj)
+                            oj--;
+                        if (mask[oj * ni + oi] != 0) {
                             o->status = STATUS_EXCLUDED;
                             nexcluded++;
                         }
@@ -434,18 +446,10 @@ void obs_add(observations* obs, model* m, obssection* section)
                 if (o->status != STATUS_OK)
                     continue;
                 o->value = log10(o->value);
-                if (!isnormal(o->value)) {
+                if (!isfinite(o->value)) {
                     o->status = STATUS_RANGE;
                     ninf++;
                 }
-            }
-        }
-
-        if (isfinite(ot->errordoublingtime)) {
-            for (i = nobs0; i < obs->nobs; ++i) {
-                observation* o = &obs->data[i];
-
-                o->estd *= powf(2.0f, fabs(o->time) / (float) ot->errordoublingtime);
             }
         }
 
@@ -573,10 +577,10 @@ void obs_add(observations* obs, model* m, obssection* section)
 
                     if (grid_isstructured(g)) {
                         v = alloc2d(nj, ni, sizeof(float));
-                        ncu_readfield(fname, estd->varname, -1, 0, ni, nj, nk, ((float**) v)[0]);
+                        ncu_readfield(fname, estd->varname, -1, grid_getsurflayerid(g), ni, nj, nk, ((float**) v)[0]);
                     } else {
                         v = calloc(ni, sizeof(float));
-                        ncu_readfield(fname, estd->varname, -1, 0, ni, 0, nk, v);
+                        ncu_readfield(fname, estd->varname, -1, grid_getsurflayerid(g), ni, 0, nk, v);
                     }
                     for (o = nobs0; o < obs->nobs; ++o) {
                         observation* oo = &obs->data[o];
@@ -637,6 +641,20 @@ void obs_add(observations* obs, model* m, obssection* section)
         }
     }
     fflush(stdout);
+
+    /*
+     * (o->time is relative to da_time at this point; NaN times have been set
+     * to 0)
+     */
+    if (isfinite(ot->errordoublingtime)) {
+        for (i = nobs0; i < obs->nobs; ++i) {
+            observation* o = &obs->data[i];
+
+            if (o->status != STATUS_OK)
+                continue;
+            o->estd *= pow(2.0, fabs(o->time) / ot->errordoublingtime);
+        }
+    }
 
     for (i = nobs0; i < obs->nobs; ++i) {
         if (obs_badob(obs, i)) {
@@ -867,32 +885,40 @@ void get_time(obssection* section, int ncid, size_t* size, double** time)
     int i;
 
     for (i = 0; i < section->npars; ++i) {
-        if (strcasecmp(section->pars[i].name, "TIMENAME") == 0)
+        if (strcasecmp(section->pars[i].name, "TIMENAME") == 0) {
+            free(timenames[0]);
+            free(timenames[1]);
             timenames[0] = strdup(section->pars[i].value);
-        else if (strcasecmp(section->pars[i].name, "TIMENAMES") == 0) {
+            timenames[1] = NULL;
+        } else if (strcasecmp(section->pars[i].name, "TIMENAMES") == 0) {
             char seps[] = " ,";
+            char* line = strdup(section->pars[i].value);
             char* token;
 
-            token = strtok(section->pars[i].value, seps);
+            free(timenames[0]);
+            free(timenames[1]);
+            timenames[1] = NULL;
+            token = strtok(line, seps);
             if (token == NULL)
                 enkf_quit("%s: no entries found after TIMENAMES", section->prmfname);
             timenames[0] = strdup(token);
             token = strtok(NULL, seps);
             if (token != NULL)
                 timenames[1] = strdup(token);
+            free(line);
         }
     }
     get_timenames(ncid, varids, timenames);
     if (timenames[1] != NULL) {
         double offset = 0.0;
 
-        ncw_get_att_text(ncid, varids[1], "units", tunits);
+        ncw_get_att_text_n(ncid, varids[1], "units", tunits, sizeof(tunits));
         tunits_convert(tunits, &tunits_multiple, &tunits_offset);
         ncu_readvardouble(ncid, varids[1], 1, &offset);
         tunits_offset = offset * tunits_multiple + tunits_offset;
     }
     if (enkf_geophysical) {
-        ncw_get_att_text(ncid, varids[0], "units", tunits);
+        ncw_get_att_text_n(ncid, varids[0], "units", tunits, sizeof(tunits));
         if (timenames[1] != NULL)
             tunits_multiple = tunits2days(tunits);
         else
@@ -914,7 +940,7 @@ void get_time(obssection* section, int ncid, size_t* size, double** time)
         free(timenames[1]);
 }
 
-#define NINSTNAMES 5
+#define NINSTNAMES 6
 static char* INSTNAMES[] = { "instrument",
     "Instrument",
     "INSTRUMENT",
@@ -941,7 +967,7 @@ int get_insttag(int ncid, char* varname, char* insttag)
 
                 ncw_inq_att(ncid, varid, INSTNAMES[i], &type, &len);
                 if (type == NC_CHAR && len < MAXSTRLEN) {
-                    ncw_get_att_text(ncid, varid, INSTNAMES[i], insttag);
+                    ncw_get_att_text_n(ncid, varid, INSTNAMES[i], insttag, MAXSTRLEN);
                     return 1;
                 }
             }
@@ -954,7 +980,7 @@ int get_insttag(int ncid, char* varname, char* insttag)
 
             ncw_inq_att(ncid, NC_GLOBAL, INSTNAMES[i], &type, &len);
             if (type == NC_CHAR && len < MAXSTRLEN) {
-                ncw_get_att_text(ncid, NC_GLOBAL, INSTNAMES[i], insttag);
+                ncw_get_att_text_n(ncid, NC_GLOBAL, INSTNAMES[i], insttag, MAXSTRLEN);
                 return 1;
             }
         }
@@ -987,7 +1013,8 @@ void get_qcflags(obssection* section, int* nqcflagvars, char*** qcflagvarnames, 
                 enkf_quit("%s: parameter \"%s\" must be followed by parameter \"QCFLAGVALS\"\n", section->prmfname, section->pars[i].name);
         } else if (strcasecmp(section->pars[i].name, "QCFLAGVALS") == 0) {
             char seps[] = " ,";
-            char* line = section->pars[i].value;
+            char* line0 = strdup(section->pars[i].value);
+            char* line = line0;
             char* token;
             int val;
             int ii;
@@ -1004,15 +1031,16 @@ void get_qcflags(obssection* section, int* nqcflagvars, char*** qcflagvarnames, 
                     enkf_quit("%s: could not convert QCFLAGVALS entry \"%s\" to integer", section->prmfname, token);
                 if (val < 0 || val > 31)
                     enkf_quit("%s: QCFLAGVALS entry = %d (supposed to be in [0,31] interval", section->prmfname, val);
-                (*qcflagmasks)[*nqcflagvars] |= 1 << val;
+                (*qcflagmasks)[*nqcflagvars] |= 1u << val;
                 line = NULL;
             }
+            free(line0);
             if ((*qcflagmasks)[*nqcflagvars] == 0)
                 enkf_quit("%s: no valid flag entries found after QCFLAGVALS\n", section->prmfname);
             enkf_printf("        QCFLAGVARNAME = %s\n", (*qcflagvarnames)[*nqcflagvars]);
             enkf_printf("        QCFLAG values used =");
             for (ii = 0; ii <= QCFLAGVALMAX; ++ii)
-                if ((*qcflagmasks)[*nqcflagvars] & (1 << ii))
+                if ((*qcflagmasks)[*nqcflagvars] & (1u << ii))
                     enkf_printf(" %d", ii);
             enkf_printf("\n");
             (*nqcflagvars)++;
@@ -1029,7 +1057,7 @@ void describe_commonreaderparams(void)
         scale factor (applied before VARSHIFT)\n\
     - VARSHIFT (-)\n\
         data offset to be added (e.g. -273.15 to convert from K to C)\n\
-    - FOOTRPINT (-)\n\
+    - FOOTPRINT (-)\n\
         footprint of observations in km\n\
     - MINDEPTH (-)\n\
         minimal allowed model depth\n\

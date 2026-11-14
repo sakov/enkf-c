@@ -153,6 +153,7 @@ common/hash.h\
 common/kdtree.h\
 common/distribute.h\
 common/mpiqueue.h\
+common/lapack.h\
 common/pointlog.h\
 common/dasystem.h\
 common/obstypes.h\
@@ -183,12 +184,21 @@ update/enkf_update.c
 
 HDR_UPDATE =\
 common/hash.h\
+common/kdtree.h\
 common/distribute.h\
 common/mpiqueue.h\
-grid/vgrid.h\
-grid/hgrid.h\
+common/lapack.h\
+common/obstypes.h\
+common/observations.h\
 common/pointlog.h\
 common/dasystem.h\
+grid/triangulation.h\
+grid/gxy_rect.h\
+grid/gxy_curv.h\
+grid/gxy_curv2.h\
+grid/gxy_unstr.h\
+grid/vgrid.h\
+grid/hgrid.h\
 diag/diags.h
 
 SRC_DIAG =\
@@ -203,10 +213,19 @@ diag/ens_diag.c
 
 HDR_DIAG =\
 common/hash.h\
+common/kdtree.h\
 common/distribute.h\
+common/obstypes.h\
+common/observations.h\
+common/pointlog.h\
+common/dasystem.h\
+grid/triangulation.h\
+grid/gxy_rect.h\
+grid/gxy_curv.h\
+grid/gxy_curv2.h\
+grid/gxy_unstr.h\
 grid/vgrid.h\
 grid/hgrid.h\
-common/dasystem.h\
 diag/diags.h
 
 PROGRAMS =\
@@ -218,6 +237,8 @@ bin/ens_diag
 ALL = $(PROGRAMS)
 
 VERSION := $(shell grep ENKF_VERSION common/version.c | awk -F '"' '{print $$2}')
+
+.PHONY: default all clean indent tar
 
 default: $(PROGRAMS)
 
@@ -241,7 +262,7 @@ bin/enkf_update: $(SRC_UPDATE) $(SRC_COMMON) $(HDR_UPDATE) $(HDR_COMMON)
 bin/ens_diag: $(SRC_DIAG) $(SRC_COMMON) $(HDR_DIAG) $(HDR_COMMON)
 	@echo
 	@mkdir -p bin
-	${CC${MPISTATUS_DIAG}} -o $@ -DENS_DIAG $(DIAG_FLAGS) $(CFLAGS$(MPISTATUS_UPDATE)) $(INCS_COMMON) $(SRC_DIAG) $(SRC_COMMON) $(LIBS_DIAG) $(LIBS_COMMON)
+	${CC${MPISTATUS_DIAG}} -o $@ -DENS_DIAG $(DIAG_FLAGS) $(CFLAGS$(MPISTATUS_DIAG)) $(INCS_COMMON) $(SRC_DIAG) $(SRC_COMMON) $(LIBS_DIAG) $(LIBS_COMMON)
 
 clean:
 	rm -f bin/*

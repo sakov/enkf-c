@@ -86,6 +86,7 @@ void das_writespread(dasystem* das, int nfields, void** fieldbuffer, field field
     grid* g = model_getvargrid(m, fields[0].varid);
     int isstructured = grid_isstructured(g);
     int nmem = das->nmem;
+    int nmem_m1 = nmem - das->nstatic - 1;
     int nj_tile = fields[0].j2 - fields[0].j1 + 1;
     int ni;
     int fid, e, i, nij;
@@ -110,16 +111,27 @@ void das_writespread(dasystem* das, int nfields, void** fieldbuffer, field field
         for (e = 0; e < nmem; ++e) {
             float* v = (isstructured) ? ((float***) v_src)[e][0] : ((float**) v_src)[e];
 
+            for (i = 0; i < nij; ++i)
+                v1[i] += (double) v[i];
+        }
+        for (i = 0; i < nij; ++i)
+            v1[i] /= (double) nmem;
+        for (e = 0; e < nmem; ++e) {
+            float* v = (isstructured) ? ((float***) v_src)[e][0] : ((float**) v_src)[e];
+
             for (i = 0; i < nij; ++i) {
-                v1[i] += v[i];
-                v2[i] += v[i] * v[i];
+                double dv = (double) v[i] - v1[i];
+
+                v2[i] += dv * dv;
             }
         }
 
+        /*
+         * normalise as in CALC (das_calcinnandspread()): this gives the
+         * hybrid spread for ensembles with static members
+         */
         for (i = 0; i < nij; ++i) {
-            v1[i] /= (double) nmem;
-            v2[i] = v2[i] / (double) nmem - v1[i] * v1[i];
-            v2[i] = (v2[i] < 0.0) ? 0.0 : sqrt(v2[i]);
+            v2[i] = sqrt(v2[i] / (double) ((nmem_m1 > 0) ? nmem_m1 : 1));
             if (fabs(v1[i]) > (double) MAXOBSVAL)
                 v2[i] = 0.0;
         }
@@ -194,7 +206,9 @@ void das_preassemble(dasystem* das, char rootname[])
     distribute_iterations(0, nfield - 1, nprocesses, "    ");
     enkf_printf("    ");
     enkf_flush();
+#if defined(MPI)
     MPI_Barrier(MPI_COMM_WORLD);
+#endif
 
     for (fid = my_first_iteration; fid <= my_last_iteration; ++fid) {
         field* f0 = &tiles[fids[fid]];
@@ -292,7 +306,6 @@ void das_assemble(dasystem* das, char rootname[])
         char* varname = model_getvarname(m, i);
         grid* g = model_getvargrid(m, i);
         int isstructured = grid_isstructured(g);
-        float* v = NULL;
         int ni, nj;
         int nlev, k;
 
@@ -375,7 +388,7 @@ void das_writeinflation(dasystem* das, field* f, int j, float* v)
             char fname[MAXSTRLEN];
             int ncid, dimid, vid;
 
-            getfieldfname(DIRNAME_TMP, ROOTNAME_INFLATION, f->varname, f->level, fname);
+            gettilefname(DIRNAME_TMP, ROOTNAME_INFLATION, f, fname);
             ncw_create(fname, NC_CLOBBER | das->ncformat, &ncid);
             ncw_def_dim(ncid, "i", nj_tile, &dimid);
             ncw_def_var(ncid, f->varname, NC_FLOAT, 1, &dimid, &vid);
@@ -408,7 +421,7 @@ void das_writevcorrs(dasystem* das)
     double* var0 = NULL;
     float** v = NULL;
     double* cor = NULL;
-    int ni0 = -1, nj0 = -1, nij0 = -1;
+    int ni0 = -1, nj0 = -1;
     int fid;
 
     enkf_printtime("  ");
@@ -461,7 +474,7 @@ void das_writevcorrs(dasystem* das)
         grid* g = model_getvargrid(m, f->varid);
         int dimids[2];
         int ksurf;
-        int ni, nj, nij = nij0;
+        int ni, nj, nij;
         int e, k, i;
         char fname_src[MAXSTRLEN];
         char fname_tile[MAXSTRLEN];
@@ -474,6 +487,9 @@ void das_writevcorrs(dasystem* das)
             if (ncu_getnlevels(fname, varname, f->isstructured) <= 1)
                 continue;
         }
+
+        grid_getsize(g, &ni, &nj, NULL);
+        nij = (f->isstructured) ? ni * nj : ni;
 
         /*
          * (a new variable)
@@ -492,12 +508,12 @@ void das_writevcorrs(dasystem* das)
                     free(cor);
                 }
                 /*
-                 * for mode = MODE_HYBRID allocate two additional members to
+                 * with static members allocate two additional members to
                  * calculate ensemble mean with double precision
                  */
-                v0 = alloc2d((das->mode == MODE_HYBRID) ? das->nmem + 2 : das->nmem, nij, sizeof(float));
+                v0 = alloc2d((das->nstatic > 0) ? das->nmem + 2 : das->nmem, nij, sizeof(float));
                 var0 = calloc(nij, sizeof(double));
-                v = alloc2d((das->mode == MODE_HYBRID) ? das->nmem + 2 : das->nmem, nij, sizeof(float));
+                v = alloc2d((das->nstatic > 0) ? das->nmem + 2 : das->nmem, nij, sizeof(float));
                 cor = calloc(nij, sizeof(double));
             }
 
@@ -509,7 +525,7 @@ void das_writevcorrs(dasystem* das)
                 das_getmemberfname(das, varname, e + 1, fname);
                 model_readfield(das->m, fname, varname, -1, ksurf, v0[e], masklog);
             }
-            if (das->mode == MODE_HYBRID)
+            if (das->nstatic > 0)
                 das_sethybridensemble(das, nij, v0);
             for (i = 0; i < nij; ++i) {
                 double vmean = 0.0;
@@ -526,7 +542,6 @@ void das_writevcorrs(dasystem* das)
             varname0 = varname;
             ni0 = ni;
             nj0 = nj;
-            nij0 = nij;
         }
 
         /*
@@ -539,7 +554,7 @@ void das_writevcorrs(dasystem* das)
             das_getmemberfname(das, varname, e + 1, fname_src);
             model_readfield(das->m, fname_src, varname, -1, k, v[e], masklog);
         }
-        if (das->mode == MODE_HYBRID)
+        if (das->nstatic > 0)
             das_sethybridensemble(das, nij, v);
         for (i = 0; i < nij; ++i) {
             double vmean = 0.0;
@@ -693,10 +708,10 @@ void das_writevcorrs_with(dasystem* das, char* varname, int level, int calctype)
     fid0 = fid;
     /*
      * Read primary field.
-     * For mode = MODE_HYBRID allocate two additional members to
+     * With static members allocate two additional members to
      * calculate ensemble mean with double precision
      */
-    v0 = alloc2d((das->mode == MODE_HYBRID) ? das->nmem + 2 : das->nmem, nij, sizeof(float));
+    v0 = alloc2d((das->nstatic > 0) ? das->nmem + 2 : das->nmem, nij, sizeof(float));
     for (e = 0; e < das->nmem; ++e) {
         int masklog = das_isstatic(das, e + 1);
         char fname[MAXSTRLEN];
@@ -704,7 +719,7 @@ void das_writevcorrs_with(dasystem* das, char* varname, int level, int calctype)
         das_getmemberfname(das, varname, e + 1, fname);
         model_readfield(das->m, fname, varname, -1, fields[fid0].level, v0[e], masklog);
     }
-    if (das->mode == MODE_HYBRID)
+    if (das->nstatic > 0)
         das_sethybridensemble(das, nij, v0);
     var0 = calloc(nij, sizeof(double));
     for (i = 0; i < nij; ++i) {
@@ -753,7 +768,7 @@ void das_writevcorrs_with(dasystem* das, char* varname, int level, int calctype)
     MPI_Barrier(MPI_COMM_WORLD);
 #endif
 
-    v = alloc2d((das->mode == MODE_HYBRID) ? das->nmem + 2 : das->nmem, nij, sizeof(float));
+    v = alloc2d((das->nstatic > 0) ? das->nmem + 2 : das->nmem, nij, sizeof(float));
     cor = calloc(nij, sizeof(double));
     distribute_iterations(0, nfields - 1, nprocesses, "    ");
     enkf_printf("    calculating:");
@@ -772,14 +787,14 @@ void das_writevcorrs_with(dasystem* das, char* varname, int level, int calctype)
             das_getmemberfname(das, f->varname, e + 1, fname_src);
             model_readfield(das->m, fname_src, f->varname, -1, f->level, v[e], masklog);
         }
-        if (das->mode == MODE_HYBRID)
+        if (das->nstatic > 0)
             das_sethybridensemble(das, nij, v);
         for (i = 0; i < nij; ++i) {
             double vmean = 0.0;
             double var = 0.0;
 
             cor[i] = 0.0;
-            if (((int**) nlevels)[0][i] == 0)
+            if (((isstructured) ? ((int**) nlevels)[0][i] : ((int*) nlevels)[i]) == 0)
                 continue;
 
             for (e = 0; e < das->nmem; ++e)
@@ -796,7 +811,7 @@ void das_writevcorrs_with(dasystem* das, char* varname, int level, int calctype)
             else if (calctype == CALC_SENS)
                 cor[i] /= var0[i];
             else
-                cor[i] /= (double) (das->nmem - 1);
+                cor[i] /= (double) ((das->nmem - das->nstatic - 1 > 0) ? das->nmem - das->nstatic - 1 : 1);
             if (!isfinite(cor[i]))
                 cor[i] = 0.0;
         }
@@ -878,6 +893,7 @@ void das_writespread(dasystem* das)
     int nvar = model_getnvar(m);
     int nfields = 0;
     field* fields = NULL;
+    int nmem_m1 = das->nmem - das->nstatic - 1;
     int ni_prev = -1, nj_prev = -1, nij = -1;
     float** v = NULL;
     double* std = NULL;
@@ -940,8 +956,10 @@ void das_writespread(dasystem* das)
                 free(v);
                 free(std);
             }
-            v = alloc2d((das->mode == MODE_HYBRID) ? das->nmem + 2 : das->nmem, nij, sizeof(float));
+            v = alloc2d((das->nstatic > 0) ? das->nmem + 2 : das->nmem, nij, sizeof(float));
             std = calloc(nij, sizeof(double));
+            ni_prev = ni;
+            nj_prev = nj;
         }
         for (e = 0; e < das->nmem; ++e) {
             int masklog = das_isstatic(das, e + 1);
@@ -950,21 +968,27 @@ void das_writespread(dasystem* das)
             das_getmemberfname(das, varname, e + 1, fname);
             model_readfield(das->m, fname, f->varname, -1, f->level, v[e], masklog);
         }
-        if (das->mode == MODE_HYBRID)
+        if (das->nstatic > 0)
             das_sethybridensemble(das, nij, v);
         for (i = 0; i < nij; ++i) {
             double vmean = 0.0;
 
-            if (((int**) nlevels)[0][i] == 0)
+            std[i] = 0.0;
+            if (((f->isstructured) ? ((int**) nlevels)[0][i] : ((int*) nlevels)[i]) == 0)
                 continue;
             for (e = 0; e < das->nmem; ++e)
                 vmean += (double) v[e][i];
             vmean /= (double) das->nmem;
-            std[i] = 0.0;
-            for (e = 0; e < das->nmem; ++e)
-                std[i] += (double) (v[e][i] * v[e][i]);
-            std[i] = std[i] / (double) das->nmem - vmean * vmean;
-            std[i] = (std[i] < 0.0) ? 0.0 : sqrt(std[i]);
+            for (e = 0; e < das->nmem; ++e) {
+                double dv = (double) v[e][i] - vmean;
+
+                std[i] += dv * dv;
+            }
+            /*
+             * normalise as in CALC (das_calcinnandspread()): this gives the
+             * hybrid spread for ensembles with static members
+             */
+            std[i] = sqrt(std[i] / (double) ((nmem_m1 > 0) ? nmem_m1 : 1));
             if (fabs(vmean) > (double) MAXOBSVAL)
                 std[i] = 0.0;
         }

@@ -51,6 +51,87 @@ void ncu_set_quitfn(ncu_quit_fn quitfn)
     quit = quitfn;
 }
 
+/** Converts a value of the specified NetCDF type to double.
+ */
+static double ncu_todouble(nc_type type, const void* p)
+{
+    switch (type) {
+    case NC_BYTE:
+        return (double) ((const int8_t*) p)[0];
+    case NC_CHAR:
+        return (double) ((const char*) p)[0];
+    case NC_UBYTE:
+        return (double) ((const uint8_t *) p)[0];
+    case NC_SHORT:
+        return (double) ((const int16_t*) p)[0];
+    case NC_USHORT:
+        return (double) ((const uint16_t*) p)[0];
+    case NC_INT:
+        return (double) ((const int32_t*) p)[0];
+    case NC_UINT:
+        return (double) ((const uint32_t*) p)[0];
+    case NC_INT64:
+        return (double) ((const int64_t*) p)[0];
+    case NC_UINT64:
+        return (double) ((const uint64_t *) p)[0];
+    case NC_FLOAT:
+        return (double) ((const float*) p)[0];
+    case NC_DOUBLE:
+        return (double) ((const double*) p)[0];
+    default:
+        quit("ncu_todouble(): unexpected NetCDF type %d", (int) type);
+    }
+    return NAN;
+}
+
+/** Rounds values to be written to a NetCDF variable of an integer type
+ ** (otherwise the NetCDF library truncates them).
+ */
+static void ncu_roundforint(nc_type type, size_t n, float* v)
+{
+    size_t i;
+
+    if (type == NC_FLOAT || type == NC_DOUBLE || type == NC_CHAR)
+        return;
+    for (i = 0; i < n; ++i)
+        v[i] = roundf(v[i]);
+}
+
+/** Writes a float array to a NetCDF variable. For integer types that can not
+ ** be represented exactly by float, writes via double so that the fill value
+ ** (already substituted in v) is written exactly.
+ */
+static void ncu_put_vara(int ncid, int varid, const size_t start[], const size_t count[], size_t n, float* v)
+{
+    nc_type vartype;
+
+    ncw_inq_vartype(ncid, varid, &vartype);
+    if (vartype == NC_INT || vartype == NC_UINT || vartype == NC_INT64 || vartype == NC_UINT64) {
+        double fill = NAN;
+        double* dv;
+        size_t i;
+
+        if (ncw_att_exists2(ncid, varid, "_FillValue"))
+            ncw_get_att_double(ncid, varid, "_FillValue", &fill);
+        else {
+            int nofill;
+            double buf[2];
+
+            ncw_inq_var_fill(ncid, varid, &nofill, buf);
+            if (!nofill)
+                fill = ncu_todouble(vartype, buf);
+        }
+        dv = malloc(n * sizeof(double));
+        if (dv == NULL)
+            quit("ncu_put_vara(): could not allocate memory (%zu bytes)", n * sizeof(double));
+        for (i = 0; i < n; ++i)
+            dv[i] = (!isnan(fill) && v[i] == (float) fill) ? fill : (double) v[i];
+        ncw_put_vara_double(ncid, varid, start, count, dv);
+        free(dv);
+    } else
+        ncw_put_vara_float(ncid, varid, start, count, v);
+}
+
 /**
  */
 int ncu_getnlevels(char fname[], char varname[], int isstructured)
@@ -166,12 +247,12 @@ void ncu_readfield_part(char fname[], char varname[], int r, int k, int j1, int 
         start[0] = r;
         if (dimlen[1] != nk) {
             if (dimlen[1] != 1)
-                quit("ncu_readfield_part(): \"%s\": vertical dimension of variable \"%s\" (nk = %d) does not match grid dimension (nk = %d)", fname, varname, dimlen[1], nk);
+                quit("ncu_readfield_part(): \"%s\": vertical dimension of variable \"%s\" (nk = %zu) does not match grid dimension (nk = %d)", fname, varname, dimlen[1], nk);
             else
                 k = 0;          /* ignore k */
         }
         if (dimlen[3] != ni || dimlen[2] != nj)
-            quit("ncu_readfield_part(): %s: %s: horizontal dimensions (ni = %d, nj = %d) do not match grid dimensions (ni = %d, nj = %d)", fname, varname, dimlen[3], dimlen[2], ni, nj);
+            quit("ncu_readfield_part(): %s: %s: horizontal dimensions (ni = %zu, nj = %zu) do not match grid dimensions (ni = %d, nj = %d)", fname, varname, dimlen[3], dimlen[2], ni, nj);
         start[1] = k;
         start[2] = j1;
         start[3] = 0;
@@ -183,10 +264,10 @@ void ncu_readfield_part(char fname[], char varname[], int r, int k, int j1, int 
     } else if (ndims == 3) {
         if (nj > 0) {
             if (dimlen[2] != ni || dimlen[1] != nj)
-                quit("ncu_readfield_part(): %s: %s: horizontal dimensions (ni = %d, nj = %d) do not match grid dimensions (ni = %d, nj = %d)", fname, varname, dimlen[2], dimlen[1], ni, nj);
+                quit("ncu_readfield_part(): %s: %s: horizontal dimensions (ni = %zu, nj = %zu) do not match grid dimensions (ni = %d, nj = %d)", fname, varname, dimlen[2], dimlen[1], ni, nj);
             if (!hasrecorddim) {
                 if (dimlen[0] != nk && !(dimlen[0] == 1 && (k <= 0 || k == nk - 1)))
-                    quit("ncu_readfield_part(): %s: %s: vertical dimension (nk = %d) does not match grid dimension (nk = %d)", fname, varname, dimlen[0], nk);
+                    quit("ncu_readfield_part(): %s: %s: vertical dimension (nk = %zu) does not match grid dimension (nk = %d)", fname, varname, dimlen[0], nk);
                 start[0] = (dimlen[0] == 1) ? 0 : k;
                 start[1] = j1;
                 start[2] = 0;
@@ -224,12 +305,12 @@ void ncu_readfield_part(char fname[], char varname[], int r, int k, int j1, int 
             start[0] = r;
             if (dimlen[1] != nk) {
                 if (dimlen[1] != 1)
-                    quit("ncu_readfield_part(): %s: %s: vertical dimension (nk = %d) does not match grid dimension (nk = %d)", fname, varname, dimlen[1], nk);
+                    quit("ncu_readfield_part(): %s: %s: vertical dimension (nk = %zu) does not match grid dimension (nk = %d)", fname, varname, dimlen[1], nk);
                 else
                     k = 0;      /* ignore k */
             }
             if (dimlen[2] != ni)
-                quit("ncu_readfield_part(): %s: %s: horizontal dimension (ni = %d) does not match grid dimension (ni = %d)", fname, varname, dimlen[2], ni);
+                quit("ncu_readfield_part(): %s: %s: horizontal dimension (ni = %zu) does not match grid dimension (ni = %d)", fname, varname, dimlen[2], ni);
             start[1] = k;
             start[2] = j1;
             count[0] = 1;
@@ -250,12 +331,12 @@ void ncu_readfield_part(char fname[], char varname[], int r, int k, int j1, int 
             count[1] = dimlen[1];
             assert(count[0] <= dimlen[0]);
             if (dimlen[1] != ni || dimlen[0] != nj)
-                quit("ncu_readfield_part(): %s: %s: horizontal dimensions (ni = %d, nj = %d) do not match grid dimensions (ni = %d, nj = %d)", fname, varname, dimlen[1], dimlen[0], ni, nj);
+                quit("ncu_readfield_part(): %s: %s: horizontal dimensions (ni = %zu, nj = %zu) do not match grid dimensions (ni = %d, nj = %d)", fname, varname, dimlen[1], dimlen[0], ni, nj);
         } else {
             if (!hasrecorddim) {
                 if (dimlen[0] != nk && !(dimlen[0] == 1 && (k <= 0 || k == nk - 1)))
-                    quit("ncu_readfield_part(): %s: %s: vertical dimension (nk = %d) does not match grid dimension (nk = %d)", fname, varname, dimlen[0], nk);
-                start[0] = k;
+                    quit("ncu_readfield_part(): %s: %s: vertical dimension (nk = %zu) does not match grid dimension (nk = %d)", fname, varname, dimlen[0], nk);
+                start[0] = (dimlen[0] == 1) ? 0 : k;
                 start[1] = j1;
                 count[0] = 1;
                 count[1] = j2 - j1 + 1;
@@ -271,7 +352,7 @@ void ncu_readfield_part(char fname[], char varname[], int r, int k, int j1, int 
                 assert(count[1] <= dimlen[1]);
             }
             if (dimlen[1] != ni)
-                quit("ncu_readfield_part(): %s: %s: horizontal dimension (ni = %d) does not match grid dimension (ni = %d)", fname, varname, dimlen[1], ni);
+                quit("ncu_readfield_part(): %s: %s: horizontal dimension (ni = %zu) does not match grid dimension (ni = %d)", fname, varname, dimlen[1], ni);
         }
     } else if (ndims == 1) {
         if (nj > 0) {
@@ -299,13 +380,15 @@ void ncu_readfield_part(char fname[], char varname[], int r, int k, int j1, int 
         void* vv = NULL;
         nc_type vartype = -1;
         int typesize = 0;
-        char buf[128];
+        double buf[16];
         void* attval = buf;
 
         ncw_inq_vartype(ncid, varid, &vartype);
         typesize = ncw_sizeof(vartype);
         if (vartype != NC_FLOAT) {
             vv = malloc(n * typesize);
+            if (vv == NULL)
+                quit("ncutils: could not allocate memory (%zu bytes)", n * (size_t) typesize);
             ncw_get_vara(ncid, varid, start, count, vv);
         } else
             vv = v;
@@ -368,11 +451,11 @@ void ncu_readfield_part(char fname[], char varname[], int r, int k, int j1, int 
             ncw_get_att(ncid, varid, "valid_min", attval);
             if (vartype == NC_BYTE || vartype == NC_CHAR) {
                 for (i = 0; i < n; ++i)
-                    if (((char*) vv)[i] < ((char*) attval)[0])
+                    if (((int8_t*) vv)[i] < ((int8_t*) attval)[0])
                         v[i] = NAN;
             } else if (vartype == NC_UBYTE) {
                 for (i = 0; i < n; ++i)
-                    if (((unsigned char*) vv)[i] < ((unsigned char*) attval)[0])
+                    if (((uint8_t *) vv)[i] < ((uint8_t *) attval)[0])
                         v[i] = NAN;
             } else if (vartype == NC_SHORT) {
                 for (i = 0; i < n; ++i)
@@ -416,11 +499,11 @@ void ncu_readfield_part(char fname[], char varname[], int r, int k, int j1, int 
             ncw_get_att(ncid, varid, "valid_max", attval);
             if (vartype == NC_BYTE || vartype == NC_CHAR) {
                 for (i = 0; i < n; ++i)
-                    if (((char*) vv)[i] > ((char*) attval)[0])
+                    if (((int8_t*) vv)[i] > ((int8_t*) attval)[0])
                         v[i] = NAN;
             } else if (vartype == NC_UBYTE) {
                 for (i = 0; i < n; ++i)
-                    if (((unsigned char*) vv)[i] > ((unsigned char*) attval)[0])
+                    if (((uint8_t *) vv)[i] > ((uint8_t *) attval)[0])
                         v[i] = NAN;
             } else if (vartype == NC_SHORT) {
                 for (i = 0; i < n; ++i)
@@ -464,11 +547,11 @@ void ncu_readfield_part(char fname[], char varname[], int r, int k, int j1, int 
             ncw_get_att(ncid, varid, "valid_range", attval);
             if (vartype == NC_BYTE || vartype == NC_CHAR) {
                 for (i = 0; i < n; ++i)
-                    if (((char*) vv)[i] < ((char*) attval)[0] || ((char*) vv)[i] > ((char*) attval)[1])
+                    if (((int8_t*) vv)[i] < ((int8_t*) attval)[0] || ((int8_t*) vv)[i] > ((int8_t*) attval)[1])
                         v[i] = NAN;
             } else if (vartype == NC_UBYTE) {
                 for (i = 0; i < n; ++i)
-                    if (((unsigned char*) vv)[i] < ((unsigned char*) attval)[0] || ((unsigned char*) vv)[i] > ((unsigned char*) attval)[1])
+                    if (((uint8_t *) vv)[i] < ((uint8_t *) attval)[0] || ((uint8_t *) vv)[i] > ((uint8_t *) attval)[1])
                         v[i] = NAN;
             } else if (vartype == NC_SHORT) {
                 for (i = 0; i < n; ++i)
@@ -556,7 +639,7 @@ void ncu_writefield(char fname[], char varname[], int k, int ni, int nj, int nk,
             quit("ncu_writefield(): %s: %s: for a 4-dimensional variable expected the first dimension to be either unlimited or of length 1\n", fname, varname);
         start[0] = (dimlen[0] == 0) ? 0 : dimlen[0] - 1;
         if (dimlen[1] != nk)
-            quit("ncu_writefield(): %s: %s: vertical dimension (nk = %d) does not match grid dimension (nk = %d)", fname, varname, dimlen[1], nk);
+            quit("ncu_writefield(): %s: %s: vertical dimension (nk = %zu) does not match grid dimension (nk = %d)", fname, varname, dimlen[1], nk);
         start[1] = k;
         start[2] = 0;
         start[3] = 0;
@@ -565,13 +648,13 @@ void ncu_writefield(char fname[], char varname[], int k, int ni, int nj, int nk,
         count[2] = dimlen[2];
         count[3] = dimlen[3];
         if (dimlen[3] != ni || dimlen[2] != nj)
-            quit("ncu_writefield(): %s: %s: horizontal dimensions (ni = %d, nj = %d) do not match grid dimensions (ni = %d, nj = %d)", fname, varname, dimlen[3], dimlen[2], ni, nj);
+            quit("ncu_writefield(): %s: %s: horizontal dimensions (ni = %zu, nj = %zu) do not match grid dimensions (ni = %d, nj = %d)", fname, varname, dimlen[3], dimlen[2], ni, nj);
     } else if (ndims == 3) {
         if (nj > 0) {
             if (!hasrecorddim) {
                 if (dimlen[0] != nk && !(dimlen[0] == 1 && (k == 0 || k == nk - 1)))
-                    quit("ncu_writefield(): %s: %s: vertical dimension (nk = %d) does not match grid dimension (nk = %d)", fname, varname, dimlen[0], nk);
-                start[0] = k;
+                    quit("ncu_writefield(): %s: %s: vertical dimension (nk = %zu) does not match grid dimension (nk = %d)", fname, varname, dimlen[0], nk);
+                start[0] = (dimlen[0] == 1) ? 0 : k;
                 start[1] = 0;
                 start[2] = 0;
                 count[0] = 1;
@@ -589,19 +672,19 @@ void ncu_writefield(char fname[], char varname[], int k, int ni, int nj, int nk,
                 count[2] = dimlen[2];
             }
             if (dimlen[2] != ni || dimlen[1] != nj)
-                quit("ncu_writefield(): %s: %s: horizontal dimensions (ni = %d, nj = %d) do not match grid dimensions (ni = %d, nj = %d)", fname, varname, dimlen[2], dimlen[1], ni, nj);
+                quit("ncu_writefield(): %s: %s: horizontal dimensions (ni = %zu, nj = %zu) do not match grid dimensions (ni = %d, nj = %d)", fname, varname, dimlen[2], dimlen[1], ni, nj);
         } else {
             if (!hasrecorddim && dimlen[0] != 1)
                 quit("ncu_writefield(): %s: %s: for a 3-dimensional variable on unstructured grid expected the first dimension to be either unlimited or of length 1\n", fname, varname);
             start[0] = (dimlen[0] == 0) ? 0 : dimlen[0] - 1;
             if (dimlen[1] != nk) {
                 if (dimlen[1] != 1)
-                    quit("ncu_writefield(): %s: %s: vertical dimension (nk = %d) does not match grid dimension (nk = %d)", fname, varname, dimlen[1], nk);
+                    quit("ncu_writefield(): %s: %s: vertical dimension (nk = %zu) does not match grid dimension (nk = %d)", fname, varname, dimlen[1], nk);
                 else
                     k = 0;      /* ignore k */
             }
             if (dimlen[2] != ni)
-                quit("ncu_writefield(): %s: %s: horizontal dimension (ni = %d) does not match grid dimension (ni = %d)", fname, varname, dimlen[2], ni);
+                quit("ncu_writefield(): %s: %s: horizontal dimension (ni = %zu) does not match grid dimension (ni = %d)", fname, varname, dimlen[2], ni);
             start[1] = k;
             start[2] = 0;
             count[0] = 1;
@@ -620,12 +703,12 @@ void ncu_writefield(char fname[], char varname[], int k, int ni, int nj, int nk,
             count[0] = dimlen[0];
             count[1] = dimlen[1];
             if (dimlen[1] != ni || dimlen[0] != nj)
-                quit("ncu_writefield(): %s: %s: horizontal dimensions (ni = %d, nj = %d) do not match grid dimensions (ni = %d, nj = %d)", fname, varname, dimlen[1], dimlen[0], ni, nj);
+                quit("ncu_writefield(): %s: %s: horizontal dimensions (ni = %zu, nj = %zu) do not match grid dimensions (ni = %d, nj = %d)", fname, varname, dimlen[1], dimlen[0], ni, nj);
         } else {
             if (!hasrecorddim) {
                 if (dimlen[0] != nk && !(dimlen[0] == 1 && (k == 0 || k == nk - 1)))
-                    quit("ncu_writefield(): %s: %s: vertical dimension (nk = %d) does not match grid dimension (nk = %d)", fname, varname, dimlen[0], nk);
-                start[0] = k;
+                    quit("ncu_writefield(): %s: %s: vertical dimension (nk = %zu) does not match grid dimension (nk = %d)", fname, varname, dimlen[0], nk);
+                start[0] = (dimlen[0] == 1) ? 0 : k;
                 start[1] = 0;
                 count[0] = 1;
                 count[1] = dimlen[1];
@@ -639,7 +722,7 @@ void ncu_writefield(char fname[], char varname[], int k, int ni, int nj, int nk,
                 count[1] = dimlen[1];
             }
             if (dimlen[1] != ni)
-                quit("ncu_writefield(): %s: %s: horizontal dimension (ni = %d) does not match grid dimension (ni = %d)", fname, varname, dimlen[1], ni);
+                quit("ncu_writefield(): %s: %s: horizontal dimension (ni = %zu) does not match grid dimension (ni = %d)", fname, varname, dimlen[1], ni);
         }
     } else if (ndims == 1) {
         if (nj > 0) {
@@ -677,6 +760,13 @@ void ncu_writefield(char fname[], char varname[], int k, int ni, int nj, int nk,
     }
 
     {
+        nc_type vartype;
+
+        ncw_inq_vartype(ncid, varid, &vartype);
+        ncu_roundforint(vartype, n, v);
+    }
+
+    {
         float attval[2];
 
         if (ncw_att_exists2(ncid, varid, "valid_min")) {
@@ -708,9 +798,12 @@ void ncu_writefield(char fname[], char varname[], int k, int ni, int nj, int nk,
         } else {
             int nofill;
 
-            ncw_inq_var_fill(ncid, varid, &nofill, attval);
-            if (nofill)
-                attval[0] = NAN;
+            double fill[2];
+            nc_type vartype;
+
+            ncw_inq_vartype(ncid, varid, &vartype);
+            ncw_inq_var_fill(ncid, varid, &nofill, fill);
+            attval[0] = (nofill) ? NAN : (float) ncu_todouble(vartype, fill);
         }
         for (i = 0; i < n; ++i)
             if (isnan(v[i]))
@@ -724,7 +817,7 @@ void ncu_writefield(char fname[], char varname[], int k, int ni, int nj, int nk,
         }
     }
 
-    ncw_put_vara_float(ncid, varid, start, count, v);
+    ncu_put_vara(ncid, varid, start, count, n, v);
     ncw_close(ncid);
 }
 
@@ -753,7 +846,7 @@ void ncu_writerow(char fname[], char varname[], int k, int j, int ni, int nj, in
             quit("%s: %s: for a 4-dimensional variable expected the first dimension to be either unlimited or of length 1\n", fname, varname);
         start[0] = (dimlen[0] == 0) ? 0 : dimlen[0] - 1;
         if (dimlen[1] != nk)
-            quit("ncu_writerow(): \"%s\": vertical dimension of variable \"%s\" (nk = %d) does not match grid dimension (nk = %d)", fname, varname, dimlen[1], nk);
+            quit("ncu_writerow(): \"%s\": vertical dimension of variable \"%s\" (nk = %zu) does not match grid dimension (nk = %d)", fname, varname, dimlen[1], nk);
         start[1] = k;
         start[2] = j;
         start[3] = 0;
@@ -762,13 +855,13 @@ void ncu_writerow(char fname[], char varname[], int k, int j, int ni, int nj, in
         count[2] = 1;
         count[3] = dimlen[3];
         if (dimlen[3] != ni || dimlen[2] != nj)
-            quit("ncu_writerow(): \"%s\": horizontal dimensions of variable \"%s\" (ni = %d, nj = %d) do not match grid dimensions (ni = %d, nj = %d)", fname, varname, dimlen[3], dimlen[2], ni, nj);
+            quit("ncu_writerow(): \"%s\": horizontal dimensions of variable \"%s\" (ni = %zu, nj = %zu) do not match grid dimensions (ni = %d, nj = %d)", fname, varname, dimlen[3], dimlen[2], ni, nj);
     } else if (ndims == 3) {
         if (nj > 0) {
             if (!hasrecorddim) {
                 if (dimlen[0] != nk && !(dimlen[0] == 1 && (k == 0 || k == nk - 1)))
-                    quit("ncu_writerow(): \"%s\": vertical dimension of variable \"%s\" (nk = %d) does not match grid dimension (nk = %d)", fname, varname, dimlen[0], nk);
-                start[0] = k;
+                    quit("ncu_writerow(): \"%s\": vertical dimension of variable \"%s\" (nk = %zu) does not match grid dimension (nk = %d)", fname, varname, dimlen[0], nk);
+                start[0] = (dimlen[0] == 1) ? 0 : k;
                 start[1] = j;
                 start[2] = 0;
                 count[0] = 1;
@@ -786,19 +879,19 @@ void ncu_writerow(char fname[], char varname[], int k, int j, int ni, int nj, in
                 count[2] = dimlen[2];
             }
             if (dimlen[2] != ni || dimlen[1] != nj)
-                quit("ncu_writerow(): \"%s\": horizontal dimensions of variable \"%s\" (ni = %d, nj = %d) do not match grid dimensions (ni = %d, nj = %d)", fname, varname, dimlen[2], dimlen[1], ni, nj);
+                quit("ncu_writerow(): \"%s\": horizontal dimensions of variable \"%s\" (ni = %zu, nj = %zu) do not match grid dimensions (ni = %d, nj = %d)", fname, varname, dimlen[2], dimlen[1], ni, nj);
         } else {
             if (!hasrecorddim && dimlen[0] != 1)
                 quit("ncu_writerow(): \"%s\": %s: for a 3-dimensional variable on unstructured horizontal grid expected the first dimension to be either unlimited or of length 1\n", fname, varname);
             start[0] = (dimlen[0] == 0) ? 0 : dimlen[0] - 1;
             if (dimlen[1] != nk) {
                 if (dimlen[1] != 1)
-                    quit("ncu_writerow(): \"%s\": vertical dimension of variable \"%s\" (nk = %d) does not match grid dimension (nk = %d)", fname, varname, dimlen[1], nk);
+                    quit("ncu_writerow(): \"%s\": vertical dimension of variable \"%s\" (nk = %zu) does not match grid dimension (nk = %d)", fname, varname, dimlen[1], nk);
                 else
                     k = 0;      /* ignore k */
             }
             if (dimlen[2] != ni)
-                quit("ncu_writerow(): \"%s\": horizontal dimension of variable \"%s\" (ni = %d) does not match grid dimension (ni = %d)", fname, varname, dimlen[2], ni);
+                quit("ncu_writerow(): \"%s\": horizontal dimension of variable \"%s\" (ni = %zu) does not match grid dimension (ni = %d)", fname, varname, dimlen[2], ni);
             start[1] = k;
             start[2] = j;
             count[0] = 1;
@@ -817,12 +910,12 @@ void ncu_writerow(char fname[], char varname[], int k, int j, int ni, int nj, in
             count[0] = 1;
             count[1] = dimlen[1];
             if (dimlen[1] != ni || dimlen[0] != nj)
-                quit("ncu_writerow(): \"%s\": horizontal dimensions of variable \"%s\" (ni = %d, nj = %d) do not match grid dimensions (ni = %d, nj = %d)", fname, varname, dimlen[1], dimlen[0], ni, nj);
+                quit("ncu_writerow(): \"%s\": horizontal dimensions of variable \"%s\" (ni = %zu, nj = %zu) do not match grid dimensions (ni = %d, nj = %d)", fname, varname, dimlen[1], dimlen[0], ni, nj);
         } else {
             if (!hasrecorddim) {
                 if (dimlen[0] != nk && !(dimlen[0] == 1 && (k == 0 || k == nk - 1)))
-                    quit("ncu_writerow(): \"%s\": vertical dimension of variable \"%s\" (nk = %d) does not match grid dimension (nk = %d)", fname, varname, dimlen[0], nk);
-                start[0] = k;
+                    quit("ncu_writerow(): \"%s\": vertical dimension of variable \"%s\" (nk = %zu) does not match grid dimension (nk = %d)", fname, varname, dimlen[0], nk);
+                start[0] = (dimlen[0] == 1) ? 0 : k;
                 start[1] = j;
                 count[0] = 1;
                 count[1] = 1;
@@ -836,7 +929,7 @@ void ncu_writerow(char fname[], char varname[], int k, int j, int ni, int nj, in
                 count[1] = 1;
             }
             if (dimlen[1] != ni)
-                quit("ncu_writerow(): \"%s\": horizontal dimension of variable \"%s\" (ni = %d) does not match grid dimension (ni = %d)", fname, varname, dimlen[1], ni);
+                quit("ncu_writerow(): \"%s\": horizontal dimension of variable \"%s\" (ni = %zu) does not match grid dimension (ni = %d)", fname, varname, dimlen[1], ni);
         }
     } else if (ndims == 1) {
         if (nj > 0) {
@@ -871,6 +964,13 @@ void ncu_writerow(char fname[], char varname[], int k, int j, int ni, int nj, in
             v[i] /= scale_factor;
     }
 
+    {
+        nc_type vartype;
+
+        ncw_inq_vartype(ncid, varid, &vartype);
+        ncu_roundforint(vartype, n, v);
+    }
+
     if (ncw_att_exists2(ncid, varid, "_FillValue") || ncw_att_exists2(ncid, varid, "missing_value") || ncw_att_exists2(ncid, varid, "valid_range") || ncw_att_exists2(ncid, varid, "valid_min") || ncw_att_exists2(ncid, varid, "valid_max")) {
         float attval[2];
 
@@ -900,8 +1000,14 @@ void ncu_writerow(char fname[], char varname[], int k, int j, int ni, int nj, in
         if (ncw_att_exists2(ncid, varid, "_FillValue")) {
             ncw_check_attlen(ncid, varid, "_FillValue", 1);
             ncw_get_att_float(ncid, varid, "_FillValue", attval);
-        } else
-            ncw_inq_var_fill(ncid, varid, NULL, attval);
+        } else {
+            double fill[2];
+            nc_type vartype;
+
+            ncw_inq_vartype(ncid, varid, &vartype);
+            ncw_inq_var_fill(ncid, varid, NULL, fill);
+            attval[0] = (float) ncu_todouble(vartype, fill);
+        }
         for (i = 0; i < n; ++i)
             if (isnan(v[i]))
                 v[i] = attval[0];
@@ -914,7 +1020,7 @@ void ncu_writerow(char fname[], char varname[], int k, int j, int ni, int nj, in
         }
     }
 
-    ncw_put_vara_float(ncid, varid, start, count, v);
+    ncu_put_vara(ncid, varid, start, count, n, v);
     ncw_close(ncid);
 }
 
@@ -956,7 +1062,7 @@ void ncu_read3dfield(char* fname, char* varname, int r, int ni, int nj, int nk, 
         count[2] = dimlen[2];
         count[3] = dimlen[3];
         if (dimlen[3] != ni || dimlen[2] != nj || dimlen[1] != nk)
-            quit("ncu_read3dfield(): %s: %s: horizontal dimensions (ni = %d, nj = %d, nk = %d) do not match grid dimensions (ni = %d, nj = %d, nk = %d)", fname, varname, dimlen[3], dimlen[2], dimlen[1], ni, nj, nk);
+            quit("ncu_read3dfield(): %s: %s: horizontal dimensions (ni = %zu, nj = %zu, nk = %zu) do not match grid dimensions (ni = %d, nj = %d, nk = %d)", fname, varname, dimlen[3], dimlen[2], dimlen[1], ni, nj, nk);
     } else if (ndims == 3) {
         if (nj > 0) {
             if (hasrecorddim)
@@ -964,7 +1070,7 @@ void ncu_read3dfield(char* fname, char* varname, int r, int ni, int nj, int nk, 
             if (r > 0)
                 quit("ncu_read3dfield(): %s: %s: can not read 3D record %d because the variable has only 3 dimensions", fname, varname, r);
             if (dimlen[2] != ni || dimlen[1] != nj || dimlen[0] != nk)
-                quit("ncu_read3dfield(): %s: %s: horizontal dimensions (ni = %d, nj = %d, nk = %d) do not match grid dimensions (ni = %d, nj = %d, nk = %d)", fname, varname, dimlen[2], dimlen[1], dimlen[0], ni, nj, nk);
+                quit("ncu_read3dfield(): %s: %s: horizontal dimensions (ni = %zu, nj = %zu, nk = %zu) do not match grid dimensions (ni = %d, nj = %d, nk = %d)", fname, varname, dimlen[2], dimlen[1], dimlen[0], ni, nj, nk);
             start[0] = 0;
             start[1] = 0;
             start[2] = 0;
@@ -1018,13 +1124,15 @@ void ncu_read3dfield(char* fname, char* varname, int r, int ni, int nj, int nk, 
         void* vv = NULL;
         nc_type vartype = -1;
         int typesize = 0;
-        char buf[128];
+        double buf[16];
         void* attval = buf;
 
         ncw_inq_vartype(ncid, varid, &vartype);
         typesize = ncw_sizeof(vartype);
         if (vartype != NC_FLOAT) {
             vv = malloc(n * typesize);
+            if (vv == NULL)
+                quit("ncutils: could not allocate memory (%zu bytes)", n * (size_t) typesize);
             ncw_get_vara(ncid, varid, start, count, vv);
         } else
             vv = v;
@@ -1087,11 +1195,11 @@ void ncu_read3dfield(char* fname, char* varname, int r, int ni, int nj, int nk, 
             ncw_get_att(ncid, varid, "valid_min", attval);
             if (vartype == NC_BYTE || vartype == NC_CHAR) {
                 for (i = 0; i < n; ++i)
-                    if (((char*) vv)[i] < ((char*) attval)[0])
+                    if (((int8_t*) vv)[i] < ((int8_t*) attval)[0])
                         v[i] = NAN;
             } else if (vartype == NC_UBYTE) {
                 for (i = 0; i < n; ++i)
-                    if (((unsigned char*) vv)[i] < ((unsigned char*) attval)[0])
+                    if (((uint8_t *) vv)[i] < ((uint8_t *) attval)[0])
                         v[i] = NAN;
             } else if (vartype == NC_SHORT) {
                 for (i = 0; i < n; ++i)
@@ -1135,11 +1243,11 @@ void ncu_read3dfield(char* fname, char* varname, int r, int ni, int nj, int nk, 
             ncw_get_att(ncid, varid, "valid_max", attval);
             if (vartype == NC_BYTE || vartype == NC_CHAR) {
                 for (i = 0; i < n; ++i)
-                    if (((char*) vv)[i] > ((char*) attval)[0])
+                    if (((int8_t*) vv)[i] > ((int8_t*) attval)[0])
                         v[i] = NAN;
             } else if (vartype == NC_UBYTE) {
                 for (i = 0; i < n; ++i)
-                    if (((unsigned char*) vv)[i] > ((unsigned char*) attval)[0])
+                    if (((uint8_t *) vv)[i] > ((uint8_t *) attval)[0])
                         v[i] = NAN;
             } else if (vartype == NC_SHORT) {
                 for (i = 0; i < n; ++i)
@@ -1183,11 +1291,11 @@ void ncu_read3dfield(char* fname, char* varname, int r, int ni, int nj, int nk, 
             ncw_get_att(ncid, varid, "valid_range", attval);
             if (vartype == NC_BYTE || vartype == NC_CHAR) {
                 for (i = 0; i < n; ++i)
-                    if (((char*) vv)[i] < ((char*) attval)[0] || ((char*) vv)[i] > ((char*) attval)[1])
+                    if (((int8_t*) vv)[i] < ((int8_t*) attval)[0] || ((int8_t*) vv)[i] > ((int8_t*) attval)[1])
                         v[i] = NAN;
             } else if (vartype == NC_UBYTE) {
                 for (i = 0; i < n; ++i)
-                    if (((unsigned char*) vv)[i] < ((unsigned char*) attval)[0] || ((unsigned char*) vv)[i] > ((unsigned char*) attval)[1])
+                    if (((uint8_t *) vv)[i] < ((uint8_t *) attval)[0] || ((uint8_t *) vv)[i] > ((uint8_t *) attval)[1])
                         v[i] = NAN;
             } else if (vartype == NC_SHORT) {
                 for (i = 0; i < n; ++i)
@@ -1269,6 +1377,7 @@ int ncu_getnD(char fname[], char varname[])
     for (i = ncw_var_hasunlimdim(ncid, varid) ? 1 : 0; i < ndims; ++i)
         if (dimlen[i] > 1)
             break;
+    ncw_close(ncid);
 
     return ndims - i;
 }
@@ -1296,8 +1405,10 @@ void ncu_readvarfloat(int ncid, int varid, size_t n, float v[])
             ncw_check_attlen(ncid, varid, attname, 1);
 
             if (vv == NULL) {
-                if (typesize != sizeof(float)) {
+                if (vartype != NC_FLOAT) {
                     vv = malloc(n * typesize);
+                    if (vv == NULL)
+                        quit("ncutils: could not allocate memory (%zu bytes)", n * (size_t) typesize);
                     ncw_get_var(ncid, varid, vv);
                 } else
                     vv = v;
@@ -1337,8 +1448,10 @@ void ncu_readvarfloat(int ncid, int varid, size_t n, float v[])
     }
     if (!ncw_att_exists2(ncid, varid, "_FillValue")) {
         if (vv == NULL) {
-            if (typesize != sizeof(float)) {
+            if (vartype != NC_FLOAT) {
                 vv = malloc(n * typesize);
+                if (vv == NULL)
+                    quit("ncutils: could not allocate memory (%zu bytes)", n * (size_t) typesize);
                 ncw_get_var(ncid, varid, vv);
             } else
                 vv = v;
@@ -1386,26 +1499,28 @@ void ncu_readvarfloat(int ncid, int varid, size_t n, float v[])
         ncw_check_attlen(ncid, varid, "valid_min", 1);
 
         if (vv == NULL) {
-            if (typesize != sizeof(float)) {
+            if (vartype != NC_FLOAT) {
                 vv = malloc(n * typesize);
+                if (vv == NULL)
+                    quit("ncutils: could not allocate memory (%zu bytes)", n * (size_t) typesize);
                 ncw_get_var(ncid, varid, vv);
             } else
                 vv = v;
         }
 
         if (vartype == NC_BYTE || vartype == NC_CHAR) {
-            char value;
+            int8_t value;
 
             ncw_get_att(ncid, varid, "valid_min", &value);
             for (i = 0; i < n; ++i)
-                if (((char*) vv)[i] < value)
+                if (((int8_t*) vv)[i] < value)
                     v[i] = NAN;
         } else if (vartype == NC_UBYTE) {
-            char value;
+            uint8_t value;
 
             ncw_get_att(ncid, varid, "valid_min", &value);
             for (i = 0; i < n; ++i)
-                if (((unsigned char*) vv)[i] < value)
+                if (((uint8_t *) vv)[i] < value)
                     v[i] = NAN;
         } else if (vartype == NC_SHORT) {
             int16_t value;
@@ -1472,26 +1587,28 @@ void ncu_readvarfloat(int ncid, int varid, size_t n, float v[])
         ncw_check_attlen(ncid, varid, "valid_max", 1);
 
         if (vv == NULL) {
-            if (typesize != sizeof(float)) {
+            if (vartype != NC_FLOAT) {
                 vv = malloc(n * typesize);
+                if (vv == NULL)
+                    quit("ncutils: could not allocate memory (%zu bytes)", n * (size_t) typesize);
                 ncw_get_var(ncid, varid, vv);
             } else
                 vv = v;
         }
 
         if (vartype == NC_BYTE || vartype == NC_CHAR) {
-            char value;
+            int8_t value;
 
             ncw_get_att(ncid, varid, "valid_max", &value);
             for (i = 0; i < n; ++i)
-                if (((char*) vv)[i] > value)
+                if (((int8_t*) vv)[i] > value)
                     v[i] = NAN;
         } else if (vartype == NC_UBYTE) {
-            char value;
+            uint8_t value;
 
             ncw_get_att(ncid, varid, "valid_max", &value);
             for (i = 0; i < n; ++i)
-                if (((unsigned char*) vv)[i] > value)
+                if (((uint8_t *) vv)[i] > value)
                     v[i] = NAN;
         } else if (vartype == NC_SHORT) {
             int16_t value;
@@ -1558,26 +1675,28 @@ void ncu_readvarfloat(int ncid, int varid, size_t n, float v[])
         ncw_check_attlen(ncid, varid, "valid_range", 2);
 
         if (vv == NULL) {
-            if (typesize != sizeof(float)) {
+            if (vartype != NC_FLOAT) {
                 vv = malloc(n * typesize);
+                if (vv == NULL)
+                    quit("ncutils: could not allocate memory (%zu bytes)", n * (size_t) typesize);
                 ncw_get_var(ncid, varid, vv);
             } else
                 vv = v;
         }
 
         if (vartype == NC_BYTE || vartype == NC_CHAR) {
-            char value[2];
+            int8_t value[2];
 
             ncw_get_att(ncid, varid, "valid_range", value);
             for (i = 0; i < n; ++i)
-                if (((char*) vv)[i] < value[0] || ((char*) vv)[i] > value[1])
+                if (((int8_t*) vv)[i] < value[0] || ((int8_t*) vv)[i] > value[1])
                     v[i] = NAN;
         } else if (vartype == NC_UBYTE) {
-            char value[2];
+            uint8_t value[2];
 
             ncw_get_att(ncid, varid, "valid_range", value);
             for (i = 0; i < n; ++i)
-                if (((unsigned char*) vv)[i] < value[0] || ((unsigned char*) vv)[i] > value[1])
+                if (((uint8_t *) vv)[i] < value[0] || ((uint8_t *) vv)[i] > value[1])
                     v[i] = NAN;
         } else if (vartype == NC_SHORT) {
             int16_t value[2];
@@ -1640,7 +1759,7 @@ void ncu_readvarfloat(int ncid, int varid, size_t n, float v[])
         } else
             quit("programming error");
     }
-    if (vv != NULL && typesize != sizeof(float))
+    if (vv != NULL && vartype != NC_FLOAT)
         free(vv);
 
     if (ncw_att_exists(ncid, varid, "scale_factor")) {
@@ -1654,7 +1773,7 @@ void ncu_readvarfloat(int ncid, int varid, size_t n, float v[])
     if (ncw_att_exists(ncid, varid, "add_offset")) {
         float add_offset;
 
-        ncw_check_attlen(ncid, varid, "scale_factor", 1);
+        ncw_check_attlen(ncid, varid, "add_offset", 1);
         ncw_get_att_float(ncid, varid, "add_offset", &add_offset);
         for (i = 0; i < n; ++i)
             v[i] += add_offset;
@@ -1669,7 +1788,7 @@ void ncu_readvardouble(int ncid, int varid, size_t n, double v[])
     nc_type vartype = -1;
     int typesize = 0;
     void* vv = NULL;
-    int i, s;
+    size_t i, s;
 
     ncw_check_varsize(ncid, varid, n);
     ncw_get_var_double(ncid, varid, v);
@@ -1684,8 +1803,10 @@ void ncu_readvardouble(int ncid, int varid, size_t n, double v[])
             ncw_check_attlen(ncid, varid, attname, 1);
 
             if (vv == NULL) {
-                if (typesize != sizeof(double)) {
+                if (vartype != NC_DOUBLE) {
                     vv = malloc(n * typesize);
+                    if (vv == NULL)
+                        quit("ncutils: could not allocate memory (%zu bytes)", n * (size_t) typesize);
                     ncw_get_var(ncid, varid, vv);
                 } else
                     vv = v;
@@ -1725,8 +1846,10 @@ void ncu_readvardouble(int ncid, int varid, size_t n, double v[])
     }
     if (!ncw_att_exists2(ncid, varid, "_FillValue")) {
         if (vv == NULL) {
-            if (typesize != sizeof(double)) {
+            if (vartype != NC_DOUBLE) {
                 vv = malloc(n * typesize);
+                if (vv == NULL)
+                    quit("ncutils: could not allocate memory (%zu bytes)", n * (size_t) typesize);
                 ncw_get_var(ncid, varid, vv);
             } else
                 vv = v;
@@ -1774,26 +1897,28 @@ void ncu_readvardouble(int ncid, int varid, size_t n, double v[])
         ncw_check_attlen(ncid, varid, "valid_min", 1);
 
         if (vv == NULL) {
-            if (typesize != sizeof(double)) {
+            if (vartype != NC_DOUBLE) {
                 vv = malloc(n * typesize);
+                if (vv == NULL)
+                    quit("ncutils: could not allocate memory (%zu bytes)", n * (size_t) typesize);
                 ncw_get_var(ncid, varid, vv);
             } else
                 vv = v;
         }
 
         if (vartype == NC_BYTE || vartype == NC_CHAR) {
-            char value;
+            int8_t value;
 
             ncw_get_att(ncid, varid, "valid_min", &value);
             for (i = 0; i < n; ++i)
-                if (((char*) vv)[i] < value)
+                if (((int8_t*) vv)[i] < value)
                     v[i] = NAN;
         } else if (vartype == NC_UBYTE) {
-            char value;
+            uint8_t value;
 
             ncw_get_att(ncid, varid, "valid_min", &value);
             for (i = 0; i < n; ++i)
-                if (((unsigned char*) vv)[i] < value)
+                if (((uint8_t *) vv)[i] < value)
                     v[i] = NAN;
         } else if (vartype == NC_SHORT) {
             int16_t value;
@@ -1860,26 +1985,28 @@ void ncu_readvardouble(int ncid, int varid, size_t n, double v[])
         ncw_check_attlen(ncid, varid, "valid_max", 1);
 
         if (vv == NULL) {
-            if (typesize != sizeof(double)) {
+            if (vartype != NC_DOUBLE) {
                 vv = malloc(n * typesize);
+                if (vv == NULL)
+                    quit("ncutils: could not allocate memory (%zu bytes)", n * (size_t) typesize);
                 ncw_get_var(ncid, varid, vv);
             } else
                 vv = v;
         }
 
         if (vartype == NC_BYTE || vartype == NC_CHAR) {
-            char value;
+            int8_t value;
 
             ncw_get_att(ncid, varid, "valid_max", &value);
             for (i = 0; i < n; ++i)
-                if (((char*) vv)[i] > value)
+                if (((int8_t*) vv)[i] > value)
                     v[i] = NAN;
         } else if (vartype == NC_UBYTE) {
-            char value;
+            uint8_t value;
 
             ncw_get_att(ncid, varid, "valid_max", &value);
             for (i = 0; i < n; ++i)
-                if (((unsigned char*) vv)[i] > value)
+                if (((uint8_t *) vv)[i] > value)
                     v[i] = NAN;
         } else if (vartype == NC_SHORT) {
             int16_t value;
@@ -1946,26 +2073,28 @@ void ncu_readvardouble(int ncid, int varid, size_t n, double v[])
         ncw_check_attlen(ncid, varid, "valid_range", 2);
 
         if (vv == NULL) {
-            if (typesize != sizeof(double)) {
+            if (vartype != NC_DOUBLE) {
                 vv = malloc(n * typesize);
+                if (vv == NULL)
+                    quit("ncutils: could not allocate memory (%zu bytes)", n * (size_t) typesize);
                 ncw_get_var(ncid, varid, vv);
             } else
                 vv = v;
         }
 
         if (vartype == NC_BYTE || vartype == NC_CHAR) {
-            char value[2];
+            int8_t value[2];
 
             ncw_get_att(ncid, varid, "valid_range", value);
             for (i = 0; i < n; ++i)
-                if (((char*) vv)[i] < value[0] || ((char*) vv)[i] > value[1])
+                if (((int8_t*) vv)[i] < value[0] || ((int8_t*) vv)[i] > value[1])
                     v[i] = NAN;
         } else if (vartype == NC_UBYTE) {
-            char value[2];
+            uint8_t value[2];
 
             ncw_get_att(ncid, varid, "valid_range", value);
             for (i = 0; i < n; ++i)
-                if (((unsigned char*) vv)[i] < value[0] || ((unsigned char*) vv)[i] > value[1])
+                if (((uint8_t *) vv)[i] < value[0] || ((uint8_t *) vv)[i] > value[1])
                     v[i] = NAN;
         } else if (vartype == NC_SHORT) {
             int16_t value[2];
@@ -2028,7 +2157,7 @@ void ncu_readvardouble(int ncid, int varid, size_t n, double v[])
         } else
             quit("programming error");
     }
-    if (vv != NULL && typesize != sizeof(double))
+    if (vv != NULL && vartype != NC_DOUBLE)
         free(vv);
 
     if (ncw_att_exists(ncid, varid, "scale_factor")) {

@@ -162,9 +162,10 @@ void reader_cmems(char* fname, int fid, obssection* section, grid* g, observatio
             st_add(st_exclude, section->pars[i].value, -1);
         } else if (strcasecmp(section->pars[i].name, "QCFLAGVALS") == 0) {
             char seps[] = " ,";
-            char* line = strdup(section->pars[i].value);
+            char* line0 = strdup(section->pars[i].value);
+            char* line = line0;
             char* token;
-            int val;
+            int val, ii;
 
             assert(section->pars[i].value != NULL);     /* (supposed to be *
                                                          * impossible) */
@@ -174,16 +175,16 @@ void reader_cmems(char* fname, int fid, obssection* section, grid* g, observatio
                     enkf_quit("%s: could not convert QCFLAGVALS entry \"%s\" to integer", section->prmfname, token);
                 if (val < 0 || val > QCFLAGVALMAX)
                     enkf_quit("%s: QCFLAGVALS entry = %d (supposed to be in [0,%d] interval", section->prmfname, val, QCFLAGVALMAX);
-                qcflagvals |= 1 << val;
+                qcflagvals |= 1u << val;
                 line = NULL;
             }
-            free(line);
+            free(line0);
             if (qcflagvals == 0)
                 enkf_quit("%s: no valid flag entries found after QCFLAGVALS\n", section->prmfname);
             enkf_printf("        QCFLAGS used =");
-            for (i = 0; i <= QCFLAGVALMAX; ++i)
-                if (qcflagvals & (1 << i))
-                    enkf_printf(" %d", i);
+            for (ii = 0; ii <= QCFLAGVALMAX; ++ii)
+                if (qcflagvals & (1u << ii))
+                    enkf_printf(" %d", ii);
             enkf_printf("\n");
         } else
             enkf_quit("unknown PARAMETER \"%s\"\n", section->pars[i].name);
@@ -321,7 +322,7 @@ void reader_cmems(char* fname, int fid, obssection* section, grid* g, observatio
         enkf_quit("observation type \"%s\" not handled for CMEMS product", section->type);
 
     ncw_inq_varid(ncid, "JULD", &varid);
-    ncw_get_att_text(ncid, varid, "units", buf);
+    ncw_get_att_text_n(ncid, varid, "units", buf, sizeof(buf));
     tunits_convert(buf, &tunits_multiple, &tunits_offset);
     time = malloc(nprof * sizeof(double));
     ncw_get_var_double(ncid, varid, time);
@@ -337,10 +338,12 @@ void reader_cmems(char* fname, int fid, obssection* section, grid* g, observatio
     nobs_read = 0;
     nprof_adj = 0;
     nprof_nonadj = 0;
-    for (p = 0, id = 0; p < (int) nprof; ++p) {
+    for (p = 0; p < (int) nprof; ++p) {
         double* v;
         char* qcflag;
         char inststr[MAXSTRLEN];
+
+        id = p * (int) nz;
 
         {
             int instnum;
@@ -353,7 +356,6 @@ void reader_cmems(char* fname, int fid, obssection* section, grid* g, observatio
 
             if (st_exclude != NULL && st_findindexbystring(st_exclude, inststr) >= 0) {
                 npexcluded++;
-                id += nz;
                 continue;
             }
         }
@@ -367,10 +369,8 @@ void reader_cmems(char* fname, int fid, obssection* section, grid* g, observatio
                 v = v_nonadj[p];
                 qcflag = qcflag_nonadj[p];
                 nprof_nonadj++;
-            } else {
-                id += nz;
+            } else
                 continue;
-            }
         }
 
         for (i = 0; i < (int) nz; ++i, ++id) {
@@ -386,7 +386,7 @@ void reader_cmems(char* fname, int fid, obssection* section, grid* g, observatio
                 if (qcflagint < 0 || qcflagint > QCFLAGVALMAX)  /* impossible 
                                                                  */
                     continue;
-                if (!((1 << qcflagint) & qcflagvals))
+                if (!((1u << qcflagint) & qcflagvals))
                     continue;
             }
             qcflagcounts[qcflagint]++;
@@ -467,7 +467,7 @@ void reader_cmems(char* fname, int fid, obssection* section, grid* g, observatio
     if (nobs_read > 0) {
         enkf_printf("        # of processed obs by quality flags:\n");
         for (i = 0; i <= QCFLAGVALMAX; ++i)
-            if (qcflagvals & (1 << i) && qcflagcounts[i] > 0)
+            if (qcflagvals & (1u << i) && qcflagcounts[i] > 0)
                 enkf_printf("          %d: %d obs\n", i, qcflagcounts[i]);
     }
 

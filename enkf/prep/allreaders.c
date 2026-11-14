@@ -98,7 +98,7 @@ obsread_fn get_obsreadfn(obssection* section)
 
     enkf_printf("\n\n  ERROR: no observation reader \"%s\" for product \"%s\"\n\n", section->reader, section->product);
     describe_readers();
-    enkf_quit("bailing out", section->product);
+    enkf_quit("bailing out");
     return NULL;
 }
 

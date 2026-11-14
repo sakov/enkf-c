@@ -200,5 +200,17 @@ typedef struct pointlog pointlog;
 struct enkfprm;
 typedef struct enkfprm enkfprm;
 
+/*
+ * printf-like functions defined in utils.c; redeclared here to let the
+ * compiler check format strings
+ */
+#if defined(__GNUC__)
+#define ENKF_PRINTF_LIKE(fmt, args) __attribute__((format(printf, fmt, args)))
+#else
+#define ENKF_PRINTF_LIKE(fmt, args)
+#endif
+void enkf_quit(char* format, ...) ENKF_PRINTF_LIKE(1, 2);
+     int enkf_printf(const char* format, ...) ENKF_PRINTF_LIKE(1, 2);
+
 #define _DEFINITIONS_H
 #endif

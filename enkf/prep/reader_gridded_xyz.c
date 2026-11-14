@@ -134,7 +134,7 @@ void reader_gridded_xyz(char* fname, int fid, obssection* section, grid* g, obse
     ncw_inq_vardims(ncid, varid, 4, &ndim_var, dimlen_var);
     if (ndim_var == 4) {
         if (dimlen_var[0] != 1)
-            enkf_quit("reader_xyz_gridded(): %s: %s: %d records (currently only one record is allowed)", fname, varname, dimlen_var[0]);
+            enkf_quit("reader_xyz_gridded(): %s: %s: %zu records (currently only one record is allowed)", fname, varname, dimlen_var[0]);
         nijk = dimlen_var[3] * dimlen_var[2] * dimlen_var[1];
         nij = dimlen_var[3] * dimlen_var[2];
     } else if (ndim_var == 3) {
@@ -221,7 +221,7 @@ void reader_gridded_xyz(char* fname, int fid, obssection* section, grid* g, obse
     else
         enkf_quit("reader_xyz_gridded(): %s: %s (the vertical coordinate): %d-dimensional; supposed to be either 1- or 3-dimensional only", fname, zname, zndim);
 
-    enkf_printf("        (ni, nj, nk) = (%u, %u, %u)\n", ni, nj, nk);
+    enkf_printf("        (ni, nj, nk) = (%zu, %zu, %zu)\n", ni, nj, nk);
     if (ni * nj * nk != nijk)
         enkf_quit("reader_xyz_gridded(): %s: dimensions of variable \"%s\" do not match coordinate dimensions", fname, varname);
     if (dimlen_var[ndim_var - 1] != ni)
@@ -244,6 +244,7 @@ void reader_gridded_xyz(char* fname, int fid, obssection* section, grid* g, obse
     else if (ncw_var_exists(ncid, "npoints"))
         ncw_inq_varid(ncid, "npoints", &varid);
     if (varid >= 0) {
+        ncw_check_varsize(ncid, varid, nijk);
         npoints = malloc(nijk * sizeof(short));
         ncw_get_var_short(ncid, varid, npoints);
     }
@@ -257,6 +258,7 @@ void reader_gridded_xyz(char* fname, int fid, obssection* section, grid* g, obse
     else if (ncw_var_exists(ncid, "std"))
         ncw_inq_varid(ncid, "std", &varid);
     if (varid >= 0) {
+        ncw_check_varsize(ncid, varid, nijk);
         std = malloc(nijk * sizeof(float));
         ncu_readvarfloat(ncid, varid, nijk, std);
     }
@@ -270,11 +272,12 @@ void reader_gridded_xyz(char* fname, int fid, obssection* section, grid* g, obse
     else if (ncw_var_exists(ncid, "error_std"))
         ncw_inq_varid(ncid, "error_std", &varid);
     if (varid >= 0) {
+        ncw_check_varsize(ncid, varid, nijk);
         estd = malloc(nijk * sizeof(float));
         ncu_readvarfloat(ncid, varid, nijk, estd);
     }
 
-    if (std == NULL && estd == NULL) {
+    if (estd == NULL) {
         ncw_inq_varid(ncid, varname, &varid);
         if (ncw_att_exists(ncid, varid, "error_std")) {
             ncw_check_attlen(ncid, varid, "error_std", 1);
@@ -320,7 +323,7 @@ void reader_gridded_xyz(char* fname, int fid, obssection* section, grid* g, obse
      */
     if (strlen(instrument) == 0) {
         if (instattname != NULL)
-            ncw_get_att_text(ncid, NC_GLOBAL, instattname, instrument);
+            ncw_get_att_text_n(ncid, NC_GLOBAL, instattname, instrument, sizeof(instrument));
         else if (!get_insttag(ncid, varname, instrument))
             strncpy(instrument, section->product, MAXSTRLEN - 1);
         if (strlen(instrument) > 0 && instprefix != NULL) {
@@ -351,7 +354,7 @@ void reader_gridded_xyz(char* fname, int fid, obssection* section, grid* g, obse
         if ((npoints != NULL && npoints[i] == 0) || isnan(var[i]) || (std != NULL && isnan(std[i])) || (estd != NULL && isnan(estd[i])) || (ntime == nijk && isnan(time[i])))
             continue;
         for (ii = 0; ii < nqcflagvars; ++ii)
-            if (qcflag[ii][i] < 0 || qcflag[ii][i] > 31 || !((1 << qcflag[ii][i]) & qcflagmasks[ii]))
+            if (qcflag[ii][i] < 0 || qcflag[ii][i] > 31 || !((1u << qcflag[ii][i]) & qcflagmasks[ii]))
                 goto nextob;
 
         nobs_read++;
@@ -367,14 +370,12 @@ void reader_gridded_xyz(char* fname, int fid, obssection* section, grid* g, obse
         o->fid = fid;
         o->batch = (batch == NULL) ? 0 : batch[i];
         o->value = (double) var[i];
-        if (estd == NULL)
-            o->estd = var_estd;
-        else {
-            if (std == NULL)
-                o->estd = estd[i];
-            else
-                o->estd = (std[i] > estd[i]) ? std[i] : estd[i];
-        }
+        o->estd = (estd == NULL) ? var_estd : estd[i];
+        /*
+         * std is the lower bound for estd (or estd if the latter is n/a)
+         */
+        if (std != NULL && (isnan(o->estd) || std[i] > o->estd))
+            o->estd = std[i];
         if (iscurv == 0) {
             o->lon = lon[ij % ni];
             o->lat = lat[ij / ni];
@@ -402,7 +403,7 @@ void reader_gridded_xyz(char* fname, int fid, obssection* section, grid* g, obse
       nextob:
         ;
     }
-    enkf_printf("        nobs = %d\n", nobs_read);
+    enkf_printf("        nobs = %zu\n", nobs_read);
 
     free(lon);
     free(lat);

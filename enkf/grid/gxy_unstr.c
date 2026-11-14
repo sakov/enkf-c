@@ -20,6 +20,7 @@
 #include <stdlib.h>
 #include <math.h>
 #include <assert.h>
+#include <float.h>
 #include "triangulation.h"
 #include "gxy_unstr.h"
 
@@ -62,7 +63,10 @@ point* gxy_unstr_getpoint(gxy_unstr* gxy, int i)
     return &gxy->d->points[i];
 }
 
-/**
+/** Maps physical coordinates to "fractional indices" fij[3]. For each vertex
+ ** of the triangle containing the point fij[i] = vertex id + barycentric
+ ** coordinate, with the barycentric coordinate clamped to [0, 1 - eps] so that
+ ** (int) fij[i] always gives the vertex id.
  */
 int gxy_unstr_xy2fij(gxy_unstr* gxy, double x, double y, double* fij)
 {
@@ -72,7 +76,7 @@ int gxy_unstr_xy2fij(gxy_unstr* gxy, double x, double y, double* fij)
     double bc[3];
     int i;
 
-    if (!triangulation_xy2bc(gxy->d, &p, &tid, bc)) {
+    if (!triangulation_xy2bc(gxy->d, &p, &tid, bc) || !isfinite(bc[0]) || !isfinite(bc[1]) || !isfinite(bc[2])) {
         fij[0] = NAN;
         fij[1] = NAN;
         fij[2] = NAN;
@@ -81,8 +85,20 @@ int gxy_unstr_xy2fij(gxy_unstr* gxy, double x, double y, double* fij)
     t = &gxy->d->triangles[tid];
 
     for (i = 0; i < 3; ++i) {
-        fij[i] = (double) t->vids[i] + bc[i];
-        assert((int) fij[i] == t->vids[i]);
+        int vid = t->vids[i];
+
+        /*
+         * eps is relative so that vid + bc never rounds up to vid + 1
+         */
+        double eps = 4.0 * DBL_EPSILON * ((double) vid + 1.0);
+        double w = bc[i];
+
+        if (w < 0.0)
+            w = 0.0;
+        else if (w > 1.0 - eps)
+            w = 1.0 - eps;
+        fij[i] = (double) vid + w;
+        assert((int) fij[i] == vid);
     }
 
     return 1;

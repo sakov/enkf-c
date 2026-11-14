@@ -197,6 +197,9 @@ void das_printobsstats(dasystem* das, int use_rmsd)
                     }
                 }
             }
+            /*
+             * allow division by 0
+             */
             rstats.inn_f /= (double) rstats.nobs;
             rstats.inn_f_abs /= (double) rstats.nobs;
             rstats.inn_a /= (double) rstats.nobs;
@@ -215,6 +218,9 @@ void das_printobsstats(dasystem* das, int use_rmsd)
              */
             if (ot->isasync && nt > 1 && rstats.nobs > 0) {
                 for (t = 0; t < nt; ++t) {
+                    /*
+                     * allow division by 0
+                     */
                     inn_f_as[t] /= (double) nobs_as[t];
                     inn_f_abs_as[t] /= (double) nobs_as[t];
                     inn_a_as[t] /= (double) nobs_as[t];
@@ -260,6 +266,9 @@ void das_printobsstats(dasystem* das, int use_rmsd)
                 for (ii = 0; ii < nzints; ++ii) {
                     stats* s = &rzstats[ii];
 
+                    /*
+                     * allow division by 0
+                     */
                     s->inn_f /= (double) s->nobs;
                     s->inn_f_abs /= (double) s->nobs;
                     s->inn_a /= (double) s->nobs;
@@ -439,12 +448,15 @@ void das_printfobsstats(dasystem* das, int use_rmsd)
                     }
                 }
             }
+            /*
+             * allow division by 0
+             */
             rstats.inn_f /= (double) rstats.nobs;
             rstats.inn_f_abs /= (double) rstats.nobs;
-            if (use_rmsd)
-                rstats.inn_f_abs = sqrt(rstats.inn_f_abs);
             if (das->nmem_dynamic > 1)
                 rstats.std_f /= (double) rstats.nobs;
+            if (use_rmsd)
+                rstats.inn_f_abs = sqrt(rstats.inn_f_abs);
 
             if (das->nmem_dynamic > 1)
                 enkf_printf("           %s      %8d%9.3g  %9.3g  %9.3g  \n", ot->name, rstats.nobs, rstats.inn_f_abs, rstats.inn_f, rstats.std_f);
@@ -456,12 +468,15 @@ void das_printfobsstats(dasystem* das, int use_rmsd)
              */
             if (ot->isasync && nt > 1 && rstats.nobs > 0) {
                 for (t = 0; t < nt; ++t) {
+                    /*
+                     * allow division by 0
+                     */
                     inn_f_as[t] /= (double) nobs_as[t];
                     inn_f_abs_as[t] /= (double) nobs_as[t];
-                    if (use_rmsd)
-                        inn_f_abs_as[t] = sqrt(inn_f_abs_as[t]);
                     if (das->nmem_dynamic > 1)
                         std_f_as[t] /= (double) nobs_as[t];
+                    if (use_rmsd)
+                        inn_f_abs_as[t] = sqrt(inn_f_abs_as[t]);
                     if (das->nmem_dynamic > 1)
                         enkf_printf("           %3d      %8d%9.3g  %9.3g  %9.3g  \n", t1 + t, nobs_as[t], inn_f_abs_as[t], inn_f_as[t], std_f_as[t]);
                     else
@@ -499,12 +514,15 @@ void das_printfobsstats(dasystem* das, int use_rmsd)
                 for (ii = 0; ii < nzints; ++ii) {
                     fstats* s = &rzstats[ii];
 
+                    /*
+                     * allow division by 0
+                     */
                     s->inn_f /= (double) s->nobs;
                     s->inn_f_abs /= (double) s->nobs;
-                    if (use_rmsd)
-                        s->inn_f_abs = sqrt(s->inn_f_abs);
                     if (das->nmem_dynamic > 1)
                         s->std_f /= (double) s->nobs;
+                    if (use_rmsd)
+                        s->inn_f_abs = sqrt(s->inn_f_abs);
 
                     snprintf(tag, MAXSTRLEN, "%.0f-%.0fm", zints[ii].z1, zints[ii].z2);
                     if (das->nmem_dynamic > 1)

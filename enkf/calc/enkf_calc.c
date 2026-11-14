@@ -268,6 +268,88 @@ static observations* obs_create_fromsingleob(enkfprm* prm)
     return obs;
 }
 
+/** Identifies bad batches on rank 0 and marks their observations as
+ ** STATUS_BADBATCH on all ranks.
+ */
+static void markbadbatches(dasystem* das)
+{
+    observations* obs = das->obs;
+    int nbad = 0;
+    int* badids = NULL;
+    int i;
+
+    if (rank == 0) {
+        hashtable* batches = das_getbatches(das);
+        hashtable* badbatches = das_processbatches(das, batches);
+
+        if (badbatches != NULL) {
+            badids = malloc(obs->nobs * sizeof(int));
+            for (i = 0; i < obs->nobs; ++i) {
+                observation* o = &obs->data[i];
+                int key_int[2];
+                short* key_short = (short*) key_int;
+
+                if (o->fid < 0 || o->batch < 0)
+                    continue;
+
+                key_int[0] = o->batch;
+                key_short[2] = o->type;
+                key_short[3] = o->fid;
+
+                if (ht_find(badbatches, key_int) != NULL)
+                    badids[nbad++] = i;
+            }
+            ht_destroy(badbatches);
+        }
+        ht_destroy(batches);
+    }
+#if defined(MPI)
+    {
+        int ierror = MPI_Bcast(&nbad, 1, MPI_INT, 0, MPI_COMM_WORLD);
+
+        assert(ierror == MPI_SUCCESS);
+        if (nbad > 0) {
+            if (rank != 0)
+                badids = malloc(nbad * sizeof(int));
+            ierror = MPI_Bcast(badids, nbad, MPI_INT, 0, MPI_COMM_WORLD);
+            assert(ierror == MPI_SUCCESS);
+        }
+    }
+#endif
+
+    if (nbad > 0) {
+#if defined(USE_SHMEM)
+        if (sm_comm_rank == 0 || obs->sm_comm_win_data == MPI_WIN_NULL)
+#endif
+            for (i = 0; i < nbad; ++i)
+                obs->data[badids[i]].status = STATUS_BADBATCH;
+#if defined(USE_SHMEM)
+        if (obs->sm_comm_win_data != MPI_WIN_NULL)
+            MPI_Win_fence(0, obs->sm_comm_win_data);
+        MPI_Barrier(sm_comm);
+#endif
+        obs_calcstats(obs);
+    }
+
+    free(badids);
+}
+
+#if defined(USE_SHMEM)
+/** Checks that the ranks on each compute node are contiguous, which is assumed
+ ** when gathering and distributing data in shared memory.
+ */
+static void check_rankplacement(void)
+{
+    int rank0, ok, allok;
+
+    MPI_Allreduce(&rank, &rank0, 1, MPI_INT, MPI_MIN, sm_comm);
+    ok = (rank == rank0 + sm_comm_rank);
+    MPI_Allreduce(&ok, &allok, 1, MPI_INT, MPI_MIN, MPI_COMM_WORLD);
+    if (!allok)
+        enkf_quit("USE_SHMEM: MPI ranks on each compute node must be contiguous (block placement, e.g. \"--map-by core\" or \"--map-by slot\"); either change process placement or recompile without -DUSE_SHMEM");
+}
+#endif
+
 /**
  */
 int main(int argc, char* argv[])
@@ -280,6 +362,9 @@ int main(int argc, char* argv[])
     parse_commandline(argc, argv, &fname_prm, &fname_obs);
 
     enkf_init(&argc, &argv);
+#if defined(USE_SHMEM)
+    check_rankplacement();
+#endif
 
     enkf_printf("  running CALC for EnKF-C version %s:\n", ENKF_VERSION);
     print_commandinfo(argc, argv);
@@ -295,6 +380,13 @@ int main(int argc, char* argv[])
         enkf_obstype = OBSTYPE_INNOVATION;
         obs_write(obs, FNAME_SOBS);
         obs_destroy(obs);
+#if defined(MPI)
+        /*
+         * make sure FNAME_SOBS is written by rank 0 before being read by
+         * others
+         */
+        MPI_Barrier(MPI_COMM_WORLD);
+#endif
     }
 
     enkf_printf("  initialising the system:\n");
@@ -348,18 +440,8 @@ int main(int argc, char* argv[])
     /*
      * calculate stats for observation batches and write to FNAME_BATCHES
      */
-#if defined(USE_SHMEM)
-    if (singleob == NULL && das->obs->nobs > 0 && sm_comm_rank == 0) {
-#else
     if (singleob == NULL && das->obs->nobs > 0) {
-#endif
-        hashtable* batches = das_getbatches(das);
-        hashtable* badbatches = das_processbatches(das, batches);
-
-        obs_markbadbatches(das->obs, badbatches);
-
-        ht_destroy(batches);
-        ht_destroy(badbatches);
+        markbadbatches(das);
 
         /*
          * update observation status in observation.nc

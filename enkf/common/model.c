@@ -190,8 +190,15 @@ model* model_create(enkfprm* prm)
                     enkf_quit("%s, l.%d: INFLATION value not specified", modelprm, line);
                 if (!str2double(token, &now->inflation))
                     enkf_quit("%s, l.%d: could not convert \"%s\" to double", modelprm, line, token);
+                /*
+                 * (same convention as for INFLATION in the main parameter
+                 * file: the capping ratio defaults to INFRATIO_DEFAULT)
+                 */
+                now->inf_ratio = INFRATIO_DEFAULT;
                 if ((token = strtok(NULL, seps)) != NULL) {
-                    if (!str2double(token, &now->inf_ratio))
+                    if (strcasecmp(token, "PLAIN") == 0)
+                        now->inf_ratio = NAN;
+                    else if (!str2double(token, &now->inf_ratio))
                         enkf_quit("%s, l.%d: could not convert \"%s\" to double", modelprm, line, token);
                 }
             } else if (strcasecmp(token, "APPLYLOG") == 0) {
@@ -206,6 +213,8 @@ model* model_create(enkfprm* prm)
                     enkf_quit("%s, l.%d: to use APPLYLOG in EnOI or Hybrid modes the static ensemble must be in log space. If you are aware of this and wish to proceed use command line option \"--allow-logspace-with-static-ens\"", modelprm, line);
 #endif
             } else if (strcasecmp(token, "RANDOMISE") == 0 || strcasecmp(token, "RANDOMIZE") == 0) {
+                if (now == NULL)
+                    enkf_quit("%s, l.%d: VAR not specified", modelprm, line);
                 if (!isnan(now->deflation))
                     enkf_quit("%s, l.%d: randomisation multiple already specified for \"%s\"", modelprm, line, now->name);
                 if ((token = strtok(NULL, seps)) == NULL)
@@ -417,20 +426,33 @@ void model_addorreplacedata(model* m, char tag[], int vid, int alloctype, void* 
         mdata->tag = strdup(tag);
         mdata->vid = vid;
         mdata->alloctype = alloctype;
+        mdata->data = NULL;
         m->ndata++;
     } else {
         mdata = &m->data[i];
-        assert(m->data[i].alloctype == alloctype);
+        if (mdata->alloctype != alloctype || mdata->vid != vid)
+            enkf_quit("model_addorreplacedata(): \"%s\": data type or variable mismatch", tag);
     }
 
+    /*
+     * (as in obstypes_set(): for unstructured grids 1D data has size ni and
+     * 2D data has size nk x ni)
+     */
     model_getvargridsize(m, mdata->vid, &ni, &nj, &nk);
-    if (mdata->alloctype == ALLOCTYPE_1D)
-        memcpy(mdata->data, data, nk * sizeof(float));
-    else if (mdata->alloctype == ALLOCTYPE_2D)
-        mdata->data = copy2d(data, nj, ni, sizeof(float));
-    else if (mdata->alloctype == ALLOCTYPE_3D)
+    if (mdata->alloctype == ALLOCTYPE_1D) {
+        size_t n = (nj > 0) ? nk : ni;
+
+        if (mdata->data == NULL)
+            mdata->data = malloc(n * sizeof(float));
+        memcpy(mdata->data, data, n * sizeof(float));
+    } else if (mdata->alloctype == ALLOCTYPE_2D) {
+        free(mdata->data);
+        mdata->data = copy2d(data, (nj > 0) ? nj : nk, ni, sizeof(float));
+    } else if (mdata->alloctype == ALLOCTYPE_3D) {
+        assert(nj > 0);
+        free(mdata->data);
         mdata->data = copy3d(data, nk, nj, ni, sizeof(float));
-    else
+    } else
         enkf_quit("programming error");
 }
 
@@ -691,7 +713,7 @@ void model_readfield(model* m, char fname[], char varname[], int r, int k, float
     ncu_readfield(fname, varname, r, k, ni, nj, nk, v);
 
     if (m->vars[mvid].applylog && !ignorelog) {
-        size_t nij = ni * nj;
+        size_t nij = (size_t) ((nj > 0) ? ni * nj : ni);
         size_t i;
 
         for (i = 0; i < nij; ++i)
@@ -711,8 +733,17 @@ void model_readfield_part(model* m, char fname[], char varname[], int r, int k, 
     ncu_readfield_part(fname, varname, r, k, j1, j2, ni, nj, nk, v);
 
     if (m->vars[mvid].applylog && !ignorelog) {
-        size_t nij = ni * nj;
+        size_t nij;
         size_t i;
+
+        /*
+         * only rows (or nodes for unstructured grids) j1..j2 have been read
+         */
+        if (j1 <= 0 && j2 < 0) {
+            j1 = 0;
+            j2 = (nj > 0) ? nj - 1 : ni - 1;
+        }
+        nij = (nj > 0) ? (size_t) (j2 - j1 + 1) * ni : (size_t) (j2 - j1 + 1);
 
         for (i = 0; i < nij; ++i)
             v[i] = log10(v[i]);

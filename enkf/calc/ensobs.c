@@ -235,9 +235,11 @@ void das_getHE(dasystem* das)
      * CPU (without USE_SHMEM)
      */
 #if defined(MPI)
-    if (!(das->mode == MODE_ENOI && enkf_fstatsonly)) {
+    {
         /*
-         * communicate HE via MPI
+         * communicate HE via MPI (this is also necessary in the case
+         * (das->mode == MODE_ENOI && enkf_fstatsonly) because the background
+         * observations are calculated by one CPU only)
          */
         int* recvcounts = calloc(nprocesses, sizeof(int));
         int* displs = calloc(nprocesses, sizeof(int));
@@ -580,6 +582,7 @@ void das_calcinnandspread(dasystem* das)
          * calculate ensemble spread and innovation 
          */
 #if defined(USE_SHMEM)
+        MPI_Barrier(sm_comm);   /* do not remove */
         if (sm_comm_rank == 0) {
 #endif
             for (e = 0; e < nmem; ++e) {
@@ -729,7 +732,7 @@ void das_moderateobs(dasystem* das)
 
     enkf_printf("    observations substantially modified:\n");
     for (i = 0; i < obs->nobstypes; ++i)
-        enkf_printf("      %s    %7d (%.1f%%)\n", obs->obstypes[i].name, obs->obstypes[i].nmodified, 100.0 * (double) obs->obstypes[i].nmodified / (double) obs->obstypes[i].nobs);
+        enkf_printf("      %s    %7d (%.1f%%)\n", obs->obstypes[i].name, obs->obstypes[i].nmodified, (obs->obstypes[i].nobs > 0) ? 100.0 * (double) obs->obstypes[i].nmodified / (double) obs->obstypes[i].nobs : 0.0);
     enkf_printf("      total  %7d (%.1f%%)\n", obs->nmodified, 100.0 * (double) obs->nmodified / (double) obs->nobs);
 
     free(estd_new);
@@ -1167,6 +1170,15 @@ static void gather_St(dasystem* das)
 }
 #endif
 
+/** Gets the (rounded) grid row of an observation.
+ */
+static int getobsrow(observation* o, int mnj)
+{
+    int j = (int) (o->fij[1] + 0.5);
+
+    return (j < mnj) ? j : mnj - 1;
+}
+
 /**
  */
 static void update_HE_structured(dasystem* das, int gid, int* oid)
@@ -1203,10 +1215,10 @@ static void update_HE_structured(dasystem* das, int gid, int* oid)
     int stepj, stepi;
     int e;
 
-    if (gid < obs->obstypes[obs->data[*oid].type].gridid)
+    if (gid != obs->obstypes[obs->data[*oid].type].gridid)
         return;
     if (!grid_isstructured(g))
-        enkf_quit("profgramming error");
+        enkf_quit("programming error");
 
 #if !defined(USE_SHMEM)
     HEo_f = malloc(nmem * sizeof(float));
@@ -1277,7 +1289,13 @@ static void update_HE_structured(dasystem* das, int gid, int* oid)
     for (jj = 0, j = 0; jj < nj; ++jj) {
         for (stepj = 0; stepj < stride && j < mnj; ++stepj, ++j) {
 
-            if ((int) (obs->data[*oid].fij[1] + 0.5) / stride > jj + 1)
+            /*
+             * stop if there are no more observations for this CPU and grid
+             */
+            if (*oid > my_last_iteration || obs->obstypes[obs->data[*oid].type].gridid != gid)
+                goto finish;
+
+            if (getobsrow(&obs->data[*oid], mnj) / stride > jj + 1)
                 continue;
 
             if (stride == 1) {
@@ -1343,7 +1361,12 @@ static void update_HE_structured(dasystem* das, int gid, int* oid)
                                 memcpy(Tj[i][0], Tjj[ii][0], nmem_dynamic * nmem * sizeof(float));
                             memcpy(wj[i], wjj[ii], nmem * sizeof(float));
                         } else {
-                            float weight2 = (float) stepi / stride;
+                            /*
+                             * (with periodic grid the last segment wraps
+                             * around and can be shorter than stride)
+                             */
+                            int seglen = (ii < ni - 1 || !periodic_i) ? stride : mni - ii * stride;
+                            float weight2 = (float) stepi / (float) seglen;
                             float weight1 = (float) 1.0 - weight2;
                             float* wjjii1 = wjj[ii];
                             float* wji = wj[i];
@@ -1383,7 +1406,7 @@ static void update_HE_structured(dasystem* das, int gid, int* oid)
             if (*oid > my_last_iteration)
                 break;
 
-            for (; *oid <= my_last_iteration && (int) (obs->data[*oid].fij[1] + 0.5) == j; ++(*oid)) {
+            for (; *oid <= my_last_iteration && obs->obstypes[obs->data[*oid].type].gridid == gid && getobsrow(&obs->data[*oid], mnj) == j; ++(*oid)) {
                 float inflation0 = NAN;
                 double inf_ratio = NAN;
                 float inflation = NAN;
@@ -1509,6 +1532,7 @@ static void update_HE_structured(dasystem* das, int gid, int* oid)
         }                       /* for stepj */
     }                           /* for jj */
 
+  finish:
     ncw_close(ncid);
 
     free(iiter);
@@ -1549,6 +1573,9 @@ static void update_HE_unstructured(dasystem* das, int gid, int* oid)
     float* HEo_a = NULL;
     int j_prev;
 
+    if (gid != obs->obstypes[obs->data[*oid].type].gridid)
+        return;
+
 #if !defined(USE_SHMEM)
     HEo_f = malloc(nmem * sizeof(float));
 #endif
@@ -1574,7 +1601,7 @@ static void update_HE_unstructured(dasystem* das, int gid, int* oid)
         float inflation = NAN;
         double v1_f, v1_a;
 
-        if (gid < obs->obstypes[o->type].gridid)
+        if (gid != obs->obstypes[o->type].gridid)
             goto finish;
         if (obs->data[*oid].status != STATUS_OK)
             continue;
@@ -1745,7 +1772,23 @@ static void update_HE(dasystem* das)
 #if defined(USE_SHMEM)
     {
 #if HEUPDATE_ONFIRSTSMCOMM
+        int rank0;
+
+        /*
+         * distribute between CPUs of the node hosting rank 0 by their local
+         * ranks
+         */
+        MPI_Allreduce(&rank, &rank0, 1, MPI_INT, MPI_MIN, sm_comm);
         distribute_iterations(0, nobs - 1, sm_comm_size, "    ");
+        if (rank0 == 0) {
+            my_first_iteration = first_iteration[sm_comm_rank];
+            my_last_iteration = last_iteration[sm_comm_rank];
+            my_number_of_iterations = number_of_iterations[sm_comm_rank];
+        } else {
+            my_first_iteration = 0;
+            my_last_iteration = -1;
+            my_number_of_iterations = 0;
+        }
 #else
         distribute_iterations(0, nobs - 1, nprocesses, "    ");
 #endif

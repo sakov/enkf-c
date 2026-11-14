@@ -136,7 +136,7 @@ void reader_en4(char* fname, int fid, obssection* section, grid* g, observations
     ncw_inq_varid(ncid, "JULD", &varid);
     time = malloc(nprof * sizeof(double));
     ncu_readvardouble(ncid, varid, nprof, time);
-    ncw_get_att_text(ncid, varid, "units", tunits);
+    ncw_get_att_text_n(ncid, varid, "units", tunits, sizeof(tunits));
     tunits_convert(tunits, &tunits_multiple, &tunits_offset);
 
     varid = -1;
@@ -157,9 +157,11 @@ void reader_en4(char* fname, int fid, obssection* section, grid* g, observations
 
     npexcluded = 0;
     nobs_read = 0;
-    for (p = 0, id = 0; p < (int) nprof; ++p) {
+    for (p = 0; p < (int) nprof; ++p) {
         char inststr[MAXSTRLEN];
         int instnum;
+
+        id = p * (int) nz;
 
         strncpy(inststr, &type[p * WMO_INSTSIZE], 4);
         inststr[4] = 0;
@@ -169,7 +171,6 @@ void reader_en4(char* fname, int fid, obssection* section, grid* g, observations
 
         if (st_exclude != NULL && st_findindexbystring(st_exclude, inststr) >= 0) {
             npexcluded++;
-            i += nz;
             continue;
         }
 
@@ -186,7 +187,6 @@ void reader_en4(char* fname, int fid, obssection* section, grid* g, observations
                     break;
             if (i == (int) nz && nzero > 0) {
                 enkf_printf("          profile # %d has no valid obs.\n", p);
-                id += nz;
                 continue;
             }
         }

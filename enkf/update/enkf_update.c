@@ -172,10 +172,16 @@ int main(int argc, char* argv[])
     prm = enkfprm_read(fname_prm);
     enkfprm_print(prm, "    ");
 
-    if (nprocesses == 1 && !(updatespec & UPDATE_DIRECTWRITE)) {
+    /*
+     * (direct write is incompatible with FIELDSPLIT > 1, in which case tiles
+     * are written and assembled even on a single process)
+     */
+    if (nprocesses == 1 && !(updatespec & UPDATE_DIRECTWRITE) && prm->nfieldsplit == 1) {
         enkf_printf("  nproc = 1 -> using direct write\n");
         updatespec |= UPDATE_DIRECTWRITE;
     }
+    if ((updatespec & UPDATE_DIRECTWRITE) && nprocesses > 1 && prm->ncformat == NC_NETCDF4)
+        enkf_quit("--direct-write: parallel writing to the same file by %d processes is not supported for NCFORMAT = NETCDF4; run without --direct-write or use NCFORMAT = CLASSIC or 64BIT", nprocesses);
     if (updatespec & UPDATE_DOINFLATION) {
         if (prm->enssize_dynamic == 1) {
             enkf_printf("  prm: there is no dynamic ensemble -> cancelling writing of inflation\n");

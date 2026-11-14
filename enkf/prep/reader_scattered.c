@@ -290,7 +290,7 @@ void reader_scattered(char* fname, int fid, obssection* section, grid* g, observ
         ncw_get_var_int(ncid, varid, batch);
     }
 
-    if (std == NULL && estd == NULL) {
+    if (estd == NULL) {
         ncw_inq_varid(ncid, varname, &varid);
         if (ncw_att_exists(ncid, varid, "error_std")) {
             ncw_check_attlen(ncid, varid, "error_std", 1);
@@ -322,7 +322,7 @@ void reader_scattered(char* fname, int fid, obssection* section, grid* g, observ
      */
     if (strlen(instrument) == 0) {
         if (instattname != NULL)
-            ncw_get_att_text(ncid, NC_GLOBAL, instattname, instrument);
+            ncw_get_att_text_n(ncid, NC_GLOBAL, instattname, instrument, sizeof(instrument));
         else if (!get_insttag(ncid, varname, instrument))
             strncpy(instrument, section->product, MAXSTRLEN - 1);
         if (strlen(instrument) > 0 && instprefix != NULL) {
@@ -354,7 +354,7 @@ void reader_scattered(char* fname, int fid, obssection* section, grid* g, observ
         if ((std != NULL && isnan(std[i])) || (estd != NULL && isnan(estd[i])) || (ntime == nobs && isnan(time[i])))
             continue;
         for (ii = 0; ii < nqcflagvars; ++ii)
-            if (qcflag[ii][i] < 0 || qcflag[ii][i] > 31 || !((1 << qcflag[ii][i]) & qcflagmasks[ii]))
+            if (qcflag[ii][i] < 0 || qcflag[ii][i] > 31 || !((1u << qcflag[ii][i]) & qcflagmasks[ii]))
                 goto nextob;
 
         nobs_read++;
@@ -371,14 +371,12 @@ void reader_scattered(char* fname, int fid, obssection* section, grid* g, observ
         o->value = (double) var[i];
         for (ii = 0; ii < naddvar; ++ii)
             o->value += addvars[ii].v[i];
-        if (estd == NULL)
-            o->estd = var_estd;
-        else {
-            if (std == NULL)
-                o->estd = estd[i];
-            else
-                o->estd = (std[i] > estd[i]) ? std[i] : estd[i];
-        }
+        o->estd = (estd == NULL) ? var_estd : estd[i];
+        /*
+         * std is the lower bound for estd (or estd if the latter is n/a)
+         */
+        if (std != NULL && (isnan(o->estd) || std[i] > o->estd))
+            o->estd = std[i];
         o->lon = lon[i];
         o->lat = lat[i];
         o->depth = (z != NULL) ? z[i] : zvalue;
@@ -400,7 +398,7 @@ void reader_scattered(char* fname, int fid, obssection* section, grid* g, observ
       nextob:
         ;
     }
-    enkf_printf("        nobs = %d\n", nobs_read);
+    enkf_printf("        nobs = %zu\n", nobs_read);
 
     free(lon);
     free(lat);

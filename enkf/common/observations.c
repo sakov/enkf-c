@@ -77,11 +77,14 @@ void obs_addtype(observations* obs, obstype* src)
         ot->locweight[i] = src->locweight[i];
     }
     ot->rfactor = src->rfactor;
+    ot->errordoublingtime = src->errordoublingtime;
     ot->nlobsmax = src->nlobsmax;
     ot->estdmin = src->estdmin;
     ot->vid = src->vid;
     ot->gridid = src->gridid;
+    ot->geographic = src->geographic;
     ot->sob_stride = src->sob_stride;
+    ot->can_thin = src->can_thin;
 
     ot->obswindow_min = src->obswindow_min;
     ot->obswindow_max = src->obswindow_max;
@@ -96,8 +99,7 @@ void obs_addtype(observations* obs, obstype* src)
     ot->zmax = src->zmax;
 
     ot->ndomains = src->ndomains;
-    if (ot->ndomains > 0)
-        ot->domainnames = malloc(ot->ndomains * sizeof(char*));
+    ot->domainnames = (ot->ndomains > 0) ? malloc(ot->ndomains * sizeof(char*)) : NULL;
     for (i = 0; i < ot->ndomains; ++i)
         ot->domainnames[i] = strdup(src->domainnames[i]);
 
@@ -120,6 +122,9 @@ void obs_addtype(observations* obs, obstype* src)
         if (r_src->maskfname != NULL) {
             r_dst->maskfname = strdup(r_src->maskfname);
             r_dst->maskvarname = strdup(r_src->maskvarname);
+        } else {
+            r_dst->maskfname = NULL;
+            r_dst->maskvarname = NULL;
         }
     }
     /*
@@ -460,8 +465,9 @@ void obs_read(observations* obs, char fname[])
     if (ncw_att_exists(ncid, NC_GLOBAL, "DA_DAY"))
         ncw_get_att_double(ncid, NC_GLOBAL, "DA_DAY", &da_time);
     if (!enkf_noobsdatecheck && !isnan(da_time)) {
-        obs->da_time = da_time;
-        if (fabs(obs->da_time - da_time) > 1e-6)
+        if (isnan(obs->da_time))
+            obs->da_time = da_time;
+        else if (fabs(obs->da_time - da_time) > 1e-6)
             enkf_quit("observation data file \"%s\" from a different cycle", fname);
     }
 
@@ -522,7 +528,7 @@ void obs_read(observations* obs, char fname[])
          * check consistency of "type" attributes
          */
         for (i = 0, nobstypes_read = 0; i < natts; ++i) {
-            char attname[NC_MAX_NAME];
+            char attname[NC_MAX_NAME + 1];
             int typeid;
 
             ncw_inq_attname(ncid, varid, i, attname);
@@ -537,7 +543,7 @@ void obs_read(observations* obs, char fname[])
                 nobstypes_read++;
 
                 if (ot->logapplied) {
-                    char logattname[NC_MAX_NAME];
+                    char logattname[NC_MAX_NAME + 1];
                     char logattval[MAXSTRLEN];
 
                     snprintf(logattname, NC_MAX_NAME, "%s:LOGAPPLIED", ot->name);
@@ -558,7 +564,7 @@ void obs_read(observations* obs, char fname[])
         ncw_inq_varid(ncid, "product", &varid);
         ncw_inq_varnatts(ncid, varid, &natts);
         for (i = 0; i < natts; ++i) {
-            char name[NC_MAX_NAME];
+            char name[NC_MAX_NAME + 1];
             nc_type nctype;
             size_t len;
 
@@ -578,7 +584,7 @@ void obs_read(observations* obs, char fname[])
         ncw_inq_varid(ncid, "instrument", &varid);
         ncw_inq_varnatts(ncid, varid, &natts);
         for (i = 0; i < natts; ++i) {
-            char name[NC_MAX_NAME];
+            char name[NC_MAX_NAME + 1];
             nc_type nctype;
             size_t len;
 
@@ -598,18 +604,14 @@ void obs_read(observations* obs, char fname[])
         ncw_inq_varid(ncid, "fid", &varid);
         ncw_inq_varnatts(ncid, varid, &natts);
         for (i = 0; i < natts; ++i) {
-            char name[NC_MAX_NAME];
+            char name[NC_MAX_NAME + 1];
             char attstr[MAXSTRLEN];
-            size_t len;
             int fileid;
 
             ncw_inq_attname(ncid, varid, i, name);
             if (!str2int(name, &fileid))
                 continue;
-            ncw_inq_attlen(ncid, varid, name, &len);
-            assert(len < MAXSTRLEN);
-            ncw_get_att_text(ncid, varid, name, attstr);
-            attstr[len] = 0;
+            ncw_get_att_text_n(ncid, varid, name, attstr, MAXSTRLEN);
             st_add_ifabsent(obs->datafiles, attstr, fileid);
         }
 
@@ -877,7 +879,7 @@ void obs_write(observations* obs, char fname[])
     for (i = 0; i < obs->nobstypes; ++i) {
         ncw_put_att_int(ncid, varid, obs->obstypes[i].name, 1, &i);
         if (obs->obstypes[i].logapplied) {
-            char attname[NC_MAX_NAME];
+            char attname[NC_MAX_NAME + 1];
 
             snprintf(attname, NC_MAX_NAME, "%s:LOGAPPLIED", obs->obstypes[i].name);
             ncw_put_att_text(ncid, varid, attname, "true");
@@ -903,7 +905,7 @@ void obs_write(observations* obs, char fname[])
     ncw_def_var(ncid, "fid", NC_SHORT, 1, dimid_nobs, &varid);
     ncw_put_att_text(ncid, varid, "long_name", "observation data file ID");
     for (i = 0; i < st_getsize(obs->datafiles); ++i) {
-        char attname[NC_MAX_NAME];
+        char attname[NC_MAX_NAME + 1];
         char* datafile = st_findstringbyindex(obs->datafiles, i);
 
         snprintf(attname, NC_MAX_NAME, "%d", i);
@@ -1336,9 +1338,9 @@ void obs_superob(observations* obs, __compar_d_fn_t cmp_obs, observations** sobs
                         float sum_fk = data[i11].fk;
                         float sum_lon = data[i11].lon;
                         float sum_lat = data[i11].lat;
-                        float sum_fij0 = data[i11].fij[0];
-                        float sum_fij1 = data[i11].fij[1];
-                        float sum_fij2 = data[i11].fij[2];
+                        double sum_fij0 = data[i11].fij[0];
+                        double sum_fij1 = data[i11].fij[1];
+                        double sum_fij2 = data[i11].fij[2];
 
                         for (ii = i11 + 1; ii <= i22; ++ii) {
                             data[ii].status = STATUS_THINNED;
@@ -1359,9 +1361,9 @@ void obs_superob(observations* obs, __compar_d_fn_t cmp_obs, observations** sobs
                         data[i11].fk = sum_fk / (float) (i22 - i11 + 1);
                         data[i11].lon = sum_lon / (float) (i22 - i11 + 1);
                         data[i11].lat = sum_lat / (float) (i22 - i11 + 1);
-                        data[i11].fij[0] = sum_fij0 / (float) (i22 - i11 + 1);
-                        data[i11].fij[1] = sum_fij1 / (float) (i22 - i11 + 1);
-                        data[i11].fij[2] = sum_fij2 / (float) (i22 - i11 + 1);
+                        data[i11].fij[0] = sum_fij0 / (double) (i22 - i11 + 1);
+                        data[i11].fij[1] = sum_fij1 / (double) (i22 - i11 + 1);
+                        data[i11].fij[2] = sum_fij2 / (double) (i22 - i11 + 1);
                     } else
                         enkf_quit("programming error");
                 }
@@ -1500,6 +1502,8 @@ void obs_superob(observations* obs, __compar_d_fn_t cmp_obs, observations** sobs
             so->lon = 0.0;
             for (ii = i1; ii <= i2; ++ii) {
                 o = &data[ii];
+                if (o->status == STATUS_THINNED)
+                    continue;
                 if (o->lon - lon_min > 180.0)
                     o->lon -= 360.0;
                 evar = o->estd * o->estd;
@@ -1774,12 +1778,12 @@ static void obs_getglobal(observations* obs, char* domainname, int* n, int** ids
 {
     int otid;
 
+    *n = 0;
     for (otid = 0; otid < obs->nobstypes; ++otid) {
         obstype* ot = &obs->obstypes[otid];
-        int* obsids = obs->obsids[otid];
-        int i;
+        int nobs, i;
 
-        if (ot->nobs == 0 || ot->statsonly)
+        if (ot->statsonly)
             continue;
         /*
          * check whether observations of this type are visible from the
@@ -1798,20 +1802,34 @@ static void obs_getglobal(observations* obs, char* domainname, int* n, int** ids
             if (d == ot->ndomains)
                 continue;
         }
+
+        /*
+         * (do not rely on ot->nobs or obs->obsids, which may be not set or
+         * include observations with status other than STATUS_OK)
+         */
+        for (i = 0, nobs = 0; i < obs->nobs; ++i)
+            if (obs->data[i].type == otid && obs->data[i].status == STATUS_OK)
+                nobs++;
+        if (nobs == 0)
+            continue;
+
         if (ploc_allocated != NULL) {
-            if (*n + ot->nobs >= *ploc_allocated) {
-                *ploc_allocated = *n + ot->nobs;
+            if (*n + nobs > *ploc_allocated) {
+                *ploc_allocated = *n + nobs;
                 *ids = realloc(*ids, *ploc_allocated * sizeof(int));
                 *lcoeffs = realloc(*lcoeffs, *ploc_allocated * sizeof(double));
             }
         } else {
-            *ids = realloc(*ids, (*n + ot->nobs) * sizeof(int));
-            *lcoeffs = realloc(*lcoeffs, (*n + ot->nobs) * sizeof(double));
+            *ids = realloc(*ids, (*n + nobs) * sizeof(int));
+            *lcoeffs = realloc(*lcoeffs, (*n + nobs) * sizeof(double));
         }
 
-        for (i = 0; i < ot->nobs; ++i, ++(*n)) {
-            (*ids)[*n] = obsids[i];
-            (*lcoeffs)[*n] = 1.0;
+        for (i = 0; i < obs->nobs; ++i) {
+            if (obs->data[i].type == otid && obs->data[i].status == STATUS_OK) {
+                (*ids)[*n] = i;
+                (*lcoeffs)[*n] = 1.0;
+                (*n)++;
+            }
         }
     }
 }
@@ -1873,9 +1891,9 @@ void obs_findlocal(observations* obs, double lon, double lat, int geographic, ch
         int* obsids = obs->obsids[otid];
         size_t nloc;
         kdresult* results;
-        int iloc;
+        int iloc, nlocal;
 
-        if (ot->nobs == 0 || ot->statsonly)
+        if (ot->nobs == 0 || ot->statsonly || tree == NULL)
             continue;
 
         /*
@@ -1897,14 +1915,17 @@ void obs_findlocal(observations* obs, double lon, double lat, int geographic, ch
         }
 
         kd_findnodeswithinrange(tree, xyz, obstype_getmaxlocrad(ot), (ot->nlobsmax == INT_MAX) ? 0 : 1, &nloc, &results);
-        if (nloc > ot->nlobsmax)
-            nloc = ot->nlobsmax;
-        for (iloc = 0; iloc < nloc; ++iloc) {
+        /*
+         * (the limit on the number of local obs is applied to obs with
+         * STATUS_OK only)
+         */
+        for (iloc = 0, nlocal = 0; iloc < nloc && nlocal < ot->nlobsmax; ++iloc) {
             size_t id_orig = kd_getnodedata(tree, results[iloc].id);
             observation* o = &obs->data[obsids[id_orig]];
 
             if (o->status != STATUS_OK)
                 continue;
+            nlocal++;
 
             if (ploc_allocated != NULL) {
                 if (i >= *ploc_allocated) {
@@ -1945,11 +1966,17 @@ void obs_markbadbatches(observations* obs, hashtable* badbatches)
     for (i = 0; i < obs->nobs; ++i) {
         observation* o = &obs->data[i];
         int key_int[2] = { -1, -1 };
-        short* key_short = (short*) key_int;
+        short key_short[2];
 
+        /*
+         * (the key layout must match that used for creating the hashtable of
+         * bad batches: int batch, short type, short fid; memcpy is used to
+         * avoid strict aliasing violation)
+         */
         key_int[0] = o->batch;
-        key_short[2] = o->type;
-        key_short[3] = o->fid;
+        key_short[0] = o->type;
+        key_short[1] = o->fid;
+        memcpy(&key_int[1], key_short, sizeof(key_short));
 
         if (ht_find(badbatches, key_int) != NULL)
             o->status = STATUS_BADBATCH;

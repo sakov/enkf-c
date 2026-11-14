@@ -91,8 +91,10 @@ void reader_windsat(char* fname, int fid, obssection* section, grid* g, observat
     ncw_inq_varid(ncid, "age", &varid_time);
     time = malloc(nobs_local * sizeof(double));
     ncw_get_var_double(ncid, varid_time, time);
-    ncw_inq_attlen(ncid, varid_time, "units", &tunits_len);
-    ncw_get_att_text(ncid, varid_time, "units", tunits);
+    ncw_get_att_text_n(ncid, varid_time, "units", tunits, sizeof(tunits));
+    tunits_len = strlen(tunits);
+    if (strlen(basename) < 16)
+        enkf_quit("WINDSAT reader: file name \"%s\" is too short to contain date", fname);
     basename[16] = 0;
     if (!str2int(&basename[14], &day))
         enkf_quit("WindSat reader: could not convert file name \"%s\" to date", fname);

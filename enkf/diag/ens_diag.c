@@ -49,7 +49,7 @@ static void usage(void)
     enkf_printf("  --calculate-vertical-sensitivities-with <varname1> <layer1>\n");
     enkf_printf("    [<varname2> <layer2>] [...]\n");
     enkf_printf("      calculate sensitivities between specified field and all other fields\n");
-    enkf_printf("      on the same horizontal grid and write to %s-<varname>-<layer>.nc\n", FNAMEPREFIX_VERTCOVWITH);
+    enkf_printf("      on the same horizontal grid and write to %s-<varname>-<layer>.nc\n", FNAMEPREFIX_VERTSENSWITH);
     enkf_printf("  --describe-prm-format [main|model|grid]\n");
     enkf_printf("      describe format of a parameter file and exit\n");
     enkf_printf("  --version\n");
@@ -94,7 +94,7 @@ static void parse_commandline(int argc, char* argv[], char** fname, int* dosprea
                 if (i == argc || argv[i][0] == '-')
                     enkf_quit("parse_commandline(): expected layer ID after variable name \"%s\"", (*vcorrwith)[*nvcorrwith]);
                 if (!str2int(argv[i], &(*kvcorrwith)[*nvcorrwith]))
-                    enkf_quit("parse_commandline(): could no convert \"%s\" to int", argv[i][0]);
+                    enkf_quit("parse_commandline(): could not convert \"%s\" to int", argv[i]);
                 i++;
                 (*nvcorrwith)++;
             }
@@ -112,7 +112,7 @@ static void parse_commandline(int argc, char* argv[], char** fname, int* dosprea
                 if (i == argc || argv[i][0] == '-')
                     enkf_quit("parse_commandline(): expected layer ID after variable name \"%s\"", (*vcovwith)[*nvcovwith]);
                 if (!str2int(argv[i], &(*kvcovwith)[*nvcovwith]))
-                    enkf_quit("parse_commandline(): could no convert \"%s\" to int", argv[i][0]);
+                    enkf_quit("parse_commandline(): could not convert \"%s\" to int", argv[i]);
                 i++;
                 (*nvcovwith)++;
             }
@@ -130,7 +130,7 @@ static void parse_commandline(int argc, char* argv[], char** fname, int* dosprea
                 if (i == argc || argv[i][0] == '-')
                     enkf_quit("parse_commandline(): expected layer ID after variable name \"%s\"", (*vsenswith)[*nvsenswith]);
                 if (!str2int(argv[i], &(*kvsenswith)[*nvsenswith]))
-                    enkf_quit("parse_commandline(): could no convert \"%s\" to int", argv[i][0]);
+                    enkf_quit("parse_commandline(): could not convert \"%s\" to int", argv[i]);
                 i++;
                 (*nvsenswith)++;
             }
@@ -217,16 +217,14 @@ int main(int argc, char* argv[])
         das_writevcorrs_with(das, vsenswith[i], kvsenswith[i], CALC_SENS);
 
     das_destroy(das);
-    if (nvcorrwith > 0) {
-        free(vcorrwith);
-        free(kvcorrwith);
-    }
-    if (nvcovwith > 0) {
-        free(vcovwith);
-        free(kvcovwith);
-    }
 
   finish:
+    free(vcorrwith);
+    free(kvcorrwith);
+    free(vcovwith);
+    free(kvcovwith);
+    free(vsenswith);
+    free(kvsenswith);
     enkf_finish();
 
     return 0;

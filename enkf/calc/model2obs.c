@@ -52,16 +52,21 @@ static void evaluate_2d_obs(model* m, observations* allobs, int nobs, int obsids
         else {
             kdtree* tree = grid_gettreeXYZ(g, 1);
             double ll[2] = { o->lon, o->lat };
+            double xyz[3];
             size_t ncells = 0;
             kdresult* results = NULL;
 
-            if (grid_isgeographic(g)) {
-                double xyz[3];
-
+            /*
+             * (for non-geographic grids the nodes are stored as {x, y, 0})
+             */
+            if (grid_isgeographic(g))
                 ll2xyz(ll, xyz);
-                kd_findnodeswithinrange(tree, xyz, o->footprint, 0, &ncells, &results);
-            } else
-                kd_findnodeswithinrange(tree, ll, o->footprint, 0, &ncells, &results);
+            else {
+                xyz[0] = ll[0];
+                xyz[1] = ll[1];
+                xyz[2] = 0.0;
+            }
+            kd_findnodeswithinrange(tree, xyz, o->footprint, 0, &ncells, &results);
 
             if (ncells > 0) {
                 size_t* ids = malloc(ncells * sizeof(size_t));
@@ -228,7 +233,7 @@ void H_surf_biased(dasystem* das, int nobs, int obsids[], char fname[], int r, i
     if (offset != NULL) {
         float* offset0 = (isstructured) ? ((float**) offset)[0] : offset;
 
-        assert(model_getdataalloctype(m, tag_offset) == ALLOCTYPE_2D);
+        assert(model_getdataalloctype(m, tag_offset) == ((isstructured) ? ALLOCTYPE_2D : ALLOCTYPE_1D));
         for (i = 0; i < nv; ++i)
             src0[i] -= offset0[i];
     }
@@ -504,6 +509,7 @@ void H_subsurf_wsurfbias(dasystem* das, int nobs, int obsids[], char fname[], in
     float*** src = NULL;
     int ni, nj, nk;
     float** mld = NULL;
+    int mld_owned = 1;
     char tag_offset[MAXSTRLEN];
     void* offset_data = NULL;
     float** bias = NULL;
@@ -567,7 +573,8 @@ void H_subsurf_wsurfbias(dasystem* das, int nobs, int obsids[], char fname[], in
     if (memid <= das->nmem_dynamic) {
         bias = alloc2d(nj, ni, sizeof(float));
         das_getmemberfname(das, ot->varnames[1], memid, fname2);
-        assert(ncu_getnD(fname2, ot->varnames[1]) == 2);
+        if (ncu_getnD(fname2, ot->varnames[1]) != 2)
+            enkf_quit("%s: variable \"%s\" must be 2D to be used in H-function \"wsurfbias\"", fname2, ot->varnames[1]);
         model_readfield(m, fname2, ot->varnames[1], -1, 0, bias[0], memid > das->nmem_dynamic ? 1 : 0);
 
         if (isnan(ot->mld_threshold) && ot->mld_varname == NULL)
@@ -583,7 +590,7 @@ void H_subsurf_wsurfbias(dasystem* das, int nobs, int obsids[], char fname[], in
             das_getmemberfname(das, ot->mld_varname, memid, fname_mld);
             model_readfield(m, fname_mld, ot->mld_varname, -1, 0, mld[0], memid > das->nmem_dynamic ? 1 : 0);
         } else {
-            if (das->nmem_static == 0)
+            if (das->nstatic == 0)
                 das_calcmld(das, ot, src, mld);
             else {
                 char tag[MAXSTRLEN];
@@ -596,10 +603,15 @@ void H_subsurf_wsurfbias(dasystem* das, int nobs, int obsids[], char fname[], in
                 snprintf(tag, MAXSTRLEN, "%s:MLD", ot->name);
                 if (memid <= das->nmem_dynamic) {
                     das_calcmld(das, ot, src, mld);
-                    if (memid == 1)
+                    if (memid == 1) {
                         model_addorreplacedata(m, tag, mvid, ALLOCTYPE_2D, mld);
-                } else          /* static members */
+                        mld_owned = 0;
+                    }
+                } else {        /* static members */
+                    free(mld);
                     mld = model_getdata(m, tag);
+                    mld_owned = 0;
+                }
             }
         }
 
@@ -627,7 +639,7 @@ void H_subsurf_wsurfbias(dasystem* das, int nobs, int obsids[], char fname[], in
             }
         }
 
-        if (das->mode == MODE_ENKF || das->mode == MODE_HYBRID)
+        if (mld_owned)
             free(mld);
         free(bias);
     }
@@ -767,7 +779,7 @@ void H_vertwavg(dasystem* das, int nobs, int obsids[], char fname[], int r, int 
      * calculate weighted average 
      */
     for (k = 0; k < nk; ++k) {
-        float* sum0 = (nj > 0) ? sum : ((float**) sum)[0];
+        float* sum0 = (nj > 0) ? ((float**) sum)[0] : sum;
 
         model_readfield(m, fname, ot->varnames[0], r, k, src, 0);
         model_readfield(m, fname, ot->varnames[1], r, k, w, 0);
@@ -786,11 +798,18 @@ void H_vertwavg(dasystem* das, int nobs, int obsids[], char fname[], int r, int 
     snprintf(tag_offset, MAXSTRLEN, "%s:OFFSET", allobs->obstypes[allobs->data[obsids[0]].type].name);
     offset_data = model_getdata(m, tag_offset);
     if (offset_data != NULL) {
-        float* offset0 = ((float**) offset_data)[0];
-        float* sum0 = (nj > 0) ? sum : ((float**) sum)[0];
+        float* sum0 = (nj > 0) ? ((float**) sum)[0] : sum;
+        float* offset0;
 
-        if (model_getdataalloctype(m, tag_offset) != ALLOCTYPE_2D)
-            enkf_quit("obstype = %s: offset variable must be 2D to be used in H-function \"vertavg\"", ot->name);
+        if (nj > 0) {
+            if (model_getdataalloctype(m, tag_offset) != ALLOCTYPE_2D)
+                enkf_quit("obstype = %s: offset variable must be 2D to be used in H-function \"vertwavg\" (for structured grids)", ot->name);
+            offset0 = ((float**) offset_data)[0];
+        } else {
+            if (model_getdataalloctype(m, tag_offset) != ALLOCTYPE_1D)
+                enkf_quit("obstype = %s: offset variable must be 1D to be used in H-function \"vertwavg\" (for unstructured grids)", ot->name);
+            offset0 = offset_data;
+        }
 
         for (i = 0; i < (size_t) nij; ++i)
             sum0[i] -= offset0[i];

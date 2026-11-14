@@ -8,3 +8,14 @@ In this particular case eta_t, on one hand, and temp and salt, on another hand,
 are put on different grids that share the same horizontal grid. Note that there
 are no transforms-1.nc and enkf_diag-1.nc files after CALC, as those would be
 equivalent to transforms-0.nc and enkf_diag-0.nc.
+
+PREREQUISITES
+
+Set up example 1 as described in ../1/README; this example also uses directory
+conf4 from example 4.
+
+TESTING
+
+Run "make enkf" or "make enoi". In this example enkf_update is run with
+"--output-increment" for the EnKF, so that the results are of the form
+ensemble_6565/mem<num>_<var>.nc.increment.

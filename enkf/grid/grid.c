@@ -68,6 +68,31 @@ struct grid {
     char* domainname;
 };
 
+/** Calculates the number of wet levels (counted from surface) at horizontal
+ ** node `ij' with depth `depth'. A level is considered wet if its surface-side
+ ** edge is above the bottom.
+ */
+static int depth2numlevels(grid* g, int ij, double depth)
+{
+    int nk = g->vgrid->nk;
+    double fk = NAN;
+    double nl;
+
+    vgrid_z2fk_node(g->vgrid, ij, depth, &fk);
+
+    if (isnan(fk))
+        return nk;              /* below the bottom of the grid */
+    if (g->vgrid->direction == GRIDVDIR_FROMSURF)
+        nl = ceil(fk + 0.5);
+    else
+        nl = (double) nk - floor(fk + 0.5);
+    if (!(nl > 0.0))
+        return 0;
+    if (nl > (double) nk)
+        return nk;
+    return (int) nl;
+}
+
 /**
  */
 grid* grid_create(void* p, int id, void** grids)
@@ -260,12 +285,9 @@ grid* grid_create(void* p, int id, void** grids)
                     for (j = 0; j < nj; ++j) {
                         for (i = 0; i < ni; ++i) {
                             double depth = ((float**) g->depth)[j][i];
-                            double fk = NAN;
 
-                            if (depth > 0.0) {
-                                grid_z2fk(g, NULL, depth, &fk);
-                                numlevels[j][i] = ceil(fk + 0.5);
-                            }
+                            if (depth > 0.0)
+                                numlevels[j][i] = depth2numlevels(g, j * ni + i, depth);
                         }
                     }
                 } else {
@@ -290,12 +312,9 @@ grid* grid_create(void* p, int id, void** grids)
                 if (g->depth != NULL) {
                     for (i = 0; i < ni; ++i) {
                         double depth = ((float*) g->depth)[i];
-                        double fk = NAN;
 
-                        if (depth > 0.0) {
-                            grid_z2fk(g, NULL, depth, &fk);
-                            numlevels[i] = ceil(fk + 0.5);
-                        }
+                        if (depth > 0.0)
+                            numlevels[i] = depth2numlevels(g, i, depth);
                     }
                 } else {
                     for (i = 0; i < ni; ++i)
@@ -672,7 +691,7 @@ int grid_island(grid* g, double* fij, double fk)
         int k;
 
         if (isnan(fk))
-            k = ksurf;
+            k = 0;              /* surface */
         else {
             if (ceil(fk) != floor(fk))
                 k = (ksurf == 0) ? ceil(fk) : ksurf - floor(fk);
@@ -695,26 +714,30 @@ int grid_island(grid* g, double* fij, double fk)
         else
             return numlevels[j1][i1] < k && numlevels[j1][i2] < k && numlevels[j2][i1] < k && numlevels[j2][i2] < k;
     } else if (g->hgrid->type == GRIDHTYPE_UNSTRUCTURED) {
-        int i1 = (int) floor(fij[0]);
-        int i2 = (int) ceil(fij[0]);
+        /*
+         * fij[0..2] = (vertex id + barycentric coordinate) for the 3
+         * vertices of the triangle
+         */
+        int i0 = (int) floor(fij[0]);
+        int i1 = (int) floor(fij[1]);
+        int i2 = (int) floor(fij[2]);
         int ksurf = grid_getsurflayerid(g);
         int* numlevels = g->numlevels;
         int k;
 
-        if (ceil(fk) != floor(fk))
-            k = (ksurf == 0) ? ceil(fk) : ksurf - floor(fk);
-        else
-            k = (ksurf == 0) ? ceil(fk) + 1 : ksurf - floor(fk) + 1;
-
-        if (i1 == -1)
-            i1 = i2;
-        if (i2 == g->hgrid->ni)
-            i2 = i1;
+        if (isnan(fk))
+            k = 0;              /* surface */
+        else {
+            if (ceil(fk) != floor(fk))
+                k = (ksurf == 0) ? ceil(fk) : ksurf - floor(fk);
+            else
+                k = (ksurf == 0) ? ceil(fk) + 1 : ksurf - floor(fk) + 1;
+        }
 
         if (k == 0)
-            return numlevels[i1] == 0 && numlevels[i2] == 0;
+            return numlevels[i0] == 0 && numlevels[i1] == 0 && numlevels[i2] == 0;
         else
-            return numlevels[i1] < k && numlevels[i2] < k;
+            return numlevels[i0] < k && numlevels[i1] < k && numlevels[i2] < k;
     }
 
     enkf_quit("programming error");

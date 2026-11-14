@@ -149,11 +149,13 @@ void kd_set_quitfn(kd_quit_fn quit_fn)
 kdtree* kd_create(char* name, size_t ndim)
 {
     kdtree* tree;
-    int i;
+    size_t i;
 
     if (ndim > NDIMMAX)
-        quit("kd_create(): ndim = %d, NDIMMAX = %d", ndim, NDIMMAX);
+        quit("kd_create(): ndim = %zu, NDIMMAX = %d", ndim, NDIMMAX);
     tree = malloc(sizeof(kdtree));
+    if (tree == NULL)
+        quit("kd_create(): could not allocate memory");
     tree->name = strdup(name);
     tree->ndim = ndim;
     tree->nnodes = 0;
@@ -180,7 +182,11 @@ kdtree* kd_create(char* name, size_t ndim)
  */
 void kd_destroy(kdtree* tree)
 {
-    if (tree->nallocated > 0 && !tree->external_storage)
+    /*
+     * (tree->nodes always points to the allocated block, even when
+     * nallocated = 0)
+     */
+    if (!tree->external_storage)
         free(tree->nodes);
     free(tree->name);
     if (tree->nresults_allocated > 0)
@@ -225,6 +231,8 @@ static void _kd_changealloc(kdtree* tree, size_t nallocated)
         double* min_prev;
 
         tree->nodes = realloc(tree->nodes, nallocated * sizeof(kdnode) + nallocated * ndim * sizeof(double) + ndim * 2 * sizeof(double));
+        if (tree->nodes == NULL)
+            quit("kd_changealloc(): could not allocate memory for %zu nodes", nallocated);
         tree->coords = (double*) &tree->nodes[nallocated];
         coords_prev = (double*) &tree->nodes[tree->nallocated];
         tree->min = &tree->coords[nallocated * ndim];
@@ -235,11 +243,15 @@ static void _kd_changealloc(kdtree* tree, size_t nallocated)
         if (tree->nnodes == 0)
             tree->nodes[0].id = SIZE_MAX;
     } else if (nallocated < tree->nallocated) {
+        double* min_prev = tree->min;
+
         tree->coords = (double*) &tree->nodes[nallocated];
         memmove(tree->coords, &tree->nodes[tree->nallocated], tree->nnodes * ndim * sizeof(double));
         tree->min = &tree->coords[nallocated * ndim];
-        memmove(tree->min, &tree->coords[tree->nallocated * ndim], ndim * 2 * sizeof(double));
+        memmove(tree->min, min_prev, ndim * 2 * sizeof(double));
         tree->nodes = realloc(tree->nodes, nallocated * sizeof(kdnode) + nallocated * ndim * sizeof(double) + ndim * 2 * sizeof(double));
+        if (tree->nodes == NULL)
+            quit("kd_changealloc(): could not reallocate memory for %zu nodes", nallocated);
         tree->coords = (double*) &tree->nodes[nallocated];
         tree->min = &tree->coords[nallocated * ndim];
         tree->max = &tree->min[ndim];
@@ -259,8 +271,11 @@ void kd_insertnode(kdtree* tree, const double* coords, size_t data)
     if (!isfinite(coords[0]))
         return;
 
-    if (tree->nallocated == tree->nnodes)
+    if (tree->nallocated == tree->nnodes) {
+        if (tree->external_storage)
+            quit("kd_insertnode(): \"%s\": external storage is full (%zu nodes)", tree->name, tree->nallocated);
         _kd_changealloc(tree, (tree->nallocated != 0) ? tree->nallocated * 2 : NALLOCSTART);
+    }
 
     (void) _kd_insertnode(tree, &tree->nodes[0].id, coords, data, 0);
     for (i = 0; i < ndim; ++i) {
@@ -298,7 +313,7 @@ static void randomise_rand48(void)
     }
     fclose(f);
 
-    srand(seed_rand48);
+    srand48(seed_rand48);
 }
 
 /**
@@ -313,11 +328,17 @@ static void shuffle(size_t n, size_t ids[])
      */
     randomise_rand48();
 
-    for (i = 0; i < n; ++i) {
-        size_t ii = (size_t) ((double) n * drand48());
-        size_t tmp = ids[i];
+    /*
+     * Fisher-Yates
+     */
+    for (i = n; i > 1; --i) {
+        size_t ii = (size_t) ((double) i * drand48());
+        size_t tmp;
 
-        ids[i] = ids[ii];
+        if (ii >= i)
+            ii = i - 1;
+        tmp = ids[i - 1];
+        ids[i - 1] = ids[ii];
         ids[ii] = tmp;
     }
 }
@@ -343,11 +364,10 @@ void kd_insertnodes(kdtree* tree, size_t n, double** src, size_t* data, int* mas
     if (n <= 0)
         return;
 
-    if (tree->nallocated - tree->nnodes < n)
-        _kd_changealloc(tree, tree->nnodes + n);
-
     if (randomise || mask != NULL) {
         ids = malloc(n * sizeof(size_t));
+        if (ids == NULL)
+            quit("kd_insertnodes(): could not allocate memory");
         for (i = 0, ngood = 0; i < n; ++i) {
             if (mask != NULL && mask[i] == 0)
                 continue;
@@ -359,10 +379,16 @@ void kd_insertnodes(kdtree* tree, size_t n, double** src, size_t* data, int* mas
     } else
         ngood = n;
 
+    if (tree->nallocated - tree->nnodes < ngood) {
+        if (tree->external_storage)
+            quit("kd_insertnodes(): \"%s\": external storage too small: allocated for %zu nodes, needs %zu", tree->name, tree->nallocated, tree->nnodes + ngood);
+        _kd_changealloc(tree, tree->nnodes + ngood);
+    }
+
     coords = malloc(tree->ndim * sizeof(double));
 
     for (i = 0; i < ngood; ++i) {
-        int id = (ids != NULL) ? ids[i] : i;
+        size_t id = (ids != NULL) ? ids[i] : i;
 
         for (j = 0; j < tree->ndim; ++j)
             coords[j] = src[j][id];
@@ -435,13 +461,25 @@ void kd_syncsize(kdtree* tree)
  */
 void kd_finalise(kdtree* tree)
 {
-    if (tree->nallocated == tree->nnodes)
+    size_t ndim = tree->ndim;
+    size_t nnodes = tree->nnodes;
+
+    if (tree->nallocated == nnodes || tree->external_storage)
         return;
 
-    memmove(&tree->nodes[tree->nnodes], tree->coords, tree->nnodes * tree->ndim * sizeof(double));
-    tree->nodes = realloc(tree->nodes, tree->nnodes * sizeof(kdnode) + tree->nnodes * tree->ndim * sizeof(double));
-    tree->coords = (double*) &tree->nodes[tree->nnodes];
-    tree->nallocated = tree->nnodes;
+    /*
+     * move coords and min/max down to their new positions (the new positions
+     * of coords do not overlap with the old position of min/max)
+     */
+    memmove(&tree->nodes[nnodes], tree->coords, nnodes * ndim * sizeof(double));
+    memmove(&((double*) &tree->nodes[nnodes])[nnodes * ndim], tree->min, ndim * 2 * sizeof(double));
+    tree->nodes = realloc(tree->nodes, nnodes * sizeof(kdnode) + nnodes * ndim * sizeof(double) + ndim * 2 * sizeof(double));
+    if (tree->nodes == NULL)
+        quit("kd_finalise(): could not reallocate memory");
+    tree->coords = (double*) &tree->nodes[nnodes];
+    tree->min = &tree->coords[nnodes * ndim];
+    tree->max = &tree->min[ndim];
+    tree->nallocated = nnodes;
 }
 
 /**
@@ -512,7 +550,7 @@ static void _insertresult(kdtree* tree, size_t id, double distsq)
 
 /**
  */
-static void _kd_findnodeswithinrange(kdtree* tree, int id, const double* coords, double range)
+static void _kd_findnodeswithinrange(kdtree* tree, size_t id, const double* coords, double range)
 {
     int ndim = tree->ndim;
     kdnode* node;
@@ -520,7 +558,7 @@ static void _kd_findnodeswithinrange(kdtree* tree, int id, const double* coords,
     double distsq, dx;
     int i;
 
-    if (id < 0)
+    if (id == SIZE_MAX)
         return;
 
     node = &tree->nodes[id];
@@ -563,7 +601,8 @@ void kd_findnodeswithinrange(kdtree* tree, const double* coords, double range, i
     }
 
     tree->nresults = 0;
-    _kd_findnodeswithinrange(tree, 0, coords, range);
+    if (tree->nnodes > 0)
+        _kd_findnodeswithinrange(tree, 0, coords, range);
 
     if (ordered)
         qsort(tree->results, tree->nresults, sizeof(kdresult), cmp_res);
@@ -698,7 +737,7 @@ size_t kd_getnodedata(const kdtree* tree, size_t id)
     if (id >= tree->nnodes)
         quit("kd_getnodedata(): id = %zu >= tree size = %zu", id, tree->nnodes);
 
-    return (int) tree->nodes[id].data;
+    return tree->nodes[id].data;
 }
 
 /** get boundary rectangle

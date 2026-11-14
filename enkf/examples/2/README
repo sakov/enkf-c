@@ -18,4 +18,4 @@ ensemble_6565/mem<num>_<var>.nc.analysis, where <num> is the member id, between
 TESTING ENOI
 
 To assimilate with the EnOI, run "make enoi". The analysis will be of the form
-background/bg_<var>.nc.analysis.
+background_6565/bg_<var>.nc.analysis.

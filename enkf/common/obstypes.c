@@ -111,6 +111,8 @@ static void obstype_check(obstype* type)
         enkf_quit("\"%s\": RFACTOR = %f\n", type->name, type->rfactor);
     if (type->nlobsmax < 0)
         enkf_quit("\"%s\": NLOBSMAX = %d\n", type->name, type->nlobsmax);
+    if (type->sob_stride < 1)
+        enkf_quit("\"%s\": SOBSTRIDE = %d must be >= 1\n", type->name, type->sob_stride);
     if (type->hfunction == NULL)
         enkf_quit("\"%s\": HFUNCTION not specified\n", type->name);
 }
@@ -384,8 +386,14 @@ void obstypes_read(enkfprm* prm, char fname[], int* n, obstype** types)
         } else if (strcasecmp(token, "LOCRAD") == 0) {
             int sid = 0;
 
-            if (now->nlocrad > 0)
-                now->locrad = malloc(sizeof(double) * now->nlocrad);
+            /*
+             * a repeated LOCRAD entry overrides the previous one
+             */
+            free(now->locrad);
+            now->locrad = NULL;
+            free(now->locweight);
+            now->locweight = NULL;
+            now->nlocrad = 0;
             while ((token = strtok(NULL, seps)) != NULL) {
                 if (now->nlocrad == sid) {
                     now->locrad = realloc(now->locrad, sizeof(double) * (now->nlocrad + 1));
@@ -395,8 +403,8 @@ void obstypes_read(enkfprm* prm, char fname[], int* n, obstype** types)
                     enkf_quit("%s, l.%d: could not convert \"%s\" to double", fname, line, token);
                 sid++;
             }
-            if (now->nlocrad > sid)
-                enkf_quit("%s, l.%d: LOCRAD not specified or its dimension does not match that of RFACTOR", fname, line);
+            if (now->nlocrad == 0)
+                enkf_quit("%s, l.%d: LOCRAD not specified", fname, line);
         } else if (strcasecmp(token, "LOCWEIGHT") == 0) {
             int sid = 0;
 
@@ -406,10 +414,8 @@ void obstypes_read(enkfprm* prm, char fname[], int* n, obstype** types)
             } else
                 enkf_quit("%s, l.%d: LOCRAD must be entered before LOCWEIGHT", fname, line);
             while ((token = strtok(NULL, seps)) != NULL) {
-                if (now->nlocrad == sid) {
-                    now->locweight = realloc(now->locweight, sizeof(double) * (now->nlocrad + 1));
-                    now->nlocrad++;
-                }
+                if (sid >= now->nlocrad)
+                    enkf_quit("%s, l.%d: LOCWEIGHT has more entries than LOCRAD", fname, line);
                 if (!str2double(token, &now->locweight[sid]))
                     enkf_quit("%s, l.%d: could not convert \"%s\" to double", fname, line, token);
                 sid++;
@@ -554,7 +560,6 @@ void obstypes_read(enkfprm* prm, char fname[], int* n, obstype** types)
         if (nexclude > 0) {
             int j;
 
-            type->nexclude = nexclude;
             type->exclude = realloc(type->exclude, (type->nexclude + nexclude) * sizeof(obsregion));
             for (j = 0; j < nexclude; ++j) {
                 obsregion* src = &exclude[j];
@@ -570,6 +575,9 @@ void obstypes_read(enkfprm* prm, char fname[], int* n, obstype** types)
                 if (src->maskfname != NULL) {
                     dst->maskfname = strdup(src->maskfname);
                     dst->maskvarname = strdup(src->maskvarname);
+                } else {
+                    dst->maskfname = NULL;
+                    dst->maskvarname = NULL;
                 }
             }
             type->nexclude += nexclude;
@@ -596,6 +604,7 @@ void obstypes_describeprm(void)
     enkf_printf("\n");
     enkf_printf("  Observation types parameter file format:\n");
     enkf_printf("\n");
+    enkf_printf("  [ EXCLUDE     = <lon1> <lon2> <lat1> <lat2> | <mask file> <varname>]\n");
     enkf_printf("    NAME        = <name>\n");
     enkf_printf("  [ DOMAINS     = <domain name> ... ]\n");
     enkf_printf("    ISSURFACE   = {yes | no}\n");
@@ -629,7 +638,6 @@ void obstypes_describeprm(void)
     enkf_printf("    ...\n");
     enkf_printf("\n");
     enkf_printf("  [ <more of the above blocks> ]\n");
-    enkf_printf("  [ EXCLUDE     = <lon1> <lon2> <lat1> <lat2> | <mask file> <varname>]\n");
     enkf_printf("\n");
     enkf_printf("  Notes:\n");
     enkf_printf("    1. { ... | ... | ... } denotes the list of possible choices\n");
@@ -764,8 +772,8 @@ void obstypes_destroy(int n, obstype* types)
             free(ot->domainnames);
         }
         if (ot->nexclude > 0) {
-            for (i = 0; i < ot->nexclude; ++i) {
-                obsregion* r = &ot->exclude[i];
+            for (j = 0; j < ot->nexclude; ++j) {
+                obsregion* r = &ot->exclude[j];
 
                 if (r->maskfname != NULL) {
                     free(r->maskfname);

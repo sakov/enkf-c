@@ -109,7 +109,7 @@ void das_createplog(dasystem* das, int plogid, int ploc, int* lobs, double* lcoe
 
     das_getfname_plog(das, plog, fname);
     ncw_create(fname, NC_CLOBBER | das->ncformat, &ncid);
-    if (das->nmem_static == 0)
+    if (das->nstatic == 0)
         ncw_def_dim(ncid, "m", das->nmem, NULL);
     else {
         ncw_def_dim(ncid, "m1", das->nmem_dynamic, NULL);
@@ -118,7 +118,7 @@ void das_createplog(dasystem* das, int plogid, int ploc, int* lobs, double* lcoe
     ncw_def_dim(ncid, "p", ploc, &dimid);
 
     ncw_def_var(ncid, "dimension_reference", NC_CHAR, 0, NULL, &vid_dims);
-    if (das->nmem_static == 0)
+    if (das->nstatic == 0)
         ncw_put_att_text(ncid, vid_dims, "m", "ensemble size");
     else {
         ncw_put_att_text(ncid, vid_dims, "m1", "size of dynamic ensemble");
@@ -239,7 +239,10 @@ void das_createplog(dasystem* das, int plogid, int ploc, int* lobs, double* lcoe
         }
         grid_getsize(g, &ni, &nj, &nk);
         ncw_put_att_int(ncid, vid_grid, "nk", 1, &nk);
-        depth = grid_interpolate2d(g, plog->fij[gid], grid_getdepth(g));
+        if (isnan(plog->fij[gid][0] + plog->fij[gid][1]))
+            depth = NAN;
+        else
+            depth = grid_interpolate2d(g, plog->fij[gid], grid_getdepth(g));
         ncw_put_att_float(ncid, vid_grid, "model_depth", 1, &depth);
     }
 
@@ -374,7 +377,7 @@ void das_writeplogtransform(dasystem* das, int plogid, int gid, int ploc, double
     das_getfname_plog(das, plog, fname);
     ncw_open(fname, NC_WRITE, &ncid);
     ncw_redef(ncid);
-    if (das->nmem_static == 0) {
+    if (das->nstatic == 0) {
         ncw_inq_dimid(ncid, "m", &dimids[0]);
         ncw_inq_dimid(ncid, "m", &dimids[1]);
     } else {
@@ -516,7 +519,7 @@ void plogs_definestatevars(dasystem* das)
                     } else
                         ncw_inq_dimid(ncid, nkname, &dimids[0]);
                 }
-                if (das->nmem_static == 0)
+                if (das->nstatic == 0)
                     ncw_inq_dimid(ncid, "m", &dimids[1]);
                 else
                     ncw_inq_dimid(ncid, "m2", &dimids[1]);
@@ -548,9 +551,14 @@ void plogs_definestatevars(dasystem* das)
                 }
             }
             ncw_put_att_int(ncid, varid, "gridid", 1, &gid);
-            ncw_put_att_int(ncid, varid_an, "gridid", 1, &gid);
+            /*
+             * (varid_an = -1 = NC_GLOBAL means that the analysis variable has
+             * not been defined)
+             */
+            if (varid_an >= 0)
+                ncw_put_att_int(ncid, varid_an, "gridid", 1, &gid);
 
-            if (das->nmem_dynamic > 1) {
+            if (das->nmem_dynamic > 1 && varid_an >= 0) {
                 float inflation[2];
                 double tmp;
 
@@ -644,7 +652,7 @@ static void plogs_writeens(dasystem* das, int isanalysis)
                     recvcounts[p] = number_of_iterations[p] * nk;
                 displs[0] = 0;
                 for (p = 1; p < nprocesses; ++p)
-                    displs[p] = displs[p - 1] + recvcounts[p];
+                    displs[p] = displs[p - 1] + recvcounts[p - 1];
             }
 
             for (plogid = 0; plogid < das->nplog; ++plogid) {
@@ -658,6 +666,7 @@ static void plogs_writeens(dasystem* das, int isanalysis)
                 free(recvcounts);
             }
         }
+#endif
         if (rank == 0) {
             float** dst2 = alloc2d(nk, nmem, sizeof(float));
 
@@ -689,7 +698,6 @@ static void plogs_writeens(dasystem* das, int isanalysis)
 
             free(dst2);
         }
-#endif
         if (src != NULL)
             free(src);
         if (dst != NULL)
