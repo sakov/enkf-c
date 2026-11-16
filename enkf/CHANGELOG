@@ -1,3 +1,7 @@
+v2.50.2
+   PS 17112026
+   -- Consolidated typed read/write attribute handling and 2D slice logic in
+      ncutils.c.
 v2.50.1
    PS 16112026
    -- Collapsed type-specific blocks in ncutils into a single typed raw read.
