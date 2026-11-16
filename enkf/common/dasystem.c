@@ -219,9 +219,10 @@ dasystem* das_create(enkfprm* prm)
         enkf_printf("      %d member%s\n", das->nmem_dynamic, das->nmem == 1 ? "" : "s");
     }
     if (das->mode == MODE_ENOI || das->mode == MODE_HYBRID) {
-        if (das->nstatic == 1)
-            enkf_printf("    %d static member%s\n", das->nmem_static[0], das->nmem_static[0] == 1 ? "" : "s");
-        else {
+        if (das->nstatic == 1) {
+            enkf_printf("    static ensemble:\n");
+            enkf_printf("      %d members\n", das->nmem_static[0]);
+        } else {
             int s;
 
             for (s = 0; s < das->nstatic; ++s) {

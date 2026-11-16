@@ -1,3 +1,7 @@
+v2.50.1
+   PS 16112026
+   -- Collapsed type-specific blocks in ncutils into a single typed raw read.
+   -- Cosmetic change in dasystem.c.
 v2.50.0
    14112026: The code has been audited by Claude. (Thanks to Paul Sandery for
       running it.) Although there was no change in funcionality the version is
@@ -17,7 +21,7 @@ v2.50.0
 
       Another minor exception is to keep setting observation statistics values
       to NaNs in absence of observations rather than setting them to zeros.
-      
+
    Summary by Claude:
       Repaired build of v2.49.0 following a code audit. Items marked [R] can
       change numerical results compared to v2.49.0.
