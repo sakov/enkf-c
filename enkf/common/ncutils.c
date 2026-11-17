@@ -61,9 +61,9 @@ static double ncu_todouble(nc_type type, const void* p)
     case NC_BYTE:
         return (double) ((const int8_t*) p)[0];
     case NC_CHAR:
-        return (double) ((const uint8_t *) p)[0];
+        return (double) ((const uint8_t*) p)[0];
     case NC_UBYTE:
-        return (double) ((const uint8_t *) p)[0];
+        return (double) ((const uint8_t*) p)[0];
     case NC_SHORT:
         return (double) ((const int16_t*) p)[0];
     case NC_USHORT:
@@ -173,6 +173,7 @@ static void ncu_apply_masks(int ncid, int varid, nc_type vartype, size_t n, cons
     case NC_CHAR:
     case NC_UBYTE:
         APPLY_MASK_LOOP(uint8_t);
+
         break;
     case NC_SHORT:
         APPLY_MASK_LOOP(int16_t);
