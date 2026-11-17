@@ -61,9 +61,9 @@ static double ncu_todouble(nc_type type, const void* p)
     case NC_BYTE:
         return (double) ((const int8_t*) p)[0];
     case NC_CHAR:
-        return (double) ((const uint8_t*) p)[0];
+        return (double) ((const uint8_t *) p)[0];
     case NC_UBYTE:
-        return (double) ((const uint8_t*) p)[0];
+        return (double) ((const uint8_t *) p)[0];
     case NC_SHORT:
         return (double) ((const int16_t*) p)[0];
     case NC_USHORT:
@@ -105,109 +105,104 @@ typedef union {
 static void ncu_apply_masks(int ncid, int varid, nc_type vartype, size_t n, const void* vv, void* out, int is_double)
 {
     int has_fill = 0, has_miss = 0, has_vmin = 0, has_vmax = 0, has_vrange = 0;
-    ncu_val fill_buf = { 0 }, miss_buf = {
-    0};
-    ncu_val vmin_buf = { 0 }, vmax_buf = {
-    0}, vrange_buf[2] = { {
-    0}, {
-    0}};
+    double fill = NAN, miss = NAN, vmin = NAN, vmax = NAN;
+    double vrange[2] = { NAN, NAN };
 
     if (ncw_att_exists2(ncid, varid, "_FillValue")) {
         ncw_check_attlen(ncid, varid, "_FillValue", 1);
-        ncw_get_att(ncid, varid, "_FillValue", &fill_buf);
+        ncw_get_att_double(ncid, varid, "_FillValue", &fill);
         has_fill = 1;
     } else {
         int nofill = 1;
+        ncu_val fill_buf = { 0 };
 
         ncw_inq_var_fill(ncid, varid, &nofill, &fill_buf);
-        has_fill = !nofill;
+        if (!nofill) {
+            fill = ncu_todouble(vartype, &fill_buf);
+            has_fill = 1;
+        }
     }
 
     if (ncw_att_exists2(ncid, varid, "missing_value")) {
         ncw_check_attlen(ncid, varid, "missing_value", 1);
-        ncw_get_att(ncid, varid, "missing_value", &miss_buf);
+        ncw_get_att_double(ncid, varid, "missing_value", &miss);
         has_miss = 1;
     }
     if (ncw_att_exists2(ncid, varid, "valid_min")) {
         ncw_check_attlen(ncid, varid, "valid_min", 1);
-        ncw_get_att(ncid, varid, "valid_min", &vmin_buf);
+        ncw_get_att_double(ncid, varid, "valid_min", &vmin);
         has_vmin = 1;
     }
     if (ncw_att_exists2(ncid, varid, "valid_max")) {
         ncw_check_attlen(ncid, varid, "valid_max", 1);
-        ncw_get_att(ncid, varid, "valid_max", &vmax_buf);
+        ncw_get_att_double(ncid, varid, "valid_max", &vmax);
         has_vmax = 1;
     }
     if (ncw_att_exists2(ncid, varid, "valid_range")) {
         ncw_check_attlen(ncid, varid, "valid_range", 2);
-        ncw_get_att(ncid, varid, "valid_range", vrange_buf);
+        ncw_get_att_double(ncid, varid, "valid_range", vrange);
         has_vrange = 1;
     }
 
     if (!has_fill && !has_miss && !has_vmin && !has_vmax && !has_vrange)
         return;
 
-#define APPLY_MASK_LOOP(CTYPE, FIELD) do {                                     \
-        const CTYPE* raw = (const CTYPE*) vv;                                  \
-        CTYPE fill   = fill_buf.FIELD;                                         \
-        CTYPE miss   = miss_buf.FIELD;                                         \
-        CTYPE vmin   = vmin_buf.FIELD;                                         \
-        CTYPE vmax   = vmax_buf.FIELD;                                         \
-        CTYPE vr_min = vrange_buf[0].FIELD;                                    \
-        CTYPE vr_max = vrange_buf[1].FIELD;                                    \
-        for (size_t i = 0; i < n; ++i) {                                       \
-            CTYPE val = raw[i];                                                \
-            int invalid = (has_fill   && val == fill) ||                       \
-                          (has_miss   && val == miss) ||                       \
-                          (has_vmin   && val < vmin)  ||                       \
-                          (has_vmax   && val > vmax)  ||                       \
-                          (has_vrange && (val < vr_min || val > vr_max));      \
-            if (invalid) {                                                     \
-                if (is_double) ((double*) out)[i] = NAN;                       \
-                else           ((float*)  out)[i] = NAN;                       \
-            }                                                                  \
-        }                                                                      \
+#define APPLY_MASK_LOOP(CTYPE) do {                                                     \
+        const CTYPE* raw = (const CTYPE*) vv;                                           \
+        double vr_min = vrange[0];                                                    \
+        double vr_max = vrange[1];                                                    \
+        for (size_t i = 0; i < n; ++i) {                                                \
+            double val = (double) raw[ i ];                                             \
+            int invalid = (has_fill   && val == fill) ||                                \
+                          (has_miss   && val == miss) ||                                \
+                          (has_vmin   && val < vmin)  ||                                \
+                          (has_vmax   && val > vmax)  ||                                \
+                          (has_vrange && (val < vr_min || val > vr_max));               \
+            if (invalid) {                                                              \
+                if (is_double) ((double*) out)[i] = NAN;                              \
+                else           ((float*)  out)[i] = NAN;                              \
+            }                                                                           \
+        }                                                                               \
     } while (0)
 
     switch (vartype) {
     case NC_BYTE:
-        APPLY_MASK_LOOP(int8_t, i8);
+        APPLY_MASK_LOOP(int8_t);
 
         break;
     case NC_CHAR:
     case NC_UBYTE:
-        APPLY_MASK_LOOP(uint8_t, u8);
-
+        APPLY_MASK_LOOP(uint8_t);
         break;
     case NC_SHORT:
-        APPLY_MASK_LOOP(int16_t, i16);
+        APPLY_MASK_LOOP(int16_t);
 
         break;
     case NC_USHORT:
-        APPLY_MASK_LOOP(uint16_t, u16);
+        APPLY_MASK_LOOP(uint16_t);
 
         break;
     case NC_INT:
-        APPLY_MASK_LOOP(int32_t, i32);
+        APPLY_MASK_LOOP(int32_t);
 
         break;
     case NC_UINT:
-        APPLY_MASK_LOOP(uint32_t, u32);
+        APPLY_MASK_LOOP(uint32_t);
 
         break;
     case NC_INT64:
-        APPLY_MASK_LOOP(int64_t, i64);
+        APPLY_MASK_LOOP(int64_t);
 
         break;
     case NC_UINT64:
-        APPLY_MASK_LOOP(uint64_t, u64);
+        APPLY_MASK_LOOP(uint64_t);
         break;
     case NC_FLOAT:
-        APPLY_MASK_LOOP(float, f32);
+        APPLY_MASK_LOOP(float);
 
         break;
     case NC_DOUBLE:
-        APPLY_MASK_LOOP(double, f64);
+        APPLY_MASK_LOOP(double);
 
         break;
     default:

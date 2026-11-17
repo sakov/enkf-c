@@ -1,5 +1,9 @@
 v2.50.3
    PS 17112026
+   -  Fixed a defect in ncu_apply_masks() that failed "make hybrid" in
+      examples/1. 
+v2.50.3
+   PS 17112026
    -- Factored processing attributes in generic readers to obsatts.c and
       obsatts.h.
 v2.50.2
