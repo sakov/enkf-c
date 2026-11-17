@@ -39,16 +39,6 @@
 #include "obsatts.h"
 #include "allreaders.h"
 
-#define NADDVAR_INC 1
-#define ADDVAR_ACTION_ADD 0
-#define ADDVAR_ACTION_SUB 1
-
-typedef struct {
-    char* varname;
-    int action;
-    double* v;
-} addvar;
-
 /**
  */
 void reader_scattered(char* fname, int fid, obssection* section, grid* g, observations* obs)
@@ -60,9 +50,6 @@ void reader_scattered(char* fname, int fid, obssection* section, grid* g, observ
     double zvalue = NAN;
     int zvalueentered = 0;
     obsatts oa;
-
-    int naddvar = 0;
-    addvar* addvars = NULL;
 
     int productid = -1;
     int typeid = -1;
@@ -97,24 +84,6 @@ void reader_scattered(char* fname, int fid, obssection* section, grid* g, observ
             if (!str2double(section->pars[i].value, &zvalue))
                 enkf_quit("observation prm file: can not convert ZVALUE = \"%s\" to double\n", section->pars[i].value);
             zvalueentered = 1;
-        } else if (strcasecmp(section->pars[i].name, "ADDVAR") == 0) {
-            if (naddvar % NADDVAR_INC == 0) {
-                addvars = realloc(addvars, (naddvar + NADDVAR_INC) * sizeof(addvar));
-                addvars[naddvar].varname = strdup(section->pars[i].value);
-                addvars[naddvar].action = ADDVAR_ACTION_ADD;
-                addvars[naddvar].v = NULL;
-                enkf_printf("      ADDVAR = %s\n", addvars[naddvar].varname);
-                naddvar++;
-            }
-        } else if (strcasecmp(section->pars[i].name, "SUBVAR") == 0) {
-            if (naddvar % NADDVAR_INC == 0) {
-                addvars = realloc(addvars, (naddvar + NADDVAR_INC) * sizeof(addvar));
-                addvars[naddvar].varname = strdup(section->pars[i].value);
-                addvars[naddvar].action = ADDVAR_ACTION_SUB;
-                addvars[naddvar].v = NULL;
-                enkf_printf("      SUBVAR = %s\n", addvars[naddvar].varname);
-                naddvar++;
-            }
         } else if (!obsatts_parse_param(&oa, section->pars[i].name, section->pars[i].value))
             enkf_quit("reader_scattered(): unknown PARAMETER \"%s\"\n", section->pars[i].name);
     }
@@ -133,23 +102,6 @@ void reader_scattered(char* fname, int fid, obssection* section, grid* g, observ
     ncw_inq_vardims(ncid, varid, 1, NULL, &nobs);
     var = malloc(nobs * sizeof(double));
     ncu_readvardouble(ncid, varid, nobs, var);
-
-    /*
-     * add variables
-     */
-    for (i = 0; i < (size_t) naddvar; ++i) {
-        addvar* a = &addvars[i];
-
-        ncw_inq_varid(ncid, a->varname, &varid);
-        a->v = malloc(nobs * sizeof(double));
-        ncu_readvardouble(ncid, varid, nobs, a->v);
-        if (a->action == ADDVAR_ACTION_SUB) {
-            size_t ii;
-
-            for (ii = 0; ii < nobs; ++ii)
-                a->v[ii] = -a->v[ii];
-        }
-    }
 
     /*
      * longitude
@@ -211,7 +163,6 @@ void reader_scattered(char* fname, int fid, obssection* section, grid* g, observ
     nobs_read = 0;
     for (i = 0; i < nobs; ++i) {
         observation* o;
-        int ii;
 
         if (isnan(lon[i]) || isnan(lat[i]) || (z != NULL && isnan(z[i])) || isnan(var[i]))
             continue;
@@ -228,8 +179,6 @@ void reader_scattered(char* fname, int fid, obssection* section, grid* g, observ
         o->id_orig = i;
         o->fid = fid;
         o->value = (double) var[i];
-        for (ii = 0; ii < naddvar; ++ii)
-            o->value += addvars[ii].v[i];
         obsatts_apply(&oa, i, 0, o);
         o->lon = lon[i];
         o->lat = lat[i];
@@ -260,13 +209,6 @@ void reader_scattered(char* fname, int fid, obssection* section, grid* g, observ
     if (time != NULL)
         free(time);
     obsatts_free(&oa);
-    if (naddvar > 0) {
-        for (i = 0; i < (size_t) naddvar; ++i) {
-            free(addvars[i].varname);
-            free(addvars[i].v);
-        }
-        free(addvars);
-    }
 }
 
 /**
@@ -275,11 +217,5 @@ void reader_scattered_describe(void)
 {
     enkf_printf("\n  Generic reader \"scattered\" reads 2D or 3D scattered point data.\n");
     describe_commongenericreaderparams();
-    enkf_printf("  Parameters specific to the reader:\n\
-    - ADDVAR (-)\n\
-        name of the variable to be added to the main variable (can be repeated)\n\
-    - SUBVAR (-)\n\
-        name of the variable to be subtracted from the main variable (can be\n\
-        repeated)\n");
     describe_commonreaderparams();
 }

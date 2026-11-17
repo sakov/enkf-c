@@ -129,9 +129,19 @@ int obsatts_parse_param(obsatts* oa, const char* name, char* value)
     else if (strcasecmp(name, "INSTRUMENT") == 0) {
         strncpy(oa->instrument, value, MAXSTRLEN - 1);
         oa->instrument[MAXSTRLEN - 1] = '\0';
-    } else if (strcasecmp(name, "TIMENAME") == 0 || strcasecmp(name, "TIMENAMES") == 0 || strcasecmp(name, "QCFLAGNAME") == 0 || strcasecmp(name, "QCFLAGVARNAME") == 0 || strcasecmp(name, "QCFLAGVALS") == 0 || strcasecmp(name, "LOCATION_BASED_THINNING_TYPE") == 0);       /* handled 
-                                                                                                                                                                                                                                                                                 * elsewhere 
-                                                                                                                                                                                                                                                                                 */
+    } else if (strcasecmp(name, "ADDVAR") == 0 || strcasecmp(name, "SUBVAR") == 0) {
+        int sign = (strcasecmp(name, "ADDVAR") == 0) ? 1 : -1;
+
+        oa->addvars = realloc(oa->addvars, (oa->naddvar + 1) * sizeof(obsaddvar));
+        oa->addvars[oa->naddvar].varname = strdup(value);
+        oa->addvars[oa->naddvar].sign = sign;
+        oa->addvars[oa->naddvar].v = NULL;
+        enkf_printf("      %s = %s\n", (sign > 0) ? "ADDVAR" : "SUBVAR", value);
+        oa->naddvar++;
+    } else if (strcasecmp(name, "TIMENAME") == 0 || strcasecmp(name, "TIMENAMES") == 0 || strcasecmp(name, "QCFLAGNAME") == 0 || strcasecmp(name, "QCFLAGVARNAME") == 0 || strcasecmp(name, "QCFLAGVALS") == 0 || strcasecmp(name, "LOCATION_BASED_THINNING_TYPE") == 0);
+    /*
+     * handled elsewhere 
+     */
     else
         return 0;
 
@@ -147,6 +157,22 @@ void obsatts_read(obsatts* oa, obssection* section, int ncid, const char* varnam
     int i;
 
     assert(nprof * nz == nobs);
+
+    /*
+     * addvars / subvars
+     */
+    for (i = 0; i < oa->naddvar; ++i) {
+        obsaddvar* a = &oa->addvars[i];
+        size_t k;
+
+        ncw_inq_varid(ncid, a->varname, &varid);
+        a->v = malloc(nobs * sizeof(double));
+        oa_readvar_double(ncid, varid, nprof, nz, a->v);
+        if (a->sign < 0) {
+            for (k = 0; k < nobs; ++k)
+                a->v[k] = -a->v[k];
+        }
+    }
 
     /*
      * std
@@ -285,12 +311,15 @@ void obsatts_read(obsatts* oa, obssection* section, int ncid, const char* varnam
  */
 int obsatts_valid(const obsatts* oa, size_t idx)
 {
-    int ii;
+    int i;
 
     if ((oa->std != NULL && isnan(oa->std[idx])) || (oa->estd != NULL && isnan(oa->estd[idx])))
         return 0;
-    for (ii = 0; ii < oa->nqcflagvars; ++ii)
-        if (oa->qcflag[ii][idx] < 0 || oa->qcflag[ii][idx] > 31 || !((1u << oa->qcflag[ii][idx]) & oa->qcflagmasks[ii]))
+    for (i = 0; i < oa->nqcflagvars; ++i)
+        if (oa->qcflag[i][idx] < 0 || oa->qcflag[i][idx] > 31 || !((1u << oa->qcflag[i][idx]) & oa->qcflagmasks[i]))
+            return 0;
+    for (i = 0; i < oa->naddvar; ++i)
+        if (isnan(oa->addvars[i].v[idx]))
             return 0;
     return 1;
 }
@@ -299,6 +328,10 @@ int obsatts_valid(const obsatts* oa, size_t idx)
  */
 void obsatts_apply(const obsatts* oa, size_t idx, int default_batch, observation* o)
 {
+    int i;
+
+    for (i = 0; i < oa->naddvar; ++i)
+        o->value += oa->addvars[i].v[idx];
     o->instrument = oa->instid;
     o->batch = (oa->batch == NULL) ? default_batch : oa->batch[idx];
     o->estd = (oa->estd == NULL) ? oa->var_estd : oa->estd[idx];
@@ -310,6 +343,15 @@ void obsatts_apply(const obsatts* oa, size_t idx, int default_batch, observation
  */
 void obsatts_free(obsatts* oa)
 {
+    if (oa->naddvar > 0) {
+        int i;
+
+        for (i = 0; i < oa->naddvar; ++i) {
+            free(oa->addvars[i].varname);
+            free(oa->addvars[i].v);
+        }
+        free(oa->addvars);
+    }
     if (oa->std != NULL)
         free(oa->std);
     if (oa->estd != NULL)

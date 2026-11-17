@@ -36,16 +36,6 @@
 #include "obsatts.h"
 #include "allreaders.h"
 
-#define NADDVAR_INC 1
-#define ADDVAR_ACTION_ADD 0
-#define ADDVAR_ACTION_SUB 1
-
-typedef struct {
-    char* varname;
-    int action;
-    float* v;
-} addvar;
-
 /**
  */
 void reader_gridded_xy(char* fname, int fid, obssection* section, grid* g, observations* obs)
@@ -60,9 +50,6 @@ void reader_gridded_xy(char* fname, int fid, obssection* section, grid* g, obser
     obsatts oa;
     int ndim_var, ndim_xy;
     size_t dimlen_var[3], dimlen_xy[2];
-
-    int naddvar = 0;
-    addvar* addvars = NULL;
 
     int productid = -1;
     int typeid = -1;
@@ -94,24 +81,6 @@ void reader_gridded_xy(char* fname, int fid, obssection* section, grid* g, obser
             if (!str2double(section->pars[i].value, &zvalue))
                 enkf_quit("observation prm file: can not convert ZVALUE = \"%s\" to double\n", section->pars[i].value);
             zvalueentered = 1;
-        } else if (strcasecmp(section->pars[i].name, "ADDVAR") == 0) {
-            if (naddvar % NADDVAR_INC == 0) {
-                addvars = realloc(addvars, (naddvar + NADDVAR_INC) * sizeof(addvar));
-                addvars[naddvar].varname = strdup(section->pars[i].value);
-                addvars[naddvar].action = ADDVAR_ACTION_ADD;
-                addvars[naddvar].v = NULL;
-                enkf_printf("      ADDVAR = %s\n", addvars[naddvar].varname);
-                naddvar++;
-            }
-        } else if (strcasecmp(section->pars[i].name, "SUBVAR") == 0) {
-            if (naddvar % NADDVAR_INC == 0) {
-                addvars = realloc(addvars, (naddvar + NADDVAR_INC) * sizeof(addvar));
-                addvars[naddvar].varname = strdup(section->pars[i].value);
-                addvars[naddvar].action = ADDVAR_ACTION_SUB;
-                addvars[naddvar].v = NULL;
-                enkf_printf("      SUBVAR = %s\n", addvars[naddvar].varname);
-                naddvar++;
-            }
         } else if (!obsatts_parse_param(&oa, section->pars[i].name, section->pars[i].value))
             enkf_quit("unknown PARAMETER \"%s\"\n", section->pars[i].name);
     }
@@ -141,23 +110,6 @@ void reader_gridded_xy(char* fname, int fid, obssection* section, grid* g, obser
 
     var = malloc(nij * sizeof(float));
     ncu_readvarfloat(ncid, varid, nij, var);
-
-    /*
-     * add variables
-     */
-    for (i = 0; i < (size_t) naddvar; ++i) {
-        addvar* a = &addvars[i];
-
-        ncw_inq_varid(ncid, a->varname, &varid);
-        a->v = malloc(nij * sizeof(float));
-        ncu_readvarfloat(ncid, varid, nij, a->v);
-        if (a->action == ADDVAR_ACTION_SUB) {
-            size_t ii;
-
-            for (ii = 0; ii < nij; ++ii)
-                a->v[ii] = -a->v[ii];
-        }
-    }
 
     /*
      * longitude
@@ -260,7 +212,6 @@ void reader_gridded_xy(char* fname, int fid, obssection* section, grid* g, obser
     nobs_read = 0;
     for (i = 0; i < nij; ++i) {
         observation* o;
-        int ii;
 
         if ((npoints != NULL && npoints[i] == 0) || isnan(var[i]) || (ntime == nij && isnan(time[i])))
             continue;
@@ -277,8 +228,6 @@ void reader_gridded_xy(char* fname, int fid, obssection* section, grid* g, obser
         o->id_orig = i;
         o->fid = fid;
         o->value = (double) var[i];
-        for (ii = 0; ii < naddvar; ++ii)
-            o->value += addvars[ii].v[i];
         obsatts_apply(&oa, i, 0, o);
         if (iscurv == 0) {
             o->lon = lon[i % ni];
@@ -320,13 +269,6 @@ void reader_gridded_xy(char* fname, int fid, obssection* section, grid* g, obser
     if (time != NULL)
         free(time);
     obsatts_free(&oa);
-    if (naddvar > 0) {
-        for (i = 0; i < (size_t) naddvar; ++i) {
-            free(addvars[i].varname);
-            free(addvars[i].v);
-        }
-        free(addvars);
-    }
 }
 
 /**
@@ -344,10 +286,6 @@ void reader_gridded_xy_describe(void)
         height/depth (can be NaN)\n\
     - NPOINTSNAME (\"npoints\") (-)\n\
         number of collated points for each datum; used basically as a data mask\n\
-        when n = 0\n\
-    - ADDVAR (-)\n\
-        name of the variable to be added to the main variable (can be repeated)\n\
-    - SUBVAR (-)\n\
-        name of the variable to be subtracted from the main variable (can be repeated)\n");
+        when n = 0\n");
     describe_commonreaderparams();
 }

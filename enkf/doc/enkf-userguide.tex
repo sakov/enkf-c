@@ -39,7 +39,7 @@
 
 \begin{document}
 
-\title{EnKF-C user guide\\{\normalsize version 2.50.0}}
+\title{EnKF-C user guide\\{\normalsize version 2.51.0}}
 
 \author{Pavel Sakov}
 \date{June 19, 2014 -- \today}
@@ -1436,8 +1436,7 @@ The generic parameters include:
 \item{\verb|YMIN|} -- minimal allowed latitude (exclusive);
 \item{\verb|YMAX|} -- maximal allowed latitude (exclusive);
 \item{\verb|ZMIN|} -- minimal allowed \emph{observation} depth (inclusive);
-\item{\verb|ZMAX|} -- maximal allowed observation depth (inclusive);
-\item{\verb|LOCATION_BASED_THINNING_TYPE|} -- type of location based thinning: \verb|XYZ| (default), \verb|XY|, \verb|CELL|, or \verb|0| (\verb|no|, \verb|false|) for no thinning (Sec.~\ref{sec:superobing}).
+\item{\verb|ZMAX|} -- maximal allowed observation depth (inclusive).
 \end{description}
 Specified parameters apply to observations defined in the corresponding section of observation data parameter file.
 These parameters can be used with any reader, including custom readers.
@@ -1497,18 +1496,16 @@ Following is the description of the reader \verb|scattered|:
         a permitted value.
     - LOCATION_BASED_THINNING_TYPE
         XYZ* | XY | CELL | NIL
-  Parameters specific to the reader:
     - ADDVAR (-)
         name of the variable to be added to the main variable (can be repeated)
     - SUBVAR (-)
-        name of the variable to be subtracted from the main variable (can be
-        repeated)
+        name of the variable to be subtracted from the main variable (can be repeated)
   Parameters common to all readers:
     - VARSCALE (-)
         scale factor (applied before VARSHIFT)
     - VARSHIFT (-)
         data offset to be added (e.g. -273.15 to convert from K to C)
-    - FOOTRPINT (-)
+    - FOOTPRINT (-)
         footprint of observations in km
     - MINDEPTH (-)
         minimal allowed model depth
@@ -1540,7 +1537,6 @@ The parameters listed above as ``common to generic readers'' differ somewhat bet
 \item \verb|gridded_xyz| takes \verb|ZNAME| rather than \verb|ZVALUE| and accepts \verb|NPOINTSNAME|;
 \item \verb|gridded_xyh| requires \verb|GRIDNAME| (the name of the model grid the data is defined on, which is used instead of the longitude and latitude variables) and accepts \verb|NPOINTSNAME|;
 \item \verb|profile| accepts \verb|EXCLUDEINST| (can be repeated);
-\item \verb|ADDVAR| and \verb|SUBVAR| are only available in readers \verb|scattered| and \verb|gridded_xy|.
 \end{itemize}
 The custom readers have the following specific parameters: \verb|ADDBIAS| (\verb|amsr2|, \verb|navo|), \verb|MINWIND| and \verb|ORBITS| (\verb|amsre|), \verb|QCFLAGVALS| (\verb|cmems|).
 

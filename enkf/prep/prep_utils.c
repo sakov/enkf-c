@@ -1127,5 +1127,9 @@ void describe_commongenericreaderparams(void)
         An observation is considered valid if each of the specified flags takes\n\
         a permitted value.\n\
     - LOCATION_BASED_THINNING_TYPE\n\
-        XYZ* | XY | CELL | NIL\n");
+        XYZ* | XY | CELL | NIL\n\
+    - ADDVAR (-)\n\
+        name of the variable to be added to the main variable (can be repeated)\n\
+    - SUBVAR (-)\n\
+        name of the variable to be subtracted from the main variable (can be repeated)\n");
 }

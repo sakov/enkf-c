@@ -1,6 +1,11 @@
+v2.51.0
+   PS 18112026
+   -- Moved handling of parameters ADDVAR and SUBVAR in reader_scattered.c
+      and reader_gridded_xy.c to obsatts.c. The associated functionality now
+      applies to all generic readers.
 v2.50.3
    PS 17112026
-   -  Fixed a defect in ncu_apply_masks() that failed "make enoi" in
+   -- Fixed a defect in ncu_apply_masks() that failed "make enoi" in
       examples/1. 
 v2.50.3
    PS 17112026

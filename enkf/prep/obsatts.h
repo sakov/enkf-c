@@ -16,6 +16,12 @@
 #if !defined(_OBSATTS_H)
 
 typedef struct {
+    char* varname;
+    int sign;                   /* +1 for ADDVAR, -1 for SUBVAR */
+    double* v;                  /* flat [nobs] */
+} obsaddvar;
+
+typedef struct {
     /*
      * parsed parameter strings 
      */
@@ -25,6 +31,8 @@ typedef struct {
     char* instattname;
     char* instprefix;
     char instrument[MAXSTRLEN];
+    int naddvar;
+    obsaddvar* addvars;
 
     /*
      * loaded observation attributes 
