@@ -105,7 +105,7 @@ static void oa_readvar_int(int ncid, int varid, size_t nprof, size_t nz, int* v)
 
 /**
  */
-void obsatts_init(obsatts * oa)
+void obsatts_init(obsatts* oa)
 {
     memset(oa, 0, sizeof(obsatts));
     oa->var_estd = NAN;
@@ -114,7 +114,7 @@ void obsatts_init(obsatts * oa)
 
 /** Parses common generic reader parameters. Returns 1 if handled, 0 otherwise.
  */
-int obsatts_parse_param(obsatts * oa, const char* name, char* value)
+int obsatts_parse_param(obsatts* oa, const char* name, char* value)
 {
     if (strcasecmp(name, "STDNAME") == 0)
         oa->stdname = value;
@@ -141,7 +141,7 @@ int obsatts_parse_param(obsatts * oa, const char* name, char* value)
 /** Reads std, estd, batch, qcflag, and instrument attributes from an open
  ** NetCDF file. For non-profile readers pass nprof = nobs, nz = 1.
  */
-void obsatts_read(obsatts * oa, obssection* section, int ncid, const char* varname, size_t nobs, size_t nprof, size_t nz, int check_allmissing, int allow_char_batch_qc, observations* obs)
+void obsatts_read(obsatts* oa, obssection* section, int ncid, const char* varname, size_t nobs, size_t nprof, size_t nz, int check_allmissing, int allow_char_batch_qc, observations* obs)
 {
     int varid;
     int i;
@@ -283,7 +283,7 @@ void obsatts_read(obsatts * oa, obssection* section, int ncid, const char* varna
 /** Returns 1 if observation `idx` passes std/estd finiteness and all QC flag
  ** bitmasks, 0 otherwise.
  */
-int obsatts_valid(const obsatts * oa, size_t idx)
+int obsatts_valid(const obsatts* oa, size_t idx)
 {
     int ii;
 
@@ -297,7 +297,7 @@ int obsatts_valid(const obsatts * oa, size_t idx)
 
 /** Populates instrument, batch, and estd (applying std as lower bound) on `o`.
  */
-void obsatts_apply(const obsatts * oa, size_t idx, int default_batch, observation* o)
+void obsatts_apply(const obsatts* oa, size_t idx, int default_batch, observation* o)
 {
     o->instrument = oa->instid;
     o->batch = (oa->batch == NULL) ? default_batch : oa->batch[idx];
@@ -308,7 +308,7 @@ void obsatts_apply(const obsatts * oa, size_t idx, int default_batch, observatio
 
 /**
  */
-void obsatts_free(obsatts * oa)
+void obsatts_free(obsatts* oa)
 {
     if (oa->std != NULL)
         free(oa->std);
