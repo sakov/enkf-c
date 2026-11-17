@@ -91,6 +91,7 @@ grid/gxy_curv2.c\
 grid/gxy_unstr.c\
 grid/vgrid.c\
 grid/hgrid.c\
+prep/obsatts.c\
 prep/prep_utils.c\
 prep/obsprm.c\
 prep/allreaders.c\
@@ -120,6 +121,7 @@ grid/gxy_curv2.h\
 grid/gxy_unstr.h\
 grid/vgrid.h\
 grid/hgrid.h\
+prep/obsatts.h\
 prep/prep_utils.h\
 prep/obsprm.h\
 prep/allreaders.h

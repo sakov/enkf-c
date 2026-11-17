@@ -1,3 +1,7 @@
+v2.50.3
+   PS 17112026
+   -- Factored processing attributes in generic readers to obsatts.c and
+      obsatts.h.
 v2.50.2
    PS 17112026
    -- Consolidated typed read/write attribute handling and 2D slice logic in

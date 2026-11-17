@@ -61,9 +61,9 @@ static double ncu_todouble(nc_type type, const void* p)
     case NC_BYTE:
         return (double) ((const int8_t*) p)[0];
     case NC_CHAR:
-        return (double) ((const uint8_t *) p)[0];
+        return (double) ((const uint8_t*) p)[0];
     case NC_UBYTE:
-        return (double) ((const uint8_t *) p)[0];
+        return (double) ((const uint8_t*) p)[0];
     case NC_SHORT:
         return (double) ((const int16_t*) p)[0];
     case NC_USHORT:
@@ -105,8 +105,12 @@ typedef union {
 static void ncu_apply_masks(int ncid, int varid, nc_type vartype, size_t n, const void* vv, void* out, int is_double)
 {
     int has_fill = 0, has_miss = 0, has_vmin = 0, has_vmax = 0, has_vrange = 0;
-    ncu_val fill_buf = {0}, miss_buf = {0};
-    ncu_val vmin_buf = {0}, vmax_buf = {0}, vrange_buf[2] = {{0}, {0}};
+    ncu_val fill_buf = { 0 }, miss_buf = {
+    0};
+    ncu_val vmin_buf = { 0 }, vmax_buf = {
+    0}, vrange_buf[2] = { {
+    0}, {
+    0}};
 
     if (ncw_att_exists2(ncid, varid, "_FillValue")) {
         ncw_check_attlen(ncid, varid, "_FillValue", 1);
@@ -173,6 +177,7 @@ static void ncu_apply_masks(int ncid, int varid, nc_type vartype, size_t n, cons
     case NC_CHAR:
     case NC_UBYTE:
         APPLY_MASK_LOOP(uint8_t, u8);
+
         break;
     case NC_SHORT:
         APPLY_MASK_LOOP(int16_t, i16);

@@ -11,6 +11,7 @@
  *
  * Revisions:   08/12/2023 PS: Modified to handle multiple profiles.
  *              12/11/2025 PS: Renamed this reader from "z" to "profile".
+ *              17/11/2026 PS: Factored common attribute handling into obsatts.
  *
  *****************************************************************************/
 
@@ -28,10 +29,8 @@
 #include "grid.h"
 #include "observations.h"
 #include "prep_utils.h"
+#include "obsatts.h"
 #include "allreaders.h"
-
-#define TYPE_DOUBLE 0
-#define TYPE_SHORT 1
 
 /**
  */
@@ -96,60 +95,6 @@ static int allmissing(int ncid, char varname[])
     return status;
 }
 
-/** Reads a variable defined either for each observation ([nprof][nz]) or for
- ** each profile ([nprof]) into v[nprof][nz].
- */
-static void readvar_double(int ncid, int varid, size_t nprof, size_t nz, double** v)
-{
-    size_t size;
-    int p, k;
-
-    ncw_inq_varsize(ncid, varid, &size);
-    if (size == nprof * nz)
-        ncu_readvardouble(ncid, varid, size, v[0]);
-    else if (size == nprof) {
-        ncu_readvardouble(ncid, varid, size, v[0]);
-        /*
-         * (go downwards to avoid overwriting unread values)
-         */
-        for (p = (int) nprof - 1; p >= 0; --p)
-            v[p][0] = v[0][p];
-        for (p = 0; p < (int) nprof; ++p)
-            for (k = 1; k < (int) nz; ++k)
-                v[p][k] = v[p][0];
-    } else {
-        char varname[NC_MAX_NAME + 1];
-
-        ncw_inq_varname(ncid, varid, varname);
-        enkf_quit("%s: %s: size = %zu; expected size = %zu (per observation) or %zu (per profile)", ncw_get_path(ncid), varname, size, nprof * nz, nprof);
-    }
-}
-
-/** Same as readvar_double(), but for int.
- */
-static void readvar_int(int ncid, int varid, size_t nprof, size_t nz, int** v)
-{
-    size_t size;
-    int p, k;
-
-    ncw_inq_varsize(ncid, varid, &size);
-    if (size == nprof * nz)
-        ncw_get_var_int(ncid, varid, v[0]);
-    else if (size == nprof) {
-        ncw_get_var_int(ncid, varid, v[0]);
-        for (p = (int) nprof - 1; p >= 0; --p)
-            v[p][0] = v[0][p];
-        for (p = 0; p < (int) nprof; ++p)
-            for (k = 1; k < (int) nz; ++k)
-                v[p][k] = v[p][0];
-    } else {
-        char varname[NC_MAX_NAME + 1];
-
-        ncw_inq_varname(ncid, varid, varname);
-        enkf_quit("%s: %s: size = %zu; expected size = %zu (per observation) or %zu (per profile)", ncw_get_path(ncid), varname, size, nprof * nz, nprof);
-    }
-}
-
 /**
  */
 void reader_profile(char* fname, int fid, obssection* section, grid* g, observations* obs)
@@ -159,21 +104,12 @@ void reader_profile(char* fname, int fid, obssection* section, grid* g, observat
     char* lonname = NULL;
     char* latname = NULL;
     stringtable* st_znames = NULL;
-    char* estdname = NULL;
-    char* batchname = NULL;
-    char* instattname = NULL;
-    char* instprefix = NULL;
-    char instrument[MAXSTRLEN] = "";
+    obsatts oa;
     char** instruments = NULL;
     int* status = NULL;
 
     stringtable* st_exclude = NULL;
 
-    int nqcflagvars = 0;
-    char** qcflagvarnames = NULL;
-    uint32_t* qcflagmasks = NULL;
-
-    int instid = -1;
     int productid = -1;
     int typeid = -1;
 
@@ -185,16 +121,13 @@ void reader_profile(char* fname, int fid, obssection* section, grid* g, observat
     double* lat = NULL;
     double** var = NULL;
     double** z = NULL;
-    double var_estd = NAN;
-    double** estd = NULL;
-    int** batch = NULL;
-    int32_t*** qcflag = NULL;
     size_t ntime = 0;
     double* time = NULL;
     int varid;
     int npexcluded;
     int p, k, i, nobs_read;
 
+    obsatts_init(&oa);
     ncw_open(fname, NC_NOWRITE, &ncid);
 
     for (i = 0; i < section->npars; ++i) {
@@ -212,36 +145,11 @@ void reader_profile(char* fname, int fid, obssection* section, grid* g, observat
                 st_znames = st_create("znames");
             if (ncw_var_exists(ncid, section->pars[i].value) && !allmissing(ncid, section->pars[i].value))
                 st_add_ifabsent(st_znames, section->pars[i].value, -1);
-        } else if (strcasecmp(section->pars[i].name, "ESTDNAME") == 0)
-            estdname = section->pars[i].value;
-        else if (strcasecmp(section->pars[i].name, "BATCHNAME") == 0)
-            batchname = section->pars[i].value;
-        else if (strcasecmp(section->pars[i].name, "INSTATTNAME") == 0)
-            instattname = section->pars[i].value;
-        else if (strcasecmp(section->pars[i].name, "INSTPREFIX") == 0)
-            instprefix = section->pars[i].value;
-        else if (strcasecmp(section->pars[i].name, "INSTRUMENT") == 0)
-            strncpy(instrument, section->pars[i].value, MAXSTRLEN - 1);
-        else if (strcasecmp(section->pars[i].name, "TIMENAME") == 0 || strcasecmp(section->pars[i].name, "TIMENAMES") == 0)
-            /*
-             * TIMENAME and TIMENAMES are dealt with later
-             */
-            ;
-        else if (strcasecmp(section->pars[i].name, "QCFLAGNAME") == 0 || strcasecmp(section->pars[i].name, "QCFLAGVARNAME") == 0 || strcasecmp(section->pars[i].name, "QCFLAGVALS") == 0)
-            /*
-             * QCFLAGNAME and QCFLAGVALS are dealt with later
-             */
-            ;
-        else if (strcasecmp(section->pars[i].name, "LOCATION_BASED_THINNING_TYPE") == 0)
-            /*
-             * LOCATION_BASED_THINNING_TYPE is dealt with outside
-             */
-            ;
-        else if (strcasecmp(section->pars[i].name, "EXCLUDEINST") == 0) {
+        } else if (strcasecmp(section->pars[i].name, "EXCLUDEINST") == 0) {
             if (st_exclude == NULL)
                 st_exclude = st_create("exclude");
             st_add(st_exclude, section->pars[i].value, -1);
-        } else
+        } else if (!obsatts_parse_param(&oa, section->pars[i].name, section->pars[i].value))
             enkf_quit("unknown PARAMETER \"%s\"\n", section->pars[i].name);
     }
 
@@ -341,14 +249,14 @@ void reader_profile(char* fname, int fid, obssection* section, grid* g, observat
             ncw_inq_varid(ncid, st_findstringbyindex(st_znames, i), &varid);
             ncu_readvardouble(ncid, varid, nprof * nz, zall[i][0]);
         }
-        for (p = 0; p < nprof; ++p) {
+        for (p = 0; p < (int) nprof; ++p) {
             for (i = 0; i < nznames; ++i) {
-                for (k = 0; k < nz; ++k) {
+                for (k = 0; k < (int) nz; ++k) {
                     if (isfinite(zall[i][p][k]))
                         break;
                 }
-                if (k < nz) {
-                    for (k = 0; k < nz; ++k)
+                if (k < (int) nz) {
+                    for (k = 0; k < (int) nz; ++k)
                         z[p][k] = zall[i][p][k];
                     break;
                 }
@@ -360,105 +268,9 @@ void reader_profile(char* fname, int fid, obssection* section, grid* g, observat
     }
 
     /*
-     * estd
+     * std, estd, batch, qcflag, instrument
      */
-    varid = -1;
-    if (estdname != NULL)
-        ncw_inq_varid(ncid, estdname, &varid);
-    else if (ncw_var_exists(ncid, "error_std"))
-        ncw_inq_varid(ncid, "error_std", &varid);
-    if (varid >= 0) {
-        /*
-         * estd either per profile or for each ob.
-         */
-        estd = alloc2d(nprof, nz, sizeof(double));
-        readvar_double(ncid, varid, nprof, nz, estd);
-    }
-
-    if (estd == NULL) {
-        ncw_inq_varid(ncid, varname, &varid);
-        if (ncw_att_exists(ncid, varid, "error_std")) {
-            ncw_check_attlen(ncid, varid, "error_std", 1);
-            ncw_get_att_double(ncid, varid, "error_std", &var_estd);
-        }
-    }
-
-    /*
-     * batch
-     */
-    varid = -1;
-    if (batchname != NULL)
-        ncw_inq_varid(ncid, batchname, &varid);
-    else if (ncw_var_exists(ncid, "batch"))
-        ncw_inq_varid(ncid, "batch", &varid);
-    if (varid >= 0) {
-        int ndims;
-        size_t dimlen[2];
-        nc_type type;
-
-        batch = alloc2d(nprof, nz, sizeof(int));
-
-        ncw_inq_vardims(ncid, varid, 2, &ndims, dimlen);
-        ncw_inq_vartype(ncid, varid, &type);
-        if (type != NC_CHAR)
-            /*
-             * batch id either per profile or for each observation in profile
-             */
-            readvar_int(ncid, varid, nprof, nz, batch);
-        else if (ndims == 2) {
-            /*
-             * batch specified for each profile but strored in text format
-             */
-            char** data = alloc2d(dimlen[0], dimlen[1], 1);
-            char* entry = malloc(dimlen[1] + 1);
-
-            assert(dimlen[0] == nprof);
-            ncw_get_var_text(ncid, varid, data[0]);
-            for (p = 0; p < nprof; ++p) {
-                strncpy(entry, data[p], dimlen[1]);
-                entry[dimlen[1]] = 0;
-                if (!str2int(entry, batch[p]))
-                    enkf_quit("%s: %s: could not convert \"%s\" to int", fname, (batchname != NULL) ? batchname : "batch", entry);
-            }
-            for (p = 0; p < nprof; ++p)
-                for (k = 1; k < nz; ++k)
-                    batch[p][k] = batch[p][0];
-            free(entry);
-            free(data);
-        } else
-            enkf_quit("%s: %s: expected 2 dimensions for a batch variable of type NC_CHAR", fname, (batchname != NULL) ? batchname : "batch");
-    }
-
-    /*
-     * qcflag
-     */
-    get_qcflags(section, &nqcflagvars, &qcflagvarnames, &qcflagmasks);
-    if (nqcflagvars > 0) {
-        qcflag = alloc3d(nqcflagvars, nprof, nz, sizeof(int32_t));
-        for (i = 0; i < nqcflagvars; ++i) {
-            int32_t** qcflagi = qcflag[i];
-            nc_type type;
-
-            ncw_inq_varid(ncid, qcflagvarnames[i], &varid);
-            ncw_inq_vartype(ncid, varid, &type);
-            if (type != NC_CHAR)
-                /*
-                 * flag either for profile or for each ob.
-                 */
-                readvar_int(ncid, varid, nprof, nz, (int**) qcflagi);
-            else {
-                char* buf = NULL;
-                int o;
-
-                ncw_check_varsize(ncid, varid, nobs);
-                buf = calloc(nobs + 1, 1);
-                ncw_get_var_text(ncid, varid, buf);
-                for (o = 0; o < nobs; ++o)
-                    qcflagi[0][o] = (uint32_t) buf[o] - (uint32_t) '0';
-                free(buf);
-            }
-        }
-    }
+    obsatts_read(&oa, section, ncid, varname, nobs, nprof, nz, 0, 1, obs);
 
     /*
      * time
@@ -467,52 +279,29 @@ void reader_profile(char* fname, int fid, obssection* section, grid* g, observat
     assert(ntime == nobs || ntime == nprof || ntime <= 1);
 
     /*
-     * instrument
+     * per-profile instrument array override
      */
-    /*
-     * "instrument" can be either an tag for the whole file or a variable
-     * containing array of tags for each profile
-     */
-    if (strlen(instrument) == 0) {
-        if (instattname != NULL)
-            ncw_get_att_text_n(ncid, NC_GLOBAL, instattname, instrument, sizeof(instrument));
-        else if (!get_insttag(ncid, varname, instrument))
-            strncpy(instrument, section->product, MAXSTRLEN - 1);
-        if (strlen(instrument) > 0 && instprefix != NULL) {
-            int len_p = strlen(instprefix);
-            int len_i = strlen(instrument);
-            int ii;
-
-            assert(len_p + len_i < MAXSTRLEN);
-            for (ii = len_i - 1; ii >= 0; --ii)
-                instrument[ii + len_p] = instrument[ii];
-            for (ii = 0; ii < len_p; ++ii)
-                instrument[ii] = instprefix[ii];
-            instrument[len_p + len_i] = 0;
-        }
-    }
-    if (ncw_var_exists(ncid, instrument)) {
-        int varid;
+    if (ncw_var_exists(ncid, oa.instrument)) {
         nc_type type;
         int ndim;
         size_t dimlen[2];
         char** tmp;
 
-        ncw_inq_varid(ncid, instrument, &varid);
+        ncw_inq_varid(ncid, oa.instrument, &varid);
         ncw_inq_vartype(ncid, varid, &type);
         if (strcmp(ncw_nctype2str(type), "NC_CHAR") != 0)
-            enkf_quit("reader_z(): %s: instrument array \"%s\" is not of type \"char\"", fname, instrument);
+            enkf_quit("reader_z(): %s: instrument array \"%s\" is not of type \"char\"", fname, oa.instrument);
         ncw_inq_vardims(ncid, varid, 2, &ndim, dimlen);
         if (ndim != 2)
-            enkf_quit("reader_z(): %s: instrument array \"%s\" must have 2 dimensions", fname, instrument);
+            enkf_quit("reader_z(): %s: instrument array \"%s\" must have 2 dimensions", fname, oa.instrument);
         assert(dimlen[0] == nprof);
         tmp = alloc2d(dimlen[0], dimlen[1], sizeof(char));
         ncw_get_var(ncid, varid, tmp[0]);
         instruments = alloc2d(dimlen[0], dimlen[1] + 2, sizeof(char));
-        for (i = 0; i < dimlen[0]; ++i) {
+        for (i = 0; i < (int) dimlen[0]; ++i) {
             int ii;
 
-            for (ii = dimlen[1] - 1; ii >= 0; --ii)
+            for (ii = (int) dimlen[1] - 1; ii >= 0; --ii)
                 if (tmp[i][ii] != ' ')
                     break;
             if (ii >= 0)
@@ -525,8 +314,6 @@ void reader_profile(char* fname, int fid, obssection* section, grid* g, observat
 
     ncw_close(ncid);
 
-    if (instruments == NULL)
-        instid = st_add_ifabsent(obs->instruments, instrument, -1);
     productid = st_findindexbystring(obs->products, section->product);
     assert(productid >= 0);
     typeid = obstype_getid(obs->nobstypes, obs->obstypes, section->type, 1);
@@ -537,19 +324,17 @@ void reader_profile(char* fname, int fid, obssection* section, grid* g, observat
     for (p = 0, i = 0; p < (int) nprof; ++p) {
         if (instruments != NULL && st_exclude != NULL && st_findindexbystring(st_exclude, instruments[p]) >= 0) {
             npexcluded++;
-            i += nz;
+            i += (int) nz;
             continue;
         }
 
         for (k = 0; k < (int) nz; ++k, ++i) {
             observation* o;
-            int ii;
 
-            if (isnan(var[p][k]) || (estd != NULL && isnan(estd[p][k])) || (ntime == nobs && isnan(time[i])) || (ntime == nprof && isnan(time[p])))
+            if (isnan(var[p][k]) || (ntime == nobs && isnan(time[i])) || (ntime == nprof && isnan(time[p])))
                 continue;
-            for (ii = 0; ii < nqcflagvars; ++ii)
-                if (qcflag[ii][p][k] < 0 || qcflag[ii][p][k] > 31 || !((1u << qcflag[ii][p][k]) & qcflagmasks[ii]))
-                    goto nextob;
+            if (!obsatts_valid(&oa, (size_t) i))
+                continue;
 
             nobs_read++;
             obs_checkalloc(obs);
@@ -557,22 +342,13 @@ void reader_profile(char* fname, int fid, obssection* section, grid* g, observat
 
             o->product = productid;
             o->type = typeid;
-            if (instruments == NULL)
-                o->instrument = instid;
-            else
-                o->instrument = st_add_ifabsent(obs->instruments, instruments[p], -1);
             o->id = obs->nobs;
             o->id_orig = i;
             o->fid = fid;
-            if (batch == NULL)
-                o->batch = p;
-            else
-                o->batch = batch[p][k];
             o->value = (double) var[p][k];
-            if (estd == NULL)
-                o->estd = var_estd;
-            else
-                o->estd = estd[p][k];
+            obsatts_apply(&oa, (size_t) i, p, o);
+            if (instruments != NULL)
+                o->instrument = st_add_ifabsent(obs->instruments, instruments[p], -1);
             o->lon = lon[p];
             o->lat = lat[p];
             o->depth = z[p][k];
@@ -600,8 +376,6 @@ void reader_profile(char* fname, int fid, obssection* section, grid* g, observat
                 status[p] = 1;
 
             obs->nobs++;
-          nextob:
-            ;
         }
     }
     if (npexcluded > 0)
@@ -614,7 +388,7 @@ void reader_profile(char* fname, int fid, obssection* section, grid* g, observat
         int ngood, ii;
 
         ngood = 0;
-        for (i = 0; i < nprof; ++i) {
+        for (i = 0; i < (int) nprof; ++i) {
             if (status[i] == 0)
                 continue;
             lonlat[ngood * 2] = lon[i];
@@ -644,22 +418,17 @@ void reader_profile(char* fname, int fid, obssection* section, grid* g, observat
 
     if (st_znames != NULL)
         st_destroy(st_znames);
-    free(var);
-    free(lon);
-    free(lat);
+    if (var != NULL)
+        free(var);
+    if (lon != NULL)
+        free(lon);
+    if (lat != NULL)
+        free(lat);
     if (z != NULL)
         free(z);
-    if (estd != NULL)
-        free(estd);
-    if (batch != NULL)
-        free(batch);
     if (time != NULL)
         free(time);
-    if (nqcflagvars > 0) {
-        free(qcflagvarnames);
-        free(qcflagmasks);
-        free(qcflag);
-    }
+    obsatts_free(&oa);
     if (instruments != NULL)
         free(instruments);
     if (st_exclude != NULL)

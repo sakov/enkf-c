@@ -17,6 +17,8 @@
  *                and reader_xyz_scattered(). The functionality of 
  *                reader_xy_scattered() is achieved by specifying parameter
  *                ZVALUE (typically set to 0).
+ *              PS 17/11/2026
+ *                Factored common attribute handling into obsatts.
  *
  *****************************************************************************/
 
@@ -34,6 +36,7 @@
 #include "grid.h"
 #include "observations.h"
 #include "prep_utils.h"
+#include "obsatts.h"
 #include "allreaders.h"
 
 #define NADDVAR_INC 1
@@ -48,18 +51,6 @@ typedef struct {
 
 /**
  */
-static int allmissing(int n, double v[])
-{
-    int i;
-
-    for (i = 0; i < n; ++i)
-        if (isfinite(v[i]))
-            return 0;
-    return 1;
-}
-
-/**
- */
 void reader_scattered(char* fname, int fid, obssection* section, grid* g, observations* obs)
 {
     char* varname = NULL;
@@ -68,20 +59,11 @@ void reader_scattered(char* fname, int fid, obssection* section, grid* g, observ
     char* zname = NULL;
     double zvalue = NAN;
     int zvalueentered = 0;
-    char* stdname = NULL;
-    char* estdname = NULL;
-    char* batchname = NULL;
-    char* instattname = NULL;
-    char* instprefix = NULL;
-    char instrument[MAXSTRLEN] = "";
-    int nqcflagvars = 0;
-    char** qcflagvarnames = NULL;
-    uint32_t* qcflagmasks = NULL;
+    obsatts oa;
 
     int naddvar = 0;
     addvar* addvars = NULL;
 
-    int instid = -1;
     int productid = -1;
     int typeid = -1;
 
@@ -91,15 +73,12 @@ void reader_scattered(char* fname, int fid, obssection* section, grid* g, observ
     double* lat = NULL;
     double* z = NULL;
     double* var = NULL;
-    double var_estd = NAN;
-    double* std = NULL;
-    double* estd = NULL;
-    int* batch = NULL;
-    int32_t** qcflag = NULL;
     size_t ntime = 0;
     double* time = NULL;
     int varid;
     size_t i, nobs_read;
+
+    obsatts_init(&oa);
 
     for (i = 0; i < section->npars; ++i) {
         if (strcasecmp(section->pars[i].name, "VARNAME") == 0)
@@ -118,34 +97,7 @@ void reader_scattered(char* fname, int fid, obssection* section, grid* g, observ
             if (!str2double(section->pars[i].value, &zvalue))
                 enkf_quit("observation prm file: can not convert ZVALUE = \"%s\" to double\n", section->pars[i].value);
             zvalueentered = 1;
-        } else if (strcasecmp(section->pars[i].name, "STDNAME") == 0)
-            stdname = section->pars[i].value;
-        else if (strcasecmp(section->pars[i].name, "ESTDNAME") == 0)
-            estdname = section->pars[i].value;
-        else if (strcasecmp(section->pars[i].name, "BATCHNAME") == 0)
-            batchname = section->pars[i].value;
-        else if (strcasecmp(section->pars[i].name, "INSTATTNAME") == 0)
-            instattname = section->pars[i].value;
-        else if (strcasecmp(section->pars[i].name, "INSTPREFIX") == 0)
-            instprefix = section->pars[i].value;
-        else if (strcasecmp(section->pars[i].name, "INSTRUMENT") == 0)
-            strncpy(instrument, section->pars[i].value, MAXSTRLEN - 1);
-        else if (strcasecmp(section->pars[i].name, "TIMENAME") == 0 || strcasecmp(section->pars[i].name, "TIMENAMES") == 0)
-            /*
-             * TIMENAME and TIMENAMES are dealt with later
-             */
-            ;
-        else if (strcasecmp(section->pars[i].name, "QCFLAGNAME") == 0 || strcasecmp(section->pars[i].name, "QCFLAGVARNAME") == 0 || strcasecmp(section->pars[i].name, "QCFLAGVALS") == 0)
-            /*
-             * QCFLAGNAME and QCFLAGVALS are dealt with later
-             */
-            ;
-        else if (strcasecmp(section->pars[i].name, "LOCATION_BASED_THINNING_TYPE") == 0)
-            /*
-             * LOCATION_BASED_THINNING_TYPE is dealt with outside
-             */
-            ;
-        else if (strcasecmp(section->pars[i].name, "ADDVAR") == 0) {
+        } else if (strcasecmp(section->pars[i].name, "ADDVAR") == 0) {
             if (naddvar % NADDVAR_INC == 0) {
                 addvars = realloc(addvars, (naddvar + NADDVAR_INC) * sizeof(addvar));
                 addvars[naddvar].varname = strdup(section->pars[i].value);
@@ -163,7 +115,7 @@ void reader_scattered(char* fname, int fid, obssection* section, grid* g, observ
                 enkf_printf("      SUBVAR = %s\n", addvars[naddvar].varname);
                 naddvar++;
             }
-        } else
+        } else if (!obsatts_parse_param(&oa, section->pars[i].name, section->pars[i].value))
             enkf_quit("reader_scattered(): unknown PARAMETER \"%s\"\n", section->pars[i].name);
     }
 
@@ -185,14 +137,14 @@ void reader_scattered(char* fname, int fid, obssection* section, grid* g, observ
     /*
      * add variables
      */
-    for (i = 0; i < naddvar; ++i) {
+    for (i = 0; i < (size_t) naddvar; ++i) {
         addvar* a = &addvars[i];
 
         ncw_inq_varid(ncid, a->varname, &varid);
         a->v = malloc(nobs * sizeof(double));
         ncu_readvardouble(ncid, varid, nobs, a->v);
         if (a->action == ADDVAR_ACTION_SUB) {
-            int ii;
+            size_t ii;
 
             for (ii = 0; ii < nobs; ++ii)
                 a->v[ii] = -a->v[ii];
@@ -241,75 +193,9 @@ void reader_scattered(char* fname, int fid, obssection* section, grid* g, observ
     }
 
     /*
-     * std
+     * std, estd, batch, qcflag, instrument
      */
-    varid = -1;
-    if (stdname != NULL)
-        ncw_inq_varid(ncid, stdname, &varid);
-    else if (ncw_var_exists(ncid, "std"))
-        ncw_inq_varid(ncid, "std", &varid);
-    if (varid >= 0) {
-        ncw_check_vardims(ncid, varid, 1, &nobs);
-        std = malloc(nobs * sizeof(double));
-        ncu_readvardouble(ncid, varid, nobs, std);
-        if (allmissing(nobs, std)) {
-            free(std);
-            std = NULL;
-        }
-    }
-
-    /*
-     * estd
-     */
-    varid = -1;
-    if (estdname != NULL)
-        ncw_inq_varid(ncid, estdname, &varid);
-    else if (ncw_var_exists(ncid, "error_std"))
-        ncw_inq_varid(ncid, "error_std", &varid);
-    if (varid >= 0) {
-        ncw_check_vardims(ncid, varid, 1, &nobs);
-        estd = malloc(nobs * sizeof(double));
-        ncu_readvardouble(ncid, varid, nobs, estd);
-        if (allmissing(nobs, estd)) {
-            free(estd);
-            estd = NULL;
-        }
-    }
-
-    /*
-     * batch
-     */
-    varid = -1;
-    if (batchname != NULL)
-        ncw_inq_varid(ncid, batchname, &varid);
-    else if (ncw_var_exists(ncid, "batch"))
-        ncw_inq_varid(ncid, "batch", &varid);
-    if (varid >= 0) {
-        ncw_check_varsize(ncid, varid, nobs);
-        batch = malloc(nobs * sizeof(int));
-        ncw_get_var_int(ncid, varid, batch);
-    }
-
-    if (estd == NULL) {
-        ncw_inq_varid(ncid, varname, &varid);
-        if (ncw_att_exists(ncid, varid, "error_std")) {
-            ncw_check_attlen(ncid, varid, "error_std", 1);
-            ncw_get_att_double(ncid, varid, "error_std", &var_estd);
-        }
-    }
-
-    /*
-     * qcflag
-     */
-    get_qcflags(section, &nqcflagvars, &qcflagvarnames, &qcflagmasks);
-    if (nqcflagvars > 0) {
-        qcflag = alloc2d(nqcflagvars, nobs, sizeof(int32_t));
-        for (i = 0; i < nqcflagvars; ++i) {
-            ncw_inq_varid(ncid, qcflagvarnames[i], &varid);
-            ncw_check_vardims(ncid, varid, 1, &nobs);
-            ncw_get_var_int(ncid, varid, qcflag[i]);
-        }
-    }
+    obsatts_read(&oa, section, ncid, varname, nobs, nobs, 1, 1, 0, obs);
 
     /*
      * time
@@ -317,30 +203,8 @@ void reader_scattered(char* fname, int fid, obssection* section, grid* g, observ
     get_time(section, ncid, &ntime, &time);
     assert(ntime == nobs || ntime <= 1);
 
-    /*
-     * instrument
-     */
-    if (strlen(instrument) == 0) {
-        if (instattname != NULL)
-            ncw_get_att_text_n(ncid, NC_GLOBAL, instattname, instrument, sizeof(instrument));
-        else if (!get_insttag(ncid, varname, instrument))
-            strncpy(instrument, section->product, MAXSTRLEN - 1);
-        if (strlen(instrument) > 0 && instprefix != NULL) {
-            int len_p = strlen(instprefix);
-            int len_i = strlen(instrument);
-            int ii;
-
-            assert(len_p + len_i < MAXSTRLEN);
-            for (ii = len_i - 1; ii >= 0; --ii)
-                instrument[ii + len_p] = instrument[ii];
-            for (ii = 0; ii < len_p; ++ii)
-                instrument[ii] = instprefix[ii];
-            instrument[len_p + len_i] = 0;
-        }
-    }
     ncw_close(ncid);
 
-    instid = st_add_ifabsent(obs->instruments, instrument, -1);
     productid = st_findindexbystring(obs->products, section->product);
     assert(productid >= 0);
     typeid = obstype_getid(obs->nobstypes, obs->obstypes, section->type, 1);
@@ -351,11 +215,8 @@ void reader_scattered(char* fname, int fid, obssection* section, grid* g, observ
 
         if (isnan(lon[i]) || isnan(lat[i]) || (z != NULL && isnan(z[i])) || isnan(var[i]))
             continue;
-        if ((std != NULL && isnan(std[i])) || (estd != NULL && isnan(estd[i])) || (ntime == nobs && isnan(time[i])))
+        if ((ntime == nobs && isnan(time[i])) || !obsatts_valid(&oa, i))
             continue;
-        for (ii = 0; ii < nqcflagvars; ++ii)
-            if (qcflag[ii][i] < 0 || qcflag[ii][i] > 31 || !((1u << qcflag[ii][i]) & qcflagmasks[ii]))
-                goto nextob;
 
         nobs_read++;
         obs_checkalloc(obs);
@@ -363,20 +224,13 @@ void reader_scattered(char* fname, int fid, obssection* section, grid* g, observ
 
         o->product = productid;
         o->type = typeid;
-        o->instrument = instid;
         o->id = obs->nobs;
         o->id_orig = i;
         o->fid = fid;
-        o->batch = (batch == NULL) ? 0 : batch[i];
         o->value = (double) var[i];
         for (ii = 0; ii < naddvar; ++ii)
             o->value += addvars[ii].v[i];
-        o->estd = (estd == NULL) ? var_estd : estd[i];
-        /*
-         * std is the lower bound for estd (or estd if the latter is n/a)
-         */
-        if (std != NULL && (isnan(o->estd) || std[i] > o->estd))
-            o->estd = std[i];
+        obsatts_apply(&oa, i, 0, o);
         o->lon = lon[i];
         o->lat = lat[i];
         o->depth = (z != NULL) ? z[i] : zvalue;
@@ -395,8 +249,6 @@ void reader_scattered(char* fname, int fid, obssection* section, grid* g, observ
         o->aux = -1;
 
         obs->nobs++;
-      nextob:
-        ;
     }
     enkf_printf("        nobs = %zu\n", nobs_read);
 
@@ -405,21 +257,11 @@ void reader_scattered(char* fname, int fid, obssection* section, grid* g, observ
     if (z != NULL)
         free(z);
     free(var);
-    if (std != NULL)
-        free(std);
-    if (estd != NULL)
-        free(estd);
-    if (batch != NULL)
-        free(batch);
     if (time != NULL)
         free(time);
-    if (nqcflagvars > 0) {
-        free(qcflagvarnames);
-        free(qcflagmasks);
-        free(qcflag);
-    }
+    obsatts_free(&oa);
     if (naddvar > 0) {
-        for (i = 0; i < naddvar; ++i) {
+        for (i = 0; i < (size_t) naddvar; ++i) {
             free(addvars[i].varname);
             free(addvars[i].v);
         }
